@@ -14,24 +14,51 @@ keywords: Ultralytics Platform, monitoring, metrics, logs, deployment, performan
 
 The `Deploy` page in the sidebar serves as the monitoring dashboard for all your deployments. It combines the world map, overview metrics, and deployment management in one view.
 
+```mermaid
+graph TB
+    subgraph Dashboard
+        Map[World Map] --- Cards[Overview Cards]
+        Cards --- List[Deployments List]
+    end
+    subgraph "Per Deployment"
+        Metrics[Metrics Row]
+        Health[Health Check]
+        Logs[Logs Tab]
+        Code[Code Tab]
+        Predict[Predict Tab]
+    end
+    List --> Metrics
+    List --> Health
+    List --> Logs
+    List --> Code
+    List --> Predict
+
+    style Dashboard fill:#f5f5f5,color:#333
+    style Map fill:#2196F3,color:#fff
+    style Cards fill:#FF9800,color:#fff
+    style List fill:#4CAF50,color:#fff
+```
+
 ### Overview Cards
 
 Four summary cards at the top of the page show:
 
 <!-- Screenshot: deploy-page-four-overview-cards.avif -->
 
-| Metric                 | Description                         |
-| ---------------------- | ----------------------------------- |
-| **Total Requests (24h)** | Requests across all endpoints     |
-| **Active Deployments** | Currently running endpoints         |
-| **Error Rate (24h)**   | Percentage of failed requests       |
-| **P95 Latency (24h)**  | 95th percentile response time       |
+| Metric                   | Description                     |
+| ------------------------ | ------------------------------- |
+| **Total Requests (24h)** | Requests across all endpoints   |
+| **Active Deployments**   | Currently running endpoints     |
+| **Error Rate (24h)**     | Percentage of failed requests   |
+| **P95 Latency (24h)**    | 95th percentile response time   |
 
-The error rate card highlights in red when the rate exceeds 5%.
+!!! warning "Error Rate Alert"
+
+    The error rate card highlights in red when the rate exceeds 5%. Check the `Logs` tab on individual deployments to diagnose errors.
 
 ### World Map
 
-The interactive ECharts world map shows:
+The interactive world map shows:
 
 - **Region pins** for all 43 available regions
 - **Green pins** for deployed regions
@@ -44,11 +71,11 @@ The interactive ECharts world map shows:
 
 Below the overview cards, the deployments list shows all endpoints across your projects. Use the view mode toggle to switch between:
 
-| View        | Description                                                        |
-| ----------- | ------------------------------------------------------------------ |
-| **Cards**   | Full detail cards with metrics, logs, code, and predict tabs       |
-| **Compact** | Grid of smaller cards (2-4 columns) with key metrics               |
-| **Table**   | DataTable with sortable columns: Name, Region, Status, Requests, P95, Errors |
+| View        | Description                                                                   |
+| ----------- | ----------------------------------------------------------------------------- |
+| **Cards**   | Full detail cards with metrics, logs, code, and predict tabs                  |
+| **Compact** | Grid of smaller cards (2-4 columns) with key metrics                          |
+| **Table**   | DataTable with sortable columns: Name, Region, Status, Requests, P95, Errors  |
 
 !!! tip "Real-Time Updates"
 
@@ -60,11 +87,11 @@ Each deployment card (in cards view) shows real-time metrics:
 
 ### Metrics Row
 
-| Metric         | Description                     |
-| -------------- | ------------------------------- |
-| **Requests**   | Request count (24h) with icon   |
-| **P95 Latency**| 95th percentile response time   |
-| **Error Rate** | Percentage of failed requests   |
+| Metric          | Description                   |
+| --------------- | ----------------------------- |
+| **Requests**    | Request count (24h) with icon |
+| **P95 Latency** | 95th percentile response time |
+| **Error Rate**  | Percentage of failed requests |
 
 Metrics are fetched from the sparkline API endpoint and refresh every 60 seconds.
 
@@ -72,13 +99,19 @@ Metrics are fetched from the sparkline API endpoint and refresh every 60 seconds
 
 Running deployments show a health check indicator:
 
-- **Green heart**: Healthy — shows response latency (e.g., "142ms")
-- **Red heart**: Unhealthy — shows error message
-- **Spinning icon**: Health check in progress
+| Indicator        | Meaning                            |
+| ---------------- | ---------------------------------- |
+| **Green heart**  | Healthy — shows response latency   |
+| **Red heart**    | Unhealthy — shows error message    |
+| **Spinning icon**| Health check in progress           |
 
 Health checks auto-retry every 20 seconds when unhealthy. Click the refresh icon to manually trigger a health check. The health check has a 35-second timeout to accommodate cold starts.
 
 <!-- Screenshot: deployment-card-health-check-healthy-with-latency.avif -->
+
+!!! info "Cold Start Tolerance"
+
+    The health check uses a 35-second timeout to account for cold starts on scale-to-zero endpoints. Once the endpoint warms up, health checks complete in milliseconds.
 
 ## Logs
 
@@ -90,41 +123,43 @@ Each deployment card includes a `Logs` tab for viewing recent log entries:
 
 Each log entry shows:
 
-| Field          | Description                    |
-| -------------- | ------------------------------ |
-| **Severity**   | Color-coded bar (see below)    |
-| **Timestamp**  | Request time (local format)    |
-| **Message**    | Log content                    |
-| **HTTP info**  | Status code and latency (if applicable) |
+| Field         | Description                             |
+| ------------- | --------------------------------------- |
+| **Severity**  | Color-coded bar (see below)             |
+| **Timestamp** | Request time (local format)             |
+| **Message**   | Log content                             |
+| **HTTP info** | Status code and latency (if applicable) |
 
 ### Severity Levels
 
 Filter logs by severity using the filter buttons:
 
-| Level        | Color  | Description         |
-| ------------ | ------ | ------------------- |
-| **DEBUG**    | Gray   | Debug messages       |
-| **INFO**     | Blue   | Normal requests     |
-| **WARNING**  | Yellow | Non-critical issues |
-| **ERROR**    | Red    | Failed requests     |
+| Level        | Color    | Description        |
+| ------------ | -------- | ------------------ |
+| **DEBUG**    | Gray     | Debug messages     |
+| **INFO**     | Blue     | Normal requests    |
+| **WARNING**  | Yellow   | Non-critical issues|
+| **ERROR**    | Red      | Failed requests    |
 | **CRITICAL** | Dark Red | Critical failures  |
 
 ### Log Controls
 
-| Control        | Description                          |
-| -------------- | ------------------------------------ |
-| **Errors**     | Filter to ERROR and WARNING entries  |
-| **All**        | Show all log entries                 |
-| **Copy**       | Copy all visible logs to clipboard   |
-| **Refresh**    | Reload log entries                   |
+| Control     | Description                         |
+| ----------- | ----------------------------------- |
+| **Errors**  | Filter to ERROR and WARNING entries |
+| **All**     | Show all log entries                |
+| **Copy**    | Copy all visible logs to clipboard  |
+| **Refresh** | Reload log entries                  |
 
 Logs show the 20 most recent entries per request.
+
+!!! tip "Debugging Workflow"
+
+    When investigating errors: first click **Errors** to filter to ERROR and WARNING entries, then review timestamps and HTTP status codes. Copy logs to clipboard for sharing with your team.
 
 ## Code Examples
 
 Each deployment card includes a `Code` tab showing ready-to-use API code with your actual endpoint URL and API key:
-
-### Supported Languages
 
 === "Python"
 
@@ -183,6 +218,10 @@ Each deployment card includes a `Code` tab showing ready-to-use API code with yo
       -F "imgsz=640"
     ```
 
+!!! note "Auto-Populated Credentials"
+
+    When viewing the `Code` tab in the platform, your actual endpoint URL and API key are automatically filled in. Copy the code and run it directly.
+
 ## Deployment Predict
 
 The `Predict` tab on each deployment card provides an inline predict panel — the same interface as the model's `Predict` tab, but running inference through the deployment endpoint instead of the shared service. This is useful for testing a deployed endpoint directly from the browser.
@@ -213,6 +252,11 @@ GET /api/deployments/{deploymentId}/logs?limit=20&severity=ERROR,WARNING
 
 Returns recent log entries with optional severity filter and pagination.
 
+| Parameter    | Type   | Description                              |
+| ------------ | ------ | ---------------------------------------- |
+| `limit`      | int    | Max entries to return (default: 20)      |
+| `severity`   | string | Comma-separated severity filter          |
+
 ### Deployment Health
 
 ```
@@ -221,9 +265,17 @@ GET /api/deployments/{deploymentId}/health
 
 Returns health check status with response latency.
 
+```json
+{
+  "healthy": true,
+  "status": 200,
+  "latencyMs": 142
+}
+```
+
 ## Performance Optimization
 
-Use monitoring data to optimize:
+Use monitoring data to optimize your deployments:
 
 ### High Latency
 
@@ -234,12 +286,16 @@ If latency is too high:
 3. Consider a closer region
 4. Check image sizes being sent
 
+!!! example "Reducing Latency"
+
+    Switch from `imgsz=1280` to `imgsz=640` for a ~4x speedup with minimal accuracy loss for most use cases. Deploy to a region closer to your users for lower network latency.
+
 ### High Error Rate
 
 If errors are occurring:
 
 1. Review error logs in the `Logs` tab
-2. Check request format
+2. Check request format (multipart form required)
 3. Verify API key is valid
 4. Check rate limits
 
@@ -284,7 +340,7 @@ Yes, endpoint URLs work with external monitoring tools:
 
 - Uptime monitoring (Pingdom, UptimeRobot)
 - APM tools (Datadog, New Relic)
-- Custom health checks
+- Custom health checks via the `/health` endpoint
 
 ### How accurate are the latency numbers?
 

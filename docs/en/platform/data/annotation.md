@@ -16,7 +16,7 @@ graph TB
         A[Box] & B[Polygon] & C[Keypoint] & D[OBB] & E[Classify]
     end
     subgraph AI["AI-Assisted"]
-        F[SAM Smart]
+        F[SAM Smart] & G[YOLO Auto-Annotate]
     end
     Manual --> H[Save Labels]
     AI --> H
@@ -99,6 +99,20 @@ To annotate images:
 
 <!-- Screenshot: platform-annotate-fullscreen-edit-mode-with-toolbar.avif -->
 
+```mermaid
+graph LR
+    A[Open Dataset] --> B[Click Image]
+    B --> C[Click Edit]
+    C --> D[Draw Annotations]
+    D --> E[Save]
+    E --> F[Next Image]
+    F --> B
+
+    style C fill:#2196F3,color:#fff
+    style D fill:#FF9800,color:#fff
+    style E fill:#4CAF50,color:#fff
+```
+
 ## Annotation Modes
 
 The editor provides two annotation modes, selectable from the toolbar:
@@ -168,6 +182,10 @@ The 17 COCO keypoints are:
 
 <!-- Screenshot: platform-annotate-pose-keypoints-skeleton.avif -->
 
+!!! info "Keypoint Visibility"
+
+    Each keypoint has a visibility flag: `0` = not labeled, `1` = labeled but occluded, `2` = labeled and visible. Occluded keypoints (behind other objects) should be marked with visibility `1` — the model learns to infer their position.
+
 ### Oriented Bounding Box (OBB)
 
 Draw rotated boxes for angled objects:
@@ -202,17 +220,36 @@ Assign image-level class labels:
 
 <!-- Screenshot: platform-annotate-sam-positive-negative-points-mask.avif -->
 
+```mermaid
+graph LR
+    A[Press S] --> B[Left-click Object]
+    B --> C[SAM Generates Mask]
+    C --> D{Accurate?}
+    D -->|Yes| E[Enter to Save]
+    D -->|No| F[Add +/- Points]
+    F --> C
+
+    style A fill:#2196F3,color:#fff
+    style C fill:#FF9800,color:#fff
+    style E fill:#4CAF50,color:#fff
+```
+
 !!! tip "SAM Tips"
 
     - Start with a positive click on the object center
     - Add negative clicks to exclude background
     - Works best for distinct objects with clear edges
+    - Use 2-3 positive points for elongated objects
 
 SAM smart annotation can generate:
 
 - **Polygons** for segmentation tasks
 - **Bounding boxes** for detection tasks
 - **Oriented boxes** for OBB tasks
+
+!!! warning "SAM Task Support"
+
+    SAM smart annotation is only available for **detect**, **segment**, and **OBB** tasks. Classification and pose tasks require manual annotation.
 
 ## YOLO Auto-Annotation
 
@@ -232,6 +269,18 @@ Use trained YOLO models to automatically label images:
 
     - Official Ultralytics models (YOLO26n, YOLO26s, etc.)
     - Your own trained models from the Platform
+
+!!! example "Auto-Annotation Workflow"
+
+    Auto-annotation is most effective as a starting point:
+
+    1. Run auto-annotate with an official YOLO model
+    2. Review predictions and correct errors
+    3. Train a custom model on the corrected data
+    4. Re-run auto-annotate with your improved model
+    5. Repeat until quality is sufficient
+
+    This iterative approach produces high-quality annotations faster than manual labeling alone.
 
 ## Class Management
 
@@ -276,26 +325,45 @@ Each class is assigned a color from the Ultralytics palette. You can customize c
 
 Efficient annotation with keyboard shortcuts:
 
+### General
+
 | Shortcut              | Action                     |
 | --------------------- | -------------------------- |
-| `V`                   | Draw mode (manual)         |
-| `S`                   | Smart mode (SAM)           |
-| `1-9`                 | Select class 1-9           |
-| `Delete` / `Backspace` | Delete selected annotation |
+| `Cmd/Ctrl+S`         | Save annotations           |
 | `Cmd/Ctrl+Z`         | Undo                       |
 | `Cmd/Ctrl+Shift+Z`   | Redo                       |
 | `Cmd/Ctrl+Y`         | Redo (alternative)         |
-| `Cmd/Ctrl+S`         | Save annotations           |
-| `Cmd/Ctrl+A`         | Select all annotations     |
+| `Escape`             | Save / Deselect / Exit     |
+| `Delete` / `Backspace` | Delete selected annotation |
+| `1-9`                 | Select class 1-9           |
 | `Cmd/Ctrl+Scroll`    | Zoom in/out                |
 | `Shift+Click`        | Multi-select annotations   |
-| `Escape`             | Save / Deselect / Exit     |
-| `Enter`              | Complete polygon / Save SAM annotation |
-| `Right-click`        | Complete polygon / Add SAM negative point |
-| `Cmd/Ctrl+]`         | Bring annotation forward   |
-| `Cmd/Ctrl+[`         | Send annotation backward   |
-| `Cmd/Ctrl+Shift+]`   | Bring to front             |
-| `Cmd/Ctrl+Shift+[`   | Send to back               |
+| `Cmd/Ctrl+A`         | Select all annotations     |
+
+### Modes
+
+| Shortcut | Action               |
+| -------- | -------------------- |
+| `V`      | Draw mode (manual)   |
+| `S`      | Smart mode (SAM)     |
+
+### Drawing
+
+| Shortcut      | Action                                         |
+| ------------- | ---------------------------------------------- |
+| `Click+Drag`  | Draw bounding box (detect/OBB)                 |
+| `Click`       | Add polygon point (segment) / Place keypoint (pose) |
+| `Right-click` | Complete polygon / Add SAM negative point      |
+| `Enter`       | Complete polygon / Save SAM annotation         |
+
+### Arrange (Z-Order)
+
+| Shortcut              | Action               |
+| --------------------- | -------------------- |
+| `Cmd/Ctrl+]`         | Bring forward        |
+| `Cmd/Ctrl+[`         | Send backward        |
+| `Cmd/Ctrl+Shift+]`   | Bring to front       |
+| `Cmd/Ctrl+Shift+[`   | Send to back         |
 
 <!-- Screenshot: platform-annotate-keyboard-shortcuts-dialog.avif -->
 
@@ -319,6 +387,10 @@ History tracks:
 - Reordering annotations (z-order)
 - Editing polygon vertices (add, remove, move)
 - Moving keypoints
+
+!!! info "Unlimited Undo"
+
+    The undo stack has no fixed limit — you can undo all changes made during the current editing session, back to the original state of the image when you clicked `Edit`.
 
 ## Saving Annotations
 
@@ -373,7 +445,7 @@ The keyboard shortcut `1-9` quickly selects classes.
 Yes, but for best results:
 
 - Label all objects of your target classes in each image
-- Use the **unknown** split for unlabeled images
+- Use the label filter to identify unlabeled images
 - Exclude unlabeled images from training configuration
 
 ### Which tasks support SAM smart annotation?

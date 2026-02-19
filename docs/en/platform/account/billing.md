@@ -195,19 +195,30 @@ flowchart LR
 
 Cloud training costs depend on GPU selection:
 
-| GPU            | VRAM   | Rate/Hour |
-| -------------- | ------ | --------- |
-| RTX 2000 Ada   | 16 GB  | $0.48     |
-| RTX A4000      | 16 GB  | $0.50     |
-| RTX 3090       | 24 GB  | $0.92     |
-| RTX A6000      | 48 GB  | $0.98     |
-| RTX 4090       | 24 GB  | $1.18     |
-| L40S           | 48 GB  | $1.72     |
-| RTX 5090       | 32 GB  | $1.78     |
-| A100 80GB      | 80 GB  | $2.78     |
-| H100 PCIe      | 80 GB  | $4.78     |
-| H100 SXM       | 80 GB  | $5.38     |
-| B200            | 180 GB | $10.38    |
+| GPU           | VRAM   | Rate/Hour |
+| ------------- | ------ | --------- |
+| RTX 2000 Ada  | 16 GB  | $0.24     |
+| RTX A4500     | 20 GB  | $0.24     |
+| RTX A5000     | 24 GB  | $0.26     |
+| RTX 4000 Ada  | 20 GB  | $0.38     |
+| L4            | 24 GB  | $0.39     |
+| A40           | 48 GB  | $0.40     |
+| RTX 3090      | 24 GB  | $0.46     |
+| RTX A6000     | 48 GB  | $0.49     |
+| RTX 4090      | 24 GB  | $0.59     |
+| RTX 6000 Ada  | 48 GB  | $0.77     |
+| L40S          | 48 GB  | $0.86     |
+| RTX 5090      | 32 GB  | $0.89     |
+| L40           | 48 GB  | $0.99     |
+| A100 PCIe     | 80 GB  | $1.39     |
+| A100 SXM      | 80 GB  | $1.49     |
+| RTX PRO 6000  | 96 GB  | $1.89     |
+| H100 PCIe     | 80 GB  | $2.39     |
+| H100 SXM      | 80 GB  | $2.69     |
+| H100 NVL      | 94 GB  | $3.07     |
+| H200 NVL      | 143 GB | $3.39     |
+| H200 SXM      | 141 GB | $3.59     |
+| B200          | 180 GB | $4.99     |
 
 See [Cloud Training](../train/cloud-training.md) for complete GPU options and pricing.
 
@@ -220,7 +231,7 @@ Total Cost = GPU Rate x Training Time (hours)
 Example: Training for 2.5 hours on RTX 4090
 
 ```
-$1.18 x 2.5 = $2.95
+$0.59 x 2.5 = $1.48
 ```
 
 ## Upgrade to Pro

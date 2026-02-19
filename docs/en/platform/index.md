@@ -64,7 +64,7 @@ graph LR
 
 | Stage        | Features                                                                    |
 | ------------ | --------------------------------------------------------------------------- |
-| **Upload**   | Images (50MB), videos (1GB), ZIP archives (50GB) with automatic processing  |
+| **Upload**   | Images (50MB), videos (1GB), ZIP archives (10GB) with automatic processing  |
 | **Annotate** | Manual tools, SAM smart annotation, YOLO auto-labeling for all 5 task types |
 | **Train**    | Cloud GPUs (RTX 4090 to H200), real-time metrics, project organization      |
 | **Export**   | 17 deployment formats (ONNX, TensorRT, CoreML, TFLite, etc.)                |
@@ -257,11 +257,12 @@ Once deployed, call your endpoint from any language:
 
     | Feature          | Free        | Pro ($29/mo)     | Enterprise       |
     | ---------------- | ----------- | ---------------- | ---------------- |
-    | Sign-up Credits  | $5 - $25    | $20/mo recurring | Custom           |
+    | Sign-up Credits  | $5 - $25    | $30/seat/month   | Custom           |
+    | Models           | 100         | 500              | Unlimited        |
+    | Deployments      | 3           | 10 (warm-start)  | Unlimited        |
     | Storage          | 100 GB      | 500 GB           | Unlimited        |
-    | Deployments      | 1           | 5                | Unlimited        |
-    | Private Projects | 3           | Unlimited        | Unlimited        |
-    | Support          | Community   | Email            | Dedicated        |
+    | Teams            | -           | Up to 5 members  | Unlimited        |
+    | Support          | Community   | Priority         | Dedicated        |
 
 ## Quick Links
 
@@ -398,7 +399,42 @@ The Platform includes a full-featured annotation editor supporting:
 - **YOLO Auto-Annotation**: Use trained models to pre-label images
 - **Keyboard Shortcuts**: Efficient workflows with hotkeys
 
+| Shortcut       | Action                          |
+| -------------- | ------------------------------- |
+| `V`            | Select mode                     |
+| `S`            | SAM smart annotation mode       |
+| `A`            | Auto-annotate mode              |
+| `1` - `9`      | Select class by number          |
+| `Delete`       | Delete selected annotation      |
+| `Ctrl+Z`       | Undo                            |
+| `Ctrl+Y`       | Redo                            |
+| `Escape`       | Cancel current action           |
+
 See [Annotation](data/annotation.md) for the complete guide.
+
+### What export formats are supported?
+
+The Platform supports 17 deployment formats:
+
+| Format        | File Extension    | Use Case                       |
+| ------------- | ----------------- | ------------------------------ |
+| PyTorch       | `.pt`             | Training, general use          |
+| ONNX          | `.onnx`           | Cross-platform deployment      |
+| TorchScript   | `.torchscript`    | C++ deployment                 |
+| OpenVINO      | `_openvino_model` | Intel hardware                 |
+| TensorRT      | `.engine`         | NVIDIA GPU inference           |
+| CoreML        | `.mlpackage`      | Apple devices                  |
+| TFLite        | `.tflite`         | Mobile/edge devices            |
+| TF SavedModel | `_saved_model`    | TensorFlow ecosystem           |
+| TF GraphDef   | `.pb`             | TensorFlow legacy              |
+| PaddlePaddle  | `_paddle_model`   | Baidu ecosystem                |
+| NCNN          | `_ncnn_model`     | Mobile (Android/ARM)           |
+| Edge TPU      | `_edgetpu.tflite` | Google Coral devices           |
+| TF.js         | `_web_model`      | Browser deployment             |
+| MNN           | `.mnn`            | Alibaba mobile                 |
+| RKNN          | `.rknn`           | Rockchip NPU                   |
+| IMX           | `_imx_model`      | NXP i.MX devices              |
+| ExecuTorch    | `.pte`            | PyTorch mobile                 |
 
 ## Troubleshooting
 
@@ -406,7 +442,7 @@ See [Annotation](data/annotation.md) for the complete guide.
 
 | Problem                | Solution                                                                                                 |
 | ---------------------- | -------------------------------------------------------------------------------------------------------- |
-| Dataset won't process  | Check file format is supported (JPEG, PNG, WebP, etc.). Max file size: images 50MB, videos 1GB, ZIP 50GB |
+| Dataset won't process  | Check file format is supported (JPEG, PNG, WebP, etc.). Max file size: images 50MB, videos 1GB, ZIP 10GB |
 | Missing annotations    | Verify labels are in YOLO format with `.txt` files matching image filenames                              |
 | "Train split required" | Add `train/` folder to your dataset structure, or create splits in the dataset settings                  |
 | Class names undefined  | Add a `data.yaml` file with `names:` list, or define classes in dataset settings                         |
@@ -457,7 +493,7 @@ See [Annotation](data/annotation.md) for the complete guide.
 
 ??? question "What are the file size limits?"
 
-    Images: 50MB, Videos: 1GB, ZIP archives: 50GB. For larger files, split into multiple uploads.
+    Images: 50MB, Videos: 1GB, ZIP archives: 10GB. For larger files, split into multiple uploads.
 
 ??? question "How long are deleted items kept in Trash?"
 

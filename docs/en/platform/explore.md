@@ -6,21 +6,27 @@ keywords: Ultralytics Platform, explore, public datasets, public projects, compu
 
 # Explore
 
-[Ultralytics Platform](https://platform.ultralytics.com) Explore page showcases public content from the community. Discover datasets and projects for inspiration and learning.
+[Ultralytics Platform](https://platform.ultralytics.com) Explore page showcases public content from the community. Discover datasets and projects for inspiration and learning. The Explore page is accessible to everyone — even without signing in.
 
-<!-- Screenshot: platform-explore-page.avif -->
+<!-- Screenshot: platform-explore-datasets-tab-cards-view.avif -->
 
 ```mermaid
 graph LR
-    A[🔍 Browse] --> B[📥 Clone]
-    B --> C[✏️ Customize]
-    C --> D[🚀 Train]
+    A[🔍 Browse Explore] --> B[📥 Clone to Account]
+    B --> C[✏️ Customize & Annotate]
+    C --> D[🚀 Train Model]
+    D --> E[🌐 Deploy Endpoint]
 
     style A fill:#4CAF50,color:#fff
     style B fill:#2196F3,color:#fff
     style C fill:#FF9800,color:#fff
     style D fill:#9C27B0,color:#fff
+    style E fill:#E91E63,color:#fff
 ```
+
+!!! info "Anonymous Access"
+
+    The Explore page works without signing in. Anonymous users see official Ultralytics content in the sidebar under "Ultralytics" instead of "My Projects". To clone content or create your own, you'll need to sign up.
 
 ## Overview
 
@@ -99,48 +105,84 @@ Each item displays:
 
 ## Use Public Content
 
+```mermaid
+graph TD
+    A[Find Content on Explore] --> B{Content Type}
+    B --> C[Dataset]
+    B --> D[Project]
+    B --> E[Model]
+    C --> F[Clone Dataset]
+    D --> G[Clone Project]
+    E --> H[Download Model]
+    F --> I[Private Copy in Your Account]
+    G --> J[Private Copy with All Models]
+    H --> K[.pt / ONNX / Other Formats]
+    I --> L[Edit, Annotate, Train]
+    J --> L
+```
+
 ### Clone Dataset
 
 Use a public dataset for your training:
 
-1. Click on the dataset
-2. Click **Clone**
+1. Click on the dataset to open its detail page
+2. Click `Clone`
 3. Dataset copies to your account
 
-Cloned datasets:
+!!! note "Cloned Dataset Properties"
 
-- Are private by default
-- Can be modified
-- Don't affect the original
+    - Cloned datasets are **private by default**
+    - You can modify classes, annotations, and splits
+    - Changes don't affect the original dataset
+    - Images are deduplicated using content-addressable storage — cloning is fast
 
 ### Download Model
 
 Download a public model:
 
-1. Click on the model
-2. Click **Download**
+1. Click on the model within a project
+2. Click the **download icon**
 3. Select format (PT, ONNX, etc.)
+
+You can also use the model for inference or as a starting point for fine-tuning:
+
+```bash
+# Use a downloaded model for inference
+yolo predict model=path/to/downloaded-model.pt source=image.jpg
+
+# Fine-tune on your own dataset
+yolo train model=path/to/downloaded-model.pt data=my-dataset.yaml epochs=50
+```
 
 ### Clone Project
 
 Copy a public project to your workspace:
 
-1. Click on the project
-2. Click **Clone**
-3. Project copies with all models
+1. Click on the project to open its detail page
+2. Click `Clone`
+3. Project copies with all models to your account
 
 ## Official Ultralytics Content
 
 Official `@ultralytics` content is pinned to the top of the Explore page. This includes:
 
-| Project    | Description                 | Models                       |
-| ---------- | --------------------------- | ---------------------------- |
-| **YOLO26** | Latest January 2026 release | 27 models (all sizes, tasks) |
-| **YOLO11** | Current stable release      | 10+ models                   |
-| **YOLOv8** | Previous generation         | Various                      |
-| **YOLOv5** | Legacy, widely adopted      | Various                      |
+| Project    | Description                 | Models                       | Tasks                           |
+| ---------- | --------------------------- | ---------------------------- | ------------------------------- |
+| **YOLO26** | Latest January 2026 release | 27 models (all sizes, tasks) | detect, segment, pose, OBB, classify |
+| **YOLO11** | Current stable release      | 10+ models                   | detect, segment, pose, OBB, classify |
+| **YOLOv8** | Previous generation         | Various                      | detect, segment, pose, classify |
+| **YOLOv5** | Legacy, widely adopted      | Various                      | detect, segment, classify       |
 
 Official datasets include benchmark datasets like COCO, VOC, and other commonly used computer vision datasets.
+
+!!! tip "Quick Start with Official Models"
+
+    The fastest way to get started is to clone an official Ultralytics project and use a pretrained model to train on your own dataset:
+
+    1. Go to `Explore` > `Projects` tab
+    2. Find the **YOLO26** project from `@ultralytics`
+    3. Clone it to your account
+    4. Upload your dataset and start training with a pretrained checkpoint
 
 ## User Profiles
 
@@ -157,32 +199,44 @@ Click on a creator's username to view their public profile at `platform.ultralyt
 
 ## Make Your Content Public
 
-Make your work available to the community:
+Make your work available to the community. Public content appears on the Explore page and is visible to everyone, including users who aren't signed in.
+
+```mermaid
+graph LR
+    A[Your Private Content] --> B[Edit Settings]
+    B --> C[Set Visibility: Public]
+    C --> D[Appears on Explore Page]
+    D --> E[Community Can Clone/Download]
+```
 
 ### Make Dataset Public
 
 1. Go to your dataset
-2. Open actions menu
-3. Click **Edit**
-4. Set visibility to **Public**
-5. Click **Save**
+2. Open the actions menu (three dots)
+3. Click `Edit`
+4. Set visibility to `Public`
+5. Click `Save`
 
 ### Make Project Public
 
 1. Go to your project
-2. Open actions menu
-3. Click **Edit**
-4. Set visibility to **Public**
-5. Click **Save**
+2. Open the actions menu (three dots)
+3. Click `Edit`
+4. Set visibility to `Public`
+5. Click `Save`
 
 !!! tip "Quality Content"
 
     Before making content public:
 
-    - Add clear descriptions
-    - Include class names
-    - Verify data quality
-    - Test model performance
+    - Add a clear, descriptive name and description
+    - Define class names in the dataset settings
+    - Verify data quality and annotation accuracy
+    - Test model performance and include training metrics
+
+!!! warning "Public Content Visibility"
+
+    Public content is visible to **everyone on the internet**, including anonymous users. Make sure your dataset doesn't contain sensitive, private, or copyrighted data before making it public. You can change visibility back to private at any time.
 
 ## Guidelines
 
@@ -203,6 +257,22 @@ When contributing public content:
 - Upload inappropriate content
 - Spam low-quality content
 - Misrepresent performance
+
+## Public Content URLs
+
+Public content on the Platform uses clean, shareable URLs:
+
+| Content  | URL Pattern                                           | Example                                                |
+| -------- | ----------------------------------------------------- | ------------------------------------------------------ |
+| Profile  | `platform.ultralytics.com/{username}`                 | `platform.ultralytics.com/ultralytics`                 |
+| Datasets | `platform.ultralytics.com/{username}/datasets`        | `platform.ultralytics.com/ultralytics/datasets`        |
+| Dataset  | `platform.ultralytics.com/{username}/datasets/{slug}` | `platform.ultralytics.com/ultralytics/datasets/coco`   |
+| Project  | `platform.ultralytics.com/{username}/{project}`       | `platform.ultralytics.com/ultralytics/yolo26`          |
+| Model    | `platform.ultralytics.com/{username}/{project}/{model}` | `platform.ultralytics.com/ultralytics/yolo26/yolo26n` |
+
+!!! tip "Shareable Links"
+
+    You can share any public content URL directly. Recipients can view the content without signing in. To clone or download, they'll need an account.
 
 ## FAQ
 

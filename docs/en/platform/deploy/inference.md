@@ -25,11 +25,22 @@ Every model includes a `Predict` tab for browser-based inference:
 
 The predict panel supports multiple input methods:
 
-| Method              | Description                                              |
-| ------------------- | -------------------------------------------------------- |
-| **Image upload**    | Drag and drop or click to upload an image                |
-| **Example images**  | Click built-in examples (dataset images or defaults)     |
-| **Webcam capture**  | Live camera feed with single-frame capture               |
+| Method             | Description                                          |
+| ------------------ | ---------------------------------------------------- |
+| **Image upload**   | Drag and drop or click to upload an image            |
+| **Example images** | Click built-in examples (dataset images or defaults) |
+| **Webcam capture** | Live camera feed with single-frame capture           |
+
+```mermaid
+graph LR
+    A[Upload Image] --> D[Auto-Inference]
+    B[Example Image] --> D
+    C[Webcam Capture] --> D
+    D --> E[Results + Overlays]
+
+    style D fill:#2196F3,color:#fff
+    style E fill:#4CAF50,color:#fff
+```
 
 ### Upload Image
 
@@ -38,6 +49,10 @@ Drag and drop or click to upload:
 - **Supported formats**: JPEG, PNG, WebP, AVIF, HEIC, JP2, TIFF, BMP, and more
 - **Max size**: 10MB
 - **Auto-inference**: Results appear automatically after upload
+
+!!! info "Auto-Inference"
+
+    The predict panel runs inference automatically when you upload an image, select an example, or capture a webcam frame. No button click is needed.
 
 ### Example Images
 
@@ -50,7 +65,9 @@ The predict panel shows example images from your model's linked dataset. If no d
 
 For OBB models, aerial images of boats and airports are shown instead.
 
-Example images are preloaded on page load for instant response.
+!!! tip "Preloaded Images"
+
+    Example images are preloaded when the page loads, so clicking an example triggers near-instant inference with no download wait.
 
 ### Webcam
 
@@ -74,11 +91,11 @@ Inference results display:
 
 The results panel shows:
 
-| Field              | Description                                     |
-| ------------------ | ----------------------------------------------- |
-| **Detections list** | Each detection with class name and confidence   |
-| **Speed stats**    | Preprocess, inference, postprocess, network (ms)|
-| **JSON response**  | Raw API response in a code block                |
+| Field               | Description                                      |
+| ------------------- | ------------------------------------------------ |
+| **Detections list** | Each detection with class name and confidence    |
+| **Speed stats**     | Preprocess, inference, postprocess, network (ms) |
+| **JSON response**   | Raw API response in a code block                 |
 
 ## Inference Parameters
 
@@ -86,13 +103,15 @@ Adjust detection behavior with parameters in the collapsible **Parameters** sect
 
 <!-- Screenshot: predict-tab-parameters-sliders.avif -->
 
-| Parameter      | Range   | Default | Description                  |
-| -------------- | ------- | ------- | ---------------------------- |
-| **Confidence** | 0.01-1.0 | 0.25    | Minimum confidence threshold |
-| **IoU**        | 0.0-0.95 | 0.70    | NMS IoU threshold            |
+| Parameter      | Range          | Default | Description                            |
+| -------------- | -------------- | ------- | -------------------------------------- |
+| **Confidence** | 0.01-1.0       | 0.25    | Minimum confidence threshold           |
+| **IoU**        | 0.0-0.95       | 0.70    | NMS IoU threshold                      |
 | **Image Size** | 320, 640, 1280 | 640     | Input resize dimension (button toggle) |
 
-Changing any parameter automatically re-runs inference on the current image (debounced at 500ms).
+!!! note "Auto-Rerun"
+
+    Changing any parameter automatically re-runs inference on the current image with a 500ms debounce. No need to re-upload.
 
 ### Confidence Threshold
 
@@ -126,24 +145,17 @@ Include your API key in requests:
 Authorization: Bearer YOUR_API_KEY
 ```
 
+!!! warning "API Key Required"
+
+    All API requests require authentication. Generate an API key from `Settings > Teams` in the platform.
+
 ### Endpoint
 
 ```
-POST https://platform.ultralytics.com/api/models/{model_slug}/predict
+POST https://platform.ultralytics.com/api/models/{username}/{project}/{model}/predict
 ```
 
 ### Request
-
-=== "cURL"
-
-    ```bash
-    curl -X POST \
-      "https://platform.ultralytics.com/api/models/username/project/model/predict" \
-      -H "Authorization: Bearer YOUR_API_KEY" \
-      -F "file=@image.jpg" \
-      -F "conf=0.25" \
-      -F "iou=0.7"
-    ```
 
 === "Python"
 
@@ -159,39 +171,73 @@ POST https://platform.ultralytics.com/api/models/{model_slug}/predict
     print(response.json())
     ```
 
+=== "cURL"
+
+    ```bash
+    curl -X POST \
+      "https://platform.ultralytics.com/api/models/username/project/model/predict" \
+      -H "Authorization: Bearer YOUR_API_KEY" \
+      -F "file=@image.jpg" \
+      -F "conf=0.25" \
+      -F "iou=0.7"
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+    formData.append("conf", "0.25");
+    formData.append("iou", "0.7");
+
+    const response = await fetch(
+      "https://platform.ultralytics.com/api/models/username/project/model/predict",
+      {
+        method: "POST",
+        headers: { Authorization: "Bearer YOUR_API_KEY" },
+        body: formData,
+      }
+    );
+
+    const result = await response.json();
+    console.log(result);
+    ```
+
 <!-- Screenshot: predict-tab-code-examples-python-tab.avif -->
 
 ### Response
 
 ```json
 {
-    "success": true,
-    "predictions": [
+  "success": true,
+  "images": [
+    {
+      "shape": [1080, 1920],
+      "results": [
         {
-            "class": "person",
-            "confidence": 0.92,
-            "box": {
-                "x1": 100,
-                "y1": 50,
-                "x2": 300,
-                "y2": 400
-            }
+          "class": 0,
+          "name": "person",
+          "confidence": 0.92,
+          "box": { "x1": 100, "y1": 50, "x2": 300, "y2": 400 }
         },
         {
-            "class": "car",
-            "confidence": 0.87,
-            "box": {
-                "x1": 400,
-                "y1": 200,
-                "x2": 600,
-                "y2": 350
-            }
+          "class": 2,
+          "name": "car",
+          "confidence": 0.87,
+          "box": { "x1": 400, "y1": 200, "x2": 600, "y2": 350 }
         }
-    ],
-    "image": {
-        "width": 1920,
-        "height": 1080
+      ],
+      "speed": {
+        "preprocess": 1.2,
+        "inference": 12.5,
+        "postprocess": 2.3
+      }
     }
+  ],
+  "metadata": {
+    "model": "yolo11n.pt",
+    "task": "detect"
+  }
 }
 ```
 
@@ -199,14 +245,17 @@ POST https://platform.ultralytics.com/api/models/{model_slug}/predict
 
 ### Response Fields
 
-| Field                      | Type    | Description                |
-| -------------------------- | ------- | -------------------------- |
-| `success`                  | boolean | Request status             |
-| `predictions`              | array   | List of detections         |
-| `predictions[].class`      | string  | Class name                 |
-| `predictions[].confidence` | float   | Detection confidence (0-1) |
-| `predictions[].box`        | object  | Bounding box coordinates   |
-| `image`                    | object  | Original image dimensions  |
+| Field                      | Type    | Description                         |
+| -------------------------- | ------- | ----------------------------------- |
+| `success`                  | boolean | Request status                      |
+| `images`                   | array   | List of processed images            |
+| `images[].shape`           | array   | Image dimensions [height, width]    |
+| `images[].results`         | array   | List of detections                  |
+| `images[].results[].name`  | string  | Class name                          |
+| `images[].results[].confidence` | float | Detection confidence (0-1)      |
+| `images[].results[].box`   | object  | Bounding box coordinates            |
+| `images[].speed`           | object  | Processing times in milliseconds    |
+| `metadata`                 | object  | Model info and task type            |
 
 ### Task-Specific Responses
 
@@ -216,7 +265,8 @@ Response format varies by task:
 
     ```json
     {
-      "class": "person",
+      "class": 0,
+      "name": "person",
       "confidence": 0.92,
       "box": {"x1": 100, "y1": 50, "x2": 300, "y2": 400}
     }
@@ -226,7 +276,8 @@ Response format varies by task:
 
     ```json
     {
-      "class": "person",
+      "class": 0,
+      "name": "person",
       "confidence": 0.92,
       "box": {"x1": 100, "y1": 50, "x2": 300, "y2": 400},
       "segments": [[100, 50], [150, 60], ...]
@@ -237,7 +288,8 @@ Response format varies by task:
 
     ```json
     {
-      "class": "person",
+      "class": 0,
+      "name": "person",
       "confidence": 0.92,
       "box": {"x1": 100, "y1": 50, "x2": 300, "y2": 400},
       "keypoints": [
@@ -251,10 +303,22 @@ Response format varies by task:
 
     ```json
     {
-      "predictions": [
-        {"class": "cat", "confidence": 0.95},
-        {"class": "dog", "confidence": 0.03}
+      "results": [
+        {"class": 0, "name": "cat", "confidence": 0.95},
+        {"class": 1, "name": "dog", "confidence": 0.03}
       ]
+    }
+    ```
+
+=== "OBB"
+
+    ```json
+    {
+      "class": 0,
+      "name": "ship",
+      "confidence": 0.89,
+      "box": {"x1": 100, "y1": 50, "x2": 300, "y2": 400},
+      "obb": {"x1": 105, "y1": 48, "x2": 295, "y2": 55, "x3": 290, "y3": 395, "x4": 110, "y4": 402}
     }
     ```
 
@@ -262,12 +326,14 @@ Response format varies by task:
 
 Shared inference has rate limits:
 
-| Plan | Requests/Minute | Requests/Day |
-| ---- | --------------- | ------------ |
-| Free | 10              | 100          |
-| Pro  | 60              | 10,000       |
+| Plan     | Requests/Minute | Requests/Day |
+| -------- | --------------- | ------------ |
+| **Free** | 10              | 100          |
+| **Pro**  | 60              | 10,000       |
 
-For higher limits, deploy a [dedicated endpoint](endpoints.md).
+!!! tip "Need More Throughput?"
+
+    Deploy a [dedicated endpoint](endpoints.md) for unlimited requests with no rate limits. Dedicated endpoints also provide consistent low-latency responses.
 
 ## Error Handling
 
@@ -323,3 +389,21 @@ The current API processes one image per request. For batch:
 1. Send concurrent requests
 2. Use a dedicated endpoint for higher throughput
 3. Consider local inference for large batches
+
+!!! example "Batch Inference with Python"
+
+    ```python
+    import concurrent.futures
+    import requests
+
+    url = "https://predict-abc123-us-central1.a.run.app/predict"
+    headers = {"Authorization": "Bearer YOUR_API_KEY"}
+    images = ["img1.jpg", "img2.jpg", "img3.jpg"]
+
+    def predict(image_path):
+        with open(image_path, "rb") as f:
+            return requests.post(url, headers=headers, files={"file": f}).json()
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        results = list(executor.map(predict, images))
+    ```

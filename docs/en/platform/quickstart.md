@@ -130,24 +130,55 @@ A **Recent Activity** table at the bottom shows your latest datasets, models, an
 
 ## Upload Your First Dataset
 
-Navigate to Datasets and click "Upload Dataset" to add your training data.
+Navigate to `Annotate` in the sidebar and click `New Dataset` to add your training data. You can also drag and drop files directly onto the Datasets card on the Home dashboard.
 
-<!-- Screenshot: platform-quickstart-upload.avif -->
+<!-- Screenshot: platform-quickstart-upload-dialog.avif -->
 
 Ultralytics Platform supports multiple upload formats:
 
-| Format          | Description                                    |
-| --------------- | ---------------------------------------------- |
-| **Images**      | JPG, PNG, WebP, TIFF, and other common formats |
-| **ZIP Archive** | Compressed folder with images and labels       |
-| **Video**       | MP4, AVI - frames extracted automatically      |
-| **YOLO Format** | Standard YOLO dataset structure with labels    |
+| Format          | Max Size | Description                                    |
+| --------------- | -------- | ---------------------------------------------- |
+| **Images**      | 50 MB    | JPG, PNG, WebP, TIFF, and other common formats |
+| **ZIP Archive** | 10 GB    | Compressed folder with images and labels       |
+| **Video**       | 1 GB     | MP4, AVI - frames extracted at ~1 fps (max 100 frames) |
+| **YOLO Format** | 10 GB    | Standard YOLO dataset structure with labels    |
 
-After upload, the Platform processes your data:
+```mermaid
+graph LR
+    A[Drop Files] --> B[Auto-Package ZIP]
+    B --> C[Upload to Storage]
+    C --> D[Backend Worker]
+    D --> E[Resize & Thumbnail]
+    E --> F[Parse Labels]
+    F --> G[Compute Statistics]
+    G --> H[Dataset Ready]
+```
 
-1. Images are normalized and thumbnails generated
-2. Labels are parsed and validated
-3. Statistics are computed automatically
+After upload, the Platform automatically processes your data:
+
+1. Images larger than 4096px are resized (preserving aspect ratio)
+2. 256px thumbnails are generated for fast browsing
+3. Labels are parsed and validated (YOLO `.txt` format)
+4. Statistics are computed (class distribution, heatmaps, dimensions)
+
+!!! tip "YOLO Dataset Structure"
+
+    For best results, upload a ZIP with the standard YOLO structure:
+
+    ```
+    my-dataset.zip
+    ├── data.yaml          # Class names and splits
+    ├── train/
+    │   ├── images/
+    │   │   ├── img001.jpg
+    │   │   └── img002.jpg
+    │   └── labels/
+    │       ├── img001.txt
+    │       └── img002.txt
+    └── val/
+        ├── images/
+        └── labels/
+    ```
 
 Read more about [datasets](data/datasets.md) and supported formats.
 
@@ -166,32 +197,50 @@ Read more about [projects](train/projects.md).
 
 ## Train Your First Model
 
-From your project, click "Train Model" to start cloud training.
+From your project, click `Train Model` to start cloud training.
 
-<!-- Screenshot: platform-quickstart-train.avif -->
+<!-- Screenshot: platform-quickstart-training-dialog-cloud-tab.avif -->
 
 ### Training Configuration
 
-1. **Select Dataset**: Choose from your uploaded datasets
-2. **Choose Model**: Select a base model (YOLO26n, YOLO26s, etc.)
-3. **Set Epochs**: Number of training iterations
-4. **Select GPU**: Choose compute resources
+1. **Select Dataset**: Choose from your uploaded datasets (only datasets with a `train` split are shown)
+2. **Choose Model**: Select a base model — official Ultralytics models or your own trained models
+3. **Set Epochs**: Number of training iterations (default: 100)
+4. **Select GPU**: Choose compute resources based on your budget and model size
 
-| Model   | Size        | Speed    | Accuracy |
-| ------- | ----------- | -------- | -------- |
-| YOLO26n | Nano        | Fastest  | Good     |
-| YOLO26s | Small       | Fast     | Better   |
-| YOLO26m | Medium      | Moderate | High     |
-| YOLO26l | Large       | Slower   | Higher   |
-| YOLO26x | Extra Large | Slowest  | Best     |
+| Model   | Size        | Speed    | Accuracy | Recommended GPU  |
+| ------- | ----------- | -------- | -------- | ---------------- |
+| YOLO26n | Nano        | Fastest  | Good     | RTX 4090 (24 GB) |
+| YOLO26s | Small       | Fast     | Better   | RTX 4090 (24 GB) |
+| YOLO26m | Medium      | Moderate | High     | A100 (80 GB)     |
+| YOLO26l | Large       | Slower   | Higher   | A100 (80 GB)     |
+| YOLO26x | Extra Large | Slowest  | Best     | H100 (80 GB)     |
+
+!!! info "GPU Selection"
+
+    GPUs range from $0.24/hr (RTX 2000 Ada, 16 GB) to $4.99/hr (B200, 180 GB). The default GPU is **RTX PRO 6000** (96 GB Blackwell, $1.89/hr) — a great balance of memory and performance. See the full [GPU pricing table](index.md#what-gpu-options-are-available-for-cloud-training) for all 22 options.
+
+!!! warning "Credit Balance Required"
+
+    Cloud training requires a minimum credit balance of $5.00. Check your balance in `Settings > Billing`. New accounts receive free credits ($5 for personal email, $25 for work email).
 
 ### Monitor Training
 
-Once training starts, you can monitor progress in real-time:
+Once training starts, you can monitor progress in real-time through three subtabs:
 
-- **Loss Curves**: Track training and validation loss
-- **Metrics**: mAP, precision, recall updated each epoch
-- **System Stats**: GPU utilization, memory usage
+| Subtab      | Content                                                    |
+| ----------- | ---------------------------------------------------------- |
+| **Charts**  | Training/validation loss curves, mAP, precision, recall    |
+| **Console** | Live training log output                                   |
+| **System**  | GPU utilization, memory usage, hardware metrics            |
+
+<!-- Screenshot: platform-training-charts-loss-and-metrics.avif -->
+
+Metrics are streamed in real-time via SSE (Server-Sent Events). After training completes, validation plots are generated including confusion matrix, PR curves, and F1 curves.
+
+!!! tip "Cancel Training"
+
+    You can cancel a running training job at any time. You're only charged for the compute time used up to that point.
 
 Read more about [cloud training](train/cloud-training.md).
 
@@ -199,19 +248,47 @@ Read more about [cloud training](train/cloud-training.md).
 
 After training completes, test your model directly in the browser:
 
-1. Navigate to your model's **Predict** tab
+1. Navigate to your model's `Predict` tab
 2. Upload an image, drag and drop, or use example images (auto-inference on drop)
 3. View inference results with bounding boxes rendered on canvas
 
-<!-- Screenshot: platform-predict-tab-with-results.avif -->
+<!-- Screenshot: platform-predict-tab-with-bounding-boxes.avif -->
 
 Adjust inference parameters:
 
-- **Confidence Threshold**: Filter low-confidence predictions
-- **IoU Threshold**: Control overlap for NMS
-- **Image Size**: Resize input for inference
+| Parameter      | Default | Description                          |
+| -------------- | ------- | ------------------------------------ |
+| **Confidence** | 0.25    | Filter low-confidence predictions    |
+| **IoU**        | 0.7     | Control overlap for NMS              |
+| **Image Size** | 640     | Resize input for inference           |
 
-The Predict tab also provides ready-to-use Python and cURL code examples with your API key.
+The `Predict` tab provides ready-to-use code examples with your actual API key pre-filled:
+
+=== "Python"
+
+    ```python
+    import requests
+
+    url = "https://platform.ultralytics.com/api/models/{model_slug}/predict"
+    headers = {"Authorization": "Bearer your_api_key"}
+
+    with open("image.jpg", "rb") as f:
+        response = requests.post(url, headers=headers, files={"file": f})
+
+    print(response.json())
+    ```
+
+=== "cURL"
+
+    ```bash
+    curl -X POST "https://platform.ultralytics.com/api/models/{model_slug}/predict" \
+      -H "Authorization: Bearer your_api_key" \
+      -F "file=@image.jpg"
+    ```
+
+!!! tip "Auto-Inference"
+
+    The Predict tab runs inference automatically when you drop an image — no need to click a button. Example images (bus.jpg, zidane.jpg) are preloaded for instant testing.
 
 Read more about [inference](deploy/inference.md).
 
@@ -219,11 +296,24 @@ Read more about [inference](deploy/inference.md).
 
 Deploy your model to a dedicated endpoint for production use:
 
-1. Navigate to your model's **Deploy** tab
-2. Select a region from the global map (43 available)
-3. Click "Deploy" to create your endpoint
+1. Navigate to your model's `Deploy` tab
+2. Select a region from the interactive world map (43 available regions)
+3. The map shows real-time latency measurements with traffic light colors (green < 100ms, yellow < 200ms, red > 200ms)
+4. Click `Deploy` to create your endpoint
 
-<!-- Screenshot: platform-deploy-tab.avif -->
+<!-- Screenshot: platform-deploy-tab-region-map-with-latency.avif -->
+
+```mermaid
+graph LR
+    A[Select Region] --> B[Deploy]
+    B --> C[Provisioning ~1 min]
+    C --> D[Running]
+    D --> E{Lifecycle}
+    E --> F[Stop]
+    E --> G[Delete]
+    F --> H[Resume]
+    H --> D
+```
 
 Your endpoint will be ready in about a minute with:
 
@@ -231,7 +321,32 @@ Your endpoint will be ready in about a minute with:
 - **Auto-Scaling**: Scales with traffic automatically
 - **Monitoring**: Request metrics and logs
 
+!!! info "Deployment Lifecycle"
+
+    Endpoints can be **started**, **stopped**, and **deleted**. Stopped endpoints don't incur compute costs but retain their configuration. Restart a stopped endpoint with one click.
+
+After deployment, you can manage all your endpoints from the `Deploy` section in the sidebar, which shows a global map with active deployments, overview metrics, and a list of all endpoints.
+
 Read more about [endpoints](deploy/endpoints.md).
+
+## Remote Training (Optional)
+
+If you prefer to train on your own hardware, you can stream metrics to Platform using your API key. This works like Weights & Biases — train anywhere, monitor on Platform.
+
+1. Generate an API key in `Settings > Teams > API Keys`
+2. Set the environment variable and train with a `project/name` format:
+
+```bash
+export ULTRALYTICS_API_KEY="ul_your_api_key_here"
+
+yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
+```
+
+!!! note "API Key Format"
+
+    API keys start with `ul_` followed by 40 hex characters. They support scoped permissions: `training`, `models`, `datasets`, `read`, `write`, `admin`.
+
+Read more about [API keys](account/api-keys.md) and [remote training](train/cloud-training.md).
 
 ## Feedback
 

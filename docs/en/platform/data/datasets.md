@@ -40,6 +40,10 @@ Videos are automatically extracted to frames on the client side:
 | MKV    | `.mkv`     | 1 FPS, max 100 frames |
 | M4V    | `.m4v`     | 1 FPS, max 100 frames |
 
+!!! info "Video Frame Extraction"
+
+    Video frames are extracted at 1 frame per second in the browser before upload. A 60-second video produces 60 frames. The maximum is 100 frames per video, so videos longer than ~100 seconds will be sampled.
+
 ### Supported Archive Formats
 
 Archives are extracted and processed automatically:
@@ -96,6 +100,10 @@ names:
     2: dog
 ```
 
+!!! tip "Flat Directory Structure"
+
+    You can also upload images without the train/val folder structure. Images uploaded without split folders are assigned to the `train` split by default. You can reassign them later using bulk move/copy.
+
 ### Upload Process
 
 1. Navigate to `Datasets` in the sidebar
@@ -106,7 +114,23 @@ names:
 
 <!-- Screenshot: platform-datasets-upload-dialog-task-selector.avif -->
 
-After upload, the Platform processes your data:
+After upload, the Platform processes your data through a multi-stage pipeline:
+
+```mermaid
+graph LR
+    A[Upload] --> B[Validate]
+    B --> C[Normalize]
+    C --> D[Thumbnail]
+    D --> E[Parse Labels]
+    E --> F[Statistics]
+
+    style A fill:#4CAF50,color:#fff
+    style B fill:#2196F3,color:#fff
+    style C fill:#2196F3,color:#fff
+    style D fill:#2196F3,color:#fff
+    style E fill:#2196F3,color:#fff
+    style F fill:#9C27B0,color:#fff
+```
 
 1. **Validation**: Format and size checks
 2. **Normalization**: Large images resized (max 4096px, min dimension 64px)
@@ -125,6 +149,10 @@ After upload, the Platform processes your data:
 
     check_dataset("path/to/dataset.zip", task="detect")
     ```
+
+!!! warning "Image Size Requirements"
+
+    Images must be at least 64px on their shortest side. Images smaller than this are rejected during processing. Images larger than 4096px on their longest side are automatically resized with aspect ratio preserved and converted to WebP (quality 92).
 
 ## Browse Images
 
@@ -160,6 +188,10 @@ Images can be sorted and filtered for efficient browsing:
 - **Split filter**: Show images from a specific split (Train, Val, Test, or All)
 - **Label filter**: Show All, Labeled only, or Unlabeled only
 - **Search**: Filter images by filename
+
+!!! tip "Finding Unlabeled Images"
+
+    Use the label filter set to `Unlabeled` to quickly find images that still need annotation. This is especially useful for large datasets where you want to track labeling progress.
 
 ### Fullscreen Viewer
 
@@ -205,6 +237,10 @@ Manage annotation classes for your dataset:
 
 <!-- Screenshot: platform-datasets-classes-tab-histogram-and-table.avif -->
 
+!!! note "Log Scale for Imbalanced Datasets"
+
+    If your dataset has class imbalance (e.g., 10,000 "person" annotations but only 50 "bicycle"), use the `Log Scale` toggle on the class histogram to visualize all classes clearly.
+
 ### Charts Tab
 
 Automatic statistics computed from your dataset:
@@ -224,6 +260,10 @@ Automatic statistics computed from your dataset:
 !!! tip "Statistics Caching"
 
     Statistics are cached for 5 minutes. Changes to annotations will be reflected after the cache expires.
+
+!!! info "Fullscreen Heatmaps"
+
+    Click the expand button on any heatmap to view it in fullscreen mode. This provides a larger, more detailed view — useful for understanding spatial patterns in large datasets.
 
 ### Models Tab
 
@@ -252,6 +292,15 @@ Images that failed processing are listed here with:
 
 <!-- Screenshot: platform-datasets-errors-tab-processing-failures.avif -->
 
+??? info "Common Processing Errors"
+
+    | Error                      | Cause                                   | Fix                                    |
+    | -------------------------- | --------------------------------------- | -------------------------------------- |
+    | Unable to read image file  | Corrupted or unsupported format         | Re-export from image editor            |
+    | Incomplete or corrupted    | File was truncated during transfer      | Re-download the original file          |
+    | Image too small            | Minimum dimension below 64px            | Use higher resolution source images    |
+    | Unsupported color mode     | CMYK or indexed color mode              | Convert to RGB mode                    |
+
 ## Export Dataset
 
 Export your dataset in NDJSON format for offline use:
@@ -270,6 +319,10 @@ The NDJSON format stores one JSON object per line. The first line contains datas
 {"type": "image", "file": "img002.jpg", "url": "https://...", "width": 1280, "height": 720, "split": "val"}
 ```
 
+!!! note "Signed URLs"
+
+    Image URLs in the exported NDJSON are signed and valid for 7 days. If you need fresh URLs, re-export the dataset.
+
 See the [Ultralytics NDJSON format documentation](https://docs.ultralytics.com/datasets/detect/#ultralytics-ndjson-format) for full specification.
 
 ## Bulk Move/Copy Images
@@ -280,7 +333,9 @@ Move or copy images between datasets:
 2. Click `Move` or `Copy` from the selection toolbar
 3. Select the destination dataset
 
-This is useful for organizing images across datasets or creating train/val splits manually.
+!!! tip "Organizing Train/Val Splits"
+
+    Use bulk move to manually create train/val/test splits. Upload all images to one dataset, then move a subset to a validation or test dataset.
 
 ## Dataset URI
 
@@ -292,10 +347,21 @@ ul://username/datasets/dataset-slug
 
 Use this URI to train models from anywhere:
 
-```bash
-export ULTRALYTICS_API_KEY="your_api_key"
-yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100
-```
+=== "CLI"
+
+    ```bash
+    export ULTRALYTICS_API_KEY="your_api_key"
+    yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100
+    ```
+
+=== "Python"
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolo26n.pt")
+    model.train(data="ul://username/datasets/my-dataset", epochs=100)
+    ```
 
 !!! example "Train Anywhere with Platform Data"
 
@@ -346,7 +412,7 @@ Delete a dataset you no longer need:
 
 !!! note "Trash and Restore"
 
-    Deleted datasets are moved to Trash for 30 days. You can restore them from the Trash page in Settings.
+    Deleted datasets are moved to Trash for 30 days. You can restore them from `Settings > Trash`.
 
 ## Train on Dataset
 
@@ -356,6 +422,17 @@ Start training directly from your dataset:
 2. Select a project or create new
 3. Configure training parameters
 4. Start training
+
+```mermaid
+graph LR
+    A[Dataset] --> B[Train Model]
+    B --> C[Select Project]
+    C --> D[Configure]
+    D --> E[Start Training]
+
+    style A fill:#2196F3,color:#fff
+    style E fill:#4CAF50,color:#fff
+```
 
 See [Cloud Training](../train/cloud-training.md) for details.
 

@@ -35,6 +35,23 @@ Create a deployment from the global `Deploy` page in the sidebar:
 
 <!-- Screenshot: new-deployment-dialog-with-model-selector-and-region-map.avif -->
 
+### Deployment Lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> Creating: Deploy
+    Creating --> Deploying: Container starting
+    Deploying --> Ready: Health check passed
+    Ready --> Stopping: Stop
+    Stopping --> Stopped: Stopped
+    Stopped --> Ready: Start
+    Ready --> [*]: Delete
+    Stopped --> [*]: Delete
+    Creating --> Failed: Error
+    Deploying --> Failed: Error
+    Failed --> [*]: Delete
+```
+
 ### Region Selection
 
 Choose from 43 regions worldwide. The interactive region map and table show:
@@ -48,13 +65,13 @@ Choose from 43 regions worldwide. The interactive region map and table show:
 
 The region table includes:
 
-| Column       | Description                                    |
-| ------------ | ---------------------------------------------- |
-| **Location** | City and country with flag icon                |
-| **Zone**     | Region identifier                              |
-| **Latency**  | Measured ping time (median of 3 pings)         |
-| **Distance** | Distance from your location in km              |
-| **Actions**  | Deploy button or "Deployed" status badge       |
+| Column       | Description                              |
+| ------------ | ---------------------------------------- |
+| **Location** | City and country with flag icon          |
+| **Zone**     | Region identifier                        |
+| **Latency**  | Measured ping time (median of 3 pings)   |
+| **Distance** | Distance from your location in km        |
+| **Actions**  | Deploy button or "Deployed" status badge |
 
 !!! tip "Choose Wisely"
 
@@ -64,66 +81,66 @@ The region table includes:
 
 ### Americas (14 regions)
 
-| Zone                    | Location              |
-| ----------------------- | --------------------- |
-| us-central1             | Iowa, USA             |
-| us-east1                | South Carolina, USA   |
-| us-east4                | Northern Virginia, USA|
-| us-east5                | Columbus, USA         |
-| us-south1               | Dallas, USA           |
-| us-west1                | Oregon, USA           |
-| us-west2                | Los Angeles, USA      |
-| us-west3                | Salt Lake City, USA   |
-| us-west4                | Las Vegas, USA        |
-| northamerica-northeast1 | Montreal, Canada      |
-| northamerica-northeast2 | Toronto, Canada       |
-| northamerica-south1     | Queretaro, Mexico     |
-| southamerica-east1      | Sao Paulo, Brazil     |
-| southamerica-west1      | Santiago, Chile       |
+| Zone                    | Location               |
+| ----------------------- | ---------------------- |
+| us-central1             | Iowa, USA              |
+| us-east1                | South Carolina, USA    |
+| us-east4                | Northern Virginia, USA |
+| us-east5                | Columbus, USA          |
+| us-south1               | Dallas, USA            |
+| us-west1                | Oregon, USA            |
+| us-west2                | Los Angeles, USA       |
+| us-west3                | Salt Lake City, USA    |
+| us-west4                | Las Vegas, USA         |
+| northamerica-northeast1 | Montreal, Canada       |
+| northamerica-northeast2 | Toronto, Canada        |
+| northamerica-south1     | Queretaro, Mexico      |
+| southamerica-east1      | Sao Paulo, Brazil      |
+| southamerica-west1      | Santiago, Chile        |
 
 ### Europe (13 regions)
 
-| Zone              | Location            |
-| ----------------- | ------------------- |
-| europe-west1      | St. Ghislain, Belgium |
-| europe-west2      | London, UK          |
-| europe-west3      | Frankfurt, Germany  |
+| Zone              | Location               |
+| ----------------- | ---------------------- |
+| europe-west1      | St. Ghislain, Belgium  |
+| europe-west2      | London, UK             |
+| europe-west3      | Frankfurt, Germany     |
 | europe-west4      | Eemshaven, Netherlands |
-| europe-west6      | Zurich, Switzerland |
-| europe-west8      | Milan, Italy        |
-| europe-west9      | Paris, France       |
-| europe-west10     | Berlin, Germany     |
-| europe-west12     | Turin, Italy        |
-| europe-north1     | Hamina, Finland     |
-| europe-north2     | Stockholm, Sweden   |
-| europe-central2   | Warsaw, Poland      |
-| europe-southwest1 | Madrid, Spain       |
+| europe-west6      | Zurich, Switzerland    |
+| europe-west8      | Milan, Italy           |
+| europe-west9      | Paris, France          |
+| europe-west10     | Berlin, Germany        |
+| europe-west12     | Turin, Italy           |
+| europe-north1     | Hamina, Finland        |
+| europe-north2     | Stockholm, Sweden      |
+| europe-central2   | Warsaw, Poland         |
+| europe-southwest1 | Madrid, Spain          |
 
 ### Asia-Pacific (12 regions)
 
-| Zone                 | Location             |
-| -------------------- | -------------------- |
-| asia-east1           | Changhua, Taiwan     |
-| asia-east2           | Kowloon, Hong Kong   |
-| asia-northeast1      | Tokyo, Japan         |
-| asia-northeast2      | Osaka, Japan         |
-| asia-northeast3      | Seoul, South Korea   |
-| asia-south1          | Mumbai, India        |
-| asia-south2          | Delhi, India         |
+| Zone                 | Location               |
+| -------------------- | ---------------------- |
+| asia-east1           | Changhua, Taiwan       |
+| asia-east2           | Kowloon, Hong Kong     |
+| asia-northeast1      | Tokyo, Japan           |
+| asia-northeast2      | Osaka, Japan           |
+| asia-northeast3      | Seoul, South Korea     |
+| asia-south1          | Mumbai, India          |
+| asia-south2          | Delhi, India           |
 | asia-southeast1      | Jurong West, Singapore |
-| asia-southeast2      | Jakarta, Indonesia   |
-| asia-southeast3      | Bangkok, Thailand    |
-| australia-southeast1 | Sydney, Australia    |
-| australia-southeast2 | Melbourne, Australia |
+| asia-southeast2      | Jakarta, Indonesia     |
+| asia-southeast3      | Bangkok, Thailand      |
+| australia-southeast1 | Sydney, Australia      |
+| australia-southeast2 | Melbourne, Australia   |
 
 ### Middle East & Africa (4 regions)
 
-| Zone          | Location                 |
-| ------------- | ------------------------ |
+| Zone          | Location                   |
+| ------------- | -------------------------- |
 | africa-south1 | Johannesburg, South Africa |
-| me-central1   | Doha, Qatar              |
-| me-central2   | Dammam, Saudi Arabia     |
-| me-west1      | Tel Aviv, Israel         |
+| me-central1   | Doha, Qatar                |
+| me-central2   | Dammam, Saudi Arabia       |
+| me-west1      | Tel Aviv, Israel           |
 
 ## Endpoint Configuration
 
@@ -131,17 +148,21 @@ The region table includes:
 
 The `New Deployment` dialog provides:
 
-| Setting               | Description                  | Default |
-| --------------------- | ---------------------------- | ------- |
-| **Model**             | Select from completed models | -       |
-| **Region**            | Deployment region            | -       |
-| **Deployment Name**   | Auto-generated, editable     | -       |
-| **CPU Cores**         | CPU allocation (1-8)         | 1       |
-| **Memory (GB)**       | Memory allocation (1-32 GB)  | 2       |
+| Setting             | Description                  | Default |
+| ------------------- | ---------------------------- | ------- |
+| **Model**           | Select from completed models | -       |
+| **Region**          | Deployment region            | -       |
+| **Deployment Name** | Auto-generated, editable     | -       |
+| **CPU Cores**       | CPU allocation (1-8)         | 1       |
+| **Memory (GB)**     | Memory allocation (1-32 GB)  | 2       |
 
 <!-- Screenshot: new-deployment-dialog-resources-panel-expanded.avif -->
 
 Resource settings are available under the collapsible **Resources** section. Deployments scale to zero when idle — you only pay for active inference time.
+
+!!! note "Auto-Generated Names"
+
+    The deployment name is automatically generated from the model name and region city (e.g., `yolo11n-iowa`). If you deploy the same model to the same region again, a numeric suffix is added (e.g., `yolo11n-iowa-2`).
 
 ### Deploy Tab (Quick Deploy)
 
@@ -153,11 +174,11 @@ When deploying from the model's `Deploy` tab, endpoints are created with default
 
 The deployments list supports three view modes:
 
-| Mode        | Description                                                 |
-| ----------- | ----------------------------------------------------------- |
-| **Cards**   | Full detail cards with logs, code examples, predict panel   |
-| **Compact** | Grid of smaller cards with key metrics                      |
-| **Table**   | DataTable with sortable columns and search                  |
+| Mode        | Description                                               |
+| ----------- | --------------------------------------------------------- |
+| **Cards**   | Full detail cards with logs, code examples, predict panel |
+| **Compact** | Grid of smaller cards with key metrics                    |
+| **Table**   | DataTable with sortable columns and search                |
 
 <!-- Screenshot: deploy-tab-active-deployments-cards-view.avif -->
 
@@ -175,14 +196,14 @@ The `Logs` tab shows recent log entries with severity filtering (All / Errors). 
 
 ### Deployment Statuses
 
-| Status        | Description                          |
-| ------------- | ------------------------------------ |
-| **Creating**  | Deployment is being set up           |
-| **Deploying** | Container is starting                |
+| Status        | Description                             |
+| ------------- | --------------------------------------- |
+| **Creating**  | Deployment is being set up              |
+| **Deploying** | Container is starting                   |
 | **Ready**     | Endpoint is live and accepting requests |
-| **Stopping**  | Endpoint is shutting down            |
-| **Stopped**   | Endpoint is paused (no billing)      |
-| **Failed**    | Deployment failed (see error message)|
+| **Stopping**  | Endpoint is shutting down               |
+| **Stopped**   | Endpoint is paused (no billing)         |
+| **Failed**    | Deployment failed (see error message)   |
 
 ### Endpoint URL
 
@@ -194,11 +215,23 @@ https://predict-abc123-us-central1.a.run.app
 
 <!-- Screenshot: deployment-card-endpoint-url-with-copy-button.avif -->
 
-Click the copy button to copy the URL. Click the docs icon to view the FastAPI auto-generated API documentation for the endpoint.
+Click the copy button to copy the URL. Click the docs icon to view the auto-generated API documentation for the endpoint.
 
 ## Lifecycle Management
 
 Control your endpoint state:
+
+```mermaid
+graph LR
+    R[Ready] -->|Stop| S[Stopped]
+    S -->|Start| R
+    R -->|Delete| D[Deleted]
+    S -->|Delete| D
+
+    style R fill:#4CAF50,color:#fff
+    style S fill:#9E9E9E,color:#fff
+    style D fill:#F44336,color:#fff
+```
 
 | Action     | Description                     |
 | ---------- | ------------------------------- |
@@ -244,18 +277,6 @@ The API key prefix is displayed on the deployment card footer for identification
 
 ### Request Example
 
-=== "cURL"
-
-    ```bash
-    curl -X POST \
-      "https://predict-abc123-us-central1.a.run.app/predict" \
-      -H "Authorization: Bearer YOUR_API_KEY" \
-      -F "file=@image.jpg" \
-      -F "conf=0.25" \
-      -F "iou=0.7" \
-      -F "imgsz=640"
-    ```
-
 === "Python"
 
     ```python
@@ -300,6 +321,28 @@ The API key prefix is displayed on the deployment card footer for identification
     const result = await response.json();
     console.log(result);
     ```
+
+=== "cURL"
+
+    ```bash
+    curl -X POST \
+      "https://predict-abc123-us-central1.a.run.app/predict" \
+      -H "Authorization: Bearer YOUR_API_KEY" \
+      -F "file=@image.jpg" \
+      -F "conf=0.25" \
+      -F "iou=0.7" \
+      -F "imgsz=640"
+    ```
+
+### Request Parameters
+
+| Parameter  | Type   | Default | Description                  |
+| ---------- | ------ | ------- | ---------------------------- |
+| `file`     | file   | -       | Image file (required)        |
+| `conf`     | float  | 0.25    | Minimum confidence threshold |
+| `iou`      | float  | 0.7     | NMS IoU threshold            |
+| `imgsz`    | int    | 640     | Input image size             |
+| `normalize`| string | -       | Return normalized coordinates|
 
 ### Response Format
 

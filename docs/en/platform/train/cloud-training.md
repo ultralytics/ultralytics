@@ -8,6 +8,22 @@ keywords: Ultralytics Platform, cloud training, GPU training, remote training, Y
 
 [Ultralytics Platform](https://platform.ultralytics.com) Cloud Training offers single-click training on cloud GPUs, making model training accessible without complex setup. Train YOLO models with real-time metrics streaming and automatic checkpoint saving.
 
+```mermaid
+graph LR
+    A[Configure] --> B[Start Training]
+    B --> C[Provision GPU]
+    C --> D[Download Dataset]
+    D --> E[Train]
+    E --> F[Stream Metrics]
+    F --> G[Save Checkpoints]
+    G --> H[Complete]
+
+    style A fill:#2196F3,color:#fff
+    style B fill:#FF9800,color:#fff
+    style E fill:#9C27B0,color:#fff
+    style H fill:#4CAF50,color:#fff
+```
+
 ## Training Dialog
 
 Start training from the Platform UI by clicking **New Model** on any project page (or **Train** from a dataset page). The training dialog has two tabs: **Cloud Training** and **Local Training**.
@@ -38,7 +54,9 @@ Choose a dataset to train on:
 
     Datasets must be in `ready` status with at least 1 image in the train split, 1 image in the validation or test split, and at least 1 labeled image.
 
-A task mismatch warning appears if the model task (e.g., detect) doesn't match the dataset task (e.g., segment).
+!!! warning "Task Mismatch"
+
+    A task mismatch warning appears if the model task (e.g., detect) doesn't match the dataset task (e.g., segment). Training will fail if you proceed with mismatched tasks. Ensure both model and dataset use the same task type.
 
 ### Step 3: Configure Parameters
 
@@ -68,6 +86,19 @@ Expand **Advanced Settings** to access the full YAML-based parameter editor with
 | **Device & Inference**   | device, cache, workers, dropout, iou, max_det            |
 
 Parameters are task-aware (e.g., `copy_paste` only shows for segment tasks, `pose`/`kobj` only for pose tasks). A **Modified** badge appears when values differ from defaults, and you can reset all to defaults with the reset button.
+
+??? example "Example: Tuning Augmentation for Small Datasets"
+
+    For small datasets (<1000 images), increase augmentation to reduce overfitting:
+
+    ```yaml
+    mosaic: 1.0       # Keep mosaic on
+    mixup: 0.3        # Add mixup blending
+    copy_paste: 0.3   # Add copy-paste (segment only)
+    fliplr: 0.5       # Horizontal flip
+    degrees: 10.0     # Slight rotation
+    scale: 0.9        # Aggressive scaling
+    ```
 
 ### Step 5: Select GPU (Cloud Tab)
 
@@ -166,6 +197,18 @@ Click **Cancel Training** on the model page to stop a running job:
 
 ## Remote Training
 
+```mermaid
+graph LR
+    A[Local GPU] --> B[Train]
+    B --> C[ultralytics Package]
+    C --> D[Stream Metrics]
+    D --> E[Platform Dashboard]
+
+    style A fill:#FF9800,color:#fff
+    style C fill:#2196F3,color:#fff
+    style E fill:#4CAF50,color:#fff
+```
+
 Train on your own hardware while streaming metrics to the Platform.
 
 !!! warning "Package Version Requirement"
@@ -215,13 +258,30 @@ The **Local Training** tab in the training dialog shows a pre-configured command
 
 ### Using Platform Datasets
 
-Train with datasets stored on the Platform:
+Train with datasets stored on the Platform using the `ul://` URI format:
 
-```bash
-yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100
-```
+=== "CLI"
 
-The `ul://` URI format automatically downloads and configures your dataset.
+    ```bash
+    yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100 \
+      project=username/my-project name=exp1
+    ```
+
+=== "Python"
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolo26n.pt")
+    model.train(
+        data="ul://username/datasets/my-dataset",
+        epochs=100,
+        project="username/my-project",
+        name="exp1",
+    )
+    ```
+
+The `ul://` URI format automatically downloads and configures your dataset. The model is automatically linked to the dataset on the Platform.
 
 ## Billing
 
@@ -254,6 +314,19 @@ Estimated Cost = Base Time × Model Multiplier × Dataset Multiplier × GPU Spee
 | 10000 images, YOLO26x, 200 epochs | H100 SXM  | ~8 hours | ~$21.52 |
 
 ### Hold/Settle System
+
+```mermaid
+graph LR
+    A[Estimate Cost] --> B[Hold Balance]
+    B --> C[Train]
+    C --> D[Settle Actual]
+    D --> E[Refund Excess]
+
+    style A fill:#2196F3,color:#fff
+    style B fill:#FF9800,color:#fff
+    style C fill:#9C27B0,color:#fff
+    style E fill:#4CAF50,color:#fff
+```
 
 The Platform uses a consumer-protection billing model:
 
@@ -302,10 +375,12 @@ After training, view detailed costs in the **Billing** tab:
 
 ### Optimize Training Time
 
-1. **Start small**: Test with fewer epochs first
-2. **Use appropriate GPU**: Match GPU to model/batch size
-3. **Validate dataset**: Ensure quality before training
-4. **Monitor early**: Stop if metrics plateau
+!!! tip "Cost-Saving Strategies"
+
+    1. **Start small**: Test with 10-20 epochs on a budget GPU to verify your dataset and config work
+    2. **Use appropriate GPU**: Don't pay for H100 when RTX 4090 handles your workload
+    3. **Validate dataset**: Fix labeling issues before spending on training
+    4. **Monitor early**: Cancel training if loss plateaus — you only pay for compute time used
 
 ### Troubleshooting
 

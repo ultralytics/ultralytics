@@ -27,7 +27,7 @@ Ultralytics Platform offers multiple deployment paths:
 | ----------------------- | --------------------------------------------------- | ----------------------- |
 | **Predict Tab**         | Browser-based inference with image, webcam, and URL | Development, validation |
 | **Shared Inference**    | Multi-tenant service across 3 regions               | Light usage, testing    |
-| **Dedicated Endpoints** | Single-tenant services across 43 regions             | Production, low latency |
+| **Dedicated Endpoints** | Single-tenant services across 43 regions            | Production, low latency |
 
 ## Workflow
 
@@ -43,26 +43,40 @@ graph LR
     style D fill:#9C27B0,color:#fff
 ```
 
-| Stage         | Description                                         |
-| ------------- | --------------------------------------------------- |
-| **Test**      | Validate model with the `Predict` tab               |
-| **Configure** | Select region, resources, and deployment name        |
-| **Deploy**    | Create a dedicated endpoint from the `Deploy` tab    |
-| **Monitor**   | Track requests, latency, errors, and logs            |
+| Stage         | Description                                      |
+| ------------- | ------------------------------------------------ |
+| **Test**      | Validate model with the `Predict` tab            |
+| **Configure** | Select region, resources, and deployment name     |
+| **Deploy**    | Create a dedicated endpoint from the `Deploy` tab |
+| **Monitor**   | Track requests, latency, errors, and logs         |
 
 ## Architecture
 
 ### Shared Inference
 
-The shared inference service runs in 3 key regions:
+The shared inference service runs in 3 key regions, automatically routing requests based on your data region:
+
+```mermaid
+graph TB
+    User[User Request] --> API[Platform API]
+    API --> Router{Region Router}
+    Router -->|US users| US["US Predict Service<br/>Iowa"]
+    Router -->|EU users| EU["EU Predict Service<br/>Belgium"]
+    Router -->|AP users| AP["AP Predict Service<br/>Taiwan"]
+
+    style User fill:#f5f5f5,color:#333
+    style API fill:#2196F3,color:#fff
+    style Router fill:#FF9800,color:#fff
+    style US fill:#4CAF50,color:#fff
+    style EU fill:#4CAF50,color:#fff
+    style AP fill:#4CAF50,color:#fff
+```
 
 | Region | Location             |
 | ------ | -------------------- |
 | US     | Iowa, USA            |
 | EU     | Belgium, Europe      |
 | AP     | Taiwan, Asia-Pacific |
-
-Requests are routed to your data region automatically.
 
 ### Dedicated Endpoints
 
@@ -84,14 +98,16 @@ Each endpoint is a single-tenant service with:
 
 Access the global deployments page from the sidebar under `Deploy`. This page shows:
 
-- **World map** with deployed region pins (ECharts interactive map)
+- **World map** with deployed region pins (interactive map)
 - **Overview cards**: Total Requests (24h), Active Deployments, Error Rate (24h), P95 Latency (24h)
 - **Deployments list** with three view modes: cards, compact, and table
 - **New Deployment** button to create endpoints from any completed model
 
 <!-- Screenshot: deploy-page-overview-cards-and-deployments-list.avif -->
 
-The page polls every 30 seconds for updates (3 seconds when deployments are in progress).
+!!! info "Automatic Polling"
+
+    The page polls every 30 seconds for metric updates. When deployments are in a transitional state (creating, deploying, stopping), polling increases to every 3 seconds for near-instant feedback.
 
 ## Key Features
 
@@ -111,6 +127,10 @@ Endpoints scale automatically:
 - **Scale up**: Handle traffic spikes
 - **Configurable limits**: Set min/max instances
 
+!!! tip "Cost Savings"
+
+    Scale-to-zero is enabled by default (min instances = 0). You only pay for active inference time. For latency-sensitive applications, set min instances > 0 to keep endpoints warm.
+
 ### Low Latency
 
 Dedicated endpoints provide:
@@ -127,6 +147,23 @@ Each running deployment includes an automatic health check with:
 - Response latency display
 - Auto-retry when unhealthy (polls every 20 seconds)
 - Manual refresh button
+
+## Quick Start
+
+Deploy a model in under 2 minutes:
+
+1. Train or upload a model to a project
+2. Go to the model's **Deploy** tab
+3. Select a region from the latency table
+4. Click **Deploy** — your endpoint is live
+
+!!! example "Quick Deploy"
+
+    ```
+    Model → Deploy tab → Select region → Click Deploy → Endpoint URL ready
+    ```
+
+    Once deployed, use the endpoint URL with your API key to send inference requests from any application.
 
 ## Quick Links
 

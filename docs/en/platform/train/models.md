@@ -49,6 +49,24 @@ Train a new model directly on the Platform:
 
 See [Cloud Training](cloud-training.md) for detailed instructions.
 
+## Model Lifecycle
+
+```mermaid
+graph LR
+    A[Upload .pt] --> B[Overview]
+    C[Train] --> B
+    B --> D[Predict]
+    B --> E[Export]
+    B --> F[Deploy]
+    E --> G[17+ Formats]
+    F --> H[Endpoint]
+
+    style A fill:#4CAF50,color:#fff
+    style C fill:#FF9800,color:#fff
+    style E fill:#2196F3,color:#fff
+    style F fill:#9C27B0,color:#fff
+```
+
 ## Model Page Tabs
 
 Each model page has the following tabs:
@@ -126,6 +144,10 @@ Run interactive inference directly in the browser:
 - Auto-inference when an image is provided
 - Supports all task types (detect, segment, pose, OBB, classify)
 
+!!! tip "Quick Testing"
+
+    The Predict tab runs inference on Ultralytics Cloud, so you don't need a local GPU. Results are displayed with interactive overlays matching the model's task type.
+
 ### Export Tab
 
 Export your model to 17+ deployment formats. See [Export Model](#export-model) below for full details.
@@ -158,6 +180,21 @@ Performance curves at different confidence thresholds:
 | **Recall-Confidence**    | Recall at different confidence levels    |
 
 ## Export Model
+
+```mermaid
+graph LR
+    A[Select Format] --> B[Configure Args]
+    B --> C[Export]
+    C --> D{GPU Required?}
+    D -->|Yes| E[Cloud GPU Export]
+    D -->|No| F[CPU Export]
+    E --> G[Download]
+    F --> G
+
+    style A fill:#2196F3,color:#fff
+    style C fill:#FF9800,color:#fff
+    style G fill:#4CAF50,color:#fff
+```
 
 Export your model to 17+ deployment formats:
 
@@ -244,6 +281,15 @@ Models can be linked to their source dataset:
 - Track data lineage
 
 When training with Platform datasets using the `ul://` URI format, linking is automatic.
+
+!!! example "Dataset URI Format"
+
+    ```bash
+    # Train with a Platform dataset — linking is automatic
+    yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100
+    ```
+
+    The `ul://` scheme resolves to your Platform dataset. The trained model's Overview tab will show a link back to this dataset.
 
 ## Visibility Settings
 

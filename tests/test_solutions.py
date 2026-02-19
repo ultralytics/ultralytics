@@ -181,12 +181,16 @@ def process_video(solution, video_path: str, needs_frame_count: bool = False):
             None,  # streamlit application doesn't require video file
             {},  # streamlit application doesn't accept arguments
         ),
-        (
+        pytest.param(
             "ActionRecognition",
             solutions.ActionRecognition,
             False,
             DEMO_VIDEO,
             {"model": MODEL, "video_classifier_model": "s3d", "show": SHOW},
+            marks=pytest.mark.skipif(
+                not checks.check_version(TORCHVISION_VERSION, ">=0.10.0"),
+                reason="ActionRecognition requires torchvision>=0.10.0",
+            ),
         ),
     ],
 )

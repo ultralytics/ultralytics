@@ -7,7 +7,7 @@ import pytest
 from PIL import Image
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA
-from ultralytics.utils import ARM64, ASSETS, LINUX, WEIGHTS_DIR, checks
+from ultralytics.utils import ARM64, ASSETS, LINUX, TORCHVISION_VERSION, WEIGHTS_DIR, checks
 from ultralytics.utils.torch_utils import TORCH_1_11
 
 
@@ -142,7 +142,13 @@ def test_train_gpu(task: str, model: str, data: str) -> None:
         "queue",
         "analytics",
         "trackzone",
-        "action",
+        pytest.param(
+            "action",
+            marks=pytest.mark.skipif(
+                not checks.check_version(TORCHVISION_VERSION, ">=0.10.0"),
+                reason="ActionRecognition requires torchvision>=0.10.0",
+            ),
+        ),
     ],
 )
 def test_solutions(solution: str) -> None:

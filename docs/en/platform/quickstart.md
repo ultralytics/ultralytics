@@ -27,21 +27,21 @@ journey
 
 ## Get Started
 
-[Ultralytics Platform](https://platform.ultralytics.com) offers a variety of easy signup options. You can register and log in using your Google, Apple, or GitHub accounts, or simply with your email address.
+[Ultralytics Platform](https://platform.ultralytics.com) offers a variety of easy signup options. You can register and log in using your Google or GitHub accounts, or with your email address.
 
 <!-- Screenshot: platform-signup.avif -->
 
 ### Region Selection
 
-During signup, you'll be asked to select your data region. This is an important choice as it determines where your data, models, and deployments will be stored.
+During onboarding, you'll be asked to select your data region. The Platform automatically measures latency to each region and recommends the closest one. This is an important choice as it determines where your data, models, and deployments will be stored.
 
-<!-- Screenshot: platform-onboarding-region.avif -->
+<!-- Screenshot: platform-onboarding-region-map-with-latency.avif -->
 
-| Region | Location             | Best For                                |
-| ------ | -------------------- | --------------------------------------- |
-| **US** | Iowa, USA            | Americas users, fastest for Americas    |
-| **EU** | Belgium, Europe      | European users, GDPR compliance         |
-| **AP** | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+| Region | Location                | Best For                                |
+| ------ | ----------------------- | --------------------------------------- |
+| **US** | Iowa, USA               | Americas users, fastest for Americas    |
+| **EU** | Belgium, Europe         | European users, GDPR compliance         |
+| **AP** | Hong Kong, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
 
 !!! warning "Region is Permanent"
 
@@ -62,19 +62,21 @@ Every new account receives free credits for cloud GPU training:
 
 ### Complete Your Profile
 
-After selecting your region, complete your profile with your information.
+Before selecting your region, you'll complete your profile with a display name, username, optional company, and primary use case. The onboarding flow has three steps: Profile, Data Region, and Complete.
 
-<!-- Screenshot: platform-onboarding-profile.avif -->
+<!-- Screenshot: platform-onboarding-profile-with-use-case.avif -->
 
 ??? tip "Update Later"
 
-    You can update your profile anytime from the Settings page, including your display name, username, bio, and social links.
+    You can update your profile anytime from the Settings page, including your display name, bio, and social links. Note that your username cannot be changed after signup.
 
 ## Home Dashboard
 
-After signing in, you will be directed to the Home page of [Ultralytics Platform](https://platform.ultralytics.com), which provides a comprehensive overview, quick actions, and recent activity.
+After signing in, you will be directed to the Home page of [Ultralytics Platform](https://platform.ultralytics.com), which provides a welcome card with workspace stats, quick access to datasets, projects, and storage, and a recent activity feed.
 
-<!-- Screenshot: platform-dashboard.avif -->
+<!-- Screenshot: platform-home-dashboard-welcome-card.avif -->
+
+### Sidebar Navigation
 
 The sidebar provides access to all Platform sections:
 
@@ -102,13 +104,29 @@ The sidebar provides access to all Platform sections:
 | **Settings** | Account, billing, and preferences       |
 | **Feedback** | Send feedback to Ultralytics            |
 
+### Welcome Card
+
+The welcome card shows your profile, plan badge, and workspace statistics at a glance:
+
+| Stat             | Description                      |
+| ---------------- | -------------------------------- |
+| **Datasets**     | Number of datasets               |
+| **Images**       | Total images across all datasets |
+| **Annotations**  | Total annotation count           |
+| **Projects**     | Number of projects               |
+| **Models**       | Total trained models             |
+| **Exports**      | Number of model exports          |
+| **Deployments**  | Active deployment count          |
+
 ### Quick Actions
 
-From the Home page, you can quickly:
+Below the welcome card, the dashboard shows three cards:
 
-- **Upload Dataset**: Start preparing your training data
-- **Create Project**: Organize a new set of experiments
-- **Train Model**: Launch cloud training on GPUs
+- **Datasets**: Create a new dataset or drop images, videos, or ZIP files to upload. Shows your recent datasets.
+- **Projects**: Create a new project or drop `.pt` model files to upload. Shows your recent projects.
+- **Storage**: Overview of your storage usage (datasets, models, exports) with plan limits.
+
+A **Recent Activity** table at the bottom shows your latest datasets, models, and training runs.
 
 ## Upload Your First Dataset
 
@@ -181,17 +199,19 @@ Read more about [cloud training](train/cloud-training.md).
 
 After training completes, test your model directly in the browser:
 
-1. Navigate to your model's **Test** tab
-2. Upload an image or use example images
-3. View inference results with bounding boxes
+1. Navigate to your model's **Predict** tab
+2. Upload an image, drag and drop, or use example images (auto-inference on drop)
+3. View inference results with bounding boxes rendered on canvas
 
-<!-- Screenshot: platform-test-tab.avif -->
+<!-- Screenshot: platform-predict-tab-with-results.avif -->
 
 Adjust inference parameters:
 
 - **Confidence Threshold**: Filter low-confidence predictions
 - **IoU Threshold**: Control overlap for NMS
 - **Image Size**: Resize input for inference
+
+The Predict tab also provides ready-to-use Python and cURL code examples with your API key.
 
 Read more about [inference](deploy/inference.md).
 

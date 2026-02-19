@@ -1,18 +1,18 @@
 ---
 comments: true
-description: Discover public datasets, models, and projects on the Ultralytics Platform for computer vision and YOLO applications.
-keywords: Ultralytics Platform, explore, public datasets, public models, computer vision, YOLO
+description: Discover public datasets and projects on the Ultralytics Platform Explore page. Browse, search, and clone community content for computer vision and YOLO.
+keywords: Ultralytics Platform, explore, public datasets, public projects, computer vision, YOLO, community
 ---
 
 # Explore
 
-[Ultralytics Platform](https://platform.ultralytics.com) Explore page showcases public content from the community. Discover datasets, models, and projects for inspiration and learning.
+[Ultralytics Platform](https://platform.ultralytics.com) Explore page showcases public content from the community. Discover datasets and projects for inspiration and learning.
 
 <!-- Screenshot: platform-explore-page.avif -->
 
 ```mermaid
 graph LR
-    A[🔍 Browse] --> B[📥 Clone/Fork]
+    A[🔍 Browse] --> B[📥 Clone]
     B --> C[✏️ Customize]
     C --> D[🚀 Train]
 
@@ -24,57 +24,78 @@ graph LR
 
 ## Overview
 
-The Explore page features:
+The Explore page features two tabs:
 
-- **Public Datasets**: Community training data
-- **Public Models**: Trained checkpoints ready to use
-- **Public Projects**: Complete experiments and workflows
-- **User Profiles**: Creators and their contributions
+- **Public Datasets**: Community training data with image previews
+- **Public Projects**: Complete experiments containing trained models
+
+Official Ultralytics content (e.g., `@ultralytics` projects and datasets) is pinned to the top of results.
 
 ## Browse Content
 
-### Content Types
+### Tabs
 
-| Type         | Description                            |
-| ------------ | -------------------------------------- |
-| **Datasets** | Labeled image collections for training |
-| **Models**   | Trained YOLO checkpoints               |
-| **Projects** | Organized model collections            |
+The Explore page uses a tabbed interface with `Datasets` and `Projects` tabs. Each tab has its own search, sort, and view mode controls.
 
-### Filtering
+| Tab          | Description                                       |
+| ------------ | ------------------------------------------------- |
+| **Datasets** | Labeled image collections for training (default)  |
+| **Projects** | Organized model collections with training results |
 
-Filter content to find what you need:
+### Search and Sort
 
-<!-- Screenshot: platform-explore-search.avif -->
+Each tab provides a search bar and sort options:
 
-| Filter   | Options                              |
-| -------- | ------------------------------------ |
-| **Type** | Datasets, Models, Projects           |
-| **Task** | Detect, Segment, Pose, OBB, Classify |
-| **Sort** | Recent, Popular, Most Downloaded     |
+<!-- Screenshot: platform-explore-datasets-tab-with-search.avif -->
 
-### Search
+| Sort Option        | Description                                |
+| ------------------ | ------------------------------------------ |
+| **Most Starred**   | Content with most community stars (default)|
+| **Newest**         | Most recently created                      |
+| **Oldest**         | Oldest first                               |
+| **Name A-Z**       | Alphabetical ascending                     |
+| **Name Z-A**       | Alphabetical descending                    |
+| **Most/Fewest**    | By image count (datasets) or model count (projects) |
 
-Search by:
+### View Modes
 
-- Content name
-- Description keywords
-- Creator username
-- Class names
+Toggle between three view modes for browsing:
+
+| Mode        | Description                                 |
+| ----------- | ------------------------------------------- |
+| **Cards**   | Grid of preview cards with thumbnails       |
+| **Compact** | Smaller cards in a two-column grid          |
+| **Table**   | Sortable table with columns                 |
+
+Cards and compact views support infinite scroll for loading more results.
 
 ## Content Cards
 
 Each item displays:
 
-<!-- Screenshot: platform-explore-cards.avif -->
+<!-- Screenshot: platform-explore-dataset-and-project-cards.avif -->
 
-| Element       | Description             |
-| ------------- | ----------------------- |
-| **Thumbnail** | Preview image           |
-| **Name**      | Content title           |
-| **Creator**   | Author with avatar      |
-| **Stats**     | Downloads, views, likes |
-| **Task**      | YOLO task type badge    |
+**Project Cards Show:**
+
+| Element          | Description                      |
+| ---------------- | -------------------------------- |
+| **Icon**         | Project icon with custom colors  |
+| **Name**         | Project title                    |
+| **Creator**      | Author avatar and username       |
+| **Description**  | Short project description        |
+| **Model Count**  | Number of models in the project  |
+| **Model Tags**   | Names of models in the project   |
+| **Public Badge** | Visibility indicator             |
+
+**Dataset Cards Show:**
+
+| Element          | Description                       |
+| ---------------- | --------------------------------- |
+| **Thumbnails**   | Preview images from the dataset   |
+| **Name**         | Dataset title                     |
+| **Creator**      | Author avatar and username        |
+| **Task Badge**   | YOLO task type (detect, segment, etc.) |
+| **Image Count**  | Number of images in the dataset   |
 
 ## Use Public Content
 
@@ -100,17 +121,17 @@ Download a public model:
 2. Click **Download**
 3. Select format (PT, ONNX, etc.)
 
-### Fork Project
+### Clone Project
 
-Copy a public project:
+Copy a public project to your workspace:
 
 1. Click on the project
-2. Click **Fork**
+2. Click **Clone**
 3. Project copies with all models
 
-## Official Ultralytics Models
+## Official Ultralytics Content
 
-Featured at the top of Explore, you'll find official Ultralytics models:
+Official `@ultralytics` content is pinned to the top of the Explore page. This includes:
 
 | Project    | Description                 | Models                       |
 | ---------- | --------------------------- | ---------------------------- |
@@ -119,44 +140,20 @@ Featured at the top of Explore, you'll find official Ultralytics models:
 | **YOLOv8** | Previous generation         | Various                      |
 | **YOLOv5** | Legacy, widely adopted      | Various                      |
 
-**Project Cards Show:**
-
-- Project icon and name
-- Public badge
-- Creator avatar and username
-- Short description
-- Model count and total size
-- Last updated
-- Model name tags
-
-**Dataset Cards Show:**
-
-- Dataset name
-- Task type badge
-- Creator info
-- Image count
-- Preview thumbnails
+Official datasets include benchmark datasets like COCO, VOC, and other commonly used computer vision datasets.
 
 ## User Profiles
 
-View public profiles:
+Click on a creator's username to view their public profile at `platform.ultralytics.com/{username}`. Public profiles show:
 
-<!-- Screenshot: platform-explore-profile.avif -->
+<!-- Screenshot: platform-user-profile-public-content.avif -->
 
-| Section     | Content                           |
-| ----------- | --------------------------------- |
-| **Bio**     | User description                  |
-| **Stats**   | Contributions count               |
-| **Content** | Public datasets, models, projects |
-| **Links**   | Social profiles                   |
-
-### Follow Users
-
-Follow creators to:
-
-- See their new content
-- Get notifications
-- Build your network
+| Section      | Content                           |
+| ------------ | --------------------------------- |
+| **Bio**      | User description and company      |
+| **Links**    | Social profiles                   |
+| **Projects** | Public projects with models       |
+| **Datasets** | Public datasets                   |
 
 ## Make Your Content Public
 
@@ -170,9 +167,9 @@ Make your work available to the community:
 4. Set visibility to **Public**
 5. Click **Save**
 
-### Make Model Public
+### Make Project Public
 
-1. Go to your model
+1. Go to your project
 2. Open actions menu
 3. Click **Edit**
 4. Set visibility to **Public**
@@ -236,7 +233,7 @@ Yes, you can change visibility anytime:
 2. Change visibility to **Private**
 3. Save changes
 
-Existing clones/forks are not affected.
+Existing clones are not affected.
 
 ### How do I get featured?
 

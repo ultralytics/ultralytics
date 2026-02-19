@@ -20,16 +20,16 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 | PNG    | `.png`          | Supports transparency    |
 | WebP   | `.webp`         | Modern, good compression |
 | BMP    | `.bmp`          | Uncompressed             |
-| GIF    | `.gif`          | First frame extracted    |
 | TIFF   | `.tiff`, `.tif` | High quality             |
 | HEIC   | `.heic`         | iPhone photos            |
 | AVIF   | `.avif`         | Next-gen format          |
 | JP2    | `.jp2`          | JPEG 2000                |
 | DNG    | `.dng`          | Raw camera               |
+| MPO    | `.mpo`          | Multi-picture object     |
 
 ### Supported Video Formats
 
-Videos are automatically extracted to frames:
+Videos are automatically extracted to frames on the client side:
 
 | Format | Extensions | Extraction            |
 | ------ | ---------- | --------------------- |
@@ -40,17 +40,24 @@ Videos are automatically extracted to frames:
 | MKV    | `.mkv`     | 1 FPS, max 100 frames |
 | M4V    | `.m4v`     | 1 FPS, max 100 frames |
 
+### Supported Archive Formats
+
+Archives are extracted and processed automatically:
+
+| Format | Extensions           | Notes                  |
+| ------ | -------------------- | ---------------------- |
+| ZIP    | `.zip`               | Most common            |
+| TAR    | `.tar`               | Uncompressed archive   |
+| TAR.GZ | `.tar.gz`, `.tgz`   | Compressed archive     |
+| GZ     | `.gz`                | Gzip compressed        |
+
 ### File Size Limits
 
-| Type      | Maximum Size |
-| --------- | ------------ |
-| Images    | 50 MB each   |
-| Videos    | 1 GB each    |
-| ZIP files | 50 GB        |
-
-### Archives
-
-ZIP files up to 50GB are supported with folder structure preserved and automatic extraction and processing.
+| Type     | Maximum Size |
+| -------- | ------------ |
+| Images   | 50 MB each   |
+| Videos   | 1 GB each    |
+| Archives | 10 GB        |
 
 ### Preparing Your Dataset
 
@@ -91,22 +98,23 @@ names:
 
 ### Upload Process
 
-1. Navigate to **Datasets** in the sidebar
-2. Click **Upload Dataset** or drag files into the upload zone
+1. Navigate to `Datasets` in the sidebar
+2. Click `Upload Dataset` or drag files into the upload zone
 3. Select the task type (detect, segment, pose, OBB, classify)
 4. Add a name and optional description
-5. Click **Upload**
+5. Click `Upload`
 
-<!-- Screenshot: platform-datasets-upload.avif -->
+<!-- Screenshot: platform-datasets-upload-dialog-task-selector.avif -->
 
 After upload, the Platform processes your data:
 
-1. **Normalization**: Large images resized (max 4096px)
-2. **Thumbnails**: 256px previews generated
-3. **Label Parsing**: YOLO format labels extracted
-4. **Statistics**: Class distributions computed
+1. **Validation**: Format and size checks
+2. **Normalization**: Large images resized (max 4096px, min dimension 64px)
+3. **Thumbnails**: 256px WebP previews generated
+4. **Label Parsing**: YOLO format labels extracted
+5. **Statistics**: Class distributions and image dimensions computed
 
-<!-- Screenshot: platform-datasets-upload-progress.avif -->
+<!-- Screenshot: platform-datasets-upload-progress-bar.avif -->
 
 ??? tip "Validate Before Upload"
 
@@ -122,24 +130,50 @@ After upload, the Platform processes your data:
 
 View your dataset images in multiple layouts:
 
-| View        | Description                                      |
-| ----------- | ------------------------------------------------ |
-| **Grid**    | Thumbnail grid with annotation overlays          |
-| **Compact** | Smaller thumbnails for quick scanning            |
-| **Table**   | List with filename, dimensions, and label counts |
+| View        | Description                                                   |
+| ----------- | ------------------------------------------------------------- |
+| **Grid**    | Thumbnail grid with annotation overlays (default)             |
+| **Compact** | Smaller thumbnails for quick scanning                         |
+| **Table**   | List with filename, dimensions, split, and label counts       |
 
-<!-- Screenshot: platform-datasets-gallery.avif -->
+<!-- Screenshot: platform-datasets-gallery-grid-view-with-annotations.avif -->
+
+### Sorting and Filtering
+
+Images can be sorted and filtered for efficient browsing:
+
+**Sort options:**
+
+| Sort            | Description          |
+| --------------- | -------------------- |
+| Newest          | Most recently added  |
+| Oldest          | Earliest added       |
+| Name A-Z        | Alphabetical         |
+| Name Z-A        | Reverse alphabetical |
+| Size (smallest) | Smallest files first |
+| Size (largest)  | Largest files first  |
+| Most labels     | Most annotations     |
+| Fewest labels   | Fewest annotations   |
+
+**Filters:**
+
+- **Split filter**: Show images from a specific split (Train, Val, Test, or All)
+- **Label filter**: Show All, Labeled only, or Unlabeled only
+- **Search**: Filter images by filename
 
 ### Fullscreen Viewer
 
 Click any image to open the fullscreen viewer with:
 
-- **Navigation**: Arrow keys or click to browse
-- **Metadata**: Filename, dimensions, split, label count
-- **Annotations**: Toggle annotation visibility
-- **Class Breakdown**: Per-class label counts
+- **Navigation**: Arrow keys or thumbnail previews to browse
+- **Metadata**: Filename, dimensions, split badge, annotation count
+- **Annotations**: Toggle annotation overlay visibility
+- **Class Breakdown**: Per-class label counts with color indicators
+- **Edit**: Enter annotation mode to add or modify labels
+- **Zoom**: `Cmd/Ctrl+Scroll` to zoom in/out
+- **Pixel view**: Toggle pixelated rendering for close inspection
 
-<!-- Screenshot: platform-datasets-fullscreen.avif -->
+<!-- Screenshot: platform-datasets-fullscreen-viewer-with-metadata-panel.avif -->
 
 ### Filter by Split
 
@@ -150,52 +184,103 @@ Filter images by their dataset split:
 | **Train**   | Used for model training             |
 | **Val**     | Used for validation during training |
 | **Test**    | Used for final evaluation           |
-| **Unknown** | No split assigned                   |
 
-## Dataset Statistics
+## Dataset Tabs
 
-The **Statistics** tab provides automatic analysis of your dataset:
+Each dataset page has five tabs accessible from the tab bar:
 
-### Class Distribution
+### Images Tab
 
-Bar chart showing the number of annotations per class:
+The default view showing the image gallery with annotation overlays. Supports grid, compact, and table view modes. Drag and drop files here to add more images.
 
-<!-- Screenshot: platform-datasets-stats-class.avif -->
+### Classes Tab
 
-### Location Heatmap
+Manage annotation classes for your dataset:
 
-Visualization of where annotations appear in images:
+- **Class histogram**: Bar chart showing annotation count per class with linear/log scale toggle
+- **Class table**: Sortable, searchable table with class name, label count, and image count
+- **Edit class names**: Click any class name to rename it inline
+- **Edit class colors**: Click a color swatch to change the class color
+- **Add new class**: Use the input at the bottom to add classes
 
-<!-- Screenshot: platform-datasets-stats-heatmap.avif -->
+<!-- Screenshot: platform-datasets-classes-tab-histogram-and-table.avif -->
 
-### Dimension Analysis
+### Charts Tab
 
-Scatter plot of image dimensions (width vs height):
+Automatic statistics computed from your dataset:
 
-<!-- Screenshot: platform-datasets-stats-dimensions.avif -->
+| Chart                  | Description                                                     |
+| ---------------------- | --------------------------------------------------------------- |
+| **Split Distribution** | Donut chart of train/val/test image counts and labeled percent  |
+| **Top Classes**        | Donut chart of the 10 most frequent annotation classes          |
+| **Image Widths**       | Histogram of image width distribution with mean                 |
+| **Image Heights**      | Histogram of image height distribution with mean                |
+| **Points per Instance**| Polygon vertex or keypoint count per annotation (segment/pose)  |
+| **Annotation Locations** | 2D heatmap of bounding box center positions                   |
+| **Image Dimensions**   | 2D width vs height heatmap with aspect ratio guide lines        |
+
+<!-- Screenshot: platform-datasets-charts-tab-statistics-grid.avif -->
 
 !!! tip "Statistics Caching"
 
     Statistics are cached for 5 minutes. Changes to annotations will be reflected after the cache expires.
+
+### Models Tab
+
+View all models trained on this dataset in a searchable table:
+
+| Column    | Description                    |
+| --------- | ------------------------------ |
+| Name      | Model name with link           |
+| Project   | Parent project with icon       |
+| Status    | Training status badge          |
+| Task      | YOLO task type                 |
+| Epochs    | Best epoch / total epochs      |
+| mAP50-95  | Mean average precision         |
+| mAP50     | mAP at IoU 0.50               |
+| Created   | Creation date                  |
+
+<!-- Screenshot: platform-datasets-models-tab-trained-models-table.avif -->
+
+### Errors Tab
+
+Images that failed processing are listed here with:
+
+- **Error banner**: Total count of failed images and guidance
+- **Error table**: Filename, user-friendly error description, fix hints, and preview thumbnail
+- Common errors include corrupted files, unsupported formats, images too small (min 64px), and unsupported color modes
+
+<!-- Screenshot: platform-datasets-errors-tab-processing-failures.avif -->
 
 ## Export Dataset
 
 Export your dataset in NDJSON format for offline use:
 
 1. Open the dataset actions menu
-2. Click **Export**
+2. Click `Export`
 3. Download the NDJSON file
 
-<!-- Screenshot: platform-datasets-export.avif -->
+<!-- Screenshot: platform-datasets-export-ndjson-download.avif -->
 
-The NDJSON format stores one JSON object per line:
+The NDJSON format stores one JSON object per line. The first line contains dataset metadata, followed by one line per image:
 
 ```json
-{"filename": "img001.jpg", "split": "train", "labels": [...]}
-{"filename": "img002.jpg", "split": "train", "labels": [...]}
+{"type": "dataset", "task": "detect", "name": "my-dataset", "class_names": {"0": "person", "1": "car"}}
+{"type": "image", "file": "img001.jpg", "url": "https://...", "width": 640, "height": 480, "split": "train", "annotations": {"boxes": [[0, 0.5, 0.5, 0.2, 0.3]]}}
+{"type": "image", "file": "img002.jpg", "url": "https://...", "width": 1280, "height": 720, "split": "val"}
 ```
 
 See the [Ultralytics NDJSON format documentation](https://docs.ultralytics.com/datasets/detect/#ultralytics-ndjson-format) for full specification.
+
+## Bulk Move/Copy Images
+
+Move or copy images between datasets:
+
+1. Select images in the gallery using checkboxes
+2. Click `Move` or `Copy` from the selection toolbar
+3. Select the destination dataset
+
+This is useful for organizing images across datasets or creating train/val splits manually.
 
 ## Dataset URI
 
@@ -229,30 +314,34 @@ Control who can see your dataset:
 | **Private** | Only you can access             |
 | **Public**  | Anyone can view on Explore page |
 
-<!-- Screenshot: platform-datasets-visibility.avif -->
+<!-- Screenshot: platform-datasets-visibility-toggle.avif -->
 
 To change visibility:
 
 1. Open dataset actions menu
-2. Click **Edit**
+2. Click `Edit`
 3. Toggle visibility setting
-4. Click **Save**
+4. Click `Save`
 
 ## Edit Dataset
 
-Update dataset name, description, or visibility:
+Update dataset name, description, task type, or visibility:
 
 1. Open dataset actions menu
-2. Click **Edit**
+2. Click `Edit`
 3. Make changes
-4. Click **Save**
+4. Click `Save`
+
+!!! warning "Changing Task Type"
+
+    Changing the task type may affect how existing annotations are visualized. Incompatible annotations won't be displayed.
 
 ## Delete Dataset
 
 Delete a dataset you no longer need:
 
 1. Open dataset actions menu
-2. Click **Delete**
+2. Click `Delete`
 3. Confirm deletion
 
 !!! note "Trash and Restore"
@@ -263,7 +352,7 @@ Delete a dataset you no longer need:
 
 Start training directly from your dataset:
 
-1. Click **Train Model** on the dataset page
+1. Click `Train Model` on the dataset page
 2. Select a project or create new
 3. Configure training parameters
 4. Start training
@@ -277,29 +366,30 @@ See [Cloud Training](../train/cloud-training.md) for details.
 Your data is processed and stored in your selected region (US, EU, or AP). Images are:
 
 1. Validated for format and size
-2. Normalized if larger than 4096px (preserving aspect ratio)
-3. Stored using Content-Addressable Storage (CAS) with SHA-256 hashing
-4. Thumbnails generated at 256px for fast browsing
+2. Rejected if minimum dimension is below 64px
+3. Normalized if larger than 4096px (preserving aspect ratio, converted to WebP q92)
+4. Stored using Content-Addressable Storage (CAS) with XXH3-128 hashing
+5. Thumbnails generated at 256px WebP for fast browsing
 
 ### How does storage work?
 
 Ultralytics Platform uses **Content-Addressable Storage (CAS)** for efficient storage:
 
 - **Deduplication**: Identical images uploaded by different users are stored only once
-- **Integrity**: SHA-256 hashing ensures data integrity
+- **Integrity**: XXH3-128 hashing ensures data integrity
 - **Efficiency**: Reduces storage costs and speeds up processing
 - **Regional**: Data stays in your selected region (US, EU, or AP)
 
 ### Can I add images to an existing dataset?
 
-Yes, use the **Add Images** button on the dataset page to upload additional images. New statistics will be computed automatically.
+Yes, drag and drop files onto the dataset page or use the upload button to add additional images. New statistics will be computed automatically.
 
 ### How do I move images between datasets?
 
 Use the bulk selection feature:
 
 1. Select images in the gallery
-2. Click **Move** or **Copy**
+2. Click `Move` or `Copy`
 3. Select destination dataset
 
 ### What label formats are supported?

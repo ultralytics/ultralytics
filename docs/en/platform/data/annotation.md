@@ -6,19 +6,19 @@ keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, boun
 
 # Annotation Editor
 
-[Ultralytics Platform](https://platform.ultralytics.com) includes a powerful annotation editor for labeling images with bounding boxes, polygons, keypoints, oriented boxes, and classifications. The editor supports manual annotation, SAM-powered smart annotation, and YOLO auto-labeling.
+[Ultralytics Platform](https://platform.ultralytics.com) includes a powerful annotation editor for labeling images with bounding boxes, polygons, keypoints, oriented boxes, and classifications. The editor supports manual drawing and SAM-powered smart annotation.
 
-<!-- Screenshot: platform-annotate-toolbar.avif -->
+<!-- Screenshot: platform-annotate-editor-toolbar-with-canvas.avif -->
 
 ```mermaid
 graph TB
-    subgraph Manual["✏️ Manual Tools"]
+    subgraph Manual["Manual Tools"]
         A[Box] & B[Polygon] & C[Keypoint] & D[OBB] & E[Classify]
     end
-    subgraph AI["🤖 AI-Assisted"]
-        F[SAM Smart] & G[Auto-Annotate]
+    subgraph AI["AI-Assisted"]
+        F[SAM Smart]
     end
-    Manual --> H[📁 Save Labels]
+    Manual --> H[Save Labels]
     AI --> H
 ```
 
@@ -92,12 +92,21 @@ To annotate images:
 
 1. Navigate to your dataset
 2. Click on an image to open the fullscreen viewer
-3. Click **Edit** to enter annotation mode
-4. Select your annotation tool
+3. Click `Edit` to enter annotation mode
+4. Select your annotation tool from the toolbar
 5. Draw annotations on the image
-6. Click **Save** when finished
+6. Click `Save` when finished
 
-<!-- Screenshot: platform-annotate-detect.avif -->
+<!-- Screenshot: platform-annotate-fullscreen-edit-mode-with-toolbar.avif -->
+
+## Annotation Modes
+
+The editor provides two annotation modes, selectable from the toolbar:
+
+| Mode       | Description                                           | Shortcut |
+| ---------- | ----------------------------------------------------- | -------- |
+| **Draw**   | Manual annotation with task-specific tools            | `V`      |
+| **Smart**  | SAM-powered interactive annotation (detect/segment/OBB) | `S`    |
 
 ## Manual Annotation Tools
 
@@ -105,29 +114,29 @@ To annotate images:
 
 Draw rectangular boxes around objects:
 
-1. Select the **Box** tool or press `B`
+1. Enter edit mode and select `Draw`
 2. Click and drag to draw a rectangle
 3. Release to complete the box
 4. Select a class from the dropdown
 
-<!-- Screenshot: platform-annotate-detect.avif -->
+<!-- Screenshot: platform-annotate-detect-bounding-box-drawing.avif -->
 
 !!! tip "Resize and Move"
 
-    - Drag corners or edges to resize
+    - Drag 8 corner/edge handles to resize
     - Drag the center to move
-    - Press `Delete` to remove selected annotation
+    - Press `Delete` or `Backspace` to remove selected annotation
 
 ### Polygon (Segment)
 
 Draw precise polygon masks:
 
-1. Select the **Polygon** tool or press `P`
+1. Enter edit mode and select `Draw`
 2. Click to add vertices
-3. Double-click or press `Enter` to close the polygon
+3. Right-click or press `Enter` to close the polygon
 4. Select a class from the dropdown
 
-<!-- Screenshot: platform-annotate-segment.avif -->
+<!-- Screenshot: platform-annotate-segment-polygon-vertices.avif -->
 
 !!! tip "Edit Vertices"
 
@@ -139,7 +148,7 @@ Draw precise polygon masks:
 
 Place 17 COCO keypoints for human pose:
 
-1. Select the **Keypoint** tool or press `K`
+1. Enter edit mode and select `Draw`
 2. Click to place keypoints in sequence
 3. Follow the COCO skeleton order
 
@@ -157,48 +166,47 @@ The 17 COCO keypoints are:
 | 8   | Left elbow     | 17  | (reserved)  |
 | 9   | Right elbow    |     |             |
 
-<!-- Screenshot: platform-annotate-pose.avif -->
+<!-- Screenshot: platform-annotate-pose-keypoints-skeleton.avif -->
 
 ### Oriented Bounding Box (OBB)
 
 Draw rotated boxes for angled objects:
 
-1. Select the **OBB** tool or press `O`
+1. Enter edit mode and select `Draw`
 2. Click and drag to draw an initial box
 3. Use the rotation handle to adjust angle
-4. Select a class from the dropdown
+4. Drag corner handles to resize
+5. Select a class from the dropdown
 
-<!-- Screenshot: platform-annotate-obb.avif -->
+<!-- Screenshot: platform-annotate-obb-rotated-box.avif -->
 
 ### Classification (Classify)
 
 Assign image-level class labels:
 
-1. Select the **Classify** mode
-2. Click on class buttons or press number keys `1-9`
-3. Multiple classes can be assigned per image
+1. Enter edit mode
+2. A side panel appears with class selection buttons
+3. Click on class buttons or press number keys `1-9`
 
-<!-- Screenshot: platform-annotate-classify.avif -->
+<!-- Screenshot: platform-annotate-classify-side-panel.avif -->
 
 ## SAM Smart Annotation
 
-[Segment Anything Model (SAM)](https://docs.ultralytics.com/models/sam/) enables intelligent annotation with just a few clicks:
+[Segment Anything Model (SAM)](https://docs.ultralytics.com/models/sam/) enables intelligent annotation with just a few clicks. Smart mode is available for **detect**, **segment**, and **OBB** tasks.
 
-1. Select **SAM** mode or press `S`
+1. Enter edit mode and select `Smart` or press `S`
 2. **Left-click** to add positive points (include this area)
 3. **Right-click** to add negative points (exclude this area)
 4. SAM generates a precise mask in real-time
-5. Click **Accept** to convert to annotation
+5. Press `Enter` or `Escape` to save the annotation
 
-<!-- Screenshot: platform-annotate-sam.avif -->
+<!-- Screenshot: platform-annotate-sam-positive-negative-points-mask.avif -->
 
 !!! tip "SAM Tips"
 
     - Start with a positive click on the object center
     - Add negative clicks to exclude background
     - Works best for distinct objects with clear edges
-
-<!-- Screenshot: platform-annotate-sam-mask.avif -->
 
 SAM smart annotation can generate:
 
@@ -210,13 +218,13 @@ SAM smart annotation can generate:
 
 Use trained YOLO models to automatically label images:
 
-1. Select **Auto-Annotate** mode or press `A`
-2. Choose a model (official or your trained models)
+1. Open the auto-annotate dialog
+2. Choose a model (official Ultralytics models or your trained models)
 3. Set confidence threshold
-4. Click **Run** to generate predictions
+4. Click `Run` to generate predictions
 5. Review and edit results as needed
 
-<!-- Screenshot: platform-annotate-auto.avif -->
+<!-- Screenshot: platform-annotate-auto-yolo-model-selector.avif -->
 
 !!! note "Auto-Annotation Models"
 
@@ -229,20 +237,21 @@ Use trained YOLO models to automatically label images:
 
 ### Creating Classes
 
-Define annotation classes for your dataset:
+Define annotation classes for your dataset in the `Classes` tab:
 
-1. Click **Add Class** in the class panel
-2. Enter the class name
-3. A color is assigned automatically
+1. Navigate to the `Classes` tab
+2. Use the input field at the bottom to type a class name
+3. Click `Add` or press `Enter`
+4. A color is assigned automatically from the Ultralytics palette
 
-<!-- Screenshot: platform-annotate-classes.avif -->
+<!-- Screenshot: platform-annotate-classes-tab-add-new-class.avif -->
 
 ### Add New Class During Annotation
 
 You can create new classes directly while annotating without leaving the editor:
 
 1. Draw an annotation on the image
-2. In the class dropdown, click **Add New Class**
+2. In the class dropdown, click `Add New Class`
 3. Enter the class name
 4. Press Enter to create and assign
 
@@ -254,63 +263,70 @@ This allows for a seamless workflow where you can define classes as you encounte
 
 ### Editing Classes
 
-- Click on a class to select it for new annotations
-- Double-click to rename
-- Drag to reorder
-- Right-click for more options
+- **Rename**: Click a class name in the table to edit it inline
+- **Change color**: Click the color swatch to open the color picker
+- **Search**: Use the search field to filter classes by name
+- **Sort**: Click column headers to sort by name, label count, or image count
 
 ### Class Colors
 
-Each class is assigned a color from the Ultralytics palette. Colors are consistent across the Platform for easy recognition.
+Each class is assigned a color from the Ultralytics palette. You can customize colors using the color picker on the `Classes` tab. Colors are consistent across the Platform for easy recognition.
 
 ## Keyboard Shortcuts
 
 Efficient annotation with keyboard shortcuts:
 
-| Shortcut | Action                     |
-| -------- | -------------------------- |
-| `B`      | Box tool (detect)          |
-| `P`      | Polygon tool (segment)     |
-| `K`      | Keypoint tool (pose)       |
-| `O`      | OBB tool                   |
-| `S`      | SAM smart annotation       |
-| `A`      | Auto-annotate              |
-| `V`      | Select/move mode           |
-| `1-9`    | Select class 1-9           |
-| `Delete` | Delete selected annotation |
-| `Ctrl+Z` | Undo                       |
-| `Ctrl+Y` | Redo                       |
-| `Escape` | Cancel current operation   |
-| `Enter`  | Complete polygon           |
-| `←/→`    | Previous/next image        |
+| Shortcut              | Action                     |
+| --------------------- | -------------------------- |
+| `V`                   | Draw mode (manual)         |
+| `S`                   | Smart mode (SAM)           |
+| `1-9`                 | Select class 1-9           |
+| `Delete` / `Backspace` | Delete selected annotation |
+| `Cmd/Ctrl+Z`         | Undo                       |
+| `Cmd/Ctrl+Shift+Z`   | Redo                       |
+| `Cmd/Ctrl+Y`         | Redo (alternative)         |
+| `Cmd/Ctrl+S`         | Save annotations           |
+| `Cmd/Ctrl+A`         | Select all annotations     |
+| `Cmd/Ctrl+Scroll`    | Zoom in/out                |
+| `Shift+Click`        | Multi-select annotations   |
+| `Escape`             | Save / Deselect / Exit     |
+| `Enter`              | Complete polygon / Save SAM annotation |
+| `Right-click`        | Complete polygon / Add SAM negative point |
+| `Cmd/Ctrl+]`         | Bring annotation forward   |
+| `Cmd/Ctrl+[`         | Send annotation backward   |
+| `Cmd/Ctrl+Shift+]`   | Bring to front             |
+| `Cmd/Ctrl+Shift+[`   | Send to back               |
 
-<!-- Screenshot: platform-annotate-shortcuts.avif -->
+<!-- Screenshot: platform-annotate-keyboard-shortcuts-dialog.avif -->
 
 ??? tip "View All Shortcuts"
 
-    Press `?` to open the keyboard shortcuts dialog.
+    Click the keyboard icon in the annotation toolbar to open the shortcuts reference.
 
 ## Undo/Redo
 
-The annotation editor maintains a full history:
+The annotation editor maintains a full undo/redo history:
 
-- **Undo**: `Ctrl+Z` (Cmd+Z on Mac)
-- **Redo**: `Ctrl+Y` (Cmd+Y on Mac)
+- **Undo**: `Cmd/Ctrl+Z`
+- **Redo**: `Cmd/Ctrl+Shift+Z` or `Cmd/Ctrl+Y`
 
-History includes:
+History tracks:
 
-- Adding annotations
-- Editing annotations
-- Deleting annotations
-- Changing classes
+- Adding annotations (single and batch)
+- Editing annotations (move, resize, rotate)
+- Deleting annotations (single and batch)
+- Changing classes (single and batch)
+- Reordering annotations (z-order)
+- Editing polygon vertices (add, remove, move)
+- Moving keypoints
 
 ## Saving Annotations
 
-Annotations are saved when you click **Save** or navigate away:
+Annotations are saved when you click `Save` or press `Cmd/Ctrl+S`:
 
-- **Save**: Click the save button or press `Ctrl+S`
+- **Save**: Click the save button or press `Cmd/Ctrl+S`
 - **Cancel**: Click cancel to discard changes
-- **Auto-save warning**: Unsaved changes prompt before leaving
+- **Escape**: Saves if there are unsaved changes, otherwise exits edit mode
 
 !!! warning "Save Your Work"
 
@@ -344,12 +360,13 @@ The keyboard shortcut `1-9` quickly selects classes.
 
 ### What's the difference between SAM and auto-annotate?
 
-| Feature       | SAM                           | Auto-Annotate                 |
+| Feature       | SAM Smart                     | YOLO Auto-Annotate            |
 | ------------- | ----------------------------- | ----------------------------- |
 | **Method**    | Interactive point prompts     | Model inference               |
 | **Speed**     | One object at a time          | All objects at once           |
 | **Precision** | Very high with guidance       | Depends on model              |
 | **Best for**  | Complex objects, fine details | Bulk labeling, simple objects |
+| **Tasks**     | Detect, Segment, OBB         | All task types                |
 
 ### Can I train on partially annotated datasets?
 
@@ -358,3 +375,7 @@ Yes, but for best results:
 - Label all objects of your target classes in each image
 - Use the **unknown** split for unlabeled images
 - Exclude unlabeled images from training configuration
+
+### Which tasks support SAM smart annotation?
+
+SAM smart annotation is available for **detect**, **segment**, and **OBB** tasks. Classification and pose tasks use manual annotation only.

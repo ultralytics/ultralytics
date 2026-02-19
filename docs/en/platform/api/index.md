@@ -46,10 +46,34 @@ Authorization: Bearer ul_your_api_key_here
 
 ### Example
 
-```bash
-curl -H "Authorization: Bearer ul_abc123..." \
-  https://platform.ultralytics.com/api/datasets
-```
+=== "cURL"
+
+    ```bash
+    curl -H "Authorization: Bearer ul_abc123..." \
+      https://platform.ultralytics.com/api/datasets
+    ```
+
+=== "Python"
+
+    ```python
+    import requests
+
+    headers = {"Authorization": "Bearer ul_abc123..."}
+    response = requests.get(
+        "https://platform.ultralytics.com/api/datasets",
+        headers=headers,
+    )
+    data = response.json()
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    const response = await fetch("https://platform.ultralytics.com/api/datasets", {
+      headers: { Authorization: "Bearer ul_abc123..." },
+    });
+    const data = await response.json();
+    ```
 
 ## Base URL
 
@@ -114,18 +138,18 @@ GET /api/datasets
 
 **Query Parameters:**
 
-| Parameter | Type   | Description                  |
-| --------- | ------ | ---------------------------- |
-| `page`    | int    | Page number (default: 1)     |
-| `limit`   | int    | Items per page (default: 20) |
-| `task`    | string | Filter by task type          |
+| Parameter  | Type   | Description                      |
+| ---------- | ------ | -------------------------------- |
+| `username` | string | Filter by username               |
+| `slug`     | string | Fetch single dataset by slug     |
+| `limit`    | int    | Items per page (default: 20, max: 500) |
+| `owner`    | string | Workspace owner username         |
 
 **Response:**
 
 ```json
 {
-    "success": true,
-    "data": [
+    "datasets": [
         {
             "id": "dataset_abc123",
             "name": "my-dataset",
@@ -136,7 +160,8 @@ GET /api/datasets
             "visibility": "private",
             "createdAt": "2024-01-15T10:00:00Z"
         }
-    ]
+    ],
+    "total": 1
 }
 ```
 
@@ -145,6 +170,8 @@ GET /api/datasets
 ```
 GET /api/datasets/{datasetId}
 ```
+
+Returns full dataset details including metadata, class names, and split counts.
 
 ### Create Dataset
 
@@ -156,9 +183,28 @@ POST /api/datasets
 
 ```json
 {
-    "name": "my-dataset",
+    "slug": "my-dataset",
+    "name": "My Dataset",
     "task": "detect",
-    "description": "A custom detection dataset"
+    "description": "A custom detection dataset",
+    "visibility": "private",
+    "classNames": ["person", "car"]
+}
+```
+
+### Update Dataset
+
+```
+PATCH /api/datasets/{datasetId}
+```
+
+**Body (partial update):**
+
+```json
+{
+    "name": "Updated Name",
+    "description": "New description",
+    "visibility": "public"
 }
 ```
 
@@ -168,13 +214,46 @@ POST /api/datasets
 DELETE /api/datasets/{datasetId}
 ```
 
+Soft-deletes the dataset (moved to trash, recoverable for 30 days).
+
+### Clone Dataset
+
+```
+POST /api/datasets/{datasetId}/clone
+```
+
+Creates a copy of the dataset with all images and labels.
+
 ### Export Dataset
 
 ```
-POST /api/datasets/{datasetId}/export
+GET /api/datasets/{datasetId}/export
 ```
 
-Returns NDJSON format download URL.
+Returns NDJSON format export of the dataset (images and annotations).
+
+### Get Class Statistics
+
+```
+GET /api/datasets/{datasetId}/class-stats
+```
+
+Returns cached class distribution, location heatmap, and dimension statistics.
+
+**Response:**
+
+```json
+{
+    "classes": [{ "classId": 0, "count": 1500, "imageCount": 450 }],
+    "imageStats": {
+        "widthHistogram": [{ "bin": 640, "count": 120 }],
+        "heightHistogram": [{ "bin": 480, "count": 95 }]
+    },
+    "locationHeatmap": { "bins": [[]], "maxCount": 50 },
+    "classNames": ["person", "car", "dog"],
+    "cached": true
+}
+```
 
 ### Get Models Trained on Dataset
 
@@ -204,6 +283,90 @@ Returns list of models that were trained using this dataset, showing the relatio
 }
 ```
 
+### Auto-Annotate Dataset
+
+```
+POST /api/datasets/{datasetId}/predict
+```
+
+Run YOLO inference on dataset images to auto-generate annotations.
+
+### Dataset Ingest
+
+```
+POST /api/datasets/ingest
+```
+
+Create a dataset ingest job to process uploaded ZIP files containing images and labels.
+
+### Dataset Images
+
+#### List Images
+
+```
+GET /api/datasets/{datasetId}/images
+```
+
+**Query Parameters:**
+
+| Parameter | Type   | Description                          |
+| --------- | ------ | ------------------------------------ |
+| `split`   | string | Filter by split (train/val/test)     |
+| `cursor`  | string | Pagination cursor                    |
+| `limit`   | int    | Items per page                       |
+
+#### Get Signed Image URLs
+
+```
+POST /api/datasets/{datasetId}/images/urls
+```
+
+Get signed URLs for a batch of image hashes (for display in the browser).
+
+#### Delete Image
+
+```
+DELETE /api/datasets/{datasetId}/images/{hash}
+```
+
+#### Get Image Labels
+
+```
+GET /api/datasets/{datasetId}/images/{hash}/labels
+```
+
+Returns annotations and class names for a specific image.
+
+#### Update Image Labels
+
+```
+PUT /api/datasets/{datasetId}/images/{hash}/labels
+```
+
+**Body:**
+
+```json
+{
+    "labels": [
+        { "classId": 0, "bbox": [0.5, 0.5, 0.2, 0.3] }
+    ]
+}
+```
+
+#### Bulk Image Operations
+
+```
+PATCH /api/datasets/{datasetId}/images/bulk
+```
+
+Move or copy images between datasets.
+
+```
+DELETE /api/datasets/{datasetId}/images/bulk
+```
+
+Bulk delete images from the dataset.
+
 ## Projects API
 
 ### List Projects
@@ -211,6 +374,14 @@ Returns list of models that were trained using this dataset, showing the relatio
 ```
 GET /api/projects
 ```
+
+**Query Parameters:**
+
+| Parameter  | Type   | Description              |
+| ---------- | ------ | ------------------------ |
+| `username` | string | Filter by username       |
+| `limit`    | int    | Items per page           |
+| `owner`    | string | Workspace owner username |
 
 ### Get Project
 
@@ -233,11 +404,39 @@ POST /api/projects
 }
 ```
 
+### Update Project
+
+```
+PATCH /api/projects/{projectId}
+```
+
 ### Delete Project
 
 ```
 DELETE /api/projects/{projectId}
 ```
+
+Soft-deletes the project (moved to trash).
+
+### Clone Project
+
+```
+POST /api/projects/{projectId}/clone
+```
+
+### Project Icon
+
+```
+POST /api/projects/{projectId}/icon
+```
+
+Upload a project icon (multipart form with image file).
+
+```
+DELETE /api/projects/{projectId}/icon
+```
+
+Remove the project icon.
 
 ## Models API
 
@@ -254,13 +453,21 @@ GET /api/models
 | `projectId` | string | Filter by project   |
 | `task`      | string | Filter by task type |
 
+### List Completed Models
+
+```
+GET /api/models/completed
+```
+
+Returns models that have finished training (for use in model selectors).
+
 ### Get Model
 
 ```
 GET /api/models/{modelId}
 ```
 
-### Upload Model
+### Create Model
 
 ```
 POST /api/models
@@ -274,19 +481,41 @@ POST /api/models
 | `projectId` | string | Target project |
 | `name`      | string | Model name     |
 
+### Update Model
+
+```
+PATCH /api/models/{modelId}
+```
+
 ### Delete Model
 
 ```
 DELETE /api/models/{modelId}
 ```
 
-### Download Model
+### Download Model Files
 
 ```
 GET /api/models/{modelId}/files
 ```
 
 Returns signed download URLs for model files.
+
+### Clone Model
+
+```
+POST /api/models/{modelId}/clone
+```
+
+Clone a model to a new project.
+
+### Track Download
+
+```
+POST /api/models/{modelId}/track-download
+```
+
+Track model download analytics.
 
 ### Run Inference
 
@@ -317,6 +546,22 @@ POST /api/models/{modelId}/predict
 }
 ```
 
+### Get Predict Token
+
+```
+POST /api/models/{modelId}/predict/token
+```
+
+Get a short-lived token for client-side prediction requests.
+
+### Warmup Predict Service
+
+```
+POST /api/models/{modelId}/predict/warmup
+```
+
+Warm up the predict service for faster first inference.
+
 ## Training API
 
 ### Start Training
@@ -330,10 +575,15 @@ POST /api/training/start
 ```json
 {
     "modelId": "model_abc123",
-    "datasetId": "dataset_xyz789",
-    "epochs": 100,
-    "imageSize": 640,
-    "gpuType": "rtx-4090"
+    "projectId": "project_xyz789",
+    "gpuType": "rtx-4090",
+    "trainArgs": {
+        "model": "yolo11n.pt",
+        "data": "ul://username/datasets/my-dataset",
+        "epochs": 100,
+        "imgsz": 640,
+        "batch": 16
+    }
 }
 ```
 
@@ -343,11 +593,15 @@ POST /api/training/start
 GET /api/models/{modelId}/training
 ```
 
+Returns the current training job status, metrics, and progress for a model.
+
 ### Cancel Training
 
 ```
 DELETE /api/models/{modelId}/training
 ```
+
+Terminates the running compute instance and marks the job as cancelled.
 
 ## Deployments API
 
@@ -359,9 +613,11 @@ GET /api/deployments
 
 **Query Parameters:**
 
-| Parameter | Type   | Description     |
-| --------- | ------ | --------------- |
-| `modelId` | string | Filter by model |
+| Parameter | Type   | Description          |
+| --------- | ------ | -------------------- |
+| `modelId` | string | Filter by model      |
+| `status`  | string | Filter by status     |
+| `limit`   | int    | Max results (default: 20, max: 100) |
 
 ### Create Deployment
 
@@ -374,28 +630,16 @@ POST /api/deployments
 ```json
 {
     "modelId": "model_abc123",
-    "region": "us-central1",
-    "minInstances": 0,
-    "maxInstances": 10
+    "region": "us-central1"
 }
 ```
+
+Creates a dedicated inference endpoint in the specified region.
 
 ### Get Deployment
 
 ```
 GET /api/deployments/{deploymentId}
-```
-
-### Start Deployment
-
-```
-POST /api/deployments/{deploymentId}/start
-```
-
-### Stop Deployment
-
-```
-POST /api/deployments/{deploymentId}/stop
 ```
 
 ### Delete Deployment
@@ -404,11 +648,45 @@ POST /api/deployments/{deploymentId}/stop
 DELETE /api/deployments/{deploymentId}
 ```
 
+### Start Deployment
+
+```
+POST /api/deployments/{deploymentId}/start
+```
+
+Resume a stopped deployment.
+
+### Stop Deployment
+
+```
+POST /api/deployments/{deploymentId}/stop
+```
+
+Pause a running deployment (stops billing).
+
+### Health Check
+
+```
+GET /api/deployments/{deploymentId}/health
+```
+
+Returns the health status of the deployment endpoint.
+
+### Run Inference on Deployment
+
+```
+POST /api/deployments/{deploymentId}/predict
+```
+
+Send an image directly to a deployment endpoint for inference.
+
 ### Get Metrics
 
 ```
 GET /api/deployments/{deploymentId}/metrics
 ```
+
+Returns request counts, latency, and error rate metrics with sparkline data.
 
 ### Get Logs
 
@@ -422,6 +700,16 @@ GET /api/deployments/{deploymentId}/logs
 | ---------- | ------ | -------------------- |
 | `severity` | string | INFO, WARNING, ERROR |
 | `limit`    | int    | Number of entries    |
+
+## Monitoring API
+
+### Aggregated Metrics
+
+```
+GET /api/monitoring
+```
+
+Returns aggregated metrics across all user deployments (total requests, active deployments, error rate, average latency).
 
 ## Export API
 
@@ -455,6 +743,20 @@ POST /api/exports
 ```
 GET /api/exports/{exportId}
 ```
+
+### Cancel Export
+
+```
+DELETE /api/exports/{exportId}
+```
+
+### Track Export Download
+
+```
+POST /api/exports/{exportId}/track-download
+```
+
+Track export download analytics.
 
 ## Activity API
 
@@ -496,6 +798,15 @@ Manage soft-deleted resources (30-day retention).
 GET /api/trash
 ```
 
+**Query Parameters:**
+
+| Parameter | Type   | Description                              |
+| --------- | ------ | ---------------------------------------- |
+| `type`    | string | Filter: `all`, `project`, `dataset`, `model` |
+| `page`    | int    | Page number (default: 1)                 |
+| `limit`   | int    | Items per page (default: 50, max: 200)   |
+| `owner`   | string | Workspace owner username                 |
+
 ### Restore Item
 
 ```
@@ -506,15 +817,34 @@ POST /api/trash
 
 ```json
 {
-    "itemId": "item_abc123",
+    "id": "item_abc123",
     "type": "dataset"
 }
 ```
 
+### Permanently Delete Item
+
+```
+DELETE /api/trash
+```
+
+**Body:**
+
+```json
+{
+    "id": "item_abc123",
+    "type": "dataset"
+}
+```
+
+!!! warning "Irreversible"
+
+    Permanent deletion cannot be undone.
+
 ### Empty Trash
 
 ```
-POST /api/trash/empty
+DELETE /api/trash/empty
 ```
 
 Permanently deletes all items in trash.
@@ -555,6 +885,14 @@ GET /api/billing/usage-summary
 
 Returns plan details, limits, and usage metrics.
 
+### Get Transactions
+
+```
+GET /api/billing/transactions
+```
+
+Returns transaction history with pagination.
+
 ### Create Checkout Session
 
 ```
@@ -569,7 +907,7 @@ POST /api/billing/checkout-session
 }
 ```
 
-Creates a Stripe checkout session for credit purchase ($5-$1000).
+Creates a checkout session for credit purchase ($5-$1000).
 
 ### Create Subscription Checkout
 
@@ -577,7 +915,7 @@ Creates a Stripe checkout session for credit purchase ($5-$1000).
 POST /api/billing/subscription-checkout
 ```
 
-Creates a Stripe checkout session for Pro subscription.
+Creates a checkout session for Pro subscription.
 
 ### Create Portal Session
 
@@ -585,15 +923,59 @@ Creates a Stripe checkout session for Pro subscription.
 POST /api/billing/portal-session
 ```
 
-Returns URL to Stripe billing portal for subscription management.
+Returns URL to billing portal for subscription management.
 
-### Get Payment History
+### Auto Top-Up
+
+#### Get Auto Top-Up Config
 
 ```
-GET /api/billing/payments
+GET /api/billing/auto-topup
 ```
 
-Returns list of payment transactions from Stripe.
+#### Update Auto Top-Up Config
+
+```
+PATCH /api/billing/auto-topup
+```
+
+**Body:**
+
+```json
+{
+    "enabled": true,
+    "thresholdCents": 500,
+    "amountCents": 2500
+}
+```
+
+### Payment Methods
+
+#### List Payment Methods
+
+```
+GET /api/billing/payment-methods
+```
+
+#### Create Setup Intent
+
+```
+POST /api/billing/payment-methods/setup
+```
+
+Returns a client secret for adding a new payment method.
+
+#### Set Default Payment Method
+
+```
+POST /api/billing/payment-methods/default
+```
+
+#### Delete Payment Method
+
+```
+DELETE /api/billing/payment-methods/{id}
+```
 
 ## Storage API
 
@@ -616,32 +998,13 @@ GET /api/storage
 }
 ```
 
-## GDPR API
-
-GDPR compliance endpoints for data export and deletion.
-
-### Export/Delete Account Data
+### Recalculate Storage
 
 ```
-POST /api/gdpr
+POST /api/storage
 ```
 
-**Body:**
-
-```json
-{
-    "action": "export"
-}
-```
-
-| Action   | Description                 |
-| -------- | --------------------------- |
-| `export` | Download all account data   |
-| `delete` | Delete account and all data |
-
-!!! warning "Irreversible Action"
-
-    Account deletion is permanent and cannot be undone. All data, models, and deployments will be deleted.
+Triggers a recalculation of storage usage.
 
 ## API Keys API
 
@@ -661,16 +1024,225 @@ POST /api/api-keys
 
 ```json
 {
-    "name": "training-server",
-    "scopes": ["training", "models"]
+    "name": "training-server"
 }
 ```
 
 ### Delete API Key
 
 ```
-DELETE /api/api-keys/{keyId}
+DELETE /api/api-keys
 ```
+
+**Body:**
+
+```json
+{
+    "keyId": "key_abc123"
+}
+```
+
+## Teams & Members API
+
+### List Teams
+
+```
+GET /api/teams
+```
+
+### Create Team
+
+```
+POST /api/teams/create
+```
+
+**Body:**
+
+```json
+{
+    "name": "My Team",
+    "slug": "my-team"
+}
+```
+
+### List Members
+
+```
+GET /api/members
+```
+
+Returns members of the current workspace.
+
+### Invite Member
+
+```
+POST /api/members
+```
+
+**Body:**
+
+```json
+{
+    "email": "user@example.com",
+    "role": "editor"
+}
+```
+
+### Update Member Role
+
+```
+PATCH /api/members/{userId}
+```
+
+### Remove Member
+
+```
+DELETE /api/members/{userId}
+```
+
+### Transfer Ownership
+
+```
+POST /api/members/transfer-ownership
+```
+
+### Invites
+
+#### Accept Invite
+
+```
+POST /api/invites/accept
+```
+
+#### Get Invite Info
+
+```
+GET /api/invites/info
+```
+
+**Query Parameters:**
+
+| Parameter | Type   | Description     |
+| --------- | ------ | --------------- |
+| `token`   | string | Invite token    |
+
+#### Revoke Invite
+
+```
+DELETE /api/invites/{inviteId}
+```
+
+#### Resend Invite
+
+```
+POST /api/invites/{inviteId}/resend
+```
+
+## Explore API
+
+### Search Public Content
+
+```
+GET /api/explore/search
+```
+
+**Query Parameters:**
+
+| Parameter | Type   | Description                           |
+| --------- | ------ | ------------------------------------- |
+| `q`       | string | Search query                          |
+| `type`    | string | Resource type (project, dataset, model) |
+| `sort`    | string | Sort order                            |
+
+### Sidebar Data
+
+```
+GET /api/explore/sidebar
+```
+
+Returns curated content for the Explore sidebar.
+
+## User & Settings APIs
+
+### Get User by Username
+
+```
+GET /api/users
+```
+
+**Query Parameters:**
+
+| Parameter  | Type   | Description          |
+| ---------- | ------ | -------------------- |
+| `username` | string | Username to look up  |
+
+### Check Username Availability
+
+```
+GET /api/username/check
+```
+
+**Query Parameters:**
+
+| Parameter  | Type   | Description          |
+| ---------- | ------ | -------------------- |
+| `username` | string | Username to check    |
+
+### Settings
+
+```
+GET /api/settings
+POST /api/settings
+```
+
+Get or update user profile settings (display name, bio, social links, etc.).
+
+### Profile Icon
+
+```
+POST /api/settings/icon
+DELETE /api/settings/icon
+```
+
+Upload or remove profile avatar.
+
+### Onboarding
+
+```
+POST /api/onboarding
+```
+
+Complete onboarding flow (set region, username).
+
+## GDPR API
+
+GDPR compliance endpoints for data export and deletion.
+
+### Export Account Data
+
+```
+GET /api/gdpr
+```
+
+Download all account data as a JSON export.
+
+### Delete Account
+
+```
+POST /api/gdpr
+```
+
+**Body:**
+
+```json
+{
+    "action": "delete"
+}
+```
+
+!!! warning "Irreversible Action"
+
+    Account deletion is permanent and cannot be undone. All data, models, and deployments will be deleted.
 
 ## Error Codes
 
@@ -848,8 +1420,7 @@ Webhook setup is available in Enterprise plans.
 Use `page` and `limit` parameters:
 
 ```bash
-GET /api/datasets?page=2 &
-limit=50
+GET /api/datasets?page=2&limit=50
 ```
 
 ### Can I use the API without an SDK?

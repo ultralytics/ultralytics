@@ -84,13 +84,30 @@ graph LR
 
 Your data stays in your region. Ultralytics Platform operates infrastructure in three global regions:
 
-| Region | Location             | Best For                                |
-| ------ | -------------------- | --------------------------------------- |
-| **US** | Iowa, USA            | Americas users, fastest for Americas    |
-| **EU** | Belgium, Europe      | European users, GDPR compliance         |
-| **AP** | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+| Region | Location                | Best For                                |
+| ------ | ----------------------- | --------------------------------------- |
+| **US** | Iowa, USA               | Americas users, fastest for Americas    |
+| **EU** | Belgium, Europe         | European users, GDPR compliance         |
+| **AP** | Hong Kong, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+
+```mermaid
+graph LR
+    subgraph US["🇺🇸 US Region"]
+        US_DB[(Database)] --- US_S[Storage] --- US_P[Predict]
+    end
+    subgraph EU["🇪🇺 EU Region"]
+        EU_DB[(Database)] --- EU_S[Storage] --- EU_P[Predict]
+    end
+    subgraph AP["🇭🇰 AP Region"]
+        AP_DB[(Database)] --- AP_S[Storage] --- AP_P[Predict]
+    end
+```
 
 You select your region during onboarding, and all your data, models, and deployments remain in that region.
+
+!!! warning "Region is Permanent"
+
+    Your data region cannot be changed after account creation. During onboarding, the Platform measures latency to each region and recommends the closest one. Choose carefully.
 
 ## Key Features
 
@@ -104,7 +121,7 @@ You select your region during onboarding, and all your data, models, and deploym
 
 ### Model Training
 
-- **Cloud Training**: Train on cloud GPUs (RTX 4090, A100, H100) with real-time metrics
+- **Cloud Training**: Train on 22 cloud GPU types (RTX 4090, A100, H100, B200, and more) with real-time metrics
 - **Remote Training**: Train anywhere and stream metrics to Platform (W&B-style)
 - **Project Organization**: Group related models, compare experiments, track activity
 - **17 Export Formats**: ONNX, TensorRT, CoreML, TFLite, and more
@@ -119,6 +136,7 @@ You select your region during onboarding, and all your data, models, and deploym
 
 ### Account Management
 
+- **Teams & Organizations**: Collaborate with team members, manage roles and invites
 - **API Keys**: Secure key management for remote training and API access
 - **Credits & Billing**: Pay-as-you-go training with transparent pricing
 - **Activity Feed**: Track all account events and actions
@@ -173,22 +191,30 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 
 Ultralytics Platform supports multiple GPU types for cloud training:
 
-| Tier        | GPU          | VRAM   | Cost/Hour | Best For                   |
-| ----------- | ------------ | ------ | --------- | -------------------------- |
-| Budget      | RTX A2000    | 6 GB   | $0.12     | Small datasets, testing    |
-| Budget      | RTX 3080     | 10 GB  | $0.25     | Medium datasets            |
-| Budget      | RTX 3080 Ti  | 12 GB  | $0.30     | Medium datasets            |
-| Budget      | A30          | 24 GB  | $0.44     | Larger batch sizes         |
-| Mid         | RTX 4090     | 24 GB  | $0.60     | Great price/performance    |
-| Mid         | A6000        | 48 GB  | $0.90     | Large models               |
-| Mid         | L4           | 24 GB  | $0.54     | Inference optimized        |
-| Mid         | L40S         | 48 GB  | $1.72     | Large batch training       |
-| Pro         | A100 40GB    | 40 GB  | $2.78     | Production training        |
-| Pro         | A100 80GB    | 80 GB  | $3.44     | Very large models          |
-| Pro         | H100         | 80 GB  | $5.38     | Fastest training           |
-| Enterprise  | H200         | 141 GB | $5.38     | Maximum performance        |
-| Enterprise  | B200         | 192 GB | $10.38    | Largest models             |
-| Ultralytics | RTX PRO 6000 | 48 GB  | $3.68     | Ultralytics infrastructure |
+| Tier       | GPU           | VRAM   | Cost/Hour | Best For                |
+| ---------- | ------------- | ------ | --------- | ----------------------- |
+| Budget     | RTX 2000 Ada  | 16 GB  | $0.24     | Small datasets, testing |
+| Budget     | RTX A4500     | 20 GB  | $0.24     | Small-medium datasets   |
+| Budget     | RTX A5000     | 24 GB  | $0.26     | Medium datasets         |
+| Budget     | RTX 4000 Ada  | 20 GB  | $0.38     | Medium datasets         |
+| Budget     | L4            | 24 GB  | $0.39     | Inference optimized     |
+| Budget     | A40           | 48 GB  | $0.40     | Larger batch sizes      |
+| Budget     | RTX 3090      | 24 GB  | $0.46     | General training        |
+| Budget     | RTX A6000     | 48 GB  | $0.49     | Large models            |
+| Mid        | RTX 4090      | 24 GB  | $0.59     | Great price/performance |
+| Mid        | RTX 6000 Ada  | 48 GB  | $0.77     | Large batch training    |
+| Mid        | L40S          | 48 GB  | $0.86     | Large batch training    |
+| Mid        | RTX 5090      | 32 GB  | $0.89     | Latest generation       |
+| Mid        | L40           | 48 GB  | $0.99     | Large models            |
+| Pro        | A100 PCIe     | 80 GB  | $1.39     | Production training     |
+| Pro        | A100 SXM      | 80 GB  | $1.49     | Production training     |
+| Pro        | RTX PRO 6000  | 96 GB  | $1.89     | Blackwell generation    |
+| Enterprise | H100 PCIe     | 80 GB  | $2.39     | Fastest training        |
+| Enterprise | H100 SXM      | 80 GB  | $2.69     | Fastest training        |
+| Enterprise | H100 NVL      | 94 GB  | $3.07     | High-memory training    |
+| Enterprise | H200 NVL      | 143 GB | $3.39     | Maximum memory           |
+| Enterprise | H200 SXM      | 141 GB | $3.59     | Maximum performance     |
+| Enterprise | B200          | 180 GB | $4.99     | Largest models          |
 
 See [Cloud Training](train/cloud-training.md) for complete pricing and GPU options.
 

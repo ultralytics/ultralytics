@@ -6,59 +6,93 @@ keywords: Ultralytics Platform, inference, API, YOLO, object detection, predicti
 
 # Inference
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides an inference API for testing trained models. Use the browser-based Test tab for quick validation or the REST API for programmatic access.
+[Ultralytics Platform](https://platform.ultralytics.com) provides an inference API for testing trained models. Use the browser-based `Predict` tab for quick validation or the REST API for programmatic access.
 
-<!-- Screenshot: platform-test-tab.avif -->
+<!-- Screenshot: model-predict-tab-with-detections-overlay.avif -->
 
-## Test Tab
+## Predict Tab
 
-Every model includes a Test tab for browser-based inference:
+Every model includes a `Predict` tab for browser-based inference:
 
 1. Navigate to your model
-2. Click the **Test** tab
-3. Upload an image or use examples
-4. View predictions instantly
+2. Click the **Predict** tab
+3. Upload an image, use an example, or open your webcam
+4. View predictions instantly with bounding box overlays
 
-<!-- Screenshot: platform-test-upload.avif -->
+<!-- Screenshot: predict-tab-image-upload-dropzone.avif -->
+
+### Input Methods
+
+The predict panel supports multiple input methods:
+
+| Method              | Description                                              |
+| ------------------- | -------------------------------------------------------- |
+| **Image upload**    | Drag and drop or click to upload an image                |
+| **Example images**  | Click built-in examples (dataset images or defaults)     |
+| **Webcam capture**  | Live camera feed with single-frame capture               |
 
 ### Upload Image
 
 Drag and drop or click to upload:
 
-- **Supported formats**: JPG, PNG, WebP, GIF
+- **Supported formats**: JPEG, PNG, WebP, AVIF, HEIC, JP2, TIFF, BMP, and more
 - **Max size**: 10MB
-- **Auto-inference**: Results appear automatically
+- **Auto-inference**: Results appear automatically after upload
 
 ### Example Images
 
-Use built-in example images for quick testing:
+The predict panel shows example images from your model's linked dataset. If no dataset is linked, default examples are used:
 
 | Image        | Content                    |
 | ------------ | -------------------------- |
 | `bus.jpg`    | Street scene with vehicles |
 | `zidane.jpg` | Sports scene with people   |
 
+For OBB models, aerial images of boats and airports are shown instead.
+
+Example images are preloaded on page load for instant response.
+
+### Webcam
+
+Click the webcam card to start a live camera feed:
+
+1. Grant camera permission when prompted
+2. Click the video preview to capture a frame
+3. Inference runs automatically on the captured frame
+4. Click again to restart the webcam
+
 ### View Results
 
 Inference results display:
 
-- **Bounding boxes** with class labels
+- **Bounding boxes** with class labels as SVG overlays
 - **Confidence scores** for each detection
-- **Class colors** matching your dataset
+- **Class colors** from your dataset's color palette (or the Ultralytics default palette)
+- **Speed breakdown**: Preprocess, inference, postprocess, and network time
 
-<!-- Screenshot: platform-test-results.avif -->
+<!-- Screenshot: predict-tab-results-with-detections-and-speed-stats.avif -->
+
+The results panel shows:
+
+| Field              | Description                                     |
+| ------------------ | ----------------------------------------------- |
+| **Detections list** | Each detection with class name and confidence   |
+| **Speed stats**    | Preprocess, inference, postprocess, network (ms)|
+| **JSON response**  | Raw API response in a code block                |
 
 ## Inference Parameters
 
-Adjust detection behavior with parameters:
+Adjust detection behavior with parameters in the collapsible **Parameters** section:
 
-<!-- Screenshot: platform-test-params.avif -->
+<!-- Screenshot: predict-tab-parameters-sliders.avif -->
 
 | Parameter      | Range   | Default | Description                  |
 | -------------- | ------- | ------- | ---------------------------- |
-| **Confidence** | 0.0-1.0 | 0.25    | Minimum confidence threshold |
-| **IoU**        | 0.0-1.0 | 0.70    | NMS IoU threshold            |
-| **Image Size** | 32-1280 | 640     | Input resize dimension       |
+| **Confidence** | 0.01-1.0 | 0.25    | Minimum confidence threshold |
+| **IoU**        | 0.0-0.95 | 0.70    | NMS IoU threshold            |
+| **Image Size** | 320, 640, 1280 | 640     | Input resize dimension (button toggle) |
+
+Changing any parameter automatically re-runs inference on the current image (debounced at 500ms).
 
 ### Confidence Threshold
 
@@ -75,6 +109,10 @@ Control Non-Maximum Suppression:
 - **Higher (0.7+)**: Allow more overlapping boxes
 - **Lower (0.3-0.5)**: Merge nearby detections more aggressively
 - **Default (0.70)**: Balanced NMS behavior for most use cases
+
+## Deployment Predict
+
+Each running [dedicated endpoint](endpoints.md) includes a `Predict` tab directly on its deployment card. This uses the deployment's own inference service rather than the shared predict service, letting you test your deployed endpoint from the browser.
 
 ## REST API
 
@@ -121,7 +159,7 @@ POST https://platform.ultralytics.com/api/models/{model_slug}/predict
     print(response.json())
     ```
 
-<!-- Screenshot: platform-test-code.avif -->
+<!-- Screenshot: predict-tab-code-examples-python-tab.avif -->
 
 ### Response
 
@@ -157,7 +195,7 @@ POST https://platform.ultralytics.com/api/models/{model_slug}/predict
 }
 ```
 
-<!-- Screenshot: platform-test-json.avif -->
+<!-- Screenshot: predict-tab-json-response-view.avif -->
 
 ### Response Fields
 
@@ -274,7 +312,7 @@ results[0].save("annotated.jpg")
 
 - **Upload limit**: 10MB
 - **Recommended**: <5MB for fast inference
-- **Auto-resize**: Images are resized to `imgsz` parameter
+- **Auto-resize**: Images are resized to the selected `Image Size` parameter
 
 Large images are automatically resized while preserving aspect ratio.
 

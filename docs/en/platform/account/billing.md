@@ -6,38 +6,44 @@ keywords: Ultralytics Platform, billing, credits, pricing, subscription, payment
 
 # Billing
 
-[Ultralytics Platform](https://platform.ultralytics.com) uses a credit-based billing system for cloud training and dedicated endpoints. Add credits, track usage, and manage your subscription.
+[Ultralytics Platform](https://platform.ultralytics.com) uses a credit-based billing system for cloud training and dedicated endpoints. Add credits, track usage, and manage your subscription from `Settings > Billing`.
 
-<!-- Screenshot: platform-billing-overview.avif -->
+<!-- Screenshot: settings-billing-tab-credit-balance-and-plan-card.avif -->
 
 ## Plans
 
-Choose the plan that fits your needs:
+Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 
-<!-- Screenshot: platform-billing-plans.avif -->
+<!-- Screenshot: settings-plans-tab-free-pro-enterprise-comparison.avif -->
 
-| Feature                 | Free                   | Pro ($29/mo) | Enterprise |
-| ----------------------- | ---------------------- | ------------ | ---------- |
-| **Signup Credit**       | $5 ($25 company email) | $25/month    | Custom     |
-| **Credit Expiry**       | 30 days                | 30 days      | Custom     |
-| **Storage**             | 100 GB                 | 500 GB       | Unlimited  |
-| **Private Projects**    | Unlimited              | Unlimited    | Unlimited  |
-| **Deployments**         | 3 (cold-start)         | 3            | Unlimited  |
-| **Teams**               | -                      | Yes          | Yes        |
-| **Dedicated Endpoints** | -                      | Yes          | Yes        |
-| **Priority Training**   | -                      | Yes          | Yes        |
-| **SSO/Audit Logs**      | -                      | -            | Yes        |
-| **License**             | AGPL                   | AGPL         | Enterprise |
+| Feature                    | Free       | Pro ($29/mo)    | Enterprise |
+| -------------------------- | ---------- | --------------- | ---------- |
+| **Signup Credit**          | $5 / $25\* | -               | Custom     |
+| **Monthly Credit**         | -          | $30/seat/month  | Custom     |
+| **Models**                 | 100        | 500             | Unlimited  |
+| **Concurrent Trainings**   | 3          | 10              | Unlimited  |
+| **Storage**                | 100 GB     | 500 GB          | Unlimited  |
+| **Deployments**            | 3          | 10 (warm-start) | Unlimited  |
+| **Teams**                  | -          | Up to 5 members | Unlimited  |
+| **Best GPUs (H200, B200)** | -          | Yes             | Yes        |
+| **SSO / SAML**             | -          | -               | Yes        |
+| **Enterprise License**     | -          | -               | Yes        |
+| **License**                | AGPL-3.0   | AGPL-3.0        | Enterprise |
+
+\*Free plan: $5 at signup, or $25 if you verify a company/work email address.
 
 ### Free Plan
 
 Get started at no cost:
 
-- $5 signup credit ($25 for company/work emails)
-- Credits expire in 30 days
+- $5 signup credit ($25 for verified company/work emails)
+- Unlimited public and private projects and datasets
+- 100 models
+- 3 concurrent cloud trainings
+- 3 deployments
 - 100 GB storage
-- Unlimited private projects
-- 3 deployments (cold-start, scale to zero when idle)
+- Model export to all formats
+- Manual annotation
 - Community support
 
 !!! tip "Company Email Bonus"
@@ -46,51 +52,53 @@ Get started at no cost:
 
 ### Pro Plan
 
-For serious users and small teams ($29/month):
+For professionals and small teams ($29/month or $290/year):
 
-- $25 monthly credit (recurring, expires in 30 days)
+- $30/seat/month in credits (recurring)
+- 500 models
+- 10 concurrent cloud trainings
 - 500 GB storage
-- Unlimited private projects
-- 3 deployments with dedicated endpoints
-- Priority training queue
-- Email support
+- 10 warm-start deployments (faster cold starts)
+- Team collaboration (up to 5 members)
+- Access to the best GPUs (H200, B200)
+- Priority support
+
+!!! tip "Save with Yearly Billing"
+
+    Choose yearly billing ($290/year) to save 17% compared to monthly billing.
 
 ### Enterprise
 
 For organizations with advanced needs:
 
-- Custom credit allocation and expiry
-- Unlimited storage
-- Unlimited deployments
-- SSO/SAML integration
-- Audit logging
-- Dedicated support
-- Enterprise license (non-AGPL)
+- Custom credit allocation
+- Unlimited models, storage, trainings, and deployments
+- Enterprise License (commercial use, non-AGPL)
+- SSO / SAML authentication
+- RBAC with 4 roles (Owner, Admin, Editor, Viewer)
+- Custom roles with granular permissions
+- On-premise deployment
+- SLA guarantees
+- Enterprise support
+- Compliance (ISO/SOC)
 
 Contact [sales@ultralytics.com](mailto:sales@ultralytics.com) for Enterprise pricing.
 
 ## Credits
 
-Credits are the currency for Platform compute services. All amounts are stored internally in **micro-USD** (1 dollar = 1,000,000 micro-USD) for precise accounting.
+Credits are the currency for Platform compute services.
 
 ### Credit Balance
 
-View your balance in Settings > Billing:
+View your balance in `Settings > Billing`:
 
-<!-- Screenshot: platform-billing-credits.avif -->
+<!-- Screenshot: settings-billing-tab-credit-balance-with-topup-button.avif -->
 
-| Balance Type       | Description                                   |
-| ------------------ | --------------------------------------------- |
-| **Cash Balance**   | Purchased credits (from Stripe top-ups)       |
-| **Credit Balance** | Promotional credits (signup, monthly rewards) |
-| **Reserved**       | Held for active training jobs                 |
-| **Available**      | Total balance minus reserved amount           |
-
-Your actual available balance for starting new training is calculated as:
-
-```
-Available = (Cash Balance + Credit Balance) - Reserved Amount
-```
+| Balance Type            | Description                           |
+| ----------------------- | ------------------------------------- |
+| **Total Balance**       | Available credits for cloud training  |
+| **Promotional Credits** | Credits from signup or monthly grants |
+| **Reserved**            | Held for active training jobs         |
 
 ### Credit Uses
 
@@ -98,21 +106,9 @@ Credits are consumed by:
 
 | Service                 | Rate                 |
 | ----------------------- | -------------------- |
-| **Cloud Training**      | GPU rate × hours     |
-| **Dedicated Endpoints** | Compute rate × hours |
+| **Cloud Training**      | GPU rate x hours     |
+| **Dedicated Endpoints** | Compute rate x hours |
 | **Model Export**        | Fixed per export     |
-
-### Credit Expiration
-
-Credits have expiration dates:
-
-- **Signup credits**: 30 days from account creation
-- **Monthly credits**: 30 days from issue date
-- **Purchased credits**: Never expire
-
-!!! tip "FIFO Credit Consumption"
-
-    Credits are consumed in FIFO (First In, First Out) order - oldest expiring credits are used first. This ensures promotional credits are used before they expire, while your purchased credits remain available longer.
 
 ## Add Credits
 
@@ -120,26 +116,55 @@ Top up your balance:
 
 1. Go to **Settings > Billing**
 2. Click **Add Credits**
-3. Select amount ($5 - $1000)
+3. Select or enter amount ($5 - $1,000)
 4. Complete payment
 
-<!-- Screenshot: platform-billing-topup.avif -->
+<!-- Screenshot: settings-billing-tab-topup-amount-selection-dialog.avif -->
+
+### Top-Up Presets
+
+| Amount |
+| ------ |
+| $10    |
+| $20    |
+| $50    |
+| $100   |
+| $500   |
+
+Custom amounts between $5 and $1,000 are also supported.
+
+### Auto Top-Up
+
+Enable automatic credit purchases when your balance drops below a threshold:
+
+1. Go to **Settings > Billing**
+2. Toggle **Auto Top-Up** on
+3. Set **Threshold** (balance level that triggers a top-up)
+4. Set **Amount** (credits to purchase when triggered)
+5. Click **Save**
+
+Default settings: threshold $20, amount $100.
+
+!!! tip "Uninterrupted Training"
+
+    Enable auto top-up to ensure training jobs are never interrupted by insufficient credits.
 
 ### Payment Methods
 
-- Credit/debit cards
-- Major payment providers
+Manage payment methods in `Settings > Billing`:
 
-### Purchase Options
+- **Add Card**: Click **Add Card** to add a credit or debit card
+- **Set Default**: Set a default payment method for top-ups and subscriptions
+- **Remove**: Remove payment methods you no longer need
 
-| Amount | Bonus | Total |
-| ------ | ----- | ----- |
-| $5     | -     | $5    |
-| $25    | -     | $25   |
-| $50    | -     | $50   |
-| $100   | -     | $100  |
-| $500   | -     | $500  |
-| $1000  | -     | $1000 |
+### Billing Address
+
+Set a billing address for invoices:
+
+1. Go to **Settings > Billing**
+2. Click **Add Address** (or **Edit** if already set)
+3. Enter your billing details (name, address, country)
+4. Click **Save**
 
 ## Training Cost Flow
 
@@ -157,10 +182,10 @@ flowchart LR
 ### How It Works
 
 1. **Estimate**: Platform calculates estimated cost based on model size, dataset size, epochs, and GPU
-2. **Hold**: Estimated cost (plus 20% safety margin) is reserved from your balance
+2. **Hold**: Estimated cost is reserved from your balance
 3. **Train**: Reserved amount shows as "Reserved" in your balance during training
 4. **Settle**: After completion, you're charged only for actual GPU time used
-5. **Refund**: Any excess is returned proportionally (credits first, then cash)
+5. **Refund**: Any excess is returned to your balance
 
 !!! success "Consumer Protection"
 
@@ -170,113 +195,105 @@ flowchart LR
 
 Cloud training costs depend on GPU selection:
 
-| Tier       | GPU          | VRAM   | Rate/Hour | Typical Job (1h) |
-| ---------- | ------------ | ------ | --------- | ---------------- |
-| Budget     | RTX A2000    | 6 GB   | $0.12     | $0.12            |
-| Budget     | RTX 3080     | 10 GB  | $0.25     | $0.25            |
-| Budget     | RTX 3080 Ti  | 12 GB  | $0.30     | $0.30            |
-| Budget     | A30          | 24 GB  | $0.44     | $0.44            |
-| Mid        | L4           | 24 GB  | $0.54     | $0.54            |
-| Mid        | RTX 4090     | 24 GB  | $0.60     | $0.60            |
-| Mid        | A6000        | 48 GB  | $0.90     | $0.90            |
-| Mid        | L40S         | 48 GB  | $1.72     | $1.72            |
-| Pro        | A100 40GB    | 40 GB  | $2.78     | $2.78            |
-| Pro        | A100 80GB    | 80 GB  | $3.44     | $3.44            |
-| Pro        | RTX PRO 6000 | 48 GB  | $3.68     | $3.68            |
-| Pro        | H100         | 80 GB  | $5.38     | $5.38            |
-| Enterprise | H200         | 141 GB | $5.38     | $5.38            |
-| Enterprise | B200         | 192 GB | $10.38    | $10.38           |
+| GPU          | VRAM   | Rate/Hour |
+| ------------ | ------ | --------- |
+| RTX 2000 Ada | 16 GB  | $0.24     |
+| RTX A4500    | 20 GB  | $0.24     |
+| RTX A5000    | 24 GB  | $0.26     |
+| RTX 4000 Ada | 20 GB  | $0.38     |
+| L4           | 24 GB  | $0.39     |
+| A40          | 48 GB  | $0.40     |
+| RTX 3090     | 24 GB  | $0.46     |
+| RTX A6000    | 48 GB  | $0.49     |
+| RTX 4090     | 24 GB  | $0.59     |
+| RTX 6000 Ada | 48 GB  | $0.77     |
+| L40S         | 48 GB  | $0.86     |
+| RTX 5090     | 32 GB  | $0.89     |
+| L40          | 48 GB  | $0.99     |
+| A100 PCIe    | 80 GB  | $1.39     |
+| A100 SXM     | 80 GB  | $1.49     |
+| RTX PRO 6000 | 96 GB  | $1.89     |
+| H100 PCIe    | 80 GB  | $2.39     |
+| H100 SXM     | 80 GB  | $2.69     |
+| H100 NVL     | 94 GB  | $3.07     |
+| H200 NVL     | 143 GB | $3.39     |
+| H200 SXM     | 141 GB | $3.59     |
+| B200         | 180 GB | $4.99     |
 
 See [Cloud Training](../train/cloud-training.md) for complete GPU options and pricing.
 
 ### Cost Calculation
 
 ```
-Total Cost = GPU Rate × Training Time (hours)
+Total Cost = GPU Rate x Training Time (hours)
 ```
 
 Example: Training for 2.5 hours on RTX 4090
 
 ```
-$1.18 × 2.5 = $2.95
+$0.59 x 2.5 = $1.48
 ```
-
-### Billing Timing
-
-- **Epochs mode**: Charged after each epoch
-- **Timed mode**: Charged at completion
-- **Canceled**: Charged for completed time only
 
 ## Upgrade to Pro
 
 Upgrade for more features and monthly credits:
 
-1. Go to **Settings > Billing**
+1. Go to **Settings > Plans**
 2. Click **Upgrade to Pro**
-3. Complete checkout
+3. Choose billing cycle (Monthly or Yearly)
+4. Complete checkout
 
-<!-- Screenshot: platform-billing-upgrade.avif -->
+<!-- Screenshot: settings-plans-tab-upgrade-to-pro-dialog.avif -->
 
 ### Pro Benefits
 
 After upgrading:
 
-- $25 credit added immediately
-- $25 credit added each month (recurring)
+- $30/seat/month credit added immediately and each month
 - Storage increased to 500 GB
-- Unlimited private projects
-- 3 dedicated deployments
-- Priority training queue
+- 500 models
+- 10 concurrent cloud trainings
+- 10 warm-start deployments
+- Team collaboration (up to 5 members)
+- Access to best GPUs
+- Priority support
 
 ### Cancel Pro
 
 Cancel anytime from the billing portal:
 
-1. Click **Manage Subscription**
-2. Select **Cancel**
-3. Confirm cancellation
+1. Go to **Settings > Billing**
+2. Click **Manage Subscription**
+3. Select **Cancel**
+4. Confirm cancellation
 
 !!! note "Cancellation Timing"
 
     Pro features remain active until the end of your billing period. Monthly credits stop at cancellation.
 
-## Payment History
+## Transaction History
 
-View all transactions:
+View all transactions in `Settings > Billing`:
 
-<!-- Screenshot: platform-billing-history.avif -->
+<!-- Screenshot: settings-billing-tab-transaction-history-table.avif -->
 
-| Column          | Description                     |
-| --------------- | ------------------------------- |
-| **Date**        | Transaction date                |
-| **Description** | Credit purchase, training, etc. |
-| **Amount**      | Transaction value               |
-| **Balance**     | Resulting balance               |
-
-### Download Invoice
-
-1. Click transaction in history
-2. Select **Download Invoice**
-3. PDF invoice downloads
-
-## Billing Portal
-
-Access the billing portal for:
-
-- Update payment method
-- Download invoices
-- Manage subscription
-- View billing history
+| Column      | Description                                                                             |
+| ----------- | --------------------------------------------------------------------------------------- |
+| **Date**    | Transaction date                                                                        |
+| **Type**    | Signup Bonus, Credit Purchase, Monthly Grant, Training, Refund, Adjustment, Auto Top-Up |
+| **Amount**  | Transaction value (green for credits, red for charges)                                  |
+| **Balance** | Resulting balance after transaction                                                     |
+| **Details** | Additional context (model link, receipt, period)                                        |
 
 ## FAQ
 
 ### What happens when I run out of credits?
 
-- **Active training**: Pauses at epoch end
+- **Active training**: Cannot start new training jobs
 - **Deployments**: Continue running
-- **New training**: Cannot start
+- **New training**: Requires credits to start
 
-Add credits to continue training.
+Add credits or enable auto top-up to continue training.
 
 ### Are unused credits refundable?
 
@@ -289,9 +306,7 @@ Credits are not transferable between accounts.
 
 ### How do I get an invoice?
 
-1. Go to **Settings > Billing**
-2. Click **Billing Portal**
-3. Download invoices
+Transaction receipts are available in the transaction history. Click the receipt icon next to any purchase transaction.
 
 ### What if training fails?
 
@@ -299,4 +314,4 @@ You're only charged for completed compute time. Failed jobs don't charge for unu
 
 ### Is there a free trial?
 
-The Free plan includes $5 signup credit - essentially a free trial. No credit card required to start.
+The Free plan includes $5 signup credit ($25 with a company email) -- essentially a free trial. No credit card required to start.

@@ -64,7 +64,7 @@ graph LR
 
 | Stage        | Features                                                                    |
 | ------------ | --------------------------------------------------------------------------- |
-| **Upload**   | Images (50MB), videos (1GB), ZIP archives (50GB) with automatic processing  |
+| **Upload**   | Images (50MB), videos (1GB), ZIP archives (10GB) with automatic processing  |
 | **Annotate** | Manual tools, SAM smart annotation, YOLO auto-labeling for all 5 task types |
 | **Train**    | Cloud GPUs (RTX 4090 to H200), real-time metrics, project organization      |
 | **Export**   | 17 deployment formats (ONNX, TensorRT, CoreML, TFLite, etc.)                |
@@ -84,13 +84,30 @@ graph LR
 
 Your data stays in your region. Ultralytics Platform operates infrastructure in three global regions:
 
-| Region | Location             | Best For                                |
-| ------ | -------------------- | --------------------------------------- |
-| **US** | Iowa, USA            | Americas users, fastest for Americas    |
-| **EU** | Belgium, Europe      | European users, GDPR compliance         |
-| **AP** | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+| Region | Location                | Best For                                |
+| ------ | ----------------------- | --------------------------------------- |
+| **US** | Iowa, USA               | Americas users, fastest for Americas    |
+| **EU** | Belgium, Europe         | European users, GDPR compliance         |
+| **AP** | Hong Kong, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+
+```mermaid
+graph LR
+    subgraph US["🇺🇸 US Region"]
+        US_DB[(Database)] --- US_S[Storage] --- US_P[Predict]
+    end
+    subgraph EU["🇪🇺 EU Region"]
+        EU_DB[(Database)] --- EU_S[Storage] --- EU_P[Predict]
+    end
+    subgraph AP["🇭🇰 AP Region"]
+        AP_DB[(Database)] --- AP_S[Storage] --- AP_P[Predict]
+    end
+```
 
 You select your region during onboarding, and all your data, models, and deployments remain in that region.
+
+!!! warning "Region is Permanent"
+
+    Your data region cannot be changed after account creation. During onboarding, the Platform measures latency to each region and recommends the closest one. Choose carefully.
 
 ## Key Features
 
@@ -102,14 +119,72 @@ You select your region during onboarding, and all your data, models, and deploym
 - **Auto-Annotation**: Use trained models to pre-label new data
 - **Statistics**: Class distribution, location heatmaps, and dimension analysis
 
+```mermaid
+graph LR
+    A[Upload ZIP/Images/Video] --> B[Auto-Process]
+    B --> C[Browse & Filter]
+    C --> D{Annotate}
+    D --> E[Manual Tools]
+    D --> F[SAM Smart]
+    D --> G[YOLO Auto-Label]
+    E --> H[Train-Ready Dataset]
+    F --> H
+    G --> H
+```
+
+!!! tip "Supported Task Types"
+
+    The annotation editor supports all 5 YOLO task types: **detect** (bounding boxes), **segment** (polygons), **pose** (keypoints), **OBB** (oriented boxes), and **classify** (image-level labels). Each task type has dedicated drawing tools and keyboard shortcuts.
+
 ### Model Training
 
-- **Cloud Training**: Train on cloud GPUs (RTX 4090, A100, H100) with real-time metrics
+- **Cloud Training**: Train on 22 cloud GPU types (RTX 4090, A100, H100, B200, and more) with real-time metrics
 - **Remote Training**: Train anywhere and stream metrics to Platform (W&B-style)
 - **Project Organization**: Group related models, compare experiments, track activity
 - **17 Export Formats**: ONNX, TensorRT, CoreML, TFLite, and more
 
 ![Ultralytics Platform Project Screenshot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/project-screenshot.avif)
+
+You can train models either through the web UI (cloud training) or from your own machine (remote training):
+
+=== "Cloud Training (Web UI)"
+
+    1. Navigate to your project
+    2. Click `Train Model`
+    3. Select dataset, model, GPU, and epochs
+    4. Monitor real-time loss curves and metrics
+
+=== "Remote Training (CLI)"
+
+    ```bash
+    # Install ultralytics
+    pip install "ultralytics>=8.4.0"
+
+    # Set your API key
+    export ULTRALYTICS_API_KEY="your_api_key"
+
+    # Train and stream metrics to Platform
+    yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
+    ```
+
+=== "Remote Training (Python)"
+
+    ```python
+    import os
+
+    from ultralytics import YOLO
+
+    os.environ["ULTRALYTICS_API_KEY"] = "your_api_key"
+
+    model = YOLO("yolo26n.pt")
+    model.train(
+        data="coco.yaml",
+        epochs=100,
+        project="username/my-project",
+        name="exp1",
+    )
+    # Metrics stream to Platform automatically
+    ```
 
 ### Deployment
 
@@ -117,13 +192,81 @@ You select your region during onboarding, and all your data, models, and deploym
 - **Dedicated Endpoints**: Deploy to 43 global regions with auto-scaling
 - **Monitoring**: Real-time metrics, request logs, and performance dashboards
 
+```mermaid
+graph LR
+    A[Trained Model] --> B{Action}
+    B --> C[Browser Predict]
+    B --> D[Export Format]
+    B --> E[Deploy Endpoint]
+    D --> F[ONNX / TensorRT / CoreML / TFLite / ...]
+    E --> G[43 Global Regions]
+    G --> H[API Endpoint URL]
+    H --> I[Monitor & Scale]
+```
+
+Once deployed, call your endpoint from any language:
+
+=== "Python"
+
+    ```python
+    import requests
+
+    url = "https://your-endpoint-url/predict"
+    headers = {"Authorization": "Bearer your_api_key"}
+
+    with open("image.jpg", "rb") as f:
+        response = requests.post(url, headers=headers, files={"file": f})
+
+    print(response.json())
+    ```
+
+=== "cURL"
+
+    ```bash
+    curl -X POST "https://your-endpoint-url/predict" \
+      -H "Authorization: Bearer your_api_key" \
+      -F "file=@image.jpg"
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    const form = new FormData();
+    form.append("file", fileInput.files[0]);
+
+    const response = await fetch("https://your-endpoint-url/predict", {
+        method: "POST",
+        headers: { Authorization: "Bearer your_api_key" },
+        body: form,
+    });
+
+    const results = await response.json();
+    console.log(results);
+    ```
+
 ### Account Management
 
+- **Teams & Organizations**: Collaborate with team members, manage roles and invites
 - **API Keys**: Secure key management for remote training and API access
 - **Credits & Billing**: Pay-as-you-go training with transparent pricing
 - **Activity Feed**: Track all account events and actions
 - **Trash & Restore**: 30-day soft delete with item recovery
 - **GDPR Compliance**: Data export and account deletion
+
+!!! info "Plan Tiers"
+
+    | Feature              | Free           | Pro ($29/mo)        | Enterprise     |
+    | -------------------- | -------------- | ------------------- | -------------- |
+    | Signup Credit        | $5 / $25*      | -                   | Custom         |
+    | Monthly Credit       | -              | $30/seat/month      | Custom         |
+    | Models               | 100            | 500                 | Unlimited      |
+    | Concurrent Trainings | 3              | 10                  | Unlimited      |
+    | Deployments          | 3              | 10 (warm-start)     | Unlimited      |
+    | Storage              | 100 GB         | 500 GB              | Unlimited      |
+    | Teams                | -              | Up to 5 members     | Unlimited      |
+    | Support              | Community      | Priority            | Dedicated      |
+
+    *$5 at signup, or $25 with a verified company/work email.
 
 ## Quick Links
 
@@ -173,28 +316,36 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 
 Ultralytics Platform supports multiple GPU types for cloud training:
 
-| Tier        | GPU          | VRAM   | Cost/Hour | Best For                   |
-| ----------- | ------------ | ------ | --------- | -------------------------- |
-| Budget      | RTX A2000    | 6 GB   | $0.12     | Small datasets, testing    |
-| Budget      | RTX 3080     | 10 GB  | $0.25     | Medium datasets            |
-| Budget      | RTX 3080 Ti  | 12 GB  | $0.30     | Medium datasets            |
-| Budget      | A30          | 24 GB  | $0.44     | Larger batch sizes         |
-| Mid         | RTX 4090     | 24 GB  | $0.60     | Great price/performance    |
-| Mid         | A6000        | 48 GB  | $0.90     | Large models               |
-| Mid         | L4           | 24 GB  | $0.54     | Inference optimized        |
-| Mid         | L40S         | 48 GB  | $1.72     | Large batch training       |
-| Pro         | A100 40GB    | 40 GB  | $2.78     | Production training        |
-| Pro         | A100 80GB    | 80 GB  | $3.44     | Very large models          |
-| Pro         | H100         | 80 GB  | $5.38     | Fastest training           |
-| Enterprise  | H200         | 141 GB | $5.38     | Maximum performance        |
-| Enterprise  | B200         | 192 GB | $10.38    | Largest models             |
-| Ultralytics | RTX PRO 6000 | 48 GB  | $3.68     | Ultralytics infrastructure |
+| Tier       | GPU          | VRAM   | Cost/Hour | Best For                |
+| ---------- | ------------ | ------ | --------- | ----------------------- |
+| Budget     | RTX 2000 Ada | 16 GB  | $0.24     | Small datasets, testing |
+| Budget     | RTX A4500    | 20 GB  | $0.24     | Small-medium datasets   |
+| Budget     | RTX A5000    | 24 GB  | $0.26     | Medium datasets         |
+| Budget     | RTX 4000 Ada | 20 GB  | $0.38     | Medium datasets         |
+| Budget     | L4           | 24 GB  | $0.39     | Inference optimized     |
+| Budget     | A40          | 48 GB  | $0.40     | Larger batch sizes      |
+| Budget     | RTX 3090     | 24 GB  | $0.46     | General training        |
+| Budget     | RTX A6000    | 48 GB  | $0.49     | Large models            |
+| Mid        | RTX 4090     | 24 GB  | $0.59     | Great price/performance |
+| Mid        | RTX 6000 Ada | 48 GB  | $0.77     | Large batch training    |
+| Mid        | L40S         | 48 GB  | $0.86     | Large batch training    |
+| Mid        | RTX 5090     | 32 GB  | $0.89     | Latest generation       |
+| Mid        | L40          | 48 GB  | $0.99     | Large models            |
+| Pro        | A100 PCIe    | 80 GB  | $1.39     | Production training     |
+| Pro        | A100 SXM     | 80 GB  | $1.49     | Production training     |
+| Pro        | RTX PRO 6000 | 96 GB  | $1.89     | Blackwell generation    |
+| Enterprise | H100 PCIe    | 80 GB  | $2.39     | Fastest training        |
+| Enterprise | H100 SXM     | 80 GB  | $2.69     | Fastest training        |
+| Enterprise | H100 NVL     | 94 GB  | $3.07     | High-memory training    |
+| Enterprise | H200 NVL     | 143 GB | $3.39     | Maximum memory          |
+| Enterprise | H200 SXM     | 141 GB | $3.59     | Maximum performance     |
+| Enterprise | B200         | 180 GB | $4.99     | Largest models          |
 
 See [Cloud Training](train/cloud-training.md) for complete pricing and GPU options.
 
 ### How does remote training work?
 
-You can train models anywhere and stream metrics to Platform.
+You can train models on your own hardware and stream real-time metrics to Platform, similar to Weights & Biases.
 
 !!! warning "Package Version Requirement"
 
@@ -204,13 +355,42 @@ You can train models anywhere and stream metrics to Platform.
     pip install "ultralytics>=8.4.0"
     ```
 
-```bash
-# Set your API key
-export ULTRALYTICS_API_KEY="your_api_key"
+=== "CLI"
 
-# Train with project/name to stream metrics
-yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
-```
+    ```bash
+    # Set your API key
+    export ULTRALYTICS_API_KEY="your_api_key"
+
+    # Train with project/name to stream metrics
+    yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
+    ```
+
+=== "Python"
+
+    ```python
+    import os
+
+    from ultralytics import YOLO
+
+    os.environ["ULTRALYTICS_API_KEY"] = "your_api_key"
+
+    model = YOLO("yolo26n.pt")
+    model.train(
+        data="coco.yaml",
+        epochs=100,
+        project="username/my-project",
+        name="exp1",
+    )
+    ```
+
+=== "Platform Dataset (ul:// URI)"
+
+    ```bash
+    # Train using a Platform dataset directly
+    export ULTRALYTICS_API_KEY="your_api_key"
+
+    yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100 project=username/my-project name=exp1
+    ```
 
 See [Cloud Training](train/cloud-training.md) for more details on remote training.
 
@@ -223,7 +403,42 @@ The Platform includes a full-featured annotation editor supporting:
 - **YOLO Auto-Annotation**: Use trained models to pre-label images
 - **Keyboard Shortcuts**: Efficient workflows with hotkeys
 
+| Shortcut  | Action                     |
+| --------- | -------------------------- |
+| `V`       | Select mode                |
+| `S`       | SAM smart annotation mode  |
+| `A`       | Auto-annotate mode         |
+| `1` - `9` | Select class by number     |
+| `Delete`  | Delete selected annotation |
+| `Ctrl+Z`  | Undo                       |
+| `Ctrl+Y`  | Redo                       |
+| `Escape`  | Cancel current action      |
+
 See [Annotation](data/annotation.md) for the complete guide.
+
+### What export formats are supported?
+
+The Platform supports 17 deployment formats:
+
+| Format        | File Extension    | Use Case                  |
+| ------------- | ----------------- | ------------------------- |
+| PyTorch       | `.pt`             | Training, general use     |
+| ONNX          | `.onnx`           | Cross-platform deployment |
+| TorchScript   | `.torchscript`    | C++ deployment            |
+| OpenVINO      | `_openvino_model` | Intel hardware            |
+| TensorRT      | `.engine`         | NVIDIA GPU inference      |
+| CoreML        | `.mlpackage`      | Apple devices             |
+| TFLite        | `.tflite`         | Mobile/edge devices       |
+| TF SavedModel | `_saved_model`    | TensorFlow ecosystem      |
+| TF GraphDef   | `.pb`             | TensorFlow legacy         |
+| PaddlePaddle  | `_paddle_model`   | Baidu ecosystem           |
+| NCNN          | `_ncnn_model`     | Mobile (Android/ARM)      |
+| Edge TPU      | `_edgetpu.tflite` | Google Coral devices      |
+| TF.js         | `_web_model`      | Browser deployment        |
+| MNN           | `.mnn`            | Alibaba mobile            |
+| RKNN          | `.rknn`           | Rockchip NPU              |
+| IMX           | `_imx_model`      | NXP i.MX devices          |
+| ExecuTorch    | `.pte`            | PyTorch mobile            |
 
 ## Troubleshooting
 
@@ -231,7 +446,7 @@ See [Annotation](data/annotation.md) for the complete guide.
 
 | Problem                | Solution                                                                                                 |
 | ---------------------- | -------------------------------------------------------------------------------------------------------- |
-| Dataset won't process  | Check file format is supported (JPEG, PNG, WebP, etc.). Max file size: images 50MB, videos 1GB, ZIP 50GB |
+| Dataset won't process  | Check file format is supported (JPEG, PNG, WebP, etc.). Max file size: images 50MB, videos 1GB, ZIP 10GB |
 | Missing annotations    | Verify labels are in YOLO format with `.txt` files matching image filenames                              |
 | "Train split required" | Add `train/` folder to your dataset structure, or create splits in the dataset settings                  |
 | Class names undefined  | Add a `data.yaml` file with `names:` list, or define classes in dataset settings                         |
@@ -282,7 +497,7 @@ See [Annotation](data/annotation.md) for the complete guide.
 
 ??? question "What are the file size limits?"
 
-    Images: 50MB, Videos: 1GB, ZIP archives: 50GB. For larger files, split into multiple uploads.
+    Images: 50MB, Videos: 1GB, ZIP archives: 10GB. For larger files, split into multiple uploads.
 
 ??? question "How long are deleted items kept in Trash?"
 

@@ -86,7 +86,7 @@ pip install ultralytics torchvision
 
 ### Video Classifier Models
 
-All models are pretrained on [Kinetics-400](https://www.deepmind.com/open-source/kinetics) with 400 action classes.
+All models are pretrained on [Kinetics-400](https://arxiv.org/abs/1705.06950) with 400 action classes.
 
 | Model       | Description                |
 | ----------- | -------------------------- |

@@ -166,12 +166,12 @@ Copy a public project to your workspace:
 
 Official `@ultralytics` content is pinned to the top of the Explore page. This includes:
 
-| Project    | Description                 | Models                       | Tasks                           |
-| ---------- | --------------------------- | ---------------------------- | ------------------------------- |
+| Project    | Description                 | Models                       | Tasks                                |
+| ---------- | --------------------------- | ---------------------------- | ------------------------------------ |
 | **YOLO26** | Latest January 2026 release | 27 models (all sizes, tasks) | detect, segment, pose, OBB, classify |
 | **YOLO11** | Current stable release      | 10+ models                   | detect, segment, pose, OBB, classify |
-| **YOLOv8** | Previous generation         | Various                      | detect, segment, pose, classify |
-| **YOLOv5** | Legacy, widely adopted      | Various                      | detect, segment, classify       |
+| **YOLOv8** | Previous generation         | Various                      | detect, segment, pose, classify      |
+| **YOLOv5** | Legacy, widely adopted      | Various                      | detect, segment, classify            |
 
 Official datasets include benchmark datasets like COCO, VOC, and other commonly used computer vision datasets.
 
@@ -262,12 +262,12 @@ When contributing public content:
 
 Public content on the Platform uses clean, shareable URLs:
 
-| Content  | URL Pattern                                           | Example                                                |
-| -------- | ----------------------------------------------------- | ------------------------------------------------------ |
-| Profile  | `platform.ultralytics.com/{username}`                 | `platform.ultralytics.com/ultralytics`                 |
-| Datasets | `platform.ultralytics.com/{username}/datasets`        | `platform.ultralytics.com/ultralytics/datasets`        |
-| Dataset  | `platform.ultralytics.com/{username}/datasets/{slug}` | `platform.ultralytics.com/ultralytics/datasets/coco`   |
-| Project  | `platform.ultralytics.com/{username}/{project}`       | `platform.ultralytics.com/ultralytics/yolo26`          |
+| Content  | URL Pattern                                             | Example                                               |
+| -------- | ------------------------------------------------------- | ----------------------------------------------------- |
+| Profile  | `platform.ultralytics.com/{username}`                   | `platform.ultralytics.com/ultralytics`                |
+| Datasets | `platform.ultralytics.com/{username}/datasets`          | `platform.ultralytics.com/ultralytics/datasets`       |
+| Dataset  | `platform.ultralytics.com/{username}/datasets/{slug}`   | `platform.ultralytics.com/ultralytics/datasets/coco`  |
+| Project  | `platform.ultralytics.com/{username}/{project}`         | `platform.ultralytics.com/ultralytics/yolo26`         |
 | Model    | `platform.ultralytics.com/{username}/{project}/{model}` | `platform.ultralytics.com/ultralytics/yolo26/yolo26n` |
 
 !!! tip "Shareable Links"

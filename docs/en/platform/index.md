@@ -399,16 +399,16 @@ The Platform includes a full-featured annotation editor supporting:
 - **YOLO Auto-Annotation**: Use trained models to pre-label images
 - **Keyboard Shortcuts**: Efficient workflows with hotkeys
 
-| Shortcut       | Action                          |
-| -------------- | ------------------------------- |
-| `V`            | Select mode                     |
-| `S`            | SAM smart annotation mode       |
-| `A`            | Auto-annotate mode              |
-| `1` - `9`      | Select class by number          |
-| `Delete`       | Delete selected annotation      |
-| `Ctrl+Z`       | Undo                            |
-| `Ctrl+Y`       | Redo                            |
-| `Escape`       | Cancel current action           |
+| Shortcut  | Action                     |
+| --------- | -------------------------- |
+| `V`       | Select mode                |
+| `S`       | SAM smart annotation mode  |
+| `A`       | Auto-annotate mode         |
+| `1` - `9` | Select class by number     |
+| `Delete`  | Delete selected annotation |
+| `Ctrl+Z`  | Undo                       |
+| `Ctrl+Y`  | Redo                       |
+| `Escape`  | Cancel current action      |
 
 See [Annotation](data/annotation.md) for the complete guide.
 
@@ -416,25 +416,25 @@ See [Annotation](data/annotation.md) for the complete guide.
 
 The Platform supports 17 deployment formats:
 
-| Format        | File Extension    | Use Case                       |
-| ------------- | ----------------- | ------------------------------ |
-| PyTorch       | `.pt`             | Training, general use          |
-| ONNX          | `.onnx`           | Cross-platform deployment      |
-| TorchScript   | `.torchscript`    | C++ deployment                 |
-| OpenVINO      | `_openvino_model` | Intel hardware                 |
-| TensorRT      | `.engine`         | NVIDIA GPU inference           |
-| CoreML        | `.mlpackage`      | Apple devices                  |
-| TFLite        | `.tflite`         | Mobile/edge devices            |
-| TF SavedModel | `_saved_model`    | TensorFlow ecosystem           |
-| TF GraphDef   | `.pb`             | TensorFlow legacy              |
-| PaddlePaddle  | `_paddle_model`   | Baidu ecosystem                |
-| NCNN          | `_ncnn_model`     | Mobile (Android/ARM)           |
-| Edge TPU      | `_edgetpu.tflite` | Google Coral devices           |
-| TF.js         | `_web_model`      | Browser deployment             |
-| MNN           | `.mnn`            | Alibaba mobile                 |
-| RKNN          | `.rknn`           | Rockchip NPU                   |
-| IMX           | `_imx_model`      | NXP i.MX devices              |
-| ExecuTorch    | `.pte`            | PyTorch mobile                 |
+| Format        | File Extension    | Use Case                  |
+| ------------- | ----------------- | ------------------------- |
+| PyTorch       | `.pt`             | Training, general use     |
+| ONNX          | `.onnx`           | Cross-platform deployment |
+| TorchScript   | `.torchscript`    | C++ deployment            |
+| OpenVINO      | `_openvino_model` | Intel hardware            |
+| TensorRT      | `.engine`         | NVIDIA GPU inference      |
+| CoreML        | `.mlpackage`      | Apple devices             |
+| TFLite        | `.tflite`         | Mobile/edge devices       |
+| TF SavedModel | `_saved_model`    | TensorFlow ecosystem      |
+| TF GraphDef   | `.pb`             | TensorFlow legacy         |
+| PaddlePaddle  | `_paddle_model`   | Baidu ecosystem           |
+| NCNN          | `_ncnn_model`     | Mobile (Android/ARM)      |
+| Edge TPU      | `_edgetpu.tflite` | Google Coral devices      |
+| TF.js         | `_web_model`      | Browser deployment        |
+| MNN           | `.mnn`            | Alibaba mobile            |
+| RKNN          | `.rknn`           | Rockchip NPU              |
+| IMX           | `_imx_model`      | NXP i.MX devices          |
+| ExecuTorch    | `.pte`            | PyTorch mobile            |
 
 ## Troubleshooting
 

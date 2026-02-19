@@ -136,12 +136,12 @@ Navigate to `Annotate` in the sidebar and click `New Dataset` to add your traini
 
 Ultralytics Platform supports multiple upload formats:
 
-| Format          | Max Size | Description                                    |
-| --------------- | -------- | ---------------------------------------------- |
-| **Images**      | 50 MB    | JPG, PNG, WebP, TIFF, and other common formats |
-| **ZIP Archive** | 10 GB    | Compressed folder with images and labels       |
+| Format          | Max Size | Description                                            |
+| --------------- | -------- | ------------------------------------------------------ |
+| **Images**      | 50 MB    | JPG, PNG, WebP, TIFF, and other common formats         |
+| **ZIP Archive** | 10 GB    | Compressed folder with images and labels               |
 | **Video**       | 1 GB     | MP4, AVI - frames extracted at ~1 fps (max 100 frames) |
-| **YOLO Format** | 10 GB    | Standard YOLO dataset structure with labels    |
+| **YOLO Format** | 10 GB    | Standard YOLO dataset structure with labels            |
 
 ```mermaid
 graph LR
@@ -228,11 +228,11 @@ From your project, click `Train Model` to start cloud training.
 
 Once training starts, you can monitor progress in real-time through three subtabs:
 
-| Subtab      | Content                                                    |
-| ----------- | ---------------------------------------------------------- |
-| **Charts**  | Training/validation loss curves, mAP, precision, recall    |
-| **Console** | Live training log output                                   |
-| **System**  | GPU utilization, memory usage, hardware metrics            |
+| Subtab      | Content                                                 |
+| ----------- | ------------------------------------------------------- |
+| **Charts**  | Training/validation loss curves, mAP, precision, recall |
+| **Console** | Live training log output                                |
+| **System**  | GPU utilization, memory usage, hardware metrics         |
 
 <!-- Screenshot: platform-training-charts-loss-and-metrics.avif -->
 
@@ -256,11 +256,11 @@ After training completes, test your model directly in the browser:
 
 Adjust inference parameters:
 
-| Parameter      | Default | Description                          |
-| -------------- | ------- | ------------------------------------ |
-| **Confidence** | 0.25    | Filter low-confidence predictions    |
-| **IoU**        | 0.7     | Control overlap for NMS              |
-| **Image Size** | 640     | Resize input for inference           |
+| Parameter      | Default | Description                       |
+| -------------- | ------- | --------------------------------- |
+| **Confidence** | 0.25    | Filter low-confidence predictions |
+| **IoU**        | 0.7     | Control overlap for NMS           |
+| **Image Size** | 640     | Resize input for inference        |
 
 The `Predict` tab provides ready-to-use code examples with your actual API key pre-filled:
 

@@ -209,35 +209,35 @@ POST https://platform.ultralytics.com/api/models/{username}/{project}/{model}/pr
 
 ```json
 {
-  "success": true,
-  "images": [
-    {
-      "shape": [1080, 1920],
-      "results": [
+    "success": true,
+    "images": [
         {
-          "class": 0,
-          "name": "person",
-          "confidence": 0.92,
-          "box": { "x1": 100, "y1": 50, "x2": 300, "y2": 400 }
-        },
-        {
-          "class": 2,
-          "name": "car",
-          "confidence": 0.87,
-          "box": { "x1": 400, "y1": 200, "x2": 600, "y2": 350 }
+            "shape": [1080, 1920],
+            "results": [
+                {
+                    "class": 0,
+                    "name": "person",
+                    "confidence": 0.92,
+                    "box": { "x1": 100, "y1": 50, "x2": 300, "y2": 400 }
+                },
+                {
+                    "class": 2,
+                    "name": "car",
+                    "confidence": 0.87,
+                    "box": { "x1": 400, "y1": 200, "x2": 600, "y2": 350 }
+                }
+            ],
+            "speed": {
+                "preprocess": 1.2,
+                "inference": 12.5,
+                "postprocess": 2.3
+            }
         }
-      ],
-      "speed": {
-        "preprocess": 1.2,
-        "inference": 12.5,
-        "postprocess": 2.3
-      }
+    ],
+    "metadata": {
+        "model": "yolo11n.pt",
+        "task": "detect"
     }
-  ],
-  "metadata": {
-    "model": "yolo11n.pt",
-    "task": "detect"
-  }
 }
 ```
 
@@ -245,17 +245,17 @@ POST https://platform.ultralytics.com/api/models/{username}/{project}/{model}/pr
 
 ### Response Fields
 
-| Field                      | Type    | Description                         |
-| -------------------------- | ------- | ----------------------------------- |
-| `success`                  | boolean | Request status                      |
-| `images`                   | array   | List of processed images            |
-| `images[].shape`           | array   | Image dimensions [height, width]    |
-| `images[].results`         | array   | List of detections                  |
-| `images[].results[].name`  | string  | Class name                          |
-| `images[].results[].confidence` | float | Detection confidence (0-1)      |
-| `images[].results[].box`   | object  | Bounding box coordinates            |
-| `images[].speed`           | object  | Processing times in milliseconds    |
-| `metadata`                 | object  | Model info and task type            |
+| Field                           | Type    | Description                      |
+| ------------------------------- | ------- | -------------------------------- |
+| `success`                       | boolean | Request status                   |
+| `images`                        | array   | List of processed images         |
+| `images[].shape`                | array   | Image dimensions [height, width] |
+| `images[].results`              | array   | List of detections               |
+| `images[].results[].name`       | string  | Class name                       |
+| `images[].results[].confidence` | float   | Detection confidence (0-1)       |
+| `images[].results[].box`        | object  | Bounding box coordinates         |
+| `images[].speed`                | object  | Processing times in milliseconds |
+| `metadata`                      | object  | Model info and task type         |
 
 ### Task-Specific Responses
 
@@ -394,15 +394,18 @@ The current API processes one image per request. For batch:
 
     ```python
     import concurrent.futures
+
     import requests
 
     url = "https://predict-abc123-us-central1.a.run.app/predict"
     headers = {"Authorization": "Bearer YOUR_API_KEY"}
     images = ["img1.jpg", "img2.jpg", "img3.jpg"]
 
+
     def predict(image_path):
         with open(image_path, "rb") as f:
             return requests.post(url, headers=headers, files={"file": f}).json()
+
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
         results = list(executor.map(predict, images))

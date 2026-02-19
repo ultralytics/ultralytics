@@ -117,10 +117,10 @@ graph LR
 
 The editor provides two annotation modes, selectable from the toolbar:
 
-| Mode       | Description                                           | Shortcut |
-| ---------- | ----------------------------------------------------- | -------- |
-| **Draw**   | Manual annotation with task-specific tools            | `V`      |
-| **Smart**  | SAM-powered interactive annotation (detect/segment/OBB) | `S`    |
+| Mode      | Description                                             | Shortcut |
+| --------- | ------------------------------------------------------- | -------- |
+| **Draw**  | Manual annotation with task-specific tools              | `V`      |
+| **Smart** | SAM-powered interactive annotation (detect/segment/OBB) | `S`      |
 
 ## Manual Annotation Tools
 
@@ -327,43 +327,43 @@ Efficient annotation with keyboard shortcuts:
 
 ### General
 
-| Shortcut              | Action                     |
-| --------------------- | -------------------------- |
-| `Cmd/Ctrl+S`         | Save annotations           |
-| `Cmd/Ctrl+Z`         | Undo                       |
-| `Cmd/Ctrl+Shift+Z`   | Redo                       |
-| `Cmd/Ctrl+Y`         | Redo (alternative)         |
-| `Escape`             | Save / Deselect / Exit     |
+| Shortcut               | Action                     |
+| ---------------------- | -------------------------- |
+| `Cmd/Ctrl+S`           | Save annotations           |
+| `Cmd/Ctrl+Z`           | Undo                       |
+| `Cmd/Ctrl+Shift+Z`     | Redo                       |
+| `Cmd/Ctrl+Y`           | Redo (alternative)         |
+| `Escape`               | Save / Deselect / Exit     |
 | `Delete` / `Backspace` | Delete selected annotation |
-| `1-9`                 | Select class 1-9           |
-| `Cmd/Ctrl+Scroll`    | Zoom in/out                |
-| `Shift+Click`        | Multi-select annotations   |
-| `Cmd/Ctrl+A`         | Select all annotations     |
+| `1-9`                  | Select class 1-9           |
+| `Cmd/Ctrl+Scroll`      | Zoom in/out                |
+| `Shift+Click`          | Multi-select annotations   |
+| `Cmd/Ctrl+A`           | Select all annotations     |
 
 ### Modes
 
-| Shortcut | Action               |
-| -------- | -------------------- |
-| `V`      | Draw mode (manual)   |
-| `S`      | Smart mode (SAM)     |
+| Shortcut | Action             |
+| -------- | ------------------ |
+| `V`      | Draw mode (manual) |
+| `S`      | Smart mode (SAM)   |
 
 ### Drawing
 
-| Shortcut      | Action                                         |
-| ------------- | ---------------------------------------------- |
-| `Click+Drag`  | Draw bounding box (detect/OBB)                 |
+| Shortcut      | Action                                              |
+| ------------- | --------------------------------------------------- |
+| `Click+Drag`  | Draw bounding box (detect/OBB)                      |
 | `Click`       | Add polygon point (segment) / Place keypoint (pose) |
-| `Right-click` | Complete polygon / Add SAM negative point      |
-| `Enter`       | Complete polygon / Save SAM annotation         |
+| `Right-click` | Complete polygon / Add SAM negative point           |
+| `Enter`       | Complete polygon / Save SAM annotation              |
 
 ### Arrange (Z-Order)
 
-| Shortcut              | Action               |
-| --------------------- | -------------------- |
-| `Cmd/Ctrl+]`         | Bring forward        |
-| `Cmd/Ctrl+[`         | Send backward        |
-| `Cmd/Ctrl+Shift+]`   | Bring to front       |
-| `Cmd/Ctrl+Shift+[`   | Send to back         |
+| Shortcut           | Action         |
+| ------------------ | -------------- |
+| `Cmd/Ctrl+]`       | Bring forward  |
+| `Cmd/Ctrl+[`       | Send backward  |
+| `Cmd/Ctrl+Shift+]` | Bring to front |
+| `Cmd/Ctrl+Shift+[` | Send to back   |
 
 <!-- Screenshot: platform-annotate-keyboard-shortcuts-dialog.avif -->
 
@@ -438,7 +438,7 @@ The keyboard shortcut `1-9` quickly selects classes.
 | **Speed**     | One object at a time          | All objects at once           |
 | **Precision** | Very high with guidance       | Depends on model              |
 | **Best for**  | Complex objects, fine details | Bulk labeling, simple objects |
-| **Tasks**     | Detect, Segment, OBB         | All task types                |
+| **Tasks**     | Detect, Segment, OBB          | All task types                |
 
 ### Can I train on partially annotated datasets?
 

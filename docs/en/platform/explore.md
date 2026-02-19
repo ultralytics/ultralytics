@@ -1,191 +1,242 @@
 ---
 comments: true
-description: Discover public datasets, models, and projects on the Ultralytics Platform for computer vision and YOLO applications.
-keywords: Ultralytics Platform, explore, public datasets, public models, computer vision, YOLO
+description: Discover public datasets and projects on the Ultralytics Platform Explore page. Browse, search, and clone community content for computer vision and YOLO.
+keywords: Ultralytics Platform, explore, public datasets, public projects, computer vision, YOLO, community
 ---
 
 # Explore
 
-[Ultralytics Platform](https://platform.ultralytics.com) Explore page showcases public content from the community. Discover datasets, models, and projects for inspiration and learning.
+[Ultralytics Platform](https://platform.ultralytics.com) Explore page showcases public content from the community. Discover datasets and projects for inspiration and learning. The Explore page is accessible to everyone — even without signing in.
 
-<!-- Screenshot: platform-explore-page.avif -->
+<!-- Screenshot: platform-explore-datasets-tab-cards-view.avif -->
 
 ```mermaid
 graph LR
-    A[🔍 Browse] --> B[📥 Clone/Fork]
-    B --> C[✏️ Customize]
-    C --> D[🚀 Train]
+    A[🔍 Browse Explore] --> B[📥 Clone to Account]
+    B --> C[✏️ Customize & Annotate]
+    C --> D[🚀 Train Model]
+    D --> E[🌐 Deploy Endpoint]
 
     style A fill:#4CAF50,color:#fff
     style B fill:#2196F3,color:#fff
     style C fill:#FF9800,color:#fff
     style D fill:#9C27B0,color:#fff
+    style E fill:#E91E63,color:#fff
 ```
+
+!!! info "Anonymous Access"
+
+    The Explore page works without signing in. Anonymous users see official Ultralytics content in the sidebar under "Ultralytics" instead of "My Projects". To clone content or create your own, you'll need to sign up.
 
 ## Overview
 
-The Explore page features:
+The Explore page features two tabs:
 
-- **Public Datasets**: Community training data
-- **Public Models**: Trained checkpoints ready to use
-- **Public Projects**: Complete experiments and workflows
-- **User Profiles**: Creators and their contributions
+- **Public Datasets**: Community training data with image previews
+- **Public Projects**: Complete experiments containing trained models
+
+Official Ultralytics content (e.g., `@ultralytics` projects and datasets) is pinned to the top of results.
 
 ## Browse Content
 
-### Content Types
+### Tabs
 
-| Type         | Description                            |
-| ------------ | -------------------------------------- |
-| **Datasets** | Labeled image collections for training |
-| **Models**   | Trained YOLO checkpoints               |
-| **Projects** | Organized model collections            |
+The Explore page uses a tabbed interface with `Datasets` and `Projects` tabs. Each tab has its own search, sort, and view mode controls.
 
-### Filtering
+| Tab          | Description                                       |
+| ------------ | ------------------------------------------------- |
+| **Datasets** | Labeled image collections for training (default)  |
+| **Projects** | Organized model collections with training results |
 
-Filter content to find what you need:
+### Search and Sort
 
-<!-- Screenshot: platform-explore-search.avif -->
+Each tab provides a search bar and sort options:
 
-| Filter   | Options                              |
-| -------- | ------------------------------------ |
-| **Type** | Datasets, Models, Projects           |
-| **Task** | Detect, Segment, Pose, OBB, Classify |
-| **Sort** | Recent, Popular, Most Downloaded     |
+<!-- Screenshot: platform-explore-datasets-tab-with-search.avif -->
 
-### Search
+| Sort Option      | Description                                         |
+| ---------------- | --------------------------------------------------- |
+| **Most Starred** | Content with most community stars (default)         |
+| **Newest**       | Most recently created                               |
+| **Oldest**       | Oldest first                                        |
+| **Name A-Z**     | Alphabetical ascending                              |
+| **Name Z-A**     | Alphabetical descending                             |
+| **Most/Fewest**  | By image count (datasets) or model count (projects) |
 
-Search by:
+### View Modes
 
-- Content name
-- Description keywords
-- Creator username
-- Class names
+Toggle between three view modes for browsing:
+
+| Mode        | Description                           |
+| ----------- | ------------------------------------- |
+| **Cards**   | Grid of preview cards with thumbnails |
+| **Compact** | Smaller cards in a two-column grid    |
+| **Table**   | Sortable table with columns           |
+
+Cards and compact views support infinite scroll for loading more results.
 
 ## Content Cards
 
 Each item displays:
 
-<!-- Screenshot: platform-explore-cards.avif -->
+<!-- Screenshot: platform-explore-dataset-and-project-cards.avif -->
 
-| Element       | Description             |
-| ------------- | ----------------------- |
-| **Thumbnail** | Preview image           |
-| **Name**      | Content title           |
-| **Creator**   | Author with avatar      |
-| **Stats**     | Downloads, views, likes |
-| **Task**      | YOLO task type badge    |
+**Project Cards Show:**
+
+| Element          | Description                     |
+| ---------------- | ------------------------------- |
+| **Icon**         | Project icon with custom colors |
+| **Name**         | Project title                   |
+| **Creator**      | Author avatar and username      |
+| **Description**  | Short project description       |
+| **Model Count**  | Number of models in the project |
+| **Model Tags**   | Names of models in the project  |
+| **Public Badge** | Visibility indicator            |
+
+**Dataset Cards Show:**
+
+| Element         | Description                            |
+| --------------- | -------------------------------------- |
+| **Thumbnails**  | Preview images from the dataset        |
+| **Name**        | Dataset title                          |
+| **Creator**     | Author avatar and username             |
+| **Task Badge**  | YOLO task type (detect, segment, etc.) |
+| **Image Count** | Number of images in the dataset        |
 
 ## Use Public Content
+
+```mermaid
+graph TD
+    A[Find Content on Explore] --> B{Content Type}
+    B --> C[Dataset]
+    B --> D[Project]
+    B --> E[Model]
+    C --> F[Clone Dataset]
+    D --> G[Clone Project]
+    E --> H[Download Model]
+    F --> I[Private Copy in Your Account]
+    G --> J[Private Copy with All Models]
+    H --> K[.pt / ONNX / Other Formats]
+    I --> L[Edit, Annotate, Train]
+    J --> L
+```
 
 ### Clone Dataset
 
 Use a public dataset for your training:
 
-1. Click on the dataset
-2. Click **Clone**
+1. Click on the dataset to open its detail page
+2. Click `Clone`
 3. Dataset copies to your account
 
-Cloned datasets:
+!!! note "Cloned Dataset Properties"
 
-- Are private by default
-- Can be modified
-- Don't affect the original
+    - Cloned datasets are **private by default**
+    - You can modify classes, annotations, and splits
+    - Changes don't affect the original dataset
+    - Images are deduplicated using content-addressable storage — cloning is fast
 
 ### Download Model
 
 Download a public model:
 
-1. Click on the model
-2. Click **Download**
+1. Click on the model within a project
+2. Click the **download icon**
 3. Select format (PT, ONNX, etc.)
 
-### Fork Project
+You can also use the model for inference or as a starting point for fine-tuning:
 
-Copy a public project:
+```bash
+# Use a downloaded model for inference
+yolo predict model=path/to/downloaded-model.pt source=image.jpg
 
-1. Click on the project
-2. Click **Fork**
-3. Project copies with all models
+# Fine-tune on your own dataset
+yolo train model=path/to/downloaded-model.pt data=my-dataset.yaml epochs=50
+```
 
-## Official Ultralytics Models
+### Clone Project
 
-Featured at the top of Explore, you'll find official Ultralytics models:
+Copy a public project to your workspace:
 
-| Project    | Description                 | Models                       |
-| ---------- | --------------------------- | ---------------------------- |
-| **YOLO26** | Latest January 2026 release | 27 models (all sizes, tasks) |
-| **YOLO11** | Current stable release      | 10+ models                   |
-| **YOLOv8** | Previous generation         | Various                      |
-| **YOLOv5** | Legacy, widely adopted      | Various                      |
+1. Click on the project to open its detail page
+2. Click `Clone`
+3. Project copies with all models to your account
 
-**Project Cards Show:**
+## Official Ultralytics Content
 
-- Project icon and name
-- Public badge
-- Creator avatar and username
-- Short description
-- Model count and total size
-- Last updated
-- Model name tags
+Official `@ultralytics` content is pinned to the top of the Explore page. This includes:
 
-**Dataset Cards Show:**
+| Project    | Description                 | Models                       | Tasks                                |
+| ---------- | --------------------------- | ---------------------------- | ------------------------------------ |
+| **YOLO26** | Latest January 2026 release | 27 models (all sizes, tasks) | detect, segment, pose, OBB, classify |
+| **YOLO11** | Current stable release      | 10+ models                   | detect, segment, pose, OBB, classify |
+| **YOLOv8** | Previous generation         | Various                      | detect, segment, pose, classify      |
+| **YOLOv5** | Legacy, widely adopted      | Various                      | detect, segment, classify            |
 
-- Dataset name
-- Task type badge
-- Creator info
-- Image count
-- Preview thumbnails
+Official datasets include benchmark datasets like COCO, VOC, and other commonly used computer vision datasets.
+
+!!! tip "Quick Start with Official Models"
+
+    The fastest way to get started is to clone an official Ultralytics project and use a pretrained model to train on your own dataset:
+
+    1. Go to `Explore` > `Projects` tab
+    2. Find the **YOLO26** project from `@ultralytics`
+    3. Clone it to your account
+    4. Upload your dataset and start training with a pretrained checkpoint
 
 ## User Profiles
 
-View public profiles:
+Click on a creator's username to view their public profile at `platform.ultralytics.com/{username}`. Public profiles show:
 
-<!-- Screenshot: platform-explore-profile.avif -->
+<!-- Screenshot: platform-user-profile-public-content.avif -->
 
-| Section     | Content                           |
-| ----------- | --------------------------------- |
-| **Bio**     | User description                  |
-| **Stats**   | Contributions count               |
-| **Content** | Public datasets, models, projects |
-| **Links**   | Social profiles                   |
-
-### Follow Users
-
-Follow creators to:
-
-- See their new content
-- Get notifications
-- Build your network
+| Section      | Content                      |
+| ------------ | ---------------------------- |
+| **Bio**      | User description and company |
+| **Links**    | Social profiles              |
+| **Projects** | Public projects with models  |
+| **Datasets** | Public datasets              |
 
 ## Make Your Content Public
 
-Make your work available to the community:
+Make your work available to the community. Public content appears on the Explore page and is visible to everyone, including users who aren't signed in.
+
+```mermaid
+graph LR
+    A[Your Private Content] --> B[Edit Settings]
+    B --> C[Set Visibility: Public]
+    C --> D[Appears on Explore Page]
+    D --> E[Community Can Clone/Download]
+```
 
 ### Make Dataset Public
 
 1. Go to your dataset
-2. Open actions menu
-3. Click **Edit**
-4. Set visibility to **Public**
-5. Click **Save**
+2. Open the actions menu (three dots)
+3. Click `Edit`
+4. Set visibility to `Public`
+5. Click `Save`
 
-### Make Model Public
+### Make Project Public
 
-1. Go to your model
-2. Open actions menu
-3. Click **Edit**
-4. Set visibility to **Public**
-5. Click **Save**
+1. Go to your project
+2. Open the actions menu (three dots)
+3. Click `Edit`
+4. Set visibility to `Public`
+5. Click `Save`
 
 !!! tip "Quality Content"
 
     Before making content public:
 
-    - Add clear descriptions
-    - Include class names
-    - Verify data quality
-    - Test model performance
+    - Add a clear, descriptive name and description
+    - Define class names in the dataset settings
+    - Verify data quality and annotation accuracy
+    - Test model performance and include training metrics
+
+!!! warning "Public Content Visibility"
+
+    Public content is visible to **everyone on the internet**, including anonymous users. Make sure your dataset doesn't contain sensitive, private, or copyrighted data before making it public. You can change visibility back to private at any time.
 
 ## Guidelines
 
@@ -206,6 +257,22 @@ When contributing public content:
 - Upload inappropriate content
 - Spam low-quality content
 - Misrepresent performance
+
+## Public Content URLs
+
+Public content on the Platform uses clean, shareable URLs:
+
+| Content  | URL Pattern                                             | Example                                               |
+| -------- | ------------------------------------------------------- | ----------------------------------------------------- |
+| Profile  | `platform.ultralytics.com/{username}`                   | `platform.ultralytics.com/ultralytics`                |
+| Datasets | `platform.ultralytics.com/{username}/datasets`          | `platform.ultralytics.com/ultralytics/datasets`       |
+| Dataset  | `platform.ultralytics.com/{username}/datasets/{slug}`   | `platform.ultralytics.com/ultralytics/datasets/coco`  |
+| Project  | `platform.ultralytics.com/{username}/{project}`         | `platform.ultralytics.com/ultralytics/yolo26`         |
+| Model    | `platform.ultralytics.com/{username}/{project}/{model}` | `platform.ultralytics.com/ultralytics/yolo26/yolo26n` |
+
+!!! tip "Shareable Links"
+
+    You can share any public content URL directly. Recipients can view the content without signing in. To clone or download, they'll need an account.
 
 ## FAQ
 
@@ -236,7 +303,7 @@ Yes, you can change visibility anytime:
 2. Change visibility to **Private**
 3. Save changes
 
-Existing clones/forks are not affected.
+Existing clones are not affected.
 
 ### How do I get featured?
 

@@ -8,69 +8,64 @@ keywords: Ultralytics Platform, activity feed, audit log, notifications, event t
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides a comprehensive activity feed that tracks all events and actions across your account. Monitor training progress and system events in one centralized location.
 
-<!-- Screenshot: platform-activity-overview.avif -->
+<!-- Screenshot: activity-page-inbox-tab-with-event-list.avif -->
 
 ## Overview
 
 The Activity Feed serves as your central hub for:
 
 - **Training updates**: Job started, completed, failed, or cancelled
-- **Data changes**: Datasets uploaded, modified, or deleted
-- **Model events**: Exports, deployments, and inference activity
-- **System alerts**: Billing, storage, and account notifications
+- **Data changes**: Datasets created, modified, or deleted
+- **Model events**: Model creation, exports, and deployments
+- **Project events**: Project creation, updates, and deletion
+- **API key events**: Key creation and revocation
+- **Settings changes**: Profile and account updates
+- **System alerts**: Onboarding and account notifications
 
 ## Accessing Activity
 
 Navigate to the Activity Feed:
 
-1. Click your profile icon in the top right
-2. Select **Activity** from the dropdown
-3. Or navigate to **Settings > Activity**
+1. Click **Activity** in the sidebar
+2. Or navigate directly to `/activity`
 
-<!-- Screenshot: platform-activity-feed.avif -->
+<!-- Screenshot: activity-page-inbox-with-search-and-date-filter.avif -->
 
 ## Activity Types
 
-The Platform tracks the following event types:
+The Platform tracks the following resource types and actions:
 
-| Event Type    | Description                           | Icon  |
-| ------------- | ------------------------------------- | ----- |
-| **created**   | New resource created                  | +     |
-| **updated**   | Resource modified                     | edit  |
-| **deleted**   | Resource permanently removed          | trash |
-| **trashed**   | Resource moved to trash (recoverable) | trash |
-| **restored**  | Resource restored from trash          | undo  |
-| **started**   | Training or export job started        | play  |
-| **completed** | Job finished successfully             | check |
-| **failed**    | Job encountered an error              | error |
-| **cancelled** | Job stopped by user                   | stop  |
-| **uploaded**  | File or dataset uploaded              | cloud |
-| **exported**  | Model exported to format              | save  |
-| **cloned**    | Resource duplicated                   | copy  |
+| Resource Type  | Description                 | Icon Color     |
+| -------------- | --------------------------- | -------------- |
+| **project**    | Project events              | Blue           |
+| **dataset**    | Dataset events              | Green          |
+| **model**      | Model events                | Purple         |
+| **training**   | Training job events         | Blue/Green/Red |
+| **settings**   | Account settings changes    | Gray           |
+| **api_key**    | API key creation/revocation | Amber          |
+| **onboarding** | Onboarding completion       | Green          |
 
 ## Inbox and Archive
 
-Organize your activity with tabs:
+Organize your activity with two tabs:
 
 ### Inbox
 
-The Inbox shows recent, unread activity:
+The Inbox shows recent activity:
 
 - New events appear here automatically
-- Unread events are highlighted
-- Click an event to view details and mark as seen
+- Unseen events are highlighted with a colored background
+- Events are automatically marked as seen when you view the page
+- Click **Archive** on individual events to move them out of Inbox
 
 ### Archive
 
 Move events to Archive to keep your Inbox clean:
 
-1. Select events to archive
-2. Click **Archive**
-3. Access archived events via the Archive tab
-
-!!! tip "Bulk Actions"
-
-    Select multiple events using checkboxes to archive or mark as seen in bulk.
+- Click **Archive** on individual events
+- Click **Archive all** to archive all Inbox events at once
+- Access archived events via the `Archive` tab
+- Click **Restore** on archived events to move them back to Inbox
 
 ## Search and Filtering
 
@@ -78,53 +73,43 @@ Find specific events quickly:
 
 ### Search
 
-Use the search bar to find events by:
-
-- Resource name (dataset, model, project)
-- Event description
-
-### Filters
-
-Filter events by type:
-
-| Filter       | Shows                               |
-| ------------ | ----------------------------------- |
-| **All**      | All activity types                  |
-| **Training** | Training started, completed, failed |
-| **Uploads**  | Dataset and model uploads           |
-| **Exports**  | Model export activity               |
-| **System**   | Billing, storage, account events    |
+Use the search bar to find events by resource name or event description.
 
 ### Date Range
 
-Filter by time period:
+Filter by time period using the date range picker:
 
-- **Today**: Events from today
-- **This Week**: Events from the past 7 days
-- **This Month**: Events from the past 30 days
-- **Custom**: Select specific date range
+- Select a start and end date
+- Default range: last 30 days
+- Custom date ranges supported
 
-<!-- Screenshot: platform-activity-filters.avif -->
+<!-- Screenshot: activity-page-date-range-picker-expanded.avif -->
 
 ## Event Details
 
-Click an event to view details:
+Each event displays:
 
-| Field           | Description                       |
-| --------------- | --------------------------------- |
-| **Timestamp**   | When the event occurred           |
-| **User**        | Who triggered the event           |
-| **Resource**    | What was affected (with link)     |
-| **Description** | Detailed event information        |
-| **Metadata**    | Additional context (job ID, etc.) |
+| Field           | Description                                        |
+| --------------- | -------------------------------------------------- |
+| **Icon**        | Resource type indicator                            |
+| **Description** | What happened (e.g., "Created project my-project") |
+| **Timestamp**   | Relative time (e.g., "2 hours ago")                |
+| **Metadata**    | Additional context when available                  |
 
-## Mark as Seen
+## Undo Support
 
-Mark events as seen to track what you've reviewed:
+Some actions support undo directly from the Activity feed:
 
-- Click the checkmark icon on individual events
-- Use **Mark All Seen** to clear all unread indicators
-- Seen events remain accessible but are no longer highlighted
+- **Settings changes**: Click **Undo** next to a settings update event to revert the change
+- Undo is available for a short time window after the action
+
+## Pagination
+
+The Activity feed supports pagination:
+
+- Default page size: 20 events
+- Navigate between pages using the pagination controls
+- Adjust page size as needed
 
 ## API Access
 
@@ -137,7 +122,7 @@ curl -H "Authorization: Bearer YOUR_API_KEY" \
 
 # Filter by date range
 curl -H "Authorization: Bearer YOUR_API_KEY" \
-  "https://platform.ultralytics.com/api/activity?startDate=2024-01-01&endDate=2024-01-31"
+  "https://platform.ultralytics.com/api/activity?start=2025-01-01T00:00:00Z&end=2025-01-31T23:59:59Z"
 
 # Mark events as seen
 curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
@@ -145,10 +130,16 @@ curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
 
 # Archive events
 curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"eventIds": ["event_id_here"], "archive": true}' \
+  https://platform.ultralytics.com/api/activity/archive
+
+# Archive all events
+curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"all": true, "archive": true}' \
   https://platform.ultralytics.com/api/activity/archive
 ```
-
-See [REST API Reference](../api/index.md#activity-api) for complete documentation.
 
 ## FAQ
 
@@ -158,12 +149,12 @@ Activity history is retained indefinitely for your account. Archived events are 
 
 ### Can I export my activity history?
 
-Yes, use the GDPR data export feature in Settings > Privacy to download all account data including activity history.
-
-### Can I disable activity notifications?
-
-Activity events are always logged for audit purposes. Email notifications can be configured in Settings > Notifications.
+Yes, use the GDPR data export feature in `Settings > Profile` to download all account data including activity history.
 
 ### What happens to activity when I delete a resource?
 
 The activity event remains in your history with a note that the resource was deleted. You can still see what happened even after deletion.
+
+### Does activity work with team workspaces?
+
+Yes, the Activity feed shows events for the currently active workspace. Switch workspaces in the sidebar to see activity for different workspaces.

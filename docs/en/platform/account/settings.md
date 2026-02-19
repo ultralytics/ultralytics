@@ -6,76 +6,100 @@ keywords: Ultralytics Platform, settings, profile, preferences, GDPR, data expor
 
 # Settings
 
-[Ultralytics Platform](https://platform.ultralytics.com) settings allow you to configure your profile, preferences, and manage your data with GDPR-compliant export and deletion options.
+[Ultralytics Platform](https://platform.ultralytics.com) settings allow you to configure your profile, social links, workspace preferences, and manage your data with GDPR-compliant export and deletion options.
 
-## Profile Settings
+Settings is organized into five tabs: `Profile`, `Plans`, `Billing`, `Teams`, and `Trash`.
+
+## Profile Tab
+
+The `Profile` tab contains your profile information, social links, API keys, data region, and account management options.
+
+### Profile Information
 
 Update your profile information:
 
-<!-- Screenshot: platform-settings-profile.avif -->
+<!-- Screenshot: settings-profile-tab-display-name-bio-company-fields.avif -->
 
-| Field             | Description                      |
-| ----------------- | -------------------------------- |
-| **Display Name**  | Your public name                 |
-| **Username**      | Unique identifier (used in URLs) |
-| **Bio**           | Short description                |
-| **Company**       | Organization name                |
-| **Use Case**      | Primary application              |
-| **Profile Image** | Avatar displayed across Platform |
+| Field            | Description                               |
+| ---------------- | ----------------------------------------- |
+| **Display Name** | Your public name                          |
+| **Username**     | Unique identifier (set at signup)         |
+| **Company**      | Company or organization name              |
+| **Use Case**     | Primary application (select from list)    |
+| **Bio**          | Short description (minimum 10 characters) |
+| **Profile Icon** | Avatar with color, initials, or image     |
 
-### Edit Profile
-
-1. Go to **Settings > Profile**
-2. Update fields
-3. Click **Save**
-
-### Username Rules
+#### Username Rules
 
 - 3-30 characters
 - Lowercase letters, numbers, hyphens
 - Cannot start/end with hyphen
 - Must be unique
 
-!!! warning "Username Changes"
+!!! note "Username is Permanent"
 
-    Changing username updates all your public URLs. Old URLs will stop working.
+    Your username is set during onboarding and cannot be changed. It appears in all your public URLs (e.g., `platform.ultralytics.com/username`).
 
-## Social Links
+#### Use Case Options
 
-Add links to your profiles:
+| Use Case                | Description                |
+| ----------------------- | -------------------------- |
+| Manufacturing & QC      | Quality control workflows  |
+| Retail & Inventory      | Retail and inventory tasks |
+| Security & Surveillance | Security monitoring        |
+| Healthcare & Medical    | Medical imaging            |
+| Automotive & Robotics   | Self-driving and robotics  |
+| Agriculture             | Agricultural monitoring    |
+| Research & Academia     | Academic research          |
+| Personal Project        | Personal or hobby projects |
 
-<!-- Screenshot: platform-settings-social.avif -->
+### Edit Profile
 
-| Platform     | URL Format               |
-| ------------ | ------------------------ |
-| **GitHub**   | github.com/username      |
-| **Twitter**  | twitter.com/username     |
-| **LinkedIn** | linkedin.com/in/username |
-| **Website**  | your-website.com         |
+1. Go to **Settings > Profile**
+2. Update fields (display name, company, use case, bio)
+3. Click **Save Changes**
+
+### Social Links
+
+Connect your professional profiles:
+
+<!-- Screenshot: settings-profile-tab-social-links-grid.avif -->
+
+| Platform           | Format               |
+| ------------------ | -------------------- |
+| **GitHub**         | username             |
+| **LinkedIn**       | profile-slug         |
+| **X (Twitter)**    | username             |
+| **YouTube**        | channel-handle       |
+| **Google Scholar** | user-id              |
+| **Discord**        | username             |
+| **Website**        | https://yoursite.com |
 
 Social links appear on your public profile page.
 
-## Data Region
+### API Keys
 
-View your data region:
+API keys are managed directly on the `Profile` tab. See [API Keys](api-keys.md) for full documentation.
 
-<!-- Screenshot: platform-settings-region.avif -->
+### Data Region
 
-| Region | Location             | Best For                                |
-| ------ | -------------------- | --------------------------------------- |
-| **US** | Iowa, USA            | Americas users, fastest for Americas    |
-| **EU** | Belgium, Europe      | European users, GDPR compliance         |
-| **AP** | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+View your data region on the `Profile` tab:
+
+| Region | Location     | Best For                        |
+| ------ | ------------ | ------------------------------- |
+| **US** | US Central   | Americas users                  |
+| **EU** | EU West      | European users, GDPR compliance |
+| **AP** | Asia Pacific | Asia-Pacific users              |
 
 !!! note "Region is Permanent"
 
     Data region is selected during signup and cannot be changed. All your data stays in this region.
 
-## Storage Usage
+### Storage Usage
 
-Monitor your storage consumption:
+Monitor your storage consumption on the `Profile` tab:
 
-<!-- Screenshot: platform-settings-storage.avif -->
+<!-- Screenshot: settings-profile-tab-storage-usage-card.avif -->
 
 | Type         | Description             |
 | ------------ | ----------------------- |
@@ -83,7 +107,7 @@ Monitor your storage consumption:
 | **Models**   | Checkpoint storage      |
 | **Exports**  | Exported model formats  |
 
-### Storage Limits
+#### Storage Limits
 
 | Plan       | Limit     |
 | ---------- | --------- |
@@ -91,40 +115,34 @@ Monitor your storage consumption:
 | Pro        | 500 GB    |
 | Enterprise | Unlimited |
 
-### Reduce Storage
+#### Reduce Storage
 
 To free up storage:
 
 1. Delete unused datasets
 2. Remove old model checkpoints
 3. Delete exported formats
-4. Empty trash (Settings > Trash)
+4. Empty trash (`Settings > Trash`)
 
-## Trash
+### Security
 
-Deleted items go to Trash for 30 days:
+The `Profile` tab includes a Security card at the bottom:
 
-1. Go to **Settings > Trash**
-2. View deleted projects, datasets, models
-3. **Restore** to recover, or **Delete** permanently
+- **Two-Factor Authentication**: Coming soon. Currently handled by your OAuth provider (Google, Apple, GitHub)
+- **Connected Accounts**: Shows your linked OAuth provider (e.g., Google)
 
-### Auto-Cleanup
-
-Items in Trash are permanently deleted after 30 days. This cannot be undone.
-
-## GDPR Compliance
+### GDPR Compliance
 
 Ultralytics Platform supports GDPR rights:
 
-### Data Export
+#### Data Export
 
 Download all your data:
 
-<!-- Screenshot: platform-settings-gdpr.avif -->
-
-1. Go to **Settings > Privacy**
-2. Click **Export Data**
-3. Receive download link via email
+1. Go to **Settings > Profile**
+2. Scroll to the bottom section
+3. Click **Export Data**
+4. Receive download link via email
 
 Export includes:
 
@@ -134,20 +152,20 @@ Export includes:
 - Training history
 - API key metadata (not secrets)
 
-### Account Deletion
+#### Account Deletion
 
 Permanently delete your account:
 
-1. Go to **Settings > Privacy**
-2. Click **Delete Account**
-3. Type confirmation phrase
+1. Go to **Settings > Profile**
+2. Scroll to the bottom section
+3. Click **Delete Account**
 4. Confirm deletion
 
 !!! warning "Irreversible Action"
 
     Account deletion is permanent. All data is removed within 30 days per GDPR requirements.
 
-### What's Deleted
+##### What's Deleted
 
 - Profile and settings
 - All datasets and images
@@ -156,47 +174,69 @@ Permanently delete your account:
 - API keys
 - Billing history
 
-### What's Retained
+##### What's Retained
 
 - Anonymized analytics
 - Server logs (90 days)
 - Legal compliance records
 
-## Notifications
+## Plans Tab
 
-Configure notification preferences:
+Compare available plans. See [Billing](billing.md) for detailed plan information and pricing.
 
-| Type                  | Options          |
-| --------------------- | ---------------- |
-| **Training Complete** | Email, none      |
-| **Deployment Status** | Email, none      |
-| **Billing Alerts**    | Email (required) |
-| **Product Updates**   | Email, none      |
+## Billing Tab
 
-## Theme
+Manage credits, payment methods, and view transaction history. See [Billing](billing.md) for full documentation.
 
-Select your preferred theme:
+## Teams Tab
 
-| Theme      | Description      |
-| ---------- | ---------------- |
-| **Light**  | Light background |
-| **Dark**   | Dark background  |
-| **System** | Match OS setting |
+Manage workspace members, roles, and invitations. Teams are available on Pro and Enterprise plans.
 
-## Sessions
+### Team Overview
 
-Manage active sessions:
+The Teams tab displays:
 
-1. Go to **Settings > Security**
-2. View active sessions
-3. **Revoke** suspicious sessions
+- Workspace name and avatar
+- Seat usage summary (used / available)
+- Member list with roles
+- Pending invitations
 
-Session information:
+### Member Roles
 
-- Device type
-- Browser
-- Location (approximate)
-- Last active
+| Role       | Permissions                                               |
+| ---------- | --------------------------------------------------------- |
+| **Owner**  | Full control, transfer ownership, delete workspace        |
+| **Admin**  | Manage members, billing, settings, content                |
+| **Editor** | Create and manage projects, datasets, models, API keys    |
+| **Viewer** | Read-only access to workspace resources (Enterprise only) |
+
+!!! note "Role Availability"
+
+    Owner, Admin, and Editor roles are available on Pro plans. The Viewer role and custom roles with granular permissions are Enterprise features.
+
+### Invite Members
+
+1. Go to **Settings > Teams**
+2. Click **Invite Member**
+3. Enter email address
+4. Select role
+5. Send invitation
+
+The invitee receives an email and can accept the invitation to join the workspace.
+
+### Manage Members
+
+Admins and owners can:
+
+- **Change roles**: Click the role dropdown next to a member
+- **Remove members**: Click the menu and select **Remove**
+- **Cancel invites**: Cancel pending invitations that haven't been accepted
+- **Resend invites**: Resend invitation emails
+- **Transfer ownership**: Transfer workspace ownership to another member (Owner only)
+
+## Trash Tab
+
+Manage deleted items. See [Trash](trash.md) for full documentation.
 
 ## FAQ
 

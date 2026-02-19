@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, trash, restore, soft delete, recover, deleted it
 
 [Ultralytics Platform](https://platform.ultralytics.com) implements a 30-day soft delete policy, allowing you to recover accidentally deleted projects, datasets, and models. Deleted items are moved to Trash where they can be restored before permanent deletion.
 
-<!-- Screenshot: platform-trash-overview.avif -->
+<!-- Screenshot: settings-trash-tab-with-items-and-storage-treemap.avif -->
 
 ## Soft Delete Policy
 
@@ -26,15 +26,39 @@ When you delete a resource on the Platform:
 
 Navigate to your Trash:
 
-1. Go to **Settings** (gear icon)
-2. Click **Trash** in the sidebar
-3. Or navigate directly to Settings > Trash
+1. Go to **Settings** and click the **Trash** tab
+2. Or navigate directly to `/trash` (redirects to `Settings > Trash`)
 
-<!-- Screenshot: platform-trash-list.avif -->
+<!-- Screenshot: settings-trash-tab-filter-by-type-dropdown.avif -->
 
 ## Trash Contents
 
-The Trash shows all soft-deleted resources:
+The Trash shows all soft-deleted resources with filter options:
+
+| Filter       | Shows             |
+| ------------ | ----------------- |
+| **All**      | All trashed items |
+| **Projects** | Trashed projects  |
+| **Datasets** | Trashed datasets  |
+| **Models**   | Trashed models    |
+
+### Viewing Trash Items
+
+Each item in Trash displays:
+
+| Field              | Description                              |
+| ------------------ | ---------------------------------------- |
+| **Name**           | Original resource name                   |
+| **Type**           | Project, Dataset, or Model (color-coded) |
+| **Deleted**        | Date and time of deletion                |
+| **Days Remaining** | Time until permanent deletion            |
+| **Size**           | Storage used by the item                 |
+| **Cascaded Items** | Number of child items included           |
+| **Parent Project** | Parent project (for models)              |
+
+### Cascade Behavior
+
+When deleting a parent resource, child resources are also moved to Trash:
 
 | Resource Type | What's Included When Deleted               |
 | ------------- | ------------------------------------------ |
@@ -42,15 +66,13 @@ The Trash shows all soft-deleted resources:
 | **Datasets**  | Dataset + all images and annotations       |
 | **Models**    | Model weights + training history + exports |
 
-### Viewing Trash Items
+### Storage Treemap
 
-Each item in Trash displays:
+The Trash tab includes a storage visualization (treemap) showing the relative size of trashed items, color-coded by type:
 
-- **Name**: Original resource name
-- **Type**: Project, Dataset, or Model
-- **Deleted**: Date and time of deletion
-- **Expires**: When permanent deletion occurs
-- **Size**: Storage used by the item
+- **Blue**: Projects
+- **Green**: Datasets
+- **Purple**: Models
 
 ## Restoring Items
 
@@ -58,10 +80,10 @@ Recover a deleted item:
 
 1. Navigate to **Settings > Trash**
 2. Find the item you want to restore
-3. Click the **Restore** button
+3. Click the **Restore** button (undo icon)
 4. Confirm restoration
 
-<!-- Screenshot: platform-trash-restore.avif -->
+<!-- Screenshot: settings-trash-tab-restore-button-on-item.avif -->
 
 The item returns to its original location with all data intact.
 
@@ -81,12 +103,7 @@ The item returns to its original location with all data intact.
 
 ### Automatic Deletion
 
-Items in Trash are automatically and permanently deleted after 30 days. This process:
-
-- Runs daily
-- Removes items older than 30 days
-- Frees up storage space
-- Cannot be reversed
+Items in Trash are automatically and permanently deleted after 30 days. A daily cleanup job runs at 3:00 AM UTC to remove expired items.
 
 ### Empty Trash
 
@@ -105,7 +122,7 @@ Permanently delete all items immediately:
 To permanently delete one item without waiting:
 
 1. Find the item in Trash
-2. Click the **Delete Permanently** button
+2. Click the **Delete** button
 3. Confirm deletion
 
 ## Storage and Trash
@@ -143,8 +160,6 @@ curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
   https://platform.ultralytics.com/api/trash/empty
 ```
 
-See [REST API Reference](../api/index.md#trash-api) for complete documentation.
-
 ## FAQ
 
 ### Can I restore an item after 30 days?
@@ -165,4 +180,4 @@ No. If a project is permanently deleted, all models that were inside it are also
 
 ### How do I know when an item will be permanently deleted?
 
-Each item in Trash shows an "Expires" date indicating when automatic permanent deletion will occur.
+Each item in Trash shows a "Days Remaining" counter indicating how many days until automatic permanent deletion occurs.

@@ -6,29 +6,44 @@ keywords: Ultralytics Platform, account, settings, API keys, billing, security, 
 
 # Account Management
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive account management for API keys, billing, and user settings. Manage your account securely with GDPR-compliant data handling.
+[Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive account management for API keys, billing, teams, and user settings. Manage your account securely with GDPR-compliant data handling.
 
 ## Overview
 
 The Account section helps you:
 
-- **Create** and manage API keys for programmatic access
-- **Track** credit balance and billing
-- **Configure** profile and preferences
+- **Configure** your profile, social links, and workspace preferences
+- **Create** and manage API keys for remote training and programmatic access
+- **Track** credit balance, payments, and billing
+- **Collaborate** with team members using shared workspaces
+- **Monitor** account activity and audit events
+- **Recover** deleted items from Trash within 30 days
 - **Export** your data for GDPR compliance
 
-<!-- Screenshot: platform-account-overview.avif -->
+<!-- Screenshot: settings-page-profile-tab-with-social-links.avif -->
 
 ## Account Features
 
-| Feature      | Description                                    |
-| ------------ | ---------------------------------------------- |
-| **API Keys** | Secure keys for remote training and API access |
-| **Billing**  | Credits, payments, and usage tracking          |
-| **Activity** | Track events and account actions               |
-| **Trash**    | Recover deleted items within 30 days           |
-| **Settings** | Profile, region, and preferences               |
-| **GDPR**     | Data export and account deletion               |
+| Feature      | Description                                       |
+| ------------ | ------------------------------------------------- |
+| **Settings** | Profile, social links, data region, and API keys  |
+| **Plans**    | Free, Pro, and Enterprise plan comparison         |
+| **Billing**  | Credits, payment methods, and transaction history |
+| **Teams**    | Members, roles, invites, and seat management      |
+| **Trash**    | Recover deleted items within 30 days              |
+| **Activity** | Event log with inbox, archive, search, and undo   |
+
+## Settings Tabs
+
+Account management is organized into tabs within `Settings`:
+
+| Tab       | Description                                              |
+| --------- | -------------------------------------------------------- |
+| `Profile` | Display name, bio, company, use case, social links, keys |
+| `Plans`   | Compare Free, Pro, and Enterprise plans                  |
+| `Billing` | Credit balance, top-up, payment methods, transactions    |
+| `Teams`   | Member list, roles, invites, seat allocation             |
+| `Trash`   | Soft-deleted projects, datasets, and models              |
 
 ## Security
 
@@ -43,41 +58,45 @@ Ultralytics Platform implements multiple security measures:
 ### Data Protection
 
 - **Encryption**: All data encrypted at rest and in transit
-- **API Keys**: Securely encrypted storage
-- **Region isolation**: Data stays in your selected region
+- **API Keys**: AES-256-GCM encrypted storage
+- **Region isolation**: Data stays in your selected region (US, EU, or AP)
 
 ### Access Control
 
-- **Per-key scopes**: Limit API key permissions
-- **Session timeout**: Automatic logout after inactivity
-- **Audit logging**: Track all account activity
+- **Per-key management**: Create and revoke API keys per workspace
+- **Team roles**: Owner, Admin, Editor, and Viewer roles (Enterprise)
+- **Audit logging**: Track all account activity in the Activity feed
 
 ## Quick Links
 
+- [**Settings**](settings.md): Profile, social links, data region, and account management
+- [**Billing**](billing.md): Credits, plans, and payment management
 - [**API Keys**](api-keys.md): Create and manage API keys
-- [**Billing**](billing.md): Credits and payment management
 - [**Activity**](activity.md): Track account events and notifications
 - [**Trash**](trash.md): Recover deleted projects, datasets, and models
-- [**Settings**](settings.md): Profile and preferences
 
 ## FAQ
 
-### How do I change my email address?
+### How do I change my username?
 
-Email changes are managed through your OAuth provider (Google, Apple, GitHub) or:
+Usernames cannot be changed after account creation. Your username is set during onboarding and is permanent.
 
-1. Go to Settings
-2. Click **Edit Profile**
-3. Update email address
-4. Verify new email
+### How do I change my email?
+
+Email is managed through your OAuth provider:
+
+1. Update email in Google/Apple/GitHub
+2. Sign out and sign in again
+3. Platform updates automatically
 
 ### How do I delete my account?
 
 Account deletion is available in Settings:
 
-1. Go to Settings > Privacy
-2. Click **Delete Account**
-3. Confirm deletion
+1. Go to `Settings > Profile`
+2. Scroll to the bottom
+3. Click **Delete Account**
+4. Confirm deletion
 
 !!! warning "Permanent Action"
 
@@ -87,10 +106,10 @@ Account deletion is available in Settings:
 
 Yes, Ultralytics Platform implements:
 
-- Secure encrypted connections
-- Encryption at rest
-- Regional data isolation
-- Regular security audits
+- Secure encrypted connections (HTTPS)
+- AES-256-GCM encryption for API keys
+- Encryption at rest for all stored data
+- Regional data isolation (US, EU, AP)
 
 ### Can I change my data region?
 

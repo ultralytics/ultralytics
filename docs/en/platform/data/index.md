@@ -12,20 +12,20 @@ Data preparation is the foundation of successful [computer vision](https://www.u
 
 The Data section of Ultralytics Platform helps you:
 
-- **Upload** images, videos, and ZIP archives
-- **Annotate** with manual tools and AI-assisted labeling
+- **Upload** images, videos, and archives (ZIP, TAR, GZ)
+- **Annotate** with manual drawing tools and SAM-powered smart labeling
 - **Analyze** your data with statistics and visualizations
-- **Export** in standard formats for local training
+- **Export** in NDJSON format for local training
 
-<!-- Screenshot: platform-data-overview.avif -->
+<!-- Screenshot: platform-data-overview-sidebar-datasets.avif -->
 
 ## Workflow
 
 ```mermaid
 graph LR
-    A[📤 Upload] --> B[🏷️ Annotate]
-    B --> C[📊 Analyze]
-    C --> D[🚀 Train]
+    A[Upload] --> B[Annotate]
+    B --> C[Analyze]
+    C --> D[Train]
 
     style A fill:#4CAF50,color:#fff
     style B fill:#2196F3,color:#fff
@@ -35,7 +35,7 @@ graph LR
 
 | Stage        | Description                                                             |
 | ------------ | ----------------------------------------------------------------------- |
-| **Upload**   | Import images, videos, or ZIP archives with automatic processing        |
+| **Upload**   | Import images, videos, or archives with automatic processing            |
 | **Annotate** | Label data with bounding boxes, polygons, keypoints, or classifications |
 | **Analyze**  | View class distributions, spatial heatmaps, and dimension statistics    |
 | **Export**   | Download in NDJSON format for offline use                               |
@@ -52,14 +52,18 @@ Ultralytics Platform supports all 5 YOLO task types:
 | **OBB**      | Oriented bounding boxes for rotated objects | Oriented box tool |
 | **Classify** | Image-level classification                  | Class selector    |
 
+!!! info "Task Type Selection"
+
+    The task type is set when creating a dataset and determines which annotation tools are available. You can change it later from the dataset settings, but incompatible annotations won't be displayed after switching.
+
 ## Key Features
 
 ### Smart Storage
 
-Ultralytics Platform uses efficient storage technology:
+Ultralytics Platform uses Content-Addressable Storage (CAS) for efficient data management:
 
-- **Deduplication**: Identical images stored only once
-- **Integrity**: Checksums ensure data integrity
+- **Deduplication**: Identical images stored only once via XXH3-128 hashing
+- **Integrity**: Hash-based addressing ensures data integrity
 - **Efficiency**: Optimized storage and fast processing
 
 ### Dataset URIs
@@ -72,14 +76,38 @@ yolo train data=ul://username/datasets/my-dataset
 
 This allows training on Platform datasets from any machine with your API key configured.
 
+!!! example "Use Platform Data from Python"
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolo26n.pt")
+    model.train(data="ul://username/datasets/my-dataset", epochs=100)
+    ```
+
+### Dataset Tabs
+
+Every dataset page provides five tabs:
+
+| Tab         | Description                                                            |
+| ----------- | ---------------------------------------------------------------------- |
+| **Images**  | Browse images in grid, compact, or table view with annotation overlays |
+| **Classes** | View and edit class names, colors, and label counts per class          |
+| **Charts**  | Automatic statistics: split distribution, class counts, heatmaps       |
+| **Models**  | Models trained on this dataset with metrics and status                 |
+| **Errors**  | Images that failed processing with error details and fix guidance      |
+
 ### Statistics and Visualization
 
-Every dataset includes automatic statistics:
+The `Charts` tab provides automatic analysis including:
 
-- **Class Distribution**: Bar chart of label counts per class
-- **Location Heatmap**: Spatial distribution of annotations
-- **Dimension Analysis**: Image width vs height distribution
-- **Split Breakdown**: Train/validation/test sample counts
+- **Split Distribution**: Donut chart of train/val/test image counts
+- **Top Classes**: Donut chart of most frequent annotation classes
+- **Image Widths**: Histogram of image width distribution
+- **Image Heights**: Histogram of image height distribution
+- **Points per Instance**: Polygon vertex or keypoint count distribution (segment/pose datasets)
+- **Annotation Locations**: 2D heatmap of bounding box center positions
+- **Image Dimensions**: 2D heatmap of width vs height with aspect ratio guide lines
 
 ## Quick Links
 
@@ -92,11 +120,11 @@ Every dataset includes automatic statistics:
 
 Ultralytics Platform supports:
 
-**Images:** JPEG, PNG, WebP, BMP, GIF, TIFF, HEIC, AVIF, JP2, DNG (max 50MB each)
+**Images:** JPEG, PNG, WebP, BMP, TIFF, HEIC, AVIF, JP2, DNG, MPO (max 50MB each)
 
 **Videos:** MP4, WebM, MOV, AVI, MKV, M4V (max 1GB, frames extracted at 1 FPS, max 100 frames)
 
-**Archives:** ZIP files (max 50GB) containing images with optional YOLO-format labels
+**Archives:** ZIP, TAR, TAR.GZ, TGZ, GZ (max 10GB) containing images with optional YOLO-format labels
 
 ### What is the maximum dataset size?
 
@@ -108,15 +136,30 @@ Storage limits depend on your plan:
 | Pro        | 500 GB        |
 | Enterprise | Custom        |
 
-Individual file limits: Images 50MB, Videos 1GB, ZIP archives 50GB
+Individual file limits: Images 50MB, Videos 1GB, Archives 10GB
 
 ### Can I use my Platform datasets for local training?
 
 Yes! Use the dataset URI format to train locally:
 
-```bash
-export ULTRALYTICS_API_KEY="your_key"
-yolo train data=ul://username/datasets/my-dataset epochs=100
-```
+=== "CLI"
+
+    ```bash
+    export ULTRALYTICS_API_KEY="your_key"
+    yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100
+    ```
+
+=== "Python"
+
+    ```python
+    import os
+
+    os.environ["ULTRALYTICS_API_KEY"] = "your_key"
+
+    from ultralytics import YOLO
+
+    model = YOLO("yolo26n.pt")
+    model.train(data="ul://username/datasets/my-dataset", epochs=100)
+    ```
 
 Or export your dataset in NDJSON format for fully offline training.

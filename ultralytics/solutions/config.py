@@ -102,7 +102,7 @@ class SolutionConfig:
     data: str = "images"
     video_classifier_model: str = "s3d"
     crop_margin_percentage: int = 10
-    num_video_sequence_samples: int = 8
+    num_video_sequence_samples: int = 16
     skip_frame: int = 2
     video_cls_overlap_ratio: float = 0.25
 

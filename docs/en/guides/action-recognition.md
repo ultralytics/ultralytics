@@ -104,7 +104,7 @@ All models are pretrained on [Kinetics-400](https://arxiv.org/abs/1705.06950) wi
 | `model`                      | `str`   | `yolo26n.pt` | YOLO model for person detection                |
 | `video_classifier_model`     | `str`   | `s3d`        | TorchVision video classifier model             |
 | `crop_margin_percentage`     | `int`   | `10`         | Margin percentage for person crop              |
-| `num_video_sequence_samples` | `int`   | `8`          | Number of frames per sequence                  |
+| `num_video_sequence_samples` | `int`   | `16`         | Number of frames per sequence                  |
 | `skip_frame`                 | `int`   | `2`          | Frame skip interval                            |
 | `video_cls_overlap_ratio`    | `float` | `0.25`       | Temporal overlap between inference windows     |
 | `device`                     | `str`   | `""`         | Device for video classifier (`""`, `cpu`, `0`) |

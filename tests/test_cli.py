@@ -131,7 +131,7 @@ def test_train_gpu(task: str, model: str, data: str) -> None:
 
 @pytest.mark.parametrize(
     "solution",
-    ["count", "blur", "workout", "heatmap", "isegment", "visioneye", "speed", "queue", "analytics", "trackzone"],
+    ["count", "blur", "workout", "heatmap", "isegment", "visioneye", "speed", "queue", "analytics", "trackzone", "action"],
 )
 def test_solutions(solution: str) -> None:
     """Test yolo solutions command-line modes."""

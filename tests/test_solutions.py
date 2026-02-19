@@ -181,6 +181,13 @@ def process_video(solution, video_path: str, needs_frame_count: bool = False):
             None,  # streamlit application doesn't require video file
             {},  # streamlit application doesn't accept arguments
         ),
+        (
+            "ActionRecognition",
+            solutions.ActionRecognition,
+            False,
+            DEMO_VIDEO,
+            {"model": MODEL, "video_classifier_model": "s3d", "show": SHOW},
+        ),
     ],
 )
 def test_solution(name, solution_class, needs_frame_count, video, kwargs, tmp_path):
@@ -417,3 +424,34 @@ def test_action_recognition_process_method():
     assert result.total_tracks == 1
     assert result.action_labels.get(1) == "jumping"
     assert result.action_confs.get(1) == 0.85
+
+
+def test_crop_and_pad():
+    """Test crop_and_pad returns correctly sized crop for a given bounding box."""
+    from ultralytics.solutions.action_recognition import crop_and_pad
+
+    frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+    crop = crop_and_pad(frame, [100, 50, 250, 400], margin_percent=10)
+    assert crop.shape == (224, 224, 3)
+
+
+def test_crop_and_pad_near_boundary():
+    """Test crop_and_pad handles boxes near frame edges without errors."""
+    from ultralytics.solutions.action_recognition import crop_and_pad
+
+    frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+    crop = crop_and_pad(frame, [0, 0, 50, 50], margin_percent=10)
+    assert crop.shape == (224, 224, 3)
+
+
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
+@pytest.mark.skipif(
+    not checks.check_version(TORCHVISION_VERSION, ">=0.10.0"),
+    reason="TorchVision video models require torchvision>=0.10.0",
+)
+def test_torchvision_video_classifier_invalid_model():
+    """Test that TorchVisionVideoClassifier raises ValueError for unsupported model name."""
+    from ultralytics.solutions.action_recognition import TorchVisionVideoClassifier
+
+    with pytest.raises(ValueError, match="Invalid model"):
+        TorchVisionVideoClassifier(model_name="invalid_model")

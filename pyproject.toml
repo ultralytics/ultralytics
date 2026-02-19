@@ -104,7 +104,8 @@ export = [
 ]
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching
-    "streamlit>=1.29.0",    # for live inference on web browser, i.e `yolo streamlit-predict`
+    "streamlit>=1.51.0; python_version >= '3.10'",    # for live inference on web browser, i.e `yolo streamlit-predict`
+    "streamlit>=1.29.0,<1.51.0; python_version < '3.10' and (python_version < '3.9' or platform_machine != 'aarch64' or platform_system != 'Linux')",
     "flask>=3.0.1",  # for similarity search solution
 ]
 logging = [
@@ -191,11 +192,3 @@ in-place = true
 [tool.codespell]
 ignore-words-list = "grey,writeable,finalY,RepResNet,Idenfy,WIT,Smoot,EHR,ROUGE,ALS,iTerm,Carmel,FPR,Hach,Calle,ore,COO,MOT,crate,nd,ned,strack,dota,ane,segway,fo,gool,winn,commend,bloc,nam,afterall,skelton,goin"
 skip = "*.pt,*.pth,*.torchscript,*.onnx,*.tflite,*.pb,*.bin,*.param,*.mlmodel,*.engine,*.npy,*.data*,*.csv,*pnnx*,*venv*,*translat*,*lock*,__pycache__*,*.ico,*.jpg,*.png,*.webp,*.avif,*.mp4,*.mov,/runs,/.git,./docs/??/*.md,./docs/mkdocs_??.yml"
-
-[tool.uv]
-conflicts = [
-    [
-        { extra = "export" },
-        { extra = "solutions" },
-    ],
-]

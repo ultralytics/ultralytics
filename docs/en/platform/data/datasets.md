@@ -42,7 +42,7 @@ This is ideal for creating training datasets from surveillance footage, action r
 
 ### Preparing Your Dataset
 
-For labeled datasets, use the standard YOLO format:
+The Platform supports both **YOLO** and **COCO** annotation formats. For YOLO format datasets, use this structure:
 
 ```
 my-dataset/
@@ -77,6 +77,42 @@ names:
     2: dog
 ```
 
+For COCO format datasets, use JSON annotation files with the standard [COCO structure](https://cocodataset.org/#format-data):
+
+```
+my-coco-dataset/
+├── train/
+│   ├── _annotations.coco.json
+│   ├── img001.jpg
+│   └── img002.jpg
+└── val/
+    ├── _annotations.coco.json
+    ├── img003.jpg
+    └── img004.jpg
+```
+
+The JSON file contains `images`, `annotations`, and `categories` arrays:
+
+```json
+{
+  "images": [
+    { "id": 1, "file_name": "img001.jpg", "width": 640, "height": 480 }
+  ],
+  "annotations": [
+    { "id": 1, "image_id": 1, "category_id": 0, "bbox": [100, 50, 200, 300] }
+  ],
+  "categories": [
+    { "id": 0, "name": "person" }
+  ]
+}
+```
+
+COCO annotations are automatically converted during upload. Detection (`bbox`), segmentation (`segmentation` polygons), and pose (`keypoints`) tasks are supported. Category IDs are remapped to a dense 0-indexed sequence across all annotation files.
+
+!!! tip "Format Auto-Detection"
+
+    The format is detected automatically: datasets with a `data.yaml` containing `names`, `train`, or `val` keys are treated as YOLO. Datasets with COCO JSON files (containing `images`, `annotations`, and `categories` arrays) are treated as COCO.
+
 ### Upload Process
 
 1. Navigate to **Datasets** in the sidebar
@@ -91,7 +127,7 @@ After upload, the Platform processes your data:
 
 1. **Normalization**: Large images resized (max 4096px)
 2. **Thumbnails**: 256px previews generated
-3. **Label Parsing**: YOLO format labels extracted
+3. **Label Parsing**: YOLO and COCO format labels extracted
 4. **Statistics**: Class distributions computed
 
 <!-- Screenshot: platform-datasets-upload-progress.avif -->
@@ -292,11 +328,15 @@ Use the bulk selection feature:
 
 ### What label formats are supported?
 
-Ultralytics Platform supports YOLO format labels:
+Ultralytics Platform supports two annotation formats:
+
+**YOLO format** — one `.txt` file per image with normalized coordinates:
 
 - **Detect**: `class_id x_center y_center width height`
 - **Segment**: `class_id x1 y1 x2 y2 ...` (polygon points)
 - **Pose**: `class_id x_center y_center width height kp1_x kp1_y kp1_v ...`
 - **OBB**: `class_id x1 y1 x2 y2 x3 y3 x4 y4`
 
-All coordinates are normalized (0-1 range).
+All YOLO coordinates are normalized (0-1 range).
+
+**COCO format** — JSON files with `images`, `annotations`, and `categories` arrays. Supports detection (`bbox`), segmentation (polygon), and pose (`keypoints`) tasks. COCO uses absolute pixel coordinates which are automatically converted to normalized format during upload.

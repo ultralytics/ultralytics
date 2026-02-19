@@ -119,6 +119,23 @@ You select your region during onboarding, and all your data, models, and deploym
 - **Auto-Annotation**: Use trained models to pre-label new data
 - **Statistics**: Class distribution, location heatmaps, and dimension analysis
 
+```mermaid
+graph LR
+    A[Upload ZIP/Images/Video] --> B[Auto-Process]
+    B --> C[Browse & Filter]
+    C --> D{Annotate}
+    D --> E[Manual Tools]
+    D --> F[SAM Smart]
+    D --> G[YOLO Auto-Label]
+    E --> H[Train-Ready Dataset]
+    F --> H
+    G --> H
+```
+
+!!! tip "Supported Task Types"
+
+    The annotation editor supports all 5 YOLO task types: **detect** (bounding boxes), **segment** (polygons), **pose** (keypoints), **OBB** (oriented boxes), and **classify** (image-level labels). Each task type has dedicated drawing tools and keyboard shortcuts.
+
 ### Model Training
 
 - **Cloud Training**: Train on 22 cloud GPU types (RTX 4090, A100, H100, B200, and more) with real-time metrics
@@ -128,11 +145,104 @@ You select your region during onboarding, and all your data, models, and deploym
 
 ![Ultralytics Platform Project Screenshot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/project-screenshot.avif)
 
+You can train models either through the web UI (cloud training) or from your own machine (remote training):
+
+=== "Cloud Training (Web UI)"
+
+    1. Navigate to your project
+    2. Click `Train Model`
+    3. Select dataset, model, GPU, and epochs
+    4. Monitor real-time loss curves and metrics
+
+=== "Remote Training (CLI)"
+
+    ```bash
+    # Install ultralytics
+    pip install "ultralytics>=8.4.0"
+
+    # Set your API key
+    export ULTRALYTICS_API_KEY="your_api_key"
+
+    # Train and stream metrics to Platform
+    yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
+    ```
+
+=== "Remote Training (Python)"
+
+    ```python
+    import os
+
+    from ultralytics import YOLO
+
+    os.environ["ULTRALYTICS_API_KEY"] = "your_api_key"
+
+    model = YOLO("yolo26n.pt")
+    model.train(
+        data="coco.yaml",
+        epochs=100,
+        project="username/my-project",
+        name="exp1",
+    )
+    # Metrics stream to Platform automatically
+    ```
+
 ### Deployment
 
 - **Inference Testing**: Test models directly in the browser with custom images
 - **Dedicated Endpoints**: Deploy to 43 global regions with auto-scaling
 - **Monitoring**: Real-time metrics, request logs, and performance dashboards
+
+```mermaid
+graph LR
+    A[Trained Model] --> B{Action}
+    B --> C[Browser Predict]
+    B --> D[Export Format]
+    B --> E[Deploy Endpoint]
+    D --> F[ONNX / TensorRT / CoreML / TFLite / ...]
+    E --> G[43 Global Regions]
+    G --> H[API Endpoint URL]
+    H --> I[Monitor & Scale]
+```
+
+Once deployed, call your endpoint from any language:
+
+=== "Python"
+
+    ```python
+    import requests
+
+    url = "https://your-endpoint-url/predict"
+    headers = {"Authorization": "Bearer your_api_key"}
+
+    with open("image.jpg", "rb") as f:
+        response = requests.post(url, headers=headers, files={"file": f})
+
+    print(response.json())
+    ```
+
+=== "cURL"
+
+    ```bash
+    curl -X POST "https://your-endpoint-url/predict" \
+      -H "Authorization: Bearer your_api_key" \
+      -F "file=@image.jpg"
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    const form = new FormData();
+    form.append("file", fileInput.files[0]);
+
+    const response = await fetch("https://your-endpoint-url/predict", {
+        method: "POST",
+        headers: { Authorization: "Bearer your_api_key" },
+        body: form,
+    });
+
+    const results = await response.json();
+    console.log(results);
+    ```
 
 ### Account Management
 
@@ -142,6 +252,16 @@ You select your region during onboarding, and all your data, models, and deploym
 - **Activity Feed**: Track all account events and actions
 - **Trash & Restore**: 30-day soft delete with item recovery
 - **GDPR Compliance**: Data export and account deletion
+
+!!! info "Plan Tiers"
+
+    | Feature          | Free        | Pro ($29/mo)     | Enterprise       |
+    | ---------------- | ----------- | ---------------- | ---------------- |
+    | Sign-up Credits  | $5 - $25    | $20/mo recurring | Custom           |
+    | Storage          | 100 GB      | 500 GB           | Unlimited        |
+    | Deployments      | 1           | 5                | Unlimited        |
+    | Private Projects | 3           | Unlimited        | Unlimited        |
+    | Support          | Community   | Email            | Dedicated        |
 
 ## Quick Links
 
@@ -220,7 +340,7 @@ See [Cloud Training](train/cloud-training.md) for complete pricing and GPU optio
 
 ### How does remote training work?
 
-You can train models anywhere and stream metrics to Platform.
+You can train models on your own hardware and stream real-time metrics to Platform, similar to Weights & Biases.
 
 !!! warning "Package Version Requirement"
 
@@ -230,13 +350,42 @@ You can train models anywhere and stream metrics to Platform.
     pip install "ultralytics>=8.4.0"
     ```
 
-```bash
-# Set your API key
-export ULTRALYTICS_API_KEY="your_api_key"
+=== "CLI"
 
-# Train with project/name to stream metrics
-yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
-```
+    ```bash
+    # Set your API key
+    export ULTRALYTICS_API_KEY="your_api_key"
+
+    # Train with project/name to stream metrics
+    yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
+    ```
+
+=== "Python"
+
+    ```python
+    import os
+
+    from ultralytics import YOLO
+
+    os.environ["ULTRALYTICS_API_KEY"] = "your_api_key"
+
+    model = YOLO("yolo26n.pt")
+    model.train(
+        data="coco.yaml",
+        epochs=100,
+        project="username/my-project",
+        name="exp1",
+    )
+    ```
+
+=== "Platform Dataset (ul:// URI)"
+
+    ```bash
+    # Train using a Platform dataset directly
+    export ULTRALYTICS_API_KEY="your_api_key"
+
+    yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100 project=username/my-project name=exp1
+    ```
 
 See [Cloud Training](train/cloud-training.md) for more details on remote training.
 

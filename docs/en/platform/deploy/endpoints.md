@@ -336,13 +336,13 @@ The API key prefix is displayed on the deployment card footer for identification
 
 ### Request Parameters
 
-| Parameter  | Type   | Default | Description                  |
-| ---------- | ------ | ------- | ---------------------------- |
-| `file`     | file   | -       | Image file (required)        |
-| `conf`     | float  | 0.25    | Minimum confidence threshold |
-| `iou`      | float  | 0.7     | NMS IoU threshold            |
-| `imgsz`    | int    | 640     | Input image size             |
-| `normalize`| string | -       | Return normalized coordinates|
+| Parameter   | Type   | Default | Description                   |
+| ----------- | ------ | ------- | ----------------------------- |
+| `file`      | file   | -       | Image file (required)         |
+| `conf`      | float  | 0.25    | Minimum confidence threshold  |
+| `iou`       | float  | 0.7     | NMS IoU threshold             |
+| `imgsz`     | int    | 640     | Input image size              |
+| `normalize` | string | -       | Return normalized coordinates |
 
 ### Response Format
 

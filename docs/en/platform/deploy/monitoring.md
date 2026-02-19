@@ -45,12 +45,12 @@ Four summary cards at the top of the page show:
 
 <!-- Screenshot: deploy-page-four-overview-cards.avif -->
 
-| Metric                   | Description                     |
-| ------------------------ | ------------------------------- |
-| **Total Requests (24h)** | Requests across all endpoints   |
-| **Active Deployments**   | Currently running endpoints     |
-| **Error Rate (24h)**     | Percentage of failed requests   |
-| **P95 Latency (24h)**    | 95th percentile response time   |
+| Metric                   | Description                   |
+| ------------------------ | ----------------------------- |
+| **Total Requests (24h)** | Requests across all endpoints |
+| **Active Deployments**   | Currently running endpoints   |
+| **Error Rate (24h)**     | Percentage of failed requests |
+| **P95 Latency (24h)**    | 95th percentile response time |
 
 !!! warning "Error Rate Alert"
 
@@ -71,11 +71,11 @@ The interactive world map shows:
 
 Below the overview cards, the deployments list shows all endpoints across your projects. Use the view mode toggle to switch between:
 
-| View        | Description                                                                   |
-| ----------- | ----------------------------------------------------------------------------- |
-| **Cards**   | Full detail cards with metrics, logs, code, and predict tabs                  |
-| **Compact** | Grid of smaller cards (2-4 columns) with key metrics                          |
-| **Table**   | DataTable with sortable columns: Name, Region, Status, Requests, P95, Errors  |
+| View        | Description                                                                  |
+| ----------- | ---------------------------------------------------------------------------- |
+| **Cards**   | Full detail cards with metrics, logs, code, and predict tabs                 |
+| **Compact** | Grid of smaller cards (2-4 columns) with key metrics                         |
+| **Table**   | DataTable with sortable columns: Name, Region, Status, Requests, P95, Errors |
 
 !!! tip "Real-Time Updates"
 
@@ -99,11 +99,11 @@ Metrics are fetched from the sparkline API endpoint and refresh every 60 seconds
 
 Running deployments show a health check indicator:
 
-| Indicator        | Meaning                            |
-| ---------------- | ---------------------------------- |
-| **Green heart**  | Healthy — shows response latency   |
-| **Red heart**    | Unhealthy — shows error message    |
-| **Spinning icon**| Health check in progress           |
+| Indicator         | Meaning                          |
+| ----------------- | -------------------------------- |
+| **Green heart**   | Healthy — shows response latency |
+| **Red heart**     | Unhealthy — shows error message  |
+| **Spinning icon** | Health check in progress         |
 
 Health checks auto-retry every 20 seconds when unhealthy. Click the refresh icon to manually trigger a health check. The health check has a 35-second timeout to accommodate cold starts.
 
@@ -134,13 +134,13 @@ Each log entry shows:
 
 Filter logs by severity using the filter buttons:
 
-| Level        | Color    | Description        |
-| ------------ | -------- | ------------------ |
-| **DEBUG**    | Gray     | Debug messages     |
-| **INFO**     | Blue     | Normal requests    |
-| **WARNING**  | Yellow   | Non-critical issues|
-| **ERROR**    | Red      | Failed requests    |
-| **CRITICAL** | Dark Red | Critical failures  |
+| Level        | Color    | Description         |
+| ------------ | -------- | ------------------- |
+| **DEBUG**    | Gray     | Debug messages      |
+| **INFO**     | Blue     | Normal requests     |
+| **WARNING**  | Yellow   | Non-critical issues |
+| **ERROR**    | Red      | Failed requests     |
+| **CRITICAL** | Dark Red | Critical failures   |
 
 ### Log Controls
 
@@ -252,10 +252,10 @@ GET /api/deployments/{deploymentId}/logs?limit=20&severity=ERROR,WARNING
 
 Returns recent log entries with optional severity filter and pagination.
 
-| Parameter    | Type   | Description                              |
-| ------------ | ------ | ---------------------------------------- |
-| `limit`      | int    | Max entries to return (default: 20)      |
-| `severity`   | string | Comma-separated severity filter          |
+| Parameter  | Type   | Description                         |
+| ---------- | ------ | ----------------------------------- |
+| `limit`    | int    | Max entries to return (default: 20) |
+| `severity` | string | Comma-separated severity filter     |
 
 ### Deployment Health
 
@@ -267,9 +267,9 @@ Returns health check status with response latency.
 
 ```json
 {
-  "healthy": true,
-  "status": 200,
-  "latencyMs": 142
+    "healthy": true,
+    "status": 200,
+    "latencyMs": 142
 }
 ```
 

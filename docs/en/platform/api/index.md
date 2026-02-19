@@ -41,16 +41,16 @@ graph LR
     B -->|auto-annotate| B
 ```
 
-| Resource    | Description                        | Key Operations                          |
-| ----------- | ---------------------------------- | --------------------------------------- |
-| Datasets    | Labeled image collections          | CRUD, images, labels, export, clone     |
-| Projects    | Training workspaces                | CRUD, clone, icon                       |
-| Models      | Trained checkpoints                | CRUD, predict, download, clone, export  |
-| Deployments | Dedicated inference endpoints      | CRUD, start/stop, metrics, logs, health |
-| Exports     | Format conversion jobs             | Create, status, download                |
-| Training    | Cloud GPU training jobs            | Start, status, cancel                   |
-| Billing     | Credits and subscriptions          | Balance, top-up, payment methods        |
-| Teams       | Workspace collaboration            | Members, invites, roles                 |
+| Resource    | Description                   | Key Operations                          |
+| ----------- | ----------------------------- | --------------------------------------- |
+| Datasets    | Labeled image collections     | CRUD, images, labels, export, clone     |
+| Projects    | Training workspaces           | CRUD, clone, icon                       |
+| Models      | Trained checkpoints           | CRUD, predict, download, clone, export  |
+| Deployments | Dedicated inference endpoints | CRUD, start/stop, metrics, logs, health |
+| Exports     | Format conversion jobs        | Create, status, download                |
+| Training    | Cloud GPU training jobs       | Start, status, cancel                   |
+| Billing     | Credits and subscriptions     | Balance, top-up, payment methods        |
+| Teams       | Workspace collaboration       | Members, invites, roles                 |
 
 ## Authentication
 
@@ -425,9 +425,7 @@ PUT /api/datasets/{datasetId}/images/{hash}/labels
 
 ```json
 {
-    "labels": [
-        { "classId": 0, "bbox": [0.5, 0.5, 0.2, 0.3] }
-    ]
+    "labels": [{ "classId": 0, "bbox": [0.5, 0.5, 0.2, 0.3] }]
 }
 ```
 
@@ -627,11 +625,11 @@ POST /api/models/{modelId}/predict
 
 **Multipart Form:**
 
-| Field  | Type  | Description                       |
-| ------ | ----- | --------------------------------- |
-| `file` | file  | Image file (JPEG, PNG, WebP)      |
+| Field  | Type  | Description                          |
+| ------ | ----- | ------------------------------------ |
+| `file` | file  | Image file (JPEG, PNG, WebP)         |
 | `conf` | float | Confidence threshold (default: 0.25) |
-| `iou`  | float | IoU threshold (default: 0.7)      |
+| `iou`  | float | IoU threshold (default: 0.7)         |
 
 === "cURL"
 
@@ -941,25 +939,25 @@ POST /api/exports
 
 **Supported Formats:**
 
-| Format         | Value          | Use Case                    |
-| -------------- | -------------- | --------------------------- |
-| ONNX           | `onnx`         | Cross-platform inference    |
-| TorchScript    | `torchscript`  | PyTorch deployment          |
-| OpenVINO       | `openvino`     | Intel hardware              |
-| TensorRT       | `tensorrt`     | NVIDIA GPU optimization     |
-| CoreML         | `coreml`       | Apple devices               |
-| TFLite         | `tflite`       | Mobile and embedded         |
-| TF SavedModel  | `saved_model`  | TensorFlow Serving          |
-| TF GraphDef    | `graphdef`     | TensorFlow frozen graph     |
-| PaddlePaddle   | `paddle`       | Baidu PaddlePaddle          |
-| NCNN           | `ncnn`         | Mobile neural network       |
-| Edge TPU       | `edgetpu`      | Google Coral devices        |
-| TF.js          | `tfjs`         | Browser inference           |
-| MNN            | `mnn`          | Alibaba mobile inference    |
-| RKNN           | `rknn`         | Rockchip NPU               |
-| IMX            | `imx`          | NXP i.MX processors        |
-| Axelera        | `axelera`      | Axelera AI accelerators     |
-| ExecuTorch     | `executorch`   | Meta ExecuTorch runtime     |
+| Format        | Value         | Use Case                 |
+| ------------- | ------------- | ------------------------ |
+| ONNX          | `onnx`        | Cross-platform inference |
+| TorchScript   | `torchscript` | PyTorch deployment       |
+| OpenVINO      | `openvino`    | Intel hardware           |
+| TensorRT      | `tensorrt`    | NVIDIA GPU optimization  |
+| CoreML        | `coreml`      | Apple devices            |
+| TFLite        | `tflite`      | Mobile and embedded      |
+| TF SavedModel | `saved_model` | TensorFlow Serving       |
+| TF GraphDef   | `graphdef`    | TensorFlow frozen graph  |
+| PaddlePaddle  | `paddle`      | Baidu PaddlePaddle       |
+| NCNN          | `ncnn`        | Mobile neural network    |
+| Edge TPU      | `edgetpu`     | Google Coral devices     |
+| TF.js         | `tfjs`        | Browser inference        |
+| MNN           | `mnn`         | Alibaba mobile inference |
+| RKNN          | `rknn`        | Rockchip NPU             |
+| IMX           | `imx`         | NXP i.MX processors      |
+| Axelera       | `axelera`     | Axelera AI accelerators  |
+| ExecuTorch    | `executorch`  | Meta ExecuTorch runtime  |
 
 ### Get Export Status
 
@@ -1025,12 +1023,12 @@ GET /api/trash
 
 **Query Parameters:**
 
-| Parameter | Type   | Description                                   |
-| --------- | ------ | --------------------------------------------- |
-| `type`    | string | Filter: `all`, `project`, `dataset`, `model`  |
-| `page`    | int    | Page number (default: 1)                      |
-| `limit`   | int    | Items per page (default: 50, max: 200)        |
-| `owner`   | string | Workspace owner username                      |
+| Parameter | Type   | Description                                  |
+| --------- | ------ | -------------------------------------------- |
+| `type`    | string | Filter: `all`, `project`, `dataset`, `model` |
+| `page`    | int    | Page number (default: 1)                     |
+| `limit`   | int    | Items per page (default: 50, max: 200)       |
+| `owner`   | string | Workspace owner username                     |
 
 ### Restore Item
 
@@ -1565,12 +1563,12 @@ model.train(
 
 **URI Format:**
 
-| Pattern                            | Description      |
-| ---------------------------------- | ---------------- |
-| `ul://username/datasets/slug`      | Dataset          |
-| `ul://username/project-name`       | Project          |
-| `ul://username/project/model-name` | Specific model   |
-| `ul://ultralytics/yolo26/yolo26n`  | Official model   |
+| Pattern                            | Description    |
+| ---------------------------------- | -------------- |
+| `ul://username/datasets/slug`      | Dataset        |
+| `ul://username/project-name`       | Project        |
+| `ul://username/project/model-name` | Specific model |
+| `ul://ultralytics/yolo26/yolo26n`  | Official model |
 
 ### Pushing to Platform
 

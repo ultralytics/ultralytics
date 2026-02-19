@@ -139,13 +139,13 @@ class ActionRecognition(BaseSolution):
         kwargs["model"] = kwargs.get("model", "yolo26n.pt")
         super().__init__(**kwargs)
 
-        self.crop_margin_percentage = int(self.CFG.get("crop_margin_percentage", 10))
-        self.num_video_sequence_samples = int(self.CFG.get("num_video_sequence_samples", 8))
-        self.skip_frame = max(1, int(self.CFG.get("skip_frame", 2)))
-        self.video_cls_overlap_ratio = float(self.CFG.get("video_cls_overlap_ratio", 0.25))
+        self.crop_margin_percentage = int(self.CFG["crop_margin_percentage"])
+        self.num_video_sequence_samples = int(self.CFG["num_video_sequence_samples"])
+        self.skip_frame = max(1, int(self.CFG["skip_frame"]))
+        self.video_cls_overlap_ratio = float(self.CFG["video_cls_overlap_ratio"])
 
-        self._video_classifier_model = self.CFG.get("video_classifier_model", "s3d")
-        self._video_classifier_device = self.CFG.get("device", "")
+        self._video_classifier_model = self.CFG["video_classifier_model"]
+        self._video_classifier_device = self.CFG["device"] or ""
         self.video_classifier = None
 
         self.crop_history = defaultdict(list)

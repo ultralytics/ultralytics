@@ -25,11 +25,11 @@ Every model includes a `Predict` tab for browser-based inference:
 
 The predict panel supports multiple input methods:
 
-| Method              | Description                                              |
-| ------------------- | -------------------------------------------------------- |
-| **Image upload**    | Drag and drop or click to upload an image                |
-| **Example images**  | Click built-in examples (dataset images or defaults)     |
-| **Webcam capture**  | Live camera feed with single-frame capture               |
+| Method             | Description                                          |
+| ------------------ | ---------------------------------------------------- |
+| **Image upload**   | Drag and drop or click to upload an image            |
+| **Example images** | Click built-in examples (dataset images or defaults) |
+| **Webcam capture** | Live camera feed with single-frame capture           |
 
 ### Upload Image
 
@@ -74,11 +74,11 @@ Inference results display:
 
 The results panel shows:
 
-| Field              | Description                                     |
-| ------------------ | ----------------------------------------------- |
-| **Detections list** | Each detection with class name and confidence   |
-| **Speed stats**    | Preprocess, inference, postprocess, network (ms)|
-| **JSON response**  | Raw API response in a code block                |
+| Field               | Description                                      |
+| ------------------- | ------------------------------------------------ |
+| **Detections list** | Each detection with class name and confidence    |
+| **Speed stats**     | Preprocess, inference, postprocess, network (ms) |
+| **JSON response**   | Raw API response in a code block                 |
 
 ## Inference Parameters
 
@@ -86,10 +86,10 @@ Adjust detection behavior with parameters in the collapsible **Parameters** sect
 
 <!-- Screenshot: predict-tab-parameters-sliders.avif -->
 
-| Parameter      | Range   | Default | Description                  |
-| -------------- | ------- | ------- | ---------------------------- |
-| **Confidence** | 0.01-1.0 | 0.25    | Minimum confidence threshold |
-| **IoU**        | 0.0-0.95 | 0.70    | NMS IoU threshold            |
+| Parameter      | Range          | Default | Description                            |
+| -------------- | -------------- | ------- | -------------------------------------- |
+| **Confidence** | 0.01-1.0       | 0.25    | Minimum confidence threshold           |
+| **IoU**        | 0.0-0.95       | 0.70    | NMS IoU threshold                      |
 | **Image Size** | 320, 640, 1280 | 640     | Input resize dimension (button toggle) |
 
 Changing any parameter automatically re-runs inference on the current image (debounced at 500ms).

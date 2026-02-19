@@ -35,15 +35,15 @@ Navigate to the Activity Feed:
 
 The Platform tracks the following resource types and actions:
 
-| Resource Type  | Description                          | Icon Color |
-| -------------- | ------------------------------------ | ---------- |
-| **project**    | Project events                       | Blue       |
-| **dataset**    | Dataset events                       | Green      |
-| **model**      | Model events                         | Purple     |
-| **training**   | Training job events                  | Blue/Green/Red |
-| **settings**   | Account settings changes             | Gray       |
-| **api_key**    | API key creation/revocation          | Amber      |
-| **onboarding** | Onboarding completion                | Green      |
+| Resource Type  | Description                 | Icon Color     |
+| -------------- | --------------------------- | -------------- |
+| **project**    | Project events              | Blue           |
+| **dataset**    | Dataset events              | Green          |
+| **model**      | Model events                | Purple         |
+| **training**   | Training job events         | Blue/Green/Red |
+| **settings**   | Account settings changes    | Gray           |
+| **api_key**    | API key creation/revocation | Amber          |
+| **onboarding** | Onboarding completion       | Green          |
 
 ## Inbox and Archive
 
@@ -89,12 +89,12 @@ Filter by time period using the date range picker:
 
 Each event displays:
 
-| Field           | Description                       |
-| --------------- | --------------------------------- |
-| **Icon**        | Resource type indicator           |
+| Field           | Description                                        |
+| --------------- | -------------------------------------------------- |
+| **Icon**        | Resource type indicator                            |
 | **Description** | What happened (e.g., "Created project my-project") |
-| **Timestamp**   | Relative time (e.g., "2 hours ago") |
-| **Metadata**    | Additional context when available  |
+| **Timestamp**   | Relative time (e.g., "2 hours ago")                |
+| **Metadata**    | Additional context when available                  |
 
 ## Undo Support
 

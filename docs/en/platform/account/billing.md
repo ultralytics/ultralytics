@@ -16,21 +16,21 @@ Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 
 <!-- Screenshot: settings-plans-tab-free-pro-enterprise-comparison.avif -->
 
-| Feature                     | Free           | Pro ($29/mo)                | Enterprise     |
-| --------------------------- | -------------- | --------------------------- | -------------- |
-| **Signup Credit**           | $5 / $25*      | -                           | Custom         |
-| **Monthly Credit**          | -              | $30/seat/month              | Custom         |
-| **Models**                  | 100            | 500                         | Unlimited      |
-| **Concurrent Trainings**    | 3              | 10                          | Unlimited      |
-| **Storage**                 | 100 GB         | 500 GB                      | Unlimited      |
-| **Deployments**             | 3              | 10 (warm-start)             | Unlimited      |
-| **Teams**                   | -              | Up to 5 members             | Unlimited      |
-| **Best GPUs (H200, B200)**  | -              | Yes                         | Yes            |
-| **SSO / SAML**              | -              | -                           | Yes            |
-| **Enterprise License**      | -              | -                           | Yes            |
-| **License**                 | AGPL-3.0       | AGPL-3.0                    | Enterprise     |
+| Feature                    | Free       | Pro ($29/mo)    | Enterprise |
+| -------------------------- | ---------- | --------------- | ---------- |
+| **Signup Credit**          | $5 / $25\* | -               | Custom     |
+| **Monthly Credit**         | -          | $30/seat/month  | Custom     |
+| **Models**                 | 100        | 500             | Unlimited  |
+| **Concurrent Trainings**   | 3          | 10              | Unlimited  |
+| **Storage**                | 100 GB     | 500 GB          | Unlimited  |
+| **Deployments**            | 3          | 10 (warm-start) | Unlimited  |
+| **Teams**                  | -          | Up to 5 members | Unlimited  |
+| **Best GPUs (H200, B200)** | -          | Yes             | Yes        |
+| **SSO / SAML**             | -          | -               | Yes        |
+| **Enterprise License**     | -          | -               | Yes        |
+| **License**                | AGPL-3.0   | AGPL-3.0        | Enterprise |
 
-*Free plan: $5 at signup, or $25 if you verify a company/work email address.
+\*Free plan: $5 at signup, or $25 if you verify a company/work email address.
 
 ### Free Plan
 
@@ -94,11 +94,11 @@ View your balance in `Settings > Billing`:
 
 <!-- Screenshot: settings-billing-tab-credit-balance-with-topup-button.avif -->
 
-| Balance Type            | Description                                   |
-| ----------------------- | --------------------------------------------- |
-| **Total Balance**       | Available credits for cloud training           |
-| **Promotional Credits** | Credits from signup or monthly grants          |
-| **Reserved**            | Held for active training jobs                  |
+| Balance Type            | Description                           |
+| ----------------------- | ------------------------------------- |
+| **Total Balance**       | Available credits for cloud training  |
+| **Promotional Credits** | Credits from signup or monthly grants |
+| **Reserved**            | Held for active training jobs         |
 
 ### Credit Uses
 
@@ -195,19 +195,19 @@ flowchart LR
 
 Cloud training costs depend on GPU selection:
 
-| GPU            | VRAM   | Rate/Hour |
-| -------------- | ------ | --------- |
-| RTX 2000 Ada   | 16 GB  | $0.48     |
-| RTX A4000      | 16 GB  | $0.50     |
-| RTX 3090       | 24 GB  | $0.92     |
-| RTX A6000      | 48 GB  | $0.98     |
-| RTX 4090       | 24 GB  | $1.18     |
-| L40S           | 48 GB  | $1.72     |
-| RTX 5090       | 32 GB  | $1.78     |
-| A100 80GB      | 80 GB  | $2.78     |
-| H100 PCIe      | 80 GB  | $4.78     |
-| H100 SXM       | 80 GB  | $5.38     |
-| B200            | 180 GB | $10.38    |
+| GPU          | VRAM   | Rate/Hour |
+| ------------ | ------ | --------- |
+| RTX 2000 Ada | 16 GB  | $0.48     |
+| RTX A4000    | 16 GB  | $0.50     |
+| RTX 3090     | 24 GB  | $0.92     |
+| RTX A6000    | 48 GB  | $0.98     |
+| RTX 4090     | 24 GB  | $1.18     |
+| L40S         | 48 GB  | $1.72     |
+| RTX 5090     | 32 GB  | $1.78     |
+| A100 80GB    | 80 GB  | $2.78     |
+| H100 PCIe    | 80 GB  | $4.78     |
+| H100 SXM     | 80 GB  | $5.38     |
+| B200         | 180 GB | $10.38    |
 
 See [Cloud Training](../train/cloud-training.md) for complete GPU options and pricing.
 
@@ -266,13 +266,13 @@ View all transactions in `Settings > Billing`:
 
 <!-- Screenshot: settings-billing-tab-transaction-history-table.avif -->
 
-| Column      | Description                                      |
-| ----------- | ------------------------------------------------ |
-| **Date**    | Transaction date                                 |
+| Column      | Description                                                                             |
+| ----------- | --------------------------------------------------------------------------------------- |
+| **Date**    | Transaction date                                                                        |
 | **Type**    | Signup Bonus, Credit Purchase, Monthly Grant, Training, Refund, Adjustment, Auto Top-Up |
-| **Amount**  | Transaction value (green for credits, red for charges) |
-| **Balance** | Resulting balance after transaction              |
-| **Details** | Additional context (model link, receipt, period)  |
+| **Amount**  | Transaction value (green for credits, red for charges)                                  |
+| **Balance** | Resulting balance after transaction                                                     |
+| **Details** | Additional context (model link, receipt, period)                                        |
 
 ## FAQ
 

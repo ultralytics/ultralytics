@@ -44,12 +44,12 @@ Videos are automatically extracted to frames on the client side:
 
 Archives are extracted and processed automatically:
 
-| Format | Extensions           | Notes                  |
-| ------ | -------------------- | ---------------------- |
-| ZIP    | `.zip`               | Most common            |
-| TAR    | `.tar`               | Uncompressed archive   |
-| TAR.GZ | `.tar.gz`, `.tgz`   | Compressed archive     |
-| GZ     | `.gz`                | Gzip compressed        |
+| Format | Extensions        | Notes                |
+| ------ | ----------------- | -------------------- |
+| ZIP    | `.zip`            | Most common          |
+| TAR    | `.tar`            | Uncompressed archive |
+| TAR.GZ | `.tar.gz`, `.tgz` | Compressed archive   |
+| GZ     | `.gz`             | Gzip compressed      |
 
 ### File Size Limits
 
@@ -130,11 +130,11 @@ After upload, the Platform processes your data:
 
 View your dataset images in multiple layouts:
 
-| View        | Description                                                   |
-| ----------- | ------------------------------------------------------------- |
-| **Grid**    | Thumbnail grid with annotation overlays (default)             |
-| **Compact** | Smaller thumbnails for quick scanning                         |
-| **Table**   | List with filename, dimensions, split, and label counts       |
+| View        | Description                                             |
+| ----------- | ------------------------------------------------------- |
+| **Grid**    | Thumbnail grid with annotation overlays (default)       |
+| **Compact** | Smaller thumbnails for quick scanning                   |
+| **Table**   | List with filename, dimensions, split, and label counts |
 
 <!-- Screenshot: platform-datasets-gallery-grid-view-with-annotations.avif -->
 
@@ -179,11 +179,11 @@ Click any image to open the fullscreen viewer with:
 
 Filter images by their dataset split:
 
-| Split       | Purpose                             |
-| ----------- | ----------------------------------- |
-| **Train**   | Used for model training             |
-| **Val**     | Used for validation during training |
-| **Test**    | Used for final evaluation           |
+| Split     | Purpose                             |
+| --------- | ----------------------------------- |
+| **Train** | Used for model training             |
+| **Val**   | Used for validation during training |
+| **Test**  | Used for final evaluation           |
 
 ## Dataset Tabs
 
@@ -209,15 +209,15 @@ Manage annotation classes for your dataset:
 
 Automatic statistics computed from your dataset:
 
-| Chart                  | Description                                                     |
-| ---------------------- | --------------------------------------------------------------- |
-| **Split Distribution** | Donut chart of train/val/test image counts and labeled percent  |
-| **Top Classes**        | Donut chart of the 10 most frequent annotation classes          |
-| **Image Widths**       | Histogram of image width distribution with mean                 |
-| **Image Heights**      | Histogram of image height distribution with mean                |
-| **Points per Instance**| Polygon vertex or keypoint count per annotation (segment/pose)  |
-| **Annotation Locations** | 2D heatmap of bounding box center positions                   |
-| **Image Dimensions**   | 2D width vs height heatmap with aspect ratio guide lines        |
+| Chart                    | Description                                                    |
+| ------------------------ | -------------------------------------------------------------- |
+| **Split Distribution**   | Donut chart of train/val/test image counts and labeled percent |
+| **Top Classes**          | Donut chart of the 10 most frequent annotation classes         |
+| **Image Widths**         | Histogram of image width distribution with mean                |
+| **Image Heights**        | Histogram of image height distribution with mean               |
+| **Points per Instance**  | Polygon vertex or keypoint count per annotation (segment/pose) |
+| **Annotation Locations** | 2D heatmap of bounding box center positions                    |
+| **Image Dimensions**     | 2D width vs height heatmap with aspect ratio guide lines       |
 
 <!-- Screenshot: platform-datasets-charts-tab-statistics-grid.avif -->
 
@@ -229,16 +229,16 @@ Automatic statistics computed from your dataset:
 
 View all models trained on this dataset in a searchable table:
 
-| Column    | Description                    |
-| --------- | ------------------------------ |
-| Name      | Model name with link           |
-| Project   | Parent project with icon       |
-| Status    | Training status badge          |
-| Task      | YOLO task type                 |
-| Epochs    | Best epoch / total epochs      |
-| mAP50-95  | Mean average precision         |
-| mAP50     | mAP at IoU 0.50               |
-| Created   | Creation date                  |
+| Column   | Description               |
+| -------- | ------------------------- |
+| Name     | Model name with link      |
+| Project  | Parent project with icon  |
+| Status   | Training status badge     |
+| Task     | YOLO task type            |
+| Epochs   | Best epoch / total epochs |
+| mAP50-95 | Mean average precision    |
+| mAP50    | mAP at IoU 0.50           |
+| Created  | Creation date             |
 
 <!-- Screenshot: platform-datasets-models-tab-trained-models-table.avif -->
 

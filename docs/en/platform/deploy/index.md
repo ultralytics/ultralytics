@@ -27,7 +27,7 @@ Ultralytics Platform offers multiple deployment paths:
 | ----------------------- | --------------------------------------------------- | ----------------------- |
 | **Predict Tab**         | Browser-based inference with image, webcam, and URL | Development, validation |
 | **Shared Inference**    | Multi-tenant service across 3 regions               | Light usage, testing    |
-| **Dedicated Endpoints** | Single-tenant services across 43 regions             | Production, low latency |
+| **Dedicated Endpoints** | Single-tenant services across 43 regions            | Production, low latency |
 
 ## Workflow
 
@@ -43,12 +43,12 @@ graph LR
     style D fill:#9C27B0,color:#fff
 ```
 
-| Stage         | Description                                         |
-| ------------- | --------------------------------------------------- |
-| **Test**      | Validate model with the `Predict` tab               |
-| **Configure** | Select region, resources, and deployment name        |
-| **Deploy**    | Create a dedicated endpoint from the `Deploy` tab    |
-| **Monitor**   | Track requests, latency, errors, and logs            |
+| Stage         | Description                                       |
+| ------------- | ------------------------------------------------- |
+| **Test**      | Validate model with the `Predict` tab             |
+| **Configure** | Select region, resources, and deployment name     |
+| **Deploy**    | Create a dedicated endpoint from the `Deploy` tab |
+| **Monitor**   | Track requests, latency, errors, and logs         |
 
 ## Architecture
 

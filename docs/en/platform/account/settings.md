@@ -20,14 +20,14 @@ Update your profile information:
 
 <!-- Screenshot: settings-profile-tab-display-name-bio-company-fields.avif -->
 
-| Field            | Description                           |
-| ---------------- | ------------------------------------- |
-| **Display Name** | Your public name                      |
-| **Username**     | Unique identifier (set at signup)     |
-| **Company**      | Company or organization name          |
-| **Use Case**     | Primary application (select from list) |
+| Field            | Description                               |
+| ---------------- | ----------------------------------------- |
+| **Display Name** | Your public name                          |
+| **Username**     | Unique identifier (set at signup)         |
+| **Company**      | Company or organization name              |
+| **Use Case**     | Primary application (select from list)    |
 | **Bio**          | Short description (minimum 10 characters) |
-| **Profile Icon** | Avatar with color, initials, or image |
+| **Profile Icon** | Avatar with color, initials, or image     |
 
 #### Username Rules
 
@@ -42,16 +42,16 @@ Update your profile information:
 
 #### Use Case Options
 
-| Use Case                    | Description                 |
-| --------------------------- | --------------------------- |
-| Manufacturing & QC          | Quality control workflows   |
-| Retail & Inventory          | Retail and inventory tasks  |
-| Security & Surveillance     | Security monitoring         |
-| Healthcare & Medical        | Medical imaging             |
-| Automotive & Robotics       | Self-driving and robotics   |
-| Agriculture                 | Agricultural monitoring     |
-| Research & Academia         | Academic research           |
-| Personal Project            | Personal or hobby projects  |
+| Use Case                | Description                |
+| ----------------------- | -------------------------- |
+| Manufacturing & QC      | Quality control workflows  |
+| Retail & Inventory      | Retail and inventory tasks |
+| Security & Surveillance | Security monitoring        |
+| Healthcare & Medical    | Medical imaging            |
+| Automotive & Robotics   | Self-driving and robotics  |
+| Agriculture             | Agricultural monitoring    |
+| Research & Academia     | Academic research          |
+| Personal Project        | Personal or hobby projects |
 
 ### Edit Profile
 
@@ -65,15 +65,15 @@ Connect your professional profiles:
 
 <!-- Screenshot: settings-profile-tab-social-links-grid.avif -->
 
-| Platform           | Format                  |
-| ------------------ | ----------------------- |
-| **GitHub**         | username                |
-| **LinkedIn**       | profile-slug            |
-| **X (Twitter)**    | username                |
-| **YouTube**        | channel-handle          |
-| **Google Scholar** | user-id                 |
-| **Discord**        | username                |
-| **Website**        | https://yoursite.com    |
+| Platform           | Format               |
+| ------------------ | -------------------- |
+| **GitHub**         | username             |
+| **LinkedIn**       | profile-slug         |
+| **X (Twitter)**    | username             |
+| **YouTube**        | channel-handle       |
+| **Google Scholar** | user-id              |
+| **Discord**        | username             |
+| **Website**        | https://yoursite.com |
 
 Social links appear on your public profile page.
 
@@ -85,11 +85,11 @@ API keys are managed directly on the `Profile` tab. See [API Keys](api-keys.md) 
 
 View your data region on the `Profile` tab:
 
-| Region | Location      | Best For                             |
-| ------ | ------------- | ------------------------------------ |
-| **US** | US Central    | Americas users                       |
-| **EU** | EU West       | European users, GDPR compliance      |
-| **AP** | Asia Pacific  | Asia-Pacific users                   |
+| Region | Location     | Best For                        |
+| ------ | ------------ | ------------------------------- |
+| **US** | US Central   | Americas users                  |
+| **EU** | EU West      | European users, GDPR compliance |
+| **AP** | Asia Pacific | Asia-Pacific users              |
 
 !!! note "Region is Permanent"
 
@@ -203,12 +203,12 @@ The Teams tab displays:
 
 ### Member Roles
 
-| Role       | Permissions                                                  |
-| ---------- | ------------------------------------------------------------ |
-| **Owner**  | Full control, transfer ownership, delete workspace           |
-| **Admin**  | Manage members, billing, settings, content                   |
-| **Editor** | Create and manage projects, datasets, models, API keys       |
-| **Viewer** | Read-only access to workspace resources (Enterprise only)    |
+| Role       | Permissions                                               |
+| ---------- | --------------------------------------------------------- |
+| **Owner**  | Full control, transfer ownership, delete workspace        |
+| **Admin**  | Manage members, billing, settings, content                |
+| **Editor** | Create and manage projects, datasets, models, API keys    |
+| **Viewer** | Read-only access to workspace resources (Enterprise only) |
 
 !!! note "Role Availability"
 

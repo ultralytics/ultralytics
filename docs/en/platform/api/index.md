@@ -138,12 +138,12 @@ GET /api/datasets
 
 **Query Parameters:**
 
-| Parameter  | Type   | Description                      |
-| ---------- | ------ | -------------------------------- |
-| `username` | string | Filter by username               |
-| `slug`     | string | Fetch single dataset by slug     |
+| Parameter  | Type   | Description                            |
+| ---------- | ------ | -------------------------------------- |
+| `username` | string | Filter by username                     |
+| `slug`     | string | Fetch single dataset by slug           |
 | `limit`    | int    | Items per page (default: 20, max: 500) |
-| `owner`    | string | Workspace owner username         |
+| `owner`    | string | Workspace owner username               |
 
 **Response:**
 
@@ -309,11 +309,11 @@ GET /api/datasets/{datasetId}/images
 
 **Query Parameters:**
 
-| Parameter | Type   | Description                          |
-| --------- | ------ | ------------------------------------ |
-| `split`   | string | Filter by split (train/val/test)     |
-| `cursor`  | string | Pagination cursor                    |
-| `limit`   | int    | Items per page                       |
+| Parameter | Type   | Description                      |
+| --------- | ------ | -------------------------------- |
+| `split`   | string | Filter by split (train/val/test) |
+| `cursor`  | string | Pagination cursor                |
+| `limit`   | int    | Items per page                   |
 
 #### Get Signed Image URLs
 
@@ -347,9 +347,7 @@ PUT /api/datasets/{datasetId}/images/{hash}/labels
 
 ```json
 {
-    "labels": [
-        { "classId": 0, "bbox": [0.5, 0.5, 0.2, 0.3] }
-    ]
+    "labels": [{ "classId": 0, "bbox": [0.5, 0.5, 0.2, 0.3] }]
 }
 ```
 
@@ -613,10 +611,10 @@ GET /api/deployments
 
 **Query Parameters:**
 
-| Parameter | Type   | Description          |
-| --------- | ------ | -------------------- |
-| `modelId` | string | Filter by model      |
-| `status`  | string | Filter by status     |
+| Parameter | Type   | Description                         |
+| --------- | ------ | ----------------------------------- |
+| `modelId` | string | Filter by model                     |
+| `status`  | string | Filter by status                    |
 | `limit`   | int    | Max results (default: 20, max: 100) |
 
 ### Create Deployment
@@ -800,12 +798,12 @@ GET /api/trash
 
 **Query Parameters:**
 
-| Parameter | Type   | Description                              |
-| --------- | ------ | ---------------------------------------- |
+| Parameter | Type   | Description                                  |
+| --------- | ------ | -------------------------------------------- |
 | `type`    | string | Filter: `all`, `project`, `dataset`, `model` |
-| `page`    | int    | Page number (default: 1)                 |
-| `limit`   | int    | Items per page (default: 50, max: 200)   |
-| `owner`   | string | Workspace owner username                 |
+| `page`    | int    | Page number (default: 1)                     |
+| `limit`   | int    | Items per page (default: 50, max: 200)       |
+| `owner`   | string | Workspace owner username                     |
 
 ### Restore Item
 
@@ -1122,9 +1120,9 @@ GET /api/invites/info
 
 **Query Parameters:**
 
-| Parameter | Type   | Description     |
-| --------- | ------ | --------------- |
-| `token`   | string | Invite token    |
+| Parameter | Type   | Description  |
+| --------- | ------ | ------------ |
+| `token`   | string | Invite token |
 
 #### Revoke Invite
 
@@ -1148,11 +1146,11 @@ GET /api/explore/search
 
 **Query Parameters:**
 
-| Parameter | Type   | Description                           |
-| --------- | ------ | ------------------------------------- |
-| `q`       | string | Search query                          |
+| Parameter | Type   | Description                             |
+| --------- | ------ | --------------------------------------- |
+| `q`       | string | Search query                            |
 | `type`    | string | Resource type (project, dataset, model) |
-| `sort`    | string | Sort order                            |
+| `sort`    | string | Sort order                              |
 
 ### Sidebar Data
 
@@ -1172,9 +1170,9 @@ GET /api/users
 
 **Query Parameters:**
 
-| Parameter  | Type   | Description          |
-| ---------- | ------ | -------------------- |
-| `username` | string | Username to look up  |
+| Parameter  | Type   | Description         |
+| ---------- | ------ | ------------------- |
+| `username` | string | Username to look up |
 
 ### Check Username Availability
 
@@ -1184,9 +1182,9 @@ GET /api/username/check
 
 **Query Parameters:**
 
-| Parameter  | Type   | Description          |
-| ---------- | ------ | -------------------- |
-| `username` | string | Username to check    |
+| Parameter  | Type   | Description       |
+| ---------- | ------ | ----------------- |
+| `username` | string | Username to check |
 
 ### Settings
 
@@ -1420,7 +1418,8 @@ Webhook setup is available in Enterprise plans.
 Use `page` and `limit` parameters:
 
 ```bash
-GET /api/datasets?page=2&limit=50
+GET /api/datasets?page=2 &
+limit=50
 ```
 
 ### Can I use the API without an SDK?

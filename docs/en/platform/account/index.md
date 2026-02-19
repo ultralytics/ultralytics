@@ -37,13 +37,13 @@ The Account section helps you:
 
 Account management is organized into tabs within `Settings`:
 
-| Tab          | Description                                              |
-| ------------ | -------------------------------------------------------- |
-| `Profile`    | Display name, bio, company, use case, social links, keys |
-| `Plans`      | Compare Free, Pro, and Enterprise plans                  |
-| `Billing`    | Credit balance, top-up, payment methods, transactions    |
-| `Teams`      | Member list, roles, invites, seat allocation             |
-| `Trash`      | Soft-deleted projects, datasets, and models              |
+| Tab       | Description                                              |
+| --------- | -------------------------------------------------------- |
+| `Profile` | Display name, bio, company, use case, social links, keys |
+| `Plans`   | Compare Free, Pro, and Enterprise plans                  |
+| `Billing` | Credit balance, top-up, payment methods, transactions    |
+| `Teams`   | Member list, roles, invites, seat allocation             |
+| `Trash`   | Soft-deleted projects, datasets, and models              |
 
 ## Security
 

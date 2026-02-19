@@ -311,30 +311,30 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 
 Ultralytics Platform supports multiple GPU types for cloud training:
 
-| Tier       | GPU           | VRAM   | Cost/Hour | Best For                |
-| ---------- | ------------- | ------ | --------- | ----------------------- |
-| Budget     | RTX 2000 Ada  | 16 GB  | $0.24     | Small datasets, testing |
-| Budget     | RTX A4500     | 20 GB  | $0.24     | Small-medium datasets   |
-| Budget     | RTX A5000     | 24 GB  | $0.26     | Medium datasets         |
-| Budget     | RTX 4000 Ada  | 20 GB  | $0.38     | Medium datasets         |
-| Budget     | L4            | 24 GB  | $0.39     | Inference optimized     |
-| Budget     | A40           | 48 GB  | $0.40     | Larger batch sizes      |
-| Budget     | RTX 3090      | 24 GB  | $0.46     | General training        |
-| Budget     | RTX A6000     | 48 GB  | $0.49     | Large models            |
-| Mid        | RTX 4090      | 24 GB  | $0.59     | Great price/performance |
-| Mid        | RTX 6000 Ada  | 48 GB  | $0.77     | Large batch training    |
-| Mid        | L40S          | 48 GB  | $0.86     | Large batch training    |
-| Mid        | RTX 5090      | 32 GB  | $0.89     | Latest generation       |
-| Mid        | L40           | 48 GB  | $0.99     | Large models            |
-| Pro        | A100 PCIe     | 80 GB  | $1.39     | Production training     |
-| Pro        | A100 SXM      | 80 GB  | $1.49     | Production training     |
-| Pro        | RTX PRO 6000  | 96 GB  | $1.89     | Blackwell generation    |
-| Enterprise | H100 PCIe     | 80 GB  | $2.39     | Fastest training        |
-| Enterprise | H100 SXM      | 80 GB  | $2.69     | Fastest training        |
-| Enterprise | H100 NVL      | 94 GB  | $3.07     | High-memory training    |
-| Enterprise | H200 NVL      | 143 GB | $3.39     | Maximum memory           |
-| Enterprise | H200 SXM      | 141 GB | $3.59     | Maximum performance     |
-| Enterprise | B200          | 180 GB | $4.99     | Largest models          |
+| Tier       | GPU          | VRAM   | Cost/Hour | Best For                |
+| ---------- | ------------ | ------ | --------- | ----------------------- |
+| Budget     | RTX 2000 Ada | 16 GB  | $0.24     | Small datasets, testing |
+| Budget     | RTX A4500    | 20 GB  | $0.24     | Small-medium datasets   |
+| Budget     | RTX A5000    | 24 GB  | $0.26     | Medium datasets         |
+| Budget     | RTX 4000 Ada | 20 GB  | $0.38     | Medium datasets         |
+| Budget     | L4           | 24 GB  | $0.39     | Inference optimized     |
+| Budget     | A40          | 48 GB  | $0.40     | Larger batch sizes      |
+| Budget     | RTX 3090     | 24 GB  | $0.46     | General training        |
+| Budget     | RTX A6000    | 48 GB  | $0.49     | Large models            |
+| Mid        | RTX 4090     | 24 GB  | $0.59     | Great price/performance |
+| Mid        | RTX 6000 Ada | 48 GB  | $0.77     | Large batch training    |
+| Mid        | L40S         | 48 GB  | $0.86     | Large batch training    |
+| Mid        | RTX 5090     | 32 GB  | $0.89     | Latest generation       |
+| Mid        | L40          | 48 GB  | $0.99     | Large models            |
+| Pro        | A100 PCIe    | 80 GB  | $1.39     | Production training     |
+| Pro        | A100 SXM     | 80 GB  | $1.49     | Production training     |
+| Pro        | RTX PRO 6000 | 96 GB  | $1.89     | Blackwell generation    |
+| Enterprise | H100 PCIe    | 80 GB  | $2.39     | Fastest training        |
+| Enterprise | H100 SXM     | 80 GB  | $2.69     | Fastest training        |
+| Enterprise | H100 NVL     | 94 GB  | $3.07     | High-memory training    |
+| Enterprise | H200 NVL     | 143 GB | $3.39     | Maximum memory          |
+| Enterprise | H200 SXM     | 141 GB | $3.59     | Maximum performance     |
+| Enterprise | B200         | 180 GB | $4.99     | Largest models          |
 
 See [Cloud Training](train/cloud-training.md) for complete pricing and GPU options.
 

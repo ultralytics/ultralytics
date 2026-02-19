@@ -20,12 +20,12 @@ Four summary cards at the top of the page show:
 
 <!-- Screenshot: deploy-page-four-overview-cards.avif -->
 
-| Metric                 | Description                         |
-| ---------------------- | ----------------------------------- |
-| **Total Requests (24h)** | Requests across all endpoints     |
-| **Active Deployments** | Currently running endpoints         |
-| **Error Rate (24h)**   | Percentage of failed requests       |
-| **P95 Latency (24h)**  | 95th percentile response time       |
+| Metric                   | Description                   |
+| ------------------------ | ----------------------------- |
+| **Total Requests (24h)** | Requests across all endpoints |
+| **Active Deployments**   | Currently running endpoints   |
+| **Error Rate (24h)**     | Percentage of failed requests |
+| **P95 Latency (24h)**    | 95th percentile response time |
 
 The error rate card highlights in red when the rate exceeds 5%.
 
@@ -44,10 +44,10 @@ The interactive ECharts world map shows:
 
 Below the overview cards, the deployments list shows all endpoints across your projects. Use the view mode toggle to switch between:
 
-| View        | Description                                                        |
-| ----------- | ------------------------------------------------------------------ |
-| **Cards**   | Full detail cards with metrics, logs, code, and predict tabs       |
-| **Compact** | Grid of smaller cards (2-4 columns) with key metrics               |
+| View        | Description                                                                  |
+| ----------- | ---------------------------------------------------------------------------- |
+| **Cards**   | Full detail cards with metrics, logs, code, and predict tabs                 |
+| **Compact** | Grid of smaller cards (2-4 columns) with key metrics                         |
 | **Table**   | DataTable with sortable columns: Name, Region, Status, Requests, P95, Errors |
 
 !!! tip "Real-Time Updates"
@@ -60,11 +60,11 @@ Each deployment card (in cards view) shows real-time metrics:
 
 ### Metrics Row
 
-| Metric         | Description                     |
-| -------------- | ------------------------------- |
-| **Requests**   | Request count (24h) with icon   |
-| **P95 Latency**| 95th percentile response time   |
-| **Error Rate** | Percentage of failed requests   |
+| Metric          | Description                   |
+| --------------- | ----------------------------- |
+| **Requests**    | Request count (24h) with icon |
+| **P95 Latency** | 95th percentile response time |
+| **Error Rate**  | Percentage of failed requests |
 
 Metrics are fetched from the sparkline API endpoint and refresh every 60 seconds.
 
@@ -90,33 +90,33 @@ Each deployment card includes a `Logs` tab for viewing recent log entries:
 
 Each log entry shows:
 
-| Field          | Description                    |
-| -------------- | ------------------------------ |
-| **Severity**   | Color-coded bar (see below)    |
-| **Timestamp**  | Request time (local format)    |
-| **Message**    | Log content                    |
-| **HTTP info**  | Status code and latency (if applicable) |
+| Field         | Description                             |
+| ------------- | --------------------------------------- |
+| **Severity**  | Color-coded bar (see below)             |
+| **Timestamp** | Request time (local format)             |
+| **Message**   | Log content                             |
+| **HTTP info** | Status code and latency (if applicable) |
 
 ### Severity Levels
 
 Filter logs by severity using the filter buttons:
 
-| Level        | Color  | Description         |
-| ------------ | ------ | ------------------- |
-| **DEBUG**    | Gray   | Debug messages       |
-| **INFO**     | Blue   | Normal requests     |
-| **WARNING**  | Yellow | Non-critical issues |
-| **ERROR**    | Red    | Failed requests     |
-| **CRITICAL** | Dark Red | Critical failures  |
+| Level        | Color    | Description         |
+| ------------ | -------- | ------------------- |
+| **DEBUG**    | Gray     | Debug messages      |
+| **INFO**     | Blue     | Normal requests     |
+| **WARNING**  | Yellow   | Non-critical issues |
+| **ERROR**    | Red      | Failed requests     |
+| **CRITICAL** | Dark Red | Critical failures   |
 
 ### Log Controls
 
-| Control        | Description                          |
-| -------------- | ------------------------------------ |
-| **Errors**     | Filter to ERROR and WARNING entries  |
-| **All**        | Show all log entries                 |
-| **Copy**       | Copy all visible logs to clipboard   |
-| **Refresh**    | Reload log entries                   |
+| Control     | Description                         |
+| ----------- | ----------------------------------- |
+| **Errors**  | Filter to ERROR and WARNING entries |
+| **All**     | Show all log entries                |
+| **Copy**    | Copy all visible logs to clipboard  |
+| **Refresh** | Reload log entries                  |
 
 Logs show the 20 most recent entries per request.
 

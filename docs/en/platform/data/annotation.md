@@ -103,10 +103,10 @@ To annotate images:
 
 The editor provides two annotation modes, selectable from the toolbar:
 
-| Mode       | Description                                           | Shortcut |
-| ---------- | ----------------------------------------------------- | -------- |
-| **Draw**   | Manual annotation with task-specific tools            | `V`      |
-| **Smart**  | SAM-powered interactive annotation (detect/segment/OBB) | `S`    |
+| Mode      | Description                                             | Shortcut |
+| --------- | ------------------------------------------------------- | -------- |
+| **Draw**  | Manual annotation with task-specific tools              | `V`      |
+| **Smart** | SAM-powered interactive annotation (detect/segment/OBB) | `S`      |
 
 ## Manual Annotation Tools
 
@@ -276,26 +276,26 @@ Each class is assigned a color from the Ultralytics palette. You can customize c
 
 Efficient annotation with keyboard shortcuts:
 
-| Shortcut              | Action                     |
-| --------------------- | -------------------------- |
-| `V`                   | Draw mode (manual)         |
-| `S`                   | Smart mode (SAM)           |
-| `1-9`                 | Select class 1-9           |
-| `Delete` / `Backspace` | Delete selected annotation |
-| `Cmd/Ctrl+Z`         | Undo                       |
-| `Cmd/Ctrl+Shift+Z`   | Redo                       |
-| `Cmd/Ctrl+Y`         | Redo (alternative)         |
-| `Cmd/Ctrl+S`         | Save annotations           |
-| `Cmd/Ctrl+A`         | Select all annotations     |
-| `Cmd/Ctrl+Scroll`    | Zoom in/out                |
-| `Shift+Click`        | Multi-select annotations   |
-| `Escape`             | Save / Deselect / Exit     |
-| `Enter`              | Complete polygon / Save SAM annotation |
-| `Right-click`        | Complete polygon / Add SAM negative point |
-| `Cmd/Ctrl+]`         | Bring annotation forward   |
-| `Cmd/Ctrl+[`         | Send annotation backward   |
-| `Cmd/Ctrl+Shift+]`   | Bring to front             |
-| `Cmd/Ctrl+Shift+[`   | Send to back               |
+| Shortcut               | Action                                    |
+| ---------------------- | ----------------------------------------- |
+| `V`                    | Draw mode (manual)                        |
+| `S`                    | Smart mode (SAM)                          |
+| `1-9`                  | Select class 1-9                          |
+| `Delete` / `Backspace` | Delete selected annotation                |
+| `Cmd/Ctrl+Z`           | Undo                                      |
+| `Cmd/Ctrl+Shift+Z`     | Redo                                      |
+| `Cmd/Ctrl+Y`           | Redo (alternative)                        |
+| `Cmd/Ctrl+S`           | Save annotations                          |
+| `Cmd/Ctrl+A`           | Select all annotations                    |
+| `Cmd/Ctrl+Scroll`      | Zoom in/out                               |
+| `Shift+Click`          | Multi-select annotations                  |
+| `Escape`               | Save / Deselect / Exit                    |
+| `Enter`                | Complete polygon / Save SAM annotation    |
+| `Right-click`          | Complete polygon / Add SAM negative point |
+| `Cmd/Ctrl+]`           | Bring annotation forward                  |
+| `Cmd/Ctrl+[`           | Send annotation backward                  |
+| `Cmd/Ctrl+Shift+]`     | Bring to front                            |
+| `Cmd/Ctrl+Shift+[`     | Send to back                              |
 
 <!-- Screenshot: platform-annotate-keyboard-shortcuts-dialog.avif -->
 
@@ -366,7 +366,7 @@ The keyboard shortcut `1-9` quickly selects classes.
 | **Speed**     | One object at a time          | All objects at once           |
 | **Precision** | Very high with guidance       | Depends on model              |
 | **Best for**  | Complex objects, fine details | Bulk labeling, simple objects |
-| **Tasks**     | Detect, Segment, OBB         | All task types                |
+| **Tasks**     | Detect, Segment, OBB          | All task types                |
 
 ### Can I train on partially annotated datasets?
 

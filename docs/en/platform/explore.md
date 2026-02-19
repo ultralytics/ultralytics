@@ -48,24 +48,24 @@ Each tab provides a search bar and sort options:
 
 <!-- Screenshot: platform-explore-datasets-tab-with-search.avif -->
 
-| Sort Option        | Description                                |
-| ------------------ | ------------------------------------------ |
-| **Most Starred**   | Content with most community stars (default)|
-| **Newest**         | Most recently created                      |
-| **Oldest**         | Oldest first                               |
-| **Name A-Z**       | Alphabetical ascending                     |
-| **Name Z-A**       | Alphabetical descending                    |
-| **Most/Fewest**    | By image count (datasets) or model count (projects) |
+| Sort Option      | Description                                         |
+| ---------------- | --------------------------------------------------- |
+| **Most Starred** | Content with most community stars (default)         |
+| **Newest**       | Most recently created                               |
+| **Oldest**       | Oldest first                                        |
+| **Name A-Z**     | Alphabetical ascending                              |
+| **Name Z-A**     | Alphabetical descending                             |
+| **Most/Fewest**  | By image count (datasets) or model count (projects) |
 
 ### View Modes
 
 Toggle between three view modes for browsing:
 
-| Mode        | Description                                 |
-| ----------- | ------------------------------------------- |
-| **Cards**   | Grid of preview cards with thumbnails       |
-| **Compact** | Smaller cards in a two-column grid          |
-| **Table**   | Sortable table with columns                 |
+| Mode        | Description                           |
+| ----------- | ------------------------------------- |
+| **Cards**   | Grid of preview cards with thumbnails |
+| **Compact** | Smaller cards in a two-column grid    |
+| **Table**   | Sortable table with columns           |
 
 Cards and compact views support infinite scroll for loading more results.
 
@@ -77,25 +77,25 @@ Each item displays:
 
 **Project Cards Show:**
 
-| Element          | Description                      |
-| ---------------- | -------------------------------- |
-| **Icon**         | Project icon with custom colors  |
-| **Name**         | Project title                    |
-| **Creator**      | Author avatar and username       |
-| **Description**  | Short project description        |
-| **Model Count**  | Number of models in the project  |
-| **Model Tags**   | Names of models in the project   |
-| **Public Badge** | Visibility indicator             |
+| Element          | Description                     |
+| ---------------- | ------------------------------- |
+| **Icon**         | Project icon with custom colors |
+| **Name**         | Project title                   |
+| **Creator**      | Author avatar and username      |
+| **Description**  | Short project description       |
+| **Model Count**  | Number of models in the project |
+| **Model Tags**   | Names of models in the project  |
+| **Public Badge** | Visibility indicator            |
 
 **Dataset Cards Show:**
 
-| Element          | Description                       |
-| ---------------- | --------------------------------- |
-| **Thumbnails**   | Preview images from the dataset   |
-| **Name**         | Dataset title                     |
-| **Creator**      | Author avatar and username        |
-| **Task Badge**   | YOLO task type (detect, segment, etc.) |
-| **Image Count**  | Number of images in the dataset   |
+| Element         | Description                            |
+| --------------- | -------------------------------------- |
+| **Thumbnails**  | Preview images from the dataset        |
+| **Name**        | Dataset title                          |
+| **Creator**     | Author avatar and username             |
+| **Task Badge**  | YOLO task type (detect, segment, etc.) |
+| **Image Count** | Number of images in the dataset        |
 
 ## Use Public Content
 
@@ -148,12 +148,12 @@ Click on a creator's username to view their public profile at `platform.ultralyt
 
 <!-- Screenshot: platform-user-profile-public-content.avif -->
 
-| Section      | Content                           |
-| ------------ | --------------------------------- |
-| **Bio**      | User description and company      |
-| **Links**    | Social profiles                   |
-| **Projects** | Public projects with models       |
-| **Datasets** | Public datasets                   |
+| Section      | Content                      |
+| ------------ | ---------------------------- |
+| **Bio**      | User description and company |
+| **Links**    | Social profiles              |
+| **Projects** | Public projects with models  |
+| **Datasets** | Public datasets              |
 
 ## Make Your Content Public
 

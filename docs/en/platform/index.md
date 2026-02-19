@@ -90,19 +90,6 @@ Your data stays in your region. Ultralytics Platform operates infrastructure in 
 | **EU** | Belgium, Europe         | European users, GDPR compliance         |
 | **AP** | Hong Kong, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
 
-```mermaid
-graph LR
-    subgraph US["🇺🇸 US Region"]
-        US_DB[(Database)] --- US_S[Storage] --- US_P[Predict]
-    end
-    subgraph EU["🇪🇺 EU Region"]
-        EU_DB[(Database)] --- EU_S[Storage] --- EU_P[Predict]
-    end
-    subgraph AP["🇭🇰 AP Region"]
-        AP_DB[(Database)] --- AP_S[Storage] --- AP_P[Predict]
-    end
-```
-
 You select your region during onboarding, and all your data, models, and deployments remain in that region.
 
 !!! warning "Region is Permanent"

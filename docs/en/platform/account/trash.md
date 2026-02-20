@@ -60,11 +60,11 @@ Each item in Trash displays:
 
 When deleting a parent resource, child resources are also moved to Trash:
 
-| Resource Type | What's Included When Deleted               |
-| ------------- | ------------------------------------------ |
-| [**Projects**](../train/projects.md)  | Project + all models inside                |
+| Resource Type                        | What's Included When Deleted               |
+| ------------------------------------ | ------------------------------------------ |
+| [**Projects**](../train/projects.md) | Project + all models inside                |
 | [**Datasets**](../data/datasets.md)  | Dataset + all images and annotations       |
-| [**Models**](../train/models.md)    | Model weights + training history + exports |
+| [**Models**](../train/models.md)     | Model weights + training history + exports |
 
 ### Storage Treemap
 

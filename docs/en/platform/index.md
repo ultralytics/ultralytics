@@ -296,7 +296,7 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 - **No-Code Training**: Train advanced YOLO models without writing code
 - **Real-Time Metrics**: Stream training progress and monitor deployments
 - **43 Deploy Regions**: Deploy models close to your users worldwide
-- **5 Task Types**: Support for detection, segmentation, pose, OBB, and classification
+- **5 Task Types**: Support for [detection](../tasks/detect.md), [segmentation](../tasks/segment.md), [pose](../tasks/pose.md), [OBB](../tasks/obb.md), and [classification](../tasks/classify.md)
 - **AI-Assisted Annotation**: SAM and auto-labeling to speed up data preparation
 
 ### What GPU options are available for cloud training?
@@ -379,14 +379,14 @@ You can train models on your own hardware and stream real-time metrics to Platfo
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100 project=username/my-project name=exp1
     ```
 
-See [Cloud Training](train/cloud-training.md) for more details on remote training.
+See [Cloud Training](train/cloud-training.md#remote-training) for more details on remote training.
 
 ### What annotation tools are available?
 
 The Platform includes a full-featured annotation editor supporting:
 
 - **Manual Tools**: Bounding boxes, polygons, keypoints, oriented boxes, classification
-- **SAM Smart Annotation**: Click to generate precise masks using Segment Anything Model
+- **SAM Smart Annotation**: Click to generate precise masks using [Segment Anything Model](../models/sam.md)
 - **Keyboard Shortcuts**: Efficient workflows with hotkeys
 
 | Shortcut  | Action                     |
@@ -426,6 +426,8 @@ The Platform supports 17 deployment formats:
 | IMX           | `_imx_model`      | NXP i.MX devices          |
 | ExecuTorch    | `.pte`            | PyTorch mobile            |
 
+See [Models Export](train/models.md#export-model) and the general [Export mode guide](../modes/export.md) for format-specific options.
+
 ## Troubleshooting
 
 ### Dataset Issues
@@ -433,9 +435,9 @@ The Platform supports 17 deployment formats:
 | Problem                | Solution                                                                                                 |
 | ---------------------- | -------------------------------------------------------------------------------------------------------- |
 | Dataset won't process  | Check file format is supported (JPEG, PNG, WebP, etc.). Max file size: images 50MB, videos 1GB, ZIP 10GB |
-| Missing annotations    | Verify labels are in YOLO format with `.txt` files matching image filenames                              |
-| "Train split required" | Add `train/` folder to your dataset structure, or create splits in the dataset settings                  |
-| Class names undefined  | Add a `data.yaml` file with `names:` list, or define classes in dataset settings                         |
+| Missing annotations    | Verify labels are in [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format) with `.txt` files matching image filenames |
+| "Train split required" | Add `train/` folder to your dataset structure, or create splits in [dataset settings](data/datasets.md#filter-by-split) |
+| Class names undefined  | Add a `data.yaml` file with `names:` list (see [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format)), or define classes in dataset settings |
 
 ### Training Issues
 
@@ -452,8 +454,8 @@ The Platform supports 17 deployment formats:
 | ----------------------- | -------------------------------------------------------------------------------------- |
 | Endpoint not responding | Check endpoint status (Running vs Stopped). Cold start may take 2-5 seconds            |
 | 401 Unauthorized        | Verify API key is correct and has required scopes                                      |
-| Slow inference          | Check model size, consider TensorRT export, select closer region                       |
-| Export failed           | Some formats require specific model architectures. Try ONNX for broadest compatibility |
+| Slow inference          | Check model size, consider [TensorRT export](train/models.md#supported-formats), select closer region |
+| Export failed           | Some formats require specific model architectures. Try [ONNX](train/models.md#supported-formats) for broadest compatibility |
 
 ### Common Questions
 

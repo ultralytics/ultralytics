@@ -112,10 +112,10 @@ Customize your project icon:
 
 Control who can see your project:
 
-| Setting     | Description                     |
-| ----------- | ------------------------------- |
+| Setting     | Description                                      |
+| ----------- | ------------------------------------------------ |
 | **Public**  | Anyone can view on [Explore](../explore.md) page |
-| **Private** | Only you and collaborators      |
+| **Private** | Only you and collaborators                       |
 
 ## Share with Collaborators
 

@@ -58,8 +58,8 @@ For troubleshooting common issues, visit the [YOLO Common Issues](https://docs.u
 
 To train a custom YOLO model:
 
-1. Prepare your dataset in YOLO format (images and corresponding label txt files).
-2. Create a YAML file describing your dataset structure and classes.
+1. Prepare your dataset in [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format) (images and corresponding label txt files).
+2. Create a YAML file describing your dataset structure and classes (see [dataset YAML example](../datasets/detect/index.md#ultralytics-yolo-format)).
 3. Use the following Python code to start training:
 
     ```python

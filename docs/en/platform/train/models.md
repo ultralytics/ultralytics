@@ -295,7 +295,7 @@ Remove a model you no longer need:
 
 !!! note "Trash and Restore"
 
-    Deleted models go to Trash for 30 days. Restore from Settings > Trash.
+    Deleted models go to Trash for 30 days. Restore from [Settings > Trash](../account/trash.md).
 
 ## FAQ
 
@@ -303,7 +303,7 @@ Remove a model you no longer need:
 
 Ultralytics Platform supports all YOLO architectures:
 
-- **YOLO26**: n, s, m, l, x variants (recommended)
+- [**YOLO26**](../../models/yolo26.md): n, s, m, l, x variants (recommended)
 - **YOLO11**: n, s, m, l, x variants
 - **YOLOv10**: Legacy support
 - **YOLOv8**: Legacy support

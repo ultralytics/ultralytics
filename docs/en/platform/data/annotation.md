@@ -16,7 +16,7 @@ graph TB
         A[Box] & B[Polygon] & C[Keypoint] & D[OBB] & E[Classify]
     end
     subgraph AI["AI-Assisted"]
-        F[SAM Smart] & G[YOLO Auto-Annotate]
+        F[SAM Smart]
     end
     Manual --> H[Save Labels]
     AI --> H
@@ -398,16 +398,6 @@ After drawing an annotation:
 3. Repeat until all objects are labeled
 
 The keyboard shortcut `1-9` quickly selects classes.
-
-### What's the difference between SAM and auto-annotate?
-
-| Feature       | SAM Smart                     | YOLO Auto-Annotate            |
-| ------------- | ----------------------------- | ----------------------------- |
-| **Method**    | Interactive point prompts     | Model inference               |
-| **Speed**     | One object at a time          | All objects at once           |
-| **Precision** | Very high with guidance       | Depends on model              |
-| **Best for**  | Complex objects, fine details | Bulk labeling, simple objects |
-| **Tasks**     | Detect, Segment, OBB          | All task types                |
 
 ### Can I train on partially annotated datasets?
 

@@ -39,7 +39,7 @@ Ultralytics Platform is designed to replace fragmented ML tooling with a unified
 - **HuggingFace** - Model deployment
 - **Arize** - Monitoring
 
-All in one platform with native support for YOLO26 and YOLO11 models.
+All in one platform with native support for [YOLO26](../models/yolo26.md) and [YOLO11](../models/yolo11.md) models.
 
 ## Workflow: Upload → Annotate → Train → Export → Deploy
 
@@ -67,7 +67,7 @@ graph LR
 | **Upload**   | Images (50MB), videos (1GB), ZIP archives (10GB) with automatic processing  |
 | **Annotate** | Manual tools, SAM smart annotation, YOLO auto-labeling for all 5 task types (see [supported tasks](data/index.md#supported-tasks)) |
 | **Train**    | Cloud GPUs (22 options from RTX 2000 Ada to B200), real-time metrics, project organization |
-| **Export**   | 17 deployment formats (ONNX, TensorRT, CoreML, TFLite, etc.; see [supported formats](train/models.md#supported-formats)) |
+| **Export**   | [17 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.; see [supported formats](train/models.md#supported-formats)) |
 | **Deploy**   | 43 global regions with dedicated endpoints, auto-scaling, monitoring        |
 
 **What you can do:**
@@ -75,7 +75,7 @@ graph LR
 - **Upload** images, videos, and ZIP archives to create training datasets
 - **Visualize** annotations with interactive overlays for all 5 YOLO task types (see [supported tasks](data/index.md#supported-tasks))
 - **Train** models on 22 cloud GPU types with real-time metrics
-- **Export** to 17 deployment formats (ONNX, TensorRT, CoreML, TFLite, etc.)
+- **Export** to [17 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.)
 - **Deploy** to 43 global regions with one-click dedicated endpoints
 - **Monitor** training progress, deployment health, and usage metrics
 - **Collaborate** by making projects and datasets public for the community

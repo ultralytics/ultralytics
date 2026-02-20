@@ -153,8 +153,8 @@ After upload, the Platform automatically processes your data:
 
     For best results, upload a ZIP with the standard YOLO structure:
 
-        ```
-        my-dataset.zip
+    ```
+    my-dataset.zip
     ├── data.yaml          # Class names and splits
     ├── train/
     │   ├── images/
@@ -166,7 +166,7 @@ After upload, the Platform automatically processes your data:
     └── val/
         ├── images/
         └── labels/
-        ```
+    ```
 
     For full syntax across tasks, see [detect](../datasets/detect/index.md#ultralytics-yolo-format), [segment](../datasets/segment/index.md#ultralytics-yolo-format), [pose](../datasets/pose/index.md#ultralytics-yolo-format), [OBB](../datasets/obb/index.md#yolo-obb-format), and [classify](../datasets/classify/index.md#dataset-structure-for-yolo-classification-tasks) dataset guides.
 

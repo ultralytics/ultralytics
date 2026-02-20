@@ -1,26 +1,26 @@
 ---
 comments: true
-description: Create and manage API keys for Ultralytics Platform with scoped permissions for remote training, inference, and programmatic access.
+description: Create and manage API keys for Ultralytics Platform with secure AES-256-GCM encryption for remote training and programmatic access.
 keywords: Ultralytics Platform, API keys, authentication, remote training, security, access control
 ---
 
 # API Keys
 
-[Ultralytics Platform](https://platform.ultralytics.com) API keys enable secure programmatic access for remote training, inference, and automation. Create scoped keys with specific permissions for different use cases.
+[Ultralytics Platform](https://platform.ultralytics.com) API keys enable secure programmatic access for remote training, inference, and automation. Create named keys with AES-256-GCM encryption for different use cases.
 
-<!-- Screenshot: platform-apikeys-list.avif -->
+<!-- Screenshot: settings-profile-tab-api-keys-section-with-key-list.avif -->
 
 ## Create API Key
 
 Create a new API key:
 
-1. Go to **Settings > API Keys**
-2. Click **Create Key**
-3. Enter a name for the key
-4. Select permission scopes
+1. Go to **Settings > Profile**
+2. Scroll to the **API Keys** section
+3. Click **Create Key**
+4. Enter a name for the key (e.g., "Training Server")
 5. Click **Create**
 
-<!-- Screenshot: platform-apikeys-create.avif -->
+<!-- Screenshot: settings-profile-tab-create-api-key-dialog.avif -->
 
 ### Key Name
 
@@ -28,36 +28,19 @@ Give your key a descriptive name:
 
 - `training-server` - For remote training machines
 - `ci-pipeline` - For CI/CD integration
-- `mobile-app` - For mobile applications
-
-### Permission Scopes
-
-Select scopes to limit key permissions:
-
-<!-- Screenshot: platform-apikeys-scopes.avif -->
-
-| Scope        | Permissions                        |
-| ------------ | ---------------------------------- |
-| **training** | Start training, stream metrics     |
-| **models**   | Upload, download, delete models    |
-| **datasets** | Access and modify datasets         |
-| **read**     | Read-only access to all resources  |
-| **write**    | Full write access                  |
-| **admin**    | Account management (use carefully) |
-
-!!! tip "Least Privilege"
-
-    Create keys with only the permissions needed. Use separate keys for different applications.
+- `local-dev` - For local development
 
 ### Key Display
 
 After creation, the key is displayed once:
 
-<!-- Screenshot: platform-apikeys-created.avif -->
+<!-- Screenshot: settings-profile-tab-api-key-created-copy-dialog.avif -->
 
 !!! warning "Copy Your Key"
 
     The full key is only shown once. Copy it immediately and store securely. You cannot retrieve it later.
+
+After dismissing the dialog, only the key prefix is visible in the key list.
 
 ## Key Format
 
@@ -70,6 +53,12 @@ ul_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0
 - **Prefix**: `ul_` identifies Ultralytics keys
 - **Body**: 40 random hexadecimal characters
 - **Total**: 43 characters
+
+### Key Security
+
+- Keys are stored with **AES-256-GCM encryption**
+- Authentication uses SHA-256 hash for fast prefix lookup and hash comparison
+- Full key values are never stored in plaintext
 
 ## Using API Keys
 
@@ -88,6 +77,14 @@ Set your key as an environment variable:
     ```powershell
     $env:ULTRALYTICS_API_KEY = "ul_your_key_here"
     ```
+
+### YOLO CLI
+
+Set the key using the YOLO CLI:
+
+```bash
+yolo settings api_key="ul_your_key_here"
+```
 
 ### In Code
 
@@ -133,21 +130,21 @@ yolo train model=yolo26n.pt data=coco.yaml project=username/project name=exp1
 
 ### View Keys
 
-All keys are listed in Settings > API Keys:
+All keys are listed in `Settings > Profile` under the API Keys section:
 
-| Column        | Description          |
-| ------------- | -------------------- |
-| **Name**      | Key identifier       |
-| **Scopes**    | Assigned permissions |
-| **Created**   | Creation date        |
-| **Last Used** | Most recent use      |
+| Column      | Description                 |
+| ----------- | --------------------------- |
+| **Name**    | Key identifier              |
+| **Prefix**  | First characters of the key |
+| **Created** | Creation date               |
+| **Uses**    | Total usage count           |
 
 ### Revoke Key
 
 Revoke a key that's compromised or no longer needed:
 
-1. Click the key's menu
-2. Select **Revoke**
+1. Find the key in the API Keys section
+2. Click the **Revoke** (trash) button
 3. Confirm revocation
 
 !!! warning "Immediate Effect"
@@ -158,9 +155,18 @@ Revoke a key that's compromised or no longer needed:
 
 If a key is compromised:
 
-1. Create a new key with same scopes
+1. Create a new key with the same name
 2. Update your applications
 3. Revoke the old key
+
+## Workspace API Keys
+
+API keys are scoped to the currently active workspace:
+
+- **Personal workspace**: Keys authenticate as your personal account
+- **Team workspace**: Keys authenticate within the team context
+
+When switching workspaces in the sidebar, the API Keys section shows keys for that workspace. Editor role or higher is required to manage workspace API keys.
 
 ## Security Best Practices
 
@@ -169,14 +175,13 @@ If a key is compromised:
 - Store keys in environment variables
 - Use separate keys for different environments
 - Revoke unused keys promptly
-- Use minimal required scopes
 - Rotate keys periodically
+- Use descriptive names to identify key purposes
 
 ### Don't
 
 - Commit keys to version control
 - Share keys between applications
-- Use admin scope unnecessarily
 - Log keys in application output
 - Embed keys in client-side code
 
@@ -184,7 +189,7 @@ If a key is compromised:
 
 Rotate keys periodically for security:
 
-1. Create new key with same scopes
+1. Create new key with same name
 2. Update applications to use new key
 3. Verify applications work correctly
 4. Revoke old key
@@ -203,10 +208,10 @@ Error: Invalid API key
 
 Solutions:
 
-1. Verify key is copied correctly
+1. Verify key is copied correctly (including the `ul_` prefix)
 2. Check key hasn't been revoked
-3. Ensure key has required scopes
-4. Confirm environment variable is set
+3. Confirm environment variable is set
+4. Ensure you're using `ultralytics>=8.4.0`
 
 ### Permission Denied
 
@@ -216,9 +221,9 @@ Error: Permission denied for this operation
 
 Solutions:
 
-1. Check key scopes include required permission
-2. Verify you're the resource owner
-3. Create new key with correct scopes
+1. Verify you're the resource owner or have appropriate workspace access
+2. Check the key belongs to the correct workspace
+3. Create a new key if needed
 
 ### Rate Limited
 
@@ -252,8 +257,4 @@ Keys work across regions but access data in your account's region only.
 
 ### Can I share keys with team members?
 
-Better practice: Have each team member create their own key. This enables:
-
-- Individual activity tracking
-- Selective revocation
-- Proper access control
+Better practice: Have each team member create their own key. For team workspaces, each member with Editor role or higher can create keys scoped to that workspace.

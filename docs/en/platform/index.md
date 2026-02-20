@@ -409,22 +409,22 @@ The Platform supports 17 deployment formats:
 | Format        | File Extension    | Use Case                  |
 | ------------- | ----------------- | ------------------------- |
 | PyTorch       | `.pt`             | Training, general use     |
-| [ONNX](../integrations/onnx.md)                | `.onnx`           | Cross-platform deployment |
-| [TorchScript](../integrations/torchscript.md)  | `.torchscript`    | C++ deployment            |
-| [OpenVINO](../integrations/openvino.md)        | `_openvino_model` | Intel hardware            |
-| [TensorRT](../integrations/tensorrt.md)        | `.engine`         | NVIDIA GPU inference      |
-| [CoreML](../integrations/coreml.md)            | `.mlpackage`      | Apple devices             |
-| [TFLite](../integrations/tflite.md)            | `.tflite`         | Mobile/edge devices       |
-| [TF SavedModel](../integrations/tf-savedmodel.md) | `_saved_model` | TensorFlow ecosystem      |
-| [TF GraphDef](../integrations/tf-graphdef.md)  | `.pb`             | TensorFlow legacy         |
-| [PaddlePaddle](../integrations/paddlepaddle.md) | `_paddle_model`  | Baidu ecosystem           |
-| [NCNN](../integrations/ncnn.md)                | `_ncnn_model`     | Mobile (Android/ARM)      |
-| [Edge TPU](../integrations/edge-tpu.md)        | `_edgetpu.tflite` | Google Coral devices      |
-| [TF.js](../integrations/tfjs.md)               | `_web_model`      | Browser deployment        |
-| [MNN](../integrations/mnn.md)                  | `.mnn`            | Alibaba mobile            |
-| [RKNN](../integrations/rockchip-rknn.md)       | `.rknn`           | Rockchip NPU              |
-| [IMX500](../integrations/sony-imx500.md)       | `_imx_model`      | Sony IMX500 sensor        |
-| [ExecuTorch](../integrations/executorch.md)    | `.pte`            | PyTorch mobile            |
+| ONNX          | `.onnx`           | Cross-platform deployment |
+| TorchScript   | `.torchscript`    | C++ deployment            |
+| OpenVINO      | `_openvino_model` | Intel hardware            |
+| TensorRT      | `.engine`         | NVIDIA GPU inference      |
+| CoreML        | `.mlpackage`      | Apple devices             |
+| TFLite        | `.tflite`         | Mobile/edge devices       |
+| TF SavedModel | `_saved_model`    | TensorFlow ecosystem      |
+| TF GraphDef   | `.pb`             | TensorFlow legacy         |
+| PaddlePaddle  | `_paddle_model`   | Baidu ecosystem           |
+| NCNN          | `_ncnn_model`     | Mobile (Android/ARM)      |
+| Edge TPU      | `_edgetpu.tflite` | Google Coral devices      |
+| TF.js         | `_web_model`      | Browser deployment        |
+| MNN           | `.mnn`            | Alibaba mobile            |
+| RKNN          | `.rknn`           | Rockchip NPU              |
+| IMX500        | `_imx_model`      | Sony IMX500 sensor        |
+| ExecuTorch    | `.pte`            | PyTorch mobile            |
 
 See [Models Export](train/models.md#export-model) and the general [Export mode guide](../modes/export.md) for format-specific options.
 

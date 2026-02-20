@@ -209,25 +209,7 @@ Export your model to 17+ deployment formats:
 
 ### Supported Formats
 
-| #   | Format            | File Extension   | GPU Required | Use Case                           |
-| --- | ----------------- | ---------------- | ------------ | ---------------------------------- |
-| 1   | **[ONNX](../../integrations/onnx.md)**                | `.onnx`          | No           | Cross-platform, web, most runtimes |
-| 2   | **[TorchScript](../../integrations/torchscript.md)**  | `.torchscript`   | No           | PyTorch deployment without Python  |
-| 3   | **[OpenVINO](../../integrations/openvino.md)**        | `.xml`, `.bin`   | No           | Intel CPUs, GPUs, VPUs             |
-| 4   | **[TensorRT](../../integrations/tensorrt.md)**        | `.engine`        | Yes          | NVIDIA GPUs (fastest inference)    |
-| 5   | **[CoreML](../../integrations/coreml.md)**            | `.mlpackage`     | No           | Apple iOS, macOS, watchOS          |
-| 6   | **[TF Lite](../../integrations/tflite.md)**           | `.tflite`        | No           | Mobile (Android, iOS), edge        |
-| 7   | **[TF SavedModel](../../integrations/tf-savedmodel.md)** | `saved_model/`   | No           | TensorFlow Serving              |
-| 8   | **[TF GraphDef](../../integrations/tf-graphdef.md)**  | `.pb`            | No           | TensorFlow 1.x                     |
-| 9   | **[TF Edge TPU](../../integrations/edge-tpu.md)**     | `.tflite`        | No           | Google Coral devices               |
-| 10  | **[TF.js](../../integrations/tfjs.md)**               | `.json`, `.bin`  | No           | Browser inference                  |
-| 11  | **[PaddlePaddle](../../integrations/paddlepaddle.md)** | `.pdmodel`      | No           | Baidu PaddlePaddle                 |
-| 12  | **[NCNN](../../integrations/ncnn.md)**                | `.param`, `.bin` | No           | Mobile (Android/iOS), optimized    |
-| 13  | **[MNN](../../integrations/mnn.md)**                  | `.mnn`           | No           | Alibaba mobile runtime             |
-| 14  | **[RKNN](../../integrations/rockchip-rknn.md)**       | `.rknn`          | No           | Rockchip NPUs                      |
-| 15  | **[IMX500](../../integrations/sony-imx500.md)**       | `.imx`           | No           | Sony IMX500 sensor                 |
-| 16  | **[Axelera](../../integrations/axelera.md)**          | `.axelera`       | No           | Axelera AI accelerators            |
-| 17  | **[ExecuTorch](../../integrations/executorch.md)**    | `.pte`           | No           | PyTorch mobile runtime             |
+{% include "macros/export-table.md" %}
 
 ### Format Selection Guide
 

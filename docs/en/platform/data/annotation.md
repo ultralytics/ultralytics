@@ -26,8 +26,8 @@ graph TB
 
 The annotation editor supports all 5 YOLO task types:
 
-| Task         | Tool           | Annotation Format                      |
-| ------------ | -------------- | -------------------------------------- |
+| Task                                             | Tool           | Annotation Format                      |
+| ------------------------------------------------ | -------------- | -------------------------------------- |
 | **[Detect](../../datasets/detect/index.md)**     | Rectangle      | Bounding boxes (x, y, width, height)   |
 | **[Segment](../../datasets/segment/index.md)**   | Polygon        | Pixel-precise masks (polygon vertices) |
 | **[Pose](../../datasets/pose/index.md)**         | Keypoint       | 17-point COCO skeleton                 |

@@ -231,15 +231,15 @@ Export your model to 17+ deployment formats:
 
 ### Format Selection Guide
 
-| Target                 | Recommended Format     | Notes                          |
-| ---------------------- | ---------------------- | ------------------------------ |
-| **NVIDIA GPUs**        | TensorRT               | Maximum inference speed        |
-| **Intel Hardware**     | OpenVINO               | CPUs, GPUs, and VPUs           |
-| **Apple Devices**      | CoreML                 | iOS, macOS, Apple Silicon      |
-| **Android**            | TF Lite or NCNN        | Best mobile performance        |
-| **Web Browsers**       | TF.js or ONNX          | ONNX via ONNX Runtime Web     |
-| **Edge Devices**       | TF Edge TPU or RKNN    | Coral and Rockchip             |
-| **General**            | ONNX                   | Works with most runtimes       |
+| Target             | Recommended Format  | Notes                     |
+| ------------------ | ------------------- | ------------------------- |
+| **NVIDIA GPUs**    | TensorRT            | Maximum inference speed   |
+| **Intel Hardware** | OpenVINO            | CPUs, GPUs, and VPUs      |
+| **Apple Devices**  | CoreML              | iOS, macOS, Apple Silicon |
+| **Android**        | TF Lite or NCNN     | Best mobile performance   |
+| **Web Browsers**   | TF.js or ONNX       | ONNX via ONNX Runtime Web |
+| **Edge Devices**   | TF Edge TPU or RKNN | Coral and Rockchip        |
+| **General**        | ONNX                | Works with most runtimes  |
 
 ![Ultralytics Platform Model Export Progress](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-export-progress.avif)
 

@@ -36,23 +36,23 @@ graph LR
     style E fill:#00BCD4,color:#fff
 ```
 
-| Stage         | Description                                         |
-| ------------- | --------------------------------------------------- |
-| **Project**   | Create a workspace to organize related models       |
-| **Configure** | Select dataset, base model, and training parameters |
-| **Train**     | Run on cloud GPUs or your local hardware            |
-| **Monitor**   | View real-time loss curves and metrics              |
+| Stage         | Description                                                                |
+| ------------- | -------------------------------------------------------------------------- |
+| **Project**   | Create a workspace to organize related models                              |
+| **Configure** | Select dataset, base model, and training parameters                        |
+| **Train**     | Run on cloud GPUs or your local hardware                                   |
+| **Monitor**   | View real-time loss curves and metrics                                     |
 | **Export**    | Convert to 17+ deployment formats ([details](models.md#supported-formats)) |
 
 ## Training Options
 
 Ultralytics Platform supports multiple training approaches:
 
-| Method              | Description                                | Best For                   |
-| ------------------- | ------------------------------------------ | -------------------------- |
-| **[Cloud Training](cloud-training.md)**             | Train on Ultralytics Cloud GPUs            | No local GPU, scalability  |
+| Method                                                   | Description                                | Best For                   |
+| -------------------------------------------------------- | ------------------------------------------ | -------------------------- |
+| **[Cloud Training](cloud-training.md)**                  | Train on Ultralytics Cloud GPUs            | No local GPU, scalability  |
 | **[Remote Training](cloud-training.md#remote-training)** | Train locally, stream metrics to Platform  | Existing hardware, privacy |
-| **[Colab Training](cloud-training.md#remote-training)**   | Use Google Colab with Platform integration | Free GPU access            |
+| **[Colab Training](cloud-training.md#remote-training)**  | Use Google Colab with Platform integration | Free GPU access            |
 
 ## GPU Options
 
@@ -181,8 +181,8 @@ If training fails:
 
 ### How do I choose the right GPU?
 
-| Scenario                            | Recommended GPU  |
-| ----------------------------------- | ---------------- |
-| Most training jobs                  | RTX PRO 6000     |
-| Large datasets or batch sizes       | H100 SXM or H200 |
-| Budget-conscious                    | RTX 4090         |
+| Scenario                      | Recommended GPU  |
+| ----------------------------- | ---------------- |
+| Most training jobs            | RTX PRO 6000     |
+| Large datasets or batch sizes | H100 SXM or H200 |
+| Budget-conscious              | RTX 4090         |

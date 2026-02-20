@@ -44,8 +44,8 @@ graph LR
 
 Ultralytics Platform supports all 5 YOLO task types:
 
-| Task         | Description                                 | Annotation Tool   |
-| ------------ | ------------------------------------------- | ----------------- |
+| Task                                             | Description                                 | Annotation Tool   |
+| ------------------------------------------------ | ------------------------------------------- | ----------------- |
 | **[Detect](../../datasets/detect/index.md)**     | Object detection with bounding boxes        | Rectangle tool    |
 | **[Segment](../../datasets/segment/index.md)**   | Instance segmentation with pixel masks      | Polygon tool      |
 | **[Pose](../../datasets/pose/index.md)**         | Keypoint estimation (17-point COCO format)  | Keypoint tool     |

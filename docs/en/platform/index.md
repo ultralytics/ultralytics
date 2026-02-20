@@ -62,13 +62,13 @@ graph LR
     Data --> Train --> Deploy
 ```
 
-| Stage        | Features                                                                    |
-| ------------ | --------------------------------------------------------------------------- |
-| **Upload**   | Images (50MB), videos (1GB), ZIP archives (10GB) with automatic processing  |
-| **Annotate** | Manual tools, SAM smart annotation, YOLO auto-labeling for all 5 task types |
+| Stage        | Features                                                                                   |
+| ------------ | ------------------------------------------------------------------------------------------ |
+| **Upload**   | Images (50MB), videos (1GB), ZIP archives (10GB) with automatic processing                 |
+| **Annotate** | Manual tools, SAM smart annotation, YOLO auto-labeling for all 5 task types                |
 | **Train**    | Cloud GPUs (22 options from RTX 2000 Ada to B200), real-time metrics, project organization |
-| **Export**   | 17 deployment formats (ONNX, TensorRT, CoreML, TFLite, etc.)                |
-| **Deploy**   | 43 global regions with dedicated endpoints, auto-scaling, monitoring        |
+| **Export**   | 17 deployment formats (ONNX, TensorRT, CoreML, TFLite, etc.)                               |
+| **Deploy**   | 43 global regions with dedicated endpoints, auto-scaling, monitoring                       |
 
 **What you can do:**
 
@@ -432,11 +432,11 @@ See [Models Export](train/models.md#export-model) and the general [Export mode g
 
 ### Dataset Issues
 
-| Problem                | Solution                                                                                                 |
-| ---------------------- | -------------------------------------------------------------------------------------------------------- |
-| Dataset won't process  | Check file format is supported (JPEG, PNG, WebP, etc.). Max file size: images 50MB, videos 1GB, ZIP 10GB |
-| Missing annotations    | Verify labels are in [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format) with `.txt` files matching image filenames |
-| "Train split required" | Add `train/` folder to your dataset structure, or create splits in [dataset settings](data/datasets.md#filter-by-split) |
+| Problem                | Solution                                                                                                                                                  |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dataset won't process  | Check file format is supported (JPEG, PNG, WebP, etc.). Max file size: images 50MB, videos 1GB, ZIP 10GB                                                  |
+| Missing annotations    | Verify labels are in [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format) with `.txt` files matching image filenames                        |
+| "Train split required" | Add `train/` folder to your dataset structure, or create splits in [dataset settings](data/datasets.md#filter-by-split)                                   |
 | Class names undefined  | Add a `data.yaml` file with `names:` list (see [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format)), or define classes in dataset settings |
 
 ### Training Issues
@@ -450,11 +450,11 @@ See [Models Export](train/models.md#export-model) and the general [Export mode g
 
 ### Deployment Issues
 
-| Problem                 | Solution                                                                               |
-| ----------------------- | -------------------------------------------------------------------------------------- |
-| Endpoint not responding | Check endpoint status (Running vs Stopped). Cold start may take 2-5 seconds            |
-| 401 Unauthorized        | Verify API key is correct and has required scopes                                      |
-| Slow inference          | Check model size, consider [TensorRT export](train/models.md#supported-formats), select closer region |
+| Problem                 | Solution                                                                                                                    |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Endpoint not responding | Check endpoint status (Running vs Stopped). Cold start may take 2-5 seconds                                                 |
+| 401 Unauthorized        | Verify API key is correct and has required scopes                                                                           |
+| Slow inference          | Check model size, consider [TensorRT export](train/models.md#supported-formats), select closer region                       |
 | Export failed           | Some formats require specific model architectures. Try [ONNX](train/models.md#supported-formats) for broadest compatibility |
 
 ### Common Questions

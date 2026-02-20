@@ -41,16 +41,16 @@ graph LR
     B -->|auto-annotate| B
 ```
 
-| Resource                                        | Description                   | Key Operations                          |
-| ----------------------------------------------- | ----------------------------- | --------------------------------------- |
-| [Datasets](../data/datasets.md)                 | Labeled image collections     | CRUD, images, labels, export, clone     |
-| [Projects](../train/projects.md)                | Training workspaces           | CRUD, clone, icon                       |
-| [Models](../train/models.md)                    | Trained checkpoints           | CRUD, predict, download, clone, export  |
-| [Deployments](../deploy/endpoints.md)           | Dedicated inference endpoints | CRUD, start/stop, metrics, logs, health |
-| [Exports](../train/models.md#export-model)      | Format conversion jobs        | Create, status, download                |
-| [Training](../train/cloud-training.md)          | Cloud GPU training jobs       | Start, status, cancel                   |
-| [Billing](../account/billing.md)                | Credits and subscriptions     | Balance, top-up, payment methods        |
-| [Teams](../account/settings.md#teams-tab)       | Workspace collaboration       | Members, invites, roles                 |
+| Resource                                   | Description                   | Key Operations                          |
+| ------------------------------------------ | ----------------------------- | --------------------------------------- |
+| [Datasets](../data/datasets.md)            | Labeled image collections     | CRUD, images, labels, export, clone     |
+| [Projects](../train/projects.md)           | Training workspaces           | CRUD, clone, icon                       |
+| [Models](../train/models.md)               | Trained checkpoints           | CRUD, predict, download, clone, export  |
+| [Deployments](../deploy/endpoints.md)      | Dedicated inference endpoints | CRUD, start/stop, metrics, logs, health |
+| [Exports](../train/models.md#export-model) | Format conversion jobs        | Create, status, download                |
+| [Training](../train/cloud-training.md)     | Cloud GPU training jobs       | Start, status, cancel                   |
+| [Billing](../account/billing.md)           | Credits and subscriptions     | Balance, top-up, payment methods        |
+| [Teams](../account/settings.md#teams-tab)  | Workspace collaboration       | Members, invites, roles                 |
 
 ## Authentication
 

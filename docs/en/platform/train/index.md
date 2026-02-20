@@ -39,7 +39,7 @@ graph LR
 | Stage         | Description                                                                |
 | ------------- | -------------------------------------------------------------------------- |
 | **Project**   | Create a workspace to organize related models                              |
-| **Configure** | Select [dataset](../data/datasets.md), base model, and training parameters                        |
+| **Configure** | Select [dataset](../data/datasets.md), base model, and training parameters |
 | **Train**     | Run on cloud GPUs or your local hardware                                   |
 | **Monitor**   | View real-time loss curves and metrics                                     |
 | **Export**    | Convert to 17+ deployment formats ([details](models.md#supported-formats)) |

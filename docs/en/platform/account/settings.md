@@ -121,7 +121,7 @@ To free up storage:
 1. Delete unused datasets
 2. Remove old model checkpoints
 3. Delete exported formats
-4. Empty trash (`Settings > Trash`)
+4. Empty trash ([`Settings > Trash`](trash.md))
 
 ### Security
 
@@ -189,7 +189,7 @@ Manage credits, payment methods, and view transaction history. See [Billing](bil
 
 ## Teams Tab
 
-Manage workspace members, roles, and invitations. Teams are available on Pro and Enterprise plans.
+Manage workspace members, roles, and invitations. Teams are available on [Pro and Enterprise plans](billing.md#plans).
 
 ### Team Overview
 

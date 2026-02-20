@@ -12,7 +12,7 @@ keywords: Ultralytics Platform, model training, cloud training, YOLO, GPU traini
 
 The Training section helps you:
 
-- **Organize** models into projects for easier management
+- **Organize** models into [projects](projects.md) for easier management
 - **Train** on cloud GPUs with a single click
 - **Monitor** real-time metrics during training
 - **Compare** model performance across experiments
@@ -39,7 +39,7 @@ graph LR
 | Stage         | Description                                                                |
 | ------------- | -------------------------------------------------------------------------- |
 | **Project**   | Create a workspace to organize related models                              |
-| **Configure** | Select dataset, base model, and training parameters                        |
+| **Configure** | Select [dataset](../data/datasets.md), base model, and training parameters                        |
 | **Train**     | Run on cloud GPUs or your local hardware                                   |
 | **Monitor**   | View real-time loss curves and metrics                                     |
 | **Export**    | Convert to 17+ deployment formats ([details](models.md#supported-formats)) |

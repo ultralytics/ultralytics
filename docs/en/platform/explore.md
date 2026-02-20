@@ -81,27 +81,27 @@ Each item displays:
 
 ![Ultralytics Platform Explore Dataset And Project Cards](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-dataset-and-project-cards.avif)
 
-**Project Cards Show:**
+=== "Project Cards"
 
-| Element          | Description                     |
-| ---------------- | ------------------------------- |
-| **Icon**         | Project icon with custom colors |
-| **Name**         | Project title                   |
-| **Creator**      | Author avatar and username      |
-| **Description**  | Short project description       |
-| **Model Count**  | Number of models in the project |
-| **Model Tags**   | Names of models in the project  |
-| **Public Badge** | Visibility indicator            |
+    | Element          | Description                     |
+    | ---------------- | ------------------------------- |
+    | **Icon**         | Project icon with custom colors |
+    | **Name**         | Project title                   |
+    | **Creator**      | Author avatar and username      |
+    | **Description**  | Short project description       |
+    | **Model Count**  | Number of models in the project |
+    | **Model Tags**   | Names of models in the project  |
+    | **Public Badge** | Visibility indicator            |
 
-**Dataset Cards Show:**
+=== "Dataset Cards"
 
-| Element         | Description                            |
-| --------------- | -------------------------------------- |
-| **Thumbnails**  | Preview images from the dataset        |
-| **Name**        | Dataset title                          |
-| **Creator**     | Author avatar and username             |
-| **Task Badge**  | YOLO task type (detect, segment, etc.) |
-| **Image Count** | Number of images in the dataset        |
+    | Element         | Description                            |
+    | --------------- | -------------------------------------- |
+    | **Thumbnails**  | Preview images from the dataset        |
+    | **Name**        | Dataset title                          |
+    | **Creator**     | Author avatar and username             |
+    | **Task Badge**  | YOLO task type (detect, segment, etc.) |
+    | **Image Count** | Number of images in the dataset        |
 
 ## Use Public Content
 

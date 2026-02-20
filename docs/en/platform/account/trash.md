@@ -144,21 +144,28 @@ Items in Trash still count toward your storage quota:
 
 Manage Trash programmatically via the REST API:
 
-```bash
-# List items in Trash
-curl -H "Authorization: Bearer YOUR_API_KEY" \
-  https://platform.ultralytics.com/api/trash
+=== "List Trash"
 
-# Restore an item
-curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"itemId": "item_abc123", "type": "dataset"}' \
-  https://platform.ultralytics.com/api/trash
+    ```bash
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
+      https://platform.ultralytics.com/api/trash
+    ```
 
-# Empty Trash (permanently delete all)
-curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
-  https://platform.ultralytics.com/api/trash/empty
-```
+=== "Restore Item"
+
+    ```bash
+    curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"itemId": "item_abc123", "type": "dataset"}' \
+      https://platform.ultralytics.com/api/trash
+    ```
+
+=== "Empty Trash"
+
+    ```bash
+    curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
+      https://platform.ultralytics.com/api/trash/empty
+    ```
 
 ## FAQ
 

@@ -228,10 +228,10 @@ See [Cloud Training](../train/cloud-training.md) for complete GPU options and pr
 Total Cost = GPU Rate x Training Time (hours)
 ```
 
-Example: Training for 2.5 hours on RTX 4090
+Example: Training for 2.5 hours on RTX PRO 6000
 
 ```
-$0.59 x 2.5 = $1.48
+$1.89 x 2.5 = $4.73
 ```
 
 ## Upgrade to Pro

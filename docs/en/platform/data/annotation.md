@@ -28,11 +28,11 @@ The annotation editor supports all 5 YOLO task types:
 
 | Task         | Tool           | Annotation Format                      |
 | ------------ | -------------- | -------------------------------------- |
-| **Detect**   | Rectangle      | Bounding boxes (x, y, width, height)   |
-| **Segment**  | Polygon        | Pixel-precise masks (polygon vertices) |
-| **Pose**     | Keypoint       | 17-point COCO skeleton                 |
-| **OBB**      | Oriented Box   | Rotated bounding boxes (4 corners)     |
-| **Classify** | Class Selector | Image-level labels                     |
+| **[Detect](../../datasets/detect/index.md)**     | Rectangle      | Bounding boxes (x, y, width, height)   |
+| **[Segment](../../datasets/segment/index.md)**   | Polygon        | Pixel-precise masks (polygon vertices) |
+| **[Pose](../../datasets/pose/index.md)**         | Keypoint       | 17-point COCO skeleton                 |
+| **[OBB](../../datasets/obb/index.md)**           | Oriented Box   | Rotated bounding boxes (4 corners)     |
+| **[Classify](../../datasets/classify/index.md)** | Class Selector | Image-level labels                     |
 
 ### Task Details
 
@@ -40,7 +40,7 @@ The annotation editor supports all 5 YOLO task types:
 
     **What it does:** Identifies objects and their locations with axis-aligned bounding boxes.
 
-    **Label format:** `class_id center_x center_y width height` (all normalized 0-1)
+    **Label format:** [`class_id center_x center_y width height`](../../datasets/detect/index.md#ultralytics-yolo-format) (all normalized 0-1)
 
     **Example:** `0 0.5 0.5 0.2 0.3` — Class 0 centered at (50%, 50%) with 20% width and 30% height
 
@@ -50,7 +50,7 @@ The annotation editor supports all 5 YOLO task types:
 
     **What it does:** Creates pixel-precise masks for each object instance.
 
-    **Label format:** `class_id x1 y1 x2 y2 x3 y3 ...` (polygon vertices, normalized 0-1)
+    **Label format:** [`class_id x1 y1 x2 y2 x3 y3 ...`](../../datasets/segment/index.md#ultralytics-yolo-format) (polygon vertices, normalized 0-1)
 
     **Example:** `0 0.1 0.1 0.9 0.1 0.9 0.9 0.1 0.9` — Quadrilateral mask
 
@@ -60,7 +60,7 @@ The annotation editor supports all 5 YOLO task types:
 
     **What it does:** Detects body keypoints for skeleton tracking.
 
-    **Label format:** `class_id cx cy w h kx1 ky1 v1 kx2 ky2 v2 ...`
+    **Label format:** [`class_id cx cy w h kx1 ky1 v1 kx2 ky2 v2 ...`](../../datasets/pose/index.md#ultralytics-yolo-format)
 
     - Visibility flags: `0`=not labeled, `1`=labeled but occluded, `2`=labeled and visible
 
@@ -72,7 +72,7 @@ The annotation editor supports all 5 YOLO task types:
 
     **What it does:** Detects rotated objects with angle-aware bounding boxes.
 
-    **Label format:** `class_id x1 y1 x2 y2 x3 y3 x4 y4` (four corner points, normalized)
+    **Label format:** [`class_id x1 y1 x2 y2 x3 y3 x4 y4`](../../datasets/obb/index.md#yolo-obb-format) (four corner points, normalized)
 
     **Example:** `0 0.1 0.1 0.9 0.1 0.9 0.9 0.1 0.9` — Rotated rectangle
 
@@ -82,7 +82,7 @@ The annotation editor supports all 5 YOLO task types:
 
     **What it does:** Assigns a single label to the entire image.
 
-    **Label format:** Folder-based — images organized by class name (`train/cats/`, `train/dogs/`)
+    **Label format:** [Folder-based](../../datasets/classify/index.md#dataset-structure-for-yolo-classification-tasks) — images organized by class name (`train/cats/`, `train/dogs/`)
 
     **Use cases:** Content moderation, quality control, medical diagnosis, scene recognition
 
@@ -160,11 +160,11 @@ Draw precise polygon masks:
 
 ### Keypoint (Pose)
 
-Place 17 COCO keypoints for human pose:
+Place [17 COCO keypoints](../../datasets/pose/index.md#ultralytics-yolo-format) for human pose:
 
 1. Enter edit mode and select `Draw`
 2. Click to place keypoints in sequence
-3. Follow the COCO skeleton order
+3. Follow the [COCO skeleton order](../../datasets/pose/index.md)
 
 The 17 COCO keypoints are:
 
@@ -294,45 +294,45 @@ Each class is assigned a color from the Ultralytics palette. You can customize c
 
 Efficient annotation with keyboard shortcuts:
 
-### General
+=== "General"
 
-| Shortcut               | Action                     |
-| ---------------------- | -------------------------- |
-| `Cmd/Ctrl+S`           | Save annotations           |
-| `Cmd/Ctrl+Z`           | Undo                       |
-| `Cmd/Ctrl+Shift+Z`     | Redo                       |
-| `Cmd/Ctrl+Y`           | Redo (alternative)         |
-| `Escape`               | Save / Deselect / Exit     |
-| `Delete` / `Backspace` | Delete selected annotation |
-| `1-9`                  | Select class 1-9           |
-| `Cmd/Ctrl+Scroll`      | Zoom in/out                |
-| `Shift+Click`          | Multi-select annotations   |
-| `Cmd/Ctrl+A`           | Select all annotations     |
+    | Shortcut               | Action                     |
+    | ---------------------- | -------------------------- |
+    | `Cmd/Ctrl+S`           | Save annotations           |
+    | `Cmd/Ctrl+Z`           | Undo                       |
+    | `Cmd/Ctrl+Shift+Z`     | Redo                       |
+    | `Cmd/Ctrl+Y`           | Redo (alternative)         |
+    | `Escape`               | Save / Deselect / Exit     |
+    | `Delete` / `Backspace` | Delete selected annotation |
+    | `1-9`                  | Select class 1-9           |
+    | `Cmd/Ctrl+Scroll`      | Zoom in/out                |
+    | `Shift+Click`          | Multi-select annotations   |
+    | `Cmd/Ctrl+A`           | Select all annotations     |
 
-### Modes
+=== "Modes"
 
-| Shortcut | Action             |
-| -------- | ------------------ |
-| `V`      | Draw mode (manual) |
-| `S`      | Smart mode (SAM)   |
+    | Shortcut | Action             |
+    | -------- | ------------------ |
+    | `V`      | Draw mode (manual) |
+    | `S`      | Smart mode (SAM)   |
 
-### Drawing
+=== "Drawing"
 
-| Shortcut      | Action                                              |
-| ------------- | --------------------------------------------------- |
-| `Click+Drag`  | Draw bounding box (detect/OBB)                      |
-| `Click`       | Add polygon point (segment) / Place keypoint (pose) |
-| `Right-click` | Complete polygon / Add SAM negative point           |
-| `Enter`       | Complete polygon / Save SAM annotation              |
+    | Shortcut      | Action                                              |
+    | ------------- | --------------------------------------------------- |
+    | `Click+Drag`  | Draw bounding box (detect/OBB)                      |
+    | `Click`       | Add polygon point (segment) / Place keypoint (pose) |
+    | `Right-click` | Complete polygon / Add SAM negative point           |
+    | `Enter`       | Complete polygon / Save SAM annotation              |
 
-### Arrange (Z-Order)
+=== "Arrange (Z-Order)"
 
-| Shortcut           | Action         |
-| ------------------ | -------------- |
-| `Cmd/Ctrl+]`       | Bring forward  |
-| `Cmd/Ctrl+[`       | Send backward  |
-| `Cmd/Ctrl+Shift+]` | Bring to front |
-| `Cmd/Ctrl+Shift+[` | Send to back   |
+    | Shortcut           | Action         |
+    | ------------------ | -------------- |
+    | `Cmd/Ctrl+]`       | Bring forward  |
+    | `Cmd/Ctrl+[`       | Send backward  |
+    | `Cmd/Ctrl+Shift+]` | Bring to front |
+    | `Cmd/Ctrl+Shift+[` | Send to back   |
 
 ![Ultralytics Platform Annotate Keyboard Shortcuts Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-keyboard-shortcuts-dialog.avif)
 
@@ -387,7 +387,7 @@ For best results, start with a positive point on the object center and add negat
 
 ### Can I import existing annotations?
 
-Yes, upload your dataset with YOLO-format label files. The Platform automatically parses and displays them in the editor.
+Yes, upload your dataset with [YOLO-format label files](../../datasets/detect/index.md#ultralytics-yolo-format). The Platform automatically parses and displays them in the editor.
 
 ### How do I annotate multiple objects of the same class?
 

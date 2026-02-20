@@ -80,29 +80,17 @@ After signing in, you will be directed to the Home page of [Ultralytics Platform
 
 The sidebar provides access to all Platform sections:
 
-**Top Section:**
-
-| Item        | Description                                      |
-| ----------- | ------------------------------------------------ |
-| **Search**  | Quick search across all your resources (Cmd+K)   |
-| **Home**    | Dashboard with quick actions and recent activity |
-| **Explore** | Discover public projects and datasets            |
-
-**My Workspace:**
-
-| Section      | Description                             |
-| ------------ | --------------------------------------- |
-| **Annotate** | Your datasets organized for annotation  |
-| **Train**    | Your projects containing trained models |
-| **Deploy**   | Your active deployments                 |
-
-**Bottom Section:**
-
-| Item         | Description                             |
-| ------------ | --------------------------------------- |
-| **Trash**    | Deleted items (recoverable for 30 days) |
-| **Settings** | Account, billing, and preferences       |
-| **Feedback** | Send feedback to Ultralytics            |
+| Section          | Item         | Description                                      |
+| ---------------- | ------------ | ------------------------------------------------ |
+| **Top**          | Search       | Quick search across all your resources (Cmd+K)   |
+|                  | Home         | Dashboard with quick actions and recent activity |
+|                  | Explore      | Discover public projects and datasets            |
+| **My Workspace** | Annotate     | Your datasets organized for annotation           |
+|                  | Train        | Your projects containing trained models          |
+|                  | Deploy       | Your active deployments                          |
+| **Bottom**       | Trash        | Deleted items (recoverable for 30 days)          |
+|                  | Settings     | Account, billing, and preferences                |
+|                  | Feedback     | Send feedback to Ultralytics                     |
 
 ### Welcome Card
 
@@ -134,14 +122,14 @@ Navigate to `Annotate` in the sidebar and click `New Dataset` to add your traini
 
 ![Ultralytics Platform Quickstart Upload Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-quickstart-upload-dialog.avif)
 
-Ultralytics Platform supports multiple upload formats:
+Ultralytics Platform supports multiple upload formats (full details in [Datasets](data/datasets.md)):
 
 | Format          | Max Size | Description                                            |
 | --------------- | -------- | ------------------------------------------------------ |
 | **Images**      | 50 MB    | JPG, PNG, WebP, TIFF, and other common formats         |
 | **ZIP Archive** | 10 GB    | Compressed folder with images and labels               |
 | **Video**       | 1 GB     | MP4, AVI - frames extracted at ~1 fps (max 100 frames) |
-| **YOLO Format** | 10 GB    | Standard YOLO dataset structure with labels            |
+| **[YOLO Format](../datasets/detect/index.md#ultralytics-yolo-format)** | 10 GB    | Standard YOLO dataset structure with labels            |
 
 ```mermaid
 graph LR
@@ -158,15 +146,15 @@ After upload, the Platform automatically processes your data:
 
 1. Images larger than 4096px are resized (preserving aspect ratio)
 2. 256px thumbnails are generated for fast browsing
-3. Labels are parsed and validated (YOLO `.txt` format)
+3. Labels are parsed and validated ([YOLO `.txt` format](../datasets/detect/index.md#ultralytics-yolo-format))
 4. Statistics are computed (class distribution, heatmaps, dimensions)
 
 !!! tip "YOLO Dataset Structure"
 
     For best results, upload a ZIP with the standard YOLO structure:
 
-    ```
-    my-dataset.zip
+	    ```
+	    my-dataset.zip
     ├── data.yaml          # Class names and splits
     ├── train/
     │   ├── images/
@@ -178,9 +166,11 @@ After upload, the Platform automatically processes your data:
     └── val/
         ├── images/
         └── labels/
-    ```
+	    ```
 
-Read more about [datasets](data/datasets.md) and supported formats.
+    For full syntax across tasks, see [detect](../datasets/detect/index.md#ultralytics-yolo-format), [segment](../datasets/segment/index.md#ultralytics-yolo-format), [pose](../datasets/pose/index.md#ultralytics-yolo-format), [OBB](../datasets/obb/index.md#yolo-obb-format), and [classify](../datasets/classify/index.md#dataset-structure-for-yolo-classification-tasks) dataset guides.
+
+Read more about [datasets](data/datasets.md) and supported formats for [detect](../datasets/detect/index.md), [segment](../datasets/segment/index.md), [pose](../datasets/pose/index.md), [OBB](../datasets/obb/index.md), and [classify](../datasets/classify/index.md).
 
 ## Create Your First Project
 
@@ -203,18 +193,18 @@ From your project, click `Train Model` to start cloud training.
 
 ### Training Configuration
 
-1. **Select Dataset**: Choose from your uploaded datasets (only datasets with a `train` split are shown)
+1. **Select Dataset**: Choose from your uploaded datasets (only datasets with a [`train` split](data/datasets.md#filter-by-split) are shown)
 2. **Choose Model**: Select a base model — official Ultralytics models or your own trained models
 3. **Set Epochs**: Number of training iterations (default: 100)
 4. **Select GPU**: Choose compute resources based on your budget and model size
 
-| Model   | Size        | Speed    | Accuracy | Recommended GPU  |
-| ------- | ----------- | -------- | -------- | ---------------- |
-| YOLO26n | Nano        | Fastest  | Good     | RTX 4090 (24 GB) |
-| YOLO26s | Small       | Fast     | Better   | RTX 4090 (24 GB) |
-| YOLO26m | Medium      | Moderate | High     | A100 (80 GB)     |
-| YOLO26l | Large       | Slower   | Higher   | A100 (80 GB)     |
-| YOLO26x | Extra Large | Slowest  | Best     | H100 (80 GB)     |
+| Model   | Size        | Speed    | Accuracy | Recommended GPU      |
+| ------- | ----------- | -------- | -------- | -------------------- |
+| YOLO26n | Nano        | Fastest  | Good     | RTX PRO 6000 (96 GB) |
+| YOLO26s | Small       | Fast     | Better   | RTX PRO 6000 (96 GB) |
+| YOLO26m | Medium      | Moderate | High     | RTX PRO 6000 (96 GB) |
+| YOLO26l | Large       | Slower   | Higher   | A100 (80 GB)         |
+| YOLO26x | Extra Large | Slowest  | Best     | H100 (80 GB)         |
 
 !!! info "GPU Selection"
 
@@ -346,7 +336,7 @@ yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-projec
 
     API keys start with `ul_` followed by 40 hex characters. They support scoped permissions: `training`, `models`, `datasets`, `read`, `write`, `admin`.
 
-Read more about [API keys](account/api-keys.md) and [remote training](train/cloud-training.md).
+Read more about [API keys](account/api-keys.md), [dataset URIs](data/datasets.md#dataset-uri), and [remote training](train/cloud-training.md#remote-training).
 
 ## Feedback
 

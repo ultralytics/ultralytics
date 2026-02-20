@@ -15,7 +15,7 @@ The Data section of Ultralytics Platform helps you:
 - **Upload** images, videos, and archives (ZIP, TAR, GZ)
 - **Annotate** with manual drawing tools and SAM-powered smart labeling
 - **Analyze** your data with statistics and visualizations
-- **Export** in NDJSON format for local training
+- **Export** in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for local training
 
 ![Ultralytics Platform Data Overview Sidebar Datasets](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-data-overview-sidebar-datasets.avif)
 
@@ -46,11 +46,11 @@ Ultralytics Platform supports all 5 YOLO task types:
 
 | Task         | Description                                 | Annotation Tool   |
 | ------------ | ------------------------------------------- | ----------------- |
-| **Detect**   | Object detection with bounding boxes        | Rectangle tool    |
-| **Segment**  | Instance segmentation with pixel masks      | Polygon tool      |
-| **Pose**     | Keypoint estimation (17-point COCO format)  | Keypoint tool     |
-| **OBB**      | Oriented bounding boxes for rotated objects | Oriented box tool |
-| **Classify** | Image-level classification                  | Class selector    |
+| **[Detect](../../datasets/detect/index.md)**     | Object detection with bounding boxes        | Rectangle tool    |
+| **[Segment](../../datasets/segment/index.md)**   | Instance segmentation with pixel masks      | Polygon tool      |
+| **[Pose](../../datasets/pose/index.md)**         | Keypoint estimation (17-point COCO format)  | Keypoint tool     |
+| **[OBB](../../datasets/obb/index.md)**           | Oriented bounding boxes for rotated objects | Oriented box tool |
+| **[Classify](../../datasets/classify/index.md)** | Image-level classification                  | Class selector    |
 
 !!! info "Task Type Selection"
 
@@ -68,7 +68,7 @@ Ultralytics Platform uses Content-Addressable Storage (CAS) for efficient data m
 
 ### Dataset URIs
 
-Reference datasets using the `ul://` URI format:
+Reference datasets using the `ul://` URI format (see [Using Platform Datasets](../api/index.md#using-platform-datasets)):
 
 ```bash
 yolo train data=ul://username/datasets/my-dataset
@@ -124,7 +124,7 @@ Ultralytics Platform supports:
 
 **Videos:** MP4, WebM, MOV, AVI, MKV, M4V (max 1GB, frames extracted at 1 FPS, max 100 frames)
 
-**Archives:** ZIP, TAR, TAR.GZ, TGZ, GZ (max 10GB) containing images with optional YOLO-format labels
+**Archives:** ZIP, TAR, TAR.GZ, TGZ, GZ (max 10GB) containing images with optional [YOLO-format labels](../../datasets/detect/index.md#ultralytics-yolo-format)
 
 ### What is the maximum dataset size?
 
@@ -162,4 +162,4 @@ Yes! Use the dataset URI format to train locally:
     model.train(data="ul://username/datasets/my-dataset", epochs=100)
     ```
 
-Or export your dataset in NDJSON format for fully offline training.
+Or export your dataset in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for fully offline training.

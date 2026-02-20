@@ -79,68 +79,68 @@ The region table includes:
 
 ## Available Regions
 
-### Americas (14 regions)
+=== "Americas (14)"
 
-| Zone                    | Location               |
-| ----------------------- | ---------------------- |
-| us-central1             | Iowa, USA              |
-| us-east1                | South Carolina, USA    |
-| us-east4                | Northern Virginia, USA |
-| us-east5                | Columbus, USA          |
-| us-south1               | Dallas, USA            |
-| us-west1                | Oregon, USA            |
-| us-west2                | Los Angeles, USA       |
-| us-west3                | Salt Lake City, USA    |
-| us-west4                | Las Vegas, USA         |
-| northamerica-northeast1 | Montreal, Canada       |
-| northamerica-northeast2 | Toronto, Canada        |
-| northamerica-south1     | Queretaro, Mexico      |
-| southamerica-east1      | Sao Paulo, Brazil      |
-| southamerica-west1      | Santiago, Chile        |
+    | Zone                    | Location               |
+    | ----------------------- | ---------------------- |
+    | us-central1             | Iowa, USA              |
+    | us-east1                | South Carolina, USA    |
+    | us-east4                | Northern Virginia, USA |
+    | us-east5                | Columbus, USA          |
+    | us-south1               | Dallas, USA            |
+    | us-west1                | Oregon, USA            |
+    | us-west2                | Los Angeles, USA       |
+    | us-west3                | Salt Lake City, USA    |
+    | us-west4                | Las Vegas, USA         |
+    | northamerica-northeast1 | Montreal, Canada       |
+    | northamerica-northeast2 | Toronto, Canada        |
+    | northamerica-south1     | Queretaro, Mexico      |
+    | southamerica-east1      | Sao Paulo, Brazil      |
+    | southamerica-west1      | Santiago, Chile        |
 
-### Europe (13 regions)
+=== "Europe (13)"
 
-| Zone              | Location               |
-| ----------------- | ---------------------- |
-| europe-west1      | St. Ghislain, Belgium  |
-| europe-west2      | London, UK             |
-| europe-west3      | Frankfurt, Germany     |
-| europe-west4      | Eemshaven, Netherlands |
-| europe-west6      | Zurich, Switzerland    |
-| europe-west8      | Milan, Italy           |
-| europe-west9      | Paris, France          |
-| europe-west10     | Berlin, Germany        |
-| europe-west12     | Turin, Italy           |
-| europe-north1     | Hamina, Finland        |
-| europe-north2     | Stockholm, Sweden      |
-| europe-central2   | Warsaw, Poland         |
-| europe-southwest1 | Madrid, Spain          |
+    | Zone              | Location               |
+    | ----------------- | ---------------------- |
+    | europe-west1      | St. Ghislain, Belgium  |
+    | europe-west2      | London, UK             |
+    | europe-west3      | Frankfurt, Germany     |
+    | europe-west4      | Eemshaven, Netherlands |
+    | europe-west6      | Zurich, Switzerland    |
+    | europe-west8      | Milan, Italy           |
+    | europe-west9      | Paris, France          |
+    | europe-west10     | Berlin, Germany        |
+    | europe-west12     | Turin, Italy           |
+    | europe-north1     | Hamina, Finland        |
+    | europe-north2     | Stockholm, Sweden      |
+    | europe-central2   | Warsaw, Poland         |
+    | europe-southwest1 | Madrid, Spain          |
 
-### Asia-Pacific (12 regions)
+=== "Asia-Pacific (12)"
 
-| Zone                 | Location               |
-| -------------------- | ---------------------- |
-| asia-east1           | Changhua, Taiwan       |
-| asia-east2           | Kowloon, Hong Kong     |
-| asia-northeast1      | Tokyo, Japan           |
-| asia-northeast2      | Osaka, Japan           |
-| asia-northeast3      | Seoul, South Korea     |
-| asia-south1          | Mumbai, India          |
-| asia-south2          | Delhi, India           |
-| asia-southeast1      | Jurong West, Singapore |
-| asia-southeast2      | Jakarta, Indonesia     |
-| asia-southeast3      | Bangkok, Thailand      |
-| australia-southeast1 | Sydney, Australia      |
-| australia-southeast2 | Melbourne, Australia   |
+    | Zone                 | Location               |
+    | -------------------- | ---------------------- |
+    | asia-east1           | Changhua, Taiwan       |
+    | asia-east2           | Kowloon, Hong Kong     |
+    | asia-northeast1      | Tokyo, Japan           |
+    | asia-northeast2      | Osaka, Japan           |
+    | asia-northeast3      | Seoul, South Korea     |
+    | asia-south1          | Mumbai, India          |
+    | asia-south2          | Delhi, India           |
+    | asia-southeast1      | Jurong West, Singapore |
+    | asia-southeast2      | Jakarta, Indonesia     |
+    | asia-southeast3      | Bangkok, Thailand      |
+    | australia-southeast1 | Sydney, Australia      |
+    | australia-southeast2 | Melbourne, Australia   |
 
-### Middle East & Africa (4 regions)
+=== "Middle East & Africa (4)"
 
-| Zone          | Location                   |
-| ------------- | -------------------------- |
-| africa-south1 | Johannesburg, South Africa |
-| me-central1   | Doha, Qatar                |
-| me-central2   | Dammam, Saudi Arabia       |
-| me-west1      | Tel Aviv, Israel           |
+    | Zone          | Location                   |
+    | ------------- | -------------------------- |
+    | africa-south1 | Johannesburg, South Africa |
+    | me-central1   | Doha, Qatar                |
+    | me-central2   | Dammam, Saudi Arabia       |
+    | me-west1      | Tel Aviv, Israel           |
 
 ## Endpoint Configuration
 

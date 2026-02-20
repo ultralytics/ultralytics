@@ -30,7 +30,7 @@ Supported model formats:
 
 After upload, the Platform parses model metadata:
 
-- Task type (detect, segment, pose, OBB, classify)
+- Task type ([detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [classify](../../tasks/classify.md))
 - Architecture (YOLO26n, YOLO26s, etc.)
 - Class names and count
 - Input size and parameters
@@ -142,7 +142,7 @@ Run interactive inference directly in the browser:
 - Upload an image, paste a URL, or use webcam
 - Results display with bounding boxes, masks, or keypoints
 - Auto-inference when an image is provided
-- Supports all task types (detect, segment, pose, OBB, classify)
+- Supports all task types ([detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [classify](../../tasks/classify.md))
 
 !!! tip "Quick Testing"
 
@@ -150,7 +150,7 @@ Run interactive inference directly in the browser:
 
 ### Export Tab
 
-Export your model to 17+ deployment formats. See [Export Model](#export-model) below for full details.
+Export your model to 17+ deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
 
 ### Deploy Tab
 
@@ -231,19 +231,15 @@ Export your model to 17+ deployment formats:
 
 ### Format Selection Guide
 
-**For NVIDIA GPUs:** Use **TensorRT** for maximum speed
-
-**For Intel Hardware:** Use **OpenVINO** for Intel CPUs, GPUs, and VPUs
-
-**For Apple Devices:** Use **CoreML** for iOS, macOS, Apple Silicon
-
-**For Android:** Use **TF Lite** or **NCNN** for best performance
-
-**For Web Browsers:** Use **TF.js** or **ONNX** (with ONNX Runtime Web)
-
-**For Edge Devices:** Use **TF Edge TPU** for Coral, **RKNN** for Rockchip
-
-**For General Compatibility:** Use **ONNX** — works with most inference runtimes
+| Target                 | Recommended Format     | Notes                          |
+| ---------------------- | ---------------------- | ------------------------------ |
+| **NVIDIA GPUs**        | TensorRT               | Maximum inference speed        |
+| **Intel Hardware**     | OpenVINO               | CPUs, GPUs, and VPUs           |
+| **Apple Devices**      | CoreML                 | iOS, macOS, Apple Silicon      |
+| **Android**            | TF Lite or NCNN        | Best mobile performance        |
+| **Web Browsers**       | TF.js or ONNX          | ONNX via ONNX Runtime Web     |
+| **Edge Devices**       | TF Edge TPU or RKNN    | Coral and Rockchip             |
+| **General**            | ONNX                   | Works with most runtimes       |
 
 ![Ultralytics Platform Model Export Progress](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-export-progress.avif)
 
@@ -280,7 +276,7 @@ Models can be linked to their source dataset:
 - Click the dataset card on the Overview tab to navigate to it
 - Track data lineage
 
-When training with Platform datasets using the `ul://` URI format, linking is automatic.
+When training with Platform datasets using the [`ul://` URI format](../data/datasets.md#dataset-uri), linking is automatic.
 
 !!! example "Dataset URI Format"
 
@@ -289,7 +285,7 @@ When training with Platform datasets using the `ul://` URI format, linking is au
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100
     ```
 
-    The `ul://` scheme resolves to your Platform dataset. The trained model's Overview tab will show a link back to this dataset.
+    The `ul://` scheme resolves to your Platform dataset. The trained model's Overview tab will show a link back to this dataset (see [Using Platform Datasets](../api/index.md#using-platform-datasets)).
 
 ## Visibility Settings
 
@@ -331,7 +327,7 @@ Ultralytics Platform supports all YOLO architectures:
 - **YOLOv8**: Legacy support
 - **YOLOv5**: Legacy support
 
-All architectures support 5 task types: detect, segment, pose, OBB, classify.
+All architectures support 5 task types: [detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), and [classify](../../tasks/classify.md).
 
 ### Can I download my trained model?
 

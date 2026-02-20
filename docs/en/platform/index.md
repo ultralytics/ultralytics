@@ -66,7 +66,7 @@ graph LR
 | ------------ | --------------------------------------------------------------------------- |
 | **Upload**   | Images (50MB), videos (1GB), ZIP archives (10GB) with automatic processing  |
 | **Annotate** | Manual tools, SAM smart annotation, YOLO auto-labeling for all 5 task types |
-| **Train**    | Cloud GPUs (RTX 4090 to H200), real-time metrics, project organization      |
+| **Train**    | Cloud GPUs (22 options from RTX 2000 Ada to B200), real-time metrics, project organization |
 | **Export**   | 17 deployment formats (ONNX, TensorRT, CoreML, TFLite, etc.)                |
 | **Deploy**   | 43 global regions with dedicated endpoints, auto-scaling, monitoring        |
 
@@ -74,7 +74,7 @@ graph LR
 
 - **Upload** images, videos, and ZIP archives to create training datasets
 - **Visualize** annotations with interactive overlays for all 5 YOLO task types
-- **Train** models on cloud GPUs (RTX 4090 to H200) with real-time metrics
+- **Train** models on 22 cloud GPU types with real-time metrics
 - **Export** to 17 deployment formats (ONNX, TensorRT, CoreML, TFLite, etc.)
 - **Deploy** to 43 global regions with one-click dedicated endpoints
 - **Monitor** training progress, deployment health, and usage metrics
@@ -101,8 +101,8 @@ You select your region during onboarding, and all your data, models, and deploym
 ### Data Preparation
 
 - **Dataset Management**: Upload images, videos, or ZIP archives with automatic processing
-- **Annotation Editor**: Manual annotation for all 5 YOLO task types (detect, segment, pose, OBB, classify)
-- **SAM Smart Annotation**: Click-based intelligent annotation using Segment Anything Model
+- **Annotation Editor**: Manual annotation for all 5 YOLO task types ([detect](../datasets/detect/index.md), [segment](../datasets/segment/index.md), [pose](../datasets/pose/index.md), [OBB](../datasets/obb/index.md), [classify](../datasets/classify/index.md))
+- **SAM Smart Annotation**: Click-based intelligent annotation using [Segment Anything Model](../models/sam.md)
 - **Auto-Annotation**: Use trained models to pre-label new data
 - **Statistics**: Class distribution, location heatmaps, and dimension analysis
 
@@ -121,14 +121,14 @@ graph LR
 
 !!! tip "Supported Task Types"
 
-    The annotation editor supports all 5 YOLO task types: **detect** (bounding boxes), **segment** (polygons), **pose** (keypoints), **OBB** (oriented boxes), and **classify** (image-level labels). Each task type has dedicated drawing tools and keyboard shortcuts.
+    The annotation editor supports all 5 YOLO task types: **[detect](../datasets/detect/index.md)** (bounding boxes), **[segment](../datasets/segment/index.md)** (polygons), **[pose](../datasets/pose/index.md)** (keypoints), **[OBB](../datasets/obb/index.md)** (oriented boxes), and **[classify](../datasets/classify/index.md)** (image-level labels). Each task type has dedicated drawing tools and keyboard shortcuts.
 
 ### Model Training
 
-- **Cloud Training**: Train on 22 cloud GPU types (RTX 4090, A100, H100, B200, and more) with real-time metrics
+- **Cloud Training**: Train on 22 cloud GPU types with real-time metrics
 - **Remote Training**: Train anywhere and stream metrics to Platform (W&B-style)
 - **Project Organization**: Group related models, compare experiments, track activity
-- **17 Export Formats**: ONNX, TensorRT, CoreML, TFLite, and more
+- **17 Export Formats**: ONNX, TensorRT, CoreML, TFLite, and more (see [supported formats](train/models.md#supported-formats))
 
 ![Ultralytics Platform Project Screenshot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/project-screenshot.avif)
 
@@ -303,30 +303,30 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 
 Ultralytics Platform supports multiple GPU types for cloud training:
 
-| Tier       | GPU          | VRAM   | Cost/Hour | Best For                |
-| ---------- | ------------ | ------ | --------- | ----------------------- |
-| Budget     | RTX 2000 Ada | 16 GB  | $0.24     | Small datasets, testing |
-| Budget     | RTX A4500    | 20 GB  | $0.24     | Small-medium datasets   |
-| Budget     | RTX A5000    | 24 GB  | $0.26     | Medium datasets         |
-| Budget     | RTX 4000 Ada | 20 GB  | $0.38     | Medium datasets         |
-| Budget     | L4           | 24 GB  | $0.39     | Inference optimized     |
-| Budget     | A40          | 48 GB  | $0.40     | Larger batch sizes      |
-| Budget     | RTX 3090     | 24 GB  | $0.46     | General training        |
-| Budget     | RTX A6000    | 48 GB  | $0.49     | Large models            |
-| Mid        | RTX 4090     | 24 GB  | $0.59     | Great price/performance |
-| Mid        | RTX 6000 Ada | 48 GB  | $0.77     | Large batch training    |
-| Mid        | L40S         | 48 GB  | $0.86     | Large batch training    |
-| Mid        | RTX 5090     | 32 GB  | $0.89     | Latest generation       |
-| Mid        | L40          | 48 GB  | $0.99     | Large models            |
-| Pro        | A100 PCIe    | 80 GB  | $1.39     | Production training     |
-| Pro        | A100 SXM     | 80 GB  | $1.49     | Production training     |
-| Pro        | RTX PRO 6000 | 96 GB  | $1.89     | Blackwell generation    |
-| Enterprise | H100 PCIe    | 80 GB  | $2.39     | Fastest training        |
-| Enterprise | H100 SXM     | 80 GB  | $2.69     | Fastest training        |
-| Enterprise | H100 NVL     | 94 GB  | $3.07     | High-memory training    |
-| Enterprise | H200 NVL     | 143 GB | $3.39     | Maximum memory          |
-| Enterprise | H200 SXM     | 141 GB | $3.59     | Maximum performance     |
-| Enterprise | B200         | 180 GB | $4.99     | Largest models          |
+| GPU          | VRAM   | Cost/Hour | Best For                |
+| ------------ | ------ | --------- | ----------------------- |
+| RTX 2000 Ada | 16 GB  | $0.24     | Small datasets, testing |
+| RTX A4500    | 20 GB  | $0.24     | Small-medium datasets   |
+| RTX A5000    | 24 GB  | $0.26     | Medium datasets         |
+| RTX 4000 Ada | 20 GB  | $0.38     | Medium datasets         |
+| L4           | 24 GB  | $0.39     | Inference optimized     |
+| A40          | 48 GB  | $0.40     | Larger batch sizes      |
+| RTX 3090     | 24 GB  | $0.46     | General training        |
+| RTX A6000    | 48 GB  | $0.49     | Large models            |
+| RTX 4090     | 24 GB  | $0.59     | Great price/performance |
+| RTX 6000 Ada | 48 GB  | $0.77     | Large batch training    |
+| L40S         | 48 GB  | $0.86     | Large batch training    |
+| RTX 5090     | 32 GB  | $0.89     | Latest generation       |
+| L40          | 48 GB  | $0.99     | Large models            |
+| A100 PCIe    | 80 GB  | $1.39     | Production training     |
+| A100 SXM     | 80 GB  | $1.49     | Production training     |
+| RTX PRO 6000 | 96 GB  | $1.89     | Recommended default     |
+| H100 PCIe    | 80 GB  | $2.39     | Fastest training        |
+| H100 SXM     | 80 GB  | $2.69     | Fastest training        |
+| H100 NVL     | 94 GB  | $3.07     | High-memory training    |
+| H200 NVL     | 143 GB | $3.39     | Maximum memory          |
+| H200 SXM     | 141 GB | $3.59     | Maximum performance     |
+| B200         | 180 GB | $4.99     | Largest models          |
 
 See [Cloud Training](train/cloud-training.md) for complete pricing and GPU options.
 

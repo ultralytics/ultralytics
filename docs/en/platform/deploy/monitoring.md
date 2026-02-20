@@ -130,26 +130,26 @@ Each log entry shows:
 | **Message**   | Log content                             |
 | **HTTP info** | Status code and latency (if applicable) |
 
-### Severity Levels
+=== "Severity Levels"
 
-Filter logs by severity using the filter buttons:
+    Filter logs by severity using the filter buttons:
 
-| Level        | Color    | Description         |
-| ------------ | -------- | ------------------- |
-| **DEBUG**    | Gray     | Debug messages      |
-| **INFO**     | Blue     | Normal requests     |
-| **WARNING**  | Yellow   | Non-critical issues |
-| **ERROR**    | Red      | Failed requests     |
-| **CRITICAL** | Dark Red | Critical failures   |
+    | Level        | Color    | Description         |
+    | ------------ | -------- | ------------------- |
+    | **DEBUG**    | Gray     | Debug messages      |
+    | **INFO**     | Blue     | Normal requests     |
+    | **WARNING**  | Yellow   | Non-critical issues |
+    | **ERROR**    | Red      | Failed requests     |
+    | **CRITICAL** | Dark Red | Critical failures   |
 
-### Log Controls
+=== "Log Controls"
 
-| Control     | Description                         |
-| ----------- | ----------------------------------- |
-| **Errors**  | Filter to ERROR and WARNING entries |
-| **All**     | Show all log entries                |
-| **Copy**    | Copy all visible logs to clipboard  |
-| **Refresh** | Reload log entries                  |
+    | Control     | Description                         |
+    | ----------- | ----------------------------------- |
+    | **Errors**  | Filter to ERROR and WARNING entries |
+    | **All**     | Show all log entries                |
+    | **Copy**    | Copy all visible logs to clipboard  |
+    | **Refresh** | Reload log entries                  |
 
 Logs show the 20 most recent entries per request.
 
@@ -277,36 +277,36 @@ Returns health check status with response latency.
 
 Use monitoring data to optimize your deployments:
 
-### High Latency
+=== "High Latency"
 
-If latency is too high:
+    If latency is too high:
 
-1. Check instance count (may need more)
-2. Verify model size is appropriate
-3. Consider a closer region
-4. Check image sizes being sent
+    1. Check instance count (may need more)
+    2. Verify model size is appropriate
+    3. Consider a closer region
+    4. Check image sizes being sent
 
-!!! example "Reducing Latency"
+    !!! example "Reducing Latency"
 
-    Switch from `imgsz=1280` to `imgsz=640` for a ~4x speedup with minimal accuracy loss for most use cases. Deploy to a region closer to your users for lower network latency.
+        Switch from `imgsz=1280` to `imgsz=640` for a ~4x speedup with minimal accuracy loss for most use cases. Deploy to a region closer to your users for lower network latency.
 
-### High Error Rate
+=== "High Error Rate"
 
-If errors are occurring:
+    If errors are occurring:
 
-1. Review error logs in the `Logs` tab
-2. Check request format (multipart form required)
-3. Verify API key is valid
-4. Check rate limits
+    1. Review error logs in the `Logs` tab
+    2. Check request format (multipart form required)
+    3. Verify API key is valid
+    4. Check rate limits
 
-### Scaling Issues
+=== "Scaling Issues"
 
-If hitting capacity:
+    If hitting capacity:
 
-1. Increase max instances
-2. Set min instances > 0
-3. Consider multiple regions
-4. Optimize request batching
+    1. Increase max instances
+    2. Set min instances > 0
+    3. Consider multiple regions
+    4. Optimize request batching
 
 ## Export Data
 

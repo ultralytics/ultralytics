@@ -115,31 +115,42 @@ The Activity feed supports pagination:
 
 Access activity programmatically via the REST API:
 
-```bash
-# List activity
-curl -H "Authorization: Bearer YOUR_API_KEY" \
-  https://platform.ultralytics.com/api/activity
+=== "List Activity"
 
-# Filter by date range
-curl -H "Authorization: Bearer YOUR_API_KEY" \
-  "https://platform.ultralytics.com/api/activity?start=2025-01-01T00:00:00Z&end=2025-01-31T23:59:59Z"
+    ```bash
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
+      https://platform.ultralytics.com/api/activity
+    ```
 
-# Mark events as seen
-curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
-  https://platform.ultralytics.com/api/activity/mark-seen
+=== "Filter by Date"
 
-# Archive events
-curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"eventIds": ["event_id_here"], "archive": true}' \
-  https://platform.ultralytics.com/api/activity/archive
+    ```bash
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
+      "https://platform.ultralytics.com/api/activity?start=2025-01-01T00:00:00Z&end=2025-01-31T23:59:59Z"
+    ```
 
-# Archive all events
-curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"all": true, "archive": true}' \
-  https://platform.ultralytics.com/api/activity/archive
-```
+=== "Mark Seen"
+
+    ```bash
+    curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
+      https://platform.ultralytics.com/api/activity/mark-seen
+    ```
+
+=== "Archive"
+
+    ```bash
+    # Archive specific events
+    curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"eventIds": ["event_id_here"], "archive": true}' \
+      https://platform.ultralytics.com/api/activity/archive
+
+    # Archive all events
+    curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"all": true, "archive": true}' \
+      https://platform.ultralytics.com/api/activity/archive
+    ```
 
 ## FAQ
 

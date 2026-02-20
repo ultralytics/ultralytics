@@ -134,13 +134,13 @@ The Platform supports both [Ultralytics YOLO](../../datasets/detect/index.md#ult
 
     The format is detected automatically: datasets with a `data.yaml` containing `names`, `train`, or `val` keys are treated as YOLO. Datasets with COCO JSON files (containing `images`, `annotations`, and `categories` arrays) are treated as COCO.
 
-For task-specific format details, see the dataset guides for [detect](../../datasets/detect/index.md#ultralytics-yolo-format), [segment](../../datasets/segment/index.md#ultralytics-yolo-format), [pose](../../datasets/pose/index.md#ultralytics-yolo-format), [OBB](../../datasets/obb/index.md#yolo-obb-format), and [classify](../../datasets/classify/index.md#dataset-structure-for-yolo-classification-tasks).
+For task-specific format details, see [supported tasks](index.md#supported-tasks) and the [Datasets Overview](../../datasets/index.md).
 
 ### Upload Process
 
 1. Navigate to `Datasets` in the sidebar
 2. Click `Upload Dataset` or drag files into the upload zone
-3. Select the task type ([detect](../../datasets/detect/index.md), [segment](../../datasets/segment/index.md), [pose](../../datasets/pose/index.md), [OBB](../../datasets/obb/index.md), [classify](../../datasets/classify/index.md))
+3. Select the task type (see [supported tasks](index.md#supported-tasks))
 4. Add a name and optional description
 5. Click `Upload`
 

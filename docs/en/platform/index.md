@@ -426,7 +426,7 @@ The Platform supports 17 deployment formats:
 | IMX500        | `_imx_model`      | Sony IMX500 sensor        |
 | ExecuTorch    | `.pte`            | PyTorch mobile            |
 
-See [Models Export](train/models.md#export-model) and the general [Export mode guide](../modes/export.md) for format-specific options.
+See [Models Export](train/models.md#export-model), the [Export mode guide](../modes/export.md), and the [Integrations index](../integrations/index.md) for format-specific options.
 
 ## Troubleshooting
 

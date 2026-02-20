@@ -12,119 +12,119 @@ keywords: Ultralytics Platform, datasets, dataset management, YOLO, data upload,
 
 Ultralytics Platform accepts multiple upload formats for flexibility.
 
-### Supported Image Formats
+### Supported Formats
 
-| Format | Extensions      | Notes                    |
-| ------ | --------------- | ------------------------ |
-| JPEG   | `.jpg`, `.jpeg` | Most common, recommended |
-| PNG    | `.png`          | Supports transparency    |
-| WebP   | `.webp`         | Modern, good compression |
-| BMP    | `.bmp`          | Uncompressed             |
-| TIFF   | `.tiff`, `.tif` | High quality             |
-| HEIC   | `.heic`         | iPhone photos            |
-| AVIF   | `.avif`         | Next-gen format          |
-| JP2    | `.jp2`          | JPEG 2000                |
-| DNG    | `.dng`          | Raw camera               |
-| MPO    | `.mpo`          | Multi-picture object     |
+=== "Images"
 
-### Supported Video Formats
+    | Format | Extensions      | Notes                    | Max Size |
+    | ------ | --------------- | ------------------------ | -------- |
+    | JPEG   | `.jpg`, `.jpeg` | Most common, recommended | 50 MB    |
+    | PNG    | `.png`          | Supports transparency    | 50 MB    |
+    | WebP   | `.webp`         | Modern, good compression | 50 MB    |
+    | BMP    | `.bmp`          | Uncompressed             | 50 MB    |
+    | TIFF   | `.tiff`, `.tif` | High quality             | 50 MB    |
+    | HEIC   | `.heic`         | iPhone photos            | 50 MB    |
+    | AVIF   | `.avif`         | Next-gen format          | 50 MB    |
+    | JP2    | `.jp2`          | JPEG 2000                | 50 MB    |
+    | DNG    | `.dng`          | Raw camera               | 50 MB    |
+    | MPO    | `.mpo`          | Multi-picture object     | 50 MB    |
 
-Videos are automatically extracted to frames on the client side:
+=== "Videos"
 
-| Format | Extensions | Extraction            |
-| ------ | ---------- | --------------------- |
-| MP4    | `.mp4`     | 1 FPS, max 100 frames |
-| WebM   | `.webm`    | 1 FPS, max 100 frames |
-| MOV    | `.mov`     | 1 FPS, max 100 frames |
-| AVI    | `.avi`     | 1 FPS, max 100 frames |
-| MKV    | `.mkv`     | 1 FPS, max 100 frames |
-| M4V    | `.m4v`     | 1 FPS, max 100 frames |
+    Videos are automatically extracted to frames on the client side at 1 FPS (max 100 frames per video).
 
-!!! info "Video Frame Extraction"
+    | Format | Extensions | Extraction            | Max Size |
+    | ------ | ---------- | --------------------- | -------- |
+    | MP4    | `.mp4`     | 1 FPS, max 100 frames | 1 GB     |
+    | WebM   | `.webm`    | 1 FPS, max 100 frames | 1 GB     |
+    | MOV    | `.mov`     | 1 FPS, max 100 frames | 1 GB     |
+    | AVI    | `.avi`     | 1 FPS, max 100 frames | 1 GB     |
+    | MKV    | `.mkv`     | 1 FPS, max 100 frames | 1 GB     |
+    | M4V    | `.m4v`     | 1 FPS, max 100 frames | 1 GB     |
 
-    Video frames are extracted at 1 frame per second in the browser before upload. A 60-second video produces 60 frames. The maximum is 100 frames per video, so videos longer than ~100 seconds will be sampled.
+    !!! info "Video Frame Extraction"
 
-### Supported Archive Formats
+        Video frames are extracted at 1 frame per second in the browser before upload. A 60-second video produces 60 frames. The maximum is 100 frames per video, so videos longer than ~100 seconds will be sampled.
 
-Archives are extracted and processed automatically:
+=== "Archives"
 
-| Format | Extensions        | Notes                |
-| ------ | ----------------- | -------------------- |
-| ZIP    | `.zip`            | Most common          |
-| TAR    | `.tar`            | Uncompressed archive |
-| TAR.GZ | `.tar.gz`, `.tgz` | Compressed archive   |
-| GZ     | `.gz`             | Gzip compressed      |
+    Archives are extracted and processed automatically.
 
-### File Size Limits
-
-| Type     | Maximum Size |
-| -------- | ------------ |
-| Images   | 50 MB each   |
-| Videos   | 1 GB each    |
-| Archives | 10 GB        |
+    | Format | Extensions        | Notes                | Max Size |
+    | ------ | ----------------- | -------------------- | -------- |
+    | ZIP    | `.zip`            | Most common          | 10 GB    |
+    | TAR    | `.tar`            | Uncompressed archive | 10 GB    |
+    | TAR.GZ | `.tar.gz`, `.tgz` | Compressed archive   | 10 GB    |
+    | GZ     | `.gz`             | Gzip compressed      | 10 GB    |
 
 ### Preparing Your Dataset
 
-The Platform supports both **YOLO** and **COCO** annotation formats. For YOLO format datasets, use this structure:
+The Platform supports both [Ultralytics YOLO](../../datasets/detect/index.md#ultralytics-yolo-format) and [COCO](https://cocodataset.org/#format-data) annotation formats:
 
-```
-my-dataset/
-├── images/
-│   ├── train/
-│   │   ├── img001.jpg
-│   │   └── img002.jpg
-│   └── val/
-│       ├── img003.jpg
-│       └── img004.jpg
-├── labels/
-│   ├── train/
-│   │   ├── img001.txt
-│   │   └── img002.txt
-│   └── val/
-│       ├── img003.txt
-│       └── img004.txt
-└── data.yaml
-```
+=== "YOLO Format"
 
-The YAML file defines your dataset configuration:
+    Use the standard YOLO directory structure with a `data.yaml` file:
 
-```yaml
-# data.yaml
-path: .
-train: images/train
-val: images/val
+    ```
+    my-dataset/
+    ├── images/
+    │   ├── train/
+    │   │   ├── img001.jpg
+    │   │   └── img002.jpg
+    │   └── val/
+    │       ├── img003.jpg
+    │       └── img004.jpg
+    ├── labels/
+    │   ├── train/
+    │   │   ├── img001.txt
+    │   │   └── img002.txt
+    │   └── val/
+    │       ├── img003.txt
+    │       └── img004.txt
+    └── data.yaml
+    ```
 
-names:
-    0: person
-    1: car
-    2: dog
-```
+    The YAML file defines your dataset configuration:
 
-For COCO format datasets, use JSON annotation files with the standard [COCO structure](https://cocodataset.org/#format-data):
+    ```yaml
+    # data.yaml
+    path: .
+    train: images/train
+    val: images/val
 
-```
-my-coco-dataset/
-├── train/
-│   ├── _annotations.coco.json
-│   ├── img001.jpg
-│   └── img002.jpg
-└── val/
-    ├── _annotations.coco.json
-    ├── img003.jpg
-    └── img004.jpg
-```
+    names:
+        0: person
+        1: car
+        2: dog
+    ```
 
-The JSON file contains `images`, `annotations`, and `categories` arrays:
+=== "COCO Format"
 
-```json
-{
-    "images": [{ "id": 1, "file_name": "img001.jpg", "width": 640, "height": 480 }],
-    "annotations": [{ "id": 1, "image_id": 1, "category_id": 0, "bbox": [100, 50, 200, 300] }],
-    "categories": [{ "id": 0, "name": "person" }]
-}
-```
+    Use JSON annotation files with the standard [COCO structure](https://cocodataset.org/#format-data):
 
-COCO annotations are automatically converted during upload. Detection (`bbox`), segmentation (`segmentation` polygons), and pose (`keypoints`) tasks are supported. Category IDs are remapped to a dense 0-indexed sequence across all annotation files.
+    ```
+    my-coco-dataset/
+    ├── train/
+    │   ├── _annotations.coco.json
+    │   ├── img001.jpg
+    │   └── img002.jpg
+    └── val/
+        ├── _annotations.coco.json
+        ├── img003.jpg
+        └── img004.jpg
+    ```
+
+    The JSON file contains `images`, `annotations`, and `categories` arrays:
+
+    ```json
+    {
+        "images": [{ "id": 1, "file_name": "img001.jpg", "width": 640, "height": 480 }],
+        "annotations": [{ "id": 1, "image_id": 1, "category_id": 0, "bbox": [100, 50, 200, 300] }],
+        "categories": [{ "id": 0, "name": "person" }]
+    }
+    ```
+
+    COCO annotations are automatically converted during upload. Detection (`bbox`), segmentation (`segmentation` polygons), and pose (`keypoints`) tasks are supported. Category IDs are remapped to a dense 0-indexed sequence across all annotation files. For converting between formats, see [format conversion tools](../../datasets/detect/index.md#port-or-convert-label-formats).
 
 !!! tip "Flat Directory Structure"
 
@@ -134,15 +134,17 @@ COCO annotations are automatically converted during upload. Detection (`bbox`), 
 
     The format is detected automatically: datasets with a `data.yaml` containing `names`, `train`, or `val` keys are treated as YOLO. Datasets with COCO JSON files (containing `images`, `annotations`, and `categories` arrays) are treated as COCO.
 
+For task-specific format details, see [supported tasks](index.md#supported-tasks) and the [Datasets Overview](../../datasets/index.md).
+
 ### Upload Process
 
 1. Navigate to `Datasets` in the sidebar
 2. Click `Upload Dataset` or drag files into the upload zone
-3. Select the task type (detect, segment, pose, OBB, classify)
+3. Select the task type (see [supported tasks](index.md#supported-tasks))
 4. Add a name and optional description
 5. Click `Upload`
 
-<!-- Screenshot: platform-datasets-upload-dialog-task-selector.avif -->
+![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-upload-dialog-task-selector.avif)
 
 After upload, the Platform processes your data through a multi-stage pipeline:
 
@@ -165,10 +167,10 @@ graph LR
 1. **Validation**: Format and size checks
 2. **Normalization**: Large images resized (max 4096px, min dimension 64px)
 3. **Thumbnails**: 256px WebP previews generated
-4. **Label Parsing**: YOLO and COCO format labels extracted
+4. **Label Parsing**: [YOLO](../../datasets/detect/index.md#ultralytics-yolo-format) and COCO format labels extracted
 5. **Statistics**: Class distributions and image dimensions computed
 
-<!-- Screenshot: platform-datasets-upload-progress-bar.avif -->
+![Ultralytics Platform Datasets Upload Progress Bar](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-upload-progress-bar.avif)
 
 ??? tip "Validate Before Upload"
 
@@ -194,30 +196,32 @@ View your dataset images in multiple layouts:
 | **Compact** | Smaller thumbnails for quick scanning                   |
 | **Table**   | List with filename, dimensions, split, and label counts |
 
-<!-- Screenshot: platform-datasets-gallery-grid-view-with-annotations.avif -->
+![Ultralytics Platform Datasets Gallery Grid View With Annotations](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-gallery-grid-view-with-annotations.avif)
 
 ### Sorting and Filtering
 
 Images can be sorted and filtered for efficient browsing:
 
-**Sort options:**
+=== "Sort Options"
 
-| Sort            | Description          |
-| --------------- | -------------------- |
-| Newest          | Most recently added  |
-| Oldest          | Earliest added       |
-| Name A-Z        | Alphabetical         |
-| Name Z-A        | Reverse alphabetical |
-| Size (smallest) | Smallest files first |
-| Size (largest)  | Largest files first  |
-| Most labels     | Most annotations     |
-| Fewest labels   | Fewest annotations   |
+    | Sort            | Description          |
+    | --------------- | -------------------- |
+    | Newest          | Most recently added  |
+    | Oldest          | Earliest added       |
+    | Name A-Z        | Alphabetical         |
+    | Name Z-A        | Reverse alphabetical |
+    | Size (smallest) | Smallest files first |
+    | Size (largest)  | Largest files first  |
+    | Most labels     | Most annotations     |
+    | Fewest labels   | Fewest annotations   |
 
-**Filters:**
+=== "Filters"
 
-- **Split filter**: Show images from a specific split (Train, Val, Test, or All)
-- **Label filter**: Show All, Labeled only, or Unlabeled only
-- **Search**: Filter images by filename
+    | Filter           | Options                            |
+    | ---------------- | ---------------------------------- |
+    | **Split filter** | Train, Val, Test, or All           |
+    | **Label filter** | All, Labeled only, or Unlabeled    |
+    | **Search**       | Filter images by filename          |
 
 !!! tip "Finding Unlabeled Images"
 
@@ -235,7 +239,7 @@ Click any image to open the fullscreen viewer with:
 - **Zoom**: `Cmd/Ctrl+Scroll` to zoom in/out
 - **Pixel view**: Toggle pixelated rendering for close inspection
 
-<!-- Screenshot: platform-datasets-fullscreen-viewer-with-metadata-panel.avif -->
+![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-fullscreen-viewer-with-metadata-panel.avif)
 
 ### Filter by Split
 
@@ -265,7 +269,7 @@ Manage annotation classes for your dataset:
 - **Edit class colors**: Click a color swatch to change the class color
 - **Add new class**: Use the input at the bottom to add classes
 
-<!-- Screenshot: platform-datasets-classes-tab-histogram-and-table.avif -->
+![Ultralytics Platform Datasets Classes Tab Histogram And Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-classes-tab-histogram-and-table.avif)
 
 !!! note "Log Scale for Imbalanced Datasets"
 
@@ -285,7 +289,7 @@ Automatic statistics computed from your dataset:
 | **Annotation Locations** | 2D heatmap of bounding box center positions                    |
 | **Image Dimensions**     | 2D width vs height heatmap with aspect ratio guide lines       |
 
-<!-- Screenshot: platform-datasets-charts-tab-statistics-grid.avif -->
+![Ultralytics Platform Datasets Charts Tab Statistics Grid](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-charts-tab-statistics-grid.avif)
 
 !!! tip "Statistics Caching"
 
@@ -310,7 +314,7 @@ View all models trained on this dataset in a searchable table:
 | mAP50    | mAP at IoU 0.50           |
 | Created  | Creation date             |
 
-<!-- Screenshot: platform-datasets-models-tab-trained-models-table.avif -->
+![Ultralytics Platform Datasets Models Tab Trained Models Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-models-tab-trained-models-table.avif)
 
 ### Errors Tab
 
@@ -333,13 +337,13 @@ Images that failed processing are listed here with:
 
 ## Export Dataset
 
-Export your dataset in NDJSON format for offline use:
+Export your dataset in [NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) format for offline use:
 
 1. Open the dataset actions menu
 2. Click `Export`
 3. Download the NDJSON file
 
-<!-- Screenshot: platform-datasets-export-ndjson-download.avif -->
+![Ultralytics Platform Datasets Export Ndjson Download](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-export-ndjson-download.avif)
 
 The NDJSON format stores one JSON object per line. The first line contains dataset metadata, followed by one line per image:
 
@@ -353,7 +357,7 @@ The NDJSON format stores one JSON object per line. The first line contains datas
 
     Image URLs in the exported NDJSON are signed and valid for 7 days. If you need fresh URLs, re-export the dataset.
 
-See the [Ultralytics NDJSON format documentation](https://docs.ultralytics.com/datasets/detect/#ultralytics-ndjson-format) for full specification.
+See the [Ultralytics NDJSON format documentation](../../datasets/detect/index.md#ultralytics-ndjson-format) for full specification.
 
 ## Bulk Move/Copy Images
 
@@ -369,7 +373,7 @@ Move or copy images between datasets:
 
 ## Dataset URI
 
-Reference Platform datasets using the `ul://` URI format:
+Reference Platform datasets using the `ul://` URI format (see [Using Platform Datasets](../api/index.md#using-platform-datasets)):
 
 ```
 ul://username/datasets/dataset-slug
@@ -410,7 +414,7 @@ Control who can see your dataset:
 | **Private** | Only you can access             |
 | **Public**  | Anyone can view on Explore page |
 
-<!-- Screenshot: platform-datasets-visibility-toggle.avif -->
+![Ultralytics Platform Datasets Visibility Toggle](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-visibility-toggle.avif)
 
 To change visibility:
 
@@ -442,7 +446,7 @@ Delete a dataset you no longer need:
 
 !!! note "Trash and Restore"
 
-    Deleted datasets are moved to Trash for 30 days. You can restore them from `Settings > Trash`.
+    Deleted datasets are moved to Trash for 30 days. You can restore them from [`Settings > Trash`](../account/trash.md).
 
 ## Train on Dataset
 
@@ -503,16 +507,20 @@ Use the bulk selection feature:
 
 Ultralytics Platform supports two annotation formats:
 
-**YOLO format** — one `.txt` file per image with normalized coordinates:
+=== "YOLO Format"
 
-| Task     | Format                           | Example                             |
-| -------- | -------------------------------- | ----------------------------------- |
-| Detect   | `class cx cy w h`                | `0 0.5 0.5 0.2 0.3`                 |
-| Segment  | `class x1 y1 x2 y2 ...`          | `0 0.1 0.1 0.9 0.1 0.9 0.9`         |
-| Pose     | `class cx cy w h kx1 ky1 v1 ...` | `0 0.5 0.5 0.2 0.3 0.6 0.7 2`       |
-| OBB      | `class x1 y1 x2 y2 x3 y3 x4 y4`  | `0 0.1 0.1 0.9 0.1 0.9 0.9 0.1 0.9` |
-| Classify | Directory structure              | `train/cats/`, `train/dogs/`        |
+    One `.txt` file per image with normalized coordinates (0-1 range):
 
-All YOLO coordinates are normalized (0-1 range). Pose visibility flags: 0=not labeled, 1=labeled but occluded, 2=labeled and visible.
+    | Task     | Format                           | Example                             |
+    | -------- | -------------------------------- | ----------------------------------- |
+    | Detect   | `class cx cy w h`                | `0 0.5 0.5 0.2 0.3`                 |
+    | Segment  | `class x1 y1 x2 y2 ...`          | `0 0.1 0.1 0.9 0.1 0.9 0.9`         |
+    | Pose     | `class cx cy w h kx1 ky1 v1 ...` | `0 0.5 0.5 0.2 0.3 0.6 0.7 2`       |
+    | OBB      | `class x1 y1 x2 y2 x3 y3 x4 y4`  | `0 0.1 0.1 0.9 0.1 0.9 0.9 0.1 0.9` |
+    | Classify | Directory structure              | `train/cats/`, `train/dogs/`        |
 
-**COCO format** — JSON files with `images`, `annotations`, and `categories` arrays. Supports detection (`bbox`), segmentation (polygon), and pose (`keypoints`) tasks. COCO uses absolute pixel coordinates which are automatically converted to normalized format during upload.
+    Pose visibility flags: 0=not labeled, 1=labeled but occluded, 2=labeled and visible.
+
+=== "COCO Format"
+
+    JSON files with `images`, `annotations`, and `categories` arrays. Supports detection (`bbox`), segmentation (polygon), and pose (`keypoints`) tasks. COCO uses absolute pixel coordinates which are automatically converted to normalized format during upload.

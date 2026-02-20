@@ -273,7 +273,7 @@ Each deployment is created with an API key from your account. Include it in requ
 Authorization: Bearer YOUR_API_KEY
 ```
 
-The API key prefix is displayed on the deployment card footer for identification.
+The API key prefix is displayed on the deployment card footer for identification. Generate keys from [API Keys](../account/api-keys.md).
 
 ### Request Example
 
@@ -363,6 +363,7 @@ Dedicated endpoints bill based on:
     - Use scale-to-zero for development endpoints
     - Set appropriate max instances
     - Monitor usage in the [Monitoring](monitoring.md) dashboard
+    - Review costs in [Settings > Billing](../account/billing.md)
 
 ## FAQ
 

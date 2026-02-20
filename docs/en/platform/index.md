@@ -65,15 +65,15 @@ graph LR
 | Stage        | Features                                                                    |
 | ------------ | --------------------------------------------------------------------------- |
 | **Upload**   | Images (50MB), videos (1GB), ZIP archives (10GB) with automatic processing  |
-| **Annotate** | Manual tools, SAM smart annotation, YOLO auto-labeling for all 5 task types |
+| **Annotate** | Manual tools, SAM smart annotation, YOLO auto-labeling for all 5 task types (see [supported tasks](data/index.md#supported-tasks)) |
 | **Train**    | Cloud GPUs (22 options from RTX 2000 Ada to B200), real-time metrics, project organization |
-| **Export**   | 17 deployment formats (ONNX, TensorRT, CoreML, TFLite, etc.)                |
+| **Export**   | 17 deployment formats (ONNX, TensorRT, CoreML, TFLite, etc.; see [supported formats](train/models.md#supported-formats)) |
 | **Deploy**   | 43 global regions with dedicated endpoints, auto-scaling, monitoring        |
 
 **What you can do:**
 
 - **Upload** images, videos, and ZIP archives to create training datasets
-- **Visualize** annotations with interactive overlays for all 5 YOLO task types
+- **Visualize** annotations with interactive overlays for all 5 YOLO task types (see [supported tasks](data/index.md#supported-tasks))
 - **Train** models on 22 cloud GPU types with real-time metrics
 - **Export** to 17 deployment formats (ONNX, TensorRT, CoreML, TFLite, etc.)
 - **Deploy** to 43 global regions with one-click dedicated endpoints
@@ -101,7 +101,7 @@ You select your region during onboarding, and all your data, models, and deploym
 ### Data Preparation
 
 - **Dataset Management**: Upload images, videos, or ZIP archives with automatic processing
-- **Annotation Editor**: Manual annotation for all 5 YOLO task types ([detect](../datasets/detect/index.md), [segment](../datasets/segment/index.md), [pose](../datasets/pose/index.md), [OBB](../datasets/obb/index.md), [classify](../datasets/classify/index.md))
+- **Annotation Editor**: Manual annotation for all 5 YOLO task types (detect, segment, pose, OBB, classify; see [supported tasks](data/index.md#supported-tasks))
 - **SAM Smart Annotation**: Click-based intelligent annotation using [Segment Anything Model](../models/sam.md)
 - **Auto-Annotation**: Use trained models to pre-label new data
 - **Statistics**: Class distribution, location heatmaps, and dimension analysis
@@ -296,7 +296,7 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 - **No-Code Training**: Train advanced YOLO models without writing code
 - **Real-Time Metrics**: Stream training progress and monitor deployments
 - **43 Deploy Regions**: Deploy models close to your users worldwide
-- **5 Task Types**: Support for [detection](../tasks/detect.md), [segmentation](../tasks/segment.md), [pose](../tasks/pose.md), [OBB](../tasks/obb.md), and [classification](../tasks/classify.md)
+- **5 Task Types**: Support for detection, segmentation, pose, OBB, and classification (see [task docs](../tasks/index.md))
 - **AI-Assisted Annotation**: SAM and auto-labeling to speed up data preparation
 
 ### What GPU options are available for cloud training?
@@ -409,22 +409,22 @@ The Platform supports 17 deployment formats:
 | Format        | File Extension    | Use Case                  |
 | ------------- | ----------------- | ------------------------- |
 | PyTorch       | `.pt`             | Training, general use     |
-| ONNX          | `.onnx`           | Cross-platform deployment |
-| TorchScript   | `.torchscript`    | C++ deployment            |
-| OpenVINO      | `_openvino_model` | Intel hardware            |
-| TensorRT      | `.engine`         | NVIDIA GPU inference      |
-| CoreML        | `.mlpackage`      | Apple devices             |
-| TFLite        | `.tflite`         | Mobile/edge devices       |
-| TF SavedModel | `_saved_model`    | TensorFlow ecosystem      |
-| TF GraphDef   | `.pb`             | TensorFlow legacy         |
-| PaddlePaddle  | `_paddle_model`   | Baidu ecosystem           |
-| NCNN          | `_ncnn_model`     | Mobile (Android/ARM)      |
-| Edge TPU      | `_edgetpu.tflite` | Google Coral devices      |
-| TF.js         | `_web_model`      | Browser deployment        |
-| MNN           | `.mnn`            | Alibaba mobile            |
-| RKNN          | `.rknn`           | Rockchip NPU              |
-| IMX           | `_imx_model`      | NXP i.MX devices          |
-| ExecuTorch    | `.pte`            | PyTorch mobile            |
+| [ONNX](../integrations/onnx.md)                | `.onnx`           | Cross-platform deployment |
+| [TorchScript](../integrations/torchscript.md)  | `.torchscript`    | C++ deployment            |
+| [OpenVINO](../integrations/openvino.md)        | `_openvino_model` | Intel hardware            |
+| [TensorRT](../integrations/tensorrt.md)        | `.engine`         | NVIDIA GPU inference      |
+| [CoreML](../integrations/coreml.md)            | `.mlpackage`      | Apple devices             |
+| [TFLite](../integrations/tflite.md)            | `.tflite`         | Mobile/edge devices       |
+| [TF SavedModel](../integrations/tf-savedmodel.md) | `_saved_model` | TensorFlow ecosystem      |
+| [TF GraphDef](../integrations/tf-graphdef.md)  | `.pb`             | TensorFlow legacy         |
+| [PaddlePaddle](../integrations/paddlepaddle.md) | `_paddle_model`  | Baidu ecosystem           |
+| [NCNN](../integrations/ncnn.md)                | `_ncnn_model`     | Mobile (Android/ARM)      |
+| [Edge TPU](../integrations/edge-tpu.md)        | `_edgetpu.tflite` | Google Coral devices      |
+| [TF.js](../integrations/tfjs.md)               | `_web_model`      | Browser deployment        |
+| [MNN](../integrations/mnn.md)                  | `.mnn`            | Alibaba mobile            |
+| [RKNN](../integrations/rockchip-rknn.md)       | `.rknn`           | Rockchip NPU              |
+| [IMX500](../integrations/sony-imx500.md)       | `_imx_model`      | Sony IMX500 sensor        |
+| [ExecuTorch](../integrations/executorch.md)    | `.pte`            | PyTorch mobile            |
 
 See [Models Export](train/models.md#export-model) and the general [Export mode guide](../modes/export.md) for format-specific options.
 

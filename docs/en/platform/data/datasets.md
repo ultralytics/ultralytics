@@ -124,7 +124,7 @@ The Platform supports both [Ultralytics YOLO](../../datasets/detect/index.md#ult
     }
     ```
 
-    COCO annotations are automatically converted during upload. Detection (`bbox`), segmentation (`segmentation` polygons), and pose (`keypoints`) tasks are supported. Category IDs are remapped to a dense 0-indexed sequence across all annotation files.
+    COCO annotations are automatically converted during upload. Detection (`bbox`), segmentation (`segmentation` polygons), and pose (`keypoints`) tasks are supported. Category IDs are remapped to a dense 0-indexed sequence across all annotation files. For converting between formats, see [format conversion tools](../../datasets/detect/index.md#port-or-convert-label-formats).
 
 !!! tip "Flat Directory Structure"
 
@@ -446,7 +446,7 @@ Delete a dataset you no longer need:
 
 !!! note "Trash and Restore"
 
-    Deleted datasets are moved to Trash for 30 days. You can restore them from `Settings > Trash`.
+    Deleted datasets are moved to Trash for 30 days. You can restore them from [`Settings > Trash`](../account/trash.md).
 
 ## Train on Dataset
 

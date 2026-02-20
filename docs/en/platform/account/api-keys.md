@@ -109,6 +109,8 @@ curl -H "Authorization: Bearer ul_your_key_here" \
   https://platform.ultralytics.com/api/...
 ```
 
+See the [REST API Reference](../api/index.md) for all available endpoints.
+
 ### Remote Training
 
 Enable metric streaming with your key.
@@ -125,6 +127,8 @@ Enable metric streaming with your key.
 export ULTRALYTICS_API_KEY="ul_your_key_here"
 yolo train model=yolo26n.pt data=coco.yaml project=username/project name=exp1
 ```
+
+See [Cloud Training](../train/cloud-training.md#remote-training) for the complete remote training guide.
 
 ## Manage Keys
 
@@ -166,7 +170,7 @@ API keys are scoped to the currently active workspace:
 - **Personal workspace**: Keys authenticate as your personal account
 - **Team workspace**: Keys authenticate within the team context
 
-When switching workspaces in the sidebar, the API Keys section shows keys for that workspace. Editor role or higher is required to manage workspace API keys.
+When switching workspaces in the sidebar, the API Keys section shows keys for that workspace. Editor role or higher is required to manage workspace API keys. See [Teams](settings.md#teams-tab) for role details.
 
 ## Security Best Practices
 

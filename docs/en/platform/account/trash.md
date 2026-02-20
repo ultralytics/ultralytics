@@ -62,9 +62,9 @@ When deleting a parent resource, child resources are also moved to Trash:
 
 | Resource Type | What's Included When Deleted               |
 | ------------- | ------------------------------------------ |
-| **Projects**  | Project + all models inside                |
-| **Datasets**  | Dataset + all images and annotations       |
-| **Models**    | Model weights + training history + exports |
+| [**Projects**](../train/projects.md)  | Project + all models inside                |
+| [**Datasets**](../data/datasets.md)  | Dataset + all images and annotations       |
+| [**Models**](../train/models.md)    | Model weights + training history + exports |
 
 ### Storage Treemap
 
@@ -138,11 +138,11 @@ Items in Trash still count toward your storage quota:
 
 !!! tip "Free Up Storage"
 
-    If you're running low on storage, empty Trash or permanently delete specific items to immediately reclaim space.
+    If you're running low on storage, empty Trash or permanently delete specific items to immediately reclaim space. Check your storage usage in [Settings](settings.md#storage-usage) and see [Billing](billing.md#plans) for plan storage limits.
 
 ## API Access
 
-Manage Trash programmatically via the REST API:
+Manage Trash programmatically via the [REST API](../api/index.md#trash-api). Use your [API key](api-keys.md) for authentication:
 
 === "List Trash"
 

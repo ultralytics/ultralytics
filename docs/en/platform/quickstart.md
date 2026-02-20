@@ -212,7 +212,7 @@ From your project, click `Train Model` to start cloud training.
 
 !!! warning "Credit Balance Required"
 
-    Cloud training requires a minimum credit balance of $5.00. Check your balance in `Settings > Billing`. New accounts receive free credits ($5 for personal email, $25 for work email).
+    Cloud training requires a minimum credit balance of $5.00. Check your balance in [`Settings > Billing`](account/billing.md). New accounts receive free credits ($5 for personal email, $25 for work email).
 
 ### Monitor Training
 
@@ -323,7 +323,7 @@ Read more about [endpoints](deploy/endpoints.md).
 
 If you prefer to train on your own hardware, you can stream metrics to Platform using your API key. This works like Weights & Biases — train anywhere, monitor on Platform.
 
-1. Generate an API key in `Settings > Teams > API Keys`
+1. Generate an API key in [`Settings > Teams > API Keys`](account/api-keys.md)
 2. Set the environment variable and train with a `project/name` format:
 
 ```bash

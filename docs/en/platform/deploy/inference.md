@@ -6,7 +6,7 @@ keywords: Ultralytics Platform, inference, API, YOLO, object detection, predicti
 
 # Inference
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides an inference API for testing trained models. Use the browser-based `Predict` tab for quick validation or the REST API for programmatic access.
+[Ultralytics Platform](https://platform.ultralytics.com) provides an inference API for testing trained models. Use the browser-based `Predict` tab for quick validation or the [REST API](../api/index.md#models-api) for programmatic access.
 
 ![Ultralytics Platform Model Predict Tab With Detections Overlay](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/model-predict-tab-with-detections-overlay.avif)
 
@@ -147,7 +147,7 @@ Authorization: Bearer YOUR_API_KEY
 
 !!! warning "API Key Required"
 
-    All API requests require authentication. Generate an API key from `Settings > Teams` in the platform.
+    All API requests require authentication. Generate an API key from [`Settings > API Keys`](../account/api-keys.md) in the platform.
 
 ### Endpoint
 
@@ -333,7 +333,7 @@ Shared inference has rate limits:
 
 !!! tip "Need More Throughput?"
 
-    Deploy a [dedicated endpoint](endpoints.md) for unlimited requests with no rate limits. Dedicated endpoints also provide consistent low-latency responses.
+    Deploy a [dedicated endpoint](endpoints.md) for unlimited requests with no rate limits. Dedicated endpoints also provide consistent low-latency responses. For local inference without rate limits, see the [Predict mode guide](../../modes/predict.md).
 
 ## Error Handling
 
@@ -373,6 +373,8 @@ model = YOLO("yolo26n.pt")
 results = model("image.jpg")
 results[0].save("annotated.jpg")
 ```
+
+See the [Predict mode documentation](../../modes/predict.md) for the full results API and visualization options.
 
 ### What's the maximum image size?
 

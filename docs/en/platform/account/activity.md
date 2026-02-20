@@ -37,12 +37,12 @@ The Platform tracks the following resource types and actions:
 
 | Resource Type  | Description                 | Icon Color     |
 | -------------- | --------------------------- | -------------- |
-| **project**    | Project events              | Blue           |
-| **dataset**    | Dataset events              | Green          |
-| **model**      | Model events                | Purple         |
+| **project**    | [Project](../train/projects.md) events              | Blue           |
+| **dataset**    | [Dataset](../data/datasets.md) events              | Green          |
+| **model**      | [Model](../train/models.md) events                | Purple         |
 | **training**   | Training job events         | Blue/Green/Red |
 | **settings**   | Account settings changes    | Gray           |
-| **api_key**    | API key creation/revocation | Amber          |
+| **api_key**    | [API key](api-keys.md) creation/revocation | Amber          |
 | **onboarding** | Onboarding completion       | Green          |
 
 ## Inbox and Archive
@@ -113,7 +113,7 @@ The Activity feed supports pagination:
 
 ## API Access
 
-Access activity programmatically via the REST API:
+Access activity programmatically via the [REST API](../api/index.md#activity-api):
 
 === "List Activity"
 
@@ -160,7 +160,7 @@ Activity history is retained indefinitely for your account. Archived events are 
 
 ### Can I export my activity history?
 
-Yes, use the GDPR data export feature in `Settings > Profile` to download all account data including activity history.
+Yes, use the GDPR data export feature in [`Settings > Profile`](settings.md#gdpr-compliance) to download all account data including activity history.
 
 ### What happens to activity when I delete a resource?
 

@@ -80,17 +80,17 @@ After signing in, you will be directed to the Home page of [Ultralytics Platform
 
 The sidebar provides access to all Platform sections:
 
-| Section          | Item         | Description                                      |
-| ---------------- | ------------ | ------------------------------------------------ |
-| **Top**          | Search       | Quick search across all your resources (Cmd+K)   |
-|                  | Home         | Dashboard with quick actions and recent activity |
-|                  | Explore      | Discover public projects and datasets            |
-| **My Workspace** | Annotate     | Your datasets organized for annotation           |
-|                  | Train        | Your projects containing trained models          |
-|                  | Deploy       | Your active deployments                          |
-| **Bottom**       | Trash        | Deleted items (recoverable for 30 days)          |
-|                  | Settings     | Account, billing, and preferences                |
-|                  | Feedback     | Send feedback to Ultralytics                     |
+| Section          | Item     | Description                                      |
+| ---------------- | -------- | ------------------------------------------------ |
+| **Top**          | Search   | Quick search across all your resources (Cmd+K)   |
+|                  | Home     | Dashboard with quick actions and recent activity |
+|                  | Explore  | Discover public projects and datasets            |
+| **My Workspace** | Annotate | Your datasets organized for annotation           |
+|                  | Train    | Your projects containing trained models          |
+|                  | Deploy   | Your active deployments                          |
+| **Bottom**       | Trash    | Deleted items (recoverable for 30 days)          |
+|                  | Settings | Account, billing, and preferences                |
+|                  | Feedback | Send feedback to Ultralytics                     |
 
 ### Welcome Card
 
@@ -124,11 +124,11 @@ Navigate to `Annotate` in the sidebar and click `New Dataset` to add your traini
 
 Ultralytics Platform supports multiple upload formats (full details in [Datasets](data/datasets.md)):
 
-| Format          | Max Size | Description                                            |
-| --------------- | -------- | ------------------------------------------------------ |
-| **Images**      | 50 MB    | JPG, PNG, WebP, TIFF, and other common formats         |
-| **ZIP Archive** | 10 GB    | Compressed folder with images and labels               |
-| **Video**       | 1 GB     | MP4, AVI - frames extracted at ~1 fps (max 100 frames) |
+| Format                                                                 | Max Size | Description                                            |
+| ---------------------------------------------------------------------- | -------- | ------------------------------------------------------ |
+| **Images**                                                             | 50 MB    | JPG, PNG, WebP, TIFF, and other common formats         |
+| **ZIP Archive**                                                        | 10 GB    | Compressed folder with images and labels               |
+| **Video**                                                              | 1 GB     | MP4, AVI - frames extracted at ~1 fps (max 100 frames) |
 | **[YOLO Format](../datasets/detect/index.md#ultralytics-yolo-format)** | 10 GB    | Standard YOLO dataset structure with labels            |
 
 ```mermaid
@@ -153,8 +153,8 @@ After upload, the Platform automatically processes your data:
 
     For best results, upload a ZIP with the standard YOLO structure:
 
-	    ```
-	    my-dataset.zip
+        ```
+        my-dataset.zip
     ├── data.yaml          # Class names and splits
     ├── train/
     │   ├── images/
@@ -166,7 +166,7 @@ After upload, the Platform automatically processes your data:
     └── val/
         ├── images/
         └── labels/
-	    ```
+        ```
 
     For full syntax across tasks, see [detect](../datasets/detect/index.md#ultralytics-yolo-format), [segment](../datasets/segment/index.md#ultralytics-yolo-format), [pose](../datasets/pose/index.md#ultralytics-yolo-format), [OBB](../datasets/obb/index.md#yolo-obb-format), and [classify](../datasets/classify/index.md#dataset-structure-for-yolo-classification-tasks) dataset guides.
 

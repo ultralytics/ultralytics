@@ -267,9 +267,9 @@ Returns health check status with response latency.
 
 ```json
 {
-  "healthy": true,
-  "status": 200,
-  "latencyMs": 142
+    "healthy": true,
+    "status": 200,
+    "latencyMs": 142
 }
 ```
 

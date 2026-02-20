@@ -95,9 +95,9 @@ train: images/train
 val: images/val
 
 names:
-  0: person
-  1: car
-  2: dog
+    0: person
+    1: car
+    2: dog
 ```
 
 For COCO format datasets, use JSON annotation files with the standard [COCO structure](https://cocodataset.org/#format-data):
@@ -118,13 +118,9 @@ The JSON file contains `images`, `annotations`, and `categories` arrays:
 
 ```json
 {
-  "images": [
-    { "id": 1, "file_name": "img001.jpg", "width": 640, "height": 480 }
-  ],
-  "annotations": [
-    { "id": 1, "image_id": 1, "category_id": 0, "bbox": [100, 50, 200, 300] }
-  ],
-  "categories": [{ "id": 0, "name": "person" }]
+    "images": [{ "id": 1, "file_name": "img001.jpg", "width": 640, "height": 480 }],
+    "annotations": [{ "id": 1, "image_id": 1, "category_id": 0, "bbox": [100, 50, 200, 300] }],
+    "categories": [{ "id": 0, "name": "person" }]
 }
 ```
 

@@ -29,13 +29,13 @@ journey
 
 [Ultralytics Platform](https://platform.ultralytics.com) offers a variety of easy signup options. You can register and log in using your Google or GitHub accounts, or with your email address.
 
-<!-- Screenshot: platform-signup.avif -->
+![Ultralytics Platform Signup](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-signup.avif)
 
 ### Region Selection
 
 During onboarding, you'll be asked to select your data region. The Platform automatically measures latency to each region and recommends the closest one. This is an important choice as it determines where your data, models, and deployments will be stored.
 
-<!-- Screenshot: platform-onboarding-region-map-with-latency.avif -->
+![Ultralytics Platform Onboarding Region Map With Latency](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-onboarding-region-map-with-latency.avif)
 
 | Region | Location                | Best For                                |
 | ------ | ----------------------- | --------------------------------------- |
@@ -64,7 +64,7 @@ Every new account receives free credits for cloud GPU training:
 
 Before selecting your region, you'll complete your profile with a display name, username, optional company, and primary use case. The onboarding flow has three steps: Profile, Data Region, and Complete.
 
-<!-- Screenshot: platform-onboarding-profile-with-use-case.avif -->
+![Ultralytics Platform Onboarding Profile With Use Case](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-onboarding-profile-with-use-case.avif)
 
 ??? tip "Update Later"
 
@@ -74,7 +74,7 @@ Before selecting your region, you'll complete your profile with a display name, 
 
 After signing in, you will be directed to the Home page of [Ultralytics Platform](https://platform.ultralytics.com), which provides a welcome card with workspace stats, quick access to datasets, projects, and storage, and a recent activity feed.
 
-<!-- Screenshot: platform-home-dashboard-welcome-card.avif -->
+![Ultralytics Platform Home Dashboard Welcome Card](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-home-dashboard-welcome-card.avif)
 
 ### Sidebar Navigation
 
@@ -132,7 +132,7 @@ A **Recent Activity** table at the bottom shows your latest datasets, models, an
 
 Navigate to `Annotate` in the sidebar and click `New Dataset` to add your training data. You can also drag and drop files directly onto the Datasets card on the Home dashboard.
 
-<!-- Screenshot: platform-quickstart-upload-dialog.avif -->
+![Ultralytics Platform Quickstart Upload Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-quickstart-upload-dialog.avif)
 
 Ultralytics Platform supports multiple upload formats:
 
@@ -186,7 +186,7 @@ Read more about [datasets](data/datasets.md) and supported formats.
 
 Projects help you organize related models and experiments. Navigate to Projects and click "Create Project".
 
-<!-- Screenshot: platform-projects-create.avif -->
+![Ultralytics Platform Projects Create](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-projects-create.avif)
 
 Enter a name and optional description for your project. Projects contain:
 
@@ -199,7 +199,7 @@ Read more about [projects](train/projects.md).
 
 From your project, click `Train Model` to start cloud training.
 
-<!-- Screenshot: platform-quickstart-training-dialog-cloud-tab.avif -->
+![Ultralytics Platform Quickstart Training Dialog Cloud Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-quickstart-training-dialog-cloud-tab.avif)
 
 ### Training Configuration
 
@@ -234,7 +234,7 @@ Once training starts, you can monitor progress in real-time through three subtab
 | **Console** | Live training log output                                |
 | **System**  | GPU utilization, memory usage, hardware metrics         |
 
-<!-- Screenshot: platform-training-charts-loss-and-metrics.avif -->
+![Ultralytics Platform Training Charts Loss And Metrics](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-charts-loss-and-metrics.avif)
 
 Metrics are streamed in real-time via SSE (Server-Sent Events). After training completes, validation plots are generated including confusion matrix, PR curves, and F1 curves.
 
@@ -252,7 +252,7 @@ After training completes, test your model directly in the browser:
 2. Upload an image, drag and drop, or use example images (auto-inference on drop)
 3. View inference results with bounding boxes rendered on canvas
 
-<!-- Screenshot: platform-predict-tab-with-bounding-boxes.avif -->
+![Ultralytics Platform Predict Tab With Bounding Boxes](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-predict-tab-with-bounding-boxes.avif)
 
 Adjust inference parameters:
 
@@ -301,7 +301,7 @@ Deploy your model to a dedicated endpoint for production use:
 3. The map shows real-time latency measurements with traffic light colors (green < 100ms, yellow < 200ms, red > 200ms)
 4. Click `Deploy` to create your endpoint
 
-<!-- Screenshot: platform-deploy-tab-region-map-with-latency.avif -->
+![Ultralytics Platform Deploy Tab Region Map With Latency](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-deploy-tab-region-map-with-latency.avif)
 
 ```mermaid
 graph LR

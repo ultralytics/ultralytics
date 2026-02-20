@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, monitoring, metrics, logs, deployment, performan
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides monitoring for deployed endpoints. Track request metrics, view logs, and check health status with automatic polling.
 
-<!-- Screenshot: deploy-page-overview-cards-and-world-map.avif -->
+![Ultralytics Platform Deploy Page Overview Cards And World Map](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-overview-cards-and-world-map.avif)
 
 ## Deployments Dashboard
 
@@ -43,7 +43,7 @@ graph TB
 
 Four summary cards at the top of the page show:
 
-<!-- Screenshot: deploy-page-four-overview-cards.avif -->
+![Ultralytics Platform Deploy Page Four Overview Cards](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-four-overview-cards.avif)
 
 | Metric                   | Description                   |
 | ------------------------ | ----------------------------- |
@@ -65,7 +65,7 @@ The interactive world map shows:
 - **Animated blue pins** for regions with active deployments in progress
 - **Pin size** varies based on deployment status and latency
 
-<!-- Screenshot: deploy-page-world-map-with-deployed-regions.avif -->
+![Ultralytics Platform Deploy Page World Map With Deployed Regions](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-world-map-with-deployed-regions.avif)
 
 ### Deployments List
 
@@ -107,7 +107,7 @@ Running deployments show a health check indicator:
 
 Health checks auto-retry every 20 seconds when unhealthy. Click the refresh icon to manually trigger a health check. The health check has a 35-second timeout to accommodate cold starts.
 
-<!-- Screenshot: deployment-card-health-check-healthy-with-latency.avif -->
+![Ultralytics Platform Deployment Card Health Check Healthy With Latency](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deployment-card-health-check-healthy-with-latency.avif)
 
 !!! info "Cold Start Tolerance"
 
@@ -117,7 +117,7 @@ Health checks auto-retry every 20 seconds when unhealthy. Click the refresh icon
 
 Each deployment card includes a `Logs` tab for viewing recent log entries:
 
-<!-- Screenshot: deployment-card-logs-tab-with-severity-filter.avif -->
+![Ultralytics Platform Deployment Card Logs Tab With Severity Filter](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deployment-card-logs-tab-with-severity-filter.avif)
 
 ### Log Entries
 
@@ -267,9 +267,9 @@ Returns health check status with response latency.
 
 ```json
 {
-    "healthy": true,
-    "status": 200,
-    "latencyMs": 142
+  "healthy": true,
+  "status": 200,
+  "latencyMs": 142
 }
 ```
 

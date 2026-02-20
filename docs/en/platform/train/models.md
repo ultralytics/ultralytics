@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive model management for training, analyzing, and deploying YOLO models. Upload pretrained models or train new ones directly on the Platform.
 
-<!-- Screenshot: platform-model-page-overview-tab.avif -->
+![Ultralytics Platform Model Page Overview Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-page-overview-tab.avif)
 
 ## Upload Model
 
@@ -20,7 +20,7 @@ Upload existing model weights to the Platform:
 
 Multiple files can be uploaded simultaneously (up to 3 concurrent).
 
-<!-- Screenshot: platform-model-drag-drop-upload.avif -->
+![Ultralytics Platform Model Drag Drop Upload](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-drag-drop-upload.avif)
 
 Supported model formats:
 
@@ -90,7 +90,7 @@ Displays model metadata and key metrics:
 - Dataset link (when trained with a Platform dataset)
 - Download button for model weights
 
-<!-- Screenshot: platform-model-overview-metrics-and-args.avif -->
+![Ultralytics Platform Model Overview Metrics And Args](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-overview-metrics-and-args.avif)
 
 ### Train Tab
 
@@ -107,7 +107,7 @@ Interactive training metric charts showing loss curves and performance metrics o
 | **Val Loss**      | val/box_loss, val/cls_loss, val/dfl_loss       |
 | **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                         |
 
-<!-- Screenshot: platform-model-train-charts-subtab.avif -->
+![Ultralytics Platform Model Train Charts Subtab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-train-charts-subtab.avif)
 
 #### Console Subtab
 
@@ -118,7 +118,7 @@ Live console output from the training process:
 - Error detection with highlighted error banners
 - ANSI color support for formatted output
 
-<!-- Screenshot: platform-model-train-console-subtab.avif -->
+![Ultralytics Platform Model Train Console Subtab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-train-console-subtab.avif)
 
 #### System Subtab
 
@@ -133,7 +133,7 @@ GPU and system metrics during training:
 | **RAM**        | System memory usage        |
 | **Disk**       | Disk usage                 |
 
-<!-- Screenshot: platform-model-train-system-subtab.avif -->
+![Ultralytics Platform Model Train System Subtab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-train-system-subtab.avif)
 
 ### Predict Tab
 
@@ -164,13 +164,13 @@ After training completes, view detailed validation analysis:
 
 Interactive heatmap showing prediction accuracy per class:
 
-<!-- Screenshot: platform-model-confusion-matrix.avif -->
+![Ultralytics Platform Model Confusion Matrix](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-confusion-matrix.avif)
 
 ### PR/F1 Curves
 
 Performance curves at different confidence thresholds:
 
-<!-- Screenshot: platform-model-pr-f1-curves.avif -->
+![Ultralytics Platform Model Pr F1 Curves](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-pr-f1-curves.avif)
 
 | Curve                    | Description                              |
 | ------------------------ | ---------------------------------------- |
@@ -205,7 +205,7 @@ Export your model to 17+ deployment formats:
 5. Click **Export**
 6. Download when complete
 
-<!-- Screenshot: platform-model-export-tab-format-list.avif -->
+![Ultralytics Platform Model Export Tab Format List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-export-tab-format-list.avif)
 
 ### Supported Formats
 
@@ -245,7 +245,7 @@ Export your model to 17+ deployment formats:
 
 **For General Compatibility:** Use **ONNX** — works with most inference runtimes
 
-<!-- Screenshot: platform-model-export-progress.avif -->
+![Ultralytics Platform Model Export Progress](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-export-progress.avif)
 
 !!! tip "Export Time"
 

@@ -28,7 +28,7 @@ graph LR
 
 Start training from the Platform UI by clicking **New Model** on any project page (or **Train** from a dataset page). The training dialog has two tabs: **Cloud Training** and **Local Training**.
 
-<!-- Screenshot: platform-training-dialog-cloud-tab.avif -->
+![Ultralytics Platform Training Dialog Cloud Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-dialog-cloud-tab.avif)
 
 ### Step 1: Select Base Model
 
@@ -104,7 +104,7 @@ Parameters are task-aware (e.g., `copy_paste` only shows for segment tasks, `pos
 
 Choose your GPU from Ultralytics Cloud:
 
-<!-- Screenshot: platform-training-dialog-gpu-selector-and-cost.avif -->
+![Ultralytics Platform Training Dialog Gpu Selector And Cost](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-dialog-gpu-selector-and-cost.avif)
 
 | Tier       | GPU          | VRAM   | Cost/Hour |
 | ---------- | ------------ | ------ | --------- |
@@ -154,7 +154,7 @@ Click **Start Training** to launch your job. The Platform:
 
     New accounts receive $5 in signup credits — enough for several training runs. [Check your balance](../account/billing.md) in Settings > Billing.
 
-<!-- Screenshot: platform-training-progress-with-charts.avif -->
+![Ultralytics Platform Training Progress With Charts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-progress-with-charts.avif)
 
 ## Monitor Training
 
@@ -162,7 +162,7 @@ View real-time training progress on the model page's **Train** tab:
 
 ### Charts Subtab
 
-<!-- Screenshot: platform-model-training-live-charts.avif -->
+![Ultralytics Platform Model Training Live Charts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-training-live-charts.avif)
 
 | Metric        | Description                  |
 | ------------- | ---------------------------- |
@@ -359,7 +359,7 @@ After training, view detailed costs in the **Billing** tab:
 - Total GPU time
 - Download cost report
 
-<!-- Screenshot: platform-training-billing-details.avif -->
+![Ultralytics Platform Training Billing Details](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-billing-details.avif)
 
 ## Training Tips
 

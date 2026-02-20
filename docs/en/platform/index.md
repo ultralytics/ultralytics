@@ -387,7 +387,6 @@ The Platform includes a full-featured annotation editor supporting:
 
 - **Manual Tools**: Bounding boxes, polygons, keypoints, oriented boxes, classification
 - **SAM Smart Annotation**: Click to generate precise masks using Segment Anything Model
-- **YOLO Auto-Annotation**: Use trained models to pre-label images
 - **Keyboard Shortcuts**: Efficient workflows with hotkeys
 
 | Shortcut  | Action                     |

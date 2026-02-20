@@ -95,9 +95,9 @@ train: images/train
 val: images/val
 
 names:
-    0: person
-    1: car
-    2: dog
+  0: person
+  1: car
+  2: dog
 ```
 
 For COCO format datasets, use JSON annotation files with the standard [COCO structure](https://cocodataset.org/#format-data):
@@ -118,9 +118,13 @@ The JSON file contains `images`, `annotations`, and `categories` arrays:
 
 ```json
 {
-    "images": [{ "id": 1, "file_name": "img001.jpg", "width": 640, "height": 480 }],
-    "annotations": [{ "id": 1, "image_id": 1, "category_id": 0, "bbox": [100, 50, 200, 300] }],
-    "categories": [{ "id": 0, "name": "person" }]
+  "images": [
+    { "id": 1, "file_name": "img001.jpg", "width": 640, "height": 480 }
+  ],
+  "annotations": [
+    { "id": 1, "image_id": 1, "category_id": 0, "bbox": [100, 50, 200, 300] }
+  ],
+  "categories": [{ "id": 0, "name": "person" }]
 }
 ```
 
@@ -142,7 +146,7 @@ COCO annotations are automatically converted during upload. Detection (`bbox`), 
 4. Add a name and optional description
 5. Click `Upload`
 
-<!-- Screenshot: platform-datasets-upload-dialog-task-selector.avif -->
+![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-upload-dialog-task-selector.avif)
 
 After upload, the Platform processes your data through a multi-stage pipeline:
 
@@ -168,7 +172,7 @@ graph LR
 4. **Label Parsing**: YOLO and COCO format labels extracted
 5. **Statistics**: Class distributions and image dimensions computed
 
-<!-- Screenshot: platform-datasets-upload-progress-bar.avif -->
+![Ultralytics Platform Datasets Upload Progress Bar](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-upload-progress-bar.avif)
 
 ??? tip "Validate Before Upload"
 
@@ -194,7 +198,7 @@ View your dataset images in multiple layouts:
 | **Compact** | Smaller thumbnails for quick scanning                   |
 | **Table**   | List with filename, dimensions, split, and label counts |
 
-<!-- Screenshot: platform-datasets-gallery-grid-view-with-annotations.avif -->
+![Ultralytics Platform Datasets Gallery Grid View With Annotations](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-gallery-grid-view-with-annotations.avif)
 
 ### Sorting and Filtering
 
@@ -235,7 +239,7 @@ Click any image to open the fullscreen viewer with:
 - **Zoom**: `Cmd/Ctrl+Scroll` to zoom in/out
 - **Pixel view**: Toggle pixelated rendering for close inspection
 
-<!-- Screenshot: platform-datasets-fullscreen-viewer-with-metadata-panel.avif -->
+![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-fullscreen-viewer-with-metadata-panel.avif)
 
 ### Filter by Split
 
@@ -265,7 +269,7 @@ Manage annotation classes for your dataset:
 - **Edit class colors**: Click a color swatch to change the class color
 - **Add new class**: Use the input at the bottom to add classes
 
-<!-- Screenshot: platform-datasets-classes-tab-histogram-and-table.avif -->
+![Ultralytics Platform Datasets Classes Tab Histogram And Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-classes-tab-histogram-and-table.avif)
 
 !!! note "Log Scale for Imbalanced Datasets"
 
@@ -285,7 +289,7 @@ Automatic statistics computed from your dataset:
 | **Annotation Locations** | 2D heatmap of bounding box center positions                    |
 | **Image Dimensions**     | 2D width vs height heatmap with aspect ratio guide lines       |
 
-<!-- Screenshot: platform-datasets-charts-tab-statistics-grid.avif -->
+![Ultralytics Platform Datasets Charts Tab Statistics Grid](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-charts-tab-statistics-grid.avif)
 
 !!! tip "Statistics Caching"
 
@@ -310,7 +314,7 @@ View all models trained on this dataset in a searchable table:
 | mAP50    | mAP at IoU 0.50           |
 | Created  | Creation date             |
 
-<!-- Screenshot: platform-datasets-models-tab-trained-models-table.avif -->
+![Ultralytics Platform Datasets Models Tab Trained Models Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-models-tab-trained-models-table.avif)
 
 ### Errors Tab
 
@@ -339,7 +343,7 @@ Export your dataset in NDJSON format for offline use:
 2. Click `Export`
 3. Download the NDJSON file
 
-<!-- Screenshot: platform-datasets-export-ndjson-download.avif -->
+![Ultralytics Platform Datasets Export Ndjson Download](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-export-ndjson-download.avif)
 
 The NDJSON format stores one JSON object per line. The first line contains dataset metadata, followed by one line per image:
 
@@ -410,7 +414,7 @@ Control who can see your dataset:
 | **Private** | Only you can access             |
 | **Public**  | Anyone can view on Explore page |
 
-<!-- Screenshot: platform-datasets-visibility-toggle.avif -->
+![Ultralytics Platform Datasets Visibility Toggle](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-visibility-toggle.avif)
 
 To change visibility:
 

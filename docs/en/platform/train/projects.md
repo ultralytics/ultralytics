@@ -29,7 +29,7 @@ graph TB
 
 Navigate to **Projects** in the sidebar and click **Create Project**.
 
-<!-- Screenshot: platform-projects-list.avif -->
+![Ultralytics Platform Projects List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-projects-list.avif)
 
 ??? tip "Quick Create"
 
@@ -42,7 +42,7 @@ Enter your project details:
 - **Visibility**: Public (anyone can view) or Private (only you can access)
 - **License**: Optional license for your project (e.g., AGPL-3.0, Apache-2.0)
 
-<!-- Screenshot: platform-new-project-dialog-name-visibility-license.avif -->
+![Ultralytics Platform New Project Dialog Name Visibility License](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-new-project-dialog-name-visibility-license.avif)
 
 Click **Create** to finalize. Your new project appears in the Projects list and sidebar.
 
@@ -55,7 +55,7 @@ The project page has two main areas:
 | **Models Sidebar** | Resizable list of all models in the project with search, status filters, sort options, and checkboxes for selection |
 | **Main Panel**     | Charts dashboard or comparison table (toggle between views)                                                         |
 
-<!-- Screenshot: platform-project-page-sidebar-and-charts.avif -->
+![Ultralytics Platform Project Page Sidebar And Charts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-project-page-sidebar-and-charts.avif)
 
 ### Project Header
 
@@ -86,7 +86,7 @@ Toggle between two view modes using the view controls:
 - **Charts view**: Interactive charts dashboard showing loss curves and metric comparisons for selected models
 - **Table view**: Comparison table showing training arguments and final metrics side-by-side with a diff mode to highlight differing columns
 
-<!-- Screenshot: platform-project-comparison-table-view.avif -->
+![Ultralytics Platform Project Comparison Table View](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-project-comparison-table-view.avif)
 
 ### Models Sidebar
 
@@ -196,7 +196,7 @@ Update project name, description, or settings:
 3. Click the icon to customize it
 4. Click the license badge to change the license
 
-<!-- Screenshot: platform-projects-settings.avif -->
+![Ultralytics Platform Projects Settings](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-projects-settings.avif)
 
 ## Delete Project
 

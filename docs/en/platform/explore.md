@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, explore, public datasets, public projects, compu
 
 [Ultralytics Platform](https://platform.ultralytics.com) Explore page showcases public content from the community. Discover datasets and projects for inspiration and learning. The Explore page is accessible to everyone — even without signing in.
 
-<!-- Screenshot: platform-explore-datasets-tab-cards-view.avif -->
+![Ultralytics Platform Explore Datasets Tab Cards View](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-datasets-tab-cards-view.avif)
 
 ```mermaid
 graph LR
@@ -52,7 +52,7 @@ The Explore page uses a tabbed interface with `Datasets` and `Projects` tabs. Ea
 
 Each tab provides a search bar and sort options:
 
-<!-- Screenshot: platform-explore-datasets-tab-with-search.avif -->
+![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-datasets-tab-with-search.avif)
 
 | Sort Option      | Description                                         |
 | ---------------- | --------------------------------------------------- |
@@ -79,7 +79,7 @@ Cards and compact views support infinite scroll for loading more results.
 
 Each item displays:
 
-<!-- Screenshot: platform-explore-dataset-and-project-cards.avif -->
+![Ultralytics Platform Explore Dataset And Project Cards](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-dataset-and-project-cards.avif)
 
 **Project Cards Show:**
 
@@ -188,7 +188,7 @@ Official datasets include benchmark datasets like COCO, VOC, and other commonly 
 
 Click on a creator's username to view their public profile at `platform.ultralytics.com/{username}`. Public profiles show:
 
-<!-- Screenshot: platform-user-profile-public-content.avif -->
+![Ultralytics Platform User Profile Public Content](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-user-profile-public-content.avif)
 
 | Section      | Content                      |
 | ------------ | ---------------------------- |

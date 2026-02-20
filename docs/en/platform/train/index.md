@@ -18,7 +18,7 @@ The Training section helps you:
 - **Compare** model performance across experiments
 - **Export** to 17+ deployment formats
 
-<!-- Screenshot: platform-train-overview.avif -->
+![Ultralytics Platform Train Overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-train-overview.avif)
 
 ## Workflow
 

@@ -18,7 +18,7 @@ The `Profile` tab contains your profile information, social links, API keys, dat
 
 Update your profile information:
 
-<!-- Screenshot: settings-profile-tab-display-name-bio-company-fields.avif -->
+![Ultralytics Platform Settings Profile Tab Display Name Bio Company Fields](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-display-name-bio-company-fields.avif)
 
 | Field            | Description                               |
 | ---------------- | ----------------------------------------- |
@@ -63,7 +63,7 @@ Update your profile information:
 
 Connect your professional profiles:
 
-<!-- Screenshot: settings-profile-tab-social-links-grid.avif -->
+![Ultralytics Platform Settings Profile Tab Social Links Grid](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-social-links-grid.avif)
 
 | Platform           | Format               |
 | ------------------ | -------------------- |
@@ -99,7 +99,7 @@ View your data region on the `Profile` tab:
 
 Monitor your storage consumption on the `Profile` tab:
 
-<!-- Screenshot: settings-profile-tab-storage-usage-card.avif -->
+![Ultralytics Platform Settings Profile Tab Storage Usage Card](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-storage-usage-card.avif)
 
 | Type         | Description             |
 | ------------ | ----------------------- |

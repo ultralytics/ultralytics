@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, REST API, API reference, authentication, endpoin
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides a comprehensive REST API for programmatic access to datasets, models, training, and deployments.
 
-<!-- Screenshot: platform-api-overview.avif -->
+![Ultralytics Platform Api Overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-api-overview.avif)
 
 !!! tip "Quick Start"
 
@@ -152,7 +152,7 @@ Responses return JSON with resource-specific fields:
 
 ```json
 {
-    "error": "Invalid dataset ID"
+  "error": "Invalid dataset ID"
 }
 ```
 
@@ -213,19 +213,19 @@ GET /api/datasets
 
 ```json
 {
-    "datasets": [
-        {
-            "id": "dataset_abc123",
-            "name": "my-dataset",
-            "slug": "my-dataset",
-            "task": "detect",
-            "imageCount": 1000,
-            "classCount": 10,
-            "visibility": "private",
-            "createdAt": "2024-01-15T10:00:00Z"
-        }
-    ],
-    "total": 1
+  "datasets": [
+    {
+      "id": "dataset_abc123",
+      "name": "my-dataset",
+      "slug": "my-dataset",
+      "task": "detect",
+      "imageCount": 1000,
+      "classCount": 10,
+      "visibility": "private",
+      "createdAt": "2024-01-15T10:00:00Z"
+    }
+  ],
+  "total": 1
 }
 ```
 
@@ -247,12 +247,12 @@ POST /api/datasets
 
 ```json
 {
-    "slug": "my-dataset",
-    "name": "My Dataset",
-    "task": "detect",
-    "description": "A custom detection dataset",
-    "visibility": "private",
-    "classNames": ["person", "car"]
+  "slug": "my-dataset",
+  "name": "My Dataset",
+  "task": "detect",
+  "description": "A custom detection dataset",
+  "visibility": "private",
+  "classNames": ["person", "car"]
 }
 ```
 
@@ -270,9 +270,9 @@ PATCH /api/datasets/{datasetId}
 
 ```json
 {
-    "name": "Updated Name",
-    "description": "New description",
-    "visibility": "public"
+  "name": "Updated Name",
+  "description": "New description",
+  "visibility": "public"
 }
 ```
 
@@ -312,14 +312,14 @@ Returns cached class distribution, location heatmap, and dimension statistics. R
 
 ```json
 {
-    "classes": [{ "classId": 0, "count": 1500, "imageCount": 450 }],
-    "imageStats": {
-        "widthHistogram": [{ "bin": 640, "count": 120 }],
-        "heightHistogram": [{ "bin": 480, "count": 95 }]
-    },
-    "locationHeatmap": { "bins": [[]], "maxCount": 50 },
-    "classNames": ["person", "car", "dog"],
-    "cached": true
+  "classes": [{ "classId": 0, "count": 1500, "imageCount": 450 }],
+  "imageStats": {
+    "widthHistogram": [{ "bin": 640, "count": 120 }],
+    "heightHistogram": [{ "bin": 480, "count": 95 }]
+  },
+  "locationHeatmap": { "bins": [[]], "maxCount": 50 },
+  "classNames": ["person", "car", "dog"],
+  "cached": true
 }
 ```
 
@@ -335,19 +335,19 @@ Returns models that were trained using this dataset.
 
 ```json
 {
-    "success": true,
-    "data": [
-        {
-            "id": "model_abc123",
-            "name": "experiment-1",
-            "projectId": "project_xyz",
-            "trainedAt": "2024-01-15T10:00:00Z",
-            "metrics": {
-                "mAP50": 0.85,
-                "mAP50-95": 0.72
-            }
-        }
-    ]
+  "success": true,
+  "data": [
+    {
+      "id": "model_abc123",
+      "name": "experiment-1",
+      "projectId": "project_xyz",
+      "trainedAt": "2024-01-15T10:00:00Z",
+      "metrics": {
+        "mAP50": 0.85,
+        "mAP50-95": 0.72
+      }
+    }
+  ]
 }
 ```
 
@@ -425,7 +425,7 @@ PUT /api/datasets/{datasetId}/images/{hash}/labels
 
 ```json
 {
-    "labels": [{ "classId": 0, "bbox": [0.5, 0.5, 0.2, 0.3] }]
+  "labels": [{ "classId": 0, "bbox": [0.5, 0.5, 0.2, 0.3] }]
 }
 ```
 
@@ -658,14 +658,14 @@ POST /api/models/{modelId}/predict
 
 ```json
 {
-    "success": true,
-    "predictions": [
-        {
-            "class": "person",
-            "confidence": 0.92,
-            "box": { "x1": 100, "y1": 50, "x2": 300, "y2": 400 }
-        }
-    ]
+  "success": true,
+  "predictions": [
+    {
+      "class": "person",
+      "confidence": 0.92,
+      "box": { "x1": 100, "y1": 50, "x2": 300, "y2": 400 }
+    }
+  ]
 }
 ```
 
@@ -810,8 +810,8 @@ POST /api/deployments
 
 ```json
 {
-    "modelId": "model_abc123",
-    "region": "us-central1"
+  "modelId": "model_abc123",
+  "region": "us-central1"
 }
 ```
 
@@ -1040,8 +1040,8 @@ POST /api/trash
 
 ```json
 {
-    "id": "item_abc123",
-    "type": "dataset"
+  "id": "item_abc123",
+  "type": "dataset"
 }
 ```
 
@@ -1055,8 +1055,8 @@ DELETE /api/trash
 
 ```json
 {
-    "id": "item_abc123",
-    "type": "dataset"
+  "id": "item_abc123",
+  "type": "dataset"
 }
 ```
 
@@ -1092,10 +1092,10 @@ GET /api/billing/balance
 
 ```json
 {
-    "cashBalance": 5000000,
-    "creditBalance": 20000000,
-    "reservedAmount": 0,
-    "totalBalance": 25000000
+  "cashBalance": 5000000,
+  "creditBalance": 20000000,
+  "reservedAmount": 0,
+  "totalBalance": 25000000
 }
 ```
 
@@ -1125,7 +1125,7 @@ POST /api/billing/checkout-session
 
 ```json
 {
-    "amount": 25
+  "amount": 25
 }
 ```
 
@@ -1167,9 +1167,9 @@ PATCH /api/billing/auto-topup
 
 ```json
 {
-    "enabled": true,
-    "thresholdCents": 500,
-    "amountCents": 2500
+  "enabled": true,
+  "thresholdCents": 500,
+  "amountCents": 2500
 }
 ```
 
@@ -1215,9 +1215,9 @@ GET /api/storage
 
 ```json
 {
-    "used": 1073741824,
-    "limit": 107374182400,
-    "percentage": 1.0
+  "used": 1073741824,
+  "limit": 107374182400,
+  "percentage": 1.0
 }
 ```
 
@@ -1249,7 +1249,7 @@ POST /api/api-keys
 
 ```json
 {
-    "name": "training-server"
+  "name": "training-server"
 }
 ```
 
@@ -1263,7 +1263,7 @@ DELETE /api/api-keys
 
 ```json
 {
-    "keyId": "key_abc123"
+  "keyId": "key_abc123"
 }
 ```
 
@@ -1289,8 +1289,8 @@ POST /api/teams/create
 
 ```json
 {
-    "name": "My Team",
-    "slug": "my-team"
+  "name": "My Team",
+  "slug": "my-team"
 }
 ```
 
@@ -1312,8 +1312,8 @@ POST /api/members
 
 ```json
 {
-    "email": "user@example.com",
-    "role": "editor"
+  "email": "user@example.com",
+  "role": "editor"
 }
 ```
 
@@ -1479,7 +1479,7 @@ POST /api/gdpr
 
 ```json
 {
-    "action": "delete"
+  "action": "delete"
 }
 ```
 

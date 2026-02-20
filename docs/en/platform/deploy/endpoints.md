@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, deployment, endpoints, YOLO, production, scaling
 
 [Ultralytics Platform](https://platform.ultralytics.com) enables deployment of YOLO models to dedicated endpoints in 43 global regions. Each endpoint is a single-tenant service with auto-scaling, a unique endpoint URL, and independent monitoring.
 
-<!-- Screenshot: model-deploy-tab-with-region-map-and-table.avif -->
+![Ultralytics Platform Model Deploy Tab With Region Map And Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/model-deploy-tab-with-region-map-and-table.avif)
 
 ## Create Endpoint
 
@@ -33,7 +33,7 @@ Create a deployment from the global `Deploy` page in the sidebar:
 4. Optionally customize the deployment name and resources
 5. Click **Deploy Model**
 
-<!-- Screenshot: new-deployment-dialog-with-model-selector-and-region-map.avif -->
+![Ultralytics Platform New Deployment Dialog With Model Selector And Region Map](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/new-deployment-dialog-with-model-selector-and-region-map.avif)
 
 ### Deployment Lifecycle
 
@@ -61,7 +61,7 @@ Choose from 43 regions worldwide. The interactive region map and table show:
 - **Deploying regions**: Animated pulse indicator
 - **Bidirectional highlighting**: Hover on the map highlights the table row, and vice versa
 
-<!-- Screenshot: deploy-tab-region-latency-table-sorted-by-latency.avif -->
+![Ultralytics Platform Deploy Tab Region Latency Table Sorted By Latency](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-tab-region-latency-table-sorted-by-latency.avif)
 
 The region table includes:
 
@@ -156,7 +156,7 @@ The `New Deployment` dialog provides:
 | **CPU Cores**       | CPU allocation (1-8)         | 1       |
 | **Memory (GB)**     | Memory allocation (1-32 GB)  | 2       |
 
-<!-- Screenshot: new-deployment-dialog-resources-panel-expanded.avif -->
+![Ultralytics Platform New Deployment Dialog Resources Panel Expanded](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/new-deployment-dialog-resources-panel-expanded.avif)
 
 Resource settings are available under the collapsible **Resources** section. Deployments scale to zero when idle — you only pay for active inference time.
 
@@ -180,7 +180,7 @@ The deployments list supports three view modes:
 | **Compact** | Grid of smaller cards with key metrics                    |
 | **Table**   | DataTable with sortable columns and search                |
 
-<!-- Screenshot: deploy-tab-active-deployments-cards-view.avif -->
+![Ultralytics Platform Deploy Tab Active Deployments Cards View](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-tab-active-deployments-cards-view.avif)
 
 ### Deployment Card (Cards View)
 
@@ -213,7 +213,7 @@ Each endpoint has a unique URL:
 https://predict-abc123-us-central1.a.run.app
 ```
 
-<!-- Screenshot: deployment-card-endpoint-url-with-copy-button.avif -->
+![Ultralytics Platform Deployment Card Endpoint Url With Copy Button](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deployment-card-endpoint-url-with-copy-button.avif)
 
 Click the copy button to copy the URL. Click the docs icon to view the auto-generated API documentation for the endpoint.
 

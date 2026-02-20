@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, boun
 
 [Ultralytics Platform](https://platform.ultralytics.com) includes a powerful annotation editor for labeling images with bounding boxes, polygons, keypoints, oriented boxes, and classifications. The editor supports manual drawing and SAM-powered smart annotation.
 
-<!-- Screenshot: platform-annotate-editor-toolbar-with-canvas.avif -->
+![Ultralytics Platform Annotate Editor Toolbar With Canvas](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-editor-toolbar-with-canvas.avif)
 
 ```mermaid
 graph TB
@@ -97,7 +97,7 @@ To annotate images:
 5. Draw annotations on the image
 6. Click `Save` when finished
 
-<!-- Screenshot: platform-annotate-fullscreen-edit-mode-with-toolbar.avif -->
+![Ultralytics Platform Annotate Fullscreen Edit Mode With Toolbar](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-fullscreen-edit-mode-with-toolbar.avif)
 
 ```mermaid
 graph LR
@@ -133,7 +133,7 @@ Draw rectangular boxes around objects:
 3. Release to complete the box
 4. Select a class from the dropdown
 
-<!-- Screenshot: platform-annotate-detect-bounding-box-drawing.avif -->
+![Ultralytics Platform Annotate Detect Bounding Box Drawing](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-detect-bounding-box-drawing.avif)
 
 !!! tip "Resize and Move"
 
@@ -150,7 +150,7 @@ Draw precise polygon masks:
 3. Right-click or press `Enter` to close the polygon
 4. Select a class from the dropdown
 
-<!-- Screenshot: platform-annotate-segment-polygon-vertices.avif -->
+![Ultralytics Platform Annotate Segment Polygon Vertices](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-segment-polygon-vertices.avif)
 
 !!! tip "Edit Vertices"
 
@@ -180,7 +180,7 @@ The 17 COCO keypoints are:
 | 8   | Left elbow     | 17  | (reserved)  |
 | 9   | Right elbow    |     |             |
 
-<!-- Screenshot: platform-annotate-pose-keypoints-skeleton.avif -->
+![Ultralytics Platform Annotate Pose Keypoints Skeleton](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-pose-keypoints-skeleton.avif)
 
 !!! info "Keypoint Visibility"
 
@@ -196,7 +196,7 @@ Draw rotated boxes for angled objects:
 4. Drag corner handles to resize
 5. Select a class from the dropdown
 
-<!-- Screenshot: platform-annotate-obb-rotated-box.avif -->
+![Ultralytics Platform Annotate Obb Rotated Box](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-obb-rotated-box.avif)
 
 ### Classification (Classify)
 
@@ -206,7 +206,7 @@ Assign image-level class labels:
 2. A side panel appears with class selection buttons
 3. Click on class buttons or press number keys `1-9`
 
-<!-- Screenshot: platform-annotate-classify-side-panel.avif -->
+![Ultralytics Platform Annotate Classify Side Panel](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-classify-side-panel.avif)
 
 ## SAM Smart Annotation
 
@@ -218,7 +218,7 @@ Assign image-level class labels:
 4. SAM generates a precise mask in real-time
 5. Press `Enter` or `Escape` to save the annotation
 
-<!-- Screenshot: platform-annotate-sam-positive-negative-points-mask.avif -->
+![Ultralytics Platform Annotate Sam Positive Negative Points Mask](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-sam-positive-negative-points-mask.avif)
 
 ```mermaid
 graph LR
@@ -251,37 +251,6 @@ SAM smart annotation can generate:
 
     SAM smart annotation is only available for **detect**, **segment**, and **OBB** tasks. Classification and pose tasks require manual annotation.
 
-## YOLO Auto-Annotation
-
-Use trained YOLO models to automatically label images:
-
-1. Open the auto-annotate dialog
-2. Choose a model (official Ultralytics models or your trained models)
-3. Set confidence threshold
-4. Click `Run` to generate predictions
-5. Review and edit results as needed
-
-<!-- Screenshot: platform-annotate-auto-yolo-model-selector.avif -->
-
-!!! note "Auto-Annotation Models"
-
-    You can use:
-
-    - Official Ultralytics models (YOLO26n, YOLO26s, etc.)
-    - Your own trained models from the Platform
-
-!!! example "Auto-Annotation Workflow"
-
-    Auto-annotation is most effective as a starting point:
-
-    1. Run auto-annotate with an official YOLO model
-    2. Review predictions and correct errors
-    3. Train a custom model on the corrected data
-    4. Re-run auto-annotate with your improved model
-    5. Repeat until quality is sufficient
-
-    This iterative approach produces high-quality annotations faster than manual labeling alone.
-
 ## Class Management
 
 ### Creating Classes
@@ -293,7 +262,7 @@ Define annotation classes for your dataset in the `Classes` tab:
 3. Click `Add` or press `Enter`
 4. A color is assigned automatically from the Ultralytics palette
 
-<!-- Screenshot: platform-annotate-classes-tab-add-new-class.avif -->
+![Ultralytics Platform Annotate Classes Tab Add New Class](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-classes-tab-add-new-class.avif)
 
 ### Add New Class During Annotation
 
@@ -365,7 +334,7 @@ Efficient annotation with keyboard shortcuts:
 | `Cmd/Ctrl+Shift+]` | Bring to front |
 | `Cmd/Ctrl+Shift+[` | Send to back   |
 
-<!-- Screenshot: platform-annotate-keyboard-shortcuts-dialog.avif -->
+![Ultralytics Platform Annotate Keyboard Shortcuts Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-keyboard-shortcuts-dialog.avif)
 
 ??? tip "View All Shortcuts"
 

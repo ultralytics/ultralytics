@@ -20,7 +20,7 @@ The Account section helps you:
 - **Recover** deleted items from Trash within 30 days
 - **Export** your data for GDPR compliance
 
-<!-- Screenshot: settings-page-profile-tab-with-social-links.avif -->
+![Ultralytics Platform Settings Page Profile Tab With Social Links](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-page-profile-tab-with-social-links.avif)
 
 ## Account Features
 

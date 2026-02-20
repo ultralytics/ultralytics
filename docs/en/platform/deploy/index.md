@@ -17,17 +17,17 @@ The Deployment section helps you:
 - **Monitor** request metrics, logs, and health checks
 - **Scale** automatically with traffic (including scale-to-zero)
 
-<!-- Screenshot: deploy-page-world-map-with-overview-cards.avif -->
+![Ultralytics Platform Deploy Page World Map With Overview Cards](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-world-map-with-overview-cards.avif)
 
 ## Deployment Options
 
 Ultralytics Platform offers multiple deployment paths:
 
-| Option                  | Description                                         | Best For                |
-| ----------------------- | --------------------------------------------------- | ----------------------- |
-| **Predict Tab**         | Browser-based inference with image, webcam, and URL | Development, validation |
-| **Shared Inference**    | Multi-tenant service across 3 regions               | Light usage, testing    |
-| **Dedicated Endpoints** | Single-tenant services across 43 regions            | Production, low latency |
+| Option                                  | Description                                         | Best For                |
+| --------------------------------------- | --------------------------------------------------- | ----------------------- |
+| **[Predict Tab](inference.md)**         | Browser-based inference with image, webcam, and URL | Development, validation |
+| **Shared Inference**                    | Multi-tenant service across 3 regions               | Light usage, testing    |
+| **[Dedicated Endpoints](endpoints.md)** | Single-tenant services across 43 regions            | Production, low latency |
 
 ## Workflow
 
@@ -43,12 +43,12 @@ graph LR
     style D fill:#9C27B0,color:#fff
 ```
 
-| Stage         | Description                                       |
-| ------------- | ------------------------------------------------- |
-| **Test**      | Validate model with the `Predict` tab             |
-| **Configure** | Select region, resources, and deployment name     |
-| **Deploy**    | Create a dedicated endpoint from the `Deploy` tab |
-| **Monitor**   | Track requests, latency, errors, and logs         |
+| Stage         | Description                                                              |
+| ------------- | ------------------------------------------------------------------------ |
+| **Test**      | Validate model with the [`Predict` tab](inference.md)                    |
+| **Configure** | Select region, resources, and deployment name                            |
+| **Deploy**    | Create a dedicated endpoint from the [`Deploy` tab](endpoints.md)        |
+| **Monitor**   | Track requests, latency, errors, and logs in [Monitoring](monitoring.md) |
 
 ## Architecture
 
@@ -103,7 +103,7 @@ Access the global deployments page from the sidebar under `Deploy`. This page sh
 - **Deployments list** with three view modes: cards, compact, and table
 - **New Deployment** button to create endpoints from any completed model
 
-<!-- Screenshot: deploy-page-overview-cards-and-deployments-list.avif -->
+![Ultralytics Platform Deploy Page Overview Cards And Deployments List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-overview-cards-and-deployments-list.avif)
 
 !!! info "Automatic Polling"
 

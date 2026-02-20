@@ -29,7 +29,7 @@ graph TB
 
 Navigate to **Projects** in the sidebar and click **Create Project**.
 
-<!-- Screenshot: platform-projects-list.avif -->
+![Ultralytics Platform Projects List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-projects-list.avif)
 
 ??? tip "Quick Create"
 
@@ -42,7 +42,7 @@ Enter your project details:
 - **Visibility**: Public (anyone can view) or Private (only you can access)
 - **License**: Optional license for your project (e.g., AGPL-3.0, Apache-2.0)
 
-<!-- Screenshot: platform-new-project-dialog-name-visibility-license.avif -->
+![Ultralytics Platform New Project Dialog Name Visibility License](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-new-project-dialog-name-visibility-license.avif)
 
 Click **Create** to finalize. Your new project appears in the Projects list and sidebar.
 
@@ -55,7 +55,7 @@ The project page has two main areas:
 | **Models Sidebar** | Resizable list of all models in the project with search, status filters, sort options, and checkboxes for selection |
 | **Main Panel**     | Charts dashboard or comparison table (toggle between views)                                                         |
 
-<!-- Screenshot: platform-project-page-sidebar-and-charts.avif -->
+![Ultralytics Platform Project Page Sidebar And Charts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-project-page-sidebar-and-charts.avif)
 
 ### Project Header
 
@@ -72,7 +72,7 @@ Action buttons in the header:
 
 | Button        | Description                                    |
 | ------------- | ---------------------------------------------- |
-| **New Model** | Opens the training dialog                      |
+| **New Model** | Opens the [training dialog](cloud-training.md) |
 | **Clone**     | Clone project and all models (public projects) |
 | **Star**      | Star/unstar the project                        |
 | **Share**     | Social sharing for public projects             |
@@ -86,7 +86,7 @@ Toggle between two view modes using the view controls:
 - **Charts view**: Interactive charts dashboard showing loss curves and metric comparisons for selected models
 - **Table view**: Comparison table showing training arguments and final metrics side-by-side with a diff mode to highlight differing columns
 
-<!-- Screenshot: platform-project-comparison-table-view.avif -->
+![Ultralytics Platform Project Comparison Table View](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-project-comparison-table-view.avif)
 
 ### Models Sidebar
 
@@ -95,8 +95,10 @@ The resizable sidebar lists all models in the project:
 - **Checkboxes** to select which models appear in charts/table
 - **Search** to filter models by name
 - **View options** for status filter (All, Completed, Running, Starting, Failed), grouping by task, and sort order
-- **Drag and drop** `.pt` files directly onto the sidebar to upload models
+- **Drag and drop** `.pt` files directly onto the sidebar to upload models ([model upload details](models.md#upload-model))
 - **Training progress** shown for running models (epoch count and progress bar)
+
+Click any model to open its [model page](models.md).
 
 ## Project Icon
 
@@ -110,10 +112,10 @@ Customize your project icon:
 
 Control who can see your project:
 
-| Setting     | Description                     |
-| ----------- | ------------------------------- |
-| **Public**  | Anyone can view on Explore page |
-| **Private** | Only you and collaborators      |
+| Setting     | Description                                      |
+| ----------- | ------------------------------------------------ |
+| **Public**  | Anyone can view on [Explore](../explore.md) page |
+| **Private** | Only you and collaborators                       |
 
 ## Share with Collaborators
 
@@ -124,7 +126,7 @@ Share private projects with other users:
 3. Set their role
 4. Click **Invite**
 
-Collaborators with editor access can upload models and start training within your project.
+Collaborators with editor access can upload models and start training within your project. See [Teams](../account/settings.md#teams-tab) for role permissions.
 
 ## Clone Project
 
@@ -185,7 +187,7 @@ Upload existing `.pt` model files:
 
 !!! example "Supported Files"
 
-    Only PyTorch `.pt` files from Ultralytics YOLO training are supported. The Platform parses embedded metadata including training results, arguments, task type, and class names.
+    Only PyTorch `.pt` files from Ultralytics YOLO training are supported. The Platform parses embedded metadata including training results, arguments, task type, and class names. See [Models](models.md) for format details.
 
 ## Edit Project
 
@@ -196,7 +198,7 @@ Update project name, description, or settings:
 3. Click the icon to customize it
 4. Click the license badge to change the license
 
-<!-- Screenshot: platform-projects-settings.avif -->
+![Ultralytics Platform Projects Settings](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-projects-settings.avif)
 
 ## Delete Project
 
@@ -207,7 +209,7 @@ Remove a project you no longer need:
 
 !!! warning "Cascading Delete"
 
-    Deleting a project also deletes all models inside it. This action moves items to Trash where they can be restored within 30 days.
+    Deleting a project also deletes all models inside it. This action moves items to [Trash](../account/trash.md) where they can be restored within 30 days.
 
 ## FAQ
 
@@ -223,10 +225,10 @@ There's no hard limit on models per project. However, for better organization, w
 
 Yes, deleted projects go to Trash and can be restored within 30 days:
 
-1. Go to Settings > Trash
+1. Go to [Settings > Trash](../account/trash.md)
 2. Find the project
 3. Click **Restore**
 
 ### Can I transfer models between projects?
 
-Yes, you can clone a model to a different project using the clone model dialog from the model page.
+Yes, you can clone a model to a different project using the clone model dialog from the [model page](models.md#clone-model).

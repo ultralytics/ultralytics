@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, REST API, API reference, authentication, endpoin
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides a comprehensive REST API for programmatic access to datasets, models, training, and deployments.
 
-<!-- Screenshot: platform-api-overview.avif -->
+![Ultralytics Platform Api Overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-api-overview.avif)
 
 !!! tip "Quick Start"
 
@@ -41,16 +41,16 @@ graph LR
     B -->|auto-annotate| B
 ```
 
-| Resource    | Description                   | Key Operations                          |
-| ----------- | ----------------------------- | --------------------------------------- |
-| Datasets    | Labeled image collections     | CRUD, images, labels, export, clone     |
-| Projects    | Training workspaces           | CRUD, clone, icon                       |
-| Models      | Trained checkpoints           | CRUD, predict, download, clone, export  |
-| Deployments | Dedicated inference endpoints | CRUD, start/stop, metrics, logs, health |
-| Exports     | Format conversion jobs        | Create, status, download                |
-| Training    | Cloud GPU training jobs       | Start, status, cancel                   |
-| Billing     | Credits and subscriptions     | Balance, top-up, payment methods        |
-| Teams       | Workspace collaboration       | Members, invites, roles                 |
+| Resource                                   | Description                   | Key Operations                          |
+| ------------------------------------------ | ----------------------------- | --------------------------------------- |
+| [Datasets](../data/datasets.md)            | Labeled image collections     | CRUD, images, labels, export, clone     |
+| [Projects](../train/projects.md)           | Training workspaces           | CRUD, clone, icon                       |
+| [Models](../train/models.md)               | Trained checkpoints           | CRUD, predict, download, clone, export  |
+| [Deployments](../deploy/endpoints.md)      | Dedicated inference endpoints | CRUD, start/stop, metrics, logs, health |
+| [Exports](../train/models.md#export-model) | Format conversion jobs        | Create, status, download                |
+| [Training](../train/cloud-training.md)     | Cloud GPU training jobs       | Start, status, cancel                   |
+| [Billing](../account/billing.md)           | Credits and subscriptions     | Balance, top-up, payment methods        |
+| [Teams](../account/settings.md#teams-tab)  | Workspace collaboration       | Members, invites, roles                 |
 
 ## Authentication
 
@@ -282,7 +282,7 @@ PATCH /api/datasets/{datasetId}
 DELETE /api/datasets/{datasetId}
 ```
 
-Soft-deletes the dataset (moved to trash, recoverable for 30 days).
+Soft-deletes the dataset (moved to [trash](../account/trash.md), recoverable for 30 days).
 
 ### Clone Dataset
 
@@ -512,7 +512,7 @@ PATCH /api/projects/{projectId}
 DELETE /api/projects/{projectId}
 ```
 
-Soft-deletes the project (moved to trash).
+Soft-deletes the project (moved to [trash](../account/trash.md)).
 
 ### Clone Project
 
@@ -1324,6 +1324,8 @@ POST /api/members
     | `viewer` | Read-only access to workspace resources    |
     | `editor` | Create, edit, and delete resources          |
     | `admin`  | Full access including member management     |
+
+    See [Teams](../account/settings.md#teams-tab) for role details in the UI.
 
 ### Update Member Role
 

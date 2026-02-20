@@ -39,7 +39,7 @@ Ultralytics Platform is designed to replace fragmented ML tooling with a unified
 - **HuggingFace** - Model deployment
 - **Arize** - Monitoring
 
-All in one platform with native support for YOLO26 and YOLO11 models.
+All in one platform with native support for [YOLO26](../models/yolo26.md) and [YOLO11](../models/yolo11.md) models.
 
 ## Workflow: Upload → Annotate → Train → Export → Deploy
 
@@ -62,20 +62,20 @@ graph LR
     Data --> Train --> Deploy
 ```
 
-| Stage        | Features                                                                    |
-| ------------ | --------------------------------------------------------------------------- |
-| **Upload**   | Images (50MB), videos (1GB), ZIP archives (10GB) with automatic processing  |
-| **Annotate** | Manual tools, SAM smart annotation, YOLO auto-labeling for all 5 task types |
-| **Train**    | Cloud GPUs (RTX 4090 to H200), real-time metrics, project organization      |
-| **Export**   | 17 deployment formats (ONNX, TensorRT, CoreML, TFLite, etc.)                |
-| **Deploy**   | 43 global regions with dedicated endpoints, auto-scaling, monitoring        |
+| Stage        | Features                                                                                                                                       |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Upload**   | Images (50MB), videos (1GB), ZIP archives (10GB) with automatic processing                                                                     |
+| **Annotate** | Manual tools, SAM smart annotation, YOLO auto-labeling for all 5 task types (see [supported tasks](data/index.md#supported-tasks))             |
+| **Train**    | Cloud GPUs (22 options from RTX 2000 Ada to B200), real-time metrics, project organization                                                     |
+| **Export**   | [17 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.; see [supported formats](train/models.md#supported-formats)) |
+| **Deploy**   | 43 global regions with dedicated endpoints, auto-scaling, monitoring                                                                           |
 
 **What you can do:**
 
 - **Upload** images, videos, and ZIP archives to create training datasets
-- **Visualize** annotations with interactive overlays for all 5 YOLO task types
-- **Train** models on cloud GPUs (RTX 4090 to H200) with real-time metrics
-- **Export** to 17 deployment formats (ONNX, TensorRT, CoreML, TFLite, etc.)
+- **Visualize** annotations with interactive overlays for all 5 YOLO task types (see [supported tasks](data/index.md#supported-tasks))
+- **Train** models on 22 cloud GPU types with real-time metrics
+- **Export** to [17 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.)
 - **Deploy** to 43 global regions with one-click dedicated endpoints
 - **Monitor** training progress, deployment health, and usage metrics
 - **Collaborate** by making projects and datasets public for the community
@@ -101,8 +101,8 @@ You select your region during onboarding, and all your data, models, and deploym
 ### Data Preparation
 
 - **Dataset Management**: Upload images, videos, or ZIP archives with automatic processing
-- **Annotation Editor**: Manual annotation for all 5 YOLO task types (detect, segment, pose, OBB, classify)
-- **SAM Smart Annotation**: Click-based intelligent annotation using Segment Anything Model
+- **Annotation Editor**: Manual annotation for all 5 YOLO task types (detect, segment, pose, OBB, classify; see [supported tasks](data/index.md#supported-tasks))
+- **SAM Smart Annotation**: Click-based intelligent annotation using [Segment Anything Model](../models/sam.md)
 - **Auto-Annotation**: Use trained models to pre-label new data
 - **Statistics**: Class distribution, location heatmaps, and dimension analysis
 
@@ -121,14 +121,14 @@ graph LR
 
 !!! tip "Supported Task Types"
 
-    The annotation editor supports all 5 YOLO task types: **detect** (bounding boxes), **segment** (polygons), **pose** (keypoints), **OBB** (oriented boxes), and **classify** (image-level labels). Each task type has dedicated drawing tools and keyboard shortcuts.
+    The annotation editor supports all 5 YOLO task types: **[detect](../datasets/detect/index.md)** (bounding boxes), **[segment](../datasets/segment/index.md)** (polygons), **[pose](../datasets/pose/index.md)** (keypoints), **[OBB](../datasets/obb/index.md)** (oriented boxes), and **[classify](../datasets/classify/index.md)** (image-level labels). Each task type has dedicated drawing tools and keyboard shortcuts.
 
 ### Model Training
 
-- **Cloud Training**: Train on 22 cloud GPU types (RTX 4090, A100, H100, B200, and more) with real-time metrics
+- **Cloud Training**: Train on 22 cloud GPU types with real-time metrics
 - **Remote Training**: Train anywhere and stream metrics to Platform (W&B-style)
 - **Project Organization**: Group related models, compare experiments, track activity
-- **17 Export Formats**: ONNX, TensorRT, CoreML, TFLite, and more
+- **17 Export Formats**: ONNX, TensorRT, CoreML, TFLite, and more (see [supported formats](train/models.md#supported-formats))
 
 ![Ultralytics Platform Project Screenshot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/project-screenshot.avif)
 
@@ -296,37 +296,37 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 - **No-Code Training**: Train advanced YOLO models without writing code
 - **Real-Time Metrics**: Stream training progress and monitor deployments
 - **43 Deploy Regions**: Deploy models close to your users worldwide
-- **5 Task Types**: Support for detection, segmentation, pose, OBB, and classification
+- **5 Task Types**: Support for detection, segmentation, pose, OBB, and classification (see [task docs](../tasks/index.md))
 - **AI-Assisted Annotation**: SAM and auto-labeling to speed up data preparation
 
 ### What GPU options are available for cloud training?
 
 Ultralytics Platform supports multiple GPU types for cloud training:
 
-| Tier       | GPU          | VRAM   | Cost/Hour | Best For                |
-| ---------- | ------------ | ------ | --------- | ----------------------- |
-| Budget     | RTX 2000 Ada | 16 GB  | $0.24     | Small datasets, testing |
-| Budget     | RTX A4500    | 20 GB  | $0.24     | Small-medium datasets   |
-| Budget     | RTX A5000    | 24 GB  | $0.26     | Medium datasets         |
-| Budget     | RTX 4000 Ada | 20 GB  | $0.38     | Medium datasets         |
-| Budget     | L4           | 24 GB  | $0.39     | Inference optimized     |
-| Budget     | A40          | 48 GB  | $0.40     | Larger batch sizes      |
-| Budget     | RTX 3090     | 24 GB  | $0.46     | General training        |
-| Budget     | RTX A6000    | 48 GB  | $0.49     | Large models            |
-| Mid        | RTX 4090     | 24 GB  | $0.59     | Great price/performance |
-| Mid        | RTX 6000 Ada | 48 GB  | $0.77     | Large batch training    |
-| Mid        | L40S         | 48 GB  | $0.86     | Large batch training    |
-| Mid        | RTX 5090     | 32 GB  | $0.89     | Latest generation       |
-| Mid        | L40          | 48 GB  | $0.99     | Large models            |
-| Pro        | A100 PCIe    | 80 GB  | $1.39     | Production training     |
-| Pro        | A100 SXM     | 80 GB  | $1.49     | Production training     |
-| Pro        | RTX PRO 6000 | 96 GB  | $1.89     | Blackwell generation    |
-| Enterprise | H100 PCIe    | 80 GB  | $2.39     | Fastest training        |
-| Enterprise | H100 SXM     | 80 GB  | $2.69     | Fastest training        |
-| Enterprise | H100 NVL     | 94 GB  | $3.07     | High-memory training    |
-| Enterprise | H200 NVL     | 143 GB | $3.39     | Maximum memory          |
-| Enterprise | H200 SXM     | 141 GB | $3.59     | Maximum performance     |
-| Enterprise | B200         | 180 GB | $4.99     | Largest models          |
+| GPU          | VRAM   | Cost/Hour | Best For                |
+| ------------ | ------ | --------- | ----------------------- |
+| RTX 2000 Ada | 16 GB  | $0.24     | Small datasets, testing |
+| RTX A4500    | 20 GB  | $0.24     | Small-medium datasets   |
+| RTX A5000    | 24 GB  | $0.26     | Medium datasets         |
+| RTX 4000 Ada | 20 GB  | $0.38     | Medium datasets         |
+| L4           | 24 GB  | $0.39     | Inference optimized     |
+| A40          | 48 GB  | $0.40     | Larger batch sizes      |
+| RTX 3090     | 24 GB  | $0.46     | General training        |
+| RTX A6000    | 48 GB  | $0.49     | Large models            |
+| RTX 4090     | 24 GB  | $0.59     | Great price/performance |
+| RTX 6000 Ada | 48 GB  | $0.77     | Large batch training    |
+| L40S         | 48 GB  | $0.86     | Large batch training    |
+| RTX 5090     | 32 GB  | $0.89     | Latest generation       |
+| L40          | 48 GB  | $0.99     | Large models            |
+| A100 PCIe    | 80 GB  | $1.39     | Production training     |
+| A100 SXM     | 80 GB  | $1.49     | Production training     |
+| RTX PRO 6000 | 96 GB  | $1.89     | Recommended default     |
+| H100 PCIe    | 80 GB  | $2.39     | Fastest training        |
+| H100 SXM     | 80 GB  | $2.69     | Fastest training        |
+| H100 NVL     | 94 GB  | $3.07     | High-memory training    |
+| H200 NVL     | 143 GB | $3.39     | Maximum memory          |
+| H200 SXM     | 141 GB | $3.59     | Maximum performance     |
+| B200         | 180 GB | $4.99     | Largest models          |
 
 See [Cloud Training](train/cloud-training.md) for complete pricing and GPU options.
 
@@ -379,15 +379,14 @@ You can train models on your own hardware and stream real-time metrics to Platfo
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100 project=username/my-project name=exp1
     ```
 
-See [Cloud Training](train/cloud-training.md) for more details on remote training.
+See [Cloud Training](train/cloud-training.md#remote-training) for more details on remote training.
 
 ### What annotation tools are available?
 
 The Platform includes a full-featured annotation editor supporting:
 
 - **Manual Tools**: Bounding boxes, polygons, keypoints, oriented boxes, classification
-- **SAM Smart Annotation**: Click to generate precise masks using Segment Anything Model
-- **YOLO Auto-Annotation**: Use trained models to pre-label images
+- **SAM Smart Annotation**: Click to generate precise masks using [Segment Anything Model](../models/sam.md)
 - **Keyboard Shortcuts**: Efficient workflows with hotkeys
 
 | Shortcut  | Action                     |
@@ -424,19 +423,21 @@ The Platform supports 17 deployment formats:
 | TF.js         | `_web_model`      | Browser deployment        |
 | MNN           | `.mnn`            | Alibaba mobile            |
 | RKNN          | `.rknn`           | Rockchip NPU              |
-| IMX           | `_imx_model`      | NXP i.MX devices          |
+| IMX500        | `_imx_model`      | Sony IMX500 sensor        |
 | ExecuTorch    | `.pte`            | PyTorch mobile            |
+
+See [Models Export](train/models.md#export-model), the [Export mode guide](../modes/export.md), and the [Integrations index](../integrations/index.md) for format-specific options.
 
 ## Troubleshooting
 
 ### Dataset Issues
 
-| Problem                | Solution                                                                                                 |
-| ---------------------- | -------------------------------------------------------------------------------------------------------- |
-| Dataset won't process  | Check file format is supported (JPEG, PNG, WebP, etc.). Max file size: images 50MB, videos 1GB, ZIP 10GB |
-| Missing annotations    | Verify labels are in YOLO format with `.txt` files matching image filenames                              |
-| "Train split required" | Add `train/` folder to your dataset structure, or create splits in the dataset settings                  |
-| Class names undefined  | Add a `data.yaml` file with `names:` list, or define classes in dataset settings                         |
+| Problem                | Solution                                                                                                                                                  |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dataset won't process  | Check file format is supported (JPEG, PNG, WebP, etc.). Max file size: images 50MB, videos 1GB, ZIP 10GB                                                  |
+| Missing annotations    | Verify labels are in [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format) with `.txt` files matching image filenames                        |
+| "Train split required" | Add `train/` folder to your dataset structure, or create splits in [dataset settings](data/datasets.md#filter-by-split)                                   |
+| Class names undefined  | Add a `data.yaml` file with `names:` list (see [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format)), or define classes in dataset settings |
 
 ### Training Issues
 
@@ -449,12 +450,12 @@ The Platform supports 17 deployment formats:
 
 ### Deployment Issues
 
-| Problem                 | Solution                                                                               |
-| ----------------------- | -------------------------------------------------------------------------------------- |
-| Endpoint not responding | Check endpoint status (Running vs Stopped). Cold start may take 2-5 seconds            |
-| 401 Unauthorized        | Verify API key is correct and has required scopes                                      |
-| Slow inference          | Check model size, consider TensorRT export, select closer region                       |
-| Export failed           | Some formats require specific model architectures. Try ONNX for broadest compatibility |
+| Problem                 | Solution                                                                                                                    |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Endpoint not responding | Check endpoint status (Running vs Stopped). Cold start may take 2-5 seconds                                                 |
+| 401 Unauthorized        | Verify API key is correct and has required scopes                                                                           |
+| Slow inference          | Check model size, consider [TensorRT export](train/models.md#supported-formats), select closer region                       |
+| Export failed           | Some formats require specific model architectures. Try [ONNX](train/models.md#supported-formats) for broadest compatibility |
 
 ### Common Questions
 

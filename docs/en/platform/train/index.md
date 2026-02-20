@@ -12,13 +12,13 @@ keywords: Ultralytics Platform, model training, cloud training, YOLO, GPU traini
 
 The Training section helps you:
 
-- **Organize** models into projects for easier management
+- **Organize** models into [projects](projects.md) for easier management
 - **Train** on cloud GPUs with a single click
 - **Monitor** real-time metrics during training
 - **Compare** model performance across experiments
-- **Export** to 17+ deployment formats
+- **Export** to 17+ deployment formats (see [supported formats](models.md#supported-formats))
 
-<!-- Screenshot: platform-train-overview.avif -->
+![Ultralytics Platform Train Overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-train-overview.avif)
 
 ## Workflow
 
@@ -36,52 +36,52 @@ graph LR
     style E fill:#00BCD4,color:#fff
 ```
 
-| Stage         | Description                                         |
-| ------------- | --------------------------------------------------- |
-| **Project**   | Create a workspace to organize related models       |
-| **Configure** | Select dataset, base model, and training parameters |
-| **Train**     | Run on cloud GPUs or your local hardware            |
-| **Monitor**   | View real-time loss curves and metrics              |
-| **Export**    | Convert to 17+ deployment formats                   |
+| Stage         | Description                                                                |
+| ------------- | -------------------------------------------------------------------------- |
+| **Project**   | Create a workspace to organize related models                              |
+| **Configure** | Select [dataset](../data/datasets.md), base model, and training parameters |
+| **Train**     | Run on cloud GPUs or your local hardware                                   |
+| **Monitor**   | View real-time loss curves and metrics                                     |
+| **Export**    | Convert to 17+ deployment formats ([details](models.md#supported-formats)) |
 
 ## Training Options
 
 Ultralytics Platform supports multiple training approaches:
 
-| Method              | Description                                | Best For                   |
-| ------------------- | ------------------------------------------ | -------------------------- |
-| **Cloud Training**  | Train on Ultralytics Cloud GPUs            | No local GPU, scalability  |
-| **Remote Training** | Train locally, stream metrics to Platform  | Existing hardware, privacy |
-| **Colab Training**  | Use Google Colab with Platform integration | Free GPU access            |
+| Method                                                   | Description                                | Best For                   |
+| -------------------------------------------------------- | ------------------------------------------ | -------------------------- |
+| **[Cloud Training](cloud-training.md)**                  | Train on Ultralytics Cloud GPUs            | No local GPU, scalability  |
+| **[Remote Training](cloud-training.md#remote-training)** | Train locally, stream metrics to Platform  | Existing hardware, privacy |
+| **[Colab Training](cloud-training.md#remote-training)**  | Use Google Colab with Platform integration | Free GPU access            |
 
 ## GPU Options
 
 Available GPUs for cloud training on Ultralytics Cloud:
 
-| Tier       | GPU          | VRAM   | Cost/Hour | Best For                  |
-| ---------- | ------------ | ------ | --------- | ------------------------- |
-| Budget     | RTX 2000 Ada | 16 GB  | $0.24     | Small datasets, testing   |
-| Budget     | RTX A4500    | 20 GB  | $0.24     | Small-medium datasets     |
-| Budget     | RTX A5000    | 24 GB  | $0.26     | Medium datasets           |
-| Budget     | RTX 4000 Ada | 20 GB  | $0.38     | Medium datasets           |
-| Budget     | L4           | 24 GB  | $0.39     | Inference optimized       |
-| Budget     | A40          | 48 GB  | $0.40     | Larger batch sizes        |
-| Budget     | RTX 3090     | 24 GB  | $0.46     | Great price/performance   |
-| Budget     | RTX A6000    | 48 GB  | $0.49     | Large models              |
-| Mid        | RTX 4090     | 24 GB  | $0.59     | Best price/performance    |
-| Mid        | RTX 6000 Ada | 48 GB  | $0.77     | Large batch training      |
-| Mid        | L40S         | 48 GB  | $0.86     | Large batch training      |
-| Mid        | RTX 5090     | 32 GB  | $0.89     | Blackwell generation      |
-| Mid        | L40          | 48 GB  | $0.99     | Large models              |
-| Pro        | A100 PCIe    | 80 GB  | $1.39     | Production training       |
-| Pro        | A100 SXM     | 80 GB  | $1.49     | Production training       |
-| Pro        | RTX PRO 6000 | 96 GB  | $1.89     | Blackwell, large models   |
-| Enterprise | H100 PCIe    | 80 GB  | $2.39     | High-performance training |
-| Enterprise | H100 SXM     | 80 GB  | $2.69     | Fastest training          |
-| Enterprise | H100 NVL     | 94 GB  | $3.07     | Maximum performance       |
-| Enterprise | H200 NVL     | 143 GB | $3.39     | Maximum memory            |
-| Enterprise | H200 SXM     | 141 GB | $3.59     | Maximum performance       |
-| Enterprise | B200         | 180 GB | $4.99     | Blackwell, largest models |
+| GPU          | VRAM   | Cost/Hour | Best For                  |
+| ------------ | ------ | --------- | ------------------------- |
+| RTX 2000 Ada | 16 GB  | $0.24     | Small datasets, testing   |
+| RTX A4500    | 20 GB  | $0.24     | Small-medium datasets     |
+| RTX A5000    | 24 GB  | $0.26     | Medium datasets           |
+| RTX 4000 Ada | 20 GB  | $0.38     | Medium datasets           |
+| L4           | 24 GB  | $0.39     | Inference optimized       |
+| A40          | 48 GB  | $0.40     | Larger batch sizes        |
+| RTX 3090     | 24 GB  | $0.46     | Great price/performance   |
+| RTX A6000    | 48 GB  | $0.49     | Large models              |
+| RTX 4090     | 24 GB  | $0.59     | Best price/performance    |
+| RTX 6000 Ada | 48 GB  | $0.77     | Large batch training      |
+| L40S         | 48 GB  | $0.86     | Large batch training      |
+| RTX 5090     | 32 GB  | $0.89     | Latest generation         |
+| L40          | 48 GB  | $0.99     | Large models              |
+| A100 PCIe    | 80 GB  | $1.39     | Production training       |
+| A100 SXM     | 80 GB  | $1.49     | Production training       |
+| RTX PRO 6000 | 96 GB  | $1.89     | Recommended default       |
+| H100 PCIe    | 80 GB  | $2.39     | High-performance training |
+| H100 SXM     | 80 GB  | $2.69     | Fastest training          |
+| H100 NVL     | 94 GB  | $3.07     | Maximum performance       |
+| H200 NVL     | 143 GB | $3.39     | Maximum memory            |
+| H200 SXM     | 141 GB | $3.59     | Maximum performance       |
+| B200         | 180 GB | $4.99     | Largest models            |
 
 !!! tip "Signup Credits"
 
@@ -165,7 +165,7 @@ Training time depends on:
 - Number of epochs
 - GPU type selected
 
-A typical training run with 1000 images, YOLO26n, 100 epochs on RTX 4090 takes about 30-60 minutes.
+A typical training run with 1000 images, YOLO26n, 100 epochs on RTX PRO 6000 takes about 30-60 minutes.
 
 ### Can I train multiple models simultaneously?
 
@@ -181,9 +181,8 @@ If training fails:
 
 ### How do I choose the right GPU?
 
-| Scenario                            | Recommended GPU  |
-| ----------------------------------- | ---------------- |
-| Small datasets (<5000 images)       | RTX 4090         |
-| Medium datasets (5000-50000 images) | A100 SXM         |
-| Large datasets or batch sizes       | H100 SXM or H200 |
-| Budget-conscious                    | RTX 3090         |
+| Scenario                      | Recommended GPU  |
+| ----------------------------- | ---------------- |
+| Most training jobs            | RTX PRO 6000     |
+| Large datasets or batch sizes | H100 SXM or H200 |
+| Budget-conscious              | RTX 4090         |

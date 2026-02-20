@@ -8,11 +8,11 @@ keywords: Ultralytics Platform, monitoring, metrics, logs, deployment, performan
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides monitoring for deployed endpoints. Track request metrics, view logs, and check health status with automatic polling.
 
-<!-- Screenshot: deploy-page-overview-cards-and-world-map.avif -->
+![Ultralytics Platform Deploy Page Overview Cards And World Map](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-overview-cards-and-world-map.avif)
 
 ## Deployments Dashboard
 
-The `Deploy` page in the sidebar serves as the monitoring dashboard for all your deployments. It combines the world map, overview metrics, and deployment management in one view.
+The `Deploy` page in the sidebar serves as the monitoring dashboard for all your deployments. It combines the world map, overview metrics, and deployment management in one view. See [Dedicated Endpoints](endpoints.md) for creating and managing deployments.
 
 ```mermaid
 graph TB
@@ -43,7 +43,7 @@ graph TB
 
 Four summary cards at the top of the page show:
 
-<!-- Screenshot: deploy-page-four-overview-cards.avif -->
+![Ultralytics Platform Deploy Page Four Overview Cards](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-four-overview-cards.avif)
 
 | Metric                   | Description                   |
 | ------------------------ | ----------------------------- |
@@ -65,7 +65,7 @@ The interactive world map shows:
 - **Animated blue pins** for regions with active deployments in progress
 - **Pin size** varies based on deployment status and latency
 
-<!-- Screenshot: deploy-page-world-map-with-deployed-regions.avif -->
+![Ultralytics Platform Deploy Page World Map With Deployed Regions](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-world-map-with-deployed-regions.avif)
 
 ### Deployments List
 
@@ -107,7 +107,7 @@ Running deployments show a health check indicator:
 
 Health checks auto-retry every 20 seconds when unhealthy. Click the refresh icon to manually trigger a health check. The health check has a 35-second timeout to accommodate cold starts.
 
-<!-- Screenshot: deployment-card-health-check-healthy-with-latency.avif -->
+![Ultralytics Platform Deployment Card Health Check Healthy With Latency](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deployment-card-health-check-healthy-with-latency.avif)
 
 !!! info "Cold Start Tolerance"
 
@@ -117,7 +117,7 @@ Health checks auto-retry every 20 seconds when unhealthy. Click the refresh icon
 
 Each deployment card includes a `Logs` tab for viewing recent log entries:
 
-<!-- Screenshot: deployment-card-logs-tab-with-severity-filter.avif -->
+![Ultralytics Platform Deployment Card Logs Tab With Severity Filter](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deployment-card-logs-tab-with-severity-filter.avif)
 
 ### Log Entries
 
@@ -130,26 +130,26 @@ Each log entry shows:
 | **Message**   | Log content                             |
 | **HTTP info** | Status code and latency (if applicable) |
 
-### Severity Levels
+=== "Severity Levels"
 
-Filter logs by severity using the filter buttons:
+    Filter logs by severity using the filter buttons:
 
-| Level        | Color    | Description         |
-| ------------ | -------- | ------------------- |
-| **DEBUG**    | Gray     | Debug messages      |
-| **INFO**     | Blue     | Normal requests     |
-| **WARNING**  | Yellow   | Non-critical issues |
-| **ERROR**    | Red      | Failed requests     |
-| **CRITICAL** | Dark Red | Critical failures   |
+    | Level        | Color    | Description         |
+    | ------------ | -------- | ------------------- |
+    | **DEBUG**    | Gray     | Debug messages      |
+    | **INFO**     | Blue     | Normal requests     |
+    | **WARNING**  | Yellow   | Non-critical issues |
+    | **ERROR**    | Red      | Failed requests     |
+    | **CRITICAL** | Dark Red | Critical failures   |
 
-### Log Controls
+=== "Log Controls"
 
-| Control     | Description                         |
-| ----------- | ----------------------------------- |
-| **Errors**  | Filter to ERROR and WARNING entries |
-| **All**     | Show all log entries                |
-| **Copy**    | Copy all visible logs to clipboard  |
-| **Refresh** | Reload log entries                  |
+    | Control     | Description                         |
+    | ----------- | ----------------------------------- |
+    | **Errors**  | Filter to ERROR and WARNING entries |
+    | **All**     | Show all log entries                |
+    | **Copy**    | Copy all visible logs to clipboard  |
+    | **Refresh** | Reload log entries                  |
 
 Logs show the 20 most recent entries per request.
 
@@ -220,11 +220,11 @@ Each deployment card includes a `Code` tab showing ready-to-use API code with yo
 
 !!! note "Auto-Populated Credentials"
 
-    When viewing the `Code` tab in the platform, your actual endpoint URL and API key are automatically filled in. Copy the code and run it directly.
+    When viewing the `Code` tab in the platform, your actual endpoint URL and API key are automatically filled in. Copy the code and run it directly. See [API Keys](../account/api-keys.md) to generate a key.
 
 ## Deployment Predict
 
-The `Predict` tab on each deployment card provides an inline predict panel — the same interface as the model's `Predict` tab, but running inference through the deployment endpoint instead of the shared service. This is useful for testing a deployed endpoint directly from the browser.
+The `Predict` tab on each deployment card provides an inline predict panel — the same interface as the model's `Predict` tab, but running inference through the deployment endpoint instead of the shared service. This is useful for testing a deployed endpoint directly from the browser. See [Inference](inference.md) for parameter details and response formats.
 
 ## API Endpoints
 
@@ -277,36 +277,36 @@ Returns health check status with response latency.
 
 Use monitoring data to optimize your deployments:
 
-### High Latency
+=== "High Latency"
 
-If latency is too high:
+    If latency is too high:
 
-1. Check instance count (may need more)
-2. Verify model size is appropriate
-3. Consider a closer region
-4. Check image sizes being sent
+    1. Check instance count (may need more)
+    2. Verify model size is appropriate
+    3. Consider a closer region
+    4. Check image sizes being sent
 
-!!! example "Reducing Latency"
+    !!! example "Reducing Latency"
 
-    Switch from `imgsz=1280` to `imgsz=640` for a ~4x speedup with minimal accuracy loss for most use cases. Deploy to a region closer to your users for lower network latency.
+        Switch from `imgsz=1280` to `imgsz=640` for a ~4x speedup with minimal accuracy loss for most use cases. Deploy to a region closer to your users for lower network latency.
 
-### High Error Rate
+=== "High Error Rate"
 
-If errors are occurring:
+    If errors are occurring:
 
-1. Review error logs in the `Logs` tab
-2. Check request format (multipart form required)
-3. Verify API key is valid
-4. Check rate limits
+    1. Review error logs in the `Logs` tab
+    2. Check request format (multipart form required)
+    3. Verify API key is valid
+    4. Check rate limits
 
-### Scaling Issues
+=== "Scaling Issues"
 
-If hitting capacity:
+    If hitting capacity:
 
-1. Increase max instances
-2. Set min instances > 0
-3. Consider multiple regions
-4. Optimize request batching
+    1. Increase max instances
+    2. Set min instances > 0
+    3. Consider multiple regions
+    4. Optimize request batching
 
 ## Export Data
 

@@ -209,7 +209,7 @@ Export your model to 17+ deployment formats:
 
 ### Supported Formats
 
-{% include "macros/export-table.md" %}
+The Platform supports export to [17+ deployment formats](../../modes/export.md#export-formats) including ONNX, TensorRT, CoreML, TF Lite, and more.
 
 ### Format Selection Guide
 

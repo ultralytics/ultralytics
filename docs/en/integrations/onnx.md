@@ -6,9 +6,24 @@ keywords: YOLO26, ONNX, model export, Ultralytics, ONNX Runtime, machine learnin
 
 # ONNX Export for YOLO26 Models
 
+???+ tip "~43% faster inference."
+
+    - Exporting the Ultralytics YOLO26 model to ONNX can deliver up to a 43% boost in inference speed, enabling faster and more efficient deployment.
+
 Often, when deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models, you'll need a model format that's both flexible and compatible with multiple platforms.
 
 Exporting [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models to ONNX format streamlines deployment and ensures optimal performance across various environments. This guide will show you how to easily convert your YOLO26 models to ONNX and enhance their scalability and effectiveness in real-world applications.
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/cxU5E2SkivU"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Ultralytics YOLO26 vs Ultralytics YOLO11 ONNX Inference Test | ~43% Faster Inference with YOLO26 🚀
+</p>
 
 ## ONNX and ONNX Runtime
 

@@ -73,7 +73,7 @@ from ultralytics.nn.modules import (
     YOLOESegment26,
     v10Detect,
 )
-from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, YAML, colorstr, emojis
+from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, SETTINGS, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
     E2ELoss,
@@ -1623,6 +1623,8 @@ def parse_model(d, ch, verbose=True):
             A2C2f,
         }
     )
+    if SETTINGS.get("yaml_exec"):
+        exec(d.get("module", {}).get("init", ""), globals())  # run custom init script
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
         m = (
             getattr(torch.nn, m[3:])
@@ -1708,6 +1710,10 @@ def parse_model(d, ch, verbose=True):
             c2 = args[0]
             c1 = ch[f]
             args = [*args[1:]]
+        elif SETTINGS.get("yaml_exec"):
+            namespace = locals()
+            exec(d.get("module", {}).get("parse", ""), globals(), namespace)  # run custom parser
+            args = namespace.get("args", args)
         else:
             c2 = ch[f]
 

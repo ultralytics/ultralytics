@@ -145,7 +145,7 @@ You can train models either through the web UI (cloud training) or from your own
 
     ```bash
     # Install ultralytics
-    pip install "ultralytics>=8.4.0"
+    pip install "ultralytics>=8.4.14"
 
     # Set your API key
     export ULTRALYTICS_API_KEY="your_api_key"
@@ -336,10 +336,10 @@ You can train models on your own hardware and stream real-time metrics to Platfo
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.0**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.14**. Lower versions will NOT work with Platform.
 
     ```bash
-    pip install "ultralytics>=8.4.0"
+    pip install "ultralytics>=8.4.14"
     ```
 
 === "CLI"
@@ -408,7 +408,6 @@ The Platform supports 17 deployment formats:
 
 | Format        | File Extension    | Use Case                  |
 | ------------- | ----------------- | ------------------------- |
-| PyTorch       | `.pt`             | Training, general use     |
 | ONNX          | `.onnx`           | Cross-platform deployment |
 | TorchScript   | `.torchscript`    | C++ deployment            |
 | OpenVINO      | `_openvino_model` | Intel hardware            |
@@ -422,9 +421,10 @@ The Platform supports 17 deployment formats:
 | Edge TPU      | `_edgetpu.tflite` | Google Coral devices      |
 | TF.js         | `_web_model`      | Browser deployment        |
 | MNN           | `.mnn`            | Alibaba mobile            |
-| RKNN          | `.rknn`           | Rockchip NPU              |
+| RKNN          | `_rknn_model`     | Rockchip NPU              |
 | IMX500        | `_imx_model`      | Sony IMX500 sensor        |
-| ExecuTorch    | `.pte`            | PyTorch mobile            |
+| Axelera       | `_axelera_model`  | Axelera AI accelerators   |
+| ExecuTorch    | `_executorch_model` | PyTorch mobile          |
 
 See [Models Export](train/models.md#export-model), the [Export mode guide](../modes/export.md), and the [Integrations index](../integrations/index.md) for format-specific options.
 
@@ -443,7 +443,7 @@ See [Models Export](train/models.md#export-model), the [Export mode guide](../mo
 
 | Problem              | Solution                                                                            |
 | -------------------- | ----------------------------------------------------------------------------------- |
-| Training won't start | Check credit balance in Settings > Billing. Minimum $5.00 required                  |
+| Training won't start | Check credit balance in Settings > Billing. Positive balance required                |
 | Out of memory error  | Reduce batch size, use smaller model (n/s), or select GPU with more VRAM            |
 | Poor metrics         | Check dataset quality, increase epochs, try data augmentation, verify class balance |
 | Training slow        | Select faster GPU, reduce image size, check dataset isn't bottlenecked              |

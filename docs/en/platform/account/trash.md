@@ -142,7 +142,7 @@ Items in Trash still count toward your storage quota:
 
 ## API Access
 
-Manage Trash programmatically via the [REST API](../api/index.md#trash-api). Use your [API key](api-keys.md) for authentication:
+Access trash programmatically via the [REST API](../api/index.md#trash-api):
 
 === "List Trash"
 
@@ -156,14 +156,14 @@ Manage Trash programmatically via the [REST API](../api/index.md#trash-api). Use
     ```bash
     curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
       -H "Content-Type: application/json" \
-      -d '{"itemId": "item_abc123", "type": "dataset"}' \
+      -d '{"id": "item_abc123", "type": "dataset"}' \
       https://platform.ultralytics.com/api/trash
     ```
 
 === "Empty Trash"
 
     ```bash
-    curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
+    curl -X DELETE -H "Authorization: Bearer YOUR_API_KEY" \
       https://platform.ultralytics.com/api/trash/empty
     ```
 

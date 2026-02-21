@@ -169,7 +169,7 @@ A typical training run with 1000 images, YOLO26n, 100 epochs on RTX PRO 6000 tak
 
 ### Can I train multiple models simultaneously?
 
-Cloud training currently supports one concurrent training job per account. For parallel training, use remote training from multiple machines.
+Yes. Concurrent cloud training limits depend on your plan: Free allows 3, Pro allows 10, and Enterprise is unlimited. For additional parallel training, use remote training from multiple machines.
 
 ### What happens if training fails?
 

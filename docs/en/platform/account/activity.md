@@ -122,17 +122,19 @@ Access activity programmatically via the [REST API](../api/index.md#activity-api
       https://platform.ultralytics.com/api/activity
     ```
 
-=== "Filter by Date"
+=== "Filter and Search"
 
     ```bash
     curl -H "Authorization: Bearer YOUR_API_KEY" \
-      "https://platform.ultralytics.com/api/activity?start=2025-01-01T00:00:00Z&end=2025-01-31T23:59:59Z"
+      "https://platform.ultralytics.com/api/activity?archived=false&search=model&page=1&limit=20"
     ```
 
 === "Mark Seen"
 
     ```bash
     curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"all": true}' \
       https://platform.ultralytics.com/api/activity/mark-seen
     ```
 

@@ -165,7 +165,7 @@ graph LR
 ```
 
 1. **Validation**: Format and size checks
-2. **Normalization**: Large images resized (max 4096px, min dimension 64px)
+2. **Normalization**: Large images resized (max 4096px, min dimension 28px)
 3. **Thumbnails**: 256px WebP previews generated
 4. **Label Parsing**: [YOLO](../../datasets/detect/index.md#ultralytics-yolo-format) and COCO format labels extracted
 5. **Statistics**: Class distributions and image dimensions computed
@@ -184,7 +184,7 @@ graph LR
 
 !!! warning "Image Size Requirements"
 
-    Images must be at least 64px on their shortest side. Images smaller than this are rejected during processing. Images larger than 4096px on their longest side are automatically resized with aspect ratio preserved and converted to WebP (quality 92).
+    Images must be at least 28px on their shortest side. Images smaller than this are rejected during processing. Images larger than 4096px on their longest side are automatically resized with aspect ratio preserved.
 
 ## Browse Images
 
@@ -322,7 +322,7 @@ Images that failed processing are listed here with:
 
 - **Error banner**: Total count of failed images and guidance
 - **Error table**: Filename, user-friendly error description, fix hints, and preview thumbnail
-- Common errors include corrupted files, unsupported formats, images too small (min 64px), and unsupported color modes
+- Common errors include corrupted files, unsupported formats, images too small (min 28px), and unsupported color modes
 
 <!-- Screenshot: platform-datasets-errors-tab-processing-failures.avif -->
 
@@ -332,7 +332,7 @@ Images that failed processing are listed here with:
     | -------------------------- | --------------------------------------- | -------------------------------------- |
     | Unable to read image file  | Corrupted or unsupported format         | Re-export from image editor            |
     | Incomplete or corrupted    | File was truncated during transfer      | Re-download the original file          |
-    | Image too small            | Minimum dimension below 64px            | Use higher resolution source images    |
+    | Image too small            | Minimum dimension below 28px            | Use higher resolution source images    |
     | Unsupported color mode     | CMYK or indexed color mode              | Convert to RGB mode                    |
 
 ## Export Dataset
@@ -477,8 +477,8 @@ See [Cloud Training](../train/cloud-training.md) for details.
 Your data is processed and stored in your selected region (US, EU, or AP). Images are:
 
 1. Validated for format and size
-2. Rejected if minimum dimension is below 64px
-3. Normalized if larger than 4096px (preserving aspect ratio, converted to WebP q92)
+2. Rejected if minimum dimension is below 28px
+3. Normalized if larger than 4096px (preserving aspect ratio; encoded for optimized storage)
 4. Stored using Content-Addressable Storage (CAS) with XXH3-128 hashing
 5. Thumbnails generated at 256px WebP for fast browsing
 

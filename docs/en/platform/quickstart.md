@@ -212,7 +212,7 @@ From your project, click `Train Model` to start cloud training.
 
 !!! warning "Credit Balance Required"
 
-    Cloud training requires a minimum credit balance of $5.00. Check your balance in [`Settings > Billing`](account/billing.md). New accounts receive free credits ($5 for personal email, $25 for work email).
+    Cloud training requires a positive credit balance sufficient to cover the estimated job cost. Check your balance in [`Settings > Billing`](account/billing.md). New accounts receive free credits ($5 for personal email, $25 for work email).
 
 ### Monitor Training
 
@@ -259,7 +259,7 @@ The `Predict` tab provides ready-to-use code examples with your actual API key p
     ```python
     import requests
 
-    url = "https://platform.ultralytics.com/api/models/{model_slug}/predict"
+    url = "https://platform.ultralytics.com/api/models/{model_id}/predict"
     headers = {"Authorization": "Bearer your_api_key"}
 
     with open("image.jpg", "rb") as f:
@@ -271,7 +271,7 @@ The `Predict` tab provides ready-to-use code examples with your actual API key p
 === "cURL"
 
     ```bash
-    curl -X POST "https://platform.ultralytics.com/api/models/{model_slug}/predict" \
+    curl -X POST "https://platform.ultralytics.com/api/models/{model_id}/predict" \
       -H "Authorization: Bearer your_api_key" \
       -F "file=@image.jpg"
     ```
@@ -334,7 +334,7 @@ yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-projec
 
 !!! note "API Key Format"
 
-    API keys start with `ul_` followed by 40 hex characters. They support scoped permissions: `training`, `models`, `datasets`, `read`, `write`, `admin`.
+    API keys start with `ul_` followed by 40 hex characters (43 characters total). Keys are full-access tokens scoped to your workspace.
 
 Read more about [API keys](account/api-keys.md), [dataset URIs](data/datasets.md#dataset-uri), and [remote training](train/cloud-training.md#remote-training).
 

@@ -98,7 +98,6 @@ View your balance in `Settings > Billing`:
 | ----------------------- | ------------------------------------- |
 | **Total Balance**       | Available credits for cloud training  |
 | **Promotional Credits** | Credits from signup or monthly grants |
-| **Reserved**            | Held for active training jobs         |
 
 ### Credit Uses
 
@@ -168,28 +167,25 @@ Set a billing address for invoices:
 
 ## Training Cost Flow
 
-Cloud training uses a **hold/settle/release** system to ensure you're never charged more than the estimated cost shown before training starts.
+Cloud training estimates cost before start and charges for actual GPU time used.
 
 ```mermaid
 flowchart LR
-    A[Start Training] --> B[Create Hold]
-    B --> C{Training Complete?}
-    C -->|Yes| D[Settle: Charge Actual Cost]
-    C -->|Canceled| E[Release: Full Refund]
-    D --> F[Refund Excess]
+    A[Start Training] --> B[Estimate Cost]
+    B --> C[Run Training]
+    C --> D[Charge Actual Usage]
 ```
 
 ### How It Works
 
 1. **Estimate**: Platform calculates estimated cost based on model size, dataset size, epochs, and GPU
-2. **Hold**: Estimated cost is reserved from your balance
-3. **Train**: Reserved amount shows as "Reserved" in your balance during training
-4. **Settle**: After completion, you're charged only for actual GPU time used
-5. **Refund**: Any excess is returned to your balance
+2. **Authorize Start**: Your available balance is checked before training starts
+3. **Train**: Job runs on the selected GPU
+4. **Charge**: On completion (or cancellation), billing uses actual runtime
 
 !!! success "Consumer Protection"
 
-    You're **never charged more than the estimate** shown before training. If training completes early or is canceled, you only pay for actual compute time used.
+    You pay for actual compute time used, including partial runs that are cancelled.
 
 ## Training Costs
 

@@ -369,7 +369,13 @@ Dedicated endpoints bill based on:
 
 ### How many endpoints can I create?
 
-There's no hard limit. Each model can have endpoints in multiple regions. Total endpoints depend on your plan.
+Endpoint limits depend on plan:
+
+- **Free**: Up to 3 deployments
+- **Pro**: Up to 10 deployments
+- **Enterprise**: Unlimited deployments
+
+Each model can still be deployed to multiple regions within your plan quota.
 
 ### Can I change the region after deployment?
 

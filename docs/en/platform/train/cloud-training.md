@@ -76,7 +76,7 @@ Expand **Advanced Settings** to access the full YAML-based parameter editor with
 | Group                   | Parameters                                       |
 | ----------------------- | ------------------------------------------------ |
 | **Learning Rate**       | lr0, lrf, momentum, weight_decay, warmup epochs  |
-| **Optimizer**           | SGD, Adam, AdamW, NAdam, RAdam, RMSProp, Adamax  |
+| **Optimizer**           | SGD, MuSGD, Adam, AdamW, NAdam, RAdam, RMSProp, Adamax |
 | **Loss Weights**        | box, cls, dfl, pose, kobj, label_smoothing       |
 | **Color Augmentation**  | hsv_h, hsv_s, hsv_v                              |
 | **Geometric Augment.**  | degrees, translate, scale, shear, perspective    |
@@ -312,32 +312,30 @@ Estimated Cost = Base Time × Model Multiplier × Dataset Multiplier × GPU Spee
 | 5000 images, YOLO26m, 100 epochs  | RTX PRO 6000 | ~3 hours | ~$5.67  |
 | 10000 images, YOLO26x, 200 epochs | H100 SXM     | ~8 hours | ~$21.52 |
 
-### Hold/Settle System
+### Billing Flow
 
 ```mermaid
 graph LR
-    A[Estimate Cost] --> B[Hold Balance]
+    A[Estimate Cost] --> B[Balance Check]
     B --> C[Train]
-    C --> D[Settle Actual]
-    D --> E[Refund Excess]
+    C --> D[Charge Actual Runtime]
 
     style A fill:#2196F3,color:#fff
     style B fill:#FF9800,color:#fff
     style C fill:#9C27B0,color:#fff
-    style E fill:#4CAF50,color:#fff
+    style D fill:#4CAF50,color:#fff
 ```
 
-The Platform uses a consumer-protection billing model:
+Cloud training billing flow:
 
 1. **Estimate**: Cost calculated before training starts
-2. **Hold**: Estimated amount + safety margin reserved from balance
-3. **Train**: Reserved amount shown as "Reserved" in your balance
-4. **Settle**: After completion, charged only for actual GPU time used
-5. **Refund**: Any excess automatically returned to your balance
+2. **Balance Check**: Available credits are checked before launch
+3. **Train**: Job runs on selected compute
+4. **Charge**: Final cost is based on actual runtime
 
 !!! success "Consumer Protection"
 
-    You're **never charged more than the estimate** shown before training. If training completes early or is canceled, you only pay for actual compute time used.
+    Billing tracks actual compute usage, including partial runs that are cancelled.
 
 ### Payment Methods
 
@@ -348,7 +346,7 @@ The Platform uses a consumer-protection billing model:
 
 !!! note "Minimum Balance"
 
-    A minimum balance of $5.00 is required to start epoch-based training.
+    Training start requires a positive available balance and enough credits for the estimated job cost.
 
 ### View Training Costs
 
@@ -430,14 +428,16 @@ Yes, the **Train** button on dataset pages opens the training dialog with the da
 
 === "Core"
 
-    | Parameter  | Type | Default | Range    | Description               |
-    | ---------- | ---- | ------- | -------- | ------------------------- |
-    | `epochs`   | int  | 100     | 1+       | Number of training epochs |
-    | `batch`    | int  | 16      | 1-512    | Batch size                |
-    | `imgsz`    | int  | 640     | 32+      | Input image size          |
-    | `patience` | int  | 100     | 0+       | Early stopping patience   |
-    | `workers`  | int  | 8       | 0+       | Dataloader workers        |
-    | `cache`    | str  | false   | ram/disk | Cache images              |
+    | Parameter      | Type | Default | Range    | Description                          |
+    | -------------- | ---- | ------- | -------- | ------------------------------------ |
+    | `epochs`       | int  | 100     | 1+       | Number of training epochs            |
+    | `batch`        | int  | 16      | 1-512    | Batch size                           |
+    | `imgsz`        | int  | 640     | 32+      | Input image size                     |
+    | `patience`     | int  | 100     | 0+       | Early stopping patience              |
+    | `close_mosaic` | int  | 10      | 0-50     | Disable mosaic in final N epochs     |
+    | `save_period`  | int  | -1      | -1-100   | Save checkpoint every N epochs       |
+    | `workers`      | int  | 8       | 0+       | Dataloader workers                   |
+    | `cache`        | str  | false   | ram/disk | Cache images                         |
 
 === "Learning Rate"
 
@@ -472,6 +472,7 @@ Yes, the **Train** button on dataset pages opens the training dialog with the da
     | --------- | ----------------------------- |
     | `auto`    | Automatic selection (default) |
     | `SGD`     | Stochastic Gradient Descent   |
+    | `MuSGD`   | Muon SGD optimizer            |
     | `Adam`    | Adam optimizer                |
     | `AdamW`   | Adam with weight decay        |
     | `NAdam`   | NAdam optimizer               |

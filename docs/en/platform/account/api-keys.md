@@ -117,10 +117,10 @@ Enable metric streaming with your key.
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.0**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.14**. Lower versions will NOT work with Platform.
 
     ```bash
-    pip install "ultralytics>=8.4.0"
+    pip install "ultralytics>=8.4.14"
     ```
 
 ```bash
@@ -215,7 +215,7 @@ Solutions:
 1. Verify key is copied correctly (including the `ul_` prefix)
 2. Check key hasn't been revoked
 3. Confirm environment variable is set
-4. Ensure you're using `ultralytics>=8.4.0`
+4. Ensure you're using `ultralytics>=8.4.14`
 
 ### Permission Denied
 

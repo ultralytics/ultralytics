@@ -13,10 +13,9 @@ keywords: Ultralytics Platform, REST API, API reference, authentication, endpoin
 !!! tip "Quick Start"
 
     ```bash
-    # Download a model file (used by ul:// URIs)
-    curl -L \
-      -H "Authorization: Bearer YOUR_API_KEY" \
-      "https://platform.ultralytics.com/api/webhooks/models/USERNAME/PROJECT_SLUG/MODEL_SLUG/download"
+    # List your datasets
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
+      https://platform.ultralytics.com/api/datasets
     ```
 
 ## API Overview
@@ -76,9 +75,8 @@ Authorization: Bearer ul_your_api_key_here
 === "cURL"
 
     ```bash
-    curl -L -H "Authorization: Bearer ul_abc123..." \
-      "https://platform.ultralytics.com/api/webhooks/models/USERNAME/PROJECT_SLUG/MODEL_SLUG/download" \
-      -o model.pt
+    curl -H "Authorization: Bearer ul_abc123..." \
+      https://platform.ultralytics.com/api/datasets
     ```
 
 === "Python"
@@ -88,25 +86,19 @@ Authorization: Bearer ul_your_api_key_here
 
     headers = {"Authorization": "Bearer ul_abc123..."}
     response = requests.get(
-        "https://platform.ultralytics.com/api/webhooks/models/USERNAME/PROJECT_SLUG/MODEL_SLUG/download",
+        "https://platform.ultralytics.com/api/datasets",
         headers=headers,
     )
-    response.raise_for_status()
-    with open("model.pt", "wb") as f:
-        f.write(response.content)
+    data = response.json()
     ```
 
 === "JavaScript"
 
     ```javascript
-    const response = await fetch(
-      "https://platform.ultralytics.com/api/webhooks/models/USERNAME/PROJECT_SLUG/MODEL_SLUG/download",
-      {
-        headers: { Authorization: "Bearer ul_abc123..." },
-      }
-    );
-    const arrayBuffer = await response.arrayBuffer();
-    console.log(`Downloaded ${arrayBuffer.byteLength} bytes`);
+    const response = await fetch("https://platform.ultralytics.com/api/datasets", {
+      headers: { Authorization: "Bearer ul_abc123..." },
+    });
+    const data = await response.json();
     ```
 
 ## Base URL
@@ -594,7 +586,7 @@ POST /api/models
 
 !!! note "Model File Upload"
 
-    Model `.pt` file uploads are handled separately via the upload webhook endpoint, not this route. Use the Platform UI to drag-and-drop model files onto a project.
+    Model `.pt` file uploads are handled separately. Use the Platform UI to drag-and-drop model files onto a project.
 
 ### Update Model
 

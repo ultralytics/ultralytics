@@ -8,13 +8,13 @@ keywords: Ultralytics Platform, billing, credits, pricing, subscription, payment
 
 [Ultralytics Platform](https://platform.ultralytics.com) uses a credit-based billing system for cloud training and dedicated endpoints. Add credits, track usage, and manage your subscription from `Settings > Billing`.
 
-<!-- Screenshot: settings-billing-tab-credit-balance-and-plan-card.avif -->
+![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-credit-balance-and-plan-card.avif)
 
 ## Plans
 
 Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 
-<!-- Screenshot: settings-plans-tab-free-pro-enterprise-comparison.avif -->
+![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-plans-tab-free-pro-enterprise-comparison.avif)
 
 | Feature                    | Free       | Pro ($29/mo)    | Enterprise |
 | -------------------------- | ---------- | --------------- | ---------- |
@@ -92,7 +92,7 @@ Credits are the currency for Platform compute services.
 
 View your balance in `Settings > Billing`:
 
-<!-- Screenshot: settings-billing-tab-credit-balance-with-topup-button.avif -->
+![Ultralytics Platform Settings Billing Tab Credit Balance With Topup Button](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-credit-balance-with-topup-button.avif)
 
 | Balance Type            | Description                           |
 | ----------------------- | ------------------------------------- |
@@ -119,7 +119,7 @@ Top up your balance:
 3. Select or enter amount ($5 - $1,000)
 4. Complete payment
 
-<!-- Screenshot: settings-billing-tab-topup-amount-selection-dialog.avif -->
+![Ultralytics Platform Settings Billing Tab Topup Amount Selection Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-topup-amount-selection-dialog.avif)
 
 ### Top-Up Presets
 
@@ -228,10 +228,10 @@ See [Cloud Training](../train/cloud-training.md) for complete GPU options and pr
 Total Cost = GPU Rate x Training Time (hours)
 ```
 
-Example: Training for 2.5 hours on RTX 4090
+Example: Training for 2.5 hours on RTX PRO 6000
 
 ```
-$0.59 x 2.5 = $1.48
+$1.89 x 2.5 = $4.73
 ```
 
 ## Upgrade to Pro
@@ -275,7 +275,7 @@ Cancel anytime from the billing portal:
 
 View all transactions in `Settings > Billing`:
 
-<!-- Screenshot: settings-billing-tab-transaction-history-table.avif -->
+![Ultralytics Platform Settings Billing Tab Transaction History Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-transaction-history-table.avif)
 
 | Column      | Description                                                                             |
 | ----------- | --------------------------------------------------------------------------------------- |

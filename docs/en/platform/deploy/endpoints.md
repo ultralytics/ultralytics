@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, deployment, endpoints, YOLO, production, scaling
 
 [Ultralytics Platform](https://platform.ultralytics.com) enables deployment of YOLO models to dedicated endpoints in 43 global regions. Each endpoint is a single-tenant service with auto-scaling, a unique endpoint URL, and independent monitoring.
 
-<!-- Screenshot: model-deploy-tab-with-region-map-and-table.avif -->
+![Ultralytics Platform Model Deploy Tab With Region Map And Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/model-deploy-tab-with-region-map-and-table.avif)
 
 ## Create Endpoint
 
@@ -33,7 +33,7 @@ Create a deployment from the global `Deploy` page in the sidebar:
 4. Optionally customize the deployment name and resources
 5. Click **Deploy Model**
 
-<!-- Screenshot: new-deployment-dialog-with-model-selector-and-region-map.avif -->
+![Ultralytics Platform New Deployment Dialog With Model Selector And Region Map](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/new-deployment-dialog-with-model-selector-and-region-map.avif)
 
 ### Deployment Lifecycle
 
@@ -61,7 +61,7 @@ Choose from 43 regions worldwide. The interactive region map and table show:
 - **Deploying regions**: Animated pulse indicator
 - **Bidirectional highlighting**: Hover on the map highlights the table row, and vice versa
 
-<!-- Screenshot: deploy-tab-region-latency-table-sorted-by-latency.avif -->
+![Ultralytics Platform Deploy Tab Region Latency Table Sorted By Latency](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-tab-region-latency-table-sorted-by-latency.avif)
 
 The region table includes:
 
@@ -79,68 +79,68 @@ The region table includes:
 
 ## Available Regions
 
-### Americas (14 regions)
+=== "Americas (14)"
 
-| Zone                    | Location               |
-| ----------------------- | ---------------------- |
-| us-central1             | Iowa, USA              |
-| us-east1                | South Carolina, USA    |
-| us-east4                | Northern Virginia, USA |
-| us-east5                | Columbus, USA          |
-| us-south1               | Dallas, USA            |
-| us-west1                | Oregon, USA            |
-| us-west2                | Los Angeles, USA       |
-| us-west3                | Salt Lake City, USA    |
-| us-west4                | Las Vegas, USA         |
-| northamerica-northeast1 | Montreal, Canada       |
-| northamerica-northeast2 | Toronto, Canada        |
-| northamerica-south1     | Queretaro, Mexico      |
-| southamerica-east1      | Sao Paulo, Brazil      |
-| southamerica-west1      | Santiago, Chile        |
+    | Zone                    | Location               |
+    | ----------------------- | ---------------------- |
+    | us-central1             | Iowa, USA              |
+    | us-east1                | South Carolina, USA    |
+    | us-east4                | Northern Virginia, USA |
+    | us-east5                | Columbus, USA          |
+    | us-south1               | Dallas, USA            |
+    | us-west1                | Oregon, USA            |
+    | us-west2                | Los Angeles, USA       |
+    | us-west3                | Salt Lake City, USA    |
+    | us-west4                | Las Vegas, USA         |
+    | northamerica-northeast1 | Montreal, Canada       |
+    | northamerica-northeast2 | Toronto, Canada        |
+    | northamerica-south1     | Queretaro, Mexico      |
+    | southamerica-east1      | Sao Paulo, Brazil      |
+    | southamerica-west1      | Santiago, Chile        |
 
-### Europe (13 regions)
+=== "Europe (13)"
 
-| Zone              | Location               |
-| ----------------- | ---------------------- |
-| europe-west1      | St. Ghislain, Belgium  |
-| europe-west2      | London, UK             |
-| europe-west3      | Frankfurt, Germany     |
-| europe-west4      | Eemshaven, Netherlands |
-| europe-west6      | Zurich, Switzerland    |
-| europe-west8      | Milan, Italy           |
-| europe-west9      | Paris, France          |
-| europe-west10     | Berlin, Germany        |
-| europe-west12     | Turin, Italy           |
-| europe-north1     | Hamina, Finland        |
-| europe-north2     | Stockholm, Sweden      |
-| europe-central2   | Warsaw, Poland         |
-| europe-southwest1 | Madrid, Spain          |
+    | Zone              | Location               |
+    | ----------------- | ---------------------- |
+    | europe-west1      | St. Ghislain, Belgium  |
+    | europe-west2      | London, UK             |
+    | europe-west3      | Frankfurt, Germany     |
+    | europe-west4      | Eemshaven, Netherlands |
+    | europe-west6      | Zurich, Switzerland    |
+    | europe-west8      | Milan, Italy           |
+    | europe-west9      | Paris, France          |
+    | europe-west10     | Berlin, Germany        |
+    | europe-west12     | Turin, Italy           |
+    | europe-north1     | Hamina, Finland        |
+    | europe-north2     | Stockholm, Sweden      |
+    | europe-central2   | Warsaw, Poland         |
+    | europe-southwest1 | Madrid, Spain          |
 
-### Asia-Pacific (12 regions)
+=== "Asia-Pacific (12)"
 
-| Zone                 | Location               |
-| -------------------- | ---------------------- |
-| asia-east1           | Changhua, Taiwan       |
-| asia-east2           | Kowloon, Hong Kong     |
-| asia-northeast1      | Tokyo, Japan           |
-| asia-northeast2      | Osaka, Japan           |
-| asia-northeast3      | Seoul, South Korea     |
-| asia-south1          | Mumbai, India          |
-| asia-south2          | Delhi, India           |
-| asia-southeast1      | Jurong West, Singapore |
-| asia-southeast2      | Jakarta, Indonesia     |
-| asia-southeast3      | Bangkok, Thailand      |
-| australia-southeast1 | Sydney, Australia      |
-| australia-southeast2 | Melbourne, Australia   |
+    | Zone                 | Location               |
+    | -------------------- | ---------------------- |
+    | asia-east1           | Changhua, Taiwan       |
+    | asia-east2           | Kowloon, Hong Kong     |
+    | asia-northeast1      | Tokyo, Japan           |
+    | asia-northeast2      | Osaka, Japan           |
+    | asia-northeast3      | Seoul, South Korea     |
+    | asia-south1          | Mumbai, India          |
+    | asia-south2          | Delhi, India           |
+    | asia-southeast1      | Jurong West, Singapore |
+    | asia-southeast2      | Jakarta, Indonesia     |
+    | asia-southeast3      | Bangkok, Thailand      |
+    | australia-southeast1 | Sydney, Australia      |
+    | australia-southeast2 | Melbourne, Australia   |
 
-### Middle East & Africa (4 regions)
+=== "Middle East & Africa (4)"
 
-| Zone          | Location                   |
-| ------------- | -------------------------- |
-| africa-south1 | Johannesburg, South Africa |
-| me-central1   | Doha, Qatar                |
-| me-central2   | Dammam, Saudi Arabia       |
-| me-west1      | Tel Aviv, Israel           |
+    | Zone          | Location                   |
+    | ------------- | -------------------------- |
+    | africa-south1 | Johannesburg, South Africa |
+    | me-central1   | Doha, Qatar                |
+    | me-central2   | Dammam, Saudi Arabia       |
+    | me-west1      | Tel Aviv, Israel           |
 
 ## Endpoint Configuration
 
@@ -156,7 +156,7 @@ The `New Deployment` dialog provides:
 | **CPU Cores**       | CPU allocation (1-8)         | 1       |
 | **Memory (GB)**     | Memory allocation (1-32 GB)  | 2       |
 
-<!-- Screenshot: new-deployment-dialog-resources-panel-expanded.avif -->
+![Ultralytics Platform New Deployment Dialog Resources Panel Expanded](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/new-deployment-dialog-resources-panel-expanded.avif)
 
 Resource settings are available under the collapsible **Resources** section. Deployments scale to zero when idle — you only pay for active inference time.
 
@@ -180,7 +180,7 @@ The deployments list supports three view modes:
 | **Compact** | Grid of smaller cards with key metrics                    |
 | **Table**   | DataTable with sortable columns and search                |
 
-<!-- Screenshot: deploy-tab-active-deployments-cards-view.avif -->
+![Ultralytics Platform Deploy Tab Active Deployments Cards View](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-tab-active-deployments-cards-view.avif)
 
 ### Deployment Card (Cards View)
 
@@ -213,7 +213,7 @@ Each endpoint has a unique URL:
 https://predict-abc123-us-central1.a.run.app
 ```
 
-<!-- Screenshot: deployment-card-endpoint-url-with-copy-button.avif -->
+![Ultralytics Platform Deployment Card Endpoint Url With Copy Button](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deployment-card-endpoint-url-with-copy-button.avif)
 
 Click the copy button to copy the URL. Click the docs icon to view the auto-generated API documentation for the endpoint.
 
@@ -273,7 +273,7 @@ Each deployment is created with an API key from your account. Include it in requ
 Authorization: Bearer YOUR_API_KEY
 ```
 
-The API key prefix is displayed on the deployment card footer for identification.
+The API key prefix is displayed on the deployment card footer for identification. Generate keys from [API Keys](../account/api-keys.md).
 
 ### Request Example
 
@@ -363,6 +363,7 @@ Dedicated endpoints bill based on:
     - Use scale-to-zero for development endpoints
     - Set appropriate max instances
     - Monitor usage in the [Monitoring](monitoring.md) dashboard
+    - Review costs in [Settings > Billing](../account/billing.md)
 
 ## FAQ
 

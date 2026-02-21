@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive model management for training, analyzing, and deploying YOLO models. Upload pretrained models or train new ones directly on the Platform.
 
-<!-- Screenshot: platform-model-page-overview-tab.avif -->
+![Ultralytics Platform Model Page Overview Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-page-overview-tab.avif)
 
 ## Upload Model
 
@@ -20,7 +20,7 @@ Upload existing model weights to the Platform:
 
 Multiple files can be uploaded simultaneously (up to 3 concurrent).
 
-<!-- Screenshot: platform-model-drag-drop-upload.avif -->
+![Ultralytics Platform Model Drag Drop Upload](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-drag-drop-upload.avif)
 
 Supported model formats:
 
@@ -30,7 +30,7 @@ Supported model formats:
 
 After upload, the Platform parses model metadata:
 
-- Task type (detect, segment, pose, OBB, classify)
+- Task type ([detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [classify](../../tasks/classify.md))
 - Architecture (YOLO26n, YOLO26s, etc.)
 - Class names and count
 - Input size and parameters
@@ -90,7 +90,7 @@ Displays model metadata and key metrics:
 - Dataset link (when trained with a Platform dataset)
 - Download button for model weights
 
-<!-- Screenshot: platform-model-overview-metrics-and-args.avif -->
+![Ultralytics Platform Model Overview Metrics And Args](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-overview-metrics-and-args.avif)
 
 ### Train Tab
 
@@ -107,7 +107,7 @@ Interactive training metric charts showing loss curves and performance metrics o
 | **Val Loss**      | val/box_loss, val/cls_loss, val/dfl_loss       |
 | **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                         |
 
-<!-- Screenshot: platform-model-train-charts-subtab.avif -->
+![Ultralytics Platform Model Train Charts Subtab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-train-charts-subtab.avif)
 
 #### Console Subtab
 
@@ -118,7 +118,7 @@ Live console output from the training process:
 - Error detection with highlighted error banners
 - ANSI color support for formatted output
 
-<!-- Screenshot: platform-model-train-console-subtab.avif -->
+![Ultralytics Platform Model Train Console Subtab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-train-console-subtab.avif)
 
 #### System Subtab
 
@@ -133,7 +133,7 @@ GPU and system metrics during training:
 | **RAM**        | System memory usage        |
 | **Disk**       | Disk usage                 |
 
-<!-- Screenshot: platform-model-train-system-subtab.avif -->
+![Ultralytics Platform Model Train System Subtab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-train-system-subtab.avif)
 
 ### Predict Tab
 
@@ -142,7 +142,7 @@ Run interactive inference directly in the browser:
 - Upload an image, paste a URL, or use webcam
 - Results display with bounding boxes, masks, or keypoints
 - Auto-inference when an image is provided
-- Supports all task types (detect, segment, pose, OBB, classify)
+- Supports all task types ([detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [classify](../../tasks/classify.md))
 
 !!! tip "Quick Testing"
 
@@ -150,7 +150,7 @@ Run interactive inference directly in the browser:
 
 ### Export Tab
 
-Export your model to 17+ deployment formats. See [Export Model](#export-model) below for full details.
+Export your model to 17+ deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
 
 ### Deploy Tab
 
@@ -164,13 +164,13 @@ After training completes, view detailed validation analysis:
 
 Interactive heatmap showing prediction accuracy per class:
 
-<!-- Screenshot: platform-model-confusion-matrix.avif -->
+![Ultralytics Platform Model Confusion Matrix](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-confusion-matrix.avif)
 
 ### PR/F1 Curves
 
 Performance curves at different confidence thresholds:
 
-<!-- Screenshot: platform-model-pr-f1-curves.avif -->
+![Ultralytics Platform Model Pr F1 Curves](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-pr-f1-curves.avif)
 
 | Curve                    | Description                              |
 | ------------------------ | ---------------------------------------- |
@@ -205,47 +205,25 @@ Export your model to 17+ deployment formats:
 5. Click **Export**
 6. Download when complete
 
-<!-- Screenshot: platform-model-export-tab-format-list.avif -->
+![Ultralytics Platform Model Export Tab Format List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-export-tab-format-list.avif)
 
 ### Supported Formats
 
-| #   | Format            | File Extension   | GPU Required | Use Case                           |
-| --- | ----------------- | ---------------- | ------------ | ---------------------------------- |
-| 1   | **ONNX**          | `.onnx`          | No           | Cross-platform, web, most runtimes |
-| 2   | **TorchScript**   | `.torchscript`   | No           | PyTorch deployment without Python  |
-| 3   | **OpenVINO**      | `.xml`, `.bin`   | No           | Intel CPUs, GPUs, VPUs             |
-| 4   | **TensorRT**      | `.engine`        | Yes          | NVIDIA GPUs (fastest inference)    |
-| 5   | **CoreML**        | `.mlpackage`     | No           | Apple iOS, macOS, watchOS          |
-| 6   | **TF Lite**       | `.tflite`        | No           | Mobile (Android, iOS), edge        |
-| 7   | **TF SavedModel** | `saved_model/`   | No           | TensorFlow Serving                 |
-| 8   | **TF GraphDef**   | `.pb`            | No           | TensorFlow 1.x                     |
-| 9   | **TF Edge TPU**   | `.tflite`        | No           | Google Coral devices               |
-| 10  | **TF.js**         | `.json`, `.bin`  | No           | Browser inference                  |
-| 11  | **PaddlePaddle**  | `.pdmodel`       | No           | Baidu PaddlePaddle                 |
-| 12  | **NCNN**          | `.param`, `.bin` | No           | Mobile (Android/iOS), optimized    |
-| 13  | **MNN**           | `.mnn`           | No           | Alibaba mobile runtime             |
-| 14  | **RKNN**          | `.rknn`          | No           | Rockchip NPUs                      |
-| 15  | **IMX500**        | `.imx`           | No           | Sony IMX500 sensor                 |
-| 16  | **Axelera**       | `.axelera`       | No           | Axelera AI accelerators            |
-| 17  | **ExecuTorch**    | `.pte`           | No           | PyTorch mobile runtime             |
+The Platform supports export to [17+ deployment formats](../../modes/export.md#export-formats) including ONNX, TensorRT, CoreML, TF Lite, and more.
 
 ### Format Selection Guide
 
-**For NVIDIA GPUs:** Use **TensorRT** for maximum speed
+| Target             | Recommended Format  | Notes                     |
+| ------------------ | ------------------- | ------------------------- |
+| **NVIDIA GPUs**    | TensorRT            | Maximum inference speed   |
+| **Intel Hardware** | OpenVINO            | CPUs, GPUs, and VPUs      |
+| **Apple Devices**  | CoreML              | iOS, macOS, Apple Silicon |
+| **Android**        | TF Lite or NCNN     | Best mobile performance   |
+| **Web Browsers**   | TF.js or ONNX       | ONNX via ONNX Runtime Web |
+| **Edge Devices**   | TF Edge TPU or RKNN | Coral and Rockchip        |
+| **General**        | ONNX                | Works with most runtimes  |
 
-**For Intel Hardware:** Use **OpenVINO** for Intel CPUs, GPUs, and VPUs
-
-**For Apple Devices:** Use **CoreML** for iOS, macOS, Apple Silicon
-
-**For Android:** Use **TF Lite** or **NCNN** for best performance
-
-**For Web Browsers:** Use **TF.js** or **ONNX** (with ONNX Runtime Web)
-
-**For Edge Devices:** Use **TF Edge TPU** for Coral, **RKNN** for Rockchip
-
-**For General Compatibility:** Use **ONNX** — works with most inference runtimes
-
-<!-- Screenshot: platform-model-export-progress.avif -->
+![Ultralytics Platform Model Export Progress](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-export-progress.avif)
 
 !!! tip "Export Time"
 
@@ -280,7 +258,7 @@ Models can be linked to their source dataset:
 - Click the dataset card on the Overview tab to navigate to it
 - Track data lineage
 
-When training with Platform datasets using the `ul://` URI format, linking is automatic.
+When training with Platform datasets using the [`ul://` URI format](../data/datasets.md#dataset-uri), linking is automatic.
 
 !!! example "Dataset URI Format"
 
@@ -289,7 +267,7 @@ When training with Platform datasets using the `ul://` URI format, linking is au
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100
     ```
 
-    The `ul://` scheme resolves to your Platform dataset. The trained model's Overview tab will show a link back to this dataset.
+    The `ul://` scheme resolves to your Platform dataset. The trained model's Overview tab will show a link back to this dataset (see [Using Platform Datasets](../api/index.md#using-platform-datasets)).
 
 ## Visibility Settings
 
@@ -317,7 +295,7 @@ Remove a model you no longer need:
 
 !!! note "Trash and Restore"
 
-    Deleted models go to Trash for 30 days. Restore from Settings > Trash.
+    Deleted models go to Trash for 30 days. Restore from [Settings > Trash](../account/trash.md).
 
 ## FAQ
 
@@ -325,13 +303,13 @@ Remove a model you no longer need:
 
 Ultralytics Platform supports all YOLO architectures:
 
-- **YOLO26**: n, s, m, l, x variants (recommended)
+- [**YOLO26**](../../models/yolo26.md): n, s, m, l, x variants (recommended)
 - **YOLO11**: n, s, m, l, x variants
 - **YOLOv10**: Legacy support
 - **YOLOv8**: Legacy support
 - **YOLOv5**: Legacy support
 
-All architectures support 5 task types: detect, segment, pose, OBB, classify.
+All architectures support 5 task types: [detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), and [classify](../../tasks/classify.md).
 
 ### Can I download my trained model?
 

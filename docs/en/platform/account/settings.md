@@ -18,7 +18,7 @@ The `Profile` tab contains your profile information, social links, API keys, dat
 
 Update your profile information:
 
-<!-- Screenshot: settings-profile-tab-display-name-bio-company-fields.avif -->
+![Ultralytics Platform Settings Profile Tab Display Name Bio Company Fields](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-display-name-bio-company-fields.avif)
 
 | Field            | Description                               |
 | ---------------- | ----------------------------------------- |
@@ -63,17 +63,16 @@ Update your profile information:
 
 Connect your professional profiles:
 
-<!-- Screenshot: settings-profile-tab-social-links-grid.avif -->
+![Ultralytics Platform Settings Profile Tab Social Links Grid](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-social-links-grid.avif)
 
-| Platform           | Format               |
-| ------------------ | -------------------- |
-| **GitHub**         | username             |
-| **LinkedIn**       | profile-slug         |
-| **X (Twitter)**    | username             |
-| **YouTube**        | channel-handle       |
-| **Google Scholar** | user-id              |
-| **Discord**        | username             |
-| **Website**        | https://yoursite.com |
+| Platform           | Format         |
+| ------------------ | -------------- |
+| **GitHub**         | username       |
+| **LinkedIn**       | profile-slug   |
+| **X (Twitter)**    | username       |
+| **YouTube**        | channel-handle |
+| **Google Scholar** | user-id        |
+| **Discord**        | username       |
 
 Social links appear on your public profile page.
 
@@ -99,7 +98,7 @@ View your data region on the `Profile` tab:
 
 Monitor your storage consumption on the `Profile` tab:
 
-<!-- Screenshot: settings-profile-tab-storage-usage-card.avif -->
+![Ultralytics Platform Settings Profile Tab Storage Usage Card](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-storage-usage-card.avif)
 
 | Type         | Description             |
 | ------------ | ----------------------- |
@@ -122,7 +121,7 @@ To free up storage:
 1. Delete unused datasets
 2. Remove old model checkpoints
 3. Delete exported formats
-4. Empty trash (`Settings > Trash`)
+4. Empty trash ([`Settings > Trash`](trash.md))
 
 ### Security
 
@@ -190,7 +189,7 @@ Manage credits, payment methods, and view transaction history. See [Billing](bil
 
 ## Teams Tab
 
-Manage workspace members, roles, and invitations. Teams are available on Pro and Enterprise plans.
+Manage workspace members, roles, and invitations. Teams are available on [Pro and Enterprise plans](billing.md#plans).
 
 ### Team Overview
 

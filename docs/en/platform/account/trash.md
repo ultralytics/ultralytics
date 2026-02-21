@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, trash, restore, soft delete, recover, deleted it
 
 [Ultralytics Platform](https://platform.ultralytics.com) implements a 30-day soft delete policy, allowing you to recover accidentally deleted projects, datasets, and models. Deleted items are moved to Trash where they can be restored before permanent deletion.
 
-<!-- Screenshot: settings-trash-tab-with-items-and-storage-treemap.avif -->
+![Ultralytics Platform Settings Trash Tab With Items And Storage Treemap](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-trash-tab-with-items-and-storage-treemap.avif)
 
 ## Soft Delete Policy
 
@@ -29,7 +29,7 @@ Navigate to your Trash:
 1. Go to **Settings** and click the **Trash** tab
 2. Or navigate directly to `/trash` (redirects to `Settings > Trash`)
 
-<!-- Screenshot: settings-trash-tab-filter-by-type-dropdown.avif -->
+![Ultralytics Platform Settings Trash Tab Filter By Type Dropdown](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-trash-tab-filter-by-type-dropdown.avif)
 
 ## Trash Contents
 
@@ -60,11 +60,11 @@ Each item in Trash displays:
 
 When deleting a parent resource, child resources are also moved to Trash:
 
-| Resource Type | What's Included When Deleted               |
-| ------------- | ------------------------------------------ |
-| **Projects**  | Project + all models inside                |
-| **Datasets**  | Dataset + all images and annotations       |
-| **Models**    | Model weights + training history + exports |
+| Resource Type                        | What's Included When Deleted               |
+| ------------------------------------ | ------------------------------------------ |
+| [**Projects**](../train/projects.md) | Project + all models inside                |
+| [**Datasets**](../data/datasets.md)  | Dataset + all images and annotations       |
+| [**Models**](../train/models.md)     | Model weights + training history + exports |
 
 ### Storage Treemap
 
@@ -83,7 +83,7 @@ Recover a deleted item:
 3. Click the **Restore** button (undo icon)
 4. Confirm restoration
 
-<!-- Screenshot: settings-trash-tab-restore-button-on-item.avif -->
+![Ultralytics Platform Settings Trash Tab Restore Button On Item](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-trash-tab-restore-button-on-item.avif)
 
 The item returns to its original location with all data intact.
 
@@ -138,27 +138,34 @@ Items in Trash still count toward your storage quota:
 
 !!! tip "Free Up Storage"
 
-    If you're running low on storage, empty Trash or permanently delete specific items to immediately reclaim space.
+    If you're running low on storage, empty Trash or permanently delete specific items to immediately reclaim space. Check your storage usage in [Settings](settings.md#storage-usage) and see [Billing](billing.md#plans) for plan storage limits.
 
 ## API Access
 
-Manage Trash programmatically via the REST API:
+Manage Trash programmatically via the [REST API](../api/index.md#trash-api). Use your [API key](api-keys.md) for authentication:
 
-```bash
-# List items in Trash
-curl -H "Authorization: Bearer YOUR_API_KEY" \
-  https://platform.ultralytics.com/api/trash
+=== "List Trash"
 
-# Restore an item
-curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"itemId": "item_abc123", "type": "dataset"}' \
-  https://platform.ultralytics.com/api/trash
+    ```bash
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
+      https://platform.ultralytics.com/api/trash
+    ```
 
-# Empty Trash (permanently delete all)
-curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
-  https://platform.ultralytics.com/api/trash/empty
-```
+=== "Restore Item"
+
+    ```bash
+    curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"itemId": "item_abc123", "type": "dataset"}' \
+      https://platform.ultralytics.com/api/trash
+    ```
+
+=== "Empty Trash"
+
+    ```bash
+    curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
+      https://platform.ultralytics.com/api/trash/empty
+    ```
 
 ## FAQ
 

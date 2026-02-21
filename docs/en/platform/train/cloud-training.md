@@ -28,7 +28,7 @@ graph LR
 
 Start training from the Platform UI by clicking **New Model** on any project page (or **Train** from a dataset page). The training dialog has two tabs: **Cloud Training** and **Local Training**.
 
-<!-- Screenshot: platform-training-dialog-cloud-tab.avif -->
+![Ultralytics Platform Training Dialog Cloud Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-dialog-cloud-tab.avif)
 
 ### Step 1: Select Base Model
 
@@ -39,11 +39,11 @@ Choose from official YOLO26 models or your own trained models:
 | **Official**    | All 25 YOLO26 models (5 sizes x 5 tasks) |
 | **Your Models** | Your completed models for fine-tuning    |
 
-Official models are organized by task type (Detect, Segment, Pose, OBB, Classify) with sizes from nano to xlarge.
+Official models are organized by task type ([Detect](../../tasks/detect.md), [Segment](../../tasks/segment.md), [Pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [Classify](../../tasks/classify.md)) with sizes from nano to xlarge.
 
 ### Step 2: Select Dataset
 
-Choose a dataset to train on:
+Choose a dataset to train on (see [Datasets](../data/datasets.md)):
 
 | Option            | Description                       |
 | ----------------- | --------------------------------- |
@@ -56,7 +56,7 @@ Choose a dataset to train on:
 
 !!! warning "Task Mismatch"
 
-    A task mismatch warning appears if the model task (e.g., detect) doesn't match the dataset task (e.g., segment). Training will fail if you proceed with mismatched tasks. Ensure both model and dataset use the same task type.
+    A task mismatch warning appears if the model task (e.g., detect) doesn't match the dataset task (e.g., segment). Training will fail if you proceed with mismatched tasks. Ensure both model and dataset use the same task type, as described in the [task guides](../../tasks/index.md).
 
 ### Step 3: Configure Parameters
 
@@ -71,7 +71,7 @@ Set core training parameters:
 
 ### Step 4: Advanced Settings (Optional)
 
-Expand **Advanced Settings** to access the full YAML-based parameter editor with 50+ training parameters organized by group:
+Expand **Advanced Settings** to access the full YAML-based parameter editor with 50+ training parameters organized by group (see [configuration reference](../../usage/cfg.md)):
 
 | Group                   | Parameters                                       |
 | ----------------------- | ------------------------------------------------ |
@@ -104,39 +104,38 @@ Parameters are task-aware (e.g., `copy_paste` only shows for segment tasks, `pos
 
 Choose your GPU from Ultralytics Cloud:
 
-<!-- Screenshot: platform-training-dialog-gpu-selector-and-cost.avif -->
+![Ultralytics Platform Training Dialog Gpu Selector And Cost](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-dialog-gpu-selector-and-cost.avif)
 
-| Tier       | GPU          | VRAM   | Cost/Hour |
-| ---------- | ------------ | ------ | --------- |
-| Budget     | RTX 2000 Ada | 16 GB  | $0.24     |
-| Budget     | RTX A4500    | 20 GB  | $0.24     |
-| Budget     | RTX A5000    | 24 GB  | $0.26     |
-| Budget     | RTX 4000 Ada | 20 GB  | $0.38     |
-| Budget     | L4           | 24 GB  | $0.39     |
-| Budget     | A40          | 48 GB  | $0.40     |
-| Budget     | RTX 3090     | 24 GB  | $0.46     |
-| Budget     | RTX A6000    | 48 GB  | $0.49     |
-| Mid        | RTX 4090     | 24 GB  | $0.59     |
-| Mid        | RTX 6000 Ada | 48 GB  | $0.77     |
-| Mid        | L40S         | 48 GB  | $0.86     |
-| Mid        | RTX 5090     | 32 GB  | $0.89     |
-| Mid        | L40          | 48 GB  | $0.99     |
-| Pro        | A100 PCIe    | 80 GB  | $1.39     |
-| Pro        | A100 SXM     | 80 GB  | $1.49     |
-| Pro        | RTX PRO 6000 | 96 GB  | $1.89     |
-| Enterprise | H100 PCIe    | 80 GB  | $2.39     |
-| Enterprise | H100 SXM     | 80 GB  | $2.69     |
-| Enterprise | H100 NVL     | 94 GB  | $3.07     |
-| Enterprise | H200 NVL     | 143 GB | $3.39     |
-| Enterprise | H200 SXM     | 141 GB | $3.59     |
-| Enterprise | B200         | 180 GB | $4.99     |
+| GPU          | VRAM   | Cost/Hour |
+| ------------ | ------ | --------- |
+| RTX 2000 Ada | 16 GB  | $0.24     |
+| RTX A4500    | 20 GB  | $0.24     |
+| RTX A5000    | 24 GB  | $0.26     |
+| RTX 4000 Ada | 20 GB  | $0.38     |
+| L4           | 24 GB  | $0.39     |
+| A40          | 48 GB  | $0.40     |
+| RTX 3090     | 24 GB  | $0.46     |
+| RTX A6000    | 48 GB  | $0.49     |
+| RTX 4090     | 24 GB  | $0.59     |
+| RTX 6000 Ada | 48 GB  | $0.77     |
+| L40S         | 48 GB  | $0.86     |
+| RTX 5090     | 32 GB  | $0.89     |
+| L40          | 48 GB  | $0.99     |
+| A100 PCIe    | 80 GB  | $1.39     |
+| A100 SXM     | 80 GB  | $1.49     |
+| RTX PRO 6000 | 96 GB  | $1.89     |
+| H100 PCIe    | 80 GB  | $2.39     |
+| H100 SXM     | 80 GB  | $2.69     |
+| H100 NVL     | 94 GB  | $3.07     |
+| H200 NVL     | 143 GB | $3.39     |
+| H200 SXM     | 141 GB | $3.59     |
+| B200         | 180 GB | $4.99     |
 
 !!! tip "GPU Selection"
 
-    - **RTX 4090**: Best price/performance ratio for most jobs at $0.59/hr
+    - **RTX PRO 6000**: 96 GB Blackwell generation, recommended default for most jobs
     - **A100 SXM**: Required for large batch sizes or big models
     - **H100/H200**: Maximum performance for time-sensitive training
-    - **RTX PRO 6000**: 96 GB Blackwell generation, default GPU
     - **B200**: NVIDIA Blackwell architecture for cutting-edge workloads
 
 The dialog shows your current **balance** and a **Top Up** button. An estimated cost and duration are calculated based on your configuration (model size, dataset images, epochs, GPU speed).
@@ -154,7 +153,7 @@ Click **Start Training** to launch your job. The Platform:
 
     New accounts receive $5 in signup credits — enough for several training runs. [Check your balance](../account/billing.md) in Settings > Billing.
 
-<!-- Screenshot: platform-training-progress-with-charts.avif -->
+![Ultralytics Platform Training Progress With Charts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-progress-with-charts.avif)
 
 ## Monitor Training
 
@@ -162,7 +161,7 @@ View real-time training progress on the model page's **Train** tab:
 
 ### Charts Subtab
 
-<!-- Screenshot: platform-model-training-live-charts.avif -->
+![Ultralytics Platform Model Training Live Charts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-training-live-charts.avif)
 
 | Metric        | Description                  |
 | ------------- | ---------------------------- |
@@ -221,7 +220,7 @@ Train on your own hardware while streaming metrics to the Platform.
 
 ### Setup API Key
 
-1. Go to `Settings > API Keys`
+1. Go to [`Settings > API Keys`](../account/api-keys.md)
 2. Create a new key (or the Platform auto-creates one when you open the Local Training tab)
 3. Set the environment variable:
 
@@ -258,7 +257,7 @@ The **Local Training** tab in the training dialog shows a pre-configured command
 
 ### Using Platform Datasets
 
-Train with datasets stored on the Platform using the `ul://` URI format:
+Train with datasets stored on the Platform using the [`ul://` URI format](../data/datasets.md#dataset-uri):
 
 === "CLI"
 
@@ -281,7 +280,7 @@ Train with datasets stored on the Platform using the `ul://` URI format:
     )
     ```
 
-The `ul://` URI format automatically downloads and configures your dataset. The model is automatically linked to the dataset on the Platform.
+The `ul://` URI format automatically downloads and configures your dataset. The model is automatically linked to the dataset on the Platform (see [Using Platform Datasets](../api/index.md#using-platform-datasets)).
 
 ## Billing
 
@@ -307,11 +306,11 @@ Estimated Cost = Base Time × Model Multiplier × Dataset Multiplier × GPU Spee
 
 ### Cost Examples
 
-| Scenario                          | GPU      | Time     | Cost    |
-| --------------------------------- | -------- | -------- | ------- |
-| 1000 images, YOLO26n, 100 epochs  | RTX 4090 | ~1 hour  | ~$0.59  |
-| 5000 images, YOLO26m, 100 epochs  | A100 SXM | ~4 hours | ~$5.96  |
-| 10000 images, YOLO26x, 200 epochs | H100 SXM | ~8 hours | ~$21.52 |
+| Scenario                          | GPU          | Time     | Cost    |
+| --------------------------------- | ------------ | -------- | ------- |
+| 1000 images, YOLO26n, 100 epochs  | RTX PRO 6000 | ~20 min  | ~$0.63  |
+| 5000 images, YOLO26m, 100 epochs  | RTX PRO 6000 | ~3 hours | ~$5.67  |
+| 10000 images, YOLO26x, 200 epochs | H100 SXM     | ~8 hours | ~$21.52 |
 
 ### Hold/Settle System
 
@@ -359,7 +358,7 @@ After training, view detailed costs in the **Billing** tab:
 - Total GPU time
 - Download cost report
 
-<!-- Screenshot: platform-training-billing-details.avif -->
+![Ultralytics Platform Training Billing Details](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-billing-details.avif)
 
 ## Training Tips
 
@@ -378,7 +377,7 @@ After training, view detailed costs in the **Billing** tab:
 !!! tip "Cost-Saving Strategies"
 
     1. **Start small**: Test with 10-20 epochs on a budget GPU to verify your dataset and config work
-    2. **Use appropriate GPU**: Don't pay for H100 when RTX 4090 handles your workload
+    2. **Use appropriate GPU**: RTX PRO 6000 handles most workloads well
     3. **Validate dataset**: Fix labeling issues before spending on training
     4. **Monitor early**: Cancel training if loss plateaus — you only pay for compute time used
 
@@ -405,11 +404,11 @@ Training time depends on:
 
 Typical times (1000 images, 100 epochs):
 
-| Model   | RTX 4090 | A100   |
-| ------- | -------- | ------ |
-| YOLO26n | 30 min   | 20 min |
-| YOLO26m | 60 min   | 40 min |
-| YOLO26x | 120 min  | 80 min |
+| Model   | RTX PRO 6000 | A100   |
+| ------- | ------------ | ------ |
+| YOLO26n | 20 min       | 20 min |
+| YOLO26m | 40 min       | 40 min |
+| YOLO26x | 80 min       | 80 min |
 
 ### Can I train overnight?
 
@@ -429,56 +428,56 @@ Yes, the **Train** button on dataset pages opens the training dialog with the da
 
 ## Training Parameters Reference
 
-### Core Parameters
+=== "Core"
 
-| Parameter  | Type | Default | Range    | Description               |
-| ---------- | ---- | ------- | -------- | ------------------------- |
-| `epochs`   | int  | 100     | 1+       | Number of training epochs |
-| `batch`    | int  | 16      | 1-512    | Batch size                |
-| `imgsz`    | int  | 640     | 32+      | Input image size          |
-| `patience` | int  | 100     | 0+       | Early stopping patience   |
-| `workers`  | int  | 8       | 0+       | Dataloader workers        |
-| `cache`    | str  | false   | ram/disk | Cache images              |
+    | Parameter  | Type | Default | Range    | Description               |
+    | ---------- | ---- | ------- | -------- | ------------------------- |
+    | `epochs`   | int  | 100     | 1+       | Number of training epochs |
+    | `batch`    | int  | 16      | 1-512    | Batch size                |
+    | `imgsz`    | int  | 640     | 32+      | Input image size          |
+    | `patience` | int  | 100     | 0+       | Early stopping patience   |
+    | `workers`  | int  | 8       | 0+       | Dataloader workers        |
+    | `cache`    | str  | false   | ram/disk | Cache images              |
 
-### Learning Rate Parameters
+=== "Learning Rate"
 
-| Parameter       | Type  | Default | Range     | Description           |
-| --------------- | ----- | ------- | --------- | --------------------- |
-| `lr0`           | float | 0.01    | 0.0-0.1   | Initial learning rate |
-| `lrf`           | float | 0.01    | 0.0-1.0   | Final LR factor       |
-| `momentum`      | float | 0.937   | 0.6-0.98  | SGD momentum          |
-| `weight_decay`  | float | 0.0005  | 0.0-0.001 | L2 regularization     |
-| `warmup_epochs` | float | 3.0     | 0+        | Warmup epochs         |
-| `cos_lr`        | bool  | False   | -         | Cosine LR scheduler   |
+    | Parameter       | Type  | Default | Range     | Description           |
+    | --------------- | ----- | ------- | --------- | --------------------- |
+    | `lr0`           | float | 0.01    | 0.0-0.1   | Initial learning rate |
+    | `lrf`           | float | 0.01    | 0.0-1.0   | Final LR factor       |
+    | `momentum`      | float | 0.937   | 0.6-0.98  | SGD momentum          |
+    | `weight_decay`  | float | 0.0005  | 0.0-0.001 | L2 regularization     |
+    | `warmup_epochs` | float | 3.0     | 0+        | Warmup epochs         |
+    | `cos_lr`        | bool  | False   | -         | Cosine LR scheduler   |
 
-### Augmentation Parameters
+=== "Augmentation"
 
-| Parameter    | Type  | Default | Range   | Description          |
-| ------------ | ----- | ------- | ------- | -------------------- |
-| `hsv_h`      | float | 0.015   | 0.0-0.1 | HSV hue augmentation |
-| `hsv_s`      | float | 0.7     | 0.0-1.0 | HSV saturation       |
-| `hsv_v`      | float | 0.4     | 0.0-1.0 | HSV value            |
-| `degrees`    | float | 0.0     | -45-45  | Rotation degrees     |
-| `translate`  | float | 0.1     | 0.0-1.0 | Translation fraction |
-| `scale`      | float | 0.5     | 0.0-1.0 | Scale factor         |
-| `fliplr`     | float | 0.5     | 0.0-1.0 | Horizontal flip prob |
-| `flipud`     | float | 0.0     | 0.0-1.0 | Vertical flip prob   |
-| `mosaic`     | float | 1.0     | 0.0-1.0 | Mosaic augmentation  |
-| `mixup`      | float | 0.0     | 0.0-1.0 | Mixup augmentation   |
-| `copy_paste` | float | 0.0     | 0.0-1.0 | Copy-paste (segment) |
+    | Parameter    | Type  | Default | Range   | Description          |
+    | ------------ | ----- | ------- | ------- | -------------------- |
+    | `hsv_h`      | float | 0.015   | 0.0-0.1 | HSV hue augmentation |
+    | `hsv_s`      | float | 0.7     | 0.0-1.0 | HSV saturation       |
+    | `hsv_v`      | float | 0.4     | 0.0-1.0 | HSV value            |
+    | `degrees`    | float | 0.0     | -45-45  | Rotation degrees     |
+    | `translate`  | float | 0.1     | 0.0-1.0 | Translation fraction |
+    | `scale`      | float | 0.5     | 0.0-1.0 | Scale factor         |
+    | `fliplr`     | float | 0.5     | 0.0-1.0 | Horizontal flip prob |
+    | `flipud`     | float | 0.0     | 0.0-1.0 | Vertical flip prob   |
+    | `mosaic`     | float | 1.0     | 0.0-1.0 | Mosaic augmentation  |
+    | `mixup`      | float | 0.0     | 0.0-1.0 | Mixup augmentation   |
+    | `copy_paste` | float | 0.0     | 0.0-1.0 | Copy-paste (segment) |
 
-### Optimizer Selection
+=== "Optimizer"
 
-| Value     | Description                   |
-| --------- | ----------------------------- |
-| `auto`    | Automatic selection (default) |
-| `SGD`     | Stochastic Gradient Descent   |
-| `Adam`    | Adam optimizer                |
-| `AdamW`   | Adam with weight decay        |
-| `NAdam`   | NAdam optimizer               |
-| `RAdam`   | RAdam optimizer               |
-| `RMSProp` | RMSProp optimizer             |
-| `Adamax`  | Adamax optimizer              |
+    | Value     | Description                   |
+    | --------- | ----------------------------- |
+    | `auto`    | Automatic selection (default) |
+    | `SGD`     | Stochastic Gradient Descent   |
+    | `Adam`    | Adam optimizer                |
+    | `AdamW`   | Adam with weight decay        |
+    | `NAdam`   | NAdam optimizer               |
+    | `RAdam`   | RAdam optimizer               |
+    | `RMSProp` | RMSProp optimizer             |
+    | `Adamax`  | Adamax optimizer              |
 
 !!! tip "Task-Specific Parameters"
 

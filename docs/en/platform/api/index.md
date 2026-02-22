@@ -1134,7 +1134,7 @@ POST /api/exports
 | TF.js         | `tfjs`        | Browser inference        |
 | MNN           | `mnn`         | Alibaba mobile inference |
 | RKNN          | `rknn`        | Rockchip NPU             |
-| IMX           | `imx`         | Sony IMX500 sensor        |
+| IMX           | `imx`         | Sony IMX500 sensor       |
 | Axelera       | `axelera`     | Axelera AI accelerators  |
 | ExecuTorch    | `executorch`  | Meta ExecuTorch runtime  |
 

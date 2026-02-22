@@ -72,10 +72,10 @@ graph TB
     style AP fill:#4CAF50,color:#fff
 ```
 
-| Region | Location             |
-| ------ | -------------------- |
-| US     | Iowa, USA            |
-| EU     | Belgium, Europe      |
+| Region | Location                |
+| ------ | ----------------------- |
+| US     | Iowa, USA               |
+| EU     | Belgium, Europe         |
 | AP     | Hong Kong, Asia-Pacific |
 
 ### Dedicated Endpoints

@@ -89,11 +89,11 @@ The item returns to its original location with all data intact.
 
 ### Restore Behavior
 
-| Resource | Restore Behavior                                                             |
-| -------- | ---------------------------------------------------------------------------- |
-| Project  | Restores project and all contained models                                    |
-| Dataset  | Restores dataset with all images and annotations                             |
-| Model    | Restores model to original project if the project is active                  |
+| Resource | Restore Behavior                                            |
+| -------- | ----------------------------------------------------------- |
+| Project  | Restores project and all contained models                   |
+| Dataset  | Restores dataset with all images and annotations            |
+| Model    | Restores model to original project if the project is active |
 
 !!! warning "Parent Project Required"
 

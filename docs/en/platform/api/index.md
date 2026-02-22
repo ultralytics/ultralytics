@@ -120,14 +120,14 @@ X-RateLimit-Reset: 2026-02-21T12:34:56.000Z
 
 Default rate limits per endpoint category:
 
-| Category         | Limit              | Scope    |
-| ---------------- | ------------------ | -------- |
-| **Training**     | 10 requests/min    | Per user |
-| **Upload**       | 10 requests/min    | Per user |
-| **Export**        | 20 requests/min    | Per user |
-| **API Read**     | 200 requests/min   | Per key  |
-| **API Write**    | 60 requests/min    | Per key  |
-| **API Predict**  | 100 requests/min   | Per key  |
+| Category        | Limit            | Scope    |
+| --------------- | ---------------- | -------- |
+| **Training**    | 10 requests/min  | Per user |
+| **Upload**      | 10 requests/min  | Per user |
+| **Export**      | 20 requests/min  | Per user |
+| **API Read**    | 200 requests/min | Per key  |
+| **API Write**   | 60 requests/min  | Per key  |
+| **API Predict** | 100 requests/min | Per key  |
 
 !!! tip "Handling Rate Limits"
 
@@ -340,9 +340,18 @@ Returns cached class distribution, location heatmap, and dimension statistics. R
         "heightHistogram": [{ "bin": 480, "count": 95 }],
         "pointsHistogram": [{ "bin": 4, "count": 200 }]
     },
-    "locationHeatmap": { "bins": [[5, 10], [8, 3]], "maxCount": 50 },
+    "locationHeatmap": {
+        "bins": [
+            [5, 10],
+            [8, 3]
+        ],
+        "maxCount": 50
+    },
     "dimensionHeatmap": {
-        "bins": [[2, 5], [3, 1]],
+        "bins": [
+            [2, 5],
+            [3, 1]
+        ],
         "maxCount": 12,
         "minWidth": 10,
         "maxWidth": 1920,
@@ -433,14 +442,14 @@ GET /api/datasets/{datasetId}/images
 
 **Query Parameters:**
 
-| Parameter | Type   | Description                      |
-| --------- | ------ | -------------------------------- |
-| `split`   | string | Filter by split (train/val/test) |
-| `offset`  | int    | Pagination offset                |
-| `limit`   | int    | Items per page (max 5000)        |
-| `sort`    | string | Sort order (newest, oldest, etc.)|
-| `hasLabel`| string | Filter by label status           |
-| `search`  | string | Search by filename               |
+| Parameter  | Type   | Description                       |
+| ---------- | ------ | --------------------------------- |
+| `split`    | string | Filter by split (train/val/test)  |
+| `offset`   | int    | Pagination offset                 |
+| `limit`    | int    | Items per page (max 5000)         |
+| `sort`     | string | Sort order (newest, oldest, etc.) |
+| `hasLabel` | string | Filter by label status            |
+| `search`   | string | Search by filename                |
 
 #### Get Signed Image URLs
 
@@ -597,11 +606,11 @@ GET /api/models
 
 **Query Parameters:**
 
-| Parameter   | Type   | Required | Description                    |
-| ----------- | ------ | -------- | ------------------------------ |
-| `projectId` | string | Yes      | Project ID (required)          |
-| `fields`    | string | No       | Field set: `summary`, `charts` |
-| `ids`       | string | No       | Comma-separated model IDs      |
+| Parameter   | Type   | Required | Description                       |
+| ----------- | ------ | -------- | --------------------------------- |
+| `projectId` | string | Yes      | Project ID (required)             |
+| `fields`    | string | No       | Field set: `summary`, `charts`    |
+| `ids`       | string | No       | Comma-separated model IDs         |
 | `limit`     | int    | No       | Max results (default 20, max 100) |
 
 ### List Completed Models
@@ -626,12 +635,12 @@ POST /api/models
 
 **JSON Body:**
 
-| Field         | Type   | Required | Description                              |
-| ------------- | ------ | -------- | ---------------------------------------- |
-| `projectId`   | string | Yes      | Target project ID                        |
-| `slug`        | string | No       | URL slug (lowercase alphanumeric/hyphens)|
-| `name`        | string | No       | Display name (max 100 chars)             |
-| `description` | string | No       | Model description (max 1000 chars)       |
+| Field         | Type   | Required | Description                                      |
+| ------------- | ------ | -------- | ------------------------------------------------ |
+| `projectId`   | string | Yes      | Target project ID                                |
+| `slug`        | string | No       | URL slug (lowercase alphanumeric/hyphens)        |
+| `name`        | string | No       | Display name (max 100 chars)                     |
+| `description` | string | No       | Model description (max 1000 chars)               |
 | `task`        | string | No       | Task type (detect, segment, pose, obb, classify) |
 
 !!! note "Model File Upload"
@@ -1438,13 +1447,13 @@ Request a signed URL for uploading a file directly to cloud storage. The signed 
 }
 ```
 
-| Field         | Type   | Description                                        |
-| ------------- | ------ | -------------------------------------------------- |
+| Field         | Type   | Description                                          |
+| ------------- | ------ | ---------------------------------------------------- |
 | `assetType`   | string | Asset type: `models`, `datasets`, `images`, `videos` |
-| `assetId`     | string | ID of the target asset                             |
-| `filename`    | string | Original filename                                  |
-| `contentType` | string | MIME type                                          |
-| `totalBytes`  | int    | File size in bytes                                 |
+| `assetId`     | string | ID of the target asset                               |
+| `filename`    | string | Original filename                                    |
+| `contentType` | string | MIME type                                            |
+| `totalBytes`  | int    | File size in bytes                                   |
 
 **Response:**
 
@@ -1510,9 +1519,9 @@ DELETE /api/api-keys
 
 **Query Parameters:**
 
-| Parameter | Type   | Description              |
-| --------- | ------ | ------------------------ |
-| `keyId`   | string | API key ID to revoke     |
+| Parameter | Type   | Description          |
+| --------- | ------ | -------------------- |
+| `keyId`   | string | API key ID to revoke |
 
 **Example:**
 
@@ -1644,12 +1653,12 @@ GET /api/explore/search
 
 **Query Parameters:**
 
-| Parameter | Type   | Description                                                                                         |
-| --------- | ------ | --------------------------------------------------------------------------------------------------- |
-| `q`       | string | Search query                                                                                        |
-| `type`    | string | Resource type: `all` (default), `projects`, `datasets`                                              |
+| Parameter | Type   | Description                                                                                           |
+| --------- | ------ | ----------------------------------------------------------------------------------------------------- |
+| `q`       | string | Search query                                                                                          |
+| `type`    | string | Resource type: `all` (default), `projects`, `datasets`                                                |
 | `sort`    | string | Sort order: `stars` (default), `newest`, `oldest`, `name-asc`, `name-desc`, `count-desc`, `count-asc` |
-| `offset`  | int    | Pagination offset (default: 0). Results return 20 items per page.                                   |
+| `offset`  | int    | Pagination offset (default: 0). Results return 20 items per page.                                     |
 
 ### Sidebar Data
 
@@ -1698,10 +1707,10 @@ GET /api/username/check
 
 **Query Parameters:**
 
-| Parameter   | Type   | Description                                       |
-| ----------- | ------ | ------------------------------------------------- |
-| `username`  | string | Username to check                                 |
-| `suggest`   | bool   | Optional: `true` to include a suggestion if taken |
+| Parameter  | Type   | Description                                       |
+| ---------- | ------ | ------------------------------------------------- |
+| `username` | string | Username to check                                 |
+| `suggest`  | bool   | Optional: `true` to include a suggestion if taken |
 
 ### Settings
 
@@ -1743,9 +1752,9 @@ GET /api/gdpr
 
 **Query Parameters:**
 
-| Parameter | Type   | Description             |
-| --------- | ------ | ----------------------- |
-| `jobId`   | string | GDPR job ID to check    |
+| Parameter | Type   | Description          |
+| --------- | ------ | -------------------- |
+| `jobId`   | string | GDPR job ID to check |
 
 Returns job status. For completed export jobs, response includes a `downloadUrl`.
 

@@ -65,14 +65,14 @@ Connect your professional profiles:
 
 ![Ultralytics Platform Settings Profile Tab Social Links Grid](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-social-links-grid.avif)
 
-| Platform           | Format         |
-| ------------------ | -------------- |
-| **GitHub**         | username       |
-| **LinkedIn**       | profile-slug   |
-| **X (Twitter)**    | username       |
-| **YouTube**        | channel-handle |
-| **Google Scholar** | user-id        |
-| **Discord**        | username       |
+| Platform           | Format               |
+| ------------------ | -------------------- |
+| **GitHub**         | username             |
+| **LinkedIn**       | profile-slug         |
+| **X (Twitter)**    | username             |
+| **YouTube**        | channel-handle       |
+| **Google Scholar** | user-id              |
+| **Discord**        | username             |
 | **Website**        | https://yoursite.com |
 
 Social links appear on your public profile page.
@@ -83,12 +83,12 @@ Manage email addresses linked to your account in the `Profile` tab:
 
 <!-- Screenshot: settings-profile-tab-emails-section.avif -->
 
-| Action             | Description                                      |
-| ------------------ | ------------------------------------------------ |
-| **Add Email**      | Add a new email address to your account          |
-| **Remove**         | Remove a non-primary email address               |
-| **Verify**         | Send a verification email to confirm ownership   |
-| **Set as Primary** | Set a verified email as your primary address      |
+| Action             | Description                                    |
+| ------------------ | ---------------------------------------------- |
+| **Add Email**      | Add a new email address to your account        |
+| **Remove**         | Remove a non-primary email address             |
+| **Verify**         | Send a verification email to confirm ownership |
+| **Set as Primary** | Set a verified email as your primary address   |
 
 !!! note "Primary Email"
 
@@ -220,12 +220,12 @@ The Teams tab displays:
 
 ### Member Roles
 
-| Role       | Permissions                                               |
-| ---------- | --------------------------------------------------------- |
-| **Owner**  | Full control, transfer ownership, delete workspace        |
-| **Admin**  | Manage members, billing, settings, content                |
-| **Editor** | Create and manage projects, datasets, models, API keys    |
-| **Viewer** | Read-only access to workspace resources                   |
+| Role       | Permissions                                            |
+| ---------- | ------------------------------------------------------ |
+| **Owner**  | Full control, transfer ownership, delete workspace     |
+| **Admin**  | Manage members, billing, settings, content             |
+| **Editor** | Create and manage projects, datasets, models, API keys |
+| **Viewer** | Read-only access to workspace resources                |
 
 !!! note "Role Availability"
 

@@ -35,38 +35,38 @@ Navigate to the Activity Feed:
 
 The Platform tracks the following resource types and actions:
 
-| Resource Type  | Description                                | Icon Color     |
-| -------------- | ------------------------------------------ | -------------- |
-| **project**    | [Project](../train/projects.md) events     | Blue           |
-| **dataset**    | [Dataset](../data/datasets.md) events      | Green          |
-| **model**      | [Model](../train/models.md) events         | Purple         |
-| **training**   | Training job events                        | Blue/Green/Red |
-| **settings**   | Account settings changes                   | Gray           |
-| **api_key**    | [API key](api-keys.md) creation/revocation | Amber          |
-| **export**     | Model export events                        | Amber          |
+| Resource Type  | Description                                 | Icon Color     |
+| -------------- | ------------------------------------------- | -------------- |
+| **project**    | [Project](../train/projects.md) events      | Blue           |
+| **dataset**    | [Dataset](../data/datasets.md) events       | Green          |
+| **model**      | [Model](../train/models.md) events          | Purple         |
+| **training**   | Training job events                         | Blue/Green/Red |
+| **settings**   | Account settings changes                    | Gray           |
+| **api_key**    | [API key](api-keys.md) creation/revocation  | Amber          |
+| **export**     | Model export events                         | Amber          |
 | **deployment** | [Deployment](../deploy/endpoints.md) events | Blue           |
-| **onboarding** | Onboarding completion                      | Green          |
+| **onboarding** | Onboarding completion                       | Green          |
 
 ### Action Types
 
 Each event includes one of the following action types:
 
-| Action        | Description                                   |
-| ------------- | --------------------------------------------- |
-| **created**   | Resource was created                          |
-| **updated**   | Resource was modified                         |
-| **deleted**   | Resource was permanently deleted              |
-| **trashed**   | Resource was moved to trash                   |
-| **restored**  | Resource was restored from trash              |
-| **started**   | Training or export job was started            |
-| **completed** | Training or export job finished successfully  |
-| **failed**    | Training or export job failed                 |
-| **cancelled** | Training or export job was cancelled          |
-| **uploaded**  | Data was uploaded (images, model weights)     |
-| **shared**    | Resource visibility changed to public         |
-| **unshared**  | Resource visibility changed to private        |
-| **exported**  | Model was exported to a deployment format     |
-| **cloned**    | Resource was cloned to another location       |
+| Action        | Description                                  |
+| ------------- | -------------------------------------------- |
+| **created**   | Resource was created                         |
+| **updated**   | Resource was modified                        |
+| **deleted**   | Resource was permanently deleted             |
+| **trashed**   | Resource was moved to trash                  |
+| **restored**  | Resource was restored from trash             |
+| **started**   | Training or export job was started           |
+| **completed** | Training or export job finished successfully |
+| **failed**    | Training or export job failed                |
+| **cancelled** | Training or export job was cancelled         |
+| **uploaded**  | Data was uploaded (images, model weights)    |
+| **shared**    | Resource visibility changed to public        |
+| **unshared**  | Resource visibility changed to private       |
+| **exported**  | Model was exported to a deployment format    |
+| **cloned**    | Resource was cloned to another location      |
 
 ## Inbox and Archive
 

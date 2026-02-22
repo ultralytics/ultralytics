@@ -168,17 +168,17 @@ Place [17 COCO keypoints](../../datasets/pose/index.md#ultralytics-yolo-format) 
 
 The 17 COCO keypoints are:
 
-| #   | Keypoint       | #   | Keypoint     |
-| --- | -------------- | --- | ------------ |
-| 1   | Nose           | 10  | Left wrist   |
-| 2   | Left eye       | 11  | Right wrist  |
-| 3   | Right eye      | 12  | Left hip     |
-| 4   | Left ear       | 13  | Right hip    |
-| 5   | Right ear      | 14  | Left knee    |
-| 6   | Left shoulder  | 15  | Right knee   |
-| 7   | Right shoulder | 16  | Left ankle   |
-| 8   | Left elbow     | 17  | Right ankle  |
-| 9   | Right elbow    |     |              |
+| #   | Keypoint       | #   | Keypoint    |
+| --- | -------------- | --- | ----------- |
+| 1   | Nose           | 10  | Left wrist  |
+| 2   | Left eye       | 11  | Right wrist |
+| 3   | Right eye      | 12  | Left hip    |
+| 4   | Left ear       | 13  | Right hip   |
+| 5   | Right ear      | 14  | Left knee   |
+| 6   | Left shoulder  | 15  | Right knee  |
+| 7   | Right shoulder | 16  | Left ankle  |
+| 8   | Left elbow     | 17  | Right ankle |
+| 9   | Right elbow    |     |             |
 
 ![Ultralytics Platform Annotate Pose Keypoints Skeleton](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-pose-keypoints-skeleton.avif)
 
@@ -270,25 +270,25 @@ The annotation editor includes a collapsible class sidebar on the right side of 
 
 Right-click on selected annotations to open a context menu with:
 
-| Action                | Shortcut               |
-| --------------------- | ---------------------- |
-| Delete Annotation(s)  | `Delete` / `Backspace` |
-| Bring to Front        | `Cmd/Ctrl+Shift+]`     |
-| Send to Back          | `Cmd/Ctrl+Shift+[`     |
-| Bring Forward         | `Cmd/Ctrl+]`           |
-| Send Backward         | `Cmd/Ctrl+[`           |
+| Action               | Shortcut               |
+| -------------------- | ---------------------- |
+| Delete Annotation(s) | `Delete` / `Backspace` |
+| Bring to Front       | `Cmd/Ctrl+Shift+]`     |
+| Send to Back         | `Cmd/Ctrl+Shift+[`     |
+| Bring Forward        | `Cmd/Ctrl+]`           |
+| Send Backward        | `Cmd/Ctrl+[`           |
 
 ## Visibility Controls
 
 The visibility dropdown (eye icon) lets you toggle display of individual elements:
 
-| Toggle             | Description                                  |
-| ------------------ | -------------------------------------------- |
-| **Annotations**    | Show or hide all annotation overlays         |
-| **Class labels**   | Show or hide class name labels on annotations |
-| **Show pixels**    | Toggle pixelated rendering for zoom inspection (fullscreen) |
-| **Crosshairs**     | Show crosshair cursor with pixel coordinates (edit mode) |
-| **Nav thumbnails** | Show navigation thumbnail strip (fullscreen) |
+| Toggle             | Description                                                                                |
+| ------------------ | ------------------------------------------------------------------------------------------ |
+| **Annotations**    | Show or hide all annotation overlays                                                       |
+| **Class labels**   | Show or hide class name labels on annotations                                              |
+| **Show pixels**    | Toggle pixelated rendering for zoom inspection (fullscreen)                                |
+| **Crosshairs**     | Show crosshair cursor with pixel coordinates (edit mode)                                   |
+| **Nav thumbnails** | Show navigation thumbnail strip (fullscreen)                                               |
 | **Show all**       | Toggle annotations, labels, crosshairs, and thumbnails at once (does not affect pixelated) |
 
 ## Crosshair Cursor

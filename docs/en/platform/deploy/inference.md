@@ -234,8 +234,15 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
         }
     ],
     "metadata": {
-        "model": "yolo11n.pt",
-        "task": "detect"
+        "imageCount": 1,
+        "functionTimeCall": 0.018,
+        "model": "model.pt",
+        "version": {
+            "ultralytics": "8.4.14",
+            "torch": "2.6.0",
+            "torchvision": "0.21.0",
+            "python": "3.13.0"
+        }
     }
 }
 ```
@@ -253,7 +260,7 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
 | `images[].results[].confidence` | float   | Detection confidence (0-1)       |
 | `images[].results[].box`        | object  | Bounding box coordinates         |
 | `images[].speed`                | object  | Processing times in milliseconds |
-| `metadata`                      | object  | Model info and task type         |
+| `metadata`                      | object  | Request metadata and version info |
 
 ### Task-Specific Responses
 

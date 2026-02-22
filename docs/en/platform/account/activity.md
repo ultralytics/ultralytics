@@ -35,15 +35,38 @@ Navigate to the Activity Feed:
 
 The Platform tracks the following resource types and actions:
 
-| Resource Type  | Description                                | Icon Color     |
-| -------------- | ------------------------------------------ | -------------- |
-| **project**    | [Project](../train/projects.md) events     | Blue           |
-| **dataset**    | [Dataset](../data/datasets.md) events      | Green          |
-| **model**      | [Model](../train/models.md) events         | Purple         |
-| **training**   | Training job events                        | Blue/Green/Red |
-| **settings**   | Account settings changes                   | Gray           |
-| **api_key**    | [API key](api-keys.md) creation/revocation | Amber          |
-| **onboarding** | Onboarding completion                      | Green          |
+| Resource Type  | Description                                 | Icon Color     |
+| -------------- | ------------------------------------------- | -------------- |
+| **project**    | [Project](../train/projects.md) events      | Blue           |
+| **dataset**    | [Dataset](../data/datasets.md) events       | Green          |
+| **model**      | [Model](../train/models.md) events          | Purple         |
+| **training**   | Training job events                         | Blue/Green/Red |
+| **settings**   | Account settings changes                    | Gray           |
+| **api_key**    | [API key](api-keys.md) creation/revocation  | Amber          |
+| **export**     | Model export events                         | Amber          |
+| **deployment** | [Deployment](../deploy/endpoints.md) events | Blue           |
+| **onboarding** | Onboarding completion                       | Green          |
+
+### Action Types
+
+Each event includes one of the following action types:
+
+| Action        | Description                                  |
+| ------------- | -------------------------------------------- |
+| **created**   | Resource was created                         |
+| **updated**   | Resource was modified                        |
+| **deleted**   | Resource was permanently deleted             |
+| **trashed**   | Resource was moved to trash                  |
+| **restored**  | Resource was restored from trash             |
+| **started**   | Training or export job was started           |
+| **completed** | Training or export job finished successfully |
+| **failed**    | Training or export job failed                |
+| **cancelled** | Training or export job was cancelled         |
+| **uploaded**  | Data was uploaded (images, model weights)    |
+| **shared**    | Resource visibility changed to public        |
+| **unshared**  | Resource visibility changed to private       |
+| **exported**  | Model was exported to a deployment format    |
+| **cloned**    | Resource was cloned to another location      |
 
 ## Inbox and Archive
 
@@ -80,7 +103,7 @@ Use the search bar to find events by resource name or event description.
 Filter by time period using the date range picker:
 
 - Select a start and end date
-- Default range: last 30 days
+- No default date filter (shows all events)
 - Custom date ranges supported
 
 ![Ultralytics Platform Activity Page Date Range Picker Expanded](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/activity-page-date-range-picker-expanded.avif)
@@ -109,7 +132,7 @@ The Activity feed supports pagination:
 
 - Default page size: 20 events
 - Navigate between pages using the pagination controls
-- Adjust page size as needed
+- Page size is configurable via URL query parameter
 
 ## API Access
 
@@ -122,17 +145,19 @@ Access activity programmatically via the [REST API](../api/index.md#activity-api
       https://platform.ultralytics.com/api/activity
     ```
 
-=== "Filter by Date"
+=== "Filter and Search"
 
     ```bash
     curl -H "Authorization: Bearer YOUR_API_KEY" \
-      "https://platform.ultralytics.com/api/activity?start=2025-01-01T00:00:00Z&end=2025-01-31T23:59:59Z"
+      "https://platform.ultralytics.com/api/activity?archived=false&search=model&page=1&limit=20"
     ```
 
 === "Mark Seen"
 
     ```bash
     curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"all": true}' \
       https://platform.ultralytics.com/api/activity/mark-seen
     ```
 

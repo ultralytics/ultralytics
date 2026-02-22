@@ -18,7 +18,7 @@ Create a new API key:
 2. Scroll to the **API Keys** section
 3. Click **Create Key**
 4. Enter a name for the key (e.g., "Training Server")
-5. Click **Create**
+5. Click **Create Key**
 
 ![Ultralytics Platform Settings Profile Tab Create Api Key Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-create-api-key-dialog.avif)
 
@@ -36,18 +36,16 @@ After creation, the key is displayed once:
 
 ![Ultralytics Platform Settings Profile Tab Api Key Created Copy Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-api-key-created-copy-dialog.avif)
 
-!!! warning "Copy Your Key"
+!!! tip "Copy Your Key"
 
-    The full key is only shown once. Copy it immediately and store securely. You cannot retrieve it later.
-
-After dismissing the dialog, only the key prefix is visible in the key list.
+    Copy your key after creation for easy reference. Keys are also visible in the key list — the platform decrypts and displays full key values so you can copy them anytime.
 
 ## Key Format
 
 API keys follow this format:
 
 ```
-ul_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0
+ul_a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4
 ```
 
 - **Prefix**: `ul_` identifies Ultralytics keys
@@ -117,10 +115,10 @@ Enable metric streaming with your key.
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.0**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.14**. Lower versions will NOT work with Platform.
 
     ```bash
-    pip install "ultralytics>=8.4.0"
+    pip install "ultralytics>=8.4.14"
     ```
 
 ```bash
@@ -136,12 +134,7 @@ See [Cloud Training](../train/cloud-training.md#remote-training) for the complet
 
 All keys are listed in `Settings > Profile` under the API Keys section:
 
-| Column      | Description                 |
-| ----------- | --------------------------- |
-| **Name**    | Key identifier              |
-| **Prefix**  | First characters of the key |
-| **Created** | Creation date               |
-| **Uses**    | Total usage count           |
+Each key card shows the key name, the full decrypted key value (copyable), relative creation time, and a revoke button.
 
 ### Revoke Key
 
@@ -215,7 +208,7 @@ Solutions:
 1. Verify key is copied correctly (including the `ul_` prefix)
 2. Check key hasn't been revoked
 3. Confirm environment variable is set
-4. Ensure you're using `ultralytics>=8.4.0`
+4. Ensure you're using `ultralytics>=8.4.14`
 
 ### Permission Denied
 
@@ -253,7 +246,7 @@ Keys don't expire automatically. They remain valid until revoked. Consider imple
 
 ### Can I see my key after creation?
 
-No, the full key is shown only once at creation. If lost, create a new key and revoke the old one.
+Yes, full key values are visible in the key list on `Settings > Profile`. The Platform decrypts and displays your keys so you can copy them anytime.
 
 ### Are keys region-specific?
 

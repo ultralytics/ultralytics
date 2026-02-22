@@ -170,14 +170,14 @@ The 17 COCO keypoints are:
 
 | #   | Keypoint       | #   | Keypoint    |
 | --- | -------------- | --- | ----------- |
-| 1   | Nose           | 10  | Right wrist |
-| 2   | Left eye       | 11  | Left hip    |
-| 3   | Right eye      | 12  | Right hip   |
-| 4   | Left ear       | 13  | Left knee   |
-| 5   | Right ear      | 14  | Right knee  |
-| 6   | Left shoulder  | 15  | Left ankle  |
-| 7   | Right shoulder | 16  | Right ankle |
-| 8   | Left elbow     | 17  | (reserved)  |
+| 1   | Nose           | 10  | Left wrist  |
+| 2   | Left eye       | 11  | Right wrist |
+| 3   | Right eye      | 12  | Left hip    |
+| 4   | Left ear       | 13  | Right hip   |
+| 5   | Right ear      | 14  | Left knee   |
+| 6   | Left shoulder  | 15  | Right knee  |
+| 7   | Right shoulder | 16  | Left ankle  |
+| 8   | Left elbow     | 17  | Right ankle |
 | 9   | Right elbow    |     |             |
 
 ![Ultralytics Platform Annotate Pose Keypoints Skeleton](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-pose-keypoints-skeleton.avif)
@@ -251,6 +251,61 @@ SAM smart annotation can generate:
 
     SAM smart annotation is only available for **detect**, **segment**, and **OBB** tasks. Classification and pose tasks require manual annotation.
 
+## Class Sidebar
+
+The annotation editor includes a collapsible class sidebar on the right side of the canvas. The sidebar provides:
+
+- **Search classes**: Filter the class list by typing in the search field. Press `Enter` on an exact match to select it, or create a new class if no match exists.
+- **Create new class inline**: Click `Add class` at the bottom of the list, type a name, and optionally pick a custom color. Press `Enter` to create.
+- **Edit class name inline**: Hover over a class name and click the pencil icon to rename it.
+- **Color picker**: Click the color swatch next to any class to change its color.
+- **Per-class annotation count**: Each class row shows a superscript count of annotations.
+- **Expand/collapse**: Click the chevron to expand a class and see individual annotations listed below it.
+- **Bidirectional hover highlighting**: Hovering an annotation on the canvas highlights it in the sidebar, and vice versa. The sidebar auto-scrolls and auto-expands to the relevant class.
+- **Hide/show individual annotations**: Click the eye icon on any annotation row to toggle its visibility on the canvas.
+- **Delete annotations**: Click the trash icon on any annotation row to delete it.
+- **Keyboard shortcuts**: Press `1-9` to quickly select the first 9 classes.
+
+## Context Menu
+
+Right-click on selected annotations to open a context menu with:
+
+| Action               | Shortcut               |
+| -------------------- | ---------------------- |
+| Delete Annotation(s) | `Delete` / `Backspace` |
+| Bring to Front       | `Cmd/Ctrl+Shift+]`     |
+| Send to Back         | `Cmd/Ctrl+Shift+[`     |
+| Bring Forward        | `Cmd/Ctrl+]`           |
+| Send Backward        | `Cmd/Ctrl+[`           |
+
+## Visibility Controls
+
+The visibility dropdown (eye icon) lets you toggle display of individual elements:
+
+| Toggle             | Description                                                                                |
+| ------------------ | ------------------------------------------------------------------------------------------ |
+| **Annotations**    | Show or hide all annotation overlays                                                       |
+| **Class labels**   | Show or hide class name labels on annotations                                              |
+| **Show pixels**    | Toggle pixelated rendering for zoom inspection (fullscreen)                                |
+| **Crosshairs**     | Show crosshair cursor with pixel coordinates (edit mode)                                   |
+| **Nav thumbnails** | Show navigation thumbnail strip (fullscreen)                                               |
+| **Show all**       | Toggle annotations, labels, crosshairs, and thumbnails at once (does not affect pixelated) |
+
+## Crosshair Cursor
+
+In edit mode, a crosshair overlay tracks the cursor position and displays pixel coordinates on the canvas. This helps place annotations with precision. Toggle it via the visibility dropdown.
+
+## SAM Hover Preview
+
+In Smart mode for **segment** tasks, SAM provides a real-time mask preview as you hover over the image — before clicking any points. This lets you see the predicted segmentation boundary and decide where to click. Once you add positive or negative points, the preview updates to reflect your refinements.
+
+## Polygon Vertex Editing
+
+For segment annotations, you can edit polygon vertices after drawing:
+
+- **Move vertices**: Drag any vertex handle to reposition it
+- **Delete vertices**: Select a vertex and press `Delete` to remove it
+
 ## Class Management
 
 ### Creating Classes
@@ -288,7 +343,7 @@ This allows for a seamless workflow where you can define classes as you encounte
 
 ### Class Colors
 
-Each class is assigned a color from the Ultralytics palette. You can customize colors using the color picker on the `Classes` tab. Colors are consistent across the Platform for easy recognition.
+Each class is assigned a color from the Ultralytics palette. You can customize colors using the color picker on the `Classes` tab. Colors are consistent across the platform for easy recognition.
 
 ## Keyboard Shortcuts
 
@@ -324,6 +379,7 @@ Efficient annotation with keyboard shortcuts:
     | `Click`       | Add polygon point (segment) / Place keypoint (pose) |
     | `Right-click` | Complete polygon / Add SAM negative point           |
     | `Enter`       | Complete polygon / Save SAM annotation              |
+    | `Escape`      | Save SAM annotation / Deselect / Exit edit mode     |
 
 === "Arrange (Z-Order)"
 
@@ -404,8 +460,8 @@ The keyboard shortcut `1-9` quickly selects classes.
 Yes, but for best results:
 
 - Label all objects of your target classes in each image
-- Use the label filter to identify unlabeled images
-- Exclude unlabeled images from training configuration
+- Use the label filter set to `Unannotated` to identify unlabeled images
+- Exclude unannotated images from training configuration
 
 ### Which tasks support SAM smart annotation?
 

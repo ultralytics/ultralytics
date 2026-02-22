@@ -74,7 +74,7 @@ Below the overview cards, the deployments list shows all endpoints across your p
 | View        | Description                                                                  |
 | ----------- | ---------------------------------------------------------------------------- |
 | **Cards**   | Full detail cards with metrics, logs, code, and predict tabs                 |
-| **Compact** | Grid of smaller cards (2-4 columns) with key metrics                         |
+| **Compact** | Grid of smaller cards (1-4 columns) with key metrics                         |
 | **Table**   | DataTable with sortable columns: Name, Region, Status, Requests, P95, Errors |
 
 !!! tip "Real-Time Updates"
@@ -105,13 +105,13 @@ Running deployments show a health check indicator:
 | **Red heart**     | Unhealthy — shows error message  |
 | **Spinning icon** | Health check in progress         |
 
-Health checks auto-retry every 20 seconds when unhealthy. Click the refresh icon to manually trigger a health check. The health check has a 35-second timeout to accommodate cold starts.
+Health checks auto-retry every 20 seconds when unhealthy. Click the refresh icon to manually trigger a health check. The health check uses a 55-second timeout to accommodate cold starts on scale-to-zero endpoints.
 
 ![Ultralytics Platform Deployment Card Health Check Healthy With Latency](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deployment-card-health-check-healthy-with-latency.avif)
 
 !!! info "Cold Start Tolerance"
 
-    The health check uses a 35-second timeout to account for cold starts on scale-to-zero endpoints. Once the endpoint warms up, health checks complete in milliseconds.
+    The health check uses a 55-second timeout to account for cold starts on scale-to-zero endpoints (up to ~45 seconds in worst case). Once the endpoint warms up, health checks complete in milliseconds.
 
 ## Logs
 
@@ -151,7 +151,7 @@ Each log entry shows:
     | **Copy**    | Copy all visible logs to clipboard  |
     | **Refresh** | Reload log entries                  |
 
-Logs show the 20 most recent entries per request.
+The UI shows the 20 most recent entries. The API defaults to 50 entries per request (max 200).
 
 !!! tip "Debugging Workflow"
 
@@ -239,23 +239,29 @@ Returns aggregated metrics for all deployments owned by the authenticated user. 
 ### Deployment Metrics
 
 ```
-GET /api/deployments/{deploymentId}/metrics?sparkline=true
+GET /api/deployments/{deploymentId}/metrics?sparkline=true&range=24h
 ```
 
 Returns sparkline data and summary metrics for a specific deployment. Refresh interval: 60 seconds.
 
+| Parameter   | Type   | Description                                   |
+| ----------- | ------ | --------------------------------------------- |
+| `sparkline` | bool   | Include sparkline data                        |
+| `range`     | string | Time range: `1h`, `6h`, `24h`, `7d`, or `30d` |
+
 ### Deployment Logs
 
 ```
-GET /api/deployments/{deploymentId}/logs?limit=20&severity=ERROR,WARNING
+GET /api/deployments/{deploymentId}/logs?limit=50&severity=ERROR,WARNING
 ```
 
 Returns recent log entries with optional severity filter and pagination.
 
-| Parameter  | Type   | Description                         |
-| ---------- | ------ | ----------------------------------- |
-| `limit`    | int    | Max entries to return (default: 20) |
-| `severity` | string | Comma-separated severity filter     |
+| Parameter   | Type   | Description                                   |
+| ----------- | ------ | --------------------------------------------- |
+| `limit`     | int    | Max entries to return (default: 50, max: 200) |
+| `severity`  | string | Comma-separated severity filter               |
+| `pageToken` | string | Pagination token from previous response       |
 
 ### Deployment Health
 
@@ -303,26 +309,9 @@ Use monitoring data to optimize your deployments:
 
     If hitting capacity:
 
-    1. Increase max instances
-    2. Set min instances > 0
-    3. Consider multiple regions
-    4. Optimize request batching
-
-## Export Data
-
-Export monitoring data for analysis:
-
-1. Select time range
-2. Click **Export**
-3. Download CSV file
-
-Export includes:
-
-- Timestamp
-- Request count
-- Latency metrics
-- Error counts
-- Instance metrics
+    1. Consider multiple regions
+    2. Optimize request batching
+    3. Increase CPU and memory resources
 
 ## FAQ
 
@@ -332,7 +321,6 @@ Export includes:
 | ----------- | --------- |
 | **Metrics** | 30 days   |
 | **Logs**    | 7 days    |
-| **Alerts**  | 90 days   |
 
 ### Can I set up external monitoring?
 

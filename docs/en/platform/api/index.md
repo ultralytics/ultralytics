@@ -16,12 +16,6 @@ keywords: Ultralytics Platform, REST API, API reference, authentication, endpoin
     # List your datasets
     curl -H "Authorization: Bearer YOUR_API_KEY" \
       https://platform.ultralytics.com/api/datasets
-
-    # Run inference on a model
-    curl -X POST \
-      -H "Authorization: Bearer YOUR_API_KEY" \
-      -F "file=@image.jpg" \
-      https://platform.ultralytics.com/api/models/MODEL_ID/predict
     ```
 
 ## API Overview
@@ -54,11 +48,11 @@ graph LR
 
 ## Authentication
 
-All API requests require authentication via API key.
+Most API requests require authentication via API key. Public endpoints (listing public datasets, projects, and models) support anonymous read access without a key.
 
 ### Get API Key
 
-1. Go to `Settings` > `API Keys`
+1. Go to `Settings` > `Profile` (API Keys section)
 2. Click `Create Key`
 3. Copy the generated key
 
@@ -117,23 +111,27 @@ https://platform.ultralytics.com/api
 
 ## Rate Limits
 
-| Plan       | Requests/Minute | Requests/Day |
-| ---------- | --------------- | ------------ |
-| Free       | 60              | 1,000        |
-| Pro        | 300             | 50,000       |
-| Enterprise | Custom          | Custom       |
-
-Rate limit headers are included in responses:
+Rate limiting is endpoint-specific. When throttled, the API returns `429` with retry metadata:
 
 ```
-X-RateLimit-Limit: 60
-X-RateLimit-Remaining: 55
-X-RateLimit-Reset: 1640000000
+Retry-After: 12
+X-RateLimit-Reset: 2026-02-21T12:34:56.000Z
 ```
+
+Default rate limits per endpoint category:
+
+| Category        | Limit            | Scope    |
+| --------------- | ---------------- | -------- |
+| **Training**    | 10 requests/min  | Per user |
+| **Upload**      | 10 requests/min  | Per user |
+| **Export**      | 20 requests/min  | Per user |
+| **API Read**    | 200 requests/min | Per key  |
+| **API Write**   | 60 requests/min  | Per key  |
+| **API Predict** | 100 requests/min | Per key  |
 
 !!! tip "Handling Rate Limits"
 
-    When you receive a `429` status code, wait until `X-RateLimit-Reset` before retrying. See the [rate limit FAQ](#how-do-i-handle-rate-limits) for an exponential backoff implementation.
+    When you receive a `429` status code, wait for `Retry-After` (or until `X-RateLimit-Reset`) before retrying. See the [rate limit FAQ](#how-do-i-handle-rate-limits) for an exponential backoff implementation.
 
 ## Response Format
 
@@ -164,6 +162,7 @@ Responses return JSON with resource-specific fields:
 | `401`       | Authentication required  |
 | `403`       | Insufficient permissions |
 | `404`       | Resource not found       |
+| `409`       | Conflict (duplicate)     |
 | `429`       | Rate limit exceeded      |
 | `500`       | Server error             |
 
@@ -215,17 +214,31 @@ GET /api/datasets
 {
     "datasets": [
         {
-            "id": "dataset_abc123",
+            "_id": "dataset_abc123",
             "name": "my-dataset",
             "slug": "my-dataset",
             "task": "detect",
             "imageCount": 1000,
             "classCount": 10,
+            "classNames": ["person", "car"],
             "visibility": "private",
-            "createdAt": "2024-01-15T10:00:00Z"
+            "username": "johndoe",
+            "starCount": 3,
+            "isStarred": false,
+            "sampleImages": [
+                {
+                    "url": "https://storage.googleapis.com/...",
+                    "width": 1920,
+                    "height": 1080,
+                    "labels": [{ "classId": 0, "bbox": [0.5, 0.4, 0.3, 0.6] }]
+                }
+            ],
+            "createdAt": "2024-01-15T10:00:00Z",
+            "updatedAt": "2024-01-16T08:30:00Z"
         }
     ],
-    "total": 1
+    "total": 1,
+    "region": "us"
 }
 ```
 
@@ -298,7 +311,16 @@ Creates a copy of the dataset with all images and labels.
 GET /api/datasets/{datasetId}/export
 ```
 
-Returns an NDJSON (Newline Delimited JSON) export of the dataset with images and annotations.
+Returns a JSON response with a signed download URL for the dataset export file.
+
+**Response:**
+
+```json
+{
+    "downloadUrl": "https://storage.example.com/export.ndjson?signed=...",
+    "cached": true
+}
+```
 
 ### Get Class Statistics
 
@@ -315,11 +337,31 @@ Returns cached class distribution, location heatmap, and dimension statistics. R
     "classes": [{ "classId": 0, "count": 1500, "imageCount": 450 }],
     "imageStats": {
         "widthHistogram": [{ "bin": 640, "count": 120 }],
-        "heightHistogram": [{ "bin": 480, "count": 95 }]
+        "heightHistogram": [{ "bin": 480, "count": 95 }],
+        "pointsHistogram": [{ "bin": 4, "count": 200 }]
     },
-    "locationHeatmap": { "bins": [[]], "maxCount": 50 },
+    "locationHeatmap": {
+        "bins": [
+            [5, 10],
+            [8, 3]
+        ],
+        "maxCount": 50
+    },
+    "dimensionHeatmap": {
+        "bins": [
+            [2, 5],
+            [3, 1]
+        ],
+        "maxCount": 12,
+        "minWidth": 10,
+        "maxWidth": 1920,
+        "minHeight": 10,
+        "maxHeight": 1080
+    },
     "classNames": ["person", "car", "dog"],
-    "cached": true
+    "cached": true,
+    "sampled": false,
+    "sampleSize": 1000
 }
 ```
 
@@ -335,19 +377,32 @@ Returns models that were trained using this dataset.
 
 ```json
 {
-    "success": true,
-    "data": [
+    "models": [
         {
-            "id": "model_abc123",
+            "_id": "model_abc123",
             "name": "experiment-1",
+            "slug": "experiment-1",
+            "status": "completed",
+            "task": "detect",
+            "epochs": 100,
+            "bestEpoch": 87,
             "projectId": "project_xyz",
-            "trainedAt": "2024-01-15T10:00:00Z",
+            "projectSlug": "my-project",
+            "projectIconColor": "#3b82f6",
+            "projectIconLetter": "M",
+            "username": "johndoe",
+            "startedAt": "2024-01-14T22:00:00Z",
+            "completedAt": "2024-01-15T10:00:00Z",
+            "createdAt": "2024-01-14T21:55:00Z",
             "metrics": {
                 "mAP50": 0.85,
-                "mAP50-95": 0.72
+                "mAP50-95": 0.72,
+                "precision": 0.88,
+                "recall": 0.81
             }
         }
-    ]
+    ],
+    "count": 1
 }
 ```
 
@@ -387,11 +442,14 @@ GET /api/datasets/{datasetId}/images
 
 **Query Parameters:**
 
-| Parameter | Type   | Description                      |
-| --------- | ------ | -------------------------------- |
-| `split`   | string | Filter by split (train/val/test) |
-| `cursor`  | string | Pagination cursor                |
-| `limit`   | int    | Items per page                   |
+| Parameter  | Type   | Description                       |
+| ---------- | ------ | --------------------------------- |
+| `split`    | string | Filter by split (train/val/test)  |
+| `offset`   | int    | Pagination offset                 |
+| `limit`    | int    | Items per page (max 5000)         |
+| `sort`     | string | Sort order (newest, oldest, etc.) |
+| `hasLabel` | string | Filter by label status            |
+| `search`   | string | Search by filename                |
 
 #### Get Signed Image URLs
 
@@ -435,7 +493,7 @@ PUT /api/datasets/{datasetId}/images/{hash}/labels
 
 #### Bulk Image Operations
 
-Move or copy images between datasets:
+Move images between splits (train/val/test) within a dataset:
 
 ```
 PATCH /api/datasets/{datasetId}/images/bulk
@@ -485,7 +543,7 @@ POST /api/projects
     curl -X POST \
       -H "Authorization: Bearer $API_KEY" \
       -H "Content-Type: application/json" \
-      -d '{"name": "my-project", "description": "Detection experiments"}' \
+      -d '{"name": "my-project", "slug": "my-project", "description": "Detection experiments"}' \
       https://platform.ultralytics.com/api/projects
     ```
 
@@ -495,7 +553,7 @@ POST /api/projects
     resp = requests.post(
         "https://platform.ultralytics.com/api/projects",
         headers={"Authorization": f"Bearer {API_KEY}"},
-        json={"name": "my-project", "description": "Detection experiments"},
+        json={"name": "my-project", "slug": "my-project", "description": "Detection experiments"},
     )
     project_id = resp.json()["projectId"]
     ```
@@ -548,10 +606,12 @@ GET /api/models
 
 **Query Parameters:**
 
-| Parameter   | Type   | Description         |
-| ----------- | ------ | ------------------- |
-| `projectId` | string | Filter by project   |
-| `task`      | string | Filter by task type |
+| Parameter   | Type   | Required | Description                       |
+| ----------- | ------ | -------- | --------------------------------- |
+| `projectId` | string | Yes      | Project ID (required)             |
+| `fields`    | string | No       | Field set: `summary`, `charts`    |
+| `ids`       | string | No       | Comma-separated model IDs         |
+| `limit`     | int    | No       | Max results (default 20, max 100) |
 
 ### List Completed Models
 
@@ -573,13 +633,19 @@ GET /api/models/{modelId}
 POST /api/models
 ```
 
-**Multipart Form:**
+**JSON Body:**
 
-| Field       | Type   | Description    |
-| ----------- | ------ | -------------- |
-| `file`      | file   | Model .pt file |
-| `projectId` | string | Target project |
-| `name`      | string | Model name     |
+| Field         | Type   | Required | Description                                      |
+| ------------- | ------ | -------- | ------------------------------------------------ |
+| `projectId`   | string | Yes      | Target project ID                                |
+| `slug`        | string | No       | URL slug (lowercase alphanumeric/hyphens)        |
+| `name`        | string | No       | Display name (max 100 chars)                     |
+| `description` | string | No       | Model description (max 1000 chars)               |
+| `task`        | string | No       | Task type (detect, segment, pose, obb, classify) |
+
+!!! note "Model File Upload"
+
+    Model `.pt` file uploads are handled separately. Use the platform UI to drag-and-drop model files onto a project.
 
 ### Update Model
 
@@ -651,21 +717,29 @@ POST /api/models/{modelId}/predict
             files={"file": f},
             data={"conf": 0.5},
         )
-    predictions = resp.json()["predictions"]
+    results = resp.json()["images"][0]["results"]
     ```
 
 **Response:**
 
 ```json
 {
-    "success": true,
-    "predictions": [
+    "images": [
         {
-            "class": "person",
-            "confidence": 0.92,
-            "box": { "x1": 100, "y1": 50, "x2": 300, "y2": 400 }
+            "shape": [1080, 1920],
+            "results": [
+                {
+                    "class": 0,
+                    "name": "person",
+                    "confidence": 0.92,
+                    "box": { "x1": 100, "y1": 50, "x2": 300, "y2": 400 }
+                }
+            ]
         }
-    ]
+    ],
+    "metadata": {
+        "imageCount": 1
+    }
 }
 ```
 
@@ -811,6 +885,7 @@ POST /api/deployments
 ```json
 {
     "modelId": "model_abc123",
+    "name": "my-deployment",
     "region": "us-central1"
 }
 ```
@@ -819,7 +894,7 @@ Creates a dedicated inference endpoint in the specified region. The endpoint is 
 
 !!! tip "Region Selection"
 
-    Choose a region close to your users for lowest latency. The Platform UI shows latency estimates for all 43 available regions.
+    Choose a region close to your users for lowest latency. The platform UI shows latency estimates for all 43 available regions.
 
 ### Get Deployment
 
@@ -944,11 +1019,11 @@ POST /api/exports
 | ONNX          | `onnx`        | Cross-platform inference |
 | TorchScript   | `torchscript` | PyTorch deployment       |
 | OpenVINO      | `openvino`    | Intel hardware           |
-| TensorRT      | `tensorrt`    | NVIDIA GPU optimization  |
+| TensorRT      | `engine`      | NVIDIA GPU optimization  |
 | CoreML        | `coreml`      | Apple devices            |
 | TFLite        | `tflite`      | Mobile and embedded      |
 | TF SavedModel | `saved_model` | TensorFlow Serving       |
-| TF GraphDef   | `graphdef`    | TensorFlow frozen graph  |
+| TF GraphDef   | `pb`          | TensorFlow frozen graph  |
 | PaddlePaddle  | `paddle`      | Baidu PaddlePaddle       |
 | NCNN          | `ncnn`        | Mobile neural network    |
 | Edge TPU      | `edgetpu`     | Google Coral devices     |
@@ -991,11 +1066,12 @@ GET /api/activity
 
 **Query Parameters:**
 
-| Parameter   | Type   | Description              |
-| ----------- | ------ | ------------------------ |
-| `startDate` | string | Filter from date (ISO)   |
-| `endDate`   | string | Filter to date (ISO)     |
-| `search`    | string | Search in event messages |
+| Parameter  | Type    | Description                               |
+| ---------- | ------- | ----------------------------------------- |
+| `limit`    | int     | Page size (default: 20, max: 100)         |
+| `page`     | int     | Page number (default: 1)                  |
+| `archived` | boolean | `true` for Archive tab, `false` for Inbox |
+| `search`   | string  | Case-insensitive search in event fields   |
 
 ### Mark Events Seen
 
@@ -1003,10 +1079,62 @@ GET /api/activity
 POST /api/activity/mark-seen
 ```
 
+**Body:**
+
+```json
+{
+    "all": true
+}
+```
+
+Or pass specific IDs:
+
+```json
+{
+    "eventIds": ["EVENT_ID_1", "EVENT_ID_2"]
+}
+```
+
+### Log Activity Event
+
+```
+POST /api/activity
+```
+
+**Body:**
+
+```json
+{
+    "action": "created",
+    "resourceType": "model",
+    "resourceId": "MODEL_ID",
+    "resourceName": "my-model",
+    "metadata": {}
+}
+```
+
 ### Archive Events
 
 ```
 POST /api/activity/archive
+```
+
+**Body:**
+
+```json
+{
+    "all": true,
+    "archive": true
+}
+```
+
+Or pass specific IDs:
+
+```json
+{
+    "eventIds": ["EVENT_ID_1", "EVENT_ID_2"],
+    "archive": false
+}
 ```
 
 ---
@@ -1078,9 +1206,9 @@ Permanently deletes all items in trash.
 
 Manage credits, subscriptions, and payment methods.
 
-!!! note "Micro-USD"
+!!! note "Currency Units"
 
-    All monetary amounts in the API are in micro-USD (1,000,000 = $1.00) for precise accounting.
+    Billing amounts use cents (`creditsCents`) where `100 = $1.00`.
 
 ### Get Balance
 
@@ -1092,10 +1220,12 @@ GET /api/billing/balance
 
 ```json
 {
-    "cashBalance": 5000000,
-    "creditBalance": 20000000,
+    "creditsCents": 2500,
+    "plan": "free",
+    "cashBalance": 25,
+    "creditBalance": 0,
     "reservedAmount": 0,
-    "totalBalance": 25000000
+    "totalBalance": 25
 }
 ```
 
@@ -1113,7 +1243,7 @@ Returns plan details, limits, and usage metrics.
 GET /api/billing/transactions
 ```
 
-Returns transaction history with pagination.
+Returns transaction history (most recent first).
 
 ### Create Checkout Session
 
@@ -1195,6 +1325,35 @@ Returns a client secret for adding a new payment method.
 POST /api/billing/payment-methods/default
 ```
 
+**Body:**
+
+```json
+{
+    "paymentMethodId": "pm_123"
+}
+```
+
+#### Update Billing Info
+
+```
+PATCH /api/billing/payment-methods
+```
+
+**Body:**
+
+```json
+{
+    "name": "Jane Doe",
+    "address": {
+        "line1": "123 Main St",
+        "city": "San Francisco",
+        "state": "CA",
+        "postal_code": "94105",
+        "country": "US"
+    }
+}
+```
+
 #### Delete Payment Method
 
 ```
@@ -1215,9 +1374,42 @@ GET /api/storage
 
 ```json
 {
-    "used": 1073741824,
-    "limit": 107374182400,
-    "percentage": 1.0
+    "tier": "free",
+    "usage": {
+        "storage": {
+            "current": 1073741824,
+            "limit": 107374182400,
+            "percent": 1.0
+        }
+    },
+    "region": "us",
+    "username": "johndoe",
+    "updatedAt": "2024-01-15T10:00:00Z",
+    "breakdown": {
+        "byCategory": {
+            "datasets": { "bytes": 536870912, "count": 2 },
+            "models": { "bytes": 268435456, "count": 4 },
+            "exports": { "bytes": 268435456, "count": 3 }
+        },
+        "topItems": [
+            {
+                "_id": "dataset_abc123",
+                "name": "my-dataset",
+                "slug": "my-dataset",
+                "sizeBytes": 536870912,
+                "type": "dataset"
+            },
+            {
+                "_id": "model_def456",
+                "name": "experiment-1",
+                "slug": "experiment-1",
+                "sizeBytes": 134217728,
+                "type": "model",
+                "parentName": "My Project",
+                "parentSlug": "my-project"
+            }
+        ]
+    }
 }
 ```
 
@@ -1228,6 +1420,72 @@ POST /api/storage
 ```
 
 Triggers a recalculation of storage usage.
+
+---
+
+## Upload API
+
+Direct file uploads use a two-step signed URL flow.
+
+### Get Signed Upload URL
+
+```
+POST /api/upload/signed-url
+```
+
+Request a signed URL for uploading a file directly to cloud storage. The signed URL bypasses the API server for large file transfers.
+
+**Body:**
+
+```json
+{
+    "assetType": "images",
+    "assetId": "abc123",
+    "filename": "my-image.jpg",
+    "contentType": "image/jpeg",
+    "totalBytes": 5242880
+}
+```
+
+| Field         | Type   | Description                                          |
+| ------------- | ------ | ---------------------------------------------------- |
+| `assetType`   | string | Asset type: `models`, `datasets`, `images`, `videos` |
+| `assetId`     | string | ID of the target asset                               |
+| `filename`    | string | Original filename                                    |
+| `contentType` | string | MIME type                                            |
+| `totalBytes`  | int    | File size in bytes                                   |
+
+**Response:**
+
+```json
+{
+    "sessionId": "session_abc123",
+    "uploadUrl": "https://storage.example.com/...",
+    "gcsPath": "images/abc123/my-image.jpg",
+    "downloadUrl": "https://cdn.example.com/...",
+    "expiresAt": "2026-02-22T12:00:00Z"
+}
+```
+
+### Complete Upload
+
+```
+POST /api/upload/complete
+```
+
+Notify the platform that a file upload is complete so it can begin processing.
+
+**Body:**
+
+```json
+{
+    "datasetId": "abc123",
+    "objectPath": "datasets/abc123/images/my-image.jpg",
+    "filename": "my-image.jpg",
+    "contentType": "image/jpeg",
+    "size": 5242880
+}
+```
 
 ---
 
@@ -1259,12 +1517,18 @@ POST /api/api-keys
 DELETE /api/api-keys
 ```
 
-**Body:**
+**Query Parameters:**
 
-```json
-{
-    "keyId": "key_abc123"
-}
+| Parameter | Type   | Description          |
+| --------- | ------ | -------------------- |
+| `keyId`   | string | API key ID to revoke |
+
+**Example:**
+
+```bash
+curl -X DELETE \
+  -H "Authorization: Bearer $API_KEY" \
+  "https://platform.ultralytics.com/api/api-keys?keyId=KEY_ID"
 ```
 
 ---
@@ -1389,11 +1653,12 @@ GET /api/explore/search
 
 **Query Parameters:**
 
-| Parameter | Type   | Description                             |
-| --------- | ------ | --------------------------------------- |
-| `q`       | string | Search query                            |
-| `type`    | string | Resource type (project, dataset, model) |
-| `sort`    | string | Sort order                              |
+| Parameter | Type   | Description                                                                                           |
+| --------- | ------ | ----------------------------------------------------------------------------------------------------- |
+| `q`       | string | Search query                                                                                          |
+| `type`    | string | Resource type: `all` (default), `projects`, `datasets`                                                |
+| `sort`    | string | Sort order: `stars` (default), `newest`, `oldest`, `name-asc`, `name-desc`, `count-desc`, `count-asc` |
+| `offset`  | int    | Pagination offset (default: 0). Results return 20 items per page.                                     |
 
 ### Sidebar Data
 
@@ -1419,6 +1684,21 @@ GET /api/users
 | ---------- | ------ | ------------------- |
 | `username` | string | Username to look up |
 
+### Follow or Unfollow User
+
+```
+PATCH /api/users
+```
+
+**Body:**
+
+```json
+{
+    "username": "target-user",
+    "followed": true
+}
+```
+
 ### Check Username Availability
 
 ```
@@ -1427,9 +1707,10 @@ GET /api/username/check
 
 **Query Parameters:**
 
-| Parameter  | Type   | Description       |
-| ---------- | ------ | ----------------- |
-| `username` | string | Username to check |
+| Parameter  | Type   | Description                                       |
+| ---------- | ------ | ------------------------------------------------- |
+| `username` | string | Username to check                                 |
+| `suggest`  | bool   | Optional: `true` to include a suggestion if taken |
 
 ### Settings
 
@@ -1463,15 +1744,21 @@ Complete onboarding flow (set data region, username).
 
 GDPR compliance endpoints for data export and deletion.
 
-### Export Account Data
+### Get GDPR Job Status
 
 ```
 GET /api/gdpr
 ```
 
-Download all account data as a JSON export.
+**Query Parameters:**
 
-### Delete Account
+| Parameter | Type   | Description          |
+| --------- | ------ | -------------------- |
+| `jobId`   | string | GDPR job ID to check |
+
+Returns job status. For completed export jobs, response includes a `downloadUrl`.
+
+### Start Export or Delete Flow
 
 ```
 POST /api/gdpr
@@ -1481,7 +1768,24 @@ POST /api/gdpr
 
 ```json
 {
-    "action": "delete"
+    "action": "export"
+}
+```
+
+```json
+{
+    "action": "delete",
+    "confirmationWord": "DELETE"
+}
+```
+
+Optional for team workspaces:
+
+```json
+{
+    "action": "delete",
+    "confirmationWord": "DELETE",
+    "teamUsername": "my-team"
 }
 ```
 
@@ -1522,7 +1826,7 @@ yolo check
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.0**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.14**. Lower versions will NOT work with Platform.
 
 ### Authentication
 
@@ -1669,11 +1973,24 @@ Webhooks notify your server of Platform events via HTTP POST callbacks:
 
 ### How do I paginate large results?
 
-Use `page` and `limit` parameters:
+Most endpoints use a `limit` parameter to control how many results are returned per request:
 
 ```bash
 curl -H "Authorization: Bearer $API_KEY" \
-  "https://platform.ultralytics.com/api/datasets?page=2&limit=50"
+  "https://platform.ultralytics.com/api/datasets?limit=50"
+```
+
+The Activity and Trash endpoints also support a `page` parameter for page-based pagination:
+
+```bash
+curl -H "Authorization: Bearer $API_KEY" \
+  "https://platform.ultralytics.com/api/activity?page=2&limit=20"
+```
+
+The Explore Search endpoint uses `offset` instead of `page`, with a fixed page size of 20:
+
+```bash
+curl "https://platform.ultralytics.com/api/explore/search?type=datasets&offset=20&sort=stars"
 ```
 
 ### Can I use the API without an SDK?
@@ -1706,7 +2023,7 @@ def api_request_with_retry(url, headers, max_retries=3):
 
 ### How do I find my model or dataset ID?
 
-Resource IDs are returned when you create resources via the API. You can also find them in the Platform URL:
+Resource IDs are returned when you create resources via the API. You can also find them in the platform URL:
 
 ```
 https://platform.ultralytics.com/username/project/model-name

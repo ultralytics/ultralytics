@@ -59,7 +59,7 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
 ### Preparing Your Dataset
 
-The Platform supports both [Ultralytics YOLO](../../datasets/detect/index.md#ultralytics-yolo-format) and [COCO](https://cocodataset.org/#format-data) annotation formats:
+The Platform supports two annotation formats plus raw uploads: [Ultralytics YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), [COCO](https://cocodataset.org/#format-data), and raw (unannotated images):
 
 === "YOLO Format"
 
@@ -126,27 +126,32 @@ The Platform supports both [Ultralytics YOLO](../../datasets/detect/index.md#ult
 
     COCO annotations are automatically converted during upload. Detection (`bbox`), segmentation (`segmentation` polygons), and pose (`keypoints`) tasks are supported. Category IDs are remapped to a dense 0-indexed sequence across all annotation files. For converting between formats, see [format conversion tools](../../datasets/detect/index.md#port-or-convert-label-formats).
 
+!!! tip "Raw Uploads"
+
+    **Raw**: Upload unannotated images (no labels). Useful when you plan to annotate directly on the platform using the [annotation editor](annotation.md).
+
 !!! tip "Flat Directory Structure"
 
-    You can also upload images without the train/val folder structure. Images uploaded without split folders are assigned to the `train` split by default. You can reassign them later using bulk move/copy.
+    You can also upload images without the train/val folder structure. Images uploaded without split folders are assigned to the `train` split by default. You can reassign them later using the bulk move-to-split feature.
 
 !!! tip "Format Auto-Detection"
 
-    The format is detected automatically: datasets with a `data.yaml` containing `names`, `train`, or `val` keys are treated as YOLO. Datasets with COCO JSON files (containing `images`, `annotations`, and `categories` arrays) are treated as COCO.
+    The format is detected automatically: datasets with a `data.yaml` containing `names`, `train`, or `val` keys are treated as YOLO. Datasets with COCO JSON files (containing `images`, `annotations`, and `categories` arrays) are treated as COCO. Datasets with only images and no annotations are treated as raw.
 
 For task-specific format details, see [supported tasks](index.md#supported-tasks) and the [Datasets Overview](../../datasets/index.md).
 
 ### Upload Process
 
 1. Navigate to `Datasets` in the sidebar
-2. Click `Upload Dataset` or drag files into the upload zone
+2. Click `New Dataset` or drag files into the upload zone
 3. Select the task type (see [supported tasks](index.md#supported-tasks))
 4. Add a name and optional description
-5. Click `Upload`
+5. Set visibility (public or private) and optional license (see [available licenses](#available-licenses))
+6. Click `Create`
 
 ![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-upload-dialog-task-selector.avif)
 
-After upload, the Platform processes your data through a multi-stage pipeline:
+After upload, the platform processes your data through a multi-stage pipeline:
 
 ```mermaid
 graph LR
@@ -165,7 +170,7 @@ graph LR
 ```
 
 1. **Validation**: Format and size checks
-2. **Normalization**: Large images resized (max 4096px, min dimension 64px)
+2. **Normalization**: Large images resized (max 4096px, min dimension 28px)
 3. **Thumbnails**: 256px WebP previews generated
 4. **Label Parsing**: [YOLO](../../datasets/detect/index.md#ultralytics-yolo-format) and COCO format labels extracted
 5. **Statistics**: Class distributions and image dimensions computed
@@ -184,17 +189,17 @@ graph LR
 
 !!! warning "Image Size Requirements"
 
-    Images must be at least 64px on their shortest side. Images smaller than this are rejected during processing. Images larger than 4096px on their longest side are automatically resized with aspect ratio preserved and converted to WebP (quality 92).
+    Images must be at least 28px on their shortest side. Images smaller than this are rejected during processing. Images larger than 4096px on their longest side are automatically resized with aspect ratio preserved.
 
 ## Browse Images
 
 View your dataset images in multiple layouts:
 
-| View        | Description                                             |
-| ----------- | ------------------------------------------------------- |
-| **Grid**    | Thumbnail grid with annotation overlays (default)       |
-| **Compact** | Smaller thumbnails for quick scanning                   |
-| **Table**   | List with filename, dimensions, split, and label counts |
+| View        | Description                                                                       |
+| ----------- | --------------------------------------------------------------------------------- |
+| **Grid**    | Thumbnail grid with annotation overlays (default)                                 |
+| **Compact** | Smaller thumbnails for quick scanning                                             |
+| **Table**   | List with thumbnail, filename, dimensions, size, split, classes, and label counts |
 
 ![Ultralytics Platform Datasets Gallery Grid View With Annotations](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-gallery-grid-view-with-annotations.avif)
 
@@ -220,12 +225,12 @@ Images can be sorted and filtered for efficient browsing:
     | Filter           | Options                            |
     | ---------------- | ---------------------------------- |
     | **Split filter** | Train, Val, Test, or All           |
-    | **Label filter** | All, Labeled only, or Unlabeled    |
+    | **Label filter** | All images, Annotated, or Unannotated |
     | **Search**       | Filter images by filename          |
 
 !!! tip "Finding Unlabeled Images"
 
-    Use the label filter set to `Unlabeled` to quickly find images that still need annotation. This is especially useful for large datasets where you want to track labeling progress.
+    Use the label filter set to `Unannotated` to quickly find images that still need annotation. This is especially useful for large datasets where you want to track labeling progress.
 
 ### Fullscreen Viewer
 
@@ -236,6 +241,8 @@ Click any image to open the fullscreen viewer with:
 - **Annotations**: Toggle annotation overlay visibility
 - **Class Breakdown**: Per-class label counts with color indicators
 - **Edit**: Enter annotation mode to add or modify labels
+- **Download**: Download the original image file
+- **Delete**: Delete the image from the dataset
 - **Zoom**: `Cmd/Ctrl+Scroll` to zoom in/out
 - **Pixel view**: Toggle pixelated rendering for close inspection
 
@@ -322,7 +329,7 @@ Images that failed processing are listed here with:
 
 - **Error banner**: Total count of failed images and guidance
 - **Error table**: Filename, user-friendly error description, fix hints, and preview thumbnail
-- Common errors include corrupted files, unsupported formats, images too small (min 64px), and unsupported color modes
+- Common errors include corrupted files, unsupported formats, images too small (min 28px), and unsupported color modes
 
 <!-- Screenshot: platform-datasets-errors-tab-processing-failures.avif -->
 
@@ -332,7 +339,7 @@ Images that failed processing are listed here with:
     | -------------------------- | --------------------------------------- | -------------------------------------- |
     | Unable to read image file  | Corrupted or unsupported format         | Re-export from image editor            |
     | Incomplete or corrupted    | File was truncated during transfer      | Re-download the original file          |
-    | Image too small            | Minimum dimension below 64px            | Use higher resolution source images    |
+    | Image too small            | Minimum dimension below 28px            | Use higher resolution source images    |
     | Unsupported color mode     | CMYK or indexed color mode              | Convert to RGB mode                    |
 
 ## Export Dataset
@@ -359,17 +366,32 @@ The NDJSON format stores one JSON object per line. The first line contains datas
 
 See the [Ultralytics NDJSON format documentation](../../datasets/detect/index.md#ultralytics-ndjson-format) for full specification.
 
-## Bulk Move/Copy Images
+## Bulk Operations
 
-Move or copy images between datasets:
+Manage images in bulk using the table view's context menu:
 
-1. Select images in the gallery using checkboxes
-2. Click `Move` or `Copy` from the selection toolbar
-3. Select the destination dataset
+### Move to Split
+
+Reassign selected images to a different split within the same dataset:
+
+1. Switch to **Table** view
+2. Select images using checkboxes
+3. Right-click to open the context menu
+4. Choose `Move to split` > **Train**, **Validation**, or **Test**
+
+You can also drag and drop images onto the split filter tabs in grid view.
 
 !!! tip "Organizing Train/Val Splits"
 
-    Use bulk move to manually create train/val/test splits. Upload all images to one dataset, then move a subset to a validation or test dataset.
+    Upload all images to one dataset, then use bulk move-to-split to organize subsets into train, validation, and test splits.
+
+### Bulk Delete
+
+Delete multiple images at once:
+
+1. Select images in the table view
+2. Right-click and choose `Delete`
+3. Confirm deletion
 
 ## Dataset URI
 
@@ -405,6 +427,32 @@ Use this URI to train models from anywhere:
     - **Google Colab**: Access your Platform datasets in notebooks
     - **Remote servers**: Train on cloud VMs with full dataset access
 
+## Available Licenses
+
+The Platform supports the following licenses for datasets:
+
+| License         | Type                |
+| --------------- | ------------------- |
+| None            | No license selected |
+| CC0-1.0         | Public domain       |
+| CC-BY-2.5       | Permissive          |
+| CC-BY-4.0       | Permissive          |
+| CC-BY-SA-4.0    | Copyleft            |
+| CC-BY-NC-4.0    | Non-commercial      |
+| CC-BY-NC-SA-4.0 | Copyleft            |
+| CC-BY-ND-4.0    | No derivatives      |
+| CC-BY-NC-ND-4.0 | Non-commercial      |
+| Apache-2.0      | Permissive          |
+| MIT             | Permissive          |
+| AGPL-3.0        | Copyleft            |
+| GPL-3.0         | Copyleft            |
+| Research-Only   | Restricted          |
+| Other           | Custom              |
+
+!!! note "Copyleft Licenses"
+
+    When cloning a dataset with a copyleft license (AGPL-3.0, GPL-3.0, CC-BY-SA-4.0, CC-BY-NC-SA-4.0), the clone inherits the license and the license selector is locked.
+
 ## Visibility Settings
 
 Control who can see your dataset:
@@ -414,27 +462,29 @@ Control who can see your dataset:
 | **Private** | Only you can access             |
 | **Public**  | Anyone can view on Explore page |
 
-![Ultralytics Platform Datasets Visibility Toggle](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-visibility-toggle.avif)
-
-To change visibility:
-
-1. Open dataset actions menu
-2. Click `Edit`
-3. Toggle visibility setting
-4. Click `Save`
+Visibility is set when creating a dataset in the `New Dataset` dialog using a toggle switch. Public datasets are visible on the [Explore](../explore.md) page.
 
 ## Edit Dataset
 
-Update dataset name, description, task type, or visibility:
+Dataset metadata is edited inline directly on the dataset page — no dialog needed:
 
-1. Open dataset actions menu
-2. Click `Edit`
-3. Make changes
-4. Click `Save`
+- **Name**: Click the dataset name to edit it. Changes auto-save on blur or `Enter`.
+- **Description**: Click the description (or "Add a description..." placeholder) to edit. Changes auto-save.
+- **Task type**: Click the task badge to select a different task type.
+- **License**: Click the license selector to change the dataset license.
 
 !!! warning "Changing Task Type"
 
     Changing the task type may affect how existing annotations are visualized. Incompatible annotations won't be displayed.
+
+## Clone Dataset
+
+When viewing a public dataset you do not own, click `Clone Dataset` to create a copy in your workspace. The clone includes all images, annotations, and class definitions. If the original dataset has a copyleft license, the clone inherits it and the license selector is locked.
+
+## Star and Share
+
+- **Star**: Click the star button to bookmark a dataset. The star count is visible to all users.
+- **Share**: For public datasets, click the share button to copy a link or share to social platforms.
 
 ## Delete Dataset
 
@@ -442,24 +492,24 @@ Delete a dataset you no longer need:
 
 1. Open dataset actions menu
 2. Click `Delete`
-3. Confirm deletion
+3. Confirm in the dialog: "This will move [name] to trash. You can restore it within 30 days."
 
 !!! note "Trash and Restore"
 
-    Deleted datasets are moved to Trash for 30 days. You can restore them from [`Settings > Trash`](../account/trash.md).
+    Deleted datasets are moved to Trash — not permanently deleted. You can restore them within 30 days from [`Settings > Trash`](../account/trash.md).
 
 ## Train on Dataset
 
 Start training directly from your dataset:
 
-1. Click `Train Model` on the dataset page
+1. Click `New Model` on the dataset page
 2. Select a project or create new
 3. Configure training parameters
 4. Start training
 
 ```mermaid
 graph LR
-    A[Dataset] --> B[Train Model]
+    A[Dataset] --> B[New Model]
     B --> C[Select Project]
     C --> D[Configure]
     D --> E[Start Training]
@@ -477,8 +527,8 @@ See [Cloud Training](../train/cloud-training.md) for details.
 Your data is processed and stored in your selected region (US, EU, or AP). Images are:
 
 1. Validated for format and size
-2. Rejected if minimum dimension is below 64px
-3. Normalized if larger than 4096px (preserving aspect ratio, converted to WebP q92)
+2. Rejected if minimum dimension is below 28px
+3. Normalized if larger than 4096px (preserving aspect ratio; encoded for optimized storage)
 4. Stored using Content-Addressable Storage (CAS) with XXH3-128 hashing
 5. Thumbnails generated at 256px WebP for fast browsing
 
@@ -495,17 +545,17 @@ Ultralytics Platform uses **Content-Addressable Storage (CAS)** for efficient st
 
 Yes, drag and drop files onto the dataset page or use the upload button to add additional images. New statistics will be computed automatically.
 
-### How do I move images between datasets?
+### How do I move images between splits?
 
-Use the bulk selection feature:
+Use the bulk move-to-split feature:
 
-1. Select images in the gallery
-2. Click `Move` or `Copy`
-3. Select destination dataset
+1. Select images in the table view
+2. Right-click and choose `Move to split`
+3. Select the target split (Train, Validation, or Test)
 
 ### What label formats are supported?
 
-Ultralytics Platform supports two annotation formats:
+Ultralytics Platform supports two annotation formats for upload:
 
 === "YOLO Format"
 

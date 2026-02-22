@@ -40,7 +40,7 @@ Enter your project details:
 - **Name**: A descriptive name for your project (a random name is auto-generated)
 - **Description**: Optional notes about the project purpose
 - **Visibility**: Public (anyone can view) or Private (only you can access)
-- **License**: Optional license for your project (e.g., AGPL-3.0, Apache-2.0)
+- **License**: Optional license for your project (AGPL-3.0, Apache-2.0, MIT, GPL-3.0, BSD-3-Clause, LGPL-3.0, MPL-2.0, EUPL-1.1, Unlicense, Ultralytics-Enterprise, and more)
 
 ![Ultralytics Platform New Project Dialog Name Visibility License](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-new-project-dialog-name-visibility-license.avif)
 
@@ -94,7 +94,7 @@ The resizable sidebar lists all models in the project:
 
 - **Checkboxes** to select which models appear in charts/table
 - **Search** to filter models by name
-- **View options** for status filter (All, Completed, Running, Starting, Failed), grouping by task, and sort order
+- **View options** for status filter (All, Completed, Running, Starting, Pending, Failed, Cancelled), grouping by task, and sort order
 - **Drag and drop** `.pt` files directly onto the sidebar to upload models ([model upload details](models.md#upload-model))
 - **Training progress** shown for running models (epoch count and progress bar)
 

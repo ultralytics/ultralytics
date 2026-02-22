@@ -46,7 +46,7 @@ graph LR
 
 Drag and drop or click to upload:
 
-- **Supported formats**: JPEG, PNG, WebP, AVIF, HEIC, JP2, TIFF, BMP, and more
+- **Supported formats**: JPEG, PNG, WebP, AVIF, HEIC, JP2, TIFF, BMP, DNG, MPO
 - **Max size**: 10MB
 - **Auto-inference**: Results appear automatically after upload
 
@@ -147,12 +147,12 @@ Authorization: Bearer YOUR_API_KEY
 
 !!! warning "API Key Required"
 
-    All API requests require authentication. Generate an API key from [`Settings > API Keys`](../account/api-keys.md) in the platform.
+    To run inference from your own scripts, notebooks, or apps, include an API key. Generate one in [`Settings`](../account/api-keys.md) (API Keys section on the Profile tab).
 
 ### Endpoint
 
 ```
-POST https://platform.ultralytics.com/api/models/{username}/{project}/{model}/predict
+POST https://platform.ultralytics.com/api/models/{modelId}/predict
 ```
 
 ### Request
@@ -162,7 +162,7 @@ POST https://platform.ultralytics.com/api/models/{username}/{project}/{model}/pr
     ```python
     import requests
 
-    url = "https://platform.ultralytics.com/api/models/username/project/model/predict"
+    url = "https://platform.ultralytics.com/api/models/MODEL_ID/predict"
     headers = {"Authorization": "Bearer YOUR_API_KEY"}
     files = {"file": open("image.jpg", "rb")}
     data = {"conf": 0.25, "iou": 0.7}
@@ -175,7 +175,7 @@ POST https://platform.ultralytics.com/api/models/{username}/{project}/{model}/pr
 
     ```bash
     curl -X POST \
-      "https://platform.ultralytics.com/api/models/username/project/model/predict" \
+      "https://platform.ultralytics.com/api/models/MODEL_ID/predict" \
       -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg" \
       -F "conf=0.25" \
@@ -191,7 +191,7 @@ POST https://platform.ultralytics.com/api/models/{username}/{project}/{model}/pr
     formData.append("iou", "0.7");
 
     const response = await fetch(
-      "https://platform.ultralytics.com/api/models/username/project/model/predict",
+      "https://platform.ultralytics.com/api/models/MODEL_ID/predict",
       {
         method: "POST",
         headers: { Authorization: "Bearer YOUR_API_KEY" },
@@ -209,7 +209,6 @@ POST https://platform.ultralytics.com/api/models/{username}/{project}/{model}/pr
 
 ```json
 {
-    "success": true,
     "images": [
         {
             "shape": [1080, 1920],
@@ -235,8 +234,15 @@ POST https://platform.ultralytics.com/api/models/{username}/{project}/{model}/pr
         }
     ],
     "metadata": {
-        "model": "yolo11n.pt",
-        "task": "detect"
+        "imageCount": 1,
+        "functionTimeCall": 0.018,
+        "model": "model.pt",
+        "version": {
+            "ultralytics": "8.4.14",
+            "torch": "2.6.0",
+            "torchvision": "0.21.0",
+            "python": "3.13.0"
+        }
     }
 }
 ```
@@ -245,17 +251,16 @@ POST https://platform.ultralytics.com/api/models/{username}/{project}/{model}/pr
 
 ### Response Fields
 
-| Field                           | Type    | Description                      |
-| ------------------------------- | ------- | -------------------------------- |
-| `success`                       | boolean | Request status                   |
-| `images`                        | array   | List of processed images         |
-| `images[].shape`                | array   | Image dimensions [height, width] |
-| `images[].results`              | array   | List of detections               |
-| `images[].results[].name`       | string  | Class name                       |
-| `images[].results[].confidence` | float   | Detection confidence (0-1)       |
-| `images[].results[].box`        | object  | Bounding box coordinates         |
-| `images[].speed`                | object  | Processing times in milliseconds |
-| `metadata`                      | object  | Model info and task type         |
+| Field                           | Type   | Description                       |
+| ------------------------------- | ------ | --------------------------------- |
+| `images`                        | array  | List of processed images          |
+| `images[].shape`                | array  | Image dimensions [height, width]  |
+| `images[].results`              | array  | List of detections                |
+| `images[].results[].name`       | string | Class name                        |
+| `images[].results[].confidence` | float  | Detection confidence (0-1)        |
+| `images[].results[].box`        | object | Bounding box coordinates          |
+| `images[].speed`                | object | Processing times in milliseconds  |
+| `metadata`                      | object | Request metadata and version info |
 
 ### Task-Specific Responses
 
@@ -324,16 +329,11 @@ Response format varies by task:
 
 ## Rate Limits
 
-Shared inference has rate limits:
-
-| Plan     | Requests/Minute | Requests/Day |
-| -------- | --------------- | ------------ |
-| **Free** | 10              | 100          |
-| **Pro**  | 60              | 10,000       |
+Shared inference can return `429` responses when throttled.
 
 !!! tip "Need More Throughput?"
 
-    Deploy a [dedicated endpoint](endpoints.md) for unlimited requests with no rate limits. Dedicated endpoints also provide consistent low-latency responses. For local inference without rate limits, see the [Predict mode guide](../../modes/predict.md).
+    Deploy a [dedicated endpoint](endpoints.md) for predictable throughput and consistent low-latency responses. For local inference, see the [Predict mode guide](../../modes/predict.md).
 
 ## Error Handling
 
@@ -343,7 +343,7 @@ Common error responses:
 | ---- | --------------- | -------------------- |
 | 400  | Invalid image   | Check file format    |
 | 401  | Unauthorized    | Verify API key       |
-| 404  | Model not found | Check model slug     |
+| 404  | Model not found | Check model ID       |
 | 429  | Rate limited    | Wait or upgrade plan |
 | 500  | Server error    | Retry request        |
 

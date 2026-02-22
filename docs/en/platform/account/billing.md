@@ -24,7 +24,7 @@ Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 | **Concurrent Trainings**   | 3          | 10              | Unlimited  |
 | **Storage**                | 100 GB     | 500 GB          | Unlimited  |
 | **Deployments**            | 3          | 10 (warm-start) | Unlimited  |
-| **Teams**                  | -          | Up to 5 members | Unlimited  |
+| **Teams**                  | -          | Up to 5 members | Up to 50   |
 | **Best GPUs (H200, B200)** | -          | Yes             | Yes        |
 | **SSO / SAML**             | -          | -               | Yes        |
 | **Enterprise License**     | -          | -               | Yes        |
@@ -71,16 +71,14 @@ For professionals and small teams ($29/month or $290/year):
 
 For organizations with advanced needs:
 
+- $1,000/month in credits (starting allocation)
 - Custom credit allocation
 - Unlimited models, storage, trainings, and deployments
 - Enterprise License (commercial use, non-AGPL)
 - SSO / SAML authentication
 - RBAC with 4 roles (Owner, Admin, Editor, Viewer)
-- Custom roles with granular permissions
-- On-premise deployment
 - SLA guarantees
 - Enterprise support
-- Compliance (ISO/SOC)
 
 Contact [sales@ultralytics.com](mailto:sales@ultralytics.com) for Enterprise pricing.
 
@@ -98,24 +96,21 @@ View your balance in `Settings > Billing`:
 | ----------------------- | ------------------------------------- |
 | **Total Balance**       | Available credits for cloud training  |
 | **Promotional Credits** | Credits from signup or monthly grants |
-| **Reserved**            | Held for active training jobs         |
 
 ### Credit Uses
 
 Credits are consumed by:
 
-| Service                 | Rate                 |
-| ----------------------- | -------------------- |
-| **Cloud Training**      | GPU rate x hours     |
-| **Dedicated Endpoints** | Compute rate x hours |
-| **Model Export**        | Fixed per export     |
+| Service            | Rate             |
+| ------------------ | ---------------- |
+| **Cloud Training** | GPU rate x hours |
 
 ## Add Credits
 
 Top up your balance:
 
 1. Go to **Settings > Billing**
-2. Click **Add Credits**
+2. Click **Top Up**
 3. Select or enter amount ($5 - $1,000)
 4. Complete payment
 
@@ -168,28 +163,25 @@ Set a billing address for invoices:
 
 ## Training Cost Flow
 
-Cloud training uses a **hold/settle/release** system to ensure you're never charged more than the estimated cost shown before training starts.
+Cloud training estimates cost before start and charges for actual GPU time used.
 
 ```mermaid
 flowchart LR
-    A[Start Training] --> B[Create Hold]
-    B --> C{Training Complete?}
-    C -->|Yes| D[Settle: Charge Actual Cost]
-    C -->|Canceled| E[Release: Full Refund]
-    D --> F[Refund Excess]
+    A[Start Training] --> B[Estimate Cost]
+    B --> C[Run Training]
+    C --> D[Charge Actual Usage]
 ```
 
 ### How It Works
 
 1. **Estimate**: Platform calculates estimated cost based on model size, dataset size, epochs, and GPU
-2. **Hold**: Estimated cost is reserved from your balance
-3. **Train**: Reserved amount shows as "Reserved" in your balance during training
-4. **Settle**: After completion, you're charged only for actual GPU time used
-5. **Refund**: Any excess is returned to your balance
+2. **Authorize Start**: Your available balance is checked before training starts
+3. **Train**: Job runs on the selected GPU
+4. **Charge**: On completion (or cancellation), billing uses actual runtime
 
 !!! success "Consumer Protection"
 
-    You're **never charged more than the estimate** shown before training. If training completes early or is canceled, you only pay for actual compute time used.
+    You pay for actual compute time used, including partial runs that are cancelled.
 
 ## Training Costs
 
@@ -277,13 +269,13 @@ View all transactions in `Settings > Billing`:
 
 ![Ultralytics Platform Settings Billing Tab Transaction History Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-transaction-history-table.avif)
 
-| Column      | Description                                                                             |
-| ----------- | --------------------------------------------------------------------------------------- |
-| **Date**    | Transaction date                                                                        |
-| **Type**    | Signup Bonus, Credit Purchase, Monthly Grant, Training, Refund, Adjustment, Auto Top-Up |
-| **Amount**  | Transaction value (green for credits, red for charges)                                  |
-| **Balance** | Resulting balance after transaction                                                     |
-| **Details** | Additional context (model link, receipt, period)                                        |
+| Column      | Description                                                                                                 |
+| ----------- | ----------------------------------------------------------------------------------------------------------- |
+| **Date**    | Transaction date                                                                                            |
+| **Type**    | Signup Bonus, Credit Purchase, Monthly Grant, Training, Refund, Adjustment, Auto Top-Up, Auto Top-Up Failed |
+| **Amount**  | Transaction value (green for credits, red for charges)                                                      |
+| **Balance** | Resulting balance after transaction                                                                         |
+| **Details** | Additional context (model link, receipt, period)                                                            |
 
 ## FAQ
 

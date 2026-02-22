@@ -54,24 +54,25 @@ Each tab provides a search bar and sort options:
 
 ![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-datasets-tab-with-search.avif)
 
-| Sort Option      | Description                                         |
-| ---------------- | --------------------------------------------------- |
-| **Most Starred** | Content with most community stars (default)         |
-| **Newest**       | Most recently created                               |
-| **Oldest**       | Oldest first                                        |
-| **Name A-Z**     | Alphabetical ascending                              |
-| **Name Z-A**     | Alphabetical descending                             |
-| **Most/Fewest**  | By image count (datasets) or model count (projects) |
+| Sort Option       | Description                                   |
+| ----------------- | --------------------------------------------- |
+| **Most Starred**  | Content with most community stars (default)   |
+| **Newest**        | Most recently created                         |
+| **Oldest**        | Oldest first                                  |
+| **Name A-Z**      | Alphabetical ascending                        |
+| **Name Z-A**      | Alphabetical descending                       |
+| **Most images**   | Most images (datasets) or models (projects)   |
+| **Fewest images** | Fewest images (datasets) or models (projects) |
 
 ### View Modes
 
 Toggle between three view modes for browsing:
 
-| Mode        | Description                           |
-| ----------- | ------------------------------------- |
-| **Cards**   | Grid of preview cards with thumbnails |
-| **Compact** | Smaller cards in a two-column grid    |
-| **Table**   | Sortable table with columns           |
+| Mode        | Description                                      |
+| ----------- | ------------------------------------------------ |
+| **Cards**   | Grid of preview cards with thumbnails            |
+| **Compact** | Smaller cards in a responsive grid (2-3 columns) |
+| **Table**   | Sortable table with columns                      |
 
 Cards and compact views support infinite scroll for loading more results.
 
@@ -83,25 +84,28 @@ Each item displays:
 
 === "Project Cards"
 
-    | Element          | Description                     |
-    | ---------------- | ------------------------------- |
-    | **Icon**         | Project icon with custom colors |
-    | **Name**         | Project title                   |
-    | **Creator**      | Author avatar and username      |
-    | **Description**  | Short project description       |
-    | **Model Count**  | Number of models in the project |
-    | **Model Tags**   | Names of models in the project  |
-    | **Public Badge** | Visibility indicator            |
+    | Element              | Description                                                   |
+    | -------------------- | ------------------------------------------------------------- |
+    | **Icon**             | Project icon with custom colors                               |
+    | **Name**             | Project title                                                 |
+    | **Creator**          | Author avatar and username                                    |
+    | **Description**      | Short project description                                     |
+    | **Model Count**      | Number of models in the project                               |
+    | **Model Tags**       | Names of models in the project                                |
+    | **Visibility Badge** | Public or private indicator (shows lock icon for private)     |
+    | **Star Count**       | Number of community stars                                     |
 
 === "Dataset Cards"
 
-    | Element         | Description                            |
-    | --------------- | -------------------------------------- |
-    | **Thumbnails**  | Preview images from the dataset        |
-    | **Name**        | Dataset title                          |
-    | **Creator**     | Author avatar and username             |
-    | **Task Badge**  | YOLO task type (detect, segment, etc.) |
-    | **Image Count** | Number of images in the dataset        |
+    | Element              | Description                                                   |
+    | -------------------- | ------------------------------------------------------------- |
+    | **Thumbnails**       | Preview images from the dataset                               |
+    | **Name**             | Dataset title                                                 |
+    | **Creator**          | Author avatar and username                                    |
+    | **Task Badge**       | YOLO task type (detect, segment, etc.)                        |
+    | **Image Count**      | Number of images in the dataset                               |
+    | **Visibility Badge** | Public or private indicator (shows lock icon for private)     |
+    | **Star Count**       | Number of community stars                                     |
 
 ## Use Public Content
 
@@ -177,7 +181,7 @@ Official `@ultralytics` content is pinned to the top of the Explore page. This i
 | **YOLOv8**                        | Previous generation         | Various                      | detect, segment, pose, classify      |
 | **YOLOv5**                        | Legacy, widely adopted      | Various                      | detect, segment, classify            |
 
-Official datasets include benchmark datasets like [COCO](../datasets/detect/coco.md), [VOC](../datasets/detect/voc.md), and other commonly used computer vision datasets.
+Official datasets include benchmark datasets like [coco8](../datasets/detect/coco8.md) (8-image COCO subset), [VOC](../datasets/detect/voc.md), [african-wildlife](../datasets/detect/african-wildlife.md), [dota8](../datasets/obb/dota8.md), and other commonly used computer vision datasets.
 
 !!! tip "Quick Start with Official Models"
 
@@ -264,7 +268,7 @@ When contributing public content:
 
 ## Public Content URLs
 
-Public content on the Platform uses clean, shareable URLs:
+Public content on the platform uses clean, shareable URLs:
 
 | Content  | URL Pattern                                             | Example                                               |
 | -------- | ------------------------------------------------------- | ----------------------------------------------------- |
@@ -322,4 +326,4 @@ There's no application process - just create great content!
 
 ### Can I monetize public content?
 
-Currently, the Platform doesn't support monetization. This may be added in future updates.
+Currently, the platform doesn't support monetization. This may be added in future updates.

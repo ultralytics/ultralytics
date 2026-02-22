@@ -84,17 +84,17 @@ graph LR
 
 Your data stays in your region. Ultralytics Platform operates infrastructure in three global regions:
 
-| Region | Location                | Best For                                |
-| ------ | ----------------------- | --------------------------------------- |
-| **US** | Iowa, USA               | Americas users, fastest for Americas    |
-| **EU** | Belgium, Europe         | European users, GDPR compliance         |
-| **AP** | Hong Kong, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+| Region | Label                        | Location                | Best For                                |
+| ------ | ---------------------------- | ----------------------- | --------------------------------------- |
+| **US** | Americas                     | Iowa, USA               | Americas users, fastest for Americas    |
+| **EU** | Europe, Middle East & Africa | Belgium, Europe         | European users, GDPR compliance         |
+| **AP** | Asia Pacific                 | Hong Kong, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
 
 You select your region during onboarding, and all your data, models, and deployments remain in that region.
 
 !!! warning "Region is Permanent"
 
-    Your data region cannot be changed after account creation. During onboarding, the Platform measures latency to each region and recommends the closest one. Choose carefully.
+    Your data region cannot be changed after account creation. During onboarding, the platform measures latency to each region and recommends the closest one. Choose carefully.
 
 ## Key Features
 
@@ -126,7 +126,7 @@ graph LR
 ### Model Training
 
 - **Cloud Training**: Train on 22 cloud GPU types with real-time metrics
-- **Remote Training**: Train anywhere and stream metrics to Platform (W&B-style)
+- **Remote Training**: Train anywhere and stream metrics to the platform (W&B-style)
 - **Project Organization**: Group related models, compare experiments, track activity
 - **17 Export Formats**: ONNX, TensorRT, CoreML, TFLite, and more (see [supported formats](train/models.md#supported-formats))
 
@@ -145,12 +145,12 @@ You can train models either through the web UI (cloud training) or from your own
 
     ```bash
     # Install ultralytics
-    pip install "ultralytics>=8.4.0"
+    pip install "ultralytics>=8.4.14"
 
     # Set your API key
     export ULTRALYTICS_API_KEY="your_api_key"
 
-    # Train and stream metrics to Platform
+    # Train and stream metrics to the platform
     yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
     ```
 
@@ -250,7 +250,7 @@ Once deployed, call your endpoint from any language:
     | Concurrent Trainings | 3              | 10                  | Unlimited      |
     | Deployments          | 3              | 10 (warm-start)     | Unlimited      |
     | Storage              | 100 GB         | 500 GB              | Unlimited      |
-    | Teams                | -              | Up to 5 members     | Unlimited      |
+    | Teams                | -              | Up to 5 members     | Up to 50       |
     | Support              | Community      | Priority            | Dedicated      |
 
     *$5 at signup, or $25 with a verified company/work email.
@@ -332,14 +332,14 @@ See [Cloud Training](train/cloud-training.md) for complete pricing and GPU optio
 
 ### How does remote training work?
 
-You can train models on your own hardware and stream real-time metrics to Platform, similar to Weights & Biases.
+You can train models on your own hardware and stream real-time metrics to the platform, similar to Weights & Biases.
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.0**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.14**. Lower versions will NOT work with Platform.
 
     ```bash
-    pip install "ultralytics>=8.4.0"
+    pip install "ultralytics>=8.4.14"
     ```
 
 === "CLI"
@@ -406,25 +406,25 @@ See [Annotation](data/annotation.md) for the complete guide.
 
 The Platform supports 17 deployment formats:
 
-| Format        | File Extension    | Use Case                  |
-| ------------- | ----------------- | ------------------------- |
-| PyTorch       | `.pt`             | Training, general use     |
-| ONNX          | `.onnx`           | Cross-platform deployment |
-| TorchScript   | `.torchscript`    | C++ deployment            |
-| OpenVINO      | `_openvino_model` | Intel hardware            |
-| TensorRT      | `.engine`         | NVIDIA GPU inference      |
-| CoreML        | `.mlpackage`      | Apple devices             |
-| TFLite        | `.tflite`         | Mobile/edge devices       |
-| TF SavedModel | `_saved_model`    | TensorFlow ecosystem      |
-| TF GraphDef   | `.pb`             | TensorFlow legacy         |
-| PaddlePaddle  | `_paddle_model`   | Baidu ecosystem           |
-| NCNN          | `_ncnn_model`     | Mobile (Android/ARM)      |
-| Edge TPU      | `_edgetpu.tflite` | Google Coral devices      |
-| TF.js         | `_web_model`      | Browser deployment        |
-| MNN           | `.mnn`            | Alibaba mobile            |
-| RKNN          | `.rknn`           | Rockchip NPU              |
-| IMX500        | `_imx_model`      | Sony IMX500 sensor        |
-| ExecuTorch    | `.pte`            | PyTorch mobile            |
+| Format        | File Extension      | Use Case                  |
+| ------------- | ------------------- | ------------------------- |
+| ONNX          | `.onnx`             | Cross-platform deployment |
+| TorchScript   | `.torchscript`      | C++ deployment            |
+| OpenVINO      | `_openvino_model`   | Intel hardware            |
+| TensorRT      | `.engine`           | NVIDIA GPU inference      |
+| CoreML        | `.mlpackage`        | Apple devices             |
+| TFLite        | `.tflite`           | Mobile/edge devices       |
+| TF SavedModel | `_saved_model`      | TensorFlow ecosystem      |
+| TF GraphDef   | `.pb`               | TensorFlow legacy         |
+| PaddlePaddle  | `_paddle_model`     | Baidu ecosystem           |
+| NCNN          | `_ncnn_model`       | Mobile (Android/ARM)      |
+| Edge TPU      | `_edgetpu.tflite`   | Google Coral devices      |
+| TF.js         | `_web_model`        | Browser deployment        |
+| MNN           | `.mnn`              | Alibaba mobile            |
+| RKNN          | `_rknn_model`       | Rockchip NPU              |
+| IMX500        | `_imx_model`        | Sony IMX500 sensor        |
+| Axelera       | `_axelera_model`    | Axelera AI accelerators   |
+| ExecuTorch    | `_executorch_model` | PyTorch mobile            |
 
 See [Models Export](train/models.md#export-model), the [Export mode guide](../modes/export.md), and the [Integrations index](../integrations/index.md) for format-specific options.
 
@@ -443,7 +443,7 @@ See [Models Export](train/models.md#export-model), the [Export mode guide](../mo
 
 | Problem              | Solution                                                                            |
 | -------------------- | ----------------------------------------------------------------------------------- |
-| Training won't start | Check credit balance in Settings > Billing. Minimum $5.00 required                  |
+| Training won't start | Check credit balance in Settings > Billing. Positive balance required               |
 | Out of memory error  | Reduce batch size, use smaller model (n/s), or select GPU with more VRAM            |
 | Poor metrics         | Check dataset quality, increase epochs, try data augmentation, verify class balance |
 | Training slow        | Select faster GPU, reduce image size, check dataset isn't bottlenecked              |

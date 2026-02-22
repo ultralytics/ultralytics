@@ -65,16 +65,34 @@ Connect your professional profiles:
 
 ![Ultralytics Platform Settings Profile Tab Social Links Grid](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-social-links-grid.avif)
 
-| Platform           | Format         |
-| ------------------ | -------------- |
-| **GitHub**         | username       |
-| **LinkedIn**       | profile-slug   |
-| **X (Twitter)**    | username       |
-| **YouTube**        | channel-handle |
-| **Google Scholar** | user-id        |
-| **Discord**        | username       |
+| Platform           | Format               |
+| ------------------ | -------------------- |
+| **GitHub**         | username             |
+| **LinkedIn**       | profile-slug         |
+| **X (Twitter)**    | username             |
+| **YouTube**        | channel-handle       |
+| **Google Scholar** | user-id              |
+| **Discord**        | username             |
+| **Website**        | https://yoursite.com |
 
 Social links appear on your public profile page.
+
+### Emails
+
+Manage email addresses linked to your account in the `Profile` tab:
+
+<!-- Screenshot: settings-profile-tab-emails-section.avif -->
+
+| Action             | Description                                    |
+| ------------------ | ---------------------------------------------- |
+| **Add Email**      | Add a new email address to your account        |
+| **Remove**         | Remove a non-primary email address             |
+| **Verify**         | Send a verification email to confirm ownership |
+| **Set as Primary** | Set a verified email as your primary address   |
+
+!!! note "Primary Email"
+
+    Your primary email is used for notifications and account recovery. Only verified emails can be set as primary.
 
 ### API Keys
 
@@ -127,7 +145,7 @@ To free up storage:
 
 The `Profile` tab includes a Security card at the bottom:
 
-- **Two-Factor Authentication**: Coming soon. Currently handled by your OAuth provider (Google, Apple, GitHub)
+- **Two-Factor Authentication**: Coming soon. Currently handled by your OAuth provider (Google, GitHub)
 - **Connected Accounts**: Shows your linked OAuth provider (e.g., Google)
 
 ### GDPR Compliance
@@ -202,32 +220,32 @@ The Teams tab displays:
 
 ### Member Roles
 
-| Role       | Permissions                                               |
-| ---------- | --------------------------------------------------------- |
-| **Owner**  | Full control, transfer ownership, delete workspace        |
-| **Admin**  | Manage members, billing, settings, content                |
-| **Editor** | Create and manage projects, datasets, models, API keys    |
-| **Viewer** | Read-only access to workspace resources (Enterprise only) |
+| Role       | Permissions                                            |
+| ---------- | ------------------------------------------------------ |
+| **Owner**  | Full control, transfer ownership, delete workspace     |
+| **Admin**  | Manage members, billing, settings, content             |
+| **Editor** | Create and manage projects, datasets, models, API keys |
+| **Viewer** | Read-only access to workspace resources                |
 
 !!! note "Role Availability"
 
-    Owner, Admin, and Editor roles are available on Pro plans. The Viewer role and custom roles with granular permissions are Enterprise features.
+    Owner, Admin, Editor, and Viewer roles are available on all team plans (Pro and Enterprise).
 
 ### Invite Members
 
 1. Go to **Settings > Teams**
-2. Click **Invite Member**
+2. Click **Invite**
 3. Enter email address
 4. Select role
 5. Send invitation
 
-The invitee receives an email and can accept the invitation to join the workspace.
+The invitee receives an email and can accept the invitation to join the workspace. Invitations expire after 7 days. Inviting members requires the Admin role or higher.
 
 ### Manage Members
 
-Admins and owners can:
+Owners and admins can manage the team:
 
-- **Change roles**: Click the role dropdown next to a member
+- **Change roles**: Click the role dropdown next to a member (only the owner can assign/remove the admin role)
 - **Remove members**: Click the menu and select **Remove**
 - **Cancel invites**: Cancel pending invitations that haven't been accepted
 - **Resend invites**: Resend invitation emails
@@ -241,11 +259,11 @@ Manage deleted items. See [Trash](trash.md) for full documentation.
 
 ### How do I change my email?
 
-Email is managed through your OAuth provider:
+Manage your email addresses directly on the platform:
 
-1. Update email in Google/Apple/GitHub
-2. Sign out and sign in again
-3. Platform updates automatically
+1. Go to **Settings > Profile**
+2. Scroll to the **Emails** section
+3. Add a new email, verify it, and set it as primary
 
 ### Can I have multiple accounts?
 
@@ -257,10 +275,9 @@ You can create accounts in different regions, but:
 
 ### How do I change my password?
 
-Passwords are managed by your OAuth provider:
+If you signed up with email and password, use the password reset flow on the sign-in page. If you signed up with an OAuth provider, manage your password through that provider:
 
 - **Google**: accounts.google.com
-- **Apple**: appleid.apple.com
 - **GitHub**: github.com/settings/security
 
 ### Is two-factor authentication available?
@@ -268,7 +285,6 @@ Passwords are managed by your OAuth provider:
 2FA is handled by your OAuth provider. Enable 2FA in:
 
 - Google Account settings
-- Apple ID settings
 - GitHub Security settings
 
 ### How long until deleted data is removed?

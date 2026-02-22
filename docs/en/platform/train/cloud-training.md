@@ -26,7 +26,7 @@ graph LR
 
 ## Training Dialog
 
-Start training from the Platform UI by clicking **New Model** on any project page (or **Train** from a dataset page). The training dialog has two tabs: **Cloud Training** and **Local Training**.
+Start training from the platform UI by clicking **New Model** on any project page (or **Train** from a dataset page). The training dialog has two tabs: **Cloud Training** and **Local Training**.
 
 ![Ultralytics Platform Training Dialog Cloud Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-dialog-cloud-tab.avif)
 
@@ -62,28 +62,28 @@ Choose a dataset to train on (see [Datasets](../data/datasets.md)):
 
 Set core training parameters:
 
-| Parameter      | Description                        | Default |
-| -------------- | ---------------------------------- | ------- |
-| **Epochs**     | Number of training iterations      | 100     |
-| **Batch Size** | Samples per iteration              | 16      |
-| **Image Size** | Input resolution (320-1280)        | 640     |
-| **Run Name**   | Optional name for the training run | auto    |
+| Parameter      | Description                                                                 | Default |
+| -------------- | --------------------------------------------------------------------------- | ------- |
+| **Epochs**     | Number of training iterations                                               | 100     |
+| **Batch Size** | Samples per iteration                                                       | 16      |
+| **Image Size** | Input resolution (320/416/512/640/1280 dropdown, or 32-4096 in YAML editor) | 640     |
+| **Run Name**   | Optional name for the training run                                          | auto    |
 
 ### Step 4: Advanced Settings (Optional)
 
-Expand **Advanced Settings** to access the full YAML-based parameter editor with 50+ training parameters organized by group (see [configuration reference](../../usage/cfg.md)):
+Expand **Advanced Settings** to access the full YAML-based parameter editor with 40+ training parameters organized by group (see [configuration reference](../../usage/cfg.md)):
 
-| Group                   | Parameters                                       |
-| ----------------------- | ------------------------------------------------ |
-| **Learning Rate**       | lr0, lrf, momentum, weight_decay, warmup epochs  |
-| **Optimizer**           | SGD, Adam, AdamW, NAdam, RAdam, RMSProp, Adamax  |
-| **Loss Weights**        | box, cls, dfl, pose, kobj, label_smoothing       |
-| **Color Augmentation**  | hsv_h, hsv_s, hsv_v                              |
-| **Geometric Augment.**  | degrees, translate, scale, shear, perspective    |
-| **Flip & Mix Augment.** | flipud, fliplr, mosaic, mixup, copy_paste        |
-| **Training Control**    | patience, time, seed, deterministic, amp, cos_lr |
-| **Dataset**             | fraction, freeze, single_cls, rect, multi_scale  |
-| **Device & Inference**  | device, cache, workers, dropout, iou, max_det    |
+| Group                   | Parameters                                                                       |
+| ----------------------- | -------------------------------------------------------------------------------- |
+| **Learning Rate**       | lr0, lrf, momentum, weight_decay, warmup_epochs, warmup_momentum, warmup_bias_lr |
+| **Optimizer**           | SGD, MuSGD, Adam, AdamW, NAdam, RAdam, RMSProp, Adamax                           |
+| **Loss Weights**        | box, cls, dfl, pose, kobj, label_smoothing                                       |
+| **Color Augmentation**  | hsv_h, hsv_s, hsv_v                                                              |
+| **Geometric Augment.**  | degrees, translate, scale, shear, perspective                                    |
+| **Flip & Mix Augment.** | flipud, fliplr, mosaic, mixup, copy_paste                                        |
+| **Training Control**    | patience, time, seed, deterministic, amp, cos_lr                                 |
+| **Dataset**             | fraction, freeze, single_cls, rect, multi_scale                                  |
+| **Device & Inference**  | device, cache, workers, dropout, iou, max_det                                    |
 
 Parameters are task-aware (e.g., `copy_paste` only shows for segment tasks, `pose`/`kobj` only for pose tasks). A **Modified** badge appears when values differ from defaults, and you can reset all to defaults with the reset button.
 
@@ -149,9 +149,22 @@ Click **Start Training** to launch your job. The Platform:
 3. Begins training
 4. Streams metrics in real-time
 
+### Training Job Lifecycle
+
+Training jobs progress through the following statuses:
+
+| Status        | Description                                          |
+| ------------- | ---------------------------------------------------- |
+| **Pending**   | Job submitted, waiting for GPU allocation            |
+| **Starting**  | GPU provisioned, downloading dataset and model       |
+| **Running**   | Training in progress, metrics streaming in real-time |
+| **Completed** | Training finished successfully                       |
+| **Failed**    | Training failed (see console logs for details)       |
+| **Cancelled** | Training was cancelled by the user                   |
+
 !!! success "Free Credits"
 
-    New accounts receive $5 in signup credits — enough for several training runs. [Check your balance](../account/billing.md) in Settings > Billing.
+    New accounts receive signup credits — $5 for personal emails and $25 for company emails. [Check your balance](../account/billing.md) in Settings > Billing.
 
 ![Ultralytics Platform Training Progress With Charts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-progress-with-charts.avif)
 
@@ -208,7 +221,7 @@ graph LR
     style E fill:#4CAF50,color:#fff
 ```
 
-Train on your own hardware while streaming metrics to the Platform.
+Train on your own hardware while streaming metrics to the platform.
 
 !!! warning "Package Version Requirement"
 
@@ -220,8 +233,8 @@ Train on your own hardware while streaming metrics to the Platform.
 
 ### Setup API Key
 
-1. Go to [`Settings > API Keys`](../account/api-keys.md)
-2. Create a new key (or the Platform auto-creates one when you open the Local Training tab)
+1. Go to [`Settings > Profile`](../account/api-keys.md) (API Keys section)
+2. Create a new key (or the platform auto-creates one when you open the Local Training tab)
 3. Set the environment variable:
 
 ```bash
@@ -257,7 +270,7 @@ The **Local Training** tab in the training dialog shows a pre-configured command
 
 ### Using Platform Datasets
 
-Train with datasets stored on the Platform using the [`ul://` URI format](../data/datasets.md#dataset-uri):
+Train with datasets stored on the platform using the [`ul://` URI format](../data/datasets.md#dataset-uri):
 
 === "CLI"
 
@@ -280,7 +293,7 @@ Train with datasets stored on the Platform using the [`ul://` URI format](../dat
     )
     ```
 
-The `ul://` URI format automatically downloads and configures your dataset. The model is automatically linked to the dataset on the Platform (see [Using Platform Datasets](../api/index.md#using-platform-datasets)).
+The `ul://` URI format automatically downloads and configures your dataset. The model is automatically linked to the dataset on the platform (see [Using Platform Datasets](../api/index.md#using-platform-datasets)).
 
 ## Billing
 
@@ -288,56 +301,60 @@ Training costs are based on GPU usage:
 
 ### Cost Estimation
 
-Before training starts, the Platform estimates total cost based on:
+Before training starts, the platform estimates total cost by:
 
-```
-Estimated Cost = Base Time × Model Multiplier × Dataset Multiplier × GPU Speed Factor × GPU Rate
-```
+1. **Estimating seconds per epoch** from dataset size, model complexity, image size, batch size, and GPU speed
+2. **Calculating total training time** by multiplying seconds per epoch by the number of epochs, then adding startup overhead
+3. **Computing the estimated cost** from total training hours multiplied by the GPU's hourly rate
 
 **Factors affecting cost:**
 
-| Factor               | Impact                                           |
-| -------------------- | ------------------------------------------------ |
-| **Dataset Size**     | More images = longer training time               |
-| **Model Size**       | Larger models (m, l, x) train slower than (n, s) |
-| **Number of Epochs** | Direct multiplier on training time               |
-| **Image Size**       | Larger imgsz increases computation               |
-| **GPU Speed**        | Faster GPUs reduce training time                 |
+| Factor               | Impact                                                                                               |
+| -------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Dataset Size**     | More images = longer training time (baseline: ~2.8s compute per 1000 images on RTX 4090)             |
+| **Model Size**       | Larger models (m, l, x) train slower than (n, s)                                                     |
+| **Number of Epochs** | Direct multiplier on training time                                                                   |
+| **Image Size**       | Larger imgsz increases computation: 320px=0.25x, 640px=1.0x (baseline), 1280px=4.0x                  |
+| **Batch Size**       | Larger batches are more efficient (batch 32 = ~0.8x time, batch 8 = ~1.4x time vs batch 16 baseline) |
+| **GPU Speed**        | Faster GPUs reduce training time (e.g., H100 SXM = ~3.2x faster than RTX 4090)                       |
+| **Startup Overhead** | 1-5 minutes for pod initialization, data download, and warmup (scales with dataset size)             |
 
 ### Cost Examples
 
-| Scenario                          | GPU          | Time     | Cost    |
-| --------------------------------- | ------------ | -------- | ------- |
-| 1000 images, YOLO26n, 100 epochs  | RTX PRO 6000 | ~20 min  | ~$0.63  |
-| 5000 images, YOLO26m, 100 epochs  | RTX PRO 6000 | ~3 hours | ~$5.67  |
-| 10000 images, YOLO26x, 200 epochs | H100 SXM     | ~8 hours | ~$21.52 |
+!!! note "Estimates"
 
-### Hold/Settle System
+    Cost estimates are approximate and depend on many factors. The training dialog shows a real-time estimate before you start training.
+
+| Scenario                         | GPU          | Estimated Cost |
+| -------------------------------- | ------------ | -------------- |
+| 500 images, YOLO26n, 50 epochs   | RTX 4090     | ~$0.50         |
+| 1000 images, YOLO26n, 100 epochs | RTX PRO 6000 | ~$5            |
+| 5000 images, YOLO26s, 100 epochs | H100 SXM     | ~$23           |
+
+### Billing Flow
 
 ```mermaid
 graph LR
-    A[Estimate Cost] --> B[Hold Balance]
+    A[Estimate Cost] --> B[Balance Check]
     B --> C[Train]
-    C --> D[Settle Actual]
-    D --> E[Refund Excess]
+    C --> D[Charge Actual Runtime]
 
     style A fill:#2196F3,color:#fff
     style B fill:#FF9800,color:#fff
     style C fill:#9C27B0,color:#fff
-    style E fill:#4CAF50,color:#fff
+    style D fill:#4CAF50,color:#fff
 ```
 
-The Platform uses a consumer-protection billing model:
+Cloud training billing flow:
 
 1. **Estimate**: Cost calculated before training starts
-2. **Hold**: Estimated amount + safety margin reserved from balance
-3. **Train**: Reserved amount shown as "Reserved" in your balance
-4. **Settle**: After completion, charged only for actual GPU time used
-5. **Refund**: Any excess automatically returned to your balance
+2. **Balance Check**: Available credits are checked before launch
+3. **Train**: Job runs on selected compute
+4. **Charge**: Final cost is based on actual runtime
 
 !!! success "Consumer Protection"
 
-    You're **never charged more than the estimate** shown before training. If training completes early or is canceled, you only pay for actual compute time used.
+    Billing tracks actual compute usage, including partial runs that are cancelled.
 
 ### Payment Methods
 
@@ -348,7 +365,7 @@ The Platform uses a consumer-protection billing model:
 
 !!! note "Minimum Balance"
 
-    A minimum balance of $5.00 is required to start epoch-based training.
+    Training start requires a positive available balance and enough credits for the estimated job cost.
 
 ### View Training Costs
 
@@ -420,7 +437,7 @@ Training pauses at the end of the current epoch. Your checkpoint is saved, and y
 
 ### Can I use custom training arguments?
 
-Yes, expand the **Advanced Settings** section in the training dialog to access a YAML editor with 50+ configurable parameters. Non-default values are included in both cloud and local training commands.
+Yes, expand the **Advanced Settings** section in the training dialog to access a YAML editor with 40+ configurable parameters. Non-default values are included in both cloud and local training commands.
 
 ### Can I train from a dataset page?
 
@@ -430,24 +447,32 @@ Yes, the **Train** button on dataset pages opens the training dialog with the da
 
 === "Core"
 
-    | Parameter  | Type | Default | Range    | Description               |
-    | ---------- | ---- | ------- | -------- | ------------------------- |
-    | `epochs`   | int  | 100     | 1+       | Number of training epochs |
-    | `batch`    | int  | 16      | 1-512    | Batch size                |
-    | `imgsz`    | int  | 640     | 32+      | Input image size          |
-    | `patience` | int  | 100     | 0+       | Early stopping patience   |
-    | `workers`  | int  | 8       | 0+       | Dataloader workers        |
-    | `cache`    | str  | false   | ram/disk | Cache images              |
+    | Parameter      | Type | Default | Range    | Description                          |
+    | -------------- | ---- | ------- | -------- | ------------------------------------ |
+    | `epochs`       | int  | 100     | 1-10000  | Number of training epochs            |
+    | `batch`        | int  | 16      | 1-128 (UI) / 1-512 (YAML) | Batch size         |
+    | `imgsz`        | int  | 640     | 32-4096  | Input image size                     |
+    | `patience`     | int  | 100     | 1-1000   | Early stopping patience              |
+    | `time`         | float| null    | 0.1-720  | Training time limit in hours         |
+    | `seed`         | int  | 0       | 0+       | Random seed for reproducibility      |
+    | `deterministic`| bool | True    | -        | Deterministic training mode          |
+    | `amp`          | bool | True    | -        | Automatic mixed precision            |
+    | `close_mosaic` | int  | 10      | 0-50     | Disable mosaic in final N epochs     |
+    | `save_period`  | int  | -1      | -1-100   | Save checkpoint every N epochs       |
+    | `workers`      | int  | 8       | 0-64     | Dataloader workers                   |
+    | `cache`        | select | false | ram/disk/false | Cache images                   |
 
 === "Learning Rate"
 
     | Parameter       | Type  | Default | Range     | Description           |
     | --------------- | ----- | ------- | --------- | --------------------- |
-    | `lr0`           | float | 0.01    | 0.0-0.1   | Initial learning rate |
-    | `lrf`           | float | 0.01    | 0.0-1.0   | Final LR factor       |
+    | `lr0`           | float | 0.01    | 0.0001-0.1 | Initial learning rate |
+    | `lrf`           | float | 0.01    | 0.01-1.0  | Final LR factor       |
     | `momentum`      | float | 0.937   | 0.6-0.98  | SGD momentum          |
     | `weight_decay`  | float | 0.0005  | 0.0-0.001 | L2 regularization     |
-    | `warmup_epochs` | float | 3.0     | 0+        | Warmup epochs         |
+    | `warmup_epochs` | float | 3.0     | 0-5       | Warmup epochs         |
+    | `warmup_momentum` | float | 0.8   | 0.5-0.95  | Warmup momentum       |
+    | `warmup_bias_lr` | float | 0.1    | 0.0-0.2   | Warmup bias LR        |
     | `cos_lr`        | bool  | False   | -         | Cosine LR scheduler   |
 
 === "Augmentation"
@@ -457,14 +482,28 @@ Yes, the **Train** button on dataset pages opens the training dialog with the da
     | `hsv_h`      | float | 0.015   | 0.0-0.1 | HSV hue augmentation |
     | `hsv_s`      | float | 0.7     | 0.0-1.0 | HSV saturation       |
     | `hsv_v`      | float | 0.4     | 0.0-1.0 | HSV value            |
-    | `degrees`    | float | 0.0     | -45-45  | Rotation degrees     |
-    | `translate`  | float | 0.1     | 0.0-1.0 | Translation fraction |
-    | `scale`      | float | 0.5     | 0.0-1.0 | Scale factor         |
-    | `fliplr`     | float | 0.5     | 0.0-1.0 | Horizontal flip prob |
+    | `degrees`    | float | 0.0     | -45-45    | Rotation degrees     |
+    | `translate`  | float | 0.1     | 0.0-1.0   | Translation fraction |
+    | `scale`      | float | 0.5     | 0.0-1.0   | Scale factor         |
+    | `shear`      | float | 0.0     | -10-10    | Shear degrees        |
+    | `perspective`| float | 0.0     | 0.0-0.001 | Perspective transform|
+    | `fliplr`     | float | 0.5     | 0.0-1.0   | Horizontal flip prob |
     | `flipud`     | float | 0.0     | 0.0-1.0 | Vertical flip prob   |
     | `mosaic`     | float | 1.0     | 0.0-1.0 | Mosaic augmentation  |
     | `mixup`      | float | 0.0     | 0.0-1.0 | Mixup augmentation   |
     | `copy_paste` | float | 0.0     | 0.0-1.0 | Copy-paste (segment) |
+
+=== "Dataset"
+
+    | Parameter     | Type  | Default | Range   | Description                          |
+    | ------------- | ----- | ------- | ------- | ------------------------------------ |
+    | `fraction`    | float | 1.0     | 0.1-1.0 | Fraction of dataset to use           |
+    | `freeze`      | int   | null    | 0-100   | Number of layers to freeze           |
+    | `single_cls`  | bool  | False   | -       | Treat all classes as one class       |
+    | `rect`        | bool  | False   | -       | Rectangular training                 |
+    | `multi_scale` | float | 0.0     | 0.0-1.0 | Multi-scale training range           |
+    | `val`         | bool  | True    | -       | Run validation during training       |
+    | `resume`      | bool  | False   | -       | Resume training from checkpoint      |
 
 === "Optimizer"
 
@@ -472,6 +511,7 @@ Yes, the **Train** button on dataset pages opens the training dialog with the da
     | --------- | ----------------------------- |
     | `auto`    | Automatic selection (default) |
     | `SGD`     | Stochastic Gradient Descent   |
+    | `MuSGD`   | Muon SGD optimizer            |
     | `Adam`    | Adam optimizer                |
     | `AdamW`   | Adam with weight decay        |
     | `NAdam`   | NAdam optimizer               |
@@ -479,10 +519,31 @@ Yes, the **Train** button on dataset pages opens the training dialog with the da
     | `RMSProp` | RMSProp optimizer             |
     | `Adamax`  | Adamax optimizer              |
 
+=== "Loss Weights"
+
+    | Parameter        | Type  | Default | Range     | Description                 |
+    | ---------------- | ----- | ------- | --------- | --------------------------- |
+    | `box`            | float | 7.5     | 1-50      | Box loss weight             |
+    | `cls`            | float | 0.5     | 0.2-4     | Classification loss weight  |
+    | `dfl`            | float | 1.5     | 0.4-6     | Distribution focal loss     |
+    | `pose`           | float | 12.0    | 1-50      | Pose loss weight (pose only)|
+    | `kobj`           | float | 1.0     | 0.5-10    | Keypoint objectness (pose)  |
+    | `label_smoothing`| float | 0.0     | 0.0-0.1   | Label smoothing factor      |
+
+=== "Device & Inference"
+
+    | Parameter   | Type   | Default | Range     | Description                          |
+    | ----------- | ------ | ------- | --------- | ------------------------------------ |
+    | `device`    | select | auto    | auto/0/cpu/mps | Compute device                  |
+    | `dropout`   | float  | 0.0     | 0.0-1.0   | Dropout rate (classify only)         |
+    | `iou`       | float  | 0.7     | 0.1-0.9   | IoU threshold for NMS                |
+    | `max_det`   | int    | 300     | 1-10000   | Maximum detections per image         |
+
 !!! tip "Task-Specific Parameters"
 
     Some parameters only apply to specific tasks:
 
-    - **Segment**: `overlap_mask`, `mask_ratio`, `copy_paste`
-    - **Pose**: `pose` (loss weight), `kobj` (keypoint objectness)
-    - **Classify**: `dropout`, `erasing`, `auto_augment`
+    - **Detection tasks only** (detect, segment, pose, OBB — not classify): `box`, `dfl`, `degrees`, `translate`, `shear`, `perspective`, `mosaic`, `mixup`, `close_mosaic`, `iou`, `max_det`
+    - **Segment only**: `copy_paste`
+    - **Pose only**: `pose` (loss weight), `kobj` (keypoint objectness)
+    - **Classify only**: `dropout`

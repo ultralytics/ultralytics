@@ -18,7 +18,7 @@ Create a new API key:
 2. Scroll to the **API Keys** section
 3. Click **Create Key**
 4. Enter a name for the key (e.g., "Training Server")
-5. Click **Create**
+5. Click **Create Key**
 
 ![Ultralytics Platform Settings Profile Tab Create Api Key Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-create-api-key-dialog.avif)
 
@@ -36,11 +36,9 @@ After creation, the key is displayed once:
 
 ![Ultralytics Platform Settings Profile Tab Api Key Created Copy Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-api-key-created-copy-dialog.avif)
 
-!!! warning "Copy Your Key"
+!!! tip "Copy Your Key"
 
-    The full key is only shown once. Copy it immediately and store securely. You cannot retrieve it later.
-
-After dismissing the dialog, only the key prefix is visible in the key list.
+    Copy your key after creation for easy reference. Keys are also visible in the key list — the Platform decrypts and displays full key values so you can copy them anytime.
 
 ## Key Format
 
@@ -253,7 +251,7 @@ Keys don't expire automatically. They remain valid until revoked. Consider imple
 
 ### Can I see my key after creation?
 
-No, the full key is shown only once at creation. If lost, create a new key and revoke the old one.
+Yes, full key values are visible in the key list on `Settings > Profile`. The Platform decrypts and displays your keys so you can copy them anytime.
 
 ### Are keys region-specific?
 

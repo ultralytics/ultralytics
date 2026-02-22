@@ -43,6 +43,8 @@ The Platform tracks the following resource types and actions:
 | **training**   | Training job events                        | Blue/Green/Red |
 | **settings**   | Account settings changes                   | Gray           |
 | **api_key**    | [API key](api-keys.md) creation/revocation | Amber          |
+| **export**     | Model export events                        | Amber          |
+| **deployment** | [Deployment](../deploy/endpoints.md) events | Blue           |
 | **onboarding** | Onboarding completion                      | Green          |
 
 ## Inbox and Archive

@@ -94,7 +94,7 @@ The resizable sidebar lists all models in the project:
 
 - **Checkboxes** to select which models appear in charts/table
 - **Search** to filter models by name
-- **View options** for status filter (All, Completed, Running, Starting, Failed), grouping by task, and sort order
+- **View options** for status filter (All, Completed, Running, Starting, Pending, Failed, Cancelled), grouping by task, and sort order
 - **Drag and drop** `.pt` files directly onto the sidebar to upload models ([model upload details](models.md#upload-model))
 - **Training progress** shown for running models (epoch count and progress bar)
 

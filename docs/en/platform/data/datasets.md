@@ -139,10 +139,11 @@ For task-specific format details, see [supported tasks](index.md#supported-tasks
 ### Upload Process
 
 1. Navigate to `Datasets` in the sidebar
-2. Click `Upload Dataset` or drag files into the upload zone
+2. Click `New Dataset` or drag files into the upload zone
 3. Select the task type (see [supported tasks](index.md#supported-tasks))
 4. Add a name and optional description
-5. Click `Upload`
+5. Set visibility (public or private) and optional license
+6. Click `Create`
 
 ![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-upload-dialog-task-selector.avif)
 
@@ -220,12 +221,12 @@ Images can be sorted and filtered for efficient browsing:
     | Filter           | Options                            |
     | ---------------- | ---------------------------------- |
     | **Split filter** | Train, Val, Test, or All           |
-    | **Label filter** | All, Labeled only, or Unlabeled    |
+    | **Label filter** | All images, Annotated, or Unannotated |
     | **Search**       | Filter images by filename          |
 
 !!! tip "Finding Unlabeled Images"
 
-    Use the label filter set to `Unlabeled` to quickly find images that still need annotation. This is especially useful for large datasets where you want to track labeling progress.
+    Use the label filter set to `Unannotated` to quickly find images that still need annotation. This is especially useful for large datasets where you want to track labeling progress.
 
 ### Fullscreen Viewer
 
@@ -414,27 +415,29 @@ Control who can see your dataset:
 | **Private** | Only you can access             |
 | **Public**  | Anyone can view on Explore page |
 
-![Ultralytics Platform Datasets Visibility Toggle](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-visibility-toggle.avif)
-
-To change visibility:
-
-1. Open dataset actions menu
-2. Click `Edit`
-3. Toggle visibility setting
-4. Click `Save`
+Visibility is set when creating a dataset in the `New Dataset` dialog using a toggle switch. Public datasets are visible on the [Explore](../explore.md) page.
 
 ## Edit Dataset
 
-Update dataset name, description, task type, or visibility:
+Dataset metadata is edited inline directly on the dataset page — no dialog needed:
 
-1. Open dataset actions menu
-2. Click `Edit`
-3. Make changes
-4. Click `Save`
+- **Name**: Click the dataset name to edit it. Changes auto-save on blur or `Enter`.
+- **Description**: Click the description (or "Add a description..." placeholder) to edit. Changes auto-save.
+- **Task type**: Click the task badge to select a different task type.
+- **License**: Click the license selector to change the dataset license.
 
 !!! warning "Changing Task Type"
 
     Changing the task type may affect how existing annotations are visualized. Incompatible annotations won't be displayed.
+
+## Clone Dataset
+
+When viewing a public dataset you do not own, click `Clone Dataset` to create a copy in your workspace. The clone includes all images, annotations, and class definitions. If the original dataset has a copyleft license, the clone inherits it and the license selector is locked.
+
+## Star and Share
+
+- **Star**: Click the star button to bookmark a dataset. The star count is visible to all users.
+- **Share**: For public datasets, click the share button to copy a link or share to social platforms.
 
 ## Delete Dataset
 
@@ -442,24 +445,24 @@ Delete a dataset you no longer need:
 
 1. Open dataset actions menu
 2. Click `Delete`
-3. Confirm deletion
+3. Confirm in the dialog: "This will move [name] to trash. You can restore it within 30 days."
 
 !!! note "Trash and Restore"
 
-    Deleted datasets are moved to Trash for 30 days. You can restore them from [`Settings > Trash`](../account/trash.md).
+    Deleted datasets are moved to Trash — not permanently deleted. You can restore them within 30 days from [`Settings > Trash`](../account/trash.md).
 
 ## Train on Dataset
 
 Start training directly from your dataset:
 
-1. Click `Train Model` on the dataset page
+1. Click `New Model` on the dataset page
 2. Select a project or create new
 3. Configure training parameters
 4. Start training
 
 ```mermaid
 graph LR
-    A[Dataset] --> B[Train Model]
+    A[Dataset] --> B[New Model]
     B --> C[Select Project]
     C --> D[Configure]
     D --> E[Start Training]

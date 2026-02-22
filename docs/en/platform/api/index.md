@@ -1489,11 +1489,12 @@ GET /api/explore/search
 
 **Query Parameters:**
 
-| Parameter | Type   | Description                             |
-| --------- | ------ | --------------------------------------- |
-| `q`       | string | Search query                            |
-| `type`    | string | Resource type (project, dataset, model) |
-| `sort`    | string | Sort order                              |
+| Parameter | Type   | Description                                                                                         |
+| --------- | ------ | --------------------------------------------------------------------------------------------------- |
+| `q`       | string | Search query                                                                                        |
+| `type`    | string | Resource type: `all` (default), `projects`, `datasets`                                              |
+| `sort`    | string | Sort order: `stars` (default), `newest`, `oldest`, `name-asc`, `name-desc`, `count-desc`, `count-asc` |
+| `offset`  | int    | Pagination offset (default: 0). Results return 20 items per page.                                   |
 
 ### Sidebar Data
 
@@ -1808,11 +1809,17 @@ Webhooks notify your server of Platform events via HTTP POST callbacks:
 
 ### How do I paginate large results?
 
-Use `page` and `limit` parameters:
+Most endpoints use `page` and `limit` parameters:
 
 ```bash
 curl -H "Authorization: Bearer $API_KEY" \
   "https://platform.ultralytics.com/api/datasets?page=2&limit=50"
+```
+
+The Explore Search endpoint uses `offset` instead of `page`, with a fixed page size of 20:
+
+```bash
+curl "https://platform.ultralytics.com/api/explore/search?type=datasets&offset=20&sort=stars"
 ```
 
 ### Can I use the API without an SDK?

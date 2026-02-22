@@ -63,7 +63,7 @@ Choose from 43 regions worldwide. The interactive region map and table show:
 
 ![Ultralytics Platform Deploy Tab Region Latency Table Sorted By Latency](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-tab-region-latency-table-sorted-by-latency.avif)
 
-The region table includes:
+The region table on the model `Deploy` tab includes:
 
 | Column       | Description                              |
 | ------------ | ---------------------------------------- |
@@ -72,6 +72,10 @@ The region table includes:
 | **Latency**  | Measured ping time (median of 3 pings)   |
 | **Distance** | Distance from your location in km        |
 | **Actions**  | Deploy button or "Deployed" status badge |
+
+!!! note "New Deployment Dialog"
+
+    The `New Deployment` dialog (from the global `Deploy` page) shows a simpler region table with only Location, Latency, and Select columns.
 
 !!! tip "Choose Wisely"
 

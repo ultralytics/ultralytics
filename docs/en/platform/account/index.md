@@ -26,11 +26,12 @@ The Account section helps you:
 
 | Feature      | Description                                       |
 | ------------ | ------------------------------------------------- |
-| **Settings** | Profile, social links, data region, and API keys  |
+| **Settings** | Profile, social links, emails, data region, and API keys |
 | **Plans**    | Free, Pro, and Enterprise plan comparison         |
 | **Billing**  | Credits, payment methods, and transaction history |
 | **Teams**    | Members, roles, invites, and seat management      |
 | **Trash**    | Recover deleted items within 30 days              |
+| **Emails**   | Add, remove, verify, and set primary email address |
 | **Activity** | Event log with inbox, archive, search, and undo   |
 
 ## Settings Tabs
@@ -39,7 +40,7 @@ Account management is organized into tabs within `Settings`:
 
 | Tab       | Description                                              |
 | --------- | -------------------------------------------------------- |
-| `Profile` | Display name, bio, company, use case, social links, keys |
+| `Profile` | Display name, bio, company, use case, emails, social links, keys |
 | `Plans`   | Compare Free, Pro, and Enterprise plans                  |
 | `Billing` | Credit balance, top-up, payment methods, transactions    |
 | `Teams`   | Member list, roles, invites, seat allocation             |
@@ -51,8 +52,8 @@ Ultralytics Platform implements multiple security measures:
 
 ### Authentication
 
-- **OAuth2**: Sign in with Google, Apple, or GitHub
-- **Email**: Traditional email/password authentication
+- **OAuth2**: Sign in with Google or GitHub
+- **Email**: Email and password authentication
 - **Session management**: Secure, expiring sessions
 
 ### Data Protection
@@ -83,11 +84,11 @@ Usernames cannot be changed after account creation. Your username is set during 
 
 ### How do I change my email?
 
-Email is managed through your OAuth provider:
+Manage your email addresses directly on the Platform:
 
-1. Update email in Google/Apple/GitHub
-2. Sign out and sign in again
-3. Platform updates automatically
+1. Go to `Settings > Profile`
+2. Scroll to the **Emails** section
+3. Add a new email, verify it, and set it as primary
 
 ### How do I delete my account?
 

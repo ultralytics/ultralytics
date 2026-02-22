@@ -84,11 +84,11 @@ graph LR
 
 Your data stays in your region. Ultralytics Platform operates infrastructure in three global regions:
 
-| Region | Location                | Best For                                |
-| ------ | ----------------------- | --------------------------------------- |
-| **US** | Iowa, USA               | Americas users, fastest for Americas    |
-| **EU** | Belgium, Europe         | European users, GDPR compliance         |
-| **AP** | Hong Kong, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+| Region | Label                          | Location                | Best For                                |
+| ------ | ------------------------------ | ----------------------- | --------------------------------------- |
+| **US** | Americas                       | Iowa, USA               | Americas users, fastest for Americas    |
+| **EU** | Europe, Middle East & Africa   | Belgium, Europe         | European users, GDPR compliance         |
+| **AP** | Asia Pacific                   | Hong Kong, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
 
 You select your region during onboarding, and all your data, models, and deployments remain in that region.
 
@@ -250,7 +250,7 @@ Once deployed, call your endpoint from any language:
     | Concurrent Trainings | 3              | 10                  | Unlimited      |
     | Deployments          | 3              | 10 (warm-start)     | Unlimited      |
     | Storage              | 100 GB         | 500 GB              | Unlimited      |
-    | Teams                | -              | Up to 5 members     | Unlimited      |
+    | Teams                | -              | Up to 5 members     | Up to 50       |
     | Support              | Community      | Priority            | Dedicated      |
 
     *$5 at signup, or $25 with a verified company/work email.

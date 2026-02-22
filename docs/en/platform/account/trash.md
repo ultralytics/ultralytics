@@ -93,11 +93,11 @@ The item returns to its original location with all data intact.
 | -------- | ---------------------------------------------------------------------------- |
 | Project  | Restores project and all contained models                                    |
 | Dataset  | Restores dataset with all images and annotations                             |
-| Model    | Restores model to original project (or orphaned if project was also deleted) |
+| Model    | Restores model to original project if the project is active                  |
 
-!!! note "Parent Dependency"
+!!! warning "Parent Project Required"
 
-    If you deleted both a project and its models, restore the project first. This automatically restores all models that were inside it.
+    Restoring a model fails if its parent project is in Trash. You'll see the error: "Cannot restore model while its parent project is in trash. Restore the project first." Always restore the parent project before restoring individual models.
 
 ## Permanent Deletion
 

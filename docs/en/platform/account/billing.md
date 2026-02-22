@@ -24,7 +24,7 @@ Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 | **Concurrent Trainings**   | 3          | 10              | Unlimited  |
 | **Storage**                | 100 GB     | 500 GB          | Unlimited  |
 | **Deployments**            | 3          | 10 (warm-start) | Unlimited  |
-| **Teams**                  | -          | Up to 5 members | Unlimited  |
+| **Teams**                  | -          | Up to 5 members | Up to 50   |
 | **Best GPUs (H200, B200)** | -          | Yes             | Yes        |
 | **SSO / SAML**             | -          | -               | Yes        |
 | **Enterprise License**     | -          | -               | Yes        |
@@ -71,6 +71,7 @@ For professionals and small teams ($29/month or $290/year):
 
 For organizations with advanced needs:
 
+- $1,000/month in credits (starting allocation)
 - Custom credit allocation
 - Unlimited models, storage, trainings, and deployments
 - Enterprise License (commercial use, non-AGPL)
@@ -107,14 +108,14 @@ Credits are consumed by:
 | ----------------------- | -------------------- |
 | **Cloud Training**      | GPU rate x hours     |
 | **Dedicated Endpoints** | Compute rate x hours |
-| **Model Export**        | Fixed per export     |
+| **Model Export**        | Free (no charge)     |
 
 ## Add Credits
 
 Top up your balance:
 
 1. Go to **Settings > Billing**
-2. Click **Add Credits**
+2. Click **Top Up**
 3. Select or enter amount ($5 - $1,000)
 4. Complete payment
 
@@ -276,7 +277,7 @@ View all transactions in `Settings > Billing`:
 | Column      | Description                                                                             |
 | ----------- | --------------------------------------------------------------------------------------- |
 | **Date**    | Transaction date                                                                        |
-| **Type**    | Signup Bonus, Credit Purchase, Monthly Grant, Training, Refund, Adjustment, Auto Top-Up |
+| **Type**    | Signup Bonus, Credit Purchase, Monthly Grant, Training, Refund, Adjustment, Auto Top-Up, Auto Top-Up Failed |
 | **Amount**  | Transaction value (green for credits, red for charges)                                  |
 | **Balance** | Resulting balance after transaction                                                     |
 | **Details** | Additional context (model link, receipt, period)                                        |

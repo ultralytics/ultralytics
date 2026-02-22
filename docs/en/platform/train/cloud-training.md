@@ -66,16 +66,16 @@ Set core training parameters:
 | -------------- | ---------------------------------- | ------- |
 | **Epochs**     | Number of training iterations      | 100     |
 | **Batch Size** | Samples per iteration              | 16      |
-| **Image Size** | Input resolution (320-1280)        | 640     |
+| **Image Size** | Input resolution (320/416/512/640/1280 dropdown, or 32-4096 in YAML editor) | 640     |
 | **Run Name**   | Optional name for the training run | auto    |
 
 ### Step 4: Advanced Settings (Optional)
 
-Expand **Advanced Settings** to access the full YAML-based parameter editor with 50+ training parameters organized by group (see [configuration reference](../../usage/cfg.md)):
+Expand **Advanced Settings** to access the full YAML-based parameter editor with 40+ training parameters organized by group (see [configuration reference](../../usage/cfg.md)):
 
 | Group                   | Parameters                                       |
 | ----------------------- | ------------------------------------------------ |
-| **Learning Rate**       | lr0, lrf, momentum, weight_decay, warmup epochs  |
+| **Learning Rate**       | lr0, lrf, momentum, weight_decay, warmup_epochs, warmup_momentum, warmup_bias_lr |
 | **Optimizer**           | SGD, MuSGD, Adam, AdamW, NAdam, RAdam, RMSProp, Adamax |
 | **Loss Weights**        | box, cls, dfl, pose, kobj, label_smoothing       |
 | **Color Augmentation**  | hsv_h, hsv_s, hsv_v                              |
@@ -291,7 +291,7 @@ Training costs are based on GPU usage:
 Before training starts, the Platform estimates total cost based on:
 
 ```
-Estimated Cost = Base Time × Model Multiplier × Dataset Multiplier × GPU Speed Factor × GPU Rate
+Estimated Cost = (Base Time × Model Multiplier × Image Size Multiplier × Batch Multiplier / GPU Speed Factor + Startup Overhead) × GPU Rate
 ```
 
 **Factors affecting cost:**
@@ -301,8 +301,10 @@ Estimated Cost = Base Time × Model Multiplier × Dataset Multiplier × GPU Spee
 | **Dataset Size**     | More images = longer training time               |
 | **Model Size**       | Larger models (m, l, x) train slower than (n, s) |
 | **Number of Epochs** | Direct multiplier on training time               |
-| **Image Size**       | Larger imgsz increases computation               |
-| **GPU Speed**        | Faster GPUs reduce training time                 |
+| **Image Size**       | Larger imgsz increases computation (quadratic)   |
+| **Batch Size**       | Larger batches are more efficient per image       |
+| **GPU Speed**        | Faster GPUs reduce training time (divisor)       |
+| **Startup Overhead** | Pod initialization, data download, warmup        |
 
 ### Cost Examples
 
@@ -418,7 +420,7 @@ Training pauses at the end of the current epoch. Your checkpoint is saved, and y
 
 ### Can I use custom training arguments?
 
-Yes, expand the **Advanced Settings** section in the training dialog to access a YAML editor with 50+ configurable parameters. Non-default values are included in both cloud and local training commands.
+Yes, expand the **Advanced Settings** section in the training dialog to access a YAML editor with 40+ configurable parameters. Non-default values are included in both cloud and local training commands.
 
 ### Can I train from a dataset page?
 
@@ -431,9 +433,13 @@ Yes, the **Train** button on dataset pages opens the training dialog with the da
     | Parameter      | Type | Default | Range    | Description                          |
     | -------------- | ---- | ------- | -------- | ------------------------------------ |
     | `epochs`       | int  | 100     | 1+       | Number of training epochs            |
-    | `batch`        | int  | 16      | 1-512    | Batch size                           |
-    | `imgsz`        | int  | 640     | 32+      | Input image size                     |
-    | `patience`     | int  | 100     | 0+       | Early stopping patience              |
+    | `batch`        | int  | 16      | 1-128 (UI) / 1-512 (YAML) | Batch size         |
+    | `imgsz`        | int  | 640     | 32-4096  | Input image size                     |
+    | `patience`     | int  | 100     | 1+       | Early stopping patience              |
+    | `time`         | float| null    | 0.1-720  | Training time limit in hours         |
+    | `seed`         | int  | 0       | 0+       | Random seed for reproducibility      |
+    | `deterministic`| bool | True    | -        | Deterministic training mode          |
+    | `amp`          | bool | True    | -        | Automatic mixed precision            |
     | `close_mosaic` | int  | 10      | 0-50     | Disable mosaic in final N epochs     |
     | `save_period`  | int  | -1      | -1-100   | Save checkpoint every N epochs       |
     | `workers`      | int  | 8       | 0+       | Dataloader workers                   |
@@ -448,6 +454,8 @@ Yes, the **Train** button on dataset pages opens the training dialog with the da
     | `momentum`      | float | 0.937   | 0.6-0.98  | SGD momentum          |
     | `weight_decay`  | float | 0.0005  | 0.0-0.001 | L2 regularization     |
     | `warmup_epochs` | float | 3.0     | 0+        | Warmup epochs         |
+    | `warmup_momentum` | float | 0.8   | 0.5-0.95  | Warmup momentum       |
+    | `warmup_bias_lr` | float | 0.1    | 0.0-0.2   | Warmup bias LR        |
     | `cos_lr`        | bool  | False   | -         | Cosine LR scheduler   |
 
 === "Augmentation"
@@ -457,14 +465,26 @@ Yes, the **Train** button on dataset pages opens the training dialog with the da
     | `hsv_h`      | float | 0.015   | 0.0-0.1 | HSV hue augmentation |
     | `hsv_s`      | float | 0.7     | 0.0-1.0 | HSV saturation       |
     | `hsv_v`      | float | 0.4     | 0.0-1.0 | HSV value            |
-    | `degrees`    | float | 0.0     | -45-45  | Rotation degrees     |
-    | `translate`  | float | 0.1     | 0.0-1.0 | Translation fraction |
-    | `scale`      | float | 0.5     | 0.0-1.0 | Scale factor         |
-    | `fliplr`     | float | 0.5     | 0.0-1.0 | Horizontal flip prob |
+    | `degrees`    | float | 0.0     | -45-45    | Rotation degrees     |
+    | `translate`  | float | 0.1     | 0.0-1.0   | Translation fraction |
+    | `scale`      | float | 0.5     | 0.0-1.0   | Scale factor         |
+    | `shear`      | float | 0.0     | -10-10    | Shear degrees        |
+    | `perspective`| float | 0.0     | 0.0-0.001 | Perspective transform|
+    | `fliplr`     | float | 0.5     | 0.0-1.0   | Horizontal flip prob |
     | `flipud`     | float | 0.0     | 0.0-1.0 | Vertical flip prob   |
     | `mosaic`     | float | 1.0     | 0.0-1.0 | Mosaic augmentation  |
     | `mixup`      | float | 0.0     | 0.0-1.0 | Mixup augmentation   |
     | `copy_paste` | float | 0.0     | 0.0-1.0 | Copy-paste (segment) |
+
+=== "Dataset"
+
+    | Parameter     | Type  | Default | Range   | Description                          |
+    | ------------- | ----- | ------- | ------- | ------------------------------------ |
+    | `fraction`    | float | 1.0     | 0.1-1.0 | Fraction of dataset to use           |
+    | `freeze`      | int   | null    | 0-100   | Number of layers to freeze           |
+    | `single_cls`  | bool  | False   | -       | Treat all classes as one class       |
+    | `rect`        | bool  | False   | -       | Rectangular training                 |
+    | `multi_scale` | float | 0.0     | 0.0-1.0 | Multi-scale training range           |
 
 === "Optimizer"
 
@@ -484,6 +504,6 @@ Yes, the **Train** button on dataset pages opens the training dialog with the da
 
     Some parameters only apply to specific tasks:
 
-    - **Segment**: `overlap_mask`, `mask_ratio`, `copy_paste`
+    - **Segment**: `copy_paste`
     - **Pose**: `pose` (loss weight), `kobj` (keypoint objectness)
-    - **Classify**: `dropout`, `erasing`, `auto_augment`
+    - **Classify**: `dropout`

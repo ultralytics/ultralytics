@@ -25,7 +25,7 @@ Ultralytics Platform offers multiple deployment paths:
 
 | Option                                  | Description                                         | Best For                |
 | --------------------------------------- | --------------------------------------------------- | ----------------------- |
-| **[Predict Tab](inference.md)**         | Browser-based inference with image, webcam, and URL | Development, validation |
+| **[Predict Tab](inference.md)**         | Browser-based inference with image, webcam, and examples | Development, validation |
 | **Shared Inference**                    | Multi-tenant service across 3 regions               | Light usage, testing    |
 | **[Dedicated Endpoints](endpoints.md)** | Single-tenant services across 43 regions            | Production, low latency |
 
@@ -62,7 +62,7 @@ graph TB
     API --> Router{Region Router}
     Router -->|US users| US["US Predict Service<br/>Iowa"]
     Router -->|EU users| EU["EU Predict Service<br/>Belgium"]
-    Router -->|AP users| AP["AP Predict Service<br/>Hong Kong"]
+    Router -->|AP users| AP["AP Predict Service<br/>Taiwan"]
 
     style User fill:#f5f5f5,color:#333
     style API fill:#2196F3,color:#fff
@@ -76,7 +76,7 @@ graph TB
 | ------ | -------------------- |
 | US     | Iowa, USA            |
 | EU     | Belgium, Europe      |
-| AP     | Hong Kong, Asia-Pacific |
+| AP     | Taiwan, Asia-Pacific    |
 
 ### Dedicated Endpoints
 
@@ -107,7 +107,7 @@ Access the global deployments page from the sidebar under `Deploy`. This page sh
 
 !!! info "Automatic Polling"
 
-    The page polls every 30 seconds for metric updates. When deployments are in a transitional state (creating, deploying, stopping), polling increases to every 3 seconds for near-instant feedback.
+    The page polls every 30 seconds for metric updates. When deployments are in a transitional state (creating, deploying), polling increases to every 3 seconds for near-instant feedback.
 
 ## Key Features
 

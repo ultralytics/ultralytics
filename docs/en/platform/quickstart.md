@@ -37,11 +37,11 @@ During onboarding, you'll be asked to select your data region. The Platform auto
 
 ![Ultralytics Platform Onboarding Region Map With Latency](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-onboarding-region-map-with-latency.avif)
 
-| Region | Location                | Best For                                |
-| ------ | ----------------------- | --------------------------------------- |
-| **US** | Iowa, USA               | Americas users, fastest for Americas    |
-| **EU** | Belgium, Europe         | European users, GDPR compliance         |
-| **AP** | Hong Kong, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+| Region | Label                          | Location                | Best For                                |
+| ------ | ------------------------------ | ----------------------- | --------------------------------------- |
+| **US** | Americas                       | Iowa, USA               | Americas users, fastest for Americas    |
+| **EU** | Europe, Middle East & Africa   | Belgium, Europe         | European users, GDPR compliance         |
+| **AP** | Asia Pacific                   | Hong Kong, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
 
 !!! warning "Region is Permanent"
 
@@ -85,7 +85,7 @@ The sidebar provides access to all Platform sections:
 | **Top**          | Search   | Quick search across all your resources (Cmd+K)   |
 |                  | Home     | Dashboard with quick actions and recent activity |
 |                  | Explore  | Discover public projects and datasets            |
-| **My Workspace** | Annotate | Your datasets organized for annotation           |
+| **My Projects**  | Annotate | Your datasets organized for annotation           |
 |                  | Train    | Your projects containing trained models          |
 |                  | Deploy   | Your active deployments                          |
 | **Bottom**       | Trash    | Deleted items (recoverable for 30 days)          |

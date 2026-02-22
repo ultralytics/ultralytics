@@ -209,7 +209,7 @@ Export your model to 17+ deployment formats:
 
 ### Supported Formats
 
-The Platform supports export to [17+ deployment formats](../../modes/export.md#export-formats) including ONNX, TensorRT, CoreML, TF Lite, and more.
+The Platform supports export to [17+ deployment formats](../../modes/export.md#export-formats): ONNX, TorchScript, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TF Lite, TF Edge TPU, TF.js, PaddlePaddle, NCNN, MNN, RKNN, IMX500, Axelera, and ExecuTorch.
 
 ### Format Selection Guide
 
@@ -278,12 +278,7 @@ Control who can see your model:
 | **Private** | Only you can access             |
 | **Public**  | Anyone can view on Explore page |
 
-To change visibility:
-
-1. Open model actions menu
-2. Click **Edit**
-3. Toggle visibility
-4. Click **Save**
+To change visibility, click the visibility badge (e.g., `private` or `public`) on the model page. Switching to private takes effect immediately. Switching to public shows a confirmation dialog before applying.
 
 ## Delete Model
 

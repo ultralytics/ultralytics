@@ -111,23 +111,37 @@ https://platform.ultralytics.com/api
 
 ## Rate Limits
 
-All API requests are rate-limited per API key. When throttled, the API returns `429` with retry metadata:
+The API uses a two-layer rate limiting system to protect against abuse while keeping legitimate usage unrestricted:
+
+- **Per API key** — Sliding window limits enforced per API key on authenticated requests
+- **Per IP** — Edge-level rate limiting at 100 requests/min per IP address on all `/api/*` paths (applies to both authenticated and unauthenticated requests)
+
+When throttled, the API returns `429` with retry metadata:
 
 ```
 Retry-After: 12
 X-RateLimit-Reset: 2026-02-21T12:34:56.000Z
 ```
 
-Default rate limits per API key:
+### Per API Key Limits
 
-| Endpoint     | Limit            | Description                             |
-| ------------ | ---------------- | --------------------------------------- |
-| **Default**  | 100 requests/min | All endpoints not listed below          |
-| **Training** | 10 requests/min  | Start training jobs                     |
-| **Upload**   | 10 requests/min  | File uploads and dataset ingest         |
-| **Predict**  | 20 requests/min  | Model and deployment inference          |
-| **Export**   | 20 requests/min  | Model and dataset exports               |
-| **Download** | 30 requests/min  | Model weight and dataset file downloads |
+Rate limits are applied automatically based on the endpoint being called. Expensive operations have tighter limits to prevent abuse, while standard CRUD operations share a generous default:
+
+| Endpoint      | Limit            | Applies To                                                                      |
+| ------------- | ---------------- | ------------------------------------------------------------------------------- |
+| **Default**   | 100 requests/min | All endpoints not listed below (list, get, create, update, delete)              |
+| **Training**  | 10 requests/min  | Starting cloud training jobs (`POST /api/training/start`)                       |
+| **Upload**    | 10 requests/min  | File uploads, signed URLs, and dataset ingest                                   |
+| **Predict**   | 20 requests/min  | Shared model inference (`POST /api/models/{id}/predict`)                        |
+| **Export**    | 20 requests/min  | Model format exports and dataset NDJSON exports                                 |
+| **Download**  | 30 requests/min  | Model weight downloads and dataset file downloads (`ul://` URIs)                |
+| **Dedicated** | **Unlimited**    | [Dedicated endpoints](../deploy/endpoints.md) — your own service, no API limits |
+
+Each category has an independent counter per API key. For example, making 20 predict requests does not affect your 100 request/min default allowance.
+
+### Dedicated Endpoints (Unlimited)
+
+[Dedicated endpoints](../deploy/endpoints.md) are **not subject to API key rate limits**. When you deploy a model to a dedicated endpoint, requests to that endpoint URL (e.g., `https://predict-abc123.run.app/predict`) go directly to your dedicated service with no rate limiting from the Platform. You're paying for the compute, so you get unlimited throughput up to your endpoint's scaling configuration.
 
 !!! tip "Handling Rate Limits"
 

@@ -329,11 +329,11 @@ Response format varies by task:
 
 ## Rate Limits
 
-Shared inference can return `429` responses when throttled.
+Shared inference is rate-limited to **20 requests/min per API key**. When throttled, the API returns `429` with a `Retry-After` header. See the full [rate limit reference](../api/index.md#rate-limits) for all endpoint categories.
 
 !!! tip "Need More Throughput?"
 
-    Deploy a [dedicated endpoint](endpoints.md) for predictable throughput and consistent low-latency responses. For local inference, see the [Predict mode guide](../../modes/predict.md).
+    Deploy a [dedicated endpoint](endpoints.md) for **unlimited** inference with no rate limits, predictable throughput, and consistent low-latency responses. For local inference, see the [Predict mode guide](../../modes/predict.md).
 
 ## Error Handling
 
@@ -344,7 +344,7 @@ Common error responses:
 | 400  | Invalid image   | Check file format    |
 | 401  | Unauthorized    | Verify API key       |
 | 404  | Model not found | Check model ID       |
-| 429  | Rate limited    | Wait or upgrade plan |
+| 429  | Rate limited    | Wait and retry, or use a [dedicated endpoint](endpoints.md) for unlimited throughput |
 | 500  | Server error    | Retry request        |
 
 ## FAQ
@@ -399,7 +399,7 @@ The current API processes one image per request. For batch:
 
     import requests
 
-    url = "https://predict-abc123-us-central1.a.run.app/predict"
+    url = "https://predict-abc123.run.app/predict"
     headers = {"Authorization": "Bearer YOUR_API_KEY"}
     images = ["img1.jpg", "img2.jpg", "img3.jpg"]
 

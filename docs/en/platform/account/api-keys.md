@@ -230,9 +230,9 @@ Error: Rate limit exceeded
 
 Solutions:
 
-1. Reduce request frequency
-2. Implement exponential backoff
-3. Contact support for limit increase
+1. Reduce request frequency — see the [rate limit table](../api/index.md#per-api-key-limits) for per-endpoint limits
+2. Implement exponential backoff using the `Retry-After` header
+3. Use a [dedicated endpoint](../deploy/endpoints.md) for unlimited inference throughput
 
 ## FAQ
 

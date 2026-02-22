@@ -1254,7 +1254,7 @@ POST /api/trash
 
 ```json
 {
-    "_id": "item_abc123",
+    "id": "item_abc123",
     "type": "dataset"
 }
 ```
@@ -1269,7 +1269,7 @@ DELETE /api/trash
 
 ```json
 {
-    "_id": "item_abc123",
+    "id": "item_abc123",
     "type": "dataset"
 }
 ```

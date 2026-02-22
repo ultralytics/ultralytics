@@ -31,7 +31,7 @@ Update your profile information:
 
 #### Username Rules
 
-- 3-30 characters
+- 4-32 characters
 - Lowercase letters, numbers, hyphens
 - Cannot start/end with hyphen
 - Must be unique
@@ -71,8 +71,10 @@ Connect your professional profiles:
 | **LinkedIn**       | profile-slug         |
 | **X (Twitter)**    | username             |
 | **YouTube**        | channel-handle       |
+| **Bilibili**       | user-id              |
 | **Google Scholar** | user-id              |
 | **Discord**        | username             |
+| **WeChat**         | username             |
 | **Website**        | https://yoursite.com |
 
 Social links appear on your public profile page.

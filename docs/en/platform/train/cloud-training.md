@@ -81,8 +81,8 @@ Expand **Advanced Settings** to access the full YAML-based parameter editor with
 | **Color Augmentation**  | hsv_h, hsv_s, hsv_v                                                              |
 | **Geometric Augment.**  | degrees, translate, scale, shear, perspective                                    |
 | **Flip & Mix Augment.** | flipud, fliplr, mosaic, mixup, copy_paste                                        |
-| **Training Control**    | patience, seed, deterministic, amp, cos_lr                                       |
-| **Dataset**             | fraction, freeze, single_cls, rect, multi_scale                                  |
+| **Training Control**    | patience, seed, deterministic, amp, cos_lr, close_mosaic, save_period            |
+| **Dataset**             | fraction, freeze, single_cls, rect, multi_scale, resume                          |
 
 Parameters are task-aware (e.g., `copy_paste` only shows for segment tasks, `pose`/`kobj` only for pose tasks). A **Modified** badge appears when values differ from defaults, and you can reset all to defaults with the reset button.
 
@@ -314,9 +314,9 @@ Before training starts, the platform estimates total cost by:
 | **Model Size**       | Larger models (m, l, x) train slower than (n, s)                                                     |
 | **Number of Epochs** | Direct multiplier on training time                                                                   |
 | **Image Size**       | Larger imgsz increases computation: 320px=0.25x, 640px=1.0x (baseline), 1280px=4.0x                  |
-| **Batch Size**       | Larger batches are more efficient (batch 32 = ~0.8x time, batch 8 = ~1.4x time vs batch 16 baseline) |
-| **GPU Speed**        | Faster GPUs reduce training time (e.g., H100 SXM = ~3.2x faster than RTX 4090)                       |
-| **Startup Overhead** | 1-5 minutes for pod initialization, data download, and warmup (scales with dataset size)             |
+| **Batch Size**       | Larger batches are more efficient (batch 32 = ~0.85x time, batch 8 = ~1.2x time vs batch 16 baseline) |
+| **GPU Speed**        | Faster GPUs reduce training time (e.g., H100 SXM = ~3.4x faster than RTX 4090)                        |
+| **Startup Overhead** | Up to 5 minutes for instance initialization, data download, and warmup (scales with dataset size)      |
 
 ### Cost Examples
 

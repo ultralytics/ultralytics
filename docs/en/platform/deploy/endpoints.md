@@ -211,10 +211,10 @@ The `Logs` tab shows recent log entries with severity filtering (All / Errors). 
 
 ### Endpoint URL
 
-Each endpoint has a unique URL:
+Each endpoint has a unique URL, for example:
 
 ```
-https://predict-abc123-us-central1.a.run.app
+https://predict-abc123.run.app
 ```
 
 ![Ultralytics Platform Deployment Card Endpoint Url With Copy Button](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deployment-card-endpoint-url-with-copy-button.avif)
@@ -279,6 +279,10 @@ Authorization: Bearer YOUR_API_KEY
 
 The API key prefix is displayed on the deployment card footer for identification. Generate keys from [API Keys](../account/api-keys.md).
 
+### No Rate Limits
+
+Dedicated endpoints are **not subject to the Platform API rate limits**. Requests go directly to your dedicated service, so throughput is limited only by your endpoint's CPU, memory, and scaling configuration. This is a key advantage over [shared inference](inference.md), which is rate-limited to 20 requests/min per API key.
+
 ### Request Example
 
 === "Python"
@@ -287,7 +291,7 @@ The API key prefix is displayed on the deployment card footer for identification
     import requests
 
     # Deployment endpoint
-    url = "https://predict-abc123-us-central1.a.run.app/predict"
+    url = "https://predict-abc123.run.app/predict"
 
     # Headers with your deployment API key
     headers = {"Authorization": "Bearer YOUR_API_KEY"}
@@ -314,7 +318,7 @@ The API key prefix is displayed on the deployment card footer for identification
 
     // Send image for inference
     const response = await fetch(
-      "https://predict-abc123-us-central1.a.run.app/predict",
+      "https://predict-abc123.run.app/predict",
       {
         method: "POST",
         headers: { Authorization: "Bearer YOUR_API_KEY" },
@@ -330,7 +334,7 @@ The API key prefix is displayed on the deployment card footer for identification
 
     ```bash
     curl -X POST \
-      "https://predict-abc123-us-central1.a.run.app/predict" \
+      "https://predict-abc123.run.app/predict" \
       -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg" \
       -F "conf=0.25" \

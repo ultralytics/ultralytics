@@ -31,7 +31,7 @@ Update your profile information:
 
 #### Username Rules
 
-- 3-30 characters
+- 4-32 characters
 - Lowercase letters, numbers, hyphens
 - Cannot start/end with hyphen
 - Must be unique
@@ -71,8 +71,10 @@ Connect your professional profiles:
 | **LinkedIn**       | profile-slug         |
 | **X (Twitter)**    | username             |
 | **YouTube**        | channel-handle       |
+| **Bilibili**       | user-id              |
 | **Google Scholar** | user-id              |
 | **Discord**        | username             |
+| **WeChat**         | username             |
 | **Website**        | https://yoursite.com |
 
 Social links appear on your public profile page.
@@ -102,11 +104,11 @@ API keys are managed directly on the `Profile` tab. See [API Keys](api-keys.md) 
 
 View your data region on the `Profile` tab:
 
-| Region | Location     | Best For                        |
-| ------ | ------------ | ------------------------------- |
-| **US** | US Central   | Americas users                  |
-| **EU** | EU West      | European users, GDPR compliance |
-| **AP** | Asia Pacific | Asia-Pacific users              |
+| Region | Location      | Best For                        |
+| ------ | ------------- | ------------------------------- |
+| **US** | United States | Americas users                  |
+| **EU** | Europe        | European users, GDPR compliance |
+| **AP** | Asia Pacific  | Asia-Pacific users              |
 
 !!! note "Region is Permanent"
 
@@ -184,12 +186,11 @@ Permanently delete your account:
 
 ##### What's Deleted
 
-- Profile and settings
+- All projects and trained models
 - All datasets and images
-- All models and checkpoints
-- All deployments
-- API keys
-- Billing history
+- All API keys and credentials
+- All activity history
+- Credit balance
 
 ##### What's Retained
 

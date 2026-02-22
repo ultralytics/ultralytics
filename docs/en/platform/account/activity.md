@@ -35,17 +35,17 @@ Navigate to the Activity Feed:
 
 The Platform tracks the following resource types and actions:
 
-| Resource Type  | Description                                 | Icon Color     |
-| -------------- | ------------------------------------------- | -------------- |
-| **project**    | [Project](../train/projects.md) events      | Blue           |
-| **dataset**    | [Dataset](../data/datasets.md) events       | Green          |
-| **model**      | [Model](../train/models.md) events          | Purple         |
-| **training**   | Training job events                         | Blue/Green/Red |
-| **settings**   | Account settings changes                    | Gray           |
-| **api_key**    | [API key](api-keys.md) creation/revocation  | Amber          |
-| **export**     | Model export events                         | Amber          |
-| **deployment** | [Deployment](../deploy/endpoints.md) events | Blue           |
-| **onboarding** | Onboarding completion                       | Green          |
+| Resource Type  | Description                                 | Icon Color          |
+| -------------- | ------------------------------------------- | ------------------- |
+| **project**    | [Project](../train/projects.md) events      | Blue                |
+| **dataset**    | [Dataset](../data/datasets.md) events       | Green               |
+| **model**      | [Model](../train/models.md) events          | Purple              |
+| **training**   | Training job events                         | Blue/Green/Red/Gray |
+| **settings**   | Account settings changes                    | Gray                |
+| **api_key**    | [API key](api-keys.md) creation/revocation  | Amber               |
+| **export**     | Model export events                         | Amber               |
+| **deployment** | [Deployment](../deploy/endpoints.md) events | Blue                |
+| **onboarding** | Onboarding completion                       | Green               |
 
 ### Action Types
 

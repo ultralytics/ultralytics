@@ -254,6 +254,7 @@ Export jobs progress through the following statuses:
 | **Running**   | Export is in progress                |
 | **Completed** | Export finished — download available |
 | **Failed**    | Export failed (see error message)    |
+| **Cancelled** | Export was cancelled by the user     |
 
 !!! tip "Export Time"
 

@@ -79,7 +79,7 @@ Below the overview cards, the deployments list shows all endpoints across your p
 
 !!! tip "Real-Time Updates"
 
-    The dashboard polls every 30 seconds for metric updates. When deployments are in a transitional state (creating, deploying, stopping), polling increases to every 2-3 seconds. Click the refresh button for immediate updates.
+    The dashboard polls every 30 seconds for metric updates. When deployments are in a transitional state (creating, deploying), polling increases to every 3 seconds. Click the refresh button for immediate updates.
 
 ## Per-Deployment Metrics
 
@@ -167,7 +167,7 @@ Each deployment card includes a `Code` tab showing ready-to-use API code with yo
     import requests
 
     # Deployment endpoint
-    url = "https://predict-abc123-us-central1.a.run.app/predict"
+    url = "https://predict-abc123.run.app/predict"
 
     # Headers with your deployment API key
     headers = {"Authorization": "Bearer YOUR_API_KEY"}
@@ -194,7 +194,7 @@ Each deployment card includes a `Code` tab showing ready-to-use API code with yo
 
     // Send image for inference
     const response = await fetch(
-      "https://predict-abc123-us-central1.a.run.app/predict",
+      "https://predict-abc123.run.app/predict",
       {
         method: "POST",
         headers: { Authorization: "Bearer YOUR_API_KEY" },
@@ -210,7 +210,7 @@ Each deployment card includes a `Code` tab showing ready-to-use API code with yo
 
     ```bash
     # Send image for inference
-    curl -X POST "https://predict-abc123-us-central1.a.run.app/predict" \
+    curl -X POST "https://predict-abc123.run.app/predict" \
       -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg" \
       -F "conf=0.25" \

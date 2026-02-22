@@ -111,23 +111,23 @@ https://platform.ultralytics.com/api
 
 ## Rate Limits
 
-Rate limiting is endpoint-specific. When throttled, the API returns `429` with retry metadata:
+All API requests are rate-limited per API key. When throttled, the API returns `429` with retry metadata:
 
 ```
 Retry-After: 12
 X-RateLimit-Reset: 2026-02-21T12:34:56.000Z
 ```
 
-Default rate limits per endpoint category:
+Default rate limits per API key:
 
-| Category        | Limit            | Scope    |
-| --------------- | ---------------- | -------- |
-| **Training**    | 10 requests/min  | Per user |
-| **Upload**      | 10 requests/min  | Per user |
-| **Export**      | 20 requests/min  | Per user |
-| **API Read**    | 200 requests/min | Per key  |
-| **API Write**   | 60 requests/min  | Per key  |
-| **API Predict** | 100 requests/min | Per key  |
+| Endpoint     | Limit            | Description                             |
+| ------------ | ---------------- | --------------------------------------- |
+| **Default**  | 100 requests/min | All endpoints not listed below          |
+| **Training** | 10 requests/min  | Start training jobs                     |
+| **Upload**   | 10 requests/min  | File uploads and dataset ingest         |
+| **Predict**  | 20 requests/min  | Model and deployment inference          |
+| **Export**   | 20 requests/min  | Model and dataset exports               |
+| **Download** | 30 requests/min  | Model weight and dataset file downloads |
 
 !!! tip "Handling Rate Limits"
 

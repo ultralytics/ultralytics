@@ -133,8 +133,8 @@ Rate limits are applied automatically based on the endpoint being called. Expens
 | **Training**  | 10 requests/min  | Starting cloud training jobs (`POST /api/training/start`)                       |
 | **Upload**    | 10 requests/min  | File uploads, signed URLs, and dataset ingest                                   |
 | **Predict**   | 20 requests/min  | Shared model inference (`POST /api/models/{id}/predict`)                        |
-| **Export**    | 20 requests/min  | Model format exports and dataset NDJSON exports                                 |
-| **Download**  | 30 requests/min  | Model weight downloads and dataset file downloads (`ul://` URIs)                |
+| **Export**    | 20 requests/min  | Model format exports (`POST /api/exports`) and dataset NDJSON exports           |
+| **Download**  | 30 requests/min  | Model weight file downloads (`GET /api/models/{id}/download`)                   |
 | **Dedicated** | **Unlimited**    | [Dedicated endpoints](../deploy/endpoints.md) — your own service, no API limits |
 
 Each category has an independent counter per API key. For example, making 20 predict requests does not affect your 100 request/min default allowance.
@@ -2017,7 +2017,7 @@ Currently, use the Ultralytics Python package or make direct HTTP requests. Offi
 
 ### How do I handle rate limits?
 
-Implement exponential backoff:
+Use the `Retry-After` header from the 429 response to wait the right amount of time:
 
 ```python
 import time
@@ -2030,7 +2030,7 @@ def api_request_with_retry(url, headers, max_retries=3):
         response = requests.get(url, headers=headers)
         if response.status_code != 429:
             return response
-        wait = 2**attempt
+        wait = int(response.headers.get("Retry-After", 2**attempt))
         time.sleep(wait)
     raise Exception("Rate limit exceeded")
 ```

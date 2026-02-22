@@ -6,13 +6,13 @@ keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT
 
 # Models
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive model management for training, analyzing, and deploying YOLO models. Upload pretrained models or train new ones directly on the Platform.
+[Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive model management for training, analyzing, and deploying YOLO models. Upload pretrained models or train new ones directly on the platform.
 
 ![Ultralytics Platform Model Page Overview Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-page-overview-tab.avif)
 
 ## Upload Model
 
-Upload existing model weights to the Platform:
+Upload existing model weights to the platform:
 
 1. Navigate to your project
 2. **Drag and drop** `.pt` files onto the project page or models sidebar
@@ -28,7 +28,7 @@ Supported model formats:
 | ------- | --------- | ------------------------- |
 | PyTorch | `.pt`     | Native Ultralytics format |
 
-After upload, the Platform parses model metadata:
+After upload, the platform parses model metadata:
 
 - Task type ([detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [classify](../../tasks/classify.md))
 - Architecture (YOLO26n, YOLO26s, etc.)
@@ -38,7 +38,7 @@ After upload, the Platform parses model metadata:
 
 ## Train Model
 
-Train a new model directly on the Platform:
+Train a new model directly on the platform:
 
 1. Navigate to your project
 2. Click **New Model**

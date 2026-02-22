@@ -636,7 +636,7 @@ POST /api/models
 
 !!! note "Model File Upload"
 
-    Model `.pt` file uploads are handled separately. Use the Platform UI to drag-and-drop model files onto a project.
+    Model `.pt` file uploads are handled separately. Use the platform UI to drag-and-drop model files onto a project.
 
 ### Update Model
 
@@ -885,7 +885,7 @@ Creates a dedicated inference endpoint in the specified region. The endpoint is 
 
 !!! tip "Region Selection"
 
-    Choose a region close to your users for lowest latency. The Platform UI shows latency estimates for all 43 available regions.
+    Choose a region close to your users for lowest latency. The platform UI shows latency estimates for all 43 available regions.
 
 ### Get Deployment
 
@@ -1096,7 +1096,7 @@ POST /api/activity
 
 ```json
 {
-    "action": "create",
+    "action": "created",
     "resourceType": "model",
     "resourceId": "MODEL_ID",
     "resourceName": "my-model",
@@ -1464,7 +1464,7 @@ Request a signed URL for uploading a file directly to cloud storage. The signed 
 POST /api/upload/complete
 ```
 
-Notify the Platform that a file upload is complete so it can begin processing.
+Notify the platform that a file upload is complete so it can begin processing.
 
 **Body:**
 
@@ -2014,7 +2014,7 @@ def api_request_with_retry(url, headers, max_retries=3):
 
 ### How do I find my model or dataset ID?
 
-Resource IDs are returned when you create resources via the API. You can also find them in the Platform URL:
+Resource IDs are returned when you create resources via the API. You can also find them in the platform URL:
 
 ```
 https://platform.ultralytics.com/username/project/model-name

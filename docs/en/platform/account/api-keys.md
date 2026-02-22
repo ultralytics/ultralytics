@@ -38,7 +38,7 @@ After creation, the key is displayed once:
 
 !!! tip "Copy Your Key"
 
-    Copy your key after creation for easy reference. Keys are also visible in the key list — the Platform decrypts and displays full key values so you can copy them anytime.
+    Copy your key after creation for easy reference. Keys are also visible in the key list — the platform decrypts and displays full key values so you can copy them anytime.
 
 ## Key Format
 

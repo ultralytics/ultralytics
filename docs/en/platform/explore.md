@@ -268,7 +268,7 @@ When contributing public content:
 
 ## Public Content URLs
 
-Public content on the Platform uses clean, shareable URLs:
+Public content on the platform uses clean, shareable URLs:
 
 | Content  | URL Pattern                                             | Example                                               |
 | -------- | ------------------------------------------------------- | ----------------------------------------------------- |
@@ -326,4 +326,4 @@ There's no application process - just create great content!
 
 ### Can I monetize public content?
 
-Currently, the Platform doesn't support monetization. This may be added in future updates.
+Currently, the platform doesn't support monetization. This may be added in future updates.

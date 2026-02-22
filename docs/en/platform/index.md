@@ -94,7 +94,7 @@ You select your region during onboarding, and all your data, models, and deploym
 
 !!! warning "Region is Permanent"
 
-    Your data region cannot be changed after account creation. During onboarding, the Platform measures latency to each region and recommends the closest one. Choose carefully.
+    Your data region cannot be changed after account creation. During onboarding, the platform measures latency to each region and recommends the closest one. Choose carefully.
 
 ## Key Features
 
@@ -126,7 +126,7 @@ graph LR
 ### Model Training
 
 - **Cloud Training**: Train on 22 cloud GPU types with real-time metrics
-- **Remote Training**: Train anywhere and stream metrics to Platform (W&B-style)
+- **Remote Training**: Train anywhere and stream metrics to the platform (W&B-style)
 - **Project Organization**: Group related models, compare experiments, track activity
 - **17 Export Formats**: ONNX, TensorRT, CoreML, TFLite, and more (see [supported formats](train/models.md#supported-formats))
 
@@ -150,7 +150,7 @@ You can train models either through the web UI (cloud training) or from your own
     # Set your API key
     export ULTRALYTICS_API_KEY="your_api_key"
 
-    # Train and stream metrics to Platform
+    # Train and stream metrics to the platform
     yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
     ```
 
@@ -332,7 +332,7 @@ See [Cloud Training](train/cloud-training.md) for complete pricing and GPU optio
 
 ### How does remote training work?
 
-You can train models on your own hardware and stream real-time metrics to Platform, similar to Weights & Biases.
+You can train models on your own hardware and stream real-time metrics to the platform, similar to Weights & Biases.
 
 !!! warning "Package Version Requirement"
 

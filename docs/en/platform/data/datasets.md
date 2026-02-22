@@ -128,7 +128,7 @@ The Platform supports two annotation formats plus raw uploads: [Ultralytics YOLO
 
 !!! tip "Raw Uploads"
 
-    **Raw**: Upload unannotated images (no labels). Useful when you plan to annotate directly on the Platform using the [annotation editor](annotation.md).
+    **Raw**: Upload unannotated images (no labels). Useful when you plan to annotate directly on the platform using the [annotation editor](annotation.md).
 
 !!! tip "Flat Directory Structure"
 
@@ -151,7 +151,7 @@ For task-specific format details, see [supported tasks](index.md#supported-tasks
 
 ![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-upload-dialog-task-selector.avif)
 
-After upload, the Platform processes your data through a multi-stage pipeline:
+After upload, the platform processes your data through a multi-stage pipeline:
 
 ```mermaid
 graph LR

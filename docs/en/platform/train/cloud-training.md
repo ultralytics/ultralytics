@@ -26,7 +26,7 @@ graph LR
 
 ## Training Dialog
 
-Start training from the Platform UI by clicking **New Model** on any project page (or **Train** from a dataset page). The training dialog has two tabs: **Cloud Training** and **Local Training**.
+Start training from the platform UI by clicking **New Model** on any project page (or **Train** from a dataset page). The training dialog has two tabs: **Cloud Training** and **Local Training**.
 
 ![Ultralytics Platform Training Dialog Cloud Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-dialog-cloud-tab.avif)
 
@@ -221,7 +221,7 @@ graph LR
     style E fill:#4CAF50,color:#fff
 ```
 
-Train on your own hardware while streaming metrics to the Platform.
+Train on your own hardware while streaming metrics to the platform.
 
 !!! warning "Package Version Requirement"
 
@@ -234,7 +234,7 @@ Train on your own hardware while streaming metrics to the Platform.
 ### Setup API Key
 
 1. Go to [`Settings > Profile`](../account/api-keys.md) (API Keys section)
-2. Create a new key (or the Platform auto-creates one when you open the Local Training tab)
+2. Create a new key (or the platform auto-creates one when you open the Local Training tab)
 3. Set the environment variable:
 
 ```bash
@@ -270,7 +270,7 @@ The **Local Training** tab in the training dialog shows a pre-configured command
 
 ### Using Platform Datasets
 
-Train with datasets stored on the Platform using the [`ul://` URI format](../data/datasets.md#dataset-uri):
+Train with datasets stored on the platform using the [`ul://` URI format](../data/datasets.md#dataset-uri):
 
 === "CLI"
 
@@ -293,7 +293,7 @@ Train with datasets stored on the Platform using the [`ul://` URI format](../dat
     )
     ```
 
-The `ul://` URI format automatically downloads and configures your dataset. The model is automatically linked to the dataset on the Platform (see [Using Platform Datasets](../api/index.md#using-platform-datasets)).
+The `ul://` URI format automatically downloads and configures your dataset. The model is automatically linked to the dataset on the platform (see [Using Platform Datasets](../api/index.md#using-platform-datasets)).
 
 ## Billing
 
@@ -301,13 +301,11 @@ Training costs are based on GPU usage:
 
 ### Cost Estimation
 
-Before training starts, the Platform estimates total cost based on:
+Before training starts, the platform estimates total cost by:
 
-```
-Seconds Per Epoch = Dataset Images / 1000 × Baseline × Model Multiplier × Image Size Multiplier × Batch Multiplier / GPU Speed Factor
-Total Minutes = (Seconds Per Epoch × Epochs) / 60 + Startup Overhead
-Estimated Cost = Total Minutes / 60 × GPU Hourly Rate
-```
+1. **Estimating seconds per epoch** from dataset size, model complexity, image size, batch size, and GPU speed
+2. **Calculating total training time** by multiplying seconds per epoch by the number of epochs, then adding startup overhead
+3. **Computing the estimated cost** from total training hours multiplied by the GPU's hourly rate
 
 **Factors affecting cost:**
 

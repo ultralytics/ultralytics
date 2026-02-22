@@ -343,7 +343,7 @@ This allows for a seamless workflow where you can define classes as you encounte
 
 ### Class Colors
 
-Each class is assigned a color from the Ultralytics palette. You can customize colors using the color picker on the `Classes` tab. Colors are consistent across the Platform for easy recognition.
+Each class is assigned a color from the Ultralytics palette. You can customize colors using the color picker on the `Classes` tab. Colors are consistent across the platform for easy recognition.
 
 ## Keyboard Shortcuts
 

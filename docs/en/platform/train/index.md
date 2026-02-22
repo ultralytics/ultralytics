@@ -51,8 +51,8 @@ Ultralytics Platform supports multiple training approaches:
 | Method                                                   | Description                                | Best For                   |
 | -------------------------------------------------------- | ------------------------------------------ | -------------------------- |
 | **[Cloud Training](cloud-training.md)**                  | Train on Ultralytics Cloud GPUs            | No local GPU, scalability  |
-| **[Local Training](cloud-training.md#remote-training)**  | Train locally, stream metrics to Platform  | Existing hardware, privacy |
-| **[Colab Training](cloud-training.md#remote-training)**  | Use Google Colab with Platform integration | Free GPU access            |
+| **[Local Training](cloud-training.md#remote-training)**  | Train locally, stream metrics to the platform  | Existing hardware, privacy |
+| **[Colab Training](cloud-training.md#remote-training)**  | Use Google Colab with platform integration | Free GPU access            |
 
 ## GPU Options
 

@@ -12,7 +12,7 @@ keywords: Ultralytics Platform, trash, restore, soft delete, recover, deleted it
 
 ## Soft Delete Policy
 
-When you delete a resource on the Platform:
+When you delete a resource on the platform:
 
 1. **Immediate**: Item moves to Trash (not permanently deleted)
 2. **30 Days**: Item remains recoverable in Trash

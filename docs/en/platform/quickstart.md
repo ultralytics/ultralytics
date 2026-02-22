@@ -142,7 +142,7 @@ graph LR
     G --> H[Dataset Ready]
 ```
 
-After upload, the Platform automatically processes your data:
+After upload, the platform automatically processes your data:
 
 1. Images larger than 4096px are resized (preserving aspect ratio)
 2. 256px thumbnails are generated for fast browsing
@@ -321,7 +321,7 @@ Read more about [endpoints](deploy/endpoints.md).
 
 ## Remote Training (Optional)
 
-If you prefer to train on your own hardware, you can stream metrics to Platform using your API key. This works like Weights & Biases — train anywhere, monitor on Platform.
+If you prefer to train on your own hardware, you can stream metrics to the platform using your API key. This works like Weights & Biases — train anywhere, monitor on the platform.
 
 1. Generate an API key in [`Settings > Profile`](account/api-keys.md) (API Keys section)
 2. Set the environment variable and train with a `project/name` format:

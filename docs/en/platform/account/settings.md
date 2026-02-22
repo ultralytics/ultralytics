@@ -259,7 +259,7 @@ Manage deleted items. See [Trash](trash.md) for full documentation.
 
 ### How do I change my email?
 
-Manage your email addresses directly on the Platform:
+Manage your email addresses directly on the platform:
 
 1. Go to **Settings > Profile**
 2. Scroll to the **Emails** section

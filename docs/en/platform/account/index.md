@@ -84,7 +84,7 @@ Usernames cannot be changed after account creation. Your username is set during 
 
 ### How do I change my email?
 
-Manage your email addresses directly on the Platform:
+Manage your email addresses directly on the platform:
 
 1. Go to `Settings > Profile`
 2. Scroll to the **Emails** section

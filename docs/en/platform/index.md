@@ -452,7 +452,7 @@ See [Models Export](train/models.md#export-model), the [Export mode guide](../mo
 
 | Problem                 | Solution                                                                                                                    |
 | ----------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Endpoint not responding | Check endpoint status (Running vs Stopped). Cold start may take 2-5 seconds                                                 |
+| Endpoint not responding | Check endpoint status (Ready vs Stopped). Cold start may take 5-15 seconds                                                  |
 | 401 Unauthorized        | Verify API key is correct and has required scopes                                                                           |
 | Slow inference          | Check model size, consider [TensorRT export](train/models.md#supported-formats), select closer region                       |
 | Export failed           | Some formats require specific model architectures. Try [ONNX](train/models.md#supported-formats) for broadest compatibility |

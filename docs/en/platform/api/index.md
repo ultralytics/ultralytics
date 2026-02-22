@@ -881,7 +881,7 @@ POST /api/training/start
 
 !!! note "GPU Types"
 
-    Available GPU types include `rtx-4090`, `a100-80gb`, `h100-sxm`, and others. See [Cloud Training](../train/cloud-training.md) for the full list with pricing.
+    Available GPU types include `rtx-4090`, `a100-80gb-pcie`, `a100-80gb-sxm`, `h100-sxm`, `rtx-pro-6000`, and others. See [Cloud Training](../train/cloud-training.md) for the full list with pricing.
 
 ### Get Training Status
 
@@ -908,7 +908,7 @@ Create and manage dedicated inference endpoints.
 ```mermaid
 graph LR
     A[Create] --> B[Deploying]
-    B --> C[Running]
+    B --> C[Ready]
     C -->|stop| D[Stopped]
     D -->|start| C
     C -->|delete| E[Deleted]
@@ -1134,7 +1134,7 @@ POST /api/exports
 | TF.js         | `tfjs`        | Browser inference        |
 | MNN           | `mnn`         | Alibaba mobile inference |
 | RKNN          | `rknn`        | Rockchip NPU             |
-| IMX           | `imx`         | NXP i.MX processors      |
+| IMX           | `imx`         | Sony IMX500 sensor        |
 | Axelera       | `axelera`     | Axelera AI accelerators  |
 | ExecuTorch    | `executorch`  | Meta ExecuTorch runtime  |
 
@@ -1587,7 +1587,7 @@ Request a signed URL for uploading a file directly to cloud storage. The signed 
 {
     "sessionId": "session_abc123",
     "uploadUrl": "https://storage.example.com/...",
-    "gcsPath": "images/abc123/my-image.jpg",
+    "objectPath": "images/abc123/my-image.jpg",
     "downloadUrl": "https://cdn.example.com/...",
     "expiresAt": "2026-02-22T12:00:00Z"
 }

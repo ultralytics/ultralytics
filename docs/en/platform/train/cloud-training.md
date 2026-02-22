@@ -81,9 +81,8 @@ Expand **Advanced Settings** to access the full YAML-based parameter editor with
 | **Color Augmentation**  | hsv_h, hsv_s, hsv_v                                                              |
 | **Geometric Augment.**  | degrees, translate, scale, shear, perspective                                    |
 | **Flip & Mix Augment.** | flipud, fliplr, mosaic, mixup, copy_paste                                        |
-| **Training Control**    | patience, time, seed, deterministic, amp, cos_lr                                 |
+| **Training Control**    | patience, seed, deterministic, amp, cos_lr                                       |
 | **Dataset**             | fraction, freeze, single_cls, rect, multi_scale                                  |
-| **Device & Inference**  | device, cache, workers, dropout, iou, max_det                                    |
 
 Parameters are task-aware (e.g., `copy_paste` only shows for segment tasks, `pose`/`kobj` only for pose tasks). A **Modified** badge appears when values differ from defaults, and you can reset all to defaults with the reset button.
 
@@ -450,11 +449,10 @@ Yes, the **Train** button on dataset pages opens the training dialog with the da
     | Parameter      | Type | Default | Range    | Description                          |
     | -------------- | ---- | ------- | -------- | ------------------------------------ |
     | `epochs`       | int  | 100     | 1-10000  | Number of training epochs            |
-    | `batch`        | int  | 16      | 1-128 (UI) / 1-512 (YAML) | Batch size         |
+    | `batch`        | int  | 16      | 1-512    | Batch size                     |
     | `imgsz`        | int  | 640     | 32-4096  | Input image size                     |
     | `patience`     | int  | 100     | 1-1000   | Early stopping patience              |
-    | `time`         | float| null    | 0.1-720  | Training time limit in hours         |
-    | `seed`         | int  | 0       | 0+       | Random seed for reproducibility      |
+    | `seed`         | int  | 0       | 0-2147483647 | Random seed for reproducibility  |
     | `deterministic`| bool | True    | -        | Deterministic training mode          |
     | `amp`          | bool | True    | -        | Automatic mixed precision            |
     | `close_mosaic` | int  | 10      | 0-50     | Disable mosaic in final N epochs     |
@@ -530,20 +528,10 @@ Yes, the **Train** button on dataset pages opens the training dialog with the da
     | `kobj`           | float | 1.0     | 0.5-10    | Keypoint objectness (pose)  |
     | `label_smoothing`| float | 0.0     | 0.0-0.1   | Label smoothing factor      |
 
-=== "Device & Inference"
-
-    | Parameter   | Type   | Default | Range     | Description                          |
-    | ----------- | ------ | ------- | --------- | ------------------------------------ |
-    | `device`    | select | auto    | auto/0/cpu/mps | Compute device                  |
-    | `dropout`   | float  | 0.0     | 0.0-1.0   | Dropout rate (classify only)         |
-    | `iou`       | float  | 0.7     | 0.1-0.9   | IoU threshold for NMS                |
-    | `max_det`   | int    | 300     | 1-10000   | Maximum detections per image         |
-
 !!! tip "Task-Specific Parameters"
 
     Some parameters only apply to specific tasks:
 
-    - **Detection tasks only** (detect, segment, pose, OBB — not classify): `box`, `dfl`, `degrees`, `translate`, `shear`, `perspective`, `mosaic`, `mixup`, `close_mosaic`, `iou`, `max_det`
+    - **Detection tasks only** (detect, segment, pose, OBB — not classify): `box`, `dfl`, `degrees`, `translate`, `shear`, `perspective`, `mosaic`, `mixup`, `close_mosaic`
     - **Segment only**: `copy_paste`
     - **Pose only**: `pose` (loss weight), `kobj` (keypoint objectness)
-    - **Classify only**: `dropout`

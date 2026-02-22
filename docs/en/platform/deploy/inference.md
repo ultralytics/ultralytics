@@ -165,7 +165,7 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
     url = "https://platform.ultralytics.com/api/models/MODEL_ID/predict"
     headers = {"Authorization": "Bearer YOUR_API_KEY"}
     files = {"file": open("image.jpg", "rb")}
-    data = {"conf": 0.25, "iou": 0.7}
+    data = {"conf": 0.25, "iou": 0.7, "imgsz": 640}
 
     response = requests.post(url, headers=headers, files=files, data=data)
     print(response.json())
@@ -179,7 +179,8 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
       -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg" \
       -F "conf=0.25" \
-      -F "iou=0.7"
+      -F "iou=0.7" \
+      -F "imgsz=640"
     ```
 
 === "JavaScript"
@@ -189,6 +190,7 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
     formData.append("file", fileInput.files[0]);
     formData.append("conf", "0.25");
     formData.append("iou", "0.7");
+    formData.append("imgsz", "640");
 
     const response = await fetch(
       "https://platform.ultralytics.com/api/models/MODEL_ID/predict",

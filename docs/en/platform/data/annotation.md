@@ -238,6 +238,7 @@ graph LR
 
     - Start with a positive click on the object center
     - Add negative clicks to exclude background
+    - Hold `Alt`/`Option` to invert click behavior (left-click becomes negative, right-click becomes positive)
     - Works best for distinct objects with clear edges
     - Use 2-3 positive points for elongated objects
 

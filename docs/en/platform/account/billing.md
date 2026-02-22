@@ -77,6 +77,9 @@ For organizations with advanced needs:
 - Enterprise License (commercial use, non-AGPL)
 - SSO / SAML authentication
 - RBAC with 4 roles (Owner, Admin, Editor, Viewer)
+- Custom roles with granular permissions
+- On-premise deployment options
+- Compliance (ISO/SOC)
 - SLA guarantees
 - Enterprise support
 

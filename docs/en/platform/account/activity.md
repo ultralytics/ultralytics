@@ -40,7 +40,7 @@ The Platform tracks the following resource types and actions:
 | **project**    | [Project](../train/projects.md) events      | Blue           |
 | **dataset**    | [Dataset](../data/datasets.md) events       | Green          |
 | **model**      | [Model](../train/models.md) events          | Purple         |
-| **training**   | Training job events                         | Blue/Green/Red |
+| **training**   | Training job events                         | Blue/Green/Red/Gray |
 | **settings**   | Account settings changes                    | Gray           |
 | **api_key**    | [API key](api-keys.md) creation/revocation  | Amber          |
 | **export**     | Model export events                         | Amber          |

@@ -113,8 +113,8 @@ https://platform.ultralytics.com/api
 
 The API uses a two-layer rate limiting system to protect against abuse while keeping legitimate usage unrestricted:
 
-- **Per API key** — Sliding window limits enforced per API key on authenticated requests
-- **Per IP** — Edge-level rate limiting at 100 requests/min per IP address on all `/api/*` paths (applies to both authenticated and unauthenticated requests)
+- **Per API key** — Limits enforced per API key on authenticated requests
+- **Per IP** — 100 requests/min per IP address on all `/api/*` paths (applies to both authenticated and unauthenticated requests)
 
 When throttled, the API returns `429` with retry metadata:
 
@@ -241,7 +241,7 @@ GET /api/datasets
             "isStarred": false,
             "sampleImages": [
                 {
-                    "url": "https://storage.googleapis.com/...",
+                    "url": "https://storage.example.com/...",
                     "width": 1920,
                     "height": 1080,
                     "labels": [{ "classId": 0, "bbox": [0.5, 0.4, 0.3, 0.6] }]
@@ -317,7 +317,18 @@ Soft-deletes the dataset (moved to [trash](../account/trash.md), recoverable for
 POST /api/datasets/{datasetId}/clone
 ```
 
-Creates a copy of the dataset with all images and labels.
+Creates a copy of the dataset with all images and labels. Only public datasets can be cloned.
+
+**Body (all fields optional):**
+
+```json
+{
+    "name": "cloned-dataset",
+    "description": "My cloned dataset",
+    "visibility": "private",
+    "owner": "team-username"
+}
+```
 
 ### Export Dataset
 
@@ -342,7 +353,7 @@ Returns a JSON response with a signed download URL for the dataset export file.
 GET /api/datasets/{datasetId}/class-stats
 ```
 
-Returns cached class distribution, location heatmap, and dimension statistics. Results are cached with a 5-minute TTL.
+Returns class distribution, location heatmap, and dimension statistics. Results are cached for up to 5 minutes.
 
 **Response:**
 
@@ -428,6 +439,15 @@ POST /api/datasets/{datasetId}/predict
 
 Run YOLO inference on dataset images to auto-generate annotations. Uses a selected model to predict labels for unannotated images.
 
+**Body:**
+
+| Field        | Type   | Required | Description                                     |
+| ------------ | ------ | -------- | ----------------------------------------------- |
+| `imageHash`  | string | Yes      | Hash of the image to annotate                   |
+| `modelId`    | string | No       | Model ID to use for inference                   |
+| `confidence` | float  | No       | Confidence threshold (default: 0.25)            |
+| `iou`        | float  | No       | IoU threshold (default: 0.45)                   |
+
 ### Dataset Ingest
 
 ```
@@ -439,7 +459,7 @@ Create a dataset ingest job to process uploaded ZIP files containing images and 
 ```mermaid
 graph LR
     A[Upload ZIP] --> B[POST /api/datasets/ingest]
-    B --> C[Worker processes ZIP]
+    B --> C[Process ZIP]
     C --> D[Extract images]
     C --> E[Parse labels]
     C --> F[Generate thumbnails]
@@ -456,14 +476,17 @@ GET /api/datasets/{datasetId}/images
 
 **Query Parameters:**
 
-| Parameter  | Type   | Description                       |
-| ---------- | ------ | --------------------------------- |
-| `split`    | string | Filter by split (train/val/test)  |
-| `offset`   | int    | Pagination offset                 |
-| `limit`    | int    | Items per page (max 5000)         |
-| `sort`     | string | Sort order (newest, oldest, etc.) |
-| `hasLabel` | string | Filter by label status            |
-| `search`   | string | Search by filename                |
+| Parameter           | Type   | Description                                                                                                 |
+| ------------------- | ------ | ----------------------------------------------------------------------------------------------------------- |
+| `split`             | string | Filter by split: `train`, `val`, `test`                                                                     |
+| `offset`            | int    | Pagination offset (default: 0)                                                                              |
+| `limit`             | int    | Items per page (default: 50, max: 5000)                                                                     |
+| `sort`              | string | Sort order: `newest`, `oldest`, `name-asc`, `name-desc`, `size-asc`, `size-desc`, `labels-asc`, `labels-desc` |
+| `hasLabel`          | string | Filter by label status (`true` or `false`)                                                                  |
+| `hasError`          | string | Filter by error status (`true` or `false`)                                                                  |
+| `search`            | string | Search by filename or image hash                                                                            |
+| `includeThumbnails` | string | Include signed thumbnail URLs (default: `true`)                                                             |
+| `includeImageUrls`  | string | Include signed full image URLs (default: `false`)                                                           |
 
 #### Get Signed Image URLs
 
@@ -687,7 +710,25 @@ Returns signed download URLs for model files.
 POST /api/models/{modelId}/clone
 ```
 
-Clone a model to a new project.
+Clone a public model to one of your projects.
+
+**Body:**
+
+```json
+{
+    "targetProjectSlug": "my-project",
+    "modelName": "cloned-model",
+    "description": "Cloned from public model",
+    "owner": "team-username"
+}
+```
+
+| Field              | Type   | Required | Description                           |
+| ------------------ | ------ | -------- | ------------------------------------- |
+| `targetProjectSlug`| string | Yes      | Destination project slug              |
+| `modelName`        | string | No       | Name for the cloned model             |
+| `description`      | string | No       | Model description                     |
+| `owner`            | string | No       | Team username (for workspace cloning) |
 
 ### Track Download
 
@@ -705,11 +746,12 @@ POST /api/models/{modelId}/predict
 
 **Multipart Form:**
 
-| Field  | Type  | Description                          |
-| ------ | ----- | ------------------------------------ |
-| `file` | file  | Image file (JPEG, PNG, WebP)         |
-| `conf` | float | Confidence threshold (default: 0.25) |
-| `iou`  | float | IoU threshold (default: 0.7)         |
+| Field   | Type  | Description                          |
+| ------- | ----- | ------------------------------------ |
+| `file`  | file  | Image file (JPEG, PNG, WebP)         |
+| `conf`  | float | Confidence threshold (default: 0.25) |
+| `iou`   | float | IoU threshold (default: 0.7)         |
+| `imgsz` | int   | Image size in pixels (default: 640)  |
 
 === "cURL"
 
@@ -763,15 +805,15 @@ POST /api/models/{modelId}/predict
 POST /api/models/{modelId}/predict/token
 ```
 
-Get a short-lived token for client-side prediction requests.
+Get a short-lived token for direct prediction requests. The token bypasses the API proxy for lower-latency inference from client-side applications.
 
-### Warmup Predict Service
+### Warmup Model
 
 ```
 POST /api/models/{modelId}/predict/warmup
 ```
 
-Warm up the predict service for faster first inference. Useful before running predictions on cold-start instances.
+Pre-load a model for faster first inference. Call this before running predictions to avoid delays on the initial request.
 
 ---
 
@@ -887,6 +929,7 @@ GET /api/deployments
 | `modelId` | string | Filter by model                     |
 | `status`  | string | Filter by status                    |
 | `limit`   | int    | Max results (default: 20, max: 100) |
+| `owner`   | string | Workspace owner username            |
 
 ### Create Deployment
 
@@ -900,9 +943,22 @@ POST /api/deployments
 {
     "modelId": "model_abc123",
     "name": "my-deployment",
-    "region": "us-central1"
+    "region": "us-central1",
+    "resources": {
+        "cpu": 1,
+        "memoryGi": 2,
+        "minInstances": 0,
+        "maxInstances": 1
+    }
 }
 ```
+
+| Field       | Type   | Required | Description                                                     |
+| ----------- | ------ | -------- | --------------------------------------------------------------- |
+| `modelId`   | string | Yes      | Model ID to deploy                                              |
+| `name`      | string | Yes      | Deployment name                                                 |
+| `region`    | string | Yes      | Deployment region                                               |
+| `resources` | object | No       | Resource configuration (cpu, memoryGi, minInstances, maxInstances) |
 
 Creates a dedicated inference endpoint in the specified region. The endpoint is globally accessible via a unique URL.
 
@@ -954,6 +1010,15 @@ POST /api/deployments/{deploymentId}/predict
 
 Send an image directly to a deployment endpoint for inference. Functionally equivalent to model predict, but routed through the dedicated endpoint for lower latency.
 
+**Multipart Form:**
+
+| Field   | Type  | Description                          |
+| ------- | ----- | ------------------------------------ |
+| `file`  | file  | Image file (JPEG, PNG, WebP)         |
+| `conf`  | float | Confidence threshold (default: 0.25) |
+| `iou`   | float | IoU threshold (default: 0.7)         |
+| `imgsz` | int   | Image size in pixels (default: 640)  |
+
 ### Get Metrics
 
 ```
@@ -961,6 +1026,13 @@ GET /api/deployments/{deploymentId}/metrics
 ```
 
 Returns request counts, latency, and error rate metrics with sparkline data.
+
+**Query Parameters:**
+
+| Parameter   | Type   | Description                                                   |
+| ----------- | ------ | ------------------------------------------------------------- |
+| `range`     | string | Time range: `1h`, `6h`, `24h` (default), `7d`, `30d`         |
+| `sparkline` | string | Set to `true` for optimized sparkline data for dashboard view |
 
 ### Get Logs
 
@@ -970,10 +1042,11 @@ GET /api/deployments/{deploymentId}/logs
 
 **Query Parameters:**
 
-| Parameter  | Type   | Description          |
-| ---------- | ------ | -------------------- |
-| `severity` | string | INFO, WARNING, ERROR |
-| `limit`    | int    | Number of entries    |
+| Parameter   | Type   | Description                                                            |
+| ----------- | ------ | ---------------------------------------------------------------------- |
+| `severity`  | string | Comma-separated filter: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` |
+| `limit`     | int    | Number of entries (default: 50, max: 200)                              |
+| `pageToken` | string | Pagination token from previous response                                |
 
 ---
 
@@ -999,11 +1072,28 @@ Convert models to optimized formats for edge deployment.
 GET /api/exports
 ```
 
+**Query Parameters:**
+
+| Parameter | Type   | Description                         |
+| --------- | ------ | ----------------------------------- |
+| `modelId` | string | Model ID (required)                 |
+| `status`  | string | Filter by status                    |
+| `limit`   | int    | Max results (default: 20, max: 100) |
+
 ### Create Export
 
 ```
 POST /api/exports
 ```
+
+**Body:**
+
+| Field     | Type   | Required | Description                                   |
+| --------- | ------ | -------- | --------------------------------------------- |
+| `modelId` | string | Yes      | Source model ID                               |
+| `format`  | string | Yes      | Export format (see table below)               |
+| `gpuType` | string | Conditional | Required when `format` is `engine` (TensorRT) |
+| `args`    | object | No       | Export arguments (`imgsz`, `half`, `dynamic`, etc.) |
 
 === "cURL"
 
@@ -1109,24 +1199,6 @@ Or pass specific IDs:
 }
 ```
 
-### Log Activity Event
-
-```
-POST /api/activity
-```
-
-**Body:**
-
-```json
-{
-    "action": "created",
-    "resourceType": "model",
-    "resourceId": "MODEL_ID",
-    "resourceName": "my-model",
-    "metadata": {}
-}
-```
-
 ### Archive Events
 
 ```
@@ -1182,7 +1254,7 @@ POST /api/trash
 
 ```json
 {
-    "id": "item_abc123",
+    "_id": "item_abc123",
     "type": "dataset"
 }
 ```
@@ -1197,7 +1269,7 @@ DELETE /api/trash
 
 ```json
 {
-    "id": "item_abc123",
+    "_id": "item_abc123",
     "type": "dataset"
 }
 ```
@@ -1230,6 +1302,12 @@ Manage credits, subscriptions, and payment methods.
 GET /api/billing/balance
 ```
 
+**Query Parameters:**
+
+| Parameter | Type   | Description              |
+| --------- | ------ | ------------------------ |
+| `owner`   | string | Workspace owner username |
+
 **Response:**
 
 ```json
@@ -1259,6 +1337,12 @@ GET /api/billing/transactions
 
 Returns transaction history (most recent first).
 
+**Query Parameters:**
+
+| Parameter | Type   | Description                |
+| --------- | ------ | -------------------------- |
+| `owner`   | string | Workspace owner username   |
+
 ### Create Checkout Session
 
 ```
@@ -1269,11 +1353,17 @@ POST /api/billing/checkout-session
 
 ```json
 {
-    "amount": 25
+    "amount": 25,
+    "owner": "team-username"
 }
 ```
 
-Creates a checkout session for credit purchase ($5-$1000).
+| Field   | Type   | Required | Description                                        |
+| ------- | ------ | -------- | -------------------------------------------------- |
+| `amount`| number | Yes      | Amount in dollars ($5-$1000)                       |
+| `owner` | string | No       | Team username for workspace top-ups (requires admin role) |
+
+Creates a checkout session for credit purchase.
 
 ### Create Subscription Checkout
 
@@ -1282,6 +1372,22 @@ POST /api/billing/subscription-checkout
 ```
 
 Creates a checkout session for Pro subscription upgrade.
+
+**Body:**
+
+```json
+{
+    "planId": "pro",
+    "billingCycle": "monthly",
+    "owner": "team-username"
+}
+```
+
+| Field          | Type   | Required | Description                                             |
+| -------------- | ------ | -------- | ------------------------------------------------------- |
+| `planId`       | string | Yes      | Plan to subscribe to (`pro`)                            |
+| `billingCycle` | string | No       | Billing cycle: `monthly` (default) or `yearly`          |
+| `owner`        | string | No       | Team username for workspace upgrades (requires admin role) |
 
 ### Create Portal Session
 
@@ -1300,6 +1406,12 @@ Automatically add credits when balance falls below a threshold.
 ```
 GET /api/billing/auto-topup
 ```
+
+**Query Parameters:**
+
+| Parameter | Type   | Description              |
+| --------- | ------ | ------------------------ |
+| `owner`   | string | Workspace owner username |
 
 #### Update Auto Top-Up Config
 
@@ -1567,8 +1679,8 @@ POST /api/teams/create
 
 ```json
 {
-    "name": "My Team",
-    "slug": "my-team"
+    "username": "my-team",
+    "fullName": "My Team"
 }
 ```
 

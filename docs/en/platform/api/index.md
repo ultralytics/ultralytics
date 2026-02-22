@@ -441,12 +441,12 @@ Run YOLO inference on dataset images to auto-generate annotations. Uses a select
 
 **Body:**
 
-| Field        | Type   | Required | Description                                     |
-| ------------ | ------ | -------- | ----------------------------------------------- |
-| `imageHash`  | string | Yes      | Hash of the image to annotate                   |
-| `modelId`    | string | No       | Model ID to use for inference                   |
-| `confidence` | float  | No       | Confidence threshold (default: 0.25)            |
-| `iou`        | float  | No       | IoU threshold (default: 0.45)                   |
+| Field        | Type   | Required | Description                          |
+| ------------ | ------ | -------- | ------------------------------------ |
+| `imageHash`  | string | Yes      | Hash of the image to annotate        |
+| `modelId`    | string | No       | Model ID to use for inference        |
+| `confidence` | float  | No       | Confidence threshold (default: 0.25) |
+| `iou`        | float  | No       | IoU threshold (default: 0.45)        |
 
 ### Dataset Ingest
 
@@ -476,17 +476,17 @@ GET /api/datasets/{datasetId}/images
 
 **Query Parameters:**
 
-| Parameter           | Type   | Description                                                                                                 |
-| ------------------- | ------ | ----------------------------------------------------------------------------------------------------------- |
-| `split`             | string | Filter by split: `train`, `val`, `test`                                                                     |
-| `offset`            | int    | Pagination offset (default: 0)                                                                              |
-| `limit`             | int    | Items per page (default: 50, max: 5000)                                                                     |
+| Parameter           | Type   | Description                                                                                                   |
+| ------------------- | ------ | ------------------------------------------------------------------------------------------------------------- |
+| `split`             | string | Filter by split: `train`, `val`, `test`                                                                       |
+| `offset`            | int    | Pagination offset (default: 0)                                                                                |
+| `limit`             | int    | Items per page (default: 50, max: 5000)                                                                       |
 | `sort`              | string | Sort order: `newest`, `oldest`, `name-asc`, `name-desc`, `size-asc`, `size-desc`, `labels-asc`, `labels-desc` |
-| `hasLabel`          | string | Filter by label status (`true` or `false`)                                                                  |
-| `hasError`          | string | Filter by error status (`true` or `false`)                                                                  |
-| `search`            | string | Search by filename or image hash                                                                            |
-| `includeThumbnails` | string | Include signed thumbnail URLs (default: `true`)                                                             |
-| `includeImageUrls`  | string | Include signed full image URLs (default: `false`)                                                           |
+| `hasLabel`          | string | Filter by label status (`true` or `false`)                                                                    |
+| `hasError`          | string | Filter by error status (`true` or `false`)                                                                    |
+| `search`            | string | Search by filename or image hash                                                                              |
+| `includeThumbnails` | string | Include signed thumbnail URLs (default: `true`)                                                               |
+| `includeImageUrls`  | string | Include signed full image URLs (default: `false`)                                                             |
 
 #### Get Signed Image URLs
 
@@ -723,12 +723,12 @@ Clone a public model to one of your projects.
 }
 ```
 
-| Field              | Type   | Required | Description                           |
-| ------------------ | ------ | -------- | ------------------------------------- |
-| `targetProjectSlug`| string | Yes      | Destination project slug              |
-| `modelName`        | string | No       | Name for the cloned model             |
-| `description`      | string | No       | Model description                     |
-| `owner`            | string | No       | Team username (for workspace cloning) |
+| Field               | Type   | Required | Description                           |
+| ------------------- | ------ | -------- | ------------------------------------- |
+| `targetProjectSlug` | string | Yes      | Destination project slug              |
+| `modelName`         | string | No       | Name for the cloned model             |
+| `description`       | string | No       | Model description                     |
+| `owner`             | string | No       | Team username (for workspace cloning) |
 
 ### Track Download
 
@@ -953,11 +953,11 @@ POST /api/deployments
 }
 ```
 
-| Field       | Type   | Required | Description                                                     |
-| ----------- | ------ | -------- | --------------------------------------------------------------- |
-| `modelId`   | string | Yes      | Model ID to deploy                                              |
-| `name`      | string | Yes      | Deployment name                                                 |
-| `region`    | string | Yes      | Deployment region                                               |
+| Field       | Type   | Required | Description                                                        |
+| ----------- | ------ | -------- | ------------------------------------------------------------------ |
+| `modelId`   | string | Yes      | Model ID to deploy                                                 |
+| `name`      | string | Yes      | Deployment name                                                    |
+| `region`    | string | Yes      | Deployment region                                                  |
 | `resources` | object | No       | Resource configuration (cpu, memoryGi, minInstances, maxInstances) |
 
 Creates a dedicated inference endpoint in the specified region. The endpoint is globally accessible via a unique URL.
@@ -1031,7 +1031,7 @@ Returns request counts, latency, and error rate metrics with sparkline data.
 
 | Parameter   | Type   | Description                                                   |
 | ----------- | ------ | ------------------------------------------------------------- |
-| `range`     | string | Time range: `1h`, `6h`, `24h` (default), `7d`, `30d`         |
+| `range`     | string | Time range: `1h`, `6h`, `24h` (default), `7d`, `30d`          |
 | `sparkline` | string | Set to `true` for optimized sparkline data for dashboard view |
 
 ### Get Logs
@@ -1042,11 +1042,11 @@ GET /api/deployments/{deploymentId}/logs
 
 **Query Parameters:**
 
-| Parameter   | Type   | Description                                                            |
-| ----------- | ------ | ---------------------------------------------------------------------- |
+| Parameter   | Type   | Description                                                             |
+| ----------- | ------ | ----------------------------------------------------------------------- |
 | `severity`  | string | Comma-separated filter: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` |
-| `limit`     | int    | Number of entries (default: 50, max: 200)                              |
-| `pageToken` | string | Pagination token from previous response                                |
+| `limit`     | int    | Number of entries (default: 50, max: 200)                               |
+| `pageToken` | string | Pagination token from previous response                                 |
 
 ---
 
@@ -1088,12 +1088,12 @@ POST /api/exports
 
 **Body:**
 
-| Field     | Type   | Required | Description                                   |
-| --------- | ------ | -------- | --------------------------------------------- |
-| `modelId` | string | Yes      | Source model ID                               |
-| `format`  | string | Yes      | Export format (see table below)               |
-| `gpuType` | string | Conditional | Required when `format` is `engine` (TensorRT) |
-| `args`    | object | No       | Export arguments (`imgsz`, `half`, `dynamic`, etc.) |
+| Field     | Type   | Required    | Description                                         |
+| --------- | ------ | ----------- | --------------------------------------------------- |
+| `modelId` | string | Yes         | Source model ID                                     |
+| `format`  | string | Yes         | Export format (see table below)                     |
+| `gpuType` | string | Conditional | Required when `format` is `engine` (TensorRT)       |
+| `args`    | object | No          | Export arguments (`imgsz`, `half`, `dynamic`, etc.) |
 
 === "cURL"
 
@@ -1339,9 +1339,9 @@ Returns transaction history (most recent first).
 
 **Query Parameters:**
 
-| Parameter | Type   | Description                |
-| --------- | ------ | -------------------------- |
-| `owner`   | string | Workspace owner username   |
+| Parameter | Type   | Description              |
+| --------- | ------ | ------------------------ |
+| `owner`   | string | Workspace owner username |
 
 ### Create Checkout Session
 
@@ -1358,10 +1358,10 @@ POST /api/billing/checkout-session
 }
 ```
 
-| Field   | Type   | Required | Description                                        |
-| ------- | ------ | -------- | -------------------------------------------------- |
-| `amount`| number | Yes      | Amount in dollars ($5-$1000)                       |
-| `owner` | string | No       | Team username for workspace top-ups (requires admin role) |
+| Field    | Type   | Required | Description                                               |
+| -------- | ------ | -------- | --------------------------------------------------------- |
+| `amount` | number | Yes      | Amount in dollars ($5-$1000)                              |
+| `owner`  | string | No       | Team username for workspace top-ups (requires admin role) |
 
 Creates a checkout session for credit purchase.
 
@@ -1383,10 +1383,10 @@ Creates a checkout session for Pro subscription upgrade.
 }
 ```
 
-| Field          | Type   | Required | Description                                             |
-| -------------- | ------ | -------- | ------------------------------------------------------- |
-| `planId`       | string | Yes      | Plan to subscribe to (`pro`)                            |
-| `billingCycle` | string | No       | Billing cycle: `monthly` (default) or `yearly`          |
+| Field          | Type   | Required | Description                                                |
+| -------------- | ------ | -------- | ---------------------------------------------------------- |
+| `planId`       | string | Yes      | Plan to subscribe to (`pro`)                               |
+| `billingCycle` | string | No       | Billing cycle: `monthly` (default) or `yearly`             |
 | `owner`        | string | No       | Team username for workspace upgrades (requires admin role) |
 
 ### Create Portal Session

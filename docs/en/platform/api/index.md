@@ -214,17 +214,31 @@ GET /api/datasets
 {
     "datasets": [
         {
-            "id": "dataset_abc123",
+            "_id": "dataset_abc123",
             "name": "my-dataset",
             "slug": "my-dataset",
             "task": "detect",
             "imageCount": 1000,
             "classCount": 10,
+            "classNames": ["person", "car"],
             "visibility": "private",
-            "createdAt": "2024-01-15T10:00:00Z"
+            "username": "johndoe",
+            "starCount": 3,
+            "isStarred": false,
+            "sampleImages": [
+                {
+                    "url": "https://storage.googleapis.com/...",
+                    "width": 1920,
+                    "height": 1080,
+                    "labels": [{ "classId": 0, "bbox": [0.5, 0.4, 0.3, 0.6] }]
+                }
+            ],
+            "createdAt": "2024-01-15T10:00:00Z",
+            "updatedAt": "2024-01-16T08:30:00Z"
         }
     ],
-    "total": 1
+    "total": 1,
+    "region": "us"
 }
 ```
 
@@ -323,11 +337,22 @@ Returns cached class distribution, location heatmap, and dimension statistics. R
     "classes": [{ "classId": 0, "count": 1500, "imageCount": 450 }],
     "imageStats": {
         "widthHistogram": [{ "bin": 640, "count": 120 }],
-        "heightHistogram": [{ "bin": 480, "count": 95 }]
+        "heightHistogram": [{ "bin": 480, "count": 95 }],
+        "pointsHistogram": [{ "bin": 4, "count": 200 }]
     },
-    "locationHeatmap": { "bins": [[]], "maxCount": 50 },
+    "locationHeatmap": { "bins": [[5, 10], [8, 3]], "maxCount": 50 },
+    "dimensionHeatmap": {
+        "bins": [[2, 5], [3, 1]],
+        "maxCount": 12,
+        "minWidth": 10,
+        "maxWidth": 1920,
+        "minHeight": 10,
+        "maxHeight": 1080
+    },
     "classNames": ["person", "car", "dog"],
-    "cached": true
+    "cached": true,
+    "sampled": false,
+    "sampleSize": 1000
 }
 ```
 
@@ -345,13 +370,26 @@ Returns models that were trained using this dataset.
 {
     "models": [
         {
-            "id": "model_abc123",
+            "_id": "model_abc123",
             "name": "experiment-1",
+            "slug": "experiment-1",
+            "status": "completed",
+            "task": "detect",
+            "epochs": 100,
+            "bestEpoch": 87,
             "projectId": "project_xyz",
+            "projectSlug": "my-project",
+            "projectIconColor": "#3b82f6",
+            "projectIconLetter": "M",
+            "username": "johndoe",
+            "startedAt": "2024-01-14T22:00:00Z",
             "completedAt": "2024-01-15T10:00:00Z",
+            "createdAt": "2024-01-14T21:55:00Z",
             "metrics": {
                 "mAP50": 0.85,
-                "mAP50-95": 0.72
+                "mAP50-95": 0.72,
+                "precision": 0.88,
+                "recall": 0.81
             }
         }
     ],
@@ -1335,12 +1373,33 @@ GET /api/storage
             "percent": 1.0
         }
     },
+    "region": "us",
+    "username": "johndoe",
+    "updatedAt": "2024-01-15T10:00:00Z",
     "breakdown": {
         "byCategory": {
             "datasets": { "bytes": 536870912, "count": 2 },
             "models": { "bytes": 268435456, "count": 4 },
             "exports": { "bytes": 268435456, "count": 3 }
-        }
+        },
+        "topItems": [
+            {
+                "_id": "dataset_abc123",
+                "name": "my-dataset",
+                "slug": "my-dataset",
+                "sizeBytes": 536870912,
+                "type": "dataset"
+            },
+            {
+                "_id": "model_def456",
+                "name": "experiment-1",
+                "slug": "experiment-1",
+                "sizeBytes": 134217728,
+                "type": "model",
+                "parentName": "My Project",
+                "parentSlug": "my-project"
+            }
+        ]
     }
 }
 ```

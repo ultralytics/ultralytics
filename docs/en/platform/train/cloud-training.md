@@ -149,9 +149,22 @@ Click **Start Training** to launch your job. The Platform:
 3. Begins training
 4. Streams metrics in real-time
 
+### Training Job Lifecycle
+
+Training jobs progress through the following statuses:
+
+| Status        | Description                                        |
+| ------------- | -------------------------------------------------- |
+| **Pending**   | Job submitted, waiting for GPU allocation          |
+| **Starting**  | GPU provisioned, downloading dataset and model     |
+| **Running**   | Training in progress, metrics streaming in real-time |
+| **Completed** | Training finished successfully                     |
+| **Failed**    | Training failed (see console logs for details)     |
+| **Cancelled** | Training was cancelled by the user                 |
+
 !!! success "Free Credits"
 
-    New accounts receive $5 in signup credits — enough for several training runs. [Check your balance](../account/billing.md) in Settings > Billing.
+    New accounts receive signup credits — $5 for personal emails and $25 for company emails. [Check your balance](../account/billing.md) in Settings > Billing.
 
 ![Ultralytics Platform Training Progress With Charts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-progress-with-charts.avif)
 
@@ -291,28 +304,34 @@ Training costs are based on GPU usage:
 Before training starts, the Platform estimates total cost based on:
 
 ```
-Estimated Cost = (Base Time × Model Multiplier × Image Size Multiplier × Batch Multiplier / GPU Speed Factor + Startup Overhead) × GPU Rate
+Seconds Per Epoch = Dataset Images / 1000 × Baseline × Model Multiplier × Image Size Multiplier × Batch Multiplier / GPU Speed Factor
+Total Minutes = (Seconds Per Epoch × Epochs) / 60 + Startup Overhead
+Estimated Cost = Total Minutes / 60 × GPU Hourly Rate
 ```
 
 **Factors affecting cost:**
 
 | Factor               | Impact                                           |
 | -------------------- | ------------------------------------------------ |
-| **Dataset Size**     | More images = longer training time               |
+| **Dataset Size**     | More images = longer training time (baseline: ~2.8s compute per 1000 images on RTX 4090) |
 | **Model Size**       | Larger models (m, l, x) train slower than (n, s) |
 | **Number of Epochs** | Direct multiplier on training time               |
-| **Image Size**       | Larger imgsz increases computation (quadratic)   |
-| **Batch Size**       | Larger batches are more efficient per image       |
-| **GPU Speed**        | Faster GPUs reduce training time (divisor)       |
-| **Startup Overhead** | Pod initialization, data download, warmup        |
+| **Image Size**       | Larger imgsz increases computation: 320px=0.25x, 640px=1.0x (baseline), 1280px=4.0x |
+| **Batch Size**       | Larger batches are more efficient (batch 32 = ~0.8x time, batch 8 = ~1.4x time vs batch 16 baseline) |
+| **GPU Speed**        | Faster GPUs reduce training time (e.g., H100 SXM = ~3.2x faster than RTX 4090) |
+| **Startup Overhead** | 1-5 minutes for pod initialization, data download, and warmup (scales with dataset size) |
 
 ### Cost Examples
 
-| Scenario                          | GPU          | Time     | Cost    |
-| --------------------------------- | ------------ | -------- | ------- |
-| 1000 images, YOLO26n, 100 epochs  | RTX PRO 6000 | ~20 min  | ~$0.63  |
-| 5000 images, YOLO26m, 100 epochs  | RTX PRO 6000 | ~3 hours | ~$5.67  |
-| 10000 images, YOLO26x, 200 epochs | H100 SXM     | ~8 hours | ~$21.52 |
+!!! note "Estimates"
+
+    Cost estimates are approximate and depend on many factors. The training dialog shows a real-time estimate before you start training.
+
+| Scenario                          | GPU          | Estimated Cost |
+| --------------------------------- | ------------ | -------------- |
+| 500 images, YOLO26n, 50 epochs    | RTX 4090     | ~$0.50         |
+| 1000 images, YOLO26n, 100 epochs  | RTX PRO 6000 | ~$5             |
+| 5000 images, YOLO26s, 100 epochs  | H100 SXM     | ~$23            |
 
 ### Billing Flow
 
@@ -432,28 +451,28 @@ Yes, the **Train** button on dataset pages opens the training dialog with the da
 
     | Parameter      | Type | Default | Range    | Description                          |
     | -------------- | ---- | ------- | -------- | ------------------------------------ |
-    | `epochs`       | int  | 100     | 1+       | Number of training epochs            |
+    | `epochs`       | int  | 100     | 1-10000  | Number of training epochs            |
     | `batch`        | int  | 16      | 1-128 (UI) / 1-512 (YAML) | Batch size         |
     | `imgsz`        | int  | 640     | 32-4096  | Input image size                     |
-    | `patience`     | int  | 100     | 1+       | Early stopping patience              |
+    | `patience`     | int  | 100     | 1-1000   | Early stopping patience              |
     | `time`         | float| null    | 0.1-720  | Training time limit in hours         |
     | `seed`         | int  | 0       | 0+       | Random seed for reproducibility      |
     | `deterministic`| bool | True    | -        | Deterministic training mode          |
     | `amp`          | bool | True    | -        | Automatic mixed precision            |
     | `close_mosaic` | int  | 10      | 0-50     | Disable mosaic in final N epochs     |
     | `save_period`  | int  | -1      | -1-100   | Save checkpoint every N epochs       |
-    | `workers`      | int  | 8       | 0+       | Dataloader workers                   |
-    | `cache`        | str  | false   | ram/disk | Cache images                         |
+    | `workers`      | int  | 8       | 0-64     | Dataloader workers                   |
+    | `cache`        | select | false | ram/disk/false | Cache images                   |
 
 === "Learning Rate"
 
     | Parameter       | Type  | Default | Range     | Description           |
     | --------------- | ----- | ------- | --------- | --------------------- |
-    | `lr0`           | float | 0.01    | 0.0-0.1   | Initial learning rate |
-    | `lrf`           | float | 0.01    | 0.0-1.0   | Final LR factor       |
+    | `lr0`           | float | 0.01    | 0.0001-0.1 | Initial learning rate |
+    | `lrf`           | float | 0.01    | 0.01-1.0  | Final LR factor       |
     | `momentum`      | float | 0.937   | 0.6-0.98  | SGD momentum          |
     | `weight_decay`  | float | 0.0005  | 0.0-0.001 | L2 regularization     |
-    | `warmup_epochs` | float | 3.0     | 0+        | Warmup epochs         |
+    | `warmup_epochs` | float | 3.0     | 0-5       | Warmup epochs         |
     | `warmup_momentum` | float | 0.8   | 0.5-0.95  | Warmup momentum       |
     | `warmup_bias_lr` | float | 0.1    | 0.0-0.2   | Warmup bias LR        |
     | `cos_lr`        | bool  | False   | -         | Cosine LR scheduler   |
@@ -485,6 +504,8 @@ Yes, the **Train** button on dataset pages opens the training dialog with the da
     | `single_cls`  | bool  | False   | -       | Treat all classes as one class       |
     | `rect`        | bool  | False   | -       | Rectangular training                 |
     | `multi_scale` | float | 0.0     | 0.0-1.0 | Multi-scale training range           |
+    | `val`         | bool  | True    | -       | Run validation during training       |
+    | `resume`      | bool  | False   | -       | Resume training from checkpoint      |
 
 === "Optimizer"
 
@@ -500,10 +521,31 @@ Yes, the **Train** button on dataset pages opens the training dialog with the da
     | `RMSProp` | RMSProp optimizer             |
     | `Adamax`  | Adamax optimizer              |
 
+=== "Loss Weights"
+
+    | Parameter        | Type  | Default | Range     | Description                 |
+    | ---------------- | ----- | ------- | --------- | --------------------------- |
+    | `box`            | float | 7.5     | 1-50      | Box loss weight             |
+    | `cls`            | float | 0.5     | 0.2-4     | Classification loss weight  |
+    | `dfl`            | float | 1.5     | 0.4-6     | Distribution focal loss     |
+    | `pose`           | float | 12.0    | 1-50      | Pose loss weight (pose only)|
+    | `kobj`           | float | 1.0     | 0.5-10    | Keypoint objectness (pose)  |
+    | `label_smoothing`| float | 0.0     | 0.0-0.1   | Label smoothing factor      |
+
+=== "Device & Inference"
+
+    | Parameter   | Type   | Default | Range     | Description                          |
+    | ----------- | ------ | ------- | --------- | ------------------------------------ |
+    | `device`    | select | auto    | auto/0/cpu/mps | Compute device                  |
+    | `dropout`   | float  | 0.0     | 0.0-1.0   | Dropout rate (classify only)         |
+    | `iou`       | float  | 0.7     | 0.1-0.9   | IoU threshold for NMS                |
+    | `max_det`   | int    | 300     | 1-10000   | Maximum detections per image         |
+
 !!! tip "Task-Specific Parameters"
 
     Some parameters only apply to specific tasks:
 
-    - **Segment**: `copy_paste`
-    - **Pose**: `pose` (loss weight), `kobj` (keypoint objectness)
-    - **Classify**: `dropout`
+    - **Detection tasks only** (detect, segment, pose, OBB — not classify): `box`, `dfl`, `degrees`, `translate`, `shear`, `perspective`, `mosaic`, `mixup`, `close_mosaic`, `iou`, `max_det`
+    - **Segment only**: `copy_paste`
+    - **Pose only**: `pose` (loss weight), `kobj` (keypoint objectness)
+    - **Classify only**: `dropout`

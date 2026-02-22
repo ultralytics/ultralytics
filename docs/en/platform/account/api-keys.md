@@ -134,12 +134,7 @@ See [Cloud Training](../train/cloud-training.md#remote-training) for the complet
 
 All keys are listed in `Settings > Profile` under the API Keys section:
 
-| Column      | Description                 |
-| ----------- | --------------------------- |
-| **Name**    | Key identifier              |
-| **Prefix**  | First characters of the key |
-| **Created** | Creation date               |
-| **Uses**    | Total usage count           |
+Each key card shows the key name, the full decrypted key value (copyable), relative creation time, and a revoke button.
 
 ### Revoke Key
 

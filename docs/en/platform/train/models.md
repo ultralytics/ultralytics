@@ -220,14 +220,59 @@ The Platform supports export to [17+ deployment formats](../../modes/export.md#e
 | **Apple Devices**  | CoreML              | iOS, macOS, Apple Silicon |
 | **Android**        | TF Lite or NCNN     | Best mobile performance   |
 | **Web Browsers**   | TF.js or ONNX       | ONNX via ONNX Runtime Web |
-| **Edge Devices**   | TF Edge TPU or RKNN | Coral and Rockchip        |
+| **Edge Devices**   | TF Edge TPU or RKNN | Coral and Rockchip (see [supported chips](#rknn-chip-support)) |
 | **General**        | ONNX                | Works with most runtimes  |
 
 ![Ultralytics Platform Model Export Progress](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-export-progress.avif)
 
+### RKNN Chip Support
+
+When exporting to RKNN format, select your target Rockchip device:
+
+| Chip     | Description          |
+| -------- | -------------------- |
+| RK3588   | High-end edge SoC    |
+| RK3576   | Mid-range edge SoC   |
+| RK3568   | Mid-range edge SoC   |
+| RK3566   | Mid-range edge SoC   |
+| RK3562   | Entry-level edge SoC |
+| RV1103   | Vision processor     |
+| RV1106   | Vision processor     |
+| RV1103B  | Vision processor     |
+| RV1106B  | Vision processor     |
+| RK2118   | AI processor         |
+| RV1126B  | Vision processor     |
+
+### Export Job Lifecycle
+
+Export jobs progress through the following statuses:
+
+| Status        | Description                              |
+| ------------- | ---------------------------------------- |
+| **Queued**    | Export job is waiting to start           |
+| **Starting**  | Export job is initializing               |
+| **Running**   | Export is in progress                    |
+| **Completed** | Export finished — download available     |
+| **Failed**    | Export failed (see error message)        |
+
 !!! tip "Export Time"
 
-    Export time varies by format. TensorRT exports may take several minutes due to engine optimization. GPU-required formats (TensorRT) run on Ultralytics Cloud GPUs.
+    Export time varies by format. TensorRT exports may take several minutes due to engine optimization. GPU-required formats (TensorRT) run on Ultralytics Cloud GPUs — the default export GPU is RTX 5090.
+
+### Bulk Export Actions
+
+- **Export All**: Click `Export All` to start export jobs for all CPU-based formats with default settings.
+- **Delete All Exports**: Click `Delete All` to remove all exports for the model.
+
+### Format Restrictions
+
+Some export formats have architecture or task restrictions:
+
+| Format       | Restriction                                       |
+| ------------ | ------------------------------------------------- |
+| **IMX500**   | Only available for YOLOv8 and YOLO11 models       |
+| **Axelera**  | Only available for detection models               |
+| **PaddlePaddle** | Not available for YOLO26 detection/segmentation/pose/OBB models |
 
 ## Clone Model
 
@@ -296,13 +341,12 @@ Remove a model you no longer need:
 
 ### What model architectures are supported?
 
-Ultralytics Platform supports all YOLO architectures:
+Ultralytics Platform fully supports all YOLO architectures with dedicated projects:
 
-- [**YOLO26**](../../models/yolo26.md): n, s, m, l, x variants (recommended)
-- **YOLO11**: n, s, m, l, x variants
-- **YOLOv10**: Legacy support
-- **YOLOv8**: Legacy support
-- **YOLOv5**: Legacy support
+- [**YOLO26**](../../models/yolo26.md): n, s, m, l, x variants (latest, recommended) — [platform.ultralytics.com/ultralytics/yolo26](https://platform.ultralytics.com/ultralytics/yolo26)
+- [**YOLO11**](../../models/yolo11.md): n, s, m, l, x variants — [platform.ultralytics.com/ultralytics/yolo11](https://platform.ultralytics.com/ultralytics/yolo11)
+- [**YOLOv8**](../../models/yolov8.md): n, s, m, l, x variants — [platform.ultralytics.com/ultralytics/yolov8](https://platform.ultralytics.com/ultralytics/yolov8)
+- [**YOLOv5**](../../models/yolov5.md): n, s, m, l, x variants — [platform.ultralytics.com/ultralytics/yolov5](https://platform.ultralytics.com/ultralytics/yolov5)
 
 All architectures support 5 task types: [detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), and [classify](../../tasks/classify.md).
 

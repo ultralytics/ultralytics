@@ -46,7 +46,7 @@ graph LR
 
 Drag and drop or click to upload:
 
-- **Supported formats**: JPEG, PNG, WebP, AVIF, HEIC, JP2, TIFF, BMP, and more
+- **Supported formats**: JPEG, PNG, WebP, AVIF, HEIC, JP2, TIFF, BMP, DNG, MPO
 - **Max size**: 10MB
 - **Auto-inference**: Results appear automatically after upload
 
@@ -147,7 +147,7 @@ Authorization: Bearer YOUR_API_KEY
 
 !!! warning "API Key Required"
 
-    To run inference from your own scripts, notebooks, or apps, include an API key. Generate one in [`Settings > Profile`](../account/api-keys.md) (API Keys section).
+    To run inference from your own scripts, notebooks, or apps, include an API key. Generate one in [`Settings`](../account/api-keys.md) (API Keys section on the Profile tab).
 
 ### Endpoint
 

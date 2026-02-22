@@ -162,7 +162,7 @@ The `New Deployment` dialog provides:
 
 ![Ultralytics Platform New Deployment Dialog Resources Panel Expanded](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/new-deployment-dialog-resources-panel-expanded.avif)
 
-Resource settings are available under the collapsible **Resources** section. Deployments scale to zero when idle — you only pay for active inference time.
+Resource settings are available under the collapsible **Resources** section. Deployments use scale-to-zero by default (min instances = 0, max instances = 1) — you only pay for active inference time.
 
 !!! note "Auto-Generated Names"
 
@@ -170,7 +170,7 @@ Resource settings are available under the collapsible **Resources** section. Dep
 
 ### Deploy Tab (Quick Deploy)
 
-When deploying from the model's `Deploy` tab, endpoints are created with default resources (1 CPU, 2 GB memory) and auto-scaling (min 0, max 1 instances). The deployment name is auto-generated.
+When deploying from the model's `Deploy` tab, endpoints are created with default resources (1 CPU, 2 GB memory) with scale-to-zero enabled. The deployment name is auto-generated.
 
 ## Manage Endpoints
 
@@ -398,15 +398,14 @@ For global coverage:
 
 ### What's the cold start time?
 
-Cold start varies by model size:
+Cold start time depends on model size and whether the container is already cached in the region. Typical ranges:
 
-| Model   | Cold Start |
-| ------- | ---------- |
-| YOLO26n | ~2 seconds |
-| YOLO26m | ~3 seconds |
-| YOLO26x | ~5 seconds |
+| Scenario            | Cold Start     |
+| ------------------- | -------------- |
+| Cached container    | ~5-15 seconds  |
+| First deploy/region | ~15-45 seconds |
 
-Set min instances > 0 to eliminate cold starts.
+The health check uses a 55-second timeout to accommodate worst-case cold starts.
 
 ### Can I use custom domains?
 

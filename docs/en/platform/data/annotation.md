@@ -289,7 +289,7 @@ The visibility dropdown (eye icon) lets you toggle display of individual element
 | **Show pixels**    | Toggle pixelated rendering for zoom inspection (fullscreen) |
 | **Crosshairs**     | Show crosshair cursor with pixel coordinates (edit mode) |
 | **Nav thumbnails** | Show navigation thumbnail strip (fullscreen) |
-| **Show all**       | Toggle all visibility options at once        |
+| **Show all**       | Toggle annotations, labels, crosshairs, and thumbnails at once (does not affect pixelated) |
 
 ## Crosshair Cursor
 
@@ -379,6 +379,7 @@ Efficient annotation with keyboard shortcuts:
     | `Click`       | Add polygon point (segment) / Place keypoint (pose) |
     | `Right-click` | Complete polygon / Add SAM negative point           |
     | `Enter`       | Complete polygon / Save SAM annotation              |
+    | `Escape`      | Save SAM annotation / Deselect / Exit edit mode     |
 
 === "Arrange (Z-Order)"
 

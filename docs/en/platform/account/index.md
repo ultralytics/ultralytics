@@ -53,6 +53,7 @@ Ultralytics Platform implements multiple security measures:
 ### Authentication
 
 - **OAuth2**: Sign in with Google or GitHub
+- **Email/password**: Sign in with email and password
 - **Session management**: Secure, expiring sessions
 
 ### Data Protection
@@ -64,7 +65,7 @@ Ultralytics Platform implements multiple security measures:
 ### Access Control
 
 - **Per-key management**: Create and revoke API keys per workspace
-- **Team roles**: Owner, Admin, Editor, and Viewer roles (Enterprise)
+- **Team roles**: Owner, Admin, Editor, and Viewer roles (Pro and Enterprise)
 - **Audit logging**: Track all account activity in the Activity feed
 
 ## Quick Links

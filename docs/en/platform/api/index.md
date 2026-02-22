@@ -118,6 +118,17 @@ Retry-After: 12
 X-RateLimit-Reset: 2026-02-21T12:34:56.000Z
 ```
 
+Default rate limits per endpoint category:
+
+| Category         | Limit              | Scope    |
+| ---------------- | ------------------ | -------- |
+| **Training**     | 10 requests/min    | Per user |
+| **Upload**       | 10 requests/min    | Per user |
+| **Export**        | 20 requests/min    | Per user |
+| **API Read**     | 200 requests/min   | Per key  |
+| **API Write**    | 60 requests/min    | Per key  |
+| **API Predict**  | 100 requests/min   | Per key  |
+
 !!! tip "Handling Rate Limits"
 
     When you receive a `429` status code, wait for `Retry-After` (or until `X-RateLimit-Reset`) before retrying. See the [rate limit FAQ](#how-do-i-handle-rate-limits) for an exponential backoff implementation.
@@ -151,6 +162,7 @@ Responses return JSON with resource-specific fields:
 | `401`       | Authentication required  |
 | `403`       | Insufficient permissions |
 | `404`       | Resource not found       |
+| `409`       | Conflict (duplicate)     |
 | `429`       | Rate limit exceeded      |
 | `500`       | Server error             |
 
@@ -434,7 +446,7 @@ PUT /api/datasets/{datasetId}/images/{hash}/labels
 
 #### Bulk Image Operations
 
-Move or copy images between datasets:
+Move images between splits (train/val/test) within a dataset:
 
 ```
 PATCH /api/datasets/{datasetId}/images/bulk
@@ -552,7 +564,7 @@ GET /api/models
 | `projectId` | string | Yes      | Project ID (required)          |
 | `fields`    | string | No       | Field set: `summary`, `charts` |
 | `ids`       | string | No       | Comma-separated model IDs      |
-| `limit`     | int    | No       | Max results (default 200)      |
+| `limit`     | int    | No       | Max results (default 20, max 100) |
 
 ### List Completed Models
 
@@ -1343,6 +1355,72 @@ Triggers a recalculation of storage usage.
 
 ---
 
+## Upload API
+
+Direct file uploads use a two-step signed URL flow.
+
+### Get Signed Upload URL
+
+```
+POST /api/upload/signed-url
+```
+
+Request a signed URL for uploading a file directly to cloud storage. The signed URL bypasses the API server for large file transfers.
+
+**Body:**
+
+```json
+{
+    "assetType": "images",
+    "assetId": "abc123",
+    "filename": "my-image.jpg",
+    "contentType": "image/jpeg",
+    "totalBytes": 5242880
+}
+```
+
+| Field         | Type   | Description                                        |
+| ------------- | ------ | -------------------------------------------------- |
+| `assetType`   | string | Asset type: `models`, `datasets`, `images`, `videos` |
+| `assetId`     | string | ID of the target asset                             |
+| `filename`    | string | Original filename                                  |
+| `contentType` | string | MIME type                                          |
+| `totalBytes`  | int    | File size in bytes                                 |
+
+**Response:**
+
+```json
+{
+    "sessionId": "session_abc123",
+    "uploadUrl": "https://storage.example.com/...",
+    "gcsPath": "images/abc123/my-image.jpg",
+    "downloadUrl": "https://cdn.example.com/...",
+    "expiresAt": "2026-02-22T12:00:00Z"
+}
+```
+
+### Complete Upload
+
+```
+POST /api/upload/complete
+```
+
+Notify the Platform that a file upload is complete so it can begin processing.
+
+**Body:**
+
+```json
+{
+    "datasetId": "abc123",
+    "objectPath": "datasets/abc123/images/my-image.jpg",
+    "filename": "my-image.jpg",
+    "contentType": "image/jpeg",
+    "size": 5242880
+}
+```
+
+---
+
 ## API Keys API
 
 ### List API Keys
@@ -1827,11 +1905,18 @@ Webhooks notify your server of Platform events via HTTP POST callbacks:
 
 ### How do I paginate large results?
 
-Most endpoints use `page` and `limit` parameters:
+Most endpoints use a `limit` parameter to control how many results are returned per request:
 
 ```bash
 curl -H "Authorization: Bearer $API_KEY" \
-  "https://platform.ultralytics.com/api/datasets?page=2&limit=50"
+  "https://platform.ultralytics.com/api/datasets?limit=50"
+```
+
+The Activity and Trash endpoints also support a `page` parameter for page-based pagination:
+
+```bash
+curl -H "Authorization: Bearer $API_KEY" \
+  "https://platform.ultralytics.com/api/activity?page=2&limit=20"
 ```
 
 The Explore Search endpoint uses `offset` instead of `page`, with a fixed page size of 20:

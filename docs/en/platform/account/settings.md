@@ -239,13 +239,13 @@ The Teams tab displays:
 4. Select role
 5. Send invitation
 
-The invitee receives an email and can accept the invitation to join the workspace.
+The invitee receives an email and can accept the invitation to join the workspace. Invitations expire after 7 days. Inviting members requires the Admin role or higher.
 
 ### Manage Members
 
-Admins and owners can:
+Owners and admins can manage the team:
 
-- **Change roles**: Click the role dropdown next to a member
+- **Change roles**: Click the role dropdown next to a member (only the owner can assign/remove the admin role)
 - **Remove members**: Click the menu and select **Remove**
 - **Cancel invites**: Cancel pending invitations that haven't been accepted
 - **Resend invites**: Resend invitation emails

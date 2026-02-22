@@ -47,6 +47,27 @@ The Platform tracks the following resource types and actions:
 | **deployment** | [Deployment](../deploy/endpoints.md) events | Blue           |
 | **onboarding** | Onboarding completion                      | Green          |
 
+### Action Types
+
+Each event includes one of the following action types:
+
+| Action        | Description                                   |
+| ------------- | --------------------------------------------- |
+| **created**   | Resource was created                          |
+| **updated**   | Resource was modified                         |
+| **deleted**   | Resource was permanently deleted              |
+| **trashed**   | Resource was moved to trash                   |
+| **restored**  | Resource was restored from trash              |
+| **started**   | Training or export job was started            |
+| **completed** | Training or export job finished successfully  |
+| **failed**    | Training or export job failed                 |
+| **cancelled** | Training or export job was cancelled          |
+| **uploaded**  | Data was uploaded (images, model weights)     |
+| **shared**    | Resource visibility changed to public         |
+| **unshared**  | Resource visibility changed to private        |
+| **exported**  | Model was exported to a deployment format     |
+| **cloned**    | Resource was cloned to another location       |
+
 ## Inbox and Archive
 
 Organize your activity with two tabs:
@@ -82,7 +103,7 @@ Use the search bar to find events by resource name or event description.
 Filter by time period using the date range picker:
 
 - Select a start and end date
-- Default range: last 30 days
+- No default date filter (shows all events)
 - Custom date ranges supported
 
 ![Ultralytics Platform Activity Page Date Range Picker Expanded](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/activity-page-date-range-picker-expanded.avif)
@@ -111,7 +132,7 @@ The Activity feed supports pagination:
 
 - Default page size: 20 events
 - Navigate between pages using the pagination controls
-- Adjust page size as needed
+- Page size is configurable via URL query parameter
 
 ## API Access
 

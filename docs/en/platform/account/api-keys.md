@@ -45,7 +45,7 @@ After creation, the key is displayed once:
 API keys follow this format:
 
 ```
-ul_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0
+ul_a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4
 ```
 
 - **Prefix**: `ul_` identifies Ultralytics keys

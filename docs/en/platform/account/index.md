@@ -53,7 +53,6 @@ Ultralytics Platform implements multiple security measures:
 ### Authentication
 
 - **OAuth2**: Sign in with Google or GitHub
-- **Email**: Email and password authentication
 - **Session management**: Secure, expiring sessions
 
 ### Data Protection

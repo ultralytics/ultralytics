@@ -147,7 +147,7 @@ Authorization: Bearer YOUR_API_KEY
 
 !!! warning "API Key Required"
 
-    To run inference from your own scripts, notebooks, or apps, include an API key. Generate one in [`Settings > API Keys`](../account/api-keys.md).
+    To run inference from your own scripts, notebooks, or apps, include an API key. Generate one in [`Settings > Profile`](../account/api-keys.md) (API Keys section).
 
 ### Endpoint
 

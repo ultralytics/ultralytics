@@ -48,11 +48,11 @@ graph LR
 
 ## Authentication
 
-All API requests require authentication via API key.
+Most API requests require authentication via API key. Public endpoints (listing public datasets, projects, and models) support anonymous read access without a key.
 
 ### Get API Key
 
-1. Go to `Settings` > `API Keys`
+1. Go to `Settings` > `Profile` (API Keys section)
 2. Click `Create Key`
 3. Copy the generated key
 
@@ -1033,6 +1033,24 @@ Or pass specific IDs:
 ```json
 {
     "eventIds": ["EVENT_ID_1", "EVENT_ID_2"]
+}
+```
+
+### Log Activity Event
+
+```
+POST /api/activity
+```
+
+**Body:**
+
+```json
+{
+    "action": "create",
+    "resourceType": "model",
+    "resourceId": "MODEL_ID",
+    "resourceName": "my-model",
+    "metadata": {}
 }
 ```
 

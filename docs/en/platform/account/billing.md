@@ -104,11 +104,9 @@ View your balance in `Settings > Billing`:
 
 Credits are consumed by:
 
-| Service                 | Rate                 |
-| ----------------------- | -------------------- |
-| **Cloud Training**      | GPU rate x hours     |
-| **Dedicated Endpoints** | Compute rate x hours |
-| **Model Export**        | Free (no charge)     |
+| Service            | Rate             |
+| ------------------ | ---------------- |
+| **Cloud Training** | GPU rate x hours |
 
 ## Add Credits
 

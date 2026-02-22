@@ -229,7 +229,7 @@ The Teams tab displays:
 
 !!! note "Role Availability"
 
-    Owner, Admin, Editor, and Viewer roles are available on Pro and Enterprise plans. Custom roles with granular permissions are an Enterprise feature.
+    Owner, Admin, Editor, and Viewer roles are available on all team plans (Pro and Enterprise).
 
 ### Invite Members
 

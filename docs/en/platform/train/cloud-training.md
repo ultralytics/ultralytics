@@ -308,15 +308,15 @@ Before training starts, the platform estimates total cost by:
 
 **Factors affecting cost:**
 
-| Factor               | Impact                                                                                               |
-| -------------------- | ---------------------------------------------------------------------------------------------------- |
-| **Dataset Size**     | More images = longer training time (baseline: ~2.8s compute per 1000 images on RTX 4090)             |
-| **Model Size**       | Larger models (m, l, x) train slower than (n, s)                                                     |
-| **Number of Epochs** | Direct multiplier on training time                                                                   |
-| **Image Size**       | Larger imgsz increases computation: 320px=0.25x, 640px=1.0x (baseline), 1280px=4.0x                  |
+| Factor               | Impact                                                                                                |
+| -------------------- | ----------------------------------------------------------------------------------------------------- |
+| **Dataset Size**     | More images = longer training time (baseline: ~2.8s compute per 1000 images on RTX 4090)              |
+| **Model Size**       | Larger models (m, l, x) train slower than (n, s)                                                      |
+| **Number of Epochs** | Direct multiplier on training time                                                                    |
+| **Image Size**       | Larger imgsz increases computation: 320px=0.25x, 640px=1.0x (baseline), 1280px=4.0x                   |
 | **Batch Size**       | Larger batches are more efficient (batch 32 = ~0.85x time, batch 8 = ~1.2x time vs batch 16 baseline) |
 | **GPU Speed**        | Faster GPUs reduce training time (e.g., H100 SXM = ~3.4x faster than RTX 4090)                        |
-| **Startup Overhead** | Up to 5 minutes for instance initialization, data download, and warmup (scales with dataset size)      |
+| **Startup Overhead** | Up to 5 minutes for instance initialization, data download, and warmup (scales with dataset size)     |
 
 ### Cost Examples
 

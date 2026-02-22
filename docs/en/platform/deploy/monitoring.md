@@ -244,9 +244,9 @@ GET /api/deployments/{deploymentId}/metrics?sparkline=true&range=24h
 
 Returns sparkline data and summary metrics for a specific deployment. Refresh interval: 60 seconds.
 
-| Parameter   | Type   | Description                                    |
-| ----------- | ------ | ---------------------------------------------- |
-| `sparkline` | bool   | Include sparkline data                         |
+| Parameter   | Type   | Description                                   |
+| ----------- | ------ | --------------------------------------------- |
+| `sparkline` | bool   | Include sparkline data                        |
 | `range`     | string | Time range: `1h`, `6h`, `24h`, `7d`, or `30d` |
 
 ### Deployment Logs
@@ -257,11 +257,11 @@ GET /api/deployments/{deploymentId}/logs?limit=50&severity=ERROR,WARNING
 
 Returns recent log entries with optional severity filter and pagination.
 
-| Parameter   | Type   | Description                                    |
-| ----------- | ------ | ---------------------------------------------- |
-| `limit`     | int    | Max entries to return (default: 50, max: 200)  |
-| `severity`  | string | Comma-separated severity filter                |
-| `pageToken` | string | Pagination token from previous response        |
+| Parameter   | Type   | Description                                   |
+| ----------- | ------ | --------------------------------------------- |
+| `limit`     | int    | Max entries to return (default: 50, max: 200) |
+| `severity`  | string | Comma-separated severity filter               |
+| `pageToken` | string | Pagination token from previous response       |
 
 ### Deployment Health
 

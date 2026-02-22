@@ -62,28 +62,28 @@ Choose a dataset to train on (see [Datasets](../data/datasets.md)):
 
 Set core training parameters:
 
-| Parameter      | Description                        | Default |
-| -------------- | ---------------------------------- | ------- |
-| **Epochs**     | Number of training iterations      | 100     |
-| **Batch Size** | Samples per iteration              | 16      |
+| Parameter      | Description                                                                 | Default |
+| -------------- | --------------------------------------------------------------------------- | ------- |
+| **Epochs**     | Number of training iterations                                               | 100     |
+| **Batch Size** | Samples per iteration                                                       | 16      |
 | **Image Size** | Input resolution (320/416/512/640/1280 dropdown, or 32-4096 in YAML editor) | 640     |
-| **Run Name**   | Optional name for the training run | auto    |
+| **Run Name**   | Optional name for the training run                                          | auto    |
 
 ### Step 4: Advanced Settings (Optional)
 
 Expand **Advanced Settings** to access the full YAML-based parameter editor with 40+ training parameters organized by group (see [configuration reference](../../usage/cfg.md)):
 
-| Group                   | Parameters                                       |
-| ----------------------- | ------------------------------------------------ |
+| Group                   | Parameters                                                                       |
+| ----------------------- | -------------------------------------------------------------------------------- |
 | **Learning Rate**       | lr0, lrf, momentum, weight_decay, warmup_epochs, warmup_momentum, warmup_bias_lr |
-| **Optimizer**           | SGD, MuSGD, Adam, AdamW, NAdam, RAdam, RMSProp, Adamax |
-| **Loss Weights**        | box, cls, dfl, pose, kobj, label_smoothing       |
-| **Color Augmentation**  | hsv_h, hsv_s, hsv_v                              |
-| **Geometric Augment.**  | degrees, translate, scale, shear, perspective    |
-| **Flip & Mix Augment.** | flipud, fliplr, mosaic, mixup, copy_paste        |
-| **Training Control**    | patience, time, seed, deterministic, amp, cos_lr |
-| **Dataset**             | fraction, freeze, single_cls, rect, multi_scale  |
-| **Device & Inference**  | device, cache, workers, dropout, iou, max_det    |
+| **Optimizer**           | SGD, MuSGD, Adam, AdamW, NAdam, RAdam, RMSProp, Adamax                           |
+| **Loss Weights**        | box, cls, dfl, pose, kobj, label_smoothing                                       |
+| **Color Augmentation**  | hsv_h, hsv_s, hsv_v                                                              |
+| **Geometric Augment.**  | degrees, translate, scale, shear, perspective                                    |
+| **Flip & Mix Augment.** | flipud, fliplr, mosaic, mixup, copy_paste                                        |
+| **Training Control**    | patience, time, seed, deterministic, amp, cos_lr                                 |
+| **Dataset**             | fraction, freeze, single_cls, rect, multi_scale                                  |
+| **Device & Inference**  | device, cache, workers, dropout, iou, max_det                                    |
 
 Parameters are task-aware (e.g., `copy_paste` only shows for segment tasks, `pose`/`kobj` only for pose tasks). A **Modified** badge appears when values differ from defaults, and you can reset all to defaults with the reset button.
 
@@ -153,14 +153,14 @@ Click **Start Training** to launch your job. The Platform:
 
 Training jobs progress through the following statuses:
 
-| Status        | Description                                        |
-| ------------- | -------------------------------------------------- |
-| **Pending**   | Job submitted, waiting for GPU allocation          |
-| **Starting**  | GPU provisioned, downloading dataset and model     |
+| Status        | Description                                          |
+| ------------- | ---------------------------------------------------- |
+| **Pending**   | Job submitted, waiting for GPU allocation            |
+| **Starting**  | GPU provisioned, downloading dataset and model       |
 | **Running**   | Training in progress, metrics streaming in real-time |
-| **Completed** | Training finished successfully                     |
-| **Failed**    | Training failed (see console logs for details)     |
-| **Cancelled** | Training was cancelled by the user                 |
+| **Completed** | Training finished successfully                       |
+| **Failed**    | Training failed (see console logs for details)       |
+| **Cancelled** | Training was cancelled by the user                   |
 
 !!! success "Free Credits"
 
@@ -311,15 +311,15 @@ Estimated Cost = Total Minutes / 60 × GPU Hourly Rate
 
 **Factors affecting cost:**
 
-| Factor               | Impact                                           |
-| -------------------- | ------------------------------------------------ |
-| **Dataset Size**     | More images = longer training time (baseline: ~2.8s compute per 1000 images on RTX 4090) |
-| **Model Size**       | Larger models (m, l, x) train slower than (n, s) |
-| **Number of Epochs** | Direct multiplier on training time               |
-| **Image Size**       | Larger imgsz increases computation: 320px=0.25x, 640px=1.0x (baseline), 1280px=4.0x |
+| Factor               | Impact                                                                                               |
+| -------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Dataset Size**     | More images = longer training time (baseline: ~2.8s compute per 1000 images on RTX 4090)             |
+| **Model Size**       | Larger models (m, l, x) train slower than (n, s)                                                     |
+| **Number of Epochs** | Direct multiplier on training time                                                                   |
+| **Image Size**       | Larger imgsz increases computation: 320px=0.25x, 640px=1.0x (baseline), 1280px=4.0x                  |
 | **Batch Size**       | Larger batches are more efficient (batch 32 = ~0.8x time, batch 8 = ~1.4x time vs batch 16 baseline) |
-| **GPU Speed**        | Faster GPUs reduce training time (e.g., H100 SXM = ~3.2x faster than RTX 4090) |
-| **Startup Overhead** | 1-5 minutes for pod initialization, data download, and warmup (scales with dataset size) |
+| **GPU Speed**        | Faster GPUs reduce training time (e.g., H100 SXM = ~3.2x faster than RTX 4090)                       |
+| **Startup Overhead** | 1-5 minutes for pod initialization, data download, and warmup (scales with dataset size)             |
 
 ### Cost Examples
 
@@ -327,11 +327,11 @@ Estimated Cost = Total Minutes / 60 × GPU Hourly Rate
 
     Cost estimates are approximate and depend on many factors. The training dialog shows a real-time estimate before you start training.
 
-| Scenario                          | GPU          | Estimated Cost |
-| --------------------------------- | ------------ | -------------- |
-| 500 images, YOLO26n, 50 epochs    | RTX 4090     | ~$0.50         |
-| 1000 images, YOLO26n, 100 epochs  | RTX PRO 6000 | ~$5             |
-| 5000 images, YOLO26s, 100 epochs  | H100 SXM     | ~$23            |
+| Scenario                         | GPU          | Estimated Cost |
+| -------------------------------- | ------------ | -------------- |
+| 500 images, YOLO26n, 50 epochs   | RTX 4090     | ~$0.50         |
+| 1000 images, YOLO26n, 100 epochs | RTX PRO 6000 | ~$5            |
+| 5000 images, YOLO26s, 100 epochs | H100 SXM     | ~$23           |
 
 ### Billing Flow
 

@@ -54,25 +54,25 @@ Each tab provides a search bar and sort options:
 
 ![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-datasets-tab-with-search.avif)
 
-| Sort Option        | Description                                |
-| ------------------ | ------------------------------------------ |
-| **Most Starred**   | Content with most community stars (default)|
-| **Newest**         | Most recently created                      |
-| **Oldest**         | Oldest first                               |
-| **Name A-Z**       | Alphabetical ascending                     |
-| **Name Z-A**       | Alphabetical descending                    |
-| **Most images**    | Most images (datasets) or models (projects)|
-| **Fewest images**  | Fewest images (datasets) or models (projects)|
+| Sort Option       | Description                                   |
+| ----------------- | --------------------------------------------- |
+| **Most Starred**  | Content with most community stars (default)   |
+| **Newest**        | Most recently created                         |
+| **Oldest**        | Oldest first                                  |
+| **Name A-Z**      | Alphabetical ascending                        |
+| **Name Z-A**      | Alphabetical descending                       |
+| **Most images**   | Most images (datasets) or models (projects)   |
+| **Fewest images** | Fewest images (datasets) or models (projects) |
 
 ### View Modes
 
 Toggle between three view modes for browsing:
 
-| Mode        | Description                           |
-| ----------- | ------------------------------------- |
-| **Cards**   | Grid of preview cards with thumbnails |
+| Mode        | Description                                      |
+| ----------- | ------------------------------------------------ |
+| **Cards**   | Grid of preview cards with thumbnails            |
 | **Compact** | Smaller cards in a responsive grid (2-3 columns) |
-| **Table**   | Sortable table with columns           |
+| **Table**   | Sortable table with columns                      |
 
 Cards and compact views support infinite scroll for loading more results.
 

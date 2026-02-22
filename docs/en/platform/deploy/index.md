@@ -23,11 +23,11 @@ The Deployment section helps you:
 
 Ultralytics Platform offers multiple deployment paths:
 
-| Option                                  | Description                                         | Best For                |
-| --------------------------------------- | --------------------------------------------------- | ----------------------- |
+| Option                                  | Description                                              | Best For                |
+| --------------------------------------- | -------------------------------------------------------- | ----------------------- |
 | **[Predict Tab](inference.md)**         | Browser-based inference with image, webcam, and examples | Development, validation |
-| **Shared Inference**                    | Multi-tenant service across 3 regions               | Light usage, testing    |
-| **[Dedicated Endpoints](endpoints.md)** | Single-tenant services across 43 regions            | Production, low latency |
+| **Shared Inference**                    | Multi-tenant service across 3 regions                    | Light usage, testing    |
+| **[Dedicated Endpoints](endpoints.md)** | Single-tenant services across 43 regions                 | Production, low latency |
 
 ## Workflow
 
@@ -76,7 +76,7 @@ graph TB
 | ------ | -------------------- |
 | US     | Iowa, USA            |
 | EU     | Belgium, Europe      |
-| AP     | Taiwan, Asia-Pacific    |
+| AP     | Taiwan, Asia-Pacific |
 
 ### Dedicated Endpoints
 

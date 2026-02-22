@@ -213,15 +213,15 @@ The Platform supports export to [17+ deployment formats](../../modes/export.md#e
 
 ### Format Selection Guide
 
-| Target             | Recommended Format  | Notes                     |
-| ------------------ | ------------------- | ------------------------- |
-| **NVIDIA GPUs**    | TensorRT            | Maximum inference speed   |
-| **Intel Hardware** | OpenVINO            | CPUs, GPUs, and VPUs      |
-| **Apple Devices**  | CoreML              | iOS, macOS, Apple Silicon |
-| **Android**        | TF Lite or NCNN     | Best mobile performance   |
-| **Web Browsers**   | TF.js or ONNX       | ONNX via ONNX Runtime Web |
+| Target             | Recommended Format  | Notes                                                          |
+| ------------------ | ------------------- | -------------------------------------------------------------- |
+| **NVIDIA GPUs**    | TensorRT            | Maximum inference speed                                        |
+| **Intel Hardware** | OpenVINO            | CPUs, GPUs, and VPUs                                           |
+| **Apple Devices**  | CoreML              | iOS, macOS, Apple Silicon                                      |
+| **Android**        | TF Lite or NCNN     | Best mobile performance                                        |
+| **Web Browsers**   | TF.js or ONNX       | ONNX via ONNX Runtime Web                                      |
 | **Edge Devices**   | TF Edge TPU or RKNN | Coral and Rockchip (see [supported chips](#rknn-chip-support)) |
-| **General**        | ONNX                | Works with most runtimes  |
+| **General**        | ONNX                | Works with most runtimes                                       |
 
 ![Ultralytics Platform Model Export Progress](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-export-progress.avif)
 
@@ -229,31 +229,31 @@ The Platform supports export to [17+ deployment formats](../../modes/export.md#e
 
 When exporting to RKNN format, select your target Rockchip device:
 
-| Chip     | Description          |
-| -------- | -------------------- |
-| RK3588   | High-end edge SoC    |
-| RK3576   | Mid-range edge SoC   |
-| RK3568   | Mid-range edge SoC   |
-| RK3566   | Mid-range edge SoC   |
-| RK3562   | Entry-level edge SoC |
-| RV1103   | Vision processor     |
-| RV1106   | Vision processor     |
-| RV1103B  | Vision processor     |
-| RV1106B  | Vision processor     |
-| RK2118   | AI processor         |
-| RV1126B  | Vision processor     |
+| Chip    | Description          |
+| ------- | -------------------- |
+| RK3588  | High-end edge SoC    |
+| RK3576  | Mid-range edge SoC   |
+| RK3568  | Mid-range edge SoC   |
+| RK3566  | Mid-range edge SoC   |
+| RK3562  | Entry-level edge SoC |
+| RV1103  | Vision processor     |
+| RV1106  | Vision processor     |
+| RV1103B | Vision processor     |
+| RV1106B | Vision processor     |
+| RK2118  | AI processor         |
+| RV1126B | Vision processor     |
 
 ### Export Job Lifecycle
 
 Export jobs progress through the following statuses:
 
-| Status        | Description                              |
-| ------------- | ---------------------------------------- |
-| **Queued**    | Export job is waiting to start           |
-| **Starting**  | Export job is initializing               |
-| **Running**   | Export is in progress                    |
-| **Completed** | Export finished — download available     |
-| **Failed**    | Export failed (see error message)        |
+| Status        | Description                          |
+| ------------- | ------------------------------------ |
+| **Queued**    | Export job is waiting to start       |
+| **Starting**  | Export job is initializing           |
+| **Running**   | Export is in progress                |
+| **Completed** | Export finished — download available |
+| **Failed**    | Export failed (see error message)    |
 
 !!! tip "Export Time"
 
@@ -268,10 +268,10 @@ Export jobs progress through the following statuses:
 
 Some export formats have architecture or task restrictions:
 
-| Format       | Restriction                                       |
-| ------------ | ------------------------------------------------- |
-| **IMX500**   | Only available for YOLOv8 and YOLO11 models       |
-| **Axelera**  | Only available for detection models               |
+| Format           | Restriction                                                     |
+| ---------------- | --------------------------------------------------------------- |
+| **IMX500**       | Only available for YOLOv8 and YOLO11 models                     |
+| **Axelera**      | Only available for detection models                             |
 | **PaddlePaddle** | Not available for YOLO26 detection/segmentation/pose/OBB models |
 
 ## Clone Model

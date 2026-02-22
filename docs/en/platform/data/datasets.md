@@ -195,10 +195,10 @@ graph LR
 
 View your dataset images in multiple layouts:
 
-| View        | Description                                             |
-| ----------- | ------------------------------------------------------- |
-| **Grid**    | Thumbnail grid with annotation overlays (default)       |
-| **Compact** | Smaller thumbnails for quick scanning                   |
+| View        | Description                                                                       |
+| ----------- | --------------------------------------------------------------------------------- |
+| **Grid**    | Thumbnail grid with annotation overlays (default)                                 |
+| **Compact** | Smaller thumbnails for quick scanning                                             |
 | **Table**   | List with thumbnail, filename, dimensions, size, split, classes, and label counts |
 
 ![Ultralytics Platform Datasets Gallery Grid View With Annotations](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-gallery-grid-view-with-annotations.avif)
@@ -431,23 +431,23 @@ Use this URI to train models from anywhere:
 
 The Platform supports the following licenses for datasets:
 
-| License          | Type                |
-| ---------------- | ------------------- |
-| None             | No license selected |
-| CC0-1.0          | Public domain       |
-| CC-BY-2.5        | Permissive          |
-| CC-BY-4.0        | Permissive          |
-| CC-BY-SA-4.0     | Copyleft            |
-| CC-BY-NC-4.0     | Non-commercial      |
-| CC-BY-NC-SA-4.0  | Copyleft            |
-| CC-BY-ND-4.0     | No derivatives      |
-| CC-BY-NC-ND-4.0  | Non-commercial      |
-| Apache-2.0       | Permissive          |
-| MIT              | Permissive          |
-| AGPL-3.0         | Copyleft            |
-| GPL-3.0          | Copyleft            |
-| Research-Only    | Restricted          |
-| Other            | Custom              |
+| License         | Type                |
+| --------------- | ------------------- |
+| None            | No license selected |
+| CC0-1.0         | Public domain       |
+| CC-BY-2.5       | Permissive          |
+| CC-BY-4.0       | Permissive          |
+| CC-BY-SA-4.0    | Copyleft            |
+| CC-BY-NC-4.0    | Non-commercial      |
+| CC-BY-NC-SA-4.0 | Copyleft            |
+| CC-BY-ND-4.0    | No derivatives      |
+| CC-BY-NC-ND-4.0 | Non-commercial      |
+| Apache-2.0      | Permissive          |
+| MIT             | Permissive          |
+| AGPL-3.0        | Copyleft            |
+| GPL-3.0         | Copyleft            |
+| Research-Only   | Restricted          |
+| Other           | Custom              |
 
 !!! note "Copyleft Licenses"
 

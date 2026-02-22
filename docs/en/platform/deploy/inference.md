@@ -339,13 +339,13 @@ Shared inference is rate-limited to **20 requests/min per API key**. When thrott
 
 Common error responses:
 
-| Code | Message         | Solution             |
-| ---- | --------------- | -------------------- |
-| 400  | Invalid image   | Check file format    |
-| 401  | Unauthorized    | Verify API key       |
-| 404  | Model not found | Check model ID       |
+| Code | Message         | Solution                                                                             |
+| ---- | --------------- | ------------------------------------------------------------------------------------ |
+| 400  | Invalid image   | Check file format                                                                    |
+| 401  | Unauthorized    | Verify API key                                                                       |
+| 404  | Model not found | Check model ID                                                                       |
 | 429  | Rate limited    | Wait and retry, or use a [dedicated endpoint](endpoints.md) for unlimited throughput |
-| 500  | Server error    | Retry request        |
+| 500  | Server error    | Retry request                                                                        |
 
 ## FAQ
 

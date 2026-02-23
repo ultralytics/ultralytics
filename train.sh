@@ -83,19 +83,19 @@ do
     echo "Experiment: ${PROJECT_NAME}_${m}"
     echo "=================================================="
     
-    python tools.py --mode train \
-        --path_yaml ${SCELAN_YAML_DIR}/${m}.yaml \
-        --data_path ${dataset} \
-        --device ${DEVICE} \
-        --epochs ${EPOCHS} \
-        --batch ${BATCH_SIZE} \
-        --imgsz ${IMGSZ} \
-        --workers ${WORKERS} \
-        --patience ${PATIENCE} \
-        --save_period ${SAVE_PERIOD} \
-        --project ${PROJECT_NAME} \
-        --name ${PROJECT_NAME}_${m} \
-        --init_weight ""
+    # python tools.py --mode train \
+    #     --path_yaml ${SCELAN_YAML_DIR}/${m}.yaml \
+    #     --data_path ${dataset} \
+    #     --device ${DEVICE} \
+    #     --epochs ${EPOCHS} \
+    #     --batch ${BATCH_SIZE} \
+    #     --imgsz ${IMGSZ} \
+    #     --workers ${WORKERS} \
+    #     --patience ${PATIENCE} \
+    #     --save_period ${SAVE_PERIOD} \
+    #     --project ${PROJECT_NAME} \
+    #     --name ${PROJECT_NAME}_${m} \
+    #     --init_weight ""
     
     echo "Completed: ${m}"
     echo ""
@@ -113,9 +113,12 @@ echo "=================================================="
 echo "Starting SC-ELAN Variants Validation"
 echo "=================================================="
 
+mkdir -p logs
+
 for m in "${models[@]}"
 do
     WEIGHT_PATH="runs/detect/${PROJECT_NAME}/${PROJECT_NAME}_${m}/weights/best.pt"
+    VAL_LOG_PATH="logs/val_${m}.log"
     
     if [ -f "${WEIGHT_PATH}" ]; then
         echo "Validating: ${m}"
@@ -124,7 +127,8 @@ do
             --data_path ${dataset} \
             --device ${DEVICE} \
             --project ${PROJECT_NAME} \
-            --name ${PROJECT_NAME}_${m}_val
+            --name ${PROJECT_NAME}_${m}_val \
+            > ${VAL_LOG_PATH} 2>&1
         echo "Completed: ${m}"
     else
         echo "Warning: Weight file not found for ${m}: ${WEIGHT_PATH}"

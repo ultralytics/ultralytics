@@ -579,7 +579,7 @@ For more details see the [`Boxes` class documentation](../reference/engine/resul
 
 ### Masks
 
-`Masks` object can be used index, manipulate and convert masks to segments.
+`Masks` object can be used to index, manipulate and convert masks to segments.
 
 !!! example "Masks"
 
@@ -612,7 +612,7 @@ For more details see the [`Masks` class documentation](../reference/engine/resul
 
 ### Keypoints
 
-`Keypoints` object can be used index, manipulate and normalize coordinates.
+`Keypoints` object can be used to index, manipulate and normalize coordinates.
 
 !!! example "Keypoints"
 

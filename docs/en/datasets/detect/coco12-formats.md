@@ -59,17 +59,6 @@ The COCO12-Formats dataset is configured using a YAML file that defines dataset 
     --8<-- "ultralytics/cfg/datasets/coco12-formats.yaml"
     ```
 
-## Dataset Generation
-
-The dataset can be generated using the provided script that converts source images from COCO8 and COCO128 to all supported formats:
-
-```python
-from ultralytics.data.scripts.generate_coco12_formats import generate_coco12_formats
-
-# Generate the dataset
-generate_coco12_formats()
-```
-
 ### Requirements
 
 Some formats require additional dependencies:
@@ -228,7 +217,3 @@ Different image formats have unique characteristics (compression, bit depth, col
 
 - **AVIF**: Requires `pillow-avif-plugin`
 - **HEIC**: Requires `pillow-heif`
-
-### Can I Add New Format Tests?
-
-Yes! Modify the `generate_coco12_formats.py` script to include additional formats. Ensure you also update `IMG_FORMATS` in `ultralytics/data/utils.py`.

@@ -109,7 +109,7 @@ Detected 5 objects:
 You can monitor your function execution in the Modal dashboard:
 
 <p align="center">
-  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/modal-dashboard-function-calls.avif" alt="Modal Dashboard Function Calls">
+  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@fda2504f1e5dab2f437097ac7b99a7da984e4243/docs/modal-dashboard-function-calls.avif" alt="Modal Dashboard Function Calls">
 </p>
 
 ---

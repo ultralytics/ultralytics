@@ -48,11 +48,11 @@ graph LR
 
 Ultralytics Platform supports multiple training approaches:
 
-| Method                                                   | Description                                | Best For                   |
-| -------------------------------------------------------- | ------------------------------------------ | -------------------------- |
-| **[Cloud Training](cloud-training.md)**                  | Train on Ultralytics Cloud GPUs            | No local GPU, scalability  |
-| **[Remote Training](cloud-training.md#remote-training)** | Train locally, stream metrics to Platform  | Existing hardware, privacy |
-| **[Colab Training](cloud-training.md#remote-training)**  | Use Google Colab with Platform integration | Free GPU access            |
+| Method                                                  | Description                                   | Best For                   |
+| ------------------------------------------------------- | --------------------------------------------- | -------------------------- |
+| **[Cloud Training](cloud-training.md)**                 | Train on Ultralytics Cloud GPUs               | No local GPU, scalability  |
+| **[Local Training](cloud-training.md#remote-training)** | Train locally, stream metrics to the platform | Existing hardware, privacy |
+| **[Colab Training](cloud-training.md#remote-training)** | Use Google Colab with platform integration    | Free GPU access            |
 
 ## GPU Options
 
@@ -165,11 +165,11 @@ Training time depends on:
 - Number of epochs
 - GPU type selected
 
-A typical training run with 1000 images, YOLO26n, 100 epochs on RTX PRO 6000 takes about 30-60 minutes.
+A typical training run with 1000 images, YOLO26n, 100 epochs on RTX PRO 6000 takes about 2-3 hours. Smaller runs (500 images, 50 epochs on RTX 4090) complete in under an hour. See [cost examples](cloud-training.md#cost-examples) for detailed estimates.
 
 ### Can I train multiple models simultaneously?
 
-Cloud training currently supports one concurrent training job per account. For parallel training, use remote training from multiple machines.
+Yes. Concurrent cloud training limits depend on your plan: Free allows 3, Pro allows 10, and Enterprise is unlimited. For additional parallel training, use remote training from multiple machines.
 
 ### What happens if training fails?
 

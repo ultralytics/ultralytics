@@ -63,7 +63,7 @@ Choose from 43 regions worldwide. The interactive region map and table show:
 
 ![Ultralytics Platform Deploy Tab Region Latency Table Sorted By Latency](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-tab-region-latency-table-sorted-by-latency.avif)
 
-The region table includes:
+The region table on the model `Deploy` tab includes:
 
 | Column       | Description                              |
 | ------------ | ---------------------------------------- |
@@ -72,6 +72,10 @@ The region table includes:
 | **Latency**  | Measured ping time (median of 3 pings)   |
 | **Distance** | Distance from your location in km        |
 | **Actions**  | Deploy button or "Deployed" status badge |
+
+!!! note "New Deployment Dialog"
+
+    The `New Deployment` dialog (from the global `Deploy` page) shows a simpler region table with only Location, Latency, and Select columns.
 
 !!! tip "Choose Wisely"
 
@@ -158,7 +162,7 @@ The `New Deployment` dialog provides:
 
 ![Ultralytics Platform New Deployment Dialog Resources Panel Expanded](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/new-deployment-dialog-resources-panel-expanded.avif)
 
-Resource settings are available under the collapsible **Resources** section. Deployments scale to zero when idle — you only pay for active inference time.
+Resource settings are available under the collapsible **Resources** section. Deployments use scale-to-zero by default (min instances = 0, max instances = 1) — you only pay for active inference time.
 
 !!! note "Auto-Generated Names"
 
@@ -166,7 +170,7 @@ Resource settings are available under the collapsible **Resources** section. Dep
 
 ### Deploy Tab (Quick Deploy)
 
-When deploying from the model's `Deploy` tab, endpoints are created with default resources (1 CPU, 2 GB memory) and auto-scaling (min 0, max 1 instances). The deployment name is auto-generated.
+When deploying from the model's `Deploy` tab, endpoints are created with default resources (1 CPU, 2 GB memory) with scale-to-zero enabled. The deployment name is auto-generated.
 
 ## Manage Endpoints
 
@@ -207,10 +211,10 @@ The `Logs` tab shows recent log entries with severity filtering (All / Errors). 
 
 ### Endpoint URL
 
-Each endpoint has a unique URL:
+Each endpoint has a unique URL, for example:
 
 ```
-https://predict-abc123-us-central1.a.run.app
+https://predict-abc123.run.app
 ```
 
 ![Ultralytics Platform Deployment Card Endpoint Url With Copy Button](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deployment-card-endpoint-url-with-copy-button.avif)
@@ -275,6 +279,10 @@ Authorization: Bearer YOUR_API_KEY
 
 The API key prefix is displayed on the deployment card footer for identification. Generate keys from [API Keys](../account/api-keys.md).
 
+### No Rate Limits
+
+Dedicated endpoints are **not subject to the Platform API rate limits**. Requests go directly to your dedicated service, so throughput is limited only by your endpoint's CPU, memory, and scaling configuration. This is a key advantage over [shared inference](inference.md), which is rate-limited to 20 requests/min per API key.
+
 ### Request Example
 
 === "Python"
@@ -283,7 +291,7 @@ The API key prefix is displayed on the deployment card footer for identification
     import requests
 
     # Deployment endpoint
-    url = "https://predict-abc123-us-central1.a.run.app/predict"
+    url = "https://predict-abc123.run.app/predict"
 
     # Headers with your deployment API key
     headers = {"Authorization": "Bearer YOUR_API_KEY"}
@@ -310,7 +318,7 @@ The API key prefix is displayed on the deployment card footer for identification
 
     // Send image for inference
     const response = await fetch(
-      "https://predict-abc123-us-central1.a.run.app/predict",
+      "https://predict-abc123.run.app/predict",
       {
         method: "POST",
         headers: { Authorization: "Bearer YOUR_API_KEY" },
@@ -326,7 +334,7 @@ The API key prefix is displayed on the deployment card footer for identification
 
     ```bash
     curl -X POST \
-      "https://predict-abc123-us-central1.a.run.app/predict" \
+      "https://predict-abc123.run.app/predict" \
       -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg" \
       -F "conf=0.25" \
@@ -369,7 +377,13 @@ Dedicated endpoints bill based on:
 
 ### How many endpoints can I create?
 
-There's no hard limit. Each model can have endpoints in multiple regions. Total endpoints depend on your plan.
+Endpoint limits depend on plan:
+
+- **Free**: Up to 3 deployments
+- **Pro**: Up to 10 deployments
+- **Enterprise**: Unlimited deployments
+
+Each model can still be deployed to multiple regions within your plan quota.
 
 ### Can I change the region after deployment?
 
@@ -388,15 +402,14 @@ For global coverage:
 
 ### What's the cold start time?
 
-Cold start varies by model size:
+Cold start time depends on model size and whether the container is already cached in the region. Typical ranges:
 
-| Model   | Cold Start |
-| ------- | ---------- |
-| YOLO26n | ~2 seconds |
-| YOLO26m | ~3 seconds |
-| YOLO26x | ~5 seconds |
+| Scenario            | Cold Start     |
+| ------------------- | -------------- |
+| Cached container    | ~5-15 seconds  |
+| First deploy/region | ~15-45 seconds |
 
-Set min instances > 0 to eliminate cold starts.
+The health check uses a 55-second timeout to accommodate worst-case cold starts.
 
 ### Can I use custom domains?
 

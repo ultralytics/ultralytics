@@ -147,7 +147,8 @@ extra_javascript:
   - javascript/extra.js
   - javascript/giscus.js
   - javascript/tablesort.js
-
+  - javascript/link-decoration.js
+  
 markdown_extensions:
   - admonition
   - md_in_html

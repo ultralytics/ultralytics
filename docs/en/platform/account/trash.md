@@ -12,7 +12,7 @@ keywords: Ultralytics Platform, trash, restore, soft delete, recover, deleted it
 
 ## Soft Delete Policy
 
-When you delete a resource on the Platform:
+When you delete a resource on the platform:
 
 1. **Immediate**: Item moves to Trash (not permanently deleted)
 2. **30 Days**: Item remains recoverable in Trash
@@ -89,15 +89,15 @@ The item returns to its original location with all data intact.
 
 ### Restore Behavior
 
-| Resource | Restore Behavior                                                             |
-| -------- | ---------------------------------------------------------------------------- |
-| Project  | Restores project and all contained models                                    |
-| Dataset  | Restores dataset with all images and annotations                             |
-| Model    | Restores model to original project (or orphaned if project was also deleted) |
+| Resource | Restore Behavior                                            |
+| -------- | ----------------------------------------------------------- |
+| Project  | Restores project and all contained models                   |
+| Dataset  | Restores dataset with all images and annotations            |
+| Model    | Restores model to original project if the project is active |
 
-!!! note "Parent Dependency"
+!!! warning "Parent Project Required"
 
-    If you deleted both a project and its models, restore the project first. This automatically restores all models that were inside it.
+    Restoring a model fails if its parent project is in Trash. You'll see the error: "Cannot restore model while its parent project is in trash. Restore the project first." Always restore the parent project before restoring individual models.
 
 ## Permanent Deletion
 
@@ -142,7 +142,7 @@ Items in Trash still count toward your storage quota:
 
 ## API Access
 
-Manage Trash programmatically via the [REST API](../api/index.md#trash-api). Use your [API key](api-keys.md) for authentication:
+Access trash programmatically via the [REST API](../api/index.md#trash-api):
 
 === "List Trash"
 
@@ -156,14 +156,14 @@ Manage Trash programmatically via the [REST API](../api/index.md#trash-api). Use
     ```bash
     curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
       -H "Content-Type: application/json" \
-      -d '{"itemId": "item_abc123", "type": "dataset"}' \
+      -d '{"id": "item_abc123", "type": "dataset"}' \
       https://platform.ultralytics.com/api/trash
     ```
 
 === "Empty Trash"
 
     ```bash
-    curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
+    curl -X DELETE -H "Authorization: Bearer YOUR_API_KEY" \
       https://platform.ultralytics.com/api/trash/empty
     ```
 

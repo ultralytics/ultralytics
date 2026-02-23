@@ -23,11 +23,11 @@ The Deployment section helps you:
 
 Ultralytics Platform offers multiple deployment paths:
 
-| Option                                  | Description                                         | Best For                |
-| --------------------------------------- | --------------------------------------------------- | ----------------------- |
-| **[Predict Tab](inference.md)**         | Browser-based inference with image, webcam, and URL | Development, validation |
-| **Shared Inference**                    | Multi-tenant service across 3 regions               | Light usage, testing    |
-| **[Dedicated Endpoints](endpoints.md)** | Single-tenant services across 43 regions            | Production, low latency |
+| Option                                  | Description                                              | Best For                |
+| --------------------------------------- | -------------------------------------------------------- | ----------------------- |
+| **[Predict Tab](inference.md)**         | Browser-based inference with image, webcam, and examples | Development, validation |
+| **Shared Inference**                    | Multi-tenant service across 3 regions                    | Light usage, testing    |
+| **[Dedicated Endpoints](endpoints.md)** | Single-tenant services across 43 regions                 | Production, low latency |
 
 ## Workflow
 
@@ -62,7 +62,7 @@ graph TB
     API --> Router{Region Router}
     Router -->|US users| US["US Predict Service<br/>Iowa"]
     Router -->|EU users| EU["EU Predict Service<br/>Belgium"]
-    Router -->|AP users| AP["AP Predict Service<br/>Taiwan"]
+    Router -->|AP users| AP["AP Predict Service<br/>Hong Kong"]
 
     style User fill:#f5f5f5,color:#333
     style API fill:#2196F3,color:#fff
@@ -72,11 +72,11 @@ graph TB
     style AP fill:#4CAF50,color:#fff
 ```
 
-| Region | Location             |
-| ------ | -------------------- |
-| US     | Iowa, USA            |
-| EU     | Belgium, Europe      |
-| AP     | Taiwan, Asia-Pacific |
+| Region | Location                |
+| ------ | ----------------------- |
+| US     | Iowa, USA               |
+| EU     | Belgium, Europe         |
+| AP     | Hong Kong, Asia-Pacific |
 
 ### Dedicated Endpoints
 
@@ -107,7 +107,7 @@ Access the global deployments page from the sidebar under `Deploy`. This page sh
 
 !!! info "Automatic Polling"
 
-    The page polls every 30 seconds for metric updates. When deployments are in a transitional state (creating, deploying, stopping), polling increases to every 3 seconds for near-instant feedback.
+    The page polls every 30 seconds for metric updates. When deployments are in a transitional state (creating, deploying, stopping), polling increases to every 2-3 seconds for near-instant feedback.
 
 ## Key Features
 
@@ -123,19 +123,18 @@ Deploy close to your users with 43 regions covering:
 
 Endpoints scale automatically:
 
-- **Scale to zero**: No cost when idle
-- **Scale up**: Handle traffic spikes
-- **Configurable limits**: Set min/max instances
+- **Scale to zero**: No cost when idle (default)
+- **Scale up**: Handle traffic spikes automatically
 
 !!! tip "Cost Savings"
 
-    Scale-to-zero is enabled by default (min instances = 0). You only pay for active inference time. For latency-sensitive applications, set min instances > 0 to keep endpoints warm.
+    Scale-to-zero is enabled by default (min instances = 0). You only pay for active inference time.
 
 ### Low Latency
 
 Dedicated endpoints provide:
 
-- Cold start: ~2-5 seconds
+- Cold start: ~5-15 seconds (cached container), up to ~45 seconds (first deploy)
 - Warm inference: 50-200ms (model dependent)
 - Regional routing for optimal performance
 
@@ -203,4 +202,4 @@ With scale-to-zero enabled:
 - First request triggers cold start
 - Subsequent requests are fast
 
-To avoid cold starts, set minimum instances > 0.
+First requests after an idle period trigger a cold start.

@@ -37,11 +37,11 @@ During onboarding, you'll be asked to select your data region. The Platform auto
 
 ![Ultralytics Platform Onboarding Region Map With Latency](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-onboarding-region-map-with-latency.avif)
 
-| Region | Location                | Best For                                |
-| ------ | ----------------------- | --------------------------------------- |
-| **US** | Iowa, USA               | Americas users, fastest for Americas    |
-| **EU** | Belgium, Europe         | European users, GDPR compliance         |
-| **AP** | Hong Kong, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+| Region | Label                        | Location                | Best For                                |
+| ------ | ---------------------------- | ----------------------- | --------------------------------------- |
+| **US** | Americas                     | Iowa, USA               | Americas users, fastest for Americas    |
+| **EU** | Europe, Middle East & Africa | Belgium, Europe         | European users, GDPR compliance         |
+| **AP** | Asia Pacific                 | Hong Kong, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
 
 !!! warning "Region is Permanent"
 
@@ -80,17 +80,17 @@ After signing in, you will be directed to the Home page of [Ultralytics Platform
 
 The sidebar provides access to all Platform sections:
 
-| Section          | Item     | Description                                      |
-| ---------------- | -------- | ------------------------------------------------ |
-| **Top**          | Search   | Quick search across all your resources (Cmd+K)   |
-|                  | Home     | Dashboard with quick actions and recent activity |
-|                  | Explore  | Discover public projects and datasets            |
-| **My Workspace** | Annotate | Your datasets organized for annotation           |
-|                  | Train    | Your projects containing trained models          |
-|                  | Deploy   | Your active deployments                          |
-| **Bottom**       | Trash    | Deleted items (recoverable for 30 days)          |
-|                  | Settings | Account, billing, and preferences                |
-|                  | Feedback | Send feedback to Ultralytics                     |
+| Section         | Item     | Description                                      |
+| --------------- | -------- | ------------------------------------------------ |
+| **Top**         | Search   | Quick search across all your resources (Cmd+K)   |
+|                 | Home     | Dashboard with quick actions and recent activity |
+|                 | Explore  | Discover public projects and datasets            |
+| **My Projects** | Annotate | Your datasets organized for annotation           |
+|                 | Train    | Your projects containing trained models          |
+|                 | Deploy   | Your active deployments                          |
+| **Bottom**      | Trash    | Deleted items (recoverable for 30 days)          |
+|                 | Settings | Account, billing, and preferences                |
+|                 | Feedback | Send feedback to Ultralytics                     |
 
 ### Welcome Card
 
@@ -142,7 +142,7 @@ graph LR
     G --> H[Dataset Ready]
 ```
 
-After upload, the Platform automatically processes your data:
+After upload, the platform automatically processes your data:
 
 1. Images larger than 4096px are resized (preserving aspect ratio)
 2. 256px thumbnails are generated for fast browsing
@@ -212,7 +212,7 @@ From your project, click `Train Model` to start cloud training.
 
 !!! warning "Credit Balance Required"
 
-    Cloud training requires a minimum credit balance of $5.00. Check your balance in [`Settings > Billing`](account/billing.md). New accounts receive free credits ($5 for personal email, $25 for work email).
+    Cloud training requires a positive credit balance sufficient to cover the estimated job cost. Check your balance in [`Settings > Billing`](account/billing.md). New accounts receive free credits ($5 for personal email, $25 for work email).
 
 ### Monitor Training
 
@@ -259,7 +259,7 @@ The `Predict` tab provides ready-to-use code examples with your actual API key p
     ```python
     import requests
 
-    url = "https://platform.ultralytics.com/api/models/{model_slug}/predict"
+    url = "https://platform.ultralytics.com/api/models/{model_id}/predict"
     headers = {"Authorization": "Bearer your_api_key"}
 
     with open("image.jpg", "rb") as f:
@@ -271,7 +271,7 @@ The `Predict` tab provides ready-to-use code examples with your actual API key p
 === "cURL"
 
     ```bash
-    curl -X POST "https://platform.ultralytics.com/api/models/{model_slug}/predict" \
+    curl -X POST "https://platform.ultralytics.com/api/models/{model_id}/predict" \
       -H "Authorization: Bearer your_api_key" \
       -F "file=@image.jpg"
     ```
@@ -321,9 +321,9 @@ Read more about [endpoints](deploy/endpoints.md).
 
 ## Remote Training (Optional)
 
-If you prefer to train on your own hardware, you can stream metrics to Platform using your API key. This works like Weights & Biases — train anywhere, monitor on Platform.
+If you prefer to train on your own hardware, you can stream metrics to the platform using your API key. This works like Weights & Biases — train anywhere, monitor on the platform.
 
-1. Generate an API key in [`Settings > API Keys`](account/api-keys.md)
+1. Generate an API key in [`Settings > Profile`](account/api-keys.md) (API Keys section)
 2. Set the environment variable and train with a `project/name` format:
 
 ```bash
@@ -334,7 +334,7 @@ yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-projec
 
 !!! note "API Key Format"
 
-    API keys start with `ul_` followed by 40 hex characters. They support scoped permissions: `training`, `models`, `datasets`, `read`, `write`, `admin`.
+    API keys start with `ul_` followed by 40 hex characters (43 characters total). Keys are full-access tokens scoped to your workspace.
 
 Read more about [API keys](account/api-keys.md), [dataset URIs](data/datasets.md#dataset-uri), and [remote training](train/cloud-training.md#remote-training).
 

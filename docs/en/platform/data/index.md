@@ -74,7 +74,7 @@ Reference datasets using the `ul://` URI format (see [Using Platform Datasets](.
 yolo train data=ul://username/datasets/my-dataset
 ```
 
-This allows training on Platform datasets from any machine with your [API key](../account/api-keys.md) configured.
+This allows training on the platform's datasets from any machine with your [API key](../account/api-keys.md) configured.
 
 !!! example "Use Platform Data from Python"
 

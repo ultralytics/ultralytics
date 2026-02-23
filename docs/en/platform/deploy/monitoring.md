@@ -8,11 +8,11 @@ keywords: Ultralytics Platform, monitoring, metrics, logs, deployment, performan
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides monitoring for deployed endpoints. Track request metrics, view logs, and check health status with automatic polling.
 
-<!-- Screenshot: deploy-page-overview-cards-and-world-map.avif -->
+![Ultralytics Platform Deploy Page Overview Cards And World Map](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-overview-cards-and-world-map.avif)
 
 ## Deployments Dashboard
 
-The `Deploy` page in the sidebar serves as the monitoring dashboard for all your deployments. It combines the world map, overview metrics, and deployment management in one view.
+The `Deploy` page in the sidebar serves as the monitoring dashboard for all your deployments. It combines the world map, overview metrics, and deployment management in one view. See [Dedicated Endpoints](endpoints.md) for creating and managing deployments.
 
 ```mermaid
 graph TB
@@ -43,7 +43,7 @@ graph TB
 
 Four summary cards at the top of the page show:
 
-<!-- Screenshot: deploy-page-four-overview-cards.avif -->
+![Ultralytics Platform Deploy Page Four Overview Cards](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-four-overview-cards.avif)
 
 | Metric                   | Description                   |
 | ------------------------ | ----------------------------- |
@@ -65,7 +65,7 @@ The interactive world map shows:
 - **Animated blue pins** for regions with active deployments in progress
 - **Pin size** varies based on deployment status and latency
 
-<!-- Screenshot: deploy-page-world-map-with-deployed-regions.avif -->
+![Ultralytics Platform Deploy Page World Map With Deployed Regions](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-world-map-with-deployed-regions.avif)
 
 ### Deployments List
 
@@ -74,12 +74,12 @@ Below the overview cards, the deployments list shows all endpoints across your p
 | View        | Description                                                                  |
 | ----------- | ---------------------------------------------------------------------------- |
 | **Cards**   | Full detail cards with metrics, logs, code, and predict tabs                 |
-| **Compact** | Grid of smaller cards (2-4 columns) with key metrics                         |
+| **Compact** | Grid of smaller cards (1-4 columns) with key metrics                         |
 | **Table**   | DataTable with sortable columns: Name, Region, Status, Requests, P95, Errors |
 
 !!! tip "Real-Time Updates"
 
-    The dashboard polls every 30 seconds for metric updates. When deployments are in a transitional state (creating, deploying, stopping), polling increases to every 2-3 seconds. Click the refresh button for immediate updates.
+    The dashboard polls every 30 seconds for metric updates. When deployments are in a transitional state (creating, deploying), polling increases to every 3 seconds. Click the refresh button for immediate updates.
 
 ## Per-Deployment Metrics
 
@@ -105,19 +105,19 @@ Running deployments show a health check indicator:
 | **Red heart**     | Unhealthy — shows error message  |
 | **Spinning icon** | Health check in progress         |
 
-Health checks auto-retry every 20 seconds when unhealthy. Click the refresh icon to manually trigger a health check. The health check has a 35-second timeout to accommodate cold starts.
+Health checks auto-retry every 20 seconds when unhealthy. Click the refresh icon to manually trigger a health check. The health check uses a 55-second timeout to accommodate cold starts on scale-to-zero endpoints.
 
-<!-- Screenshot: deployment-card-health-check-healthy-with-latency.avif -->
+![Ultralytics Platform Deployment Card Health Check Healthy With Latency](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deployment-card-health-check-healthy-with-latency.avif)
 
 !!! info "Cold Start Tolerance"
 
-    The health check uses a 35-second timeout to account for cold starts on scale-to-zero endpoints. Once the endpoint warms up, health checks complete in milliseconds.
+    The health check uses a 55-second timeout to account for cold starts on scale-to-zero endpoints (up to ~45 seconds in worst case). Once the endpoint warms up, health checks complete in milliseconds.
 
 ## Logs
 
 Each deployment card includes a `Logs` tab for viewing recent log entries:
 
-<!-- Screenshot: deployment-card-logs-tab-with-severity-filter.avif -->
+![Ultralytics Platform Deployment Card Logs Tab With Severity Filter](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deployment-card-logs-tab-with-severity-filter.avif)
 
 ### Log Entries
 
@@ -130,28 +130,28 @@ Each log entry shows:
 | **Message**   | Log content                             |
 | **HTTP info** | Status code and latency (if applicable) |
 
-### Severity Levels
+=== "Severity Levels"
 
-Filter logs by severity using the filter buttons:
+    Filter logs by severity using the filter buttons:
 
-| Level        | Color    | Description         |
-| ------------ | -------- | ------------------- |
-| **DEBUG**    | Gray     | Debug messages      |
-| **INFO**     | Blue     | Normal requests     |
-| **WARNING**  | Yellow   | Non-critical issues |
-| **ERROR**    | Red      | Failed requests     |
-| **CRITICAL** | Dark Red | Critical failures   |
+    | Level        | Color    | Description         |
+    | ------------ | -------- | ------------------- |
+    | **DEBUG**    | Gray     | Debug messages      |
+    | **INFO**     | Blue     | Normal requests     |
+    | **WARNING**  | Yellow   | Non-critical issues |
+    | **ERROR**    | Red      | Failed requests     |
+    | **CRITICAL** | Dark Red | Critical failures   |
 
-### Log Controls
+=== "Log Controls"
 
-| Control     | Description                         |
-| ----------- | ----------------------------------- |
-| **Errors**  | Filter to ERROR and WARNING entries |
-| **All**     | Show all log entries                |
-| **Copy**    | Copy all visible logs to clipboard  |
-| **Refresh** | Reload log entries                  |
+    | Control     | Description                         |
+    | ----------- | ----------------------------------- |
+    | **Errors**  | Filter to ERROR and WARNING entries |
+    | **All**     | Show all log entries                |
+    | **Copy**    | Copy all visible logs to clipboard  |
+    | **Refresh** | Reload log entries                  |
 
-Logs show the 20 most recent entries per request.
+The UI shows the 20 most recent entries. The API defaults to 50 entries per request (max 200).
 
 !!! tip "Debugging Workflow"
 
@@ -167,7 +167,7 @@ Each deployment card includes a `Code` tab showing ready-to-use API code with yo
     import requests
 
     # Deployment endpoint
-    url = "https://predict-abc123-us-central1.a.run.app/predict"
+    url = "https://predict-abc123.run.app/predict"
 
     # Headers with your deployment API key
     headers = {"Authorization": "Bearer YOUR_API_KEY"}
@@ -194,7 +194,7 @@ Each deployment card includes a `Code` tab showing ready-to-use API code with yo
 
     // Send image for inference
     const response = await fetch(
-      "https://predict-abc123-us-central1.a.run.app/predict",
+      "https://predict-abc123.run.app/predict",
       {
         method: "POST",
         headers: { Authorization: "Bearer YOUR_API_KEY" },
@@ -210,7 +210,7 @@ Each deployment card includes a `Code` tab showing ready-to-use API code with yo
 
     ```bash
     # Send image for inference
-    curl -X POST "https://predict-abc123-us-central1.a.run.app/predict" \
+    curl -X POST "https://predict-abc123.run.app/predict" \
       -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg" \
       -F "conf=0.25" \
@@ -220,11 +220,11 @@ Each deployment card includes a `Code` tab showing ready-to-use API code with yo
 
 !!! note "Auto-Populated Credentials"
 
-    When viewing the `Code` tab in the platform, your actual endpoint URL and API key are automatically filled in. Copy the code and run it directly.
+    When viewing the `Code` tab in the platform, your actual endpoint URL and API key are automatically filled in. Copy the code and run it directly. See [API Keys](../account/api-keys.md) to generate a key.
 
 ## Deployment Predict
 
-The `Predict` tab on each deployment card provides an inline predict panel — the same interface as the model's `Predict` tab, but running inference through the deployment endpoint instead of the shared service. This is useful for testing a deployed endpoint directly from the browser.
+The `Predict` tab on each deployment card provides an inline predict panel — the same interface as the model's `Predict` tab, but running inference through the deployment endpoint instead of the shared service. This is useful for testing a deployed endpoint directly from the browser. See [Inference](inference.md) for parameter details and response formats.
 
 ## API Endpoints
 
@@ -239,23 +239,29 @@ Returns aggregated metrics for all deployments owned by the authenticated user. 
 ### Deployment Metrics
 
 ```
-GET /api/deployments/{deploymentId}/metrics?sparkline=true
+GET /api/deployments/{deploymentId}/metrics?sparkline=true&range=24h
 ```
 
 Returns sparkline data and summary metrics for a specific deployment. Refresh interval: 60 seconds.
 
+| Parameter   | Type   | Description                                   |
+| ----------- | ------ | --------------------------------------------- |
+| `sparkline` | bool   | Include sparkline data                        |
+| `range`     | string | Time range: `1h`, `6h`, `24h`, `7d`, or `30d` |
+
 ### Deployment Logs
 
 ```
-GET /api/deployments/{deploymentId}/logs?limit=20&severity=ERROR,WARNING
+GET /api/deployments/{deploymentId}/logs?limit=50&severity=ERROR,WARNING
 ```
 
 Returns recent log entries with optional severity filter and pagination.
 
-| Parameter  | Type   | Description                         |
-| ---------- | ------ | ----------------------------------- |
-| `limit`    | int    | Max entries to return (default: 20) |
-| `severity` | string | Comma-separated severity filter     |
+| Parameter   | Type   | Description                                   |
+| ----------- | ------ | --------------------------------------------- |
+| `limit`     | int    | Max entries to return (default: 50, max: 200) |
+| `severity`  | string | Comma-separated severity filter               |
+| `pageToken` | string | Pagination token from previous response       |
 
 ### Deployment Health
 
@@ -277,52 +283,35 @@ Returns health check status with response latency.
 
 Use monitoring data to optimize your deployments:
 
-### High Latency
+=== "High Latency"
 
-If latency is too high:
+    If latency is too high:
 
-1. Check instance count (may need more)
-2. Verify model size is appropriate
-3. Consider a closer region
-4. Check image sizes being sent
+    1. Check instance count (may need more)
+    2. Verify model size is appropriate
+    3. Consider a closer region
+    4. Check image sizes being sent
 
-!!! example "Reducing Latency"
+    !!! example "Reducing Latency"
 
-    Switch from `imgsz=1280` to `imgsz=640` for a ~4x speedup with minimal accuracy loss for most use cases. Deploy to a region closer to your users for lower network latency.
+        Switch from `imgsz=1280` to `imgsz=640` for a ~4x speedup with minimal accuracy loss for most use cases. Deploy to a region closer to your users for lower network latency.
 
-### High Error Rate
+=== "High Error Rate"
 
-If errors are occurring:
+    If errors are occurring:
 
-1. Review error logs in the `Logs` tab
-2. Check request format (multipart form required)
-3. Verify API key is valid
-4. Check rate limits
+    1. Review error logs in the `Logs` tab
+    2. Check request format (multipart form required)
+    3. Verify API key is valid
+    4. Check rate limits
 
-### Scaling Issues
+=== "Scaling Issues"
 
-If hitting capacity:
+    If hitting capacity:
 
-1. Increase max instances
-2. Set min instances > 0
-3. Consider multiple regions
-4. Optimize request batching
-
-## Export Data
-
-Export monitoring data for analysis:
-
-1. Select time range
-2. Click **Export**
-3. Download CSV file
-
-Export includes:
-
-- Timestamp
-- Request count
-- Latency metrics
-- Error counts
-- Instance metrics
+    1. Consider multiple regions
+    2. Optimize request batching
+    3. Increase CPU and memory resources
 
 ## FAQ
 
@@ -332,7 +321,6 @@ Export includes:
 | ----------- | --------- |
 | **Metrics** | 30 days   |
 | **Logs**    | 7 days    |
-| **Alerts**  | 90 days   |
 
 ### Can I set up external monitoring?
 

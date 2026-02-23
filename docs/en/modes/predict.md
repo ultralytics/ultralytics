@@ -872,4 +872,4 @@ The `model.predict()` method in YOLO supports various arguments such as `conf`, 
 
 ### How can I visualize and save the results of YOLO predictions?
 
-After running inference with YOLO, the `Results` objects contain methods for displaying and saving annotated images. You can use methods like `result.show()` and `result.save(filename="result.jpg")` to visualize and save the results. For a comprehensive list of these methods, refer to the [working with results](#working-with-results) section.
+After running inference with YOLO, the `Results` objects contain methods for displaying and saving annotated images. You can use methods like `result.show()` and `result.save(filename="result.jpg")` to visualize and save the results. Any missing parent directories in the filename path are created automatically (e.g., `result.save("path/to/result.jpg")`). For a comprehensive list of these methods, refer to the [working with results](#working-with-results) section.

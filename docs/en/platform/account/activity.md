@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, activity feed, audit log, notifications, event t
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides a comprehensive activity feed that tracks all events and actions across your account. Monitor training progress and system events in one centralized location.
 
-<!-- Screenshot: activity-page-inbox-tab-with-event-list.avif -->
+![Ultralytics Platform Activity Page Inbox Tab With Event List](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/activity-page-inbox-tab-with-event-list.avif)
 
 ## Overview
 
@@ -29,21 +29,44 @@ Navigate to the Activity Feed:
 1. Click **Activity** in the sidebar
 2. Or navigate directly to `/activity`
 
-<!-- Screenshot: activity-page-inbox-with-search-and-date-filter.avif -->
+![Ultralytics Platform Activity Page Inbox With Search And Date Filter](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/activity-page-inbox-with-search-and-date-filter.avif)
 
 ## Activity Types
 
 The Platform tracks the following resource types and actions:
 
-| Resource Type  | Description                 | Icon Color     |
-| -------------- | --------------------------- | -------------- |
-| **project**    | Project events              | Blue           |
-| **dataset**    | Dataset events              | Green          |
-| **model**      | Model events                | Purple         |
-| **training**   | Training job events         | Blue/Green/Red |
-| **settings**   | Account settings changes    | Gray           |
-| **api_key**    | API key creation/revocation | Amber          |
-| **onboarding** | Onboarding completion       | Green          |
+| Resource Type  | Description                                 | Icon Color          |
+| -------------- | ------------------------------------------- | ------------------- |
+| **project**    | [Project](../train/projects.md) events      | Blue                |
+| **dataset**    | [Dataset](../data/datasets.md) events       | Green               |
+| **model**      | [Model](../train/models.md) events          | Purple              |
+| **training**   | Training job events                         | Blue/Green/Red/Gray |
+| **settings**   | Account settings changes                    | Gray                |
+| **api_key**    | [API key](api-keys.md) creation/revocation  | Amber               |
+| **export**     | Model export events                         | Amber               |
+| **deployment** | [Deployment](../deploy/endpoints.md) events | Blue                |
+| **onboarding** | Onboarding completion                       | Green               |
+
+### Action Types
+
+Each event includes one of the following action types:
+
+| Action        | Description                                  |
+| ------------- | -------------------------------------------- |
+| **created**   | Resource was created                         |
+| **updated**   | Resource was modified                        |
+| **deleted**   | Resource was permanently deleted             |
+| **trashed**   | Resource was moved to trash                  |
+| **restored**  | Resource was restored from trash             |
+| **started**   | Training or export job was started           |
+| **completed** | Training or export job finished successfully |
+| **failed**    | Training or export job failed                |
+| **cancelled** | Training or export job was cancelled         |
+| **uploaded**  | Data was uploaded (images, model weights)    |
+| **shared**    | Resource visibility changed to public        |
+| **unshared**  | Resource visibility changed to private       |
+| **exported**  | Model was exported to a deployment format    |
+| **cloned**    | Resource was cloned to another location      |
 
 ## Inbox and Archive
 
@@ -80,10 +103,10 @@ Use the search bar to find events by resource name or event description.
 Filter by time period using the date range picker:
 
 - Select a start and end date
-- Default range: last 30 days
+- No default date filter (shows all events)
 - Custom date ranges supported
 
-<!-- Screenshot: activity-page-date-range-picker-expanded.avif -->
+![Ultralytics Platform Activity Page Date Range Picker Expanded](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/activity-page-date-range-picker-expanded.avif)
 
 ## Event Details
 
@@ -109,37 +132,50 @@ The Activity feed supports pagination:
 
 - Default page size: 20 events
 - Navigate between pages using the pagination controls
-- Adjust page size as needed
+- Page size is configurable via URL query parameter
 
 ## API Access
 
-Access activity programmatically via the REST API:
+Access activity programmatically via the [REST API](../api/index.md#activity-api):
 
-```bash
-# List activity
-curl -H "Authorization: Bearer YOUR_API_KEY" \
-  https://platform.ultralytics.com/api/activity
+=== "List Activity"
 
-# Filter by date range
-curl -H "Authorization: Bearer YOUR_API_KEY" \
-  "https://platform.ultralytics.com/api/activity?start=2025-01-01T00:00:00Z&end=2025-01-31T23:59:59Z"
+    ```bash
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
+      https://platform.ultralytics.com/api/activity
+    ```
 
-# Mark events as seen
-curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
-  https://platform.ultralytics.com/api/activity/mark-seen
+=== "Filter and Search"
 
-# Archive events
-curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"eventIds": ["event_id_here"], "archive": true}' \
-  https://platform.ultralytics.com/api/activity/archive
+    ```bash
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
+      "https://platform.ultralytics.com/api/activity?archived=false&search=model&page=1&limit=20"
+    ```
 
-# Archive all events
-curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"all": true, "archive": true}' \
-  https://platform.ultralytics.com/api/activity/archive
-```
+=== "Mark Seen"
+
+    ```bash
+    curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"all": true}' \
+      https://platform.ultralytics.com/api/activity/mark-seen
+    ```
+
+=== "Archive"
+
+    ```bash
+    # Archive specific events
+    curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"eventIds": ["event_id_here"], "archive": true}' \
+      https://platform.ultralytics.com/api/activity/archive
+
+    # Archive all events
+    curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"all": true, "archive": true}' \
+      https://platform.ultralytics.com/api/activity/archive
+    ```
 
 ## FAQ
 
@@ -149,7 +185,7 @@ Activity history is retained indefinitely for your account. Archived events are 
 
 ### Can I export my activity history?
 
-Yes, use the GDPR data export feature in `Settings > Profile` to download all account data including activity history.
+Yes, use the GDPR data export feature in [`Settings > Profile`](settings.md#gdpr-compliance) to download all account data including activity history.
 
 ### What happens to activity when I delete a resource?
 

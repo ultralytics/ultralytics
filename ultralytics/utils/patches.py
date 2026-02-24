@@ -12,6 +12,7 @@ from typing import Any
 import cv2
 import numpy as np
 import torch
+from PIL import Image
 
 # OpenCV Multilanguage-friendly functions ------------------------------------------------------------------------------
 _imshow = cv2.imshow  # copy to avoid recursion errors
@@ -46,7 +47,43 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
         return im[..., None] if im is not None and im.ndim == 2 else im  # Always ensure 3 dimensions
 
 
+# PIL patches ---------------------------------------------------------------------------------------------------------
+_image_open = Image.open  # copy to avoid recursion errors
 _pil_plugins_registered = False
+
+
+def image_open(filename, *args, **kwargs):
+    """Open an image with PIL, lazily registering the HEIF plugin on first failure.
+
+    This monkey-patches PIL.Image.open to add HEIC/HEIF support via pi-heif (lightweight, decode-only), avoiding the
+    ~800ms startup cost of importing the package unless actually needed. AVIF is supported natively by Pillow 12+ and
+    does not require a plugin.
+
+    Args:
+        filename (str): Path to the image file.
+        *args (Any): Additional positional arguments passed to PIL.Image.open.
+        **kwargs (Any): Additional keyword arguments passed to PIL.Image.open.
+
+    Returns:
+        (PIL.Image.Image): The opened PIL image.
+    """
+    global _pil_plugins_registered
+    if _pil_plugins_registered:
+        return _image_open(filename, *args, **kwargs)
+    try:
+        return _image_open(filename, *args, **kwargs)
+    except Exception:
+        from ultralytics.utils.checks import check_requirements
+
+        check_requirements("pi-heif")
+        from pi_heif import register_heif_opener
+
+        register_heif_opener()
+        _pil_plugins_registered = True
+        return _image_open(filename, *args, **kwargs)
+
+
+Image.open = image_open  # apply patch
 
 
 def _imread_pil(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
@@ -59,24 +96,7 @@ def _imread_pil(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | No
     Returns:
         (np.ndarray | None): The read image array in BGR format, or None if reading fails.
     """
-    global _pil_plugins_registered
     try:
-        from PIL import Image
-
-        # Register HEIF/AVIF plugins once
-        if not _pil_plugins_registered:
-            try:
-                import pillow_heif
-
-                pillow_heif.register_heif_opener()
-            except ImportError:
-                pass
-            try:
-                import pillow_avif  # noqa: F401
-            except ImportError:
-                pass
-            _pil_plugins_registered = True
-
         with Image.open(filename) as img:
             if flags == cv2.IMREAD_GRAYSCALE:
                 return np.asarray(img.convert("L"))

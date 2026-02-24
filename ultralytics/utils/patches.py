@@ -12,6 +12,7 @@ from typing import Any
 import cv2
 import numpy as np
 import torch
+from PIL import Image
 
 # OpenCV Multilanguage-friendly functions ------------------------------------------------------------------------------
 _imshow = cv2.imshow  # copy to avoid recursion errors
@@ -47,8 +48,6 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
 
 
 # PIL patches ---------------------------------------------------------------------------------------------------------
-from PIL import Image
-
 _image_open = Image.open  # copy to avoid recursion errors
 _pil_plugins_registered = False
 

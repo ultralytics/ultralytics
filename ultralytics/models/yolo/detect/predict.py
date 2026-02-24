@@ -62,6 +62,7 @@ class DetectionPredictor(BasePredictor):
             end2end=getattr(self.model, "end2end", False),
             rotated=self.args.task == "obb",
             return_idxs=save_feats,
+            topk = self.args.topk
         )
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
@@ -119,4 +120,6 @@ class DetectionPredictor(BasePredictor):
             (Results): Results object containing the original image, image path, class names, and scaled bounding boxes.
         """
         pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
+        if getattr(self.args, "topk", 1) > 1:
+            return Results(orig_img, path=img_path, names=self.model.names, boxes=pred)
         return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6])

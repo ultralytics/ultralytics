@@ -122,5 +122,8 @@ class DetectionPredictor(BasePredictor):
         """
         pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
         if getattr(self.args, "topk", 1) > 1:
-            return Results(orig_img, path=img_path, names=self.model.names, boxes=pred)
+            # Keep only top-k box layout columns so Boxes parsing is unaffected by any appended extras.
+            k = min(int(getattr(self.args, "topk", 1)), len(self.model.names))
+            box_cols = min(4 + (2 * k), pred.shape[1])
+            return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :box_cols])
         return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6])

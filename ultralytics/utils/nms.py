@@ -26,6 +26,7 @@ def non_max_suppression(
     rotated: bool = False,
     end2end: bool = False,
     return_idxs: bool = False,
+    topk: int = 1,
 ):
     """Perform non-maximum suppression (NMS) on prediction results.
 
@@ -80,6 +81,7 @@ def non_max_suppression(
     # min_wh = 2  # (pixels) minimum box width and height
     time_limit = 2.0 + max_time_img * bs  # seconds to quit after
     multi_label &= nc > 1  # multiple labels per box (adds 0.5ms/img)
+    topk = max(int(topk), 1)
 
     prediction = prediction.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
     if not rotated:
@@ -110,8 +112,22 @@ def non_max_suppression(
 
         # Detections matrix nx6 (xyxy, conf, cls)
         box, cls, mask = x.split((4, nc, extra), 1)
+        cls_start, cls_end = 5, 6
 
-        if multi_label:
+        if multi_label and topk > 1:
+            k = min(topk, cls.shape[1])
+            scores, indices = torch.topk(cls, k, dim=1)
+            # Keep/drop boxes by top-1 confidence only (same intent as legacy conf filtering).
+            keep = scores[:, 0] > conf_thres
+            if not keep.any():
+                continue
+            box, scores, indices, mask = box[keep], scores[keep], indices[keep], mask[keep]
+            if return_idxs:
+                xk = xk[keep]
+            # Keep custom top-k layout: [xyxy, score1..K, class1..K, extra...]
+            x = torch.cat((box, scores, indices.float(), mask), 1)
+            cls_start, cls_end = 4 + k, 4 + (2 * k)
+        elif multi_label:
             i, j = torch.where(cls > conf_thres)
             x = torch.cat((box[i], x[i, 4 + j, None], j[:, None].float(), mask[i]), 1)
             if return_idxs:
@@ -125,7 +141,7 @@ def non_max_suppression(
 
         # Filter by class
         if classes is not None:
-            filt = (x[:, 5:6] == classes).any(1)
+            filt = (x[:, cls_start:cls_end] == classes).any(1)
             x = x[filt]
             if return_idxs:
                 xk = xk[filt]
@@ -140,7 +156,7 @@ def non_max_suppression(
             if return_idxs:
                 xk = xk[filt]
 
-        c = x[:, 5:6] * (0 if agnostic else max_wh)  # classes
+        c = x[:, cls_start : cls_start + 1] * (0 if agnostic else max_wh)  # use top-1 class for class-aware NMS
         scores = x[:, 4]  # scores
         if rotated:
             boxes = torch.cat((x[:, :2] + c, x[:, 2:4], x[:, -1:]), dim=-1)  # xywhr

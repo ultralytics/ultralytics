@@ -873,9 +873,21 @@ class Boxes(BaseTensor):
         if boxes.ndim == 1:
             boxes = boxes[None, :]
         n = boxes.shape[-1]
-        assert n in {6, 7}, f"expected 6 or 7 values but got {n}"  # xyxy, track_id, conf, cls
+        if n in {6, 7}:  # legacy format [xyxy, (track_id), conf, cls]
+            self.is_track = n == 7
+            self.topk = 1
+        elif n >= 8 and n % 2 == 0:  # [xyxy, score1..K, class1..K]
+            self.is_track = False
+            self.topk = (n - 4) // 2
+        elif n >= 9 and n % 2 == 1:  # [xyxy, track_id, score1..K, class1..K]
+            self.is_track = True
+            self.topk = (n - 5) // 2
+        else:
+            raise AssertionError(f"expected 6/7 or topk box layout but got {n} values")
+
         super().__init__(boxes, orig_shape)
-        self.is_track = n == 7
+        self._conf_start = 5 if self.is_track else 4
+        self._cls_start = self._conf_start + self.topk
         self.orig_shape = orig_shape
 
     @property
@@ -908,7 +920,16 @@ class Boxes(BaseTensor):
             >>> print(conf_scores)
             tensor([0.9000])
         """
-        return self.data[:, -2]
+        return self.conf_topk[:, 0]
+
+    @property
+    def conf_topk(self) -> torch.Tensor | np.ndarray:
+        """Return top-k confidence scores for each detection box.
+
+        Returns:
+            (torch.Tensor | np.ndarray): A tensor or array with shape (N, K), where N is detections and K is top-k.
+        """
+        return self.data[:, self._conf_start : self._conf_start + self.topk]
 
     @property
     def cls(self) -> torch.Tensor | np.ndarray:
@@ -924,7 +945,16 @@ class Boxes(BaseTensor):
             >>> class_ids = boxes.cls
             >>> print(class_ids)  # tensor([0., 2., 1.])
         """
-        return self.data[:, -1]
+        return self.cls_topk[:, 0]
+
+    @property
+    def cls_topk(self) -> torch.Tensor | np.ndarray:
+        """Return top-k class IDs for each detection box.
+
+        Returns:
+            (torch.Tensor | np.ndarray): A tensor or array with shape (N, K), where N is detections and K is top-k.
+        """
+        return self.data[:, self._cls_start : self._cls_start + self.topk]
 
     @property
     def id(self) -> torch.Tensor | np.ndarray | None:
@@ -948,7 +978,7 @@ class Boxes(BaseTensor):
             - This property is only available when tracking is enabled (i.e., when `is_track` is True).
             - The tracking IDs are typically used to associate detections across multiple frames in video analysis.
         """
-        return self.data[:, -3] if self.is_track else None
+        return self.data[:, 4] if self.is_track else None
 
     @property
     @lru_cache(maxsize=2)

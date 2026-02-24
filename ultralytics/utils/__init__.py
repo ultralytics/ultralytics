@@ -370,6 +370,22 @@ def plt_settings(rcparams=None, backend="Agg"):
             """Set rc parameters and backend, call the original function, and restore the settings."""
             import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
 
+            # Prepend Arial Unicode for non-Latin text (CJK, Arabic, etc.); matplotlib falls back if missing
+            if "font.sans-serif" not in rcparams and not wrapper._fonts_registered:
+                from matplotlib import font_manager
+
+                # Register any fonts in Ultralytics config dir (e.g. Arial.Unicode.ttf) with matplotlib
+                known = {f.fname for f in font_manager.fontManager.ttflist}
+                for f in USER_CONFIG_DIR.glob("*.ttf"):
+                    if str(f) not in known:
+                        font_manager.fontManager.addfont(str(f))
+                wrapper._fonts_registered = True
+            rc = (
+                rcparams
+                if "font.sans-serif" in rcparams
+                else {**rcparams, "font.sans-serif": ["Arial Unicode MS", *plt.rcParams.get("font.sans-serif", [])]}
+            )
+
             original_backend = plt.get_backend()
             switch = backend.lower() != original_backend.lower()
             if switch:
@@ -378,7 +394,7 @@ def plt_settings(rcparams=None, backend="Agg"):
 
             # Plot with backend and always revert to original backend
             try:
-                with plt.rc_context(rcparams):
+                with plt.rc_context(rc):
                     result = func(*args, **kwargs)
             finally:
                 if switch:
@@ -386,6 +402,7 @@ def plt_settings(rcparams=None, backend="Agg"):
                     plt.switch_backend(original_backend)
             return result
 
+        wrapper._fonts_registered = False
         return wrapper
 
     return decorator

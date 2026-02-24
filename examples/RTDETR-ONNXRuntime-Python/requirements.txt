@@ -9,7 +9,7 @@ numpy==2.0.2
 onnx==1.18.0
 onnxruntime==1.19.2
 packaging==25.0
-protobuf==6.31.1
+protobuf==6.33.5
 requests==2.32.4
 sympy==1.14.0
 typing-extensions==4.14.0

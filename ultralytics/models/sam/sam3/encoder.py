@@ -38,7 +38,6 @@ class TransformerEncoderLayer(nn.Module):
         """Initialize a transformer encoder layer.
 
         Args:
-            cross_attention: Cross-attention module for attending to image features
             d_model: Model dimension/hidden size
             dim_feedforward: Dimension of the feedforward network
             dropout: Dropout probability
@@ -47,6 +46,7 @@ class TransformerEncoderLayer(nn.Module):
             pos_enc_at_cross_attn_queries: Whether to add positional encodings to queries in cross-attention
             pre_norm: Whether to use pre-norm (True) or post-norm (False) architecture
             self_attention: Self-attention module
+            cross_attention: Cross-attention module for attending to image features
         """
         super().__init__()
         self.d_model = d_model

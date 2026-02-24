@@ -350,7 +350,7 @@ def plt_settings(rcparams=None, backend="Agg"):
 
     Examples:
         >>> @plt_settings({"font.size": 12})
-        >>> def plot_function():
+        ... def plot_function():
         ...     plt.figure()
         ...     plt.plot([1, 2, 3])
         ...     plt.show()
@@ -370,6 +370,22 @@ def plt_settings(rcparams=None, backend="Agg"):
             """Set rc parameters and backend, call the original function, and restore the settings."""
             import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
 
+            # Prepend Arial Unicode for non-Latin text (CJK, Arabic, etc.); matplotlib falls back if missing
+            if "font.sans-serif" not in rcparams and not wrapper._fonts_registered:
+                from matplotlib import font_manager
+
+                # Register any fonts in Ultralytics config dir (e.g. Arial.Unicode.ttf) with matplotlib
+                known = {f.fname for f in font_manager.fontManager.ttflist}
+                for f in USER_CONFIG_DIR.glob("*.ttf"):
+                    if str(f) not in known:
+                        font_manager.fontManager.addfont(str(f))
+                wrapper._fonts_registered = True
+            rc = (
+                rcparams
+                if "font.sans-serif" in rcparams
+                else {**rcparams, "font.sans-serif": ["Arial Unicode MS", *plt.rcParams.get("font.sans-serif", [])]}
+            )
+
             original_backend = plt.get_backend()
             switch = backend.lower() != original_backend.lower()
             if switch:
@@ -378,7 +394,7 @@ def plt_settings(rcparams=None, backend="Agg"):
 
             # Plot with backend and always revert to original backend
             try:
-                with plt.rc_context(rcparams):
+                with plt.rc_context(rc):
                     result = func(*args, **kwargs)
             finally:
                 if switch:
@@ -386,6 +402,7 @@ def plt_settings(rcparams=None, backend="Agg"):
                     plt.switch_backend(original_backend)
             return result
 
+        wrapper._fonts_registered = False
         return wrapper
 
     return decorator
@@ -482,7 +499,7 @@ class ThreadingLocked:
     Examples:
         >>> from ultralytics.utils import ThreadingLocked
         >>> @ThreadingLocked()
-        >>> def my_function():
+        ... def my_function():
         ...    # Your code here
     """
 
@@ -640,10 +657,10 @@ DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 
 
 def read_device_model() -> str:
-    """Read the device model information from the system and cache it for quick access.
+    """Read the device model information from the system.
 
     Returns:
-        (str): Kernel release information.
+        (str): Platform release string in lowercase, used to identify device models like Jetson or Raspberry Pi.
     """
     return platform.release().lower()
 
@@ -762,11 +779,24 @@ def is_jetson(jetpack=None) -> bool:
     if jetson and jetpack:
         try:
             content = open("/etc/nv_tegra_release").read()
-            version_map = {4: "R32", 5: "R35", 6: "R36"}  # JetPack to L4T major version mapping
+            version_map = {4: "R32", 5: "R35", 6: "R36", 7: "R38"}  # JetPack to L4T major version mapping
             return jetpack in version_map and version_map[jetpack] in content
         except Exception:
             return False
     return jetson
+
+
+def is_dgx() -> bool:
+    """Check if the current script is running inside a DGX (NVIDIA Data Center GPU), DGX-Ready or DGX Spark system.
+
+    Returns:
+        (bool): True if running in a DGX or DGX-Ready or DGX Spark system, False otherwise.
+    """
+    try:
+        with open("/etc/dgx-release") as f:
+            return "DGX" in f.read()
+    except FileNotFoundError:
+        return False
 
 
 def is_online() -> bool:
@@ -940,7 +970,7 @@ def colorstr(*input):
 
     Examples:
         >>> colorstr("blue", "bold", "hello world")
-        >>> "\033[34m\033[1mhello world\033[0m"
+        "\033[34m\033[1mhello world\033[0m"
 
     Notes:
         Supported Colors and Styles:
@@ -988,7 +1018,7 @@ def remove_colorstr(input_string):
 
     Examples:
         >>> remove_colorstr(colorstr("blue", "bold", "hello world"))
-        >>> "hello world"
+        "hello world"
     """
     ansi_escape = re.compile(r"\x1B\[[0-9;]*[A-Za-z]")
     return ansi_escape.sub("", input_string)
@@ -1007,14 +1037,14 @@ class TryExcept(contextlib.ContextDecorator):
     Examples:
         As a decorator:
         >>> @TryExcept(msg="Error occurred in func", verbose=True)
-        >>> def func():
-        >>> # Function logic here
-        >>>     pass
+        ... def func():
+        ...     # Function logic here
+        ...     pass
 
         As a context manager:
         >>> with TryExcept(msg="Error occurred in block", verbose=True):
-        >>> # Code block here
-        >>>     pass
+        ...     # Code block here
+        ...     pass
     """
 
     def __init__(self, msg="", verbose=True):
@@ -1047,9 +1077,9 @@ class Retry(contextlib.ContextDecorator):
     Examples:
         Example usage as a decorator:
         >>> @Retry(times=3, delay=2)
-        >>> def test_func():
-        >>> # Replace with function logic that may raise exceptions
-        >>>     return True
+        ... def test_func():
+        ...     # Replace with function logic that may raise exceptions
+        ...     return True
     """
 
     def __init__(self, times=3, delay=2):

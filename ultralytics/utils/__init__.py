@@ -391,7 +391,7 @@ def plt_settings(rcparams=None, backend="Agg"):
                             if str(font_path) not in {f.fname for f in font_manager.fontManager.ttflist}:
                                 font_manager.fontManager.addfont(str(font_path))
                             prop = font_manager.FontProperties(fname=str(font_path))
-                            _matplotlib_font_sans_serif = [prop.get_name()] + plt.rcParams.get("font.sans-serif", [])
+                            _matplotlib_font_sans_serif = [prop.get_name(), *plt.rcParams.get("font.sans-serif", [])]
                     except Exception:
                         pass
                 if _matplotlib_font_sans_serif:

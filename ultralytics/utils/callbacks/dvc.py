@@ -114,7 +114,7 @@ def on_train_start(trainer) -> None:
 
 
 def on_train_epoch_start(trainer) -> None:
-    """Set the global variable _training_epoch value to True at the start of training each epoch."""
+    """Set the global variable _training_epoch value to True at the start of each training epoch."""
     global _training_epoch
     _training_epoch = True
 

@@ -80,7 +80,7 @@ similar = exp.get_similar(idx=1, limit=10)
 similar.head()
 ```
 
-You can use the also plot the similar samples directly using the `plot_similar` util
+You can also plot the similar samples directly using the `plot_similar` util
 
 ![Similar images found by vector search](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/similarity-search-image-1.avif)
 
@@ -236,7 +236,7 @@ Here's a simple example of an operation powered by the embeddings table. Explore
 - It tries to estimate how similar each data point is with the rest of the dataset.
 - It does that by counting how many image embeddings lie closer than max_dist to the current image in the generated embedding space, considering top_k similar images at a time.
 
-For a given dataset, model, `max_dist` & `top_k` the similarity index once generated will be reused. In case, your dataset has changed, or you simply need to regenerate the similarity index, you can pass `force=True`. Similar to vector and SQL search, this also comes with a util to directly plot it. Let's look
+For a given dataset, model, `max_dist` & `top_k` the similarity index once generated will be reused. In case, your dataset has changed, or you simply need to regenerate the similarity index, you can pass `force=True`. Similar to vector and SQL search, this also comes with a util to directly plot it.
 
 ```python
 sim_idx = exp.similarity_index(max_dist=0.2, top_k=0.01)
@@ -245,7 +245,7 @@ exp.plot_similarity_index(max_dist=0.2, top_k=0.01)
 
 ![Dataset similarity index analysis](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/similarity-index.avif)
 
-at the plot first
+Let's look at the plot first
 
 ```python
 exp.plot_similarity_index(max_dist=0.2, top_k=0.01)

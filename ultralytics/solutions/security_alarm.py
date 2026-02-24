@@ -62,7 +62,7 @@ class SecurityAlarm(BaseSolution):
         """
         import smtplib
 
-        self.server = smtplib.SMTP("smtp.gmail.com: 587")
+        self.server = smtplib.SMTP("smtp.gmail.com", 587)
         self.server.starttls()
         self.server.login(from_email, password)
         self.to_email = to_email
@@ -113,11 +113,11 @@ class SecurityAlarm(BaseSolution):
             LOGGER.error(f"Failed to send email: {e}")
 
     def process(self, im0) -> SolutionResults:
-        """Monitor the frame, process object detections, and trigger alerts if thresholds are exceeded.
+        """Monitor the frame, process object detections, and trigger alerts if thresholds are met.
 
         This method processes the input frame, extracts detections, annotates the frame with bounding boxes, and sends
-        an email notification if the number of detected objects surpasses the specified threshold and an alert has not
-        already been sent.
+        an email notification if the number of detected objects meets or exceeds the specified threshold and an alert
+        has not already been sent.
 
         Args:
             im0 (np.ndarray): The input image or frame to be processed and annotated.

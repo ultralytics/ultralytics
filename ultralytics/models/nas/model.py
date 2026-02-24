@@ -88,7 +88,7 @@ class NAS(Model):
             verbose (bool): Controls verbosity.
 
         Returns:
-            (dict[str, Any]): Model information dictionary.
+            (tuple): Model information as a tuple of (layers, parameters, gradients, GFLOPs).
         """
         return model_info(self.model, detailed=detailed, verbose=verbose, imgsz=640)
 

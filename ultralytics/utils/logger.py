@@ -262,7 +262,7 @@ class ConsoleLogger:
             self.callback = callback
 
         def write(self, text):
-            """Forward text to the wrapped original stream, preserving default stdout/stderr semantics."""
+            """Write text to the original stream and forward it to the capture callback."""
             self.original.write(text)
             self.callback(text)
 

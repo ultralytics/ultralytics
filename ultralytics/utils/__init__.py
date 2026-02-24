@@ -380,7 +380,11 @@ def plt_settings(rcparams=None, backend="Agg"):
                     if str(f) not in known:
                         font_manager.fontManager.addfont(str(f))
                 wrapper._fonts_registered = True
-            rc = rcparams if "font.sans-serif" in rcparams else {**rcparams, "font.sans-serif": ["Arial Unicode MS", *plt.rcParams.get("font.sans-serif", [])]}
+            rc = (
+                rcparams
+                if "font.sans-serif" in rcparams
+                else {**rcparams, "font.sans-serif": ["Arial Unicode MS", *plt.rcParams.get("font.sans-serif", [])]}
+            )
 
             original_backend = plt.get_backend()
             switch = backend.lower() != original_backend.lower()

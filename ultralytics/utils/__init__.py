@@ -338,6 +338,9 @@ class IterableSimpleNamespace(SimpleNamespace):
         return getattr(self, key, default)
 
 
+_matplotlib_font_sans_serif = None  # cached font.sans-serif list with Arial Unicode
+
+
 def plt_settings(rcparams=None, backend="Agg"):
     """Decorator to temporarily set rc parameters and the backend for a plotting function.
 
@@ -369,6 +372,30 @@ def plt_settings(rcparams=None, backend="Agg"):
         def wrapper(*args, **kwargs):
             """Set rc parameters and backend, call the original function, and restore the settings."""
             import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+
+            # Ensure Arial Unicode font is available for non-Latin text (CJK, Arabic, Cyrillic, etc.)
+            global _matplotlib_font_sans_serif
+            if "font.sans-serif" not in rcparams:
+                if _matplotlib_font_sans_serif is None:
+                    _matplotlib_font_sans_serif = []  # default: skip
+                    try:
+                        from matplotlib import font_manager
+
+                        # Check if Arial Unicode already exists (system fonts or Ultralytics config dir)
+                        font_path = USER_CONFIG_DIR / "Arial.Unicode.ttf"
+                        if not font_path.exists():
+                            # Search system fonts
+                            matches = [f.fname for f in font_manager.fontManager.ttflist if "Unicode" in f.name]
+                            font_path = Path(matches[0]) if matches else None
+                        if font_path and font_path.exists():
+                            if str(font_path) not in {f.fname for f in font_manager.fontManager.ttflist}:
+                                font_manager.fontManager.addfont(str(font_path))
+                            prop = font_manager.FontProperties(fname=str(font_path))
+                            _matplotlib_font_sans_serif = [prop.get_name()] + plt.rcParams.get("font.sans-serif", [])
+                    except Exception:
+                        pass
+                if _matplotlib_font_sans_serif:
+                    rcparams["font.sans-serif"] = _matplotlib_font_sans_serif
 
             original_backend = plt.get_backend()
             switch = backend.lower() != original_backend.lower()

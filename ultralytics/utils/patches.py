@@ -54,10 +54,11 @@ _pil_plugins_registered = False
 
 
 def image_open(filename, *args, **kwargs):
-    """Open an image with PIL, lazily registering HEIF/AVIF plugins on first failure.
+    """Open an image with PIL, lazily registering the HEIF plugin on first failure.
 
-    This monkey-patches PIL.Image.open to add HEIC/AVIF support via pillow_heif/pillow_avif plugins,
-    avoiding the ~800ms startup cost of importing these packages unless actually needed.
+    This monkey-patches PIL.Image.open to add HEIC/HEIF support via pillow-heif,
+    avoiding the ~800ms startup cost of importing the package unless actually needed.
+    AVIF is supported natively by Pillow 12+ and does not require a plugin.
 
     Args:
         filename (str): Path to the image file.
@@ -73,16 +74,12 @@ def image_open(filename, *args, **kwargs):
     try:
         return _image_open(filename, *args, **kwargs)
     except Exception:
-        try:
-            import pillow_heif
+        from ultralytics.utils.checks import check_requirements
 
-            pillow_heif.register_heif_opener()
-        except ImportError:
-            pass
-        try:
-            import pillow_avif  # noqa: F401
-        except ImportError:
-            pass
+        check_requirements("pillow-heif")
+        import pillow_heif
+
+        pillow_heif.register_heif_opener()
         _pil_plugins_registered = True
         return _image_open(filename, *args, **kwargs)
 

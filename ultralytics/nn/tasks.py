@@ -1444,7 +1444,8 @@ def torch_safe_load(weight, safe_only=False):
                 "ultralytics.nn.modules.block.Silence": "torch.nn.Identity",  # YOLOv9e
                 "ultralytics.nn.tasks.YOLOv10DetectionModel": "ultralytics.nn.tasks.DetectionModel",  # YOLOv10
                 "ultralytics.utils.loss.v10DetectLoss": "ultralytics.utils.loss.E2EDetectLoss",  # YOLOv10
-                **(  # resolve cross-platform pathlib pickle incompatibility
+                # resolve cross-platform pathlib pickle incompatibility
+                **(
                     {"pathlib.PosixPath": "pathlib.WindowsPath"}
                     if WINDOWS
                     else {"pathlib.WindowsPath": "pathlib.PosixPath"}

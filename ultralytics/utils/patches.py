@@ -56,8 +56,8 @@ _pil_plugins_registered = False
 def image_open(filename, *args, **kwargs):
     """Open an image with PIL, lazily registering HEIF/AVIF plugins on first failure.
 
-    This monkey-patches PIL.Image.open to add HEIC/AVIF support via pillow_heif/pillow_avif plugins,
-    avoiding the ~800ms startup cost of importing these packages unless actually needed.
+    This monkey-patches PIL.Image.open to add HEIC/AVIF support via pillow_heif/pillow_avif plugins, avoiding the ~800ms
+    startup cost of importing these packages unless actually needed.
 
     Args:
         filename (str): Path to the image file.

@@ -790,7 +790,7 @@ class Exporter:
             fq_ov = str(Path(fq) / self.file.with_suffix(".xml").name)
             # INT8 requires nncf, nncf requires packaging>=23.2 https://github.com/openvinotoolkit/nncf/issues/3463
             check_requirements("packaging>=23.2")  # must be installed first to build nncf wheel
-            check_requirements("nncf>=2.14.0" + "<3.0.0" if not TORCH_2_3 else "")
+            check_requirements("nncf>=2.14.0,<3.0.0" if not TORCH_2_3 else "nncf>=2.14.0")
             import nncf
 
             # Generate calibration data for integer quantization

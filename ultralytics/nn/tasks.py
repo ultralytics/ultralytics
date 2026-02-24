@@ -1517,7 +1517,7 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
 
     # Model compatibility updates
     model.args = args  # attach args to model
-    model.pt_path = weight  # attach *.pt file path to model
+    model.pt_path = str(weight)  # attach *.pt file path to model as string (avoids WindowsPath pickle issues)
     model.task = getattr(model, "task", guess_model_task(model))
     if not hasattr(model, "stride"):
         model.stride = torch.tensor([32.0])

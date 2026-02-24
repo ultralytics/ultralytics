@@ -57,6 +57,7 @@ class DetectionPredictor(BasePredictor):
             self.args.iou,
             self.args.classes,
             self.args.agnostic_nms,
+            multi_label=getattr(self.args, "topk", 1) > 1,
             max_det=self.args.max_det,
             nc=0 if self.args.task == "detect" else len(self.model.names),
             end2end=getattr(self.model, "end2end", False),

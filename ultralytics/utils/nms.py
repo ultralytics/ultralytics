@@ -16,7 +16,7 @@ def non_max_suppression(
     iou_thres: float = 0.45,
     classes=None,
     agnostic: bool = False,
-    multi_label: bool = True,
+    multi_label: bool = False,
     labels=(),
     max_det: int = 300,
     nc: int = 0,  # number of classes (optional)
@@ -117,6 +117,13 @@ def non_max_suppression(
         if multi_label and topk > 1:
             k = min(topk, cls.shape[1])
             scores, indices = torch.topk(cls, k, dim=1)
+            # Keep/drop boxes by top-1 confidence only (same intent as legacy conf filtering).
+            keep = scores[:, 0] > conf_thres
+            if not keep.any():
+                continue
+            box, scores, indices, mask = box[keep], scores[keep], indices[keep], mask[keep]
+            if return_idxs:
+                xk = xk[keep]
             # Keep custom top-k layout: [xyxy, score1..K, class1..K, extra...]
             x = torch.cat((box, scores, indices.float(), mask), 1)
             cls_start, cls_end = 4 + k, 4 + (2 * k)

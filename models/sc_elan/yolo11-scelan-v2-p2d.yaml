@@ -1,0 +1,45 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Phase 2D: SA-LSKA + TSCGv2 (stage-adaptive gate bias)
+# Kernel schedule: P3=7, P4=11, P5=23  (same as P2A)
+# TSCGv2 stage bias: P3=-0.5 (preserve detail), P4=0.0 (neutral), P5=+0.5 (inject context)
+# Hypothesis: learnable stage bias lets shallow layers keep raw features while deep layers fuse context.
+
+nc: 80
+scales:
+  s: [0.50, 0.50, 1024]
+  m: [0.50, 1.00, 512]
+  l: [1.00, 1.00, 512]
+  x: [1.00, 1.50, 512]
+
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [128, 3, 2]]
+  - [-1, 2, SC_ELAN_LSKA_TSCGv2, [256, 256, 256, 1, 7, 4, -0.5]]    # P3: k=7, bias=-0.5
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [-1, 2, SC_ELAN_LSKA_TSCGv2, [512, 512, 512, 1, 11, 4, 0.0]]    # P4: k=11, bias=0.0
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [-1, 2, SC_ELAN_LSKA_TSCGv2, [512, 512, 512, 1, 23, 4, 0.5]]    # P5: k=23, bias=+0.5
+  - [-1, 1, Conv, [1024, 3, 2]]
+  - [-1, 2, C3k2, [1024, True]]
+  - [-1, 1, SPPF, [1024, 5]]
+  - [-1, 2, C2PSA, [1024]]
+
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]]
+  - [-1, 2, SC_ELAN_LSKA_TSCGv2, [512, 512, 512, 1, 11, 4, 0.0]]    # Neck P4: k=11, bias=0.0
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]]
+  - [-1, 2, SC_ELAN_LSKA_TSCGv2, [256, 256, 256, 1, 7, 4, -0.5]]    # Neck P3: k=7, bias=-0.5
+
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 13], 1, Concat, [1]]
+  - [-1, 2, SC_ELAN_LSKA_TSCGv2, [512, 512, 512, 1, 11, 4, 0.0]]    # Neck P4 down: k=11, bias=0.0
+
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 10], 1, Concat, [1]]
+  - [-1, 2, C3k2, [1024, True]]
+
+  - [[16, 19, 22], 1, Detect, [nc]]

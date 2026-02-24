@@ -2834,6 +2834,117 @@ class SC_ELAN_RepExact(nn.Module):
         return self.cv2(self.rep(self.cv1(x)))
 
 
+class TinySelectiveContextGateV2(nn.Module):
+    """Tiny-selective context gating with learnable stage bias.
+
+    Extends TinySelectiveContextGate by adding a stage-adaptive bias before the
+    sigmoid gate.  Shallow stages (negative bias) preserve raw detail; deep stages
+    (positive bias) encourage stronger context injection.
+    """
+
+    def __init__(self, c: int, reduction: int = 4, stage_bias_init: float = 0.0):
+        """Initialize TinySelectiveContextGateV2.
+
+        Args:
+            c (int): Number of feature channels.
+            reduction (int): Channel reduction ratio for gate predictor.
+            stage_bias_init (float): Initial value for the learnable stage bias.
+        """
+        super().__init__()
+        hidden = max(8, c // reduction)
+        self.gate_conv = nn.Sequential(
+            DWConv(c, c, 3, 1),
+            nn.Conv2d(c, hidden, 1, bias=False),
+            nn.BatchNorm2d(hidden),
+            nn.SiLU(),
+            nn.Conv2d(hidden, 1, 1),
+        )
+        self.stage_bias = nn.Parameter(torch.tensor(stage_bias_init))
+
+    def forward(self, x: torch.Tensor, context: torch.Tensor) -> torch.Tensor:
+        """Blend identity and context features with a stage-biased gate."""
+        gate = torch.sigmoid(self.gate_conv(x) + self.stage_bias)
+        return x + gate * (context - x)
+
+
+class SC_ELAN_LSKA_TSCGv2(SC_ELAN_LSKA):
+    """SC-ELAN-LSKA with stage-adaptive TinySelectiveContextGate v2.
+
+    Identical topology to SC_ELAN_LSKA_TSCG but uses a learnable stage bias in the
+    gate, allowing the network to automatically calibrate context injection strength
+    per pyramid level.
+    """
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        c3: int,
+        c4: int,
+        c5: int = 1,
+        lsk_k: int = 7,
+        tscg_reduction: int = 4,
+        tscg_stage_bias: float = 0.0,
+    ):
+        """Initialize SC_ELAN_LSKA_TSCGv2.
+
+        Args:
+            c1, c2, c3, c4, c5: See SC_ELAN documentation.
+            lsk_k (int): LSKA kernel size.
+            tscg_reduction (int): Reduction ratio for the gate.
+            tscg_stage_bias (float): Initial stage bias (e.g. -0.5 for P3, +0.5 for P5).
+        """
+        super().__init__(c1, c2, c3, c4, c5, lsk_k=lsk_k)
+        self.tscg = TinySelectiveContextGateV2(c2, reduction=tscg_reduction, stage_bias_init=tscg_stage_bias)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass through SC_ELAN_LSKA_TSCGv2."""
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend((m(y[-1])) for m in [self.cv2, self.cv3])
+        feat = self.cv4(torch.cat(y, 1))
+        context = self.interaction(feat)
+        return self.tscg(feat, context)
+
+
+class P3_FRM(nn.Module):
+    """P3 Feature Refinement Module for small object detection.
+
+    Lightweight module inserted after the P3 neck output to enhance tiny-target
+    features via local-contrast gating.  The contrast branch highlights regions
+    where feature activations deviate from their local neighbourhood, providing
+    an implicit saliency signal for small objects.
+    """
+
+    def __init__(self, c1: int, c2: int):
+        """Initialize P3_FRM.
+
+        Args:
+            c1 (int): Input channels.
+            c2 (int): Output channels (typically equal to c1).
+        """
+        super().__init__()
+        c = c1
+        self.refine = nn.Sequential(
+            DWConv(c, c, 3, 1),
+            Conv(c, c, 1, 1),
+        )
+        self.local_pool = nn.AvgPool2d(5, stride=1, padding=2)
+        hidden = max(8, c // 4)
+        self.gate = nn.Sequential(
+            nn.Conv2d(c, hidden, 1, bias=False),
+            nn.SiLU(),
+            nn.Conv2d(hidden, c, 1),
+            nn.Sigmoid(),
+        )
+        self.proj = Conv(c, c2, 1, 1) if c1 != c2 else nn.Identity()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass: DWConv refinement gated by local-contrast saliency."""
+        feat = self.refine(x)
+        contrast = x - self.local_pool(x)
+        return self.proj(feat * self.gate(contrast) + x)
+
+
 class SC_ELAN_RepAdd(nn.Module):
     """SC-ELAN-RepAdd: ELAN-style variant with additive fusion and rep branches.
 

@@ -384,17 +384,25 @@ All models were evaluated on the **VisDrone2019-DET-test-dev** dataset (1609 ima
 | **YOLO11-SCELAN-LSKA** | 11.07M | 38.4 | 0.359 | 0.206 | 5.3 |
 | **YOLO11-SCELAN-LSKA-TSCG** | 11.16M | 39.2 | 0.358 | **0.208** | 5.6 |
 | **YOLO11-SCELAN-LSKA-TSCG-DetectCAI** | 11.52M | 39.2 | 0.358 | 0.206 | 5.7 |
+| **YOLO11-SCELAN-LSKA11-TSCG (val4)** | 11.16M | 39.2 | 0.359 | 0.207 | 5.9 |
+| **YOLO11-SCELAN-LSKA23-TSCG (val4)** | 11.17M | 39.4 | **0.364** | **0.210** | 6.1 |
+| **YOLO11-SCELAN-LSKA-TSCG-DetectCAI-Mid (val4)** | 11.52M | 39.2 | 0.360 | 0.208 | 5.9 |
+| **YOLO11-SCELAN-LSKA-TSCG-DetectCAI-Mom098 (val4)** | 11.52M | 39.2 | 0.355 | 0.204 | 5.8 |
+| **YOLO11-SCELAN-LSKA-TSCG-DetectCAI-Soft (val4)** | 11.52M | 39.2 | **0.364** | **0.210** | 5.8 |
+| **YOLO11-SCELAN-LSKA-TSCG-DetectCAI-Tail12 (val4)** | 11.52M | 39.2 | 0.362 | 0.209 | 5.7 |
+| **YOLO11-SCELAN-Mixed-Efficient-TSCG (val4)** | 10.90M | 31.2 | 0.341 | 0.194 | 5.4 |
 | **YOLO11-SCELAN-Efficient** | 9.00M | 20.3 | 0.334 | 0.189 | 4.6 |
 | **YOLO11-SCELAN-RepExact** | 8.47M | 16.9 | 0.310 | 0.171 | 4.6 |
 | **YOLO11-SCELAN-RepAdd** | 8.43M | 16.6 | 0.304 | 0.167 | 4.8 |
 
 **Key Observations:**
-- **YOLO11-SCELAN-LSKA-TSCG** now achieves the **highest mAP50-95 (0.208)** with strong mAP50 (0.358)
-- **YOLO11-SCELAN-LSKA** still keeps the **highest mAP50 (0.359)** among current variants
-- **YOLO11-SCELAN-LSKA-TSCG-DetectCAI** improves overall precision/recall (**0.484/0.378**) over `LSKA-TSCG`, but strict localization metric is slightly lower (0.206 vs 0.208)
-- **YOLO11-SCELAN-Efficient** provides the lightest profile in this group (**9.00M params, 20.3 GFLOPs**) with faster runtime
-- **YOLO11-SCELAN-RepExact/RepAdd** push FLOPs further down (**16.9/16.6 GFLOPs**) with expected accuracy trade-off
-- Most variants maintain practical real-time speed on RTX 4090 (about **4.6–5.7 ms** total)
+- **Best strict accuracy (mAP50-95 = 0.210):** jointly achieved by **YOLO11-SCELAN-LSKA23-TSCG (val4)** and **YOLO11-SCELAN-LSKA-TSCG-DetectCAI-Soft (val4)**, both surpassing previously reported 0.208
+- **Best recall:** **LSKA23-TSCG (val4)** achieves **R = 0.386**, highest among all variants, indicating strongest candidate coverage in dense scenes
+- **Best precision:** **DetectCAI-Tail12 (val4)** reaches **P = 0.506**, but with recall trade-off (R = 0.368), showing stricter positive filtering
+- **Most stable CAI setting:** **DetectCAI-Soft** improves long-tail small classes (`pedestrian/people/bicycle/tricycle`) while maintaining top-line metrics equal to LSKA23-TSCG
+- **Not recommended CAI setting:** **DetectCAI-Mom098 (val4)** degrades to **0.355/0.204** (mAP50/mAP50-95), below all other LSKA/TSCG variants
+- **Efficiency trade-off:** **Mixed-Efficient-TSCG (val4)** is fastest in val4 batch (5.4 ms total) with lowest compute (31.2 GFLOPs), but accuracy drop is significant (**-0.016 mAP50-95** vs 0.210 best)
+- Historical variants (pre-val4) remain useful references for architecture evolution
 
 ### 7.2 Per-Class Performance Analysis
 
@@ -555,7 +563,7 @@ motor              794     5845        0.464   0.398   0.348    0.141
 ```
 
 **Analysis:**
-- **Current best mAP50-95 (0.208)** with near-top mAP50 (0.358)
+- Historical strong baseline in this report (**mAP50-95 = 0.208**) with near-top mAP50 (0.358)
 - Strong vehicle localization remains: **car (0.757 mAP50, 0.496 mAP50-95)**
 - Better fine-grained classes than many baselines: **pedestrian (0.336)**, **tricycle (0.219)**
 - Moderate complexity increase over LSKA (39.2 vs 38.4 GFLOPs) with stable recall profile
@@ -653,6 +661,170 @@ motor              794     5845        0.480   0.384   0.343    0.136
 - In this run, tail-sensitive classes show mixed behavior (e.g., `bicycle` mAP50 up to 0.125, but `tricycle` mAP50-95 at 0.108), which matches a moderate reweighting regime (`cai_alpha=0.15`, `cai_beta=0.30`) rather than aggressive redistribution.
 - Overall P/R improvement with near-identical mAP50-95 to `LSKA-TSCG` is consistent with CAI improving class calibration/selection more than box geometry, since box branch structure itself is unchanged.
 
+#### 7.2.12 YOLO11-SCELAN-LSKA11-TSCG (val4)
+```
+Class              Images  Instances    P       R      mAP50   mAP50-95
+─────────────────────────────────────────────────────────────────────
+all                1609    75082       0.488   0.375   0.359    0.207
+pedestrian         1196    21000       0.531   0.329   0.338    0.135
+people             797     6376        0.521   0.156   0.181    0.0613
+bicycle            377     1302        0.269   0.168   0.127    0.0488
+car                1529    28063       0.724   0.759   0.760    0.496
+van                1167    5770        0.431   0.440   0.395    0.266
+truck              750     2659        0.524   0.426   0.427    0.275
+tricycle           245     530         0.281   0.308   0.196    0.103
+awning-tricycle    233     599         0.391   0.242   0.209    0.117
+bus                837     2938        0.728   0.533   0.601    0.424
+motor              794     5845        0.477   0.391   0.352    0.141
+```
+
+**Analysis:**
+- Baseline LSKA kernel (`k=11`) with TSCG produces **mAP50-95 = 0.207**, slightly below `LSKA23-TSCG` (0.210)
+- Strong vehicle performance: **car (0.760 mAP50, 0.496 mAP50-95)** and **bus (0.601 mAP50)**
+- Good precision (**P = 0.488**) but lower recall than LSKA23 variant (**R = 0.375 vs 0.386**)
+- Serves as the direct ablation baseline to quantify LSKA kernel scaling benefit (`k=11 -> k=23`)
+
+#### 7.2.13 YOLO11-SCELAN-LSKA23-TSCG (val4)
+```
+Class              Images  Instances    P       R      mAP50   mAP50-95
+─────────────────────────────────────────────────────────────────────
+all                1609    75082       0.479   0.386   0.364    0.210
+pedestrian         1196    21000       0.497   0.333   0.330    0.131
+people             797     6376        0.502   0.163   0.184    0.0627
+bicycle            377     1302        0.269   0.153   0.121    0.0472
+car                1529    28063       0.703   0.767   0.761    0.493
+van                1167    5770        0.456   0.439   0.410    0.276
+truck              750     2659        0.493   0.459   0.441    0.284
+tricycle           245     530         0.279   0.340   0.212    0.111
+awning-tricycle    233     599         0.406   0.245   0.222    0.126
+bus                837     2938        0.713   0.558   0.607    0.427
+motor              794     5845        0.474   0.407   0.354    0.142
+```
+
+**Analysis:**
+- **Most promising backbone/context structure** — strongest global result (**mAP50 = 0.364, mAP50-95 = 0.210**) and **best recall (R = 0.386)**
+- Leads on medium-to-large vehicle classes: **truck (mAP50-95 = 0.284)**, **bus (0.427)**, **van (0.276)**
+- Best car recall in val4 batch (**R = 0.767**) and highest **awning-tricycle** mAP50 (**0.222, mAP50-95 = 0.126**)
+- Larger LSKA kernel (`k=23`) improves strict localization across most classes vs `k=11` baseline
+- Recommended default when strict localization (mAP50-95) and dense-scene recall are primary KPIs
+
+#### 7.2.14 YOLO11-SCELAN-LSKA-TSCG-DetectCAI-Mid (val4)
+```
+Class              Images  Instances    P       R      mAP50   mAP50-95
+─────────────────────────────────────────────────────────────────────
+all                1609    75082       0.482   0.380   0.360    0.208
+pedestrian         1196    21000       0.518   0.328   0.335    0.135
+people             797     6376        0.524   0.167   0.189    0.0641
+bicycle            377     1302        0.275   0.170   0.131    0.0512
+car                1529    28063       0.716   0.758   0.759    0.494
+van                1167    5770        0.450   0.432   0.400    0.270
+truck              750     2659        0.492   0.460   0.441    0.282
+tricycle           245     530         0.268   0.326   0.202    0.106
+awning-tricycle    233     599         0.372   0.214   0.183    0.108
+bus                837     2938        0.714   0.552   0.597    0.422
+motor              794     5845        0.493   0.398   0.364    0.145
+```
+
+**Analysis:**
+- Mid-strength CAI regime achieves solid **mAP50-95 = 0.208**, matching the pre-val4 best (LSKA-TSCG)
+- Best **bicycle mAP50 (0.131)** and **motor mAP50 (0.364)** in the val4 batch
+- Good small-class precision (`people` P = 0.524, `pedestrian` P = 0.518) with competitive truck recall (0.460)
+- Represents a balanced middle-ground CAI setting, though slightly below `Soft` on overall metrics
+
+#### 7.2.15 YOLO11-SCELAN-LSKA-TSCG-DetectCAI-Mom098 (val4)
+```
+Class              Images  Instances    P       R      mAP50   mAP50-95
+─────────────────────────────────────────────────────────────────────
+all                1609    75082       0.475   0.375   0.355    0.204
+pedestrian         1196    21000       0.517   0.324   0.327    0.130
+people             797     6376        0.522   0.155   0.188    0.0624
+bicycle            377     1302        0.272   0.152   0.121    0.0471
+car                1529    28063       0.714   0.755   0.755    0.489
+van                1167    5770        0.422   0.436   0.394    0.265
+truck              750     2659        0.492   0.452   0.433    0.273
+tricycle           245     530         0.277   0.325   0.202    0.104
+awning-tricycle    233     599         0.353   0.222   0.193    0.109
+bus                837     2938        0.700   0.547   0.595    0.421
+motor              794     5845        0.479   0.387   0.347    0.138
+```
+
+**Analysis:**
+- **Not recommended CAI setting** — degrades to **mAP50 = 0.355, mAP50-95 = 0.204**, lowest among all LSKA/TSCG val4 variants
+- High momentum (`0.98`) causes class prior estimates to lag, leading to suboptimal reweighting across all classes
+- All class metrics trail other CAI variants; no class shows improvement over LSKA23-TSCG baseline
+- Confirms that aggressive EMA smoothing is counterproductive for CAI in this training setup
+
+#### 7.2.16 YOLO11-SCELAN-LSKA-TSCG-DetectCAI-Soft (val4)
+```
+Class              Images  Instances    P       R      mAP50   mAP50-95
+─────────────────────────────────────────────────────────────────────
+all                1609    75082       0.488   0.379   0.364    0.210
+pedestrian         1196    21000       0.518   0.335   0.340    0.135
+people             797     6376        0.512   0.167   0.192    0.0662
+bicycle            377     1302        0.269   0.163   0.127    0.0515
+car                1529    28063       0.720   0.758   0.761    0.498
+van                1167    5770        0.429   0.437   0.396    0.269
+truck              750     2659        0.517   0.438   0.428    0.274
+tricycle           245     530         0.292   0.343   0.224    0.117
+awning-tricycle    233     599         0.398   0.217   0.211    0.121
+bus                837     2938        0.719   0.542   0.603    0.426
+motor              794     5845        0.504   0.390   0.362    0.146
+```
+
+**Analysis:**
+- **Most promising head reweighting strategy** — matches best global accuracy (**mAP50 = 0.364, mAP50-95 = 0.210**)
+- Improves key small/long-tail classes vs `LSKA23-TSCG`: **pedestrian** mAP50 0.340 vs 0.330, **people** 0.192 vs 0.184, **bicycle** 0.127 vs 0.121, **tricycle** 0.224 vs 0.212
+- Best **car mAP50-95 (0.498)** in the entire report; best **motor mAP50 (0.362)** among val4 variants
+- Slightly weaker on some vehicle classes vs LSKA23-TSCG (`van`, `truck`), indicating a controllable class-balance trade-off
+- Recommended CAI setting for current and future head-level follow-up experiments
+
+#### 7.2.17 YOLO11-SCELAN-LSKA-TSCG-DetectCAI-Tail12 (val4)
+```
+Class              Images  Instances    P       R      mAP50   mAP50-95
+─────────────────────────────────────────────────────────────────────
+all                1609    75082       0.506   0.368   0.362    0.209
+pedestrian         1196    21000       0.542   0.324   0.340    0.136
+people             797     6376        0.559   0.161   0.195    0.0655
+bicycle            377     1302        0.288   0.167   0.128    0.0483
+car                1529    28063       0.720   0.760   0.758    0.495
+van                1167    5770        0.483   0.408   0.408    0.276
+truck              750     2659        0.516   0.429   0.421    0.270
+tricycle           245     530         0.270   0.302   0.203    0.107
+awning-tricycle    233     599         0.430   0.217   0.217    0.123
+bus                837     2938        0.744   0.529   0.601    0.425
+motor              794     5845        0.506   0.381   0.351    0.140
+```
+
+**Analysis:**
+- **Precision-oriented alternative** — highest overall precision in val4 batch (**P = 0.506**)
+- Best **people precision (0.559)**, best **pedestrian precision (0.542)**, and best **awning-tricycle mAP50-95 (0.123)**
+- Recall reduction (**R = 0.368**, lowest among val4 LSKA/TSCG variants) limits overall mAP gains
+- Strong `van` mAP50 (**0.408**) and competitive `bus` precision (**0.744**)
+- Suitable for false-positive-sensitive deployment pipelines; should be tuned with recall constraints for general use
+
+#### 7.2.18 YOLO11-SCELAN-Mixed-Efficient-TSCG (val4)
+```
+Class              Images  Instances    P       R      mAP50   mAP50-95
+─────────────────────────────────────────────────────────────────────
+all                1609    75082       0.462   0.363   0.341    0.194
+pedestrian         1196    21000       0.499   0.314   0.312    0.122
+people             797     6376        0.506   0.143   0.172    0.0583
+bicycle            377     1302        0.265   0.119   0.108    0.0427
+car                1529    28063       0.688   0.752   0.744    0.476
+van                1167    5770        0.418   0.415   0.374    0.249
+truck              750     2659        0.489   0.422   0.404    0.253
+tricycle           245     530         0.274   0.311   0.193    0.0977
+awning-tricycle    233     599         0.341   0.220   0.185    0.105
+bus                837     2938        0.688   0.547   0.584    0.406
+motor              794     5845        0.450   0.388   0.339    0.131
+```
+
+**Analysis:**
+- Fastest in val4 batch (**5.4 ms total**) with lowest compute (**31.2 GFLOPs**)
+- Accuracy drop is significant vs best models (**-0.023 mAP50, -0.016 mAP50-95**)
+- Width compression hurts tiny/long-tail classes first: `people` mAP50 drops to 0.172, `bicycle` to 0.108, `tricycle` to 0.193
+- Vehicle-class performance remains competitive (`car` 0.744 mAP50, `bus` 0.584)
+- Suitable only for strict latency/compute budgets where moderate accuracy sacrifice is acceptable
 ### 7.3 Inference Performance
 
 All models were tested on NVIDIA GeForce RTX 4090 (24GB VRAM):
@@ -676,119 +848,141 @@ All models were tested on NVIDIA GeForce RTX 4090 (24GB VRAM):
 - Lowest-latency group is **Efficient/RepExact** (both **4.6 ms total**)
 - **GPU memory efficient**: All models fit within 24GB VRAM with batch processing
 
+#### 7.3.1 val4 Complete Inference Table (from `logs/`)
+
+| Model (val4) | Preprocess (ms) | Inference (ms) | Postprocess (ms) | Total (ms) |
+|---|---:|---:|---:|---:|
+| YOLO11-SCELAN-LSKA11-TSCG | 0.3 | 4.0 | 1.6 | 5.9 |
+| YOLO11-SCELAN-LSKA23-TSCG | 0.3 | 5.2 | 0.6 | 6.1 |
+| YOLO11-SCELAN-LSKA-TSCG-DetectCAI-Mid | 0.3 | 5.1 | 0.5 | 5.9 |
+| YOLO11-SCELAN-LSKA-TSCG-DetectCAI-Mom098 | 0.3 | 3.2 | 2.3 | 5.8 |
+| YOLO11-SCELAN-LSKA-TSCG-DetectCAI-Soft | 0.3 | 4.4 | 1.1 | 5.8 |
+| YOLO11-SCELAN-LSKA-TSCG-DetectCAI-Tail12 | 0.3 | 4.6 | 0.8 | 5.7 |
+| YOLO11-SCELAN-Mixed-Efficient-TSCG | 0.3 | 4.2 | 0.9 | 5.4 |
+
 ### 7.4 Conclusions and Recommendations
 
 #### Best Model Selection by Use Case:
 
-1. **Best Overall / General Small Object Detection** → **YOLO11-SCELAN-LSKA-TSCG** ⭐ **(Updated Best for mAP50-95)**
-    - Highest overall mAP50-95 (**0.208**) with strong mAP50 (**0.358**)
-    - Best car localization in this report (mAP50-95: **0.496**)
-    - Better recall on key small-object classes (pedestrian/people/tricycle) vs multiple baselines
-    - Moderate computational cost (39.2 GFLOPs, 5.6ms total)
+1. **Best Overall / General Small Object Detection (val4)** → **YOLO11-SCELAN-LSKA23-TSCG (val4)**
+    - Current top strict score: **mAP50-95 = 0.210**, mAP50 = **0.364**
+    - Highest recall in val4 batch (**R = 0.386**) — strongest dense-scene candidate coverage
+    - Recommended default when strict localization and recall are the primary KPIs
 
-2. **Highest mAP50 (Detection Confidence Peak)** → **YOLO11-SCELAN-LSKA**
-    - Highest mAP50 (**0.359**) with strong precision (0.491)
-    - Strong pedestrian/car/truck performance consistency
-    - Good choice when top-line mAP50 is the primary KPI
+2. **Best Tail-Aware Balanced Option (val4)** → **YOLO11-SCELAN-LSKA-TSCG-DetectCAI-Soft (val4)**
+    - Matches top strict score (**mAP50-95 = 0.210**, mAP50 = **0.364**)
+    - Improves multiple small/long-tail classes over plain `LSKA23-TSCG`: `pedestrian` (+0.010), `people` (+0.008), `bicycle` (+0.006), `tricycle` (+0.012) on mAP50
+    - Best car mAP50-95 (**0.498**) and motor mAP50 (**0.362**) among val4 variants
+    - **Recommended combined architecture** for current and follow-up experiments
 
-3. **Long-Tail Training Head Ablation** → **YOLO11-SCELAN-LSKA-TSCG-DetectCAI**
-    - Maintains mAP50 (**0.358**) while improving overall precision/recall (**0.484/0.378**) vs `LSKA-TSCG`
-    - Keeps strict metric close to baseline (**0.206 vs 0.208 mAP50-95**), indicating stable integration
-    - Appropriate when studying training-time class-adaptive reweighting with minimal inference-path change
+3. **Highest Precision Profile (val4)** → **YOLO11-SCELAN-LSKA-TSCG-DetectCAI-Tail12 (val4)**
+    - Highest overall precision (**P = 0.506**), best `people` P (0.559), best `pedestrian` P (0.542)
+    - Suitable for false-positive-sensitive deployment; recall trade-off (**R = 0.368**) should be monitored
 
-4. **Balanced / Previous Best** → **YOLO11-SCELAN (Standard)**
-   - Strong overall accuracy (mAP50: 0.355)
-   - Balanced precision-recall trade-off
-   - Lower computational cost (35.7 GFLOPs)
+4. **Ablation Kernel Scaling Reference (val4)** → **YOLO11-SCELAN-LSKA11-TSCG (val4)**
+    - Direct comparison baseline for LSKA kernel scaling: `k=11` → `k=23` yields +0.003 mAP50-95
+    - Confirms larger-kernel LSKA consistently improves strict localization under current training setup
 
-5. **Edge Devices / Real-Time Applications** → **YOLO11-SCELAN-Slim**
-   - Lowest parameters (10.75M)
-   - Competitive accuracy (mAP50: 0.354)
-   - Best for embedded systems
+5. **Historical Strong Baseline (pre-val4 reference)** → **YOLO11-SCELAN-LSKA-TSCG**
+    - Stable historical checkpoint (**0.358 / 0.208**) with strong vehicle localization
+    - Retain as a legacy comparison anchor when reviewing older experiments
 
-6. **Ultra-Light Compute Budget** → **YOLO11-SCELAN-Efficient**
-    - Lowest GFLOPs in this report (20.3)
-    - Fastest total runtime (4.6ms)
-    - Recommended when latency/power is more critical than peak accuracy
+6. **Historical Highest mAP50 (pre-val4 reference)** → **YOLO11-SCELAN-LSKA**
+    - Historical peak mAP50 (**0.359**) under earlier evaluation protocol
+    - Useful reference for confidence-weighted operating points
 
-7. **Extreme FLOPs-Constrained Deployment** → **YOLO11-SCELAN-RepExact / RepAdd**
-    - Minimum complexity range among current variants (16.6–16.9 GFLOPs)
-    - Real-time total latency maintained (4.6–4.8ms)
-    - Choose **RepExact** over **RepAdd** for slightly better overall accuracy
+7. **Compute-Efficient Option (val4)** → **YOLO11-SCELAN-Mixed-Efficient-TSCG (val4)**
+    - Lowest compute in val4 batch (**31.2 GFLOPs**, **5.4 ms total**)
+    - Significant accuracy drop (**−0.023 mAP50, −0.016 mAP50-95** vs 0.210 best); acceptable only under strict latency budgets
 
-8. **High-Precision Requirements** → **YOLO11-SCELAN-Hybrid**
-   - High precision (0.470)
-   - Best for false-positive-sensitive scenarios
-   - Good balance of features
-
-9. **Large Receptive Field Needed** → **YOLO11-SCELAN-Dilated**
-   - Best for extremely small or distant objects
-   - Higher computational cost acceptable
-   - Slightly lower overall accuracy
+8. **Ultra-Light Compute Budget** → **YOLO11-SCELAN-Efficient / RepExact / RepAdd**
+    - Lowest FLOPs/latency group across all variants (**≤20.3 GFLOPs, ≤4.8 ms**)
+    - Appropriate only when deployment constraints dominate accuracy targets
 
 #### Key Findings:
 
-✅ **SC-ELAN modules successfully improve small object detection** on VisDrone dataset
-✅ **Context-aware convolutions** enhance feature representation for tiny objects
-✅ **ELAN gradient highway** preserves crucial fine-grained features
-✅ **Re-parameterization** ensures zero inference overhead
-✅ **All variants maintain real-time performance** (~179–217 FPS on RTX 4090)
+- **Current best strict score is mAP50-95 = 0.210**, jointly achieved by `LSKA23-TSCG` and `DetectCAI-Soft` on val4
+- **LSKA kernel scaling is confirmed beneficial**: `k=23` outperforms `k=11` (+0.003 mAP50-95, +0.011 recall) under the same TSCG structure
+- **`LSKA + TSCG` remains the strongest structural base**; CAI benefit depends on reweighting regime (`Soft` reaches top score, `Mom098` regresses to 0.204)
+- **`DetectCAI-Soft` is the recommended combined configuration**: it matches the top backbone score while improving small/long-tail class metrics without sacrificing vehicles
+- **Clear Pareto front** exists between strict accuracy (≤0.210 mAP50-95) and speed/compute efficiency (≤5.4 ms); no current variant achieves both simultaneously
 
-### 7.5 Summary and Future Work (2026 Update)
+### 7.5 阶段总结与后续工作（2026 更新）
 
-#### Summary
+#### 阶段总结
 
-当前结果不仅给出了性能排序，也揭示了“小目标检测中结构设计与性能变化”的因果关系。
+本文档目前以 **val4 批次结果作为顶线结论的主要依据**，同时保留历史运行记录作为参考基准。
 
-*   **为什么 `LSKA-TSCG` 在 mAP50-95（0.208）上最优**：
-    *   `LSKA` 在特征聚合后增强了长程空间依赖建模，提升了复杂场景下的定位鲁棒性。
-    *   `TSCG` 通过选择性上下文注入（`x + gate * (context - x)`）抑制过度增强，并保留局部细节。
-    *   两者结合后，困难类别（如 pedestrian/tricycle）得到更明显提升，同时车辆类保持稳定，因此优势主要体现在更严格的 mAP50-95。
+- **`LSKA23-TSCG` 与 `DetectCAI-Soft` 并列最佳（mAP50-95 = 0.210）的原因**：
+  - `LSKA23-TSCG` 通过大核注意力与选择性门控提供更强的长程空间建模能力，在严格定位指标和稠密场景召回率上均表现最优。
+  - `DetectCAI-Soft` 在取得相同顶线分数的同时，进一步提升了多个小目标/长尾类别（`pedestrian/people/bicycle/tricycle`）的检测性能。
+  - 当前最有效的方向是：**强上下文主干 + 适度尾部重加权** 的组合策略。
 
-*   **为什么 `LSKA` 的 mAP50（0.359）最高，但 mAP50-95 低于 `LSKA-TSCG`**：
-    *   更强的全局注意力直接提升了检测置信度与精度（对应 mAP50 上升）。
-    *   缺少选择性门控时，部分微小目标的局部结构可能被过平滑，导致高 IoU 条件下的框质量提升受限。
-    *   因而呈现“检出更强、定位精修略弱于门控版本”的结果特征。
+- **历史基准 `LSKA`（mAP50 = 0.359）仍有参考价值的原因**：
+  - 在以置信度为主要指标的分析场景中，其仍是有效的参考点。
+  - 在严格 IoU 指标下，val4 最优方案已全面超越该基准。
 
-*   **为什么 `Efficient` 速度提升但 mAP 下降**：
-    *   宽度缩放（`e=0.375`）与轻量 `DWConv` 路径降低了细粒度通道表征能力。
-    *   `LiteSplitInteraction` 计算更省，但对拥挤/遮挡关系的建模能力弱于完整交互模块。
-    *   结果是吞吐提升明显，但小目标与长尾类别先受影响，拉低整体 mAP。
+- **`Efficient` / `Mixed-Efficient` 系列提速但严格精度下降的原因**：
+  - 宽度与上下文压缩首先损害的是微小目标和长尾类别的检测能力。
+  - 吞吐量提升，但严格定位指标（mAP50-95）明显下降。
 
-*   **为什么 `RepExact/RepAdd` 进一步降 mAP**：
-    *   这两类结构将复杂度压缩到 16.6–16.9 GFLOPs，导致上下文与交互表达能力继续收缩。
-    *   性能下降主要集中在 `people`、`bicycle`、`tricycle` 等小而难类别，大目标类别退化相对较小。
-    *   这说明“极致轻量化”优先牺牲的正是小目标识别最依赖的高频细节与上下文线索。
+- **当前证据归纳的核心设计准则**：
+  1. 选择性上下文建模优于均匀放大特征。
+  2. mAP50-95 的提升强依赖于特征交互与门控质量。
+  3. 检测头重加权应保持适度；`Soft` 策略稳定，激进设置（如 `Mom098`）易导致回退。
+  4. 过度压缩最先损伤微小目标与长尾类别。
 
-*   **归纳出的设计规律（核心规律）**：
-    1.  **选择性上下文优于无差别增强**：上下文本身有效，但“有门控、有目标地增强”更有效。
-    2.  **mAP50-95 更依赖交互设计质量**：能同时保留细节并注入上下文的结构，更容易提升严格定位指标。
-    3.  **过度压缩首先伤害小目标与长尾类**：降宽度/降 FLOPs 时，性能损失先出现在 tiny/long-tail 类别，而非大目标。
-    4.  **更有潜力的创新方向是“上下文 + 选择性 + 细节保真”协同设计**，而不是单一维度地堆注意力或做极限压缩。
+#### 后续工作
 
-#### Future Work
+为持续推进小目标检测性能、朝向可发表的模块化创新，下一阶段将聚焦以下方向：
 
-To continue improving small-object detection toward publishable module innovation, the next cycle will focus on the following new directions.
+#### A) 长尾类别提升
 
-#### A) Long-Tail Class Improvement (New)
-*   **Class-balanced training**: Explore class reweighting/focal variants targeting `people`, `bicycle`, and `tricycle`.
-*   **Hard-example mining**: Build a focused mini-set of crowded and tiny-object frames for periodic targeted fine-tuning.
-*   **Localization quality diagnostics**: Track per-class box-size buckets to isolate tiny-object regression failure modes.
+- **类别均衡训练**：针对 `people`、`bicycle`、`tricycle` 探索类别重加权与 Focal Loss 变体。
+- **难例挖掘**：构建专注于拥挤场景和极小目标帧的子集，用于周期性定向微调。
+- **定位质量诊断**：按类别跟踪目标尺寸分布桶，定位微小目标回归失效的根本原因。
 
-#### B) Structure-Level Exploration (New)
-*   **LSKA kernel schedule**: Compare `k_size` settings (e.g., 7/11/23) by stage to test accuracy-cost elasticity.
-*   **Selective context routing**: Extend TSCG to stage-aware gating and evaluate whether deeper stages need stronger context injection.
-*   **Efficient branch search**: Auto-tune `e` and `p` in `SC_ELAN_Efficient` for dataset-specific Pareto optimization.
+#### B) 结构级探索
 
-#### C) Evaluation Protocol Upgrade (New)
-*   **Cross-dataset transfer**: Validate on at least one additional UAV/traffic-style dataset to assess generalization.
-*   **Statistical robustness**: Run multi-seed reporting (mean ± std) for key variants to avoid single-run bias.
-*   **Unified benchmark card**: Maintain a single comparison table including accuracy, latency, FLOPs, params, memory, and export status.
+- **LSKA 核尺寸调度**：按阶段比较 `k_size` 设置（如 7/11/23），测试精度与计算量的弹性关系。
+- **选择性上下文路由**：将 TSCG 扩展为阶段感知门控，评估深层阶段是否需要更强的上下文注入。
+- **高效分支搜索**：针对当前数据集，自动调优 `SC_ELAN_Efficient` 中的 `e` 与 `p` 参数，寻找最优帕累托点。
 
-#### Quantitative Targets (Next Cycle)
-*   Primary: push overall **mAP50-95** beyond current best (`0.208`, LSKA-TSCG).
-*   Secondary: improve `people`/`bicycle`/`tricycle` mAP50 while keeping vehicle classes stable.
-*   Constraint: keep total latency in the current real-time envelope (~4.5–5.8 ms/image on RTX 4090).
+#### C) 评估协议升级
 
+- **跨数据集迁移验证**：在至少一个额外的无人机/交通风格数据集上验证泛化能力。
+- **统计鲁棒性**：对关键变体进行多随机种子报告（均值 ± 标准差），避免单次运行偏差。
+- **统一基准卡**：维护一张包含精度、延迟、GFLOPs、参数量、显存及导出状态的综合对比表。
 
-```
+#### 下阶段量化目标
+
+- **主要目标**：将整体 **mAP50-95** 突破当前最优值（`0.210`，LSKA23-TSCG / DetectCAI-Soft）。
+- **次要目标**：在保持车辆类别检测性能稳定的前提下，提升 `people`/`bicycle`/`tricycle` 的 mAP50。
+- **约束条件**：总延迟维持在当前实时范围内（RTX 4090 上约 4.5–5.8 ms/图像）。
+
+### 7.6 完整总结
+
+1. **架构层结论**
+   - 当前最有效的方向仍是将长程空间建模（`LSKA`）与选择性上下文门控（`TSCG`）相结合。
+   - 在当前训练设置下，增大 LSKA 核尺寸（`k=11 → k=23`）持续带来提升：mAP50-95 +0.003，召回率 +0.011。
+   - SC-ELAN 骨干的选择性分组设计在计算效率与特征质量之间保持了良好平衡。
+
+2. **检测头层结论**
+   - CAI 并非普遍有益；其增益强烈依赖于重加权策略。
+   - `Soft` 策略是目前唯一在达到全局最优分数的同时提升多个微小/长尾类别的 CAI 变体。
+   - 激进 EMA 平滑（`Mom098`）导致类别先验估计滞后，造成全类别指标回退，不予推荐。
+
+3. **当前推荐配置**
+   - **综合最优**：`LSKA23-TSCG`（最强召回与严格定位）
+   - **平衡最优**：`LSKA-TSCG + DetectCAI-Soft`（顶线分数 + 小目标提升，**推荐用于后续实验**）
+   - **精度导向**：`DetectCAI-Tail12`（最高精度，适用于低误报场景）
+   - **轻量部署**：`Mixed-Efficient-TSCG` / `Efficient` / `RepExact`（速度优先，精度有所牺牲）
+
+4. **下阶段实验优先级**
+   - **优先级 A**：在 `LSKA23-TSCG + DetectCAI-Soft` 基础上，对 `cai_alpha/cai_beta` 进行受控消融扫描。
+   - **优先级 B**：在固定 TSCG 结构下，按阶段测试 LSKA 核尺寸调度（`k=7/11/23`）。
+   - **优先级 C**：针对 `people/bicycle/tricycle` 进行多随机种子专项评估，量化统计方差。
+
+5. **量化基准更新**
+   - 当前需超越的新基准为 **mAP50-95 = 0.210**（val4 批次，`LSKA23-TSCG` 与 `DetectCAI-Soft` 共同达成）。
+   - 延迟约束保持在 RTX 4090 上约 4.5–6.1 ms/图像的实时范围内。

@@ -1,0 +1,119 @@
+﻿===== val_yolo11-scelan-lska11-tscg.log =====
+[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 100% 鈹佲攣鈹佲攣鈹佲攣鈹佲攣鈹佲攣鈹佲攣 101/101 6.8it/s 14.8s
+                   all       1609      75082      0.488      0.375      0.359      0.207
+            pedestrian       1196      21000      0.531      0.329      0.338      0.135
+                people        797       6376      0.521      0.156      0.181     0.0613
+               bicycle        377       1302      0.269      0.168      0.127     0.0488
+                   car       1529      28063      0.724      0.759       0.76      0.496
+                   van       1167       5770      0.431       0.44      0.395      0.266
+                 truck        750       2659      0.524      0.426      0.427      0.275
+              tricycle        245        530      0.281      0.308      0.196      0.103
+       awning-tricycle        233        599      0.391      0.242      0.209      0.117
+                   bus        837       2938      0.728      0.533      0.601      0.424
+                 motor        794       5845      0.477      0.391      0.352      0.141
+Speed: 0.3ms preprocess, 4.0ms inference, 0.0ms loss, 1.6ms postprocess per image
+Saving /mnt/nas/Programming/ultralytics-SC/runs/detect/SC-ELAN-VisDrone/val-SC-ELAN-VisDrone_yolo11-scelan-lska11-tscg_val4/predictions.json...
+Results saved to [1m/mnt/nas/Programming/ultralytics-SC/runs/detect/SC-ELAN-VisDrone/val-SC-ELAN-VisDrone_yolo11-scelan-lska11-tscg_val4[0m
+
+===== val_yolo11-scelan-lska23-tscg.log =====
+[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 100% 鈹佲攣鈹佲攣鈹佲攣鈹佲攣鈹佲攣鈹佲攣 101/101 6.6it/s 15.3s
+                   all       1609      75082      0.479      0.386      0.364       0.21
+            pedestrian       1196      21000      0.497      0.333       0.33      0.131
+                people        797       6376      0.502      0.163      0.184     0.0627
+               bicycle        377       1302      0.269      0.153      0.121     0.0472
+                   car       1529      28063      0.703      0.767      0.761      0.493
+                   van       1167       5770      0.456      0.439       0.41      0.276
+                 truck        750       2659      0.493      0.459      0.441      0.284
+              tricycle        245        530      0.279       0.34      0.212      0.111
+       awning-tricycle        233        599      0.406      0.245      0.222      0.126
+                   bus        837       2938      0.713      0.558      0.607      0.427
+                 motor        794       5845      0.474      0.407      0.354      0.142
+Speed: 0.3ms preprocess, 5.2ms inference, 0.0ms loss, 0.6ms postprocess per image
+Saving /mnt/nas/Programming/ultralytics-SC/runs/detect/SC-ELAN-VisDrone/val-SC-ELAN-VisDrone_yolo11-scelan-lska23-tscg_val4/predictions.json...
+Results saved to [1m/mnt/nas/Programming/ultralytics-SC/runs/detect/SC-ELAN-VisDrone/val-SC-ELAN-VisDrone_yolo11-scelan-lska23-tscg_val4[0m
+
+===== val_yolo11-scelan-lska-tscg-detect-cai-mid.log =====
+[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 100% 鈹佲攣鈹佲攣鈹佲攣鈹佲攣鈹佲攣鈹佲攣 101/101 6.8it/s 15.0s
+                   all       1609      75082      0.482       0.38       0.36      0.208
+            pedestrian       1196      21000      0.518      0.328      0.335      0.135
+                people        797       6376      0.524      0.167      0.189     0.0641
+               bicycle        377       1302      0.275       0.17      0.131     0.0512
+                   car       1529      28063      0.716      0.758      0.759      0.494
+                   van       1167       5770       0.45      0.432        0.4       0.27
+                 truck        750       2659      0.492       0.46      0.441      0.282
+              tricycle        245        530      0.268      0.326      0.202      0.106
+       awning-tricycle        233        599      0.372      0.214      0.183      0.108
+                   bus        837       2938      0.714      0.552      0.597      0.422
+                 motor        794       5845      0.493      0.398      0.364      0.145
+Speed: 0.3ms preprocess, 5.1ms inference, 0.0ms loss, 0.5ms postprocess per image
+Saving /mnt/nas/Programming/ultralytics-SC/runs/detect/SC-ELAN-VisDrone/val-SC-ELAN-VisDrone_yolo11-scelan-lska-tscg-detect-cai-mid_val4/predictions.json...
+Results saved to [1m/mnt/nas/Programming/ultralytics-SC/runs/detect/SC-ELAN-VisDrone/val-SC-ELAN-VisDrone_yolo11-scelan-lska-tscg-detect-cai-mid_val4[0m
+
+===== val_yolo11-scelan-lska-tscg-detect-cai-mom098.log =====
+[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 100% 鈹佲攣鈹佲攣鈹佲攣鈹佲攣鈹佲攣鈹佲攣 101/101 6.8it/s 14.8s
+                   all       1609      75082      0.475      0.375      0.355      0.204
+            pedestrian       1196      21000      0.517      0.324      0.327       0.13
+                people        797       6376      0.522      0.155      0.188     0.0624
+               bicycle        377       1302      0.272      0.152      0.121     0.0471
+                   car       1529      28063      0.714      0.755      0.755      0.489
+                   van       1167       5770      0.422      0.436      0.394      0.265
+                 truck        750       2659      0.492      0.452      0.433      0.273
+              tricycle        245        530      0.277      0.325      0.202      0.104
+       awning-tricycle        233        599      0.353      0.222      0.193      0.109
+                   bus        837       2938        0.7      0.547      0.595      0.421
+                 motor        794       5845      0.479      0.387      0.347      0.138
+Speed: 0.3ms preprocess, 3.2ms inference, 0.0ms loss, 2.3ms postprocess per image
+Saving /mnt/nas/Programming/ultralytics-SC/runs/detect/SC-ELAN-VisDrone/val-SC-ELAN-VisDrone_yolo11-scelan-lska-tscg-detect-cai-mom098_val4/predictions.json...
+Results saved to [1m/mnt/nas/Programming/ultralytics-SC/runs/detect/SC-ELAN-VisDrone/val-SC-ELAN-VisDrone_yolo11-scelan-lska-tscg-detect-cai-mom098_val4[0m
+
+===== val_yolo11-scelan-lska-tscg-detect-cai-soft.log =====
+[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 100% 鈹佲攣鈹佲攣鈹佲攣鈹佲攣鈹佲攣鈹佲攣 101/101 6.9it/s 14.7s
+                   all       1609      75082      0.488      0.379      0.364       0.21
+            pedestrian       1196      21000      0.518      0.335       0.34      0.135
+                people        797       6376      0.512      0.167      0.192     0.0662
+               bicycle        377       1302      0.269      0.163      0.127     0.0515
+                   car       1529      28063       0.72      0.758      0.761      0.498
+                   van       1167       5770      0.429      0.437      0.396      0.269
+                 truck        750       2659      0.517      0.438      0.428      0.274
+              tricycle        245        530      0.292      0.343      0.224      0.117
+       awning-tricycle        233        599      0.398      0.217      0.211      0.121
+                   bus        837       2938      0.719      0.542      0.603      0.426
+                 motor        794       5845      0.504       0.39      0.362      0.146
+Speed: 0.3ms preprocess, 4.4ms inference, 0.0ms loss, 1.1ms postprocess per image
+Saving /mnt/nas/Programming/ultralytics-SC/runs/detect/SC-ELAN-VisDrone/val-SC-ELAN-VisDrone_yolo11-scelan-lska-tscg-detect-cai-soft_val4/predictions.json...
+Results saved to [1m/mnt/nas/Programming/ultralytics-SC/runs/detect/SC-ELAN-VisDrone/val-SC-ELAN-VisDrone_yolo11-scelan-lska-tscg-detect-cai-soft_val4[0m
+
+===== val_yolo11-scelan-lska-tscg-detect-cai-tail12.log =====
+[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 100% 鈹佲攣鈹佲攣鈹佲攣鈹佲攣鈹佲攣鈹佲攣 101/101 7.0it/s 14.5s
+                   all       1609      75082      0.506      0.368      0.362      0.209
+            pedestrian       1196      21000      0.542      0.324       0.34      0.136
+                people        797       6376      0.559      0.161      0.195     0.0655
+               bicycle        377       1302      0.288      0.167      0.128     0.0483
+                   car       1529      28063       0.72       0.76      0.758      0.495
+                   van       1167       5770      0.483      0.408      0.408      0.276
+                 truck        750       2659      0.516      0.429      0.421       0.27
+              tricycle        245        530       0.27      0.302      0.203      0.107
+       awning-tricycle        233        599       0.43      0.217      0.217      0.123
+                   bus        837       2938      0.744      0.529      0.601      0.425
+                 motor        794       5845      0.506      0.381      0.351       0.14
+Speed: 0.3ms preprocess, 4.6ms inference, 0.0ms loss, 0.8ms postprocess per image
+Saving /mnt/nas/Programming/ultralytics-SC/runs/detect/SC-ELAN-VisDrone/val-SC-ELAN-VisDrone_yolo11-scelan-lska-tscg-detect-cai-tail12_val4/predictions.json...
+Results saved to [1m/mnt/nas/Programming/ultralytics-SC/runs/detect/SC-ELAN-VisDrone/val-SC-ELAN-VisDrone_yolo11-scelan-lska-tscg-detect-cai-tail12_val4[0m
+
+===== val_yolo11-scelan-mixed-efficient-tscg.log =====
+[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 100% 鈹佲攣鈹佲攣鈹佲攣鈹佲攣鈹佲攣鈹佲攣 101/101 7.1it/s 14.3s
+                   all       1609      75082      0.462      0.363      0.341      0.194
+            pedestrian       1196      21000      0.499      0.314      0.312      0.122
+                people        797       6376      0.506      0.143      0.172     0.0583
+               bicycle        377       1302      0.265      0.119      0.108     0.0427
+                   car       1529      28063      0.688      0.752      0.744      0.476
+                   van       1167       5770      0.418      0.415      0.374      0.249
+                 truck        750       2659      0.489      0.422      0.404      0.253
+              tricycle        245        530      0.274      0.311      0.193     0.0977
+       awning-tricycle        233        599      0.341       0.22      0.185      0.105
+                   bus        837       2938      0.688      0.547      0.584      0.406
+                 motor        794       5845       0.45      0.388      0.339      0.131
+Speed: 0.3ms preprocess, 4.2ms inference, 0.0ms loss, 0.9ms postprocess per image
+Saving /mnt/nas/Programming/ultralytics-SC/runs/detect/SC-ELAN-VisDrone/val-SC-ELAN-VisDrone_yolo11-scelan-mixed-efficient-tscg_val4/predictions.json...
+Results saved to [1m/mnt/nas/Programming/ultralytics-SC/runs/detect/SC-ELAN-VisDrone/val-SC-ELAN-VisDrone_yolo11-scelan-mixed-efficient-tscg_val4[0m
+

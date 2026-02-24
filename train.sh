@@ -1,12 +1,50 @@
 #!/bin/bash
 
 #######################################################
-# SC-ELAN Variants Configuration
+# SC-ELAN v2 Phased Training Pipeline
 #######################################################
-# Centralized YAML folder for SC-ELAN family
 SCELAN_YAML_DIR="models/sc_elan"
 
-# SC-ELAN Models: Different variants optimized for various scenarios
+#######################################################
+# Phase 1: CAI alpha/beta sweep on LSKA23-TSCG backbone
+#######################################################
+phase1_models=(
+    "yolo11-scelan-v2-p1a"    # alpha=0.05, beta=0.15
+    "yolo11-scelan-v2-p1b"    # alpha=0.10, beta=0.25
+    "yolo11-scelan-v2-p1c"    # alpha=0.15, beta=0.30 (Soft baseline repro)
+    "yolo11-scelan-v2-p1d"    # alpha=0.10, beta=0.40
+    "yolo11-scelan-v2-p1e"    # alpha=0.20, beta=0.25
+)
+
+#######################################################
+# Phase 2: SA-LSKA ablation + TSCGv2
+#######################################################
+phase2_models=(
+    "yolo11-scelan-v2-p2a"    # SA-LSKA(7/11/23) + TSCG
+    "yolo11-scelan-v2-p2b"    # SA-LSKA(11/23/23) + TSCG
+    "yolo11-scelan-v2-p2c"    # SA-LSKA(7/23/35) + TSCG
+    "yolo11-scelan-v2-p2d"    # SA-LSKA(7/11/23) + TSCGv2
+)
+
+#######################################################
+# Phase 3: P3-FRM integration
+#######################################################
+phase3_models=(
+    "yolo11-scelan-v2-p3a"    # SA-LSKA + TSCG + P3-FRM + Detect
+    "yolo11-scelan-v2-p3b"    # SA-LSKA + TSCG + P3-FRM + DetectCAI-Soft
+)
+
+#######################################################
+# Phase 4: Multi-seed statistical validation
+# After Phases 1-3 determine the best config, run it
+# with multiple seeds.  Set PHASE4_MODEL below.
+#######################################################
+PHASE4_MODEL="yolo11-scelan-v2-p3a"   # <-- replace with best config after P1-P3
+PHASE4_SEEDS=(0 42 123)
+
+#######################################################
+# Historical SC-ELAN variants (for reference)
+#######################################################
 scelan_models=(
     # "yolo11-scelan"
     # "yolo11-scelan-fixed"
@@ -19,278 +57,159 @@ scelan_models=(
     # "yolo11-scelan-lska-tscg-detect-cai"
     # "yolo11-scelan-repadd"
     # "yolo11-scelan-repexact"
-    "yolo11-scelan-lska11-tscg"
-    "yolo11-scelan-lska23-tscg"
-    "yolo11-scelan-mixed-efficient-tscg"
-    "yolo11-scelan-lska-tscg-detect-cai-soft"
-    "yolo11-scelan-lska-tscg-detect-cai-mid"
-    "yolo11-scelan-lska-tscg-detect-cai-mom098"
-    "yolo11-scelan-lska-tscg-detect-cai-tail12"
+    # "yolo11-scelan-lska11-tscg"
+    # "yolo11-scelan-lska23-tscg"
+    # "yolo11-scelan-mixed-efficient-tscg"
+    # "yolo11-scelan-lska-tscg-detect-cai-soft"
+    # "yolo11-scelan-lska-tscg-detect-cai-mid"
+    # "yolo11-scelan-lska-tscg-detect-cai-mom098"
+    # "yolo11-scelan-lska-tscg-detect-cai-tail12"
 )
 
-# Original Models (for comparison)
-baseline_models=(
-    "yolo11"                  # Original YOLO11 baseline
-    "rtdetr-r18-ImprovedMFConv"
-    "yolo11-rtdetr-ImprovedMFConv"
-)
+#######################################################
+# Select active phase (uncomment ONE)
+#######################################################
+# models=("${phase1_models[@]}")
+# models=("${phase2_models[@]}")
+# models=("${phase3_models[@]}")
+models=("${phase1_models[@]}" "${phase2_models[@]}" "${phase3_models[@]}")
+# models=("${scelan_models[@]}")
 
-# Select which models to train (comment/uncomment as needed)
-# Option 1: Train only SC-ELAN variants
-models=("${scelan_models[@]}")
-
-# Option 2: Train SC-ELAN + baseline for comparison
-# models=("${scelan_models[@]}" "${baseline_models[@]}")
-
-# Option 3: Train specific variants only
-# models=("yolo11-scelan" "yolo11-scelan-hybrid")
+RUN_PHASE4=false   # set to true after determining best config
 
 dataset=/mnt/nas/Programming/small-object-detection-2024/custom_data/VisDrone.yaml
-GAP=1
 
 #######################################################
 # Training Configuration
 #######################################################
-DEVICE=0              # GPU device ID (set to "cpu" for CPU training)
-EPOCHS=300            # Number of training epochs
-BATCH_SIZE=16         # Batch size (adjust based on GPU memory)
-IMGSZ=640             # Image size
-WORKERS=8             # Number of dataloader workers
-PROJECT_NAME="SC-ELAN-VisDrone"  # Project folder name
+DEVICE=0
+EPOCHS=300
+BATCH_SIZE=16
+IMGSZ=640
+WORKERS=8
+PROJECT_NAME="SC-ELAN-v2"
 
-# Advanced options
-PATIENCE=50           # Early stopping patience
-SAVE_PERIOD=10        # Save checkpoint every N epochs
-VERBOSE=true          # Verbose output
+PATIENCE=50
+SAVE_PERIOD=10
+SEED=0
 
 #######################################################
-# SC-ELAN Training Loop
+# Phase 1-3 Training Loop
 #######################################################
 echo "=================================================="
-echo "Starting SC-ELAN Variants Training"
+echo "SC-ELAN v2 Phased Training"
 echo "=================================================="
 echo "Models to train: ${models[@]}"
 echo "Dataset: ${dataset}"
-echo "Device: ${DEVICE}"
-echo "Epochs: ${EPOCHS}"
+echo "Device: ${DEVICE} | Epochs: ${EPOCHS} | Seed: ${SEED}"
 echo "=================================================="
 echo ""
 
 for m in "${models[@]}"
 do
     echo "=================================================="
-    echo "Training: ${m}"
-    echo "Experiment: ${PROJECT_NAME}_${m}"
+    echo "[TRAIN] ${m}"
     echo "=================================================="
-    
-    # python tools.py --mode train \
-    #     --path_yaml ${SCELAN_YAML_DIR}/${m}.yaml \
-    #     --data_path ${dataset} \
-    #     --device ${DEVICE} \
-    #     --epochs ${EPOCHS} \
-    #     --batch ${BATCH_SIZE} \
-    #     --imgsz ${IMGSZ} \
-    #     --workers ${WORKERS} \
-    #     --patience ${PATIENCE} \
-    #     --save_period ${SAVE_PERIOD} \
-    #     --project ${PROJECT_NAME} \
-    #     --name ${PROJECT_NAME}_${m} \
-    #     --init_weight ""
-    
+
+    python tools.py --mode train \
+        --path_yaml ${SCELAN_YAML_DIR}/${m}.yaml \
+        --data_path ${dataset} \
+        --device ${DEVICE} \
+        --epochs ${EPOCHS} \
+        --batch ${BATCH_SIZE} \
+        --imgsz ${IMGSZ} \
+        --workers ${WORKERS} \
+        --patience ${PATIENCE} \
+        --save_period ${SAVE_PERIOD} \
+        --seed ${SEED} \
+        --project ${PROJECT_NAME} \
+        --name ${m} \
+        --init_weight ""
+
     echo "Completed: ${m}"
     echo ""
 done
 
-echo "=================================================="
-echo "All training completed!"
-echo "=================================================="
-echo ""
-
 #######################################################
-# SC-ELAN Validation Loop
+# Phase 1-3 Validation Loop
 #######################################################
 echo "=================================================="
-echo "Starting SC-ELAN Variants Validation"
+echo "SC-ELAN v2 Validation"
 echo "=================================================="
 
 mkdir -p logs
 
 for m in "${models[@]}"
 do
-    WEIGHT_PATH="runs/detect/${PROJECT_NAME}/${PROJECT_NAME}_${m}/weights/best.pt"
+    WEIGHT_PATH="runs/detect/${PROJECT_NAME}/${m}/weights/best.pt"
     VAL_LOG_PATH="logs/val_${m}.log"
-    
+
     if [ -f "${WEIGHT_PATH}" ]; then
-        echo "Validating: ${m}"
+        echo "[VAL] ${m}"
         python tools.py --mode val \
             --init_weight ${WEIGHT_PATH} \
             --data_path ${dataset} \
             --device ${DEVICE} \
             --project ${PROJECT_NAME} \
-            --name ${PROJECT_NAME}_${m}_val \
+            --name ${m}_val \
             > ${VAL_LOG_PATH} 2>&1
-        echo "Completed: ${m}"
+        echo "Completed: ${m} -> ${VAL_LOG_PATH}"
     else
-        echo "Warning: Weight file not found for ${m}: ${WEIGHT_PATH}"
+        echo "Warning: Weight not found for ${m}: ${WEIGHT_PATH}"
     fi
     echo ""
 done
 
-echo "=================================================="
-echo "All validation completed!"
-echo "=================================================="
-echo ""
-
 #######################################################
-# Legacy Training Code (Commented Out for Reference)
+# Phase 4: Multi-seed Statistical Validation
 #######################################################
+if [ "${RUN_PHASE4}" = true ]; then
+    echo "=================================================="
+    echo "Phase 4: Multi-seed runs for ${PHASE4_MODEL}"
+    echo "Seeds: ${PHASE4_SEEDS[@]}"
+    echo "=================================================="
 
-# Original dataset configurations
-# dataset_b=IRDST
-# GAP_b=1
+    for s in "${PHASE4_SEEDS[@]}"
+    do
+        RUN_NAME="${PHASE4_MODEL}-seed${s}"
+        echo "[TRAIN] ${RUN_NAME}"
 
-# Legacy training loop for IRDST dataset
-# for m in ${models[*]}
-# do
-#     echo runing ${dataset_b}_${m}-GAP${GAP_b}
-#     python tools.py --mode train \
-#         --path_yaml ${m}.yaml \
-#         --data_path ../custom_data/${dataset_b}/dataset.yaml \
-#         --device 0 \
-#         --project ${dataset_b}-modify \
-#         --name ${dataset_b}_${m}-GAP${GAP_b} \
-#         --init_weight ""
-# done
+        python tools.py --mode train \
+            --path_yaml ${SCELAN_YAML_DIR}/${PHASE4_MODEL}.yaml \
+            --data_path ${dataset} \
+            --device ${DEVICE} \
+            --epochs ${EPOCHS} \
+            --batch ${BATCH_SIZE} \
+            --imgsz ${IMGSZ} \
+            --workers ${WORKERS} \
+            --patience ${PATIENCE} \
+            --save_period ${SAVE_PERIOD} \
+            --seed ${s} \
+            --project ${PROJECT_NAME} \
+            --name ${RUN_NAME} \
+            --init_weight ""
 
-# Legacy validation loop for IRDST dataset
-# for m in ${models[*]}
-# do
-#     echo runing ${dataset_b}_${m}
-#     python tools.py --mode val \
-#         --init_weight ${dataset_b}-modify/${dataset_b}_${m}-GAP${GAP_b}/weights/best.pt \
-#         --data_path ../custom_data/${dataset_b}/dataset.yaml \
-#         --device 0 \
-#         --project ${dataset_b}-modify \
-#         --name ${dataset_b}_${m}-GAP${GAP_b}
-# done
-
-#######################################################
-# Utility Functions for SC-ELAN Experiments
-#######################################################
-
-# Function: Train a single SC-ELAN model
-train_single_model() {
-    local model_name=$1
-    local dataset_path=$2
-    local device=${3:-0}
-    
-    echo "Training ${model_name} on ${dataset_path}"
-    python tools.py --mode train \
-        --path_yaml ${SCELAN_YAML_DIR}/${model_name}.yaml \
-        --data_path ${dataset_path} \
-        --device ${device} \
-        --project ${PROJECT_NAME} \
-        --name ${model_name}_$(date +%Y%m%d_%H%M%S)
-}
-
-# Function: Compare all SC-ELAN variants
-compare_all_variants() {
-    echo "Running comparison of all SC-ELAN variants..."
-    for variant in "${scelan_models[@]}"; do
-        echo "Testing: ${variant}"
-        # Add your comparison logic here
+        WEIGHT_PATH="runs/detect/${PROJECT_NAME}/${RUN_NAME}/weights/best.pt"
+        VAL_LOG_PATH="logs/val_${RUN_NAME}.log"
+        if [ -f "${WEIGHT_PATH}" ]; then
+            echo "[VAL] ${RUN_NAME}"
+            python tools.py --mode val \
+                --init_weight ${WEIGHT_PATH} \
+                --data_path ${dataset} \
+                --device ${DEVICE} \
+                --project ${PROJECT_NAME} \
+                --name ${RUN_NAME}_val \
+                > ${VAL_LOG_PATH} 2>&1
+        fi
+        echo "Completed: ${RUN_NAME}"
+        echo ""
     done
-}
 
-# Example usage:
-# train_single_model "yolo11-scelan" "../custom_data/VisDrone/dataset.yaml" 0
-# compare_all_variants
+    echo "=================================================="
+    echo "Phase 4 complete. Check logs/ for per-seed results."
+    echo "=================================================="
+fi
 
-#######################################################
-# Additional Example Commands (for reference)
-#######################################################
-#     --path_yaml rtdetr-r18.yaml \
-#     --data_path ../custom_data/IRDST/dataset.yaml \
-#     --device 0 \
-#     --project IRDST \
-#     --name IRDST_rtdetr-r18-GAP3 \
-#     --init_weight ""
-
-# python tools.py --mode train \
-#     --path_yaml yolo11-rtdetr-ImprovedMFConv.yaml \
-#     --data_path ../custom_data/IRDST/dataset.yaml \
-#     --device 0 \
-#     --project IRDST \
-#     --name IRDST_yolo11-rtdetr-ImprovedMFConv-GAP3 \
-#     --init_weight ""
-
-# python tools.py --mode train \
-#     --path_yaml yolo11-rtdetr-ImprovedMFConv.yaml \
-#     --data_path ../custom_data/3rdUAV/dataset.yaml \
-#     --device 0 \
-#     --project 3rdUAV \
-#     --name 3rdUAV_yolo11-rtdetr-ImprovedMFConv-GAP3 \
-#     --init_weight ""
-
-# python tools.py --mode train \
-#     --path_yaml yolo11-rtdetr-ImprovedMFConv.yaml \
-#     --data_path ../custom_data/3rdUAV/dataset.yaml \
-#     --device 0 \
-#     --project 3rdUAV \
-#     --name 3rdUAV_yolo11-rtdetr-ImprovedMFConv-GAP3 \
-#     --init_weight ""
-
-# python tools.py --mode train_resume --init_weight /path/to/weights.pt --data_path /path/to/data.yaml --device 0
-
-# 3rdUAV Validation Runs
-# list[
-# 3rdUAV_rtdetr-r18-GAP1, 
-# 3rdUAV_rtdetr-r18-ImprovedMFConv-GAP1,
-# 3rdUAV_yolo11-rtdetr-ImprovedMFConv-GAP1 ]
-
-# models=(
-#     "rtdetr-r18-GAP"
-#     "rtdetr-r18-ImprovedMFConv-GAP"
-#     "yolo11-rtdetr-ImprovedMFConv-GAP"
-#     )
-# gap=3
-# dataset=3rdUAV
-# python tools.py --mode val \
-#     --init_weight $dataset/${models[0]}$gap/weights/best.pt \
-#     --data_path ../custom_data/$dataset/dataset.yaml \
-#     --device 0 \
-#     --project $dataset \
-#     --name ${models[0]}$gap
-
-# python tools.py --mode val \
-#     --init_weight $dataset/${models[1]}$gap/weights/best.pt \
-#     --data_path ../custom_data/$dataset/dataset.yaml \
-#     --device 0 \
-#     --project $dataset \
-#     --name ${models[1]}$gap
-
-# python tools.py --mode val \
-#     --init_weight $dataset/${models[2]}$gap/weights/best.pt \
-#     --data_path ../custom_data/$dataset/dataset.yaml \
-#     --device 0 \
-#     --project $dataset \
-#     --name ${models[2]}$gap
-
-# python tools.py --mode val \
-#     --init_weight 3rdUAV/3rdUAV_rtdetr-r18-ImprovedMFConvV2-A-GAP3/weights/best.pt \
-#     --data_path ../custom_data/3rdUAV/dataset.yaml --device 0 --project 3rdUAV --name 3rdUAV_rtdetr-r18-ImprovedMFConvV2-B-GAP3
-# python tools.py --mode val \
-#     --init_weight runs/ATF/AITOD/yolov8s-rtdetr-aitod/weights/best.pt \
-#     --data_path ../custom_data/AITOD.yaml --device 0 --name yolov8s-rtdetr-aitod
-
-# python tools.py --mode val \
-#     --init_weight runs/ATF/AITOD/yolov11s-ATF-aitod-1500q/weights/best.pt \
-#     --data_path ../custom_data/AITOD.yaml --device 0 --name yolov11s-ATF-aitod-1500q
-
-# python tools.py --mode predict --init_weight /path/to/weights.pt --testvideo_path /path/to/test/images --device 0 --name prediction_run
-
-# python tools.py --mode predict --init_weight /path/to/weights.pt --testvideo_path /path/to/test/images --device 0 --name prediction_run
-
-# python tools.py --mode export --init_weight /path/to/weights.pt
-
-# python tools.py --mode track --init_weight /path/to/weights.pt --testvideo_path /path/to/test/video --device 0 --name tracking_run
+echo "=================================================="
+echo "All training completed!"
+echo "=================================================="

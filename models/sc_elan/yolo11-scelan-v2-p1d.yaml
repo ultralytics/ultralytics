@@ -1,0 +1,44 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Phase 1D: LSKA23-TSCG + DetectCAI (alpha=0.10, beta=0.40)
+# Hypothesis: stronger beta pushes tail-class gains while moderate alpha limits risk.
+
+nc: 80
+scales:
+  s: [0.50, 0.50, 1024]
+  m: [0.50, 1.00, 512]
+  l: [1.00, 1.00, 512]
+  x: [1.00, 1.50, 512]
+
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [128, 3, 2]]
+  - [-1, 2, SC_ELAN_LSKA_TSCG, [256, 256, 256, 1, 23, 4]]
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [-1, 2, SC_ELAN_LSKA_TSCG, [512, 512, 512, 1, 23, 4]]
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [-1, 2, SC_ELAN_LSKA_TSCG, [512, 512, 512, 1, 23, 4]]
+  - [-1, 1, Conv, [1024, 3, 2]]
+  - [-1, 2, C3k2, [1024, True]]
+  - [-1, 1, SPPF, [1024, 5]]
+  - [-1, 2, C2PSA, [1024]]
+
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]]
+  - [-1, 2, SC_ELAN_LSKA_TSCG, [512, 512, 512, 1, 23, 4]]
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]]
+  - [-1, 2, SC_ELAN_LSKA_TSCG, [256, 256, 256, 1, 23, 4]]
+
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 13], 1, Concat, [1]]
+  - [-1, 2, SC_ELAN_LSKA_TSCG, [512, 512, 512, 1, 23, 4]]
+
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 10], 1, Concat, [1]]
+  - [-1, 2, C3k2, [1024, True]]
+
+  # DetectCAI args: [nc, cai_embed, cai_alpha, cai_beta, cai_momentum]
+  - [[16, 19, 22], 1, DetectCAI, [nc, 32, 0.10, 0.40, 0.90]]

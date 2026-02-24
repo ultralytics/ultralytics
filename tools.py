@@ -67,7 +67,7 @@ def intersect_dicts(da, db, exclude=()):
 
 
 def train(path_yaml: str, data_path: str, init_weight="", device="0", project="", name="", 
-          epochs=300, batch=16, imgsz=640, workers=8, patience=50, save_period=-1) -> None:
+          epochs=300, batch=16, imgsz=640, workers=8, patience=50, save_period=-1, seed=0) -> None:
     model = YOLO(path_yaml)  # build a new model from scratch
     if (init_weight != ""):
         import torch
@@ -76,7 +76,8 @@ def train(path_yaml: str, data_path: str, init_weight="", device="0", project=""
         csd = intersect_dicts(csd, model.model.state_dict())  # intersect
         model.model.load_state_dict(csd, strict=False)  # load
     model.train(data=data_path, epochs=epochs, imgsz=imgsz, device=device, batch=batch, 
-                project=project, name=name, workers=workers, patience=patience, save_period=save_period)
+                project=project, name=name, workers=workers, patience=patience, save_period=save_period,
+                seed=seed)
 
 def train_resume(init_weight: str, data_path: str, device="0")-> None:
     model = YOLO(init_weight)
@@ -204,6 +205,7 @@ def main():
     parser.add_argument("--workers", type=int, default=8, help="Number of dataloader workers")
     parser.add_argument("--patience", type=int, default=50, help="Early stopping patience (epochs)")
     parser.add_argument("--save_period", type=int, default=-1, help="Save checkpoint every N epochs (disabled if < 1)")
+    parser.add_argument("--seed", type=int, default=0, help="Random seed for reproducibility")
     
     args = parser.parse_args()
 
@@ -211,7 +213,7 @@ def main():
         train(args.path_yaml, args.data_path, args.init_weight, args.device, 
               project=args.project, name=args.name, epochs=args.epochs, 
               batch=args.batch, imgsz=args.imgsz, workers=args.workers, 
-              patience=args.patience, save_period=args.save_period)
+              patience=args.patience, save_period=args.save_period, seed=args.seed)
     elif args.mode == "train_resume":
         train_resume(args.init_weight, args.data_path, args.device)
     elif args.mode == "val":

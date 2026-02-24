@@ -6,9 +6,9 @@ keywords: Ultralytics Platform, explore, public datasets, public projects, compu
 
 # Explore
 
-[Ultralytics Platform](https://platform.ultralytics.com) Explore page showcases public content from the community. Discover datasets and projects for inspiration and learning. The Explore page is accessible to everyone — even without signing in.
+[Ultralytics Platform](https://platform.ultralytics.com) Explore page showcases public content from the community. Discover [datasets](data/datasets.md) and [projects](train/projects.md) for inspiration and learning. The Explore page is accessible to everyone — even without signing in.
 
-<!-- Screenshot: platform-explore-datasets-tab-cards-view.avif -->
+![Ultralytics Platform Explore Datasets Tab Cards View](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-datasets-tab-cards-view.avif)
 
 ```mermaid
 graph LR
@@ -52,26 +52,27 @@ The Explore page uses a tabbed interface with `Datasets` and `Projects` tabs. Ea
 
 Each tab provides a search bar and sort options:
 
-<!-- Screenshot: platform-explore-datasets-tab-with-search.avif -->
+![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-datasets-tab-with-search.avif)
 
-| Sort Option      | Description                                         |
-| ---------------- | --------------------------------------------------- |
-| **Most Starred** | Content with most community stars (default)         |
-| **Newest**       | Most recently created                               |
-| **Oldest**       | Oldest first                                        |
-| **Name A-Z**     | Alphabetical ascending                              |
-| **Name Z-A**     | Alphabetical descending                             |
-| **Most/Fewest**  | By image count (datasets) or model count (projects) |
+| Sort Option       | Description                                   |
+| ----------------- | --------------------------------------------- |
+| **Most Starred**  | Content with most community stars (default)   |
+| **Newest**        | Most recently created                         |
+| **Oldest**        | Oldest first                                  |
+| **Name A-Z**      | Alphabetical ascending                        |
+| **Name Z-A**      | Alphabetical descending                       |
+| **Most images**   | Most images (datasets) or models (projects)   |
+| **Fewest images** | Fewest images (datasets) or models (projects) |
 
 ### View Modes
 
 Toggle between three view modes for browsing:
 
-| Mode        | Description                           |
-| ----------- | ------------------------------------- |
-| **Cards**   | Grid of preview cards with thumbnails |
-| **Compact** | Smaller cards in a two-column grid    |
-| **Table**   | Sortable table with columns           |
+| Mode        | Description                                      |
+| ----------- | ------------------------------------------------ |
+| **Cards**   | Grid of preview cards with thumbnails            |
+| **Compact** | Smaller cards in a responsive grid (2-3 columns) |
+| **Table**   | Sortable table with columns                      |
 
 Cards and compact views support infinite scroll for loading more results.
 
@@ -79,29 +80,32 @@ Cards and compact views support infinite scroll for loading more results.
 
 Each item displays:
 
-<!-- Screenshot: platform-explore-dataset-and-project-cards.avif -->
+![Ultralytics Platform Explore Dataset And Project Cards](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-dataset-and-project-cards.avif)
 
-**Project Cards Show:**
+=== "Project Cards"
 
-| Element          | Description                     |
-| ---------------- | ------------------------------- |
-| **Icon**         | Project icon with custom colors |
-| **Name**         | Project title                   |
-| **Creator**      | Author avatar and username      |
-| **Description**  | Short project description       |
-| **Model Count**  | Number of models in the project |
-| **Model Tags**   | Names of models in the project  |
-| **Public Badge** | Visibility indicator            |
+    | Element              | Description                                                   |
+    | -------------------- | ------------------------------------------------------------- |
+    | **Icon**             | Project icon with custom colors                               |
+    | **Name**             | Project title                                                 |
+    | **Creator**          | Author avatar and username                                    |
+    | **Description**      | Short project description                                     |
+    | **Model Count**      | Number of models in the project                               |
+    | **Model Tags**       | Names of models in the project                                |
+    | **Visibility Badge** | Public or private indicator (shows lock icon for private)     |
+    | **Star Count**       | Number of community stars                                     |
 
-**Dataset Cards Show:**
+=== "Dataset Cards"
 
-| Element         | Description                            |
-| --------------- | -------------------------------------- |
-| **Thumbnails**  | Preview images from the dataset        |
-| **Name**        | Dataset title                          |
-| **Creator**     | Author avatar and username             |
-| **Task Badge**  | YOLO task type (detect, segment, etc.) |
-| **Image Count** | Number of images in the dataset        |
+    | Element              | Description                                                   |
+    | -------------------- | ------------------------------------------------------------- |
+    | **Thumbnails**       | Preview images from the dataset                               |
+    | **Name**             | Dataset title                                                 |
+    | **Creator**          | Author avatar and username                                    |
+    | **Task Badge**       | YOLO task type (detect, segment, etc.)                        |
+    | **Image Count**      | Number of images in the dataset                               |
+    | **Visibility Badge** | Public or private indicator (shows lock icon for private)     |
+    | **Star Count**       | Number of community stars                                     |
 
 ## Use Public Content
 
@@ -136,6 +140,8 @@ Use a public dataset for your training:
     - Changes don't affect the original dataset
     - Images are deduplicated using content-addressable storage — cloning is fast
 
+See [Datasets](data/datasets.md) for managing and annotating your cloned dataset.
+
 ### Download Model
 
 Download a public model:
@@ -162,18 +168,20 @@ Copy a public project to your workspace:
 2. Click `Clone`
 3. Project copies with all models to your account
 
+See [Projects](train/projects.md) for organizing models in your cloned project.
+
 ## Official Ultralytics Content
 
 Official `@ultralytics` content is pinned to the top of the Explore page. This includes:
 
-| Project    | Description                 | Models                       | Tasks                                |
-| ---------- | --------------------------- | ---------------------------- | ------------------------------------ |
-| **YOLO26** | Latest January 2026 release | 27 models (all sizes, tasks) | detect, segment, pose, OBB, classify |
-| **YOLO11** | Current stable release      | 10+ models                   | detect, segment, pose, OBB, classify |
-| **YOLOv8** | Previous generation         | Various                      | detect, segment, pose, classify      |
-| **YOLOv5** | Legacy, widely adopted      | Various                      | detect, segment, classify            |
+| Project                           | Description                 | Models                       | Tasks                                |
+| --------------------------------- | --------------------------- | ---------------------------- | ------------------------------------ |
+| **[YOLO26](../models/yolo26.md)** | Latest January 2026 release | 25 models (all sizes, tasks) | detect, segment, pose, OBB, classify |
+| **[YOLO11](../models/yolo11.md)** | Current stable release      | 10+ models                   | detect, segment, pose, OBB, classify |
+| **YOLOv8**                        | Previous generation         | Various                      | detect, segment, pose, classify      |
+| **YOLOv5**                        | Legacy, widely adopted      | Various                      | detect, segment, classify            |
 
-Official datasets include benchmark datasets like COCO, VOC, and other commonly used computer vision datasets.
+Official datasets include benchmark datasets like [coco8](../datasets/detect/coco8.md) (8-image COCO subset), [VOC](../datasets/detect/voc.md), [african-wildlife](../datasets/detect/african-wildlife.md), [dota8](../datasets/obb/dota8.md), and other commonly used computer vision datasets.
 
 !!! tip "Quick Start with Official Models"
 
@@ -182,13 +190,13 @@ Official datasets include benchmark datasets like COCO, VOC, and other commonly 
     1. Go to `Explore` > `Projects` tab
     2. Find the **YOLO26** project from `@ultralytics`
     3. Clone it to your account
-    4. Upload your dataset and start training with a pretrained checkpoint
+    4. Upload your dataset in [supported formats](data/datasets.md#preparing-your-dataset) and start training with a pretrained checkpoint
 
 ## User Profiles
 
 Click on a creator's username to view their public profile at `platform.ultralytics.com/{username}`. Public profiles show:
 
-<!-- Screenshot: platform-user-profile-public-content.avif -->
+![Ultralytics Platform User Profile Public Content](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-user-profile-public-content.avif)
 
 | Section      | Content                      |
 | ------------ | ---------------------------- |
@@ -260,7 +268,7 @@ When contributing public content:
 
 ## Public Content URLs
 
-Public content on the Platform uses clean, shareable URLs:
+Public content on the platform uses clean, shareable URLs:
 
 | Content  | URL Pattern                                             | Example                                               |
 | -------- | ------------------------------------------------------- | ----------------------------------------------------- |
@@ -318,4 +326,4 @@ There's no application process - just create great content!
 
 ### Can I monetize public content?
 
-Currently, the Platform doesn't support monetization. This may be added in future updates.
+Currently, the platform doesn't support monetization. This may be added in future updates.

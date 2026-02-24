@@ -690,7 +690,7 @@ Need to programmatically use the supported [image or video formats](../modes/pre
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
 
 print(IMG_FORMATS)
-# {'avif', 'bmp', 'dng', 'heic', 'jp2', 'jpeg', 'jpeg2000', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp'}
+# {'avif', 'bmp', 'dng', 'heic', 'heif', 'jp2', 'jpeg', 'jpeg2000', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp'}
 
 print(VID_FORMATS)
 # {'asf', 'avi', 'gif', 'm4v', 'mkv', 'mov', 'mp4', 'mpeg', 'mpg', 'ts', 'wmv', 'webm'}

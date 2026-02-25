@@ -225,7 +225,7 @@ def check_disk_space(
 
     def fmt_bytes(b):
         return f"{b / (1 << 20):.1f} MB" if b < (1 << 30) else f"{b / (1 << 30):.3f} GB"
-    
+
     # Insufficient space
     text = (
         f"Insufficient free disk space {fmt_bytes(free)} < {fmt_bytes(int(file_bytes * sf))} required, "

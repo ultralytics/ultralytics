@@ -73,7 +73,7 @@ from ultralytics.nn.modules import (
     YOLOESegment26,
     v10Detect,
 )
-from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, YAML, colorstr, emojis
+from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, WINDOWS, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
     E2ELoss,
@@ -1444,6 +1444,12 @@ def torch_safe_load(weight, safe_only=False):
                 "ultralytics.nn.modules.block.Silence": "torch.nn.Identity",  # YOLOv9e
                 "ultralytics.nn.tasks.YOLOv10DetectionModel": "ultralytics.nn.tasks.DetectionModel",  # YOLOv10
                 "ultralytics.utils.loss.v10DetectLoss": "ultralytics.utils.loss.E2EDetectLoss",  # YOLOv10
+                # resolve cross-platform pathlib pickle incompatibility
+                **(
+                    {"pathlib.PosixPath": "pathlib.WindowsPath"}
+                    if WINDOWS
+                    else {"pathlib.WindowsPath": "pathlib.PosixPath"}
+                ),
             },
         ):
             if safe_only:
@@ -1512,7 +1518,7 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
 
     # Model compatibility updates
     model.args = args  # attach args to model
-    model.pt_path = weight  # attach *.pt file path to model
+    model.pt_path = str(weight)  # attach *.pt file path to model as string (avoids WindowsPath pickle issues)
     model.task = getattr(model, "task", guess_model_task(model))
     if not hasattr(model, "stride"):
         model.stride = torch.tensor([32.0])

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import random
 import shutil
@@ -787,11 +788,21 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     ndjson_path = Path(check_file(ndjson_path))
     output_path = Path(output_path or DATASETS_DIR)
-    with open(ndjson_path) as f:
-        lines = [json.loads(line.strip()) for line in f if line.strip()]
+    ndjson_bytes = ndjson_path.read_bytes()
+    _hash = hashlib.sha256(ndjson_bytes).hexdigest()[:16]
 
-    dataset_record, image_records = lines[0], lines[1:]
+    # Early exit if NDJSON unchanged (hash stored in data.yaml)
     dataset_dir = output_path / ndjson_path.stem
+    yaml_path = dataset_dir / "data.yaml"
+    if yaml_path.is_file():
+        try:
+            if YAML.load(yaml_path).get("hash") == _hash:
+                return yaml_path
+        except Exception:
+            pass
+
+    lines = [json.loads(line.strip()) for line in ndjson_bytes.decode().splitlines() if line.strip()]
+    dataset_record, image_records = lines[0], lines[1:]
     splits = {record["split"] for record in image_records}
 
     # Check if this is a classification dataset
@@ -904,7 +915,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         # Classification: return dataset directory (check_cls_dataset expects a directory path)
         return dataset_dir
     else:
-        # Detection: write data.yaml and return its path
-        yaml_path = dataset_dir / "data.yaml"
+        # Detection: write data.yaml with hash for future change detection
+        data_yaml["hash"] = _hash
         YAML.save(yaml_path, data_yaml)
         return yaml_path

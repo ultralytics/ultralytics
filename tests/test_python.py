@@ -346,6 +346,28 @@ def test_labels_and_crops():
         assert len([f for f in crop_files if im_name in f.name]) == len(r.boxes.data)
 
 
+def test_end2end_topk_regression():
+    """Check end-to-end top-k behavior keeps top-1 compatibility while expanding output columns."""
+    model = YOLO("yolo26n.pt")
+    im = cv2.imread(str(SOURCE))
+    kwargs = dict(source=im, imgsz=64, conf=0.01, iou=0.7, max_det=30, verbose=False)
+
+    r_default = model.predict(**kwargs)[0]
+    r_top1 = model.predict(**kwargs, topk_cls=1)[0]
+    torch.testing.assert_close(r_default.boxes.data, r_top1.boxes.data)
+
+    k = 5
+    r_topk = model.predict(**kwargs, topk_cls=k)[0]
+    assert r_topk.boxes.data.shape[1] == 4 + (2 * k)
+    assert r_topk.boxes.conf_topk.shape[1] == k
+    assert r_topk.boxes.cls_topk.shape[1] == k
+    torch.testing.assert_close(r_topk.boxes.conf, r_topk.boxes.conf_topk[:, 0])
+    torch.testing.assert_close(r_topk.boxes.cls, r_topk.boxes.cls_topk[:, 0])
+    if len(r_topk):
+        summary = r_topk.summary()
+        assert {"class", "confidence"}.issubset(summary[0])
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_data_utils(tmp_path):
     """Test data utility functions including dataset stats, auto-splitting, and zip archiving."""

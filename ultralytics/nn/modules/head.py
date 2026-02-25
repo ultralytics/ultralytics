@@ -69,6 +69,7 @@ class Detect(nn.Module):
     format = None  # export format
     max_det = 300  # max_det
     agnostic_nms = False
+    topk = 1
     shape = None
     anchors = torch.empty(0)  # init
     strides = torch.empty(0)  # init
@@ -217,6 +218,16 @@ class Detect(nn.Module):
                 dimension format [x1, y1, x2, y2, max_class_prob, class_index].
         """
         boxes, scores = preds.split([4, self.nc], dim=-1)
+        if self.topk > 1:
+            k_cls = min(int(self.topk), self.nc)
+            score_topk, cls_topk = scores.topk(k_cls, dim=-1)
+            anchors = score_topk.shape[1]
+            k_det = self.max_det if self.export else min(self.max_det, anchors)
+            idx = score_topk[..., 0].topk(k_det, dim=1).indices.unsqueeze(-1)
+            boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
+            score_topk = score_topk.gather(dim=1, index=idx.repeat(1, 1, k_cls))
+            cls_topk = cls_topk.gather(dim=1, index=idx.repeat(1, 1, k_cls))
+            return torch.cat([boxes, score_topk, cls_topk.float()], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
         boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
         return torch.cat([boxes, scores, conf], dim=-1)
@@ -345,6 +356,17 @@ class Segment(Detect):
                 dimension format [x1, y1, x2, y2, max_class_prob, class_index, mask_coefficient].
         """
         boxes, scores, mask_coefficient = preds.split([4, self.nc, self.nm], dim=-1)
+        if self.topk > 1:
+            k_cls = min(int(self.topk), self.nc)
+            score_topk, cls_topk = scores.topk(k_cls, dim=-1)
+            anchors = score_topk.shape[1]
+            k_det = self.max_det if self.export else min(self.max_det, anchors)
+            idx = score_topk[..., 0].topk(k_det, dim=1).indices.unsqueeze(-1)
+            boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
+            score_topk = score_topk.gather(dim=1, index=idx.repeat(1, 1, k_cls))
+            cls_topk = cls_topk.gather(dim=1, index=idx.repeat(1, 1, k_cls))
+            mask_coefficient = mask_coefficient.gather(dim=1, index=idx.repeat(1, 1, self.nm))
+            return torch.cat([boxes, score_topk, cls_topk.float(), mask_coefficient], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
         boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
         mask_coefficient = mask_coefficient.gather(dim=1, index=idx.repeat(1, 1, self.nm))
@@ -1326,6 +1348,17 @@ class YOLOESegment(YOLOEDetect):
                 dimension format [x1, y1, x2, y2, max_class_prob, class_index, mask_coefficient].
         """
         boxes, scores, mask_coefficient = preds.split([4, self.nc, self.nm], dim=-1)
+        if self.topk > 1:
+            k_cls = min(int(self.topk), self.nc)
+            score_topk, cls_topk = scores.topk(k_cls, dim=-1)
+            anchors = score_topk.shape[1]
+            k_det = self.max_det if self.export else min(self.max_det, anchors)
+            idx = score_topk[..., 0].topk(k_det, dim=1).indices.unsqueeze(-1)
+            boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
+            score_topk = score_topk.gather(dim=1, index=idx.repeat(1, 1, k_cls))
+            cls_topk = cls_topk.gather(dim=1, index=idx.repeat(1, 1, k_cls))
+            mask_coefficient = mask_coefficient.gather(dim=1, index=idx.repeat(1, 1, self.nm))
+            return torch.cat([boxes, score_topk, cls_topk.float(), mask_coefficient], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
         boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
         mask_coefficient = mask_coefficient.gather(dim=1, index=idx.repeat(1, 1, self.nm))

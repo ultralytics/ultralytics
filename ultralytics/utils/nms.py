@@ -66,9 +66,24 @@ def non_max_suppression(
         classes = torch.tensor(classes, device=prediction.device)
 
     if prediction.shape[-1] == 6 or end2end:  # end-to-end model (BNC, i.e. 1,300,6)
-        output = [pred[pred[:, 4] > conf_thres][:max_det] for pred in prediction]
-        if classes is not None:
-            output = [pred[(pred[:, 5:6] == classes).any(1)] for pred in output]
+        output = []
+        k_cls = max(int(topk), 1)
+        if nc:
+            k_cls = min(k_cls, int(nc))
+        for pred in prediction:
+            k_local = k_cls if nc else min(k_cls, max((pred.shape[1] - 4) // 2, 1))
+            if end2end and k_local > 1 and pred.shape[1] >= (4 + (2 * k_local)):
+                score_end = 4 + k_local
+                cls_start = score_end
+                cls_end = cls_start + k_local
+                pred = pred[pred[:, 4] > conf_thres]
+                if classes is not None:
+                    pred = pred[(pred[:, cls_start:cls_end] == classes).any(1)]
+            else:
+                pred = pred[pred[:, 4] > conf_thres]
+                if classes is not None:
+                    pred = pred[(pred[:, 5:6] == classes).any(1)]
+            output.append(pred[:max_det])
         return output
 
     bs = prediction.shape[0]  # batch size (BCN, i.e. 1,84,6300)
@@ -89,7 +104,8 @@ def non_max_suppression(
         prediction[..., :4] = xywh2xyxy(prediction[..., :4])  # xywh to xyxy
 
     t = time.time()
-    output = [torch.zeros((0, 6 + extra), device=prediction.device)] * bs
+    out_cols = 4 + (2 * min(topk, nc)) if (multi_label and topk > 1) else 6
+    output = [torch.zeros((0, out_cols + extra), device=prediction.device)] * bs
     keepi = [torch.zeros((0, 1), device=prediction.device)] * bs  # to store the kept idxs
     for xi, (x, xk) in enumerate(zip(prediction, xinds)):  # image index, (preds, preds indices)
         # Apply constraints

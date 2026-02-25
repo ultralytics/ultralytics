@@ -30,6 +30,13 @@ class DetectionPredictor(BasePredictor):
         >>> predictor.predict_cli()
     """
 
+    def _resolve_topk_cls(self) -> int:
+        """Return requested top-k class count from predictor state."""
+        topk_cls = getattr(self, "_topk_cls", None)
+        if topk_cls is None:
+            topk_cls = getattr(self.args, "topk_cls", 1)
+        return max(int(topk_cls), 1)
+
     def postprocess(self, preds, img, orig_imgs, **kwargs):
         """Post-process predictions and return a list of Results objects.
 
@@ -51,19 +58,22 @@ class DetectionPredictor(BasePredictor):
             >>> processed_results = predictor.postprocess(preds, img, orig_imgs)
         """
         save_feats = getattr(self, "_feats", None) is not None
+        topk_cls = self._resolve_topk_cls()
+        use_topk = self.args.task in {"detect", "segment"} and topk_cls > 1
+        topk = topk_cls if use_topk else 1
         preds = nms.non_max_suppression(
             preds,
             self.args.conf,
             self.args.iou,
             self.args.classes,
             self.args.agnostic_nms,
-            multi_label=getattr(self.args, "topk", 1) > 1,
+            multi_label=use_topk,
             max_det=self.args.max_det,
             nc=0 if self.args.task == "detect" else len(self.model.names),
             end2end=getattr(self.model, "end2end", False),
             rotated=self.args.task == "obb",
             return_idxs=save_feats,
-            topk=self.args.topk,
+            topk=topk,
         )
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
@@ -121,9 +131,11 @@ class DetectionPredictor(BasePredictor):
             (Results): Results object containing the original image, image path, class names, and scaled bounding boxes.
         """
         pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
-        if getattr(self.args, "topk", 1) > 1:
+        topk_cls = self._resolve_topk_cls()
+        use_topk = self.args.task in {"detect", "segment"} and topk_cls > 1
+        if use_topk:
             # Keep only top-k box layout columns so Boxes parsing is unaffected by any appended extras.
-            k = min(int(getattr(self.args, "topk", 1)), len(self.model.names))
+            k = min(topk_cls, len(self.model.names))
             box_cols = min(4 + (2 * k), pred.shape[1])
             return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :box_cols])
         return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6])

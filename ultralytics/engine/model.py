@@ -496,6 +496,7 @@ class Model(torch.nn.Module):
             predictor (BasePredictor, optional): An instance of a custom predictor class for making predictions. If
                 None, the method uses a default predictor.
             **kwargs (Any): Additional keyword arguments for configuring the prediction process.
+                Use `topk_cls=<int>` to request top-k class outputs for detection/segmentation inference.
 
         Returns:
             (list[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a Results
@@ -506,6 +507,7 @@ class Model(torch.nn.Module):
             >>> results = model.predict(source="path/to/image.jpg", conf=0.25)
             >>> for r in results:
             ...     print(r.boxes.data)  # print detection bounding boxes
+            >>> results = model.predict(source="path/to/image.jpg", topk_cls=5)  # top-k classes for detect/segment
 
         Notes:
             - If 'source' is not provided, it defaults to the ASSETS constant with a warning.
@@ -522,6 +524,8 @@ class Model(torch.nn.Module):
 
         custom = {"conf": 0.25, "batch": 1, "save": is_cli, "mode": "predict", "rect": True}  # method defaults
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
+        topk_cls = args.pop("topk_cls", 1)
+        topk_cls = max(int(topk_cls), 1)
         prompts = args.pop("prompts", None)  # for SAM-type models
 
         if not self.predictor or self.predictor.args.device != args.get("device", self.predictor.args.device):
@@ -531,6 +535,7 @@ class Model(torch.nn.Module):
             self.predictor.args = get_cfg(self.predictor.args, args)
             if "project" in args or "name" in args:
                 self.predictor.save_dir = get_save_dir(self.predictor.args)
+        self.predictor._topk_cls = topk_cls
         if prompts and hasattr(self.predictor, "set_prompts"):  # for SAM-type models
             self.predictor.set_prompts(prompts)
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)

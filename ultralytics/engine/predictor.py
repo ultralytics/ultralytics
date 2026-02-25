@@ -179,6 +179,13 @@ class BasePredictor:
             if self.args.visualize and (not self.source_type.tensor)
             else False
         )
+        task_topk = max(int(getattr(self, "_topk_cls", 1)), 1) if getattr(self.args, "task", None) in {"detect", "segment"} else 1
+        if getattr(self.model, "end2end", False) and hasattr(self.model, "model") and hasattr(self.model.model, "set_head_attr"):
+            self.model.model.set_head_attr(
+                max_det=self.args.max_det,
+                agnostic_nms=self.args.agnostic_nms,
+                topk=task_topk,
+            )
         return self.model(im, augment=self.args.augment, visualize=visualize, embed=self.args.embed, *args, **kwargs)
 
     def pre_transform(self, im: list[np.ndarray]) -> list[np.ndarray]:
@@ -391,7 +398,12 @@ class BasePredictor:
             if self.args.end2end is not None:
                 model.end2end = self.args.end2end
             if model.end2end:
-                model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms)
+                task_topk = max(int(getattr(self, "_topk_cls", 1)), 1) if getattr(self.args, "task", None) in {"detect", "segment"} else 1
+                model.set_head_attr(
+                    max_det=self.args.max_det,
+                    agnostic_nms=self.args.agnostic_nms,
+                    topk=task_topk,
+                )
         self.model = AutoBackend(
             model=model or self.args.model,
             device=select_device(self.args.device, verbose=verbose),

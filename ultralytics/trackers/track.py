@@ -95,6 +95,18 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
             continue
         idx = tracks[:, -1].astype(int)
         predictor.results[i] = result[idx]
+        if not is_obb and predictor.results[i].boxes is not None:
+            boxes = predictor.results[i].boxes
+            # Preserve top-k class/score columns after tracking by inserting only track_id.
+            if getattr(boxes, "topk", 1) > 1 and not boxes.is_track:
+                device = boxes.data.device if isinstance(boxes.data, torch.Tensor) else None
+                dtype = boxes.data.dtype if isinstance(boxes.data, torch.Tensor) else None
+                tracked = torch.as_tensor(tracks, device=device, dtype=dtype)
+                conf_topk = torch.as_tensor(boxes.conf_topk, device=tracked.device, dtype=tracked.dtype)
+                cls_topk = torch.as_tensor(boxes.cls_topk, device=tracked.device, dtype=tracked.dtype)
+                tracked_boxes = torch.cat((tracked[:, :4], tracked[:, 4:5], conf_topk, cls_topk), dim=1)
+                predictor.results[i].update(boxes=tracked_boxes)
+                continue
 
         update_args = {"obb" if is_obb else "boxes": torch.as_tensor(tracks[:, :-1])}
         predictor.results[i].update(**update_args)

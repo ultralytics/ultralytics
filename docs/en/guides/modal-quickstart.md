@@ -6,7 +6,11 @@ keywords: Ultralytics, Modal, YOLO26, serverless, cloud computing, GPU, machine 
 
 # Modal Quickstart Guide for Ultralytics
 
-This guide provides a comprehensive introduction to running [Ultralytics YOLO26](../models/yolo26.md) on [Modal](https://modal.com/), a serverless [cloud computing](https://www.ultralytics.com/glossary/cloud-computing) platform for AI and [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) workloads. Modal handles provisioning, scaling, and execution automatically, making it ideal for running [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models like YOLO26.
+This guide provides a comprehensive introduction to running [Ultralytics YOLO26](../models/yolo26.md) on [Modal](https://modal.com/), covering serverless GPU inference and model training.
+
+## What is Modal?
+
+[Modal](https://modal.com/) is a serverless [cloud computing](https://www.ultralytics.com/glossary/cloud-computing) platform for AI and [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) workloads. It handles provisioning, scaling, and execution automatically — you write Python code locally and Modal runs it in the cloud with GPU access. This makes it ideal for running [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models like YOLO26 without managing infrastructure.
 
 ## What You Will Learn
 
@@ -15,14 +19,10 @@ This guide provides a comprehensive introduction to running [Ultralytics YOLO26]
 - Using GPUs for faster inference
 - Training YOLO26 models on Modal
 
----
-
 ## Prerequisites
 
 - A Modal account (sign up for free at [modal.com](https://modal.com/))
 - Python 3.9 or later installed on your local machine
-
----
 
 ## Installation
 
@@ -39,8 +39,6 @@ modal token new
 !!! tip "Authentication"
 
     The `modal token new` command will open a browser window to authenticate your Modal account. After authentication, you can run Modal commands from the terminal.
-
----
 
 ## Running YOLO26 Inference
 
@@ -112,8 +110,6 @@ You can monitor your function execution in the Modal dashboard:
   <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@fda2504f1e5dab2f437097ac7b99a7da984e4243/docs/modal-dashboard-function-calls.avif" alt="Modal Dashboard Function Calls">
 </p>
 
----
-
 ## Using GPU for Faster Inference
 
 Add a GPU to your function by specifying the `gpu` parameter:
@@ -136,11 +132,9 @@ def predict_gpu(image_url: str):
 | A100 | 40 GB  | Large-scale training            |
 | H100 | 80 GB  | Maximum performance             |
 
----
-
 ## Training YOLO26 on Modal
 
-For training, use a GPU and Modal [Volumes](https://modal.com/docs/guide/volumes) for persistent storage:
+For training, use a GPU and Modal [Volumes](https://modal.com/docs/guide/volumes) for persistent storage. Create a new Python file called `train_yolo.py`:
 
 ```python
 import modal
@@ -175,8 +169,6 @@ modal run train_yolo.py
 !!! tip "Volume Persistence"
 
     Modal Volumes persist data between function runs. Trained weights are saved to `/data/runs/detect/train/weights/`.
-
----
 
 Congratulations! You have successfully set up Ultralytics YOLO26 on Modal. For further learning:
 

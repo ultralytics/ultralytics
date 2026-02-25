@@ -128,11 +128,11 @@ class ActionRecognition(BaseSolution):
 
         Args:
             **kwargs: Keyword arguments including:
-                - model (str): YOLO model for person detection. Defaults to "yolo26n.pt".
-                - video_classifier_model (str): TorchVision model name. Defaults to "s3d".
-                - crop_margin_percentage (int): Margin for cropping. Defaults to 10.
-                - num_video_sequence_samples (int): Frames per sequence. Defaults to 8.
-                - skip_frame (int): Frame skip interval. Defaults to 2.
+                - model (str): YOLO model for person detection.
+                - video_classifier_model (str): TorchVision model name.
+                - crop_margin_percentage (int): Margin for cropping.
+                - num_video_sequence_samples (int): Frames per classification sequence.
+                - skip_frame (int): Frame skip interval.
         """
         if "classes" not in kwargs:
             kwargs["classes"] = [0]  # Default to person class

@@ -117,7 +117,7 @@ The models are trained on Kinetics-400 which includes 400 action classes like: w
 
 ### Why do I see "detecting..." instead of action labels?
 
-The system collects 8 frames before making a prediction. With `skip_frame=2`, this takes ~16 video frames. Action labels appear after enough frames are collected.
+The system collects 16 frames before making a prediction. With `skip_frame=2`, this takes ~32 video frames. Action labels appear after enough frames are collected.
 
 ### Which model should I use?
 

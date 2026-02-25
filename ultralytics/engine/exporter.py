@@ -413,7 +413,7 @@ class Exporter:
         if hasattr(model, "end2end"):
             if self.args.end2end is not None:
                 model.end2end = self.args.end2end
-            if rknn or ncnn or executorch or paddle or imx:
+            if rknn or ncnn or executorch or paddle or imx or edgetpu:
                 # Disable end2end branch for certain export formats as they does not support topk
                 model.end2end = False
                 LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")

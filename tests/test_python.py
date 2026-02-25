@@ -348,21 +348,24 @@ def test_labels_and_crops():
 
 def test_end2end_topk_regression():
     """Check end-to-end top-k behavior keeps top-1 compatibility while expanding output columns."""
+    assert_close = getattr(torch.testing, "assert_close", None)
+    if assert_close is None:
+        assert_close = torch.testing.assert_allclose
     model = YOLO("yolo26n.pt")
     im = cv2.imread(str(SOURCE))
     kwargs = dict(source=im, imgsz=64, conf=0.01, iou=0.7, max_det=30, verbose=False)
 
     r_default = model.predict(**kwargs)[0]
     r_top1 = model.predict(**kwargs, topk_cls=1)[0]
-    torch.testing.assert_close(r_default.boxes.data, r_top1.boxes.data)
+    assert_close(r_default.boxes.data, r_top1.boxes.data)
 
     k = 5
     r_topk = model.predict(**kwargs, topk_cls=k)[0]
     assert r_topk.boxes.data.shape[1] == 4 + (2 * k)
     assert r_topk.boxes.conf_topk.shape[1] == k
     assert r_topk.boxes.cls_topk.shape[1] == k
-    torch.testing.assert_close(r_topk.boxes.conf, r_topk.boxes.conf_topk[:, 0])
-    torch.testing.assert_close(r_topk.boxes.cls, r_topk.boxes.cls_topk[:, 0])
+    assert_close(r_topk.boxes.conf, r_topk.boxes.conf_topk[:, 0])
+    assert_close(r_topk.boxes.cls, r_topk.boxes.cls_topk[:, 0])
     if len(r_topk):
         summary = r_topk.summary()
         assert {"class", "confidence"}.issubset(summary[0])

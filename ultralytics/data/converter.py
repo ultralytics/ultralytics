@@ -809,7 +809,10 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     if task == "pose" and "kpt_shape" not in dataset_record:
         raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose/")
 
-    # Create base directories
+    # Check if dataset already exists (enables image reuse across split changes)
+    _reuse = dataset_dir.exists()
+    if _reuse and not is_classification:
+        shutil.rmtree(dataset_dir / "labels", ignore_errors=True)
     dataset_dir.mkdir(parents=True, exist_ok=True)
     data_yaml = None
 
@@ -846,9 +849,18 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                     break
                 label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
 
-            # Download image if URL provided and file doesn't exist
-            if http_url := record.get("url"):
-                if not image_path.exists():
+            # Reuse existing image from another split dir (avoids redownload on resplit) or download
+            if not image_path.exists():
+                if _reuse:
+                    for s in ("train", "val", "test"):
+                        if s == split:
+                            continue
+                        candidate = (dataset_dir / s / class_name / original_name) if is_classification else (dataset_dir / "images" / s / original_name)
+                        if candidate.exists():
+                            image_path.parent.mkdir(parents=True, exist_ok=True)
+                            candidate.rename(image_path)
+                            break
+                if not image_path.exists() and (http_url := record.get("url")):
                     image_path.parent.mkdir(parents=True, exist_ok=True)
                     # Retry with exponential backoff (3 attempts: 0s, 2s, 4s delays)
                     for attempt in range(3):

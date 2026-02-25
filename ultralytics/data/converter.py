@@ -866,7 +866,11 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                     for s in ("train", "val", "test"):
                         if s == split:
                             continue
-                        candidate = (dataset_dir / s / class_name / original_name) if is_classification else (dataset_dir / "images" / s / original_name)
+                        candidate = (
+                            (dataset_dir / s / class_name / original_name)
+                            if is_classification
+                            else (dataset_dir / "images" / s / original_name)
+                        )
                         if candidate.exists():
                             image_path.parent.mkdir(parents=True, exist_ok=True)
                             candidate.rename(image_path)

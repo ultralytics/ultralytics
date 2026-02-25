@@ -788,10 +788,17 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     ndjson_path = Path(check_file(ndjson_path))
     output_path = Path(output_path or DATASETS_DIR)
-    ndjson_bytes = ndjson_path.read_bytes()
-    _hash = hashlib.sha256(ndjson_bytes).hexdigest()[:16]
+    with open(ndjson_path) as f:
+        lines = [json.loads(line.strip()) for line in f if line.strip()]
+    dataset_record, image_records = lines[0], lines[1:]
 
-    # Early exit if NDJSON unchanged (hash stored in data.yaml)
+    # Hash semantic content only (excludes signed URLs which change on every export)
+    _h = hashlib.sha256()
+    for r in lines:
+        _h.update(json.dumps({k: v for k, v in r.items() if k != "url"}, sort_keys=True).encode())
+    _hash = _h.hexdigest()[:16]
+
+    # Early exit if dataset content unchanged (hash stored in data.yaml)
     dataset_dir = output_path / ndjson_path.stem
     yaml_path = dataset_dir / "data.yaml"
     if yaml_path.is_file():
@@ -800,9 +807,6 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 return yaml_path
         except Exception:
             pass
-
-    lines = [json.loads(line.strip()) for line in ndjson_bytes.decode().splitlines() if line.strip()]
-    dataset_record, image_records = lines[0], lines[1:]
     splits = {record["split"] for record in image_records}
 
     # Check if this is a classification dataset
@@ -916,6 +920,23 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         raise RuntimeError(f"Failed to download any images from {ndjson_path}. Check network connection and URLs.")
     if success_count < len(image_records):
         LOGGER.warning(f"Downloaded {success_count}/{len(image_records)} images from {ndjson_path}")
+
+    # Remove orphaned images no longer in the dataset (prevents stale background images in training)
+    if _reuse:
+        expected_paths = set()
+        for r in image_records:
+            s, name = r["split"], r["file"]
+            if is_classification:
+                ann = r.get("annotations", {})
+                cids = ann.get("classification", [])
+                cid = cids[0] if cids else 0
+                expected_paths.add(dataset_dir / s / class_names.get(cid, str(cid)) / name)
+            else:
+                expected_paths.add(dataset_dir / "images" / s / name)
+        img_root = dataset_dir if is_classification else (dataset_dir / "images")
+        for p in img_root.rglob("*"):
+            if p.is_file() and p not in expected_paths:
+                p.unlink()
 
     if is_classification:
         # Classification: return dataset directory (check_cls_dataset expects a directory path)

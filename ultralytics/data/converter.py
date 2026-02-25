@@ -822,8 +822,10 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     # Check if dataset already exists (enables image reuse across split changes)
     _reuse = dataset_dir.exists()
-    if _reuse and not is_classification:
-        shutil.rmtree(dataset_dir / "labels", ignore_errors=True)
+    if _reuse:
+        yaml_path.unlink(missing_ok=True)  # Invalidate hash before destructive ops (crash safety)
+        if not is_classification:
+            shutil.rmtree(dataset_dir / "labels", ignore_errors=True)
     dataset_dir.mkdir(parents=True, exist_ok=True)
     data_yaml = None
 

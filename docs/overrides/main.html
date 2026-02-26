@@ -15,9 +15,8 @@
 {% endblock %}
 
 <!--Vercel Web Analytics-->
-{% block scripts %}
-  {{ super() }}
-  <script defer src="/_vercel/insights/script.js"></script>
+{% block scripts %} {{ super() }}
+<script defer src="/_vercel/insights/script.js"></script>
 {% endblock %}
 
 <!--Page titles-->

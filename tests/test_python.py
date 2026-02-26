@@ -351,10 +351,10 @@ def test_end2end_topk_regression():
     assert_close = getattr(torch.testing, "assert_close", None)
     if assert_close is None:
         assert_close = torch.testing.assert_allclose
-    model = YOLO("yolo26n.pt")
     im = cv2.imread(str(SOURCE))
     kwargs = dict(source=im, imgsz=64, conf=0.01, iou=0.7, max_det=30, verbose=False)
 
+    model = YOLO("yolo26n.pt")
     r_default = model.predict(**kwargs)[0]
     r_top1 = model.predict(**kwargs, topk_cls=1)[0]
     assert_close(r_default.boxes.data, r_top1.boxes.data)
@@ -369,6 +369,15 @@ def test_end2end_topk_regression():
     if len(r_topk):
         summary = r_topk.summary()
         assert {"class", "confidence"}.issubset(summary[0])
+
+    # Segment side regression: top-k boxes should remain compatible with mask decoding.
+    seg_model = YOLO("yolo26n-seg.pt")
+    seg_topk = seg_model.predict(**kwargs, topk_cls=k)[0]
+    assert seg_topk.boxes.data.shape[1] == 4 + (2 * k)
+    if seg_topk.masks is None:
+        assert len(seg_topk.boxes) == 0
+    else:
+        assert len(seg_topk.boxes) == len(seg_topk.masks.data)
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

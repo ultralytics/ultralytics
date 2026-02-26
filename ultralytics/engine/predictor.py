@@ -167,7 +167,10 @@ class BasePredictor:
                 im = np.stack(im)
                 im = torch.from_numpy(im)
             im = im.to(self.device, non_blocking=True) # sending to device first to allow gpu acceleration, non blocking also benefits gpu.
-            im = im.permute(0, 3, 1, 2).flip(1).contiguous() # bhwc -> bchw, bgr -> rgb, contiguous
+            im = im.permute(0, 3, 1, 2)  # bhwc -> bchw
+            if im.shape[1] == 3:
+                im = im.flip(1)  # bgr -> rgb
+            im = im.contiguous()
             im = (im.half() if self.model.fp16 else im.float()).div_(255.0)  # uint8 to fp16/32, 0 - 255 to 0.0 - 1.0
         else: # tensor fast path, assumes rgb already
             im = im.to(self.device, non_blocking=True)

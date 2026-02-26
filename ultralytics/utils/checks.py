@@ -458,7 +458,10 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
                 continue
 
         if not satisfied:
-            pkgs.append(candidates[0])
+            pkg = candidates[0]
+            if "git+" in pkg:
+                pkg = re.sub(r"[<>!=~]+.*$", "", pkg)  # strip version constraints from git URLs for pip
+            pkgs.append(pkg)
 
     @Retry(times=2, delay=1)
     def attempt_install(packages, commands, use_uv):

@@ -808,6 +808,7 @@ nav:
           - events: reference/utils/events.md
           - export:
               - engine: reference/utils/export/engine.md
+              - executorch: reference/utils/export/executorch.md
               - imx: reference/utils/export/imx.md
               - tensorflow: reference/utils/export/tensorflow.md
           - files: reference/utils/files.md

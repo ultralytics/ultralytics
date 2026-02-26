@@ -460,7 +460,9 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         if not satisfied:
             pkg = candidates[0]
             if "git+" in pkg:
-                pkg = re.sub(r"[<>!=~]+.*$", "", pkg)  # strip version constraints from git URLs for pip
+                parts = pkg.split(";", 1)  # preserve environment markers after ';'
+                parts[0] = re.sub(r"[<>!=~]+.*$", "", parts[0])  # strip version constraints from git URL
+                pkg = ";".join(parts)
             pkgs.append(pkg)
 
     @Retry(times=2, delay=1)

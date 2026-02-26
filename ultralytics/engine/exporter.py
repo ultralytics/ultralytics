@@ -123,6 +123,7 @@ from ultralytics.utils.export import (
     onnx2saved_model,
     pb2tfjs,
     tflite2edgetpu,
+    torch2executorch,
     torch2imx,
     torch2onnx,
 )
@@ -509,6 +510,10 @@ class Exporter:
             from ultralytics.utils.export.tensorflow import tf_wrapper
 
             model = tf_wrapper(model)
+        if executorch:
+            from ultralytics.utils.export.executorch import executorch_wrapper
+
+            model = executorch_wrapper(model)
         for m in model.modules():
             if isinstance(m, Classify):
                 m.export = True
@@ -1205,31 +1210,8 @@ class Exporter:
     def export_executorch(self, prefix=colorstr("ExecuTorch:")):
         """Export YOLO model to ExecuTorch *.pte format."""
         assert TORCH_2_9, f"ExecuTorch requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
-
         check_executorch_requirements()
-
-        from executorch import version as executorch_version
-        from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner
-        from executorch.exir import to_edge_transform_and_lower
-
-        LOGGER.info(f"\n{prefix} starting export with ExecuTorch {executorch_version.__version__}...")
-
-        file_directory = Path(str(self.file).replace(self.file.suffix, "_executorch_model"))
-        file_directory.mkdir(parents=True, exist_ok=True)
-
-        file_pte = file_directory / self.file.with_suffix(".pte").name
-        sample_inputs = (self.im,)
-
-        et_program = to_edge_transform_and_lower(
-            torch.export.export(self.model, sample_inputs), partitioner=[XnnpackPartitioner()]
-        ).to_executorch()
-
-        with open(file_pte, "wb") as file:
-            file.write(et_program.buffer)
-
-        YAML.save(file_directory / "metadata.yaml", self.metadata)
-
-        return str(file_directory)
+        return torch2executorch(self.model, self.file, self.im, metadata=self.metadata, prefix=prefix)
 
     @try_export
     def export_edgetpu(self, tflite_model="", prefix=colorstr("Edge TPU:")):

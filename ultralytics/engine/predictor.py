@@ -149,10 +149,12 @@ class BasePredictor:
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, im: torch.Tensor | list[np.ndarray]) -> torch.Tensor:
-        """Prepare input image before inference. Tensor input is a fast path, only does device and dtype conversions skipping the rest of preprocessing.
+        """Prepare input image before inference. Tensor input is a fast path, only does device and dtype conversions
+        skipping the rest of preprocessing.
 
         Args:
-            im (torch.Tensor | list[np.ndarray]): Images of shape (N, 3, H, W) for tensor (expected rgb), [(H, W, 3) x N] for list of ndarray (expected bgr).
+            im (torch.Tensor | list[np.ndarray]): Images of shape (N, 3, H, W) for tensor (expected rgb), [(H, W, 3) x
+                N] for list of ndarray (expected bgr).
 
         Returns:
             (torch.Tensor): Preprocessed image tensor of shape (N, 3, H, W).
@@ -161,22 +163,28 @@ class BasePredictor:
 
         if not_tensor:
             im = self.pre_transform(im)
-            if len(im) == 1: # single frame case allows skipping np.stack and to use unsqueeze instead, np.stack super slow
+            if (
+                len(im) == 1
+            ):  # single frame case allows skipping np.stack and to use unsqueeze instead, np.stack super slow
                 im = torch.from_numpy(im[0]).unsqueeze(0)
             else:
                 im = np.stack(im)
                 im = torch.from_numpy(im)
-            im = im.to(self.device, non_blocking=True) # sending to device first to allow gpu acceleration, non blocking also benefits gpu.
+            im = im.to(
+                self.device, non_blocking=True
+            )  # sending to device first to allow gpu acceleration, non blocking also benefits gpu.
             im = im.permute(0, 3, 1, 2)  # bhwc -> bchw
             if im.shape[1] == 3:
                 im = im.flip(1)  # bgr -> rgb
             im = im.contiguous()
             im = (im.half() if self.model.fp16 else im.float()).div_(255.0)  # uint8 to fp16/32, 0 - 255 to 0.0 - 1.0
-        else: # tensor fast path, assumes rgb already
+        else:  # tensor fast path, assumes rgb already
             im = im.to(self.device, non_blocking=True)
-            im = im.half() if self.model.fp16 else im.float()  # ORIGINAL COMMENT: uint8 to fp16/32, PR COMMENT: suggests expected uint8,fp16/32. possible bug, uint8 tensor stays 0-255, never goes 0-1 
+            im = (
+                im.half() if self.model.fp16 else im.float()
+            )  # ORIGINAL COMMENT: uint8 to fp16/32, PR COMMENT: suggests expected uint8,fp16/32. possible bug, uint8 tensor stays 0-255, never goes 0-1
         return im
-        
+
     def inference(self, im: torch.Tensor, *args, **kwargs):
         """Run inference on a given image using the specified model and arguments."""
         visualize = (

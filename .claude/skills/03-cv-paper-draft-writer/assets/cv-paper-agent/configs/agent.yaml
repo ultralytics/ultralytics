@@ -1,0 +1,10 @@
+resume: true
+snapshot_every_n_experiments: 1
+safety:
+  read_only_repo: true
+  read_only_runs: true
+writing:
+  language: zh
+  format: latex
+figures:
+  enable: false

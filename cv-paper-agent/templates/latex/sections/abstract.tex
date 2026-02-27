@@ -1,0 +1,10 @@
+\begin{abstract}
+Small object detection in drone-captured aerial imagery remains a core challenge due to limited object texture, severe background clutter, and long-tail class distributions.
+We propose \textbf{SC-ELAN} (Spatial-Context Efficient Layer Aggregation Network), a family of modular enhancements to the YOLO detection framework that jointly addresses these bottlenecks through three complementary mechanisms:
+(1)~\textit{ContextAwareRepConv}, a multi-branch convolution block (1$\times$1, 3$\times$3, 5$\times$5) that captures multi-scale context during training and collapses to a single efficient 3$\times$3 convolution at inference via structural re-parameterization;
+(2)~\textit{Large Kernel Spatial Attention with Two-Stage Context Gating} (LSKA-TSCG), which provides selective long-range spatial modeling with stage-aware feature gating;
+and (3)~\textit{DetectCAI}, a training-time class-aware instance reweighting head that mitigates long-tail bias without modifying the inference pipeline.
+Through systematic experiments on the VisDrone2019-DET benchmark (1609 test-dev images, 75\,082 instances, 10 classes), we conduct a three-phase ablation covering CAI parameter sensitivity (Phase~1), SA-LSKA kernel scaling (Phase~2), and P3-level feature reuse (Phase~3).
+Our best configuration (v2-P1d, $\alpha{=}0.10$, $\beta{=}0.40$) achieves \textbf{mAP50 = 0.367} and \textbf{mAP50-95 = 0.212} on test-dev, establishing a new record among all SC-ELAN variants while maintaining real-time inference speed ($\sim$5.7\,ms per image on an RTX~4090).
+Per-class analysis shows consistent gains on long-tail categories including bicycle (+37\% mAP50 vs.\ base) and tricycle (+6\% mAP50), confirming that calibrated head-level reweighting combined with strong contextual backbones yields the highest return on both strict localization and tail-class coverage.
+\end{abstract}

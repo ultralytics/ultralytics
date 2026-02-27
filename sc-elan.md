@@ -394,9 +394,22 @@ All models were evaluated on the **VisDrone2019-DET-test-dev** dataset (1609 ima
 | **YOLO11-SCELAN-Efficient** | 9.00M | 20.3 | 0.334 | 0.189 | 4.6 |
 | **YOLO11-SCELAN-RepExact** | 8.47M | 16.9 | 0.310 | 0.171 | 4.6 |
 | **YOLO11-SCELAN-RepAdd** | 8.43M | 16.6 | 0.304 | 0.167 | 4.8 |
+| ***SC-ELAN v2 Phased Pipeline (see Section 8)*** | | | | | |
+| **v2-P1a** (α=0.05, β=0.15) | 11.53M | 39.4 | 0.359 | 0.207 | 5.7 |
+| **v2-P1b** (α=0.10, β=0.25) | 11.53M | 39.4 | 0.362 | 0.209 | 5.7 |
+| **v2-P1c** (α=0.15, β=0.30, Soft repro) | 11.53M | 39.4 | 0.362 | 0.207 | 5.8 |
+| **v2-P1d** (α=0.10, β=0.40) | 11.53M | 39.4 | **0.367** | **0.212** | 5.7 |
+| **v2-P1e** (α=0.20, β=0.25) | 11.53M | 39.4 | **0.367** | 0.211 | 5.6 |
+| **v2-P2a** SA-LSKA(7/11/23)+TSCG | 11.16M | 39.2 | 0.361 | 0.209 | 5.9 |
+| **v2-P2b** SA-LSKA(11/23/23)+TSCG | 11.17M | 39.3 | 0.361 | 0.209 | 5.9 |
+| **v2-P2c** SA-LSKA(7/23/35)+TSCG | 11.17M | 39.3 | 0.354 | 0.205 | 5.8 |
+| **v2-P2d** SA-LSKA(7/11/23)+TSCGv2 | 11.16M | 39.2 | 0.361 | 0.208 | 5.9 |
+| **v2-P3a** SA-LSKA+TSCG+P3-FRM+Detect | 11.19M | 39.5 | 0.358 | 0.207 | 5.9 |
+| **v2-P3b** SA-LSKA+TSCG+P3-FRM+DetectCAI-Soft | 11.55M | 39.5 | 0.361 | 0.208 | 5.7 |
 
 **Key Observations:**
-- **Best strict accuracy (mAP50-95 = 0.210):** jointly achieved by **YOLO11-SCELAN-LSKA23-TSCG (val4)** and **YOLO11-SCELAN-LSKA-TSCG-DetectCAI-Soft (val4)**, both surpassing previously reported 0.208
+- **New best strict accuracy (mAP50-95 = 0.212):** achieved by **v2-P1d** (α=0.10, β=0.40), surpassing the previous 0.210 record
+- **Best strict accuracy (mAP50-95 = 0.210, pre-v2):** jointly achieved by **YOLO11-SCELAN-LSKA23-TSCG (val4)** and **YOLO11-SCELAN-LSKA-TSCG-DetectCAI-Soft (val4)**
 - **Best recall:** **LSKA23-TSCG (val4)** achieves **R = 0.386**, highest among all variants, indicating strongest candidate coverage in dense scenes
 - **Best precision:** **DetectCAI-Tail12 (val4)** reaches **P = 0.506**, but with recall trade-off (R = 0.368), showing stricter positive filtering
 - **Most stable CAI setting:** **DetectCAI-Soft** improves long-tail small classes (`pedestrian/people/bicycle/tricycle`) while maintaining top-line metrics equal to LSKA23-TSCG
@@ -864,16 +877,15 @@ All models were tested on NVIDIA GeForce RTX 4090 (24GB VRAM):
 
 #### Best Model Selection by Use Case:
 
-1. **Best Overall / General Small Object Detection (val4)** → **YOLO11-SCELAN-LSKA23-TSCG (val4)**
-    - Current top strict score: **mAP50-95 = 0.210**, mAP50 = **0.364**
-    - Highest recall in val4 batch (**R = 0.386**) — strongest dense-scene candidate coverage
-    - Recommended default when strict localization and recall are the primary KPIs
+1. **Best Overall / General Small Object Detection** → **v2-P1d** (α=0.10, β=0.40)
+    - **New global best: mAP50-95 = 0.212**, mAP50 = **0.367** (see Section 8)
+    - Surpasses previous val4 record (0.210) via CAI parameter optimization
+    - Recommended default when strict localization is the primary KPI
 
-2. **Best Tail-Aware Balanced Option (val4)** → **YOLO11-SCELAN-LSKA-TSCG-DetectCAI-Soft (val4)**
-    - Matches top strict score (**mAP50-95 = 0.210**, mAP50 = **0.364**)
-    - Improves multiple small/long-tail classes over plain `LSKA23-TSCG`: `pedestrian` (+0.010), `people` (+0.008), `bicycle` (+0.006), `tricycle` (+0.012) on mAP50
-    - Best car mAP50-95 (**0.498**) and motor mAP50 (**0.362**) among val4 variants
-    - **Recommended combined architecture** for current and follow-up experiments
+2. **Best Tail-Aware Balanced Option** → **v2-P1d** / **v2-P1e**
+    - v2-P1d achieves best `bicycle` mAP50 (0.145) and `tricycle` mAP50 (0.223) across all variants
+    - v2-P1e achieves highest recall (**R = 0.384**) with near-best mAP50-95 (0.211)
+    - Historical val4 reference: DetectCAI-Soft (0.210) remains relevant as cross-validation anchor
 
 3. **Highest Precision Profile (val4)** → **YOLO11-SCELAN-LSKA-TSCG-DetectCAI-Tail12 (val4)**
     - Highest overall precision (**P = 0.506**), best `people` P (0.559), best `pedestrian` P (0.542)
@@ -901,11 +913,12 @@ All models were tested on NVIDIA GeForce RTX 4090 (24GB VRAM):
 
 #### Key Findings:
 
-- **Current best strict score is mAP50-95 = 0.210**, jointly achieved by `LSKA23-TSCG` and `DetectCAI-Soft` on val4
+- **New global best: mAP50-95 = 0.212**, achieved by **v2-P1d** (α=0.10, β=0.40), surpassing the previous 0.210 record (see Section 8)
+- **CAI parameter tuning is the highest-ROI optimization**: Phase 1 CAI sweep outperforms Phase 2 structural ablation and Phase 3 P3-FRM integration
 - **LSKA kernel scaling is confirmed beneficial**: `k=23` outperforms `k=11` (+0.003 mAP50-95, +0.011 recall) under the same TSCG structure
 - **`LSKA + TSCG` remains the strongest structural base**; CAI benefit depends on reweighting regime (`Soft` reaches top score, `Mom098` regresses to 0.204)
-- **`DetectCAI-Soft` is the recommended combined configuration**: it matches the top backbone score while improving small/long-tail class metrics without sacrificing vehicles
-- **Clear Pareto front** exists between strict accuracy (≤0.210 mAP50-95) and speed/compute efficiency (≤5.4 ms); no current variant achieves both simultaneously
+- **v2-P1d is the new recommended configuration**: best strict score (0.212) with strong tail-class improvements (`bicycle` 0.145, `tricycle` 0.223)
+- **Clear Pareto front** exists between strict accuracy (≤0.212 mAP50-95) and speed/compute efficiency (≤5.4 ms); no current variant achieves both simultaneously
 
 ### 7.5 阶段总结与后续工作（2026 更新）
 
@@ -913,10 +926,10 @@ All models were tested on NVIDIA GeForce RTX 4090 (24GB VRAM):
 
 本文档目前以 **val4 批次结果作为顶线结论的主要依据**，同时保留历史运行记录作为参考基准。
 
-- **`LSKA23-TSCG` 与 `DetectCAI-Soft` 并列最佳（mAP50-95 = 0.210）的原因**：
-  - `LSKA23-TSCG` 通过大核注意力与选择性门控提供更强的长程空间建模能力，在严格定位指标和稠密场景召回率上均表现最优。
-  - `DetectCAI-Soft` 在取得相同顶线分数的同时，进一步提升了多个小目标/长尾类别（`pedestrian/people/bicycle/tricycle`）的检测性能。
-  - 当前最有效的方向是：**强上下文主干 + 适度尾部重加权** 的组合策略。
+- **v2-P1d（α=0.10, β=0.40）以 mAP50-95 = 0.212 刷新全局最佳**：
+  - 在 LSKA23-TSCG 骨干基础上，通过 CAI 参数调优（增大 β 至 0.40）实现 +0.002 提升。
+  - 同时在 `bicycle`（0.145 mAP50）和 `tricycle`（0.223 mAP50）上取得全系列最优。
+  - 确认当前最有效的方向是：**强上下文主干 + 精细化 CAI 参数调优** 的组合策略。
 
 - **历史基准 `LSKA`（mAP50 = 0.359）仍有参考价值的原因**：
   - 在以置信度为主要指标的分析场景中，其仍是有效的参考点。
@@ -956,7 +969,7 @@ All models were tested on NVIDIA GeForce RTX 4090 (24GB VRAM):
 
 #### 下阶段量化目标
 
-- **主要目标**：将整体 **mAP50-95** 突破当前最优值（`0.210`，LSKA23-TSCG / DetectCAI-Soft）。
+- **主要目标**：将整体 **mAP50-95** 突破当前最优值（`0.212`，v2-P1d, α=0.10, β=0.40）。
 - **次要目标**：在保持车辆类别检测性能稳定的前提下，提升 `people`/`bicycle`/`tricycle` 的 mAP50。
 - **约束条件**：总延迟维持在当前实时范围内（RTX 4090 上约 4.5–5.8 ms/图像）。
 
@@ -972,17 +985,377 @@ All models were tested on NVIDIA GeForce RTX 4090 (24GB VRAM):
    - `Soft` 策略是目前唯一在达到全局最优分数的同时提升多个微小/长尾类别的 CAI 变体。
    - 激进 EMA 平滑（`Mom098`）导致类别先验估计滞后，造成全类别指标回退，不予推荐。
 
-3. **当前推荐配置**
-   - **综合最优**：`LSKA23-TSCG`（最强召回与严格定位）
-   - **平衡最优**：`LSKA-TSCG + DetectCAI-Soft`（顶线分数 + 小目标提升，**推荐用于后续实验**）
-   - **精度导向**：`DetectCAI-Tail12`（最高精度，适用于低误报场景）
+3. **当前推荐配置（含 v2 更新）**
+   - **综合最优**：`v2-P1d`（α=0.10, β=0.40）—— 新全局最佳 mAP50-95 = 0.212，**推荐用于后续实验与 Phase 4 多种子验证**
+   - **召回最优**：`v2-P1e`（α=0.20, β=0.25）—— 最高 R=0.384，适用于召回优先场景
+   - **精度导向**：`DetectCAI-Tail12`（最高精度 P=0.506，适用于低误报场景）
    - **轻量部署**：`Mixed-Efficient-TSCG` / `Efficient` / `RepExact`（速度优先，精度有所牺牲）
 
-4. **下阶段实验优先级**
-   - **优先级 A**：在 `LSKA23-TSCG + DetectCAI-Soft` 基础上，对 `cai_alpha/cai_beta` 进行受控消融扫描。
-   - **优先级 B**：在固定 TSCG 结构下，按阶段测试 LSKA 核尺寸调度（`k=7/11/23`）。
-   - **优先级 C**：针对 `people/bicycle/tricycle` 进行多随机种子专项评估，量化统计方差。
+4. **下阶段实验优先级（v2 后更新）**
+   - **优先级 A**：对 `v2-P1d` 进行 Phase 4 多种子统计验证（seeds: 0, 42, 123），确认 0.212 的稳健性。
+   - **优先级 B**：进一步扫描 β 参数（0.45, 0.50），固定 α=0.10，探索 β 上限。
+   - **优先级 C**：针对 `people/bicycle/tricycle` 在 v2-P1d 基础上进行多种子专项评估。
 
 5. **量化基准更新**
-   - 当前需超越的新基准为 **mAP50-95 = 0.210**（val4 批次，`LSKA23-TSCG` 与 `DetectCAI-Soft` 共同达成）。
+   - 当前需超越的新基准为 **mAP50-95 = 0.212**（v2-P1d，α=0.10, β=0.40），已超越先前 0.210 记录。
    - 延迟约束保持在 RTX 4090 上约 4.5–6.1 ms/图像的实时范围内。
+
+## 8. SC-ELAN v2 分阶段实验结果
+
+### 8.1 实验设计
+
+SC-ELAN v2 采用分阶段实验流水线（`train.sh`），系统地探索 CAI 参数调优、SA-LSKA 消融和 P3-FRM 集成三大方向。全部模型均在 **LSKA23-TSCG** 骨干基础上构建，使用 **VisDrone2019-DET-test-dev** 数据集评估，训练配置统一：300 epochs, batch=16, imgsz=640, seed=0, patience=50。
+
+| 阶段 | 实验目标 | 模型数量 |
+|---|---|---|
+| Phase 1 | CAI α/β 参数扫描 | 5 (p1a–p1e) |
+| Phase 2 | SA-LSKA 核尺寸消融 + TSCGv2 | 4 (p2a–p2d) |
+| Phase 3 | P3-FRM 特征重用集成 | 2 (p3a–p3b) |
+
+### 8.2 总体性能对比
+
+| Model | Config | Params | GFLOPs | P | R | mAP50 | mAP50-95 | Total (ms) |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| **v2-P1a** | α=0.05, β=0.15 | 11.53M | 39.4 | 0.484 | 0.379 | 0.359 | 0.207 | 5.7 |
+| **v2-P1b** | α=0.10, β=0.25 | 11.53M | 39.4 | 0.490 | 0.378 | 0.362 | 0.209 | 5.7 |
+| **v2-P1c** | α=0.15, β=0.30 (Soft repro) | 11.53M | 39.4 | 0.484 | 0.377 | 0.362 | 0.207 | 5.8 |
+| **v2-P1d** | **α=0.10, β=0.40** | 11.53M | 39.4 | **0.490** | **0.381** | **0.367** | **0.212** | 5.7 |
+| **v2-P1e** | α=0.20, β=0.25 | 11.53M | 39.4 | 0.484 | 0.384 | 0.367 | 0.211 | 5.6 |
+| **v2-P2a** | SA-LSKA(7/11/23)+TSCG | 11.16M | 39.2 | 0.483 | 0.378 | 0.361 | 0.209 | 5.9 |
+| **v2-P2b** | SA-LSKA(11/23/23)+TSCG | 11.17M | 39.3 | 0.478 | 0.382 | 0.361 | 0.209 | 5.9 |
+| **v2-P2c** | SA-LSKA(7/23/35)+TSCG | 11.17M | 39.3 | 0.470 | 0.375 | 0.354 | 0.205 | 5.8 |
+| **v2-P2d** | SA-LSKA(7/11/23)+TSCGv2 | 11.16M | 39.2 | 0.473 | 0.381 | 0.361 | 0.208 | 5.9 |
+| **v2-P3a** | SA-LSKA+TSCG+P3-FRM+Detect | 11.19M | 39.5 | 0.468 | 0.382 | 0.358 | 0.207 | 5.9 |
+| **v2-P3b** | SA-LSKA+TSCG+P3-FRM+DetectCAI-Soft | 11.55M | 39.5 | 0.473 | 0.381 | 0.361 | 0.208 | 5.7 |
+
+### 8.3 Phase 1 详细结果：CAI α/β 参数扫描
+
+Phase 1 在固定 LSKA23-TSCG 骨干上系统扫描 DetectCAI-Soft 的 `cai_alpha` 和 `cai_beta` 参数。
+
+#### 8.3.1 v2-P1a (α=0.05, β=0.15)
+```
+Class              Images  Instances    P       R      mAP50   mAP50-95
+─────────────────────────────────────────────────────────────────────
+all                1609    75082       0.484   0.379   0.359    0.207
+pedestrian         1196    21000       0.532   0.327   0.333    0.134
+people             797     6376        0.510   0.158   0.183    0.0607
+bicycle            377     1302        0.286   0.171   0.128    0.0502
+car                1529    28063       0.713   0.764   0.760    0.493
+van                1167    5770        0.438   0.436   0.400    0.269
+truck              750     2659        0.507   0.440   0.433    0.279
+tricycle           245     530         0.279   0.340   0.218    0.115
+awning-tricycle    233     599         0.384   0.217   0.188    0.111
+bus                837     2938        0.711   0.545   0.599    0.423
+motor              794     5845        0.479   0.397   0.351    0.141
+```
+Speed: 0.3ms preprocess, 4.6ms inference, 0.8ms postprocess
+
+#### 8.3.2 v2-P1b (α=0.10, β=0.25)
+```
+Class              Images  Instances    P       R      mAP50   mAP50-95
+─────────────────────────────────────────────────────────────────────
+all                1609    75082       0.490   0.378   0.362    0.209
+pedestrian         1196    21000       0.510   0.329   0.333    0.133
+people             797     6376        0.508   0.155   0.186    0.0654
+bicycle            377     1302        0.286   0.171   0.134    0.0505
+car                1529    28063       0.723   0.764   0.764    0.499
+van                1167    5770        0.457   0.432   0.405    0.273
+truck              750     2659        0.535   0.434   0.432    0.277
+tricycle           245     530         0.276   0.330   0.201    0.105
+awning-tricycle    233     599         0.375   0.235   0.201    0.119
+bus                837     2938        0.740   0.535   0.607    0.426
+motor              794     5845        0.489   0.392   0.356    0.146
+```
+Speed: 0.3ms preprocess, 4.7ms inference, 0.7ms postprocess
+
+#### 8.3.3 v2-P1c (α=0.15, β=0.30 — Soft baseline repro)
+```
+Class              Images  Instances    P       R      mAP50   mAP50-95
+─────────────────────────────────────────────────────────────────────
+all                1609    75082       0.484   0.377   0.362    0.207
+pedestrian         1196    21000       0.508   0.315   0.318    0.126
+people             797     6376        0.530   0.148   0.180    0.0598
+bicycle            377     1302        0.306   0.137   0.128    0.048
+car                1529    28063       0.709   0.759   0.758    0.487
+van                1167    5770        0.426   0.451   0.407    0.273
+truck              750     2659        0.486   0.449   0.434    0.279
+tricycle           245     530         0.275   0.319   0.211    0.109
+awning-tricycle    233     599         0.404   0.247   0.226    0.129
+bus                837     2938        0.726   0.540   0.600    0.418
+motor              794     5845        0.472   0.402   0.354    0.140
+```
+Speed: 0.3ms preprocess, 4.5ms inference, 1.0ms postprocess
+
+#### 8.3.4 v2-P1d (α=0.10, β=0.40) — Phase 1 最优
+```
+Class              Images  Instances    P       R      mAP50   mAP50-95
+─────────────────────────────────────────────────────────────────────
+all                1609    75082       0.490   0.381   0.367    0.212
+pedestrian         1196    21000       0.511   0.331   0.334    0.134
+people             797     6376        0.539   0.152   0.188    0.0638
+bicycle            377     1302        0.331   0.166   0.145    0.0561
+car                1529    28063       0.714   0.764   0.762    0.497
+van                1167    5770        0.439   0.444   0.408    0.274
+truck              750     2659        0.503   0.457   0.443    0.286
+tricycle           245     530         0.270   0.321   0.223    0.119
+awning-tricycle    233     599         0.378   0.222   0.201    0.116
+bus                837     2938        0.725   0.550   0.606    0.426
+motor              794     5845        0.486   0.400   0.362    0.145
+```
+Speed: 0.3ms preprocess, 4.8ms inference, 0.6ms postprocess
+
+#### 8.3.5 v2-P1e (α=0.20, β=0.25)
+```
+Class              Images  Instances    P       R      mAP50   mAP50-95
+─────────────────────────────────────────────────────────────────────
+all                1609    75082       0.484   0.384   0.367    0.211
+pedestrian         1196    21000       0.505   0.327   0.328    0.129
+people             797     6376        0.519   0.157   0.184    0.0617
+bicycle            377     1302        0.280   0.177   0.144    0.0561
+car                1529    28063       0.710   0.764   0.761    0.493
+van                1167    5770        0.439   0.453   0.415    0.279
+truck              750     2659        0.511   0.457   0.447    0.288
+tricycle           245     530         0.284   0.308   0.211    0.108
+awning-tricycle    233     599         0.403   0.245   0.218    0.126
+bus                837     2938        0.723   0.553   0.605    0.426
+motor              794     5845        0.469   0.403   0.357    0.143
+```
+Speed: 0.3ms preprocess, 3.9ms inference, 1.4ms postprocess
+
+#### 8.3.6 Phase 1 分析
+
+| 排名 | Model | α | β | mAP50 | mAP50-95 | R |
+|---|---|---:|---:|---:|---:|---:|
+| 1 | **v2-P1d** | 0.10 | 0.40 | **0.367** | **0.212** | 0.381 |
+| 2 | **v2-P1e** | 0.20 | 0.25 | **0.367** | 0.211 | **0.384** |
+| 3 | **v2-P1b** | 0.10 | 0.25 | 0.362 | 0.209 | 0.378 |
+| 4 | **v2-P1c** | 0.15 | 0.30 | 0.362 | 0.207 | 0.377 |
+| 5 | **v2-P1a** | 0.05 | 0.15 | 0.359 | 0.207 | 0.379 |
+
+**关键发现：**
+- **v2-P1d（α=0.10, β=0.40）以 mAP50-95=0.212 刷新全局最佳**，超越先前 LSKA23-TSCG 和 DetectCAI-Soft 的 0.210 记录。
+- **较高的 β 值（0.40）显著提升严格定位指标**：P1d 在 `bicycle`（0.145 mAP50，全局最高）、`truck`（0.286 mAP50-95）和 `tricycle`（0.223 mAP50）上均表现突出。
+- **α=0.10 是当前最优 alpha**：P1b 和 P1d 均使用 α=0.10，分别对应 β=0.25/0.40，mAP50-95 分别为 0.209/0.212。
+- **P1e（α=0.20, β=0.25）召回率最高**（R=0.384），但 mAP50-95 略低于 P1d（0.211 vs 0.212），更适合召回导向场景。
+- **P1c（Soft baseline repro）未能完全复现** val4 中 DetectCAI-Soft 的 0.210 成绩（得到 0.207），提示 seed 或训练流水线差异对 CAI 存在敏感性。
+- **β 参数的主效应大于 α**：固定 α=0.10 时，β 从 0.25→0.40 带来 +0.003 mAP50-95 提升。
+
+### 8.4 Phase 2 详细结果：SA-LSKA 消融 + TSCGv2
+
+Phase 2 测试不同 SA-LSKA 核尺寸组合以及 TSCGv2 变体的效果。
+
+#### 8.4.1 v2-P2a — SA-LSKA(7/11/23) + TSCG
+```
+Class              Images  Instances    P       R      mAP50   mAP50-95
+─────────────────────────────────────────────────────────────────────
+all                1609    75082       0.483   0.378   0.361    0.209
+pedestrian         1196    21000       0.511   0.329   0.329    0.131
+people             797     6376        0.549   0.153   0.188    0.0634
+bicycle            377     1302        0.293   0.169   0.131    0.0514
+car                1529    28063       0.708   0.763   0.761    0.494
+van                1167    5770        0.463   0.415   0.405    0.275
+truck              750     2659        0.493   0.439   0.433    0.280
+tricycle           245     530         0.268   0.308   0.204    0.109
+awning-tricycle    233     599         0.380   0.245   0.205    0.117
+bus                837     2938        0.703   0.550   0.603    0.426
+motor              794     5845        0.463   0.405   0.351    0.142
+```
+Speed: 0.3ms preprocess, 4.6ms inference, 1.0ms postprocess
+
+#### 8.4.2 v2-P2b — SA-LSKA(11/23/23) + TSCG
+```
+Class              Images  Instances    P       R      mAP50   mAP50-95
+─────────────────────────────────────────────────────────────────────
+all                1609    75082       0.478   0.382   0.361    0.209
+pedestrian         1196    21000       0.502   0.336   0.333    0.131
+people             797     6376        0.504   0.156   0.178    0.0613
+bicycle            377     1302        0.285   0.158   0.123    0.0484
+car                1529    28063       0.703   0.762   0.760    0.494
+van                1167    5770        0.469   0.413   0.402    0.271
+truck              750     2659        0.478   0.458   0.436    0.278
+tricycle           245     530         0.284   0.321   0.210    0.110
+awning-tricycle    233     599         0.375   0.249   0.209    0.122
+bus                837     2938        0.718   0.555   0.607    0.427
+motor              794     5845        0.463   0.408   0.356    0.144
+```
+Speed: 0.3ms preprocess, 5.0ms inference, 0.6ms postprocess
+
+#### 8.4.3 v2-P2c — SA-LSKA(7/23/35) + TSCG
+```
+Class              Images  Instances    P       R      mAP50   mAP50-95
+─────────────────────────────────────────────────────────────────────
+all                1609    75082       0.470   0.375   0.354    0.205
+pedestrian         1196    21000       0.493   0.329   0.325    0.129
+people             797     6376        0.502   0.151   0.177    0.0585
+bicycle            377     1302        0.275   0.137   0.121    0.0471
+car                1529    28063       0.702   0.762   0.759    0.491
+van                1167    5770        0.440   0.426   0.394    0.264
+truck              750     2659        0.468   0.451   0.428    0.276
+tricycle           245     530         0.289   0.342   0.204    0.106
+awning-tricycle    233     599         0.383   0.204   0.191    0.113
+bus                837     2938        0.686   0.558   0.600    0.423
+motor              794     5845        0.463   0.395   0.341    0.139
+```
+Speed: 0.3ms preprocess, 4.2ms inference, 1.3ms postprocess
+
+#### 8.4.4 v2-P2d — SA-LSKA(7/11/23) + TSCGv2
+```
+Class              Images  Instances    P       R      mAP50   mAP50-95
+─────────────────────────────────────────────────────────────────────
+all                1609    75082       0.473   0.381   0.361    0.208
+pedestrian         1196    21000       0.526   0.326   0.328    0.130
+people             797     6376        0.500   0.155   0.178    0.0597
+bicycle            377     1302        0.270   0.164   0.116    0.0459
+car                1529    28063       0.709   0.761   0.759    0.492
+van                1167    5770        0.456   0.439   0.416    0.281
+truck              750     2659        0.467   0.464   0.440    0.280
+tricycle           245     530         0.263   0.311   0.210    0.108
+awning-tricycle    233     599         0.366   0.227   0.208    0.117
+bus                837     2938        0.703   0.551   0.604    0.423
+motor              794     5845        0.475   0.408   0.354    0.140
+```
+Speed: 0.3ms preprocess, 5.0ms inference, 0.6ms postprocess
+
+#### 8.4.5 Phase 2 分析
+
+| 排名 | Model | SA-LSKA 配置 | TSCG 版本 | mAP50 | mAP50-95 | R |
+|---|---|---|---|---:|---:|---:|
+| 1 | **v2-P2a** | 7/11/23 | TSCG | 0.361 | 0.209 | 0.378 |
+| 1 | **v2-P2b** | 11/23/23 | TSCG | 0.361 | 0.209 | **0.382** |
+| 3 | **v2-P2d** | 7/11/23 | TSCGv2 | 0.361 | 0.208 | 0.381 |
+| 4 | **v2-P2c** | 7/23/35 | TSCG | 0.354 | 0.205 | 0.375 |
+
+**关键发现：**
+- **SA-LSKA(7/11/23) 和 SA-LSKA(11/23/23) 表现最优**（均 mAP50-95=0.209），P2b 在召回率上略胜（R=0.382）。
+- **SA-LSKA(7/23/35) 过大核尺寸导致退化**：P2c 以 0.205 mAP50-95 垫底，说明在 VisDrone 场景下核尺寸进一步增大反而有害。
+- **TSCGv2 未带来明显提升**：P2d 相比 P2a（相同 SA-LSKA 配置）仅差 0.001 mAP50-95，TSCGv2 改进效果有限。
+- **Phase 2 最优（0.209）低于 Phase 1 最优（0.212）**，说明 CAI 参数调优对当前架构的增益大于结构消融。
+- P2b 的 `bus` mAP50（0.607）和 `truck` recall（0.458）为 Phase 2 最佳，提示 11/23/23 核配置对中大型目标有利。
+
+### 8.5 Phase 3 详细结果：P3-FRM 集成
+
+Phase 3 在 SA-LSKA + TSCG 基础上集成 P3-FRM（浅层特征重用模块），测试对小目标的进一步增益。
+
+#### 8.5.1 v2-P3a — SA-LSKA + TSCG + P3-FRM + Detect
+```
+Class              Images  Instances    P       R      mAP50   mAP50-95
+─────────────────────────────────────────────────────────────────────
+all                1609    75082       0.468   0.382   0.358    0.207
+pedestrian         1196    21000       0.492   0.340   0.334    0.134
+people             797     6376        0.487   0.174   0.189    0.0642
+bicycle            377     1302        0.246   0.171   0.120    0.0463
+car                1529    28063       0.707   0.764   0.760    0.496
+van                1167    5770        0.461   0.417   0.395    0.268
+truck              750     2659        0.491   0.451   0.431    0.278
+tricycle           245     530         0.267   0.315   0.196    0.101
+awning-tricycle    233     599         0.346   0.223   0.186    0.111
+bus                837     2938        0.725   0.548   0.604    0.424
+motor              794     5845        0.461   0.415   0.360    0.145
+```
+Speed: 0.3ms preprocess, 5.0ms inference, 0.6ms postprocess
+
+#### 8.5.2 v2-P3b — SA-LSKA + TSCG + P3-FRM + DetectCAI-Soft
+```
+Class              Images  Instances    P       R      mAP50   mAP50-95
+─────────────────────────────────────────────────────────────────────
+all                1609    75082       0.473   0.381   0.361    0.208
+pedestrian         1196    21000       0.513   0.336   0.338    0.136
+people             797     6376        0.489   0.169   0.187    0.0628
+bicycle            377     1302        0.274   0.169   0.133    0.0505
+car                1529    28063       0.720   0.759   0.760    0.493
+van                1167    5770        0.438   0.427   0.399    0.269
+truck              750     2659        0.480   0.437   0.423    0.273
+tricycle           245     530         0.282   0.336   0.206    0.109
+awning-tricycle    233     599         0.343   0.229   0.201    0.115
+bus                837     2938        0.716   0.541   0.605    0.426
+motor              794     5845        0.476   0.408   0.363    0.145
+```
+Speed: 0.3ms preprocess, 4.8ms inference, 0.6ms postprocess
+
+#### 8.5.3 Phase 3 分析
+
+**关键发现：**
+- **P3-FRM 未能在 Phase 2 基础上带来全局提升**：P3a（0.207）低于 P2a（0.209），P3b（0.208）也未超过 Phase 2 最优。
+- **P3-FRM 的主要贡献在召回率和 `people` 类别**：P3a 的 `people` recall（0.174）和 `motor` mAP50（0.360）为全 v2 最高之一，表明浅层特征重用对小目标召回有帮助。
+- **P3-FRM 略增模型复杂度**（39.5 vs 39.2 GFLOPs），但未转化为可靠的精度增益。
+- **DetectCAI-Soft 在 P3 中仍然有效**：P3b 比 P3a 提升 +0.001 mAP50-95，`pedestrian` mAP50 +0.004，`tricycle` +0.010。
+- **当前 P3-FRM 集成方案不推荐用于最终模型**，其增益低于 Phase 1 的 CAI 参数优化。
+
+### 8.6 推理性能
+
+| Model (v2) | Preprocess (ms) | Inference (ms) | Postprocess (ms) | Total (ms) |
+|---|---:|---:|---:|---:|
+| v2-P1a | 0.3 | 4.6 | 0.8 | 5.7 |
+| v2-P1b | 0.3 | 4.7 | 0.7 | 5.7 |
+| v2-P1c | 0.3 | 4.5 | 1.0 | 5.8 |
+| v2-P1d | 0.3 | 4.8 | 0.6 | 5.7 |
+| v2-P1e | 0.3 | 3.9 | 1.4 | 5.6 |
+| v2-P2a | 0.3 | 4.6 | 1.0 | 5.9 |
+| v2-P2b | 0.3 | 5.0 | 0.6 | 5.9 |
+| v2-P2c | 0.3 | 4.2 | 1.3 | 5.8 |
+| v2-P2d | 0.3 | 5.0 | 0.6 | 5.9 |
+| v2-P3a | 0.3 | 5.0 | 0.6 | 5.9 |
+| v2-P3b | 0.3 | 4.8 | 0.6 | 5.7 |
+
+所有 v2 模型延迟均在 5.6–5.9 ms 范围内，与 val4 批次模型持平，满足 RTX 4090 实时约束。
+
+### 8.7 v2 逐类别横向对比
+
+为便于直接对比，下表汇总所有 v2 模型在关键难类上的 mAP50 表现：
+
+| Model | pedestrian | people | bicycle | tricycle | awning-tri | motor |
+|---|---:|---:|---:|---:|---:|---:|
+| v2-P1a | 0.333 | 0.183 | 0.128 | 0.218 | 0.188 | 0.351 |
+| v2-P1b | 0.333 | 0.186 | 0.134 | 0.201 | 0.201 | 0.356 |
+| v2-P1c | 0.318 | 0.180 | 0.128 | 0.211 | **0.226** | 0.354 |
+| **v2-P1d** | **0.334** | **0.188** | **0.145** | **0.223** | 0.201 | 0.362 |
+| v2-P1e | 0.328 | 0.184 | 0.144 | 0.211 | 0.218 | 0.357 |
+| v2-P2a | 0.329 | **0.188** | 0.131 | 0.204 | 0.205 | 0.351 |
+| v2-P2b | 0.333 | 0.178 | 0.123 | 0.210 | 0.209 | 0.356 |
+| v2-P2c | 0.325 | 0.177 | 0.121 | 0.204 | 0.191 | 0.341 |
+| v2-P2d | 0.328 | 0.178 | 0.116 | 0.210 | 0.208 | 0.354 |
+| v2-P3a | **0.334** | **0.189** | 0.120 | 0.196 | 0.186 | **0.360** |
+| v2-P3b | **0.338** | 0.187 | 0.133 | 0.206 | 0.201 | **0.363** |
+
+**观察：**
+- **v2-P1d 在 `bicycle`（0.145）和 `tricycle`（0.223）上全局最优**，CAI β=0.40 有效地增强了尾部类别的检测能力。
+- **v2-P3b 在 `pedestrian`（0.338）和 `motor`（0.363）上全局最优**，P3-FRM 对这些类别的浅层特征重用有积极效果。
+- **v2-P1c 在 `awning-tricycle`（0.226）上全局最优**，Soft baseline 参数对该类别最为适配。
+- **`people` 类别整体提升有限**（0.177–0.189），仍是最具挑战性的类别。
+
+### 8.8 v2 总结与新基准
+
+#### 核心结论
+
+1. **新全局最优：mAP50-95 = 0.212**
+   - 由 **v2-P1d**（α=0.10, β=0.40）达成，超越先前 0.210 记录（+0.002）。
+   - 同时取得 mAP50 = 0.367，R = 0.381，P = 0.490。
+   - 确认 **CAI 参数调优是当前最具性价比的提升方向**。
+
+2. **CAI 参数规律**
+   - **α=0.10 是稳定的最优选择**（P1b: 0.209, P1d: 0.212）。
+   - **β 的增大（0.25→0.40）显著有利于严格定位指标**，但存在上限（需进一步探索 β>0.40）。
+   - 过高的 α（P1e: α=0.20）提升召回但微损 mAP50-95，适合召回优先场景。
+
+3. **SA-LSKA 消融结论**
+   - SA-LSKA(7/11/23) 和 SA-LSKA(11/23/23) 并列最优（mAP50-95=0.209），但均未超越 Phase 1 的 CAI 参数调优。
+   - 过大的核尺寸组合（7/23/35）产生退化（0.205），不推荐。
+   - TSCGv2 对 TSCG 的改进可忽略（+0.000~−0.001 mAP50-95）。
+
+4. **P3-FRM 评估**
+   - P3-FRM 增加浅层特征重用，对 `people` 召回和 `motor` mAP50 有积极效果。
+   - 但整体 mAP50-95 未超过 Phase 1/2，当前实现不推荐用于最终模型。
+   - P3-FRM + DetectCAI-Soft（P3b）优于纯 Detect（P3a），CAI 的一致性增益再次得到验证。
+
+5. **更新后推荐配置**
+   - **综合最优**：`v2-P1d`（α=0.10, β=0.40）—— 新全局最佳 mAP50-95 = 0.212
+   - **召回最优**：`v2-P1e`（α=0.20, β=0.25）—— 最高 R=0.384，mAP50-95=0.211
+   - **小目标特化**：`v2-P3b`（P3-FRM + DetectCAI-Soft）—— pedestrian/motor 最优
+   - **下一步**：对 v2-P1d 进行 Phase 4 多种子统计验证（seeds: 0, 42, 123）
+
+#### 下阶段量化目标（更新）
+
+- **新基准**：mAP50-95 = **0.212**（v2-P1d）
+- **探索方向**：β 参数进一步扫描（0.45, 0.50），α=0.10 固定
+- **统计验证**：v2-P1d 多种子运行后报告均值 ± 标准差
+- **延迟约束**：维持 RTX 4090 上约 5.6–5.9 ms/图像

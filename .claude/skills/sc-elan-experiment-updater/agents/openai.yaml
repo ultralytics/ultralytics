@@ -1,0 +1,4 @@
+interface:
+  display_name: "SC-ELAN Experiment Updater"
+  short_description: "Keep sc-elan.md sections consistent when adding experiments."
+  default_prompt: "Add or update one experiment in sc-elan.md and propagate all required changes across sections 6 and 7 with consistent metrics and conclusions."

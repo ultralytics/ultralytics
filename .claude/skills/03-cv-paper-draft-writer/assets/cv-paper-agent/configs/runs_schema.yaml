@@ -1,0 +1,16 @@
+selection:
+  best_by:
+    - "metrics/mAP50-95(B)"
+    - "map50_95"
+    - "mAP50-95"
+canonical_columns:
+  map50_95:
+    - "metrics/mAP50-95(B)"
+    - "map50_95"
+    - "mAP50-95"
+  precision:
+    - "metrics/precision(B)"
+    - "precision"
+  recall:
+    - "metrics/recall(B)"
+    - "recall"

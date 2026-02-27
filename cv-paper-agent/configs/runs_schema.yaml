@@ -1,0 +1,26 @@
+selection:
+  best_by:
+    - "metrics/mAP50-95(B)"
+    - "map50_95"
+    - "mAP50-95"
+canonical_columns:
+  map50_95:
+    - "metrics/mAP50-95(B)"
+    - "map50_95"
+    - "mAP50-95"
+  map50:
+    - "metrics/mAP50(B)"
+    - "map50"
+    - "mAP50"
+  precision:
+    - "metrics/precision(B)"
+    - "precision"
+  recall:
+    - "metrics/recall(B)"
+    - "recall"
+  box_loss:
+    - "train/box_loss"
+  cls_loss:
+    - "train/cls_loss"
+  dfl_loss:
+    - "train/dfl_loss"

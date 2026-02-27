@@ -1,0 +1,26 @@
+marker_rules:
+  - ["results.csv", "args.yaml"]
+artifacts:
+  scalars_csv: "results.csv"
+  args_yaml: "args.yaml"
+  weights_dir: "weights/"
+  curves:
+    - "BoxPR_curve.png"
+    - "BoxF1_curve.png"
+    - "BoxP_curve.png"
+    - "BoxR_curve.png"
+  confusion: "confusion_matrix*.png"
+  batches:
+    - "train_batch*.jpg"
+    - "val_batch*_labels.jpg"
+    - "val_batch*_pred.jpg"
+  dataset_stats: "labels.jpg"
+  summary_plot: "results.png"
+  predictions: "predictions.json"
+groups:
+  - name: "SC-ELAN-VisDrone"
+    path: "detect/SC-ELAN-VisDrone"
+    description: "Phase 1 variants and val4 ablation"
+  - name: "SC-ELAN-v2"
+    path: "detect/SC-ELAN-v2"
+    description: "Phase 1-3 CAI/SA-LSKA/P3-FRM pipeline"

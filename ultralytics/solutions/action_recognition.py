@@ -8,8 +8,8 @@ import numpy as np
 import torch
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
-from ultralytics.utils.plotting import colors
-from ultralytics.utils.torch_utils import select_device
+from ultralytics.utils.plotting import colors, save_one_box
+from ultralytics.utils.torch_utils import select_device, smart_inference_mode
 
 
 class TorchVisionVideoClassifier:
@@ -20,7 +20,7 @@ class TorchVisionVideoClassifier:
 
     Attributes:
         model (torch.nn.Module): The loaded TorchVision model.
-        weights: The pretrained weights used for the model.
+        categories (list): The Kinetics-400 action category names.
         device (torch.device): The device on which the model is loaded.
     """
 
@@ -58,52 +58,39 @@ class TorchVisionVideoClassifier:
             "mvit_v2_s": (mvit_v2_s, MViT_V2_S_Weights.DEFAULT),
         }
 
-        model_fn, self.weights = model_map[model_name]
+        model_fn, weights = model_map[model_name]
         self.device = select_device(device)
-        self.model = model_fn(weights=self.weights).to(self.device).eval()
+        self.model = model_fn(weights=weights).to(self.device).eval()
+        self.categories = weights.meta["categories"]
 
         from torchvision.transforms import v2
 
         self.transform = v2.Compose(
             [
                 v2.ToDtype(torch.float32, scale=True),
-                v2.Normalize(mean=self.weights.transforms().mean, std=self.weights.transforms().std),
+                v2.Normalize(mean=weights.transforms().mean, std=weights.transforms().std),
             ]
         )
 
     def preprocess(self, crops: list) -> torch.Tensor:
         """Preprocess video crops for classification."""
+        if not crops:
+            return torch.empty(0, device=self.device)
         frames = [self.transform(torch.from_numpy(c[..., ::-1].copy()).permute(2, 0, 1)) for c in crops]  # BGR to RGB
         return torch.stack(frames).unsqueeze(0).permute(0, 2, 1, 3, 4).to(self.device)
 
+    @smart_inference_mode()
     def __call__(self, sequences: torch.Tensor) -> tuple:
         """Run inference and return predicted labels and confidences."""
-        with torch.inference_mode():
-            output = self.model(sequences)
+        output = self.model(sequences)
 
         labels, confs = [], []
         for out in output:
             prob = out.softmax(0)
             idx = prob.argmax().item()
-            labels.append(self.weights.meta["categories"][idx])
+            labels.append(self.categories[idx])
             confs.append(prob[idx].item())
         return labels, confs
-
-
-def crop_and_pad(frame: np.ndarray, box: list, margin_percent: int) -> np.ndarray:
-    """Crop a square region around the box with margin."""
-    x1, y1, x2, y2 = map(int, box)
-    w, h = x2 - x1, y2 - y1
-    mx, my = int(w * margin_percent / 100), int(h * margin_percent / 100)
-    x1, y1 = max(0, x1 - mx), max(0, y1 - my)
-    x2, y2 = min(frame.shape[1], x2 + mx), min(frame.shape[0], y2 + my)
-
-    size = max(y2 - y1, x2 - x1)
-    cy, cx = (y1 + y2) // 2, (x1 + x2) // 2
-    half = size // 2
-
-    crop = frame[max(0, cy - half) : min(frame.shape[0], cy + half), max(0, cx - half) : min(frame.shape[1], cx + half)]
-    return cv2.resize(crop, (224, 224), interpolation=cv2.INTER_LINEAR)
 
 
 class ActionRecognition(BaseSolution):
@@ -178,7 +165,9 @@ class ActionRecognition(BaseSolution):
         if len(self.boxes):
             for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
                 if self.frame_counter % self.skip_frame == 0:
-                    self.crop_history[track_id].append(crop_and_pad(im0, box, self.crop_margin_percentage))
+                    gain = 1 + 2 * self.crop_margin_percentage / 100
+                    crop = save_one_box(torch.as_tensor(box), im0, gain=gain, pad=0, square=True, save=False, BGR=True)
+                    self.crop_history[track_id].append(cv2.resize(crop, (224, 224)))
 
                 if len(self.crop_history[track_id]) > self.num_video_sequence_samples:
                     self.crop_history[track_id].pop(0)

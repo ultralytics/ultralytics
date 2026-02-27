@@ -430,24 +430,6 @@ def test_action_recognition_process_method():
     assert result.action_confs.get(1) == 0.85
 
 
-def test_crop_and_pad():
-    """Test crop_and_pad returns correctly sized crop for a given bounding box."""
-    from ultralytics.solutions.action_recognition import crop_and_pad
-
-    frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-    crop = crop_and_pad(frame, [100, 50, 250, 400], margin_percent=10)
-    assert crop.shape == (224, 224, 3)
-
-
-def test_crop_and_pad_near_boundary():
-    """Test crop_and_pad handles boxes near frame edges without errors."""
-    from ultralytics.solutions.action_recognition import crop_and_pad
-
-    frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-    crop = crop_and_pad(frame, [0, 0, 50, 50], margin_percent=10)
-    assert crop.shape == (224, 224, 3)
-
-
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 @pytest.mark.skipif(
     not checks.check_version(TORCHVISION_VERSION, ">=0.10.0"),

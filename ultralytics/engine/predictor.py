@@ -149,10 +149,11 @@ class BasePredictor:
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, im: torch.Tensor | list[np.ndarray]) -> torch.Tensor:
-        """Prepare input image before inference. Tensor input is a fast path, only does device and dtype conversions skipping the rest of preprocessing.
+        """Prepare input image before inference.
 
         Args:
             im (torch.Tensor | list[np.ndarray]): Images of shape (N, 3, H, W) for tensor (expected rgb), [(H, W, 3) x N] for list of ndarray (expected bgr).
+            See ultralytics.data.loaders.LoadTensor._single_check() for tensor expectations
 
         Returns:
             (torch.Tensor): Preprocessed image tensor of shape (N, 3, H, W).
@@ -166,15 +167,17 @@ class BasePredictor:
             else:
                 im = np.stack(im)
                 im = torch.from_numpy(im)
-            im = im.to(self.device, non_blocking=True) # sending to device first to allow gpu acceleration, non blocking also benefits gpu.
+            im = im.to(self.device, non_blocking=True)
             im = im.permute(0, 3, 1, 2)  # bhwc -> bchw
             if im.shape[1] == 3:
                 im = im.flip(1)  # bgr -> rgb
             im = im.contiguous()
             im = (im.half() if self.model.fp16 else im.float()).div_(255.0)  # uint8 to fp16/32, 0 - 255 to 0.0 - 1.0
-        else: # tensor fast path, assumes rgb already
+            
+        else:
             im = im.to(self.device, non_blocking=True)
-            im = im.half() if self.model.fp16 else im.float()  # ORIGINAL COMMENT: uint8 to fp16/32, PR COMMENT: suggests expected uint8,fp16/32. possible bug, uint8 tensor stays 0-255, never goes 0-1 
+            im = im.half() if self.model.fp16 else im.float()  # fp32/16 => fp16/fp32. No division, expected tensor to be [0,1.0]
+            
         return im
         
     def inference(self, im: torch.Tensor, *args, **kwargs):

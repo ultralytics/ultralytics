@@ -123,6 +123,7 @@ from ultralytics.utils.export import (
     onnx2saved_model,
     pb2tfjs,
     tflite2edgetpu,
+    torch2executorch,
     torch2imx,
     torch2onnx,
 )
@@ -136,6 +137,7 @@ from ultralytics.utils.torch_utils import (
     TORCH_1_11,
     TORCH_1_13,
     TORCH_2_1,
+    TORCH_2_3,
     TORCH_2_4,
     TORCH_2_9,
     select_device,
@@ -412,7 +414,7 @@ class Exporter:
         if hasattr(model, "end2end"):
             if self.args.end2end is not None:
                 model.end2end = self.args.end2end
-            if rknn or ncnn or executorch or paddle or imx:
+            if rknn or ncnn or executorch or paddle or imx or edgetpu:
                 # Disable end2end branch for certain export formats as they does not support topk
                 model.end2end = False
                 LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
@@ -508,6 +510,10 @@ class Exporter:
             from ultralytics.utils.export.tensorflow import tf_wrapper
 
             model = tf_wrapper(model)
+        if executorch:
+            from ultralytics.utils.export.executorch import executorch_wrapper
+
+            model = executorch_wrapper(model)
         for m in model.modules():
             if isinstance(m, Classify):
                 m.export = True
@@ -789,7 +795,7 @@ class Exporter:
             fq_ov = str(Path(fq) / self.file.with_suffix(".xml").name)
             # INT8 requires nncf, nncf requires packaging>=23.2 https://github.com/openvinotoolkit/nncf/issues/3463
             check_requirements("packaging>=23.2")  # must be installed first to build nncf wheel
-            check_requirements("nncf>=2.14.0")
+            check_requirements("nncf>=2.14.0,<3.0.0" if not TORCH_2_3 else "nncf>=2.14.0")
             import nncf
 
             # Generate calibration data for integer quantization
@@ -1204,31 +1210,8 @@ class Exporter:
     def export_executorch(self, prefix=colorstr("ExecuTorch:")):
         """Export YOLO model to ExecuTorch *.pte format."""
         assert TORCH_2_9, f"ExecuTorch requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
-
         check_executorch_requirements()
-
-        from executorch import version as executorch_version
-        from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner
-        from executorch.exir import to_edge_transform_and_lower
-
-        LOGGER.info(f"\n{prefix} starting export with ExecuTorch {executorch_version.__version__}...")
-
-        file_directory = Path(str(self.file).replace(self.file.suffix, "_executorch_model"))
-        file_directory.mkdir(parents=True, exist_ok=True)
-
-        file_pte = file_directory / self.file.with_suffix(".pte").name
-        sample_inputs = (self.im,)
-
-        et_program = to_edge_transform_and_lower(
-            torch.export.export(self.model, sample_inputs), partitioner=[XnnpackPartitioner()]
-        ).to_executorch()
-
-        with open(file_pte, "wb") as file:
-            file.write(et_program.buffer)
-
-        YAML.save(file_directory / "metadata.yaml", self.metadata)
-
-        return str(file_directory)
+        return torch2executorch(self.model, self.file, self.im, metadata=self.metadata, prefix=prefix)
 
     @try_export
     def export_edgetpu(self, tflite_model="", prefix=colorstr("Edge TPU:")):

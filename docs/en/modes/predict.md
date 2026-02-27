@@ -562,22 +562,22 @@ For more details see the [`Results` class documentation](../reference/engine/res
 
 Here is a table for the `Boxes` class methods and properties, including their name, type, and description:
 
-| Name         | Type                      | Description                                                        |
-| ------------ | ------------------------- | ------------------------------------------------------------------ |
-| `cpu()`      | Method                    | Move the object to CPU memory.                                     |
-| `numpy()`    | Method                    | Convert the object to a numpy array.                               |
-| `cuda()`     | Method                    | Move the object to CUDA memory.                                    |
-| `to()`       | Method                    | Move the object to the specified device.                           |
-| `xyxy`       | Property (`torch.Tensor`) | Return the boxes in xyxy format.                                   |
-| `conf`       | Property (`torch.Tensor`) | Return the top-1 confidence values of the boxes.                   |
-| `conf_topk`  | Property (`torch.Tensor`) | Return the top-k confidence values of the boxes (shape: `N x K`).  |
-| `cls`        | Property (`torch.Tensor`) | Return the top-1 class values of the boxes.                        |
-| `cls_topk`   | Property (`torch.Tensor`) | Return the top-k class values of the boxes (shape: `N x K`).       |
-| `topk`       | Property (`int`)          | Number of class-score entries retained per box.                    |
-| `id`         | Property (`torch.Tensor`) | Return the track IDs of the boxes (if available).                  |
-| `xywh`       | Property (`torch.Tensor`) | Return the boxes in xywh format.                                   |
-| `xyxyn`      | Property (`torch.Tensor`) | Return the boxes in xyxy format normalized by original image size. |
-| `xywhn`      | Property (`torch.Tensor`) | Return the boxes in xywh format normalized by original image size. |
+| Name        | Type                      | Description                                                        |
+| ----------- | ------------------------- | ------------------------------------------------------------------ |
+| `cpu()`     | Method                    | Move the object to CPU memory.                                     |
+| `numpy()`   | Method                    | Convert the object to a numpy array.                               |
+| `cuda()`    | Method                    | Move the object to CUDA memory.                                    |
+| `to()`      | Method                    | Move the object to the specified device.                           |
+| `xyxy`      | Property (`torch.Tensor`) | Return the boxes in xyxy format.                                   |
+| `conf`      | Property (`torch.Tensor`) | Return the top-1 confidence values of the boxes.                   |
+| `conf_topk` | Property (`torch.Tensor`) | Return the top-k confidence values of the boxes (shape: `N x K`).  |
+| `cls`       | Property (`torch.Tensor`) | Return the top-1 class values of the boxes.                        |
+| `cls_topk`  | Property (`torch.Tensor`) | Return the top-k class values of the boxes (shape: `N x K`).       |
+| `topk`      | Property (`int`)          | Number of class-score entries retained per box.                    |
+| `id`        | Property (`torch.Tensor`) | Return the track IDs of the boxes (if available).                  |
+| `xywh`      | Property (`torch.Tensor`) | Return the boxes in xywh format.                                   |
+| `xyxyn`     | Property (`torch.Tensor`) | Return the boxes in xyxy format normalized by original image size. |
+| `xywhn`     | Property (`torch.Tensor`) | Return the boxes in xywh format normalized by original image size. |
 
 When using `topk_cls>1` (detect/segment), `Boxes.conf` and `Boxes.cls` remain top-1 for backward compatibility, while
 `Boxes.conf_topk` and `Boxes.cls_topk` expose the full top-k predictions.

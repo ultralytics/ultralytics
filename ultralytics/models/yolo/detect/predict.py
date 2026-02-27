@@ -50,10 +50,9 @@ class DetectionPredictor(BasePredictor):
             **kwargs (Any): Additional keyword arguments.
 
         Returns:
-            (list): List of Results objects containing the post-processed predictions.
-                With ``topk_cls=1`` (default), each box uses the legacy layout ``[xyxy, conf, cls]``.
-                With ``topk_cls>1`` (detect/segment tasks), box data uses
-                ``[xyxy, score1..K, class1..K]`` while ``Boxes.conf`` and ``Boxes.cls`` remain top-1 views for
+            (list): List of Results objects containing the post-processed predictions. With ``topk_cls=1`` (default),
+                each box uses the legacy layout ``[xyxy, conf, cls]``. With ``topk_cls>1`` (detect/segment tasks), box
+                data uses ``[xyxy, score1..K, class1..K]`` while ``Boxes.conf`` and ``Boxes.cls`` remain top-1 views for
                 backward compatibility.
 
         Examples:
@@ -126,8 +125,8 @@ class DetectionPredictor(BasePredictor):
         """Construct a single Results object from one image prediction.
 
         Args:
-            pred (torch.Tensor): Predicted boxes and scores where N is the number of detections. The box layout is
-                ``(N, 6)`` for top-1 output or ``(N, 4 + 2K)`` when ``topk_cls>1``.
+            pred (torch.Tensor): Predicted boxes and scores where N is the number of detections. The box layout is ``(N,
+                6)`` for top-1 output or ``(N, 4 + 2K)`` when ``topk_cls>1``.
             img (torch.Tensor): Preprocessed image tensor used for inference.
             orig_img (np.ndarray): Original image before preprocessing.
             img_path (str): Path to the original image file.

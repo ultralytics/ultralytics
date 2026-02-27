@@ -869,9 +869,9 @@ class Boxes(BaseTensor):
         including both absolute and normalized forms.
 
         Args:
-            boxes (torch.Tensor | np.ndarray): A tensor or numpy array with detection boxes. Supported layouts are
-                [x1, y1, x2, y2, conf, cls], [x1, y1, x2, y2, track_id, conf, cls], [x1, y1, x2, y2, score1..K,
-                class1..K], or [x1, y1, x2, y2, track_id, score1..K, class1..K].
+            boxes (torch.Tensor | np.ndarray): A tensor or numpy array with detection boxes. Supported layouts are [x1,
+                y1, x2, y2, conf, cls], [x1, y1, x2, y2, track_id, conf, cls], [x1, y1, x2, y2, score1..K, class1..K],
+                or [x1, y1, x2, y2, track_id, score1..K, class1..K].
             orig_shape (tuple[int, int]): The original image shape as (height, width). Used for normalization.
         """
         if boxes.ndim == 1:
@@ -940,8 +940,8 @@ class Boxes(BaseTensor):
         """Return the top-1 class ID tensor representing category predictions for each bounding box.
 
         Returns:
-            (torch.Tensor | np.ndarray): A tensor or numpy array containing top-1 class IDs for each detection box.
-                The shape is (N,), where N is the number of boxes.
+            (torch.Tensor | np.ndarray): A tensor or numpy array containing top-1 class IDs for each detection box. The
+                shape is (N,), where N is the number of boxes.
 
         Examples:
             >>> results = model("image.jpg")

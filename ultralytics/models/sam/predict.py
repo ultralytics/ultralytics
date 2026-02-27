@@ -2381,8 +2381,7 @@ class SAM3SemanticPredictor(SAM3Predictor):
         pred_boxes = torch.cat([pred_boxes, pred_scores[..., None], pred_cls[..., None]], dim=-1)
 
         keep = pred_scores > self.args.conf
-        pred_masks = pred_masks[keep]
-        pred_boxes = pred_boxes[keep]
+        pred_masks, pred_boxes = pred_masks[keep], pred_boxes[keep]
         pred_boxes[:, :4] = ops.xywh2xyxy(pred_boxes[:, :4])
 
         c = pred_boxes[:, 5:6] * (0 if self.args.agnostic_nms else 7680)  # classes

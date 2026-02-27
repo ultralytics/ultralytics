@@ -162,7 +162,9 @@ class BasePredictor:
 
         if not_tensor:
             im = self.pre_transform(im)
-            if len(im) == 1: # single frame case allows skipping np.stack and to use unsqueeze instead, np.stack super slow
+            if (
+                len(im) == 1
+            ):  # single frame case allows skipping np.stack and to use unsqueeze instead, np.stack super slow
                 im = torch.from_numpy(im[0]).unsqueeze(0)
             else:
                 im = np.stack(im)
@@ -179,7 +181,7 @@ class BasePredictor:
             im = im.half() if self.model.fp16 else im.float()  # fp32/16 => fp16/fp32. No division, expected tensor to be [0,1.0]
             
         return im
-        
+
     def inference(self, im: torch.Tensor, *args, **kwargs):
         """Run inference on a given image using the specified model and arguments."""
         visualize = (

@@ -152,8 +152,9 @@ class BasePredictor:
         """Prepare input image before inference.
 
         Args:
-            im (torch.Tensor | list[np.ndarray]): Images of shape (N, 3, H, W) for tensor (expected rgb), [(H, W, 3) x N] for list of ndarray (expected bgr).
-            See ultralytics.data.loaders.LoadTensor._single_check() for tensor expectations
+            im (torch.Tensor | list[np.ndarray]): Images of shape (N, 3, H, W) for tensor (expected rgb), [(H, W, 3) x
+                N] for list of ndarray (expected bgr). See ultralytics.data.loaders.LoadTensor._single_check() for
+                tensor expectations
 
         Returns:
             (torch.Tensor): Preprocessed image tensor of shape (N, 3, H, W).
@@ -175,11 +176,13 @@ class BasePredictor:
                 im = im.flip(1)  # bgr -> rgb
             im = im.contiguous()
             im = (im.half() if self.model.fp16 else im.float()).div_(255.0)  # uint8 to fp16/32, 0 - 255 to 0.0 - 1.0
-            
+
         else:
             im = im.to(self.device, non_blocking=True)
-            im = im.half() if self.model.fp16 else im.float()  # fp32/16 => fp16/fp32. No division, expected tensor to be [0,1.0]
-            
+            im = (
+                im.half() if self.model.fp16 else im.float()
+            )  # fp32/16 => fp16/fp32. No division, expected tensor to be [0,1.0]
+
         return im
 
     def inference(self, im: torch.Tensor, *args, **kwargs):

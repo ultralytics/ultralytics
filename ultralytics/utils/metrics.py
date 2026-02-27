@@ -838,17 +838,21 @@ def ap_per_class(
         # generate a csv with stats for external analysis/comparison
         try:
             import pandas as pd
-            metrics = [('confidence', 'precision', p_curve), ('confidence', 'recall', r_curve),
-                       ('confidence', 'f1', f1_curve),
-                       ('recall', 'precision', prec_values)]
+
+            metrics = [
+                ("confidence", "precision", p_curve),
+                ("confidence", "recall", r_curve),
+                ("confidence", "f1", f1_curve),
+                ("recall", "precision", prec_values),
+            ]
             df_list = []
-            for (x_label, metric, y) in metrics:
+            for x_label, metric, y in metrics:
                 columns = list(names.values())
                 columns.append("mean")
                 arrays = np.concat((y, np.expand_dims(y.mean(0), axis=1).T), axis=0)
                 df_list.append(pd.DataFrame._from_arrays(arrays, columns=columns, index=x))
-                df_list[-1]['metric'] = metric
-                df_list[-1]['index_label'] = x_label
+                df_list[-1]["metric"] = metric
+                df_list[-1]["index_label"] = x_label
                 df_list[-1].reset_index(inplace=True)
             df = pd.concat(df_list)
             df.to_csv(save_dir / "stats.csv", index=False)

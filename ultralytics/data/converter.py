@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import hashlib
 import json
 import random
 import shutil
@@ -790,23 +789,9 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     output_path = Path(output_path or DATASETS_DIR)
     with open(ndjson_path) as f:
         lines = [json.loads(line.strip()) for line in f if line.strip()]
+
     dataset_record, image_records = lines[0], lines[1:]
-
-    # Hash semantic content only (excludes signed URLs which change on every export)
-    _h = hashlib.sha256()
-    for r in lines:
-        _h.update(json.dumps({k: v for k, v in r.items() if k != "url"}, sort_keys=True).encode())
-    _hash = _h.hexdigest()[:16]
-
-    # Early exit if dataset content unchanged (hash stored in data.yaml)
     dataset_dir = output_path / ndjson_path.stem
-    yaml_path = dataset_dir / "data.yaml"
-    if yaml_path.is_file():
-        try:
-            if YAML.load(yaml_path).get("hash") == _hash:
-                return yaml_path
-        except Exception:
-            pass
     splits = {record["split"] for record in image_records}
 
     # Check if this is a classification dataset
@@ -824,12 +809,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     if task == "pose" and "kpt_shape" not in dataset_record:
         raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose/")
 
-    # Check if dataset already exists (enables image reuse across split changes)
-    _reuse = dataset_dir.exists()
-    if _reuse:
-        yaml_path.unlink(missing_ok=True)  # Invalidate hash before destructive ops (crash safety)
-        if not is_classification:
-            shutil.rmtree(dataset_dir / "labels", ignore_errors=True)
+    # Create base directories
     dataset_dir.mkdir(parents=True, exist_ok=True)
     data_yaml = None
 
@@ -866,22 +846,9 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                     break
                 label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
 
-            # Reuse existing image from another split dir (avoids redownload on resplit) or download
-            if not image_path.exists():
-                if _reuse:
-                    for s in ("train", "val", "test"):
-                        if s == split:
-                            continue
-                        candidate = (
-                            (dataset_dir / s / class_name / original_name)
-                            if is_classification
-                            else (dataset_dir / "images" / s / original_name)
-                        )
-                        if candidate.exists():
-                            image_path.parent.mkdir(parents=True, exist_ok=True)
-                            candidate.rename(image_path)
-                            break
-                if not image_path.exists() and (http_url := record.get("url")):
+            # Download image if URL provided and file doesn't exist
+            if http_url := record.get("url"):
+                if not image_path.exists():
                     image_path.parent.mkdir(parents=True, exist_ok=True)
                     # Retry with exponential backoff (3 attempts: 0s, 2s, 4s delays)
                     for attempt in range(3):
@@ -921,28 +888,11 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     if success_count < len(image_records):
         LOGGER.warning(f"Downloaded {success_count}/{len(image_records)} images from {ndjson_path}")
 
-    # Remove orphaned images no longer in the dataset (prevents stale background images in training)
-    if _reuse:
-        expected_paths = set()
-        for r in image_records:
-            s, name = r["split"], r["file"]
-            if is_classification:
-                ann = r.get("annotations", {})
-                cids = ann.get("classification", [])
-                cid = cids[0] if cids else 0
-                expected_paths.add(dataset_dir / s / class_names.get(cid, str(cid)) / name)
-            else:
-                expected_paths.add(dataset_dir / "images" / s / name)
-        img_root = dataset_dir if is_classification else (dataset_dir / "images")
-        for p in img_root.rglob("*"):
-            if p.is_file() and p not in expected_paths:
-                p.unlink()
-
     if is_classification:
         # Classification: return dataset directory (check_cls_dataset expects a directory path)
         return dataset_dir
     else:
-        # Detection: write data.yaml with hash for future change detection
-        data_yaml["hash"] = _hash
+        # Detection: write data.yaml and return its path
+        yaml_path = dataset_dir / "data.yaml"
         YAML.save(yaml_path, data_yaml)
         return yaml_path

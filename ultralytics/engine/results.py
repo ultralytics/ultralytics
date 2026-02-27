@@ -833,9 +833,12 @@ class Boxes(BaseTensor):
         data (torch.Tensor | np.ndarray): The raw tensor containing detection boxes and associated data.
         orig_shape (tuple[int, int]): The original image dimensions (height, width).
         is_track (bool): Indicates whether tracking IDs are included in the box data.
+        topk (int): Number of class-score entries retained per box.
         xyxy (torch.Tensor | np.ndarray): Boxes in [x1, y1, x2, y2] format.
-        conf (torch.Tensor | np.ndarray): Confidence scores for each box.
-        cls (torch.Tensor | np.ndarray): Class labels for each box.
+        conf (torch.Tensor | np.ndarray): Top-1 confidence score for each box.
+        conf_topk (torch.Tensor | np.ndarray): Top-k confidence scores for each box with shape (N, K).
+        cls (torch.Tensor | np.ndarray): Top-1 class label for each box.
+        cls_topk (torch.Tensor | np.ndarray): Top-k class labels for each box with shape (N, K).
         id (torch.Tensor | None): Tracking IDs for each box (if available).
         xywh (torch.Tensor | np.ndarray): Boxes in [x, y, width, height] format.
         xyxyn (torch.Tensor | np.ndarray): Normalized [x1, y1, x2, y2] boxes relative to orig_shape.
@@ -866,8 +869,9 @@ class Boxes(BaseTensor):
         including both absolute and normalized forms.
 
         Args:
-            boxes (torch.Tensor | np.ndarray): A tensor or numpy array with detection boxes of shape (num_boxes, 6) or
-                (num_boxes, 7). Columns should contain [x1, y1, x2, y2, (optional) track_id, confidence, class].
+            boxes (torch.Tensor | np.ndarray): A tensor or numpy array with detection boxes. Supported layouts are
+                [x1, y1, x2, y2, conf, cls], [x1, y1, x2, y2, track_id, conf, cls], [x1, y1, x2, y2, score1..K,
+                class1..K], or [x1, y1, x2, y2, track_id, score1..K, class1..K].
             orig_shape (tuple[int, int]): The original image shape as (height, width). Used for normalization.
         """
         if boxes.ndim == 1:
@@ -908,11 +912,11 @@ class Boxes(BaseTensor):
 
     @property
     def conf(self) -> torch.Tensor | np.ndarray:
-        """Return the confidence scores for each detection box.
+        """Return the top-1 confidence scores for each detection box.
 
         Returns:
-            (torch.Tensor | np.ndarray): A 1D tensor or array containing confidence scores for each detection, with
-                shape (N,) where N is the number of detections.
+            (torch.Tensor | np.ndarray): A 1D tensor or array containing top-1 confidence scores for each detection,
+                with shape (N,) where N is the number of detections.
 
         Examples:
             >>> boxes = Boxes(torch.tensor([[10, 20, 30, 40, 0.9, 0]]), orig_shape=(100, 100))
@@ -933,11 +937,11 @@ class Boxes(BaseTensor):
 
     @property
     def cls(self) -> torch.Tensor | np.ndarray:
-        """Return the class ID tensor representing category predictions for each bounding box.
+        """Return the top-1 class ID tensor representing category predictions for each bounding box.
 
         Returns:
-            (torch.Tensor | np.ndarray): A tensor or numpy array containing the class IDs for each detection box. The
-                shape is (N,), where N is the number of boxes.
+            (torch.Tensor | np.ndarray): A tensor or numpy array containing top-1 class IDs for each detection box.
+                The shape is (N,), where N is the number of boxes.
 
         Examples:
             >>> results = model("image.jpg")

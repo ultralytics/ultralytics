@@ -495,8 +495,8 @@ class Model(torch.nn.Module):
             stream (bool): If True, treats the input source as a continuous stream for predictions.
             predictor (BasePredictor, optional): An instance of a custom predictor class for making predictions. If
                 None, the method uses a default predictor.
-            **kwargs (Any): Additional keyword arguments for configuring the prediction process. Use `topk_cls=<int>` to
-                request top-k class outputs for detection/segmentation inference.
+            **kwargs (Any): Additional keyword arguments for configuring the prediction process.
+                Use `topk_cls=<int>` to request top-k class outputs for detection/segmentation inference.
 
         Returns:
             (list[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a Results

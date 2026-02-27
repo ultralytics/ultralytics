@@ -18,7 +18,3 @@ keywords: Ultralytics, ActionRecognition, YOLO, action recognition, video classi
 ## ::: ultralytics.solutions.action_recognition.ActionRecognition
 
 <br><br>
-
-## ::: ultralytics.solutions.action_recognition.crop_and_pad
-
-<br><br>

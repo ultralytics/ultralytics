@@ -198,7 +198,7 @@ The examples in the [ONNX inference examples](https://github.com/ultralytics/ult
 
 ### Why is `output0` FP32 when exporting with `half=True` and `end2end=True`?
 
-When exporting with `half=True`, most tensors are converted to FP16 to reduce model size and improve inference performance. However, when `end2end=True` is enabled, the exported model includes post-processing (e.g., bounding boxes, confidence scores, and class indices) directly in the graph.
+When exporting with `half=True` (or `int8=True`), most tensors are converted to lower precision to reduce model size and improve performance. However, when `end2end=True` is enabled, post-processing (including class indices) is embedded directly in the exported graph.
 
 The `output0` tensor contains class indices, which are internally represented as floating-point values. FP16 cannot reliably represent integer values above 2048 due to its limited mantissa precision. To avoid potential precision loss or incorrect class IDs, `output0` is intentionally kept in FP32.
 

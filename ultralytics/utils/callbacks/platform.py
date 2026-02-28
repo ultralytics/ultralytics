@@ -286,8 +286,7 @@ def on_pretrain_routine_start(trainer):
         return
 
     project, name = _get_project_name(trainer)
-    url = f"{PLATFORM_URL}/{project}/{name}"
-    LOGGER.info(f"{PREFIX}Streaming to {url}")
+    LOGGER.info(f"{PREFIX}Streaming training metrics to Platform")
 
     # Single dict for all platform callback state (like trainer.hub_session for HUB callbacks)
     ctx = {"model_id": None, "last_upload": time(), "cancelled": False, "console_logger": None, "system_logger": None}
@@ -330,6 +329,11 @@ def on_pretrain_routine_start(trainer):
     )
     if response and response.get("modelId"):
         ctx["model_id"] = response["modelId"]
+        # Server returns actual slug (may differ from requested name due to auto-increment, e.g. "train" → "train-2")
+        if response.get("modelSlug"):
+            ctx["model_slug"] = response["modelSlug"]
+            url = f"{PLATFORM_URL}/{project}/{ctx['model_slug']}"
+            LOGGER.info(f"{PREFIX}View model at {url}")
         # Check for immediate cancellation (cancelled before training started)
         # Note: trainer.stop is set in on_pretrain_routine_end (after _setup_train resets it)
         if response.get("cancelled"):
@@ -477,7 +481,7 @@ def on_train_end(trainer):
         ctx["model_id"],
         retry=4,  # Critical, more retries
     )
-    url = f"{PLATFORM_URL}/{project}/{name}"
+    url = f"{PLATFORM_URL}/{project}/{ctx.get('model_slug', name)}"
     LOGGER.info(f"{PREFIX}View results at {url}")
 
 

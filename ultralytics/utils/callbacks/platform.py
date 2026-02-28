@@ -293,8 +293,13 @@ def on_pretrain_routine_start(trainer):
     # Create callback to send console output to Platform
     def send_console_output(content, line_count, chunk_id):
         """Send batched console output to Platform webhook."""
-        _send_async("console_output", {"chunkId": chunk_id, "content": content, "lineCount": line_count},
-                     project, name, ctx["model_id"])
+        _send_async(
+            "console_output",
+            {"chunkId": chunk_id, "content": content, "lineCount": line_count},
+            project,
+            name,
+            ctx["model_id"],
+        )
 
     # Start console capture with batching (5 lines or 5 seconds)
     ctx["console_logger"] = ConsoleLogger(batch_size=5, flush_interval=5.0, on_flush=send_console_output)

@@ -757,10 +757,6 @@ class Results(SimpleClass, DataExportMixin):
         confidences. For detection tasks, it includes class information, bounding box coordinates, and
         optionally mask segments and keypoints.
 
-        Notes:
-            For top-k detection outputs (``topk_cls>1``), this helper intentionally reports top-1 values via
-            ``Boxes.conf`` and ``Boxes.cls`` for backward compatibility.
-
         Args:
             normalize (bool): Whether to normalize bounding box coordinates by image dimensions.
             decimals (int): Number of decimal places to round the output values to.
@@ -775,6 +771,10 @@ class Results(SimpleClass, DataExportMixin):
             >>> for result in results:
             ...     summary = result.summary()
             ...     print(summary)
+
+        Notes:
+            For top-k detection outputs (``topk_cls>1``), this helper intentionally reports top-1 values via
+            ``Boxes.conf`` and ``Boxes.cls`` for backward compatibility.
         """
         # Create list of detection dictionaries
         results = []

@@ -1524,7 +1524,7 @@ class C2fPSA(C2f):
         """
         assert c1 == c2
         super().__init__(c1, c2, n=n, e=e)
-        self.m = nn.ModuleList(PSABlock(self.c, attn_ratio=0.5, num_heads=self.c // 64) for _ in range(n))
+        self.m = nn.ModuleList(PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1)) for _ in range(n))
 
 
 class SCDown(nn.Module):

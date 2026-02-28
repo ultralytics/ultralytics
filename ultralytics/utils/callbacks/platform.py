@@ -162,6 +162,8 @@ def _send(event, data, project, name, model_id=None, retry=2):
             headers={"Authorization": f"Bearer {_api_key}"},
             timeout=30,
         )
+        if 400 <= r.status_code < 500 and r.status_code not in {408, 429}:
+            return None  # Non-transient client error, don't retry
         r.raise_for_status()
         return r.json()
 

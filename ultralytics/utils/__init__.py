@@ -626,8 +626,7 @@ class YAML:
                 data = instance.yaml.load(s, Loader=instance.SafeLoader) or {}
             except Exception:
                 raise ValueError(
-                    f"YAML syntax error in '{file}': {e}\n"
-                    "Verify YAML with https://ray.run/tools/yaml-formatter"
+                    f"YAML syntax error in '{file}': {e}\nVerify YAML with https://ray.run/tools/yaml-formatter"
                 ) from None
 
         # Check for accidental user-error None strings (should be 'null' in YAML)

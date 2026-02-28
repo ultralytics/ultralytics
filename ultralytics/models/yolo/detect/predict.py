@@ -53,7 +53,8 @@ class DetectionPredictor(BasePredictor):
             (list): List of Results objects containing the post-processed predictions. With ``topk_cls=1`` (default),
                 each box uses the legacy layout ``[xyxy, conf, cls]``. With ``topk_cls>1`` (detect/segment tasks), box
                 data uses ``[xyxy, score1..K, class1..K]`` while ``Boxes.conf`` and ``Boxes.cls`` remain top-1 views for
-                backward compatibility.
+                backward compatibility. In this mode, ``Boxes.conf_topk`` and ``Boxes.cls_topk`` have shape ``(N, K)``,
+                ``Boxes.topk == K``, and helpers such as ``Results.summary()`` continue to report top-1 values.
 
         Examples:
             >>> predictor = DetectionPredictor(overrides=dict(model="yolo26n.pt"))

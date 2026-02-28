@@ -580,7 +580,8 @@ Here is a table for the `Boxes` class methods and properties, including their na
 | `xywhn`     | Property (`torch.Tensor`) | Return the boxes in xywh format normalized by original image size. |
 
 When using `topk_cls>1` (detect/segment), `Boxes.conf` and `Boxes.cls` remain top-1 for backward compatibility, while
-`Boxes.conf_topk` and `Boxes.cls_topk` expose the full top-k predictions.
+`Boxes.conf_topk` and `Boxes.cls_topk` expose the full top-k predictions with shape `(N, K)` and `Boxes.topk == K`.
+Helpers such as `Results.summary()` keep reporting top-1 outputs, so downstream code does not need to change.
 
 For more details see the [`Boxes` class documentation](../reference/engine/results.md#ultralytics.engine.results.Boxes).
 

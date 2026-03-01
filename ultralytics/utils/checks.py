@@ -566,20 +566,28 @@ def check_torchvision():
             )
 
 
-def check_suffix(file="yolo26n.pt", suffix=".pt", msg=""):
+def check_suffix(file: str = "yolo26n.pt", suffix: str | tuple = ".pt", msg: str = "", hard: bool = True) -> bool:
     """Check file(s) for acceptable suffix.
 
     Args:
         file (str | list[str]): File or list of files to check.
         suffix (str | tuple): Acceptable suffix or tuple of suffixes.
         msg (str): Additional message to display in case of error.
+        hard (bool): Whether to raise an error if the suffix doesn't match.
+
+    Returns:
+        (bool): True if suffix is valid, False otherwise (when hard=False).
     """
     if file and suffix:
         if isinstance(suffix, str):
             suffix = {suffix}
         for f in file if isinstance(file, (list, tuple)) else [file]:
             if s := str(f).rpartition(".")[-1].lower().strip():  # file suffix
-                assert f".{s}" in suffix, f"{msg}{f} acceptable suffix is {suffix}, not .{s}"
+                if f".{s}" not in suffix:
+                    if hard:
+                        raise AssertionError(f"{msg}{f} acceptable suffix is {suffix}, not .{s}")
+                    return False
+    return True
 
 
 def check_yolov5u_filename(file: str, verbose: bool = True) -> str:

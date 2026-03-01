@@ -229,10 +229,10 @@ To support a comprehensive experimental analysis, here are three variants of SC-
 **Hypothesis**: Small objects require a massive receptive field to be distinguished from background, but large dense kernels are heavy. Dilated convolutions offer a large view with zero extra parameters.
 ```python
 class DilatedRepConv(nn.Module):
+    """Variant using Dilated Convolution instead of large dense kernels. Receptive field: 3x3 (local) + 3x3 dilated
+    (global context).
     """
-    Variant using Dilated Convolution instead of large dense kernels.
-    Receptive field: 3x3 (local) + 3x3 dilated (global context).
-    """
+
     def __init__(self, c1, c2, k=3, s=1, p=None, g=1, act=True, deploy=False):
         super().__init__()
         self.deploy = deploy
@@ -255,6 +255,7 @@ class DilatedRepConv(nn.Module):
         if self.deploy:
             return self.act(self.rbr_reparam(inputs))
         return self.act(self.rbr_dense(inputs) + self.rbr_dilated(inputs))
+
 
 class SC_ELAN_Dilated(SC_ELAN):
     def __init__(self, c1, c2, c3, c4, c5=1):

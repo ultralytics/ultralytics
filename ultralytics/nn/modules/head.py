@@ -20,7 +20,19 @@ from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "OBB", "Classify", "Detect", "DetectCAI", "Pose", "RTDETRDecoder", "Segment", "YOLOEDetect", "YOLOESegment", "v10Detect"
+__all__ = (
+    "OBB",
+    "Classify",
+    "Detect",
+    "DetectCAI",
+    "DetectCAIv3",
+    "Pose",
+    "RTDETRDecoder",
+    "Segment",
+    "YOLOEDetect",
+    "YOLOESegment",
+    "v10Detect",
+)
 
 
 class Detect(nn.Module):
@@ -401,6 +413,156 @@ class DetectCAI(Detect):
     ) -> dict[str, torch.Tensor] | torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Forward pass with training-only CAI reweighting."""
         return super().forward(self._apply_cai(x))
+
+
+class DetectCAIv3(DetectCAI):
+    """DetectCAI v3 with robust dynamic beta routing.
+
+    This variant keeps the P1d strong baseline (moderate alpha, stronger beta) and
+    adds training-only safeguards:
+    1) beta routing based on tail prior, detail richness, and uncertainty
+    2) gate residual warmup at early iterations
+    3) gate clipping to avoid unstable amplification
+    """
+
+    def __init__(
+        self,
+        nc: int = 80,
+        reg_max: int = 16,
+        end2end: bool = False,
+        ch: tuple = (),
+        cai_embed: int = 32,
+        cai_alpha: float = 0.10,
+        cai_beta: float = 0.40,
+        cai_momentum: float = 0.90,
+        cai_gamma_tail: float = 0.35,
+        cai_gamma_detail: float = 0.25,
+        cai_gamma_uncert: float = 0.20,
+        cai_beta_min_ratio: float = 0.80,
+        cai_beta_max_ratio: float = 1.50,
+        cai_gate_min: float = 0.70,
+        cai_gate_max: float = 1.60,
+        cai_warmup_steps: int = 1000,
+        cai_level_gain: tuple[float, ...] | None = None,
+        cai_tail_classes: tuple[int, ...] | None = None,
+        cai_prior_instances: tuple[int, ...] | None = None,
+    ):
+        """Initialize DetectCAIv3.
+
+        Args:
+            nc (int): Number of classes.
+            reg_max (int): Maximum number of DFL channels.
+            end2end (bool): Whether to use end-to-end NMS-free detection.
+            ch (tuple): Tuple of channel sizes from neck feature maps.
+            cai_embed (int): Class embedding dimension.
+            cai_alpha (float): Base gate residual gain.
+            cai_beta (float): Tail-conditioned gate residual gain.
+            cai_momentum (float): EMA momentum for class prior update.
+            cai_gamma_tail (float): Gain for tail prior in beta routing.
+            cai_gamma_detail (float): Gain for local-detail score in beta routing.
+            cai_gamma_uncert (float): Gain for prediction uncertainty in beta routing.
+            cai_beta_min_ratio (float): Lower bound of dynamic beta ratio.
+            cai_beta_max_ratio (float): Upper bound of dynamic beta ratio.
+            cai_gate_min (float): Lower gate clamp bound.
+            cai_gate_max (float): Upper gate clamp bound.
+            cai_warmup_steps (int): Iteration count to ramp CAI residual from 0 to full strength.
+            cai_level_gain (tuple[float, ...] | None): Per-level beta gain (typically P3/P4/P5).
+            cai_tail_classes (tuple[int, ...] | None): Tail class indices.
+            cai_prior_instances (tuple[int, ...] | None): Class instance counts used to initialize class prior.
+        """
+        super().__init__(
+            nc=nc,
+            reg_max=reg_max,
+            end2end=end2end,
+            ch=ch,
+            cai_embed=cai_embed,
+            cai_alpha=cai_alpha,
+            cai_beta=cai_beta,
+            cai_momentum=cai_momentum,
+            cai_tail_classes=cai_tail_classes,
+            cai_prior_instances=cai_prior_instances,
+        )
+        self.cai_gamma_tail = cai_gamma_tail
+        self.cai_gamma_detail = cai_gamma_detail
+        self.cai_gamma_uncert = cai_gamma_uncert
+        self.cai_beta_min_ratio = cai_beta_min_ratio
+        self.cai_beta_max_ratio = cai_beta_max_ratio
+        self.cai_gate_min = cai_gate_min
+        self.cai_gate_max = cai_gate_max
+        self.cai_warmup_steps = max(0, int(cai_warmup_steps))
+        self.register_buffer("cai_step", torch.zeros(1, dtype=torch.long), persistent=True)
+
+        if cai_level_gain is None:
+            if self.nl >= 3:
+                gains = [1.15, 1.00, 0.90]
+            else:
+                gains = [1.00] * self.nl
+        else:
+            gains = list(cai_level_gain)
+        if not gains:
+            gains = [1.00] * self.nl
+        if len(gains) < self.nl:
+            gains.extend([gains[-1]] * (self.nl - len(gains)))
+        gains = gains[: self.nl]
+        self.register_buffer("cai_level_gain", torch.tensor(gains, dtype=torch.float32), persistent=True)
+
+    def _estimate_cai_prior_and_uncertainty(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, list[torch.Tensor]]:
+        """Estimate class prior and per-level uncertainty from neck features."""
+        probs_per_level = []
+        for i, xi in enumerate(x):
+            pooled = F.adaptive_avg_pool2d(xi, 1).flatten(1)
+            logits = self.cai_prior_proj[i](pooled)
+            probs_per_level.append(torch.softmax(logits, dim=1))
+
+        pred_prior = torch.stack([p.mean(0) for p in probs_per_level]).mean(0)
+        self.cai_class_prior.mul_(self.cai_momentum).add_(pred_prior.detach() * (1.0 - self.cai_momentum))
+
+        # High uncertainty indicates weaker class confidence and benefits from stronger adaptive reweighting.
+        uncertainty = [1.0 - p.max(dim=1, keepdim=True).values.unsqueeze(-1).unsqueeze(-1) for p in probs_per_level]
+        return self.cai_class_prior, uncertainty
+
+    def _apply_cai(self, x: list[torch.Tensor]) -> list[torch.Tensor]:
+        """Apply training-time adaptive CAI with dynamic beta routing and stability controls."""
+        if not self.training:
+            return x
+
+        self.cai_step.add_(1)
+        if self.cai_warmup_steps > 0:
+            warm = (self.cai_step.float() / float(self.cai_warmup_steps)).clamp(0.0, 1.0)
+        else:
+            warm = self.cai_step.new_tensor([1.0], dtype=torch.float32)
+
+        prior, uncertainty = self._estimate_cai_prior_and_uncertainty(x)
+        prior = prior.to(x[0].device)
+        class_context = torch.matmul(prior, self.cai_class_embed(self.cai_class_ids.to(x[0].device)))
+        tail_weight = (prior * self.cai_tail_mask.to(prior.device)).sum().clamp(0.0, 1.0)
+
+        out = []
+        for i, xi in enumerate(x):
+            pooled = F.adaptive_avg_pool2d(xi, 1)
+            base_gate = torch.sigmoid(self.cai_base_gates[i](pooled))
+            cond_in = torch.cat((pooled.flatten(1), class_context.unsqueeze(0).expand(xi.shape[0], -1)), dim=1)
+            cond_gate = torch.sigmoid(self.cai_cond_gates[i](cond_in)).unsqueeze(-1).unsqueeze(-1)
+
+            local_avg = F.avg_pool2d(xi, kernel_size=5, stride=1, padding=2)
+            detail = (xi - local_avg).abs().mean(dim=(1, 2, 3), keepdim=True)
+            energy = xi.abs().mean(dim=(1, 2, 3), keepdim=True).clamp_min(1e-6)
+            detail_score = (detail / energy).clamp(0.0, 2.0) / 2.0
+
+            beta_ratio = 1.0
+            beta_ratio = beta_ratio + self.cai_gamma_tail * tail_weight
+            beta_ratio = beta_ratio + self.cai_gamma_detail * detail_score
+            beta_ratio = beta_ratio + self.cai_gamma_uncert * uncertainty[i].to(xi.device)
+            beta_ratio = beta_ratio.clamp(self.cai_beta_min_ratio, self.cai_beta_max_ratio)
+
+            beta_level = self.cai_beta * self.cai_level_gain[i].to(xi.device)
+            beta_dyn = beta_level * beta_ratio
+
+            gate_residual = self.cai_alpha * base_gate + beta_dyn * cond_gate * tail_weight
+            gate = 1.0 + warm.to(xi.device) * gate_residual
+            gate = gate.clamp(self.cai_gate_min, self.cai_gate_max)
+            out.append(xi * gate)
+        return out
 
 
 class Segment(Detect):

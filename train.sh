@@ -1,9 +1,11 @@
 #!/bin/bash
+set -euo pipefail
 
 #######################################################
-# SC-ELAN v2 Phased Training Pipeline
+# SC-ELAN Training Pipeline (v2 + v3)
 #######################################################
 SCELAN_YAML_DIR="models/sc_elan"
+PYTHON_BIN="${PYTHON_BIN:-python3}"
 
 #######################################################
 # Phase 1: CAI alpha/beta sweep on LSKA23-TSCG backbone
@@ -35,11 +37,22 @@ phase3_models=(
 )
 
 #######################################################
+# Current mainline (single-seed, no Phase4): v3 combo matrix
+#######################################################
+v3_compare_models=(
+    "yolo11-scelan-v3-p1d-adacai"              # v3 base
+    "yolo11-scelan-v3-p1d-adacai-stable"       # v3 stable bounds
+    "yolo11-scelan-v3-p1d-adacai-strong"       # v3 stronger beta regime
+    "yolo11-scelan-v3-p1d-adacai-tail-only"    # v3 tail-only routing
+    "yolo11-scelan-v3-p3b-adacai"              # P3-FRM + DetectCAIv3 cross variant
+)
+
+#######################################################
 # Phase 4: Multi-seed statistical validation
 # After Phases 1-3 determine the best config, run it
 # with multiple seeds.  Set PHASE4_MODEL below.
 #######################################################
-PHASE4_MODEL="yolo11-scelan-v2-p3a"   # <-- replace with best config after P1-P3
+PHASE4_MODEL="yolo11-scelan-v2-p1d"   # <-- update after determining best config
 PHASE4_SEEDS=(0 42 123)
 
 #######################################################
@@ -72,7 +85,8 @@ scelan_models=(
 # models=("${phase1_models[@]}")
 # models=("${phase2_models[@]}")
 # models=("${phase3_models[@]}")
-models=("${phase1_models[@]}" "${phase2_models[@]}" "${phase3_models[@]}")
+# models=("${phase1_models[@]}" "${phase2_models[@]}" "${phase3_models[@]}")
+models=("${v3_compare_models[@]}")
 # models=("${scelan_models[@]}")
 
 RUN_PHASE4=false   # set to true after determining best config
@@ -87,7 +101,7 @@ EPOCHS=300
 BATCH_SIZE=16
 IMGSZ=640
 WORKERS=8
-PROJECT_NAME="SC-ELAN-v2"
+PROJECT_NAME="SC-ELAN-v3"
 
 PATIENCE=50
 SAVE_PERIOD=10
@@ -97,7 +111,7 @@ SEED=0
 # Phase 1-3 Training Loop
 #######################################################
 echo "=================================================="
-echo "SC-ELAN v2 Phased Training"
+echo "SC-ELAN Training"
 echo "=================================================="
 echo "Models to train: ${models[@]}"
 echo "Dataset: ${dataset}"
@@ -111,7 +125,7 @@ do
     echo "[TRAIN] ${m}"
     echo "=================================================="
 
-    python tools.py --mode train \
+    if ! ${PYTHON_BIN} tools.py --mode train \
         --path_yaml ${SCELAN_YAML_DIR}/${m}.yaml \
         --data_path ${dataset} \
         --device ${DEVICE} \
@@ -124,17 +138,20 @@ do
         --seed ${SEED} \
         --project ${PROJECT_NAME} \
         --name ${m} \
-        --init_weight ""
+        --init_weight ""; then
+        echo "Error: training failed for ${m}"
+        exit 1
+    fi
 
     echo "Completed: ${m}"
     echo ""
 done
 
 #######################################################
-# Phase 1-3 Validation Loop
+# Validation Loop (trained models)
 #######################################################
 echo "=================================================="
-echo "SC-ELAN v2 Validation"
+echo "SC-ELAN Validation"
 echo "=================================================="
 
 mkdir -p logs
@@ -146,13 +163,16 @@ do
 
     if [ -f "${WEIGHT_PATH}" ]; then
         echo "[VAL] ${m}"
-        python tools.py --mode val \
+        if ! ${PYTHON_BIN} tools.py --mode val \
             --init_weight ${WEIGHT_PATH} \
             --data_path ${dataset} \
             --device ${DEVICE} \
             --project ${PROJECT_NAME} \
             --name ${m}_val \
-            > ${VAL_LOG_PATH} 2>&1
+            > ${VAL_LOG_PATH} 2>&1; then
+            echo "Error: validation failed for ${m}, see ${VAL_LOG_PATH}"
+            exit 1
+        fi
         echo "Completed: ${m} -> ${VAL_LOG_PATH}"
     else
         echo "Warning: Weight not found for ${m}: ${WEIGHT_PATH}"
@@ -174,7 +194,7 @@ if [ "${RUN_PHASE4}" = true ]; then
         RUN_NAME="${PHASE4_MODEL}-seed${s}"
         echo "[TRAIN] ${RUN_NAME}"
 
-        python tools.py --mode train \
+        if ! ${PYTHON_BIN} tools.py --mode train \
             --path_yaml ${SCELAN_YAML_DIR}/${PHASE4_MODEL}.yaml \
             --data_path ${dataset} \
             --device ${DEVICE} \
@@ -187,19 +207,25 @@ if [ "${RUN_PHASE4}" = true ]; then
             --seed ${s} \
             --project ${PROJECT_NAME} \
             --name ${RUN_NAME} \
-            --init_weight ""
+            --init_weight ""; then
+            echo "Error: training failed for ${RUN_NAME}"
+            exit 1
+        fi
 
         WEIGHT_PATH="runs/detect/${PROJECT_NAME}/${RUN_NAME}/weights/best.pt"
         VAL_LOG_PATH="logs/val_${RUN_NAME}.log"
         if [ -f "${WEIGHT_PATH}" ]; then
             echo "[VAL] ${RUN_NAME}"
-            python tools.py --mode val \
+            if ! ${PYTHON_BIN} tools.py --mode val \
                 --init_weight ${WEIGHT_PATH} \
                 --data_path ${dataset} \
                 --device ${DEVICE} \
                 --project ${PROJECT_NAME} \
                 --name ${RUN_NAME}_val \
-                > ${VAL_LOG_PATH} 2>&1
+                > ${VAL_LOG_PATH} 2>&1; then
+                echo "Error: validation failed for ${RUN_NAME}, see ${VAL_LOG_PATH}"
+                exit 1
+            fi
         fi
         echo "Completed: ${RUN_NAME}"
         echo ""

@@ -46,6 +46,7 @@ from ultralytics.nn.modules import (
     ConvTranspose,
     Detect,
     DetectCAI,
+    DetectCAIv3,
     DWConv,
     DWConvTranspose2d,
     Focus,
@@ -1699,6 +1700,7 @@ def parse_model(d, ch, verbose=True):
             {
                 Detect,
                 DetectCAI,
+                DetectCAIv3,
                 WorldDetect,
                 YOLOEDetect,
                 Segment,
@@ -1711,7 +1713,7 @@ def parse_model(d, ch, verbose=True):
                 OBB26,
             }
         ):
-            if m is DetectCAI:
+            if m in {DetectCAI, DetectCAIv3}:
                 # DetectCAI signature is Detect-like plus extra CAI kwargs after `ch`:
                 # DetectCAI(nc, reg_max, end2end, ch, cai_embed=..., cai_alpha=..., ...)
                 # YAML may provide: [nc] or [nc, cai_embed, cai_alpha, cai_beta, cai_momentum, ...]
@@ -1722,7 +1724,20 @@ def parse_model(d, ch, verbose=True):
                 args.extend([reg_max, end2end, [ch[x] for x in f]])
             if m is Segment or m is YOLOESegment or m is Segment26 or m is YOLOESegment26:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m in {Detect, DetectCAI, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
+            if m in {
+                Detect,
+                DetectCAI,
+                DetectCAIv3,
+                YOLOEDetect,
+                Segment,
+                Segment26,
+                YOLOESegment,
+                YOLOESegment26,
+                Pose,
+                Pose26,
+                OBB,
+                OBB26,
+            }:
                 m.legacy = legacy
         elif m is v10Detect:
             args.append([ch[x] for x in f])

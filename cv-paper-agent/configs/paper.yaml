@@ -1,7 +1,0 @@
-title: "SC-ELAN: Spatial-Context Efficient Layer Aggregation Network for Small Object Detection"
-authors:
-  - "Author A"
-venue: "ArXiv"
-language: "zh"
-dataset: "VisDrone2019-DET"
-summary_doc: "sc-elan.md"

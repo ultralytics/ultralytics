@@ -566,7 +566,12 @@ def check_torchvision():
             )
 
 
-def check_suffix(file: str = "yolo26n.pt", suffix: str | tuple = ".pt", msg: str = "", hard: bool = True) -> bool:
+def check_suffix(
+    file: str | list[str] | tuple[str, ...] = "yolo26n.pt",
+    suffix: str | tuple[str, ...] = ".pt",
+    msg: str = "",
+    hard: bool = True,
+) -> bool:
     """Check file(s) for acceptable suffix.
 
     Args:

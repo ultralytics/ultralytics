@@ -266,8 +266,8 @@ class Detect(nn.Module):
 class DetectCAI(Detect):
     """Detect head with training-only Class-Adaptive Interaction (CAI).
 
-    This head preserves Detect inference behavior and introduces class-adaptive
-    feature reweighting only in training mode.
+    This head preserves Detect inference behavior and introduces class-adaptive feature reweighting only in training
+    mode.
     """
 
     VISDRONE_INSTANCES = (21000, 6376, 1302, 28063, 5770, 2659, 530, 599, 2938, 5845)
@@ -418,8 +418,7 @@ class DetectCAI(Detect):
 class DetectCAIv3(DetectCAI):
     """DetectCAI v3 with robust dynamic beta routing.
 
-    This variant keeps the P1d strong baseline (moderate alpha, stronger beta) and
-    adds training-only safeguards:
+    This variant keeps the P1d strong baseline (moderate alpha, stronger beta) and adds training-only safeguards:
     1) beta routing based on tail prior, detail richness, and uncertainty
     2) gate residual warmup at early iterations
     3) gate clipping to avoid unstable amplification

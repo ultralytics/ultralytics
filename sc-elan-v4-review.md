@@ -16,13 +16,13 @@
 
 v3 引入 `DetectCAIv3`（动态 beta 路由 + warmup + gate clipping），在 P1d 骨干上做头部训练机制升级。5 个变体的结果：
 
-| 变体 | mAP50-95 | mAP50 | vs P1d |
-|------|----------|-------|--------|
-| v3-p1d-AdaCAI | 0.211 | 0.366 | −0.001 |
-| v3-p1d-AdaCAI-Stable | 0.210 | 0.364 | −0.002 |
-| v3-p1d-AdaCAI-Strong | 0.209 | 0.364 | −0.003 |
-| v3-p1d-AdaCAI-TailOnly | 0.210 | 0.363 | −0.002 |
-| v3-p3b-AdaCAI | 0.206 | 0.359 | −0.006 |
+| 变体                   | mAP50-95 | mAP50 | vs P1d |
+| ---------------------- | -------- | ----- | ------ |
+| v3-p1d-AdaCAI          | 0.211    | 0.366 | −0.001 |
+| v3-p1d-AdaCAI-Stable   | 0.210    | 0.364 | −0.002 |
+| v3-p1d-AdaCAI-Strong   | 0.209    | 0.364 | −0.003 |
+| v3-p1d-AdaCAI-TailOnly | 0.210    | 0.363 | −0.002 |
+| v3-p3b-AdaCAI          | 0.206    | 0.359 | −0.006 |
 
 **关键发现**：
 
@@ -58,14 +58,14 @@ SC-ELAN 项目的最终目标是可发表的模块创新。当前状态是：
 
 对 v2-P1d（39.6G, 350 layers）逐层分析后：
 
-| 层索引 | 模块 | 特征图 | FLOPs 级别 | 说明 |
-|:---:|---|:---:|:---:|---|
-| 2 | SC_ELAN_LSKA_TSCG | 160×160 | **最高** | P2 backbone，分辨率最大 |
-| 4 | SC_ELAN_LSKA_TSCG | 80×80 | **高** | P3 backbone |
-| 16 | SC_ELAN_LSKA_TSCG | 80×80 | **高** | P3 neck |
-| 6, 13, 19 | SC_ELAN_LSKA_TSCG | 40×40 | 中 | P4 backbone + neck |
-| 8+9+10 | C3k2+SPPF+C2PSA | 20×20 | 中 | P5 顶层（标准 YOLO11）|
-| 23 | DetectCAI | multi | 低 | 训练态开销，推理等同 Detect |
+|  层索引   | 模块              | 特征图  | FLOPs 级别 | 说明                        |
+| :-------: | ----------------- | :-----: | :--------: | --------------------------- |
+|     2     | SC_ELAN_LSKA_TSCG | 160×160 |  **最高**  | P2 backbone，分辨率最大     |
+|     4     | SC_ELAN_LSKA_TSCG |  80×80  |   **高**   | P3 backbone                 |
+|    16     | SC_ELAN_LSKA_TSCG |  80×80  |   **高**   | P3 neck                     |
+| 6, 13, 19 | SC_ELAN_LSKA_TSCG |  40×40  |     中     | P4 backbone + neck          |
+|  8+9+10   | C3k2+SPPF+C2PSA   |  20×20  |     中     | P5 顶层（标准 YOLO11）      |
+|    23     | DetectCAI         |  multi  |     低     | 训练态开销，推理等同 Detect |
 
 **三个关键洞察**：
 
@@ -77,12 +77,13 @@ SC-ELAN 项目的最终目标是可发表的模块创新。当前状态是：
 
 v4 的设计严格吸取了先前失败的教训：
 
-| 历史实验 | GFLOPs | mAP50-95 | 失败原因 |
-|----------|--------|----------|----------|
-| Mixed-Efficient-TSCG | 31.2 | 0.194（−0.018） | **同时**替换了 P2 backbone 和 P3 neck → 特征传导链双点断裂 |
-| SC_ELAN_Efficient 全局 | 20.3 | 0.189（−0.023） | 全局去掉 LSKA+TSCG → 上下文建模和门控完全丧失 |
+| 历史实验               | GFLOPs | mAP50-95        | 失败原因                                                   |
+| ---------------------- | ------ | --------------- | ---------------------------------------------------------- |
+| Mixed-Efficient-TSCG   | 31.2   | 0.194（−0.018） | **同时**替换了 P2 backbone 和 P3 neck → 特征传导链双点断裂 |
+| SC_ELAN_Efficient 全局 | 20.3   | 0.189（−0.023） | 全局去掉 LSKA+TSCG → 上下文建模和门控完全丧失              |
 
 **关键教训**：
+
 - 不可同时弱化多个连续高分辨率阶段（Mixed-Efficient 的错误）。
 - 不可去除 LSKA/TSCG（Efficient 全局的错误）——它们虽然 FLOPs 低，但对精度贡献巨大。
 - 压缩应当**单因素、可叠加**，每步验证后再组合。
@@ -114,10 +115,10 @@ ContextAwareRepConv（原版）         ContextAwareLiteConv（v4-A）
 
 **新块 `SC_ELAN_LSKA_TSCG_Lite`**（[block.py](ultralytics/nn/modules/block.py#L2712)）：与 `SC_ELAN_LSKA_TSCG` 完全相同的拓扑（split → rep-conv chain → concat → project → LSKA → TSCG），仅将内部两个 `ContextAwareRepConv` 替换为 `ContextAwareLiteConv`。
 
-| 实验 | 描述 | 适用层 |
-|------|------|--------|
-| **v4-A1** | 全局 Lite：所有 SC_ELAN 层均用 Lite 变体 | L2, L4, L6, L13, L16, L19 |
-| **v4-A2** | 选择性 Lite：仅高分辨率层（P2 backbone + P3 neck）用 Lite | L2, L16 |
+| 实验      | 描述                                                      | 适用层                    |
+| --------- | --------------------------------------------------------- | ------------------------- |
+| **v4-A1** | 全局 Lite：所有 SC_ELAN 层均用 Lite 变体                  | L2, L4, L6, L13, L16, L19 |
+| **v4-A2** | 选择性 Lite：仅高分辨率层（P2 backbone + P3 neck）用 Lite | L2, L16                   |
 
 **设计理由**：这是最保守的降 FLOPs 路径——不改模块拓扑、不改通道数、仅精简训练时的冗余卷积分支。推理时重参数化行为不变（均为单 3×3 conv），理论上不影响推理延迟分布。
 
@@ -125,10 +126,10 @@ ContextAwareRepConv（原版）         ContextAwareLiteConv（v4-A）
 
 **假说**：P2（160×160）是最浅层特征提取阶段，主要捕获边缘和纹理。LSKA(k=23) 对 160×160 特征图仅覆盖约 14% 的空间范围，大感受野的建模价值较低，且下游 P3/P4 的 LSKA 块会重复获取相同的上下文。可用更轻量的模块安全替代。
 
-| 实验 | L2（P2 backbone）模块 | 其余层 |
-|------|----------------------|--------|
-| **v4-B1** | `C3k2[256, False, 0.25]`（标准 YOLO11 块） | 全量 SC_ELAN_LSKA_TSCG |
-| **v4-B2** | `SC_ELAN_Efficient[256, 0.5, 0.5]`（DWConv chain） | 全量 SC_ELAN_LSKA_TSCG |
+| 实验      | L2（P2 backbone）模块                                 | 其余层                 |
+| --------- | ----------------------------------------------------- | ---------------------- |
+| **v4-B1** | `C3k2[256, False, 0.25]`（标准 YOLO11 块）            | 全量 SC_ELAN_LSKA_TSCG |
+| **v4-B2** | `SC_ELAN_Efficient[256, 0.5, 0.5]`（DWConv chain）    | 全量 SC_ELAN_LSKA_TSCG |
 | **v4-B3** | `SC_ELAN_LSKA_TSCG_Lite`（保留 LSKA+TSCG，轻量 conv） | 全量 SC_ELAN_LSKA_TSCG |
 
 **对比历史失败**：`Mixed-Efficient-TSCG`（mAP50-95 = 0.194）同时替换了 P2 backbone **和** P3 neck，双重弱化导致特征传导链断裂。v4-B 严格只替换 P2 单点，其余保持全量。
@@ -140,7 +141,7 @@ ContextAwareRepConv（原版）         ContextAwareLiteConv（v4-A）
 **新模块 `SC_ELAN_LSKA_TSCG_E`**（[block.py](ultralytics/nn/modules/block.py#L2748)）：
 
 ```python
-self.c = max(8, int(c2 * e))        # e=0.5 → 原始行为
+self.c = max(8, int(c2 * e))  # e=0.5 → 原始行为
 self.cv1 = Conv(c1, 2 * self.c, 1)  # 弹性入口投影
 self.cv2 = ContextAwareRepConv(self.c, self.c)
 self.cv3 = ContextAwareRepConv(self.c, self.c)
@@ -150,10 +151,10 @@ self.cv4 = Conv(4 * self.c, c2, 1)  # 弹性出口投影
 
 YAML 参数序列：`[c2, c3, c4, c5, lsk_k, tscg_reduction, e]`
 
-| 实验 | e 值策略 | 说明 |
-|------|----------|------|
-| **v4-C1** | 全局 e=0.375 | 最激进的均匀压缩（hidden_ch 降 25%） |
-| **v4-C2** | 全局 e=0.4375 | 温和压缩（hidden_ch 降 12.5%） |
+| 实验      | e 值策略                               | 说明                                  |
+| --------- | -------------------------------------- | ------------------------------------- |
+| **v4-C1** | 全局 e=0.375                           | 最激进的均匀压缩（hidden_ch 降 25%）  |
+| **v4-C2** | 全局 e=0.4375                          | 温和压缩（hidden_ch 降 12.5%）        |
 | **v4-C3** | 非对称：P2/P3-neck = 0.375，其余 = 0.5 | 高分辨率层激进压缩 + 深层保持原始宽度 |
 
 **与 SC_ELAN_Efficient 的区别**：Efficient 版本**去掉了 LSKA 和 TSCG 并替换为 DWConv chain**，导致严重精度损失。v4-C 保留了完整的 LSKA+TSCG 机制，仅收窄中间特征通道，预计压缩耐受度显著更高。
@@ -162,9 +163,9 @@ YAML 参数序列：`[c2, c3, c4, c5, lsk_k, tscg_reduction, e]`
 
 基于 A/B/C 的单因素结论，选取最优策略组合：
 
-| 实验 | 组合策略 | 说明 |
-|------|----------|------|
-| **v4-D1** | Lite conv（A1）+ C3k2@P2（B1） | 两个正交策略叠加 |
+| 实验      | 组合策略                            | 说明                     |
+| --------- | ----------------------------------- | ------------------------ |
+| **v4-D1** | Lite conv（A1）+ C3k2@P2（B1）      | 两个正交策略叠加         |
 | **v4-D2** | C3k2@P2（B1）+ 非对称弹性宽度（C3） | P2 替换 + 高分辨率层压缩 |
 
 **注**：D1/D2 是初始组合方案。如果 A/B/C 单因素实验的最优不是 A1/B1/C3，D 阶段的具体组合将根据实验结论调整。
@@ -175,50 +176,51 @@ YAML 参数序列：`[c2, c3, c4, c5, lsk_k, tscg_reduction, e]`
 
 ### 4.1 新增代码
 
-| 文件 | 变更 |
-|------|------|
-| [block.py](ultralytics/nn/modules/block.py#L2664) | 新增 `ContextAwareLiteConv`、`SC_ELAN_LSKA_TSCG_Lite`、`SC_ELAN_LSKA_TSCG_E` |
-| [\_\_init\_\_.py](ultralytics/nn/modules/__init__.py) | 导入 + `__all__` 注册 |
-| [tasks.py](ultralytics/nn/tasks.py) | YAML 解析器 `one_time_modules` 注册 |
+| 文件                                                  | 变更                                                                         |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------- |
+| [block.py](ultralytics/nn/modules/block.py#L2664)     | 新增 `ContextAwareLiteConv`、`SC_ELAN_LSKA_TSCG_Lite`、`SC_ELAN_LSKA_TSCG_E` |
+| [\_\_init\_\_.py](ultralytics/nn/modules/__init__.py) | 导入 + `__all__` 注册                                                        |
+| [tasks.py](ultralytics/nn/tasks.py)                   | YAML 解析器 `one_time_modules` 注册                                          |
 
 ### 4.2 配置文件
 
 10 个 YAML 配置位于 `models/sc_elan/`：
 
-| 文件 | 阶段 |
-|------|------|
-| [yolo11-scelan-v4-a1.yaml](models/sc_elan/yolo11-scelan-v4-a1.yaml) | A1 全局 Lite |
-| [yolo11-scelan-v4-a2.yaml](models/sc_elan/yolo11-scelan-v4-a2.yaml) | A2 选择性 Lite |
-| [yolo11-scelan-v4-b1.yaml](models/sc_elan/yolo11-scelan-v4-b1.yaml) | B1 P2=C3k2 |
-| [yolo11-scelan-v4-b2.yaml](models/sc_elan/yolo11-scelan-v4-b2.yaml) | B2 P2=Efficient |
-| [yolo11-scelan-v4-b3.yaml](models/sc_elan/yolo11-scelan-v4-b3.yaml) | B3 P2=Lite |
-| [yolo11-scelan-v4-c1.yaml](models/sc_elan/yolo11-scelan-v4-c1.yaml) | C1 e=0.375 全局 |
+| 文件                                                                | 阶段             |
+| ------------------------------------------------------------------- | ---------------- |
+| [yolo11-scelan-v4-a1.yaml](models/sc_elan/yolo11-scelan-v4-a1.yaml) | A1 全局 Lite     |
+| [yolo11-scelan-v4-a2.yaml](models/sc_elan/yolo11-scelan-v4-a2.yaml) | A2 选择性 Lite   |
+| [yolo11-scelan-v4-b1.yaml](models/sc_elan/yolo11-scelan-v4-b1.yaml) | B1 P2=C3k2       |
+| [yolo11-scelan-v4-b2.yaml](models/sc_elan/yolo11-scelan-v4-b2.yaml) | B2 P2=Efficient  |
+| [yolo11-scelan-v4-b3.yaml](models/sc_elan/yolo11-scelan-v4-b3.yaml) | B3 P2=Lite       |
+| [yolo11-scelan-v4-c1.yaml](models/sc_elan/yolo11-scelan-v4-c1.yaml) | C1 e=0.375 全局  |
 | [yolo11-scelan-v4-c2.yaml](models/sc_elan/yolo11-scelan-v4-c2.yaml) | C2 e=0.4375 全局 |
-| [yolo11-scelan-v4-c3.yaml](models/sc_elan/yolo11-scelan-v4-c3.yaml) | C3 非对称宽度 |
-| [yolo11-scelan-v4-d1.yaml](models/sc_elan/yolo11-scelan-v4-d1.yaml) | D1 Lite+C3k2 |
-| [yolo11-scelan-v4-d2.yaml](models/sc_elan/yolo11-scelan-v4-d2.yaml) | D2 C3k2+非对称 |
+| [yolo11-scelan-v4-c3.yaml](models/sc_elan/yolo11-scelan-v4-c3.yaml) | C3 非对称宽度    |
+| [yolo11-scelan-v4-d1.yaml](models/sc_elan/yolo11-scelan-v4-d1.yaml) | D1 Lite+C3k2     |
+| [yolo11-scelan-v4-d2.yaml](models/sc_elan/yolo11-scelan-v4-d2.yaml) | D2 C3k2+非对称   |
 
 ### 4.3 模型构建验证
 
 所有 10 个配置均通过 `YOLO(path, task='detect')` 构建验证（s scale）:
 
-| 配置 | Params | GFLOPs | vs 基线（39.8G） | 降幅 |
-|------|--------|--------|-----------------|------|
-| **v2-P1d（基线）** | **11.64M** | **39.8** | -- | -- |
-| v4-A1 全局 Lite | 11.46M | 38.1 | −1.7G | −4.3% |
-| v4-A2 选择性 Lite | 11.62M | 39.0 | −0.8G | −2.0% |
-| **v4-B1 P2=C3k2** | 11.51M | **32.8** | **−7.0G** | **−17.6%** |
-| v4-B2 P2=Efficient | 11.54M | 34.2 | −5.6G | −14.1% |
-| v4-B3 P2=Lite | 11.63M | 39.2 | −0.6G | −1.5% |
-| **v4-C1 e=0.375** | **10.66M** | **31.6** | **−8.2G** | **−20.6%** |
-| v4-C2 e=0.4375 | 11.12M | 35.5 | −4.3G | −10.8% |
-| v4-C3 非对称 | 11.53M | 36.3 | −3.5G | −8.8% |
-| **v4-D1 Lite+C3k2** | 11.34M | **31.8** | **−8.0G** | **−20.1%** |
-| **v4-D2 C3k2+非对称** | 11.44M | **32.0** | **−7.8G** | **−19.6%** |
+| 配置                  | Params     | GFLOPs   | vs 基线（39.8G） | 降幅       |
+| --------------------- | ---------- | -------- | ---------------- | ---------- |
+| **v2-P1d（基线）**    | **11.64M** | **39.8** | --               | --         |
+| v4-A1 全局 Lite       | 11.46M     | 38.1     | −1.7G            | −4.3%      |
+| v4-A2 选择性 Lite     | 11.62M     | 39.0     | −0.8G            | −2.0%      |
+| **v4-B1 P2=C3k2**     | 11.51M     | **32.8** | **−7.0G**        | **−17.6%** |
+| v4-B2 P2=Efficient    | 11.54M     | 34.2     | −5.6G            | −14.1%     |
+| v4-B3 P2=Lite         | 11.63M     | 39.2     | −0.6G            | −1.5%      |
+| **v4-C1 e=0.375**     | **10.66M** | **31.6** | **−8.2G**        | **−20.6%** |
+| v4-C2 e=0.4375        | 11.12M     | 35.5     | −4.3G            | −10.8%     |
+| v4-C3 非对称          | 11.53M     | 36.3     | −3.5G            | −8.8%      |
+| **v4-D1 Lite+C3k2**   | 11.34M     | **31.8** | **−8.0G**        | **−20.1%** |
+| **v4-D2 C3k2+非对称** | 11.44M     | **32.0** | **−7.8G**        | **−19.6%** |
 
 ### 4.4 训练脚本
 
 [train.sh](train.sh) 已更新：
+
 - 新增 `v4_A_models`、`v4_B_models`、`v4_C_models`、`v4_D_models` 数组
 - `v4_all_models` 聚合全部 10 个配置
 - 激活项设为 `models=("${v4_all_models[@]}")`
@@ -238,13 +240,13 @@ YAML 参数序列：`[c2, c3, c4, c5, lsk_k, tscg_reduction, e]`
 
 ### 5.2 风险矩阵
 
-| 风险 | 级别 | 影响 | 应对策略 |
-|------|------|------|----------|
-| v4-A：Lite conv 精度退化 > 预期 | 低 | mAP50-95 下降 > 0.005 | A2（选择性）作为回退；若 A1/A2 均不可用，确认 LSKA 无法完全补偿 DW5×5 |
-| v4-B：P2 替换损失小目标特征 | 中 | pedestrian/people 类退化 | 逐类监控；若 ped/people 跌幅 > 0.01，尝试 B3（保留 LSKA+TSCG）|
-| v4-C：通道压缩过激（e=0.375）| 中 | 复现 Efficient 的失败 | C2（e=0.4375）和 C3（非对称）作为温和替代；C1 保留 LSKA+TSCG 是关键区别 |
-| v4-D：组合策略交互不可加 | 低 | 组合后精度跌幅 > 单因素之和 | D 阶段依赖 A/B/C 结论，可灵活调整组合方式 |
-| 训练耗时 | 低 | 10 个模型 × 300 epochs | RTX 4090 单卡约 2.5-3 小时/模型，总计 ~25-30 小时 |
+| 风险                            | 级别 | 影响                        | 应对策略                                                                |
+| ------------------------------- | ---- | --------------------------- | ----------------------------------------------------------------------- |
+| v4-A：Lite conv 精度退化 > 预期 | 低   | mAP50-95 下降 > 0.005       | A2（选择性）作为回退；若 A1/A2 均不可用，确认 LSKA 无法完全补偿 DW5×5   |
+| v4-B：P2 替换损失小目标特征     | 中   | pedestrian/people 类退化    | 逐类监控；若 ped/people 跌幅 > 0.01，尝试 B3（保留 LSKA+TSCG）          |
+| v4-C：通道压缩过激（e=0.375）   | 中   | 复现 Efficient 的失败       | C2（e=0.4375）和 C3（非对称）作为温和替代；C1 保留 LSKA+TSCG 是关键区别 |
+| v4-D：组合策略交互不可加        | 低   | 组合后精度跌幅 > 单因素之和 | D 阶段依赖 A/B/C 结论，可灵活调整组合方式                               |
+| 训练耗时                        | 低   | 10 个模型 × 300 epochs      | RTX 4090 单卡约 2.5-3 小时/模型，总计 ~25-30 小时                       |
 
 ### 5.3 最坏情况分析
 
@@ -260,13 +262,13 @@ YAML 参数序列：`[c2, c3, c4, c5, lsk_k, tscg_reduction, e]`
 
 ### 6.1 定量目标
 
-| 指标 | 主要目标 | 理想目标 | 约束 |
-|------|----------|----------|------|
-| **mAP50-95** | ≥ 0.210（−0.002 容差） | ≥ 0.208 | 不低于 0.206 |
-| **GFLOPs** | ≤ 34（降幅 ≥ 14%） | ≤ 31（降幅 ≥ 21%） | -- |
-| **延迟** | ≤ 5.5 ms/image（RTX 4090） | ≤ 5.0 ms | -- |
-| **Params** | ≤ 11.5M | ≤ 11M | -- |
-| **车辆类 mAP50-95** | ≥ P1d 基线 − 0.005 | 不退化 | car/bus/truck |
+| 指标                | 主要目标                   | 理想目标           | 约束          |
+| ------------------- | -------------------------- | ------------------ | ------------- |
+| **mAP50-95**        | ≥ 0.210（−0.002 容差）     | ≥ 0.208            | 不低于 0.206  |
+| **GFLOPs**          | ≤ 34（降幅 ≥ 14%）         | ≤ 31（降幅 ≥ 21%） | --            |
+| **延迟**            | ≤ 5.5 ms/image（RTX 4090） | ≤ 5.0 ms           | --            |
+| **Params**          | ≤ 11.5M                    | ≤ 11M              | --            |
+| **车辆类 mAP50-95** | ≥ P1d 基线 − 0.005         | 不退化             | car/bus/truck |
 
 ### 6.2 评估流程
 

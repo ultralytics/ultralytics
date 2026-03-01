@@ -1,7 +1,7 @@
-from pathlib import Path
-from typing import Any, Dict
 import ast
 import json
+from pathlib import Path
+from typing import Any
 
 
 def _coerce_scalar(value: str) -> Any:
@@ -35,9 +35,9 @@ def _coerce_scalar(value: str) -> Any:
         return v
 
 
-def _parse_simple_yaml(text: str) -> Dict[str, Any]:
+def _parse_simple_yaml(text: str) -> dict[str, Any]:
     """Fallback parser that supports basic nested dict/list via indentation."""
-    root: Dict[str, Any] = {}
+    root: dict[str, Any] = {}
     stack: list[tuple[int, Any]] = [(-1, root)]
     lines = text.splitlines()
 
@@ -104,7 +104,7 @@ def _parse_simple_yaml(text: str) -> Dict[str, Any]:
     return root
 
 
-def load_yaml(path: Path) -> Dict[str, Any]:
+def load_yaml(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
     raw = path.read_text(encoding="utf-8")

@@ -1,9 +1,8 @@
 import json
 from pathlib import Path
-from typing import Dict, List
 
 
-def load_jsonl(path: Path) -> List[Dict]:
+def load_jsonl(path: Path) -> list[dict]:
     if not path.exists():
         return []
     rows = []
@@ -13,7 +12,7 @@ def load_jsonl(path: Path) -> List[Dict]:
     return rows
 
 
-def atomic_write_jsonl(path: Path, rows: List[Dict]) -> None:
+def atomic_write_jsonl(path: Path, rows: list[dict]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(path.suffix + ".tmp")
     with tmp.open("w", encoding="utf-8") as f:

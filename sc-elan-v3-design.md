@@ -66,9 +66,11 @@ Where `warmup_t` linearly ramps from 0 to 1 in `cai_warmup_steps`.
 ## 5. Current Draft Config
 
 Model YAML:
+
 - `models/sc_elan/yolo11-scelan-v3-p1d-adacai.yaml`
 
 Head params in draft:
+
 - `alpha=0.10`, `beta=0.40`, `momentum=0.90`
 - `gamma_tail=0.35`, `gamma_detail=0.25`, `gamma_uncert=0.20`
 - `beta_ratio in [0.80, 1.50]`

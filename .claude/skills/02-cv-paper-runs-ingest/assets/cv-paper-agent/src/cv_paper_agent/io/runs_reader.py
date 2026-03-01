@@ -1,8 +1,7 @@
 from pathlib import Path
-from typing import Dict, List
 
 
-def index_artifacts(exp_dir: Path, runs_root: Path) -> List[Dict]:
+def index_artifacts(exp_dir: Path, runs_root: Path) -> list[dict]:
     items = []
     for p in exp_dir.rglob("*"):
         if p.is_file() and p.suffix.lower() in {".png", ".jpg", ".jpeg"}:

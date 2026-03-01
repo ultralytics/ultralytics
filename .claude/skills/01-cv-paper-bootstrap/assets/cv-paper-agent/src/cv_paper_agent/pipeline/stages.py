@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from ..io.artifact_writer import bootstrap_paper_project, write_experiments_section, write_method_section
 from ..io.runs_reader import index_artifacts
@@ -9,7 +11,7 @@ from ..parsing.yaml_parser import load_yaml
 from ..utils.fingerprint import experiment_fingerprint
 
 
-def stage_bootstrap(workspace: Path, templates_root: Path) -> Dict[str, Path]:
+def stage_bootstrap(workspace: Path, templates_root: Path) -> dict[str, Path]:
     workdir = workspace / "workdir"
     cache_dir = workdir / "cache"
     paper_project = workspace / "paper_project"
@@ -19,11 +21,11 @@ def stage_bootstrap(workspace: Path, templates_root: Path) -> Dict[str, Path]:
     return {"workdir": workdir, "cache_dir": cache_dir, "paper_project": paper_project}
 
 
-def stage_scan(runs_root: Path, marker_rules: List[List[str]] | None = None) -> List[Path]:
+def stage_scan(runs_root: Path, marker_rules: list[list[str]] | None = None) -> list[Path]:
     return discover_experiments(runs_root, marker_rules=marker_rules)
 
 
-def _select_best_metric(best_metrics: Dict[str, Any], schema: Dict[str, Any]) -> Dict[str, Any]:
+def _select_best_metric(best_metrics: dict[str, Any], schema: dict[str, Any]) -> dict[str, Any]:
     selection = schema.get("selection", {}) if isinstance(schema, dict) else {}
     best_by = selection.get("best_by", []) if isinstance(selection, dict) else []
     if not isinstance(best_by, list):
@@ -41,15 +43,15 @@ def _select_best_metric(best_metrics: Dict[str, Any], schema: Dict[str, Any]) ->
 
 
 def stage_parse(
-    exps: List[Path],
+    exps: list[Path],
     runs_root: Path,
-    old_cache: Dict[str, Dict[str, Any]],
-    old_fingerprints: Dict[str, str],
-    schema: Dict[str, Any],
+    old_cache: dict[str, dict[str, Any]],
+    old_fingerprints: dict[str, str],
+    schema: dict[str, Any],
     resume: bool,
-) -> tuple[List[Dict[str, Any]], Dict[str, str]]:
-    rows: List[Dict[str, Any]] = []
-    fps: Dict[str, str] = {}
+) -> tuple[list[dict[str, Any]], dict[str, str]]:
+    rows: list[dict[str, Any]] = []
+    fps: dict[str, str] = {}
     for exp_dir in exps:
         rel = exp_dir.relative_to(runs_root).as_posix()
         exp_id = rel
@@ -77,7 +79,7 @@ def stage_parse(
     return rows, fps
 
 
-def stage_write_sections(workspace: Path, experiments: List[Dict[str, Any]]) -> None:
+def stage_write_sections(workspace: Path, experiments: list[dict[str, Any]]) -> None:
     pp = workspace / "paper_project" / "sections"
     write_experiments_section(pp / "experiments.tex", experiments)
     write_method_section(pp / "method.tex", {"method_name": "N/A", "backbone": "N/A"})

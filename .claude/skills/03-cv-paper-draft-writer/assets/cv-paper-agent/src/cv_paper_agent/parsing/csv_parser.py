@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import csv
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 def _to_number_if_possible(value: Any) -> Any:
@@ -19,20 +21,20 @@ def _to_number_if_possible(value: Any) -> Any:
         return value
 
 
-def _numeric_score(value: Any) -> Optional[float]:
+def _numeric_score(value: Any) -> float | None:
     parsed = _to_number_if_possible(value)
     if isinstance(parsed, (int, float)):
         return float(parsed)
     return None
 
 
-def _parse_with_stdlib(csv_path: Path, candidates: List[str]) -> Dict[str, Any]:
+def _parse_with_stdlib(csv_path: Path, candidates: list[str]) -> dict[str, Any]:
     with csv_path.open("r", encoding="utf-8", newline="") as f:
         rows = list(csv.DictReader(f))
     if not rows:
         return {}
 
-    chosen_col: Optional[str] = next((c for c in candidates if c in rows[0]), None)
+    chosen_col: str | None = next((c for c in candidates if c in rows[0]), None)
     if chosen_col:
         scored_rows = [(r, _numeric_score(r.get(chosen_col))) for r in rows]
         valid_rows = [item for item in scored_rows if item[1] is not None]
@@ -45,13 +47,13 @@ def _parse_with_stdlib(csv_path: Path, candidates: List[str]) -> Dict[str, Any]:
     return {str(k): _to_number_if_possible(v) for k, v in best_row.items()}
 
 
-def parse_best_metrics(csv_path: Path, schema: Dict[str, Any] | Any) -> Dict[str, Any]:
+def parse_best_metrics(csv_path: Path, schema: dict[str, Any] | Any) -> dict[str, Any]:
     if not isinstance(schema, dict):
         schema = {}
     selection = schema.get("selection", {})
     if not isinstance(selection, dict):
         selection = {}
-    candidates: List[str] = selection.get("best_by", [])
+    candidates: list[str] = selection.get("best_by", [])
     if not isinstance(candidates, list):
         candidates = []
     try:

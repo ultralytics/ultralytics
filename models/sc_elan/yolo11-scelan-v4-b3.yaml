@@ -14,7 +14,7 @@ scales:
 backbone:
   - [-1, 1, Conv, [64, 3, 2]]
   - [-1, 1, Conv, [128, 3, 2]]
-  - [-1, 2, SC_ELAN_LSKA_TSCG_Lite, [256, 256, 256, 1, 23, 4]]    # P2 — Lite
+  - [-1, 2, SC_ELAN_LSKA_TSCG_Lite, [256, 256, 256, 1, 23, 4]] # P2 — Lite
   - [-1, 1, Conv, [256, 3, 2]]
   - [-1, 2, SC_ELAN_LSKA_TSCG, [512, 512, 512, 1, 23, 4]]
   - [-1, 1, Conv, [512, 3, 2]]

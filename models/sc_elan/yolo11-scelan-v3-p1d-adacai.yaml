@@ -47,4 +47,9 @@ head:
   #  cai_gamma_tail, cai_gamma_detail, cai_gamma_uncert,
   #  cai_beta_min_ratio, cai_beta_max_ratio, cai_gate_min, cai_gate_max,
   #  cai_warmup_steps, cai_level_gain]
-  - [[16, 19, 22], 1, DetectCAIv3, [nc, 32, 0.10, 0.40, 0.90, 0.35, 0.25, 0.20, 0.80, 1.50, 0.70, 1.60, 1000, [1.15, 1.00, 0.90]]]
+  - [
+      [16, 19, 22],
+      1,
+      DetectCAIv3,
+      [nc, 32, 0.10, 0.40, 0.90, 0.35, 0.25, 0.20, 0.80, 1.50, 0.70, 1.60, 1000, [1.15, 1.00, 0.90]],
+    ]

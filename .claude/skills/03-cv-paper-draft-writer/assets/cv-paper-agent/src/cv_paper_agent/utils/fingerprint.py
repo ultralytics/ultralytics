@@ -13,9 +13,11 @@ def _file_sig(path: Path) -> str:
 
 def experiment_fingerprint(exp_dir: Path, runs_root: Path) -> str:
     rel = to_posix(exp_dir.relative_to(runs_root))
-    token = "|".join([
-        rel,
-        _file_sig(exp_dir / "results.csv"),
-        _file_sig(exp_dir / "args.yaml"),
-    ])
+    token = "|".join(
+        [
+            rel,
+            _file_sig(exp_dir / "results.csv"),
+            _file_sig(exp_dir / "args.yaml"),
+        ]
+    )
     return sha256_text(token)

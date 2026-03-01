@@ -1,6 +1,6 @@
 import shutil
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 
 def bootstrap_paper_project(templates_root: Path, paper_project: Path) -> None:
@@ -15,7 +15,7 @@ def _fmt(v: Any) -> str:
     return "N/A" if v is None else str(v)
 
 
-def write_experiments_section(path: Path, experiments: List[Dict[str, Any]]) -> None:
+def write_experiments_section(path: Path, experiments: list[dict[str, Any]]) -> None:
     lines = [
         "\\section{Experiments}",
         f"Discovered experiments: {len(experiments)}.",
@@ -34,7 +34,7 @@ def write_experiments_section(path: Path, experiments: List[Dict[str, Any]]) -> 
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def write_method_section(path: Path, method_spec: Dict[str, Any]) -> None:
+def write_method_section(path: Path, method_spec: dict[str, Any]) -> None:
     name = method_spec.get("method_name", "N/A")
     backbone = method_spec.get("backbone", "N/A")
     text = (

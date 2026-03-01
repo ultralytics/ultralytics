@@ -1,5 +1,7 @@
+from __future__ import annotations
+
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable, List
 
 
 def _is_experiment_dir(exp_dir: Path, marker_rules: Iterable[Iterable[str]]) -> bool:
@@ -9,7 +11,7 @@ def _is_experiment_dir(exp_dir: Path, marker_rules: Iterable[Iterable[str]]) -> 
     return False
 
 
-def discover_experiments(runs_root: Path, marker_rules: List[List[str]] | None = None) -> List[Path]:
+def discover_experiments(runs_root: Path, marker_rules: list[list[str]] | None = None) -> list[Path]:
     """Recursively discover experiment directories by marker rules."""
     rules = marker_rules or [["results.csv", "args.yaml"]]
     exps = set()

@@ -14,11 +14,11 @@ scales:
 backbone:
   - [-1, 1, Conv, [64, 3, 2]]
   - [-1, 1, Conv, [128, 3, 2]]
-  - [-1, 2, SC_ELAN_LSKA_TSCG, [256, 256, 256, 1, 7, 4]]    # P3: k=7
+  - [-1, 2, SC_ELAN_LSKA_TSCG, [256, 256, 256, 1, 7, 4]] # P3: k=7
   - [-1, 1, Conv, [256, 3, 2]]
-  - [-1, 2, SC_ELAN_LSKA_TSCG, [512, 512, 512, 1, 11, 4]]   # P4: k=11
+  - [-1, 2, SC_ELAN_LSKA_TSCG, [512, 512, 512, 1, 11, 4]] # P4: k=11
   - [-1, 1, Conv, [512, 3, 2]]
-  - [-1, 2, SC_ELAN_LSKA_TSCG, [512, 512, 512, 1, 23, 4]]   # P5: k=23
+  - [-1, 2, SC_ELAN_LSKA_TSCG, [512, 512, 512, 1, 23, 4]] # P5: k=23
   - [-1, 1, Conv, [1024, 3, 2]]
   - [-1, 2, C3k2, [1024, True]]
   - [-1, 1, SPPF, [1024, 5]]
@@ -27,15 +27,15 @@ backbone:
 head:
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
   - [[-1, 6], 1, Concat, [1]]
-  - [-1, 2, SC_ELAN_LSKA_TSCG, [512, 512, 512, 1, 11, 4]]   # Neck P4: k=11
+  - [-1, 2, SC_ELAN_LSKA_TSCG, [512, 512, 512, 1, 11, 4]] # Neck P4: k=11
 
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
   - [[-1, 4], 1, Concat, [1]]
-  - [-1, 2, SC_ELAN_LSKA_TSCG, [256, 256, 256, 1, 7, 4]]    # Neck P3: k=7
+  - [-1, 2, SC_ELAN_LSKA_TSCG, [256, 256, 256, 1, 7, 4]] # Neck P3: k=7
 
   - [-1, 1, Conv, [256, 3, 2]]
   - [[-1, 13], 1, Concat, [1]]
-  - [-1, 2, SC_ELAN_LSKA_TSCG, [512, 512, 512, 1, 11, 4]]   # Neck P4 down: k=11
+  - [-1, 2, SC_ELAN_LSKA_TSCG, [512, 512, 512, 1, 11, 4]] # Neck P4 down: k=11
 
   - [-1, 1, Conv, [512, 3, 2]]
   - [[-1, 10], 1, Concat, [1]]

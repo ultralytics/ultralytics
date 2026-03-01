@@ -164,7 +164,7 @@ class SplitInteractionBlock(nn.Module):
         x1, x2 = torch.split(x, self.split_dim, dim=1)
         
         # 2. Interaction
-        # Use x2 (context) to spatially validata x1 (content)
+        # Use x2 (context) to spatially validate x1 (content)
         x1_out = x1 * self.spatial_att(x2)
         
         # Use x1 (content) to channel-wise validate x2 (context)

@@ -22,6 +22,9 @@ __all__ = (
     "DFL",
     "ELAN1",
     "PSA",
+    "SC_ELAN",
+    "SC_ELAN_LSKA",
+    "SC_ELAN_LSKA_TSCG",
     "SPP",
     "SPPELAN",
     "SPPF",
@@ -51,15 +54,12 @@ __all__ = (
     "RepVGGDW",
     "ResNetLayer",
     "SCDown",
-    "SC_ELAN",
-    "SC_ELAN_Fixed",
-    "SC_ELAN_Efficient",
     "SC_ELAN_Dilated",
-    "SC_ELAN_Slim",
-    "SC_ELAN_LSKA",
-    "SC_ELAN_LSKA_TSCG",
+    "SC_ELAN_Efficient",
+    "SC_ELAN_Fixed",
     "SC_ELAN_RepAdd",
     "SC_ELAN_RepExact",
+    "SC_ELAN_Slim",
     "TorchVision",
 )
 
@@ -2079,9 +2079,8 @@ class RealNVP(nn.Module):
 class ContextAwareRepConv(nn.Module):
     """Context-Aware Reparameterizable Convolution.
 
-    Integrates Pzconv's large kernel idea with RepVGG-style re-parameterization.
-    Training: Multi-branch (1x1, 3x3, 5x5) to capture multi-scale context.
-    Inference: Collapses into a single 3x3 convolution for speed.
+    Integrates Pzconv's large kernel idea with RepVGG-style re-parameterization. Training: Multi-branch (1x1, 3x3, 5x5)
+    to capture multi-scale context. Inference: Collapses into a single 3x3 convolution for speed.
 
     Attributes:
         deploy (bool): Whether the module is in deployment mode.
@@ -2095,7 +2094,17 @@ class ContextAwareRepConv(nn.Module):
         rbr_1x1 (nn.Sequential): 1x1 convolution branch.
     """
 
-    def __init__(self, c1: int, c2: int, k: int = 3, s: int = 1, p: int | None = None, g: int = 1, act: bool = True, deploy: bool = False):
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        k: int = 3,
+        s: int = 1,
+        p: int | None = None,
+        g: int = 1,
+        act: bool = True,
+        deploy: bool = False,
+    ):
         """Initialize ContextAwareRepConv module.
 
         Args:
@@ -2143,19 +2152,13 @@ class ContextAwareRepConv(nn.Module):
         else:
             id_out = self.rbr_identity(inputs)
 
-        return self.act(
-            self.rbr_dense(inputs) + 
-            self.rbr_1x1(inputs) + 
-            self.rbr_context(inputs) + 
-            id_out
-        )
+        return self.act(self.rbr_dense(inputs) + self.rbr_1x1(inputs) + self.rbr_context(inputs) + id_out)
 
 
 class SplitInteractionBlock(nn.Module):
     """Split Interaction Block for feature purification.
 
-    Integrates FCM's interaction idea.
-    Splits features and uses cross-branch attention to suppress background noise.
+    Integrates FCM's interaction idea. Splits features and uses cross-branch attention to suppress background noise.
 
     Attributes:
         split_dim (int): The dimension for splitting features.
@@ -2172,18 +2175,12 @@ class SplitInteractionBlock(nn.Module):
         """
         super().__init__()
         self.split_dim = dim // 2
-        
+
         # Spatial Attention Generator (for Branch 1)
-        self.spatial_att = nn.Sequential(
-            nn.Conv2d(self.split_dim, 1, 7, padding=3),
-            nn.Sigmoid()
-        )
+        self.spatial_att = nn.Sequential(nn.Conv2d(self.split_dim, 1, 7, padding=3), nn.Sigmoid())
         # Channel Attention Generator (for Branch 2)
         self.channel_att = nn.AdaptiveAvgPool2d(1)
-        self.fc_channel = nn.Sequential(
-             nn.Conv2d(self.split_dim, self.split_dim, 1),
-             nn.Sigmoid()
-        )
+        self.fc_channel = nn.Sequential(nn.Conv2d(self.split_dim, self.split_dim, 1), nn.Sigmoid())
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass through SplitInteractionBlock.
@@ -2196,14 +2193,14 @@ class SplitInteractionBlock(nn.Module):
         """
         # 1. Split: Context vs Content
         x1, x2 = torch.split(x, self.split_dim, dim=1)
-        
+
         # 2. Interaction
         # Use x2 (context) to spatially validate x1 (content)
         x1_out = x1 * self.spatial_att(x2)
-        
+
         # Use x1 (content) to channel-wise validate x2 (context)
         x2_out = x2 * self.fc_channel(self.channel_att(x1))
-        
+
         # 3. Merge
         return torch.cat([x1_out, x2_out], dim=1)
 
@@ -2211,9 +2208,8 @@ class SplitInteractionBlock(nn.Module):
 class SC_ELAN(nn.Module):
     """SC-ELAN: Spatial-Context Efficient Layer Aggregation Network.
 
-    Combines ELAN backbone + Pzconv Context + FCM Interaction.
-    Designed for enhanced small object detection through multi-scale context awareness
-    and feature interaction mechanisms.
+    Combines ELAN backbone + Pzconv Context + FCM Interaction. Designed for enhanced small object detection through
+    multi-scale context awareness and feature interaction mechanisms.
 
     Attributes:
         c (int): Half of the intermediate channels.
@@ -2237,14 +2233,14 @@ class SC_ELAN(nn.Module):
         super().__init__()
         self.c = c2 // 2
         self.cv1 = Conv(c1, c2, 1, 1)
-        
+
         # ELAN Backbone with ContextAware RepConvs
         self.cv2 = ContextAwareRepConv(c2 // 2, c2 // 2)
         self.cv3 = ContextAwareRepConv(c2 // 2, c2 // 2)
-        
+
         # Interaction Block for cleanup
         self.interaction = SplitInteractionBlock(c2)
-        
+
         # Final aggregation
         self.cv4 = Conv(c2 + (2 * (c2 // 2)), c2, 1, 1)
 
@@ -2259,14 +2255,14 @@ class SC_ELAN(nn.Module):
         """
         # 1. Projection & Split
         y = list(self.cv1(x).chunk(2, 1))
-        
+
         # 2. Context-Aware Processing Path
         # Process the second half through the chain
         y.extend((m(y[-1])) for m in [self.cv2, self.cv3])
-        
+
         # 3. Concatenation (Gradient Highway)
         feat_cat = torch.cat(y, 1)
-        
+
         # 4. Final Projection
         return self.cv4(feat_cat)
 
@@ -2274,8 +2270,8 @@ class SC_ELAN(nn.Module):
 class DilatedRepConv(nn.Module):
     """Dilated Reparameterizable Convolution.
 
-    Variant using Dilated Convolution instead of large dense kernels.
-    Receptive field: 3x3 (local) + 3x3 dilated (global context).
+    Variant using Dilated Convolution instead of large dense kernels. Receptive field: 3x3 (local) + 3x3 dilated (global
+    context).
 
     Attributes:
         deploy (bool): Whether the module is in deployment mode.
@@ -2285,7 +2281,17 @@ class DilatedRepConv(nn.Module):
         rbr_dilated (nn.Sequential): Dilated 3x3 convolution branch.
     """
 
-    def __init__(self, c1: int, c2: int, k: int = 3, s: int = 1, p: int | None = None, g: int = 1, act: bool = True, deploy: bool = False):
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        k: int = 3,
+        s: int = 1,
+        p: int | None = None,
+        g: int = 1,
+        act: bool = True,
+        deploy: bool = False,
+    ):
         """Initialize DilatedRepConv module.
 
         Args:
@@ -2314,7 +2320,7 @@ class DilatedRepConv(nn.Module):
                 nn.Conv2d(c1, c2, 3, s, padding=2, dilation=2, groups=g, bias=False),
                 nn.BatchNorm2d(c2),
             )
-    
+
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         """Forward pass through DilatedRepConv."""
         if self.deploy:
@@ -2325,11 +2331,11 @@ class DilatedRepConv(nn.Module):
 class SC_ELAN_Dilated(SC_ELAN):
     """SC-ELAN-Dilated: Variant focusing on receptive field expansion.
 
-    Hypothesis: Small objects require a massive receptive field to be distinguished from background,
-    but large dense kernels are heavy. Dilated convolutions offer a large view with zero extra parameters.
+    Hypothesis: Small objects require a massive receptive field to be distinguished from background, but large dense
+    kernels are heavy. Dilated convolutions offer a large view with zero extra parameters.
 
-    This variant uses DilatedRepConv instead of ContextAwareRepConv for improved receptive field
-    with minimal parameter overhead.
+    This variant uses DilatedRepConv instead of ContextAwareRepConv for improved receptive field with minimal parameter
+    overhead.
     """
 
     def __init__(self, c1: int, c2: int, c3: int, c4: int, c5: int = 1):
@@ -2351,8 +2357,8 @@ class SC_ELAN_Dilated(SC_ELAN):
 class SC_ELAN_Slim(nn.Module):
     """SC-ELAN-Slim: Lightweight variant focusing on speed/efficiency.
 
-    Hypothesis: For edge devices, we need the "Context" but not the heavy "Split-Interaction" computation.
-    This variant keeps the Pzconv context but simplifies the fusion.
+    Hypothesis: For edge devices, we need the "Context" but not the heavy "Split-Interaction" computation. This variant
+    keeps the Pzconv context but simplifies the fusion.
 
     Attributes:
         c (int): Half of the intermediate channels.
@@ -2433,8 +2439,8 @@ class LiteSplitInteraction(nn.Module):
 class SC_ELAN_Efficient(nn.Module):
     """SC-ELAN-Efficient: SC-ELAN variant with elastic width and lightweight interaction.
 
-    Keeps SC-ELAN principles (split -> context chain -> concat -> fusion + interaction) while
-    reducing complexity through hidden-width scaling and lightweight split gating.
+    Keeps SC-ELAN principles (split -> context chain -> concat -> fusion + interaction) while reducing complexity
+    through hidden-width scaling and lightweight split gating.
     """
 
     def __init__(self, c1: int, c2: int, e: float = 0.375, p: float = 0.5, c5: int = 1):
@@ -2466,8 +2472,8 @@ class SC_ELAN_Efficient(nn.Module):
 class SC_ELAN_Fixed(SC_ELAN):
     """SC-ELAN-Fixed: Corrected version of SC-ELAN with active feature interaction.
 
-    This class addresses a bug in the original SC_ELAN where the SplitInteractionBlock 
-    was initialized but never executed in the forward pass.
+    This class addresses a bug in the original SC_ELAN where the SplitInteractionBlock was initialized but never
+    executed in the forward pass.
     """
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -2481,14 +2487,14 @@ class SC_ELAN_Fixed(SC_ELAN):
         """
         # 1. Projection & Split
         y = list(self.cv1(x).chunk(2, 1))
-        
+
         # 2. Context-Aware Processing Path
         # Process the second half through the chain
         y.extend((m(y[-1])) for m in [self.cv2, self.cv3])
-        
+
         # 3. Concatenation (Gradient Highway)
         feat_cat = torch.cat(y, 1)
-        
+
         # 4. Final Projection followed by Interaction
         # Apply the interaction block to the output of the final projection (c2 channels)
         return self.interaction(self.cv4(feat_cat))
@@ -2497,9 +2503,8 @@ class SC_ELAN_Fixed(SC_ELAN):
 class LSKA(nn.Module):
     """LSKA (Large Separable Kernel Attention) module.
 
-    A novel attention mechanism that decomposes large kernels into horizontal and vertical 
-    1D convolutions to capture long-range dependencies efficiently.
-    Based on: https://arxiv.org/abs/2309.01439
+    A novel attention mechanism that decomposes large kernels into horizontal and vertical 1D convolutions to capture
+    long-range dependencies efficiently. Based on: https://arxiv.org/abs/2309.01439
 
     Attributes:
         k_size (int): Large kernel size (e.g., 7, 11, ..., 53).
@@ -2516,35 +2521,59 @@ class LSKA(nn.Module):
         self.k_size = k_size
 
         if k_size == 7:
-            self.conv0h = nn.Conv2d(dim, dim, kernel_size=(1, 3), stride=(1,1), padding=(0,(3-1)//2), groups=dim)
-            self.conv0v = nn.Conv2d(dim, dim, kernel_size=(3, 1), stride=(1,1), padding=((3-1)//2,0), groups=dim)
-            self.conv_spatial_h = nn.Conv2d(dim, dim, kernel_size=(1, 3), stride=(1,1), padding=(0,2), groups=dim, dilation=2)
-            self.conv_spatial_v = nn.Conv2d(dim, dim, kernel_size=(3, 1), stride=(1,1), padding=(2,0), groups=dim, dilation=2)
+            self.conv0h = nn.Conv2d(dim, dim, kernel_size=(1, 3), stride=(1, 1), padding=(0, (3 - 1) // 2), groups=dim)
+            self.conv0v = nn.Conv2d(dim, dim, kernel_size=(3, 1), stride=(1, 1), padding=((3 - 1) // 2, 0), groups=dim)
+            self.conv_spatial_h = nn.Conv2d(
+                dim, dim, kernel_size=(1, 3), stride=(1, 1), padding=(0, 2), groups=dim, dilation=2
+            )
+            self.conv_spatial_v = nn.Conv2d(
+                dim, dim, kernel_size=(3, 1), stride=(1, 1), padding=(2, 0), groups=dim, dilation=2
+            )
         elif k_size == 11:
-            self.conv0h = nn.Conv2d(dim, dim, kernel_size=(1, 3), stride=(1,1), padding=(0,(3-1)//2), groups=dim)
-            self.conv0v = nn.Conv2d(dim, dim, kernel_size=(3, 1), stride=(1,1), padding=((3-1)//2,0), groups=dim)
-            self.conv_spatial_h = nn.Conv2d(dim, dim, kernel_size=(1, 5), stride=(1,1), padding=(0,4), groups=dim, dilation=2)
-            self.conv_spatial_v = nn.Conv2d(dim, dim, kernel_size=(5, 1), stride=(1,1), padding=(4,0), groups=dim, dilation=2)
+            self.conv0h = nn.Conv2d(dim, dim, kernel_size=(1, 3), stride=(1, 1), padding=(0, (3 - 1) // 2), groups=dim)
+            self.conv0v = nn.Conv2d(dim, dim, kernel_size=(3, 1), stride=(1, 1), padding=((3 - 1) // 2, 0), groups=dim)
+            self.conv_spatial_h = nn.Conv2d(
+                dim, dim, kernel_size=(1, 5), stride=(1, 1), padding=(0, 4), groups=dim, dilation=2
+            )
+            self.conv_spatial_v = nn.Conv2d(
+                dim, dim, kernel_size=(5, 1), stride=(1, 1), padding=(4, 0), groups=dim, dilation=2
+            )
         elif k_size == 23:
-            self.conv0h = nn.Conv2d(dim, dim, kernel_size=(1, 5), stride=(1,1), padding=(0,(5-1)//2), groups=dim)
-            self.conv0v = nn.Conv2d(dim, dim, kernel_size=(5, 1), stride=(1,1), padding=((5-1)//2,0), groups=dim)
-            self.conv_spatial_h = nn.Conv2d(dim, dim, kernel_size=(1, 7), stride=(1,1), padding=(0,9), groups=dim, dilation=3)
-            self.conv_spatial_v = nn.Conv2d(dim, dim, kernel_size=(7, 1), stride=(1,1), padding=(9,0), groups=dim, dilation=3)
+            self.conv0h = nn.Conv2d(dim, dim, kernel_size=(1, 5), stride=(1, 1), padding=(0, (5 - 1) // 2), groups=dim)
+            self.conv0v = nn.Conv2d(dim, dim, kernel_size=(5, 1), stride=(1, 1), padding=((5 - 1) // 2, 0), groups=dim)
+            self.conv_spatial_h = nn.Conv2d(
+                dim, dim, kernel_size=(1, 7), stride=(1, 1), padding=(0, 9), groups=dim, dilation=3
+            )
+            self.conv_spatial_v = nn.Conv2d(
+                dim, dim, kernel_size=(7, 1), stride=(1, 1), padding=(9, 0), groups=dim, dilation=3
+            )
         elif k_size == 35:
-            self.conv0h = nn.Conv2d(dim, dim, kernel_size=(1, 5), stride=(1,1), padding=(0,(5-1)//2), groups=dim)
-            self.conv0v = nn.Conv2d(dim, dim, kernel_size=(5, 1), stride=(1,1), padding=((5-1)//2,0), groups=dim)
-            self.conv_spatial_h = nn.Conv2d(dim, dim, kernel_size=(1, 11), stride=(1,1), padding=(0,15), groups=dim, dilation=3)
-            self.conv_spatial_v = nn.Conv2d(dim, dim, kernel_size=(11, 1), stride=(1,1), padding=(15,0), groups=dim, dilation=3)
+            self.conv0h = nn.Conv2d(dim, dim, kernel_size=(1, 5), stride=(1, 1), padding=(0, (5 - 1) // 2), groups=dim)
+            self.conv0v = nn.Conv2d(dim, dim, kernel_size=(5, 1), stride=(1, 1), padding=((5 - 1) // 2, 0), groups=dim)
+            self.conv_spatial_h = nn.Conv2d(
+                dim, dim, kernel_size=(1, 11), stride=(1, 1), padding=(0, 15), groups=dim, dilation=3
+            )
+            self.conv_spatial_v = nn.Conv2d(
+                dim, dim, kernel_size=(11, 1), stride=(1, 1), padding=(15, 0), groups=dim, dilation=3
+            )
         elif k_size == 41:
-            self.conv0h = nn.Conv2d(dim, dim, kernel_size=(1, 5), stride=(1,1), padding=(0,(5-1)//2), groups=dim)
-            self.conv0v = nn.Conv2d(dim, dim, kernel_size=(5, 1), stride=(1,1), padding=((5-1)//2,0), groups=dim)
-            self.conv_spatial_h = nn.Conv2d(dim, dim, kernel_size=(1, 13), stride=(1,1), padding=(0,18), groups=dim, dilation=3)
-            self.conv_spatial_v = nn.Conv2d(dim, dim, kernel_size=(13, 1), stride=(1,1), padding=(18,0), groups=dim, dilation=3)
+            self.conv0h = nn.Conv2d(dim, dim, kernel_size=(1, 5), stride=(1, 1), padding=(0, (5 - 1) // 2), groups=dim)
+            self.conv0v = nn.Conv2d(dim, dim, kernel_size=(5, 1), stride=(1, 1), padding=((5 - 1) // 2, 0), groups=dim)
+            self.conv_spatial_h = nn.Conv2d(
+                dim, dim, kernel_size=(1, 13), stride=(1, 1), padding=(0, 18), groups=dim, dilation=3
+            )
+            self.conv_spatial_v = nn.Conv2d(
+                dim, dim, kernel_size=(13, 1), stride=(1, 1), padding=(18, 0), groups=dim, dilation=3
+            )
         elif k_size == 53:
-            self.conv0h = nn.Conv2d(dim, dim, kernel_size=(1, 5), stride=(1,1), padding=(0,(5-1)//2), groups=dim)
-            self.conv0v = nn.Conv2d(dim, dim, kernel_size=(5, 1), stride=(1,1), padding=((5-1)//2,0), groups=dim)
-            self.conv_spatial_h = nn.Conv2d(dim, dim, kernel_size=(1, 17), stride=(1,1), padding=(0,24), groups=dim, dilation=3)
-            self.conv_spatial_v = nn.Conv2d(dim, dim, kernel_size=(17, 1), stride=(1,1), padding=(24,0), groups=dim, dilation=3)
+            self.conv0h = nn.Conv2d(dim, dim, kernel_size=(1, 5), stride=(1, 1), padding=(0, (5 - 1) // 2), groups=dim)
+            self.conv0v = nn.Conv2d(dim, dim, kernel_size=(5, 1), stride=(1, 1), padding=((5 - 1) // 2, 0), groups=dim)
+            self.conv_spatial_h = nn.Conv2d(
+                dim, dim, kernel_size=(1, 17), stride=(1, 1), padding=(0, 24), groups=dim, dilation=3
+            )
+            self.conv_spatial_v = nn.Conv2d(
+                dim, dim, kernel_size=(17, 1), stride=(1, 1), padding=(24, 0), groups=dim, dilation=3
+            )
 
         self.conv1 = nn.Conv2d(dim, dim, 1)
 
@@ -2560,17 +2589,17 @@ class LSKA(nn.Module):
 
 class SC_ELAN_LSKA(SC_ELAN):
     """SC-ELAN-LSKA: Variant replacing SplitInteractionBlock with LSKA.
-    
-    Uses Large Separable Kernel Attention (LSKA) for better long-range dependency modeling
-    and efficient spatial attention.
-    
+
+    Uses Large Separable Kernel Attention (LSKA) for better long-range dependency modeling and efficient spatial
+    attention.
+
     Attributes:
         interaction (LSKA): LSKA attention module replacing the original interaction block.
     """
 
     def __init__(self, c1, c2, c3, c4, c5=1, lsk_k: int = 7):
         """Initialize SC_ELAN_LSKA module.
-        
+
         Args:
             c1, c2, c3, c4, c5: See SC_ELAN documentation.
             lsk_k (int): LSKA kernel size.
@@ -2583,13 +2612,13 @@ class SC_ELAN_LSKA(SC_ELAN):
         """Forward pass through SC_ELAN_LSKA module."""
         # 1. Projection & Split
         y = list(self.cv1(x).chunk(2, 1))
-        
+
         # 2. Context-Aware Processing Path
         y.extend((m(y[-1])) for m in [self.cv2, self.cv3])
-        
+
         # 3. Concatenation
         feat_cat = torch.cat(y, 1)
-        
+
         # 4. Final Projection followed by LSKA Interaction
         return self.interaction(self.cv4(feat_cat))
 
@@ -2597,8 +2626,8 @@ class SC_ELAN_LSKA(SC_ELAN):
 class TinySelectiveContextGate(nn.Module):
     """Tiny-selective context gating.
 
-    Generates a spatial gate from local detail cues and uses it to selectively blend
-    context-enhanced features with identity features.
+    Generates a spatial gate from local detail cues and uses it to selectively blend context-enhanced features with
+    identity features.
     """
 
     def __init__(self, c: int, reduction: int = 4):
@@ -2628,8 +2657,8 @@ class TinySelectiveContextGate(nn.Module):
 class SC_ELAN_LSKA_TSCG(SC_ELAN_LSKA):
     """SC-ELAN-LSKA-TSCG: LSKA variant with Tiny-Selective Context Gate.
 
-    Built on SC_ELAN_LSKA and adds a lightweight gate to selectively apply context
-    enhancement on likely small-object-sensitive regions.
+    Built on SC_ELAN_LSKA and adds a lightweight gate to selectively apply context enhancement on likely
+    small-object-sensitive regions.
     """
 
     def __init__(
@@ -2664,12 +2693,11 @@ class SC_ELAN_LSKA_TSCG(SC_ELAN_LSKA):
 class ContextAwareLiteConv(nn.Module):
     """Lightweight reparameterizable convolution without the DW-5x5 context branch.
 
-    Retains only ``rbr_dense`` (3x3), ``rbr_1x1`` (1x1) and optional identity-BN from
-    :class:`ContextAwareRepConv`.  The large-kernel context responsibility is delegated
-    to the downstream LSKA module, so the redundant ``rbr_context`` branch is removed.
+    Retains only ``rbr_dense`` (3x3), ``rbr_1x1`` (1x1) and optional identity-BN from :class:`ContextAwareRepConv`. The
+    large-kernel context responsibility is delegated to the downstream LSKA module, so the redundant ``rbr_context``
+    branch is removed.
 
-    Inference: collapses into a single 3x3 convolution via reparam, identical contract
-    to ``ContextAwareRepConv``.
+    Inference: collapses into a single 3x3 convolution via reparam, identical contract to ``ContextAwareRepConv``.
     """
 
     def __init__(
@@ -2712,10 +2740,9 @@ class ContextAwareLiteConv(nn.Module):
 class SC_ELAN_LSKA_TSCG_Lite(nn.Module):
     """SC-ELAN-LSKA-TSCG-Lite: lower-FLOPs variant using ContextAwareLiteConv.
 
-    Same topology as :class:`SC_ELAN_LSKA_TSCG` (split → rep-conv chain → concat →
-    project → LSKA → TSCG) but replaces the two internal ``ContextAwareRepConv`` blocks
-    with ``ContextAwareLiteConv`` (no DW-5x5 branch), reducing per-block FLOPs by ~15-20%
-    while relying on LSKA(k=23) for long-range context modelling.
+    Same topology as :class:`SC_ELAN_LSKA_TSCG` (split → rep-conv chain → concat → project → LSKA → TSCG) but replaces
+    the two internal ``ContextAwareRepConv`` blocks with ``ContextAwareLiteConv`` (no DW-5x5 branch), reducing per-block
+    FLOPs by ~15-20% while relying on LSKA(k=23) for long-range context modelling.
     """
 
     def __init__(
@@ -2748,9 +2775,9 @@ class SC_ELAN_LSKA_TSCG_Lite(nn.Module):
 class SC_ELAN_LSKA_TSCG_E(nn.Module):
     """SC-ELAN-LSKA-TSCG with elastic hidden width.
 
-    Identical topology to :class:`SC_ELAN_LSKA_TSCG` but the hidden channel count is
-    controlled by a width ratio ``e`` (default 0.5 = original behaviour).  Setting
-    ``e < 0.5`` uniformly reduces per-block FLOPs while keeping LSKA + TSCG intact.
+    Identical topology to :class:`SC_ELAN_LSKA_TSCG` but the hidden channel count is controlled by a width ratio ``e``
+    (default 0.5 = original behaviour). Setting ``e < 0.5`` uniformly reduces per-block FLOPs while keeping LSKA + TSCG
+    intact.
 
     YAML args order: ``[c2, c3, c4, c5, lsk_k, tscg_reduction, e]``
     """
@@ -2786,8 +2813,8 @@ class SC_ELAN_LSKA_TSCG_E(nn.Module):
 class RepMultiKernelConv(nn.Module):
     """Re-parameterizable multi-kernel convolution.
 
-    Training uses parallel branches (1x1, 3x3, 5x5, 7x7, optional identity BN).
-    Deployment fuses all branches into one kxk conv (default k=7).
+    Training uses parallel branches (1x1, 3x3, 5x5, 7x7, optional identity BN). Deployment fuses all branches into one
+    kxk conv (default k=7).
     """
 
     def __init__(
@@ -2866,7 +2893,9 @@ class RepMultiKernelConv(nn.Module):
     def _fuse_identity_bn(self, bn: nn.BatchNorm2d) -> tuple[torch.Tensor, torch.Tensor]:
         """Convert identity BN branch into an equivalent convolution kernel and bias."""
         input_dim = self.c1 // self.g
-        kernel = torch.zeros((self.c2, input_dim, self.max_k, self.max_k), device=bn.weight.device, dtype=bn.weight.dtype)
+        kernel = torch.zeros(
+            (self.c2, input_dim, self.max_k, self.max_k), device=bn.weight.device, dtype=bn.weight.dtype
+        )
         center = self.max_k // 2
         for i in range(self.c2):
             kernel[i, i % input_dim, center, center] = 1.0
@@ -2887,7 +2916,12 @@ class RepMultiKernelConv(nn.Module):
         k5, b5 = self._fuse_conv_bn(self.rbr_5x5[0], self.rbr_5x5[1])
         k7, b7 = self._fuse_conv_bn(self.rbr_7x7[0], self.rbr_7x7[1])
 
-        eq_k = self._pad_kernel(k1, self.max_k) + self._pad_kernel(k3, self.max_k) + self._pad_kernel(k5, self.max_k) + self._pad_kernel(k7, self.max_k)
+        eq_k = (
+            self._pad_kernel(k1, self.max_k)
+            + self._pad_kernel(k3, self.max_k)
+            + self._pad_kernel(k5, self.max_k)
+            + self._pad_kernel(k7, self.max_k)
+        )
         eq_b = b1 + b3 + b5 + b7
 
         if self.rbr_identity is not None:
@@ -2903,7 +2937,9 @@ class RepMultiKernelConv(nn.Module):
         if self.deploy:
             return
         kernel, bias = self.get_equivalent_kernel_bias()
-        self.rbr_reparam = nn.Conv2d(self.c1, self.c2, self.max_k, self.s, autopad(self.max_k), groups=self.g, bias=True)
+        self.rbr_reparam = nn.Conv2d(
+            self.c1, self.c2, self.max_k, self.s, autopad(self.max_k), groups=self.g, bias=True
+        )
         self.rbr_reparam.weight.data.copy_(kernel)
         self.rbr_reparam.bias.data.copy_(bias)
 
@@ -2926,8 +2962,8 @@ class RepMultiKernelConv(nn.Module):
 class SC_ELAN_RepExact(nn.Module):
     """SC-ELAN-RepExact: exact-reparam single-path style SC-ELAN variant.
 
-    Uses RepMultiKernelConv to emulate four receptive-field branches during training,
-    and supports deployment as a single fused convolution path.
+    Uses RepMultiKernelConv to emulate four receptive-field branches during training, and supports deployment as a
+    single fused convolution path.
     """
 
     def __init__(self, c1: int, c2: int, c3: int, c4: int, c5: int = 1):
@@ -2959,9 +2995,8 @@ class SC_ELAN_RepExact(nn.Module):
 class TinySelectiveContextGateV2(nn.Module):
     """Tiny-selective context gating with learnable stage bias.
 
-    Extends TinySelectiveContextGate by adding a stage-adaptive bias before the
-    sigmoid gate.  Shallow stages (negative bias) preserve raw detail; deep stages
-    (positive bias) encourage stronger context injection.
+    Extends TinySelectiveContextGate by adding a stage-adaptive bias before the sigmoid gate. Shallow stages (negative
+    bias) preserve raw detail; deep stages (positive bias) encourage stronger context injection.
     """
 
     def __init__(self, c: int, reduction: int = 4, stage_bias_init: float = 0.0):
@@ -2992,9 +3027,8 @@ class TinySelectiveContextGateV2(nn.Module):
 class SC_ELAN_LSKA_TSCGv2(SC_ELAN_LSKA):
     """SC-ELAN-LSKA with stage-adaptive TinySelectiveContextGate v2.
 
-    Identical topology to SC_ELAN_LSKA_TSCG but uses a learnable stage bias in the
-    gate, allowing the network to automatically calibrate context injection strength
-    per pyramid level.
+    Identical topology to SC_ELAN_LSKA_TSCG but uses a learnable stage bias in the gate, allowing the network to
+    automatically calibrate context injection strength per pyramid level.
     """
 
     def __init__(
@@ -3031,10 +3065,9 @@ class SC_ELAN_LSKA_TSCGv2(SC_ELAN_LSKA):
 class P3_FRM(nn.Module):
     """P3 Feature Refinement Module for small object detection.
 
-    Lightweight module inserted after the P3 neck output to enhance tiny-target
-    features via local-contrast gating.  The contrast branch highlights regions
-    where feature activations deviate from their local neighbourhood, providing
-    an implicit saliency signal for small objects.
+    Lightweight module inserted after the P3 neck output to enhance tiny-target features via local-contrast gating. The
+    contrast branch highlights regions where feature activations deviate from their local neighbourhood, providing an
+    implicit saliency signal for small objects.
     """
 
     def __init__(self, c1: int, c2: int):
@@ -3070,8 +3103,8 @@ class P3_FRM(nn.Module):
 class SC_ELAN_RepAdd(nn.Module):
     """SC-ELAN-RepAdd: ELAN-style variant with additive fusion and rep branches.
 
-    Keeps an ELAN-like progressive path but replaces concat-heavy fusion with weighted
-    additive fusion to reduce sync/wait overhead on edge deployment targets.
+    Keeps an ELAN-like progressive path but replaces concat-heavy fusion with weighted additive fusion to reduce
+    sync/wait overhead on edge deployment targets.
     """
 
     def __init__(self, c1: int, c2: int, c3: int, c4: int, c5: int = 1):

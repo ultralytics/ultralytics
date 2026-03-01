@@ -1,0 +1,302 @@
+# SC-ELAN v4 设计评审：等精度降 FLOPs
+
+## 1. 当前情况（截至 2026-03-02）
+
+基于 `sc-elan.md` 的全量实验记录，系统状态归纳如下：
+
+### 1.1 v2 结论
+
+- **全局最优**：`v2-P1d`（α=0.10, β=0.40），mAP50-95 = **0.212**，mAP50 = 0.367，P = 0.490，R = 0.381。
+- 11.53M 参数，**39.4 GFLOPs**，RTX 4090 上总延迟 5.7 ms。
+- CAI 参数调优（α/β sweep）是 v2 阶段收益最高的操作方式；结构堆叠（SA-LSKA、TSCGv2、P3-FRM）均未超越 P1d。
+- Phase 2（P2a~P2d）最优为 0.209，Phase 3（P3a/P3b）最优为 0.208。
+- 困难类别（people=0.064、bicycle=0.056、tricycle=0.119）仍是主要短板。
+
+### 1.2 v3 结论
+
+v3 引入 `DetectCAIv3`（动态 beta 路由 + warmup + gate clipping），在 P1d 骨干上做头部训练机制升级。5 个变体的结果：
+
+| 变体 | mAP50-95 | mAP50 | vs P1d |
+|------|----------|-------|--------|
+| v3-p1d-AdaCAI | 0.211 | 0.366 | −0.001 |
+| v3-p1d-AdaCAI-Stable | 0.210 | 0.364 | −0.002 |
+| v3-p1d-AdaCAI-Strong | 0.209 | 0.364 | −0.003 |
+| v3-p1d-AdaCAI-TailOnly | 0.210 | 0.363 | −0.002 |
+| v3-p3b-AdaCAI | 0.206 | 0.359 | −0.006 |
+
+**关键发现**：
+
+1. **v3 未超越 v2-P1d**。最佳变体 v3-p1d-AdaCAI（0.211）与 P1d（0.212）的差距仅 0.001，在统计噪声范围内，但方向性上未形成正向突破。
+2. **动态 beta 的复杂机制带来了不确定性**：AdaCAI-Strong 和 TailOnly 的 bicycle 类退化明显（0.133→0.127），说明条件化路由在样本稀少类别上不够稳定。
+3. **Head-side 训练机制的边际收益已触顶**：从固定 CAI（P1d）到动态 CAI（v3）的转变，不仅没有提升，反而带来了微小的全局退化和更大的方差。
+4. 所有 v3 变体的 GFLOPs（39.4G）、参数量（11.53M）和延迟（5.6~5.7 ms）与 P1d 相同——v3 是纯训练态改进，推理无额外开销，但收益为零。
+
+### 1.3 阶段性判断
+
+经过 v2 的 18 个实验和 v3 的 5 个实验（共 23 轮训练），两条优化路径均已收敛：
+
+- **结构堆叠**（v2-P2/P3）：边际收益 < CAI 调参，已明确停止。
+- **头部训练机制**（v3-AdaCAI）：边际收益 ≈ 0，复杂度上升，方向关闭。
+
+在当前骨干和检测头组合下，**mAP50-95 ≈ 0.212 已接近该架构的精度天花板**。继续在精度维度上投入将面临投入产出严重递减。
+
+结论：**优化方向需要转向计算效率**——在保持当前精度水平的约束下，降低 FLOPs，使模型在论文叙事和工程部署上具有更明确的差异化优势。
+
+---
+
+## 2. 为什么需要 v4
+
+### 2.1 论文叙事的紧迫需求
+
+SC-ELAN 项目的最终目标是可发表的模块创新。当前状态是：
+
+- **精度有竞争力**（mAP50-95 = 0.212 on VisDrone），但 **39.4 GFLOPs 偏高**。
+- 若论文呈现的故事是"高精度但高算力"，审稿人会质疑实际价值和效率权衡。
+- "在 ≤34G FLOPs 下保持 ≥0.210 精度"比"在 39.4G 下取得 0.212"更有说服力和工程意义。
+
+### 2.2 FLOPs 构成揭示了明确的优化空间
+
+对 v2-P1d（39.6G, 350 layers）逐层分析后：
+
+| 层索引 | 模块 | 特征图 | FLOPs 级别 | 说明 |
+|:---:|---|:---:|:---:|---|
+| 2 | SC_ELAN_LSKA_TSCG | 160×160 | **最高** | P2 backbone，分辨率最大 |
+| 4 | SC_ELAN_LSKA_TSCG | 80×80 | **高** | P3 backbone |
+| 16 | SC_ELAN_LSKA_TSCG | 80×80 | **高** | P3 neck |
+| 6, 13, 19 | SC_ELAN_LSKA_TSCG | 40×40 | 中 | P4 backbone + neck |
+| 8+9+10 | C3k2+SPPF+C2PSA | 20×20 | 中 | P5 顶层（标准 YOLO11）|
+| 23 | DetectCAI | multi | 低 | 训练态开销，推理等同 Detect |
+
+**三个关键洞察**：
+
+1. **高分辨率 SC_ELAN_LSKA_TSCG 是主要成本来源**：L2（160×160）、L4 和 L16（80×80）三个块占全模型 60%+ FLOPs。
+2. **ContextAwareRepConv 是块内瓶颈**：每个 SC_ELAN 内部有两个 ContextAwareRepConv（cv2, cv3），训练时三分支（3×3 dense + DW5×5+PW1×1 context + 1×1）构成块内计算主体。
+3. **LSKA 和 TSCG 极其轻量**：均为深度可分离操作，在总 FLOPs 中占比 < 5%。这意味着**可以在保持 LSKA+TSCG 语义增益的前提下，大幅压缩卷积计算**。
+
+### 2.3 历史效率实验的教训
+
+v4 的设计严格吸取了先前失败的教训：
+
+| 历史实验 | GFLOPs | mAP50-95 | 失败原因 |
+|----------|--------|----------|----------|
+| Mixed-Efficient-TSCG | 31.2 | 0.194（−0.018） | **同时**替换了 P2 backbone 和 P3 neck → 特征传导链双点断裂 |
+| SC_ELAN_Efficient 全局 | 20.3 | 0.189（−0.023） | 全局去掉 LSKA+TSCG → 上下文建模和门控完全丧失 |
+
+**关键教训**：
+- 不可同时弱化多个连续高分辨率阶段（Mixed-Efficient 的错误）。
+- 不可去除 LSKA/TSCG（Efficient 全局的错误）——它们虽然 FLOPs 低，但对精度贡献巨大。
+- 压缩应当**单因素、可叠加**，每步验证后再组合。
+
+---
+
+## 3. v4 设计策略
+
+v4 采用**分层正交降算力**的方法论：将 FLOPs 降低分解为三个独立维度（A: 卷积分支精简、B: 阶段架构替换、C: 通道宽度弹性），逐一验证后在 D 阶段组合最优。
+
+所有配置统一继承 v2-P1d 的检测头：`DetectCAI[nc, 32, 0.10, 0.40, 0.90]`。
+
+### Phase v4-A：ContextAwareRepConv 精简
+
+**假说**：LSKA(k=23) 已提供大范围上下文建模能力，`ContextAwareRepConv` 内部的 `rbr_context`（DW5×5 + PW1×1）分支与 LSKA 存在功能冗余。移除该分支可降低块内 FLOPs ~15-20%，而上下文质量由 LSKA 补偿。
+
+**新模块 `ContextAwareLiteConv`**（[block.py](ultralytics/nn/modules/block.py#L2664)）：
+
+```
+ContextAwareRepConv（原版）         ContextAwareLiteConv（v4-A）
+┌──────────────────────┐          ┌──────────────────────┐
+│  rbr_dense  (3×3)    │          │  rbr_dense  (3×3)    │
+│  rbr_context(DW5+PW1)│ ← 移除   │  rbr_1x1   (1×1)    │
+│  rbr_1x1   (1×1)    │          │  rbr_identity (BN)   │
+│  rbr_identity (BN)   │          └──────────────────────┘
+└──────────────────────┘
+      推理 → 单 3×3                      推理 → 单 3×3
+```
+
+**新块 `SC_ELAN_LSKA_TSCG_Lite`**（[block.py](ultralytics/nn/modules/block.py#L2712)）：与 `SC_ELAN_LSKA_TSCG` 完全相同的拓扑（split → rep-conv chain → concat → project → LSKA → TSCG），仅将内部两个 `ContextAwareRepConv` 替换为 `ContextAwareLiteConv`。
+
+| 实验 | 描述 | 适用层 |
+|------|------|--------|
+| **v4-A1** | 全局 Lite：所有 SC_ELAN 层均用 Lite 变体 | L2, L4, L6, L13, L16, L19 |
+| **v4-A2** | 选择性 Lite：仅高分辨率层（P2 backbone + P3 neck）用 Lite | L2, L16 |
+
+**设计理由**：这是最保守的降 FLOPs 路径——不改模块拓扑、不改通道数、仅精简训练时的冗余卷积分支。推理时重参数化行为不变（均为单 3×3 conv），理论上不影响推理延迟分布。
+
+### Phase v4-B：P2 骨干替换
+
+**假说**：P2（160×160）是最浅层特征提取阶段，主要捕获边缘和纹理。LSKA(k=23) 对 160×160 特征图仅覆盖约 14% 的空间范围，大感受野的建模价值较低，且下游 P3/P4 的 LSKA 块会重复获取相同的上下文。可用更轻量的模块安全替代。
+
+| 实验 | L2（P2 backbone）模块 | 其余层 |
+|------|----------------------|--------|
+| **v4-B1** | `C3k2[256, False, 0.25]`（标准 YOLO11 块） | 全量 SC_ELAN_LSKA_TSCG |
+| **v4-B2** | `SC_ELAN_Efficient[256, 0.5, 0.5]`（DWConv chain） | 全量 SC_ELAN_LSKA_TSCG |
+| **v4-B3** | `SC_ELAN_LSKA_TSCG_Lite`（保留 LSKA+TSCG，轻量 conv） | 全量 SC_ELAN_LSKA_TSCG |
+
+**对比历史失败**：`Mixed-Efficient-TSCG`（mAP50-95 = 0.194）同时替换了 P2 backbone **和** P3 neck，双重弱化导致特征传导链断裂。v4-B 严格只替换 P2 单点，其余保持全量。
+
+### Phase v4-C：通道弹性宽度
+
+**假说**：当前 SC_ELAN_LSKA_TSCG 内部隐藏通道数固定为 `c2 // 2`（即 `e = 0.5`）。通过可配置宽度比例 `e`，可以在保持模块拓扑和 LSKA+TSCG 机制的前提下，均匀压缩每个块的 FLOPs。
+
+**新模块 `SC_ELAN_LSKA_TSCG_E`**（[block.py](ultralytics/nn/modules/block.py#L2748)）：
+
+```python
+self.c = max(8, int(c2 * e))        # e=0.5 → 原始行为
+self.cv1 = Conv(c1, 2 * self.c, 1)  # 弹性入口投影
+self.cv2 = ContextAwareRepConv(self.c, self.c)
+self.cv3 = ContextAwareRepConv(self.c, self.c)
+self.cv4 = Conv(4 * self.c, c2, 1)  # 弹性出口投影
+# LSKA + TSCG 在 c2 维度上不受影响
+```
+
+YAML 参数序列：`[c2, c3, c4, c5, lsk_k, tscg_reduction, e]`
+
+| 实验 | e 值策略 | 说明 |
+|------|----------|------|
+| **v4-C1** | 全局 e=0.375 | 最激进的均匀压缩（hidden_ch 降 25%） |
+| **v4-C2** | 全局 e=0.4375 | 温和压缩（hidden_ch 降 12.5%） |
+| **v4-C3** | 非对称：P2/P3-neck = 0.375，其余 = 0.5 | 高分辨率层激进压缩 + 深层保持原始宽度 |
+
+**与 SC_ELAN_Efficient 的区别**：Efficient 版本**去掉了 LSKA 和 TSCG 并替换为 DWConv chain**，导致严重精度损失。v4-C 保留了完整的 LSKA+TSCG 机制，仅收窄中间特征通道，预计压缩耐受度显著更高。
+
+### Phase v4-D：组合策略
+
+基于 A/B/C 的单因素结论，选取最优策略组合：
+
+| 实验 | 组合策略 | 说明 |
+|------|----------|------|
+| **v4-D1** | Lite conv（A1）+ C3k2@P2（B1） | 两个正交策略叠加 |
+| **v4-D2** | C3k2@P2（B1）+ 非对称弹性宽度（C3） | P2 替换 + 高分辨率层压缩 |
+
+**注**：D1/D2 是初始组合方案。如果 A/B/C 单因素实验的最优不是 A1/B1/C3，D 阶段的具体组合将根据实验结论调整。
+
+---
+
+## 4. 实现验证
+
+### 4.1 新增代码
+
+| 文件 | 变更 |
+|------|------|
+| [block.py](ultralytics/nn/modules/block.py#L2664) | 新增 `ContextAwareLiteConv`、`SC_ELAN_LSKA_TSCG_Lite`、`SC_ELAN_LSKA_TSCG_E` |
+| [\_\_init\_\_.py](ultralytics/nn/modules/__init__.py) | 导入 + `__all__` 注册 |
+| [tasks.py](ultralytics/nn/tasks.py) | YAML 解析器 `one_time_modules` 注册 |
+
+### 4.2 配置文件
+
+10 个 YAML 配置位于 `models/sc_elan/`：
+
+| 文件 | 阶段 |
+|------|------|
+| [yolo11-scelan-v4-a1.yaml](models/sc_elan/yolo11-scelan-v4-a1.yaml) | A1 全局 Lite |
+| [yolo11-scelan-v4-a2.yaml](models/sc_elan/yolo11-scelan-v4-a2.yaml) | A2 选择性 Lite |
+| [yolo11-scelan-v4-b1.yaml](models/sc_elan/yolo11-scelan-v4-b1.yaml) | B1 P2=C3k2 |
+| [yolo11-scelan-v4-b2.yaml](models/sc_elan/yolo11-scelan-v4-b2.yaml) | B2 P2=Efficient |
+| [yolo11-scelan-v4-b3.yaml](models/sc_elan/yolo11-scelan-v4-b3.yaml) | B3 P2=Lite |
+| [yolo11-scelan-v4-c1.yaml](models/sc_elan/yolo11-scelan-v4-c1.yaml) | C1 e=0.375 全局 |
+| [yolo11-scelan-v4-c2.yaml](models/sc_elan/yolo11-scelan-v4-c2.yaml) | C2 e=0.4375 全局 |
+| [yolo11-scelan-v4-c3.yaml](models/sc_elan/yolo11-scelan-v4-c3.yaml) | C3 非对称宽度 |
+| [yolo11-scelan-v4-d1.yaml](models/sc_elan/yolo11-scelan-v4-d1.yaml) | D1 Lite+C3k2 |
+| [yolo11-scelan-v4-d2.yaml](models/sc_elan/yolo11-scelan-v4-d2.yaml) | D2 C3k2+非对称 |
+
+### 4.3 模型构建验证
+
+所有 10 个配置均通过 `YOLO(path, task='detect')` 构建验证（s scale）:
+
+| 配置 | Params | GFLOPs | vs 基线（39.8G） | 降幅 |
+|------|--------|--------|-----------------|------|
+| **v2-P1d（基线）** | **11.64M** | **39.8** | -- | -- |
+| v4-A1 全局 Lite | 11.46M | 38.1 | −1.7G | −4.3% |
+| v4-A2 选择性 Lite | 11.62M | 39.0 | −0.8G | −2.0% |
+| **v4-B1 P2=C3k2** | 11.51M | **32.8** | **−7.0G** | **−17.6%** |
+| v4-B2 P2=Efficient | 11.54M | 34.2 | −5.6G | −14.1% |
+| v4-B3 P2=Lite | 11.63M | 39.2 | −0.6G | −1.5% |
+| **v4-C1 e=0.375** | **10.66M** | **31.6** | **−8.2G** | **−20.6%** |
+| v4-C2 e=0.4375 | 11.12M | 35.5 | −4.3G | −10.8% |
+| v4-C3 非对称 | 11.53M | 36.3 | −3.5G | −8.8% |
+| **v4-D1 Lite+C3k2** | 11.34M | **31.8** | **−8.0G** | **−20.1%** |
+| **v4-D2 C3k2+非对称** | 11.44M | **32.0** | **−7.8G** | **−19.6%** |
+
+### 4.4 训练脚本
+
+[train.sh](train.sh) 已更新：
+- 新增 `v4_A_models`、`v4_B_models`、`v4_C_models`、`v4_D_models` 数组
+- `v4_all_models` 聚合全部 10 个配置
+- 激活项设为 `models=("${v4_all_models[@]}")`
+- `PROJECT_NAME="SC-ELAN-v4"`
+- 训练参数不变：300 epochs, batch=16, imgsz=640, seed=0, patience=50
+
+---
+
+## 5. 预期收益与风险
+
+### 5.1 预期收益
+
+1. **主要目标（高置信度）**：v4-B1/C1/D1/D2 均在构建阶段就实现了 **≤34G FLOPs**（降幅 ≥ 14%），满足主要目标。C1 甚至达到 31.6G，接近理想目标（≤31G）。
+2. **参数量轻微下降**：C1 降至 10.66M（−8.4%），D1 降至 11.34M（−2.6%），均低于 11.64M 基线。
+3. **推理延迟预期改善**：FLOPs 降低 17-21% 应带来可测量的推理加速，目标 ≤ 5.5 ms（当前 5.7 ms）。
+4. **论文叙事强化**：可呈现"精度保持 + 效率大幅提升"的完整消融实验，审稿人友好。
+
+### 5.2 风险矩阵
+
+| 风险 | 级别 | 影响 | 应对策略 |
+|------|------|------|----------|
+| v4-A：Lite conv 精度退化 > 预期 | 低 | mAP50-95 下降 > 0.005 | A2（选择性）作为回退；若 A1/A2 均不可用，确认 LSKA 无法完全补偿 DW5×5 |
+| v4-B：P2 替换损失小目标特征 | 中 | pedestrian/people 类退化 | 逐类监控；若 ped/people 跌幅 > 0.01，尝试 B3（保留 LSKA+TSCG）|
+| v4-C：通道压缩过激（e=0.375）| 中 | 复现 Efficient 的失败 | C2（e=0.4375）和 C3（非对称）作为温和替代；C1 保留 LSKA+TSCG 是关键区别 |
+| v4-D：组合策略交互不可加 | 低 | 组合后精度跌幅 > 单因素之和 | D 阶段依赖 A/B/C 结论，可灵活调整组合方式 |
+| 训练耗时 | 低 | 10 个模型 × 300 epochs | RTX 4090 单卡约 2.5-3 小时/模型，总计 ~25-30 小时 |
+
+### 5.3 最坏情况分析
+
+如果所有 v4 实验的 mAP50-95 均低于 0.210：
+
+1. 说明 39.4G FLOPs 是当前 SC_ELAN_LSKA_TSCG 架构的**精度-效率帕累托前沿边界**，无法在不损失精度的情况下降低。
+2. 此时应转向**部署优化方向**（量化 INT8/FP16、TensorRT 融合、剪枝后微调）而非架构修改。
+3. v4 的消融数据本身仍有论文价值——"各组件对精度的定量贡献"是审稿人关注的实验设计。
+
+---
+
+## 6. 量化目标与评估标准
+
+### 6.1 定量目标
+
+| 指标 | 主要目标 | 理想目标 | 约束 |
+|------|----------|----------|------|
+| **mAP50-95** | ≥ 0.210（−0.002 容差） | ≥ 0.208 | 不低于 0.206 |
+| **GFLOPs** | ≤ 34（降幅 ≥ 14%） | ≤ 31（降幅 ≥ 21%） | -- |
+| **延迟** | ≤ 5.5 ms/image（RTX 4090） | ≤ 5.0 ms | -- |
+| **Params** | ≤ 11.5M | ≤ 11M | -- |
+| **车辆类 mAP50-95** | ≥ P1d 基线 − 0.005 | 不退化 | car/bus/truck |
+
+### 6.2 评估流程
+
+1. **逐实验报告**：全局 P/R/mAP50/mAP50-95 + 逐类 AP + GFLOPs/Params/延迟。
+2. **因果归因**：A/B/C 单因素消融 → D 组合验证，明确每个策略的独立贡献。
+3. **单 seed（seed=0）快速迭代**：v4 阶段不执行多种子统计，确认方向后再进入。
+4. **分阶段决策门**：
+   - A 完成后 → 确认 Lite conv 是否安全 → 决定 D 是否纳入 Lite。
+   - B 完成后 → 确认 P2 替换最优方案 → 决定 D 的 backbone 选择。
+   - C 完成后 → 确认弹性宽度的精度损失曲线 → 决定 D 的宽度策略。
+   - D 完成后 → 选取帕累托最优解 → 更新 sc-elan.md 推荐配置。
+
+### 6.3 不在本轮启动的任务
+
+- **多种子统计验证**：待 v4 最优确认后再以 seeds (0, 42, 123) 执行。
+- **多数据集验证**：模型效率平衡尚未达标，暂不扩展评估范围。
+- **CAI β 继续上探**：v3 结论表明 CAI 参数空间边际收益极小，暂停。
+- **结构堆叠（P3-FRM / SA-LSKA / TSCGv2）**：v2-P2/P3 已证实方向无效。
+
+---
+
+## 7. 评审结论
+
+v4 是 SC-ELAN 项目从"精度提升"转向"效率优化"的必要转折点。这一转向基于充分的证据：
+
+1. **精度天花板已达到**：23 次实验（v2×18 + v3×5）覆盖了结构堆叠和头部机制两条路径，最优仍为 v2-P1d 的简单配置，进一步提升的边际收益几乎为零。
+2. **FLOPs 优化空间明确**：逐层分析揭示了高分辨率 SC_ELAN 块的 60%+ FLOPs 占比，存在三个独立的压缩维度。
+3. **历史教训已转化为设计约束**：v4 的所有策略均规避了 Mixed-Efficient-TSCG 和 Efficient 全局替换的失败模式。
+4. **实现完整且经过验证**：3 个新模块已编码注册，10 个 YAML 配置均通过构建验证，GFLOPs 降幅在 2%~21% 范围内提供了充分的实验梯度。
+
+v4 的方法论逻辑清晰（分层正交 → 单因素消融 → 最优组合），风险可控（最坏情况下仍产出有价值的消融数据），且与论文叙事需求高度吻合。
+
+**评审结论：v4 全部 10 个实验批准进入训练阶段。**

@@ -1,0 +1,46 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+#
+# v4-B1: P2 backbone replaced with C3k2 (standard YOLO11 block) + P1d CAI
+# Hypothesis: P2 (160x160) is the shallowest stage capturing edges/textures.
+# LSKA(k=23) at this resolution has low relative coverage and can be replaced
+# by the cheaper C3k2 without significant feature quality loss, since downstream
+# LSKA blocks will provide long-range context.
+
+nc: 80
+scales:
+  s: [0.50, 0.50, 1024]
+  m: [0.50, 1.00, 512]
+  l: [1.00, 1.00, 512]
+  x: [1.00, 1.50, 512]
+
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [128, 3, 2]]
+  - [-1, 2, C3k2, [256, False, 0.25]]                               # P2 — C3k2 (light)
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [-1, 2, SC_ELAN_LSKA_TSCG, [512, 512, 512, 1, 23, 4]]
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [-1, 2, SC_ELAN_LSKA_TSCG, [512, 512, 512, 1, 23, 4]]
+  - [-1, 1, Conv, [1024, 3, 2]]
+  - [-1, 2, C3k2, [1024, True]]
+  - [-1, 1, SPPF, [1024, 5]]
+  - [-1, 2, C2PSA, [1024]]
+
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]]
+  - [-1, 2, SC_ELAN_LSKA_TSCG, [512, 512, 512, 1, 23, 4]]
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]]
+  - [-1, 2, SC_ELAN_LSKA_TSCG, [256, 256, 256, 1, 23, 4]]
+
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 13], 1, Concat, [1]]
+  - [-1, 2, SC_ELAN_LSKA_TSCG, [512, 512, 512, 1, 23, 4]]
+
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 10], 1, Concat, [1]]
+  - [-1, 2, C3k2, [1024, True]]
+
+  - [[16, 19, 22], 1, DetectCAI, [nc, 32, 0.10, 0.40, 0.90]]

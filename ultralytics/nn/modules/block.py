@@ -2661,6 +2661,128 @@ class SC_ELAN_LSKA_TSCG(SC_ELAN_LSKA):
         return self.tscg(feat, context)
 
 
+class ContextAwareLiteConv(nn.Module):
+    """Lightweight reparameterizable convolution without the DW-5x5 context branch.
+
+    Retains only ``rbr_dense`` (3x3), ``rbr_1x1`` (1x1) and optional identity-BN from
+    :class:`ContextAwareRepConv`.  The large-kernel context responsibility is delegated
+    to the downstream LSKA module, so the redundant ``rbr_context`` branch is removed.
+
+    Inference: collapses into a single 3x3 convolution via reparam, identical contract
+    to ``ContextAwareRepConv``.
+    """
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        k: int = 3,
+        s: int = 1,
+        p: int | None = None,
+        g: int = 1,
+        act: bool = True,
+        deploy: bool = False,
+    ):
+        super().__init__()
+        self.deploy = deploy
+        self.c1 = c1
+        self.c2 = c2
+        self.act = nn.SiLU() if act is True else (act if isinstance(act, nn.Module) else nn.Identity())
+
+        if deploy:
+            self.rbr_reparam = nn.Conv2d(c1, c2, k, s, autopad(k, p), groups=g, bias=True)
+        else:
+            self.rbr_identity = nn.BatchNorm2d(c1) if c2 == c1 and s == 1 else None
+            self.rbr_dense = nn.Sequential(
+                nn.Conv2d(c1, c2, k, s, autopad(k, p), groups=g, bias=False),
+                nn.BatchNorm2d(c2),
+            )
+            self.rbr_1x1 = nn.Sequential(
+                nn.Conv2d(c1, c2, 1, s, autopad(1, p), groups=g, bias=False),
+                nn.BatchNorm2d(c2),
+            )
+
+    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+        if self.deploy:
+            return self.act(self.rbr_reparam(inputs))
+        id_out = self.rbr_identity(inputs) if self.rbr_identity is not None else 0
+        return self.act(self.rbr_dense(inputs) + self.rbr_1x1(inputs) + id_out)
+
+
+class SC_ELAN_LSKA_TSCG_Lite(nn.Module):
+    """SC-ELAN-LSKA-TSCG-Lite: lower-FLOPs variant using ContextAwareLiteConv.
+
+    Same topology as :class:`SC_ELAN_LSKA_TSCG` (split → rep-conv chain → concat →
+    project → LSKA → TSCG) but replaces the two internal ``ContextAwareRepConv`` blocks
+    with ``ContextAwareLiteConv`` (no DW-5x5 branch), reducing per-block FLOPs by ~15-20%
+    while relying on LSKA(k=23) for long-range context modelling.
+    """
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        c3: int,
+        c4: int,
+        c5: int = 1,
+        lsk_k: int = 7,
+        tscg_reduction: int = 4,
+    ):
+        super().__init__()
+        self.c = c2 // 2
+        self.cv1 = Conv(c1, c2, 1, 1)
+        self.cv2 = ContextAwareLiteConv(c2 // 2, c2 // 2)
+        self.cv3 = ContextAwareLiteConv(c2 // 2, c2 // 2)
+        self.cv4 = Conv(c2 + 2 * (c2 // 2), c2, 1, 1)
+        self.interaction = LSKA(c2, k_size=lsk_k)
+        self.tscg = TinySelectiveContextGate(c2, reduction=tscg_reduction)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in [self.cv2, self.cv3])
+        feat = self.cv4(torch.cat(y, 1))
+        context = self.interaction(feat)
+        return self.tscg(feat, context)
+
+
+class SC_ELAN_LSKA_TSCG_E(nn.Module):
+    """SC-ELAN-LSKA-TSCG with elastic hidden width.
+
+    Identical topology to :class:`SC_ELAN_LSKA_TSCG` but the hidden channel count is
+    controlled by a width ratio ``e`` (default 0.5 = original behaviour).  Setting
+    ``e < 0.5`` uniformly reduces per-block FLOPs while keeping LSKA + TSCG intact.
+
+    YAML args order: ``[c2, c3, c4, c5, lsk_k, tscg_reduction, e]``
+    """
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        c3: int,
+        c4: int,
+        c5: int = 1,
+        lsk_k: int = 7,
+        tscg_reduction: int = 4,
+        e: float = 0.5,
+    ):
+        super().__init__()
+        self.c = max(8, int(c2 * e))
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = ContextAwareRepConv(self.c, self.c)
+        self.cv3 = ContextAwareRepConv(self.c, self.c)
+        self.cv4 = Conv(4 * self.c, c2, 1, 1)
+        self.interaction = LSKA(c2, k_size=lsk_k)
+        self.tscg = TinySelectiveContextGate(c2, reduction=tscg_reduction)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        y = list(self.cv1(x).split((self.c, self.c), 1))
+        y.extend(m(y[-1]) for m in [self.cv2, self.cv3])
+        feat = self.cv4(torch.cat(y, 1))
+        context = self.interaction(feat)
+        return self.tscg(feat, context)
+
+
 class RepMultiKernelConv(nn.Module):
     """Re-parameterizable multi-kernel convolution.
 

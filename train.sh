@@ -48,6 +48,38 @@ v3_compare_models=(
 )
 
 #######################################################
+# v4: FLOPs reduction experiments (equal-accuracy goal)
+#   A: ContextAwareLiteConv (drop DW5x5 branch)
+#   B: P2 backbone replacement
+#   C: Channel elastic width
+#   D: Best combinations
+#######################################################
+v4_A_models=(
+    "yolo11-scelan-v4-a1"    # Global Lite (all SC_ELAN use LiteConv)
+    "yolo11-scelan-v4-a2"    # Selective Lite (P2 backbone + P3 neck only)
+)
+v4_B_models=(
+    "yolo11-scelan-v4-b1"    # P2 = C3k2
+    "yolo11-scelan-v4-b2"    # P2 = SC_ELAN_Efficient
+    "yolo11-scelan-v4-b3"    # P2 = SC_ELAN_LSKA_TSCG_Lite
+)
+v4_C_models=(
+    "yolo11-scelan-v4-c1"    # e=0.375 global
+    "yolo11-scelan-v4-c2"    # e=0.4375 global
+    "yolo11-scelan-v4-c3"    # asymmetric (P2/P3-neck=0.375, deeper=0.5)
+)
+v4_D_models=(
+    "yolo11-scelan-v4-d1"    # Lite + C3k2@P2
+    "yolo11-scelan-v4-d2"    # C3k2@P2 + asymmetric elastic width
+)
+v4_all_models=(
+    "${v4_A_models[@]}"
+    "${v4_B_models[@]}"
+    "${v4_C_models[@]}"
+    "${v4_D_models[@]}"
+)
+
+#######################################################
 # Phase 4: Multi-seed statistical validation
 # After Phases 1-3 determine the best config, run it
 # with multiple seeds.  Set PHASE4_MODEL below.
@@ -86,8 +118,9 @@ scelan_models=(
 # models=("${phase2_models[@]}")
 # models=("${phase3_models[@]}")
 # models=("${phase1_models[@]}" "${phase2_models[@]}" "${phase3_models[@]}")
-models=("${v3_compare_models[@]}")
+# models=("${v3_compare_models[@]}")
 # models=("${scelan_models[@]}")
+models=("${v4_all_models[@]}")
 
 RUN_PHASE4=false   # set to true after determining best config
 
@@ -101,7 +134,7 @@ EPOCHS=300
 BATCH_SIZE=16
 IMGSZ=640
 WORKERS=8
-PROJECT_NAME="SC-ELAN-v3"
+PROJECT_NAME="SC-ELAN-v4"
 
 PATIENCE=50
 SAVE_PERIOD=10

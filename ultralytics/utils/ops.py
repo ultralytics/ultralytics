@@ -73,8 +73,14 @@ class Profile(contextlib.ContextDecorator):
 def segment2box(segment, width: int = 640, height: int = 640):
     """Convert segment coordinates to bounding box coordinates.
 
-    Converts a single segment label to a box label by finding the minimum and maximum x and y coordinates. Applies
-    inside-image constraint and clips coordinates when necessary.
+    Convert segment coordinates to a bounding box by finding the intersection
+    of the polygon and the image rectangle.
+
+    Logic:
+    1. Collect original points located inside [0, 0, width, height].
+    2. Compute intersections between polygon edges and image boundaries.
+    3. Use Ray Casting to check if image corners are inside the polygon.
+    4. Compute min/max of all collected points.
 
     Args:
         segment (np.ndarray): Segment coordinates in format (N, 2) where N is number of points.
@@ -84,19 +90,66 @@ def segment2box(segment, width: int = 640, height: int = 640):
     Returns:
         (np.ndarray): Bounding box coordinates in xyxy format [x1, y1, x2, y2].
     """
-    x, y = segment.T  # segment xy
-    # Clip coordinates if 3 out of 4 sides are outside the image
-    if np.array([x.min() < 0, y.min() < 0, x.max() > width, y.max() > height]).sum() >= 3:
-        x = x.clip(0, width)
-        y = y.clip(0, height)
-    inside = (x > 0) & (y > 0) & (x < width) & (y < height)
-    x = x[inside]
-    y = y[inside]
-    return (
-        np.array([x.min(), y.min(), x.max(), y.max()], dtype=segment.dtype)
-        if any(x)
-        else np.zeros(4, dtype=segment.dtype)
-    )  # xyxy
+
+    # 1. Define edges by pairing each point with the next (closed loop)
+    p1, p2 = segment, np.roll(segment, -1, axis=0)
+
+    # 2. Collect all original vertices that already lie within the image boundaries
+    mask_in = (p1[:, 0] >= 0) & (p1[:, 0] <= width) & \
+              (p1[:, 1] >= 0) & (p1[:, 1] <= height)
+    valid_pts = [p1[mask_in]]
+
+    # 3. Vectorized Edge-Boundary Intersection
+    # Calculate where polygon edges cross the four image boundaries: x=0, x=W, y=0, y=H
+    for dim, limit in [(0, 0), (0, width), (1, 0), (1, height)]:
+        diff = p2[:, dim] - p1[:, dim]
+
+        # Use errstate to ignore division by zero for edges parallel to the boundary
+        with np.errstate(divide='ignore', invalid='ignore'):
+            t = (limit - p1[:, dim]) / diff
+
+        # Intersection is valid if it occurs within the segment (0 < t < 1)
+        mask_inter = (t > 0) & (t < 1)
+        if np.any(mask_inter):
+            inter = p1[mask_inter] + t[mask_inter, None] * (p2[mask_inter] - p1[mask_inter])
+
+            # Cross-verify that the intersection point's OTHER dimension is within image bounds
+            other_dim = 1 - dim
+            other_limit = height if dim == 0 else width
+            # Small epsilon (1e-6) handles floating point precision near edges
+            mask_v = (inter[:, other_dim] >= -1e-6) & (inter[:, other_dim] <= other_limit + 1e-6)
+            valid_pts.append(inter[mask_v])
+
+    # 4. Image Corner Inclusion Check (Ray Casting Algorithm)
+    # Essential for cases where a polygon clips or surrounds an image corner
+    # without having any of its own vertices inside the image.
+    corners = np.array([[0, 0], [width, 0], [0, height], [width, height]], dtype=np.float32)
+    x1, y1 = p1[:, 0], p1[:, 1]
+    x2, y2 = p2[:, 0], p2[:, 1]
+
+    for cx, cy in corners:
+        # Check if the image corner [cx, cy] is inside the polygon
+        # A point is inside if a ray starting from it crosses an odd number of edges
+        cond = ((y1 <= cy) & (cy < y2)) | ((y2 <= cy) & (cy < y1))
+        if np.any(cond):
+            # Calculate the x-coordinate of the edge at the corner's y-level
+            inter_x = x1[cond] + (cy - y1[cond]) * (x2[cond] - x1[cond]) / (y2[cond] - y1[cond] + 1e-9)
+            # If intersections to the right of cx is odd, the corner is inside
+            if np.sum(cx < inter_x) % 2 == 1:
+                valid_pts.append(np.array([[cx, cy]]))
+
+    # 5. Final Aggregation and Safety Clipping
+    if not any(len(p) for p in valid_pts):
+        return np.zeros(4, dtype=segment.dtype)
+
+    all_pts = np.concatenate(valid_pts, axis=0)
+
+    return np.array([
+        np.clip(all_pts[:, 0].min(), 0, width),
+        np.clip(all_pts[:, 1].min(), 0, height),
+        np.clip(all_pts[:, 0].max(), 0, width),
+        np.clip(all_pts[:, 1].max(), 0, height)
+    ], dtype=segment.dtype)
 
 
 def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding: bool = True, xywh: bool = False):

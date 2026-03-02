@@ -73,8 +73,7 @@ class Profile(contextlib.ContextDecorator):
 def segment2box(segment, width: int = 640, height: int = 640):
     """Convert segment coordinates to bounding box coordinates.
 
-    Convert segment coordinates to a bounding box by finding the intersection
-    of the polygon and the image rectangle.
+    Convert segment coordinates to a bounding box by finding the intersection of the polygon and the image rectangle.
 
     Logic:
     1. Collect original points located inside [0, 0, width, height].
@@ -90,13 +89,11 @@ def segment2box(segment, width: int = 640, height: int = 640):
     Returns:
         (np.ndarray): Bounding box coordinates in xyxy format [x1, y1, x2, y2].
     """
-
     # 1. Define edges by pairing each point with the next (closed loop)
     p1, p2 = segment, np.roll(segment, -1, axis=0)
 
     # 2. Collect all original vertices that already lie within the image boundaries
-    mask_in = (p1[:, 0] >= 0) & (p1[:, 0] <= width) & \
-              (p1[:, 1] >= 0) & (p1[:, 1] <= height)
+    mask_in = (p1[:, 0] >= 0) & (p1[:, 0] <= width) & (p1[:, 1] >= 0) & (p1[:, 1] <= height)
     valid_pts = [p1[mask_in]]
 
     # 3. Vectorized Edge-Boundary Intersection
@@ -105,7 +102,7 @@ def segment2box(segment, width: int = 640, height: int = 640):
         diff = p2[:, dim] - p1[:, dim]
 
         # Use errstate to ignore division by zero for edges parallel to the boundary
-        with np.errstate(divide='ignore', invalid='ignore'):
+        with np.errstate(divide="ignore", invalid="ignore"):
             t = (limit - p1[:, dim]) / diff
 
         # Intersection is valid if it occurs within the segment (0 < t < 1)
@@ -144,12 +141,15 @@ def segment2box(segment, width: int = 640, height: int = 640):
 
     all_pts = np.concatenate(valid_pts, axis=0)
 
-    return np.array([
-        np.clip(all_pts[:, 0].min(), 0, width),
-        np.clip(all_pts[:, 1].min(), 0, height),
-        np.clip(all_pts[:, 0].max(), 0, width),
-        np.clip(all_pts[:, 1].max(), 0, height)
-    ], dtype=segment.dtype)
+    return np.array(
+        [
+            np.clip(all_pts[:, 0].min(), 0, width),
+            np.clip(all_pts[:, 1].min(), 0, height),
+            np.clip(all_pts[:, 0].max(), 0, width),
+            np.clip(all_pts[:, 1].max(), 0, height),
+        ],
+        dtype=segment.dtype,
+    )
 
 
 def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding: bool = True, xywh: bool = False):

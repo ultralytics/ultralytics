@@ -12,7 +12,7 @@ on:
   #     - ${{ github.event.repository.default_branch }}
 
 permissions:
-  contents: write # Modify code in PRs
+  contents: write
 
 jobs:
   Merge:
@@ -33,11 +33,12 @@ jobs:
       - name: Merge default branch into PRs
         shell: python
         run: |
-          from github import Github
-          import os
           import time
 
-          g = Github("${{ secrets._GITHUB_TOKEN }}")
+          from github import Github
+          from github.Auth import Token
+
+          g = Github(auth=Token("${{ secrets._GITHUB_TOKEN }}"))
           repo = g.get_repo("${{ github.repository }}")
 
           # Fetch the default branch name

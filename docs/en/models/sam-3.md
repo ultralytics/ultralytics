@@ -556,7 +556,6 @@ SAM 3 Agent can handle queries requiring reasoning:
 
 The MLLM proposes simple noun phrase queries to SAM 3, analyzes returned masks, and iterates until satisfied.
 
-
 ## Limitations
 
 While SAM 3 represents a major advancement, it has certain limitations:

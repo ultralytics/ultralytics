@@ -450,7 +450,7 @@ Tests run on a NVIDIA RTX PRO 6000 with 96GB of VRAM using `torch==2.9.1` and `u
         ```python
         from ultralytics import ASSETS, SAM, YOLO, FastSAM
 
-        # Profile SAM2-t, SAM2-b, SAM-b, MobileSAM
+        # Profile SAM3, SAM2-t, SAM2-b, SAM-b, MobileSAM
         for file in ["sam_b.pt", "sam2_b.pt", "sam2_t.pt", "mobile_sam.pt", "sam3.pt"]:
             model = SAM(file)
             model.info()

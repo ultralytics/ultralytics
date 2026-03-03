@@ -90,14 +90,13 @@ char* YOLO_V8::PreProcess(cv::Mat& iImg, std::vector<int> iImgSize, cv::Mat& oIm
 }
 
 
-char* YOLO_V8::CreateSession(DL_INIT_PARAM& iParams) {
-    char* Ret = RET_OK;
+const char* YOLO_V8::CreateSession(DL_INIT_PARAM& iParams) {
+    const char* Ret = RET_OK;
     std::regex pattern("[\u4e00-\u9fa5]");
     bool result = std::regex_search(iParams.modelPath, pattern);
     if (result)
     {
-        char output[] = "[YOLO_V8]:Your model path is error.Change your model path without chinese characters.";
-        Ret = output;
+        Ret = "[YOLO_V8]:Your model path is error.Change your model path without chinese characters.";
         std::cout << Ret << std::endl;
         return Ret;
     }
@@ -109,6 +108,7 @@ char* YOLO_V8::CreateSession(DL_INIT_PARAM& iParams) {
         imgSize = iParams.imgSize;
         modelType = iParams.modelType;
         cudaEnable = iParams.cudaEnable;
+		kpts_num = iParams.keyPointsNum;
         env = Ort::Env(ORT_LOGGING_LEVEL_WARNING, "Yolo");
         Ort::SessionOptions sessionOption;
         if (iParams.cudaEnable)
@@ -162,9 +162,7 @@ char* YOLO_V8::CreateSession(DL_INIT_PARAM& iParams) {
         strcpy_s(merged, result.length() + 1, result.c_str());
         std::cout << merged << std::endl;
         delete[] merged;
-
-        char output[] = "[YOLO_V8]:Create session failed.";
-        Ret = output;
+        Ret = "[YOLO_V8]:Create session failed.";
         return Ret;
     }
 
@@ -361,7 +359,7 @@ char* YOLO_V8::TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std::
 
             if (pdata[4] > rectConfidenceThreshold)
             {
-                cv::Mat kpts = cv::Mat(this->classes.size() - 1, 3, CV_32FC1, pdata + 5);//keypoints & scores
+                cv::Mat kpts = cv::Mat(kpts_num, 3, CV_32FC1, pdata + 5);//keypoints & scores
                 confidences.push_back(pdata[4]);
                 float x = pdata[0];
                 float y = pdata[1];

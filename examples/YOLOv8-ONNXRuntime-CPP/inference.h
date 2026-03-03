@@ -3,7 +3,7 @@
 #pragma once
 
 #define    RET_OK nullptr
-#define    USE_CUDA
+//#define    USE_CUDA
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -69,7 +69,7 @@ public:
     ~YOLO_V8();
 
 public:
-    char* CreateSession(DL_INIT_PARAM& iParams);
+    const char* CreateSession(DL_INIT_PARAM& iParams);
 
     char* RunSession(cv::Mat& iImg, std::vector<DL_RESULT>& oResult);
 
@@ -94,6 +94,7 @@ private:
     MODEL_TYPE modelType;
     std::vector<int> imgSize;
     float rectConfidenceThreshold;
+    int kpts_num;
     float pointScoresThreshold;
     float iouThreshold;
     float resizeScales;//letterbox scale

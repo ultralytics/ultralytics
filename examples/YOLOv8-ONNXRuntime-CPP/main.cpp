@@ -231,7 +231,7 @@ int ReadCocoYaml(YOLO_V8*& p, const std::string& yamlPath = "coco.yaml") {
     }
 
     p->classes = names;
-    return 0;
+    return kpts;
 }
 
 
@@ -277,8 +277,8 @@ void ClsTest()
 void PoseTest()
 {
     YOLO_V8* yoloDetector = new YOLO_V8;
-    ReadCocoYaml(yoloDetector, "./yaml/coco8-pose.yaml");
     DL_INIT_PARAM params;
+    params.keyPointsNum = ReadCocoYaml(yoloDetector, "./yaml/coco8-pose.yaml");
     params.rectConfidenceThreshold = 0.25;
     params.pointScoresThreshold = 0.5;
     params.iouThreshold = 0.7;
@@ -295,7 +295,7 @@ void PoseTest()
 
 #else
     // CPU inference
-    params.modelType = YOLO_POSE;
+    params.modelType = YOLO_POSE_V8;
     params.cudaEnable = false;
 
 #endif

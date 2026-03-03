@@ -387,7 +387,7 @@ See [Cloud Training](train/cloud-training.md#remote-training) for more details o
 The Platform includes a full-featured annotation editor supporting:
 
 - **Manual Tools**: Bounding boxes, polygons, keypoints with skeleton templates, oriented boxes, classification
-- **Skeleton Templates**: Place all keypoints at once using built-in (Person, Hand, Dog, Box) or custom templates
+- **Skeleton Templates**: Place all keypoints at once using built-in (Person, Hand, Face, Dog, Box) or custom templates
 - **SAM Smart Annotation**: Click to generate precise masks using [Segment Anything Model](../models/sam.md)
 - **Keyboard Shortcuts**: Efficient workflows with hotkeys
 

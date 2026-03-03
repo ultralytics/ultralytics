@@ -231,7 +231,8 @@ int ReadCocoYaml(YOLO_V8*& p, const std::string& yamlPath = "coco.yaml") {
     }
 
     p->classes = names;
-    return kpts;
+	p->kpts_num = kpts;
+    return 0;
 }
 
 

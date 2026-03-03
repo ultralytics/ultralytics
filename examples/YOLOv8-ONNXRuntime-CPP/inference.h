@@ -82,6 +82,7 @@ public:
     char* PreProcess(cv::Mat& iImg, std::vector<int> iImgSize, cv::Mat& oImg);
 
     std::vector<std::string> classes{};
+    int kpts_num;
 
 private:
     Ort::Env env;
@@ -94,7 +95,6 @@ private:
     MODEL_TYPE modelType;
     std::vector<int> imgSize;
     float rectConfidenceThreshold;
-    int kpts_num;
     float pointScoresThreshold;
     float iouThreshold;
     float resizeScales;//letterbox scale

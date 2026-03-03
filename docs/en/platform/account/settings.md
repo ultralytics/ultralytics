@@ -75,7 +75,6 @@ Connect your professional profiles:
 | **Google Scholar** | user-id              |
 | **Discord**        | username             |
 | **WeChat**         | username             |
-| **Website**        | https://yoursite.com |
 
 Social links appear on your public profile page.
 

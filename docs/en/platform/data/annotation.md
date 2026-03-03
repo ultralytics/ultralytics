@@ -490,4 +490,4 @@ Yes. Click the **+** button next to the skeleton template picker to open the tem
 
 ### How do I switch between skeleton templates?
 
-Click the template picker dropdown in the annotation toolbar. Select any built-in template (Person, Hand, Dog, Box) or your saved custom templates. The selected template determines which keypoints are placed when you click on the image.
+Click the template picker dropdown in the annotation toolbar. Select any built-in template (Person, Hand, Face, Dog, Box) or your saved custom templates. The selected template determines which keypoints are placed when you click on the image.

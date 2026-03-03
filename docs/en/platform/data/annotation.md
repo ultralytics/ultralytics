@@ -26,13 +26,13 @@ graph TB
 
 The annotation editor supports all 5 YOLO task types:
 
-| Task                                             | Tool           | Annotation Format                      |
-| ------------------------------------------------ | -------------- | -------------------------------------- |
-| **[Detect](../../datasets/detect/index.md)**     | Rectangle      | Bounding boxes (x, y, width, height)   |
-| **[Segment](../../datasets/segment/index.md)**   | Polygon        | Pixel-precise masks (polygon vertices) |
+| Task                                             | Tool           | Annotation Format                                         |
+| ------------------------------------------------ | -------------- | --------------------------------------------------------- |
+| **[Detect](../../datasets/detect/index.md)**     | Rectangle      | Bounding boxes (x, y, width, height)                      |
+| **[Segment](../../datasets/segment/index.md)**   | Polygon        | Pixel-precise masks (polygon vertices)                    |
 | **[Pose](../../datasets/pose/index.md)**         | Keypoint       | Skeleton templates (Person, Hand, Face, Dog, Box, custom) |
-| **[OBB](../../datasets/obb/index.md)**           | Oriented Box   | Rotated bounding boxes (4 corners)     |
-| **[Classify](../../datasets/classify/index.md)** | Class Selector | Image-level labels                     |
+| **[OBB](../../datasets/obb/index.md)**           | Oriented Box   | Rotated bounding boxes (4 corners)                        |
+| **[Classify](../../datasets/classify/index.md)** | Class Selector | Image-level labels                                        |
 
 ### Task Details
 
@@ -172,13 +172,13 @@ Annotate poses using skeleton templates. Select a template from the toolbar, cli
 
 The editor includes 5 built-in templates:
 
-| Template   | Keypoints | Description                                                                              |
-| ---------- | --------- | ---------------------------------------------------------------------------------------- |
+| Template   | Keypoints | Description                                                                                                        |
+| ---------- | --------- | ------------------------------------------------------------------------------------------------------------------ |
 | **Person** | 17        | [COCO human pose](../../datasets/pose/index.md) — nose, eyes, ears, shoulders, elbows, wrists, hips, knees, ankles |
-| **Hand**   | 21        | MediaPipe hand landmarks — wrist, thumb, index, middle, ring, pinky joints               |
-| **Face**   | 68        | [iBUG 300W](https://ibug.doc.ic.ac.uk/resources/300-W/) facial landmarks — jaw, eyebrows, nose, eyes, mouth |
-| **Dog**    | 18        | Animal pose — nose, head, neck, shoulders, legs, paws, tail                              |
-| **Box**    | 4         | Corner keypoints — top-left, top-right, bottom-right, bottom-left                        |
+| **Hand**   | 21        | MediaPipe hand landmarks — wrist, thumb, index, middle, ring, pinky joints                                         |
+| **Face**   | 68        | [iBUG 300W](https://ibug.doc.ic.ac.uk/resources/300-W/) facial landmarks — jaw, eyebrows, nose, eyes, mouth        |
+| **Dog**    | 18        | Animal pose — nose, head, neck, shoulders, legs, paws, tail                                                        |
+| **Box**    | 4         | Corner keypoints — top-left, top-right, bottom-right, bottom-left                                                  |
 
 ![Ultralytics Platform Annotate Pose Keypoints Skeleton](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-pose-keypoints-skeleton.avif)
 

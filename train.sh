@@ -18,4 +18,5 @@
 # yolo train model=yolo26s-nobn-exp-bb.yaml name=yolo26s-nobn-exp-bb device=4 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp
 # yolo train model=yolo26s-nobn-noc3k.yaml name=yolo26-nobn-noc3k device=3 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp
 # yolo train model=yolo26s-rep-exp-lit.yaml name=yolo26s-rep-exp-lit device=6 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp 
-yolo train model=yolo26s-hyp/yolo26s-rep-exp-lit/weights/last.pt resume device=6 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp 
+# yolo train model=yolo26s-hyp/yolo26s-rep-exp-lit/weights/last.pt resume device=6 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp 
+yolo train model=yolo26s-rep-exp-lit-v2.yaml name=yolo26s-rep-exp-lit-v2 device=1 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp 

@@ -108,7 +108,6 @@ const char* YOLO_V8::CreateSession(DL_INIT_PARAM& iParams) {
         imgSize = iParams.imgSize;
         modelType = iParams.modelType;
         cudaEnable = iParams.cudaEnable;
-		kpts_num = iParams.keyPointsNum;
         env = Ort::Env(ORT_LOGGING_LEVEL_WARNING, "Yolo");
         Ort::SessionOptions sessionOption;
         if (iParams.cudaEnable)

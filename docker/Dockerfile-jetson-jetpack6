@@ -39,7 +39,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 # Pip install onnxruntime-gpu, torch, torchvision and ultralytics, then remove build files
 RUN python3 -m pip install --upgrade pip uv && \
     uv pip install --system \
-    https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.20.0-cp310-cp310-linux_aarch64.whl \
+    https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.23.0-cp310-cp310-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.10.0-cp310-cp310-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.25.0-cp310-cp310-linux_aarch64.whl && \
     uv pip install --system -e ".[export]" && \

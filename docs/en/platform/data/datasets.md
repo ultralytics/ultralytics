@@ -346,15 +346,15 @@ Images that failed processing are listed here with:
 
 Create immutable NDJSON snapshots of your dataset for reproducible training. Each version captures image counts, class counts, annotation counts, and file size at the time of creation.
 
-| Column       | Description                            |
-| ------------ | -------------------------------------- |
-| Version      | Version number (v1, v2, ...)           |
-| Description  | User-provided description (editable)   |
-| Images       | Image count at time of snapshot        |
-| Classes      | Class count at time of snapshot        |
-| Annotations  | Annotation count at time of snapshot   |
-| Size         | NDJSON export file size                |
-| Created      | When the version was created           |
+| Column      | Description                          |
+| ----------- | ------------------------------------ |
+| Version     | Version number (v1, v2, ...)         |
+| Description | User-provided description (editable) |
+| Images      | Image count at time of snapshot      |
+| Classes     | Class count at time of snapshot      |
+| Annotations | Annotation count at time of snapshot |
+| Size        | NDJSON export file size              |
+| Created     | When the version was created         |
 
 To create a version:
 

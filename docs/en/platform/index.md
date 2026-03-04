@@ -102,6 +102,7 @@ You select your region during onboarding, and all your data, models, and deploym
 
 - **Dataset Management**: Upload images, videos, or ZIP archives with automatic processing
 - **Annotation Editor**: Manual annotation for all 5 YOLO task types (detect, segment, pose, OBB, classify; see [supported tasks](data/index.md#supported-tasks))
+- **Skeleton Templates**: Built-in (Person, Hand, Face, Dog, Box) and custom skeleton templates for one-click pose annotation
 - **SAM Smart Annotation**: Click-based intelligent annotation using [Segment Anything Model](../models/sam.md)
 - **Auto-Annotation**: Use trained models to pre-label new data
 - **Statistics**: Class distribution, location heatmaps, and dimension analysis
@@ -385,7 +386,8 @@ See [Cloud Training](train/cloud-training.md#remote-training) for more details o
 
 The Platform includes a full-featured annotation editor supporting:
 
-- **Manual Tools**: Bounding boxes, polygons, keypoints, oriented boxes, classification
+- **Manual Tools**: Bounding boxes, polygons, keypoints with skeleton templates, oriented boxes, classification
+- **Skeleton Templates**: Place all keypoints at once using built-in (Person, Hand, Face, Dog, Box) or custom templates
 - **SAM Smart Annotation**: Click to generate precise masks using [Segment Anything Model](../models/sam.md)
 - **Keyboard Shortcuts**: Efficient workflows with hotkeys
 

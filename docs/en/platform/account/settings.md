@@ -65,17 +65,16 @@ Connect your professional profiles:
 
 ![Ultralytics Platform Settings Profile Tab Social Links Grid](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-social-links-grid.avif)
 
-| Platform           | Format               |
-| ------------------ | -------------------- |
-| **GitHub**         | username             |
-| **LinkedIn**       | profile-slug         |
-| **X (Twitter)**    | username             |
-| **YouTube**        | channel-handle       |
-| **Bilibili**       | user-id              |
-| **Google Scholar** | user-id              |
-| **Discord**        | username             |
-| **WeChat**         | username             |
-| **Website**        | https://yoursite.com |
+| Platform           | Format         |
+| ------------------ | -------------- |
+| **GitHub**         | username       |
+| **LinkedIn**       | profile-slug   |
+| **X (Twitter)**    | username       |
+| **YouTube**        | channel-handle |
+| **Bilibili**       | user-id        |
+| **Google Scholar** | user-id        |
+| **Discord**        | username       |
+| **WeChat**         | username       |
 
 Social links appear on your public profile page.
 

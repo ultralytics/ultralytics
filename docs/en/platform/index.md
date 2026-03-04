@@ -105,6 +105,7 @@ You select your region during onboarding, and all your data, models, and deploym
 - **Skeleton Templates**: Built-in (Person, Hand, Face, Dog, Box) and custom skeleton templates for one-click pose annotation
 - **SAM Smart Annotation**: Click-based intelligent annotation using [Segment Anything Model](../models/sam.md)
 - **Auto-Annotation**: Use trained models to pre-label new data
+- **Dataset Versioning**: Create numbered NDJSON snapshots with descriptions for reproducible training
 - **Statistics**: Class distribution, location heatmaps, and dimension analysis
 
 ```mermaid

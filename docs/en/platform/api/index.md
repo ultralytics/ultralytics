@@ -37,7 +37,7 @@ graph LR
 
 | Resource                                   | Description                   | Key Operations                          |
 | ------------------------------------------ | ----------------------------- | --------------------------------------- |
-| [Datasets](../data/datasets.md)            | Labeled image collections     | CRUD, images, labels, export, clone     |
+| [Datasets](../data/datasets.md)            | Labeled image collections     | CRUD, images, labels, export, versions, clone |
 | [Projects](../train/projects.md)           | Training workspaces           | CRUD, clone, icon                       |
 | [Models](../train/models.md)               | Trained checkpoints           | CRUD, predict, download, clone, export  |
 | [Deployments](../deploy/endpoints.md)      | Dedicated inference endpoints | CRUD, start/stop, metrics, logs, health |
@@ -133,7 +133,7 @@ Rate limits are applied automatically based on the endpoint being called. Expens
 | **Training**  | 10 requests/min  | Starting cloud training jobs (`POST /api/training/start`)                       |
 | **Upload**    | 10 requests/min  | File uploads, signed URLs, and dataset ingest                                   |
 | **Predict**   | 20 requests/min  | Shared model inference (`POST /api/models/{id}/predict`)                        |
-| **Export**    | 20 requests/min  | Model format exports (`POST /api/exports`) and dataset NDJSON exports           |
+| **Export**    | 20 requests/min  | Model format exports (`POST /api/exports`), dataset NDJSON exports, and version creation |
 | **Download**  | 30 requests/min  | Model weight file downloads (`GET /api/models/{id}/download`)                   |
 | **Dedicated** | **Unlimited**    | [Dedicated endpoints](../deploy/endpoints.md) — your own service, no API limits |
 
@@ -336,7 +336,13 @@ Creates a copy of the dataset with all images and labels. Only public datasets c
 GET /api/datasets/{datasetId}/export
 ```
 
-Returns a JSON response with a signed download URL for the dataset export file.
+Returns a JSON response with a signed download URL for the latest dataset export.
+
+**Query Parameters:**
+
+| Parameter | Type    | Description                                                                 |
+| --------- | ------- | --------------------------------------------------------------------------- |
+| `v`       | integer | Version number (1-indexed). If omitted, returns latest (uncached) export.   |
 
 **Response:**
 
@@ -344,6 +350,58 @@ Returns a JSON response with a signed download URL for the dataset export file.
 {
     "downloadUrl": "https://storage.example.com/export.ndjson?signed=...",
     "cached": true
+}
+```
+
+### Create Dataset Version
+
+```
+POST /api/datasets/{datasetId}/export
+```
+
+Create a new numbered version snapshot of the dataset. Owner-only. The version captures current image count, class count, annotation count, and split distribution, then generates and stores an immutable NDJSON export.
+
+**Request Body:**
+
+```json
+{
+    "description": "Added 500 training images"
+}
+```
+
+All fields are optional. The `description` field is a user-provided label for the version.
+
+**Response:**
+
+```json
+{
+    "version": 3,
+    "downloadUrl": "https://storage.example.com/v3.ndjson?signed=..."
+}
+```
+
+### Update Version Description
+
+```
+PATCH /api/datasets/{datasetId}/export
+```
+
+Update the description of an existing version. Owner-only.
+
+**Request Body:**
+
+```json
+{
+    "version": 2,
+    "description": "Fixed mislabeled classes"
+}
+```
+
+**Response:**
+
+```json
+{
+    "ok": true
 }
 ```
 

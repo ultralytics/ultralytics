@@ -1273,8 +1273,7 @@ class Exporter:
         rknn.config(mean_values=[[0, 0, 0]], std_values=[[255, 255, 255]], target_platform=self.args.name)
         rknn.load_onnx(model=f)
         rknn.build(do_quantization=False)  # TODO: Add quantization support
-        f = f.replace(".onnx", f"-{self.args.name}.rknn")
-        rknn.export_rknn(f"{export_path / f}")
+        rknn.export_rknn(str(export_path / f"{Path(f).stem}-{self.args.name}.rknn"))
         YAML.save(export_path / "metadata.yaml", self.metadata)
         return export_path
 

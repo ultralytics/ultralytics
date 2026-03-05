@@ -7,7 +7,7 @@ import socket
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from time import sleep, time
+from time import time
 
 from ultralytics.utils import ENVIRONMENT, GIT, LOGGER, PYTHON_VERSION, RANK, SETTINGS, TESTS_RUNNING, Retry, colorstr
 
@@ -88,30 +88,13 @@ def resolve_platform_uri(uri, hard=True):
     else:
         raise ValueError(f"Invalid platform URI: {uri}. Use ul://user/datasets/name or ul://user/project/model")
 
-    timeout = 3600 if "/datasets/" in url else 90  # NDJSON generation can be slow for large datasets
-    retries = 3
-    for attempt in range(retries + 1):
-        try:
-            r = requests.head(url, headers=headers, allow_redirects=False, timeout=timeout)
-        except requests.exceptions.RequestException as e:
-            if attempt < retries:
-                LOGGER.warning(f"{PREFIX}Network error resolving {uri} (attempt {attempt + 1}/{retries}): {e}")
-                sleep(2**attempt)
-                continue
-            if hard:
-                raise ConnectionError(f"Failed to resolve {uri}: {e}") from e
-            LOGGER.warning(f"Failed to resolve {uri}: {e}")
-            return None
+    try:
+        timeout = 3600 if "/datasets/" in url else 90  # NDJSON generation can be slow for large datasets
+        r = requests.head(url, headers=headers, allow_redirects=False, timeout=timeout)
 
         # Handle redirect responses (301, 302, 303, 307, 308)
         if 300 <= r.status_code < 400 and "location" in r.headers:
             return r.headers["location"]  # Return signed URL
-
-        # Retry on server errors (5xx) — transient failures
-        if r.status_code >= 500 and attempt < retries:
-            LOGGER.warning(f"{PREFIX}Server error {r.status_code} resolving {uri} (attempt {attempt + 1}/{retries}), retrying...")
-            sleep(2**attempt)
-            continue
 
         # Handle error responses
         if r.status_code == 401:
@@ -129,6 +112,12 @@ def resolve_platform_uri(uri, hard=True):
         # Unexpected response
         r.raise_for_status()
         raise RuntimeError(f"Unexpected response from platform for '{uri}': {r.status_code}")
+
+    except requests.exceptions.RequestException as e:
+        if hard:
+            raise ConnectionError(f"Failed to resolve {uri}: {e}") from e
+        LOGGER.warning(f"Failed to resolve {uri}: {e}")
+        return None
 
 
 def _interp_plot(plot, n=101):
@@ -174,9 +163,7 @@ def _send(event, data, project, name, model_id=None, retry=2):
             timeout=30,
         )
         if 400 <= r.status_code < 500 and r.status_code not in {408, 429}:
-            (LOGGER.debug if event == "console_output" else LOGGER.warning)(
-                f"{PREFIX}Failed to send {event}: {r.status_code} {r.reason}"
-            )
+            LOGGER.warning(f"{PREFIX}Failed to send {event}: {r.status_code} {r.reason}")
             return None  # Don't retry client errors (except 408 timeout, 429 rate limit)
         r.raise_for_status()
         return r.json()
@@ -437,22 +424,6 @@ def on_model_save(trainer):
     ctx["last_upload"] = time()
 
 
-def on_train_error(trainer):
-    """Send training_failed event and stop console capture when training crashes."""
-    ctx = getattr(trainer, "platform", None)
-    if not ctx or RANK not in {-1, 0} or not trainer.args.project:
-        return
-
-    project, name = _get_project_name(trainer)
-
-    if ctx.get("console_logger"):
-        ctx["console_logger"].stop_capture()
-        ctx["console_logger"] = None
-
-    if ctx.get("model_id"):
-        _send("training_failed", {}, project, name, ctx["model_id"], retry=2)
-
-
 def on_train_end(trainer):
     """Log final results, upload best model, and send validation plot data."""
     ctx = getattr(trainer, "platform", None)
@@ -521,7 +492,6 @@ callbacks = (
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_model_save": on_model_save,
         "on_train_end": on_train_end,
-        "on_train_error": on_train_error,
     }
     if _api_key
     else {}

@@ -241,11 +241,7 @@ class BaseTrainer:
                 ddp_cleanup(self, str(file))
 
         else:
-            try:
-                self._do_train()
-            except Exception:
-                self.run_callbacks("on_train_error")
-                raise
+            self._do_train()
 
     def _setup_scheduler(self):
         """Initialize training learning rate scheduler."""

@@ -67,11 +67,6 @@ def on_train_end(trainer):
     pass
 
 
-def on_train_error(trainer):
-    """Called when training fails with an unhandled exception."""
-    pass
-
-
 def on_params_update(trainer):
     """Called when the model parameters are updated."""
     pass
@@ -160,7 +155,6 @@ default_callbacks = {
     "on_fit_epoch_end": [on_fit_epoch_end],  # fit = train + val
     "on_model_save": [on_model_save],
     "on_train_end": [on_train_end],
-    "on_train_error": [on_train_error],
     "on_params_update": [on_params_update],
     "teardown": [teardown],
     # Run in validator

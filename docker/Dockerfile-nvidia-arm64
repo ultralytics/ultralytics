@@ -10,7 +10,8 @@ FROM nvcr.io/nvidia/pytorch:25.10-py3
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_BREAK_SYSTEM_PACKAGES=1
+    PIP_BREAK_SYSTEM_PACKAGES=1 \
+    UV_BREAK_SYSTEM_PACKAGES=1
 
 # Downloads to user config dir
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
@@ -34,10 +35,10 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 
 # Install pip packages (uv already installed in base image)
 RUN uv pip install --system \
-    https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.24.0-cp312-cp312-linux_aarch64.whl --break-system-packages && \
+    https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.24.0-cp312-cp312-linux_aarch64.whl && \
     # Reinstall torch and torchvision to ensure CUDA 13.0 compatibility
-    uv pip install --system --force-reinstall torch torchvision --index-url https://download.pytorch.org/whl/cu130 --break-system-packages && \
-    uv pip install --system -e ".[export]" --break-system-packages && \
+    uv pip install --system --force-reinstall torch torchvision --index-url https://download.pytorch.org/whl/cu130 && \
+    uv pip install --system -e ".[export]" && \
     # Remove extra build files
     rm -rf *.whl /root/.config/Ultralytics/persistent_cache.json
 

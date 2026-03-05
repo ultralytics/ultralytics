@@ -57,7 +57,7 @@ HomeObjects-3K enables a wide spectrum of applications in indoor computer vision
 
 - **Scene layout parsing**: In robotics and smart home systems, this helps devices understand how rooms are arranged, where objects like doors, windows, and furniture are, so they can navigate safely and interact with their environment properly.
 
-- **AR applications**: Power [object recognition](http://ultralytics.com/glossary/image-recognition) features in apps that use augmented reality. For example, detect TVs or wardrobes and show extra information or effects on them.
+- **AR applications**: Power [object recognition](https://www.ultralytics.com/glossary/image-recognition) features in apps that use augmented reality. For example, detect TVs or wardrobes and show extra information or effects on them.
 
 - **Education and research**: Support learning and academic projects by giving students and researchers a ready-to-use dataset for practicing indoor object detection with real-world examples.
 

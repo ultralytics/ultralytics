@@ -3,6 +3,7 @@
 #pragma once
 
 #define    RET_OK nullptr
+//#define    USE_CUDA
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -25,7 +26,7 @@ enum MODEL_TYPE
 {
     //FLOAT32 MODEL
     YOLO_DETECT_V8 = 1,
-    YOLO_POSE = 2,
+    YOLO_POSE_V8 = 2,
     YOLO_CLS = 3,
 
     //FLOAT16 MODEL
@@ -41,6 +42,7 @@ typedef struct _DL_INIT_PARAM
     MODEL_TYPE modelType = YOLO_DETECT_V8;
     std::vector<int> imgSize = { 640, 640 };
     float rectConfidenceThreshold = 0.6;
+    float pointScoresThreshold = 0.6;
     float iouThreshold = 0.5;
     int	keyPointsNum = 2;//Note:kpt number for pose
     bool cudaEnable = false;
@@ -54,6 +56,7 @@ typedef struct _DL_RESULT
     int classId;
     float confidence;
     cv::Rect box;
+    std::vector<float> keyPointsScore;
     std::vector<cv::Point2f> keyPoints;
 } DL_RESULT;
 
@@ -66,7 +69,7 @@ public:
     ~YOLO_V8();
 
 public:
-    char* CreateSession(DL_INIT_PARAM& iParams);
+    const char* CreateSession(DL_INIT_PARAM& iParams);
 
     char* RunSession(cv::Mat& iImg, std::vector<DL_RESULT>& oResult);
 
@@ -79,6 +82,7 @@ public:
     char* PreProcess(cv::Mat& iImg, std::vector<int> iImgSize, cv::Mat& oImg);
 
     std::vector<std::string> classes{};
+    int kpts_num;
 
 private:
     Ort::Env env;
@@ -91,6 +95,7 @@ private:
     MODEL_TYPE modelType;
     std::vector<int> imgSize;
     float rectConfidenceThreshold;
+    float pointScoresThreshold;
     float iouThreshold;
     float resizeScales;//letterbox scale
 };

@@ -1264,7 +1264,7 @@ class Exporter:
 
         from rknn.api import RKNN
 
-        self.args.opset = 19  # rknn-toolkit expects opset<=19
+        self.args.opset = min(self.args.opset or 19, 19)  # rknn-toolkit expects opset<=19
         f = self.export_onnx()
         export_path = Path(f"{Path(f).stem}_rknn_model")
         export_path.mkdir(exist_ok=True)

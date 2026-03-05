@@ -13,7 +13,7 @@ keywords: Ultralytics Explorer GUI, semantic search, vector similarity, SQL quer
 Explorer GUI is built on the [Ultralytics Explorer API](api.md). It allows you to run semantic/vector similarity search, SQL queries, and natural language queries using the Ask AI feature powered by LLMs.
 
 <p>
-    <img width="1709" alt="Explorer Dashboard Screenshot 1" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-1.avif">
+    <img width="1709" alt="Ultralytics Explorer GUI main dashboard interface" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/explorer-dashboard-screenshot-1.avif">
 </p>
 
 <p align="center">
@@ -45,13 +45,13 @@ pip install ultralytics[explorer]
 For example, in this VOC Exploration dashboard, the user selects a few airplane images:
 
 <p>
-<img width="1710" alt="Explorer Dashboard Screenshot 2" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-2.avif">
+<img width="1710" alt="Explorer selecting airplane images for similarity search" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/explorer-dashboard-screenshot-2.avif">
 </p>
 
 After running the similarity search, you should see similar results:
 
 <p>
-<img width="1710" alt="Explorer Dashboard Screenshot 3" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-3.avif">
+<img width="1710" alt="Ultralytics Explorer semantic similarity search" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/explorer-dashboard-screenshot-3.avif">
 </p>
 
 ## Ask AI
@@ -59,7 +59,7 @@ After running the similarity search, you should see similar results:
 This feature lets you filter your dataset using natural language, without writing SQL. The AI-powered query generator converts your prompt into a query and returns matching results. For example, you can ask: "show me 100 images with exactly one person and 2 dogs. There can be other objects too" and it will generate the query and show you those results. Here is an example output when asked: "Show 10 images with exactly 5 persons":
 
 <p>
-<img width="1709" alt="Explorer Dashboard Screenshot 4" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-4.avif">
+<img width="1709" alt="Explorer Ask AI results for images with 5 persons" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/explorer-dashboard-screenshot-4.avif">
 </p>
 
 Note: This feature uses [Large Language Models](https://www.ultralytics.com/glossary/large-language-model-llm), so results are probabilistic and may be inaccurate.
@@ -73,7 +73,7 @@ WHERE labels LIKE '%person%' AND labels LIKE '%dog%'
 ```
 
 <p>
-<img width="1707" alt="Explorer Dashboard Screenshot 5" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-5.avif">
+<img width="1707" alt="Explorer SQL query filtering images with person and dog" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/explorer-dashboard-screenshot-5.avif">
 </p>
 
 This demo was built using the Explorer API, which you can use to create your own exploratory notebooks or scripts for gaining insights into your datasets. To get started, check out the [Explorer API documentation](api.md).

@@ -61,7 +61,7 @@ Now, let's look at some of the standout features that make Google Colab a go-to 
 
 - **Hardware Resources:** Users can also switch between different hardware options by modifying the runtime settings as shown below. Google Colab provides access to advanced hardware like Tesla K80 GPUs and TPUs, which are specialized circuits designed specifically for machine learning tasks.
 
-![Runtime Settings](https://github.com/ultralytics/docs/releases/download/0/runtime-settings.avif)
+![Google Colab runtime settings for GPU selection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/runtime-settings.avif)
 
 - **Collaboration:** Google Colab makes collaborating and working with other developers easy. You can easily share your notebooks with others and perform edits in real-time.
 

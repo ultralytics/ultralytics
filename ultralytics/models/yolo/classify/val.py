@@ -45,7 +45,7 @@ class ClassificationValidator(BaseValidator):
 
     Examples:
         >>> from ultralytics.models.yolo.classify import ClassificationValidator
-        >>> args = dict(model="yolo11n-cls.pt", data="imagenet10")
+        >>> args = dict(model="yolo26n-cls.pt", data="imagenet10")
         >>> validator = ClassificationValidator(args=args)
         >>> validator()
 

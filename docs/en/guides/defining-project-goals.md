@@ -41,7 +41,7 @@ Let's walk through an example.
 Consider a computer vision project where you want to [estimate the speed of vehicles](./speed-estimation.md) on a highway. The core issue is that current speed monitoring methods are inefficient and error-prone due to outdated radar systems and manual processes. The project aims to develop a real-time computer vision system that can replace legacy [speed estimation](https://www.ultralytics.com/blog/ultralytics-yolov8-for-speed-estimation-in-computer-vision-projects) systems.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/speed-estimation-using-yolov8.avif" alt="Speed Estimation Using YOLO26">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/speed-estimation-using-yolov8.avif" alt="Speed Estimation Using YOLO26">
 </p>
 
 Primary users include traffic management authorities and law enforcement, while secondary stakeholders are highway planners and the public benefiting from safer roads. Key requirements involve evaluating budget, time, and personnel, as well as addressing technical needs like high-resolution cameras and real-time data processing. Additionally, regulatory constraints on privacy and [data security](https://www.ultralytics.com/glossary/data-security) must be considered.
@@ -64,7 +64,7 @@ Your problem statement helps you conceptualize which computer vision task can so
 For example, if your problem is monitoring vehicle speeds on a highway, the relevant computer vision task is object tracking. [Object tracking](../modes/track.md) is suitable because it allows the system to continuously follow each vehicle in the video feed, which is crucial for accurately calculating their speeds.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/example-of-object-tracking.avif" alt="Example of Object Tracking">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/example-of-object-tracking.avif" alt="YOLO vehicle tracking on highway">
 </p>
 
 Other tasks, like [object detection](../tasks/detect.md), are not suitable as they don't provide continuous location or movement information. Once you've identified the appropriate computer vision task, it guides several critical aspects of your project, like model selection, dataset preparation, and model training approaches.
@@ -91,7 +91,7 @@ Next, let's look at a few common discussion points in the community regarding co
 The most popular computer vision tasks include [image classification](https://www.ultralytics.com/glossary/image-classification), [object detection](https://www.ultralytics.com/glossary/object-detection), and [image segmentation](https://www.ultralytics.com/glossary/image-segmentation).
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/image-classification-vs-object-detection-vs-image-segmentation.avif" alt="Overview of Computer Vision Tasks">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/image-classification-vs-object-detection-vs-image-segmentation.avif" alt="Classification vs detection vs segmentation comparison">
 </p>
 
 For a detailed explanation of various tasks, please take a look at the Ultralytics Docs page on [YOLO26 Tasks](../tasks/index.md).
@@ -101,7 +101,7 @@ For a detailed explanation of various tasks, please take a look at the Ultralyti
 No, pretrained models don't "remember" classes in the traditional sense. They learn patterns from massive datasets, and during custom training (fine-tuning), these patterns are adjusted for your specific task. The model's capacity is limited, and focusing on new information can overwrite some previous learnings.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/overview-of-transfer-learning.avif" alt="Overview of Transfer Learning">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/overview-of-transfer-learning.avif" alt="Transfer learning from pretrained to custom model">
 </p>
 
 If you want to use the classes the model was pretrained on, a practical approach is to use two models: one retains the original performance, and the other is fine-tuned for your specific task. This way, you can combine the outputs of both models. There are other options like freezing layers, using the pretrained model as a feature extractor, and task-specific branching, but these are more complex solutions and require more expertise.

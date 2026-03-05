@@ -196,7 +196,7 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         Returns:
             (dict): Dictionary mapping text samples to their embeddings.
         """
-        model = "mobileclip:blt"
+        model = unwrap_model(self.model).text_model
         cache_path = cache_dir / f"text_embeddings_{model.replace(':', '_').replace('/', '_')}.pt"
         if cache_path.exists():
             LOGGER.info(f"Reading existed cache from '{cache_path}'")
@@ -204,7 +204,6 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
             if sorted(txt_map.keys()) == sorted(texts):
                 return txt_map
         LOGGER.info(f"Caching text embeddings to '{cache_path}'")
-        assert self.model is not None
         txt_feats = unwrap_model(self.model).get_text_pe(texts, batch, without_reprta=True, cache_clip_model=False)
         txt_map = dict(zip(texts, txt_feats.squeeze(0)))
         torch.save(txt_map, cache_path)
@@ -235,20 +234,11 @@ class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
         return DetectionTrainer.preprocess_batch(self, batch)
 
     def set_text_embeddings(self, datasets, batch: int):
-        """Set text embeddings for datasets to accelerate training by caching category names.
-
-        This method collects unique category names from all datasets, generates text embeddings for them, and caches
-        these embeddings to improve training efficiency. The embeddings are stored in a file in the parent directory of
-        the first dataset's image path.
+        """No-op override for prompt-free training that does not require text embeddings.
 
         Args:
             datasets (list[Dataset]): List of datasets containing category names to process.
             batch (int): Batch size for processing text embeddings.
-
-        Notes:
-            The method creates a dictionary mapping text samples to their embeddings and stores it
-            at the path specified by 'cache_path'. If the cache file already exists, it will be loaded
-            instead of regenerating the embeddings.
         """
         pass
 
@@ -272,7 +262,8 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
             batch (int, optional): Size of batches, used for rectangular training/validation.
 
         Returns:
-            (Dataset): YOLO dataset configured for training or validation, with visual prompts for training mode.
+            (YOLOConcatDataset | Dataset): YOLO dataset configured for training or validation, with visual prompts for
+                training mode.
         """
         dataset = super().build_dataset(img_path, mode, batch)
         if isinstance(dataset, YOLOConcatDataset):

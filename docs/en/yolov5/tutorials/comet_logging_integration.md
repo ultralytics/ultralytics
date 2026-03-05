@@ -4,7 +4,7 @@ description: Learn to track, visualize and optimize YOLOv5 model metrics with Co
 keywords: YOLOv5, Comet, machine learning, model tracking, hyperparameters, visualization, deep learning, logging, metrics
 ---
 
-![Comet](https://cdn.comet.ml/img/notebook_logo.png)
+![Comet ML logo for machine learning experiment tracking](https://cdn.comet.ml/img/notebook_logo.png)
 
 # YOLOv5 with Comet
 
@@ -56,7 +56,7 @@ python train.py --img 640 --batch 16 --epochs 5 --data coco128.yaml --weights yo
 
 That's it! Comet will automatically log your hyperparameters, command line arguments, training and validation metrics. You can visualize and analyze your runs in the Comet UI.
 
-![Comet UI with YOLOv5 training](https://github.com/ultralytics/docs/releases/download/0/yolo-ui.avif)
+![Comet dashboard showing YOLOv5 training metrics and experiment tracking](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-ui.avif)
 
 ## Try out an Example!
 
@@ -181,15 +181,15 @@ python train.py \
 
 You can find the uploaded dataset in the Artifacts tab in your Comet Workspace:
 
-![Comet Artifacts Tab](https://github.com/ultralytics/docs/releases/download/0/artifact-1.avif)
+![Comet artifacts panel for dataset versioning](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/comet-artifact-panel.avif)
 
 You can preview the data directly in the Comet UI:
 
-![Comet Data Preview](https://github.com/ultralytics/docs/releases/download/0/artifact-2.avif)
+![Comet dataset preview and version history](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/comet-artifact-versions.avif)
 
 Artifacts are versioned and also support adding metadata about the dataset. Comet will automatically log the metadata from your dataset `yaml` file:
 
-![Comet Artifact Metadata](https://github.com/ultralytics/docs/releases/download/0/artifact-metadata-logging.avif)
+![Comet Artifact Metadata](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/artifact-metadata-logging.avif)
 
 ### Using a saved Artifact
 
@@ -213,7 +213,7 @@ python train.py \
 
 Artifacts also allow you to track the lineage of data as it flows through your experimentation workflow. Here you can see a graph that shows you all the experiments that have used your uploaded dataset:
 
-![Comet Artifact Lineage Graph](https://github.com/ultralytics/docs/releases/download/0/artifact-lineage-graph.avif)
+![Comet Artifact Lineage Graph](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/artifact-lineage-graph.avif)
 
 ## Resuming a Training Run
 
@@ -254,4 +254,4 @@ python utils/loggers/comet/hpo.py \
 
 Comet provides a number of ways to visualize the results of your sweep. Take a look at a [project with a completed sweep here](https://www.comet.com/examples/comet-example-yolov5/view/PrlArHGuuhDTKC1UuBmTtOSXD/panels?utm_source=yolov5&utm_medium=partner&utm_campaign=partner_yolov5_2022&utm_content=github).
 
-![Comet Hyperparameter Visualization](https://github.com/ultralytics/docs/releases/download/0/hyperparameter-yolo.avif)
+![Comet Hyperparameter Visualization](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/hyperparameter-yolo.avif)

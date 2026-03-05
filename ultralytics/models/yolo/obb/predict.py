@@ -20,7 +20,7 @@ class OBBPredictor(DetectionPredictor):
     Examples:
         >>> from ultralytics.utils import ASSETS
         >>> from ultralytics.models.yolo.obb import OBBPredictor
-        >>> args = dict(model="yolo11n-obb.pt", source=ASSETS)
+        >>> args = dict(model="yolo26n-obb.pt", source=ASSETS)
         >>> predictor = OBBPredictor(overrides=args)
         >>> predictor.predict_cli()
     """

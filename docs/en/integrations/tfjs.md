@@ -15,7 +15,7 @@ The 'export to TF.js model format' feature allows you to optimize your [Ultralyt
 Exporting your machine learning models to TensorFlow.js, developed by the TensorFlow team as part of the broader TensorFlow ecosystem, offers numerous advantages for deploying machine learning applications. It helps enhance user privacy and security by keeping sensitive data on the device. The image below shows the TensorFlow.js architecture, and how machine learning models are converted and deployed on both web browsers and Node.js.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/tfjs-architecture.avif" alt="TF.js Architecture">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tfjs-architecture.avif" alt="TensorFlow.js browser ML inference architecture">
 </p>
 
 Running models locally also reduces latency and provides a more responsive user experience. [TensorFlow.js](https://www.ultralytics.com/glossary/tensorflow) also comes with offline capabilities, allowing users to use your application even without an internet connection. TF.js is designed for efficient execution of complex models on devices with limited resources as it is engineered for scalability, with GPU acceleration support.

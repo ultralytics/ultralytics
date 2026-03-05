@@ -23,25 +23,37 @@ MCT_CONFIG = {
         "detect": {
             "layer_names": ["sub", "mul_2", "add_14", "cat_19"],
             "weights_memory": 2585350.2439,
-            "n_layers": 238,
+            "n_layers": {238, 239},
         },
         "pose": {
             "layer_names": ["sub", "mul_2", "add_14", "cat_21", "cat_22", "mul_4", "add_15"],
             "weights_memory": 2437771.67,
-            "n_layers": 257,
+            "n_layers": {257, 258},
         },
-        "classify": {"layer_names": [], "weights_memory": np.inf, "n_layers": 112},
-        "segment": {"layer_names": ["sub", "mul_2", "add_14", "cat_21"], "weights_memory": 2466604.8, "n_layers": 265},
+        "classify": {"layer_names": [], "weights_memory": np.inf, "n_layers": {112}},
+        "segment": {
+            "layer_names": ["sub", "mul_2", "add_14", "cat_21"],
+            "weights_memory": 2466604.8,
+            "n_layers": {265, 266},
+        },
     },
     "YOLOv8": {
-        "detect": {"layer_names": ["sub", "mul", "add_6", "cat_15"], "weights_memory": 2550540.8, "n_layers": 168},
+        "detect": {
+            "layer_names": ["sub", "mul", "add_6", "cat_15"],
+            "weights_memory": 2550540.8,
+            "n_layers": {168, 169},
+        },
         "pose": {
             "layer_names": ["add_7", "mul_2", "cat_17", "mul", "sub", "add_6", "cat_18"],
             "weights_memory": 2482451.85,
-            "n_layers": 187,
+            "n_layers": {187, 188},
         },
-        "classify": {"layer_names": [], "weights_memory": np.inf, "n_layers": 73},
-        "segment": {"layer_names": ["sub", "mul", "add_6", "cat_17"], "weights_memory": 2580060.0, "n_layers": 195},
+        "classify": {"layer_names": [], "weights_memory": np.inf, "n_layers": {73}},
+        "segment": {
+            "layer_names": ["sub", "mul", "add_6", "cat_17"],
+            "weights_memory": 2580060.0,
+            "n_layers": {195, 196},
+        },
     },
 }
 
@@ -55,6 +67,7 @@ class FXModel(torch.nn.Module):
 
     Attributes:
         model (nn.Module): The original model's layers.
+        imgsz (tuple[int, int]): The input image size (height, width).
     """
 
     def __init__(self, model, imgsz=(640, 640)):
@@ -96,23 +109,18 @@ class FXModel(torch.nn.Module):
                     )
                 )
             if type(m) is Pose:
-                m.forward = types.MethodType(pose_forward, m)  # bind method to Detect
+                m.forward = types.MethodType(pose_forward, m)  # bind method to Pose
             if type(m) is Segment:
-                m.forward = types.MethodType(segment_forward, m)  # bind method to Detect
+                m.forward = types.MethodType(segment_forward, m)  # bind method to Segment
             x = m(x)  # run
             y.append(x)  # save output
         return x
 
 
-def _inference(self, x: list[torch.Tensor] | dict[str, torch.Tensor]) -> tuple[torch.Tensor]:
+def _inference(self, x: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
     """Decode boxes and cls scores for imx object detection."""
-    if isinstance(x, dict):
-        box, cls = x["boxes"], x["scores"]
-    else:
-        x_cat = torch.cat([xi.view(x[0].shape[0], self.no, -1) for xi in x], 2)
-        box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
-    dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
-    return dbox.transpose(1, 2), cls.sigmoid().permute(0, 2, 1)
+    dbox = self.decode_bboxes(self.dfl(x["boxes"]), self.anchors.unsqueeze(0)) * self.strides
+    return dbox.transpose(1, 2), x["scores"].sigmoid().permute(0, 2, 1)
 
 
 def pose_forward(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -159,7 +167,7 @@ class NMSWrapper(torch.nn.Module):
             score_threshold (float): Score threshold for non-maximum suppression.
             iou_threshold (float): Intersection over union threshold for non-maximum suppression.
             max_detections (int): The number of detections to return.
-            task (str): Task type, either 'detect' or 'pose'.
+            task (str): Task type, one of 'detect', 'pose', or 'segment'.
         """
         super().__init__()
         self.model = model
@@ -207,7 +215,8 @@ def torch2imx(
     """Export YOLO model to IMX format for deployment on Sony IMX500 devices.
 
     This function quantizes a YOLO model using Model Compression Toolkit (MCT) and exports it to IMX format compatible
-    with Sony IMX500 edge devices. It supports both YOLOv8n and YOLO11n models for detection and pose estimation tasks.
+    with Sony IMX500 edge devices. It supports both YOLOv8n and YOLO11n models for detection, segmentation, pose
+    estimation, and classification tasks.
 
     Args:
         model (torch.nn.Module): The YOLO model to export. Must be YOLOv8n or YOLO11n.
@@ -222,7 +231,7 @@ def torch2imx(
         prefix (str, optional): Logging prefix string. Defaults to "".
 
     Returns:
-        f (Path): Path to the exported IMX model directory
+        (Path): Path to the exported IMX model directory.
 
     Raises:
         ValueError: If the model is not a supported YOLOv8n or YOLO11n variant.
@@ -230,11 +239,11 @@ def torch2imx(
     Examples:
         >>> from ultralytics import YOLO
         >>> model = YOLO("yolo11n.pt")
-        >>> path, _ = export_imx(model, "model.imx", conf=0.25, iou=0.7, max_det=300)
+        >>> path = torch2imx(model, "model.imx", conf=0.25, iou=0.7, max_det=300)
 
     Notes:
         - Requires model_compression_toolkit, onnx, edgemdt_tpc, and edge-mdt-cl packages
-        - Only supports YOLOv8n and YOLO11n models (detection and pose tasks)
+        - Only supports YOLOv8n and YOLO11n models (detection, segmentation, pose, and classification tasks)
         - Output includes quantized ONNX model, IMX binary, and labels.txt file
     """
     import model_compression_toolkit as mct
@@ -256,7 +265,7 @@ def torch2imx(
     mct_config = MCT_CONFIG["YOLO11" if "C2PSA" in model.__str__() else "YOLOv8"][model.task]
 
     # Check if the model has the expected number of layers
-    if len(list(model.modules())) != mct_config["n_layers"]:
+    if len(list(model.modules())) not in mct_config["n_layers"]:
         raise ValueError("IMX export only supported for YOLOv8n and YOLO11n models.")
 
     for layer_name in mct_config["layer_names"]:

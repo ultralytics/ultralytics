@@ -8,7 +8,7 @@ keywords: Ultralytics, YOLO26, object counting, object blurring, security system
 
 Ultralytics Solutions provide cutting-edge applications of YOLO models, offering real-world solutions like object counting, blurring, and security systems, enhancing efficiency and [accuracy](https://www.ultralytics.com/glossary/accuracy) in diverse industries. Discover the power of YOLO26 for practical, impactful implementations.
 
-![Ultralytics Solutions Thumbnail](https://github.com/ultralytics/docs/releases/download/0/ultralytics-solutions-thumbnail.avif)
+![Ultralytics Solutions Thumbnail](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-solutions-thumbnail.avif)
 
 <p align="center">
   <br>
@@ -83,7 +83,7 @@ All Ultralytics Solutions use the separate class [`SolutionAnnotator`](https://d
 
 ### Working with SolutionResults
 
-Except [`Similarity Search`](../guides/similarity-search.md), each Solution calls return a list of `SolutionResults` object.
+Except [`Similarity Search`](../guides/similarity-search.md), each Solution call returns a list of `SolutionResults` objects.
 
 - For object counting, the results include `in_count`, `out_count`, and `classwise_count`.
 

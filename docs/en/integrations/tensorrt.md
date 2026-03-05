@@ -13,7 +13,7 @@ By using the TensorRT export format, you can enhance your [Ultralytics YOLO26](h
 ## TensorRT
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/tensorrt-overview.avif" alt="TensorRT Overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tensorrt-overview.avif" alt="NVIDIA TensorRT optimization workflow">
 </p>
 
 [TensorRT](https://developer.nvidia.com/tensorrt), developed by NVIDIA, is an advanced software development kit (SDK) designed for high-speed deep learning inference. It's well-suited for real-time applications like [object detection](https://www.ultralytics.com/glossary/object-detection).
@@ -31,7 +31,7 @@ TensorRT models offer a range of key features that contribute to their efficienc
 - **Layer Fusion**: The TensorRT optimization process includes layer fusion, where multiple layers of a [neural network](https://www.ultralytics.com/glossary/neural-network-nn) are combined into a single operation. This reduces computational overhead and improves inference speed by minimizing memory access and computation.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/tensorrt-layer-fusion.avif" alt="TensorRT Layer Fusion">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tensorrt-layer-fusion.avif" alt="TensorRT neural network layer fusion optimization">
 </p>
 
 - **Dynamic Tensor Memory Management**: TensorRT efficiently manages tensor memory usage during inference, reducing memory overhead and optimizing memory allocation. This results in more efficient GPU memory utilization.
@@ -47,7 +47,7 @@ TensorRT offers several deployment options, and each option balances ease of int
 - **Deploying within [TensorFlow](https://www.ultralytics.com/glossary/tensorflow)**: This method integrates TensorRT into TensorFlow, allowing optimized models to run in a familiar TensorFlow environment. It's useful for models with a mix of supported and unsupported layers, as TF-TRT can handle these efficiently.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/tf-trt-workflow.avif" alt="TensorRT Overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tf-trt-workflow.avif" alt="NVIDIA TensorRT optimization workflow">
 </p>
 
 - **Standalone TensorRT Runtime API**: Offers granular control, ideal for performance-critical applications. It's more complex but allows for custom implementation of unsupported operators.

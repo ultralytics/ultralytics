@@ -14,19 +14,19 @@ Other quickstart options for YOLOv5 include our [Google Colab Notebook](https://
 
 Begin by creating an account or signing in to the [AWS Management Console](https://aws.amazon.com/console/). Once logged in, navigate to the **EC2** service dashboard, where you can manage your virtual servers (instances).
 
-![AWS Console Sign-In](https://github.com/ultralytics/docs/releases/download/0/aws-console-sign-in.avif)
+![AWS Management Console sign-in page](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/aws-console-sign-in.avif)
 
 ## Step 2: Launch Your Instance
 
 From the EC2 dashboard, click the **Launch Instance** button. This initiates the process of creating a new virtual server tailored to your needs.
 
-![Launch Instance Button](https://github.com/ultralytics/docs/releases/download/0/launch-instance-button.avif)
+![Launch Instance Button](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/launch-instance-button.avif)
 
 ### Selecting the Right Amazon Machine Image (AMI)
 
 Choosing the correct AMI is crucial. This determines the operating system and pre-installed software for your instance. In the search bar, type '[Deep Learning](https://aws.amazon.com/ai/machine-learning/amis/)' and select the latest Ubuntu-based Deep Learning AMI (unless you have specific requirements for a different OS). Amazon's Deep Learning AMIs come pre-configured with popular [deep learning frameworks](https://aws.amazon.com/ai/machine-learning/amis/#Frameworks_and_Interface) (like [PyTorch](https://pytorch.org/), used by YOLOv5) and necessary [GPU drivers](https://developer.nvidia.com/cuda-downloads), significantly streamlining the setup process.
 
-![Choose AMI](https://github.com/ultralytics/docs/releases/download/0/choose-ami.avif)
+![AWS EC2 Deep Learning AMI selection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/choose-ami.avif)
 
 ### Picking an Instance Type
 
@@ -36,7 +36,7 @@ For demanding tasks like training deep learning models, selecting a GPU-accelera
 
 Explore the available GPU instance types on the [EC2 Instance Types page](https://aws.amazon.com/ec2/instance-types/), particularly under the **Accelerated Computing** category.
 
-![Choose Instance Type](https://github.com/ultralytics/docs/releases/download/0/choose-instance-type.avif)
+![AWS EC2 GPU instance type selection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/choose-instance-type.avif)
 
 For detailed information on monitoring and optimizing GPU usage, refer to the AWS guide on [GPU Monitoring and Optimization](https://docs.aws.amazon.com/dlami/latest/devguide/tutorial-gpu.html). Compare costs using [On-Demand Pricing](https://aws.amazon.com/ec2/pricing/on-demand/) and explore potential savings with [Spot Instance Pricing](https://aws.amazon.com/ec2/spot/pricing/).
 
@@ -44,7 +44,7 @@ For detailed information on monitoring and optimizing GPU usage, refer to the AW
 
 Consider using Amazon EC2 Spot Instances for a more cost-effective approach. Spot Instances allow you to bid on unused EC2 capacity, often at a significant discount compared to On-Demand prices. For tasks that require persistence (saving data even if the Spot Instance is interrupted), choose a **persistent request**. This ensures your storage volume persists.
 
-![Spot Request Configuration](https://github.com/ultralytics/docs/releases/download/0/spot-request.avif)
+![Spot Request Configuration](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/spot-request.avif)
 
 Proceed through Steps 4-7 of the instance launch wizard to configure storage, add tags, set up security groups (ensure SSH port 22 is open from your IP), and review your settings before clicking **Launch**. You'll also need to create or select an existing key pair for secure SSH access.
 
@@ -52,7 +52,7 @@ Proceed through Steps 4-7 of the instance launch wizard to configure storage, ad
 
 Once your instance state shows as 'running', select it from the EC2 dashboard. Click the **Connect** button to view connection options. Use the provided SSH command example in your local terminal (like Terminal on macOS/Linux or PuTTY/WSL on Windows) to establish a secure connection. You'll need the private key file (`.pem`) you created or selected during launch.
 
-![Connect to Instance](https://github.com/ultralytics/docs/releases/download/0/connect-to-instance.avif)
+![AWS EC2 instance SSH connection options](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/connect-to-instance.avif)
 
 ## Step 4: Running Ultralytics YOLOv5
 

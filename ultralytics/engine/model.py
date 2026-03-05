@@ -42,7 +42,7 @@ class Model(torch.nn.Module):
         cfg (str): The configuration of the model if loaded from a *.yaml file.
         ckpt_path (str): The path to the checkpoint file.
         overrides (dict): A dictionary of overrides for model configuration.
-        metrics (dict): The latest training/validation metrics.
+        metrics (ultralytics.utils.metrics.DetMetrics): The latest training/validation metrics.
         session (HUBTrainingSession): The Ultralytics HUB session, if applicable.
         task (str): The type of task the model is intended for.
         model_name (str): The name of the model.
@@ -57,7 +57,7 @@ class Model(torch.nn.Module):
         save: Save the current state of the model to a file.
         info: Log or return information about the model.
         fuse: Fuse Conv2d and BatchNorm2d layers for optimized inference.
-        predict: Perform object detection predictions.
+        predict: Perform predictions on given image sources.
         track: Perform object tracking.
         val: Validate the model on a dataset.
         benchmark: Benchmark the model on various export formats.
@@ -71,7 +71,7 @@ class Model(torch.nn.Module):
 
     Examples:
         >>> from ultralytics import YOLO
-        >>> model = YOLO("yolo11n.pt")
+        >>> model = YOLO("yolo26n.pt")
         >>> results = model.predict("image.jpg")
         >>> model.train(data="coco8.yaml", epochs=3)
         >>> metrics = model.val()
@@ -80,7 +80,7 @@ class Model(torch.nn.Module):
 
     def __init__(
         self,
-        model: str | Path | Model = "yolo11n.pt",
+        model: str | Path | Model = "yolo26n.pt",
         task: str | None = None,
         verbose: bool = False,
     ) -> None:
@@ -169,7 +169,7 @@ class Model(torch.nn.Module):
                 object.
 
         Examples:
-            >>> model = YOLO("yolo11n.pt")
+            >>> model = YOLO("yolo26n.pt")
             >>> results = model("https://ultralytics.com/images/bus.jpg")
             >>> for r in results:
             ...     print(f"Detected {len(r)} objects in image")
@@ -192,7 +192,7 @@ class Model(torch.nn.Module):
         Examples:
             >>> Model.is_triton_model("http://localhost:8000/v2/models/yolo11n")
             True
-            >>> Model.is_triton_model("yolo11n.pt")
+            >>> Model.is_triton_model("yolo26n.pt")
             False
         """
         from urllib.parse import urlsplit
@@ -216,7 +216,7 @@ class Model(torch.nn.Module):
         Examples:
             >>> Model.is_hub_model("https://hub.ultralytics.com/models/MODEL")
             True
-            >>> Model.is_hub_model("yolo11n.pt")
+            >>> Model.is_hub_model("yolo26n.pt")
             False
         """
         from ultralytics.hub import HUB_WEB_ROOT
@@ -232,8 +232,8 @@ class Model(torch.nn.Module):
         Args:
             cfg (str): Path to the model configuration file in YAML format.
             task (str, optional): The specific task for the model. If None, it will be inferred from the config.
-            model (torch.nn.Module, optional): A custom model instance. If provided, it will be used instead of creating
-                a new one.
+            model (type[torch.nn.Module], optional): A custom model class. If provided, it will be used instead of the
+                default model class from the task map.
             verbose (bool): If True, displays model information during loading.
 
         Raises:
@@ -242,7 +242,7 @@ class Model(torch.nn.Module):
 
         Examples:
             >>> model = Model()
-            >>> model._new("yolo11n.yaml", task="detect", verbose=True)
+            >>> model._new("yolo26n.yaml", task="detect", verbose=True)
         """
         cfg_dict = yaml_model_load(cfg)
         self.cfg = cfg
@@ -272,12 +272,12 @@ class Model(torch.nn.Module):
 
         Examples:
             >>> model = Model()
-            >>> model._load("yolo11n.pt")
+            >>> model._load("yolo26n.pt")
             >>> model._load("path/to/weights.pth", task="detect")
         """
         if weights.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://", "ul://")):
             weights = checks.check_file(weights, download_dir=SETTINGS["weights_dir"])  # download and return local file
-        weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolo11n -> yolo11n.pt
+        weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolo26 -> yolo26n.pt
 
         if str(weights).rpartition(".")[-1] == "pt":
             self.model, self.ckpt = load_checkpoint(weights)
@@ -304,9 +304,9 @@ class Model(torch.nn.Module):
                 information about supported model formats and operations.
 
         Examples:
-            >>> model = Model("yolo11n.pt")
+            >>> model = Model("yolo26n.pt")
             >>> model._check_is_pytorch_model()  # No error raised
-            >>> model = Model("yolo11n.onnx")
+            >>> model = Model("yolo26n.onnx")
             >>> model._check_is_pytorch_model()  # Raises TypeError
         """
         pt_str = isinstance(self.model, (str, Path)) and str(self.model).rpartition(".")[-1] == "pt"
@@ -316,7 +316,7 @@ class Model(torch.nn.Module):
                 f"model='{self.model}' should be a *.pt PyTorch model to run this method, but is a different format. "
                 f"PyTorch models can train, val, predict and export, i.e. 'model.train(data=...)', but exported "
                 f"formats like ONNX, TensorRT etc. only support 'predict' and 'val' modes, "
-                f"i.e. 'yolo predict model=yolo11n.onnx'.\nTo run CUDA or MPS inference please pass the device "
+                f"i.e. 'yolo predict model=yolo26n.onnx'.\nTo run CUDA or MPS inference please pass the device "
                 f"argument directly in your inference command, i.e. 'model.predict(source=..., device=0)'"
             )
 
@@ -331,10 +331,10 @@ class Model(torch.nn.Module):
             (Model): The instance of the class with reset weights.
 
         Raises:
-            AssertionError: If the model is not a PyTorch model.
+            TypeError: If the model is not a PyTorch model.
 
         Examples:
-            >>> model = Model("yolo11n.pt")
+            >>> model = Model("yolo26n.pt")
             >>> model.reset_weights()
         """
         self._check_is_pytorch_model()
@@ -345,7 +345,7 @@ class Model(torch.nn.Module):
             p.requires_grad = True
         return self
 
-    def load(self, weights: str | Path = "yolo11n.pt") -> Model:
+    def load(self, weights: str | Path = "yolo26n.pt") -> Model:
         """Load parameters from the specified weights file into the model.
 
         This method supports loading weights from a file or directly from a weights object. It matches parameters by
@@ -358,11 +358,11 @@ class Model(torch.nn.Module):
             (Model): The instance of the class with loaded weights.
 
         Raises:
-            AssertionError: If the model is not a PyTorch model.
+            TypeError: If the model is not a PyTorch model.
 
         Examples:
             >>> model = Model()
-            >>> model.load("yolo11n.pt")
+            >>> model.load("yolo26n.pt")
             >>> model.load(Path("path/to/weights.pt"))
         """
         self._check_is_pytorch_model()
@@ -382,10 +382,10 @@ class Model(torch.nn.Module):
             filename (str | Path): The name of the file to save the model to.
 
         Raises:
-            AssertionError: If the model is not a PyTorch model.
+            TypeError: If the model is not a PyTorch model.
 
         Examples:
-            >>> model = Model("yolo11n.pt")
+            >>> model = Model("yolo26n.pt")
             >>> model.save("my_model.pt")
         """
         self._check_is_pytorch_model()
@@ -407,21 +407,21 @@ class Model(torch.nn.Module):
         """Display model information.
 
         This method provides an overview or detailed information about the model, depending on the arguments
-        passed. It can control the verbosity of the output and return the information as a list.
+        passed. It can control the verbosity of the output.
 
         Args:
             detailed (bool): If True, shows detailed information about the model layers and parameters.
-            verbose (bool): If True, prints the information. If False, returns the information as a list.
+            verbose (bool): If True, prints the information and returns model summary. If False, returns None.
             imgsz (int | list[int, int]): Input image size used for FLOPs calculation.
 
         Returns:
-            (list[str]): A list of strings containing various types of information about the model, including model
-                summary, layer details, and parameter counts. Empty if verbose is True.
+            (tuple): A tuple containing the number of layers (int), number of parameters (int), number of gradients
+                (int), and GFLOPs (float). Returns None if verbose is False.
 
         Examples:
-            >>> model = Model("yolo11n.pt")
-            >>> model.info()  # Prints model summary
-            >>> info_list = model.info(detailed=True, verbose=False)  # Returns detailed info as a list
+            >>> model = Model("yolo26n.pt")
+            >>> model.info()  # Prints model summary and returns tuple
+            >>> model.info(detailed=True)  # Prints detailed info and returns tuple
         """
         self._check_is_pytorch_model()
         return self.model.info(detailed=detailed, verbose=verbose, imgsz=imgsz)
@@ -438,7 +438,7 @@ class Model(torch.nn.Module):
         performs both convolution and normalization in one step.
 
         Examples:
-            >>> model = Model("yolo11n.pt")
+            >>> model = Model("yolo26n.pt")
             >>> model.fuse()
             >>> # Model is now fused and ready for optimized inference
         """
@@ -458,7 +458,7 @@ class Model(torch.nn.Module):
 
         Args:
             source (str | Path | int | list | tuple | np.ndarray | torch.Tensor): The source of the image for generating
-                embeddings. Can be a file path, URL, PIL image, numpy array, etc.
+                embeddings. Can be a file path, URL, numpy array, etc.
             stream (bool): If True, predictions are streamed.
             **kwargs (Any): Additional keyword arguments for configuring the embedding process.
 
@@ -466,7 +466,7 @@ class Model(torch.nn.Module):
             (list[torch.Tensor]): A list containing the image embeddings.
 
         Examples:
-            >>> model = YOLO("yolo11n.pt")
+            >>> model = YOLO("yolo26n.pt")
             >>> image = "https://ultralytics.com/images/bus.jpg"
             >>> embeddings = model.embed(image)
             >>> print(embeddings[0].shape)
@@ -502,7 +502,7 @@ class Model(torch.nn.Module):
                 object.
 
         Examples:
-            >>> model = YOLO("yolo11n.pt")
+            >>> model = YOLO("yolo26n.pt")
             >>> results = model.predict(source="path/to/image.jpg", conf=0.25)
             >>> for r in results:
             ...     print(r.boxes.data)  # print detection bounding boxes
@@ -559,7 +559,7 @@ class Model(torch.nn.Module):
             (list[ultralytics.engine.results.Results]): A list of tracking results, each a Results object.
 
         Examples:
-            >>> model = YOLO("yolo11n.pt")
+            >>> model = YOLO("yolo26n.pt")
             >>> results = model.track(source="path/to/video.mp4", show=True)
             >>> for r in results:
             ...     print(r.boxes.id)  # print tracking IDs
@@ -595,13 +595,15 @@ class Model(torch.nn.Module):
             **kwargs (Any): Arbitrary keyword arguments for customizing the validation process.
 
         Returns:
-            (ultralytics.utils.metrics.DetMetrics): Validation metrics obtained from the validation process.
+            (ultralytics.utils.metrics.DetMetrics): Validation metrics obtained from the validation process. The
+                specific metrics type depends on the task (e.g., DetMetrics, SegmentMetrics,
+                PoseMetrics, ClassifyMetrics).
 
         Raises:
-            AssertionError: If the model is not a PyTorch model.
+            TypeError: If the model is not a PyTorch model.
 
         Examples:
-            >>> model = YOLO("yolo11n.pt")
+            >>> model = YOLO("yolo26n.pt")
             >>> results = model.val(data="coco8.yaml", imgsz=640)
             >>> print(results.box.map)  # Print mAP50-95
         """
@@ -622,9 +624,9 @@ class Model(torch.nn.Module):
         additional user-provided keyword arguments.
 
         Args:
-            data (str): Path to the dataset for benchmarking.
-            verbose (bool): Whether to print detailed benchmark information.
+            data (str | None): Path to the dataset for benchmarking. If None, uses default dataset for the task.
             format (str): Export format name for specific benchmarking.
+            verbose (bool): Whether to print detailed benchmark information.
             **kwargs (Any): Arbitrary keyword arguments to customize the benchmarking process. Common options include:
                 - imgsz (int | list[int]): Image size for benchmarking.
                 - half (bool): Whether to use half-precision (FP16) mode.
@@ -632,14 +634,14 @@ class Model(torch.nn.Module):
                 - device (str): Device to run the benchmark on (e.g., 'cpu', 'cuda').
 
         Returns:
-            (dict): A dictionary containing the results of the benchmarking process, including metrics for different
-                export formats.
+            (polars.DataFrame): A Polars DataFrame with benchmark results for each format, including file size, metric,
+                and inference time.
 
         Raises:
-            AssertionError: If the model is not a PyTorch model.
+            TypeError: If the model is not a PyTorch model.
 
         Examples:
-            >>> model = YOLO("yolo11n.pt")
+            >>> model = YOLO("yolo26n.pt")
             >>> results = model.benchmark(data="coco8.yaml", imgsz=640, half=True)
             >>> print(results)
         """
@@ -687,12 +689,12 @@ class Model(torch.nn.Module):
             (str): The path to the exported model file.
 
         Raises:
-            AssertionError: If the model is not a PyTorch model.
+            TypeError: If the model is not a PyTorch model.
             ValueError: If an unsupported export format is specified.
             RuntimeError: If the export process fails due to errors.
 
         Examples:
-            >>> model = YOLO("yolo11n.pt")
+            >>> model = YOLO("yolo26n.pt")
             >>> model.export(format="onnx", dynamic=True, simplify=True)
             'path/to/exported/model.onnx'
         """
@@ -739,10 +741,11 @@ class Model(torch.nn.Module):
                 - augmentations (list[Callable]): List of augmentation functions to apply during training.
 
         Returns:
-            (dict | None): Training metrics if available and training is successful; otherwise, None.
+            (ultralytics.utils.metrics.DetMetrics | None): Training metrics if available and training is successful;
+                otherwise, None. The specific metrics type depends on the task.
 
         Examples:
-            >>> model = YOLO("yolo11n.pt")
+            >>> model = YOLO("yolo26n.pt")
             >>> results = model.train(data="coco8.yaml", epochs=3)
         """
         self._check_is_pytorch_model()
@@ -802,13 +805,14 @@ class Model(torch.nn.Module):
                 overrides and defaults to configure the tuning process.
 
         Returns:
-            (dict): Results of the hyperparameter search, including best parameters and performance metrics.
+            (ray.tune.ResultGrid | None): When use_ray=True, returns a ResultGrid with hyperparameter search results.
+                When use_ray=False, returns None and saves best hyperparameters to YAML.
 
         Raises:
             TypeError: If the model is not a PyTorch model.
 
         Examples:
-            >>> model = YOLO("yolo11n.pt")
+            >>> model = YOLO("yolo26n.pt")
             >>> results = model.tune(data="coco8.yaml", iterations=5)
             >>> print(results)
 
@@ -828,7 +832,7 @@ class Model(torch.nn.Module):
             return Tuner(args=args, _callbacks=self.callbacks)(iterations=iterations)
 
     def _apply(self, fn) -> Model:
-        """Apply a function to model tensors that are not parameters or registered buffers.
+        """Apply a function to model parameters, buffers, and tensors.
 
         This method extends the functionality of the parent class's _apply method by additionally resetting the
         predictor and updating the device in the model's overrides. It's typically used for operations like moving the
@@ -842,10 +846,10 @@ class Model(torch.nn.Module):
             (Model): The model instance with the function applied and updated attributes.
 
         Raises:
-            AssertionError: If the model is not a PyTorch model.
+            TypeError: If the model is not a PyTorch model.
 
         Examples:
-            >>> model = Model("yolo11n.pt")
+            >>> model = Model("yolo26n.pt")
             >>> model = model._apply(lambda t: t.cuda())  # Move model to GPU
         """
         self._check_is_pytorch_model()
@@ -870,7 +874,7 @@ class Model(torch.nn.Module):
             AttributeError: If the model or predictor does not have a 'names' attribute.
 
         Examples:
-            >>> model = YOLO("yolo11n.pt")
+            >>> model = YOLO("yolo26n.pt")
             >>> print(model.names)
             {0: 'person', 1: 'bicycle', 2: 'car', ...}
         """
@@ -892,13 +896,11 @@ class Model(torch.nn.Module):
         applicable only to models that are instances of torch.nn.Module.
 
         Returns:
-            (torch.device): The device (CPU/GPU) of the model.
-
-        Raises:
-            AttributeError: If the model is not a torch.nn.Module instance.
+            (torch.device | None): The device (CPU/GPU) of the model, or None if the model is not a torch.nn.Module
+                instance.
 
         Examples:
-            >>> model = YOLO("yolo11n.pt")
+            >>> model = YOLO("yolo26n.pt")
             >>> print(model.device)
             device(type='cuda', index=0)  # if CUDA is available
             >>> model = model.to("cpu")
@@ -919,7 +921,7 @@ class Model(torch.nn.Module):
             (object | None): The transform object of the model if available, otherwise None.
 
         Examples:
-            >>> model = YOLO("yolo11n.pt")
+            >>> model = YOLO("yolo26n.pt")
             >>> transforms = model.transforms
             >>> if transforms:
             ...     print(f"Model transforms: {transforms}")
@@ -941,13 +943,10 @@ class Model(torch.nn.Module):
             func (Callable): The callback function to be registered. This function will be called when the specified
                 event occurs.
 
-        Raises:
-            ValueError: If the event name is not recognized or is invalid.
-
         Examples:
             >>> def on_train_start(trainer):
             ...     print("Training is starting!")
-            >>> model = YOLO("yolo11n.pt")
+            >>> model = YOLO("yolo26n.pt")
             >>> model.add_callback("on_train_start", on_train_start)
             >>> model.train(data="coco8.yaml", epochs=1)
         """
@@ -965,7 +964,7 @@ class Model(torch.nn.Module):
                 recognized by the Ultralytics callback system.
 
         Examples:
-            >>> model = YOLO("yolo11n.pt")
+            >>> model = YOLO("yolo26n.pt")
             >>> model.add_callback("on_train_start", lambda: print("Training started"))
             >>> model.clear_callback("on_train_start")
             >>> # All callbacks for 'on_train_start' are now removed
@@ -994,7 +993,7 @@ class Model(torch.nn.Module):
         modifications, ensuring consistent behavior across different runs or experiments.
 
         Examples:
-            >>> model = YOLO("yolo11n.pt")
+            >>> model = YOLO("yolo26n.pt")
             >>> model.add_callback("on_train_start", custom_function)
             >>> model.reset_callbacks()
             # All callbacks are now reset to their default functions
@@ -1011,10 +1010,10 @@ class Model(torch.nn.Module):
         from a checkpoint, discarding any unnecessary or potentially conflicting settings.
 
         Args:
-            args (dict): A dictionary containing various model arguments and settings.
+            args (dict[str, Any]): A dictionary containing various model arguments and settings.
 
         Returns:
-            (dict): A new dictionary containing only the specified include keys from the input arguments.
+            (dict[str, Any]): A new dictionary containing only the specified include keys from the input arguments.
 
         Examples:
             >>> original_args = {"imgsz": 640, "data": "coco.yaml", "task": "detect", "batch": 16, "epochs": 100}
@@ -1076,7 +1075,7 @@ class Model(torch.nn.Module):
                 implementations for that task.
 
         Examples:
-            >>> model = Model("yolo11n.pt")
+            >>> model = Model("yolo26n.pt")
             >>> task_map = model.task_map
             >>> detect_predictor = task_map["detect"]["predictor"]
             >>> segment_trainer = task_map["segment"]["trainer"]
@@ -1094,7 +1093,7 @@ class Model(torch.nn.Module):
             (Model): The model instance with evaluation mode set.
 
         Examples:
-            >>> model = YOLO("yolo11n.pt")
+            >>> model = YOLO("yolo26n.pt")
             >>> model.eval()
             >>> # Model is now in evaluation mode for inference
         """
@@ -1118,7 +1117,7 @@ class Model(torch.nn.Module):
             AttributeError: If the requested attribute does not exist in the model.
 
         Examples:
-            >>> model = YOLO("yolo11n.pt")
+            >>> model = YOLO("yolo26n.pt")
             >>> print(model.stride)  # Access model.stride attribute
             >>> print(model.names)  # Access model.names attribute
         """

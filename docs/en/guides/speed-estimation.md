@@ -33,10 +33,10 @@ keywords: Ultralytics YOLO26, speed estimation, object tracking, computer vision
 
 ## Real World Applications
 
-|                                                                            Transportation                                                                            |                                                                              Transportation                                                                              |
-| :------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![Speed Estimation on Road using Ultralytics YOLO26](https://github.com/ultralytics/docs/releases/download/0/speed-estimation-on-road-using-ultralytics-yolov8.avif) | ![Speed Estimation on Bridge using Ultralytics YOLO26](https://github.com/ultralytics/docs/releases/download/0/speed-estimation-on-bridge-using-ultralytics-yolov8.avif) |
-|                                                          Speed Estimation on Road using Ultralytics YOLO26                                                           |                                                           Speed Estimation on Bridge using Ultralytics YOLO26                                                            |
+|                                                                            Transportation                                                                             |                                                                              Transportation                                                                               |
+| :-------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| ![Speed Estimation on Road using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/speed-estimation-on-road-using-ultralytics-yolov8.avif) | ![Speed Estimation on Bridge using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/speed-estimation-on-bridge-using-ultralytics-yolov8.avif) |
+|                                                           Speed Estimation on Road using Ultralytics YOLO26                                                           |                                                            Speed Estimation on Bridge using Ultralytics YOLO26                                                            |
 
 ???+ warning "Speed is an Estimate"
 

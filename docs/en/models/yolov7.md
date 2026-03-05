@@ -8,7 +8,7 @@ keywords: YOLOv7, real-time object detection, Ultralytics, AI, computer vision, 
 
 YOLOv7, released in July 2022, was a significant advancement in real-time object detection at its time of release. It achieved 56.8% AP on GPU V100, setting new benchmarks when introduced. YOLOv7 outperformed contemporary object detectors such as YOLOR, YOLOX, Scaled-YOLOv4, and YOLOv5 in speed and [accuracy](https://www.ultralytics.com/glossary/accuracy). The model is trained on the MS COCO dataset from scratch without using any other datasets or pretrained weights. Source code for YOLOv7 is available on GitHub. Note that newer models like [YOLO11](yolo11.md) and [YOLO26](yolo26.md) have since achieved higher accuracy with improved efficiency.
 
-![YOLOv7 comparison with SOTA object detectors](https://github.com/ultralytics/docs/releases/download/0/yolov7-comparison-sota-object-detectors.avif)
+![YOLOv7 comparison with SOTA object detectors](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov7-comparison-sota-object-detectors.avif)
 
 ## Comparison of SOTA object detectors
 
@@ -19,7 +19,7 @@ From the results in the YOLO comparison table we know that the proposed method h
 
 <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv7"]'></canvas>
 
-If we compare YOLOv7-X with 114 fps inference speed to YOLOv5-L (r6.1) with 99 fps inference speed, YOLOv7-X can improve AP by 3.9%. If YOLOv7-X is compared with YOLOv5-X (r6.1) of similar scale, the inference speed of YOLOv7-X is 31 fps faster. In addition, in terms the amount of parameters and computation, YOLOv7-X reduces 22% of parameters and 8% of computation compared to YOLOv5-X (r6.1), but improves AP by 2.2% ([Source](https://arxiv.org/pdf/2207.02696)).
+If we compare YOLOv7-X with 114 fps inference speed to YOLOv5-L (r6.1) with 99 fps inference speed, YOLOv7-X can improve AP by 3.9%. If YOLOv7-X is compared with YOLOv5-X (r6.1) of similar scale, the inference speed of YOLOv7-X is 31 fps faster. In addition, in terms of the amount of parameters and computation, YOLOv7-X reduces 22% of parameters and 8% of computation compared to YOLOv5-X (r6.1), but improves AP by 2.2% ([Source](https://arxiv.org/pdf/2207.02696)).
 
 !!! tip "Performance"
 
@@ -101,7 +101,7 @@ To use YOLOv7 ONNX model with Ultralytics:
 
     ```bash
     pip install ultralytics
-    yolo export model=yolo11n.pt format=onnx
+    yolo export model=yolo26n.pt format=onnx
     ```
 
 2. Export the desired YOLOv7 model by using the exporter in the [YOLOv7 repo](https://github.com/WongKinYiu/yolov7):

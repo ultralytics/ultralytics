@@ -12,6 +12,7 @@ from typing import Any
 import cv2
 import numpy as np
 import torch
+from PIL import Image
 
 # OpenCV Multilanguage-friendly functions ------------------------------------------------------------------------------
 _imshow = cv2.imshow  # copy to avoid recursion errors
@@ -40,7 +41,68 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
         return None
     else:
         im = cv2.imdecode(file_bytes, flags)
+        # Fallback for formats OpenCV imdecode may not support (AVIF, HEIC)
+        if im is None and filename.lower().endswith((".avif", ".heic")):
+            im = _imread_pil(filename, flags)
         return im[..., None] if im is not None and im.ndim == 2 else im  # Always ensure 3 dimensions
+
+
+# PIL patches ---------------------------------------------------------------------------------------------------------
+_image_open = Image.open  # copy to avoid recursion errors
+_pil_plugins_registered = False
+
+
+def image_open(filename, *args, **kwargs):
+    """Open an image with PIL, lazily registering the HEIF plugin on first failure.
+
+    This monkey-patches PIL.Image.open to add HEIC/HEIF support via pi-heif (lightweight, decode-only), avoiding the
+    ~800ms startup cost of importing the package unless actually needed. AVIF is supported natively by Pillow 12+ and
+    does not require a plugin.
+
+    Args:
+        filename (str): Path to the image file.
+        *args (Any): Additional positional arguments passed to PIL.Image.open.
+        **kwargs (Any): Additional keyword arguments passed to PIL.Image.open.
+
+    Returns:
+        (PIL.Image.Image): The opened PIL image.
+    """
+    global _pil_plugins_registered
+    if _pil_plugins_registered:
+        return _image_open(filename, *args, **kwargs)
+    try:
+        return _image_open(filename, *args, **kwargs)
+    except Exception:
+        from ultralytics.utils.checks import check_requirements
+
+        check_requirements("pi-heif")
+        from pi_heif import register_heif_opener
+
+        register_heif_opener()
+        _pil_plugins_registered = True
+        return _image_open(filename, *args, **kwargs)
+
+
+Image.open = image_open  # apply patch
+
+
+def _imread_pil(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
+    """Read an image using PIL as fallback for formats not supported by OpenCV.
+
+    Args:
+        filename (str): Path to the file to read.
+        flags (int, optional): OpenCV imread flags (used to determine grayscale conversion).
+
+    Returns:
+        (np.ndarray | None): The read image array in BGR format, or None if reading fails.
+    """
+    try:
+        with Image.open(filename) as img:
+            if flags == cv2.IMREAD_GRAYSCALE:
+                return np.asarray(img.convert("L"))
+            return cv2.cvtColor(np.asarray(img.convert("RGB")), cv2.COLOR_RGB2BGR)
+    except Exception:
+        return None
 
 
 def imwrite(filename: str, img: np.ndarray, params: list[int] | None = None) -> bool:
@@ -149,7 +211,7 @@ def arange_patch(args):
         func = torch.arange
 
         def arange(*args, dtype=None, **kwargs):
-            """Return a 1-D tensor of size with values from the interval and common difference."""
+            """Wrap torch.arange to cast dtype after creation instead of passing it directly."""
             return func(*args, **kwargs).to(dtype)  # cast to dtype instead of passing dtype
 
         torch.arange = arange  # patch
@@ -168,8 +230,8 @@ def onnx_export_patch():
         func = torch.onnx.export
 
         def torch_export(*args, **kwargs):
-            """Return a 1-D tensor of size with values from the interval and common difference."""
-            return func(*args, **kwargs, dynamo=False)  # cast to dtype instead of passing dtype
+            """Export model to ONNX format with Dynamo disabled for compatibility."""
+            return func(*args, **kwargs, dynamo=False)
 
         torch.onnx.export = torch_export  # patch
         yield
@@ -184,7 +246,7 @@ def override_configs(args, overrides: dict[str, Any] | None = None):
 
     Args:
         args (IterableSimpleNamespace): Original configuration arguments.
-        overrides (dict[str, Any]): Dictionary of overrides to apply.
+        overrides (dict[str, Any] | None): Dictionary of overrides to apply.
 
     Yields:
         (IterableSimpleNamespace): Configuration arguments with overrides applied.

@@ -10,7 +10,7 @@ keywords: SAM 3, Segment Anything 3, SAM3, SAM-3, video segmentation, image segm
 
     SAM 3 is fully integrated into the Ultralytics package as of **version 8.3.237** ([PR #22897](https://github.com/ultralytics/ultralytics/pull/22897)). Install or upgrade with `pip install -U ultralytics` to access all SAM 3 features including text-based concept segmentation, image exemplar prompts, and video tracking.
 
-![SAM 3 Overview](https://github.com/ultralytics/docs/releases/download/0/sam-3-overview.webp)
+![SAM 3 promptable concept segmentation overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sam-3-overview.webp)
 
 **SAM 3** (Segment Anything Model 3) is Meta's released foundation model for **Promptable Concept Segmentation (PCS)**. Building upon [SAM 2](sam-2.md), SAM 3 introduces a fundamentally new capability: detecting, segmenting, and tracking **all instances** of a visual concept specified by text prompts, image exemplars, or both. Unlike previous SAM versions that segment single objects per prompt, SAM 3 can find and segment every occurrence of a concept appearing anywhere in images or videos, aligning with open-vocabulary goals in modern [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation).
 
@@ -31,7 +31,7 @@ SAM 3 is now fully integrated into the `ultralytics` package, providing native s
 
 SAM 3 achieves a **2× performance gain** over existing systems in Promptable Concept Segmentation while maintaining and improving SAM 2's capabilities for interactive [visual segmentation](../tasks/segment.md). The model excels at open-vocabulary segmentation, allowing users to specify concepts using simple noun phrases (e.g., "yellow school bus", "striped cat") or by providing example images of the target object. These capabilities complement production-ready pipelines that rely on streamlined [predict](../modes/predict.md) and [track](../modes/track.md) workflows.
 
-![SAM 3 Segmentation](https://github.com/ultralytics/docs/releases/download/0/sam-3-segmentation.webp)
+![SAM 3 text-prompt segmentation examples](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sam-3-segmentation.webp)
 
 ### What is Promptable Concept Segmentation (PCS)?
 
@@ -77,7 +77,7 @@ SAM 3 consists of a **detector** and **tracker** that share a Perception Encoder
 
 - **Presence Token**: A learned global token that predicts whether the target concept is present in the image/frame, improving detection by separating recognition from localization.
 
-![SAM 3 Architecture](https://github.com/ultralytics/docs/releases/download/0/sam-3-architecture.webp)
+![SAM 3 model architecture diagram](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sam-3-architecture.webp)
 
 ### Key Innovations
 
@@ -128,6 +128,14 @@ pip install -U ultralytics
 !!! warning "SAM 3 Model Weights Required"
 
     Unlike other Ultralytics models, SAM 3 weights (`sam3.pt`) are **not automatically downloaded**. You must first request access for the model weights on the [SAM 3 model page on Hugging Face](https://huggingface.co/facebook/sam3) and then, once approved, download the [`sam3.pt` file](https://huggingface.co/facebook/sam3/resolve/main/sam3.pt?download=true). Place the downloaded `sam3.pt` file in your working directory or specify the full path when loading the model.
+
+!!! warning "`TypeError: 'SimpleTokenizer' object is not callable`"
+
+    If you get the above error during prediction, it means you have the incorrect `clip` package installed. Install the correct `clip` package by running the following:
+    ```bash
+    pip uninstall clip -y
+    pip install git+https://github.com/ultralytics/CLIP.git
+    ```
 
 ## How to Use SAM 3: Versatility in Concept Segmentation
 
@@ -414,6 +422,51 @@ Here we compare SAM 3's capabilities with SAM 2 and [YOLO11](../models/yolo11.md
 - **SAM 3**: Best for open-vocabulary concept segmentation, finding all instances of a concept with text or exemplar prompts
 - **SAM 2**: Best for interactive single-object segmentation in images and videos with geometric prompts
 - **YOLO11**: Best for real-time, high-speed segmentation in resource-constrained deployments using efficient [export pipelines](../modes/export.md) like [ONNX](../integrations/onnx.md) and [TensorRT](../integrations/tensorrt.md)
+
+## SAM 3 Comparison vs YOLO
+
+Here we compare Meta's SAM 2 models, including the smallest SAM2-t variant, with Ultralytics smallest segmentation model, [YOLO11n-seg](../tasks/segment.md):
+
+| Model                                                                                          | Size<br><sup>(MB)</sup> | Parameters<br><sup>(M)</sup> | Speed (GPU)<br><sup>(ms/im)</sup> |
+| ---------------------------------------------------------------------------------------------- | ----------------------- | ---------------------------- | --------------------------------- |
+| [Meta SAM-b](sam.md)                                                                           | 375                     | 93.7                         | 1306                              |
+| [Meta SAM2-b](sam-2.md)                                                                        | 162                     | 80.8                         | 857                               |
+| [Meta SAM2-t](sam-2.md)                                                                        | 78.1                    | 38.9                         | 668                               |
+| Meta SAM3                                                                                      | 3200                    | 473.6                        | 2921                              |
+| [MobileSAM](mobile-sam.md)                                                                     | 40.7                    | 10.1                         | 605                               |
+| [FastSAM-s](fast-sam.md) with YOLOv8 [backbone](https://www.ultralytics.com/glossary/backbone) | 23.7                    | 11.8                         | 55.9                              |
+| Ultralytics [YOLOv8n-seg](yolov8.md)                                                           | **6.7** (477x smaller)  | **3.4** (139.1x less)        | **17.4** (167x faster)            |
+| Ultralytics [YOLO11n-seg](yolo11.md)                                                           | **5.9** (542x smaller)  | **2.9** (163.1x less)        | **12.6** (231x faster)            |
+| Ultralytics [YOLO26n-seg](yolo26.md)                                                           | **6.4** (500x smaller)  | **2.7** (175.2x less)        | **8.4** (347x faster)             |
+
+This comparison demonstrates the substantial differences in model sizes and speeds between SAM variants and YOLO segmentation models. While SAM provides unique automatic segmentation capabilities, YOLO models, particularly YOLOv8n-seg, YOLO11n-seg and YOLO26n-seg, are significantly smaller, faster, and more computationally efficient.
+
+Tests run on a NVIDIA RTX PRO 6000 with 96GB of VRAM using `torch==2.9.1` and `ultralytics==8.4.19`. To reproduce this test:
+
+!!! example
+
+    === "Python"
+
+        ```python
+        from ultralytics import ASSETS, SAM, YOLO, FastSAM
+
+        # Profile SAM3, SAM2-t, SAM2-b, SAM-b, MobileSAM
+        for file in ["sam_b.pt", "sam2_b.pt", "sam2_t.pt", "mobile_sam.pt", "sam3.pt"]:
+            model = SAM(file)
+            model.info()
+            model(ASSETS)
+
+        # Profile FastSAM-s
+        model = FastSAM("FastSAM-s.pt")
+        model.info()
+        model(ASSETS)
+
+        # Profile YOLO models
+        for file_name in ["yolov8n-seg.pt", "yolo11n-seg.pt", "yolo26n-seg.pt"]:
+            model = YOLO(file_name)
+            model.info()
+            model(ASSETS)
+        ```
 
 ## Evaluation Metrics
 

@@ -118,20 +118,20 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Login to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets._GITHUB_TOKEN }}
 
       - name: Login to NVIDIA NGC
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: nvcr.io
           username: $oauthtoken

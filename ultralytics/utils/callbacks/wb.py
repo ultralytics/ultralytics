@@ -16,7 +16,7 @@ except (ImportError, AssertionError):
 
 
 def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall", y_title="Precision"):
-    """Create and log a custom metric visualization to wandb.plot.pr_curve.
+    """Create and log a custom metric visualization table.
 
     This function crafts a custom metric visualization that mimics the behavior of the default wandb precision-recall
     curve while allowing for enhanced customization. The visual metric is useful for monitoring model performance across
@@ -128,10 +128,15 @@ def _log_plots(plots, step):
 def on_pretrain_routine_start(trainer):
     """Initialize and start wandb project if module is present."""
     if not wb.run:
+        from datetime import datetime
+
+        name = str(trainer.args.name).replace("/", "-").replace(" ", "_")
         wb.init(
             project=str(trainer.args.project).replace("/", "-") if trainer.args.project else "Ultralytics",
-            name=str(trainer.args.name).replace("/", "-"),
+            name=name,
             config=vars(trainer.args),
+            id=f"{name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",  # add unique id
+            dir=str(trainer.save_dir),
         )
 
 

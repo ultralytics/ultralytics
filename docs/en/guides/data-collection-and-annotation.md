@@ -73,7 +73,7 @@ Depending on the specific requirements of a [computer vision task](../tasks/inde
 - **Keypoints**: Specific points marked within an image to identify locations of interest. Keypoints are used in tasks like [pose estimation](../tasks/pose.md) and facial landmark detection.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/types-of-data-annotation.avif" alt="Types of Data Annotation">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/types-of-data-annotation.avif" alt="Data annotation types including bounding boxes, polygons, and masks">
 </p>
 
 ### Common Annotation Formats
@@ -103,7 +103,7 @@ Let's say you are ready to annotate now. There are several open-source tools ava
 - **[LabelImg](https://github.com/HumanSignal/labelImg)**: An easy-to-use graphical image annotation tool that's particularly good for creating bounding box annotations in YOLO format.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/labelme-instance-segmentation-annotation.avif" alt="LabelMe Overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/labelme-instance-segmentation-annotation.avif" alt="LabelMe annotation tool for instance segmentation">
 </p>
 
 These open-source tools are budget-friendly and provide a range of features to meet different annotation needs.
@@ -117,7 +117,7 @@ Before you dive into annotating your data, there are a few more things to keep i
 It's important to understand the difference between accuracy and precision and how it relates to annotation. Accuracy refers to how close the annotated data is to the true values. It helps us measure how closely the labels reflect real-world scenarios. Precision indicates the consistency of annotations. It checks if you are giving the same label to the same object or feature throughout the dataset. High accuracy and precision lead to better-trained models by reducing noise and improving the model's ability to generalize from the [training data](https://www.ultralytics.com/glossary/training-data).
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/example-of-precision.avif" alt="Example of Precision">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/example-of-precision.avif" alt="Accuracy vs precision comparison for data annotation">
 </p>
 
 #### Identifying Outliers

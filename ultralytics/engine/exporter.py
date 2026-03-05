@@ -1254,7 +1254,7 @@ class Exporter:
         """Export YOLO model to RKNN format."""
         LOGGER.info(f"\n{prefix} starting export with rknn-toolkit2...")
 
-        check_requirements("rknn-toolkit2")
+        check_requirements("rknn-toolkit2", cmds="--no-deps")
         if IS_COLAB:
             # Prevent 'exit' from closing the notebook https://github.com/airockchip/rknn-toolkit2/issues/259
             import builtins
@@ -1263,6 +1263,7 @@ class Exporter:
 
         from rknn.api import RKNN
 
+        self.args.opset = 19 # rknn-toolkit expects opset<=19 
         f = self.export_onnx()
         export_path = Path(f"{Path(f).stem}_rknn_model")
         export_path.mkdir(exist_ok=True)

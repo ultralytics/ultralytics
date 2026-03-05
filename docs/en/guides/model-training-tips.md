@@ -162,6 +162,14 @@ Different optimizers have various strengths and weaknesses. Let's take a glimpse
 
 For YOLO26, the `optimizer` parameter lets you choose from various optimizers, including SGD, Adam, AdamW, NAdam, RAdam, and RMSProp, or you can set it to `auto` for automatic selection based on model configuration.
 
+For longer YOLO26 training runs or larger datasets, the **MuSGD** optimizer can also be used.
+
+Example:
+
+```bash
+yolo train model=yolo26n.pt data=coco8.yaml optimizer=MuSGD
+```
+
 ## Connecting with the Community
 
 Being part of a community of computer vision enthusiasts can help you solve problems and learn faster. Here are some ways to connect, get help, and share ideas.

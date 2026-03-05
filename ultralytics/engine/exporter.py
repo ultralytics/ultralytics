@@ -1254,8 +1254,7 @@ class Exporter:
         """Export YOLO model to RKNN format."""
         LOGGER.info(f"\n{prefix} starting export with rknn-toolkit2...")
 
-        check_requirements("rknn-toolkit2", cmds="--no-deps")
-        check_requirements("onnx<1.19.0")
+        check_requirements("rknn-toolkit2", "onnx<1.19.0", cmds="--no-deps")
         if IS_COLAB:
             # Prevent 'exit' from closing the notebook https://github.com/airockchip/rknn-toolkit2/issues/259
             import builtins

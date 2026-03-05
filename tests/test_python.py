@@ -135,7 +135,31 @@ def test_predict_visualize(model):
     """Test model prediction methods with 'visualize=True' to generate prediction visualizations."""
     YOLO(WEIGHTS_DIR / model)(SOURCE, imgsz=32, visualize=True)
 
+def test_predict_tensor_float_bchw():
+    """Test float32 BCHW tensor inputs: [0,1] and unnormalized (later normalized by LoadTensor._single_check)."""
+    
+    m = YOLO(MODEL)
+    im_u8 = torch.randint(0, 256, (1, 3, 640, 640), dtype=torch.uint8)
+    im_f_norm = im_u8.float() / 255.0 # [0, 1]
+    im_f_unnorm = im_u8.float() # normalized downstream by _single_check
+    
+    assert len(m.predict(source=im_f_norm, verbose=False)) == 1
+    assert len(m.predict(source=im_f_unnorm, verbose=False)) == 1
 
+def test_predict_numpy_formats():
+    """Tests various numpy array inputs for multi image sz, list[np.ndarray], np.ndarray
+    
+        Only tests uint8 format since ultralytics.engine.predictor.BasePredictor.preprocess() expects hwc uint8 [0,255] np inputs
+    """
+
+    m = YOLO(MODEL)
+    im_480 = np.random.randint(0, 256, (480,480,3), dtype=np.uint8) # test multi img sz arrays
+    im_640 = np.random.randint(0, 256, (640,640,3), dtype=np.uint8) 
+
+    assert len(m.predict(source=im_480, verbose=False)) == 1
+    assert len(m.predict(source=im_640, verbose=False)) == 1
+    assert len(m.predict(source=[im_640, im_480], verbose=False)) == 2
+    
 def test_predict_gray_and_4ch(tmp_path):
     """Test YOLO prediction on SOURCE converted to grayscale and 4-channel images with various filenames."""
     im = Image.open(SOURCE)

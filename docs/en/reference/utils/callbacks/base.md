@@ -59,6 +59,10 @@ keywords: Ultralytics, base callbacks, training, validation, prediction, model e
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.callbacks.base.on_train_error
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.callbacks.base.on_params_update
 
 <br><br><hr><br>

@@ -109,7 +109,9 @@ def resolve_platform_uri(uri, hard=True):
 
         # Retry on server errors (5xx) — transient failures
         if r.status_code >= 500 and attempt < retries:
-            LOGGER.warning(f"{PREFIX}Server error {r.status_code} resolving {uri} (attempt {attempt + 1}/{retries}), retrying...")
+            LOGGER.warning(
+                f"{PREFIX}Server error {r.status_code} resolving {uri} (attempt {attempt + 1}/{retries}), retrying..."
+            )
             sleep(2**attempt)
             continue
 

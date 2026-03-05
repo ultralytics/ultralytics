@@ -820,7 +820,13 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         if "train" not in splits:
             raise ValueError(f"Dataset missing required 'train' split. Found splits: {sorted(splits)}")
         if "val" not in splits and "test" not in splits:
-            raise ValueError(f"Dataset missing required 'val' split. Found splits: {sorted(splits)}")
+            # Auto-split: assign last 20% of train images to val (deterministic order)
+            LOGGER.warning("Dataset has no 'val' split — auto-assigning last 20% of 'train' images to 'val'")
+            train_records = [r for r in image_records if r.get("split") == "train"]
+            n_val = max(1, len(train_records) // 5)
+            for r in train_records[-n_val:]:
+                r["split"] = "val"
+            splits = {record["split"] for record in image_records}
     if task == "pose" and "kpt_shape" not in dataset_record:
         raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose/")
 

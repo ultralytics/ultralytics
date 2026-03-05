@@ -88,6 +88,7 @@ def run_ray_tune(
     def _tune(config):
         """Train the YOLO model with the specified hyperparameters and return results."""
         model_to_train = ray.get(model_in_store)  # get the model from ray store for tuning
+        model_to_train.trainer = None
         model_to_train.reset_callbacks()
         config.update(train_args)
 

@@ -2290,6 +2290,8 @@ class SAM3SemanticPredictor(SAM3Predictor):
 
     def postprocess(self, preds, img, orig_imgs):
         """Post-process the predictions to apply non-overlapping constraints if required."""
+        import torchvision
+
         pred_boxes = preds["pred_boxes"]  # (nc, num_query, 4)
         pred_logits = preds["pred_logits"]
         pred_masks = preds["pred_masks"]
@@ -2304,9 +2306,13 @@ class SAM3SemanticPredictor(SAM3Predictor):
         pred_boxes = torch.cat([pred_boxes, pred_scores[..., None], pred_cls[..., None]], dim=-1)
 
         keep = pred_scores > self.args.conf
-        pred_masks = pred_masks[keep]
-        pred_boxes = pred_boxes[keep]
+        pred_masks, pred_boxes = pred_masks[keep], pred_boxes[keep]
         pred_boxes[:, :4] = ops.xywh2xyxy(pred_boxes[:, :4])
+
+        c = pred_boxes[:, 5:6] * (0 if self.args.agnostic_nms else 7680)  # classes
+        nms_boxes = pred_boxes[:, :4] + c  # boxes (offset by class)
+        keep = torchvision.ops.nms(nms_boxes, pred_boxes[:, 4], self.args.iou)  # NMS
+        pred_boxes, pred_masks = pred_boxes[keep], pred_masks[keep]
 
         names = getattr(self.model, "names", [str(i) for i in range(pred_scores.shape[0])])
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
@@ -2357,6 +2363,8 @@ class SAM3SemanticPredictor(SAM3Predictor):
         Notes:
             - The input features is a torch.Tensor of shape (B, C, H, W) if performing on SAM, or a dict[str, Any] if performing on SAM2.
         """
+        import torchvision
+
         prompts = self._prepare_geometric_prompts(src_shape[:2], bboxes, labels)
         preds = self._inference_features(features, *prompts, text=text)
         pred_boxes = preds["pred_boxes"]  # (nc, num_query, 4)
@@ -2373,9 +2381,13 @@ class SAM3SemanticPredictor(SAM3Predictor):
         pred_boxes = torch.cat([pred_boxes, pred_scores[..., None], pred_cls[..., None]], dim=-1)
 
         keep = pred_scores > self.args.conf
-        pred_masks = pred_masks[keep]
-        pred_boxes = pred_boxes[keep]
+        pred_masks, pred_boxes = pred_masks[keep], pred_boxes[keep]
         pred_boxes[:, :4] = ops.xywh2xyxy(pred_boxes[:, :4])
+
+        c = pred_boxes[:, 5:6] * (0 if self.args.agnostic_nms else 7680)  # classes
+        nms_boxes = pred_boxes[:, :4] + c  # boxes (offset by class)
+        keep = torchvision.ops.nms(nms_boxes, pred_boxes[:, 4], self.args.iou)  # NMS
+        pred_boxes, pred_masks = pred_boxes[keep], pred_masks[keep]
 
         if pred_masks.shape[0] == 0:
             pred_masks, pred_boxes = None, torch.zeros((0, 6), device=pred_masks.device)

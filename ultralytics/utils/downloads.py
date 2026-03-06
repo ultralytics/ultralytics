@@ -223,10 +223,13 @@ def check_disk_space(
     if file_bytes * sf < free:
         return True  # sufficient space
 
+    def fmt_bytes(b):
+        return f"{b / (1 << 20):.1f} MB" if b < (1 << 30) else f"{b / (1 << 30):.3f} GB"
+
     # Insufficient space
     text = (
-        f"Insufficient free disk space {free >> 30:.3f} GB < {int(file_bytes * sf) >> 30:.3f} GB required, "
-        f"Please free {int(file_bytes * sf - free) >> 30:.3f} GB additional disk space and try again."
+        f"Insufficient free disk space {fmt_bytes(free)} < {fmt_bytes(int(file_bytes * sf))} required, "
+        f"Please free {fmt_bytes(int(file_bytes * sf - free))} additional disk space and try again."
     )
     if hard:
         raise MemoryError(text)
@@ -314,6 +317,7 @@ def safe_download(
     gdrive = url.startswith("https://drive.google.com/")  # check if the URL is a Google Drive link
     if gdrive:
         url, file = get_google_drive_file_info(url)
+    url = url.replace(" ", "%20")  # encode spaces for curl/urllib compatibility
 
     f = Path(dir or ".") / (file or url2file(url))  # URL converted to filename
     if "://" not in str(url) and Path(url).is_file():  # URL exists ('://' check required in Windows Python<3.10)

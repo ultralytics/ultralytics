@@ -458,7 +458,11 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
                 continue
 
         if not satisfied:
-            pkgs.append(candidates[0])
+            pkg = candidates[0]
+            if "git+" in pkg:  # strip version constraints from git URLs for pip
+                url, sep, marker = pkg.partition(";")
+                pkg = re.sub(r"[<>!=~]+.*$", "", url) + sep + marker
+            pkgs.append(pkg)
 
     @Retry(times=2, delay=1)
     def attempt_install(packages, commands, use_uv):
@@ -534,6 +538,7 @@ def check_torchvision():
     to the compatibility table based on: https://github.com/pytorch/vision#installation.
     """
     compatibility_table = {
+        "2.10": ["0.25"],
         "2.9": ["0.24"],
         "2.8": ["0.23"],
         "2.7": ["0.22"],

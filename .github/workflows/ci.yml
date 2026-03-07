@@ -288,6 +288,10 @@ jobs:
             python: "3.12"
             torch: "2.9.0"
             torchvision: "0.24.0"
+          - os: ubuntu-latest
+            python: "3.12"
+            torch: "2.10.0"
+            torchvision: "0.25.0"
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6

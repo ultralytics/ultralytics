@@ -21,6 +21,7 @@ from .block import (
     C1,
     C2,
     C2PSA,
+    AFPNFuse,
     C3,
     C3TR,
     CIB,
@@ -115,6 +116,7 @@ from .transformer import (
 
 __all__ = (
     "AIFI",
+    "AFPNFuse",
     "C1",
     "C2",
     "C2PSA",

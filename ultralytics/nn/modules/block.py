@@ -2307,3 +2307,29 @@ class SpatialSuppressionGate(nn.Module):
         # cls_logits: (B, nc, H, W)def forward(self, cls_logits):
         gate = self.pw(self.dw(cls_logits)).sigmoid()
         return cls_logits * (gate * 0.9 + 0.1)
+
+
+class AFPNFuse(nn.Module):
+    """Asymptotic Feature Pyramid Network learnable weighted fusion.
+
+    Fuses N feature tensors of the same channel dimension using learnable
+    per-input scalar weights (BiFPN-style fast normalised fusion).  Refinement
+    is handled by downstream C3k2 blocks in the YAML graph, keeping this
+    module minimal.
+
+    Args:
+        c (int): Number of channels (shared by all inputs and output).
+        n (int): Number of input tensors.
+        eps (float): Epsilon for numerical stability.
+    """
+
+    def __init__(self, c: int, n: int = 2, eps: float = 1e-4):
+        super().__init__()
+        self.weights = nn.Parameter(torch.ones(n, dtype=torch.float32))
+        self.eps = eps
+
+    def forward(self, x: list) -> torch.Tensor:
+        """Fuse input feature tensors with learnable normalised weights."""
+        w = torch.relu(self.weights)
+        norm = w.sum() + self.eps
+        return sum(wi * xi for wi, xi in zip(w, x)) / norm

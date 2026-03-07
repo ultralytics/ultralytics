@@ -13,6 +13,7 @@ import torch.nn as nn
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import (
     AIFI,
+    AFPNFuse,
     C1,
     C2,
     C2Context,
@@ -1720,6 +1721,10 @@ def parse_model(d, ch, verbose=True):
             c2 = args[0]
             c1 = ch[f]
             args = [c1, c2, *args[1:]]
+        elif m is AFPNFuse:
+            c2 = make_divisible(min(args[0], max_channels) * width, 8)
+            n_inputs = args[1] if len(args) > 1 else len(f)
+            args = [c2, n_inputs]
         elif m is CBFuse:
             c2 = ch[f[-1]]
         elif m in frozenset({TorchVision, Index}):

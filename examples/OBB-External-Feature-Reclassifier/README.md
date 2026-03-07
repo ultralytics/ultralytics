@@ -17,19 +17,19 @@ Detection is completely untouched. The same model, same weights, and same detect
 
 **YOLOv8l-OBB** (50,348 matched detections, 458 original scenes):
 
-|                  | YOLO Direct | Bolt-On |
-|------------------|-------------|---------|
-| Weighted F1      | 0.9925      | 0.9929  |
-| Macro F1         | 0.9826      | 0.9827  |
-| helicopter       | 0.502       | 0.916   |
-| plane            | 0.976       | 0.998   |
+|             | YOLO Direct | Bolt-On |
+| ----------- | ----------- | ------- |
+| Weighted F1 | 0.9925      | 0.9929  |
+| Macro F1    | 0.9826      | 0.9827  |
+| helicopter  | 0.502       | 0.916   |
+| plane       | 0.976       | 0.998   |
 
 **YOLO26l-OBB** (49,414 matched detections, 458 original scenes):
 
-|                    | YOLO Direct | Bolt-On |
-|--------------------|-------------|---------|
-| Weighted F1        | 0.9943      | 0.9947  |
-| Macro F1           | 0.9891      | 0.9899  |
+|             | YOLO Direct | Bolt-On |
+| ----------- | ----------- | ------- |
+| Weighted F1 | 0.9943      | 0.9947  |
+| Macro F1    | 0.9891      | 0.9899  |
 
 No class degraded on either model across all 15 categories. When given access to YOLOv8l-OBB's full 15-dim pre-NMS class distribution (not just the argmax label), the encoder still reduced classification error by 18.4%.
 
@@ -37,14 +37,14 @@ No class degraded on either model across all 15 categories. When given access to
 
 The identical frozen encoder improves classification across domains and modalities it has never seen:
 
-| Benchmark  | Domain              | Modality        | Baseline Model                    | Error Reduction |
-|------------|---------------------|-----------------|-----------------------------------|-----------------|
-| xView3     | Maritime vessels    | C-band SAR      | 1st-place CircleNet               | 4.6%            |
-| DOTA       | Aerial objects      | HR aerial       | YOLOv8l-OBB                       | 8.9%            |
-| EuroSAT    | Land cover          | Multispectral   | Fine-tuned ResNet-50              | 10.6%           |
-| SpaceNet 6 | Building extraction | X-band SAR      | 1st-place competition winner      | 14.1%           |
-| RarePlanes | Aircraft roles      | VHR satellite   | Faster R-CNN (CosmiQ Works / IQT) | 39.5%           |
-| xView2     | Building damage     | RGB optical     | 3rd-place BloodAxe ensemble       | 40.7%           |
+| Benchmark  | Domain              | Modality      | Baseline Model                    | Error Reduction |
+| ---------- | ------------------- | ------------- | --------------------------------- | --------------- |
+| xView3     | Maritime vessels    | C-band SAR    | 1st-place CircleNet               | 4.6%            |
+| DOTA       | Aerial objects      | HR aerial     | YOLOv8l-OBB                       | 8.9%            |
+| EuroSAT    | Land cover          | Multispectral | Fine-tuned ResNet-50              | 10.6%           |
+| SpaceNet 6 | Building extraction | X-band SAR    | 1st-place competition winner      | 14.1%           |
+| RarePlanes | Aircraft roles      | VHR satellite | Faster R-CNN (CosmiQ Works / IQT) | 39.5%           |
+| xView2     | Building damage     | RGB optical   | 3rd-place BloodAxe ensemble       | 40.7%           |
 
 ## Try It on Your Own Task
 
@@ -80,9 +80,9 @@ DOTA images are very large (up to 20k x 20k pixels). This splits them into tiles
 
 ```bash
 python obb_feature_reclassifier.py tile \
-    --images path/to/val/images \
-    --labels path/to/val/labelTxt \
-    --output ./tiled
+  --images path/to/val/images \
+  --labels path/to/val/labelTxt \
+  --output ./tiled
 ```
 
 ### Step 2: Run the benchmark
@@ -90,26 +90,26 @@ python obb_feature_reclassifier.py tile \
 ```bash
 # YOLOv8 (default)
 python obb_feature_reclassifier.py bench \
-    --images ./tiled/images \
-    --labels ./tiled/labels
+  --images ./tiled/images \
+  --labels ./tiled/labels
 
 # YOLO26
 python obb_feature_reclassifier.py bench \
-    --images ./tiled/images \
-    --labels ./tiled/labels \
-    --model yolo26l-obb.pt
+  --images ./tiled/images \
+  --labels ./tiled/labels \
+  --model yolo26l-obb.pt
 
 # Full pre-NMS class scores (YOLOv8 only — see note below)
 python obb_feature_reclassifier.py bench \
-    --images ./tiled/images \
-    --labels ./tiled/labels \
-    --full-scores
+  --images ./tiled/images \
+  --labels ./tiled/labels \
+  --full-scores
 
 # Skip detection on subsequent runs (uses cached results)
 python obb_feature_reclassifier.py bench \
-    --images ./tiled/images \
-    --labels ./tiled/labels \
-    --skip-detection
+  --images ./tiled/images \
+  --labels ./tiled/labels \
+  --skip-detection
 ```
 
 ### Note on `--full-scores`

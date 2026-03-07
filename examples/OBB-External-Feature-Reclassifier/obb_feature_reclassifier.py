@@ -94,6 +94,7 @@ from PIL import Image
 from sklearn.metrics import f1_score
 from sklearn.model_selection import GroupKFold
 from tqdm import tqdm
+
 from ultralytics import YOLO
 from ultralytics.data.augment import LetterBox
 
@@ -102,10 +103,21 @@ API_KEY = "sk_ae_1289e06722678304582fcde59ba5573aab73f32d91601d22022f2890ed4a783
 BATCH_SIZE = 64
 
 DOTA_CLASSES = [
-    "plane", "ship", "storage-tank", "baseball-diamond", "tennis-court",
-    "basketball-court", "ground-track-field", "harbor", "bridge",
-    "large-vehicle", "small-vehicle", "helicopter", "roundabout",
-    "soccer-ball-field", "swimming-pool",
+    "plane",
+    "ship",
+    "storage-tank",
+    "baseball-diamond",
+    "tennis-court",
+    "basketball-court",
+    "ground-track-field",
+    "harbor",
+    "bridge",
+    "large-vehicle",
+    "small-vehicle",
+    "helicopter",
+    "roundabout",
+    "soccer-ball-field",
+    "swimming-pool",
 ]
 
 IOU_THRESH = 0.5
@@ -152,9 +164,8 @@ def obb_to_xyxy(pts):
 def tile_dataset(images_dir, labels_dir, output_dir, tile_size=1024, overlap=200):
     """Split DOTA images and labels into tiles for YOLO inference.
 
-    DOTA images can be up to 20k x 20k pixels. This function tiles them into
-    manageable patches with overlap, keeping only tiles that contain at least
-    one annotated object.
+    DOTA images can be up to 20k x 20k pixels. This function tiles them into manageable patches with overlap, keeping
+    only tiles that contain at least one annotated object.
 
     Args:
         images_dir (str): Directory containing full-size DOTA images (.png).
@@ -186,8 +197,8 @@ def tile_dataset(images_dir, labels_dir, output_dir, tile_size=1024, overlap=200
         anns = parse_dota_label(label_path) if os.path.exists(label_path) else []
         h, w = img.shape[:2]
 
-        xs = sorted(set(list(range(0, max(1, w - tile_size + 1), stride)) + [max(0, w - tile_size)]))
-        ys = sorted(set(list(range(0, max(1, h - tile_size + 1), stride)) + [max(0, h - tile_size)]))
+        xs = sorted(set([*list(range(0, max(1, w - tile_size + 1), stride)), max(0, w - tile_size)]))
+        ys = sorted(set([*list(range(0, max(1, h - tile_size + 1), stride)), max(0, h - tile_size)]))
 
         for y0 in ys:
             for x0 in xs:
@@ -231,9 +242,8 @@ def tile_dataset(images_dir, labels_dir, output_dir, tile_size=1024, overlap=200
 def extract_raw_scores(model, image, imgsz=1024):
     """Extract pre-NMS class scores from the raw model output.
 
-    Runs the model backbone and head directly to get sigmoid class scores for
-    every candidate before NMS filtering. Only valid for NMS-based architectures
-    like YOLOv8. YOLO26's NMS-free head does not produce interpretable class
+    Runs the model backbone and head directly to get sigmoid class scores for every candidate before NMS filtering. Only
+    valid for NMS-based architectures like YOLOv8. YOLO26's NMS-free head does not produce interpretable class
     distributions at this stage.
 
     Args:
@@ -422,13 +432,15 @@ def run_detection(model, images_dir, labels_dir, full_scores=False):
                 continue
             crop = cv2.resize(img[y1:y2, x1:x2], (128, 128), interpolation=cv2.INTER_AREA)
 
-            records.append({
-                "scene": scene,
-                "pred_class": pc,
-                "gt_class": gc,
-                "class_probs": probs,
-                "crop": crop,
-            })
+            records.append(
+                {
+                    "scene": scene,
+                    "pred_class": pc,
+                    "gt_class": gc,
+                    "class_probs": probs,
+                    "crop": crop,
+                }
+            )
 
     print(f"Matched detections: {len(records)}")
     return records
@@ -494,8 +506,8 @@ def encode_all(records):
 def evaluate(records, features, model_name):
     """Run 5-fold scene-level cross-validation comparing YOLO vs bolt-on.
 
-    Compares YOLO's direct class predictions against a LightGBM classifier
-    trained on YOLO class outputs concatenated with encoder feature vectors.
+    Compares YOLO's direct class predictions against a LightGBM classifier trained on YOLO class outputs concatenated
+    with encoder feature vectors.
 
     Args:
         records (list[dict]): Detection records with ground truth and predictions.

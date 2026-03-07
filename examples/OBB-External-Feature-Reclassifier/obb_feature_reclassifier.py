@@ -608,7 +608,7 @@ def main():
         crop_path = os.path.join(args.cache_dir, "crops.npy")
         feat_path = os.path.join(args.cache_dir, "features.npy")
 
-        if args.skip_detection and os.path.exists(rec_path):
+        if args.skip_detection and os.path.exists(rec_path) and os.path.exists(crop_path):
             print("Loading cached detections...")
             records = np.load(rec_path, allow_pickle=True)["records"].tolist()
             crops = np.load(crop_path)
@@ -628,6 +628,10 @@ def main():
         if os.path.exists(feat_path) and args.skip_detection:
             print("Loading cached encoder features...")
             features = np.load(feat_path).tolist()
+            if len(features) != len(records):
+                print(f"  Cache mismatch ({len(features)} features vs {len(records)} records), re-encoding...")
+                features = encode_all(records)
+                np.save(feat_path, np.array(features))
         else:
             features = encode_all(records)
             np.save(feat_path, np.array(features))

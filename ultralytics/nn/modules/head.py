@@ -306,13 +306,19 @@ class DetectNorm(Detect):
         return x["boxes"].sigmoid() * scale.view(1, 4, 1)
 
     def bias_init(self) -> None:
-        """Initialize biases. Box head uses zero init (sigmoid(0)=0.5); class head same as Detect."""
+        """Initialize biases for DetectNorm.
+
+        Box biases are set to [-1, -1, +1, +1] so sigmoid gives initial xyxy ≈ [0.27, 0.27, 0.73, 0.73],
+        a valid non-zero-area box. Zero init (sigmoid=0.5 for all coords) produces degenerate zero-area
+        boxes whose CIoU gradient ∂v/∂w ≈ 1/eps → gradient explosion → NaN loss.
+        """
+        _box_init = torch.tensor([-1.0, -1.0, 1.0, 1.0])
         for i, (a, b) in enumerate(zip(self.one2many["box_head"], self.one2many["cls_head"])):
-            a[-1].bias.data[:] = 0.0  # box: sigmoid(0) = 0.5 maps to image center region
+            a[-1].bias.data[:] = _box_init
             b[-1].bias.data[: self.nc] = math.log(5 / self.nc / (640 / self.stride[i]) ** 2)
         if self.end2end:
             for i, (a, b) in enumerate(zip(self.one2one["box_head"], self.one2one["cls_head"])):
-                a[-1].bias.data[:] = 0.0
+                a[-1].bias.data[:] = _box_init
                 b[-1].bias.data[: self.nc] = math.log(5 / self.nc / (640 / self.stride[i]) ** 2)
 
 

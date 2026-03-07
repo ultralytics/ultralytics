@@ -1162,18 +1162,19 @@ class E2ELoss:
 
 
 class v8DetectionLossNorm(v8DetectionLoss):
-    """Detection loss for DetectNorm: boxes are predicted as sigmoid-normalized xyxy in [0, 1].
+    """Detection loss for DetectNorm: anchor-relative ltrb offsets in normalized [0, 1] space.
 
-    Replaces DFL + dist2bbox decoding with direct sigmoid regression.  IoU loss operates in pixel
-    space; an L1 loss on normalized coords replaces the DFL distribution loss (reuses hyp.dfl gain).
+    Decoding: xyxy_norm = dist2bbox(sigmoid(raw), anchor_norm), same structure as the baseline
+    but in normalized coordinates instead of stride units. IoU loss in pixel space; L1 loss on
+    normalized xyxy (reuses hyp.dfl gain).
     """
 
-    def bbox_decode(self, anchor_points: torch.Tensor, pred_dist: torch.Tensor) -> torch.Tensor:
-        """Decode predictions: sigmoid(raw logits) → normalized xyxy [0, 1]. anchor_points unused."""
-        return pred_dist.sigmoid()
+    def bbox_decode(self, anchor_points_norm: torch.Tensor, pred_dist: torch.Tensor) -> torch.Tensor:
+        """Decode sigmoid ltrb offsets relative to normalized anchor points → normalized xyxy [0, 1]."""
+        return dist2bbox(pred_dist.sigmoid(), anchor_points_norm, xywh=False)
 
     def get_assigned_targets_and_loss(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> tuple:
-        """Compute box, cls, and L1 losses for normalized coordinate predictions."""
+        """Compute box, cls, and L1 losses for anchor-relative normalized coordinate predictions."""
         loss = torch.zeros(3, device=self.device)  # box (IoU), cls, l1
         pred_distri, pred_scores = (
             preds["boxes"].permute(0, 2, 1).contiguous(),  # (B, A, 4) raw logits
@@ -1184,7 +1185,7 @@ class v8DetectionLossNorm(v8DetectionLoss):
         dtype = pred_scores.dtype
         batch_size = pred_scores.shape[0]
         imgsz = torch.tensor(preds["feats"][0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]
-        imgsz_whwh = imgsz[[1, 0, 1, 0]]  # (W, H, W, H) for xyxy
+        imgsz_whwh = imgsz[[1, 0, 1, 0]]  # (W, H, W, H) for xyxy scaling
 
         # GT targets in pixel xyxy (same as base class)
         targets = torch.cat((batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"]), 1)
@@ -1192,14 +1193,17 @@ class v8DetectionLossNorm(v8DetectionLoss):
         gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy pixel
         mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
 
-        # Predictions: sigmoid → normalized [0, 1] xyxy, then scale to pixel for assigner
-        pred_bboxes_norm = self.bbox_decode(None, pred_distri)  # (B, A, 4) in [0, 1]
-        pred_bboxes_px = pred_bboxes_norm * imgsz_whwh  # pixel coords
+        # Normalize anchor points to [0, 1]: (A, 2) pixel / (W, H)
+        anchor_points_norm = anchor_points * stride_tensor / imgsz[[1, 0]]  # (A, 2)
+
+        # Decode: dist2bbox(sigmoid(raw), anchor_norm) → normalized xyxy, then × imgsz for pixel
+        pred_bboxes_norm = self.bbox_decode(anchor_points_norm, pred_distri)  # (B, A, 4) in [0, 1]
+        pred_bboxes_px = pred_bboxes_norm * imgsz_whwh
 
         _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
             pred_scores.detach().sigmoid(),
             pred_bboxes_px.detach().type(gt_bboxes.dtype),
-            anchor_points * stride_tensor,  # pixel anchor points
+            anchor_points * stride_tensor,  # pixel anchor points for assigner
             gt_labels,
             gt_bboxes,
             mask_gt,
@@ -1218,7 +1222,7 @@ class v8DetectionLossNorm(v8DetectionLoss):
             iou = bbox_iou(pred_bboxes_px[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=True)
             loss[0] = ((1.0 - iou) * weight).sum() / target_scores_sum
 
-            # L1 loss in normalized space (replaces DFL; reuses hyp.dfl gain)
+            # L1 loss on normalized xyxy (reuses hyp.dfl gain)
             target_bboxes_norm = target_bboxes / imgsz_whwh
             loss[2] = (
                 F.l1_loss(pred_bboxes_norm[fg_mask], target_bboxes_norm[fg_mask], reduction="none").mean(

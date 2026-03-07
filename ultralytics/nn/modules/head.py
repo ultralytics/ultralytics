@@ -280,45 +280,48 @@ class Detect(nn.Module):
 
 
 class DetectNorm(Detect):
-    """YOLO detection head with direct sigmoid-normalized xyxy box predictions.
+    """YOLO detection head with anchor-relative normalized box predictions.
 
-    Instead of DFL distributions decoded relative to anchor points, this head predicts xyxy coordinates
-    directly in normalized [0, 1] space via sigmoid. Useful for studying anchor-free normalized regression.
-
-    Boxes are stored as raw logits during training (same dict format as Detect); sigmoid is applied in
-    _get_decode_boxes for inference and in v8DetectionLossNorm during training loss computation.
+    Predicts ltrb offsets from each anchor point using sigmoid, giving outputs in normalized [0, 1] space.
+    Decoding: xyxy_norm = dist2bbox(sigmoid(raw), anchor_norm), then × imgsz for pixel coords.
+    This is identical in structure to the baseline (anchor-relative ltrb), but the coordinate space is
+    normalized [0, 1] instead of stride units, and sigmoid bounds the offsets instead of raw values.
     """
 
     def __init__(self, nc: int = 80, reg_max: int = 1, end2end: bool = False, ch: tuple = ()):
-        """Initialize DetectNorm, forcing reg_max=1 (4-channel box output, no DFL)."""
+        """Initialize DetectNorm, forcing reg_max=1 (4-channel ltrb output, no DFL)."""
         super().__init__(nc=nc, reg_max=1, end2end=end2end, ch=ch)
 
     def _get_decode_boxes(self, x: dict) -> torch.Tensor:
-        """Decode raw 4-channel box logits to absolute pixel coords via sigmoid."""
+        """Decode sigmoid ltrb offsets relative to normalized anchor points → pixel coords."""
         shape = x["feats"][0].shape  # BCHW
         if self.dynamic or self.shape != shape:
             self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(x["feats"], self.stride, 0.5))
             self.shape = shape
         h = shape[2] * self.stride[0]
         w = shape[3] * self.stride[0]
-        scale = torch.tensor([w, h, w, h], device=x["boxes"].device, dtype=x["boxes"].dtype)
-        # x["boxes"] is (B, 4, A) raw logits; sigmoid → [0,1], then scale to pixel coords
-        return x["boxes"].sigmoid() * scale.view(1, 4, 1)
+        # Normalize anchor points to [0, 1]: anchors (2, A) × strides (1, A) / (W, H)
+        wh = torch.tensor([w, h], device=self.anchors.device, dtype=self.anchors.dtype).view(2, 1)
+        anchor_norm = self.anchors * self.strides / wh  # (2, A) in [0, 1]
+        # Decode ltrb: x["boxes"] is (B, 4, A) raw logits → sigmoid → ltrb offsets
+        pred_ltrb = x["boxes"].sigmoid()  # (B, 4, A)
+        x1y1 = anchor_norm.unsqueeze(0) - pred_ltrb[:, :2]  # (B, 2, A)
+        x2y2 = anchor_norm.unsqueeze(0) + pred_ltrb[:, 2:]  # (B, 2, A)
+        boxes_norm = torch.cat([x1y1, x2y2], dim=1)  # (B, 4, A) in [0, 1]
+        imgsz = torch.tensor([w, h, w, h], device=boxes_norm.device, dtype=boxes_norm.dtype)
+        return boxes_norm * imgsz.view(1, 4, 1)
 
     def bias_init(self) -> None:
-        """Initialize biases for DetectNorm.
-
-        Box biases are set to [-1, -1, +1, +1] so sigmoid gives initial xyxy ≈ [0.27, 0.27, 0.73, 0.73],
-        a valid non-zero-area box. Zero init (sigmoid=0.5 for all coords) produces degenerate zero-area
-        boxes whose CIoU gradient ∂v/∂w ≈ 1/eps → gradient explosion → NaN loss.
-        """
-        _box_init = torch.tensor([-1.0, -1.0, 1.0, 1.0])
+        """Initialize box biases so initial ltrb offsets match the baseline's 2-grid-unit initial size."""
         for i, (a, b) in enumerate(zip(self.one2many["box_head"], self.one2many["cls_head"])):
-            a[-1].bias.data[:] = _box_init
+            # sigmoid(bias) = 2 * stride / 640  →  bias = logit(2 * stride / 640)
+            ltrb0 = 2.0 * self.stride[i].item() / 640.0
+            a[-1].bias.data[:] = math.log(ltrb0 / (1.0 - ltrb0))
             b[-1].bias.data[: self.nc] = math.log(5 / self.nc / (640 / self.stride[i]) ** 2)
         if self.end2end:
             for i, (a, b) in enumerate(zip(self.one2one["box_head"], self.one2one["cls_head"])):
-                a[-1].bias.data[:] = _box_init
+                ltrb0 = 2.0 * self.stride[i].item() / 640.0
+                a[-1].bias.data[:] = math.log(ltrb0 / (1.0 - ltrb0))
                 b[-1].bias.data[: self.nc] = math.log(5 / self.nc / (640 / self.stride[i]) ** 2)
 
 

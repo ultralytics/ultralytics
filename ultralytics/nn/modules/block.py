@@ -2269,6 +2269,7 @@ class LinearPSABlock(nn.Module):
         x = x + self.ffn(x)
         return x
 
+
 class C2Context(nn.Module):
     """C2PSA replacement using large-kernel depthwise for context."""
 
@@ -2279,19 +2280,23 @@ class C2Context(nn.Module):
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
         self.cv2 = Conv(2 * self.c, c1, 1)
         # Stack of depthwise large-kernel convs
-        self.m = nn.Sequential(*(
-            nn.Sequential(
-                nn.Conv2d(self.c, self.c, k, 1, k // 2, groups=self.c, bias=False),
-                nn.BatchNorm2d(self.c),
-                nn.SiLU(),
-                Conv(self.c, self.c, 1, act=True),  # pointwise mixing
-            ) for _ in range(n)
-        ))
+        self.m = nn.Sequential(
+            *(
+                nn.Sequential(
+                    nn.Conv2d(self.c, self.c, k, 1, k // 2, groups=self.c, bias=False),
+                    nn.BatchNorm2d(self.c),
+                    nn.SiLU(),
+                    Conv(self.c, self.c, 1, act=True),  # pointwise mixing
+                )
+                for _ in range(n)
+            )
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         a, b = self.cv1(x).split((self.c, self.c), dim=1)
         b = self.m(b)
         return self.cv2(torch.cat((a, b), 1))
+
 
 class SpatialSuppressionGate(nn.Module):
     """Lightweight neighbor-aware gating on cls logits."""

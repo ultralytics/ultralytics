@@ -1161,6 +1161,98 @@ class E2ELoss:
         return max(1 - x / max(self.one2one.hyp.epochs - 1, 1), 0) * (self.o2m_copy - self.final_o2m) + self.final_o2m
 
 
+class v8DetectionLossNorm(v8DetectionLoss):
+    """Detection loss for DetectNorm: boxes are predicted as sigmoid-normalized xyxy in [0, 1].
+
+    Replaces DFL + dist2bbox decoding with direct sigmoid regression.  IoU loss operates in pixel
+    space; an L1 loss on normalized coords replaces the DFL distribution loss (reuses hyp.dfl gain).
+    """
+
+    def bbox_decode(self, anchor_points: torch.Tensor, pred_dist: torch.Tensor) -> torch.Tensor:
+        """Decode predictions: sigmoid(raw logits) → normalized xyxy [0, 1]. anchor_points unused."""
+        return pred_dist.sigmoid()
+
+    def get_assigned_targets_and_loss(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> tuple:
+        """Compute box, cls, and L1 losses for normalized coordinate predictions."""
+        loss = torch.zeros(3, device=self.device)  # box (IoU), cls, l1
+        pred_distri, pred_scores = (
+            preds["boxes"].permute(0, 2, 1).contiguous(),  # (B, A, 4) raw logits
+            preds["scores"].permute(0, 2, 1).contiguous(),  # (B, A, nc)
+        )
+        anchor_points, stride_tensor = make_anchors(preds["feats"], self.stride, 0.5)
+
+        dtype = pred_scores.dtype
+        batch_size = pred_scores.shape[0]
+        imgsz = torch.tensor(preds["feats"][0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]
+        imgsz_whwh = imgsz[[1, 0, 1, 0]]  # (W, H, W, H) for xyxy
+
+        # GT targets in pixel xyxy (same as base class)
+        targets = torch.cat((batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"]), 1)
+        targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz_whwh)
+        gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy pixel
+        mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
+
+        # Predictions: sigmoid → normalized [0, 1] xyxy, then scale to pixel for assigner
+        pred_bboxes_norm = self.bbox_decode(None, pred_distri)  # (B, A, 4) in [0, 1]
+        pred_bboxes_px = pred_bboxes_norm * imgsz_whwh  # pixel coords
+
+        _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
+            pred_scores.detach().sigmoid(),
+            pred_bboxes_px.detach().type(gt_bboxes.dtype),
+            anchor_points * stride_tensor,  # pixel anchor points
+            gt_labels,
+            gt_bboxes,
+            mask_gt,
+        )
+
+        target_scores_sum = max(target_scores.sum(), 1)
+
+        # Cls loss
+        loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum
+
+        # Box losses
+        if fg_mask.sum():
+            weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
+
+            # IoU loss in pixel space
+            iou = bbox_iou(pred_bboxes_px[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=True)
+            loss[0] = ((1.0 - iou) * weight).sum() / target_scores_sum
+
+            # L1 loss in normalized space (replaces DFL; reuses hyp.dfl gain)
+            target_bboxes_norm = target_bboxes / imgsz_whwh
+            loss[2] = (
+                F.l1_loss(pred_bboxes_norm[fg_mask], target_bboxes_norm[fg_mask], reduction="none").mean(
+                    -1, keepdim=True
+                )
+                * weight
+            ).sum() / target_scores_sum
+
+        loss[0] *= self.hyp.box
+        loss[1] *= self.hyp.cls
+        loss[2] *= self.hyp.dfl  # reuse dfl gain for L1
+
+        return (
+            (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor),
+            loss,
+            loss.detach(),
+        )
+
+
+class E2ELossNorm(E2ELoss):
+    """E2E loss wrapper using v8DetectionLossNorm for DetectNorm heads."""
+
+    def __init__(self, model):
+        """Initialize with two v8DetectionLossNorm instances (one2many + one2one)."""
+        self.one2many = v8DetectionLossNorm(model, tal_topk=10)
+        self.one2one = v8DetectionLossNorm(model, tal_topk=7, tal_topk2=1)
+        self.updates = 0
+        self.total = 1.0
+        self.o2m = 0.8
+        self.o2o = self.total - self.o2m
+        self.o2m_copy = self.o2m
+        self.final_o2m = 0.1
+
+
 class TVPDetectLoss:
     """Criterion class for computing training losses for text-visual prompt detection."""
 

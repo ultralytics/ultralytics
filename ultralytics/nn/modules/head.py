@@ -31,7 +31,18 @@ from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "OBB", "Classify", "Detect", "Pose", "RTDETRDecoder", "Segment", "YOLOEDetect", "YOLOESegment", "v10Detect"
+__all__ = (
+    "OBB",
+    "Classify",
+    "Detect",
+    "DetectNorm",
+    "Pose",
+    "RTDETRDecoder",
+    "Segment",
+    "YOLOEDetect",
+    "YOLOESegment",
+    "v10Detect",
+)
 
 
 class Detect(nn.Module):
@@ -266,6 +277,43 @@ class Detect(nn.Module):
     def fuse(self) -> None:
         """Remove the one2many head for inference optimization."""
         self.cv2 = self.cv3 = None
+
+
+class DetectNorm(Detect):
+    """YOLO detection head with direct sigmoid-normalized xyxy box predictions.
+
+    Instead of DFL distributions decoded relative to anchor points, this head predicts xyxy coordinates
+    directly in normalized [0, 1] space via sigmoid. Useful for studying anchor-free normalized regression.
+
+    Boxes are stored as raw logits during training (same dict format as Detect); sigmoid is applied in
+    _get_decode_boxes for inference and in v8DetectionLossNorm during training loss computation.
+    """
+
+    def __init__(self, nc: int = 80, reg_max: int = 1, end2end: bool = False, ch: tuple = ()):
+        """Initialize DetectNorm, forcing reg_max=1 (4-channel box output, no DFL)."""
+        super().__init__(nc=nc, reg_max=1, end2end=end2end, ch=ch)
+
+    def _get_decode_boxes(self, x: dict) -> torch.Tensor:
+        """Decode raw 4-channel box logits to absolute pixel coords via sigmoid."""
+        shape = x["feats"][0].shape  # BCHW
+        if self.dynamic or self.shape != shape:
+            self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(x["feats"], self.stride, 0.5))
+            self.shape = shape
+        h = shape[2] * self.stride[0]
+        w = shape[3] * self.stride[0]
+        scale = torch.tensor([w, h, w, h], device=x["boxes"].device, dtype=x["boxes"].dtype)
+        # x["boxes"] is (B, 4, A) raw logits; sigmoid → [0,1], then scale to pixel coords
+        return x["boxes"].sigmoid() * scale.view(1, 4, 1)
+
+    def bias_init(self) -> None:
+        """Initialize biases. Box head uses zero init (sigmoid(0)=0.5); class head same as Detect."""
+        for i, (a, b) in enumerate(zip(self.one2many["box_head"], self.one2many["cls_head"])):
+            a[-1].bias.data[:] = 0.0  # box: sigmoid(0) = 0.5 maps to image center region
+            b[-1].bias.data[: self.nc] = math.log(5 / self.nc / (640 / self.stride[i]) ** 2)
+        if self.end2end:
+            for i, (a, b) in enumerate(zip(self.one2one["box_head"], self.one2one["cls_head"])):
+                a[-1].bias.data[:] = 0.0
+                b[-1].bias.data[: self.nc] = math.log(5 / self.nc / (640 / self.stride[i]) ** 2)
 
 
 class Segment(Detect):

@@ -50,6 +50,7 @@ from ultralytics.nn.modules import (
     Conv2,
     ConvTranspose,
     Detect,
+    DetectNorm,
     DWConv,
     DWConvTranspose2d,
     Focus,
@@ -82,9 +83,11 @@ from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, SETTINGS, YAML, colorstr
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
     E2ELoss,
+    E2ELossNorm,
     PoseLoss26,
     v8ClassificationLoss,
     v8DetectionLoss,
+    v8DetectionLossNorm,
     v8OBBLoss,
     v8PoseLoss,
     v8SegmentationLoss,
@@ -496,6 +499,8 @@ class DetectionModel(BaseModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the DetectionModel."""
+        if isinstance(self.model[-1], DetectNorm):
+            return E2ELossNorm(self) if getattr(self, "end2end", False) else v8DetectionLossNorm(self)
         return E2ELoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
 
 
@@ -1673,6 +1678,7 @@ def parse_model(d, ch, verbose=True):
         elif m in frozenset(
             {
                 Detect,
+                DetectNorm,
                 WorldDetect,
                 YOLOEDetect,
                 Segment,
@@ -1688,9 +1694,21 @@ def parse_model(d, ch, verbose=True):
             args.extend([reg_max, end2end, [ch[x] for x in f]])
             if m is Segment or m is YOLOESegment or m is Segment26 or m is YOLOESegment26:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m in {Detect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
+            if m in {
+                Detect,
+                DetectNorm,
+                YOLOEDetect,
+                Segment,
+                Segment26,
+                YOLOESegment,
+                YOLOESegment26,
+                Pose,
+                Pose26,
+                OBB,
+                OBB26,
+            }:
                 m.legacy = legacy
-            if m is Detect:
+            if m in {Detect, DetectNorm}:
                 m.suppress = suppress
         elif m is v10Detect:
             args.append([ch[x] for x in f])

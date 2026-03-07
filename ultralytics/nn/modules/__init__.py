@@ -87,6 +87,7 @@ from .head import (
     OBB26,
     Classify,
     Detect,
+    DetectNorm,
     LRPCHead,
     Pose,
     Pose26,

@@ -99,7 +99,7 @@ from ultralytics import YOLO
 from ultralytics.data.augment import LetterBox
 
 API_URL = "https://api.authorize.earth/v1/spatial/encode"
-API_KEY = "sk_ae_1289e06722678304582fcde59ba5573aab73f32d91601d22022f2890ed4a7833"
+API_KEY = os.environ.get("AUTHORIZE_EARTH_API_KEY", "")
 BATCH_SIZE = 64
 
 DOTA_CLASSES = [
@@ -455,6 +455,9 @@ def encode_crops(crops):
     Returns:
         list[list[float]]: List of 920-dimensional feature vectors.
     """
+    if not API_KEY:
+        print("  AUTHORIZE_EARTH_API_KEY not set, returning zero vectors")
+        return [np.zeros(920).tolist() for _ in crops]
     b64_list = []
     for c in crops:
         gray = cv2.cvtColor(c, cv2.COLOR_BGR2GRAY) if len(c.shape) == 3 else c

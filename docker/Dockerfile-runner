@@ -6,7 +6,7 @@
 # Start FROM Ultralytics GPU image
 FROM ultralytics/ultralytics:latest
 
-# Set additional environment variables for runner
+# Set additional environment variables for runner (no "v" on the version)
 ARG RUNNER_VERSION=2.332.0
 ENV RUNNER_ALLOW_RUNASROOT=1 \
     DEBIAN_FRONTEND=noninteractive

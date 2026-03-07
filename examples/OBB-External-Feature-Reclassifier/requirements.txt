@@ -1,0 +1,8 @@
+ultralytics==8.4.21
+lightgbm
+scikit-learn
+numpy
+opencv-python
+requests
+pillow
+tqdm

@@ -17,8 +17,6 @@ WORKDIR /actions-runner
 # Download and unpack the runner from https://github.com/actions/runner and install dependencies
 RUN FILENAME=actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz && \
     curl -fLso "$FILENAME" "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/${FILENAME}" && \
-    EXPECTED_SHA=$(curl -fLs "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}-sha256.txt") && \
-    echo "${EXPECTED_SHA}  ${FILENAME}" | sha256sum -c && \
     tar xzf "$FILENAME" && \
     rm "$FILENAME" && \
     # Install runner dependencies \

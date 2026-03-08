@@ -21,7 +21,7 @@ on:
         default: true
       Dockerfile-python:
         type: boolean
-        description: Dockerfile-python (+ jupyter, cpu, python-export)
+        description: Dockerfile-python (+ jupyter, cpu, runner-cpu, python-export)
         default: true
       Dockerfile-arm64:
         type: boolean
@@ -70,7 +70,7 @@ jobs:
             tags: "latest-python"
             platforms: "linux/amd64"
             runs_on: "ubuntu-latest"
-            derivatives: "Dockerfile-jupyter,Dockerfile-cpu,Dockerfile-python-export"
+            derivatives: "Dockerfile-jupyter,Dockerfile-cpu,Dockerfile-runner-cpu,Dockerfile-python-export"
           # Standalone base images
           - dockerfile: "Dockerfile-arm64"
             tags: "latest-arm64"

@@ -272,13 +272,13 @@ SAM smart annotation can generate:
 
 When Smart mode is active, a model picker appears in the toolbar. Five models are available — choose based on the speed vs. accuracy trade-off that suits your dataset:
 
-| Model              | Size    | Speed    | Notes                       |
-| ------------------ | ------- | -------- | --------------------------- |
-| **SAM 2.1 Tiny**   | 74.5 MB | Fastest  |                             |
-| **SAM 2.1 Small**  | 88 MB   | Fast     | Default                     |
-| **SAM 2.1 Base**   | 154 MB  | Moderate |                             |
-| **SAM 2.1 Large**  | 428 MB  | Slower   | Most accurate of SAM 2.1    |
-| **SAM 3**          | 3.45 GB | Slowest  | Latest generation, new 2025 |
+| Model             | Size    | Speed    | Notes                       |
+| ----------------- | ------- | -------- | --------------------------- |
+| **SAM 2.1 Tiny**  | 74.5 MB | Fastest  |                             |
+| **SAM 2.1 Small** | 88 MB   | Fast     | Default                     |
+| **SAM 2.1 Base**  | 154 MB  | Moderate |                             |
+| **SAM 2.1 Large** | 428 MB  | Slower   | Most accurate of SAM 2.1    |
+| **SAM 3**         | 3.45 GB | Slowest  | Latest generation, new 2025 |
 
 Switching models while Smart mode is active re-initializes the predictor for the current image automatically.
 

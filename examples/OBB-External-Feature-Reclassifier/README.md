@@ -66,10 +66,10 @@ The pattern works with a wide variety of detectors, not just YOLO. Crop your det
 git clone https://github.com/ultralytics/ultralytics
 cd ultralytics/examples/OBB-External-Feature-Reclassifier
 pip install ultralytics==8.4.21 lightgbm scikit-learn numpy opencv-python requests pillow tqdm
-export AUTHORIZE_EARTH_API_KEY=sk_ae_1289e06722678304582fcde59ba5573aab73f32d91601d22022f2890ed4a7833
+export AUTHORIZE_EARTH_API_KEY=your_earth_api_key
 ```
 
-The public evaluation key above works with no signup. Rate-limited to 3,000 requests/hour
+The public evaluation key is available at https://authorize.earth/r&d/spatial. Rate-limited to 3,000 requests/hour
 per IP and 15,000/hour globally. Without the key set the encoding step returns zero vectors
 and the script still runs but classification will not improve.
 

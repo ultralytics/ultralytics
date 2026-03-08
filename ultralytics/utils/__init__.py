@@ -141,6 +141,7 @@ warnings.filterwarnings("ignore", category=FutureWarning, module="timm")  # mobi
 warnings.filterwarnings("ignore", category=torch.jit.TracerWarning)  # ONNX/TorchScript export tracer warnings
 warnings.filterwarnings("ignore", category=UserWarning, message=".*prim::Constant.*")  # ONNX shape warning
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="coremltools")  # CoreML np.bool deprecation
+logging.getLogger("coremltools").setLevel(logging.ERROR)  # Suppress native binary load failures on non-macOS
 
 # Precompiled type tuples for faster isinstance() checks
 FLOAT_OR_INT = (float, int)

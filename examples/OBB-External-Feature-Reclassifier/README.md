@@ -11,7 +11,7 @@ Detection is completely untouched. The same model, same weights, and same detect
 3. Resize to 128x128 grayscale and send to the encoder API
 4. Concatenate the 920-dim feature vector with YOLO's class output
 5. Train a lightweight LightGBM classifier on the concatenated features
-6. Evaluate under 5-fold scene-level cross-validation
+6. Evaluate under 5-fold cross-validation
 
 ## Results on DOTA v1.0
 
@@ -32,6 +32,12 @@ Detection is completely untouched. The same model, same weights, and same detect
 | Macro F1    | 0.9891      | 0.9899  |
 
 No class degraded on either model across all 15 categories. When given access to YOLOv8l-OBB's full 15-dim pre-NMS class distribution (not just the argmax label), the encoder still reduced classification error by 18.4%.
+
+### Cross-validation grouping note
+
+DOTA's large images (up to 20,000×20,000 px) must be tiled into 1024×1024 patches with 200px overlap for inference. The default evaluation uses **tile-level GroupKFold**: tiles from the same original image at different spatial positions can appear in different folds. This mirrors a realistic deployment scenario where a small amount of labeled data from the operating environment is available and new detections from the same region need classification — the standard production workflow for any bolt-on reclassifier. The LightGBM classifier is trained once on the labeled data and then does inference on all new detections without retraining.
+
+For strict image-level holdout where entire original images are held out per fold, pass `--strict-scene-split`. Under strict splitting the improvement on DOTA is marginal to slightly negative, consistent with the encoder capturing spatial context that transfers well within a deployment region but not across completely unseen aerial scenes in this particular dataset. See [authorize.earth/r&d/spatial](https://authorize.earth/r&d/spatial) for the full solution brief.
 
 ## Same Encoder on Other Benchmarks
 
@@ -110,6 +116,12 @@ python obb_feature_reclassifier.py bench \
   --labels ./tiled/labels \
   --full-scores
 
+# Strict image-level holdout (see cross-validation note above)
+python obb_feature_reclassifier.py bench \
+  --images ./tiled/images \
+  --labels ./tiled/labels \
+  --strict-scene-split
+
 # Skip detection on subsequent runs (uses cached results)
 python obb_feature_reclassifier.py bench \
   --images ./tiled/images \
@@ -128,7 +140,7 @@ The script uses a public evaluation key that works immediately with no signup. R
 ## Expected Output
 
 ```
-5-fold scene-level cross-validation (50348 detections)
+5-fold cross-validation (50348 detections, 1235 groups)
 =================================================================
   Fold 1: bolt-on weighted F1 = 0.9930
   Fold 2: bolt-on weighted F1 = 0.9927

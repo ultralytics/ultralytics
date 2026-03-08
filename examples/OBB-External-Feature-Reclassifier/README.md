@@ -4,6 +4,8 @@ Bolt-on classification improvement for YOLO OBB models using a frozen, domain-ag
 
 Detection is completely untouched. The same model, same weights, and same detections are used. The only thing that changes is how those detections are classified.
 
+Both YOLOv8l-OBB and YOLO26l-OBB are pretrained on DOTAv1 — the encoder improves classification even on the model's own training data.
+
 ## How It Works
 
 1. Run YOLO OBB detection normally
@@ -15,29 +17,25 @@ Detection is completely untouched. The same model, same weights, and same detect
 
 ## Results on DOTA v1.0
 
-**YOLOv8l-OBB** (50,348 matched detections, 458 original scenes):
+**YOLOv8l-OBB** (50,348 matched detections, 1,233 tile groups from 458 original scenes):
 
 |             | YOLO Direct | Bolt-On |
 | ----------- | ----------- | ------- |
-| Weighted F1 | 0.9925      | 0.9929  |
-| Macro F1    | 0.9826      | 0.9827  |
-| helicopter  | 0.502       | 0.916   |
-| plane       | 0.976       | 0.998   |
+| Weighted F1 | 0.9925      | 0.9930  |
+| Macro F1    | 0.9826      | 0.9833  |
+| helicopter  | 0.908       | 0.916   |
+| small-vehicle | 0.984     | 0.986   |
+| large-vehicle | 0.982     | 0.984   |
 
-**YOLO26l-OBB** (49,414 matched detections, 458 original scenes):
+Error reduction: **6.1%** vs YOLO direct (tile-level cross-validation, one-hot baseline)
 
-|             | YOLO Direct | Bolt-On |
-| ----------- | ----------- | ------- |
-| Weighted F1 | 0.9943      | 0.9947  |
-| Macro F1    | 0.9891      | 0.9899  |
-
-No class degraded on either model across all 15 categories. When given access to YOLOv8l-OBB's full 15-dim pre-NMS class distribution (not just the argmax label), the encoder still reduced classification error by 18.4%.
+No class degraded by more than 0.004 F1 across all 15 categories.
 
 ### Cross-validation grouping note
 
-DOTA's large images (up to 20,000×20,000 px) must be tiled into 1024×1024 patches with 200px overlap for inference. The default evaluation uses **tile-level GroupKFold**: tiles from the same original image at different spatial positions can appear in different folds. This mirrors a realistic deployment scenario where a small amount of labeled data from the operating environment is available and new detections from the same region need classification — the standard production workflow for any bolt-on reclassifier. The LightGBM classifier is trained once on the labeled data and then does inference on all new detections without retraining.
+DOTA's large images (up to 20,000x20,000 px) must be tiled into 1024x1024 patches with 200px overlap for inference. The default evaluation uses **tile-level GroupKFold**: tiles from the same original image at different spatial positions can appear in different folds. This mirrors a realistic deployment scenario where a small amount of labeled data from the operating environment is available and new detections from the same region need classification — the standard production workflow for any bolt-on reclassifier. The LightGBM classifier is trained once on the labeled data and then does inference on all new detections without retraining.
 
-For strict image-level holdout where entire original images are held out per fold, pass `--strict-scene-split`. Under strict splitting the improvement on DOTA is marginal to slightly negative, consistent with the encoder capturing spatial context that transfers well within a deployment region but not across completely unseen aerial scenes in this particular dataset. See [authorize.earth/r&d/spatial](https://authorize.earth/r&d/spatial) for the full solution brief.
+For strict image-level holdout where entire original images are held out per fold, pass `--strict-scene-split`. Under strict splitting the improvement on DOTA is marginal to slightly negative, consistent with the encoder capturing spatial context that transfers well within a deployment region but not across completely unseen aerial scenes in this particular dataset. Other benchmarks with unambiguous scene boundaries (xView2 disaster events, RarePlanes satellite passes) show **22-40% error reduction** under strict scene-level splits, suggesting cross-scene transfer depends on the diversity of objects and conditions across scenes. See [authorize.earth/r&d/spatial](https://authorize.earth/r&d/spatial) for the full solution brief.
 
 ## Same Encoder on Other Benchmarks
 
@@ -45,8 +43,8 @@ The identical frozen encoder improves classification across domains and modaliti
 
 | Benchmark  | Domain              | Modality      | Baseline Model                    | Error Reduction |
 | ---------- | ------------------- | ------------- | --------------------------------- | --------------- |
-| xView3     | Maritime vessels    | C-band SAR    | 1st-place CircleNet               | 4.6%            |
-| DOTA       | Aerial objects      | HR aerial     | YOLOv8l-OBB                       | 8.9%            |
+| xView3     | Maritime vessels    | C-band SAR    | 1st-place CircleNet               | 5.2%            |
+| DOTA       | Aerial objects      | HR aerial     | YOLOv8l-OBB                       | 6.1%            |
 | EuroSAT    | Land cover          | Multispectral | Fine-tuned ResNet-50              | 10.6%           |
 | SpaceNet 6 | Building extraction | X-band SAR    | 1st-place competition winner      | 14.1%           |
 | RarePlanes | Aircraft roles      | VHR satellite | Faster R-CNN (CosmiQ Works / IQT) | 39.5%           |
@@ -75,9 +73,7 @@ pip install ultralytics==8.4.21 lightgbm scikit-learn numpy opencv-python reques
 export AUTHORIZE_EARTH_API_KEY=your_earth_api_key
 ```
 
-The public evaluation key is available at https://authorize.earth/r&d/spatial. Rate-limited to 3,000 requests/hour
-per IP and 15,000/hour globally. Without the key set the encoding step returns zero vectors
-and the script still runs but classification will not improve.
+The public evaluation key is available at https://authorize.earth/r&d/spatial. Rate-limited to 3,000 requests/hour per IP and 15,000/hour globally. Without the key set the encoding step returns zero vectors and the script still runs but classification will not improve.
 
 ## Data
 
@@ -131,7 +127,9 @@ python obb_feature_reclassifier.py bench \
 
 ### Note on `--full-scores`
 
-This extracts the raw 15-dim sigmoid class scores from YOLOv8's pre-NMS output and matches them back to post-NMS detections, giving the baseline a stronger representation than the default one-hot encoding. YOLO26's end-to-end NMS-free architecture uses a one-to-one prediction head, so intermediate activations are not interpretable class distributions. Use the default one-hot mode for YOLO26.
+The `--full-scores` flag gives the baseline access to YOLO's full 15-dim pre-NMS class distribution instead of a one-hot encoding. Under these conditions the baseline representation is already richer, and the encoder provides marginal weighted F1 improvement but can hurt macro F1 on low-sample classes due to overfitting with the increased feature dimensionality. The default one-hot mode is recommended — it gives the encoder the most room to contribute orthogonal spatial information.
+
+Only valid for NMS-based models like YOLOv8. YOLO26's end-to-end NMS-free architecture uses a one-to-one prediction head, so intermediate activations are not interpretable class distributions. Use the default one-hot mode for YOLO26.
 
 ## API Key
 
@@ -140,25 +138,43 @@ The script uses a public evaluation key that works immediately with no signup. R
 ## Expected Output
 
 ```
-5-fold cross-validation (50348 detections, 1235 groups)
-=================================================================
-  Fold 1: bolt-on weighted F1 = 0.9930
-  Fold 2: bolt-on weighted F1 = 0.9927
-  Fold 3: bolt-on weighted F1 = 0.9931
-  Fold 4: bolt-on weighted F1 = 0.9928
-  Fold 5: bolt-on weighted F1 = 0.9929
+Running detection on 3143 tiles
+Using tile-level grouping for cross-validation (deployment scenario)
+Detecting: 100%|████████████████████████████████| 3143/3143 [02:48<00:00, 18.60it/s]
+Matched detections: 50348
+Encoding via API: 100%|█████████████████████████| 787/787 [47:45<00:00, 3.64s/it]
 
+5-fold cross-validation (50348 detections, 1233 groups)
+=================================================================
+  Fold 1: bolt-on weighted F1 = 0.9920
+  Fold 2: bolt-on weighted F1 = 0.9947
+  Fold 3: bolt-on weighted F1 = 0.9940
+  Fold 4: bolt-on weighted F1 = 0.9905
+  Fold 5: bolt-on weighted F1 = 0.9935
+
+─────────────────────────────────────────────────────────────────
   yolov8l-obb Direct   Bolt-On
-  Weighted F1:  0.9925              0.9929
-  Macro F1:     0.9826              0.9827
-  Error reduction vs yolov8l-obb direct: 8.9%
+  Weighted F1:  0.9925               0.9930
+  Macro F1:     0.9826               0.9833
+  Error reduction vs yolov8l-obb direct: 6.1%
 
   Class                  Direct     Bolt-On    Delta      n
-  ──────────────────────────────────────────────────────────
-  helicopter             0.502      0.916      +0.414     73
-  plane                  0.976      0.998      +0.022     4858
-  basketball-court       0.931      0.947      +0.015     222
-  ...
+  ──────────────────────────────────────────────────────────────
+  helicopter             0.908      0.916      +0.008      118
+  ground-track-field     0.981      0.984      +0.002      215
+  soccer-ball-field      0.972      0.974      +0.002      248
+  small-vehicle          0.984      0.986      +0.001      8855
+  large-vehicle          0.982      0.984      +0.001      7929
+  plane                  0.998      0.998      +0.000      4586
+  ship                   0.999      0.999      +0.000      17191
+  storage-tank           0.999      0.999      +0.000      3802
+  baseball-diamond       0.991      0.991      +0.000      320
+  harbor                 0.997      0.997      +0.000      3928
+  bridge                 0.998      0.998      +0.000      601
+  roundabout             0.987      0.987      +0.000      198
+  swimming-pool          0.997      0.997      +0.000      619
+  tennis-court           0.991      0.990      -0.001     1496
+  basketball-court       0.955      0.951      -0.004     242
 ```
 
 ## Links

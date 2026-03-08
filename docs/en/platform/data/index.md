@@ -36,7 +36,7 @@ graph LR
 | Stage        | Description                                                                                           |
 | ------------ | ----------------------------------------------------------------------------------------------------- |
 | **Upload**   | Import images, videos, or archives with automatic processing                                          |
-| **Annotate** | Label data with manual tools or SAM smart annotation (SAM 2.1 / SAM 3) for all 5 task types           |
+| **Annotate** | Label data with manual tools for all 5 task types, or use SAM annotation for detect, segment, and OBB |
 | **Analyze**  | View class distributions, spatial heatmaps, and dimension statistics                                  |
 | **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use |
 

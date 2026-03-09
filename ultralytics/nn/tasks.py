@@ -14,6 +14,9 @@ from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import (
     AIFI,
     AFPNFuse,
+    GSConv,
+    GSBottleneck,
+    VoVGSCSP,
     C1,
     C2,
     C2Context,
@@ -1599,6 +1602,8 @@ def parse_model(d, ch, verbose=True):
             SCDown,
             C2fCIB,
             A2C2f,
+            GSConv,
+            VoVGSCSP,
         }
     )
     repeat_modules = frozenset(  # modules with 'repeat' arguments
@@ -1623,6 +1628,7 @@ def parse_model(d, ch, verbose=True):
             C2PSA,
             C2PSALite,
             A2C2f,
+            VoVGSCSP,
         }
     )
     if SETTINGS.get("yaml_exec"):

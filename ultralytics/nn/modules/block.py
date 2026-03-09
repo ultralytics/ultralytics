@@ -2314,6 +2314,89 @@ class SpatialSuppressionGate(nn.Module):
         return cls_logits * (gate * 0.9 + 0.1)
 
 
+class GSConv(nn.Module):
+    """GSConv: hybrid standard-conv + depthwise-conv with channel shuffle (Slim-Neck, JRTIP 2024).
+
+    Applies a standard conv to produce c2//2 channels, then runs a 5×5 DWConv on that output
+    to produce another c2//2 channels.  The two halves are concatenated and 2-group channel-
+    shuffled so each output channel mixes information from both paths.  Roughly 60-70% the cost
+    of an equivalent standard convolution.
+
+    Args:
+        c1 (int): Input channels.
+        c2 (int): Output channels (must be even).
+        k (int): Kernel size for the standard conv.
+        s (int): Stride for the standard conv.
+        g (int): Groups for the standard conv.
+        act (bool | nn.Module): Activation.
+    """
+
+    def __init__(self, c1: int, c2: int, k: int = 1, s: int = 1, g: int = 1, act: bool = True):
+        super().__init__()
+        c_ = c2 // 2
+        self.cv1 = Conv(c1, c_, k, s, None, g, act=act)
+        self.cv2 = Conv(c_, c_, 5, 1, None, c_, act=act)  # 5×5 DWConv
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply GSConv: standard conv → DWConv → concat → channel shuffle."""
+        x1 = self.cv1(x)
+        x2 = torch.cat((x1, self.cv2(x1)), 1)
+        b, c, h, w = x2.shape
+        return x2.reshape(b, 2, c // 2, h, w).transpose(1, 2).reshape(b, c, h, w)
+
+
+class GSBottleneck(nn.Module):
+    """Bottleneck with two back-to-back GSConv layers and an optional residual connection.
+
+    Args:
+        c1 (int): Input channels.
+        c2 (int): Output channels.
+        e (float): Channel expansion ratio for the hidden dim.
+    """
+
+    def __init__(self, c1: int, c2: int, e: float = 0.5):
+        super().__init__()
+        c_ = int(c2 * e)
+        self.cv1 = GSConv(c1, c_, 1, 1)
+        self.cv2 = GSConv(c_, c2, 1, 1)
+        self.add = c1 == c2
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward with optional residual shortcut."""
+        y = self.cv2(self.cv1(x))
+        return x + y if self.add else y
+
+
+class VoVGSCSP(nn.Module):
+    """VoV-GSCSP: CSP block with GSBottleneck bottlenecks — drop-in neck replacement for C3k2.
+
+    Implements the Slim-Neck (JRTIP 2024) VoV-GSCSP module: two branches (bottleneck chain +
+    identity) are concatenated and projected, using GSBottleneck for cheap spatial mixing.
+    Applying this only in the neck — not the backbone — gives the best accuracy/speed tradeoff
+    per the original paper.
+
+    Args:
+        c1 (int): Input channels.
+        c2 (int): Output channels.
+        n (int): Number of GSBottleneck repetitions.
+        shortcut (bool): Unused; kept for drop-in compatibility with C3k2 YAML args.
+        g (int): Unused; kept for drop-in compatibility.
+        e (float): Channel expansion ratio.
+    """
+
+    def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = True, g: int = 1, e: float = 0.5):
+        super().__init__()
+        c_ = int(c2 * e)
+        self.cv1 = Conv(c1, c_, 1, 1)
+        self.cv2 = Conv(c1, c_, 1, 1)
+        self.cv3 = Conv(2 * c_, c2)
+        self.m = nn.Sequential(*(GSBottleneck(c_, c_) for _ in range(n)))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """VoV-style aggregation: bottleneck branch + skip branch → concat → project."""
+        return self.cv3(torch.cat((self.m(self.cv1(x)), self.cv2(x)), 1))
+
+
 class AFPNFuse(nn.Module):
     """Asymptotic Feature Pyramid Network learnable weighted fusion.
 

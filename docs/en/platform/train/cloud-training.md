@@ -440,7 +440,7 @@ Yes, expand the **Advanced Settings** section in the training dialog to access a
 
 ### Can I train from a dataset page?
 
-Yes, the **Train** button on dataset pages opens the training dialog with the dataset pre-selected and locked. You then select a project and model to begin training.
+Yes, the **Train** button on dataset pages opens the training dialog with the dataset preselected and locked. You then select a project and model to begin training.
 
 ## Training Parameters Reference
 

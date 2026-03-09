@@ -13,7 +13,7 @@ Data preparation is the foundation of successful [computer vision](https://www.u
 The Data section of Ultralytics Platform helps you:
 
 - **Upload** images, videos, and archives (ZIP, TAR, GZ)
-- **Annotate** with manual drawing tools and SAM-powered smart labeling
+- **Annotate** with manual drawing tools and SAM-powered smart labeling — choose from [SAM 2.1](../../models/sam-2.md) or the new [SAM 3](../../models/sam-3.md)
 - **Analyze** your data with statistics and visualizations
 - **Export** in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for local training
 
@@ -36,7 +36,7 @@ graph LR
 | Stage        | Description                                                                                           |
 | ------------ | ----------------------------------------------------------------------------------------------------- |
 | **Upload**   | Import images, videos, or archives with automatic processing                                          |
-| **Annotate** | Label data with bounding boxes, polygons, keypoints, or classifications                               |
+| **Annotate** | Label data with manual tools for all 5 task types, or use SAM annotation for detect, segment, and OBB |
 | **Analyze**  | View class distributions, spatial heatmaps, and dimension statistics                                  |
 | **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use |
 

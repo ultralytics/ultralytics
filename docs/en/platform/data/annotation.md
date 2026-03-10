@@ -278,11 +278,11 @@ SAM smart annotation can generate:
 
 Auto-apply mode speeds up Smart annotation by automatically saving the SAM mask after each click — no need to press `Enter`. Toggle it with the auto-apply button in the toolbar or press `A`.
 
-| Mode                         | Behavior                                             |
-| ---------------------------- | ---------------------------------------------------- |
-| **Auto-apply ON** (default)  | Mask applies automatically after each click          |
-| **Auto-apply ON + `Shift`**  | Place multiple points first, mask applies on release |
-| **Auto-apply OFF**           | Place points freely, press `Enter` to apply          |
+| Mode                        | Behavior                                             |
+| --------------------------- | ---------------------------------------------------- |
+| **Auto-apply ON** (default) | Mask applies automatically after each click          |
+| **Auto-apply ON + `Shift`** | Place multiple points first, mask applies on release |
+| **Auto-apply OFF**          | Place points freely, press `Enter` to apply          |
 
 ![Ultralytics Platform Annotate Sam Auto Apply Toggle](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-sam-auto-apply-toggle.avif)
 

@@ -1185,20 +1185,22 @@ class v8DetectionLossNorm(v8DetectionLoss):
         dtype = pred_scores.dtype
         batch_size = pred_scores.shape[0]
         imgsz = torch.tensor(preds["feats"][0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]
-        imgsz_whwh = imgsz[[1, 0, 1, 0]]  # (W, H, W, H) for xyxy scaling
+        imgsz_whwh = imgsz[[1, 0, 1, 0]]  # (W, H, W, H) for GT pixel scaling
 
-        # GT targets in pixel xyxy (same as base class)
+        # GT targets in pixel xyxy (scaled by actual W/H)
         targets = torch.cat((batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"]), 1)
         targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz_whwh)
         gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy pixel
         mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
 
-        # Normalize anchor points to [0, 1]: (A, 2) pixel / (W, H)
-        anchor_points_norm = anchor_points * stride_tensor / imgsz[[1, 0]]  # (A, 2)
+        # Use a single isotropic scale (max dim) so training and rect-val are consistent.
+        # Normalizing x and y by different W/H would cause a train/val mismatch when H ≠ W.
+        scale = imgsz.max()
+        anchor_points_norm = anchor_points * stride_tensor / scale  # (A, 2)
 
-        # Decode: dist2bbox(sigmoid(raw), anchor_norm) → normalized xyxy, then × imgsz for pixel
-        pred_bboxes_norm = self.bbox_decode(anchor_points_norm, pred_distri)  # (B, A, 4) in [0, 1]
-        pred_bboxes_px = pred_bboxes_norm * imgsz_whwh
+        # Decode: dist2bbox(sigmoid(raw), anchor_norm) → normalized xyxy, then × scale for pixel
+        pred_bboxes_norm = self.bbox_decode(anchor_points_norm, pred_distri)  # (B, A, 4) normalized by scale
+        pred_bboxes_px = pred_bboxes_norm * scale
 
         _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
             pred_scores.detach().sigmoid(),
@@ -1222,8 +1224,8 @@ class v8DetectionLossNorm(v8DetectionLoss):
             iou = bbox_iou(pred_bboxes_px[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=True)
             loss[0] = ((1.0 - iou) * weight).sum() / target_scores_sum
 
-            # L1 loss on normalized xyxy (reuses hyp.dfl gain)
-            target_bboxes_norm = target_bboxes / imgsz_whwh
+            # L1 loss on isotropic-normalized xyxy (reuses hyp.dfl gain)
+            target_bboxes_norm = target_bboxes / scale
             loss[2] = (
                 F.l1_loss(pred_bboxes_norm[fg_mask], target_bboxes_norm[fg_mask], reduction="none").mean(
                     -1, keepdim=True

@@ -300,16 +300,16 @@ class DetectNorm(Detect):
             self.shape = shape
         h = shape[2] * self.stride[0]
         w = shape[3] * self.stride[0]
-        # Normalize anchor points to [0, 1]: anchors (2, A) × strides (1, A) / (W, H)
-        wh = torch.tensor([w, h], device=self.anchors.device, dtype=self.anchors.dtype).view(2, 1)
-        anchor_norm = self.anchors * self.strides / wh  # (2, A) in [0, 1]
+        # Use a single isotropic scale so training (square 640×640) and rect-val (non-square) are consistent.
+        # Normalizing x and y by different W/H would cause a train/val mismatch when H ≠ W.
+        scale = max(h, w)
+        anchor_norm = self.anchors * self.strides / scale  # (2, A) in [0, 1]
         # Decode ltrb: x["boxes"] is (B, 4, A) raw logits → sigmoid → ltrb offsets
         pred_ltrb = x["boxes"].sigmoid()  # (B, 4, A)
         x1y1 = anchor_norm.unsqueeze(0) - pred_ltrb[:, :2]  # (B, 2, A)
         x2y2 = anchor_norm.unsqueeze(0) + pred_ltrb[:, 2:]  # (B, 2, A)
-        boxes_norm = torch.cat([x1y1, x2y2], dim=1)  # (B, 4, A) in [0, 1]
-        imgsz = torch.tensor([w, h, w, h], device=boxes_norm.device, dtype=boxes_norm.dtype)
-        return boxes_norm * imgsz.view(1, 4, 1)
+        boxes_norm = torch.cat([x1y1, x2y2], dim=1)  # (B, 4, A) normalized by scale
+        return boxes_norm * scale  # back to pixel coords (same space as actual image pixels)
 
     def bias_init(self) -> None:
         """Initialize box biases so initial ltrb offsets match the baseline's 2-grid-unit initial size."""

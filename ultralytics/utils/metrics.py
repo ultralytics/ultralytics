@@ -1268,6 +1268,7 @@ class SegmentMetrics(DetMetrics):
         """
         DetMetrics.__init__(self, names)
         self.seg = Metric()
+        self.task = 'segment'
         self.stats["tp_m"] = []  # add additional stats for masks
 
     def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
@@ -1418,6 +1419,7 @@ class PoseMetrics(DetMetrics):
             (dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
         """
         stats = DetMetrics.process(self, save_dir, plot, on_plot=on_plot)  # process box stats
+        self.task = 'pose'
         results_pose = ap_per_class(
             stats["tp_p"],
             stats["conf"],

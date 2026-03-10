@@ -1405,6 +1405,7 @@ class PoseMetrics(DetMetrics):
         """
         super().__init__(names)
         self.pose = Metric()
+        self.task = 'pose'
         self.stats["tp_p"] = []  # add additional stats for pose
 
     def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
@@ -1534,6 +1535,7 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
         """Initialize a ClassifyMetrics instance."""
         self.top1 = 0
         self.top5 = 0
+        self.task = 'classify'
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
 
     def process(self, targets: torch.Tensor, pred: torch.Tensor):

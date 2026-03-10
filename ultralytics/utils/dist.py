@@ -55,8 +55,7 @@ def generate_ddp_file(trainer: BaseTrainer) -> str:
 
     # Serialize augmentations to JSON-safe dicts to avoid NameError in DDP subprocess
     overrides = vars(trainer.args).copy()
-    has_augmentations = overrides.get("augmentations") is not None
-    if has_augmentations:
+    if overrides.get("augmentations") is not None:
         import albumentations as A
 
         overrides["augmentations"] = [A.to_dict(t) for t in overrides["augmentations"]]

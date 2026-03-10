@@ -39,7 +39,7 @@ import platform
 import re
 import threading
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import cv2
 import numpy as np
@@ -88,8 +88,8 @@ class BasePredictor:
         windows (list[str]): List of window names for visualization.
         batch (tuple): Current batch data.
         results (list[Any]): Current batch results.
-        transforms (callable): Image transforms for classification.
-        callbacks (dict[str, list[callable]]): Callback functions for different events.
+        transforms (Callable): Image transforms for classification.
+        callbacks (dict[str, list[Callable]]): Callback functions for different events.
         txt_path (Path): Path to save text results.
         _lock (threading.Lock): Lock for thread-safe inference.
 
@@ -112,7 +112,7 @@ class BasePredictor:
         self,
         cfg=DEFAULT_CFG,
         overrides: dict[str, Any] | None = None,
-        _callbacks: dict[str, list[callable]] | None = None,
+        _callbacks: dict[str, list[Callable]] | None = None,
     ):
         """Initialize the BasePredictor class.
 
@@ -508,6 +508,6 @@ class BasePredictor:
         for callback in self.callbacks.get(event, []):
             callback(self)
 
-    def add_callback(self, event: str, func: callable):
+    def add_callback(self, event: str, func: Callable):
         """Add a callback function for a specific event."""
         self.callbacks[event].append(func)

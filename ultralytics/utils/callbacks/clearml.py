@@ -77,7 +77,7 @@ def on_pretrain_routine_start(trainer) -> None:
                 "ClearML Initialized a new task. If you want to run remotely, "
                 "please add clearml-init and connect your arguments before initializing YOLO."
             )
-        task.connect(vars(trainer.args), name="General")
+        task.connect(vars(trainer.args), name="General", ignore_remote_overrides=True)
     except Exception as e:
         LOGGER.warning(f"ClearML installed but not initialized correctly, not logging this run. {e}")
 

@@ -245,7 +245,7 @@ graph LR
     D -->|No| F{Accurate?}
     F -->|Yes| G[Enter to Save]
     F -->|No| H[Add +/- Points]
-    H --> F
+    H --> C
 
     style A fill:#2196F3,color:#fff
     style C fill:#FF9800,color:#fff
@@ -428,15 +428,15 @@ Efficient annotation with keyboard shortcuts:
 
 === "Drawing"
 
-    | Shortcut       | Action                                                    |
-    | -------------- | --------------------------------------------------------- |
-    | `Click+Drag`   | Draw bounding box (detect/OBB)                            |
-    | `Click`        | Add polygon point (segment) / Place skeleton (pose)       |
-    | `Right-click`  | Complete polygon / Add SAM negative point                 |
-    | `Shift+Click`  | Place multiple SAM points before applying (auto-apply on) |
-    | `A`            | Toggle auto-apply (Smart mode)                            |
-    | `Enter`        | Complete polygon / Confirm pose / Save SAM annotation     |
-    | `Escape`       | Cancel pose / Save SAM annotation / Deselect / Exit       |
+    | Shortcut       | Action                                                                     |
+    | -------------- | ---------------------------------------------------------                  |
+    | `Click+Drag`   | Draw bounding box (detect/OBB)                                             |
+    | `Click`        | Add polygon point (segment) / Place skeleton (pose)                        |
+    | `Right-click`  | Complete polygon / Add SAM negative point                                  |
+    | `Shift` + `click`/`right-click` | Place multiple SAM points before applying (auto-apply on) |
+    | `A`            | Toggle auto-apply (Smart mode)                                             |
+    | `Enter`        | Complete polygon / Confirm pose / Save SAM annotation                      |
+    | `Escape`       | Cancel pose / Save SAM annotation / Deselect / Exit                        |
 
 === "Arrange (Z-Order)"
 

@@ -421,7 +421,7 @@ class Exporter:
                 model.end2end = False
                 LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
             if engine and self.args.int8:
-                # TensorRT <=10.3 with int8 has known end2end build issues
+                # TensorRT<=10.3.0 with int8 has known end2end build issues
                 # https://github.com/ultralytics/ultralytics/issues/23841
                 try:
                     import tensorrt as trt

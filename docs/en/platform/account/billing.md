@@ -270,16 +270,16 @@ Cancel anytime from the billing portal:
 
 When your Pro subscription ends (cancelled or expired), your account reverts to the Free plan. Here's what happens to your existing resources:
 
-| Resource                   | What Happens                                                          |
-| -------------------------- | --------------------------------------------------------------------- |
-| **Models**                 | All models preserved. Cannot create new models beyond 100-model limit |
-| **Deployments**            | All deployments preserved. Cannot create new beyond 3-deployment limit |
-| **Storage**                | All data preserved. Cannot upload new data beyond 100 GB limit        |
-| **Credit Balance**         | Existing credits preserved and usable                                 |
-| **Monthly Credits**        | $30/seat/month grants stop immediately                                |
-| **Team Members**           | Members notified and lose access to team resources                    |
-| **GPU Access**             | Standard GPUs remain available. Best GPUs (H200, B200) require Pro or Enterprise |
-| **Concurrent Trainings**   | Limit reduced from 10 to 3                                           |
+| Resource                 | What Happens                                                                     |
+| ------------------------ | -------------------------------------------------------------------------------- |
+| **Models**               | All models preserved. Cannot create new models beyond 100-model limit            |
+| **Deployments**          | All deployments preserved. Cannot create new beyond 3-deployment limit           |
+| **Storage**              | All data preserved. Cannot upload new data beyond 100 GB limit                   |
+| **Credit Balance**       | Existing credits preserved and usable                                            |
+| **Monthly Credits**      | $30/seat/month grants stop immediately                                           |
+| **Team Members**         | Members notified and lose access to team resources                               |
+| **GPU Access**           | Standard GPUs remain available. Best GPUs (H200, B200) require Pro or Enterprise |
+| **Concurrent Trainings** | Limit reduced from 10 to 3                                                       |
 
 !!! tip "No Data Loss"
 

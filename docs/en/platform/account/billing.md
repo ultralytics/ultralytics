@@ -324,7 +324,7 @@ Transaction receipts are available in the transaction history. Click the receipt
 
 ### What if training fails?
 
-**Failed training runs are not charged.** If a job fails due to a configuration error, out-of-memory issue, or any other reason, no credits are deducted. Only successfully completed or user-cancelled jobs incur charges (based on actual GPU time used). See [Cloud Training Billing](../train/cloud-training.md#billing-by-job-status) for a full breakdown by job status.
+**Failed training runs are not charged.** If a job fails due to a configuration error, out-of-memory issue, or any other reason, no credits are deducted. Completed, user-cancelled, and auto-terminated stuck jobs may incur charges based on actual GPU time used. See [Cloud Training Billing](../train/cloud-training.md#billing-by-job-status) for a full breakdown by job status.
 
 ### Is there a free trial?
 

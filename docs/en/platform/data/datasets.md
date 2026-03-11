@@ -396,11 +396,25 @@ The NDJSON format stores one JSON object per line. The first line contains datas
 
 See the [Ultralytics NDJSON format documentation](../../datasets/detect/index.md#ultralytics-ndjson-format) for full specification.
 
-## Bulk Operations
+## Image Operations
 
-Manage images in bulk using the table view's context menu:
+### Quick Actions
 
-### Move to Split
+Right-click any image in **Grid** or **Compact** view to access quick actions:
+
+| Action            | Description                                     |
+| ----------------- | ----------------------------------------------- |
+| **Move to Split** | Reassign the image to Train, Val, or Test split |
+| **Download**      | Download the original image file                |
+| **Delete**        | Delete the image from the dataset               |
+
+![Ultralytics Platform Datasets Image Card Context Menu](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-image-card-context-menu.avif)
+
+!!! tip "Single vs Bulk"
+
+    The image context menu operates on a **single image**. For bulk operations on multiple images, use **Table** view with checkbox selection.
+
+### Bulk Move to Split
 
 Reassign selected images to a different split within the same dataset:
 

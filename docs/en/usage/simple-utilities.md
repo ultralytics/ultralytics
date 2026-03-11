@@ -585,7 +585,7 @@ Find additional details about the `sweep_annotator` method in our reference sect
 
 !!! example "Adaptive label Annotation using Ultralytics Utilities"
 
-    === "[Circle Annotation](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator.adaptive_label)"
+    === "[Circle Annotation](https://docs.ultralytics.com/reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator.adaptive_label)"
 
         ```python
         import cv2
@@ -624,7 +624,7 @@ Find additional details about the `sweep_annotator` method in our reference sect
         cv2.destroyAllWindows()
         ```
 
-    === "[Text Annotation](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator.adaptive_label)"
+    === "[Text Annotation](https://docs.ultralytics.com/reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator.adaptive_label)"
 
         ```python
         import cv2

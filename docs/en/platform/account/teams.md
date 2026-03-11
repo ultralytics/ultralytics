@@ -46,12 +46,12 @@ When you switch to a team workspace, all resources you see and create belong to 
 
 Teams use a four-role hierarchy for access control. Each role inherits all permissions from the roles below it.
 
-| Role       | Description                                                              |
-| ---------- | ------------------------------------------------------------------------ |
-| **Owner**  | Full control, transfer ownership, assign admin role, remove any member   |
-| **Admin**  | Invite and remove members, manage billing, create and edit all content   |
-| **Editor** | Create and edit projects, datasets, models, start training, deploy       |
-| **Viewer** | Read-only access to all team resources                                   |
+| Role       | Description                                                            |
+| ---------- | ---------------------------------------------------------------------- |
+| **Owner**  | Full control, transfer ownership, assign admin role, remove any member |
+| **Admin**  | Invite and remove members, manage billing, create and edit all content |
+| **Editor** | Create and edit projects, datasets, models, start training, deploy     |
+| **Viewer** | Read-only access to all team resources                                 |
 
 !!! note "Single Owner"
 
@@ -92,7 +92,6 @@ If the invitee already has a Platform account, they are added directly. Otherwis
     Only the team Owner can invite members with the Admin role. Admins can invite Editors and Viewers.
 
 The seat limit includes both active members and pending invitations. If you've reached the limit, remove a member or cancel a pending invite before sending a new one.
-
 
 ## Enterprise
 

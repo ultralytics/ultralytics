@@ -420,7 +420,7 @@ class Exporter:
                 # Disable end2end branch for certain export formats as they does not support topk
                 model.end2end = False
                 LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
-            if engine:
+            if engine and self.args.int8:
                 # TensorRT <=10.3 has known end2end build issues
                 # https://github.com/ultralytics/ultralytics/issues/23841
                 try:

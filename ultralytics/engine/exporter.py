@@ -425,6 +425,7 @@ class Exporter:
                 # https://github.com/ultralytics/ultralytics/issues/23841
                 try:
                     import tensorrt as trt
+
                     if check_version(trt.__version__, "<=10.3.0", hard=True):
                         model.end2end = False
                         LOGGER.warning(

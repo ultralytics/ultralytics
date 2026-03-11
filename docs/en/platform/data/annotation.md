@@ -164,6 +164,9 @@ Annotate poses using skeleton templates. Select a template from the toolbar, cli
 
 1. Enter edit mode and select `Draw`
 2. Choose a skeleton template from the template picker in the toolbar
+
+![Ultralytics Platform Annotate Pose Template Dropdown](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-pose-template-dropdown.avif)
+
 3. Click on the image to place all keypoints at once
 4. Drag individual keypoints to adjust their positions
 5. Press `Enter` to confirm or `Escape` to cancel
@@ -187,10 +190,13 @@ The editor includes 5 built-in templates:
 Create custom templates for any pose structure:
 
 1. Click the **+** button next to the template picker
-2. Place keypoints on the canvas by clicking
-3. Name each keypoint and customize colors
-4. Connect keypoints by selecting two points (connections are drawn automatically as you place sequential keypoints)
-5. Save the template for reuse across your dataset
+2. Optionally, click **Start from...** to load keypoints and connections from an existing template as a starting point
+3. Place keypoints on the canvas by clicking
+4. Name each keypoint and customize colors
+5. Connect keypoints by selecting two points (connections are drawn automatically as you place sequential keypoints)
+6. Save the template for reuse across your dataset
+
+![Ultralytics Platform Annotate Pose Custom Template](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-pose-custom-template.avif)
 
 Custom templates are saved to your account and available in all pose datasets.
 

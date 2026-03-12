@@ -153,7 +153,7 @@ import time
 from tritonclient.http import InferenceServerClient
 
 # Define image https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver
-tag = "nvcr.io/nvidia/tritonserver:26.02-py3"  # 13.1 GB
+tag = "nvcr.io/nvidia/tritonserver:26.02-py3"  # 16.17 GB (Compressed Size)
 
 # Pull the image (use 'podman pull' if using Podman)
 subprocess.call(f"docker pull {tag}", shell=True)

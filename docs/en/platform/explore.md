@@ -296,10 +296,15 @@ Contact creators for commercial licensing.
 
 ### How do I report inappropriate content?
 
-1. Click the report button on the content
-2. Select violation type
-3. Add details
-4. Submit report
+To report inappropriate content:
+
+1. Navigate to the public page containing the content (project or dataset), if accessible
+2. Click the **Feedback** button in the sidebar
+3. Select **General** as the feedback type
+4. Describe the content and the issue, including a link to the page
+5. Submit the report
+
+If the content is no longer accessible, use the **Feedback** button from any page and include as much detail as possible (URL, username, or description).
 
 Our team reviews reports within 24-48 hours.
 
@@ -323,7 +328,3 @@ Featured content is selected based on:
 - Clear documentation
 
 There's no application process - just create great content!
-
-### Can I monetize public content?
-
-Currently, the platform doesn't support monetization. This may be added in future updates.

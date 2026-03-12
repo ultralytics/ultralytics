@@ -209,6 +209,16 @@ Manage credits, payment methods, and view transaction history. See [Billing](bil
 
 Manage workspace members, roles, and invitations. Teams are available on [Pro and Enterprise plans](billing.md#plans). See [Teams](teams.md) for full documentation on team creation, roles, shared resources, and enterprise features.
 
+### Manage Members
+
+Owners and admins can manage the team:
+
+- **Change roles**: Click the role dropdown next to a member (only the owner can assign/remove the admin role)
+- **Remove members**: Click the menu and select **Remove**
+- **Cancel invites**: Cancel pending invitations that haven't been accepted
+- **Resend invites**: Resend invitation emails
+- **Transfer ownership**: Transfer workspace ownership to another member (Owner only)
+
 ## Trash Tab
 
 Manage deleted items. See [Trash](trash.md) for full documentation.

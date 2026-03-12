@@ -17,20 +17,22 @@ Teams allow multiple users to work together under a shared workspace:
 - **Shared Resources**: Datasets, projects, models, and deployments are accessible to all team members
 - **Role-Based Access**: Four roles (Owner, Admin, Editor, Viewer) control what each member can do
 - **Shared Billing**: Team members share the workspace credit balance and resource limits
-- **Seat Management**: Pro teams support up to 5 members, Enterprise teams up to 50+
+- **Seat Management**: Pro teams support up to 5 members, Enterprise teams up to 50
 
 !!! note "Plan Requirement"
 
-    Any user can create a team, but inviting members requires upgrading the team to a [Pro or Enterprise plan](billing.md#plans).
+    Creating a team requires a [Pro or Enterprise plan](billing.md#plans). You can upgrade from Settings or when clicking **+ Create Team** in the workspace switcher.
 
 ## Creating a Team
 
 Create a new team workspace:
 
 1. Click on the workspace switcher in the sidebar
-2. Click **+ Create Team**
+2. Click **+ Create Team** to open the Teams tab in Settings
+3. Click **+ Upgrade to Pro** to open the upgrade dialog
+4. Enter your team name and username, then complete checkout
 
-The team is automatically created and you land on the Teams tab in Settings. The team starts on the Free plan. To invite members and unlock collaboration features, [upgrade to Pro or Enterprise](billing.md#upgrade-to-pro).
+Alternatively, [upgrade your personal account to Pro](billing.md#upgrade-to-pro) first, then create a team from the Teams tab. Once your team is created, you can [invite members](#inviting-members).
 
 <!-- Screenshot: settings-teams-create-team-landing.avif -->
 
@@ -85,7 +87,7 @@ Admins and Owners can invite new members to the team:
 
 <!-- Screenshot: settings-teams-invite-member-dialog.avif -->
 
-If the invitee already has a Platform account, they are added directly. Otherwise, they receive an email invitation with a link to sign up and join. Invitations expire after 7 days. Once accepted, the team workspace appears in the invitee's workspace switcher.
+The invitee receives an email invitation with a link to accept and join the team. Invitations expire after 7 days. Once accepted, the team workspace appears in the invitee's workspace switcher.
 
 !!! note "Admin Invites"
 

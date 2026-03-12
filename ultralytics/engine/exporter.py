@@ -429,7 +429,7 @@ class Exporter:
                     if check_version(trt.__version__, "<=10.3.0", hard=True):
                         model.end2end = False
                         LOGGER.warning(
-                            f"TensorRT<=10.3.0 with int8 has known end2end build issues, disabling end2end branch."
+                            "TensorRT<=10.3.0 with int8 has known end2end build issues, disabling end2end branch."
                         )
                 except ImportError:
                     pass

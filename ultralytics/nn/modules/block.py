@@ -52,6 +52,7 @@ __all__ = (
     "ResNetLayer",
     "SCDown",
     "TorchVision",
+    "ShipraBlock",
 )
 
 
@@ -2065,3 +2066,32 @@ class RealNVP(nn.Module):
             self.float()
         z, log_det = self.backward_p(x)
         return self.prior.log_prob(z) + log_det
+
+class ShipraBlock(nn.Module):
+    """
+    Custom ShipraBlock for PCB or Medical Imaging.
+    Designed for small object detection and efficient feature extraction.
+    """
+    def __init__(self, c1, c2, k=1, s=1, g=1, act=True):
+        super().__init__()
+        c_ = c2 // 2  # hidden channels
+        # Branch 1: Primary Convolution using standard kernel
+        self.cv1 = Conv(c1, c_, k, s, None, g, act)
+        # Branch 2: Cheap Operations (Ghost) to reduce parameters
+        self.cv2 = Conv(c_, c_, 5, 1, None, c_, act)
+        
+        # Channel Attention: Helps the model focus on small PCB defects or fractures
+        self.channel_attn = nn.Sequential(
+            nn.AdaptiveAvgPool2d(1),
+            nn.Conv2d(c2, c2, 1, bias=False),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        """Processes input through Ghost branches and applies channel attention."""
+        y1 = self.cv1(x)
+        y2 = self.cv2(y1)
+        # Combine features from both branches
+        out = torch.cat((y1, y2), 1)
+        # Apply the attention mask to the concatenated features
+        return out * self.channel_attn(out)

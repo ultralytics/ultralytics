@@ -59,7 +59,7 @@ For professionals and small teams ($29/month or $290/year):
 - 10 concurrent cloud trainings
 - 500 GB storage
 - 10 warm-start deployments (faster cold starts)
-- Team collaboration (up to 5 members)
+- [Team collaboration](teams.md) (up to 5 members)
 - Access to the best GPUs (H200, B200)
 - Priority support
 
@@ -249,7 +249,7 @@ After upgrading:
 - 500 models
 - 10 concurrent cloud trainings
 - 10 warm-start deployments
-- Team collaboration (up to 5 members)
+- [Team collaboration](teams.md) (up to 5 members)
 - Access to best GPUs
 - Priority support
 

@@ -231,39 +231,7 @@ Manage credits, payment methods, and view transaction history. See [Billing](bil
 
 ## Teams Tab
 
-Manage workspace members, roles, and invitations. Teams are available on [Pro and Enterprise plans](billing.md#plans).
-
-### Team Overview
-
-The Teams tab displays:
-
-- Workspace name and avatar
-- Seat usage summary (used / available)
-- Member list with roles
-- Pending invitations
-
-### Member Roles
-
-| Role       | Permissions                                            |
-| ---------- | ------------------------------------------------------ |
-| **Owner**  | Full control, transfer ownership, delete workspace     |
-| **Admin**  | Manage members, billing, settings, content             |
-| **Editor** | Create and manage projects, datasets, models, API keys |
-| **Viewer** | Read-only access to workspace resources                |
-
-!!! note "Role Availability"
-
-    Owner, Admin, Editor, and Viewer roles are available on all team plans (Pro and Enterprise).
-
-### Invite Members
-
-1. Go to **Settings > Teams**
-2. Click **Invite**
-3. Enter email address
-4. Select role
-5. Send invitation
-
-The invitee receives an email and can accept the invitation to join the workspace. Invitations expire after 7 days. Inviting members requires the Admin role or higher.
+Manage workspace members, roles, and invitations. Teams are available on [Pro and Enterprise plans](billing.md#plans). See [Teams](teams.md) for full documentation on team creation, roles, shared resources, and enterprise features.
 
 ### Manage Members
 

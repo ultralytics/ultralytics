@@ -333,7 +333,7 @@ You can follow the steps in the [ONNX integration guide](https://docs.ultralytic
 
 ### Can I run inference using the Ultralytics YOLO26 model on Triton Inference Server?
 
-Yes, you can run inference using the Ultralytics YOLO26 model on [NVIDIA Triton Inference Server](https://developer.nvidia.com/dynamo). Once your model is set up in the Triton Model Repository and the server is running, you can load and run inference on your model as follows:
+Yes, you can run inference using the Ultralytics YOLO26 model on [NVIDIA Triton Inference Server](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html). Once your model is set up in the Triton Model Repository and the server is running, you can load and run inference on your model as follows:
 
 ```python
 from ultralytics import YOLO

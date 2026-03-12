@@ -24,7 +24,7 @@ class SegmentationValidator(DetectionValidator):
     Attributes:
         plot_masks (list): List to store masks for plotting.
         process (callable): Function to process masks based on save_json and save_txt flags.
-        args (namespace): Arguments for the validator.
+        args (SimpleNamespace): Arguments for the validator.
         metrics (SegmentMetrics): Metrics calculator for segmentation tasks.
         stats (dict): Dictionary to store statistics during validation.
 
@@ -41,7 +41,7 @@ class SegmentationValidator(DetectionValidator):
         Args:
             dataloader (torch.utils.data.DataLoader, optional): DataLoader to use for validation.
             save_dir (Path, optional): Directory to save results.
-            args (namespace, optional): Arguments for the validator.
+            args (dict, optional): Arguments for the validator.
             _callbacks (list, optional): List of callback functions.
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
@@ -97,7 +97,7 @@ class SegmentationValidator(DetectionValidator):
             preds (list[torch.Tensor]): Raw predictions from the model.
 
         Returns:
-            list[dict[str, torch.Tensor]]: Processed detection predictions with masks.
+            (list[dict[str, torch.Tensor]]): Processed detection predictions with masks.
         """
         proto = preds[0][1] if isinstance(preds[0], tuple) else preds[1]
         preds = super().postprocess(preds[0])
@@ -116,10 +116,10 @@ class SegmentationValidator(DetectionValidator):
         return preds
 
     def _prepare_batch(self, si: int, batch: dict[str, Any]) -> dict[str, Any]:
-        """Prepare a batch for training or inference by processing images and targets.
+        """Prepare a batch for validation by processing images and targets.
 
         Args:
-            si (int): Batch index.
+            si (int): Sample index within the batch.
             batch (dict[str, Any]): Batch data containing images and annotations.
 
         Returns:
@@ -157,8 +157,8 @@ class SegmentationValidator(DetectionValidator):
             >>> correct_preds = validator._process_batch(preds, batch)
 
         Notes:
-            - If `masks` is True, the function computes IoU between predicted and ground truth masks.
-            - If `overlap` is True and `masks` is True, overlapping masks are taken into account when computing IoU.
+            - This method computes IoU between predicted and ground truth masks.
+            - Overlapping masks are handled based on the overlap_mask argument setting.
         """
         tp = super()._process_batch(preds, batch)
         gt_cls = batch["cls"]
@@ -185,11 +185,11 @@ class SegmentationValidator(DetectionValidator):
             p["masks"] = torch.as_tensor(masks[: self.args.max_det], dtype=torch.uint8).cpu()
         super().plot_predictions(batch, preds, ni, max_det=self.args.max_det)  # plot bboxes
 
-    def save_one_txt(self, predn: torch.Tensor, save_conf: bool, shape: tuple[int, int], file: Path) -> None:
+    def save_one_txt(self, predn: dict[str, torch.Tensor], save_conf: bool, shape: tuple[int, int], file: Path) -> None:
         """Save YOLO detections to a txt file in normalized coordinates in a specific format.
 
         Args:
-            predn (torch.Tensor): Predictions in the format (x1, y1, x2, y2, conf, class).
+            predn (dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', 'cls', and 'masks' keys.
             save_conf (bool): Whether to save confidence scores.
             shape (tuple[int, int]): Shape of the original image.
             file (Path): File path to save the detections.
@@ -253,7 +253,7 @@ class SegmentationValidator(DetectionValidator):
                     H*W].
 
             Returns:
-                (list[int]): A list of RLE counts for each mask.
+                (list[list[int]]): A list of RLE counts for each mask.
             """
             transitions = pixels[:, 1:] != pixels[:, :-1]
             row_idx, col_idx = torch.where(transitions)

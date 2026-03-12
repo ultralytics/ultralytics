@@ -30,7 +30,7 @@ class OBBValidator(DetectionValidator):
         init_metrics: Initialize evaluation metrics for YOLO.
         _process_batch: Process batch of detections and ground truth boxes to compute IoU matrix.
         _prepare_batch: Prepare batch data for OBB validation.
-        _prepare_pred: Prepare predictions with scaled and padded bounding boxes.
+        _prepare_pred: Prepare predictions for evaluation against ground truth.
         plot_predictions: Plot predicted bounding boxes on input images.
         pred_to_json: Serialize YOLO predictions to COCO json format.
         save_one_txt: Save YOLO detections to a txt file in normalized coordinates.
@@ -52,7 +52,7 @@ class OBBValidator(DetectionValidator):
         Args:
             dataloader (torch.utils.data.DataLoader, optional): DataLoader to be used for validation.
             save_dir (str | Path, optional): Directory to save results.
-            args (dict | SimpleNamespace, optional): Arguments containing validation parameters.
+            args (dict, optional): Arguments containing validation parameters.
             _callbacks (list, optional): List of callback functions to be called during validation.
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
@@ -85,10 +85,9 @@ class OBBValidator(DetectionValidator):
                 predictions compared to the ground truth.
 
         Examples:
-            >>> detections = torch.rand(100, 7)  # 100 sample detections
-            >>> gt_bboxes = torch.rand(50, 5)  # 50 sample ground truth boxes
-            >>> gt_cls = torch.randint(0, 5, (50,))  # 50 ground truth class labels
-            >>> correct_matrix = validator._process_batch(detections, gt_bboxes, gt_cls)
+            >>> preds = {"cls": torch.randint(0, 5, (100,)), "bboxes": torch.rand(100, 5)}
+            >>> batch = {"cls": torch.randint(0, 5, (50,)), "bboxes": torch.rand(50, 5)}
+            >>> correct_matrix = validator._process_batch(preds, batch)
         """
         if batch["cls"].shape[0] == 0 or preds["cls"].shape[0] == 0:
             return {"tp": np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)}
@@ -113,7 +112,7 @@ class OBBValidator(DetectionValidator):
         """Prepare batch data for OBB validation with proper scaling and formatting.
 
         Args:
-            si (int): Batch index to process.
+            si (int): Sample index within the batch.
             batch (dict[str, Any]): Dictionary containing batch data with keys:
                 - batch_idx: Tensor of batch indices
                 - cls: Tensor of class labels
@@ -205,16 +204,20 @@ class OBBValidator(DetectionValidator):
         """Save YOLO OBB detections to a text file in normalized coordinates.
 
         Args:
-            predn (torch.Tensor): Predicted detections with shape (N, 7) containing bounding boxes, confidence scores,
-                class predictions, and angles in format (x, y, w, h, conf, cls, angle).
+            predn (dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', and 'cls' keys with
+                bounding box coordinates (including angle), confidence scores, and class predictions.
             save_conf (bool): Whether to save confidence scores in the text file.
             shape (tuple[int, int]): Original image shape in format (height, width).
             file (Path): Output file path to save detections.
 
         Examples:
             >>> validator = OBBValidator()
-            >>> predn = torch.tensor([[100, 100, 50, 30, 0.9, 0, 45]])  # One detection: x,y,w,h,conf,cls,angle
-            >>> validator.save_one_txt(predn, True, (640, 480), "detection.txt")
+            >>> predn = {
+            ...     "bboxes": torch.tensor([[100, 100, 50, 30, 45]]),
+            ...     "conf": torch.tensor([0.9]),
+            ...     "cls": torch.tensor([0]),
+            ... }
+            >>> validator.save_one_txt(predn, True, (640, 480), Path("detection.txt"))
         """
         import numpy as np
 

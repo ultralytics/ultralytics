@@ -423,6 +423,51 @@ Here we compare SAM 3's capabilities with SAM 2 and [YOLO11](../models/yolo11.md
 - **SAM 2**: Best for interactive single-object segmentation in images and videos with geometric prompts
 - **YOLO11**: Best for real-time, high-speed segmentation in resource-constrained deployments using efficient [export pipelines](../modes/export.md) like [ONNX](../integrations/onnx.md) and [TensorRT](../integrations/tensorrt.md)
 
+## SAM 3 Comparison vs YOLO
+
+Here we compare Meta's SAM 2 models, including the smallest SAM2-t variant, with Ultralytics smallest segmentation model, [YOLO11n-seg](../tasks/segment.md):
+
+| Model                                                                                          | Size<br><sup>(MB)</sup> | Parameters<br><sup>(M)</sup> | Speed (GPU)<br><sup>(ms/im)</sup> |
+| ---------------------------------------------------------------------------------------------- | ----------------------- | ---------------------------- | --------------------------------- |
+| [Meta SAM-b](sam.md)                                                                           | 375                     | 93.7                         | 1306                              |
+| [Meta SAM2-b](sam-2.md)                                                                        | 162                     | 80.8                         | 857                               |
+| [Meta SAM2-t](sam-2.md)                                                                        | 78.1                    | 38.9                         | 668                               |
+| Meta SAM3                                                                                      | 3200                    | 473.6                        | 2921                              |
+| [MobileSAM](mobile-sam.md)                                                                     | 40.7                    | 10.1                         | 605                               |
+| [FastSAM-s](fast-sam.md) with YOLOv8 [backbone](https://www.ultralytics.com/glossary/backbone) | 23.7                    | 11.8                         | 55.9                              |
+| Ultralytics [YOLOv8n-seg](yolov8.md)                                                           | **6.7** (477x smaller)  | **3.4** (139.1x less)        | **17.4** (167x faster)            |
+| Ultralytics [YOLO11n-seg](yolo11.md)                                                           | **5.9** (542x smaller)  | **2.9** (163.1x less)        | **12.6** (231x faster)            |
+| Ultralytics [YOLO26n-seg](yolo26.md)                                                           | **6.4** (500x smaller)  | **2.7** (175.2x less)        | **8.4** (347x faster)             |
+
+This comparison demonstrates the substantial differences in model sizes and speeds between SAM variants and YOLO segmentation models. While SAM provides unique automatic segmentation capabilities, YOLO models, particularly YOLOv8n-seg, YOLO11n-seg and YOLO26n-seg, are significantly smaller, faster, and more computationally efficient.
+
+Tests run on a NVIDIA RTX PRO 6000 with 96GB of VRAM using `torch==2.9.1` and `ultralytics==8.4.19`. To reproduce this test:
+
+!!! example
+
+    === "Python"
+
+        ```python
+        from ultralytics import ASSETS, SAM, YOLO, FastSAM
+
+        # Profile SAM3, SAM2-t, SAM2-b, SAM-b, MobileSAM
+        for file in ["sam_b.pt", "sam2_b.pt", "sam2_t.pt", "mobile_sam.pt", "sam3.pt"]:
+            model = SAM(file)
+            model.info()
+            model(ASSETS)
+
+        # Profile FastSAM-s
+        model = FastSAM("FastSAM-s.pt")
+        model.info()
+        model(ASSETS)
+
+        # Profile YOLO models
+        for file_name in ["yolov8n-seg.pt", "yolo11n-seg.pt", "yolo26n-seg.pt"]:
+            model = YOLO(file_name)
+            model.info()
+            model(ASSETS)
+        ```
+
 ## Evaluation Metrics
 
 SAM 3 introduces new metrics designed for the PCS task, complementing familiar measures like [F1 score](https://www.ultralytics.com/glossary/f1-score), [precision](https://www.ultralytics.com/glossary/precision), and [recall](https://www.ultralytics.com/glossary/recall).

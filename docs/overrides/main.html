@@ -14,6 +14,11 @@
 </a>
 {% endblock %}
 
+<!--Vercel Web Analytics-->
+{% block scripts %} {{ super() }}
+<script defer src="/_vercel/insights/script.js"></script>
+{% endblock %}
+
 <!--Page titles-->
 {% block htmltitle %} {% if page and page.toc is defined and page.toc.items is defined and page.toc.items %} {% set
 page_specific_title = page.toc.items[0].title %} {% elif page %} {% set page_specific_title = page.title | striptags %}

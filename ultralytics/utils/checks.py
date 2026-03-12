@@ -86,6 +86,15 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
     return requirements
 
 
+def get_distribution_name(import_name: str) -> str:
+    """Get the pip distribution name for a given import name (e.g., 'cv2' -> 'opencv-python-headless')."""
+    for dist in metadata.distributions():
+        top_level = (dist.read_text("top_level.txt") or "").split()
+        if import_name in top_level:
+            return dist.metadata["Name"]
+    return import_name
+
+
 @functools.lru_cache
 def parse_version(version="0.0.0") -> tuple:
     """Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version.
@@ -192,7 +201,7 @@ def check_version(
         current (str): Current version or package name to get version from.
         required (str): Required version or range (in pip-style format).
         name (str): Name to be used in warning message.
-        hard (bool): If True, raise an AssertionError if the requirement is not met.
+        hard (bool): If True, raise a ModuleNotFoundError if the requirement is not met.
         verbose (bool): If True, print warning message if requirement is not met.
         msg (str): Extra message to display if verbose.
 
@@ -272,7 +281,7 @@ def check_latest_pypi_version(package_name="ultralytics"):
         package_name (str): The name of the package to find the latest version for.
 
     Returns:
-        (str): The latest version of the package.
+        (str | None): The latest version of the package, or None if unavailable.
     """
     import requests  # scoped as slow import
 
@@ -316,7 +325,7 @@ def check_font(font="Arial.ttf"):
         font (str): Path or name of font.
 
     Returns:
-        (Path): Resolved font file path.
+        (Path | str): Resolved font file path.
     """
     from matplotlib import font_manager  # scope for faster 'import ultralytics'
 
@@ -343,7 +352,7 @@ def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = Fals
 
     Args:
         minimum (str): Required minimum version of python.
-        hard (bool): If True, raise an AssertionError if the requirement is not met.
+        hard (bool): If True, raise a ModuleNotFoundError if the requirement is not met.
         verbose (bool): If True, print warning message if requirement is not met.
 
     Returns:
@@ -357,7 +366,7 @@ def check_apt_requirements(requirements):
     """Check if apt packages are installed and install missing ones.
 
     Args:
-        requirements: List of apt package names to check and install
+        requirements (list[str]): List of apt package names to check and install.
     """
     prefix = colorstr("red", "bold", "apt requirements:")
     # Check which packages are missing
@@ -449,7 +458,11 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
                 continue
 
         if not satisfied:
-            pkgs.append(candidates[0])
+            pkg = candidates[0]
+            if "git+" in pkg:  # strip version constraints from git URLs for pip
+                url, sep, marker = pkg.partition(";")
+                pkg = re.sub(r"[<>!=~]+.*$", "", url) + sep + marker
+            pkgs.append(pkg)
 
     @Retry(times=2, delay=1)
     def attempt_install(packages, commands, use_uv):
@@ -525,6 +538,7 @@ def check_torchvision():
     to the compatibility table based on: https://github.com/pytorch/vision#installation.
     """
     compatibility_table = {
+        "2.10": ["0.25"],
         "2.9": ["0.24"],
         "2.8": ["0.23"],
         "2.7": ["0.22"],
@@ -622,7 +636,7 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
         hard (bool): Whether to raise an error if the file is not found.
 
     Returns:
-        (str): Path to the file.
+        (str | list): Path to the file, or an empty list if not found.
     """
     check_suffix(file, suffix)  # optional
     file = str(file).strip()  # convert to string and strip spaces
@@ -728,7 +742,7 @@ def check_imshow(warn=False):
 
 
 def check_yolo(verbose=True, device=""):
-    """Return a human-readable YOLO software and hardware summary.
+    """Print a human-readable YOLO software and hardware summary.
 
     Args:
         verbose (bool): Whether to print verbose information.
@@ -777,7 +791,7 @@ def collect_system_info():
     gib = 1 << 30  # bytes per GiB
     cuda = torch.cuda.is_available()
     check_yolo()
-    total, _used, free = shutil.disk_usage("/")
+    total, _, free = shutil.disk_usage("/")
 
     info_dict = {
         "OS": platform.platform(),
@@ -796,7 +810,7 @@ def collect_system_info():
     LOGGER.info("\n" + "\n".join(f"{k:<23}{v}" for k, v in info_dict.items()) + "\n")
 
     package_info = {}
-    for r in parse_requirements(package="ultralytics"):
+    for r in parse_requirements(package=get_distribution_name("ultralytics")):
         try:
             current = metadata.version(r.name)
             is_met = "✅ " if check_version(current, str(r.specifier), name=r.name, hard=True) else "❌ "
@@ -833,7 +847,7 @@ def check_amp(model):
         model (torch.nn.Module): A YOLO model instance.
 
     Returns:
-        (bool): Returns True if the AMP functionality works correctly with YOLO11 model, else False.
+        (bool): Returns True if the AMP functionality works correctly with YOLO model, else False.
 
     Examples:
         >>> from ultralytics import YOLO

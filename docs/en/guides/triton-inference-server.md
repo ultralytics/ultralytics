@@ -6,7 +6,7 @@ keywords: Triton Inference Server, YOLO26, Ultralytics, NVIDIA, deep learning, A
 
 # Triton Inference Server with Ultralytics YOLO26
 
-The [Triton Inference Server](https://developer.nvidia.com/dynamo) (formerly known as TensorRT Inference Server) is an open-source software solution developed by NVIDIA. It provides a cloud inference solution optimized for NVIDIA GPUs. Triton simplifies the deployment of AI models at scale in production. Integrating Ultralytics YOLO26 with Triton Inference Server allows you to deploy scalable, high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference workloads. This guide provides steps to set up and test the integration.
+The [Triton Inference Server](https://developer.nvidia.com/dynamo-triton) (formerly known as TensorRT Inference Server) is an open-source software solution developed by NVIDIA. It provides a cloud inference solution optimized for NVIDIA GPUs. Triton simplifies the deployment of AI models at scale in production. Integrating Ultralytics YOLO26 with Triton Inference Server allows you to deploy scalable, high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference workloads. This guide provides steps to set up and test the integration.
 
 <p align="center">
   <br>
@@ -234,7 +234,7 @@ By following the above steps, you can deploy and run Ultralytics YOLO26 models e
 
 ### How do I set up Ultralytics YOLO26 with NVIDIA Triton Inference Server?
 
-Setting up [Ultralytics YOLO26](../models/yolo26.md) with [NVIDIA Triton Inference Server](https://developer.nvidia.com/dynamo) involves a few key steps:
+Setting up [Ultralytics YOLO26](../models/yolo26.md) with [NVIDIA Triton Inference Server](https://developer.nvidia.com/dynamo-triton) involves a few key steps:
 
 1. **Export YOLO26 to ONNX format**:
 
@@ -300,7 +300,7 @@ This setup can help you efficiently deploy YOLO26 models at scale on Triton Infe
 
 ### What benefits does using Ultralytics YOLO26 with NVIDIA Triton Inference Server offer?
 
-Integrating Ultralytics YOLO26 with [NVIDIA Triton Inference Server](https://developer.nvidia.com/dynamo) provides several advantages:
+Integrating Ultralytics YOLO26 with [NVIDIA Triton Inference Server](https://developer.nvidia.com/dynamo-triton) provides several advantages:
 
 - **Scalable AI Inference**: Triton allows serving multiple models from a single server instance, supporting dynamic model loading and unloading, making it highly scalable for diverse AI workloads.
 - **High Performance**: Optimized for NVIDIA GPUs, Triton Inference Server ensures high-speed inference operations, perfect for real-time applications such as [object detection](https://www.ultralytics.com/glossary/object-detection).
@@ -312,7 +312,7 @@ For detailed instructions on setting up and running YOLO26 with Triton, you can 
 
 ### Why should I export my YOLO26 model to ONNX format before using Triton Inference Server?
 
-Using ONNX (Open Neural Network Exchange) format for your Ultralytics YOLO26 model before deploying it on [NVIDIA Triton Inference Server](https://developer.nvidia.com/dynamo) offers several key benefits:
+Using ONNX (Open Neural Network Exchange) format for your Ultralytics YOLO26 model before deploying it on [NVIDIA Triton Inference Server](https://developer.nvidia.com/dynamo-triton) offers several key benefits:
 
 - **Interoperability**: ONNX format supports transfer between different deep learning frameworks (such as PyTorch, TensorFlow), ensuring broader compatibility.
 - **Optimization**: Many deployment environments, including Triton, optimize for ONNX, enabling faster inference and better performance.

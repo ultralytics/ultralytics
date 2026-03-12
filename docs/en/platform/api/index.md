@@ -18,6 +18,10 @@ keywords: Ultralytics Platform, REST API, API reference, authentication, endpoin
       https://platform.ultralytics.com/api/datasets
     ```
 
+!!! tip "Interactive API Docs"
+
+    Explore the full interactive API reference in the [Ultralytics Platform API docs](https://platform.ultralytics.com/api/docs).
+
 ## API Overview
 
 The API is organized around the core platform resources:

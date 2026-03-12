@@ -6,7 +6,7 @@
 # parent
 # ├── ultralytics
 # └── datasets
-#     └── dota128 ← downloads here (10 MB)
+#     └── dota128 ← downloads here (34 MB)
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
 path: dota128 # dataset root dir

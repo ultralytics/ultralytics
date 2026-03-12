@@ -21,7 +21,7 @@ The [Triton Inference Server](https://developer.nvidia.com/dynamo-triton) (forme
 
 ## What is Triton Inference Server?
 
-Triton Inference Server is designed to deploy a variety of AI models in production. It supports a wide range of deep learning and [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) frameworks, including TensorFlow, [PyTorch](https://www.ultralytics.com/glossary/pytorch), ONNX Runtime, and many others. Its primary use cases are:
+Triton Inference Server is designed to deploy a variety of AI models in production. It supports a wide range of deep learning and [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) frameworks, including TensorRT, [PyTorch](https://www.ultralytics.com/glossary/pytorch), ONNX, OpenVINO and many others. Its primary use cases are:
 
 - Serving multiple models from a single server instance
 - Dynamic model loading and unloading without server restart

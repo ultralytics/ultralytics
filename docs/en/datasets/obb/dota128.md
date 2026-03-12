@@ -8,24 +8,13 @@ keywords: DOTA128 dataset, Ultralytics, YOLO26, object detection, debugging, tra
 
 ## Introduction
 
-[Ultralytics](https://www.ultralytics.com/) DOTA128 is a small but versatile oriented [object detection](https://www.ultralytics.com/glossary/object-detection) dataset composed of 128 images from the DOTAv1 set, 64 for training and 64 for validation. This dataset is ideal for testing and debugging oriented bounding box (OBB) models, or for experimenting with new detection approaches. With 128 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
+[Ultralytics](https://www.ultralytics.com/) DOTA128 is a small but versatile oriented [object detection](https://www.ultralytics.com/glossary/object-detection) dataset composed of 128 images from the DOTAv1 set, 128 for training and validation. This dataset is ideal for testing and debugging oriented bounding box (OBB) models, or for experimenting with new detection approaches. With 128 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
 
 ## Dataset Structure
 
 - **Images**: 128 aerial tiles (all in train folder, used for both train and val) sourced from DOTAv1.
 - **Classes**: Inherits the 15 DOTAv1 categories such as plane, ship, and large vehicle.
 - **Labels**: YOLO-format oriented bounding boxes saved as `.txt` files beside each image.
-- **Recommended layout**:
-
-    ```
-    datasets/dota128/
-    ├── images/
-    │   ├── train/
-    │   └── val/
-    └── labels/
-        ├── train/
-        └── val/
-    ```
 
 This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
 

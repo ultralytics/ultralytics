@@ -44,7 +44,7 @@ graph LR
 | [Exports](../train/models.md#export-model) | Format conversion jobs        | Create, status, download                      |
 | [Training](../train/cloud-training.md)     | Cloud GPU training jobs       | Start, status, cancel                         |
 | [Billing](../account/billing.md)           | Credits and subscriptions     | Balance, top-up, payment methods              |
-| [Teams](../account/teams.md)  | Workspace collaboration       | Members, invites, roles                       |
+| [Teams](../account/teams.md)               | Workspace collaboration       | Members, invites, roles                       |
 
 ## Authentication
 

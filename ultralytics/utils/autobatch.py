@@ -84,8 +84,9 @@ def autobatch(
 
     # Profile batch sizes
     batch_sizes = [1, 2, 4, 8, 16] if t < 16 else [1, 2, 4, 8, 16, 32, 64]
+    ch = model.yaml.get("channels", 3)
     try:
-        img = [torch.empty(b, 3, imgsz, imgsz) for b in batch_sizes]
+        img = [torch.empty(b, ch, imgsz, imgsz) for b in batch_sizes]
         results = profile_ops(img, model, n=1, device=device, max_num_obj=max_num_obj)
 
         # Fit a solution

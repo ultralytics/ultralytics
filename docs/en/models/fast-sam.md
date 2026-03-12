@@ -165,7 +165,7 @@ This snippet demonstrates the simplicity of loading a pretrained model and runni
 
 !!! note
 
-    All the returned `results` in above examples are [Results](../modes/predict.md#working-with-results) object which allows access predicted masks and source image easily.
+    All the returned `results` in the above examples are [Results](../modes/predict.md#working-with-results) objects which allow access to predicted masks and source image easily.
 
 ### Val Usage
 

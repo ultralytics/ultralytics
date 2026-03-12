@@ -132,7 +132,7 @@ def test_predict_img(model_name):
 
 @pytest.mark.parametrize("model", MODELS)
 def test_predict_visualize(model):
-    """Test model prediction methods with 'visualize=True' to generate and display prediction visualizations."""
+    """Test model prediction methods with 'visualize=True' to generate prediction visualizations."""
     YOLO(WEIGHTS_DIR / model)(SOURCE, imgsz=32, visualize=True)
 
 
@@ -162,7 +162,7 @@ def test_predict_gray_and_4ch(tmp_path):
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_predict_all_image_formats():
-    """Test YOLO prediction all 12 image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP)."""
+    """Predict on all 12 image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP)."""
     # Download dataset if needed
     data = check_det_dataset("coco12-formats.yaml")
     dataset_path = Path(data["path"])
@@ -348,7 +348,7 @@ def test_labels_and_crops():
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_data_utils(tmp_path):
-    """Test utility functions in ultralytics/data/utils.py, including dataset stats and auto-splitting."""
+    """Test data utility functions including dataset stats, auto-splitting, and zip archiving."""
     from ultralytics.data.split import autosplit
     from ultralytics.data.utils import HUBDatasetStats
     from ultralytics.utils.downloads import zip_directory
@@ -461,7 +461,7 @@ def test_utils_init():
 
 
 def test_utils_checks():
-    """Test various utility checks for filenames, git status, requirements, image sizes, and versions."""
+    """Test various utility checks for filenames, requirements, image sizes, display capabilities, and versions."""
     checks.check_yolov5u_filename("yolov5n.pt")
     checks.check_requirements("numpy")  # check requirements.txt
     checks.check_imgsz([600, 600], max_dim=1)
@@ -698,12 +698,11 @@ def test_yolo_world():
     reason="YOLOE with CLIP is not supported in Python 3.8 and aarch64 Linux",
 )
 def test_yoloe(tmp_path):
-    """Test YOLOE models with MobileClip support."""
+    """Test YOLOE models with MobileCLIP support."""
     # Predict
     # text-prompts
     model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")
-    names = ["person", "bus"]
-    model.set_classes(names, model.get_text_pe(names))
+    model.set_classes(["person", "bus"])
     model(SOURCE, conf=0.01)
 
     from ultralytics import YOLOE
@@ -796,7 +795,11 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
             npy_file.unlink()
 
     model = YOLO(model)
-    model.train(data=grayscale_data, epochs=1, imgsz=32, close_mosaic=1)
+    model.train(data=grayscale_data, epochs=1, imgsz=32, close_mosaic=1, cache="disk")
+    # remove npy files in train/val splits if exists, avoiding interference with other tests
+    for split in {"train", "val"}:
+        for npy_file in (Path(data["path"]) / data[split]).glob("*.npy"):
+            npy_file.unlink()
     model.val(data=grayscale_data)
     im = np.zeros((32, 32, 1), dtype=np.uint8)
     model.predict(source=im, imgsz=32, save_txt=True, save_crop=True, augment=True)

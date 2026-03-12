@@ -92,7 +92,7 @@ class TransformerDecoderLayer(nn.Module):
         # skip inside deformable attn
         **kwargs,  # additional kwargs for compatibility
     ):
-        """Input: - tgt/tgt_query_pos: nq, bs, d_model. -."""
+        """Forward pass of the TransformerDecoderLayer."""
         # self attention
         tgt, tgt_query_pos = self._apply_self_attention(
             tgt, tgt_query_pos, dac, dac_use_selfatt_ln, presence_token, self_attn_mask

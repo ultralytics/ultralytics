@@ -48,7 +48,7 @@ def is_url(url: str | Path, check: bool = False) -> bool:
     """Validate if the given string is a URL and optionally check if the URL exists online.
 
     Args:
-        url (str): The string to be validated as a URL.
+        url (str | Path): The string to be validated as a URL.
         check (bool, optional): If True, performs an additional check to see if the URL exists online.
 
     Returns:
@@ -76,7 +76,7 @@ def delete_dsstore(path: str | Path, files_to_delete: tuple[str, ...] = (".DS_St
 
     Args:
         path (str | Path): The directory path where the files should be deleted.
-        files_to_delete (tuple): The files to be deleted.
+        files_to_delete (tuple[str, ...]): The files to be deleted.
 
     Examples:
         >>> from ultralytics.utils.downloads import delete_dsstore
@@ -106,7 +106,7 @@ def zip_directory(
     Args:
         directory (str | Path): The path to the directory to be zipped.
         compress (bool): Whether to compress the files while zipping.
-        exclude (tuple, optional): A tuple of filename strings to be excluded.
+        exclude (tuple[str, ...], optional): A tuple of filename strings to be excluded.
         progress (bool, optional): Whether to display a progress bar.
 
     Returns:
@@ -150,7 +150,7 @@ def unzip_file(
     Args:
         file (str | Path): The path to the zipfile to be extracted.
         path (str | Path, optional): The path to extract the zipfile to.
-        exclude (tuple, optional): A tuple of filename strings to be excluded.
+        exclude (tuple[str, ...], optional): A tuple of filename strings to be excluded.
         exist_ok (bool, optional): Whether to overwrite existing contents if they exist.
         progress (bool, optional): Whether to display a progress bar.
 
@@ -223,10 +223,13 @@ def check_disk_space(
     if file_bytes * sf < free:
         return True  # sufficient space
 
+    def fmt_bytes(b):
+        return f"{b / (1 << 20):.1f} MB" if b < (1 << 30) else f"{b / (1 << 30):.3f} GB"
+
     # Insufficient space
     text = (
-        f"Insufficient free disk space {free >> 30:.3f} GB < {int(file_bytes * sf) >> 30:.3f} GB required, "
-        f"Please free {int(file_bytes * sf - free) >> 30:.3f} GB additional disk space and try again."
+        f"Insufficient free disk space {fmt_bytes(free)} < {fmt_bytes(int(file_bytes * sf))} required, "
+        f"Please free {fmt_bytes(int(file_bytes * sf - free))} additional disk space and try again."
     )
     if hard:
         raise MemoryError(text)
@@ -289,9 +292,9 @@ def safe_download(
     robust partial download detection using Content-Length validation.
 
     Args:
-        url (str): The URL of the file to be downloaded.
-        file (str, optional): The filename of the downloaded file. If not provided, the file will be saved with the same
-            name as the URL.
+        url (str | Path): The URL of the file to be downloaded.
+        file (str | Path, optional): The filename of the downloaded file. If not provided, the file will be saved with
+            the same name as the URL.
         dir (str | Path, optional): The directory to save the downloaded file. If not provided, the file will be saved
             in the current working directory.
         unzip (bool, optional): Whether to unzip the downloaded file.
@@ -314,6 +317,7 @@ def safe_download(
     gdrive = url.startswith("https://drive.google.com/")  # check if the URL is a Google Drive link
     if gdrive:
         url, file = get_google_drive_file_info(url)
+    url = url.replace(" ", "%20")  # encode spaces for curl/urllib compatibility
 
     f = Path(dir or ".") / (file or url2file(url))  # URL converted to filename
     if "://" not in str(url) and Path(url).is_file():  # URL exists ('://' check required in Windows Python<3.10)
@@ -493,7 +497,7 @@ def download(
     Supports concurrent downloads if multiple threads are specified.
 
     Args:
-        url (str | list[str]): The URL or list of URLs of the files to be downloaded.
+        url (str | list[str] | Path): The URL or list of URLs of the files to be downloaded.
         dir (Path, optional): The directory where the files will be saved.
         unzip (bool, optional): Flag to unzip the files after downloading.
         delete (bool, optional): Flag to delete the zip files after extraction.

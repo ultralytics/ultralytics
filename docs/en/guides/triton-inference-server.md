@@ -163,7 +163,7 @@ subprocess.call(f"docker pull {tag}", shell=True)
 # Note: The :z flag on the volume mount is necessary for systems with SELinux (like Fedora/RHEL)
 container_id = (
     subprocess.check_output(
-        f"docker run -d --rm --runtime=nvidia --gpus 0 -v {triton_repo_path}:/models:z -p 8000:8000 {tag} tritonserver --model-repository=/models",
+        f"docker run -d --rm --runtime=nvidia --gpus 0 -v {triton_repo_path.absolute()}:/models:z -p 8000:8000 {tag} tritonserver --model-repository=/models",
         shell=True,
     )
     .decode("utf-8")
@@ -280,7 +280,7 @@ Setting up [Ultralytics YOLO26](../models/yolo26.md) with [NVIDIA Triton Inferen
 
     container_id = (
         subprocess.check_output(
-            f"docker run -d --rm --runtime=nvidia --gpus 0 -v {triton_repo_path}:/models:z -p 8000:8000 {tag} tritonserver --model-repository=/models",
+            f"docker run -d --rm --runtime=nvidia --gpus 0 -v {triton_repo_path.absolute()}:/models:z -p 8000:8000 {tag} tritonserver --model-repository=/models",
             shell=True,
         )
         .decode("utf-8")

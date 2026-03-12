@@ -115,32 +115,56 @@ View your data region on the `Profile` tab:
 
 ### Storage Usage
 
-Monitor your storage consumption on the `Profile` tab:
+Monitor your storage consumption on the `Profile` tab and the **Home** page:
 
 ![Ultralytics Platform Settings Profile Tab Storage Usage Card](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-storage-usage-card.avif)
 
-| Type         | Description             |
-| ------------ | ----------------------- |
-| **Datasets** | Image and label storage |
-| **Models**   | Checkpoint storage      |
-| **Exports**  | Exported model formats  |
+The storage card shows:
+
+- **Overall progress bar** with color-coded status (green under 70%, amber 70-89%, red 90%+)
+- **Category breakdown** for datasets, models, and exports
+- **Resource counts** for projects, datasets, models, images, and deployments
+- **Largest items** to help identify what consumes the most space
+
+| Category     | Description                                           |
+| ------------ | ----------------------------------------------------- |
+| **Datasets** | Uploaded images, videos, labels, and annotation files |
+| **Models**   | Trained model checkpoints (`.pt` files)               |
+| **Exports**  | Exported model formats (ONNX, TensorRT, CoreML, etc)  |
+
+!!! tip "Recalculate Storage"
+
+    To refresh your storage values, click the **Recalculate** button on the storage card.
 
 #### Storage Limits
 
-| Plan       | Limit     |
-| ---------- | --------- |
-| Free       | 100 GB    |
-| Pro        | 500 GB    |
-| Enterprise | Unlimited |
+| Plan           | Storage   | Models    | Deployments |
+| -------------- | --------- | --------- | ----------- |
+| **Free**       | 100 GB    | 100       | 3           |
+| **Pro**        | 500 GB    | 500       | 10          |
+| **Enterprise** | Unlimited | Unlimited | Unlimited   |
+
+#### Upload Size Limits
+
+| File Type       | Max Size |
+| --------------- | -------- |
+| **Image**       | 50 MB    |
+| **Video**       | 1 GB     |
+| **Model (.pt)** | 1 GB     |
+| **ZIP Archive** | 10 GB    |
+
+#### Trash and Storage
+
+Items in the trash still count toward your storage quota. To free up space, permanently delete items from the trash. Trash items are automatically removed after 30 days. See [Trash](trash.md) for details.
 
 #### Reduce Storage
 
 To free up storage:
 
-1. Delete unused datasets
+1. Delete unused datasets or remove unnecessary images
 2. Remove old model checkpoints
-3. Delete exported formats
-4. Empty trash ([`Settings > Trash`](trash.md))
+3. Delete exported model formats you no longer need
+4. Empty trash in [**Settings > Trash**](trash.md)
 
 ### Security
 

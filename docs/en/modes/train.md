@@ -119,12 +119,12 @@ Multi-GPU training allows for more efficient utilization of available hardware r
 
 !!! note "Multi-GPU Training with Custom Code"
 
-    When you launch a multi-GPU training setup specifying multiple devices (e.g., `device=[0, 1]`), Ultralytics internally creates a new trainer instance and runs the `torch.distributed.run` command for you under the hood. This mechanism works perfectly for standard CLI usage or Python scripts that do not contain custom modifications.
+    When you specify multiple devices (e.g., `device=[0, 1]`), Ultralytics internally spawns a new trainer instance and executes `torch.distributed.run` under the hood. This works seamlessly for standard CLI usage and unmodified Python scripts.
 
-    However, if your Python script includes customized components (such as a custom trainer, validator, dataset, or augmentations), these custom objects cannot be serialized and passed to the internal DDP subprocesses. To use multi-GPU training with custom code, you must launch your script directly using `torch.distributed.run` from your terminal:
+    However, if your script contains custom components—such as a custom trainer, validator, dataset, or augmentation pipeline—these objects cannot be automatically serialized and transferred to the DDP subprocesses. In this case, you must launch your script directly with `torch.distributed.run`:
 
     ```bash
-    python -m torch.distributed.run --nproc_per_node 2 user_training_script.py
+    python -m torch.distributed.run --nproc_per_node 2 your_training_script.py
     ```
 
 ### Idle GPU Training

@@ -42,7 +42,7 @@ Using Triton Inference Server with Ultralytics YOLO26 provides several advantage
 
 Ensure you have the following prerequisites before proceeding:
 
-- Docker installed on your machine
+- Docker or Podman installed on your machine
 - Install `tritonclient`:
     ```bash
     pip install tritonclient[all]
@@ -143,7 +143,7 @@ The Triton Model Repository is a storage location where Triton can access and lo
 
 ## Running Triton Inference Server
 
-Run the Triton Inference Server using Docker:
+Run the Triton Inference Server using Docker or Podman:
 
 ```python
 import contextlib
@@ -153,15 +153,17 @@ import time
 from tritonclient.http import InferenceServerClient
 
 # Define image https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver
-tag = "nvcr.io/nvidia/tritonserver:24.09-py3"  # 8.57 GB
+tag = "nvcr.io/nvidia/tritonserver:26.02-py3"  # 13.1 GB
 
-# Pull the image
+# Pull the image (use 'podman pull' if using Podman)
 subprocess.call(f"docker pull {tag}", shell=True)
 
 # Run the Triton server and capture the container ID
+# Note: For Podman, replace 'docker' with 'podman'
+# Note: The :z flag on the volume mount is necessary for systems with SELinux (like Fedora/RHEL)
 container_id = (
     subprocess.check_output(
-        f"docker run -d --rm --runtime=nvidia --gpus 0 -v {triton_repo_path}:/models -p 8000:8000 {tag} tritonserver --model-repository=/models",
+        f"docker run -d --rm --runtime=nvidia --gpus 0 -v {triton_repo_path}:/models:z -p 8000:8000 {tag} tritonserver --model-repository=/models",
         shell=True,
     )
     .decode("utf-8")
@@ -169,7 +171,7 @@ container_id = (
 )
 
 # Wait for the Triton server to start
-triton_client = InferenceServerClient(url="localhost:8000", verbose=False, ssl=False)
+triton_client = InferenceServerClient(url="127.0.0.1:8000", verbose=False, ssl=False)
 
 # Wait until model is ready
 for _ in range(10):
@@ -185,7 +187,7 @@ Then run inference using the Triton Server model:
 from ultralytics import YOLO
 
 # Load the Triton Server model
-model = YOLO("http://localhost:8000/yolo", task="detect")
+model = YOLO("http://127.0.0.1:8000/yolo", task="detect")
 
 # Run inference on the server
 results = model("path/to/image.jpg")
@@ -195,6 +197,7 @@ Cleanup the container:
 
 ```python
 # Kill and remove the container at the end of the test
+# Note: For Podman, replace 'docker' with 'podman'
 subprocess.call(f"docker kill {container_id}", shell=True)
 ```
 
@@ -271,20 +274,20 @@ Setting up [Ultralytics YOLO26](../models/yolo26.md) with [NVIDIA Triton Inferen
     from tritonclient.http import InferenceServerClient
 
     # Define image https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver
-    tag = "nvcr.io/nvidia/tritonserver:24.09-py3"
+    tag = "nvcr.io/nvidia/tritonserver:26.02-py3"
 
-    subprocess.call(f"docker pull {tag}", shell=True)
+    subprocess.call(f"docker pull {tag}", shell=True)  # use 'podman' instead of 'docker' if applicable
 
     container_id = (
         subprocess.check_output(
-            f"docker run -d --rm --runtime=nvidia --gpus 0 -v {triton_repo_path}:/models -p 8000:8000 {tag} tritonserver --model-repository=/models",
+            f"docker run -d --rm --runtime=nvidia --gpus 0 -v {triton_repo_path}:/models:z -p 8000:8000 {tag} tritonserver --model-repository=/models",
             shell=True,
         )
         .decode("utf-8")
         .strip()
     )
 
-    triton_client = InferenceServerClient(url="localhost:8000", verbose=False, ssl=False)
+    triton_client = InferenceServerClient(url="127.0.0.1:8000", verbose=False, ssl=False)
 
     for _ in range(10):
         with contextlib.suppress(Exception):
@@ -336,7 +339,7 @@ Yes, you can run inference using the Ultralytics YOLO26 model on [NVIDIA Triton 
 from ultralytics import YOLO
 
 # Load the Triton Server model
-model = YOLO("http://localhost:8000/yolo", task="detect")
+model = YOLO("http://127.0.0.1:8000/yolo", task="detect")
 
 # Run inference on the server
 results = model("path/to/image.jpg")

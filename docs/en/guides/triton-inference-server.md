@@ -352,7 +352,7 @@ This approach allows you to leverage Triton's optimizations while using the fami
 [Ultralytics YOLO26](../models/yolo26.md) offers several unique advantages compared to [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and PyTorch models for deployment:
 
 - **Real-time Performance**: Optimized for real-time object detection tasks, YOLO26 provides state-of-the-art [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed, making it ideal for applications requiring live video analytics.
-- **Ease of Use**: YOLO26 integrates seamlessly with Triton Inference Server and supports diverse export formats (ONNX, TensorRT, CoreML), making it flexible for various deployment scenarios.
+- **Ease of Use**: YOLO26 integrates seamlessly with Triton Inference Server and supports diverse export formats (ONNX, TensorRT), making it flexible for various deployment scenarios.
 - **Advanced Features**: YOLO26 includes features like dynamic model loading, model versioning, and ensemble inference, which are crucial for scalable and reliable AI deployments.
 - **Simplified API**: The Ultralytics API provides a consistent interface across different deployment targets, reducing the learning curve and development time.
 - **Edge Optimization**: YOLO26 models are designed with edge deployment in mind, offering excellent performance even on resource-constrained devices.

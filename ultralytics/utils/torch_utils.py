@@ -164,9 +164,32 @@ def select_device(device="", newline=False, verbose=True):
         return device
 
     s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{TORCH_VERSION} "
-    device = str(device).lower()
-    for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
+    device = str(device).lower().replace(" ", "")
+    for remove in "cuda:", "none", "(", ")", "[", "]", "'":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
+
+    # Huawei Ascend NPU
+    if device.startswith("npu"):
+        import torch_npu  # noqa
+
+        if not hasattr(torch, "npu") or not torch.npu.is_available():
+            raise ValueError(
+                f"Invalid NPU 'device={device}' requested. "
+                "Use 'device=cpu' or provide a valid Ascend NPU device, e.g. 'npu:0'."
+            )
+
+        # support: npu / npu:0 / npu:0,1
+        if ":" in device:
+            requested = device.split(":", 1)[1]
+            first = requested.split(",")[0]
+            idx = int(first)
+        else:
+            idx = 0
+
+        torch.npu.set_device(idx)
+        if verbose:
+            LOGGER.info(f"{s}NPU:{idx} ({torch.npu.get_device_name(idx)})\n")
+        return torch.device(f"npu:{idx}")
 
     # Auto-select GPUs
     if "-1" in device:

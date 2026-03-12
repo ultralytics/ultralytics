@@ -57,13 +57,13 @@ The script builds the site into the `site/` directory and automatically serves i
 
 ### Quick Preview
 
-For quick edits to pages that don't use `{% include %}` macros, you can use `mkdocs serve` for faster iteration with live reloading:
+For quick edits to pages that don't use `{% include %}` macros, you can use `zensical serve` for faster iteration with live reloading:
 
 ```bash
-mkdocs serve
+zensical serve
 ```
 
-Note that `mkdocs serve` does **not** render Jinja macros or include compare pages, so some pages (train, predict, val, export, tasks, and others) will display raw `{% include %}` tags instead of their actual content. Use the full build above to verify these pages.
+Note that `zensical serve` does **not** render Jinja macros or include compare pages, so some pages (train, predict, val, export, tasks, and others) will display raw `{% include %}` tags instead of their actual content. Use the full build above to verify these pages.
 
 ## 📤 Deploying Your Documentation Site
 

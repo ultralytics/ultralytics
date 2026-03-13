@@ -6,7 +6,7 @@ keywords: Triton Inference Server, YOLO26, Ultralytics, NVIDIA, deep learning, A
 
 # Triton Inference Server with Ultralytics YOLO26
 
-The [Triton Inference Server](https://developer.nvidia.com/dynamo-triton) (formerly known as TensorRT Inference Server) is an open-source software solution developed by NVIDIA. It provides a cloud inference solution optimized for NVIDIA GPUs. Triton simplifies the deployment of AI models at scale in production. Integrating Ultra[Ultralytics YOLO26](../models/yolo26.md) with Triton Inference Server allows you to deploy scalable, high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference workloads. This guide provides steps to set up and test the integration.
+The [Triton Inference Server](https://developer.nvidia.com/dynamo-triton) (formerly known as TensorRT Inference Server) is an open-source software solution developed by NVIDIA. It provides a cloud inference solution optimized for NVIDIA GPUs. Triton simplifies the deployment of AI models at scale in production. Integrating [Ultralytics YOLO26](../models/yolo26.md) with Triton Inference Server allows you to deploy scalable, high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference workloads. This guide provides steps to set up and test the integration.
 
 <p align="center">
   <br>

@@ -50,7 +50,7 @@ jobs:
           python-version: "3.x"
       - uses: astral-sh/setup-uv@v7
       - name: Install Dependencies
-        run: uv pip install --system -e ".[dev]" ruff black --extra-index-url https://download.pytorch.org/whl/cpu
+        run: uv pip install --system -e ".[dev]" ruff --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Ruff fixes
         continue-on-error: true
         run: |
@@ -120,6 +120,7 @@ jobs:
           else
             git pull origin gh-pages
             LATEST_HASH=$(git rev-parse --short=7 HEAD)
-            git commit -m "Update Docs for 'ultralytics ${{ steps.check_pypi.outputs.version }} - $LATEST_HASH'"
+            VERSION=$(python -c "from ultralytics import __version__; print(__version__)")
+            git commit -m "Update Docs for 'ultralytics $VERSION - $LATEST_HASH'"
             git push https://${{ secrets._GITHUB_TOKEN }}@github.com/ultralytics/docs.git gh-pages
           fi

@@ -677,7 +677,7 @@ class Exporter:
             LOGGER.warning(
                 f"{prefix} calibration dataset has only {n} images, reducing calibration batch size to {batch}."
             )
-        elif self.args.format == "axelera" and n < 100:
+        if self.args.format == "axelera" and n < 100:
             LOGGER.warning(f"{prefix} >100 images required for Axelera calibration, found {n} images.")
         elif self.args.format != "axelera" and n < 300:
             LOGGER.warning(f"{prefix} >300 images recommended for INT8 calibration, found {n} images.")

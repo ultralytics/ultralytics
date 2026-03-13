@@ -436,7 +436,7 @@ class DetectionModel(BaseModel):
         """Set attributes of the model head (last layer).
 
         Args:
-            **kwargs: Arbitrary keyword arguments representing attributes to set.
+            **kwargs (Any): Arbitrary keyword arguments representing attributes to set.
         """
         head = self.model[-1]
         for k, v in kwargs.items():

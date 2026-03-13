@@ -1,6 +1,5 @@
 {%set tip1 = ':material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }' %}
-{%set tip2 = ':material-information-outline:{ title="conf, iou are also available when nms=True" }' %}
-{%set tip3 = ':material-information-outline:{ title="IMX format is currently only supported for YOLOv8n, YOLO11n models" }' %}
+{%set tip2 = ':material-information-outline:{ title="IMX format is currently only supported for YOLOv8n, YOLO11n models" }' %}
 
 | Format                                             | `format` Argument | Model                                             | Metadata | Arguments                                                                                                           |
 | -------------------------------------------------- | ----------------- | ------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------- |
@@ -18,7 +17,7 @@
 | [PaddlePaddle](../integrations/paddlepaddle.md)    | `paddle`          | `{{ model_name or "yolo26n" }}_paddle_model/`     | ✅       | `imgsz`, `batch`, `device`                                                                                          |
 | [MNN](../integrations/mnn.md)                      | `mnn`             | `{{ model_name or "yolo26n" }}.mnn`               | ✅       | `imgsz`, `batch`, `int8`, `half`, `device`                                                                          |
 | [NCNN](../integrations/ncnn.md)                    | `ncnn`            | `{{ model_name or "yolo26n" }}_ncnn_model/`       | ✅       | `imgsz`, `half`, `batch`, `device`                                                                                  |
-| [IMX500](../integrations/sony-imx500.md){{ tip3 }} | `imx`             | `{{ model_name or "yolo26n" }}_imx_model/`        | ✅       | `imgsz`, `int8`, `data`, `fraction`, `device`                                                                       |
+| [IMX500](../integrations/sony-imx500.md){{ tip2 }} | `imx`             | `{{ model_name or "yolo26n" }}_imx_model/`        | ✅       | `imgsz`, `int8`, `data`, `fraction`, `device`                                                                       |
 | [RKNN](../integrations/rockchip-rknn.md)           | `rknn`            | `{{ model_name or "yolo26n" }}_rknn_model/`       | ✅       | `imgsz`, `batch`, `name`, `device`                                                                                  |
 | [ExecuTorch](../integrations/executorch.md)        | `executorch`      | `{{ model_name or "yolo26n" }}_executorch_model/` | ✅       | `imgsz`, `device`                                                                                                   |
 | [Axelera](../integrations/axelera.md)              | `axelera`         | `{{ model_name or "yolo26n" }}_axelera_model/`    | ✅       | `imgsz`, `int8`, `data`, `fraction`, `device`                                                                       |

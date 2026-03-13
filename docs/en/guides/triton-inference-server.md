@@ -43,43 +43,49 @@ Using Triton Inference Server with Ultralytics YOLO26 provides several advantage
 Ensure you have the following prerequisites before proceeding:
 
 - Docker or Podman installed on your machine
+- Install Ultralytics:
+    ```bash
+    pip install ultralytics
+    ```
 - Install `tritonclient`:
     ```bash
     pip install tritonclient[all]
     ```
 
-## Exporting YOLO26 to ONNX Format
+## Setting Up Triton Inference Server
 
-Before deploying the model on Triton, it must be exported to the ONNX format. ONNX (Open Neural Network Exchange) is a format that allows models to be transferred between different deep learning frameworks. Use the `export` function from the `YOLO` class:
+Run this full setup block to export YOLO26 to ONNX, build the Triton model repository, and start Triton Inference Server:
 
-```python
-from ultralytics import YOLO
-
-# Load a model
-model = YOLO("yolo26n.pt")  # load an official model
-
-# Retrieve metadata during export. Metadata needs to be added to config.pbtxt. See next section.
-metadata = []
-
-
-def export_cb(exporter):
-    metadata.append(exporter.metadata)
-
-
-model.add_callback("on_export_end", export_cb)
-
-# Export the model
-onnx_file = model.export(format="onnx", dynamic=True)
-```
-
-## Setting Up Triton Model Repository
-
-The Triton Model Repository is a storage location where Triton can access and load models.
-
-1. Create the necessary directory structure:
+=== "Docker"
 
     ```python
+    from ultralytics import YOLO
     from pathlib import Path
+    import contextlib
+    import subprocess
+    import time
+    from tritonclient.http import InferenceServerClient
+
+    # 1) Exporting YOLO26 to ONNX Format
+
+    # Load a model
+    model = YOLO("yolo26n.pt")  # load an official model
+
+    # Retrieve metadata during export. Metadata needs to be added to config.pbtxt. See next section.
+    metadata = []
+
+
+    def export_cb(exporter):
+        metadata.append(exporter.metadata)
+
+
+    model.add_callback("on_export_end", export_cb)
+
+    # Export the model
+    onnx_file = model.export(format="onnx", dynamic=True)
+
+
+    # 2) Setting Up Triton Model Repository
 
     # Define paths
     model_name = "yolo"
@@ -88,12 +94,6 @@ The Triton Model Repository is a storage location where Triton can access and lo
 
     # Create directories
     (triton_model_path / "1").mkdir(parents=True, exist_ok=True)
-    ```
-
-2. Move the exported ONNX model to the Triton repository:
-
-    ```python
-    from pathlib import Path
 
     # Move ONNX model to Triton Model path
     Path(onnx_file).rename(triton_model_path / "1" / "model.onnx")
@@ -139,49 +139,150 @@ The Triton Model Repository is a storage location where Triton can access and lo
 
     with open(triton_model_path / "config.pbtxt", "w") as f:
         f.write(data)
+
+    # 3) Running Triton Inference Server
+
+    # Define image https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver
+    tag = "nvcr.io/nvidia/tritonserver:26.02-py3"  # 16.17 GB (Compressed Size)
+
+    subprocess.call(f"docker pull {tag}", shell=True)
+
+    # Note: The :z flag on the volume mount is necessary for systems with SELinux (like Fedora/RHEL)
+    container_id = (
+        subprocess.check_output(
+            f"docker run -d --rm --runtime=nvidia --gpus all -v {triton_repo_path.absolute()}:/models:z -p 8000:8000 {tag} tritonserver --model-repository=/models",
+            shell=True,
+        )
+        .decode("utf-8")
+        .strip()
+    )
+
+    # Wait for the Triton server to start
+    triton_client = InferenceServerClient(url="127.0.0.1:8000", verbose=False, ssl=False)
+
+    # Wait until model is ready
+    for _ in range(10):
+        with contextlib.suppress(Exception):
+            assert triton_client.is_model_ready(model_name)
+            break
+        time.sleep(1)
     ```
 
-## Running Triton Inference Server
+=== "Podman"
 
-Run the Triton Inference Server using Docker or Podman:
+    ```python
+    from ultralytics import YOLO
+    from pathlib import Path
+    import contextlib
+    import subprocess
+    import time
+    from tritonclient.http import InferenceServerClient
 
-```python
-import contextlib
-import subprocess
-import time
+    # 1) Exporting YOLO26 to ONNX Format
 
-from tritonclient.http import InferenceServerClient
+    # Load a model
+    model = YOLO("yolo26n.pt")  # load an official model
 
-# Define image https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver
-tag = "nvcr.io/nvidia/tritonserver:26.02-py3"  # 16.17 GB (Compressed Size)
+    # Retrieve metadata during export. Metadata needs to be added to config.pbtxt. See next section.
+    metadata = []
 
-# Pull the image (use 'podman pull' if using Podman)
-subprocess.call(f"docker pull {tag}", shell=True)
 
-# Run the Triton server and capture the container ID
-# Note: For Podman, replace 'docker' with 'podman'
-# Note: The :z flag on the volume mount is necessary for systems with SELinux (like Fedora/RHEL)
-container_id = (
-    subprocess.check_output(
-        f"docker run -d --rm --runtime=nvidia --gpus 0 -v {triton_repo_path.absolute()}:/models:z -p 8000:8000 {tag} tritonserver --model-repository=/models",
-        shell=True,
+    def export_cb(exporter):
+        metadata.append(exporter.metadata)
+
+
+    model.add_callback("on_export_end", export_cb)
+
+    # Export the model
+    onnx_file = model.export(format="onnx", dynamic=True)
+
+
+    # 2) Setting Up Triton Model Repository
+
+    # Define paths
+    model_name = "yolo"
+    triton_repo_path = Path("tmp") / "triton_repo"
+    triton_model_path = triton_repo_path / model_name
+
+    # Create directories
+    (triton_model_path / "1").mkdir(parents=True, exist_ok=True)
+
+    # Move ONNX model to Triton Model path
+    Path(onnx_file).rename(triton_model_path / "1" / "model.onnx")
+
+    # Create config file
+    (triton_model_path / "config.pbtxt").touch()
+
+    data = """
+    # Add metadata
+    parameters {
+      key: "metadata"
+      value {
+        string_value: "%s"
+      }
+    }
+
+    # (Optional) Enable TensorRT for GPU inference
+    # First run will be slow due to TensorRT engine conversion
+    optimization {
+      execution_accelerators {
+        gpu_execution_accelerator {
+          name: "tensorrt"
+          parameters {
+            key: "precision_mode"
+            value: "FP16"
+          }
+          parameters {
+            key: "max_workspace_size_bytes"
+            value: "3221225472"
+          }
+          parameters {
+            key: "trt_engine_cache_enable"
+            value: "1"
+          }
+          parameters {
+            key: "trt_engine_cache_path"
+            value: "/models/yolo/1"
+          }
+        }
+      }
+    }
+    """ % metadata[0]  # noqa
+
+    with open(triton_model_path / "config.pbtxt", "w") as f:
+        f.write(data)
+
+    # 3) Running Triton Inference Server
+
+    # Define image https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver
+    tag = "nvcr.io/nvidia/tritonserver:26.02-py3"  # 16.17 GB (Compressed Size)
+
+    subprocess.call(f"podman pull {tag}", shell=True)
+
+    # Note: The :z flag on the volume mount is necessary for systems with SELinux (like Fedora/RHEL)
+    container_id = (
+        subprocess.check_output(
+            f"podman run -d --rm --runtime=nvidia --gpus all -v {triton_repo_path.absolute()}:/models:z -p 8000:8000 {tag} tritonserver --model-repository=/models",
+            shell=True,
+        )
+        .decode("utf-8")
+        .strip()
     )
-    .decode("utf-8")
-    .strip()
-)
 
-# Wait for the Triton server to start
-triton_client = InferenceServerClient(url="127.0.0.1:8000", verbose=False, ssl=False)
+    # Wait for the Triton server to start
+    triton_client = InferenceServerClient(url="127.0.0.1:8000", verbose=False, ssl=False)
 
-# Wait until model is ready
-for _ in range(10):
-    with contextlib.suppress(Exception):
-        assert triton_client.is_model_ready(model_name)
-        break
-    time.sleep(1)
-```
+    # Wait until model is ready
+    for _ in range(10):
+        with contextlib.suppress(Exception):
+            assert triton_client.is_model_ready(model_name)
+            break
+        time.sleep(1)
+    ```
 
-Then run inference using the Triton Server model:
+## Running Inference
+
+Run inference using the Triton Server model:
 
 ```python
 from ultralytics import YOLO
@@ -195,11 +296,23 @@ results = model("path/to/image.jpg")
 
 Cleanup the container:
 
-```python
-# Kill and remove the container at the end of the test
-# Note: For Podman, replace 'docker' with 'podman'
-subprocess.call(f"docker kill {container_id}", shell=True)
-```
+=== "Docker"
+
+    ```python
+    import subprocess
+
+    # Kill and remove the container at the end of the test
+    subprocess.call(f"docker kill {container_id}", shell=True)
+    ```
+
+=== "Podman"
+
+    ```python
+    import subprocess
+
+    # Kill and remove the container at the end of the test
+    subprocess.call(f"podman kill {container_id}", shell=True)
+    ```
 
 ## TensorRT Optimization (Optional)
 

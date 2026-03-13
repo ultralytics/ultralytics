@@ -198,7 +198,7 @@ Cleanup the container (`runtime` and `container_name` are defined in the setup b
 import subprocess
 
 runtime = "docker"  # set to "podman" to use Podman
-container_name = "triton_server" # Kill the named container
+container_name = "triton_server"  # Kill the named container
 subprocess.call(f"{runtime} kill {container_name}", shell=True)
 ```
 

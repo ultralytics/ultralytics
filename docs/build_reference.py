@@ -706,6 +706,7 @@ def _merge_params(doc_params: list[ParameterDoc], signature_params: list[Paramet
 
 DEFAULT_SECTION_ORDER = ["args", "returns", "examples", "notes", "attributes", "yields", "raises"]
 SUMMARY_BADGE_MAP = {"Classes": "class", "Properties": "property", "Methods": "method", "Functions": "function"}
+_missing_type_warnings: list[str] = []
 
 
 def contribution_admonition(pretty: str, url: str, *, kind: str = "note", title: str | None = None) -> str:
@@ -907,6 +908,13 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
     if item.bases:
         bases = ", ".join(f"`{b}`" for b in item.bases)
         parts.append(f"**Bases:** {bases}\n")
+
+    # Check for parameters missing type annotations in both signature and docstring
+    if item.signature_params and item.doc.params:
+        merged = _merge_params(item.doc.params, item.signature_params)
+        missing = [p.name for p in merged if not p.type]
+        if missing:
+            _missing_type_warnings.append(f"{item.qualname}: {', '.join(missing)}")
 
     if item.kind == "class":
         method_section = None
@@ -1157,6 +1165,7 @@ def build_reference_placeholders(update_nav: bool = True) -> list[str]:
 
 def build_reference_docs(update_nav: bool = False) -> list[str]:
     """Render full docstring-based reference content."""
+    _missing_type_warnings.clear()
     nav_items: list[str] = []
     created = 0
 
@@ -1176,6 +1185,14 @@ def build_reference_docs(update_nav: bool = False) -> list[str]:
         update_mkdocs_file(create_nav_menu_yaml(nav_items))
     if created:
         print(f"Created {created} new reference files")
+    if _missing_type_warnings:
+        print(f"\n⚠️ {len(_missing_type_warnings)} functions/methods have parameters missing type annotations:")
+        for warning in _missing_type_warnings:
+            print(f"  - {warning}")
+        raise ValueError(
+            f"{len(_missing_type_warnings)} parameters missing types in both signature and docstring. "
+            f"Add type annotations to the function signature or (type) in the docstring Args section."
+        )
     return nav_items
 
 

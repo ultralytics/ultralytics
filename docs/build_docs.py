@@ -26,6 +26,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 from pathlib import Path
@@ -582,6 +583,9 @@ def restore_docs_sources(backup_root: Path, backups: list[tuple[Path, Path]]):
 
 def main():
     """Build docs, update titles and edit links, minify HTML, and print local server command."""
+    if not shutil.which("zensical"):
+        raise SystemExit("zensical is not installed. Install it with: pip install -e '.[dev]'")
+
     start_time = time.perf_counter()
     backup_root: Path | None = None
     docs_backups: list[tuple[Path, Path]] = []
@@ -606,7 +610,7 @@ def main():
 
         # Build the main documentation
         LOGGER.info(f"Building docs from {DOCS}")
-        subprocess.run(["zensical", "build", "-f", str(DOCS.parent / "mkdocs.yml")], check=True)
+        subprocess.run(["zensical", "build", "-f", str(DOCS.parent / "mkdocs.yml"), "--strict"], check=True)
         LOGGER.info(f"Site built at {SITE}")
 
         # Remove search index JSON files to disable search
@@ -671,7 +675,7 @@ def main():
             LOGGER.info(f"Opening browser at {url}")
             webbrowser.open(url)
             try:
-                subprocess.run(["python", "-m", "http.server", "--directory", str(SITE), "8000"], check=True)
+                subprocess.run([sys.executable, "-m", "http.server", "--directory", str(SITE), "8000"], check=True)
             except KeyboardInterrupt:
                 LOGGER.info(f"\n✅ Server stopped. Restart at {url}")
             except Exception as e:

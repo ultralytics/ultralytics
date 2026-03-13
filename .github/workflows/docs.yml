@@ -32,7 +32,7 @@ permissions:
 jobs:
   Docs:
     if: github.repository == 'ultralytics/ultralytics'
-    runs-on: cpu-latest
+    runs-on: ubuntu-latest
     env:
       GITHUB_REF: ${{ github.head_ref || github.ref }}
     steps:

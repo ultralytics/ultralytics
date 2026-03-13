@@ -810,7 +810,8 @@ class ClassificationDataset:
                     LOGGER.info("\n".join(cache["msgs"]))  # display warnings
             return samples
 
-        except (FileNotFoundError, AssertionError, AttributeError):
+        # NOTE: ModuleNotFoundError to prevent numpy version conflicts when loading cache files created with different numpy versions
+        except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
             # Run scan if *.cache retrieval failed
             nf, nc, msgs, samples, x = 0, 0, [], [], {}
             with ThreadPool(NUM_THREADS) as pool:

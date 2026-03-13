@@ -156,10 +156,13 @@ tag = "nvcr.io/nvidia/tritonserver:26.02-py3"  # 16.17 GB (Compressed Size)
 
 subprocess.call(f"{runtime} pull {tag}", shell=True)
 
+# GPU flags differ between Docker and Podman
+gpu_flags = "--device nvidia.com/gpu=all" if runtime == "podman" else "--runtime=nvidia --gpus all"
+
 # Note: The :z flag on the volume mount is necessary for systems with SELinux (like Fedora/RHEL)
 container_id = (
     subprocess.check_output(
-        f"{runtime} run -d --rm --runtime=nvidia --gpus all -v {triton_repo_path.absolute()}:/models:z -p 8000:8000 {tag} tritonserver --model-repository=/models",
+        f"{runtime} run -d --rm {gpu_flags} -v {triton_repo_path.absolute()}:/models:z -p 8000:8000 {tag} tritonserver --model-repository=/models",
         shell=True,
     )
     .decode("utf-8")
@@ -277,11 +280,15 @@ Setting up [Ultralytics YOLO26](../models/yolo26.md) with [NVIDIA Triton Inferen
     # Define image https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver
     tag = "nvcr.io/nvidia/tritonserver:26.02-py3"
 
-    subprocess.call(f"docker pull {tag}", shell=True)  # use 'podman' instead of 'docker' if applicable
+    runtime = "docker"  # set to "podman" to use Podman
+    subprocess.call(f"{runtime} pull {tag}", shell=True)
+
+    # GPU flags differ between Docker and Podman
+    gpu_flags = "--device nvidia.com/gpu=all" if runtime == "podman" else "--runtime=nvidia --gpus all"
 
     container_id = (
         subprocess.check_output(
-            f"docker run -d --rm --runtime=nvidia --gpus 0 -v {triton_repo_path.absolute()}:/models:z -p 8000:8000 {tag} tritonserver --model-repository=/models",
+            f"{runtime} run -d --rm {gpu_flags} -v {triton_repo_path.absolute()}:/models:z -p 8000:8000 {tag} tritonserver --model-repository=/models",
             shell=True,
         )
         .decode("utf-8")

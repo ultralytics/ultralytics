@@ -910,7 +910,7 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
         parts.append(f"**Bases:** {bases}\n")
 
     # Check for parameters missing type annotations in both signature and docstring
-    if item.signature_params and item.doc.params:
+    if item.signature_params:
         merged = _merge_params(item.doc.params, item.signature_params)
         missing = [p.name for p in merged if not p.type]
         if missing:
@@ -1165,6 +1165,7 @@ def build_reference_placeholders(update_nav: bool = True) -> list[str]:
 
 def build_reference_docs(update_nav: bool = False) -> list[str]:
     """Render full docstring-based reference content."""
+    _missing_type_warnings.clear()
     nav_items: list[str] = []
     created = 0
 

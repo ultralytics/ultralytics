@@ -64,15 +64,16 @@ Run this full setup block to export YOLO26 to ONNX, build the Triton model repos
     - Set `runtime = "podman"` for Podman
 
 ```python
-
 runtime = "docker"  # set to "podman" to use Podman
 
-from ultralytics import YOLO
-from pathlib import Path
 import contextlib
 import subprocess
 import time
+from pathlib import Path
+
 from tritonclient.http import InferenceServerClient
+
+from ultralytics import YOLO
 
 # 1) Exporting YOLO26 to ONNX Format
 

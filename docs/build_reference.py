@@ -910,7 +910,7 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
         parts.append(f"**Bases:** {bases}\n")
 
     # Check for parameters missing type annotations in both signature and docstring
-    if item.signature_params:
+    if item.signature_params and item.doc.params:
         merged = _merge_params(item.doc.params, item.signature_params)
         missing = [p.name for p in merged if not p.type]
         if missing:

@@ -14,6 +14,8 @@ from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import (
     AIFI,
     AFPNFuse,
+    DilatedBottleneck,
+    DilatedEncoder,
     GSConv,
     GSBottleneck,
     VoVGSCSP,
@@ -1604,6 +1606,7 @@ def parse_model(d, ch, verbose=True):
             A2C2f,
             GSConv,
             VoVGSCSP,
+            DilatedEncoder,
         }
     )
     repeat_modules = frozenset(  # modules with 'repeat' arguments

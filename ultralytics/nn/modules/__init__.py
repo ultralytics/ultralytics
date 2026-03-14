@@ -22,6 +22,8 @@ from .block import (
     C2,
     C2PSA,
     AFPNFuse,
+    DilatedBottleneck,
+    DilatedEncoder,
     GSConv,
     GSBottleneck,
     VoVGSCSP,
@@ -120,6 +122,8 @@ from .transformer import (
 __all__ = (
     "AIFI",
     "AFPNFuse",
+    "DilatedBottleneck",
+    "DilatedEncoder",
     "GSConv",
     "GSBottleneck",
     "VoVGSCSP",

@@ -2314,6 +2314,56 @@ class SpatialSuppressionGate(nn.Module):
         return cls_logits * (gate * 0.9 + 0.1)
 
 
+class DilatedBottleneck(nn.Module):
+    """Dilated residual bottleneck from YOLOF (CVPR 2021).
+
+    Three-layer bottleneck (1×1 → dilated 3×3 → 1×1) with residual connection.
+    Used inside DilatedEncoder to capture multi-scale context at a single feature level.
+
+    Args:
+        c (int): Number of channels (input == output).
+        d (int): Dilation rate for the 3×3 conv.
+        e (float): Channel expansion ratio for the hidden dim.
+    """
+
+    def __init__(self, c: int, d: int = 2, e: float = 0.25):
+        super().__init__()
+        c_ = max(int(c * e), 1)
+        self.cv1 = Conv(c, c_, 1)
+        self.cv2 = Conv(c_, c_, 3, d=d)  # dilated 3×3; padding auto-computed by autopad
+        self.cv3 = Conv(c_, c, 1, act=False)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply dilated bottleneck with residual shortcut."""
+        return x + self.cv3(self.cv2(self.cv1(x)))
+
+
+class DilatedEncoder(nn.Module):
+    """YOLOF-inspired dilated encoder neck (CVPR 2021, You Only Look One-level Feature).
+
+    Projects the top-level feature map and enhances it through N dilated residual
+    bottleneck blocks with progressively larger dilation rates (default 2, 4, 6, 8).
+    Each block expands the effective receptive field without changing spatial resolution,
+    allowing a single feature level to encode multi-scale context — replacing the need
+    for PAFPN's bottom-up path.
+
+    Args:
+        c1 (int): Input channels.
+        c2 (int): Output channels.
+        dilations (tuple[int]): Dilation rate for each bottleneck block.
+        e (float): Channel expansion ratio inside each bottleneck.
+    """
+
+    def __init__(self, c1: int, c2: int, dilations: tuple = (2, 4, 6, 8), e: float = 0.25):
+        super().__init__()
+        self.proj = Conv(c1, c2, 1)
+        self.blocks = nn.Sequential(*[DilatedBottleneck(c2, d=d, e=e) for d in dilations])
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Project channels then apply dilated bottleneck sequence."""
+        return self.blocks(self.proj(x))
+
+
 class GSConv(nn.Module):
     """GSConv: hybrid standard-conv + depthwise-conv with channel shuffle (Slim-Neck, JRTIP 2024).
 

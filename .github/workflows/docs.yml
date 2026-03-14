@@ -48,7 +48,9 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install Dependencies
-        run: uv pip install --system -e ".[dev]" ruff --extra-index-url https://download.pytorch.org/whl/cpu
+        run: |
+          uv python install
+          uv pip install --system -e ".[dev]" ruff --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Ruff fixes
         continue-on-error: true
         run: |

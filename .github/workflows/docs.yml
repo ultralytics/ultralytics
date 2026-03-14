@@ -46,7 +46,7 @@ jobs:
           fetch-depth: 0
       - uses: astral-sh/setup-uv@v7
         with:
-          python-version: "3.x"
+          python-version: "3.14"
       - name: Install Dependencies
         run: |
           uv venv

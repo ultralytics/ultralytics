@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, teams, collaboration, enterprise, roles, permiss
 
 [Ultralytics Platform](https://platform.ultralytics.com) team features enable collaborative computer vision workflows. Create a team workspace to share datasets, projects, models, and deployments with your colleagues using role-based access control.
 
-<!-- Screenshot: settings-teams-tab-member-list-with-roles.avif -->
+![Ultralytics Platform Teams Member List With Roles](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-teams-tab-member-list-with-roles.avif)
 
 ## Overview
 
@@ -34,13 +34,13 @@ Create a new team workspace:
 
 Alternatively, [upgrade your personal account to Pro](billing.md#upgrade-to-pro) first, then create a team from the Teams tab. Once your team is created, you can [invite members](#inviting-members).
 
-<!-- Screenshot: settings-teams-create-team-landing.avif -->
+![Ultralytics Platform Teams Create Team Landing](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-teams-create-team-landing.avif)
 
 ## Switching Workspaces
 
 Switch between your personal account and team workspaces using the workspace switcher in the sidebar. All teams you belong to appear in the list.
 
-<!-- Screenshot: settings-teams-workspace-switcher-dropdown.avif -->
+![Ultralytics Platform Teams Workspace Switcher Dropdown](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-teams-workspace-switcher-dropdown.avif)
 
 When you switch to a team workspace, all resources you see and create belong to that team. Your personal workspace resources remain separate.
 
@@ -85,7 +85,7 @@ Admins and Owners can invite new members to the team:
 4. Select a role (Admin, Editor, or Viewer)
 5. Click **Send Invitation**
 
-<!-- Screenshot: settings-teams-invite-member-dialog.avif -->
+![Ultralytics Platform Teams Invite Member Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-teams-invite-member-dialog.avif)
 
 The invitee receives an email invitation with a link to accept and join the team. Invitations expire after 7 days. Once accepted, the team workspace appears in the invitee's workspace switcher.
 

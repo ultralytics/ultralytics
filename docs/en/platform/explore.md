@@ -118,11 +118,14 @@ graph TD
     C --> F[Clone Dataset]
     D --> G[Clone Project]
     E --> H[Download Model]
-    F --> I[Private Copy in Your Account]
-    G --> J[Private Copy with All Models]
-    H --> K[.pt / ONNX / Other Formats]
-    I --> L[Edit, Annotate, Train]
-    J --> L
+    E --> I[Clone Model]
+    F --> J[Private Copy in Your Account]
+    G --> K[Private Copy with All Models]
+    H --> L[.pt / ONNX / Other Formats]
+    I --> M[Copy to Your Project]
+    J --> N[Edit, Annotate, Train]
+    K --> N
+    M --> N
 ```
 
 ### Clone Dataset
@@ -130,8 +133,10 @@ graph TD
 Use a public dataset for your training:
 
 1. Click on the dataset to open its detail page
-2. Click `Clone`
+2. Click `Clone Dataset`
 3. Dataset copies to your account
+
+![Ultralytics Platform Explore Clone Dataset](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-clone-dataset.avif)
 
 !!! note "Cloned Dataset Properties"
 
@@ -160,15 +165,33 @@ yolo predict model=path/to/downloaded-model.pt source=image.jpg
 yolo train model=path/to/downloaded-model.pt data=my-dataset.yaml epochs=50
 ```
 
+### Clone Model
+
+Clone a public model to one of your projects:
+
+1. Click on the model within a project
+2. Click `Clone Model`
+3. Select a target project or create a new one
+4. Optionally, rename the model
+5. Click `Clone Model` to confirm
+
+![Ultralytics Platform Explore Clone Model Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-clone-model-dialog.avif)
+
+!!! note "Clone vs Download"
+
+    **Clone** copies the model to a project on the Platform for further training or deployment. **Download** saves the model file to your local machine.
+
 ### Clone Project
 
 Copy a public project to your workspace:
 
 1. Click on the project to open its detail page
-2. Click `Clone`
+2. Click `Clone Project`
 3. Project copies with all models to your account
 
-See [Projects](train/projects.md) for organizing models in your cloned project.
+![Ultralytics Platform Explore Clone Project](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-clone-project.avif)
+
+See [Projects](train/projects.md) for organizing models in your project.
 
 ## Official Ultralytics Content
 
@@ -296,10 +319,15 @@ Contact creators for commercial licensing.
 
 ### How do I report inappropriate content?
 
-1. Click the report button on the content
-2. Select violation type
-3. Add details
-4. Submit report
+To report inappropriate content:
+
+1. Navigate to the public page containing the content (project or dataset), if accessible
+2. Click the **Feedback** button in the sidebar
+3. Select **General** as the feedback type
+4. Describe the content and the issue, including a link to the page
+5. Submit the report
+
+If the content is no longer accessible, use the **Feedback** button from any page and include as much detail as possible (URL, username, or description).
 
 Our team reviews reports within 24-48 hours.
 
@@ -323,7 +351,3 @@ Featured content is selected based on:
 - Clear documentation
 
 There's no application process - just create great content!
-
-### Can I monetize public content?
-
-Currently, the platform doesn't support monetization. This may be added in future updates.

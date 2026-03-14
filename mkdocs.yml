@@ -631,6 +631,7 @@ nav:
       - Account:
           - platform/account/index.md
           - API Keys: platform/account/api-keys.md
+          - Teams: platform/account/teams.md
           - Billing: platform/account/billing.md
           - Activity: platform/account/activity.md
           - Trash: platform/account/trash.md

@@ -44,11 +44,9 @@ jobs:
           token: ${{ secrets._GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           ref: ${{ env.GITHUB_REF }}
           fetch-depth: 0
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
       - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.13"
       - name: Install Dependencies
         run: uv pip install --system -e ".[dev]" ruff --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Ruff fixes

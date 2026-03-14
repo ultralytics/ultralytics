@@ -142,8 +142,8 @@ def select_device(device="", newline=False, verbose=True):
 
     Args:
         device (str | torch.device, optional): Device string or torch.device object. Options include 'cpu', 'cuda', '0',
-            '0,1,2,3', 'mps', or '-1' for auto-select. Defaults to auto-selecting the first available GPU, or CPU if no
-            GPU is available.
+            '0,1,2,3', 'mps', 'npu', 'npu:0', or '-1' for auto-select. Defaults to auto-selecting the first available
+            GPU, or CPU if no GPU is available.
         newline (bool, optional): If True, adds a newline at the end of the log string.
         verbose (bool, optional): If True, logs the device information.
 
@@ -173,38 +173,23 @@ def select_device(device="", newline=False, verbose=True):
         try:
             import torch_npu  # noqa
         except ImportError:
-            raise ValueError(
-                f"Invalid NPU 'device={device}' requested. "
-                "The 'torch_npu' package is not installed. See https://github.com/Ascend/pytorch for setup."
-            )
-
+            raise ValueError(f"Invalid NPU 'device={device}'. Install 'torch_npu' at https://github.com/Ascend/pytorch")
+        
         if not hasattr(torch, "npu") or not torch.npu.is_available():
-            raise ValueError(
-                f"Invalid NPU 'device={device}' requested. "
-                "Ascend NPU is not available or torch_npu is not properly initialized."
-            )
+            raise ValueError(f"Invalid NPU 'device={device}' requested. Ascend NPU is not available.")
 
-        # Support: 'npu' or 'npu:0' (Multi-NPU 'npu:0,1' not yet supported for inference)
-        if "," in device:
-            raise ValueError(
-                f"Invalid NPU 'device={device}' requested. Multi-NPU inference is not yet supported. "
-                "Please use a single device like 'device=npu:0'."
-            )
-
-        import re
-
-        if not re.fullmatch(r"npu(:\d+)?", device):
+        # Parse 'npu' or 'npu:N' (multi-NPU not yet supported)
+        suffix = device[3:]
+        if suffix == "":
+            idx = 0
+        elif suffix.startswith(":") and suffix[1:].isdigit():
+            idx = int(suffix[1:])
+        else:
             raise ValueError(f"Invalid NPU 'device={device}' format. Use 'npu' or 'npu:0'.")
 
-        idx = 0
-        if ":" in device:
-            idx = int(device.split(":", 1)[1])
-
-        if idx < 0 or idx >= torch.npu.device_count():
-            raise ValueError(
-                f"Invalid NPU 'device={device}' requested. "
-                f"Only {torch.npu.device_count()} NPU(s) available."
-            )
+        n = torch.npu.device_count()
+        if idx >= n:
+            raise ValueError(f"Invalid NPU 'device={device}' requested. Only {n} NPU(s) available.")
 
         torch.npu.set_device(idx)
         if verbose:

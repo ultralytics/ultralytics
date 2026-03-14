@@ -170,21 +170,39 @@ def select_device(device="", newline=False, verbose=True):
 
     # Huawei Ascend NPU
     if device.startswith("npu"):
-        import torch_npu  # noqa
+        try:
+            import torch_npu  # noqa
+        except ImportError:
+            raise ValueError(
+                f"Invalid NPU 'device={device}' requested. "
+                "The 'torch_npu' package is not installed. See https://github.com/Ascend/pytorch for setup."
+            )
 
         if not hasattr(torch, "npu") or not torch.npu.is_available():
             raise ValueError(
                 f"Invalid NPU 'device={device}' requested. "
-                "Use 'device=cpu' or provide a valid Ascend NPU device, e.g. 'npu:0'."
+                "Ascend NPU is not available or torch_npu is not properly initialized."
             )
 
-        # support: npu / npu:0 / npu:0,1
+        # Support: 'npu' or 'npu:0' (Multi-NPU 'npu:0,1' not yet supported for inference)
+        if "," in device:
+            raise ValueError(
+                f"Invalid NPU 'device={device}' requested. Multi-NPU inference is not yet supported. "
+                "Please use a single device like 'device=npu:0'."
+            )
+
+        idx = 0
         if ":" in device:
-            requested = device.split(":", 1)[1]
-            first = requested.split(",")[0]
-            idx = int(first)
-        else:
-            idx = 0
+            try:
+                idx = int(device.split(":", 1)[1])
+            except (ValueError, IndexError):
+                raise ValueError(f"Invalid NPU 'device={device}' format. Use 'npu' or 'npu:0'.")
+
+        if idx >= torch.npu.device_count():
+            raise ValueError(
+                f"Invalid NPU 'device={device}' requested. "
+                f"Only {torch.npu.device_count()} NPU(s) available."
+            )
 
         torch.npu.set_device(idx)
         if verbose:

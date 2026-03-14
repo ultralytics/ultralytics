@@ -268,6 +268,20 @@ SAM smart annotation can generate:
 
     SAM smart annotation is only available for **detect**, **segment**, and **OBB** tasks. Classification and pose tasks require manual annotation.
 
+### SAM Model Selection
+
+When Smart mode is active, a model picker appears in the toolbar. Five models are available — choose based on the speed vs. accuracy trade-off that suits your dataset:
+
+| Model             | Size    | Speed    | Notes                       |
+| ----------------- | ------- | -------- | --------------------------- |
+| **SAM 2.1 Tiny**  | 74.5 MB | Fastest  |                             |
+| **SAM 2.1 Small** | 88 MB   | Fast     | Default                     |
+| **SAM 2.1 Base**  | 154 MB  | Moderate |                             |
+| **SAM 2.1 Large** | 428 MB  | Slower   | Most accurate of SAM 2.1    |
+| **SAM 3**         | 3.45 GB | Slowest  | Latest generation, new 2025 |
+
+Switching models while Smart mode is active re-initializes the predictor for the current image automatically.
+
 ## Class Sidebar
 
 The annotation editor includes a collapsible class sidebar on the right side of the canvas. The sidebar provides:
@@ -479,6 +493,10 @@ Yes, but for best results:
 - Label all objects of your target classes in each image
 - Use the label filter set to `Unannotated` to identify unlabeled images
 - Exclude unannotated images from training configuration
+
+### Which SAM model should I use?
+
+Start with **SAM 2.1 Small** (the default) — it's fast and accurate for most objects. Switch to **SAM 2.1 Large** when you need higher mask precision on complex shapes. Use **SAM 2.1 Tiny** for maximum speed on simple, high-contrast objects. **SAM 3** is the latest generation model and may produce better results on challenging images, but is significantly slower.
 
 ### Which tasks support SAM smart annotation?
 

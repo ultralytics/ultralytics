@@ -420,6 +420,19 @@ class Exporter:
                 # Disable end2end branch for certain export formats as they does not support topk
                 model.end2end = False
                 LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
+            if engine and self.args.int8:
+                # TensorRT<=10.3.0 with int8 has known end2end build issues
+                # https://github.com/ultralytics/ultralytics/issues/23841
+                try:
+                    import tensorrt as trt
+
+                    if check_version(trt.__version__, "<=10.3.0", hard=True):
+                        model.end2end = False
+                        LOGGER.warning(
+                            "TensorRT<=10.3.0 with int8 has known end2end build issues, disabling end2end branch."
+                        )
+                except ImportError:
+                    pass
         if self.args.half and self.args.int8:
             LOGGER.warning("half=True and int8=True are mutually exclusive, setting half=False.")
             self.args.half = False
@@ -657,16 +670,18 @@ class Exporter:
             batch_size=self.args.batch,
         )
         n = len(dataset)
+        if n < 1:
+            raise ValueError(f"The calibration dataset must have at least 1 image, but found {n} images.")
+        batch = min(self.args.batch, n)
         if n < self.args.batch:
-            raise ValueError(
-                f"The calibration dataset ({n} images) must have at least as many images as the batch size "
-                f"('batch={self.args.batch}')."
+            LOGGER.warning(
+                f"{prefix} calibration dataset has only {n} images, reducing calibration batch size to {batch}."
             )
-        elif self.args.format == "axelera" and n < 100:
+        if self.args.format == "axelera" and n < 100:
             LOGGER.warning(f"{prefix} >100 images required for Axelera calibration, found {n} images.")
         elif self.args.format != "axelera" and n < 300:
             LOGGER.warning(f"{prefix} >300 images recommended for INT8 calibration, found {n} images.")
-        return build_dataloader(dataset, batch=self.args.batch, workers=0, drop_last=True)  # required for batch loading
+        return build_dataloader(dataset, batch=batch, workers=0, drop_last=True)  # required for batch loading
 
     @try_export
     def export_torchscript(self, prefix=colorstr("TorchScript:")):

@@ -18,6 +18,10 @@ keywords: Ultralytics Platform, REST API, API reference, authentication, endpoin
       https://platform.ultralytics.com/api/datasets
     ```
 
+!!! tip "Interactive API Docs"
+
+    Explore the full interactive API reference in the [Ultralytics Platform API docs](https://platform.ultralytics.com/api/docs).
+
 ## API Overview
 
 The API is organized around the core platform resources:
@@ -44,7 +48,7 @@ graph LR
 | [Exports](../train/models.md#export-model) | Format conversion jobs        | Create, status, download                      |
 | [Training](../train/cloud-training.md)     | Cloud GPU training jobs       | Start, status, cancel                         |
 | [Billing](../account/billing.md)           | Credits and subscriptions     | Balance, top-up, payment methods              |
-| [Teams](../account/settings.md#teams-tab)  | Workspace collaboration       | Members, invites, roles                       |
+| [Teams](../account/teams.md)               | Workspace collaboration       | Members, invites, roles                       |
 
 ## Authentication
 
@@ -1773,7 +1777,7 @@ POST /api/members
     | `editor` | Create, edit, and delete resources          |
     | `admin`  | Full access including member management     |
 
-    See [Teams](../account/settings.md#teams-tab) for role details in the UI.
+    See [Teams](../account/teams.md) for role details in the UI.
 
 ### Update Member Role
 

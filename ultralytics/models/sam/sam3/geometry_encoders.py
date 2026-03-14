@@ -136,9 +136,9 @@ class Prompt:
         """Append box prompts to existing prompts.
 
         Args:
-            boxes: Tensor of shape (N_new_boxes, B, 4) with normalized box coordinates
-            labels: Optional tensor of shape (N_new_boxes, B) with positive/negative labels
-            mask: Optional tensor of shape (B, N_new_boxes) for attention mask
+            boxes (torch.Tensor): Tensor of shape (N_new_boxes, B, 4) with normalized box coordinates.
+            labels (torch.Tensor | None): Optional tensor of shape (N_new_boxes, B) with positive/negative labels.
+            mask (torch.Tensor | None): Optional tensor of shape (B, N_new_boxes) for attention mask.
         """
         if self.box_embeddings is None:
             # First boxes - initialize
@@ -327,10 +327,10 @@ class SequenceGeometryEncoder(nn.Module):
         """Encode geometric box prompts.
 
         Args:
-            geo_prompt: Prompt object containing box embeddings, masks, and labels
-            img_feats: List of image features from backbone
-            img_sizes: List of (H, W) tuples for each feature level
-            img_pos_embeds: Optional position embeddings for image features
+            geo_prompt (Prompt): Prompt object containing box embeddings, masks, and labels.
+            img_feats (list[torch.Tensor]): List of image features from backbone.
+            img_sizes (list[tuple[int, int]]): List of (H, W) tuples for each feature level.
+            img_pos_embeds (list[torch.Tensor] | None): Optional position embeddings for image features.
 
         Returns:
             Tuple of (encoded_embeddings, attention_mask)

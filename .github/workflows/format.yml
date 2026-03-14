@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   actions:
-    runs-on: ubuntu-latest
+    runs-on: cpu-latest
     steps:
       - name: Run Ultralytics Actions
         uses: ultralytics/actions@main

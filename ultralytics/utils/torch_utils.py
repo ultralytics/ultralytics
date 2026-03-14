@@ -164,8 +164,8 @@ def select_device(device="", newline=False, verbose=True):
         return device
 
     s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{TORCH_VERSION} "
-    device = str(device).lower().replace(" ", "")
-    for remove in "cuda:", "none", "(", ")", "[", "]", "'":
+    device = str(device).lower()
+    for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
 
     # Huawei Ascend NPU

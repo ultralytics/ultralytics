@@ -195,3 +195,13 @@ For **segmentation models** (e.g., `yolo26n-seg.pt`), you'll typically get two o
 For **pose models** (e.g., `yolo26n-pose.pt`), the output tensor is typically shaped like `(batch_size, 4 + num_classes + keypoint_dims, num_predictions)`, where `keypoint_dims` depends on the pose specification (e.g., number of keypoints and whether confidence is included), and `num_predictions` depends on the export input resolution (and can be dynamic).
 
 The examples in the [ONNX inference examples](https://github.com/ultralytics/ultralytics/tree/main/examples) demonstrate how to process these outputs for each model type.
+
+### Why is `output0` FP32 when exporting with `half=True` and `end2end=True`?
+
+When exporting with `half=True` (or `int8=True`), most tensors are converted to lower precision to reduce model size and improve performance. However, when `end2end=True` is enabled, post-processing (including class indices) is embedded directly in the exported graph.
+
+The `output0` tensor contains class indices, which are internally represented as floating-point values. FP16 cannot reliably represent integer values above 2048 due to its limited mantissa precision. To avoid potential precision loss or incorrect class IDs, `output0` is intentionally kept in FP32.
+
+This behavior is expected and also applies to lower-precision or quantized exports where class index fidelity must be preserved.
+
+If full FP16 outputs are required, export with `end2end=False` and perform post-processing externally.

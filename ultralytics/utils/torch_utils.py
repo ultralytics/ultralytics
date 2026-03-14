@@ -191,14 +191,16 @@ def select_device(device="", newline=False, verbose=True):
                 "Please use a single device like 'device=npu:0'."
             )
 
+        import re
+
+        if not re.fullmatch(r"npu(:\d+)?", device):
+            raise ValueError(f"Invalid NPU 'device={device}' format. Use 'npu' or 'npu:0'.")
+
         idx = 0
         if ":" in device:
-            try:
-                idx = int(device.split(":", 1)[1])
-            except (ValueError, IndexError):
-                raise ValueError(f"Invalid NPU 'device={device}' format. Use 'npu' or 'npu:0'.")
+            idx = int(device.split(":", 1)[1])
 
-        if idx >= torch.npu.device_count():
+        if idx < 0 or idx >= torch.npu.device_count():
             raise ValueError(
                 f"Invalid NPU 'device={device}' requested. "
                 f"Only {torch.npu.device_count()} NPU(s) available."

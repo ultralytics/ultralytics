@@ -85,7 +85,6 @@ dev = [
     "coverage[toml]",
     "zensical>=0.0.15; python_version >= '3.10'",
     "mkdocs-ultralytics-plugin>=0.2.4", # for meta descriptions and images, dates and authors
-    "beautifulsoup4>=4.12.3", # for docs HTML post-processing in build_docs.py
     "minijinja>=2.0.0", # render docs macros without mkdocs-macros-plugin
 ]
 export = [

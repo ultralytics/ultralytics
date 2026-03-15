@@ -32,7 +32,7 @@ permissions:
 jobs:
   Docs:
     if: github.repository == 'ultralytics/ultralytics'
-    runs-on: ubuntu-latest
+    runs-on: cpu-latest
     env:
       GITHUB_REF: ${{ github.head_ref || github.ref }}
     steps:
@@ -44,13 +44,14 @@ jobs:
           token: ${{ secrets._GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           ref: ${{ env.GITHUB_REF }}
           fetch-depth: 0
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.x"
       - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.14"
       - name: Install Dependencies
-        run: uv pip install --system -e ".[dev]" ruff --extra-index-url https://download.pytorch.org/whl/cpu
+        run: |
+          uv venv
+          echo "$PWD/.venv/bin" >> $GITHUB_PATH
+          uv pip install -e ".[dev]" ruff --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Ruff fixes
         continue-on-error: true
         run: |

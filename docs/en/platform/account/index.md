@@ -71,6 +71,7 @@ Ultralytics Platform implements multiple security measures:
 ## Quick Links
 
 - [**Settings**](settings.md): Profile, social links, data region, and account management
+- [**Teams**](teams.md): Team creation, roles, shared resources, and enterprise features
 - [**Billing**](billing.md): Credits, plans, and payment management
 - [**API Keys**](api-keys.md): Create and manage API keys
 - [**Activity**](activity.md): Track account events and notifications

@@ -1107,7 +1107,14 @@ def update_mkdocs_file(reference_yaml: str) -> None:
         # Update content
         new_content = mkdocs_content.replace(ref_section, new_ref_section)
         MKDOCS_YAML.write_text(new_content)
-        subprocess.run(["npx", "prettier", "--write", str(MKDOCS_YAML)], check=False, cwd=PACKAGE_DIR.parent)
+        try:
+            result = subprocess.run(
+                ["npx", "prettier", "--write", str(MKDOCS_YAML)], capture_output=True, text=True, cwd=PACKAGE_DIR.parent
+            )
+            if result.returncode != 0:
+                print(f"WARNING: prettier formatting failed: {result.stderr.strip()}")
+        except FileNotFoundError:
+            print("WARNING: prettier not found (install Node.js or run 'npm i -g prettier'), skipping YAML formatting")
         print(f"Updated Reference section in {MKDOCS_YAML}")
     elif help_match := re.search(r"(\n  - Help:)", mkdocs_content):
         # No existing Reference section, we need to add it

@@ -353,7 +353,20 @@ Cloud training billing flow:
 
 !!! success "Consumer Protection"
 
-    Billing tracks actual compute usage, including partial runs that are cancelled.
+    Billing tracks actual compute usage, including partial runs that are cancelled. **You are never charged for failed training runs.**
+
+### Billing by Job Status
+
+| Status        | Charged?                                    |
+| ------------- | ------------------------------------------- |
+| **Completed** | Yes — actual GPU time used                  |
+| **Cancelled** | Yes — GPU time from start to cancellation   |
+| **Failed**    | No — failed runs are not charged            |
+| **Stuck**     | Partial — only actual training time charged |
+
+!!! tip "No Charge for Errors"
+
+    If a training run fails due to a configuration error, out-of-memory issue, or any other failure, you are **not charged**. Only successful compute time is billed. Stuck jobs (no activity for 4+ hours) are automatically terminated and charged only for the time the GPU was actively training, not the idle time.
 
 ### Payment Methods
 
@@ -432,11 +445,37 @@ Yes, training continues until completion. You'll receive a notification when tra
 
 ### What happens if I run out of credits?
 
-Training pauses at the end of the current epoch. Your checkpoint is saved, and you can resume after adding credits.
+If your credit balance reaches zero during a training run, training **continues to completion** and your balance goes negative. This ensures your training job is never interrupted mid-run.
+
+After training completes, you'll need to add credits to bring your balance back to positive before starting new training jobs. Your completed model, checkpoints, and all training artifacts are fully preserved regardless of balance.
+
+!!! note "Negative Balance"
+
+    A negative balance only prevents starting **new** training jobs. Existing deployments and other platform features continue to work normally. Add credits via [Settings > Billing](../account/billing.md) or enable [auto top-up](../account/billing.md#auto-top-up) to avoid interruptions.
+
+### What happens if my training costs more than the estimate?
+
+Cost estimates are approximate — actual training time may vary due to factors like data loading speed, GPU warmup, and model convergence behavior. If the actual cost exceeds the estimate, your balance may go negative (see above). The platform **does not stop training** based on the estimate.
+
+To manage costs:
+
+- Monitor training progress in real-time and cancel early if needed
+- Enable [auto top-up](../account/billing.md#auto-top-up) to automatically replenish credits
+- Start with shorter runs (fewer epochs) to calibrate expectations
 
 ### Can I use custom training arguments?
 
 Yes, expand the **Advanced Settings** section in the training dialog to access a YAML editor with 40+ configurable parameters. Non-default values are included in both cloud and local training commands.
+
+The YAML editor also supports **importing configurations from previous training runs**:
+
+- **Copy from existing model**: On any completed model's page, the Training Configuration card has a **Copy as JSON** button. Copy the JSON and paste it directly into the YAML editor — it auto-detects JSON format and imports all parameters.
+- **Paste YAML or JSON**: Paste any valid YAML or JSON training configuration into the editor. Parameters are validated automatically, with out-of-range values clamped and warnings displayed.
+- **Drag and drop files**: Drag a `.yaml` or `.json` file directly into the editor to import its parameters.
+
+![Ultralytics Platform Training Dialog Copy Training Config JSON](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-dialog-copy-training-config-json.avif)
+
+This makes it easy to reproduce or iterate on previous training configurations without manually re-entering each parameter.
 
 ### Can I train from a dataset page?
 

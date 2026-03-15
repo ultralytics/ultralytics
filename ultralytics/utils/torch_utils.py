@@ -174,7 +174,7 @@ def select_device(device="", newline=False, verbose=True):
             import torch_npu  # noqa
         except ImportError:
             raise ValueError(f"Invalid NPU 'device={device}'. Install 'torch_npu' at https://github.com/Ascend/pytorch")
-        
+
         if not hasattr(torch, "npu") or not torch.npu.is_available():
             raise ValueError(f"Invalid NPU 'device={device}' requested. Ascend NPU is not available.")
 

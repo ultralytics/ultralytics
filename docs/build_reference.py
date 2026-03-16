@@ -21,11 +21,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
 
-import logging
-
+from ultralytics.utils import LOGGER
 from ultralytics.utils.tqdm import TQDM
-
-LOGGER = logging.getLogger(__name__)
 
 # Constants
 FILE = Path(__file__).resolve()

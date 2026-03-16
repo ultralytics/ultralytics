@@ -280,6 +280,7 @@ class Exporter:
     Methods:
         __call__: Main export method that handles the export process.
         get_int8_calibration_dataloader: Build dataloader for INT8 calibration.
+        get_uint8_calibration_dataloader: Build dataloader for UINT8 calibration.
         export_torchscript: Export model to TorchScript format.
         export_onnx: Export model to ONNX format.
         export_openvino: Export model to OpenVINO format.
@@ -456,6 +457,8 @@ class Exporter:
             assert self.args.name in RKNN_CHIPS, (
                 f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
             )
+        if self.args.uint8:
+            assert tflite, "uint8 quantization is not available for export formats other than TFLite."
         if self.args.nms:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
             assert not tflite or not ARM64 or not LINUX, "TFLite export with NMS unsupported on ARM64 Linux"
@@ -656,9 +659,9 @@ class Exporter:
         self.run_callbacks("on_export_end")
         return f  # path to final export artifact
 
-    def get_int8_calibration_dataloader(self, prefix=""):
-        """Build and return a dataloader for calibration of INT8 models."""
-        LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
+    def _get_calibration_dataloader(self, quantization_type="INT8", prefix=""):
+        """Build and return a dataloader for calibration of quantized models."""
+        LOGGER.info(f"{prefix} collecting {quantization_type} calibration images from 'data={self.args.data}'")
         data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
         dataset = YOLODataset(
             data[self.args.split or "val"],
@@ -680,8 +683,16 @@ class Exporter:
         if self.args.format == "axelera" and n < 100:
             LOGGER.warning(f"{prefix} >100 images required for Axelera calibration, found {n} images.")
         elif self.args.format != "axelera" and n < 300:
-            LOGGER.warning(f"{prefix} >300 images recommended for INT8 calibration, found {n} images.")
+            LOGGER.warning(f"{prefix} >300 images recommended for {quantization_type} calibration, found {n} images.")
         return build_dataloader(dataset, batch=batch, workers=0, drop_last=True)  # required for batch loading
+
+    def get_int8_calibration_dataloader(self, prefix=""):
+        """Build and return a dataloader for calibration of INT8 models."""
+        return self._get_calibration_dataloader(quantization_type="INT8", prefix=prefix)
+
+    def get_uint8_calibration_dataloader(self, prefix=""):
+        """Build and return a dataloader for calibration of UINT8 models."""
+        return self._get_calibration_dataloader(quantization_type="UINT8", prefix=prefix)
 
     @try_export
     def export_torchscript(self, prefix=colorstr("TorchScript:")):
@@ -1103,8 +1114,14 @@ class Exporter:
 
         # Export to TF
         images = None
-        if self.args.int8 and self.args.data:
-            images = [batch["img"] for batch in self.get_int8_calibration_dataloader(prefix)]
+        calibration_dataloader_fn = None
+        if self.args.data:
+            if self.args.int8:
+                calibration_dataloader_fn = self.get_int8_calibration_dataloader
+            if self.args.uint8:
+                calibration_dataloader_fn = self.get_uint8_calibration_dataloader
+        if calibration_dataloader_fn:
+            images = [batch["img"] for batch in calibration_dataloader_fn(prefix)]
             images = (
                 torch.nn.functional.interpolate(torch.cat(images, 0).float(), size=self.imgsz)
                 .permute(0, 2, 3, 1)
@@ -1122,6 +1139,7 @@ class Exporter:
             f_onnx,
             f,
             int8=self.args.int8,
+            uint8=self.args.uint8,
             images=images,
             disable_group_convolution=self.args.format in {"tfjs", "edgetpu"},
             prefix=prefix,
@@ -1150,6 +1168,8 @@ class Exporter:
         saved_model = Path(str(self.file).replace(self.file.suffix, "_saved_model"))
         if self.args.int8:
             f = saved_model / f"{self.file.stem}_int8.tflite"  # fp32 in/out
+        elif self.args.uint8:
+            f = saved_model / f"{self.file.stem}_uint8.tflite"  # fp32 in/out
         elif self.args.half:
             f = saved_model / f"{self.file.stem}_float16.tflite"  # fp32 in/out
         else:

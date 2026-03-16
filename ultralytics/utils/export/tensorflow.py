@@ -61,6 +61,7 @@ def onnx2saved_model(
     onnx_file: str,
     output_dir: Path,
     int8: bool = False,
+    uint8: bool = False,
     images: np.ndarray = None,
     disable_group_convolution: bool = False,
     prefix="",
@@ -71,6 +72,7 @@ def onnx2saved_model(
         onnx_file (str): ONNX file path.
         output_dir (Path): Output directory path for the SavedModel.
         int8 (bool, optional): Enable INT8 quantization. Defaults to False.
+        uint8 (bool, optional): Enable UINT8 quantization. Defaults to False.
         images (np.ndarray, optional): Calibration images for INT8 quantization in BHWC format.
         disable_group_convolution (bool, optional): Disable group convolution optimization. Defaults to False.
         prefix (str, optional): Logging prefix. Defaults to "".
@@ -79,7 +81,7 @@ def onnx2saved_model(
         (keras.Model): Converted Keras model.
 
     Notes:
-        - Requires onnx2tf package. Downloads calibration data if INT8 quantization is enabled.
+        - Requires onnx2tf package. Downloads calibration data if INT8 or UINT8 quantization is enabled.
         - Removes temporary files and renames quantized models after conversion.
     """
     # Pre-download calibration file to fix https://github.com/PINTO0309/onnx2tf/issues/545
@@ -87,8 +89,8 @@ def onnx2saved_model(
     if not onnx2tf_file.exists():
         attempt_download_asset(f"{onnx2tf_file}.zip", unzip=True, delete=True)
     np_data = None
-    if int8:
-        tmp_file = output_dir / "tmp_tflite_int8_calibration_images.npy"  # int8 calibration images file
+    if int8 or uint8:
+        tmp_file = output_dir / "tmp_tflite_int8_calibration_images.npy" if int8 else output_dir / "tmp_tflite_uint8_calibration_images.npy"  # int8 or uint8 calibration images file
         if images is not None:
             output_dir.mkdir(parents=True, exist_ok=True)
             np.save(str(tmp_file), images)  # BHWC
@@ -116,18 +118,20 @@ def onnx2saved_model(
         output_folder_path=str(output_dir),
         not_use_onnxsim=True,
         verbosity="error",  # note INT8-FP16 activation bug https://github.com/ultralytics/ultralytics/issues/15873
-        output_integer_quantized_tflite=int8,
+        output_integer_quantized_tflite=(int8 or uint8),  # enable integer quantization for TFLite export
         custom_input_op_name_np_data_path=np_data,
         enable_batchmatmul_unfold=True and not int8,  # fix lower no. of detected objects on GPU delegate
         output_signaturedefs=True,  # fix error with Attention block group convolution
         disable_group_convolution=disable_group_convolution,  # fix error with group convolution
+        input_quant_dtype='uint8' if uint8 else 'int8' if int8 else None, # set input quantization dtype for TFLite export, required for uint8 quantization
+        output_quant_dtype='uint8' if uint8 else 'int8' if int8 else None, # set output quantization dtype for TFLite export, required for uint8 quantization
     )
 
     # Remove/rename TFLite models
-    if int8:
+    if int8 or uint8:
         tmp_file.unlink(missing_ok=True)
         for file in output_dir.rglob("*_dynamic_range_quant.tflite"):
-            file.rename(file.with_name(file.stem.replace("_dynamic_range_quant", "_int8") + file.suffix))
+            file.rename(file.with_name(file.stem.replace("_dynamic_range_quant", "_int8" if int8 else "_uint8") + file.suffix))
         for file in output_dir.rglob("*_integer_quant_with_int16_act.tflite"):
             file.unlink()  # delete extra fp16 activation TFLite files
     return keras_model

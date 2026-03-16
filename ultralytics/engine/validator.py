@@ -23,6 +23,8 @@ Usage - formats:
                           yolo26n_rknn_model         # Rockchip RKNN
 """
 
+from __future__ import annotations
+
 import json
 import time
 from pathlib import Path

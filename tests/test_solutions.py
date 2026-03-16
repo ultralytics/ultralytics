@@ -369,3 +369,60 @@ def test_display_output_method():
         mock_imshow.assert_called_once()
         mock_wait.assert_called_once()
         mock_destroy.assert_called_once()
+
+
+def test_draw_specific_kpts_order():
+    """Test that draw_specific_kpts draws keypoints in user-specified indices order, not sorted order."""
+    from ultralytics.solutions.solutions import SolutionAnnotator
+
+    im = np.zeros((480, 640, 3), dtype=np.uint8)
+    annotator = SolutionAnnotator(im, line_width=2)
+
+    # Keypoints: index 6=(100,200), index 8=(300,400), index 12=(500,100) with confidence
+    keypoints = [[0, 0, 0.9]] * 13  # 13 dummy keypoints
+    keypoints[6] = [100, 200, 0.9]
+    keypoints[8] = [300, 400, 0.9]
+    keypoints[12] = [500, 100, 0.9]
+
+    # With indices=[8, 6, 12], lines should connect 8->6->12 (i.e. (300,400)->(100,200)->(500,100))
+    with patch("cv2.line") as mock_line:
+        annotator.draw_specific_kpts(keypoints, indices=[8, 6, 12])
+        assert mock_line.call_count == 2
+        # First line: from keypoint 8 to keypoint 6
+        assert mock_line.call_args_list[0][0][1] == (300, 400)
+        assert mock_line.call_args_list[0][0][2] == (100, 200)
+        # Second line: from keypoint 6 to keypoint 12
+        assert mock_line.call_args_list[1][0][1] == (100, 200)
+        assert mock_line.call_args_list[1][0][2] == (500, 100)
+
+
+def test_draw_specific_kpts_2d_keypoints():
+    """Test that draw_specific_kpts handles [x, y] keypoints without confidence."""
+    from ultralytics.solutions.solutions import SolutionAnnotator
+
+    im = np.zeros((480, 640, 3), dtype=np.uint8)
+    annotator = SolutionAnnotator(im, line_width=2)
+
+    # Keypoints without confidence (2D only)
+    keypoints = [[0, 0]] * 5
+    keypoints[2] = [100, 200]
+    keypoints[3] = [300, 400]
+
+    with patch("cv2.circle") as mock_circle:
+        annotator.draw_specific_kpts(keypoints, indices=[2, 3])
+        assert mock_circle.call_count == 2
+
+
+def test_draw_specific_kpts_out_of_range():
+    """Test that draw_specific_kpts skips out-of-range indices gracefully."""
+    from ultralytics.solutions.solutions import SolutionAnnotator
+
+    im = np.zeros((480, 640, 3), dtype=np.uint8)
+    annotator = SolutionAnnotator(im, line_width=2)
+
+    keypoints = [[100, 200, 0.9], [300, 400, 0.9]]  # only 2 keypoints
+
+    with patch("cv2.circle") as mock_circle:
+        # Index 5 is out of range, should be skipped without error
+        annotator.draw_specific_kpts(keypoints, indices=[0, 5, 1])
+        assert mock_circle.call_count == 2  # only indices 0 and 1 are valid

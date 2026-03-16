@@ -678,7 +678,6 @@ class YOLOConcatDataset(ConcatDataset):
             dataset.close_mosaic(hyp)
 
 
-# TODO: support semantic segmentation
 class SemanticDataset(BaseDataset):
     """Semantic Segmentation Dataset."""
 

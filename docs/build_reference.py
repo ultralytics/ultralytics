@@ -21,6 +21,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
 
+from ultralytics.utils import LOGGER
 from ultralytics.utils.tqdm import TQDM
 
 # Constants
@@ -1054,7 +1055,7 @@ def create_nav_menu_yaml(nav_items: list[str]) -> str:
         return yaml_str
 
     reference_yaml = _dict_to_yaml(sort_nested_dict(nav_tree))
-    print(f"Scan complete, generated reference section with {len(reference_yaml.splitlines())} lines")
+    LOGGER.info(f"Scan complete, generated reference section with {len(reference_yaml.splitlines())} lines")
     return reference_yaml
 
 
@@ -1091,7 +1092,7 @@ def update_mkdocs_file(reference_yaml: str) -> None:
     if ref_match:
         # We found an existing Reference section
         ref_section = ref_match.group(1)
-        print(f"Found existing top-level Reference section ({len(ref_section)} chars)")
+        LOGGER.info(f"Found existing top-level Reference section ({len(ref_section)} chars)")
 
         # Compare only document paths
         existing_paths = extract_document_paths(ref_section)
@@ -1099,10 +1100,10 @@ def update_mkdocs_file(reference_yaml: str) -> None:
 
         # Check if the document paths are the same (ignoring structure or formatting differences)
         if len(existing_paths) == len(new_paths) and set(existing_paths) == set(new_paths):
-            print(f"No changes detected in document paths ({len(existing_paths)} items). Skipping update.")
+            LOGGER.info(f"No changes detected in document paths ({len(existing_paths)} items). Skipping update.")
             return
 
-        print(f"Changes detected: {len(new_paths)} document paths vs {len(existing_paths)} existing")
+        LOGGER.info(f"Changes detected: {len(new_paths)} document paths vs {len(existing_paths)} existing")
 
         # Update content
         new_content = mkdocs_content.replace(ref_section, new_ref_section)
@@ -1112,19 +1113,19 @@ def update_mkdocs_file(reference_yaml: str) -> None:
                 ["npx", "prettier", "--write", str(MKDOCS_YAML)], capture_output=True, text=True, cwd=PACKAGE_DIR.parent
             )
             if result.returncode != 0:
-                print(f"WARNING: prettier formatting failed: {result.stderr.strip()}")
+                LOGGER.warning(f"prettier formatting failed: {result.stderr.strip()}")
         except FileNotFoundError:
-            print("WARNING: prettier not found (install Node.js or run 'npm i -g prettier'), skipping YAML formatting")
-        print(f"Updated Reference section in {MKDOCS_YAML}")
+            LOGGER.warning("prettier not found (install Node.js or run 'npm i -g prettier'), skipping YAML formatting")
+        LOGGER.info(f"Updated Reference section in {MKDOCS_YAML}")
     elif help_match := re.search(r"(\n  - Help:)", mkdocs_content):
         # No existing Reference section, we need to add it
         help_section = help_match.group(1)
         # Insert before Help section
         new_content = mkdocs_content.replace(help_section, f"{new_ref_section}{help_section}")
         MKDOCS_YAML.write_text(new_content)
-        print(f"Added new Reference section before Help in {MKDOCS_YAML}")
+        LOGGER.info(f"Added new Reference section before Help in {MKDOCS_YAML}")
     else:
-        print("Could not find a suitable location to add Reference section")
+        LOGGER.warning("Could not find a suitable location to add Reference section")
 
 
 def _finalize_reference(nav_items: list[str], update_nav: bool, created: int, created_label: str) -> list[str]:
@@ -1132,7 +1133,7 @@ def _finalize_reference(nav_items: list[str], update_nav: bool, created: int, cr
     if update_nav:
         update_mkdocs_file(create_nav_menu_yaml(nav_items))
     if created:
-        print(f"Created {created} new {created_label}")
+        LOGGER.info(f"Created {created} new {created_label}")
     return nav_items
 
 
@@ -1166,7 +1167,7 @@ def build_reference_placeholders(update_nav: bool = True) -> list[str]:
     if update_nav:
         update_mkdocs_file(create_nav_menu_yaml(nav_items))
     if created:
-        print(f"Created {created} new reference stub files")
+        LOGGER.info(f"Created {created} new reference stub files")
     return nav_items
 
 
@@ -1191,11 +1192,11 @@ def build_reference_docs(update_nav: bool = False) -> list[str]:
     if update_nav:
         update_mkdocs_file(create_nav_menu_yaml(nav_items))
     if created:
-        print(f"Created {created} new reference files")
+        LOGGER.info(f"Created {created} new reference files")
     if _missing_type_warnings:
-        print(f"\n⚠️ {len(_missing_type_warnings)} functions/methods have parameters missing type annotations:")
+        LOGGER.warning(f"{len(_missing_type_warnings)} functions/methods have parameters missing type annotations:")
         for warning in _missing_type_warnings:
-            print(f"  - {warning}")
+            LOGGER.warning(f"  - {warning}")
         raise ValueError(
             f"{len(_missing_type_warnings)} parameters missing types in both signature and docstring. "
             f"Add type annotations to the function signature or (type) in the docstring Args section."

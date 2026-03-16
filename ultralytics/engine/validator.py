@@ -91,7 +91,7 @@ class BaseValidator:
         eval_json: Evaluate and return JSON format of prediction statistics.
     """
 
-    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None):
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks: dict | None = None):
         """Initialize a BaseValidator instance.
 
         Args:

@@ -34,7 +34,7 @@ class ClassificationPredictor(BasePredictor):
         - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
         """Initialize the ClassificationPredictor with the specified configuration and set task to 'classify'.
 
         This constructor initializes a ClassificationPredictor instance, which extends BasePredictor for classification
@@ -43,7 +43,7 @@ class ClassificationPredictor(BasePredictor):
         Args:
             cfg (dict): Default configuration dictionary containing prediction settings.
             overrides (dict, optional): Configuration overrides that take precedence over cfg.
-            _callbacks (list, optional): List of callback functions to be executed during prediction.
+            _callbacks (dict, optional): Dictionary of callback functions to be executed during prediction.
         """
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "classify"

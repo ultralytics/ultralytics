@@ -112,7 +112,7 @@ class BasePredictor:
         self,
         cfg=DEFAULT_CFG,
         overrides: dict[str, Any] | None = None,
-        _callbacks: dict[str, list[Callable]] | None = None,
+        _callbacks: dict | None = None,
     ):
         """Initialize the BasePredictor class.
 

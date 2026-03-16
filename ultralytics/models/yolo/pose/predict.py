@@ -25,7 +25,7 @@ class PosePredictor(DetectionPredictor):
         >>> predictor.predict_cli()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
         """Initialize PosePredictor for pose estimation tasks.
 
         Sets up a PosePredictor instance, configuring it for pose detection tasks and handling device-specific warnings
@@ -34,7 +34,7 @@ class PosePredictor(DetectionPredictor):
         Args:
             cfg (Any): Configuration for the predictor.
             overrides (dict, optional): Configuration overrides that take precedence over cfg.
-            _callbacks (list, optional): List of callback functions to be invoked during prediction.
+            _callbacks (dict, optional): Dictionary of callback functions to be invoked during prediction.
         """
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "pose"

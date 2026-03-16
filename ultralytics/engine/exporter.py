@@ -169,7 +169,7 @@ def export_formats():
         ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "dynamic", "half", "int8", "nms"]],
         ["TensorFlow SavedModel", "saved_model", "_saved_model", True, True, ["batch", "int8", "keras", "nms"]],
         ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"]],
-        ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "half", "int8", "nms", "fraction"]],
+        ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "half", "int8", "uint8", "nms", "fraction"]],
         ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, []],
         ["TensorFlow.js", "tfjs", "_web_model", True, False, ["batch", "half", "int8", "nms"]],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"]],
@@ -224,7 +224,7 @@ def validate_args(format, passed_args, valid_args):
     Raises:
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
     """
-    export_args = ["half", "int8", "dynamic", "keras", "nms", "batch", "fraction"]
+    export_args = ["half", "int8", "uint8", "dynamic", "keras", "nms", "batch", "fraction"]
 
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults
@@ -434,9 +434,15 @@ class Exporter:
                         )
                 except ImportError:
                     pass
-        if self.args.half and self.args.int8:
-            LOGGER.warning("half=True and int8=True are mutually exclusive, setting half=False.")
-            self.args.half = False
+        if (sum(map(bool, (self.args.uint8, self.args.int8, self.args.half))) > 1): # if more than 1 is set to True
+            assert (sum(map(bool, (self.args.uint8, self.args.int8))) <= 1), "int8=True and uint8=True are mutually exclusive, please decide which one"
+            if self.args.int8 and self.args.half:
+                LOGGER.warning("half=True and int8=True are mutually exclusive, setting half=False.")
+                self.args.half = False
+            if self.args.uint8 and self.args.half:
+                LOGGER.warning("half=True and uint8=True are mutually exclusive, setting half=False.")
+                self.args.half = False
+
         if self.args.half and jit and self.device.type == "cpu":
             LOGGER.warning(
                 "half=True only compatible with GPU export for TorchScript, i.e. use device=0, setting half=False."
@@ -457,8 +463,6 @@ class Exporter:
             assert self.args.name in RKNN_CHIPS, (
                 f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
             )
-        if self.args.uint8:
-            assert tflite, "uint8 quantization is not available for export formats other than TFLite."
         if self.args.nms:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
             assert not tflite or not ARM64 or not LINUX, "TFLite export with NMS unsupported on ARM64 Linux"
@@ -1118,7 +1122,7 @@ class Exporter:
         if self.args.data:
             if self.args.int8:
                 calibration_dataloader_fn = self.get_int8_calibration_dataloader
-            if self.args.uint8:
+            elif self.args.uint8:
                 calibration_dataloader_fn = self.get_uint8_calibration_dataloader
         if calibration_dataloader_fn:
             images = [batch["img"] for batch in calibration_dataloader_fn(prefix)]

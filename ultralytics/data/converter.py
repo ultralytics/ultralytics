@@ -751,11 +751,11 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
 def _infer_ndjson_kpt_shape(image_records: list) -> list:
     """Infer kpt_shape [num_keypoints, dims] from NDJSON pose annotations.
 
-    Scans up to 50 pose annotations across image records. Annotation format is
-    [classId, cx, cy, w, h, kp1_x, kp1_y, kp1_vis, ...] so keypoint values start at index 5.
+    Scans up to 50 pose annotations across image records. Annotation format is [classId, cx, cy, w, h, kp1_x, kp1_y,
+    kp1_vis, ...] so keypoint values start at index 5.
 
-    Tries dims=3 first (x, y, visibility) with visibility validation ({0, 1, 2}), then falls
-    back to dims=2 (x, y only) when values are unambiguously not divisible by 3.
+    Tries dims=3 first (x, y, visibility) with visibility validation ({0, 1, 2}), then falls back to dims=2 (x, y only)
+    when values are unambiguously not divisible by 3.
     """
     kpt_lengths = []
     samples = []  # raw keypoint value slices for visibility checking

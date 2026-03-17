@@ -120,13 +120,13 @@ In this example, we demonstrate how to use a custom search space for hyperparame
     # Run Ray Tune on the model
     result_grid = model.tune(
         data="coco8.yaml",
-        space={"lr0": tune.uniform(1e-5, 1e-1)},
+        space={"lr0": tune.uniform(1e-5, 1e-2)},
         epochs=50,
         use_ray=True,
     )
     ```
 
-In the code snippet above, we create a YOLO model with the "yolo26n.pt" pretrained weights. Then, we call the `tune()` method, specifying the dataset configuration with "coco8.yaml". We provide a custom search space for the initial learning rate `lr0` using a dictionary with the key "lr0" and the value `tune.uniform(1e-5, 1e-1)`. Finally, we pass additional training arguments, such as the number of epochs directly to the tune method as `epochs=50`.
+In the code snippet above, we create a YOLO model with the "yolo26n.pt" pretrained weights. Then, we call the `tune()` method, specifying the dataset configuration with "coco8.yaml". We provide a custom search space for the initial learning rate `lr0` using a dictionary with the key "lr0" and the value `tune.uniform(1e-5, 1e-2)`. Finally, we pass additional training arguments, such as the number of epochs directly to the tune method as `epochs=50`.
 
 ## Resuming An Interrupted Hyperparameter Tuning Session With Ray Tune
 
@@ -303,7 +303,7 @@ from ray import tune
 from ultralytics import YOLO
 
 model = YOLO("yolo26n.pt")
-search_space = {"lr0": tune.uniform(1e-5, 1e-1), "momentum": tune.uniform(0.6, 0.98)}
+search_space = {"lr0": tune.uniform(1e-5, 1e-2), "momentum": tune.uniform(0.7, 0.98)}
 result_grid = model.tune(data="coco8.yaml", space=search_space, use_ray=True)
 ```
 

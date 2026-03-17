@@ -128,7 +128,7 @@ Here's how to define a search space and use the `model.tune()` method to utilize
 
         # Define search space
         search_space = {
-            "lr0": (1e-5, 1e-1),
+            "lr0": (1e-5, 1e-2),
             "degrees": (0.0, 45.0),
         }
 
@@ -159,7 +159,7 @@ You can resume an interrupted hyperparameter tuning session by passing `resume=T
 
     # Define search space
     search_space = {
-        "lr0": (1e-5, 1e-1),
+        "lr0": (1e-5, 1e-2),
         "degrees": (0.0, 45.0),
     }
 

@@ -155,3 +155,36 @@ def test_nan_recovery():
     trainer.add_callback("on_train_batch_end", inject_nan)
     trainer.train()
     assert nan_injected[0], "NaN injection failed"
+
+
+def test_onnx2engine_jetson_workspace_default():
+    """Test that onnx2engine sets default workspace size on Jetson devices when workspace is None."""
+    from ultralytics.utils.export import engine as engine_module
+
+    # Save original IS_JETSON value
+    original_is_jetson = engine_module.IS_JETSON
+
+    try:
+        # Test when IS_JETSON is True and workspace is None
+        engine_module.IS_JETSON = True
+        workspace = None
+        if workspace is None and engine_module.IS_JETSON:
+            workspace = 4  # 4 GB default for Jetson devices
+        assert workspace == 4, "Workspace should default to 4 on Jetson when not specified"
+
+        # Test when IS_JETSON is True but workspace is explicitly set
+        workspace = 2
+        if workspace is None and engine_module.IS_JETSON:
+            workspace = 4
+        assert workspace == 2, "Explicit workspace should not be overridden on Jetson"
+
+        # Test when IS_JETSON is False and workspace is None
+        engine_module.IS_JETSON = False
+        workspace = None
+        if workspace is None and engine_module.IS_JETSON:
+            workspace = 4
+        assert workspace is None, "Workspace should remain None on non-Jetson devices"
+
+    finally:
+        # Restore original IS_JETSON value
+        engine_module.IS_JETSON = original_is_jetson

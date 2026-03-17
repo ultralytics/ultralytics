@@ -99,6 +99,10 @@ def onnx2engine(
     # Engine builder
     builder = trt.Builder(logger)
     config = builder.create_builder_config()
+    # Set default workspace size for Jetson devices to avoid memory issues during engine build
+    if workspace is None and IS_JETSON:
+        workspace = 4  # 4 GB default for Jetson devices
+        LOGGER.info(f"{prefix} setting default workspace=4 GB for Jetson device")
     workspace_bytes = int((workspace or 0) * (1 << 30))
     is_trt10 = int(trt.__version__.split(".", 1)[0]) >= 10  # is TensorRT >= 10
     if is_trt10 and workspace_bytes > 0:

@@ -8,7 +8,7 @@ keywords: Package Segmentation Dataset, computer vision, package identification,
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-package-segmentation-dataset.ipynb" target="_blank"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Package Segmentation Dataset In Colab"></a>
 
-The Package Segmentation Dataset, available on Roboflow Universe, is a curated collection of images specifically tailored for tasks related to package segmentation within the field of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). This dataset is designed to assist researchers, developers, and enthusiasts working on projects involving package identification, sorting, and handling, primarily focusing on [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) tasks.
+The Package Segmentation Dataset is a curated collection of images specifically tailored for tasks related to package segmentation within the field of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). This dataset is designed to assist researchers, developers, and enthusiasts working on projects involving package identification, sorting, and handling, primarily focusing on [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) tasks.
 
 <p align="center">
   <br>
@@ -128,8 +128,6 @@ If you integrate the Package Segmentation dataset into your research or developm
             type = { Open Source Dataset },
             author = { factorypackage },
             url = { https://universe.roboflow.com/factorypackage/factory_package },
-            journal = { Roboflow Universe },
-            publisher = { Roboflow },
             year = { 2024 },
             month = { jan },
             note = { visited on 2024-01-24 },

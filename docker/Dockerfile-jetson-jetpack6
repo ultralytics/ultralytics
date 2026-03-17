@@ -10,7 +10,8 @@ FROM nvcr.io/nvidia/l4t-jetpack:r36.4.0
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_BREAK_SYSTEM_PACKAGES=1
+    PIP_BREAK_SYSTEM_PACKAGES=1 \
+    UV_BREAK_SYSTEM_PACKAGES=1
 
 # Downloads to user config dir
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
@@ -18,13 +19,14 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
     /root/.config/Ultralytics/
 
 # Install dependencies and cleanup
-ADD https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/arm64/cuda-keyring_1.1-1_all.deb .
-RUN dpkg -i cuda-keyring_1.1-1_all.deb && \
+ADD https://developer.download.nvidia.com/compute/cudss/0.7.1/local_installers/cudss-local-tegra-repo-ubuntu2204-0.7.1_0.7.1-1_arm64.deb .
+RUN dpkg -i cudss-local-tegra-repo-ubuntu2204-0.7.1_0.7.1-1_arm64.deb && \
+    cp /var/cudss-local-tegra-repo-ubuntu2204-0.7.1/cudss-*-keyring.gpg /usr/share/keyrings/ && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-    git python3-pip libopenmpi-dev libopenblas-base libomp-dev libcusparselt0 libcusparselt-dev && \
+    git python3-pip libopenmpi-dev libopenblas-base libomp-dev cudss && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* cuda-keyring_1.1-1_all.deb
+    rm -rf /var/lib/apt/lists/* 
 
 # Create working directory
 WORKDIR /ultralytics
@@ -38,9 +40,9 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 # Pip install onnxruntime-gpu, torch, torchvision and ultralytics, then remove build files
 RUN python3 -m pip install --upgrade pip uv && \
     uv pip install --system \
-    https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.20.0-cp310-cp310-linux_aarch64.whl \
-    https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.5.0a0+872d972e41.nv24.08-cp310-cp310-linux_aarch64.whl \
-    https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.20.0a0+afc54f7-cp310-cp310-linux_aarch64.whl && \
+    https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.23.0-cp310-cp310-linux_aarch64.whl \
+    https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.10.0-cp310-cp310-linux_aarch64.whl \
+    https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.25.0-cp310-cp310-linux_aarch64.whl && \
     uv pip install --system -e ".[export]" && \
     # Remove extra build files
     rm -rf *.whl /root/.config/Ultralytics/persistent_cache.json

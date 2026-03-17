@@ -19,7 +19,7 @@
 # For comprehensive documentation and usage instructions, visit: https://docs.ultralytics.com
 
 [build-system]
-requires = ["setuptools>=70.0.0", "wheel"]
+requires = ["setuptools>=70.0.0,<=82.0.1", "wheel"]
 build-backend = "setuptools.build_meta"
 
 # Project settings -----------------------------------------------------------------------------------------------------
@@ -99,10 +99,13 @@ export = [
     "tensorflowjs>=2.0.0", # TF.js export, automatically installs tensorflow
     "tensorstore>=0.1.63; platform_machine == 'aarch64' and python_version >= '3.9'", # for TF Raspberry Pi exports
     "h5py!=3.11.0; platform_machine == 'aarch64'", # fix h5py build issues due to missing aarch64 wheels in 3.11 release
+    "setuptools<=81.0.0",  # pin due to >=82.0.0 breaking tensorflow.js package
+    "packaging>=26.0; platform_machine == 'aarch64' and platform_system == 'Linux' and python_version >= '3.9'", # IMX export bug
 ]
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching
-    "streamlit>=1.29.0",    # for live inference on web browser, i.e `yolo streamlit-predict`
+    "streamlit>=1.51.0; python_version >= '3.10'",    # for live inference on web browser, i.e `yolo streamlit-predict`
+    "streamlit>=1.29.0,<1.51.0; python_version < '3.10' and (python_version < '3.9' or platform_machine != 'aarch64' or platform_system != 'Linux')",
     "flask>=3.0.1",  # for similarity search solution
 ]
 logging = [

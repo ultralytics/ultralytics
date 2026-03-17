@@ -39,7 +39,7 @@ import platform
 import re
 import threading
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import cv2
 import numpy as np
@@ -78,18 +78,18 @@ class BasePredictor:
         save_dir (Path): Directory to save results.
         done_warmup (bool): Whether the predictor has finished setup.
         model (torch.nn.Module): Model used for prediction.
-        data (dict): Data configuration.
+        data (str): Data configuration.
         device (torch.device): Device used for prediction.
         dataset (Dataset): Dataset used for prediction.
-        vid_writer (dict[str, cv2.VideoWriter]): Dictionary of {save_path: video_writer} for saving video output.
+        vid_writer (dict[Path, cv2.VideoWriter]): Dictionary of {save_path: video_writer} for saving video output.
         plotted_img (np.ndarray): Last plotted image.
         source_type (SimpleNamespace): Type of input source.
         seen (int): Number of images processed.
         windows (list[str]): List of window names for visualization.
         batch (tuple): Current batch data.
         results (list[Any]): Current batch results.
-        transforms (callable): Image transforms for classification.
-        callbacks (dict[str, list[callable]]): Callback functions for different events.
+        transforms (Callable): Image transforms for classification.
+        callbacks (dict[str, list[Callable]]): Callback functions for different events.
         txt_path (Path): Path to save text results.
         _lock (threading.Lock): Lock for thread-safe inference.
 
@@ -112,12 +112,12 @@ class BasePredictor:
         self,
         cfg=DEFAULT_CFG,
         overrides: dict[str, Any] | None = None,
-        _callbacks: dict[str, list[callable]] | None = None,
+        _callbacks: dict | None = None,
     ):
         """Initialize the BasePredictor class.
 
         Args:
-            cfg (str | dict): Path to a configuration file or a configuration dictionary.
+            cfg (str | Path | dict | SimpleNamespace): Path to a configuration file or a configuration dictionary.
             overrides (dict, optional): Configuration overrides.
             _callbacks (dict, optional): Dictionary of callback functions.
         """
@@ -195,7 +195,7 @@ class BasePredictor:
             self.imgsz,
             auto=same_shapes
             and self.args.rect
-            and (self.model.pt or (getattr(self.model, "dynamic", False) and not self.model.imx)),
+            and (self.model.format == "pt" or (getattr(self.model, "dynamic", False) and self.model.format != "imx")),
             stride=self.model.stride,
         )
         return [letterbox(image=x) for x in im]
@@ -258,7 +258,7 @@ class BasePredictor:
             batch=self.args.batch,
             vid_stride=self.args.vid_stride,
             buffer=self.args.stream_buffer,
-            channels=getattr(self.model, "ch", 3),
+            channels=getattr(self.model, "channels", 3),
         )
         self.source_type = self.dataset.source_type
         if (
@@ -275,7 +275,7 @@ class BasePredictor:
 
     @smart_inference_mode()
     def stream_inference(self, source=None, model=None, *args, **kwargs):
-        """Stream real-time inference on camera feed and save results to file.
+        """Stream inference on input source and save results to file.
 
         Args:
             source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor, optional):
@@ -305,7 +305,11 @@ class BasePredictor:
             # Warmup model
             if not self.done_warmup:
                 self.model.warmup(
-                    imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, self.model.ch, *self.imgsz)
+                    imgsz=(
+                        1 if self.model.format in {"pt", "triton"} else self.dataset.bs,
+                        self.model.channels,
+                        *self.imgsz,
+                    )
                 )
                 self.done_warmup = True
 
@@ -372,7 +376,7 @@ class BasePredictor:
             t = tuple(x.t / self.seen * 1e3 for x in profilers)  # speeds per image
             LOGGER.info(
                 f"Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape "
-                f"{(min(self.args.batch, self.seen), getattr(self.model, 'ch', 3), *im.shape[2:])}" % t
+                f"{(min(self.args.batch, self.seen), getattr(self.model, 'channels', 3), *im.shape[2:])}" % t
             )
         if self.args.save or self.args.save_txt or self.args.save_crop:
             nl = len(list(self.save_dir.glob("labels/*.txt")))  # number of labels
@@ -384,7 +388,7 @@ class BasePredictor:
         """Initialize YOLO model with given parameters and set it to evaluation mode.
 
         Args:
-            model (str | Path | torch.nn.Module, optional): Model to load or use.
+            model (str | Path | torch.nn.Module): Model to load or use.
             verbose (bool): Whether to print verbose output.
         """
         if hasattr(model, "end2end"):
@@ -460,7 +464,7 @@ class BasePredictor:
         return string
 
     def save_predicted_images(self, save_path: Path, frame: int = 0):
-        """Save video predictions as mp4 or images as jpg at specified path.
+        """Save video predictions as mp4/avi or images as jpg at specified path.
 
         Args:
             save_path (Path): Path to save the results.
@@ -508,6 +512,6 @@ class BasePredictor:
         for callback in self.callbacks.get(event, []):
             callback(self)
 
-    def add_callback(self, event: str, func: callable):
+    def add_callback(self, event: str, func: Callable):
         """Add a callback function for a specific event."""
         self.callbacks[event].append(func)

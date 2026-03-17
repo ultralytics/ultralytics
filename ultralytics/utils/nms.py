@@ -64,9 +64,18 @@ def non_max_suppression(
         classes = torch.tensor(classes, device=prediction.device)
 
     if prediction.shape[-1] == 6 or end2end:  # end-to-end model (BNC, i.e. 1,300,6)
-        output = [pred[pred[:, 4] > conf_thres][:max_det] for pred in prediction]
+        output = [pred[pred[:, 4] > conf_thres] for pred in prediction]
         if classes is not None:
             output = [pred[(pred[:, 5:6] == classes).any(1)] for pred in output]
+        # Apply NMS to remove overlapping boxes even for end2end models during validation
+        for bi, pred in enumerate(output):
+            if pred.shape[0] == 0:
+                continue
+            # Apply class-aware NMS to filter overlapping detections
+            c = pred[:, 5:6] * (0 if agnostic else max_wh)
+            boxes, scores = pred[:, :4] + c, pred[:, 4]
+            keep_idx = TorchNMS.nms(boxes, scores, iou_thres)[:max_det]
+            output[bi] = pred[keep_idx]
         return output
 
     bs = prediction.shape[0]  # batch size (BCN, i.e. 1,84,6300)

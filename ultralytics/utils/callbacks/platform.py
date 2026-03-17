@@ -108,6 +108,8 @@ def resolve_platform_uri(uri, hard=True):
             return None
         if r.status_code == 409:
             raise RuntimeError(f"Resource not ready: {uri}. Dataset may still be processing.")
+        if r.status_code >= 500:
+            raise RuntimeError(f"Platform server error ({r.status_code}) for '{uri}'. Please try again later.")
 
         # Unexpected response
         r.raise_for_status()

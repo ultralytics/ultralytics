@@ -100,6 +100,8 @@ def onnx2engine(
     builder = trt.Builder(logger)
     config = builder.create_builder_config()
     workspace_bytes = int((workspace or 0) * (1 << 30))
+    if IS_JETSON and workspace is None:
+        workspace_bytes = 1 << 30  # 1 GiB default for Jetson shared-memory devices
     is_trt10 = int(trt.__version__.split(".", 1)[0]) >= 10  # is TensorRT >= 10
     if is_trt10 and workspace_bytes > 0:
         config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace_bytes)
@@ -139,7 +141,10 @@ def onnx2engine(
     if dynamic:
         profile = builder.create_optimization_profile()
         min_shape = (1, shape[1], 32, 32)  # minimum input shape
-        max_shape = (*shape[:2], *(int(max(2, workspace or 2) * d) for d in shape[2:]))  # max input shape
+        if IS_JETSON and workspace is None:
+            max_shape = shape  # cap at input shape on Jetson to conserve shared GPU memory
+        else:
+            max_shape = (*shape[:2], *(int(max(2, workspace or 2) * d) for d in shape[2:]))  # max input shape
         for inp in inputs:
             profile.set_shape(inp.name, min=min_shape, opt=shape, max=max_shape)
         config.add_optimization_profile(profile)
@@ -224,6 +229,10 @@ def onnx2engine(
 
     elif half:
         config.set_flag(trt.BuilderFlag.FP16)
+
+    # Free cached GPU memory before building on shared-memory Jetson devices
+    if IS_JETSON:
+        torch.cuda.empty_cache()
 
     # Write file
     if is_trt10:

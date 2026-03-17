@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from copy import copy
 from pathlib import Path
-from typing import Any
 
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import OBBModel
@@ -32,7 +31,7 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides: dict | None = None, _callbacks: list[Any] | None = None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: dict | None = None, _callbacks: dict | None = None):
         """Initialize an OBBTrainer object for training Oriented Bounding Box (OBB) models.
 
         Args:
@@ -40,7 +39,7 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
                 configuration.
             overrides (dict, optional): Dictionary of parameter overrides for the configuration. Any values here will
                 take precedence over those in cfg.
-            _callbacks (list[Any], optional): List of callback functions to be invoked during training.
+            _callbacks (dict, optional): Dictionary of callback functions to be invoked during training.
         """
         if overrides is None:
             overrides = {}

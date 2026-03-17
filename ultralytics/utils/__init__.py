@@ -141,6 +141,7 @@ warnings.filterwarnings("ignore", category=FutureWarning, module="timm")  # mobi
 warnings.filterwarnings("ignore", category=torch.jit.TracerWarning)  # ONNX/TorchScript export tracer warnings
 warnings.filterwarnings("ignore", category=UserWarning, message=".*prim::Constant.*")  # ONNX shape warning
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="coremltools")  # CoreML np.bool deprecation
+logging.getLogger("coremltools").setLevel(logging.ERROR)  # Suppress native binary load failures on non-macOS
 
 # Precompiled type tuples for faster isinstance() checks
 FLOAT_OR_INT = (float, int)
@@ -619,10 +620,15 @@ class YAML:
         # Try loading YAML with fallback for problematic characters
         try:
             data = instance.yaml.load(s, Loader=instance.SafeLoader) or {}
-        except Exception:
+        except Exception as e:
             # Remove problematic characters and retry
             s = re.sub(r"[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]+", "", s)
-            data = instance.yaml.load(s, Loader=instance.SafeLoader) or {}
+            try:
+                data = instance.yaml.load(s, Loader=instance.SafeLoader) or {}
+            except Exception:
+                raise ValueError(
+                    f"YAML syntax error in '{file}': {e}\nVerify YAML with https://ray.run/tools/yaml-formatter"
+                ) from None
 
         # Check for accidental user-error None strings (should be 'null' in YAML)
         if "None" in data.values():

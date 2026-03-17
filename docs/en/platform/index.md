@@ -102,8 +102,10 @@ You select your region during onboarding, and all your data, models, and deploym
 
 - **Dataset Management**: Upload images, videos, or ZIP archives with automatic processing
 - **Annotation Editor**: Manual annotation for all 5 YOLO task types (detect, segment, pose, OBB, classify; see [supported tasks](data/index.md#supported-tasks))
-- **SAM Smart Annotation**: Click-based intelligent annotation using [Segment Anything Model](../models/sam.md)
+- **Skeleton Templates**: Built-in (Person, Hand, Face, Dog, Box) and custom skeleton templates for one-click pose annotation
+- **SAM Smart Annotation**: Click-based intelligent annotation with 5 models — [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large) and the new [SAM 3](../models/sam-3.md) for highest accuracy. Switch models per-image from the annotation toolbar.
 - **Auto-Annotation**: Use trained models to pre-label new data
+- **Dataset Versioning**: Create numbered NDJSON snapshots with descriptions for reproducible training
 - **Statistics**: Class distribution, location heatmaps, and dimension analysis
 
 ```mermaid
@@ -385,8 +387,9 @@ See [Cloud Training](train/cloud-training.md#remote-training) for more details o
 
 The Platform includes a full-featured annotation editor supporting:
 
-- **Manual Tools**: Bounding boxes, polygons, keypoints, oriented boxes, classification
-- **SAM Smart Annotation**: Click to generate precise masks using [Segment Anything Model](../models/sam.md)
+- **Manual Tools**: Bounding boxes, polygons, keypoints with skeleton templates, oriented boxes, classification
+- **Skeleton Templates**: Place all keypoints at once using built-in (Person, Hand, Face, Dog, Box) or custom templates
+- **SAM Smart Annotation**: Click to generate precise masks — choose from [SAM 2.1](../models/sam-2.md) Tiny/Small/Base/Large or the new [SAM 3](../models/sam-3.md) via the toolbar model picker
 - **Keyboard Shortcuts**: Efficient workflows with hotkeys
 
 | Shortcut  | Action                     |

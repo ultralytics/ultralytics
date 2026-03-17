@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn how to upload, manage, and organize datasets in Ultralytics Platform for YOLO model training with automatic processing and statistics.
-keywords: Ultralytics Platform, datasets, dataset management, YOLO, data upload, training data, computer vision, machine learning
+keywords: Ultralytics Platform, datasets, dataset management, dataset versioning, YOLO, data upload, training data, computer vision, machine learning
 ---
 
 # Datasets
@@ -260,7 +260,7 @@ Filter images by their dataset split:
 
 ## Dataset Tabs
 
-Each dataset page has five tabs accessible from the tab bar:
+Each dataset page has six tabs accessible from the tab bar:
 
 ### Images Tab
 
@@ -342,6 +342,37 @@ Images that failed processing are listed here with:
     | Image too small            | Minimum dimension below 28px            | Use higher resolution source images    |
     | Unsupported color mode     | CMYK or indexed color mode              | Convert to RGB mode                    |
 
+### Versions Tab
+
+Create immutable NDJSON snapshots of your dataset for reproducible training. Each version captures image counts, class counts, annotation counts, and file size at the time of creation.
+
+| Column      | Description                          |
+| ----------- | ------------------------------------ |
+| Version     | Version number (v1, v2, ...)         |
+| Description | User-provided description (editable) |
+| Images      | Image count at time of snapshot      |
+| Classes     | Class count at time of snapshot      |
+| Annotations | Annotation count at time of snapshot |
+| Size        | NDJSON export file size              |
+| Created     | When the version was created         |
+
+To create a version:
+
+1. Open the **Versions** tab
+2. Optionally enter a description (e.g., "Added 500 training images" or "Fixed mislabeled classes")
+3. Click **+ New Version**
+4. The NDJSON snapshot is generated and downloads automatically
+
+Each version is numbered sequentially (v1, v2, v3...) and stored permanently. You can download any previous version at any time from the versions table.
+
+!!! tip "When to Create Versions"
+
+    Create a version before and after major changes to your dataset — adding images, fixing annotations, or rebalancing splits. This lets you compare model performance across different dataset states.
+
+!!! note "NDJSON File Size"
+
+    The size shown is the NDJSON export file size, which contains image URLs and annotations — not the images themselves. Actual image data is stored separately and accessed via signed URLs.
+
 ## Export Dataset
 
 Export your dataset in [NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) format for offline use:
@@ -361,15 +392,29 @@ The NDJSON format stores one JSON object per line. The first line contains datas
 
 !!! note "Signed URLs"
 
-    Image URLs in the exported NDJSON are signed and valid for 7 days. If you need fresh URLs, re-export the dataset.
+    Image URLs in the exported NDJSON are signed and valid for 7 days. If you need fresh URLs, re-export the dataset or create a new version.
 
 See the [Ultralytics NDJSON format documentation](../../datasets/detect/index.md#ultralytics-ndjson-format) for full specification.
 
-## Bulk Operations
+## Image Operations
 
-Manage images in bulk using the table view's context menu:
+### Quick Actions
 
-### Move to Split
+Right-click any image in **Grid** or **Compact** view to access quick actions:
+
+| Action            | Description                                     |
+| ----------------- | ----------------------------------------------- |
+| **Move to Split** | Reassign the image to Train, Val, or Test split |
+| **Download**      | Download the original image file                |
+| **Delete**        | Delete the image from the dataset               |
+
+![Ultralytics Platform Datasets Image Card Context Menu](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-image-card-context-menu.avif)
+
+!!! tip "Single vs Bulk"
+
+    The image context menu operates on a **single image**. For bulk operations on multiple images, use **Table** view with checkbox selection.
+
+### Bulk Move to Split
 
 Reassign selected images to a different split within the same dataset:
 

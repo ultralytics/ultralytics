@@ -59,7 +59,7 @@ For professionals and small teams ($29/month or $290/year):
 - 10 concurrent cloud trainings
 - 500 GB storage
 - 10 warm-start deployments (faster cold starts)
-- Team collaboration (up to 5 members)
+- [Team collaboration](teams.md) (up to 5 members)
 - Access to the best GPUs (H200, B200)
 - Priority support
 
@@ -249,7 +249,7 @@ After upgrading:
 - 500 models
 - 10 concurrent cloud trainings
 - 10 warm-start deployments
-- Team collaboration (up to 5 members)
+- [Team collaboration](teams.md) (up to 5 members)
 - Access to best GPUs
 - Priority support
 
@@ -265,6 +265,25 @@ Cancel anytime from the billing portal:
 !!! note "Cancellation Timing"
 
     Pro features remain active until the end of your billing period. Monthly credits stop at cancellation.
+
+### Downgrading to Free
+
+When your Pro subscription ends (cancelled or expired), your account reverts to the Free plan. Here's what happens to your existing resources:
+
+| Resource                 | What Happens                                                                     |
+| ------------------------ | -------------------------------------------------------------------------------- |
+| **Models**               | All models preserved. Cannot create new models beyond 100-model limit            |
+| **Deployments**          | All deployments preserved. Cannot create new beyond 3-deployment limit           |
+| **Storage**              | All data preserved. Cannot upload new data beyond 100 GB limit                   |
+| **Credit Balance**       | Existing credits preserved and usable                                            |
+| **Monthly Credits**      | $30/seat/month grants stop immediately                                           |
+| **Team Members**         | Members notified and lose access to team resources                               |
+| **GPU Access**           | Standard GPUs remain available. Best GPUs (H200, B200) require Pro or Enterprise |
+| **Concurrent Trainings** | Limit reduced from 10 to 3                                                       |
+
+!!! tip "No Data Loss"
+
+    Downgrading never deletes your models, datasets, or deployments. Limits are only enforced when creating **new** resources — existing resources remain fully accessible.
 
 ## Transaction History
 
@@ -284,11 +303,11 @@ View all transactions in `Settings > Billing`:
 
 ### What happens when I run out of credits?
 
-- **Active training**: Cannot start new training jobs
-- **Deployments**: Continue running
-- **New training**: Requires credits to start
+- **Running training**: Continues to completion — your balance may go negative
+- **New training**: Cannot start new jobs until balance is positive
+- **Deployments**: Continue running regardless of balance
 
-Add credits or enable auto top-up to continue training.
+If a training run completes and the actual cost exceeds your remaining balance, your balance goes negative. Add credits to restore a positive balance before starting new training jobs. Enable [auto top-up](#auto-top-up) to avoid interruptions.
 
 ### Are unused credits refundable?
 
@@ -305,7 +324,7 @@ Transaction receipts are available in the transaction history. Click the receipt
 
 ### What if training fails?
 
-You're only charged for completed compute time. Failed jobs don't charge for unused time.
+**Failed training runs are not charged.** If a job fails due to a configuration error, out-of-memory issue, or any other reason, no credits are deducted. Completed, user-cancelled, and auto-terminated stuck jobs may incur charges based on actual GPU time used. See [Cloud Training Billing](../train/cloud-training.md#billing-by-job-status) for a full breakdown by job status.
 
 ### Is there a free trial?
 

@@ -39,7 +39,7 @@ import platform
 import re
 import threading
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import cv2
 import numpy as np
@@ -88,8 +88,8 @@ class BasePredictor:
         windows (list[str]): List of window names for visualization.
         batch (tuple): Current batch data.
         results (list[Any]): Current batch results.
-        transforms (callable): Image transforms for classification.
-        callbacks (dict[str, list[callable]]): Callback functions for different events.
+        transforms (Callable): Image transforms for classification.
+        callbacks (dict[str, list[Callable]]): Callback functions for different events.
         txt_path (Path): Path to save text results.
         _lock (threading.Lock): Lock for thread-safe inference.
 
@@ -112,7 +112,7 @@ class BasePredictor:
         self,
         cfg=DEFAULT_CFG,
         overrides: dict[str, Any] | None = None,
-        _callbacks: dict[str, list[callable]] | None = None,
+        _callbacks: dict | None = None,
     ):
         """Initialize the BasePredictor class.
 
@@ -195,7 +195,7 @@ class BasePredictor:
             self.imgsz,
             auto=same_shapes
             and self.args.rect
-            and (self.model.pt or (getattr(self.model, "dynamic", False) and not self.model.imx)),
+            and (self.model.format == "pt" or (getattr(self.model, "dynamic", False) and self.model.format != "imx")),
             stride=self.model.stride,
         )
         return [letterbox(image=x) for x in im]
@@ -258,7 +258,7 @@ class BasePredictor:
             batch=self.args.batch,
             vid_stride=self.args.vid_stride,
             buffer=self.args.stream_buffer,
-            channels=getattr(self.model, "ch", 3),
+            channels=getattr(self.model, "channels", 3),
         )
         self.source_type = self.dataset.source_type
         if (
@@ -305,7 +305,11 @@ class BasePredictor:
             # Warmup model
             if not self.done_warmup:
                 self.model.warmup(
-                    imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, self.model.ch, *self.imgsz)
+                    imgsz=(
+                        1 if self.model.format in {"pt", "triton"} else self.dataset.bs,
+                        self.model.channels,
+                        *self.imgsz,
+                    )
                 )
                 self.done_warmup = True
 
@@ -372,7 +376,7 @@ class BasePredictor:
             t = tuple(x.t / self.seen * 1e3 for x in profilers)  # speeds per image
             LOGGER.info(
                 f"Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape "
-                f"{(min(self.args.batch, self.seen), getattr(self.model, 'ch', 3), *im.shape[2:])}" % t
+                f"{(min(self.args.batch, self.seen), getattr(self.model, 'channels', 3), *im.shape[2:])}" % t
             )
         if self.args.save or self.args.save_txt or self.args.save_crop:
             nl = len(list(self.save_dir.glob("labels/*.txt")))  # number of labels
@@ -508,6 +512,6 @@ class BasePredictor:
         for callback in self.callbacks.get(event, []):
             callback(self)
 
-    def add_callback(self, event: str, func: callable):
+    def add_callback(self, event: str, func: Callable):
         """Add a callback function for a specific event."""
         self.callbacks[event].append(func)

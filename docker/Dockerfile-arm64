@@ -13,6 +13,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_BREAK_SYSTEM_PACKAGES=1 \
+    UV_BREAK_SYSTEM_PACKAGES=1 \
     TORCH_CPP_LOG_LEVEL=ERROR
 
 # Downloads to user config dir
@@ -39,7 +40,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 
 # Install pip packages, create python symlink, and remove build files
 RUN python3 -m pip install uv && \
-    uv pip install --system -e ".[export]" --break-system-packages && \
+    uv pip install --system -e ".[export]" && \
     # Creates a symbolic link to make 'python' point to 'python3'
     ln -sf /usr/bin/python3 /usr/bin/python && \
     # Remove extra build files

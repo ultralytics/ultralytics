@@ -1,0 +1,39 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Builds GitHub actions CI runner image for deployment to DockerHub https://hub.docker.com/r/ultralytics/ultralytics
+# Image is CPU-optimized for YOLO inference and CPU-only tests
+
+# Start FROM Ultralytics CPU image
+FROM ultralytics/ultralytics:latest-cpu
+
+# Set additional environment variables for runner (no "v" on the version)
+ARG RUNNER_VERSION=2.332.0
+ENV RUNNER_ALLOW_RUNASROOT=1 \
+    DEBIAN_FRONTEND=noninteractive
+
+# Set the working directory
+WORKDIR /actions-runner
+
+# Download and unpack the runner from https://github.com/actions/runner and install dependencies
+RUN FILENAME=actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz && \
+    curl -fLso "$FILENAME" "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/${FILENAME}" && \
+    tar xzf "$FILENAME" && \
+    rm "$FILENAME" && \
+    # Install runner dependencies \
+    uv pip install --system pytest-cov && \
+    ./bin/installdependencies.sh && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends libicu-dev sudo nodejs npm gpg && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# JSON ENTRYPOINT command to configure and start runner with default TOKEN and NAME
+ENTRYPOINT ["sh", "-c", "./config.sh --url https://github.com/ultralytics --token ${GITHUB_RUNNER_TOKEN:-TOKEN} --name ${GITHUB_RUNNER_NAME:-NAME} --labels cpu-latest --replace && exec ./run.sh"]
+
+# Usage --------------------------------------------------------------------------------------------------------------
+
+# Production builds: https://github.com/ultralytics/ultralytics/blob/main/.github/workflows/docker.yml
+# Example (build): t=ultralytics/ultralytics:latest-runner-cpu && docker build -f docker/Dockerfile-runner-cpu -t $t .
+# Example (push): docker push $t
+# Example (pull): t=ultralytics/ultralytics:latest-runner-cpu && docker pull $t
+# Example (run): docker run -d --restart unless-stopped -e GITHUB_RUNNER_TOKEN=TOKEN -e GITHUB_RUNNER_NAME=NAME --ipc=host $t

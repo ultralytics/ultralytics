@@ -13,7 +13,7 @@ Data preparation is the foundation of successful [computer vision](https://www.u
 The Data section of Ultralytics Platform helps you:
 
 - **Upload** images, videos, and archives (ZIP, TAR, GZ)
-- **Annotate** with manual drawing tools and SAM-powered smart labeling
+- **Annotate** with manual drawing tools and SAM-powered smart labeling — choose from [SAM 2.1](../../models/sam-2.md) or the new [SAM 3](../../models/sam-3.md)
 - **Analyze** your data with statistics and visualizations
 - **Export** in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for local training
 
@@ -36,7 +36,7 @@ graph LR
 | Stage        | Description                                                                                           |
 | ------------ | ----------------------------------------------------------------------------------------------------- |
 | **Upload**   | Import images, videos, or archives with automatic processing                                          |
-| **Annotate** | Label data with bounding boxes, polygons, keypoints, or classifications                               |
+| **Annotate** | Label data with manual tools for all 5 task types, or use SAM annotation for detect, segment, and OBB |
 | **Analyze**  | View class distributions, spatial heatmaps, and dimension statistics                                  |
 | **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use |
 
@@ -87,15 +87,22 @@ This allows training on the platform's datasets from any machine with your [API 
 
 ### Dataset Tabs
 
-Every dataset page provides five tabs:
+### Dataset Versioning
 
-| Tab         | Description                                                                  |
-| ----------- | ---------------------------------------------------------------------------- |
-| **Images**  | Browse images in grid, compact, or table view with annotation overlays       |
-| **Classes** | View and edit class names, colors, and label counts per class                |
-| **Charts**  | Automatic statistics: split distribution, class counts, heatmaps             |
-| **Models**  | [Models](../train/models.md) trained on this dataset with metrics and status |
-| **Errors**  | Images that failed processing with error details and fix guidance            |
+Create immutable NDJSON snapshots of your dataset for reproducible training. Each version captures image counts, class counts, and annotation counts at the time of creation. See [Versions Tab](datasets.md#versions-tab) for details.
+
+### Dataset Tabs
+
+Every dataset page provides six tabs:
+
+| Tab          | Description                                                                  |
+| ------------ | ---------------------------------------------------------------------------- |
+| **Images**   | Browse images in grid, compact, or table view with annotation overlays       |
+| **Classes**  | View and edit class names, colors, and label counts per class                |
+| **Charts**   | Automatic statistics: split distribution, class counts, heatmaps             |
+| **Models**   | [Models](../train/models.md) trained on this dataset with metrics and status |
+| **Versions** | Create and download immutable NDJSON snapshots for reproducible training     |
+| **Errors**   | Images that failed processing with error details and fix guidance            |
 
 ### Statistics and Visualization
 

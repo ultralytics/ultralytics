@@ -745,6 +745,21 @@ nav:
                   - val: reference/models/yolo/yoloe/val.md
       - nn:
           - autobackend: reference/nn/autobackend.md
+          - backends:
+              - axelera: reference/nn/backends/axelera.md
+              - base: reference/nn/backends/base.md
+              - coreml: reference/nn/backends/coreml.md
+              - executorch: reference/nn/backends/executorch.md
+              - mnn: reference/nn/backends/mnn.md
+              - ncnn: reference/nn/backends/ncnn.md
+              - onnx: reference/nn/backends/onnx.md
+              - openvino: reference/nn/backends/openvino.md
+              - paddle: reference/nn/backends/paddle.md
+              - pytorch: reference/nn/backends/pytorch.md
+              - rknn: reference/nn/backends/rknn.md
+              - tensorflow: reference/nn/backends/tensorflow.md
+              - tensorrt: reference/nn/backends/tensorrt.md
+              - triton: reference/nn/backends/triton.md
           - modules:
               - activation: reference/nn/modules/activation.md
               - block: reference/nn/modules/block.md

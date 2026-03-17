@@ -84,7 +84,7 @@ class Predictor(BasePredictor):
 
     stride = 16
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
         """Initialize the Predictor with configuration, overrides, and callbacks.
 
         Sets up the Predictor object for SAM (Segment Anything Model) and applies any configuration overrides or
@@ -462,8 +462,7 @@ class Predictor(BasePredictor):
         self.std = torch.tensor([58.395, 57.12, 57.375]).view(-1, 1, 1).to(device)
 
         # Ultralytics compatibility settings
-        self.model.pt = False
-        self.model.triton = False
+        self.model.format = "sam"
         self.model.stride = 32
         self.model.fp16 = self.args.half
         self.done_warmup = True
@@ -860,7 +859,7 @@ class SAM2VideoPredictor(SAM2Predictor):
 
     # fill_hole_area = 8  # not used
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
         """Initialize the predictor with configuration and optional overrides.
 
         This constructor initializes the SAM2VideoPredictor with a given configuration, applies any specified overrides,
@@ -1883,7 +1882,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         cfg: Any = DEFAULT_CFG,
         overrides: dict[str, Any] | None = None,
         max_obj_num: int = 3,
-        _callbacks: dict[str, Any] | None = None,
+        _callbacks: dict | None = None,
     ) -> None:
         """Initialize the predictor with configuration and optional overrides.
 
@@ -1895,7 +1894,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             overrides (dict[str, Any] | None): Dictionary of values to override default configuration.
             max_obj_num (int): Maximum number of objects to track. Default is 3. This is set to keep fixed feature size
                 for the model.
-            _callbacks (dict[str, Any] | None): Dictionary of callback functions to customize behavior.
+            _callbacks (dict | None): Dictionary of callback functions to customize behavior.
         """
         super().__init__(cfg, overrides, _callbacks)
         self.non_overlap_masks = True
@@ -2488,7 +2487,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         self,
         cfg=DEFAULT_CFG,
         overrides=None,
-        _callbacks=None,
+        _callbacks: dict | None = None,
         # prob threshold for detection outputs -- only keep detections above this threshold
         # enters NMS and det-to-track matching
         score_threshold_detection=0.5,

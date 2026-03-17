@@ -190,6 +190,8 @@ with open("my_dataset/annotations/instances_train.json") as f:
 # Build class names matching convert_coco output (category_id - 1)
 categories = sorted(coco["categories"], key=lambda x: x["id"])
 names = {cat["id"] - 1: cat["name"] for cat in categories}
+# NOTE: convert_coco maps class IDs as category_id - 1, so category_id must
+# start from 1. If your categories start from 0, add 1 to each ID first.
 
 # Create dataset.yaml
 dataset = {
@@ -273,7 +275,7 @@ convert_coco(labels_dir="label_studio_export/", save_dir="converted/", cls91to80
 
 ### Roboflow to YOLO
 
-[Roboflow](https://roboflow.com/) can export datasets with `category_id` starting from 0. Using `cls91to80=True` (default) on Roboflow exports will produce incorrect class mappings.
+[Roboflow](https://roboflow.com/) exports may use `category_id` numbering that doesn't match the standard COCO 91-to-80 mapping. Always verify the exported `category_id` values in your JSON before converting. If categories start from 0, remap them to start from 1 before running `convert_coco()`, since it maps class IDs as `category_id - 1`.
 
 ```python
 from ultralytics.data.converter import convert_coco

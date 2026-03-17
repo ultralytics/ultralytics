@@ -331,7 +331,7 @@ Images that failed processing are listed here with:
 - **Error table**: Filename, user-friendly error description, fix hints, and preview thumbnail
 - Common errors include corrupted files, unsupported formats, images too small (min 28px), and unsupported color modes
 
-<!-- Screenshot: platform-datasets-errors-tab-processing-failures.avif -->
+![Ultralytics Platform Datasets Errors Tab Processing Failures](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-errors-tab-processing-failures.avif)
 
 ??? info "Common Processing Errors"
 

@@ -33,13 +33,13 @@ class YOLOETrainer(DetectionTrainer):
         build_dataset: Build YOLO dataset with multi-modal support for training.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides: dict | None = None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: dict | None = None, _callbacks: dict | None = None):
         """Initialize the YOLOE Trainer with specified configurations.
 
         Args:
             cfg (dict): Configuration dictionary with default training settings from DEFAULT_CFG.
             overrides (dict, optional): Dictionary of parameter overrides for the default configuration.
-            _callbacks (list, optional): List of callback functions to be applied during training.
+            _callbacks (dict, optional): Dictionary of callback functions to be applied during training.
         """
         if overrides is None:
             overrides = {}

@@ -288,6 +288,10 @@ jobs:
             python: "3.12"
             torch: "2.9.0"
             torchvision: "0.24.0"
+          - os: ubuntu-latest
+            python: "3.12"
+            torch: "2.10.0"
+            torchvision: "0.25.0"
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
@@ -476,7 +480,7 @@ jobs:
           channel-priority: true
           activate-environment: anaconda-client-env
       - name: Install Ultralytics package from conda-forge
-        run: conda install -c pytorch -c conda-forge pytorch-cpu torchvision ultralytics openvino
+        run: conda install -c pytorch -c conda-forge pytorch-cpu torchvision ultralytics "openvino!=2026.0.0"
       - name: Install pip packages
         run: uv pip install pytest
       - name: Check environment
@@ -527,7 +531,7 @@ jobs:
     steps:
       - name: Check for failure and notify
         if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.SlowTests.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
-        uses: slackapi/slack-github-action@v2.1.1
+        uses: slackapi/slack-github-action@v3.0.1
         with:
           webhook-type: incoming-webhook
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}

@@ -60,6 +60,8 @@ TensorFlow.js:
     $ npm start
 """
 
+from __future__ import annotations
+
 import json
 import os
 import re
@@ -187,6 +189,8 @@ def best_onnx_opset(onnx, cuda=False) -> int:
     """Return max ONNX opset for this torch version with ONNX fallback."""
     if TORCH_2_4:  # _constants.ONNX_MAX_OPSET first defined in torch 1.13
         opset = torch.onnx.utils._constants.ONNX_MAX_OPSET - 1  # use second-latest version for safety
+        if TORCH_2_9:
+            opset = min(opset, 20)  # legacy TorchScript exporter caps at opset 20 in torch 2.9+
         if cuda:
             opset -= 2  # fix CUDA ONNXRuntime NMS squeeze op errors
     else:
@@ -308,7 +312,7 @@ class Exporter:
         >>> exporter(model="yolo26n.pt")
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
         """Initialize the Exporter class.
 
         Args:
@@ -418,6 +422,19 @@ class Exporter:
                 # Disable end2end branch for certain export formats as they does not support topk
                 model.end2end = False
                 LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
+            if engine and self.args.int8:
+                # TensorRT<=10.3.0 with int8 has known end2end build issues
+                # https://github.com/ultralytics/ultralytics/issues/23841
+                try:
+                    import tensorrt as trt
+
+                    if check_version(trt.__version__, "<=10.3.0", hard=True):
+                        model.end2end = False
+                        LOGGER.warning(
+                            "TensorRT<=10.3.0 with int8 has known end2end build issues, disabling end2end branch."
+                        )
+                except ImportError:
+                    pass
         if self.args.half and self.args.int8:
             LOGGER.warning("half=True and int8=True are mutually exclusive, setting half=False.")
             self.args.half = False
@@ -655,16 +672,18 @@ class Exporter:
             batch_size=self.args.batch,
         )
         n = len(dataset)
+        if n < 1:
+            raise ValueError(f"The calibration dataset must have at least 1 image, but found {n} images.")
+        batch = min(self.args.batch, n)
         if n < self.args.batch:
-            raise ValueError(
-                f"The calibration dataset ({n} images) must have at least as many images as the batch size "
-                f"('batch={self.args.batch}')."
+            LOGGER.warning(
+                f"{prefix} calibration dataset has only {n} images, reducing calibration batch size to {batch}."
             )
-        elif self.args.format == "axelera" and n < 100:
+        if self.args.format == "axelera" and n < 100:
             LOGGER.warning(f"{prefix} >100 images required for Axelera calibration, found {n} images.")
         elif self.args.format != "axelera" and n < 300:
             LOGGER.warning(f"{prefix} >300 images recommended for INT8 calibration, found {n} images.")
-        return build_dataloader(dataset, batch=self.args.batch, workers=0, drop_last=True)  # required for batch loading
+        return build_dataloader(dataset, batch=batch, workers=0, drop_last=True)  # required for batch loading
 
     @try_export
     def export_torchscript(self, prefix=colorstr("TorchScript:")):
@@ -1273,8 +1292,7 @@ class Exporter:
         rknn.config(mean_values=[[0, 0, 0]], std_values=[[255, 255, 255]], target_platform=self.args.name)
         rknn.load_onnx(model=f)
         rknn.build(do_quantization=False)  # TODO: Add quantization support
-        f = f.replace(".onnx", f"-{self.args.name}.rknn")
-        rknn.export_rknn(f"{export_path / f}")
+        rknn.export_rknn(str(export_path / f"{Path(f).stem}-{self.args.name}.rknn"))
         YAML.save(export_path / "metadata.yaml", self.metadata)
         return export_path
 

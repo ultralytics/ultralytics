@@ -142,8 +142,8 @@ def select_device(device="", newline=False, verbose=True):
 
     Args:
         device (str | torch.device, optional): Device string or torch.device object. Options include 'cpu', 'cuda', '0',
-            '0,1,2,3', 'mps', or '-1' for auto-select. Defaults to auto-selecting the first available GPU, or CPU if no
-            GPU is available.
+            '0,1,2,3', 'mps', 'npu', 'npu:0', or '-1' for auto-select. Defaults to auto-selecting the first available
+            GPU, or CPU if no GPU is available.
         newline (bool, optional): If True, adds a newline at the end of the log string.
         verbose (bool, optional): If True, logs the device information.
 
@@ -167,6 +167,34 @@ def select_device(device="", newline=False, verbose=True):
     device = str(device).lower()
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
+
+    # Huawei Ascend NPU
+    if device.startswith("npu"):
+        try:
+            import torch_npu  # noqa
+        except ImportError:
+            raise ValueError(f"Invalid NPU 'device={device}'. Install 'torch_npu' at https://github.com/Ascend/pytorch")
+
+        if not hasattr(torch, "npu") or not torch.npu.is_available():
+            raise ValueError(f"Invalid NPU 'device={device}' requested. Ascend NPU is not available.")
+
+        # Parse 'npu' or 'npu:N' (multi-NPU not yet supported)
+        suffix = device[3:]
+        if suffix == "":
+            idx = 0
+        elif suffix.startswith(":") and suffix[1:].isdigit():
+            idx = int(suffix[1:])
+        else:
+            raise ValueError(f"Invalid NPU 'device={device}' format. Use 'npu' or 'npu:0'.")
+
+        n = torch.npu.device_count()
+        if idx >= n:
+            raise ValueError(f"Invalid NPU 'device={device}' requested. Only {n} NPU(s) available.")
+
+        torch.npu.set_device(idx)
+        if verbose:
+            LOGGER.info(f"{s}NPU:{idx} ({torch.npu.get_device_name(idx)})\n")
+        return torch.device(f"npu:{idx}")
 
     # Auto-select GPUs
     if "-1" in device:

@@ -41,7 +41,6 @@ def run_ray_tune(
         import ray
         from ray import tune
         from ray.air import RunConfig
-        from ray.air.integrations.wandb import WandbLoggerCallback
         from ray.tune.schedulers import ASHAScheduler
     except ImportError:
         raise ModuleNotFoundError('Ray Tune required but not found. To install run: pip install "ray[tune]"')
@@ -89,6 +88,7 @@ def run_ray_tune(
     def _tune(config):
         """Train the YOLO model with the specified hyperparameters and return results."""
         model_to_train = ray.get(model_in_store)  # get the model from ray store for tuning
+        model_to_train.trainer = None
         model_to_train.reset_callbacks()
         config.update(train_args)
 
@@ -128,9 +128,6 @@ def run_ray_tune(
         reduction_factor=3,
     )
 
-    # Define the callbacks for the hyperparameter search
-    tuner_callbacks = [WandbLoggerCallback(project="YOLOv8-tune")] if wandb else []
-
     # Create the Ray Tune hyperparameter search tuner
     tune_dir = get_save_dir(
         get_cfg(
@@ -153,7 +150,7 @@ def run_ray_tune(
                 trial_name_creator=lambda trial: f"{trial.trainable_name}_{trial.trial_id}",
                 trial_dirname_creator=lambda trial: f"{trial.trainable_name}_{trial.trial_id}",
             ),
-            run_config=RunConfig(callbacks=tuner_callbacks, storage_path=tune_dir.parent, name=tune_dir.name),
+            run_config=RunConfig(storage_path=tune_dir.parent, name=tune_dir.name),
         )
 
     # Run the hyperparameter search

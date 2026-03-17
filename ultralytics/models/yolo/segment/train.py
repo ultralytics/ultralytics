@@ -26,13 +26,13 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides: dict | None = None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: dict | None = None, _callbacks: dict | None = None):
         """Initialize a SegmentationTrainer object.
 
         Args:
             cfg (dict): Configuration dictionary with default training settings.
             overrides (dict, optional): Dictionary of parameter overrides for the default configuration.
-            _callbacks (list, optional): List of callback functions to be executed during training.
+            _callbacks (dict, optional): Dictionary of callback functions to be executed during training.
         """
         if overrides is None:
             overrides = {}

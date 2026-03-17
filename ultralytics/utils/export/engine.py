@@ -99,8 +99,12 @@ def onnx2engine(
     # Engine builder
     builder = trt.Builder(logger)
     config = builder.create_builder_config()
-    workspace_bytes = int((workspace or 0) * (1 << 30))
     is_trt10 = int(trt.__version__.split(".", 1)[0]) >= 10  # is TensorRT >= 10
+    # Default to 1 GB workspace for Jetson devices if not specified, as TensorRT 10+
+    # can request excessive memory on memory-constrained Jetson devices
+    if workspace is None and IS_JETSON:
+        workspace = 1
+    workspace_bytes = int((workspace or 0) * (1 << 30))
     if is_trt10 and workspace_bytes > 0:
         config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace_bytes)
     elif workspace_bytes > 0:  # TensorRT versions 7, 8

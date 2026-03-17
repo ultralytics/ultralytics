@@ -824,7 +824,7 @@ def render_docstring(
         sections["raises"] = f"**Raises**\n\n{table}"
 
     if doc.references:
-        links = "\n".join(f"- {ref}" for ref in doc.references)
+        links = "\n".join(ref if ref.startswith("- ") else f"- {ref}" for ref in doc.references)
         sections["references"] = f"**References**\n\n{links}\n\n"
 
     if extra_sections:

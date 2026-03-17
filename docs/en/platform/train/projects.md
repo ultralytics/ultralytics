@@ -126,7 +126,7 @@ Share private projects with other users:
 3. Set their role
 4. Click **Invite**
 
-Collaborators with editor access can upload models and start training within your project. See [Teams](../account/settings.md#teams-tab) for role permissions.
+Collaborators with editor access can upload models and start training within your project. See [Teams](../account/teams.md) for role permissions.
 
 ## Clone Project
 

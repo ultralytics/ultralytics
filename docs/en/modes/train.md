@@ -117,6 +117,16 @@ Multi-GPU training allows for more efficient utilization of available hardware r
         yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640 device=-1,-1
         ```
 
+!!! note "Multi-GPU Training with Custom Code"
+
+    When you specify multiple devices (e.g., `device=[0, 1]`), Ultralytics internally spawns a new trainer instance and executes `torch.distributed.run` under the hood. This works seamlessly for standard CLI usage and unmodified Python scripts.
+
+    However, if your script contains custom components—such as a custom trainer, validator, dataset, or augmentation pipeline—these objects cannot be automatically serialized and transferred to the DDP subprocesses. In this case, you must launch your script directly with `torch.distributed.run`:
+
+    ```bash
+    python -m torch.distributed.run --nproc_per_node 2 your_training_script.py
+    ```
+
 ### Idle GPU Training
 
 Idle GPU Training enables automatic selection of the least utilized GPUs in multi-GPU systems, optimizing resource usage without manual GPU selection. This feature identifies available GPUs based on utilization metrics and VRAM availability.

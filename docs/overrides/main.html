@@ -1,7 +1,22 @@
-<!-- Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license -->
-
-<!--Site announcement bar-->
-{% extends "base.html" %} {% block announce %}
+{% extends "base.html" %} {% block extrahead %}
+<script>
+  window.addEventListener("load", () => {
+    setTimeout(() => {
+      ((w, d, s, l, i) => {
+        w[l] = w[l] || [];
+        w[l].push({ "gtm.start": Date.now(), event: "gtm.js" });
+        var f = d.getElementsByTagName(s)[0],
+          j = d.createElement(s),
+          dl = l !== "dataLayer" ? `&l=${l}` : "";
+        j.async = true;
+        j.defer = true;
+        j.src = `https://www.googletagmanager.com/gtm.js?id=${i}${dl}`;
+        f.parentNode.insertBefore(j, f);
+      })(window, document, "script", "dataLayer", "GTM-MZ9KWSFF");
+    }, 1000); // 1 second delay after page load
+  });
+</script>
+{{ super() }} {% endblock %} {% block announce %}
 <a class="banner-wrapper" href="https://docs.ultralytics.com/models/yolo26">
   <div class="banner-content-wrapper">
     <img
@@ -12,17 +27,21 @@
     <p>Built End-to-End. Built for the Edge.</p>
   </div>
 </a>
-{% endblock %}
+{% endblock %} {% block scripts %}
+<noscript
+  ><iframe
+    src="https://www.googletagmanager.com/ns.html?id=GTM-MZ9KWSFF"
+    height="0"
+    width="0"
+    style="display: none; visibility: hidden"
+  ></iframe
+></noscript>
 
-<!--Vercel Web Analytics-->
-{% block scripts %} {{ super() }}
+{{ super() }}
 <script defer src="/_vercel/insights/script.js"></script>
-{% endblock %}
-
-<!--Page titles-->
-{% block htmltitle %} {% if page and page.toc is defined and page.toc.items is defined and page.toc.items %} {% set
-page_specific_title = page.toc.items[0].title %} {% elif page %} {% set page_specific_title = page.title | striptags %}
-{% else %} {% set page_specific_title = "" %} {% endif %}
+{% endblock %} {% block htmltitle %} {% if page and page.toc is defined and page.toc.items is defined and page.toc.items
+%} {% set page_specific_title = page.toc.items[0].title %} {% elif page %} {% set page_specific_title = page.title |
+striptags %} {% else %} {% set page_specific_title = "" %} {% endif %}
 <title>
   {%- if page_specific_title -%} {{ page_specific_title }} - {{ config.site_name }} {%- else -%} {{ config.site_name }}
   {%- endif -%}

@@ -240,7 +240,7 @@ Upgrade for more features and monthly credits:
 3. Choose billing cycle (Monthly or Yearly)
 4. Complete checkout
 
-<!-- Screenshot: settings-plans-tab-upgrade-to-pro-dialog.avif -->
+![Upgrade to Pro dialog in Settings Plans tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-plans-tab-upgrade-to-pro-dialog.avif)
 
 ### Pro Benefits
 

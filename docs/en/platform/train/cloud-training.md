@@ -134,8 +134,8 @@ Choose your GPU from Ultralytics Cloud:
 
     - **RTX PRO 6000**: 96 GB Blackwell generation, recommended default for most jobs
     - **A100 SXM**: Required for large batch sizes or big models
-    - **H100/H200**: Maximum performance for time-sensitive training
-    - **B200**: NVIDIA Blackwell architecture for cutting-edge workloads
+    - **H100/H200**: Maximum performance for time-sensitive training (H200 requires [Pro or Enterprise](../account/billing.md#plans))
+    - **B200**: NVIDIA Blackwell architecture for cutting-edge workloads (requires [Pro or Enterprise](../account/billing.md#plans))
 
 The dialog shows your current **balance** and a **Top Up** button. An estimated cost and duration are calculated based on your configuration (model size, dataset images, epochs, GPU speed).
 

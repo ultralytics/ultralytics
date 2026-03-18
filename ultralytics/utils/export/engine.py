@@ -92,6 +92,11 @@ def onnx2engine(
 
     engine_file = engine_file or Path(onnx_file).with_suffix(".engine")
 
+    # Default workspace to 1 GiB on Jetson to avoid OOM with shared memory
+    if workspace is None and IS_JETSON:
+        workspace = 1
+        LOGGER.info(f"{prefix} Jetson device detected: defaulting workspace to 1 GiB")
+
     logger = trt.Logger(trt.Logger.INFO)
     if verbose:
         logger.min_severity = trt.Logger.Severity.VERBOSE
@@ -139,7 +144,11 @@ def onnx2engine(
     if dynamic:
         profile = builder.create_optimization_profile()
         min_shape = (1, shape[1], 32, 32)  # minimum input shape
-        max_shape = (*shape[:2], *(int(max(2, workspace or 2) * d) for d in shape[2:]))  # max input shape
+        # Cap max_shape at input shape on Jetson to avoid OOM during engine build
+        if IS_JETSON:
+            max_shape = shape  # use exact input shape as max on Jetson
+        else:
+            max_shape = (*shape[:2], *(int(max(2, workspace or 2) * d) for d in shape[2:]))  # max input shape
         for inp in inputs:
             profile.set_shape(inp.name, min=min_shape, opt=shape, max=max_shape)
         config.add_optimization_profile(profile)
@@ -147,6 +156,11 @@ def onnx2engine(
             config.set_calibration_profile(profile)
 
     LOGGER.info(f"{prefix} building {'INT8' if int8 else 'FP' + ('16' if half else '32')} engine as {engine_file}")
+
+    # Clear CUDA cache before building to free up memory on Jetson devices
+    if IS_JETSON:
+        torch.cuda.empty_cache()
+
     if int8:
         config.set_flag(trt.BuilderFlag.INT8)
         config.profiling_verbosity = trt.ProfilingVerbosity.DETAILED

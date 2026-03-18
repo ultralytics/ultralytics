@@ -141,7 +141,7 @@ Storage limits depend on your plan:
 | ---------- | ------------- |
 | Free       | 100 GB        |
 | Pro        | 500 GB        |
-| Enterprise | Custom        |
+| Enterprise | Unlimited     |
 
 Individual file limits: Images 50MB, Videos 1GB, Archives 10GB
 

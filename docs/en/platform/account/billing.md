@@ -42,8 +42,9 @@ Get started at no cost:
 - 3 concurrent cloud trainings
 - 3 deployments
 - 100 GB storage
-- Model export to all formats
-- Manual annotation
+- Model export to all 17+ formats
+- Manual, SAM3 & YOLO Smart annotation
+- 22 cloud GPU types
 - Community support
 
 !!! tip "Company Email Bonus"
@@ -71,16 +72,14 @@ For professionals and small teams ($29/month or $290/year):
 
 For organizations with advanced needs:
 
-- $1,000/month in credits (starting allocation)
 - Custom credit allocation
 - Unlimited models, storage, trainings, and deployments
 - Enterprise License (commercial use, non-AGPL)
 - SSO / SAML authentication
 - RBAC with 4 roles (Owner, Admin, Editor, Viewer)
-- Custom roles with granular permissions
-- On-premise deployment options
-- Compliance (ISO/SOC)
-- SLA guarantees
+- On-premise deployment (coming soon)
+- ISO/SOC compliance (coming soon)
+- SLA guarantees (coming soon)
 - Enterprise support
 
 Contact [sales@ultralytics.com](mailto:sales@ultralytics.com) for Enterprise pricing.
@@ -251,6 +250,7 @@ After upgrading:
 - 10 cloud deployments
 - [Team collaboration](teams.md) (up to 5 members)
 - Access to best GPUs
+- Full monitoring dashboard
 - Priority support
 
 ### Cancel Pro

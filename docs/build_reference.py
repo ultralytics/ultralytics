@@ -86,6 +86,7 @@ class ParsedDocstring:
     raises: list[ParameterDoc] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
     examples: list[str] = field(default_factory=list)
+    references: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -406,6 +407,8 @@ SECTION_ALIASES = {
     "notes": "notes",
     "note": "notes",
     "methods": "methods",
+    "references": "references",
+    "reference": "references",
 }
 
 
@@ -471,6 +474,7 @@ def parse_google_docstring(docstring: str | None) -> ParsedDocstring:
         raises=_parse_named_entries(sections.get("raises", [])),
         notes=[textwrap.dedent("\n".join(sections.get("notes", []))).strip()] if sections.get("notes") else [],
         examples=[textwrap.dedent("\n".join(sections.get("examples", []))).strip()] if sections.get("examples") else [],
+        references=[textwrap.dedent("\n".join(sections.get("references", []))).strip()] if sections.get("references") else [],
     )
 
 
@@ -494,6 +498,7 @@ def merge_docstrings(base: ParsedDocstring, extra: ParsedDocstring, ignore_summa
     _merge_unique(base.raises, extra.raises, lambda r: (r.name, r.type, r.description, r.default))
     _merge_unique(base.notes, extra.notes, lambda n: n.strip())
     _merge_unique(base.examples, extra.examples, lambda e: e.strip())
+    _merge_unique(base.references, extra.references, lambda r: r.strip())
     return base
 
 
@@ -705,7 +710,7 @@ def _merge_params(doc_params: list[ParameterDoc], signature_params: list[Paramet
     return merged
 
 
-DEFAULT_SECTION_ORDER = ["args", "returns", "examples", "notes", "attributes", "yields", "raises"]
+DEFAULT_SECTION_ORDER = ["args", "returns", "examples", "notes", "attributes", "yields", "raises", "references"]
 SUMMARY_BADGE_MAP = {"Classes": "class", "Properties": "property", "Methods": "method", "Functions": "function"}
 _missing_type_warnings: list[str] = []
 
@@ -817,6 +822,18 @@ def render_docstring(
             rows.append([f"`{type_cell}`" if type_cell else "", e.description or ""])
         table = _render_table(["Type", "Description"], rows, level, title=None)
         sections["raises"] = f"**Raises**\n\n{table}"
+
+    if doc.references:
+        ref_text = "\n\n".join(doc.references).strip()
+        # Convert URLs to markdown links
+        import re as _re
+        def _linkify(url_match):
+            url = url_match.group(0)
+            return f"[{url}]({url})"
+        # Match http/https URLs
+        ref_text = _re.sub(r'https?://[^\s\n]+', _linkify, ref_text)
+        indented = textwrap.indent(ref_text, "    ")
+        sections["references"] = f'!!! info "References"\n\n{indented}\n\n'
 
     if extra_sections:
         sections.update({k: v for k, v in extra_sections.items() if v})

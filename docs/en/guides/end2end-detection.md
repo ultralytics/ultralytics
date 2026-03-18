@@ -33,7 +33,7 @@ YOLO26 uses a **dual-head architecture** during [training](../modes/train.md). B
 
 During training, both heads run simultaneously — the one-to-many head provides a richer learning signal, while the one-to-one head learns to produce clean, non-overlapping predictions. During [inference](../modes/predict.md) and [export](../modes/export.md), only the **one-to-one head** is active by default, producing up to 300 detections per image in the format `[x1, y1, x2, y2, confidence, class_id]`.
 
-When you call `model.fuse()`, the one-to-many head is automatically removed, reducing model size and FLOPs. For more details on the dual-head architecture, see the [YOLO26 model page](../models/yolo26.md).
+When you call `model.fuse()`, it folds Conv + BatchNorm layers for faster inference and, on end-to-end models, also removes the one-to-many head — reducing model size and FLOPs. For more details on the dual-head architecture, see the [YOLO26 model page](../models/yolo26.md).
 
 ## Do I Need to Change My Code?
 
@@ -196,3 +196,5 @@ Alternatively, check the output shape — end-to-end models output `(1, 300, 6)`
 ### Is end-to-end detection supported for segmentation, pose, and OBB tasks?
 
 Yes. All YOLO26 task variants — [detection](../tasks/detect.md), [segmentation](../tasks/segment.md), [pose estimation](../tasks/pose.md), and [oriented object detection (OBB)](../tasks/obb.md) — support end-to-end inference by default. The `end2end=False` fallback is available across all tasks as well.
+
+Note that the output format varies by task. The `(N, 300, 6)` shape described in this guide applies to detection. Other tasks append additional data per detection — mask coefficients for segmentation, keypoint coordinates for pose, and rotation angles for OBB.

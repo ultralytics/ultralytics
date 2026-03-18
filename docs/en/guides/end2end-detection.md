@@ -67,12 +67,12 @@ When you call `model.fuse()`, it folds Conv + BatchNorm layers for faster infere
 
 | | YOLOv8 / YOLO11 | YOLO26 (end-to-end) |
 | --- | --- | --- |
-| **Output shape** | `(N, nc+4, 8400)` | `(N, 300, 6)` |
+| **Output shape** | `(N, nc + 4, 8400)` | `(N, 300, 6)` |
 | **Format** | Box coords + class scores per anchor | `[x1, y1, x2, y2, conf, class_id]` |
 | **NMS required** | Yes | No |
 | **Post-processing** | NMS + confidence filter | Confidence filter only |
 
-Where `nc` is the number of classes (e.g., 80 for [COCO](https://www.ultralytics.com/glossary/coco-dataset)).
+Where `N` is the [batch size](https://www.ultralytics.com/glossary/batch-size) and `nc` is the number of classes (e.g., 80 for [COCO](https://www.ultralytics.com/glossary/coco-dataset)).
 
 With end-to-end models, post-processing becomes much simpler — for example, when using [ONNX Runtime](../integrations/onnx.md):
 
@@ -153,7 +153,7 @@ See the [YOLO26 performance metrics](../models/yolo26.md#performance-metrics) fo
 If you're upgrading an existing project to YOLO26, here's a quick checklist to ensure a smooth transition:
 
 - **Ultralytics API / CLI users:** No changes needed — just update the model name to `yolo26n.pt` (or your preferred size)
-- **Custom post-processing code:** Update to handle `(N, 300, 6)` output shape instead of `(N, nc+4, 8400)` + NMS
+- **Custom post-processing code:** Update to handle `(N, 300, 6)` output shape instead of `(N, nc + 4, 8400)` + NMS
 - **Export pipelines:** Check the [format compatibility](#export-format-compatibility) section above for your target format
 - **TensorRT + INT8:** Verify your TensorRT version is >10.3.0 for end-to-end support
 - **FP16 exports:** If you need all outputs in FP16, export with `end2end=False` — see [why output0 stays FP32](../modes/export.md#why-is-output0-fp32-when-exporting-with-halftrue-and-end2endtrue)
@@ -181,17 +181,30 @@ Yes, that's the expected end-to-end output format: [batch size](https://www.ultr
 
 ### How do I check if my exported model is end-to-end?
 
-You can inspect the ONNX model metadata directly to verify whether end-to-end inference is enabled:
+You can check using either the Ultralytics Python API or by inspecting the exported ONNX model metadata directly:
 
-```python
-import onnxruntime as ort
+!!! example "Check if a model is end-to-end"
 
-session = ort.InferenceSession("yolo26n.onnx")
-metadata = session.get_modelmeta().custom_metadata_map
-print(metadata.get("end2end"))  # 'True' if end-to-end is enabled
-```
+    === "Python API"
 
-Alternatively, check the output shape — end-to-end models output `(1, 300, 6)`, while traditional models output `(1, nc+4, 8400)`.
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n.pt")
+        print(model.model.end2end)  # True if end-to-end is enabled
+        ```
+
+    === "ONNX Runtime"
+
+        ```python
+        import onnxruntime as ort
+
+        session = ort.InferenceSession("yolo26n.onnx")
+        metadata = session.get_modelmeta().custom_metadata_map
+        print(metadata.get("end2end"))  # 'True' if end-to-end is enabled
+        ```
+
+Alternatively, check the output shape — end-to-end models output `(1, 300, 6)`, while traditional models output `(1, nc + 4, 8400)`.
 
 ### Is end-to-end detection supported for segmentation, pose, and OBB tasks?
 

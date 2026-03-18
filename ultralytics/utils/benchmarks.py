@@ -121,6 +121,10 @@ def benchmark(
             # Checks
             if format == "pb":
                 assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
+            elif format == "tfjs":
+                # tensorflowjs pulls in tensorflow-decision-forests which requires protobuf>=6,
+                # but tensorflow<=2.19 requires protobuf<6, causing an irreconcilable import error
+                assert False, "TF.js export disabled due to protobuf version conflict in tensorflowjs"
             elif format == "edgetpu":
                 assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
             elif format in {"coreml", "tfjs"}:

@@ -250,7 +250,7 @@ Once deployed, call your endpoint from any language:
     | Monthly Credit       | -              | $30/seat/month      | Custom         |
     | Models               | 100            | 500                 | Unlimited      |
     | Concurrent Trainings | 3              | 10                  | Unlimited      |
-    | Deployments          | 3              | 10 (warm-start)     | Unlimited      |
+    | Deployments          | 3              | 10                  | Unlimited      |
     | Storage              | 100 GB         | 500 GB              | Unlimited      |
     | Teams                | -              | Up to 5 members     | Up to 50       |
     | Support              | Community      | Priority            | Dedicated      |

@@ -23,7 +23,7 @@ Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 | **Models**                 | 100        | 500             | Unlimited  |
 | **Concurrent Trainings**   | 3          | 10              | Unlimited  |
 | **Storage**                | 100 GB     | 500 GB          | Unlimited  |
-| **Deployments**            | 3          | 10 (warm-start) | Unlimited  |
+| **Deployments**            | 3          | 10              | Unlimited  |
 | **Teams**                  | -          | Up to 5 members | Up to 50   |
 | **Best GPUs (H200, B200)** | -          | Yes             | Yes        |
 | **SSO / SAML**             | -          | -               | Yes        |
@@ -58,7 +58,7 @@ For professionals and small teams ($29/month or $290/year):
 - 500 models
 - 10 concurrent cloud trainings
 - 500 GB storage
-- 10 warm-start deployments (faster cold starts)
+- 10 cloud deployments
 - [Team collaboration](teams.md) (up to 5 members)
 - Access to the best GPUs (H200, B200)
 - Priority support
@@ -248,7 +248,7 @@ After upgrading:
 - Storage increased to 500 GB
 - 500 models
 - 10 concurrent cloud trainings
-- 10 warm-start deployments
+- 10 cloud deployments
 - [Team collaboration](teams.md) (up to 5 members)
 - Access to best GPUs
 - Priority support

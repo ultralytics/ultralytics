@@ -172,13 +172,13 @@ YOLO26 benchmarks below were run by the Ultralytics team on Radxa Rock 5B based 
 
     | Model   | Format | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
     | ------- | ------ | ------ | --------- | ----------- | ---------------------- |
-    | YOLO11n | `rknn` | ✅     | 7.4       | 0.505       | 71.5                   |
-    | YOLO11s | `rknn` | ✅     | 20.7      | 0.578       | 98.9                   |
-    | YOLO11m | `rknn` | ✅     | 41.9      | 0.629       | 235.3                  |
-    | YOLO11l | `rknn` | ✅     | 53.3      | 0.633       | 282.0                  |
-    | YOLO11x | `rknn` | ✅     | 114.6     | 0.687       | 679.2                  |
+    | YOLO26n | `rknn` | ✅     | 7.1       | 0.479       | 65.7                   |
+    | YOLO26s | `rknn` | ✅     | 20.9      | 0.571       | 99.2                   |
+    | YOLO26m | `rknn` | ✅     | 42.5      | 0.610       | 235.3                  |
+    | YOLO26l | `rknn` | ✅     | 52.1      | 0.630       | 280.5                  |
+    | YOLO26x | `rknn` | ✅     | 112.2     | 0.666       | 669.1                  |
 
-    Benchmarked with `ultralytics 8.3.152`
+    Benchmarked with `ultralytics 8.4.23`
 
     !!! note
 

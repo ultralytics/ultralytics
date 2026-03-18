@@ -79,9 +79,13 @@ Available GPUs for cloud training on Ultralytics Cloud:
 | H100 PCIe    | 80 GB  | $2.39     | High-performance training |
 | H100 SXM     | 80 GB  | $2.69     | Fastest training          |
 | H100 NVL     | 94 GB  | $3.07     | Maximum performance       |
-| H200 NVL     | 143 GB | $3.39     | Maximum memory            |
-| H200 SXM     | 141 GB | $3.59     | Maximum performance       |
-| B200         | 180 GB | $4.99     | Largest models            |
+| H200 NVL     | 143 GB | $3.39     | Maximum memory (Pro+)     |
+| H200 SXM     | 141 GB | $3.59     | Maximum performance (Pro+)|
+| B200         | 180 GB | $4.99     | Largest models (Pro+)     |
+
+!!! info "GPU Tier Access"
+
+    H200 and B200 GPUs require a [Pro or Enterprise plan](../account/billing.md#plans). All other GPUs are available on all plans including Free.
 
 !!! tip "Signup Credits"
 
@@ -184,5 +188,5 @@ If training fails:
 | Scenario                      | Recommended GPU  |
 | ----------------------------- | ---------------- |
 | Most training jobs            | RTX PRO 6000     |
-| Large datasets or batch sizes | H100 SXM or H200 |
+| Large datasets or batch sizes | H100 SXM or H200 (Pro+) |
 | Budget-conscious              | RTX 4090         |

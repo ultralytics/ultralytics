@@ -208,7 +208,7 @@ From your project, click `Train Model` to start cloud training.
 
 !!! info "GPU Selection"
 
-    GPUs range from $0.24/hr (RTX 2000 Ada, 16 GB) to $4.99/hr (B200, 180 GB). The default GPU is **RTX PRO 6000** (96 GB Blackwell, $1.89/hr) — a great balance of memory and performance. See the full [GPU pricing table](index.md#what-gpu-options-are-available-for-cloud-training) for all 22 options.
+    GPUs range from $0.24/hr (RTX 2000 Ada, 16 GB) to $4.99/hr (B200, 180 GB). The default GPU is **RTX PRO 6000** (96 GB Blackwell, $1.89/hr) — a great balance of memory and performance. 19 GPUs are available on all plans; H200 and B200 require [Pro or Enterprise](account/billing.md#plans). See the full [GPU pricing table](index.md#what-gpu-options-are-available-for-cloud-training).
 
 !!! warning "Credit Balance Required"
 

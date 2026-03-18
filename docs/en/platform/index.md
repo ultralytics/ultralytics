@@ -66,7 +66,7 @@ graph LR
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Upload**   | Images (50MB), videos (1GB), ZIP archives (10GB) with automatic processing                                                                     |
 | **Annotate** | Manual tools, SAM smart annotation, YOLO auto-labeling for all 5 task types (see [supported tasks](data/index.md#supported-tasks))             |
-| **Train**    | Cloud GPUs (22 options from RTX 2000 Ada to B200), real-time metrics, project organization                                                     |
+| **Train**    | Cloud GPUs (19 free + 3 Pro-exclusive), real-time metrics, project organization                                                                |
 | **Export**   | [17 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.; see [supported formats](train/models.md#supported-formats)) |
 | **Deploy**   | 43 global regions with dedicated endpoints, auto-scaling, monitoring                                                                           |
 
@@ -74,7 +74,7 @@ graph LR
 
 - **Upload** images, videos, and ZIP archives to create training datasets
 - **Visualize** annotations with interactive overlays for all 5 YOLO task types (see [supported tasks](data/index.md#supported-tasks))
-- **Train** models on 22 cloud GPU types with real-time metrics
+- **Train** models on cloud GPUs (19 free, 22 with Pro) with real-time metrics
 - **Export** to [17 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.)
 - **Deploy** to 43 global regions with one-click dedicated endpoints
 - **Monitor** training progress, deployment health, and usage metrics
@@ -127,7 +127,7 @@ graph LR
 
 ### Model Training
 
-- **Cloud Training**: Train on 22 cloud GPU types with real-time metrics
+- **Cloud Training**: Train on cloud GPUs (19 free, 22 with [Pro](account/billing.md#plans)) with real-time metrics
 - **Remote Training**: Train anywhere and stream metrics to the platform (W&B-style)
 - **Project Organization**: Group related models, compare experiments, track activity
 - **17 Export Formats**: ONNX, TensorRT, CoreML, TFLite, and more (see [supported formats](train/models.md#supported-formats))
@@ -252,6 +252,7 @@ Once deployed, call your endpoint from any language:
     | Concurrent Trainings | 3              | 10                  | Unlimited      |
     | Deployments          | 3              | 10                  | Unlimited      |
     | Storage              | 100 GB         | 500 GB              | Unlimited      |
+    | Cloud GPU Types      | 19             | 22 (incl. H200/B200)| 22             |
     | Teams                | -              | Up to 5 members     | Up to 50       |
     | Support              | Community      | Priority            | Dedicated      |
 
@@ -326,9 +327,9 @@ Ultralytics Platform supports multiple GPU types for cloud training:
 | H100 PCIe    | 80 GB  | $2.39     | Fastest training        |
 | H100 SXM     | 80 GB  | $2.69     | Fastest training        |
 | H100 NVL     | 94 GB  | $3.07     | High-memory training    |
-| H200 NVL     | 143 GB | $3.39     | Maximum memory          |
-| H200 SXM     | 141 GB | $3.59     | Maximum performance     |
-| B200         | 180 GB | $4.99     | Largest models          |
+| H200 NVL     | 143 GB | $3.39     | Maximum memory (Pro+)   |
+| H200 SXM     | 141 GB | $3.59     | Maximum performance (Pro+)|
+| B200         | 180 GB | $4.99     | Largest models (Pro+)   |
 
 See [Cloud Training](train/cloud-training.md) for complete pricing and GPU options.
 

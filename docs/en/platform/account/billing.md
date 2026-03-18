@@ -24,8 +24,9 @@ Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 | **Concurrent Trainings**   | 3          | 10              | Unlimited  |
 | **Storage**                | 100 GB     | 500 GB          | Unlimited  |
 | **Deployments**            | 3          | 10              | Unlimited  |
-| **Teams**                  | -          | Up to 5 members | Up to 50   |
+| **Cloud GPU Types**        | 19         | 22              | 22         |
 | **Best GPUs (H200, B200)** | -          | Yes             | Yes        |
+| **Teams**                  | -          | Up to 5 members | Up to 50   |
 | **SSO / SAML**             | -          | -               | Yes        |
 | **Enterprise License**     | -          | -               | Yes        |
 | **License**                | AGPL-3.0   | AGPL-3.0        | Enterprise |
@@ -44,7 +45,7 @@ Get started at no cost:
 - 100 GB storage
 - Model export to all 17+ formats
 - Manual, SAM3 & YOLO Smart annotation
-- 22 cloud GPU types
+- 19 cloud GPU types including 5090 & H100 ($0.24–$3.07/hr)
 - Community support
 
 !!! tip "Company Email Bonus"
@@ -214,6 +215,8 @@ Cloud training costs depend on GPU selection:
 | H200 SXM     | 141 GB | $3.59     |
 | B200         | 180 GB | $4.99     |
 
+H200 and B200 GPUs require a [Pro or Enterprise plan](#plans). All other GPUs are available on all plans.
+
 See [Cloud Training](../train/cloud-training.md) for complete GPU options and pricing.
 
 ### Cost Calculation
@@ -249,7 +252,7 @@ After upgrading:
 - 10 concurrent cloud trainings
 - 10 cloud deployments
 - [Team collaboration](teams.md) (up to 5 members)
-- Access to best GPUs
+- Access to best GPUs (H200, B200)
 - Full monitoring dashboard
 - Priority support
 

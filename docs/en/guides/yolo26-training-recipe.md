@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn how YOLO26 base models were trained on COCO, including optimizer settings, augmentation pipelines, loss weights, and practical fine-tuning guidance for each model size.
-keywords: YOLO26, training recipe, pretraining, fine-tuning, MuSGD, augmentation, loss weights, COCO, model card, hyperparameters, Ultralytics, object detection, deep learning
+keywords: YOLO26, training recipe, pretraining, fine-tuning, MuSGD, augmentation, loss weights, COCO, model card, hyperparameters, Ultralytics, object detection, deep learning, data augmentation
 ---
 
 # YOLO26 Training Recipe
@@ -48,7 +48,7 @@ This works for any `.pt` checkpoint — official releases and your own fine-tune
 
 ## Training Overview
 
-All YOLO26 base models were trained on [COCO](../datasets/detect/coco.md) at **640x640** resolution using the **MuSGD** optimizer with **[batch size](https://www.ultralytics.com/glossary/batch-size) 128**. Models were initialized from intermediate [pretrained](https://www.ultralytics.com/glossary/transfer-learning) weights and refined with hyperparameters found via evolutionary search.
+All YOLO26 base models were trained on [COCO](../datasets/detect/coco.md) at **640x640** resolution using the **MuSGD** optimizer with **[batch size](https://www.ultralytics.com/glossary/batch-size) 128**. Models were initialized from intermediate [pretrained](https://www.ultralytics.com/glossary/transfer-learning) weights and refined with hyperparameters found via evolutionary search. Full training logs and metrics are available on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26).
 
 Key design choices across all sizes:
 
@@ -90,7 +90,7 @@ The N model prioritizes DFL loss, while S/M/L/X models shift emphasis to [boundi
 
 ### Augmentation Pipeline
 
-For a detailed explanation of each augmentation technique, see the [YOLO Data Augmentation guide](./yolo-data-augmentation.md).
+For a detailed explanation of each [data augmentation](https://www.ultralytics.com/glossary/data-augmentation) technique, see the [YOLO Data Augmentation guide](./yolo-data-augmentation.md).
 
 | Setting | N | S | M | L | X |
 |---|---|---|---|---|---|
@@ -107,7 +107,7 @@ For a detailed explanation of each augmentation technique, see the [YOLO Data Au
 | [`hsv_v`](./yolo-data-augmentation.md#brightness-adjustment-hsv_v) | 0.566 | 0.194 | 0.194 | 0.194 | 0.194 |
 | [`bgr`](./yolo-data-augmentation.md#bgr-channel-swap-bgr) | 0.106 | 0.0 | 0.0 | 0.0 | 0.0 |
 
-Larger models use more aggressive augmentation overall (higher [mixup](./yolo-data-augmentation.md#mixup-mixup), [copy-paste](./yolo-data-augmentation.md#copy-paste-copy_paste), and scale), since they have more capacity and benefit from stronger [regularization](https://www.ultralytics.com/glossary/regularization). The N model is the only size with meaningful rotation, shear, and BGR augmentation.
+Larger models use more aggressive augmentation overall (higher [mixup](./yolo-data-augmentation.md#mixup-mixup), [copy-paste](./yolo-data-augmentation.md#copy-paste-copy_paste), and scale), since they have more capacity and benefit from stronger [regularization](https://www.ultralytics.com/glossary/regularization). The N model is the only size with meaningful [rotation](./yolo-data-augmentation.md#rotation-degrees), [shear](./yolo-data-augmentation.md#shear-shear), and [BGR](./yolo-data-augmentation.md#bgr-channel-swap-bgr) augmentation.
 
 ### Internal Training Parameters
 
@@ -178,11 +178,11 @@ For automated hyperparameter optimization, see the [Hyperparameter Tuning guide]
 
 | Model | Best For | Batch Size Guidance |
 |---|---|---|
-| [YOLO26n](../models/yolo26.md) | Edge devices, mobile, real-time on CPU | Large batches (64-128) on consumer GPUs |
-| [YOLO26s](../models/yolo26.md) | Balanced speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) | Medium batches (32-64) |
-| [YOLO26m](../models/yolo26.md) | Higher accuracy with moderate compute | Smaller batches (16-32) |
-| [YOLO26l](../models/yolo26.md) | High accuracy when GPU is available | Small batches (8-16) or multi-GPU |
-| [YOLO26x](../models/yolo26.md) | Maximum accuracy, server [deployment](https://www.ultralytics.com/glossary/model-deployment) | Small batches (4-8) or multi-GPU |
+| YOLO26n | Edge devices, mobile, real-time on CPU | Large batches (64-128) on consumer GPUs |
+| YOLO26s | Balanced speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) | Medium batches (32-64) |
+| YOLO26m | Higher accuracy with moderate compute | Smaller batches (16-32) |
+| YOLO26l | High accuracy when GPU is available | Small batches (8-16) or multi-GPU |
+| YOLO26x | Maximum accuracy, server [deployment](https://www.ultralytics.com/glossary/model-deployment) | Small batches (4-8) or multi-GPU |
 
 For export and deployment options, see the [Export guide](../modes/export.md) and [Model Deployment Options](./model-deployment-options.md).
 
@@ -194,7 +194,7 @@ Load the checkpoint with `torch.load()` and access the `train_args` key, or use 
 
 ### Why are the epoch counts different for each model size?
 
-Larger models converge faster on COCO because they have more capacity. The N model needed 245 epochs while the X model only needed 40. When fine-tuning on your own dataset, the optimal number of epochs depends on your dataset size and complexity, not the model size. Use [early stopping](https://www.ultralytics.com/glossary/early-stopping) (`patience`) to find the right stopping point automatically.
+Larger models converge faster on COCO because they have more capacity. The N model needed 245 epochs while the X model only needed 40. When fine-tuning on your own dataset, the optimal number of epochs depends on your dataset size and complexity, not the model size. Use early stopping (`patience`) to find the right stopping point automatically.
 
 ### Should I use MuSGD for fine-tuning?
 

@@ -172,13 +172,13 @@ YOLO26 benchmarks below were run by the Ultralytics team on Radxa Rock 5B based 
 
     | Model   | Format | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
     | ------- | ------ | ------ | --------- | ----------- | ---------------------- |
-    | YOLO11n | `rknn` | ✅     | 7.4       | 0.505       | 71.5                   |
-    | YOLO11s | `rknn` | ✅     | 20.7      | 0.578       | 98.9                   |
-    | YOLO11m | `rknn` | ✅     | 41.9      | 0.629       | 235.3                  |
-    | YOLO11l | `rknn` | ✅     | 53.3      | 0.633       | 282.0                  |
-    | YOLO11x | `rknn` | ✅     | 114.6     | 0.687       | 679.2                  |
+    | YOLO26n | `rknn` | ✅     | 7.1       | 0.479       | 65.7                   |
+    | YOLO26s | `rknn` | ✅     | 20.9      | 0.571       | 99.2                   |
+    | YOLO26m | `rknn` | ✅     | 42.5      | 0.610       | 235.3                  |
+    | YOLO26l | `rknn` | ✅     | 52.1      | 0.630       | 280.5                  |
+    | YOLO26x | `rknn` | ✅     | 112.2     | 0.666       | 669.1                  |
 
-    Benchmarked with `ultralytics 8.3.152`
+    Benchmarked with `ultralytics 8.4.23`
 
     !!! note
 
@@ -188,7 +188,7 @@ YOLO26 benchmarks below were run by the Ultralytics team on Radxa Rock 5B based 
 
 In this guide, you've learned how to export Ultralytics YOLO26 models to RKNN format to enhance their deployment on Rockchip platforms. You were also introduced to the RKNN Toolkit and the specific advantages of using RKNN models for edge AI applications.
 
-The combination of [Ultralytics YOLO26](https://www.ultralytics.com/blog/all-you-need-to-know-about-ultralytics-yolo11-and-its-applications) and Rockchip's NPU technology provides an efficient solution for running advanced computer vision tasks on embedded devices. This approach enables real-time [object detection](https://www.ultralytics.com/blog/a-guide-to-deep-dive-into-object-detection-in-2025) and other vision AI applications with minimal power consumption and high performance.
+The combination of [Ultralytics YOLO26](https://platform.ultralytics.com/ultralytics/yolo26) and Rockchip's NPU technology provides an efficient solution for running advanced computer vision tasks on embedded devices. This approach enables real-time [object detection](https://www.ultralytics.com/blog/a-guide-to-deep-dive-into-object-detection-in-2025) and other vision AI applications with minimal power consumption and high performance.
 
 For further details on usage, visit the [RKNN official documentation](https://github.com/airockchip/rknn-toolkit2).
 
@@ -234,4 +234,4 @@ The Ultralytics YOLO export to RKNN format supports a wide range of Rockchip pla
 
 ### How does the performance of RKNN models compare to other formats on Rockchip devices?
 
-RKNN models generally outperform other formats like ONNX or TensorFlow Lite on Rockchip devices due to their optimization for Rockchip's NPUs. For instance, benchmarks on the Radxa Rock 5B (RK3588) show that [YOLO26n](https://www.ultralytics.com/blog/all-you-need-to-know-about-ultralytics-yolo11-and-its-applications) in RKNN format achieves an inference time of 99.5 ms/image, significantly faster than other formats. This performance advantage is consistent across various YOLO26 model sizes, as demonstrated in the [benchmarks section](#benchmarks). By leveraging the dedicated NPU hardware, RKNN models minimize latency and maximize throughput, making them ideal for real-time applications on Rockchip-based edge devices.
+RKNN models generally outperform other formats like ONNX or TensorFlow Lite on Rockchip devices due to their optimization for Rockchip's NPUs. For instance, benchmarks on the Radxa Rock 5B (RK3588) show that [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26) in RKNN format achieves an inference time of 99.5 ms/image, significantly faster than other formats. This performance advantage is consistent across various YOLO26 model sizes, as demonstrated in the [benchmarks section](#benchmarks). By leveraging the dedicated NPU hardware, RKNN models minimize latency and maximize throughput, making them ideal for real-time applications on Rockchip-based edge devices.

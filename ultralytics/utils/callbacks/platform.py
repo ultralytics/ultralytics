@@ -343,7 +343,8 @@ def on_pretrain_routine_start(trainer):
         if response.get("cancelled"):
             ctx["cancelled"] = True
     else:
-        LOGGER.warning(f"{PREFIX}Failed to register training session - metrics may not sync to Platform")
+        LOGGER.warning(f"{PREFIX}Training will not be tracked on Platform")
+        trainer.platform = None  # Disable further callbacks
 
 
 def on_pretrain_routine_end(trainer):

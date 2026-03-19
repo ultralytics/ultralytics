@@ -163,7 +163,11 @@ def _send(event, data, project, name, model_id=None, retry=2):
             timeout=30,
         )
         if 400 <= r.status_code < 500 and r.status_code not in {408, 429}:
-            LOGGER.warning(f"{PREFIX}Failed to send {event}: {r.status_code} {r.reason}")
+            try:
+                msg = r.json().get("error", r.reason)
+            except Exception:
+                msg = r.reason
+            LOGGER.warning(f"{PREFIX}{msg}")
             return None  # Don't retry client errors (except 408 timeout, 429 rate limit)
         r.raise_for_status()
         return r.json()

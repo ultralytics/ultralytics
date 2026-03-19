@@ -10,7 +10,7 @@ keywords: YOLO26, end-to-end detection, NMS-free inference, model export, deploy
 
 If you're upgrading to [YOLO26](../models/yolo26.md) from an earlier model like [YOLOv8](../models/yolov8.md) or [YOLO11](../models/yolo11.md), one of the biggest changes you'll notice is the removal of [Non-Maximum Suppression](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) (NMS). Traditional YOLO models produce thousands of overlapping predictions that need a separate NMS post-processing step to filter down to final detections. This adds latency, complicates export graphs, and can behave inconsistently across different hardware platforms.
 
-YOLO26 takes a different approach. It outputs final detections directly from the model — no external filtering required. This is known as **end-to-end [object detection](https://www.ultralytics.com/glossary/object-detection)**, and it's enabled by default in all YOLO26 models. The result is a simpler deployment pipeline, lower latency, and up to **43% faster [inference](https://www.ultralytics.com/glossary/inference-time) on CPUs**.
+YOLO26 takes a different approach. It outputs final detections directly from the model — no external filtering required. This is known as **end-to-end [object detection](https://www.ultralytics.com/glossary/object-detection)**, and it's enabled by default in all YOLO26 models. The result is a simpler deployment pipeline, lower latency, and up to **43% faster inference on CPUs**.
 
 This guide walks you through what changed, whether you need to update your code, which export formats support end-to-end inference, and how to migrate smoothly from older YOLO models.
 
@@ -19,17 +19,26 @@ For a deeper look at the motivation behind this architectural shift, see the [Ul
 !!! summary "Quick Summary"
 
     - **Using the Ultralytics API or CLI?** No changes needed — just swap your model name to `yolo26n.pt`.
-    - **Using custom inference code (ONNX Runtime, TensorRT, etc.)?** Update your post-processing — output is now `(N, 300, 6)` in `[x1, y1, x2, y2, conf, class_id]` format, no NMS required.
+    - **Using custom inference code (ONNX Runtime, TensorRT, etc.)?** Update your post-processing — detection output is now `(N, 300, 6)` in `xyxy` format, no NMS required. Other tasks append extra data (mask coefficients, keypoints, or angle).
     - **Exporting?** Most formats support end-to-end. A few (NCNN, RKNN, PaddlePaddle, ExecuTorch, IMX, Edge TPU) auto-fallback to traditional output.
 
 ## How End-to-End Detection Works
 
 YOLO26 uses a **dual-head architecture** during [training](../modes/train.md). Both heads share the same backbone and neck, but produce outputs in different ways:
 
-| Head | Purpose | Output Shape | Post-Processing |
+| Head | Purpose | Detection Output | Post-Processing |
 | --- | --- | --- | --- |
 | **One-to-One** (default) | End-to-end inference | `(N, 300, 6)` | Confidence threshold only |
 | **One-to-Many** | Traditional YOLO output | `(N, nc + 4, 8400)` | Requires NMS |
+
+The shapes above are for [detection](../tasks/detect.md). Other tasks extend the one-to-one output with additional data per detection:
+
+| Task | End-to-End Output | Extra Data |
+| --- | --- | --- |
+| [Detection](../tasks/detect.md) | `(N, 300, 6)` | — |
+| [Segmentation](../tasks/segment.md) | `(N, 300, 6 + nm)` + proto `(N, nm, H, W)` | `nm` mask coefficients (default 32) |
+| [Pose](../tasks/pose.md) | `(N, 300, 57)` | 17 keypoints × 3 (x, y, visibility) |
+| [OBB](../tasks/obb.md) | `(N, 300, 7)` | Rotation angle |
 
 During training, both heads run simultaneously — the one-to-many head provides a richer learning signal, while the one-to-one head learns to produce clean, non-overlapping predictions. During [inference](../modes/predict.md) and [export](../modes/export.md), only the **one-to-one head** is active by default, producing up to 300 detections per image in the format `[x1, y1, x2, y2, confidence, class_id]`.
 
@@ -67,12 +76,15 @@ When you call `model.fuse()`, it folds Conv + BatchNorm layers for faster infere
 
 | | YOLOv8 / YOLO11 | YOLO26 (end-to-end) |
 | --- | --- | --- |
-| **Output shape** | `(N, nc + 4, 8400)` | `(N, 300, 6)` |
-| **Format** | Box coords + class scores per anchor | `[x1, y1, x2, y2, conf, class_id]` |
+| **Detection output** | `(N, nc + 4, 8400)` | `(N, 300, 6)` |
+| **Box format** | `xywh` (center x, center y, width, height) | `xyxy` (top-left x, top-left y, bottom-right x, bottom-right y) |
+| **Layout** | Box coords + class scores per anchor | `[x1, y1, x2, y2, conf, class_id]` |
 | **NMS required** | Yes | No |
 | **Post-processing** | NMS + confidence filter | Confidence filter only |
 
-Where `N` is the [batch size](https://www.ultralytics.com/glossary/batch-size) and `nc` is the number of classes (e.g., 80 for [COCO](https://www.ultralytics.com/glossary/coco-dataset)).
+For [segmentation](../tasks/segment.md), [pose](../tasks/pose.md), and [OBB](../tasks/obb.md) tasks, YOLO26 appends task-specific data to each detection — see the [output shapes table](#how-end-to-end-detection-works) above.
+
+Where `N` is the [batch size](https://www.ultralytics.com/glossary/batch-size) and `nc` is the number of classes (e.g., 80 for [COCO](../datasets/detect/coco.md)).
 
 With end-to-end models, post-processing becomes much simpler — for example, when using [ONNX Runtime](../integrations/onnx.md):
 
@@ -121,9 +133,9 @@ If you need the traditional YOLO output format (for example, to reuse existing N
 
 ## Export Format Compatibility
 
-Most [export formats](../modes/export.md#export-formats) support end-to-end inference out of the box, including [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [CoreML](../integrations/coreml.md), [OpenVINO](../integrations/openvino.md), [TF Lite](../integrations/tflite.md), [TF.js](../integrations/tfjs.md), and [MNN](../integrations/mnn.md).
+Most [export formats](../modes/export.md#export-formats) support end-to-end inference out of the box, including [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [CoreML](../integrations/coreml.md), [OpenVINO](../integrations/openvino.md), [TFLite](../integrations/tflite.md), [TF.js](../integrations/tfjs.md), and [MNN](../integrations/mnn.md).
 
-The following formats **do not** support end-to-end and automatically fall back to the one-to-many head: [NCNN](../integrations/ncnn.md), RKNN, [PaddlePaddle](../integrations/paddlepaddle.md), ExecuTorch, IMX, and [Edge TPU](../integrations/edge-tpu.md).
+The following formats **do not** support end-to-end and automatically fall back to the one-to-many head: [NCNN](../integrations/ncnn.md), [RKNN](../integrations/rockchip-rknn.md), [PaddlePaddle](../integrations/paddlepaddle.md), [ExecuTorch](../integrations/executorch.md), [IMX](../integrations/sony-imx500.md), and [Edge TPU](../integrations/edge-tpu.md).
 
 !!! tip "What happens when end-to-end isn't supported"
 
@@ -152,12 +164,12 @@ See the [YOLO26 performance metrics](../models/yolo26.md#performance-metrics) fo
 
 If you're upgrading an existing project to YOLO26, here's a quick checklist to ensure a smooth transition:
 
-- **Ultralytics API / CLI users:** No changes needed — just update the model name to `yolo26n.pt` (or your preferred size)
-- **Custom post-processing code:** Update to handle `(N, 300, 6)` output shape instead of `(N, nc + 4, 8400)` + NMS
+- **Ultralytics API / CLI users:** No changes needed — just update the model name to `yolo26n.pt` (or `yolo26n-seg.pt`, `yolo26n-pose.pt`, `yolo26n-obb.pt`)
+- **Custom post-processing code:** Update to handle the new output shapes — `(N, 300, 6)` for detection, plus task-specific data for [segmentation](../tasks/segment.md), [pose](../tasks/pose.md), and [OBB](../tasks/obb.md). Also note the box format change from `xywh` to `xyxy`
 - **Export pipelines:** Check the [format compatibility](#export-format-compatibility) section above for your target format
 - **TensorRT + INT8:** Verify your TensorRT version is >10.3.0 for end-to-end support
 - **FP16 exports:** If you need all outputs in FP16, export with `end2end=False` — see [why output0 stays FP32](../modes/export.md#why-is-output0-fp32-when-exporting-with-halftrue-and-end2endtrue)
-- **iOS / CoreML:** End-to-end is fully supported — no changes needed for CoreML deployments
+- **iOS / CoreML:** End-to-end is fully supported. If you need Xcode Preview support, use `end2end=False` with `nms=True`
 - **Edge devices (NCNN, RKNN):** These formats auto-fallback to one-to-many, so include NMS in your on-device pipeline
 
 ## FAQ
@@ -166,18 +178,31 @@ If you're upgrading an existing project to YOLO26, here's a quick checklist to e
 
 No. These options are mutually exclusive. If you set `nms=True` on an end-to-end model during [export](../modes/export.md), it will be automatically forced to `nms=False` with a warning. The end-to-end head already handles duplicate filtering internally, so external NMS is unnecessary.
 
+However, `end2end=False` combined with `nms=True` is a valid configuration — it bakes traditional NMS into the export graph. This can be useful for [CoreML](../integrations/coreml.md) exports because it lets you use the Preview function in Xcode with the detection model directly.
+
 ### What does the max_det parameter control in end-to-end models?
 
-The `max_det` parameter (default: 300) sets the maximum number of detections the one-to-one head can output per image. If your use case involves scenes with many objects, you can increase it. For simpler scenes, reducing it may slightly improve speed:
+The `max_det` parameter (default: 300) sets the maximum number of detections the one-to-one head can output per image. You can adjust it at inference or export time:
 
 ```python
 model.predict("image.jpg", max_det=100)  # fewer detections, slightly faster
-model.predict("image.jpg", max_det=500)  # more detections for dense scenes
+model.export(format="onnx", max_det=500)  # more detections for dense scenes
 ```
+
+Note that the default YOLO26 checkpoints were trained with `max_det=300`. While you can increase this value, the one-to-one head was optimized during training to produce up to 300 clean detections, so detections beyond that limit may be lower quality. If you need more than 300 detections per image, consider retraining with a higher `max_det` value.
 
 ### My exported ONNX model outputs (1, 300, 6) — is that correct?
 
-Yes, that's the expected end-to-end output format: [batch size](https://www.ultralytics.com/glossary/batch-size) of 1, up to 300 detections, each with 6 values `[x1, y1, x2, y2, confidence, class_id]`. Simply filter by confidence threshold and you're done — no NMS needed.
+Yes, that's the expected end-to-end output format for detection: [batch size](https://www.ultralytics.com/glossary/batch-size) of 1, up to 300 detections, each with 6 values `[x1, y1, x2, y2, confidence, class_id]`. Simply filter by confidence threshold and you're done — no NMS needed.
+
+For other tasks, the output shape differs:
+
+| Task | Output Shape | Description |
+| --- | --- | --- |
+| Detection | `(1, 300, 6)` | `[x1, y1, x2, y2, conf, class_id]` |
+| Segmentation | `(1, 300, 38)` + `(1, 32, 160, 160)` | 6 box values + 32 mask coefficients, plus a prototype mask tensor |
+| Pose | `(1, 300, 57)` | 6 box values + 17 keypoints × 3 (x, y, visibility) |
+| OBB | `(1, 300, 7)` | 6 box values + 1 rotation angle |
 
 ### How do I check if my exported model is end-to-end?
 
@@ -204,10 +229,17 @@ You can check using either the Ultralytics Python API or by inspecting the expor
         print(metadata.get("end2end"))  # 'True' if end-to-end is enabled
         ```
 
-Alternatively, check the output shape — end-to-end models output `(1, 300, 6)`, while traditional models output `(1, nc + 4, 8400)`.
+Alternatively, check the output shape — end-to-end detection models output `(1, 300, 6)`, while traditional models output `(1, nc + 4, 8400)`. For other task shapes, see the [output shapes FAQ](#my-exported-onnx-model-outputs-1-300-6--is-that-correct).
 
-### Is end-to-end detection supported for segmentation, pose, and OBB tasks?
+### Is end-to-end supported for segmentation, pose, and OBB tasks?
 
 Yes. All YOLO26 task variants — [detection](../tasks/detect.md), [segmentation](../tasks/segment.md), [pose estimation](../tasks/pose.md), and [oriented object detection (OBB)](../tasks/obb.md) — support end-to-end inference by default. The `end2end=False` fallback is available across all tasks as well.
 
-Note that the output format varies by task. The `(N, 300, 6)` shape described in this guide applies to detection. Other tasks append additional data per detection — mask coefficients for segmentation, keypoint coordinates for pose, and rotation angles for OBB.
+Each task extends the base detection output with task-specific data:
+
+| Task | Model | End-to-End Output |
+| --- | --- | --- |
+| Detection | `yolo26n.pt` | `(N, 300, 6)` |
+| Segmentation | `yolo26n-seg.pt` | `(N, 300, 38)` + proto `(N, 32, 160, 160)` |
+| Pose | `yolo26n-pose.pt` | `(N, 300, 57)` |
+| OBB | `yolo26n-obb.pt` | `(N, 300, 7)` |

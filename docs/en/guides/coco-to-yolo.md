@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Learn how to convert COCO JSON annotations to YOLO format for object detection, instance segmentation, and pose estimation training. Complete guide with step-by-step examples, common pitfalls, and tool-specific tips for CVAT, Label Studio, and Roboflow.
-keywords: COCO to YOLO, convert COCO JSON to YOLO, COCO JSON format, YOLO annotation format, convert_coco, COCO dataset training, train YOLO on COCO, CVAT to YOLO, Label Studio to YOLO, Roboflow to YOLO, object detection dataset, instance segmentation dataset, pose estimation dataset, dataset conversion, annotation format, cls91to80, category_id, bounding box format, YOLO training data
+description: Learn how to convert COCO JSON annotations to YOLO format for object detection, instance segmentation, and pose estimation training. Complete guide with step-by-step examples, common pitfalls, and class ID mapping for custom datasets.
+keywords: COCO to YOLO, convert COCO JSON to YOLO, COCO JSON format, YOLO annotation format, convert_coco, COCO dataset training, train YOLO on COCO, object detection dataset, instance segmentation dataset, pose estimation dataset, dataset conversion, annotation format, cls91to80, category_id, bounding box format, YOLO training data
 ---
 
 # How to Convert COCO Annotations to YOLO Format
 
-Training [Ultralytics YOLO](https://www.ultralytics.com/) models requires annotations in YOLO format, but many popular annotation tools export in [COCO JSON](https://cocodataset.org/#format-data) format instead. If you're using tools like [CVAT](https://www.cvat.ai/), [Label Studio](https://labelstud.io/), [V7](https://www.v7labs.com/), or [Roboflow](https://roboflow.com/), this guide shows you how to convert your COCO annotations to YOLO format and start training.
+Training [Ultralytics YOLO](https://www.ultralytics.com/) models requires annotations in YOLO format, but many popular [annotation](https://www.ultralytics.com/glossary/data-labeling) tools export in [COCO JSON](https://cocodataset.org/#format-data) format instead. This guide shows you how to convert your COCO annotations to YOLO format and start training [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), and [pose estimation](https://www.ultralytics.com/glossary/pose-estimation) models.
 
 ## Why Convert from COCO to YOLO?
 
@@ -241,48 +241,25 @@ With your converted dataset ready, train a YOLO model:
 
 For training tips and best practices, see the [model training guide](model-training-tips.md).
 
-## Converting from Annotation Tools
+### 6. Verify Your Conversion
 
-Different [annotation tools](data-collection-and-annotation.md) export COCO JSON with slight variations in `category_id` numbering and field formatting. Here's what to watch for with each tool.
-
-### CVAT to YOLO
-
-[CVAT](https://www.cvat.ai/) exports annotations with `category_id` starting from 1 and may set `iscrowd: 1` for [SAM](../models/sam.md)-generated masks.
+Before training, spot-check a few label files to confirm class IDs and coordinates are correct:
 
 ```python
-from ultralytics.data.converter import convert_coco
+from pathlib import Path
 
-convert_coco(labels_dir="cvat_export/annotations/", save_dir="converted/", cls91to80=False)
+label_file = Path("my_dataset/labels/train/img_001.txt")
+for line in label_file.read_text().strip().splitlines():
+    parts = line.split()
+    cls_id = int(parts[0])
+    coords = [float(v) for v in parts[1:5]]
+    assert cls_id >= 0, f"Negative class ID {cls_id} — category_id in your JSON may start from 0"
+    assert all(0 <= v <= 1 for v in coords), f"Coordinates out of [0, 1] range: {coords}"
 ```
 
-!!! note "SAM annotations in CVAT"
+!!! tip
 
-    If you used [SAM](../models/sam.md) for annotation in CVAT, annotations may have `iscrowd=1`. By default, `convert_coco()` skips crowd annotations. If all your annotations are marked as crowd, your converted label files will be empty. Preprocess your JSON to set `iscrowd: 0` before converting.
-
-### Label Studio to YOLO
-
-[Label Studio](https://labelstud.io/) may export non-contiguous `category_id` values (e.g., 5, 10, 15). The `convert_coco()` function handles this with `cls91to80=False` by remapping each ID to `category_id - 1`.
-
-```python
-from ultralytics.data.converter import convert_coco
-
-convert_coco(labels_dir="label_studio_export/", save_dir="converted/", cls91to80=False)
-```
-
-!!! warning "Non-contiguous category IDs"
-
-    If your tool exports `category_id` values like `[5, 10, 15]`, `convert_coco()` with `cls91to80=False` will produce class IDs `[4, 9, 14]` (subtracting 1). Make sure your `dataset.yaml` `names` dictionary matches these IDs, or remap them to contiguous IDs `[0, 1, 2]` manually before conversion.
-
-### Roboflow to YOLO
-
-[Roboflow](https://roboflow.com/) exports may use `category_id` numbering that doesn't match the standard COCO 91-to-80 mapping. Always verify the exported `category_id` values in your JSON before converting. If categories start from 0, remap them to start from 1 before running `convert_coco()`, since it maps class IDs as `category_id - 1`.
-
-```python
-from ultralytics.data.converter import convert_coco
-
-convert_coco(labels_dir="roboflow_export/", save_dir="converted/", cls91to80=False)
-```
-
+    If you see negative class IDs, your COCO JSON likely uses `category_id` starting from 0. Add 1 to all `category_id` values in your JSON before running `convert_coco()`, since it maps class IDs as `category_id - 1`.
 
 ## Troubleshooting Common Issues
 
@@ -306,7 +283,7 @@ If you get `KeyError: 'bbox'` or similar errors when running `convert_coco()`, y
 
 ### Empty Label Files After Conversion
 
-If conversion completes but `.txt` files are empty or missing, all annotations may have `iscrowd: 1` (common with [SAM](../models/sam.md)-generated masks in CVAT), or [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) have zero width or height.
+If conversion completes but `.txt` files are empty or missing, all annotations may have `iscrowd: 1` (common with [SAM](../models/sam.md)-generated masks), or [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) have zero width or height.
 
 **Solution**: Inspect your JSON annotations for `iscrowd` values. If using SAM masks, preprocess the JSON to set `iscrowd: 0`.
 
@@ -343,10 +320,6 @@ The `cls91to80` parameter controls how COCO `category_id` values are mapped to Y
 ### Can I train YOLO directly on COCO JSON without converting?
 
 Not with the current YOLO training pipeline — annotations must be in YOLO `.txt` format with one file per image. Use `convert_coco()` to convert your COCO JSON first, then follow this [guide](#step-by-step-conversion-guide) to organize and train. For more on supported formats, see [dataset formats](../datasets/detect/index.md).
-
-### How do I convert CVAT annotations to YOLO format?
-
-Export your [CVAT](https://www.cvat.ai/) project in COCO format, then use `convert_coco()` with `cls91to80=False`. Be aware that CVAT may set `iscrowd=1` for SAM-generated masks, which causes `convert_coco()` to skip those annotations. See the [CVAT section](#cvat-to-yolo) for details.
 
 ### Can I convert COCO segmentation annotations to YOLO format?
 

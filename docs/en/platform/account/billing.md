@@ -23,9 +23,10 @@ Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 | **Models**                 | 100        | 500             | Unlimited  |
 | **Concurrent Trainings**   | 3          | 10              | Unlimited  |
 | **Storage**                | 100 GB     | 500 GB          | Unlimited  |
-| **Deployments**            | 3          | 10 (warm-start) | Unlimited  |
-| **Teams**                  | -          | Up to 5 members | Up to 50   |
+| **Deployments**            | 3          | 10              | Unlimited  |
+| **Cloud GPU Types**        | 19         | 22              | 22         |
 | **Best GPUs (H200, B200)** | -          | Yes             | Yes        |
+| **Teams**                  | -          | Up to 5 members | Up to 50   |
 | **SSO / SAML**             | -          | -               | Yes        |
 | **Enterprise License**     | -          | -               | Yes        |
 | **License**                | AGPL-3.0   | AGPL-3.0        | Enterprise |
@@ -42,8 +43,9 @@ Get started at no cost:
 - 3 concurrent cloud trainings
 - 3 deployments
 - 100 GB storage
-- Model export to all formats
-- Manual annotation
+- Model export to all 17+ formats
+- Manual, SAM3 & YOLO Smart annotation
+- 19 cloud GPU types including 5090 & H100 ($0.24–$3.07/hr)
 - Community support
 
 !!! tip "Company Email Bonus"
@@ -58,8 +60,8 @@ For professionals and small teams ($29/month or $290/year):
 - 500 models
 - 10 concurrent cloud trainings
 - 500 GB storage
-- 10 warm-start deployments (faster cold starts)
-- Team collaboration (up to 5 members)
+- 10 cloud deployments
+- [Team collaboration](teams.md) (up to 5 members)
 - Access to the best GPUs (H200, B200)
 - Priority support
 
@@ -71,16 +73,14 @@ For professionals and small teams ($29/month or $290/year):
 
 For organizations with advanced needs:
 
-- $1,000/month in credits (starting allocation)
 - Custom credit allocation
 - Unlimited models, storage, trainings, and deployments
 - Enterprise License (commercial use, non-AGPL)
 - SSO / SAML authentication
 - RBAC with 4 roles (Owner, Admin, Editor, Viewer)
-- Custom roles with granular permissions
-- On-premise deployment options
-- Compliance (ISO/SOC)
-- SLA guarantees
+- On-premise deployment (coming soon)
+- ISO/SOC compliance (coming soon)
+- SLA guarantees (coming soon)
 - Enterprise support
 
 Contact [sales@ultralytics.com](mailto:sales@ultralytics.com) for Enterprise pricing.
@@ -215,6 +215,8 @@ Cloud training costs depend on GPU selection:
 | H200 SXM     | 141 GB | $3.59     |
 | B200         | 180 GB | $4.99     |
 
+H200 and B200 GPUs require a [Pro or Enterprise plan](#plans). All other GPUs are available on all plans.
+
 See [Cloud Training](../train/cloud-training.md) for complete GPU options and pricing.
 
 ### Cost Calculation
@@ -238,7 +240,7 @@ Upgrade for more features and monthly credits:
 3. Choose billing cycle (Monthly or Yearly)
 4. Complete checkout
 
-<!-- Screenshot: settings-plans-tab-upgrade-to-pro-dialog.avif -->
+![Upgrade to Pro dialog in Settings Plans tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-plans-tab-upgrade-to-pro-dialog.avif)
 
 ### Pro Benefits
 
@@ -248,9 +250,10 @@ After upgrading:
 - Storage increased to 500 GB
 - 500 models
 - 10 concurrent cloud trainings
-- 10 warm-start deployments
-- Team collaboration (up to 5 members)
-- Access to best GPUs
+- 10 cloud deployments
+- [Team collaboration](teams.md) (up to 5 members)
+- Access to best GPUs (H200, B200)
+- Full monitoring dashboard
 - Priority support
 
 ### Cancel Pro
@@ -265,6 +268,25 @@ Cancel anytime from the billing portal:
 !!! note "Cancellation Timing"
 
     Pro features remain active until the end of your billing period. Monthly credits stop at cancellation.
+
+### Downgrading to Free
+
+When your Pro subscription ends (cancelled or expired), your account reverts to the Free plan. Here's what happens to your existing resources:
+
+| Resource                 | What Happens                                                                     |
+| ------------------------ | -------------------------------------------------------------------------------- |
+| **Models**               | All models preserved. Cannot create new models beyond 100-model limit            |
+| **Deployments**          | All deployments preserved. Cannot create new beyond 3-deployment limit           |
+| **Storage**              | All data preserved. Cannot upload new data beyond 100 GB limit                   |
+| **Credit Balance**       | Existing credits preserved and usable                                            |
+| **Monthly Credits**      | $30/seat/month grants stop immediately                                           |
+| **Team Members**         | Members notified and lose access to team resources                               |
+| **GPU Access**           | Standard GPUs remain available. Best GPUs (H200, B200) require Pro or Enterprise |
+| **Concurrent Trainings** | Limit reduced from 10 to 3                                                       |
+
+!!! tip "No Data Loss"
+
+    Downgrading never deletes your models, datasets, or deployments. Limits are only enforced when creating **new** resources — existing resources remain fully accessible.
 
 ## Transaction History
 
@@ -284,11 +306,11 @@ View all transactions in `Settings > Billing`:
 
 ### What happens when I run out of credits?
 
-- **Active training**: Cannot start new training jobs
-- **Deployments**: Continue running
-- **New training**: Requires credits to start
+- **Running training**: Continues to completion — your balance may go negative
+- **New training**: Cannot start new jobs until balance is positive
+- **Deployments**: Continue running regardless of balance
 
-Add credits or enable auto top-up to continue training.
+If a training run completes and the actual cost exceeds your remaining balance, your balance goes negative. Add credits to restore a positive balance before starting new training jobs. Enable [auto top-up](#auto-top-up) to avoid interruptions.
 
 ### Are unused credits refundable?
 
@@ -305,7 +327,7 @@ Transaction receipts are available in the transaction history. Click the receipt
 
 ### What if training fails?
 
-You're only charged for completed compute time. Failed jobs don't charge for unused time.
+**Failed training runs are not charged.** If a job fails due to a configuration error, out-of-memory issue, or any other reason, no credits are deducted. Completed, user-cancelled, and auto-terminated stuck jobs may incur charges based on actual GPU time used. See [Cloud Training Billing](../train/cloud-training.md#billing-by-job-status) for a full breakdown by job status.
 
 ### Is there a free trial?
 

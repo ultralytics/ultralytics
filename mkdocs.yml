@@ -142,8 +142,8 @@ extra_css:
   - stylesheets/style.css
 
 extra_javascript:
-  - https://cdn.jsdelivr.net/gh/ultralytics/llm@v0.1.8/js/chat.min.js
-  - https://unpkg.com/tablesort@5.6.0/dist/tablesort.min.js
+  - https://cdn.jsdelivr.net/gh/ultralytics/llm@v0.2.5/js/chat.min.js
+  - https://unpkg.com/tablesort@5.7.0/dist/tablesort.min.js
   - javascript/extra.js
   - javascript/giscus.js
   - javascript/tablesort.js
@@ -486,6 +486,7 @@ nav:
       - Oriented Bounding Boxes (OBB):
           - datasets/obb/index.md
           - DOTA8: datasets/obb/dota8.md
+          - DOTA128: datasets/obb/dota128.md
           - DOTAv2: datasets/obb/dota-v2.md
       - Multi-Object Tracking:
           - datasets/track/index.md
@@ -630,6 +631,7 @@ nav:
       - Account:
           - platform/account/index.md
           - API Keys: platform/account/api-keys.md
+          - Teams: platform/account/teams.md
           - Billing: platform/account/billing.md
           - Activity: platform/account/activity.md
           - Trash: platform/account/trash.md
@@ -743,6 +745,21 @@ nav:
                   - val: reference/models/yolo/yoloe/val.md
       - nn:
           - autobackend: reference/nn/autobackend.md
+          - backends:
+              - axelera: reference/nn/backends/axelera.md
+              - base: reference/nn/backends/base.md
+              - coreml: reference/nn/backends/coreml.md
+              - executorch: reference/nn/backends/executorch.md
+              - mnn: reference/nn/backends/mnn.md
+              - ncnn: reference/nn/backends/ncnn.md
+              - onnx: reference/nn/backends/onnx.md
+              - openvino: reference/nn/backends/openvino.md
+              - paddle: reference/nn/backends/paddle.md
+              - pytorch: reference/nn/backends/pytorch.md
+              - rknn: reference/nn/backends/rknn.md
+              - tensorflow: reference/nn/backends/tensorflow.md
+              - tensorrt: reference/nn/backends/tensorrt.md
+              - triton: reference/nn/backends/triton.md
           - modules:
               - activation: reference/nn/modules/activation.md
               - block: reference/nn/modules/block.md

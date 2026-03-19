@@ -163,7 +163,7 @@ API keys are scoped to the currently active workspace:
 - **Personal workspace**: Keys authenticate as your personal account
 - **Team workspace**: Keys authenticate within the team context
 
-When switching workspaces in the sidebar, the API Keys section shows keys for that workspace. Editor role or higher is required to manage workspace API keys. See [Teams](settings.md#teams-tab) for role details.
+When switching workspaces in the sidebar, the API Keys section shows keys for that workspace. Editor role or higher is required to manage workspace API keys. See [Teams](teams.md) for role details.
 
 ## Security Best Practices
 

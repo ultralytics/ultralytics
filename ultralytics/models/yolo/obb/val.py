@@ -43,7 +43,7 @@ class OBBValidator(DetectionValidator):
         >>> validator(model=args["model"])
     """
 
-    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks: dict | None = None) -> None:
         """Initialize OBBValidator and set task to 'obb', metrics to OBBMetrics.
 
         This constructor initializes an OBBValidator instance for validating Oriented Bounding Box (OBB) models. It
@@ -53,7 +53,7 @@ class OBBValidator(DetectionValidator):
             dataloader (torch.utils.data.DataLoader, optional): DataLoader to be used for validation.
             save_dir (str | Path, optional): Directory to save results.
             args (dict, optional): Arguments containing validation parameters.
-            _callbacks (list, optional): List of callback functions to be called during validation.
+            _callbacks (dict, optional): Dictionary of callback functions to be called during validation.
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.args.task = "obb"

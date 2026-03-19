@@ -42,14 +42,14 @@ class DetectionValidator(BaseValidator):
         >>> validator()
     """
 
-    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks: dict | None = None) -> None:
         """Initialize detection validator with necessary variables and settings.
 
         Args:
             dataloader (torch.utils.data.DataLoader, optional): DataLoader to use for validation.
             save_dir (Path, optional): Directory to save results.
             args (dict[str, Any], optional): Arguments for the validator.
-            _callbacks (list[Any], optional): List of callback functions.
+            _callbacks (dict, optional): Dictionary of callback functions.
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.is_coco = False

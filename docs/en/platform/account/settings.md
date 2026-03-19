@@ -82,7 +82,7 @@ Social links appear on your public profile page.
 
 Manage email addresses linked to your account in the `Profile` tab:
 
-<!-- Screenshot: settings-profile-tab-emails-section.avif -->
+![Ultralytics Platform Settings Profile Tab Emails Section](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-emails-section.avif)
 
 | Action             | Description                                    |
 | ------------------ | ---------------------------------------------- |

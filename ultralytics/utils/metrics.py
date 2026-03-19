@@ -1066,7 +1066,6 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.names = names
         self.box = Metric()
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
-        self.task = "detect"
         self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[], tp_center_offset=[])
         self.nt_per_class = None
         self.nt_per_image = None
@@ -1109,7 +1108,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.box.nc = len(self.names)
         self.box.update(results)
 
-        if self.task in {"detect", "obb"}:
+        if self.include_center_rmse:
             # compute center offset RMSE (normalized) across all true positives
             tp_offsets = stats.get("tp_center_offset") if "tp_center_offset" in stats else None
             rmse_per_class = np.zeros(len(self.names), dtype=float)
@@ -1142,6 +1141,11 @@ class DetMetrics(SimpleClass, DataExportMixin):
             v.clear()
 
     @property
+    def include_center_rmse(self) -> bool:
+        """Whether this metrics class should include center-RMSE in box metrics and reported keys."""
+        return True
+
+    @property
     def keys(self) -> list[str]:
         """Return a list of keys for accessing specific metrics."""
         keys = [
@@ -1150,7 +1154,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
             "metrics/mAP50(B)",
             "metrics/mAP50-95(B)",
         ]
-        if self.task in ("detect", "obb"):
+        if self.include_center_rmse:
             keys.append("metrics/center_rmse(B)")
         return keys
 
@@ -1268,7 +1272,6 @@ class SegmentMetrics(DetMetrics):
         """
         DetMetrics.__init__(self, names)
         self.seg = Metric()
-        self.task = 'segment'
         self.stats["tp_m"] = []  # add additional stats for masks
 
     def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
@@ -1297,6 +1300,11 @@ class SegmentMetrics(DetMetrics):
         self.seg.nc = len(self.names)
         self.seg.update(results_mask)
         return stats
+
+    @property
+    def include_center_rmse(self) -> bool:
+        """Disable center-RMSE reporting for segmentation metrics."""
+        return False
 
     @property
     def keys(self) -> list[str]:
@@ -1405,7 +1413,6 @@ class PoseMetrics(DetMetrics):
         """
         super().__init__(names)
         self.pose = Metric()
-        self.task = 'pose'
         self.stats["tp_p"] = []  # add additional stats for pose
 
     def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
@@ -1420,7 +1427,6 @@ class PoseMetrics(DetMetrics):
             (dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
         """
         stats = DetMetrics.process(self, save_dir, plot, on_plot=on_plot)  # process box stats
-        self.task = 'pose'
         results_pose = ap_per_class(
             stats["tp_p"],
             stats["conf"],
@@ -1435,6 +1441,11 @@ class PoseMetrics(DetMetrics):
         self.pose.nc = len(self.names)
         self.pose.update(results_pose)
         return stats
+
+    @property
+    def include_center_rmse(self) -> bool:
+        """Disable center-RMSE reporting for pose metrics."""
+        return False
 
     @property
     def keys(self) -> list[str]:
@@ -1535,7 +1546,6 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
         """Initialize a ClassifyMetrics instance."""
         self.top1 = 0
         self.top5 = 0
-        self.task = 'classify'
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
 
     def process(self, targets: torch.Tensor, pred: torch.Tensor):

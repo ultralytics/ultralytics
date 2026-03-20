@@ -179,6 +179,7 @@ def export_formats():
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
+        ["RDK", "rdk", "_rdk_model", False, False, ["imgsz", "data"]],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
         ["Axelera", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction"]],
     ]
@@ -367,6 +368,7 @@ class Exporter:
             ncnn,
             imx,
             rknn,
+            rdk,
             executorch,
             axelera,
         ) = flags  # export booleans
@@ -629,10 +631,12 @@ class Exporter:
             f[13] = self.export_imx()
         if rknn:
             f[14] = self.export_rknn()
+        if rdk:
+            f[15] = self.export_rdk()
         if executorch:
-            f[15] = self.export_executorch()
+            f[16] = self.export_executorch()
         if axelera:
-            f[16] = self.export_axelera()
+            f[17] = self.export_axelera()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -1295,6 +1299,22 @@ class Exporter:
         rknn.export_rknn(str(export_path / f"{Path(f).stem}-{self.args.name}.rknn"))
         YAML.save(export_path / "metadata.yaml", self.metadata)
         return export_path
+
+    @try_export
+    def export_rdk(self, prefix=colorstr("RDK:")):
+        """Export YOLO model to RDK format."""
+        LOGGER.info(f"\n{prefix} starting export...")
+
+        from ultralytics.utils.export.rdk import apply_rdk_patches, export_rdk
+
+        apply_rdk_patches(self.model)
+
+        old_opset = self.args.opset
+        self.args.opset = 11
+        onnx_path = self.export_onnx()
+        self.args.opset = old_opset
+
+        return export_rdk(model=self.model, args=self.args, onnx_path=onnx_path, metadata=self.metadata, prefix=prefix)
 
     @try_export
     def export_imx(self, prefix=colorstr("IMX:")):

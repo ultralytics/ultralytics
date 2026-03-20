@@ -20,7 +20,7 @@ For a deeper look at the motivation behind this architectural shift, see the [Ul
 
     - **Using the Ultralytics API or CLI?** No changes needed — just swap your model name to `yolo26n.pt`.
     - **Using custom inference code (ONNX Runtime, TensorRT, etc.)?** Update your post-processing — detection output is now `(N, 300, 6)` in `xyxy` format, no NMS required. Other tasks append extra data (mask coefficients, keypoints, or angle).
-    - **Exporting?** Most formats support end-to-end. A few (NCNN, RKNN, PaddlePaddle, ExecuTorch, IMX, Edge TPU) auto-fallback to traditional output.
+    - **Exporting?** Most formats support end-to-end output natively. However, a few formats (NCNN, RKNN, PaddlePaddle, ExecuTorch, IMX, and Edge TPU) automatically fall back to traditional output due to unsupported operator constraints (e.g., `torch.topk`).
 
 ## How End-to-End Detection Works
 
@@ -215,8 +215,9 @@ You can check using either the Ultralytics Python API or by inspecting the expor
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolo26n.pt")
-        print(model.model.end2end)  # True if end-to-end is enabled
+        model = YOLO("yolo26n.onnx")
+        model.predict(verbose=False)  # run predict to setup predictor first
+        print(model.predictor.model.end2end)  # True if end-to-end is enabled
         ```
 
     === "ONNX Runtime"

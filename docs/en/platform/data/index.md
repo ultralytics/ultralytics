@@ -85,8 +85,6 @@ This allows training on the platform's datasets from any machine with your [API 
     model.train(data="ul://username/datasets/my-dataset", epochs=100)
     ```
 
-### Dataset Tabs
-
 ### Dataset Versioning
 
 Create immutable NDJSON snapshots of your dataset for reproducible training. Each version captures image counts, class counts, and annotation counts at the time of creation. See [Versions Tab](datasets.md#versions-tab) for details.
@@ -141,7 +139,7 @@ Storage limits depend on your plan:
 | ---------- | ------------- |
 | Free       | 100 GB        |
 | Pro        | 500 GB        |
-| Enterprise | Custom        |
+| Enterprise | Unlimited     |
 
 Individual file limits: Images 50MB, Videos 1GB, Archives 10GB
 

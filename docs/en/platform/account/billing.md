@@ -23,9 +23,10 @@ Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 | **Models**                 | 100        | 500             | Unlimited  |
 | **Concurrent Trainings**   | 3          | 10              | Unlimited  |
 | **Storage**                | 100 GB     | 500 GB          | Unlimited  |
-| **Deployments**            | 3          | 10 (warm-start) | Unlimited  |
-| **Teams**                  | -          | Up to 5 members | Up to 50   |
+| **Deployments**            | 3          | 10              | Unlimited  |
+| **Cloud GPU Types**        | 19         | 22              | 22         |
 | **Best GPUs (H200, B200)** | -          | Yes             | Yes        |
+| **Teams**                  | -          | Up to 5 members | Up to 50   |
 | **SSO / SAML**             | -          | -               | Yes        |
 | **Enterprise License**     | -          | -               | Yes        |
 | **License**                | AGPL-3.0   | AGPL-3.0        | Enterprise |
@@ -42,8 +43,9 @@ Get started at no cost:
 - 3 concurrent cloud trainings
 - 3 deployments
 - 100 GB storage
-- Model export to all formats
-- Manual annotation
+- Model export to all 17+ formats
+- Manual, SAM3 & YOLO Smart annotation
+- 19 cloud GPU types including 5090 & H100 ($0.24–$3.07/hr)
 - Community support
 
 !!! tip "Company Email Bonus"
@@ -58,7 +60,7 @@ For professionals and small teams ($29/month or $290/year):
 - 500 models
 - 10 concurrent cloud trainings
 - 500 GB storage
-- 10 warm-start deployments (faster cold starts)
+- 10 cloud deployments
 - [Team collaboration](teams.md) (up to 5 members)
 - Access to the best GPUs (H200, B200)
 - Priority support
@@ -71,16 +73,14 @@ For professionals and small teams ($29/month or $290/year):
 
 For organizations with advanced needs:
 
-- $1,000/month in credits (starting allocation)
 - Custom credit allocation
 - Unlimited models, storage, trainings, and deployments
 - Enterprise License (commercial use, non-AGPL)
 - SSO / SAML authentication
 - RBAC with 4 roles (Owner, Admin, Editor, Viewer)
-- Custom roles with granular permissions
-- On-premise deployment options
-- Compliance (ISO/SOC)
-- SLA guarantees
+- On-premise deployment (coming soon)
+- ISO/SOC compliance (coming soon)
+- SLA guarantees (coming soon)
 - Enterprise support
 
 Contact [sales@ultralytics.com](mailto:sales@ultralytics.com) for Enterprise pricing.
@@ -215,6 +215,8 @@ Cloud training costs depend on GPU selection:
 | H200 SXM     | 141 GB | $3.59     |
 | B200         | 180 GB | $4.99     |
 
+H200 and B200 GPUs require a [Pro or Enterprise plan](#plans). All other GPUs are available on all plans.
+
 See [Cloud Training](../train/cloud-training.md) for complete GPU options and pricing.
 
 ### Cost Calculation
@@ -238,7 +240,7 @@ Upgrade for more features and monthly credits:
 3. Choose billing cycle (Monthly or Yearly)
 4. Complete checkout
 
-<!-- Screenshot: settings-plans-tab-upgrade-to-pro-dialog.avif -->
+![Upgrade to Pro dialog in Settings Plans tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-plans-tab-upgrade-to-pro-dialog.avif)
 
 ### Pro Benefits
 
@@ -248,9 +250,10 @@ After upgrading:
 - Storage increased to 500 GB
 - 500 models
 - 10 concurrent cloud trainings
-- 10 warm-start deployments
+- 10 cloud deployments
 - [Team collaboration](teams.md) (up to 5 members)
-- Access to best GPUs
+- Access to best GPUs (H200, B200)
+- Full monitoring dashboard
 - Priority support
 
 ### Cancel Pro

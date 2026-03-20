@@ -366,14 +366,15 @@ class v8DetectionLoss:
         if nl == 0:
             out = torch.zeros(batch_size, 0, ne - 1, device=self.device)
         else:
-            i = targets[:, 0]  # image index
-            _, counts = i.unique(return_counts=True)
+            batch_idx = targets[:, 0].long()  # image index
+            _, counts = batch_idx.unique(return_counts=True)
             counts = counts.to(dtype=torch.int32)
             out = torch.zeros(batch_size, counts.max(), ne - 1, device=self.device)
-            for j in range(batch_size):
-                matches = i == j
-                if n := matches.sum():
-                    out[j, :n] = targets[matches, 1:]
+            offsets = torch.zeros(batch_size + 1, dtype=torch.long, device=self.device)
+            offsets.scatter_add_(0, batch_idx + 1, torch.ones_like(batch_idx))
+            offsets = offsets.cumsum(0)
+            within_idx = torch.arange(nl, device=self.device) - offsets[batch_idx]
+            out[batch_idx, within_idx] = targets[:, 1:]
             out[..., 1:5] = xywh2xyxy(out[..., 1:5].mul_(scale_tensor))
         return out
 
@@ -713,11 +714,13 @@ class v8PoseLoss(v8DetectionLoss):
             (batch_size, max_kpts, keypoints.shape[1], keypoints.shape[2]), device=keypoints.device
         )
 
-        # TODO: any idea how to vectorize this?
-        # Fill batched_keypoints with keypoints based on batch_idx
-        for i in range(batch_size):
-            keypoints_i = keypoints[batch_idx == i]
-            batched_keypoints[i, : keypoints_i.shape[0]] = keypoints_i
+        # Vectorized fill: compute within-batch position for each keypoint using cumulative offsets
+        batch_idx_long = batch_idx.long()
+        offsets = torch.zeros(batch_size + 1, dtype=torch.long, device=keypoints.device)
+        offsets.scatter_add_(0, batch_idx_long + 1, torch.ones_like(batch_idx_long))
+        offsets = offsets.cumsum(0)
+        within_idx = torch.arange(len(batch_idx), device=keypoints.device) - offsets[batch_idx_long]
+        batched_keypoints[batch_idx_long, within_idx] = keypoints
 
         # Expand dimensions of target_gt_idx to match the shape of batched_keypoints
         target_gt_idx_expanded = target_gt_idx.unsqueeze(-1).unsqueeze(-1)
@@ -981,16 +984,17 @@ class v8OBBLoss(v8DetectionLoss):
         if targets.shape[0] == 0:
             out = torch.zeros(batch_size, 0, 6, device=self.device)
         else:
-            i = targets[:, 0]  # image index
-            _, counts = i.unique(return_counts=True)
+            batch_idx = targets[:, 0].long()  # image index
+            _, counts = batch_idx.unique(return_counts=True)
             counts = counts.to(dtype=torch.int32)
             out = torch.zeros(batch_size, counts.max(), 6, device=self.device)
-            for j in range(batch_size):
-                matches = i == j
-                if n := matches.sum():
-                    bboxes = targets[matches, 2:]
-                    bboxes[..., :4].mul_(scale_tensor)
-                    out[j, :n] = torch.cat([targets[matches, 1:2], bboxes], dim=-1)
+            packed_targets = targets[:, 1:].clone()
+            packed_targets[:, 1:5].mul_(scale_tensor)
+            offsets = torch.zeros(batch_size + 1, dtype=torch.long, device=self.device)
+            offsets.scatter_add_(0, batch_idx + 1, torch.ones_like(batch_idx))
+            offsets = offsets.cumsum(0)
+            within_idx = torch.arange(len(targets), device=self.device) - offsets[batch_idx]
+            out[batch_idx, within_idx] = packed_targets
         return out
 
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:

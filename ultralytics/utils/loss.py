@@ -1162,16 +1162,16 @@ class E2ELoss:
 
 
 class v8DetectionLossNorm(v8DetectionLoss):
-    """Detection loss for DetectNorm: anchor-relative ltrb offsets in normalized [0, 1] space.
+    """Detection loss for DetectNorm: anchor-relative ltrb offsets in [-0.2, 1.3] space.
 
-    Decoding: xyxy_norm = dist2bbox(sigmoid(raw), anchor_norm), same structure as the baseline
+    Decoding: xyxy_norm = dist2bbox(sigmoid(raw) * 1.5 - 0.2, anchor_norm), same structure as the baseline
     but in normalized coordinates instead of stride units. IoU loss in pixel space; L1 loss on
     normalized xyxy (reuses hyp.dfl gain).
     """
 
     def bbox_decode(self, anchor_points_norm: torch.Tensor, pred_dist: torch.Tensor) -> torch.Tensor:
-        """Decode sigmoid ltrb offsets relative to normalized anchor points → normalized xyxy [0, 1]."""
-        return dist2bbox(pred_dist.sigmoid(), anchor_points_norm, xywh=False)
+        """Decode shifted-sigmoid ltrb offsets relative to normalized anchor points → normalized xyxy."""
+        return dist2bbox((pred_dist.sigmoid() * 1.5 - 0.2).clamp(min=0), anchor_points_norm, xywh=False)
 
     def get_assigned_targets_and_loss(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> tuple:
         """Compute box, cls, and L1 losses for anchor-relative normalized coordinate predictions."""

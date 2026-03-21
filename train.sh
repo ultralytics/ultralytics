@@ -26,3 +26,5 @@
 # yolo train model=yolo26s-slim-neck.yaml name=yolo26s-slim-neck. device=3 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json
 # yolo train model=yolo26s-norm.yaml name=yolo26s-norm device=5 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json
 # yolo train model=yolo26s-yolof.yaml name=yolo26s-yolof device=5 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json
+# yolo train model=yolo26s-norm.yaml name=yolo26s-norm-0.2-1.3 device=5 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json
+# yolo train model=yolo26s-slim-neck-up.yaml name=yolo26s-slim-neck-up device=6 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json

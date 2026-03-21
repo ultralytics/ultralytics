@@ -282,10 +282,9 @@ class Detect(nn.Module):
 class DetectNorm(Detect):
     """YOLO detection head with anchor-relative normalized box predictions.
 
-    Predicts ltrb offsets from each anchor point using sigmoid, giving outputs in normalized [0, 1] space.
-    Decoding: xyxy_norm = dist2bbox(sigmoid(raw), anchor_norm), then × imgsz for pixel coords.
-    This is identical in structure to the baseline (anchor-relative ltrb), but the coordinate space is
-    normalized [0, 1] instead of stride units, and sigmoid bounds the offsets instead of raw values.
+    Predicts ltrb offsets from each anchor point using a shifted sigmoid, giving outputs in [-0.2, 1.3] space.
+    Formula: sigmoid(x) * 1.5 - 0.2, which allows slight negative offsets and offsets beyond 1.0.
+    Decoding: xyxy_norm = dist2bbox(shifted_sigmoid(raw), anchor_norm), then × imgsz for pixel coords.
     """
 
     def __init__(self, nc: int = 80, reg_max: int = 1, end2end: bool = False, ch: tuple = ()):
@@ -293,7 +292,7 @@ class DetectNorm(Detect):
         super().__init__(nc=nc, reg_max=1, end2end=end2end, ch=ch)
 
     def _get_decode_boxes(self, x: dict) -> torch.Tensor:
-        """Decode sigmoid ltrb offsets relative to normalized anchor points → pixel coords."""
+        """Decode shifted-sigmoid ltrb offsets relative to normalized anchor points → pixel coords."""
         shape = x["feats"][0].shape  # BCHW
         if self.dynamic or self.shape != shape:
             self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(x["feats"], self.stride, 0.5))
@@ -301,11 +300,12 @@ class DetectNorm(Detect):
         h = shape[2] * self.stride[0]
         w = shape[3] * self.stride[0]
         # Use a single isotropic scale so training (square 640×640) and rect-val (non-square) are consistent.
-        # Normalizing x and y by different W/H would cause a train/val mismatch when H ≠ W.
+        # Normalizing x and y by different W/H would cause a train/val mismatlch when H ≠ W.
         scale = max(h, w)
         anchor_norm = self.anchors * self.strides / scale  # (2, A) in [0, 1]
-        # Decode ltrb: x["boxes"] is (B, 4, A) raw logits → sigmoid → ltrb offsets
-        pred_ltrb = x["boxes"].sigmoid()  # (B, 4, A)
+        # Decode ltrb: x["boxes"] is (B, 4, A) raw logits → sigmoid * 1.5 - 0.2 → clamped to [0, 1.3]
+        # Clamped to min=0 to avoid invalid boxes; gradient still flows since 0 ≈ sigmoid(-1.9), far from saturation.
+        pred_ltrb = (x["boxes"].sigmoid() * 1.5 - 0.2).clamp(min=0)  # (B, 4, A)
         x1y1 = anchor_norm.unsqueeze(0) - pred_ltrb[:, :2]  # (B, 2, A)
         x2y2 = anchor_norm.unsqueeze(0) + pred_ltrb[:, 2:]  # (B, 2, A)
         boxes_norm = torch.cat([x1y1, x2y2], dim=1)  # (B, 4, A) normalized by scale
@@ -314,14 +314,16 @@ class DetectNorm(Detect):
     def bias_init(self) -> None:
         """Initialize box biases so initial ltrb offsets match the baseline's 2-grid-unit initial size."""
         for i, (a, b) in enumerate(zip(self.one2many["box_head"], self.one2many["cls_head"])):
-            # sigmoid(bias) = 2 * stride / 640  →  bias = logit(2 * stride / 640)
+            # sigmoid(bias) * 1.5 - 0.2 = ltrb0  →  sigmoid(bias) = (ltrb0 + 0.2) / 1.5  →  bias = logit(...)
             ltrb0 = 2.0 * self.stride[i].item() / 640.0
-            a[-1].bias.data[:] = math.log(ltrb0 / (1.0 - ltrb0))
+            s = (ltrb0 + 0.2) / 1.5
+            a[-1].bias.data[:] = math.log(s / (1.0 - s))
             b[-1].bias.data[: self.nc] = math.log(5 / self.nc / (640 / self.stride[i]) ** 2)
         if self.end2end:
             for i, (a, b) in enumerate(zip(self.one2one["box_head"], self.one2one["cls_head"])):
                 ltrb0 = 2.0 * self.stride[i].item() / 640.0
-                a[-1].bias.data[:] = math.log(ltrb0 / (1.0 - ltrb0))
+                s = (ltrb0 + 0.2) / 1.5
+                a[-1].bias.data[:] = math.log(s / (1.0 - s))
                 b[-1].bias.data[: self.nc] = math.log(5 / self.nc / (640 / self.stride[i]) ** 2)
 
 

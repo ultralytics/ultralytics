@@ -44,13 +44,13 @@ graph LR
 
 Ultralytics Platform supports all 5 YOLO task types:
 
-| Task                                             | Description                                 | Annotation Tool   |
-| ------------------------------------------------ | ------------------------------------------- | ----------------- |
-| **[Detect](../../datasets/detect/index.md)**     | Object detection with bounding boxes        | Rectangle tool    |
-| **[Segment](../../datasets/segment/index.md)**   | Instance segmentation with pixel masks      | Polygon tool      |
+| Task                                             | Description                                                     | Annotation Tool   |
+| ------------------------------------------------ | --------------------------------------------------------------- | ----------------- |
+| **[Detect](../../datasets/detect/index.md)**     | Object detection with bounding boxes                            | Rectangle tool    |
+| **[Segment](../../datasets/segment/index.md)**   | Instance segmentation with pixel masks                          | Polygon tool      |
 | **[Pose](../../datasets/pose/index.md)**         | Keypoint estimation with built-in and custom skeleton templates | Keypoint tool     |
-| **[OBB](../../datasets/obb/index.md)**           | Oriented bounding boxes for rotated objects | Oriented box tool |
-| **[Classify](../../datasets/classify/index.md)** | Image-level classification                  | Class selector    |
+| **[OBB](../../datasets/obb/index.md)**           | Oriented bounding boxes for rotated objects                     | Oriented box tool |
+| **[Classify](../../datasets/classify/index.md)** | Image-level classification                                      | Class selector    |
 
 !!! info "Task Type Selection"
 

@@ -221,13 +221,13 @@ Click on a creator's username to view their public profile at `platform.ultralyt
 
 ![Ultralytics Platform User Profile Public Content](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-user-profile-public-content.avif)
 
-| Section      | Content                      |
-| ------------ | ---------------------------- |
-| **Bio**      | User description and company |
-| **Links**    | Social profiles              |
-| **Followers**| Follower count               |
-| **Projects** | Public projects with models  |
-| **Datasets** | Public datasets              |
+| Section       | Content                      |
+| ------------- | ---------------------------- |
+| **Bio**       | User description and company |
+| **Links**     | Social profiles              |
+| **Followers** | Follower count               |
+| **Projects**  | Public projects with models  |
+| **Datasets**  | Public datasets              |
 
 ### Follow Users
 
@@ -302,11 +302,11 @@ Click the **Share** button on any public project, model, or dataset to share it.
 
 Public content can be embedded in external websites using embed URLs:
 
-| Content  | Embed URL Pattern                                             |
-| -------- | ------------------------------------------------------------- |
-| Project  | `platform.ultralytics.com/embed/{username}/{project}`         |
-| Model    | `platform.ultralytics.com/embed/{username}/{project}/{model}` |
-| Dataset  | `platform.ultralytics.com/embed/{username}/datasets/{slug}`   |
+| Content | Embed URL Pattern                                             |
+| ------- | ------------------------------------------------------------- |
+| Project | `platform.ultralytics.com/embed/{username}/{project}`         |
+| Model   | `platform.ultralytics.com/embed/{username}/{project}/{model}` |
+| Dataset | `platform.ultralytics.com/embed/{username}/datasets/{slug}`   |
 
 Use these URLs in an `<iframe>` to embed interactive project views, model prediction widgets, or dataset viewers on your website.
 

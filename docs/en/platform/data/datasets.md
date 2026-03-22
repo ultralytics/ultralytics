@@ -377,12 +377,12 @@ Each version is numbered sequentially (v1, v2, v3...) and stored permanently. Yo
 
 Export your dataset for offline use. The Platform supports multiple export formats:
 
-| Format        | Description                                        |
-| ------------- | -------------------------------------------------- |
-| **YOLO**      | Standard YOLO format with images and `.txt` labels |
-| **COCO**      | COCO JSON format with annotation arrays            |
-| **Pascal VOC**| XML annotation files per image                     |
-| **NDJSON**    | One JSON object per line (lightweight metadata)    |
+| Format         | Description                                        |
+| -------------- | -------------------------------------------------- |
+| **YOLO**       | Standard YOLO format with images and `.txt` labels |
+| **COCO**       | COCO JSON format with annotation arrays            |
+| **Pascal VOC** | XML annotation files per image                     |
+| **NDJSON**     | One JSON object per line (lightweight metadata)    |
 
 To export:
 

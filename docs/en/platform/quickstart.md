@@ -140,12 +140,12 @@ Navigate to `Annotate` in the sidebar and click `New Dataset` to add your traini
 
 Ultralytics Platform supports multiple upload formats (full details in [Datasets](data/datasets.md)):
 
-| Format                                                                 | Max Size | Description                                            |
-| ---------------------------------------------------------------------- | -------- | ------------------------------------------------------ |
-| **Images**                                                             | 50 MB    | JPG, PNG, WebP, TIFF, and other common formats         |
-| **ZIP Archive**                                                        | 10 GB    | Compressed folder with images and labels               |
+| Format                                                                 | Max Size | Description                                                                 |
+| ---------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------- |
+| **Images**                                                             | 50 MB    | JPG, PNG, WebP, TIFF, and other common formats                              |
+| **ZIP Archive**                                                        | 10 GB    | Compressed folder with images and labels                                    |
 | **Video**                                                              | 1 GB     | MP4, WebM, MOV, AVI, MKV, M4V - frames extracted at ~1 fps (max 100 frames) |
-| **[YOLO Format](../datasets/detect/index.md#ultralytics-yolo-format)** | 10 GB    | Standard YOLO dataset structure with labels            |
+| **[YOLO Format](../datasets/detect/index.md#ultralytics-yolo-format)** | 10 GB    | Standard YOLO dataset structure with labels                                 |
 
 ```mermaid
 graph LR

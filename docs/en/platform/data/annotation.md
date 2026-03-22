@@ -306,7 +306,7 @@ When Smart mode is active, a model picker appears in the toolbar. Five models ar
 | **SAM 2.1 Small** | 88 MB   | Fast     | Default                     |
 | **SAM 2.1 Base**  | 154 MB  | Moderate |                             |
 | **SAM 2.1 Large** | 428 MB  | Slower   | Most accurate of SAM 2.1    |
-| **SAM 3**         | 3.45 GB | Slowest  | Latest generation, new 2025 |
+| **SAM 3**         | 3.45 GB | Slowest  | Latest generation           |
 
 ![Ultralytics Platform Annotate Sam Model Selector](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-sam-model-selector.avif)
 

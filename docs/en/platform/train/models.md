@@ -78,6 +78,7 @@ Each model page has the following tabs:
 | **Predict**  | Interactive browser inference                 |
 | **Export**   | Format conversion with GPU selection          |
 | **Deploy**   | Endpoint creation and management              |
+| **Activity** | Audit log of all actions on this model        |
 
 ### Overview Tab
 
@@ -155,6 +156,10 @@ Export your model to 17+ deployment formats. See [Export Model](#export-model) b
 ### Deploy Tab
 
 Create and manage dedicated inference endpoints. See [Deployments](../deploy/index.md) for details.
+
+### Activity Tab
+
+The Activity tab shows an audit log of all actions performed on this model, including creation, training start/completion, exports, deployments, and settings changes. Each entry includes the action type, timestamp, and user who performed it.
 
 ## Validation Plots
 
@@ -337,6 +342,13 @@ Remove a model you no longer need:
 !!! note "Trash and Restore"
 
     Deleted models go to Trash for 30 days. Restore from [Settings > Trash](../account/trash.md).
+
+## See Also
+
+- [**Inference**](../deploy/inference.md): Test models in the browser with the Predict tab
+- [**Endpoints**](../deploy/endpoints.md): Deploy models to production with dedicated endpoints
+- [**Cloud Training**](cloud-training.md): Configure and run training jobs on cloud GPUs
+- [**Export Formats**](../../modes/export.md): Full guide to all 17+ export formats
 
 ## FAQ
 

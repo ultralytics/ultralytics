@@ -364,4 +364,4 @@ If you need more help:
 - **Documentation**: Browse these docs for detailed guides on [datasets](data/datasets.md), [annotation](data/annotation.md), [training](train/cloud-training.md), [deployment](deploy/endpoints.md), and [billing](account/billing.md)
 - **Discord**: Join our [Discord community](https://discord.com/invite/ultralytics) for discussions
 - **GitHub**: Report issues on [GitHub](https://github.com/ultralytics/ultralytics/issues)
-- **REST API**: See the [API reference](api/index.md) for programmatic access to all Platform features
+- **REST API**: See the [API reference](api/index.md) or try the [interactive API docs](https://platform.ultralytics.com/api/docs) for programmatic access to all Platform features

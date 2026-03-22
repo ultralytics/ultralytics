@@ -174,14 +174,14 @@ Deploy a model in under 2 minutes:
 
 ### What's the difference between shared and dedicated inference?
 
-| Feature     | Shared                | Dedicated      |
-| ----------- | --------------------- | -------------- |
-| **Latency** | Variable              | Consistent     |
-| **Cost**    | Free (included)       | Free (basic), usage-based (advanced) |
-| **Scale**   | Limited               | Configurable   |
-| **Regions** | 3                     | 43             |
-| **URL**     | Generic               | Custom         |
-| **Rate**    | 20 req/min            | Unlimited      |
+| Feature     | Shared          | Dedicated                            |
+| ----------- | --------------- | ------------------------------------ |
+| **Latency** | Variable        | Consistent                           |
+| **Cost**    | Free (included) | Free (basic), usage-based (advanced) |
+| **Scale**   | Limited         | Configurable                         |
+| **Regions** | 3               | 43                                   |
+| **URL**     | Generic         | Custom                               |
+| **Rate**    | 20 req/min      | Unlimited                            |
 
 ### How long does deployment take?
 

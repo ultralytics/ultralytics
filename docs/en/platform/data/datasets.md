@@ -469,7 +469,7 @@ Use this URI to train models from anywhere:
 === "CLI"
 
     ```bash
-    export ULTRALYTICS_API_KEY="ul_your_api_key"
+    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100
     ```
 

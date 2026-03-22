@@ -358,9 +358,7 @@ Same as [shared inference](inference.md#response) with task-specific fields.
 
 ## Pricing
 
-!!! note "Coming Soon"
-
-    Dedicated endpoint pricing details are coming soon. Currently, dedicated endpoints are available at no additional cost beyond your plan. Pricing will be based on compute resources (vCPU-seconds and memory) when billing is introduced.
+Basic dedicated endpoints are **free on all plans**. Higher-resource configurations (more vCPUs, more memory, warm start) will offer usage-based pricing in the future.
 
 !!! tip "Cost Optimization"
 

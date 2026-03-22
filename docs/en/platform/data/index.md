@@ -152,7 +152,7 @@ Yes! Use the dataset URI format to train locally:
 === "CLI"
 
     ```bash
-    export ULTRALYTICS_API_KEY="ul_your_api_key"
+    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100
     ```
 
@@ -161,7 +161,7 @@ Yes! Use the dataset URI format to train locally:
     ```python
     import os
 
-    os.environ["ULTRALYTICS_API_KEY"] = "ul_your_api_key"
+    os.environ["ULTRALYTICS_API_KEY"] = "YOUR_API_KEY"
 
     from ultralytics import YOLO
 

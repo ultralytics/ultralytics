@@ -276,7 +276,7 @@ The `Predict` tab provides ready-to-use code examples with your actual API key p
     import requests
 
     url = "https://platform.ultralytics.com/api/models/{model_id}/predict"
-    headers = {"Authorization": "Bearer your_api_key"}
+    headers = {"Authorization": "Bearer YOUR_API_KEY"}
 
     with open("image.jpg", "rb") as f:
         response = requests.post(url, headers=headers, files={"file": f})
@@ -288,7 +288,7 @@ The `Predict` tab provides ready-to-use code examples with your actual API key p
 
     ```bash
     curl -X POST "https://platform.ultralytics.com/api/models/{model_id}/predict" \
-      -H "Authorization: Bearer your_api_key" \
+      -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg"
     ```
 
@@ -343,7 +343,7 @@ If you prefer to train on your own hardware, you can stream metrics to the platf
 2. Set the environment variable and train with a `project/name` format:
 
 ```bash
-export ULTRALYTICS_API_KEY="ul_your_api_key_here"
+export ULTRALYTICS_API_KEY="YOUR_API_KEY"
 
 yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
 ```

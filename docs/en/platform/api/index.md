@@ -67,7 +67,7 @@ See [API Keys](../account/api-keys.md) for detailed instructions.
 Include your API key in all requests:
 
 ```
-Authorization: Bearer ul_your_api_key_here
+Authorization: Bearer YOUR_API_KEY
 ```
 
 !!! info "API Key Format"
@@ -79,7 +79,7 @@ Authorization: Bearer ul_your_api_key_here
 === "cURL"
 
     ```bash
-    curl -H "Authorization: Bearer ul_abc123..." \
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
       https://platform.ultralytics.com/api/datasets
     ```
 
@@ -88,7 +88,7 @@ Authorization: Bearer ul_your_api_key_here
     ```python
     import requests
 
-    headers = {"Authorization": "Bearer ul_abc123..."}
+    headers = {"Authorization": "Bearer YOUR_API_KEY"}
     response = requests.get(
         "https://platform.ultralytics.com/api/datasets",
         headers=headers,
@@ -100,7 +100,7 @@ Authorization: Bearer ul_your_api_key_here
 
     ```javascript
     const response = await fetch("https://platform.ultralytics.com/api/datasets", {
-      headers: { Authorization: "Bearer ul_abc123..." },
+      headers: { Authorization: "Bearer YOUR_API_KEY" },
     });
     const data = await response.json();
     ```
@@ -208,7 +208,7 @@ GET /api/datasets
 === "cURL"
 
     ```bash
-    curl -H "Authorization: Bearer $API_KEY" \
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
       "https://platform.ultralytics.com/api/datasets?limit=10"
     ```
 
@@ -640,7 +640,7 @@ POST /api/projects
 
     ```bash
     curl -X POST \
-      -H "Authorization: Bearer $API_KEY" \
+      -H "Authorization: Bearer YOUR_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{"name": "my-project", "slug": "my-project", "description": "Detection experiments"}' \
       https://platform.ultralytics.com/api/projects
@@ -819,7 +819,7 @@ POST /api/models/{modelId}/predict
 
     ```bash
     curl -X POST \
-      -H "Authorization: Bearer $API_KEY" \
+      -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg" \
       -F "conf=0.5" \
       https://platform.ultralytics.com/api/models/MODEL_ID/predict
@@ -903,7 +903,7 @@ POST /api/training/start
 
     ```bash
     curl -X POST \
-      -H "Authorization: Bearer $API_KEY" \
+      -H "Authorization: Bearer YOUR_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
         "modelId": "MODEL_ID",
@@ -1161,7 +1161,7 @@ POST /api/exports
 
     ```bash
     curl -X POST \
-      -H "Authorization: Bearer $API_KEY" \
+      -H "Authorization: Bearer YOUR_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{"modelId": "MODEL_ID", "format": "onnx"}' \
       https://platform.ultralytics.com/api/exports
@@ -1719,7 +1719,7 @@ DELETE /api/api-keys
 
 ```bash
 curl -X DELETE \
-  -H "Authorization: Bearer $API_KEY" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
   "https://platform.ultralytics.com/api/api-keys?keyId=KEY_ID"
 ```
 
@@ -2174,14 +2174,14 @@ Webhooks notify your server of Platform events via HTTP POST callbacks:
 Most endpoints use a `limit` parameter to control how many results are returned per request:
 
 ```bash
-curl -H "Authorization: Bearer $API_KEY" \
+curl -H "Authorization: Bearer YOUR_API_KEY" \
   "https://platform.ultralytics.com/api/datasets?limit=50"
 ```
 
 The Activity and Trash endpoints also support a `page` parameter for page-based pagination:
 
 ```bash
-curl -H "Authorization: Bearer $API_KEY" \
+curl -H "Authorization: Bearer YOUR_API_KEY" \
   "https://platform.ultralytics.com/api/activity?page=2&limit=20"
 ```
 

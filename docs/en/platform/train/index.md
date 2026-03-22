@@ -110,7 +110,7 @@ Get started with cloud training in under a minute:
 === "Remote (CLI)"
 
     ```bash
-    export ULTRALYTICS_API_KEY="ul_your_api_key"
+    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset \
       epochs=100 project=username/my-project name=exp1
     ```

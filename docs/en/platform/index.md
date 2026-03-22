@@ -150,7 +150,7 @@ You can train models either through the web UI (cloud training) or from your own
     pip install "ultralytics>=8.4.14"
 
     # Set your API key
-    export ULTRALYTICS_API_KEY="ul_your_api_key"
+    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
 
     # Train and stream metrics to the platform
     yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
@@ -163,7 +163,7 @@ You can train models either through the web UI (cloud training) or from your own
 
     from ultralytics import YOLO
 
-    os.environ["ULTRALYTICS_API_KEY"] = "ul_your_api_key"
+    os.environ["ULTRALYTICS_API_KEY"] = "YOUR_API_KEY"
 
     model = YOLO("yolo26n.pt")
     model.train(
@@ -201,7 +201,7 @@ Once deployed, call your endpoint from any language:
     import requests
 
     url = "https://your-endpoint-url/predict"
-    headers = {"Authorization": "Bearer ul_your_api_key"}
+    headers = {"Authorization": "Bearer YOUR_API_KEY"}
 
     with open("image.jpg", "rb") as f:
         response = requests.post(url, headers=headers, files={"file": f})
@@ -213,7 +213,7 @@ Once deployed, call your endpoint from any language:
 
     ```bash
     curl -X POST "https://your-endpoint-url/predict" \
-      -H "Authorization: Bearer ul_your_api_key" \
+      -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg"
     ```
 
@@ -225,7 +225,7 @@ Once deployed, call your endpoint from any language:
 
     const response = await fetch("https://your-endpoint-url/predict", {
         method: "POST",
-        headers: { Authorization: "Bearer ul_your_api_key" },
+        headers: { Authorization: "Bearer YOUR_API_KEY" },
         body: form,
     });
 
@@ -326,7 +326,7 @@ You can train models on your own hardware and stream real-time metrics to the pl
 
     ```bash
     # Set your API key
-    export ULTRALYTICS_API_KEY="ul_your_api_key"
+    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
 
     # Train with project/name to stream metrics
     yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
@@ -339,7 +339,7 @@ You can train models on your own hardware and stream real-time metrics to the pl
 
     from ultralytics import YOLO
 
-    os.environ["ULTRALYTICS_API_KEY"] = "ul_your_api_key"
+    os.environ["ULTRALYTICS_API_KEY"] = "YOUR_API_KEY"
 
     model = YOLO("yolo26n.pt")
     model.train(
@@ -354,7 +354,7 @@ You can train models on your own hardware and stream real-time metrics to the pl
 
     ```bash
     # Train using a Platform dataset directly
-    export ULTRALYTICS_API_KEY="ul_your_api_key"
+    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
 
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100 project=username/my-project name=exp1
     ```

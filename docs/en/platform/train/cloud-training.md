@@ -214,7 +214,7 @@ Train on your own hardware while streaming metrics to the platform.
 3. Set the environment variable:
 
 ```bash
-export ULTRALYTICS_API_KEY="your_api_key"
+export ULTRALYTICS_API_KEY="YOUR_API_KEY"
 ```
 
 ### Train with Streaming

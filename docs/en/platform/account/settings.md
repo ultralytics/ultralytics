@@ -247,6 +247,17 @@ Owners and admins can manage the team:
 
 Manage deleted items. See [Trash](trash.md) for full documentation.
 
+## Help & Feedback
+
+The **Help** page is accessible from the sidebar footer. Use it to:
+
+- **Rate your experience** with a 1-5 star rating
+- **Choose a feedback type**: Bug Report, Feature Request, or General
+- **Describe the issue** with a text message
+- **Attach screenshots** for visual context
+
+Feedback is private and sent directly to the Ultralytics team to help prioritize features and fix issues.
+
 ## FAQ
 
 ### How do I change my email?

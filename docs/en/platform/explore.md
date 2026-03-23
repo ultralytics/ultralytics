@@ -143,7 +143,7 @@ Use a public dataset for your training:
     - Cloned datasets are **private by default**
     - You can modify classes, annotations, and splits
     - Changes don't affect the original dataset
-    - Images are deduplicated using content-addressable storage — cloning is fast
+    - Images are deduplicated using content-addressable storage (CAS) — cloning is fast and **does not double your storage usage**
 
 See [Datasets](data/datasets.md) for managing and annotating your cloned dataset.
 
@@ -221,12 +221,17 @@ Click on a creator's username to view their public profile at `platform.ultralyt
 
 ![Ultralytics Platform User Profile Public Content](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-user-profile-public-content.avif)
 
-| Section      | Content                      |
-| ------------ | ---------------------------- |
-| **Bio**      | User description and company |
-| **Links**    | Social profiles              |
-| **Projects** | Public projects with models  |
-| **Datasets** | Public datasets              |
+| Section       | Content                      |
+| ------------- | ---------------------------- |
+| **Bio**       | User description and company |
+| **Links**     | Social profiles              |
+| **Followers** | Follower count               |
+| **Projects**  | Public projects with models  |
+| **Datasets**  | Public datasets              |
+
+### Follow Users
+
+Click the **Follow** button on any user's profile to follow them. Following helps you discover new content from creators you're interested in. Your follower count is displayed on your profile.
 
 ## Make Your Content Public
 
@@ -288,6 +293,22 @@ When contributing public content:
 - Upload inappropriate content
 - Spam low-quality content
 - Misrepresent performance
+
+## Share Content
+
+Click the **Share** button on any public project, model, or dataset to share it. The share dialog provides pre-filled text for social platforms and a direct copy link.
+
+## Embed Widgets
+
+Public content can be embedded in external websites using embed URLs:
+
+| Content | Embed URL Pattern                                             |
+| ------- | ------------------------------------------------------------- |
+| Project | `platform.ultralytics.com/embed/{username}/{project}`         |
+| Model   | `platform.ultralytics.com/embed/{username}/{project}/{model}` |
+| Dataset | `platform.ultralytics.com/embed/{username}/datasets/{slug}`   |
+
+Use these URLs in an `<iframe>` to embed interactive project views, model prediction widgets, or dataset viewers on your website.
 
 ## Public Content URLs
 

@@ -347,7 +347,7 @@ jobs:
           activate-environment: true
       - name: Install requirements
         run: |
-          uv pip install -e . pytest-cov nvidia-ml-py
+          uv pip install -e . pytest-cov nvidia-ml-py "torch<2.11"  # TODO: remove torch pin after GPU runner driver update to CUDA 13.0
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Check environment

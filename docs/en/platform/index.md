@@ -66,7 +66,7 @@ graph LR
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Upload**   | Images (50MB), videos (1GB), ZIP archives (10GB) with automatic processing                                                                     |
 | **Annotate** | Manual tools, SAM smart annotation, YOLO auto-labeling for all 5 task types (see [supported tasks](data/index.md#supported-tasks))             |
-| **Train**    | Cloud GPUs (19 free + 3 Pro-exclusive), real-time metrics, project organization                                                                |
+| **Train**    | Cloud GPUs (20 free + 3 Pro-exclusive), real-time metrics, project organization                                                                |
 | **Export**   | [17 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.; see [supported formats](train/models.md#supported-formats)) |
 | **Deploy**   | 43 global regions with dedicated endpoints, auto-scaling, monitoring                                                                           |
 
@@ -74,7 +74,7 @@ graph LR
 
 - **Upload** images, videos, and ZIP archives to create training datasets
 - **Visualize** annotations with interactive overlays for all 5 YOLO task types (see [supported tasks](data/index.md#supported-tasks))
-- **Train** models on cloud GPUs (19 free, 22 with Pro) with real-time metrics
+- **Train** models on cloud GPUs (20 free, 23 with Pro) with real-time metrics
 - **Export** to [17 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.)
 - **Deploy** to 43 global regions with one-click dedicated endpoints
 - **Monitor** training progress, deployment health, and usage metrics
@@ -127,7 +127,7 @@ graph LR
 
 ### Model Training
 
-- **Cloud Training**: Train on cloud GPUs (19 free, 22 with [Pro](account/billing.md#plans)) with real-time metrics
+- **Cloud Training**: Train on cloud GPUs (20 free, 23 with [Pro](account/billing.md#plans)) with real-time metrics
 - **Remote Training**: Train anywhere and stream metrics to the platform (W&B-style)
 - **Project Organization**: Group related models, compare experiments, track activity
 - **17 Export Formats**: ONNX, TensorRT, CoreML, TFLite, and more (see [supported formats](train/models.md#supported-formats))
@@ -150,7 +150,7 @@ You can train models either through the web UI (cloud training) or from your own
     pip install "ultralytics>=8.4.14"
 
     # Set your API key
-    export ULTRALYTICS_API_KEY="your_api_key"
+    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
 
     # Train and stream metrics to the platform
     yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
@@ -163,7 +163,7 @@ You can train models either through the web UI (cloud training) or from your own
 
     from ultralytics import YOLO
 
-    os.environ["ULTRALYTICS_API_KEY"] = "your_api_key"
+    os.environ["ULTRALYTICS_API_KEY"] = "YOUR_API_KEY"
 
     model = YOLO("yolo26n.pt")
     model.train(
@@ -201,7 +201,7 @@ Once deployed, call your endpoint from any language:
     import requests
 
     url = "https://your-endpoint-url/predict"
-    headers = {"Authorization": "Bearer your_api_key"}
+    headers = {"Authorization": "Bearer YOUR_API_KEY"}
 
     with open("image.jpg", "rb") as f:
         response = requests.post(url, headers=headers, files={"file": f})
@@ -213,7 +213,7 @@ Once deployed, call your endpoint from any language:
 
     ```bash
     curl -X POST "https://your-endpoint-url/predict" \
-      -H "Authorization: Bearer your_api_key" \
+      -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg"
     ```
 
@@ -225,7 +225,7 @@ Once deployed, call your endpoint from any language:
 
     const response = await fetch("https://your-endpoint-url/predict", {
         method: "POST",
-        headers: { Authorization: "Bearer your_api_key" },
+        headers: { Authorization: "Bearer YOUR_API_KEY" },
         body: form,
     });
 
@@ -252,7 +252,7 @@ Once deployed, call your endpoint from any language:
     | Concurrent Trainings | 3              | 10                  | Unlimited      |
     | Deployments          | 3              | 10                  | Unlimited      |
     | Storage              | 100 GB         | 500 GB              | Unlimited      |
-    | Cloud GPU Types      | 19             | 22 (incl. H200/B200)| 22             |
+    | Cloud GPU Types      | 20             | 23 (incl. H200/B200)| 23             |
     | Teams                | -              | Up to 5 members     | Up to 50       |
     | Support              | Community      | Priority            | Dedicated      |
 
@@ -306,30 +306,7 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 
 Ultralytics Platform supports multiple GPU types for cloud training:
 
-| GPU          | VRAM   | Cost/Hour | Best For                   |
-| ------------ | ------ | --------- | -------------------------- |
-| RTX 2000 Ada | 16 GB  | $0.24     | Small datasets, testing    |
-| RTX A4500    | 20 GB  | $0.24     | Small-medium datasets      |
-| RTX A5000    | 24 GB  | $0.26     | Medium datasets            |
-| RTX 4000 Ada | 20 GB  | $0.38     | Medium datasets            |
-| L4           | 24 GB  | $0.39     | Inference optimized        |
-| A40          | 48 GB  | $0.40     | Larger batch sizes         |
-| RTX 3090     | 24 GB  | $0.46     | General training           |
-| RTX A6000    | 48 GB  | $0.49     | Large models               |
-| RTX 4090     | 24 GB  | $0.59     | Great price/performance    |
-| RTX 6000 Ada | 48 GB  | $0.77     | Large batch training       |
-| L40S         | 48 GB  | $0.86     | Large batch training       |
-| RTX 5090     | 32 GB  | $0.89     | Latest generation          |
-| L40          | 48 GB  | $0.99     | Large models               |
-| A100 PCIe    | 80 GB  | $1.39     | Production training        |
-| A100 SXM     | 80 GB  | $1.49     | Production training        |
-| RTX PRO 6000 | 96 GB  | $1.89     | Recommended default        |
-| H100 PCIe    | 80 GB  | $2.39     | Fastest training           |
-| H100 SXM     | 80 GB  | $2.69     | Fastest training           |
-| H100 NVL     | 94 GB  | $3.07     | High-memory training       |
-| H200 NVL     | 143 GB | $3.39     | Maximum memory (Pro+)      |
-| H200 SXM     | 141 GB | $3.59     | Maximum performance (Pro+) |
-| B200         | 180 GB | $4.99     | Largest models (Pro+)      |
+{% include "macros/platform-gpu-table.md" %}
 
 See [Cloud Training](train/cloud-training.md) for complete pricing and GPU options.
 
@@ -349,7 +326,7 @@ You can train models on your own hardware and stream real-time metrics to the pl
 
     ```bash
     # Set your API key
-    export ULTRALYTICS_API_KEY="your_api_key"
+    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
 
     # Train with project/name to stream metrics
     yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
@@ -362,7 +339,7 @@ You can train models on your own hardware and stream real-time metrics to the pl
 
     from ultralytics import YOLO
 
-    os.environ["ULTRALYTICS_API_KEY"] = "your_api_key"
+    os.environ["ULTRALYTICS_API_KEY"] = "YOUR_API_KEY"
 
     model = YOLO("yolo26n.pt")
     model.train(
@@ -377,7 +354,7 @@ You can train models on your own hardware and stream real-time metrics to the pl
 
     ```bash
     # Train using a Platform dataset directly
-    export ULTRALYTICS_API_KEY="your_api_key"
+    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
 
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100 project=username/my-project name=exp1
     ```

@@ -240,7 +240,7 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
         "functionTimeCall": 0.018,
         "model": "model.pt",
         "version": {
-            "ultralytics": "8.4.14",
+            "ultralytics": "8.x.x",
             "torch": "2.6.0",
             "torchvision": "0.21.0",
             "python": "3.13.0"
@@ -328,6 +328,12 @@ Response format varies by task:
       "obb": {"x1": 105, "y1": 48, "x2": 295, "y2": 55, "x3": 290, "y3": 395, "x4": 110, "y4": 402}
     }
     ```
+
+## Billing
+
+Shared inference (the Predict tab and `/api/models/{id}/predict` endpoint) is **included at no additional cost** on all plans. There are no per-request charges for shared inference.
+
+For production workloads requiring higher throughput, deploy a [dedicated endpoint](endpoints.md).
 
 ## Rate Limits
 

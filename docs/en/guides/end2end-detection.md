@@ -26,19 +26,19 @@ For a deeper look at the motivation behind this architectural shift, see the [Ul
 
 YOLO26 uses a **dual-head architecture** during [training](../modes/train.md). Both heads share the same backbone and neck, but produce outputs in different ways:
 
-| Head | Purpose | Detection Output | Post-Processing |
-| --- | --- | --- | --- |
-| **One-to-One** (default) | End-to-end inference | `(N, 300, 6)` | Confidence threshold only |
-| **One-to-Many** | Traditional YOLO output | `(N, nc + 4, 8400)` | Requires NMS |
+| Head                     | Purpose                 | Detection Output    | Post-Processing           |
+| ------------------------ | ----------------------- | ------------------- | ------------------------- |
+| **One-to-One** (default) | End-to-end inference    | `(N, 300, 6)`       | Confidence threshold only |
+| **One-to-Many**          | Traditional YOLO output | `(N, nc + 4, 8400)` | Requires NMS              |
 
 The shapes above are for [detection](../tasks/detect.md). Other tasks extend the one-to-one output with additional data per detection:
 
-| Task | End-to-End Output | Extra Data |
-| --- | --- | --- |
-| [Detection](../tasks/detect.md) | `(N, 300, 6)` | — |
+| Task                                | End-to-End Output                          | Extra Data                          |
+| ----------------------------------- | ------------------------------------------ | ----------------------------------- |
+| [Detection](../tasks/detect.md)     | `(N, 300, 6)`                              | —                                   |
 | [Segmentation](../tasks/segment.md) | `(N, 300, 6 + nm)` + proto `(N, nm, H, W)` | `nm` mask coefficients (default 32) |
-| [Pose](../tasks/pose.md) | `(N, 300, 57)` | 17 keypoints × 3 (x, y, visibility) |
-| [OBB](../tasks/obb.md) | `(N, 300, 7)` | Rotation angle |
+| [Pose](../tasks/pose.md)            | `(N, 300, 57)`                             | 17 keypoints × 3 (x, y, visibility) |
+| [OBB](../tasks/obb.md)              | `(N, 300, 7)`                              | Rotation angle                      |
 
 During training, both heads run simultaneously — the one-to-many head provides a richer learning signal, while the one-to-one head learns to produce clean, non-overlapping predictions. During [inference](../modes/predict.md) and [export](../modes/export.md), only the **one-to-one head** is active by default, producing up to 300 detections per image in the format `[x1, y1, x2, y2, confidence, class_id]`.
 
@@ -74,13 +74,13 @@ When you call `model.fuse()`, it folds Conv + BatchNorm layers for faster infere
 
 **Yes, the output format is different.** If you wrote custom post-processing logic for [YOLOv8](../models/yolov8.md) or [YOLO11](../models/yolo11.md) (for example, when running inference with [ONNX Runtime](../integrations/onnx.md) or [TensorRT](../integrations/tensorrt.md)), you'll need to update it to handle the new output shape:
 
-| | YOLOv8 / YOLO11 | YOLO26 (end-to-end) |
-| --- | --- | --- |
-| **Detection output** | `(N, nc + 4, 8400)` | `(N, 300, 6)` |
-| **Box format** | `xywh` (center x, center y, width, height) | `xyxy` (top-left x, top-left y, bottom-right x, bottom-right y) |
-| **Layout** | Box coords + class scores per anchor | `[x1, y1, x2, y2, conf, class_id]` |
-| **NMS required** | Yes | No |
-| **Post-processing** | NMS + confidence filter | Confidence filter only |
+|                      | YOLOv8 / YOLO11                            | YOLO26 (end-to-end)                                             |
+| -------------------- | ------------------------------------------ | --------------------------------------------------------------- |
+| **Detection output** | `(N, nc + 4, 8400)`                        | `(N, 300, 6)`                                                   |
+| **Box format**       | `xywh` (center x, center y, width, height) | `xyxy` (top-left x, top-left y, bottom-right x, bottom-right y) |
+| **Layout**           | Box coords + class scores per anchor       | `[x1, y1, x2, y2, conf, class_id]`                              |
+| **NMS required**     | Yes                                        | No                                                              |
+| **Post-processing**  | NMS + confidence filter                    | Confidence filter only                                          |
 
 For [segmentation](../tasks/segment.md), [pose](../tasks/pose.md), and [OBB](../tasks/obb.md) tasks, YOLO26 appends task-specific data to each detection — see the [output shapes table](#how-end-to-end-detection-works) above.
 
@@ -149,12 +149,12 @@ The following formats **do not** support end-to-end and automatically fall back 
 
 End-to-end detection provides significant deployment benefits with minimal impact on [accuracy](https://www.ultralytics.com/glossary/accuracy):
 
-| Metric | End-to-End (default) | One-to-Many + NMS (`end2end=False`) |
-| --- | --- | --- |
-| **CPU Inference Speed** | Up to **43% faster** | Baseline |
-| **mAP Impact** | ~0.5 mAP lower | Matches or exceeds YOLO11 |
-| **Post-Processing** | Confidence filter only | Full NMS pipeline |
-| **Deployment Complexity** | Minimal | Requires NMS implementation |
+| Metric                    | End-to-End (default)   | One-to-Many + NMS (`end2end=False`) |
+| ------------------------- | ---------------------- | ----------------------------------- |
+| **CPU Inference Speed**   | Up to **43% faster**   | Baseline                            |
+| **mAP Impact**            | ~0.5 mAP lower         | Matches or exceeds YOLO11           |
+| **Post-Processing**       | Confidence filter only | Full NMS pipeline                   |
+| **Deployment Complexity** | Minimal                | Requires NMS implementation         |
 
 For most real-world applications, the ~0.5 [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) difference is negligible, especially when considering the speed and simplicity gains. If maximum accuracy is your top priority, you can always fall back to the one-to-many head using `end2end=False`.
 
@@ -197,12 +197,12 @@ Yes, that's the expected end-to-end output format for detection: [batch size](ht
 
 For other tasks, the output shape differs:
 
-| Task | Output Shape | Description |
-| --- | --- | --- |
-| Detection | `(1, 300, 6)` | `[x1, y1, x2, y2, conf, class_id]` |
+| Task         | Output Shape                         | Description                                                       |
+| ------------ | ------------------------------------ | ----------------------------------------------------------------- |
+| Detection    | `(1, 300, 6)`                        | `[x1, y1, x2, y2, conf, class_id]`                                |
 | Segmentation | `(1, 300, 38)` + `(1, 32, 160, 160)` | 6 box values + 32 mask coefficients, plus a prototype mask tensor |
-| Pose | `(1, 300, 57)` | 6 box values + 17 keypoints × 3 (x, y, visibility) |
-| OBB | `(1, 300, 7)` | 6 box values + 1 rotation angle |
+| Pose         | `(1, 300, 57)`                       | 6 box values + 17 keypoints × 3 (x, y, visibility)                |
+| OBB          | `(1, 300, 7)`                        | 6 box values + 1 rotation angle                                   |
 
 ### How do I check if my exported model is end-to-end?
 
@@ -238,9 +238,9 @@ Yes. All YOLO26 task variants — [detection](../tasks/detect.md), [segmentation
 
 Each task extends the base detection output with task-specific data:
 
-| Task | Model | End-to-End Output |
-| --- | --- | --- |
-| Detection | `yolo26n.pt` | `(N, 300, 6)` |
-| Segmentation | `yolo26n-seg.pt` | `(N, 300, 38)` + proto `(N, 32, 160, 160)` |
-| Pose | `yolo26n-pose.pt` | `(N, 300, 57)` |
-| OBB | `yolo26n-obb.pt` | `(N, 300, 7)` |
+| Task         | Model             | End-to-End Output                          |
+| ------------ | ----------------- | ------------------------------------------ |
+| Detection    | `yolo26n.pt`      | `(N, 300, 6)`                              |
+| Segmentation | `yolo26n-seg.pt`  | `(N, 300, 38)` + proto `(N, 32, 160, 160)` |
+| Pose         | `yolo26n-pose.pt` | `(N, 300, 57)`                             |
+| OBB          | `yolo26n-obb.pt`  | `(N, 300, 7)`                              |

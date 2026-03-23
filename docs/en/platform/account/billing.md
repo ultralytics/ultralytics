@@ -24,7 +24,7 @@ Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 | **Concurrent Trainings**   | 3          | 10              | Unlimited  |
 | **Storage**                | 100 GB     | 500 GB          | Unlimited  |
 | **Deployments**            | 3          | 10              | Unlimited  |
-| **Cloud GPU Types**        | 19         | 22              | 22         |
+| **Cloud GPU Types**        | 20         | 23              | 23         |
 | **Best GPUs (H200, B200)** | -          | Yes             | Yes        |
 | **Teams**                  | -          | Up to 5 members | Up to 50   |
 | **SSO / SAML**             | -          | -               | Yes        |
@@ -44,8 +44,8 @@ Get started at no cost:
 - 3 deployments
 - 100 GB storage
 - Model export to all 17+ formats
-- Manual, SAM3 & YOLO Smart annotation
-- 19 cloud GPU types including 5090 & H100 ($0.24–$3.07/hr)
+- Manual, SAM 3 & YOLO Smart annotation
+- 20 cloud GPU types including 5090 & H100 ($0.24–$3.07/hr)
 - Community support
 
 !!! tip "Company Email Bonus"
@@ -190,30 +190,7 @@ flowchart LR
 
 Cloud training costs depend on GPU selection:
 
-| GPU          | VRAM   | Rate/Hour |
-| ------------ | ------ | --------- |
-| RTX 2000 Ada | 16 GB  | $0.24     |
-| RTX A4500    | 20 GB  | $0.24     |
-| RTX A5000    | 24 GB  | $0.26     |
-| RTX 4000 Ada | 20 GB  | $0.38     |
-| L4           | 24 GB  | $0.39     |
-| A40          | 48 GB  | $0.40     |
-| RTX 3090     | 24 GB  | $0.46     |
-| RTX A6000    | 48 GB  | $0.49     |
-| RTX 4090     | 24 GB  | $0.59     |
-| RTX 6000 Ada | 48 GB  | $0.77     |
-| L40S         | 48 GB  | $0.86     |
-| RTX 5090     | 32 GB  | $0.89     |
-| L40          | 48 GB  | $0.99     |
-| A100 PCIe    | 80 GB  | $1.39     |
-| A100 SXM     | 80 GB  | $1.49     |
-| RTX PRO 6000 | 96 GB  | $1.89     |
-| H100 PCIe    | 80 GB  | $2.39     |
-| H100 SXM     | 80 GB  | $2.69     |
-| H100 NVL     | 94 GB  | $3.07     |
-| H200 NVL     | 143 GB | $3.39     |
-| H200 SXM     | 141 GB | $3.59     |
-| B200         | 180 GB | $4.99     |
+{% include "macros/platform-gpu-table.md" %}
 
 H200 and B200 GPUs require a [Pro or Enterprise plan](#plans). All other GPUs are available on all plans.
 
@@ -228,7 +205,7 @@ Total Cost = GPU Rate x Training Time (hours)
 Example: Training for 2.5 hours on RTX PRO 6000
 
 ```
-$1.89 x 2.5 = $4.73
+$1.69 x 2.5 = $4.23
 ```
 
 ## Upgrade to Pro

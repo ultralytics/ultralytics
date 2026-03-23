@@ -48,7 +48,7 @@ This works for any `.pt` checkpoint — official releases and your own fine-tune
 
 ## Training Overview
 
-All YOLO26 base models were trained on [COCO](../datasets/detect/coco.md) at **640x640** resolution using the **MuSGD** optimizer with **[batch size](https://www.ultralytics.com/glossary/batch-size) 128**. Models were initialized from intermediate [pretrained](https://www.ultralytics.com/glossary/transfer-learning) weights and refined with hyperparameters found via evolutionary search. Full training logs and metrics for every model size are available on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26), where you can explore per-model performance metrics like the YOLO26n card below:
+All YOLO26 base models were trained on COCO at **640x640** resolution using the **MuSGD** optimizer with **[batch size](https://www.ultralytics.com/glossary/batch-size) 128**. Models were initialized from intermediate pretrained weights and refined with hyperparameters found via evolutionary search. Full training logs and metrics for every model size are available on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26), where you can explore per-model performance metrics like the YOLO26n card below:
 
 <iframe
   src="https://platform.ultralytics.com/embed/ultralytics/yolo26/yolo26n"
@@ -85,7 +85,7 @@ Key design choices across all sizes:
 
 !!! info "Learning rate strategy"
 
-    The N model used a higher initial [learning rate](https://www.ultralytics.com/glossary/learning-rate) with steep decay (`lrf=0.05`), while S/M/L/X models used a much lower initial LR with a gentler schedule (`lrf=0.88`). This reflects the different convergence dynamics of smaller vs larger models — smaller models need more aggressive updates to learn effectively.
+    The N model used a higher initial learning rate with steep decay (`lrf=0.0495`), while S/M/L/X models used a much lower initial LR with a gentler schedule (`lrf=0.882`). This reflects the different convergence dynamics of smaller vs larger models — smaller models need more aggressive updates to learn effectively.
 
 ### Loss Weights
 
@@ -99,7 +99,7 @@ The N model prioritizes DFL loss, while S/M/L/X models shift emphasis to [boundi
 
 ### Augmentation Pipeline
 
-For a detailed explanation of each [data augmentation](https://www.ultralytics.com/glossary/data-augmentation) technique, see the [YOLO Data Augmentation guide](./yolo-data-augmentation.md).
+For a detailed explanation of each technique, see the [YOLO Data Augmentation guide](./yolo-data-augmentation.md).
 
 | Setting | N | S | M | L | X |
 |---|---|---|---|---|---|
@@ -132,11 +132,11 @@ Larger models use more aggressive augmentation overall (higher [mixup](./yolo-da
     | `o2m` | One-to-many head loss weight | 1.0 | 0.705 | 0.705 | 0.705 | 0.705 |
     | `topk` | Top-k label assignment | 8 | 5 | 5 | 5 | 5 |
 
-    These are recorded for reproducibility but do not need to be set when fine-tuning. See the [FAQ](#what-are-muon_w-sgd_w-cls_w-o2m-and-topk-in-the-checkpoint) for more details.
+    These are recorded for reproducibility but do not need to be set when fine-tuning. See the [FAQ](#faq) for more details.
 
 ## Fine-Tuning Guidance
 
-When [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) YOLO26 on your own dataset, you don't need to replicate the full pretraining recipe. The pretrained weights already encode the augmentation and optimization knowledge from COCO training. For more general training best practices, see [Tips for Model Training](./model-training-tips.md).
+When fine-tuning YOLO26 on your own dataset, you don't need to replicate the full pretraining recipe. The pretrained weights already encode the augmentation and optimization knowledge from COCO training. For more general training best practices, see [Tips for Model Training](./model-training-tips.md).
 
 ### Start Simple
 
@@ -166,7 +166,7 @@ Fine-tuning with defaults is a strong baseline. Only adjust hyperparameters if y
 - Reduce augmentation strength: `mosaic=0.5`, `mixup=0.0`, `copy_paste=0.0`
 - Lower learning rate: `lr0=0.001`
 - Use fewer [epochs](https://www.ultralytics.com/glossary/epoch) with patience: `epochs=50`, `patience=20`
-- Consider [freezing](../modes/train.md) backbone layers: `freeze=10`
+- Consider freezing backbone layers: `freeze=10`
 
 **Large datasets (> 50,000 images):**
 

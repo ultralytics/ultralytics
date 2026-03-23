@@ -116,7 +116,7 @@ For a detailed explanation of each [data augmentation](https://www.ultralytics.c
 | [`hsv_v`](./yolo-data-augmentation.md#brightness-adjustment-hsv_v) | 0.566 | 0.194 | 0.194 | 0.194 | 0.194 |
 | [`bgr`](./yolo-data-augmentation.md#bgr-channel-swap-bgr) | 0.106 | 0.0 | 0.0 | 0.0 | 0.0 |
 
-Larger models use more aggressive augmentation overall (higher [mixup](./yolo-data-augmentation.md#mixup-mixup), [copy-paste](./yolo-data-augmentation.md#copy-paste-copy_paste), and scale), since they have more capacity and benefit from stronger [regularization](https://www.ultralytics.com/glossary/regularization). The N model is the only size with meaningful [rotation](./yolo-data-augmentation.md#rotation-degrees), [shear](./yolo-data-augmentation.md#shear-shear), and [BGR](./yolo-data-augmentation.md#bgr-channel-swap-bgr) augmentation.
+Larger models use more aggressive augmentation overall (higher [mixup](./yolo-data-augmentation.md#mixup-mixup), [copy-paste](./yolo-data-augmentation.md#copy-paste-copy_paste), and [scale](./yolo-data-augmentation.md#scale-scale)), since they have more capacity and benefit from stronger [regularization](https://www.ultralytics.com/glossary/regularization). The N model is the only size with meaningful [rotation](./yolo-data-augmentation.md#rotation-degrees), [shear](./yolo-data-augmentation.md#shear-shear), and [BGR](./yolo-data-augmentation.md#bgr-channel-swap-bgr) augmentation.
 
 ### Internal Training Parameters
 

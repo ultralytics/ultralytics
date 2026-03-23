@@ -131,7 +131,6 @@ Larger models use more aggressive augmentation overall (higher [mixup](./yolo-da
     | `cls_w` | Internal classification weight | 2.74 | 3.48 | 3.48 | 3.48 | 3.48 |
     | `o2m` | One-to-many head loss weight | 1.0 | 0.705 | 0.705 | 0.705 | 0.705 |
     | `topk` | Top-k label assignment | 8 | 5 | 5 | 5 | 5 |
-    | `detach_epoch` | Epoch to detach auxiliary head | 10 | 10 | 10 | 10 | 10 |
 
     These are recorded for reproducibility but do not need to be set when fine-tuning. See the [FAQ](#what-are-muon_w-sgd_w-cls_w-o2m-and-topk-in-the-checkpoint) for more details.
 

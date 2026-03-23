@@ -187,10 +187,10 @@ For automated hyperparameter optimization, see the [Hyperparameter Tuning guide]
 | Model | Best For | Batch Size Guidance |
 |---|---|---|
 | YOLO26n | Edge devices, mobile, real-time on CPU | Large batches (64-128) on consumer GPUs |
-| YOLO26s | Balanced speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) | Medium batches (32-64) |
+| YOLO26s | Balanced speed and accuracy | Medium batches (32-64) |
 | YOLO26m | Higher accuracy with moderate compute | Smaller batches (16-32) |
 | YOLO26l | High accuracy when GPU is available | Small batches (8-16) or multi-GPU |
-| YOLO26x | Maximum accuracy, server [deployment](https://www.ultralytics.com/glossary/model-deployment) | Small batches (4-8) or multi-GPU |
+| YOLO26x | Maximum accuracy, server deployment | Small batches (4-8) or multi-GPU |
 
 For export and deployment options, see the [Export guide](../modes/export.md) and [Model Deployment Options](./model-deployment-options.md).
 

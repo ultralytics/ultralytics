@@ -7,7 +7,7 @@ import socket
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from time import time
+from time import sleep, time
 
 from ultralytics.utils import ENVIRONMENT, GIT, LOGGER, PYTHON_VERSION, RANK, SETTINGS, TESTS_RUNNING, Retry, colorstr
 
@@ -88,36 +88,45 @@ def resolve_platform_uri(uri, hard=True):
     else:
         raise ValueError(f"Invalid platform URI: {uri}. Use ul://user/datasets/name or ul://user/project/model")
 
+    # (connect_timeout, read_timeout) — short connect so retries are fast, long read for server-side generation
+    timeout = (10, 3600) if "/datasets/" in url else (10, 90)
+
     try:
-        timeout = 3600 if "/datasets/" in url else 90  # NDJSON generation can be slow for large datasets
-        r = requests.head(url, headers=headers, allow_redirects=False, timeout=timeout)
-
-        # Handle redirect responses (301, 302, 303, 307, 308)
-        if 300 <= r.status_code < 400 and "location" in r.headers:
-            return r.headers["location"]  # Return signed URL
-
-        # Handle error responses
-        if r.status_code == 401:
-            raise ValueError(f"Invalid ULTRALYTICS_API_KEY for '{uri}'")
-        if r.status_code == 403:
-            raise PermissionError(f"Access denied for '{uri}'. Check dataset/model visibility settings.")
-        if r.status_code == 404:
-            if hard:
-                raise FileNotFoundError(f"Not found on platform: {uri}")
-            LOGGER.warning(f"Not found on platform: {uri}")
-            return None
-        if r.status_code == 409:
-            raise RuntimeError(f"Resource not ready: {uri}. Dataset may still be processing.")
-
-        # Unexpected response
-        r.raise_for_status()
-        raise RuntimeError(f"Unexpected response from platform for '{uri}': {r.status_code}")
-
-    except requests.exceptions.RequestException as e:
+        for attempt in range(3):
+            try:
+                r = requests.head(url, headers=headers, allow_redirects=False, timeout=timeout)
+                break
+            except requests.exceptions.ConnectionError as e:
+                LOGGER.warning(f"Retry {attempt + 1}/3 failed for {uri}: {e}")
+                if attempt >= 2:
+                    raise
+                sleep(2 * (2**attempt))  # 2s, 4s backoff
+    except Exception as e:
         if hard:
             raise ConnectionError(f"Failed to resolve {uri}: {e}") from e
         LOGGER.warning(f"Failed to resolve {uri}: {e}")
         return None
+
+    # Handle redirect responses (301, 302, 303, 307, 308)
+    if 300 <= r.status_code < 400 and "location" in r.headers:
+        return r.headers["location"]  # Return signed URL
+
+    # Handle error responses
+    if r.status_code == 401:
+        raise ValueError(f"Invalid ULTRALYTICS_API_KEY for '{uri}'")
+    if r.status_code == 403:
+        raise PermissionError(f"Access denied for '{uri}'. Check dataset/model visibility settings.")
+    if r.status_code == 404:
+        if hard:
+            raise FileNotFoundError(f"Not found on platform: {uri}")
+        LOGGER.warning(f"Not found on platform: {uri}")
+        return None
+    if r.status_code == 409:
+        raise RuntimeError(f"Resource not ready: {uri}. Dataset may still be processing.")
+
+    # Unexpected response
+    r.raise_for_status()
+    raise RuntimeError(f"Unexpected response from platform for '{uri}': {r.status_code}")
 
 
 def _interp_plot(plot, n=101):

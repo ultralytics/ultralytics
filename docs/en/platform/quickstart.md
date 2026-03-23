@@ -16,7 +16,7 @@ keywords: Ultralytics Platform, Quickstart, YOLO models, dataset upload, model t
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong>Get Started with Ultralytics Platform - QuickStart
+  <strong>Watch:</strong> Get Started with Ultralytics Platform - QuickStart
 </p>
 
 ```mermaid

@@ -44,7 +44,7 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
     !!! info "Video Frame Extraction"
 
-        Video frames are extracted at 1 frame per second in the browser before upload. A 60-second video produces 60 frames. The maximum is 100 frames per video, so videos longer than ~100 seconds will be sampled.
+        Video frames are extracted at 1 frame per second in the browser before upload. A 60-second video produces 60 frames. The maximum is 100 frames per video — for videos longer than ~100 seconds, 100 frames are evenly sampled across the full duration.
 
 === "Archives"
 
@@ -182,9 +182,9 @@ graph LR
     You can validate your dataset locally before uploading:
 
     ```python
-    from ultralytics.hub import check_dataset
+    from ultralytics.data.utils import check_det_dataset
 
-    check_dataset("path/to/dataset.zip", task="detect")
+    check_det_dataset("path/to/data.yaml")
     ```
 
 !!! warning "Image Size Requirements"
@@ -331,7 +331,7 @@ Images that failed processing are listed here with:
 - **Error table**: Filename, user-friendly error description, fix hints, and preview thumbnail
 - Common errors include corrupted files, unsupported formats, images too small (min 28px), and unsupported color modes
 
-<!-- Screenshot: platform-datasets-errors-tab-processing-failures.avif -->
+![Ultralytics Platform Datasets Errors Tab Processing Failures](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-errors-tab-processing-failures.avif)
 
 ??? info "Common Processing Errors"
 
@@ -375,10 +375,20 @@ Each version is numbered sequentially (v1, v2, v3...) and stored permanently. Yo
 
 ## Export Dataset
 
-Export your dataset in [NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) format for offline use:
+Export your dataset for offline use. The Platform supports multiple export formats:
 
-1. Click the download icon in the dataset header
-2. The NDJSON file downloads automatically
+| Format         | Description                                        |
+| -------------- | -------------------------------------------------- |
+| **YOLO**       | Standard YOLO format with images and `.txt` labels |
+| **COCO**       | COCO JSON format with annotation arrays            |
+| **Pascal VOC** | XML annotation files per image                     |
+| **NDJSON**     | One JSON object per line (lightweight metadata)    |
+
+To export:
+
+1. Click the **Export** button in the dataset header
+2. Select the desired format
+3. The export job runs asynchronously — you'll be notified when the download is ready
 
 ![Ultralytics Platform Datasets Export Ndjson Download](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-export-ndjson-download.avif)
 
@@ -429,6 +439,15 @@ You can also drag and drop images onto the split filter tabs in grid view.
 
     Upload all images to one dataset, then use bulk move-to-split to organize subsets into train, validation, and test splits.
 
+### Auto Split Redistribution
+
+Automatically distribute images across train, validation, and test splits:
+
+1. Click the split redistribution button in the dataset toolbar
+2. The Platform automatically assigns images to splits based on standard ratios
+
+This is useful when you upload images without split folders and want to quickly organize them for training.
+
 ### Bulk Delete
 
 Delete multiple images at once:
@@ -450,7 +469,7 @@ Use this URI to train models from anywhere:
 === "CLI"
 
     ```bash
-    export ULTRALYTICS_API_KEY="your_api_key"
+    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100
     ```
 

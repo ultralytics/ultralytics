@@ -522,6 +522,7 @@ nav:
       - Deploying YOLO on Vertex AI in Docker container: guides/vertex-ai-deployment-with-docker.md
       - Docker Quickstart: guides/docker-quickstart.md
       - Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md
+      - End-to-End Detection: guides/end2end-detection.md
       - Hyperparameter Tuning: guides/hyperparameter-tuning.md
       - Insights on Model Evaluation and Fine-Tuning: guides/model-evaluation-insights.md
       - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md

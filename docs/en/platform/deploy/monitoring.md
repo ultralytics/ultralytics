@@ -79,7 +79,7 @@ Below the overview cards, the deployments list shows all endpoints across your p
 
 !!! tip "Real-Time Updates"
 
-    The dashboard polls every 30 seconds for metric updates. When deployments are in a transitional state (creating, deploying), polling increases to every 3 seconds. Click the refresh button for immediate updates.
+    The dashboard polls every 30 seconds for deployment status updates. When deployments are in a transitional state (creating, deploying), polling increases to every 3 seconds. Metric charts refresh every 60 seconds. Click the refresh button for immediate updates.
 
 ## Per-Deployment Metrics
 

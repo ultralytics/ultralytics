@@ -18,10 +18,6 @@ on:
     - cron: "0 8 * * *" # runs at 08:00 UTC every day
   workflow_dispatch:
     inputs:
-      hub:
-        description: "Run HUB"
-        default: true
-        type: boolean
       benchmarks:
         description: "Run Benchmarks"
         default: true
@@ -485,7 +481,7 @@ jobs:
 
   Summary:
     runs-on: ubuntu-latest
-    needs: [HUB, Benchmarks, Tests, SlowTests, GPU, RaspberryPi, NVIDIA_Jetson, Conda]
+    needs: [Benchmarks, Tests, SlowTests, GPU, RaspberryPi, NVIDIA_Jetson, Conda]
     if: always()
     steps:
       - name: Check for failure and notify

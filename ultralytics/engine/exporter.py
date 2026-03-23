@@ -1259,7 +1259,9 @@ class Exporter:
     @try_export
     def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
         """Export YOLO model to TensorFlow.js format."""
-        check_requirements("tensorflowjs")
+        # Install tensorflowjs without deps to avoid tensorflow-decision-forests pulling in
+        # conflicting protobuf/tensorflow versions. TF is already installed from [export] extras.
+        check_requirements("tensorflowjs", cmds="--no-deps")
 
         f = str(self.file).replace(self.file.suffix, "_web_model")  # js dir
         f_pb = str(self.file.with_suffix(".pb"))  # *.pb path

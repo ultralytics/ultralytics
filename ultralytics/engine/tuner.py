@@ -78,10 +78,10 @@ class Tuner:
         >>> )
 
         Tune with custom search space:
-        >>> model.tune(space={"lr0": (1e-5, 1e-1), "momentum": (0.6, 0.98)})
+        >>> model.tune(space={"lr0": (1e-5, 1e-2), "momentum": (0.7, 0.98)})
     """
 
-    def __init__(self, args=DEFAULT_CFG, _callbacks: list | None = None):
+    def __init__(self, args=DEFAULT_CFG, _callbacks: dict | None = None):
         """Initialize the Tuner with configurations.
 
         Args:

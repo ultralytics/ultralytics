@@ -1,6 +1,6 @@
 <div align="center">
   <p>
-    <a href="https://platform.ultralytics.com/ultralytics/yolo26" target="_blank">
+    <a href="https://platform.ultralytics.com/?utm_source=github&utm_medium=referral&utm_campaign=platform_launch&utm_content=banner&utm_term=ultralytics_github" target="_blank">
       <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png" alt="Ultralytics YOLO banner"></a>
   </p>
 

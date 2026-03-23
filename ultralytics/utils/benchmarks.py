@@ -121,6 +121,11 @@ def benchmark(
             # Checks
             if format == "pb":
                 assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
+            elif format == "tfjs":
+                # tensorflowjs 4.22.0 requires tensorflow-decision-forests which pins tensorflow==2.19.0,
+                # but tensorflow<=2.19.0 requires protobuf<6 while decision-forests gencode needs protobuf>=6.
+                # Older tensorflowjs (3.18.0) uses np.object removed in numpy 1.24+. No valid resolution exists.
+                assert False, "TF.js export disabled due to irreconcilable dependency conflicts in tensorflowjs"
             elif format == "edgetpu":
                 assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
             elif format in {"coreml", "tfjs"}:

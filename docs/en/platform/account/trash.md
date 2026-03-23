@@ -103,7 +103,7 @@ The item returns to its original location with all data intact.
 
 ### Automatic Deletion
 
-Items in Trash are automatically and permanently deleted after 30 days. A daily cleanup job runs at 3:00 AM UTC to remove expired items.
+Items in Trash are automatically and permanently deleted after 30 days. A daily cleanup job removes expired items automatically.
 
 ### Empty Trash
 

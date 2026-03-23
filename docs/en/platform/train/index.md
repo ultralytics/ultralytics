@@ -16,7 +16,7 @@ keywords: Ultralytics Platform, model training, cloud training, YOLO, GPU traini
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Get Started with Ultralytics Platform - Train</strong> 
+  <strong>Watch:</strong> Get Started with Ultralytics Platform - Train
 </p>
 
 ## Overview

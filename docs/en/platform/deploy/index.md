@@ -17,7 +17,7 @@ keywords: Ultralytics Platform, deployment, inference, endpoints, monitoring, YO
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Get Started with Ultralytics Platform - Deploy</strong> 
+  <strong>Watch:</strong> Get Started with Ultralytics Platform - Deploy
 </p>
 
 ## Overview

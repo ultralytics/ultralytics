@@ -16,7 +16,7 @@ Data preparation is the foundation of successful [computer vision](https://www.u
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Get Started with Ultralytics Platform - Data</strong> 
+  <strong>Watch:</strong> Get Started with Ultralytics Platform - Data
 </p>
 
 ## Overview

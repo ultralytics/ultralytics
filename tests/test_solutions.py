@@ -379,7 +379,7 @@ def test_draw_specific_kpts_order():
     annotator = SolutionAnnotator(im, line_width=2)
 
     # Keypoints: index 6=(100,200), index 8=(300,400), index 12=(500,100) with confidence
-    keypoints = [[0, 0, 0.9]] * 13  # 13 dummy keypoints
+    keypoints = [[0, 0, 0.9] for _ in range(13)]
     keypoints[6] = [100, 200, 0.9]
     keypoints[8] = [300, 400, 0.9]
     keypoints[12] = [500, 100, 0.9]
@@ -404,7 +404,7 @@ def test_draw_specific_kpts_2d_keypoints():
     annotator = SolutionAnnotator(im, line_width=2)
 
     # Keypoints without confidence (2D only)
-    keypoints = [[0, 0]] * 5
+    keypoints = [[0, 0] for _ in range(5)]
     keypoints[2] = [100, 200]
     keypoints[3] = [300, 400]
 

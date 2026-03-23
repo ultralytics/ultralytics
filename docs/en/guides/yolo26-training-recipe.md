@@ -48,15 +48,14 @@ This works for any `.pt` checkpoint — official releases and your own fine-tune
 
 ## Training Overview
 
-All YOLO26 base models were trained on COCO at **640x640** resolution using the **MuSGD** optimizer with **[batch size](https://www.ultralytics.com/glossary/batch-size) 128**. Models were initialized from intermediate pretrained weights and refined with hyperparameters found via evolutionary search. Full training logs and metrics for every model size are available on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26), where you can explore per-model performance metrics like the YOLO26n card below:
+All YOLO26 base models were trained on COCO at **640x640** resolution using the **MuSGD** optimizer with **[batch size](https://www.ultralytics.com/glossary/batch-size) 128**. Models were initialized from intermediate pretrained weights and refined with hyperparameters found via evolutionary search. Full training logs and metrics for every model size are available on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26):
 
 <iframe
-  src="https://platform.ultralytics.com/embed/ultralytics/yolo26/yolo26n"
+  src="https://platform.ultralytics.com/embed/ultralytics/yolo26"
   width="100%"
-  height="260"
+  height="320"
   frameborder="0"
-  scrolling="no"
-  style="border-radius:12px; overflow:hidden"
+  style="border-radius:12px"
 ></iframe>
 
 Key design choices across all sizes:

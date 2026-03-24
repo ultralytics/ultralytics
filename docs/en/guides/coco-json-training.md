@@ -6,7 +6,7 @@ keywords: COCO JSON training, train YOLO on COCO JSON, COCO JSON without convers
 
 # How to Train YOLO on COCO JSON Without Converting
 
-## Introduction
+## Why Train Directly on COCO JSON
 
 [Annotations](https://www.ultralytics.com/glossary/data-labeling) in [COCO JSON](https://cocodataset.org/#format-data) format can be used directly for [Ultralytics YOLO](https://www.ultralytics.com/) training without converting to `.txt` files first. This is done by subclassing `YOLODataset` to parse COCO JSON on the fly and wiring it into the training pipeline through a custom trainer.
 
@@ -16,7 +16,7 @@ This approach keeps the COCO JSON as the single source of truth — no `convert_
 
     See the [COCO to YOLO Conversion guide](coco-to-yolo.md) for the standard `convert_coco()` workflow.
 
-## How It Works
+## Architecture Overview
 
 Two classes are needed:
 
@@ -25,7 +25,7 @@ Two classes are needed:
 
 The implementation follows the same pattern as the built-in `GroundingDataset`, which also reads JSON annotations directly. Three methods are overridden: `get_img_files()`, `cache_labels()`, and `get_labels()`.
 
-## Step 1: Custom Dataset
+## Building the COCO JSON Dataset Class
 
 The `COCOJSONDataset` class inherits from `YOLODataset` and overrides the label loading logic. Instead of reading `.txt` files from a labels directory, it opens the COCO JSON file, iterates over annotations grouped by image, and converts each bounding box from COCO pixel format `[x_min, y_min, width, height]` to YOLO normalized center format `[x_center, y_center, width, height]`. Crowd annotations (`iscrowd: 1`) and zero-area boxes are skipped automatically.
 
@@ -126,7 +126,7 @@ class COCOJSONDataset(YOLODataset):
 
 Parsed labels are saved to a `.cache` file next to the JSON (e.g. `instances_train.cache`). On subsequent training runs, the cache is loaded directly, skipping JSON parsing. If the JSON file changes, the hash check fails and the cache is rebuilt automatically.
 
-## Step 2: Custom Trainer
+## Connecting the Dataset to the Training Pipeline
 
 The only change needed in the trainer is overriding `build_dataset()`. The default `DetectionTrainer` builds a `YOLODataset` that scans for `.txt` label files. By replacing it with `COCOJSONDataset`, the trainer reads from the COCO JSON instead.
 
@@ -152,7 +152,7 @@ class COCOJSONTrainer(DetectionTrainer):
         )
 ```
 
-## Step 3: Dataset Configuration
+## Configuring dataset.yaml for COCO JSON
 
 The `dataset.yaml` uses the standard `path`, `train`, and `val` fields to locate image directories. Two additional fields, `train_json` and `val_json`, specify the COCO annotation files that `COCOJSONTrainer` reads. The `nc` and `names` fields define the number of classes and their names, matching the sorted order of `categories` in the JSON.
 
@@ -189,7 +189,7 @@ my_dataset/
   dataset.yaml
 ```
 
-## Step 4: Training
+## Running Training on COCO JSON
 
 With the dataset class, trainer class, and YAML config in place, training works through the standard `model.train()` call. The only difference from a normal training run is the `trainer=COCOJSONTrainer` argument, which tells Ultralytics to use the custom dataset loader instead of the default one.
 
@@ -202,7 +202,7 @@ model.train(data="dataset.yaml", epochs=100, imgsz=640, trainer=COCOJSONTrainer)
 
 The full [training](../modes/train.md) pipeline runs as expected, including [validation](../modes/val.md), checkpoint saving, and metric logging.
 
-## Complete Script
+## Full Implementation
 
 For convenience, the full implementation is provided below as a single copy-paste script. It includes the custom dataset, custom trainer, and the training call. Save this alongside your `dataset.yaml` and run it directly.
 

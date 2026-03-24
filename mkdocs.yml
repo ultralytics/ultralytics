@@ -514,6 +514,7 @@ nav:
       - A Guide on Model Testing: guides/model-testing.md
       - AzureML Quickstart: guides/azureml-quickstart.md
       - Best Practices for Model Deployment: guides/model-deployment-practices.md
+      - COCO JSON Training: guides/coco-json-training.md
       - Conda Quickstart: guides/conda-quickstart.md
       - Customizing Trainer: guides/custom-trainer.md
       - Data Collection and Annotation: guides/data-collection-and-annotation.md

@@ -1246,7 +1246,7 @@ class YOLOEModel(DetectionModel):
             verbose (bool): Whether to display model information.
         """
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
-        self.text_model = self.yaml.get("text_model", "mobileclip:blt")
+        self.text_model = self.yaml.get("text_model", "mobileclip2:b")
 
     @smart_inference_mode()
     def get_text_pe(self, text, batch=80, cache_clip_model=False, without_reprta=False):
@@ -1266,12 +1266,12 @@ class YOLOEModel(DetectionModel):
         device = next(self.model.parameters()).device
         if not getattr(self, "clip_model", None) and cache_clip_model:
             # For backwards compatibility of models lacking clip_model attribute
-            self.clip_model = build_text_model(getattr(self, "text_model", "mobileclip:blt"), device=device)
+            self.clip_model = build_text_model(getattr(self, "text_model", "mobileclip2:b"), device=device)
 
         model = (
             self.clip_model
             if cache_clip_model
-            else build_text_model(getattr(self, "text_model", "mobileclip:blt"), device=device)
+            else build_text_model(getattr(self, "text_model", "mobileclip2:b"), device=device)
         )
         text_token = model.tokenize(text)
         txt_feats = [model.encode_text(token).detach() for token in text_token.split(batch)]

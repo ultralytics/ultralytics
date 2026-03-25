@@ -8,6 +8,17 @@ keywords: Ultralytics Platform, data management, datasets, annotation, YOLO, com
 
 Data preparation is the foundation of successful [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models. [Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive tools for managing your training data, from upload through annotation to analysis.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/kA09zsjZGdA"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Get Started with Ultralytics Platform - Data
+</p>
+
 ## Overview
 
 The Data section of Ultralytics Platform helps you:
@@ -44,13 +55,13 @@ graph LR
 
 Ultralytics Platform supports all 5 YOLO task types:
 
-| Task                                             | Description                                 | Annotation Tool   |
-| ------------------------------------------------ | ------------------------------------------- | ----------------- |
-| **[Detect](../../datasets/detect/index.md)**     | Object detection with bounding boxes        | Rectangle tool    |
-| **[Segment](../../datasets/segment/index.md)**   | Instance segmentation with pixel masks      | Polygon tool      |
-| **[Pose](../../datasets/pose/index.md)**         | Keypoint estimation (17-point COCO format)  | Keypoint tool     |
-| **[OBB](../../datasets/obb/index.md)**           | Oriented bounding boxes for rotated objects | Oriented box tool |
-| **[Classify](../../datasets/classify/index.md)** | Image-level classification                  | Class selector    |
+| Task                                             | Description                                                     | Annotation Tool   |
+| ------------------------------------------------ | --------------------------------------------------------------- | ----------------- |
+| **[Detect](../../datasets/detect/index.md)**     | Object detection with bounding boxes                            | Rectangle tool    |
+| **[Segment](../../datasets/segment/index.md)**   | Instance segmentation with pixel masks                          | Polygon tool      |
+| **[Pose](../../datasets/pose/index.md)**         | Keypoint estimation with built-in and custom skeleton templates | Keypoint tool     |
+| **[OBB](../../datasets/obb/index.md)**           | Oriented bounding boxes for rotated objects                     | Oriented box tool |
+| **[Classify](../../datasets/classify/index.md)** | Image-level classification                                      | Class selector    |
 
 !!! info "Task Type Selection"
 
@@ -85,8 +96,6 @@ This allows training on the platform's datasets from any machine with your [API 
     model.train(data="ul://username/datasets/my-dataset", epochs=100)
     ```
 
-### Dataset Tabs
-
 ### Dataset Versioning
 
 Create immutable NDJSON snapshots of your dataset for reproducible training. Each version captures image counts, class counts, and annotation counts at the time of creation. See [Versions Tab](datasets.md#versions-tab) for details.
@@ -118,8 +127,10 @@ The `Charts` tab provides automatic analysis including:
 
 ## Quick Links
 
-- [**Datasets**](datasets.md): Upload and manage your training data
+- [**Datasets**](datasets.md): Upload, manage, and export your training data
 - [**Annotation**](annotation.md): Label data with manual and AI-assisted tools
+- [**Cloud Training**](../train/cloud-training.md): Train models on your annotated datasets
+- [**Dataset URI**](datasets.md#dataset-uri): Use `ul://` URIs to train from anywhere
 
 ## FAQ
 
@@ -141,7 +152,7 @@ Storage limits depend on your plan:
 | ---------- | ------------- |
 | Free       | 100 GB        |
 | Pro        | 500 GB        |
-| Enterprise | Custom        |
+| Enterprise | Unlimited     |
 
 Individual file limits: Images 50MB, Videos 1GB, Archives 10GB
 
@@ -152,7 +163,7 @@ Yes! Use the dataset URI format to train locally:
 === "CLI"
 
     ```bash
-    export ULTRALYTICS_API_KEY="your_key"
+    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100
     ```
 
@@ -161,7 +172,7 @@ Yes! Use the dataset URI format to train locally:
     ```python
     import os
 
-    os.environ["ULTRALYTICS_API_KEY"] = "your_key"
+    os.environ["ULTRALYTICS_API_KEY"] = "YOUR_API_KEY"
 
     from ultralytics import YOLO
 

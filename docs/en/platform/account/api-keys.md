@@ -67,13 +67,13 @@ Set your key as an environment variable:
 === "Linux/macOS"
 
     ```bash
-    export ULTRALYTICS_API_KEY="ul_your_key_here"
+    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
     ```
 
 === "Windows"
 
     ```powershell
-    $env:ULTRALYTICS_API_KEY = "ul_your_key_here"
+    $env:ULTRALYTICS_API_KEY = "YOUR_API_KEY"
     ```
 
 ### YOLO CLI
@@ -81,7 +81,7 @@ Set your key as an environment variable:
 Set the key using the YOLO CLI:
 
 ```bash
-yolo settings api_key="ul_your_key_here"
+yolo settings api_key="YOUR_API_KEY"
 ```
 
 ### In Code
@@ -95,7 +95,7 @@ import os
 api_key = os.environ.get("ULTRALYTICS_API_KEY")
 
 # Or directly (not recommended for production)
-api_key = "ul_your_key_here"
+api_key = "YOUR_API_KEY"
 ```
 
 ### HTTP Headers
@@ -103,7 +103,7 @@ api_key = "ul_your_key_here"
 Include the key in API requests:
 
 ```bash
-curl -H "Authorization: Bearer ul_your_key_here" \
+curl -H "Authorization: Bearer YOUR_API_KEY" \
   https://platform.ultralytics.com/api/...
 ```
 
@@ -122,7 +122,7 @@ Enable metric streaming with your key.
     ```
 
 ```bash
-export ULTRALYTICS_API_KEY="ul_your_key_here"
+export ULTRALYTICS_API_KEY="YOUR_API_KEY"
 yolo train model=yolo26n.pt data=coco.yaml project=username/project name=exp1
 ```
 

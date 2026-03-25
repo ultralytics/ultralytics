@@ -858,7 +858,22 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         if "train" not in splits:
             raise ValueError(f"Dataset missing required 'train' split. Found splits: {sorted(splits)}")
         if "val" not in splits and "test" not in splits:
-            raise ValueError(f"Dataset missing required 'val' split. Found splits: {sorted(splits)}")
+            train_records = [r for r in image_records if r.get("split") == "train"]
+            if len(train_records) < 2:
+                raise ValueError(
+                    f"Dataset has only {len(train_records)} image(s) and no 'val' split. "
+                    f"Need at least 2 images to auto-split into train/val."
+                )
+            random.Random(0).shuffle(train_records)  # local RNG to avoid mutating global training seed
+            val_count = max(1, len(train_records) // 10)
+            for r in train_records[:val_count]:
+                r["split"] = "val"
+            splits.add("val")
+            LOGGER.warning(
+                f"WARNING ⚠️ No 'val' split found in dataset. "
+                f"Auto-splitting {len(train_records)} images into {len(train_records) - val_count} train, {val_count} val. "
+                f"For best results, manually assign validation images in Platform dataset page."
+            )
     if task == "pose" and "kpt_shape" not in dataset_record:
         dataset_record["kpt_shape"] = _infer_ndjson_kpt_shape(image_records)
 

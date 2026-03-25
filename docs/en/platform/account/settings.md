@@ -82,7 +82,7 @@ Social links appear on your public profile page.
 
 Manage email addresses linked to your account in the `Profile` tab:
 
-<!-- Screenshot: settings-profile-tab-emails-section.avif -->
+![Ultralytics Platform Settings Profile Tab Emails Section](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-emails-section.avif)
 
 | Action             | Description                                    |
 | ------------------ | ---------------------------------------------- |
@@ -246,6 +246,17 @@ Owners and admins can manage the team:
 ## Trash Tab
 
 Manage deleted items. See [Trash](trash.md) for full documentation.
+
+## Help & Feedback
+
+The **Help** page is accessible from the sidebar footer. Use it to:
+
+- **Rate your experience** with a 1-5 star rating
+- **Choose a feedback type**: Bug Report, Feature Request, or General
+- **Describe the issue** with a text message
+- **Attach screenshots** for visual context
+
+Feedback is private and sent directly to the Ultralytics team to help prioritize features and fix issues.
 
 ## FAQ
 

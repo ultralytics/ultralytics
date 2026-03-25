@@ -19,10 +19,10 @@
   });
 </script>
 {{ super() }} {% endblock %} {% block announce %}
-<script>if(localStorage.getItem("banner-dismissed"))document.querySelector(".md-banner").style.display="none"</script>
+<script>if(localStorage.getItem("banner-dismissed-v1"))document.querySelector(".md-banner").style.display="none"</script>
 <div class="banner-wrapper">
   <button type="button" aria-label="Close banner" class="banner-close"
-    onclick="localStorage.setItem('banner-dismissed','1');this.closest('.md-banner').style.display='none'">
+    onclick="localStorage.setItem('banner-dismissed-v1','1');this.closest('.md-banner').style.display='none'">
     <img src="https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/680a070c3b99253410dd3e15_Icon-banner-close.svg" alt="" />
   </button>
   <a href="https://platform.ultralytics.com/" target="_blank" rel="noopener" class="banner-content-wrapper">

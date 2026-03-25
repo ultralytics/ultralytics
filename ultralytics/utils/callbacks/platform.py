@@ -206,7 +206,13 @@ def _send_async(event, data, project, name, model_id=None):
 
 
 def _handle_control_response(trainer, ctx, response):
-    """Apply centralized stop signals returned by Platform webhook responses."""
+    """Apply centralized stop signals returned by Platform webhook responses.
+
+    Notes:
+        ``ctx["cancelled"]`` is the durable cancellation signal. During startup, trainer setup later resets
+        ``trainer.stop``, so early stop requests still rely on ``on_pretrain_routine_end()`` to reapply the flag after
+        setup completes.
+    """
     if response and response.get("cancelled"):
         ctx["cancelled"] = True
         trainer.stop = True

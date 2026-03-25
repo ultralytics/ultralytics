@@ -4,6 +4,8 @@ description: Harness the power of Ultralytics YOLO26 for real-time, high-speed i
 keywords: Ultralytics, YOLO26, model prediction, inference, predict mode, real-time inference, computer vision, machine learning, streaming, high performance
 ---
 
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 # Model Prediction with Ultralytics YOLO
 
 <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-ecosystem-integrations.avif" alt="Ultralytics YOLO ecosystem and integrations">

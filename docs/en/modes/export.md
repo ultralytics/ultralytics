@@ -43,7 +43,7 @@ Here are some of the standout functionalities:
 
     * Export to [ONNX](../integrations/onnx.md) or [OpenVINO](../integrations/openvino.md) for up to 3x CPU speedup.
     * Export to [TensorRT](../integrations/tensorrt.md) for up to 5x GPU speedup.
-    * For managed deployment without manual export, [Ultralytics Platform](https://platform.ultralytics.com) provides ready-to-use [inference endpoints](../platform/deploy/endpoints.md).
+    * For managed deployment without manual export, [Ultralytics Platform](https://platform.ultralytics.com) provides ready-to-use [inference endpoints](../platform/deploy/endpoints.md) and supports [exporting models](../platform/deploy/endpoints.md) directly from the browser.
 
 ## Usage Examples
 

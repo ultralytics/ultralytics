@@ -953,6 +953,9 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                                 return False
                         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
                             error = e
+                        except Exception as e:  # OSError, disk full, permissions — not transient, don't retry
+                            LOGGER.warning(f"Failed to save {http_url}: {e}")
+                            return False
                         if attempt < 2:  # Don't sleep after last attempt
                             await asyncio.sleep(2**attempt)  # 1s, 2s backoff
                         else:

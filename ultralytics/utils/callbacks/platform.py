@@ -99,7 +99,11 @@ def resolve_platform_uri(uri, hard=True):
                 if r.status_code in {408, 429} or r.status_code >= 500:
                     raise requests.exceptions.HTTPError(f"HTTP {r.status_code}", response=r)
                 break
-            except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout, requests.exceptions.HTTPError) as e:
+            except (
+                requests.exceptions.ConnectionError,
+                requests.exceptions.ReadTimeout,
+                requests.exceptions.HTTPError,
+            ) as e:
                 if attempt >= 4:
                     raise
                 delay = 2 * (2**attempt)  # 2s, 4s, 8s, 16s backoff

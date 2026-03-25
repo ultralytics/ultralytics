@@ -5,8 +5,8 @@ import platform
 import re
 import socket
 import sys
-from math import isfinite
 from concurrent.futures import ThreadPoolExecutor
+from math import isfinite
 from pathlib import Path
 from time import sleep, time
 

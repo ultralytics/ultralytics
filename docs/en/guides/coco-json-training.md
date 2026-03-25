@@ -104,7 +104,7 @@ class COCOJSONDataset(YOLODataset):
                     "bbox_format": "xywh",
                 }
             )
-        x["hash"] = get_hash(self.json_file)
+        x["hash"] = get_hash([self.json_file])
         save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return x
 
@@ -114,7 +114,7 @@ class COCOJSONDataset(YOLODataset):
         try:
             cache = load_dataset_cache_file(cache_path)
             assert cache["version"] == DATASET_CACHE_VERSION
-            assert cache["hash"] == get_hash(self.json_file)
+            assert cache["hash"] == get_hash([self.json_file])
             self.im_files = [lb["im_file"] for lb in cache["labels"]]
         except (FileNotFoundError, AssertionError, AttributeError, KeyError, ModuleNotFoundError):
             cache = self.cache_labels(cache_path)
@@ -140,7 +140,7 @@ class COCOJSONTrainer(DetectionTrainer):
     """Trainer that uses COCOJSONDataset for direct COCO JSON training."""
 
     def build_dataset(self, img_path, mode="train", batch=None):
-        json_file = self.data["train_json"] if mode == "train" else self.data["val_json"]
+        json_file = self.data["train_json"] if mode == "train" else self.data.get("val_json", self.data["train_json"])
         return COCOJSONDataset(
             img_path=img_path,
             json_file=json_file,
@@ -284,7 +284,7 @@ class COCOJSONDataset(YOLODataset):
                     "bbox_format": "xywh",
                 }
             )
-        x["hash"] = get_hash(self.json_file)
+        x["hash"] = get_hash([self.json_file])
         save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return x
 
@@ -293,7 +293,7 @@ class COCOJSONDataset(YOLODataset):
         try:
             cache = load_dataset_cache_file(cache_path)
             assert cache["version"] == DATASET_CACHE_VERSION
-            assert cache["hash"] == get_hash(self.json_file)
+            assert cache["hash"] == get_hash([self.json_file])
             self.im_files = [lb["im_file"] for lb in cache["labels"]]
         except (FileNotFoundError, AssertionError, AttributeError, KeyError, ModuleNotFoundError):
             cache = self.cache_labels(cache_path)
@@ -306,7 +306,7 @@ class COCOJSONTrainer(DetectionTrainer):
     """Trainer that uses COCOJSONDataset for direct COCO JSON training."""
 
     def build_dataset(self, img_path, mode="train", batch=None):
-        json_file = self.data["train_json"] if mode == "train" else self.data["val_json"]
+        json_file = self.data["train_json"] if mode == "train" else self.data.get("val_json", self.data["train_json"])
         return COCOJSONDataset(
             img_path=img_path,
             json_file=json_file,
@@ -352,7 +352,7 @@ Yes. `COCOJSONDataset` extends `YOLODataset`, so all built-in [data augmentation
 
 ### How are category IDs mapped to class indices?
 
-Categories are sorted by `category_id` and mapped to sequential indices starting from 0. This handles 1-based IDs (standard COCO), 0-based IDs, and non-contiguous IDs. The `names` dictionary in `dataset.yaml` should follow the same sorted order as the COCO `categories` array.
+Categories are sorted by `id` and mapped to sequential indices starting from 0. This handles 1-based IDs (standard COCO), 0-based IDs, and non-contiguous IDs. The `names` dictionary in `dataset.yaml` should follow the same sorted order as the COCO `categories` array.
 
 ### Is there a performance overhead compared to pre-converted labels?
 

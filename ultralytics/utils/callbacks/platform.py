@@ -6,6 +6,7 @@ import re
 import socket
 import sys
 from concurrent.futures import ThreadPoolExecutor
+from math import isfinite
 from pathlib import Path
 from time import sleep, time
 
@@ -157,9 +158,20 @@ def _interp_plot(plot, n=101):
     return result
 
 
+def _sanitize_json_value(value):
+    """Replace non-finite floats in payloads with None so requests JSON encoding succeeds."""
+    if isinstance(value, dict):
+        return {k: _sanitize_json_value(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_sanitize_json_value(v) for v in value]
+    if isinstance(value, float):
+        return value if isfinite(value) else None  # avoid "Out of range float values are not JSON compliant" warnings
+    return value
+
+
 def _send(event, data, project, name, model_id=None, retry=2):
     """Send event to Platform endpoint with retry logic."""
-    payload = {"event": event, "project": project, "name": name, "data": data}
+    payload = {"event": event, "project": project, "name": name, "data": _sanitize_json_value(data)}
     if model_id:
         payload["modelId"] = model_id
 
@@ -191,6 +203,20 @@ def _send(event, data, project, name, model_id=None, retry=2):
 def _send_async(event, data, project, name, model_id=None):
     """Send event asynchronously using bounded thread pool."""
     _executor.submit(_send, event, data, project, name, model_id)
+
+
+def _handle_control_response(trainer, ctx, response):
+    """Apply centralized stop signals returned by Platform webhook responses.
+
+    Notes:
+        ``ctx["cancelled"]`` is the durable cancellation signal. During startup, trainer setup later resets
+        ``trainer.stop``, so early stop requests still rely on ``on_pretrain_routine_end()`` to reapply the flag after
+        setup completes.
+    """
+    if response and response.get("cancelled"):
+        ctx["cancelled"] = True
+        trainer.stop = True
+        LOGGER.info(f"{PREFIX}Training cancelled from Platform ⚠️")
 
 
 def _upload_model(model_path, project, name, progress=False, retry=1, model_id=None):
@@ -347,10 +373,8 @@ def on_pretrain_routine_start(trainer):
             ctx["model_slug"] = response["modelSlug"]
             url = f"{PLATFORM_URL}/{project}/{ctx['model_slug']}"
             LOGGER.info(f"{PREFIX}View model at {url}")
-        # Check for immediate cancellation (cancelled before training started)
         # Note: trainer.stop is set in on_pretrain_routine_end (after _setup_train resets it)
-        if response.get("cancelled"):
-            ctx["cancelled"] = True
+        _handle_control_response(trainer, ctx, response)
     else:
         LOGGER.warning(f"{PREFIX}Training will not be tracked on Platform")
         trainer.platform = None  # Disable further callbacks
@@ -411,10 +435,7 @@ def on_fit_epoch_end(trainer):
     def _send_and_check_cancel():
         """Send epoch_end and check response for cancellation (runs in background thread)."""
         response = _send("epoch_end", payload, project, name, ctx["model_id"], retry=1)
-        if response and response.get("cancelled"):
-            LOGGER.info(f"{PREFIX}Training cancelled from Platform ✅")
-            trainer.stop = True
-            ctx["cancelled"] = True
+        _handle_control_response(trainer, ctx, response)
 
     _executor.submit(_send_and_check_cancel)
 

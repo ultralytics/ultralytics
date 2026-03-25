@@ -71,8 +71,7 @@ class COCOJSONDataset(YOLODataset):
         for ann in coco["annotations"]:
             img_to_anns[ann["image_id"]].append(ann)
 
-        for img_id, anns in TQDM(img_to_anns.items(), desc="reading annotations"):
-            img_info = images[img_id]
+        for img_info in TQDM(coco["images"], desc="reading annotations"):
             h, w = img_info["height"], img_info["width"]
             im_file = Path(self.img_path) / img_info["file_name"]
             if not im_file.exists():
@@ -80,7 +79,7 @@ class COCOJSONDataset(YOLODataset):
 
             self.im_files.append(str(im_file))
             bboxes = []
-            for ann in anns:
+            for ann in img_to_anns.get(img_info["id"], []):
                 if ann.get("iscrowd", False):
                     continue
                 # COCO: [x, y, w, h] top-left in pixels -> YOLO: [cx, cy, w, h] center normalized
@@ -253,8 +252,7 @@ class COCOJSONDataset(YOLODataset):
         for ann in coco["annotations"]:
             img_to_anns[ann["image_id"]].append(ann)
 
-        for img_id, anns in TQDM(img_to_anns.items(), desc="reading annotations"):
-            img_info = images[img_id]
+        for img_info in TQDM(coco["images"], desc="reading annotations"):
             h, w = img_info["height"], img_info["width"]
             im_file = Path(self.img_path) / img_info["file_name"]
             if not im_file.exists():
@@ -262,7 +260,7 @@ class COCOJSONDataset(YOLODataset):
 
             self.im_files.append(str(im_file))
             bboxes = []
-            for ann in anns:
+            for ann in img_to_anns.get(img_info["id"], []):
                 if ann.get("iscrowd", False):
                     continue
                 box = np.array(ann["bbox"], dtype=np.float32)

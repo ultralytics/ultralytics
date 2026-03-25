@@ -37,7 +37,7 @@ To train a model on the ImageNette dataset for 100 epochs with a standard image 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="imagenette", epochs=100, imgsz=224)
@@ -47,14 +47,14 @@ To train a model on the ImageNette dataset for 100 epochs with a standard image 
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=imagenette model=yolo11n-cls.pt epochs=100 imgsz=224
+        yolo classify train data=imagenette model=yolo26n-cls.pt epochs=100 imgsz=224
         ```
 
 ## Sample Images and Annotations
 
 The ImageNette dataset contains colored images of various objects and scenes, providing a diverse dataset for [image classification](https://www.ultralytics.com/glossary/image-classification) tasks. Here are some examples of images from the dataset:
 
-![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/imagenette-sample-image.avif)
+![ImageNette classification dataset sample images](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/imagenette-sample-image.avif)
 
 The example showcases the variety and complexity of the images in the ImageNette dataset, highlighting the importance of a diverse dataset for training robust image classification models.
 
@@ -72,7 +72,7 @@ To use these datasets, simply replace 'imagenette' with 'imagenette160' or 'imag
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model with ImageNette160
         results = model.train(data="imagenette160", epochs=100, imgsz=160)
@@ -82,7 +82,7 @@ To use these datasets, simply replace 'imagenette' with 'imagenette160' or 'imag
 
         ```bash
         # Start training from a pretrained *.pt model with ImageNette160
-        yolo classify train data=imagenette160 model=yolo11n-cls.pt epochs=100 imgsz=160
+        yolo classify train data=imagenette160 model=yolo26n-cls.pt epochs=100 imgsz=160
         ```
 
 !!! example "Train Example with ImageNette320"
@@ -93,7 +93,7 @@ To use these datasets, simply replace 'imagenette' with 'imagenette160' or 'imag
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model with ImageNette320
         results = model.train(data="imagenette320", epochs=100, imgsz=320)
@@ -103,7 +103,7 @@ To use these datasets, simply replace 'imagenette' with 'imagenette160' or 'imag
 
         ```bash
         # Start training from a pretrained *.pt model with ImageNette320
-        yolo classify train data=imagenette320 model=yolo11n-cls.pt epochs=100 imgsz=320
+        yolo classify train data=imagenette320 model=yolo26n-cls.pt epochs=100 imgsz=320
         ```
 
 These smaller versions of the dataset allow for rapid iterations during the development process while still providing valuable and realistic image classification tasks.
@@ -130,7 +130,7 @@ To train a YOLO model on the ImageNette dataset for 100 [epochs](https://www.ult
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="imagenette", epochs=100, imgsz=224)
@@ -140,7 +140,7 @@ To train a YOLO model on the ImageNette dataset for 100 [epochs](https://www.ult
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=imagenette model=yolo11n-cls.pt epochs=100 imgsz=224
+        yolo classify train data=imagenette model=yolo26n-cls.pt epochs=100 imgsz=224
         ```
 
 For more details, see the [Training](../../modes/train.md) documentation page.
@@ -167,7 +167,7 @@ Yes, the ImageNette dataset is also available in two resized versions: ImageNett
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")
+        model = YOLO("yolo26n-cls.pt")
 
         # Train the model with ImageNette160
         results = model.train(data="imagenette160", epochs=100, imgsz=160)
@@ -177,7 +177,7 @@ Yes, the ImageNette dataset is also available in two resized versions: ImageNett
 
         ```bash
         # Start training from a pretrained *.pt model with ImageNette160
-        yolo classify train data=imagenette160 model=yolo11n-cls.pt epochs=100 imgsz=160
+        yolo classify train data=imagenette160 model=yolo26n-cls.pt epochs=100 imgsz=160
         ```
 
 For more information, refer to [Training with ImageNette160 and ImageNette320](#imagenette160-and-imagenette320).

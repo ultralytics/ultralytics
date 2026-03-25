@@ -41,7 +41,7 @@ def on_predict_batch_end(predictor):
 
 
 # Create a YOLO model instance
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 
 # Add the custom callback to the model
 model.add_callback("on_predict_batch_end", on_predict_batch_end)
@@ -49,6 +49,36 @@ model.add_callback("on_predict_batch_end", on_predict_batch_end)
 # Iterate through the results and frames
 for result, frame in model.predict():  # or model.track()
     pass
+```
+
+### Access Model metrics using the `on_model_save` callback
+
+This example shows how to retrieve training details, such as the best_fitness score, total_loss, and other metrics after a checkpoint is saved using the `on_model_save` callback.
+
+```python
+from ultralytics import YOLO
+
+# Load a YOLO model
+model = YOLO("yolo26n.pt")
+
+
+def print_checkpoint_metrics(trainer):
+    """Print trainer metrics and loss details after each checkpoint is saved."""
+    print(
+        f"Model details\n"
+        f"Best fitness: {trainer.best_fitness}, "
+        f"Loss names: {trainer.loss_names}, "  # List of loss names
+        f"Metrics: {trainer.metrics}, "
+        f"Total loss: {trainer.tloss}"  # Total loss value
+    )
+
+
+if __name__ == "__main__":
+    # Add on_model_save callback.
+    model.add_callback("on_model_save", print_checkpoint_metrics)
+
+    # Run model training on custom dataset.
+    results = model.train(data="coco8.yaml", epochs=3)
 ```
 
 ## All Callbacks
@@ -119,7 +149,7 @@ def on_predict_batch_end(predictor):
     predictor.results = zip(predictor.results, image)
 
 
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 model.add_callback("on_predict_batch_end", on_predict_batch_end)
 for result, frame in model.predict():
     pass
@@ -147,7 +177,7 @@ def put_in_eval_mode(trainer):
             module.track_running_stats = False
 
 
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 model.add_callback("on_train_epoch_start", put_in_eval_mode)
 model.train(data="coco.yaml", epochs=10)
 ```
@@ -173,7 +203,7 @@ def plot_samples(validator):
     validator.plot_predictions(v["batch"], v["preds"], v["batch_i"])
 
 
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 model.add_callback("on_val_batch_end", plot_samples)
 model.val(data="coco.yaml")
 ```
@@ -189,7 +219,7 @@ Here is an example where a custom callback saves predictions based on whether an
 ```python
 from ultralytics import YOLO
 
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 
 class_id = 2
 
@@ -232,7 +262,7 @@ def on_predict_batch_end(predictor):
     predictor.results = zip(predictor.results, image)
 
 
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 model.add_callback("on_predict_batch_end", on_predict_batch_end)
 for result, frame in model.predict():
     pass

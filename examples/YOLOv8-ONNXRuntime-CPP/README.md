@@ -120,7 +120,6 @@ Ensure you have the following dependencies installed:
     ```
 
     **CMake Options:**
-
     - `-DONNXRUNTIME_ROOT=<path>`: **(Required)** Path to the extracted ONNX Runtime library.
     - `-DCMAKE_BUILD_TYPE=Release`: (Optional) Build in Release mode for optimizations.
     - If CMake struggles to find OpenCV, you might need to set `-DOpenCV_DIR=/path/to/opencv/build`.
@@ -149,7 +148,7 @@ Before running, ensure:
 
 Modify the `main.cpp` file (or create a configuration mechanism) to set the parameters:
 
-```c++
+```cpp
 //change your param as you like
 //Pay attention to your device and the onnx model type(fp32 or fp16)
 DL_INIT_PARAM params;

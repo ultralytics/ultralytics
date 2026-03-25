@@ -1,6 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from copy import copy
+from pathlib import Path
 
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import OBBModel
@@ -8,11 +11,14 @@ from ultralytics.utils import DEFAULT_CFG, RANK
 
 
 class OBBTrainer(yolo.detect.DetectionTrainer):
-    """
-    A class extending the DetectionTrainer class for training based on an Oriented Bounding Box (OBB) model.
+    """A class extending the DetectionTrainer class for training based on an Oriented Bounding Box (OBB) model.
+
+    This trainer specializes in training YOLO models that detect oriented bounding boxes, which are useful for detecting
+    objects at arbitrary angles rather than just axis-aligned rectangles.
 
     Attributes:
-        loss_names (Tuple[str]): Names of the loss components used during training.
+        loss_names (tuple): Names of the loss components used during training including box_loss, cls_loss, dfl_loss,
+            and angle_loss.
 
     Methods:
         get_model: Return OBBModel initialized with specified config and weights.
@@ -20,44 +26,35 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
 
     Examples:
         >>> from ultralytics.models.yolo.obb import OBBTrainer
-        >>> args = dict(model="yolo11n-obb.pt", data="dota8.yaml", epochs=3)
+        >>> args = dict(model="yolo26n-obb.pt", data="dota8.yaml", epochs=3)
         >>> trainer = OBBTrainer(overrides=args)
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """
-        Initialize an OBBTrainer object for training Oriented Bounding Box (OBB) models.
-
-        This trainer extends the DetectionTrainer class to specialize in training models that detect oriented
-        bounding boxes. It automatically sets the task to 'obb' in the configuration.
+    def __init__(self, cfg=DEFAULT_CFG, overrides: dict | None = None, _callbacks: dict | None = None):
+        """Initialize an OBBTrainer object for training Oriented Bounding Box (OBB) models.
 
         Args:
-            cfg (dict, optional): Configuration dictionary for the trainer. Contains training parameters and
-                model configuration.
-            overrides (dict, optional): Dictionary of parameter overrides for the configuration. Any values here
-                will take precedence over those in cfg.
-            _callbacks (list, optional): List of callback functions to be invoked during training.
-
-        Examples:
-            >>> from ultralytics.models.yolo.obb import OBBTrainer
-            >>> args = dict(model="yolo11n-obb.pt", data="dota8.yaml", epochs=3)
-            >>> trainer = OBBTrainer(overrides=args)
-            >>> trainer.train()
+            cfg (dict, optional): Configuration dictionary for the trainer. Contains training parameters and model
+                configuration.
+            overrides (dict, optional): Dictionary of parameter overrides for the configuration. Any values here will
+                take precedence over those in cfg.
+            _callbacks (dict, optional): Dictionary of callback functions to be invoked during training.
         """
         if overrides is None:
             overrides = {}
         overrides["task"] = "obb"
         super().__init__(cfg, overrides, _callbacks)
 
-    def get_model(self, cfg=None, weights=None, verbose=True):
-        """
-        Return OBBModel initialized with specified config and weights.
+    def get_model(
+        self, cfg: str | dict | None = None, weights: str | Path | None = None, verbose: bool = True
+    ) -> OBBModel:
+        """Return OBBModel initialized with specified config and weights.
 
         Args:
-            cfg (str | dict | None): Model configuration. Can be a path to a YAML config file, a dictionary
+            cfg (str | dict, optional): Model configuration. Can be a path to a YAML config file, a dictionary
                 containing configuration parameters, or None to use default configuration.
-            weights (str | Path | None): Path to pretrained weights file. If None, random initialization is used.
+            weights (str | Path, optional): Path to pretrained weights file. If None, random initialization is used.
             verbose (bool): Whether to display model information during initialization.
 
         Returns:
@@ -65,7 +62,7 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
 
         Examples:
             >>> trainer = OBBTrainer()
-            >>> model = trainer.get_model(cfg="yolo11n-obb.yaml", weights="yolo11n-obb.pt")
+            >>> model = trainer.get_model(cfg="yolo26n-obb.yaml", weights="yolo26n-obb.pt")
         """
         model = OBBModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         if weights:
@@ -75,7 +72,7 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
 
     def get_validator(self):
         """Return an instance of OBBValidator for validation of YOLO model."""
-        self.loss_names = "box_loss", "cls_loss", "dfl_loss"
+        self.loss_names = "box_loss", "cls_loss", "dfl_loss", "angle_loss"
         return yolo.obb.OBBValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

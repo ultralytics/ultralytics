@@ -29,7 +29,7 @@ This guide explains how to deploy YOLOv5 with Neural Magic's DeepSparse.
 DeepSparse is an inference runtime with exceptional performance on CPUs. For instance, compared to the ONNX Runtime baseline, DeepSparse offers a 5.8x speed-up for YOLOv5s, running on the same machine!
 
 <p align="center">
-  <img width="60%" src="https://github.com/ultralytics/docs/releases/download/0/yolov5-speed-improvement.avif" alt="YOLOv5 speed improvement">
+  <img width="60%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov5-speed-improvement.avif" alt="YOLOv5 DeepSparse vs ONNX Runtime speed comparison chart">
 </p>
 
 For the first time, your [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) workloads can meet the performance demands of production without the complexity and costs of hardware accelerators. Put simply, DeepSparse gives you the performance of GPUs and the simplicity of software:
@@ -45,16 +45,16 @@ DeepSparse takes advantage of model sparsity to gain its performance speedup.
 Sparsification through pruning and quantization is a broadly studied technique, allowing order-of-magnitude reductions in the size and compute needed to execute a network, while maintaining high [accuracy](https://www.ultralytics.com/glossary/accuracy). DeepSparse is sparsity-aware, meaning it skips the zeroed out parameters, shrinking amount of compute in a forward pass. Since the sparse computation is now memory bound, DeepSparse executes the network depth-wise, breaking the problem into Tensor Columns, vertical stripes of computation that fit in cache.
 
 <p align="center">
-  <img width="60%" src="https://github.com/ultralytics/docs/releases/download/0/tensor-columns.avif" alt="YOLO model pruning">
+  <img width="60%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tensor-columns.avif" alt="DeepSparse tensor columns for sparse neural network inference">
 </p>
 
 Sparse networks with compressed computation, executed depth-wise in cache, allows DeepSparse to deliver GPU-class performance on CPUs!
 
 ## How Do I Create A Sparse Version of YOLOv5 Trained on My Data?
 
-Neural Magic's open-source model repository, [SparseZoo](https://sparsezoo.neuralmagic.com/), contains pre-sparsified checkpoints of each YOLOv5 model. Using [SparseML](https://github.com/neuralmagic/sparseml), which is integrated with Ultralytics, you can fine-tune a sparse checkpoint onto your data with a single CLI command.
+Neural Magic's open-source model repository, [SparseZoo](https://github.com/neuralmagic/sparsezoo/blob/main/README.md), contains pre-sparsified checkpoints of each YOLOv5 model. Using [SparseML](https://github.com/neuralmagic/sparseml), which is integrated with Ultralytics, you can fine-tune a sparse checkpoint onto your data with a single CLI command.
 
-[Checkout Neural Magic's YOLOv5 documentation for more details](https://docs.neuralmagic.com/computer-vision/object-detection/).
+[Checkout Neural Magic's YOLOv5 documentation for more details](https://www.redhat.com/en/about/press-releases/red-hat-completes-acquisition-neural-magic-fuel-optimized-generative-ai-innovation-across-hybrid-cloud).
 
 ## DeepSparse Usage
 
@@ -116,10 +116,16 @@ pipeline_outputs = yolo_pipeline(images=images, iou_thres=0.6, conf_thres=0.001)
 print(pipeline_outputs)
 ```
 
-If you are running in the cloud, you may get an error that open-cv cannot find `libGL.so.1`. Running the following on Ubuntu installs it:
+If you are running in the cloud, you may get an error that OpenCV cannot find `libGL.so.1`. You can either install the missing library:
 
-```
+```bash
 apt-get install libgl1
+```
+
+Or use the headless Ultralytics package that avoids GUI dependencies entirely:
+
+```bash
+pip install ultralytics-opencv-headless
 ```
 
 #### HTTP Server
@@ -166,7 +172,7 @@ deepsparse.object_detection.annotate --model_filepath zoo:cv/detection/yolov5-s/
 Running the above command will create an `annotation-results` folder and save the annotated image inside.
 
 <p align="center">
-<img src="https://github.com/ultralytics/docs/releases/download/0/basilica-annotated.avif" alt="annotated" width="60%">
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/basilica-annotated.avif" alt="YOLOv5 detection results with bounding boxes" width="60%">
 </p>
 
 ## Benchmarking Performance
@@ -207,7 +213,7 @@ deepsparse.benchmark zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/base-non
 
 #### DeepSparse Sparse Performance
 
-When sparsity is applied to the model, DeepSparse's performance gains over ONNX Runtime is even stronger.
+When sparsity is applied to the model, DeepSparse's performance gains over ONNX Runtime are even stronger.
 
 At batch 32, DeepSparse achieves 241 images/sec with the pruned-quantized YOLOv5s, a **5.8x performance improvement over ORT**!
 
@@ -265,6 +271,6 @@ deepsparse.benchmark zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/pruned35
 
 ## Get Started With DeepSparse
 
-**Research or Testing?** DeepSparse Community is free for research and testing. Get started with their [Documentation](https://docs.neuralmagic.com/).
+**Research or Testing?** DeepSparse Community is free for research and testing. Get started with their [Documentation](https://www.redhat.com/en/about/press-releases/red-hat-completes-acquisition-neural-magic-fuel-optimized-generative-ai-innovation-across-hybrid-cloud).
 
-For more information on deploying YOLOv5 with DeepSparse, check out the [Neural Magic's DeepSparse documentation](https://docs.neuralmagic.com/products/deepsparse/) and the [Ultralytics blog post on DeepSparse integration](https://www.ultralytics.com/blog/deploy-yolov5-with-neural-magics-deepsparse-for-gpu-class-performance-on-cpus).
+For more information on deploying YOLOv5 with DeepSparse, check out the [Neural Magic's DeepSparse documentation](https://www.redhat.com/en/about/press-releases/red-hat-completes-acquisition-neural-magic-fuel-optimized-generative-ai-innovation-across-hybrid-cloud) and the [Ultralytics blog post on DeepSparse integration](https://www.ultralytics.com/blog/deploy-yolov5-with-neural-magics-deepsparse-for-gpu-class-performance-on-cpus).

@@ -1,3 +1,5 @@
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 use ndarray::{Array, Axis, IxDyn};
 
 #[derive(Clone, PartialEq, Default)]
@@ -230,6 +232,11 @@ impl Bbox {
     }
 
     pub fn iou(&self, another: &Bbox) -> f32 {
-        self.intersection_area(another) / self.union(another)
+        let union = self.union(another);
+        if union <= 0.0 {
+            0.0
+        } else {
+            self.intersection_area(another) / union
+        }
     }
 }

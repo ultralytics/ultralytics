@@ -56,4 +56,4 @@ head:
   - [[-1, 11], 1, Concat, [1]] # cat head P6
   - [-1, 3, C2, [1024, False]] # 29 (P6/64-xlarge)
 
-  - [[20, 23, 26, 29], 1, Segment, [nc, 32, 256]] # Pose(P3, P4, P5, P6)
+  - [[20, 23, 26, 29], 1, Segment, [nc, 32, 256]] # Segment(P3, P4, P5, P6)

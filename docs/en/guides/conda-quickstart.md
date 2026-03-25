@@ -7,7 +7,7 @@ keywords: Ultralytics, Conda, setup, installation, environment, guide, machine l
 # Conda Quickstart Guide for Ultralytics
 
 <p align="center">
-  <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-conda-package-visual.avif" alt="Ultralytics Conda Package Visual">
+  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-conda-package-visual.avif" alt="Ultralytics Conda Package Visual">
 </p>
 
 This guide provides a comprehensive introduction to setting up a Conda environment for your Ultralytics projects. Conda is an open-source package and environment management system that offers an excellent alternative to pip for installing packages and dependencies. Its isolated environments make it particularly well-suited for data science and [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) endeavors. For more details, visit the Ultralytics Conda package on [Anaconda](https://anaconda.org/conda-forge/ultralytics) and check out the Ultralytics feedstock repository for package updates on [GitHub](https://github.com/conda-forge/ultralytics-feedstock/).
@@ -73,7 +73,7 @@ With Ultralytics installed, you can now start using its robust features for [obj
 ```python
 from ultralytics import YOLO
 
-model = YOLO("yolo11n.pt")  # initialize model
+model = YOLO("yolo26n.pt")  # initialize model
 results = model("path/to/image.jpg")  # perform inference
 results[0].show()  # display results for the first image
 ```
@@ -98,8 +98,8 @@ Run the image:
 
 ```bash
 # Run the Ultralytics image in a container with GPU support
-sudo docker run -it --ipc=host --gpus all $t            # all GPUs
-sudo docker run -it --ipc=host --gpus '"device=2,3"' $t # specify GPUs
+sudo docker run -it --ipc=host --runtime=nvidia --gpus all $t            # all GPUs
+sudo docker run -it --ipc=host --runtime=nvidia --gpus '"device=2,3"' $t # specify GPUs
 ```
 
 ## Speeding Up Installation with Libmamba
@@ -126,7 +126,7 @@ And that's it! Your Conda installation will now use `libmamba` as the solver, wh
 
 ---
 
-Congratulations! You have successfully set up a Conda environment, installed the Ultralytics package, and are now ready to explore its rich functionalities. Feel free to dive deeper into the [Ultralytics documentation](../index.md) for more advanced tutorials and examples.
+You have successfully set up a Conda environment, installed the Ultralytics package, and are now ready to explore its features. For more advanced tutorials and examples, see the [Ultralytics documentation](../index.md).
 
 ## FAQ
 
@@ -170,7 +170,8 @@ Using Ultralytics Docker images ensures a consistent and reproducible environmen
 
 ```bash
 sudo docker pull ultralytics/ultralytics:latest-conda
-sudo docker run -it --ipc=host --gpus all ultralytics/ultralytics:latest-conda
+sudo docker run -it --ipc=host --runtime=nvidia --gpus all ultralytics/ultralytics:latest-conda            # all GPUs
+sudo docker run -it --ipc=host --runtime=nvidia --gpus '"device=2,3"' ultralytics/ultralytics:latest-conda # specify GPUs
 ```
 
 This approach is ideal for deploying applications in production or running complex workflows without manual configuration. Learn more about [Ultralytics Conda Docker Image](../quickstart.md).

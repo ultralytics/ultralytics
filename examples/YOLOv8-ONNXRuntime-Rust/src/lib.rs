@@ -1,4 +1,5 @@
 #![allow(clippy::type_complexity)]
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 use std::io::{Read, Write};
 
@@ -93,15 +94,11 @@ pub fn check_font(font: &str) -> rusttype::Font<'static> {
             .call()
             .unwrap_or_else(|err| panic!("> Failed to download font: {source_url}: {err:?}"));
 
-        // read to buffer
+        // read to buffer with size limit (10MB max for font file)
+        const MAX_FONT_SIZE: u64 = 10 * 1024 * 1024;
         let mut buffer = vec![];
-        let total_size = resp
-            .header("Content-Length")
-            .and_then(|s| s.parse::<u64>().ok())
-            .unwrap();
-        let _reader = resp
-            .into_reader()
-            .take(total_size)
+        resp.into_reader()
+            .take(MAX_FONT_SIZE)
             .read_to_end(&mut buffer)
             .unwrap();
 
@@ -136,15 +133,11 @@ pub fn load_font() -> FontArc {
                 .call()
                 .unwrap_or_else(|err| panic!("> Failed to download font: {source_url}: {err:?}"));
 
-            // read to buffer
+            // read to buffer with size limit (10MB max for font file)
+            const MAX_FONT_SIZE: u64 = 10 * 1024 * 1024;
             let mut buffer = vec![];
-            let total_size = resp
-                .header("Content-Length")
-                .and_then(|s| s.parse::<u64>().ok())
-                .unwrap();
-            let _reader = resp
-                .into_reader()
-                .take(total_size)
+            resp.into_reader()
+                .take(MAX_FONT_SIZE)
                 .read_to_end(&mut buffer)
                 .unwrap();
             // save

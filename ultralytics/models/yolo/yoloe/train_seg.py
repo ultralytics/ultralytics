@@ -1,6 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-
 from copy import copy, deepcopy
 
 from ultralytics.models.yolo.segment import SegmentationTrainer
@@ -12,24 +11,22 @@ from .val import YOLOESegValidator
 
 
 class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
-    """
-    Trainer class for YOLOE segmentation models.
+    """Trainer class for YOLOE segmentation models.
 
-    This class combines YOLOETrainer and SegmentationTrainer to provide training functionality
-    specifically for YOLOE segmentation models.
+    This class combines YOLOETrainer and SegmentationTrainer to provide training functionality specifically for YOLOE
+    segmentation models, enabling both object detection and instance segmentation capabilities.
 
     Attributes:
         cfg (dict): Configuration dictionary with training parameters.
         overrides (dict): Dictionary with parameter overrides.
-        _callbacks (list): List of callback functions for training events.
+        _callbacks (dict): Dictionary of callback functions for training events.
     """
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        """
-        Return YOLOESegModel initialized with specified config and weights.
+        """Return YOLOESegModel initialized with specified config and weights.
 
         Args:
-            cfg (dict | str): Model configuration dictionary or YAML file path.
+            cfg (dict | str, optional): Model configuration dictionary or YAML file path.
             weights (str, optional): Path to pretrained weights file.
             verbose (bool): Whether to display model information.
 
@@ -50,8 +47,7 @@ class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
         return model
 
     def get_validator(self):
-        """
-        Create and return a validator for YOLOE segmentation model evaluation.
+        """Create and return a validator for YOLOE segmentation model evaluation.
 
         Returns:
             (YOLOESegValidator): Validator for YOLOE segmentation models.
@@ -63,19 +59,20 @@ class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
 
 
 class YOLOEPESegTrainer(SegmentationTrainer):
-    """
-    Fine-tune YOLOESeg model in linear probing way.
+    """Fine-tune YOLOESeg model in linear probing way.
 
     This trainer specializes in fine-tuning YOLOESeg models using a linear probing approach, which involves freezing
-    most of the model and only training specific layers.
+    most of the model and only training specific layers for efficient adaptation to new tasks.
+
+    Attributes:
+        data (dict): Dataset configuration containing channels, class names, and number of classes.
     """
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        """
-        Return YOLOESegModel initialized with specified config and weights for linear probing.
+        """Return YOLOESegModel initialized with specified config and weights for linear probing.
 
         Args:
-            cfg (dict | str): Model configuration dictionary or YAML file path.
+            cfg (dict | str, optional): Model configuration dictionary or YAML file path.
             weights (str, optional): Path to pretrained weights file.
             verbose (bool): Whether to display model information.
 
@@ -107,19 +104,24 @@ class YOLOEPESegTrainer(SegmentationTrainer):
         model.model[-1].cv3[0][2] = deepcopy(model.model[-1].cv3[0][2]).requires_grad_(True)
         model.model[-1].cv3[1][2] = deepcopy(model.model[-1].cv3[1][2]).requires_grad_(True)
         model.model[-1].cv3[2][2] = deepcopy(model.model[-1].cv3[2][2]).requires_grad_(True)
-        del model.pe
+
+        if getattr(model.model[-1], "one2one_cv3", None) is not None:
+            model.model[-1].one2one_cv3[0][2] = deepcopy(model.model[-1].cv3[0][2]).requires_grad_(True)
+            model.model[-1].one2one_cv3[1][2] = deepcopy(model.model[-1].cv3[1][2]).requires_grad_(True)
+            model.model[-1].one2one_cv3[2][2] = deepcopy(model.model[-1].cv3[2][2]).requires_grad_(True)
+
         model.train()
 
         return model
 
 
 class YOLOESegTrainerFromScratch(YOLOETrainerFromScratch, YOLOESegTrainer):
-    """Trainer for YOLOE segmentation from scratch."""
+    """Trainer for YOLOE segmentation models trained from scratch without pretrained weights."""
 
     pass
 
 
 class YOLOESegVPTrainer(YOLOEVPTrainer, YOLOESegTrainerFromScratch):
-    """Trainer for YOLOE segmentation with VP."""
+    """Trainer for YOLOE segmentation models with Vision Prompt (VP) capabilities."""
 
     pass

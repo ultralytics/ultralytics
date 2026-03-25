@@ -1,30 +1,30 @@
 ---
 comments: true
 description: Dive into advanced data exploration with Ultralytics Explorer. Perform semantic searches, execute SQL queries, and leverage AI-powered natural language insights for seamless data analysis.
-keywords: Ultralytics Explorer, data exploration, semantic search, vector similarity, SQL queries, AI, natural language queries, machine learning, OpenAI, LLMs, Ultralytics HUB
+keywords: Ultralytics Explorer, data exploration, semantic search, vector similarity, SQL queries, AI, natural language queries, machine learning, OpenAI, LLMs, Ultralytics Platform
 ---
 
 # VOC Exploration Example
 
 <div align="center">
 
-<a href="https://www.ultralytics.com/events/yolovision" target="_blank"><img width="1024%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-banner.avif" alt="Ultralytics YOLO banner"></a>
-<a href="https://docs.ultralytics.com/zh">中文</a> |
-<a href="https://docs.ultralytics.com/ko">한국어</a> |
-<a href="https://docs.ultralytics.com/ja">日本語</a> |
-<a href="https://docs.ultralytics.com/ru">Русский</a> |
-<a href="https://docs.ultralytics.com/de">Deutsch</a> |
-<a href="https://docs.ultralytics.com/fr">Français</a> |
+<a href="https://www.ultralytics.com/events/yolovision" target="_blank"><img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-banner.avif" alt="Ultralytics YOLO banner"></a>
+<a href="https://docs.ultralytics.com/zh/">中文</a> |
+<a href="https://docs.ultralytics.com/ko/">한국어</a> |
+<a href="https://docs.ultralytics.com/ja/">日本語</a> |
+<a href="https://docs.ultralytics.com/ru/">Русский</a> |
+<a href="https://docs.ultralytics.com/de/">Deutsch</a> |
+<a href="https://docs.ultralytics.com/fr/">Français</a> |
 <a href="https://docs.ultralytics.com/es">Español</a> |
-<a href="https://docs.ultralytics.com/pt">Português</a> |
-<a href="https://docs.ultralytics.com/tr">Türkçe</a> |
-<a href="https://docs.ultralytics.com/vi">Tiếng Việt</a> |
-<a href="https://docs.ultralytics.com/ar">العربية</a>
+<a href="https://docs.ultralytics.com/pt/">Português</a> |
+<a href="https://docs.ultralytics.com/tr/">Türkçe</a> |
+<a href="https://docs.ultralytics.com/vi/">Tiếng Việt</a> |
+<a href="https://docs.ultralytics.com/ar/">العربية</a>
 <br>
 
 <br>
     <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml/badge.svg" alt="Ultralytics CI"></a>
-    <a href="https://pepy.tech/projects/ultralytics"><img src="https://static.pepy.tech/badge/ultralytics" alt="Ultralytics Downloads"></a>
+    <a href="https://clickpy.clickhouse.com/dashboard/ultralytics"><img src="https://static.pepy.tech/badge/ultralytics" alt="Ultralytics Downloads"></a>
     <a href="https://zenodo.org/badge/latestdoi/264818686"><img src="https://zenodo.org/badge/264818686.svg" alt="Ultralytics YOLO Citation"></a>
     <a href="https://discord.com/invite/ultralytics"><img alt="Ultralytics Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a>
     <a href="https://community.ultralytics.com/"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
@@ -32,27 +32,27 @@ keywords: Ultralytics Explorer, data exploration, semantic search, vector simila
     <br>
     <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run Ultralytics on Gradient"></a>
     <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Ultralytics In Colab"></a>
-    <a href="https://www.kaggle.com/models/ultralytics/yolo11"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open Ultralytics In Kaggle"></a>
+    <a href="https://www.kaggle.com/models/ultralytics/yolo26"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open Ultralytics In Kaggle"></a>
     <a href="https://mybinder.org/v2/gh/ultralytics/ultralytics/HEAD?labpath=examples%2Ftutorial.ipynb"><img src="https://mybinder.org/badge_logo.svg" alt="Open Ultralytics In Binder"></a>
 <br>
 </div>
 
-Welcome to the Ultralytics Explorer API notebook! This notebook serves as the starting point for exploring the various resources available to help you get started with using Ultralytics to explore your datasets using with the power of semantic search. You can utilities out of the box that allow you to examine specific types of labels using vector search or even SQL queries.
+Welcome to the Ultralytics Explorer API notebook. This notebook introduces the resources available for exploring datasets with semantic search, vector search, and SQL queries.
 
-Try `yolo explorer` powered by Explorer API
+Try `yolo explorer` (powered by the Explorer API)
 
-Simply `pip install ultralytics` and run `yolo explorer` in your terminal to run custom queries and semantic search on your datasets right inside your browser!
+Install `ultralytics` and run `yolo explorer` in your terminal to run custom queries and semantic search in your browser.
 
 !!! warning "Community Note ⚠️"
 
-    As of **`ultralytics>=8.3.10`**, Ultralytics explorer support has been deprecated. But don't worry! You can now access similar and even enhanced functionality through [Ultralytics HUB](https://hub.ultralytics.com/), our intuitive no-code platform designed to streamline your workflow. With Ultralytics HUB, you can continue exploring, visualizing, and managing your data effortlessly, all without writing a single line of code. Make sure to check it out and take advantage of its powerful features!🚀
+    As of **`ultralytics>=8.3.10`**, Ultralytics Explorer support is deprecated. Similar (and expanded) dataset exploration features are available in [Ultralytics Platform](https://platform.ultralytics.com/).
 
 ## Setup
 
-Pip install `ultralytics` and [dependencies](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) and check software and hardware.
+Install `ultralytics` and the required [dependencies](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml), then check software and hardware.
 
 ```bash
-%pip install ultralytics[explorer] openai
+!uv pip install ultralytics[explorer] openai
 yolo checks
 ```
 
@@ -61,18 +61,18 @@ yolo checks
 Utilize the power of vector similarity search to find the similar data points in your dataset along with their distance in the embedding space. Simply create an embeddings table for the given dataset-model pair. It is only needed once, and it is reused automatically.
 
 ```python
-exp = Explorer("VOC.yaml", model="yolo11n.pt")
+exp = Explorer("VOC.yaml", model="yolo26n.pt")
 exp.create_embeddings_table()
 ```
 
-One the embeddings table is built, you can get run semantic search in any of the following ways:
+Once the embeddings table is built, you can run semantic search in any of the following ways:
 
-- On a given index / list of indices in the dataset like - exp.get_similar(idx=[1,10], limit=10)
+- On a given index/list of indices in the dataset, e.g., `exp.get_similar(idx=[1, 10], limit=10)`
 - On any image/ list of images not in the dataset - exp.get_similar(img=["path/to/img1", "path/to/img2"], limit=10) In case of multiple inputs, the aggregate of their embeddings is used.
 
-You get a pandas dataframe with the limit number of most similar data points to the input, along with their distance in the embedding space. You can use this dataset to perform further filtering
+You get a pandas DataFrame with the limit number of most similar data points to the input, along with their distance in the embedding space. You can use this dataset to perform further filtering.
 
-![Similarity search table](https://github.com/ultralytics/docs/releases/download/0/similarity-search-table.avif)
+![Ultralytics Explorer similarity search results](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/similarity-search-table.avif)
 
 ```python
 # Search dataset by index
@@ -80,9 +80,9 @@ similar = exp.get_similar(idx=1, limit=10)
 similar.head()
 ```
 
-You can use the also plot the similar samples directly using the `plot_similar` util
+You can also plot the similar samples directly using the `plot_similar` util
 
-![Similarity search image 1](https://github.com/ultralytics/docs/releases/download/0/similarity-search-image-1.avif)
+![Similar images found by vector search](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/similarity-search-image-1.avif)
 
 ```python
 exp.plot_similar(idx=6500, limit=20)
@@ -91,44 +91,43 @@ exp.plot_similar(idx=[100, 101], limit=10)  # Can also pass list of idxs or imgs
 exp.plot_similar(img="https://ultralytics.com/images/bus.jpg", limit=10, labels=False)  # Can also pass external images
 ```
 
-![Similarity search image 2](https://github.com/ultralytics/docs/releases/download/0/similarity-search-image-2.avif)
+![Similarity search visualization with embeddings](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/similarity-search-image-2.avif)
 
-## Ask AI: Search or filter with Natural Language
+## Ask AI: Search or Filter with Natural Language
 
-You can prompt the Explorer object with the kind of data points you want to see, and it'll try to return a dataframe with those. Because it is powered by LLMs, it doesn't always get it right. In that case, it'll return None.
+You can prompt the Explorer object with the kind of data points you want to see, and it will try to return a DataFrame with those results. Because it is powered by LLMs, it does not always get it right. In that case, it will return `None`.
 
-![Ask ai table](https://github.com/ultralytics/docs/releases/download/0/ask-ai-nlp-table.avif)
+![Ultralytics Explorer Ask AI natural language query results](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ask-ai-nlp-table.avif)
 
 ```python
 df = exp.ask_ai("show me images containing more than 10 objects with at least 2 persons")
 df.head(5)
 ```
 
-for plotting these results you can use `plot_query_result` util Example:
+To plot these results, you can use the `plot_query_result` utility. Example:
 
 ```python
 plt = plot_query_result(exp.ask_ai("show me 10 images containing exactly 2 persons"))
 Image.fromarray(plt)
 ```
 
-![Ask ai image 1](https://github.com/ultralytics/docs/releases/download/0/ask-ai-nlp-image-1.avif)
+![Ask AI query result showing matched images](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ask-ai-nlp-image-1.avif)
 
 ```python
 # plot
 from PIL import Image
-
 from ultralytics.data.explorer import plot_query_result
 
 plt = plot_query_result(exp.ask_ai("show me 10 images containing exactly 2 persons"))
 Image.fromarray(plt)
 ```
 
-## Run SQL queries on your Dataset
+## Run SQL Queries on Your Dataset
 
-Sometimes you might want to investigate a certain type of entries in your dataset. For this Explorer allows you to execute SQL queries. It accepts either of the formats:
+Sometimes you might want to investigate certain entries in your dataset. For this, Explorer allows you to execute SQL queries. It accepts either of the following formats:
 
-- Queries beginning with "WHERE" will automatically select all columns. This can be thought of as a shorthand query
-- You can also write full queries where you can specify which columns to select
+- Queries beginning with "WHERE" will automatically select all columns. This can be thought of as a shorthand query.
+- You can also write full queries where you can specify which columns to select.
 
 This can be used to investigate model performance and specific data points. For example:
 
@@ -141,7 +140,7 @@ table = exp.sql_query("WHERE labels LIKE '%person, person%' AND labels LIKE '%do
 exp.plot_sql_query("WHERE labels LIKE '%person, person%' AND labels LIKE '%dog%' LIMIT 10", labels=True)
 ```
 
-![SQL queries table](https://github.com/ultralytics/docs/releases/download/0/sql-queries-table.avif)
+![Explorer SQL query results table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sql-queries-table.avif)
 
 ```python
 table = exp.sql_query("WHERE labels LIKE '%person, person%' AND labels LIKE '%dog%' LIMIT 10")
@@ -150,7 +149,7 @@ print(table)
 
 Just like similarity search, you also get a util to directly plot the sql queries using `exp.plot_sql_query`
 
-![SQL queries image 1](https://github.com/ultralytics/docs/releases/download/0/sql-query-image-1.avif)
+![SQL query matched images visualization](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sql-query-image-1.avif)
 
 ```python
 exp.plot_sql_query("WHERE labels LIKE '%person, person%' AND labels LIKE '%dog%' LIMIT 10", labels=True)
@@ -177,7 +176,7 @@ Metric In LanceDB, a Metric is the way to describe the distance between a pair o
 - Cosine
 - Dot Explorer's similarity search uses L2 by default. You can run queries on tables directly, or use the lance format to build custom utilities to manage datasets. More details on available LanceDB table ops in the [docs](https://lancedb.github.io/lancedb/)
 
-![Raw-queries-table](https://github.com/ultralytics/docs/releases/download/0/raw-queries-table.avif)
+![Explorer raw SQL queries results table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/raw-queries-table.avif)
 
 ```python
 dummy_img_embedding = [i for i in range(256)]
@@ -193,7 +192,7 @@ pa_table = table.to_arrow()
 
 ### Work with Embeddings
 
-You can access the raw embedding from lancedb Table and analyse it. The image embeddings are stored in column `vector`
+You can access the raw embedding from lancedb Table and analyze it. The image embeddings are stored in column `vector`
 
 ```python
 import numpy as np
@@ -204,9 +203,9 @@ embeddings = np.array(embeddings)
 
 ### Scatterplot
 
-One of the preliminary steps in analysing embeddings is by plotting them in 2D space via dimensionality reduction. Let's try an example
+One of the preliminary steps in analyzing embeddings is by plotting them in 2D space via dimensionality reduction. Let's try an example
 
-![Scatterplot Example](https://github.com/ultralytics/docs/releases/download/0/scatterplot-sql-queries.avif)
+![Explorer embeddings scatterplot visualization](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/scatterplot-sql-queries.avif)
 
 ```python
 import matplotlib.pyplot as plt
@@ -237,16 +236,16 @@ Here's a simple example of an operation powered by the embeddings table. Explore
 - It tries to estimate how similar each data point is with the rest of the dataset.
 - It does that by counting how many image embeddings lie closer than max_dist to the current image in the generated embedding space, considering top_k similar images at a time.
 
-For a given dataset, model, `max_dist` & `top_k` the similarity index once generated will be reused. In case, your dataset has changed, or you simply need to regenerate the similarity index, you can pass `force=True`. Similar to vector and SQL search, this also comes with a util to directly plot it. Let's look
+For a given dataset, model, `max_dist` & `top_k` the similarity index once generated will be reused. In case, your dataset has changed, or you simply need to regenerate the similarity index, you can pass `force=True`. Similar to vector and SQL search, this also comes with a util to directly plot it.
 
 ```python
 sim_idx = exp.similarity_index(max_dist=0.2, top_k=0.01)
 exp.plot_similarity_index(max_dist=0.2, top_k=0.01)
 ```
 
-![Similarity Index](https://github.com/ultralytics/docs/releases/download/0/similarity-index.avif)
+![Dataset similarity index analysis](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/similarity-index.avif)
 
-at the plot first
+Let's look at the plot first
 
 ```python
 exp.plot_similarity_index(max_dist=0.2, top_k=0.01)
@@ -271,7 +270,7 @@ sim_idx["im_file"][sim_count > 30]
 
 You should see something like this
 
-![similarity-index-image](https://github.com/ultralytics/docs/releases/download/0/similarity-index-image.avif)
+![Similarity index visualization for dataset analysis](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/similarity-index-image.avif)
 
 ```python
 exp.plot_similar(idx=[7146, 14035])  # Using avg embeddings of 2 images

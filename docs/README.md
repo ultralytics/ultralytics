@@ -2,7 +2,7 @@
 
 # 📚 Ultralytics Docs
 
-Welcome to Ultralytics Docs, your comprehensive resource for understanding and utilizing our state-of-the-art [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) tools and models, including [Ultralytics YOLO](https://docs.ultralytics.com/models/yolov8/). These documents are actively maintained and deployed to [https://docs.ultralytics.com](https://docs.ultralytics.com/) for easy access.
+Welcome to Ultralytics Docs, your comprehensive resource for understanding and utilizing our state-of-the-art [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) tools and models, including [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo26/). These documents are actively maintained and deployed to [https://docs.ultralytics.com](https://docs.ultralytics.com/) for easy access.
 
 [![pages-build-deployment](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment)
 [![Check Broken links](https://github.com/ultralytics/docs/actions/workflows/links.yml/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/links.yml)
@@ -14,10 +14,10 @@ Welcome to Ultralytics Docs, your comprehensive resource for understanding and u
 ## 🛠️ Installation
 
 [![PyPI - Version](https://img.shields.io/pypi/v/ultralytics?logo=pypi&logoColor=white)](https://pypi.org/project/ultralytics/)
-[![Downloads](https://static.pepy.tech/badge/ultralytics)](https://www.pepy.tech/projects/ultralytics)
+[![Downloads](https://static.pepy.tech/badge/ultralytics)](https://clickpy.clickhouse.com/dashboard/ultralytics)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ultralytics?logo=python&logoColor=gold)](https://pypi.org/project/ultralytics/)
 
-To install the `ultralytics` package in developer mode, which allows you to modify the source code directly, ensure you have [Git](https://git-scm.com/) and [Python](https://www.python.org/) 3.9 or later installed on your system. Then, follow these steps:
+To install the `ultralytics` package in developer mode, which allows you to modify the source code directly, ensure you have [Git](https://git-scm.com/) and [Python](https://www.python.org/) 3.8 or later installed on your system. Then, follow these steps:
 
 1.  Clone the `ultralytics` repository to your local machine using Git:
 
@@ -41,72 +41,33 @@ To install the `ultralytics` package in developer mode, which allows you to modi
 
 ## 🚀 Building and Serving Locally
 
-The `mkdocs serve` command builds and serves a local version of your [MkDocs](https://www.mkdocs.org/) documentation. This is highly useful during development and testing to preview changes.
+### Full Build (Recommended)
+
+The `build_docs.py` script runs the full documentation build pipeline — the same process used for production deployments. It renders Jinja macros, generates API reference pages, pulls in model comparison pages, and applies HTML postprocessing.
 
 ```bash
-mkdocs serve
+# Requires Python >= 3.10
+pip install -e '.[dev]'
+
+cd docs
+python build_docs.py
 ```
 
-- **Command Breakdown:**
-    - `mkdocs`: The main MkDocs command-line interface tool.
-    - `serve`: The subcommand used to build and locally serve your documentation site.
-- **Note:**
-    - `mkdocs serve` includes live reloading, automatically updating the preview in your browser as you save changes to the documentation files.
-    - To stop the local server, simply press `CTRL+C` in your terminal.
+The script builds the site into the `site/` directory and automatically serves it at `http://localhost:8000`. Press `CTRL+C` to stop.
 
-## 🌍 Building and Serving Multi-Language
+### Quick Preview
 
-If your documentation supports multiple languages, follow these steps to build and preview all versions:
+For quick edits to pages that don't use `{% include %}` macros, you can use `zensical serve` for faster iteration with live reloading:
 
-1.  Stage all new or modified language Markdown (`.md`) files using Git:
+```bash
+zensical serve
+```
 
-    ```bash
-    git add docs/**/*.md -f
-    ```
-
-2.  Build all language versions into the `/site` directory. This script ensures that relevant root-level files are included and clears the previous build:
-
-    ```bash
-    # Clear existing /site directory to prevent conflicts
-    rm -rf site
-
-    # Build the default language site using the primary config file
-    mkdocs build -f docs/mkdocs.yml
-
-    # Loop through each language-specific config file and build its site
-    for file in docs/mkdocs_*.yml; do
-      echo "Building MkDocs site with $file"
-      mkdocs build -f "$file"
-    done
-    ```
-
-3.  To preview the complete multi-language site locally, navigate into the build output directory and start a simple [Python HTTP server](https://docs.python.org/3/library/http.server.html):
-    ```bash
-    cd site
-    python -m http.server
-    # Open http://localhost:8000 in your preferred web browser
-    ```
-    Access the live preview site at `http://localhost:8000`.
+Note that `zensical serve` does **not** render Jinja macros or include compare pages, so some pages (train, predict, val, export, tasks, and others) will display raw `{% include %}` tags instead of their actual content. Use the full build above to verify these pages.
 
 ## 📤 Deploying Your Documentation Site
 
-To deploy your MkDocs documentation site, choose a hosting provider and configure your deployment method. Common options include [GitHub Pages](https://pages.github.com/), GitLab Pages, or other static site hosting services.
-
-- Configure deployment settings within your `mkdocs.yml` file.
-- Use the `mkdocs deploy` command specific to your chosen provider to build and deploy your site.
-
-* **GitHub Pages Deployment Example:**
-  If deploying to GitHub Pages, you can use the built-in command:
-
-    ```bash
-    mkdocs gh-deploy
-    ```
-
-    After deployment, you might need to update the "Custom domain" settings in your repository's settings page if you wish to use a personalized URL.
-
-    ![GitHub Pages Custom Domain Setting](https://user-images.githubusercontent.com/26833433/210150206-9e86dcd7-10af-43e4-9eb2-9518b3799eac.png)
-
-- For detailed instructions on various deployment methods, consult the official [MkDocs Deploying your docs guide](https://www.mkdocs.org/user-guide/deploying-your-docs/).
+Documentation is automatically built and deployed to [docs.ultralytics.com](https://docs.ultralytics.com) via the CI pipeline in `.github/workflows/docs.yml` on every push to `main`.
 
 ## 💡 Contribute
 
@@ -135,7 +96,7 @@ For bug reports, feature requests, and other issues related to the documentation
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://twitter.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-twitter.png" width="3%" alt="Ultralytics Twitter"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
-  <a href="https://youtube.com/ultralytics?sub_confirmation=1"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="3%" alt="Ultralytics YouTube"></a>
+  <a href="https://www.youtube.com/ultralytics?sub_confirmation=1"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="3%" alt="Ultralytics YouTube"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://www.tiktok.com/@ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-tiktok.png" width="3%" alt="Ultralytics TikTok"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">

@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # This action mirrors the Ultralytics repository to other platforms like GitLab.
-# It runs only when the main branch is updated by the repository owner.
+# It runs on manual workflow dispatch by the repository owner.
 # Additional platforms can be added by uncommenting the relevant sections.
 
 name: Mirror Repository
@@ -21,7 +21,7 @@ jobs:
     if: github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
     steps:
       - name: Checkout Source Repository (${{ github.repository }})
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0 # Fetch all history for mirroring
       - name: Run Git Config

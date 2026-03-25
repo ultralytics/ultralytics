@@ -8,12 +8,23 @@ keywords: YOLO models, thread-safe, Python threading, model inference, concurren
 
 Running YOLO models in a multi-threaded environment requires careful consideration to ensure thread safety. Python's `threading` module allows you to run several threads concurrently, but when it comes to using YOLO models across these threads, there are important safety issues to be aware of. This page will guide you through creating thread-safe YOLO model inference.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/jMbvN6uCIos"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Perform Thread Safe Inference with Ultralytics YOLO Models in Python | Multi-Threading 🚀
+</p>
+
 ## Understanding Python Threading
 
 Python threads are a form of parallelism that allow your program to run multiple operations at once. However, Python's Global Interpreter Lock (GIL) means that only one thread can execute Python bytecode at a time.
 
 <p align="center">
-  <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/single-vs-multi-thread-examples.avif" alt="Single vs Multi-Thread Examples">
+  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/single-vs-multi-thread-examples.avif" alt="Single-thread vs multi-thread inference">
 </p>
 
 While this sounds like a limitation, threads can still provide concurrency, especially for I/O-bound operations or when using operations that release the GIL, like those performed by YOLO's underlying C libraries.
@@ -33,7 +44,7 @@ from threading import Thread
 from ultralytics import YOLO
 
 # Instantiate the model outside the thread
-shared_model = YOLO("yolo11n.pt")
+shared_model = YOLO("yolo26n.pt")
 
 
 def predict(image_path):
@@ -60,8 +71,8 @@ from threading import Thread
 from ultralytics import YOLO
 
 # Instantiate multiple models outside the thread
-shared_model_1 = YOLO("yolo11n_1.pt")
-shared_model_2 = YOLO("yolo11n_2.pt")
+shared_model_1 = YOLO("yolo26n_1.pt")
+shared_model_2 = YOLO("yolo26n_2.pt")
 
 
 def predict(model, image_path):
@@ -94,7 +105,7 @@ from ultralytics import YOLO
 
 def thread_safe_predict(image_path):
     """Predict on an image using a new YOLO model instance in a thread-safe manner; takes image path as input."""
-    local_model = YOLO("yolo11n.pt")
+    local_model = YOLO("yolo26n.pt")
     results = local_model.predict(image_path)
     # Process results
 
@@ -115,7 +126,7 @@ from ultralytics import YOLO
 from ultralytics.utils import ThreadingLocked
 
 # Create a model instance
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 
 
 # Decorate the predict method to make it thread-safe
@@ -153,7 +164,7 @@ from ultralytics import YOLO
 
 def thread_safe_predict(image_path):
     """Predict on an image in a thread-safe manner."""
-    local_model = YOLO("yolo11n.pt")
+    local_model = YOLO("yolo26n.pt")
     results = local_model.predict(image_path)
     # Process results
 
@@ -183,7 +194,7 @@ from ultralytics import YOLO
 
 def thread_safe_predict(image_path):
     """Runs inference in a thread-safe manner with a new YOLO model instance."""
-    model = YOLO("yolo11n.pt")
+    model = YOLO("yolo26n.pt")
     results = model.predict(image_path)
     # Process results
 

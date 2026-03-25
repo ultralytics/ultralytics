@@ -12,27 +12,30 @@ from .parking_management import ParkingManagement, ParkingPtsSelection
 from .queue_management import QueueManager
 from .region_counter import RegionCounter
 from .security_alarm import SecurityAlarm
+from .similarity_search import SearchApp, VisualAISearch
 from .speed_estimation import SpeedEstimator
 from .streamlit_inference import Inference
 from .trackzone import TrackZone
 from .vision_eye import VisionEye
 
 __all__ = (
+    "AIGym",
+    "Analytics",
+    "DistanceCalculation",
+    "Heatmap",
+    "Inference",
+    "InstanceSegmentation",
+    "ObjectBlurrer",
     "ObjectCounter",
     "ObjectCropper",
-    "ObjectBlurrer",
-    "AIGym",
-    "RegionCounter",
-    "SecurityAlarm",
-    "Heatmap",
-    "InstanceSegmentation",
-    "VisionEye",
-    "SpeedEstimator",
-    "DistanceCalculation",
-    "QueueManager",
     "ParkingManagement",
     "ParkingPtsSelection",
-    "Analytics",
-    "Inference",
+    "QueueManager",
+    "RegionCounter",
+    "SearchApp",
+    "SecurityAlarm",
+    "SpeedEstimator",
     "TrackZone",
+    "VisionEye",
+    "VisualAISearch",
 )

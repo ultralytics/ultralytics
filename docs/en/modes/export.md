@@ -91,7 +91,7 @@ Available YOLO26 export formats are in the table below. You can export to any fo
 <p class="ult-platform-card-v2-desc">Export models to ONNX, TensorRT, and other formats directly on <a href="https://platform.ultralytics.com" target="_blank" rel="noopener" style="color:#E1FF25">Ultralytics Platform</a> without any local setup.</p>
 <div style="display: flex; gap: 12px; flex-wrap: wrap">
 <a href="https://platform.ultralytics.com" target="_blank" rel="noopener" class="ult-platform-btn-primary">Try Platform</a>
-<a href="../platform/train/models/#export-model" class="ult-platform-btn-secondary">Learn More</a>
+<a href="../../platform/train/models/#export-model" class="ult-platform-btn-secondary">Learn More</a>
 </div>
 </div>
 

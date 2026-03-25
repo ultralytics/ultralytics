@@ -134,6 +134,7 @@ The JSON file path is pulled from a custom `train_json` / `val_json` field in th
 
 ```python
 from ultralytics.models.yolo.detect import DetectionTrainer
+from ultralytics.utils import colorstr
 
 
 class COCOJSONTrainer(DetectionTrainer):
@@ -145,10 +146,18 @@ class COCOJSONTrainer(DetectionTrainer):
             img_path=img_path,
             json_file=json_file,
             imgsz=self.args.imgsz,
+            batch_size=batch,
             augment=mode == "train",
+            hyp=self.args,
+            rect=self.args.rect or False,
+            cache=self.args.cache or None,
+            single_cls=self.args.single_cls or False,
+            stride=int(self.model.stride.max()) if hasattr(self, "model") and self.model else 32,
+            pad=0.0 if mode == "train" else 0.5,
+            prefix=colorstr(f"{mode}: "),
             task=self.args.task,
             classes=self.args.classes,
-            batch_size=batch,
+            fraction=self.args.fraction if mode == "train" else 1.0,
         )
 ```
 
@@ -216,7 +225,7 @@ from ultralytics import YOLO
 from ultralytics.data.dataset import YOLODataset, DATASET_CACHE_VERSION
 from ultralytics.data.utils import get_hash, load_dataset_cache_file, save_dataset_cache_file
 from ultralytics.models.yolo.detect import DetectionTrainer
-from ultralytics.utils import TQDM
+from ultralytics.utils import TQDM, colorstr
 
 
 class COCOJSONDataset(YOLODataset):
@@ -304,10 +313,18 @@ class COCOJSONTrainer(DetectionTrainer):
             img_path=img_path,
             json_file=json_file,
             imgsz=self.args.imgsz,
+            batch_size=batch,
             augment=mode == "train",
+            hyp=self.args,
+            rect=self.args.rect or False,
+            cache=self.args.cache or None,
+            single_cls=self.args.single_cls or False,
+            stride=int(self.model.stride.max()) if hasattr(self, "model") and self.model else 32,
+            pad=0.0 if mode == "train" else 0.5,
+            prefix=colorstr(f"{mode}: "),
             task=self.args.task,
             classes=self.args.classes,
-            batch_size=batch,
+            fraction=self.args.fraction if mode == "train" else 1.0,
         )
 
 

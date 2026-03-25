@@ -308,23 +308,25 @@ def convert_coco(
                 cls = coco80[ann["category_id"] - 1] if cls91to80 else ann["category_id"] - 1  # class
                 box = [cls, *box.tolist()]
                 if box not in bboxes:
-                    bboxes.append(box)
-                    if use_segments and ann.get("segmentation") is not None:
-                        if len(ann["segmentation"]) == 0:
-                            segments.append([])
+                    if use_keypoints:
+                        if ann.get("keypoints") is None:
                             continue
-                        elif len(ann["segmentation"]) > 1:
-                            s = merge_multi_segment(ann["segmentation"])
-                            s = (np.concatenate(s, axis=0) / np.array([w, h])).reshape(-1).tolist()
-                        else:
-                            s = [j for i in ann["segmentation"] for j in i]  # all segments concatenated
-                            s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()
-                        s = [cls, *s]
-                        segments.append(s)
-                    if use_keypoints and ann.get("keypoints") is not None:
                         keypoints.append(
                             box + (np.array(ann["keypoints"]).reshape(-1, 3) / np.array([w, h, 1])).reshape(-1).tolist()
                         )
+                    bboxes.append(box)
+                    if use_segments:
+                        seg = ann.get("segmentation")
+                        if seg is None or len(seg) == 0:
+                            segments.append([])
+                        elif len(seg) > 1:
+                            s = merge_multi_segment(seg)
+                            s = (np.concatenate(s, axis=0) / np.array([w, h])).reshape(-1).tolist()
+                            segments.append([cls, *s])
+                        else:
+                            s = [j for i in seg for j in i]  # all segments concatenated
+                            s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()
+                            segments.append([cls, *s])
 
             # Write
             with open((fn / f).with_suffix(".txt"), "a", encoding="utf-8") as file:

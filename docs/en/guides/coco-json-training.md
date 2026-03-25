@@ -10,7 +10,7 @@ keywords: COCO JSON training, train YOLO on COCO JSON, COCO JSON without convers
 
 [Annotations](https://www.ultralytics.com/glossary/data-labeling) in [COCO JSON](https://cocodataset.org/#format-data) format can be used directly for [Ultralytics YOLO](https://www.ultralytics.com/) training without converting to `.txt` files first. This is done by subclassing `YOLODataset` to parse COCO JSON on the fly and wiring it into the training pipeline through a custom trainer.
 
-This approach keeps the COCO JSON as the single source of truth — no `convert_coco()` call, no directory reorganization, no intermediate label files. [YOLO26](../models/yolo26.md) and all other Ultralytics YOLO models are supported.
+This approach keeps the COCO JSON as the single source of truth — no `convert_coco()` call, no directory reorganization, no intermediate label files. [YOLO26](../models/yolo26.md) and all other Ultralytics YOLO detection models are supported. Segmentation and pose models require additional label fields (see [FAQ](#does-this-support-segmentation-and-pose-estimation)).
 
 !!! tip "Looking for a one-time conversion instead?"
 
@@ -116,7 +116,7 @@ class COCOJSONDataset(YOLODataset):
             assert cache["version"] == DATASET_CACHE_VERSION
             assert cache["hash"] == get_hash(self.json_file)
             self.im_files = [lb["im_file"] for lb in cache["labels"]]
-        except (FileNotFoundError, AssertionError, KeyError):
+        except (FileNotFoundError, AssertionError, AttributeError, KeyError, ModuleNotFoundError):
             cache = self.cache_labels(cache_path)
         cache.pop("hash", None)
         cache.pop("version", None)
@@ -140,7 +140,7 @@ class COCOJSONTrainer(DetectionTrainer):
     """Trainer that uses COCOJSONDataset for direct COCO JSON training."""
 
     def build_dataset(self, img_path, mode="train", batch=None):
-        json_file = self.data.get(f"{mode}_json", self.data.get("train_json"))
+        json_file = self.data["train_json"] if mode == "train" else self.data["val_json"]
         return COCOJSONDataset(
             img_path=img_path,
             json_file=json_file,
@@ -148,7 +148,7 @@ class COCOJSONTrainer(DetectionTrainer):
             batch_size=batch,
             augment=mode == "train",
             hyp=self.args,
-            rect=self.args.rect or False,
+            rect=self.args.rect or mode == "val",
             cache=self.args.cache or None,
             single_cls=self.args.single_cls or False,
             stride=int(self.model.stride.max()) if hasattr(self, "model") and self.model else 32,
@@ -295,7 +295,7 @@ class COCOJSONDataset(YOLODataset):
             assert cache["version"] == DATASET_CACHE_VERSION
             assert cache["hash"] == get_hash(self.json_file)
             self.im_files = [lb["im_file"] for lb in cache["labels"]]
-        except (FileNotFoundError, AssertionError, KeyError):
+        except (FileNotFoundError, AssertionError, AttributeError, KeyError, ModuleNotFoundError):
             cache = self.cache_labels(cache_path)
         cache.pop("hash", None)
         cache.pop("version", None)
@@ -306,7 +306,7 @@ class COCOJSONTrainer(DetectionTrainer):
     """Trainer that uses COCOJSONDataset for direct COCO JSON training."""
 
     def build_dataset(self, img_path, mode="train", batch=None):
-        json_file = self.data.get(f"{mode}_json", self.data.get("train_json"))
+        json_file = self.data["train_json"] if mode == "train" else self.data["val_json"]
         return COCOJSONDataset(
             img_path=img_path,
             json_file=json_file,
@@ -314,7 +314,7 @@ class COCOJSONTrainer(DetectionTrainer):
             batch_size=batch,
             augment=mode == "train",
             hyp=self.args,
-            rect=self.args.rect or False,
+            rect=self.args.rect or mode == "val",
             cache=self.args.cache or None,
             single_cls=self.args.single_cls or False,
             stride=int(self.model.stride.max()) if hasattr(self, "model") and self.model else 32,

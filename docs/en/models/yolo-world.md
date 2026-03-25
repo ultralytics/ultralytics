@@ -77,7 +77,7 @@ This section details the models available with their specific pretrained weights
 
 ## Usage Examples
 
-The YOLO-World models are easy to integrate into your Python applications. Ultralytics provides user-friendly [Python API](../usage/python.md) and [CLI commands](../usage/cli.md) to streamline development.
+The YOLO-World models are easy to integrate into your Python applications. Ultralytics provides user-friendly [Python API](../usage/python.md) and [CLI commands](../usage/cli.md) to streamline development. Models can also be trained on cloud GPUs through [Ultralytics Platform](https://platform.ultralytics.com).
 
 <p align="center">
   <br>

@@ -188,6 +188,13 @@ div.highlight {
   flex-shrink: 0;
   opacity: 0.6;
   margin-left: 2rem;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.banner-close img {
+  width: 100%;
+  height: 100%;
 }
 .banner-close:hover {
   opacity: 0.3;

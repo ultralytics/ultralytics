@@ -945,7 +945,16 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                                 response.raise_for_status()
                                 image_path.write_bytes(await response.read())
                             return True
-                        except Exception as e:
+                        except aiohttp.ClientResponseError as e:
+                            if e.status not in {408, 429} and e.status < 500:
+                                LOGGER.warning(f"Failed to download {http_url}: {e}")
+                                return False
+                            if attempt < 2:  # Don't sleep after last attempt
+                                await asyncio.sleep(2**attempt)  # 1s, 2s backoff
+                            else:
+                                LOGGER.warning(f"Failed to download {http_url} after 3 attempts: {e}")
+                                return False
+                        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
                             if attempt < 2:  # Don't sleep after last attempt
                                 await asyncio.sleep(2**attempt)  # 1s, 2s backoff
                             else:

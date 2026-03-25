@@ -104,7 +104,7 @@ class COCOJSONDataset(YOLODataset):
                     "bbox_format": "xywh",
                 }
             )
-        x["hash"] = get_hash([self.json_file])
+        x["hash"] = get_hash([self.json_file, str(self.img_path)])
         save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return x
 
@@ -114,7 +114,7 @@ class COCOJSONDataset(YOLODataset):
         try:
             cache = load_dataset_cache_file(cache_path)
             assert cache["version"] == DATASET_CACHE_VERSION
-            assert cache["hash"] == get_hash([self.json_file])
+            assert cache["hash"] == get_hash([self.json_file, str(self.img_path)])
             self.im_files = [lb["im_file"] for lb in cache["labels"]]
         except (FileNotFoundError, AssertionError, AttributeError, KeyError, ModuleNotFoundError):
             cache = self.cache_labels(cache_path)
@@ -284,7 +284,7 @@ class COCOJSONDataset(YOLODataset):
                     "bbox_format": "xywh",
                 }
             )
-        x["hash"] = get_hash([self.json_file])
+        x["hash"] = get_hash([self.json_file, str(self.img_path)])
         save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return x
 
@@ -293,7 +293,7 @@ class COCOJSONDataset(YOLODataset):
         try:
             cache = load_dataset_cache_file(cache_path)
             assert cache["version"] == DATASET_CACHE_VERSION
-            assert cache["hash"] == get_hash([self.json_file])
+            assert cache["hash"] == get_hash([self.json_file, str(self.img_path)])
             self.im_files = [lb["im_file"] for lb in cache["labels"]]
         except (FileNotFoundError, AssertionError, AttributeError, KeyError, ModuleNotFoundError):
             cache = self.cache_labels(cache_path)

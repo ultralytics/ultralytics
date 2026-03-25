@@ -36,8 +36,8 @@ Here are some compelling reasons to opt for YOLO26's Train mode:
 
 <div class="ult-platform-card-v2">
 <p class="ult-platform-card-v2-title">Train anywhere</p>
-<p class="ult-platform-card-v2-desc">Run locally or on Ultralytics Platform cloud GPUs (RTX 4090, A100, H100, H200) with real-time metrics and automatic checkpointing.</p>
-<div style="display: flex; gap: 12px">
+<p class="ult-platform-card-v2-desc">Run locally or on <a href="https://platform.ultralytics.com" target="_blank" rel="noopener" style="color:#E1FF25">Ultralytics Platform</a> cloud GPUs (RTX 4090, A100, H100, H200) with real-time metrics and automatic checkpointing.</p>
+<div style="display: flex; gap: 12px; flex-wrap: wrap">
 <a href="https://platform.ultralytics.com" target="_blank" rel="noopener" class="ult-platform-btn-primary">Try Platform</a>
 <a href="../../platform/" class="ult-platform-btn-secondary">Learn More</a>
 </div>

@@ -44,7 +44,7 @@ Here's why you should consider YOLO26's predict mode for your various inference 
 <div class="ult-platform-card-v2">
 <p class="ult-platform-card-v2-title">Deploy to production</p>
 <p class="ult-platform-card-v2-desc">Serve predictions via managed API endpoints on <a href="https://platform.ultralytics.com" target="_blank" rel="noopener" style="color:#E1FF25">Ultralytics Platform</a> with auto-scaling across 43 global regions.</p>
-<div style="display: flex; gap: 12px">
+<div style="display: flex; gap: 12px; flex-wrap: wrap">
 <a href="https://platform.ultralytics.com" target="_blank" rel="noopener" class="ult-platform-btn-primary">Try Platform</a>
 <a href="../../platform/deploy/endpoints/" class="ult-platform-btn-secondary">Learn More</a>
 </div>

@@ -63,7 +63,7 @@ The sequences have already been converted to event histograms and saved in the [
 
 #### Acquire your own dataset (outside of scope of this tutorial)
 
-If you wish to acquire your own event-based dataset or get help to devise new models geared toward event-based vision, please [contact us](support@prophesee.ai) or check [this page](https://www.prophesee.ai/metavision-sdk-pro/) for further information.
+If you wish to acquire your own event-based dataset or get help to devise new models geared toward event-based vision, please [contact us](https://www.prophesee.ai/contact-us-2/) or check [this page](https://www.prophesee.ai/metavision-sdk-pro/) for further information.
 
 ### Training and Testing the model
 
@@ -119,4 +119,4 @@ The output will be a video with the detections made by your trained model.
 
 ## Contact
 
-This repository is meant to serve as an example of event-based object detection, and not to be used for commercial purposes. For further information on event-based technology and its possibilities, please contact [Prophesee](https://www.prophesee.ai/) at <support@prophesee.ai>.
+This repository is meant to serve as an example of event-based object detection, and not to be used for commercial purposes. For further information on event-based technology and its possibilities, please contact [Prophesee](https://www.prophesee.ai/) using this [contact form](https://www.prophesee.ai/contact-us-2/).

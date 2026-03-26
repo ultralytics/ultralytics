@@ -33,11 +33,12 @@ The `get_img_files()` method returns an empty list because image paths are resol
 
 ```python
 import json
-import numpy as np
 from collections import defaultdict
 from pathlib import Path
 
-from ultralytics.data.dataset import YOLODataset, DATASET_CACHE_VERSION
+import numpy as np
+
+from ultralytics.data.dataset import DATASET_CACHE_VERSION, YOLODataset
 from ultralytics.data.utils import get_hash, load_dataset_cache_file, save_dataset_cache_file
 from ultralytics.utils import TQDM
 
@@ -62,10 +63,7 @@ class COCOJSONDataset(YOLODataset):
         images = {img["id"]: img for img in coco["images"]}
 
         # Sort categories by ID and map to 0-indexed classes
-        categories = {
-            cat["id"]: i
-            for i, cat in enumerate(sorted(coco["categories"], key=lambda c: c["id"]))
-        }
+        categories = {cat["id"]: i for i, cat in enumerate(sorted(coco["categories"], key=lambda c: c["id"]))}
 
         img_to_anns = defaultdict(list)
         for ann in coco["annotations"]:
@@ -165,7 +163,7 @@ class COCOJSONTrainer(DetectionTrainer):
 The `dataset.yaml` uses the standard `path`, `train`, and `val` fields to locate image directories. Two additional fields, `train_json` and `val_json`, specify the COCO annotation files that `COCOJSONTrainer` reads. The `nc` and `names` fields define the number of classes and their names, matching the sorted order of `categories` in the JSON.
 
 ```yaml
-path: /path/to/images  # root directory with train/ and val/ subfolders
+path: /path/to/images # root directory with train/ and val/ subfolders
 train: train
 val: val
 
@@ -175,9 +173,9 @@ val_json: /path/to/annotations/instances_val.json
 
 nc: 80
 names:
-  0: person
-  1: bicycle
-  # ... remaining class names
+    0: person
+    1: bicycle
+    # ... remaining class names
 ```
 
 Expected directory structure:
@@ -216,12 +214,13 @@ For convenience, the full implementation is provided below as a single copy-past
 
 ```python
 import json
-import numpy as np
 from collections import defaultdict
 from pathlib import Path
 
+import numpy as np
+
 from ultralytics import YOLO
-from ultralytics.data.dataset import YOLODataset, DATASET_CACHE_VERSION
+from ultralytics.data.dataset import DATASET_CACHE_VERSION, YOLODataset
 from ultralytics.data.utils import get_hash, load_dataset_cache_file, save_dataset_cache_file
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.utils import TQDM, colorstr
@@ -243,10 +242,7 @@ class COCOJSONDataset(YOLODataset):
             coco = json.load(f)
 
         images = {img["id"]: img for img in coco["images"]}
-        categories = {
-            cat["id"]: i
-            for i, cat in enumerate(sorted(coco["categories"], key=lambda c: c["id"]))
-        }
+        categories = {cat["id"]: i for i, cat in enumerate(sorted(coco["categories"], key=lambda c: c["id"]))}
 
         img_to_anns = defaultdict(list)
         for ann in coco["annotations"]:

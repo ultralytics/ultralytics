@@ -93,15 +93,22 @@ def resolve_platform_uri(uri, hard=True):
     timeout = (10, 3600) if "/datasets/" in url else (10, 90)
 
     try:
-        for attempt in range(3):
+        for attempt in range(5):
             try:
                 r = requests.head(url, headers=headers, allow_redirects=False, timeout=timeout)
+                if r.status_code in {408, 429} or r.status_code >= 500:
+                    raise requests.exceptions.HTTPError(f"HTTP {r.status_code}", response=r)
                 break
-            except requests.exceptions.ConnectionError as e:
-                LOGGER.warning(f"Retry {attempt + 1}/3 failed for {uri}: {e}")
-                if attempt >= 2:
+            except (
+                requests.exceptions.ConnectionError,
+                requests.exceptions.ReadTimeout,
+                requests.exceptions.HTTPError,
+            ) as e:
+                if attempt >= 4:
                     raise
-                sleep(2 * (2**attempt))  # 2s, 4s backoff
+                delay = 2 * (2**attempt)  # 2s, 4s, 8s, 16s backoff
+                LOGGER.warning(f"Retry {attempt + 1}/5 for {uri} in {delay}s: {e}")
+                sleep(delay)
     except Exception as e:
         if hard:
             raise ConnectionError(f"Failed to resolve {uri}: {e}") from e

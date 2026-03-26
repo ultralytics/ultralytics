@@ -228,5 +228,6 @@ class DetectionTrainer(BaseTrainer):
         with override_configs(self.args, overrides={"cache": False}) as self.args:
             train_dataset = self.build_dataset(self.data["train"], mode="train", batch=16)
         max_num_obj = max(len(label["cls"]) for label in train_dataset.labels) * 4  # 4 for mosaic augmentation
+        n = len(train_dataset)
         del train_dataset  # free memory
-        return super().auto_batch(max_num_obj)
+        return super().auto_batch(max_num_obj, dataset_size=n)

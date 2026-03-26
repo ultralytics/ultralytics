@@ -2411,7 +2411,7 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bo
         >>> hyp.augmentations = augmentations
         >>> transforms = v8_transforms(dataset, imgsz=640, hyp=hyp)
     """
-    mosaic = Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic)
+    # mosaic = Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic)
     affine = RandomPerspective(
         degrees=hyp.degrees,
         translate=hyp.translate,
@@ -2421,18 +2421,18 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bo
         pre_transform=None if stretch else LetterBox(new_shape=(imgsz, imgsz)),
     )
 
-    pre_transform = Compose([mosaic, affine])
-    if hyp.copy_paste_mode == "flip":
-        pre_transform.insert(1, CopyPaste(p=hyp.copy_paste, mode=hyp.copy_paste_mode))
-    else:
-        pre_transform.append(
-            CopyPaste(
-                dataset,
-                pre_transform=Compose([Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic), affine]),
-                p=hyp.copy_paste,
-                mode=hyp.copy_paste_mode,
-            )
-        )
+    pre_transform = Compose([affine])
+    # if hyp.copy_paste_mode == "flip":
+    #     pre_transform.insert(1, CopyPaste(p=hyp.copy_paste, mode=hyp.copy_paste_mode))
+    # else:
+    #     pre_transform.append(
+    #         CopyPaste(
+    #             dataset,
+    #             pre_transform=Compose([Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic), affine]),
+    #             p=hyp.copy_paste,
+    #             mode=hyp.copy_paste_mode,
+    #         )
+    #     )
     flip_idx = dataset.data.get("flip_idx", [])  # for keypoints augmentation
     if dataset.use_keypoints:
         kpt_shape = dataset.data.get("kpt_shape", None)
@@ -2445,10 +2445,10 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bo
     return Compose(
         [
             pre_transform,
-            MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup),
+            # MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup),
             CutMix(dataset, pre_transform=pre_transform, p=hyp.cutmix),
-            Albumentations(p=1.0, transforms=getattr(hyp, "augmentations", None)),
-            RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
+            # Albumentations(p=1.0, transforms=getattr(hyp, "augmentations", None)),
+            # RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
             RandomFlip(direction="vertical", p=hyp.flipud, flip_idx=flip_idx),
             RandomFlip(direction="horizontal", p=hyp.fliplr, flip_idx=flip_idx),
         ]

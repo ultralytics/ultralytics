@@ -1,0 +1,16 @@
+path: <path_to_histos_directory>
+train: train  # train images (relative to 'path') 
+val: val  # val images (relative to 'path') 
+test: test # test images (optional)
+
+data_format: h5 # the format of the event histograms, can be either h5, npz or npy
+channels: 2
+# Classes
+names:
+  0: "pedestrian"
+  1: "two wheeler"
+  2: "car"
+  3: "truck"
+  4: "bus"
+  5: "traffic sign"
+  6: "traffic light"

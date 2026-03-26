@@ -846,8 +846,8 @@ class BaseTrainer:
                 model, ckpt_dict = load_checkpoint(last)
                 if ckpt_dict.get("epoch", -1) < 0 or ckpt_dict.get("optimizer") is None:
                     LOGGER.warning(
-                        f"WARNING ⚠️ checkpoint '{last}' is not a resumable training checkpoint "
-                        f"(missing epoch/optimizer state). Use 'resume' only to continue crashed or incomplete "
+                        f"checkpoint '{last}' is not a resumable training checkpoint "
+                        f"(missing epoch/optimizer state). Use 'resume' only to continue incomplete "
                         f"training runs. Starting new training instead."
                     )
                     self.resume = False

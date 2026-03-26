@@ -777,7 +777,14 @@ class Model(torch.nn.Module):
                         f"Starting new training instead."
                     )
                     custom["data"] = kwargs.get("data") or DEFAULT_CFG_DICT["data"] or TASK2DATA[self.task]
-                    args = {**DEFAULT_CFG_DICT, **custom, **kwargs, "resume": False, "mode": "train", "session": self.session}
+                    args = {
+                        **DEFAULT_CFG_DICT,
+                        **custom,
+                        **kwargs,
+                        "resume": False,
+                        "mode": "train",
+                        "session": self.session,
+                    }
 
         self.trainer = (trainer or self._smart_load("trainer"))(overrides=args, _callbacks=self.callbacks)
         if not args.get("resume"):  # manually set model only if not resuming

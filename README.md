@@ -4,7 +4,7 @@
       <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png" alt="Ultralytics YOLO banner"></a>
   </p>
 
-[中文](https://docs.ultralytics.com/zh/) | [한국어](https://docs.ultralytics.com/ko/) | [日本語](https://docs.ultralytics.com/ja/) | [Русский](https://docs.ultralytics.com/ru/) | [Deutsch](https://docs.ultralytics.com/de/) | [Français](https://docs.ultralytics.com/fr/) | [Español](https://docs.ultralytics.com/es) | [Português](https://docs.ultralytics.com/pt/) | [Türkçe](https://docs.ultralytics.com/tr/) | [Tiếng Việt](https://docs.ultralytics.com/vi/) | [العربية](https://docs.ultralytics.com/ar/) 
+[中文](https://docs.ultralytics.com/zh/) | [한국어](https://docs.ultralytics.com/ko/) | [日本語](https://docs.ultralytics.com/ja/) | [Русский](https://docs.ultralytics.com/ru/) | [Deutsch](https://docs.ultralytics.com/de/) | [Français](https://docs.ultralytics.com/fr/) | [Español](https://docs.ultralytics.com/es) | [Português](https://docs.ultralytics.com/pt/) | [Türkçe](https://docs.ultralytics.com/tr/) | [Tiếng Việt](https://docs.ultralytics.com/vi/) | [العربية](https://docs.ultralytics.com/ar/)
 
 </div>
 
@@ -74,14 +74,14 @@ Now that you have your data, you can train your own model, or test an already ex
 To get started, clone the repository and prepare your Python Environment:
 
 ```bash
-uv sync 
+uv sync &&  source .venv/bin/activate
 # or (recommended to use pip in a virtual environment)
 pip install .
 ```
 
 Then you need to update the config file to add your path:
 
-In `scripts/cfg/config.yaml` change `<path_to_histos_directory>` to your own path that leads to the base folder containing train and val directories. You can also modify this according to your own dataset.
+In `scripts/cfg/config.yaml` change `<path_to_histos_directory>` to your own path that leads to the base folder containing train and val directories. You can further modify this file according to your own dataset.
 
 #### Training
 
@@ -96,6 +96,12 @@ The network will be trained for only 10 epochs. Increase the number if you want 
 You can change the saving path and other training parameters by referring to the [ultralytics documentation](https://docs.ultralytics.com/modes/train/). For example, for a bigger model you can rename `yolo26n.yaml` to `yolo26m.yaml` or `yolo26l.yaml`. You can also change the batch size, learning rate, etc. in the `model.train()` function (arguments are found in the [table here](https://docs.ultralytics.com/modes/train/#musgd-optimizer>))
 
 #### Make Predictions with a Trained Detection Model
+
+If you wish to test our already trained model, it can be found on [HuggingFace](https://huggingface.co/prophesee-ai/ev-yolo-detector). You can download it using Hugging Face's CLI tool:
+
+```bash
+hf download prophesee-ai/ev-yolo-detector weights/ev-yolo26.pt --local-dir <YOUR_LOCAL_DIR>
+```
 
 You can now run your trained model on a test data sequence. To do so, first update the `scripts/test.py` script:
 
@@ -113,4 +119,4 @@ The output will be a video with the detections made by your trained model.
 
 ## Contact
 
-This repository is meant to serve as an example of event-based object detection, and not to be used for commercial purposes. For further information on event-based technology and its possibilities, please contact [Prophesee](https://www.prophesee.ai/) at support@prophesee.ai.
+This repository is meant to serve as an example of event-based object detection, and not to be used for commercial purposes. For further information on event-based technology and its possibilities, please contact [Prophesee](https://www.prophesee.ai/) at <support@prophesee.ai>.

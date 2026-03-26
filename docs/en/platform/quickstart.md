@@ -143,11 +143,11 @@ A floating chat widget is available on every page. Click it to ask questions abo
 
 The Platform includes guided tours that introduce key features as you explore different sections:
 
-| Tour            | Trigger                              | What It Covers                                                  |
-| --------------- | ------------------------------------ | --------------------------------------------------------------- |
-| **Nav Tour**    | First visit to Home after onboarding | Home, Explore, Annotate, Train, Deploy, Settings, Account       |
-| **Project Tour**| First visit to a project page        | Models sidebar, Training Charts, Train button                   |
-| **Dataset Tour**| First visit to a dataset page        | Images gallery, Split tabs, Classes, Charts, Train, Upload, Download |
+| Tour             | Trigger                              | What It Covers                                                       |
+| ---------------- | ------------------------------------ | -------------------------------------------------------------------- |
+| **Nav Tour**     | First visit to Home after onboarding | Home, Explore, Annotate, Train, Deploy, Settings, Account            |
+| **Project Tour** | First visit to a project page        | Models sidebar, Training Charts, Train button                        |
+| **Dataset Tour** | First visit to a dataset page        | Images gallery, Split tabs, Classes, Charts, Train, Upload, Download |
 
 !!! tip "Enterprise Users"
 

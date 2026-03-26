@@ -767,16 +767,17 @@ class Model(torch.nn.Module):
         }  # method defaults
         args = {**overrides, **custom, **kwargs, "mode": "train", "session": self.session}  # prioritizes rightmost args
         if args.get("resume"):
-            if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
-                args["resume"] = self.ckpt_path
-            else:
-                LOGGER.warning(
-                    f"model '{self.ckpt_path}' is not a resumable training checkpoint "
-                    f"(missing epoch/optimizer state). Use 'resume' only to continue incomplete training. "
-                    f"Starting new training instead."
-                )
-                custom["data"] = kwargs.get("data") or DEFAULT_CFG_DICT["data"] or TASK2DATA[self.task]
-                args = {**DEFAULT_CFG_DICT, **custom, **kwargs, "resume": False, "mode": "train", "session": self.session}
+            if args["resume"] is True:  # resume=True (boolean) uses current model as checkpoint
+                if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
+                    args["resume"] = self.ckpt_path
+                else:
+                    LOGGER.warning(
+                        f"model '{self.ckpt_path}' is not a resumable training checkpoint "
+                        f"(missing epoch/optimizer state). Use 'resume' only to continue incomplete training. "
+                        f"Starting new training instead."
+                    )
+                    custom["data"] = kwargs.get("data") or DEFAULT_CFG_DICT["data"] or TASK2DATA[self.task]
+                    args = {**DEFAULT_CFG_DICT, **custom, **kwargs, "resume": False, "mode": "train", "session": self.session}
 
         self.trainer = (trainer or self._smart_load("trainer"))(overrides=args, _callbacks=self.callbacks)
         if not args.get("resume"):  # manually set model only if not resuming

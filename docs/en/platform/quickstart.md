@@ -139,9 +139,26 @@ Press `Cmd+K` (Mac) or `Ctrl+K` (Windows/Linux) to open the search bar. Search a
 
 A floating chat widget is available on every page. Click it to ask questions about YOLO training, annotation, deployment, or any Platform feature. The assistant provides context-aware help based on the current page.
 
-### Onboarding Tour
+### Onboarding Tours
 
-New users see a guided tour highlighting key Platform features. To restart the tour at any time, navigate to `platform.ultralytics.com/home?tour=nav`.
+The Platform includes guided tours that introduce key features as you explore different sections:
+
+| Tour             | Trigger                              | What It Covers                                                       |
+| ---------------- | ------------------------------------ | -------------------------------------------------------------------- |
+| **Nav Tour**     | First visit to Home after onboarding | Home, Explore, Annotate, Train, Deploy, Settings, Account            |
+| **Project Tour** | First visit to a project page        | Models sidebar, Training Charts, Train button                        |
+| **Dataset Tour** | First visit to a dataset page        | Images gallery, Split tabs, Classes, Charts, Train, Upload, Download |
+
+!!! tip "Enterprise Users"
+
+    Enterprise plan users see an enhanced Nav Tour with enterprise-specific guidance on the Train step.
+
+#### Restart Tours
+
+To replay any tour:
+
+- **Redo Tour button** — Click your profile avatar (bottom-left of the sidebar) to open the user menu, then select **Redo Tour**. This resets all tours so they replay on your next visit to each section.
+- **URL parameter** — Navigate to `platform.ultralytics.com/home?tour=nav` to restart the Nav Tour directly.
 
 ## Upload Your First Dataset
 

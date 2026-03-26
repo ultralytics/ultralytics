@@ -31,4 +31,4 @@
 # yolo train model=yolo26s-rep-fpn.yaml name=yolo26s-rep-fpn device=7 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json
 # yolo train model=yolo26s-nobn-fpn.yaml name=yolo26s-nobn-fpn device=7 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json
 # yolo train model=yolo26s-rep-bb-abl1.yaml name=yolo26s-rep-bb-abl1 device=6 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json
-# yolo train model=yolo26s-rep-bb-abl2.yaml name=yolo26s-rep-bb-abl1 device=7 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json
+# yolo train model=yolo26s-rep-bb-abl2.yaml name=yolo26s-rep-bb-abl2 device=7 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json

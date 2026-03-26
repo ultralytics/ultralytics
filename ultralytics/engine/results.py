@@ -17,7 +17,7 @@ import torch
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, ops
-from ultralytics.utils.plotting import Annotator, colors, save_one_box
+from ultralytics.utils.plotting import Annotator, colors, save_one_box, viz_histo_binarized
 
 
 class BaseTensor(SimpleClass):
@@ -501,7 +501,7 @@ class Results(SimpleClass, DataExportMixin):
         pred_masks, show_masks = self.masks, masks
         pred_probs, show_probs = self.probs, probs
         annotator = Annotator(
-            deepcopy(self.orig_img if img is None else img),
+            deepcopy(viz_histo_binarized(self.orig_img.transpose(2, 0, 1)) if img is None else viz_histo_binarized(img.transpose(2, 0, 1))),
             line_width,
             font_size,
             font,

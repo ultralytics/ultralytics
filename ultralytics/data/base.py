@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 import cv2
+import h5py
 import numpy as np
 from torch.utils.data import Dataset
 
@@ -85,6 +86,7 @@ class BaseDataset(Dataset):
         classes: list[int] | None = None,
         fraction: float = 1.0,
         channels: int = 3,
+        data_format: str = "h5",
     ):
         """Initialize BaseDataset with given configuration and options.
 
@@ -104,6 +106,7 @@ class BaseDataset(Dataset):
             fraction (float): Fraction of dataset to utilize.
             channels (int): Number of channels in the images (1 for grayscale, 3 for color). Color images loaded with
                 OpenCV are in BGR channel order.
+            data_format (str): Format of the event data files (e.g., 'h5', 'npz').
         """
         super().__init__()
         self.img_path = img_path
@@ -114,8 +117,11 @@ class BaseDataset(Dataset):
         self.fraction = fraction
         self.channels = channels
         self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR
+        self.data_format = data_format.lower()
+        if self.data_format not in ["h5", "npz", "npy"]:
+            raise ValueError(f"Unsupported data format: {self.data_format}. Supported formats are 'h5', 'npz', and 'npy'.")
         self.im_files = self.get_img_files(self.img_path)
-        self.labels = self.get_labels()
+        self.labels = self.get_events_labels(data_format=self.data_format)
         self.update_labels(include_class=classes)  # single_cls and include_class
         self.ni = len(self.labels)  # number of images
         self.rect = rect
@@ -132,8 +138,8 @@ class BaseDataset(Dataset):
 
         # Cache images (options are cache = True, False, None, "ram", "disk")
         self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni
-        self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
-        self.cache = cache.lower() if isinstance(cache, str) else "ram" if cache is True else None
+        # self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
+        self.cache = None
         if self.cache == "ram" and self.check_cache_ram():
             if hyp.deterministic:
                 LOGGER.warning(
@@ -174,7 +180,7 @@ class BaseDataset(Dataset):
                         # F += [p.parent / x.lstrip(os.sep) for x in t]  # local to global path (pathlib)
                 else:
                     raise FileNotFoundError(f"{self.prefix}{p} does not exist")
-            im_files = sorted(x.replace("/", os.sep) for x in f if x.rpartition(".")[-1].lower() in IMG_FORMATS)
+            im_files = sorted(x.replace("/", os.sep) for x in f if x.rpartition(".")[-1].lower() == self.data_format)
             # self.img_files = sorted([x for x in f if x.suffix[1:].lower() in IMG_FORMATS])  # pathlib
             assert im_files, f"{self.prefix}No images found in {img_path}. {FORMATS_HELP_MSG}"
         except Exception as e:
@@ -222,43 +228,54 @@ class BaseDataset(Dataset):
         Raises:
             FileNotFoundError: If the image file is not found.
         """
-        im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
-        if im is None:  # not cached in RAM
-            if fn.exists():  # load npy
-                try:
-                    im = np.load(fn)
-                except Exception as e:
-                    LOGGER.warning(f"{self.prefix}Removing corrupt *.npy image file {fn} due to: {e}")
-                    Path(fn).unlink(missing_ok=True)
-                    im = imread(f, flags=self.cv2_flag)  # BGR
-            else:  # read image
-                im = imread(f, flags=self.cv2_flag)  # BGR
-            if im is None:
-                raise FileNotFoundError(f"Image Not Found {f}")
+        # im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
+        # if im is None:  # not cached in RAM
+        #     if fn.exists():  # load npy
+        #         try:
+        #             im = np.load(fn)
+        #         except Exception as e:
+        #             LOGGER.warning(f"{self.prefix}Removing corrupt *.npy image file {fn} due to: {e}")
+        #             Path(fn).unlink(missing_ok=True)
+        #             im = imread(f, flags=self.cv2_flag)  # BGR
+        #     else:  # read image
+        #         im = imread(f, flags=self.cv2_flag)  # BGR
+        #     if im is None:
+        #         raise FileNotFoundError(f"Image Not Found {f}")
+        file_idx, frame_idx = self.labels[i]["im_file"]
+        ev_frame_identifier = self.im_files[file_idx] + "_frame_" + str(frame_idx)
+        if self.data_format == "h5":
+            with h5py.File(self.im_files[file_idx], "r") as h5_file:
+                im = h5_file["data"][frame_idx].transpose(1, 2, 0)
+        elif self.data_format == "npz":
+            with np.load(self.im_files[file_idx]) as npz_file:
+                im = npz_file["data"][frame_idx].transpose(1, 2, 0)
+        elif self.data_format == "npy":
+            im = np.load(self.im_files[file_idx])[frame_idx].transpose(1, 2, 0)
+        else:
+            raise ValueError(f"Unsupported data format: {self.data_format}")
+        h0, w0 = im.shape[:2]  # orig hw
+        if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
+            r = self.imgsz / max(h0, w0)  # ratio
+            if r != 1:  # if sizes are not equal
+                w, h = (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz))
+                im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
+        elif not (h0 == w0 == self.imgsz):  # resize by stretching image to square imgsz
+            im = cv2.resize(im, (self.imgsz, self.imgsz), interpolation=cv2.INTER_LINEAR)
+        if im.ndim == 2:
+            im = im[..., None]
 
-            h0, w0 = im.shape[:2]  # orig hw
-            if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
-                r = self.imgsz / max(h0, w0)  # ratio
-                if r != 1:  # if sizes are not equal
-                    w, h = (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz))
-                    im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
-            elif not (h0 == w0 == self.imgsz):  # resize by stretching image to square imgsz
-                im = cv2.resize(im, (self.imgsz, self.imgsz), interpolation=cv2.INTER_LINEAR)
-            if im.ndim == 2:
-                im = im[..., None]
+        # Add to buffer if training with augmentations
+        if self.augment:
+            self.ims[i], self.im_hw0[i], self.im_hw[i] = im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
+            self.buffer.append(i)
+            if 1 < len(self.buffer) >= self.max_buffer_length:  # prevent empty buffer
+                j = self.buffer.pop(0)
+                if self.cache != "ram":
+                    self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
 
-            # Add to buffer if training with augmentations
-            if self.augment:
-                self.ims[i], self.im_hw0[i], self.im_hw[i] = im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
-                self.buffer.append(i)
-                if 1 < len(self.buffer) >= self.max_buffer_length:  # prevent empty buffer
-                    j = self.buffer.pop(0)
-                    if self.cache != "ram":
-                        self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
+        return im, (h0, w0), im.shape[:2], ev_frame_identifier
 
-            return im, (h0, w0), im.shape[:2]
-
-        return self.ims[i], self.im_hw0[i], self.im_hw[i]
+        # return self.ims[i], self.im_hw0[i], self.im_hw[i]
 
     def cache_images(self) -> None:
         """Cache images to memory or disk for faster training."""
@@ -358,7 +375,7 @@ class BaseDataset(Dataset):
         s = np.array([x.pop("shape") for x in self.labels])  # hw
         ar = s[:, 0] / s[:, 1]  # aspect ratio
         irect = ar.argsort()
-        self.im_files = [self.im_files[i] for i in irect]
+        # self.im_files = [self.im_files[i] for i in irect]
         self.labels = [self.labels[i] for i in irect]
         ar = ar[irect]
 
@@ -390,7 +407,7 @@ class BaseDataset(Dataset):
         """
         label = deepcopy(self.labels[index])  # requires deepcopy() https://github.com/ultralytics/ultralytics/pull/1948
         label.pop("shape", None)  # shape is for rect, remove it
-        label["img"], label["ori_shape"], label["resized_shape"] = self.load_image(index)
+        label["img"], label["ori_shape"], label["resized_shape"], label["im_file"] = self.load_image(index)
         label["ratio_pad"] = (
             label["resized_shape"][0] / label["ori_shape"][0],
             label["resized_shape"][1] / label["ori_shape"][1],
@@ -420,6 +437,24 @@ class BaseDataset(Dataset):
         """
         raise NotImplementedError
 
+    def get_events_labels(self, data_format: str) -> list[dict[str, Any]]:
+        """Users can customize their own format here.
+
+        Examples:
+            Ensure output is a list of dictionaries with the following keys:
+            >>> list(
+            ...     dict(
+            ...         im_file=(file_idx, frame_idx),  # index of the file and frame in the dataset
+            ...         shape=(height, width),  # format: (height, width)
+            ...         cls=cls,
+            ...         bboxes=bboxes,  # xywh
+            ...         segments=segments,  # xy
+            ...         keypoints=keypoints,  # xy
+            ...     )
+            ... )
+        """
+        raise NotImplementedError
+    
     def get_labels(self) -> list[dict[str, Any]]:
         """Users can customize their own format here.
 

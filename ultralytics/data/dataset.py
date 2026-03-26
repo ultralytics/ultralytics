@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import cv2
+import h5py
 import numpy as np
 import torch
 from PIL import Image
@@ -19,6 +20,7 @@ from ultralytics.utils import LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, colorstr
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.ops import resample_segments, segments2boxes
 from ultralytics.utils.torch_utils import TORCHVISION_0_18
+from ultralytics.data.utils import npz_get_shape
 
 from .augment import (
     Compose,
@@ -85,7 +87,7 @@ class YOLODataset(BaseDataset):
         self.use_obb = task == "obb"
         self.data = data
         assert not (self.use_segments and self.use_keypoints), "Can not use both segments and keypoints."
-        super().__init__(*args, channels=self.data.get("channels", 3), **kwargs)
+        super().__init__(*args, channels=self.data.get("channels", 3), data_format=self.data.get("data_format", "h5"), **kwargs)
 
     def cache_labels(self, path: Path = Path("./labels.cache")) -> dict:
         """Cache dataset labels, check images and read shapes.
@@ -202,6 +204,54 @@ class YOLODataset(BaseDataset):
         if len_cls == 0:
             LOGGER.warning(f"Labels are missing or empty in {cache_path}, training may not work correctly. {HELP_URL}")
         return labels
+
+    def get_events_labels(self, data_format: str = "h5"):
+        self.label_files = []
+        all_labels = []
+        for file_idx, im_file in enumerate(self.im_files):
+            label_file = im_file.rsplit('.', 1)[0].replace(f"data_formats/histo_{data_format}", "labels") + '_bbox.npy'
+            if not Path(label_file).exists():
+                LOGGER.warning(f"Label file {label_file} associated to image {im_file} does not exist, skipping.")
+                continue
+            self.label_files.append(label_file)
+            if data_format == "h5":
+                with h5py.File(im_file, "r") as h5_file:
+                    num_frames, _, height, width = h5_file["data"].shape
+            elif data_format == "npz":
+                num_frames, _, height, width = npz_get_shape(im_file, key="data")
+            elif data_format == "npy":
+                num_frames, _, height, width = np.load(im_file).shape
+            labels = np.load(label_file)
+            x_normalized, y_normalized, w_normalized, h_normalized = labels['x'] / width, labels['y'] / height, labels['w'] / width, labels['h'] / height
+            x_centered_normalized = x_normalized + w_normalized / 2
+            y_centered_normalized = y_normalized + h_normalized / 2
+            bboxes_normalized = np.stack((x_centered_normalized, y_centered_normalized, w_normalized, h_normalized), axis=1)
+            classes = labels["class_id"]
+            if 'ts' in labels.dtype.names:
+                timestamps = labels['ts']
+            elif 't' in labels.dtype.names:
+                timestamps = labels['t']
+            else:
+                raise ValueError("Labels must contain 'ts' or 't' key for timestamps.")
+            unique_ts = np.unique(timestamps)
+            for frame_idx in range(num_frames):
+                if frame_idx >= len(unique_ts):
+                    break
+                frame_ts = unique_ts[frame_idx]
+                box_idxs = np.where(timestamps == frame_ts)[0]
+                if len(box_idxs) > 0:
+                    all_labels.append(
+                        dict(
+                            im_file=[file_idx, frame_idx],
+                            shape=(height, width),
+                            cls=classes[box_idxs, np.newaxis],  # n, 1
+                            bboxes=bboxes_normalized[box_idxs, :],  # n, 4
+                            segments=[],
+                            keypoints=None,
+                            normalized=True,
+                            bbox_format='xywh'))
+        return all_labels
+
 
     def build_transforms(self, hyp: dict | None = None) -> Compose:
         """Build and append transforms to the list.

@@ -753,6 +753,25 @@ class HUBDatasetStats:
         LOGGER.info(f"Done. All images saved to {self.im_dir}")
         return self.im_dir
 
+def npz_get_shape(npz, key="data"):
+    """Takes a path to an .npz file and key to stored array and returns array shape
+    without loading the array into memory
+    Parameters
+        npz: str
+        key: str
+    Raises: KeyError
+    Returns: tuple
+    Reference: http://bit.ly/2qsSxy8
+    """
+    with zipfile.ZipFile(npz) as archive:
+        name = '{}.npy'.format(key)
+        if name in archive.namelist():
+            npy = archive.open(name)
+            version = np.lib.format.read_magic(npy)
+            shape, _ , _ = np.lib.format._read_array_header(npy, version)
+            return shape
+        else:
+            raise KeyError('{} not in archive for {}'.format(key, npz))
 
 def compress_one_image(f: str, f_new: str | None = None, max_dim: int = 1920, quality: int = 50):
     """Compress a single image file to reduced size while preserving its aspect ratio and quality using either the

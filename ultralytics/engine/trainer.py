@@ -842,8 +842,17 @@ class BaseTrainer:
                 exists = isinstance(resume, (str, Path)) and Path(resume).exists()
                 last = Path(check_file(resume) if exists else get_latest_run())
 
-                # Check that resume data YAML exists, otherwise strip to force re-download of dataset
-                ckpt_args = load_checkpoint(last)[0].args
+                # Load checkpoint and validate it's a resumable training checkpoint (not a foundation model)
+                model, ckpt_dict = load_checkpoint(last)
+                if ckpt_dict.get("epoch", -1) < 0 or ckpt_dict.get("optimizer") is None:
+                    LOGGER.warning(
+                        f"WARNING ⚠️ checkpoint '{last}' is not a resumable training checkpoint "
+                        f"(missing epoch/optimizer state). Use 'resume' only to continue crashed or incomplete "
+                        f"training runs. Starting new training instead."
+                    )
+                    self.resume = False
+                    return
+                ckpt_args = model.args
                 if not isinstance(ckpt_args["data"], dict) and not Path(ckpt_args["data"]).exists():
                     ckpt_args["data"] = self.args.data
 

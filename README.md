@@ -42,7 +42,7 @@ You now have two choices to acquire an event-based object detection dataset:
 #### Download the Example dataset
 
 We provide an example dataset for you to quickly test the training and evaluation pipeline. You can
-download it from this [Hugging Face repo](https://huggingface.co/datasets/psee/gen4-automotive-histos):
+download it from this [Hugging Face repo](https://huggingface.co/datasets/prophesee-ai/gen4-automotive-histos):
 
 ```bash
 hf download prophesee-ai/gen4-automotive-histos --repo-type dataset --local-dir <YOUR_LOCAL_DIR>

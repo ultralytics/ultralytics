@@ -344,13 +344,13 @@ Dedicated endpoints are **not subject to the Platform API rate limits**. Request
 
 ### Request Parameters
 
-| Parameter   | Type   | Default | Description                   |
-| ----------- | ------ | ------- | ----------------------------- |
+| Parameter   | Type   | Default | Description                    |
+| ----------- | ------ | ------- | ------------------------------ |
 | `file`      | file   | -       | Image or video file (required) |
-| `conf`      | float  | 0.25    | Minimum confidence threshold  |
-| `iou`       | float  | 0.7     | NMS IoU threshold             |
-| `imgsz`     | int    | 640     | Input image size              |
-| `normalize` | string | -       | Return normalized coordinates |
+| `conf`      | float  | 0.25    | Minimum confidence threshold   |
+| `iou`       | float  | 0.7     | NMS IoU threshold              |
+| `imgsz`     | int    | 640     | Input image size               |
+| `normalize` | string | -       | Return normalized coordinates  |
 
 !!! tip "Video Inference"
 

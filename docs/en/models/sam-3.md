@@ -421,7 +421,7 @@ Here we compare SAM 3's capabilities with SAM 2 and [YOLO11](../models/yolo11.md
 
 - **SAM 3**: Best for open-vocabulary concept segmentation, finding all instances of a concept with text or exemplar prompts
 - **SAM 2**: Best for interactive single-object segmentation in images and videos with geometric prompts
-- **YOLO11**: Best for real-time, high-speed segmentation in resource-constrained deployments using efficient [export pipelines](../modes/export.md) like [ONNX](../integrations/onnx.md) and [TensorRT](../integrations/tensorrt.md)
+- **YOLO26**: Best for real-time, high-speed segmentation with NMS-free end-to-end inference, [exportable to many formats](../modes/export.md#export-formats) for deployment on GPUs, CPUs, and edge devices
 
 ## SAM vs YOLO Segmentation Benchmark
 

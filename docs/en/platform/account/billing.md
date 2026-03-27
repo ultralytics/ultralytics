@@ -44,7 +44,7 @@ Get started at no cost:
 - 3 deployments
 - 100 GB storage
 - Model export to all 17+ formats
-- Manual, SAM & YOLO Smart annotation
+- Manual, SAM 3 & YOLO Smart annotation
 - 20 cloud GPU types including 5090 & H100 ($0.24–$3.07/hr)
 - Community support
 

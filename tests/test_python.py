@@ -122,7 +122,7 @@ def test_predict_img(model_name):
     batch = [
         str(SOURCE),  # filename
         Path(SOURCE),  # Path
-        f"{ASSETS_URL}/zidane.jpg?token=123" if ONLINE else SOURCE,  # URI
+        "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/im/zidane.jpg?token=123" if ONLINE else SOURCE,  # URI
         im,  # OpenCV
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, channels), dtype=np.uint8),  # numpy

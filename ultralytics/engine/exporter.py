@@ -1008,7 +1008,7 @@ class Exporter:
             "export is only supported on Linux and is not supported on ARM64 Docker."
         )
         assert TORCH_2_8, "export requires torch>=2.8.0."
-        
+
         # default calibration dataset for aexelera
         if not self.args.data:
             default_data = {

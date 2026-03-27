@@ -593,7 +593,7 @@ SAM 3 was released by Meta on **November 20th, 2025** and is fully integrated in
 
 ### Is SAM 3 Integrated Into Ultralytics?
 
-Yes! SAM 3 is fully integrated into the Ultralytics Python package, including concept segmentation, SAM 2–style visual prompts, and multi-object video tracking.
+Yes! SAM 3 is fully integrated into the Ultralytics Python package, including concept segmentation, SAM 2–style visual prompts, and multi-object video tracking. SAM 3 also powers the [smart annotation](../platform/data/annotation.md) feature on [Ultralytics Platform](https://platform.ultralytics.com), where you can annotate images with just a few clicks.
 
 ### What Is Promptable Concept Segmentation (PCS)?
 

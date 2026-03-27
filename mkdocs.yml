@@ -828,10 +828,18 @@ nav:
           - errors: reference/utils/errors.md
           - events: reference/utils/events.md
           - export:
+              - axelera: reference/utils/export/axelera.md
+              - coreml: reference/utils/export/coreml.md
               - engine: reference/utils/export/engine.md
               - executorch: reference/utils/export/executorch.md
               - imx: reference/utils/export/imx.md
+              - mnn: reference/utils/export/mnn.md
+              - ncnn: reference/utils/export/ncnn.md
+              - openvino: reference/utils/export/openvino.md
+              - paddle: reference/utils/export/paddle.md
+              - rknn: reference/utils/export/rknn.md
               - tensorflow: reference/utils/export/tensorflow.md
+              - torchscript: reference/utils/export/torchscript.md
           - files: reference/utils/files.md
           - git: reference/utils/git.md
           - instance: reference/utils/instance.md

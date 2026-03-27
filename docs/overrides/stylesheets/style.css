@@ -172,6 +172,17 @@ div.highlight {
 .md-banner__inner {
   margin-top: 0;
   margin-bottom: 0;
+  display: flex;
+  align-items: center;
+}
+.md-banner__button {
+  order: -1;
+  color: #fff;
+  flex-shrink: 0;
+  margin-right: 0.5rem;
+}
+.md-banner__button:hover {
+  opacity: 0.6;
 }
 .banner-wrapper {
   display: flex;
@@ -179,6 +190,7 @@ div.highlight {
   justify-content: center;
   padding: 14px 16px;
   gap: 0;
+  flex: 1;
 }
 .banner-close {
   width: 28px;

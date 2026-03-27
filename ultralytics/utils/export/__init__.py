@@ -15,13 +15,13 @@ from .torchscript import torch2torchscript
 
 __all__ = [
     "keras2pb",
-    "torch2axelera",
     "onnx2engine",
     "onnx2mnn",
     "onnx2rknn",
     "onnx2saved_model",
     "pb2tfjs",
     "tflite2edgetpu",
+    "torch2axelera",
     "torch2coreml",
     "torch2executorch",
     "torch2imx",

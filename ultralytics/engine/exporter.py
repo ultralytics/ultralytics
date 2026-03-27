@@ -88,9 +88,9 @@ from ultralytics.utils import (
     DEFAULT_CFG,
     IS_DEBIAN_BOOKWORM,
     IS_DEBIAN_TRIXIE,
+    IS_DOCKER,
     IS_RASPBERRYPI,
     IS_UBUNTU,
-    IS_DOCKER,
     LINUX,
     LOGGER,
     MACOS,
@@ -1004,7 +1004,6 @@ class Exporter:
     @try_export
     def export_axelera(self, prefix=colorstr("Axelera:")):
         """Export YOLO model to Axelera format."""
-
         assert LINUX and not (ARM64 and IS_DOCKER), (
             "export is only supported on Linux and is not supported on ARM64 Docker."
         )

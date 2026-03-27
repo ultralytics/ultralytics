@@ -638,9 +638,9 @@ SAM 3 is trained on the **Segment Anything with Concepts (SA-Co)** dataset:
 
 This massive scale and diversity enables SAM 3's superior zero-shot generalization across open-vocabulary concepts.
 
-### How does SAM 3 compare to YOLO11 for segmentation?
+### How does SAM 3 compare to YOLO26 for segmentation?
 
-SAM 3 and YOLO11 serve different use cases:
+SAM 3 and YOLO26 serve different use cases:
 
 **SAM 3 Advantages**:
 
@@ -650,17 +650,17 @@ SAM 3 and YOLO11 serve different use cases:
 - **Concept-based**: Automatically finds all instances of a category
 - **Accuracy**: 47.0 AP on LVIS zero-shot instance segmentation
 
-**YOLO11 Advantages**:
+**YOLO26 Advantages**:
 
-- **Speed**: 10-15× faster inference (2-3ms vs 30ms per image)
-- **Efficiency**: 576× smaller models (5.9MB vs 3.4GB)
+- **Speed**: Orders of magnitude faster inference with NMS-free end-to-end design
+- **Efficiency**: 531× smaller models (6.4MB vs 3.4GB)
 - **Resource-friendly**: Runs on edge devices and mobile
 - **Real-time**: Optimized for production deployments
 
 **Recommendation**:
 
 - Use **SAM 3** for flexible, open-vocabulary segmentation where you need to find all instances of concepts described by text or examples
-- Use **YOLO11** for high-speed, production deployments where categories are known in advance
+- Use **YOLO26** for high-speed, production deployments where categories are known in advance
 - Use **SAM 2** for interactive single-object segmentation with geometric prompts
 
 ### Can SAM 3 handle complex language queries?

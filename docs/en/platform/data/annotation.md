@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Learn to annotate images in Ultralytics Platform with manual tools, skeleton templates for pose estimation, and Smart Annotation with SAM and YOLO models for detect, segment, and OBB tasks.
+description: Learn to annotate images in Ultralytics Platform with manual tools, skeleton templates for pose estimation, and Smart annotation with SAM and YOLO models for detect, segment, and OBB tasks.
 keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, bounding box, polygon, keypoints, skeleton templates, pose estimation, segmentation, YOLO
 ---
 
@@ -232,7 +232,7 @@ Assign image-level class labels:
 
 ## Smart Annotation
 
-Smart Annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](https://docs.ultralytics.com/models/sam/) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. Smart Annotation is available for **detect**, **segment**, and **OBB** tasks.
+Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](https://docs.ultralytics.com/models/sam/) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. Smart annotation is available for **detect**, **segment**, and **OBB** tasks.
 
 ### SAM Annotation
 
@@ -318,7 +318,7 @@ Switching models while Smart mode is active re-initializes the predictor for the
 
 ### YOLO Models in Smart Annotation
 
-With a YOLO model selected, Smart Annotation can add predictions from pretrained Ultralytics models or your own fine-tuned models.
+With a YOLO model selected, Smart annotation can add predictions from pretrained Ultralytics models or your own fine-tuned models.
 
 1. Enter edit mode and select `Smart` or press `S`
 2. Select a YOLO model from the model picker in the toolbar (`Official` or `My Models`)

@@ -90,6 +90,7 @@ from ultralytics.utils import (
     IS_DEBIAN_TRIXIE,
     IS_RASPBERRYPI,
     IS_UBUNTU,
+    IS_DOCKER,
     LINUX,
     LOGGER,
     MACOS,
@@ -126,6 +127,7 @@ from ultralytics.utils.torch_utils import (
     TORCH_1_13,
     TORCH_2_1,
     TORCH_2_3,
+    TORCH_2_8,
     TORCH_2_9,
     select_device,
 )
@@ -329,7 +331,7 @@ class Exporter:
             if not self.args.int8:
                 LOGGER.warning("Setting int8=True for Axelera mixed-precision export.")
                 self.args.int8 = True
-        if imx:
+        if fmt == "imx":
             if not self.args.int8:
                 LOGGER.warning("IMX export requires int8=True, setting int8=True.")
                 self.args.int8 = True
@@ -1002,58 +1004,22 @@ class Exporter:
     @try_export
     def export_axelera(self, prefix=colorstr("Axelera:")):
         """Export YOLO model to Axelera format."""
-        os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
-        try:
-            from axelera.compiler import CompilerConfig
-        except ImportError:
-            check_apt_requirements(
-                ["libllvm14", "libgirepository1.0-dev", "pkg-config", "libcairo2-dev", "build-essential", "cmake"]
-            )
 
-            check_requirements(
-                "axelera-voyager-sdk==1.5.2",
-                cmds="--extra-index-url https://software.axelera.ai/artifactory/axelera-runtime-pypi "
-                "--extra-index-url https://software.axelera.ai/artifactory/axelera-dev-pypi",
-            )
-            from axelera.compiler import CompilerConfig
+        assert LINUX and not (ARM64 and IS_DOCKER), (
+            "export is only supported on Linux and is not supported on ARM64 Docker."
+        )
+        assert TORCH_2_8, "export requires torch>=2.8.0."
 
-        from ultralytics.utils.export.axelera import onnx2axelera
+        from ultralytics.utils.export.axelera import torch2axelera
 
-        self.args.opset = 17  # hardcode opset for Axelera
-        onnx_path = self.export_onnx()
-        model_name = Path(onnx_path).stem
-        export_path = Path(f"{model_name}_axelera_model")
-        export_path.mkdir(exist_ok=True)
-
-        if "C2PSA" in self.model.__str__():  # YOLO11
-            config = CompilerConfig(
-                quantization_scheme="per_tensor_min_max",
-                ignore_weight_buffers=False,
-                resources_used=0.25,
-                aipu_cores_used=1,
-                multicore_mode="batch",
-                output_axm_format=True,
-                model_name=model_name,
-            )
-        else:  # YOLOv8
-            config = CompilerConfig(
-                tiling_depth=6,
-                split_buffer_promotion=True,
-                resources_used=0.25,
-                aipu_cores_used=1,
-                multicore_mode="batch",
-                output_axm_format=True,
-                model_name=model_name,
-            )
-        export_path = onnx2axelera(
-            onnx_file=onnx_path,
-            compile_config=config,
-            metadata=self.metadata,
+        return torch2axelera(
+            model=self.model,
+            file=self.file,
             calibration_dataset=self.get_int8_calibration_dataloader(prefix),
             transform_fn=self._transform_fn,
+            metadata=self.metadata,
             prefix=prefix,
         )
-        return export_path
 
     @try_export
     def export_executorch(self, prefix=colorstr("ExecuTorch:")):

@@ -11,6 +11,6 @@ keywords: Ultralytics, Axelera, model export, ONNX to Axelera, Metis AI processo
 
 <br>
 
-## ::: ultralytics.utils.export.axelera.onnx2axelera
+## ::: ultralytics.utils.export.axelera.torch2axelera
 
 <br><br>

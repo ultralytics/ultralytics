@@ -423,9 +423,9 @@ Here we compare SAM 3's capabilities with SAM 2 and [YOLO11](../models/yolo11.md
 - **SAM 2**: Best for interactive single-object segmentation in images and videos with geometric prompts
 - **YOLO11**: Best for real-time, high-speed segmentation in resource-constrained deployments using efficient [export pipelines](../modes/export.md) like [ONNX](../integrations/onnx.md) and [TensorRT](../integrations/tensorrt.md)
 
-## SAM 3 Comparison vs YOLO
+## SAM vs YOLO Segmentation Benchmark
 
-Here we compare Meta's SAM 2 models, including the smallest SAM2-t variant, with Ultralytics smallest segmentation model, [YOLO11n-seg](../tasks/segment.md):
+Comparing SAM 3, SAM 2, SAM, MobileSAM, and FastSAM against Ultralytics YOLO segmentation models (YOLOv8, YOLO11, YOLO26) in size, parameters, and GPU inference speed:
 
 | Model                                                                                          | Size<br><sup>(MB)</sup> | Parameters<br><sup>(M)</sup> | Speed (GPU)<br><sup>(ms/im)</sup> |
 | ---------------------------------------------------------------------------------------------- | ----------------------- | ---------------------------- | --------------------------------- |

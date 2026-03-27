@@ -514,6 +514,7 @@ nav:
       - A Guide on Model Testing: guides/model-testing.md
       - AzureML Quickstart: guides/azureml-quickstart.md
       - Best Practices for Model Deployment: guides/model-deployment-practices.md
+      - COCO to YOLO Conversion: guides/coco-to-yolo.md
       - COCO JSON Training: guides/coco-json-training.md
       - Conda Quickstart: guides/conda-quickstart.md
       - Customizing Trainer: guides/custom-trainer.md
@@ -542,6 +543,7 @@ nav:
       - Tips for Model Training: guides/model-training-tips.md
       - Triton Inference Server: guides/triton-inference-server.md
       - Viewing Inference Images in a Terminal: guides/view-results-in-terminal.md
+      - YOLO26 Training Recipe: guides/yolo26-training-recipe.md
       - YOLO Common Issues: guides/yolo-common-issues.md
       - YOLO Data Augmentation: guides/yolo-data-augmentation.md
       - YOLO Performance Metrics: guides/yolo-performance-metrics.md

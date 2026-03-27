@@ -536,9 +536,9 @@ Dataset metadata is edited inline directly on the dataset page — no dialog nee
 - **Task type**: Click the task badge to select a different task type.
 - **License**: Click the license selector to change the dataset license.
 
-!!! warning "Changing Task Type"
+!!! info "Changing Task Type"
 
-    Changing the task type may affect how existing annotations are visualized. Incompatible annotations won't be displayed.
+    Each image stores annotations for all task types together. Changing the dataset task type controls which annotations are visible in the editor and included in exports and training. Annotations for other task types are preserved in the database and reappear when you switch back.
 
 ## Clone Dataset
 
@@ -637,3 +637,7 @@ Ultralytics Platform supports two annotation formats for upload:
 === "COCO Format"
 
     JSON files with `images`, `annotations`, and `categories` arrays. Supports detection (`bbox`), segmentation (polygon), and pose (`keypoints`) tasks. COCO uses absolute pixel coordinates which are automatically converted to normalized format during upload.
+
+### Can I annotate the same dataset for multiple task types?
+
+Yes. Each image stores annotations for all 5 task types (detect, segment, pose, OBB, classify) together. You can switch the dataset's active task type at any time without losing existing annotations. Only annotations matching the active task type are shown in the editor and included in exports and training — annotations for other tasks are preserved and reappear when you switch back.

@@ -567,7 +567,7 @@ class BaseTrainer:
         unset_deterministic()
         self.run_callbacks("teardown")
 
-    def auto_batch(self, max_num_obj=0):
+    def auto_batch(self, max_num_obj=0, dataset_size=0):
         """Calculate optimal batch size based on model and device memory constraints."""
         return check_train_batch_size(
             model=self.model,
@@ -575,6 +575,7 @@ class BaseTrainer:
             amp=self.amp,
             batch=self.batch_size,
             max_num_obj=max_num_obj,
+            dataset_size=dataset_size,
         )  # returns batch size
 
     def _get_memory(self, fraction=False):
@@ -840,8 +841,6 @@ class BaseTrainer:
             try:
                 exists = isinstance(resume, (str, Path)) and Path(resume).exists()
                 last = Path(check_file(resume) if exists else get_latest_run())
-
-                # Check that resume data YAML exists, otherwise strip to force re-download of dataset
                 ckpt_args = load_checkpoint(last)[0].args
                 if not isinstance(ckpt_args["data"], dict) and not Path(ckpt_args["data"]).exists():
                     ckpt_args["data"] = self.args.data

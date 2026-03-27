@@ -65,7 +65,7 @@ graph LR
 | Stage        | Features                                                                                                                                       |
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Upload**   | Images (50MB), videos (1GB), ZIP archives (10GB) with automatic processing                                                                     |
-| **Annotate** | Manual tools for all 5 task types, SAM smart annotation for detect, segment, and OBB, plus YOLO auto-labeling for detect, segment, and OBB     |
+| **Annotate** | Manual tools for all 5 task types, plus Smart Annotation with SAM and YOLO models for detect, segment, and OBB                                   |
 | **Train**    | Cloud GPUs (20 free + 3 Pro-exclusive), real-time metrics, project organization                                                                |
 | **Export**   | [17 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.; see [supported formats](train/models.md#supported-formats)) |
 | **Deploy**   | 43 global regions with dedicated endpoints, auto-scaling, monitoring                                                                           |
@@ -103,8 +103,7 @@ You select your region during onboarding, and all your data, models, and deploym
 - **Dataset Management**: Upload images, videos, or ZIP archives with automatic processing
 - **Annotation Editor**: Manual annotation for all 5 YOLO task types (detect, segment, pose, OBB, classify; see [supported tasks](data/index.md#supported-tasks))
 - **Skeleton Templates**: Built-in (Person, Hand, Face, Dog, Box) and custom skeleton templates for one-click pose annotation
-- **SAM Smart Annotation**: Click-based intelligent annotation with 5 models — [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large) and the new [SAM 3](../models/sam-3.md) for highest accuracy. Switch models per-image from the annotation toolbar.
-- **Auto-Annotation**: Use trained models to pre-label new data
+- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large), [SAM 3](../models/sam-3.md), pretrained Ultralytics YOLO models, or your own fine-tuned YOLO models from the annotation toolbar for detect, segment, and OBB tasks
 - **Dataset Versioning**: Create numbered NDJSON snapshots with descriptions for reproducible training
 - **Statistics**: Class distribution, location heatmaps, and dimension analysis
 
@@ -300,7 +299,7 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 - **Real-Time Metrics**: Stream training progress and monitor deployments
 - **43 Deploy Regions**: Deploy models close to your users worldwide
 - **5 Task Types**: Support for detection, segmentation, pose, OBB, and classification (see [task docs](../tasks/index.md))
-- **AI-Assisted Annotation**: SAM smart annotation plus YOLO auto-labeling for detect, segment, and OBB
+- **AI-Assisted Annotation**: Smart Annotation with SAM and YOLO models to speed up data preparation
 
 ### What GPU options are available for cloud training?
 
@@ -367,7 +366,7 @@ The Platform includes a full-featured annotation editor supporting:
 
 - **Manual Tools**: Bounding boxes, polygons, keypoints with skeleton templates, oriented boxes, classification
 - **Skeleton Templates**: Place all keypoints at once using built-in (Person, Hand, Face, Dog, Box) or custom templates
-- **SAM Smart Annotation**: Click to generate precise masks — choose from [SAM 2.1](../models/sam-2.md) Tiny/Small/Base/Large or the new [SAM 3](../models/sam-3.md) via the toolbar model picker
+- **Smart Annotation**: Use SAM for click-based annotation, or run pretrained Ultralytics YOLO models and your own fine-tuned YOLO models from the toolbar for detect, segment, and OBB
 - **Keyboard Shortcuts**: Efficient workflows with hotkeys
 
 | Shortcut  | Action                     |

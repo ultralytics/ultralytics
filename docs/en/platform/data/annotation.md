@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Learn to annotate images in Ultralytics Platform with manual tools, skeleton templates for pose estimation, SAM smart annotation, and YOLO auto-labeling for detect, segment, and OBB tasks.
+description: Learn to annotate images in Ultralytics Platform with manual tools, skeleton templates for pose estimation, and Smart Annotation with SAM and YOLO models for detect, segment, and OBB tasks.
 keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, bounding box, polygon, keypoints, skeleton templates, pose estimation, segmentation, YOLO
 ---
 
@@ -230,9 +230,13 @@ Assign image-level class labels:
 
 ![Ultralytics Platform Annotate Classify Side Panel](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-classify-side-panel.avif)
 
-## SAM Smart Annotation
+## Smart Annotation
 
-[Segment Anything Model (SAM)](https://docs.ultralytics.com/models/sam/) enables intelligent annotation with just a few clicks. Smart mode is available for **detect**, **segment**, and **OBB** tasks.
+Smart Annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](https://docs.ultralytics.com/models/sam/) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. Smart Annotation is available for **detect**, **segment**, and **OBB** tasks.
+
+### SAM Annotation
+
+With a SAM model selected:
 
 1. Enter edit mode and select `Smart` or press `S`
 2. **Left-click** to add positive points (include this area)
@@ -296,9 +300,9 @@ Auto-apply mode speeds up Smart annotation by automatically saving the SAM mask 
 
     Auto-apply is ideal for datasets with well-separated objects where a single click produces an accurate mask. For complex or overlapping objects, turn auto-apply off and use multiple positive/negative points to refine the mask before saving.
 
-### SAM Model Selection
+### Model Selection
 
-When Smart mode is active, a model picker appears in the toolbar. Five models are available — choose based on the speed vs. accuracy trade-off that suits your dataset:
+When Smart mode is active, a model picker appears in the toolbar. Choose a SAM model for click-based annotation or a YOLO model to run predictions on the current image. The available SAM models are:
 
 | Model             | Size    | Speed    | Notes                    |
 | ----------------- | ------- | -------- | ------------------------ |
@@ -312,18 +316,18 @@ When Smart mode is active, a model picker appears in the toolbar. Five models ar
 
 Switching models while Smart mode is active re-initializes the predictor for the current image automatically.
 
-## YOLO Auto-Labeling
+### YOLO Models in Smart Annotation
 
-YOLO auto-labeling runs model inference and adds the predictions as annotations. Smart mode supports YOLO auto-labeling for **detect**, **segment**, and **OBB** tasks.
+With a YOLO model selected, Smart Annotation can add predictions from pretrained Ultralytics models or your own fine-tuned models.
 
 1. Enter edit mode and select `Smart` or press `S`
 2. Select a YOLO model from the model picker in the toolbar (`Official` or `My Models`)
 3. Click `Predict`
 4. Review the added annotations and make any needed corrections
 
-![Ultralytics Platform Annotate Yolo Auto Labeling](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-yolo-auto-labeling.avif)
+![Ultralytics Platform Annotate Smart Annotation Yolo Model](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-yolo-auto-labeling.avif)
 
-!!! tip "YOLO Auto-Labeling Notes"
+!!! tip "YOLO Model Notes"
 
     - The model picker only lists models that match the current dataset task.
     - Duplicate predictions are skipped when they overlap an existing annotation of the same class at IoU `0.7` or higher.

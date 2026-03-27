@@ -333,13 +333,14 @@ class Exporter:
                 self.args.int8 = True
             # default calibration dataset for Axelera
             if not self.args.data:
-                self.args.data = {
+                default_data = {
                     "detect": "coco128.yaml",
                     "segment": "coco128-seg.yaml",
                     "classify": "imagenet100",
                     "pose": "coco8-pose.yaml",
                     "obb": "dota128.yaml",
-                }[model.task]
+                }
+                self.args.data = default_data[model.task]
         if fmt == "imx":
             if not self.args.int8:
                 LOGGER.warning("IMX export requires int8=True, setting int8=True.")

@@ -22,6 +22,15 @@ Every Ultralytics checkpoint stores the full training configuration used to prod
 
 !!! example "Inspect checkpoint training args"
 
+    === "Ultralytics API"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n.pt")
+        print(model.ckpt["train_args"])
+        ```
+
     === "PyTorch"
 
         ```python
@@ -35,14 +44,6 @@ Every Ultralytics checkpoint stores the full training configuration used to prod
             print(f"{k}: {v}")
         ```
 
-    === "Ultralytics API"
-
-        ```python
-        from ultralytics import YOLO
-
-        model = YOLO("yolo26n.pt")
-        print(model.ckpt["train_args"])
-        ```
 
 This works for any `.pt` checkpoint — official releases and your own fine-tuned models alike. For the full list of configurable training arguments, see the [training configuration reference](../usage/cfg.md).
 

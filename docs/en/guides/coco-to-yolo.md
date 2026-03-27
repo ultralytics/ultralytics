@@ -16,13 +16,13 @@ The COCO JSON format stores all annotations in a single file, while [YOLO](https
 - **COCO JSON uses pixel coordinates** in `[x_min, y_min, width, height]` format with a single JSON file for all images.
 - **Class IDs differ** — COCO uses arbitrary `category_id` values, while YOLO requires zero-indexed class IDs.
 
-| Feature | COCO JSON | YOLO TXT |
-| --- | --- | --- |
-| **Structure** | Single JSON file for all images | One `.txt` file per image |
-| **Bbox format** | `[x_min, y_min, width, height]` in pixels | `class x_center y_center width height` normalized (0-1) |
-| **Class IDs** | `category_id` (can start from any number) | Zero-indexed (starts from 0) |
-| **Segmentation** | Polygon arrays in `segmentation` field | Polygon coordinates after class ID |
-| **Keypoints** | `[x, y, visibility, ...]` in pixels | `[x, y, visibility, ...]` normalized |
+| Feature          | COCO JSON                                 | YOLO TXT                                                |
+| ---------------- | ----------------------------------------- | ------------------------------------------------------- |
+| **Structure**    | Single JSON file for all images           | One `.txt` file per image                               |
+| **Bbox format**  | `[x_min, y_min, width, height]` in pixels | `class x_center y_center width height` normalized (0-1) |
+| **Class IDs**    | `category_id` (can start from any number) | Zero-indexed (starts from 0)                            |
+| **Segmentation** | Polygon arrays in `segmentation` field    | Polygon coordinates after class ID                      |
+| **Keypoints**    | `[x, y, visibility, ...]` in pixels       | `[x, y, visibility, ...]` normalized                    |
 
 ## Quick Start
 
@@ -69,23 +69,21 @@ Each JSON file follows the [COCO data format](https://cocodataset.org/#format-da
 
 ```json
 {
-  "images": [
-    { "id": 1, "file_name": "img_001.jpg", "width": 640, "height": 480 }
-  ],
-  "annotations": [
-    {
-      "id": 1,
-      "image_id": 1,
-      "category_id": 1,
-      "bbox": [100, 50, 200, 150],
-      "area": 30000,
-      "iscrowd": 0
-    }
-  ],
-  "categories": [
-    { "id": 1, "name": "helmet" },
-    { "id": 2, "name": "vest" }
-  ]
+    "images": [{ "id": 1, "file_name": "img_001.jpg", "width": 640, "height": 480 }],
+    "annotations": [
+        {
+            "id": 1,
+            "image_id": 1,
+            "category_id": 1,
+            "bbox": [100, 50, 200, 150],
+            "area": 30000,
+            "iscrowd": 0
+        }
+    ],
+    "categories": [
+        { "id": 1, "name": "helmet" },
+        { "id": 2, "name": "vest" }
+    ]
 }
 ```
 
@@ -212,8 +210,8 @@ path: /absolute/path/to/my_dataset
 train: images/train
 val: images/val
 names:
-  0: helmet
-  1: vest
+    0: helmet
+    1: vest
 ```
 
 For more details on the dataset YAML format, see the [dataset configuration guide](../datasets/detect/index.md).

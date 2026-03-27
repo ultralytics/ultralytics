@@ -44,7 +44,6 @@ Every Ultralytics checkpoint stores the full training configuration used to prod
             print(f"{k}: {v}")
         ```
 
-
 This works for any `.pt` checkpoint — official releases and your own fine-tuned models alike. For the full list of configurable training arguments, see the [training configuration reference](../usage/cfg.md).
 
 ## Training Overview
@@ -70,17 +69,17 @@ Key design choices across all sizes:
 
 ### Optimizer and Learning Rate
 
-| Setting | N | S | M | L | X |
-|---|---|---|---|---|---|
-| `optimizer` | MuSGD | MuSGD | MuSGD | MuSGD | MuSGD |
-| `lr0` | 0.0054 | 0.00038 | 0.00038 | 0.00038 | 0.00038 |
-| `lrf` | 0.0495 | 0.882 | 0.882 | 0.882 | 0.882 |
-| `momentum` | 0.947 | 0.948 | 0.948 | 0.948 | 0.948 |
-| `weight_decay` | 0.00064 | 0.00027 | 0.00027 | 0.00027 | 0.00027 |
-| `warmup_epochs` | 0.98 | 0.99 | 0.99 | 0.99 | 0.99 |
-| `epochs` | 245 | 70 | 80 | 60 | 40 |
-| `batch` | 128 | 128 | 128 | 128 | 128 |
-| `imgsz` | 640 | 640 | 640 | 640 | 640 |
+| Setting         | N       | S       | M       | L       | X       |
+| --------------- | ------- | ------- | ------- | ------- | ------- |
+| `optimizer`     | MuSGD   | MuSGD   | MuSGD   | MuSGD   | MuSGD   |
+| `lr0`           | 0.0054  | 0.00038 | 0.00038 | 0.00038 | 0.00038 |
+| `lrf`           | 0.0495  | 0.882   | 0.882   | 0.882   | 0.882   |
+| `momentum`      | 0.947   | 0.948   | 0.948   | 0.948   | 0.948   |
+| `weight_decay`  | 0.00064 | 0.00027 | 0.00027 | 0.00027 | 0.00027 |
+| `warmup_epochs` | 0.98    | 0.99    | 0.99    | 0.99    | 0.99    |
+| `epochs`        | 245     | 70      | 80      | 60      | 40      |
+| `batch`         | 128     | 128     | 128     | 128     | 128     |
+| `imgsz`         | 640     | 640     | 640     | 640     | 640     |
 
 !!! info "Learning rate strategy"
 
@@ -88,11 +87,11 @@ Key design choices across all sizes:
 
 ### Loss Weights
 
-| Setting | N | S | M | L | X |
-|---|---|---|---|---|---|
-| `box` | 5.63 | 9.83 | 9.83 | 9.83 | 9.83 |
-| `cls` | 0.56 | 0.65 | 0.65 | 0.65 | 0.65 |
-| `dfl` | 9.04 | 0.96 | 0.96 | 0.96 | 0.96 |
+| Setting | N    | S    | M    | L    | X    |
+| ------- | ---- | ---- | ---- | ---- | ---- |
+| `box`   | 5.63 | 9.83 | 9.83 | 9.83 | 9.83 |
+| `cls`   | 0.56 | 0.65 | 0.65 | 0.65 | 0.65 |
+| `dfl`   | 9.04 | 0.96 | 0.96 | 0.96 | 0.96 |
 
 The N model prioritizes DFL loss, while S/M/L/X models shift emphasis to [bounding box](https://www.ultralytics.com/glossary/bounding-box) regression. Classification loss remains relatively consistent across all sizes.
 
@@ -100,20 +99,20 @@ The N model prioritizes DFL loss, while S/M/L/X models shift emphasis to [boundi
 
 For a detailed explanation of each technique, see the [YOLO Data Augmentation guide](./yolo-data-augmentation.md).
 
-| Setting | N | S | M | L | X |
-|---|---|---|---|---|---|
-| [`mosaic`](./yolo-data-augmentation.md#mosaic-mosaic) | 0.909 | 0.992 | 0.992 | 0.992 | 0.992 |
-| [`mixup`](./yolo-data-augmentation.md#mixup-mixup) | 0.012 | 0.05 | 0.427 | 0.427 | 0.427 |
-| [`copy_paste`](./yolo-data-augmentation.md#copy-paste-copy_paste) | 0.075 | 0.404 | 0.304 | 0.404 | 0.404 |
-| [`scale`](./yolo-data-augmentation.md#scale-scale) | 0.562 | 0.9 | 0.95 | 0.95 | 0.95 |
-| [`fliplr`](./yolo-data-augmentation.md#flip-left-right-fliplr) | 0.606 | 0.304 | 0.304 | 0.304 | 0.304 |
-| [`degrees`](./yolo-data-augmentation.md#rotation-degrees) | 1.11 | ~0 | ~0 | ~0 | ~0 |
-| [`shear`](./yolo-data-augmentation.md#shear-shear) | 1.46 | ~0 | ~0 | ~0 | ~0 |
-| [`translate`](./yolo-data-augmentation.md#translation-translate) | 0.071 | 0.275 | 0.275 | 0.275 | 0.275 |
-| [`hsv_h`](./yolo-data-augmentation.md#hue-adjustment-hsv_h) | 0.014 | 0.013 | 0.013 | 0.013 | 0.013 |
+| Setting                                                            | N     | S     | M     | L     | X     |
+| ------------------------------------------------------------------ | ----- | ----- | ----- | ----- | ----- |
+| [`mosaic`](./yolo-data-augmentation.md#mosaic-mosaic)              | 0.909 | 0.992 | 0.992 | 0.992 | 0.992 |
+| [`mixup`](./yolo-data-augmentation.md#mixup-mixup)                 | 0.012 | 0.05  | 0.427 | 0.427 | 0.427 |
+| [`copy_paste`](./yolo-data-augmentation.md#copy-paste-copy_paste)  | 0.075 | 0.404 | 0.304 | 0.404 | 0.404 |
+| [`scale`](./yolo-data-augmentation.md#scale-scale)                 | 0.562 | 0.9   | 0.95  | 0.95  | 0.95  |
+| [`fliplr`](./yolo-data-augmentation.md#flip-left-right-fliplr)     | 0.606 | 0.304 | 0.304 | 0.304 | 0.304 |
+| [`degrees`](./yolo-data-augmentation.md#rotation-degrees)          | 1.11  | ~0    | ~0    | ~0    | ~0    |
+| [`shear`](./yolo-data-augmentation.md#shear-shear)                 | 1.46  | ~0    | ~0    | ~0    | ~0    |
+| [`translate`](./yolo-data-augmentation.md#translation-translate)   | 0.071 | 0.275 | 0.275 | 0.275 | 0.275 |
+| [`hsv_h`](./yolo-data-augmentation.md#hue-adjustment-hsv_h)        | 0.014 | 0.013 | 0.013 | 0.013 | 0.013 |
 | [`hsv_s`](./yolo-data-augmentation.md#saturation-adjustment-hsv_s) | 0.645 | 0.353 | 0.353 | 0.353 | 0.353 |
 | [`hsv_v`](./yolo-data-augmentation.md#brightness-adjustment-hsv_v) | 0.566 | 0.194 | 0.194 | 0.194 | 0.194 |
-| [`bgr`](./yolo-data-augmentation.md#bgr-channel-swap-bgr) | 0.106 | 0.0 | 0.0 | 0.0 | 0.0 |
+| [`bgr`](./yolo-data-augmentation.md#bgr-channel-swap-bgr)          | 0.106 | 0.0   | 0.0   | 0.0   | 0.0   |
 
 Larger models use more aggressive augmentation overall (higher [mixup](./yolo-data-augmentation.md#mixup-mixup), [copy-paste](./yolo-data-augmentation.md#copy-paste-copy_paste), and [scale](./yolo-data-augmentation.md#scale-scale)), since they have more capacity and benefit from stronger [regularization](https://www.ultralytics.com/glossary/regularization). The N model is the only size with meaningful [rotation](./yolo-data-augmentation.md#rotation-degrees), [shear](./yolo-data-augmentation.md#shear-shear), and [BGR](./yolo-data-augmentation.md#bgr-channel-swap-bgr) augmentation.
 
@@ -183,13 +182,13 @@ For automated hyperparameter optimization, see the [Hyperparameter Tuning guide]
 
 ### Choosing a Model Size
 
-| Model | Best For | Batch Size Guidance |
-|---|---|---|
+| Model   | Best For                               | Batch Size Guidance                     |
+| ------- | -------------------------------------- | --------------------------------------- |
 | YOLO26n | Edge devices, mobile, real-time on CPU | Large batches (64-128) on consumer GPUs |
-| YOLO26s | Balanced speed and accuracy | Medium batches (32-64) |
-| YOLO26m | Higher accuracy with moderate compute | Smaller batches (16-32) |
-| YOLO26l | High accuracy when GPU is available | Small batches (8-16) or multi-GPU |
-| YOLO26x | Maximum accuracy, server deployment | Small batches (4-8) or multi-GPU |
+| YOLO26s | Balanced speed and accuracy            | Medium batches (32-64)                  |
+| YOLO26m | Higher accuracy with moderate compute  | Smaller batches (16-32)                 |
+| YOLO26l | High accuracy when GPU is available    | Small batches (8-16) or multi-GPU       |
+| YOLO26x | Maximum accuracy, server deployment    | Small batches (4-8) or multi-GPU        |
 
 For export and deployment options, see the [Export guide](../modes/export.md) and [Model Deployment Options](./model-deployment-options.md).
 

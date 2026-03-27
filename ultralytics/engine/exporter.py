@@ -1243,7 +1243,7 @@ class Exporter:
             sudo = "sudo " if is_sudo_available() else ""
             for c in (
                 f"{sudo}mkdir -p /etc/apt/keyrings",
-                f"curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | {sudo}gpg --dearmor -o /etc/apt/keyrings/google.gpg",
+                f"curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | {sudo}gpg --no-tty --dearmor -o /etc/apt/keyrings/google.gpg",
                 f'echo "deb [signed-by=/etc/apt/keyrings/google.gpg] https://packages.cloud.google.com/apt coral-edgetpu-stable main" | {sudo}tee /etc/apt/sources.list.d/coral-edgetpu.list',
             ):
                 subprocess.run(c, shell=True, check=True)

@@ -105,30 +105,7 @@ Choose your GPU from Ultralytics Cloud:
 
 ![Ultralytics Platform Training Dialog Gpu Selector And Cost](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-dialog-gpu-selector-and-cost.avif)
 
-| GPU          | VRAM   | Cost/Hour |
-| ------------ | ------ | --------- |
-| RTX 2000 Ada | 16 GB  | $0.24     |
-| RTX A4500    | 20 GB  | $0.24     |
-| RTX A5000    | 24 GB  | $0.26     |
-| RTX 4000 Ada | 20 GB  | $0.38     |
-| L4           | 24 GB  | $0.39     |
-| A40          | 48 GB  | $0.40     |
-| RTX 3090     | 24 GB  | $0.46     |
-| RTX A6000    | 48 GB  | $0.49     |
-| RTX 4090     | 24 GB  | $0.59     |
-| RTX 6000 Ada | 48 GB  | $0.77     |
-| L40S         | 48 GB  | $0.86     |
-| RTX 5090     | 32 GB  | $0.89     |
-| L40          | 48 GB  | $0.99     |
-| A100 PCIe    | 80 GB  | $1.39     |
-| A100 SXM     | 80 GB  | $1.49     |
-| RTX PRO 6000 | 96 GB  | $1.89     |
-| H100 PCIe    | 80 GB  | $2.39     |
-| H100 SXM     | 80 GB  | $2.69     |
-| H100 NVL     | 94 GB  | $3.07     |
-| H200 NVL     | 143 GB | $3.39     |
-| H200 SXM     | 141 GB | $3.59     |
-| B200         | 180 GB | $4.99     |
+{% include "macros/platform-gpu-table.md" %}
 
 !!! tip "GPU Selection"
 
@@ -237,7 +214,7 @@ Train on your own hardware while streaming metrics to the platform.
 3. Set the environment variable:
 
 ```bash
-export ULTRALYTICS_API_KEY="your_api_key"
+export ULTRALYTICS_API_KEY="YOUR_API_KEY"
 ```
 
 ### Train with Streaming
@@ -433,11 +410,15 @@ Training time depends on:
 
 Typical times (1000 images, 100 epochs):
 
-| Model   | RTX PRO 6000 | A100   |
-| ------- | ------------ | ------ |
-| YOLO26n | 20 min       | 20 min |
-| YOLO26m | 40 min       | 40 min |
-| YOLO26x | 80 min       | 80 min |
+| Model   | RTX PRO 6000 | A100 SXM |
+| ------- | ------------ | -------- |
+| YOLO26n | ~20 min      | ~15 min  |
+| YOLO26m | ~40 min      | ~30 min  |
+| YOLO26x | ~80 min      | ~60 min  |
+
+!!! note "Approximate Times"
+
+    Training times are approximate and vary with dataset complexity, augmentation settings, and batch size. Use the training dialog's cost estimate for more accurate predictions.
 
 ### Can I train overnight?
 

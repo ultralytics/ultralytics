@@ -8,6 +8,17 @@ keywords: Ultralytics Platform, Quickstart, YOLO models, dataset upload, model t
 
 [Ultralytics Platform](https://platform.ultralytics.com) is designed to be user-friendly and intuitive, allowing users to quickly upload their datasets and train new YOLO models. It offers a range of pretrained models to choose from, making it easy for users to get started. Once a model is trained, it can be tested directly in the browser and deployed to production with a single click.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/VGa3HMUWQSM"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Get Started with Ultralytics Platform - QuickStart
+</p>
+
 ```mermaid
 journey
     title Your First Model in 5 Minutes
@@ -62,13 +73,17 @@ Every new account receives free credits for cloud GPU training:
 
 ### Complete Your Profile
 
-Before selecting your region, you'll complete your profile with a display name, username, optional company, and primary use case. The onboarding flow has three steps: Profile, Data Region, and Complete.
+The onboarding flow guides you through three steps:
+
+1. **Username** — Choose a unique username (permanent, cannot be changed later)
+2. **Data Region** — Select US, EU, or AP with a visual world map showing latency
+3. **Profile** — Set your display name, company, and primary use case
 
 ![Ultralytics Platform Onboarding Profile With Use Case](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-onboarding-profile-with-use-case.avif)
 
 ??? tip "Update Later"
 
-    You can update your profile anytime from the Settings page, including your display name, bio, and social links. Note that your username cannot be changed after signup.
+    You can update your profile anytime from [Settings](account/settings.md), including your display name, bio, and social links. Note that your username and data region cannot be changed after signup.
 
 ## Home Dashboard
 
@@ -116,6 +131,35 @@ Below the welcome card, the dashboard shows three cards:
 
 A **Recent Activity** table at the bottom shows your latest datasets, models, and training runs.
 
+### Global Search
+
+Press `Cmd+K` (Mac) or `Ctrl+K` (Windows/Linux) to open the search bar. Search across pages, projects, datasets, and deployments instantly.
+
+### AI Chat Assistant
+
+A floating chat widget is available on every page. Click it to ask questions about YOLO training, annotation, deployment, or any Platform feature. The assistant provides context-aware help based on the current page.
+
+### Onboarding Tours
+
+The Platform includes guided tours that introduce key features as you explore different sections:
+
+| Tour             | Trigger                              | What It Covers                                                       |
+| ---------------- | ------------------------------------ | -------------------------------------------------------------------- |
+| **Nav Tour**     | First visit to Home after onboarding | Home, Explore, Annotate, Train, Deploy, Settings, Account            |
+| **Project Tour** | First visit to a project page        | Models sidebar, Training Charts, Train button                        |
+| **Dataset Tour** | First visit to a dataset page        | Images gallery, Split tabs, Classes, Charts, Train, Upload, Download |
+
+!!! tip "Enterprise Users"
+
+    Enterprise plan users see an enhanced Nav Tour with enterprise-specific guidance on the Train step.
+
+#### Restart Tours
+
+To replay any tour:
+
+- **Redo Tour button** — Click your profile avatar (bottom-left of the sidebar) to open the user menu, then select **Redo Tour**. This resets all tours so they replay on your next visit to each section.
+- **URL parameter** — Navigate to `platform.ultralytics.com/home?tour=nav` to restart the Nav Tour directly.
+
 ## Upload Your First Dataset
 
 Navigate to `Annotate` in the sidebar and click `New Dataset` to add your training data. You can also drag and drop files directly onto the Datasets card on the Home dashboard.
@@ -124,12 +168,12 @@ Navigate to `Annotate` in the sidebar and click `New Dataset` to add your traini
 
 Ultralytics Platform supports multiple upload formats (full details in [Datasets](data/datasets.md)):
 
-| Format                                                                 | Max Size | Description                                            |
-| ---------------------------------------------------------------------- | -------- | ------------------------------------------------------ |
-| **Images**                                                             | 50 MB    | JPG, PNG, WebP, TIFF, and other common formats         |
-| **ZIP Archive**                                                        | 10 GB    | Compressed folder with images and labels               |
-| **Video**                                                              | 1 GB     | MP4, AVI - frames extracted at ~1 fps (max 100 frames) |
-| **[YOLO Format](../datasets/detect/index.md#ultralytics-yolo-format)** | 10 GB    | Standard YOLO dataset structure with labels            |
+| Format                                                                 | Max Size | Description                                                                 |
+| ---------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------- |
+| **Images**                                                             | 50 MB    | JPG, PNG, WebP, TIFF, and other common formats                              |
+| **ZIP Archive**                                                        | 10 GB    | Compressed folder with images and labels                                    |
+| **Video**                                                              | 1 GB     | MP4, WebM, MOV, AVI, MKV, M4V - frames extracted at ~1 fps (max 100 frames) |
+| **[YOLO Format](../datasets/detect/index.md#ultralytics-yolo-format)** | 10 GB    | Standard YOLO dataset structure with labels                                 |
 
 ```mermaid
 graph LR
@@ -208,7 +252,7 @@ From your project, click `Train Model` to start cloud training.
 
 !!! info "GPU Selection"
 
-    GPUs range from $0.24/hr (RTX 2000 Ada, 16 GB) to $4.99/hr (B200, 180 GB). The default GPU is **RTX PRO 6000** (96 GB Blackwell, $1.89/hr) — a great balance of memory and performance. 19 GPUs are available on all plans; H200 and B200 require [Pro or Enterprise](account/billing.md#plans). See the full [GPU pricing table](index.md#what-gpu-options-are-available-for-cloud-training).
+    GPUs range from $0.24/hr (RTX 2000 Ada, 16 GB) to $4.99/hr (B200, 180 GB). The default GPU is **RTX PRO 6000** (96 GB Blackwell, $1.69/hr) — a great balance of memory and performance. 20 GPUs are available on all plans; H200 and B200 require [Pro or Enterprise](account/billing.md#plans). See the full [GPU pricing table](index.md#what-gpu-options-are-available-for-cloud-training).
 
 !!! warning "Credit Balance Required"
 
@@ -260,7 +304,7 @@ The `Predict` tab provides ready-to-use code examples with your actual API key p
     import requests
 
     url = "https://platform.ultralytics.com/api/models/{model_id}/predict"
-    headers = {"Authorization": "Bearer your_api_key"}
+    headers = {"Authorization": "Bearer YOUR_API_KEY"}
 
     with open("image.jpg", "rb") as f:
         response = requests.post(url, headers=headers, files={"file": f})
@@ -272,7 +316,7 @@ The `Predict` tab provides ready-to-use code examples with your actual API key p
 
     ```bash
     curl -X POST "https://platform.ultralytics.com/api/models/{model_id}/predict" \
-      -H "Authorization: Bearer your_api_key" \
+      -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg"
     ```
 
@@ -327,7 +371,7 @@ If you prefer to train on your own hardware, you can stream metrics to the platf
 2. Set the environment variable and train with a `project/name` format:
 
 ```bash
-export ULTRALYTICS_API_KEY="ul_your_api_key_here"
+export ULTRALYTICS_API_KEY="YOUR_API_KEY"
 
 yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
 ```
@@ -338,22 +382,14 @@ yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-projec
 
 Read more about [API keys](account/api-keys.md), [dataset URIs](data/datasets.md#dataset-uri), and [remote training](train/cloud-training.md#remote-training).
 
-## Feedback
+## Feedback & Help
 
-We value your feedback! Use the feedback button to help us improve the platform.
+Use the **Help** page in the sidebar footer to send feedback directly to Ultralytics. You can rate your experience, choose a feedback type (bug report, feature request, or general), and attach screenshots.
 
-??? info "Feedback Privacy"
+If you need more help:
 
-    Your feedback is private and only visible to the Ultralytics team. We use it to prioritize features and fix issues.
-
-## Need Help?
-
-If you encounter any issues or have questions:
-
-- **Documentation**: Browse these docs for detailed guides
+- **AI Chat**: Click the floating chat widget on any page for instant help
+- **Documentation**: Browse these docs for detailed guides on [datasets](data/datasets.md), [annotation](data/annotation.md), [training](train/cloud-training.md), [deployment](deploy/endpoints.md), and [billing](account/billing.md)
 - **Discord**: Join our [Discord community](https://discord.com/invite/ultralytics) for discussions
 - **GitHub**: Report issues on [GitHub](https://github.com/ultralytics/ultralytics/issues)
-
-!!! note
-
-    When reporting a bug, please include your browser and operating system details to help us diagnose the issue.
+- **REST API**: See the [API reference](api/index.md) or try the [interactive API docs](https://platform.ultralytics.com/api/docs) for programmatic access to all Platform features

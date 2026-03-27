@@ -8,6 +8,17 @@ keywords: Ultralytics Platform, model training, cloud training, YOLO, GPU traini
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive tools for training YOLO models, from organizing experiments to running cloud training jobs with real-time metrics streaming.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/bajkq0NrSN8"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Get Started with Ultralytics Platform - Train
+</p>
+
 ## Overview
 
 The Training section helps you:
@@ -58,30 +69,7 @@ Ultralytics Platform supports multiple training approaches:
 
 Available GPUs for cloud training on Ultralytics Cloud:
 
-| GPU          | VRAM   | Cost/Hour | Best For                   |
-| ------------ | ------ | --------- | -------------------------- |
-| RTX 2000 Ada | 16 GB  | $0.24     | Small datasets, testing    |
-| RTX A4500    | 20 GB  | $0.24     | Small-medium datasets      |
-| RTX A5000    | 24 GB  | $0.26     | Medium datasets            |
-| RTX 4000 Ada | 20 GB  | $0.38     | Medium datasets            |
-| L4           | 24 GB  | $0.39     | Inference optimized        |
-| A40          | 48 GB  | $0.40     | Larger batch sizes         |
-| RTX 3090     | 24 GB  | $0.46     | Great price/performance    |
-| RTX A6000    | 48 GB  | $0.49     | Large models               |
-| RTX 4090     | 24 GB  | $0.59     | Best price/performance     |
-| RTX 6000 Ada | 48 GB  | $0.77     | Large batch training       |
-| L40S         | 48 GB  | $0.86     | Large batch training       |
-| RTX 5090     | 32 GB  | $0.89     | Latest generation          |
-| L40          | 48 GB  | $0.99     | Large models               |
-| A100 PCIe    | 80 GB  | $1.39     | Production training        |
-| A100 SXM     | 80 GB  | $1.49     | Production training        |
-| RTX PRO 6000 | 96 GB  | $1.89     | Recommended default        |
-| H100 PCIe    | 80 GB  | $2.39     | High-performance training  |
-| H100 SXM     | 80 GB  | $2.69     | Fastest training           |
-| H100 NVL     | 94 GB  | $3.07     | Maximum performance        |
-| H200 NVL     | 143 GB | $3.39     | Maximum memory (Pro+)      |
-| H200 SXM     | 141 GB | $3.59     | Maximum performance (Pro+) |
-| B200         | 180 GB | $4.99     | Largest models (Pro+)      |
+{% include "macros/platform-gpu-table.md" %}
 
 !!! info "GPU Tier Access"
 
@@ -133,7 +121,7 @@ Get started with cloud training in under a minute:
 === "Remote (CLI)"
 
     ```bash
-    export ULTRALYTICS_API_KEY="your_api_key"
+    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset \
       epochs=100 project=username/my-project name=exp1
     ```

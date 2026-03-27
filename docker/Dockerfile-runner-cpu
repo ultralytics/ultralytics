@@ -7,7 +7,7 @@
 FROM ultralytics/ultralytics:latest-cpu
 
 # Set additional environment variables for runner (no "v" on the version)
-ARG RUNNER_VERSION=2.332.0
+ARG RUNNER_VERSION=2.333.0
 ENV RUNNER_ALLOW_RUNASROOT=1 \
     DEBIAN_FRONTEND=noninteractive
 

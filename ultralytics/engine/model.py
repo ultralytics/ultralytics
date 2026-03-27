@@ -761,13 +761,24 @@ class Model(torch.nn.Module):
         overrides = YAML.load(checks.check_yaml(kwargs["cfg"])) if kwargs.get("cfg") else self.overrides
         custom = {
             # NOTE: handle the case when 'cfg' includes 'data'.
-            "data": overrides.get("data") or DEFAULT_CFG_DICT["data"] or TASK2DATA[self.task],
+            "data": (overrides.get("data") if kwargs.get("cfg") else None)
+            or DEFAULT_CFG_DICT["data"]
+            or TASK2DATA[self.task],
             "model": self.overrides["model"],
             "task": self.task,
         }  # method defaults
         args = {**overrides, **custom, **kwargs, "mode": "train", "session": self.session}  # prioritizes rightmost args
         if args.get("resume"):
-            args["resume"] = self.ckpt_path
+            if args["resume"] is True:  # resume=True (boolean) uses current model as checkpoint
+                if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
+                    args["resume"] = self.ckpt_path
+                else:
+                    LOGGER.warning(
+                        f"model '{self.ckpt_path}' is not a resumable training checkpoint "
+                        f"(missing epoch/optimizer state). Use 'resume' only to continue incomplete training. "
+                        f"Starting new training instead."
+                    )
+                    args["resume"] = False
 
         self.trainer = (trainer or self._smart_load("trainer"))(overrides=args, _callbacks=self.callbacks)
         if not args.get("resume"):  # manually set model only if not resuming

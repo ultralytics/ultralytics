@@ -572,7 +572,7 @@ class BaseTrainer:
         """Calculate optimal batch size based on model and device memory constraints."""
         return check_train_batch_size(
             model=self.model,
-            imgsz=self.args.imgsz,
+            imgsz=int(self.args.imgsz * (1 + self.args.multi_scale)),
             amp=self.amp,
             batch=self.batch_size,
             max_num_obj=max_num_obj,

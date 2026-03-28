@@ -60,10 +60,10 @@ const checkTheme = () => {
 };
 
 function syncEmbedTheme() {
-  const isDark = document.body.getAttribute('data-md-color-scheme') === 'slate';
-  document.querySelectorAll('iframe').forEach(iframe => {
-    iframe.contentWindow?.postMessage({ type: 'ul-theme', theme: isDark ? 'dark' : 'light' }, '*');
-    iframe.addEventListener('load', syncEmbedTheme, { once: true });
+  const isDark = document.body.getAttribute("data-md-color-scheme") === "slate";
+  document.querySelectorAll("iframe").forEach((iframe) => {
+    iframe.contentWindow?.postMessage({ type: "ul-theme", theme: isDark ? "dark" : "light" }, "*");
+    iframe.addEventListener("load", syncEmbedTheme, { once: true });
   });
 }
 
@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Sync embed
-  new MutationObserver(syncEmbedTheme).observe(document.body, { attributeFilter: ['data-md-color-scheme'] });
+  new MutationObserver(syncEmbedTheme).observe(document.body, { attributeFilter: ["data-md-color-scheme"] });
 });
 
 // Ultralytics Chat Widget ---------------------------------------------------------------------------------------------

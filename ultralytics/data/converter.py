@@ -859,7 +859,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     if not is_classification:
         if "train" not in splits:
             raise ValueError(f"Dataset missing required 'train' split. Found splits: {sorted(splits)}")
-        if "val" not in splits and "test" not in splits:
+        if "val" not in splits:
             train_records = [r for r in image_records if r.get("split") == "train"]
             if len(train_records) < 2:
                 raise ValueError(

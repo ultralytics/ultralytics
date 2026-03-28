@@ -20,14 +20,14 @@ This approach keeps the COCO JSON as the single source of truth — no `convert_
 
 Two classes are needed:
 
-1. **`COCOJSONDataset`** — reads COCO JSON and converts [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) to YOLO format in memory during training
-2. **`COCOJSONTrainer`** — overrides `build_dataset()` to use `COCOJSONDataset` instead of the default `YOLODataset`
+1. **`COCODataset`** — reads COCO JSON and converts [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) to YOLO format in memory during training
+2. **`COCOTrainer`** — overrides `build_dataset()` to use `COCODataset` instead of the default `YOLODataset`
 
 The implementation follows the same pattern as the built-in `GroundingDataset`, which also reads JSON annotations directly. Three methods are overridden: `get_img_files()`, `cache_labels()`, and `get_labels()`.
 
 ## Building the COCO JSON Dataset Class
 
-The `COCOJSONDataset` class inherits from `YOLODataset` and overrides the label loading logic. Instead of reading `.txt` files from a labels directory, it opens the COCO JSON file, iterates over annotations grouped by image, and converts each bounding box from COCO pixel format `[x_min, y_min, width, height]` to YOLO normalized center format `[x_center, y_center, width, height]`. Crowd annotations (`iscrowd: 1`) and zero-area boxes are skipped automatically.
+The `COCODataset` class inherits from `YOLODataset` and overrides the label loading logic. Instead of reading `.txt` files from a labels directory, it opens the COCO JSON file, iterates over annotations grouped by image, and converts each bounding box from COCO pixel format `[x_min, y_min, width, height]` to YOLO normalized center format `[x_center, y_center, width, height]`. Crowd annotations (`iscrowd: 1`) and zero-area boxes are skipped automatically.
 
 The `get_img_files()` method returns an empty list because image paths are resolved from the JSON `file_name` field inside `cache_labels()`. Category IDs are sorted and remapped to zero-indexed class indices, so both 1-based (standard COCO) and non-contiguous ID schemes work correctly.
 
@@ -43,7 +43,7 @@ from ultralytics.data.utils import get_hash, load_dataset_cache_file, save_datas
 from ultralytics.utils import TQDM
 
 
-class COCOJSONDataset(YOLODataset):
+class COCODataset(YOLODataset):
     """Dataset that reads COCO JSON annotations directly without conversion to .txt files."""
 
     def __init__(self, *args, json_file="", **kwargs):
@@ -125,7 +125,7 @@ Parsed labels are saved to a `.cache` file next to the JSON (e.g. `instances_tra
 
 ## Connecting the Dataset to the Training Pipeline
 
-The only change needed in the trainer is overriding `build_dataset()`. The default `DetectionTrainer` builds a `YOLODataset` that scans for `.txt` label files. By replacing it with `COCOJSONDataset`, the trainer reads from the COCO JSON instead.
+The only change needed in the trainer is overriding `build_dataset()`. The default `DetectionTrainer` builds a `YOLODataset` that scans for `.txt` label files. By replacing it with `COCODataset`, the trainer reads from the COCO JSON instead.
 
 The JSON file path is pulled from a custom `train_json` / `val_json` field in the data config (see Step 3). During training, `mode="train"` resolves to `train_json`; during validation, `mode="val"` resolves to `val_json`. If `val_json` is not set, it falls back to `train_json`.
 
@@ -134,12 +134,12 @@ from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.utils import colorstr
 
 
-class COCOJSONTrainer(DetectionTrainer):
-    """Trainer that uses COCOJSONDataset for direct COCO JSON training."""
+class COCOTrainer(DetectionTrainer):
+    """Trainer that uses COCODataset for direct COCO JSON training."""
 
     def build_dataset(self, img_path, mode="train", batch=None):
         json_file = self.data["train_json"] if mode == "train" else self.data.get("val_json", self.data["train_json"])
-        return COCOJSONDataset(
+        return COCODataset(
             img_path=img_path,
             json_file=json_file,
             imgsz=self.args.imgsz,
@@ -160,7 +160,7 @@ class COCOJSONTrainer(DetectionTrainer):
 
 ## Configuring dataset.yaml for COCO JSON
 
-The `dataset.yaml` uses the standard `path`, `train`, and `val` fields to locate image directories. Two additional fields, `train_json` and `val_json`, specify the COCO annotation files that `COCOJSONTrainer` reads. The `nc` and `names` fields define the number of classes and their names, matching the sorted order of `categories` in the JSON.
+The `dataset.yaml` uses the standard `path`, `train`, and `val` fields to locate image directories. Two additional fields, `train_json` and `val_json`, specify the COCO annotation files that `COCOTrainer` reads. The `nc` and `names` fields define the number of classes and their names, matching the sorted order of `categories` in the JSON.
 
 ```yaml
 path: /path/to/images # root directory with train/ and val/ subfolders
@@ -197,13 +197,13 @@ my_dataset/
 
 ## Running Training on COCO JSON
 
-With the dataset class, trainer class, and YAML config in place, training works through the standard `model.train()` call. The only difference from a normal training run is the `trainer=COCOJSONTrainer` argument, which tells Ultralytics to use the custom dataset loader instead of the default one.
+With the dataset class, trainer class, and YAML config in place, training works through the standard `model.train()` call. The only difference from a normal training run is the `trainer=COCOTrainer` argument, which tells Ultralytics to use the custom dataset loader instead of the default one.
 
 ```python
 from ultralytics import YOLO
 
 model = YOLO("yolo26n.pt")
-model.train(data="dataset.yaml", epochs=100, imgsz=640, trainer=COCOJSONTrainer)
+model.train(data="dataset.yaml", epochs=100, imgsz=640, trainer=COCOTrainer)
 ```
 
 The full [training](../modes/train.md) pipeline runs as expected, including [validation](../modes/val.md), checkpoint saving, and metric logging.
@@ -226,7 +226,7 @@ from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.utils import TQDM, colorstr
 
 
-class COCOJSONDataset(YOLODataset):
+class COCODataset(YOLODataset):
     """Dataset that reads COCO JSON annotations directly without conversion to .txt files."""
 
     def __init__(self, *args, json_file="", **kwargs):
@@ -298,12 +298,12 @@ class COCOJSONDataset(YOLODataset):
         return cache["labels"]
 
 
-class COCOJSONTrainer(DetectionTrainer):
-    """Trainer that uses COCOJSONDataset for direct COCO JSON training."""
+class COCOTrainer(DetectionTrainer):
+    """Trainer that uses COCODataset for direct COCO JSON training."""
 
     def build_dataset(self, img_path, mode="train", batch=None):
         json_file = self.data["train_json"] if mode == "train" else self.data.get("val_json", self.data["train_json"])
-        return COCOJSONDataset(
+        return COCODataset(
             img_path=img_path,
             json_file=json_file,
             imgsz=self.args.imgsz,
@@ -323,7 +323,7 @@ class COCOJSONTrainer(DetectionTrainer):
 
 
 model = YOLO("yolo26n.pt")
-model.train(data="dataset.yaml", epochs=100, imgsz=640, trainer=COCOJSONTrainer)
+model.train(data="dataset.yaml", epochs=100, imgsz=640, trainer=COCOTrainer)
 ```
 
 For [hyperparameter](https://www.ultralytics.com/glossary/hyperparameter-tuning) recommendations, see the [Model Training Tips](model-training-tips.md) guide.
@@ -344,7 +344,7 @@ This guide covers [object detection](https://www.ultralytics.com/glossary/object
 
 ### Do augmentations work with this custom dataset?
 
-Yes. `COCOJSONDataset` extends `YOLODataset`, so all built-in [data augmentations](yolo-data-augmentation.md) — [mosaic](yolo-data-augmentation.md#mosaic-mosaic), [mixup](yolo-data-augmentation.md#mixup-mixup), [copy-paste](yolo-data-augmentation.md#copy-paste-copy_paste), and others — run without modification.
+Yes. `COCODataset` extends `YOLODataset`, so all built-in [data augmentations](yolo-data-augmentation.md) — [mosaic](yolo-data-augmentation.md#mosaic-mosaic), [mixup](yolo-data-augmentation.md#mixup-mixup), [copy-paste](yolo-data-augmentation.md#copy-paste-copy_paste), and others — run without modification.
 
 ### How are category IDs mapped to class indices?
 

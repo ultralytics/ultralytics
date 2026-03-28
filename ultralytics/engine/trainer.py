@@ -513,7 +513,14 @@ class BaseTrainer:
 
             # Validation
             final_epoch = epoch + 1 >= self.epochs
-            if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
+            val_period = max(self.args.val_period, 1)
+            should_val = (
+                (self.args.val and (epoch + 1) % val_period == 0)
+                or final_epoch
+                or self.stopper.possible_stop
+                or self.stop
+            )
+            if should_val:
                 self._clear_memory(threshold=0.5)  # prevent VRAM spike
                 self.metrics, self.fitness = self.validate()
 
@@ -523,8 +530,12 @@ class BaseTrainer:
 
             self.nan_recovery_attempts = 0
             if RANK in {-1, 0}:
-                self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **self.lr})
-                self.stop |= self.stopper(epoch + 1, self.fitness) or final_epoch
+                # On non-val epochs, write empty val metrics so CSV doesn't carry stale values
+                val_metrics = self.metrics if should_val else {k: "" for k in self.metrics}
+                self.save_metrics(metrics={**self.label_loss_items(self.tloss), **val_metrics, **self.lr})
+                if should_val:
+                    self.stop |= self.stopper(epoch + 1, self.fitness)
+                self.stop |= final_epoch
                 if self.args.time:
                     self.stop |= (time.time() - self.train_time_start) > (self.args.time * 3600)
 
@@ -805,8 +816,10 @@ class BaseTrainer:
         t = time.time() - self.train_time_start
         self.csv.parent.mkdir(parents=True, exist_ok=True)  # ensure parent directory exists
         s = "" if self.csv.exists() else ("%s," * n % ("epoch", "time", *keys)).rstrip(",") + "\n"
+        # Empty strings for skipped val epochs stay empty (parsed as NaN); numbers get %.6g formatting
+        row = ",".join("" if v == "" else f"{v:.6g}" for v in [self.epoch + 1, t, *vals])
         with open(self.csv, "a", encoding="utf-8") as f:
-            f.write(s + ("%.6g," * n % (self.epoch + 1, t, *vals)).rstrip(",") + "\n")
+            f.write(s + row + "\n")
 
     def plot_metrics(self):
         """Plot metrics from a CSV file."""

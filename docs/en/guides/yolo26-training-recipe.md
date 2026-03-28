@@ -52,9 +52,10 @@ All YOLO26 base models were trained on COCO at **640x640** resolution using the 
 
 <iframe
   src="https://platform.ultralytics.com/embed/ultralytics/yolo26"
+  scrolling="no"
   width="100%"
-  height="255"
-  frameborder="0"
+  height="290px"
+  style="border:none"
 ></iframe>
 
 Key design choices across all sizes:

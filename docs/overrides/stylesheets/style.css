@@ -25,7 +25,7 @@ td {
   background-color: #f6f8fa;
 }
 /* fix inline code overlap */
-.md-typeset code {
+.md-typeset__table table:not([class]) code {
   padding: unset;
 }
 /* dark mode alternating table bg colors */

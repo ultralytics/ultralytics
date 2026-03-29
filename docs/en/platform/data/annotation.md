@@ -34,6 +34,10 @@ The annotation editor supports all 5 YOLO task types:
 | **[OBB](../../datasets/obb/index.md)**           | Oriented Box   | Rotated bounding boxes (4 corners)                        |
 | **[Classify](../../datasets/classify/index.md)** | Class Selector | Image-level labels                                        |
 
+!!! tip "Multi-Task Annotations"
+
+    All 5 annotation types are stored together on each image. You can switch the dataset's active task type without losing existing annotations — they are preserved and reappear when you switch back.
+
 ### Task Details
 
 ??? info "Object Detection"

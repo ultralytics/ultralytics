@@ -23,7 +23,7 @@ Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 | **Models**                 | 100        | 500             | Unlimited  |
 | **Concurrent Trainings**   | 3          | 10              | Unlimited  |
 | **Storage**                | 100 GB     | 500 GB          | Unlimited  |
-| **Dataset Upload Size**    | 10 GB      | 20 GB           | 50 GB      |
+| **Dataset Upload (ZIP/TAR/NDJSON)**    | 10 GB      | 20 GB           | 50 GB      |
 | **Deployments**            | 3          | 10              | Unlimited  |
 | **Cloud GPU Types**        | 20         | 23              | 23         |
 | **Best GPUs (H200, B200)** | -          | Yes             | Yes        |
@@ -256,7 +256,7 @@ When your Pro subscription ends (cancelled or expired), your account reverts to 
 | **Models**               | All models preserved. Cannot create new models beyond 100-model limit            |
 | **Deployments**          | All deployments preserved. Cannot create new beyond 3-deployment limit           |
 | **Storage**              | All data preserved. Cannot upload new data beyond 100 GB limit                   |
-| **Dataset Upload Size**  | Upload limit reduced from 20 GB to 10 GB per file                                |
+| **Dataset Upload (ZIP/TAR/NDJSON)**  | Upload limit reduced from 20 GB to 10 GB per file                                |
 | **Credit Balance**       | Existing credits preserved and usable                                            |
 | **Monthly Credits**      | $30/seat/month grants stop immediately                                           |
 | **Team Members**         | Members notified and lose access to team resources                               |

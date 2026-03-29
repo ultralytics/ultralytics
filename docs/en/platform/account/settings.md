@@ -146,12 +146,12 @@ The storage card shows:
 
 #### Upload Size Limits
 
-| File Type       | Free   | Pro    | Enterprise |
-| --------------- | ------ | ------ | ---------- |
-| **Image**       | 50 MB  | 50 MB  | 50 MB      |
-| **Video**       | 1 GB   | 1 GB   | 1 GB       |
-| **Model (.pt)** | 1 GB   | 1 GB   | 1 GB       |
-| **Dataset (ZIP/TAR/NDJSON)** | 10 GB  | 20 GB  | 50 GB      |
+| File Type                    | Free  | Pro   | Enterprise |
+| ---------------------------- | ----- | ----- | ---------- |
+| **Image**                    | 50 MB | 50 MB | 50 MB      |
+| **Video**                    | 1 GB  | 1 GB  | 1 GB       |
+| **Model (.pt)**              | 1 GB  | 1 GB  | 1 GB       |
+| **Dataset (ZIP/TAR/NDJSON)** | 10 GB | 20 GB | 50 GB      |
 
 #### Trash and Storage
 

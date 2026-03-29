@@ -168,12 +168,12 @@ Navigate to `Annotate` in the sidebar and click `New Dataset` to add your traini
 
 Ultralytics Platform supports multiple upload formats (full details in [Datasets](data/datasets.md)):
 
-| Format                                                                 | Max Size (Free / Pro / Enterprise) | Description                                                                 |
-| ---------------------------------------------------------------------- | ---------------------------------- | --------------------------------------------------------------------------- |
-| **Images**                                                             | 50 MB                              | JPG, PNG, WebP, TIFF, and other common formats                              |
-| **Dataset Archive**                                                    | 10 / 20 / 50 GB                    | ZIP or TAR archive with images and labels                                   |
-| **Video**                                                              | 1 GB                               | MP4, WebM, MOV, AVI, MKV, M4V - frames extracted at ~1 fps (max 100 frames) |
-| **NDJSON**                                                             | 10 / 20 / 50 GB                    | Ultralytics dataset export format for portable metadata                     |
+| Format              | Max Size (Free / Pro / Enterprise) | Description                                                                 |
+| ------------------- | ---------------------------------- | --------------------------------------------------------------------------- |
+| **Images**          | 50 MB                              | JPG, PNG, WebP, TIFF, and other common formats                              |
+| **Dataset Archive** | 10 / 20 / 50 GB                    | ZIP or TAR archive with images and labels                                   |
+| **Video**           | 1 GB                               | MP4, WebM, MOV, AVI, MKV, M4V - frames extracted at ~1 fps (max 100 frames) |
+| **NDJSON**          | 10 / 20 / 50 GB                    | Ultralytics dataset export format for portable metadata                     |
 
 ```mermaid
 graph LR

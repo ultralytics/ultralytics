@@ -151,7 +151,7 @@ The storage card shows:
 | **Image**       | 50 MB  | 50 MB  | 50 MB      |
 | **Video**       | 1 GB   | 1 GB   | 1 GB       |
 | **Model (.pt)** | 1 GB   | 1 GB   | 1 GB       |
-| **ZIP Archive** | 10 GB  | 20 GB  | 50 GB      |
+| **Dataset (ZIP/TAR/NDJSON)** | 10 GB  | 20 GB  | 50 GB      |
 
 #### Trash and Storage
 

@@ -516,12 +516,12 @@ Run YOLO inference on dataset images to auto-generate annotations. Uses a select
 POST /api/datasets/ingest
 ```
 
-Create a dataset ingest job to process uploaded ZIP files containing images and labels.
+Create a dataset ingest job to process uploaded ZIP or TAR files containing images and labels.
 
 ```mermaid
 graph LR
-    A[Upload ZIP] --> B[POST /api/datasets/ingest]
-    B --> C[Process ZIP]
+    A[Upload Archive] --> B[POST /api/datasets/ingest]
+    B --> C[Process Archive]
     C --> D[Extract images]
     C --> E[Parse labels]
     C --> F[Generate thumbnails]

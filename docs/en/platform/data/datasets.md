@@ -50,12 +50,12 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
     Archives are extracted and processed automatically.
 
-    | Format | Extensions        | Notes                | Max Size |
-    | ------ | ----------------- | -------------------- | -------- |
-    | ZIP    | `.zip`            | Most common          | 10 GB    |
-    | TAR    | `.tar`            | Uncompressed archive | 10 GB    |
-    | TAR.GZ | `.tar.gz`, `.tgz` | Compressed archive   | 10 GB    |
-    | GZ     | `.gz`             | Gzip compressed      | 10 GB    |
+    | Format | Extensions        | Notes                | Free   | Pro    | Enterprise |
+    | ------ | ----------------- | -------------------- | ------ | ------ | ---------- |
+    | ZIP    | `.zip`            | Most common          | 10 GB  | 20 GB  | 50 GB      |
+    | TAR    | `.tar`            | Uncompressed archive | 10 GB  | 20 GB  | 50 GB      |
+    | TAR.GZ | `.tar.gz`, `.tgz` | Compressed archive   | 10 GB  | 20 GB  | 50 GB      |
+    | GZ     | `.gz`             | Gzip compressed      | 10 GB  | 20 GB  | 50 GB      |
 
 ### Preparing Your Dataset
 

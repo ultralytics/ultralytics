@@ -23,6 +23,7 @@ Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 | **Models**                 | 100        | 500             | Unlimited  |
 | **Concurrent Trainings**   | 3          | 10              | Unlimited  |
 | **Storage**                | 100 GB     | 500 GB          | Unlimited  |
+| **Dataset Upload Size**    | 10 GB      | 20 GB           | 50 GB      |
 | **Deployments**            | 3          | 10              | Unlimited  |
 | **Cloud GPU Types**        | 20         | 23              | 23         |
 | **Best GPUs (H200, B200)** | -          | Yes             | Yes        |
@@ -42,7 +43,7 @@ Get started at no cost:
 - 100 models
 - 3 concurrent cloud trainings
 - 3 deployments
-- 100 GB storage
+- 100 GB storage · 10 GB dataset upload limit
 - Model export to all 17+ formats
 - Manual, SAM 3 & YOLO Smart annotation
 - 20 cloud GPU types including 5090 & H100 ($0.24–$3.07/hr)
@@ -59,7 +60,7 @@ For professionals and small teams ($29/month or $290/year):
 - $30/seat/month in credits (recurring)
 - 500 models
 - 10 concurrent cloud trainings
-- 500 GB storage
+- 500 GB storage · 20 GB dataset upload limit
 - 10 cloud deployments
 - [Team collaboration](teams.md) (up to 5 members)
 - Access to the best GPUs (H200, B200)
@@ -74,7 +75,7 @@ For professionals and small teams ($29/month or $290/year):
 For organizations with advanced needs:
 
 - Custom credit allocation
-- Unlimited models, storage, trainings, and deployments
+- Unlimited models, storage, trainings, and deployments · 50 GB dataset upload limit
 - Enterprise License (commercial use, non-AGPL)
 - SSO / SAML authentication
 - RBAC with 4 roles (Owner, Admin, Editor, Viewer)
@@ -224,7 +225,7 @@ Upgrade for more features and monthly credits:
 After upgrading:
 
 - $30/seat/month credit added immediately and each month
-- Storage increased to 500 GB
+- Storage increased to 500 GB · 20 GB dataset upload limit
 - 500 models
 - 10 concurrent cloud trainings
 - 10 cloud deployments
@@ -255,6 +256,7 @@ When your Pro subscription ends (cancelled or expired), your account reverts to 
 | **Models**               | All models preserved. Cannot create new models beyond 100-model limit            |
 | **Deployments**          | All deployments preserved. Cannot create new beyond 3-deployment limit           |
 | **Storage**              | All data preserved. Cannot upload new data beyond 100 GB limit                   |
+| **Dataset Upload Size**  | Upload limit reduced from 20 GB to 10 GB per file                                |
 | **Credit Balance**       | Existing credits preserved and usable                                            |
 | **Monthly Credits**      | $30/seat/month grants stop immediately                                           |
 | **Team Members**         | Members notified and lose access to team resources                               |

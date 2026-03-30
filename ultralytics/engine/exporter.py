@@ -76,7 +76,7 @@ import numpy as np
 import torch
 
 from ultralytics import __version__
-from ultralytics.cfg import TASK2DATA, get_cfg
+from ultralytics.cfg import TASK2CALIBRATIONDATA, TASK2DATA, get_cfg
 from ultralytics.data import build_dataloader
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
@@ -331,16 +331,8 @@ class Exporter:
             if not self.args.int8:
                 LOGGER.warning("Setting int8=True for Axelera mixed-precision export.")
                 self.args.int8 = True
-            # default calibration dataset for Axelera
             if not self.args.data:
-                default_data = {
-                    "detect": "coco128.yaml",
-                    "segment": "coco128-seg.yaml",
-                    "classify": "imagenet100",
-                    "pose": "coco8-pose.yaml",
-                    "obb": "dota128.yaml",
-                }
-                self.args.data = default_data.get(model.task, "coco128.yaml")
+                self.args.data = TASK2CALIBRATIONDATA.get(model.task)
         if fmt == "imx":
             if not self.args.int8:
                 LOGGER.warning("IMX export requires int8=True, setting int8=True.")

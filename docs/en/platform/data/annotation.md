@@ -238,7 +238,7 @@ Assign image-level class labels:
 
 Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](https://docs.ultralytics.com/models/sam/) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. Smart annotation is available for **detect**, **segment**, and **OBB** tasks.
 
-### SAM Annotation
+### SAM Smart Annotation
 
 With a SAM model selected:
 
@@ -304,9 +304,9 @@ Auto-apply mode speeds up Smart annotation by automatically saving the SAM mask 
 
     Auto-apply is ideal for datasets with well-separated objects where a single click produces an accurate mask. For complex or overlapping objects, turn auto-apply off and use multiple positive/negative points to refine the mask before saving.
 
-### Model Selection
+### SAM Model Selection
 
-When Smart mode is active, a model picker appears in the toolbar. Choose a SAM model for click-based annotation or a YOLO model to run predictions on the current image. The available SAM models are:
+When Smart mode is active, a model picker appears in the toolbar. Five SAM models are available — choose based on the speed vs. accuracy trade-off that suits your dataset:
 
 | Model             | Size    | Speed    | Notes                    |
 | ----------------- | ------- | -------- | ------------------------ |
@@ -320,7 +320,7 @@ When Smart mode is active, a model picker appears in the toolbar. Choose a SAM m
 
 Switching models while Smart mode is active re-initializes the predictor for the current image automatically.
 
-### YOLO Models in Smart Annotation
+### YOLO Smart Annotation
 
 With a YOLO model selected, Smart annotation can add predictions from pretrained Ultralytics models or your own fine-tuned models.
 

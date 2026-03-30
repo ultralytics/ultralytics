@@ -345,20 +345,4 @@ def test_export_axelera():
     assert Path(file).exists(), f"Axelera export failed, directory not found: {file}"
     # Note: Inference testing skipped as it requires Axelera hardware
     shutil.rmtree(file, ignore_errors=True)  # cleanup
-
-
-@pytest.mark.skipif(True, reason="Test disabled due to long export times")
-@pytest.mark.slow
-@pytest.mark.skipif(not TORCH_2_8, reason="Axelera export requires torch>=2.8.0")
-@pytest.mark.skipif(
-    not LINUX or (ARM64 and IS_DOCKER),
-    reason="Axelera export is only supported on Linux and is not supported on ARM64 Docker",
-)
-@pytest.mark.skipif(IS_RASPBERRYPI, reason="Test disabled due to OOM (Out of Memory) issues on Raspberry Pi 5 16GB")
-@pytest.mark.parametrize("task", [task for task in TASKS if task != "segment"])
-def test_export_axelera_matrix(task):
-    """Test YOLO export to Axelera format for supported tasks."""
-    file = YOLO(TASK2MODEL[task]).export(format="axelera", imgsz=64, data=TASK2DATA[task])
-    assert Path(file).exists(), f"Axelera export failed for task '{task}', directory not found: {file}"
-    # Note: Inference testing skipped as it requires Axelera hardware
-    shutil.rmtree(file, ignore_errors=True)  # cleanup
+    

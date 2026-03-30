@@ -163,7 +163,15 @@ def benchmark(
                 exported_model = deepcopy(model)  # PyTorch format
             else:
                 filename = deepcopy(model).export(
-                    imgsz=imgsz, format=format, half=half, int8=int8, data=data, device=device, verbose=False, **kwargs
+                    imgsz=imgsz,
+                    format=format,
+                    half=half,
+                    int8=int8,
+                    data=data,
+                    device=device,
+                    verbose=False,
+                    isolate=True,
+                    **kwargs,
                 )
                 exported_model = YOLO(filename, task=model.task)
                 assert suffix in str(filename), "export failed"
@@ -460,12 +468,14 @@ class ProfileModels:
                         imgsz=self.imgsz,
                         device=self.device,
                         verbose=False,
+                        isolate=True,
                     )
                 onnx_file = model.export(
                     format="onnx",
                     imgsz=self.imgsz,
                     device=self.device,
                     verbose=False,
+                    isolate=True,
                 )
             elif file.suffix == ".onnx":
                 model_info = self.get_onnx_model_info(file)

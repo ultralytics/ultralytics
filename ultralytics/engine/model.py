@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import os
 from pathlib import Path
 from typing import Any
 
@@ -667,6 +668,7 @@ class Model(torch.nn.Module):
 
     def export(
         self,
+        isolate: bool = False,
         **kwargs: Any,
     ) -> str:
         """Export the model to a different format suitable for deployment.
@@ -676,6 +678,9 @@ class Model(torch.nn.Module):
         defaults, and any additional arguments provided.
 
         Args:
+            isolate (bool): Run export in an isolated subprocess. This prevents dependency conflicts when export formats
+                install, upgrade, or downgrade packages (e.g., numpy, onnx, tensorflow) that are already imported in the
+                current process and cannot be reloaded.
             **kwargs (Any): Arbitrary keyword arguments for export configuration. Common options include:
                 - format (str): Export format (e.g., 'onnx', 'engine', 'coreml').
                 - half (bool): Export model in half-precision.
@@ -699,6 +704,8 @@ class Model(torch.nn.Module):
             'path/to/exported/model.onnx'
         """
         self._check_is_pytorch_model()
+        if isolate and self.ckpt_path:
+            return self._export_isolated(**kwargs)
         from .exporter import Exporter
 
         custom = {
@@ -710,6 +717,30 @@ class Model(torch.nn.Module):
         }  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "export"}  # highest priority args on the right
         return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
+
+    def _export_isolated(self, **kwargs):
+        """Run export in an isolated subprocess to avoid dependency conflicts between export formats."""
+        import json
+        import subprocess
+        import sys
+        import tempfile
+
+        file = str(Path(self.ckpt_path).resolve())
+        export_args = json.dumps(kwargs, default=str)
+        fd, tmp = tempfile.mkstemp(suffix=".txt")
+        os.close(fd)
+        code = (
+            "import json, sys; "
+            "from ultralytics import YOLO; "
+            "result = YOLO(sys.argv[1]).export(**json.loads(sys.argv[2])); "
+            "open(sys.argv[3], 'w').write(str(result))"
+        )
+        proc = subprocess.run([sys.executable, "-c", code, file, export_args, tmp])
+        if proc.returncode:
+            raise RuntimeError(f"Isolated export subprocess failed (return code {proc.returncode})")
+        result = Path(tmp).read_text()
+        Path(tmp).unlink(missing_ok=True)
+        return result
 
     def train(
         self,

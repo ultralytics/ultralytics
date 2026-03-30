@@ -125,7 +125,7 @@ The welcome card shows your profile, plan badge, and workspace statistics at a g
 
 Below the welcome card, the dashboard shows three cards:
 
-- **Datasets**: Create a new dataset or drop images, videos, or ZIP files to upload. Shows your recent datasets.
+- **Datasets**: Create a new dataset or drop images, videos, or dataset files to upload. Shows your recent datasets.
 - **Projects**: Create a new project or drop `.pt` model files to upload. Shows your recent projects.
 - **Storage**: Overview of your storage usage (datasets, models, exports) with plan limits.
 
@@ -168,12 +168,12 @@ Navigate to `Annotate` in the sidebar and click `New Dataset` to add your traini
 
 Ultralytics Platform supports multiple upload formats (full details in [Datasets](data/datasets.md)):
 
-| Format                                                                 | Max Size | Description                                                                 |
-| ---------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------- |
-| **Images**                                                             | 50 MB    | JPG, PNG, WebP, TIFF, and other common formats                              |
-| **ZIP Archive**                                                        | 10 GB    | Compressed folder with images and labels                                    |
-| **Video**                                                              | 1 GB     | MP4, WebM, MOV, AVI, MKV, M4V - frames extracted at ~1 fps (max 100 frames) |
-| **[YOLO Format](../datasets/detect/index.md#ultralytics-yolo-format)** | 10 GB    | Standard YOLO dataset structure with labels                                 |
+| Format              | Max Size (Free / Pro / Enterprise) | Description                                                                 |
+| ------------------- | ---------------------------------- | --------------------------------------------------------------------------- |
+| **Images**          | 50 MB                              | JPG, PNG, WebP, TIFF, and other common formats                              |
+| **Dataset Archive** | 10 / 20 / 50 GB                    | ZIP or TAR archive (including `.tar.gz` and `.tgz`) with images and labels  |
+| **Video**           | 1 GB                               | MP4, WebM, MOV, AVI, MKV, M4V - frames extracted at ~1 fps (max 100 frames) |
+| **NDJSON**          | 10 / 20 / 50 GB                    | Ultralytics dataset export format for portable metadata                     |
 
 ```mermaid
 graph LR
@@ -195,7 +195,7 @@ After upload, the platform automatically processes your data:
 
 !!! tip "YOLO Dataset Structure"
 
-    For best results, upload a ZIP with the standard YOLO structure:
+    For best results, upload a ZIP or TAR archive (including `.tar.gz` and `.tgz`) with the standard YOLO structure:
 
     ```
     my-dataset.zip

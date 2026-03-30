@@ -514,7 +514,7 @@ class BaseTrainer:
             # Validation
             final_epoch = epoch + 1 >= self.epochs
             if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
-                self._clear_memory(threshold=0.5)  # prevent VRAM spike
+                self._clear_memory(None if self.device.type == "mps" else 0.5)  # prevent VRAM spike
                 self.metrics, self.fitness = self.validate()
 
             # NaN recovery
@@ -544,7 +544,8 @@ class BaseTrainer:
                 self.scheduler.last_epoch = self.epoch  # do not move
                 self.stop |= epoch >= self.epochs  # stop if exceeded epochs
             self.run_callbacks("on_fit_epoch_end")
-            self._clear_memory(0.5)  # clear if memory utilization > 50%
+            # clear if memory utilization > 50%; always clear on MPS due to leak https://github.com/ultralytics/ultralytics/issues/22621
+            self._clear_memory(None if self.device.type == "mps" else 0.5)
 
             # Early Stopping
             if RANK != -1:  # if DDP training
@@ -569,9 +570,10 @@ class BaseTrainer:
 
     def auto_batch(self, max_num_obj=0, dataset_size=0):
         """Calculate optimal batch size based on model and device memory constraints."""
+        max_imgsz = int(self.args.imgsz * (1 + self.args.multi_scale))  # need not be stride-aligned
         return check_train_batch_size(
             model=self.model,
-            imgsz=self.args.imgsz,
+            imgsz=max_imgsz,
             amp=self.amp,
             batch=self.batch_size,
             max_num_obj=max_num_obj,

@@ -142,7 +142,7 @@ extra_css:
   - stylesheets/style.css
 
 extra_javascript:
-  - https://cdn.jsdelivr.net/gh/ultralytics/llm@v0.2.5/js/chat.min.js
+  - https://cdn.jsdelivr.net/gh/ultralytics/llm@v0.2.8/js/chat.min.js
   - https://unpkg.com/tablesort@5.7.0/dist/tablesort.min.js
   - javascript/extra.js
   - javascript/giscus.js
@@ -514,6 +514,8 @@ nav:
       - A Guide on Model Testing: guides/model-testing.md
       - AzureML Quickstart: guides/azureml-quickstart.md
       - Best Practices for Model Deployment: guides/model-deployment-practices.md
+      - COCO to YOLO Conversion: guides/coco-to-yolo.md
+      - COCO JSON Training: guides/coco-json-training.md
       - Conda Quickstart: guides/conda-quickstart.md
       - Customizing Trainer: guides/custom-trainer.md
       - Data Collection and Annotation: guides/data-collection-and-annotation.md
@@ -541,6 +543,7 @@ nav:
       - Tips for Model Training: guides/model-training-tips.md
       - Triton Inference Server: guides/triton-inference-server.md
       - Viewing Inference Images in a Terminal: guides/view-results-in-terminal.md
+      - YOLO26 Training Recipe: guides/yolo26-training-recipe.md
       - YOLO Common Issues: guides/yolo-common-issues.md
       - YOLO Data Augmentation: guides/yolo-data-augmentation.md
       - YOLO Performance Metrics: guides/yolo-performance-metrics.md
@@ -825,10 +828,18 @@ nav:
           - errors: reference/utils/errors.md
           - events: reference/utils/events.md
           - export:
+              - axelera: reference/utils/export/axelera.md
+              - coreml: reference/utils/export/coreml.md
               - engine: reference/utils/export/engine.md
               - executorch: reference/utils/export/executorch.md
               - imx: reference/utils/export/imx.md
+              - mnn: reference/utils/export/mnn.md
+              - ncnn: reference/utils/export/ncnn.md
+              - openvino: reference/utils/export/openvino.md
+              - paddle: reference/utils/export/paddle.md
+              - rknn: reference/utils/export/rknn.md
               - tensorflow: reference/utils/export/tensorflow.md
+              - torchscript: reference/utils/export/torchscript.md
           - files: reference/utils/files.md
           - git: reference/utils/git.md
           - instance: reference/utils/instance.md

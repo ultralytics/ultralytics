@@ -6,8 +6,9 @@ import re
 import socket
 import sys
 from concurrent.futures import ThreadPoolExecutor
+from math import isfinite
 from pathlib import Path
-from time import time
+from time import sleep, time
 
 from ultralytics.utils import ENVIRONMENT, GIT, LOGGER, PYTHON_VERSION, RANK, SETTINGS, TESTS_RUNNING, Retry, colorstr
 
@@ -88,36 +89,52 @@ def resolve_platform_uri(uri, hard=True):
     else:
         raise ValueError(f"Invalid platform URI: {uri}. Use ul://user/datasets/name or ul://user/project/model")
 
+    # (connect_timeout, read_timeout) — short connect so retries are fast, long read for server-side generation
+    timeout = (10, 3600) if "/datasets/" in url else (10, 90)
+
     try:
-        timeout = 3600 if "/datasets/" in url else 90  # NDJSON generation can be slow for large datasets
-        r = requests.head(url, headers=headers, allow_redirects=False, timeout=timeout)
-
-        # Handle redirect responses (301, 302, 303, 307, 308)
-        if 300 <= r.status_code < 400 and "location" in r.headers:
-            return r.headers["location"]  # Return signed URL
-
-        # Handle error responses
-        if r.status_code == 401:
-            raise ValueError(f"Invalid ULTRALYTICS_API_KEY for '{uri}'")
-        if r.status_code == 403:
-            raise PermissionError(f"Access denied for '{uri}'. Check dataset/model visibility settings.")
-        if r.status_code == 404:
-            if hard:
-                raise FileNotFoundError(f"Not found on platform: {uri}")
-            LOGGER.warning(f"Not found on platform: {uri}")
-            return None
-        if r.status_code == 409:
-            raise RuntimeError(f"Resource not ready: {uri}. Dataset may still be processing.")
-
-        # Unexpected response
-        r.raise_for_status()
-        raise RuntimeError(f"Unexpected response from platform for '{uri}': {r.status_code}")
-
-    except requests.exceptions.RequestException as e:
+        for attempt in range(5):
+            try:
+                r = requests.head(url, headers=headers, allow_redirects=False, timeout=timeout)
+                if r.status_code in {408, 429} or r.status_code >= 500:
+                    raise requests.exceptions.HTTPError(f"HTTP {r.status_code}", response=r)
+                break
+            except (
+                requests.exceptions.ConnectionError,
+                requests.exceptions.ReadTimeout,
+                requests.exceptions.HTTPError,
+            ) as e:
+                if attempt >= 4:
+                    raise
+                delay = 2 * (2**attempt)  # 2s, 4s, 8s, 16s backoff
+                LOGGER.warning(f"Retry {attempt + 1}/5 for {uri} in {delay}s: {e}")
+                sleep(delay)
+    except Exception as e:
         if hard:
             raise ConnectionError(f"Failed to resolve {uri}: {e}") from e
         LOGGER.warning(f"Failed to resolve {uri}: {e}")
         return None
+
+    # Handle redirect responses (301, 302, 303, 307, 308)
+    if 300 <= r.status_code < 400 and "location" in r.headers:
+        return r.headers["location"]  # Return signed URL
+
+    # Handle error responses
+    if r.status_code == 401:
+        raise ValueError(f"Invalid ULTRALYTICS_API_KEY for '{uri}'")
+    if r.status_code == 403:
+        raise PermissionError(f"Access denied for '{uri}'. Check dataset/model visibility settings.")
+    if r.status_code == 404:
+        if hard:
+            raise FileNotFoundError(f"Not found on platform: {uri}")
+        LOGGER.warning(f"Not found on platform: {uri}")
+        return None
+    if r.status_code == 409:
+        raise RuntimeError(f"Resource not ready: {uri}. Dataset may still be processing.")
+
+    # Unexpected response
+    r.raise_for_status()
+    raise RuntimeError(f"Unexpected response from platform for '{uri}': {r.status_code}")
 
 
 def _interp_plot(plot, n=101):
@@ -148,9 +165,20 @@ def _interp_plot(plot, n=101):
     return result
 
 
+def _sanitize_json_value(value):
+    """Replace non-finite floats in payloads with None so requests JSON encoding succeeds."""
+    if isinstance(value, dict):
+        return {k: _sanitize_json_value(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_sanitize_json_value(v) for v in value]
+    if isinstance(value, float):
+        return value if isfinite(value) else None  # avoid "Out of range float values are not JSON compliant" warnings
+    return value
+
+
 def _send(event, data, project, name, model_id=None, retry=2):
     """Send event to Platform endpoint with retry logic."""
-    payload = {"event": event, "project": project, "name": name, "data": data}
+    payload = {"event": event, "project": project, "name": name, "data": _sanitize_json_value(data)}
     if model_id:
         payload["modelId"] = model_id
 
@@ -182,6 +210,20 @@ def _send(event, data, project, name, model_id=None, retry=2):
 def _send_async(event, data, project, name, model_id=None):
     """Send event asynchronously using bounded thread pool."""
     _executor.submit(_send, event, data, project, name, model_id)
+
+
+def _handle_control_response(trainer, ctx, response):
+    """Apply centralized stop signals returned by Platform webhook responses.
+
+    Notes:
+        ``ctx["cancelled"]`` is the durable cancellation signal. During startup, trainer setup later resets
+        ``trainer.stop``, so early stop requests still rely on ``on_pretrain_routine_end()`` to reapply the flag after
+        setup completes.
+    """
+    if response and response.get("cancelled"):
+        ctx["cancelled"] = True
+        trainer.stop = True
+        LOGGER.info(f"{PREFIX}Training cancelled from Platform ⚠️")
 
 
 def _upload_model(model_path, project, name, progress=False, retry=1, model_id=None):
@@ -338,10 +380,8 @@ def on_pretrain_routine_start(trainer):
             ctx["model_slug"] = response["modelSlug"]
             url = f"{PLATFORM_URL}/{project}/{ctx['model_slug']}"
             LOGGER.info(f"{PREFIX}View model at {url}")
-        # Check for immediate cancellation (cancelled before training started)
         # Note: trainer.stop is set in on_pretrain_routine_end (after _setup_train resets it)
-        if response.get("cancelled"):
-            ctx["cancelled"] = True
+        _handle_control_response(trainer, ctx, response)
     else:
         LOGGER.warning(f"{PREFIX}Training will not be tracked on Platform")
         trainer.platform = None  # Disable further callbacks
@@ -402,10 +442,7 @@ def on_fit_epoch_end(trainer):
     def _send_and_check_cancel():
         """Send epoch_end and check response for cancellation (runs in background thread)."""
         response = _send("epoch_end", payload, project, name, ctx["model_id"], retry=1)
-        if response and response.get("cancelled"):
-            LOGGER.info(f"{PREFIX}Training cancelled from Platform ✅")
-            trainer.stop = True
-            ctx["cancelled"] = True
+        _handle_control_response(trainer, ctx, response)
 
     _executor.submit(_send_and_check_cancel)
 

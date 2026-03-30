@@ -1,4 +1,4 @@
-# YOLO on Axelera Voyager SDK
+# Ultralytics YOLO on Axelera Voyager SDK
 
 This document explains how to build and run complete inference pipelines on Axelera Metis devices using the Axelera runtime.
 

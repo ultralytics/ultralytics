@@ -6,8 +6,8 @@ Standalone example using the axelera-runtime2 pipeline API.
 No ultralytics dependency at runtime.
 
 Usage:
-    python yolov11-seg.py --model yolo11n-seg.axm --source 0
-    python yolov11-seg.py --model yolo11n-seg.axm --source video.mp4
+    python yolo11-seg.py --model yolo11n-seg.axm --source 0
+    python yolo11-seg.py --model yolo11n-seg.axm --source video.mp4
 """
 
 from __future__ import annotations

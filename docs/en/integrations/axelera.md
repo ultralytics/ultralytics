@@ -196,16 +196,15 @@ Load the exported model with the Ultralytics API and run inference, similar to l
         yolo predict model='yolo26n_axelera_model' source='https://ultralytics.com/images/bus.jpg'
         ```
 
-## Inference Performance
+## Axelera AI Benchmarks
 
 The Metis AIPU maximizes throughput while minimizing energy consumption.
 
-| Metric              | Metis PCIe x4 | Metis M.2    | Note                    |
-| :------------------ | :------------ | :----------- | :---------------------- |
-| **Peak Throughput** | **856 TOPS**  | 214 TOPS     | INT8 Precision          |
-| **YOLOv5m FPS**     | **~1539 FPS** | ~326 FPS     | 640x640 Input           |
-| **YOLOv5s FPS**     | N/A           | **~827 FPS** | 640x640 Input           |
-| **Efficiency**      | High          | Very High    | Ideal for battery power |
+| Model   | Metis M.2 FPS (frames per second) | Metis M.2 FPS (frames per second) |
+| ------- | --------------------------------- | --------------------------------- |
+| YOLOv8n | 847                               | 771                               |
+| YOLO11n | 746                               | 574                               |
+| YOLO26n | 648.6                             | 484.9                             |
 
 _Benchmarks based on Axelera AI data. Actual FPS depends on model size, batching, and input resolution._
 

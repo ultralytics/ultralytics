@@ -27,10 +27,10 @@ poses = pipeline(frame)  # frame in, results out
 
 Two examples are provided below. It should be straightforward to apply them to other models and tasks.
 
-| Script                   | Task                                                 | Model                   | Description                                                           |
-| ------------------------ | ---------------------------------------------------- | ----------------------- | --------------------------------------------------------------------- |
-| `yolo26-pose-tracker.py` | Pose estimation with optional multi-object tracking  | YOLO26n-pose (NMS-free) | Linear `op.seq()` pipeline with a custom operator and optional `op.tracker()`. Use `--tracker none` for pose-only mode. |
-| `yolo11-seg.py`          | Instance segmentation                                | YOLO11n-seg             | Branching with `op.par()` for multi-head models (detections + masks). |
+| Script                   | Task                                                | Model                   | Description                                                                                                             |
+| ------------------------ | --------------------------------------------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `yolo26-pose-tracker.py` | Pose estimation with optional multi-object tracking | YOLO26n-pose (NMS-free) | Linear `op.seq()` pipeline with a custom operator and optional `op.tracker()`. Use `--tracker none` for pose-only mode. |
+| `yolo11-seg.py`          | Instance segmentation                               | YOLO11n-seg             | Branching with `op.par()` for multi-head models (detections + masks).                                                   |
 
 ## Quick Start
 
@@ -70,7 +70,7 @@ The compiled models are saved to `yolo26n-pose_axelera_model/` and
 #### Pose Estimation (Ultralytics YOLO26)
 
 ```bash
-python yolo26-pose-tracker.py --model yolo26n-pose.axm --source 0 --tracker none  # pose only # webcam
+python yolo26-pose-tracker.py --model yolo26n-pose.axm --source 0 --tracker none         # pose only # webcam
 python yolo26-pose-tracker.py --model yolo26n-pose.axm --source image.jpg --tracker none # pose only # image
 python yolo26-pose-tracker.py --model yolo26n-pose.axm --source video.mp4 --tracker none # pose only # video
 ```
@@ -78,7 +78,7 @@ python yolo26-pose-tracker.py --model yolo26n-pose.axm --source video.mp4 --trac
 #### Pose Tracking (Ultralytics YOLO26 + TrackTrack)
 
 ```bash
-python yolo26-pose-tracker.py --model yolo26n-pose.axm --source video.mp4 # video with tracking
+python yolo26-pose-tracker.py --model yolo26n-pose.axm --source video.mp4              # video with tracking
 python yolo26-pose-tracker.py --model yolo26n-pose.axm --source 0 --tracker tracktrack # webcam with tracking
 ```
 

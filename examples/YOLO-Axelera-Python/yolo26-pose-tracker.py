@@ -82,11 +82,11 @@ def get_track_color(track_id: int) -> tuple[int, int, int]:
 class ConfidenceFilter(op.Operator):
     """Squeeze batch dimension and filter detections by confidence score.
 
-    Receives the raw output of op.load() -- for Ultralytics YOLO26-pose this is shaped (1, 300, 57): each row is [x0, y0, x1, y1,
-    score, class_id, 17x(kpt_x, kpt_y, kpt_conf)]. Column 4 (score) is used for thresholding.
+    Receives the raw output of op.load() -- for Ultralytics YOLO26-pose this is shaped (1, 300, 57): each row is [x0,
+    y0, x1, y1, score, class_id, 17x(kpt_x, kpt_y, kpt_conf)]. Column 4 (score) is used for thresholding.
 
-    This replaces decode_pose which doesn't support Ultralytics YOLO26's column layout (class_id at column 5 shifts all keypoints by
-    one).
+    This replaces decode_pose which doesn't support Ultralytics YOLO26's column layout (class_id at column 5 shifts all
+    keypoints by one).
     """
 
     threshold: float = 0.25
@@ -102,8 +102,8 @@ class ConfidenceFilter(op.Operator):
 def build_pipeline(model_path: str, conf: float = 0.25, tracker_algo: str | None = "tracktrack"):
     """Build Ultralytics YOLO26 pose estimation pipeline with optional tracking.
 
-    Ultralytics YOLO26 is NMS-free (end-to-end), so no op.nms() is needed. When tracker_algo is provided, op.tracker() is appended
-    for multi-object tracking. Calls .optimized() so the runtime can fuse operators for maximum throughput.
+    Ultralytics YOLO26 is NMS-free (end-to-end), so no op.nms() is needed. When tracker_algo is provided, op.tracker()
+    is appended for multi-object tracking. Calls .optimized() so the runtime can fuse operators for maximum throughput.
     """
     stages = [
         op.colorconvert("RGB", src="BGR"),  # OpenCV reads BGR; models expect RGB

@@ -35,6 +35,7 @@ def torch2axelera(
     Returns:
         (Path): Path to exported Axelera model directory.
     """
+    prev_protobuf = os.environ.get("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION")
     os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
     try:
         from axelera import compiler
@@ -86,4 +87,11 @@ def torch2axelera(
 
     if metadata is not None:
         YAML.save(export_path / "metadata.yaml", metadata)
+
+    # Restore original PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION value
+    if prev_protobuf is None:
+        os.environ.pop("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION", None)
+    else:
+        os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = prev_protobuf
+
     return export_path

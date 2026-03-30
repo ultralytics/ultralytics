@@ -415,7 +415,7 @@ Here we compare SAM 3's capabilities with SAM 2 and [YOLO11](../models/yolo11.md
 | **LVIS Mask AP (zero-shot)** | **47.0**                              | N/A                  | N/A                |
 | **MOSEv2 J&F**               | **60.1**                              | 47.9                 | N/A                |
 | **Inference Speed (H200)**   | **30 ms** (100+ objects)              | ~23 ms (per object)  | **2-3 ms** (image) |
-| **Model Size**               | 3.4GB                                 | 162 MB (base)        | **5.9 MB**         |
+| **Model Size**               | 3.45 GB                               | 162 MB (base)        | **5.9 MB**         |
 
 **Key Takeaways**:
 
@@ -432,12 +432,12 @@ Comparing SAM 3, SAM 2, SAM, MobileSAM, and FastSAM against Ultralytics YOLO seg
 | [Meta SAM-b](sam.md)                                                                           | 375                     | 93.7                         | 1306                              |
 | [Meta SAM2-b](sam-2.md)                                                                        | 162                     | 80.8                         | 857                               |
 | [Meta SAM2-t](sam-2.md)                                                                        | 78.1                    | 38.9                         | 668                               |
-| Meta SAM3                                                                                      | 3200                    | 473.6                        | 2921                              |
+| Meta SAM3                                                                                      | 3450                    | 473.6                        | 2921                              |
 | [MobileSAM](mobile-sam.md)                                                                     | 40.7                    | 10.1                         | 605                               |
 | [FastSAM-s](fast-sam.md) with YOLOv8 [backbone](https://www.ultralytics.com/glossary/backbone) | 23.7                    | 11.8                         | 55.9                              |
-| Ultralytics [YOLOv8n-seg](yolov8.md)                                                           | **6.7** (477x smaller)  | **3.4** (139.1x less)        | **17.4** (167x faster)            |
-| Ultralytics [YOLO11n-seg](yolo11.md)                                                           | **5.9** (542x smaller)  | **2.9** (163.1x less)        | **12.6** (231x faster)            |
-| Ultralytics [YOLO26n-seg](yolo26.md)                                                           | **6.4** (500x smaller)  | **2.7** (175.2x less)        | **8.4** (347x faster)             |
+| Ultralytics [YOLOv8n-seg](yolov8.md)                                                           | **6.7** (515x smaller)  | **3.4** (139.1x less)        | **17.4** (167x faster)            |
+| Ultralytics [YOLO11n-seg](yolo11.md)                                                           | **5.9** (585x smaller)  | **2.9** (163.1x less)        | **12.6** (231x faster)            |
+| Ultralytics [YOLO26n-seg](yolo26.md)                                                           | **6.4** (539x smaller)  | **2.7** (175.2x less)        | **8.4** (347x faster)             |
 
 This comparison demonstrates the substantial differences in model sizes and speeds between SAM variants and YOLO segmentation models. While SAM provides unique automatic segmentation capabilities, YOLO models, particularly YOLOv8n-seg, YOLO11n-seg and YOLO26n-seg, are significantly smaller, faster, and more computationally efficient.
 
@@ -653,7 +653,7 @@ SAM 3 and YOLO26 serve different use cases:
 **YOLO26 Advantages**:
 
 - **Speed**: Orders of magnitude faster inference with NMS-free end-to-end design
-- **Efficiency**: 531× smaller models (6.4MB vs 3.4GB)
+- **Efficiency**: 539× smaller models (6.4MB vs 3.45GB)
 - **Resource-friendly**: Runs on edge devices and mobile
 - **Real-time**: Optimized for production deployments
 

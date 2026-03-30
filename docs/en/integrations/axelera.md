@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Deploy Ultralytics YOLO models on Axelera AI's Metis hardware. Learn how to export, compile, and run high-performance edge inference with up to 856 TOPS.
-keywords: Axelera AI, Metis AIPU, Voyager SDK, Edge AI, YOLOv8, YOLO26, Model Export, Computer Vision, PCIe, M.2, Object Detection, quantization
+keywords: Axelera AI, Metis AIPU, Voyager SDK, Edge AI, YOLOv8, YOLO11, YOLO26, Model Export, Computer Vision, PCIe, M.2, Object Detection, quantization
 ---
 
 # Axelera AI Export and Deployment

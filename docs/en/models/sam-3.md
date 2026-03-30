@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Discover SAM 3, Meta's next evolution of the Segment Anything Model, introducing Promptable Concept Segmentation with text and image exemplar prompts for detecting all instances of visual concepts across images and videos.
-keywords: SAM 3, Segment Anything 3, SAM3, SAM-3, video segmentation, image segmentation, concept segmentation, promptable AI, SA-Co dataset, Meta, Ultralytics, computer vision, AI, machine learning, open vocabulary
+keywords: SAM 3, Segment Anything 3, SAM3, SAM-3, concept segmentation, text prompt segmentation, open-vocabulary segmentation, zero-shot segmentation, instance segmentation, real-time segmentation, video segmentation, image segmentation, SAM 3 vs YOLO, SAM 3 vs SAM 2, SA-Co dataset, Meta, Ultralytics
 ---
 
 # SAM 3: Segment Anything with Concepts
@@ -138,6 +138,19 @@ pip install -U ultralytics
     ```
 
 ## How to Use SAM 3: Versatility in Concept Segmentation
+
+### Quick Start
+
+Segment all instances of a concept in an image with just a few lines of code:
+
+```python
+from ultralytics.models.sam import SAM3SemanticPredictor
+
+predictor = SAM3SemanticPredictor(overrides=dict(model="sam3.pt", half=True))
+predictor.set_image("path/to/image.jpg")
+results = predictor(text=["person", "bus"])
+results[0].show()
+```
 
 SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual Segmentation (PVS) tasks through different predictor interfaces:
 

@@ -29,7 +29,7 @@ from ultralytics.data.loaders import (
     autocast_list,
 )
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
-from ultralytics.utils import RANK, colorstr
+from ultralytics.utils import RANK, colorstr,LOGGER
 from ultralytics.utils.checks import check_file
 from ultralytics.utils.torch_utils import TORCH_2_0
 
@@ -233,7 +233,6 @@ class BalancedDistributedSampler(torch.utils.data.Sampler):
         num_replicas (int, optional): Number of distributed processes. Defaults to world size.
         rank (int, optional): Rank of the current process. Defaults to current rank.
         shuffle (bool): If True, additionally shuffle each rank's local slice every epoch.
-        save_histogram (bool): If True, rank-0 saves a class-distribution PNG after each epoch.
 
     Usage::
 
@@ -245,7 +244,7 @@ class BalancedDistributedSampler(torch.utils.data.Sampler):
                 ...
     """
 
-    def __init__(self, dataset, num_replicas=None, rank=None, shuffle=True, save_histogram=False):
+    def __init__(self, dataset, num_replicas=None, rank=None, shuffle=True):
         """Initialize the sampler, building class-to-image mapping."""
         if num_replicas is None:
             num_replicas = dist.get_world_size() if dist.is_initialized() else 1
@@ -256,15 +255,7 @@ class BalancedDistributedSampler(torch.utils.data.Sampler):
         self.num_replicas = num_replicas
         self.rank = rank
         self.shuffle = shuffle
-        self.save_histogram = save_histogram
         self.epoch = 0
-
-        # Log dataset info
-        dataset_name = getattr(dataset, '__class__', 'Unknown').__name__
-        dataset_size = len(dataset)
-        print(f"\n🔍 BalancedDistributedSampler.__init__:")
-        print(f"  Dataset class: {dataset_name}")
-        print(f"  Dataset size: {dataset_size} images")
 
         # cls_to_imgs: {class_id: [img_idx, ...]}
         self.cls_to_imgs = self._build_cls_to_imgs()
@@ -274,50 +265,32 @@ class BalancedDistributedSampler(torch.utils.data.Sampler):
 
     def _build_cls_to_imgs(self) -> dict:
         """Build mapping {class_id: [image_indices]} from dataset labels.
-        
-        Also validates that each class has at least one bbox annotation.
+        Returns an empty dict if dataset has no labels or if labels do not contain 'cls' key.
         """
         labels = getattr(self.dataset, "labels", None)
         cls_to_imgs: dict = {}
-        cls_bbox_count: dict = {}  # Count bboxes per class
-        
         if labels is None:
             return cls_to_imgs
-            
+
+        cls_bbox_count: dict = {}
         for i, lb in enumerate(labels):
             cls = lb.get("cls", [])
-            if len(cls):
-                for c in np.unique(cls.flatten().astype(int)):
-                    c_int = int(c)
-                    cls_to_imgs.setdefault(c_int, []).append(i)
-                    cls_bbox_count[c_int] = cls_bbox_count.get(c_int, 0) + len(cls[cls == c])
-        
-        # Check for classes with 0 bboxes
-        if cls_bbox_count:
-            classes_with_zero = [c for c in cls_bbox_count if cls_bbox_count[c] == 0]
-            if classes_with_zero:
-                print(f"⚠️  Classes with 0 bboxes (should not happen): {classes_with_zero[:10]}...")
-            
-            # Print summary
-            total_classes_declared = max(cls_bbox_count.keys()) + 1 if cls_bbox_count else 0
-            total_classes_found = len(cls_to_imgs)
-            total_bboxes = sum(cls_bbox_count.values())
-            
-            print(f"\n📊 BalancedDistributedSampler class distribution:")
-            print(f"  Total classes in data: {total_classes_found}")
-            print(f"  Min class ID: {min(cls_to_imgs.keys()) if cls_to_imgs else 'N/A'}")
-            print(f"  Max class ID: {max(cls_to_imgs.keys()) if cls_to_imgs else 'N/A'}")
-            print(f"  Total bboxes: {total_bboxes}")
-            print(f"  Avg bboxes/class: {total_bboxes / max(total_classes_found, 1):.1f}")
-            
-            # Show class bbox distribution (top 10 and bottom 10)
+            if not len(cls):
+                continue
+            for c in np.unique(cls.flatten().astype(int)):
+                c = int(c)
+                cls_to_imgs.setdefault(c, []).append(i)
+                cls_bbox_count[c] = cls_bbox_count.get(c, 0) + int((cls == c).sum())
+
+        # Log summary
+        if cls_to_imgs:
+            total = sum(cls_bbox_count.values())
             sorted_counts = sorted(cls_bbox_count.items(), key=lambda x: x[1], reverse=True)
-            print(f"  Top 5 classes by bbox count:")
-            for cls_id, count in sorted_counts[:5]:
-                print(f"    cls {cls_id}: {count} bboxes")
-            print(f"  Bottom 5 classes by bbox count:")
-            for cls_id, count in sorted_counts[-5:]:
-                print(f"    cls {cls_id}: {count} bboxes")
+            LOGGER.info(f"\n📊 BalancedDistributedSampler: {len(cls_to_imgs)} classes, "
+                f"{total} bboxes, avg {total / len(cls_to_imgs):.1f}/cls")
+            LOGGER.info(f"  Top 5: {sorted_counts[:5]}")
+            LOGGER.info(f"  Bottom 5: {sorted_counts[-5:]}")
+
         return cls_to_imgs
 
     def __iter__(self):
@@ -368,7 +341,7 @@ class BalancedDistributedSampler(torch.utils.data.Sampler):
         class_counts: dict = {}
         for idx in indices:
             if idx >= len(labels):
-                print(f"⚠️  Index {idx} out of bounds! labels size: {len(labels)}")
+                LOGGER.info(f"⚠️  Index {idx} out of bounds! labels size: {len(labels)}")
                 continue
             cls = labels[idx].get("cls", [])
             if len(cls):
@@ -382,12 +355,12 @@ class BalancedDistributedSampler(torch.utils.data.Sampler):
         counts = [class_counts[c] for c in sorted_cls]
         n_cls = len(sorted_cls)
 
-        # Debug: print histogram info
-        print(f"\n📈 _save_cls_histogram (rank {self.rank}, epoch {self.epoch}):")
-        print(f"  Num indices sampled: {len(indices)}")
-        print(f"  Num classes in histogram: {n_cls}")
-        print(f"  Class ID range: {min(sorted_cls)}-{max(sorted_cls)}")
-        print(f"  Total bboxes in sampled: {sum(counts)}")
+        # Debug: LOGGER.info histogram info
+        LOGGER.info(f"\n📈 _save_cls_histogram (rank {self.rank}, epoch {self.epoch}):")
+        LOGGER.info(f"  Num indices sampled: {len(indices)}")
+        LOGGER.info(f"  Num classes in histogram: {n_cls}")
+        LOGGER.info(f"  Class ID range: {min(sorted_cls)}-{max(sorted_cls)}")
+        LOGGER.info(f"  Total bboxes in sampled: {sum(counts)}")
 
         # Scale figure width with number of classes; cap bar width to keep plot readable
         fig_w = max(24, n_cls // 20)
@@ -420,13 +393,13 @@ class BalancedDistributedSampler(torch.utils.data.Sampler):
 
         
         # Save CSV: cls_id, bbox_count — one row per class
-        print("Saved class distribution histogram to", save_path)
+        LOGGER.info("Saved class distribution histogram to", save_path)
         csv_path = save_dir / f"cls_dist_{suffix}.csv"
         with open(csv_path, "w") as f:
             f.write("cls_id,bbox_count\n")
             for c, cnt in zip(sorted_cls, counts):
                 f.write(f"{c},{cnt}\n")
-        print("Saved class distribution CSV to", csv_path)
+        LOGGER.info("Saved class distribution CSV to", csv_path)
 
     def __len__(self) -> int:
         """Return number of samples for this rank."""
@@ -516,7 +489,7 @@ def build_dataloader(
     rank: int = -1,
     drop_last: bool = False,
     pin_memory: bool = True,
-    balanced: bool = True,
+    balance_sampler: bool = False,
 ) -> InfiniteDataLoader:
     """Create and return an InfiniteDataLoader for training or validation.
 
@@ -528,7 +501,7 @@ def build_dataloader(
         rank (int, optional): Process rank in distributed training. -1 for single-GPU training.
         drop_last (bool, optional): Whether to drop the last incomplete batch.
         pin_memory (bool, optional): Whether to use pinned memory for dataloader.
-        balanced (bool, optional): Whether to use class-balanced sampling.
+        balance_sampler (bool, optional): Whether to use class-balanced sampling.
 
     Returns:
         (InfiniteDataLoader): A dataloader that can be used for training or validation.
@@ -541,15 +514,17 @@ def build_dataloader(
     batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices
     nw = min(os.cpu_count() // max(nd, 1), workers)  # number of workers
-    if balanced and (not shuffle):
-        print("⚠️  Warning: balanced sampling is only effective when shuffle=True. Setting balanced=False.")
+    if balance_sampler and (not shuffle):
+        LOGGER.info("⚠️  Warning: balanced sampling is only effective when shuffle=True. Setting balance_sampler=False.")
+        balance_sampler = False
 
     if rank == -1:
-        # Single-GPU: use BalancedDistributedSampler when balanced sampling is requested
-        sampler = BalancedDistributedSampler(dataset, num_replicas=1, rank=0, shuffle=shuffle) if (balanced and shuffle) else None
+        # Single-GPU: use BalancedDistributedSampler when balance_sampler and shuffle are both True, otherwise no sampler (shuffle handled by DataLoader)
+        sampler = BalancedDistributedSampler(dataset, num_replicas=1, rank=0, shuffle=shuffle) if (balance_sampler and shuffle) else None
     else:
-        # Multi-GPU distributed training
-        sampler = BalancedDistributedSampler(dataset, shuffle=shuffle) if (balanced and shuffle) else distributed.DistributedSampler(dataset, shuffle=shuffle) if shuffle else ContiguousDistributedSampler(dataset)
+        # Multi-GPU distributed training. Use BalancedDistributedSampler when balance_sampler and shuffle are both True, otherwise use DistributedSampler with shuffle if shuffle is True
+        #  otherwise use ContiguousDistributedSampler to preserve ordering for validation.
+        sampler = BalancedDistributedSampler(dataset, shuffle=shuffle) if (balance_sampler and shuffle) else distributed.DistributedSampler(dataset, shuffle=shuffle) if shuffle else ContiguousDistributedSampler(dataset)
       
     generator = torch.Generator()
     generator.manual_seed(6148914691236517205 + RANK)

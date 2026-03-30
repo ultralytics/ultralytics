@@ -22,6 +22,8 @@ __all__ = (
     "C2",
     "C3",
     "C2f",
+    "SELayer",
+    "C2fSE",
     "C2fAttn",
     "ImagePoolingAttn",
     "ContrastiveHead",
@@ -324,6 +326,82 @@ class C2f(nn.Module):
         y = [y[0], y[1]]
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
+
+
+class SELayer(nn.Module):
+    """Squeeze-and-Excitation channel attention layer.
+
+    Recalibrates channel-wise feature responses by modelling interdependencies between channels.
+    Reference: https://arxiv.org/abs/1709.01507
+    """
+
+    def __init__(self, c1: int, reduction: int = 16):
+        """
+        Initialize SELayer with channel squeeze-and-excitation.
+
+        Args:
+            c1 (int): Number of input channels.
+            reduction (int): Channel reduction ratio for the bottleneck FC layers.
+        """
+        super().__init__()
+        c_mid = max(c1 // reduction, 1)
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(c1, c_mid, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(c_mid, c1, bias=False),
+            nn.Sigmoid(),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply squeeze-and-excitation recalibration to input tensor."""
+        b, c, _, _ = x.shape
+        # Squeeze: global average pooling → (B, C)
+        y = self.avg_pool(x).view(b, c)
+        # Excitation: two FC layers with bottleneck → channel weights (B, C)
+        y = self.fc(y).view(b, c, 1, 1)
+        return x * y.expand_as(x)
+
+
+class C2fSE(C2f):
+    """C2f with Squeeze-and-Excitation channel attention.
+
+    Extends the C2f block by appending an SE recalibration step after feature
+    aggregation, enabling the model to focus on the most informative channels.
+    """
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        n: int = 1,
+        shortcut: bool = False,
+        g: int = 1,
+        e: float = 0.5,
+        reduction: int = 16,
+    ):
+        """
+        Initialize C2fSE block.
+
+        Args:
+            c1 (int): Input channels.
+            c2 (int): Output channels.
+            n (int): Number of Bottleneck blocks.
+            shortcut (bool): Whether to use shortcut connections.
+            g (int): Groups for convolutions.
+            e (float): Expansion ratio.
+            reduction (int): SE reduction ratio.
+        """
+        super().__init__(c1, c2, n, shortcut, g, e)
+        self.se = SELayer(c2, reduction)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass: C2f feature aggregation followed by SE recalibration."""
+        return self.se(super().forward(x))
+
+    def forward_split(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass using split() with SE recalibration."""
+        return self.se(super().forward_split(x))
 
 
 class C3(nn.Module):

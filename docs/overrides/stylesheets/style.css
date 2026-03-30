@@ -24,6 +24,10 @@ td {
 .md-typeset__table tr:nth-child(2n) {
   background-color: #f6f8fa;
 }
+/* fix inline code overlap */
+.md-typeset__table table:not([class]) code {
+  padding: unset;
+}
 /* dark mode alternating table bg colors */
 [data-md-color-scheme="slate"] .md-typeset__table tr:nth-child(2n) {
   background-color: #161b22;

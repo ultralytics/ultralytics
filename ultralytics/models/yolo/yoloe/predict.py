@@ -112,8 +112,8 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
             # Calculate scaling factor and adjust bounding boxes
             gain = min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])  # gain = old / new
             bboxes *= gain
-            bboxes[..., 0::2] += round((dst_shape[1] - src_shape[1] * gain) / 2 - 0.1)
-            bboxes[..., 1::2] += round((dst_shape[0] - src_shape[0] * gain) / 2 - 0.1)
+            bboxes[..., 0::2] += round((dst_shape[1] - round(src_shape[1] * gain)) / 2 - 0.1)
+            bboxes[..., 1::2] += round((dst_shape[0] - round(src_shape[0] * gain)) / 2 - 0.1)
         elif masks is not None:
             # Resize and process masks
             resized_masks = super().pre_transform(masks)

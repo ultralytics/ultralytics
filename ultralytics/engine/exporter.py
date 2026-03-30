@@ -340,7 +340,7 @@ class Exporter:
                     "pose": "coco8-pose.yaml",
                     "obb": "dota128.yaml",
                 }
-                self.args.data = default_data[model.task]
+                self.args.data = default_data.get(model.task, "coco128.yaml")
         if fmt == "imx":
             if not self.args.int8:
                 LOGGER.warning("IMX export requires int8=True, setting int8=True.")

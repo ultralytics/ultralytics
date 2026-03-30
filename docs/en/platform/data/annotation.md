@@ -288,7 +288,7 @@ SAM smart annotation can generate:
 
     SAM smart annotation is only available for **detect**, **segment**, and **OBB** tasks. Classification and pose tasks require manual annotation.
 
-### Auto-Apply Mode
+#### Auto-Apply Mode
 
 Auto-apply mode speeds up Smart annotation by automatically saving the SAM mask after each click — no need to press `Enter`. Toggle it with the auto-apply button in the toolbar or press `A`.
 
@@ -304,7 +304,7 @@ Auto-apply mode speeds up Smart annotation by automatically saving the SAM mask 
 
     Auto-apply is ideal for datasets with well-separated objects where a single click produces an accurate mask. For complex or overlapping objects, turn auto-apply off and use multiple positive/negative points to refine the mask before saving.
 
-### SAM Model Selection
+#### SAM Model Selection
 
 When Smart mode is active, a model picker appears in the toolbar. Five SAM models are available — choose based on the speed vs. accuracy trade-off that suits your dataset:
 

@@ -12,7 +12,7 @@ import pytest
 from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-from ultralytics.utils import ARM64, IS_RASPBERRYPI, LINUX, MACOS, MACOS_VERSION, WINDOWS, checks
+from ultralytics.utils import ARM64, IS_DOCKER, IS_RASPBERRYPI, LINUX, MACOS, MACOS_VERSION, WINDOWS, checks
 from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_0, TORCH_2_1, TORCH_2_8, TORCH_2_9
 
 
@@ -295,18 +295,6 @@ def test_export_imx():
     YOLO(file)(SOURCE, imgsz=32)
 
 
-@pytest.mark.slow
-@pytest.mark.skipif(not TORCH_2_8, reason="Axelera export requires torch>=2.8.0")
-@pytest.mark.skipif(not LINUX, reason="Axelera export only supported on Linux")
-@pytest.mark.skipif(not checks.IS_PYTHON_3_10, reason="Axelera export requires Python 3.10")
-def test_export_axelera():
-    """Test YOLO export to Axelera format."""
-    # For faster testing, use a smaller calibration dataset (32 image size crashes axelera export, so 64 is used)
-    file = YOLO(MODEL).export(format="axelera", imgsz=64, data="coco8.yaml")
-    assert Path(file).exists(), f"Axelera export failed, directory not found: {file}"
-    shutil.rmtree(file, ignore_errors=True)  # cleanup
-
-
 # @pytest.mark.skipif(True, reason="Disabled for debugging ruamel.yaml installation required by executorch")
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_2_9, reason="Requires Python>=3.10 and Torch>=2.9.0")
 @pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")
@@ -340,4 +328,20 @@ def test_export_executorch_matrix(task):
     metadata_file = Path(file) / "metadata.yaml"
     assert metadata_file.exists(), f"ExecuTorch metadata.yaml not found for task '{task}': {metadata_file}"
     # Note: Inference testing skipped as ExecuTorch requires special runtime setup
+    shutil.rmtree(file, ignore_errors=True)  # cleanup
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not TORCH_2_8, reason="Axelera export requires torch>=2.8.0")
+@pytest.mark.skipif(
+    not LINUX or (ARM64 and IS_DOCKER),
+    reason="Axelera export is only supported on Linux and is not supported on ARM64 Docker",
+)
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Test disabled due to OOM (Out of Memory) issues on Raspberry Pi 5 16GB")
+def test_export_axelera():
+    """Test YOLO export to Axelera format."""
+    # For faster testing, use a smaller calibration dataset (32 image size crashes axelera export, so 64 is used)
+    file = YOLO(MODEL).export(format="axelera", imgsz=64, data="coco8.yaml")
+    assert Path(file).exists(), f"Axelera export failed, directory not found: {file}"
+    # Note: Inference testing skipped as it requires Axelera hardware
     shutil.rmtree(file, ignore_errors=True)  # cleanup

@@ -307,8 +307,8 @@ class BalancedDistributedSampler(torch.utils.data.Sampler):
             indices.extend(img_list[p] for p in sampled)
 
         # 2. Optionally save class-distribution histogram (all ranks)
-        if self.save_histogram and self.rank == 0:
-            self._save_cls_histogram(indices)
+        # if self.rank == 0:
+        #     self._save_cls_histogram(indices)
 
         # 3. Shard across ranks (contiguous slice)
         per_rank = self.total_size // self.num_replicas

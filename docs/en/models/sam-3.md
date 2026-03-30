@@ -146,7 +146,7 @@ Segment all instances of a concept in an image with just a few lines of code:
 ```python
 from ultralytics.models.sam import SAM3SemanticPredictor
 
-predictor = SAM3SemanticPredictor(overrides=dict(model="sam3.pt", half=True))
+predictor = SAM3SemanticPredictor(overrides=dict(model="sam3.pt"))
 predictor.set_image("path/to/image.jpg")
 results = predictor(text=["person", "bus"])
 results[0].show()

@@ -51,7 +51,7 @@ Inference:
                          yolo26n_imx_model          # IMX
                          yolo26n_rknn_model         # RKNN
                          yolo26n_executorch_model   # ExecuTorch
-                         yolo26n_axelera_model      # Axelera
+                         yolo26n_axelera_model      # Axelera AI
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example

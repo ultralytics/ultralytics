@@ -2,7 +2,7 @@
 """
 YOLO11 Instance Segmentation with Axelera Voyager SDK.
 
-Standalone example using the axelera-runtime2 pipeline API.
+Standalone example using the axelera-rt pipeline API.
 No ultralytics dependency at runtime.
 
 Usage:

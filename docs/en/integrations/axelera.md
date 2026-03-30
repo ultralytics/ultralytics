@@ -200,11 +200,11 @@ Load the exported model with the Ultralytics API and run inference, similar to l
 
 The Metis AIPU maximizes throughput while minimizing energy consumption.
 
-| Model   | Metis M.2 FPS (frames per second) | Metis M.2 FPS (frames per second) |
-| ------- | --------------------------------- | --------------------------------- |
-| YOLOv8n | 847                               | 771                               |
-| YOLO11n | 746                               | 574                               |
-| YOLO26n | 648.6                             | 484.9                             |
+| Model   | Metis PCIe FPS (frames per second) | Metis M.2 FPS (frames per second) |
+| ------- | ---------------------------------- | --------------------------------- |
+| YOLOv8n | 847                                | 771                               |
+| YOLO11n | 746                                | 574                               |
+| YOLO26n | 648.6                              | 484.9                             |
 
 _Benchmarks based on Axelera AI data. Actual FPS depends on model size, batching, and input resolution._
 
@@ -223,7 +223,7 @@ Ultralytics YOLO on Axelera hardware enables advanced edge computing solutions:
 2. **Export** to Axelera format using `model.export(format="axelera")`
 3. **Validate** accuracy with `yolo val` to verify minimal quantization loss
 4. **Predict** using `yolo predict` for qualitative validation
-5. **Deploy** to a high-performance end-to-end pipeline without PyTorch dependency — see the [YOLO on Voyager SDK examples](https://github.com/ultralytics/ultralytics/tree/main/examples/YOLO-Axelera-Python) for composable Python pipelines using `axelera-runtime2`
+5. **Deploy** to a high-performance end-to-end pipeline without PyTorch dependency — see the [YOLO on Voyager SDK examples](https://github.com/ultralytics/ultralytics/tree/main/examples/YOLO-Axelera-Python) for composable Python pipelines using `axelera-rt`
 
 ## Device Health Check
 

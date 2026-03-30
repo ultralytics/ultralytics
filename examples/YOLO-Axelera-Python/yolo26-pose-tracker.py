@@ -2,7 +2,7 @@
 """
 Ultralytics YOLO26 Pose Estimation with optional Multi-Object Tracking using Axelera Voyager SDK.
 
-Standalone example using the axelera-runtime2 pipeline API.
+Standalone example using the axelera-rt pipeline API.
 No ultralytics dependency at runtime.
 
 Ultralytics YOLO26 is NMS-free: the model outputs (1, 300, 57) already in final format

@@ -16,21 +16,21 @@ Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 
 ![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-plans-tab-free-pro-enterprise-comparison.avif)
 
-| Feature                             | Free       | Pro ($29/mo)    | Enterprise |
-| ----------------------------------- | ---------- | --------------- | ---------- |
-| **Signup Credit**                   | $5 / $25\* | -               | Custom     |
-| **Monthly Credit**                  | -          | $30/seat/month  | Custom     |
-| **Models**                          | 100        | 500             | Unlimited  |
-| **Concurrent Trainings**            | 3          | 10              | Unlimited  |
-| **Storage**                         | 100 GB     | 500 GB          | Unlimited  |
+| Feature                                                    | Free       | Pro ($29/mo)    | Enterprise |
+| ---------------------------------------------------------- | ---------- | --------------- | ---------- |
+| **Signup Credit**                                          | $5 / $25\* | -               | Custom     |
+| **Monthly Credit**                                         | -          | $30/seat/month  | Custom     |
+| **Models**                                                 | 100        | 500             | Unlimited  |
+| **Concurrent Trainings**                                   | 3          | 10              | Unlimited  |
+| **Storage**                                                | 100 GB     | 500 GB          | Unlimited  |
 | **Dataset Upload (ZIP/TAR incl. `.tar.gz`/`.tgz`/NDJSON)** | 10 GB      | 20 GB           | 50 GB      |
-| **Deployments**                     | 3          | 10              | Unlimited  |
-| **Cloud GPU Types**                 | 20         | 23              | 23         |
-| **Best GPUs (H200, B200)**          | -          | Yes             | Yes        |
-| **Teams**                           | -          | Up to 5 members | Up to 50   |
-| **SSO / SAML**                      | -          | -               | Yes        |
-| **Enterprise License**              | -          | -               | Yes        |
-| **License**                         | AGPL-3.0   | AGPL-3.0        | Enterprise |
+| **Deployments**                                            | 3          | 10              | Unlimited  |
+| **Cloud GPU Types**                                        | 20         | 23              | 23         |
+| **Best GPUs (H200, B200)**                                 | -          | Yes             | Yes        |
+| **Teams**                                                  | -          | Up to 5 members | Up to 50   |
+| **SSO / SAML**                                             | -          | -               | Yes        |
+| **Enterprise License**                                     | -          | -               | Yes        |
+| **License**                                                | AGPL-3.0   | AGPL-3.0        | Enterprise |
 
 \*Free plan: $5 at signup, or $25 if you verify a company/work email address.
 
@@ -251,17 +251,17 @@ Cancel anytime from the billing portal:
 
 When your Pro subscription ends (cancelled or expired), your account reverts to the Free plan. Here's what happens to your existing resources:
 
-| Resource                            | What Happens                                                                     |
-| ----------------------------------- | -------------------------------------------------------------------------------- |
-| **Models**                          | All models preserved. Cannot create new models beyond 100-model limit            |
-| **Deployments**                     | All deployments preserved. Cannot create new beyond 3-deployment limit           |
-| **Storage**                         | All data preserved. Cannot upload new data beyond 100 GB limit                   |
+| Resource                                                   | What Happens                                                                     |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| **Models**                                                 | All models preserved. Cannot create new models beyond 100-model limit            |
+| **Deployments**                                            | All deployments preserved. Cannot create new beyond 3-deployment limit           |
+| **Storage**                                                | All data preserved. Cannot upload new data beyond 100 GB limit                   |
 | **Dataset Upload (ZIP/TAR incl. `.tar.gz`/`.tgz`/NDJSON)** | Upload limit reduced from 20 GB to 10 GB per file                                |
-| **Credit Balance**                  | Existing credits preserved and usable                                            |
-| **Monthly Credits**                 | $30/seat/month grants stop immediately                                           |
-| **Team Members**                    | Members notified and lose access to team resources                               |
-| **GPU Access**                      | Standard GPUs remain available. Best GPUs (H200, B200) require Pro or Enterprise |
-| **Concurrent Trainings**            | Limit reduced from 10 to 3                                                       |
+| **Credit Balance**                                         | Existing credits preserved and usable                                            |
+| **Monthly Credits**                                        | $30/seat/month grants stop immediately                                           |
+| **Team Members**                                           | Members notified and lose access to team resources                               |
+| **GPU Access**                                             | Standard GPUs remain available. Best GPUs (H200, B200) require Pro or Enterprise |
+| **Concurrent Trainings**                                   | Limit reduced from 10 to 3                                                       |
 
 !!! tip "No Data Loss"
 

@@ -14,8 +14,7 @@ from .base import BaseBackend
 class AxeleraBackend(BaseBackend):
     """Axelera AI inference backend for Axelera Metis AI accelerators.
 
-    Loads compiled Axelera models (.axm files) and runs inference using the Axelera AI runtime SDK. Requires the Axelera
-    runtime environment to be activated before use.
+    Loads compiled Axelera models (.axm files) and runs inference using the Axelera AI runtime SDK.
     """
 
     def load_model(self, weight: str | Path) -> None:

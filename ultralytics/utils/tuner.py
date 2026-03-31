@@ -46,7 +46,8 @@ def _get_ray_search_alg_kind(search_alg):
     """Return the normalized Ray Tune search algorithm kind for known searcher objects.
 
     Args:
-        search_alg (str | ray.tune.search.Searcher): The search algorithm to identify. Can be None, a string, or a Ray Tune searcher object.
+        search_alg (str | ray.tune.search.Searcher): The search algorithm to identify. Can be None, a string, or a Ray
+            Tune searcher object.
 
     Returns:
         str | None: The normalized search algorithm name, or None if not recognized.

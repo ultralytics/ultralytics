@@ -479,6 +479,6 @@ SAM 2 includes a sophisticated memory mechanism to manage temporal dependencies 
 
 This mechanism ensures continuity even when objects are temporarily obscured or exit and re-enter the scene. For more details, refer to the [Memory Mechanism and Occlusion Handling](#memory-mechanism-and-occlusion-handling) section.
 
-### How does SAM 2 compare to other segmentation models like YOLO11?
+### How does SAM 2 compare to other segmentation models like YOLO26?
 
-SAM 2 models, such as Meta's SAM2-t and SAM2-b, offer powerful zero-shot segmentation capabilities but are significantly larger and slower compared to YOLO11 models. For instance, YOLO11n-seg is approximately **13 times smaller** and over **860 times faster** than SAM2-b. While SAM 2 excels in versatile, prompt-based, and zero-shot segmentation scenarios, YOLO11 is optimized for speed, efficiency, and real-time applications, making it better suited for deployment in resource-constrained environments.
+SAM 2 models, such as Meta's SAM2-t and SAM2-b, offer powerful zero-shot segmentation capabilities but are significantly larger and slower compared to YOLO models. For instance, [YOLO26n-seg](yolo26.md) is approximately **24 times smaller** and over **970 times faster** than SAM2-b on CPU. While SAM 2 excels in versatile, prompt-based, and zero-shot segmentation scenarios, YOLO26 is optimized for speed, efficiency, and real-time applications with NMS-free end-to-end inference, making it better suited for deployment in resource-constrained environments.

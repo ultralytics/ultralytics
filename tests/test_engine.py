@@ -172,11 +172,20 @@ def test_fitness_weights_cfg_validation():
     with pytest.raises(TypeError, match="fitness_weights"):
         get_cfg(DEFAULT_CFG, overrides={"fitness_weights": "0,0,1,0"})
 
+    with pytest.raises(TypeError, match="fitness_weights"):
+        get_cfg(DEFAULT_CFG, overrides={"fitness_weights": [False, 0, 1, 0]})
+
     with pytest.raises(ValueError, match="fitness_weights"):
         get_cfg(DEFAULT_CFG, overrides={"fitness_weights": [0, 0, 1]})
 
     with pytest.raises(ValueError, match="fitness_weights"):
         get_cfg(DEFAULT_CFG, overrides={"fitness_weights": [0, -1, 1, 0]})
+
+    with pytest.raises(ValueError, match="fitness_weights"):
+        get_cfg(DEFAULT_CFG, overrides={"fitness_weights": [0, float("nan"), 1, 0]})
+
+    with pytest.raises(ValueError, match="fitness_weights"):
+        get_cfg(DEFAULT_CFG, overrides={"fitness_weights": [0, float("inf"), 1, 0]})
 
     with pytest.raises(TypeError, match="fitness_weights"):
         get_cfg(DEFAULT_CFG, overrides={"fitness_weights": [0, "bad", 1, 0]})
@@ -189,6 +198,18 @@ def test_detect_fitness_helpers_default_and_validation():
 
     with pytest.raises(ValueError, match="fitness_weights"):
         normalize_detect_fitness_weights([0.0, 1.0, 0.0])
+
+    with pytest.raises(TypeError, match="fitness_weights"):
+        normalize_detect_fitness_weights([True, 0.0, 0.0, 1.0])
+
+    with pytest.raises(ValueError, match="fitness_weights"):
+        normalize_detect_fitness_weights([0.0, float("nan"), 0.0, 1.0])
+
+    with pytest.raises(ValueError, match="fitness_weights"):
+        normalize_detect_fitness_weights([0.0, 0.0, -1.0, 1.0])
+
+    with pytest.raises(ValueError, match="metrics must contain exactly 4 values"):
+        compute_detect_fitness([0.1, 0.2, 0.3])
 
 
 def test_det_metrics_custom_fitness_weights():
@@ -221,7 +242,7 @@ def test_detection_trainer_logs_custom_fitness_weights():
                 "epochs": 1,
                 "save": False,
                 "fitness_weights": [0.0, 0.0, 1.0, 0.0],
-                }
+            }
         )
 
     assert any(

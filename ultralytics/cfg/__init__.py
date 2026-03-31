@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import math
 import shutil
 import subprocess
 import sys
@@ -370,14 +371,17 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                     raise ValueError(f"'{k}={v}' must contain exactly 4 values for [P, R, mAP50, mAP50-95].")
                 weights = []
                 for x in v:
-                    if not isinstance(x, FLOAT_OR_INT):
+                    if isinstance(x, bool) or not isinstance(x, FLOAT_OR_INT):
                         raise TypeError(
                             f"'{k}={v}' contains invalid type {type(x).__name__}. "
                             f"Each value in '{k}' must be int or float."
                         )
+                    x = float(x)
+                    if not math.isfinite(x):
+                        raise ValueError(f"'{k}={v}' contains invalid value {x}. All values must be finite.")
                     if x < 0:
                         raise ValueError(f"'{k}={v}' contains invalid value {x}. All values must be >= 0.")
-                    weights.append(float(x))
+                    weights.append(x)
                 cfg[k] = weights
             elif k in CFG_FLOAT_KEYS and not isinstance(v, FLOAT_OR_INT):
                 if hard:

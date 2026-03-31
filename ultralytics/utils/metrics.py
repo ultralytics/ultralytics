@@ -31,7 +31,14 @@ def normalize_detect_fitness_weights(weights: list[float] | tuple[float, ...] | 
         return list(DETECT_FITNESS_WEIGHTS)
     if len(weights) != 4:
         raise ValueError("fitness_weights must contain exactly 4 values for [P, R, mAP50, mAP50-95].")
-    return [float(x) for x in weights]
+    if any(isinstance(x, bool) for x in weights):
+        raise TypeError("fitness_weights must be int or float values, not bool.")
+    arr = np.asarray(weights, dtype=float)
+    if not np.all(np.isfinite(arr)):
+        raise ValueError("fitness_weights must be finite float values (no NaN or inf).")
+    if np.any(arr < 0.0):
+        raise ValueError("fitness_weights must be non-negative for [P, R, mAP50, mAP50-95].")
+    return arr.tolist()
 
 
 def compute_detect_fitness(
@@ -39,12 +46,14 @@ def compute_detect_fitness(
     weights: list[float] | tuple[float, ...] | None = None,
 ) -> float:
     """Compute detect fitness from [P, R, mAP50, mAP50-95] metrics and optional weights."""
-    return float(
-        (
-            np.nan_to_num(np.asarray(metrics, dtype=float))
-            * np.asarray(normalize_detect_fitness_weights(weights), dtype=float)
-        ).sum()
-    )
+    metrics_arr = np.nan_to_num(np.asarray(metrics, dtype=float)).reshape(-1)
+    if metrics_arr.shape[0] != 4:
+        raise ValueError(
+            "metrics must contain exactly 4 values in order [P, R, mAP50, mAP50-95], "
+            f"but received shape {metrics_arr.shape}."
+        )
+    weights_arr = np.asarray(normalize_detect_fitness_weights(weights), dtype=float)
+    return float((metrics_arr * weights_arr).sum())
 
 
 def bbox_ioa(box1: np.ndarray, box2: np.ndarray, iou: bool = False, eps: float = 1e-7) -> np.ndarray:
@@ -1060,7 +1069,9 @@ class DetMetrics(SimpleClass, DataExportMixin):
         summary: Generate a summarized representation of per-class detection metrics as a list of dictionaries.
     """
 
-    def __init__(self, names: dict[int, str] = {}, fitness_weights: list[float] | tuple[float, ...] | None = None) -> None:
+    def __init__(
+        self, names: dict[int, str] | None = None, fitness_weights: list[float] | tuple[float, ...] | None = None
+    ) -> None:
         """Initialize a DetMetrics instance with class names.
 
         Args:
@@ -1068,7 +1079,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
             fitness_weights (list[float] | tuple[float, ...] | None, optional): Optional detect fitness weights in
                 ``[P, R, mAP50, mAP50-95]`` order.
         """
-        self.names = names
+        self.names = {} if names is None else names
         self.fitness_weights = normalize_detect_fitness_weights(fitness_weights)
         self.box = Metric(self.fitness_weights)
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}

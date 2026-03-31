@@ -382,7 +382,7 @@ To auto-annotate your dataset using SAM 2, follow this example:
     ```python
     from ultralytics.data.annotator import auto_annotate
 
-    auto_annotate(data="path/to/images", det_model="yolo11x.pt", sam_model="sam2_b.pt")
+    auto_annotate(data="path/to/images", det_model="yolo26x.pt", sam_model="sam2_b.pt")
     ```
 
 {% include "macros/sam-auto-annotate.md" %}

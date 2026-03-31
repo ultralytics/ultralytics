@@ -519,7 +519,7 @@ The below table represents the benchmark results for five different models (YOLO
         |-----------------|--------|-------------------|-------------|------------------------|
         | PyTorch         | ✅      | 5.3               | 0.4790      | 11.58                  |
         | TorchScript     | ✅      | 9.8               | 0.4770      | 4.60                   |
-        | ONNX            | ✅      | 9.5               | 0.4760      | 38.44                  |
+        | ONNX            | ✅      | 9.5               | 0.4770      | 9.87                   |
         | OpenVINO        | ✅      | 9.6               | 0.4820      | 28.80                  |
         | TensorRT (FP32) | ✅      | 11.5              | 0.0450      | 4.18                   |
         | TensorRT (FP16) | ✅      | 7.9               | 0.0450      | 2.62                   |
@@ -537,7 +537,7 @@ The below table represents the benchmark results for five different models (YOLO
         |-----------------|--------|-------------------|-------------|------------------------|
         | PyTorch         | ✅      | 20.0              | 0.5730      | 13.18                  |
         | TorchScript     | ✅      | 36.8              | 0.5670      | 11.48                  |
-        | ONNX            | ✅      | 36.5              | 0.5660      | 96.92                  |
+        | ONNX            | ✅      | 36.5              | 0.5660      | 13.47                  |
         | OpenVINO        | ✅      | 36.7              | 0.5650      | 58.30                  |
         | TensorRT (FP32) | ✅      | 38.5              | 0.5660      | 6.82                   |
         | TensorRT (FP16) | ✅      | 21.9              | 0.5660      | 3.76                   |
@@ -554,7 +554,7 @@ The below table represents the benchmark results for five different models (YOLO
         |-----------------|--------|-------------------|-------------|------------------------|
         | PyTorch         | ✅      | 43.0              | 0.6220      | 19.36                  |
         | TorchScript     | ✅      | 78.5              | 0.6230      | 20.02                  |
-        | ONNX            | ✅      | 78.2              | 0.6230      | 257.16                 |
+        | ONNX            | ✅      | 78.2              | 0.6230      | 25.40                  |
         | OpenVINO        | ✅      | 78.3              | 0.6190      | 130.76                 |
         | TensorRT (FP32) | ✅      | 80.2              | 0.6220      | 12.60                  |
         | TensorRT (FP16) | ✅      | 42.5              | 0.6220      | 6.24                   |
@@ -571,7 +571,7 @@ The below table represents the benchmark results for five different models (YOLO
         |-----------------|--------|-------------------|-------------|------------------------|
         | PyTorch         | ✅      | 51.0              | 0.6230      | 23.53                   |
         | TorchScript     | ✅      | 95.5              | 0.6250      | 24.23                  |
-        | ONNX            | ✅      | 95.0              | 0.6250      | 328.00                 |
+        | ONNX            | ✅      | 95.0              | 0.6250      | 31.73                  |
         | OpenVINO        | ✅      | 95.3              | 0.6240      | 162.80                 |
         | TensorRT (FP32) | ✅      | 97.3              | 0.6250      | 15.90                  |
         | TensorRT (FP16) | ✅      | 51.4              | 0.6240      | 7.93                   |
@@ -588,7 +588,7 @@ The below table represents the benchmark results for five different models (YOLO
         |-----------------|--------|-------------------|-------------|------------------------|
         | PyTorch         | ✅      | 114               | 0.6610      | 38.37                  |
         | TorchScript     | ✅      | 213.5             | 0.6590      | 41.23                  |
-        | ONNX            | ✅      | 212.9             | 0.6590      | 658.87                 |
+        | ONNX            | ✅      | 212.9             | 0.6590      | 52.03                  |
         | OpenVINO        | ✅      | 213.2             | 0.6590      | 300.40                 |
         | TensorRT (FP32) | ✅      | 215.2             | 0.6590      | 28.43                  |
         | TensorRT (FP16) | ✅      | 110.3             | 0.6570      | 13.50                  |

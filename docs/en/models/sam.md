@@ -286,7 +286,7 @@ For more detailed usage instructions, visit the [Segmentation section](#sam-pred
 
 ### How do SAM and YOLO models compare in terms of performance?
 
-Compared to YOLO models, SAM variants like SAM-b, SAM2-t, MobileSAM, and FastSAM-s are typically larger and slower but offer unique zero-shot segmentation capabilities. For example, Ultralytics [YOLOv8n-seg](../tasks/segment.md) is **11.7x smaller** and **1069x faster** than Meta's original SAM-b model, highlighting YOLO's significant advantage in speed and efficiency. Similarly, the newer [YOLO11n-seg](../tasks/segment.md) provides even smaller size and maintains impressive inference speed. This makes YOLO models ideal for applications requiring rapid, lightweight, and computationally efficient segmentation, while SAM models excel in flexible, promptable, and zero-shot segmentation tasks.
+Compared to YOLO models, SAM variants like SAM-b, MobileSAM, and FastSAM-s are typically larger and slower but offer unique zero-shot segmentation capabilities. For example, [YOLO26n-seg](yolo26.md) is **56x smaller** and over **1400x faster** than Meta's original SAM-b model on CPU. This makes YOLO models ideal for applications requiring rapid, lightweight, and computationally efficient segmentation, while SAM models excel in flexible, promptable, and zero-shot segmentation tasks.
 
 ### How can I auto-annotate my dataset using SAM?
 
@@ -295,7 +295,7 @@ Ultralytics' SAM offers an auto-annotation feature that allows generating segmen
 ```python
 from ultralytics.data.annotator import auto_annotate
 
-auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model="sam_b.pt")
+auto_annotate(data="path/to/images", det_model="yolo26x.pt", sam_model="sam_b.pt")
 ```
 
 This function takes the path to your images and optional arguments for pretrained detection and SAM segmentation models, along with device and output directory specifications. For a complete guide, see [Auto-Annotation](#auto-annotation-a-quick-path-to-segmentation-datasets).

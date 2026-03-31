@@ -192,10 +192,12 @@ SAM speeds measured with PyTorch, YOLO speeds measured with ONNX Runtime. Tests 
         model.info()
         model(ASSETS)
 
-        # Profile YOLO models
+        # Profile YOLO models (ONNX)
         for file_name in ["yolov8n-seg.pt", "yolo11n-seg.pt", "yolo26n-seg.pt"]:
             model = YOLO(file_name)
             model.info()
+            onnx_path = model.export(format="onnx")
+            model = YOLO(onnx_path)
             model(ASSETS)
         ```
 

@@ -21,7 +21,7 @@ NCNN                    | `ncnn`                    | yolo26n_ncnn_model/
 IMX                     | `imx`                     | yolo26n_imx_model/
 RKNN                    | `rknn`                    | yolo26n_rknn_model/
 ExecuTorch              | `executorch`              | yolo26n_executorch_model/
-Axelera                 | `axelera`                 | yolo26n_axelera_model/
+Axelera AI              | `axelera`                 | yolo26n_axelera_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -51,7 +51,7 @@ Inference:
                          yolo26n_imx_model          # IMX
                          yolo26n_rknn_model         # RKNN
                          yolo26n_executorch_model   # ExecuTorch
-                         yolo26n_axelera_model      # Axelera
+                         yolo26n_axelera_model      # Axelera AI
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -76,18 +76,19 @@ import numpy as np
 import torch
 
 from ultralytics import __version__
-from ultralytics.cfg import TASK2DATA, get_cfg
+from ultralytics.cfg import TASK2CALIBRATIONDATA, TASK2DATA, get_cfg
 from ultralytics.data import build_dataloader
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
-from ultralytics.nn.modules import C2f, Classify, Detect, RTDETRDecoder
+from ultralytics.nn.modules import C2f, Classify, Detect, RTDETRDecoder, Segment26
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
     IS_DEBIAN_BOOKWORM,
     IS_DEBIAN_TRIXIE,
+    IS_DOCKER,
     IS_RASPBERRYPI,
     IS_UBUNTU,
     LINUX,
@@ -106,7 +107,6 @@ from ultralytics.utils import (
     is_jetson,
 )
 from ultralytics.utils.checks import (
-    IS_PYTHON_3_10,
     IS_PYTHON_MINIMUM_3_9,
     check_apt_requirements,
     check_executorch_requirements,
@@ -127,6 +127,7 @@ from ultralytics.utils.torch_utils import (
     TORCH_1_13,
     TORCH_2_1,
     TORCH_2_3,
+    TORCH_2_8,
     TORCH_2_9,
     select_device,
 )
@@ -166,7 +167,7 @@ def export_formats():
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
-        ["Axelera", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction"]],
+        ["Axelera AI", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction", "data"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -325,15 +326,13 @@ class Exporter:
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
         if fmt == "axelera":
-            if not IS_PYTHON_3_10:
-                raise SystemError("Axelera export only supported on Python 3.10.")
+            if model.task == "segment" and any(isinstance(m, Segment26) for m in model.modules()):
+                raise ValueError("Axelera export does not currently support YOLO26 segmentation models.")
             if not self.args.int8:
                 LOGGER.warning("Setting int8=True for Axelera mixed-precision export.")
                 self.args.int8 = True
-            if model.task not in {"detect"}:
-                raise ValueError("Axelera export only supported for detection models.")
             if not self.args.data:
-                self.args.data = "coco128.yaml"  # Axelera default to coco128.yaml
+                self.args.data = TASK2CALIBRATIONDATA.get(model.task)
         if fmt == "imx":
             if not self.args.int8:
                 LOGGER.warning("IMX export requires int8=True, setting int8=True.")
@@ -1009,58 +1008,21 @@ class Exporter:
     @try_export
     def export_axelera(self, prefix=colorstr("Axelera:")):
         """Export YOLO model to Axelera format."""
-        os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
-        try:
-            from axelera.compiler import CompilerConfig
-        except ImportError:
-            check_apt_requirements(
-                ["libllvm14", "libgirepository1.0-dev", "pkg-config", "libcairo2-dev", "build-essential", "cmake"]
-            )
+        assert LINUX and not (ARM64 and IS_DOCKER), (
+            "export is only supported on Linux and is not supported on ARM64 Docker."
+        )
+        assert TORCH_2_8, "export requires torch>=2.8.0."
 
-            check_requirements(
-                "axelera-voyager-sdk==1.5.2",
-                cmds="--extra-index-url https://software.axelera.ai/artifactory/axelera-runtime-pypi "
-                "--extra-index-url https://software.axelera.ai/artifactory/axelera-dev-pypi",
-            )
-            from axelera.compiler import CompilerConfig
+        from ultralytics.utils.export.axelera import torch2axelera
 
-        from ultralytics.utils.export.axelera import onnx2axelera
-
-        self.args.opset = 17  # hardcode opset for Axelera
-        onnx_path = self.export_onnx()
-        model_name = Path(onnx_path).stem
-        export_path = Path(f"{model_name}_axelera_model")
-        export_path.mkdir(exist_ok=True)
-
-        if "C2PSA" in self.model.__str__():  # YOLO11
-            config = CompilerConfig(
-                quantization_scheme="per_tensor_min_max",
-                ignore_weight_buffers=False,
-                resources_used=0.25,
-                aipu_cores_used=1,
-                multicore_mode="batch",
-                output_axm_format=True,
-                model_name=model_name,
-            )
-        else:  # YOLOv8
-            config = CompilerConfig(
-                tiling_depth=6,
-                split_buffer_promotion=True,
-                resources_used=0.25,
-                aipu_cores_used=1,
-                multicore_mode="batch",
-                output_axm_format=True,
-                model_name=model_name,
-            )
-        export_path = onnx2axelera(
-            onnx_file=onnx_path,
-            compile_config=config,
-            metadata=self.metadata,
+        return torch2axelera(
+            model=self.model,
+            file=self.file,
             calibration_dataset=self.get_int8_calibration_dataloader(prefix),
             transform_fn=self._transform_fn,
+            metadata=self.metadata,
             prefix=prefix,
         )
-        return export_path
 
     @try_export
     def export_executorch(self, prefix=colorstr("ExecuTorch:")):

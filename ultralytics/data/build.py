@@ -234,7 +234,7 @@ class BalancedDistributedSampler(torch.utils.data.Sampler):
         rank (int, optional): Rank of the current process. Defaults to current rank.
         shuffle (bool): If True, additionally shuffle each rank's local slice every epoch.
 
-    Usage::
+    Examples:
 
         sampler = BalancedDistributedSampler(train_dataset)
         loader = DataLoader(train_dataset, sampler=sampler, batch_size=32)
@@ -251,7 +251,16 @@ class BalancedDistributedSampler(torch.utils.data.Sampler):
         rank: int | None = None,
         shuffle: bool = True,
     ) -> None:
-        """Initialize the sampler, building class-to-image mapping."""
+        """
+        Initialize the sampler, building class-to-image mapping.
+
+        Args:
+            dataset (Dataset): Dataset with a ``labels`` attribute — a list of dicts, each having a ``cls``
+                key whose value is a numpy array of shape ``(N, 1)`` containing class IDs.
+            num_replicas (int, optional): Number of distributed processes. Defaults to world size.
+            rank (int, optional): Rank of the current process. Defaults to current rank.
+            shuffle (bool): If True, additionally shuffle each rank's local slice every epoch.
+        """
         if num_replicas is None:
             num_replicas = dist.get_world_size() if dist.is_initialized() else 1
         if rank is None:

@@ -81,6 +81,21 @@ class YOLO(Model):
                 self.__class__ = type(new_instance)
                 self.__dict__ = new_instance.__dict__
 
+    def timeit(self, imgsz=640, loops=100, runs=7):
+        """Benchmark forward pass with timeit (100 loops x 7 runs)."""
+        import timeit
+
+        t = torch.randn(1, 3, imgsz, imgsz, device=self.device)
+        self.model.eval()
+        # Warmup
+        for _ in range(10):
+            self.model(t)
+        if self.device.type == "cuda":
+            torch.cuda.synchronize()
+        results = timeit.repeat(lambda: (self.model(t), torch.cuda.synchronize() if self.device.type == "cuda" else None), number=loops, repeat=runs)
+        times_ms = [r / loops * 1000 for r in results]
+        print(f"  {min(times_ms):.2f} ms (best of {runs} runs, {loops} loops each)")
+
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:
         """Map head to model, trainer, validator, and predictor classes."""

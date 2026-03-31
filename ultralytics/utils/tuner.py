@@ -21,7 +21,14 @@ RAY_SEARCH_ALG_REQUIREMENTS = {
 
 
 def _sanitize_tune_value(value):
-    """Convert NumPy-backed Tune values into native Python types for YAML serialization."""
+    """Convert NumPy-backed Tune values into native Python types for YAML serialization.
+
+    Args:
+        value: The value to convert. Can be a dict, list, tuple, NumPy scalar, or NumPy array.
+
+    Returns:
+        The converted value with NumPy types replaced by native Python types.
+    """
     if isinstance(value, dict):
         return {k: _sanitize_tune_value(v) for k, v in value.items()}
     if isinstance(value, list):
@@ -36,7 +43,14 @@ def _sanitize_tune_value(value):
 
 
 def _get_ray_search_alg_kind(search_alg):
-    """Return the normalized Ray Tune search algorithm kind for known searcher objects."""
+    """Return the normalized Ray Tune search algorithm kind for known searcher objects.
+
+    Args:
+        search_alg: The search algorithm to identify. Can be None, a string, or a Ray Tune searcher object.
+
+    Returns:
+        str | None: The normalized search algorithm name, or None if not recognized.
+    """
     if search_alg is None:
         return None
     if isinstance(search_alg, str):
@@ -55,7 +69,17 @@ def _get_ray_search_alg_kind(search_alg):
 
 
 def _validate_ax_search_space(space):
-    """Validate that a Tune search space can be consumed by Ax."""
+    """Validate that a Tune search space can be consumed by Ax.
+
+    Args:
+        space (dict): The hyperparameter search space to validate.
+
+    Returns:
+        list: The converted Ax parameters.
+
+    Raises:
+        ImportError: If the required 'ax-platform' package is not installed.
+    """
     checks.check_requirements(RAY_SEARCH_ALG_REQUIREMENTS["ax"])
 
     from ray.tune.search.ax.ax_search import AxSearch
@@ -64,7 +88,18 @@ def _validate_ax_search_space(space):
 
 
 def _create_ax_search(space, task):
-    """Create an Ax searcher with an initialized experiment."""
+    """Create an Ax searcher with an initialized experiment.
+
+    Args:
+        space (dict): The hyperparameter search space.
+        task (str): The task type (e.g., 'detect', 'segment', 'classify').
+
+    Returns:
+        AxSearch: The configured Ax search algorithm.
+
+    Raises:
+        ImportError: If required Ax packages are not installed.
+    """
     parameters = _validate_ax_search_space(space)
 
     from ax.service.ax_client import AxClient
@@ -80,7 +115,18 @@ def _create_ax_search(space, task):
 
 
 def _convert_bohb_search_space(space):
-    """Convert a Tune search space into BOHB-compatible ConfigSpace and fixed-only Tune param_space."""
+    """Convert a Tune search space into BOHB-compatible ConfigSpace and fixed-only Tune param_space.
+
+    Args:
+        space (dict): The hyperparameter search space.
+
+    Returns:
+        tuple: A tuple containing the ConfigSpace object and a dict of fixed parameters.
+
+    Raises:
+        ValueError: If the search space contains grid search parameters or unsupported samplers.
+        ImportError: If required BOHB packages are not installed.
+    """
     checks.check_requirements(RAY_SEARCH_ALG_REQUIREMENTS["bohb"])
 
     import ConfigSpace
@@ -126,7 +172,18 @@ def _convert_bohb_search_space(space):
 
 
 def _create_bohb_search(space, task):
-    """Create a BOHB searcher using a ConfigSpace definition compatible with current ConfigSpace versions."""
+    """Create a BOHB searcher using a ConfigSpace definition compatible with current ConfigSpace versions.
+
+    Args:
+        space (dict): The hyperparameter search space.
+        task (str): The task type (e.g., 'detect', 'segment', 'classify').
+
+    Returns:
+        tuple: A tuple containing the TuneBOHB searcher and fixed parameter space dict.
+
+    Raises:
+        ImportError: If required BOHB packages are not installed.
+    """
     cs, fixed_param_space = _convert_bohb_search_space(space)
 
     from ray.tune.search.bohb.bohb_search import TuneBOHB
@@ -135,7 +192,17 @@ def _create_bohb_search(space, task):
 
 
 def _create_nevergrad_search(task):
-    """Create a Nevergrad searcher with a default optimizer."""
+    """Create a Nevergrad searcher with a default optimizer.
+
+    Args:
+        task (str): The task type (e.g., 'detect', 'segment', 'classify').
+
+    Returns:
+        NevergradSearch: The configured Nevergrad search algorithm.
+
+    Raises:
+        ImportError: If the 'nevergrad' package is not installed.
+    """
     checks.check_requirements(RAY_SEARCH_ALG_REQUIREMENTS["nevergrad"])
 
     import nevergrad as ng
@@ -145,7 +212,17 @@ def _create_nevergrad_search(task):
 
 
 def _convert_zoopt_search_space(space):
-    """Convert a Tune search space into ZOOpt-compatible dimensions and fixed-only Tune param_space."""
+    """Convert a Tune search space into ZOOpt-compatible dimensions and fixed-only Tune param_space.
+
+    Args:
+        space (dict): The hyperparameter search space.
+
+    Returns:
+        tuple: A tuple containing the ZOOpt dimension dict and fixed parameter space dict.
+
+    Raises:
+        ImportError: If the 'zoopt' package is not installed.
+    """
     checks.check_requirements(RAY_SEARCH_ALG_REQUIREMENTS["zoopt"])
 
     from ray.tune.search.variant_generator import parse_spec_vars
@@ -159,19 +236,49 @@ def _convert_zoopt_search_space(space):
     return dim_dict, fixed_param_space
 
 
-def _create_zoopt_search(space, task, max_samples):
-    """Create a ZOOpt searcher with required budget and converted search space."""
+def _create_zoopt_search(space, task, iterations):
+    """Create a ZOOpt searcher with required budget and converted search space.
+
+    Args:
+        space (dict): The hyperparameter search space.
+        task (str): The task type (e.g., 'detect', 'segment', 'classify').
+        iterations (int): The maximum number of trials (budget) for ZOOpt.
+
+    Returns:
+        tuple: A tuple containing the ZOOptSearch searcher and fixed parameter space dict.
+
+    Raises:
+        ImportError: If the 'zoopt' package is not installed.
+    """
     dim_dict, fixed_param_space = _convert_zoopt_search_space(space)
 
     from ray.tune.search.zoopt import ZOOptSearch
 
     return ZOOptSearch(
-        algo="asracos", budget=max_samples, dim_dict=dim_dict, metric=TASK2METRIC[task], mode="max"
+        algo="asracos", budget=iterations, dim_dict=dim_dict, metric=TASK2METRIC[task], mode="max"
     ), fixed_param_space
 
 
-def _resolve_ray_search_alg(search_alg, task, space, max_samples):
-    """Resolve search algorithms and normalize Tune param_space for known Ray Tune searchers."""
+def _resolve_ray_search_alg(search_alg, task, space, iterations):
+    """Resolve search algorithms and normalize Tune param_space for known Ray Tune searchers.
+
+    Args:
+        search_alg (str | object | None): The search algorithm to use. Can be a string name,
+            a pre-instantiated Ray Tune searcher object, or None for default behavior.
+        task (str): The task type (e.g., 'detect', 'segment', 'classify').
+        space (dict): The hyperparameter search space.
+        iterations (int): The maximum number of trials to run.
+
+    Returns:
+        tuple: A tuple containing (resolved_search_alg, tuner_param_space, resolved_search_alg_kind).
+            - resolved_search_alg: The configured searcher or None.
+            - tuner_param_space: The normalized parameter space for the tuner.
+            - resolved_search_alg_kind: The normalized algorithm name or None.
+
+    Raises:
+        ValueError: If an unsupported search_alg string is provided.
+        ModuleNotFoundError: If required dependencies for the chosen algorithm are not installed.
+    """
     if search_alg is None:
         return None, space, None
 
@@ -202,7 +309,7 @@ def _resolve_ray_search_alg(search_alg, task, space, max_samples):
             return _create_nevergrad_search(task), space, normalized
         if normalized == "zoopt":
             if isinstance(search_alg, str):
-                resolved_search_alg, tuner_param_space = _create_zoopt_search(space, task, max_samples)
+                resolved_search_alg, tuner_param_space = _create_zoopt_search(space, task, iterations)
             else:
                 _, tuner_param_space = _convert_zoopt_search_space(space)
                 resolved_search_alg = search_alg
@@ -228,7 +335,7 @@ def run_ray_tune(
     space: dict | None = None,
     grace_period: int = 10,
     gpu_per_trial: int | None = None,
-    max_samples: int = 10,
+    iterations: int = 10,
     search_alg=None,
     **train_args,
 ):
@@ -239,7 +346,7 @@ def run_ray_tune(
         space (dict, optional): The hyperparameter search space. If not provided, uses default space.
         grace_period (int, optional): The grace period in epochs of the ASHA scheduler.
         gpu_per_trial (int, optional): The number of GPUs to allocate per trial.
-        max_samples (int, optional): The maximum number of trials to run.
+        iterations (int, optional): The maximum number of trials to run.
         search_alg (str | ray.tune.search.Searcher | ray.tune.search.SearchAlgorithm, optional): Search algorithm to
             use. Strings are resolved to supported Ray Tune searchers. Pre-instantiated objects are reused, and known
             searchers with special Tune param_space requirements are normalized automatically.
@@ -340,7 +447,7 @@ def run_ray_tune(
         LOGGER.warning(f'Data not provided, using default "data={data}".')
 
     resolved_search_alg, tuner_param_space, resolved_search_alg_kind = _resolve_ray_search_alg(
-        search_alg, task, space, max_samples
+        search_alg, task, space, iterations
     )
 
     # Define the trainable function with allocated resources
@@ -383,7 +490,7 @@ def run_ray_tune(
             tune_config=tune.TuneConfig(
                 search_alg=resolved_search_alg,
                 scheduler=scheduler,
-                num_samples=max_samples,
+                num_samples=iterations,
                 trial_name_creator=lambda trial: f"{trial.trainable_name}_{trial.trial_id}",
                 trial_dirname_creator=lambda trial: f"{trial.trainable_name}_{trial.trial_id}",
             ),

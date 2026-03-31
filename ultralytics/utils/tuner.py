@@ -263,8 +263,8 @@ def _resolve_ray_search_alg(search_alg, task, space, iterations):
     """Resolve search algorithms and normalize Tune param_space for known Ray Tune searchers.
 
     Args:
-        search_alg (str | object | None): The search algorithm to use. Can be a string name,
-            a pre-instantiated Ray Tune searcher object, or None for default behavior.
+        search_alg (str | object | None): The search algorithm to use. Can be a string name, a pre-instantiated Ray Tune
+            searcher object, or None for default behavior.
         task (str): The task type (e.g., 'detect', 'segment', 'classify').
         space (dict): The hyperparameter search space.
         iterations (int): The maximum number of trials to run.

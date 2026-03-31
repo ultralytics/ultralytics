@@ -184,7 +184,23 @@ model.train(data="coco8.yaml", epochs=10, trainer=WeightedTrainer)
 
 ## Saving the Best Model by Custom Metric
 
-The trainer saves `best.pt` based on fitness, which defaults to `0.9 × mAP@0.5:0.95 + 0.1 × mAP@0.5`. To use a different metric (like `mAP@0.5` or recall), override `validate()` and return your chosen metric as the fitness value. The built-in `save_model()` will then use it automatically:
+The trainer saves `best.pt` based on fitness, which defaults to `0.9 × mAP@0.5:0.95 + 0.1 × mAP@0.5` for detection tasks. For standard detect training, you can now customize this behavior directly with the built-in detect-only `fitness_weights` train argument instead of subclassing the trainer.
+
+The weights are applied in the order `[precision, recall, mAP@0.5, mAP@0.5:0.95]`.
+
+```python
+from ultralytics import YOLO
+
+
+model = YOLO("yolo26n.pt")
+model.train(data="coco8.yaml", epochs=20, fitness_weights=[0.0, 0.0, 1.0, 0.0])
+```
+
+```bash
+yolo detect train model=yolo26n.pt data=coco8.yaml epochs=20 fitness_weights=[0.0,0.0,1.0,0.0]
+```
+
+Use `fitness_weights` when you want to reweight the built-in detection metrics while keeping the default trainer. If you need a completely custom fitness calculation, override `validate()` and return your chosen metric as the fitness value. The built-in `save_model()` will then use it automatically:
 
 ```python
 from ultralytics import YOLO

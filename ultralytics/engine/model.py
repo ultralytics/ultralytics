@@ -834,7 +834,7 @@ class Model(torch.nn.Module):
         if use_ray:
             from ultralytics.utils.tuner import run_ray_tune
 
-            return run_ray_tune(self, max_samples=iterations, *args, **kwargs)
+            return run_ray_tune(self, iterations=iterations, *args, **kwargs)
         else:
             from .tuner import Tuner
 

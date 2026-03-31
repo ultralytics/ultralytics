@@ -166,6 +166,9 @@ def test_fitness_weights_cfg_validation():
     cfg = get_cfg(DEFAULT_CFG, overrides={"fitness_weights": (0, 0, 1, 0)})
     assert cfg.fitness_weights == [0.0, 0.0, 1.0, 0.0]
 
+    with pytest.raises(TypeError, match="fitness_weights"):
+        get_cfg(DEFAULT_CFG, overrides={"fitness_weights": "0,0,1,0"})
+
     with pytest.raises(ValueError, match="fitness_weights"):
         get_cfg(DEFAULT_CFG, overrides={"fitness_weights": [0, 0, 1]})
 
@@ -252,3 +255,36 @@ def test_detection_validator_coco_evaluate_uses_custom_fitness_weights():
     assert results["metrics/mAP50(B)"] == pytest.approx(0.61)
     assert results["metrics/mAP50-95(B)"] == pytest.approx(0.27)
     assert results["fitness"] == pytest.approx(0.61)
+
+
+def test_detection_validator_coco_evaluate_preserves_legacy_default_fitness():
+    """Preserve the historical COCO fitness mix unless custom weights are explicitly set."""
+    validator = detect.DetectionValidator(args={"data": "coco8.yaml", "model": "yolo26n.pt"})
+    validator.args.save_json = True
+    validator.is_coco = True
+    validator.is_lvis = False
+    validator.jdict = [{"image_id": 1}]
+    validator.dataloader = mock.Mock()
+    validator.dataloader.dataset.im_files = ["1.jpg"]
+
+    pred_json = mock.Mock()
+    pred_json.is_file.return_value = True
+    anno_json = mock.Mock()
+    anno_json.is_file.return_value = True
+
+    coco_eval = mock.Mock()
+    coco_eval.stats_as_dict = {"AP_50": 0.61, "AP_all": 0.27, "AP_small": 0.1, "AP_medium": 0.2, "AP_large": 0.3}
+
+    fake_module = mock.Mock()
+    fake_module.COCO.return_value.loadRes.return_value = mock.Mock()
+    fake_module.COCOeval_faster.return_value = coco_eval
+
+    stats = {"metrics/precision(B)": 0.11, "metrics/recall(B)": 0.22, "metrics/mAP50(B)": 0.33, "metrics/mAP50-95(B)": 0.44}
+    with mock.patch("ultralytics.models.yolo.detect.val.check_requirements"), mock.patch.dict(
+        sys.modules, {"faster_coco_eval": fake_module}
+    ):
+        results = validator.coco_evaluate(stats, pred_json, anno_json)
+
+    assert results["metrics/mAP50(B)"] == pytest.approx(0.61)
+    assert results["metrics/mAP50-95(B)"] == pytest.approx(0.27)
+    assert results["fitness"] == pytest.approx(0.1 * 0.61 + 0.9 * 0.27)

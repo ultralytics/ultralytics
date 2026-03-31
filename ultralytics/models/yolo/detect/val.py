@@ -498,6 +498,9 @@ class DetectionValidator(BaseValidator):
                     stats["metrics/mAP_small(B)"] = val.stats_as_dict["AP_small"]
                     stats["metrics/mAP_medium(B)"] = val.stats_as_dict["AP_medium"]
                     stats["metrics/mAP_large(B)"] = val.stats_as_dict["AP_large"]
+                    coco_fitness_weights = (
+                        self.metrics.fitness_weights if self.args.fitness_weights is not None else [0.0, 0.0, 0.1, 0.9]
+                    )
                     stats["fitness"] = compute_detect_fitness(
                         [
                             stats.get("metrics/precision(B)", 0.0),
@@ -505,7 +508,7 @@ class DetectionValidator(BaseValidator):
                             stats[f"metrics/mAP50({suffix[i][0]})"],
                             stats[f"metrics/mAP50-95({suffix[i][0]})"],
                         ],
-                        self.metrics.fitness_weights,
+                        coco_fitness_weights,
                     )
 
                     if self.is_lvis:

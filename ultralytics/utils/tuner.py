@@ -454,12 +454,13 @@ def run_ray_tune(
     trainable_with_resources = tune.with_resources(_tune, {"cpu": NUM_THREADS, "gpu": gpu_per_trial or 0})
 
     # Define the scheduler for hyperparameter search
+    max_t = train_args.get("epochs") or DEFAULT_CFG_DICT["epochs"] or 100
     scheduler = ASHAScheduler(
         time_attr="epoch",
         metric=TASK2METRIC[task],
         mode="max",
-        max_t=train_args.get("epochs") or DEFAULT_CFG_DICT["epochs"] or 100,
-        grace_period=grace_period,
+        max_t=max_t,
+        grace_period=min(grace_period, max_t),
         reduction_factor=3,
     )
     if resolved_search_alg_kind == "bohb":

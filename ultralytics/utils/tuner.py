@@ -407,7 +407,7 @@ def run_ray_tune(
         "mixup": tune.uniform(0.0, 1.0),  # image mixup (probability)
         "cutmix": tune.uniform(0.0, 1.0),  # image cutmix (probability)
         "copy_paste": tune.uniform(0.0, 1.0),  # segment copy-paste (probability)
-        "close_mosaic": tune.uniform(0.0, 10.0),  # close dataloader mosaic (epochs)
+        "close_mosaic": tune.randint(0, 11),  # close dataloader mosaic (epochs)
     }
 
     # Put the model in ray store

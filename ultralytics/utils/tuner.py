@@ -468,7 +468,7 @@ def run_ray_tune(
             time_attr="epoch",
             metric=TASK2METRIC[task],
             mode="max",
-            max_t=train_args.get("epochs") or DEFAULT_CFG_DICT["epochs"] or 100,
+            max_t=max_t,
             reduction_factor=3,
         )
 

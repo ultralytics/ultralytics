@@ -213,7 +213,6 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         """
         self.epoch = epoch
 
-
 class BalancedDistributedSampler(torch.utils.data.Sampler):
     """
     Distributed sampler with strict per-class balanced sampling.
@@ -221,14 +220,15 @@ class BalancedDistributedSampler(torch.utils.data.Sampler):
     Pre-builds a class-to-image mapping (cls → [img_indices]).  At every epoch a fixed
     number of images is drawn *per class* (with replacement when a class has fewer images
     than the quota), so every class contributes equally to the epoch regardless of how many
-    bboxes an image contains.  The resulting global index list is sharded across ranks,
-    giving each GPU a non-overlapping, contiguous slice.
+    bboxes an image contains.  The resulting global index list is shuffled globally before
+    being sharded across ranks, giving each GPU a non-overlapping slice with a
+    representative mix of all classes.
 
-    total_size  = samples_per_class × num_classes
+    total_size  = ceil(samples_per_class × num_classes / num_replicas) × num_replicas
     samples_per_class = max(1, len(dataset) // num_classes)
 
     Args:
-        dataset: Dataset with a ``labels`` attribute — a list of dicts, each having a ``cls``
+        dataset (Dataset): Dataset with a ``labels`` attribute — a list of dicts, each having a ``cls``
             key whose value is a numpy array of shape ``(N, 1)`` containing class IDs.
         num_replicas (int, optional): Number of distributed processes. Defaults to world size.
         rank (int, optional): Rank of the current process. Defaults to current rank.
@@ -244,7 +244,13 @@ class BalancedDistributedSampler(torch.utils.data.Sampler):
                 ...
     """
 
-    def __init__(self, dataset, num_replicas=None, rank=None, shuffle=True):
+    def __init__(
+        self,
+        dataset: Dataset,
+        num_replicas: int | None = None,
+        rank: int | None = None,
+        shuffle: bool = True,
+    ) -> None:
         """Initialize the sampler, building class-to-image mapping."""
         if num_replicas is None:
             num_replicas = dist.get_world_size() if dist.is_initialized() else 1
@@ -261,10 +267,15 @@ class BalancedDistributedSampler(torch.utils.data.Sampler):
         self.cls_to_imgs = self._build_cls_to_imgs()
         self.num_classes = len(self.cls_to_imgs)
         self.samples_per_class = max(1, len(dataset) // max(self.num_classes, 1))
-        self.total_size = self.samples_per_class * self.num_classes
+
+        # Pad total_size so every rank gets exactly num_samples indices (prevents DDP hangs)
+        raw_total = self.samples_per_class * self.num_classes
+        self.num_samples = math.ceil(raw_total / self.num_replicas)
+        self.total_size = self.num_samples * self.num_replicas
 
     def _build_cls_to_imgs(self) -> dict:
         """Build mapping {class_id: [image_indices]} from dataset labels.
+
         Returns an empty dict if dataset has no labels or if labels do not contain 'cls' key.
         """
         labels = getattr(self.dataset, "labels", None)
@@ -286,41 +297,43 @@ class BalancedDistributedSampler(torch.utils.data.Sampler):
         if cls_to_imgs:
             total = sum(cls_bbox_count.values())
             sorted_counts = sorted(cls_bbox_count.items(), key=lambda x: x[1], reverse=True)
-            LOGGER.info(f"\n📊 BalancedDistributedSampler: {len(cls_to_imgs)} classes, "
-                f"{total} bboxes, avg {total / len(cls_to_imgs):.1f}/cls")
-            LOGGER.info(f"  Top 5: {sorted_counts[:5]}")
-            LOGGER.info(f"  Bottom 5: {sorted_counts[-5:]}")
+            LOGGER.info(
+                f"\n📊 BalancedDistributedSampler: {len(cls_to_imgs)} classes, "
+                f"{total} bboxes, avg {total / len(cls_to_imgs):.1f}/cls"
+            )
+            LOGGER.info(f"  Top 5(class,num_box): {sorted_counts[:5]}")
+            LOGGER.info(f"  Bottom 5(class,num_box): {sorted_counts[-5:]}")
 
         return cls_to_imgs
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         """Yield indices for this rank's slice of the class-balanced sample."""
         g = torch.Generator()
         g.manual_seed(self.epoch)
 
         # 1. For every class draw exactly `samples_per_class` image indices (with replacement)
-        indices = []
+        indices: list[int] = []
         for cls_id in sorted(self.cls_to_imgs.keys()):
             img_list = self.cls_to_imgs[cls_id]
             n = len(img_list)
             sampled = torch.randint(0, n, (self.samples_per_class,), generator=g).tolist()
             indices.extend(img_list[p] for p in sampled)
 
-        # 2. Optionally save class-distribution histogram (all ranks)
-        # if self.rank == 0:
-        #     self._save_cls_histogram(indices)
-
-        # 3. Shard across ranks (contiguous slice)
-        per_rank = self.total_size // self.num_replicas
-        remainder = self.total_size % self.num_replicas
-        start = self.rank * per_rank + min(self.rank, remainder)
-        end = start + per_rank + (1 if self.rank < remainder else 0)
-        rank_indices = indices[start:end]
-
-        # 4. Optionally shuffle within this rank's slice
+        # 2. Global shuffle so every rank gets a representative mix of all classes
         if self.shuffle:
-            perm = torch.randperm(len(rank_indices), generator=g).tolist()
-            rank_indices = [rank_indices[i] for i in perm]
+            perm = torch.randperm(len(indices), generator=g).tolist()
+            indices = [indices[i] for i in perm]
+
+        # 3. Pad to total_size so every rank gets exactly num_samples (prevents DDP hangs)
+        if len(indices) < self.total_size:
+            padding = self.total_size - len(indices)
+            indices += indices[:padding]
+        indices = indices[: self.total_size]
+
+        # 4. Shard across ranks (contiguous slice of the now-shuffled list)
+        rank_indices = indices[self.rank * self.num_samples : (self.rank + 1) * self.num_samples]
+
+
 
         return iter(rank_indices)
 
@@ -355,7 +368,7 @@ class BalancedDistributedSampler(torch.utils.data.Sampler):
         counts = [class_counts[c] for c in sorted_cls]
         n_cls = len(sorted_cls)
 
-        # Debug: LOGGER.info histogram info
+        # Debug: log histogram info
         LOGGER.info(f"\n📈 _save_cls_histogram (rank {self.rank}, epoch {self.epoch}):")
         LOGGER.info(f"  Num indices sampled: {len(indices)}")
         LOGGER.info(f"  Num classes in histogram: {n_cls}")
@@ -391,26 +404,22 @@ class BalancedDistributedSampler(torch.utils.data.Sampler):
         plt.savefig(save_path, dpi=120)
         plt.close(fig)
 
-        
         # Save CSV: cls_id, bbox_count — one row per class
-        LOGGER.info("Saved class distribution histogram to", save_path)
+        LOGGER.info(f"Saved class distribution histogram to {save_path}")
         csv_path = save_dir / f"cls_dist_{suffix}.csv"
         with open(csv_path, "w") as f:
             f.write("cls_id,bbox_count\n")
             for c, cnt in zip(sorted_cls, counts):
                 f.write(f"{c},{cnt}\n")
-        LOGGER.info("Saved class distribution CSV to", csv_path)
+        LOGGER.info(f"Saved class distribution CSV to {csv_path}")
 
     def __len__(self) -> int:
         """Return number of samples for this rank."""
-        per_rank = self.total_size // self.num_replicas
-        remainder = self.total_size % self.num_replicas
-        return per_rank + (1 if self.rank < remainder else 0)
+        return self.num_samples
 
     def set_epoch(self, epoch: int) -> None:
         """Set epoch so each epoch uses a different sampling seed."""
         self.epoch = epoch
-
 
 def seed_worker(worker_id: int) -> None:
     """Set dataloader worker seed for reproducibility across worker processes."""

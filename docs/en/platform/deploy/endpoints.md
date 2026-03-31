@@ -344,13 +344,17 @@ Dedicated endpoints are **not subject to the Platform API rate limits**. Request
 
 ### Request Parameters
 
-| Parameter   | Type   | Default | Description                   |
-| ----------- | ------ | ------- | ----------------------------- |
-| `file`      | file   | -       | Image file (required)         |
-| `conf`      | float  | 0.25    | Minimum confidence threshold  |
-| `iou`       | float  | 0.7     | NMS IoU threshold             |
-| `imgsz`     | int    | 640     | Input image size              |
-| `normalize` | string | -       | Return normalized coordinates |
+| Parameter   | Type   | Default | Description                    |
+| ----------- | ------ | ------- | ------------------------------ |
+| `file`      | file   | -       | Image or video file (required) |
+| `conf`      | float  | 0.25    | Minimum confidence threshold   |
+| `iou`       | float  | 0.7     | NMS IoU threshold              |
+| `imgsz`     | int    | 640     | Input image size               |
+| `normalize` | string | -       | Return normalized coordinates  |
+
+!!! tip "Video Inference"
+
+    Dedicated endpoints accept video files in addition to images. Supported video formats (up to 100MB): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV. Each frame is processed individually and results are returned per frame. Supported image formats (up to 50MB): AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WEBP.
 
 ### Response Format
 

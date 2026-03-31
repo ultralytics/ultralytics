@@ -42,7 +42,8 @@ class TensorFlowBackend(BaseBackend):
         Args:
             weight (str | Path): Path to the model file or directory.
         """
-        import tensorflow as tf
+        if self.format in {"saved_model", "pb"}:
+            import tensorflow as tf
 
         if self.format == "saved_model":
             LOGGER.info(f"Loading {weight} for TensorFlow SavedModel inference...")

@@ -1065,6 +1065,8 @@ class DetMetrics(SimpleClass, DataExportMixin):
 
         Args:
             names (dict[int, str], optional): Dictionary of class names.
+            fitness_weights (list[float] | tuple[float, ...] | None, optional): Optional detect fitness weights in
+                ``[P, R, mAP50, mAP50-95]`` order.
         """
         self.names = names
         self.fitness_weights = normalize_detect_fitness_weights(fitness_weights)

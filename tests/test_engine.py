@@ -13,8 +13,8 @@ from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.models.yolo import classify, detect, segment
 from ultralytics.nn.tasks import DetectionModel
-from ultralytics.utils.metrics import DetMetrics
 from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
+from ultralytics.utils.metrics import DetMetrics, compute_detect_fitness, normalize_detect_fitness_weights
 
 
 def test_func(*args, **kwargs):
@@ -166,6 +166,9 @@ def test_fitness_weights_cfg_validation():
     cfg = get_cfg(DEFAULT_CFG, overrides={"fitness_weights": (0, 0, 1, 0)})
     assert cfg.fitness_weights == [0.0, 0.0, 1.0, 0.0]
 
+    cfg = get_cfg(DEFAULT_CFG, overrides={"fitness_weights": [0, 1, 0, 0]})
+    assert cfg.fitness_weights == [0.0, 1.0, 0.0, 0.0]
+
     with pytest.raises(TypeError, match="fitness_weights"):
         get_cfg(DEFAULT_CFG, overrides={"fitness_weights": "0,0,1,0"})
 
@@ -177,6 +180,15 @@ def test_fitness_weights_cfg_validation():
 
     with pytest.raises(TypeError, match="fitness_weights"):
         get_cfg(DEFAULT_CFG, overrides={"fitness_weights": [0, "bad", 1, 0]})
+
+
+def test_detect_fitness_helpers_default_and_validation():
+    """Validate detect fitness helper defaults and error handling."""
+    assert normalize_detect_fitness_weights() == [0.0, 0.0, 0.0, 1.0]
+    assert compute_detect_fitness([0.1, 0.2, 0.3, 0.4]) == pytest.approx(0.4)
+
+    with pytest.raises(ValueError, match="fitness_weights"):
+        normalize_detect_fitness_weights([0.0, 1.0, 0.0])
 
 
 def test_det_metrics_custom_fitness_weights():
@@ -196,6 +208,26 @@ def test_detection_validator_uses_custom_fitness_weights():
     """Pass train args into the detect validator metrics."""
     validator = detect.DetectionValidator(args={"data": "coco8.yaml", "model": "yolo26n.pt", "fitness_weights": [0, 1, 0, 0]})
     assert validator.metrics.fitness_weights == [0.0, 1.0, 0.0, 0.0]
+
+
+def test_detection_trainer_logs_custom_fitness_weights():
+    """Log when detect training uses explicit custom fitness weights."""
+    with mock.patch("ultralytics.models.yolo.detect.train.LOGGER.info") as info_mock:
+        detect.DetectionTrainer(
+            overrides={
+                "data": "coco8.yaml",
+                "model": "yolo26n.yaml",
+                "imgsz": 32,
+                "epochs": 1,
+                "save": False,
+                "fitness_weights": [0.0, 0.0, 1.0, 0.0],
+                }
+        )
+
+    assert any(
+        call.args == ("Using custom fitness_weights=[0.0, 0.0, 1.0, 0.0] for best.pt selection",)
+        for call in info_mock.call_args_list
+    )
 
 
 def test_detection_trainer_resume_preserves_fitness_weights(tmp_path):

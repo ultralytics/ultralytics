@@ -360,7 +360,26 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
     """
     for k, v in cfg.items():
         if v is not None:  # None values may be from optional args
-            if k in CFG_FLOAT_KEYS and not isinstance(v, FLOAT_OR_INT):
+            if k == "fitness_weights":
+                if not isinstance(v, (list, tuple)):
+                    raise TypeError(
+                        f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                        f"'{k}' must be a list or tuple of four non-negative numeric values."
+                    )
+                if len(v) != 4:
+                    raise ValueError(f"'{k}={v}' must contain exactly 4 values for [P, R, mAP50, mAP50-95].")
+                weights = []
+                for x in v:
+                    if not isinstance(x, FLOAT_OR_INT):
+                        raise TypeError(
+                            f"'{k}={v}' contains invalid type {type(x).__name__}. "
+                            f"Each value in '{k}' must be int or float."
+                        )
+                    if x < 0:
+                        raise ValueError(f"'{k}={v}' contains invalid value {x}. All values must be >= 0.")
+                    weights.append(float(x))
+                cfg[k] = weights
+            elif k in CFG_FLOAT_KEYS and not isinstance(v, FLOAT_OR_INT):
                 if hard:
                     raise TypeError(
                         f"'{k}={v}' is of invalid type {type(v).__name__}. "

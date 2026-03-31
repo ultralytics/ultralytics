@@ -14,7 +14,7 @@ from ultralytics.data import build_dataloader, build_yolo_dataset, converter
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER, RANK, nms, ops
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
+from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou, compute_detect_fitness
 from ultralytics.utils.plotting import plot_images
 
 
@@ -58,7 +58,7 @@ class DetectionValidator(BaseValidator):
         self.args.task = "detect"
         self.iouv = torch.linspace(0.5, 0.95, 10)  # IoU vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
-        self.metrics = DetMetrics()
+        self.metrics = DetMetrics(fitness_weights=self.args.fitness_weights)
 
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess batch of images for YOLO validation.
@@ -498,16 +498,21 @@ class DetectionValidator(BaseValidator):
                     stats["metrics/mAP_small(B)"] = val.stats_as_dict["AP_small"]
                     stats["metrics/mAP_medium(B)"] = val.stats_as_dict["AP_medium"]
                     stats["metrics/mAP_large(B)"] = val.stats_as_dict["AP_large"]
-                    # update fitness
-                    stats["fitness"] = 0.9 * val.stats_as_dict["AP_all"] + 0.1 * val.stats_as_dict["AP_50"]
+                    stats["fitness"] = compute_detect_fitness(
+                        [
+                            stats.get("metrics/precision(B)", 0.0),
+                            stats.get("metrics/recall(B)", 0.0),
+                            stats[f"metrics/mAP50({suffix[i][0]})"],
+                            stats[f"metrics/mAP50-95({suffix[i][0]})"],
+                        ],
+                        self.metrics.fitness_weights,
+                    )
 
                     if self.is_lvis:
                         stats[f"metrics/APr({suffix[i][0]})"] = val.stats_as_dict["APr"]
                         stats[f"metrics/APc({suffix[i][0]})"] = val.stats_as_dict["APc"]
                         stats[f"metrics/APf({suffix[i][0]})"] = val.stats_as_dict["APf"]
 
-                if self.is_lvis:
-                    stats["fitness"] = stats["metrics/mAP50-95(B)"]  # always use box mAP50-95 for fitness
             except Exception as e:
                 LOGGER.warning(f"faster-coco-eval unable to run: {e}")
         return stats

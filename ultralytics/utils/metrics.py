@@ -22,6 +22,29 @@ OKS_SIGMA = (
     / 10.0
 )
 RLE_WEIGHT = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.2, 1.2, 1.5, 1.5, 1.0, 1.0, 1.2, 1.2, 1.5, 1.5])
+DETECT_FITNESS_WEIGHTS = (0.0, 0.0, 0.0, 1.0)
+
+
+def normalize_detect_fitness_weights(weights: list[float] | tuple[float, ...] | None = None) -> list[float]:
+    """Normalize detect fitness weights to a stable list representation."""
+    if weights is None:
+        return list(DETECT_FITNESS_WEIGHTS)
+    if len(weights) != 4:
+        raise ValueError("fitness_weights must contain exactly 4 values for [P, R, mAP50, mAP50-95].")
+    return [float(x) for x in weights]
+
+
+def compute_detect_fitness(
+    metrics: list[float] | tuple[float, float, float, float] | np.ndarray,
+    weights: list[float] | tuple[float, ...] | None = None,
+) -> float:
+    """Compute detect fitness from [P, R, mAP50, mAP50-95] metrics and optional weights."""
+    return float(
+        (
+            np.nan_to_num(np.asarray(metrics, dtype=float))
+            * np.asarray(normalize_detect_fitness_weights(weights), dtype=float)
+        ).sum()
+    )
 
 
 def bbox_ioa(box1: np.ndarray, box2: np.ndarray, iou: bool = False, eps: float = 1e-7) -> np.ndarray:
@@ -871,8 +894,9 @@ class Metric(SimpleClass):
         curves_results: Provide a list of results for accessing specific metrics like precision, recall, F1, etc.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, fitness_weights: list[float] | tuple[float, ...] | None = None) -> None:
         """Initialize a Metric instance for computing evaluation metrics for the YOLO model."""
+        self.fitness_weights = normalize_detect_fitness_weights(fitness_weights)
         self.p = []  # (nc, )
         self.r = []  # (nc, )
         self.f1 = []  # (nc, )
@@ -961,8 +985,7 @@ class Metric(SimpleClass):
 
     def fitness(self) -> float:
         """Return model fitness as a weighted combination of metrics."""
-        w = [0.0, 0.0, 0.0, 1.0]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
-        return float((np.nan_to_num(np.array(self.mean_results())) * w).sum())
+        return compute_detect_fitness(self.mean_results(), self.fitness_weights)
 
     def update(self, results: tuple):
         """Update the evaluation metrics with a new set of results.
@@ -1037,14 +1060,15 @@ class DetMetrics(SimpleClass, DataExportMixin):
         summary: Generate a summarized representation of per-class detection metrics as a list of dictionaries.
     """
 
-    def __init__(self, names: dict[int, str] = {}) -> None:
+    def __init__(self, names: dict[int, str] = {}, fitness_weights: list[float] | tuple[float, ...] | None = None) -> None:
         """Initialize a DetMetrics instance with class names.
 
         Args:
             names (dict[int, str], optional): Dictionary of class names.
         """
         self.names = names
-        self.box = Metric()
+        self.fitness_weights = normalize_detect_fitness_weights(fitness_weights)
+        self.box = Metric(self.fitness_weights)
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
         self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
         self.nt_per_class = None

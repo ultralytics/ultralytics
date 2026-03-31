@@ -192,6 +192,7 @@ CFG_FRACTION_KEYS = frozenset(
 CFG_INT_KEYS = frozenset(
     {  # integer-only arguments
         "epochs",
+        "stop_epoch",
         "patience",
         "workers",
         "seed",

@@ -480,6 +480,10 @@ class BaseTrainer:
             if RANK in {-1, 0}:
                 self.ema.update_attr(self.model, include=["yaml", "nc", "args", "names", "stride", "class_weights"])
 
+            # Hard stop at requested epoch
+            if self.args.stop_epoch and epoch + 1 >= self.args.stop_epoch:
+                self.stop = True
+
             # Validation
             final_epoch = epoch + 1 >= self.epochs
             if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:

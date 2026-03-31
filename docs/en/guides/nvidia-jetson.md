@@ -528,6 +528,8 @@ The below table represents the benchmark results for five different models (YOLO
         | TF GraphDef     | ✅      | 9.5               | 0.4760      | 70.02                  |
         | TF Lite         | ✅      | 9.9               | 0.4760      | 227.94                 |
         | MNN             | ✅      | 9.4               | 0.4760      | 32.46                  |
+        | NCNN            | ✅      | 9.3               | 0.4810      | 29.93                  |
+
 
     === "YOLO26s"
 
@@ -544,6 +546,7 @@ The below table represents the benchmark results for five different models (YOLO
         | TF GraphDef     | ✅      | 36.5              | 0.5660      | 146.26                 |
         | TF Lite         | ✅      | 36.9              | 0.5660      | 753.52                 |
         | MNN             | ✅      | 36.4              | 0.5650      | 79.50                  |
+        | NCNN            | ✅      | 36.4              | 0.5700      | 58.73                  |
 
     === "YOLO26m"
 
@@ -560,6 +563,7 @@ The below table represents the benchmark results for five different models (YOLO
         | TF GraphDef     | ✅      | 78.2              | 0.6230      | 314.23                 |
         | TF Lite         | ✅      | 78.5              | 0.6230      | 2331.63                |
         | MNN             | ✅      | 78.0              | 0.6220      | 206.93                 |
+        | NCNN            | ✅      | 78.0              | 0.6220      | 143.03                 |
 
     === "YOLO26l"
 
@@ -576,6 +580,7 @@ The below table represents the benchmark results for five different models (YOLO
         | TF GraphDef     | ✅      | 95.0              | 0.6250      | 398.63                 |
         | TF Lite         | ✅      | 95.4              | 0.6250      | 2925.27                |
         | MNN             | ✅      | 94.8              | 0.6250      | 255.87                 |
+        | NCNN            | ✅      | 94.8              | 0.6320      | 177.70                 |
 
     === "YOLO26x"
 
@@ -592,6 +597,7 @@ The below table represents the benchmark results for five different models (YOLO
         | TF GraphDef     | ✅      | 212.9             | 0.6590      | 785.70                 |
         | TF Lite         | ✅      | 217.6             | 0.6900      | 6476.80                |
         | MNN             | ✅      | 213.3             | 0.6590      | 519.77                 |
+        | NCNN            | ✅      | 212.8             | 0.6670      | 300.00                 |
 
     Benchmarked with Ultralytics 8.4.32
 

@@ -20,11 +20,11 @@ RAY_SEARCH_ALG_REQUIREMENTS = {
 }
 
 
-def _sanitize_tune_value(value):
+def _sanitize_tune_value(value: dict):
     """Convert NumPy-backed Tune values into native Python types for YAML serialization.
 
     Args:
-        value: The value to convert. Can be a dict, list, tuple, NumPy scalar, or NumPy array.
+        value (dict): The value to convert. Can be a dict, list, tuple, NumPy scalar, or NumPy array.
 
     Returns:
         The converted value with NumPy types replaced by native Python types.
@@ -46,7 +46,7 @@ def _get_ray_search_alg_kind(search_alg):
     """Return the normalized Ray Tune search algorithm kind for known searcher objects.
 
     Args:
-        search_alg: The search algorithm to identify. Can be None, a string, or a Ray Tune searcher object.
+        search_alg (str | ray.tune.search.Searcher): The search algorithm to identify. Can be None, a string, or a Ray Tune searcher object.
 
     Returns:
         str | None: The normalized search algorithm name, or None if not recognized.
@@ -95,7 +95,7 @@ def _create_ax_search(space, task):
         task (str): The task type (e.g., 'detect', 'segment', 'classify').
 
     Returns:
-        AxSearch: The configured Ax search algorithm.
+        AxSearch (ray.tune.search.Searcher): The configured Ax search algorithm.
 
     Raises:
         ImportError: If required Ax packages are not installed.
@@ -121,7 +121,7 @@ def _convert_bohb_search_space(space):
         space (dict): The hyperparameter search space.
 
     Returns:
-        tuple: A tuple containing the ConfigSpace object and a dict of fixed parameters.
+        (tuple): A tuple containing the ConfigSpace object and a dict of fixed parameters.
 
     Raises:
         ValueError: If the search space contains grid search parameters or unsupported samplers.
@@ -179,7 +179,7 @@ def _create_bohb_search(space, task):
         task (str): The task type (e.g., 'detect', 'segment', 'classify').
 
     Returns:
-        tuple: A tuple containing the TuneBOHB searcher and fixed parameter space dict.
+        (tuple): A tuple containing the TuneBOHB searcher and fixed parameter space dict.
 
     Raises:
         ImportError: If required BOHB packages are not installed.
@@ -198,7 +198,7 @@ def _create_nevergrad_search(task):
         task (str): The task type (e.g., 'detect', 'segment', 'classify').
 
     Returns:
-        NevergradSearch: The configured Nevergrad search algorithm.
+        (NevergradSearch): The configured Nevergrad search algorithm.
 
     Raises:
         ImportError: If the 'nevergrad' package is not installed.
@@ -218,7 +218,7 @@ def _convert_zoopt_search_space(space):
         space (dict): The hyperparameter search space.
 
     Returns:
-        tuple: A tuple containing the ZOOpt dimension dict and fixed parameter space dict.
+        (tuple): A tuple containing the ZOOpt dimension dict and fixed parameter space dict.
 
     Raises:
         ImportError: If the 'zoopt' package is not installed.
@@ -245,7 +245,7 @@ def _create_zoopt_search(space, task, iterations):
         iterations (int): The maximum number of trials (budget) for ZOOpt.
 
     Returns:
-        tuple: A tuple containing the ZOOptSearch searcher and fixed parameter space dict.
+        (tuple): A tuple containing the ZOOptSearch searcher and fixed parameter space dict.
 
     Raises:
         ImportError: If the 'zoopt' package is not installed.
@@ -270,7 +270,7 @@ def _resolve_ray_search_alg(search_alg, task, space, iterations):
         iterations (int): The maximum number of trials to run.
 
     Returns:
-        tuple: A tuple containing (resolved_search_alg, tuner_param_space, resolved_search_alg_kind).
+        (tuple): A tuple containing (resolved_search_alg, tuner_param_space, resolved_search_alg_kind).
             - resolved_search_alg: The configured searcher or None.
             - tuner_param_space: The normalized parameter space for the tuner.
             - resolved_search_alg_kind: The normalized algorithm name or None.

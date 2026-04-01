@@ -455,7 +455,7 @@ The dialog provides three ways to set your target split ratios:
 | -------- | -------------------------------------------------------------------------------------------- |
 | **Drag** | Drag the handles between the colored segments to visually adjust split boundaries            |
 | **Type** | Edit the percentage input for any split (the other two splits auto-rebalance proportionally) |
-| **Auto** | One-click to instantly set an 80/20 train/validation split with the test split set to 0%        |
+| **Auto** | One-click to instantly set an 80/20 train/validation split with the test split set to 0%     |
 
 A live preview shows exactly how many images will land in each split before you apply.
 

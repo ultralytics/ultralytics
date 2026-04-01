@@ -360,33 +360,6 @@ class v8DetectionLoss:
         self.bbox_loss = BboxLoss(m.reg_max).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 
-        import pandas as pd
-        from pathlib import Path
-        from ultralytics.data.build import build_name_to_weight
-        _csv = Path("obj365v1_cls_info.csv")
-        LOGGER.info(f"Loss: looking for cls weights CSV at {_csv.resolve()}")
-        if _csv.exists():
-            df = pd.read_csv(str(_csv))
-            df = df.dropna(subset=["Id"])
-            df["Id"] = df["Id"].astype(int)
-            df = df.sort_values("Id").reset_index(drop=True)
-            name_counts = {str(row["Category"]): int(row["ClassCnt"]) for _, row in df.iterrows()}
-            self.name_to_weight = build_name_to_weight(name_counts, mode="effective", beta=0.999)
-            # expand slash-separated names (e.g. "bread/bun" → "bread" and "bun")
-            for key in list(self.name_to_weight.keys()):
-                if "/" in key:
-                    for sub_key in key.split("/"):
-                        self.name_to_weight[sub_key] = self.name_to_weight[key]
-            _sample = sorted(self.name_to_weight.items(), key=lambda x: x[1])
-            LOGGER.info(f"✅v8DetectionLoss: loaded cls weights from {_csv}")
-            LOGGER.info(f"   Classes in mapping : {len(self.name_to_weight)}")  
-            LOGGER.info(f"   Min weight  → {_sample[0][0]!r}: {_sample[0][1]:.4f}")
-            LOGGER.info(f"   Max weight  → {_sample[-1][0]!r}: {_sample[-1][1]:.4f}")
-            LOGGER.info(f"   Mean weight : {sum(v for _, v in _sample) / len(_sample):.4f}")
-        else:
-            self.name_to_weight = None
-            LOGGER.warning(f"⚠️  Loss: cls weights CSV not found at {_csv.resolve()}, cls loss unweighted.")
-
 
     def preprocess(self, targets: torch.Tensor, batch_size: int, scale_tensor: torch.Tensor) -> torch.Tensor:
         """Preprocess targets by converting to tensor format and scaling coordinates."""

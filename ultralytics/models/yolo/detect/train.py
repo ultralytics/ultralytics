@@ -105,6 +105,25 @@ class DetectionTrainer(BaseTrainer):
             balance_sampler=self.args.balance_sampler and mode == "train",
         )
 
+    def get_dataset_cls_weight(self) -> torch.Tensor:
+        """Build per-class weights from training dataset bbox counts, cached on first call.
+
+        Returns:
+            (torch.Tensor): Class weights tensor of shape (1, 1, nc).
+        """
+        if not hasattr(self, "_cls_weight"):
+            from ultralytics.data.build import build_name_to_weight
+
+            names = self.data["names"]  # {index: name}
+            cls_count = {name: 0 for name in names.values()}
+            for lb in self.train_loader.dataset.labels:
+                for cls_idx in lb["cls"].flatten().astype(int):
+                    cls_count[names[cls_idx]] += 1
+            weight = build_name_to_weight(cls_count, mode="effective", beta=0.99)
+            cls_weight = torch.tensor([weight[name] for name in names.values()], device=self.device)  # (nc,)
+            self._cls_weight = cls_weight.unsqueeze(0).unsqueeze(0)  # (1, 1, nc)
+        return self._cls_weight
+
     def preprocess_batch(self, batch: dict) -> dict:
         """Preprocess a batch of images by scaling and converting to float.
 
@@ -114,6 +133,11 @@ class DetectionTrainer(BaseTrainer):
         Returns:
             (dict): Preprocessed batch with normalized images.
         """
+        if self.args.loss_balance:
+
+            batch["cls_weight"] = self.get_dataset_cls_weight().expand(self.args.batch, -1, -1)  # (B, 1, nc)
+
+  
         for k, v in batch.items():
             if isinstance(v, torch.Tensor):
                 batch[k] = v.to(self.device, non_blocking=self.device.type == "cuda")

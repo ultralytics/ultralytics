@@ -659,3 +659,53 @@ def load_inference_source(
     setattr(dataset, "source_type", source_type)
 
     return dataset
+
+
+
+
+def build_name_to_weight(
+    name_counts: dict,
+    mode: str = "effective",
+    beta: float = 0.999,
+) -> dict:
+    """
+    Build a {name: weight} dict from {name: count} for per-batch cls loss balancing.
+
+    Computes mean-normalised per-class weights from raw sample counts. The returned dict
+    is looked up at every forward pass using batch["names"] to assemble a per-batch
+    cls_weight tensor matching the visual-prompt classes in the batch.
+
+    For slash-separated names (e.g. "bread/bun"), extra entries are added so that each
+    sub-name maps to the same weight as the original key.
+
+    Args:
+        name_counts: Mapping of category name to its sample count, e.g. {"cat": 1200, "dog": 300}.
+        mode:        Weighting scheme.
+                     - "none":         uniform weights (all 1.0).
+                     - "inverse":      w = 1 / count.
+                     - "sqrt_inverse": w = 1 / sqrt(count).
+                     - "effective":    Class-Balanced Loss (Cui et al. 2019),
+                                       w = (1 - beta) / (1 - beta^count).
+        beta:        Smoothing factor for "effective" mode (default 0.999).
+
+    Returns:
+        Dict mapping category name (str) to scalar float weight (mean-normalised).
+    """
+    names, counts = zip(*name_counts.items())
+    counts = np.array(counts, dtype=np.float64)
+
+    if mode == "none":
+        w = np.ones(len(counts))
+    elif mode == "inverse":
+        w = 1.0 / np.clip(counts, 1, None)
+    elif mode == "sqrt_inverse":
+        w = 1.0 / np.sqrt(np.clip(counts, 1, None))
+    elif mode == "effective":
+        eff = 1.0 - np.power(beta, counts)
+        w = (1.0 - beta) / np.clip(eff, 1e-8, None)
+    else:
+        raise ValueError(f"Unknown mode '{mode}'. Choose from: none, inverse, sqrt_inverse, effective.")
+
+    w /= w.mean()
+    weight = {n: float(v) for n, v in zip(names, w)}
+    return weight

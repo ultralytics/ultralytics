@@ -474,7 +474,8 @@ class v8DetectionLoss:
         texts = batch.get("texts", [])
 
         if "cls_weight" in batch.keys():
-            pass # for training detection datasets with provided cls weights, the weights are pre-computed and directly passed in batch["cls_weight"] to be applied in loss calculation below.
+            if batch["cls_weight"].shape[0] != batch_size:
+                batch["cls_weight"] = batch["cls_weight"].expand(batch_size, -1, -1)  # (B, 1, nc)
 
         elif "texts" in batch.keys():
             #  for yoloe training using object365 datasets, dynamically assign weights for each instance in the batch based on the category name and a pre-computed name_to_weight mapping. This allows for per-batch loss balancing based on class frequencies.

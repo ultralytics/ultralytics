@@ -135,7 +135,7 @@ class DetectionTrainer(BaseTrainer):
         """
         if self.args.loss_balance:
 
-            batch["cls_weight"] = self.get_dataset_cls_weight().expand(self.args.batch, -1, -1)  # (B, 1, nc)
+            batch["cls_weight"] = self.get_dataset_cls_weight()
 
   
         for k, v in batch.items():

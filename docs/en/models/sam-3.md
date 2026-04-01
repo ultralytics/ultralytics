@@ -139,19 +139,6 @@ pip install -U ultralytics
 
 ## How to Use SAM 3: Versatility in Concept Segmentation
 
-### Quick Start
-
-Segment all instances of a concept in an image with just a few lines of code:
-
-```python
-from ultralytics.models.sam import SAM3SemanticPredictor
-
-predictor = SAM3SemanticPredictor(overrides=dict(model="sam3.pt"))
-predictor.set_image("path/to/image.jpg")
-results = predictor(text=["person", "bus"])
-results[0].show()
-```
-
 SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual Segmentation (PVS) tasks through different predictor interfaces:
 
 ### Supported Tasks and Models
@@ -416,7 +403,7 @@ SAM 3 provides accurate counting by segmenting all instances, a common requireme
 
 ## SAM 3 vs SAM 2 vs YOLO Comparison
 
-Here we compare SAM 3's capabilities with SAM 2 and [YOLO26](../models/yolo26.md) models:
+Here we compare SAM 3's capabilities with [SAM 2](./sam-2.md) and [YOLO26](./yolo26.md) models:
 
 | Capability                   | SAM 3                                 | SAM 2                | YOLO26n-seg        |
 | ---------------------------- | ------------------------------------- | -------------------- | ------------------ |
@@ -438,7 +425,7 @@ Speed benchmarked on NVIDIA RTX PRO 6000 with `torch==2.9.1` and `ultralytics==8
 - **SAM 2**: Best for interactive single-object segmentation in images and videos with geometric prompts
 - **YOLO26**: Best for real-time, high-speed segmentation with NMS-free end-to-end inference, [exportable to many formats](../modes/export.md#export-formats) for deployment on GPUs, CPUs, and edge devices
 
-## SAM vs YOLO Segmentation Benchmark
+## SAM Comparison vs YOLO
 
 Comparing SAM 3, SAM 2, SAM, MobileSAM, and FastSAM against Ultralytics YOLO segmentation models (YOLOv8, YOLO11, YOLO26) in size, parameters, and GPU inference speed:
 

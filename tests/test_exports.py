@@ -58,10 +58,7 @@ def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
         except Exception as error:  # pragma: no cover - assertion handled below
             errors.append(error)
 
-    threads = [
-        threading.Thread(target=export_model, args=(i,))
-        for i in range(4)
-    ]
+    threads = [threading.Thread(target=export_model, args=(i,)) for i in range(4)]
     for thread in threads:
         thread.start()
     for thread in threads:

@@ -405,17 +405,17 @@ SAM 3 provides accurate counting by segmenting all instances, a common requireme
 
 Here we compare SAM 3's capabilities with [SAM 2](./sam-2.md) and [YOLO26](./yolo26.md) models:
 
-| Capability                   | SAM 3                                 | SAM 2                | YOLO26n-seg        |
-| ---------------------------- | ------------------------------------- | -------------------- | ------------------ |
-| **Concept Segmentation**     | ✅ All instances from text/exemplars  | ❌ Not supported     | ❌ Not supported   |
-| **Visual Segmentation**      | ✅ Single instance (SAM 2 compatible) | ✅ Single instance   | ✅ All instances   |
-| **Zero-shot Capability**     | ✅ Open vocabulary                    | ✅ Geometric prompts | ❌ Closed set      |
-| **Interactive Refinement**   | ✅ Exemplars + clicks                 | ✅ Clicks only       | ❌ Not supported   |
-| **Video Tracking**           | ✅ Multi-object with identities       | ✅ Multi-object      | ✅ Multi-object    |
-| **LVIS Mask AP (zero-shot)** | **47.0**                              | N/A                  | N/A                |
-| **MOSEv2 J&F**               | **60.1**                              | 47.9                 | N/A                |
-| **Speed (GPU, ms/im)**       | 2921                                  | 857                  | **8.4**            |
-| **Model Size**               | 3.45 GB                               | 162 MB (base)        | **6.4 MB**         |
+| Capability                   | SAM 3                                 | SAM 2                | YOLO26n-seg      |
+| ---------------------------- | ------------------------------------- | -------------------- | ---------------- |
+| **Concept Segmentation**     | ✅ All instances from text/exemplars  | ❌ Not supported     | ❌ Not supported |
+| **Visual Segmentation**      | ✅ Single instance (SAM 2 compatible) | ✅ Single instance   | ✅ All instances |
+| **Zero-shot Capability**     | ✅ Open vocabulary                    | ✅ Geometric prompts | ❌ Closed set    |
+| **Interactive Refinement**   | ✅ Exemplars + clicks                 | ✅ Clicks only       | ❌ Not supported |
+| **Video Tracking**           | ✅ Multi-object with identities       | ✅ Multi-object      | ✅ Multi-object  |
+| **LVIS Mask AP (zero-shot)** | **47.0**                              | N/A                  | N/A              |
+| **MOSEv2 J&F**               | **60.1**                              | 47.9                 | N/A              |
+| **Speed (GPU, ms/im)**       | 2921                                  | 857                  | **8.4**          |
+| **Model Size**               | 3.45 GB                               | 162 MB (base)        | **6.4 MB**       |
 
 Speed benchmarked on NVIDIA RTX PRO 6000 with `torch==2.9.1` and `ultralytics==8.4.19`.
 

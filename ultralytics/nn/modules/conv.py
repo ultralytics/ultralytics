@@ -10,6 +10,7 @@ import torch
 import torch.nn as nn
 
 __all__ = (
+    "Add",
     "CBAM",
     "ChannelAttention",
     "Concat",
@@ -611,6 +612,21 @@ class CBAM(nn.Module):
             (torch.Tensor): Attended output tensor.
         """
         return self.spatial_attention(self.channel_attention(x))
+
+
+class Add(nn.Module):
+    """Element-wise addition of a list of tensors."""
+
+    def forward(self, x: list[torch.Tensor]):
+        """Sum input tensors element-wise.
+
+        Args:
+            x (list[torch.Tensor]): List of input tensors with matching shapes.
+
+        Returns:
+            (torch.Tensor): Element-wise sum.
+        """
+        return sum(x)
 
 
 class Concat(nn.Module):

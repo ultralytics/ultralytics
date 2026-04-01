@@ -73,6 +73,7 @@ from .block import (
     TorchVision,
 )
 from .conv import (
+    Add,
     CBAM,
     ChannelAttention,
     Concat,
@@ -162,6 +163,7 @@ __all__ = (
     "C3k2Rep",
     "C3k2RepLK",
     "C3x",
+    "Add",
     "CBFuse",
     "CBLinear",
     "ChannelAttention",

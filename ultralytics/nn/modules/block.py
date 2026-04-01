@@ -2198,8 +2198,8 @@ class C3k2RepLK(C2fRep):
         self.context = nn.Sequential(
             nn.Conv2d((2 + n) * self.c, (2 + n) * self.c, lk, 1, lk // 2, groups=(2 + n) * self.c, bias=False),
             nn.BatchNorm2d((2 + n) * self.c),
-            nn.SiLU(),
         )
+        nn.init.zeros_(self.context[1].weight)  # start as identity
 
     def forward(self, x):
         y = list(self.cv1(x).chunk(2, 1))

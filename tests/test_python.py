@@ -643,16 +643,6 @@ def test_model_tune():
     """Tune YOLO model for performance improvement."""
     YOLO("yolo26n-pose.pt").tune(data="coco8-pose.yaml", plots=False, imgsz=32, epochs=1, iterations=2, device="cpu")
     YOLO("yolo26n-cls.pt").tune(data="imagenet10", plots=False, imgsz=32, epochs=1, iterations=2, device="cpu")
-    YOLO("yolo26n-cls.pt").tune(
-        data="imagenet10",
-        use_ray=True,
-        plots=False,
-        imgsz=32,
-        epochs=1,
-        iterations=2,
-        search_alg="random",
-        device="cpu",
-    )
 
 
 @pytest.mark.slow

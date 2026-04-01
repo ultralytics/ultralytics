@@ -845,6 +845,7 @@ class Exporter:
         if self.args.nms and self.model.task == "detect":
             ct_model = pipeline_coreml(
                 ct_model,
+                self.output_shape,
                 weights_dir=None if mlmodel else ct_model.weights_dir,
                 metadata=self.metadata,
                 mlmodel=mlmodel,

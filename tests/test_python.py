@@ -645,6 +645,22 @@ def test_model_tune():
     YOLO("yolo26n-cls.pt").tune(data="imagenet10", plots=False, imgsz=32, epochs=1, iterations=2, device="cpu")
 
 
+@pytest.mark.slow
+@pytest.mark.skipif(not ONLINE or not checks.IS_PYTHON_MINIMUM_3_10, reason="environment is offline")
+def test_model_tune_ray():
+    """Tune YOLO model for performance improvement."""
+    YOLO("yolo26n-cls.pt").tune(
+        data="imagenet10",
+        use_ray=True,
+        plots=False,
+        imgsz=32,
+        epochs=1,
+        iterations=2,
+        search_alg="random",
+        device="cpu",
+    )
+
+
 def test_model_embeddings():
     """Test YOLO model embeddings extraction functionality."""
     model_detect = YOLO(MODEL)

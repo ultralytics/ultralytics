@@ -944,6 +944,11 @@ class BaseTrainer:
             )
             self.epochs += ckpt["epoch"]  # finetune additional epochs
         self._load_checkpoint_state(ckpt)
+        if unwrap_model(self.model).end2end:
+            # initialize loss and resume o2o and o2m args
+            unwrap_model(self.model).criterion = unwrap_model(self.model).init_criterion()
+            unwrap_model(self.model).criterion.updates = start_epoch - 1
+            unwrap_model(self.model).criterion.update()
         self.start_epoch = start_epoch
         if start_epoch > (self.epochs - self.args.close_mosaic):
             self._close_dataloader_mosaic()

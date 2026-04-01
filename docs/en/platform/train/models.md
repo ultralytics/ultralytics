@@ -272,7 +272,7 @@ Some export formats have architecture or task restrictions:
 | Format           | Restriction                                                     |
 | ---------------- | --------------------------------------------------------------- |
 | **IMX500**       | Only available for YOLOv8 and YOLO11 models                     |
-| **Axelera**      | Only available for detection models                             |
+| **Axelera**      | Not available for YOLO26 segmentation models                    |
 | **PaddlePaddle** | Not available for YOLO26 detection/segmentation/pose/OBB models |
 
 ## Clone Model

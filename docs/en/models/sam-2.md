@@ -314,7 +314,7 @@ It offers three significant enhancements:
 - **Cross-domain segmentation** leveraging memory from diverse image contexts
 - **Semi-automatic annotation** for efficient dataset creation with minimal manual intervention
 
-## SAM 2 Comparison vs YOLO
+## SAM Comparison vs YOLO
 
 Here we compare Meta's SAM 2 models, including the smallest SAM2-t variant, with Ultralytics smallest segmentation model, [YOLO11n-seg](../tasks/segment.md):
 

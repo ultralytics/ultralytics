@@ -466,8 +466,8 @@ class SolutionAnnotator(Annotator):
 
         Args:
             keypoints (list[list[float]]): Keypoints data to be plotted, each in format [x, y, confidence].
-            indices (list[int], optional): Keypoint indices to be plotted. The drawing order follows the order of
-                this list.
+            indices (list[int], optional): Keypoint indices to be plotted. The drawing order follows the order of this
+                list.
             radius (int): Keypoint radius.
             conf_thresh (float): Confidence threshold for keypoints.
 

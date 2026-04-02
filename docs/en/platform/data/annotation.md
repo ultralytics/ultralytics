@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Learn to annotate images in Ultralytics Platform with manual tools, skeleton templates for pose estimation, SAM smart annotation, and YOLO auto-labeling for all 5 task types.
+description: Learn to annotate images in Ultralytics Platform with manual tools, skeleton templates for pose estimation, and Smart annotation with SAM and YOLO models for detect, segment, and OBB tasks.
 keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, bounding box, polygon, keypoints, skeleton templates, pose estimation, segmentation, YOLO
 ---
 
@@ -234,9 +234,13 @@ Assign image-level class labels:
 
 ![Ultralytics Platform Annotate Classify Side Panel](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-classify-side-panel.avif)
 
-## SAM Smart Annotation
+## Smart Annotation
 
-[Segment Anything Model (SAM)](https://docs.ultralytics.com/models/sam/) enables intelligent annotation with just a few clicks. Smart mode is available for **detect**, **segment**, and **OBB** tasks.
+Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](https://docs.ultralytics.com/models/sam/) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. Smart annotation is available for **detect**, **segment**, and **OBB** tasks.
+
+### SAM Smart Annotation
+
+With a SAM model selected:
 
 1. Enter edit mode and select `Smart` or press `S`
 2. **Left-click** to add positive points (include this area)
@@ -284,7 +288,7 @@ SAM smart annotation can generate:
 
     SAM smart annotation is only available for **detect**, **segment**, and **OBB** tasks. Classification and pose tasks require manual annotation.
 
-### Auto-Apply Mode
+#### Auto-Apply Mode
 
 Auto-apply mode speeds up Smart annotation by automatically saving the SAM mask after each click — no need to press `Enter`. Toggle it with the auto-apply button in the toolbar or press `A`.
 
@@ -300,9 +304,9 @@ Auto-apply mode speeds up Smart annotation by automatically saving the SAM mask 
 
     Auto-apply is ideal for datasets with well-separated objects where a single click produces an accurate mask. For complex or overlapping objects, turn auto-apply off and use multiple positive/negative points to refine the mask before saving.
 
-### SAM Model Selection
+#### SAM Model Selection
 
-When Smart mode is active, a model picker appears in the toolbar. Five models are available — choose based on the speed vs. accuracy trade-off that suits your dataset:
+When Smart mode is active, a model picker appears in the toolbar. Five SAM models are available — choose based on the speed vs. accuracy trade-off that suits your dataset:
 
 | Model             | Size    | Speed    | Notes                    |
 | ----------------- | ------- | -------- | ------------------------ |
@@ -315,6 +319,22 @@ When Smart mode is active, a model picker appears in the toolbar. Five models ar
 ![Ultralytics Platform Annotate Sam Model Selector](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-sam-model-selector.avif)
 
 Switching models while Smart mode is active re-initializes the predictor for the current image automatically.
+
+### YOLO Smart Annotation
+
+With a YOLO model selected, Smart annotation can add predictions from pretrained Ultralytics models or your own fine-tuned models.
+
+1. Enter edit mode and select `Smart` or press `S`
+2. Select a YOLO model from the model picker in the toolbar (`Official` or `My Models`)
+3. Click `Predict`
+4. Review the added annotations and make any needed corrections
+
+![Ultralytics Platform Annotate Smart Annotation Yolo Model](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-yolo-auto-labeling.avif)
+
+!!! tip "YOLO Model Notes"
+
+    - The model picker only lists models that match the current dataset task.
+    - Duplicate predictions are skipped when they overlap an existing annotation of the same class at IoU `0.7` or higher.
 
 ## Class Sidebar
 

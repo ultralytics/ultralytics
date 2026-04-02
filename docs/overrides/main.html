@@ -19,20 +19,21 @@
   });
 </script>
 {{ super() }} {% endblock %} {% block announce %}
-<div class="banner-wrapper">
-  <a href="https://platform.ultralytics.com/" target="_blank" rel="noopener" class="banner-content-wrapper">
+<a href="https://platform.ultralytics.com" target="_blank" class="banner-wrapper">
+  <div class="banner-content-wrapper">
     <img
       src="https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/680a070c3b99253410dd3e84_Ultralytics_full_white.svg"
       alt="Ultralytics"
+      class="banner-logo"
     />
-    <p>Introducing the ultimate end-to-end vision AI platform</p>
-    <img
-      src="https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/69ba5bb596507e4235390de5_banner-arrow-right.png"
-      alt=""
-      class="banner-arrow"
-    />
-  </a>
-</div>
+    <p>Introducing Ultralytics Platform: Annotate, train, and deploy YOLO models</p>
+  </div>
+  <img
+    src="https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/69ba5bb596507e4235390de5_banner-arrow-right.png"
+    alt="Arrow"
+    class="banner-arrow"
+  />
+</a>
 {% endblock %} {% block scripts %}
 <noscript
   ><iframe

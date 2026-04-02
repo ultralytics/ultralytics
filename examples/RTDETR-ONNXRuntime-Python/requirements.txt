@@ -6,7 +6,7 @@ humanfriendly==10.0
 idna==3.10
 mpmath==1.3.0
 numpy==2.0.2
-onnx==1.21.0rc1
+onnx==1.21.0
 onnxruntime==1.19.2
 packaging==25.0
 protobuf==6.33.5

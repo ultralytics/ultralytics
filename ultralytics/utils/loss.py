@@ -479,7 +479,7 @@ class v8DetectionLoss:
 
         elif "texts" in batch.keys():
             #  for yoloe training using object365 datasets, dynamically assign weights for each instance in the batch based on the category name and a pre-computed name_to_weight mapping. This allows for per-batch loss balancing based on class frequencies.
-            if self.name_to_weight is not None:
+            if getattr(self, "name_to_weight", None) is not None:
                 texts = batch.get("texts", [])  # List[List[str]], len == batch_size
                 text_weight = torch.ones((batch_size, len(texts[0])), device=self.device)  # default weights = 1.0   
                 for i in range(batch_size):

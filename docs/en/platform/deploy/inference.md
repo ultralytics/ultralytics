@@ -240,7 +240,7 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
         "functionTimeCall": 0.018,
         "model": "model.pt",
         "version": {
-            "ultralytics": "8.4.14",
+            "ultralytics": "8.x.x",
             "torch": "2.6.0",
             "torchvision": "0.21.0",
             "python": "3.13.0"
@@ -329,6 +329,12 @@ Response format varies by task:
     }
     ```
 
+## Billing
+
+Shared inference (the Predict tab and `/api/models/{id}/predict` endpoint) is **included at no additional cost** on all plans. There are no per-request charges for shared inference.
+
+For production workloads requiring higher throughput, deploy a [dedicated endpoint](endpoints.md).
+
 ## Rate Limits
 
 Shared inference is rate-limited to **20 requests/min per API key**. When throttled, the API returns `429` with a `Retry-After` header. See the full [rate limit reference](../api/index.md#rate-limits) for all endpoint categories.
@@ -353,13 +359,10 @@ Common error responses:
 
 ### Can I run inference on video?
 
-The API accepts individual frames. For video:
+It depends on the inference method:
 
-1. Extract frames locally
-2. Send each frame to the API
-3. Aggregate results
-
-For real-time video, consider deploying a [dedicated endpoint](endpoints.md).
+- **Dedicated endpoints** accept video files directly. Supported formats (up to 100MB): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV. Each frame is processed individually and results are returned per frame. See [dedicated endpoints](endpoints.md#request-parameters) for details.
+- **Shared inference** (`/api/models/{id}/predict`) accepts images only. For video, extract frames locally, send each frame as a separate request, and aggregate results.
 
 ### How do I get the annotated image?
 

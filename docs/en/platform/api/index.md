@@ -67,7 +67,7 @@ See [API Keys](../account/api-keys.md) for detailed instructions.
 Include your API key in all requests:
 
 ```
-Authorization: Bearer ul_your_api_key_here
+Authorization: Bearer YOUR_API_KEY
 ```
 
 !!! info "API Key Format"
@@ -79,7 +79,7 @@ Authorization: Bearer ul_your_api_key_here
 === "cURL"
 
     ```bash
-    curl -H "Authorization: Bearer ul_abc123..." \
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
       https://platform.ultralytics.com/api/datasets
     ```
 
@@ -88,7 +88,7 @@ Authorization: Bearer ul_your_api_key_here
     ```python
     import requests
 
-    headers = {"Authorization": "Bearer ul_abc123..."}
+    headers = {"Authorization": "Bearer YOUR_API_KEY"}
     response = requests.get(
         "https://platform.ultralytics.com/api/datasets",
         headers=headers,
@@ -100,7 +100,7 @@ Authorization: Bearer ul_your_api_key_here
 
     ```javascript
     const response = await fetch("https://platform.ultralytics.com/api/datasets", {
-      headers: { Authorization: "Bearer ul_abc123..." },
+      headers: { Authorization: "Bearer YOUR_API_KEY" },
     });
     const data = await response.json();
     ```
@@ -168,7 +168,7 @@ Responses return JSON with resource-specific fields:
 
 ```json
 {
-    "error": "Invalid dataset ID"
+    "error": "Dataset not found"
 }
 ```
 
@@ -188,7 +188,7 @@ Responses return JSON with resource-specific fields:
 
 ## Datasets API
 
-Manage labeled image collections for training YOLO models.
+Create, browse, and manage labeled image datasets for training YOLO models. See [Datasets documentation](../data/datasets.md).
 
 ### List Datasets
 
@@ -208,7 +208,7 @@ GET /api/datasets
 === "cURL"
 
     ```bash
-    curl -H "Authorization: Bearer $API_KEY" \
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
       "https://platform.ultralytics.com/api/datasets?limit=10"
     ```
 
@@ -516,12 +516,12 @@ Run YOLO inference on dataset images to auto-generate annotations. Uses a select
 POST /api/datasets/ingest
 ```
 
-Create a dataset ingest job to process uploaded ZIP files containing images and labels.
+Create a dataset ingest job to process uploaded ZIP or TAR files, including `.tar.gz` and `.tgz`, containing images and labels.
 
 ```mermaid
 graph LR
-    A[Upload ZIP] --> B[POST /api/datasets/ingest]
-    B --> C[Process ZIP]
+    A[Upload Archive] --> B[POST /api/datasets/ingest]
+    B --> C[Process Archive]
     C --> D[Extract images]
     C --> E[Parse labels]
     C --> F[Generate thumbnails]
@@ -608,7 +608,7 @@ DELETE /api/datasets/{datasetId}/images/bulk
 
 ## Projects API
 
-Manage training workspaces that group models together.
+Organize your models into projects. Each model belongs to one project. See [Projects documentation](../train/projects.md).
 
 ### List Projects
 
@@ -640,7 +640,7 @@ POST /api/projects
 
     ```bash
     curl -X POST \
-      -H "Authorization: Bearer $API_KEY" \
+      -H "Authorization: Bearer YOUR_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{"name": "my-project", "slug": "my-project", "description": "Detection experiments"}' \
       https://platform.ultralytics.com/api/projects
@@ -695,7 +695,7 @@ DELETE /api/projects/{projectId}/icon
 
 ## Models API
 
-Manage trained model checkpoints within projects.
+Manage trained YOLO models — view metrics, download weights, run inference, and export to other formats. See [Models documentation](../train/models.md).
 
 ### List Models
 
@@ -819,7 +819,7 @@ POST /api/models/{modelId}/predict
 
     ```bash
     curl -X POST \
-      -H "Authorization: Bearer $API_KEY" \
+      -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg" \
       -F "conf=0.5" \
       https://platform.ultralytics.com/api/models/MODEL_ID/predict
@@ -881,7 +881,7 @@ Pre-load a model for faster first inference. Call this before running prediction
 
 ## Training API
 
-Start, monitor, and cancel cloud training jobs.
+Launch YOLO training on cloud GPUs (RTX 4090, A100, H100) and monitor progress in real time. See [Cloud Training documentation](../train/cloud-training.md).
 
 ```mermaid
 graph LR
@@ -903,14 +903,14 @@ POST /api/training/start
 
     ```bash
     curl -X POST \
-      -H "Authorization: Bearer $API_KEY" \
+      -H "Authorization: Bearer YOUR_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
         "modelId": "MODEL_ID",
         "projectId": "PROJECT_ID",
         "gpuType": "rtx-4090",
         "trainArgs": {
-          "model": "yolo11n.pt",
+          "model": "yolo26n.pt",
           "data": "ul://username/datasets/my-dataset",
           "epochs": 100,
           "imgsz": 640,
@@ -931,7 +931,7 @@ POST /api/training/start
             "projectId": "PROJECT_ID",
             "gpuType": "rtx-4090",
             "trainArgs": {
-                "model": "yolo11n.pt",
+                "model": "yolo26n.pt",
                 "data": "ul://username/datasets/my-dataset",
                 "epochs": 100,
                 "imgsz": 640,
@@ -965,7 +965,7 @@ Terminates the running compute instance and marks the job as cancelled.
 
 ## Deployments API
 
-Create and manage dedicated inference endpoints.
+Deploy models to dedicated inference endpoints with auto-scaling, health checks, and monitoring. See [Endpoints documentation](../deploy/endpoints.md).
 
 ```mermaid
 graph LR
@@ -1126,7 +1126,7 @@ Returns aggregated metrics across all user deployments: total requests, active d
 
 ## Export API
 
-Convert models to optimized formats for edge deployment.
+Convert models to optimized formats like ONNX, TensorRT, CoreML, and TFLite for edge deployment. See [Deploy documentation](../deploy/index.md).
 
 ### List Exports
 
@@ -1161,7 +1161,7 @@ POST /api/exports
 
     ```bash
     curl -X POST \
-      -H "Authorization: Bearer $API_KEY" \
+      -H "Authorization: Bearer YOUR_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{"modelId": "MODEL_ID", "format": "onnx"}' \
       https://platform.ultralytics.com/api/exports
@@ -1222,7 +1222,7 @@ POST /api/exports/{exportId}/track-download
 
 ## Activity API
 
-Track and manage activity events for your account.
+View a feed of recent actions on your account — training runs, uploads, and more. See [Activity documentation](../account/activity.md).
 
 ### List Activity
 
@@ -1289,7 +1289,7 @@ Or pass specific IDs:
 
 ## Trash API
 
-Manage soft-deleted resources (30-day retention).
+View and restore deleted items. Items are permanently removed after 30 days. See [Trash documentation](../account/trash.md).
 
 ### List Trash
 
@@ -1352,7 +1352,7 @@ Permanently deletes all items in trash.
 
 ## Billing API
 
-Manage credits, subscriptions, and payment methods.
+Check your credit balance, purchase credits, view transaction history, and configure auto top-up. See [Billing documentation](../account/billing.md).
 
 !!! note "Currency Units"
 
@@ -1552,6 +1552,8 @@ DELETE /api/billing/payment-methods/{id}
 
 ## Storage API
 
+Check your storage usage breakdown by category (datasets, models, exports) and see your largest items.
+
 ### Get Storage Info
 
 ```
@@ -1613,7 +1615,7 @@ Triggers a recalculation of storage usage.
 
 ## Upload API
 
-Direct file uploads use a two-step signed URL flow.
+Upload files directly to cloud storage using signed URLs for fast, reliable transfers. Uses a two-step flow: get a signed URL, then upload the file. See [Data documentation](../data/index.md).
 
 ### Get Signed Upload URL
 
@@ -1679,6 +1681,8 @@ Notify the platform that a file upload is complete so it can begin processing.
 
 ## API Keys API
 
+Manage your API keys for programmatic access. See [API Keys documentation](../account/api-keys.md).
+
 ### List API Keys
 
 ```
@@ -1715,7 +1719,7 @@ DELETE /api/api-keys
 
 ```bash
 curl -X DELETE \
-  -H "Authorization: Bearer $API_KEY" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
   "https://platform.ultralytics.com/api/api-keys?keyId=KEY_ID"
 ```
 
@@ -1723,7 +1727,7 @@ curl -X DELETE \
 
 ## Teams & Members API
 
-Manage workspace collaboration with teams, members, and invites.
+Create team workspaces, invite members, and manage roles for collaboration. See [Teams documentation](../account/teams.md).
 
 ### List Teams
 
@@ -1833,6 +1837,8 @@ POST /api/invites/{inviteId}/resend
 
 ## Explore API
 
+Search and browse public datasets and projects shared by the community. See [Explore documentation](../explore.md).
+
 ### Search Public Content
 
 ```
@@ -1859,6 +1865,8 @@ Returns curated content for the Explore sidebar.
 ---
 
 ## User & Settings APIs
+
+Manage your profile, API keys, storage usage, and data privacy settings. See [Settings documentation](../account/settings.md).
 
 ### Get User by Username
 
@@ -1930,7 +1938,7 @@ Complete onboarding flow (set data region, username).
 
 ## GDPR API
 
-GDPR compliance endpoints for data export and deletion.
+Request an export of all your data or permanently delete your account. See [Settings documentation](../account/settings.md).
 
 ### Get GDPR Job Status
 
@@ -2045,11 +2053,11 @@ Reference datasets with `ul://` URIs:
 ```python
 from ultralytics import YOLO
 
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 
 # Train on your Platform dataset
 model.train(
-    data="ul://your-username/your-dataset",
+    data="ul://your-username/datasets/your-dataset",
     epochs=100,
     imgsz=640,
 )
@@ -2071,13 +2079,13 @@ Send results to a Platform project:
 ```python
 from ultralytics import YOLO
 
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 
 # Results automatically sync to Platform
 model.train(
     data="coco8.yaml",
     epochs=100,
-    project="ul://your-username/my-project",
+    project="your-username/my-project",
     name="experiment-1",
 )
 ```
@@ -2131,7 +2139,7 @@ model.export(format="coreml", imgsz=640)
 **Validation:**
 
 ```python
-metrics = model.val(data="ul://username/my-dataset")
+metrics = model.val(data="ul://username/datasets/my-dataset")
 
 print(f"mAP50: {metrics.box.map50}")
 print(f"mAP50-95: {metrics.box.map}")
@@ -2151,9 +2159,11 @@ Webhooks notify your server of Platform events via HTTP POST callbacks:
 | `training.failed`    | Training failed      |
 | `export.completed`   | Export ready         |
 
-!!! info "Enterprise Feature"
+!!! info "Plan Availability"
 
-    Custom webhook endpoints are available on Enterprise plans. Training webhooks for the Python SDK work automatically on all plans.
+    **All plans**: Training webhooks via the Python SDK (real-time metrics, completion notifications) work automatically on every plan -- no configuration required.
+
+    **Enterprise only**: Custom webhook endpoints that send HTTP POST callbacks to your own server URL require an Enterprise plan. [Contact sales](https://www.ultralytics.com/contact) for details.
 
 ---
 
@@ -2164,14 +2174,14 @@ Webhooks notify your server of Platform events via HTTP POST callbacks:
 Most endpoints use a `limit` parameter to control how many results are returned per request:
 
 ```bash
-curl -H "Authorization: Bearer $API_KEY" \
+curl -H "Authorization: Bearer YOUR_API_KEY" \
   "https://platform.ultralytics.com/api/datasets?limit=50"
 ```
 
 The Activity and Trash endpoints also support a `page` parameter for page-based pagination:
 
 ```bash
-curl -H "Authorization: Bearer $API_KEY" \
+curl -H "Authorization: Bearer YOUR_API_KEY" \
   "https://platform.ultralytics.com/api/activity?page=2&limit=20"
 ```
 
@@ -2183,7 +2193,7 @@ curl "https://platform.ultralytics.com/api/explore/search?type=datasets&offset=2
 
 ### Can I use the API without an SDK?
 
-Yes, all functionality is available via REST. The Python SDK is a convenience wrapper that adds features like real-time metric streaming and automatic model uploads.
+Yes, all functionality is available via REST. The Python SDK is a convenience wrapper that adds features like real-time metric streaming and automatic model uploads. You can also explore all endpoints interactively at [platform.ultralytics.com/api/docs](https://platform.ultralytics.com/api/docs).
 
 ### Are there API client libraries?
 

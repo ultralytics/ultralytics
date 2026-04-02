@@ -44,18 +44,17 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
     !!! info "Video Frame Extraction"
 
-        Video frames are extracted at 1 frame per second in the browser before upload. A 60-second video produces 60 frames. The maximum is 100 frames per video, so videos longer than ~100 seconds will be sampled.
+        Video frames are extracted at 1 frame per second in the browser before upload. A 60-second video produces 60 frames. The maximum is 100 frames per video — for videos longer than ~100 seconds, 100 frames are evenly sampled across the full duration.
 
 === "Archives"
 
     Archives are extracted and processed automatically.
 
-    | Format | Extensions        | Notes                | Max Size |
-    | ------ | ----------------- | -------------------- | -------- |
-    | ZIP    | `.zip`            | Most common          | 10 GB    |
-    | TAR    | `.tar`            | Uncompressed archive | 10 GB    |
-    | TAR.GZ | `.tar.gz`, `.tgz` | Compressed archive   | 10 GB    |
-    | GZ     | `.gz`             | Gzip compressed      | 10 GB    |
+    | Format | Extensions              | Notes             | Free   | Pro    | Enterprise |
+    | ------ | ----------------------- | ----------------- | ------ | ------ | ---------- |
+    | ZIP    | `.zip`                  | Most common       | 10 GB  | 20 GB  | 50 GB      |
+    | TAR    | `.tar` `.tar.gz` `.tgz` | Compressed or raw | 10 GB  | 20 GB  | 50 GB      |
+    | NDJSON | `.ndjson`               | Dataset export    | 10 GB  | 20 GB  | 50 GB      |
 
 ### Preparing Your Dataset
 
@@ -182,9 +181,9 @@ graph LR
     You can validate your dataset locally before uploading:
 
     ```python
-    from ultralytics.hub import check_dataset
+    from ultralytics.data.utils import check_det_dataset
 
-    check_dataset("path/to/dataset.zip", task="detect")
+    check_det_dataset("path/to/data.yaml")
     ```
 
 !!! warning "Image Size Requirements"
@@ -331,7 +330,7 @@ Images that failed processing are listed here with:
 - **Error table**: Filename, user-friendly error description, fix hints, and preview thumbnail
 - Common errors include corrupted files, unsupported formats, images too small (min 28px), and unsupported color modes
 
-<!-- Screenshot: platform-datasets-errors-tab-processing-failures.avif -->
+![Ultralytics Platform Datasets Errors Tab Processing Failures](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-errors-tab-processing-failures.avif)
 
 ??? info "Common Processing Errors"
 
@@ -375,10 +374,20 @@ Each version is numbered sequentially (v1, v2, v3...) and stored permanently. Yo
 
 ## Export Dataset
 
-Export your dataset in [NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) format for offline use:
+Export your dataset for offline use. The Platform supports multiple export formats:
 
-1. Click the download icon in the dataset header
-2. The NDJSON file downloads automatically
+| Format         | Description                                        |
+| -------------- | -------------------------------------------------- |
+| **YOLO**       | Standard YOLO format with images and `.txt` labels |
+| **COCO**       | COCO JSON format with annotation arrays            |
+| **Pascal VOC** | XML annotation files per image                     |
+| **NDJSON**     | One JSON object per line (lightweight metadata)    |
+
+To export:
+
+1. Click the **Export** button in the dataset header
+2. Select the desired format
+3. The export job runs asynchronously — you'll be notified when the download is ready
 
 ![Ultralytics Platform Datasets Export Ndjson Download](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-export-ndjson-download.avif)
 
@@ -429,6 +438,31 @@ You can also drag and drop images onto the split filter tabs in grid view.
 
     Upload all images to one dataset, then use bulk move-to-split to organize subsets into train, validation, and test splits.
 
+### Split Redistribution
+
+Redistribute all images across train, validation, and test splits using custom ratios:
+
+1. Click the **split bar** in the dataset toolbar to open the **Redistribute Splits** dialog
+2. Adjust split percentages using any of the methods below
+3. Review the live image count preview to confirm the distribution
+4. Click **Apply** to randomly reassign all images according to your percentages
+
+![Ultralytics Platform Datasets Split Redistribution Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-split-redistribution-dialog.avif)
+
+The dialog provides three ways to set your target split ratios:
+
+| Method   | Description                                                                                  |
+| -------- | -------------------------------------------------------------------------------------------- |
+| **Drag** | Drag the handles between the colored segments to visually adjust split boundaries            |
+| **Type** | Edit the percentage input for any split (the other two splits auto-rebalance proportionally) |
+| **Auto** | One-click to instantly set an 80/20 train/validation split with the test split set to 0%     |
+
+A live preview shows exactly how many images will land in each split before you apply.
+
+!!! tip "Quick 80/20 Split"
+
+    Click the **Auto** button to instantly set the recommended 80/20 train/validation split. This is the most common ratio for training.
+
 ### Bulk Delete
 
 Delete multiple images at once:
@@ -450,7 +484,7 @@ Use this URI to train models from anywhere:
 === "CLI"
 
     ```bash
-    export ULTRALYTICS_API_KEY="your_api_key"
+    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100
     ```
 
@@ -517,9 +551,9 @@ Dataset metadata is edited inline directly on the dataset page — no dialog nee
 - **Task type**: Click the task badge to select a different task type.
 - **License**: Click the license selector to change the dataset license.
 
-!!! warning "Changing Task Type"
+!!! info "Changing Task Type"
 
-    Changing the task type may affect how existing annotations are visualized. Incompatible annotations won't be displayed.
+    Each image stores annotations for all task types together. Changing the dataset task type controls which annotations are visible in the editor and included in exports and training. Annotations for other task types are preserved in the database and reappear when you switch back.
 
 ## Clone Dataset
 
@@ -618,3 +652,7 @@ Ultralytics Platform supports two annotation formats for upload:
 === "COCO Format"
 
     JSON files with `images`, `annotations`, and `categories` arrays. Supports detection (`bbox`), segmentation (polygon), and pose (`keypoints`) tasks. COCO uses absolute pixel coordinates which are automatically converted to normalized format during upload.
+
+### Can I annotate the same dataset for multiple task types?
+
+Yes. Each image stores annotations for all 5 task types (detect, segment, pose, OBB, classify) together. You can switch the dataset's active task type at any time without losing existing annotations. Only annotations matching the active task type are shown in the editor and included in exports and training — annotations for other tasks are preserved and reappear when you switch back.

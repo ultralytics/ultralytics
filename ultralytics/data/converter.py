@@ -308,23 +308,25 @@ def convert_coco(
                 cls = coco80[ann["category_id"] - 1] if cls91to80 else ann["category_id"] - 1  # class
                 box = [cls, *box.tolist()]
                 if box not in bboxes:
-                    bboxes.append(box)
-                    if use_segments and ann.get("segmentation") is not None:
-                        if len(ann["segmentation"]) == 0:
-                            segments.append([])
+                    if use_keypoints:
+                        if ann.get("keypoints") is None:
                             continue
-                        elif len(ann["segmentation"]) > 1:
-                            s = merge_multi_segment(ann["segmentation"])
-                            s = (np.concatenate(s, axis=0) / np.array([w, h])).reshape(-1).tolist()
-                        else:
-                            s = [j for i in ann["segmentation"] for j in i]  # all segments concatenated
-                            s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()
-                        s = [cls, *s]
-                        segments.append(s)
-                    if use_keypoints and ann.get("keypoints") is not None:
                         keypoints.append(
                             box + (np.array(ann["keypoints"]).reshape(-1, 3) / np.array([w, h, 1])).reshape(-1).tolist()
                         )
+                    bboxes.append(box)
+                    if use_segments:
+                        seg = ann.get("segmentation")
+                        if seg is None or len(seg) == 0:
+                            segments.append([])
+                        elif len(seg) > 1:
+                            s = merge_multi_segment(seg)
+                            s = (np.concatenate(s, axis=0) / np.array([w, h])).reshape(-1).tolist()
+                            segments.append([cls, *s])
+                        else:
+                            s = [j for i in seg for j in i]  # all segments concatenated
+                            s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()
+                            segments.append([cls, *s])
 
             # Write
             with open((fn / f).with_suffix(".txt"), "a", encoding="utf-8") as file:
@@ -857,8 +859,23 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     if not is_classification:
         if "train" not in splits:
             raise ValueError(f"Dataset missing required 'train' split. Found splits: {sorted(splits)}")
-        if "val" not in splits and "test" not in splits:
-            raise ValueError(f"Dataset missing required 'val' split. Found splits: {sorted(splits)}")
+        if "val" not in splits:
+            train_records = [r for r in image_records if r.get("split") == "train"]
+            if len(train_records) < 2:
+                raise ValueError(
+                    f"Dataset has only {len(train_records)} image(s) and no 'val' split. "
+                    f"Need at least 2 images to auto-split into train/val."
+                )
+            random.Random(0).shuffle(train_records)  # local RNG to avoid mutating global training seed
+            val_count = max(1, len(train_records) // 10)
+            for r in train_records[:val_count]:
+                r["split"] = "val"
+            splits.add("val")
+            LOGGER.warning(
+                f"WARNING ⚠️ No 'val' split found in dataset. "
+                f"Auto-splitting {len(train_records)} images into {len(train_records) - val_count} train, {val_count} val. "
+                f"For best results, manually assign validation images in Platform dataset page."
+            )
     if task == "pose" and "kpt_shape" not in dataset_record:
         dataset_record["kpt_shape"] = _infer_ndjson_kpt_shape(image_records)
 
@@ -921,19 +938,29 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                             break
                 if not image_path.exists() and (http_url := record.get("url")):
                     image_path.parent.mkdir(parents=True, exist_ok=True)
-                    # Retry with exponential backoff (3 attempts: 0s, 2s, 4s delays)
+                    # Retry with exponential backoff (3 attempts: 1s, 2s delays before the final attempt)
                     for attempt in range(3):
+                        error = None
                         try:
                             async with session.get(http_url, timeout=aiohttp.ClientTimeout(total=30)) as response:
                                 response.raise_for_status()
                                 image_path.write_bytes(await response.read())
                             return True
-                        except Exception as e:
-                            if attempt < 2:  # Don't sleep after last attempt
-                                await asyncio.sleep(2**attempt)  # 1s, 2s backoff
-                            else:
-                                LOGGER.warning(f"Failed to download {http_url} after 3 attempts: {e}")
+                        except aiohttp.ClientResponseError as e:
+                            error = e
+                            if e.status not in {408, 429} and e.status < 500:
+                                LOGGER.warning(f"Failed to download {http_url}: {e}")
                                 return False
+                        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+                            error = e
+                        except Exception as e:  # OSError, disk full, permissions — not transient, don't retry
+                            LOGGER.warning(f"Failed to save {http_url}: {e}")
+                            return False
+                        if attempt < 2:  # Don't sleep after last attempt
+                            await asyncio.sleep(2**attempt)  # 1s, 2s backoff
+                        else:
+                            LOGGER.warning(f"Failed to download {http_url} after 3 attempts: {error}")
+                            return False
             return True
 
     # Process all images with async downloads (limit connections for small datasets)

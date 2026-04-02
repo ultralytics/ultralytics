@@ -18,10 +18,10 @@ Deploy a model from its `Deploy` tab:
 
 1. Navigate to your model
 2. Click the **Deploy** tab
-3. Select a region from the region table (sorted by latency from your location)
+3. Select a region from the interactive world map — regions are color-coded by latency from your location (green < 100ms, yellow < 200ms, red > 200ms)
 4. Click **Deploy** on the region row
 
-The deployment name is auto-generated from the model name and region city (e.g., `yolo11n-iowa`).
+The deployment name is auto-generated from the model name and region city (e.g., `yolo26n-iowa`).
 
 ### From the Deployments Page
 
@@ -166,7 +166,7 @@ Resource settings are available under the collapsible **Resources** section. Dep
 
 !!! note "Auto-Generated Names"
 
-    The deployment name is automatically generated from the model name and region city (e.g., `yolo11n-iowa`). If you deploy the same model to the same region again, a numeric suffix is added (e.g., `yolo11n-iowa-2`).
+    The deployment name is automatically generated from the model name and region city (e.g., `yolo26n-iowa`). If you deploy the same model to the same region again, a numeric suffix is added (e.g., `yolo26n-iowa-2`).
 
 ### Deploy Tab (Quick Deploy)
 
@@ -344,13 +344,17 @@ Dedicated endpoints are **not subject to the Platform API rate limits**. Request
 
 ### Request Parameters
 
-| Parameter   | Type   | Default | Description                   |
-| ----------- | ------ | ------- | ----------------------------- |
-| `file`      | file   | -       | Image file (required)         |
-| `conf`      | float  | 0.25    | Minimum confidence threshold  |
-| `iou`       | float  | 0.7     | NMS IoU threshold             |
-| `imgsz`     | int    | 640     | Input image size              |
-| `normalize` | string | -       | Return normalized coordinates |
+| Parameter   | Type   | Default | Description                    |
+| ----------- | ------ | ------- | ------------------------------ |
+| `file`      | file   | -       | Image or video file (required) |
+| `conf`      | float  | 0.25    | Minimum confidence threshold   |
+| `iou`       | float  | 0.7     | NMS IoU threshold              |
+| `imgsz`     | int    | 640     | Input image size               |
+| `normalize` | string | -       | Return normalized coordinates  |
+
+!!! tip "Video Inference"
+
+    Dedicated endpoints accept video files in addition to images. Supported video formats (up to 100MB): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV. Each frame is processed individually and results are returned per frame. Supported image formats (up to 50MB): AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WEBP.
 
 ### Response Format
 
@@ -358,20 +362,13 @@ Same as [shared inference](inference.md#response) with task-specific fields.
 
 ## Pricing
 
-Dedicated endpoints bill based on:
-
-| Component    | Rate                 |
-| ------------ | -------------------- |
-| **CPU**      | Per vCPU-second      |
-| **Memory**   | Per GB-second        |
-| **Requests** | Per million requests |
+Basic dedicated endpoints are **free on all plans**. Higher-resource configurations (more vCPUs, more memory, warm start) will offer usage-based pricing in the future.
 
 !!! tip "Cost Optimization"
 
-    - Use scale-to-zero for development endpoints
-    - Set appropriate max instances
+    - Use scale-to-zero (default) so endpoints only run when receiving requests
+    - Set appropriate max instances for your traffic
     - Monitor usage in the [Monitoring](monitoring.md) dashboard
-    - Review costs in [Settings > Billing](../account/billing.md)
 
 ## FAQ
 

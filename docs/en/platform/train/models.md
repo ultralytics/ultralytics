@@ -272,7 +272,7 @@ Some export formats have architecture or task restrictions:
 | Format           | Restriction                                                     |
 | ---------------- | --------------------------------------------------------------- |
 | **IMX500**       | Only available for YOLOv8 and YOLO11 models                     |
-| **Axelera**      | Only available for detection models                             |
+| **Axelera**      | Not available for YOLO26 segmentation models                    |
 | **PaddlePaddle** | Not available for YOLO26 detection/segmentation/pose/OBB models |
 
 ## Clone Model
@@ -337,6 +337,13 @@ Remove a model you no longer need:
 !!! note "Trash and Restore"
 
     Deleted models go to Trash for 30 days. Restore from [Settings > Trash](../account/trash.md).
+
+## See Also
+
+- [**Inference**](../deploy/inference.md): Test models in the browser with the Predict tab
+- [**Endpoints**](../deploy/endpoints.md): Deploy models to production with dedicated endpoints
+- [**Cloud Training**](cloud-training.md): Configure and run training jobs on cloud GPUs
+- [**Export Formats**](../../modes/export.md): Full guide to all 17+ export formats
 
 ## FAQ
 

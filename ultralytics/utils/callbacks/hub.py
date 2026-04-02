@@ -85,7 +85,8 @@ def on_val_start(validator):
 
 def on_predict_start(predictor):
     """Run events on predict start."""
-    events(predictor.args, predictor.device)
+    backend = getattr(getattr(predictor, "model", None), "backend", None)
+    events(predictor.args, predictor.device, backend=backend)
 
 
 def on_export_start(exporter):

@@ -62,19 +62,19 @@ graph LR
     Data --> Train --> Deploy
 ```
 
-| Stage        | Features                                                                                                                                       |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Upload**   | Images (50MB), videos (1GB), ZIP archives (10GB) with automatic processing                                                                     |
-| **Annotate** | Manual tools, SAM smart annotation, YOLO auto-labeling for all 5 task types (see [supported tasks](data/index.md#supported-tasks))             |
-| **Train**    | Cloud GPUs (22 options from RTX 2000 Ada to B200), real-time metrics, project organization                                                     |
-| **Export**   | [17 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.; see [supported formats](train/models.md#supported-formats)) |
-| **Deploy**   | 43 global regions with dedicated endpoints, auto-scaling, monitoring                                                                           |
+| Stage        | Features                                                                                                                                                                                                     |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Upload**   | Images (50MB), videos (1GB), and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON) with automatic processing                                                                                       |
+| **Annotate** | Manual tools for all 5 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM and YOLO models for detect, segment, and OBB (see [supported tasks](data/index.md#supported-tasks)) |
+| **Train**    | Cloud GPUs (20 free + 3 Pro-exclusive), real-time metrics, project organization                                                                                                                              |
+| **Export**   | [17 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.; see [supported formats](train/models.md#supported-formats))                                                               |
+| **Deploy**   | 43 global regions with dedicated endpoints, auto-scaling, monitoring                                                                                                                                         |
 
 **What you can do:**
 
-- **Upload** images, videos, and ZIP archives to create training datasets
+- **Upload** images, videos, and dataset files to create training datasets
 - **Visualize** annotations with interactive overlays for all 5 YOLO task types (see [supported tasks](data/index.md#supported-tasks))
-- **Train** models on 22 cloud GPU types with real-time metrics
+- **Train** models on cloud GPUs (20 free, 23 with Pro) with real-time metrics
 - **Export** to [17 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.)
 - **Deploy** to 43 global regions with one-click dedicated endpoints
 - **Monitor** training progress, deployment health, and usage metrics
@@ -100,17 +100,16 @@ You select your region during onboarding, and all your data, models, and deploym
 
 ### Data Preparation
 
-- **Dataset Management**: Upload images, videos, or ZIP archives with automatic processing
+- **Dataset Management**: Upload images, videos, or dataset files with automatic processing
 - **Annotation Editor**: Manual annotation for all 5 YOLO task types (detect, segment, pose, OBB, classify; see [supported tasks](data/index.md#supported-tasks))
 - **Skeleton Templates**: Built-in (Person, Hand, Face, Dog, Box) and custom skeleton templates for one-click pose annotation
-- **SAM Smart Annotation**: Click-based intelligent annotation with 5 models — [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large) and the new [SAM 3](../models/sam-3.md) for highest accuracy. Switch models per-image from the annotation toolbar.
-- **Auto-Annotation**: Use trained models to pre-label new data
+- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large), [SAM 3](../models/sam-3.md), pretrained Ultralytics YOLO models, or your own fine-tuned YOLO models from the annotation toolbar for detect, segment, and OBB tasks
 - **Dataset Versioning**: Create numbered NDJSON snapshots with descriptions for reproducible training
 - **Statistics**: Class distribution, location heatmaps, and dimension analysis
 
 ```mermaid
 graph LR
-    A[Upload ZIP/Images/Video] --> B[Auto-Process]
+    A[Upload Dataset/Images/Video] --> B[Auto-Process]
     B --> C[Browse & Filter]
     C --> D{Annotate}
     D --> E[Manual Tools]
@@ -127,7 +126,7 @@ graph LR
 
 ### Model Training
 
-- **Cloud Training**: Train on 22 cloud GPU types with real-time metrics
+- **Cloud Training**: Train on cloud GPUs (20 free, 23 with [Pro](account/billing.md#plans)) with real-time metrics
 - **Remote Training**: Train anywhere and stream metrics to the platform (W&B-style)
 - **Project Organization**: Group related models, compare experiments, track activity
 - **17 Export Formats**: ONNX, TensorRT, CoreML, TFLite, and more (see [supported formats](train/models.md#supported-formats))
@@ -150,7 +149,7 @@ You can train models either through the web UI (cloud training) or from your own
     pip install "ultralytics>=8.4.14"
 
     # Set your API key
-    export ULTRALYTICS_API_KEY="your_api_key"
+    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
 
     # Train and stream metrics to the platform
     yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
@@ -163,7 +162,7 @@ You can train models either through the web UI (cloud training) or from your own
 
     from ultralytics import YOLO
 
-    os.environ["ULTRALYTICS_API_KEY"] = "your_api_key"
+    os.environ["ULTRALYTICS_API_KEY"] = "YOUR_API_KEY"
 
     model = YOLO("yolo26n.pt")
     model.train(
@@ -201,7 +200,7 @@ Once deployed, call your endpoint from any language:
     import requests
 
     url = "https://your-endpoint-url/predict"
-    headers = {"Authorization": "Bearer your_api_key"}
+    headers = {"Authorization": "Bearer YOUR_API_KEY"}
 
     with open("image.jpg", "rb") as f:
         response = requests.post(url, headers=headers, files={"file": f})
@@ -213,7 +212,7 @@ Once deployed, call your endpoint from any language:
 
     ```bash
     curl -X POST "https://your-endpoint-url/predict" \
-      -H "Authorization: Bearer your_api_key" \
+      -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg"
     ```
 
@@ -225,7 +224,7 @@ Once deployed, call your endpoint from any language:
 
     const response = await fetch("https://your-endpoint-url/predict", {
         method: "POST",
-        headers: { Authorization: "Bearer your_api_key" },
+        headers: { Authorization: "Bearer YOUR_API_KEY" },
         body: form,
     });
 
@@ -250,8 +249,9 @@ Once deployed, call your endpoint from any language:
     | Monthly Credit       | -              | $30/seat/month      | Custom         |
     | Models               | 100            | 500                 | Unlimited      |
     | Concurrent Trainings | 3              | 10                  | Unlimited      |
-    | Deployments          | 3              | 10 (warm-start)     | Unlimited      |
+    | Deployments          | 3              | 10                  | Unlimited      |
     | Storage              | 100 GB         | 500 GB              | Unlimited      |
+    | Cloud GPU Types      | 20             | 23 (incl. H200/B200)| 23             |
     | Teams                | -              | Up to 5 members     | Up to 50       |
     | Support              | Community      | Priority            | Dedicated      |
 
@@ -299,36 +299,13 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 - **Real-Time Metrics**: Stream training progress and monitor deployments
 - **43 Deploy Regions**: Deploy models close to your users worldwide
 - **5 Task Types**: Support for detection, segmentation, pose, OBB, and classification (see [task docs](../tasks/index.md))
-- **AI-Assisted Annotation**: SAM and auto-labeling to speed up data preparation
+- **AI-Assisted Annotation**: [Smart annotation](data/annotation.md#smart-annotation) with SAM and YOLO models to speed up data preparation
 
 ### What GPU options are available for cloud training?
 
 Ultralytics Platform supports multiple GPU types for cloud training:
 
-| GPU          | VRAM   | Cost/Hour | Best For                |
-| ------------ | ------ | --------- | ----------------------- |
-| RTX 2000 Ada | 16 GB  | $0.24     | Small datasets, testing |
-| RTX A4500    | 20 GB  | $0.24     | Small-medium datasets   |
-| RTX A5000    | 24 GB  | $0.26     | Medium datasets         |
-| RTX 4000 Ada | 20 GB  | $0.38     | Medium datasets         |
-| L4           | 24 GB  | $0.39     | Inference optimized     |
-| A40          | 48 GB  | $0.40     | Larger batch sizes      |
-| RTX 3090     | 24 GB  | $0.46     | General training        |
-| RTX A6000    | 48 GB  | $0.49     | Large models            |
-| RTX 4090     | 24 GB  | $0.59     | Great price/performance |
-| RTX 6000 Ada | 48 GB  | $0.77     | Large batch training    |
-| L40S         | 48 GB  | $0.86     | Large batch training    |
-| RTX 5090     | 32 GB  | $0.89     | Latest generation       |
-| L40          | 48 GB  | $0.99     | Large models            |
-| A100 PCIe    | 80 GB  | $1.39     | Production training     |
-| A100 SXM     | 80 GB  | $1.49     | Production training     |
-| RTX PRO 6000 | 96 GB  | $1.89     | Recommended default     |
-| H100 PCIe    | 80 GB  | $2.39     | Fastest training        |
-| H100 SXM     | 80 GB  | $2.69     | Fastest training        |
-| H100 NVL     | 94 GB  | $3.07     | High-memory training    |
-| H200 NVL     | 143 GB | $3.39     | Maximum memory          |
-| H200 SXM     | 141 GB | $3.59     | Maximum performance     |
-| B200         | 180 GB | $4.99     | Largest models          |
+{% include "macros/platform-gpu-table.md" %}
 
 See [Cloud Training](train/cloud-training.md) for complete pricing and GPU options.
 
@@ -348,7 +325,7 @@ You can train models on your own hardware and stream real-time metrics to the pl
 
     ```bash
     # Set your API key
-    export ULTRALYTICS_API_KEY="your_api_key"
+    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
 
     # Train with project/name to stream metrics
     yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
@@ -361,7 +338,7 @@ You can train models on your own hardware and stream real-time metrics to the pl
 
     from ultralytics import YOLO
 
-    os.environ["ULTRALYTICS_API_KEY"] = "your_api_key"
+    os.environ["ULTRALYTICS_API_KEY"] = "YOUR_API_KEY"
 
     model = YOLO("yolo26n.pt")
     model.train(
@@ -376,7 +353,7 @@ You can train models on your own hardware and stream real-time metrics to the pl
 
     ```bash
     # Train using a Platform dataset directly
-    export ULTRALYTICS_API_KEY="your_api_key"
+    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
 
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100 project=username/my-project name=exp1
     ```
@@ -389,7 +366,7 @@ The Platform includes a full-featured annotation editor supporting:
 
 - **Manual Tools**: Bounding boxes, polygons, keypoints with skeleton templates, oriented boxes, classification
 - **Skeleton Templates**: Place all keypoints at once using built-in (Person, Hand, Face, Dog, Box) or custom templates
-- **SAM Smart Annotation**: Click to generate precise masks — choose from [SAM 2.1](../models/sam-2.md) Tiny/Small/Base/Large or the new [SAM 3](../models/sam-3.md) via the toolbar model picker
+- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) or [SAM 3](../models/sam-3.md) for click-based annotation, or run pretrained Ultralytics YOLO models and your own fine-tuned YOLO models from the toolbar for detect, segment, and OBB
 - **Keyboard Shortcuts**: Efficient workflows with hotkeys
 
 | Shortcut  | Action                     |
@@ -437,7 +414,7 @@ See [Models Export](train/models.md#export-model), the [Export mode guide](../mo
 
 | Problem                | Solution                                                                                                                                                  |
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Dataset won't process  | Check file format is supported (JPEG, PNG, WebP, etc.). Max file size: images 50MB, videos 1GB, ZIP 10GB                                                  |
+| Dataset won't process  | Check file format is supported (JPEG, PNG, WebP, etc.). Max file size: images 50MB, videos 1GB, datasets 10GB on Free / 20GB on Pro / 50GB on Enterprise  |
 | Missing annotations    | Verify labels are in [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format) with `.txt` files matching image filenames                        |
 | "Train split required" | Add `train/` folder to your dataset structure, or create splits in [dataset settings](data/datasets.md#filter-by-split)                                   |
 | Class names undefined  | Add a `data.yaml` file with `names:` list (see [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format)), or define classes in dataset settings |
@@ -488,7 +465,7 @@ See [Models Export](train/models.md#export-model), the [Export mode guide](../mo
 
 ??? question "What are the file size limits?"
 
-    Images: 50MB, Videos: 1GB, ZIP archives: 10GB. For larger files, split into multiple uploads.
+    Images: 50MB, Videos: 1GB, datasets: 10GB on Free, 20GB on Pro, 50GB on Enterprise. For larger files, split into multiple uploads.
 
 ??? question "How long are deleted items kept in Trash?"
 

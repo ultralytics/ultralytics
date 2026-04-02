@@ -14,6 +14,7 @@ __all__ = (
     "CBAM",
     "ChannelAttention",
     "Concat",
+    "ScaledAdd",
     "Conv",
     "Conv2",
     "ConvTranspose",
@@ -627,6 +628,30 @@ class Add(nn.Module):
             (torch.Tensor): Element-wise sum.
         """
         return sum(x)
+
+
+class ScaledAdd(nn.Module):
+    """Element-wise addition with a learnable scale on the residual input.
+
+    Computes x[0] + alpha * x[1] where alpha is a learnable scalar initialized to 0,
+    so training starts as pure x[0] and gradually learns the residual contribution.
+    """
+
+    def __init__(self):
+        """Initialize ScaledAdd with alpha=0."""
+        super().__init__()
+        self.alpha = nn.Parameter(torch.zeros(1))
+
+    def forward(self, x: list[torch.Tensor]):
+        """Apply scaled addition.
+
+        Args:
+            x (list[torch.Tensor]): Two tensors [main, residual] with matching shapes.
+
+        Returns:
+            (torch.Tensor): main + alpha * residual.
+        """
+        return x[0] + self.alpha * x[1]
 
 
 class Concat(nn.Module):

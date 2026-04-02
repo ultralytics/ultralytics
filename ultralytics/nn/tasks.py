@@ -53,6 +53,7 @@ from ultralytics.nn.modules import (
     CBLinear,
     Classify,
     Concat,
+    ScaledAdd,
     Conv,
     Conv2,
     ConvTranspose,
@@ -1684,7 +1685,7 @@ def parse_model(d, ch, verbose=True):
             c2 = args[1] if args[3] else args[1] * 4
         elif m is torch.nn.BatchNorm2d:
             args = [ch[f]]
-        elif m is Add:
+        elif m in {Add, ScaledAdd}:
             c2 = ch[f[0]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)

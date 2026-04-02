@@ -50,12 +50,11 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
     Archives are extracted and processed automatically.
 
-    | Format | Extensions        | Notes                | Max Size |
-    | ------ | ----------------- | -------------------- | -------- |
-    | ZIP    | `.zip`            | Most common          | 10 GB    |
-    | TAR    | `.tar`            | Uncompressed archive | 10 GB    |
-    | TAR.GZ | `.tar.gz`, `.tgz` | Compressed archive   | 10 GB    |
-    | GZ     | `.gz`             | Gzip compressed      | 10 GB    |
+    | Format | Extensions              | Notes             | Free   | Pro    | Enterprise |
+    | ------ | ----------------------- | ----------------- | ------ | ------ | ---------- |
+    | ZIP    | `.zip`                  | Most common       | 10 GB  | 20 GB  | 50 GB      |
+    | TAR    | `.tar` `.tar.gz` `.tgz` | Compressed or raw | 10 GB  | 20 GB  | 50 GB      |
+    | NDJSON | `.ndjson`               | Dataset export    | 10 GB  | 20 GB  | 50 GB      |
 
 ### Preparing Your Dataset
 
@@ -439,14 +438,30 @@ You can also drag and drop images onto the split filter tabs in grid view.
 
     Upload all images to one dataset, then use bulk move-to-split to organize subsets into train, validation, and test splits.
 
-### Auto Split Redistribution
+### Split Redistribution
 
-Automatically distribute images across train, validation, and test splits:
+Redistribute all images across train, validation, and test splits using custom ratios:
 
-1. Click the split redistribution button in the dataset toolbar
-2. The Platform automatically assigns images to splits based on standard ratios
+1. Click the **split bar** in the dataset toolbar to open the **Redistribute Splits** dialog
+2. Adjust split percentages using any of the methods below
+3. Review the live image count preview to confirm the distribution
+4. Click **Apply** to randomly reassign all images according to your percentages
 
-This is useful when you upload images without split folders and want to quickly organize them for training.
+![Ultralytics Platform Datasets Split Redistribution Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-split-redistribution-dialog.avif)
+
+The dialog provides three ways to set your target split ratios:
+
+| Method   | Description                                                                                  |
+| -------- | -------------------------------------------------------------------------------------------- |
+| **Drag** | Drag the handles between the colored segments to visually adjust split boundaries            |
+| **Type** | Edit the percentage input for any split (the other two splits auto-rebalance proportionally) |
+| **Auto** | One-click to instantly set an 80/20 train/validation split with the test split set to 0%     |
+
+A live preview shows exactly how many images will land in each split before you apply.
+
+!!! tip "Quick 80/20 Split"
+
+    Click the **Auto** button to instantly set the recommended 80/20 train/validation split. This is the most common ratio for training.
 
 ### Bulk Delete
 
@@ -536,9 +551,9 @@ Dataset metadata is edited inline directly on the dataset page — no dialog nee
 - **Task type**: Click the task badge to select a different task type.
 - **License**: Click the license selector to change the dataset license.
 
-!!! warning "Changing Task Type"
+!!! info "Changing Task Type"
 
-    Changing the task type may affect how existing annotations are visualized. Incompatible annotations won't be displayed.
+    Each image stores annotations for all task types together. Changing the dataset task type controls which annotations are visible in the editor and included in exports and training. Annotations for other task types are preserved in the database and reappear when you switch back.
 
 ## Clone Dataset
 
@@ -637,3 +652,7 @@ Ultralytics Platform supports two annotation formats for upload:
 === "COCO Format"
 
     JSON files with `images`, `annotations`, and `categories` arrays. Supports detection (`bbox`), segmentation (polygon), and pose (`keypoints`) tasks. COCO uses absolute pixel coordinates which are automatically converted to normalized format during upload.
+
+### Can I annotate the same dataset for multiple task types?
+
+Yes. Each image stores annotations for all 5 task types (detect, segment, pose, OBB, classify) together. You can switch the dataset's active task type at any time without losing existing annotations. Only annotations matching the active task type are shown in the editor and included in exports and training — annotations for other tasks are preserved and reappear when you switch back.

@@ -11,7 +11,7 @@ At [Ultralytics](https://www.ultralytics.com/), the security of our users' data 
 
 We utilize [Snyk](https://snyk.io/advisor/python/ultralytics) to conduct comprehensive security scans on Ultralytics repositories. Snyk's robust scanning capabilities extend beyond dependency checks; it also examines our code and Dockerfiles for various vulnerabilities. By identifying and addressing these issues proactively, we ensure a higher level of security and reliability for our users.
 
-[![ultralytics](https://snyk.io/advisor/python/ultralytics/badge.svg)](https://snyk.io/advisor/python/ultralytics)
+[![ultralytics](https://snyk.io/test/github/ultralytics/ultralytics/badge.svg)](https://snyk.io/advisor/python/ultralytics)
 
 ## GitHub CodeQL Scanning
 

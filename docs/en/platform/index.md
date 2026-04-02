@@ -62,17 +62,17 @@ graph LR
     Data --> Train --> Deploy
 ```
 
-| Stage        | Features                                                                                                                                       |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Upload**   | Images (50MB), videos (1GB), ZIP archives (10GB) with automatic processing                                                                     |
-| **Annotate** | Manual tools, SAM smart annotation, YOLO auto-labeling for all 5 task types (see [supported tasks](data/index.md#supported-tasks))             |
-| **Train**    | Cloud GPUs (20 free + 3 Pro-exclusive), real-time metrics, project organization                                                                |
-| **Export**   | [17 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.; see [supported formats](train/models.md#supported-formats)) |
-| **Deploy**   | 43 global regions with dedicated endpoints, auto-scaling, monitoring                                                                           |
+| Stage        | Features                                                                                                                                                                                                     |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Upload**   | Images (50MB), videos (1GB), and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON) with automatic processing                                                                                       |
+| **Annotate** | Manual tools for all 5 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM and YOLO models for detect, segment, and OBB (see [supported tasks](data/index.md#supported-tasks)) |
+| **Train**    | Cloud GPUs (20 free + 3 Pro-exclusive), real-time metrics, project organization                                                                                                                              |
+| **Export**   | [17 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.; see [supported formats](train/models.md#supported-formats))                                                               |
+| **Deploy**   | 43 global regions with dedicated endpoints, auto-scaling, monitoring                                                                                                                                         |
 
 **What you can do:**
 
-- **Upload** images, videos, and ZIP archives to create training datasets
+- **Upload** images, videos, and dataset files to create training datasets
 - **Visualize** annotations with interactive overlays for all 5 YOLO task types (see [supported tasks](data/index.md#supported-tasks))
 - **Train** models on cloud GPUs (20 free, 23 with Pro) with real-time metrics
 - **Export** to [17 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.)
@@ -100,17 +100,16 @@ You select your region during onboarding, and all your data, models, and deploym
 
 ### Data Preparation
 
-- **Dataset Management**: Upload images, videos, or ZIP archives with automatic processing
+- **Dataset Management**: Upload images, videos, or dataset files with automatic processing
 - **Annotation Editor**: Manual annotation for all 5 YOLO task types (detect, segment, pose, OBB, classify; see [supported tasks](data/index.md#supported-tasks))
 - **Skeleton Templates**: Built-in (Person, Hand, Face, Dog, Box) and custom skeleton templates for one-click pose annotation
-- **SAM Smart Annotation**: Click-based intelligent annotation with 5 models — [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large) and the new [SAM 3](../models/sam-3.md) for highest accuracy. Switch models per-image from the annotation toolbar.
-- **Auto-Annotation**: Use trained models to pre-label new data
+- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large), [SAM 3](../models/sam-3.md), pretrained Ultralytics YOLO models, or your own fine-tuned YOLO models from the annotation toolbar for detect, segment, and OBB tasks
 - **Dataset Versioning**: Create numbered NDJSON snapshots with descriptions for reproducible training
 - **Statistics**: Class distribution, location heatmaps, and dimension analysis
 
 ```mermaid
 graph LR
-    A[Upload ZIP/Images/Video] --> B[Auto-Process]
+    A[Upload Dataset/Images/Video] --> B[Auto-Process]
     B --> C[Browse & Filter]
     C --> D{Annotate}
     D --> E[Manual Tools]
@@ -300,7 +299,7 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 - **Real-Time Metrics**: Stream training progress and monitor deployments
 - **43 Deploy Regions**: Deploy models close to your users worldwide
 - **5 Task Types**: Support for detection, segmentation, pose, OBB, and classification (see [task docs](../tasks/index.md))
-- **AI-Assisted Annotation**: SAM and auto-labeling to speed up data preparation
+- **AI-Assisted Annotation**: [Smart annotation](data/annotation.md#smart-annotation) with SAM and YOLO models to speed up data preparation
 
 ### What GPU options are available for cloud training?
 
@@ -367,7 +366,7 @@ The Platform includes a full-featured annotation editor supporting:
 
 - **Manual Tools**: Bounding boxes, polygons, keypoints with skeleton templates, oriented boxes, classification
 - **Skeleton Templates**: Place all keypoints at once using built-in (Person, Hand, Face, Dog, Box) or custom templates
-- **SAM Smart Annotation**: Click to generate precise masks — choose from [SAM 2.1](../models/sam-2.md) Tiny/Small/Base/Large or the new [SAM 3](../models/sam-3.md) via the toolbar model picker
+- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) or [SAM 3](../models/sam-3.md) for click-based annotation, or run pretrained Ultralytics YOLO models and your own fine-tuned YOLO models from the toolbar for detect, segment, and OBB
 - **Keyboard Shortcuts**: Efficient workflows with hotkeys
 
 | Shortcut  | Action                     |
@@ -415,7 +414,7 @@ See [Models Export](train/models.md#export-model), the [Export mode guide](../mo
 
 | Problem                | Solution                                                                                                                                                  |
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Dataset won't process  | Check file format is supported (JPEG, PNG, WebP, etc.). Max file size: images 50MB, videos 1GB, ZIP 10GB                                                  |
+| Dataset won't process  | Check file format is supported (JPEG, PNG, WebP, etc.). Max file size: images 50MB, videos 1GB, datasets 10GB on Free / 20GB on Pro / 50GB on Enterprise  |
 | Missing annotations    | Verify labels are in [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format) with `.txt` files matching image filenames                        |
 | "Train split required" | Add `train/` folder to your dataset structure, or create splits in [dataset settings](data/datasets.md#filter-by-split)                                   |
 | Class names undefined  | Add a `data.yaml` file with `names:` list (see [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format)), or define classes in dataset settings |
@@ -466,7 +465,7 @@ See [Models Export](train/models.md#export-model), the [Export mode guide](../mo
 
 ??? question "What are the file size limits?"
 
-    Images: 50MB, Videos: 1GB, ZIP archives: 10GB. For larger files, split into multiple uploads.
+    Images: 50MB, Videos: 1GB, datasets: 10GB on Free, 20GB on Pro, 50GB on Enterprise. For larger files, split into multiple uploads.
 
 ??? question "How long are deleted items kept in Trash?"
 

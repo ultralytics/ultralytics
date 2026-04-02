@@ -706,6 +706,6 @@ def build_name_to_weight(
     else:
         raise ValueError(f"Unknown mode '{mode}'. Choose from: none, inverse, sqrt_inverse, effective.")
 
-    w /= w.mean()
+    w = np.clip(w / w.mean(), 0.1, 10.0)
     weight = {n: float(v) for n, v in zip(names, w)}
     return weight

@@ -8,7 +8,7 @@ from pathlib import Path
 
 import torch
 
-from ultralytics.utils import IS_JETSON, LOGGER, TORCH_VERSION
+from ultralytics.utils import IS_JETSON, LOGGER, TORCH_VERSION, ThreadingLocked
 from ultralytics.utils.torch_utils import TORCH_2_4, TORCH_2_9
 
 
@@ -42,6 +42,7 @@ def best_onnx_opset(onnx: types.ModuleType, cuda: bool = False) -> int:
     return min(opset, onnx.defs.onnx_opset_version())
 
 
+@ThreadingLocked()
 def torch2onnx(
     torch_model: torch.nn.Module,
     im: torch.Tensor,

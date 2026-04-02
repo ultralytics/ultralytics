@@ -2,17 +2,21 @@
 
 import io
 import shutil
+import threading
+import time
 import uuid
 from contextlib import redirect_stderr, redirect_stdout
 from itertools import product
 from pathlib import Path
 
 import pytest
+import torch
 
 from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ARM64, IS_DOCKER, IS_RASPBERRYPI, LINUX, MACOS, MACOS_VERSION, WINDOWS, checks
+from ultralytics.utils.export.engine import torch2onnx
 from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_0, TORCH_2_1, TORCH_2_8, TORCH_2_9
 
 
@@ -28,6 +32,40 @@ def test_export_onnx(end2end):
     """Test YOLO model export to ONNX format with dynamic axes."""
     file = YOLO(MODEL).export(format="onnx", dynamic=True, imgsz=32, end2end=end2end)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+
+
+def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
+    """Ensure ONNX exports do not overlap across worker threads."""
+    active = 0
+    max_active = 0
+    errors = []
+    state_lock = threading.Lock()
+
+    def fake_export(*args, **kwargs):
+        nonlocal active, max_active
+        with state_lock:
+            active += 1
+            max_active = max(max_active, active)
+        time.sleep(0.05)
+        with state_lock:
+            active -= 1
+
+    monkeypatch.setattr(torch.onnx, "export", fake_export)
+
+    def export_model(index: int):
+        try:
+            torch2onnx(torch.nn.Identity(), torch.zeros(1, 3, 8, 8), str(tmp_path / f"export-{index}.onnx"))
+        except Exception as error:  # pragma: no cover - assertion handled below
+            errors.append(error)
+
+    threads = [threading.Thread(target=export_model, args=(i,)) for i in range(4)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert not errors
+    assert max_active == 1
 
 
 @pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")

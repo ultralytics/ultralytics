@@ -438,14 +438,30 @@ You can also drag and drop images onto the split filter tabs in grid view.
 
     Upload all images to one dataset, then use bulk move-to-split to organize subsets into train, validation, and test splits.
 
-### Auto Split Redistribution
+### Split Redistribution
 
-Automatically distribute images across train, validation, and test splits:
+Redistribute all images across train, validation, and test splits using custom ratios:
 
-1. Click the split redistribution button in the dataset toolbar
-2. The Platform automatically assigns images to splits based on standard ratios
+1. Click the **split bar** in the dataset toolbar to open the **Redistribute Splits** dialog
+2. Adjust split percentages using any of the methods below
+3. Review the live image count preview to confirm the distribution
+4. Click **Apply** to randomly reassign all images according to your percentages
 
-This is useful when you upload images without split folders and want to quickly organize them for training.
+![Ultralytics Platform Datasets Split Redistribution Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-split-redistribution-dialog.avif)
+
+The dialog provides three ways to set your target split ratios:
+
+| Method   | Description                                                                                  |
+| -------- | -------------------------------------------------------------------------------------------- |
+| **Drag** | Drag the handles between the colored segments to visually adjust split boundaries            |
+| **Type** | Edit the percentage input for any split (the other two splits auto-rebalance proportionally) |
+| **Auto** | One-click to instantly set an 80/20 train/validation split with the test split set to 0%     |
+
+A live preview shows exactly how many images will land in each split before you apply.
+
+!!! tip "Quick 80/20 Split"
+
+    Click the **Auto** button to instantly set the recommended 80/20 train/validation split. This is the most common ratio for training.
 
 ### Bulk Delete
 

@@ -828,6 +828,7 @@ class BaseTrainer:
                     "close_mosaic",
                     "augmentations",
                     "save_period",
+                    "stop_epoch",
                     "workers",
                     "cache",
                     "patience",

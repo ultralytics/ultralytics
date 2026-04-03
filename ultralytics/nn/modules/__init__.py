@@ -52,6 +52,10 @@ from .block import (
     C3Ghost,
     C3k2,
     C3k2Simple,
+    C3k2AC,
+    C3k2DBB,
+    C3k2MobileOne,
+    C3k2RepGhost,
     C3k2Rep,
     C3k2RepLK,
     C3x,
@@ -73,7 +77,9 @@ from .block import (
     TorchVision,
 )
 from .conv import (
+    ACConv,
     Add,
+    DBBConv,
     CBAM,
     ChannelAttention,
     Concat,
@@ -87,7 +93,9 @@ from .conv import (
     GhostConv,
     Index,
     LightConv,
+    MobileOneConv,
     RepConv,
+    RepGhostConv,
     SpatialAttention,
 )
 from .head import (
@@ -161,6 +169,10 @@ __all__ = (
     "C3Ghost",
     "C3k2",
     "C3k2Simple",
+    "C3k2AC",
+    "C3k2DBB",
+    "C3k2MobileOne",
+    "C3k2RepGhost",
     "C3k2Rep",
     "C3k2RepLK",
     "C3x",

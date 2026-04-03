@@ -9,7 +9,7 @@ import torch.nn.functional as F
 
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
 
-from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad
+from .conv import ACConv, Conv, DBBConv, DWConv, GhostConv, LightConv, MobileOneConv, RepConv, RepGhostConv, autopad
 from .transformer import TransformerBlock
 
 __all__ = (
@@ -2206,6 +2206,214 @@ class C3k2RepLK(C2fRep):
         y.extend(m(y[-1]) for m in self.m)
         cat = torch.cat(y, 1)
         return self.cv2(cat + self.context(cat))  # residual context
+
+
+class C2fRepGhost(nn.Module):
+    """C2f with RepGhostConv blocks instead of Bottleneck."""
+
+    def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = False, g: int = 1, e: float = 0.5):
+        """Initialize C2fRepGhost module."""
+        super().__init__()
+        self.c = int(c2 * e)
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)
+        self.m = nn.ModuleList(RepGhostConv(self.c, self.c, bn=shortcut) for _ in range(n))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass."""
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+
+class C3k2RepGhost(C2fRepGhost):
+    """C3k2 replacement using RepGhostConv."""
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        n: int = 1,
+        c3k: bool = False,
+        e: float = 0.5,
+        attn: bool = False,
+        g: int = 1,
+        shortcut: bool = True,
+    ):
+        """Initialize C3k2RepGhost module."""
+        super().__init__(c1, c2, n, shortcut, g, e)
+        if attn:
+            self.m = nn.ModuleList(
+                nn.Sequential(
+                    RepGhostConv(self.c, self.c, bn=shortcut),
+                    PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1)),
+                )
+                for _ in range(n)
+            )
+        elif c3k:
+            self.m = nn.ModuleList(
+                nn.Sequential(
+                    RepGhostConv(self.c, self.c, bn=shortcut),
+                    RepGhostConv(self.c, self.c, bn=shortcut),
+                )
+                for _ in range(n)
+            )
+
+
+class C2fDBB(nn.Module):
+    """C2f with DBBConv blocks instead of Bottleneck."""
+
+    def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = False, g: int = 1, e: float = 0.5):
+        """Initialize C2fDBB module."""
+        super().__init__()
+        self.c = int(c2 * e)
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)
+        self.m = nn.ModuleList(DBBConv(self.c, self.c, bn=shortcut) for _ in range(n))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass."""
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+
+class C3k2DBB(C2fDBB):
+    """C3k2 replacement using DBBConv (Diverse Branch Block)."""
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        n: int = 1,
+        c3k: bool = False,
+        e: float = 0.5,
+        attn: bool = False,
+        g: int = 1,
+        shortcut: bool = True,
+    ):
+        """Initialize C3k2DBB module."""
+        super().__init__(c1, c2, n, shortcut, g, e)
+        if attn:
+            self.m = nn.ModuleList(
+                nn.Sequential(
+                    DBBConv(self.c, self.c, bn=shortcut),
+                    PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1)),
+                )
+                for _ in range(n)
+            )
+        elif c3k:
+            self.m = nn.ModuleList(
+                nn.Sequential(
+                    DBBConv(self.c, self.c, bn=shortcut),
+                    DBBConv(self.c, self.c, bn=shortcut),
+                )
+                for _ in range(n)
+            )
+
+
+class C2fMobileOne(nn.Module):
+    """C2f with MobileOneConv blocks instead of Bottleneck."""
+
+    def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = False, g: int = 1, e: float = 0.5):
+        """Initialize C2fMobileOne module."""
+        super().__init__()
+        self.c = int(c2 * e)
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)
+        self.m = nn.ModuleList(MobileOneConv(self.c, self.c, bn=shortcut) for _ in range(n))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass."""
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+
+class C3k2MobileOne(C2fMobileOne):
+    """C3k2 replacement using MobileOneConv (multiple parallel 3x3 branches)."""
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        n: int = 1,
+        c3k: bool = False,
+        e: float = 0.5,
+        attn: bool = False,
+        g: int = 1,
+        shortcut: bool = True,
+    ):
+        """Initialize C3k2MobileOne module."""
+        super().__init__(c1, c2, n, shortcut, g, e)
+        if attn:
+            self.m = nn.ModuleList(
+                nn.Sequential(
+                    MobileOneConv(self.c, self.c, bn=shortcut),
+                    PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1)),
+                )
+                for _ in range(n)
+            )
+        elif c3k:
+            self.m = nn.ModuleList(
+                nn.Sequential(
+                    MobileOneConv(self.c, self.c, bn=shortcut),
+                    MobileOneConv(self.c, self.c, bn=shortcut),
+                )
+                for _ in range(n)
+            )
+
+
+class C2fAC(nn.Module):
+    """C2f with ACConv blocks instead of Bottleneck."""
+
+    def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = False, g: int = 1, e: float = 0.5):
+        """Initialize C2fAC module."""
+        super().__init__()
+        self.c = int(c2 * e)
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)
+        self.m = nn.ModuleList(ACConv(self.c, self.c, bn=shortcut) for _ in range(n))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass."""
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+
+class C3k2AC(C2fAC):
+    """C3k2 replacement using ACConv (asymmetric convolution)."""
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        n: int = 1,
+        c3k: bool = False,
+        e: float = 0.5,
+        attn: bool = False,
+        g: int = 1,
+        shortcut: bool = True,
+    ):
+        """Initialize C3k2AC module."""
+        super().__init__(c1, c2, n, shortcut, g, e)
+        if attn:
+            self.m = nn.ModuleList(
+                nn.Sequential(
+                    ACConv(self.c, self.c, bn=shortcut),
+                    PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1)),
+                )
+                for _ in range(n)
+            )
+        elif c3k:
+            self.m = nn.ModuleList(
+                nn.Sequential(
+                    ACConv(self.c, self.c, bn=shortcut),
+                    ACConv(self.c, self.c, bn=shortcut),
+                )
+                for _ in range(n)
+            )
 
 
 class C2PSALite(nn.Module):

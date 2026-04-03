@@ -8,9 +8,12 @@ import math
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 __all__ = (
+    "ACConv",
     "Add",
+    "DBBConv",
     "CBAM",
     "ChannelAttention",
     "Concat",
@@ -24,7 +27,9 @@ __all__ = (
     "GhostConv",
     "Index",
     "LightConv",
+    "MobileOneConv",
     "RepConv",
+    "RepGhostConv",
     "SpatialAttention",
 )
 
@@ -350,6 +355,405 @@ class GhostConv(nn.Module):
         """
         y = self.cv1(x)
         return torch.cat((y, self.cv2(y)), 1)
+
+
+class ACConv(nn.Module):
+    """Asymmetric Convolution Block with training and deploy modes.
+
+    Uses 3x3 + 1x3 + 3x1 branches that fuse into a single 3x3 conv at inference.
+    The asymmetric branches capture horizontal and vertical features more effectively than 1x1.
+
+    Attributes:
+        conv1 (Conv): 3x3 convolution (square branch).
+        conv2 (Conv): 1x3 convolution (horizontal branch).
+        conv3 (Conv): 3x1 convolution (vertical branch).
+        bn (nn.BatchNorm2d, optional): Batch normalization for identity branch.
+        act (nn.Module): Activation function.
+
+    References:
+        https://github.com/DingXiaoH/ACNet
+    """
+
+    default_act = nn.SiLU()
+
+    def __init__(self, c1, c2, k=3, s=1, p=1, g=1, d=1, act=True, bn=False, deploy=False):
+        """Initialize ACConv with 3x3, 1x3, and 3x1 branches."""
+        super().__init__()
+        assert k == 3 and p == 1
+        self.g = g
+        self.c1 = c1
+        self.c2 = c2
+        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+
+        self.bn = nn.BatchNorm2d(num_features=c1) if bn and c2 == c1 and s == 1 else None
+        self.conv1 = Conv(c1, c2, 3, s, p=1, g=g, act=False)
+        self.conv2 = Conv(c1, c2, (1, 3), s, p=(0, 1), g=g, act=False)
+        self.conv3 = Conv(c1, c2, (3, 1), s, p=(1, 0), g=g, act=False)
+
+    def forward_fuse(self, x):
+        """Forward pass for deploy mode."""
+        return self.act(self.conv(x))
+
+    def forward(self, x):
+        """Forward pass for training mode."""
+        id_out = 0 if self.bn is None else self.bn(x)
+        return self.act(self.conv1(x) + self.conv2(x) + self.conv3(x) + id_out)
+
+    def get_equivalent_kernel_bias(self):
+        """Fuse all branches into equivalent 3x3 kernel and bias."""
+        kernel3x3, bias3x3 = self._fuse_bn_tensor(self.conv1)
+        kernel1x3, bias1x3 = self._fuse_bn_tensor(self.conv2)
+        kernel3x1, bias3x1 = self._fuse_bn_tensor(self.conv3)
+        kernelid, biasid = self._fuse_bn_tensor(self.bn)
+        return (
+            kernel3x3 + F.pad(kernel1x3, [0, 0, 1, 1]) + F.pad(kernel3x1, [1, 1, 0, 0]) + kernelid,
+            bias3x3 + bias1x3 + bias3x1 + biasid,
+        )
+
+    def _fuse_bn_tensor(self, branch):
+        """Fuse batch normalization with convolution weights."""
+        if branch is None:
+            return 0, 0
+        if isinstance(branch, Conv):
+            kernel = branch.conv.weight
+            running_mean = branch.bn.running_mean
+            running_var = branch.bn.running_var
+            gamma = branch.bn.weight
+            beta = branch.bn.bias
+            eps = branch.bn.eps
+        elif isinstance(branch, nn.BatchNorm2d):
+            if not hasattr(self, "id_tensor"):
+                input_dim = self.c1 // self.g
+                kernel_value = np.zeros((self.c1, input_dim, 3, 3), dtype=np.float32)
+                for i in range(self.c1):
+                    kernel_value[i, i % input_dim, 1, 1] = 1
+                self.id_tensor = torch.from_numpy(kernel_value).to(branch.weight.device)
+            kernel = self.id_tensor
+            running_mean = branch.running_mean
+            running_var = branch.running_var
+            gamma = branch.weight
+            beta = branch.bias
+            eps = branch.eps
+        std = (running_var + eps).sqrt()
+        t = (gamma / std).reshape(-1, 1, 1, 1)
+        return kernel * t, beta - running_mean * gamma / std
+
+    def fuse_convs(self):
+        """Fuse all branches into a single 3x3 conv for inference."""
+        if hasattr(self, "conv"):
+            return
+        kernel, bias = self.get_equivalent_kernel_bias()
+        self.conv = nn.Conv2d(
+            in_channels=self.conv1.conv.in_channels,
+            out_channels=self.conv1.conv.out_channels,
+            kernel_size=self.conv1.conv.kernel_size,
+            stride=self.conv1.conv.stride,
+            padding=self.conv1.conv.padding,
+            dilation=self.conv1.conv.dilation,
+            groups=self.conv1.conv.groups,
+            bias=True,
+        ).requires_grad_(False)
+        self.conv.weight.data = kernel
+        self.conv.bias.data = bias
+        for para in self.parameters():
+            para.detach_()
+        self.__delattr__("conv1")
+        self.__delattr__("conv2")
+        self.__delattr__("conv3")
+        if hasattr(self, "bn"):
+            self.__delattr__("bn")
+        if hasattr(self, "id_tensor"):
+            self.__delattr__("id_tensor")
+
+
+class DBBConv(nn.Module):
+    """Diverse Branch Block with training and deploy modes.
+
+    Combines 3x3, 1x1→3x3 sequential, 1x1, and identity branches into a single 3x3 at inference.
+    The diverse topology (sequential + parallel) provides richer gradient signal than uniform branches.
+
+    References:
+        https://github.com/DingXiaoH/DiverseBranchBlock
+    """
+
+    default_act = nn.SiLU()
+
+    def __init__(self, c1, c2, k=3, s=1, p=1, g=1, d=1, act=True, bn=False, deploy=False):
+        """Initialize DBBConv with 3x3, 1x1→3x3, 1x1, and identity branches."""
+        super().__init__()
+        assert k == 3 and p == 1
+        self.g = g
+        self.c1 = c1
+        self.c2 = c2
+        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+
+        self.bn = nn.BatchNorm2d(num_features=c1) if bn and c2 == c1 and s == 1 else None
+        self.conv1 = Conv(c1, c2, 3, s, p=1, g=g, act=False)  # 3x3 branch
+        self.conv2 = Conv(c1, c2, 1, s, p=0, g=g, act=False)  # 1x1 branch
+        # Sequential 1x1 → 3x3 branch
+        mid = max(c1 // 4 // g * g, g)
+        self.seq1 = Conv(c1, mid, 1, 1, p=0, g=g, act=False)
+        self.seq2 = Conv(mid, c2, 3, s, p=1, g=g, act=False)
+
+    def forward_fuse(self, x):
+        """Forward pass for deploy mode."""
+        return self.act(self.conv(x))
+
+    def forward(self, x):
+        """Forward pass for training mode."""
+        id_out = 0 if self.bn is None else self.bn(x)
+        return self.act(self.conv1(x) + self.conv2(x) + self.seq2(self.seq1(x)) + id_out)
+
+    def get_equivalent_kernel_bias(self):
+        """Fuse all branches into equivalent 3x3 kernel and bias."""
+        k3x3, b3x3 = self._fuse_bn_tensor(self.conv1)
+        k1x1, b1x1 = self._fuse_bn_tensor(self.conv2)
+        k_seq, b_seq = self._fuse_seq_branch()
+        kid, bid = self._fuse_bn_tensor(self.bn)
+        return k3x3 + F.pad(k1x1, [1, 1, 1, 1]) + k_seq + kid, b3x3 + b1x1 + b_seq + bid
+
+    def _fuse_seq_branch(self):
+        """Fuse sequential 1x1→3x3 branch into equivalent 3x3 kernel and bias."""
+        k1, b1 = self._fuse_bn_tensor(self.seq1)  # [mid, c1//g, 1, 1]
+        k3, b3 = self._fuse_bn_tensor(self.seq2)  # [c2, mid//g, 3, 3]
+        # Fuse sequential convs per group
+        g = self.g
+        k1_groups = k1.chunk(g, dim=0)
+        k3_groups = k3.chunk(g, dim=0)
+        b1_groups = b1.chunk(g)
+        b3_groups = b3.chunk(g)
+        k_fused, b_fused = [], []
+        for k1g, k3g, b1g, b3g in zip(k1_groups, k3_groups, b1_groups, b3_groups):
+            # k1g: [mid/g, c1/g, 1, 1], k3g: [c2/g, mid/g, 3, 3]
+            k_fused.append(torch.einsum("omhw,mi->oihw", k3g, k1g.squeeze(-1).squeeze(-1)))
+            b_fused.append(k3g.sum(dim=(2, 3)) @ b1g + b3g)
+        return torch.cat(k_fused), torch.cat(b_fused)
+
+    def _fuse_bn_tensor(self, branch):
+        """Fuse batch normalization with convolution weights."""
+        if branch is None:
+            return 0, 0
+        if isinstance(branch, Conv):
+            kernel = branch.conv.weight
+            running_mean = branch.bn.running_mean
+            running_var = branch.bn.running_var
+            gamma = branch.bn.weight
+            beta = branch.bn.bias
+            eps = branch.bn.eps
+        elif isinstance(branch, nn.BatchNorm2d):
+            if not hasattr(self, "id_tensor"):
+                input_dim = self.c1 // self.g
+                kernel_value = np.zeros((self.c1, input_dim, 3, 3), dtype=np.float32)
+                for i in range(self.c1):
+                    kernel_value[i, i % input_dim, 1, 1] = 1
+                self.id_tensor = torch.from_numpy(kernel_value).to(branch.weight.device)
+            kernel = self.id_tensor
+            running_mean = branch.running_mean
+            running_var = branch.running_var
+            gamma = branch.weight
+            beta = branch.bias
+            eps = branch.eps
+        std = (running_var + eps).sqrt()
+        t = (gamma / std).reshape(-1, 1, 1, 1)
+        return kernel * t, beta - running_mean * gamma / std
+
+    def fuse_convs(self):
+        """Fuse all branches into a single 3x3 conv for inference."""
+        if hasattr(self, "conv"):
+            return
+        kernel, bias = self.get_equivalent_kernel_bias()
+        self.conv = nn.Conv2d(
+            in_channels=self.conv1.conv.in_channels,
+            out_channels=self.conv1.conv.out_channels,
+            kernel_size=self.conv1.conv.kernel_size,
+            stride=self.conv1.conv.stride,
+            padding=self.conv1.conv.padding,
+            dilation=self.conv1.conv.dilation,
+            groups=self.conv1.conv.groups,
+            bias=True,
+        ).requires_grad_(False)
+        self.conv.weight.data = kernel
+        self.conv.bias.data = bias
+        for para in self.parameters():
+            para.detach_()
+        self.__delattr__("conv1")
+        self.__delattr__("conv2")
+        self.__delattr__("seq1")
+        self.__delattr__("seq2")
+        if hasattr(self, "bn"):
+            self.__delattr__("bn")
+        if hasattr(self, "id_tensor"):
+            self.__delattr__("id_tensor")
+
+
+class RepGhostConv(nn.Module):
+    """RepGhost module: Ghost convolution with reparameterizable DW branch.
+
+    Training: 1x1 conv → primary features; DW 3x3 + identity shortcut → ghost features; cat both.
+    Inference: identity shortcut fuses into DW 3x3, becoming a plain Ghost conv with no overhead.
+
+    References:
+        https://github.com/ChengpengChen/RepGhost
+    """
+
+    default_act = nn.SiLU()
+
+    def __init__(self, c1, c2, k=3, s=1, p=1, g=1, d=1, act=True, bn=False, deploy=False):
+        """Initialize RepGhostConv."""
+        super().__init__()
+        self.c1 = c1
+        self.c2 = c2
+        c_ = c2 // 2
+        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+
+        self.primary = Conv(c1, c_, 1, s, act=False)  # 1x1 primary
+        self.cheap = Conv(c_, c_, 3, 1, g=c_, act=False)  # DW 3x3 cheap op
+        self.shortcut = nn.BatchNorm2d(c_) if bn and s == 1 else None  # identity shortcut
+
+    def forward_fuse(self, x):
+        """Forward pass for deploy mode (shortcut fused into DW conv)."""
+        y = self.act(self.primary(x))
+        return torch.cat((y, self.act(self.cheap(y))), 1)
+
+    def forward(self, x):
+        """Forward pass for training mode."""
+        y = self.act(self.primary(x))
+        ghost = self.cheap(y)
+        if self.shortcut is not None:
+            ghost = ghost + self.shortcut(y)
+        return torch.cat((y, self.act(ghost)), 1)
+
+    def fuse_convs(self):
+        """Fuse identity shortcut BN into DW conv."""
+        if self.shortcut is None:
+            return
+        # Fuse DW conv + its BN
+        dw_bn = self.cheap.bn
+        std = (dw_bn.running_var + dw_bn.eps).sqrt()
+        t = (dw_bn.weight / std).reshape(-1, 1, 1, 1)
+        k_dw = self.cheap.conv.weight * t
+        b_dw = dw_bn.bias - dw_bn.running_mean * dw_bn.weight / std
+
+        # Fuse shortcut BN as identity DW kernel (1 at center per channel)
+        sbn = self.shortcut
+        std_s = (sbn.running_var + sbn.eps).sqrt()
+        t_s = sbn.weight / std_s
+        k_id = torch.zeros_like(k_dw)
+        k_id[:, 0, 1, 1] = t_s
+        b_id = sbn.bias - sbn.running_mean * sbn.weight / std_s
+
+        # Replace cheap with fused plain conv (no BN)
+        fused = nn.Conv2d(
+            k_dw.shape[0], k_dw.shape[0], 3, 1, 1, groups=k_dw.shape[0], bias=True,
+        ).requires_grad_(False)
+        fused.weight.data = k_dw + k_id
+        fused.bias.data = b_dw + b_id
+        self.cheap = fused
+        for para in self.cheap.parameters():
+            para.detach_()
+        self.__delattr__("shortcut")
+
+
+class MobileOneConv(nn.Module):
+    """MobileOne building block with reparameterizable branches.
+
+    Uses k parallel 3x3 conv branches (each with BN) that fuse into a single 3x3 at inference.
+    More parallel branches during training provide richer gradient signal.
+
+    References:
+        https://github.com/apple/ml-mobileone
+    """
+
+    default_act = nn.SiLU()
+
+    def __init__(self, c1, c2, k=3, s=1, p=1, g=1, d=1, act=True, bn=False, deploy=False, num_conv_branches=4):
+        """Initialize MobileOneConv with multiple parallel 3x3 branches.
+
+        Args:
+            num_conv_branches (int): Number of parallel 3x3 conv branches. Default 4.
+        """
+        super().__init__()
+        assert k == 3 and p == 1
+        self.g = g
+        self.c1 = c1
+        self.c2 = c2
+        self.num_conv_branches = num_conv_branches
+        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+
+        self.bn = nn.BatchNorm2d(num_features=c1) if bn and c2 == c1 and s == 1 else None
+        self.convs = nn.ModuleList(Conv(c1, c2, 3, s, p=1, g=g, act=False) for _ in range(num_conv_branches))
+
+    def forward_fuse(self, x):
+        """Forward pass for deploy mode."""
+        return self.act(self.conv(x))
+
+    def forward(self, x):
+        """Forward pass for training mode."""
+        id_out = 0 if self.bn is None else self.bn(x)
+        return self.act(sum(c(x) for c in self.convs) + id_out)
+
+    def get_equivalent_kernel_bias(self):
+        """Fuse all branches into equivalent 3x3 kernel and bias."""
+        kernel, bias = 0, 0
+        for conv in self.convs:
+            k, b = self._fuse_bn_tensor(conv)
+            kernel = kernel + k
+            bias = bias + b
+        kid, bid = self._fuse_bn_tensor(self.bn)
+        return kernel + kid, bias + bid
+
+    def _fuse_bn_tensor(self, branch):
+        """Fuse batch normalization with convolution weights."""
+        if branch is None:
+            return 0, 0
+        if isinstance(branch, Conv):
+            kernel = branch.conv.weight
+            running_mean = branch.bn.running_mean
+            running_var = branch.bn.running_var
+            gamma = branch.bn.weight
+            beta = branch.bn.bias
+            eps = branch.bn.eps
+        elif isinstance(branch, nn.BatchNorm2d):
+            if not hasattr(self, "id_tensor"):
+                input_dim = self.c1 // self.g
+                kernel_value = np.zeros((self.c1, input_dim, 3, 3), dtype=np.float32)
+                for i in range(self.c1):
+                    kernel_value[i, i % input_dim, 1, 1] = 1
+                self.id_tensor = torch.from_numpy(kernel_value).to(branch.weight.device)
+            kernel = self.id_tensor
+            running_mean = branch.running_mean
+            running_var = branch.running_var
+            gamma = branch.weight
+            beta = branch.bias
+            eps = branch.eps
+        std = (running_var + eps).sqrt()
+        t = (gamma / std).reshape(-1, 1, 1, 1)
+        return kernel * t, beta - running_mean * gamma / std
+
+    def fuse_convs(self):
+        """Fuse all branches into a single 3x3 conv for inference."""
+        if hasattr(self, "conv"):
+            return
+        kernel, bias = self.get_equivalent_kernel_bias()
+        self.conv = nn.Conv2d(
+            in_channels=self.convs[0].conv.in_channels,
+            out_channels=self.convs[0].conv.out_channels,
+            kernel_size=self.convs[0].conv.kernel_size,
+            stride=self.convs[0].conv.stride,
+            padding=self.convs[0].conv.padding,
+            dilation=self.convs[0].conv.dilation,
+            groups=self.convs[0].conv.groups,
+            bias=True,
+        ).requires_grad_(False)
+        self.conv.weight.data = kernel
+        self.conv.bias.data = bias
+        for para in self.parameters():
+            para.detach_()
+        self.__delattr__("convs")
+        if hasattr(self, "bn"):
+            self.__delattr__("bn")
+        if hasattr(self, "id_tensor"):
+            self.__delattr__("id_tensor")
 
 
 class RepConv(nn.Module):

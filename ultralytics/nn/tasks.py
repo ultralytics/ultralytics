@@ -45,6 +45,10 @@ from ultralytics.nn.modules import (
     C3Ghost,
     C3k2,
     C3k2Simple,
+    C3k2AC,
+    C3k2DBB,
+    C3k2MobileOne,
+    C3k2RepGhost,
     C3k2Rep,
     C3k2RepLK,
     C3x,
@@ -71,6 +75,10 @@ from ultralytics.nn.modules import (
     LRPCHead,
     Pose,
     Pose26,
+    ACConv,
+    DBBConv,
+    MobileOneConv,
+    RepGhostConv,
     RepC3,
     RepConv,
     RepNCSPELAN4,
@@ -256,7 +264,7 @@ class BaseModel(torch.nn.Module):
                     m.conv_transpose = fuse_deconv_and_bn(m.conv_transpose, m.bn)
                     delattr(m, "bn")  # remove batchnorm
                     m.forward = m.forward_fuse  # update forward
-                if isinstance(m, RepConv):
+                if isinstance(m, (RepConv, ACConv, DBBConv, MobileOneConv, RepGhostConv)):
                     m.fuse_convs()
                     m.forward = m.forward_fuse  # update forward
                 if isinstance(m, RepVGGDW):
@@ -1587,7 +1595,11 @@ def parse_model(d, ch, verbose=True):
             C2f,
             C3k2,
             C3k2Simple,
+            C3k2AC,
+            C3k2DBB,
+            C3k2MobileOne,
             C3k2Rep,
+            C3k2RepGhost,
             C3k2RepLK,
             RepNCSPELAN4,
             ELAN1,
@@ -1619,7 +1631,11 @@ def parse_model(d, ch, verbose=True):
             C2f,
             C3k2,
             C3k2Simple,
+            C3k2AC,
+            C3k2DBB,
+            C3k2MobileOne,
             C3k2Rep,
+            C3k2RepGhost,
             C3k2RepLK,
             C2fAttn,
             C3,
@@ -1663,7 +1679,7 @@ def parse_model(d, ch, verbose=True):
             if m in repeat_modules:
                 args.insert(2, n)  # number of repeats
                 n = 1
-            if m in {C3k2, C3k2Simple, C3k2Rep, C3k2RepLK}:  # for M/L/X sizes
+            if m in {C3k2, C3k2Simple, C3k2AC, C3k2DBB, C3k2MobileOne, C3k2Rep, C3k2RepGhost, C3k2RepLK}:  # for M/L/X sizes
                 legacy = False
                 if scale in "mlx":
                     args[3] = True
@@ -1676,7 +1692,9 @@ def parse_model(d, ch, verbose=True):
         elif m is AIFI:
             args = [ch[f], *args]
         elif m in frozenset({HGStem, HGBlock}):
-            c1, cm, c2 = ch[f], args[0], args[1]
+            c1 = ch[f]
+            cm = make_divisible(min(args[0], max_channels) * width, 8)
+            c2 = make_divisible(min(args[1], max_channels) * width, 8)
             args = [c1, cm, c2, *args[2:]]
             if m is HGBlock:
                 args.insert(4, n)  # number of repeats

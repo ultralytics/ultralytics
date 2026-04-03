@@ -43,7 +43,7 @@ def on_before_zero_grad(trainer):
 
 
 def on_train_batch_end(trainer):
-    """Called at the end of each training batch, after the backward pass and optimizer step."""
+    """Called at the end of each training batch, after the backward pass. Optimizer step may be deferred by accumulation."""
     pass
 
 
@@ -53,7 +53,7 @@ def on_train_epoch_end(trainer):
 
 
 def on_fit_epoch_end(trainer):
-    """Called at the end of each fit epoch (train + val), after validation and model saving."""
+    """Called at the end of each fit epoch (train + val), after validation and any checkpoint save."""
     pass
 
 

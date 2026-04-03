@@ -41,12 +41,12 @@ head:
   - [[-1, 4], 1, Concat, [1]]
   - [-1, 3, C3k2MobileOne, [256, True]]  # 16 (P3/8-small)
 
-  - [-1, 1, Conv, [256, 3, 2]]
+  - [-1, 1, MobileOneConv, [256, 3, 2]]
   - [[-1, 13], 1, Concat, [1]]
   - [-1, 3, C3k2MobileOne, [512, True]]
   - [[-1, 6], 1, ScaledAdd, []]  # 20: scaled residual from backbone P4
 
-  - [-1, 1, Conv, [512, 3, 2]]
+  - [-1, 1, MobileOneConv, [512, 3, 2]]
   - [[-1, 10], 1, Concat, [1]]
   - [-1, 2, C3k2MobileOne, [1024, True, 0.5, True]]
   - [[-1, 10], 1, ScaledAdd, []]  # 24: scaled residual from backbone P5

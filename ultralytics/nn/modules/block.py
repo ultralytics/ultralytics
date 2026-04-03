@@ -1691,7 +1691,7 @@ class AAttn(nn.Module):
         Returns:
             (torch.Tensor): Output tensor after area-attention.
         """
-        B, C, H, W = x.shape
+        B, _, H, W = x.shape
         N = H * W
 
         qkv = self.qkv(x).flatten(2).transpose(1, 2)
@@ -1713,7 +1713,7 @@ class AAttn(nn.Module):
             x = x.reshape(B // self.area, N * self.area, self.all_head_dim)
             v = v.reshape(B // self.area, N * self.area, self.all_head_dim)
             B, N, _ = x.shape
-        
+
         x = x.reshape(B, H, W, self.all_head_dim).permute(0, 3, 1, 2).contiguous()
         v = v.reshape(B, H, W, self.all_head_dim).permute(0, 3, 1, 2).contiguous()
 

@@ -1,6 +1,6 @@
 ---
-description: Axelera export utilities for converting ONNX models to Axelera format for deployment on Metis AI processors. Supports INT8 quantization and optimized inference for computer vision workloads on Axelera hardware.
-keywords: Ultralytics, Axelera, model export, ONNX to Axelera, Metis AI processor, INT8 quantization, computer vision, AI inference, edge AI, hardware acceleration
+description: Axelera export utilities for converting PyTorch models to Axelera format for deployment on Metis AI processors. Supports INT8 quantization and optimized inference for computer vision workloads on Axelera hardware.
+keywords: Ultralytics, Axelera, model export, PyTorch to Axelera, Metis AI processor, INT8 quantization, computer vision, AI inference, edge AI, hardware acceleration
 ---
 
 # Reference for `ultralytics/utils/export/axelera.py`
@@ -11,6 +11,6 @@ keywords: Ultralytics, Axelera, model export, ONNX to Axelera, Metis AI processo
 
 <br>
 
-## ::: ultralytics.utils.export.axelera.onnx2axelera
+## ::: ultralytics.utils.export.axelera.torch2axelera
 
 <br><br>

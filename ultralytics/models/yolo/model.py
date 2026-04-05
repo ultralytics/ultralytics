@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import torch
 
@@ -21,6 +21,9 @@ from ultralytics.nn.tasks import (
     YOLOESegModel,
 )
 from ultralytics.utils import ROOT, YAML
+
+if TYPE_CHECKING:
+    from ultralytics.engine.results import Results
 
 
 class YOLO(Model):
@@ -50,7 +53,7 @@ class YOLO(Model):
         >>> model = YOLO("yolo26n.yaml")
     """
 
-    def __init__(self, model: str | Path = "yolo26n.pt", task: str | None = None, verbose: bool = False):
+    def __init__(self, model: str | Path = "yolo26n.pt", task: str | None = None, verbose: bool = False) -> None:
         """Initialize a YOLO model.
 
         This constructor initializes a YOLO model, automatically switching to specialized model types (YOLOWorld or
@@ -356,7 +359,7 @@ class YOLOE(Model):
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         **kwargs,
-    ):
+    ) -> list[Results]:
         """Run prediction on images, videos, directories, streams, etc.
 
         Args:

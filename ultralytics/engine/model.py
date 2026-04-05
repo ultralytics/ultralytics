@@ -4,11 +4,9 @@ from __future__ import annotations
 
 import inspect
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any, Literal, overload
 
-import numpy as np
 import torch
-from PIL import Image
 
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
@@ -24,6 +22,12 @@ from ultralytics.utils import (
     callbacks,
     checks,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    import numpy as np
+    from PIL import Image
 
 
 class Model(torch.nn.Module):
@@ -475,13 +479,31 @@ class Model(torch.nn.Module):
             kwargs["embed"] = [len(self.model.model) - 2]  # embed second-to-last layer if no indices passed
         return self.predict(source, stream, **kwargs)
 
+    @overload
+    def predict(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor = None,
+        stream: Literal[False] = False,
+        predictor=None,
+        **kwargs: Any,
+    ) -> list[Results]: ...
+
+    @overload
+    def predict(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor = None,
+        stream: Literal[True] = True,
+        predictor=None,
+        **kwargs: Any,
+    ) -> Generator[Results]: ...
+
     def predict(
         self,
         source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor = None,
         stream: bool = False,
         predictor=None,
         **kwargs: Any,
-    ) -> list[Results]:
+    ) -> Generator[Results] | list[Results]:
         """Perform predictions on the given image source using the YOLO model.
 
         This method facilitates the prediction process, allowing various configurations through keyword arguments. It

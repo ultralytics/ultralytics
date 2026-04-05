@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
-
-import torch
+from typing import TYPE_CHECKING, Any, Literal, overload
 
 from ultralytics.data.build import load_inference_source
 from ultralytics.engine.model import Model
@@ -23,7 +21,10 @@ from ultralytics.nn.tasks import (
 from ultralytics.utils import ROOT, YAML
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
+
     import torch
+
     from ultralytics.engine.results import Results
 
 
@@ -352,6 +353,28 @@ class YOLOE(Model):
         self.metrics = validator.metrics
         return validator.metrics
 
+    @overload
+    def predict(
+        self,
+        source=None,
+        stream: Literal[True] = True,
+        visual_prompts: dict[str, list] = {},
+        refer_image=None,
+        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
+        **kwargs,
+    ) -> Generator[Results]: ...
+
+    @overload
+    def predict(
+        self,
+        source=None,
+        stream: Literal[False] = False,
+        visual_prompts: dict[str, list] = {},
+        refer_image=None,
+        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
+        **kwargs,
+    ) -> list[Results]: ...
+
     def predict(
         self,
         source=None,
@@ -360,7 +383,7 @@ class YOLOE(Model):
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         **kwargs,
-    ) -> list[Results]:
+    ) -> Generator[Results] | list[Results]:
         """Run prediction on images, videos, directories, streams, etc.
 
         Args:

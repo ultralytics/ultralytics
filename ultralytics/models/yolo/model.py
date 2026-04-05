@@ -23,6 +23,7 @@ from ultralytics.nn.tasks import (
 from ultralytics.utils import ROOT, YAML
 
 if TYPE_CHECKING:
+    import torch
     from ultralytics.engine.results import Results
 
 
@@ -254,7 +255,7 @@ class YOLOE(Model):
             },
         }
 
-    def get_text_pe(self, texts):
+    def get_text_pe(self, texts) -> torch.Tensor | None:
         """Get text positional embeddings for the given texts."""
         assert isinstance(self.model, YOLOEModel)
         return self.model.get_text_pe(texts)
@@ -301,7 +302,7 @@ class YOLOE(Model):
         assert isinstance(self.model, YOLOEModel)
         self.model.set_vocab(vocab, names=names)
 
-    def get_vocab(self, names):
+    def get_vocab(self, names) -> torch.nn.ModuleList:
         """Get vocabulary for the given class names."""
         assert isinstance(self.model, YOLOEModel)
         return self.model.get_vocab(names)

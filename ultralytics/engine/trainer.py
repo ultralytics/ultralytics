@@ -480,6 +480,13 @@ class BaseTrainer:
                 # Log
                 if RANK in {-1, 0}:
                     loss_length = self.tloss.shape[0] if len(self.tloss.shape) else 1
+
+                    patience_str = ""
+                    if self.args.patience:
+                        best_epoch = getattr(self.stopper, "best_epoch", 0)
+                        patience_left = max(0, self.args.patience - (epoch - best_epoch))
+                        patience_str = f"   Patience: {patience_left}/{self.args.patience}"
+
                     pbar.set_description(
                         ("%11s" * 2 + "%11.4g" * (2 + loss_length))
                         % (
@@ -489,6 +496,7 @@ class BaseTrainer:
                             batch["cls"].shape[0],  # batch size, i.e. 8
                             batch["img"].shape[-1],  # imgsz, i.e 640
                         )
+                        + patience_str
                     )
                     self.run_callbacks("on_batch_end")
                     if self.args.plots and ni in self.plot_idx:

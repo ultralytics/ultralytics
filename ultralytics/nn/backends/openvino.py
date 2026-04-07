@@ -31,14 +31,16 @@ class OpenVINOBackend(BaseBackend):
         import openvino as ov
 
         core = ov.Core()
-        device_name = "AUTO"
+        available_devices = core.available_devices
+        device_name = "CPU" if available_devices == ["CPU"] else "AUTO"
 
         if isinstance(self.device, str) and self.device.startswith("intel"):
-            device_name = self.device.split(":")[1].upper()
+            requested_device = self.device
+            device_name = requested_device.split(":")[1].upper()
             self.device = torch.device("cpu")
-            if device_name not in core.available_devices:
-                LOGGER.warning(f"OpenVINO device '{device_name}' not available. Using 'AUTO' instead.")
-                device_name = "AUTO"
+            if device_name not in available_devices:
+                device_name = "CPU" if available_devices == ["CPU"] else "AUTO"
+                LOGGER.warning(f"OpenVINO device '{requested_device}' not available. Using '{device_name}' instead.")
 
         w = Path(weight)
         if not w.is_file():

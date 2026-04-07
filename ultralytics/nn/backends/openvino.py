@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER
+from ultralytics.utils import ARM64, LINUX, LOGGER
 from ultralytics.utils.checks import check_requirements
 
 from .base import BaseBackend
@@ -58,11 +58,15 @@ class OpenVINOBackend(BaseBackend):
 
         # Set inference mode
         self.inference_mode = "CUMULATIVE_THROUGHPUT" if self.dynamic and self.batch > 1 else "LATENCY"
+        config = {"PERFORMANCE_HINT": self.inference_mode}
+        if LINUX and ARM64 and device_name == "CPU":
+            config["EXECUTION_MODE_HINT"] = ov.properties.hint.ExecutionMode.ACCURACY
+            config["INFERENCE_PRECISION_HINT"] = ov.Type.f32
 
         self.ov_compiled_model = core.compile_model(
             ov_model,
             device_name=device_name,
-            config={"PERFORMANCE_HINT": self.inference_mode},
+            config=config,
         )
         LOGGER.info(
             f"Using OpenVINO {self.inference_mode} mode for batch={self.batch} inference on "

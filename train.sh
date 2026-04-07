@@ -1,3 +1,6 @@
+# yolo train model=yolo26s-hyp/yolo26s-nobn-fpn-up-sres/weights/last.pt resume=True data=coco.yaml device=1 save_json cache=disk
+# yolo train model=yolo26s-hyp/yolo26s-rep-fpn-p5-sres/weights/last.pt resume=True data=coco.yaml device=4 save_json cache=disk
+# yolo train model=yolo26s-mobileone-sres.yaml name=yolo26s-mobileone-sres device=5 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json cache=disk
 # yolo train model=yolo26s-ghost-fpn-sres.yaml name=yolo26s-ghost-fpn-sres device=5 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json cache=disk
 # yolo train model=yolo26s-dbb-fpn-sres.yaml name=yolo26s-dbb-fpn-sres device=4 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json cache=disk
 # yolo train model=yolo26s-mobileone-fpn-sres.yaml name=yolo26s-mobileone-fpn-sres device=2 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json cache=disk

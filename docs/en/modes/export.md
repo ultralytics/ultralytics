@@ -80,20 +80,9 @@ Adjusting these parameters allows for customization of the export process to fit
 
 ## Export Formats
 
-Available YOLO26 export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n.onnx`. Usage examples are shown for your model after export completes.
+Available YOLO26 export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n.onnx`. Usage examples are shown for your model after export completes. Models can also be exported directly from the browser on [Ultralytics Platform](https://platform.ultralytics.com) without any local setup.
 
 {% include "macros/export-table.md" %}
-
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-<div class="ult-platform-card-v2">
-<p class="ult-platform-card-v2-title">Export from the browser</p>
-<p class="ult-platform-card-v2-desc">Export models to ONNX, TensorRT, and other formats directly on <a href="https://platform.ultralytics.com" target="_blank" rel="noopener" style="color:#E1FF25">Ultralytics Platform</a> without any local setup.</p>
-<div style="display: flex; gap: 12px; flex-wrap: wrap">
-<a href="https://platform.ultralytics.com" target="_blank" rel="noopener" class="ult-platform-btn-primary">Try Platform</a>
-<a href="../../platform/train/models/#export-model" class="ult-platform-btn-secondary">Learn More</a>
-</div>
-</div>
 
 ## FAQ
 

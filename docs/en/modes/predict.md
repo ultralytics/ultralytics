@@ -4,8 +4,6 @@ description: Harness the power of Ultralytics YOLO26 for real-time, high-speed i
 keywords: Ultralytics, YOLO26, model prediction, inference, predict mode, real-time inference, computer vision, machine learning, streaming, high performance
 ---
 
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
-
 # Model Prediction with Ultralytics YOLO
 
 <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-ecosystem-integrations.avif" alt="Ultralytics YOLO ecosystem and integrations">
@@ -40,15 +38,7 @@ Here's why you should consider YOLO26's predict mode for your various inference 
 - **Performance:** Engineered for real-time, high-speed processing without sacrificing [accuracy](https://www.ultralytics.com/glossary/accuracy).
 - **Ease of Use:** Intuitive Python and CLI interfaces for rapid deployment and testing.
 - **Highly Customizable:** Various settings and parameters to tune the model's inference behavior according to your specific requirements.
-
-<div class="ult-platform-card-v2">
-<p class="ult-platform-card-v2-title">Deploy to production</p>
-<p class="ult-platform-card-v2-desc">Serve predictions via managed API endpoints on <a href="https://platform.ultralytics.com" target="_blank" rel="noopener" style="color:#E1FF25">Ultralytics Platform</a> with auto-scaling across 43 global regions.</p>
-<div style="display: flex; gap: 12px; flex-wrap: wrap">
-<a href="https://platform.ultralytics.com" target="_blank" rel="noopener" class="ult-platform-btn-primary">Try Platform</a>
-<a href="../../platform/deploy/endpoints/" class="ult-platform-btn-secondary">Learn More</a>
-</div>
-</div>
+- **Production Ready:** Deploy models as API endpoints on [Ultralytics Platform](https://platform.ultralytics.com) with auto-scaling and monitoring, or run inference locally.
 
 ### Key Features of Predict Mode
 

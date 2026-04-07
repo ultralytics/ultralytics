@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER
+from ultralytics.utils import ARM64, LINUX, LOGGER
 from ultralytics.utils.checks import check_requirements
 
 from .base import BaseBackend
@@ -31,14 +31,15 @@ class OpenVINOBackend(BaseBackend):
         import openvino as ov
 
         core = ov.Core()
-        device_name = "AUTO"
+        fallback_device = "CPU" if core.available_devices == ["CPU"] else "AUTO"
+        device_name = fallback_device
 
         if isinstance(self.device, str) and self.device.startswith("intel"):
             device_name = self.device.split(":")[1].upper()
             self.device = torch.device("cpu")
             if device_name not in core.available_devices:
-                LOGGER.warning(f"OpenVINO device '{device_name}' not available. Using 'AUTO' instead.")
-                device_name = "AUTO"
+                LOGGER.warning(f"OpenVINO device '{device_name}' not available. Using '{fallback_device}' instead.")
+                device_name = fallback_device
 
         w = Path(weight)
         if not w.is_file():
@@ -57,11 +58,15 @@ class OpenVINOBackend(BaseBackend):
 
         # Set inference mode
         self.inference_mode = "CUMULATIVE_THROUGHPUT" if self.dynamic and self.batch > 1 else "LATENCY"
+        config = {"PERFORMANCE_HINT": self.inference_mode}
+        if LINUX and ARM64 and device_name == "CPU":
+            config["EXECUTION_MODE_HINT"] = ov.properties.hint.ExecutionMode.ACCURACY
+            config["INFERENCE_PRECISION_HINT"] = ov.Type.f32
 
         self.ov_compiled_model = core.compile_model(
             ov_model,
             device_name=device_name,
-            config={"PERFORMANCE_HINT": self.inference_mode},
+            config=config,
         )
         LOGGER.info(
             f"Using OpenVINO {self.inference_mode} mode for batch={self.batch} inference on "

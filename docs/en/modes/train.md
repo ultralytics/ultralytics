@@ -45,6 +45,10 @@ The following are some notable features of YOLO26's Train mode:
 
     * YOLO26 datasets like COCO, VOC, ImageNet, and many others automatically download on first use, i.e., `yolo train data=coco.yaml`
 
+!!! tip "Automotive and dashcam-style footage"
+
+    For vehicle-centric detection, you can start from configs such as [KITTI](https://docs.ultralytics.com/datasets/detect/kitti/) (`kitti.yaml`) or [VisDrone](https://docs.ultralytics.com/datasets/detect/visdrone/) (`VisDrone.yaml`) when their classes match your task. For custom labels (for example traffic signs or interior objects), use the standard YOLO detection layout and point `data=` at your own [dataset YAML](https://docs.ultralytics.com/datasets/). Driving footage often includes small, distant objects; after a baseline run, try a larger `imgsz` if metrics plateau.
+
 ## Usage Examples
 
 Train YOLO26n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. The training device can be specified using the `device` argument. If no argument is passed, GPU `device=0` will be used when available; otherwise `device='cpu'` will be used. See the Arguments section below for a full list of training arguments.

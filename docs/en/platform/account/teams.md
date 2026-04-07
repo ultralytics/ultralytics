@@ -21,7 +21,7 @@ Teams allow multiple users to work together under a shared workspace:
 
 !!! note "Plan Requirement"
 
-    Creating a team requires a [Pro or Enterprise plan](billing.md#plans). You can upgrade from Settings or when clicking **+ Create Team** in the workspace switcher.
+    Team workspaces require a [Pro or Enterprise plan](billing.md#plans). You can start team setup before upgrading, but the workspace must be on a Pro or Enterprise plan to use team features.
 
 ## Creating a Team
 
@@ -87,7 +87,7 @@ Admins and Owners can invite new members to the team:
 
 ![Ultralytics Platform Teams Invite Member Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-teams-invite-member-dialog.avif)
 
-The invitee receives an email invitation with a link to accept and join the team. Invitations expire after 7 days. Once accepted, the team workspace appears in the invitee's workspace switcher.
+The invitee receives an email invitation with a link to accept and join the team. Invitations expire after 7 days. Once accepted, the team workspace appears in the invitee's workspace switcher. If an invite is missed, resend or cancel it from the Teams tab and send a fresh invite.
 
 !!! note "Admin Invites"
 
@@ -101,17 +101,11 @@ Enterprise plans include additional capabilities for organizations with advanced
 
 !!! warning "License Expiration"
 
-    If your Enterprise license expires, workspace access is blocked until renewed. Contact [sales@ultralytics.com](mailto:sales@ultralytics.com) to renew.
+    If your Enterprise license expires, workspace access is blocked until the license is renewed. See [Ultralytics Licensing](https://www.ultralytics.com/licensing) for details.
 
 ### Getting Started with Enterprise
 
-Enterprise plans are provisioned by the Ultralytics team:
-
-1. Contact [sales@ultralytics.com](mailto:sales@ultralytics.com)
-2. Discuss your team size, credit needs, and compliance requirements
-3. Receive a provisioning invite with your enterprise configuration
-4. Accept the invite to become the team Owner
-5. Invite your team members
+Enterprise plans are provisioned by the Ultralytics team. See [Ultralytics Licensing](https://www.ultralytics.com/licensing) for plan details. Once your enterprise configuration is set up, you'll receive a provisioning invite to accept as the team Owner, after which you can invite your team members.
 
 ## FAQ
 
@@ -129,4 +123,4 @@ All team members share a single credit balance. The Owner and Admins can top up 
 
 ### How do I upgrade from Pro to Enterprise?
 
-Contact [sales@ultralytics.com](mailto:sales@ultralytics.com) to discuss Enterprise pricing and provisioning. The Ultralytics team will handle the upgrade and configuration.
+Enterprise pricing and provisioning are handled directly by the Ultralytics team. See [Ultralytics Licensing](https://www.ultralytics.com/licensing) for plan details.

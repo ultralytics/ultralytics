@@ -103,7 +103,7 @@ Use the search bar to find events by resource name or event description.
 Filter by time period using the date range picker:
 
 - Select a start and end date
-- No default date filter (shows all events)
+- The page defaults to the last 30 days
 - Custom date ranges supported
 
 ![Ultralytics Platform Activity Page Date Range Picker Expanded](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/activity-page-date-range-picker-expanded.avif)
@@ -123,7 +123,7 @@ Each event displays:
 
 Some actions support undo directly from the Activity feed:
 
-- **Settings changes**: Click **Undo** next to a settings update event to revert the change
+- **Settings changes**: Click **Undo** next to a recent settings update event to revert the change
 - Undo is available for a short time window after the action
 
 ## Pagination
@@ -137,6 +137,10 @@ The Activity feed supports pagination:
 ## API Access
 
 Access activity programmatically via the [REST API](../api/index.md#activity-api):
+
+!!! note "Authentication"
+
+    Activity endpoints currently require an authenticated browser session and are not accessible via API key. The cURL examples below show the route shapes for reference.
 
 === "List Activity"
 

@@ -237,7 +237,7 @@ From this tab you can:
 
 - **Compare features** across Free, Pro, and Enterprise tiers
 - **Upgrade to Pro** to unlock more storage, models, team collaboration, and priority GPU access
-- **Contact Sales** for Enterprise needs including SSO/SAML and commercial licensing
+- **Review Enterprise** capabilities including SSO/SAML, RBAC, and commercial licensing — see [Ultralytics Licensing](https://www.ultralytics.com/licensing)
 
 See [Billing](billing.md) for detailed plan information, pricing, and upgrade instructions.
 

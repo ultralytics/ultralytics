@@ -916,9 +916,11 @@ class BaseTrainer:
             corrupted = broadcast_list[0]
         if not corrupted:
             return False
-        if epoch == self.start_epoch or not self.last.exists():
+        if epoch == self.start_epoch:
             LOGGER.warning(f"{reason} detected but can not recover from last.pt...")
             return False  # Cannot recover on first epoch, let training continue
+        if not self.last.exists():
+            raise RuntimeError(f"{reason} detected but no valid last.pt is available for recovery")
         self.nan_recovery_attempts += 1
         if self.nan_recovery_attempts > 3:
             raise RuntimeError(f"Training failed: NaN persisted for {self.nan_recovery_attempts} epochs")

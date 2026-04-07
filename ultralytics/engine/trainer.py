@@ -630,9 +630,12 @@ class BaseTrainer:
         """Save model training checkpoints with additional metadata."""
         import io
 
+        ema = deepcopy(unwrap_model(self.ema.ema)).half()
+        if not all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor)):
+            return
+
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
         buffer = io.BytesIO()
-        ema = deepcopy(unwrap_model(self.ema.ema)).half()
         torch.save(
             {
                 "epoch": self.epoch,
@@ -662,16 +665,11 @@ class BaseTrainer:
 
         # Save checkpoints
         self.wdir.mkdir(parents=True, exist_ok=True)  # ensure weights directory exists
-        if (
-            (self.loss is None or self.loss.isfinite())
-            and (self.fitness is None or np.isfinite(self.fitness))
-            and all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor))
-        ):
-            self.last.write_bytes(serialized_ckpt)  # save last.pt
-            if self.best_fitness == self.fitness:
-                self.best.write_bytes(serialized_ckpt)  # save best.pt
-            if (self.save_period > 0) and (self.epoch % self.save_period == 0):
-                (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)  # save epoch, i.e. 'epoch3.pt'
+        self.last.write_bytes(serialized_ckpt)  # save last.pt
+        if self.best_fitness == self.fitness:
+            self.best.write_bytes(serialized_ckpt)  # save best.pt
+        if (self.save_period > 0) and (self.epoch % self.save_period == 0):
+            (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)  # save epoch, i.e. 'epoch3.pt'
 
     def get_dataset(self):
         """Get train and validation datasets from data dictionary.

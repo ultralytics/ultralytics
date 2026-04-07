@@ -17,7 +17,6 @@ PREFIX = colorstr("Platform: ")
 # Configurable platform URL for debugging (e.g. ULTRALYTICS_PLATFORM_URL=http://localhost:3000)
 PLATFORM_URL = os.getenv("ULTRALYTICS_PLATFORM_URL", "https://platform.ultralytics.com").rstrip("/")
 PLATFORM_API_URL = f"{PLATFORM_URL}/api/webhooks"
-_missing_model_warnings = set()
 
 
 def slugify(text):
@@ -196,11 +195,6 @@ def _send(event, data, project, name, model_id=None, retry=2):
                 msg = r.json().get("error", r.reason)
             except Exception:
                 msg = r.reason
-            if msg.startswith("Model not found"):
-                key = model_id or f"{project}/{name}"
-                if key in _missing_model_warnings:
-                    return None
-                _missing_model_warnings.add(key)
             LOGGER.warning(f"{PREFIX}{msg}")
             return None  # Don't retry client errors (except 408 timeout, 429 rate limit)
         r.raise_for_status()

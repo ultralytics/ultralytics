@@ -39,7 +39,7 @@ class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
             cfg["yaml_file"] if isinstance(cfg, dict) else cfg,
             ch=self.data["channels"],
             nc=min(self.data["nc"], 80),
-            verbose=verbose and RANK == -1,
+            verbose=verbose and RANK in {-1, 0},
         )
         if weights:
             model.load(weights)
@@ -85,7 +85,7 @@ class YOLOEPESegTrainer(SegmentationTrainer):
             cfg["yaml_file"] if isinstance(cfg, dict) else cfg,
             ch=self.data["channels"],
             nc=self.data["nc"],
-            verbose=verbose and RANK == -1,
+            verbose=verbose and RANK in {-1, 0},
         )
 
         del model.model[-1].savpe

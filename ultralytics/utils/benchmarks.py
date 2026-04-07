@@ -26,6 +26,7 @@ NCNN                    | `ncnn`                    | yolo26n_ncnn_model/
 IMX                     | `imx`                     | yolo26n_imx_model/
 RKNN                    | `rknn`                    | yolo26n_rknn_model/
 ExecuTorch              | `executorch`              | yolo26n_executorch_model/
+Axelera AI              | `axelera`                 | yolo26n_axelera_model/
 """
 
 from __future__ import annotations
@@ -45,7 +46,20 @@ import torch.cuda
 from ultralytics import YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
-from ultralytics.utils import ARM64, ASSETS, ASSETS_URL, IS_JETSON, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR, YAML
+from ultralytics.nn.modules import Segment26
+from ultralytics.utils import (
+    ARM64,
+    ASSETS,
+    ASSETS_URL,
+    IS_DOCKER,
+    IS_JETSON,
+    LINUX,
+    LOGGER,
+    MACOS,
+    TQDM,
+    WEIGHTS_DIR,
+    YAML,
+)
 from ultralytics.utils.checks import IS_PYTHON_3_13, check_imgsz, check_requirements, check_yolo, is_rockchip
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.files import file_size
@@ -123,10 +137,10 @@ def benchmark(
                 assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
             elif format == "edgetpu":
                 assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
-            elif format in {"coreml", "tfjs"}:
-                assert MACOS or (LINUX and not ARM64), (
-                    "CoreML and TF.js export only supported on macOS and non-aarch64 Linux"
-                )
+            elif format == "tfjs":
+                assert not (LINUX and ARM64), "TF.js export not supported on ARM64 Linux"
+            elif format == "coreml":
+                assert MACOS or (LINUX and not ARM64), "CoreML export only supported on macOS and non-aarch64 Linux"
             if format == "coreml":
                 assert not IS_PYTHON_3_13, "CoreML not supported on Python 3.13"
             if format in {"saved_model", "pb", "tflite", "edgetpu", "tfjs"}:
@@ -142,8 +156,8 @@ def benchmark(
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
             if format == "imx":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 IMX exports not supported"
-                assert model.task in {"detect", "classify", "pose"}, (
-                    "IMX export is only supported for detection, classification and pose estimation tasks"
+                assert model.task in {"detect", "classify", "pose", "segment"}, (
+                    "IMX export is only supported for detection, classification, pose estimation and segmentation tasks"
                 )
                 assert "C2f" in model.__str__(), "IMX only supported for YOLOv8n and YOLO11n"
             if format == "rknn":
@@ -152,6 +166,14 @@ def benchmark(
                 assert not is_rockchip(), "RKNN Inference only supported on Rockchip devices"
             if format == "executorch":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 ExecuTorch exports not supported yet"
+            if format == "axelera":
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Axelera exports not supported"
+                assert LINUX and not (ARM64 and IS_DOCKER), (
+                    "export is only supported on Linux and is not supported on ARM64 Docker."
+                )
+                assert not (model.task == "segment" and any(isinstance(m, Segment26) for m in model.model.modules())), (
+                    "Axelera export does not currently support YOLO26 segmentation models"
+                )
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:
@@ -171,9 +193,9 @@ def benchmark(
 
             # Predict
             assert model.task != "pose" or format != "pb", "GraphDef Pose inference is not supported"
-            assert model.task != "pose" or format != "executorch", "ExecuTorch Pose inference is not supported"
             assert format not in {"edgetpu", "tfjs"}, "inference not supported"
             assert format != "coreml" or platform.system() == "Darwin", "inference only supported on macOS>=10.13"
+            assert format != "axelera", "inference only supported on Axelera hardware"
             exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half, verbose=False)
 
             # Validate
@@ -220,14 +242,14 @@ def benchmark(
 
 
 class RF100Benchmark:
-    """Benchmark YOLO model performance across various formats for speed and accuracy.
+    """Benchmark YOLO model performance on the RF100 dataset collection.
 
-    This class provides functionality to benchmark YOLO models on the RF100 dataset collection.
+    This class provides functionality to download, process, and evaluate YOLO models on the RF100 datasets.
 
     Attributes:
         ds_names (list[str]): Names of datasets used for benchmarking.
         ds_cfg_list (list[Path]): List of paths to dataset configuration files.
-        rf (Roboflow): Roboflow instance for accessing datasets.
+        rf (Roboflow | None): Roboflow instance for accessing datasets.
         val_metrics (list[str]): Metrics used for validation.
 
     Methods:
@@ -238,7 +260,7 @@ class RF100Benchmark:
     """
 
     def __init__(self):
-        """Initialize the RF100Benchmark class for benchmarking YOLO model performance across various formats."""
+        """Initialize the RF100Benchmark class for benchmarking YOLO model performance on RF100 datasets."""
         self.ds_names = []
         self.ds_cfg_list = []
         self.rf = None
@@ -267,8 +289,7 @@ class RF100Benchmark:
             ds_link_txt (str): Path to the file containing dataset links.
 
         Returns:
-            ds_names (list[str]): List of dataset names.
-            ds_cfg_list (list[Path]): List of paths to dataset configuration files.
+            (tuple[list[str], list[Path]]): List of dataset names and list of paths to dataset configuration files.
 
         Examples:
             >>> benchmark = RF100Benchmark()
@@ -505,7 +526,7 @@ class ProfileModels:
 
     @staticmethod
     def get_onnx_model_info(onnx_file: str):
-        """Extract metadata from an ONNX model file including parameters, GFLOPs, and input shape."""
+        """Extract metadata from an ONNX model file including layers, parameters, gradients, and FLOPs."""
         return 0.0, 0.0, 0.0, 0.0  # return (num_layers, num_params, num_gradients, num_flops)
 
     @staticmethod
@@ -537,8 +558,7 @@ class ProfileModels:
             eps (float): Small epsilon value to prevent division by zero.
 
         Returns:
-            mean_time (float): Mean inference time in milliseconds.
-            std_time (float): Standard deviation of inference time in milliseconds.
+            (tuple[float, float]): Mean and standard deviation of inference time in milliseconds.
         """
         if not self.trt or not Path(engine_file).is_file():
             return 0.0, 0.0
@@ -580,8 +600,7 @@ class ProfileModels:
             eps (float): Small epsilon value to prevent division by zero.
 
         Returns:
-            mean_time (float): Mean inference time in milliseconds.
-            std_time (float): Standard deviation of inference time in milliseconds.
+            (tuple[float, float]): Mean and standard deviation of inference time in milliseconds.
         """
         check_requirements([("onnxruntime", "onnxruntime-gpu")])  # either package meets requirements
         import onnxruntime as ort

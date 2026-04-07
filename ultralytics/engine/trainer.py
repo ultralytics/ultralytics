@@ -85,16 +85,16 @@ class BaseTrainer:
         start_epoch (int): Starting epoch for training.
         device (torch.device): Device to use for training.
         amp (bool): Flag to enable AMP (Automatic Mixed Precision).
-        scaler (amp.GradScaler): Gradient scaler for AMP.
-        data (str): Path to data.
-        ema (nn.Module): EMA (Exponential Moving Average) of the model.
+        scaler (torch.amp.GradScaler): Gradient scaler for AMP.
+        data (dict): Dataset dictionary containing paths and metadata.
+        ema (ModelEMA): EMA (Exponential Moving Average) of the model.
         resume (bool): Resume training from a checkpoint.
-        lf (nn.Module): Loss function.
+        lf (callable): Learning rate scheduling function.
         scheduler (torch.optim.lr_scheduler._LRScheduler): Learning rate scheduler.
         best_fitness (float): The best fitness value achieved.
         fitness (float): Current fitness value.
-        loss (float): Current loss value.
-        tloss (float): Total loss value.
+        loss (torch.Tensor): Current loss value.
+        tloss (torch.Tensor): Running mean of loss items.
         loss_names (list): List of loss names.
         csv (Path): Path to results CSV file.
         metrics (dict): Dictionary of metrics.
@@ -102,7 +102,7 @@ class BaseTrainer:
 
     Methods:
         train: Execute the training process.
-        validate: Run validation on the test set.
+        validate: Run validation on the val set.
         save_model: Save model training checkpoints.
         get_dataset: Get train and validation datasets.
         setup_model: Load, create, or download model.
@@ -114,13 +114,13 @@ class BaseTrainer:
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
         """Initialize the BaseTrainer class.
 
         Args:
-            cfg (str, optional): Path to a configuration file.
+            cfg (str | dict | SimpleNamespace, optional): Path to a configuration file or configuration object.
             overrides (dict, optional): Configuration overrides.
-            _callbacks (list, optional): List of callback functions.
+            _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.hub_session = overrides.pop("session", None)  # HUB
         self.args = get_cfg(cfg, overrides)
@@ -217,7 +217,7 @@ class BaseTrainer:
             callback(self)
 
     def train(self):
-        """Allow device='', device=None on Multi-GPU systems to default to device=0."""
+        """Execute the training process, using DDP subprocess for multi-GPU or direct training for single-GPU."""
         # Run subprocess if DDP training, else train normally
         if self.ddp:
             # Argument checks
@@ -231,14 +231,16 @@ class BaseTrainer:
                 )
 
             # Command
-            cmd, file = generate_ddp_command(self)
+            cmd, file = None, None
             try:
+                cmd, file = generate_ddp_command(self)
                 LOGGER.info(f"{colorstr('DDP:')} debug command {' '.join(cmd)}")
                 subprocess.run(cmd, check=True)
             except Exception as e:
                 raise e
             finally:
-                ddp_cleanup(self, str(file))
+                if file is not None:
+                    ddp_cleanup(self, str(file))
 
         else:
             self._do_train()
@@ -290,7 +292,7 @@ class BaseTrainer:
         self._setup_scheduler()
 
     def _setup_train(self):
-        """Build dataloaders and optimizer on correct rank process."""
+        """Configure model, optimizer, dataloaders, and training utilities before the training loop."""
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         self.set_model_attributes()
@@ -360,7 +362,7 @@ class BaseTrainer:
         self.run_callbacks("on_pretrain_routine_end")
 
     def _do_train(self):
-        """Train the model with the specified world size."""
+        """Perform the full training loop including setup, epoch iteration, validation, and final evaluation."""
         if self.world_size > 1:
             self._setup_ddp()
         self._setup_train()
@@ -514,7 +516,7 @@ class BaseTrainer:
             # Validation
             final_epoch = epoch + 1 >= self.epochs
             if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
-                self._clear_memory(threshold=0.5)  # prevent VRAM spike
+                self._clear_memory(None if self.device.type == "mps" else 0.5)  # prevent VRAM spike
                 self.metrics, self.fitness = self.validate()
 
             # NaN recovery
@@ -544,7 +546,8 @@ class BaseTrainer:
                 self.scheduler.last_epoch = self.epoch  # do not move
                 self.stop |= epoch >= self.epochs  # stop if exceeded epochs
             self.run_callbacks("on_fit_epoch_end")
-            self._clear_memory(0.5)  # clear if memory utilization > 50%
+            # clear if memory utilization > 50%; always clear on MPS due to leak https://github.com/ultralytics/ultralytics/issues/22621
+            self._clear_memory(None if self.device.type == "mps" else 0.5)
 
             # Early Stopping
             if RANK != -1:  # if DDP training
@@ -567,14 +570,16 @@ class BaseTrainer:
         unset_deterministic()
         self.run_callbacks("teardown")
 
-    def auto_batch(self, max_num_obj=0):
+    def auto_batch(self, max_num_obj=0, dataset_size=0):
         """Calculate optimal batch size based on model and device memory constraints."""
+        max_imgsz = int(self.args.imgsz * (1 + self.args.multi_scale))  # need not be stride-aligned
         return check_train_batch_size(
             model=self.model,
-            imgsz=self.args.imgsz,
+            imgsz=max_imgsz,
             amp=self.amp,
             batch=self.batch_size,
             max_num_obj=max_num_obj,
+            dataset_size=dataset_size,
         )  # returns batch size
 
     def _get_memory(self, fraction=False):
@@ -703,7 +708,7 @@ class BaseTrainer:
         """Load, create, or download model for any task.
 
         Returns:
-            (dict): Optional checkpoint to resume training from.
+            (dict | None): Checkpoint to resume training from, or None if no checkpoint is loaded.
         """
         if isinstance(self.model, torch.nn.Module):  # if model is loaded beforehand. No setup needed
             return
@@ -729,15 +734,16 @@ class BaseTrainer:
             self.ema.update(self.model)
 
     def preprocess_batch(self, batch):
-        """Allow custom preprocessing model inputs and ground truths depending on task type."""
+        """Allow custom preprocessing of model inputs and ground truths depending on task type."""
         return batch
 
     def validate(self):
         """Run validation on val set using self.validator.
 
         Returns:
-            metrics (dict): Dictionary of validation metrics.
-            fitness (float): Fitness score for the validation.
+            (tuple): A tuple containing:
+                - metrics (dict | None): Dictionary of validation metrics, or None if validation was skipped.
+                - fitness (float | None): Fitness score for the validation, or None if validation was skipped.
         """
         if self.ema and self.world_size > 1:
             # Sync EMA buffers from rank 0 to all ranks
@@ -768,10 +774,10 @@ class BaseTrainer:
         raise NotImplementedError("build_dataset function not implemented in trainer")
 
     def label_loss_items(self, loss_items=None, prefix="train"):
-        """Return a loss dict with labeled training loss items tensor.
+        """Return a loss dict with labeled training loss items, or a list of loss names if loss_items is None.
 
         Notes:
-            This is not needed for classification but necessary for segmentation & detection
+            This is not needed for classification but necessary for segmentation & detection.
         """
         return {"loss": loss_items} if loss_items is not None else ["loss"]
 
@@ -816,7 +822,7 @@ class BaseTrainer:
         self.plots[path] = {"data": data, "timestamp": time.time()}
 
     def final_eval(self):
-        """Perform final evaluation and validation for object detection YOLO model."""
+        """Perform final evaluation and validation for the YOLO model."""
         model = self.best if self.best.exists() else None
         with torch_distributed_zero_first(LOCAL_RANK):  # strip only on GPU 0; other GPUs should wait
             if RANK in {-1, 0}:
@@ -839,8 +845,6 @@ class BaseTrainer:
             try:
                 exists = isinstance(resume, (str, Path)) and Path(resume).exists()
                 last = Path(check_file(resume) if exists else get_latest_run())
-
-                # Check that resume data YAML exists, otherwise strip to force re-download of dataset
                 ckpt_args = load_checkpoint(last)[0].args
                 if not isinstance(ckpt_args["data"], dict) and not Path(ckpt_args["data"]).exists():
                     ckpt_args["data"] = self.args.data
@@ -927,7 +931,7 @@ class BaseTrainer:
         return True
 
     def resume_training(self, ckpt):
-        """Resume YOLO training from given epoch and best fitness."""
+        """Resume YOLO training from a given checkpoint."""
         if ckpt is None or not self.resume:
             return
         start_epoch = ckpt.get("epoch", -1) + 1
@@ -942,6 +946,11 @@ class BaseTrainer:
             )
             self.epochs += ckpt["epoch"]  # finetune additional epochs
         self._load_checkpoint_state(ckpt)
+        if unwrap_model(self.model).end2end:
+            # initialize loss and resume o2o and o2m args
+            unwrap_model(self.model).criterion = unwrap_model(self.model).init_criterion()
+            unwrap_model(self.model).criterion.updates = start_epoch - 1
+            unwrap_model(self.model).criterion.update()
         self.start_epoch = start_epoch
         if start_epoch > (self.epochs - self.args.close_mosaic):
             self._close_dataloader_mosaic()

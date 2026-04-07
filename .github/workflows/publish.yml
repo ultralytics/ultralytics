@@ -84,7 +84,7 @@ jobs:
           PY
           python -m build --outdir dist/
           git checkout pyproject.toml
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/
@@ -100,7 +100,7 @@ jobs:
     permissions:
       id-token: write # for PyPI trusted publishing
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist/
@@ -151,7 +151,7 @@ jobs:
           echo "PR_TITLE=${PR_TITLE}" >> "${GITHUB_ENV}"
       - name: Notify Success
         if: needs.publish.result == 'success' && github.event_name == 'push'
-        uses: slackapi/slack-github-action@v2.1.1
+        uses: slackapi/slack-github-action@v3.0.1
         with:
           webhook-type: incoming-webhook
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
@@ -159,7 +159,7 @@ jobs:
             text: "<!channel> GitHub Actions success for ${{ github.workflow }} ✅\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* NEW `${{ github.repository }} ${{ needs.check.outputs.current_tag }}` pip package published 😃\n*Job Status:* ${{ job.status }}\n*Pull Request:* <https://github.com/${{ github.repository }}/pull/${{ env.PR_NUMBER }}> ${{ env.PR_TITLE }}\n"
       - name: Notify Failure
         if: needs.publish.result != 'success'
-        uses: slackapi/slack-github-action@v2.1.1
+        uses: slackapi/slack-github-action@v3.0.1
         with:
           webhook-type: incoming-webhook
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}

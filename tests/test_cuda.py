@@ -216,6 +216,7 @@ def test_predict_sam():
             imgsz=1024,
             model=WEIGHTS_DIR / "mobile_sam.pt",
             device=DEVICES[0],
+            half=True,
         )
     )
     predictor.set_image(ASSETS / "zidane.jpg")

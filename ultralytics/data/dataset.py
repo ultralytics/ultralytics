@@ -180,28 +180,12 @@ class YOLODataset(BaseDataset):
             if cache["msgs"]:
                 LOGGER.info("\n".join(cache["msgs"]))  # display warnings
 
-        invalid_label_summary = ""
-        if not cache["labels"] and cache["msgs"]:
-            counts = {}
-            for msg in cache["msgs"]:
-                detail = (
-                    msg.split("ignoring corrupt image/label:", 1)[-1].strip()
-                    if "ignoring corrupt image/label:" in msg
-                    else msg.strip()
-                )
-                counts[detail] = counts.get(detail, 0) + 1
-            invalid_label_summary = " Label issues: " + "; ".join(
-                f"{count} file(s): {detail}" for detail, count in counts.items()
-            )
-
         # Read cache
-        [cache.pop(k) for k in ("hash", "version", "msgs")]  # remove items
         labels = cache["labels"]
         if not labels:
-            raise RuntimeError(
-                f"No valid images found in {cache_path}. Images with incorrectly formatted labels are ignored."
-                f"{invalid_label_summary} {HELP_URL}"
-            )
+            issues = "\n  ".join(sorted(set(cache["msgs"]))) or "no error details"
+            raise RuntimeError(f"No valid images found in {cache_path}.\n  {issues}\n{HELP_URL}")
+        [cache.pop(k) for k in ("hash", "version", "msgs")]  # remove items
         self.im_files = [lb["im_file"] for lb in labels]  # update im_files
 
         # Check if the dataset is all boxes or all segments

@@ -184,7 +184,11 @@ class YOLODataset(BaseDataset):
         if not cache["labels"] and cache["msgs"]:
             counts = {}
             for msg in cache["msgs"]:
-                detail = msg.split("ignoring corrupt image/label:", 1)[-1].strip() if "ignoring corrupt image/label:" in msg else msg.strip()
+                detail = (
+                    msg.split("ignoring corrupt image/label:", 1)[-1].strip()
+                    if "ignoring corrupt image/label:" in msg
+                    else msg.strip()
+                )
                 counts[detail] = counts.get(detail, 0) + 1
             invalid_label_summary = " Label issues: " + "; ".join(
                 f"{count} file(s): {detail}" for detail, count in counts.items()

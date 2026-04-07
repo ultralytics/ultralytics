@@ -243,10 +243,9 @@ Smart annotation adds model-assisted annotation to the editor. In Smart mode, yo
 With a SAM model selected:
 
 1. Enter edit mode and select `Smart` or press `S`
-2. Click outside the current mask to add to the object
-3. Click inside the current mask to subtract from it
-4. SAM generates a precise mask in real-time
-5. Press `Enter` or `Escape` to save the annotation, or enable **auto-apply** for one-click workflows
+2. Click on the object you want to annotate — SAM generates an initial mask in real-time
+3. Refine the mask with additional clicks: click **outside** the current mask to add coverage, or click **inside** the current mask to subtract regions
+4. Press `Enter` or `Escape` to save the annotation, or enable **auto-apply** for one-click workflows
 
 ![Ultralytics Platform Annotate Sam Positive Negative Points Mask](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-sam-positive-negative-points-mask.avif)
 

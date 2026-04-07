@@ -134,13 +134,13 @@ The Activity feed supports pagination:
 - Navigate between pages using the pagination controls
 - Page size is configurable via URL query parameter
 
-## API Access
+## API Routes
 
-Access activity programmatically via the [REST API](../api/index.md#activity-api):
+The Activity feed is powered by browser-authenticated routes — it is not exposed as a public API and cannot be accessed with an API key. The route shapes are listed below for reference; to view, mark, or archive activity, use the Activity feed in the platform UI.
 
-!!! note "Authentication"
+!!! note "Browser Session Only"
 
-    Activity endpoints currently require an authenticated browser session and are not accessible via API key. The cURL examples below show the route shapes for reference.
+    The routes shown below require an active platform browser session. The `Authorization: Bearer YOUR_API_KEY` header in the examples will not authenticate these routes — they are documented only to describe how the in-app feed talks to the server.
 
 === "List Activity"
 

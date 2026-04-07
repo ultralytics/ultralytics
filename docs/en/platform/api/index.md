@@ -1228,9 +1228,9 @@ POST /api/exports/{exportId}/track-download
 
 View a feed of recent actions on your account — training runs, uploads, and more. See [Activity documentation](../account/activity.md).
 
-!!! note "Authentication"
+!!! note "Browser Session Only"
 
-    Activity endpoints currently require an authenticated browser session and are not available via API key.
+    The Activity routes are powered by browser-authenticated requests from the platform UI. They are not exposed as a public API, do not accept API-key authentication, and the route shapes below are documented only for reference. Use the Activity feed in the platform UI to view, mark, or archive events.
 
 ### List Activity
 

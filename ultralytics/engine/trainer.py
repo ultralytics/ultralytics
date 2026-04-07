@@ -146,7 +146,7 @@ class BaseTrainer:
                 # Serialize Albumentations transforms as their repr strings for checkpoint compatibility
                 args_dict["augmentations"] = [repr(t) for t in args_dict["augmentations"]]
             YAML.save(self.save_dir / "args.yaml", args_dict)  # save run args
-        self.last, self.best, self.last_good = self.wdir / "last.pt", self.wdir / "best.pt", self.wdir / "last_good.pt"
+        self.last, self.best = self.wdir / "last.pt", self.wdir / "best.pt"  # checkpoint paths
         self.save_period = self.args.save_period
 
         self.batch_size = self.args.batch
@@ -662,13 +662,16 @@ class BaseTrainer:
 
         # Save checkpoints
         self.wdir.mkdir(parents=True, exist_ok=True)  # ensure weights directory exists
-        self.last.write_bytes(serialized_ckpt)  # save last.pt
-        if all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor)):
-            self.last_good.write_bytes(serialized_ckpt)  # save last known-good checkpoint
-        if self.best_fitness == self.fitness:
-            self.best.write_bytes(serialized_ckpt)  # save best.pt
-        if (self.save_period > 0) and (self.epoch % self.save_period == 0):
-            (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)  # save epoch, i.e. 'epoch3.pt'
+        if (
+            (self.loss is None or self.loss.isfinite())
+            and (self.fitness is None or np.isfinite(self.fitness))
+            and all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor))
+        ):
+            self.last.write_bytes(serialized_ckpt)  # save last.pt
+            if self.best_fitness == self.fitness:
+                self.best.write_bytes(serialized_ckpt)  # save best.pt
+            if (self.save_period > 0) and (self.epoch % self.save_period == 0):
+                (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)  # save epoch, i.e. 'epoch3.pt'
 
     def get_dataset(self):
         """Get train and validation datasets from data dictionary.
@@ -915,21 +918,18 @@ class BaseTrainer:
             corrupted = broadcast_list[0]
         if not corrupted:
             return False
-        recovery_path = self.last_good if self.last_good.exists() else self.last
-        if epoch == self.start_epoch or not recovery_path.exists():
-            LOGGER.warning(f"{reason} detected but can not recover from {recovery_path.name}...")
+        if epoch == self.start_epoch or not self.last.exists():
+            LOGGER.warning(f"{reason} detected but can not recover from last.pt...")
             return False  # Cannot recover on first epoch, let training continue
         self.nan_recovery_attempts += 1
         if self.nan_recovery_attempts > 3:
             raise RuntimeError(f"Training failed: NaN persisted for {self.nan_recovery_attempts} epochs")
-        LOGGER.warning(
-            f"{reason} detected (attempt {self.nan_recovery_attempts}/3), recovering from {recovery_path.name}..."
-        )
+        LOGGER.warning(f"{reason} detected (attempt {self.nan_recovery_attempts}/3), recovering from last.pt...")
         self._model_train()  # set model to train mode before loading checkpoint to avoid inference tensor errors
-        _, ckpt = load_checkpoint(recovery_path)
+        _, ckpt = load_checkpoint(self.last)
         ema_state = ckpt["ema"].float().state_dict()
         if not all(torch.isfinite(v).all() for v in ema_state.values() if isinstance(v, torch.Tensor)):
-            raise RuntimeError(f"Checkpoint {recovery_path} is corrupted with NaN/Inf weights")
+            raise RuntimeError(f"Checkpoint {self.last} is corrupted with NaN/Inf weights")
         unwrap_model(self.model).load_state_dict(ema_state)  # Load EMA weights into model
         self._load_checkpoint_state(ckpt)  # Load optimizer/scaler/EMA/best_fitness
         del ckpt, ema_state

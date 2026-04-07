@@ -155,3 +155,4 @@ def test_nan_recovery():
     trainer.add_callback("on_train_batch_end", inject_nan)
     trainer.train()
     assert nan_injected[0], "NaN injection failed"
+    assert trainer.last_good.exists(), "last_good checkpoint was not saved"

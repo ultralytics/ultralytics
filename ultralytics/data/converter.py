@@ -843,7 +843,12 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     yaml_path = dataset_dir / "data.yaml"
     if yaml_path.is_file():
         try:
-            if YAML.load(yaml_path).get("hash") == _hash:
+            cached = YAML.load(yaml_path)
+            if cached.get("hash") == _hash and all(
+                (dataset_dir / cached[split]).is_dir() and (dataset_dir / "labels" / split).is_dir()
+                for split in ("train", "val", "test")
+                if split in cached
+            ):
                 return yaml_path
         except Exception:
             pass

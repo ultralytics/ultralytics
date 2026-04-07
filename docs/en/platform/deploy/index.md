@@ -54,12 +54,12 @@ graph LR
     style D fill:#9C27B0,color:#fff
 ```
 
-| Stage         | Description                                                              |
-| ------------- | ------------------------------------------------------------------------ |
-| **Test**      | Validate model with the [`Predict` tab](inference.md)                    |
-| **Configure** | Select region and deployment name (deployments use fixed default resources)                   |
-| **Deploy**    | Create a dedicated endpoint from the [`Deploy` tab](endpoints.md)        |
-| **Monitor**   | Track requests, latency, errors, and logs in [Monitoring](monitoring.md) |
+| Stage         | Description                                                                 |
+| ------------- | --------------------------------------------------------------------------- |
+| **Test**      | Validate model with the [`Predict` tab](inference.md)                       |
+| **Configure** | Select region and deployment name (deployments use fixed default resources) |
+| **Deploy**    | Create a dedicated endpoint from the [`Deploy` tab](endpoints.md)           |
+| **Monitor**   | Track requests, latency, errors, and logs in [Monitoring](monitoring.md)    |
 
 ## Architecture
 

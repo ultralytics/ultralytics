@@ -269,11 +269,11 @@ Export jobs progress through the following statuses:
 
 Some export formats have architecture or task restrictions:
 
-| Format           | Restriction                                                     |
-| ---------------- | --------------------------------------------------------------- |
-| **IMX500**       | Available only for `YOLOv8n` and `YOLO11n`                      |
-| **Axelera**      | Detect models only                                              |
-| **PaddlePaddle** | Not available for YOLO26 detect/segment/pose/OBB models         |
+| Format           | Restriction                                             |
+| ---------------- | ------------------------------------------------------- |
+| **IMX500**       | Available only for `YOLOv8n` and `YOLO11n`              |
+| **Axelera**      | Detect models only                                      |
+| **PaddlePaddle** | Not available for YOLO26 detect/segment/pose/OBB models |
 
 !!! note "Additional Export Rules"
 

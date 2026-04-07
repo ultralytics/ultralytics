@@ -62,12 +62,12 @@ Choose a dataset to train on (see [Datasets](../data/datasets.md)):
 
 Set core training parameters:
 
-| Parameter      | Description                                                                 | Default |
-| -------------- | --------------------------------------------------------------------------- | ------- |
-| **Epochs**     | Number of training iterations                                               | 100     |
+| Parameter      | Description                                                                 | Default   |
+| -------------- | --------------------------------------------------------------------------- | --------- |
+| **Epochs**     | Number of training iterations                                               | 100       |
 | **Batch Size** | Samples per iteration                                                       | -1 (auto) |
-| **Image Size** | Input resolution (320/416/512/640/1280 dropdown, or 32-4096 in YAML editor) | 640     |
-| **Run Name**   | Optional name for the training run                                          | auto    |
+| **Image Size** | Input resolution (320/416/512/640/1280 dropdown, or 32-4096 in YAML editor) | 640       |
+| **Run Name**   | Optional name for the training run                                          | auto      |
 
 ### Step 4: Advanced Settings (Optional)
 

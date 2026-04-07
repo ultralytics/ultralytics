@@ -1015,11 +1015,11 @@ POST /api/deployments
 }
 ```
 
-| Field       | Type   | Required | Description                                                        |
-| ----------- | ------ | -------- | ------------------------------------------------------------------ |
-| `modelId`   | string | Yes      | Model ID to deploy                                                 |
-| `name`      | string | Yes      | Deployment name                                                    |
-| `region`    | string | Yes      | Deployment region                                                  |
+| Field       | Type   | Required | Description                                                                |
+| ----------- | ------ | -------- | -------------------------------------------------------------------------- |
+| `modelId`   | string | Yes      | Model ID to deploy                                                         |
+| `name`      | string | Yes      | Deployment name                                                            |
+| `region`    | string | Yes      | Deployment region                                                          |
 | `resources` | object | No       | Resource configuration (`cpu`, `memoryGi`, `minInstances`, `maxInstances`) |
 
 Creates a dedicated inference endpoint in the specified region. The endpoint is globally accessible via a unique URL.

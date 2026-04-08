@@ -64,6 +64,7 @@ def test_model_methods():
     _ = model.transforms
     _ = model.task_map
 
+
 def test_model_profile():
     """Test profiling of the YOLO model with `profile=True` to assess performance and resource usage."""
     from ultralytics.nn.tasks import DetectionModel

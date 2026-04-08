@@ -38,6 +38,8 @@ profile: False # (bool) profile ONNX/TensorRT speeds during training for loggers
 freeze: # (int | list, optional) freeze first N layers (int) or specific layer indices (list)
 multi_scale: 0.0 # (float) multi-scale range as a fraction of imgsz; sizes are rounded to stride multiples
 compile: False # (bool | str) enable torch.compile() backend='inductor'; True="default", False=off, or "default|reduce-overhead|max-autotune-no-cudagraphs"
+balance_sampler: False # (bool) use class-balanced sampling during training;
+loss_balance: False # (bool) use class-balanced weight for loss calculation during training;alance_sampler=True or pre-computed cls weights in batch["cls_weight"]
 
 # Segmentation
 overlap_mask: True # (bool) merge instance masks into one mask during training (segment only)

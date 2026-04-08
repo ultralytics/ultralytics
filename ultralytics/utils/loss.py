@@ -13,7 +13,7 @@ from ultralytics.utils.metrics import OKS_SIGMA, RLE_WEIGHT
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import autocast
-
+from ultralytics.utils import LOGGER
 from .metrics import bbox_iou, probiou
 from .tal import bbox2dist, rbox2dist
 
@@ -360,6 +360,7 @@ class v8DetectionLoss:
         self.bbox_loss = BboxLoss(m.reg_max).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 
+
     def preprocess(self, targets: torch.Tensor, batch_size: int, scale_tensor: torch.Tensor) -> torch.Tensor:
         """Preprocess targets by converting to tensor format and scaling coordinates."""
         nl, ne = targets.shape
@@ -422,8 +423,13 @@ class v8DetectionLoss:
 
         target_scores_sum = max(target_scores.sum(), 1)
 
-        # Cls loss
-        loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+        if "cls_weight" in batch.keys():
+            cls_weight=batch["cls_weight"].expand(-1, pred_scores.shape[1], -1)  # (B, A, nc)
+            cls_loss = self.bce(pred_scores, target_scores.to(dtype)) * cls_weight # (B, A, nc)
+            loss[1] = cls_loss.sum() / target_scores_sum 
+        else:
+            # Cls loss
+            loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
 
         # Bbox loss
         if fg_mask.sum():
@@ -465,6 +471,24 @@ class v8DetectionLoss:
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate detection loss using assigned targets."""
         batch_size = preds["boxes"].shape[0]
+        texts = batch.get("texts", [])
+
+        if "cls_weight" in batch.keys():
+            if batch["cls_weight"].shape[0] != batch_size:
+                batch["cls_weight"] = batch["cls_weight"].expand(batch_size, -1, -1)  # (B, 1, nc)
+
+        elif "texts" in batch.keys():
+            #  for yoloe training using object365 datasets, dynamically assign weights for each instance in the batch based on the category name and a pre-computed name_to_weight mapping. This allows for per-batch loss balancing based on class frequencies.
+            if getattr(self, "name_to_weight", None) is not None:
+                texts = batch.get("texts", [])  # List[List[str]], len == batch_size
+                text_weight = torch.ones((batch_size, len(texts[0])), device=self.device)  # default weights = 1.0   
+                for i in range(batch_size):
+                    for j in range(len(texts[i])):
+                        text_weight[i, j] = self.name_to_weight.get(str(texts[i][j]), 1.0)
+                        if texts[i][j] not in self.name_to_weight:
+                            LOGGER.warning(f"⚠️  Loss: text '{texts[i][j]}' not found in name_to_weight mapping, assigned weight 0.0.")
+                batch["cls_weight"] = text_weight.to(self.device).unsqueeze(1) #(B,1,nc)
+
         loss, loss_detach = self.get_assigned_targets_and_loss(preds, batch)[1:]
         return loss * batch_size, loss_detach
 

@@ -29,7 +29,7 @@ from ultralytics.data.loaders import (
     autocast_list,
 )
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
-from ultralytics.utils import RANK, colorstr
+from ultralytics.utils import RANK, colorstr,LOGGER
 from ultralytics.utils.checks import check_file
 from ultralytics.utils.torch_utils import TORCH_2_0
 
@@ -213,6 +213,222 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         """
         self.epoch = epoch
 
+class BalancedDistributedSampler(torch.utils.data.Sampler):
+    """
+    Distributed sampler with strict per-class balanced sampling.
+
+    Pre-builds a class-to-image mapping (cls → [img_indices]).  At every epoch a fixed
+    number of images is drawn *per class* (with replacement when a class has fewer images
+    than the quota), so every class contributes equally to the epoch regardless of how many
+    bboxes an image contains.  The resulting global index list is shuffled globally before
+    being sharded across ranks, giving each GPU a non-overlapping slice with a
+    representative mix of all classes.
+
+    total_size  = ceil(samples_per_class × num_classes / num_replicas) × num_replicas
+    samples_per_class = max(1, len(dataset) // num_classes)
+
+    Args:
+        dataset (Dataset): Dataset with a ``labels`` attribute — a list of dicts, each having a ``cls``
+            key whose value is a numpy array of shape ``(N, 1)`` containing class IDs.
+        num_replicas (int, optional): Number of distributed processes. Defaults to world size.
+        rank (int, optional): Rank of the current process. Defaults to current rank.
+        shuffle (bool): If True, additionally shuffle each rank's local slice every epoch.
+
+    Examples:
+
+        sampler = BalancedDistributedSampler(train_dataset)
+        loader = DataLoader(train_dataset, sampler=sampler, batch_size=32)
+        for epoch in range(epochs):
+            sampler.set_epoch(epoch)   # must call every epoch
+            for batch in loader:
+                ...
+    """
+
+    def __init__(
+        self,
+        dataset: Dataset,
+        num_replicas: int | None = None,
+        rank: int | None = None,
+        shuffle: bool = True,
+    ) -> None:
+        """
+        Initialize the sampler, building class-to-image mapping.
+
+        Args:
+            dataset (Dataset): Dataset with a ``labels`` attribute — a list of dicts, each having a ``cls``
+                key whose value is a numpy array of shape ``(N, 1)`` containing class IDs.
+            num_replicas (int, optional): Number of distributed processes. Defaults to world size.
+            rank (int, optional): Rank of the current process. Defaults to current rank.
+            shuffle (bool): If True, additionally shuffle each rank's local slice every epoch.
+        """
+        if num_replicas is None:
+            num_replicas = dist.get_world_size() if dist.is_initialized() else 1
+        if rank is None:
+            rank = dist.get_rank() if dist.is_initialized() else 0
+
+        self.dataset = dataset
+        self.num_replicas = num_replicas
+        self.rank = rank
+        self.shuffle = shuffle
+        self.epoch = 0
+
+        # cls_to_imgs: {class_id: [img_idx, ...]}
+        self.cls_to_imgs = self._build_cls_to_imgs()
+        self.num_classes = len(self.cls_to_imgs)
+        self.samples_per_class = max(1, len(dataset) // max(self.num_classes, 1))
+
+        # Pad total_size so every rank gets exactly num_samples indices (prevents DDP hangs)
+        raw_total = self.samples_per_class * self.num_classes
+        self.num_samples = math.ceil(raw_total / self.num_replicas)
+        self.total_size = self.num_samples * self.num_replicas
+
+    def _build_cls_to_imgs(self) -> dict:
+        """Build mapping {class_id: [image_indices]} from dataset labels.
+
+        Returns an empty dict if dataset has no labels or if labels do not contain 'cls' key.
+        """
+        labels = getattr(self.dataset, "labels", None)
+        cls_to_imgs: dict = {}
+        if labels is None:
+            return cls_to_imgs
+
+        cls_bbox_count: dict = {}
+        for i, lb in enumerate(labels):
+            cls = lb.get("cls", [])
+            if not len(cls):
+                continue
+            for c in np.unique(cls.flatten().astype(int)):
+                c = int(c)
+                cls_to_imgs.setdefault(c, []).append(i)
+                cls_bbox_count[c] = cls_bbox_count.get(c, 0) + int((cls == c).sum())
+
+        # Log summary
+        if cls_to_imgs:
+            total = sum(cls_bbox_count.values())
+            sorted_counts = sorted(cls_bbox_count.items(), key=lambda x: x[1], reverse=True)
+            LOGGER.info(
+                f"\n📊 BalancedDistributedSampler: {len(cls_to_imgs)} classes, "
+                f"{total} bboxes, avg {total / len(cls_to_imgs):.1f}/cls"
+            )
+            LOGGER.info(f"  Top 5(class,num_box): {sorted_counts[:5]}")
+            LOGGER.info(f"  Bottom 5(class,num_box): {sorted_counts[-5:]}")
+
+        return cls_to_imgs
+
+    def __iter__(self) -> Iterator:
+        """Yield indices for this rank's slice of the class-balanced sample."""
+        g = torch.Generator()
+        g.manual_seed(self.epoch)
+
+        # 1. For every class draw exactly `samples_per_class` image indices (with replacement)
+        indices: list[int] = []
+        for cls_id in sorted(self.cls_to_imgs.keys()):
+            img_list = self.cls_to_imgs[cls_id]
+            n = len(img_list)
+            sampled = torch.randint(0, n, (self.samples_per_class,), generator=g).tolist()
+            indices.extend(img_list[p] for p in sampled)
+
+        # 2. Global shuffle so every rank gets a representative mix of all classes
+        if self.shuffle:
+            perm = torch.randperm(len(indices), generator=g).tolist()
+            indices = [indices[i] for i in perm]
+
+        # 3. Pad to total_size so every rank gets exactly num_samples (prevents DDP hangs)
+        if len(indices) < self.total_size:
+            padding = self.total_size - len(indices)
+            indices += indices[:padding]
+        indices = indices[: self.total_size]
+
+        # 4. Shard across ranks (contiguous slice of the now-shuffled list)
+        rank_indices = indices[self.rank * self.num_samples : (self.rank + 1) * self.num_samples]
+
+
+
+        return iter(rank_indices)
+
+    def _save_cls_histogram(self, indices: list) -> None:
+        """Save a PNG histogram and CSV of the class distribution across sampled indices."""
+        try:
+            import matplotlib
+            matplotlib.use("Agg")
+            import matplotlib.pyplot as plt
+        except ImportError:
+            return
+
+        labels = getattr(self.dataset, "labels", None)
+        if labels is None:
+            return
+
+        # Count how many times each class appears across all sampled images
+        class_counts: dict = {}
+        for idx in indices:
+            if idx >= len(labels):
+                LOGGER.info(f"⚠️  Index {idx} out of bounds! labels size: {len(labels)}")
+                continue
+            cls = labels[idx].get("cls", [])
+            if len(cls):
+                for c in cls.flatten().astype(int):
+                    class_counts[int(c)] = class_counts.get(int(c), 0) + 1
+
+        if not class_counts:
+            return
+
+        sorted_cls = sorted(class_counts.keys())
+        counts = [class_counts[c] for c in sorted_cls]
+        n_cls = len(sorted_cls)
+
+        # Debug: log histogram info
+        LOGGER.info(f"\n📈 _save_cls_histogram (rank {self.rank}, epoch {self.epoch}):")
+        LOGGER.info(f"  Num indices sampled: {len(indices)}")
+        LOGGER.info(f"  Num classes in histogram: {n_cls}")
+        LOGGER.info(f"  Class ID range: {min(sorted_cls)}-{max(sorted_cls)}")
+        LOGGER.info(f"  Total bboxes in sampled: {sum(counts)}")
+
+        # Scale figure width with number of classes; cap bar width to keep plot readable
+        fig_w = max(24, n_cls // 20)
+        fig, ax = plt.subplots(figsize=(fig_w, 6))
+        bar_w = max(0.4, min(1.0, 800 / n_cls))
+        ax.bar(range(n_cls), counts, width=bar_w, color="steelblue", edgecolor="none")
+        ax.set_xlabel("Class ID", fontsize=11)
+        ax.set_ylabel("Bbox Count in Sampled Images", fontsize=11)
+        ax.set_title(
+            f"Class Distribution — epoch {self.epoch}  "
+            f"({n_cls} classes, {self.samples_per_class} imgs/cls)",
+            fontsize=12,
+        )
+
+        # Show ~50 tick labels regardless of class count
+        step = max(1, n_cls // 50)
+        tick_pos = list(range(0, n_cls, step))
+        ax.set_xticks(tick_pos)
+        ax.set_xticklabels([str(sorted_cls[i]) for i in tick_pos], rotation=60, ha="right", fontsize=7)
+        ax.yaxis.grid(True, linestyle="--", alpha=0.5)
+        ax.set_axisbelow(True)
+
+        plt.tight_layout()
+        save_dir = Path("runs") / "balanced_sampler"
+        save_dir.mkdir(parents=True, exist_ok=True)
+        suffix = f"epoch{self.epoch:04d}_rank{self.rank}"
+        save_path = save_dir / f"cls_dist_{suffix}.png"
+        plt.savefig(save_path, dpi=120)
+        plt.close(fig)
+
+        # Save CSV: cls_id, bbox_count — one row per class
+        LOGGER.info(f"Saved class distribution histogram to {save_path}")
+        csv_path = save_dir / f"cls_dist_{suffix}.csv"
+        with open(csv_path, "w") as f:
+            f.write("cls_id,bbox_count\n")
+            for c, cnt in zip(sorted_cls, counts):
+                f.write(f"{c},{cnt}\n")
+        LOGGER.info(f"Saved class distribution CSV to {csv_path}")
+
+    def __len__(self) -> int:
+        """Return number of samples for this rank."""
+        return self.num_samples
+
+    def set_epoch(self, epoch: int) -> None:
+        """Set epoch so each epoch uses a different sampling seed."""
+        self.epoch = epoch
 
 def seed_worker(worker_id: int) -> None:
     """Set dataloader worker seed for reproducibility across worker processes."""
@@ -291,6 +507,7 @@ def build_dataloader(
     rank: int = -1,
     drop_last: bool = False,
     pin_memory: bool = True,
+    balance_sampler: bool = False,
 ) -> InfiniteDataLoader:
     """Create and return an InfiniteDataLoader for training or validation.
 
@@ -302,6 +519,7 @@ def build_dataloader(
         rank (int, optional): Process rank in distributed training. -1 for single-GPU training.
         drop_last (bool, optional): Whether to drop the last incomplete batch.
         pin_memory (bool, optional): Whether to use pinned memory for dataloader.
+        balance_sampler (bool, optional): Whether to use class-balanced sampling.
 
     Returns:
         (InfiniteDataLoader): A dataloader that can be used for training or validation.
@@ -314,13 +532,18 @@ def build_dataloader(
     batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices
     nw = min(os.cpu_count() // max(nd, 1), workers)  # number of workers
-    sampler = (
-        None
-        if rank == -1
-        else distributed.DistributedSampler(dataset, shuffle=shuffle)
-        if shuffle
-        else ContiguousDistributedSampler(dataset)
-    )
+    if balance_sampler and (not shuffle):
+        LOGGER.info("⚠️  Warning: balanced sampling is only effective when shuffle=True. Setting balance_sampler=False.")
+        balance_sampler = False
+
+    if rank == -1:
+        # Single-GPU: use BalancedDistributedSampler when balance_sampler and shuffle are both True, otherwise no sampler (shuffle handled by DataLoader)
+        sampler = BalancedDistributedSampler(dataset, num_replicas=1, rank=0, shuffle=shuffle) if (balance_sampler and shuffle) else None
+    else:
+        # Multi-GPU distributed training. Use BalancedDistributedSampler when balance_sampler and shuffle are both True, otherwise use DistributedSampler with shuffle if shuffle is True
+        #  otherwise use ContiguousDistributedSampler to preserve ordering for validation.
+        sampler = BalancedDistributedSampler(dataset, shuffle=shuffle) if (balance_sampler and shuffle) else distributed.DistributedSampler(dataset, shuffle=shuffle) if shuffle else ContiguousDistributedSampler(dataset)
+      
     generator = torch.Generator()
     generator.manual_seed(6148914691236517205 + RANK)
     return InfiniteDataLoader(
@@ -436,3 +659,53 @@ def load_inference_source(
     setattr(dataset, "source_type", source_type)
 
     return dataset
+
+
+
+
+def build_name_to_weight(
+    name_counts: dict,
+    mode: str = "effective",
+    beta: float = 0.999,
+) -> dict:
+    """
+    Build a {name: weight} dict from {name: count} for per-batch cls loss balancing.
+
+    Computes mean-normalised per-class weights from raw sample counts. The returned dict
+    is looked up at every forward pass using batch["names"] to assemble a per-batch
+    cls_weight tensor matching the visual-prompt classes in the batch.
+
+    For slash-separated names (e.g. "bread/bun"), extra entries are added so that each
+    sub-name maps to the same weight as the original key.
+
+    Args:
+        name_counts: Mapping of category name to its sample count, e.g. {"cat": 1200, "dog": 300}.
+        mode:        Weighting scheme.
+                     - "none":         uniform weights (all 1.0).
+                     - "inverse":      w = 1 / count.
+                     - "sqrt_inverse": w = 1 / sqrt(count).
+                     - "effective":    Class-Balanced Loss (Cui et al. 2019),
+                                       w = (1 - beta) / (1 - beta^count).
+        beta:        Smoothing factor for "effective" mode (default 0.999).
+
+    Returns:
+        Dict mapping category name (str) to scalar float weight (mean-normalised).
+    """
+    names, counts = zip(*name_counts.items())
+    counts = np.array(counts, dtype=np.float64)
+
+    if mode == "none":
+        w = np.ones(len(counts))
+    elif mode == "inverse":
+        w = 1.0 / np.clip(counts, 1, None)
+    elif mode == "sqrt_inverse":
+        w = 1.0 / np.sqrt(np.clip(counts, 1, None))
+    elif mode == "effective":
+        eff = 1.0 - np.power(beta, counts)
+        w = (1.0 - beta) / np.clip(eff, 1e-8, None)
+    else:
+        raise ValueError(f"Unknown mode '{mode}'. Choose from: none, inverse, sqrt_inverse, effective.")
+
+    w = np.clip(w / w.mean(), 0.1, 10.0)
+    weight = {n: float(v) for n, v in zip(names, w)}
+    return weight

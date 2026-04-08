@@ -1,3 +1,6 @@
+# yolo train model=yolo26s-rep-fpn-losstune.yaml name=yolo26s-fpn-losstune device=1 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json
+# yolo train model=yolo26s-rep-fpn-nodetach.yaml name=yolo26s-fpn-nodetach device=2 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json
+# yolo train model=yolo26s-rep-fpn-rephead.yaml name=yolo26s-fpn-rephead device=3 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json cache=disk
 # yolo train model=yolo26s-hyp/yolo26s-nobn-fpn-up-sres/weights/last.pt resume=True data=coco.yaml device=1 save_json cache=disk
 # yolo train model=yolo26s-hyp/yolo26s-rep-fpn-p5-sres/weights/last.pt resume=True data=coco.yaml device=4 save_json cache=disk
 # yolo train model=yolo26s-mobileone-sres.yaml name=yolo26s-mobileone-sres device=5 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json cache=disk

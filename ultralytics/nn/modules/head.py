@@ -27,7 +27,7 @@ from .block import (
     SwiGLUFFN,
     SpatialSuppressionGate,
 )
-from .conv import Conv, DWConv
+from .conv import Conv, DWConv, RepConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
@@ -97,6 +97,8 @@ class Detect(nn.Module):
     legacy = False  # backward compatibility for v3/v5/v8/v9 models
     xyxy = False  # xyxy or xywh output
     suppress = False
+    rep_head = False  # use RepConv in head (fuses at inference, zero overhead)
+    no_detach = False  # allow one2one gradients to flow back to backbone
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
         """Initialize the YOLO detection layer with specified number of classes and channels.
@@ -114,21 +116,40 @@ class Detect(nn.Module):
         self.no = nc + self.reg_max * 4  # number of outputs per anchor
         self.stride = torch.zeros(self.nl)  # strides computed during build
         c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))  # channels
-        self.cv2 = nn.ModuleList(
-            nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch
-        )
-        self.cv3 = (
-            nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) for x in ch)
-            if self.legacy
-            else nn.ModuleList(
-                nn.Sequential(
-                    nn.Sequential(DWConv(x, x, 3), Conv(x, c3, 1)),
-                    nn.Sequential(DWConv(c3, c3, 3), Conv(c3, c3, 1)),
-                    nn.Conv2d(c3, self.nc, 1),
-                )
-                for x in ch
+        if self.rep_head:
+            self.cv2 = nn.ModuleList(
+                nn.Sequential(RepConv(x, c2, 3, bn=(x == c2)), RepConv(c2, c2, 3, bn=True), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch
             )
-        )
+        else:
+            self.cv2 = nn.ModuleList(
+                nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch
+            )
+        if self.rep_head:
+            self.cv3 = (
+                nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) for x in ch)
+                if self.legacy
+                else nn.ModuleList(
+                    nn.Sequential(
+                        nn.Sequential(RepConv(x, x, 3, g=x, bn=True), Conv(x, c3, 1)),
+                        nn.Sequential(RepConv(c3, c3, 3, g=c3, bn=True), Conv(c3, c3, 1)),
+                        nn.Conv2d(c3, self.nc, 1),
+                    )
+                    for x in ch
+                )
+            )
+        else:
+            self.cv3 = (
+                nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) for x in ch)
+                if self.legacy
+                else nn.ModuleList(
+                    nn.Sequential(
+                        nn.Sequential(DWConv(x, x, 3), Conv(x, c3, 1)),
+                        nn.Sequential(DWConv(c3, c3, 3), Conv(c3, c3, 1)),
+                        nn.Conv2d(c3, self.nc, 1),
+                    )
+                    for x in ch
+                )
+            )
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
 
         if end2end:
@@ -182,8 +203,8 @@ class Detect(nn.Module):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
         preds = self.forward_head(x, **self.one2many)
         if self.end2end:
-            x_detach = [xi.detach() for xi in x]
-            one2one = self.forward_head(x_detach, **self.one2one)
+            x_o2o = x if self.no_detach else [xi.detach() for xi in x]
+            one2one = self.forward_head(x_o2o, **self.one2one)
             preds = {"one2many": preds, "one2one": one2one}
         if self.training:
             return preds

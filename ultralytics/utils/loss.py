@@ -1135,12 +1135,16 @@ class E2ELoss:
         self.one2one = loss_fn(model, tal_topk=7, tal_topk2=1)
         self.updates = 0
         self.total = 1.0
+        # Read optional loss tuning from model config
+        yaml_cfg = getattr(model, "yaml", {})
+        o2m_init = yaml_cfg.get("o2m_init", 0.8)
+        o2m_final = yaml_cfg.get("o2m_final", 0.1)
         # init gain
-        self.o2m = 0.8
+        self.o2m = o2m_init
         self.o2o = self.total - self.o2m
         self.o2m_copy = self.o2m
         # final gain
-        self.final_o2m = 0.1
+        self.final_o2m = o2m_final
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""

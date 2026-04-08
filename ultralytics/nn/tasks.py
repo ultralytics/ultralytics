@@ -1556,6 +1556,8 @@ def parse_model(d, ch, verbose=True):
     nc, act, scales, end2end = (d.get(x) for x in ("nc", "activation", "scales", "end2end"))
     reg_max = d.get("reg_max", 16)
     suppress = d.get("suppress", False)
+    rep_head = d.get("rep_head", False)
+    no_detach = d.get("no_detach", False)
     depth, width, kpt_shape = (d.get(x, 1.0) for x in ("depth_multiple", "width_multiple", "kpt_shape"))
     scale = d.get("scale")
     if scales:
@@ -1746,6 +1748,8 @@ def parse_model(d, ch, verbose=True):
                 m.legacy = legacy
             if m in {Detect, DetectNorm}:
                 m.suppress = suppress
+                m.rep_head = rep_head
+                m.no_detach = no_detach
         elif m is v10Detect:
             args.append([ch[x] for x in f])
         elif m is ImagePoolingAttn:

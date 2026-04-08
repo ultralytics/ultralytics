@@ -105,7 +105,7 @@ The sidebar provides access to all Platform sections:
 |                 | Deploy   | Your active deployments                          |
 | **Bottom**      | Trash    | Deleted items (recoverable for 30 days)          |
 |                 | Settings | Account, billing, and preferences                |
-|                 | Feedback | Send feedback to Ultralytics                     |
+|                 | Help     | Open help, docs, and feedback tools              |
 
 ### Welcome Card
 
@@ -125,7 +125,7 @@ The welcome card shows your profile, plan badge, and workspace statistics at a g
 
 Below the welcome card, the dashboard shows three cards:
 
-- **Datasets**: Create a new dataset or drop images, videos, or ZIP files to upload. Shows your recent datasets.
+- **Datasets**: Create a new dataset or drop images, videos, or dataset files to upload. Shows your recent datasets.
 - **Projects**: Create a new project or drop `.pt` model files to upload. Shows your recent projects.
 - **Storage**: Overview of your storage usage (datasets, models, exports) with plan limits.
 
@@ -168,12 +168,12 @@ Navigate to `Annotate` in the sidebar and click `New Dataset` to add your traini
 
 Ultralytics Platform supports multiple upload formats (full details in [Datasets](data/datasets.md)):
 
-| Format                                                                 | Max Size | Description                                                                 |
-| ---------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------- |
-| **Images**                                                             | 50 MB    | JPG, PNG, WebP, TIFF, and other common formats                              |
-| **ZIP Archive**                                                        | 10 GB    | Compressed folder with images and labels                                    |
-| **Video**                                                              | 1 GB     | MP4, WebM, MOV, AVI, MKV, M4V - frames extracted at ~1 fps (max 100 frames) |
-| **[YOLO Format](../datasets/detect/index.md#ultralytics-yolo-format)** | 10 GB    | Standard YOLO dataset structure with labels                                 |
+| Format              | Max Size (Free / Pro / Enterprise) | Description                                                                 |
+| ------------------- | ---------------------------------- | --------------------------------------------------------------------------- |
+| **Images**          | 50 MB                              | JPG, PNG, WebP, TIFF, and other common formats                              |
+| **Dataset Archive** | 10 / 20 / 50 GB                    | ZIP or TAR archive (including `.tar.gz` and `.tgz`) with images and labels  |
+| **Video**           | 1 GB                               | MP4, WebM, MOV, AVI, MKV, M4V - frames extracted at ~1 fps (max 100 frames) |
+| **NDJSON**          | 10 / 20 / 50 GB                    | Ultralytics dataset export format for portable metadata                     |
 
 ```mermaid
 graph LR
@@ -195,7 +195,7 @@ After upload, the platform automatically processes your data:
 
 !!! tip "YOLO Dataset Structure"
 
-    For best results, upload a ZIP with the standard YOLO structure:
+    For best results, upload a ZIP or TAR archive (including `.tar.gz` and `.tgz`) with the standard YOLO structure:
 
     ```
     my-dataset.zip
@@ -352,7 +352,7 @@ graph LR
 Your endpoint will be ready in about a minute with:
 
 - **Unique URL**: HTTPS endpoint for API calls
-- **Auto-Scaling**: Scales with traffic automatically
+- **Scale-to-zero behavior**: No idle compute cost (deployments currently run a single active instance)
 - **Monitoring**: Request metrics and logs
 
 !!! info "Deployment Lifecycle"
@@ -384,7 +384,7 @@ Read more about [API keys](account/api-keys.md), [dataset URIs](data/datasets.md
 
 ## Feedback & Help
 
-Use the **Help** page in the sidebar footer to send feedback directly to Ultralytics. You can rate your experience, choose a feedback type (bug report, feature request, or general), and attach screenshots.
+The **Help** page in the sidebar footer includes an in-app feedback form. You can rate your experience, choose a feedback type (bug, feature request, or general), and attach screenshots.
 
 If you need more help:
 

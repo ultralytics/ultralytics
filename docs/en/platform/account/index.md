@@ -129,7 +129,7 @@ Yes, Ultralytics Platform implements:
 No, data region is selected during signup and cannot be changed. To use a different region:
 
 1. Export your data
-2. Create a new account in desired region
+2. Create a new account in the desired region
 3. Re-upload your data
 
 This ensures data residency compliance.

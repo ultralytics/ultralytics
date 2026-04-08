@@ -122,7 +122,7 @@ def test_predict_img(model_name):
     batch = [
         str(SOURCE),  # filename
         Path(SOURCE),  # Path
-        f"{ASSETS_URL}/zidane.jpg?token=123" if ONLINE else SOURCE,  # URI
+        "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/im/zidane.jpg?token=123" if ONLINE else SOURCE,  # URI
         im,  # OpenCV
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, channels), dtype=np.uint8),  # numpy
@@ -641,8 +641,27 @@ def test_classify_transforms_train(image, auto_augment, erasing, force_color_jit
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_model_tune():
     """Tune YOLO model for performance improvement."""
+    YOLO("yolo26n.pt").tune(
+        data=["coco8.yaml", "coco8-grayscale.yaml"], plots=False, imgsz=32, epochs=1, iterations=2, device="cpu"
+    )
     YOLO("yolo26n-pose.pt").tune(data="coco8-pose.yaml", plots=False, imgsz=32, epochs=1, iterations=2, device="cpu")
     YOLO("yolo26n-cls.pt").tune(data="imagenet10", plots=False, imgsz=32, epochs=1, iterations=2, device="cpu")
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not ONLINE or not checks.IS_PYTHON_MINIMUM_3_10, reason="environment is offline")
+def test_model_tune_ray():
+    """Tune YOLO model for performance improvement."""
+    YOLO("yolo26n-cls.pt").tune(
+        data="imagenet10",
+        use_ray=True,
+        plots=False,
+        imgsz=32,
+        epochs=1,
+        iterations=2,
+        search_alg="random",
+        device="cpu",
+    )
 
 
 def test_model_embeddings():

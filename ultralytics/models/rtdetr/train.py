@@ -52,7 +52,9 @@ class RTDETRTrainer(DetectionTrainer):
         Returns:
             (RTDETRDetectionModel): Initialized model.
         """
-        model = RTDETRDetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
+        model = RTDETRDetectionModel(
+            cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK in {-1, 0}
+        )
         if weights:
             model.load(weights)
         return model

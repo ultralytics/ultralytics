@@ -55,7 +55,9 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
             >>> model = trainer.get_model(cfg="yolo26n-seg.yaml")
             >>> model = trainer.get_model(weights="yolo26n-seg.pt", verbose=False)
         """
-        model = SegmentationModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
+        model = SegmentationModel(
+            cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK in {-1, 0}
+        )
         if weights:
             model.load(weights)
 

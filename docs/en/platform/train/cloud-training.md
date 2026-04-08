@@ -62,12 +62,12 @@ Choose a dataset to train on (see [Datasets](../data/datasets.md)):
 
 Set core training parameters:
 
-| Parameter      | Description                                                                 | Default |
-| -------------- | --------------------------------------------------------------------------- | ------- |
-| **Epochs**     | Number of training iterations                                               | 100     |
-| **Batch Size** | Samples per iteration                                                       | 16      |
-| **Image Size** | Input resolution (320/416/512/640/1280 dropdown, or 32-4096 in YAML editor) | 640     |
-| **Run Name**   | Optional name for the training run                                          | auto    |
+| Parameter      | Description                                                                 | Default   |
+| -------------- | --------------------------------------------------------------------------- | --------- |
+| **Epochs**     | Number of training iterations                                               | 100       |
+| **Batch Size** | Samples per iteration                                                       | -1 (auto) |
+| **Image Size** | Input resolution (320/416/512/640/1280 dropdown, or 32-4096 in YAML editor) | 640       |
+| **Run Name**   | Optional name for the training run                                          | auto      |
 
 ### Step 4: Advanced Settings (Optional)
 
@@ -169,11 +169,7 @@ Real-time GPU utilization, memory, temperature, CPU, and disk usage.
 
 ### Checkpoints
 
-Checkpoints are saved automatically:
-
-- **Every epoch**: Latest weights saved
-- **Best model**: Highest mAP checkpoint preserved
-- **Final model**: Weights at training completion
+After training completes, the **best model** (`best.pt`, the highest-mAP checkpoint) is uploaded to the platform and made available for download, export, and deployment.
 
 ## Cancel Training
 
@@ -181,7 +177,7 @@ Click **Cancel Training** on the model page to stop a running job:
 
 - The compute instance is terminated
 - Credits stop being charged
-- Checkpoints saved up to that point are preserved
+- The best checkpoint remains available if it was reached before cancellation
 
 ## Remote Training
 
@@ -201,7 +197,7 @@ Train on your own hardware while streaming metrics to the platform.
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.14**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.35**. Lower versions will NOT work with Platform.
 
     ```bash
     pip install -U ultralytics

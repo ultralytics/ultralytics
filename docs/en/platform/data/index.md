@@ -23,7 +23,7 @@ Data preparation is the foundation of successful [computer vision](https://www.u
 
 The Data section of Ultralytics Platform helps you:
 
-- **Upload** images, videos, and archives (ZIP, TAR, GZ)
+- **Upload** images, videos, and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON)
 - **Annotate** with manual drawing tools and SAM-powered smart labeling — choose from [SAM 2.1](../../models/sam-2.md) or the new [SAM 3](../../models/sam-3.md)
 - **Analyze** your data with statistics and visualizations
 - **Export** in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for local training
@@ -65,7 +65,7 @@ Ultralytics Platform supports all 5 YOLO task types:
 
 !!! info "Task Type Selection"
 
-    The task type is set when creating a dataset and determines which annotation tools are available. You can change it later from the dataset settings, but incompatible annotations won't be displayed after switching.
+    The task type is set when creating a dataset and determines which annotation tools are available. You can change it later from the dataset header task selector, but incompatible annotations won't be displayed after switching.
 
 ## Key Features
 
@@ -102,7 +102,7 @@ Create immutable NDJSON snapshots of your dataset for reproducible training. Eac
 
 ### Dataset Tabs
 
-Every dataset page provides six tabs:
+Dataset pages can show up to six tabs, depending on the dataset state and your permissions:
 
 | Tab          | Description                                                                  |
 | ------------ | ---------------------------------------------------------------------------- |
@@ -112,6 +112,8 @@ Every dataset page provides six tabs:
 | **Models**   | [Models](../train/models.md) trained on this dataset with metrics and status |
 | **Versions** | Create and download immutable NDJSON snapshots for reproducible training     |
 | **Errors**   | Images that failed processing with error details and fix guidance            |
+
+`Classes` and `Charts` appear when the dataset has images. `Errors` appears only when processing failures exist. `Versions` appears for owners, or for non-owners when versions already exist.
 
 ### Statistics and Visualization
 
@@ -142,7 +144,7 @@ Ultralytics Platform supports:
 
 **Videos:** MP4, WebM, MOV, AVI, MKV, M4V (max 1GB, frames extracted at 1 FPS, max 100 frames)
 
-**Archives:** ZIP, TAR, TAR.GZ, TGZ, GZ (max 10GB) containing images with optional [YOLO-format labels](../../datasets/detect/index.md#ultralytics-yolo-format)
+**Dataset files:** ZIP or TAR archives including `.tar.gz` and `.tgz` (max 10GB on Free, 20GB on Pro, 50GB on Enterprise) containing images with optional [YOLO-format labels](../../datasets/detect/index.md#ultralytics-yolo-format), plus NDJSON exports
 
 ### What is the maximum dataset size?
 
@@ -154,7 +156,7 @@ Storage limits depend on your plan:
 | Pro        | 500 GB        |
 | Enterprise | Unlimited     |
 
-Individual file limits: Images 50MB, Videos 1GB, Archives 10GB
+Individual file limits: Images 50MB, Videos 1GB, datasets 10GB on Free / 20GB on Pro / 50GB on Enterprise
 
 ### Can I use my Platform datasets for local training?
 

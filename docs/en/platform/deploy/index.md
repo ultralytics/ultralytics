@@ -26,7 +26,7 @@ The Deployment section helps you:
 - **Test** models directly in the browser with the `Predict` tab
 - **Deploy** to dedicated endpoints in 43 global regions
 - **Monitor** request metrics, logs, and health checks
-- **Scale** automatically with traffic (including scale-to-zero)
+- **Scale to zero** when idle (deployments currently run a single active instance)
 
 ![Ultralytics Platform Deploy Page World Map With Overview Cards](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/deploy-page-world-map-with-overview-cards.avif)
 
@@ -54,12 +54,12 @@ graph LR
     style D fill:#9C27B0,color:#fff
 ```
 
-| Stage         | Description                                                              |
-| ------------- | ------------------------------------------------------------------------ |
-| **Test**      | Validate model with the [`Predict` tab](inference.md)                    |
-| **Configure** | Select region, resources, and deployment name                            |
-| **Deploy**    | Create a dedicated endpoint from the [`Deploy` tab](endpoints.md)        |
-| **Monitor**   | Track requests, latency, errors, and logs in [Monitoring](monitoring.md) |
+| Stage         | Description                                                                 |
+| ------------- | --------------------------------------------------------------------------- |
+| **Test**      | Validate model with the [`Predict` tab](inference.md)                       |
+| **Configure** | Select region and deployment name (deployments use fixed default resources) |
+| **Deploy**    | Create a dedicated endpoint from the [`Deploy` tab](endpoints.md)           |
+| **Monitor**   | Track requests, latency, errors, and logs in [Monitoring](monitoring.md)    |
 
 ## Architecture
 
@@ -100,8 +100,8 @@ Deploy to 43 regions worldwide on Ultralytics Cloud:
 
 Each endpoint is a single-tenant service with:
 
-- Dedicated compute resources (configurable CPU and memory)
-- Auto-scaling (scale-to-zero when idle)
+- Default resources of `1 CPU`, `2 GiB` memory, `minInstances=0`, `maxInstances=1`
+- Scale-to-zero when idle
 - Unique endpoint URL
 - Independent monitoring, logs, and health checks
 
@@ -118,7 +118,7 @@ Access the global deployments page from the sidebar under `Deploy`. This page sh
 
 !!! info "Automatic Polling"
 
-    The page polls every 30 seconds for metric updates. When deployments are in a transitional state (creating, deploying, stopping), polling increases to every 2-3 seconds for near-instant feedback.
+    The page polls every 15 seconds normally. When deployments are in a transitional state (`creating`, `deploying`, or `stopping`), polling increases to every 3 seconds for faster feedback.
 
 ## Key Features
 
@@ -130,12 +130,12 @@ Deploy close to your users with 43 regions covering:
 - Europe, Middle East, Africa
 - Asia Pacific, Oceania
 
-### Auto-Scaling
+### Scaling Behavior
 
-Endpoints scale automatically:
+Endpoints currently behave as follows:
 
 - **Scale to zero**: No cost when idle (default)
-- **Scale up**: Handle traffic spikes automatically
+- **Single active instance**: `maxInstances` is currently capped at `1` on all plans
 
 !!! tip "Cost Savings"
 
@@ -189,7 +189,7 @@ Deploy a model in under 2 minutes:
 | ----------- | --------------- | ------------------------------------ |
 | **Latency** | Variable        | Consistent                           |
 | **Cost**    | Free (included) | Free (basic), usage-based (advanced) |
-| **Scale**   | Limited         | Configurable                         |
+| **Scale**   | Limited         | Scale-to-zero, single instance       |
 | **Regions** | 3               | 43                                   |
 | **URL**     | Generic         | Custom                               |
 | **Rate**    | 20 req/min      | Unlimited                            |
@@ -204,7 +204,7 @@ Dedicated endpoint deployment typically takes 1-2 minutes:
 
 ### Can I deploy multiple models?
 
-Yes, each model can have multiple endpoints in different regions. There's no limit on total endpoints (subject to your plan).
+Yes, each model can have multiple endpoints in different regions. Deployment counts are limited by plan: Free `3`, Pro `10`, Enterprise `unlimited`.
 
 ### What happens when an endpoint is idle?
 

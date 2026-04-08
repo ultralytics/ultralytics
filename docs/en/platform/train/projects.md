@@ -40,7 +40,7 @@ Enter your project details:
 - **Name**: A descriptive name for your project (a random name is auto-generated)
 - **Description**: Optional notes about the project purpose
 - **Visibility**: Public (anyone can view) or Private (only you can access)
-- **License**: Optional license for your project (AGPL-3.0, Apache-2.0, MIT, GPL-3.0, BSD-3-Clause, LGPL-3.0, MPL-2.0, EUPL-1.1, Unlicense, Ultralytics-Enterprise, and more). The **Ultralytics-Enterprise** license is for commercial use without AGPL requirements — contact [sales@ultralytics.com](mailto:sales@ultralytics.com) for details.
+- **License**: Optional license for your project (AGPL-3.0, Apache-2.0, MIT, GPL-3.0, BSD-3-Clause, LGPL-3.0, MPL-2.0, EUPL-1.1, Unlicense, Ultralytics-Enterprise, and more). The **Ultralytics-Enterprise** license is for commercial use without AGPL requirements and is available with an Enterprise plan — see [Ultralytics Licensing](https://www.ultralytics.com/licensing).
 
 ![Ultralytics Platform New Project Dialog Name Visibility License](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-new-project-dialog-name-visibility-license.avif)
 

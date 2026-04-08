@@ -531,8 +531,7 @@ class BaseTrainer:
                     self.stop |= (time.time() - self.train_time_start) > (self.args.time * 3600)
 
                 # Save model
-                if self.args.save or final_epoch:
-                    self.save_model()
+                if (self.args.save or final_epoch) and self.save_model():
                     self.run_callbacks("on_model_save")
 
             # Scheduler
@@ -630,6 +629,11 @@ class BaseTrainer:
         """Save model training checkpoints with additional metadata."""
         import io
 
+        ema = deepcopy(unwrap_model(self.ema.ema)).half()
+        if not all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor)):
+            LOGGER.warning(f"Skipping checkpoint save at epoch {self.epoch}: EMA contains NaN/Inf")
+            return False
+
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
         buffer = io.BytesIO()
         torch.save(
@@ -637,7 +641,7 @@ class BaseTrainer:
                 "epoch": self.epoch,
                 "best_fitness": self.best_fitness,
                 "model": None,  # resume and final checkpoints derive from EMA
-                "ema": deepcopy(unwrap_model(self.ema.ema)).half(),
+                "ema": ema,
                 "updates": self.ema.updates,
                 "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
                 "scaler": self.scaler.state_dict(),
@@ -666,6 +670,7 @@ class BaseTrainer:
             self.best.write_bytes(serialized_ckpt)  # save best.pt
         if (self.save_period > 0) and (self.epoch % self.save_period == 0):
             (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)  # save epoch, i.e. 'epoch3.pt'
+        return True
 
     def get_dataset(self):
         """Get train and validation datasets from data dictionary.
@@ -912,9 +917,11 @@ class BaseTrainer:
             corrupted = broadcast_list[0]
         if not corrupted:
             return False
-        if epoch == self.start_epoch or not self.last.exists():
+        if epoch == self.start_epoch:
             LOGGER.warning(f"{reason} detected but can not recover from last.pt...")
             return False  # Cannot recover on first epoch, let training continue
+        if not self.last.exists():
+            raise RuntimeError(f"{reason} detected but no valid last.pt is available for recovery")
         self.nan_recovery_attempts += 1
         if self.nan_recovery_attempts > 3:
             raise RuntimeError(f"Training failed: NaN persisted for {self.nan_recovery_attempts} epochs")

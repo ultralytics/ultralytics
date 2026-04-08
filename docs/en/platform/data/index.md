@@ -65,7 +65,7 @@ Ultralytics Platform supports all 5 YOLO task types:
 
 !!! info "Task Type Selection"
 
-    The task type is set when creating a dataset and determines which annotation tools are available. You can change it later from the dataset settings, but incompatible annotations won't be displayed after switching.
+    The task type is set when creating a dataset and determines which annotation tools are available. You can change it later from the dataset header task selector, but incompatible annotations won't be displayed after switching.
 
 ## Key Features
 
@@ -102,7 +102,7 @@ Create immutable NDJSON snapshots of your dataset for reproducible training. Eac
 
 ### Dataset Tabs
 
-Every dataset page provides six tabs:
+Dataset pages can show up to six tabs, depending on the dataset state and your permissions:
 
 | Tab          | Description                                                                  |
 | ------------ | ---------------------------------------------------------------------------- |
@@ -112,6 +112,8 @@ Every dataset page provides six tabs:
 | **Models**   | [Models](../train/models.md) trained on this dataset with metrics and status |
 | **Versions** | Create and download immutable NDJSON snapshots for reproducible training     |
 | **Errors**   | Images that failed processing with error details and fix guidance            |
+
+`Classes` and `Charts` appear when the dataset has images. `Errors` appears only when processing failures exist. `Versions` appears for owners, or for non-owners when versions already exist.
 
 ### Statistics and Visualization
 

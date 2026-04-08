@@ -52,7 +52,7 @@ graph LR
 
 ## Authentication
 
-Most API requests require authentication via API key. Public endpoints (listing public datasets, projects, and models) support anonymous read access without a key.
+Resource APIs such as datasets, projects, models, training, exports, and predictions use API-key authentication. Public endpoints (listing public datasets, projects, and models) support anonymous read access without a key. Account-oriented routes — including activity, settings, teams, billing, and GDPR flows — currently require an authenticated browser session and are not available via API key.
 
 ### Get API Key
 
@@ -145,7 +145,7 @@ Each category has an independent counter per API key. For example, making 20 pre
 
 ### Dedicated Endpoints (Unlimited)
 
-[Dedicated endpoints](../deploy/endpoints.md) are **not subject to API key rate limits**. When you deploy a model to a dedicated endpoint, requests to that endpoint URL (e.g., `https://predict-abc123.run.app/predict`) go directly to your dedicated service with no rate limiting from the Platform. You're paying for the compute, so you get unlimited throughput up to your endpoint's scaling configuration.
+[Dedicated endpoints](../deploy/endpoints.md) are **not subject to API key rate limits**. When you deploy a model to a dedicated endpoint, requests to that endpoint URL (e.g., `https://predict-abc123.run.app/predict`) go directly to your dedicated service with no rate limiting from the Platform. You're paying for the compute, so you get throughput from your dedicated service configuration rather than the shared API limits.
 
 !!! tip "Handling Rate Limits"
 
@@ -965,7 +965,7 @@ Terminates the running compute instance and marks the job as cancelled.
 
 ## Deployments API
 
-Deploy models to dedicated inference endpoints with auto-scaling, health checks, and monitoring. See [Endpoints documentation](../deploy/endpoints.md).
+Deploy models to dedicated inference endpoints with health checks and monitoring. New deployments use scale-to-zero by default, and the API accepts an optional `resources` object. See [Endpoints documentation](../deploy/endpoints.md).
 
 ```mermaid
 graph LR
@@ -1015,14 +1015,18 @@ POST /api/deployments
 }
 ```
 
-| Field       | Type   | Required | Description                                                        |
-| ----------- | ------ | -------- | ------------------------------------------------------------------ |
-| `modelId`   | string | Yes      | Model ID to deploy                                                 |
-| `name`      | string | Yes      | Deployment name                                                    |
-| `region`    | string | Yes      | Deployment region                                                  |
-| `resources` | object | No       | Resource configuration (cpu, memoryGi, minInstances, maxInstances) |
+| Field       | Type   | Required | Description                                                                |
+| ----------- | ------ | -------- | -------------------------------------------------------------------------- |
+| `modelId`   | string | Yes      | Model ID to deploy                                                         |
+| `name`      | string | Yes      | Deployment name                                                            |
+| `region`    | string | Yes      | Deployment region                                                          |
+| `resources` | object | No       | Resource configuration (`cpu`, `memoryGi`, `minInstances`, `maxInstances`) |
 
 Creates a dedicated inference endpoint in the specified region. The endpoint is globally accessible via a unique URL.
+
+!!! note "Default Resources"
+
+    The deployment dialog currently submits fixed defaults of `cpu=1`, `memoryGi=2`, `minInstances=0`, and `maxInstances=1`. The API route accepts a `resources` object, but plan limits cap `minInstances` at `0` and `maxInstances` at `1`.
 
 !!! tip "Region Selection"
 
@@ -1224,6 +1228,10 @@ POST /api/exports/{exportId}/track-download
 
 View a feed of recent actions on your account — training runs, uploads, and more. See [Activity documentation](../account/activity.md).
 
+!!! note "Browser Session Only"
+
+    The Activity routes are powered by browser-authenticated requests from the platform UI. They are not exposed as a public API, do not accept API-key authentication, and the route shapes below are documented only for reference. Use the Activity feed in the platform UI to view, mark, or archive events.
+
 ### List Activity
 
 ```
@@ -1348,6 +1356,10 @@ DELETE /api/trash/empty
 
 Permanently deletes all items in trash.
 
+!!! note "Authentication"
+
+    `DELETE /api/trash/empty` requires an authenticated browser session and is not available via API key. Use the **Empty Trash** button in the UI instead.
+
 ---
 
 ## Billing API
@@ -1451,13 +1463,21 @@ Creates a checkout session for Pro subscription upgrade.
 | `billingCycle` | string | No       | Billing cycle: `monthly` (default) or `yearly`             |
 | `owner`        | string | No       | Team username for workspace upgrades (requires admin role) |
 
-### Create Portal Session
+### Cancel or Resume Subscription
 
 ```
-POST /api/billing/portal-session
+DELETE /api/billing/subscription-checkout
 ```
 
-Returns URL to billing portal for subscription management.
+Cancels a Pro subscription at period end by default. Send `{"resume": true}` to resume an already scheduled cancellation before the billing period ends.
+
+**Body:**
+
+```json
+{
+    "resume": true
+}
+```
 
 ### Auto Top-Up
 
@@ -2022,7 +2042,7 @@ yolo check
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.14**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.35**. Lower versions will NOT work with Platform.
 
 ### Authentication
 
@@ -2163,7 +2183,7 @@ Webhooks notify your server of Platform events via HTTP POST callbacks:
 
     **All plans**: Training webhooks via the Python SDK (real-time metrics, completion notifications) work automatically on every plan -- no configuration required.
 
-    **Enterprise only**: Custom webhook endpoints that send HTTP POST callbacks to your own server URL require an Enterprise plan. [Contact sales](https://www.ultralytics.com/contact) for details.
+    **Enterprise only**: Custom webhook endpoints that send HTTP POST callbacks to your own server URL require an Enterprise plan. See [Ultralytics Licensing](https://www.ultralytics.com/licensing) for details.
 
 ---
 

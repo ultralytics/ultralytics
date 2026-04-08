@@ -35,6 +35,7 @@ from ultralytics.utils import (
     LOCAL_RANK,
     LOGGER,
     RANK,
+    SETTINGS,
     TQDM,
     YAML,
     callbacks,
@@ -720,8 +721,11 @@ class BaseTrainer:
 
         cfg, weights = self.model, None
         ckpt = None
-        if str(self.model).endswith(".pt"):
-            weights, ckpt = load_checkpoint(self.model)
+        # Resolve remote URIs (ul://, https://, etc.) to local .pt files before suffix check
+        if isinstance(cfg, str) and "://" in cfg:
+            cfg = check_file(cfg, download_dir=SETTINGS["weights_dir"])
+        if str(cfg).endswith(".pt"):
+            weights, ckpt = load_checkpoint(cfg)
             cfg = weights.yaml
         elif isinstance(self.args.pretrained, (str, Path)):
             weights, _ = load_checkpoint(self.args.pretrained)

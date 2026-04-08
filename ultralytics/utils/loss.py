@@ -346,6 +346,7 @@ class v8DetectionLoss:
         self.no = m.nc + m.reg_max * 4
         self.reg_max = m.reg_max
         self.device = device
+        self.use_vfl = False  # varifocal loss flag, set externally by E2ELoss
 
         self.use_dfl = m.reg_max > 1
 
@@ -386,6 +387,53 @@ class v8DetectionLoss:
             # pred_dist = (pred_dist.view(b, a, c // 4, 4).softmax(2) * self.proj.type(pred_dist.dtype).view(1, 1, -1, 1)).sum(2)
         return dist2bbox(pred_dist, anchor_points, xywh=False)
 
+    def _cls_loss(self, pred_scores, target_scores, target_scores_sum, dtype):
+        """Compute classification loss (BCE or VFL)."""
+        if self.use_vfl:
+            target_labels = (target_scores > 0).to(dtype)
+            pred_sigmoid = pred_scores.detach().sigmoid()
+            weight = 0.75 * pred_sigmoid.pow(2.0) * (1 - target_labels) + target_scores.to(dtype) * target_labels
+            return (
+                F.binary_cross_entropy_with_logits(pred_scores.float(), target_scores.float(), reduction="none")
+                * weight
+            ).sum() / target_scores_sum
+        return self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum
+
+    def loss_from_targets(self, preds, target_bboxes, target_scores, fg_mask):
+        """Compute loss using externally provided assignment targets (for consistent matching)."""
+        loss = torch.zeros(3, device=self.device)
+        pred_distri = preds["boxes"].permute(0, 2, 1).contiguous()
+        pred_scores = preds["scores"].permute(0, 2, 1).contiguous()
+        anchor_points, stride_tensor = make_anchors(preds["feats"], self.stride, 0.5)
+        dtype = pred_scores.dtype
+        batch_size = pred_scores.shape[0]
+        imgsz = torch.tensor(preds["feats"][0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]
+
+        target_scores_sum = max(target_scores.sum(), 1)
+
+        # Cls loss
+        loss[1] = self._cls_loss(pred_scores, target_scores, target_scores_sum, dtype)
+
+        # Bbox loss
+        pred_bboxes = self.bbox_decode(anchor_points, pred_distri)
+        if fg_mask.sum():
+            loss[0], loss[2] = self.bbox_loss(
+                pred_distri,
+                pred_bboxes,
+                anchor_points,
+                target_bboxes / stride_tensor,
+                target_scores,
+                target_scores_sum,
+                fg_mask,
+                imgsz,
+                stride_tensor,
+            )
+
+        loss[0] *= self.hyp.box
+        loss[1] *= self.hyp.cls
+        loss[2] *= self.hyp.dfl
+        return loss * batch_size, loss.detach()
+
     def get_assigned_targets_and_loss(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> tuple:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size and return foreground mask and
         target indices.
@@ -419,10 +467,16 @@ class v8DetectionLoss:
             mask_gt,
         )
 
+        # Store assignment for external use (e.g. consistent matching in E2ELoss)
+        self._last_fg_mask = fg_mask
+        self._last_target_gt_idx = target_gt_idx
+        self._last_target_bboxes = target_bboxes
+        self._last_target_scores = target_scores
+
         target_scores_sum = max(target_scores.sum(), 1)
 
         # Cls loss
-        loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+        loss[1] = self._cls_loss(pred_scores, target_scores, target_scores_sum, dtype)
 
         # Bbox loss
         if fg_mask.sum():
@@ -1135,7 +1189,7 @@ class E2ELoss:
         self.one2one = loss_fn(model, tal_topk=7, tal_topk2=1)
         self.updates = 0
         self.total = 1.0
-        # Read optional loss tuning from model config
+        # Read optional config from model YAML
         yaml_cfg = getattr(model, "yaml", {})
         o2m_init = yaml_cfg.get("o2m_init", 0.8)
         o2m_final = yaml_cfg.get("o2m_final", 0.1)
@@ -1145,20 +1199,85 @@ class E2ELoss:
         self.o2m_copy = self.o2m
         # final gain
         self.final_o2m = o2m_final
+        # Soft label distillation from one2many to one2one
+        self.soft_distill = yaml_cfg.get("soft_distill", False)
+        self.distill_weight = yaml_cfg.get("distill_weight", 0.5)
+        # Consistent matching: use one2many's best assignment for one2one
+        self.consistent_match = yaml_cfg.get("consistent_match", False)
+        # Varifocal loss for one2one classification
+        if yaml_cfg.get("varifocal", False):
+            self.one2one.use_vfl = True
+        # Progressive topk annealing for one2one assigner
+        self.topk_anneal = yaml_cfg.get("topk_anneal", False)
+        self.topk2_start = yaml_cfg.get("topk2_start", 3)
+        if self.topk_anneal:
+            self.one2one.assigner.topk2 = self.topk2_start
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
         preds = self.one2many.parse_output(preds)
         one2many, one2one = preds["one2many"], preds["one2one"]
+
+        # One2many loss (always computed normally)
         loss_one2many = self.one2many.loss(one2many, batch)
-        loss_one2one = self.one2one.loss(one2one, batch)
-        return loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, loss_one2one[1]
+
+        if self.consistent_match:
+            # Use one2many's assignment (filtered to top-1 per GT) for one2one
+            fg_mask, target_scores = self._filter_top1_per_gt(
+                self.one2many._last_fg_mask,
+                self.one2many._last_target_gt_idx,
+                self.one2many._last_target_scores,
+            )
+            target_bboxes = self.one2many._last_target_bboxes
+            loss_one2one = self.one2one.loss_from_targets(one2one, target_bboxes, target_scores, fg_mask)
+        else:
+            loss_one2one = self.one2one.loss(one2one, batch)
+
+        total = loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o
+
+        # Soft label distillation: BCE between one2one logits and one2many sigmoid (detached)
+        if self.soft_distill:
+            teacher = one2many["scores"].detach().sigmoid()
+            student_logits = one2one["scores"]
+            batch_size = student_logits.shape[0]
+            distill_loss = F.binary_cross_entropy_with_logits(student_logits, teacher, reduction="mean") * batch_size
+            distill_component = torch.zeros_like(total)
+            distill_component[1] = distill_loss * self.distill_weight
+            total = total + distill_component
+
+        return total, loss_one2one[1]
+
+    @staticmethod
+    def _filter_top1_per_gt(fg_mask, target_gt_idx, target_scores):
+        """Filter one2many assignment to keep only the best anchor per GT."""
+        B, A = fg_mask.shape
+        anchor_quality = target_scores.sum(-1)  # (B, A)
+        anchor_quality = torch.where(fg_mask, anchor_quality, torch.tensor(-1.0, device=fg_mask.device))
+
+        new_fg_mask = torch.zeros_like(fg_mask)
+        new_target_scores = torch.zeros_like(target_scores)
+
+        for b in range(B):
+            if not fg_mask[b].any():
+                continue
+            for gt_id in target_gt_idx[b][fg_mask[b]].unique():
+                gt_mask = fg_mask[b] & (target_gt_idx[b] == gt_id)
+                best_idx = (anchor_quality[b] * gt_mask.float()).argmax()
+                new_fg_mask[b, best_idx] = True
+                new_target_scores[b, best_idx] = target_scores[b, best_idx]
+
+        return new_fg_mask, new_target_scores
 
     def update(self) -> None:
         """Update the weights for one-to-many and one-to-one losses based on the decay schedule."""
         self.updates += 1
         self.o2m = self.decay(self.updates)
         self.o2o = max(self.total - self.o2m, 0)
+        # Progressive topk annealing: reduce topk2 from topk2_start toward 1
+        if self.topk_anneal:
+            total_epochs = max(self.one2one.hyp.epochs - 1, 1)
+            progress = min(self.updates / total_epochs, 1.0)
+            self.one2one.assigner.topk2 = max(round(self.topk2_start * (1 - progress) + 1.0 * progress), 1)
 
     def decay(self, x) -> float:
         """Calculate the decayed weight for one-to-many loss based on the current update step."""

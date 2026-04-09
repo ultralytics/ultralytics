@@ -1237,10 +1237,13 @@ class E2ELoss:
 
         # Soft label distillation: BCE between one2one logits and one2many sigmoid (detached)
         if self.soft_distill:
-            teacher = one2many["scores"].detach().sigmoid()
-            student_logits = one2one["scores"]
-            batch_size = student_logits.shape[0]
-            distill_loss = F.binary_cross_entropy_with_logits(student_logits, teacher, reduction="mean") * batch_size
+            with autocast(enabled=False):
+                teacher = one2many["scores"].detach().float().sigmoid().clamp(1e-4, 1 - 1e-4)
+                student_logits = one2one["scores"].float()
+                batch_size = student_logits.shape[0]
+                distill_loss = (
+                    F.binary_cross_entropy_with_logits(student_logits, teacher, reduction="mean") * batch_size
+                )
             distill_component = torch.zeros_like(total)
             distill_component[1] = distill_loss * self.distill_weight
             total = total + distill_component

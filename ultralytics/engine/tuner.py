@@ -386,15 +386,15 @@ class Tuner:
 
             metrics = {}
             train_args = {**vars(self.args), **mutated_hyp}
-            save_dir = get_save_dir(get_cfg(train_args))
-            train_args["save_dir"] = str(save_dir)  # pass save_dir to subprocess to ensure same path is used
-            weights_dir = save_dir / "weights"
             data = train_args.pop("data")
             fitness = []
             if not isinstance(data, (list, tuple)):
                 data = [data]
             for d in data:
                 try:
+                    save_dir = get_save_dir(get_cfg(train_args))
+                    train_args["save_dir"] = str(save_dir)  # pass save_dir to subprocess to ensure same path is used
+                    weights_dir = save_dir / "weights"
                     train_args["data"] = d
                     # Train YOLO model with mutated hyperparameters (run in subprocess to avoid dataloader hang)
                     launch = [

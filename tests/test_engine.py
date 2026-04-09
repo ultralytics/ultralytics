@@ -4,6 +4,7 @@ import sys
 from types import SimpleNamespace
 from unittest import mock
 
+import pytest
 import torch
 
 from tests import MODEL, SOURCE
@@ -11,6 +12,7 @@ from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.models.yolo import classify, detect, segment
+from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
 
 
@@ -57,15 +59,8 @@ def test_detect():
         assert len(result), "predictor test failed"
 
     # Test resume functionality
-    overrides["resume"] = trainer.last
-    trainer = detect.DetectionTrainer(overrides=overrides)
-    try:
-        trainer.train()
-    except Exception as e:
-        print(f"Expected exception caught: {e}")
-        return
-
-    raise Exception("Resume test failed!")
+    with pytest.raises(AssertionError):
+        detect.DetectionTrainer(overrides={**overrides, "resume": trainer.last}).train()
 
 
 def test_segment():
@@ -103,15 +98,8 @@ def test_segment():
     assert len(result), "predictor test failed"
 
     # Test resume functionality
-    overrides["resume"] = trainer.last
-    trainer = segment.SegmentationTrainer(overrides=overrides)
-    try:
-        trainer.train()
-    except Exception as e:
-        print(f"Expected exception caught: {e}")
-        return
-
-    raise Exception("Resume test failed!")
+    with pytest.raises(AssertionError):
+        segment.SegmentationTrainer(overrides={**overrides, "resume": trainer.last}).train()
 
 
 def test_classify():

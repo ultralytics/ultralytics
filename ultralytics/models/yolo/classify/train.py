@@ -79,9 +79,7 @@ class ClassificationTrainer(BaseTrainer):
         Returns:
             (ClassificationModel): Configured PyTorch model for classification.
         """
-        model = ClassificationModel(
-            cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK in {-1, 0}
-        )
+        model = ClassificationModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
 

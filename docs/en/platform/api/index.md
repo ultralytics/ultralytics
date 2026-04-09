@@ -56,7 +56,7 @@ Resource APIs such as datasets, projects, models, training, exports, and predict
 
 ### Get API Key
 
-1. Go to `Settings` > `Profile` (API Keys section)
+1. Go to `Settings` > `API Keys`
 2. Click `Create Key`
 3. Copy the generated key
 

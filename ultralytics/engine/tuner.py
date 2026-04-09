@@ -449,9 +449,9 @@ class Tuner:
             best_idx = fitness.argmax()
             best_is_current = best_idx == i
             if best_is_current:
+                best_save_dir = save_dir
+                best_metrics = {k: round(v, 5) for k, v in metrics.items()}
                 for j in range(len(data)):
-                    best_save_dir = str(save_dir[j])
-                    best_metrics = {k: round(v, 5) for k, v in metrics.items()}
                     best_weights_dir = self.tune_dir / "weights" / Path(data[j]).stem
                     best_weights_dir.mkdir(parents=True, exist_ok=True)
                     for ckpt in weights_dir[j].glob("*.pt"):

@@ -22,6 +22,7 @@ import shutil
 import subprocess
 import time
 from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -390,12 +391,12 @@ class Tuner:
             fitness = []
             if not isinstance(data, (list, tuple)):
                 data = [data]
-            for d in data:
+            save_dir = [get_save_dir(get_cfg(train_args)) for _ in range(len(data))]
+            weights_dir = [s / "weights" for s in save_dir]
+            for j, d in enumerate(data):
                 try:
-                    save_dir = get_save_dir(get_cfg({k: v for k, v in train_args.items() if k != "save_dir"}))
-                    train_args["save_dir"] = str(save_dir)  # pass save_dir to subprocess to ensure same path is used
-                    weights_dir = save_dir / "weights"
                     train_args["data"] = d
+                    train_args["save_dir"] = str(save_dir[j])  # pass save_dir to subprocess to ensure same path is used
                     # Train YOLO model with mutated hyperparameters (run in subprocess to avoid dataloader hang)
                     launch = [
                         __import__("sys").executable,
@@ -404,7 +405,7 @@ class Tuner:
                     ]  # workaround yolo not found
                     cmd = [*launch, "train", *(f"{k}={v}" for k, v in train_args.items())]
                     return_code = subprocess.run(cmd, check=True).returncode
-                    ckpt_file = weights_dir / ("best.pt" if (weights_dir / "best.pt").exists() else "last.pt")
+                    ckpt_file = weights_dir[j] / ("best.pt" if (weights_dir[j] / "best.pt").exists() else "last.pt")
                     metrics = torch_load(ckpt_file)["train_metrics"]
                     assert return_code == 0, "training failed"
 
@@ -441,10 +442,13 @@ class Tuner:
             best_idx = fitness.argmax()
             best_is_current = best_idx == i
             if best_is_current:
-                best_save_dir = str(save_dir)
-                best_metrics = {k: round(v, 5) for k, v in metrics.items()}
-                for ckpt in weights_dir.glob("*.pt"):
-                    shutil.copy2(ckpt, self.tune_dir / "weights")
+                for j in range(len(data)):
+                    best_save_dir = str(save_dir[j])
+                    best_metrics = {k: round(v, 5) for k, v in metrics.items()}
+                    best_weights_dir = self.tune_dir / f"{Path(data[j]).stem}-weights"
+                    best_weights_dir.mkdir(parents=True, exist_ok=True)
+                    for ckpt in weights_dir[j].glob("*.pt"):
+                        shutil.copy2(ckpt, best_weights_dir)
             elif cleanup and best_save_dir:
                 shutil.rmtree(best_save_dir, ignore_errors=True)  # remove iteration dirs to reduce storage space
 

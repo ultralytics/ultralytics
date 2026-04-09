@@ -966,14 +966,15 @@ def plot_tune_results(csv_file: str = "tune_results.csv", exclude_zero_fitness_p
     csv_file = Path(csv_file)
     data = pl.read_csv(csv_file, infer_schema_length=None)
     keys = [x.strip() for x in data.columns]
-    num_metrics_columns = 1
     fitness_keys = {i: k for i, k in enumerate(keys) if "fitness" in k}  # metric keys (e.g., fitness)
-    keys = {i: k for i, k in enumerate(keys) if "fitness" not in k}  # hyperparameter keys
+    hyp_keys = {i: k for i, k in enumerate(keys) if "fitness" not in k}  # hyperparameter keys
     x = data.to_numpy()
     fitness = x[:, 0]  # fitness
     if exclude_zero_fitness_points:
         mask = fitness > 0  # exclude zero-fitness points
         x, fitness = x[mask], fitness[mask]
+    if len(x) == 0:
+        return
     # Iterative sigma rejection on lower bound only
     for _ in range(3):  # max 3 iterations
         mean, std = fitness.mean(), fitness.std()
@@ -983,10 +984,10 @@ def plot_tune_results(csv_file: str = "tune_results.csv", exclude_zero_fitness_p
             break
         x, fitness = x[mask], fitness[mask]
     j = np.argmax(fitness)  # max fitness index
-    n = math.ceil(len(keys) ** 0.5)  # columns and rows in plot
+    n = math.ceil(len(hyp_keys) ** 0.5)  # columns and rows in plot
     plt.figure(figsize=(10, 10), tight_layout=True)
-    for idx, (i, k) in enumerate(keys.items()):
-        v = x[:, i + num_metrics_columns]
+    for idx, (i, k) in enumerate(hyp_keys.items()):
+        v = x[:, i]
         mu = v[j]  # best single result
         plt.subplot(n, n, idx + 1)
         plt_color_scatter(v, fitness, cmap="viridis", alpha=0.8, edgecolors="none")

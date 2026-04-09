@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import sys
+from types import SimpleNamespace
 from unittest import mock
 
 import torch
@@ -155,3 +156,44 @@ def test_nan_recovery():
     trainer.add_callback("on_train_batch_end", inject_nan)
     trainer.train()
     assert nan_injected[0], "NaN injection failed"
+
+
+def test_train_reuses_loaded_checkpoint_model(monkeypatch):
+    """Test training reuses an already-loaded checkpoint model instead of re-parsing the model source."""
+    model = YOLO("yolo26n.yaml")
+    model.ckpt = {"checkpoint": True}
+    model.ckpt_path = "/tmp/fake.pt"
+    model.overrides["model"] = "ul://glenn-jocher/m2/exp-14"
+    original_model = model.model
+    captured = {}
+
+    class FakeTrainer:
+        def __init__(self, overrides=None, _callbacks=None):
+            self.overrides = overrides
+            self.callbacks = _callbacks
+            self.model = None
+            self.validator = SimpleNamespace(metrics=None)
+            self.best = MODEL.parent / "nonexistent-best.pt"
+            self.last = MODEL
+            captured["trainer"] = self
+
+        def get_model(self, cfg=None, weights=None, verbose=True):
+            captured["cfg"] = cfg
+            captured["weights"] = weights
+            return original_model
+
+        def train(self):
+            return None
+
+    monkeypatch.setattr("ultralytics.engine.model.checks.check_pip_update_available", lambda: None)
+    monkeypatch.setattr(model, "_smart_load", lambda key: FakeTrainer)
+    monkeypatch.setattr(
+        "ultralytics.engine.model.load_checkpoint",
+        lambda path: (original_model, {"checkpoint": True}),
+    )
+
+    model.train(data="coco8.yaml", epochs=1)
+
+    assert captured["trainer"].model is original_model
+    assert captured["cfg"] == original_model.yaml
+    assert captured["weights"] is original_model

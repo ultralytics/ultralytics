@@ -110,7 +110,7 @@ When exporting to ExecuTorch format, you can specify the following arguments:
 
 The ExecuTorch export creates a directory containing the model and metadata:
 
-```text
+```
 yolo26n_executorch_model/
 ├── yolo26n.pte              # ExecuTorch model file
 └── metadata.yaml            # Model metadata (classes, image size, etc.)

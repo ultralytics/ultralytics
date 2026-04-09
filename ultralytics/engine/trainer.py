@@ -350,6 +350,7 @@ class BaseTrainer:
         self._build_train_pipeline()
         self.validator = self.get_validator()
         self.ema = ModelEMA(self.model)
+        self.set_class_weights()  # compute class weights after dataloader is ready
         if RANK in {-1, 0}:
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))
@@ -630,7 +631,10 @@ class BaseTrainer:
         import io
 
         ema = deepcopy(unwrap_model(self.ema.ema)).half()
-        if not all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor)):
+        if (
+            not all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor))
+            and self.epoch > self.start_epoch  # at least save checkpoint for the first epoch
+        ):
             LOGGER.warning(f"Skipping checkpoint save at epoch {self.epoch}: EMA contains NaN/Inf")
             return False
 
@@ -789,6 +793,10 @@ class BaseTrainer:
     def set_model_attributes(self):
         """Set or update model parameters before training."""
         self.model.names = self.data["names"]
+
+    def set_class_weights(self):
+        """Compute and set class weights for handling class imbalance. Override in subclasses."""
+        pass
 
     def build_targets(self, preds, targets):
         """Build target tensors for training YOLO model."""

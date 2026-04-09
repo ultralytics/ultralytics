@@ -66,7 +66,7 @@ Train YOLO26n-obb on the DOTA8 dataset for 100 [epochs](https://www.ultralytics.
         # Load a model
         model = YOLO("yolo26n-obb.yaml")  # build a new model from YAML
         model = YOLO("yolo26n-obb.pt")  # load a pretrained model (recommended for training)
-        model = YOLO("yolo26n-obb.yaml").load("yolo26n.pt")  # build from YAML and transfer weights
+        model = YOLO("yolo26n-obb.yaml").load("yolo26n-obb.pt")  # build from YAML and transfer weights
 
         # Train the model
         results = model.train(data="dota8.yaml", epochs=100, imgsz=640)

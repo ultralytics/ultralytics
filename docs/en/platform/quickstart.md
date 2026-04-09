@@ -367,7 +367,7 @@ Read more about [endpoints](deploy/endpoints.md).
 
 If you prefer to train on your own hardware, you can stream metrics to the platform using your API key. This works like Weights & Biases — train anywhere, monitor on the platform.
 
-1. Generate an API key in [`Settings > Profile`](account/api-keys.md) (API Keys section)
+1. Generate an API key in [`Settings > API Keys`](account/api-keys.md)
 2. Set the environment variable and train with a `project/name` format:
 
 ```bash

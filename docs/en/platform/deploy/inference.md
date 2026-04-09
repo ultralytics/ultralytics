@@ -147,11 +147,11 @@ Authorization: Bearer YOUR_API_KEY
 
 !!! warning "API Key Required"
 
-    To run inference from your own scripts, notebooks, or apps, include an API key. Generate one in [`Settings`](../account/api-keys.md) (API Keys section on the Profile tab).
+    To run inference from your own scripts, notebooks, or apps, include an API key. Generate one in [`Settings > API Keys`](../account/api-keys.md).
 
 ### Endpoint
 
-```
+```http
 POST https://platform.ultralytics.com/api/models/{modelId}/predict
 ```
 

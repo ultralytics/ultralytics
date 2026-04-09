@@ -161,7 +161,7 @@ For all export options, see the [Export Mode documentation](https://docs.ultraly
 
 ### Output Structure
 
-```text
+```
 yolo26n_axelera_model/
 ├── yolo26n.axm              # Axelera model file
 └── metadata.yaml            # Model metadata (classes, image size, etc.)

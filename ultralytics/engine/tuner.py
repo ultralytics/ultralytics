@@ -98,6 +98,7 @@ class Tuner:
             "warmup_momentum": (0.0, 0.95),  # warmup initial momentum
             "box": (1.0, 20.0),  # box loss gain
             "cls": (0.1, 4.0),  # cls loss gain (scale with pixels)
+            "cls_pw": (0.0, 1.0),  # cls power weight
             "dfl": (0.4, 12.0),  # dfl loss gain
             "hsv_h": (0.0, 0.1),  # image HSV-Hue augmentation (fraction)
             "hsv_s": (0.0, 0.9),  # image HSV-Saturation augmentation (fraction)

@@ -391,7 +391,7 @@ class Tuner:
             all_fitness = []
             if not isinstance(data, (list, tuple)):
                 data = [data]
-            save_dir = [get_save_dir(get_cfg(train_args)) / Path(d).stem for d in data]
+            save_dir = [get_save_dir(get_cfg(train_args), name=Path(d).stem) for d in data]
             weights_dir = [s / "weights" for s in save_dir]
             for j, d in enumerate(data):
                 try:

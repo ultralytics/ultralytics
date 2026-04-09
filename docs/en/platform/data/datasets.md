@@ -129,7 +129,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Classification uploads are auto-detected from common folder layouts:
 
-    ```text
+    ```
     split/class/image.jpg
     class/split/image.jpg
     class/image.jpg
@@ -137,7 +137,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Example:
 
-    ```text
+    ```
     my-classify-dataset/
     ├── train/
     │   ├── cats/

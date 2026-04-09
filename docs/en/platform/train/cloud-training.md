@@ -205,7 +205,7 @@ Train on your own hardware while streaming metrics to the platform.
 
 ### Setup API Key
 
-1. Go to [`Settings > Profile`](../account/api-keys.md) (API Keys section)
+1. Go to [`Settings > API Keys`](../account/api-keys.md)
 2. Create a new key (or the platform auto-creates one when you open the Local Training tab)
 3. Set the environment variable:
 

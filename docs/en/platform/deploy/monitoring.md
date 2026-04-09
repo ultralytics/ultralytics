@@ -230,7 +230,7 @@ The `Predict` tab on each deployment card provides an inline predict panel — t
 
 ### Monitoring Overview
 
-```
+```http
 GET /api/monitoring
 ```
 
@@ -238,7 +238,7 @@ Returns aggregated metrics for all deployments owned by the authenticated user. 
 
 ### Deployment Metrics
 
-```
+```http
 GET /api/deployments/{deploymentId}/metrics?sparkline=true&range=24h
 ```
 
@@ -251,7 +251,7 @@ Returns sparkline data and summary metrics for a specific deployment. Refresh in
 
 ### Deployment Logs
 
-```
+```http
 GET /api/deployments/{deploymentId}/logs?limit=50&severity=ERROR,WARNING
 ```
 
@@ -265,7 +265,7 @@ Returns recent log entries with optional severity filter and pagination.
 
 ### Deployment Health
 
-```
+```http
 GET /api/deployments/{deploymentId}/health
 ```
 

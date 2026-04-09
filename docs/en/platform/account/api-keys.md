@@ -16,8 +16,8 @@ Create a new API key:
 
 1. Go to **Settings > API Keys**
 2. Click **Create Key**
-4. Enter a name for the key (e.g., "Training Server")
-5. Click **Create Key**
+3. Enter a name for the key (e.g., "Training Server")
+4. Click **Create Key**
 
 ![Ultralytics Platform Settings Profile Tab Create Api Key Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-create-api-key-dialog.avif)
 

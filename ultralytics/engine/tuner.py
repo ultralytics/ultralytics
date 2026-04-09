@@ -316,7 +316,7 @@ class Tuner:
             if len(csv_data) > 0:
                 fitness = csv_data[:, 0]  # first column
                 order = np.argsort(-fitness)
-                x = csv_data[order][:n]  # top-n sorted by fitness DESC
+                x = csv_data[order][:n, :len(self.space) + 1]  # top-n sorted by fitness DESC
 
         # Mutate if we have data, otherwise use defaults
         if x is not None:
@@ -391,7 +391,7 @@ class Tuner:
             all_fitness = []
             if not isinstance(data, (list, tuple)):
                 data = [data]
-            save_dir = [get_save_dir(get_cfg(train_args)) for _ in range(len(data))]
+            save_dir = [get_save_dir(get_cfg(train_args)) / Path(d).stem for d in data]
             weights_dir = [s / "weights" for s in save_dir]
             for j, d in enumerate(data):
                 try:
@@ -431,12 +431,12 @@ class Tuner:
                     break
             else:
                 # Save to CSV only if no MongoDB
-                log_row = [round(fitness, 5)] + all_fitness + [mutated_hyp[k] for k in self.space.keys()]
+                log_row = [round(fitness, 5)] + [mutated_hyp[k] for k in self.space.keys()] + all_fitness
                 headers = (
                     ""
                     if self.tune_csv.exists()
                     else (
-                        ",".join(["fitness", *[f"fitness-{Path(d).stem}" for d in data], *list(self.space.keys())])
+                        ",".join(["fitness", *list(self.space.keys()), *[f"fitness-{Path(d).stem}" for d in data]])
                         + "\n"
                     )
                 )
@@ -460,7 +460,7 @@ class Tuner:
                 shutil.rmtree(best_save_dir, ignore_errors=True)  # remove iteration dirs to reduce storage space
 
             # Plot tune results
-            plot_tune_results(str(self.tune_csv), num_metrics_columns=len(data) + 1)
+            plot_tune_results(str(self.tune_csv))
 
             # Save and print tune results
             header = (

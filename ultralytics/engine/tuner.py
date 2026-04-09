@@ -364,7 +364,7 @@ class Tuner:
             cleanup (bool): Whether to delete iteration weights to reduce storage space during tuning.
         """
         t0 = time.time()
-        best_save_dir, best_metrics = None, None
+        best_save_dir, best_metrics = [], None
         (self.tune_dir / "weights").mkdir(parents=True, exist_ok=True)
 
         # Sync MongoDB to CSV at startup for proper resume logic
@@ -456,8 +456,9 @@ class Tuner:
                     best_weights_dir.mkdir(parents=True, exist_ok=True)
                     for ckpt in weights_dir[j].glob("*.pt"):
                         shutil.copy2(ckpt, best_weights_dir)
-            elif cleanup and best_save_dir:
-                shutil.rmtree(best_save_dir, ignore_errors=True)  # remove iteration dirs to reduce storage space
+            elif cleanup and len(best_save_dir):
+                for s in best_save_dir:
+                    shutil.rmtree(s, ignore_errors=True)  # remove iteration dirs to reduce storage space
 
             # Plot tune results
             plot_tune_results(str(self.tune_csv))

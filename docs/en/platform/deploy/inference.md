@@ -151,7 +151,7 @@ Authorization: Bearer YOUR_API_KEY
 
 ### Endpoint
 
-```
+```http
 POST https://platform.ultralytics.com/api/models/{modelId}/predict
 ```
 

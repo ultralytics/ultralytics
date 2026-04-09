@@ -392,7 +392,7 @@ class Tuner:
                 data = [data]
             for d in data:
                 try:
-                    save_dir = get_save_dir(get_cfg(train_args))
+                    save_dir = get_save_dir(get_cfg({k: v for k, v in train_args.items() if k != "save_dir"}))
                     train_args["save_dir"] = str(save_dir)  # pass save_dir to subprocess to ensure same path is used
                     weights_dir = save_dir / "weights"
                     train_args["data"] = d

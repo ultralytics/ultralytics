@@ -4,6 +4,7 @@ import sys
 from types import SimpleNamespace
 from unittest import mock
 
+import pytest
 import torch
 
 from tests import MODEL, SOURCE
@@ -11,6 +12,7 @@ from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.models.yolo import classify, detect, segment
+from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
 
 
@@ -139,6 +141,54 @@ def test_classify():
     assert test_func in pred.callbacks["on_predict_start"], "callback test failed"
     result = pred(source=ASSETS, model=trainer.best)
     assert len(result), "predictor test failed"
+
+    # Test resume functionality
+    overrides["resume"] = trainer.last
+    trainer = classify.ClassificationTrainer(overrides=overrides)
+    try:
+        trainer.train()
+    except Exception as e:
+        print(f"Expected exception caught: {e}")
+        return
+
+    raise Exception("Resume test failed!")
+
+@pytest.mark.parametrize(
+    ("trainer_cls", "base_overrides", "name"),
+    [
+        (detect.DetectionTrainer, {"data": "coco8.yaml", "model": "yolo26n.yaml", "imgsz": 32}, "detect"),
+        (classify.ClassificationTrainer, {"data": "imagenet10", "model": "yolo26n-cls.yaml", "imgsz": 32}, "classify"),
+    ],
+    ids=("detect", "classify"),
+)
+def test_resume_incomplete(trainer_cls, base_overrides, name, tmp_path):
+    """Test training resumes from an incomplete checkpoint."""
+    overrides = {
+        **base_overrides,
+        "epochs": 2,
+        "save": True,
+        "plots": False,
+        "workers": 0,
+        "project": tmp_path,
+        "name": name,
+        "exist_ok": True,
+    }
+
+    def stop_after_first_epoch(trainer):
+        if trainer.epoch == 0:
+            trainer.stop = True
+
+    trainer = trainer_cls(overrides=overrides)
+    trainer.final_eval = lambda: None
+    trainer.add_callback("on_train_epoch_end", stop_after_first_epoch)
+    trainer.train()
+    _, ckpt = load_checkpoint(trainer.last)
+    assert ckpt["epoch"] == 0, "checkpoint should be resumable"
+
+    trainer = trainer_cls(overrides={**overrides, "resume": trainer.last})
+    trainer.final_eval = lambda: None
+    trainer.train()
+    assert trainer.start_epoch == trainer.epoch == 1, "resume test failed"
 
 
 def test_nan_recovery():

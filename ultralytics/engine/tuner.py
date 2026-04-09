@@ -316,7 +316,7 @@ class Tuner:
             if len(csv_data) > 0:
                 fitness = csv_data[:, 0]  # first column
                 order = np.argsort(-fitness)
-                x = csv_data[order][:n, :len(self.space) + 1]  # top-n sorted by fitness DESC
+                x = csv_data[order][:n, : len(self.space) + 1]  # top-n sorted by fitness DESC
 
         # Mutate if we have data, otherwise use defaults
         if x is not None:

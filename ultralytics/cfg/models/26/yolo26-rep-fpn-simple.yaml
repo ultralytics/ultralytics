@@ -1,14 +1,12 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Ultralytics YOLO26 object detection model with P3/8 - P5/32 outputs
-# Variant: Progressive topk annealing — start one2one with topk2=3, anneal to 1
+# Variant: C3k2Simple (no bottleneck, e=0.5) at early backbone stages for speed
 
 # Parameters
 nc: 80 # number of classes
 end2end: True # whether to use end-to-end mode
 reg_max: 1 # DFL bins
-topk_anneal: True # progressively anneal one2one topk2 from topk2_start to 1
-topk2_start: 3 # initial topk2 for one2one assigner
 scales: # model compound scaling constants, i.e. 'model=yolo26n.yaml' will call yolo26.yaml with scale 'n'
   # [depth, width, max_channels]
   n: [0.50, 0.25, 1024]
@@ -22,9 +20,9 @@ backbone:
   # [from, repeats, module, args]
   - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
   - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
-  - [-1, 2, C3k2, [256, False, 0.25]]
+  - [-1, 2, C3k2Simple, [256, False, 0.5]] # 2 - simple block, e=0.5
   - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
-  - [-1, 2, C3k2, [512, False, 0.25]]
+  - [-1, 2, C3k2Simple, [512, False, 0.5]] # 4 - simple block, e=0.5
   - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
   - [-1, 2, C3k2, [512, True]]
   - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32

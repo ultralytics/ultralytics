@@ -7,7 +7,6 @@
 nc: 80 # number of classes
 end2end: True # whether to use end-to-end mode
 reg_max: 1 # DFL bins
-no_detach: True # allow one2one gradients to flow back to backbone
 soft_distill: True # enable soft label distillation from one2many to one2one
 distill_weight: 0.5 # weight for distillation loss
 scales: # model compound scaling constants, i.e. 'model=yolo26n.yaml' will call yolo26.yaml with scale 'n'

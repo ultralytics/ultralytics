@@ -92,36 +92,36 @@ workspace: # (float, optional) engine (TensorRT) only; workspace size in GiB, e.
 nms: False # (bool) fuse NMS into exported model when backend supports; if True, conf/iou apply (agnostic_nms except coreml)
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
-lr0: 0.01 # (float) initial learning rate (SGD=1e-2, Adam/AdamW=1e-3)
-lrf: 0.01 # (float) final LR fraction; final LR = lr0 * lrf
-momentum: 0.937 # (float) SGD momentum or Adam beta1
-weight_decay: 0.0005 # (float) weight decay (L2 regularization)
-warmup_epochs: 3.0 # (float) warmup epochs (fractions allowed)
-warmup_momentum: 0.8 # (float) initial momentum during warmup
-warmup_bias_lr: 0.1 # (float) bias learning rate during warmup
-box: 7.5 # (float) box loss gain
-cls: 0.5 # (float) classification loss gain
-dfl: 1.5 # (float) distribution focal loss gain
+lr0: 0.00038 # (float) initial learning rate (SGD=1e-2, Adam/AdamW=1e-3)
+lrf: 0.88219 # (float) final LR fraction; final LR = lr0 * lrf
+momentum: 0.94751 # (float) SGD momentum or Adam beta1
+weight_decay: 0.00027 # (float) weight decay (L2 regularization)
+warmup_epochs: 0.98745 # (float) warmup epochs (fractions allowed)
+warmup_momentum: 0.54064 # (float) initial momentum during warmup
+warmup_bias_lr: 0.05684 # (float) bias learning rate during warmup
+box: 9.83241 # (float) box loss gain
+cls: 0.64896 # (float) classification loss gain
+dfl: 0.95824 # (float) distribution focal loss gain
 pose: 12.0 # (float) pose loss gain (pose tasks)
 kobj: 1.0 # (float) keypoint objectness loss gain (pose tasks)
 rle: 1.0 # (float) rle loss gain (pose tasks)
 angle: 1.0 # (float) oriented angle loss gain (obb tasks)
 nbs: 64 # (int) nominal batch size used for loss normalization
-hsv_h: 0.015 # (float) HSV hue augmentation fraction
-hsv_s: 0.7 # (float) HSV saturation augmentation fraction
-hsv_v: 0.4 # (float) HSV value (brightness) augmentation fraction
-degrees: 0.0 # (float) rotation degrees (+/-)
-translate: 0.1 # (float) translation fraction (+/-)
-scale: 0.5 # (float) scale gain (+/-)
-shear: 0.0 # (float) shear degrees (+/-)
-perspective: 0.0 # (float) perspective fraction (0–0.001 typical)
-flipud: 0.0 # (float) vertical flip probability
-fliplr: 0.5 # (float) horizontal flip probability
+hsv_h: 0.01315 # (float) HSV hue augmentation fraction
+hsv_s: 0.35348 # (float) HSV saturation augmentation fraction
+hsv_v: 0.19383 # (float) HSV value (brightness) augmentation fraction
+degrees: 0.00012 # (float) rotation degrees (+/-)
+translate: 0.27484 # (float) translation fraction (+/-)
+scale: 0.95 # (float) scale gain (+/-)
+shear: 0.00136 # (float) shear degrees (+/-)
+perspective: 0.00074 # (float) perspective fraction (0–0.001 typical)
+flipud: 0.00653 # (float) vertical flip probability
+fliplr: 0.30393 # (float) horizontal flip probability
 bgr: 0.0 # (float) RGB↔BGR channel swap probability
-mosaic: 1.0 # (float) mosaic augmentation probability
-mixup: 0.0 # (float) MixUp augmentation probability
-cutmix: 0.0 # (float) CutMix augmentation probability
-copy_paste: 0.0 # (float) segmentation copy-paste probability
+mosaic: 0.99182 # (float) mosaic augmentation probability
+mixup: 0.42713 # (float) MixUp augmentation probability
+cutmix: 0.00082 # (float) CutMix augmentation probability
+copy_paste: 0.30413 # (float) segmentation copy-paste probability
 copy_paste_mode: flip # (str) copy-paste strategy for segmentation: flip or mixup
 auto_augment: randaugment # (str) classification auto augmentation policy: randaugment, autoaugment, augmix
 erasing: 0.4 # (float) random erasing probability for classification (0.0–1.0)

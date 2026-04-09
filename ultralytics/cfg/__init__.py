@@ -83,6 +83,68 @@ TASK2METRIC = {
     "obb": "metrics/mAP50-95(B)",
 }
 
+# Task-specific training hyperparameter overrides applied on top of default.yaml.
+# default.yaml contains detect/segment fine-tuning hyps; pose and obb need different values.
+TASK_HYPS = {
+    "pose": {
+        "lr0": 0.00125,
+        "lrf": 0.5,
+        "momentum": 0.937,
+        "weight_decay": 0.0007,
+        "warmup_epochs": 1,
+        "warmup_momentum": 0.8,
+        "warmup_bias_lr": 0.1,
+        "box": 7.5,
+        "cls": 0.5,
+        "dfl": 1.5,
+        "pose": 24,
+        "kobj": 4,
+        "hsv_h": 0.015,
+        "hsv_s": 0.7,
+        "hsv_v": 0.4,
+        "degrees": 0.0,
+        "translate": 0.1,
+        "scale": 0.9,
+        "shear": 0.0,
+        "perspective": 0.0,
+        "flipud": 0.0,
+        "fliplr": 0.5,
+        "mosaic": 1.0,
+        "mixup": 0.15,
+        "cutmix": 0.0,
+        "copy_paste": 0.0,
+        "close_mosaic": 5,
+    },
+    "obb": {
+        "lr0": 0.00125,
+        "lrf": 0.5,
+        "momentum": 0.937,
+        "weight_decay": 0.0005,
+        "warmup_epochs": 1,
+        "warmup_momentum": 0.8,
+        "warmup_bias_lr": 0.1,
+        "box": 7.5,
+        "cls": 0.5,
+        "dfl": 1.5,
+        "hsv_h": 0.015,
+        "hsv_s": 0.7,
+        "hsv_v": 0.4,
+        "degrees": 180.0,
+        "translate": 0.1,
+        "scale": 0.9,
+        "shear": 0.0,
+        "perspective": 0.0,
+        "flipud": 0.5,
+        "fliplr": 0.5,
+        "mosaic": 1.0,
+        "mixup": 0.1,
+        "cutmix": 0.0,
+        "copy_paste": 0.0,
+        "close_mosaic": 5,
+    },
+}
+
+
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
 SOLUTIONS_HELP_MSG = f"""
     Arguments received: {["yolo", *ARGV[1:]]!s}. Ultralytics 'yolo solutions' usage overview:
@@ -314,6 +376,13 @@ def get_cfg(
     if overrides:
         overrides = cfg2dict(overrides)
         check_dict_alignment(cfg, overrides)
+
+        # Apply task-specific training hyperparameters between defaults and user overrides
+        if overrides.get("mode", cfg.get("mode", "")) == "train":
+            task_hyps = TASK_HYPS.get(overrides.get("task", cfg.get("task", "")), {})
+            if task_hyps:
+                cfg = {**cfg, **task_hyps}
+
         cfg = {**cfg, **overrides}  # merge cfg and overrides dicts (prefer overrides)
 
     # Special handling for numeric project/name

@@ -316,7 +316,8 @@ class Tuner:
             return None
         x = np.array(
             [
-                [r.get("fitness", 0.0)] + [r.get("hyperparameters", {}).get(k, getattr(self.args, k)) for k in self.space]
+                [r.get("fitness", 0.0)]
+                + [r.get("hyperparameters", {}).get(k, getattr(self.args, k)) for k in self.space]
                 for r in results
             ],
             dtype=float,
@@ -475,9 +476,11 @@ class Tuner:
             if not isinstance(data, (list, tuple)):
                 data = [data]
             dataset_names = self._dataset_names(data)
-            save_dir = [get_save_dir(get_cfg(train_args))] if len(data) == 1 else [
-                get_save_dir(get_cfg(train_args), name=name) for name in dataset_names
-            ]
+            save_dir = (
+                [get_save_dir(get_cfg(train_args))]
+                if len(data) == 1
+                else [get_save_dir(get_cfg(train_args), name=name) for name in dataset_names]
+            )
             weights_dir = [s / "weights" for s in save_dir]
             metrics = {}
             all_fitness = []
@@ -513,7 +516,11 @@ class Tuner:
                 all_fitness.append(dataset_metrics[dataset].get("fitness") or 0.0)
             fitness = sum(all_fitness) / len(all_fitness)
             result = self._result_record(
-                i + 1, fitness, mutated_hyp, dataset_metrics, {dataset: str(s) for dataset, s in zip(dataset_names, save_dir)}
+                i + 1,
+                fitness,
+                mutated_hyp,
+                dataset_metrics,
+                {dataset: str(s) for dataset, s in zip(dataset_names, save_dir)},
             )
             stop_after_iteration = False
             if self.mongodb:

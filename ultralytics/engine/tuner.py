@@ -345,12 +345,15 @@ class Tuner:
     @staticmethod
     def _dataset_names(data: list) -> list[str]:
         """Create stable unique dataset names for logging and per-run directories."""
-        stems = [Path(str(d)).stem for d in data]
-        totals, seen = Counter(stems), Counter()
-        names = []
-        for stem in stems:
-            seen[stem] += 1
-            names.append(f"{stem}-{seen[stem]}" if totals[stem] > 1 else stem)
+        paths = [Path(str(d)) for d in data]
+        generic_stems = {"config", "configs", "data", "dataset", "datasets", "default", "defaults"}
+        names = [path.parent.name if path.stem in generic_stems else path.stem for path in paths]
+
+        counts, seen = Counter(names), Counter()
+        for i, name in enumerate(names):
+            if counts[name] > 1:
+                seen[name] += 1
+                names[i] = f"{name}-{seen[name]}"
         return names
 
     @staticmethod

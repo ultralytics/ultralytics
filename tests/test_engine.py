@@ -7,11 +7,12 @@ from unittest import mock
 import pytest
 import torch
 
-from tests import MODEL, SOURCE
+from tests import MODEL, SOURCE, TASK_MODEL_DATA
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.models.yolo import classify, detect, segment
+from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
 
 
@@ -126,6 +127,46 @@ def test_classify():
     assert test_func in pred.callbacks["on_predict_start"], "callback test failed"
     result = pred(source=ASSETS, model=trainer.best)
     assert len(result), "predictor test failed"
+
+    # Test resume functionality
+    with pytest.raises(AssertionError):
+        classify.ClassificationTrainer(overrides={**overrides, "resume": trainer.last}).train()
+
+
+@pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)
+def test_resume_incomplete(task, weight, data, tmp_path):
+    """Test training resumes from an incomplete checkpoint."""
+    train_args = {
+        "data": data,
+        "epochs": 2,
+        "save": True,
+        "plots": False,
+        "workers": 0,
+        "project": tmp_path,
+        "name": task,
+        "imgsz": 32,
+        "exist_ok": True,
+    }
+
+    def stop_after_first_epoch(trainer):
+        if trainer.epoch == 0:
+            trainer.stop = True
+
+    def disable_final_eval(trainer):
+        trainer.final_eval = lambda: None
+
+    model = YOLO(weight)
+    model.add_callback("on_train_start", disable_final_eval)
+    model.add_callback("on_train_epoch_end", stop_after_first_epoch)
+    model.train(**train_args)
+    last_path = model.trainer.last
+    _, ckpt = load_checkpoint(last_path)
+    assert ckpt["epoch"] == 0, "checkpoint should be resumable"
+
+    # Resume training using the checkpoint
+    resume_model = YOLO(last_path)
+    resume_model.train(resume=True, **train_args)
+    assert resume_model.trainer.start_epoch == resume_model.trainer.epoch == 1, "resume test failed"
 
 
 def test_nan_recovery():

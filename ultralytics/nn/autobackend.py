@@ -55,6 +55,8 @@ def check_class_colors(colors: list | dict) -> dict[int, str]:
                 f"{min(colors.keys())}-{max(colors.keys())} defined in your dataset YAML."
             )
         if isinstance(colors[0], str) and colors[0].startswith("n0"):  # imagenet class codes, i.e. 'n01440764'
+            from ultralytics.utils import YAML, ROOT
+
             colors_map = YAML.load(ROOT / "cfg/datasets/ImageNet.yaml")["map"]  # human-readable names
             colors = {k: colors_map[v] for k, v in colors.items()}
     return colors

@@ -127,7 +127,6 @@ def test_nan_recovery():
         """Inject NaN into loss during batch processing to test recovery mechanism."""
         if trainer.epoch == 1 and trainer.tloss is not None and not nan_injected:
             trainer.tloss *= torch.tensor(float("nan"))
-            nan_injected = True
 
     overrides = {"data": "coco8.yaml", "model": "yolo26n.yaml", "imgsz": 32, "epochs": 3}
     trainer = detect.DetectionTrainer(overrides=overrides)

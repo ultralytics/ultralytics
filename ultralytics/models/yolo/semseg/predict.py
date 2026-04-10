@@ -158,6 +158,8 @@ class SemSegPredictor(DetectionPredictor):
         if isinstance(image, torch.Tensor):
             image = image.cpu().float().numpy()
 
+        if isinstance(masks, torch.Tensor):
+            masks = masks.cpu().numpy()
         if isinstance(masks.data, torch.Tensor):
             masks = masks.data.cpu().numpy()
 

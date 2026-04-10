@@ -44,8 +44,8 @@ class Tuner:
         space (dict[str, tuple]): Hyperparameter search space containing bounds and scaling factors for mutation.
         tune_dir (Path): Directory where evolution logs and results will be saved.
         tune_csv (Path): Path to the CSV file where evolution logs are saved.
-        args (dict): Configuration arguments for the tuning process.
-        callbacks (list): Callback functions to be executed during tuning.
+        args (SimpleNamespace): Configuration arguments for the tuning process.
+        callbacks (dict): Callback functions to be executed during tuning.
         prefix (str): Prefix string for logging messages.
         mongodb (MongoClient): Optional MongoDB client for distributed tuning.
         collection (Collection): MongoDB collection for storing tuning results.
@@ -78,15 +78,15 @@ class Tuner:
         >>> )
 
         Tune with custom search space:
-        >>> model.tune(space={"lr0": (1e-5, 1e-1), "momentum": (0.6, 0.98)})
+        >>> model.tune(space={"lr0": (1e-5, 1e-2), "momentum": (0.7, 0.98)})
     """
 
-    def __init__(self, args=DEFAULT_CFG, _callbacks: list | None = None):
+    def __init__(self, args=DEFAULT_CFG, _callbacks: dict | None = None):
         """Initialize the Tuner with configurations.
 
         Args:
             args (dict): Configuration for hyperparameter evolution.
-            _callbacks (list | None, optional): Callback functions to be executed during tuning.
+            _callbacks (dict | None, optional): Callback functions to be executed during tuning.
         """
         self.space = args.pop("space", None) or {  # key: (min, max, gain(optional))
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
@@ -98,6 +98,7 @@ class Tuner:
             "warmup_momentum": (0.0, 0.95),  # warmup initial momentum
             "box": (1.0, 20.0),  # box loss gain
             "cls": (0.1, 4.0),  # cls loss gain (scale with pixels)
+            "cls_pw": (0.0, 1.0),  # cls power weight
             "dfl": (0.4, 12.0),  # dfl loss gain
             "hsv_h": (0.0, 0.1),  # image HSV-Hue augmentation (fraction)
             "hsv_s": (0.0, 0.9),  # image HSV-Saturation augmentation (fraction)
@@ -253,7 +254,7 @@ class Tuner:
             with open(self.tune_csv, "w", encoding="utf-8") as f:
                 f.write(headers)
                 for result in all_results:
-                    fitness = result["fitness"]
+                    fitness = result["fitness"] or 0.0
                     hyp_values = [result["hyperparameters"].get(k, self.args.get(k)) for k in self.space.keys()]
                     log_row = [round(fitness, 5), *hyp_values]
                     f.write(",".join(map(str, log_row)) + "\n")
@@ -388,25 +389,36 @@ class Tuner:
             save_dir = get_save_dir(get_cfg(train_args))
             train_args["save_dir"] = str(save_dir)  # pass save_dir to subprocess to ensure same path is used
             weights_dir = save_dir / "weights"
-            try:
-                # Train YOLO model with mutated hyperparameters (run in subprocess to avoid dataloader hang)
-                launch = [__import__("sys").executable, "-m", "ultralytics.cfg.__init__"]  # workaround yolo not found
-                cmd = [*launch, "train", *(f"{k}={v}" for k, v in train_args.items())]
-                return_code = subprocess.run(cmd, check=True).returncode
-                ckpt_file = weights_dir / ("best.pt" if (weights_dir / "best.pt").exists() else "last.pt")
-                metrics = torch_load(ckpt_file)["train_metrics"]
-                assert return_code == 0, "training failed"
+            data = train_args.pop("data")
+            fitness = []
+            if not isinstance(data, (list, tuple)):
+                data = [data]
+            for d in data:
+                try:
+                    train_args["data"] = d
+                    # Train YOLO model with mutated hyperparameters (run in subprocess to avoid dataloader hang)
+                    launch = [
+                        __import__("sys").executable,
+                        "-m",
+                        "ultralytics.cfg.__init__",
+                    ]  # workaround yolo not found
+                    cmd = [*launch, "train", *(f"{k}={v}" for k, v in train_args.items())]
+                    return_code = subprocess.run(cmd, check=True).returncode
+                    ckpt_file = weights_dir / ("best.pt" if (weights_dir / "best.pt").exists() else "last.pt")
+                    metrics = torch_load(ckpt_file)["train_metrics"]
+                    assert return_code == 0, "training failed"
 
-                # Cleanup
-                time.sleep(1)
-                gc.collect()
-                torch.cuda.empty_cache()
+                    # Cleanup
+                    time.sleep(1)
+                    gc.collect()
+                    torch.cuda.empty_cache()
 
-            except Exception as e:
-                LOGGER.error(f"training failure for hyperparameter tuning iteration {i + 1}\n{e}")
+                except Exception as e:
+                    LOGGER.error(f"training failure for hyperparameter tuning iteration {i + 1}\n{e}")
 
-            # Save results - MongoDB takes precedence
-            fitness = metrics.get("fitness", 0.0)
+                # Save results - MongoDB takes precedence
+                fitness.append(metrics.get("fitness") or 0.0)
+            fitness = sum(fitness) / len(fitness)
             if self.mongodb:
                 self._save_to_mongodb(fitness, mutated_hyp, metrics, i + 1)
                 self._sync_mongodb_to_csv()

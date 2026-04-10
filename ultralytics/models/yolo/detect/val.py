@@ -42,14 +42,14 @@ class DetectionValidator(BaseValidator):
         >>> validator()
     """
 
-    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks: dict | None = None) -> None:
         """Initialize detection validator with necessary variables and settings.
 
         Args:
             dataloader (torch.utils.data.DataLoader, optional): DataLoader to use for validation.
             save_dir (Path, optional): Directory to save results.
             args (dict[str, Any], optional): Arguments for the validator.
-            _callbacks (list[Any], optional): List of callback functions.
+            _callbacks (dict, optional): Dictionary of callback functions.
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.is_coco = False
@@ -129,7 +129,7 @@ class DetectionValidator(BaseValidator):
         """Prepare a batch of images and annotations for validation.
 
         Args:
-            si (int): Batch index.
+            si (int): Sample index within the batch.
             batch (dict[str, Any]): Batch data containing images and annotations.
 
         Returns:
@@ -345,7 +345,7 @@ class DetectionValidator(BaseValidator):
             batch (dict[str, Any]): Batch containing images and annotations.
             preds (list[dict[str, torch.Tensor]]): List of predictions from the model.
             ni (int): Batch index.
-            max_det (Optional[int]): Maximum number of detections to plot.
+            max_det (int | None): Maximum number of detections to plot.
         """
         if not preds:
             return

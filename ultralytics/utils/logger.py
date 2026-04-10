@@ -262,13 +262,17 @@ class ConsoleLogger:
             self.callback = callback
 
         def write(self, text):
-            """Forward text to the wrapped original stream, preserving default stdout/stderr semantics."""
+            """Write text to the original stream and forward it to the capture callback."""
             self.original.write(text)
             self.callback(text)
 
         def flush(self):
             """Flush the wrapped stream to propagate buffered output promptly during console capture."""
             self.original.flush()
+
+        def isatty(self):
+            """Delegate isatty check to the original stream."""
+            return self.original.isatty()
 
     class _LogHandler(logging.Handler):
         """Lightweight logging handler."""

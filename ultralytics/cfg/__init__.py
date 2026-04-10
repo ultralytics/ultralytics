@@ -62,6 +62,13 @@ TASK2DATA = {
     "pose": "coco8-pose.yaml",
     "obb": "dota8.yaml",
 }
+TASK2CALIBRATIONDATA = {
+    "detect": "coco128.yaml",
+    "segment": "coco128-seg.yaml",
+    "classify": "imagenet100",
+    "pose": "coco8-pose.yaml",
+    "obb": "dota128.yaml",
+}
 TASK2MODEL = {
     "detect": "yolo26n.pt",
     "segment": "yolo26n-seg.pt",
@@ -156,6 +163,7 @@ CFG_FLOAT_KEYS = frozenset(
         "warmup_epochs",
         "box",
         "cls",
+        "cls_pw",
         "dfl",
         "degrees",
         "shear",
@@ -241,6 +249,7 @@ CFG_BOOL_KEYS = frozenset(
         "simplify",
         "nms",
         "profile",
+        "multi_scale",
         "end2end",
     }
 )
@@ -608,7 +617,7 @@ def handle_yolo_settings(args: list[str]) -> None:
 
     Examples:
         >>> handle_yolo_settings(["reset"])  # Reset YOLO settings
-        >>> handle_yolo_settings(["default_cfg_path=yolo11n.yaml"])  # Update a specific setting
+        >>> handle_yolo_settings(["default_cfg_path=yolo26n.yaml"])  # Update a specific setting
 
     Notes:
         - If no arguments are provided, the function will display the current settings.

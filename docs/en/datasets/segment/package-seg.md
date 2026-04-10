@@ -97,7 +97,7 @@ To train an [Ultralytics YOLO26n](https://docs.ultralytics.com/models/yolo26/) m
 
 The Package Segmentation dataset comprises a varied collection of images captured from multiple perspectives. Below are instances of data from the dataset, accompanied by their respective segmentation masks:
 
-![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/dataset-sample-image-1.avif)
+![Package segmentation dataset sample for logistics](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/package-seg-sample.avif)
 
 - This image displays an instance of package segmentation, featuring annotated masks outlining recognized package objects. The dataset incorporates a diverse collection of images taken in different locations, environments, and densities. It serves as a comprehensive resource for developing models specific to this [segmentation task](https://docs.ultralytics.com/tasks/segment/).
 - The example emphasizes the diversity and complexity present in the dataset, underscoring the significance of high-quality data for computer vision tasks involving package segmentation.

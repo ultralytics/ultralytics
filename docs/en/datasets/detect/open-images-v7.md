@@ -58,7 +58,7 @@ You can use these pretrained models for inference or fine-tuning as follows.
         yolo detect train data=coco8.yaml model=yolov8n-oiv7.pt epochs=100 imgsz=640
         ```
 
-![Open Images V7 classes visual](https://github.com/ultralytics/docs/releases/download/0/open-images-v7-classes-visual.avif)
+![Open Images V7 classes visual](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/open-images-v7-classes-visual.avif)
 
 ## Key Features
 
@@ -142,7 +142,7 @@ To train a YOLO26n model on the Open Images V7 dataset for 100 [epochs](https://
 
 Illustrations of the dataset help provide insights into its richness:
 
-![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/oidv7-all-in-one-example-ab.avif)
+![Open Images V7 dataset sample with bounding box annotations](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/oidv7-all-in-one-example-ab.avif)
 
 - **Open Images V7**: This image exemplifies the depth and detail of annotations available, including bounding boxes, relationships, and segmentation masks.
 

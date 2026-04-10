@@ -29,6 +29,7 @@ from ultralytics.utils import (
     AUTOINSTALL,
     GIT,
     IS_COLAB,
+    IS_DOCKER,
     IS_JETSON,
     IS_KAGGLE,
     IS_PIP_PACKAGE,
@@ -495,6 +496,17 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     return True
 
 
+def check_executorch_requirements():
+    """Check and install ExecuTorch requirements including platform-specific dependencies."""
+    # BUG executorch build on arm64 Docker requires packaging>=22.0 https://github.com/pypa/setuptools/issues/4483
+    if LINUX and ARM64 and IS_DOCKER:
+        check_requirements("packaging>=22.0")
+
+    check_requirements("executorch", cmds=f"torch=={TORCH_VERSION.split('+')[0]}")
+    # Pin numpy to avoid coremltools errors with numpy>=2.4.0, must be separate
+    check_requirements("numpy<=2.3.5")
+
+
 def check_torchvision():
     """Check the installed versions of PyTorch and Torchvision to ensure they're compatible.
 
@@ -546,7 +558,7 @@ def check_suffix(file="yolo26n.pt", suffix=".pt", msg=""):
                 assert f".{s}" in suffix, f"{msg}{f} acceptable suffix is {suffix}, not .{s}"
 
 
-def check_yolov5u_filename(file: str, verbose: bool = True):
+def check_yolov5u_filename(file: str, verbose: bool = True) -> str:
     """Replace legacy YOLOv5 filenames with updated YOLOv5u filenames.
 
     Args:
@@ -573,7 +585,7 @@ def check_yolov5u_filename(file: str, verbose: bool = True):
     return file
 
 
-def check_model_file_from_stem(model="yolo11n"):
+def check_model_file_from_stem(model: str = "yolo11n") -> str | Path:
     """Return a model filename from a valid model stem.
 
     Args:
@@ -619,6 +631,9 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
         # Use URI path for unique directory structure: ul://user/project/model -> user/project/model/filename.pt
         uri_path = file[5:]  # Remove "ul://"
         local_file = Path(download_dir) / uri_path / url2file(url)
+        # Always re-download NDJSON datasets (cheap, ensures fresh data after updates)
+        if local_file.suffix == ".ndjson":
+            local_file.unlink(missing_ok=True)
         if local_file.exists():
             LOGGER.info(f"Found {clean_url(url)} locally at {local_file}")
         else:
@@ -660,7 +675,7 @@ def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):
     return check_file(file, suffix, hard=hard)
 
 
-def check_is_path_safe(basedir, path):
+def check_is_path_safe(basedir: Path | str, path: Path | str) -> bool:
     """Check if the resolved path is under the intended directory to prevent path traversal.
 
     Args:

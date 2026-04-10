@@ -200,6 +200,6 @@ Explore the documentation for detailed usage of different modes:
 
 Learn more about evaluation metrics like [Precision](https://www.ultralytics.com/glossary/precision), [Recall](https://www.ultralytics.com/glossary/recall), and [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map). Understand different export formats like [ONNX](../../integrations/onnx.md), [CoreML](../../integrations/coreml.md), and [TFLite](../../integrations/tflite.md), and explore various [Model Deployment Options](../../guides/model-deployment-options.md). Remember to manage your [model weights](https://www.ultralytics.com/glossary/model-weights) effectively.
 
-<p align="center"><img width="1000" src="https://github.com/ultralytics/docs/releases/download/0/gcp-running-docker.avif" alt="Running YOLOv5 inside a Docker container on GCP"></p>
+<p align="center"><img width="1000" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/gcp-running-docker.avif" alt="Running YOLOv5 inside a Docker container on GCP"></p>
 
 You have successfully set up and run YOLOv5 within a Docker container.

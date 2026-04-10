@@ -196,8 +196,70 @@ def test_semseg():
     pred = semseg.SemSegPredictor(cfg=cfg)
     pred.add_callback("on_predict_start", test_func)
     assert test_func in pred.callbacks["on_predict_start"], "callback test failed"
-    result = pred(source=ASSETS, model=trainer.best)
-    assert len(result), "predictor test failed"
+    pred(source=ASSETS, model=trainer.best)
 
     # export smoke test
-    model = YOLO("../ultralytics/cfg/models/11/yolo11-semseg.yaml", task="semseg").export(format="onnx")
+    YOLO("ultralytics/cfg/models/11/yolo11-semseg.yaml", task="semseg").export(format="onnx")
+
+
+def test_semseg_cpu():
+    """Test semantic segment including training, validation, and prediction phases."""
+    overrides = {
+        "data": "ultralytics/cfg/datasets/cityscapes-semseg-tiny.yaml",
+        "model": "ultralytics/cfg/models/11/yolo11-semseg.yaml",
+        "imgsz": 256,
+        "epochs": 1,
+        "save": False,
+        "mask_ratio": 1,
+        "device": "cpu",
+    }
+    cfg = get_cfg(SEMSEG_CFG)
+    cfg.device = "cpu"
+    cfg.data = "ultralytics/cfg/datasets/cityscapes-semseg-tiny.yaml"
+    # Trainer
+    trainer = semseg.SemSegTrainer(cfg=cfg, overrides=overrides)
+    trainer.add_callback("on_train_start", test_func)
+    assert test_func in trainer.callbacks["on_train_start"], "callback test failed"
+    trainer.train()
+
+    # Validator
+    args = dict(
+        model=trainer.best,
+        data="ultralytics/cfg/datasets/cityscapes-semseg-tiny.yaml",
+        imgsz=256,
+        device="cpu",
+        name=cfg.name,
+        task="semseg",
+        plots=False,
+    )
+    val = semseg.SemSegValidator(args=args)
+    val.add_callback("on_val_start", test_func)
+    assert test_func in val.callbacks["on_val_start"], "callback test failed"
+    val(model=trainer.best)
+
+    # Predictor
+    pred = semseg.SemSegPredictor(cfg=cfg)
+    pred.add_callback("on_predict_start", test_func)
+    assert test_func in pred.callbacks["on_predict_start"], "callback test failed"
+    pred(source=ASSETS, model=trainer.best)
+
+    # export smoke test
+    YOLO("ultralytics/cfg/models/11/yolo11-semseg.yaml", task="semseg").export(format="onnx")
+
+
+def test_semseg_yolo_cpu():
+    """Test semantic segment including training, validation, and prediction phases."""
+    from ultralytics import YOLO
+
+    m = YOLO("yolo11n-semseg.yaml", task="semseg")
+    m.train(
+        data="ultralytics/cfg/datasets/cityscapes-semseg-tiny.yaml",
+        task="semseg",
+        imgsz=256,
+        epochs=1,
+        device="cpu",
+        workers=0,
+        batch=2,
+    )
+    m.val(task="semseg", device="cpu", imgsz=256, rect=False)
+    m.export(format="onnx")

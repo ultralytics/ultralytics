@@ -13,7 +13,7 @@ Deploying computer vision models on devices with limited computational power, su
 The IMX500 model format is designed to use minimal power while delivering fast performance for neural networks. It allows you to optimize your [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models for high-speed and low-power inferencing. In this guide, we'll walk you through exporting and deploying your models to the IMX500 format while making it easier for your models to perform well on the [Raspberry Pi AI Camera](https://www.raspberrypi.com/products/ai-camera/).
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/imx500-ai-camera.avif" alt="Raspberry Pi AI Camera">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/imx500-ai-camera.avif" alt="Raspberry Pi AI Camera with Sony IMX500 sensor">
 </p>
 
 ## Why Should You Export to IMX500?
@@ -502,7 +502,7 @@ YOLOv8n, YOLO11n, YOLOv8n-pose, YOLO11n-pose, YOLOv8n-cls and YOLO11n-cls benchm
 ## What's Under the Hood?
 
 <p align="center">
-  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/imx500-deploy.avif" alt="IMX500 deployment">
+  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/imx500-deploy.avif" alt="Sony IMX500 YOLO model deployment workflow">
 </p>
 
 ### Sony Model Compression Toolkit (MCT)

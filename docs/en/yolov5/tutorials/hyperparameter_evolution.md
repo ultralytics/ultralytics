@@ -161,7 +161,7 @@ When evolution finishes, reuse the discovered settings by pointing training at t
 
 `evolve.csv` is plotted as `evolve.png` by `utils.plots.plot_evolve()` after evolution finishes with one subplot per hyperparameter showing fitness (y-axis) vs hyperparameter values (x-axis). Yellow indicates higher concentrations. Vertical distributions indicate that a parameter has been disabled and does not mutate. This is user selectable in the `meta` dictionary in train.py, and is useful for fixing parameters and preventing them from evolving.
 
-![evolve](https://github.com/ultralytics/docs/releases/download/0/evolve.avif)
+![YOLOv5 hyperparameter evolution fitness results](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/evolve.avif)
 
 ## Supported Environments
 

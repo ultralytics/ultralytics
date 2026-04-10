@@ -19,7 +19,7 @@ The YOLO-World Model introduces an advanced, real-time [Ultralytics](https://www
   <strong>Watch:</strong> YOLO World training workflow on custom dataset
 </p>
 
-![YOLO-World Model architecture overview](https://github.com/ultralytics/docs/releases/download/0/yolo-world-model-architecture-overview.avif)
+![YOLO-World Model architecture overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-world-model-architecture-overview.avif)
 
 ## Overview
 
@@ -210,7 +210,7 @@ Model validation on a dataset is streamlined as follows:
 
 ### Set prompts
 
-![YOLO-World prompt class names overview](https://github.com/ultralytics/docs/releases/download/0/yolo-world-prompt-class-names-overview.avif)
+![YOLO-World prompt class names overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-world-prompt-class-names-overview.avif)
 
 The YOLO-World framework allows for the dynamic specification of classes through custom prompts, empowering users to tailor the model to their specific needs **without retraining**. This feature is particularly useful for adapting the model to new domains or specific tasks that were not originally part of the [training data](https://www.ultralytics.com/glossary/training-data). By setting custom prompts, users can essentially guide the model's focus towards objects of interest, enhancing the relevance and [accuracy](https://www.ultralytics.com/glossary/accuracy) of the detection results.
 
@@ -321,6 +321,7 @@ This approach provides a powerful means of customizing state-of-the-art [object 
         from ultralytics import YOLOWorld
         from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
 
+        # Option 1: Use Python dictionary
         data = dict(
             train=dict(
                 yolo_data=["Objects365.yaml"],
@@ -337,8 +338,27 @@ This approach provides a powerful means of customizing state-of-the-art [object 
             ),
             val=dict(yolo_data=["lvis.yaml"]),
         )
+
+        # Option 2: Use YAML file (yolo_world_data.yaml)
+        # train:
+        #   yolo_data:
+        #     - Objects365.yaml
+        #   grounding_data:
+        #     - img_path: flickr/full_images/
+        #       json_file: flickr/annotations/final_flickr_separateGT_train_segm.json
+        #     - img_path: mixed_grounding/gqa/images
+        #       json_file: mixed_grounding/annotations/final_mixed_train_no_coco_segm.json
+        # val:
+        #   yolo_data:
+        #     - lvis.yaml
+
         model = YOLOWorld("yolov8s-worldv2.yaml")
-        model.train(data=data, batch=128, epochs=100, trainer=WorldTrainerFromScratch)
+        model.train(
+            data=data,  # or data="yolo_world_data.yaml" if using YAML file
+            batch=128,
+            epochs=100,
+            trainer=WorldTrainerFromScratch,
+        )
         ```
 
 ## Citations and Acknowledgments

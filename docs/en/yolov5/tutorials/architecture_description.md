@@ -18,7 +18,7 @@ YOLOv5's architecture consists of three main parts:
 
 The structure of the model is depicted in the image below. The model structure details can be found in [`models/yolov5l.yaml`](https://github.com/ultralytics/yolov5/blob/master/models/yolov5l.yaml).
 
-![yolov5](https://github.com/ultralytics/docs/releases/download/0/yolov5-model-structure.avif)
+![YOLOv5 architecture showing backbone, neck, and head](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov5-model-structure.avif)
 
 YOLOv5 introduces some notable improvements compared to its predecessors:
 
@@ -108,29 +108,29 @@ YOLOv5 employs various data augmentation techniques to improve the model's abili
 
 - **Mosaic Augmentation**: An image processing technique that combines four training images into one in ways that encourage [object detection](https://www.ultralytics.com/glossary/object-detection) models to better handle various object scales and translations.
 
-    ![mosaic](https://github.com/ultralytics/docs/releases/download/0/mosaic-augmentation.avif)
+    ![YOLOv5 mosaic data augmentation combining four images](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaic-augmentation.avif)
 
 - **Copy-Paste Augmentation**: An innovative data augmentation method that copies random patches from an image and pastes them onto another randomly chosen image, effectively generating a new training sample.
 
-    ![copy-paste](https://github.com/ultralytics/docs/releases/download/0/copy-paste.avif)
+    ![YOLOv5 copy-paste augmentation for instance segmentation](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/copy-paste.avif)
 
 - **Random Affine Transformations**: This includes random rotation, scaling, translation, and shearing of the images.
 
-    ![random-affine](https://github.com/ultralytics/docs/releases/download/0/random-affine-transformations.avif)
+    ![YOLOv5 random affine transformations for training](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/random-affine-transformations.avif)
 
 - **MixUp Augmentation**: A method that creates composite images by taking a linear combination of two images and their associated labels.
 
-    ![mixup](https://github.com/ultralytics/docs/releases/download/0/mixup.avif)
+    ![YOLOv5 MixUp data augmentation blending two images](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mixup.avif)
 
 - **Albumentations**: A powerful image augmentation library that supports a wide variety of augmentation techniques. Learn more about [using Albumentations augmentations](https://www.ultralytics.com/blog/using-albumentations-augmentations-to-diversify-your-data).
 
 - **HSV Augmentation**: Random changes to the Hue, Saturation, and Value of the images.
 
-    ![hsv](https://github.com/ultralytics/docs/releases/download/0/hsv-augmentation.avif)
+    ![YOLOv5 HSV color space augmentation examples](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/hsv-augmentation.avif)
 
 - **Random Horizontal Flip**: An augmentation method that randomly flips images horizontally.
 
-    ![horizontal-flip](https://github.com/ultralytics/docs/releases/download/0/random-horizontal-flip.avif)
+    ![YOLOv5 random horizontal flip augmentation](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/random-horizontal-flip.avif)
 
 ## 3. Training Strategies
 
@@ -155,22 +155,22 @@ The loss in YOLOv5 is computed as a combination of three individual loss compone
 
 The overall [loss function](https://www.ultralytics.com/glossary/loss-function) is depicted by:
 
-![loss](https://latex.codecogs.com/svg.image?Loss=\lambda_1L_{cls}+\lambda_2L_{obj}+\lambda_3L_{loc})
+![YOLOv5 total loss function formula](https://latex.codecogs.com/svg.image?Loss=\lambda_1L_{cls}+\lambda_2L_{obj}+\lambda_3L_{loc})
 
 ### 4.2 Balance Losses
 
 The objectness losses of the three prediction layers (`P3`, `P4`, `P5`) are weighted differently. The balance weights are `[4.0, 1.0, 0.4]` respectively. This approach ensures that the predictions at different scales contribute appropriately to the total loss.
 
-![obj_loss](https://latex.codecogs.com/svg.image?L_{obj}=4.0\cdot&space;L_{obj}^{small}+1.0\cdot&space;L_{obj}^{medium}+0.4\cdot&space;L_{obj}^{large})
+![YOLOv5 objectness loss balance formula](https://latex.codecogs.com/svg.image?L_{obj}=4.0\cdot&space;L_{obj}^{small}+1.0\cdot&space;L_{obj}^{medium}+0.4\cdot&space;L_{obj}^{large})
 
 ### 4.3 Eliminate Grid Sensitivity
 
 The YOLOv5 architecture makes some important changes to the box prediction strategy compared to earlier versions of YOLO. In YOLOv2 and YOLOv3, the box coordinates were directly predicted using the activation of the last layer.
 
-![b_x](<https://latex.codecogs.com/svg.image?b_x=\sigma(t_x)+c_x>)
-![b_y](<https://latex.codecogs.com/svg.image?b_y=\sigma(t_y)+c_y>)
-![b_w](https://latex.codecogs.com/svg.image?b_w=p_w\cdot&space;e^{t_w})
-![b_h](https://latex.codecogs.com/svg.image?b_h=p_h\cdot&space;e^{t_h})
+![Bounding box x-coordinate prediction formula](<https://latex.codecogs.com/svg.image?b_x=\sigma(t_x)+c_x>)
+![Bounding box y-coordinate prediction formula](<https://latex.codecogs.com/svg.image?b_y=\sigma(t_y)+c_y>)
+![Bounding box width prediction formula](https://latex.codecogs.com/svg.image?b_w=p_w\cdot&space;e^{t_w})
+![Bounding box height prediction formula](https://latex.codecogs.com/svg.image?b_h=p_h\cdot&space;e^{t_h})
 
 <img src="https://user-images.githubusercontent.com/31005897/158508027-8bf63c28-8290-467b-8a3e-4ad09235001a.png#pic_center" width=40% alt="YOLOv5 grid computation">
 
@@ -178,10 +178,10 @@ However, in YOLOv5, the formula for predicting the box coordinates has been upda
 
 The revised formulas for calculating the predicted [bounding box](https://www.ultralytics.com/glossary/bounding-box) are as follows:
 
-![bx](<https://latex.codecogs.com/svg.image?b_x=(2\cdot\sigma(t_x)-0.5)+c_x>)
-![by](<https://latex.codecogs.com/svg.image?b_y=(2\cdot\sigma(t_y)-0.5)+c_y>)
-![bw](<https://latex.codecogs.com/svg.image?b_w=p_w\cdot(2\cdot\sigma(t_w))^2>)
-![bh](<https://latex.codecogs.com/svg.image?b_h=p_h\cdot(2\cdot\sigma(t_h))^2>)
+![YOLOv5 revised bounding box x-coordinate formula](<https://latex.codecogs.com/svg.image?b_x=(2\cdot\sigma(t_x)-0.5)+c_x>)
+![YOLOv5 revised bounding box y-coordinate formula](<https://latex.codecogs.com/svg.image?b_y=(2\cdot\sigma(t_y)-0.5)+c_y>)
+![YOLOv5 revised bounding box width formula](<https://latex.codecogs.com/svg.image?b_w=p_w\cdot(2\cdot\sigma(t_w))^2>)
+![YOLOv5 revised bounding box height formula](<https://latex.codecogs.com/svg.image?b_h=p_h\cdot(2\cdot\sigma(t_h))^2>)
 
 Compare the center point offset before and after scaling. The center point offset range is adjusted from (0, 1) to (-0.5, 1.5). Therefore, offset can easily get 0 or 1.
 
@@ -199,17 +199,17 @@ This process follows these steps:
 
 - Calculate the ratio of the ground truth box dimensions and the dimensions of each anchor template.
 
-![rw](https://latex.codecogs.com/svg.image?r_w=w_{gt}/w_{at})
+![Ground truth to anchor width ratio formula](https://latex.codecogs.com/svg.image?r_w=w_{gt}/w_{at})
 
-![rh](https://latex.codecogs.com/svg.image?r_h=h_{gt}/h_{at})
+![Ground truth to anchor height ratio formula](https://latex.codecogs.com/svg.image?r_h=h_{gt}/h_{at})
 
-![rwmax](<https://latex.codecogs.com/svg.image?r_w^{max}=max(r_w,1/r_w)>)
+![Maximum width ratio formula](<https://latex.codecogs.com/svg.image?r_w^{max}=max(r_w,1/r_w)>)
 
-![rhmax](<https://latex.codecogs.com/svg.image?r_h^{max}=max(r_h,1/r_h)>)
+![Maximum height ratio formula](<https://latex.codecogs.com/svg.image?r_h^{max}=max(r_h,1/r_h)>)
 
-![rmax](<https://latex.codecogs.com/svg.image?r^{max}=max(r_w^{max},r_h^{max})>)
+![Overall maximum ratio formula](<https://latex.codecogs.com/svg.image?r^{max}=max(r_w^{max},r_h^{max})>)
 
-![match](https://latex.codecogs.com/svg.image?r^{max}<{\rm&space;anchor_t})
+![Anchor matching threshold formula](https://latex.codecogs.com/svg.image?r^{max}<{\rm&space;anchor_t})
 
 <img src="https://user-images.githubusercontent.com/31005897/158508119-fbb2e483-7b8c-4975-8e1f-f510d367f8ff.png#pic_center" width=70% alt="YOLOv5 IoU computation">
 

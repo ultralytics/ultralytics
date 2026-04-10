@@ -9,7 +9,7 @@ keywords: Ultralytics, YOLO26, NVIDIA DGX Spark, AI deployment, performance benc
 This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLO26 on [NVIDIA DGX Spark](https://www.nvidia.com/en-us/products/workstations/dgx-spark/), NVIDIA's compact desktop AI supercomputer. Additionally, it showcases performance benchmarks to demonstrate the capabilities of YOLO26 on this powerful system.
 
 <p align="center">
-  <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/nvidia-dgx-spark.avif" alt="NVIDIA DGX Spark">
+  <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/nvidia-dgx-spark.avif" alt="NVIDIA DGX Spark AI workstation overview">
 </p>
 
 !!! note
@@ -54,7 +54,7 @@ DGX Spark comes with a built-in [DGX Dashboard](https://docs.nvidia.com/dgx/dgx-
 - **Integrated JupyterLab**: Access local Jupyter Notebooks for development
 
 <p align="center">
-  <img width="1024" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/dgx-dashboard.avif" alt="NVIDIA DGX Dashboard">
+  <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/nvidia-dgx-dashboard.avif" alt="NVIDIA DGX management dashboard interface">
 </p>
 
 #### Accessing the Dashboard

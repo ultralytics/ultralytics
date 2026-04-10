@@ -24,7 +24,7 @@ Running YOLO models in a multi-threaded environment requires careful considerati
 Python threads are a form of parallelism that allow your program to run multiple operations at once. However, Python's Global Interpreter Lock (GIL) means that only one thread can execute Python bytecode at a time.
 
 <p align="center">
-  <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/single-vs-multi-thread-examples.avif" alt="Single vs Multi-Thread Examples">
+  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/single-vs-multi-thread-examples.avif" alt="Single-thread vs multi-thread inference">
 </p>
 
 While this sounds like a limitation, threads can still provide concurrency, especially for I/O-bound operations or when using operations that release the GIL, like those performed by YOLO's underlying C libraries.

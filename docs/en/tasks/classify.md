@@ -7,7 +7,7 @@ model_name: yolo26n-cls
 
 # Image Classification
 
-<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/image-classification-examples.avif" alt="Image classification examples">
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/image-classification-examples.avif" alt="YOLO image classification of objects and scenes">
 
 [Image classification](https://www.ultralytics.com/glossary/image-classification) is the simplest of the three tasks and involves classifying an entire image into one of a set of predefined classes.
 

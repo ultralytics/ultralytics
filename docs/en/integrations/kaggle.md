@@ -31,7 +31,7 @@ Kaggle notebooks require internet access to download packages and dependencies. 
 
 **Note**: Internet access is required for installing the Ultralytics package and downloading pre-trained models or datasets. Without internet enabled, package installations will fail.
 
-![Kaggle Notebook Internet Turn on](./kaggle_installation.avif)
+![Kaggle Notebook Internet Turn on](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/kaggle_installation.avif)
 
 ### Installing Ultralytics
 
@@ -120,15 +120,15 @@ Training YOLO26 models on Kaggle is simple and efficient, thanks to the platform
 
 To get started, access the [Kaggle YOLO26 Notebook](https://www.kaggle.com/code/glennjocherultralytics/ultralytics-yolo11-notebook). Kaggle's environment comes with pre-installed libraries like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and [PyTorch](https://www.ultralytics.com/glossary/pytorch), making the setup process hassle-free.
 
-![What is the kaggle integration with respect to YOLO26?](https://github.com/ultralytics/docs/releases/download/0/kaggle-integration-yolov8.avif)
+![What is the kaggle integration with respect to YOLO26?](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/kaggle-integration-yolov8.avif)
 
 Once you sign in to your Kaggle account, you can click on the option to copy and edit the code, select a GPU under the accelerator settings, and run the notebook's cells to begin training your model. For a detailed understanding of the model training process and best practices, refer to our [YOLO26 Model Training guide](../modes/train.md).
 
-![Using kaggle for machine learning model training with a GPU](https://github.com/ultralytics/docs/releases/download/0/using-kaggle-for-machine-learning-model-training-with-a-gpu.avif)
+![Using kaggle for machine learning model training with a GPU](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/using-kaggle-for-machine-learning-model-training-with-a-gpu.avif)
 
 On the [official YOLO26 Kaggle notebook page](https://www.kaggle.com/code/glennjocherultralytics/ultralytics-yolo11-notebook), clicking the three dots in the upper right-hand corner reveals additional options.
 
-![Overview of Options From the Official YOLO26 Kaggle Notebook Page](https://github.com/ultralytics/docs/releases/download/0/overview-options-yolov8-kaggle-notebook.avif)
+![Overview of Options From the Official YOLO26 Kaggle Notebook Page](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/overview-options-yolov8-kaggle-notebook.avif)
 
 These options include:
 

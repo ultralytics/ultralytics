@@ -10,7 +10,7 @@ const loadChartWidget = () =>
     const base =
       (document.currentScript || document.querySelector('script[src*="benchmark.js"]'))?.src.replace(/[^/]*$/, "") ||
       "./";
-    s.src = `${base}chart-widget.js`;
+    s.src = base + "chart-widget.js";
     s.onload = s.onerror = resolve;
     document.head.appendChild(s);
   });

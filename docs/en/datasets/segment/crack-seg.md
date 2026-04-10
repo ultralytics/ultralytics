@@ -82,7 +82,7 @@ To train the Ultralytics YOLO26n-seg model on the Crack Segmentation dataset for
 
 The Crack Segmentation dataset contains a diverse collection of images captured from various perspectives, showcasing different types of cracks on roads and walls. Here are some examples:
 
-![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/crack-segmentation-sample.avif)
+![Crack segmentation dataset sample for infrastructure inspection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/crack-segmentation-sample.avif)
 
 - This image demonstrates [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), featuring annotated [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) with masks outlining identified cracks. The dataset includes images from different locations and environments, making it a comprehensive resource for developing robust models for this task. Techniques like [data augmentation](https://www.ultralytics.com/glossary/data-augmentation) can further enhance dataset diversity. Learn more about instance segmentation and tracking in our [guide](../../guides/instance-segmentation-and-tracking.md).
 

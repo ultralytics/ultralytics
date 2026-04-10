@@ -1,11 +1,14 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from pathlib import Path
 
 from ultralytics.data import YOLOConcatDataset, build_grounding, build_yolo_dataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.world import WorldTrainer
 from ultralytics.utils import DATASETS_DIR, DEFAULT_CFG, LOGGER
+from ultralytics.utils.checks import check_file
 from ultralytics.utils.torch_utils import unwrap_model
 
 
@@ -100,6 +103,23 @@ class WorldTrainerFromScratch(WorldTrainer):
         self.set_text_embeddings(datasets, batch)  # cache text embeddings to accelerate training
         return YOLOConcatDataset(datasets) if len(datasets) > 1 else datasets[0]
 
+    @staticmethod
+    def check_data_config(data: dict | str | Path) -> dict:
+        """Check and load the data configuration from a YAML file or dictionary.
+
+        Args:
+            data (dict | str | Path): Data configuration as a dictionary or path to a YAML file.
+
+        Returns:
+            (dict): Data configuration dictionary loaded from YAML file or passed directly.
+        """
+        # If string, load from YAML file
+        if not isinstance(data, dict):
+            from ultralytics.utils import YAML
+
+            return YAML.load(check_file(data))
+        return data
+
     def get_dataset(self):
         """Get train and validation paths from data dictionary.
 
@@ -114,7 +134,7 @@ class WorldTrainerFromScratch(WorldTrainer):
             AssertionError: If train or validation datasets are not found, or if validation has multiple datasets.
         """
         final_data = {}
-        data_yaml = self.args.data
+        self.args.data = data_yaml = self.check_data_config(self.args.data)
         assert data_yaml.get("train", False), "train dataset not found"  # object365.yaml
         assert data_yaml.get("val", False), "validation dataset not found"  # lvis.yaml
         data = {k: [check_det_dataset(d) for d in v.get("yolo_data", [])] for k, v in data_yaml.items()}

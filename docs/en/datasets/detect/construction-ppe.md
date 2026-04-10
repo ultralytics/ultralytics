@@ -88,7 +88,7 @@ You can train a YOLO26n model on the Construction-PPE dataset for 100 epochs wit
 
 The dataset captures construction workers across varied environments, lighting conditions, and postures. Both **compliant** and **non-compliant** cases are included.
 
-![Construction-PPE dataset sample image, showing compliant and non-compliant safety gear detection](https://github.com/ultralytics/docs/releases/download/0/construction-ppe-dataset-sample.avif)
+![Construction-PPE dataset sample with safety gear detection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/construction-ppe-dataset-sample.avif)
 
 ## License and Attribution
 

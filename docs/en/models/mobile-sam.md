@@ -4,7 +4,7 @@ description: Discover MobileSAM, a lightweight and fast image segmentation model
 keywords: MobileSAM, image segmentation, lightweight model, fast segmentation, mobile applications, SAM, Tiny-ViT, YOLO, Ultralytics
 ---
 
-![MobileSAM Logo](https://raw.githubusercontent.com/ChaoningZhang/MobileSAM/master/assets/logo2.png)
+![MobileSAM lightweight image segmentation model logo](https://raw.githubusercontent.com/ChaoningZhang/MobileSAM/master/assets/logo2.png)
 
 # Mobile Segment Anything (MobileSAM)
 
@@ -105,9 +105,9 @@ The key difference is the image encoder: MobileSAM replaces the original ViT-H e
 
 The performance of MobileSAM and the original SAM is illustrated below using both point and box prompts.
 
-![Image with Point as Prompt](https://github.com/ultralytics/docs/releases/download/0/mask-box.avif)
+![Image with Point as Prompt](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mask-box.avif)
 
-![Image with Box as Prompt](https://github.com/ultralytics/docs/releases/download/0/mask-box.avif)
+![Image with Box as Prompt](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mask-box.avif)
 
 MobileSAM is approximately 7 times smaller and 5 times faster than FastSAM. For further details, visit the [MobileSAM project page](https://github.com/ChaoningZhang/MobileSAM).
 

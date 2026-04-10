@@ -144,7 +144,7 @@ YOLO26 benchmarks were run by the Ultralytics team on ten different model format
 We have only included benchmarks for YOLO26n and YOLO26s models because other model sizes are too big to run on the Raspberry Pis and do not offer decent performance.
 
 <figure style="text-align: center;">
-    <img width="800" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/rpi-yolo26-benchmarks-coco128.avif" alt="YOLO26 benchmarks on RPi 5">
+    <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/raspberry-pi-yolo26-benchmarks.avif" alt="YOLO26 benchmarks on RPi 5">
     <figcaption style="font-style: italic; color: gray;">Benchmarked with Ultralytics 8.4.1</figcaption>
 </figure>
 

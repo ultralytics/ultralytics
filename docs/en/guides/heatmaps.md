@@ -31,10 +31,10 @@ A heatmap generated with [Ultralytics YOLO26](https://github.com/ultralytics/ult
 
 ## Real World Applications
 
-|                                                                    Transportation                                                                    |                                                                Retail                                                                |
-| :--------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------: |
-| ![Ultralytics YOLO26 Transportation Heatmap](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-transportation-heatmap.avif) | ![Ultralytics YOLO26 Retail Heatmap](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-retail-heatmap.avif) |
-|                                                      Ultralytics YOLO26 Transportation Heatmap                                                       |                                                  Ultralytics YOLO26 Retail Heatmap                                                   |
+|                                                                    Transportation                                                                     |                                                                Retail                                                                 |
+| :---------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------: |
+| ![Ultralytics YOLO26 Transportation Heatmap](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-transportation-heatmap.avif) | ![Ultralytics YOLO26 Retail Heatmap](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-retail-heatmap.avif) |
+|                                                       Ultralytics YOLO26 Transportation Heatmap                                                       |                                                   Ultralytics YOLO26 Retail Heatmap                                                   |
 
 !!! example "Heatmaps using Ultralytics YOLO"
 

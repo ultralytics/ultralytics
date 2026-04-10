@@ -92,9 +92,11 @@ Every dataset includes automatic statistics:
 
 Ultralytics Platform supports:
 
-- **Images**: JPG, PNG, WebP, TIFF, BMP, and other common formats
-- **Videos**: MP4, AVI, MOV - frames are extracted automatically
-- **Archives**: ZIP files containing images with optional YOLO-format labels
+**Images:** JPEG, PNG, WebP, BMP, GIF, TIFF, HEIC, AVIF, JP2, DNG (max 50MB each)
+
+**Videos:** MP4, WebM, MOV, AVI, MKV, M4V (max 1GB, frames extracted at 1 FPS, max 100 frames)
+
+**Archives:** ZIP files (max 50GB) containing images with optional YOLO-format labels
 
 ### What is the maximum dataset size?
 
@@ -105,6 +107,8 @@ Storage limits depend on your plan:
 | Free       | 100 GB        |
 | Pro        | 500 GB        |
 | Enterprise | Custom        |
+
+Individual file limits: Images 50MB, Videos 1GB, ZIP archives 50GB
 
 ### Can I use my Platform datasets for local training?
 

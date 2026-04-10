@@ -6,7 +6,7 @@ keywords: YOLO26, OpenVINO, model export, Intel, AI inference, CPU speedup, GPU 
 
 # Intel OpenVINO Export
 
-<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ecosystem.avif" alt="OpenVINO Ecosystem">
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ecosystem.avif" alt="OpenVINO Intel AI inference toolkit">
 
 In this guide, we cover exporting YOLO26 models to the [OpenVINO](https://docs.openvino.ai/) format, which can provide up to 3x [CPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/cpu-device.html) speedup, as well as accelerating YOLO inference on Intel [GPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/gpu-device.html) and [NPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/npu-device.html) hardware.
 
@@ -167,7 +167,7 @@ The Intel® Core® series is a range of high-performance processors by Intel. Th
 Benchmarks below run on 12th Gen Intel® Core® i9-12900KS CPU at FP32 precision.
 
 <div align="center">
-<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-corei9.avif" alt="Core CPU benchmarks">
+<img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-corei9.avif" alt="OpenVINO YOLO inference benchmarks on Intel CPU">
 </div>
 
 ??? abstract "Detailed Benchmark Results"
@@ -214,7 +214,7 @@ Benchmarks below run on Intel® Core™ Ultra™ 7 258V and Intel® Core™ Ultr
     === "Integrated Intel® Arc™ GPU"
 
         <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra7-258V-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
+        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultra7-258V-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -240,7 +240,7 @@ Benchmarks below run on Intel® Core™ Ultra™ 7 258V and Intel® Core™ Ultr
     === "Intel® Lunar Lake CPU"
 
         <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra7-258V-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
+        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultra7-258V-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -267,7 +267,7 @@ Benchmarks below run on Intel® Core™ Ultra™ 7 258V and Intel® Core™ Ultr
     === "Integrated Intel® AI Boost NPU"
 
         <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra7-258V-npu.avif" alt="Intel Core Ultra NPU benchmarks">
+        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultra7-258V-npu.avif" alt="Intel Core Ultra NPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -297,7 +297,7 @@ Benchmarks below run on Intel® Core™ Ultra™ 7 258V and Intel® Core™ Ultr
     === "Integrated Intel® Arc™ GPU"
 
         <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra7-265K-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
+        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultra7-265K-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -324,7 +324,7 @@ Benchmarks below run on Intel® Core™ Ultra™ 7 258V and Intel® Core™ Ultr
     === "Intel® Arrow Lake CPU"
 
         <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra7-265K-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
+        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultra7-265K-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -351,7 +351,7 @@ Benchmarks below run on Intel® Core™ Ultra™ 7 258V and Intel® Core™ Ultr
     === "Integrated Intel® AI Boost NPU"
 
         <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra7-265K-npu.avif" alt="Intel Core Ultra NPU benchmarks">
+        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultra7-265K-npu.avif" alt="Intel Core Ultra NPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -383,7 +383,7 @@ Benchmarks below run on Intel Arc A770 and Intel Arc B580 at FP32 and INT8 preci
 ### Intel Arc A770
 
 <div align="center">
-<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-arc-a770-gpu.avif" alt="Intel Core Ultra CPU benchmarks">
+<img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-arc-a770-gpu.avif" alt="Intel Core Ultra CPU benchmarks">
 </div>
 
 ??? abstract "Detailed Benchmark Results"
@@ -409,7 +409,7 @@ Benchmarks below run on Intel Arc A770 and Intel Arc B580 at FP32 and INT8 preci
 ### Intel Arc B580
 
 <div align="center">
-<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-arc-b580-gpu.avif" alt="Intel Core Ultra CPU benchmarks">
+<img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-arc-b580-gpu.avif" alt="Intel Core Ultra CPU benchmarks">
 </div>
 
 ??? abstract "Detailed Benchmark Results"

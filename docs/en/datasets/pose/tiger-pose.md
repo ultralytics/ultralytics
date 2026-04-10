@@ -70,7 +70,7 @@ To train a YOLO26n-pose model on the Tiger-Pose dataset for 100 [epochs](https:/
 
 Here are some examples of images from the Tiger-Pose dataset, along with their corresponding annotations:
 
-<img src="https://github.com/ultralytics/docs/releases/download/0/mosaiced-training-batch-4.avif" alt="Dataset sample image" width="100%">
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaiced-training-batch-4.avif" alt="Tiger pose estimation dataset mosaic training batch" width="100%">
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 

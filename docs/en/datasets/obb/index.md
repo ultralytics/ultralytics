@@ -20,7 +20,7 @@ class_index x1 y1 x2 y2 x3 y3 x4 y4
 
 Internally, YOLO processes losses and outputs in the `xywhr` format, which represents the [bounding box](https://www.ultralytics.com/glossary/bounding-box)'s center point (xy), width, height, and rotation.
 
-<p align="center"><img width="800" src="https://github.com/ultralytics/docs/releases/download/0/obb-format-examples.avif" alt="OBB format examples"></p>
+<p align="center"><img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/obb-format-examples.avif" alt="Oriented bounding box annotation format examples"></p>
 
 An example of a `*.txt` label file for the above image, which contains an object of class `0` in OBB format, could look like:
 

@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr, torch_utils
+from ultralytics.utils.torch_utils import smart_inference_mode
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -38,6 +39,7 @@ def _log_scalars(scalars: dict, step: int = 0) -> None:
             WRITER.add_scalar(k, v, step)
 
 
+@smart_inference_mode()
 def _log_tensorboard_graph(trainer) -> None:
     """Log model graph to TensorBoard.
 

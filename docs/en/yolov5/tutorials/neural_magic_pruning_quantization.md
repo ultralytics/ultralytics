@@ -29,7 +29,7 @@ This guide explains how to deploy YOLOv5 with Neural Magic's DeepSparse.
 DeepSparse is an inference runtime with exceptional performance on CPUs. For instance, compared to the ONNX Runtime baseline, DeepSparse offers a 5.8x speed-up for YOLOv5s, running on the same machine!
 
 <p align="center">
-  <img width="60%" src="https://github.com/ultralytics/docs/releases/download/0/yolov5-speed-improvement.avif" alt="YOLOv5 speed improvement">
+  <img width="60%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov5-speed-improvement.avif" alt="YOLOv5 DeepSparse vs ONNX Runtime speed comparison chart">
 </p>
 
 For the first time, your [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) workloads can meet the performance demands of production without the complexity and costs of hardware accelerators. Put simply, DeepSparse gives you the performance of GPUs and the simplicity of software:
@@ -45,7 +45,7 @@ DeepSparse takes advantage of model sparsity to gain its performance speedup.
 Sparsification through pruning and quantization is a broadly studied technique, allowing order-of-magnitude reductions in the size and compute needed to execute a network, while maintaining high [accuracy](https://www.ultralytics.com/glossary/accuracy). DeepSparse is sparsity-aware, meaning it skips the zeroed out parameters, shrinking amount of compute in a forward pass. Since the sparse computation is now memory bound, DeepSparse executes the network depth-wise, breaking the problem into Tensor Columns, vertical stripes of computation that fit in cache.
 
 <p align="center">
-  <img width="60%" src="https://github.com/ultralytics/docs/releases/download/0/tensor-columns.avif" alt="YOLO model pruning">
+  <img width="60%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tensor-columns.avif" alt="DeepSparse tensor columns for sparse neural network inference">
 </p>
 
 Sparse networks with compressed computation, executed depth-wise in cache, allows DeepSparse to deliver GPU-class performance on CPUs!
@@ -172,7 +172,7 @@ deepsparse.object_detection.annotate --model_filepath zoo:cv/detection/yolov5-s/
 Running the above command will create an `annotation-results` folder and save the annotated image inside.
 
 <p align="center">
-<img src="https://github.com/ultralytics/docs/releases/download/0/basilica-annotated.avif" alt="annotated" width="60%">
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/basilica-annotated.avif" alt="YOLOv5 detection results with bounding boxes" width="60%">
 </p>
 
 ## Benchmarking Performance

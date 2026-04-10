@@ -78,10 +78,9 @@ from ultralytics.nn.modules import (
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
-    E2EDetectLoss,
-    SemSegLoss,
     E2ELoss,
     PoseLoss26,
+    SemSegLoss,
     v8ClassificationLoss,
     v8DetectionLoss,
     v8OBBLoss,
@@ -428,6 +427,24 @@ class DetectionModel(BaseModel):
     def end2end(self):
         """Return whether the model uses end-to-end NMS-free detection."""
         return getattr(self.model[-1], "end2end", False)
+
+    @end2end.setter
+    def end2end(self, value):
+        """Override the end-to-end detection mode."""
+        self.set_head_attr(end2end=value)
+
+    def set_head_attr(self, **kwargs):
+        """Set attributes of the model head (last layer).
+
+        Args:
+            **kwargs: Arbitrary keyword arguments representing attributes to set.
+        """
+        head = self.model[-1]
+        for k, v in kwargs.items():
+            if not hasattr(head, k):
+                LOGGER.warning(f"Head has no attribute '{k}'.")
+                continue
+            setattr(head, k, v)
 
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference and train outputs.
@@ -1262,6 +1279,7 @@ class YOLOESegModel(YOLOEModel, SegmentationModel):
             preds = self.forward(batch["img"], tpe=batch.get("txt_feats", None), vpe=batch.get("visuals", None))
         return self.criterion(preds, batch)
 
+
 class SemanticModel(DetectionModel):
     """YOLOv8 segmentation model."""
 
@@ -1272,6 +1290,7 @@ class SemanticModel(DetectionModel):
     def init_criterion(self):
         """Initialize the loss criterion for the SegmentationModel."""
         return SemSegLoss(self)
+
 
 class Ensemble(torch.nn.ModuleList):
     """Ensemble of models.
@@ -1620,8 +1639,7 @@ def parse_model(d, ch, verbose=True):
             A2C2f,
         }
     )
-    modules = d["backbone"] + d["head"] if "backbone" in d.keys() else d["encoder"] + d["neck"] + d["decoder"]
-    for i, (f, n, m, args) in enumerate(modules):  # from, number, module, args
+    for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
         m = (
             getattr(torch.nn, m[3:])
             if "nn." in m
@@ -1685,7 +1703,7 @@ def parse_model(d, ch, verbose=True):
                 Pose,
                 Pose26,
                 OBB,
-                OBB26
+                OBB26,
             }
         ):
             args.extend([reg_max, end2end, [ch[x] for x in f]])
@@ -1726,7 +1744,7 @@ def parse_model(d, ch, verbose=True):
     return torch.nn.Sequential(*layers), sorted(save)
 
 
-def yaml_model_load(path, with_model_scale=True):
+def yaml_model_load(path):
     """Load a YOLOv8 model from a YAML file.
 
     Args:
@@ -1744,7 +1762,7 @@ def yaml_model_load(path, with_model_scale=True):
     unified_path = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", str(path))  # i.e. yolov8x.yaml -> yolov8.yaml
     yaml_file = check_yaml(unified_path, hard=False) or check_yaml(path)
     d = YAML.load(yaml_file)  # model dict
-    d["scale"] = guess_model_scale(path) if (not with_model_scale) or ("scale" not in d.keys()) else d["scale"]
+    d["scale"] = guess_model_scale(path) if "scale" not in d.keys() else d["scale"]
     d["yaml_file"] = str(path)
     return d
 

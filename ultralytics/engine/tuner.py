@@ -306,7 +306,8 @@ class Tuner:
             return None
         x = np.array(
             [
-                [r.get("fitness", 0.0)] + [r.get("hyperparameters", {}).get(k, getattr(self.args, k)) for k in self.space]
+                [r.get("fitness", 0.0)]
+                + [r.get("hyperparameters", {}).get(k, getattr(self.args, k)) for k in self.space]
                 for r in results
             ],
             dtype=float,
@@ -452,9 +453,11 @@ class Tuner:
             data = train_args.pop("data")
             if not isinstance(data, (list, tuple)):
                 data = [data]
-            save_dir = [get_save_dir(get_cfg(train_args))] if len(data) == 1 else [
-                get_save_dir(get_cfg(train_args), name=Path(str(d)).stem) for d in data
-            ]
+            save_dir = (
+                [get_save_dir(get_cfg(train_args))]
+                if len(data) == 1
+                else [get_save_dir(get_cfg(train_args), name=Path(str(d)).stem) for d in data]
+            )
             weights_dir = [s / "weights" for s in save_dir]
             metrics = {}
             all_fitness = []

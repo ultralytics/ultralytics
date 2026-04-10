@@ -224,7 +224,7 @@ class BaseDataset(Dataset):
         """
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
-            if fn.exists():  # load npy
+            if self.cache == "disk" and fn.exists():  # load npy
                 try:
                     im = np.load(fn)
                 except Exception as e:

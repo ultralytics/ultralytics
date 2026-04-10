@@ -101,10 +101,11 @@ Exporting YOLO26 models to ExecuTorch is straightforward:
 
 When exporting to ExecuTorch format, you can specify the following arguments:
 
-| Argument | Type            | Default | Description                                |
-| -------- | --------------- | ------- | ------------------------------------------ |
-| `imgsz`  | `int` or `list` | `640`   | Image size for model input (height, width) |
-| `device` | `str`           | `'cpu'` | Device to use for export (`'cpu'`)         |
+| Argument | Type            | Default | Description                                                                                                                             |
+| -------- | --------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `imgsz`  | `int` or `list` | `640`   | Image size for model input (height, width).                                                                                             |
+| `batch`  | `int`           | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
+| `device` | `str`           | `'cpu'` | Device to use for export (`'cpu'`).                                                                                                     |
 
 ### Output Structure
 

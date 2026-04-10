@@ -34,7 +34,6 @@ def test_export():
     "task,trainer_cls,validator_cls,predictor_cls,data,model,weights",
     [
         (
-            "detect",
             detect.DetectionTrainer,
             detect.DetectionValidator,
             detect.DetectionPredictor,
@@ -43,7 +42,6 @@ def test_export():
             MODEL,
         ),
         (
-            "segment",
             segment.SegmentationTrainer,
             segment.SegmentationValidator,
             segment.SegmentationPredictor,
@@ -52,7 +50,6 @@ def test_export():
             WEIGHTS_DIR / "yolo26n-seg.pt",
         ),
         (
-            "classify",
             classify.ClassificationTrainer,
             classify.ClassificationValidator,
             classify.ClassificationPredictor,
@@ -60,27 +57,11 @@ def test_export():
             "yolo26n-cls.yaml",
             None,
         ),
-        (
-            "obb",
-            obb.OBBTrainer,
-            obb.OBBValidator,
-            obb.OBBPredictor,
-            "dota8.yaml",
-            "yolo26n-obb.yaml",
-            None,
-        ),
-        (
-            "pose",
-            pose.PoseTrainer,
-            pose.PoseValidator,
-            pose.PosePredictor,
-            "coco8-pose.yaml",
-            "yolo26n-pose.yaml",
-            None,
-        ),
+        (obb.OBBTrainer, obb.OBBValidator, obb.OBBPredictor, "dota8.yaml", "yolo26n-obb.yaml", None),
+        (pose.PoseTrainer, pose.PoseValidator, pose.PosePredictor, "coco8-pose.yaml", "yolo26n-pose.yaml", None),
     ],
 )
-def test_task(task, trainer_cls, validator_cls, predictor_cls, data, model, weights):
+def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
     """Test YOLO training, validation, and prediction for various tasks."""
     overrides = {
         "data": data,
@@ -114,7 +95,7 @@ def test_task(task, trainer_cls, validator_cls, predictor_cls, data, model, weig
 
     # Determine model path for prediction
     model_path = weights if weights else trainer.best
-    if task == "detect":
+    if model == "yolo26n.yaml":  # only for detection
         # Confirm there is no issue with sys.argv being empty
         with mock.patch.object(sys, "argv", []):
             result = pred(source=ASSETS, model=model_path)

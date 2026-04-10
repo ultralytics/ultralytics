@@ -940,20 +940,18 @@ def plt_color_scatter(v, f, bins: int = 20, cmap: str = "viridis", alpha: float 
 
 
 @plt_settings()
-def plot_tune_results(csv_file: str = "tune_results.csv", exclude_zero_fitness_points: bool = True):
-    """Plot the evolution results stored in a 'tune_results.csv' file. The function generates a scatter plot for each
-    key in the CSV, color-coded based on fitness scores. The best-performing configurations are highlighted on
-    the plots.
+def plot_tune_results(results_file: str = "tune_results.ndjson", exclude_zero_fitness_points: bool = True):
+    """Plot the evolution results stored in a tuning NDJSON file.
 
     Args:
-        csv_file (str, optional): Path to the CSV file containing the tuning results.
+        results_file (str, optional): Path to the NDJSON file containing the tuning results.
         exclude_zero_fitness_points (bool, optional): Don't include points with zero fitness in tuning plots.
 
     Examples:
-        >>> plot_tune_results("path/to/tune_results.csv")
+        >>> plot_tune_results("path/to/tune_results.ndjson")
     """
+    import json
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
-    import polars as pl
     from scipy.ndimage import gaussian_filter1d
 
     def _save_one_file(file):
@@ -962,19 +960,27 @@ def plot_tune_results(csv_file: str = "tune_results.csv", exclude_zero_fitness_p
         plt.close()
         LOGGER.info(f"Saved {file}")
 
-    # Scatter plots for each hyperparameter
-    csv_file = Path(csv_file)
-    data = pl.read_csv(csv_file, infer_schema_length=None)
-    keys = [x.strip() for x in data.columns]
-    fitness_keys = {i: k for i, k in enumerate(keys) if "fitness" in k}  # metric keys (e.g., fitness)
-    hyp_keys = {i: k for i, k in enumerate(keys) if "fitness" not in k}  # hyperparameter keys
-    x = data.to_numpy()
-    fitness = x[:, 0]  # fitness
-    if exclude_zero_fitness_points:
-        mask = fitness > 0  # exclude zero-fitness points
-        x, fitness = x[mask], fitness[mask]
-    if len(x) == 0:
+    results_file = Path(results_file)
+    with open(results_file, encoding="utf-8") as f:
+        records = [json.loads(line) for line in f if line.strip()]
+    if not records:
         return
+
+    keys = list(records[0].get("hyperparameters", {}))
+    x = np.array(
+        [[r.get("fitness", 0.0)] + [r.get("hyperparameters", {}).get(k, np.nan) for k in keys] for r in records],
+        dtype=float,
+    )
+    total_iterations = len(x)
+    all_fitness = x[:, 0]  # fitness
+    zero_mask = slice(None)
+    if exclude_zero_fitness_points:
+        zero_mask = all_fitness > 0  # exclude zero-fitness points
+        x, all_fitness = x[zero_mask], all_fitness[zero_mask]
+    if len(all_fitness) == 0:
+        LOGGER.warning("No valid fitness values to plot (all iterations may have failed)")
+        return
+    fitness = all_fitness.copy()
     # Iterative sigma rejection on lower bound only
     for _ in range(3):  # max 3 iterations
         mean, std = fitness.mean(), fitness.std()
@@ -984,33 +990,36 @@ def plot_tune_results(csv_file: str = "tune_results.csv", exclude_zero_fitness_p
             break
         x, fitness = x[mask], fitness[mask]
     j = np.argmax(fitness)  # max fitness index
-    n = math.ceil(len(hyp_keys) ** 0.5)  # columns and rows in plot
+    n = math.ceil(len(keys) ** 0.5)  # columns and rows in plot
     plt.figure(figsize=(10, 10), tight_layout=True)
-    for idx, (i, k) in enumerate(hyp_keys.items()):
-        v = x[:, i]
+    for i, k in enumerate(keys):
+        v = x[:, i + 1]
         mu = v[j]  # best single result
-        plt.subplot(n, n, idx + 1)
+        plt.subplot(n, n, i + 1)
         plt_color_scatter(v, fitness, cmap="viridis", alpha=0.8, edgecolors="none")
         plt.plot(mu, fitness.max(), "k+", markersize=15)
         plt.title(f"{k} = {mu:.3g}", fontdict={"size": 9})  # limit to 40 characters
         plt.tick_params(axis="both", labelsize=8)  # Set axis label size to 8
-        if idx % n != 0:
+        if i % n != 0:
             plt.yticks([])
-    _save_one_file(csv_file.with_name("tune_scatter_plots.png"))
+    _save_one_file(results_file.with_name("tune_scatter_plots.png"))
 
     # Fitness vs iteration
-    for i, k in fitness_keys.items():
-        fitness = x[:, i]
-        xx = range(1, len(fitness) + 1)
-        plt.figure(figsize=(10, 6), tight_layout=True)
-        plt.plot(xx, fitness, marker="o", linestyle="none", label=k)
-        plt.plot(xx, gaussian_filter1d(fitness, sigma=3), ":", label="smoothed", linewidth=2)  # smoothing line
-        plt.title("Fitness vs Iteration")
-        plt.xlabel("Iteration")
-        plt.ylabel("Fitness")
-        plt.grid(True)
-        plt.legend()
-        _save_one_file(csv_file.with_name(f"tune_{k}.png"))
+    x = range(1, len(all_fitness) + 1)
+    plt.figure(figsize=(10, 6), tight_layout=True)
+    for dataset in sorted({k for r in records for k in r.get("datasets", {})}):
+        y = np.array([r.get("datasets", {}).get(dataset, {}).get("fitness", np.nan) for r in records], dtype=float)
+        if exclude_zero_fitness_points and not isinstance(zero_mask, slice):
+            y = y[zero_mask]
+        plt.plot(x, y, "o", markersize=5, alpha=0.8, label=dataset)
+    plt.plot(x, all_fitness, marker="o", linewidth=2, label="mean fitness")
+    plt.plot(x, gaussian_filter1d(all_fitness, sigma=3), ":", label="smoothed mean", linewidth=2)
+    plt.title("Fitness vs Iteration")
+    plt.xlabel("Iteration")
+    plt.ylabel("Fitness")
+    plt.grid(True)
+    plt.legend()
+    _save_one_file(results_file.with_name("tune_fitness.png"))
 
 
 @plt_settings()

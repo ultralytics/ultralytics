@@ -59,15 +59,8 @@ def test_detect():
         assert len(result), "predictor test failed"
 
     # Test resume functionality
-    overrides["resume"] = trainer.last
-    trainer = detect.DetectionTrainer(overrides=overrides)
-    try:
-        trainer.train()
-    except Exception as e:
-        print(f"Expected exception caught: {e}")
-        return
-
-    raise Exception("Resume test failed!")
+    with pytest.raises(AssertionError):
+        detect.DetectionTrainer(overrides={**overrides, "resume": trainer.last}).train()
 
 
 def test_segment():
@@ -105,15 +98,8 @@ def test_segment():
     assert len(result), "predictor test failed"
 
     # Test resume functionality
-    overrides["resume"] = trainer.last
-    trainer = segment.SegmentationTrainer(overrides=overrides)
-    try:
-        trainer.train()
-    except Exception as e:
-        print(f"Expected exception caught: {e}")
-        return
-
-    raise Exception("Resume test failed!")
+    with pytest.raises(AssertionError):
+        segment.SegmentationTrainer(overrides={**overrides, "resume": trainer.last}).train()
 
 
 def test_classify():

@@ -198,21 +198,49 @@ class Detect(nn.Module):
         scores = torch.cat(cls_feats, dim=-1)
         return dict(boxes=boxes, scores=scores, feats=x)
 
+    def _run_branch_chain(self, y_ext):
+        """Run the one2one branch chain with detached external inputs."""
+        y = {}
+        for i, (module, f) in enumerate(zip(self._o2o_chain, self._o2o_chain_from)):
+            idx = self._o2o_chain_start + i
+            if isinstance(f, int):
+                src = idx - 1 if f == -1 else f
+                inp = y[src] if src in y else y_ext[src].detach()
+            else:
+                inp = []
+                for j in f:
+                    src = idx - 1 if j == -1 else j
+                    inp.append(y[src] if src in y else y_ext[src].detach())
+            y[idx] = module(inp)
+        return y
+
     def forward(
         self, x: list[torch.Tensor]
     ) -> dict[str, torch.Tensor] | torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Concatenates and returns predicted bounding boxes and class probabilities."""
-        preds = self.forward_head(x, **self.one2many)
-        if self.end2end:
-            if self.no_detach:
-                x_o2o = x
-            elif self.o2o_grad_scale > 0:
-                s = self.o2o_grad_scale
-                x_o2o = [xi * s + xi.detach() * (1 - s) for xi in x]
-            else:
-                x_o2o = [xi.detach() for xi in x]
+        if hasattr(self, "_o2o_chain") and self.end2end:
+            # Branched mode: x maps to self.f layer indices
+            y_ext = dict(zip(self.f, x))
+            # One2many: use original detection features
+            x_detect = [y_ext[k] for k in self._o2o_detect_from]
+            preds = self.forward_head(x_detect, **self.one2many)
+            # One2one: run branch chain, substitute chain outputs for detection levels
+            chain_y = self._run_branch_chain(y_ext)
+            x_o2o = [chain_y[k] if k in chain_y else y_ext[k].detach() for k in self._o2o_detect_from]
             one2one = self.forward_head(x_o2o, **self.one2one)
             preds = {"one2many": preds, "one2one": one2one}
+        else:
+            preds = self.forward_head(x, **self.one2many)
+            if self.end2end:
+                if self.no_detach:
+                    x_o2o = x
+                elif self.o2o_grad_scale > 0:
+                    s = self.o2o_grad_scale
+                    x_o2o = [xi * s + xi.detach() * (1 - s) for xi in x]
+                else:
+                    x_o2o = [xi.detach() for xi in x]
+                one2one = self.forward_head(x_o2o, **self.one2one)
+                preds = {"one2many": preds, "one2one": one2one}
         if self.training:
             return preds
         y = self._inference(preds["one2one"] if self.end2end else preds)

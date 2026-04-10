@@ -272,6 +272,12 @@ class BaseModel(torch.nn.Module):
                     m.forward = m.forward_fuse
                 if isinstance(m, Detect) and getattr(m, "end2end", False):
                     m.fuse()  # remove one2many head
+                    if hasattr(m, "_o2o_chain"):
+                        # Replace shared layers with one2one's copies for inference
+                        for j, mod in enumerate(m._o2o_chain):
+                            self.model[m._o2o_chain_start + j] = mod
+                        m.f = list(m._o2o_detect_from)  # restore to original detection from-layers
+                        del m._o2o_chain, m._o2o_chain_from, m._o2o_chain_start, m._o2o_detect_from
             self.info(verbose=verbose)
 
         return self
@@ -1559,6 +1565,7 @@ def parse_model(d, ch, verbose=True):
     rep_head = d.get("rep_head", False)
     no_detach = d.get("no_detach", False)
     o2o_grad_scale = d.get("o2o_grad_scale", 0.0)
+    o2o_branch_layer = d.get("o2o_branch_layer")  # first layer to duplicate for one2one branching
     depth, width, kpt_shape = (d.get(x, 1.0) for x in ("depth_multiple", "width_multiple", "kpt_shape"))
     scale = d.get("scale")
     if scales:
@@ -1730,7 +1737,18 @@ def parse_model(d, ch, verbose=True):
                 OBB26,
             }
         ):
-            args.extend([reg_max, end2end, [ch[x] for x in f]])
+            # When o2o_branch is used, compute external inputs and expand f automatically
+            if o2o_branch_layer is not None and m in {Detect, DetectNorm}:
+                detect_f = list(f)  # original detection from-layers (e.g., [16, 19, 22])
+                chain_range = range(o2o_branch_layer, i)
+                # Find external inputs needed by the duplicated chain
+                for k in chain_range:
+                    layer_f = layers[k].f
+                    for src in ([layer_f] if isinstance(layer_f, int) else layer_f):
+                        actual = k - 1 if src == -1 else src
+                        if actual < o2o_branch_layer and actual not in f:
+                            f.append(actual)
+            args.extend([reg_max, end2end, [ch[x] for x in (detect_f if o2o_branch_layer and m in {Detect, DetectNorm} else f)]])
             if m is Segment or m is YOLOESegment or m is Segment26 or m is YOLOESegment26:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {
@@ -1785,6 +1803,13 @@ def parse_model(d, ch, verbose=True):
         m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type
         if verbose:
             LOGGER.info(f"{i:>3}{f!s:>20}{n_:>3}{m_.np:10.0f}  {t:<45}{args!s:<30}")  # print
+        # Attach branch chain for one2one branching
+        if o2o_branch_layer is not None and isinstance(m_, Detect):
+            chain_range = list(range(o2o_branch_layer, i))
+            m_._o2o_chain = nn.ModuleList(deepcopy(layers[k]) for k in chain_range)
+            m_._o2o_chain_from = [layers[k].f for k in chain_range]
+            m_._o2o_chain_start = o2o_branch_layer
+            m_._o2o_detect_from = detect_f  # original detection from-layers
         save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
         layers.append(m_)
         if i == 0:

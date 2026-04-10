@@ -31,7 +31,7 @@ def test_export():
 
 
 @pytest.mark.parametrize(
-    "trainer_cls,validator_cls,predictor_cls,data,model,weights",
+    "trainer,validator,predictor,data,model,weights",
     [
         (
             detect.DetectionTrainer,
@@ -61,7 +61,7 @@ def test_export():
         (pose.PoseTrainer, pose.PoseValidator, pose.PosePredictor, "coco8-pose.yaml", "yolo26n-pose.yaml", None),
     ],
 )
-def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
+def test_task(trainer, validator, predictor, data, model, weights):
     """Test YOLO training, validation, and prediction for various tasks."""
     overrides = {
         "data": data,
@@ -74,7 +74,7 @@ def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
     }
 
     # Trainer
-    trainer = trainer_cls(overrides=overrides)
+    trainer = trainer(overrides=overrides)
     trainer.add_callback("on_train_start", test_func)
     assert test_func in trainer.callbacks["on_train_start"], "callback test failed"
     trainer.train()
@@ -83,13 +83,13 @@ def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
     cfg = get_cfg(DEFAULT_CFG)
     cfg.data = data
     cfg.imgsz = 32
-    val = validator_cls(args=cfg)
+    val = validator(args=cfg)
     val.add_callback("on_val_start", test_func)
     assert test_func in val.callbacks["on_val_start"], "callback test failed"
     val(model=trainer.best)
 
     # Predictor
-    pred = predictor_cls(overrides={"imgsz": [64, 64]})
+    pred = predictor(overrides={"imgsz": [64, 64]})
     pred.add_callback("on_predict_start", test_func)
     assert test_func in pred.callbacks["on_predict_start"], "callback test failed"
 
@@ -106,7 +106,7 @@ def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
 
     # Test resume functionality
     with pytest.raises(AssertionError):
-        trainer_cls(overrides={**overrides, "resume": trainer.last}).train()
+        trainer(overrides={**overrides, "resume": trainer.last}).train()
 
 
 @pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)

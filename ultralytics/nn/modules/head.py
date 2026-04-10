@@ -99,6 +99,7 @@ class Detect(nn.Module):
     suppress = False
     rep_head = False  # use RepConv in head (fuses at inference, zero overhead)
     no_detach = False  # allow one2one gradients to flow back to backbone
+    o2o_grad_scale = 0.0  # gradient scale for one2one features (0=detach, 1=full gradient)
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
         """Initialize the YOLO detection layer with specified number of classes and channels.
@@ -203,7 +204,13 @@ class Detect(nn.Module):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
         preds = self.forward_head(x, **self.one2many)
         if self.end2end:
-            x_o2o = x if self.no_detach else [xi.detach() for xi in x]
+            if self.no_detach:
+                x_o2o = x
+            elif self.o2o_grad_scale > 0:
+                s = self.o2o_grad_scale
+                x_o2o = [xi * s + xi.detach() * (1 - s) for xi in x]
+            else:
+                x_o2o = [xi.detach() for xi in x]
             one2one = self.forward_head(x_o2o, **self.one2one)
             preds = {"one2many": preds, "one2one": one2one}
         if self.training:

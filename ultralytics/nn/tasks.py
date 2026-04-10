@@ -1558,6 +1558,7 @@ def parse_model(d, ch, verbose=True):
     suppress = d.get("suppress", False)
     rep_head = d.get("rep_head", False)
     no_detach = d.get("no_detach", False)
+    o2o_grad_scale = d.get("o2o_grad_scale", 0.0)
     depth, width, kpt_shape = (d.get(x, 1.0) for x in ("depth_multiple", "width_multiple", "kpt_shape"))
     scale = d.get("scale")
     if scales:
@@ -1750,6 +1751,7 @@ def parse_model(d, ch, verbose=True):
                 m.suppress = suppress
                 m.rep_head = rep_head
                 m.no_detach = no_detach
+                m.o2o_grad_scale = o2o_grad_scale
         elif m is v10Detect:
             args.append([ch[x] for x in f])
         elif m is ImagePoolingAttn:

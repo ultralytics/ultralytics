@@ -255,6 +255,9 @@ An NDJSON file containing detailed results of each tuning iteration. Each line i
 - **Format**: NDJSON
 - **Usage**: Per-iteration results tracking.
 - **Example**:
+
+A pretty-printed example is shown below for readability. In the actual `.ndjson` file, each object is stored on a single line.
+
 ```json
 {
   "iteration": 1,

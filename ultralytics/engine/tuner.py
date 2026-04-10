@@ -22,6 +22,7 @@ import random
 import shutil
 import subprocess
 import time
+from collections import Counter
 from datetime import datetime
 from pathlib import Path
 
@@ -223,15 +224,23 @@ class Tuner:
         return x.item() if hasattr(x, "item") else str(x)
 
     def _result_record(
-        self, iteration: int, fitness: float, hyperparameters: dict[str, float], datasets: dict[str, dict]
+        self,
+        iteration: int,
+        fitness: float,
+        hyperparameters: dict[str, float],
+        datasets: dict[str, dict],
+        save_dirs: dict[str, str] | None = None,
     ) -> dict:
         """Build one local tuning result record."""
-        return {
+        result = {
             "iteration": iteration,
             "fitness": round(fitness, 5),
             "hyperparameters": hyperparameters,
             "datasets": datasets,
         }
+        if save_dirs:
+            result["save_dirs"] = save_dirs
+        return result
 
     def _save_to_mongodb(
         self,
@@ -284,6 +293,7 @@ class Tuner:
                                 result["fitness"] or 0.0,
                                 result.get("hyperparameters", {}),
                                 result.get("datasets", {}),
+                                result.get("save_dirs"),
                             ),
                             default=self._json_default,
                         )
@@ -330,6 +340,17 @@ class Tuner:
         if len(datasets) > 1:
             return {k: round(v.get("fitness") or 0.0, 5) for k, v in datasets.items()}
         return None
+
+    @staticmethod
+    def _dataset_names(data: list) -> list[str]:
+        """Create stable unique dataset names for logging and per-run directories."""
+        stems = [Path(str(d)).stem for d in data]
+        totals, seen = Counter(stems), Counter()
+        names = []
+        for stem in stems:
+            seen[stem] += 1
+            names.append(f"{stem}-{seen[stem]}" if totals[stem] > 1 else stem)
+        return names
 
     @staticmethod
     def _crossover(x: np.ndarray, alpha: float = 0.2, k: int = 9) -> np.ndarray:
@@ -430,6 +451,7 @@ class Tuner:
         t0 = time.time()
         self.tune_dir.mkdir(parents=True, exist_ok=True)
         (self.tune_dir / "weights").mkdir(parents=True, exist_ok=True)
+        best_save_dirs = {}
 
         # Sync MongoDB to local NDJSON at startup for proper resume logic
         if self.mongodb:
@@ -452,15 +474,15 @@ class Tuner:
             data = train_args.pop("data")
             if not isinstance(data, (list, tuple)):
                 data = [data]
+            dataset_names = self._dataset_names(data)
             save_dir = [get_save_dir(get_cfg(train_args))] if len(data) == 1 else [
-                get_save_dir(get_cfg(train_args), name=Path(str(d)).stem) for d in data
+                get_save_dir(get_cfg(train_args), name=name) for name in dataset_names
             ]
             weights_dir = [s / "weights" for s in save_dir]
             metrics = {}
             all_fitness = []
             dataset_metrics = {}
-            for j, d in enumerate(data):
-                dataset = Path(str(d)).stem
+            for j, (d, dataset) in enumerate(zip(data, dataset_names)):
                 metrics_i = {}
                 try:
                     train_args["data"] = d
@@ -490,16 +512,16 @@ class Tuner:
                 dataset_metrics[dataset] = metrics_i or {"fitness": 0.0}
                 all_fitness.append(dataset_metrics[dataset].get("fitness") or 0.0)
             fitness = sum(all_fitness) / len(all_fitness)
-            result = self._result_record(i + 1, fitness, mutated_hyp, dataset_metrics)
+            result = self._result_record(
+                i + 1, fitness, mutated_hyp, dataset_metrics, {dataset: str(s) for dataset, s in zip(dataset_names, save_dir)}
+            )
+            stop_after_iteration = False
             if self.mongodb:
                 self._save_to_mongodb(fitness, mutated_hyp, metrics, dataset_metrics, i + 1)
                 self._sync_mongodb_to_file()
                 total_mongo_iterations = self.collection.count_documents({})
                 if total_mongo_iterations >= iterations:
-                    LOGGER.info(
-                        f"{self.prefix}Target iterations ({iterations}) reached in MongoDB ({total_mongo_iterations}). Stopping."
-                    )
-                    break
+                    stop_after_iteration = True
             else:
                 self._save_local_result(result)
 
@@ -509,20 +531,21 @@ class Tuner:
             fitness = x[:, 0]  # first column
             best_idx = fitness.argmax()
             best_result = results[best_idx]
+            current_best_save_dirs = best_result.get("save_dirs", {})
             best_is_current = best_idx == i
             if best_is_current:
+                if cleanup:
+                    for s in best_save_dirs.values():
+                        if s not in current_best_save_dirs.values():
+                            shutil.rmtree(s, ignore_errors=True)
                 if len(data) == 1:
                     for ckpt in weights_dir[0].glob("*.pt"):
                         shutil.copy2(ckpt, self.tune_dir / "weights")
-                else:
-                    for j in range(len(data)):
-                        best_weights_dir = self.tune_dir / "weights" / Path(str(data[j])).stem
-                        best_weights_dir.mkdir(parents=True, exist_ok=True)
-                        for ckpt in weights_dir[j].glob("*.pt"):
-                            shutil.copy2(ckpt, best_weights_dir)
+                best_save_dirs = current_best_save_dirs
             elif cleanup:
                 for s in save_dir:
                     shutil.rmtree(s, ignore_errors=True)  # remove iteration dirs to reduce storage space
+                best_save_dirs = current_best_save_dirs
 
             # Plot tune results
             plot_tune_results(str(self.tune_file))
@@ -533,7 +556,8 @@ class Tuner:
                 f"{self.prefix}Results saved to {colorstr('bold', self.tune_dir)}\n"
                 f"{self.prefix}Best fitness={fitness[best_idx]} observed at iteration {best_idx + 1}\n"
                 f"{self.prefix}Best fitness metrics are {self._best_metrics(best_result)}\n"
-                f"{self.prefix}Best fitness model is {self.tune_dir / 'weights'}"
+                f"{self.prefix}Best fitness model is "
+                f"{self.tune_dir / 'weights' if len(best_result.get('datasets', {})) == 1 else 'not saved for multi-dataset tuning'}"
             )
             LOGGER.info("\n" + header)
             data = {k: int(v) if k in CFG_INT_KEYS else float(v) for k, v in zip(self.space.keys(), x[best_idx, 1:])}
@@ -543,3 +567,8 @@ class Tuner:
                 header=remove_colorstr(header.replace(self.prefix, "# ")) + "\n",
             )
             YAML.print(self.tune_dir / "best_hyperparameters.yaml")
+            if stop_after_iteration:
+                LOGGER.info(
+                    f"{self.prefix}Target iterations ({iterations}) reached in MongoDB ({total_mongo_iterations}). Stopping."
+                )
+                break

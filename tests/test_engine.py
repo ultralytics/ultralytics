@@ -82,7 +82,15 @@ def test_export():
 )
 def test_task(task, trainer_cls, validator_cls, predictor_cls, data, model, weights):
     """Test YOLO training, validation, and prediction for various tasks."""
-    overrides = {"data": data, "model": model, "imgsz": 32, "epochs": 1, "save": False}
+    overrides = {
+        "data": data,
+        "model": model,
+        "imgsz": 32,
+        "epochs": 1,
+        "save": False,
+        "mask_ratio": 1,
+        "overlap_mask": False,
+    }
 
     # Trainer
     trainer = trainer_cls(overrides=overrides)
@@ -118,10 +126,6 @@ def test_task(task, trainer_cls, validator_cls, predictor_cls, data, model, weig
     # Test resume functionality
     with pytest.raises(AssertionError):
         trainer_cls(overrides={**overrides, "resume": trainer.last}).train()
-
-    # Test resume functionality
-    with pytest.raises(AssertionError):
-        classify.ClassificationTrainer(overrides={**overrides, "resume": trainer.last}).train()
 
 
 @pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)

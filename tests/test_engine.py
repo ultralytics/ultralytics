@@ -132,14 +132,15 @@ def test_classify():
     with pytest.raises(AssertionError):
         classify.ClassificationTrainer(overrides={**overrides, "resume": trainer.last}).train()
 
+
 @pytest.mark.parametrize(
     ("trainer_cls", "base_overrides", "name"),
     [
-        (detect.DetectionTrainer, {"data": "coco8.yaml", "model": "yolo26n.yaml", "imgsz": 32}, "detect"),
-        (segment.SegmentationTrainer, {"data": "coco8-seg.yaml", "model": "yolo26n-seg.yaml", "imgsz": 32}, "segment"),
-        (pose.PoseTrainer, {"data": "coco8-pose.yaml", "model": "yolo26n-pose.yaml", "imgsz": 32}, "pose"),
-        (obb.OBBTrainer, {"data": "dota8.yaml", "model": "yolo26n-obb.yaml", "imgsz": 32}, "obb"),
-        (classify.ClassificationTrainer, {"data": "imagenet10", "model": "yolo26n-cls.yaml", "imgsz": 32}, "classify"),
+        (detect.DetectionTrainer, {"data": "coco8.yaml", "model": "yolo26n.yaml"}, "detect"),
+        (segment.SegmentationTrainer, {"data": "coco8-seg.yaml", "model": "yolo26n-seg.yaml"}, "segment"),
+        (pose.PoseTrainer, {"data": "coco8-pose.yaml", "model": "yolo26n-pose.yaml"}, "pose"),
+        (obb.OBBTrainer, {"data": "dota8.yaml", "model": "yolo26n-obb.yaml"}, "obb"),
+        (classify.ClassificationTrainer, {"data": "imagenet10", "model": "yolo26n-cls.yaml"}, "classify"),
     ],
     ids=("detect", "segment", "pose", "obb", "classify"),
 )
@@ -153,6 +154,7 @@ def test_resume_incomplete(trainer_cls, base_overrides, name, tmp_path):
         "workers": 0,
         "project": tmp_path,
         "name": name,
+        "imgsz": 32,
         "exist_ok": True,
     }
 

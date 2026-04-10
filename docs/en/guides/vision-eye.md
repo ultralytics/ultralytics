@@ -171,7 +171,7 @@ Ultralytics YOLO26 is renowned for its speed, [accuracy](https://www.ultralytics
 3. **Community and Support**: Extensive documentation and active GitHub community for troubleshooting and enhancements.
 4. **Ease of Use**: Intuitive API simplifies complex tasks, allowing for rapid deployment and iteration.
 
-For more information on applications and benefits, check out the [Ultralytics YOLO26 documentation](https://docs.ultralytics.com/models/yolov8/).
+For more information on applications and benefits, check out the [Ultralytics YOLO26 documentation](https://docs.ultralytics.com/models/yolo26/).
 
 ### How can I integrate VisionEye with other [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) tools like Comet or ClearML?
 

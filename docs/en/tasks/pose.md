@@ -15,13 +15,13 @@ The output of a pose estimation model is a set of points that represent the keyp
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/AAkfToU3nAc"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/4VTuqfrOIws"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics YOLO26 Pose Estimation Tutorial | Real-Time Object Tracking and Human Pose Detection
+  <strong>Watch:</strong> How to Run Real-Time Pose Estimation with Ultralytics YOLO26 | Tracking & Keypoints Extraction 🕺
 </p>
 
 !!! tip
@@ -58,6 +58,7 @@ Ultralytics YOLO26 pretrained Pose models are shown here. Detect, Segment and Po
 
 - **mAP<sup>val</sup>** values are for single-model single-scale on [COCO Keypoints val2017](https://cocodataset.org/) dataset. <br>Reproduce by `yolo val pose data=coco-pose.yaml device=0`
 - **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val pose data=coco-pose.yaml batch=1 device=0|cpu`
+- **Params** and **FLOPs** values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers and, for end2end models, removes the auxiliary one-to-many detection head. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
 ## Train
 

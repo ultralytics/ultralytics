@@ -38,6 +38,7 @@ YOLO26 pretrained Segment models are shown here. Detect, Segment and Pose models
 
 - **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce by `yolo val segment data=coco.yaml device=0`
 - **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val segment data=coco.yaml batch=1 device=0|cpu`
+- **Params** and **FLOPs** values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers and, for end2end models, removes the auxiliary one-to-many detection head. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
 ## Train
 
@@ -53,7 +54,7 @@ Train YOLO26n-seg on the COCO8-seg dataset for 100 [epochs](https://www.ultralyt
         # Load a model
         model = YOLO("yolo26n-seg.yaml")  # build a new model from YAML
         model = YOLO("yolo26n-seg.pt")  # load a pretrained model (recommended for training)
-        model = YOLO("yolo26n-seg.yaml").load("yolo26n.pt")  # build from YAML and transfer weights
+        model = YOLO("yolo26n-seg.yaml").load("yolo26n-seg.pt")  # build from YAML and transfer weights
 
         # Train the model
         results = model.train(data="coco8-seg.yaml", epochs=100, imgsz=640)

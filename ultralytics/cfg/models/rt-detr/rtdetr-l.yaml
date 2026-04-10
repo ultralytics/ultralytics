@@ -18,12 +18,12 @@ backbone:
   - [-1, 1, DWConv, [128, 3, 2, 1, False]] # 2-P3/8
   - [-1, 6, HGBlock, [96, 512, 3]] # stage 2
 
-  - [-1, 1, DWConv, [512, 3, 2, 1, False]] # 4-P3/16
+  - [-1, 1, DWConv, [512, 3, 2, 1, False]] # 4-P4/16
   - [-1, 6, HGBlock, [192, 1024, 5, True, False]] # cm, c2, k, light, shortcut
   - [-1, 6, HGBlock, [192, 1024, 5, True, True]]
   - [-1, 6, HGBlock, [192, 1024, 5, True, True]] # stage 3
 
-  - [-1, 1, DWConv, [1024, 3, 2, 1, False]] # 8-P4/32
+  - [-1, 1, DWConv, [1024, 3, 2, 1, False]] # 8-P5/32
   - [-1, 6, HGBlock, [384, 2048, 5, True, False]] # stage 4
 
 head:
@@ -50,4 +50,4 @@ head:
   - [[-1, 12], 1, Concat, [1]] # cat Y5
   - [-1, 3, RepC3, [256]] # F5 (27), pan_blocks.1
 
-  - [[21, 24, 27], 1, RTDETRDecoder, [nc]] # Detect(P3, P4, P5)
+  - [[21, 24, 27], 1, RTDETRDecoder, [nc]] # RTDETRDecoder(P3, P4, P5)

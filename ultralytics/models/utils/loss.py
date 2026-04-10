@@ -94,8 +94,8 @@ class DETRLoss(nn.Module):
 
         Notes:
             The function supports different classification loss types:
-            - Varifocal Loss (if self.vfl is True and num_gts > 0)
-            - Focal Loss (if self.fl is True)
+            - Varifocal Loss (if self.vfl is not None and num_gts > 0)
+            - Focal Loss (if self.fl is not None)
             - BCE Loss (default fallback)
         """
         # Logits: [b, query, num_classes], gt_class: list[[n, 1]]
@@ -391,7 +391,7 @@ class DETRLoss(nn.Module):
 
 
 class RTDETRDetectionLoss(DETRLoss):
-    """Real-Time DeepTracker (RT-DETR) Detection Loss class that extends the DETRLoss.
+    """Real-Time DEtection TRansformer (RT-DETR) Detection Loss class that extends the DETRLoss.
 
     This class computes the detection loss for the RT-DETR model, which includes the standard detection loss as well as
     an additional denoising training loss when provided with denoising metadata.

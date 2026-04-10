@@ -221,7 +221,7 @@ if RANK in {-1, 0}:
     loggers = Loggers(save_dir, weights, opt, hyp, LOGGER)  # loggers instance
     if loggers.clearml:
         loggers.clearml.task.execute_remotely(queue="my_queue")  # <------ ADD THIS LINE
-        # Data_dict is either None is user did not choose for ClearML dataset or is filled in by ClearML
+        # Data_dict is either None if user did not choose for ClearML dataset or is filled in by ClearML
         data_dict = loggers.clearml.data_dict
 # ...
 ```

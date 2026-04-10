@@ -9,9 +9,9 @@ from ultralytics.models.yolo.segment import SegmentationPredictor
 
 
 class YOLOEVPDetectPredictor(DetectionPredictor):
-    """A mixin class for YOLO-EVP (Enhanced Visual Prompting) predictors.
+    """A class extending DetectionPredictor for YOLO-EVP (Enhanced Visual Prompting) predictions.
 
-    This mixin provides common functionality for YOLO models that use visual prompting, including model setup, prompt
+    This class provides common functionality for YOLO models that use visual prompting, including model setup, prompt
     handling, and preprocessing transformations.
 
     Attributes:
@@ -53,10 +53,10 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         accordingly.
 
         Args:
-            im (list): List containing a single input image.
+            im (list): List of input images.
 
         Returns:
-            (list): Preprocessed image ready for model inference.
+            (list): Preprocessed images ready for model inference.
 
         Raises:
             ValueError: If neither valid bounding boxes nor masks are provided in the prompts.
@@ -95,7 +95,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         Args:
             dst_shape (tuple): The target shape (height, width) of the image.
             src_shape (tuple): The original shape (height, width) of the image.
-            category (str): The category of the image for visual prompts.
+            category (list | np.ndarray): The category indices for visual prompts.
             bboxes (list | np.ndarray, optional): A list of bounding boxes in the format [x1, y1, x2, y2].
             masks (np.ndarray, optional): A list of masks corresponding to the image.
 
@@ -112,8 +112,8 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
             # Calculate scaling factor and adjust bounding boxes
             gain = min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])  # gain = old / new
             bboxes *= gain
-            bboxes[..., 0::2] += round((dst_shape[1] - src_shape[1] * gain) / 2 - 0.1)
-            bboxes[..., 1::2] += round((dst_shape[0] - src_shape[0] * gain) / 2 - 0.1)
+            bboxes[..., 0::2] += round((dst_shape[1] - round(src_shape[1] * gain)) / 2 - 0.1)
+            bboxes[..., 1::2] += round((dst_shape[0] - round(src_shape[0] * gain)) / 2 - 0.1)
         elif masks is not None:
             # Resize and process masks
             resized_masks = super().pre_transform(masks)

@@ -58,8 +58,8 @@ For troubleshooting common issues, visit the [YOLO Common Issues](https://docs.u
 
 To train a custom YOLO model:
 
-1. Prepare your dataset in YOLO format (images and corresponding label txt files).
-2. Create a YAML file describing your dataset structure and classes.
+1. Prepare your dataset in [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format) (images and corresponding label txt files).
+2. Create a YAML file describing your dataset structure and classes (see [dataset YAML example](../datasets/detect/index.md#ultralytics-yolo-format)).
 3. Use the following Python code to start training:
 
     ```python
@@ -124,7 +124,7 @@ Ultralytics provides export functions to convert models to various formats for d
 
 Key distinctions include:
 
-- End-to-End NMS-Free Inference: YOLO26 is natively end-to-end, producing predictions directly without non-maximum suppression (NMS), reducing latency and simplifying deployment.
+- [End-to-End NMS-Free Inference](../guides/end2end-detection.md): YOLO26 is natively end-to-end, producing predictions directly without non-maximum suppression (NMS), reducing latency and simplifying deployment.
 - DFL Removal: YOLO26 removes the Distribution Focal Loss module, simplifying export and improving compatibility with edge and low-power devices.
 - MuSGD Optimizer: A hybrid of SGD and Muon (inspired by Moonshot AI's Kimi K2) for more stable training and faster convergence.
 - CPU Performance: YOLO26 delivers up to 43% faster CPU inference, making it ideal for devices without GPUs.

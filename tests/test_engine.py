@@ -1,8 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import sys
+from types import SimpleNamespace
 from unittest import mock
 
+import pytest
 import torch
 
 from tests import MODEL, SOURCE
@@ -14,7 +16,7 @@ from ultralytics.utils import ASSETS, DEFAULT_CFG, SEMSEG_CFG, WEIGHTS_DIR
 
 
 def test_func(*args, **kwargs):
-    """Test function callback for evaluating YOLO model performance metrics."""
+    """Test function used as a callback stub to verify callback registration."""
     print("callback test passed")
 
 
@@ -56,15 +58,8 @@ def test_detect():
         assert len(result), "predictor test failed"
 
     # Test resume functionality
-    overrides["resume"] = trainer.last
-    trainer = detect.DetectionTrainer(overrides=overrides)
-    try:
-        trainer.train()
-    except Exception as e:
-        print(f"Expected exception caught: {e}")
-        return
-
-    raise Exception("Resume test failed!")
+    with pytest.raises(AssertionError):
+        detect.DetectionTrainer(overrides={**overrides, "resume": trainer.last}).train()
 
 
 def test_segment():
@@ -102,15 +97,8 @@ def test_segment():
     assert len(result), "predictor test failed"
 
     # Test resume functionality
-    overrides["resume"] = trainer.last
-    trainer = segment.SegmentationTrainer(overrides=overrides)
-    try:
-        trainer.train()
-    except Exception as e:
-        print(f"Expected exception caught: {e}")
-        return
-
-    raise Exception("Resume test failed!")
+    with pytest.raises(AssertionError):
+        segment.SegmentationTrainer(overrides={**overrides, "resume": trainer.last}).train()
 
 
 def test_classify():
@@ -263,3 +251,42 @@ def test_semseg_yolo_cpu():
     )
     m.val(task="semseg", device="cpu", imgsz=256, rect=False)
     m.export(format="onnx")
+def test_train_reuses_loaded_checkpoint_model(monkeypatch):
+    """Test training reuses an already-loaded checkpoint model instead of re-parsing the model source."""
+    model = YOLO("yolo26n.yaml")
+    model.ckpt = {"checkpoint": True}
+    model.ckpt_path = "/tmp/fake.pt"
+    model.overrides["model"] = "ul://glenn-jocher/m2/exp-14"
+    original_model = model.model
+    captured = {}
+
+    class FakeTrainer:
+        def __init__(self, overrides=None, _callbacks=None):
+            self.overrides = overrides
+            self.callbacks = _callbacks
+            self.model = None
+            self.validator = SimpleNamespace(metrics=None)
+            self.best = MODEL.parent / "nonexistent-best.pt"
+            self.last = MODEL
+            captured["trainer"] = self
+
+        def get_model(self, cfg=None, weights=None, verbose=True):
+            captured["cfg"] = cfg
+            captured["weights"] = weights
+            return original_model
+
+        def train(self):
+            return None
+
+    monkeypatch.setattr("ultralytics.engine.model.checks.check_pip_update_available", lambda: None)
+    monkeypatch.setattr(model, "_smart_load", lambda key: FakeTrainer)
+    monkeypatch.setattr(
+        "ultralytics.engine.model.load_checkpoint",
+        lambda path: (original_model, {"checkpoint": True}),
+    )
+
+    model.train(data="coco8.yaml", epochs=1)
+
+    assert captured["trainer"].model is original_model
+    assert captured["cfg"] == original_model.yaml
+    assert captured["weights"] is original_model

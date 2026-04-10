@@ -96,7 +96,7 @@ def test_fastsam(
 
 
 def test_mobilesam() -> None:
-    """Test MobileSAM segmentation with point prompts using Ultralytics."""
+    """Test MobileSAM segmentation with point and box prompts using Ultralytics."""
     from ultralytics import SAM
 
     # Load the model

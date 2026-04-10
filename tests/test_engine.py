@@ -31,7 +31,7 @@ def test_export():
 
 
 @pytest.mark.parametrize(
-    "task,trainer_cls,validator_cls,predictor_cls,data,model,weights",
+    "trainer_cls,validator_cls,predictor_cls,data,model,weights",
     [
         (
             detect.DetectionTrainer,

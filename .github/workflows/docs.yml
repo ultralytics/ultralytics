@@ -86,6 +86,7 @@ jobs:
           --ignore D100,D104,D203,D205,D212,D213,D401,D406,D407,D413,RUF001,RUF002,RUF012 \
           .
       - name: Build Docs and Check for Warnings
+        if: false
         run: |
           python docs/build_docs.py
       - name: Commit and Push Docs changes

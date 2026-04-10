@@ -3,6 +3,7 @@
 import contextlib
 import csv
 import urllib
+import zipfile
 from copy import copy
 from pathlib import Path
 
@@ -35,7 +36,7 @@ from ultralytics.utils import (
     checks,
     is_github_action_running,
 )
-from ultralytics.utils.downloads import download
+from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
 
 
@@ -365,6 +366,26 @@ def test_data_utils(tmp_path):
 
     autosplit(tmp_path / "coco8")
     zip_directory(tmp_path / "coco8/images/val")  # zip
+
+
+def test_safe_download_unzips_local_path_archive(tmp_path):
+    """Test safe_download() unzips local archive paths without treating them like remote URLs."""
+    dataset_dir = tmp_path / "coco8 local"
+    archive = tmp_path / "coco8 local.zip"
+    (dataset_dir / "images" / "train").mkdir(parents=True)
+    (dataset_dir / "images" / "val").mkdir(parents=True)
+    (dataset_dir / "labels" / "train").mkdir(parents=True)
+    (dataset_dir / "labels" / "val").mkdir(parents=True)
+    (dataset_dir / "data.yaml").write_text("path: .\ntrain: images/train\nval: images/val\nnames:\n  0: item\n")
+
+    with zipfile.ZipFile(archive, "w") as zf:
+        for path in dataset_dir.rglob("*"):
+            zf.write(path, arcname=path.relative_to(tmp_path))
+
+    extracted = safe_download(archive, dir=tmp_path / "datasets", unzip=True, progress=False)
+    assert extracted == (tmp_path / "datasets" / dataset_dir.name)
+    assert (extracted / "data.yaml").is_file()
+    assert (extracted / "images" / "val").is_dir()
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

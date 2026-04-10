@@ -7,11 +7,11 @@ from unittest import mock
 import pytest
 import torch
 
-from tests import MODEL, SOURCE
+from tests import MODEL, SOURCE, TASK_MODEL_DATA
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
-from ultralytics.models.yolo import classify, detect, obb, pose, segment
+from ultralytics.models.yolo import classify, detect, segment
 from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
 
@@ -133,27 +133,17 @@ def test_classify():
         classify.ClassificationTrainer(overrides={**overrides, "resume": trainer.last}).train()
 
 
-@pytest.mark.parametrize(
-    ("trainer_cls", "base_overrides", "name"),
-    [
-        (detect.DetectionTrainer, {"data": "coco8.yaml", "model": "yolo26n.yaml"}, "detect"),
-        (segment.SegmentationTrainer, {"data": "coco8-seg.yaml", "model": "yolo26n-seg.yaml"}, "segment"),
-        (pose.PoseTrainer, {"data": "coco8-pose.yaml", "model": "yolo26n-pose.yaml"}, "pose"),
-        (obb.OBBTrainer, {"data": "dota8.yaml", "model": "yolo26n-obb.yaml"}, "obb"),
-        (classify.ClassificationTrainer, {"data": "imagenet10", "model": "yolo26n-cls.yaml"}, "classify"),
-    ],
-    ids=("detect", "segment", "pose", "obb", "classify"),
-)
-def test_resume_incomplete(trainer_cls, base_overrides, name, tmp_path):
+@pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)
+def test_resume_incomplete(task, weight, data, tmp_path):
     """Test training resumes from an incomplete checkpoint."""
-    overrides = {
-        **base_overrides,
+    train_args = {
+        "data": data,
         "epochs": 2,
         "save": True,
         "plots": False,
         "workers": 0,
         "project": tmp_path,
-        "name": name,
+        "name": task,
         "imgsz": 32,
         "exist_ok": True,
     }
@@ -162,17 +152,21 @@ def test_resume_incomplete(trainer_cls, base_overrides, name, tmp_path):
         if trainer.epoch == 0:
             trainer.stop = True
 
-    trainer = trainer_cls(overrides=overrides)
-    trainer.final_eval = lambda: None
-    trainer.add_callback("on_train_epoch_end", stop_after_first_epoch)
-    trainer.train()
-    _, ckpt = load_checkpoint(trainer.last)
+    def disable_final_eval(trainer):
+        trainer.final_eval = lambda: None
+
+    model = YOLO(weight)
+    model.add_callback("on_train_start", disable_final_eval)
+    model.add_callback("on_train_epoch_end", stop_after_first_epoch)
+    model.train(**train_args)
+    last_path = model.trainer.last
+    _, ckpt = load_checkpoint(last_path)
     assert ckpt["epoch"] == 0, "checkpoint should be resumable"
 
-    trainer = trainer_cls(overrides={**overrides, "resume": trainer.last})
-    trainer.final_eval = lambda: None
-    trainer.train()
-    assert trainer.start_epoch == trainer.epoch == 1, "resume test failed"
+    # Resume training using the checkpoint
+    resume_model = YOLO(last_path)
+    resume_model.train(resume=True, **train_args)
+    assert resume_model.trainer.start_epoch == resume_model.trainer.epoch == 1, "resume test failed"
 
 
 def test_nan_recovery():

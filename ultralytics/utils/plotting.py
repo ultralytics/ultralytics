@@ -1013,8 +1013,7 @@ def plot_tune_results(results_file: str = "tune_results.ndjson", exclude_zero_fi
         if exclude_zero_fitness_points and not isinstance(zero_mask, slice):
             y = y[zero_mask]
         plt.plot(x, y, "o", markersize=5, alpha=0.8, label=dataset)
-    plt.plot(x, all_fitness, marker="o", linewidth=2, label="mean fitness")
-    plt.plot(x, gaussian_filter1d(all_fitness, sigma=3), ":", label="smoothed mean", linewidth=2)
+    plt.plot(x, gaussian_filter1d(all_fitness, sigma=3), ":", color="0.35", label="smoothed mean", linewidth=2)
     plt.title("Fitness vs Iteration")
     plt.xlabel("Iteration")
     plt.ylabel("Fitness")

@@ -2910,7 +2910,7 @@ class SemSegMosaic(BaseMixTransform):
             >>> print(len(indexes))  # Output: 3
         """
         if buffer:  # select images from buffer
-            return random.choices(List(self.dataset.buffer), k=self.n - 1)
+            return random.choices(list(self.dataset.buffer), k=self.n - 1)
         else:  # select any images
             return [random.randint(0, len(self.dataset) - 1) for _ in range(self.n - 1)]
 

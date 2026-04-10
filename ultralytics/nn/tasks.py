@@ -1670,6 +1670,9 @@ def parse_model(d, ch, verbose=True):
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
+        elif m is SemanticSegment:
+            args.append([ch[x] for x in f])
+            args[2] = make_divisible(min(args[2], max_channels) * width, 8)
         elif m in frozenset(
             {
                 Detect,
@@ -1682,14 +1685,11 @@ def parse_model(d, ch, verbose=True):
                 Pose,
                 Pose26,
                 OBB,
-                OBB26,
-                SemanticSegment
+                OBB26
             }
         ):
             args.extend([reg_max, end2end, [ch[x] for x in f]])
             if m is Segment or m is YOLOESegment or m is Segment26 or m is YOLOESegment26:
-                args.append([ch[x] for x in f])
-            if m is Segment or m is YOLOESegment or m is SemanticSegment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {Detect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
                 m.legacy = legacy

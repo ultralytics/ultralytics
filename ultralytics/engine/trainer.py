@@ -961,7 +961,7 @@ class BaseTrainer:
             )
             self.epochs += ckpt["epoch"]  # finetune additional epochs
         self._load_checkpoint_state(ckpt)
-        if unwrap_model(self.model).end2end:
+        if getattr(unwrap_model(self.model), "end2end", False):
             # initialize loss and resume o2o and o2m args
             unwrap_model(self.model).criterion = unwrap_model(self.model).init_criterion()
             unwrap_model(self.model).criterion.updates = start_epoch - 1

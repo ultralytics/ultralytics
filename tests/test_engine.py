@@ -11,7 +11,7 @@ from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
-from ultralytics.models.yolo import classify, detect, segment
+from ultralytics.models.yolo import classify, detect, obb, pose, segment
 from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
 
@@ -129,23 +129,19 @@ def test_classify():
     assert len(result), "predictor test failed"
 
     # Test resume functionality
-    overrides["resume"] = trainer.last
-    trainer = classify.ClassificationTrainer(overrides=overrides)
-    try:
-        trainer.train()
-    except Exception as e:
-        print(f"Expected exception caught: {e}")
-        return
-
-    raise Exception("Resume test failed!")
+    with pytest.raises(AssertionError):
+        classify.ClassificationTrainer(overrides={**overrides, "resume": trainer.last}).train()
 
 @pytest.mark.parametrize(
     ("trainer_cls", "base_overrides", "name"),
     [
         (detect.DetectionTrainer, {"data": "coco8.yaml", "model": "yolo26n.yaml", "imgsz": 32}, "detect"),
+        (segment.SegmentationTrainer, {"data": "coco8-seg.yaml", "model": "yolo26n-seg.yaml", "imgsz": 32}, "segment"),
+        (pose.PoseTrainer, {"data": "coco8-pose.yaml", "model": "yolo26n-pose.yaml", "imgsz": 32}, "pose"),
+        (obb.OBBTrainer, {"data": "dota8.yaml", "model": "yolo26n-obb.yaml", "imgsz": 32}, "obb"),
         (classify.ClassificationTrainer, {"data": "imagenet10", "model": "yolo26n-cls.yaml", "imgsz": 32}, "classify"),
     ],
-    ids=("detect", "classify"),
+    ids=("detect", "segment", "pose", "obb", "classify"),
 )
 def test_resume_incomplete(trainer_cls, base_overrides, name, tmp_path):
     """Test training resumes from an incomplete checkpoint."""

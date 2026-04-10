@@ -7,7 +7,7 @@
 nc: 80 # number of classes
 end2end: True # whether to use end-to-end mode
 reg_max: 1 # DFL bins
-o2o_branch_layer: 22 # duplicate layers from here onward for one2one (adjustable: 22, 20, 17, etc.)
+o2o_residual_head: True  # o2o learns a residual to o2m cls branch, instead of having it's own branch
 scales: # model compound scaling constants, i.e. 'model=yolo26n.yaml' will call yolo26.yaml with scale 'n'
   # [depth, width, max_channels]
   n: [0.50, 0.25, 1024]

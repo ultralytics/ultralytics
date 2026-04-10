@@ -100,6 +100,7 @@ class Detect(nn.Module):
     rep_head = False  # use RepConv in head (fuses at inference, zero overhead)
     no_detach = False  # allow one2one gradients to flow back to backbone
     o2o_grad_scale = 0.0  # gradient scale for one2one features (0=detach, 1=full gradient)
+    o2o_residual_head = False  # lightweight residual cls head for one2one (share boxes with o2m)
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
         """Initialize the YOLO detection layer with specified number of classes and channels.
@@ -154,8 +155,19 @@ class Detect(nn.Module):
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
 
         if end2end:
-            self.one2one_cv2 = copy.deepcopy(self.cv2)
-            self.one2one_cv3 = copy.deepcopy(self.cv3)
+            if self.o2o_residual_head:
+                # Lightweight residual: share box head, learn cls correction only
+                self.one2one_cv2 = None  # reuse o2m boxes
+                self.one2one_cv3 = None  # handled via residual
+                self.o2o_cls_res = nn.ModuleList()
+                for x in ch:
+                    conv = nn.Conv2d(x, self.nc, 1, bias=True)
+                    nn.init.zeros_(conv.weight)
+                    nn.init.zeros_(conv.bias)
+                    self.o2o_cls_res.append(nn.Sequential(DWConv(x, x, 3), conv))
+            else:
+                self.one2one_cv2 = copy.deepcopy(self.cv2)
+                self.one2one_cv3 = copy.deepcopy(self.cv3)
             if self.suppress:
                 self.o2o_suppress = nn.ModuleList(SpatialSuppressionGate(nc, k=5) for _ in range(self.nl))
 
@@ -198,40 +210,22 @@ class Detect(nn.Module):
         scores = torch.cat(cls_feats, dim=-1)
         return dict(boxes=boxes, scores=scores, feats=x)
 
-    def _run_branch_chain(self, y_ext):
-        """Run the one2one branch chain with detached external inputs."""
-        y = {}
-        for i, (module, f) in enumerate(zip(self._o2o_chain, self._o2o_chain_from)):
-            idx = self._o2o_chain_start + i
-            if isinstance(f, int):
-                src = idx - 1 if f == -1 else f
-                inp = y[src] if src in y else y_ext[src].detach()
-            else:
-                inp = []
-                for j in f:
-                    src = idx - 1 if j == -1 else j
-                    inp.append(y[src] if src in y else y_ext[src].detach())
-            y[idx] = module(inp)
-        return y
-
     def forward(
         self, x: list[torch.Tensor]
     ) -> dict[str, torch.Tensor] | torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Concatenates and returns predicted bounding boxes and class probabilities."""
-        if hasattr(self, "_o2o_chain") and self.end2end:
-            # Branched mode: x maps to self.f layer indices
-            y_ext = dict(zip(self.f, x))
-            # One2many: use original detection features
-            x_detect = [y_ext[k] for k in self._o2o_detect_from]
-            preds = self.forward_head(x_detect, **self.one2many)
-            # One2one: run branch chain, substitute chain outputs for detection levels
-            chain_y = self._run_branch_chain(y_ext)
-            x_o2o = [chain_y[k] if k in chain_y else y_ext[k].detach() for k in self._o2o_detect_from]
-            one2one = self.forward_head(x_o2o, **self.one2one)
-            preds = {"one2many": preds, "one2one": one2one}
-        else:
-            preds = self.forward_head(x, **self.one2many)
-            if self.end2end:
+        preds = self.forward_head(x, **self.one2many)
+        if self.end2end:
+            if self.o2o_residual_head:
+                # Shared boxes from o2m (detached), cls = o2m_cls + lightweight residual
+                bs = x[0].shape[0]
+                o2o_scores = preds["scores"].detach()  # (B, nc, A) from o2m
+                cls_res = []
+                for i in range(self.nl):
+                    cls_res.append(self.o2o_cls_res[i](x[i].detach()).view(bs, self.nc, -1))
+                o2o_scores = o2o_scores + torch.cat(cls_res, dim=-1)
+                one2one = dict(boxes=preds["boxes"].detach(), scores=o2o_scores, feats=x)
+            else:
                 if self.no_detach:
                     x_o2o = x
                 elif self.o2o_grad_scale > 0:
@@ -240,7 +234,7 @@ class Detect(nn.Module):
                 else:
                     x_o2o = [xi.detach() for xi in x]
                 one2one = self.forward_head(x_o2o, **self.one2one)
-                preds = {"one2many": preds, "one2one": one2one}
+            preds = {"one2many": preds, "one2one": one2one}
         if self.training:
             return preds
         y = self._inference(preds["one2one"] if self.end2end else preds)
@@ -278,7 +272,7 @@ class Detect(nn.Module):
             b[-1].bias.data[: self.nc] = math.log(
                 5 / self.nc / (640 / self.stride[i]) ** 2
             )  # cls (.01 objects, 80 classes, 640 img)
-        if self.end2end:
+        if self.end2end and not self.o2o_residual_head:
             for i, (a, b) in enumerate(zip(self.one2one["box_head"], self.one2one["cls_head"])):  # from
                 a[-1].bias.data[:] = 2.0  # box
                 b[-1].bias.data[: self.nc] = math.log(
@@ -332,7 +326,9 @@ class Detect(nn.Module):
 
     def fuse(self) -> None:
         """Remove the one2many head for inference optimization."""
-        self.cv2 = self.cv3 = None
+        if not self.o2o_residual_head:
+            self.cv2 = self.cv3 = None
+        # residual head keeps cv2+cv3 since o2o inference needs o2m's box+cls as base
 
 
 class DetectNorm(Detect):

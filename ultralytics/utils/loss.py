@@ -1191,14 +1191,19 @@ class E2ELoss:
         self.total = 1.0
         # Read optional config from model YAML
         yaml_cfg = getattr(model, "yaml", {})
-        o2m_init = yaml_cfg.get("o2m_init", 0.8)
-        o2m_final = yaml_cfg.get("o2m_final", 0.1)
-        # init gain
-        self.o2m = o2m_init
-        self.o2o = self.total - self.o2m
-        self.o2m_copy = self.o2m
-        # final gain
-        self.final_o2m = o2m_final
+        # Residual head: equal weights, no decay (backbone needs steady gradient)
+        if yaml_cfg.get("o2o_residual_head", False):
+            self.o2m = 0.5
+            self.o2o = 0.5
+            self.o2m_copy = 0.5
+            self.final_o2m = 0.5
+        else:
+            o2m_init = yaml_cfg.get("o2m_init", 0.8)
+            o2m_final = yaml_cfg.get("o2m_final", 0.1)
+            self.o2m = o2m_init
+            self.o2o = self.total - self.o2m
+            self.o2m_copy = self.o2m
+            self.final_o2m = o2m_final
         # Soft label distillation from one2many to one2one
         self.soft_distill = yaml_cfg.get("soft_distill", False)
         self.distill_weight = yaml_cfg.get("distill_weight", 0.5)

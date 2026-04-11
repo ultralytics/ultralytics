@@ -198,21 +198,10 @@ class TaskAlignedAssigner(nn.Module):
         if b_idx.numel():
             bbox_scores[b_idx, box_idx, anch_idx] = temp_scores[b_idx, box_idx, anch_idx]
 
-            pd_boxes_exp = pd_bboxes.unsqueeze(1).expand(-1, self.n_max_boxes, -1, -1)
-            gt_boxes_exp = gt_bboxes.unsqueeze(2).expand(-1, -1, na, -1)
-
-            pd_pair = pd_boxes_exp[b_idx, box_idx, anch_idx]
-            gt_pair = gt_boxes_exp[b_idx, box_idx, anch_idx]
-
-            x1 = torch.maximum(gt_pair[:, 0], pd_pair[:, 0])
-            y1 = torch.maximum(gt_pair[:, 1], pd_pair[:, 1])
-            x2 = torch.minimum(gt_pair[:, 2], pd_pair[:, 2])
-            y2 = torch.minimum(gt_pair[:, 3], pd_pair[:, 3])
-
-            inter = (x2 - x1).clamp(min=0) * (y2 - y1).clamp(min=0)
-            area_gt = (gt_pair[:, 2] - gt_pair[:, 0]).clamp(min=0) * (gt_pair[:, 3] - gt_pair[:, 1]).clamp(min=0)
-            area_pd = (pd_pair[:, 2] - pd_pair[:, 0]).clamp(min=0) * (pd_pair[:, 3] - pd_pair[:, 1]).clamp(min=0)
-            overlaps[b_idx, box_idx, anch_idx] = inter / (area_gt + area_pd - inter + self.eps)
+            # Preserve the existing CIoU-based overlap metric while avoiding boolean masked writes.
+            pd_pair = pd_bboxes[b_idx, anch_idx]
+            gt_pair = gt_bboxes[b_idx, box_idx]
+            overlaps[b_idx, box_idx, anch_idx] = self.iou_calculation(gt_pair, pd_pair)
 
         align_metric = bbox_scores.pow(self.alpha) * overlaps.pow(self.beta)
         return align_metric, overlaps

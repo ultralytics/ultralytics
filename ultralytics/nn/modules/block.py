@@ -918,6 +918,40 @@ class ELAN1(RepNCSPELAN4):
         self.cv4 = Conv(c3 + (2 * c4), c2, 1, 1)
 
 
+class ElasticELAN(nn.Module):
+    """Elastic ELAN block with scalable depth via stacked 3x3 convolutions."""
+
+    def __init__(self, c1: int, c2: int, n: int = 2, c3: int = None):
+        """Initialize ElasticELAN.
+
+        Args:
+            c1 (int): Input channels.
+            c2 (int): Output channels.
+            n (int): Number of stacked 3x3 convolutions (depth).
+            c3 (int): Part channels for initial 1x1 conv split. Defaults to c2.
+        """
+        super().__init__()
+        if c3 is None:
+            c3 = c2
+        c_ = c3 // 2  # process channels
+        self.cv1 = Conv(c1, c3, 1)
+        self.m = nn.ModuleList()
+        for i in range(n):
+            self.m.append(Conv(c3 // 2 if i == 0 else c_, c_, 3))
+        self.cv2 = Conv(c3 + n * c_, c2, 1)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass through ElasticELAN layer."""
+        x = self.cv1(x)
+        x1, x2 = x.chunk(2, 1)
+        features = [x1, x2]
+        y = x2
+        for m in self.m:
+            y = m(y)
+            features.append(y)
+        return self.cv2(torch.cat(features, 1))
+
+
 class AConv(nn.Module):
     """AConv."""
 

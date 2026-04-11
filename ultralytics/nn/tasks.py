@@ -27,6 +27,7 @@ from ultralytics.nn.modules import (
     C3,
     C3TR,
     ELAN1,
+    ElasticELAN,
     OBB,
     OBB26,
     PSA,
@@ -1610,6 +1611,7 @@ def parse_model(d, ch, verbose=True):
             C3k2RepLK,
             RepNCSPELAN4,
             ELAN1,
+            ElasticELAN,
             ADown,
             AConv,
             SPPELAN,
@@ -1657,6 +1659,7 @@ def parse_model(d, ch, verbose=True):
             C2PSALite,
             A2C2f,
             VoVGSCSP,
+            ElasticELAN,
         }
     )
     if SETTINGS.get("yaml_exec"):
@@ -1682,6 +1685,8 @@ def parse_model(d, ch, verbose=True):
                 args[1] = make_divisible(min(args[1], max_channels // 2) * width, 8)
                 args[2] = int(max(round(min(args[2], max_channels // 2 // 32)) * width, 1) if args[2] > 1 else args[2])
 
+            if m is SPPELAN and len(args) > 1:
+                args[1] = make_divisible(min(args[1], max_channels) * width, 8)  # scale c3
             args = [c1, c2, *args[1:]]
             if m in repeat_modules:
                 args.insert(2, n)  # number of repeats

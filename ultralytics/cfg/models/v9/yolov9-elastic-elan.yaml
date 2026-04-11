@@ -1,0 +1,47 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# GELAN-SFA object detection model with ElasticELAN blocks
+# P3/8 - P5/32 outputs
+
+# Parameters
+nc: 80 # number of classes
+
+scales: # model compound scaling constants, i.e. 'model=gelan-sfas.yaml' will call gelan-sfa.yaml with scale 's'
+  # [depth, width, max_channels]
+  n: [0.50, 0.25, 1024]
+  s: [0.50, 0.50, 1024]
+  m: [0.50, 1.00, 512]
+  l: [1.00, 1.00, 512]
+  x: [1.00, 1.50, 512]
+
+# GELAN backbone
+backbone:
+  - [-1, 1, AConv, [128]] # 0-P1/2 stem
+  - [-1, 1, AConv, [192]] # 1-P2/4
+  - [-1, 2, ElasticELAN, [192]] # 2
+  - [-1, 1, AConv, [320]] # 3-P3/8
+  - [-1, 4, ElasticELAN, [320]] # 4
+  - [-1, 1, AConv, [448]] # 5-P4/16
+  - [-1, 8, ElasticELAN, [448]] # 6
+  - [-1, 1, AConv, [576]] # 7-P5/32
+  - [-1, 8, ElasticELAN, [576]] # 8
+  - [-1, 1, SPPELAN, [576, 288]] # 9
+
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 10
+  - [[-1, 6], 1, Concat, [1]] # 11 cat B4
+  - [-1, 6, ElasticELAN, [448]] # 12 N4
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 13
+  - [[-1, 4], 1, Concat, [1]] # 14 cat B3
+  - [-1, 6, ElasticELAN, [320]] # 15 P3/8-small
+
+  - [-1, 1, AConv, [256]] # 16
+  - [[-1, 12], 1, Concat, [1]] # 17 cat N4
+  - [-1, 6, ElasticELAN, [448]] # 18 P4/16-medium
+
+  - [-1, 1, AConv, [320]] # 19
+  - [[-1, 9], 1, Concat, [1]] # 20 cat SPPELAN
+  - [-1, 6, ElasticELAN, [576]] # 21 P5/32-large
+
+  - [[15, 18, 21], 1, Detect, [nc]] # 22 Detect(P3, P4, P5)

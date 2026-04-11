@@ -56,4 +56,17 @@ fi
 echo "Rebasing $branch onto latest $remote release $latest_release_tag..."
 git rebase "$latest_release_tag"
 
-echo "Done. $branch has been rebased onto $latest_release_tag."
+if ! git merge-base --is-ancestor "$latest_release_tag" HEAD; then
+  echo "error: rebase completed, but HEAD is not based on $latest_release_tag" >&2
+  exit 1
+fi
+
+repo_version="$(sed -n 's/^__version__ = "\(.*\)"$/\1/p' ultralytics/__init__.py | head -n 1)"
+git_version="$(git describe --tags --always --dirty)"
+
+echo "Rebase successful."
+echo "Base release: $latest_release_tag"
+if [[ -n "$repo_version" ]]; then
+  echo "Package version: $repo_version"
+fi
+echo "Git version: $git_version"

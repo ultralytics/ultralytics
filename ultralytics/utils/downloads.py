@@ -48,7 +48,7 @@ def is_url(url: str | Path, check: bool = False) -> bool:
     """Validate if the given string is a URL and optionally check if the URL exists online.
 
     Args:
-        url (str): The string to be validated as a URL.
+        url (str | Path): The string to be validated as a URL.
         check (bool, optional): If True, performs an additional check to see if the URL exists online.
 
     Returns:
@@ -76,7 +76,7 @@ def delete_dsstore(path: str | Path, files_to_delete: tuple[str, ...] = (".DS_St
 
     Args:
         path (str | Path): The directory path where the files should be deleted.
-        files_to_delete (tuple): The files to be deleted.
+        files_to_delete (tuple[str, ...]): The files to be deleted.
 
     Examples:
         >>> from ultralytics.utils.downloads import delete_dsstore
@@ -106,7 +106,7 @@ def zip_directory(
     Args:
         directory (str | Path): The path to the directory to be zipped.
         compress (bool): Whether to compress the files while zipping.
-        exclude (tuple, optional): A tuple of filename strings to be excluded.
+        exclude (tuple[str, ...], optional): A tuple of filename strings to be excluded.
         progress (bool, optional): Whether to display a progress bar.
 
     Returns:
@@ -150,7 +150,7 @@ def unzip_file(
     Args:
         file (str | Path): The path to the zipfile to be extracted.
         path (str | Path, optional): The path to extract the zipfile to.
-        exclude (tuple, optional): A tuple of filename strings to be excluded.
+        exclude (tuple[str, ...], optional): A tuple of filename strings to be excluded.
         exist_ok (bool, optional): Whether to overwrite existing contents if they exist.
         progress (bool, optional): Whether to display a progress bar.
 
@@ -223,10 +223,13 @@ def check_disk_space(
     if file_bytes * sf < free:
         return True  # sufficient space
 
+    def fmt_bytes(b):
+        return f"{b / (1 << 20):.1f} MB" if b < (1 << 30) else f"{b / (1 << 30):.3f} GB"
+
     # Insufficient space
     text = (
-        f"Insufficient free disk space {free >> 30:.3f} GB < {int(file_bytes * sf) >> 30:.3f} GB required, "
-        f"Please free {int(file_bytes * sf - free) >> 30:.3f} GB additional disk space and try again."
+        f"Insufficient free disk space {fmt_bytes(free)} < {fmt_bytes(int(file_bytes * sf))} required, "
+        f"Please free {fmt_bytes(int(file_bytes * sf - free))} additional disk space and try again."
     )
     if hard:
         raise MemoryError(text)
@@ -289,9 +292,9 @@ def safe_download(
     robust partial download detection using Content-Length validation.
 
     Args:
-        url (str): The URL of the file to be downloaded.
-        file (str, optional): The filename of the downloaded file. If not provided, the file will be saved with the same
-            name as the URL.
+        url (str | Path): The URL of the file to be downloaded.
+        file (str | Path, optional): The filename of the downloaded file. If not provided, the file will be saved with
+            the same name as the URL.
         dir (str | Path, optional): The directory to save the downloaded file. If not provided, the file will be saved
             in the current working directory.
         unzip (bool, optional): Whether to unzip the downloaded file.
@@ -311,66 +314,73 @@ def safe_download(
         >>> link = "https://ultralytics.com/assets/bus.jpg"
         >>> path = safe_download(link)
     """
-    gdrive = url.startswith("https://drive.google.com/")  # check if the URL is a Google Drive link
-    if gdrive:
-        url, file = get_google_drive_file_info(url)
+    url = str(url)
+    if "://" not in url and Path(url).is_file():  # local file path ('://' check required in Windows Python<3.10)
+        f = Path(url)
+    else:
+        gdrive = url.startswith("https://drive.google.com/")  # check if the URL is a Google Drive link
+        if gdrive:
+            url, file = get_google_drive_file_info(url)
+        url = url.replace(" ", "%20")  # encode spaces for curl/urllib compatibility
 
-    f = Path(dir or ".") / (file or url2file(url))  # URL converted to filename
-    if "://" not in str(url) and Path(url).is_file():  # URL exists ('://' check required in Windows Python<3.10)
-        f = Path(url)  # filename
-    elif not f.is_file():  # URL and file do not exist
-        uri = (url if gdrive else clean_url(url)).replace(ASSETS_URL, "https://ultralytics.com/assets")  # clean
-        desc = f"Downloading {uri} to '{f}'"
-        f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
-        curl_installed = shutil.which("curl")
-        for i in range(retry + 1):
-            try:
-                if (curl or i > 0) and curl_installed:  # curl download with retry, continue
-                    s = "sS" * (not progress)  # silent
-                    r = subprocess.run(["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]).returncode
-                    assert r == 0, f"Curl return value {r}"
-                    expected_size = None  # Can't get size with curl
-                else:  # urllib download
-                    with request.urlopen(url) as response:
-                        expected_size = int(response.getheader("Content-Length", 0))
-                        if i == 0 and expected_size > 1048576:
-                            check_disk_space(expected_size, path=f.parent)
-                        buffer_size = max(8192, min(1048576, expected_size // 1000)) if expected_size else 8192
-                        with TQDM(
-                            total=expected_size,
-                            desc=desc,
-                            disable=not progress,
-                            unit="B",
-                            unit_scale=True,
-                            unit_divisor=1024,
-                        ) as pbar:
-                            with open(f, "wb") as f_opened:
-                                while True:
-                                    data = response.read(buffer_size)
-                                    if not data:
-                                        break
-                                    f_opened.write(data)
-                                    pbar.update(len(data))
+        f = Path(dir or ".") / (file or url2file(url))  # URL converted to filename
+        if not f.is_file():  # URL and file do not exist
+            uri = (url if gdrive else clean_url(url)).replace(ASSETS_URL, "https://ultralytics.com/assets")  # clean
+            desc = f"Downloading {uri} to '{f}'"
+            f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
+            curl_installed = shutil.which("curl")
+            for i in range(retry + 1):
+                try:
+                    if (curl or i > 0) and curl_installed:  # curl download with retry, continue
+                        s = "sS" * (not progress)  # silent
+                        r = subprocess.run(["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]).returncode
+                        assert r == 0, f"Curl return value {r}"
+                        expected_size = None  # Can't get size with curl
+                    else:  # urllib download
+                        with request.urlopen(url) as response:
+                            expected_size = int(response.getheader("Content-Length", 0))
+                            if i == 0 and expected_size > 1048576:
+                                check_disk_space(expected_size, path=f.parent)
+                            buffer_size = max(8192, min(1048576, expected_size // 1000)) if expected_size else 8192
+                            with TQDM(
+                                total=expected_size,
+                                desc=desc,
+                                disable=not progress,
+                                unit="B",
+                                unit_scale=True,
+                                unit_divisor=1024,
+                            ) as pbar:
+                                with open(f, "wb") as f_opened:
+                                    while True:
+                                        data = response.read(buffer_size)
+                                        if not data:
+                                            break
+                                        f_opened.write(data)
+                                        pbar.update(len(data))
 
-                if f.exists():
-                    file_size = f.stat().st_size
-                    if file_size > min_bytes:
-                        # Check if download is complete (only if we have expected_size)
-                        if expected_size and file_size != expected_size:
-                            LOGGER.warning(
-                                f"Partial download: {file_size}/{expected_size} bytes ({file_size / expected_size * 100:.1f}%)"
-                            )
-                        else:
-                            break  # success
-                    f.unlink()  # remove partial downloads
-            except MemoryError:
-                raise  # Re-raise immediately - no point retrying if insufficient disk space
-            except Exception as e:
-                if i == 0 and not is_online():
-                    raise ConnectionError(emojis(f"❌  Download failure for {uri}. Environment may be offline.")) from e
-                elif i >= retry:
-                    raise ConnectionError(emojis(f"❌  Download failure for {uri}. Retry limit reached. {e}")) from e
-                LOGGER.warning(f"Download failure, retrying {i + 1}/{retry} {uri}... {e}")
+                    if f.exists():
+                        file_size = f.stat().st_size
+                        if file_size > min_bytes:
+                            # Check if download is complete (only if we have expected_size)
+                            if expected_size and file_size != expected_size:
+                                LOGGER.warning(
+                                    f"Partial download: {file_size}/{expected_size} bytes ({file_size / expected_size * 100:.1f}%)"
+                                )
+                            else:
+                                break  # success
+                        f.unlink()  # remove partial downloads
+                except MemoryError:
+                    raise  # Re-raise immediately - no point retrying if insufficient disk space
+                except Exception as e:
+                    if i == 0 and not is_online():
+                        raise ConnectionError(
+                            emojis(f"❌  Download failure for {uri}. Environment may be offline.")
+                        ) from e
+                    elif i >= retry:
+                        raise ConnectionError(
+                            emojis(f"❌  Download failure for {uri}. Retry limit reached. {e}")
+                        ) from e
+                    LOGGER.warning(f"Download failure, retrying {i + 1}/{retry} {uri}... {e}")
 
     if unzip and f.exists() and f.suffix in {"", ".zip", ".tar", ".gz"}:
         from zipfile import is_zipfile
@@ -493,7 +503,7 @@ def download(
     Supports concurrent downloads if multiple threads are specified.
 
     Args:
-        url (str | list[str]): The URL or list of URLs of the files to be downloaded.
+        url (str | list[str] | Path): The URL or list of URLs of the files to be downloaded.
         dir (Path, optional): The directory where the files will be saved.
         unzip (bool, optional): Flag to unzip the files after downloading.
         delete (bool, optional): Flag to delete the zip files after extraction.

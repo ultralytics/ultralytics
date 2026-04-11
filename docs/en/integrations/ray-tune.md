@@ -60,14 +60,15 @@ To install the required packages, run:
 
 The `tune()` method in YOLO26 provides an easy-to-use interface for hyperparameter tuning with Ray Tune. It accepts several arguments that allow you to customize the tuning process. Below is a detailed explanation of each parameter:
 
-| Parameter       | Type             | Description                                                                                                                                                                                                                                                                                                                                  | Default Value |
-| --------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
-| `data`          | `str`            | The dataset configuration file (in YAML format) to run the tuner on. This file should specify the training and [validation data](https://www.ultralytics.com/glossary/validation-data) paths, as well as other dataset-specific settings.                                                                                                    |               |
-| `space`         | `dict, optional` | A dictionary defining the hyperparameter search space for Ray Tune. Each key corresponds to a hyperparameter name, and the value specifies the range of values to explore during tuning. If not provided, YOLO26 uses a default search space with various hyperparameters.                                                                   |               |
-| `grace_period`  | `int, optional`  | The grace period in [epochs](https://www.ultralytics.com/glossary/epoch) for the [ASHA scheduler](https://docs.ray.io/en/latest/tune/api/schedulers.html) in Ray Tune. The scheduler will not terminate any trial before this number of epochs, allowing the model to have some minimum training before making a decision on early stopping. | 10            |
-| `gpu_per_trial` | `int, optional`  | The number of GPUs to allocate per trial during tuning. This helps manage GPU usage, particularly in multi-GPU environments. If not provided, the tuner will use all available GPUs.                                                                                                                                                         | `None`        |
-| `iterations`    | `int, optional`  | The maximum number of trials to run during tuning. This parameter helps control the total number of hyperparameter combinations tested, ensuring the tuning process does not run indefinitely.                                                                                                                                               | 10            |
-| `**train_args`  | `dict, optional` | Additional arguments to pass to the `train()` method during tuning. These arguments can include settings like the number of training epochs, [batch size](https://www.ultralytics.com/glossary/batch-size), and other training-specific configurations.                                                                                      | {}            |
+| Parameter       | Type                        | Description                                                                                                                                                                                                                                                                                                                                                                                        | Default Value |
+| --------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| `data`          | `str`                       | The dataset configuration file (in YAML format) to run the tuner on. This file should specify the training and [validation data](https://www.ultralytics.com/glossary/validation-data) paths, as well as other dataset-specific settings.                                                                                                                                                          |               |
+| `space`         | `dict, optional`            | A dictionary defining the hyperparameter search space for Ray Tune. Each key corresponds to a hyperparameter name, and the value specifies the range of values to explore during tuning. If not provided, YOLO26 uses a default search space with various hyperparameters.                                                                                                                         |               |
+| `grace_period`  | `int, optional`             | The grace period in [epochs](https://www.ultralytics.com/glossary/epoch) for the [ASHA scheduler](https://docs.ray.io/en/latest/tune/api/schedulers.html) in Ray Tune. The scheduler will not terminate any trial before this number of epochs, allowing the model to have some minimum training before making a decision on early stopping.                                                       | 10            |
+| `gpu_per_trial` | `int, optional`             | The number of GPUs to allocate per trial during tuning. This helps manage GPU usage, particularly in multi-GPU environments. If not provided, the tuner will use all available GPUs.                                                                                                                                                                                                               | `None`        |
+| `iterations`    | `int, optional`             | The maximum number of trials to run during tuning. This parameter helps control the total number of hyperparameter combinations tested, ensuring the tuning process does not run indefinitely.                                                                                                                                                                                                     | 10            |
+| `search_alg`    | `str or Searcher, optional` | Ray Tune search strategy to use. You can pass a Ray searcher object directly, or use a supported string such as `optuna`, `hyperopt`, `bayesopt`, `bohb`, `hebo`, `nevergrad`, `zoopt`, `ax`, or `random`. String-based searchers automatically use the default task metric and `mode="max"`. If not provided, Ray Tune falls back to its default random search strategy, `BasicVariantGenerator`. | `None`        |
+| `**train_args`  | `dict, optional`            | Additional arguments to pass to the `train()` method during tuning. These arguments can include settings like the number of training epochs, [batch size](https://www.ultralytics.com/glossary/batch-size), and other training-specific configurations.                                                                                                                                            | {}            |
 
 By customizing these parameters, you can fine-tune the hyperparameter optimization process to suit your specific needs and available computational resources.
 
@@ -75,30 +76,33 @@ By customizing these parameters, you can fine-tune the hyperparameter optimizati
 
 The following table lists the default search space parameters for hyperparameter tuning in YOLO26 with Ray Tune. Each parameter has a specific value range defined by `tune.uniform()`.
 
-| Parameter         | Range                      | Description                                                                                                                                      |
-| ----------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `lr0`             | `tune.uniform(1e-5, 1e-1)` | Initial learning rate that controls the step size during optimization. Higher values speed up training but may cause instability.                |
-| `lrf`             | `tune.uniform(0.01, 1.0)`  | Final learning rate factor that determines how much the learning rate decreases by the end of training.                                          |
-| `momentum`        | `tune.uniform(0.6, 0.98)`  | Momentum factor for the optimizer that helps accelerate training and overcome local minima.                                                      |
-| `weight_decay`    | `tune.uniform(0.0, 0.001)` | Regularization parameter that prevents overfitting by penalizing large weight values.                                                            |
-| `warmup_epochs`   | `tune.uniform(0.0, 5.0)`   | Number of epochs with gradually increasing learning rate to stabilize early training.                                                            |
-| `warmup_momentum` | `tune.uniform(0.0, 0.95)`  | Initial momentum value that gradually increases during the warmup period.                                                                        |
-| `box`             | `tune.uniform(0.02, 0.2)`  | Weight for the bounding box loss component, balancing localization accuracy in the model.                                                        |
-| `cls`             | `tune.uniform(0.2, 4.0)`   | Weight for the classification loss component, balancing class prediction accuracy in the model.                                                  |
-| `hsv_h`           | `tune.uniform(0.0, 0.1)`   | Hue augmentation range that introduces color variability to help the model generalize.                                                           |
-| `hsv_s`           | `tune.uniform(0.0, 0.9)`   | Saturation augmentation range that varies color intensity to improve robustness.                                                                 |
-| `hsv_v`           | `tune.uniform(0.0, 0.9)`   | Value (brightness) augmentation range that helps the model perform under various lighting conditions.                                            |
-| `degrees`         | `tune.uniform(0.0, 45.0)`  | Rotation augmentation range in degrees, improving recognition of rotated objects.                                                                |
-| `translate`       | `tune.uniform(0.0, 0.9)`   | Translation augmentation range that shifts images horizontally and vertically.                                                                   |
-| `scale`           | `tune.uniform(0.0, 0.9)`   | Scaling augmentation range that simulates objects at different distances.                                                                        |
-| `shear`           | `tune.uniform(0.0, 10.0)`  | Shear augmentation range in degrees, simulating perspective shifts.                                                                              |
-| `perspective`     | `tune.uniform(0.0, 0.001)` | Perspective augmentation range that simulates 3D viewpoint changes.                                                                              |
-| `flipud`          | `tune.uniform(0.0, 1.0)`   | Vertical flip augmentation probability, increasing dataset diversity.                                                                            |
-| `fliplr`          | `tune.uniform(0.0, 1.0)`   | Horizontal flip augmentation probability, useful for symmetrical objects.                                                                        |
-| `mosaic`          | `tune.uniform(0.0, 1.0)`   | Mosaic augmentation probability that combines four images into one training sample.                                                              |
-| `mixup`           | `tune.uniform(0.0, 1.0)`   | Mixup augmentation probability that blends two images and their labels together.                                                                 |
-| `cutmix`          | `tune.uniform(0.0, 1.0)`   | Cutmix augmentation probability that combines image regions while maintaining local features, improving detection of partially occluded objects. |
-| `copy_paste`      | `tune.uniform(0.0, 1.0)`   | Copy-paste augmentation probability that transfers objects between images to increase instance diversity.                                        |
+| Parameter         | Range                      | Description                                                                                                                       |
+| ----------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `lr0`             | `tune.uniform(1e-5, 1e-2)` | Initial learning rate that controls the step size during optimization. Higher values speed up training but may cause instability. |
+| `lrf`             | `tune.uniform(0.01, 1.0)`  | Final learning rate factor that determines how much the learning rate decreases by the end of training.                           |
+| `momentum`        | `tune.uniform(0.7, 0.98)`  | Momentum factor for the optimizer that helps accelerate training and overcome local minima.                                       |
+| `weight_decay`    | `tune.uniform(0.0, 0.001)` | Regularization parameter that prevents overfitting by penalizing large weight values.                                             |
+| `warmup_epochs`   | `tune.uniform(0.0, 5.0)`   | Number of epochs with gradually increasing learning rate to stabilize early training.                                             |
+| `warmup_momentum` | `tune.uniform(0.0, 0.95)`  | Initial momentum value that gradually increases during the warmup period.                                                         |
+| `box`             | `tune.uniform(1.0, 20.0)`  | Weight for the bounding box loss component, balancing localization accuracy in the model.                                         |
+| `cls`             | `tune.uniform(0.1, 4.0)`   | Weight for the classification loss component, balancing class prediction accuracy in the model.                                   |
+| `dfl`             | `tune.uniform(0.4, 12.0)`  | Weight for the Distribution Focal Loss component, emphasizing precise bounding box localization.                                  |
+| `hsv_h`           | `tune.uniform(0.0, 0.1)`   | Hue augmentation range that introduces color variability to help the model generalize.                                            |
+| `hsv_s`           | `tune.uniform(0.0, 0.9)`   | Saturation augmentation range that varies color intensity to improve robustness.                                                  |
+| `hsv_v`           | `tune.uniform(0.0, 0.9)`   | Value (brightness) augmentation range that helps the model perform under various lighting conditions.                             |
+| `degrees`         | `tune.uniform(0.0, 45.0)`  | Rotation augmentation range in degrees, improving recognition of rotated objects.                                                 |
+| `translate`       | `tune.uniform(0.0, 0.9)`   | Translation augmentation range that shifts images horizontally and vertically.                                                    |
+| `scale`           | `tune.uniform(0.0, 0.95)`  | Scaling augmentation range that simulates objects at different distances.                                                         |
+| `shear`           | `tune.uniform(0.0, 10.0)`  | Shear augmentation range in degrees, simulating perspective shifts.                                                               |
+| `perspective`     | `tune.uniform(0.0, 0.001)` | Perspective augmentation range that simulates 3D viewpoint changes.                                                               |
+| `flipud`          | `tune.uniform(0.0, 1.0)`   | Vertical flip augmentation probability, increasing dataset diversity.                                                             |
+| `fliplr`          | `tune.uniform(0.0, 1.0)`   | Horizontal flip augmentation probability, useful for symmetrical objects.                                                         |
+| `bgr`             | `tune.uniform(0.0, 1.0)`   | BGR channel swap augmentation probability, helping with color invariance.                                                         |
+| `mosaic`          | `tune.uniform(0.0, 1.0)`   | Mosaic augmentation probability that combines four images into one training sample.                                               |
+| `mixup`           | `tune.uniform(0.0, 1.0)`   | Mixup augmentation probability that blends two images and their labels together.                                                  |
+| `cutmix`          | `tune.uniform(0.0, 1.0)`   | Cutmix augmentation probability that combines image regions while maintaining local features.                                     |
+| `copy_paste`      | `tune.uniform(0.0, 1.0)`   | Copy-paste augmentation probability that transfers objects between images to increase instance diversity.                         |
+| `close_mosaic`    | `tune.randint(0.0, 11)`    | Disables mosaic in the last N epochs to stabilize training before completion.                                                     |
 
 ## Custom Search Space Example
 
@@ -117,13 +121,59 @@ In this example, we demonstrate how to use a custom search space for hyperparame
     # Run Ray Tune on the model
     result_grid = model.tune(
         data="coco8.yaml",
-        space={"lr0": tune.uniform(1e-5, 1e-1)},
+        space={"lr0": tune.uniform(1e-5, 1e-2)},
         epochs=50,
         use_ray=True,
     )
     ```
 
-In the code snippet above, we create a YOLO model with the "yolo26n.pt" pretrained weights. Then, we call the `tune()` method, specifying the dataset configuration with "coco8.yaml". We provide a custom search space for the initial learning rate `lr0` using a dictionary with the key "lr0" and the value `tune.uniform(1e-5, 1e-1)`. Finally, we pass additional training arguments, such as the number of epochs directly to the tune method as `epochs=50`.
+In the code snippet above, we create a YOLO model with the "yolo26n.pt" pretrained weights. Then, we call the `tune()` method, specifying the dataset configuration with "coco8.yaml". We provide a custom search space for the initial learning rate `lr0` using a dictionary with the key "lr0" and the value `tune.uniform(1e-5, 1e-2)`. Finally, we pass additional training arguments, such as the number of epochs directly to the tune method as `epochs=50`.
+
+## Search Algorithm Example
+
+You can select a Ray Tune search strategy by name. For string-based search algorithms, Ultralytics will automatically use the current task's default optimization metric and `mode="max"`. If `search_alg` is not provided, Ray Tune uses its default random search strategy, `BasicVariantGenerator`.
+
+!!! example "Using string `search_alg` with `model.tune()`"
+
+    ```python
+    from ultralytics import YOLO
+
+    # Define a YOLO model
+    model = YOLO("yolo26n.pt")
+
+    result_grid = model.tune(
+        data="coco8.yaml",
+        epochs=50,
+        search_alg="optuna",
+        use_ray=True,
+    )
+    ```
+
+If you need to customize the searcher's sampler or override its metric and optimization mode, pass an instantiated Ray Tune searcher object instead of a string.
+
+!!! example "Using `OptunaSearch` object with `model.tune()`"
+
+    ```python
+    from ray.tune.search.optuna import OptunaSearch
+
+    from ultralytics import YOLO
+
+    # Define a YOLO model
+    model = YOLO("yolo26n.pt")
+
+    # Define a searcher
+    searcher = OptunaSearch(
+        metric="metrics/mAP50-95(B)",
+        mode="max",
+    )
+
+    result_grid = model.tune(
+        data="coco8.yaml",
+        epochs=50,
+        search_alg=searcher,
+        use_ray=True,
+    )
+    ```
 
 ## Resuming An Interrupted Hyperparameter Tuning Session With Ray Tune
 
@@ -239,13 +289,14 @@ Ultralytics YOLO26 uses the following default hyperparameters for tuning with Ra
 
 | Parameter       | Value Range                | Description                    |
 | --------------- | -------------------------- | ------------------------------ |
-| `lr0`           | `tune.uniform(1e-5, 1e-1)` | Initial learning rate          |
+| `lr0`           | `tune.uniform(1e-5, 1e-2)` | Initial learning rate          |
 | `lrf`           | `tune.uniform(0.01, 1.0)`  | Final learning rate factor     |
-| `momentum`      | `tune.uniform(0.6, 0.98)`  | Momentum                       |
+| `momentum`      | `tune.uniform(0.7, 0.98)`  | Momentum                       |
 | `weight_decay`  | `tune.uniform(0.0, 0.001)` | Weight decay                   |
 | `warmup_epochs` | `tune.uniform(0.0, 5.0)`   | Warmup epochs                  |
-| `box`           | `tune.uniform(0.02, 0.2)`  | Box loss weight                |
-| `cls`           | `tune.uniform(0.2, 4.0)`   | Class loss weight              |
+| `box`           | `tune.uniform(1.0, 20.0)`  | Box loss weight                |
+| `cls`           | `tune.uniform(0.1, 4.0)`   | Class loss weight              |
+| `dfl`           | `tune.uniform(0.4, 12.0)`  | DFL loss weight                |
 | `hsv_h`         | `tune.uniform(0.0, 0.1)`   | Hue augmentation range         |
 | `translate`     | `tune.uniform(0.0, 0.9)`   | Translation augmentation range |
 
@@ -299,7 +350,7 @@ from ray import tune
 from ultralytics import YOLO
 
 model = YOLO("yolo26n.pt")
-search_space = {"lr0": tune.uniform(1e-5, 1e-1), "momentum": tune.uniform(0.6, 0.98)}
+search_space = {"lr0": tune.uniform(1e-5, 1e-2), "momentum": tune.uniform(0.7, 0.98)}
 result_grid = model.tune(data="coco8.yaml", space=search_space, use_ray=True)
 ```
 

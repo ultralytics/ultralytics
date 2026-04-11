@@ -289,7 +289,7 @@ You can also save a model after setting custom classes. By doing this you create
 
 This approach provides a powerful means of customizing state-of-the-art [object detection](../tasks/detect.md) models for specific tasks, making advanced AI more accessible and applicable to a broader range of practical applications.
 
-## Reproduce official results from scratch(Experimental)
+## Reproduce official results from scratch (Experimental)
 
 ### Prepare datasets
 

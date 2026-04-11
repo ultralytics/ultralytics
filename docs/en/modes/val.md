@@ -144,7 +144,7 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
 | `to_csv()`  | `str`                  | Exports the validation results in CSV format and returns the CSV string.   |
 | `to_json()` | `str`                  | Exports the validation results in JSON format and returns the JSON string. |
 
-For more details see the [`DataExportMixin` class documentation](../reference/utils/__init__.md/#ultralytics.utils.DataExportMixin).
+For more details see the [`DataExportMixin` class documentation](../reference/utils/__init__.md#ultralytics.utils.__init__.DataExportMixin).
 
 ## FAQ
 

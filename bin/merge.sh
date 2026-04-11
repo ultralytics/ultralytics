@@ -5,6 +5,22 @@ remote="${REMOTE:-upstream}"
 branch="${1:-$(git branch --show-current)}"
 commit_message="${COMMIT_MESSAGE:-chore: checkpoint before rebasing from the latest $remote release}"
 
+print_repo_version() {
+  local repo_version git_version
+  repo_version="$(sed -n 's/^__version__ = "\(.*\)"$/\1/p' ultralytics/__init__.py | head -n 1 || true)"
+  git_version="$(git describe --tags --always --dirty 2>/dev/null || git rev-parse --short HEAD 2>/dev/null || true)"
+
+  echo "Current repository version:"
+  if [[ -n "$repo_version" ]]; then
+    echo "Package version: $repo_version"
+  fi
+  if [[ -n "$git_version" ]]; then
+    echo "Git version: $git_version"
+  fi
+}
+
+trap print_repo_version EXIT
+
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   echo "error: must be run inside a git repository" >&2
   exit 1
@@ -61,12 +77,5 @@ if ! git merge-base --is-ancestor "$latest_release_tag" HEAD; then
   exit 1
 fi
 
-repo_version="$(sed -n 's/^__version__ = "\(.*\)"$/\1/p' ultralytics/__init__.py | head -n 1)"
-git_version="$(git describe --tags --always --dirty)"
-
 echo "Rebase successful."
 echo "Base release: $latest_release_tag"
-if [[ -n "$repo_version" ]]; then
-  echo "Package version: $repo_version"
-fi
-echo "Git version: $git_version"

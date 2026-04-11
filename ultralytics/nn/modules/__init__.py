@@ -17,6 +17,10 @@ Examples:
     >>> subprocess.run(f"onnxslim {f} {f} && open {f}", shell=True, check=True)  # pip install onnxslim
 """
 
+from .custom_blocks import (
+    MyConvBlock
+)
+
 from .block import (
     C1,
     C2,
@@ -108,6 +112,30 @@ from .transformer import (
 
 __all__ = (
     "AIFI",
+    "Conv",
+    "Conv2",
+    "MyConvBlock",
+    "LightConv",
+    "RepConv",
+    "DWConv",
+    "DWConvTranspose2d",
+    "ConvTranspose",
+    "Focus",
+    "GhostConv",
+    "ChannelAttention",
+    "SpatialAttention",
+    "CBAM",
+    "Concat",
+    "TransformerLayer",
+    "TransformerBlock",
+    "MLPBlock",
+    "LayerNorm2d",
+    "DFL",
+    "HGBlock",
+    "HGStem",
+    "SPP",
+    "SPPF",
+>>>>>>> 5002fe210 (added custom blocks)
     "C1",
     "C2",
     "C2PSA",

@@ -10,12 +10,11 @@ import cv2
 
 @dataclass
 class SolutionConfig:
-    """
-    Manages configuration parameters for Ultralytics Vision AI solutions.
+    """Manages configuration parameters for Ultralytics Vision AI solutions.
 
-    The SolutionConfig class serves as a centralized configuration container for all the
-    Ultralytics solution modules: https://docs.ultralytics.com/solutions/#solutions.
-    It leverages Python `dataclass` for clear, type-safe, and maintainable parameter definitions.
+    The SolutionConfig class serves as a centralized configuration container for all the Ultralytics solution modules:
+    https://docs.ultralytics.com/solutions/#solutions. It leverages Python `dataclass` for clear, type-safe, and
+    maintainable parameter definitions.
 
     Attributes:
         source (str, optional): Path to the input source (video, RTSP, etc.). Only usable with Solutions CLI.
@@ -31,12 +30,13 @@ class SolutionConfig:
         down_angle (int): Lower angle threshold used in pose-based workouts monitoring.
         kpts (list[int]): Keypoint indices to monitor, e.g., for pose analytics.
         analytics_type (str): Type of analytics to perform ("line", "area", "bar", "pie", etc.).
-        figsize (tuple[int, int], optional): Size of the matplotlib figure used for analytical plots (width, height).
+        figsize (tuple[float, float], optional): Size of the matplotlib figure used for analytical plots (width,
+            height).
         blur_ratio (float): Ratio used to blur objects in the video frames (0.0 to 1.0).
         vision_point (tuple[int, int]): Reference point for directional tracking or perspective drawing.
         crop_dir (str): Directory path to save cropped detection images.
-        json_file (str): Path to a JSON file containing data for parking areas.
-        line_width (int): Width for visual display i.e. bounding boxes, keypoints, counts.
+        json_file (str, optional): Path to a JSON file containing data for parking areas.
+        line_width (int): Width for visual display, e.g. bounding boxes, keypoints, and counts.
         records (int): Number of detection records to send email alerts.
         fps (float): Frame rate (Frames Per Second) for speed estimation calculation.
         max_hist (int): Maximum number of historical points or states stored per tracked object for speed estimation.
@@ -57,7 +57,7 @@ class SolutionConfig:
 
     Examples:
         >>> from ultralytics.solutions.config import SolutionConfig
-        >>> cfg = SolutionConfig(model="yolo11n.pt", region=[(0, 0), (100, 0), (100, 100), (0, 100)])
+        >>> cfg = SolutionConfig(model="yolo26n.pt", region=[(0, 0), (100, 0), (100, 100), (0, 100)])
         >>> cfg.update(show=False, conf=0.3)
         >>> print(cfg.model)
     """

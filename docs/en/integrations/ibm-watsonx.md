@@ -1,21 +1,21 @@
 ---
 comments: true
-description: Dive into our detailed integration guide on using IBM Watson to train a YOLO11 model. Uncover key features and step-by-step instructions on model training.
-keywords: IBM Watsonx, IBM Watsonx AI, What is Watson?, IBM Watson Integration, IBM Watson Features, YOLO11, Ultralytics, Model Training, GPU, TPU, cloud computing
+description: Dive into our detailed integration guide on using IBM Watson to train a YOLO26 model. Uncover key features and step-by-step instructions on model training.
+keywords: IBM Watsonx, IBM Watsonx AI, What is Watson?, IBM Watson Integration, IBM Watson Features, YOLO26, Ultralytics, Model Training, GPU, TPU, cloud computing
 ---
 
-# A Step-by-Step Guide to Training YOLO11 Models with IBM Watsonx
+# A Step-by-Step Guide to Training YOLO26 Models with IBM Watsonx
 
 Nowadays, scalable [computer vision solutions](../guides/steps-of-a-cv-project.md) are becoming more common and transforming the way we handle visual data. A great example is IBM Watsonx, an advanced AI and data platform that simplifies the development, deployment, and management of AI models. It offers a complete suite for the entire AI lifecycle and seamless integration with IBM Cloud services.
 
-You can train [Ultralytics YOLO11 models](https://github.com/ultralytics/ultralytics) using IBM Watsonx. It's a good option for enterprises interested in efficient [model training](../modes/train.md), fine-tuning for specific tasks, and improving [model performance](../guides/model-evaluation-insights.md) with robust tools and a user-friendly setup. In this guide, we'll walk you through the process of training YOLO11 with IBM Watsonx, covering everything from setting up your environment to evaluating your trained models. Let's get started!
+You can train [Ultralytics YOLO26 models](https://github.com/ultralytics/ultralytics) using IBM Watsonx. It's a good option for enterprises interested in efficient [model training](../modes/train.md), fine-tuning for specific tasks, and improving [model performance](../guides/model-evaluation-insights.md) with robust tools and a user-friendly setup. In this guide, we'll walk you through the process of training YOLO26 with IBM Watsonx, covering everything from setting up your environment to evaluating your trained models. Let's get started!
 
 ## What is IBM Watsonx?
 
 [Watsonx](https://www.ibm.com/products/watsonx) is IBM's cloud-based platform designed for commercial [generative AI](https://www.ultralytics.com/glossary/generative-ai) and scientific data. IBM Watsonx's three components - `watsonx.ai`, `watsonx.data`, and `watsonx.governance` - come together to create an end-to-end, trustworthy AI platform that can accelerate AI projects aimed at solving business problems. It provides powerful tools for building, training, and [deploying machine learning models](../guides/model-deployment-options.md) and makes it easy to connect with various data sources.
 
 <p align="center">
-  <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/overview-of-ibm-watsonx.avif" alt="Overview of IBM Watsonx">
+  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/overview-of-ibm-watsonx.avif" alt="IBM Watsonx AI platform architecture overview">
 </p>
 
 Its user-friendly interface and collaborative capabilities streamline the development process and help with efficient model management and deployment. Whether for computer vision, predictive analytics, [natural language processing](https://www.ultralytics.com/glossary/natural-language-processing-nlp), or other AI applications, IBM Watsonx provides the tools and support needed to drive innovation.
@@ -36,9 +36,9 @@ Watsonx.data supports both cloud and on-premises deployments through the IBM Sto
 
 Watsonx.governance makes compliance easier by automatically identifying regulatory changes and enforcing policies. It links requirements to internal risk data and provides up-to-date AI factsheets. The platform helps manage risk with alerts and tools to detect issues such as [bias and drift](../guides/model-monitoring-and-maintenance.md). It also automates the monitoring and documentation of the AI lifecycle, organizes AI development with a model inventory, and enhances collaboration with user-friendly dashboards and reporting tools.
 
-## How to Train YOLO11 Using IBM Watsonx
+## How to Train YOLO26 Using IBM Watsonx
 
-You can use IBM Watsonx to accelerate your YOLO11 model training workflow.
+You can use IBM Watsonx to accelerate your YOLO26 model training workflow.
 
 ### Prerequisites
 
@@ -63,11 +63,10 @@ Next, you can install and import the necessary Python libraries.
         ```bash
         # Install the required packages
         pip install torch torchvision torchaudio
-        pip install opencv-contrib-python-headless
-        pip install ultralytics==8.0.196
+        pip install ultralytics-opencv-headless
         ```
 
-For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLO11, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
+For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLO26, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
 Then, you can import the needed packages.
 
@@ -86,7 +85,7 @@ Then, you can import the needed packages.
 
 ### Step 3: Load the Data
 
-For this tutorial, we will use a [marine litter dataset](https://www.kaggle.com/datasets/atiqishrak/trash-dataset-icra19) available on Kaggle. With this dataset, we will custom-train a YOLO11 model to detect and classify litter and biological objects in underwater images.
+For this tutorial, we will use a [marine litter dataset](https://www.kaggle.com/datasets/atiqishrak/trash-dataset-icra19) available on Kaggle. With this dataset, we will custom-train a YOLO26 model to detect and classify litter and biological objects in underwater images.
 
 We can load the dataset directly into the notebook using the Kaggle API. First, create a free Kaggle account. Once you have created an account, you'll need to generate an API key. Directions for generating your key can be found in the [Kaggle API documentation](https://github.com/Kaggle/kaggle-api/blob/main/docs/README.md) under the section "API credentials".
 
@@ -136,7 +135,7 @@ If you see "trash_ICRA19" among the directory's contents, then it has loaded suc
 We will use the `config.yaml` file and the contents of the dataset directory to train our [object detection](https://www.ultralytics.com/glossary/object-detection) model. Here is a sample image from our marine litter data set.
 
 <p align="center">
-  <img width="400" src="https://github.com/ultralytics/docs/releases/download/0/marine-litter-bounding-box.avif" alt="Marine Litter with Bounding Box">
+  <img width="400" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/marine-litter-bounding-box.avif" alt="Marine Litter with Bounding Box">
 </p>
 
 ### Step 4: Preprocess the Data
@@ -144,13 +143,13 @@ We will use the `config.yaml` file and the contents of the dataset directory to 
 Fortunately, all labels in the marine litter data set are already formatted as YOLO .txt files. However, we need to rearrange the structure of the image and label directories in order to help our model process the image and labels. Right now, our loaded data set directory follows this structure:
 
 <p align="center">
-  <img width="400" src="https://github.com/ultralytics/docs/releases/download/0/marine-litter-bounding-box-1.avif" alt="Loaded Dataset Directory">
+  <img width="400" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/marine-litter-bounding-box-1.avif" alt="Loaded Dataset Directory">
 </p>
 
 But, YOLO models by default require separate images and labels in subdirectories within the train/val/test split. We need to reorganize the directory into the following structure:
 
 <p align="center">
-  <img width="400" src="https://github.com/ultralytics/docs/releases/download/0/yolo-directory-structure.avif" alt="YOLO Directory Structure">
+  <img width="400" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-directory-structure.avif" alt="YOLO Directory Structure">
 </p>
 
 To reorganize the data set directory, we can run the following script:
@@ -205,7 +204,7 @@ names:
     2: rov
 ```
 
-Run the following script to delete the current contents of `config.yaml` and replace it with the above contents that reflect our new data set directory structure. Be certain to replace the work_dir portion of the root directory path in line 4 with your own working directory path we retrieved earlier. Leave the train, val, and test subdirectory definitions. Also, do not change {work_dir} in line 23 of the code.
+Run the following script to delete the current contents of `config.yaml` and replace it with the configuration that reflects our new data set directory structure. The script automatically uses the `work_dir` variable we defined earlier, so be sure it points to your dataset before execution, and leave the train, val, and test subdirectory definitions unchanged.
 
 !!! example "Edit the .yaml File"
 
@@ -215,7 +214,7 @@ Run the following script to delete the current contents of `config.yaml` and rep
         # Contents of new config.yaml file
         def update_yaml_file(file_path):
             data = {
-                "path": "work_dir/trash_ICRA19/dataset",
+                "path": f"{work_dir}/trash_ICRA19/dataset",
                 "train": "train/images",
                 "val": "train/images",
                 "test": "test/images",
@@ -236,34 +235,34 @@ Run the following script to delete the current contents of `config.yaml` and rep
             print(f"{file_path} updated successfully.")
         ```
 
-### Step 5: Train the YOLO11 model
+### Step 5: Train the YOLO26 model
 
-Run the following command-line code to fine tune a pretrained default YOLO11 model.
+Run the following command-line code to fine tune a pretrained default YOLO26 model.
 
-!!! example "Train the YOLO11 model"
+!!! example "Train the YOLO26 model"
 
     === "CLI"
 
         ```bash
-        !yolo task=detect mode=train data={work_dir}/trash_ICRA19/config.yaml model=yolo11n.pt epochs=2 batch=32 lr0=.04 plots=True
+        !yolo task=detect mode=train data={work_dir}/trash_ICRA19/config.yaml model=yolo26n.pt epochs=2 batch=32 lr0=.04 plots=True
         ```
 
 Here's a closer look at the parameters in the model training command:
 
 - **task**: It specifies the [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) task for which you are using the specified YOLO model and data set.
 - **mode**: Denotes the purpose for which you are loading the specified model and data. Since we are training a model, it is set to "train." Later, when we test our model's performance, we will set it to "predict."
-- **epochs**: This delimits the number of times YOLO11 will pass through our entire data set.
+- **epochs**: This delimits the number of times YOLO26 will pass through our entire data set.
 - **batch**: The numerical value stipulates the training [batch sizes](https://www.ultralytics.com/glossary/batch-size). Batches are the number of images a model processes before it updates its parameters.
 - **lr0**: Specifies the model's initial [learning rate](https://www.ultralytics.com/glossary/learning-rate).
 - **plots**: Directs YOLO to generate and save plots of our model's training and evaluation metrics.
 
-For a detailed understanding of the model training process and best practices, refer to the [YOLO11 Model Training guide](../modes/train.md). This guide will help you get the most out of your experiments and ensure you're using YOLO11 effectively.
+For a detailed understanding of the model training process and best practices, refer to the [YOLO26 Model Training guide](../modes/train.md). This guide will help you get the most out of your experiments and ensure you're using YOLO26 effectively.
 
 ### Step 6: Test the Model
 
 We can now run inference to test the performance of our fine-tuned model:
 
-!!! example "Test the YOLO11 model"
+!!! example "Test the YOLO26 model"
 
     === "CLI"
 
@@ -277,7 +276,7 @@ Predicted .txt labels for each image are saved via the `save_txt=True` argument 
 The parameter `conf=0.5` informs the model to ignore all predictions with a confidence level of less than 50%.
 
 Lastly, `iou=.5` directs the model to ignore boxes in the same class with an overlap of 50% or greater. It helps to reduce potential duplicate boxes generated for the same object.
-we can load the images with predicted bounding box overlays to view how our model performs on a handful of images.
+We can load the images with predicted bounding box overlays to view how our model performs on a handful of images.
 
 !!! example "Display Predictions"
 
@@ -297,7 +296,7 @@ The code above displays ten images from the test set with their predicted boundi
 We can produce visualizations of the model's [precision](https://www.ultralytics.com/glossary/precision) and recall for each class. These visualizations are saved in the home directory, under the train folder. The precision score is displayed in the P_curve.png:
 
 <p align="center">
-  <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/precision-confidence-curve.avif" alt="Precision Confidence Curve">
+  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/precision-confidence-curve.avif" alt="Model precision-confidence evaluation curve">
 </p>
 
 The graph shows an exponential increase in precision as the model's confidence level for predictions increases. However, the model precision has not yet leveled out at a certain confidence level after two [epochs](https://www.ultralytics.com/glossary/epoch).
@@ -305,18 +304,18 @@ The graph shows an exponential increase in precision as the model's confidence l
 The [recall](https://www.ultralytics.com/glossary/recall) graph (R_curve.png) displays an inverse trend:
 
 <p align="center">
-  <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/recall-confidence-curve.avif" alt="Recall Confidence Curve">
+  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/recall-confidence-curve.avif" alt="Model recall-confidence evaluation curve">
 </p>
 
 Unlike precision, recall moves in the opposite direction, showing greater recall with lower confidence instances and lower recall with higher confidence instances. This is an apt example of the trade-off in precision and recall for classification models.
 
 ### Step 8: Calculating [Intersection Over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou)
 
-You can measure the prediction [accuracy](https://www.ultralytics.com/glossary/accuracy) by calculating the IoU between a predicted bounding box and a ground truth bounding box for the same object. Check out [IBM's tutorial on training YOLO11](https://developer.ibm.com/tutorials/awb-train-yolo-object-detection-model-in-python/) for more details.
+You can measure the prediction [accuracy](https://www.ultralytics.com/glossary/accuracy) by calculating the IoU between a predicted bounding box and a ground truth bounding box for the same object. Check out [IBM's tutorial on training YOLO26](https://developer.ibm.com/tutorials/awb-train-yolo-object-detection-model-in-python/) for more details.
 
 ## Summary
 
-We explored IBM Watsonx key features, and how to train a YOLO11 model using IBM Watsonx. We also saw how IBM Watsonx can enhance your AI workflows with advanced tools for model building, data management, and compliance.
+We explored IBM Watsonx key features, and how to train a YOLO26 model using IBM Watsonx. We also saw how IBM Watsonx can enhance your AI workflows with advanced tools for model building, data management, and compliance.
 
 For further details on usage, visit [IBM Watsonx official documentation](https://www.ibm.com/products/watsonx).
 
@@ -324,9 +323,9 @@ Also, be sure to check out the [Ultralytics integration guide page](./index.md),
 
 ## FAQ
 
-### How do I train a YOLO11 model using IBM Watsonx?
+### How do I train a YOLO26 model using IBM Watsonx?
 
-To train a YOLO11 model using IBM Watsonx, follow these steps:
+To train a YOLO26 model using IBM Watsonx, follow these steps:
 
 1. **Set Up Your Environment**: Create an IBM Cloud account and set up a Watsonx.ai project. Use a Jupyter Notebook for your coding environment.
 2. **Install Libraries**: Install necessary libraries like `torch`, `opencv`, and `ultralytics`.
@@ -335,7 +334,7 @@ To train a YOLO11 model using IBM Watsonx, follow these steps:
 5. **Train the Model**: Use the YOLO command-line interface to train your model with specific parameters like `epochs`, `batch size`, and `learning rate`.
 6. **Test and Evaluate**: Run inference to test the model and evaluate its performance using metrics like precision and recall.
 
-For detailed instructions, refer to our [YOLO11 Model Training guide](../modes/train.md).
+For detailed instructions, refer to our [YOLO26 Model Training guide](../modes/train.md).
 
 ### What are the key features of IBM Watsonx for AI model training?
 
@@ -347,20 +346,20 @@ IBM Watsonx offers several key features for AI model training:
 
 For more information, visit the [IBM Watsonx official documentation](https://www.ibm.com/products/watsonx).
 
-### Why should I use IBM Watsonx for training Ultralytics YOLO11 models?
+### Why should I use IBM Watsonx for training Ultralytics YOLO26 models?
 
-IBM Watsonx is an excellent choice for training Ultralytics YOLO11 models due to its comprehensive suite of tools that streamline the AI lifecycle. Key benefits include:
+IBM Watsonx is an excellent choice for training Ultralytics YOLO26 models due to its comprehensive suite of tools that streamline the AI lifecycle. Key benefits include:
 
 - **Scalability**: Easily scale your model training with IBM Cloud services.
 - **Integration**: Seamlessly integrate with various data sources and APIs.
 - **User-Friendly Interface**: Simplifies the development process with a collaborative and intuitive interface.
 - **Advanced Tools**: Access to powerful tools like the Prompt Lab, Tuning Studio, and Flows Engine for enhancing model performance.
 
-Learn more about [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) and how to train models using IBM Watsonx in our [integration guide](./index.md).
+Learn more about [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) and how to train models using IBM Watsonx in our [integration guide](./index.md).
 
-### How can I preprocess my dataset for YOLO11 training on IBM Watsonx?
+### How can I preprocess my dataset for YOLO26 training on IBM Watsonx?
 
-To preprocess your dataset for YOLO11 training on IBM Watsonx:
+To preprocess your dataset for YOLO26 training on IBM Watsonx:
 
 1. **Organize Directories**: Ensure your dataset follows the YOLO directory structure with separate subdirectories for images and labels within the train/val/test split.
 2. **Update .yaml File**: Modify the `.yaml` configuration file to reflect the new directory structure and class names.
@@ -399,9 +398,9 @@ if __name__ == "__main__":
 
 For more details, refer to our [data preprocessing guide](../guides/preprocessing_annotated_data.md).
 
-### What are the prerequisites for training a YOLO11 model on IBM Watsonx?
+### What are the prerequisites for training a YOLO26 model on IBM Watsonx?
 
-Before you start training a YOLO11 model on IBM Watsonx, ensure you have the following prerequisites:
+Before you start training a YOLO26 model on IBM Watsonx, ensure you have the following prerequisites:
 
 - **IBM Cloud Account**: Create an account on IBM Cloud to access Watsonx.ai.
 - **Kaggle Account**: For loading datasets, you'll need a Kaggle account and an API key.

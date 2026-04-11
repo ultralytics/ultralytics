@@ -12,6 +12,21 @@ Examples:
 
 # Dictionary containing metadata for various models
 data = {
+    "YOLO26": {
+        "author": "Glenn Jocher and Jing Qiu",
+        "org": "Ultralytics",
+        "date": "2026-01-14",
+        "arxiv": None,
+        "github": "https://github.com/ultralytics/ultralytics",
+        "docs": "https://docs.ultralytics.com/models/yolo26/",
+        "performance": {
+            "n": {"size": 640, "map": 40.9, "cpu": "", "t4": 1.7, "params": 2.4, "flops": 5.4},
+            "s": {"size": 640, "map": 48.6, "cpu": "", "t4": 2.5, "params": 9.5, "flops": 20.7},
+            "m": {"size": 640, "map": 53.1, "cpu": "", "t4": 4.7, "params": 20.4, "flops": 68.2},
+            "l": {"size": 640, "map": 55.0, "cpu": "", "t4": 6.2, "params": 24.8, "flops": 86.4},
+            "x": {"size": 640, "map": 57.5, "cpu": "", "t4": 11.8, "params": 55.7, "flops": 193.9},
+        },
+    },
     "YOLO12": {
         "author": "Yunjie Tian, Qixiang Ye, and David Doermann",
         "org": "University at Buffalo and University of Chinese Academy of Sciences",

@@ -8,6 +8,8 @@ keywords: Ultralytics, YOLO, model architecture, YAML configuration, neural netw
 
 The model YAML configuration file serves as the architectural blueprint for Ultralytics neural networks. It defines how layers connect, what parameters each module uses, and how the entire network scales across different model sizes.
 
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yaml-configuration-guide.avif" alt="Model YAML configuration workflow.">
+
 ## Configuration Structure
 
 Model YAML files are organized into three main sections that work together to define the architecture.
@@ -34,7 +36,7 @@ kpt_shape: [17, 3] # pose models only
 
 !!! tip "Reduce redundancy with `scales`"
 
-    The `scales` parameter lets you generate multiple model sizes from a single base YAML. For instance, when you load `yolo11n.yaml`, Ultralytics reads the base `yolo11.yaml` and applies the `n` scaling factors (`depth=0.50`, `width=0.25`) to build the nano variant.
+    The `scales` parameter lets you generate multiple model sizes from a single base YAML. For instance, when you load `yolo26n.yaml`, Ultralytics reads the base `yolo26.yaml` and applies the `n` scaling factors (`depth=0.50`, `width=0.25`) to build the nano variant.
 
 !!! note "`nc` and `kpt_shape` are dataset-dependent"
 
@@ -115,8 +117,8 @@ Modules are organized by functionality and defined in the [Ultralytics modules d
 | Module        | Purpose                              | Source                                                                                         | Arguments                               |
 | ------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------- | --------------------------------------- |
 | `Conv`        | Convolution + BatchNorm + Activation | [conv.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/conv.py) | `[out_ch, kernel, stride, pad, groups]` |
-| `nn.Upsample` | Spatial upsampling                   | [PyTorch](https://pytorch.org/docs/stable/generated/torch.nn.Upsample.html)                    | `[size, scale_factor, mode]`            |
-| `nn.Identity` | Pass-through operation               | [PyTorch](https://pytorch.org/docs/stable/generated/torch.nn.Identity.html)                    | `[]`                                    |
+| `nn.Upsample` | Spatial upsampling                   | [PyTorch](https://docs.pytorch.org/docs/stable/generated/torch.nn.Upsample.html)               | `[size, scale_factor, mode]`            |
+| `nn.Identity` | Pass-through operation               | [PyTorch](https://docs.pytorch.org/docs/stable/generated/torch.nn.Identity.html)               | `[]`                                    |
 
 ### Composite Blocks
 
@@ -142,7 +144,7 @@ Modules are organized by functionality and defined in the [Ultralytics modules d
 
 ### TorchVision Integration
 
-The TorchVision module enables seamless integration of any [TorchVision model](https://pytorch.org/vision/stable/models.html) as a backbone:
+The TorchVision module enables seamless integration of any [TorchVision model](https://docs.pytorch.org/vision/stable/models.html) as a backbone:
 
 === "Python"
 
@@ -166,7 +168,7 @@ The TorchVision module enables seamless integration of any [TorchVision model](h
     **Parameter Breakdown:**
 
     - `768`: Expected output channels
-    - `convnext_tiny`: Model architecture ([available models](https://pytorch.org/vision/stable/models.html))
+    - `convnext_tiny`: Model architecture ([available models](https://docs.pytorch.org/vision/stable/models.html))
     - `DEFAULT`: Use pretrained weights
     - `True`: Remove classification head
     - `2`: Truncate last 2 layers
@@ -212,7 +214,7 @@ m = getattr(torch.nn, m[3:]) if "nn." in m else getattr(torchvision.ops, m[4:]) 
 Standard modules become available through imports in [`tasks.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py):
 
 ```python
-from ultralytics.nn.modules import (  # noqa: F401, E501
+from ultralytics.nn.modules import (  # noqa: F401
     SPPF,
     C2f,
     Conv,
@@ -229,17 +231,21 @@ from ultralytics.nn.modules import (  # noqa: F401, E501
 
 Modifying the source code is the most versatile way to integrate your custom modules, but it can be tricky. To define and use a custom module, follow these steps:
 
-1. **Install Ultralytics in development mode** using the Git clone method from the [Quickstart guide](https://docs.ultralytics.com/quickstart#git-clone).
+1. **Install Ultralytics in development mode** using the Git clone method from the [Quickstart guide](https://docs.ultralytics.com/quickstart/#git-clone).
 
 2. **Define your module** in [`ultralytics/nn/modules/block.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py):
 
     ```python
     class CustomBlock(nn.Module):
+        """Custom block with Conv-BatchNorm-ReLU sequence."""
+
         def __init__(self, c1, c2):
+            """Initialize CustomBlock with input and output channels."""
             super().__init__()
             self.layers = nn.Sequential(nn.Conv2d(c1, c2, 3, 1, 1), nn.BatchNorm2d(c2), nn.ReLU())
 
         def forward(self, x):
+            """Forward pass through the block."""
             return self.layers(x)
     ```
 
@@ -258,7 +264,8 @@ Modifying the source code is the most versatile way to integrate your custom mod
 5. **Handle special arguments** (if needed) inside [`parse_model()`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py) in `ultralytics/nn/tasks.py`:
 
     ```python
-    elif m is CustomBlock:
+    # Add this condition in the parse_model() function
+    if m is CustomBlock:
         c1, c2 = ch[f], args[0]  # input channels, output channels
         args = [c1, c2, *args[1:]]
     ```
@@ -444,7 +451,7 @@ Yes. You can use any supported module, including TorchVision backbones, or defin
 
 ### How do I scale my model for different sizes (nano, small, medium, etc.)?
 
-Use the [`scales` section](#parameters-section) in your YAML to define scaling factors for depth, width, and max channels. The model will automatically apply these when you load the base YAML file with the scale appended to the filename (e.g., `yolo11n.yaml`).
+Use the [`scales` section](#parameters-section) in your YAML to define scaling factors for depth, width, and max channels. The model will automatically apply these when you load the base YAML file with the scale appended to the filename (e.g., `yolo26n.yaml`).
 
 ### What does the `[from, repeats, module, args]` format mean?
 

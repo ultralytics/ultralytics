@@ -11,7 +11,7 @@ At [Ultralytics](https://www.ultralytics.com/), the security of our users' data 
 
 We utilize [Snyk](https://snyk.io/advisor/python/ultralytics) to conduct comprehensive security scans on Ultralytics repositories. Snyk's robust scanning capabilities extend beyond dependency checks; it also examines our code and Dockerfiles for various vulnerabilities. By identifying and addressing these issues proactively, we ensure a higher level of security and reliability for our users.
 
-[![ultralytics](https://snyk.io/advisor/python/ultralytics/badge.svg)](https://snyk.io/advisor/python/ultralytics)
+[![ultralytics](https://snyk.io/test/github/ultralytics/ultralytics/badge.svg)](https://snyk.io/advisor/python/ultralytics)
 
 ## GitHub CodeQL Scanning
 
@@ -33,7 +33,7 @@ We enable private vulnerability reporting, allowing users to discreetly report p
 
 If you suspect or discover a security vulnerability in any of our repositories, please let us know immediately. You can reach out to us directly via our [contact form](https://www.ultralytics.com/contact) or via [security@ultralytics.com](mailto:security@ultralytics.com). Our security team will investigate and respond as soon as possible.
 
-We appreciate your help in keeping all Ultralytics open-source projects secure and safe for everyone 🙏.
+We appreciate your help in keeping all Ultralytics open-source projects secure and safe for everyone.
 
 ## FAQ
 
@@ -47,7 +47,7 @@ Ultralytics employs a comprehensive security strategy to protect user data and s
 - **Secret Scanning**: Detects sensitive data like credentials or private keys in code repositories to prevent data breaches.
 - **Private Vulnerability Reporting**: Offers a secure channel for users to report potential security issues discreetly.
 
-These tools ensure proactive identification and resolution of security issues, enhancing overall system security. For more details, visit our [export documentation](../modes/export.md).
+These tools ensure proactive identification and resolution of security issues, enhancing overall system security. For more details, explore the sections above or contact the security team with any questions.
 
 ### How does Ultralytics use Snyk for security scanning?
 

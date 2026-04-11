@@ -1,6 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-import os
 from pathlib import Path
 from typing import Any
 
@@ -9,8 +8,7 @@ from ultralytics.utils.plotting import save_one_box
 
 
 class ObjectCropper(BaseSolution):
-    """
-    A class to manage the cropping of detected objects in a real-time video stream or images.
+    """A class to manage the cropping of detected objects in a real-time video stream or images.
 
     This class extends the BaseSolution class and provides functionality for cropping objects based on detected bounding
     boxes. The cropped images are saved to a specified directory for further analysis or usage.
@@ -32,29 +30,25 @@ class ObjectCropper(BaseSolution):
     """
 
     def __init__(self, **kwargs: Any) -> None:
-        """
-        Initialize the ObjectCropper class for cropping objects from detected bounding boxes.
+        """Initialize the ObjectCropper class for cropping objects from detected bounding boxes.
 
         Args:
-            **kwargs (Any): Keyword arguments passed to the parent class and used for configuration.
-                crop_dir (str): Path to the directory for saving cropped object images.
+            **kwargs (Any): Keyword arguments passed to the parent class and used for configuration including:
+                - crop_dir (str): Path to the directory for saving cropped object images.
         """
         super().__init__(**kwargs)
 
         self.crop_dir = self.CFG["crop_dir"]  # Directory for storing cropped detections
-        if not os.path.exists(self.crop_dir):
-            os.mkdir(self.crop_dir)  # Create directory if it does not exist
+        Path(self.crop_dir).mkdir(parents=True, exist_ok=True)
         if self.CFG["show"]:
-            self.LOGGER.warning(
-                f"show=True disabled for crop solution, results will be saved in the directory named: {self.crop_dir}"
-            )
+            self.LOGGER.warning(f"show=True is not supported for ObjectCropper; saving crops to '{self.crop_dir}'.")
+            self.CFG["show"] = False
         self.crop_idx = 0  # Initialize counter for total cropped objects
         self.iou = self.CFG["iou"]
         self.conf = self.CFG["conf"]
 
     def process(self, im0) -> SolutionResults:
-        """
-        Crop detected objects from the input image and save them as separate images.
+        """Crop detected objects from the input image and save them as separate images.
 
         Args:
             im0 (np.ndarray): The input image containing detected objects.

@@ -20,7 +20,7 @@ Newly updated YOLOv8 example code is located in [this repository](https://github
 
 ### 1. Install Rust
 
-Please follow the official Rust installation guide: [https://www.rust-lang.org/tools/install](https://www.rust-lang.org/tools/install).
+Please follow the official Rust installation guide: [https://www.rust-lang.org/tools/install](https://rust-lang.org/tools/install/).
 
 ### 2. ONNXRuntime Linking
 
@@ -33,7 +33,7 @@ Please follow the official Rust installation guide: [https://www.rust-lang.org/t
     export ORT_DYLIB_PATH=/path/to/onnxruntime/lib/libonnxruntime.so.1.19.0 # Adjust version/path as needed
     ```
 
-### 3. \[Optional] Install CUDA & CuDNN & TensorRT
+### 3. [Optional] Install CUDA & CuDNN & TensorRT
 
 - The CUDA execution provider requires [CUDA](https://developer.nvidia.com/cuda-toolkit) v11.6+.
 - The TensorRT execution provider requires CUDA v11.4+ and [TensorRT](https://developer.nvidia.com/tensorrt) v8.4+. You may also need [cuDNN](https://developer.nvidia.com/cudnn).

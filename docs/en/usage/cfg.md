@@ -36,11 +36,13 @@ Ultralytics commands use the following syntax:
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLO model from a pre-trained weights file
-        model = YOLO("yolo11n.pt")
+        # Load a YOLO model from a pretrained weights file
+        model = YOLO("yolo26n.pt")
 
-        # Run MODE mode using the custom arguments ARGS (guess TASK)
-        model.MODE(ARGS)
+        # Run the model in MODE using custom ARGS
+        MODE = "predict"
+        ARGS = {"source": "image.jpg", "imgsz": 640}
+        getattr(model, MODE)(**ARGS)
         ```
 
 Where:
@@ -49,7 +51,7 @@ Where:
 - `MODE` (required) is one of ([train](../modes/train.md), [val](../modes/val.md), [predict](../modes/predict.md), [export](../modes/export.md), [track](../modes/track.md), [benchmark](../modes/benchmark.md))
 - `ARGS` (optional) are `arg=value` pairs like `imgsz=640` that override defaults.
 
-Default `ARG` values are defined on this page and come from the `cfg/defaults.yaml` [file](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml).
+Default `ARG` values are defined on this page and come from the `cfg/default.yaml` [file](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml).
 
 ## Tasks
 
@@ -168,8 +170,8 @@ Effective management of these aspects helps track progress and makes debugging a
 | `project`  | `'runs'` | Specifies the root directory for saving training runs. Each run is saved in a separate subdirectory.                                                                                                                                                                                                      |
 | `name`     | `'exp'`  | Defines the experiment name. If unspecified, YOLO increments this name for each run (e.g., `exp`, `exp2`) to avoid overwriting.                                                                                                                                                                           |
 | `exist_ok` | `False`  | Determines whether to overwrite an existing experiment directory. `True` allows overwriting; `False` prevents it.                                                                                                                                                                                         |
-| `plots`    | `False`  | Controls the generation and saving of training and validation plots. Set to `True` to create plots like loss curves, [precision](https://www.ultralytics.com/glossary/precision)-[recall](https://www.ultralytics.com/glossary/recall) curves, and sample predictions for visual tracking of performance. |
-| `save`     | `False`  | Enables saving training checkpoints and final model weights. Set to `True` to save model states periodically, allowing training resumption or model deployment.                                                                                                                                           |
+| `plots`    | `True`   | Controls the generation and saving of training and validation plots. Set to `True` to create plots like loss curves, [precision](https://www.ultralytics.com/glossary/precision)-[recall](https://www.ultralytics.com/glossary/recall) curves, and sample predictions for visual tracking of performance. |
+| `save`     | `True`   | Enables saving training checkpoints and final model weights. Set to `True` to save model states periodically, allowing training resumption or model deployment.                                                                                                                                           |
 
 ## FAQ
 
@@ -199,7 +201,7 @@ Default settings include:
 - **Confidence Threshold (`conf=0.25`)**: Minimum confidence for detections.
 - **IoU Threshold (`iou=0.7`)**: For [Non-Maximum Suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms).
 - **Image Size (`imgsz=640`)**: Resizes input images.
-- **Device (`device=None`)**: Selects CPU or GPU.
+- **Device (`device=None`)**: Selects CPU, GPU, Apple MPS or Huawei Ascend NPU (`npu`).
 
 For a full overview, see [Predict Settings](#predict-settings) and the [Predict Guide](../modes/predict.md).
 

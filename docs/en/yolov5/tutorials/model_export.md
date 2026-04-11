@@ -140,11 +140,11 @@ Visualize:       https://netron.app/
 
 The 3 exported models will be saved alongside the original PyTorch model:
 
-<p align="center"><img width="700" src="https://github.com/ultralytics/docs/releases/download/0/yolo-export-locations.avif" alt="YOLO export locations"></p>
+<p align="center"><img width="700" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-export-locations.avif" alt="YOLO export locations"></p>
 
 [Netron Viewer](https://github.com/lutzroeder/netron) is recommended for visualizing exported models:
 
-<p align="center"><img width="850" src="https://github.com/ultralytics/docs/releases/download/0/yolo-model-visualization.avif" alt="YOLO model visualization"></p>
+<p align="center"><img width="850" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-model-visualization.avif" alt="YOLO model visualization"></p>
 
 ## Exported Model Usage Examples
 
@@ -187,7 +187,7 @@ import torch
 
 # Model
 model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s.pt")
-model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s.torchscript ")  # TorchScript
+model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s.torchscript")  # TorchScript
 model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s.onnx")  # ONNX Runtime
 model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s_openvino_model")  # OpenVINO
 model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s.engine")  # TensorRT
@@ -237,7 +237,7 @@ YOLOv5 OpenVINO C++ inference examples:
 
 ## Supported Environments
 
-Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda-zone), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google_cloud_quickstart_tutorial.md)

@@ -19,11 +19,10 @@ from ultralytics.utils.torch_utils import select_device
 
 
 class TorchVisionVideoClassifier:
-    """
-    Video classifier using pretrained TorchVision models for action recognition.
+    """Video classifier using pretrained TorchVision models for action recognition.
 
-    This class provides an interface for video classification using various pretrained models from TorchVision's
-    video model collection, supporting models like S3D, R3D, Swin3D, and MViT architectures.
+    This class provides an interface for video classification using various pretrained models from TorchVision's video
+    model collection, supporting models like S3D, R3D, Swin3D, and MViT architectures.
 
     Attributes:
         model (torch.nn.Module): The loaded TorchVision model for video classification.
@@ -72,8 +71,7 @@ class TorchVisionVideoClassifier:
     }
 
     def __init__(self, model_name: str, device: str | torch.device = ""):
-        """
-        Initialize the VideoClassifier with the specified model name and device.
+        """Initialize the VideoClassifier with the specified model name and device.
 
         Args:
             model_name (str): The name of the model to use. Must be one of the available models.
@@ -87,24 +85,24 @@ class TorchVisionVideoClassifier:
 
     @staticmethod
     def available_model_names() -> list[str]:
-        """
-        Get the list of available model names.
+        """Get the list of available model names.
 
         Returns:
             (list[str]): List of available model names that can be used with this classifier.
         """
         return list(TorchVisionVideoClassifier.model_name_to_model_and_weights.keys())
 
-    def preprocess_crops_for_video_cls(self, crops: list[np.ndarray], input_size: list[int] = None) -> torch.Tensor:
-        """
-        Preprocess a list of crops for video classification.
+    def preprocess_crops_for_video_cls(
+        self, crops: list[np.ndarray], input_size: list[int] | None = None
+    ) -> torch.Tensor:
+        """Preprocess a list of crops for video classification.
 
         Args:
             crops (list[np.ndarray]): List of crops to preprocess. Each crop should have dimensions (H, W, C).
             input_size (list[int], optional): The target input size for the model.
 
         Returns:
-            (torch.Tensor): Preprocessed crops as a tensor with dimensions (1, T, C, H, W).
+            (torch.Tensor): Preprocessed crops as a tensor with dimensions (1, C, T, H, W).
         """
         if input_size is None:
             input_size = [224, 224]
@@ -122,12 +120,11 @@ class TorchVisionVideoClassifier:
         return torch.stack(processed_crops).unsqueeze(0).permute(0, 2, 1, 3, 4).to(self.device)
 
     def __call__(self, sequences: torch.Tensor) -> torch.Tensor:
-        """
-        Perform inference on the given sequences.
+        """Perform inference on the given sequences.
 
         Args:
-            sequences (torch.Tensor): The input sequences for the model with dimensions (B, T, C, H, W) for batched
-                video frames or (T, C, H, W) for single video frames.
+            sequences (torch.Tensor): The input sequences for the model with dimensions (B, C, T, H, W) for batched
+                video frames or (C, T, H, W) for single video frames.
 
         Returns:
             (torch.Tensor): The model's output logits.
@@ -136,15 +133,13 @@ class TorchVisionVideoClassifier:
             return self.model(sequences)
 
     def postprocess(self, outputs: torch.Tensor) -> tuple[list[str], list[float]]:
-        """
-        Postprocess the model's batch output.
+        """Postprocess the model's batch output.
 
         Args:
             outputs (torch.Tensor): The model's output logits.
 
         Returns:
-            pred_labels (list[str]): The predicted labels.
-            pred_confs (list[float]): The predicted confidences.
+            (tuple[list[str], list[float]]): Predicted labels and their confidence scores.
         """
         pred_labels = []
         pred_confs = []
@@ -159,11 +154,10 @@ class TorchVisionVideoClassifier:
 
 
 class HuggingFaceVideoClassifier:
-    """
-    Zero-shot video classifier using Hugging Face transformer models.
+    """Zero-shot video classifier using Hugging Face transformer models.
 
-    This class provides an interface for zero-shot video classification using Hugging Face models, supporting
-    custom label sets and various transformer architectures for video understanding.
+    This class provides an interface for zero-shot video classification using Hugging Face models, supporting custom
+    label sets and various transformer architectures for video understanding.
 
     Attributes:
         fp16 (bool): Whether to use FP16 for inference.
@@ -193,8 +187,7 @@ class HuggingFaceVideoClassifier:
         device: str | torch.device = "",
         fp16: bool = False,
     ):
-        """
-        Initialize the HuggingFaceVideoClassifier with the specified model name.
+        """Initialize the HuggingFaceVideoClassifier with the specified model name.
 
         Args:
             labels (list[str]): List of labels for zero-shot classification.
@@ -211,9 +204,10 @@ class HuggingFaceVideoClassifier:
             model = model.half()
         self.model = model.eval()
 
-    def preprocess_crops_for_video_cls(self, crops: list[np.ndarray], input_size: list[int] = None) -> torch.Tensor:
-        """
-        Preprocess a list of crops for video classification.
+    def preprocess_crops_for_video_cls(
+        self, crops: list[np.ndarray], input_size: list[int] | None = None
+    ) -> torch.Tensor:
+        """Preprocess a list of crops for video classification.
 
         Args:
             crops (list[np.ndarray]): List of crops to preprocess. Each crop should have dimensions (H, W, C).
@@ -243,11 +237,10 @@ class HuggingFaceVideoClassifier:
         return output
 
     def __call__(self, sequences: torch.Tensor) -> torch.Tensor:
-        """
-        Perform inference on the given sequences.
+        """Perform inference on the given sequences.
 
         Args:
-            sequences (torch.Tensor): The input sequences for the model. Batched video frames with shape (B, T, H, W, C).
+            sequences (torch.Tensor): Batched input video frames with shape (B, T, C, H, W).
 
         Returns:
             (torch.Tensor): The model's output logits.
@@ -262,15 +255,13 @@ class HuggingFaceVideoClassifier:
         return outputs.logits_per_video
 
     def postprocess(self, outputs: torch.Tensor) -> tuple[list[list[str]], list[list[float]]]:
-        """
-        Postprocess the model's batch output.
+        """Postprocess the model's batch output.
 
         Args:
             outputs (torch.Tensor): The model's output logits.
 
         Returns:
-            pred_labels (list[list[str]]): The predicted top2 labels for each sample.
-            pred_confs (list[list[float]]): The predicted top2 confidences for each sample.
+            (tuple[list[list[str]], list[list[float]]]): Predicted top-2 labels and confidence scores for each sample.
         """
         pred_labels = []
         pred_confs = []
@@ -290,8 +281,7 @@ class HuggingFaceVideoClassifier:
 
 
 def crop_and_pad(frame: np.ndarray, box: list[float], margin_percent: int) -> np.ndarray:
-    """
-    Crop box with margin and take square crop from frame.
+    """Crop box with margin and take square crop from frame.
 
     Args:
         frame (np.ndarray): The input frame to crop from.
@@ -332,10 +322,9 @@ def run(
     video_cls_overlap_ratio: float = 0.25,
     fp16: bool = False,
     video_classifier_model: str = "microsoft/xclip-base-patch32",
-    labels: list[str] = None,
+    labels: list[str] | None = None,
 ) -> None:
-    """
-    Run action recognition on a video source using YOLO for object detection and a video classifier.
+    """Run action recognition on a video source using YOLO for object detection and a video classifier.
 
     Args:
         weights (str): Path to the YOLO model weights.

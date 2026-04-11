@@ -1,17 +1,22 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import os
 import shutil
 import sys
 import tempfile
+from typing import TYPE_CHECKING
 
 from . import USER_CONFIG_DIR
 from .torch_utils import TORCH_1_9
 
+if TYPE_CHECKING:
+    from ultralytics.engine.trainer import BaseTrainer
+
 
 def find_free_network_port() -> int:
-    """
-    Find a free port on localhost.
+    """Find a free port on localhost.
 
     It is useful in single-node training when we don't want to connect to a real main node but have to set the
     `MASTER_PORT` environment variable.
@@ -26,12 +31,11 @@ def find_free_network_port() -> int:
         return s.getsockname()[1]  # port
 
 
-def generate_ddp_file(trainer):
-    """
-    Generate a DDP (Distributed Data Parallel) file for multi-GPU training.
+def generate_ddp_file(trainer: BaseTrainer) -> str:
+    """Generate a DDP (Distributed Data Parallel) file for multi-GPU training.
 
-    This function creates a temporary Python file that enables distributed training across multiple GPUs.
-    The file contains the necessary configuration to initialize the trainer in a distributed environment.
+    This function creates a temporary Python file that enables distributed training across multiple GPUs. The file
+    contains the necessary configuration to initialize the trainer in a distributed environment.
 
     Args:
         trainer (ultralytics.engine.trainer.BaseTrainer): The trainer containing training configuration and arguments.
@@ -49,13 +53,26 @@ def generate_ddp_file(trainer):
     """
     module, name = f"{trainer.__class__.__module__}.{trainer.__class__.__name__}".rsplit(".", 1)
 
+    # Serialize augmentations to JSON-safe dicts to avoid NameError in DDP subprocess
+    overrides = vars(trainer.args).copy()
+    if overrides.get("augmentations") is not None:
+        import albumentations as A
+
+        overrides["augmentations"] = [A.to_dict(t) for t in overrides["augmentations"]]
+
     content = f"""
 # Ultralytics Multi-GPU training temp file (should be automatically deleted after use)
-overrides = {vars(trainer.args)}
+from pathlib import Path, PosixPath  # For model arguments stored as Path instead of str
+overrides = {overrides}
 
 if __name__ == "__main__":
     from {module} import {name}
     from ultralytics.utils import DEFAULT_CFG_DICT
+
+    # Deserialize augmentations from dicts back to Albumentations transform objects
+    if overrides.get("augmentations") is not None:
+        import albumentations as A
+        overrides["augmentations"] = [A.from_dict(t) for t in overrides["augmentations"]]
 
     cfg = DEFAULT_CFG_DICT.copy()
     cfg.update(save_dir='')   # handle the extra key 'save_dir'
@@ -76,9 +93,8 @@ if __name__ == "__main__":
     return file.name
 
 
-def generate_ddp_command(trainer):
-    """
-    Generate command for distributed training.
+def generate_ddp_command(trainer: BaseTrainer) -> tuple[list[str], str]:
+    """Generate command for distributed training.
 
     Args:
         trainer (ultralytics.engine.trainer.BaseTrainer): The trainer containing configuration for distributed training.
@@ -107,12 +123,11 @@ def generate_ddp_command(trainer):
     return cmd, file
 
 
-def ddp_cleanup(trainer, file):
-    """
-    Delete temporary file if created during distributed data parallel (DDP) training.
+def ddp_cleanup(trainer: BaseTrainer, file: str) -> None:
+    """Delete temporary file if created during distributed data parallel (DDP) training.
 
-    This function checks if the provided file contains the trainer's ID in its name, indicating it was created
-    as a temporary file for DDP training, and deletes it if so.
+    This function checks if the provided file contains the trainer's ID in its name, indicating it was created as a
+    temporary file for DDP training, and deletes it if so.
 
     Args:
         trainer (ultralytics.engine.trainer.BaseTrainer): The trainer used for distributed training.

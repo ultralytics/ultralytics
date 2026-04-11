@@ -10,16 +10,15 @@ import numpy as np
 from PIL import Image
 
 from ultralytics.data.utils import IMG_FORMATS
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, TORCH_VERSION
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.torch_utils import select_device
+from ultralytics.utils.torch_utils import TORCH_2_4, select_device
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Avoid OpenMP conflict on some systems
 
 
 class VisualAISearch:
-    """
-    A semantic image search system that leverages OpenCLIP for generating high-quality image and text embeddings and
+    """A semantic image search system that leverages OpenCLIP for generating high-quality image and text embeddings and
     FAISS for fast similarity-based retrieval.
 
     This class aligns image and text embeddings in a shared semantic space, enabling users to search large collections
@@ -49,6 +48,7 @@ class VisualAISearch:
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize the VisualAISearch class with FAISS index and CLIP model."""
+        assert TORCH_2_4, f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})"
         from ultralytics.nn.text_model import build_text_model
 
         check_requirements("faiss-cpu")
@@ -77,15 +77,14 @@ class VisualAISearch:
 
     def extract_image_feature(self, path: Path) -> np.ndarray:
         """Extract CLIP image embedding from the given image path."""
-        return self.model.encode_image(Image.open(path)).cpu().numpy()
+        return self.model.encode_image(Image.open(path)).detach().cpu().numpy()
 
     def extract_text_feature(self, text: str) -> np.ndarray:
         """Extract CLIP text embedding from the given text query."""
-        return self.model.encode_text(self.model.tokenize([text])).cpu().numpy()
+        return self.model.encode_text(self.model.tokenize([text])).detach().cpu().numpy()
 
     def load_or_build_index(self) -> None:
-        """
-        Load existing FAISS index or build a new one from image features.
+        """Load existing FAISS index or build a new one from image features.
 
         Checks if FAISS index and image paths exist on disk. If found, loads them directly. Otherwise, builds a new
         index by extracting features from all images in the data directory, normalizes the features, and saves both the
@@ -129,8 +128,7 @@ class VisualAISearch:
         LOGGER.info(f"Indexed {len(self.image_paths)} images.")
 
     def search(self, query: str, k: int = 30, similarity_thresh: float = 0.1) -> list[str]:
-        """
-        Return top-k semantically similar images to the given query.
+        """Return top-k semantically similar images to the given query.
 
         Args:
             query (str): Natural language text query to search for.
@@ -166,11 +164,10 @@ class VisualAISearch:
 
 
 class SearchApp:
-    """
-    A Flask-based web interface for semantic image search with natural language queries.
+    """A Flask-based web interface for semantic image search with natural language queries.
 
-    This class provides a clean, responsive frontend that enables users to input natural language queries and
-    instantly view the most relevant images retrieved from the indexed database.
+    This class provides a clean, responsive frontend that enables users to input natural language queries and instantly
+    view the most relevant images retrieved from the indexed database.
 
     Attributes:
         render_template: Flask template rendering function.
@@ -188,9 +185,8 @@ class SearchApp:
         >>> app.run(debug=True)
     """
 
-    def __init__(self, data: str = "images", device: str = None) -> None:
-        """
-        Initialize the SearchApp with VisualAISearch backend.
+    def __init__(self, data: str = "images", device: str | None = None) -> None:
+        """Initialize the SearchApp with VisualAISearch backend.
 
         Args:
             data (str, optional): Path to directory containing images to index and search.

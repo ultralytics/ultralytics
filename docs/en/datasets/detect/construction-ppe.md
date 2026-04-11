@@ -1,12 +1,25 @@
 ---
 comments: true
 description: Discover Construction-PPE, a specialized dataset for detecting helmets, vests, gloves, boots, and goggles in real-world construction sites. Includes compliant and non-compliant scenarios for AI-powered safety monitoring.
-keywords: Construction-PPE, PPE dataset, safety compliance, construction workers, object detection, YOLO11, workplace safety, computer vision
+keywords: Construction-PPE, PPE dataset, safety compliance, construction workers, object detection, YOLO26, workplace safety, computer vision
 ---
 
 # Construction-PPE Dataset
 
+<a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-construction-ppe-detection-dataset.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Construction-PPE Dataset In Colab"></a>
+
 The Construction-PPE dataset is designed to improve safety compliance in construction sites by enabling detection of essential protective gear such as helmets, vests, gloves, boots, and goggles, along with annotations for missing equipment. Curated from real construction environments, it includes both compliant and non-compliant cases, making it a valuable resource for training AI models that monitor workplace safety.
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/lFaVnrhMmaE"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to train Ultralytics YOLO on Personal Protective Equipment Dataset | VisionAI in Construction 👷
+</p>
 
 ## Dataset Structure
 
@@ -16,7 +29,7 @@ The Construction-PPE dataset is organized into three main subsets:
 - **Validation Set**: A designated subset used to fine-tune and assess model performance during PPE detection and compliance monitoring.
 - **Test Set**: An independent subset reserved for evaluating the final model's effectiveness in detecting PPE and identifying compliance issues.
 
-Each image is annotated in the [Ultralytics YOLO](../detect/index.md/#what-is-the-ultralytics-yolo-dataset-format-and-how-to-structure-it) format ensuring compatibility with state-of-the-art [object detection](../../tasks/detect.md) and [tracking](../../modes/track.md) pipelines.
+Each image is annotated in the [Ultralytics YOLO](../detect/index.md#what-is-the-ultralytics-yolo-dataset-format-and-how-to-structure-it) format ensuring compatibility with state-of-the-art [object detection](../../tasks/detect.md) and [tracking](../../modes/track.md) pipelines.
 
 The dataset provides **11 classes** divided into positive (worn PPE) and negative (missing PPE) categories. This dual-positive/negative structure enables models to detect properly worn gear **and** identify safety violations.
 
@@ -24,7 +37,7 @@ The dataset provides **11 classes** divided into positive (worn PPE) and negativ
 
 - Construction remains one of the most hazardous industries in the world, with over 51 out of 123 work related **fatal injuries** in the UK in 2023/2024 happening in construction. However, the issue is no longer an issue with lack of regulation with 42% of construction workers admitting to not always adhering to processes.
 - Construction is already governed by an extensive framework of health and safety (HSE) standards, but HSE teams are challenged with consistent enforcement. HSE teams are often stretched thin, balancing paperwork and audits and lacking the ability to monitor every corner of a busy and ever-changing environment in real time.
-- This is where computer vision based personal protective equipment (PPE) detection becomes invaluable. By automatically checking whether workers are wearing **helmets, vests and other personal protective equipment**, you can ensure HSE rules are not just present but effectively enforced consistently across all sites. Beyond compliance, computer vision provides leading indicators of risk by revealing how well crews follow safety practices, enabling organisations to spot downward trends in compliance and prevent incidents before they happen.
+- This is where computer vision based personal protective equipment (PPE) detection becomes invaluable. By automatically checking whether workers are wearing **helmets, vests and other personal protective equipment**, you can ensure HSE rules are not just present but effectively enforced consistently across all sites. Beyond compliance, computer vision provides leading indicators of risk by revealing how well crews follow safety practices, enabling organizations to spot downward trends in compliance and prevent incidents before they happen.
 - As a bonus, personal protective equipment detection has also been known to identify unauthorized site intruders, since **those not equipped with proper safety gear** are the first to trigger a notification. Ultimately, PPE detection is a simple yet powerful computer vision use-case that delivers full oversight, actionable insights and standardized reporting, empowering construction firms to reduce risk, protect workers and safeguard their projects.
 
 ## Applications
@@ -49,7 +62,7 @@ The Construction-PPE dataset includes a YAML configuration file that defines the
 
 ## Usage
 
-You can train a YOLO11n model on the Construction-PPE dataset for 100 epochs with an image size of 640. The following examples show how to get started quickly. For more options and advanced configurations, see the [Training guide](../../modes/train.md).
+You can train a YOLO26n model on the Construction-PPE dataset for 100 epochs with an image size of 640. The following examples show how to get started quickly. For more options and advanced configurations, see the [Training guide](../../modes/train.md).
 
 !!! example "Train Example"
 
@@ -59,7 +72,7 @@ You can train a YOLO11n model on the Construction-PPE dataset for 100 epochs wit
         from ultralytics import YOLO
 
         # Load pretrained model
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
 
         # Train the model on Construction-PPE dataset
         model.train(data="construction-ppe.yaml", epochs=100, imgsz=640)
@@ -68,14 +81,14 @@ You can train a YOLO11n model on the Construction-PPE dataset for 100 epochs wit
     === "CLI"
 
         ```bash
-        yolo detect train data=construction-ppe.yaml model=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=construction-ppe.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Images and Annotations
 
 The dataset captures construction workers across varied environments, lighting conditions, and postures. Both **compliant** and **non-compliant** cases are included.
 
-![Construction-PPE dataset sample image, showing compliant and non-compliant safety gear detection](https://github.com/ultralytics/docs/releases/download/0/construction-ppe-dataset-sample.avif)
+![Construction-PPE dataset sample with safety gear detection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/construction-ppe-dataset-sample.avif)
 
 ## License and Attribution
 
@@ -112,7 +125,7 @@ The dataset covers helmets, vests, gloves, boots, goggles, and workers, along wi
 
 ### How can I train a YOLO model using the Construction-PPE dataset?
 
-To train a YOLO11 model using the Construction-PPE dataset, you can use the following code snippets:
+To train a YOLO26 model using the Construction-PPE dataset, you can use the following code snippets:
 
 !!! example "Train Example"
 
@@ -122,7 +135,7 @@ To train a YOLO11 model using the Construction-PPE dataset, you can use the foll
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="construction-ppe.yaml", epochs=100, imgsz=640)
@@ -132,7 +145,7 @@ To train a YOLO11 model using the Construction-PPE dataset, you can use the foll
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=construction-ppe.yaml model=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=construction-ppe.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
 ### Is this dataset suitable for real-world applications?

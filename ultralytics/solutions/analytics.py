@@ -9,14 +9,14 @@ import cv2
 import numpy as np
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionResults  # Import a parent class
+from ultralytics.utils import plt_settings
 
 
 class Analytics(BaseSolution):
-    """
-    A class for creating and updating various types of charts for visual analytics.
+    """A class for creating and updating various types of charts for visual analytics.
 
-    This class extends BaseSolution to provide functionality for generating line, bar, pie, and area charts
-    based on object detection and tracking data.
+    This class extends BaseSolution to provide functionality for generating line, bar, pie, and area charts based on
+    object detection and tracking data.
 
     Attributes:
         type (str): The type of analytics chart to generate ('line', 'bar', 'pie', or 'area').
@@ -47,6 +47,7 @@ class Analytics(BaseSolution):
         >>> cv2.imshow("Analytics", results.plot_im)
     """
 
+    @plt_settings()
     def __init__(self, **kwargs: Any) -> None:
         """Initialize Analytics class with various chart types for visual data representation."""
         super().__init__(**kwargs)
@@ -55,7 +56,7 @@ class Analytics(BaseSolution):
         from matplotlib.backends.backend_agg import FigureCanvasAgg
         from matplotlib.figure import Figure
 
-        self.type = self.CFG["analytics_type"]  # type of analytics i.e "line", "pie", "bar" or "area" charts.
+        self.type = self.CFG["analytics_type"]  # Chart type: "line", "pie", "bar", or "area".
         self.x_label = "Classes" if self.type in {"bar", "pie"} else "Frame#"
         self.y_label = "Total Counts"
 
@@ -65,10 +66,10 @@ class Analytics(BaseSolution):
         self.title = "Ultralytics Solutions"  # window name
         self.max_points = 45  # maximum points to be drawn on window
         self.fontsize = 25  # text font size for display
-        figsize = self.CFG["figsize"]  # set output image size i.e (12.8, 7.2) -> w = 1280, h = 720
+        figsize = self.CFG["figsize"]  # Output size, e.g. (12.8, 7.2) -> 1280x720.
         self.color_cycle = cycle(["#DD00BA", "#042AFF", "#FF4447", "#7D24FF", "#BD00FF"])
 
-        self.total_counts = 0  # count variable for storing total counts i.e. for line
+        self.total_counts = 0  # Stores total counts for line charts.
         self.clswise_count = {}  # dictionary for class-wise counts
         self.update_every = kwargs.get("update_every", 30)  # Only update graph every 30 frames by default
         self.last_plot_im = None  # Cache of the last rendered chart
@@ -92,8 +93,7 @@ class Analytics(BaseSolution):
                 self.ax.axis("equal")
 
     def process(self, im0: np.ndarray, frame_number: int) -> SolutionResults:
-        """
-        Process image data and run object tracking to update analytics charts.
+        """Process image data and run object tracking to update analytics charts.
 
         Args:
             im0 (np.ndarray): Input image for processing.
@@ -104,7 +104,7 @@ class Analytics(BaseSolution):
                 and 'classwise_count' (dict, per-class object count).
 
         Raises:
-            ModuleNotFoundError: If an unsupported chart type is specified.
+            ValueError: If an unsupported chart type is specified.
 
         Examples:
             >>> analytics = Analytics(analytics_type="line")
@@ -131,21 +131,20 @@ class Analytics(BaseSolution):
                 )
             plot_im = self.last_plot_im
         else:
-            raise ModuleNotFoundError(f"{self.type} chart is not supported ❌")
+            raise ValueError(f"Unsupported analytics_type='{self.type}'. Supported types: line, bar, pie, area.")
 
-        # return output dictionary with summary for more usage
+        # Return results for downstream use.
         return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids), classwise_count=self.clswise_count)
 
     def update_graph(
         self, frame_number: int, count_dict: dict[str, int] | None = None, plot: str = "line"
     ) -> np.ndarray:
-        """
-        Update the graph with new data for single or multiple classes.
+        """Update the graph with new data for single or multiple classes.
 
         Args:
             frame_number (int): The current frame number.
-            count_dict (dict[str, int], optional): Dictionary with class names as keys and counts as values for
-                multiple classes. If None, updates a single line graph.
+            count_dict (dict[str, int], optional): Dictionary with class names as keys and counts as values for multiple
+                classes. If None, updates a single line graph.
             plot (str): Type of the plot. Options are 'line', 'bar', 'pie', or 'area'.
 
         Returns:

@@ -1,3 +1,4 @@
+# ./gpuq add 0 -n sresp4 yolo train model=yolo26s-rep-fpn-simple-sresp4.yaml name=yolo26s-rep-fpn-simple-sresp4 device=0 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json
 # yolo train model=yolo26s-rep-fpn-simple-sres.yaml name=yolo26s-rep-fpn-simple-sres device=3 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json
 # yolo train model=yolo26s-rep-fpn-simple-hres.yaml name=yolo26s-rep-fpn-simple-hres device=4 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json
 # ./gpuq add 4 -n simple yolo train model=yolo26s-rep-fpn-simple.yaml name=yolo26s-rep-fpn-simple device=3 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json

@@ -1,15 +1,18 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import sys
+from types import SimpleNamespace
 from unittest import mock
 
+import pytest
 import torch
 
-from tests import MODEL, SOURCE
+from tests import MODEL, SOURCE, TASK_MODEL_DATA
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.models.yolo import classify, detect, segment
+from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
 
 
@@ -56,15 +59,8 @@ def test_detect():
         assert len(result), "predictor test failed"
 
     # Test resume functionality
-    overrides["resume"] = trainer.last
-    trainer = detect.DetectionTrainer(overrides=overrides)
-    try:
-        trainer.train()
-    except Exception as e:
-        print(f"Expected exception caught: {e}")
-        return
-
-    raise Exception("Resume test failed!")
+    with pytest.raises(AssertionError):
+        detect.DetectionTrainer(overrides={**overrides, "resume": trainer.last}).train()
 
 
 def test_segment():
@@ -102,15 +98,8 @@ def test_segment():
     assert len(result), "predictor test failed"
 
     # Test resume functionality
-    overrides["resume"] = trainer.last
-    trainer = segment.SegmentationTrainer(overrides=overrides)
-    try:
-        trainer.train()
-    except Exception as e:
-        print(f"Expected exception caught: {e}")
-        return
-
-    raise Exception("Resume test failed!")
+    with pytest.raises(AssertionError):
+        segment.SegmentationTrainer(overrides={**overrides, "resume": trainer.last}).train()
 
 
 def test_classify():
@@ -139,6 +128,46 @@ def test_classify():
     result = pred(source=ASSETS, model=trainer.best)
     assert len(result), "predictor test failed"
 
+    # Test resume functionality
+    with pytest.raises(AssertionError):
+        classify.ClassificationTrainer(overrides={**overrides, "resume": trainer.last}).train()
+
+
+@pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)
+def test_resume_incomplete(task, weight, data, tmp_path):
+    """Test training resumes from an incomplete checkpoint."""
+    train_args = {
+        "data": data,
+        "epochs": 2,
+        "save": True,
+        "plots": False,
+        "workers": 0,
+        "project": tmp_path,
+        "name": task,
+        "imgsz": 32,
+        "exist_ok": True,
+    }
+
+    def stop_after_first_epoch(trainer):
+        if trainer.epoch == 0:
+            trainer.stop = True
+
+    def disable_final_eval(trainer):
+        trainer.final_eval = lambda: None
+
+    model = YOLO(weight)
+    model.add_callback("on_train_start", disable_final_eval)
+    model.add_callback("on_train_epoch_end", stop_after_first_epoch)
+    model.train(**train_args)
+    last_path = model.trainer.last
+    _, ckpt = load_checkpoint(last_path)
+    assert ckpt["epoch"] == 0, "checkpoint should be resumable"
+
+    # Resume training using the checkpoint
+    resume_model = YOLO(last_path)
+    resume_model.train(resume=True, **train_args)
+    assert resume_model.trainer.start_epoch == resume_model.trainer.epoch == 1, "resume test failed"
+
 
 def test_nan_recovery():
     """Test NaN loss detection and recovery during training."""
@@ -155,3 +184,44 @@ def test_nan_recovery():
     trainer.add_callback("on_train_batch_end", inject_nan)
     trainer.train()
     assert nan_injected[0], "NaN injection failed"
+
+
+def test_train_reuses_loaded_checkpoint_model(monkeypatch):
+    """Test training reuses an already-loaded checkpoint model instead of re-parsing the model source."""
+    model = YOLO("yolo26n.yaml")
+    model.ckpt = {"checkpoint": True}
+    model.ckpt_path = "/tmp/fake.pt"
+    model.overrides["model"] = "ul://glenn-jocher/m2/exp-14"
+    original_model = model.model
+    captured = {}
+
+    class FakeTrainer:
+        def __init__(self, overrides=None, _callbacks=None):
+            self.overrides = overrides
+            self.callbacks = _callbacks
+            self.model = None
+            self.validator = SimpleNamespace(metrics=None)
+            self.best = MODEL.parent / "nonexistent-best.pt"
+            self.last = MODEL
+            captured["trainer"] = self
+
+        def get_model(self, cfg=None, weights=None, verbose=True):
+            captured["cfg"] = cfg
+            captured["weights"] = weights
+            return original_model
+
+        def train(self):
+            return None
+
+    monkeypatch.setattr("ultralytics.engine.model.checks.check_pip_update_available", lambda: None)
+    monkeypatch.setattr(model, "_smart_load", lambda key: FakeTrainer)
+    monkeypatch.setattr(
+        "ultralytics.engine.model.load_checkpoint",
+        lambda path: (original_model, {"checkpoint": True}),
+    )
+
+    model.train(data="coco8.yaml", epochs=1)
+
+    assert captured["trainer"].model is original_model
+    assert captured["cfg"] == original_model.yaml
+    assert captured["weights"] is original_model

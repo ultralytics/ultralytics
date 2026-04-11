@@ -52,11 +52,11 @@ graph LR
 
 ## Authentication
 
-Most API requests require authentication via API key. Public endpoints (listing public datasets, projects, and models) support anonymous read access without a key.
+Resource APIs such as datasets, projects, models, training, exports, and predictions use API-key authentication. Public endpoints (listing public datasets, projects, and models) support anonymous read access without a key. Account-oriented routes — including activity, settings, teams, billing, and GDPR flows — currently require an authenticated browser session and are not available via API key.
 
 ### Get API Key
 
-1. Go to `Settings` > `Profile` (API Keys section)
+1. Go to `Settings` > `API Keys`
 2. Click `Create Key`
 3. Copy the generated key
 
@@ -66,7 +66,7 @@ See [API Keys](../account/api-keys.md) for detailed instructions.
 
 Include your API key in all requests:
 
-```
+```http
 Authorization: Bearer YOUR_API_KEY
 ```
 
@@ -122,7 +122,7 @@ The API uses a two-layer rate limiting system to protect against abuse while kee
 
 When throttled, the API returns `429` with retry metadata:
 
-```
+```http
 Retry-After: 12
 X-RateLimit-Reset: 2026-02-21T12:34:56.000Z
 ```
@@ -145,7 +145,7 @@ Each category has an independent counter per API key. For example, making 20 pre
 
 ### Dedicated Endpoints (Unlimited)
 
-[Dedicated endpoints](../deploy/endpoints.md) are **not subject to API key rate limits**. When you deploy a model to a dedicated endpoint, requests to that endpoint URL (e.g., `https://predict-abc123.run.app/predict`) go directly to your dedicated service with no rate limiting from the Platform. You're paying for the compute, so you get unlimited throughput up to your endpoint's scaling configuration.
+[Dedicated endpoints](../deploy/endpoints.md) are **not subject to API key rate limits**. When you deploy a model to a dedicated endpoint, requests to that endpoint URL (e.g., `https://predict-abc123.run.app/predict`) go directly to your dedicated service with no rate limiting from the Platform. You're paying for the compute, so you get throughput from your dedicated service configuration rather than the shared API limits.
 
 !!! tip "Handling Rate Limits"
 
@@ -192,7 +192,7 @@ Create, browse, and manage labeled image datasets for training YOLO models. See 
 
 ### List Datasets
 
-```
+```http
 GET /api/datasets
 ```
 
@@ -262,7 +262,7 @@ GET /api/datasets
 
 ### Get Dataset
 
-```
+```http
 GET /api/datasets/{datasetId}
 ```
 
@@ -270,7 +270,7 @@ Returns full dataset details including metadata, class names, and split counts.
 
 ### Create Dataset
 
-```
+```http
 POST /api/datasets
 ```
 
@@ -293,7 +293,7 @@ POST /api/datasets
 
 ### Update Dataset
 
-```
+```http
 PATCH /api/datasets/{datasetId}
 ```
 
@@ -309,7 +309,7 @@ PATCH /api/datasets/{datasetId}
 
 ### Delete Dataset
 
-```
+```http
 DELETE /api/datasets/{datasetId}
 ```
 
@@ -317,7 +317,7 @@ Soft-deletes the dataset (moved to [trash](../account/trash.md), recoverable for
 
 ### Clone Dataset
 
-```
+```http
 POST /api/datasets/{datasetId}/clone
 ```
 
@@ -336,7 +336,7 @@ Creates a copy of the dataset with all images and labels. Only public datasets c
 
 ### Export Dataset
 
-```
+```http
 GET /api/datasets/{datasetId}/export
 ```
 
@@ -359,7 +359,7 @@ Returns a JSON response with a signed download URL for the latest dataset export
 
 ### Create Dataset Version
 
-```
+```http
 POST /api/datasets/{datasetId}/export
 ```
 
@@ -386,7 +386,7 @@ All fields are optional. The `description` field is a user-provided label for th
 
 ### Update Version Description
 
-```
+```http
 PATCH /api/datasets/{datasetId}/export
 ```
 
@@ -411,7 +411,7 @@ Update the description of an existing version. Owner-only.
 
 ### Get Class Statistics
 
-```
+```http
 GET /api/datasets/{datasetId}/class-stats
 ```
 
@@ -454,7 +454,7 @@ Returns class distribution, location heatmap, and dimension statistics. Results 
 
 ### Get Models Trained on Dataset
 
-```
+```http
 GET /api/datasets/{datasetId}/models
 ```
 
@@ -495,7 +495,7 @@ Returns models that were trained using this dataset.
 
 ### Auto-Annotate Dataset
 
-```
+```http
 POST /api/datasets/{datasetId}/predict
 ```
 
@@ -512,7 +512,7 @@ Run YOLO inference on dataset images to auto-generate annotations. Uses a select
 
 ### Dataset Ingest
 
-```
+```http
 POST /api/datasets/ingest
 ```
 
@@ -532,7 +532,7 @@ graph LR
 
 #### List Images
 
-```
+```http
 GET /api/datasets/{datasetId}/images
 ```
 
@@ -552,7 +552,7 @@ GET /api/datasets/{datasetId}/images
 
 #### Get Signed Image URLs
 
-```
+```http
 POST /api/datasets/{datasetId}/images/urls
 ```
 
@@ -560,13 +560,13 @@ Get signed URLs for a batch of image hashes (for display in the browser).
 
 #### Delete Image
 
-```
+```http
 DELETE /api/datasets/{datasetId}/images/{hash}
 ```
 
 #### Get Image Labels
 
-```
+```http
 GET /api/datasets/{datasetId}/images/{hash}/labels
 ```
 
@@ -574,7 +574,7 @@ Returns annotations and class names for a specific image.
 
 #### Update Image Labels
 
-```
+```http
 PUT /api/datasets/{datasetId}/images/{hash}/labels
 ```
 
@@ -594,13 +594,13 @@ PUT /api/datasets/{datasetId}/images/{hash}/labels
 
 Move images between splits (train/val/test) within a dataset:
 
-```
+```http
 PATCH /api/datasets/{datasetId}/images/bulk
 ```
 
 Bulk delete images:
 
-```
+```http
 DELETE /api/datasets/{datasetId}/images/bulk
 ```
 
@@ -612,7 +612,7 @@ Organize your models into projects. Each model belongs to one project. See [Proj
 
 ### List Projects
 
-```
+```http
 GET /api/projects
 ```
 
@@ -626,13 +626,13 @@ GET /api/projects
 
 ### Get Project
 
-```
+```http
 GET /api/projects/{projectId}
 ```
 
 ### Create Project
 
-```
+```http
 POST /api/projects
 ```
 
@@ -659,13 +659,13 @@ POST /api/projects
 
 ### Update Project
 
-```
+```http
 PATCH /api/projects/{projectId}
 ```
 
 ### Delete Project
 
-```
+```http
 DELETE /api/projects/{projectId}
 ```
 
@@ -673,7 +673,7 @@ Soft-deletes the project (moved to [trash](../account/trash.md)).
 
 ### Clone Project
 
-```
+```http
 POST /api/projects/{projectId}/clone
 ```
 
@@ -681,13 +681,13 @@ POST /api/projects/{projectId}/clone
 
 Upload a project icon (multipart form with image file):
 
-```
+```http
 POST /api/projects/{projectId}/icon
 ```
 
 Remove the project icon:
 
-```
+```http
 DELETE /api/projects/{projectId}/icon
 ```
 
@@ -699,7 +699,7 @@ Manage trained YOLO models — view metrics, download weights, run inference, an
 
 ### List Models
 
-```
+```http
 GET /api/models
 ```
 
@@ -714,7 +714,7 @@ GET /api/models
 
 ### List Completed Models
 
-```
+```http
 GET /api/models/completed
 ```
 
@@ -722,13 +722,13 @@ Returns models that have finished training (for use in model selectors and deplo
 
 ### Get Model
 
-```
+```http
 GET /api/models/{modelId}
 ```
 
 ### Create Model
 
-```
+```http
 POST /api/models
 ```
 
@@ -748,19 +748,19 @@ POST /api/models
 
 ### Update Model
 
-```
+```http
 PATCH /api/models/{modelId}
 ```
 
 ### Delete Model
 
-```
+```http
 DELETE /api/models/{modelId}
 ```
 
 ### Download Model Files
 
-```
+```http
 GET /api/models/{modelId}/files
 ```
 
@@ -768,7 +768,7 @@ Returns signed download URLs for model files.
 
 ### Clone Model
 
-```
+```http
 POST /api/models/{modelId}/clone
 ```
 
@@ -794,7 +794,7 @@ Clone a public model to one of your projects.
 
 ### Track Download
 
-```
+```http
 POST /api/models/{modelId}/track-download
 ```
 
@@ -802,7 +802,7 @@ Track model download analytics.
 
 ### Run Inference
 
-```
+```http
 POST /api/models/{modelId}/predict
 ```
 
@@ -863,7 +863,7 @@ POST /api/models/{modelId}/predict
 
 ### Get Predict Token
 
-```
+```http
 POST /api/models/{modelId}/predict/token
 ```
 
@@ -871,7 +871,7 @@ Get a short-lived token for direct prediction requests. The token bypasses the A
 
 ### Warmup Model
 
-```
+```http
 POST /api/models/{modelId}/predict/warmup
 ```
 
@@ -895,7 +895,7 @@ graph LR
 
 ### Start Training
 
-```
+```http
 POST /api/training/start
 ```
 
@@ -947,7 +947,7 @@ POST /api/training/start
 
 ### Get Training Status
 
-```
+```http
 GET /api/models/{modelId}/training
 ```
 
@@ -955,7 +955,7 @@ Returns the current training job status, metrics, and progress for a model.
 
 ### Cancel Training
 
-```
+```http
 DELETE /api/models/{modelId}/training
 ```
 
@@ -965,7 +965,7 @@ Terminates the running compute instance and marks the job as cancelled.
 
 ## Deployments API
 
-Deploy models to dedicated inference endpoints with auto-scaling, health checks, and monitoring. See [Endpoints documentation](../deploy/endpoints.md).
+Deploy models to dedicated inference endpoints with health checks and monitoring. New deployments use scale-to-zero by default, and the API accepts an optional `resources` object. See [Endpoints documentation](../deploy/endpoints.md).
 
 ```mermaid
 graph LR
@@ -980,7 +980,7 @@ graph LR
 
 ### List Deployments
 
-```
+```http
 GET /api/deployments
 ```
 
@@ -995,7 +995,7 @@ GET /api/deployments
 
 ### Create Deployment
 
-```
+```http
 POST /api/deployments
 ```
 
@@ -1015,14 +1015,18 @@ POST /api/deployments
 }
 ```
 
-| Field       | Type   | Required | Description                                                        |
-| ----------- | ------ | -------- | ------------------------------------------------------------------ |
-| `modelId`   | string | Yes      | Model ID to deploy                                                 |
-| `name`      | string | Yes      | Deployment name                                                    |
-| `region`    | string | Yes      | Deployment region                                                  |
-| `resources` | object | No       | Resource configuration (cpu, memoryGi, minInstances, maxInstances) |
+| Field       | Type   | Required | Description                                                                |
+| ----------- | ------ | -------- | -------------------------------------------------------------------------- |
+| `modelId`   | string | Yes      | Model ID to deploy                                                         |
+| `name`      | string | Yes      | Deployment name                                                            |
+| `region`    | string | Yes      | Deployment region                                                          |
+| `resources` | object | No       | Resource configuration (`cpu`, `memoryGi`, `minInstances`, `maxInstances`) |
 
 Creates a dedicated inference endpoint in the specified region. The endpoint is globally accessible via a unique URL.
+
+!!! note "Default Resources"
+
+    The deployment dialog currently submits fixed defaults of `cpu=1`, `memoryGi=2`, `minInstances=0`, and `maxInstances=1`. The API route accepts a `resources` object, but plan limits cap `minInstances` at `0` and `maxInstances` at `1`.
 
 !!! tip "Region Selection"
 
@@ -1030,19 +1034,19 @@ Creates a dedicated inference endpoint in the specified region. The endpoint is 
 
 ### Get Deployment
 
-```
+```http
 GET /api/deployments/{deploymentId}
 ```
 
 ### Delete Deployment
 
-```
+```http
 DELETE /api/deployments/{deploymentId}
 ```
 
 ### Start Deployment
 
-```
+```http
 POST /api/deployments/{deploymentId}/start
 ```
 
@@ -1050,7 +1054,7 @@ Resume a stopped deployment.
 
 ### Stop Deployment
 
-```
+```http
 POST /api/deployments/{deploymentId}/stop
 ```
 
@@ -1058,7 +1062,7 @@ Pause a running deployment (stops billing).
 
 ### Health Check
 
-```
+```http
 GET /api/deployments/{deploymentId}/health
 ```
 
@@ -1066,7 +1070,7 @@ Returns the health status of the deployment endpoint.
 
 ### Run Inference on Deployment
 
-```
+```http
 POST /api/deployments/{deploymentId}/predict
 ```
 
@@ -1083,7 +1087,7 @@ Send an image directly to a deployment endpoint for inference. Functionally equi
 
 ### Get Metrics
 
-```
+```http
 GET /api/deployments/{deploymentId}/metrics
 ```
 
@@ -1098,7 +1102,7 @@ Returns request counts, latency, and error rate metrics with sparkline data.
 
 ### Get Logs
 
-```
+```http
 GET /api/deployments/{deploymentId}/logs
 ```
 
@@ -1116,7 +1120,7 @@ GET /api/deployments/{deploymentId}/logs
 
 ### Aggregated Metrics
 
-```
+```http
 GET /api/monitoring
 ```
 
@@ -1130,7 +1134,7 @@ Convert models to optimized formats like ONNX, TensorRT, CoreML, and TFLite for 
 
 ### List Exports
 
-```
+```http
 GET /api/exports
 ```
 
@@ -1144,7 +1148,7 @@ GET /api/exports
 
 ### Create Export
 
-```
+```http
 POST /api/exports
 ```
 
@@ -1202,19 +1206,19 @@ POST /api/exports
 
 ### Get Export Status
 
-```
+```http
 GET /api/exports/{exportId}
 ```
 
 ### Cancel Export
 
-```
+```http
 DELETE /api/exports/{exportId}
 ```
 
 ### Track Export Download
 
-```
+```http
 POST /api/exports/{exportId}/track-download
 ```
 
@@ -1224,9 +1228,13 @@ POST /api/exports/{exportId}/track-download
 
 View a feed of recent actions on your account — training runs, uploads, and more. See [Activity documentation](../account/activity.md).
 
+!!! note "Browser Session Only"
+
+    The Activity routes are powered by browser-authenticated requests from the platform UI. They are not exposed as a public API, do not accept API-key authentication, and the route shapes below are documented only for reference. Use the Activity feed in the platform UI to view, mark, or archive events.
+
 ### List Activity
 
-```
+```http
 GET /api/activity
 ```
 
@@ -1241,7 +1249,7 @@ GET /api/activity
 
 ### Mark Events Seen
 
-```
+```http
 POST /api/activity/mark-seen
 ```
 
@@ -1263,7 +1271,7 @@ Or pass specific IDs:
 
 ### Archive Events
 
-```
+```http
 POST /api/activity/archive
 ```
 
@@ -1293,7 +1301,7 @@ View and restore deleted items. Items are permanently removed after 30 days. See
 
 ### List Trash
 
-```
+```http
 GET /api/trash
 ```
 
@@ -1308,7 +1316,7 @@ GET /api/trash
 
 ### Restore Item
 
-```
+```http
 POST /api/trash
 ```
 
@@ -1323,7 +1331,7 @@ POST /api/trash
 
 ### Permanently Delete Item
 
-```
+```http
 DELETE /api/trash
 ```
 
@@ -1342,11 +1350,15 @@ DELETE /api/trash
 
 ### Empty Trash
 
-```
+```http
 DELETE /api/trash/empty
 ```
 
 Permanently deletes all items in trash.
+
+!!! note "Authentication"
+
+    `DELETE /api/trash/empty` requires an authenticated browser session and is not available via API key. Use the **Empty Trash** button in the UI instead.
 
 ---
 
@@ -1360,7 +1372,7 @@ Check your credit balance, purchase credits, view transaction history, and confi
 
 ### Get Balance
 
-```
+```http
 GET /api/billing/balance
 ```
 
@@ -1385,7 +1397,7 @@ GET /api/billing/balance
 
 ### Get Usage Summary
 
-```
+```http
 GET /api/billing/usage-summary
 ```
 
@@ -1393,7 +1405,7 @@ Returns plan details, limits, and usage metrics.
 
 ### Get Transactions
 
-```
+```http
 GET /api/billing/transactions
 ```
 
@@ -1407,7 +1419,7 @@ Returns transaction history (most recent first).
 
 ### Create Checkout Session
 
-```
+```http
 POST /api/billing/checkout-session
 ```
 
@@ -1429,7 +1441,7 @@ Creates a checkout session for credit purchase.
 
 ### Create Subscription Checkout
 
-```
+```http
 POST /api/billing/subscription-checkout
 ```
 
@@ -1451,13 +1463,21 @@ Creates a checkout session for Pro subscription upgrade.
 | `billingCycle` | string | No       | Billing cycle: `monthly` (default) or `yearly`             |
 | `owner`        | string | No       | Team username for workspace upgrades (requires admin role) |
 
-### Create Portal Session
+### Cancel or Resume Subscription
 
-```
-POST /api/billing/portal-session
+```http
+DELETE /api/billing/subscription-checkout
 ```
 
-Returns URL to billing portal for subscription management.
+Cancels a Pro subscription at period end by default. Send `{"resume": true}` to resume an already scheduled cancellation before the billing period ends.
+
+**Body:**
+
+```json
+{
+    "resume": true
+}
+```
 
 ### Auto Top-Up
 
@@ -1465,7 +1485,7 @@ Automatically add credits when balance falls below a threshold.
 
 #### Get Auto Top-Up Config
 
-```
+```http
 GET /api/billing/auto-topup
 ```
 
@@ -1477,7 +1497,7 @@ GET /api/billing/auto-topup
 
 #### Update Auto Top-Up Config
 
-```
+```http
 PATCH /api/billing/auto-topup
 ```
 
@@ -1495,13 +1515,13 @@ PATCH /api/billing/auto-topup
 
 #### List Payment Methods
 
-```
+```http
 GET /api/billing/payment-methods
 ```
 
 #### Create Setup Intent
 
-```
+```http
 POST /api/billing/payment-methods/setup
 ```
 
@@ -1509,7 +1529,7 @@ Returns a client secret for adding a new payment method.
 
 #### Set Default Payment Method
 
-```
+```http
 POST /api/billing/payment-methods/default
 ```
 
@@ -1523,7 +1543,7 @@ POST /api/billing/payment-methods/default
 
 #### Update Billing Info
 
-```
+```http
 PATCH /api/billing/payment-methods
 ```
 
@@ -1544,7 +1564,7 @@ PATCH /api/billing/payment-methods
 
 #### Delete Payment Method
 
-```
+```http
 DELETE /api/billing/payment-methods/{id}
 ```
 
@@ -1556,7 +1576,7 @@ Check your storage usage breakdown by category (datasets, models, exports) and s
 
 ### Get Storage Info
 
-```
+```http
 GET /api/storage
 ```
 
@@ -1605,7 +1625,7 @@ GET /api/storage
 
 ### Recalculate Storage
 
-```
+```http
 POST /api/storage
 ```
 
@@ -1619,7 +1639,7 @@ Upload files directly to cloud storage using signed URLs for fast, reliable tran
 
 ### Get Signed Upload URL
 
-```
+```http
 POST /api/upload/signed-url
 ```
 
@@ -1659,7 +1679,7 @@ Request a signed URL for uploading a file directly to cloud storage. The signed 
 
 ### Complete Upload
 
-```
+```http
 POST /api/upload/complete
 ```
 
@@ -1685,13 +1705,13 @@ Manage your API keys for programmatic access. See [API Keys documentation](../ac
 
 ### List API Keys
 
-```
+```http
 GET /api/api-keys
 ```
 
 ### Create API Key
 
-```
+```http
 POST /api/api-keys
 ```
 
@@ -1705,7 +1725,7 @@ POST /api/api-keys
 
 ### Delete API Key
 
-```
+```http
 DELETE /api/api-keys
 ```
 
@@ -1731,13 +1751,13 @@ Create team workspaces, invite members, and manage roles for collaboration. See 
 
 ### List Teams
 
-```
+```http
 GET /api/teams
 ```
 
 ### Create Team
 
-```
+```http
 POST /api/teams/create
 ```
 
@@ -1752,7 +1772,7 @@ POST /api/teams/create
 
 ### List Members
 
-```
+```http
 GET /api/members
 ```
 
@@ -1760,7 +1780,7 @@ Returns members of the current workspace.
 
 ### Invite Member
 
-```
+```http
 POST /api/members
 ```
 
@@ -1785,19 +1805,19 @@ POST /api/members
 
 ### Update Member Role
 
-```
+```http
 PATCH /api/members/{userId}
 ```
 
 ### Remove Member
 
-```
+```http
 DELETE /api/members/{userId}
 ```
 
 ### Transfer Ownership
 
-```
+```http
 POST /api/members/transfer-ownership
 ```
 
@@ -1805,13 +1825,13 @@ POST /api/members/transfer-ownership
 
 #### Accept Invite
 
-```
+```http
 POST /api/invites/accept
 ```
 
 #### Get Invite Info
 
-```
+```http
 GET /api/invites/info
 ```
 
@@ -1823,13 +1843,13 @@ GET /api/invites/info
 
 #### Revoke Invite
 
-```
+```http
 DELETE /api/invites/{inviteId}
 ```
 
 #### Resend Invite
 
-```
+```http
 POST /api/invites/{inviteId}/resend
 ```
 
@@ -1841,7 +1861,7 @@ Search and browse public datasets and projects shared by the community. See [Exp
 
 ### Search Public Content
 
-```
+```http
 GET /api/explore/search
 ```
 
@@ -1856,7 +1876,7 @@ GET /api/explore/search
 
 ### Sidebar Data
 
-```
+```http
 GET /api/explore/sidebar
 ```
 
@@ -1870,7 +1890,7 @@ Manage your profile, API keys, storage usage, and data privacy settings. See [Se
 
 ### Get User by Username
 
-```
+```http
 GET /api/users
 ```
 
@@ -1882,7 +1902,7 @@ GET /api/users
 
 ### Follow or Unfollow User
 
-```
+```http
 PATCH /api/users
 ```
 
@@ -1897,7 +1917,7 @@ PATCH /api/users
 
 ### Check Username Availability
 
-```
+```http
 GET /api/username/check
 ```
 
@@ -1910,7 +1930,7 @@ GET /api/username/check
 
 ### Settings
 
-```
+```http
 GET /api/settings
 POST /api/settings
 ```
@@ -1919,7 +1939,7 @@ Get or update user profile settings (display name, bio, social links, etc.).
 
 ### Profile Icon
 
-```
+```http
 POST /api/settings/icon
 DELETE /api/settings/icon
 ```
@@ -1928,7 +1948,7 @@ Upload or remove profile avatar.
 
 ### Onboarding
 
-```
+```http
 POST /api/onboarding
 ```
 
@@ -1942,7 +1962,7 @@ Request an export of all your data or permanently delete your account. See [Sett
 
 ### Get GDPR Job Status
 
-```
+```http
 GET /api/gdpr
 ```
 
@@ -1956,7 +1976,7 @@ Returns job status. For completed export jobs, response includes a `downloadUrl`
 
 ### Start Export or Delete Flow
 
-```
+```http
 POST /api/gdpr
 ```
 
@@ -2022,7 +2042,7 @@ yolo check
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.14**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.35**. Lower versions will NOT work with Platform.
 
 ### Authentication
 
@@ -2163,7 +2183,7 @@ Webhooks notify your server of Platform events via HTTP POST callbacks:
 
     **All plans**: Training webhooks via the Python SDK (real-time metrics, completion notifications) work automatically on every plan -- no configuration required.
 
-    **Enterprise only**: Custom webhook endpoints that send HTTP POST callbacks to your own server URL require an Enterprise plan. [Contact sales](https://www.ultralytics.com/contact) for details.
+    **Enterprise only**: Custom webhook endpoints that send HTTP POST callbacks to your own server URL require an Enterprise plan. See [Ultralytics Licensing](https://www.ultralytics.com/licensing) for details.
 
 ---
 

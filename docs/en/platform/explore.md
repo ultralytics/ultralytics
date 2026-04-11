@@ -343,12 +343,12 @@ Contact creators for commercial licensing.
 To report inappropriate content:
 
 1. Navigate to the public page containing the content (project or dataset), if accessible
-2. Click the **Feedback** button in the sidebar
+2. Open the **Help** page from the sidebar
 3. Select **General** as the feedback type
 4. Describe the content and the issue, including a link to the page
 5. Submit the report
 
-If the content is no longer accessible, use the **Feedback** button from any page and include as much detail as possible (URL, username, or description).
+If the content is no longer accessible, use the **Help** page from any page and include as much detail as possible (URL, username, or description).
 
 Our team reviews reports within 24-48 hours.
 

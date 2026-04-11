@@ -415,6 +415,49 @@ To resume training from an interrupted session, set the `resume` argument to `Tr
 
 Check the section on [Resuming Interrupted Trainings](#resuming-interrupted-trainings) for more information.
 
+### How do I train a model on an imbalanced dataset?
+
+Class imbalance occurs when some classes have significantly fewer examples than others in your training data. This can cause the model to perform poorly on rare classes. Ultralytics YOLO supports class weighting through the `cls_pw` argument to address this issue.
+
+The `cls_pw` argument controls class weighting power based on inverse class frequency:
+
+- `cls_pw=0.0` (default): Disables class weighting
+- `cls_pw=1.0`: Applies full inverse frequency weighting
+- Values between `0.0` and `1.0`: Provide partial weighting for moderate imbalance
+
+The class weights are computed as `(1.0 / class_counts) ^ cls_pw` and normalized so their mean equals 1.0.
+
+!!! example "Training on Imbalanced Dataset"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a pretrained model
+        model = YOLO("yolo26n.pt")
+
+        # Train with full class weighting for severely imbalanced data
+        results = model.train(data="custom.yaml", epochs=100, imgsz=640, cls_pw=1.0)
+
+        # Or use partial weighting (0.25) for moderate imbalance
+        results = model.train(data="custom.yaml", epochs=100, imgsz=640, cls_pw=0.25)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Train with full inverse frequency weighting
+        yolo detect train data=custom.yaml model=yolo26n.pt epochs=100 imgsz=640 cls_pw=1.0
+
+        # Train with partial weighting for moderate imbalance
+        yolo detect train data=custom.yaml model=yolo26n.pt epochs=100 imgsz=640 cls_pw=0.25
+        ```
+
+!!! tip
+
+    Start with `cls_pw=0.25` for moderately imbalanced datasets and increase to `1.0` if the rare classes still underperform. You can check the computed class weights in the training logs to verify the weight distribution.
+
 ### Can I train YOLO26 models on Apple silicon chips?
 
 Yes, Ultralytics YOLO26 supports training on Apple silicon chips utilizing the Metal Performance Shaders (MPS) framework. Specify 'mps' as your training device.

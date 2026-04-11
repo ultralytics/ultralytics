@@ -42,7 +42,7 @@ Before we can merge your pull request, you must sign our [Contributor License Ag
 
 After submitting your pull request, the CLA bot will guide you through the signing process. To sign the CLA, simply add a comment in your PR stating:
 
-```text
+```
 I have read the CLA Document and I sign the CLA
 ```
 
@@ -295,7 +295,7 @@ Contributing to Ultralytics YOLO open-source repositories improves the software,
 
 To sign the Contributor License Agreement (CLA), follow the instructions provided by the CLA bot after submitting your pull request. This process ensures that your contributions are properly licensed under the AGPL-3.0 license, maintaining the legal integrity of the open-source project. Add a comment in your pull request stating:
 
-```text
+```
 I have read the CLA Document and I sign the CLA
 ```
 

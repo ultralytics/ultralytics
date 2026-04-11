@@ -11,7 +11,7 @@
     "json_file": ["str", "None", "Path to the JSON file that contains all parking coordinates data."],
     "up_angle": ["float", "145.0", "Angle threshold for the 'up' pose."],
     "kpts": ["list[int]", "'[6, 8, 10]'", "List of three keypoint indices used for monitoring workouts. These keypoints correspond to body joints or parts, such as shoulders, elbows, and wrists, for exercises like push-ups, pull-ups, squats, and ab-workouts."],
-    "down_angle": ["float", "90.0", "Angle threshold for the 'down' pose."],
+    "down_angle": ["int", "90", "Angle threshold for the 'down' pose."],
     "blur_ratio": ["float", "0.5", "Adjusts percentage of blur intensity, with values in range `0.1 - 1.0`."],
     "crop_dir": ["str", "'cropped-detections'", "Directory name for storing cropped detections."],
     "records": ["int", "5", "Total detections count to trigger an email with security alarm system."],

@@ -243,10 +243,9 @@ Smart annotation adds model-assisted annotation to the editor. In Smart mode, yo
 With a SAM model selected:
 
 1. Enter edit mode and select `Smart` or press `S`
-2. **Left-click** to add positive points (include this area)
-3. **Right-click** to add negative points (exclude this area)
-4. SAM generates a precise mask in real-time
-5. Press `Enter` or `Escape` to save the annotation, or enable **auto-apply** for one-click workflows
+2. Click on the object you want to annotate — SAM generates an initial mask in real-time
+3. Refine the mask with additional clicks: click **outside** the current mask to add coverage, or click **inside** the current mask to subtract regions
+4. Press `Enter` or `Escape` to save the annotation, or enable **auto-apply** for one-click workflows
 
 ![Ultralytics Platform Annotate Sam Positive Negative Points Mask](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-sam-positive-negative-points-mask.avif)
 
@@ -269,14 +268,13 @@ graph LR
 
 !!! tip "SAM Tips"
 
-    - Start with a positive click on the object center
-    - Add negative clicks to exclude background
-    - Hold `Alt`/`Option` to invert click behavior (left-click becomes negative, right-click becomes positive)
-    - Enable **auto-apply** (`A`) for one-click annotation — the mask saves automatically after each click
+    - Start with a click on the object center
+    - Click again outside the mask to expand coverage
+    - Click inside the mask to subtract unwanted regions
+    - Enable **auto-apply** (`A`) for one-click annotation
     - Hold `Shift` while auto-apply is on to place multiple points before the mask is applied
-    - Positive and negative points appear as square markers with `+` and `−` symbols on the canvas
     - Works best for distinct objects with clear edges
-    - Use 2-3 positive points for elongated objects
+    - Use a few refinement clicks for elongated or overlapping objects
 
 SAM smart annotation can generate:
 
@@ -292,11 +290,11 @@ SAM smart annotation can generate:
 
 Auto-apply mode speeds up Smart annotation by automatically saving the SAM mask after each click — no need to press `Enter`. Toggle it with the auto-apply button in the toolbar or press `A`.
 
-| Mode                        | Behavior                                             |
-| --------------------------- | ---------------------------------------------------- |
-| **Auto-apply ON** (default) | Mask applies automatically after each click          |
-| **Auto-apply ON + `Shift`** | Place multiple points first, mask applies on release |
-| **Auto-apply OFF**          | Place points freely, press `Enter` to apply          |
+| Mode                         | Behavior                                             |
+| ---------------------------- | ---------------------------------------------------- |
+| **Auto-apply ON**            | Mask applies automatically after each click          |
+| **Auto-apply ON + `Shift`**  | Place multiple points first, mask applies on release |
+| **Auto-apply OFF** (default) | Place points freely, press `Enter` to apply          |
 
 ![Ultralytics Platform Annotate Sam Auto Apply Toggle](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-sam-auto-apply-toggle.avif)
 
@@ -308,13 +306,13 @@ Auto-apply mode speeds up Smart annotation by automatically saving the SAM mask 
 
 When Smart mode is active, a model picker appears in the toolbar. Five SAM models are available — choose based on the speed vs. accuracy trade-off that suits your dataset:
 
-| Model             | Size    | Speed    | Notes                    |
-| ----------------- | ------- | -------- | ------------------------ |
-| **SAM 2.1 Tiny**  | 74.5 MB | Fastest  |                          |
-| **SAM 2.1 Small** | 88 MB   | Fast     | Default                  |
-| **SAM 2.1 Base**  | 154 MB  | Moderate |                          |
-| **SAM 2.1 Large** | 428 MB  | Slower   | Most accurate of SAM 2.1 |
-| **SAM 3**         | 3.45 GB | Slowest  | Latest generation        |
+| Model             | Size    | Speed    | Notes                      |
+| ----------------- | ------- | -------- | -------------------------- |
+| **SAM 2.1 Tiny**  | 74.5 MB | Fastest  |                            |
+| **SAM 2.1 Small** | 88 MB   | Fast     |                            |
+| **SAM 2.1 Base**  | 154 MB  | Moderate |                            |
+| **SAM 2.1 Large** | 428 MB  | Slower   | Most accurate of SAM 2.1   |
+| **SAM 3**         | 3.45 GB | Slowest  | Default, latest generation |
 
 ![Ultralytics Platform Annotate Sam Model Selector](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-sam-model-selector.avif)
 
@@ -382,7 +380,7 @@ In edit mode, a crosshair overlay tracks the cursor position and displays pixel 
 
 ## SAM Hover Preview
 
-In Smart mode for **segment** tasks, SAM provides a real-time mask preview as you hover over the image — before clicking any points. This lets you see the predicted segmentation boundary and decide where to click. Once you add positive or negative points, the preview updates to reflect your refinements.
+In Smart mode, SAM provides a real-time hover preview before you click any points. This preview is available for **detect**, **segment**, and **OBB** tasks. Once you add refinement clicks, the preview updates to reflect the current mask and the annotation type for the active task.
 
 ## Polygon Vertex Editing
 
@@ -526,7 +524,7 @@ SAM provides high-quality masks for most objects. Accuracy depends on:
 - Image quality and resolution
 - Number of positive/negative points provided
 
-For best results, start with a positive point on the object center and add negative points to exclude nearby objects.
+For best results, start with a click on the object center, then use outside-mask clicks to add coverage and inside-mask clicks to subtract nearby objects or background.
 
 ### Can I import existing annotations?
 
@@ -552,7 +550,7 @@ Yes, but for best results:
 
 ### Which SAM model should I use?
 
-Start with **SAM 2.1 Small** (the default) — it's fast and accurate for most objects. Switch to **SAM 2.1 Large** when you need higher mask precision on complex shapes. Use **SAM 2.1 Tiny** for maximum speed on simple, high-contrast objects. **SAM 3** is the latest generation model and may produce better results on challenging images, but is significantly slower.
+**SAM 3** is the default and the latest generation model — start there for the highest quality masks. Switch to **SAM 2.1 Small** for a faster interactive workflow on common objects, or **SAM 2.1 Large** when you need higher mask precision on complex shapes. Use **SAM 2.1 Tiny** for maximum speed on simple, high-contrast objects.
 
 ### Which tasks support SAM smart annotation?
 

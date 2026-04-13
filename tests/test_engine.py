@@ -251,6 +251,7 @@ def test_semseg_yolo_cpu():
     )
     m.val(task="semseg", device="cpu", imgsz=256, rect=False)
     m.export(format="onnx")
+
 def test_train_reuses_loaded_checkpoint_model(monkeypatch):
     """Test training reuses an already-loaded checkpoint model instead of re-parsing the model source."""
     model = YOLO("yolo26n.yaml")

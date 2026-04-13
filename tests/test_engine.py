@@ -11,8 +11,9 @@ from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
-from ultralytics.models.yolo import classify, detect, segment, semseg
-from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR, SEMSEG_CFG
+from ultralytics.models.yolo import classify, detect, segment, semseg, obb, pose
+from ultralytics.nn.tasks import load_checkpoint
+from ultralytics.utils import ASSETS, DEFAULT_CFG, SEMSEG_CFG, WEIGHTS_DIR,SEMSEG_CFG
 
 
 def test_func(*args, **kwargs):

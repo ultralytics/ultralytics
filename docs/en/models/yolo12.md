@@ -52,15 +52,15 @@ YOLO12 supports a variety of computer vision tasks. The table below shows task s
 
     Only detection weights (`yolo12n.pt`, `yolo12s.pt`, `yolo12m.pt`, `yolo12l.pt`, `yolo12x.pt`) are released on [ultralytics/assets](https://github.com/ultralytics/assets/releases). Segmentation, classification, pose, and OBB architectures are defined in [ultralytics/cfg/models/12/](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/12), so those variants support training from scratch from the `.yaml` config, but no pretrained `.pt` files are currently available for them. For pretrained segmentation, pose, classification, or OBB checkpoints, Ultralytics recommends [YOLO11](yolo11.md) or [YOLO26](yolo26.md).
 
-| Model Type                                                                                                     | Task                                   | Inference | Validation | Training | Export |
-| -------------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
-| [YOLO12](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12.yaml)           | [Detection](../tasks/detect.md)        | ✅        | ✅         | ✅       | ✅     |
-| [YOLO12-seg](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-seg.yaml)   | [Segmentation](../tasks/segment.md)    | ❌        | ❌         | ✅       | ❌     |
-| [YOLO12-pose](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-pose.yaml) | [Pose](../tasks/pose.md)               | ❌        | ❌         | ✅       | ❌     |
-| [YOLO12-cls](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-cls.yaml)   | [Classification](../tasks/classify.md) | ❌        | ❌         | ✅       | ❌     |
-| [YOLO12-obb](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-obb.yaml)   | [OBB](../tasks/obb.md)                 | ❌        | ❌         | ✅       | ❌     |
+| Model Type                                                                                                     | Task                                   | Pretrained Weights | Inference | Validation | Training | Export |
+| -------------------------------------------------------------------------------------------------------------- | -------------------------------------- | ------------------ | --------- | ---------- | -------- | ------ |
+| [YOLO12](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12.yaml)           | [Detection](../tasks/detect.md)        | ✅                 | ✅        | ✅         | ✅       | ✅     |
+| [YOLO12-seg](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-seg.yaml)   | [Segmentation](../tasks/segment.md)    | ❌                 | ✅        | ✅         | ✅       | ✅     |
+| [YOLO12-pose](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-pose.yaml) | [Pose](../tasks/pose.md)               | ❌                 | ✅        | ✅         | ✅       | ✅     |
+| [YOLO12-cls](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-cls.yaml)   | [Classification](../tasks/classify.md) | ❌                 | ✅        | ✅         | ✅       | ✅     |
+| [YOLO12-obb](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-obb.yaml)   | [OBB](../tasks/obb.md)                 | ❌                 | ✅        | ✅         | ✅       | ✅     |
 
-The ❌ marks above indicate that those modes require pretrained `.pt` weights, which are not published for YOLO12 segmentation, pose, classification, or OBB. Once you complete training from scratch using the corresponding `.yaml`, all modes become available for your custom checkpoint.
+All YOLO12 architectures support every mode once a trained checkpoint is available. The `Pretrained Weights` column indicates only whether Ultralytics publishes an official pretrained `.pt` on [ultralytics/assets](https://github.com/ultralytics/assets/releases): for segmentation, pose, classification, and OBB, you must train your own checkpoint from the corresponding `.yaml` before running inference, validation, or export.
 
 ## Performance Metrics
 

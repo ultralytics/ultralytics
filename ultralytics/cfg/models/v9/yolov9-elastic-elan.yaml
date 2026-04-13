@@ -5,6 +5,8 @@
 
 # Parameters
 nc: 80 # number of classes
+end2end: True
+reg_max: 1
 
 scales: # model compound scaling constants, i.e. 'model=gelan-sfas.yaml' will call gelan-sfa.yaml with scale 's'
   # [depth, width, max_channels]

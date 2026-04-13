@@ -103,11 +103,12 @@ Exporting YOLO26 models to ExecuTorch is straightforward:
 
 When exporting to ExecuTorch format, you can specify the following arguments:
 
-| Argument | Type            | Default | Description                                                                                                                             |
-| -------- | --------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `imgsz`  | `int` or `list` | `640`   | Image size for model input (height, width).                                                                                             |
-| `batch`  | `int`           | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
-| `device` | `str`           | `'cpu'` | Device to use for export (`'cpu'`).                                                                                                     |
+| Argument | Type             | Default        | Description                                                                                                                             |
+| -------- | ---------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `format` | `str`            | `'executorch'` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
+| `imgsz`  | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
+| `batch`  | `int`            | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
+| `device` | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                         |
 
 ### Output Structure
 

@@ -27,7 +27,7 @@ def onnx2rknn(
     from ultralytics.utils.checks import check_requirements
 
     LOGGER.info(f"\n{prefix} starting export with rknn-toolkit2...")
-    check_requirements("rknn-toolkit2")
+    check_requirements("rknn-toolkit2>=2.3.2")
     check_requirements("onnx<1.19.0")  # fix AttributeError: module 'onnx' has no attribute 'mapping'
 
     if IS_COLAB:

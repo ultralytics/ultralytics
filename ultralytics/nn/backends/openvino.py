@@ -20,7 +20,7 @@ class OpenVINOBackend(BaseBackend):
     selection, Intel-specific device targeting, and async inference for throughput optimization.
     """
 
-    _core = None  # cached ov.Core singleton (avoids segfault on repeated instantiation in OpenVINO 2026+)
+    core = None  # cached ov.Core singleton (avoids segfault on repeated instantiation in OpenVINO 2026+)
 
     def load_model(self, weight: str | Path) -> None:
         """Load an Intel OpenVINO IR model from a .xml/.bin file pair or model directory.
@@ -32,9 +32,7 @@ class OpenVINOBackend(BaseBackend):
         check_requirements("openvino>=2024.0.0")
         import openvino as ov
 
-        if OpenVINOBackend._core is None:
-            OpenVINOBackend._core = ov.Core()
-        core = OpenVINOBackend._core
+        core = OpenVINOBackend.core = OpenVINOBackend.core or ov.Core()
         fallback_device = "CPU" if core.available_devices == ["CPU"] else "AUTO"
         device_name = fallback_device
 

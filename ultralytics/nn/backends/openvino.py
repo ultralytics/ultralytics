@@ -20,7 +20,6 @@ class OpenVINOBackend(BaseBackend):
     selection, Intel-specific device targeting, and async inference for throughput optimization.
     """
 
-
     def load_model(self, weight: str | Path) -> None:
         """Load an Intel OpenVINO IR model from a .xml/.bin file pair or model directory.
 

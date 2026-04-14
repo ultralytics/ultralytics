@@ -93,7 +93,7 @@ python scripts/train.py
 
 The network will be trained for only 10 epochs. Increase the number if you want to train more. The trained model will be saved in the `runs/detect/train/weights` folder by default. You can also find stats on your training as well as images with predictions and labels in the `runs/detect/train` folder.
 
-You can change the saving path and other training parameters by referring to the [ultralytics documentation](https://docs.ultralytics.com/modes/train/). For example, for a bigger model you can rename `yolo26n.yaml` to `yolo26m.yaml` or `yolo26l.yaml`. You can also change the batch size, learning rate, etc. in the `model.train()` function (arguments are found in the [table here](https://docs.ultralytics.com/modes/train/#musgd-optimizer>))
+You can change the saving path and other training parameters by referring to the [ultralytics documentation](https://docs.ultralytics.com/modes/train/). For example, for a bigger model you can rename `yolo26n.yaml` to `yolo26m.yaml` or `yolo26l.yaml`. You can also change the batch size, learning rate, etc. in the `model.train()` function (arguments are found in the [table here](https://docs.ultralytics.com/modes/train/#musgd-optimizer))
 
 #### Make Predictions with a Trained Detection Model
 

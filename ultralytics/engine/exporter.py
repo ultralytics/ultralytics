@@ -380,7 +380,6 @@ class Exporter:
             assert fmt != "ncnn", "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
         if fmt == "rknn":
-            rknn_export_chips = RKNN_CHIPS - {"rv1126b"}
             if not self.args.name:
                 LOGGER.warning(
                     "Rockchip RKNN export requires a missing 'name' arg for processor type. "
@@ -388,10 +387,20 @@ class Exporter:
                 )
                 self.args.name = "rk3588"
             self.args.name = self.args.name.lower()
-            assert self.args.name in rknn_export_chips, (
-                f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. "
-                f"Valid names are {rknn_export_chips}."
+            assert self.args.name in RKNN_CHIPS, (
+                f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
             )
+            if self.args.name == "rv1126b":
+                from importlib import metadata
+
+                try:
+                    rknn_version = metadata.version("rknn-toolkit2")
+                except metadata.PackageNotFoundError:
+                    rknn_version = None
+                if rknn_version and check_version(rknn_version, "<2.3.2"):
+                    raise AssertionError(
+                        f"Processor name 'rv1126b' requires rknn-toolkit2>=2.3.2, but found {rknn_version}."
+                    )
         if self.args.nms:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
             assert fmt != "tflite" or not ARM64 or not LINUX, "TFLite export with NMS unsupported on ARM64 Linux"

@@ -30,7 +30,7 @@ class OpenVINOBackend(BaseBackend):
         check_requirements("openvino>=2024.0.0")
         import openvino as ov
 
-        core = OpenVINOBackend._core = getattr(OpenVINOBackend, "_core", None) or ov.Core()
+        core = ov.Core()
         fallback_device = "CPU" if core.available_devices == ["CPU"] else "AUTO"
         device_name = fallback_device
 

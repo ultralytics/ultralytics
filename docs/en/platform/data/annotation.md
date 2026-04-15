@@ -434,22 +434,22 @@ Efficient annotation with keyboard shortcuts:
 
 === "General"
 
-    | Shortcut               | Action                     |
-    | ---------------------- | -------------------------- |
-    | `Cmd/Ctrl+S`           | Save annotations           |
-    | `Cmd/Ctrl+Z`           | Undo                       |
-    | `Cmd/Ctrl+Shift+Z`     | Redo                       |
-    | `Cmd/Ctrl+Y`           | Redo (alternative)         |
-    | `Escape`               | Save / Deselect / Exit     |
-    | `Delete` / `Backspace` | Delete selected annotation |
-    | `1-9`                  | Select class 1-9           |
-    | `Cmd/Ctrl+Scroll`      | Zoom in/out                |
-    | `Cmd/Ctrl++` or `Cmd/Ctrl+=` | Zoom in                  |
-    | `Cmd/Ctrl+-`           | Zoom out                     |
-    | `Cmd/Ctrl+0`           | Reset to fit                 |
-    | `Space+Drag`           | Pan canvas when zoomed      |
-    | `Shift+Click`          | Multi-select annotations   |
-    | `Cmd/Ctrl+A`           | Select all annotations     |
+    | Shortcut                     | Action                     |
+    | ----------------------       | -------------------------- |
+    | `Cmd/Ctrl+S`                 | Save annotations           |
+    | `Cmd/Ctrl+Z`                 | Undo                       |
+    | `Cmd/Ctrl+Shift+Z`           | Redo                       |
+    | `Cmd/Ctrl+Y`                 | Redo (alternative)         |
+    | `Escape`                     | Save / Deselect / Exit     |
+    | `Delete` / `Backspace`       | Delete selected annotation |
+    | `1-9`                        | Select class 1-9           |
+    | `Cmd/Ctrl+Scroll`            | Zoom in/out                |
+    | `Cmd/Ctrl++` or `Cmd/Ctrl+=` | Zoom in                    |
+    | `Cmd/Ctrl+-`                 | Zoom out                   |
+    | `Cmd/Ctrl+0`                 | Reset to fit               |
+    | `Space+Drag`                 | Pan canvas when zoomed     |
+    | `Shift+Click`                | Multi-select annotations   |
+    | `Cmd/Ctrl+A`                 | Select all annotations     |
 
 === "Modes"
 

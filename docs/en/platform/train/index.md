@@ -105,7 +105,7 @@ graph LR
 
 !!! info "Automatic Checkpoints"
 
-    The Platform automatically saves checkpoints at every epoch. The **best model** (highest mAP) and **final model** are always preserved.
+    For cloud training, the **best model** (`best.pt`, the highest-mAP checkpoint) is saved automatically and made available for download, export, and deployment after training completes.
 
 ## Quick Start
 

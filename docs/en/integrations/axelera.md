@@ -148,20 +148,21 @@ Export your trained YOLO models using the standard Ultralytics export command.
 
 ### Export Arguments
 
-| Argument   | Type             | Default          | Description                                                                                  |
-| :--------- | :--------------- | :--------------- | :------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'axelera'`      | Target format for Axelera Metis AIPU hardware                                                |
-| `imgsz`    | `int` or `tuple` | `640`            | Image size for model input                                                                   |
-| `int8`     | `bool`           | `True`           | Enable [INT8 quantization](https://www.ultralytics.com/glossary/model-quantization) for AIPU |
-| `data`     | `str`            | `'coco128.yaml'` | [Dataset](https://docs.ultralytics.com/datasets/) config for quantization calibration        |
-| `fraction` | `float`          | `1.0`            | Fraction of dataset for calibration (100-400 images recommended)                             |
-| `device`   | `str`            | `None`           | Export device: GPU (`device=0`) or CPU (`device=cpu`)                                        |
+| Argument   | Type             | Default          | Description                                                                                                                             |
+| :--------- | :--------------- | :--------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'axelera'`      | Target format for Axelera Metis AIPU hardware.                                                                                          |
+| `imgsz`    | `int` or `tuple` | `640`            | Image size for model input.                                                                                                             |
+| `batch`    | `int`            | `1`              | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
+| `int8`     | `bool`           | `True`           | Enable [INT8 quantization](https://www.ultralytics.com/glossary/model-quantization) for AIPU.                                           |
+| `data`     | `str`            | `'coco128.yaml'` | [Dataset](https://docs.ultralytics.com/datasets/) config for quantization calibration.                                                  |
+| `fraction` | `float`          | `1.0`            | Fraction of dataset for calibration (100-400 images recommended).                                                                       |
+| `device`   | `str`            | `None`           | Export device: GPU (`device=0`) or CPU (`device=cpu`).                                                                                  |
 
 For all export options, see the [Export Mode documentation](https://docs.ultralytics.com/modes/export/).
 
 ### Output Structure
 
-```text
+```
 yolo26n_axelera_model/
 ├── yolo26n.axm              # Axelera model file
 └── metadata.yaml            # Model metadata (classes, image size, etc.)

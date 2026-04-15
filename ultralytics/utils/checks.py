@@ -478,7 +478,10 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
                 text=True,
             )
         return subprocess.check_output(
-            f"pip install --no-cache-dir {packages} {commands}", shell=True, stderr=subprocess.STDOUT, text=True
+            f'"{sys.executable}" -m pip install --no-cache-dir {packages} {commands}',
+            shell=True,
+            stderr=subprocess.STDOUT,
+            text=True,
         )
 
     s = " ".join(f'"{x}"' for x in pkgs)  # console string

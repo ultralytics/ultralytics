@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Deploy YOLO models to dedicated endpoints in 43 global regions with auto-scaling and monitoring on Ultralytics Platform.
+description: Deploy YOLO models to dedicated endpoints in 43 global regions with scale-to-zero behavior and monitoring on Ultralytics Platform.
 keywords: Ultralytics Platform, deployment, endpoints, YOLO, production, scaling, global regions
 ---
 
 # Dedicated Endpoints
 
-[Ultralytics Platform](https://platform.ultralytics.com) enables deployment of YOLO models to dedicated endpoints in 43 global regions. Each endpoint is a single-tenant service with auto-scaling, a unique endpoint URL, and independent monitoring.
+[Ultralytics Platform](https://platform.ultralytics.com) enables deployment of YOLO models to dedicated endpoints in 43 global regions. Each endpoint is a single-tenant service with scale-to-zero behavior, a unique endpoint URL, and independent monitoring.
 
 ![Ultralytics Platform Model Deploy Tab With Region Map And Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/model-deploy-tab-with-region-map-and-table.avif)
 
@@ -30,7 +30,7 @@ Create a deployment from the global `Deploy` page in the sidebar:
 1. Click **New Deployment**
 2. Select a model from the model selector
 3. Select a region from the map or table
-4. Optionally customize the deployment name and resources
+4. Review the auto-generated deployment name (editable) and the default resources
 5. Click **Deploy Model**
 
 ![Ultralytics Platform New Deployment Dialog With Model Selector And Region Map](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/new-deployment-dialog-with-model-selector-and-region-map.avif)
@@ -157,12 +157,12 @@ The `New Deployment` dialog provides:
 | **Model**           | Select from completed models | -       |
 | **Region**          | Deployment region            | -       |
 | **Deployment Name** | Auto-generated, editable     | -       |
-| **CPU Cores**       | CPU allocation (1-8)         | 1       |
-| **Memory (GB)**     | Memory allocation (1-32 GB)  | 2       |
+| **CPU Cores**       | Fixed default                | 1       |
+| **Memory (GB)**     | Fixed default                | 2       |
 
 ![Ultralytics Platform New Deployment Dialog Resources Panel Expanded](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/new-deployment-dialog-resources-panel-expanded.avif)
 
-Resource settings are available under the collapsible **Resources** section. Deployments use scale-to-zero by default (min instances = 0, max instances = 1) — you only pay for active inference time.
+Deployments use fixed defaults of `1 CPU`, `2 GiB` memory, `minInstances = 0`, and `maxInstances = 1`. They scale to zero when idle, so you only pay for active inference time.
 
 !!! note "Auto-Generated Names"
 

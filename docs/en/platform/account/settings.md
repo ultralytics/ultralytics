@@ -8,11 +8,11 @@ keywords: Ultralytics Platform, settings, profile, preferences, GDPR, data expor
 
 [Ultralytics Platform](https://platform.ultralytics.com) settings allow you to configure your profile, social links, workspace preferences, and manage your data with GDPR-compliant export and deletion options.
 
-Settings is organized into five tabs: `Profile`, `Plans`, `Billing`, `Teams`, and `Trash`.
+Settings is organized into six tabs: `Profile`, `API Keys`, `Plans`, `Billing`, `Teams`, and `Trash`.
 
 ## Profile Tab
 
-The `Profile` tab contains your profile information, social links, API keys, data region, and account management options.
+The `Profile` tab contains your profile information, social links, data region, and account management options.
 
 ### Profile Information
 
@@ -94,10 +94,6 @@ Manage email addresses linked to your account in the `Profile` tab:
 !!! note "Primary Email"
 
     Your primary email is used for notifications and account recovery. Only verified emails can be set as primary.
-
-### API Keys
-
-API keys are managed directly on the `Profile` tab. See [API Keys](api-keys.md) for full documentation.
 
 ### Data Region
 
@@ -221,6 +217,10 @@ Permanently delete your account:
 - Server logs (90 days)
 - Legal compliance records
 
+## API Keys Tab
+
+The `API Keys` tab lets you create and manage API keys for remote training and inference. See [API Keys](api-keys.md) for full documentation.
+
 ## Plans Tab
 
 The `Plans` tab lets you compare available plans and upgrade or downgrade your subscription.
@@ -237,7 +237,7 @@ From this tab you can:
 
 - **Compare features** across Free, Pro, and Enterprise tiers
 - **Upgrade to Pro** to unlock more storage, models, team collaboration, and priority GPU access
-- **Contact Sales** for Enterprise needs including SSO/SAML and commercial licensing
+- **Review Enterprise** capabilities including SSO/SAML, RBAC, and commercial licensing — see [Ultralytics Licensing](https://www.ultralytics.com/licensing)
 
 See [Billing](billing.md) for detailed plan information, pricing, and upgrade instructions.
 

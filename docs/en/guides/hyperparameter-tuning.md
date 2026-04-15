@@ -70,7 +70,7 @@ Use metrics like AP50, F1-score, or custom metrics to evaluate the model's perfo
 
 ### Log Results
 
-It's crucial to log both the performance metrics and the corresponding hyperparameters for future reference. Ultralytics YOLO automatically saves these results in CSV format.
+It's crucial to log both the performance metrics and the corresponding hyperparameters for future reference. Ultralytics YOLO automatically saves these results in NDJSON format.
 
 ### Repeat
 
@@ -90,6 +90,7 @@ The following table lists the default search space parameters for hyperparameter
 | `warmup_momentum` | `float` | `(0.0, 0.95)`  | Initial momentum during warmup phase. Gradually increases to the final momentum value                                      |
 | `box`             | `float` | `(1.0, 20.0)`  | Bounding box loss weight in the total loss function. Balances box regression vs classification                             |
 | `cls`             | `float` | `(0.1, 4.0)`   | Classification loss weight in the total loss function. Higher values emphasize correct class prediction                    |
+| `cls_pw`          | `float` | `(0.0, 1.0)`   | Class weighting power for handling class imbalance. Higher values increase weight on rare classes                          |
 | `dfl`             | `float` | `(0.4, 12.0)`  | DFL (Distribution Focal Loss) weight in the total loss function. Higher values emphasize precise bounding box localization |
 | `hsv_h`           | `float` | `(0.0, 0.1)`   | Random hue augmentation range in HSV color space. Helps model generalize across color variations                           |
 | `hsv_s`           | `float` | `(0.0, 0.9)`   | Random saturation augmentation range in HSV space. Simulates different lighting conditions                                 |
@@ -186,8 +187,8 @@ runs/
     ├── ...
     └── tune/
         ├── best_hyperparameters.yaml
-        ├── best_fitness.png
-        ├── tune_results.csv
+        ├── tune_fitness.png
+        ├── tune_results.ndjson
         ├── tune_scatter_plots.png
         └── weights/
             ├── last.pt
@@ -236,7 +237,7 @@ This YAML file contains the best-performing hyperparameters found during the tun
     copy_paste: 0.0
     ```
 
-#### best_fitness.png
+#### tune_fitness.png
 
 This is a plot displaying fitness (typically a performance metric like AP50) against the number of iterations. It helps you visualize how well the genetic algorithm performed over time.
 
@@ -247,23 +248,59 @@ This is a plot displaying fitness (typically a performance metric like AP50) aga
   <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/best-fitness.avif" alt="Hyperparameter Tuning Fitness vs Iteration">
 </p>
 
-#### tune_results.csv
+#### tune_results.ndjson
 
-A CSV file containing detailed results of each iteration during the tuning. Each row in the file represents one iteration, and it includes metrics like fitness score, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), as well as the hyperparameters used.
+An NDJSON file containing detailed results of each tuning iteration. Each line is one JSON object with the aggregate fitness, tuned hyperparameters, and per-dataset metrics. Single-dataset and multi-dataset tuning use the same file format.
 
-- **Format**: CSV
+- **Format**: NDJSON
 - **Usage**: Per-iteration results tracking.
 - **Example**:
-    ```csv
-      fitness,lr0,lrf,momentum,weight_decay,warmup_epochs,warmup_momentum,box,cls,dfl,hsv_h,hsv_s,hsv_v,degrees,translate,scale,shear,perspective,flipud,fliplr,mosaic,mixup,copy_paste
-      0.05021,0.01,0.01,0.937,0.0005,3.0,0.8,7.5,0.5,1.5,0.015,0.7,0.4,0.0,0.1,0.5,0.0,0.0,0.0,0.5,1.0,0.0,0.0
-      0.07217,0.01003,0.00967,0.93897,0.00049,2.79757,0.81075,7.5,0.50746,1.44826,0.01503,0.72948,0.40658,0.0,0.0987,0.4922,0.0,0.0,0.0,0.49729,1.0,0.0,0.0
-      0.06584,0.01003,0.00855,0.91009,0.00073,3.42176,0.95,8.64301,0.54594,1.72261,0.01503,0.59179,0.40658,0.0,0.0987,0.46955,0.0,0.0,0.0,0.49729,0.80187,0.0,0.0
-    ```
+
+A pretty-printed example is shown below for readability. In the actual `.ndjson` file, each object is stored on a single line.
+
+```json
+{
+  "iteration": 1,
+  "fitness": 0.23345,
+  "hyperparameters": {
+    "lr0": 0.01,
+    "lrf": 0.01,
+    "momentum": 0.937,
+    "weight_decay": 0.0005
+  },
+  "datasets": {
+    "coco8": {
+      "fitness": 0.28992
+    },
+    "coco8-grayscale": {
+      "fitness": 0.17697
+    }
+  }
+}
+
+{
+  "iteration": 2,
+  "fitness": 0.23661,
+  "hyperparameters": {
+    "lr0": 0.0062,
+    "lrf": 0.01,
+    "momentum": 0.90058,
+    "weight_decay": 0.0
+  },
+  "datasets": {
+    "coco8": {
+      "fitness": 0.29561
+    },
+    "coco8-grayscale": {
+      "fitness": 0.1776
+    }
+  }
+}
+```
 
 #### tune_scatter_plots.png
 
-This file contains scatter plots generated from `tune_results.csv`, helping you visualize relationships between different hyperparameters and performance metrics. Note that hyperparameters initialized to 0 will not be tuned, such as `degrees` and `shear` below.
+This file contains scatter plots generated from `tune_results.ndjson`, helping you visualize relationships between different hyperparameters and performance metrics. Note that hyperparameters initialized to 0 will not be tuned, such as `degrees` and `shear` below.
 
 - **Format**: PNG
 - **Usage**: Exploratory data analysis

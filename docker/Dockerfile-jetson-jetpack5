@@ -41,8 +41,8 @@ RUN sed -i 's/^\( *"tensorflowjs\)>=.*\(".*\)/\1>=3.9.0\2/' pyproject.toml && \
 # Pip install onnxruntime-gpu, torch, torchvision and ultralytics, then remove build files
 RUN uv pip install --system \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.18.0-cp38-cp38-linux_aarch64.whl \
-    https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.2.0-cp38-cp38-linux_aarch64.whl \
-    https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.17.2+c1d70fe-cp38-cp38-linux_aarch64.whl && \
+    https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl \
+    https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.16.2+c6f3977-cp38-cp38-linux_aarch64.whl && \
     # Need lower version of 'numpy' for TensorRT export
     uv pip install --system numpy==1.23.5 && \
     uv pip install --system -e ".[export]" && \

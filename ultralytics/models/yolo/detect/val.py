@@ -356,15 +356,27 @@ class DetectionValidator(BaseValidator):
         save_dir = self.save_dir / "gt_pred_per_image"
         save_dir.mkdir(parents=True, exist_ok=True)
 
+        gt_boxes = pbatch["bboxes"].clone()
+        if gt_boxes.shape[-1] == 4:
+            gt_boxes = ops.xyxy2xywh(gt_boxes)
+        elif gt_boxes.shape[-1] != 5:
+            return
+
+        pred_boxes = predn["bboxes"].clone()
+        if pred_boxes.shape[-1] == 4:
+            pred_boxes = ops.xyxy2xywh(pred_boxes)
+        elif pred_boxes.shape[-1] != 5:
+            return
+
         gt_labels = {
             "cls": pbatch["cls"],
-            "bboxes": ops.xyxy2xywh(pbatch["bboxes"].clone()),
+            "bboxes": gt_boxes,
             "batch_idx": torch.zeros_like(pbatch["cls"], dtype=torch.int64),
         }
         pred_labels = {
             "cls": predn["cls"],
             "conf": predn["conf"],
-            "bboxes": ops.xyxy2xywh(predn["bboxes"].clone()),
+            "bboxes": pred_boxes,
             "batch_idx": torch.zeros_like(predn["cls"], dtype=torch.int64),
         }
 

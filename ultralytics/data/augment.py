@@ -2493,7 +2493,7 @@ def classify_transforms(
     if crop_fraction:
         warnings.warn(
             "'crop_fraction' arg of classify_transforms is deprecated, will be removed in a future version.",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
 

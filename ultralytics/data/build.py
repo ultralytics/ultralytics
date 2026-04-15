@@ -248,10 +248,7 @@ def build_yolo_dataset(
         task=cfg.task,
         classes=cfg.classes,
         data=data,
-        fraction=cfg.fraction if mode == "train" else 1.0,
-        mode=mode,
-        train_ratio=data.get("train_ratio", None),
-        val_ratio=data.get("val_ratio", None),
+        fraction=cfg.fraction,
     )
 
 
@@ -282,7 +279,7 @@ def build_grounding(
         prefix=colorstr(f"{mode}: "),
         task=cfg.task,
         classes=cfg.classes,
-        fraction=cfg.fraction if mode == "train" else 1.0,
+        fraction=cfg.fraction,
     )
 
 

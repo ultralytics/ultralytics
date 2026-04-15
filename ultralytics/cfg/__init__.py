@@ -381,15 +381,26 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                     )
                 cfg[k] = float(v)
             elif k in CFG_FRACTION_KEYS:
-                if not isinstance(v, FLOAT_OR_INT):
-                    if hard:
-                        raise TypeError(
-                            f"'{k}={v}' is of invalid type {type(v).__name__}. "
-                            f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
-                        )
-                    cfg[k] = v = float(v)
-                if not (0.0 <= v <= 1.0):
-                    raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")
+                values = v if k == "fraction" and isinstance(v, (list, tuple)) else [v]
+                converted = []
+                for item in values:
+                    if not isinstance(item, FLOAT_OR_INT):
+                        if hard:
+                            valid_types = "int/float list (i.e. 'fraction=[0.5,1.0]')" if k == "fraction" else (
+                                f"int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
+                            )
+                            raise TypeError(
+                                f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                                f"Valid '{k}' types are {valid_types}"
+                            )
+                        item = float(item)
+                    if not (0.0 <= item <= 1.0):
+                        raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")
+                    converted.append(float(item))
+                if k == "fraction" and isinstance(v, (list, tuple)):
+                    cfg[k] = type(v)(converted)
+                else:
+                    cfg[k] = converted[0]
             elif k in CFG_INT_KEYS and not isinstance(v, int):
                 if hard:
                     raise TypeError(

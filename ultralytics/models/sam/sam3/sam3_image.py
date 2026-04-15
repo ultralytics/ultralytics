@@ -296,9 +296,7 @@ class SAM3SemanticModel(torch.nn.Module):
         txt_masks = backbone_out["language_mask"][text_ids]
         if geometric_prompt is not None:
             with torch.profiler.record_function("SAM3Image._encode_prompt"):
-                geo_prompt, geo_mask = self._encode_prompt(
-                    img_feats, img_pos_embeds, vis_feat_sizes, geometric_prompt
-                )
+                geo_prompt, geo_mask = self._encode_prompt(img_feats, img_pos_embeds, vis_feat_sizes, geometric_prompt)
             prompt = torch.cat([txt_feats, geo_prompt], dim=0)
             prompt_mask = torch.cat([txt_masks, geo_mask], dim=1)
         else:

@@ -361,8 +361,8 @@ Ultralytics provides ready-to-use solutions for common computer vision applicati
 
         ```bash
         yolo solutions trackzone show=True
-        yolo solutions trackzone source="path/to/video.mp4" show=True
-        yolo solutions trackzone show=True region="[(150, 150), (1130, 150), (1130, 570), (150, 570)]"
+        yolo solutions trackzone source="path/to/video.mp4" # specify video file path
+        yolo solutions trackzone region="[(150, 150), (1130, 150), (1130, 570), (150, 570)]" # configure zone coordinates
         ```
 
     === "Help"

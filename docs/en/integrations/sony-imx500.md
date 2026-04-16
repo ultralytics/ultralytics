@@ -205,9 +205,9 @@ The export process will create an ONNX model for quantization validation, along 
         ├── dnnParams.xml
         ├── labels.txt
         ├── packerOut.zip
-        ├── yolo11n_imx.onnx
-        ├── yolo11n_imx_MemoryReport.json
-        └── yolo11n_imx.pbtxt
+        ├── model_imx.onnx
+        ├── model_imx_MemoryReport.json
+        └── model_imx.pbtxt
         ```
 
     === "Pose Estimation"
@@ -217,9 +217,9 @@ The export process will create an ONNX model for quantization validation, along 
         ├── dnnParams.xml
         ├── labels.txt
         ├── packerOut.zip
-        ├── yolo11n-pose_imx.onnx
-        ├── yolo11n-pose_imx_MemoryReport.json
-        └── yolo11n-pose_imx.pbtxt
+        ├── model_imx.onnx
+        ├── model_imx_MemoryReport.json
+        └── model_imx.pbtxt
         ```
 
     === "Classification"
@@ -229,9 +229,9 @@ The export process will create an ONNX model for quantization validation, along 
         ├── dnnParams.xml
         ├── labels.txt
         ├── packerOut.zip
-        ├── yolo11n-cls_imx.onnx
-        ├── yolo11n-cls_imx_MemoryReport.json
-        └── yolo11n-cls_imx.pbtxt
+        ├── model_imx.onnx
+        ├── model_imx_MemoryReport.json
+        └── model_imx.pbtxt
         ```
 
     === "Instance Segmentation"
@@ -241,9 +241,9 @@ The export process will create an ONNX model for quantization validation, along 
         ├── dnnParams.xml
         ├── labels.txt
         ├── packerOut.zip
-        ├── yolo11n-seg_imx.onnx
-        ├── yolo11n-seg_imx_MemoryReport.json
-        └── yolo11n-seg_imx.pbtxt
+        ├── model_imx.onnx
+        ├── model_imx_MemoryReport.json
+        └── model_imx.pbtxt
         ```
 
 ## Using IMX500 Export in Deployment

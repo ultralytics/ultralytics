@@ -49,6 +49,7 @@ class ONNXBackend(BaseBackend):
             import cv2
 
             self.net = cv2.dnn.readNetFromONNX(weight)
+            self.infer_device = "cpu"
         else:
             # ONNX Runtime
             LOGGER.info(f"Loading {weight} for ONNX Runtime inference...")
@@ -67,6 +68,15 @@ class ONNXBackend(BaseBackend):
                     LOGGER.warning("CUDA requested but CUDAExecutionProvider not available. Using CPU...")
                     self.device = torch.device("cpu")
                     cuda = False
+
+            primary = providers[0]
+            provider_name = primary if isinstance(primary, str) else primary[0]
+            if provider_name == "CUDAExecutionProvider":
+                self.infer_device = str(self.device)
+            elif provider_name == "CoreMLExecutionProvider":
+                self.infer_device = "mps"
+            else:
+                self.infer_device = "cpu"
 
             LOGGER.info(
                 f"Using ONNX Runtime {onnxruntime.__version__} with "
@@ -167,6 +177,7 @@ class ONNXIMXBackend(ONNXBackend):
         self.output_names = [x.name for x in self.session.get_outputs()]
         self.dynamic = isinstance(self.session.get_outputs()[0].shape[0], str)
         self.fp16 = "float16" in self.session.get_inputs()[0].type
+        self.infer_device = "cpu"
         metadata_map = self.session.get_modelmeta().custom_metadata_map
         if metadata_map:
             self.apply_metadata(dict(metadata_map))

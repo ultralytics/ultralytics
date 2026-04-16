@@ -35,6 +35,7 @@ class MNNBackend(BaseBackend):
         rt = MNN.nn.create_runtime_manager((config,))
         self.net = MNN.nn.load_module_from_file(weight, [], [], runtime_manager=rt, rearrange=True)
         self.expr = MNN.expr
+        self.infer_device = "cpu"
 
         # Load metadata from bizCode
         info = self.net.get_info()

@@ -126,11 +126,18 @@ def get_cpu_info():
     return PERSISTENT_CACHE.get("cpu_info", "unknown")
 
 
-@functools.lru_cache
 def get_gpu_info(index):
-    """Return a string with system GPU information, i.e. 'Tesla T4, 15102MiB'."""
-    properties = torch.cuda.get_device_properties(index)
-    return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
+    """Return a string with system GPU information, i.e. 'Tesla T4, 15102MiB', cached persistently across runs."""
+    from ultralytics.utils import PERSISTENT_CACHE  # avoid circular import error
+
+    key = f"gpu_info_{index}"
+    if key not in PERSISTENT_CACHE:
+        try:
+            p = torch.cuda.get_device_properties(index)
+            PERSISTENT_CACHE[key] = f"{p.name}, {p.total_memory // (1 << 20)}MiB"
+        except Exception:
+            pass
+    return PERSISTENT_CACHE.get(key, "unknown")
 
 
 def select_device(device="", newline=False, verbose=True):

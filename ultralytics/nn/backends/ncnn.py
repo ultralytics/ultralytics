@@ -35,11 +35,14 @@ class NCNNBackend(BaseBackend):
 
         # Setup Vulkan if available
         if isinstance(self.device, str) and self.device.startswith("vulkan"):
+            device_id = int(self.device.split(":")[1])
             self.net.opt.use_vulkan_compute = True
-            self.net.set_vulkan_device(int(self.device.split(":")[1]))
+            self.net.set_vulkan_device(device_id)
             self.device = torch.device("cpu")
+            self.infer_device = f"vulkan:{device_id}"
         else:
             self.net.opt.use_vulkan_compute = False
+            self.infer_device = "cpu"
 
         w = Path(weight)
         if not w.is_file():

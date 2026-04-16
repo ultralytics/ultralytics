@@ -50,6 +50,7 @@ class BaseBackend(ABC):
         self.dynamic = False
         self.metadata = {}
         self.model = None
+        self.infer_device = str(device)  # actual inference device; backends override this after load_model()
         self.load_model(weight)
 
     @abstractmethod

@@ -62,6 +62,8 @@ class TensorRTBackend(BaseBackend):
                 metadata = None
             engine = runtime.deserialize_cuda_engine(f.read())
             self.apply_metadata(metadata)
+        dla = metadata.get("dla", None) if metadata else None
+        self.infer_device = f"dla:{int(dla)}" if dla is not None else str(self.device)
         try:
             self.context = engine.create_execution_context()
         except Exception as e:

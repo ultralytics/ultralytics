@@ -33,6 +33,9 @@ class CoreMLBackend(BaseBackend):
         LOGGER.info(f"Loading {weight} for CoreML inference...")
         self.model = ct.models.MLModel(weight)
         self.dynamic = self.model.get_spec().description.input[0].type.HasField("multiArrayType")
+        _cu_map = {"ALL": "ane", "CPU_ONLY": "cpu", "CPU_AND_GPU": "gpu", "CPU_AND_NE": "ane"}
+        cu = getattr(self.model, "compute_unit", None)
+        self.infer_device = _cu_map.get(cu.name, "ane") if cu is not None else "ane"
 
         # Load metadata
         self.apply_metadata(dict(self.model.user_defined_metadata))

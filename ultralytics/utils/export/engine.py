@@ -94,6 +94,7 @@ def onnx2engine(
     metadata: dict | None = None,
     verbose: bool = False,
     prefix: str = "",
+    hw_compat: str | None = None,
 ) -> None:
     """Export a YOLO model to TensorRT engine format.
 
@@ -110,6 +111,8 @@ def onnx2engine(
         metadata (dict | None): Metadata to include in the engine file.
         verbose (bool, optional): Enable verbose logging.
         prefix (str, optional): Prefix for log messages.
+        hw_compat (str, optional): Engine (TensorRT) only; hardware compatibility level: 'ampere_plus',
+            'same_compute_capability', or 'none' (default).
 
     Raises:
         ValueError: If DLA is enabled on non-Jetson devices or required precision is not set.
@@ -131,6 +134,39 @@ def onnx2engine(
     # Engine builder
     builder = trt.Builder(logger)
     config = builder.create_builder_config()
+
+    level_raw = hw_compat or "none"
+    level = level_raw.lower()
+    level_enum_map = {
+        "ampere_plus": "AMPERE_PLUS",
+        "same_compute_capability": "SAME_COMPUTE_CAPABILITY",
+        "none": "NONE",
+    }
+    if level not in level_enum_map:
+        LOGGER.warning(
+            f"{prefix} invalid hw_compat '{level_raw}'. "
+            f"Valid options: 'ampere_plus', 'same_compute_capability', 'none'. Using default 'none'."
+        )
+        level = "none"
+    if level != "none":
+        enum_name = level_enum_map[level]
+        enum_value = getattr(trt.HardwareCompatibilityLevel, enum_name, None)
+        if enum_value is None:
+            LOGGER.warning(
+                f"{prefix} TensorRT {trt.__version__} does not expose HardwareCompatibilityLevel.{enum_name}. "
+                f"Falling back to hardware compatibility level 'none'."
+            )
+            level = "none"
+        else:
+            try:
+                config.hardware_compatibility_level = enum_value
+                LOGGER.info(f"{prefix} setting hardware compatibility level to {level.upper()}")
+            except Exception as e:
+                LOGGER.warning(
+                    f"{prefix} TensorRT {trt.__version__} rejected hw_compat='{level}' ({e}). "
+                    f"Falling back to hardware compatibility level 'none'."
+                )
+
     workspace_bytes = int((workspace or 0) * (1 << 30))
     is_trt10 = int(trt.__version__.split(".", 1)[0]) >= 10  # is TensorRT >= 10
     if is_trt10 and workspace_bytes > 0:

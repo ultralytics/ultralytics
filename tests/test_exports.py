@@ -64,8 +64,8 @@ def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
     for thread in threads:
         thread.join()
 
-    assert not errors
-    assert max_active == 1
+    assert not errors, f"Concurrent export errors: {errors}"
+    assert max_active == 1, f"Expected max 1 concurrent export, got {max_active}"
 
 
 @pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")

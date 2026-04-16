@@ -27,7 +27,7 @@ Before we start, you will need to create a Google Cloud Platform (GCP) project. 
 ## Prerequisites
 
 1. Install [Docker](https://docs.docker.com/engine/install/) on your machine.
-2. Install the [Google Cloud SDK](https://cloud.google.com/sdk/docs/install) and [authenticate for using the gcloud CLI](https://cloud.google.com/docs/authentication/gcloud).
+2. Install the [Google Cloud SDK](https://docs.cloud.google.com/sdk/docs/install-sdk) and [authenticate for using the gcloud CLI](https://docs.cloud.google.com/docs/authentication/gcloud).
 3. It is highly recommended that you go through the [Docker Quickstart Guide for Ultralytics](https://docs.ultralytics.com/guides/docker-quickstart/), because you will need to extend one of the official Ultralytics Docker images while following this guide.
 
 ## 1. Create an inference backend with FastAPI
@@ -507,7 +507,7 @@ docker push YOUR_REGION-docker.pkg.dev/YOUR_PROJECT_ID/YOUR_REPOSITORY_NAME/IMAG
 
 Wait for the process to complete. You should now see the image in your Artifact Registry repository.
 
-For more specific instructions on how to work with images in Artifact Registry, see the Artifact Registry documentation: [Push and pull images](https://cloud.google.com/artifact-registry/docs/docker/pushing-and-pulling).
+For more specific instructions on how to work with images in Artifact Registry, see the Artifact Registry documentation: [Push and pull images](https://docs.cloud.google.com/artifact-registry/docs/docker/pushing-and-pulling).
 
 ## 4. Import your model in Vertex AI
 

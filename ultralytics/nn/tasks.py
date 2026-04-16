@@ -63,6 +63,7 @@ from ultralytics.nn.modules import (
     Conv2,
     ConvTranspose,
     Detect,
+    DetectBoxContext,
     DetectNorm,
     DWConv,
     DWConvTranspose2d,
@@ -1727,6 +1728,7 @@ def parse_model(d, ch, verbose=True):
         elif m in frozenset(
             {
                 Detect,
+                DetectBoxContext,
                 DetectNorm,
                 WorldDetect,
                 YOLOEDetect,
@@ -1745,6 +1747,7 @@ def parse_model(d, ch, verbose=True):
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {
                 Detect,
+                DetectBoxContext,
                 DetectNorm,
                 YOLOEDetect,
                 Segment,
@@ -1757,7 +1760,7 @@ def parse_model(d, ch, verbose=True):
                 OBB26,
             }:
                 m.legacy = legacy
-            if m in {Detect, DetectNorm}:
+            if m in {Detect, DetectBoxContext, DetectNorm}:
                 m.suppress = suppress
                 m.rep_head = rep_head
                 m.no_detach = no_detach

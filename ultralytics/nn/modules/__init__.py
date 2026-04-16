@@ -104,6 +104,7 @@ from .head import (
     OBB26,
     Classify,
     Detect,
+    DetectBoxContext,
     DetectNorm,
     LRPCHead,
     Pose,

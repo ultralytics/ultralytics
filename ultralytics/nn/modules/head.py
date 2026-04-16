@@ -384,6 +384,102 @@ class DetectNorm(Detect):
                 b[-1].bias.data[: self.nc] = math.log(5 / self.nc / (640 / self.stride[i]) ** 2)
 
 
+class DetectBoxContext(Detect):
+    """Detection head where one2one cls branch uses shared regression features as context.
+
+    Instead of duplicating regression branch for one2one, this head:
+    1. Shares regression branch between one2many and one2one (no weight duplication)
+    2. Extracts intermediate features from regression stem as spatial context
+    3. One2one cls branch receives [FPN_features, box_features] for better duplicate suppression
+    """
+
+    def __init__(self, nc=80, reg_max=16, end2end=False, ch=()):
+        """Initialize with shared regression and context-aware o2o classification."""
+        # Init parent without end2end to skip duplicate head creation
+        super().__init__(nc, reg_max, end2end=False, ch=ch)
+
+        if end2end:
+            c2 = max((16, ch[0] // 4, self.reg_max * 4))
+            c3 = max(ch[0], min(self.nc, 100))
+
+            # Shared regression reference (no duplication)
+            self.one2one_cv2 = self.cv2
+
+            # O2O cls branch: input channels = FPN (x) + box intermediate (c2)
+            if self.rep_head:
+                self.one2one_cv3 = nn.ModuleList(
+                    nn.Sequential(
+                        nn.Sequential(RepConv(x + c2, x + c2, 3, g=x + c2, bn=True), Conv(x + c2, c3, 1)),
+                        nn.Sequential(RepConv(c3, c3, 3, g=c3, bn=True), Conv(c3, c3, 1)),
+                        nn.Conv2d(c3, self.nc, 1),
+                    )
+                    for x in ch
+                )
+            else:
+                self.one2one_cv3 = nn.ModuleList(
+                    nn.Sequential(
+                        nn.Sequential(DWConv(x + c2, x + c2, 3), Conv(x + c2, c3, 1)),
+                        nn.Sequential(DWConv(c3, c3, 3), Conv(c3, c3, 1)),
+                        nn.Conv2d(c3, self.nc, 1),
+                    )
+                    for x in ch
+                )
+
+    def forward(self, x):
+        """Forward with shared regression and context-aware o2o classification."""
+        bs = x[0].shape[0]
+
+        # Run regression branch once, capture intermediate features
+        box_feats, box_preds = [], []
+        for i in range(self.nl):
+            feat = self.cv2[i][:2](x[i])  # box stem (2 conv layers)
+            pred = self.cv2[i][2](feat)  # box final (1x1 conv)
+            box_feats.append(feat)
+            box_preds.append(pred.view(bs, 4 * self.reg_max, -1))
+        boxes = torch.cat(box_preds, dim=-1)
+
+        # O2M classification
+        if self.cv3 is not None:
+            cls_preds = [self.cv3[i](x[i]).view(bs, self.nc, -1) for i in range(self.nl)]
+            scores = torch.cat(cls_preds, dim=-1)
+            preds = dict(boxes=boxes, scores=scores, feats=x)
+
+        if self.end2end:
+            # O2O classification with box context (all detached)
+            o2o_cls = []
+            for i in range(self.nl):
+                ctx = torch.cat([x[i].detach(), box_feats[i].detach()], dim=1)
+                c = self.one2one_cv3[i](ctx)
+                o2o_cls.append(c.view(bs, self.nc, -1))
+            o2o_scores = torch.cat(o2o_cls, dim=-1)
+            one2one = dict(boxes=boxes.detach(), scores=o2o_scores, feats=x)
+
+            if self.cv3 is not None:
+                preds = {"one2many": preds, "one2one": one2one}
+            else:
+                preds = {"one2many": dict(), "one2one": one2one}
+
+        if self.training:
+            return preds
+        y = self._inference(preds["one2one"] if self.end2end else preds)
+        if self.end2end:
+            y = self.postprocess(y.permute(0, 2, 1))
+        return y if self.export else (y, preds)
+
+    def bias_init(self):
+        """Initialize biases for regression and both cls branches."""
+        for i, (a, b) in enumerate(zip(self.cv2, self.cv3)):
+            a[-1].bias.data[:] = 2.0
+            b[-1].bias.data[: self.nc] = math.log(5 / self.nc / (640 / self.stride[i]) ** 2)
+        if self.end2end:
+            for i, b in enumerate(self.one2one_cv3):
+                b[-1].bias.data[: self.nc] = math.log(5 / self.nc / (640 / self.stride[i]) ** 2)
+
+    def fuse(self):
+        """Remove o2m cls head for inference; keep shared cv2 for o2o box predictions."""
+        self.cv3 = None
+
+
 class Segment(Detect):
     """YOLO Segment head for segmentation models.
 

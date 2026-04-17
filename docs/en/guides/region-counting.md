@@ -87,6 +87,12 @@ keywords: object counting, regions, YOLO26, computer vision, Ultralytics, effici
          cv2.destroyAllWindows()  # destroy all opened windows
          ```
 
+    === "CLI"
+
+         ```bash
+         yolo solutions region source="path/to/video.mp4" show=True region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
+         ```
+
 !!! tip "Ultralytics Example Code"
 
       The Ultralytics region counting module is available in our [examples section](https://github.com/ultralytics/ultralytics/blob/main/examples/YOLOv8-Region-Counter/yolov8_region_counter.py). You can explore this example for code customization and modify it to suit your specific use case.

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 import torch
@@ -13,7 +12,7 @@ from ultralytics.utils import ARM64, IS_JETSON, LOGGER, YAML
 def torch2paddle(
     model: torch.nn.Module,
     im: torch.Tensor,
-    file: Path | str,
+    output_dir: Path | str,
     metadata: dict | None = None,
     prefix: str = "",
 ) -> str:
@@ -22,7 +21,7 @@ def torch2paddle(
     Args:
         model (torch.nn.Module): The PyTorch model to export.
         im (torch.Tensor): Example input tensor for tracing.
-        file (Path | str): Source model path used to derive the output directory.
+        output_dir (Path | str): Directory to save the exported PaddlePaddle model.
         metadata (dict | None): Optional metadata saved as ``metadata.yaml``.
         prefix (str): Prefix for log messages.
 
@@ -47,10 +46,8 @@ def torch2paddle(
     from x2paddle.convert import pytorch2paddle
 
     LOGGER.info(f"\n{prefix} starting export with X2Paddle {x2paddle.__version__}...")
-    file = Path(file)
-    f = str(file).replace(file.suffix, f"_paddle_model{os.sep}")
 
-    pytorch2paddle(module=model, save_dir=f, jit_type="trace", input_examples=[im])  # export
+    pytorch2paddle(module=model, save_dir=output_dir, jit_type="trace", input_examples=[im])  # export
     if metadata:
-        YAML.save(Path(f) / "metadata.yaml", metadata)  # add metadata.yaml
-    return f
+        YAML.save(Path(output_dir) / "metadata.yaml", metadata)  # add metadata.yaml
+    return str(output_dir)

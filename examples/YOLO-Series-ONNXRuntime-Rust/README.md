@@ -12,7 +12,7 @@ This repository provides a [Rust](https://rust-lang.org/) demo showcasing key [U
 - **Extensive Model Compatibility**: Supports a wide range of YOLO versions including [YOLOv5](https://docs.ultralytics.com/models/yolov5/), [YOLOv6](https://docs.ultralytics.com/models/yolov6/), [YOLOv7](https://docs.ultralytics.com/models/yolov7/), [YOLOv8](https://docs.ultralytics.com/models/yolov8/), [YOLOv9](https://docs.ultralytics.com/models/yolov9/), [YOLOv10](https://docs.ultralytics.com/models/yolov10/), [YOLO11](https://docs.ultralytics.com/models/yolo11/), [YOLO-World](https://docs.ultralytics.com/models/yolo-world/), [RT-DETR](https://docs.ultralytics.com/models/rtdetr/), and others.
 - **Versatile Task Coverage**: Includes examples for `Classification`, `Segmentation`, `Detection`, `Pose`, and `OBB`.
 - **Precision Flexibility**: Works seamlessly with `FP16` and `FP32` precision [ONNX models](https://docs.ultralytics.com/integrations/onnx/).
-- **Execution Providers**: Accelerated support for `CPU`, [CUDA](https://developer.nvidia.com/cuda-toolkit), [CoreML](https://developer.apple.com/documentation/coreml), and [TensorRT](https://docs.ultralytics.com/integrations/tensorrt/).
+- **Execution Providers**: Accelerated support for `CPU`, [CUDA](https://developer.nvidia.com/cuda/toolkit), [CoreML](https://developer.apple.com/documentation/coreml), and [TensorRT](https://docs.ultralytics.com/integrations/tensorrt/).
 - **Dynamic Input Shapes**: Dynamically adjusts to variable `batch`, `width`, and `height` dimensions for flexible model input.
 - **Flexible Data Loading**: The `DataLoader` component handles images, folders, videos, and real-time video streams.
 - **Real-Time Display and Video Export**: The `Viewer` provides real-time frame visualization and video export functions, similar to OpenCV’s `imshow()` and `imwrite()`.
@@ -45,7 +45,7 @@ This repository provides a [Rust](https://rust-lang.org/) demo showcasing key [U
 
 ### 2. [Optional] Install CUDA, CuDNN, and TensorRT
 
-- The CUDA execution provider requires [NVIDIA CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit) version `12.x`.
+- The CUDA execution provider requires [NVIDIA CUDA Toolkit](https://developer.nvidia.com/cuda/toolkit) version `12.x`.
 - The TensorRT execution provider requires both CUDA `12.x` and [NVIDIA TensorRT](https://developer.nvidia.com/tensorrt) `10.x`. Ensure [cuDNN](https://developer.nvidia.com/cudnn) is also correctly installed.
 
 ### 3. [Optional] Install ffmpeg

@@ -382,3 +382,11 @@ def test_export_axelera():
     assert Path(file).exists(), f"Axelera export failed, directory not found: {file}"
     # Note: Inference testing skipped as it requires Axelera hardware
     shutil.rmtree(file, ignore_errors=True)  # cleanup
+
+
+@pytest.mark.skipif(not TORCH_2_9, reason="ExportedProgram requires torch>=2.9.0")
+def test_export_exported_program():
+    """Test YOLO model export to ExportedProgram format."""
+    file = YOLO(MODEL).export(format="exported_program", imgsz=32)
+    assert Path(file).exists()
+    Path(file).unlink()  # cleanup

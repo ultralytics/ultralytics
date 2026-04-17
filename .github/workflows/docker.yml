@@ -123,7 +123,6 @@ jobs:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         with:
-          retry_delay_seconds: 30
           retries: 3
           run: echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
@@ -139,7 +138,6 @@ jobs:
         env:
           NVIDIA_NGC_API_KEY: ${{ secrets.NVIDIA_NGC_API_KEY }}
         with:
-          retry_delay_seconds: 30
           retries: 3
           run: echo "$NVIDIA_NGC_API_KEY" | docker login nvcr.io -u '$oauthtoken' --password-stdin
 

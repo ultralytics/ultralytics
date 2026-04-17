@@ -124,7 +124,7 @@ jobs:
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         with:
           retries: 3
-          run: echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+          run: printf '%s' "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
       - name: Login to GHCR
         uses: docker/login-action@v4
@@ -139,7 +139,7 @@ jobs:
           NVIDIA_NGC_API_KEY: ${{ secrets.NVIDIA_NGC_API_KEY }}
         with:
           retries: 3
-          run: echo "$NVIDIA_NGC_API_KEY" | docker login nvcr.io -u '$oauthtoken' --password-stdin
+          run: printf '%s' "$NVIDIA_NGC_API_KEY" | docker login nvcr.io -u '$oauthtoken' --password-stdin
 
       - name: Retrieve Ultralytics version
         id: get_version

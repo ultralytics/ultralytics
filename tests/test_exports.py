@@ -511,6 +511,14 @@ def test_export_qnn(isolated_model):
     Path(file).unlink(missing_ok=True)  # cleanup
 
 
+@pytest.mark.skipif(not TORCH_2_9, reason="ExportedProgram requires torch>=2.9.0")
+def test_export_exported_program(isolated_model):
+    """Test YOLO model export to ExportedProgram format."""
+    file = YOLO(isolated_model).export(format="exported_program", imgsz=32)
+    assert Path(file).exists()
+    Path(file).unlink()  # cleanup
+
+
 @pytest.mark.parametrize("env", [k for k, v in EXPORT_ENVS.items() if k != "base" or v["smoke"]])
 def test_export_env_has_smoke(env):
     """Ensure every non-base export environment declares a build-time smoke export."""

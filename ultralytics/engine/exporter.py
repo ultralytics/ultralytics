@@ -23,6 +23,7 @@ Axelera AI              | `axelera`                 | yolo26n_axelera_model/
 DEEPX                   | `deepx`                   | yolo26n_deepx_model/
 Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
 LiteRT                  | `litert`                  | yolo26n.tflite
+ExportedProgram         | `exported_program`        | yolo26n.pt2
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -57,6 +58,7 @@ Inference:
                          yolo26n_deepx_model        # DEEPX
                          yolo26n_qnn.onnx           # Qualcomm QNN
                          yolo26n.tflite             # LiteRT
+                         yolo26n.pt2                # ExportedProgram
 """
 
 from __future__ import annotations
@@ -211,6 +213,7 @@ def export_formats():
         ["DEEPX", "deepx", "_deepx_model", False, False, ["data", "quantize", "optimize"], "isolated-deepx"],
         ["Qualcomm QNN", "qnn", "_qnn.onnx", False, False, ["batch", "name", "quantize", "fraction", "data"], "base"],
         ["LiteRT", "litert", ".tflite", True, False, ["batch", "quantize", "data", "fraction"], "litert"],
+        ["ExportedProgram", "exported_program", ".pt2", True, True, ["batch"], "base"],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -473,6 +476,7 @@ class Exporter:
         export_executorch: Export model to ExecuTorch format.
         export_axelera: Export model to Axelera format.
         export_deepx: Export model to DEEPX format.
+        export_exported_program: Export model to ExportedProgram (PT2) format.
 
     Examples:
         Export a YOLO26 model to TorchScript format
@@ -1290,6 +1294,14 @@ class Exporter:
             metadata=self.metadata,
             prefix=prefix,
         )
+
+    @try_export
+    def export_exported_program(self, prefix=colorstr("ExportedProgram:")):
+        """Export YOLO model to torch.export ExportedProgram *.pt2 format."""
+        assert TORCH_2_9, f"ExportedProgram requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
+        from ultralytics.utils.export.exported_program import torch2exported_program
+
+        return torch2exported_program(self.model, self.file, self.im, metadata=self.metadata, prefix=prefix)
 
     @try_export
     def export_executorch(self, prefix=colorstr("ExecuTorch:")):

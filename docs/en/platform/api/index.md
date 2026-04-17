@@ -2183,7 +2183,7 @@ Webhooks notify your server of Platform events via HTTP POST callbacks:
 
     **All plans**: Training webhooks via the Python SDK (real-time metrics, completion notifications) work automatically on every plan -- no configuration required.
 
-    **Enterprise only**: Custom webhook endpoints that send HTTP POST callbacks to your own server URL require an Enterprise plan. See [Ultralytics Licensing](https://www.ultralytics.com/licensing) for details.
+    **Enterprise only**: Custom webhook endpoints that send HTTP POST callbacks to your own server URL require an Enterprise plan. See [Ultralytics Licensing](https://www.ultralytics.com/license) for details.
 
 ---
 

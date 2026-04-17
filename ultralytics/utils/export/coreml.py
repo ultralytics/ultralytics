@@ -46,7 +46,7 @@ class IOSDetectModel(nn.Module):
 
 def pipeline_coreml(
     model: Any,
-    output_shape: tuple,
+    output_shape: tuple[int, ...],
     metadata: dict,
     mlmodel: bool = False,
     iou: float = 0.45,
@@ -59,7 +59,7 @@ def pipeline_coreml(
 
     Args:
         model: CoreML model.
-        output_shape (tuple): Output shape tuple from the exporter.
+        output_shape (tuple[int, ...]): Output shape tuple from the exporter.
         metadata (dict): Model metadata.
         mlmodel (bool): Whether the model is an MLModel (vs MLProgram).
         iou (float): IoU threshold for NMS.
@@ -168,13 +168,13 @@ def torch2coreml(
     inputs: list,
     im: torch.Tensor,
     classifier_names: list[str] | None,
-    coreml_file: Path | str | None = None,
+    output_file: Path | str | None = None,
     mlmodel: bool = False,
     half: bool = False,
     int8: bool = False,
     metadata: dict | None = None,
     prefix: str = "",
-):
+) -> Any:
     """Export a PyTorch model to CoreML ``.mlpackage`` or ``.mlmodel`` format.
 
     Args:
@@ -182,7 +182,7 @@ def torch2coreml(
         inputs (list): CoreML input descriptions for the model.
         im (torch.Tensor): Example input tensor for tracing.
         classifier_names (list[str] | None): Class names for classifier config, or None if not a classifier.
-        coreml_file (Path | str | None): Output file path, or None to skip saving.
+        output_file (Path | str | None): Output file path, or None to skip saving.
         mlmodel (bool): Whether to export as ``.mlmodel`` (neural network) instead of ``.mlpackage`` (ML program).
         half (bool): Whether to quantize to FP16.
         int8 (bool): Whether to quantize to INT8.
@@ -229,14 +229,14 @@ def torch2coreml(
     ct_model.version = m.pop("version", "")
     ct_model.user_defined_metadata.update({k: str(v) for k, v in m.items()})
 
-    if coreml_file is not None:
+    if output_file is not None:
         try:
-            ct_model.save(str(coreml_file))  # save *.mlpackage
+            ct_model.save(str(output_file))  # save *.mlpackage
         except Exception as e:
             LOGGER.warning(
                 f"{prefix} CoreML export to *.mlpackage failed ({e}), reverting to *.mlmodel export. "
                 f"Known coremltools Python 3.11 and Windows bugs https://github.com/apple/coremltools/issues/1928."
             )
-            coreml_file = Path(coreml_file).with_suffix(".mlmodel")
-            ct_model.save(str(coreml_file))
+            output_file = Path(output_file).with_suffix(".mlmodel")
+            ct_model.save(str(output_file))
     return ct_model

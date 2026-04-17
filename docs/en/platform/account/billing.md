@@ -84,7 +84,7 @@ For organizations with advanced needs:
 - SLA guarantees (coming soon)
 - Enterprise support
 
-See [Ultralytics Licensing](https://www.ultralytics.com/licensing) for Enterprise plan details.
+See [Ultralytics Licensing](https://www.ultralytics.com/license) for Enterprise plan details.
 
 ## Credits
 

@@ -44,6 +44,10 @@ Currently, you can only export models that include the following tasks to IMX500
 - [Classification](https://docs.ultralytics.com/tasks/classify/)
 - [Instance segmentation](https://docs.ultralytics.com/tasks/segment/)
 
+!!! note "Supported model variants"
+
+    IMX export is designed and benchmarked for **YOLOv8n** and **YOLO11n** (nano). Other architectures and model scales are not supported.
+
 ## Usage Examples
 
 Export an Ultralytics YOLO11 model to IMX500 format and run inference with the exported model.

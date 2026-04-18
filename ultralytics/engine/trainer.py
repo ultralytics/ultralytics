@@ -754,7 +754,7 @@ class BaseTrainer:
         if self.ema and self.world_size > 1:
             # Sync EMA buffers from rank 0 to all ranks
             for buffer in self.ema.ema.buffers():
-                dist.broadcast(buffer, src=0)
+                dist.broadcast(buffer.data, src=0)
         metrics = self.validator(self)
         if metrics is None:
             return None, None

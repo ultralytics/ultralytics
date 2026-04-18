@@ -16,6 +16,7 @@ from ultralytics.utils import LOGGER, RANK, nms, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.utils.plotting import plot_images
+from ultralytics.utils.torch_utils import smart_inference_mode
 
 
 class DetectionValidator(BaseValidator):
@@ -219,6 +220,7 @@ class DetectionValidator(BaseValidator):
         self.metrics.confusion_matrix = self.confusion_matrix
         self.metrics.save_dir = self.save_dir
 
+    @smart_inference_mode(False)
     def gather_stats(self) -> None:
         """Gather stats from all GPUs."""
         if RANK == 0:

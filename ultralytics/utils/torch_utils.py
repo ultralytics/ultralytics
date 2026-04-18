@@ -72,15 +72,14 @@ def torch_distributed_zero_first(local_rank: int):
         dist.barrier(device_ids=[local_rank]) if use_ids else dist.barrier()
 
 
-def smart_inference_mode():
+def smart_inference_mode(mode=True):
     """Apply torch.inference_mode() decorator if torch>=1.10.0, else torch.no_grad() decorator."""
 
     def decorate(fn):
         """Apply appropriate torch decorator for inference mode based on torch version."""
-        if TORCH_1_9 and torch.is_inference_mode_enabled():
+        if mode and TORCH_1_9 and torch.is_inference_mode_enabled():
             return fn  # already in inference_mode, act as a pass-through
-        else:
-            return (torch.inference_mode if TORCH_1_10 else torch.no_grad)()(fn)
+        return (torch.inference_mode(mode) if TORCH_1_10 else torch.no_grad())(fn)
 
     return decorate
 

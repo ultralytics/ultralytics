@@ -195,7 +195,7 @@ To add your dataset:
 
 ### What is the purpose of the dataset YAML file in Ultralytics YOLO?
 
-The dataset YAML file in Ultralytics YOLO defines the dataset and model configuration for training. It specifies paths to training, validation, and test images, keypoint shapes, class names, and other configuration options. This structured format helps streamline [dataset management](https://docs.ultralytics.com/datasets/explorer/) and model training. Here is an example YAML format:
+The dataset YAML file in Ultralytics YOLO defines the dataset and model configuration for training. It specifies paths to training, validation, and test images, keypoint shapes, class names, and other configuration options. This structured format helps streamline dataset management and model training. Here is an example YAML format:
 
 ```yaml
 --8<-- "ultralytics/cfg/datasets/coco8-pose.yaml"

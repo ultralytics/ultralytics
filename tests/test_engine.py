@@ -25,7 +25,7 @@ def test_export():
     """Test model exporting functionality by adding a callback and verifying its execution."""
     exporter = Exporter()
     exporter.add_callback("on_export_start", test_func)
-    assert test_func in exporter.callbacks["on_export_start"], "callback test failed"
+    assert test_func in exporter.callbacks["on_export_start"], "on_export_start callback not registered"
     f = exporter(model=YOLO("yolo26n.yaml").model)
     YOLO(f)(SOURCE)  # exported model inference
 
@@ -76,7 +76,7 @@ def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
     # Trainer
     trainer = trainer_cls(overrides=overrides)
     trainer.add_callback("on_train_start", test_func)
-    assert test_func in trainer.callbacks["on_train_start"], "callback test failed"
+    assert test_func in trainer.callbacks["on_train_start"], "on_train_start callback not registered"
     trainer.train()
 
     # Validator
@@ -85,13 +85,13 @@ def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
     cfg.imgsz = 32
     val = validator_cls(args=cfg)
     val.add_callback("on_val_start", test_func)
-    assert test_func in val.callbacks["on_val_start"], "callback test failed"
+    assert test_func in val.callbacks["on_val_start"], "on_val_start callback not registered"
     val(model=trainer.best)
 
     # Predictor
     pred = predictor_cls(overrides={"imgsz": [64, 64]})
     pred.add_callback("on_predict_start", test_func)
-    assert test_func in pred.callbacks["on_predict_start"], "callback test failed"
+    assert test_func in pred.callbacks["on_predict_start"], "on_predict_start callback not registered"
 
     # Determine model path for prediction
     model_path = weights if weights else trainer.best
@@ -99,10 +99,10 @@ def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
         # Confirm there is no issue with sys.argv being empty
         with mock.patch.object(sys, "argv", []):
             result = pred(source=ASSETS, model=model_path)
-            assert len(result), "predictor test failed"
+            assert len(result) > 0, f"Predictor returned no results for {model}"
     else:
         result = pred(source=ASSETS, model=model_path)
-        assert len(result), "predictor test failed"
+        assert len(result) > 0, f"Predictor returned no results for {model}"
 
     # Test resume functionality
     with pytest.raises(AssertionError):
@@ -198,6 +198,6 @@ def test_train_reuses_loaded_checkpoint_model(monkeypatch):
 
     model.train(data="coco8.yaml", epochs=1)
 
-    assert captured["trainer"].model is original_model
-    assert captured["cfg"] == original_model.yaml
-    assert captured["weights"] is original_model
+    assert captured["trainer"].model is original_model, "Trainer model does not match original"
+    assert captured["cfg"] == original_model.yaml, f"Config mismatch: {captured['cfg']} != {original_model.yaml}"
+    assert captured["weights"] is original_model, "Weights do not match original model"

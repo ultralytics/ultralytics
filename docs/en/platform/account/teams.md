@@ -101,11 +101,11 @@ Enterprise plans include additional capabilities for organizations with advanced
 
 !!! warning "License Expiration"
 
-    If your Enterprise license expires, workspace access is blocked until the license is renewed. See [Ultralytics Licensing](https://www.ultralytics.com/licensing) for details.
+    If your Enterprise license expires, workspace access is blocked until the license is renewed. See [Ultralytics Licensing](https://www.ultralytics.com/license) for details.
 
 ### Getting Started with Enterprise
 
-Enterprise plans are provisioned by the Ultralytics team. See [Ultralytics Licensing](https://www.ultralytics.com/licensing) for plan details. Once your enterprise configuration is set up, you'll receive a provisioning invite to accept as the team Owner, after which you can invite your team members.
+Enterprise plans are provisioned by the Ultralytics team. See [Ultralytics Licensing](https://www.ultralytics.com/license) for plan details. Once your enterprise configuration is set up, you'll receive a provisioning invite to accept as the team Owner, after which you can invite your team members.
 
 ## FAQ
 
@@ -123,4 +123,4 @@ All team members share a single credit balance. The Owner and Admins can top up 
 
 ### How do I upgrade from Pro to Enterprise?
 
-Enterprise pricing and provisioning are handled directly by the Ultralytics team. See [Ultralytics Licensing](https://www.ultralytics.com/licensing) for plan details.
+Enterprise pricing and provisioning are handled directly by the Ultralytics team. See [Ultralytics Licensing](https://www.ultralytics.com/license) for plan details.

@@ -64,6 +64,7 @@ from ultralytics.nn.modules import (
     ConvTranspose,
     Detect,
     DetectBoxContext,
+    DetectBoxContextFull,
     DetectNorm,
     DWConv,
     DWConvTranspose2d,
@@ -1729,6 +1730,7 @@ def parse_model(d, ch, verbose=True):
             {
                 Detect,
                 DetectBoxContext,
+                DetectBoxContextFull,
                 DetectNorm,
                 WorldDetect,
                 YOLOEDetect,
@@ -1748,6 +1750,7 @@ def parse_model(d, ch, verbose=True):
             if m in {
                 Detect,
                 DetectBoxContext,
+                DetectBoxContextFull,
                 DetectNorm,
                 YOLOEDetect,
                 Segment,
@@ -1760,7 +1763,7 @@ def parse_model(d, ch, verbose=True):
                 OBB26,
             }:
                 m.legacy = legacy
-            if m in {Detect, DetectBoxContext, DetectNorm}:
+            if m in {Detect, DetectBoxContext, DetectBoxContextFull, DetectNorm}:
                 m.suppress = suppress
                 m.rep_head = rep_head
                 m.no_detach = no_detach

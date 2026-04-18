@@ -480,6 +480,96 @@ class DetectBoxContext(Detect):
         self.cv3 = None
 
 
+class DetectBoxContextFull(DetectBoxContext):
+    """Same as DetectBoxContext but BOTH o2m and o2o cls branches receive box context.
+
+    O2m cls uses non-detached box features (gradients flow back through box stem).
+    O2o cls uses detached box features (no gradient interference with o2m regression).
+    """
+
+    def __init__(self, nc=80, reg_max=16, end2end=False, ch=()):
+        """Initialize with box-context cls branches for both o2m and o2o."""
+        super().__init__(nc, reg_max, end2end=end2end, ch=ch)
+
+        c2 = max((16, ch[0] // 4, self.reg_max * 4))
+        c3 = max(ch[0], min(self.nc, 100))
+
+        # Rebuild cv3 with box context input: x + c2 channels
+        if self.rep_head:
+            self.cv3 = (
+                nn.ModuleList(
+                    nn.Sequential(Conv(x + c2, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) for x in ch
+                )
+                if self.legacy
+                else nn.ModuleList(
+                    nn.Sequential(
+                        nn.Sequential(RepConv(x + c2, x + c2, 3, g=x + c2, bn=True), Conv(x + c2, c3, 1)),
+                        nn.Sequential(RepConv(c3, c3, 3, g=c3, bn=True), Conv(c3, c3, 1)),
+                        nn.Conv2d(c3, self.nc, 1),
+                    )
+                    for x in ch
+                )
+            )
+        else:
+            self.cv3 = (
+                nn.ModuleList(
+                    nn.Sequential(Conv(x + c2, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) for x in ch
+                )
+                if self.legacy
+                else nn.ModuleList(
+                    nn.Sequential(
+                        nn.Sequential(DWConv(x + c2, x + c2, 3), Conv(x + c2, c3, 1)),
+                        nn.Sequential(DWConv(c3, c3, 3), Conv(c3, c3, 1)),
+                        nn.Conv2d(c3, self.nc, 1),
+                    )
+                    for x in ch
+                )
+            )
+
+    def forward(self, x):
+        """Forward with shared regression; both o2m and o2o cls use box context."""
+        bs = x[0].shape[0]
+
+        # Shared regression, capture intermediates
+        box_feats, box_preds = [], []
+        for i in range(self.nl):
+            feat = self.cv2[i][:2](x[i])
+            pred = self.cv2[i][2](feat)
+            box_feats.append(feat)
+            box_preds.append(pred.view(bs, 4 * self.reg_max, -1))
+        boxes = torch.cat(box_preds, dim=-1)
+
+        # O2M cls with box context (non-detached: grads flow through box stem)
+        if self.cv3 is not None:
+            cls_preds = []
+            for i in range(self.nl):
+                ctx = torch.cat([x[i], box_feats[i]], dim=1)
+                cls_preds.append(self.cv3[i](ctx).view(bs, self.nc, -1))
+            scores = torch.cat(cls_preds, dim=-1)
+            preds = dict(boxes=boxes, scores=scores, feats=x)
+
+        if self.end2end:
+            # O2O cls with box context (detached)
+            o2o_cls = []
+            for i in range(self.nl):
+                ctx = torch.cat([x[i].detach(), box_feats[i].detach()], dim=1)
+                o2o_cls.append(self.one2one_cv3[i](ctx).view(bs, self.nc, -1))
+            o2o_scores = torch.cat(o2o_cls, dim=-1)
+            one2one = dict(boxes=boxes.detach(), scores=o2o_scores, feats=x)
+
+            if self.cv3 is not None:
+                preds = {"one2many": preds, "one2one": one2one}
+            else:
+                preds = {"one2many": dict(), "one2one": one2one}
+
+        if self.training:
+            return preds
+        y = self._inference(preds["one2one"] if self.end2end else preds)
+        if self.end2end:
+            y = self.postprocess(y.permute(0, 2, 1))
+        return y if self.export else (y, preds)
+
+
 class Segment(Detect):
     """YOLO Segment head for segmentation models.
 

@@ -105,6 +105,7 @@ from .head import (
     Classify,
     Detect,
     DetectBoxContext,
+    DetectBoxContextFull,
     DetectNorm,
     LRPCHead,
     Pose,

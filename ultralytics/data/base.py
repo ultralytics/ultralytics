@@ -113,7 +113,13 @@ class BaseDataset(Dataset):
         self.augment = augment
         self.single_cls = single_cls
         self.prefix = prefix
-        self.fraction = self._resolve_fraction(fraction)
+
+        is_val = "val" in prefix.lower() or "test" in prefix.lower()
+        idx = 1 if is_val else 0
+        self.fraction = float(fraction[idx]) if isinstance(fraction, (list, tuple)) and len(fraction) > idx else (
+            1.0 if is_val else float(fraction)
+        )
+        
         self.channels = channels
         self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR
         self.im_files = self.get_img_files(self.img_path)
@@ -148,25 +154,6 @@ class BaseDataset(Dataset):
 
         # Transforms
         self.transforms = self.build_transforms(hyp=hyp)
-
-    def _resolve_fraction(self, fraction: float | list[float]) -> float:
-        """Return the active dataset fraction for the current split.
-
-        Args:
-            fraction (float | list[float]): Dataset fraction value or [train, val/test] fractions.
-
-        Returns:
-            (float): Fraction to apply for the current dataset split.
-        """
-        prefix = self.prefix.lower()
-        is_val = "val" in prefix or "test" in prefix
-        if isinstance(fraction, (list, tuple)):
-            if is_val:
-                return float(fraction[1]) if len(fraction) > 1 else 1.0
-            return float(fraction[0]) if fraction else 1.0
-        if is_val:
-            return 1.0
-        return float(fraction)
 
     def get_img_files(self, img_path: str | list[str]) -> list[str]:
         """Read image files from the specified path.

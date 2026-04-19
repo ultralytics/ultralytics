@@ -261,6 +261,118 @@ Available YOLO26-cls export formats are in the table below. You can export to an
 
 See full `export` details in the [Export](../modes/export.md) page.
 
+## Multi-Label Classification
+
+By default, YOLO classification assigns a single class per image using softmax. For tasks where an image can belong to multiple classes simultaneously (e.g., "sunny" and "outdoor"), enable multi-label mode with `multi_label=True`. This switches the model from softmax to sigmoid activation and uses BCE loss instead of cross-entropy.
+
+### Multi-Label Dataset Format
+
+Multi-label datasets use a YAML config pointing to image directories with a `labels.csv` file in each split:
+
+```
+dataset_root/
+|-- images/
+|   |-- train/
+|   |   |-- img001.jpg
+|   |   |-- img002.jpg
+|   |   |-- labels.csv
+|   |-- val/
+|       |-- img003.jpg
+|       |-- img004.jpg
+|       |-- labels.csv
+|-- dataset.yaml
+```
+
+**labels.csv** — each row is an image filename followed by comma-separated class indices:
+
+```
+img001.jpg,0,3,7
+img002.jpg,1
+img003.jpg,0,2,5
+```
+
+**dataset.yaml**:
+
+```yaml
+path: /path/to/dataset_root
+train: images/train
+val: images/val
+nc: 10
+names:
+  0: cat
+  1: dog
+  2: bird
+  # ...
+```
+
+### Multi-Label Train
+
+!!! example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n-cls.pt")
+        results = model.train(data="path/to/dataset.yaml", epochs=100, imgsz=224, multi_label=True)
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo classify train data=path/to/dataset.yaml model=yolo26n-cls.pt epochs=100 imgsz=224 multi_label=True
+        ```
+
+### Multi-Label Val
+
+Validation reports mAP (mean Average Precision), macro-averaged precision, recall, and F1 at a 0.5 threshold:
+
+!!! example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("path/to/best.pt")
+        metrics = model.val(data="path/to/dataset.yaml", multi_label=True)
+        metrics.map        # mean Average Precision
+        metrics.precision  # macro-averaged precision at threshold 0.5
+        metrics.recall     # macro-averaged recall at threshold 0.5
+        metrics.f1         # macro-averaged F1 at threshold 0.5
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo classify val model=path/to/best.pt data=path/to/dataset.yaml multi_label=True
+        ```
+
+### Multi-Label Predict
+
+Prediction returns per-class sigmoid probabilities. Classes above the confidence threshold are shown:
+
+!!! example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("path/to/best.pt")
+        results = model("image.jpg")
+        results[0].probs.data    # all class probabilities (sigmoid)
+        results[0].summary()     # classes above 0.5 threshold
+        ```
+
+!!! note
+
+    - The `multi_label` flag is only supported with `task='classify'`.
+    - Fitness metric for model selection is mAP (not top-1 accuracy).
+    - Metrics use macro averaging (mean of per-class values).
+    - Plotting shows the top predicted class per image; multi-hot ground truth is reduced to the highest-confidence class for visualization.
+
 ## FAQ
 
 ### What is the purpose of YOLO26 in image classification?

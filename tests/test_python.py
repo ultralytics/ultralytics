@@ -709,6 +709,46 @@ def test_model_embeddings():
         assert len(model_segment.embed(source=batch, imgsz=32)) == len(batch)
 
 
+def test_classification_dataset_cache_dir(tmp_path):
+    """Test classification disk cache redirection to a dedicated cache directory."""
+    from ultralytics.data import ClassificationDataset
+
+    root = tmp_path / "cls"
+    image = root / "class0" / "image.jpg"
+    image.parent.mkdir(parents=True)
+    assert cv2.imwrite(str(image), np.full((16, 16, 3), 255, dtype=np.uint8))
+
+    args = copy(DEFAULT_CFG)
+    args.cache = "disk"
+    args.cache_dir = str(tmp_path / "disk-cache")
+    args.imgsz = 32
+    dataset = ClassificationDataset(root=str(root), args=args, augment=False)
+
+    sample = dataset.samples[0]
+    assert Path(args.cache_dir) in Path(sample[2]).parents
+    _ = dataset[0]
+    assert Path(sample[2]).exists()
+    assert not image.with_suffix(".npy").exists()
+
+
+def test_train_cache_dir(tmp_path):
+    """Test training with cache redirected away from the image directory."""
+    cache_dir = tmp_path / "disk-cache"
+    model = YOLO(MODEL)
+    model.train(
+        data="coco8.yaml",
+        epochs=1,
+        imgsz=32,
+        cache="disk",
+        cache_dir=cache_dir,
+        close_mosaic=1,
+        workers=0,
+        project=tmp_path,
+        name="cache-dir",
+    )
+    assert any(cache_dir.rglob("*.npy"))
+
+
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOWorld with CLIP is not supported in Python 3.12")
 @pytest.mark.skipif(
     checks.IS_PYTHON_3_8 and LINUX and ARM64,

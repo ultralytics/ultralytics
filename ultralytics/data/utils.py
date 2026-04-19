@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import random
@@ -148,9 +149,34 @@ def get_hash(paths: list[str]) -> str:
             size += os.stat(p).st_size
         except OSError:
             continue
-    h = __import__("hashlib").sha256(str(size).encode())  # hash sizes
+    h = hashlib.sha256(str(size).encode())  # hash sizes
     h.update("".join(paths).encode())  # hash paths
     return h.hexdigest()  # return hash
+
+
+def get_cache_file_path(im_file: str | Path, cache_dir: str | Path | None = None) -> Path:
+    """Return the *.npy cache path for an image, optionally rooted under a dedicated cache directory."""
+    file = Path(im_file)
+    if cache_dir is None:
+        return file.with_suffix(".npy")
+    digest = hashlib.sha256(file.resolve().as_posix().encode()).hexdigest()
+    return Path(cache_dir) / digest[:2] / f"{digest}.npy"
+
+
+def prepare_cache_dir(cache_dir: str | Path | None, prefix: str, context: str = "caching images to disk") -> Path | None:
+    """Create and validate a cache directory, returning None if it is unavailable."""
+    if cache_dir is None:
+        return None
+    cache_dir = Path(cache_dir)
+    try:
+        cache_dir.mkdir(parents=True, exist_ok=True)
+    except OSError as e:
+        LOGGER.warning(f"{prefix}Skipping {context}, cache directory {cache_dir} unavailable: {e}")
+        return None
+    if not is_dir_writeable(cache_dir):
+        LOGGER.warning(f"{prefix}Skipping {context}, cache directory not writable: {cache_dir}")
+        return None
+    return cache_dir
 
 
 def exif_size(img: Image.Image) -> tuple[int, int]:

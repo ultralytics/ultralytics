@@ -663,6 +663,60 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
     return {"train": train_set, "val": val_set, "test": test_set, "nc": nc, "names": names, "channels": 3}
 
 
+def check_multilabel_cls_dataset(dataset: str | Path) -> dict[str, Any]:
+    """Check and validate a multi-label classification dataset from a YAML config.
+
+    Expects a dataset.yaml with keys: path, train, val, nc, names, and a labels.csv file in each split directory
+    mapping image filenames to comma-separated class indices.
+
+    Args:
+        dataset (str | Path): Path to the dataset YAML config file.
+
+    Returns:
+        (dict[str, Any]): Dictionary with keys 'train', 'val', 'test', 'nc', 'names', 'channels', and per-split
+            'labels_file' paths (e.g., 'train_labels_file').
+    """
+    data = YAML.load(check_file(dataset))
+    path = Path(data.get("path", "")).resolve()
+    if not path.is_dir():
+        raise FileNotFoundError(f"Multi-label dataset path not found: {path}")
+
+    nc = int(data["nc"])
+    names = data["names"]
+    if isinstance(names, list):
+        names = dict(enumerate(names))
+
+    result = {"nc": nc, "names": names, "channels": 3}
+
+    for split in ("train", "val", "test"):
+        split_rel = data.get(split)
+        if split_rel:
+            split_dir = path / split_rel
+            if split_dir.is_dir():
+                result[split] = split_dir
+                # Look for labels.csv in the split dir or the dataset root
+                labels_file = split_dir / "labels.csv"
+                if not labels_file.exists():
+                    labels_file = path / f"{split}_labels.csv"
+                if not labels_file.exists():
+                    labels_file = path / "labels.csv"
+                if labels_file.exists():
+                    result[f"{split}_labels_file"] = str(labels_file)
+                    LOGGER.info(f"{colorstr(f'{split}:')} using labels from {labels_file}")
+                else:
+                    raise FileNotFoundError(
+                        f"Multi-label labels file not found for split '{split}'. "
+                        f"Expected at {split_dir / 'labels.csv'} or {path / f'{split}_labels.csv'}"
+                    )
+            else:
+                result[split] = None
+                LOGGER.warning(f"Dataset split '{split}' directory not found at {split_dir}")
+        else:
+            result[split] = None
+
+    return result
+
+
 class HUBDatasetStats:
     """A class for generating HUB dataset JSON and `-hub` dataset directory.
 

@@ -983,6 +983,16 @@ class v8ClassificationLoss:
         return loss, loss.detach()
 
 
+class v8MultiLabelClassificationLoss:
+    """Criterion class for computing multi-label classification training losses using BCE with logits."""
+
+    def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+        """Compute the multi-label classification loss between predictions and multi-hot targets."""
+        preds = preds[1] if isinstance(preds, (list, tuple)) else preds
+        loss = F.binary_cross_entropy_with_logits(preds, batch["cls"].float(), reduction="mean")
+        return loss, loss.detach()
+
+
 class v8OBBLoss(v8DetectionLoss):
     """Calculates losses for object detection, classification, and box distribution in rotated YOLO models."""
 

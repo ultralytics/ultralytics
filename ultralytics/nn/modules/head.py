@@ -787,6 +787,7 @@ class Classify(nn.Module):
 
     Attributes:
         export (bool): Export mode flag.
+        multi_label (bool): Multi-label classification mode flag. Uses sigmoid instead of softmax.
         conv (Conv): Convolutional layer for feature transformation.
         pool (nn.AdaptiveAvgPool2d): Global average pooling layer.
         drop (nn.Dropout): Dropout layer for regularization.
@@ -803,6 +804,7 @@ class Classify(nn.Module):
     """
 
     export = False  # export mode
+    multi_label = False  # multi-label classification mode
 
     def __init__(self, c1: int, c2: int, k: int = 1, s: int = 1, p: int | None = None, g: int = 1):
         """Initialize YOLO classification head to transform input tensor from (b,c1,20,20) to (b,c2) shape.
@@ -829,7 +831,7 @@ class Classify(nn.Module):
         x = self.linear(self.drop(self.pool(self.conv(x)).flatten(1)))
         if self.training:
             return x
-        y = x.softmax(1)  # get final output
+        y = x.sigmoid() if self.multi_label else x.softmax(1)  # get final output
         return y if self.export else (y, x)
 
 

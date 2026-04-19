@@ -1646,6 +1646,152 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
         return [{"top1_acc": round(self.top1, decimals), "top5_acc": round(self.top5, decimals)}]
 
 
+class MultiLabelClassifyMetrics(SimpleClass, DataExportMixin):
+    """Class for computing multi-label classification metrics including mAP, precision, recall, and F1.
+
+    Uses macro-averaged metrics (mean of per-class values). The primary fitness metric is mAP
+    (mean Average Precision), which is the standard ranking metric for multi-label classification.
+    Precision, recall, and F1 are computed at a fixed threshold (default 0.5).
+
+    Attributes:
+        map (float): Mean Average Precision across all classes.
+        precision (float): Macro-averaged precision at threshold.
+        recall (float): Macro-averaged recall at threshold.
+        f1 (float): Macro-averaged F1 score at threshold.
+        per_class_ap (torch.Tensor | None): Per-class Average Precision values.
+        per_class_precision (torch.Tensor | None): Per-class precision values.
+        per_class_recall (torch.Tensor | None): Per-class recall values.
+        per_class_f1 (torch.Tensor | None): Per-class F1 values.
+        speed (dict[str, float]): Time taken for each pipeline step.
+
+    Methods:
+        process: Compute metrics from multi-hot targets and sigmoid predictions.
+        fitness: Return mAP as fitness score.
+        results_dict: Return dict with performance metrics.
+        keys: Return metric key names.
+    """
+
+    def __init__(self) -> None:
+        """Initialize a MultiLabelClassifyMetrics instance."""
+        self.map = 0.0
+        self.precision = 0.0
+        self.recall = 0.0
+        self.f1 = 0.0
+        self.per_class_ap = None
+        self.per_class_precision = None
+        self.per_class_recall = None
+        self.per_class_f1 = None
+        self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
+
+    @staticmethod
+    def _compute_ap(targets_col: torch.Tensor, preds_col: torch.Tensor) -> float:
+        """Compute Average Precision for a single class using the trapezoidal rule.
+
+        Args:
+            targets_col (torch.Tensor): Binary ground truth for one class, shape (N,).
+            preds_col (torch.Tensor): Predicted probabilities for one class, shape (N,).
+
+        Returns:
+            (float): Average Precision value.
+        """
+        if targets_col.sum() == 0:
+            return 0.0
+        # Sort by descending predicted probability
+        sorted_indices = preds_col.argsort(descending=True)
+        targets_sorted = targets_col[sorted_indices]
+        # Cumulative true positives and false positives
+        tp_cumsum = targets_sorted.cumsum(0)
+        fp_cumsum = (1 - targets_sorted).cumsum(0)
+        precision_curve = tp_cumsum / (tp_cumsum + fp_cumsum + 1e-16)
+        recall_curve = tp_cumsum / (targets_col.sum() + 1e-16)
+        # Prepend (recall=0, precision=1) for correct area computation
+        precision_curve = torch.cat([torch.tensor([1.0]), precision_curve])
+        recall_curve = torch.cat([torch.tensor([0.0]), recall_curve])
+        # Trapezoidal integration
+        return torch.trapezoid(precision_curve, recall_curve).item()
+
+    def process(self, targets: list[torch.Tensor], preds: list[torch.Tensor], threshold: float = 0.5):
+        """Compute multi-label metrics from accumulated predictions and targets.
+
+        Args:
+            targets (list[torch.Tensor]): List of multi-hot target tensors, each (B, nc).
+            preds (list[torch.Tensor]): List of sigmoid probability tensors, each (B, nc).
+            threshold (float): Classification threshold for converting probabilities to binary predictions.
+        """
+        preds = torch.cat(preds)  # (N, nc)
+        targets = torch.cat(targets)  # (N, nc)
+        nc = targets.shape[1]
+
+        # Per-class Average Precision
+        self.per_class_ap = torch.zeros(nc)
+        for c in range(nc):
+            self.per_class_ap[c] = self._compute_ap(targets[:, c], preds[:, c])
+        self.map = self.per_class_ap.mean().item()
+
+        # Threshold-based P/R/F1
+        pred_binary = (preds >= threshold).float()
+        tp = (pred_binary * targets).sum(0)
+        fp = (pred_binary * (1 - targets)).sum(0)
+        fn = ((1 - pred_binary) * targets).sum(0)
+
+        self.per_class_precision = tp / (tp + fp + 1e-16)
+        self.per_class_recall = tp / (tp + fn + 1e-16)
+        self.per_class_f1 = (
+            2
+            * self.per_class_precision
+            * self.per_class_recall
+            / (self.per_class_precision + self.per_class_recall + 1e-16)
+        )
+
+        self.precision = self.per_class_precision.mean().item()
+        self.recall = self.per_class_recall.mean().item()
+        self.f1 = self.per_class_f1.mean().item()
+
+    @property
+    def fitness(self) -> float:
+        """Return mAP as fitness score."""
+        return self.map
+
+    @property
+    def results_dict(self) -> dict[str, float]:
+        """Return a dictionary with model's performance metrics and fitness score."""
+        return dict(zip([*self.keys, "fitness"], [self.map, self.precision, self.recall, self.f1, self.fitness]))
+
+    @property
+    def keys(self) -> list[str]:
+        """Return a list of keys for the results_dict property."""
+        return ["metrics/mAP", "metrics/precision(B)", "metrics/recall(B)", "metrics/f1(B)"]
+
+    @property
+    def curves(self) -> list:
+        """Return a list of curves for accessing specific metrics curves."""
+        return []
+
+    @property
+    def curves_results(self) -> list:
+        """Return a list of curves results for accessing specific metrics curves."""
+        return []
+
+    def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict[str, float]]:
+        """Generate a single-row summary of multi-label classification metrics.
+
+        Args:
+            normalize (bool): For multi-label metrics, values are already normalized [0-1].
+            decimals (int): Number of decimal places to round the metrics values to.
+
+        Returns:
+            (list[dict[str, float]]): A list with one dictionary containing mAP, precision, recall, and F1.
+        """
+        return [
+            {
+                "mAP": round(self.map, decimals),
+                "precision": round(self.precision, decimals),
+                "recall": round(self.recall, decimals),
+                "f1": round(self.f1, decimals),
+            }
+        ]
+
+
 class OBBMetrics(DetMetrics):
     """Metrics for evaluating oriented bounding box (OBB) detection.
 

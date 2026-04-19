@@ -26,7 +26,7 @@ from torch import nn, optim
 
 from ultralytics import __version__
 from ultralytics.cfg import _YOLO_CLI_COMMAND, get_cfg, get_save_dir
-from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert_ndjson_to_yolo_if_needed
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset, check_multilabel_cls_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.nn.distill_model import DistillationModel
 from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.optim import MuSGD
@@ -723,7 +723,10 @@ class BaseTrainer:
 
             # Task-specific dataset checking
             if self.args.task == "classify":
-                data = check_cls_dataset(self.args.data)
+                if getattr(self.args, "multi_label", False):
+                    data = check_multilabel_cls_dataset(self.args.data)
+                else:
+                    data = check_cls_dataset(self.args.data)
             elif str(self.args.data).rsplit(".", 1)[-1] in {"yaml", "yml"} or self.args.task in {
                 "detect",
                 "segment",

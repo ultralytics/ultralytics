@@ -655,8 +655,13 @@ def check_multilabel_cls_dataset(dataset: str | Path) -> dict[str, Any]:
         (dict[str, Any]): Dictionary with keys 'train', 'val', 'test', 'nc', 'names', 'channels', and per-split
             'labels_file' paths (e.g., 'train_labels_file').
     """
-    data = YAML.load(check_file(dataset))
-    path = Path(data.get("path", "")).resolve()
+    dataset = Path(check_file(dataset)).resolve()
+    data = YAML.load(dataset)
+    path = Path(data.get("path", "") or dataset.parent)  # dataset root
+    if not path.is_absolute():
+        path = (dataset.parent / path).resolve()  # resolve relative to YAML location
+    if not path.exists() and not path.is_absolute():
+        path = (DATASETS_DIR / path).resolve()  # fallback to datasets dir
     if not path.is_dir():
         raise FileNotFoundError(f"Multi-label dataset path not found: {path}")
 

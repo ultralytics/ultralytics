@@ -1685,7 +1685,10 @@ class MultiLabelClassifyMetrics(SimpleClass, DataExportMixin):
 
     @staticmethod
     def _compute_ap(targets_col: torch.Tensor, preds_col: torch.Tensor) -> float:
-        """Compute Average Precision for a single class using the trapezoidal rule.
+        """Compute Average Precision for a single class using the precision envelope.
+
+        Uses the same 101-point interpolated AP (COCO-style) as the existing ``compute_ap`` function
+        to ensure consistent mAP values across tasks.
 
         Args:
             targets_col (torch.Tensor): Binary ground truth for one class, shape (N,).
@@ -1698,17 +1701,15 @@ class MultiLabelClassifyMetrics(SimpleClass, DataExportMixin):
             return 0.0
         # Sort by descending predicted probability
         sorted_indices = preds_col.argsort(descending=True)
-        targets_sorted = targets_col[sorted_indices]
-        # Cumulative true positives and false positives
-        tp_cumsum = targets_sorted.cumsum(0)
-        fp_cumsum = (1 - targets_sorted).cumsum(0)
-        precision_curve = tp_cumsum / (tp_cumsum + fp_cumsum + 1e-16)
-        recall_curve = tp_cumsum / (targets_col.sum() + 1e-16)
-        # Prepend (recall=0, precision=1) for correct area computation
-        precision_curve = torch.cat([torch.tensor([1.0]), precision_curve])
-        recall_curve = torch.cat([torch.tensor([0.0]), recall_curve])
-        # Trapezoidal integration
-        return torch.trapezoid(precision_curve, recall_curve).item()
+        targets_sorted = targets_col[sorted_indices].cpu().numpy()
+        # Cumulative TP / FP
+        tp_cumsum = np.cumsum(targets_sorted)
+        fp_cumsum = np.cumsum(1 - targets_sorted)
+        precision = (tp_cumsum / (tp_cumsum + fp_cumsum + 1e-16)).tolist()
+        recall = (tp_cumsum / (targets_col.sum().item() + 1e-16)).tolist()
+        # Reuse the existing precision-envelope AP computation
+        ap, _, _ = compute_ap(recall, precision)
+        return float(ap)
 
     def process(self, targets: list[torch.Tensor], preds: list[torch.Tensor], threshold: float = 0.5):
         """Compute multi-label metrics from accumulated predictions and targets.

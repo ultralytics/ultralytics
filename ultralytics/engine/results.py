@@ -829,8 +829,8 @@ class Results(SimpleClass, DataExportMixin):
         results = []
         if self.probs is not None:
             if self.multi_label:
-                # Return all classes above threshold for multi-label
-                indices = (self.probs.data > 0.5).nonzero(as_tuple=True)[0].tolist()
+                # Return all classes above threshold, fall back to top5 if none
+                indices = (self.probs.data > 0.5).nonzero(as_tuple=True)[0].tolist() or self.probs.top5
                 for class_id in indices:
                     results.append(
                         {

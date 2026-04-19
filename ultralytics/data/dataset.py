@@ -1186,7 +1186,8 @@ class MultiLabelClassificationDataset:
         self.cache_disk = str(args.cache).lower() == "disk"
 
         # Parse labels CSV
-        self.samples = self._parse_labels_csv(labels_file, root)
+        self.labels_file = str(labels_file)
+        self.samples = self._parse_labels_csv(labels_file, root, nc)
 
         if augment and args.fraction < 1.0:
             self.samples = self.samples[: round(len(self.samples) * args.fraction)]
@@ -1212,12 +1213,13 @@ class MultiLabelClassificationDataset:
         )
 
     @staticmethod
-    def _parse_labels_csv(labels_file: str, root: str) -> list[tuple]:
+    def _parse_labels_csv(labels_file: str, root: str, nc: int) -> list[tuple]:
         """Parse a labels CSV file into a list of (image_path, class_indices) tuples.
 
         Args:
             labels_file (str): Path to CSV file with format: image_path,class_idx1,class_idx2,...
             root (str): Root directory to resolve relative image paths.
+            nc (int): Number of classes; indices outside [0, nc) raise an error.
 
         Returns:
             (list[tuple]): List of (absolute_image_path, list_of_class_indices) tuples.
@@ -1245,6 +1247,13 @@ class MultiLabelClassificationDataset:
                 except ValueError:
                     LOGGER.warning(f"Skipping line {line_num} with non-integer class indices: {line}")
                     continue
+                # Validate class indices are within [0, nc)
+                bad = [i for i in class_indices if i < 0 or i >= nc]
+                if bad:
+                    raise ValueError(
+                        f"Class indices {bad} in {labels_file}:{line_num} are outside valid range [0, {nc}). "
+                        f"Check that 'nc: {nc}' in your dataset YAML matches the labels."
+                    )
                 samples.append((abs_path, class_indices))
         if not samples:
             raise FileNotFoundError(f"No valid samples found in {labels_file}")
@@ -1273,11 +1282,10 @@ class MultiLabelClassificationDataset:
         im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
         sample = self.torch_transforms(im)
 
-        # Build multi-hot target vector
+        # Build multi-hot target vector (indices validated at parse time)
         target = torch.zeros(self.nc, dtype=torch.float32)
         for idx in class_indices:
-            if 0 <= idx < self.nc:
-                target[idx] = 1.0
+            target[idx] = 1.0
         return {"img": sample, "cls": target}
 
     def __len__(self) -> int:
@@ -1297,7 +1305,7 @@ class MultiLabelClassificationDataset:
             check_file_speeds([x[0] for x in self.samples[:5]], prefix=self.prefix)
             cache = load_dataset_cache_file(path)
             assert cache["version"] == DATASET_CACHE_VERSION
-            assert cache["hash"] == get_hash([x[0] for x in self.samples])
+            assert cache["hash"] == get_hash([x[0] for x in self.samples] + [self.labels_file])
             nf, nc, n, samples = cache.pop("results")
             if LOCAL_RANK in {-1, 0}:
                 d = f"{desc} {nf} images, {nc} corrupt"
@@ -1323,7 +1331,7 @@ class MultiLabelClassificationDataset:
                 pbar.close()
             if msgs:
                 LOGGER.info("\n".join(msgs))
-            x["hash"] = get_hash([s[0] for s in self.samples])
+            x["hash"] = get_hash([s[0] for s in self.samples] + [self.labels_file])
             x["results"] = nf, nc, len(samples), samples
             x["msgs"] = msgs
             save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)

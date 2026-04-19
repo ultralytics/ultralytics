@@ -8,10 +8,10 @@ from typing import Any
 import torch
 import torch.distributed as dist
 
-from ultralytics.data import ClassificationDataset, build_dataloader
+from ultralytics.data import ClassificationDataset, MultiLabelClassificationDataset, build_dataloader
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER, RANK
-from ultralytics.utils.metrics import ClassifyMetrics, ConfusionMatrix
+from ultralytics.utils.metrics import ClassifyMetrics, ConfusionMatrix, MultiLabelClassifyMetrics
 from ultralytics.utils.plotting import plot_images
 
 
@@ -66,10 +66,13 @@ class ClassificationValidator(BaseValidator):
         self.targets = None
         self.pred = None
         self.args.task = "classify"
-        self.metrics = ClassifyMetrics()
+        self.multi_label = getattr(self.args, "multi_label", False)
+        self.metrics = MultiLabelClassifyMetrics() if self.multi_label else ClassifyMetrics()
 
     def get_desc(self) -> str:
         """Return a formatted string summarizing classification metrics."""
+        if self.multi_label:
+            return ("%22s" + "%11s" * 4) % ("classes", "mAP", "prec(B)", "rec(B)", "f1(B)")
         return ("%22s" + "%11s" * 2) % ("classes", "top1_acc", "top5_acc")
 
     def init_metrics(self, model: torch.nn.Module) -> None:
@@ -98,9 +101,13 @@ class ClassificationValidator(BaseValidator):
             This method appends the top-N predictions (sorted by confidence in descending order) to the
             prediction list for later evaluation. N is limited to the minimum of 5 and the number of classes.
         """
-        n5 = min(len(self.names), 5)
-        self.pred.append(preds.argsort(1, descending=True)[:, :n5].type(torch.int32).cpu())
-        self.targets.append(batch["cls"].type(torch.int32).cpu())
+        if self.multi_label:
+            self.pred.append(preds.sigmoid().cpu())  # (B, nc) sigmoid probabilities
+            self.targets.append(batch["cls"].cpu())  # (B, nc) multi-hot targets
+        else:
+            n5 = min(len(self.names), 5)
+            self.pred.append(preds.argsort(1, descending=True)[:, :n5].type(torch.int32).cpu())
+            self.targets.append(batch["cls"].type(torch.int32).cpu())
 
     def finalize_metrics(self) -> None:
         """Finalize metrics including confusion matrix and processing speed.
@@ -116,17 +123,27 @@ class ClassificationValidator(BaseValidator):
             This method processes the accumulated predictions and targets to generate the confusion matrix,
             optionally plots it, and updates the metrics object with speed information.
         """
-        self.confusion_matrix.process_cls_preds(self.pred, self.targets)
-        if self.args.plots:
-            for normalize in True, False:
-                self.confusion_matrix.plot(save_dir=self.save_dir, normalize=normalize, on_plot=self.on_plot)
+        if not self.multi_label:
+            self.confusion_matrix.process_cls_preds(self.pred, self.targets)
+            if self.args.plots:
+                for normalize in True, False:
+                    self.confusion_matrix.plot(save_dir=self.save_dir, normalize=normalize, on_plot=self.on_plot)
+            self.metrics.confusion_matrix = self.confusion_matrix
         self.metrics.speed = self.speed
         self.metrics.save_dir = self.save_dir
-        self.metrics.confusion_matrix = self.confusion_matrix
 
     def postprocess(self, preds: torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor]) -> torch.Tensor:
-        """Extract the primary prediction from model output if it's in a list or tuple format."""
-        return preds[0] if isinstance(preds, (list, tuple)) else preds
+        """Extract predictions for validation metrics.
+
+        For multi-label YOLO ``Classify`` heads in eval mode, the forward pass returns ``(probs, logits)``; metrics and
+        plots apply ``sigmoid`` to logits, so we return logits here. Single-label classification still uses the first
+        tensor (softmax probabilities) for top-k metrics.
+        """
+        if isinstance(preds, (list, tuple)):
+            if self.multi_label and len(preds) > 1:
+                return preds[1]
+            return preds[0]
+        return preds
 
     def get_stats(self) -> dict[str, float]:
         """Calculate and return a dictionary of metrics by processing targets and predictions."""
@@ -146,8 +163,19 @@ class ClassificationValidator(BaseValidator):
             dist.gather_object(self.pred, None, dst=0)
             dist.gather_object(self.targets, None, dst=0)
 
-    def build_dataset(self, img_path: str) -> ClassificationDataset:
-        """Create a ClassificationDataset instance for validation."""
+    def build_dataset(self, img_path: str):
+        """Create a ClassificationDataset or MultiLabelClassificationDataset instance for validation."""
+        if self.multi_label:
+            split = self.args.split
+            labels_file = self.data.get(f"{split}_labels_file", self.data.get("train_labels_file", ""))
+            return MultiLabelClassificationDataset(
+                root=img_path,
+                args=self.args,
+                augment=False,
+                prefix=split,
+                nc=self.data["nc"],
+                labels_file=labels_file,
+            )
         return ClassificationDataset(root=img_path, args=self.args, augment=False, prefix=self.args.split)
 
     def get_dataloader(self, dataset_path: Path | str, batch_size: int) -> torch.utils.data.DataLoader:
@@ -166,7 +194,10 @@ class ClassificationValidator(BaseValidator):
     def print_results(self) -> None:
         """Print evaluation metrics for the classification model."""
         pf = "%22s" + "%11.3g" * len(self.metrics.keys)  # print format
-        LOGGER.info(pf % ("all", self.metrics.top1, self.metrics.top5))
+        if self.multi_label:
+            LOGGER.info(pf % ("all", self.metrics.map, self.metrics.precision, self.metrics.recall, self.metrics.f1))
+        else:
+            LOGGER.info(pf % ("all", self.metrics.top1, self.metrics.top5))
 
     def plot_val_samples(self, batch: dict[str, Any], ni: int) -> None:
         """Plot validation image samples with their ground truth labels.
@@ -180,9 +211,12 @@ class ClassificationValidator(BaseValidator):
             >>> batch = {"img": torch.rand(16, 3, 224, 224), "cls": torch.randint(0, 10, (16,))}
             >>> validator.plot_val_samples(batch, 0)
         """
-        batch["batch_idx"] = torch.arange(batch["img"].shape[0])  # add batch index for plotting
+        plot_batch = {**batch}
+        plot_batch["batch_idx"] = torch.arange(batch["img"].shape[0])
+        if self.multi_label and batch["cls"].ndim == 2:
+            plot_batch["cls"] = batch["cls"].argmax(dim=1)
         plot_images(
-            labels=batch,
+            labels=plot_batch,
             fname=self.save_dir / f"val_batch{ni}_labels.jpg",
             names=self.names,
             on_plot=self.on_plot,
@@ -202,11 +236,18 @@ class ClassificationValidator(BaseValidator):
             >>> preds = torch.rand(16, 10)  # 16 images, 10 classes
             >>> validator.plot_predictions(batch, preds, 0)
         """
+        if self.multi_label:
+            probs = preds.sigmoid()
+            cls = probs.argmax(dim=1)  # show top predicted class for plotting
+            conf = probs.amax(dim=1)
+        else:
+            cls = torch.argmax(preds, dim=1)
+            conf = torch.amax(preds, dim=1)
         batched_preds = dict(
             img=batch["img"],
             batch_idx=torch.arange(batch["img"].shape[0]),
-            cls=torch.argmax(preds, dim=1),
-            conf=torch.amax(preds, dim=1),
+            cls=cls,
+            conf=conf,
         )
         plot_images(
             batched_preds,

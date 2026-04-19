@@ -1138,6 +1138,10 @@ def test_multilabel_classify_config_validation():
     check_cfg({"task": "classify", "multi_label": True})  # should not raise
 
 
+@pytest.mark.skipif(
+    not hasattr(torch.cuda, "OutOfMemoryError"),
+    reason="Requires PyTorch >= 2.0 for torch.cuda.OutOfMemoryError in BaseTrainer",
+)
 def test_multilabel_classify_end_to_end(multilabel_dataset):
     """Test full multi-label pipeline: train, validate, and predict."""
     yaml_path, nc, names, tmpdir = multilabel_dataset

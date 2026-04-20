@@ -14,11 +14,10 @@ keywords: Ultralytics Platform, API keys, authentication, remote training, secur
 
 Create a new API key:
 
-1. Go to **Settings > Profile**
-2. Scroll to the **API Keys** section
-3. Click **Create Key**
-4. Enter a name for the key (e.g., "Training Server")
-5. Click **Create Key**
+1. Go to **Settings > API Keys**
+2. Click **Create Key**
+3. Enter a name for the key (e.g., "Training Server")
+4. Click **Create Key**
 
 ![Ultralytics Platform Settings Profile Tab Create Api Key Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-create-api-key-dialog.avif)
 
@@ -115,10 +114,10 @@ Enable metric streaming with your key.
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.14**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.35**. Lower versions will NOT work with Platform.
 
     ```bash
-    pip install "ultralytics>=8.4.14"
+    pip install "ultralytics>=8.4.35"
     ```
 
 ```bash
@@ -132,7 +131,7 @@ See [Cloud Training](../train/cloud-training.md#remote-training) for the complet
 
 ### View Keys
 
-All keys are listed in `Settings > Profile` under the API Keys section:
+All keys are listed on the `Settings > API Keys` tab:
 
 Each key card shows the key name, the full decrypted key value (copyable), relative creation time, and a revoke button.
 
@@ -208,7 +207,7 @@ Solutions:
 1. Verify key is copied correctly (including the `ul_` prefix)
 2. Check key hasn't been revoked
 3. Confirm environment variable is set
-4. Ensure you're using `ultralytics>=8.4.14`
+4. Ensure you're using `ultralytics>=8.4.35`
 
 ### Permission Denied
 
@@ -246,7 +245,7 @@ Keys don't expire automatically. They remain valid until revoked. Consider imple
 
 ### Can I see my key after creation?
 
-Yes, full key values are visible in the key list on `Settings > Profile`. The Platform decrypts and displays your keys so you can copy them anytime.
+Yes, full key values are visible in the key list on `Settings > API Keys`. The Platform decrypts and displays your keys so you can copy them anytime.
 
 ### Are keys region-specific?
 

@@ -335,13 +335,13 @@ class BaseTrainer:
         self.scaler = (
             torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
         )
-        if self.world_size > 1:
-            self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
-
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
         self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
         self.stride = gs  # for multiscale training
+
+        if self.world_size > 1:
+            self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
 
         # Batch size
         if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size
@@ -350,6 +350,7 @@ class BaseTrainer:
         self._build_train_pipeline()
         self.validator = self.get_validator()
         self.ema = ModelEMA(self.model)
+        self.set_class_weights()  # compute class weights after dataloader is ready
         if RANK in {-1, 0}:
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))
@@ -531,8 +532,7 @@ class BaseTrainer:
                     self.stop |= (time.time() - self.train_time_start) > (self.args.time * 3600)
 
                 # Save model
-                if self.args.save or final_epoch:
-                    self.save_model()
+                if (self.args.save or final_epoch) and self.save_model():
                     self.run_callbacks("on_model_save")
 
             # Scheduler
@@ -630,6 +630,11 @@ class BaseTrainer:
         """Save model training checkpoints with additional metadata."""
         import io
 
+        ema = deepcopy(unwrap_model(self.ema.ema)).half()
+        if not all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor)):
+            LOGGER.warning(f"Skipping checkpoint save at epoch {self.epoch}: EMA contains NaN/Inf")
+            return False
+
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
         buffer = io.BytesIO()
         torch.save(
@@ -637,7 +642,7 @@ class BaseTrainer:
                 "epoch": self.epoch,
                 "best_fitness": self.best_fitness,
                 "model": None,  # resume and final checkpoints derive from EMA
-                "ema": deepcopy(unwrap_model(self.ema.ema)).half(),
+                "ema": ema,
                 "updates": self.ema.updates,
                 "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
                 "scaler": self.scaler.state_dict(),
@@ -666,6 +671,7 @@ class BaseTrainer:
             self.best.write_bytes(serialized_ckpt)  # save best.pt
         if (self.save_period > 0) and (self.epoch % self.save_period == 0):
             (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)  # save epoch, i.e. 'epoch3.pt'
+        return True
 
     def get_dataset(self):
         """Get train and validation datasets from data dictionary.
@@ -720,7 +726,7 @@ class BaseTrainer:
             cfg = weights.yaml
         elif isinstance(self.args.pretrained, (str, Path)):
             weights, _ = load_checkpoint(self.args.pretrained)
-        self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK == -1)  # calls Model(cfg, weights)
+        self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK in {-1, 0})  # calls Model(cfg, weights)
         return ckpt
 
     def optimizer_step(self):
@@ -784,6 +790,10 @@ class BaseTrainer:
     def set_model_attributes(self):
         """Set or update model parameters before training."""
         self.model.names = self.data["names"]
+
+    def set_class_weights(self):
+        """Compute and set class weights for handling class imbalance. Override in subclasses."""
+        pass
 
     def build_targets(self, preds, targets):
         """Build target tensors for training YOLO model."""
@@ -912,9 +922,11 @@ class BaseTrainer:
             corrupted = broadcast_list[0]
         if not corrupted:
             return False
-        if epoch == self.start_epoch or not self.last.exists():
+        if epoch == self.start_epoch:
             LOGGER.warning(f"{reason} detected but can not recover from last.pt...")
             return False  # Cannot recover on first epoch, let training continue
+        if not self.last.exists():
+            raise RuntimeError(f"{reason} detected but no valid last.pt is available for recovery")
         self.nan_recovery_attempts += 1
         if self.nan_recovery_attempts > 3:
             raise RuntimeError(f"Training failed: NaN persisted for {self.nan_recovery_attempts} epochs")
@@ -946,7 +958,7 @@ class BaseTrainer:
             )
             self.epochs += ckpt["epoch"]  # finetune additional epochs
         self._load_checkpoint_state(ckpt)
-        if unwrap_model(self.model).end2end:
+        if getattr(unwrap_model(self.model), "end2end", False):
             # initialize loss and resume o2o and o2m args
             unwrap_model(self.model).criterion = unwrap_model(self.model).init_criterion()
             unwrap_model(self.model).criterion.updates = start_epoch - 1

@@ -141,7 +141,7 @@ For more details, refer to the [`SolutionResults` class documentation](https://d
 
     Most of the Solutions can be used directly through the command-line interface, including:
 
-    `Count`, `Crop`, `Blur`, `Workout`, `Heatmap`, `Isegment`, `Visioneye`, `Speed`, `Queue`, `Analytics`, `Inference`
+    `Count`, `Crop`, `Blur`, `Workout`, `Heatmap`, `Isegment`, `Visioneye`, `Speed`, `Queue`, `Analytics`, `Inference`, `Trackzone`
 
     **Syntax**
 

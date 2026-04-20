@@ -203,7 +203,7 @@ class NMSWrapper(torch.nn.Module):
 
 def torch2imx(
     model: torch.nn.Module,
-    file: Path | str,
+    output_dir: Path | str,
     conf: float,
     iou: float,
     max_det: int,
@@ -211,7 +211,7 @@ def torch2imx(
     gptq: bool = False,
     dataset=None,
     prefix: str = "",
-):
+) -> str:
     """Export YOLO model to IMX format for deployment on Sony IMX500 devices.
 
     This function quantizes a YOLO model using Model Compression Toolkit (MCT) and exports it to IMX format compatible
@@ -220,7 +220,7 @@ def torch2imx(
 
     Args:
         model (torch.nn.Module): The YOLO model to export. Must be YOLOv8n or YOLO11n.
-        file (Path | str): Output file path for the exported model.
+        output_dir (Path | str): Directory to save the exported IMX model.
         conf (float): Confidence threshold for NMS post-processing.
         iou (float): IoU threshold for NMS post-processing.
         max_det (int): Maximum number of detections to return.
@@ -231,7 +231,7 @@ def torch2imx(
         prefix (str, optional): Logging prefix string. Defaults to "".
 
     Returns:
-        (Path): Path to the exported IMX model directory.
+        (str): Path to the exported IMX model directory.
 
     Raises:
         ValueError: If the model is not a supported YOLOv8n or YOLO11n variant.
@@ -239,7 +239,7 @@ def torch2imx(
     Examples:
         >>> from ultralytics import YOLO
         >>> model = YOLO("yolo11n.pt")
-        >>> path = torch2imx(model, "model.imx", conf=0.25, iou=0.7, max_det=300)
+        >>> path = torch2imx(model, "output_dir/", conf=0.25, iou=0.7, max_det=300)
 
     Notes:
         - Requires model_compression_toolkit, onnx, edgemdt_tpc, and edge-mdt-cl packages
@@ -309,9 +309,9 @@ def torch2imx(
             task=model.task,
         )
 
-    f = Path(str(file).replace(file.suffix, "_imx_model"))
-    f.mkdir(exist_ok=True)
-    onnx_model = f / Path(str(file.name).replace(file.suffix, "_imx.onnx"))  # js dir
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    onnx_model = output_dir / "model_imx.onnx"
 
     with onnx_export_patch():
         mct.exporter.pytorch_export_model(
@@ -319,7 +319,7 @@ def torch2imx(
         )
 
     model_onnx = onnx.load(onnx_model)  # load onnx model
-    for k, v in metadata.items():
+    for k, v in (metadata or {}).items():
         meta = model_onnx.metadata_props.add()
         meta.key, meta.value = k, str(v)
 
@@ -334,12 +334,12 @@ def torch2imx(
         raise FileNotFoundError("imxconv-pt not found. Install with: pip install imx500-converter[pt]")
 
     subprocess.run(
-        [str(imxconv), "-i", str(onnx_model), "-o", str(f), "--no-input-persistency", "--overwrite-output"],
+        [str(imxconv), "-i", str(onnx_model), "-o", str(output_dir), "--no-input-persistency", "--overwrite-output"],
         check=True,
     )
 
     # Needed for imx models.
-    with open(f / "labels.txt", "w", encoding="utf-8") as file:
-        file.writelines([f"{name}\n" for _, name in model.names.items()])
+    with open(output_dir / "labels.txt", "w", encoding="utf-8") as labels_file:
+        labels_file.writelines([f"{name}\n" for _, name in model.names.items()])
 
-    return f
+    return str(output_dir)

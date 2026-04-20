@@ -68,7 +68,7 @@ graph LR
 | **Annotate** | Manual tools for all 5 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM and YOLO models for detect, segment, and OBB (see [supported tasks](data/index.md#supported-tasks)) |
 | **Train**    | Cloud GPUs (20 free + 3 Pro-exclusive), real-time metrics, project organization                                                                                                                              |
 | **Export**   | [17 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.; see [supported formats](train/models.md#supported-formats))                                                               |
-| **Deploy**   | 43 global regions with dedicated endpoints, auto-scaling, monitoring                                                                                                                                         |
+| **Deploy**   | 43 global regions with dedicated endpoints, scale-to-zero behavior, and monitoring                                                                                                                           |
 
 **What you can do:**
 
@@ -84,11 +84,11 @@ graph LR
 
 Your data stays in your region. Ultralytics Platform operates infrastructure in three global regions:
 
-| Region | Label                        | Location                | Best For                                |
-| ------ | ---------------------------- | ----------------------- | --------------------------------------- |
-| **US** | Americas                     | Iowa, USA               | Americas users, fastest for Americas    |
-| **EU** | Europe, Middle East & Africa | Belgium, Europe         | European users, GDPR compliance         |
-| **AP** | Asia Pacific                 | Hong Kong, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+| Region | Label                        | Location             | Best For                                |
+| ------ | ---------------------------- | -------------------- | --------------------------------------- |
+| **US** | Americas                     | Iowa, USA            | Americas users, fastest for Americas    |
+| **EU** | Europe, Middle East & Africa | Belgium, Europe      | European users, GDPR compliance         |
+| **AP** | Asia Pacific                 | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
 
 You select your region during onboarding, and all your data, models, and deployments remain in that region.
 
@@ -146,7 +146,7 @@ You can train models either through the web UI (cloud training) or from your own
 
     ```bash
     # Install ultralytics
-    pip install "ultralytics>=8.4.14"
+    pip install "ultralytics>=8.4.35"
 
     # Set your API key
     export ULTRALYTICS_API_KEY="YOUR_API_KEY"
@@ -177,7 +177,7 @@ You can train models either through the web UI (cloud training) or from your own
 ### Deployment
 
 - **Inference Testing**: Test models directly in the browser with custom images
-- **Dedicated Endpoints**: Deploy to 43 global regions with auto-scaling
+- **Dedicated Endpoints**: Deploy to 43 global regions with scale-to-zero behavior
 - **Monitoring**: Real-time metrics, request logs, and performance dashboards
 
 ```mermaid
@@ -315,10 +315,10 @@ You can train models on your own hardware and stream real-time metrics to the pl
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.14**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.35**. Lower versions will NOT work with Platform.
 
     ```bash
-    pip install "ultralytics>=8.4.14"
+    pip install "ultralytics>=8.4.35"
     ```
 
 === "CLI"
@@ -473,4 +473,4 @@ See [Models Export](train/models.md#export-model), the [Export mode guide](../mo
 
 ??? question "Can I use Platform models commercially?"
 
-    Free and Pro plans use AGPL license. For commercial use without AGPL requirements, contact sales@ultralytics.com for Enterprise licensing.
+    Free and Pro plans use the AGPL license. For commercial use without AGPL requirements, see [Ultralytics Licensing](https://www.ultralytics.com/license).

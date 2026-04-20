@@ -62,7 +62,7 @@ For professionals and small teams ($29/month or $290/year):
 - 10 concurrent cloud trainings
 - 500 GB storage · 20 GB dataset upload limit
 - 10 cloud deployments
-- [Team collaboration](teams.md) (up to 5 members)
+- [Team collaboration](teams.md) with 4-role RBAC (up to 5 members)
 - Access to the best GPUs (H200, B200)
 - Priority support
 
@@ -78,7 +78,6 @@ For organizations with advanced needs:
 - Unlimited models, storage, trainings, and deployments · 50 GB dataset upload limit
 - Enterprise License (commercial use, non-AGPL)
 - SSO / SAML authentication
-- RBAC with 4 roles (Owner, Admin, Editor, Viewer)
 - On-premise deployment (coming soon)
 - ISO/SOC compliance (coming soon)
 - SLA guarantees (coming soon)

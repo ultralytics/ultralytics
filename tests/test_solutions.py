@@ -188,7 +188,7 @@ def has_action_recognition_support() -> bool:
             "ActionRecognition",
             solutions.ActionRecognition,
             False,
-            DEMO_VIDEO,
+            "demo_video",
             {"model": MODEL, "video_classifier_model": "s3d", "show": SHOW},
             marks=pytest.mark.skipif(
                 not has_action_recognition_support(),

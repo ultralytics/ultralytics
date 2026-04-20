@@ -273,13 +273,13 @@ View all transactions in `Settings > Billing`:
 
 ![Ultralytics Platform Settings Billing Tab Transaction History Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-transaction-history-table.avif)
 
-| Column      | Description                                                                                                                                       |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Date**    | Transaction date                                                                                                                                  |
-| **Type**    | Signup, Purchase, Subscription, Monthly Grant, Training, Refund, Adjustment, Promo, Auto Top-Up, Auto Top-Up Failed, Pro Credit Expiry            |
-| **Amount**  | Transaction value (green for credits, red for charges)                                                                                            |
-| **Balance** | Resulting balance after transaction                                                                                                               |
-| **Details** | Additional context (model link, receipt, period)                                                                                                  |
+| Column      | Description                                                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **Date**    | Transaction date                                                                                                                       |
+| **Type**    | Signup, Purchase, Subscription, Monthly Grant, Training, Refund, Adjustment, Promo, Auto Top-Up, Auto Top-Up Failed, Pro Credit Expiry |
+| **Amount**  | Transaction value (green for credits, red for charges)                                                                                 |
+| **Balance** | Resulting balance after transaction                                                                                                    |
+| **Details** | Additional context (model link, receipt, period)                                                                                       |
 
 ## FAQ
 

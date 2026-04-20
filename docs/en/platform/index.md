@@ -369,16 +369,16 @@ The Platform includes a full-featured annotation editor supporting:
 - **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) or [SAM 3](../models/sam-3.md) for click-based annotation, or run pretrained Ultralytics YOLO models and your own fine-tuned YOLO models from the toolbar for detect, segment, and OBB
 - **Keyboard Shortcuts**: Efficient workflows with hotkeys
 
-| Shortcut  | Action                                  |
-| --------- | --------------------------------------- |
-| `V`       | Manual (draw) mode                      |
-| `S`       | Smart mode (SAM or YOLO model)          |
-| `A`       | Toggle auto-apply (in Smart mode)       |
-| `1` - `9` | Select class by number                  |
-| `Delete`  | Delete selected annotation              |
-| `Ctrl+Z`  | Undo                                    |
-| `Ctrl+Y`  | Redo                                    |
-| `Escape`  | Save / deselect / exit                  |
+| Shortcut  | Action                            |
+| --------- | --------------------------------- |
+| `V`       | Manual (draw) mode                |
+| `S`       | Smart mode (SAM or YOLO model)    |
+| `A`       | Toggle auto-apply (in Smart mode) |
+| `1` - `9` | Select class by number            |
+| `Delete`  | Delete selected annotation        |
+| `Ctrl+Z`  | Undo                              |
+| `Ctrl+Y`  | Redo                              |
+| `Escape`  | Save / deselect / exit            |
 
 See [Annotation](data/annotation.md) for the complete guide.
 

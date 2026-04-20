@@ -549,7 +549,7 @@ def test_utils_ops():
 
 def test_utils_files(tmp_path):
     """Test file handling utilities including file age, date, and paths with spaces."""
-    from ultralytics.utils.files import file_age, file_date, get_latest_run, spaces_in_path
+    from ultralytics.utils.files import file_age, file_date, get_latest_run, increment_path, spaces_in_path
 
     file_age(SOURCE)
     file_date(SOURCE)
@@ -559,6 +559,14 @@ def test_utils_files(tmp_path):
     path.mkdir(parents=True, exist_ok=True)
     with spaces_in_path(path) as new_path:
         print(new_path)
+
+    exp_dir = tmp_path / "runs" / "exp"
+    exp_dir.mkdir(parents=True)
+    assert increment_path(exp_dir) == tmp_path / "runs" / "exp-2"
+
+    results_file = exp_dir / "results.txt"
+    results_file.touch()
+    assert increment_path(results_file) == exp_dir / "results-2.txt"
 
 
 @pytest.mark.slow

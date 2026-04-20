@@ -73,7 +73,7 @@ graph TB
     API --> Router{Region Router}
     Router -->|US users| US["US Predict Service<br/>Iowa"]
     Router -->|EU users| EU["EU Predict Service<br/>Belgium"]
-    Router -->|AP users| AP["AP Predict Service<br/>Hong Kong"]
+    Router -->|AP users| AP["AP Predict Service<br/>Taiwan"]
 
     style User fill:#f5f5f5,color:#333
     style API fill:#2196F3,color:#fff
@@ -83,11 +83,11 @@ graph TB
     style AP fill:#4CAF50,color:#fff
 ```
 
-| Region | Location                |
-| ------ | ----------------------- |
-| US     | Iowa, USA               |
-| EU     | Belgium, Europe         |
-| AP     | Hong Kong, Asia-Pacific |
+| Region | Location             |
+| ------ | -------------------- |
+| US     | Iowa, USA            |
+| EU     | Belgium, Europe      |
+| AP     | Taiwan, Asia-Pacific |
 
 ### Dedicated Endpoints
 

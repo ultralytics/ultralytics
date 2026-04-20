@@ -18,13 +18,6 @@ from ultralytics.utils.torch_utils import TORCH_2_4
 
 # Predefined argument values
 SHOW = False
-DEMO_VIDEO = "solutions_ci_demo.mp4"  # for all the solutions, except workout, object cropping and parking management
-CROP_VIDEO = "decelera_landscape_min.mov"  # for object cropping solution
-POSE_VIDEO = "solution_ci_pose_demo.mp4"  # only for workouts monitoring solution
-PARKING_VIDEO = "solution_ci_parking_demo.mp4"  # only for parking management solution
-PARKING_AREAS_JSON = "solution_ci_parking_areas.json"  # only for parking management solution
-PARKING_MODEL = "solutions_ci_parking_model.pt"  # only for parking management solution
-VERTICAL_VIDEO = "solution_vertical_demo.mp4"  # only for vertical line counting
 REGION = [(10, 200), (540, 200), (540, 180), (10, 180)]  # for object counting, speed estimation and queue management
 HORIZONTAL_LINE = [(10, 200), (540, 200)]  # for object counting
 VERTICAL_LINE = [(320, 0), (320, 400)]  # for object counting
@@ -50,129 +43,129 @@ def process_video(solution, video_path: str, needs_frame_count: bool = False):
 
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled for testing due to --slow test errors after YOLOE PR.")
 @pytest.mark.parametrize(
-    "name, solution_class, needs_frame_count, video, kwargs",
+    "name, solution_class, needs_frame_count, video_key, kwargs_update",
     [
         (
             "ObjectCounter",
             solutions.ObjectCounter,
             False,
-            DEMO_VIDEO,
+            "demo_video",
             {"region": REGION, "model": MODEL, "show": SHOW},
         ),
         (
             "ObjectCounter",
             solutions.ObjectCounter,
             False,
-            DEMO_VIDEO,
+            "demo_video",
             {"region": HORIZONTAL_LINE, "model": MODEL, "show": SHOW},
         ),
         (
             "ObjectCounterVertical",
             solutions.ObjectCounter,
             False,
-            DEMO_VIDEO,
+            "vertical_video",
             {"region": VERTICAL_LINE, "model": MODEL, "show": SHOW},
         ),
         (
             "ObjectCounterwithOBB",
             solutions.ObjectCounter,
             False,
-            DEMO_VIDEO,
+            "demo_video",
             {"region": REGION, "model": "yolo26n-obb.pt", "show": SHOW},
         ),
         (
             "Heatmap",
             solutions.Heatmap,
             False,
-            DEMO_VIDEO,
+            "demo_video",
             {"colormap": cv2.COLORMAP_PARULA, "model": MODEL, "show": SHOW, "region": None},
         ),
         (
             "HeatmapWithRegion",
             solutions.Heatmap,
             False,
-            DEMO_VIDEO,
+            "demo_video",
             {"colormap": cv2.COLORMAP_PARULA, "region": REGION, "model": MODEL, "show": SHOW},
         ),
         (
             "SpeedEstimator",
             solutions.SpeedEstimator,
             False,
-            DEMO_VIDEO,
+            "demo_video",
             {"region": REGION, "model": MODEL, "show": SHOW},
         ),
         (
             "QueueManager",
             solutions.QueueManager,
             False,
-            DEMO_VIDEO,
+            "demo_video",
             {"region": REGION, "model": MODEL, "show": SHOW},
         ),
         (
             "LineAnalytics",
             solutions.Analytics,
             True,
-            DEMO_VIDEO,
+            "demo_video",
             {"analytics_type": "line", "model": MODEL, "show": SHOW, "figsize": (6.4, 3.2)},
         ),
         (
             "PieAnalytics",
             solutions.Analytics,
             True,
-            DEMO_VIDEO,
+            "demo_video",
             {"analytics_type": "pie", "model": MODEL, "show": SHOW, "figsize": (6.4, 3.2)},
         ),
         (
             "BarAnalytics",
             solutions.Analytics,
             True,
-            DEMO_VIDEO,
+            "demo_video",
             {"analytics_type": "bar", "model": MODEL, "show": SHOW, "figsize": (6.4, 3.2)},
         ),
         (
             "AreaAnalytics",
             solutions.Analytics,
             True,
-            DEMO_VIDEO,
+            "demo_video",
             {"analytics_type": "area", "model": MODEL, "show": SHOW, "figsize": (6.4, 3.2)},
         ),
-        ("TrackZone", solutions.TrackZone, False, DEMO_VIDEO, {"region": REGION, "model": MODEL, "show": SHOW}),
+        ("TrackZone", solutions.TrackZone, False, "demo_video", {"region": REGION, "model": MODEL, "show": SHOW}),
         (
             "ObjectCropper",
             solutions.ObjectCropper,
             False,
-            CROP_VIDEO,
+            "crop_video",
             {"temp_crop_dir": "cropped-detections", "model": MODEL, "show": SHOW},
         ),
         (
             "ObjectBlurrer",
             solutions.ObjectBlurrer,
             False,
-            DEMO_VIDEO,
+            "demo_video",
             {"blur_ratio": 0.02, "model": MODEL, "show": SHOW},
         ),
         (
             "InstanceSegmentation",
             solutions.InstanceSegmentation,
             False,
-            DEMO_VIDEO,
+            "demo_video",
             {"model": "yolo26n-seg.pt", "show": SHOW},
         ),
-        ("VisionEye", solutions.VisionEye, False, DEMO_VIDEO, {"model": MODEL, "show": SHOW}),
+        ("VisionEye", solutions.VisionEye, False, "demo_video", {"model": MODEL, "show": SHOW}),
         (
             "RegionCounter",
             solutions.RegionCounter,
             False,
-            DEMO_VIDEO,
+            "demo_video",
             {"region": REGION, "model": MODEL, "show": SHOW},
         ),
-        ("AIGym", solutions.AIGym, False, POSE_VIDEO, {"kpts": [6, 8, 10], "show": SHOW}),
+        ("AIGym", solutions.AIGym, False, "pose_video", {"kpts": [6, 8, 10], "show": SHOW}),
         (
             "ParkingManager",
             solutions.ParkingManagement,
             False,
-            PARKING_VIDEO,
-            {"temp_model": str(PARKING_MODEL), "show": SHOW, "temp_json_file": str(PARKING_AREAS_JSON)},
+            "parking_video",
+            {"model": "parking_model", "show": SHOW, "json_file": "parking_areas"},
         ),
         (
             "StreamlitInference",
@@ -183,34 +176,31 @@ def process_video(solution, video_path: str, needs_frame_count: bool = False):
         ),
     ],
 )
-def test_solution(name, solution_class, needs_frame_count, video, kwargs, tmp_path):
+def test_solution(name, solution_class, needs_frame_count, video_key, kwargs_update, tmp_path, solution_assets):
     """Test individual Ultralytics solution with video processing and parameter validation."""
-    if video:
-        if name != "ObjectCounterVertical":
-            safe_download(url=f"{ASSETS_URL}/{video}", dir=tmp_path)
-        else:
-            safe_download(url=f"{ASSETS_URL}/{VERTICAL_VIDEO}", dir=tmp_path)
-    if name == "ParkingManager":
-        safe_download(url=f"{ASSETS_URL}/{PARKING_AREAS_JSON}", dir=tmp_path)
-        safe_download(url=f"{ASSETS_URL}/{PARKING_MODEL}", dir=tmp_path)
+    # Get video path from persistent cache (no copying needed, read-only access)
+    video_path = str(solution_assets(video_key)) if video_key else None
 
-    elif name == "StreamlitInference":
+    # Update kwargs to use cached paths for parking manager
+    kwargs = {}
+    for key, value in kwargs_update.items():
+        if key.startswith("temp_"):
+            kwargs[key.replace("temp_", "")] = str(tmp_path / value)
+        elif value == "parking_model":
+            kwargs[key] = str(solution_assets("parking_model"))
+        elif value == "parking_areas":
+            kwargs[key] = str(solution_assets("parking_areas"))
+        else:
+            kwargs[key] = value
+
+    if name == "StreamlitInference":
         if checks.check_imshow():  # do not merge with elif above
             solution_class(**kwargs).inference()  # requires interactive GUI environment
         return
 
-    # Update kwargs to use tmp_path
-    kwargs_updated = {}
-    for key in kwargs:
-        if key.startswith("temp_"):
-            kwargs_updated[key.replace("temp_", "")] = str(tmp_path / kwargs[key])
-        else:
-            kwargs_updated[key] = kwargs[key]
-
-    video = VERTICAL_VIDEO if name == "ObjectCounterVertical" else video
     process_video(
-        solution=solution_class(**kwargs_updated),
-        video_path=str(tmp_path / video),
+        solution=solution_class(**kwargs),
+        video_path=video_path,
         needs_frame_count=needs_frame_count,
     )
 
@@ -220,7 +210,7 @@ def test_left_click_selection():
     dc = solutions.DistanceCalculation()
     dc.boxes, dc.track_ids = [[10, 10, 50, 50]], [1]
     dc.mouse_event_for_distance(cv2.EVENT_LBUTTONDOWN, 30, 30, None, None)
-    assert 1 in dc.selected_boxes
+    assert 1 in dc.selected_boxes, f"Expected track_id 1 in selected_boxes, got {dc.selected_boxes}"
 
 
 def test_right_click_reset():
@@ -228,8 +218,8 @@ def test_right_click_reset():
     dc = solutions.DistanceCalculation()
     dc.selected_boxes, dc.left_mouse_count = {1: [10, 10, 50, 50]}, 1
     dc.mouse_event_for_distance(cv2.EVENT_RBUTTONDOWN, 0, 0, None, None)
-    assert not dc.selected_boxes
-    assert dc.left_mouse_count == 0
+    assert not dc.selected_boxes, f"Expected empty selected_boxes after reset, got {dc.selected_boxes}"
+    assert dc.left_mouse_count == 0, f"Expected left_mouse_count=0 after reset, got {dc.left_mouse_count}"
 
 
 def test_parking_json_none():
@@ -249,7 +239,7 @@ def test_analytics_graph_not_supported():
         analytics.process(im0=np.zeros((640, 480, 3), dtype=np.uint8), frame_number=0)
         assert False, "Expected ValueError for unsupported chart type"
     except ValueError as e:
-        assert "Unsupported analytics_type" in str(e)
+        assert "Unsupported analytics_type" in str(e), f"Expected 'Unsupported analytics_type' in error, got: {e}"
 
 
 def test_area_chart_padding():
@@ -257,7 +247,7 @@ def test_area_chart_padding():
     analytics = solutions.Analytics(analytics_type="area")
     analytics.update_graph(frame_number=1, count_dict={"car": 2}, plot="area")
     plot_im = analytics.update_graph(frame_number=2, count_dict={"car": 3, "person": 1}, plot="area")
-    assert plot_im is not None
+    assert plot_im is not None, "Area chart plot returned None"
 
 
 def test_config_update_method_with_invalid_argument():
@@ -267,7 +257,7 @@ def test_config_update_method_with_invalid_argument():
         obj.update(invalid_key=123)
         assert False, "Expected ValueError for invalid update argument"
     except ValueError as e:
-        assert "is not a valid solution argument" in str(e)
+        assert "is not a valid solution argument" in str(e), f"Expected validation error message, got: {e}"
 
 
 def test_plot_with_no_masks():
@@ -275,7 +265,7 @@ def test_plot_with_no_masks():
     im0 = np.zeros((640, 480, 3), dtype=np.uint8)
     isegment = solutions.InstanceSegmentation(model="yolo26n-seg.pt")
     results = isegment(im0)
-    assert results.plot_im is not None
+    assert results.plot_im is not None, "Instance segmentation plot returned None"
 
 
 def test_streamlit_handle_video_upload_creates_file():
@@ -291,10 +281,11 @@ def test_streamlit_handle_video_upload_creates_file():
         output_path = "ultralytics.mp4"
     else:
         output_path = None
-    assert output_path == "ultralytics.mp4"
-    assert os.path.exists("ultralytics.mp4")
+    assert output_path == "ultralytics.mp4", f"Expected output_path 'ultralytics.mp4', got {output_path}"
+    assert os.path.exists("ultralytics.mp4"), "ultralytics.mp4 file not created"
     with open("ultralytics.mp4", "rb") as f:
-        assert f.read() == b"fake video content"
+        content = f.read()
+        assert content == b"fake video content", f"File content mismatch: {content}"
     os.remove("ultralytics.mp4")
 
 
@@ -329,7 +320,7 @@ def test_similarity_search_complete(tmp_path):
         img.save(image_dir / f"test_image_{i}.jpg")
     searcher = solutions.VisualAISearch(data=str(image_dir))
     results = searcher("a red and white object")
-    assert results
+    assert results, "Similarity search returned empty results"
 
 
 def test_distance_calculation_process_method():
@@ -347,9 +338,9 @@ def test_distance_calculation_process_method():
     frame = np.zeros((480, 640, 3), dtype=np.uint8)
     with patch.object(dc, "extract_tracks"), patch.object(dc, "display_output"), patch("cv2.setMouseCallback"):
         result = dc.process(frame)
-    assert isinstance(result, SolutionResults)
-    assert result.total_tracks == 2
-    assert result.pixels_distance > 0
+    assert isinstance(result, SolutionResults), f"Expected SolutionResults, got {type(result)}"
+    assert result.total_tracks == 2, f"Expected 2 tracks, got {result.total_tracks}"
+    assert result.pixels_distance > 0, f"Expected positive distance, got {result.pixels_distance}"
 
 
 def test_object_crop_with_show_True():

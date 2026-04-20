@@ -454,9 +454,11 @@ class Predictor(BasePredictor):
         device = select_device(self.args.device, verbose=verbose)
         if model is None:
             model = self.get_model()
-        model.eval()
+        # Move model to device first, then cast dtype, then set eval so any eval-time caches are created on-device.
         model = model.to(device)
-        self.model = model.half() if self.args.half else model.float()
+        model = model.half() if self.args.half else model.float()
+        model.eval()
+        self.model = model
         self.device = device
         self.mean = torch.tensor([123.675, 116.28, 103.53]).view(-1, 1, 1).to(device)
         self.std = torch.tensor([58.395, 57.12, 57.375]).view(-1, 1, 1).to(device)
@@ -2271,8 +2273,9 @@ class SAM3SemanticPredictor(SAM3Predictor):
         """Run inference on the extracted features with optional bounding boxes and labels."""
         # NOTE: priority: bboxes > text > pre-set classes
         nc = 1 if bboxes is not None else len(text) if text is not None else len(self.model.names)
-        geometric_prompt = self._get_dummy_prompt(nc)
+        geometric_prompt = None
         if bboxes is not None:
+            geometric_prompt = self._get_dummy_prompt(nc)
             for i in range(len(bboxes)):
                 geometric_prompt.append_boxes(bboxes[[i]], labels[[i]])
             if text is None:

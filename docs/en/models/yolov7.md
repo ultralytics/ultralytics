@@ -91,7 +91,7 @@ YOLOv7 introduces several key features:
 
 ## Usage Examples
 
-As of the time of writing, Ultralytics only supports ONNX and TensorRT inference for YOLOv7.
+Ultralytics does not publish `yolov7.pt` pretrained weights or `ultralytics/cfg/models/v7/` YAMLs, and native PyTorch training and inference for YOLOv7 are **not supported** by the Ultralytics Python package. However, you can bring a YOLOv7 checkpoint trained in the [upstream YOLOv7 repository](https://github.com/WongKinYiu/yolov7) into Ultralytics by exporting it to ONNX or TensorRT, as shown below.
 
 ### ONNX Export
 

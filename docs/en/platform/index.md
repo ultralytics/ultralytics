@@ -369,16 +369,16 @@ The Platform includes a full-featured annotation editor supporting:
 - **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) or [SAM 3](../models/sam-3.md) for click-based annotation, or run pretrained Ultralytics YOLO models and your own fine-tuned YOLO models from the toolbar for detect, segment, and OBB
 - **Keyboard Shortcuts**: Efficient workflows with hotkeys
 
-| Shortcut  | Action                               |
-| --------- | ------------------------------------ |
-| `V`       | Manual (draw) mode                   |
-| `S`       | Smart mode (SAM or YOLO)             |
-| `A`       | Toggle auto-apply (in Smart mode)    |
-| `1` - `9` | Select class by number               |
-| `Delete`  | Delete selected annotation           |
-| `Ctrl+Z`  | Undo                                 |
-| `Ctrl+Y`  | Redo                                 |
-| `Escape`  | Save / deselect / exit               |
+| Shortcut  | Action                                  |
+| --------- | --------------------------------------- |
+| `V`       | Manual (draw) mode                      |
+| `S`       | Smart mode (SAM or YOLO model)          |
+| `A`       | Toggle auto-apply (in Smart mode)       |
+| `1` - `9` | Select class by number                  |
+| `Delete`  | Delete selected annotation              |
+| `Ctrl+Z`  | Undo                                    |
+| `Ctrl+Y`  | Redo                                    |
+| `Escape`  | Save / deselect / exit                  |
 
 See [Annotation](data/annotation.md) for the complete guide.
 
@@ -412,12 +412,12 @@ See [Models Export](train/models.md#export-model), the [Export mode guide](../mo
 
 ### Dataset Issues
 
-| Problem                | Solution                                                                                                                                                                                         |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Problem                | Solution                                                                                                                                                                                                      |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Dataset won't process  | Check file format is supported (JPEG, PNG, WebP, TIFF, HEIC, AVIF, BMP, JP2, DNG, MPO for images). Max file size: images 50 MB, videos 1 GB, dataset archives 10 GB (Free) / 20 GB (Pro) / 50 GB (Enterprise) |
-| Missing annotations    | Verify labels are in [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format) with `.txt` files matching image filenames, or upload COCO JSON                                          |
-| "Train split required" | Add `train/` folder to your dataset structure, or redistribute splits via the [split bar](data/datasets.md#split-redistribution)                                                                 |
-| Class names undefined  | Add a `data.yaml` file with `names:` list (see [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format)), or define classes in the [Classes tab](data/datasets.md#classes-tab)         |
+| Missing annotations    | Verify labels are in [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format) with `.txt` files matching image filenames, or upload COCO JSON                                                       |
+| "Train split required" | Add `train/` folder to your dataset structure, or redistribute splits via the [split bar](data/datasets.md#split-redistribution)                                                                              |
+| Class names undefined  | Add a `data.yaml` file with `names:` list (see [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format)), or define classes in the [Classes tab](data/datasets.md#classes-tab)                      |
 
 ### Training Issues
 

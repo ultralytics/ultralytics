@@ -88,6 +88,10 @@ This table presents the model types, the specific pretrained weights, the tasks 
 | RT-DETR Large       | [rtdetr-l.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/rtdetr-l.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 | RT-DETR Extra-Large | [rtdetr-x.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/rtdetr-x.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 
+!!! note "Architecture-only variants"
+
+    [`rtdetr-resnet50.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/rt-detr/rtdetr-resnet50.yaml) and [`rtdetr-resnet101.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/rt-detr/rtdetr-resnet101.yaml) are shipped as YAML architectures only. Ultralytics releases pretrained weights only for `rtdetr-l` and `rtdetr-x`. Instantiate the ResNet variants from YAML (for example, `RTDETR("rtdetr-resnet50.yaml")`) and train or fine-tune them as needed.
+
 ## Ideal Use Cases
 
 RT-DETR is particularly well-suited for applications requiring both high accuracy and real-time performance:

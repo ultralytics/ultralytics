@@ -168,10 +168,18 @@ Effective management of these aspects helps track progress and makes debugging a
 | Argument   | Default  | Description                                                                                                                                                                                                                                                                                               |
 | ---------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `project`  | `'runs'` | Specifies the root directory for saving training runs. Each run is saved in a separate subdirectory.                                                                                                                                                                                                      |
-| `name`     | `'exp'`  | Defines the experiment name. If unspecified, YOLO increments this name for each run (e.g., `exp`, `exp2`) to avoid overwriting.                                                                                                                                                                           |
+| `name`     | `'exp'`  | Defines the experiment name. If unspecified, YOLO increments this name for each run (e.g., `exp`, `exp-2`) to avoid overwriting.                                                                                                                                                                          |
 | `exist_ok` | `False`  | Determines whether to overwrite an existing experiment directory. `True` allows overwriting; `False` prevents it.                                                                                                                                                                                         |
 | `plots`    | `True`   | Controls the generation and saving of training and validation plots. Set to `True` to create plots like loss curves, [precision](https://www.ultralytics.com/glossary/precision)-[recall](https://www.ultralytics.com/glossary/recall) curves, and sample predictions for visual tracking of performance. |
 | `save`     | `True`   | Enables saving training checkpoints and final model weights. Set to `True` to save model states periodically, allowing training resumption or model deployment.                                                                                                                                           |
+
+## Custom Configuration File
+
+Load a saved YAML to reuse a full set of arguments without passing them inline. The `cfg` argument overrides values from `default.yaml`, while additional arguments passed alongside still take precedence.
+
+| Argument | Default | Description                                                                                                                                                            |
+| -------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cfg`    | `None`  | Path to a YAML file whose values replace `default.yaml` entries. See [Overriding Default Config File](cli.md#overriding-default-config-file) for a worked CLI example. |
 
 ## FAQ
 

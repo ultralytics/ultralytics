@@ -8,7 +8,7 @@ This example provides a practical guide on performing inference with [Ultralytic
 
 - **Deployment-Friendly:** Well-suited for deployment in industrial and production environments.
 - **Performance:** Offers faster [inference latency](https://www.ultralytics.com/glossary/inference-latency) compared to OpenCV's DNN module on both CPU and [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit).
-- **Acceleration:** Supports FP32 and [FP16 (Half Precision)](https://www.ultralytics.com/glossary/half-precision) inference acceleration using [NVIDIA CUDA](https://developer.nvidia.com/cuda-toolkit).
+- **Acceleration:** Supports FP32 and [FP16 (Half Precision)](https://www.ultralytics.com/glossary/half-precision) inference acceleration using [NVIDIA CUDA](https://developer.nvidia.com/cuda/toolkit).
 
 ## ☕ Note
 
@@ -85,7 +85,7 @@ Ensure you have the following dependencies installed:
 | [OpenCV](https://opencv.org/releases/)                               | >=4.0.0       | Required for image loading and preprocessing.                                                                                                                               |
 | C++ Compiler                                                         | C++17 Support | Needed for features like `<filesystem>`. ([GCC](https://gcc.gnu.org/), [Clang](https://clang.llvm.org/), [MSVC](https://visualstudio.microsoft.com/vs/features/cplusplus/)) |
 | [CMake](https://cmake.org/download/)                                 | >=3.18        | Cross-platform build system generator. Version 3.18+ recommended for better CUDA support discovery.                                                                         |
-| [CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit) (Optional) | >=11.4, <12.0 | Required for GPU acceleration via ONNX Runtime's CUDA Execution Provider. **Must be CUDA 11.x**.                                                                            |
+| [CUDA Toolkit](https://developer.nvidia.com/cuda/toolkit) (Optional) | >=11.4, <12.0 | Required for GPU acceleration via ONNX Runtime's CUDA Execution Provider. **Must be CUDA 11.x**.                                                                            |
 | [cuDNN](https://developer.nvidia.com/cudnn) (CUDA required)          | =8.x          | Required by CUDA Execution Provider. **Must be cuDNN 8.x** compatible with your CUDA 11.x version.                                                                          |
 
 **Important Notes:**

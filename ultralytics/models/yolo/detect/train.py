@@ -147,7 +147,25 @@ class DetectionTrainer(BaseTrainer):
         self.model.args = self.args  # attach hyperparameters to model
         if getattr(self.model, "end2end"):
             self.model.set_head_attr(max_det=self.args.max_det)
-        # TODO: self.model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc
+
+    def set_class_weights(self):
+        """Compute and set class weights for handling class imbalance.
+
+        Class weights are computed based on inverse class frequency in the training dataset,
+        raised to the power of cls_pw (0 < cls_pw <= 1 dampens, cls_pw > 1 amplifies).
+        Final weights are normalized so their mean equals 1.0.
+        """
+        assert 0 <= self.args.cls_pw <= 1.0, "cls_pw must be in the range [0, 1]"
+        if self.args.cls_pw == 0.0:
+            return
+        classes = np.concatenate([lb["cls"].flatten() for lb in self.train_loader.dataset.labels], 0)
+        class_counts = np.bincount(classes.astype(int), minlength=self.data["nc"]).astype(np.float32)
+        class_counts = np.where(class_counts == 0, 1.0, class_counts)
+
+        weights = (1.0 / class_counts) ** self.args.cls_pw  # apply power directly
+        weights = weights / weights.mean()  # normalize so mean equals 1.0
+        self.model.class_weights = torch.from_numpy(weights).to(self.device)
+        LOGGER.info(f"Class weights: {self.model.class_weights.cpu().numpy().round(3)}")
 
     def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True):
         """Return a YOLO detection model.
@@ -160,7 +178,7 @@ class DetectionTrainer(BaseTrainer):
         Returns:
             (DetectionModel): YOLO detection model.
         """
-        model = DetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK in {-1, 0})
+        model = DetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
         return model

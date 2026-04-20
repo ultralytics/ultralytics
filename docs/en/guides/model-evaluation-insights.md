@@ -104,6 +104,7 @@ If you want to get a deeper understanding of your YOLO26 model's performance, yo
         print("Mean results for different metrics:", results.box.mean_results)
         print("Mean precision:", results.box.mp)
         print("Mean recall:", results.box.mr)
+        print("Per-image metrics:", results.box.image_metrics)
         print("Precision:", results.box.p)
         print("Precision curve:", results.box.p_curve)
         print("Precision values:", results.box.prec_values)
@@ -112,7 +113,10 @@ If you want to get a deeper understanding of your YOLO26 model's performance, yo
         print("Recall curve:", results.box.r_curve)
         ```
 
-The results object also includes speed metrics like preprocess time, inference time, loss, and postprocess time. By analyzing these metrics, you can fine-tune and optimize your YOLO26 model for better performance, making it more effective for your specific use case.
+The results object also includes `image_metrics`, a per-image dictionary keyed by image filename with `precision`,
+`recall`, `f1`, `tp`, `fp`, and `fn`, as well as speed metrics like preprocess time, inference time, loss, and
+postprocess time. By analyzing these metrics, you can fine-tune and optimize your YOLO26 model for better performance,
+making it more effective for your specific use case.
 
 ## How Does Fine-Tuning Work?
 

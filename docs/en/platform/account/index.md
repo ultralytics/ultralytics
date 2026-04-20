@@ -35,27 +35,28 @@ The Account section helps you:
 
 ## Account Features
 
-| Feature      | Description                                              |
-| ------------ | -------------------------------------------------------- |
-| **Settings** | Profile, social links, emails, data region, and API keys |
-| **Plans**    | Free, Pro, and Enterprise plan comparison                |
-| **Billing**  | Credits, payment methods, and transaction history        |
-| **Teams**    | Members, roles, invites, and seat management             |
-| **Trash**    | Recover deleted items within 30 days                     |
-| **Emails**   | Add, remove, verify, and set primary email address       |
-| **Activity** | Event log with inbox, archive, search, and undo          |
+| Feature      | Description                                                 |
+| ------------ | ----------------------------------------------------------- |
+| **Settings** | Profile, emails, social links, and data region              |
+| **API Keys** | Generate AES-256-GCM encrypted keys for programmatic access |
+| **Plans**    | Free, Pro, and Enterprise plan comparison                   |
+| **Billing**  | Credits, payment methods, and transaction history           |
+| **Teams**    | Members, roles, invites, and seat management                |
+| **Trash**    | Recover deleted items within 30 days                        |
+| **Activity** | Event log with inbox, archive, search, and undo             |
 
 ## Settings Tabs
 
-Account management is organized into tabs within `Settings`:
+Account management is organized into six tabs within `Settings` (in order):
 
-| Tab       | Description                                                      |
-| --------- | ---------------------------------------------------------------- |
-| `Profile` | Display name, bio, company, use case, emails, social links, keys |
-| `Plans`   | Compare Free, Pro, and Enterprise plans                          |
-| `Billing` | Credit balance, top-up, payment methods, transactions            |
-| `Teams`   | Member list, roles, invites, seat allocation                     |
-| `Trash`   | Soft-deleted projects, datasets, and models                      |
+| Tab        | Description                                                             |
+| ---------- | ----------------------------------------------------------------------- |
+| `Profile`  | Display name, bio, company, use case, emails, social links, data region |
+| `API Keys` | Create and manage API keys for remote training and programmatic access  |
+| `Plans`    | Compare Free, Pro, and Enterprise plans                                 |
+| `Billing`  | Credit balance, top-up, payment methods, transactions                   |
+| `Teams`    | Member list, roles, invites, seat allocation                            |
+| `Trash`    | Soft-deleted projects, datasets, and models (30-day recovery)           |
 
 ## Security
 

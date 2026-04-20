@@ -72,9 +72,11 @@ Train YOLO26n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/
         yolo detect train data=coco8.yaml model=yolo26n.yaml pretrained=yolo26n.pt epochs=100 imgsz=640
         ```
 
+See full `train` mode details in the [Train](../modes/train.md) page. Detection models can also be trained on cloud GPUs through [Ultralytics Platform](https://platform.ultralytics.com).
+
 ### Dataset format
 
-YOLO detection dataset format can be found in detail in the [Dataset Guide](../datasets/detect/index.md). To convert your existing dataset from other formats (like COCO etc.) to YOLO format, please use [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics.
+YOLO detection dataset format can be found in detail in the [Dataset Guide](../datasets/detect/index.md). To convert your existing dataset from other formats (like COCO etc.) to YOLO format, please use [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics. You can also annotate and manage detection datasets directly on [Ultralytics Platform](https://platform.ultralytics.com) with AI-assisted labeling tools.
 
 ## Val
 
@@ -177,6 +179,10 @@ Available YOLO26 export formats are in the table below. You can export to any fo
 See full `export` details in the [Export](../modes/export.md) page.
 
 ## FAQ
+
+### Can I train and deploy detection models without coding?
+
+Yes. [Ultralytics Platform](https://platform.ultralytics.com) provides a browser-based workflow for annotating datasets, training detection models on cloud GPUs, and deploying them to inference endpoints. See the [Platform quickstart](../platform/quickstart.md) to get started.
 
 ### How do I train a YOLO26 model on my custom dataset?
 

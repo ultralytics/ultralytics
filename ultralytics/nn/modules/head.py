@@ -570,6 +570,205 @@ class DetectBoxContextFull(DetectBoxContext):
         return y if self.export else (y, preds)
 
 
+class DetectBoxContextSep(Detect):
+    """Like DetectBoxContext but with SEPARATE (duplicated) regression branch for o2o.
+
+    O2m: standard cls (no context).
+    O2o: own regression branch + cls uses o2o box features as context (detached).
+    """
+
+    def __init__(self, nc=80, reg_max=16, end2end=False, ch=()):
+        """Initialize with duplicated regression and context-aware o2o classification."""
+        super().__init__(nc, reg_max, end2end=False, ch=ch)
+
+        if end2end:
+            c2 = max((16, ch[0] // 4, self.reg_max * 4))
+            c3 = max(ch[0], min(self.nc, 100))
+
+            # Separate o2o regression (deepcopy of cv2 structure)
+            self.one2one_cv2 = copy.deepcopy(self.cv2)
+
+            # O2O cls: input = FPN (x) + o2o box intermediate (c2)
+            if self.rep_head:
+                self.one2one_cv3 = nn.ModuleList(
+                    nn.Sequential(
+                        nn.Sequential(RepConv(x + c2, x + c2, 3, g=x + c2, bn=True), Conv(x + c2, c3, 1)),
+                        nn.Sequential(RepConv(c3, c3, 3, g=c3, bn=True), Conv(c3, c3, 1)),
+                        nn.Conv2d(c3, self.nc, 1),
+                    )
+                    for x in ch
+                )
+            else:
+                self.one2one_cv3 = nn.ModuleList(
+                    nn.Sequential(
+                        nn.Sequential(DWConv(x + c2, x + c2, 3), Conv(x + c2, c3, 1)),
+                        nn.Sequential(DWConv(c3, c3, 3), Conv(c3, c3, 1)),
+                        nn.Conv2d(c3, self.nc, 1),
+                    )
+                    for x in ch
+                )
+
+    def forward(self, x):
+        """Forward with separate o2m/o2o regression; o2o cls uses o2o box context."""
+        bs = x[0].shape[0]
+
+        # O2M regression + cls (standard)
+        if self.cv3 is not None:
+            cls_preds = [self.cv3[i](x[i]).view(bs, self.nc, -1) for i in range(self.nl)]
+            scores = torch.cat(cls_preds, dim=-1)
+        if self.cv2 is not None:
+            box_preds = [self.cv2[i](x[i]).view(bs, 4 * self.reg_max, -1) for i in range(self.nl)]
+            boxes = torch.cat(box_preds, dim=-1)
+        if self.cv3 is not None and self.cv2 is not None:
+            preds = dict(boxes=boxes, scores=scores, feats=x)
+
+        if self.end2end:
+            # O2O regression on detached features (standard pattern)
+            x_o2o = [xi.detach() for xi in x]
+            o2o_box_feats, o2o_box_preds = [], []
+            for i in range(self.nl):
+                feat = self.one2one_cv2[i][:2](x_o2o[i])
+                pred = self.one2one_cv2[i][2](feat)
+                o2o_box_feats.append(feat)
+                o2o_box_preds.append(pred.view(bs, 4 * self.reg_max, -1))
+            o2o_boxes = torch.cat(o2o_box_preds, dim=-1)
+
+            # O2O cls with o2o box context (detached so cls grads don't update box stem)
+            o2o_cls = []
+            for i in range(self.nl):
+                ctx = torch.cat([x_o2o[i], o2o_box_feats[i].detach()], dim=1)
+                o2o_cls.append(self.one2one_cv3[i](ctx).view(bs, self.nc, -1))
+            o2o_scores = torch.cat(o2o_cls, dim=-1)
+            one2one = dict(boxes=o2o_boxes, scores=o2o_scores, feats=x)
+
+            if self.cv3 is not None and self.cv2 is not None:
+                preds = {"one2many": preds, "one2one": one2one}
+            else:
+                preds = {"one2many": dict(), "one2one": one2one}
+
+        if self.training:
+            return preds
+        y = self._inference(preds["one2one"] if self.end2end else preds)
+        if self.end2end:
+            y = self.postprocess(y.permute(0, 2, 1))
+        return y if self.export else (y, preds)
+
+    def bias_init(self):
+        """Initialize biases for o2m and o2o branches."""
+        for i, (a, b) in enumerate(zip(self.cv2, self.cv3)):
+            a[-1].bias.data[:] = 2.0
+            b[-1].bias.data[: self.nc] = math.log(5 / self.nc / (640 / self.stride[i]) ** 2)
+        if self.end2end:
+            for i, (a, b) in enumerate(zip(self.one2one_cv2, self.one2one_cv3)):
+                a[-1].bias.data[:] = 2.0
+                b[-1].bias.data[: self.nc] = math.log(5 / self.nc / (640 / self.stride[i]) ** 2)
+
+    def fuse(self):
+        """Remove o2m heads for inference (o2o uses its own cv2)."""
+        self.cv2 = self.cv3 = None
+
+
+class DetectBoxContextFullSep(DetectBoxContextSep):
+    """Like DetectBoxContextFull but with SEPARATE (duplicated) regression branches.
+
+    O2m: own regression + cls uses o2m box features as context (non-detached).
+    O2o: own regression + cls uses o2o box features as context (detached).
+    """
+
+    def __init__(self, nc=80, reg_max=16, end2end=False, ch=()):
+        """Initialize with duplicated regression and box-context cls for both o2m and o2o."""
+        super().__init__(nc, reg_max, end2end=end2end, ch=ch)
+
+        c2 = max((16, ch[0] // 4, self.reg_max * 4))
+        c3 = max(ch[0], min(self.nc, 100))
+
+        # Rebuild cv3 with box context input: x + c2 channels
+        if self.rep_head:
+            self.cv3 = (
+                nn.ModuleList(
+                    nn.Sequential(Conv(x + c2, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) for x in ch
+                )
+                if self.legacy
+                else nn.ModuleList(
+                    nn.Sequential(
+                        nn.Sequential(RepConv(x + c2, x + c2, 3, g=x + c2, bn=True), Conv(x + c2, c3, 1)),
+                        nn.Sequential(RepConv(c3, c3, 3, g=c3, bn=True), Conv(c3, c3, 1)),
+                        nn.Conv2d(c3, self.nc, 1),
+                    )
+                    for x in ch
+                )
+            )
+        else:
+            self.cv3 = (
+                nn.ModuleList(
+                    nn.Sequential(Conv(x + c2, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) for x in ch
+                )
+                if self.legacy
+                else nn.ModuleList(
+                    nn.Sequential(
+                        nn.Sequential(DWConv(x + c2, x + c2, 3), Conv(x + c2, c3, 1)),
+                        nn.Sequential(DWConv(c3, c3, 3), Conv(c3, c3, 1)),
+                        nn.Conv2d(c3, self.nc, 1),
+                    )
+                    for x in ch
+                )
+            )
+
+    def forward(self, x):
+        """Forward with separate o2m/o2o regression; both cls use respective box context."""
+        bs = x[0].shape[0]
+
+        # O2M regression with intermediate features captured
+        if self.cv2 is not None:
+            o2m_box_feats, o2m_box_preds = [], []
+            for i in range(self.nl):
+                feat = self.cv2[i][:2](x[i])
+                pred = self.cv2[i][2](feat)
+                o2m_box_feats.append(feat)
+                o2m_box_preds.append(pred.view(bs, 4 * self.reg_max, -1))
+            boxes = torch.cat(o2m_box_preds, dim=-1)
+
+        # O2M cls with o2m box context (non-detached)
+        if self.cv3 is not None:
+            cls_preds = []
+            for i in range(self.nl):
+                ctx = torch.cat([x[i], o2m_box_feats[i]], dim=1)
+                cls_preds.append(self.cv3[i](ctx).view(bs, self.nc, -1))
+            scores = torch.cat(cls_preds, dim=-1)
+            preds = dict(boxes=boxes, scores=scores, feats=x)
+
+        if self.end2end:
+            # O2O regression separate, on detached features
+            x_o2o = [xi.detach() for xi in x]
+            o2o_box_feats, o2o_box_preds = [], []
+            for i in range(self.nl):
+                feat = self.one2one_cv2[i][:2](x_o2o[i])
+                pred = self.one2one_cv2[i][2](feat)
+                o2o_box_feats.append(feat)
+                o2o_box_preds.append(pred.view(bs, 4 * self.reg_max, -1))
+            o2o_boxes = torch.cat(o2o_box_preds, dim=-1)
+
+            # O2O cls with o2o box context (detached)
+            o2o_cls = []
+            for i in range(self.nl):
+                ctx = torch.cat([x_o2o[i], o2o_box_feats[i].detach()], dim=1)
+                o2o_cls.append(self.one2one_cv3[i](ctx).view(bs, self.nc, -1))
+            o2o_scores = torch.cat(o2o_cls, dim=-1)
+            one2one = dict(boxes=o2o_boxes, scores=o2o_scores, feats=x)
+
+            if self.cv3 is not None and self.cv2 is not None:
+                preds = {"one2many": preds, "one2one": one2one}
+            else:
+                preds = {"one2many": dict(), "one2one": one2one}
+
+        if self.training:
+            return preds
+        y = self._inference(preds["one2one"] if self.end2end else preds)
+        if self.end2end:
+            y = self.postprocess(y.permute(0, 2, 1))
+        return y if self.export else (y, preds)
+
+
 class Segment(Detect):
     """YOLO Segment head for segmentation models.
 

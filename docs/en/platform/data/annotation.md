@@ -150,8 +150,8 @@ Draw rectangular boxes around objects:
 Draw precise polygon masks:
 
 1. Enter edit mode and select `Draw`
-2. Click to add vertices
-3. Right-click or press `Enter` to close the polygon
+2. Click to add vertices, or hold `Shift` and move the mouse to freehand-draw dense points
+3. Click the first vertex, or press `Enter` or `Escape` to close the polygon
 4. Select a class from the dropdown
 
 ![Ultralytics Platform Annotate Segment Polygon Vertices](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-segment-polygon-vertices.avif)
@@ -459,15 +459,17 @@ Efficient annotation with keyboard shortcuts:
 
 === "Drawing"
 
-    | Shortcut                        | Action                                                      |
-    | ------------------------------- | ----------------------------------------------------------- |
-    | `Click+Drag`                    | Draw bounding box (detect/OBB)                              |
-    | `Click`                         | Add polygon point (segment) / Place skeleton (pose)         |
-    | `Right-click`                   | Complete polygon / Add SAM negative point                   |
-    | `Shift` + `click`/`right-click` | Place multiple SAM points before applying (auto-apply on)   |
-    | `A`                             | Toggle auto-apply (Smart mode)                              |
-    | `Enter`                         | Complete polygon / Confirm pose / Save SAM annotation       |
-    | `Escape`                        | Cancel pose / Save SAM annotation / Deselect / Exit         |
+    | Shortcut                | Action                                                                                 |
+    | ----------------------- | -------------------------------------------------------------------------------------- |
+    | `Click+Drag`            | Draw bounding box (detect/OBB)                                                         |
+    | `Click`                 | Add polygon point (segment) / Place skeleton (pose) / Place SAM point (smart)          |
+    | `Shift (hold) + Move`   | Freehand draw — continuously adds polygon vertices as the mouse moves                  |
+    | `Click inside mask`     | Subtract region from SAM mask (negative point)                                         |
+    | `Click outside mask`    | Add to SAM mask (positive point)                                                       |
+    | `Shift (hold) + Click`  | Place multiple SAM points before auto-apply commits (Smart mode, auto-apply on)        |
+    | `A`                     | Toggle auto-apply (Smart mode)                                                         |
+    | `Enter`                 | Complete polygon / Confirm pose / Save SAM annotation                                  |
+    | `Escape`                | Cancel pose / Save SAM annotation / Deselect / Exit                                    |
 
 === "Arrange (Z-Order)"
 

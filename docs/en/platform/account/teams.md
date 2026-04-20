@@ -87,7 +87,7 @@ Admins and Owners can invite new members to the team:
 
 ![Ultralytics Platform Teams Invite Member Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-teams-invite-member-dialog.avif)
 
-The invitee receives an email invitation with a link to accept and join the team. Invitations expire after 7 days. Once accepted, the team workspace appears in the invitee's workspace switcher. If an invite is missed, resend or cancel it from the Teams tab and send a fresh invite.
+The invitee receives an email invitation with a link to accept and join the team. Invitations remain valid until accepted or canceled. Once accepted, the team workspace appears in the invitee's workspace switcher. If an invite is lost, **Resend** it from the Teams tab to rotate the token and send a fresh email, or **Cancel** it to free up the seat.
 
 !!! note "Admin Invites"
 

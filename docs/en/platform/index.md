@@ -74,7 +74,7 @@ graph LR
 
 - **Upload** images, videos, and dataset files to create training datasets
 - **Visualize** annotations with interactive overlays for all 5 YOLO task types (see [supported tasks](data/index.md#supported-tasks))
-- **Train** models on cloud GPUs (20 on all plans, 23 with Pro for H200 and B200) with real-time metrics
+- **Train** models on cloud GPUs (20 on all plans, 23 with Pro or Enterprise for H200 and B200) with real-time metrics
 - **Export** to [17 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.)
 - **Deploy** to 43 global regions with one-click dedicated endpoints
 - **Monitor** training progress, deployment health, and usage metrics
@@ -372,7 +372,7 @@ The Platform includes a full-featured annotation editor supporting:
 | Shortcut  | Action                            |
 | --------- | --------------------------------- |
 | `V`       | Manual (draw) mode                |
-| `S`       | Smart mode (SAM)                  |
+| `S`       | Smart mode (SAM or YOLO model)    |
 | `A`       | Toggle auto-apply (in Smart mode) |
 | `1` - `9` | Select class by number            |
 | `Delete`  | Delete selected annotation        |

@@ -12,7 +12,7 @@ import pytest
 
 from tests import MODEL
 from ultralytics import solutions
-from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, TORCH_VERSION, TORCHVISION_VERSION, checks
+from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, TORCH_VERSION, checks
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.torch_utils import TORCH_2_4
 
@@ -46,6 +46,16 @@ def process_video(solution, video_path: str, needs_frame_count: bool = False):
         _ = solution(*args)
 
     cap.release()
+
+
+def has_action_recognition_support() -> bool:
+    """Return True when ActionRecognition's default TorchVision backend is available."""
+    try:
+        from ultralytics.solutions.action_recognition import TorchVisionVideoClassifier
+
+        return "s3d" in TorchVisionVideoClassifier.available_models()
+    except Exception:
+        return False
 
 
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled for testing due to --slow test errors after YOLOE PR.")
@@ -188,8 +198,11 @@ def process_video(solution, video_path: str, needs_frame_count: bool = False):
             DEMO_VIDEO,
             {"model": MODEL, "video_classifier_model": "s3d", "show": SHOW},
             marks=pytest.mark.skipif(
-                not checks.check_version(TORCHVISION_VERSION, ">=0.10.0"),
-                reason="ActionRecognition requires torchvision>=0.10.0",
+                not has_action_recognition_support(),
+                reason=(
+                    "ActionRecognition requires a torchvision build with pretrained video model weights "
+                    "(for example the default 's3d' backend)."
+                ),
             ),
         ),
     ],
@@ -384,8 +397,11 @@ def test_display_output_method():
 
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 @pytest.mark.skipif(
-    not checks.check_version(TORCHVISION_VERSION, ">=0.10.0"),
-    reason="TorchVision video models require torchvision>=0.10.0",
+    not has_action_recognition_support(),
+    reason=(
+        "ActionRecognition requires a torchvision build with pretrained video model weights "
+        "(for example the default 's3d' backend)."
+    ),
 )
 def test_action_recognition_process_method():
     """Test ActionRecognition.process() with mocked detections to cover the full classification path."""
@@ -403,6 +419,7 @@ def test_action_recognition_process_method():
 
     # Mock the video classifier to avoid loading the real model during inference
     action.video_classifier = MagicMock()
+    action.video_classifier.frame_size = (224, 224)
     action.video_classifier.preprocess = MagicMock(return_value=__import__("torch").zeros(1, 3, 2, 224, 224))
     action.video_classifier.return_value = (["jumping"], [0.85])
 
@@ -432,8 +449,11 @@ def test_action_recognition_process_method():
 
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 @pytest.mark.skipif(
-    not checks.check_version(TORCHVISION_VERSION, ">=0.10.0"),
-    reason="TorchVision video models require torchvision>=0.10.0",
+    not has_action_recognition_support(),
+    reason=(
+        "ActionRecognition requires a torchvision build with pretrained video model weights "
+        "(for example the default 's3d' backend)."
+    ),
 )
 def test_torchvision_video_classifier_invalid_model():
     """Test that TorchVisionVideoClassifier raises ValueError for unsupported model name."""

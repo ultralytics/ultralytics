@@ -24,60 +24,65 @@ class TorchVisionVideoClassifier:
         device (torch.device): The device on which the model is loaded.
     """
 
-    _model_names = ["s3d", "r3d_18", "swin3d_t", "swin3d_b", "mvit_v1_b", "mvit_v2_s"]
+    _model_specs = {
+        "s3d": ("s3d", "S3D_Weights"),
+        "r3d_18": ("r3d_18", "R3D_18_Weights"),
+        "swin3d_t": ("swin3d_t", "Swin3D_T_Weights"),
+        "swin3d_b": ("swin3d_b", "Swin3D_B_Weights"),
+        "mvit_v1_b": ("mvit_v1_b", "MViT_V1_B_Weights"),
+        "mvit_v2_s": ("mvit_v2_s", "MViT_V2_S_Weights"),
+    }
+
+    @classmethod
+    def available_models(cls) -> list[str]:
+        """Return action-recognition models supported by the installed TorchVision build."""
+        try:
+            import torchvision.models.video as video_models
+        except ImportError:
+            return []
+
+        return [
+            name
+            for name, (fn_name, weights_name) in cls._model_specs.items()
+            if getattr(video_models, fn_name, None) is not None and getattr(video_models, weights_name, None) is not None
+        ]
 
     def __init__(self, model_name: str = "s3d", device: str = ""):
         """Initialize the TorchVisionVideoClassifier with the specified model."""
-        if model_name not in self._model_names:
-            raise ValueError(f"Invalid model '{model_name}'. Choose from: {self._model_names}")
-
         try:
-            from torchvision.models.video import (
-                MViT_V1_B_Weights,
-                MViT_V2_S_Weights,
-                R3D_18_Weights,
-                S3D_Weights,
-                Swin3D_B_Weights,
-                Swin3D_T_Weights,
-                mvit_v1_b,
-                mvit_v2_s,
-                r3d_18,
-                s3d,
-                swin3d_b,
-                swin3d_t,
+            import torchvision.models.video as video_models
+        except ImportError as e:
+            raise ImportError("torchvision is required. Install it with: pip install torchvision") from e
+
+        available = self.available_models()
+        if not available:
+            raise ImportError(
+                "ActionRecognition requires a torchvision build with pretrained video model weights. "
+                "Install a recent torchvision release and try again."
             )
-        except ImportError:
-            raise ImportError("torchvision is required. Install it with: pip install torchvision")
+        if model_name not in available:
+            raise ValueError(f"Invalid model '{model_name}'. Choose from: {available}")
 
-        model_map = {
-            "s3d": (s3d, S3D_Weights.DEFAULT),
-            "r3d_18": (r3d_18, R3D_18_Weights.DEFAULT),
-            "swin3d_t": (swin3d_t, Swin3D_T_Weights.DEFAULT),
-            "swin3d_b": (swin3d_b, Swin3D_B_Weights.DEFAULT),
-            "mvit_v1_b": (mvit_v1_b, MViT_V1_B_Weights.DEFAULT),
-            "mvit_v2_s": (mvit_v2_s, MViT_V2_S_Weights.DEFAULT),
-        }
-
-        model_fn, weights = model_map[model_name]
+        fn_name, weights_name = self._model_specs[model_name]
+        model_fn = getattr(video_models, fn_name)
+        weights = getattr(video_models, weights_name).DEFAULT
         self.device = select_device(device)
         self.model = model_fn(weights=weights).to(self.device).eval()
         self.categories = weights.meta["categories"]
-
-        from torchvision.transforms import v2
-
-        self.transform = v2.Compose(
-            [
-                v2.ToDtype(torch.float32, scale=True),
-                v2.Normalize(mean=weights.transforms().mean, std=weights.transforms().std),
-            ]
-        )
+        self.transform = weights.transforms()
+        crop_size = self.transform.crop_size
+        if isinstance(crop_size, int):
+            crop_size = (crop_size, crop_size)
+        self.frame_size = tuple(int(x) for x in crop_size[::-1])  # OpenCV uses (width, height)
 
     def preprocess(self, crops: list) -> torch.Tensor:
         """Preprocess video crops for classification."""
         if not crops:
             return torch.empty(0, device=self.device)
-        frames = [self.transform(torch.from_numpy(c[..., ::-1].copy()).permute(2, 0, 1)) for c in crops]  # BGR to RGB
-        return torch.stack(frames).unsqueeze(0).permute(0, 2, 1, 3, 4).to(self.device)
+
+        # TorchVision video transforms expect a clip in (T, C, H, W) RGB layout.
+        clip = torch.stack([torch.from_numpy(c[..., ::-1].copy()).permute(2, 0, 1) for c in crops])
+        return self.transform(clip).unsqueeze(0).to(self.device)
 
     @smart_inference_mode()
     def __call__(self, sequences: torch.Tensor) -> tuple:
@@ -167,7 +172,8 @@ class ActionRecognition(BaseSolution):
                 if self.frame_counter % self.skip_frame == 0:
                     gain = 1 + 2 * self.crop_margin_percentage / 100
                     crop = save_one_box(torch.as_tensor(box), im0, gain=gain, pad=0, square=True, save=False, BGR=True)
-                    self.crop_history[track_id].append(cv2.resize(crop, (224, 224)))
+                    if crop.size and crop.shape[0] and crop.shape[1]:
+                        self.crop_history[track_id].append(cv2.resize(crop, self.video_classifier.frame_size))
 
                 if len(self.crop_history[track_id]) > self.num_video_sequence_samples:
                     self.crop_history[track_id].pop(0)

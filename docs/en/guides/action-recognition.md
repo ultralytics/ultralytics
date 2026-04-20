@@ -18,7 +18,7 @@ pip install ultralytics torchvision
 
 - **Real-time Analysis:** Process video streams and identify actions as they happen.
 - **Pretrained Models:** Uses TorchVision models trained on Kinetics-400 (400 action classes).
-- **Multiple Architectures:** Support for S3D, R3D, Swin3D, and MViT models.
+- **Multiple Architectures:** Supports S3D, R3D, Swin3D, and MViT models when they are available in your installed TorchVision build.
 - **Integrated Tracking:** Combines YOLO detection with per-person action classification.
 
 !!! example "Action Recognition Example"
@@ -87,6 +87,12 @@ pip install ultralytics torchvision
 ### Video Classifier Models
 
 All models are pretrained on [Kinetics-400](https://arxiv.org/abs/1705.06950) with 400 action classes.
+
+!!! note "TorchVision availability"
+
+    The exact set of available `video_classifier_model` values depends on your installed TorchVision build. On older
+    TorchVision releases, some backbones may be missing pretrained video weights. The default `s3d` backend is the
+    safest choice when you need the widest compatibility.
 
 | Model       | Description                |
 | ----------- | -------------------------- |

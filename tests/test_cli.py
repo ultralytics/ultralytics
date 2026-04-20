@@ -7,13 +7,23 @@ import pytest
 from PIL import Image
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA
-from ultralytics.utils import ARM64, ASSETS, LINUX, TORCHVISION_VERSION, WEIGHTS_DIR, checks
+from ultralytics.utils import ARM64, ASSETS, LINUX, WEIGHTS_DIR, checks
 from ultralytics.utils.torch_utils import TORCH_1_11
 
 
 def run(cmd: str) -> None:
     """Execute a shell command using subprocess."""
     subprocess.run(cmd.split(), check=True)
+
+
+def has_action_recognition_support() -> bool:
+    """Return True when ActionRecognition's default TorchVision backend is available."""
+    try:
+        from ultralytics.solutions.action_recognition import TorchVisionVideoClassifier
+
+        return "s3d" in TorchVisionVideoClassifier.available_models()
+    except Exception:
+        return False
 
 
 def test_special_modes() -> None:
@@ -145,8 +155,11 @@ def test_train_gpu(task: str, model: str, data: str) -> None:
         pytest.param(
             "action",
             marks=pytest.mark.skipif(
-                not checks.check_version(TORCHVISION_VERSION, ">=0.10.0"),
-                reason="ActionRecognition requires torchvision>=0.10.0",
+                not has_action_recognition_support(),
+                reason=(
+                    "ActionRecognition requires a torchvision build with pretrained video model weights "
+                    "(for example the default 's3d' backend)."
+                ),
             ),
         ),
     ],

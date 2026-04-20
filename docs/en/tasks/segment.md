@@ -54,7 +54,7 @@ Train YOLO26n-seg on the COCO8-seg dataset for 100 [epochs](https://www.ultralyt
         # Load a model
         model = YOLO("yolo26n-seg.yaml")  # build a new model from YAML
         model = YOLO("yolo26n-seg.pt")  # load a pretrained model (recommended for training)
-        model = YOLO("yolo26n-seg.yaml").load("yolo26n.pt")  # build from YAML and transfer weights
+        model = YOLO("yolo26n-seg.yaml").load("yolo26n-seg.pt")  # build from YAML and transfer weights
 
         # Train the model
         results = model.train(data="coco8-seg.yaml", epochs=100, imgsz=640)
@@ -98,10 +98,12 @@ Validate trained YOLO26n-seg model [accuracy](https://www.ultralytics.com/glossa
         metrics.box.map50  # map50(B)
         metrics.box.map75  # map75(B)
         metrics.box.maps  # a list containing mAP50-95(B) for each category
+        metrics.box.image_metrics  # per-image metrics dictionary for det with precision, recall, F1, TP, FP, and FN
         metrics.seg.map  # map50-95(M)
         metrics.seg.map50  # map50(M)
         metrics.seg.map75  # map75(M)
         metrics.seg.maps  # a list containing mAP50-95(M) for each category
+        metrics.seg.image_metrics  # per-image metrics dictionary for seg with precision, recall, F1, TP, FP, and FN
         ```
 
     === "CLI"

@@ -412,7 +412,9 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
     Returns:
         (dict[str, Any]): Parsed dataset information and paths.
     """
-    file = check_file(dataset)
+    file = Path(check_file(dataset))
+    if file.is_dir():
+        file = find_dataset_yaml(file)
 
     # Download (optional)
     extract_dir = ""

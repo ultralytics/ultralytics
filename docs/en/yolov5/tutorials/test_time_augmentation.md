@@ -28,7 +28,7 @@ python val.py --weights yolov5x.pt --data coco.yaml --img 640 --half
 
 Output:
 
-```text
+```
 val: data=./data/coco.yaml, weights=['yolov5x.pt'], batch_size=32, imgsz=640, conf_thres=0.001, iou_thres=0.65, task=val, device=, single_cls=False, augment=False, verbose=False, save_txt=False, save_conf=False, save_json=True, project=runs/val, name=exp, exist_ok=False, half=True
 YOLOv5 🚀 v5.0-267-g6a3ee7c torch 1.9.0+cu102 CUDA:0 (Tesla P100-PCIE-16GB, 16280.875MB)
 
@@ -67,7 +67,7 @@ python val.py --weights yolov5x.pt --data coco.yaml --img 832 --augment --half
 
 Output:
 
-```text
+```
 val: data=./data/coco.yaml, weights=['yolov5x.pt'], batch_size=32, imgsz=832, conf_thres=0.001, iou_thres=0.6, task=val, device=, single_cls=False, augment=True, verbose=False, save_txt=False, save_conf=False, save_json=True, project=runs/val, name=exp, exist_ok=False, half=True
 YOLOv5 🚀 v5.0-267-g6a3ee7c torch 1.9.0+cu102 CUDA:0 (Tesla P100-PCIE-16GB, 16280.875MB)
 
@@ -81,7 +81,7 @@ val: New cache created: ../datasets/coco/val2017.cache
                  all       5000      36335      0.718      0.656      0.695      0.503
 Speed: 0.2ms pre-process, 80.6ms inference, 2.7ms NMS per image at shape (32, 3, 832, 832)  # <--- TTA speed
 
-Evaluating pycocotools mAP... saving runs/val/exp2/yolov5x_predictions.json...
+Evaluating pycocotools mAP... saving runs/val/exp-2/yolov5x_predictions.json...
 ...
  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.516  # <--- TTA mAP
  Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.701
@@ -107,7 +107,7 @@ python detect.py --weights yolov5s.pt --img 832 --source data/images --augment
 
 Output:
 
-```text
+```
 YOLOv5 🚀 v5.0-267-g6a3ee7c torch 1.9.0+cu102 CUDA:0 (Tesla P100-PCIE-16GB, 16280.875MB)
 
 Downloading https://github.com/ultralytics/yolov5/releases/download/v5.0/yolov5s.pt to yolov5s.pt...

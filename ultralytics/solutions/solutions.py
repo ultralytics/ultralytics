@@ -466,7 +466,8 @@ class SolutionAnnotator(Annotator):
 
         Args:
             keypoints (list[list[float]]): Keypoints data to be plotted, each in format [x, y, confidence].
-            indices (list[int], optional): Keypoint indices to be plotted.
+            indices (list[int], optional): Keypoint indices to be plotted. The drawing order follows the order of this
+                list.
             radius (int): Keypoint radius.
             conf_thresh (float): Confidence threshold for keypoints.
 
@@ -478,7 +479,12 @@ class SolutionAnnotator(Annotator):
             Modifies self.im in-place.
         """
         indices = indices or [2, 5, 7]
-        points = [(int(k[0]), int(k[1])) for i, k in enumerate(keypoints) if i in indices and k[2] >= conf_thresh]
+        n = len(keypoints)
+        points = [
+            (int(keypoints[j][0]), int(keypoints[j][1]))
+            for j in indices
+            if 0 <= j < n and (float(keypoints[j][2]) if len(keypoints[j]) > 2 else 1.0) >= conf_thresh
+        ]
 
         # Draw lines between consecutive points
         for start, end in zip(points[:-1], points[1:]):

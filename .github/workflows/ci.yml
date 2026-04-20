@@ -51,7 +51,7 @@ jobs:
       fail-fast: false
       matrix:
         # Temporarily disable windows-latest due to https://github.com/ultralytics/ultralytics/actions/runs/13020330819/job/36319338854?pr=18921
-        os: [cpu-latest, macos-26, ubuntu-24.04-arm]
+        os: [ubuntu-latest, macos-26, ubuntu-24.04-arm]
         python: ["3.12"]
         model: [yolo26n]
     steps:
@@ -74,19 +74,19 @@ jobs:
           uv pip list
       - name: Benchmark DetectionModel
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.218
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.216
       - name: Benchmark ClassificationModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.249
       - name: Benchmark YOLOWorld DetectionModel
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/yolov8s-worldv2.pt' imgsz=160 verbose=0.337
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/yolov8s-worldv2.pt' imgsz=160 verbose=0.335
       - name: Benchmark SegmentationModel
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.230
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.229
       - name: Benchmark PoseModel
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.194
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.185
       - name: Benchmark OBBModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.372
@@ -95,7 +95,7 @@ jobs:
           coverage xml -o coverage-benchmarks.xml
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics'
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           flags: Benchmarks
         env:
@@ -116,11 +116,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [cpu-latest, macos-26, windows-latest, ubuntu-24.04-arm]
+        os: [ubuntu-latest, macos-26, windows-latest, ubuntu-24.04-arm]
         python: ["3.12"]
         torch: [latest]
         include:
-          - os: cpu-latest
+          - os: ubuntu-latest
             python: "3.8" # torch 1.8.0 requires python >=3.6, <=3.9
             torch: "1.8.0"
             torchvision: "0.9.0"
@@ -151,8 +151,8 @@ jobs:
         shell: bash # for Windows compatibility
         run: pytest --cov=ultralytics/ --cov-report=xml tests/
       - name: Upload Coverage Reports to CodeCov
-        if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'cpu-latest' && matrix.python == '3.12'
-        uses: codecov/codecov-action@v5
+        if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
+        uses: codecov/codecov-action@v6
         with:
           flags: Tests
         env:
@@ -195,10 +195,6 @@ jobs:
             python: "3.10"
             torch: "1.13.0"
             torchvision: "0.14.0"
-          - os: ubuntu-latest # Axelera exports
-            python: "3.10"
-            torch: "2.8.0"
-            torchvision: "0.23.0"
           - os: ubuntu-latest
             python: "3.11"
             torch: "2.0.0"
@@ -243,6 +239,10 @@ jobs:
             python: "3.12"
             torch: "2.10.0"
             torchvision: "0.25.0"
+          - os: ubuntu-latest
+            python: "3.12"
+            torch: "2.11.0"
+            torchvision: "0.26.0"
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
@@ -303,7 +303,7 @@ jobs:
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Upload Coverage Reports to CodeCov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           flags: GPU
         env:
@@ -345,15 +345,15 @@ jobs:
           yolo checks
           uv pip list
       - name: Benchmark DetectionModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n.pt' imgsz=160 verbose=0.218
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n.pt' imgsz=160 verbose=0.216
       - name: Benchmark ClassificationModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-cls.pt' imgsz=160 verbose=0.249
       - name: Benchmark YOLOWorld DetectionModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8s-worldv2.pt' imgsz=160 verbose=0.337
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8s-worldv2.pt' imgsz=160 verbose=0.335
       - name: Benchmark SegmentationModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-seg.pt' imgsz=160 verbose=0.230
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-seg.pt' imgsz=160 verbose=0.229
       - name: Benchmark PoseModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-pose.pt' imgsz=160 verbose=0.194
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-pose.pt' imgsz=160 verbose=0.185
       - name: Benchmark OBBModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-obb.pt' imgsz=160 verbose=0.372
       - name: Benchmark Summary
@@ -435,7 +435,7 @@ jobs:
           channel-priority: true
           activate-environment: anaconda-client-env
       - name: Install Ultralytics package from conda-forge
-        run: conda install -c pytorch -c conda-forge pytorch-cpu torchvision ultralytics "openvino!=2026.0.0"
+        run: conda install -c pytorch -c conda-forge pytorch-cpu torchvision ultralytics "openvino<2026"
       - name: Install pip packages
         run: uv pip install pytest
       - name: Check environment

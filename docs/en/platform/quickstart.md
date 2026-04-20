@@ -19,21 +19,20 @@ keywords: Ultralytics Platform, Quickstart, YOLO models, dataset upload, model t
   <strong>Watch:</strong> Get Started with Ultralytics Platform - QuickStart
 </p>
 
+The following interactive diagram outlines the four primary stages of the Ultralytics Platform workflow. Click any stage or sub-step to access detailed instructions for that section.
+
 ```mermaid
-journey
-    title Your First Model in 5 Minutes
-    section Sign Up
-      Create account: 5: User
-      Select region: 5: User
-    section Prepare Data
-      Upload dataset: 5: User
-      Review images: 4: User
-    section Train
-      Configure training: 5: User
-      Monitor progress: 3: Platform
-    section Deploy
-      Test model: 5: User
-      Deploy endpoint: 5: User
+graph LR
+    A(Sign Up) --> B(Prepare Data) --> C(Train) --> D(Deploy)
+    A -.- A1["<a href='#get-started'>Create account</a><br/><a href='#region-selection'>Select region</a>"]
+    B -.- B1["<a href='#upload-your-first-dataset'>Upload dataset</a><br/><a href='#create-your-first-project'>Create Project</a>"]
+    C -.- C1["<a href='#training-configuration'>Configure training</a><br/><a href='#monitor-training'>Monitor progress</a>"]
+    D -.- D1["<a href='#test-your-model'>Test model</a><br/><a href='#deploy-to-production'>Deploy endpoint</a>"]
+
+    click A "#get-started"
+    click B "#upload-your-first-dataset"
+    click C "#train-your-first-model"
+    click D "#deploy-to-production"
 ```
 
 ## Get Started
@@ -48,11 +47,11 @@ During onboarding, you'll be asked to select your data region. The Platform auto
 
 ![Ultralytics Platform Onboarding Region Map With Latency](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-onboarding-region-map-with-latency.avif)
 
-| Region | Label                        | Location                | Best For                                |
-| ------ | ---------------------------- | ----------------------- | --------------------------------------- |
-| **US** | Americas                     | Iowa, USA               | Americas users, fastest for Americas    |
-| **EU** | Europe, Middle East & Africa | Belgium, Europe         | European users, GDPR compliance         |
-| **AP** | Asia Pacific                 | Hong Kong, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+| Region | Label                        | Location             | Best For                                |
+| ------ | ---------------------------- | -------------------- | --------------------------------------- |
+| **US** | Americas                     | Iowa, USA            | Americas users, fastest for Americas    |
+| **EU** | Europe, Middle East & Africa | Belgium, Europe      | European users, GDPR compliance         |
+| **AP** | Asia Pacific                 | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
 
 !!! warning "Region is Permanent"
 
@@ -105,7 +104,7 @@ The sidebar provides access to all Platform sections:
 |                 | Deploy   | Your active deployments                          |
 | **Bottom**      | Trash    | Deleted items (recoverable for 30 days)          |
 |                 | Settings | Account, billing, and preferences                |
-|                 | Feedback | Send feedback to Ultralytics                     |
+|                 | Help     | Open help, docs, and feedback tools              |
 
 ### Welcome Card
 
@@ -125,7 +124,7 @@ The welcome card shows your profile, plan badge, and workspace statistics at a g
 
 Below the welcome card, the dashboard shows three cards:
 
-- **Datasets**: Create a new dataset or drop images, videos, or ZIP files to upload. Shows your recent datasets.
+- **Datasets**: Create a new dataset or drop images, videos, or dataset files to upload. Shows your recent datasets.
 - **Projects**: Create a new project or drop `.pt` model files to upload. Shows your recent projects.
 - **Storage**: Overview of your storage usage (datasets, models, exports) with plan limits.
 
@@ -139,9 +138,26 @@ Press `Cmd+K` (Mac) or `Ctrl+K` (Windows/Linux) to open the search bar. Search a
 
 A floating chat widget is available on every page. Click it to ask questions about YOLO training, annotation, deployment, or any Platform feature. The assistant provides context-aware help based on the current page.
 
-### Onboarding Tour
+### Onboarding Tours
 
-New users see a guided tour highlighting key Platform features. To restart the tour at any time, navigate to `platform.ultralytics.com/home?tour=nav`.
+The Platform includes guided tours that introduce key features as you explore different sections:
+
+| Tour             | Trigger                              | What It Covers                                                       |
+| ---------------- | ------------------------------------ | -------------------------------------------------------------------- |
+| **Nav Tour**     | First visit to Home after onboarding | Home, Explore, Annotate, Train, Deploy, Settings, Account            |
+| **Project Tour** | First visit to a project page        | Models sidebar, Training Charts, Train button                        |
+| **Dataset Tour** | First visit to a dataset page        | Images gallery, Split tabs, Classes, Charts, Train, Upload, Download |
+
+!!! tip "Enterprise Users"
+
+    Enterprise plan users see an enhanced Nav Tour with enterprise-specific guidance on the Train step.
+
+#### Restart Tours
+
+To replay any tour:
+
+- **Redo Tour button** — Click your profile avatar (bottom-left of the sidebar) to open the user menu, then select **Redo Tour**. This resets all tours so they replay on your next visit to each section.
+- **URL parameter** — Navigate to `platform.ultralytics.com/home?tour=nav` to restart the Nav Tour directly.
 
 ## Upload Your First Dataset
 
@@ -151,12 +167,12 @@ Navigate to `Annotate` in the sidebar and click `New Dataset` to add your traini
 
 Ultralytics Platform supports multiple upload formats (full details in [Datasets](data/datasets.md)):
 
-| Format                                                                 | Max Size | Description                                                                 |
-| ---------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------- |
-| **Images**                                                             | 50 MB    | JPG, PNG, WebP, TIFF, and other common formats                              |
-| **ZIP Archive**                                                        | 10 GB    | Compressed folder with images and labels                                    |
-| **Video**                                                              | 1 GB     | MP4, WebM, MOV, AVI, MKV, M4V - frames extracted at ~1 fps (max 100 frames) |
-| **[YOLO Format](../datasets/detect/index.md#ultralytics-yolo-format)** | 10 GB    | Standard YOLO dataset structure with labels                                 |
+| Format              | Max Size (Free / Pro / Enterprise) | Description                                                                 |
+| ------------------- | ---------------------------------- | --------------------------------------------------------------------------- |
+| **Images**          | 50 MB                              | JPG, PNG, WebP, TIFF, and other common formats                              |
+| **Dataset Archive** | 10 / 20 / 50 GB                    | ZIP or TAR archive (including `.tar.gz` and `.tgz`) with images and labels  |
+| **Video**           | 1 GB                               | MP4, WebM, MOV, AVI, MKV, M4V - frames extracted at ~1 fps (max 100 frames) |
+| **NDJSON**          | 10 / 20 / 50 GB                    | Ultralytics dataset export format for portable metadata                     |
 
 ```mermaid
 graph LR
@@ -178,7 +194,7 @@ After upload, the platform automatically processes your data:
 
 !!! tip "YOLO Dataset Structure"
 
-    For best results, upload a ZIP with the standard YOLO structure:
+    For best results, upload a ZIP or TAR archive (including `.tar.gz` and `.tgz`) with the standard YOLO structure:
 
     ```
     my-dataset.zip
@@ -335,7 +351,7 @@ graph LR
 Your endpoint will be ready in about a minute with:
 
 - **Unique URL**: HTTPS endpoint for API calls
-- **Auto-Scaling**: Scales with traffic automatically
+- **Scale-to-zero behavior**: No idle compute cost (deployments currently run a single active instance)
 - **Monitoring**: Request metrics and logs
 
 !!! info "Deployment Lifecycle"
@@ -350,7 +366,7 @@ Read more about [endpoints](deploy/endpoints.md).
 
 If you prefer to train on your own hardware, you can stream metrics to the platform using your API key. This works like Weights & Biases — train anywhere, monitor on the platform.
 
-1. Generate an API key in [`Settings > Profile`](account/api-keys.md) (API Keys section)
+1. Generate an API key in [`Settings > API Keys`](account/api-keys.md)
 2. Set the environment variable and train with a `project/name` format:
 
 ```bash
@@ -367,7 +383,7 @@ Read more about [API keys](account/api-keys.md), [dataset URIs](data/datasets.md
 
 ## Feedback & Help
 
-Use the **Help** page in the sidebar footer to send feedback directly to Ultralytics. You can rate your experience, choose a feedback type (bug report, feature request, or general), and attach screenshots.
+The **Help** page in the sidebar footer includes an in-app feedback form. You can rate your experience, choose a feedback type (bug, feature request, or general), and attach screenshots.
 
 If you need more help:
 

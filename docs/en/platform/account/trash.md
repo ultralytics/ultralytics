@@ -87,6 +87,8 @@ Recover a deleted item:
 
 The item returns to its original location with all data intact.
 
+If the original slug is already taken, the platform restores the item with a unique available slug so you can access it immediately.
+
 ### Restore Behavior
 
 | Resource | Restore Behavior                                            |
@@ -115,7 +117,7 @@ Permanently delete all items immediately:
 
 !!! warning "Irreversible Action"
 
-    Emptying Trash permanently deletes all items immediately. This action cannot be undone and all data will be lost.
+    Emptying Trash permanently deletes all items immediately. This action cannot be undone and all data will be lost, including attached deployments, export jobs, and stored files tied to the trashed resources.
 
 ### Delete Single Item Permanently
 
@@ -124,6 +126,8 @@ To permanently delete one item without waiting:
 1. Find the item in Trash
 2. Click the **Delete** button
 3. Confirm deletion
+
+For projects, permanent deletion also removes related deployments and export files that belong to the deleted workspace resources.
 
 ## Storage and Trash
 

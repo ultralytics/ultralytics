@@ -7,7 +7,7 @@ from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks
 MODEL = WEIGHTS_DIR / "path with spaces" / "yolo26n.pt"  # test spaces in path
 CFG = "yolo26n.yaml"
 SOURCE = ASSETS / "bus.jpg" # filename.extension
-SOURCES_LIST = [ASSETS / "bus.jpg", ASSETS, ASSETS / "*", ASSETS / "**/*.jpg"] # provide url to your own sources
+SOURCES_LIST = [ASSETS / "bus.jpg", ASSETS, ASSETS / "*", ASSETS / "**/*.jpg"] 
 CUDA_IS_AVAILABLE = checks.cuda_is_available() # checks for available gpu
 CUDA_DEVICE_COUNT = checks.cuda_device_count() # checks for available gpu
 TASK_MODEL_DATA = [(task, WEIGHTS_DIR / TASK2MODEL[task], TASK2DATA[task]) for task in TASKS]

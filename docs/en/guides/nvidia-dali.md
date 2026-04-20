@@ -103,55 +103,9 @@ The letterbox operation preserves the aspect ratio by:
 
 ## DALI Pipeline for YOLO
 
-### Basic Pipeline (Padding at Bottom-Right)
+Use the centered pipeline below as the default reference. It matches Ultralytics `LetterBox(center=True)` behavior, which is what standard YOLO inference uses.
 
-This simpler version pads only at the bottom and right edges, which is sufficient for many deployment scenarios:
-
-!!! example "DALI pipeline with bottom-right padding"
-
-    ```python
-    import nvidia.dali as dali
-    import nvidia.dali.fn as fn
-    import nvidia.dali.types as types
-
-
-    @dali.pipeline_def(batch_size=8, num_threads=4, device_id=0)
-    def yolo_dali_pipeline(image_dir, target_size=640):
-        """DALI pipeline replicating YOLO preprocessing with bottom-right padding."""
-        # Read and decode images on GPU
-        jpegs, _ = fn.readers.file(file_root=image_dir, random_shuffle=False, name="Reader")
-        images = fn.decoders.image(jpegs, device="mixed", output_type=types.RGB)
-
-        # Aspect-ratio-preserving resize (equivalent to LetterBox resize step)
-        resized = fn.resize(
-            images,
-            resize_x=target_size,
-            resize_y=target_size,
-            mode="not_larger",  # Preserve aspect ratio, fit within target
-            interp_type=types.INTERP_LINEAR,
-            antialias=False,  # Match cv2.INTER_LINEAR behavior
-        )
-
-        # Pad to target size (bottom-right only)
-        padded = fn.pad(
-            resized,
-            fill_value=114,  # YOLO padding value
-            axes=(0, 1),  # Pad height and width only
-            shape=[target_size, target_size],
-        )
-
-        # Normalize [0,255] -> [0,1] and convert HWC -> CHW
-        output = fn.crop_mirror_normalize(
-            padded,
-            dtype=types.FLOAT,
-            output_layout="CHW",
-            mean=[0.0, 0.0, 0.0],
-            std=[255.0, 255.0, 255.0],
-        )
-        return output
-    ```
-
-### Centered Pipeline (Matching Ultralytics LetterBox)
+### Centered Pipeline (Recommended, matches Ultralytics LetterBox)
 
 This version exactly replicates the default Ultralytics preprocessing with centered padding, matching `LetterBox(center=True)`:
 
@@ -202,6 +156,10 @@ This version exactly replicates the default Ultralytics preprocessing with cente
         )
         return output
     ```
+
+!!! note "When is `fn.pad` enough?"
+
+    If you do not need exact `LetterBox(center=True)` parity, you can simplify the padding step by using `fn.pad(...)` instead of `fn.crop(..., out_of_bounds_policy="pad")`. That variant pads only the **right and bottom** edges, which can be acceptable for custom deployment pipelines, but it will not match Ultralytics' default centered letterbox behavior exactly.
 
 !!! tip "Why `fn.crop` for centered padding?"
 

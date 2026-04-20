@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, settings, profile, preferences, GDPR, data expor
 
 [Ultralytics Platform](https://platform.ultralytics.com) settings allow you to configure your profile, social links, workspace preferences, and manage your data with GDPR-compliant export and deletion options.
 
-Settings is organized into six tabs: `Profile`, `API Keys`, `Plans`, `Billing`, `Teams`, and `Trash`.
+Settings is organized into six tabs (in order): `Profile`, `API Keys`, `Plans`, `Billing`, `Teams`, and `Trash`.
 
 ## Profile Tab
 
@@ -237,7 +237,7 @@ From this tab you can:
 
 - **Compare features** across Free, Pro, and Enterprise tiers
 - **Upgrade to Pro** to unlock more storage, models, team collaboration, and priority GPU access
-- **Review Enterprise** capabilities including SSO/SAML, RBAC, and commercial licensing — see [Ultralytics Licensing](https://www.ultralytics.com/licensing)
+- **Review Enterprise** capabilities including SSO/SAML and commercial licensing — see [Ultralytics Licensing](https://www.ultralytics.com/license)
 
 See [Billing](billing.md) for detailed plan information, pricing, and upgrade instructions.
 

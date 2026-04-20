@@ -121,10 +121,10 @@ graph LR
 
 The editor provides two annotation modes, selectable from the toolbar:
 
-| Mode      | Description                                             | Shortcut |
-| --------- | ------------------------------------------------------- | -------- |
-| **Draw**  | Manual annotation with task-specific tools              | `V`      |
-| **Smart** | SAM-powered interactive annotation (detect/segment/OBB) | `S`      |
+| Mode       | Description                                                       | Shortcut |
+| ---------- | ----------------------------------------------------------------- | -------- |
+| **Manual** | Draw annotations with task-specific tools (all 5 task types)      | `V`      |
+| **Smart**  | SAM or YOLO model-assisted annotation (detect, segment, OBB only) | `S`      |
 
 ## Manual Annotation Tools
 
@@ -179,13 +179,13 @@ Annotate poses using skeleton templates. Select a template from the toolbar, cli
 
 The editor includes 5 built-in templates:
 
-| Template   | Keypoints | Description                                                                                                        |
-| ---------- | --------- | ------------------------------------------------------------------------------------------------------------------ |
-| **Person** | 17        | [COCO human pose](../../datasets/pose/index.md) — nose, eyes, ears, shoulders, elbows, wrists, hips, knees, ankles |
-| **Hand**   | 21        | MediaPipe hand landmarks — wrist, thumb, index, middle, ring, pinky joints                                         |
-| **Face**   | 68        | [iBUG 300W](https://ibug.doc.ic.ac.uk/resources/300-W/) facial landmarks — jaw, eyebrows, nose, eyes, mouth        |
-| **Dog**    | 18        | Animal pose — nose, head, neck, shoulders, legs, paws, tail                                                        |
-| **Box**    | 4         | Corner keypoints — top-left, top-right, bottom-right, bottom-left                                                  |
+| Template   | Keypoints | Description                                                                                                            |
+| ---------- | --------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Person** | 17        | [COCO human body pose](../../datasets/pose/coco.md) — nose, eyes, ears, shoulders, elbows, wrists, hips, knees, ankles |
+| **Hand**   | 21        | [Ultralytics Hand Keypoints](../../datasets/pose/hand-keypoints.md) — wrist, thumb, index, middle, ring, pinky joints  |
+| **Face**   | 68        | [iBUG 300W](https://ibug.doc.ic.ac.uk/resources/300-W/) facial landmarks — jaw, eyebrows, nose, eyes, mouth            |
+| **Dog**    | 18        | AP-10K animal pose — nose, head, neck, shoulders, tailbase, tail, and 4 legs (elbows, knees, paws)                     |
+| **Box**    | 4         | Corner keypoints — top-left, top-right, bottom-right, bottom-left                                                      |
 
 ![Ultralytics Platform Annotate Pose Keypoints Skeleton](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-pose-keypoints-skeleton.avif)
 
@@ -308,7 +308,7 @@ When Smart mode is active, a model picker appears in the toolbar. Five SAM model
 
 | Model             | Size    | Speed    | Notes                      |
 | ----------------- | ------- | -------- | -------------------------- |
-| **SAM 2.1 Tiny**  | 74.5 MB | Fastest  |                            |
+| **SAM 2.1 Tiny**  | 75 MB   | Fastest  |                            |
 | **SAM 2.1 Small** | 88 MB   | Fast     |                            |
 | **SAM 2.1 Base**  | 154 MB  | Moderate |                            |
 | **SAM 2.1 Large** | 428 MB  | Slower   | Most accurate of SAM 2.1   |
@@ -434,37 +434,40 @@ Efficient annotation with keyboard shortcuts:
 
 === "General"
 
-    | Shortcut               | Action                     |
-    | ---------------------- | -------------------------- |
-    | `Cmd/Ctrl+S`           | Save annotations           |
-    | `Cmd/Ctrl+Z`           | Undo                       |
-    | `Cmd/Ctrl+Shift+Z`     | Redo                       |
-    | `Cmd/Ctrl+Y`           | Redo (alternative)         |
-    | `Escape`               | Save / Deselect / Exit     |
-    | `Delete` / `Backspace` | Delete selected annotation |
-    | `1-9`                  | Select class 1-9           |
-    | `Cmd/Ctrl+Scroll`      | Zoom in/out                |
-    | `Shift+Click`          | Multi-select annotations   |
-    | `Cmd/Ctrl+A`           | Select all annotations     |
+    | Shortcut                      | Action                       |
+    | ----------------------------- | ---------------------------- |
+    | `Cmd/Ctrl+S`                  | Save annotations             |
+    | `Cmd/Ctrl+Z`                  | Undo                         |
+    | `Cmd/Ctrl+Y`                  | Redo                         |
+    | `Escape`                      | Save / Deselect / Exit       |
+    | `Delete` / `Backspace`        | Delete selected annotation   |
+    | `1-9`                         | Select class 1-9             |
+    | `Cmd/Ctrl+Scroll`             | Zoom in/out                  |
+    | `Cmd/Ctrl++` or `Cmd/Ctrl+=`  | Zoom in                      |
+    | `Cmd/Ctrl+-`                  | Zoom out                     |
+    | `Cmd/Ctrl+0`                  | Reset to fit                 |
+    | `Space+Drag`                  | Pan canvas when zoomed       |
+    | `Shift+Click`                 | Multi-select annotations     |
+    | `Cmd/Ctrl+A`                  | Select all annotations       |
 
 === "Modes"
 
-    | Shortcut | Action             |
-    | -------- | ------------------ |
-    | `V`      | Draw mode (manual) |
-    | `S`      | Smart mode (SAM)   |
+    | Shortcut | Action                          |
+    | -------- | ------------------------------- |
+    | `V`      | Manual mode (draw)              |
+    | `S`      | Smart mode (SAM or YOLO model)  |
 
 === "Drawing"
 
-    | Shortcut       | Action                                                                     |
-    | -------------- | ---------------------------------------------------------                  |
-    | `Click+Drag`   | Draw bounding box (detect/OBB)                                             |
-    | `Click`        | Add polygon point (segment) / Place skeleton (pose)                        |
-    | `Right-click`  | Complete polygon / Add SAM negative point                                  |
-    | `Shift` + `click`/`right-click` | Place multiple SAM points before applying (auto-apply on) |
-    | `A`            | Toggle auto-apply (Smart mode)                                             |
-    | `Enter`        | Complete polygon / Confirm pose / Save SAM annotation                      |
-    | `Escape`       | Cancel pose / Save SAM annotation / Deselect / Exit                        |
+    | Shortcut                        | Action                                                      |
+    | ------------------------------- | ----------------------------------------------------------- |
+    | `Click+Drag`                    | Draw bounding box (detect/OBB)                              |
+    | `Click`                         | Add polygon point (segment) / Place skeleton (pose)         |
+    | `Right-click`                   | Complete polygon / Add SAM negative point                   |
+    | `Shift` + `click`/`right-click` | Place multiple SAM points before applying (auto-apply on)   |
+    | `A`                             | Toggle auto-apply (Smart mode)                              |
+    | `Enter`                         | Complete polygon / Confirm pose / Save SAM annotation       |
+    | `Escape`                        | Cancel pose / Save SAM annotation / Deselect / Exit         |
 
 === "Arrange (Z-Order)"
 
@@ -486,7 +489,7 @@ Efficient annotation with keyboard shortcuts:
 The annotation editor maintains a full undo/redo history:
 
 - **Undo**: `Cmd/Ctrl+Z`
-- **Redo**: `Cmd/Ctrl+Shift+Z` or `Cmd/Ctrl+Y`
+- **Redo**: `Cmd/Ctrl+Y`
 
 History tracks:
 
@@ -545,8 +548,8 @@ The keyboard shortcut `1-9` quickly selects classes.
 Yes, but for best results:
 
 - Label all objects of your target classes in each image
-- Use the label filter set to `Unannotated` to identify unlabeled images
-- Exclude unannotated images from training configuration
+- Use the label filter set to `Unlabeled` to identify images that still need annotation
+- Unlabeled images are excluded from training; only labeled images contribute to the loss
 
 ### Which SAM model should I use?
 

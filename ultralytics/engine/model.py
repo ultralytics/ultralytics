@@ -426,7 +426,7 @@ class Model(torch.nn.Module):
         self._check_is_pytorch_model()
         return self.model.info(detailed=detailed, verbose=verbose, imgsz=imgsz)
 
-    def fuse(self) -> None:
+    def fuse(self) -> Model:
         """Fuse Conv2d and BatchNorm2d layers in the model for optimized inference.
 
         This method iterates through the model's modules and fuses consecutive Conv2d and BatchNorm2d layers into a
@@ -444,6 +444,7 @@ class Model(torch.nn.Module):
         """
         self._check_is_pytorch_model()
         self.model.fuse()
+        return self
 
     def embed(
         self,

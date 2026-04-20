@@ -44,46 +44,54 @@ def best_onnx_opset(onnx: types.ModuleType, cuda: bool = False) -> int:
 
 @ThreadingLocked()
 def torch2onnx(
-    torch_model: torch.nn.Module,
-    im: torch.Tensor,
-    onnx_file: str,
+    model: torch.nn.Module,
+    im: torch.Tensor | tuple[torch.Tensor, ...],
+    output_file: Path | str,
     opset: int = 14,
-    input_names: list[str] = ["images"],
-    output_names: list[str] = ["output0"],
-    dynamic: bool | dict = False,
-) -> None:
+    input_names: list[str] | None = None,
+    output_names: list[str] | None = None,
+    dynamic: dict | None = None,
+) -> str:
     """Export a PyTorch model to ONNX format.
 
     Args:
-        torch_model (torch.nn.Module): The PyTorch model to export.
-        im (torch.Tensor): Example input tensor for the model.
-        onnx_file (str): Path to save the exported ONNX file.
+        model (torch.nn.Module): The PyTorch model to export.
+        im (torch.Tensor | tuple[torch.Tensor, ...]): Example input tensor(s) for tracing.
+        output_file (Path | str): Path to save the exported ONNX file.
         opset (int): ONNX opset version to use for export.
-        input_names (list[str]): List of input tensor names.
-        output_names (list[str]): List of output tensor names.
-        dynamic (bool | dict, optional): Whether to enable dynamic axes.
+        input_names (list[str] | None): List of input tensor names. Defaults to ``["images"]``.
+        output_names (list[str] | None): List of output tensor names. Defaults to ``["output0"]``.
+        dynamic (dict | None): Dictionary specifying dynamic axes for inputs and outputs.
+
+    Returns:
+        (str): Path to the exported ONNX file.
 
     Notes:
         Setting `do_constant_folding=True` may cause issues with DNN inference for torch>=1.12.
     """
+    if input_names is None:
+        input_names = ["images"]
+    if output_names is None:
+        output_names = ["output0"]
     kwargs = {"dynamo": False} if TORCH_2_4 else {}
     torch.onnx.export(
-        torch_model,
+        model,
         im,
-        onnx_file,
+        output_file,
         verbose=False,
         opset_version=opset,
         do_constant_folding=True,  # WARNING: DNN inference with torch>=1.12 may require do_constant_folding=False
         input_names=input_names,
         output_names=output_names,
-        dynamic_axes=dynamic or None,
+        dynamic_axes=dynamic,
         **kwargs,
     )
+    return str(output_file)
 
 
 def onnx2engine(
     onnx_file: str,
-    engine_file: str | None = None,
+    output_file: Path | str | None = None,
     workspace: int | None = None,
     half: bool = False,
     int8: bool = False,
@@ -94,12 +102,12 @@ def onnx2engine(
     metadata: dict | None = None,
     verbose: bool = False,
     prefix: str = "",
-) -> None:
+) -> str:
     """Export a YOLO model to TensorRT engine format.
 
     Args:
         onnx_file (str): Path to the ONNX file to be converted.
-        engine_file (str | None): Path to save the generated TensorRT engine file.
+        output_file (Path | str | None): Path to save the generated TensorRT engine file.
         workspace (int | None): Workspace size in GB for TensorRT.
         half (bool, optional): Enable FP16 precision.
         int8 (bool, optional): Enable INT8 precision.
@@ -110,6 +118,9 @@ def onnx2engine(
         metadata (dict | None): Metadata to include in the engine file.
         verbose (bool, optional): Enable verbose logging.
         prefix (str, optional): Prefix for log messages.
+
+    Returns:
+        (str): Path to the exported engine file.
 
     Raises:
         ValueError: If DLA is enabled on non-Jetson devices or required precision is not set.
@@ -122,7 +133,7 @@ def onnx2engine(
     """
     import tensorrt as trt
 
-    engine_file = engine_file or Path(onnx_file).with_suffix(".engine")
+    output_file = output_file or Path(onnx_file).with_suffix(".engine")
 
     logger = trt.Logger(trt.Logger.INFO)
     if verbose:
@@ -178,7 +189,7 @@ def onnx2engine(
         if int8 and not is_trt10:  # deprecated in TensorRT 10, causes internal errors
             config.set_calibration_profile(profile)
 
-    LOGGER.info(f"{prefix} building {'INT8' if int8 else 'FP' + ('16' if half else '32')} engine as {engine_file}")
+    LOGGER.info(f"{prefix} building {'INT8' if int8 else 'FP' + ('16' if half else '32')} engine as {output_file}")
     if int8:
         config.set_flag(trt.BuilderFlag.INT8)
         config.profiling_verbosity = trt.ProfilingVerbosity.DETAILED
@@ -263,16 +274,17 @@ def onnx2engine(
         engine = builder.build_serialized_network(network, config)
         if engine is None:
             raise RuntimeError("TensorRT engine build failed, check logs for errors")
-        with open(engine_file, "wb") as t:
+        with open(output_file, "wb") as t:
             if metadata is not None:
                 meta = json.dumps(metadata)
                 t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
                 t.write(meta.encode())
             t.write(engine)
     else:
-        with builder.build_engine(network, config) as engine, open(engine_file, "wb") as t:
+        with builder.build_engine(network, config) as engine, open(output_file, "wb") as t:
             if metadata is not None:
                 meta = json.dumps(metadata)
                 t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
                 t.write(meta.encode())
             t.write(engine.serialize())
+    return str(output_file)

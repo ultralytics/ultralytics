@@ -373,15 +373,16 @@ class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
         Returns:
             (torch.Tensor): Boolean mask of positive anchors with shape (b, n_boxes, h*w).
         """
-        wh_mask = gt_bboxes[..., 2:4] < self.stride[0]
-        gt_bboxes[..., 2:4] = torch.where(
+        gt_bboxes_clone = gt_bboxes.clone()
+        wh_mask = gt_bboxes_clone[..., 2:4] < self.stride[0]
+        gt_bboxes_clone[..., 2:4] = torch.where(
             (wh_mask * mask_gt).bool(),
-            torch.tensor(self.stride_val, dtype=gt_bboxes.dtype, device=gt_bboxes.device),
-            gt_bboxes[..., 2:4],
+            torch.tensor(self.stride_val, dtype=gt_bboxes_clone.dtype, device=gt_bboxes_clone.device),
+            gt_bboxes_clone[..., 2:4],
         )
 
         # (b, n_boxes, 5) --> (b, n_boxes, 4, 2)
-        corners = xywhr2xyxyxyxy(gt_bboxes)
+        corners = xywhr2xyxyxyxy(gt_bboxes_clone)
         # (b, n_boxes, 1, 2)
         a, b, _, d = corners.split(1, dim=-2)
         ab = b - a

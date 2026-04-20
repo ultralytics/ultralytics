@@ -35,6 +35,7 @@ jobs:
           timeout_minutes: 60
           retry_delay_seconds: 1800
           retries: 2
+          backoff: fixed
           run: |
             lychee \
             --scheme https \
@@ -70,6 +71,7 @@ jobs:
           timeout_minutes: 60
           retry_delay_seconds: 1800
           retries: 2
+          backoff: fixed
           run: |
             lychee \
             --scheme https \

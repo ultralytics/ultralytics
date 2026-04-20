@@ -84,11 +84,11 @@ graph LR
 
 Your data stays in your region. Ultralytics Platform operates infrastructure in three global regions:
 
-| Region | Label                        | Location                | Best For                                |
-| ------ | ---------------------------- | ----------------------- | --------------------------------------- |
-| **US** | Americas                     | Iowa, USA               | Americas users, fastest for Americas    |
-| **EU** | Europe, Middle East & Africa | Belgium, Europe         | European users, GDPR compliance         |
-| **AP** | Asia Pacific                 | Hong Kong, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+| Region | Label                        | Location             | Best For                                |
+| ------ | ---------------------------- | -------------------- | --------------------------------------- |
+| **US** | Americas                     | Iowa, USA            | Americas users, fastest for Americas    |
+| **EU** | Europe, Middle East & Africa | Belgium, Europe      | European users, GDPR compliance         |
+| **AP** | Asia Pacific                 | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
 
 You select your region during onboarding, and all your data, models, and deployments remain in that region.
 
@@ -473,4 +473,4 @@ See [Models Export](train/models.md#export-model), the [Export mode guide](../mo
 
 ??? question "Can I use Platform models commercially?"
 
-    Free and Pro plans use the AGPL license. For commercial use without AGPL requirements, see [Ultralytics Licensing](https://www.ultralytics.com/licensing).
+    Free and Pro plans use the AGPL license. For commercial use without AGPL requirements, see [Ultralytics Licensing](https://www.ultralytics.com/license).

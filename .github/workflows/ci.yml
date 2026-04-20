@@ -435,7 +435,7 @@ jobs:
           channel-priority: true
           activate-environment: anaconda-client-env
       - name: Install Ultralytics package from conda-forge
-        run: conda install -c pytorch -c conda-forge pytorch-cpu torchvision ultralytics "openvino!=2026.0.0"
+        run: conda install -c pytorch -c conda-forge pytorch-cpu torchvision ultralytics "openvino<2026"
       - name: Install pip packages
         run: uv pip install pytest
       - name: Check environment

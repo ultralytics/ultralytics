@@ -14,6 +14,10 @@ keywords: SAM 2, SAM 2.1, SAM-2, Segment Anything, video segmentation, image seg
 
 SAM 2, the successor to Meta's [Segment Anything Model (SAM)](sam.md), is a cutting-edge tool designed for comprehensive object segmentation in both images and videos. It excels in handling complex visual data through a unified, promptable model architecture that supports real-time processing and zero-shot generalization.
 
+!!! tip "SAM 2 on Ultralytics Platform"
+
+    SAM 2.1 models power the smart annotation feature on [Ultralytics Platform](https://platform.ultralytics.com), enabling click-based segmentation for fast dataset labeling. See the [annotation guide](../platform/data/annotation.md) for details.
+
 ![SAM 2 Example Results](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sa-v-dataset.avif)
 
 ## Key Features

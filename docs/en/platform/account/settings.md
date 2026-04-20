@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, settings, profile, preferences, GDPR, data expor
 
 [Ultralytics Platform](https://platform.ultralytics.com) settings allow you to configure your profile, social links, workspace preferences, and manage your data with GDPR-compliant export and deletion options.
 
-Settings is organized into six tabs: `Profile`, `API Keys`, `Plans`, `Billing`, `Teams`, and `Trash`.
+Settings is organized into six tabs (in order): `Profile`, `API Keys`, `Plans`, `Billing`, `Teams`, and `Trash`.
 
 ## Profile Tab
 

@@ -538,17 +538,17 @@ GET /api/datasets/{datasetId}/images
 
 **Query Parameters:**
 
-| Parameter           | Type   | Description                                                                                                   |
-| ------------------- | ------ | ------------------------------------------------------------------------------------------------------------- |
-| `split`             | string | Filter by split: `train`, `val`, `test`                                                                       |
-| `offset`            | int    | Pagination offset (default: 0)                                                                                |
-| `limit`             | int    | Items per page (default: 50, max: 5000)                                                                       |
-| `sort`              | string | Sort order: `newest`, `oldest`, `name-asc`, `name-desc`, `size-asc`, `size-desc`, `labels-asc`, `labels-desc` |
-| `hasLabel`          | string | Filter by label status (`true` or `false`)                                                                    |
-| `hasError`          | string | Filter by error status (`true` or `false`)                                                                    |
-| `search`            | string | Search by filename or image hash                                                                              |
-| `includeThumbnails` | string | Include signed thumbnail URLs (default: `true`)                                                               |
-| `includeImageUrls`  | string | Include signed full image URLs (default: `false`)                                                             |
+| Parameter           | Type   | Description                                                                                                                                                                                                    |
+| ------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `split`             | string | Filter by split: `train`, `val`, `test`                                                                                                                                                                        |
+| `offset`            | int    | Pagination offset (default: 0)                                                                                                                                                                                 |
+| `limit`             | int    | Items per page (default: 50, max: 5000)                                                                                                                                                                        |
+| `sort`              | string | Sort order: `newest`, `oldest`, `name-asc`, `name-desc`, `height-asc`, `height-desc`, `width-asc`, `width-desc`, `size-asc`, `size-desc`, `labels-asc`, `labels-desc` (some disabled for >100k image datasets) |
+| `hasLabel`          | string | Filter by label status (`true` or `false`)                                                                                                                                                                     |
+| `hasError`          | string | Filter by error status (`true` or `false`)                                                                                                                                                                     |
+| `search`            | string | Search by filename or image hash                                                                                                                                                                               |
+| `includeThumbnails` | string | Include signed thumbnail URLs (default: `true`)                                                                                                                                                                |
+| `includeImageUrls`  | string | Include signed full image URLs (default: `false`)                                                                                                                                                              |
 
 #### Get Signed Image URLs
 
@@ -881,7 +881,7 @@ Pre-load a model for faster first inference. Call this before running prediction
 
 ## Training API
 
-Launch YOLO training on cloud GPUs (RTX 4090, A100, H100) and monitor progress in real time. See [Cloud Training documentation](../train/cloud-training.md).
+Launch YOLO training on cloud GPUs (23 GPU types from RTX 2000 Ada to B200) and monitor progress in real time. See [Cloud Training documentation](../train/cloud-training.md).
 
 ```mermaid
 graph LR
@@ -1795,13 +1795,13 @@ POST /api/members
 
 !!! info "Member Roles"
 
-    | Role     | Permissions                                |
-    | -------- | ------------------------------------------ |
-    | `viewer` | Read-only access to workspace resources    |
-    | `editor` | Create, edit, and delete resources          |
-    | `admin`  | Full access including member management     |
+    | Role     | Permissions                                                                    |
+    | -------- | ------------------------------------------------------------------------------ |
+    | `viewer` | Read-only access to workspace resources                                        |
+    | `editor` | Create, edit, and delete resources                                             |
+    | `admin`  | Manage members, billing, and all resources (only assignable by the team owner) |
 
-    See [Teams](../account/teams.md) for role details in the UI.
+    The team `owner` is the creator and cannot be invited. Owner is transferred separately via [`POST /api/members/transfer-ownership`](#transfer-ownership). See [Teams](../account/teams.md) for full role details.
 
 ### Update Member Role
 

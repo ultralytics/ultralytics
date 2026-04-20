@@ -73,7 +73,7 @@ Team members share the workspace credit balance and resource limits. All members
 
 !!! note "Pro Plan Seat Billing"
 
-    On the Pro plan, each team member is a paid seat at $29/month (or $290/year). Monthly credits of $30/seat are added to the shared wallet.
+    On the Pro plan, each team member is a paid seat at $29/month (or $290/year, a ~17% saving). Monthly credits of $30/seat are added to the team's shared wallet at the start of every billing cycle.
 
 ## Inviting Members
 

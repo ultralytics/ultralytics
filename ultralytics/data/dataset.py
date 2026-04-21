@@ -39,6 +39,7 @@ from .utils import (
     get_hash,
     img2label_paths,
     load_dataset_cache_file,
+    parse_image_cache,
     prepare_cache_dir,
     save_dataset_cache_file,
     verify_image,
@@ -712,7 +713,7 @@ class ClassificationDataset:
         verify_images: Verify all images in dataset.
     """
 
-    def __init__(self, root: str, args, augment: bool = False, prefix: str = "", cache_dir: str | Path | None = None):
+    def __init__(self, root: str, args, augment: bool = False, prefix: str = ""):
         """Initialize YOLO classification dataset with root directory, arguments, augmentations, and cache settings.
 
         Args:
@@ -721,7 +722,6 @@ class ClassificationDataset:
                 parameters, and cache settings.
             augment (bool, optional): Whether to apply augmentations to the dataset.
             prefix (str, optional): Prefix for logging and cache filenames, aiding in dataset identification.
-            cache_dir (str | Path, optional): Directory for disk cache files when ``cache='disk'``.
         """
         import torchvision  # scope for faster 'import ultralytics'
 
@@ -744,9 +744,8 @@ class ClassificationDataset:
                 "https://github.com/ultralytics/ultralytics/issues/9824, setting `cache_ram=False`."
             )
             self.cache_ram = False
-        self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files
-        cache_dir = cache_dir or getattr(args, "cache_dir", None)
-        self.cache_dir = Path(cache_dir) if self.cache_disk and cache_dir else None
+        cache_mode, self.cache_dir = parse_image_cache(args.cache)
+        self.cache_disk = cache_mode == "disk"  # cache images on hard drive as uncompressed *.npy files
         if self.cache_dir:
             self.cache_dir = prepare_cache_dir(self.cache_dir, self.prefix, "classification disk cache")
             if self.cache_dir is None:

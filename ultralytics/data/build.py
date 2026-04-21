@@ -233,7 +233,6 @@ def build_yolo_dataset(
 ) -> Dataset:
     """Build and return a YOLO dataset based on configuration parameters."""
     dataset = YOLOMultiModalDataset if multi_modal else YOLODataset
-    cache_dir = getattr(cfg, "cache_dir", None)  # Optional runtime arg while default.yaml remains unchanged.
     return dataset(
         img_path=img_path,
         imgsz=cfg.imgsz,
@@ -242,7 +241,6 @@ def build_yolo_dataset(
         hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function
         rect=cfg.rect or rect,  # rectangular batches
         cache=cfg.cache or None,
-        cache_dir=cache_dir,
         single_cls=cfg.single_cls or False,
         stride=stride,
         pad=0.0 if mode == "train" else 0.5,
@@ -265,7 +263,6 @@ def build_grounding(
     max_samples: int = 80,
 ) -> Dataset:
     """Build and return a GroundingDataset based on configuration parameters."""
-    cache_dir = getattr(cfg, "cache_dir", None)  # Optional runtime arg while default.yaml remains unchanged.
     return GroundingDataset(
         img_path=img_path,
         json_file=json_file,
@@ -276,7 +273,6 @@ def build_grounding(
         hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function
         rect=cfg.rect or rect,  # rectangular batches
         cache=cfg.cache or None,
-        cache_dir=cache_dir,
         single_cls=cfg.single_cls or False,
         stride=stride,
         pad=0.0 if mode == "train" else 0.5,

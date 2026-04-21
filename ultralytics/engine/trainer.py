@@ -123,12 +123,8 @@ class BaseTrainer:
             _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.hub_session = overrides.pop("session", None)  # HUB
-        # `cache_dir` is a Python-only runtime override for now, so keep it out of the default cfg alignment checks.
-        cache_dir = overrides.pop("cache_dir", None)
-        self._cache_dir_override = str(Path(cache_dir)) if cache_dir else None
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
-        self.args.cache_dir = self._cache_dir_override
         self.device = select_device(self.args.device)
         # Update "-1" devices so post-training val does not repeat search
         self.args.device = os.getenv("CUDA_VISIBLE_DEVICES") if "cuda" in str(self.device) else str(self.device)
@@ -864,10 +860,7 @@ class BaseTrainer:
                     ckpt_args["data"] = self.args.data
 
                 resume = True
-                # Resume checkpoints may carry `cache_dir` even though it is not part of default.yaml.
-                cache_dir = ckpt_args.pop("cache_dir", None)
                 self.args = get_cfg(ckpt_args)
-                self.args.cache_dir = self._cache_dir_override or cache_dir
                 self.args.model = self.args.resume = str(last)  # reinstate model
                 for k in (
                     "imgsz",

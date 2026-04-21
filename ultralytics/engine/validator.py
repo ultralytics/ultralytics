@@ -106,11 +106,7 @@ class BaseValidator:
         """
         import torchvision  # noqa (import here so torchvision import time not recorded in postprocess time)
 
-        # Validation reuses trainer args, so strip the Python-only `cache_dir` override before cfg validation.
-        overrides = args.copy() if isinstance(args, dict) else vars(args).copy() if args is not None else None
-        cache_dir = overrides.pop("cache_dir", None) if overrides else None
-        self.args = get_cfg(overrides=overrides)
-        self.args.cache_dir = str(Path(cache_dir)) if cache_dir else None
+        self.args = get_cfg(overrides=args)
         self.dataloader = dataloader
         self.stride = None
         self.data = None

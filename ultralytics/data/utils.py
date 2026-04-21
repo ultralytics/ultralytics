@@ -154,6 +154,18 @@ def get_hash(paths: list[str]) -> str:
     return h.hexdigest()  # return hash
 
 
+def parse_image_cache(cache: bool | str | os.PathLike[str]) -> tuple[str | None, Path | None]:
+    """Parse cache config into cache mode and an optional custom disk cache directory."""
+    if cache is True:
+        return "ram", None
+    if isinstance(cache, os.PathLike):
+        return "disk", Path(cache)
+    if isinstance(cache, str) and (cache := cache.strip()):
+        cache_mode = cache.lower()
+        return (cache_mode, None) if cache_mode in {"ram", "disk"} else ("disk", Path(cache))
+    return None, None
+
+
 def get_cache_file_path(im_file: str | Path, cache_dir: str | Path | None = None) -> Path:
     """Return the *.npy cache path for an image, optionally rooted under a dedicated cache directory."""
     file = Path(im_file)

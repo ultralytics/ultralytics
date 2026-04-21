@@ -590,7 +590,6 @@ PUT /api/datasets/{datasetId}/images/{hash}/labels
 
     Label coordinates use YOLO normalized values between 0 and 1. Bounding boxes use `[x_center, y_center, width, height]`.
     Segmentation labels use `segments`, a flattened list of polygon vertices `[x1, y1, x2, y2, ...]`.
-    Use `segments` in API payloads, not `polygon`.
 
 #### Bulk Image Operations
 

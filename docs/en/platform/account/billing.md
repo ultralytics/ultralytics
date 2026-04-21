@@ -235,16 +235,17 @@ After upgrading:
 
 ### Cancel Pro
 
-Cancel anytime from the billing portal:
+Cancel anytime from the Plans tab:
 
-1. Go to **Settings > Billing**
-2. Click **Manage Subscription**
-3. Select **Cancel**
-4. Confirm cancellation
+1. Go to **Settings > Plans**
+2. Click **Cancel Subscription** on the Pro plan card
+3. Confirm in the dialog
+
+If you cancel before the end of your billing period, a **Resume Subscription** button appears — click it to undo the cancellation before the period ends.
 
 !!! note "Cancellation Timing"
 
-    Pro features remain active until the end of your billing period. Monthly credits stop at cancellation.
+    Pro features remain active until the end of your current billing period. Monthly credits stop being granted at cancellation.
 
 ### Downgrading to Free
 
@@ -272,13 +273,13 @@ View all transactions in `Settings > Billing`:
 
 ![Ultralytics Platform Settings Billing Tab Transaction History Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-transaction-history-table.avif)
 
-| Column      | Description                                                                                                 |
-| ----------- | ----------------------------------------------------------------------------------------------------------- |
-| **Date**    | Transaction date                                                                                            |
-| **Type**    | Signup Bonus, Credit Purchase, Monthly Grant, Training, Refund, Adjustment, Auto Top-Up, Auto Top-Up Failed |
-| **Amount**  | Transaction value (green for credits, red for charges)                                                      |
-| **Balance** | Resulting balance after transaction                                                                         |
-| **Details** | Additional context (model link, receipt, period)                                                            |
+| Column      | Description                                                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **Date**    | Transaction date                                                                                                                       |
+| **Type**    | Signup, Purchase, Subscription, Monthly Grant, Training, Refund, Adjustment, Promo, Auto Top-Up, Auto Top-Up Failed, Pro Credit Expiry |
+| **Amount**  | Transaction value (green for credits, red for charges)                                                                                 |
+| **Balance** | Resulting balance after transaction                                                                                                    |
+| **Details** | Additional context (model link, receipt, period)                                                                                       |
 
 ## FAQ
 

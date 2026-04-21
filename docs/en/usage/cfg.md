@@ -173,6 +173,14 @@ Effective management of these aspects helps track progress and makes debugging a
 | `plots`    | `True`   | Controls the generation and saving of training and validation plots. Set to `True` to create plots like loss curves, [precision](https://www.ultralytics.com/glossary/precision)-[recall](https://www.ultralytics.com/glossary/recall) curves, and sample predictions for visual tracking of performance. |
 | `save`     | `True`   | Enables saving training checkpoints and final model weights. Set to `True` to save model states periodically, allowing training resumption or model deployment.                                                                                                                                           |
 
+## Custom Configuration File
+
+Load a saved YAML to reuse a full set of arguments without passing them inline. The `cfg` argument overrides values from `default.yaml`, while additional arguments passed alongside still take precedence.
+
+| Argument | Default | Description                                                                                                                                                            |
+| -------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cfg`    | `None`  | Path to a YAML file whose values replace `default.yaml` entries. See [Overriding Default Config File](cli.md#overriding-default-config-file) for a worked CLI example. |
+
 ## FAQ
 
 ### How do I improve my YOLO model's performance during training?

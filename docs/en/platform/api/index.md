@@ -115,10 +115,7 @@ https://platform.ultralytics.com/api
 
 ## Rate Limits
 
-The API uses a two-layer rate limiting system to protect against abuse while keeping legitimate usage unrestricted:
-
-- **Per API key** — Limits enforced per API key on authenticated requests
-- **Per IP** — 100 requests/min per IP address on all `/api/*` paths (applies to both authenticated and unauthenticated requests)
+The API enforces per-API-key rate limits (sliding-window, Upstash Redis-backed) to protect against abuse while keeping legitimate usage unrestricted. Anonymous traffic is additionally protected by Vercel's platform-level abuse controls.
 
 When throttled, the API returns `429` with retry metadata:
 
@@ -321,7 +318,7 @@ Soft-deletes the dataset (moved to [trash](../account/trash.md), recoverable for
 POST /api/datasets/{datasetId}/clone
 ```
 
-Creates a copy of the dataset with all images and labels. Only public datasets can be cloned.
+Creates a copy of the dataset with all images and labels. Only public datasets can be cloned. Requires an active platform browser session — not available via API key.
 
 **Body (all fields optional):**
 
@@ -538,17 +535,17 @@ GET /api/datasets/{datasetId}/images
 
 **Query Parameters:**
 
-| Parameter           | Type   | Description                                                                                                   |
-| ------------------- | ------ | ------------------------------------------------------------------------------------------------------------- |
-| `split`             | string | Filter by split: `train`, `val`, `test`                                                                       |
-| `offset`            | int    | Pagination offset (default: 0)                                                                                |
-| `limit`             | int    | Items per page (default: 50, max: 5000)                                                                       |
-| `sort`              | string | Sort order: `newest`, `oldest`, `name-asc`, `name-desc`, `size-asc`, `size-desc`, `labels-asc`, `labels-desc` |
-| `hasLabel`          | string | Filter by label status (`true` or `false`)                                                                    |
-| `hasError`          | string | Filter by error status (`true` or `false`)                                                                    |
-| `search`            | string | Search by filename or image hash                                                                              |
-| `includeThumbnails` | string | Include signed thumbnail URLs (default: `true`)                                                               |
-| `includeImageUrls`  | string | Include signed full image URLs (default: `false`)                                                             |
+| Parameter           | Type   | Description                                                                                                                                                                                                    |
+| ------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `split`             | string | Filter by split: `train`, `val`, `test`                                                                                                                                                                        |
+| `offset`            | int    | Pagination offset (default: 0)                                                                                                                                                                                 |
+| `limit`             | int    | Items per page (default: 50, max: 5000)                                                                                                                                                                        |
+| `sort`              | string | Sort order: `newest`, `oldest`, `name-asc`, `name-desc`, `height-asc`, `height-desc`, `width-asc`, `width-desc`, `size-asc`, `size-desc`, `labels-asc`, `labels-desc` (some disabled for >100k image datasets) |
+| `hasLabel`          | string | Filter by label status (`true` or `false`)                                                                                                                                                                     |
+| `hasError`          | string | Filter by error status (`true` or `false`)                                                                                                                                                                     |
+| `search`            | string | Search by filename or image hash                                                                                                                                                                               |
+| `includeThumbnails` | string | Include signed thumbnail URLs (default: `true`)                                                                                                                                                                |
+| `includeImageUrls`  | string | Include signed full image URLs (default: `false`)                                                                                                                                                              |
 
 #### Get Signed Image URLs
 
@@ -677,6 +674,8 @@ Soft-deletes the project (moved to [trash](../account/trash.md)).
 POST /api/projects/{projectId}/clone
 ```
 
+Clones a public project (with all its models) into your workspace. Requires an active platform browser session — not available via API key.
+
 ### Project Icon
 
 Upload a project icon (multipart form with image file):
@@ -690,6 +689,8 @@ Remove the project icon:
 ```http
 DELETE /api/projects/{projectId}/icon
 ```
+
+Both require an active platform browser session — not available via API key.
 
 ---
 
@@ -772,7 +773,7 @@ Returns signed download URLs for model files.
 POST /api/models/{modelId}/clone
 ```
 
-Clone a public model to one of your projects.
+Clone a public model to one of your projects. Requires an active platform browser session — not available via API key.
 
 **Body:**
 
@@ -867,7 +868,9 @@ POST /api/models/{modelId}/predict
 POST /api/models/{modelId}/predict/token
 ```
 
-Get a short-lived token for direct prediction requests. The token bypasses the API proxy for lower-latency inference from client-side applications.
+!!! note "Browser session only"
+
+    This route is used by the in-app Predict tab to issue short-lived inference tokens for direct browser → predict-service calls (lower latency, no API proxy). It requires an active platform browser session and is not available via API key. For programmatic inference, call [`POST /api/models/{modelId}/predict`](#run-inference) with your API key.
 
 ### Warmup Model
 
@@ -875,13 +878,15 @@ Get a short-lived token for direct prediction requests. The token bypasses the A
 POST /api/models/{modelId}/predict/warmup
 ```
 
-Pre-load a model for faster first inference. Call this before running predictions to avoid delays on the initial request.
+!!! note "Browser session only"
+
+    The warmup route is used by the Predict tab to pre-load a model's weights on the predict service before the user's first inference. It requires an active platform browser session and is not available via API key.
 
 ---
 
 ## Training API
 
-Launch YOLO training on cloud GPUs (RTX 4090, A100, H100) and monitor progress in real time. See [Cloud Training documentation](../train/cloud-training.md).
+Launch YOLO training on cloud GPUs (23 GPU types from RTX 2000 Ada to B200) and monitor progress in real time. See [Cloud Training documentation](../train/cloud-training.md).
 
 ```mermaid
 graph LR
@@ -951,7 +956,7 @@ POST /api/training/start
 GET /api/models/{modelId}/training
 ```
 
-Returns the current training job status, metrics, and progress for a model.
+Returns the current training job status, metrics, and progress for a model. Public projects are accessible anonymously; private projects require an active platform browser session (this route does not accept API-key authentication).
 
 ### Cancel Training
 
@@ -959,13 +964,17 @@ Returns the current training job status, metrics, and progress for a model.
 DELETE /api/models/{modelId}/training
 ```
 
-Terminates the running compute instance and marks the job as cancelled.
+Terminates the running compute instance and marks the job as cancelled. Requires an active platform browser session — not available via API key.
 
 ---
 
 ## Deployments API
 
 Deploy models to dedicated inference endpoints with health checks and monitoring. New deployments use scale-to-zero by default, and the API accepts an optional `resources` object. See [Endpoints documentation](../deploy/endpoints.md).
+
+!!! info "API-key support by route"
+
+    Only `GET /api/deployments`, `POST /api/deployments`, `GET /api/deployments/{deploymentId}`, and `DELETE /api/deployments/{deploymentId}` support API-key authentication. The `predict`, `health`, `logs`, `metrics`, `start`, and `stop` sub-routes require an active platform browser session — they are convenience proxies for the in-app UI. For programmatic inference, call the deployment's own endpoint URL (e.g., `https://predict-abc123.run.app/predict`) directly with your API key. [Dedicated endpoints](../deploy/endpoints.md#using-endpoints) are not rate-limited.
 
 ```mermaid
 graph LR
@@ -1117,6 +1126,10 @@ GET /api/deployments/{deploymentId}/logs
 ---
 
 ## Monitoring API
+
+!!! note "Browser session only"
+
+    `GET /api/monitoring` is a UI-only route and requires an active platform browser session. It does not accept API-key authentication. Query individual deployment metrics via the per-deployment routes (which are also browser-session only) or use [Cloud Monitoring exports](https://cloud.google.com/monitoring) on the deployed Cloud Run service for programmatic access.
 
 ### Aggregated Metrics
 
@@ -1574,6 +1587,10 @@ DELETE /api/billing/payment-methods/{id}
 
 Check your storage usage breakdown by category (datasets, models, exports) and see your largest items.
 
+!!! note "Browser session only"
+
+    Storage routes require an active platform browser session and are not accessible via API key. Use the [Settings > Profile](../account/settings.md#storage-usage) page in the UI for interactive breakdowns.
+
 ### Get Storage Info
 
 ```http
@@ -1795,13 +1812,13 @@ POST /api/members
 
 !!! info "Member Roles"
 
-    | Role     | Permissions                                |
-    | -------- | ------------------------------------------ |
-    | `viewer` | Read-only access to workspace resources    |
-    | `editor` | Create, edit, and delete resources          |
-    | `admin`  | Full access including member management     |
+    | Role     | Permissions                                                                    |
+    | -------- | ------------------------------------------------------------------------------ |
+    | `viewer` | Read-only access to workspace resources                                        |
+    | `editor` | Create, edit, and delete resources                                             |
+    | `admin`  | Manage members, billing, and all resources (only assignable by the team owner) |
 
-    See [Teams](../account/teams.md) for role details in the UI.
+    The team `owner` is the creator and cannot be invited. Owner is transferred separately via [`POST /api/members/transfer-ownership`](#transfer-ownership). See [Teams](../account/teams.md) for full role details.
 
 ### Update Member Role
 
@@ -2169,21 +2186,13 @@ print(f"mAP50-95: {metrics.box.map}")
 
 ## Webhooks
 
-Webhooks notify your server of Platform events via HTTP POST callbacks:
+The Platform uses internal webhooks to stream real-time training metrics from the `ultralytics` Python SDK (running on cloud GPUs or remote/local machines) back to the Platform — epoch-by-epoch loss, mAP, system stats, and completion status. These webhooks are authenticated via the HMAC `webhookSecret` provisioned per training job and are not intended to be consumed by user applications.
 
-| Event                | Description          |
-| -------------------- | -------------------- |
-| `training.started`   | Training job started |
-| `training.epoch`     | Epoch completed      |
-| `training.completed` | Training finished    |
-| `training.failed`    | Training failed      |
-| `export.completed`   | Export ready         |
+!!! info "Working on your side"
 
-!!! info "Plan Availability"
+    **All plans**: Training progress via the `ultralytics` SDK (real-time metrics, completion notifications) works automatically on every plan — just set `project=username/my-project name=my-run` when training and the SDK streams events back to the Platform. No user-side webhook registration is required.
 
-    **All plans**: Training webhooks via the Python SDK (real-time metrics, completion notifications) work automatically on every plan -- no configuration required.
-
-    **Enterprise only**: Custom webhook endpoints that send HTTP POST callbacks to your own server URL require an Enterprise plan. See [Ultralytics Licensing](https://www.ultralytics.com/license) for details.
+    **User-facing webhook subscriptions** (POST callbacks to a URL you control) are on the Enterprise roadmap and not currently available. In the meantime, poll `GET /api/models/{modelId}/training` for status or use the [activity feed](#activity-api) in the UI.
 
 ---
 

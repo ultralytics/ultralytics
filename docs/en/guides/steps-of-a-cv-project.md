@@ -160,7 +160,7 @@ Once your model has been thoroughly tested, it's time to deploy it. [Model deplo
 - **Deploying the Model:** Deploy the model by setting up APIs or endpoints and integrating it with your application.
 - **Ensuring Scalability:** Implement load balancers, auto-scaling groups, and monitoring tools to manage resources and handle increasing data and user requests.
 
-For more detailed guidance on deployment strategies and best practices, check out our [model deployment practices guide](./model-deployment-practices.md).
+For more detailed guidance on deployment strategies and best practices, check out our [model deployment practices guide](./model-deployment-practices.md). [Ultralytics Platform](https://platform.ultralytics.com) also provides managed [deployment endpoints](../platform/deploy/endpoints.md) with auto-scaling across 43 global regions, handling infrastructure setup automatically.
 
 ## Step 8: Monitoring, Maintenance, and Documentation
 

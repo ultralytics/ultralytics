@@ -881,6 +881,7 @@ class Metric(SimpleClass):
         self.ap_class_index = []  # (nc, )
         self.nc = 0
         self.center_rmse = []  # (nc, )
+        self.image_metrics = {}
 
     @property
     def ap50(self) -> np.ndarray | list:
@@ -1012,6 +1013,10 @@ class Metric(SimpleClass):
             self.prec_values,
         ) = results
 
+    def clear_image_metrics(self) -> None:
+        """Clear stored per-image metrics from the current validation run."""
+        self.image_metrics.clear()
+
     @property
     def curves(self) -> list:
         """Return a list of curves for accessing specific metrics curves."""
@@ -1026,6 +1031,33 @@ class Metric(SimpleClass):
             [self.px, self.p_curve, "Confidence", "Precision"],
             [self.px, self.r_curve, "Confidence", "Recall"],
         ]
+
+    def update_image_metrics(self, tp: np.ndarray, target_cls: np.ndarray, pred_cls: np.ndarray, im_name: str) -> None:
+        """Update per-image precision, recall, F1, TP, FP, and FN at IoU threshold 0.5.
+
+        Args:
+            tp (np.ndarray): True positive array of shape (num_preds, num_iou_thresholds), where the first column (IoU
+                >= 0.5) is used.
+            target_cls (np.ndarray): Ground truth class labels for the image.
+            pred_cls (np.ndarray): Predicted class labels for the image.
+            im_name (str): The image filename used as the per-image key.
+        """
+        # Use the default IoU=0.5 column to match the validator's image-level matching policy.
+        tp = int(tp[:, 0].sum())
+        num_preds = pred_cls.shape[0]
+        num_targets = target_cls.shape[0]
+        fp = num_preds - tp
+        fn = num_targets - tp
+        precision = tp / num_preds if num_preds else 0
+        recall = tp / num_targets if num_targets else 0
+        self.image_metrics[im_name] = {
+            "precision": float(precision),
+            "recall": float(recall),
+            "f1": float(2 * (precision * recall) / (precision + recall)) if (precision + recall) else 0.0,
+            "tp": int(tp),
+            "fp": int(fp),
+            "fn": int(fn),
+        }
 
 
 class DetMetrics(SimpleClass, DataExportMixin):
@@ -1079,6 +1111,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         """
         for k in self.stats.keys():
             self.stats[k].append(stat[k])
+        self.box.update_image_metrics(stat["tp"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
 
     def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
         """Process predicted results for object detection and update metrics.
@@ -1139,6 +1172,10 @@ class DetMetrics(SimpleClass, DataExportMixin):
         """Clear the stored statistics."""
         for v in self.stats.values():
             v.clear()
+
+    def clear_image_metrics(self) -> None:
+        """Clear stored per-image metrics."""
+        self.box.clear_image_metrics()
 
     @property
     def include_center_rmse(self) -> bool:
@@ -1273,6 +1310,21 @@ class SegmentMetrics(DetMetrics):
         DetMetrics.__init__(self, names)
         self.seg = Metric()
         self.stats["tp_m"] = []  # add additional stats for masks
+
+    def update_stats(self, stat: dict[str, Any]) -> None:
+        """Update statistics by appending new values to existing stat collections.
+
+        Args:
+            stat (dict[str, Any]): Dictionary containing new statistical values to append. Keys should match existing
+                keys in self.stats.
+        """
+        super().update_stats(stat)  # update box stats
+        self.seg.update_image_metrics(stat["tp_m"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
+
+    def clear_image_metrics(self) -> None:
+        """Clear stored per-image metrics."""
+        super().clear_image_metrics()
+        self.seg.clear_image_metrics()
 
     def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
         """Process the detection and segmentation metrics over the given set of predictions.
@@ -1414,6 +1466,21 @@ class PoseMetrics(DetMetrics):
         super().__init__(names)
         self.pose = Metric()
         self.stats["tp_p"] = []  # add additional stats for pose
+
+    def update_stats(self, stat: dict[str, Any]) -> None:
+        """Update statistics by appending new values to existing stat collections.
+
+        Args:
+            stat (dict[str, Any]): Dictionary containing new statistical values to append. Keys should match existing
+                keys in self.stats.
+        """
+        super().update_stats(stat)  # update box stats
+        self.pose.update_image_metrics(stat["tp_p"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
+
+    def clear_image_metrics(self) -> None:
+        """Clear stored per-image metrics."""
+        super().clear_image_metrics()
+        self.pose.clear_image_metrics()
 
     def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
         """Process the detection and pose metrics over the given set of predictions.

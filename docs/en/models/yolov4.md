@@ -32,7 +32,7 @@ When compared to other models in the YOLO family, such as [YOLOv5](https://docs.
 
 ## Usage Examples
 
-As of the time of writing, Ultralytics does not currently support YOLOv4 models. Therefore, any users interested in using YOLOv4 will need to refer directly to the YOLOv4 GitHub repository for installation and usage instructions.
+YOLOv4 is a Darknet-based model and is **not natively supported** by the Ultralytics Python package: there are no `yolov4.pt` pretrained weights published on [ultralytics/assets](https://github.com/ultralytics/assets/releases) and no `ultralytics/cfg/models/v4/` YAMLs. This page is kept as an architectural reference. Users interested in running YOLOv4 should refer directly to the YOLOv4 GitHub repository for installation and usage instructions.
 
 Here is a brief overview of the typical steps you might take to use YOLOv4:
 
@@ -44,7 +44,7 @@ Here is a brief overview of the typical steps you might take to use YOLOv4:
 
 Please note that the specific steps may vary depending on your specific use case and the current state of the YOLOv4 repository. Therefore, it is strongly recommended to refer directly to the instructions provided in the YOLOv4 GitHub repository.
 
-We regret any inconvenience this may cause and will strive to update this document with usage examples for Ultralytics once support for YOLOv4 is implemented.
+For training and inference within the Ultralytics framework, see [YOLO11](yolo11.md) or [YOLO26](yolo26.md).
 
 ## Conclusion
 

@@ -8,7 +8,7 @@ keywords: Ultralytics YOLO, hyperparameter tuning, machine learning, model optim
 
 ## Introduction
 
-Hyperparameter tuning is not just a one-time setup but an iterative process aimed at optimizing the [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) model's performance metrics, such as accuracy, precision, and recall. In the context of Ultralytics YOLO, these hyperparameters could range from learning rate to architectural details, such as the number of layers or types of activation functions used.
+Hyperparameter tuning is not just a one-time setup but an iterative process aimed at optimizing the [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) model's performance metrics, such as accuracy, precision, and recall. In the context of Ultralytics YOLO, these hyperparameters could range from learning rate to architectural details, such as the number of layers or types of activation functions used. [Ultralytics Platform](https://platform.ultralytics.com) also supports [cloud training](../platform/train/cloud-training.md) with configurable hyperparameters and real-time metrics tracking.
 
 <p align="center">
   <br>

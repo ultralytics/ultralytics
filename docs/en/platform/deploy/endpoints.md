@@ -344,17 +344,24 @@ Dedicated endpoints are **not subject to the Platform API rate limits**. Request
 
 ### Request Parameters
 
-| Parameter   | Type   | Default | Description                    |
-| ----------- | ------ | ------- | ------------------------------ |
-| `file`      | file   | -       | Image or video file (required) |
-| `conf`      | float  | 0.25    | Minimum confidence threshold   |
-| `iou`       | float  | 0.7     | NMS IoU threshold              |
-| `imgsz`     | int    | 640     | Input image size               |
-| `normalize` | string | -       | Return normalized coordinates  |
+| Parameter   | Type   | Default | Range      | Description                                        |
+| ----------- | ------ | ------- | ---------- | -------------------------------------------------- |
+| `file`      | file   | -       | -          | Image or video file (required)                     |
+| `conf`      | float  | 0.25    | 0.01 – 1.0 | Minimum confidence threshold                       |
+| `iou`       | float  | 0.7     | 0.0 – 0.95 | NMS IoU threshold                                  |
+| `imgsz`     | int    | 640     | 32 – 1280  | Input image size in pixels                         |
+| `normalize` | bool   | false   | -          | Return bounding box coordinates as 0 – 1           |
+| `decimals`  | int    | 5       | 0 – 10     | Decimal precision for coordinate values            |
+| `source`    | string | -       | -          | Image URL or base64 string (alternative to `file`) |
 
 !!! tip "Video Inference"
 
-    Dedicated endpoints accept video files in addition to images. Supported video formats (up to 100MB): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV. Each frame is processed individually and results are returned per frame. Supported image formats (up to 50MB): AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WEBP.
+    Dedicated endpoints accept both images and videos via the `file` parameter.
+
+    - **Image formats** (up to 50 MB): AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WEBP
+    - **Video formats** (up to 100 MB): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV
+
+    Each video frame is processed individually and results are returned per frame. You can also pass a public image URL or a base64-encoded image via the `source` parameter instead of `file`.
 
 ### Response Format
 

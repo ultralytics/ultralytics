@@ -26,6 +26,8 @@ def test_det_metrics_center_rmse_single_tp():
     assert len(met.box.center_rmse) == met.box.nc
     assert isinstance(met.box.center_rmse[0], float)
     assert met.box.center_rmse[0] == 0.0
+    assert met.results_dict["metrics/center_rmse(B)"] == 0.0
+    assert met.box.image_metrics["image_0"]["center_rmse"] == 0.0
 
 
 def test_det_metrics_center_rmse_empty():
@@ -49,6 +51,29 @@ def test_det_metrics_center_rmse_empty():
     assert "metrics/center_rmse(B)" in met.keys
     assert len(met.box.center_rmse) == met.box.nc
     assert isinstance(met.box.center_rmse[0], float)
+    assert met.results_dict["metrics/center_rmse(B)"] == 0.0
+    assert met.box.image_metrics["image_0"]["center_rmse"] == 0.0
+
+
+def test_det_metrics_center_rmse_ignores_non_tp_offsets():
+    """center_rmse must use only TP offsets and expose the value in results_dict."""
+    met = DetMetrics({0: "a"})
+    met.update_stats(
+        {
+            "tp": np.array([[1], [0]]),
+            "conf": np.array([0.9, 0.8]),
+            "pred_cls": np.array([0, 0]),
+            "target_cls": np.array([0]),
+            "target_img": np.array([0]),
+            "tp_center_offset": np.array([0.2, 10.0]),
+        }
+    )
+
+    met.process()
+
+    assert np.isclose(met.box.center_rmse[0], 0.2)
+    assert np.isclose(met.results_dict["metrics/center_rmse(B)"], 0.2)
+    assert np.isclose(met.box.image_metrics["image_0"]["center_rmse"], 0.2)
 
 
 def test_segment_metrics_no_center_rmse():

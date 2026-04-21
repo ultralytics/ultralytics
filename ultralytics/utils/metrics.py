@@ -1032,7 +1032,14 @@ class Metric(SimpleClass):
             [self.px, self.r_curve, "Confidence", "Recall"],
         ]
 
-    def update_image_metrics(self, tp: np.ndarray, target_cls: np.ndarray, pred_cls: np.ndarray, im_name: str) -> None:
+    def update_image_metrics(
+        self,
+        tp: np.ndarray,
+        target_cls: np.ndarray,
+        pred_cls: np.ndarray,
+        im_name: str,
+        tp_center_offset: np.ndarray | None = None,
+    ) -> None:
         """Update per-image precision, recall, F1, TP, FP, and FN at IoU threshold 0.5.
 
         Args:
@@ -1041,23 +1048,39 @@ class Metric(SimpleClass):
             target_cls (np.ndarray): Ground truth class labels for the image.
             pred_cls (np.ndarray): Predicted class labels for the image.
             im_name (str): The image filename used as the per-image key.
+            tp_center_offset (np.ndarray | None): Optional per-prediction center offsets. When provided, computes
+                per-image RMSE over true positives only.
         """
         # Use the default IoU=0.5 column to match the validator's image-level matching policy.
-        tp = int(tp[:, 0].sum())
+        tp_col = tp[:, 0].astype(bool) if tp.size else np.zeros((0,), dtype=bool)
+        tp_count = int(tp_col.sum())
         num_preds = pred_cls.shape[0]
         num_targets = target_cls.shape[0]
-        fp = num_preds - tp
-        fn = num_targets - tp
-        precision = tp / num_preds if num_preds else 0
-        recall = tp / num_targets if num_targets else 0
-        self.image_metrics[im_name] = {
+        fp = num_preds - tp_count
+        fn = num_targets - tp_count
+        precision = tp_count / num_preds if num_preds else 0
+        recall = tp_count / num_targets if num_targets else 0
+        metrics = {
             "precision": float(precision),
             "recall": float(recall),
             "f1": float(2 * (precision * recall) / (precision + recall)) if (precision + recall) else 0.0,
-            "tp": int(tp),
+            "tp": int(tp_count),
             "fp": int(fp),
             "fn": int(fn),
         }
+        if tp_center_offset is not None:
+            offset_arr = np.asarray(tp_center_offset, dtype=float)
+            if offset_arr.size == 0 or tp_col.size == 0:
+                metrics["center_rmse"] = 0.0
+            else:
+                if offset_arr.shape[0] != tp_col.shape[0]:
+                    n = min(offset_arr.shape[0], tp_col.shape[0])
+                    offset_arr = offset_arr[:n]
+                    tp_col = tp_col[:n]
+                tp_offsets = offset_arr[tp_col]
+                metrics["center_rmse"] = float(np.sqrt(np.mean(tp_offsets**2))) if tp_offsets.size else 0.0
+
+        self.image_metrics[im_name] = metrics
 
 
 class DetMetrics(SimpleClass, DataExportMixin):
@@ -1111,7 +1134,15 @@ class DetMetrics(SimpleClass, DataExportMixin):
         """
         for k in self.stats.keys():
             self.stats[k].append(stat[k])
-        self.box.update_image_metrics(stat["tp"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
+        # Unit tests and some programmatic calls may omit image names.
+        im_name = stat.get("im_name", f"image_{len(self.box.image_metrics)}")
+        self.box.update_image_metrics(
+            stat["tp"],
+            stat["target_cls"],
+            stat["pred_cls"],
+            im_name,
+            tp_center_offset=stat.get("tp_center_offset"),
+        )
 
     def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
         """Process predicted results for object detection and update metrics.
@@ -1150,17 +1181,19 @@ class DetMetrics(SimpleClass, DataExportMixin):
             else:
                 tp_offsets = tp_offsets.astype(float)
                 tp_mask = stats["tp"][:, 0].astype(bool)
-                tp_offsets_filtered = tp_offsets[tp_mask]
-                pred_cls_tp = stats["pred_cls"][tp_mask].astype(int)
-                self.center_rmse = float(np.sqrt(np.mean(tp_offsets_filtered**2)))
-                rmse_per_class = np.zeros(len(self.names), dtype=float)
-                for c in range(len(self.names)):
-                    cls_mask = pred_cls_tp == c
-                    if cls_mask.any():
-                        offs = tp_offsets_filtered[cls_mask]
-                        rmse_per_class[c] = float(np.sqrt(np.mean(offs**2)))
-                    else:
-                        rmse_per_class[c] = 0.0
+                if not tp_mask.any():
+                    self.center_rmse = 0.0
+                else:
+                    tp_offsets_filtered = tp_offsets[tp_mask]
+                    pred_cls_tp = stats["pred_cls"][tp_mask].astype(int)
+                    self.center_rmse = float(np.sqrt(np.mean(tp_offsets_filtered**2)))
+                    for c in range(len(self.names)):
+                        cls_mask = pred_cls_tp == c
+                        if cls_mask.any():
+                            offs = tp_offsets_filtered[cls_mask]
+                            rmse_per_class[c] = float(np.sqrt(np.mean(offs**2)))
+                        else:
+                            rmse_per_class[c] = 0.0
 
             self.box.center_rmse = rmse_per_class
         self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=len(self.names))
@@ -1319,7 +1352,8 @@ class SegmentMetrics(DetMetrics):
                 keys in self.stats.
         """
         super().update_stats(stat)  # update box stats
-        self.seg.update_image_metrics(stat["tp_m"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
+        im_name = stat.get("im_name", f"image_{len(self.seg.image_metrics)}")
+        self.seg.update_image_metrics(stat["tp_m"], stat["target_cls"], stat["pred_cls"], im_name)
 
     def clear_image_metrics(self) -> None:
         """Clear stored per-image metrics."""
@@ -1475,7 +1509,8 @@ class PoseMetrics(DetMetrics):
                 keys in self.stats.
         """
         super().update_stats(stat)  # update box stats
-        self.pose.update_image_metrics(stat["tp_p"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
+        im_name = stat.get("im_name", f"image_{len(self.pose.image_metrics)}")
+        self.pose.update_image_metrics(stat["tp_p"], stat["target_cls"], stat["pred_cls"], im_name)
 
     def clear_image_metrics(self) -> None:
         """Clear stored per-image metrics."""

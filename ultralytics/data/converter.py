@@ -865,7 +865,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     # Validate required fields before downloading images
     task = dataset_record.get("task", "detect")
-    if not is_classification and not class_names:
+    if not is_classification:
         class_ids = {
             int(label[0])
             for record in image_records
@@ -873,8 +873,13 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             for label in labels
             if label
         }
-        if class_ids:
-            inferred_nc = max(class_ids) + 1
+        if class_ids or class_names:
+            max_class_id = max(class_ids | set(class_names))
+            if class_names:
+                for i in range(max_class_id + 1):
+                    class_names.setdefault(i, f"class{i}")
+            else:
+                inferred_nc = max_class_id + 1
     if not is_classification:
         if "train" not in splits:
             raise ValueError(f"Dataset missing required 'train' split. Found splits: {sorted(splits)}")

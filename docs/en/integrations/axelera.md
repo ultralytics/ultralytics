@@ -106,8 +106,15 @@ For detailed instructions, see our [Ultralytics Installation guide](../quickstar
 
 2. Add the repository to apt:
 
+    Choose the appropriate snippet from below to match the OS being used.
+
     ```bash
-    sudo sh -c "echo 'deb [signed-by=/etc/apt/keyrings/axelera.gpg] https://software.axelera.ai/artifactory/axelera-apt-source/ ubuntu22 main' > /etc/apt/sources.list.d/axelera.list"
+    # Ubuntu 22.04
+    sudo sh -c "echo 'deb [signed-by=/etc/apt/keyrings/axelera.gpg] https://software.axelera.ai/artifactory/axelera-apt-source ubuntu22 main' > /etc/apt/sources.list.d/axelera.list"
+    ```
+    ```bash
+    # Ubuntu 24.04
+    sudo sh -c "echo 'deb [signed-by=/etc/apt/keyrings/axelera.gpg] https://software.axelera.ai/artifactory/axelera-apt-source ubuntu24 main' > /etc/apt/sources.list.d/axelera.list"
     ```
 
 3. Install the SDK and load the driver:
@@ -116,6 +123,15 @@ For detailed instructions, see our [Ultralytics Installation guide](../quickstar
     sudo apt update
     sudo apt install -y metis-dkms=1.4.16
     sudo modprobe metis
+    ```
+
+!!! tip "First run downloads the SDK automatically"
+
+    The first `yolo export format=axelera` or `yolo predict` with an Axelera model will automatically download and install the Axelera SDK packages. This may take several minutes depending on your connection speed, and no progress is shown during the download. To install manually beforehand:
+
+    ```bash
+    pip install axelera-devkit==1.6.0 --extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple
+    pip install axelera-rt==1.6.0 --extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple
     ```
 
 ## Exporting YOLO Models to Axelera

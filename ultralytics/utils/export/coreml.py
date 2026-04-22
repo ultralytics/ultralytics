@@ -9,6 +9,7 @@ import torch
 import torch.nn as nn
 
 from ultralytics.utils import LOGGER
+from ultralytics.utils.checks import check_requirements
 
 
 class IOSDetectModel(nn.Module):
@@ -210,8 +211,6 @@ def torch2coreml(
     bits, mode = (8, "kmeans") if int8 else (16, "linear") if half else (32, None)
     if bits < 32:
         if "kmeans" in mode:
-            from ultralytics.utils.checks import check_requirements
-
             check_requirements("scikit-learn")  # scikit-learn package required for k-means quantization
         if mlmodel:
             ct_model = ct.models.neural_network.quantization_utils.quantize_weights(ct_model, bits, mode)

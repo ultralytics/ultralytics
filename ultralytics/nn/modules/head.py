@@ -480,6 +480,44 @@ class DetectBoxContext(Detect):
         self.cv3 = None
 
 
+class DetectSharedReg(Detect):
+    """Shared regression branch between o2m and o2o; o2o cls is a standard (non-context) head.
+
+    O2o reuses o2m's boxes via detach, so the o2o loss never updates the shared regression branch.
+    O2o cls branch is a duplicated normal cls head (same input shape as o2m cv3).
+    """
+
+    def __init__(self, nc=80, reg_max=16, end2end=False, ch=()):
+        """Initialize with shared regression and standard o2o classification."""
+        super().__init__(nc, reg_max, end2end=False, ch=ch)
+        if end2end:
+            self.one2one_cv2 = self.cv2  # shared reference, no duplication
+            self.one2one_cv3 = copy.deepcopy(self.cv3)
+
+    def forward(self, x):
+        """Forward with shared regression; o2o boxes detached to block reg-branch grads from o2o."""
+        preds = self.forward_head(x, **self.one2many)
+        if self.end2end:
+            bs = x[0].shape[0]
+            x_o2o = [xi.detach() for xi in x]
+            o2o_scores = torch.cat(
+                [self.one2one_cv3[i](x_o2o[i]).view(bs, self.nc, -1) for i in range(self.nl)],
+                dim=-1,
+            )
+            one2one = dict(boxes=preds["boxes"].detach(), scores=o2o_scores, feats=x)
+            preds = {"one2many": preds, "one2one": one2one}
+        if self.training:
+            return preds
+        y = self._inference(preds["one2one"] if self.end2end else preds)
+        if self.end2end:
+            y = self.postprocess(y.permute(0, 2, 1))
+        return y if self.export else (y, preds)
+
+    def fuse(self):
+        """Remove o2m cls head for inference; keep shared cv2 for o2o box predictions."""
+        self.cv3 = None
+
+
 class DetectBoxContextFull(DetectBoxContext):
     """Same as DetectBoxContext but BOTH o2m and o2o cls branches receive box context.
 

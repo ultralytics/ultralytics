@@ -769,6 +769,161 @@ class DetectBoxContextFullSep(DetectBoxContextSep):
         return y if self.export else (y, preds)
 
 
+class DetectROI(Detect):
+    """Two-stage detector: YOLO Detect (stage 1) + RoIAlign MLP head (stage 2).
+
+    Stage 1 (inherited): o2m training + o2o end2end head produce top-N proposals.
+    Stage 2: lateral 1x1 on each FPN level to common channels, RoIAlign at canonical
+    FPN level, shared MLP, class-agnostic box-delta + cls logits. Proposals detached;
+    FPN feats kept live so stage-2 grads reach neck/backbone.
+    Inference: refined box + fused score sqrt(s1 * s2_c1).
+    """
+
+    roi_out = 7
+    roi_ch = 128
+    roi_proposals = 300
+
+    def __init__(self, nc=80, reg_max=16, end2end=False, ch=()):
+        """Initialize stage-1 (forced end2end) + stage-2 RoI head (conv + GAP)."""
+        assert end2end, "DetectROI requires end2end=True (uses o2o proposals)"
+        super().__init__(nc, reg_max, end2end=True, ch=ch)
+        c = self.roi_ch
+        self.roi_lateral = nn.ModuleList(nn.Conv2d(ci, c, 1) for ci in ch)
+        self.roi_head = nn.Sequential(Conv(c, c, 3), Conv(c, c, 3))
+        self.roi_cls = nn.Linear(c, self.nc)
+        self.roi_reg = nn.Linear(c, 4)
+        nn.init.zeros_(self.roi_reg.weight)
+        nn.init.zeros_(self.roi_reg.bias)
+        nn.init.constant_(self.roi_cls.bias, math.log(0.01 / 0.99))
+
+    def _roi_levels(self, wh):
+        """Canonical FPN level per RoI (0..nl-1) from sqrt(area)."""
+        k = 4.0 + torch.log2(torch.sqrt(wh.prod(-1).clamp(min=1.0)) / 224.0)
+        return k.floor().clamp(3, 3 + self.nl - 1).long() - 3
+
+    def _roi_pool_grid(self, proj, rois, lvls):
+        """grid_sample pool (training path): compile-friendly, no torchvision CUDA op."""
+        P = self.roi_out
+        C = self.roi_ch
+        B = proj[0].shape[0]
+        device, dtype = proj[0].device, proj[0].dtype
+        # Per-cell fractional sample positions in [0, 1] (cell centers)
+        t = torch.linspace(0.5 / P, 1.0 - 0.5 / P, P, device=device, dtype=dtype)
+        gy, gx = torch.meshgrid(t, t, indexing="ij")  # (P, P)
+        pooled = proj[0].new_zeros(rois.shape[0], C, P, P)
+        roi_b = rois[:, 0].long()
+        for i in range(self.nl):
+            feat = proj[i]
+            _, _, H, W = feat.shape
+            stride = float(self.stride[i])
+            for b in range(B):
+                mask = (lvls == i) & (roi_b == b)
+                if not mask.any():
+                    continue
+                boxes = rois[mask, 1:5] / stride  # feature-map coords
+                M = boxes.shape[0]
+                x1 = boxes[:, 0:1, None]
+                y1 = boxes[:, 1:2, None]
+                x2 = boxes[:, 2:3, None]
+                y2 = boxes[:, 3:4, None]
+                px = x1 + (x2 - x1) * gx.unsqueeze(0)  # (M, P, P)
+                py = y1 + (y2 - y1) * gy.unsqueeze(0)
+                # Normalize to [-1, 1] (align_corners=False convention)
+                nx = (2.0 * px + 1.0) / W - 1.0
+                ny = (2.0 * py + 1.0) / H - 1.0
+                grid = torch.stack([nx, ny], dim=-1).view(1, M * P, P, 2)
+                sampled = F.grid_sample(
+                    feat[b : b + 1], grid, mode="bilinear", padding_mode="zeros", align_corners=False,
+                )  # (1, C, M*P, P)
+                pooled[mask] = sampled.view(1, C, M, P, P).permute(0, 2, 1, 3, 4).reshape(M, C, P, P)
+        return pooled
+
+    def _roi_pool_align(self, proj, rois, lvls):
+        """torchvision roi_align pool (inference path)."""
+        from torchvision.ops import roi_align
+        P = self.roi_out
+        pooled = proj[0].new_zeros(rois.shape[0], self.roi_ch, P, P)
+        for i in range(self.nl):
+            m = lvls == i
+            if m.any():
+                pooled[m] = roi_align(
+                    proj[i], rois[m], output_size=P,
+                    spatial_scale=1.0 / float(self.stride[i]), sampling_ratio=2, aligned=True,
+                )
+        return pooled
+
+    def _roi_forward(self, feats, rois):
+        """rois (N,5) [b,x1,y1,x2,y2] pixel → refined (N,4), cls (N,nc), deltas (N,4)."""
+        # Guard against stride-discovery build pass (strides not yet set)
+        if float(self.stride.min()) <= 0:
+            n = rois.shape[0]
+            z = rois.new_zeros(n, self.nc)
+            return rois[:, 1:5].clone(), z, rois.new_zeros(n, 4)
+        proj = [self.roi_lateral[i](feats[i]) for i in range(self.nl)]
+        if rois.numel() == 0:
+            z = proj[0].new_zeros(0, self.nc)
+            return proj[0].new_zeros(0, 4), z, proj[0].new_zeros(0, 4)
+        wh = rois[:, 3:5] - rois[:, 1:3]
+        lvls = self._roi_levels(wh)
+        pooled = self._roi_pool_grid(proj, rois, lvls) if self.training else self._roi_pool_align(proj, rois, lvls)
+        h = self.roi_head(pooled).mean(dim=[-2, -1])  # GAP → (N, C)
+        cls_logits = self.roi_cls(h)
+        deltas = self.roi_reg(h)
+        px = (rois[:, 1] + rois[:, 3]) * 0.5
+        py = (rois[:, 2] + rois[:, 4]) * 0.5
+        pw = (rois[:, 3] - rois[:, 1]).clamp(min=1.0)
+        ph = (rois[:, 4] - rois[:, 2]).clamp(min=1.0)
+        dx, dy, dw, dh = deltas.unbind(-1)
+        cx = px + dx * pw
+        cy = py + dy * ph
+        w = pw * dw.clamp(max=4.0).exp()
+        h_ = ph * dh.clamp(max=4.0).exp()
+        refined = torch.stack([cx - w * 0.5, cy - h_ * 0.5, cx + w * 0.5, cy + h_ * 0.5], dim=-1)
+        return refined, cls_logits, deltas
+
+    def _select_proposals(self, preds_o2o):
+        """Decode o2o preds, top-N per image. Returns (B, N, 6) [xyxy, score, cls_idx]."""
+        y = self._inference(preds_o2o)  # (B, 4+nc, A)
+        n = min(self.roi_proposals, y.shape[-1])
+        y = y.permute(0, 2, 1)
+        boxes, scores = y.split([4, self.nc], dim=-1)
+        s, conf, idx = self.get_topk_index(scores, n)
+        boxes = boxes.gather(1, idx.repeat(1, 1, 4))
+        return torch.cat([boxes, s, conf], dim=-1)
+
+    def forward(self, x):
+        """Stage 1 forward + stage-2 RoI refinement on top-N proposals."""
+        out = super().forward(x)
+        # Skip stage-2 during stride-discovery build pass or tiny profile input
+        # (FLOPs scale badly when ultralytics profiles at (stride×stride) then multiplies by (imgsz/stride)²)
+        if float(self.stride.min()) <= 0 or x[0].shape[-1] < 16:
+            return out
+        if self.training:
+            props = self._select_proposals(out["one2one"])  # (B, N, 6)
+            B, N = props.shape[:2]
+            b_idx = torch.arange(B, device=props.device).view(B, 1, 1).expand(-1, N, 1).reshape(-1, 1).float()
+            rois = torch.cat([b_idx, props[..., :4].reshape(-1, 4).detach()], dim=1)
+            refined, cls_logits, deltas = self._roi_forward(x, rois)
+            out["stage2"] = dict(
+                rois=rois, refined=refined, cls_logits=cls_logits, deltas=deltas,
+                prop_score=props[..., 4].reshape(-1), prop_cls=props[..., 5].reshape(-1),
+            )
+            return out
+        y, raw = (out, None) if self.export else out
+        B, N, _ = y.shape
+        b_idx = torch.arange(B, device=y.device).view(B, 1, 1).expand(-1, N, 1).reshape(-1, 1).float()
+        rois = torch.cat([b_idx, y[..., :4].reshape(-1, 4).detach()], dim=1)
+        refined, cls_logits, _ = self._roi_forward(x, rois)
+        refined = refined.view(B, N, 4)
+        s2 = cls_logits.view(B, N, self.nc).sigmoid()
+        cls_idx = y[..., 5].long()
+        s1 = y[..., 4]
+        s2_c = s2.gather(-1, cls_idx.unsqueeze(-1)).squeeze(-1)
+        fused = (s1 * s2_c).clamp(min=0).sqrt()
+        y_out = torch.cat([refined, fused.unsqueeze(-1), cls_idx.float().unsqueeze(-1)], dim=-1)
+        return y_out if self.export else (y_out, raw)
+
+
 class Segment(Detect):
     """YOLO Segment head for segmentation models.
 

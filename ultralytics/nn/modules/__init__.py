@@ -109,6 +109,7 @@ from .head import (
     DetectBoxContextFullSep,
     DetectBoxContextSep,
     DetectNorm,
+    DetectROI,
     LRPCHead,
     Pose,
     Pose26,

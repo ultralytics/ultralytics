@@ -68,6 +68,7 @@ from ultralytics.nn.modules import (
     DetectBoxContextFullSep,
     DetectBoxContextSep,
     DetectNorm,
+    DetectROI,
     DWConv,
     DWConvTranspose2d,
     Focus,
@@ -105,6 +106,7 @@ from ultralytics.utils.checks import check_requirements, check_suffix, check_yam
 from ultralytics.utils.loss import (
     E2ELoss,
     E2ELossNorm,
+    E2ERoILoss,
     PoseLoss26,
     v8ClassificationLoss,
     v8DetectionLoss,
@@ -527,6 +529,8 @@ class DetectionModel(BaseModel):
         """Initialize the loss criterion for the DetectionModel."""
         if isinstance(self.model[-1], DetectNorm):
             return E2ELossNorm(self) if getattr(self, "end2end", False) else v8DetectionLossNorm(self)
+        if isinstance(self.model[-1], DetectROI):
+            return E2ERoILoss(self)
         return E2ELoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
 
 
@@ -1736,6 +1740,7 @@ def parse_model(d, ch, verbose=True):
                 DetectBoxContextFullSep,
                 DetectBoxContextSep,
                 DetectNorm,
+                DetectROI,
                 WorldDetect,
                 YOLOEDetect,
                 Segment,
@@ -1758,6 +1763,7 @@ def parse_model(d, ch, verbose=True):
                 DetectBoxContextFullSep,
                 DetectBoxContextSep,
                 DetectNorm,
+                DetectROI,
                 YOLOEDetect,
                 Segment,
                 Segment26,
@@ -1769,7 +1775,7 @@ def parse_model(d, ch, verbose=True):
                 OBB26,
             }:
                 m.legacy = legacy
-            if m in {Detect, DetectBoxContext, DetectBoxContextFull, DetectBoxContextFullSep, DetectBoxContextSep, DetectNorm}:
+            if m in {Detect, DetectBoxContext, DetectBoxContextFull, DetectBoxContextFullSep, DetectBoxContextSep, DetectNorm, DetectROI}:
                 m.suppress = suppress
                 m.rep_head = rep_head
                 m.no_detach = no_detach

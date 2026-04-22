@@ -14,7 +14,7 @@ from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import autocast
 
-from .metrics import bbox_iou, probiou
+from .metrics import bbox_iou, box_iou, probiou
 from .tal import bbox2dist, rbox2dist
 
 
@@ -1290,6 +1290,82 @@ class E2ELoss:
     def decay(self, x) -> float:
         """Calculate the decayed weight for one-to-many loss based on the current update step."""
         return max(1 - x / max(self.one2one.hyp.epochs - 1, 1), 0) * (self.o2m_copy - self.final_o2m) + self.final_o2m
+
+
+class E2ERoILoss(E2ELoss):
+    """E2ELoss + stage-2 RoI losses (cls BCE, refined-box GIoU) for DetectROI."""
+
+    def __init__(self, model):
+        """Reuse E2ELoss stage-1. Read stage-2 gains from model.args."""
+        super().__init__(model)
+        h = model.args
+        self.roi_cls_gain = getattr(h, "roi_cls", getattr(h, "cls", 1.0))
+        self.roi_box_gain = getattr(h, "roi_box", getattr(h, "box", 7.5))
+        self.roi_pos_iou = getattr(h, "roi_pos_iou", 0.5)
+
+    def __call__(self, preds, batch):
+        """Compute stage-1 + stage-2 losses."""
+        preds_d = self.one2many.parse_output(preds)
+        total, detached = super().__call__(preds, batch)
+        stage2 = preds_d.get("stage2")
+        if stage2 is None:
+            return total, detached
+        feats = preds_d["one2one"]["feats"]
+        s2_loss = self._roi_loss(stage2, feats, batch)
+        return total + s2_loss, detached
+
+    def _roi_loss(self, stage2, feats, batch):
+        """IoU-assign proposals to GT → BCE cls + GIoU refined-box loss."""
+        refined = stage2["refined"]
+        cls_logits = stage2["cls_logits"]
+        rois = stage2["rois"]
+        device = refined.device
+        out = refined.new_zeros(3)
+        if rois.numel() == 0:
+            return out
+
+        stride = self.one2many.stride
+        imgsz = torch.tensor(feats[0].shape[2:], device=device, dtype=refined.dtype) * stride[0]
+        raw = torch.cat((batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"]), 1)
+        B = feats[0].shape[0]
+        tgt = self.one2many.preprocess(raw.to(device), B, scale_tensor=imgsz[[1, 0, 1, 0]])
+        gt_labels, gt_bboxes = tgt.split((1, 4), 2)
+
+        N, nc = cls_logits.shape
+        cls_target = refined.new_zeros(N, nc)
+        box_target = refined.new_zeros(N, 4)
+        pos_mask = torch.zeros(N, dtype=torch.bool, device=device)
+
+        roi_b = rois[:, 0].long()
+        for b in range(B):
+            valid = gt_bboxes[b].sum(-1) > 0
+            if not valid.any():
+                continue
+            sel = roi_b == b
+            if not sel.any():
+                continue
+            g = gt_bboxes[b][valid]
+            lb = gt_labels[b].squeeze(-1)[valid].long()
+            idx_sel = sel.nonzero(as_tuple=True)[0]
+            ious = box_iou(rois[idx_sel, 1:], g)
+            max_iou, argmax = ious.max(dim=1)
+            pos = max_iou >= self.roi_pos_iou
+            if pos.any():
+                pi = idx_sel[pos]
+                pos_mask[pi] = True
+                box_target[pi] = g[argmax[pos]]
+                cls_target[pi, lb[argmax[pos]]] = 1.0
+
+        npos = max(int(pos_mask.sum().item()), 1)
+        cls_loss = F.binary_cross_entropy_with_logits(cls_logits, cls_target, reduction="sum") / npos
+        if pos_mask.any():
+            iou = bbox_iou(refined[pos_mask], box_target[pos_mask], xywh=False, GIoU=True).squeeze(-1)
+            box_loss = (1.0 - iou).mean()
+        else:
+            box_loss = refined.sum() * 0.0
+        out[0] = self.roi_box_gain * box_loss * B
+        out[1] = self.roi_cls_gain * cls_loss * B
+        return out
 
 
 class v8DetectionLossNorm(v8DetectionLoss):

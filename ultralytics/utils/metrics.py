@@ -468,6 +468,9 @@ class ConfusionMatrix(DataExportMixin):
             img (torch.Tensor): Image to plot onto.
             im_file (str): Image filename to save visualizations.
             save_dir (Path): Location to save the visualizations to.
+            show_labels (bool): Whether to display class labels in the visualization.
+            show_conf (bool): Whether to display confidence values in the visualization.
+
         """
         if not self.matches:
             return

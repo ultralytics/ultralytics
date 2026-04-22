@@ -702,6 +702,8 @@ def plot_images(
         max_subplots (int): Maximum number of subplots in the image grid.
         save (bool): Whether to save the plotted image grid to a file.
         conf_thres (float): Confidence threshold for displaying detections.
+        show_labels (bool): Whether to display class labels.
+        show_conf (bool): Whether to display confidence values.
 
     Returns:
         (np.ndarray | None): Plotted image grid as a numpy array if save is False, None otherwise.

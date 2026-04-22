@@ -565,12 +565,20 @@ class Exporter:
             )
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(" ", "")
             q = "int8" if self.args.int8 else "half" if self.args.half else ""  # quantization
+            is_deepx = fmt == "deepx"
+            if is_deepx:
+                dxnn_file = next(Path(f).rglob("*.dxnn"), Path(f))
+                results_path = colorstr("bold", dxnn_file)
+                visualize_line = f"\nVisualize:       dxtron {dxnn_file}"
+            else:
+                results_path = colorstr("bold", file.parent.resolve())
+                visualize_line = f"\nVisualize:       https://netron.app"
             LOGGER.info(
                 f"\nExport complete ({time.time() - t:.1f}s)"
-                f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
+                f"\nResults saved to {results_path}"
                 f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
                 f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}"
-                f"\nVisualize:       https://netron.app"
+                f"{visualize_line}"
             )
 
         self.run_callbacks("on_export_end")

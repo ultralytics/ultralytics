@@ -51,10 +51,6 @@ The `dx_com` compiler package will be automatically installed from the DeepX SDK
 
 ### Usage
 
-!!! note
-
-    Export is currently supported for **detection models** only. Support for additional tasks may be added in future releases.
-
 !!! example "Usage"
 
     === "Python"
@@ -108,13 +104,34 @@ yolo26n_deepx_model/
 
 The `.dxnn` file is the compiled model binary that the `dx_engine` runtime loads directly on the NPU. The `metadata.yaml` contains class names, image size, and other information used by the Ultralytics inference pipeline.
 
+### Visualizing with dxtron
+
+During export, the [dxtron](https://sdk.deepx.ai/) visualizer is automatically installed on x86-64 Linux if not already present. You can use it to inspect your exported model:
+
+```bash
+dxtron yolo26n_deepx_model/yolo26n.dxnn
+```
+
 ## Deploying Exported YOLO DeepX Models
 
 Once you've successfully exported your Ultralytics YOLO model to DeepX format, the next step is deploying these models on DeepX NPU hardware.
 
 ### Installation
 
-The `dx_engine` runtime package is required for inference and will be installed automatically on first use.
+The `dx_engine` runtime package is required for inference on DeepX NPU hardware. The backend will attempt to install it automatically on first use:
+
+1. **Debian Trixie (ARM64)**: Installs automatically via the [Sixfab APT repository](https://github.com/sixfab/sixfab_dx/).
+2. **Other platforms**: The backend automatically downloads and installs the NPU driver and runtime from GitHub, then installs the `dx_engine` wheel from `/usr/share/libdxrt/src/python_package/`.
+
+!!! tip "Controlling install verbosity"
+
+    Set `YOLO_VERBOSE=false` to suppress detailed installation output (dpkg, pip):
+
+    ```bash
+    YOLO_VERBOSE=false python predict_dxnn_deepx.py
+    ```
+
+If automatic installation fails, install the runtime manually:
 
 !!! tip "Installation"
 
@@ -123,6 +140,37 @@ The `dx_engine` runtime package is required for inference and will be installed 
         ```bash
         # Install the required package for YOLO
         pip install ultralytics
+        ```
+
+!!! warning "Manual Runtime Installation (non-Trixie platforms)"
+
+    If the DeepX runtime is not available on your system, install it manually:
+
+    1. **Install the NPU driver:**
+        ```bash
+        # Download from https://github.com/DEEPX-AI/dx_rt_npu_linux_driver/blob/main/release/2.4.0/
+        sudo dpkg -i dxrt-driver-dkms_2.4.0-2_all.deb
+        ```
+
+    2. **Install the runtime library:**
+        ```bash
+        # Download from https://github.com/DEEPX-AI/dx_rt/blob/main/release/3.3.0/
+        sudo dpkg -i libdxrt_3.3.0_all.deb
+        ```
+
+    3. **Install the `dx_engine` Python package:**
+        ```bash
+        pip install /usr/share/libdxrt/src/python_package/dx_engine-*.whl
+        ```
+
+    !!! note "PEP 668 (Python 3.12+)"
+
+        On systems with Python 3.12+, `pip install` outside a virtual environment may fail due to [PEP 668](https://peps.python.org/pep-0668/). Create and activate a virtual environment first:
+
+        ```bash
+        python3 -m venv /path/to/venv
+        source /path/to/venv/bin/activate
+        pip install /usr/share/libdxrt/src/python_package/dx_engine-*.whl
         ```
 
 ### Usage
@@ -206,7 +254,7 @@ DeepX NPUs are designed to execute INT8 computations at maximum efficiency. The 
 
 ### What platforms are supported for DeepX export?
 
-DeepX model export (compilation) requires an **x86-64 Linux** host. The export step is not supported on ARM64/aarch64 machines. Inference using the exported `.dxnn` model can be run on any platform supported by the `dx_engine` runtime.
+DeepX model export (compilation) requires an **x86-64 Linux** host. The export step is not supported on ARM64/aarch64 or Windows machines. Inference using the exported `.dxnn` model can be run on any Linux platform supported by the `dx_engine` runtime (x86-64 and ARM64).
 
 ### What is the output of a DeepX export?
 
@@ -218,8 +266,12 @@ The export creates a directory (e.g., `yolo26n_deepx_model/`) containing:
 
 ### Can I deploy custom-trained models on DeepX hardware?
 
-Yes. Any model trained using [Ultralytics Train Mode](../modes/train.md) and exported with `format="deepx"` can be deployed on DeepX NPU hardware, provided it uses supported layer operations. Export is currently limited to **detection models**.
+Yes. Any model trained using [Ultralytics Train Mode](../modes/train.md) and exported with `format="deepx"` can be deployed on DeepX NPU hardware, provided it uses supported layer operations. Export supports detection, segmentation, pose estimation, oriented bounding box (OBB), and classification tasks.
 
 ### How many calibration images should I use for DeepX export?
 
 The DeepX export pipeline defaults to 100 calibration images using the EMA calibration method. This is generally sufficient for good quantization accuracy. You can adjust the calibration dataset using the `data` and `fraction` arguments, but using more than a few hundred images rarely improves results significantly.
+
+### How do I install the DeepX runtime on non-Trixie platforms?
+
+On platforms other than Debian Trixie (ARM64), the runtime is not auto-installed via APT. You need to manually install the NPU driver (`dxrt-driver-dkms`), runtime library (`libdxrt`), and the `dx_engine` Python wheel. The backend will attempt to find and install the wheel from `/usr/share/libdxrt/src/python_package/` automatically, but if that fails, see the [Manual Runtime Installation](#installation_1) section above for step-by-step instructions. If you encounter PEP 668 errors on Python 3.12+, use a virtual environment.

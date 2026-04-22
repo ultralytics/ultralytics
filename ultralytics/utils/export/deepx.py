@@ -3,10 +3,34 @@
 from __future__ import annotations
 
 import json
+import platform
+import shutil
+import subprocess
+import tempfile
 from pathlib import Path
 
-from ultralytics.utils import LOGGER, YAML
+from ultralytics.utils import LINUX, LOGGER, VERBOSE, YAML
 from ultralytics.utils.checks import check_requirements
+
+
+def _ensure_dxtron(prefix: str = "") -> None:
+    """Install dxtron visualizer if not already present (amd64 Linux only)."""
+    if shutil.which("dxtron"):
+        return
+    if not (LINUX and platform.machine() in ("x86_64", "AMD64")):
+        return
+
+    download_url = "https://sdk.deepx.ai/release/dxtron/v2.0.1/dxtron_2.0.1_amd64.deb"
+    _devnull = {} if VERBOSE else {"stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
+    try:
+        LOGGER.info(f"{prefix} Installing dxtron visualizer from {download_url}...")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            deb_path = Path(tmpdir) / "dxtron_2.0.1_amd64.deb"
+            subprocess.run(["wget", "-q", "-O", str(deb_path), download_url], check=True, timeout=120, **_devnull)
+            subprocess.run(["sudo", "dpkg", "-i", str(deb_path)], check=True, **_devnull)
+        LOGGER.info(f"{prefix} dxtron installed successfully ✅")
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as e:
+        LOGGER.warning(f"{prefix} dxtron installation failed (non-fatal): {e}")
 
 
 def onnx2deepx(
@@ -36,6 +60,8 @@ def onnx2deepx(
     except ImportError:
         check_requirements("dx_com", cmds="-f https://sdk.deepx.ai/release/dxcom/v2.3.0/index.html")
         import dx_com
+
+    _ensure_dxtron(prefix=prefix)
 
     LOGGER.info(f"\n{prefix} starting export with DeepX...")
 

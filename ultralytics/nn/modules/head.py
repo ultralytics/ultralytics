@@ -807,6 +807,7 @@ class DetectROI(Detect):
         C = self.roi_ch
         B = proj[0].shape[0]
         device, dtype = proj[0].device, proj[0].dtype
+        rois = rois.to(dtype)
         # Per-cell fractional sample positions in [0, 1] (cell centers)
         t = torch.linspace(0.5 / P, 1.0 - 0.5 / P, P, device=device, dtype=dtype)
         gy, gx = torch.meshgrid(t, t, indexing="ij")  # (P, P)
@@ -835,7 +836,8 @@ class DetectROI(Detect):
                 sampled = F.grid_sample(
                     feat[b : b + 1], grid, mode="bilinear", padding_mode="zeros", align_corners=False,
                 )  # (1, C, M*P, P)
-                pooled[mask] = sampled.view(1, C, M, P, P).permute(0, 2, 1, 3, 4).reshape(M, C, P, P)
+                sampled = sampled.view(1, C, M, P, P).permute(0, 2, 1, 3, 4).reshape(M, C, P, P)
+                pooled[mask] = sampled.to(pooled.dtype)
         return pooled
 
     def _roi_pool_align(self, proj, rois, lvls):

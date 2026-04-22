@@ -112,6 +112,7 @@ For detailed instructions, see our [Ultralytics Installation guide](../quickstar
     # Ubuntu 22.04
     sudo sh -c "echo 'deb [signed-by=/etc/apt/keyrings/axelera.gpg] https://software.axelera.ai/artifactory/axelera-apt-source ubuntu22 main' > /etc/apt/sources.list.d/axelera.list"
     ```
+
     ```bash
     # Ubuntu 24.04
     sudo sh -c "echo 'deb [signed-by=/etc/apt/keyrings/axelera.gpg] https://software.axelera.ai/artifactory/axelera-apt-source ubuntu24 main' > /etc/apt/sources.list.d/axelera.list"

@@ -163,7 +163,7 @@ Request an Enterprise License for commercial use at [Ultralytics Licensing](http
 
 ## YOLO Licenses: How is Ultralytics YOLO licensed?
 
-<a href="https://www.ultralytics.com/license" target="_blank" rel="noopener noreferrer">
+<a href="https://www.ultralytics.com/license?utm_source=docs.ultralytics.com&utm_medium=referral&utm_content=license_banner" target="_blank" rel="noopener noreferrer">
 <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-license.avif" alt="Ultralytics Enterprise License banner"></a>
 
 Ultralytics offers two licensing options to accommodate diverse use cases:

@@ -1,3 +1,10 @@
+yolo train model=yolo26s-hyp/yolo26s-rep-fpn-simple-sres2xs/weights/last.pt resume device=6
+yolo train model=yolo26s-hyp/yolo26s-rep-fpn-simple-sres-boxctx-sep/weights/last.pt resume device=6
+# yolo train model=yolo26s-hyp/yolo26s-rep-fpn-simple-sres-boxctx-full/weights/last.pt resume
+# yolo train model=yolo26s-hyp/yolo26s-rep-fpn-simple-sres-boxctx/weights/last.pt resume
+# yolo train model=yolo26s-hyp/yolo26s-rep-fpn-simple-sres2xs/weights/last.pt resume
+# ./gpuq add 1 yolo train model=yolo26s-rep-fpn-simple-sres-boxctx-full-sep.yaml name=yolo26s-rep-fpn-simple-sres-boxctx-full-sep device=4 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json
+# ./gpuq add 6 yolo train model=yolo26s-rep-fpn-simple-sres-boxctx-sep.yaml name=yolo26s-rep-fpn-simple-sres-boxctx-sep device=3 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json
 # ./gpuq add 1 yolo train model=yolo26s-rep-fpn-simple-sres2xs.yaml name=yolo26s-rep-fpn-simple-sres2xs device=1 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json
 # ./gpuq add 5 yolo train model=yolo26s-rep-fpn-simple-sres-boxctx-full.yaml name=yolo26s-rep-fpn-simple-sres-boxctx-full device=4 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json
 # ./gpuq add 6 yolo train model=yolo26s-rep-fpn-simple-sres-boxctx.yaml name=yolo26s-rep-fpn-simple-sres-boxctx device=3 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json

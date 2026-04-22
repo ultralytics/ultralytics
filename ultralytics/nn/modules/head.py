@@ -801,61 +801,9 @@ class DetectROI(Detect):
         k = 4.0 + torch.log2(torch.sqrt(wh.prod(-1).clamp(min=1.0)) / 224.0)
         return k.floor().clamp(3, 3 + self.nl - 1).long() - 3
 
-    def _roi_pool_grid(self, proj, rois, lvls):
-        """grid_sample pool (training path): compile-friendly, no torchvision CUDA op."""
-        P = self.roi_out
-        C = self.roi_ch
-        B = proj[0].shape[0]
-        device, dtype = proj[0].device, proj[0].dtype
-        rois = rois.to(dtype)
-        # Per-cell fractional sample positions in [0, 1] (cell centers)
-        t = torch.linspace(0.5 / P, 1.0 - 0.5 / P, P, device=device, dtype=dtype)
-        gy, gx = torch.meshgrid(t, t, indexing="ij")  # (P, P)
-        pooled = proj[0].new_zeros(rois.shape[0], C, P, P)
-        roi_b = rois[:, 0].long()
-        for i in range(self.nl):
-            feat = proj[i]
-            _, _, H, W = feat.shape
-            stride = float(self.stride[i])
-            for b in range(B):
-                mask = (lvls == i) & (roi_b == b)
-                if not mask.any():
-                    continue
-                boxes = rois[mask, 1:5] / stride  # feature-map coords
-                M = boxes.shape[0]
-                x1 = boxes[:, 0:1, None]
-                y1 = boxes[:, 1:2, None]
-                x2 = boxes[:, 2:3, None]
-                y2 = boxes[:, 3:4, None]
-                px = x1 + (x2 - x1) * gx.unsqueeze(0)  # (M, P, P)
-                py = y1 + (y2 - y1) * gy.unsqueeze(0)
-                # Normalize to [-1, 1] (align_corners=False convention)
-                nx = (2.0 * px + 1.0) / W - 1.0
-                ny = (2.0 * py + 1.0) / H - 1.0
-                grid = torch.stack([nx, ny], dim=-1).view(1, M * P, P, 2)
-                sampled = F.grid_sample(
-                    feat[b : b + 1], grid, mode="bilinear", padding_mode="zeros", align_corners=False,
-                )  # (1, C, M*P, P)
-                sampled = sampled.view(1, C, M, P, P).permute(0, 2, 1, 3, 4).reshape(M, C, P, P)
-                pooled[mask] = sampled.to(pooled.dtype)
-        return pooled
-
-    def _roi_pool_align(self, proj, rois, lvls):
-        """torchvision roi_align pool (inference path)."""
-        from torchvision.ops import roi_align
-        P = self.roi_out
-        pooled = proj[0].new_zeros(rois.shape[0], self.roi_ch, P, P)
-        for i in range(self.nl):
-            m = lvls == i
-            if m.any():
-                pooled[m] = roi_align(
-                    proj[i], rois[m], output_size=P,
-                    spatial_scale=1.0 / float(self.stride[i]), sampling_ratio=2, aligned=True,
-                )
-        return pooled
-
     def _roi_forward(self, feats, rois):
         """rois (N,5) [b,x1,y1,x2,y2] pixel → refined (N,4), cls (N,nc), deltas (N,4)."""
+        from torchvision.ops import roi_align
         # Guard against stride-discovery build pass (strides not yet set)
         if float(self.stride.min()) <= 0:
             n = rois.shape[0]
@@ -867,7 +815,14 @@ class DetectROI(Detect):
             return proj[0].new_zeros(0, 4), z, proj[0].new_zeros(0, 4)
         wh = rois[:, 3:5] - rois[:, 1:3]
         lvls = self._roi_levels(wh)
-        pooled = self._roi_pool_grid(proj, rois, lvls) if self.training else self._roi_pool_align(proj, rois, lvls)
+        pooled = proj[0].new_zeros(rois.shape[0], self.roi_ch, self.roi_out, self.roi_out)
+        for i in range(self.nl):
+            m = lvls == i
+            if m.any():
+                pooled[m] = roi_align(
+                    proj[i], rois[m], output_size=self.roi_out,
+                    spatial_scale=1.0 / float(self.stride[i]), sampling_ratio=2, aligned=True,
+                )
         h = self.roi_head(pooled).mean(dim=[-2, -1])  # GAP → (N, C)
         cls_logits = self.roi_cls(h)
         deltas = self.roi_reg(h)

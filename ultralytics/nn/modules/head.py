@@ -101,6 +101,7 @@ class Detect(nn.Module):
     no_detach = False  # allow one2one gradients to flow back to backbone
     o2o_grad_scale = 0.0  # gradient scale for one2one features (0=detach, 1=full gradient)
     o2o_residual_head = False  # lightweight residual cls head for one2one (share boxes with o2m)
+    peak_pool_k = 0  # end2end inference-only local-max suppression kernel (0=off, odd int like 3/5)
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
         """Initialize the YOLO detection layer with specified number of classes and channels.
@@ -257,8 +258,25 @@ class Detect(nn.Module):
             (torch.Tensor): Concatenated tensor of decoded bounding boxes and class probabilities.
         """
         # Inference path
+        if self.end2end and self.peak_pool_k > 0:
+            x = {**x, "scores": self._peak_suppress(x["scores"], x["feats"])}
         dbox = self._get_decode_boxes(x)
         return torch.cat((dbox, x["scores"].sigmoid()), 1)
+
+    def _peak_suppress(self, scores: torch.Tensor, feats: list[torch.Tensor]) -> torch.Tensor:
+        """Zero non-local-max cls logits per level (NMS-free inference dedup)."""
+        k = self.peak_pool_k
+        bs, nc = scores.shape[:2]
+        out, offset = [], 0
+        for f in feats:
+            h, w = f.shape[2:]
+            n = h * w
+            s = scores[..., offset : offset + n].view(bs, nc, h, w)
+            peak = F.max_pool2d(s, k, stride=1, padding=k // 2)
+            s = torch.where(s == peak, s, torch.full_like(s, -10.0))
+            out.append(s.view(bs, nc, n))
+            offset += n
+        return torch.cat(out, dim=-1)
 
     def _get_decode_boxes(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
         """Get decoded boxes based on anchors and strides."""

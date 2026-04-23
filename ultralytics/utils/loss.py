@@ -1217,6 +1217,14 @@ class E2ELoss:
         self.topk2_start = yaml_cfg.get("topk2_start", 3)
         if self.topk_anneal:
             self.one2one.assigner.topk2 = self.topk2_start
+        # TAL beta override for one2one assigner (sharper IoU-weighted matching)
+        o2o_tal_beta = yaml_cfg.get("o2o_tal_beta", None)
+        if o2o_tal_beta is not None:
+            self.one2one.assigner.beta = o2o_tal_beta
+        # Rank-pair penalty: for each GT, top-2 one2one score must fall below top-1 by margin
+        self.rank_pair = yaml_cfg.get("rank_pair", False)
+        self.rank_margin = yaml_cfg.get("rank_margin", 0.5)
+        self.rank_weight = yaml_cfg.get("rank_weight", 1.0)
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
@@ -1240,6 +1248,13 @@ class E2ELoss:
 
         total = loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o
 
+        # Rank-pair penalty on one2one scores
+        if self.rank_pair:
+            rank_pen = self._rank_pair_loss(one2one, batch)
+            rank_component = torch.zeros_like(total)
+            rank_component[1] = rank_pen * self.rank_weight
+            total = total + rank_component
+
         # Soft label distillation: BCE between one2one logits and one2many sigmoid (detached)
         if self.soft_distill:
             with autocast(enabled=False):
@@ -1254,6 +1269,53 @@ class E2ELoss:
             total = total + distill_component
 
         return total, loss_one2one[1]
+
+    def _rank_pair_loss(self, one2one: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> torch.Tensor:
+        """Penalize 2nd-highest one2one score near each GT to enforce single-peak assignment."""
+        scores = one2one["scores"].sigmoid()  # (B, nc, A)
+        feats = one2one["feats"]
+        bs = scores.shape[0]
+        device = scores.device
+
+        anchor_points, stride_tensor = make_anchors(feats, self.one2one.stride, 0.5)
+        centers = anchor_points * stride_tensor  # (A, 2) xy pixel
+        imgsz_h = feats[0].shape[2] * self.one2one.stride[0].item()
+        imgsz_w = feats[0].shape[3] * self.one2one.stride[0].item()
+
+        batch_idx = batch["batch_idx"].view(-1)
+        cls_all = batch["cls"].view(-1).long()
+        bboxes_all = batch["bboxes"]  # (N, 4) xywh normalized
+
+        pen = torch.zeros((), device=device)
+        count = 0
+        for b in range(bs):
+            sel = batch_idx == b
+            if not sel.any():
+                continue
+            cls_b = cls_all[sel]
+            boxes_b = bboxes_all[sel]
+            cx = boxes_b[:, 0] * imgsz_w
+            cy = boxes_b[:, 1] * imgsz_h
+            bw = boxes_b[:, 2] * imgsz_w
+            bh = boxes_b[:, 3] * imgsz_h
+            x1, y1 = cx - bw / 2, cy - bh / 2
+            x2, y2 = cx + bw / 2, cy + bh / 2
+            for g in range(cls_b.shape[0]):
+                in_gt = (
+                    (centers[:, 0] >= x1[g])
+                    & (centers[:, 0] <= x2[g])
+                    & (centers[:, 1] >= y1[g])
+                    & (centers[:, 1] <= y2[g])
+                )
+                if in_gt.sum() < 2:
+                    continue
+                s = scores[b, cls_b[g]][in_gt]
+                top = torch.topk(s, 2).values
+                pen = pen + (top[1] - top[0] + self.rank_margin).clamp(min=0)
+                count += 1
+        if count == 0:
+            return pen
+        return pen / count * bs
 
     @staticmethod
     def _filter_top1_per_gt(fg_mask, target_gt_idx, target_scores):

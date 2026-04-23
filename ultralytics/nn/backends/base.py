@@ -75,8 +75,7 @@ class BaseBackend(ABC):
         raise NotImplementedError
 
     def __call__(self, *args, **kwargs) -> Any:
-        """
-        Invoke the backend's forward pass.
+        """Invoke the backend's forward pass.
 
         Args:
             *args: Positional arguments forwarded to `forward`.

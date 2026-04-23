@@ -73,6 +73,17 @@ class BaseBackend(ABC):
         """
         raise NotImplementedError
 
+    def __call__(self, im: torch.Tensor) -> torch.Tensor | list[torch.Tensor]:
+        """Alias for the forward method to allow direct calling of the backend instance.
+
+        Args:
+            im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
+
+        Returns:
+            (torch.Tensor | list[torch.Tensor]): Model output as a single tensor or list of tensors.
+        """
+        return self.forward(im)
+
     def apply_metadata(self, metadata: dict | None) -> None:
         """Process and apply model metadata to backend attributes.
 

@@ -65,9 +65,10 @@ class TestDetectionHelpers:
             ("efficient_sam3_text_s0_ctx16_fixed.pt", "S0"),
             ("efficient_sam3_text_s1_ctx32_fixed.pt", "S1"),
             ("efficient_sam3_text_l_ctx16_fixed.pt", "L"),
-            ("efficient_sam3_image_encoder_mobileclip_s0_ctx16.pt", "S0"),
-            ("efficient_sam3_image_encoder_mobileclip_s1_ctx16.pt", "S1"),
-            ("efficient_sam3_image_encoder_mobileclip_2_l_ctx16.pt", "L"),
+            # Image-encoder-only checkpoints must NOT be detected as LiteText
+            ("efficient_sam3_image_encoder_mobileclip_s0_ctx16.pt", None),
+            ("efficient_sam3_image_encoder_mobileclip_s1_ctx16.pt", None),
+            ("efficient_sam3_image_encoder_mobileclip_2_l_ctx16.pt", None),
             # Standard SAM3 — must return None
             ("sam3.pt", None),
             ("sam2_b.pt", None),
@@ -130,10 +131,14 @@ class TestTextStudentEncoder:
         assert enc.context_length == 16
 
     def test_positional_embedding_shape(self):
-        """Positional embedding should be built at context_length, not cfg's 77."""
+        """Encoder is built at cfg['context_length'] (77); truncation happens via set_context_length()."""
         enc = self._make_encoder(context_length=16)
         pos_embed = enc.encoder.positional_embedding.pos_embed.pos_embed
-        assert pos_embed.shape[2] == 16, f"Expected 16, got {pos_embed.shape[2]}"
+        assert pos_embed.shape[2] == 77, f"Expected 77 (cfg size before truncation), got {pos_embed.shape[2]}"
+        # After set_context_length the embedding is truncated to the operational length.
+        enc.set_context_length(16)
+        pos_embed = enc.encoder.positional_embedding.pos_embed.pos_embed
+        assert pos_embed.shape[2] == 16, f"Expected 16 after set_context_length, got {pos_embed.shape[2]}"
 
     def test_set_context_length(self):
         enc = self._make_encoder(context_length=32)
@@ -226,9 +231,9 @@ class TestBuildSam3ImageModel:
         from ultralytics.models.sam.sam3.text_encoder_student import TextStudentEncoder
 
         model = build_sam3_image_model(fake_name)
-        assert isinstance(model.backbone.language_backbone, TextStudentEncoder), (
-            f"Expected TextStudentEncoder for {fake_name}"
-        )
+        assert isinstance(
+            model.backbone.language_backbone, TextStudentEncoder
+        ), f"Expected TextStudentEncoder for {fake_name}"
 
     def test_standard_sam3_uses_ve_encoder(self):
         from ultralytics.models.sam.build_sam3 import build_sam3_image_model

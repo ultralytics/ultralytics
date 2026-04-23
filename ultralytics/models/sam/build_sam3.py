@@ -215,6 +215,35 @@ def _create_sam3_transformer() -> TransformerWrapper:
     return TransformerWrapper(encoder=encoder, decoder=decoder, d_model=256)
 
 
+def _peek_litetext_pos_embed_length(checkpoint_path: str) -> int | None:
+    """Inspect a checkpoint file and return the positional-embedding sequence length stored inside.
+
+    LiteText checkpoints come in two formats:
+
+    - ``*_fixed.pt`` — already saved at the **operational** context length (e.g. 16 or 32).
+    - Hypothetical raw checkpoints — saved with the original pre-training length (e.g. 77).
+
+    By peeking at the stored tensor shape we can build ``TextStudentEncoder`` at exactly the
+    right size so that :func:`torch.nn.Module.load_state_dict` never encounters a shape mismatch.
+
+    Args:
+        checkpoint_path (str): Path to the LiteText checkpoint file.
+
+    Returns:
+        (int | None): Detected positional-embedding length, or ``None`` if the key is not found.
+    """
+    try:
+        with open(checkpoint_path, "rb") as f:
+            ckpt = torch_load(f, map_location="cpu", weights_only=False)
+        state = ckpt.get("model", ckpt)
+        for key, val in state.items():
+            if "language_backbone" in key and "positional_embedding.pos_embed.pos_embed" in key:
+                return int(val.shape[2])
+    except Exception:
+        pass
+    return None
+
+
 def _detect_litetext_context_length(checkpoint_path: str, default: int = 16) -> int:
     """Infer the operational context length from the checkpoint filename.
 
@@ -283,8 +312,18 @@ def build_sam3_image_model(
 
     # Create text components
     if litetext_backbone is not None:
+        # Peek at the checkpoint to find the actual positional-embedding length.
+        # "fixed" checkpoints store pos_embed at the operational ctx length (e.g. 16);
+        # raw pre-trained checkpoints store it at the original training length (e.g. 77).
+        # Building the model at the checkpoint's stored length prevents size mismatches in
+        # load_state_dict(); set_context_length() handles truncation afterwards.
+        ckpt_pos_embed_len = _peek_litetext_pos_embed_length(checkpoint_path)
+        if ckpt_pos_embed_len is not None:
+            litetext_cfg = {**_LITETEXT_CONFIGS[litetext_backbone], "context_length": ckpt_pos_embed_len}
+        else:
+            litetext_cfg = _LITETEXT_CONFIGS[litetext_backbone]
         text_encoder = TextStudentEncoder(
-            cfg=_LITETEXT_CONFIGS[litetext_backbone],
+            cfg=litetext_cfg,
             context_length=litetext_context_length,
             output_dim=256,
         )

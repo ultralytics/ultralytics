@@ -1277,45 +1277,35 @@ class E2ELoss:
         bs = scores.shape[0]
         device = scores.device
 
-        anchor_points, stride_tensor = make_anchors(feats, self.one2one.stride, 0.5)
-        centers = anchor_points * stride_tensor  # (A, 2) xy pixel
-        imgsz_h = feats[0].shape[2] * self.one2one.stride[0].item()
-        imgsz_w = feats[0].shape[3] * self.one2one.stride[0].item()
-
-        batch_idx = batch["batch_idx"].view(-1)
+        batch_idx = batch["batch_idx"].view(-1).long()
+        if batch_idx.numel() == 0:
+            return scores.new_zeros(())
         cls_all = batch["cls"].view(-1).long()
         bboxes_all = batch["bboxes"]  # (N, 4) xywh normalized
 
-        pen = torch.zeros((), device=device)
-        count = 0
-        for b in range(bs):
-            sel = batch_idx == b
-            if not sel.any():
-                continue
-            cls_b = cls_all[sel]
-            boxes_b = bboxes_all[sel]
-            cx = boxes_b[:, 0] * imgsz_w
-            cy = boxes_b[:, 1] * imgsz_h
-            bw = boxes_b[:, 2] * imgsz_w
-            bh = boxes_b[:, 3] * imgsz_h
-            x1, y1 = cx - bw / 2, cy - bh / 2
-            x2, y2 = cx + bw / 2, cy + bh / 2
-            for g in range(cls_b.shape[0]):
-                in_gt = (
-                    (centers[:, 0] >= x1[g])
-                    & (centers[:, 0] <= x2[g])
-                    & (centers[:, 1] >= y1[g])
-                    & (centers[:, 1] <= y2[g])
-                )
-                if in_gt.sum() < 2:
-                    continue
-                s = scores[b, cls_b[g]][in_gt]
-                top = torch.topk(s, 2).values
-                pen = pen + (top[1] - top[0] + self.rank_margin).clamp(min=0)
-                count += 1
-        if count == 0:
-            return pen
-        return pen / count * bs
+        anchor_points, stride_tensor = make_anchors(feats, self.one2one.stride, 0.5)
+        centers = anchor_points * stride_tensor  # (A, 2)
+        imgsz_h = feats[0].shape[2] * self.one2one.stride[0].item()
+        imgsz_w = feats[0].shape[3] * self.one2one.stride[0].item()
+
+        cx = bboxes_all[:, 0] * imgsz_w
+        cy = bboxes_all[:, 1] * imgsz_h
+        bw = bboxes_all[:, 2] * imgsz_w
+        bh = bboxes_all[:, 3] * imgsz_h
+        x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2  # (N,)
+
+        ax = centers[:, 0].unsqueeze(0)  # (1, A)
+        ay = centers[:, 1].unsqueeze(0)
+        in_gt = (ax >= x1.unsqueeze(1)) & (ax <= x2.unsqueeze(1)) & (ay >= y1.unsqueeze(1)) & (ay <= y2.unsqueeze(1))  # (N, A)
+
+        sel_scores = scores[batch_idx, cls_all]  # (N, A)
+        masked = sel_scores.masked_fill(~in_gt, float("-inf"))
+        top2 = masked.topk(2, dim=-1).values  # (N, 2)
+        valid = in_gt.sum(-1) >= 2  # (N,)
+        if not valid.any():
+            return scores.new_zeros(())
+        pen = (top2[:, 1] - top2[:, 0] + self.rank_margin).clamp(min=0)
+        return pen[valid].mean() * bs
 
     @staticmethod
     def _filter_top1_per_gt(fg_mask, target_gt_idx, target_scores):

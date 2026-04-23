@@ -180,6 +180,7 @@ def test_patience_progress_bar_string():
 def test_resume_patience_state():
     """Test that early stopping patience state (best_epoch) is correctly restored from a checkpoint."""
     trainer = BaseTrainer.__new__(BaseTrainer)
+    trainer.ema = None
     trainer.stopper = SimpleNamespace(best_epoch=0)
     mock_ckpt = {"best_fitness": 0.95, "best_epoch": 12}
     trainer._load_checkpoint_state(mock_ckpt)

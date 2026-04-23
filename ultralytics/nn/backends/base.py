@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 from abc import ABC, abstractmethod
+from typing import Any
 
 import torch
 
@@ -62,27 +63,29 @@ class BaseBackend(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def forward(self, im: torch.Tensor) -> torch.Tensor | list[torch.Tensor]:
+    def forward(self, im: torch.Tensor) -> Any:
         """Run inference on the input image tensor.
 
         Args:
             im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
 
         Returns:
-            (torch.Tensor | list[torch.Tensor]): Model output as a single tensor or list of tensors.
+            (Any): The raw output from the model's forward pass, which may require post-processing.
         """
         raise NotImplementedError
 
-    def __call__(self, im: torch.Tensor) -> torch.Tensor | list[torch.Tensor]:
-        """Alias for the forward method to allow direct calling of the backend instance.
+    def __call__(self, *args, **kwargs) -> Any:
+        """
+        Invoke the backend's forward pass.
 
         Args:
-            im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
+            *args: Positional arguments forwarded to `forward`.
+            **kwargs: Keyword arguments forwarded to `forward`.
 
         Returns:
-            (torch.Tensor | list[torch.Tensor]): Model output as a single tensor or list of tensors.
+            (Any): The output from the `forward` method.
         """
-        return self.forward(im)
+        return self.forward(*args, **kwargs)
 
     def apply_metadata(self, metadata: dict | None) -> None:
         """Process and apply model metadata to backend attributes.

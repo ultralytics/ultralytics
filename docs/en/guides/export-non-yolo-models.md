@@ -61,7 +61,6 @@ For other formats, swap `torch2onnx` for the target function in the [format tabl
 
     Several export functions accept an optional `metadata` dictionary (e.g., `torch2torchscript(..., metadata={"author": "me"})`) that embeds custom key-value pairs into the exported artifact where the format supports it.
 
-
 ## Step-by-Step Examples
 
 Every example below uses the same setup, a pretrained ResNet-18 from timm in evaluation mode:
@@ -231,6 +230,7 @@ After exporting, verify numerical parity with the original PyTorch model before 
 import numpy as np
 import timm
 import torch
+
 from ultralytics.nn.backends import ONNXBackend
 
 model = timm.create_model("resnet18", pretrained=True).eval()

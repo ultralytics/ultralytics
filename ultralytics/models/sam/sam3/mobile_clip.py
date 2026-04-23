@@ -9,8 +9,25 @@ from typing import List, Optional, Tuple, Union
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from timm.models.layers import DropPath, trunc_normal_
-from torchvision.ops import StochasticDepth
+
+
+class DropPath(nn.Module):
+    """Drop paths (stochastic depth) per sample during training."""
+
+    def __init__(self, drop_prob: float = 0.0) -> None:
+        super().__init__()
+        self.drop_prob = drop_prob
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply stochastic depth by randomly zeroing whole samples."""
+        if self.drop_prob == 0.0 or not self.training:
+            return x
+        keep_prob = 1.0 - self.drop_prob
+        shape = (x.shape[0],) + (1,) * (x.ndim - 1)
+        noise = torch.empty(shape, dtype=x.dtype, device=x.device).bernoulli_(keep_prob)
+        if keep_prob > 0.0:
+            noise.div_(keep_prob)
+        return x * noise
 
 
 # ==============================================================================
@@ -508,7 +525,7 @@ class TransformerEncoder(nn.Module):
             nn.Dropout(p=dropout),
         )
         self.drop_path = (
-            StochasticDepth(p=stochastic_dropout, mode="row") if stochastic_dropout > 0.0 else nn.Identity()
+            DropPath(stochastic_dropout) if stochastic_dropout > 0.0 else nn.Identity()
         )
 
     def forward(
@@ -584,7 +601,7 @@ class ConvFFN(nn.Module):
 
     def _init_weights(self, m: nn.Module) -> None:
         if isinstance(m, nn.Conv2d):
-            trunc_normal_(m.weight, std=0.02)
+            nn.init.trunc_normal_(m.weight, std=0.02)
             if m.bias is not None:
                 nn.init.constant_(m.bias, 0)
 

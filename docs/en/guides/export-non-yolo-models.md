@@ -123,6 +123,7 @@ Requires `openvino>=2024.0.0` (or `>=2025.2.0` on macOS 15.4+) and `torch>=2.1`.
 
 ```python
 import coremltools as ct
+
 from ultralytics.utils.export import torch2coreml
 
 inputs = [ct.TensorType("input", shape=(1, 3, 224, 224))]
@@ -177,6 +178,7 @@ Continuing from the SavedModel export above, convert the returned Keras model to
 
 ```python
 from pathlib import Path
+
 from ultralytics.utils.export import keras2pb
 
 keras2pb(keras_model, output_file=Path("resnet18_saved_model/resnet18.pb"))

@@ -10,8 +10,6 @@ Deploying PyTorch models to production usually means juggling a different export
 
 Ultralytics ships standalone export utilities that wrap multiple backends behind one consistent interface. You can export any `torch.nn.Module`, including [timm](https://github.com/huggingface/pytorch-image-models) image models, [torchvision](https://pytorch.org/vision/) classifiers and detectors, or your own custom architectures, to [ONNX](../integrations/onnx.md), [TorchScript](../integrations/torchscript.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), [NCNN](../integrations/ncnn.md), [PaddlePaddle](../integrations/paddlepaddle.md), [MNN](../integrations/mnn.md), [ExecuTorch](../integrations/executorch.md), and [TensorFlow SavedModel](../integrations/tf-savedmodel.md) without learning each backend separately.
 
-Deploying PyTorch models to production usually means juggling a different exporter for every target: `torch.onnx.export` for ONNX, `coremltools` for Apple devices, `onnx2tf` for TensorFlow, `pnnx` for NCNN, and so on. Each tool has its own API, dependency quirks, and output conventions.
-
 ## Why Use Ultralytics for Non-YOLO Export?
 
 - **One API across 10 formats:** learn a single calling convention instead of a dozen.
@@ -55,11 +53,9 @@ The `torch2*` functions take a standard `torch.nn.Module` and an example input t
 
     [MNN](../integrations/mnn.md), [TF SavedModel](../integrations/tf-savedmodel.md), and TF Frozen Graph exports go through ONNX as an intermediate step. Export to ONNX first, then convert.
 
-
 !!! tip "Embedding metadata"
 
     Several export functions accept an optional `metadata` dictionary (e.g., `torch2torchscript(..., metadata={"author": "me"})`) that embeds custom key-value pairs into the exported artifact where the format supports it.
-
 
 ## Step-by-Step Examples
 
@@ -111,8 +107,13 @@ from ultralytics.utils.export import torch2openvino
 ov_model = torch2openvino(model, im, output_dir="resnet18_openvino_model")
 ```
 
-The directory contains a fixed-name `model.xml` and `model.bin` pair. OpenVINO names the inputs after your model's `forward` argument names (typically `x` for generic models).
+The directory contains a fixed-name `model.xml` and `model.bin` pair:
 
+```
+resnet18_openvino_model/
+├── model.xml
+└── model.bin
+```
 Pass `dynamic=True` for dynamic input shapes, `half=True` for FP16, or `int8=True` for INT8 quantization. INT8 additionally requires a `calibration_dataset` argument.
 
 Requires `openvino>=2024.0.0` (or `>=2025.2.0` on macOS 15.4+) and `torch>=2.1`.
@@ -125,7 +126,7 @@ import coremltools as ct
 from ultralytics.utils.export import torch2coreml
 
 inputs = [ct.TensorType("input", shape=(1, 3, 224, 224))]
-ct_model = torch2coreml(model, inputs, im, classifier_names=None, output_file="resnet18.mlpackage")
+ct_model = torch2coreml(model, inputs, im, output_file="resnet18.mlpackage")
 ```
 
 For [classification](https://www.ultralytics.com/glossary/image-classification) models, pass a list of class names to `classifier_names` to add a classification head to the CoreML model.
@@ -147,7 +148,16 @@ torch2onnx(model, im, output_file="resnet18.onnx")
 keras_model = onnx2saved_model("resnet18.onnx", output_dir="resnet18_saved_model")
 ```
 
-The function returns a Keras model and also generates TFLite files (`.tflite`) inside `resnet18_saved_model/`.
+The function returns a Keras model and also generates TFLite files (`.tflite`) inside the output directory:
+
+```
+resnet18_saved_model/
+├── saved_model.pb
+├── variables/
+├── resnet18_float32.tflite
+├── resnet18_float16.tflite
+└── resnet18_int8.tflite
+```
 
 Requirements:
 
@@ -180,8 +190,16 @@ from ultralytics.utils.export import torch2ncnn
 
 torch2ncnn(model, im, output_dir="resnet18_ncnn_model")
 ```
+The directory contains fixed-name param and bin files along with a Python wrapper:
 
-The directory contains fixed-name `model.ncnn.param` and `model.ncnn.bin` files along with a `model_ncnn.py` wrapper. `torch2ncnn()` checks for `ncnn` and `pnnx` on first use.
+```
+resnet18_ncnn_model/
+├── model.ncnn.param
+├── model.ncnn.bin
+└── model_ncnn.py
+```
+
+`torch2ncnn()` checks for `ncnn` and `pnnx` on first use.
 
 ### Export to MNN
 
@@ -203,6 +221,13 @@ from ultralytics.utils.export import torch2paddle
 
 torch2paddle(model, im, output_dir="resnet18_paddle_model")
 ```
+The directory contains the PaddlePaddle model and parameter files:
+
+```
+resnet18_paddle_model/
+├── model.pdmodel
+└── model.pdiparams
+```
 
 Requires `x2paddle` and the correct PaddlePaddle distribution for your platform:
 
@@ -220,7 +245,14 @@ from ultralytics.utils.export import torch2executorch
 torch2executorch(model, im, output_dir="resnet18_executorch_model")
 ```
 
-The exported `model.pte` file is saved inside `resnet18_executorch_model/`. Requires `torch>=2.9.0` and a matching ExecuTorch runtime (`pip install executorch`). For runtime usage, see the [ExecuTorch integration](../integrations/executorch.md).
+The exported `.pte` file is saved inside the output directory:
+
+```
+resnet18_executorch_model/
+└── model.pte
+```
+
+Requires `torch>=2.9.0` and a matching ExecuTorch runtime (`pip install executorch`). For runtime usage, see the [ExecuTorch integration](../integrations/executorch.md).
 
 ## Verify Your Exported Model
 

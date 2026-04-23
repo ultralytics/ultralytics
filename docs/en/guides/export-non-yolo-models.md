@@ -20,27 +20,6 @@ Deploying PyTorch models to production usually means juggling a different export
 - **FP16 and INT8 quantization** built in for formats that support it (OpenVINO, CoreML, MNN, NCNN).
 - **Works on CPU:** no GPU required for the export step itself, so you can run it locally on any laptop.
 
-## Supported Export Formats
-
-The `torch2*` functions take a standard `torch.nn.Module` and an example input tensor. MNN, TF SavedModel, and TF Frozen Graph go through an intermediate ONNX or Keras artifact. No YOLO-specific attributes are required in either case.
-
-| Format          | Function              | Install                             | Output                         |
-| --------------- | --------------------- | ----------------------------------- | ------------------------------ |
-| ONNX            | `torch2onnx()`        | `pip install onnx`                  | `.onnx` file                   |
-| TorchScript     | `torch2torchscript()` | included with PyTorch               | `.torchscript` file            |
-| OpenVINO        | `torch2openvino()`    | `pip install openvino`              | `_openvino_model/` directory   |
-| CoreML          | `torch2coreml()`      | `pip install coremltools`           | `.mlpackage`                   |
-| TF SavedModel   | `onnx2saved_model()`  | see detailed requirements below     | `_saved_model/` directory      |
-| TF Frozen Graph | `keras2pb()`          | same as TF SavedModel               | `.pb` file                     |
-| NCNN            | `torch2ncnn()`        | `pip install ncnn pnnx`             | `_ncnn_model/` directory       |
-| MNN             | `onnx2mnn()`          | `pip install MNN`                   | `.mnn` file                    |
-| PaddlePaddle    | `torch2paddle()`      | `pip install paddlepaddle x2paddle` | `_paddle_model/` directory     |
-| ExecuTorch      | `torch2executorch()`  | `pip install executorch`            | `_executorch_model/` directory |
-
-!!! note "ONNX as an intermediate format"
-
-    [MNN](../integrations/mnn.md), [TF SavedModel](../integrations/tf-savedmodel.md), and TF Frozen Graph exports go through ONNX as an intermediate step. Export to ONNX first, then convert.
-
 ## Quick Start
 
 The fastest path is a two-line export to [ONNX](../integrations/onnx.md) with no YOLO code and no setup beyond `pip install ultralytics onnx timm`:
@@ -55,7 +34,27 @@ model = timm.create_model("resnet18", pretrained=True).eval()
 torch2onnx(model, torch.randn(1, 3, 224, 224), output_file="resnet18.onnx")
 ```
 
-For other formats, swap `torch2onnx` for the target function in the [format table](#supported-export-formats) above and adjust arguments. For MNN, TF SavedModel, and TF Frozen Graph, follow the two-step ONNX-first flow shown below.
+## Supported Export Formats
+
+The `torch2*` functions take a standard `torch.nn.Module` and an example input tensor. MNN, TF SavedModel, and TF Frozen Graph go through an intermediate ONNX or Keras artifact. No YOLO-specific attributes are required in either case.
+
+| Format          | Function              | Install                                                             | Output                         |
+| --------------- | --------------------- | -----------------------------------                                 | ------------------------------ |
+| ONNX            | `torch2onnx()`        | `pip install onnx`                                                  | `.onnx` file                   |
+| TorchScript     | `torch2torchscript()` | included with PyTorch                                               | `.torchscript` file            |
+| OpenVINO        | `torch2openvino()`    | `pip install openvino`                                              | `_openvino_model/` directory   |
+| CoreML          | `torch2coreml()`      | `pip install coremltools`                                           | `.mlpackage`                   |
+| TF SavedModel   | `onnx2saved_model()`  | [see detailed requirements below](#export-to-tensorflow-savedmodel) | `_saved_model/` directory      |
+| TF Frozen Graph | `keras2pb()`          | [see detailed requirements below](#export-to-tensorflow-savedmodel) | `.pb` file                     |
+| NCNN            | `torch2ncnn()`        | `pip install ncnn pnnx`                                             | `_ncnn_model/` directory       |
+| MNN             | `onnx2mnn()`          | `pip install MNN`                                                   | `.mnn` file                    |
+| PaddlePaddle    | `torch2paddle()`      | `pip install paddlepaddle x2paddle`                                 | `_paddle_model/` directory     |
+| ExecuTorch      | `torch2executorch()`  | `pip install executorch`                                            | `_executorch_model/` directory |
+
+!!! note "ONNX as an intermediate format"
+
+    [MNN](../integrations/mnn.md), [TF SavedModel](../integrations/tf-savedmodel.md), and TF Frozen Graph exports go through ONNX as an intermediate step. Export to ONNX first, then convert.
+
 
 !!! tip "Embedding metadata"
 

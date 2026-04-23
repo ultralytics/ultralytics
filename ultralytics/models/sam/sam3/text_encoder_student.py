@@ -95,6 +95,8 @@ class TextStudentEncoder(nn.Module):
             import clip
 
         # 1. Tokenise using the standard CLIP BPE tokeniser.
+        if device is None:
+            device = next(self.parameters()).device
         tokenized = clip.tokenize(text, context_length=self.context_length, truncate=True).to(device)
 
         # 2. Compute token + positional embeddings.

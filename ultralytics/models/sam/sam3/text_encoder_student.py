@@ -51,11 +51,10 @@ class TextStudentEncoder(nn.Module):
         self.context_length = context_length
 
         # MobileCLIP text transformer (includes embedding layer and positional embedding).
-        # Override context_length in cfg so the positional embedding matches the checkpoint size.
-        # projection_dim=cfg["dim"] means the internal projection has the same dim; we apply
-        # our own projector below to map to SAM3's output_dim.
-        effective_cfg = {**cfg, "context_length": context_length}
-        self.encoder = MobileCLIPTextTransformer(cfg=effective_cfg, projection_dim=cfg["dim"])
+        # Build at the checkpoint's original context_length (cfg["context_length"], typically 77)
+        # so that _load_checkpoint() can restore weights without a size mismatch.
+        # set_context_length() is called after loading to truncate to the operational length.
+        self.encoder = MobileCLIPTextTransformer(cfg=cfg, projection_dim=cfg["dim"])
 
         # Linear projection from MobileCLIP dim to SAM3 d_model.
         self.projector = nn.Linear(cfg["dim"], output_dim)
@@ -73,6 +72,15 @@ class TextStudentEncoder(nn.Module):
         self.context_length = context_length
         if hasattr(self.encoder, "resize_pos_embed"):
             self.encoder.resize_pos_embed(context_length)
+
+    def reparameterize(self) -> None:
+        """Fuse all re-parameterisable RepMixer blocks for faster inference.
+
+        Delegates to :meth:`MobileCLIPTextTransformer.reparameterize`.  Safe to call on all variants;
+        non-MCT checkpoints (S1, L) have no RepMixer blocks and the call is a no-op.
+        Call after weights are loaded and :meth:`set_context_length` has been applied.
+        """
+        self.encoder.reparameterize()
 
     def forward(
         self, text: list, input_boxes=None, device: torch.device | None = None

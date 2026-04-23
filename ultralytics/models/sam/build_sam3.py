@@ -94,7 +94,9 @@ def _detect_litetext_backbone(checkpoint_path: str) -> str | None:
             return "S0"
         return None
     # Original EfficientSAM3 convention: efficient_sam3_text_{s0,s1,l}_ctx*.pt
-    if "efficient_sam3_text" in name or "mobileclip" in name:
+    # Note: reject image-encoder-only filenames (efficient_sam3_image_encoder_mobileclip_*)
+    # which carry SAM3 visual weights only and must not be routed through the LiteText path.
+    if "efficient_sam3_text" in name or ("mobileclip" in name and "image_encoder" not in name):
         if "_l_" in name or "_2_l" in name:
             return "L"
         if "_s1_" in name:

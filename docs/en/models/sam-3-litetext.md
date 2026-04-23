@@ -181,4 +181,4 @@ The `mct` architecture (S0) wraps the first and last two transformer layers with
 
 ??? question "Why does the S0 MCT architecture use RepMixer blocks?"
 
-    RepMixer blocks use a depthwise-separable structure that can be **re-parameterised** (fused) at inference time into a single depthwise convolution, reducing latency. Call `model.backbone.language_backbone.encoder.reparameterize()` after loading weights if you need maximum throughput.
+    RepMixer blocks use a depthwise-separable structure that can be **re-parameterised** (fused) at inference time into a single depthwise convolution, reducing latency. Call `model.backbone.language_backbone.reparameterize()` after loading weights if you need maximum throughput.

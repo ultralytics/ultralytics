@@ -524,9 +524,7 @@ class TransformerEncoder(nn.Module):
             nn.Linear(in_features=ffn_latent_dim, out_features=embed_dim, bias=True),
             nn.Dropout(p=dropout),
         )
-        self.drop_path = (
-            DropPath(stochastic_dropout) if stochastic_dropout > 0.0 else nn.Identity()
-        )
+        self.drop_path = DropPath(stochastic_dropout) if stochastic_dropout > 0.0 else nn.Identity()
 
     def forward(
         self,
@@ -990,6 +988,17 @@ class MobileCLIPTextTransformer(nn.Module):
             token_emb = token_emb[torch.arange(text.shape[0]), text.argmax(dim=-1)]
 
         return token_emb @ self.projection_layer
+
+    def reparameterize(self) -> None:
+        """Fuse all re-parameterisable blocks in the transformer for faster inference.
+
+        Only applies to ``"mct"`` (S0) checkpoints that contain :class:`RepMixerBlock` layers.
+        Safe to call on ``"base"`` checkpoints — those layers are silently skipped.
+        Should be called **after** weights are loaded and :meth:`set_context_length` has been applied.
+        """
+        for layer in self.transformer:
+            if hasattr(layer, "reparameterize"):
+                layer.reparameterize()
 
     def forward(
         self,

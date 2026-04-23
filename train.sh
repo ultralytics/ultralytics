@@ -1,5 +1,7 @@
-yolo train model=yolo26s-hyp/yolo26s-rep-fpn-simple-sres2xs/weights/last.pt resume device=6
-yolo train model=yolo26s-hyp/yolo26s-rep-fpn-simple-sres-boxctx-sep/weights/last.pt resume device=6
+# ./gpuq add 7 -n sharedreg yolo train model=yolo26s-rep-fpn-simple-sres-sharedreg.yaml name=yolo26s-rep-fpn-simple-sres-sharedreg device=4 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json
+# ./gpuq add 7 -n roi yolo train model=yolo26s-rep-fpn-simple-sres-roi.yaml name=yolo26s-rep-fpn-simple-sres-roi device=4 data=coco.yaml epochs=300 exist_ok=True batch=128 mixup=0.05 copy_paste=0.15 scale=0.9 imgsz=640 workers=8 project=yolo26s-hyp save_json
+# yolo train model=yolo26s-hyp/yolo26s-rep-fpn-simple-sres2xs/weights/last.pt resume device=6
+# yolo train model=yolo26s-hyp/yolo26s-rep-fpn-simple-sres-boxctx-sep/weights/last.pt resume device=6
 # yolo train model=yolo26s-hyp/yolo26s-rep-fpn-simple-sres-boxctx-full/weights/last.pt resume
 # yolo train model=yolo26s-hyp/yolo26s-rep-fpn-simple-sres-boxctx/weights/last.pt resume
 # yolo train model=yolo26s-hyp/yolo26s-rep-fpn-simple-sres2xs/weights/last.pt resume

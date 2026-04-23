@@ -75,15 +75,7 @@ class BaseBackend(ABC):
         raise NotImplementedError
 
     def __call__(self, *args, **kwargs) -> Any:
-        """Invoke the backend's forward pass.
-
-        Args:
-            *args: Positional arguments forwarded to `forward`.
-            **kwargs: Keyword arguments forwarded to `forward`.
-
-        Returns:
-            (Any): The output from the `forward` method.
-        """
+        """Allow the backend instance to be called directly to perform inference, forwarding arguments to the `forward` method."""
         return self.forward(*args, **kwargs)
 
     def apply_metadata(self, metadata: dict | None) -> None:

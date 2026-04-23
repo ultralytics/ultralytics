@@ -177,6 +177,18 @@ def test_patience_progress_bar_string():
     trainer.args.patience = 0
     assert trainer._patience_str(epoch=4) == ""
     
+def test_resume_patience_state():
+    """Test that early stopping patience state (best_epoch) is correctly restored from a checkpoint."""
+    trainer = BaseTrainer.__new__(BaseTrainer)
+    trainer.stopper = SimpleNamespace(best_epoch=0)
+    mock_ckpt = {"best_fitness": 0.95, "best_epoch": 12}
+    trainer._load_checkpoint_state(mock_ckpt)
+    assert trainer.stopper.best_epoch == 12, "best_epoch was not restored correctly from the checkpoint."
+    assert trainer.best_fitness == 0.95, "best_fitness was not restored correctly."
+    trainer.stopper.best_epoch = 5  # Reset to a known state
+    legacy_ckpt = {"best_fitness": 0.96}  # Notice 'best_epoch' is missing
+    trainer._load_checkpoint_state(legacy_ckpt)
+    assert trainer.stopper.best_epoch == 5, "best_epoch should not be altered if missing from checkpoint."
     
 def test_train_reuses_loaded_checkpoint_model(monkeypatch):
     """Test training reuses an already-loaded checkpoint model instead of re-parsing the model source."""

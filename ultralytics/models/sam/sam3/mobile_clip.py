@@ -120,9 +120,7 @@ class MobileOneBlock(nn.Module):
             )
         else:
             self.rbr_skip = (
-                nn.BatchNorm2d(num_features=in_channels)
-                if out_channels == in_channels and stride == 1
-                else None
+                nn.BatchNorm2d(num_features=in_channels) if out_channels == in_channels and stride == 1 else None
             )
 
             if num_conv_branches > 0:
@@ -509,7 +507,9 @@ class TransformerEncoder(nn.Module):
             nn.Linear(in_features=ffn_latent_dim, out_features=embed_dim, bias=True),
             nn.Dropout(p=dropout),
         )
-        self.drop_path = StochasticDepth(p=stochastic_dropout, mode="row") if stochastic_dropout > 0.0 else nn.Identity()
+        self.drop_path = (
+            StochasticDepth(p=stochastic_dropout, mode="row") if stochastic_dropout > 0.0 else nn.Identity()
+        )
 
     def forward(
         self,
@@ -955,9 +955,7 @@ class MobileCLIPTextTransformer(nn.Module):
 
         attn_mask = None
         if self.causal_masking:
-            attn_mask = self.build_attention_mask(
-                context_length=token_emb.shape[1], batch_size=token_emb.shape[0]
-            )
+            attn_mask = self.build_attention_mask(context_length=token_emb.shape[1], batch_size=token_emb.shape[0])
             attn_mask = attn_mask.to(device=token_emb.device, dtype=token_emb.dtype)
             key_padding_mask = None
 

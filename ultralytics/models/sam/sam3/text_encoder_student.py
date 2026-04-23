@@ -31,9 +31,17 @@ class TextStudentEncoder(nn.Module):
         output_dim (int): Output dimension (SAM3 d_model, typically 256).
 
     Examples:
-        >>> cfg = {"dim": 512, "model_name": "mct", "n_transformer_layers": 4, "n_heads_per_layer": 8,
-        ...        "ffn_multiplier_per_layer": 4.0, "norm_layer": "layer_norm_fp32",
-        ...        "context_length": 77, "vocab_size": 49408, "causal_masking": False}
+        >>> cfg = {
+        ...     "dim": 512,
+        ...     "model_name": "mct",
+        ...     "n_transformer_layers": 4,
+        ...     "n_heads_per_layer": 8,
+        ...     "ffn_multiplier_per_layer": 4.0,
+        ...     "norm_layer": "layer_norm_fp32",
+        ...     "context_length": 77,
+        ...     "vocab_size": 49408,
+        ...     "causal_masking": False,
+        ... }
         >>> encoder = TextStudentEncoder(cfg, context_length=16, output_dim=256)
         >>> mask, memory, embeds = encoder(["a cat", "a dog"], device=torch.device("cpu"))
     """
@@ -103,15 +111,13 @@ class TextStudentEncoder(nn.Module):
         input_embeds = self.encoder.forward_embedding(tokenized)  # (B, seq_len, dim)
 
         # 3. Run the MobileCLIP transformer (pass pre-computed embeddings to avoid a second embedding lookup).
-        text_memory = self.encoder(
-            input_embeds, return_all_tokens=True, input_is_embeddings=True
-        )  # (B, seq_len, dim)
+        text_memory = self.encoder(input_embeds, return_all_tokens=True, input_is_embeddings=True)  # (B, seq_len, dim)
 
         # 4. Project to SAM3 d_model.
         text_memory = self.projector(text_memory)  # (B, seq_len, output_dim)
 
         # 5. Build attention mask: True = padding (token id == 0), False = valid.
-        text_attention_mask = (tokenized == 0)
+        text_attention_mask = tokenized == 0
 
         # SAM3 VETextEncoder returns (seq_len, B, dim) — match that convention.
         return text_attention_mask, text_memory.transpose(0, 1), input_embeds.transpose(0, 1)

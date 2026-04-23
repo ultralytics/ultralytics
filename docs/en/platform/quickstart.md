@@ -47,11 +47,11 @@ During onboarding, you'll be asked to select your data region. The Platform auto
 
 ![Ultralytics Platform Onboarding Region Map With Latency](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-onboarding-region-map-with-latency.avif)
 
-| Region | Label                        | Location                | Best For                                |
-| ------ | ---------------------------- | ----------------------- | --------------------------------------- |
-| **US** | Americas                     | Iowa, USA               | Americas users, fastest for Americas    |
-| **EU** | Europe, Middle East & Africa | Belgium, Europe         | European users, GDPR compliance         |
-| **AP** | Asia Pacific                 | Hong Kong, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+| Region | Label                        | Location             | Best For                                |
+| ------ | ---------------------------- | -------------------- | --------------------------------------- |
+| **US** | Americas                     | Iowa, USA            | Americas users, fastest for Americas    |
+| **EU** | Europe, Middle East & Africa | Belgium, Europe      | European users, GDPR compliance         |
+| **AP** | Asia Pacific                 | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
 
 !!! warning "Region is Permanent"
 
@@ -241,13 +241,13 @@ From your project, click `Train Model` to start cloud training.
 3. **Set Epochs**: Number of training iterations (default: 100)
 4. **Select GPU**: Choose compute resources based on your budget and model size
 
-| Model   | Size        | Speed    | Accuracy | Recommended GPU      |
-| ------- | ----------- | -------- | -------- | -------------------- |
-| YOLO26n | Nano        | Fastest  | Good     | RTX PRO 6000 (96 GB) |
-| YOLO26s | Small       | Fast     | Better   | RTX PRO 6000 (96 GB) |
-| YOLO26m | Medium      | Moderate | High     | RTX PRO 6000 (96 GB) |
-| YOLO26l | Large       | Slower   | Higher   | A100 (80 GB)         |
-| YOLO26x | Extra Large | Slowest  | Best     | H100 (80 GB)         |
+| Model   | Size        | Speed    | Accuracy | Recommended GPU                                                         |
+| ------- | ----------- | -------- | -------- | ----------------------------------------------------------------------- |
+| YOLO26n | Nano        | Fastest  | Good     | RTX PRO 6000 (96 GB) or RTX 4090 (24 GB)                                |
+| YOLO26s | Small       | Fast     | Better   | RTX PRO 6000 (96 GB)                                                    |
+| YOLO26m | Medium      | Moderate | High     | RTX PRO 6000 (96 GB)                                                    |
+| YOLO26l | Large       | Slower   | Higher   | RTX PRO 6000 (96 GB) or A100 SXM (80 GB)                                |
+| YOLO26x | Extra Large | Slowest  | Best     | H100 SXM (80 GB); H200 (141 GB) or B200 (180 GB) with Pro or Enterprise |
 
 !!! info "GPU Selection"
 

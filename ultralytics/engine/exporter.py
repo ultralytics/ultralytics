@@ -476,7 +476,7 @@ class Exporter:
                 m.agnostic_nms = self.args.agnostic_nms
                 m.xyxy = self.args.nms and fmt != "coreml"
                 m.shape = None  # reset cached shape for new export input size
-                if hasattr(model, "pe") and hasattr(m, "fuse"):  # for YOLOE models
+                if hasattr(model, "pe") and hasattr(m, "fuse") and not hasattr(m, "lrpc"):  # for YOLOE models
                     m.fuse(model.pe.to(self.device))
             elif isinstance(m, C2f) and not is_tf_format:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
@@ -601,9 +601,9 @@ class Exporter:
         from ultralytics.utils.export.torchscript import torch2torchscript
 
         return torch2torchscript(
-            NMSModel(self.model, self.args) if self.args.nms else self.model,
-            self.im,
-            self.file,
+            model=NMSModel(self.model, self.args) if self.args.nms else self.model,
+            im=self.im,
+            output_file=self.file.with_suffix(".torchscript"),
             optimize=self.args.optimize,
             metadata=self.metadata,
             prefix=prefix,
@@ -692,9 +692,9 @@ class Exporter:
     @try_export
     def export_openvino(self, prefix=colorstr("OpenVINO:")):
         """Export YOLO model to OpenVINO format."""
-        from ultralytics.utils.export import torch2openvino
+        from ultralytics.utils.export.openvino import torch2openvino
 
-        # OpenVINO <= 2025.1.0 error on macOS 15.4+: https://github.com/openvinotoolkit/openvino/issues/30023"
+        # OpenVINO <= 2025.1.0 error on macOS 15.4+: https://github.com/openvinotoolkit/openvino/issues/30023
         check_requirements("openvino>=2025.2.0" if MACOS and MACOS_VERSION >= "15.4" else "openvino>=2024.0.0")
         import openvino as ov
 
@@ -757,16 +757,26 @@ class Exporter:
         """Export YOLO model to PaddlePaddle format."""
         from ultralytics.utils.export.paddle import torch2paddle
 
-        return torch2paddle(self.model, self.im, self.file, self.metadata, prefix)
+        return torch2paddle(
+            model=self.model,
+            im=self.im,
+            output_dir=str(self.file).replace(self.file.suffix, f"_paddle_model{os.sep}"),
+            metadata=self.metadata,
+            prefix=prefix,
+        )
 
     @try_export
     def export_mnn(self, prefix=colorstr("MNN:")):
         """Export YOLO model to MNN format using MNN https://github.com/alibaba/MNN."""
         from ultralytics.utils.export.mnn import onnx2mnn
 
-        f_onnx = self.export_onnx()
         return onnx2mnn(
-            f_onnx, self.file, half=self.args.half, int8=self.args.int8, metadata=self.metadata, prefix=prefix
+            onnx_file=self.export_onnx(),
+            output_file=self.file.with_suffix(".mnn"),
+            half=self.args.half,
+            int8=self.args.int8,
+            metadata=self.metadata,
+            prefix=prefix,
         )
 
     @try_export
@@ -775,9 +785,9 @@ class Exporter:
         from ultralytics.utils.export.ncnn import torch2ncnn
 
         return torch2ncnn(
-            self.model,
-            self.im,
-            self.file,
+            model=self.model,
+            im=self.im,
+            output_dir=str(self.file).replace(self.file.suffix, "_ncnn_model/"),
             half=self.args.half,
             metadata=self.metadata,
             device=self.device,
@@ -986,9 +996,7 @@ class Exporter:
         """Export YOLO model to TensorFlow GraphDef *.pb format https://github.com/leimao/Frozen-Graph-TensorFlow."""
         from ultralytics.utils.export.tensorflow import keras2pb
 
-        f = self.file.with_suffix(".pb")
-        keras2pb(keras_model, f, prefix)
-        return f
+        return keras2pb(keras_model, output_file=self.file.with_suffix(".pb"), prefix=prefix)
 
     @try_export
     def export_tflite(self, prefix=colorstr("TensorFlow Lite:")):
@@ -1016,11 +1024,13 @@ class Exporter:
 
         from ultralytics.utils.export.axelera import torch2axelera
 
+        output_dir = self.file.parent / f"{self.file.stem}_axelera_model"
         return torch2axelera(
             model=self.model,
-            file=self.file,
+            output_dir=output_dir,
             calibration_dataset=self.get_int8_calibration_dataloader(prefix),
             transform_fn=self._transform_fn,
+            model_name=self.file.stem,
             metadata=self.metadata,
             prefix=prefix,
         )
@@ -1032,7 +1042,13 @@ class Exporter:
         check_executorch_requirements()
         from ultralytics.utils.export.executorch import torch2executorch
 
-        return torch2executorch(self.model, self.file, self.im, metadata=self.metadata, prefix=prefix)
+        return torch2executorch(
+            model=self.model,
+            im=self.im,
+            output_dir=str(self.file).replace(self.file.suffix, "_executorch_model/"),
+            metadata=self.metadata,
+            prefix=prefix,
+        )
 
     @try_export
     def export_edgetpu(self, tflite_model="", prefix=colorstr("Edge TPU:")):
@@ -1055,10 +1071,9 @@ class Exporter:
         from ultralytics.utils.export.tensorflow import tflite2edgetpu
 
         LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
-        tflite2edgetpu(tflite_file=tflite_model, output_dir=tflite_model.parent, prefix=prefix)
-        f = str(tflite_model).replace(".tflite", "_edgetpu.tflite")  # Edge TPU model
-        self._add_tflite_metadata(f)
-        return f
+        output_file = tflite2edgetpu(tflite_file=tflite_model, output_dir=tflite_model.parent, prefix=prefix)
+        self._add_tflite_metadata(output_file)
+        return output_file
 
     @try_export
     def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
@@ -1066,12 +1081,15 @@ class Exporter:
         check_requirements("tensorflowjs")
         from ultralytics.utils.export.tensorflow import pb2tfjs
 
-        f = str(self.file).replace(self.file.suffix, "_web_model")  # js dir
-        f_pb = str(self.file.with_suffix(".pb"))  # *.pb path
-        pb2tfjs(pb_file=f_pb, output_dir=f, half=self.args.half, int8=self.args.int8, prefix=prefix)
-        # Add metadata
-        YAML.save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml
-        return f
+        output_dir = pb2tfjs(
+            pb_file=str(self.file.with_suffix(".pb")),
+            output_dir=str(self.file).replace(self.file.suffix, "_web_model/"),
+            half=self.args.half,
+            int8=self.args.int8,
+            prefix=prefix,
+        )
+        YAML.save(Path(output_dir) / "metadata.yaml", self.metadata)
+        return output_dir
 
     @try_export
     def export_rknn(self, prefix=colorstr("RKNN:")):
@@ -1080,7 +1098,13 @@ class Exporter:
 
         self.args.opset = min(self.args.opset or 19, 19)  # rknn-toolkit expects opset<=19
         f_onnx = self.export_onnx()
-        return onnx2rknn(f_onnx, name=self.args.name, metadata=self.metadata, prefix=prefix)
+        return onnx2rknn(
+            onnx_file=f_onnx,
+            output_dir=str(self.file).replace(self.file.suffix, f"_rknn_model{os.sep}"),
+            name=self.args.name,
+            metadata=self.metadata,
+            prefix=prefix,
+        )
 
     @try_export
     def export_imx(self, prefix=colorstr("IMX:")):
@@ -1120,11 +1144,11 @@ class Exporter:
                 check_apt_requirements(["openjdk-17-jre"])
 
         return torch2imx(
-            self.model,
-            self.file,
-            self.args.conf,
-            self.args.iou,
-            self.args.max_det,
+            model=self.model,
+            output_dir=str(self.file).replace(self.file.suffix, "_imx_model/"),
+            conf=self.args.conf,
+            iou=self.args.iou,
+            max_det=self.args.max_det,
             metadata=self.metadata,
             dataset=self.get_int8_calibration_dataloader(prefix),
             prefix=prefix,

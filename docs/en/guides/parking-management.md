@@ -109,6 +109,15 @@ Parking management with [Ultralytics YOLO26](https://github.com/ultralytics/ultr
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
+    === "CLI"
+
+        ```bash
+        yolo solutions parking source="path/to/video.mp4" json_file="bounding_boxes.json" show=True
+        ```
+
+        !!! note
+            Create parking zone annotations first using `ParkingPtsSelection()` in Python (Step 2 above), then pass the JSON file to the CLI command.
+
 ### `ParkingManagement` Arguments
 
 Here's a table with the `ParkingManagement` arguments:

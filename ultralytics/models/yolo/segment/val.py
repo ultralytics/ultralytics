@@ -141,6 +141,11 @@ class SegmentationValidator(DetectionValidator):
         prepared_batch["masks"] = masks
         return prepared_batch
 
+    def gather_stats(self) -> None:
+        """Gather stats from all GPUs."""
+        super().gather_stats()  # gather stats from DetectionValidator
+        self._gather_image_metrics(self.metrics.seg)
+
     def _process_batch(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> dict[str, np.ndarray]:
         """Compute correct prediction matrix for a batch based on bounding boxes and optional masks.
 

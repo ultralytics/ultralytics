@@ -731,7 +731,7 @@ auto_annotate(
 )
 ```
 
-For more details, check the [auto_annotate reference section](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate).
+For more details, check the [auto_annotate reference section](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate), or use [Ultralytics Platform](https://platform.ultralytics.com/) as a hosted, no-code alternative with click-based masking via [SAM 2.1](../models/sam-2.md) or [SAM 3](../models/sam-3.md), or predictions from pretrained and fine-tuned YOLO models for detect, segment, and OBB tasks.
 
 ### How do I convert COCO dataset annotations to YOLO format in Ultralytics?
 
@@ -750,9 +750,9 @@ convert_coco(
 
 For additional information, visit the [convert_coco reference page](../reference/data/converter.md#ultralytics.data.converter.convert_coco).
 
-### What is the purpose of the YOLO Data Explorer in the Ultralytics package?
+### How can I analyze my dataset composition and distribution?
 
-The [YOLO Explorer](../datasets/explorer/index.md) is a powerful tool introduced in the `8.1.0` update to enhance dataset understanding. It allows you to use text queries to find object instances in your dataset, making it easier to analyze and manage your data. This tool provides valuable insights into dataset composition and distribution, helping to improve model training and performance.
+[Ultralytics Platform](https://platform.ultralytics.com/) provides automatic dataset analytics: the `Charts` tab shows split distribution, top class counts, image-dimension histograms, and 2D heatmaps of annotation positions, helping you spot imbalances and outliers before training.
 
 ### How can I convert bounding boxes to segments in Ultralytics?
 

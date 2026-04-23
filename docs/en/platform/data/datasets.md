@@ -6,7 +6,7 @@ keywords: Ultralytics Platform, datasets, dataset management, dataset versioning
 
 # Datasets
 
-[Ultralytics Platform](https://platform.ultralytics.com) datasets provide a streamlined solution for managing your training data. After upload, the platform processes images, labels, and statistics automatically. A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, and at least one labeled image.
+[Ultralytics Platform](https://platform.ultralytics.com) datasets provide a streamlined solution for managing your training data. After upload, the platform processes images, labels, and statistics automatically. A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, at least one labeled image, and a total of at least two images.
 
 ## Upload Dataset
 
@@ -234,28 +234,31 @@ Images can be sorted and filtered for efficient browsing:
 
 === "Sort Options"
 
-    | Sort            | Description          |
-    | --------------- | -------------------- |
-    | Newest          | Most recently added  |
-    | Oldest          | Earliest added       |
-    | Name A-Z        | Alphabetical         |
-    | Name Z-A        | Reverse alphabetical |
-    | Size (smallest) | Smallest files first |
-    | Size (largest)  | Largest files first  |
-    | Most labels     | Most annotations     |
-    | Fewest labels   | Fewest annotations   |
+    | Sort                 | Description                  |
+    | -------------------- | ---------------------------- |
+    | Newest / Oldest      | Upload / creation order      |
+    | Name A-Z / Z-A       | Filename alphabetical        |
+    | Height ↑/↓           | Image height in pixels       |
+    | Width ↑/↓            | Image width in pixels        |
+    | Size ↑/↓             | File size on disk            |
+    | Annotations ↑/↓      | Annotation count per image   |
+
+    !!! note "Large Datasets"
+
+        For datasets over 100,000 images, name / size / width / height sorts are disabled to keep the gallery responsive. Newest, oldest, and annotation-count sorts remain available.
 
 === "Filters"
 
-    | Filter           | Options                            |
-    | ---------------- | ---------------------------------- |
-    | **Split filter** | Train, Val, Test, or All           |
-    | **Label filter** | All images, Annotated, or Unannotated |
-    | **Search**       | Filter images by filename          |
+    | Filter           | Options                             |
+    | ---------------- | ----------------------------------- |
+    | **Split filter** | Train, Val, Test, or All            |
+    | **Label filter** | All, Labeled, or Unlabeled          |
+    | **Class filter** | Filter by class name                |
+    | **Search**       | Filter images by filename           |
 
 !!! tip "Finding Unlabeled Images"
 
-    Use the label filter set to `Unannotated` to quickly find images that still need annotation. This is especially useful for large datasets where you want to track labeling progress.
+    Use the label filter set to `Unlabeled` to quickly find images that still need annotation. This is especially useful for large datasets where you want to track labeling progress.
 
 ### Fullscreen Viewer
 
@@ -268,7 +271,9 @@ Click any image to open the fullscreen viewer with:
 - **Edit**: Enter annotation mode to add or modify labels
 - **Download**: Download the original image file
 - **Delete**: Delete the image from the dataset
-- **Zoom**: `Cmd/Ctrl+Scroll` to zoom in/out
+- **Zoom**: `Cmd/Ctrl+Scroll`, `Cmd/Ctrl++`, or `Cmd/Ctrl+=` to zoom in, and `Cmd/Ctrl+-` to zoom out
+- **Reset view**: `Cmd/Ctrl + 0` or the reset button to fit the image to the viewer
+- **Pan**: Hold `Space` and drag to pan the canvas when zoomed
 - **Pixel view**: Toggle pixelated rendering for close inspection
 
 ![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-fullscreen-viewer-with-metadata-panel.avif)

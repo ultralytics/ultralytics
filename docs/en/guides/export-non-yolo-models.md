@@ -37,7 +37,7 @@ torch2onnx(model, torch.randn(1, 3, 224, 224), output_file="resnet18.onnx")
 The `torch2*` functions take a standard `torch.nn.Module` and an example input tensor. MNN, TF SavedModel, and TF Frozen Graph go through an intermediate ONNX or Keras artifact. No YOLO-specific attributes are required in either case.
 
 | Format          | Function              | Install                                                             | Output                         |
-| --------------- | --------------------- | -----------------------------------                                 | ------------------------------ |
+| --------------- | --------------------- | ------------------------------------------------------------------- | ------------------------------ |
 | ONNX            | `torch2onnx()`        | `pip install onnx`                                                  | `.onnx` file                   |
 | TorchScript     | `torch2torchscript()` | included with PyTorch                                               | `.torchscript` file            |
 | OpenVINO        | `torch2openvino()`    | `pip install openvino`                                              | `_openvino_model/` directory   |
@@ -114,6 +114,7 @@ resnet18_openvino_model/
 ├── model.xml
 └── model.bin
 ```
+
 Pass `dynamic=True` for dynamic input shapes, `half=True` for FP16, or `int8=True` for INT8 quantization. INT8 additionally requires a `calibration_dataset` argument.
 
 Requires `openvino>=2024.0.0` (or `>=2025.2.0` on macOS 15.4+) and `torch>=2.1`.
@@ -190,6 +191,7 @@ from ultralytics.utils.export import torch2ncnn
 
 torch2ncnn(model, im, output_dir="resnet18_ncnn_model")
 ```
+
 The directory contains fixed-name param and bin files along with a Python wrapper:
 
 ```
@@ -221,6 +223,7 @@ from ultralytics.utils.export import torch2paddle
 
 torch2paddle(model, im, output_dir="resnet18_paddle_model")
 ```
+
 The directory contains the PaddlePaddle model and parameter files:
 
 ```

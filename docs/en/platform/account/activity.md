@@ -124,7 +124,7 @@ Each event displays:
 Some actions support undo directly from the Activity feed:
 
 - **Settings changes**: Click **Undo** next to a recent settings update event to revert the change
-- Undo is available for a short time window after the action
+- Undo is available for **one hour** after the action; after that, the undo button disappears
 
 ## Pagination
 

@@ -93,6 +93,7 @@ This logs the mean F1 score across all classes and a per-class breakdown after e
     | Attribute | Description |
     |---|---|
     | `f1` | F1 score per class |
+    | `image_metrics` | Per-image metrics dictionary with precision, recall, F1, TP, FP, and FN |
     | `p` | Precision per class |
     | `r` | Recall per class |
     | `ap50` | AP at IoU 0.5 per class |

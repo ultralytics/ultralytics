@@ -225,21 +225,21 @@ The exported `model.pte` file is saved inside `resnet18_executorch_model/`. Requ
 
 ## Verify Your Exported Model
 
-After exporting, verify numerical parity with the original PyTorch model before shipping. A quick smoke test with ONNX Runtime (`pip install onnxruntime`) compares outputs and flags tracing or quantization errors early:
+After exporting, verify numerical parity with the original PyTorch model before shipping. A quick smoke test with `ONNXBackend` from `ultralytics.nn.backends` compares outputs and flags tracing or quantization errors early:
 
 ```python
 import numpy as np
-import onnxruntime as ort
 import timm
 import torch
+from ultralytics.nn.backends import ONNXBackend
 
 model = timm.create_model("resnet18", pretrained=True).eval()
 im = torch.randn(1, 3, 224, 224)
 with torch.no_grad():
     pytorch_output = model(im).numpy()
 
-session = ort.InferenceSession("resnet18.onnx")
-onnx_output = session.run(None, {"images": im.numpy()})[0]
+onnx_model = ONNXBackend("resnet18.onnx", device=torch.device("cpu"))
+onnx_output = onnx_model.forward(im)[0]
 
 diff = np.abs(pytorch_output - onnx_output).max()
 print(f"Max difference: {diff:.6f}")  # should be < 1e-5

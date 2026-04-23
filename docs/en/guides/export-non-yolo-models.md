@@ -8,13 +8,15 @@ keywords: export PyTorch model, convert PyTorch to ONNX, PyTorch to CoreML, PyTo
 
 Deploying PyTorch models to production usually means juggling a different exporter for every target: `torch.onnx.export` for ONNX, `coremltools` for Apple devices, `onnx2tf` for TensorFlow, `pnnx` for NCNN, and so on. Each tool has its own API, dependency quirks, and output conventions.
 
-Ultralytics ships standalone export utilities that wrap all of these behind one consistent interface. You can export any `torch.nn.Module`, including [timm](https://github.com/huggingface/pytorch-image-models) image models, [torchvision](https://pytorch.org/vision/) classifiers and detectors, or your own custom architectures, to [ONNX](../integrations/onnx.md), [TorchScript](../integrations/torchscript.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), [NCNN](../integrations/ncnn.md), [PaddlePaddle](../integrations/paddlepaddle.md), [MNN](../integrations/mnn.md), [ExecuTorch](../integrations/executorch.md), and [TensorFlow SavedModel](../integrations/tf-savedmodel.md) without learning each backend separately.
+Ultralytics ships standalone export utilities that wrap multiple backends behind one consistent interface. You can export any `torch.nn.Module`, including [timm](https://github.com/huggingface/pytorch-image-models) image models, [torchvision](https://pytorch.org/vision/) classifiers and detectors, or your own custom architectures, to [ONNX](../integrations/onnx.md), [TorchScript](../integrations/torchscript.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), [NCNN](../integrations/ncnn.md), [PaddlePaddle](../integrations/paddlepaddle.md), [MNN](../integrations/mnn.md), [ExecuTorch](../integrations/executorch.md), and [TensorFlow SavedModel](../integrations/tf-savedmodel.md) without learning each backend separately.
+
+Deploying PyTorch models to production usually means juggling a different exporter for every target: `torch.onnx.export` for ONNX, `coremltools` for Apple devices, `onnx2tf` for TensorFlow, `pnnx` for NCNN, and so on. Each tool has its own API, dependency quirks, and output conventions.
 
 ## Why Use Ultralytics for Non-YOLO Export?
 
 - **One API across 10 formats:** learn a single calling convention instead of a dozen.
 - **Shared utility surface:** the export helpers live under `ultralytics.utils.export`, so once the backend packages are installed you can keep the same calling pattern across formats.
-- **Production-tested:** the same export code path powers every Ultralytics YOLO export.
+- **Same code path as YOLO exports:** the same helpers power every Ultralytics YOLO export.
 - **FP16 and INT8 quantization** built in for formats that support it (OpenVINO, CoreML, MNN, NCNN).
 - **Works on CPU:** no GPU required for the export step itself, so you can run it locally on any laptop.
 
@@ -54,6 +56,11 @@ torch2onnx(model, torch.randn(1, 3, 224, 224), output_file="resnet18.onnx")
 ```
 
 For other formats, swap `torch2onnx` for the target function in the [format table](#supported-export-formats) above and adjust arguments. For MNN, TF SavedModel, and TF Frozen Graph, follow the two-step ONNX-first flow shown below.
+
+!!! tip "Embedding metadata"
+
+    Several export functions accept an optional `metadata` dictionary (e.g., `torch2torchscript(..., metadata={"author": "me"})`) that embeds custom key-value pairs into the exported artifact where the format supports it.
+
 
 ## Step-by-Step Examples
 
@@ -107,7 +114,7 @@ ov_model = torch2openvino(model, im, output_dir="resnet18_openvino_model")
 
 The directory contains a fixed-name `model.xml` and `model.bin` pair. OpenVINO names the inputs after your model's `forward` argument names (typically `x` for generic models).
 
-Pass `half=True` for FP16 or `int8=True` for INT8 quantization. INT8 additionally requires a `calibration_dataset` argument.
+Pass `dynamic=True` for dynamic input shapes, `half=True` for FP16, or `int8=True` for INT8 quantization. INT8 additionally requires a `calibration_dataset` argument.
 
 Requires `openvino>=2024.0.0` (or `>=2025.2.0` on macOS 15.4+) and `torch>=2.1`.
 
@@ -246,7 +253,7 @@ For other runtimes, the input tensor name may differ. OpenVINO, for example, use
 
 ## Known Limitations
 
-- **Multi-input support is uneven**: `torch2onnx`, `torch2openvino`, and `torch2torchscript` accept a tuple or list of example tensors for models with multiple inputs. `torch2coreml`, `torch2ncnn`, `torch2paddle`, and `torch2executorch` assume a single input tensor.
+- **Multi-input support is uneven**: `torch2onnx` and `torch2openvino` accept a tuple or list of example tensors for models with multiple inputs. `torch2torchscript`, `torch2coreml`, `torch2ncnn`, `torch2paddle`, and `torch2executorch` assume a single input tensor.
 - **ExecuTorch needs `flatc`**: The ExecuTorch runtime requires the FlatBuffers compiler. Install with `brew install flatbuffers` on macOS or `apt install flatbuffers-compiler` on Ubuntu.
 - **No inference via Ultralytics**: Exported non-YOLO models cannot be loaded back through `YOLO()` for inference. Use the native runtime for each format ([ONNX Runtime](../integrations/onnx.md), [OpenVINO Runtime](../integrations/openvino.md), etc.).
 - **YOLO-only formats**: [Axelera](../integrations/axelera.md) and [Sony IMX500](../integrations/sony-imx500.md) exports require YOLO-specific model attributes and are not available for generic models.
@@ -256,15 +263,15 @@ For other runtimes, the input tensor name may differ. OpenVINO, for example, use
 
 ### What models can I export with Ultralytics?
 
-Any `torch.nn.Module`. This includes models from timm, torchvision, or any custom PyTorch model. The model must be in evaluation mode (`model.eval()`) before export. ONNX, OpenVINO, and TorchScript additionally accept a tuple of example tensors for multi-input models.
+Any `torch.nn.Module`. This includes models from timm, torchvision, or any custom PyTorch model. The model must be in evaluation mode (`model.eval()`) before export. ONNX and OpenVINO additionally accept a tuple of example tensors for multi-input models.
 
 ### Which export formats work without a GPU?
 
-All supported formats (TorchScript, ONNX, OpenVINO, CoreML, TF SavedModel, NCNN, PaddlePaddle, MNN, ExecuTorch) can export on CPU. No GPU is required for the export process itself. TensorRT is the only format that requires an NVIDIA GPU.
+All supported formats (TorchScript, ONNX, OpenVINO, CoreML, TF SavedModel, TF Frozen Graph, NCNN, PaddlePaddle, MNN, ExecuTorch) can export on CPU. No GPU is required for the export process itself. TensorRT is the only format that requires an NVIDIA GPU.
 
 ### What Ultralytics version do I need?
 
-Use a recent Ultralytics release that includes the `ultralytics.utils.export` module and the standardized `output_file`/`output_dir` arguments.
+Use Ultralytics `>=8.4.38`, which includes the `ultralytics.utils.export` module and the standardized `output_file`/`output_dir` arguments.
 
 ### Can I export a torchvision model to CoreML for iOS deployment?
 

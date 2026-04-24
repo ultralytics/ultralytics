@@ -17,6 +17,7 @@ Examples:
     >>> subprocess.run(f"onnxslim {f} {f} && open {f}", shell=True, check=True)  # pip install onnxslim
 """
 
+from .activation import AGLU
 from .block import (
     C1,
     C2,
@@ -107,6 +108,7 @@ from .transformer import (
 )
 
 __all__ = (
+    "AGLU",
     "AIFI",
     "C1",
     "C2",

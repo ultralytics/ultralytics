@@ -657,7 +657,9 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
         if url is None:
             return []  # Not found, soft fail (consistent with file search behavior)
         # Use URI path for unique directory structure: ul://user/project/model -> user/project/model/filename.pt
-        uri_path = file[5:]  # Remove "ul://"
+        uri_path = Path(file[5:])  # Remove "ul://"
+        if uri_path.is_absolute() or ".." in uri_path.parts:
+            raise ValueError(f"Unsafe Ultralytics Platform URI path: {file}")
         local_file = Path(download_dir) / uri_path / url2file(url)
         # Always re-download NDJSON datasets (cheap, ensures fresh data after updates)
         if local_file.suffix == ".ndjson":

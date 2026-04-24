@@ -3,6 +3,8 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 # Modified for EfficientSAM3 and ported into Ultralytics by SimonZeng7108528.
 
+from __future__ import annotations
+
 import torch
 import torch.nn as nn
 
@@ -47,6 +49,7 @@ class TextStudentEncoder(nn.Module):
     """
 
     def __init__(self, cfg: dict, context_length: int, output_dim: int) -> None:
+        """Initialize TextStudentEncoder with backbone encoder and linear projection head."""
         super().__init__()
         self.context_length = context_length
 

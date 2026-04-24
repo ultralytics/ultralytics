@@ -21,12 +21,8 @@ import torch
 # Helpers
 # ---------------------------------------------------------------------------
 
-_DEFAULT_CKPT = os.environ.get(
-    "SAM3_LITETEXT_CKPT",
-    "/home/simon7108528_msi_linux/e-drive/side_projects/ultralytics/sam3_litetext"
-    "/checkpoints/sam3_litetext/efficient_sam3_text_s0_ctx16_fixed.pt",
-)
-_CKPT_AVAILABLE = os.path.isfile(_DEFAULT_CKPT)
+_DEFAULT_CKPT = os.environ.get("SAM3_LITETEXT_CKPT", "")
+_CKPT_AVAILABLE = bool(_DEFAULT_CKPT) and os.path.isfile(_DEFAULT_CKPT)
 
 _TEST_IMAGE = os.path.join(os.path.dirname(__file__), "..", "..", "dog_person.jpeg")
 # Fallback to any ultralytics asset if the bespoke image isn't there
@@ -47,6 +43,7 @@ class TestDetectionHelpers:
     """Tests for the filename-based auto-detection helpers in build_sam3."""
 
     def setup_method(self):
+        """Load detection helper functions from build_sam3."""
         from ultralytics.models.sam.build_sam3 import _detect_litetext_backbone, _detect_litetext_context_length
 
         self.detect_backbone = _detect_litetext_backbone
@@ -76,6 +73,7 @@ class TestDetectionHelpers:
         ],
     )
     def test_detect_backbone(self, name, expected):
+        """Verify backbone detection from the checkpoint filename."""
         assert self.detect_backbone(name) == expected
 
     def test_detect_backbone_ignores_directory_name(self):
@@ -95,9 +93,11 @@ class TestDetectionHelpers:
         ],
     )
     def test_detect_context_length(self, name, expected):
+        """Verify context length detection from the checkpoint filename."""
         assert self.detect_ctx(name) == expected
 
     def test_detect_context_length_custom_default(self):
+        """Verify the custom default is returned when context cannot be detected."""
         assert self.detect_ctx("sam3.pt", default=32) == 32
 
 
@@ -127,6 +127,7 @@ class TestTextStudentEncoder:
         return TextStudentEncoder(cfg=self._S0_CFG, context_length=context_length, output_dim=output_dim)
 
     def test_instantiation(self):
+        """Verify TextStudentEncoder is instantiated with the correct context length."""
         enc = self._make_encoder()
         assert enc.context_length == 16
 
@@ -141,6 +142,7 @@ class TestTextStudentEncoder:
         assert pos_embed.shape[2] == 16, f"Expected 16 after set_context_length, got {pos_embed.shape[2]}"
 
     def test_set_context_length(self):
+        """Verify set_context_length updates context_length and positional embedding."""
         enc = self._make_encoder(context_length=32)
         enc.set_context_length(16)
         assert enc.context_length == 16
@@ -148,6 +150,7 @@ class TestTextStudentEncoder:
         assert pos_embed.shape[2] == 16
 
     def test_forward_output_shapes(self):
+        """Verify forward pass returns correctly-shaped (mask, memory, embeds) tensors."""
         enc = self._make_encoder(context_length=16, output_dim=256)
         enc.eval()
         texts = ["a cat", "a dog"]
@@ -159,6 +162,7 @@ class TestTextStudentEncoder:
         assert embeds.shape[1] == B, f"embeds dim-1 should be B={B}"
 
     def test_forward_mask_is_bool(self):
+        """Verify the attention mask returned by forward() is a boolean tensor."""
         enc = self._make_encoder()
         enc.eval()
         with torch.no_grad():
@@ -183,6 +187,7 @@ class TestLitetextConfigs:
     """Test that _LITETEXT_CONFIGS covers all three variants with correct dims."""
 
     def test_configs_exist(self):
+        """Verify _LITETEXT_CONFIGS contains all three backbone variants."""
         from ultralytics.models.sam.build_sam3 import _LITETEXT_CONFIGS
 
         assert set(_LITETEXT_CONFIGS) == {"S0", "S1", "L"}
@@ -196,6 +201,7 @@ class TestLitetextConfigs:
         ],
     )
     def test_config_values(self, variant, expected_dim, expected_layers):
+        """Verify embed dim and layer count for each backbone variant."""
         from ultralytics.models.sam.build_sam3 import _LITETEXT_CONFIGS
 
         cfg = _LITETEXT_CONFIGS[variant]
@@ -204,7 +210,129 @@ class TestLitetextConfigs:
 
 
 # ---------------------------------------------------------------------------
-# 4. build_sam3_image_model – architecture check (no weights loaded)
+# 4. reparameterize() – no weights needed
+# ---------------------------------------------------------------------------
+
+
+class TestReparameterize:
+    """Tests for reparameterize() on RepMixerBlock, MobileCLIPTextTransformer, and TextStudentEncoder."""
+
+    _MCT_CFG = {
+        "dim": 512,
+        "model_name": "mct",
+        "n_transformer_layers": 4,
+        "n_heads_per_layer": 8,
+        "ffn_multiplier_per_layer": 4.0,
+        "norm_layer": "layer_norm_fp32",
+        "context_length": 16,
+        "vocab_size": 49408,
+        "causal_masking": False,
+    }
+
+    def test_repmixer_blocks_are_fused_after_reparameterize(self):
+        """RepMixerBlock.token_mixer must have reparam_conv after reparameterize()."""
+        from ultralytics.models.sam.sam3.mobile_clip import MobileCLIPTextTransformer, RepMixerBlock
+
+        enc = MobileCLIPTextTransformer(cfg=self._MCT_CFG, projection_dim=512)
+        enc.eval()
+        enc.reparameterize()
+
+        repmixer_layers = [ly for ly in enc.transformer if isinstance(ly, RepMixerBlock)]
+        assert len(repmixer_layers) == 2, "MCT should have 2 RepMixerBlock bookend layers"
+        for layer in repmixer_layers:
+            assert hasattr(
+                layer.token_mixer, "reparam_conv"
+            ), "RepMixer.token_mixer should have reparam_conv after reparameterize()"
+
+    def test_reparameterize_preserves_output(self):
+        """Encoder output must be identical before and after reparameterize() (within fp32 tolerance)."""
+        from ultralytics.models.sam.sam3.text_encoder_student import TextStudentEncoder
+
+        enc = TextStudentEncoder(cfg=self._MCT_CFG, context_length=16, output_dim=256)
+        enc.eval()
+
+        tokens = torch.randint(1, 49408, (1, 16))
+        with torch.no_grad():
+            out_before = enc.encoder(tokens, return_all_tokens=False)
+
+        enc.reparameterize()
+
+        with torch.no_grad():
+            out_after = enc.encoder(tokens, return_all_tokens=False)
+
+        assert torch.allclose(
+            out_before, out_after, atol=1e-4
+        ), f"reparameterize() changed model output; max diff={( out_before - out_after).abs().max().item():.2e}"
+
+    def test_student_encoder_reparameterize_no_error(self):
+        """TextStudentEncoder.reparameterize() must not raise on any variant."""
+        from ultralytics.models.sam.sam3.text_encoder_student import TextStudentEncoder
+
+        enc = TextStudentEncoder(cfg=self._MCT_CFG, context_length=16, output_dim=256)
+        enc.eval()
+        enc.reparameterize()  # should not raise
+
+    def test_base_encoder_reparameterize_is_noop(self):
+        """reparameterize() on a base (S1/L) encoder should be a silent no-op."""
+        from ultralytics.models.sam.sam3.text_encoder_student import TextStudentEncoder
+
+        s1_cfg = {**self._MCT_CFG, "model_name": "base", "n_transformer_layers": 12}
+        enc = TextStudentEncoder(cfg=s1_cfg, context_length=16, output_dim=256)
+        enc.eval()
+        enc.reparameterize()  # no RepMixer blocks → no-op
+
+
+# ---------------------------------------------------------------------------
+# 5. _peek_litetext_pos_embed_length helper
+# ---------------------------------------------------------------------------
+
+
+class TestPeekPosEmbedLength:
+    """Tests for _peek_litetext_pos_embed_length() checkpoint inspector."""
+
+    def test_returns_none_for_missing_file(self):
+        """Verify _peek returns None for a non-existent checkpoint file."""
+        from ultralytics.models.sam.build_sam3 import _peek_litetext_pos_embed_length
+
+        assert _peek_litetext_pos_embed_length("/nonexistent/path/fake.pt") is None
+
+    def test_returns_correct_length(self, tmp_path):
+        """Verify the correct pos-embed length is read from a saved checkpoint."""
+        from ultralytics.models.sam.build_sam3 import _peek_litetext_pos_embed_length
+
+        ckpt_path = tmp_path / "fake_s0_ctx32.pt"
+        state = {
+            "model.backbone.language_backbone.encoder.positional_embedding.pos_embed.pos_embed": torch.zeros(
+                1, 1, 32, 512
+            )
+        }
+        torch.save({"model": state}, str(ckpt_path))
+        assert _peek_litetext_pos_embed_length(str(ckpt_path)) == 32
+
+    def test_returns_correct_length_ctx16(self, tmp_path):
+        """Verify pos-embed length 16 is read from a ctx16 checkpoint."""
+        from ultralytics.models.sam.build_sam3 import _peek_litetext_pos_embed_length
+
+        ckpt_path = tmp_path / "fake_s0_ctx16.pt"
+        state = {
+            "model.backbone.language_backbone.encoder.positional_embedding.pos_embed.pos_embed": torch.zeros(
+                1, 1, 16, 512
+            )
+        }
+        torch.save({"model": state}, str(ckpt_path))
+        assert _peek_litetext_pos_embed_length(str(ckpt_path)) == 16
+
+    def test_returns_none_when_key_absent(self, tmp_path):
+        """Verify _peek returns None when the expected key is absent."""
+        from ultralytics.models.sam.build_sam3 import _peek_litetext_pos_embed_length
+
+        ckpt_path = tmp_path / "no_litetext_key.pt"
+        torch.save({"model": {"some.other.key": torch.zeros(1, 1, 16, 512)}}, str(ckpt_path))
+        assert _peek_litetext_pos_embed_length(str(ckpt_path)) is None
+
+
+# ---------------------------------------------------------------------------
+# 6. build_sam3_image_model – architecture check (no weights loaded)
 # ---------------------------------------------------------------------------
 
 
@@ -214,6 +342,7 @@ class TestBuildSam3ImageModel:
     # We patch _load_checkpoint so the test runs without a real .pt file.
     @pytest.fixture(autouse=True)
     def patch_load_checkpoint(self, monkeypatch):
+        """Patch _load_checkpoint so tests run without real checkpoint files."""
         import ultralytics.models.sam.build_sam3 as m
 
         monkeypatch.setattr(m, "_load_checkpoint", lambda model, path: model)
@@ -227,6 +356,7 @@ class TestBuildSam3ImageModel:
         ],
     )
     def test_litetext_encoder_is_used(self, fake_name):
+        """Verify LiteText filenames route to TextStudentEncoder."""
         from ultralytics.models.sam.build_sam3 import build_sam3_image_model
         from ultralytics.models.sam.sam3.text_encoder_student import TextStudentEncoder
 
@@ -236,6 +366,7 @@ class TestBuildSam3ImageModel:
         ), f"Expected TextStudentEncoder for {fake_name}"
 
     def test_standard_sam3_uses_ve_encoder(self):
+        """Verify standard sam3.pt routes to VETextEncoder."""
         from ultralytics.models.sam.build_sam3 import build_sam3_image_model
         from ultralytics.models.sam.sam3.text_encoder_ve import VETextEncoder
 
@@ -250,6 +381,7 @@ class TestBuildSam3ImageModel:
         ],
     )
     def test_context_length_auto_detected(self, fake_name, expected_ctx):
+        """Verify context length is auto-detected from the checkpoint name."""
         from ultralytics.models.sam.build_sam3 import build_sam3_image_model
 
         model = build_sam3_image_model(fake_name)
@@ -258,7 +390,7 @@ class TestBuildSam3ImageModel:
 
 
 # ---------------------------------------------------------------------------
-# 5. Full predictor inference (requires local checkpoint)
+# 7. Full predictor inference (requires local checkpoint)
 # ---------------------------------------------------------------------------
 
 
@@ -268,6 +400,7 @@ class TestSAM3LiteTextPredictor:
 
     @pytest.fixture(scope="class")
     def predictor(self):
+        """Create SAM3SemanticPredictor with the local checkpoint for end-to-end testing."""
         from ultralytics.models.sam.predict import SAM3SemanticPredictor
 
         overrides = dict(
@@ -282,6 +415,7 @@ class TestSAM3LiteTextPredictor:
         return SAM3SemanticPredictor(overrides=overrides)
 
     def test_encoder_type_after_load(self, predictor):
+        """Verify encoder type is TextStudentEncoder after loading a LiteText checkpoint."""
         from ultralytics.models.sam.sam3.text_encoder_student import TextStudentEncoder
 
         # Run a predict call to trigger model loading
@@ -289,6 +423,7 @@ class TestSAM3LiteTextPredictor:
         assert isinstance(predictor.model.backbone.language_backbone, TextStudentEncoder)
 
     def test_predict_dog(self, predictor):
+        """Verify predictor returns at least one mask for the 'dog' text prompt."""
         results = predictor(source=_TEST_IMAGE, text=["dog"])
         assert len(results) == 1
         assert results[0].masks is not None, "Expected at least one mask for 'dog' prompt"

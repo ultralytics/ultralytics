@@ -4,3 +4,5 @@
 
 from .mobile_clip import MobileCLIPTextTransformer
 from .text_encoder_student import TextStudentEncoder
+
+__all__ = ["MobileCLIPTextTransformer", "TextStudentEncoder"]

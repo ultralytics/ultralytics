@@ -40,6 +40,7 @@ Introducing Ultralytics [YOLO26](models/yolo26.md), the latest version of the ac
 
 Explore the Ultralytics Docs, a comprehensive resource designed to help you understand and utilize its features and capabilities. Whether you are a seasoned [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) practitioner or new to the field, this hub aims to maximize YOLO's potential in your projects.
 
+Request an Enterprise License for commercial use at [Ultralytics Licensing](https://www.ultralytics.com/license?utm_source=docs.ultralytics.com&utm_medium=referral&utm_content=license_inline_link).
 <div align="center">
   <br>
   <a href="https://github.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="3%" alt="Ultralytics GitHub"></a>
@@ -161,6 +162,9 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 - **[YOLO26](models/yolo26.md) 🚀**: Ultralytics' next-generation YOLO model optimized for edge deployment with end-to-end NMS-free inference.
 
 ## YOLO Licenses: How is Ultralytics YOLO licensed?
+
+<a href="https://www.ultralytics.com/license?utm_source=docs.ultralytics.com&utm_medium=referral&utm_content=license_banner" target="_blank" rel="noopener noreferrer">
+<img width="100%" style="border-radius:.4rem" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-license.avif" alt="Ultralytics Enterprise License banner"></a>
 
 Ultralytics offers two licensing options to accommodate diverse use cases:
 

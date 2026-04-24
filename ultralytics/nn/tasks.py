@@ -12,7 +12,6 @@ import torch.nn as nn
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import (
-    AGLU,
     AIFI,
     C1,
     C2,
@@ -1565,9 +1564,7 @@ def parse_model(d, ch, verbose=True):
         depth, width, max_channels = scales[scale]
 
     if act:
-        namespace = dict(globals(), torch=torch, nn=nn, AGLU=AGLU)
-        namespace.pop("__builtins__", None)
-        Conv.default_act = eval(act, {"__builtins__": {}}, namespace)  # redefine default activation
+        Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU()
         if verbose:
             LOGGER.info(f"{colorstr('activation:')} {act}")  # print
 

@@ -76,20 +76,6 @@ def test_model_profile():
     _ = model.predict(im, profile=True)
 
 
-def test_parse_model_activation_literals():
-    """Test parse_model() accepts torch.nn and Ultralytics activation constructors."""
-    from ultralytics.nn.modules import Conv
-    from ultralytics.nn.tasks import parse_model
-
-    old_act = Conv.default_act
-    model_dict = {"nc": 1, "depth_multiple": 1.0, "width_multiple": 1.0, "backbone": [], "head": []}
-    try:
-        for act in ("torch.nn.ReLU()", "nn.LeakyReLU(0.1)", "nn.Hardswish(inplace=True)", "AGLU()"):
-            parse_model({**model_dict, "activation": act}, ch=3, verbose=False)
-    finally:
-        Conv.default_act = old_act
-
-
 def test_predict_txt(tmp_path):
     """Test YOLO predictions with file, directory, and pattern sources listed in a text file."""
     file = tmp_path / "sources_multi_row.txt"

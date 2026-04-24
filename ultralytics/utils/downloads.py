@@ -197,7 +197,11 @@ def unzip_file(
         for f in TQDM(files, desc=f"Unzipping {file} to {Path(path).resolve()}...", unit="files", disable=not progress):
             f_path = Path(f)
             target = (extract_path / f_path).resolve()
-            if f_path.is_absolute() or ".." in f_path.parts or target.parts[: len(extract_path.parts)] != extract_path.parts:
+            if (
+                f_path.is_absolute()
+                or ".." in f_path.parts
+                or target.parts[: len(extract_path.parts)] != extract_path.parts
+            ):
                 LOGGER.warning(f"Potentially insecure file path: {f}, skipping extraction.")
                 continue
             zipObj.extract(f, extract_path)
@@ -400,7 +404,11 @@ def safe_download(
                         continue
                     m_path = Path(m.name)
                     target = (unzip_dir / m_path).resolve()
-                    if m_path.is_absolute() or ".." in m_path.parts or target.parts[: len(unzip_dir.parts)] != unzip_dir.parts:
+                    if (
+                        m_path.is_absolute()
+                        or ".." in m_path.parts
+                        or target.parts[: len(unzip_dir.parts)] != unzip_dir.parts
+                    ):
                         LOGGER.warning(f"Potentially insecure file path: {m.name}, skipping extraction.")
                         continue
                     if m.isdir():

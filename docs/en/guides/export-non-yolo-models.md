@@ -274,7 +274,7 @@ with torch.no_grad():
     pytorch_output = model(im).numpy()
 
 onnx_model = ONNXBackend("resnet18.onnx", device=torch.device("cpu"))
-onnx_output = onnx_model.forward(im)[0]
+onnx_output = onnx_model(im)[0]
 
 diff = np.abs(pytorch_output - onnx_output).max()
 print(f"Max difference: {diff:.6f}")  # should be < 1e-5

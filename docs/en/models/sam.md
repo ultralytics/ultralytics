@@ -33,7 +33,7 @@ For an in-depth look at the Segment Anything Model and the SA-1B dataset, please
 
 !!! tip "SAM on Ultralytics Platform"
 
-    SAM powers the smart annotation feature on [Ultralytics Platform](https://platform.ultralytics.com), enabling click-based intelligent masking for fast dataset labeling. See the [annotation guide](../platform/data/annotation.md) for details.
+    SAM powers the [smart annotation feature](https://www.ultralytics.com/annotate) on [Ultralytics Platform](https://platform.ultralytics.com), enabling click-based intelligent masking for fast dataset labeling. See the [annotation guide](../platform/data/annotation.md) for details.
 
 ## Available Models, Supported Tasks, and Operating Modes
 

@@ -114,7 +114,7 @@ Remember to double-check if the dataset you want to use is compatible with your 
 
 ## Auto-Annotation
 
-Auto-annotation is an essential feature that allows you to generate a segmentation dataset using a pretrained detection model. It enables you to quickly and accurately annotate a large number of images without the need for manual labeling, saving time and effort.
+[Auto-annotation](https://www.ultralytics.com/annotate) is an essential feature that allows you to generate a segmentation dataset using a pretrained detection model. It enables you to quickly and accurately annotate a large number of images without the need for manual labeling, saving time and effort.
 
 ### Generate Segmentation Dataset Using a Detection Model
 

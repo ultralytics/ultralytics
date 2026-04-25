@@ -102,7 +102,7 @@ class TestDetectionHelpers:
 
 
 # ---------------------------------------------------------------------------
-# 2. TextStudentEncoder – unit tests (no weights needed)
+# 2. TextStudentEncoder - unit tests (no weights needed)
 # ---------------------------------------------------------------------------
 
 
@@ -179,7 +179,7 @@ class TestTextStudentEncoder:
 
 
 # ---------------------------------------------------------------------------
-# 3. Build helpers – all three variants (no weights loaded)
+# 3. Build helpers - all three variants (no weights loaded)
 # ---------------------------------------------------------------------------
 
 
@@ -210,7 +210,7 @@ class TestLitetextConfigs:
 
 
 # ---------------------------------------------------------------------------
-# 4. reparameterize() – no weights needed
+# 4. reparameterize() - no weights needed
 # ---------------------------------------------------------------------------
 
 
@@ -332,7 +332,7 @@ class TestPeekPosEmbedLength:
 
 
 # ---------------------------------------------------------------------------
-# 6. build_sam3_image_model – architecture check (no weights loaded)
+# 6. build_sam3_image_model - architecture check (no weights loaded)
 # ---------------------------------------------------------------------------
 
 

@@ -16,6 +16,7 @@ from PIL import Image
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA, TASKS
+from ultralytics.data.base import BaseDataset
 from ultralytics.data.build import load_inference_source
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
@@ -709,8 +710,52 @@ def test_model_embeddings():
         assert len(model_segment.embed(source=batch, imgsz=32)) == len(batch)
 
 
-def test_classification_dataset_cache_path(tmp_path):
-    """Test classification disk cache redirection via a cache path value."""
+class _TestCachePathDataset(BaseDataset):
+    """Minimal BaseDataset subclass for testing disk cache locations."""
+
+    def build_transforms(self, hyp=None):
+        """Return an identity transform for cache path tests."""
+        return lambda sample: sample
+
+    def get_labels(self):
+        """Return a single empty label entry for the temporary test image."""
+        return [
+            {
+                "im_file": self.im_files[0],
+                "shape": (16, 16),
+                "cls": np.zeros((0, 1), dtype=np.float32),
+                "bboxes": np.zeros((0, 4), dtype=np.float32),
+                "segments": [],
+                "keypoints": None,
+                "normalized": True,
+                "bbox_format": "xywh",
+            }
+        ]
+
+
+@pytest.mark.parametrize("cache", ["disk", "path"], ids=["disk", "path"])
+def test_base_dataset_cache_modes(tmp_path, cache):
+    """Test BaseDataset caching for `cache="disk"` versus a custom cache path."""
+    image_dir = tmp_path / "images"
+    image = image_dir / "image.jpg"
+    image_dir.mkdir(parents=True)
+    assert cv2.imwrite(str(image), np.full((16, 16, 3), 255, dtype=np.uint8))
+
+    cache_value = "disk" if cache == "disk" else str(tmp_path / "disk-cache")
+    dataset = _TestCachePathDataset(img_path=str(image_dir), imgsz=32, cache=cache_value, augment=False, hyp=copy(DEFAULT_CFG))
+
+    cache_file = dataset.npy_files[0]
+    assert cache_file.exists()
+    if cache == "disk":
+        assert cache_file == image.with_suffix(".npy")
+    else:
+        assert Path(cache_value) in cache_file.parents
+        assert not image.with_suffix(".npy").exists()
+
+
+@pytest.mark.parametrize("cache", ["disk", "path"], ids=["disk", "path"])
+def test_classification_dataset_cache_modes(tmp_path, cache):
+    """Test ClassificationDataset caching for `cache="disk"` versus a custom cache path."""
     from ultralytics.data import ClassificationDataset
 
     root = tmp_path / "cls"
@@ -719,32 +764,19 @@ def test_classification_dataset_cache_path(tmp_path):
     assert cv2.imwrite(str(image), np.full((16, 16, 3), 255, dtype=np.uint8))
 
     args = copy(DEFAULT_CFG)
-    args.cache = str(tmp_path / "disk-cache")
+    args.cache = "disk" if cache == "disk" else str(tmp_path / "disk-cache")
     args.imgsz = 32
     dataset = ClassificationDataset(root=str(root), args=args, augment=False)
 
     sample = dataset.samples[0]
-    assert Path(args.cache) in Path(sample[2]).parents
     _ = dataset[0]
-    assert Path(sample[2]).exists()
-    assert not image.with_suffix(".npy").exists()
-
-
-def test_train_cache_path(tmp_path):
-    """Test training with cache redirected away from the image directory."""
-    cache_path = tmp_path / "disk-cache"
-    model = YOLO(MODEL)
-    model.train(
-        data="coco8.yaml",
-        epochs=1,
-        imgsz=32,
-        cache=str(cache_path),
-        close_mosaic=1,
-        workers=0,
-        project=tmp_path,
-        name="cache-dir",
-    )
-    assert any(cache_path.rglob("*.npy"))
+    cache_file = Path(sample[2])
+    assert cache_file.exists()
+    if cache == "disk":
+        assert cache_file == image.with_suffix(".npy")
+    else:
+        assert Path(args.cache) in cache_file.parents
+        assert not image.with_suffix(".npy").exists()
 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOWorld with CLIP is not supported in Python 3.12")

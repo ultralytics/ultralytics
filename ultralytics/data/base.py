@@ -57,7 +57,8 @@ class BaseDataset(Dataset):
         im_hw0 (list): List of original image dimensions (h, w).
         im_hw (list): List of resized image dimensions (h, w).
         npy_files (list[Path]): List of numpy file paths.
-        cache (str | None): Cache setting ('ram', 'disk', a custom disk cache path, or None for no caching).
+        cache (str | None): Cache setting ('ram', 'disk' to cache beside source images, a custom disk cache path,
+            or None for no caching).
         transforms (callable): Image transformation function.
         batch_shapes (np.ndarray): Batch shapes for rectangular training.
         batch (np.ndarray): Batch index of each image.
@@ -99,7 +100,8 @@ class BaseDataset(Dataset):
         Args:
             img_path (str | list[str]): Path to the folder containing images or list of image paths.
             imgsz (int): Image size for resizing.
-            cache (bool | str): Cache images to RAM, disk, or a custom disk cache directory during training.
+            cache (bool | str): Cache images to RAM, use "disk" to cache beside source images, or pass a path-like
+                value to cache under that directory during training.
             augment (bool): If True, data augmentation is applied.
             hyp (dict[str, Any]): Hyperparameters to apply data augmentation.
             prefix (str): Prefix to print in log messages.
@@ -138,7 +140,7 @@ class BaseDataset(Dataset):
         self.buffer = []  # buffer size = batch size
         self.max_buffer_length = min((self.ni, self.batch_size * 8, 1000)) if self.augment else 0
 
-        # Cache images (options are cache = True, False, None, "ram", "disk", or a custom cache path)
+        # Cache images (options are cache = True, False, None, "ram", "disk" beside source images, or a custom path)
         self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni
         self.cache, self.cache_dir = parse_image_cache(cache)
         self.npy_files = [get_cache_file_path(f, self.cache_dir) for f in self.im_files]

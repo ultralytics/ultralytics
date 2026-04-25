@@ -155,7 +155,7 @@ def get_hash(paths: list[str]) -> str:
 
 
 def parse_image_cache(cache: bool | str | os.PathLike[str]) -> tuple[str | None, Path | None]:
-    """Parse cache config into cache mode and an optional custom disk cache directory."""
+    """Parse cache config where `cache="disk"` keeps image-adjacent caching and path-like values redirect it."""
     if cache is True:
         return "ram", None
     if isinstance(cache, os.PathLike):

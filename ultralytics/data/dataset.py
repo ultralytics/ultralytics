@@ -719,7 +719,8 @@ class ClassificationDataset:
         Args:
             root (str): Path to the dataset directory where images are stored in a class-specific folder structure.
             args (Namespace): Configuration containing dataset-related settings such as image size, augmentation
-                parameters, and cache settings.
+                parameters, and cache settings, where `cache="disk"` writes beside each image and a path-like value
+                writes under that directory.
             augment (bool, optional): Whether to apply augmentations to the dataset.
             prefix (str, optional): Prefix for logging and cache filenames, aiding in dataset identification.
         """

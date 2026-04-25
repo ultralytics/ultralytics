@@ -1221,6 +1221,10 @@ class E2ELoss:
         o2o_tal_beta = yaml_cfg.get("o2o_tal_beta", None)
         if o2o_tal_beta is not None:
             self.one2one.assigner.beta = o2o_tal_beta
+        # Target-score floor: keeps cls supervision alive on low-IoU (small-obj) GTs
+        o2o_target_floor = yaml_cfg.get("o2o_target_floor", 0.0)
+        if o2o_target_floor > 0:
+            self.one2one.assigner.target_score_floor = o2o_target_floor
         # Rank-pair penalty: for each GT, top-2 one2one score must fall below top-1 by margin
         self.rank_pair = yaml_cfg.get("rank_pair", False)
         self.rank_margin = yaml_cfg.get("rank_margin", 0.5)

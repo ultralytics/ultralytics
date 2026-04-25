@@ -1225,6 +1225,8 @@ class E2ELoss:
         self.rank_pair = yaml_cfg.get("rank_pair", False)
         self.rank_margin = yaml_cfg.get("rank_margin", 0.5)
         self.rank_weight = yaml_cfg.get("rank_weight", 1.0)
+        self.rank_iou_gate = yaml_cfg.get("rank_iou_gate", 0.0)  # 0=off; only penalize if pred-box IoU(rank1,rank2) > gate
+        self.rank_min_area = yaml_cfg.get("rank_min_area", 0.0)  # 0=off; min GT area in px² (e.g. 1024 for 32x32)
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
@@ -1300,11 +1302,25 @@ class E2ELoss:
 
         sel_scores = scores[batch_idx, cls_all]  # (N, A)
         masked = sel_scores.masked_fill(~in_gt, float("-inf"))
-        top2 = masked.topk(2, dim=-1).values  # (N, 2)
+        top2 = masked.topk(2, dim=-1)
+        top2_vals = top2.values  # (N, 2)
+        top2_idx = top2.indices  # (N, 2)
+
         valid = in_gt.sum(-1) >= 2  # (N,)
+        if self.rank_min_area > 0:
+            valid = valid & ((bw * bh) >= self.rank_min_area)
+        if self.rank_iou_gate > 0 and valid.any():
+            pred_distri = one2one["boxes"].permute(0, 2, 1).contiguous()
+            pred_bboxes = self.one2one.bbox_decode(anchor_points, pred_distri)  # (B, A, 4) xyxy in stride units
+            pred_bboxes_pix = pred_bboxes * stride_tensor  # (B, A, 4)
+            b_idx = batch_idx.unsqueeze(1).expand(-1, 2)  # (N, 2)
+            pair = pred_bboxes_pix[b_idx, top2_idx]  # (N, 2, 4)
+            iou12 = bbox_iou(pair[:, 0], pair[:, 1], xywh=False).squeeze(-1)  # (N,)
+            valid = valid & (iou12 > self.rank_iou_gate)
+
         if not valid.any():
             return scores.new_zeros(())
-        pen = (top2[:, 1] - top2[:, 0] + self.rank_margin).clamp(min=0)
+        pen = (top2_vals[:, 1] - top2_vals[:, 0] + self.rank_margin).clamp(min=0)
         return pen[valid].mean() * bs
 
     @staticmethod

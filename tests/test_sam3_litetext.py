@@ -62,11 +62,18 @@ class TestDetectionHelpers:
             ("efficient_sam3_text_s0_ctx16_fixed.pt", "S0"),
             ("efficient_sam3_text_s1_ctx32_fixed.pt", "S1"),
             ("efficient_sam3_text_l_ctx16_fixed.pt", "L"),
+            # HuggingFace Ultralytics-native naming (sam3_litetext_mobileclip_*)
+            ("sam3_litetext_mobileclip_s0_ctx16.pt", "S0"),
+            ("sam3_litetext_mobileclip_s0_ctx32.pt", "S0"),
+            ("sam3_litetext_mobileclip_s1_ctx16.pt", "S1"),
+            ("sam3_litetext_mobileclip_s1_ctx32.pt", "S1"),
+            ("sam3_litetext_mobileclip2_l_ctx16.pt", "L"),
+            ("sam3_litetext_mobileclip2_l_ctx32.pt", "L"),
             # Image-encoder-only checkpoints must NOT be detected as LiteText
             ("efficient_sam3_image_encoder_mobileclip_s0_ctx16.pt", None),
             ("efficient_sam3_image_encoder_mobileclip_s1_ctx16.pt", None),
             ("efficient_sam3_image_encoder_mobileclip_2_l_ctx16.pt", None),
-            # Standard SAM3 — must return None
+            # Standard SAM3 - must return None
             ("sam3.pt", None),
             ("sam2_b.pt", None),
             ("yolo11n.pt", None),

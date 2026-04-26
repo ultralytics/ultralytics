@@ -38,14 +38,35 @@ pip install -U ultralytics
 
 !!! warning "Model Weights"
 
-    LiteText weights are **not automatically downloaded**. Download them from [HuggingFace `Simon7108528/EfficientSAM3`](https://huggingface.co/Simon7108528/EfficientSAM3) and place them in your working directory or provide the full path.
+    LiteText weights are **not automatically downloaded**. Download them from the
+    [HuggingFace `Simon7108528/EfficientSAM3` — `sam3_litetext/` folder](https://huggingface.co/Simon7108528/EfficientSAM3/tree/main/sam3_litetext).
 
-    | File name                                       | Variant | Context |
-    | ----------------------------------------------- | ------- | ------: |
-    | `efficient_sam3_text_s0_ctx16_fixed.pt`         | S0      |      16 |
-    | `efficient_sam3_text_s0_ctx32_fixed.pt`         | S0      |      32 |
-    | `efficient_sam3_text_s1_ctx16_fixed.pt`         | S1      |      16 |
-    | `efficient_sam3_text_l_ctx16_fixed.pt`          | L       |      16 |
+    | File name                                       | Variant | Context | Size   |
+    | ----------------------------------------------- | ------- | ------: | -----: |
+    | `sam3_litetext_mobileclip_s0_ctx16.pt`          | S0      |      16 | 2.2 GB |
+    | `sam3_litetext_mobileclip_s0_ctx32.pt`          | S0      |      32 | 2.2 GB |
+    | `sam3_litetext_mobileclip_s1_ctx16.pt`          | S1      |      16 | 2.3 GB |
+    | `sam3_litetext_mobileclip_s1_ctx32.pt`          | S1      |      32 | 2.3 GB |
+    | `sam3_litetext_mobileclip2_l_ctx16.pt`          | L       |      16 | 2.5 GB |
+    | `sam3_litetext_mobileclip2_l_ctx32.pt`          | L       |      32 | 2.5 GB |
+
+    Download a checkpoint with the `huggingface_hub` package:
+
+    ```python
+    from huggingface_hub import hf_hub_download
+
+    path = hf_hub_download(
+        repo_id="Simon7108528/EfficientSAM3",
+        filename="sam3_litetext/sam3_litetext_mobileclip_s0_ctx16.pt",
+    )
+    print(path)  # local cache path, pass directly to SAM3SemanticPredictor
+    ```
+
+    Or with `wget`:
+
+    ```bash
+    wget https://huggingface.co/Simon7108528/EfficientSAM3/resolve/main/sam3_litetext/sam3_litetext_mobileclip_s0_ctx16.pt
+    ```
 
 ## How to Use SAM 3 LiteText
 
@@ -64,7 +85,7 @@ The interface is identical to standard SAM 3. Simply provide the path to a LiteT
             conf=0.25,
             task="segment",
             mode="predict",
-            model="efficient_sam3_text_s0_ctx16_fixed.pt",  # or full path
+            model="sam3_litetext_mobileclip_s0_ctx16.pt",  # or full path
             half=False,
             save=True,
         )
@@ -88,7 +109,7 @@ The interface is identical to standard SAM 3. Simply provide the path to a LiteT
             conf=0.25,
             task="segment",
             mode="predict",
-            model="efficient_sam3_text_s0_ctx16_fixed.pt",
+            model="sam3_litetext_mobileclip_s0_ctx16.pt",
             save=True,
         )
         predictor = SAM3SemanticPredictor(overrides=overrides)

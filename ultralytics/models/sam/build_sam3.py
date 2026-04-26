@@ -86,13 +86,14 @@ def _detect_litetext_backbone(checkpoint_path: str) -> str | None:
         (str | None): Backbone variant string or None.
     """
     name = os.path.basename(checkpoint_path).lower()
-    # Ultralytics convention: sam3-litetext-{s0,s1,l}
+    # Ultralytics/HuggingFace convention: sam3-litetext-{s0,s1,l}.pt
+    # or sam3_litetext_mobileclip_{s0,s1,2_l}_ctx*.pt
     if "litetext" in name or "lite-text" in name:
-        if "litetext-l" in name or "litetext_l" in name:
+        if "litetext-l" in name or "litetext_l" in name or "_2_l" in name or (name.endswith("_l.pt") or "_l_ctx" in name):
             return "L"
-        if "litetext-s1" in name or "litetext_s1" in name:
+        if "litetext-s1" in name or "litetext_s1" in name or "_s1_" in name:
             return "S1"
-        if "litetext-s0" in name or "litetext_s0" in name:
+        if "litetext-s0" in name or "litetext_s0" in name or "_s0_" in name:
             return "S0"
         return None
     # Original EfficientSAM3 convention: efficient_sam3_text_{s0,s1,l}_ctx*.pt

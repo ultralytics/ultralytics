@@ -162,6 +162,21 @@ class BaseTrainer:
         # Callbacks - initialize early so on_pretrain_routine_start can capture original args.data
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
+        # Save custom callbacks for DDP training
+        cb_path = self.save_dir / "callbacks.pkl"
+        if (RANK == -1 and _callbacks is not None) or cb_path.exists():
+            try:
+                import dill
+
+                mode = "rb" if RANK >= 0 and cb_path.exists() else "wb"
+                with cb_path.open(mode) as f:
+                    if mode == "rb":
+                        self.callbacks = dill.load(f)  # load the callbacks in DDP processes
+                    else:
+                        dill.dump(_callbacks, f)  # dump from main process
+            except ImportError:
+                pass
+
         if isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
             world_size = len(self.args.device.split(","))
         elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)

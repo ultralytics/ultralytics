@@ -1040,7 +1040,8 @@ class YOLOEDetect(Detect):
 
         assert not self.training
         txt_feats = txt_feats.to(torch.float32).squeeze(0)
-        self._fuse_tp(txt_feats, self.cv3, self.cv4)
+        if self.cv3 and self.cv4:
+            self._fuse_tp(txt_feats, self.cv3, self.cv4)
         if self.end2end:
             self._fuse_tp(txt_feats, self.one2one_cv3, self.one2one_cv4)
         del self.reprta

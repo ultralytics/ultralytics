@@ -55,6 +55,7 @@ class TaskAlignedAssigner(nn.Module):
         self.alpha = alpha
         self.beta = beta
         self.target_score_floor = 0.0  # clamp positive target_scores >= floor (keeps small-obj cls signal alive)
+        self.target_top_one = False  # if True, drop pos_overlaps from norm so the best-aligned anchor per GT targets 1.0
         self.stride = stride
         self.eps = eps
 
@@ -137,7 +138,10 @@ class TaskAlignedAssigner(nn.Module):
         align_metric *= mask_pos
         pos_align_metrics = align_metric.amax(dim=-1, keepdim=True)  # b, max_num_obj
         pos_overlaps = (overlaps * mask_pos).amax(dim=-1, keepdim=True)  # b, max_num_obj
-        norm_align_metric = (align_metric * pos_overlaps / (pos_align_metrics + self.eps)).amax(-2).unsqueeze(-1)
+        if self.target_top_one:
+            norm_align_metric = (align_metric / (pos_align_metrics + self.eps)).amax(-2).unsqueeze(-1)
+        else:
+            norm_align_metric = (align_metric * pos_overlaps / (pos_align_metrics + self.eps)).amax(-2).unsqueeze(-1)
         target_scores = target_scores * norm_align_metric
         if self.target_score_floor > 0:
             target_scores = torch.where(

@@ -256,7 +256,7 @@ def pb2tfjs(pb_file: str, output_dir: str, half: bool = False, int8: bool = Fals
         (str): Path to the exported TensorFlow.js model directory.
 
     Notes:
-        Requires tensorflowjs package. Uses tensorflowjs_converter command-line tool for conversion.
+        Auto-installs tensorflowjs if not present. Uses tensorflowjs_converter command-line tool for conversion.
         Handles spaces in file paths and warns if output directory contains spaces.
     """
     import subprocess

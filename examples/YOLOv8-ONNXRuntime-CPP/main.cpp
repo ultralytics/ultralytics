@@ -3,11 +3,12 @@
 #include <iostream>
 #include <iomanip>
 #include "inference.h"
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <random>
 
-void Detector(YOLO_V8*& p) {
+void Detector(YOLO_V8* p) {
     std::filesystem::path current_path = std::filesystem::current_path();
     std::filesystem::path imgs_path = current_path / "images/detect/";
     for (auto& i : std::filesystem::directory_iterator(imgs_path))
@@ -30,11 +31,13 @@ void Detector(YOLO_V8*& p) {
                 std::cout << std::fixed << std::setprecision(2);
                 std::string label = p->classes[re.classId] + " " +
                     std::to_string(confidence).substr(0, std::to_string(confidence).size() - 4);
+                int label_width = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.75, 2, nullptr).width;
+                label_width = std::max(0, std::min(label_width, img.cols - re.box.x));
 
                 cv::rectangle(
                     img,
                     cv::Point(re.box.x, re.box.y - 25),
-                    cv::Point(re.box.x + label.length() * 15, re.box.y),
+                    cv::Point(re.box.x + label_width, re.box.y),
                     color,
                     cv::FILLED
                 );
@@ -60,7 +63,7 @@ void Detector(YOLO_V8*& p) {
 }
 
 
-void Classifier(YOLO_V8*& p)
+void Classifier(YOLO_V8* p)
 {
     std::filesystem::path current_path = std::filesystem::current_path();
     std::filesystem::path imgs_path = current_path;// / "images"
@@ -97,7 +100,7 @@ void Classifier(YOLO_V8*& p)
     }
 }
 
-void PoseEstimator(YOLO_V8*& p)
+void PoseEstimator(YOLO_V8* p)
 {
     std::filesystem::path current_path = std::filesystem::current_path();
     std::cout << "current_path: " << current_path << std::endl;
@@ -128,6 +131,8 @@ void PoseEstimator(YOLO_V8*& p)
                 std::cout << std::fixed << std::setprecision(2);
                 std::string label_box = p->classes[re.classId] + " " +
                     std::to_string(confidence).substr(0, std::to_string(confidence).size() - 4);
+                int label_width = cv::getTextSize(label_box, cv::FONT_HERSHEY_SIMPLEX, 0.75, 2, nullptr).width;
+                label_width = std::max(0, std::min(label_width, img.cols - re.box.x));
 
                 for (int i = 0; i < re.keyPoints.size(); i++)
                 {
@@ -138,7 +143,7 @@ void PoseEstimator(YOLO_V8*& p)
                 cv::rectangle(
                     img,
                     cv::Point(re.box.x, re.box.y - 25),
-                    cv::Point(re.box.x + label_box.length() * 15, re.box.y),
+                    cv::Point(re.box.x + label_width, re.box.y),
                     color_box,
                     cv::FILLED
                 );
@@ -163,7 +168,7 @@ void PoseEstimator(YOLO_V8*& p)
     }
 }
 
-int ReadCocoYaml(YOLO_V8*& p, const std::string& yamlPath = "coco.yaml") {
+int ReadCocoYaml(YOLO_V8* p, const std::string& yamlPath = "coco.yaml") {
     // Open the YAML file
     std::ifstream file(yamlPath);
     if (!file.is_open())
@@ -238,8 +243,8 @@ int ReadCocoYaml(YOLO_V8*& p, const std::string& yamlPath = "coco.yaml") {
 
 void DetectTest()
 {
-    YOLO_V8* yoloDetector = new YOLO_V8;
-    ReadCocoYaml(yoloDetector, "./yaml/coco.yaml");
+    YOLO_V8 yoloDetector;
+    ReadCocoYaml(&yoloDetector, "./yaml/coco.yaml");
     DL_INIT_PARAM params;
     params.rectConfidenceThreshold = 0.1;
     params.iouThreshold = 0.5;
@@ -260,25 +265,25 @@ void DetectTest()
     params.cudaEnable = false;
 
 #endif
-    yoloDetector->CreateSession(params);
-    Detector(yoloDetector);
+    yoloDetector.CreateSession(params);
+    Detector(&yoloDetector);
 }
 
 
 void ClsTest()
 {
-    YOLO_V8* yoloDetector = new YOLO_V8;
+    YOLO_V8 yoloDetector;
     std::string model_path = "cls.onnx";
-    ReadCocoYaml(yoloDetector, "./yaml/cls.yaml");
+    ReadCocoYaml(&yoloDetector, "./yaml/cls.yaml");
     DL_INIT_PARAM params{ model_path, YOLO_CLS, {224, 224} };
-    yoloDetector->CreateSession(params);
-    Classifier(yoloDetector);
+    yoloDetector.CreateSession(params);
+    Classifier(&yoloDetector);
 }
 
 void PoseTest()
 {
-    YOLO_V8* yoloDetector = new YOLO_V8;
-    ReadCocoYaml(yoloDetector, "./yaml/coco8-pose.yaml");
+    YOLO_V8 yoloDetector;
+    ReadCocoYaml(&yoloDetector, "./yaml/coco8-pose.yaml");
     DL_INIT_PARAM params;
     params.rectConfidenceThreshold = 0.25;
     params.pointScoresThreshold = 0.5;
@@ -300,10 +305,8 @@ void PoseTest()
     params.cudaEnable = false;
 
 #endif
-    yoloDetector->CreateSession(params);
-    PoseEstimator(yoloDetector);
-
-    delete yoloDetector;
+    yoloDetector.CreateSession(params);
+    PoseEstimator(&yoloDetector);
 }
 
 int main()

@@ -40,7 +40,7 @@ class TensorRTBackend(BaseBackend):
             import tensorrt as trt
 
         check_version(trt.__version__, ">=7.0.0", hard=True)
-        check_version(trt.__version__, "!=10.2.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
+        check_version(trt.__version__, "!=10.2.0", msg="https://github.com/ultralytics/ultralytics/pull/24367")
 
         if self.device.type == "cpu":
             self.device = torch.device("cuda:0")

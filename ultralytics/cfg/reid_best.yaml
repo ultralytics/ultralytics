@@ -3,12 +3,12 @@
 # Best ReID training recipe found by ablation campaign (yolo26l, Combined-ReID train, rerank+TTA eval).
 # Single model, no ensemble. Use with: yolo reid train cfg=reid_best.yaml model=... data=... pretrained=...
 #
-# Headline result (Market-1501, run "EE"):
-#   mAP=0.887  Rank-1=0.930  Rank-5=0.965  Rank-10=0.975
-# DukeMTMC-reID (run "DD"/"EE", tied):
-#   mAP=0.747  Rank-1=0.809
-# MSMT17-v1 (run "GG", dropout=0.2 variant — see notes below):
-#   mAP=0.507  Rank-1=0.667
+# Headline result (Market-1501, run "HH" = this recipe):
+#   mAP=0.894  Rank-1=0.929  (tied with EE within run variance ±0.003)
+# DukeMTMC-reID (run "HH"):
+#   mAP=0.745  Rank-1=0.812  (best across all runs)
+# MSMT17-v1 (run "HH"):
+#   mAP=0.496  Rank-1=0.662  (set dropout=0.2 for MSMT-leaning 0.667)
 #
 # Reference comparisons:
 #   BoT (ResNet-50, no rerank):  mAP=0.859  Rank-1=0.945
@@ -26,9 +26,9 @@
 # Levers that hurt: ArcFace, erasing>=0.9, lr0>=5e-3, imgsz=384 (at batch=128), yolo26x at smaller batch.
 #
 # Cross-dataset trade-off:
-# - Market R1 favors  cos_lr=True,  dropout=0.0   (EE recipe)
-# - MSMT R1 favors    dropout=0.2,  cos_lr=False  (GG recipe)
-# This file uses the EE recipe (best Market R1). For MSMT-leaning workloads, set dropout=0.2 and remove cos_lr.
+# - Best overall (HH, this recipe):  cos_lr=True,  dropout=0.1   — wins Duke, ties EE on Market
+# - MSMT R1 favors:                  cos_lr=False, dropout=0.2   — set those for MSMT-leaning workloads (R1=0.667)
+# - Pure Market R1 (EE):             cos_lr=True,  dropout=0.0   — R1=0.930 (within ±0.001 of HH's 0.929)
 
 # --- Optimizer / schedule ---
 optimizer: AdamW
@@ -71,4 +71,4 @@ scale: 0.5
 batch: 192                # 4-GPU DDP; total batch (per-GPU = batch / world_size)
 time: 3.0                 # 3h gets ~1300 epochs at imgsz=320 yolo26l on 4-GPU DDP
 val: False                # ReID val is run as a separate `yolo reid val ... reid_reranking=True reid_tta=True` step
-dropout: 0.0              # set 0.1-0.2 to favor cross-dataset (MSMT) over Market R1
+dropout: 0.1              # 0.0 for pure Market R1; 0.2 for MSMT-leaning

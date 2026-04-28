@@ -896,7 +896,7 @@ class Exporter:
             check_tensorrt()
             import tensorrt as trt
         check_version(trt.__version__, ">=7.0.0", hard=True)
-        check_version(trt.__version__, "!=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
+        check_version(trt.__version__, "!=10.2.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
 
         from ultralytics.utils.export.engine import onnx2engine
 

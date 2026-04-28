@@ -44,6 +44,10 @@ Currently, you can only export models that include the following tasks to IMX500
 - [Classification](https://docs.ultralytics.com/tasks/classify/)
 - [Instance segmentation](https://docs.ultralytics.com/tasks/segment/)
 
+!!! note "Supported model variants"
+
+    IMX export is designed and benchmarked for **YOLOv8n** and **YOLO11n** (nano). Other architectures and model scales are not supported.
+
 ## Usage Examples
 
 Export an Ultralytics YOLO11 model to IMX500 format and run inference with the exported model.
@@ -185,6 +189,7 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
 | `int8`     | `bool`           | `True`         | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices.                                                                    |
 | `data`     | `str`            | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets/) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                            |
 | `fraction` | `float`          | `1.0`          | Specifies the fraction of the dataset to use for INT8 quantization calibration. Allows for calibrating on a subset of the full dataset, useful for experiments or when resources are limited. If not specified with INT8 enabled, the full dataset will be used. |
+| `nms`      | `bool`           | `False`        | Adds Non-Maximum Suppression (NMS) to the exported model. When `True`, `conf`, `iou`, and `agnostic_nms` are also accepted.                                                                                                                                      |
 | `device`   | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                                                                                                                                                        |
 
 !!! tip
@@ -204,9 +209,9 @@ The export process will create an ONNX model for quantization validation, along 
         ├── dnnParams.xml
         ├── labels.txt
         ├── packerOut.zip
-        ├── yolo11n_imx.onnx
-        ├── yolo11n_imx_MemoryReport.json
-        └── yolo11n_imx.pbtxt
+        ├── model_imx.onnx
+        ├── model_imx_MemoryReport.json
+        └── model_imx.pbtxt
         ```
 
     === "Pose Estimation"
@@ -216,9 +221,9 @@ The export process will create an ONNX model for quantization validation, along 
         ├── dnnParams.xml
         ├── labels.txt
         ├── packerOut.zip
-        ├── yolo11n-pose_imx.onnx
-        ├── yolo11n-pose_imx_MemoryReport.json
-        └── yolo11n-pose_imx.pbtxt
+        ├── model_imx.onnx
+        ├── model_imx_MemoryReport.json
+        └── model_imx.pbtxt
         ```
 
     === "Classification"
@@ -228,9 +233,9 @@ The export process will create an ONNX model for quantization validation, along 
         ├── dnnParams.xml
         ├── labels.txt
         ├── packerOut.zip
-        ├── yolo11n-cls_imx.onnx
-        ├── yolo11n-cls_imx_MemoryReport.json
-        └── yolo11n-cls_imx.pbtxt
+        ├── model_imx.onnx
+        ├── model_imx_MemoryReport.json
+        └── model_imx.pbtxt
         ```
 
     === "Instance Segmentation"
@@ -240,9 +245,9 @@ The export process will create an ONNX model for quantization validation, along 
         ├── dnnParams.xml
         ├── labels.txt
         ├── packerOut.zip
-        ├── yolo11n-seg_imx.onnx
-        ├── yolo11n-seg_imx_MemoryReport.json
-        └── yolo11n-seg_imx.pbtxt
+        ├── model_imx.onnx
+        ├── model_imx_MemoryReport.json
+        └── model_imx.pbtxt
         ```
 
 ## Using IMX500 Export in Deployment

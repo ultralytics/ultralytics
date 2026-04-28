@@ -65,6 +65,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import subprocess
 import time
 from copy import deepcopy
 from datetime import datetime
@@ -98,6 +99,7 @@ from ultralytics.utils import (
     callbacks,
     colorstr,
     get_default_args,
+    is_jetson,
 )
 from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_9,
@@ -105,6 +107,7 @@ from ultralytics.utils.checks import (
     check_requirements,
     check_version,
     is_intel,
+    is_sudo_available,
 )
 from ultralytics.utils.files import file_size
 from ultralytics.utils.metrics import batch_probiou
@@ -344,16 +347,31 @@ class Exporter:
                 model.end2end = False
                 LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
             if fmt == "engine" and self.args.int8:
-                # TensorRT<=10.3.0 with int8 has known end2end build issues
+                # TensorRT 10.3.0 on JetPack 6 with int8 has known end2end build issues
                 # https://github.com/ultralytics/ultralytics/issues/23841
                 try:
                     import tensorrt as trt
 
-                    if check_version(trt.__version__, "<=10.3.0", hard=True):
-                        model.end2end = False
-                        LOGGER.warning(
-                            "TensorRT<=10.3.0 with int8 has known end2end build issues, disabling end2end branch."
+                    if check_version(trt.__version__, "==10.3.0") and is_jetson(jetpack=6):
+                        LOGGER.info(
+                            "\nTensorRT 10.3.0 on JetPack 6 has known INT8 + end2end build issues. "
+                            "Attempting auto-upgrade from https://developer.nvidia.com/cuda-downloads..."
                         )
+                        try:
+                            sudo = "sudo " if is_sudo_available() else ""
+                            keyring_url = (
+                                "https://developer.download.nvidia.com/compute/cuda/repos/"
+                                "ubuntu2204/arm64/cuda-keyring_1.1-1_all.deb"
+                            )
+                            for c in (
+                                f"wget -q {keyring_url} -O /tmp/cuda-keyring.deb",
+                                f"{sudo}dpkg -i /tmp/cuda-keyring.deb",
+                                f"{sudo}apt-get update",
+                                f"{sudo}apt-get install -y tensorrt",
+                            ):
+                                subprocess.run(c, shell=True, check=True)
+                        except subprocess.CalledProcessError as e:
+                            LOGGER.warning(f"TensorRT auto-upgrade failed: {e}")
                 except ImportError:
                     pass
         if self.args.half and self.args.int8:

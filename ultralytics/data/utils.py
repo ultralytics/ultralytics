@@ -398,6 +398,18 @@ def find_dataset_yaml(path: Path) -> Path:
     return files[0]
 
 
+def convert_ndjson_to_yolo_if_needed(data: str | Path) -> str | Path:
+    """Convert an NDJSON dataset or Platform dataset URI to YOLO format."""
+    data_str = str(data)
+    if data_str.endswith(".ndjson") or (data_str.startswith("ul://") and "/datasets/" in data_str):
+        import asyncio
+
+        from ultralytics.data.converter import convert_ndjson_to_yolo
+
+        return asyncio.run(convert_ndjson_to_yolo(check_file(data)))
+    return data
+
+
 def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]:
     """Download, verify, and/or unzip a dataset if not found locally.
 

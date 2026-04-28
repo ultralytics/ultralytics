@@ -26,7 +26,7 @@ from torch import nn, optim
 
 from ultralytics import __version__
 from ultralytics.cfg import get_cfg, get_save_dir
-from ultralytics.data.utils import check_cls_dataset, check_det_dataset
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.optim import MuSGD
 from ultralytics.utils import (
@@ -682,15 +682,7 @@ class BaseTrainer:
             (dict): A dictionary containing the training/validation/test dataset and category names.
         """
         try:
-            # Convert ul:// platform URIs and NDJSON files to local dataset format first
-            data_str = str(self.args.data)
-            if data_str.endswith(".ndjson") or (data_str.startswith("ul://") and "/datasets/" in data_str):
-                import asyncio
-
-                from ultralytics.data.converter import convert_ndjson_to_yolo
-                from ultralytics.utils.checks import check_file
-
-                self.args.data = str(asyncio.run(convert_ndjson_to_yolo(check_file(self.args.data))))
+            self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data)
 
             # Task-specific dataset checking
             if self.args.task == "classify":

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from copy import copy
 
+from ultralytics.data.build import fraction_for_split
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import RTDETRDetectionModel
 from ultralytics.utils import RANK, colorstr
@@ -80,7 +81,7 @@ class RTDETRTrainer(DetectionTrainer):
             prefix=colorstr(f"{mode}: "),
             classes=self.args.classes,
             data=self.data,
-            fraction=self.args.fraction,
+            fraction=fraction_for_split(self.args.fraction, mode),
         )
 
     def get_validator(self):

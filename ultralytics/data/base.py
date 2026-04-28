@@ -32,8 +32,7 @@ class BaseDataset(Dataset):
         augment (bool): Whether to apply data augmentation.
         single_cls (bool): Whether to treat all objects as a single class.
         prefix (str): Prefix to print in log messages.
-        fraction (float | list[float]): Fraction of dataset to utilize. A two-item list can specify train and val/test
-            fractions separately.
+        fraction (float): Fraction of dataset to utilize.
         channels (int): Number of channels in the images (1 for grayscale, 3 for color). Color images loaded with OpenCV
             are in BGR channel order.
         cv2_flag (int): OpenCV flag for reading images.
@@ -84,7 +83,7 @@ class BaseDataset(Dataset):
         pad: float = 0.5,
         single_cls: bool = False,
         classes: list[int] | None = None,
-        fraction: float | list[float] = 1.0,
+        fraction: float = 1.0,
         channels: int = 3,
     ):
         """Initialize BaseDataset with given configuration and options.
@@ -102,8 +101,7 @@ class BaseDataset(Dataset):
             pad (float): Padding value.
             single_cls (bool): If True, single class training is used.
             classes (list[int], optional): List of included classes.
-            fraction (float | list[float]): Fraction of dataset to utilize. A two-item list can specify train and
-                val/test fractions separately.
+            fraction (float): Fraction of dataset to utilize.
             channels (int): Number of channels in the images (1 for grayscale, 3 for color). Color images loaded with
                 OpenCV are in BGR channel order.
         """
@@ -114,12 +112,8 @@ class BaseDataset(Dataset):
         self.single_cls = single_cls
         self.prefix = prefix
 
-        is_val = "val" in prefix.lower() or "test" in prefix.lower()
-        idx = 1 if is_val else 0
-        self.fraction = float(fraction[idx]) if isinstance(fraction, (list, tuple)) and len(fraction) > idx else (
-            1.0 if is_val else float(fraction)
-        )
-        
+        self.fraction = fraction
+
         self.channels = channels
         self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR
         self.im_files = self.get_img_files(self.img_path)

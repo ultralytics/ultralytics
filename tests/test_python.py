@@ -18,9 +18,7 @@ from PIL import Image
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA, TASKS, check_cfg
-from ultralytics.data import base as data_base
 from ultralytics.data import build as data_build
-from ultralytics.data.base import BaseDataset
 from ultralytics.data.build import load_inference_source
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
@@ -90,8 +88,8 @@ def test_check_cfg_fraction_list():
         check_cfg({"fraction": [0.25, 1.5]})
 
 
-def test_build_yolo_dataset_preserves_fraction_list(monkeypatch):
-    """Test build_yolo_dataset forwards split-aware fraction lists unchanged."""
+def test_build_yolo_dataset_resolves_fraction_for_split(monkeypatch):
+    """Test build_yolo_dataset passes the resolved scalar fraction to the dataset."""
     captured = []
 
     class DummyDataset:
@@ -111,38 +109,10 @@ def test_build_yolo_dataset_preserves_fraction_list(monkeypatch):
 
     data_build.build_yolo_dataset(cfg, "images", 1, data={}, mode="train")
     data_build.build_yolo_dataset(cfg, "images", 1, data={}, mode="val")
-    assert captured == [[0.25, 0.75], [0.25, 0.75]]
-
-
-def test_base_dataset_fraction_list_uses_split_prefix(tmp_path, monkeypatch):
-    """Test BaseDataset resolves fraction lists by split prefix while preserving scalar val behavior."""
-
-    class DummyDataset(BaseDataset):
-        def get_labels(self):
-            return [
-                {
-                    "cls": np.zeros((0, 1), dtype=np.float32),
-                    "bboxes": np.zeros((0, 4), dtype=np.float32),
-                    "segments": [],
-                    "keypoints": None,
-                }
-                for _ in self.im_files
-            ]
-
-        def build_transforms(self, hyp=None):
-            return []
-
-    monkeypatch.setattr(data_base, "check_file_speeds", lambda *args, **kwargs: None)
-    for i in range(5):
-        cv2.imwrite(str(tmp_path / f"{i}.jpg"), np.full((8, 8, 3), i, dtype=np.uint8))
-
-    train_dataset = DummyDataset(img_path=str(tmp_path), prefix="train: ", fraction=[0.4, 0.8], augment=False)
-    val_dataset = DummyDataset(img_path=str(tmp_path), prefix="val: ", fraction=[0.4, 0.8], augment=False)
-    legacy_val_dataset = DummyDataset(img_path=str(tmp_path), prefix="val: ", fraction=0.4, augment=False)
-
-    assert len(train_dataset.im_files) == 2
-    assert len(val_dataset.im_files) == 4
-    assert len(legacy_val_dataset.im_files) == 5
+    cfg.fraction = 0.25
+    data_build.build_yolo_dataset(cfg, "images", 1, data={}, mode="train")
+    data_build.build_yolo_dataset(cfg, "images", 1, data={}, mode="val")
+    assert captured == [0.25, 0.75, 0.25, 1.0]
 
 
 def test_predict_txt(tmp_path):

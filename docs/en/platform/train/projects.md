@@ -81,10 +81,11 @@ Action buttons in the header:
 
 ### View Modes
 
-Toggle between two view modes using the view controls:
+Toggle between three view modes using the view controls:
 
-- **Charts view**: Interactive charts dashboard showing loss curves and metric comparisons for selected models
-- **Table view**: Comparison table showing training arguments and final metrics side-by-side with a diff mode to highlight differing columns
+- **Cards**: Full-width models sidebar with the Charts dashboard on the right — loss curves and metric comparisons for checked models.
+- **Compact**: Condensed models sidebar with the Charts dashboard on the right — more vertical room for models in projects with many experiments.
+- **Table**: Comparison table showing training arguments and final metrics side-by-side. Enable **Diff** to highlight only the columns where values differ across models.
 
 ![Ultralytics Platform Project Comparison Table View](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-project-comparison-table-view.avif)
 

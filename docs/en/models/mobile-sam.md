@@ -176,7 +176,7 @@ Both `MobileSAM` and `SAM` share the same API. For more usage details, see the [
 
 ### Automatically Build Segmentation Datasets Using a Detection Model
 
-To automatically annotate your dataset with the Ultralytics framework, use the `auto_annotate` function as shown below:
+To automatically [annotate your dataset](https://www.ultralytics.com/annotate) with the Ultralytics framework, use the `auto_annotate` function as shown below:
 
 !!! example
 

@@ -12,13 +12,13 @@ Parking management with [Ultralytics YOLO26](https://github.com/ultralytics/ultr
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/WwXnljc7ZUM"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/hsimB10D6Y0"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Implement Parking Management Using Ultralytics YOLO 🚀
+  <strong>Watch:</strong> How to Build a Parking Management System with Ultralytics YOLO26 | Real-Time Spot Detection 🚗
 </p>
 
 ## Advantages of Parking Management System

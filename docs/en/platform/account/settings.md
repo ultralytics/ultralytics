@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, settings, profile, preferences, GDPR, data expor
 
 [Ultralytics Platform](https://platform.ultralytics.com) settings allow you to configure your profile, social links, workspace preferences, and manage your data with GDPR-compliant export and deletion options.
 
-Settings is organized into six tabs: `Profile`, `API Keys`, `Plans`, `Billing`, `Teams`, and `Trash`.
+Settings is organized into six tabs (in order): `Profile`, `API Keys`, `Plans`, `Billing`, `Teams`, and `Trash`.
 
 ## Profile Tab
 
@@ -180,7 +180,7 @@ Download all your data:
 1. Go to **Settings > Profile**
 2. Scroll to the bottom section
 3. Click **Export Data**
-4. Receive download link via email
+4. An asynchronous export job runs in the background; a **Download** link appears on the same page when the job completes (download link valid for 1 hour)
 
 Export includes:
 
@@ -188,7 +188,7 @@ Export includes:
 - Dataset metadata
 - Model metadata
 - Training history
-- API key metadata (not secrets)
+- API key metadata (keys themselves are never exported in plaintext)
 
 #### Account Deletion
 
@@ -280,7 +280,7 @@ The `Teams` tab lets you manage workspace members, roles, and invitations. Teams
 
 Owners and admins can manage the team:
 
-- **Invite members** via email (invitations expire after 7 days)
+- **Invite members** via email (invites stay valid until accepted or canceled; pending invites count against the seat limit)
 - **Change roles**: Click the role dropdown next to a member (only the owner can assign/remove the admin role)
 - **Remove members**: Click the menu and select **Remove**
 - **Cancel invites**: Cancel pending invitations that haven't been accepted

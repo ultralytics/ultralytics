@@ -873,6 +873,20 @@ class Exporter:
         """Export YOLO model to TensorRT format https://developer.nvidia.com/tensorrt."""
         assert self.im.device.type != "cpu", "export running on CPU but must be on GPU, i.e. use 'device=0'"
         f_onnx = self.export_onnx()  # run before TRT import https://github.com/ultralytics/ultralytics/issues/7016
+
+        # Force re-install TensorRT on CUDA 13 ARM devices to 10.15.x versions for RT-DETR exports
+        # https://github.com/ultralytics/ultralytics/issues/22873
+        if is_jetson(jetpack=7) or is_dgx():
+            check_tensorrt("10.15")
+
+        try:
+            import tensorrt as trt
+        except ImportError:
+            check_tensorrt()
+            import tensorrt as trt
+        check_version(trt.__version__, ">=7.0.0", hard=True)
+        check_version(trt.__version__, "!=10.2.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
+
         from ultralytics.utils.export.engine import onnx2engine
 
         assert Path(f_onnx).exists(), f"failed to export ONNX file: {f_onnx}"

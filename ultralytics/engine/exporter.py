@@ -66,6 +66,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import time
 from copy import deepcopy
 from datetime import datetime
@@ -355,7 +356,7 @@ class Exporter:
                     if check_version(trt.__version__, "==10.3.0") and is_jetson(jetpack=6):
                         LOGGER.info(
                             "\nTensorRT 10.3.0 on JetPack 6 has known INT8 + end2end build issues. "
-                            "Attempting auto-upgrade from https://developer.nvidia.com/cuda-downloads..."
+                            "Upgrading TensorRT from https://developer.nvidia.com/cuda-downloads..."
                         )
                         try:
                             sudo = "sudo " if is_sudo_available() else ""
@@ -370,6 +371,11 @@ class Exporter:
                                 f"{sudo}apt-get install -y tensorrt",
                             ):
                                 subprocess.run(c, shell=True, check=True)
+                            LOGGER.info(
+                                "✅ TensorRT upgraded successfully. "
+                                "Please re-run your export to use the new TensorRT version."
+                            )
+                            sys.exit(0)
                         except subprocess.CalledProcessError as e:
                             LOGGER.warning(f"TensorRT auto-upgrade failed: {e}")
                 except ImportError:

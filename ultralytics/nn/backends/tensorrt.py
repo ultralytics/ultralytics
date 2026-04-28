@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import IS_JETSON, LINUX, LOGGER, PYTHON_VERSION
+from ultralytics.utils import IS_JETSON, LOGGER, PYTHON_VERSION
 from ultralytics.utils.checks import check_requirements, check_version
 
 from .base import BaseBackend

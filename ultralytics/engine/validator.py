@@ -165,7 +165,12 @@ class BaseValidator:
                     model.end2end = self.args.end2end
                 if model.end2end:
                     model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms)
-            self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data)
+            if RANK in {-1, 0}:
+                self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data)
+            if RANK != -1:
+                broadcast_list = [self.args.data if RANK == 0 else None]
+                dist.broadcast_object_list(broadcast_list, 0)
+                self.args.data = broadcast_list[0]
             model = AutoBackend(
                 model=model or self.args.model,
                 device=select_device(self.args.device) if RANK == -1 else torch.device("cuda", RANK),

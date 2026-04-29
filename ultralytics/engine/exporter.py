@@ -317,6 +317,8 @@ class Exporter:
                 self.args.int8 = True
             if not self.args.data:
                 self.args.data = TASK2CALIBRATIONDATA.get(model.task)
+        if fmt == "edgetpu" and not self.args.int8:
+            self.args.int8 = True  # Edge TPU export is always INT8; force early so default `data` is assigned below
         if fmt == "imx":
             if not self.args.int8:
                 LOGGER.warning("IMX export requires int8=True, setting int8=True.")
@@ -517,7 +519,6 @@ class Exporter:
 
         # Export
         if is_tf_format:
-            self.args.int8 |= fmt == "edgetpu"
             f, keras_model = self.export_saved_model()
             if fmt in {"pb", "tfjs"}:  # pb prerequisite to tfjs
                 f = self.export_pb(keras_model=keras_model)

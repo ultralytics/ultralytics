@@ -43,6 +43,12 @@ def onnx2rknn(
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    if name in {"rv1103", "rv1106", "rv1103b", "rv1106b"}:
+        raise RuntimeError(
+            f"Rockchip target '{name}' requires INT8 quantization, which is not yet supported by Ultralytics RKNN "
+            f"export (TODO). Use a target that supports FP build (e.g. rk3588, rk3576, rk3566, rk3568, rk3562)."
+        )
+
     rknn = RKNN(verbose=False)
     rknn.config(mean_values=[[0, 0, 0]], std_values=[[255, 255, 255]], target_platform=name)
     rknn.load_onnx(model=onnx_file)

@@ -104,7 +104,10 @@ class PoseValidator(DetectionValidator):
         nkpt = self.kpt_shape[0]
         # Check if custom OKS sigmas are provided in the dataset YAML
         if 'kpt_oks_sigmas' in self.data:
-            self.sigma = np.array(self.data['kpt_oks_sigmas'])
+            sigmas = np.array(self.data['kpt_oks_sigmas'])
+            if len(sigmas) != nkpt:
+                raise ValueError(f"Length of 'kpt_oks_sigmas' ({len(sigmas)}) in dataset YAML does not match the number of keypoints ({nkpt}).")
+            self.sigma = sigmas
         else:
             self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
 

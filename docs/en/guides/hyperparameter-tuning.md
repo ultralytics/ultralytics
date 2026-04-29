@@ -239,7 +239,7 @@ This YAML file contains the best-performing hyperparameters found during the tun
 
 #### tune_fitness.png
 
-This is a plot displaying fitness (typically a performance metric like AP50) against the number of iterations. It helps you visualize how well the genetic algorithm performed over time.
+This is a plot displaying fitness against the number of iterations. It helps you visualize how the genetic algorithm performed over time.
 
 - **Format**: PNG
 - **Usage**: Performance visualization
@@ -247,6 +247,11 @@ This is a plot displaying fitness (typically a performance metric like AP50) aga
 <p align="center">
   <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/best-fitness.avif" alt="Hyperparameter Tuning Fitness vs Iteration">
 </p>
+
+The plot contains:
+
+- **One marker per iteration per dataset**, so a single-dataset run shows one point per iteration, and a multi-dataset run shows one point per dataset per iteration.
+- **A dotted "smoothed mean" line** computed as a Gaussian smoothing (`sigma=3`) over the per-iteration top-level fitness values.
 
 #### tune_results.ndjson
 

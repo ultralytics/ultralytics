@@ -318,6 +318,7 @@ class Exporter:
             if not self.args.data:
                 self.args.data = TASK2CALIBRATIONDATA.get(model.task)
         if fmt == "edgetpu" and not self.args.int8:
+            LOGGER.warning("Edge TPU export requires int8=True, setting int8=True.")
             self.args.int8 = True
         if fmt == "imx":
             if not self.args.int8:

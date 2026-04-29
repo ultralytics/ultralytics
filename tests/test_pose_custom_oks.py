@@ -29,3 +29,11 @@ def test_pose_validator_custom_oks():
     
     with pytest.raises(ValueError, match="Length of 'kpt_oks_sigmas'"):
         validator.init_metrics(model)
+
+    # Case 3: sigma values <= must provoke errors
+    validator.data = {
+        'kpt_shape': [17, 3],
+        'kpt_oks_sigmas': [0.0] * 17
+    }
+    with pytest.raises(ValueError, match="strictly positive"):
+        validator.init_metrics(model)

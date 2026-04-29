@@ -27,7 +27,7 @@ The `ultralytics` package provides a variety of utilities to support, enhance, a
 
 ### Auto Labeling / Annotations
 
-Dataset annotation is a resource-intensive and time-consuming process. If you have an Ultralytics YOLO [object detection](https://www.ultralytics.com/glossary/object-detection) model trained on a reasonable amount of data, you can use it with [SAM](../models/sam.md) to auto-annotate additional data in segmentation format.
+[Dataset annotation](https://www.ultralytics.com/annotate) is a resource-intensive and time-consuming process. If you have an Ultralytics YOLO [object detection](https://www.ultralytics.com/glossary/object-detection) model trained on a reasonable amount of data, you can use it with [SAM](../models/sam.md) to auto-annotate additional data in segmentation format.
 
 ```python
 from ultralytics.data.annotator import auto_annotate

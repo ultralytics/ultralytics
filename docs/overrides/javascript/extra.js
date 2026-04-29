@@ -62,7 +62,8 @@ const checkTheme = () => {
 function syncEmbedTheme() {
   const isDark = document.body.getAttribute("data-md-color-scheme") === "slate";
   document.querySelectorAll("iframe").forEach((iframe) => {
-    iframe.contentWindow?.postMessage({ type: "ul-theme", theme: isDark ? "dark" : "light" }, "*");
+    const targetOrigin = iframe.src ? new URL(iframe.src, window.location.href).origin : window.location.origin;
+    iframe.contentWindow?.postMessage({ type: "ul-theme", theme: isDark ? "dark" : "light" }, targetOrigin);
     iframe.addEventListener("load", syncEmbedTheme, { once: true });
   });
 }

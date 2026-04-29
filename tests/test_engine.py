@@ -201,3 +201,23 @@ def test_train_reuses_loaded_checkpoint_model(monkeypatch):
     assert captured["trainer"].model is original_model, "Trainer model does not match original"
     assert captured["cfg"] == original_model.yaml, f"Config mismatch: {captured['cfg']} != {original_model.yaml}"
     assert captured["weights"] is original_model, "Weights do not match original model"
+
+
+def test_load_checkpoint_sanitizes_non_finite_values(tmp_path):
+    """Test sanitization of non-finite checkpoint tensors during load."""
+    model = torch.nn.Sequential(torch.nn.BatchNorm2d(2), torch.nn.Conv2d(2, 2, 1, bias=False))
+    model[0].running_var[0] = float("inf")
+    model[0].running_mean[0] = float("nan")
+    with torch.no_grad():
+        model[1].weight[0, 0, 0, 0] = float("nan")
+
+    ckpt_path = tmp_path / "corrupt.pt"
+    torch.save({"model": model, "train_args": {"task": "detect"}}, ckpt_path)
+
+    loaded, ckpt = load_checkpoint(ckpt_path)
+    state_dict = loaded.state_dict()
+
+    assert torch.isfinite(state_dict["0.running_var"]).all() and state_dict["0.running_var"][0] == 1.0
+    assert torch.isfinite(state_dict["0.running_mean"]).all() and state_dict["0.running_mean"][0] == 0.0
+    assert torch.isfinite(state_dict["1.weight"]).all() and state_dict["1.weight"][0, 0, 0, 0] == 0.0
+    assert torch.isfinite(ckpt["model"].state_dict()["1.weight"]).all()

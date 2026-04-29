@@ -1515,6 +1515,12 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
     ckpt, weight = torch_safe_load(weight)  # load ckpt
     args = {**DEFAULT_CFG_DICT, **(ckpt.get("train_args", {}))}  # combine model and default args, preferring model args
     model = (ckpt.get("ema") or ckpt["model"]).float()  # FP32 model
+    for name, t in model.state_dict().items():
+        if not t.dtype.is_floating_point or torch.isfinite(t).all():
+            continue
+        mask = ~torch.isfinite(t)
+        t[mask] = 1.0 if name.endswith("running_var") else 0.0
+        LOGGER.warning(f"Sanitized {int(mask.sum())} non-finite value(s) in {weight}.{name}.")
 
     # Model compatibility updates
     model.args = args  # attach args to model

@@ -718,6 +718,10 @@ class BaseTrainer:
         if str(self.model).endswith(".pt"):
             weights, ckpt = load_checkpoint(self.model)
             cfg = weights.yaml
+            if isinstance(self.args.pretrained, (str, Path)):
+                weights, _ = load_checkpoint(self.args.pretrained)
+            elif not self.args.pretrained and not self.resume:
+                weights = None
         elif isinstance(self.args.pretrained, (str, Path)):
             weights, _ = load_checkpoint(self.args.pretrained)
         self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK in {-1, 0})  # calls Model(cfg, weights)

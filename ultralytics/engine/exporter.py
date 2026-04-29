@@ -150,7 +150,7 @@ def export_formats():
         ],
         ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"]],
         ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "data", "half", "int8", "nms", "fraction"]],
-        ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, ["data", "fraction"]],
+        ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, ["data", "fraction", "int8"]],
         ["TensorFlow.js", "tfjs", "_web_model", True, False, ["batch", "data", "fraction", "half", "int8", "nms"]],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"]],
         ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"]],

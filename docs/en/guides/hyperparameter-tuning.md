@@ -302,7 +302,7 @@ A pretty-printed example is shown below for readability. In the actual `.ndjson`
 }
 ```
 
-The top-level `fitness` is the arithmetic mean of the per-dataset `fitness` values. For single-dataset tuning the `datasets` dict has one entry whose `fitness` equals the top-level `fitness`. One JSON object is appended per completed iteration.
+The top-level `fitness` is the arithmetic mean of the per-dataset `fitness` values. For single-dataset tuning the `datasets` dict has one entry whose `fitness` equals the top-level `fitness`. One JSON object is recorded per completed iteration. The actual `save_dirs` paths are absolute; they are abbreviated above for readability.
 
 #### tune_scatter_plots.png
 

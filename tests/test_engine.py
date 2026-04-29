@@ -164,7 +164,8 @@ def test_nan_recovery():
 
 
 @pytest.mark.parametrize(
-    "kwargs,uses_weights", [({}, True), ({"pretrained": False}, False), ({"pretrained": MODEL}, True)]
+    "kwargs,uses_weights",
+    [({}, True), ({"pretrained": False}, False), ({"pretrained": MODEL}, True)],
 )
 def test_train_reuses_loaded_checkpoint_model(monkeypatch, kwargs, uses_weights):
     """Test training reuses loaded checkpoint config while respecting the pretrained argument."""

@@ -266,7 +266,7 @@ A pretty-printed example is shown below for readability. In the actual `.ndjson`
 ```json
 {
   "iteration": 1,
-  "fitness": 0.23345,
+  "fitness": 0.48628,
   "hyperparameters": {
     "lr0": 0.01,
     "lrf": 0.01,
@@ -275,33 +275,34 @@ A pretty-printed example is shown below for readability. In the actual `.ndjson`
   },
   "datasets": {
     "coco8": {
-      "fitness": 0.28992
+      "metrics/precision(B)": 0.65666,
+      "metrics/recall(B)": 0.85,
+      "metrics/mAP50(B)": 0.85086,
+      "metrics/mAP50-95(B)": 0.64104,
+      "val/box_loss": 1.57958,
+      "val/cls_loss": 1.04986,
+      "val/dfl_loss": 1.32641,
+      "fitness": 0.64104
     },
     "coco8-grayscale": {
-      "fitness": 0.17697
+      "metrics/precision(B)": 0.6582,
+      "metrics/recall(B)": 0.51667,
+      "metrics/mAP50(B)": 0.59106,
+      "metrics/mAP50-95(B)": 0.33152,
+      "val/box_loss": 1.95424,
+      "val/cls_loss": 1.64059,
+      "val/dfl_loss": 1.70226,
+      "fitness": 0.33152
     }
-  }
-}
-
-{
-  "iteration": 2,
-  "fitness": 0.23661,
-  "hyperparameters": {
-    "lr0": 0.0062,
-    "lrf": 0.01,
-    "momentum": 0.90058,
-    "weight_decay": 0.0
   },
-  "datasets": {
-    "coco8": {
-      "fitness": 0.29561
-    },
-    "coco8-grayscale": {
-      "fitness": 0.1776
-    }
+  "save_dirs": {
+    "coco8": "runs/detect/coco8",
+    "coco8-grayscale": "runs/detect/coco8-grayscale"
   }
 }
 ```
+
+The top-level `fitness` is the arithmetic mean of the per-dataset `fitness` values. For single-dataset tuning the `datasets` dict has one entry whose `fitness` equals the top-level `fitness`. One JSON object is appended per completed iteration.
 
 #### tune_scatter_plots.png
 

@@ -164,9 +164,9 @@ def test_nan_recovery():
 
 
 @pytest.mark.parametrize(
-    "kwargs,expected_weights", [({}, "model"), ({"pretrained": False}, None), ({"pretrained": MODEL}, "model")]
+    "kwargs,uses_weights", [({}, True), ({"pretrained": False}, False), ({"pretrained": MODEL}, True)]
 )
-def test_train_reuses_loaded_checkpoint_model(monkeypatch, kwargs, expected_weights):
+def test_train_reuses_loaded_checkpoint_model(monkeypatch, kwargs, uses_weights):
     """Test training reuses loaded checkpoint config while respecting the pretrained argument."""
     model = YOLO("yolo26n.yaml")
     model.ckpt = {"checkpoint": True}
@@ -204,11 +204,11 @@ def test_train_reuses_loaded_checkpoint_model(monkeypatch, kwargs, expected_weig
 
     assert captured["trainer"].model is original_model, "Trainer model does not match original"
     assert captured["cfg"] == original_model.yaml, f"Config mismatch: {captured['cfg']} != {original_model.yaml}"
-    assert captured["weights"] is (original_model if expected_weights == "model" else None), "Unexpected weights loaded"
+    assert captured["weights"] is (original_model if uses_weights else None), "Unexpected weights loaded"
 
 
-@pytest.mark.parametrize("pretrained,expected_weights", [(True, "model"), (False, None), (MODEL, "model")])
-def test_setup_model_respects_pretrained_arg_for_pt_models(monkeypatch, pretrained, expected_weights):
+@pytest.mark.parametrize("pretrained,uses_weights", [(True, True), (False, False), (MODEL, True)])
+def test_setup_model_respects_pretrained_arg_for_pt_models(monkeypatch, pretrained, uses_weights):
     """Test .pt models use checkpoint config while respecting the pretrained argument."""
     captured = {}
     checkpoint_model = SimpleNamespace(yaml={"nc": 80})
@@ -230,4 +230,4 @@ def test_setup_model_respects_pretrained_arg_for_pt_models(monkeypatch, pretrain
     trainer.setup_model()
 
     assert captured["cfg"] == checkpoint_model.yaml, "Checkpoint config was not used"
-    assert captured["weights"] is (checkpoint_model if expected_weights == "model" else None), "Unexpected weights loaded"
+    assert captured["weights"] is (checkpoint_model if uses_weights else None), "Unexpected weights loaded"

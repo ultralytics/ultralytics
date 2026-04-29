@@ -873,7 +873,6 @@ class Exporter:
         """Export YOLO model to TensorRT format https://developer.nvidia.com/tensorrt."""
         assert self.im.device.type != "cpu", "export running on CPU but must be on GPU, i.e. use 'device=0'"
         f_onnx = self.export_onnx()  # run before TRT import https://github.com/ultralytics/ultralytics/issues/7016
-
         from ultralytics.utils.export.engine import onnx2engine
 
         assert Path(f_onnx).exists(), f"failed to export ONNX file: {f_onnx}"

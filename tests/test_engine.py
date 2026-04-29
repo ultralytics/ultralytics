@@ -173,6 +173,7 @@ def test_train_reuses_loaded_checkpoint_model(monkeypatch, kwargs, uses_weights)
     model.ckpt = {"checkpoint": True}
     model.ckpt_path = "/tmp/fake.pt"
     model.overrides["model"] = "ul://glenn-jocher/m2/exp-14"
+    model.overrides["pretrained"] = False
     original_model = model.model
     captured = {}
 

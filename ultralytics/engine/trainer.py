@@ -720,7 +720,7 @@ class BaseTrainer:
             cfg = weights.yaml
             if isinstance(self.args.pretrained, (str, Path)):
                 weights, _ = load_checkpoint(self.args.pretrained)
-            elif not self.args.pretrained and not self.resume:
+            elif self.args.pretrained is False and not self.resume:
                 weights = None
         elif isinstance(self.args.pretrained, (str, Path)):
             weights, _ = load_checkpoint(self.args.pretrained)

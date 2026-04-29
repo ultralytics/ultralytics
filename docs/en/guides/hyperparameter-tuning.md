@@ -305,7 +305,7 @@ A pretty-printed example is shown below for readability. In the actual `.ndjson`
 
 #### tune_scatter_plots.png
 
-This file contains scatter plots generated from `tune_results.ndjson`, helping you visualize relationships between different hyperparameters and performance metrics. Note that hyperparameters initialized to 0 will not be tuned, such as `degrees` and `shear` below.
+This file contains scatter plots generated from `tune_results.ndjson`, helping you visualize relationships between different hyperparameters and performance metrics. Hyperparameters whose default value is 0 (for example, `degrees` and `shear` below) stay close to 0 across iterations because the multiplicative mutation factor has very little to expand from the seed value.
 
 - **Format**: PNG
 - **Usage**: Exploratory data analysis

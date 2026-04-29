@@ -98,14 +98,9 @@ from ultralytics.utils import (
     callbacks,
     colorstr,
     get_default_args,
+    is_jetson,
 )
-from ultralytics.utils.checks import (
-    IS_PYTHON_MINIMUM_3_9,
-    check_imgsz,
-    check_requirements,
-    check_version,
-    is_intel,
-)
+from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_9, check_imgsz, check_requirements, check_version, is_intel
 from ultralytics.utils.files import file_size
 from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
@@ -344,15 +339,17 @@ class Exporter:
                 model.end2end = False
                 LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
             if fmt == "engine" and self.args.int8:
-                # TensorRT<=10.3.0 with int8 has known end2end build issues
+                # TensorRT 10.3.0 on JetPack 6 with int8 has known end2end build issues
                 # https://github.com/ultralytics/ultralytics/issues/23841
                 try:
                     import tensorrt as trt
 
-                    if check_version(trt.__version__, "<=10.3.0", hard=True):
+                    if check_version(trt.__version__, "==10.3.0") and is_jetson(jetpack=6):
                         model.end2end = False
                         LOGGER.warning(
-                            "TensorRT<=10.3.0 with int8 has known end2end build issues, disabling end2end branch."
+                            "TensorRT 10.3.0 on JetPack 6 with int8 has known end2end build issues, disabling end2end branch. "
+                            "For a fix, see https://docs.ultralytics.com/guides/nvidia-jetson/#why-does-my-tensorrt-int8-export-disable-end2end-on-jetpack-6"
+                            ""
                         )
                 except ImportError:
                     pass

@@ -125,16 +125,30 @@ from ultralytics.utils.torch_utils import (
 def export_formats():
     """Return a dictionary of Ultralytics YOLO export formats."""
     x = [
-        ["PyTorch", "-", ".pt", True, True, []],
-        ["TorchScript", "torchscript", ".torchscript", True, True, ["batch", "optimize", "half", "nms", "dynamic"]],
-        ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify", "nms"]],
+        ["PyTorch", "-", ".pt", True, True, ["data", "device"]],
+        [
+            "TorchScript",
+            "torchscript",
+            ".torchscript",
+            True,
+            True,
+            ["batch", "data", "device", "dynamic", "half", "nms", "optimize"],
+        ],
+        [
+            "ONNX",
+            "onnx",
+            ".onnx",
+            True,
+            True,
+            ["batch", "data", "device", "dynamic", "half", "opset", "simplify", "nms"],
+        ],
         [
             "OpenVINO",
             "openvino",
             "_openvino_model",
             True,
             False,
-            ["batch", "data", "dynamic", "half", "int8", "nms", "fraction"],
+            ["batch", "data", "device", "dynamic", "half", "int8", "nms", "fraction"],
         ],
         [
             "TensorRT",
@@ -142,21 +156,35 @@ def export_formats():
             ".engine",
             False,
             True,
-            ["batch", "data", "dynamic", "half", "int8", "simplify", "nms", "fraction"],
+            ["batch", "data", "device", "dynamic", "half", "int8", "simplify", "nms", "fraction"],
         ],
-        ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "data", "dynamic", "half", "int8", "nms"]],
-        ["TensorFlow SavedModel", "saved_model", "_saved_model", True, True, ["batch", "data", "int8", "keras", "nms"]],
-        ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"]],
-        ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "data", "half", "int8", "nms", "fraction"]],
-        ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, []],
-        ["TensorFlow.js", "tfjs", "_web_model", True, False, ["batch", "data", "half", "int8", "nms"]],
-        ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"]],
-        ["MNN", "mnn", ".mnn", True, True, ["batch", "data", "half", "int8"]],
-        ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
-        ["IMX", "imx", "_imx_model", True, True, ["data", "int8", "fraction", "nms"]],
-        ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
-        ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
-        ["Axelera AI", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction", "data"]],
+        ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "data", "device", "dynamic", "half", "int8", "nms"]],
+        [
+            "TensorFlow SavedModel",
+            "saved_model",
+            "_saved_model",
+            True,
+            True,
+            ["batch", "data", "device", "int8", "keras", "nms"],
+        ],
+        ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch", "data", "device"]],
+        [
+            "TensorFlow Lite",
+            "tflite",
+            ".tflite",
+            True,
+            False,
+            ["batch", "data", "device", "half", "int8", "nms", "fraction"],
+        ],
+        ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, ["data", "device"]],
+        ["TensorFlow.js", "tfjs", "_web_model", True, False, ["batch", "data", "device", "half", "int8", "nms"]],
+        ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch", "data", "device"]],
+        ["MNN", "mnn", ".mnn", True, True, ["batch", "data", "device", "half", "int8"]],
+        ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "data", "device", "half"]],
+        ["IMX", "imx", "_imx_model", True, True, ["data", "device", "int8", "fraction", "nms"]],
+        ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "data", "device", "name"]],
+        ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch", "data", "device"]],
+        ["Axelera AI", "axelera", "_axelera_model", False, False, ["batch", "data", "device", "int8", "fraction"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -172,7 +200,7 @@ def validate_args(format, passed_args, valid_args):
     Raises:
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
     """
-    export_args = ["half", "int8", "dynamic", "keras", "nms", "batch", "fraction", "data"]
+    export_args = ["half", "int8", "dynamic", "keras", "nms", "batch", "fraction", "data", "device"]
 
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults

@@ -143,7 +143,7 @@ def onnx2engine(
         check_tensorrt()
         import tensorrt as trt
     check_version(trt.__version__, ">=7.0.0", hard=True)
-    check_version(trt.__version__, "!=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
+    check_version(trt.__version__, "!=10.2.0", msg="https://github.com/ultralytics/ultralytics/pull/24367")
 
     LOGGER.info(f"\n{prefix} starting export with TensorRT {trt.__version__}...")
     output_file = output_file or Path(onnx_file).with_suffix(".engine")

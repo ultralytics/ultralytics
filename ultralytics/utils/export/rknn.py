@@ -46,7 +46,7 @@ def onnx2rknn(
     if name in {"rv1103", "rv1106", "rv1103b", "rv1106b"}:
         raise RuntimeError(
             f"Rockchip target '{name}' requires INT8 quantization, which is not yet supported by Ultralytics RKNN. "
-            f"Use a target that supports FP16 builds (e.g. rk3588, rk3576, rk3566, rk3568, rk3562)."
+            f"Use a target that supports FP16 builds (e.g. rk2118, rk3562, rk3566, rk3568, rk3576, rk3588, rv1126b)."
         )
 
     rknn = RKNN(verbose=False)

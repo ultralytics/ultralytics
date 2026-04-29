@@ -41,7 +41,7 @@ For a full list of augmentation hyperparameters used in YOLO26 please refer to t
 Ultralytics YOLO uses [genetic algorithms](https://en.wikipedia.org/wiki/Genetic_algorithm) to optimize hyperparameters. Genetic algorithms are inspired by the mechanism of natural selection and genetics.
 
 - **Crossover**: Each iteration combines genes from up to nine of the highest-fitness configurations seen so far, using BLX-α crossover with fitness-weighted parent selection.
-- **Mutation**: The recombined candidate is then perturbed by a log-normal multiplicative factor applied to each hyperparameter (with probability 0.5 per parameter). The mutation strength `σ` decays linearly from 0.2 to 0.1 over the first 300 iterations, so the algorithm explores broadly early and refines as it converges. Iteration 1 has no parents to crossover from and uses the default training hyperparameters as a baseline.
+- **Mutation**: The recombined candidate is then perturbed by a log-normal multiplicative factor applied to each hyperparameter (with probability 0.5 per parameter). The mutation strength sigma decays linearly from 0.2 to 0.1 over the first 300 iterations, so the algorithm explores broadly early and refines as it converges. Iteration 1 has no parents to crossover from and uses the default training hyperparameters as a baseline.
 
 ## Preparing for Hyperparameter Tuning
 
@@ -306,7 +306,7 @@ The top-level `fitness` is the arithmetic mean of the per-dataset `fitness` valu
 
 #### tune_scatter_plots.png
 
-This file contains scatter plots generated from `tune_results.ndjson`, helping you visualize relationships between different hyperparameters and performance metrics. Hyperparameters whose default value is 0 (for example, `degrees` and `shear` below) stay close to 0 across iterations because the multiplicative mutation factor has very little to expand from the seed value.
+This file contains scatter plots generated from `tune_results.ndjson`, helping you visualize relationships between different hyperparameters and performance metrics. Hyperparameters whose default value is 0 (for example, `degrees` and `shear` below) may evolve only slowly from their initial seed because the multiplicative mutation factor has very little to expand from a near-zero value.
 
 - **Format**: PNG
 - **Usage**: Exploratory data analysis

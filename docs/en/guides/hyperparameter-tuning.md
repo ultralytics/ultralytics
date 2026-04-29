@@ -325,7 +325,7 @@ Using these results, you can make more informed decisions for your future model 
 
 ## Conclusion
 
-The hyperparameter tuning process in Ultralytics YOLO is simplified yet powerful, thanks to its genetic algorithm-based approach focused on mutation. Following the steps outlined in this guide will assist you in systematically tuning your model to achieve better performance.
+The hyperparameter tuning process in Ultralytics YOLO is simplified yet powerful, thanks to its genetic algorithm-based approach combining BLX-α crossover with log-normal mutation. Following the steps outlined in this guide will assist you in systematically tuning your model to achieve better performance.
 
 ### Further Reading
 
@@ -361,9 +361,9 @@ For more details, check the [Ultralytics YOLO configuration page](../usage/cfg.m
 
 Genetic algorithms in Ultralytics YOLO26 provide a robust method for exploring the hyperparameter space, leading to highly optimized model performance. Key benefits include:
 
-- **Efficient Search**: Genetic algorithms like mutation can quickly explore a large set of hyperparameters.
+- **Efficient Search**: BLX-α crossover combines genes from the highest-fitness parents, while log-normal mutation perturbs the result to discover new candidates.
 - **Avoiding Local Minima**: By introducing randomness, they help in avoiding local minima, ensuring better global optimization.
-- **Performance Metrics**: They adapt based on performance metrics such as AP50 and F1-score.
+- **Performance Metrics**: They adapt based on a task-specific fitness score (mAP50-95 for detection).
 
 To see how genetic algorithms can optimize hyperparameters, check out the [hyperparameter evolution guide](../yolov5/tutorials/hyperparameter_evolution.md).
 

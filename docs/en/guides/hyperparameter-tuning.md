@@ -40,8 +40,8 @@ For a full list of augmentation hyperparameters used in YOLO26 please refer to t
 
 Ultralytics YOLO uses [genetic algorithms](https://en.wikipedia.org/wiki/Genetic_algorithm) to optimize hyperparameters. Genetic algorithms are inspired by the mechanism of natural selection and genetics.
 
-- **Mutation**: In the context of Ultralytics YOLO, mutation helps in locally searching the hyperparameter space by applying small, random changes to existing hyperparameters, producing new candidates for evaluation.
-- **Crossover**: Although crossover is a popular genetic algorithm technique, it is not currently used in Ultralytics YOLO for hyperparameter tuning. The focus is mainly on mutation for generating new hyperparameter sets.
+- **Crossover**: Each iteration combines genes from up to nine of the highest-fitness configurations seen so far, using BLX-α crossover with fitness-weighted parent selection.
+- **Mutation**: The recombined candidate is then perturbed by a log-normal multiplicative factor applied to each hyperparameter (with probability 0.5 per parameter). The mutation strength `σ` decays linearly from 0.2 to 0.1 over the first 300 iterations, so the algorithm explores broadly early and refines as it converges. Iteration 1 has no parents to crossover from and uses the default training hyperparameters as a baseline.
 
 ## Preparing for Hyperparameter Tuning
 

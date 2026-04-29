@@ -339,11 +339,11 @@ Draw a free-form selection around a region to highlight points on the plot. The 
 
 Navigate large scatters directly from your mouse and keyboard:
 
-| Input                | Action                                       |
-| -------------------- | -------------------------------------------- |
-| **Scroll**           | Pan the plot in 2D                           |
-| **Cmd/Ctrl+Scroll**  | Zoom in or out, anchored at the cursor       |
-| **Hold Space**       | Switch to drag-to-pan mode                   |
+| Input               | Action                                 |
+| ------------------- | -------------------------------------- |
+| **Scroll**          | Pan the plot in 2D                     |
+| **Cmd/Ctrl+Scroll** | Zoom in or out, anchored at the cursor |
+| **Hold Space**      | Switch to drag-to-pan mode             |
 
 ### Re-analyzing
 

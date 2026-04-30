@@ -143,7 +143,7 @@ Use a public dataset for your training:
     - Cloned datasets are **private by default**
     - You can modify classes, annotations, and splits
     - Changes don't affect the original dataset
-    - Images are deduplicated using content-addressable storage — cloning is fast
+    - Images are deduplicated using content-addressable storage (CAS) — cloning is fast and **does not double your storage usage**
 
 See [Datasets](data/datasets.md) for managing and annotating your cloned dataset.
 
@@ -197,12 +197,12 @@ See [Projects](train/projects.md) for organizing models in your project.
 
 Official `@ultralytics` content is pinned to the top of the Explore page. This includes:
 
-| Project                           | Description                 | Models                       | Tasks                                |
-| --------------------------------- | --------------------------- | ---------------------------- | ------------------------------------ |
-| **[YOLO26](../models/yolo26.md)** | Latest January 2026 release | 25 models (all sizes, tasks) | detect, segment, pose, OBB, classify |
-| **[YOLO11](../models/yolo11.md)** | Current stable release      | 10+ models                   | detect, segment, pose, OBB, classify |
-| **YOLOv8**                        | Previous generation         | Various                      | detect, segment, pose, classify      |
-| **YOLOv5**                        | Legacy, widely adopted      | Various                      | detect, segment, classify            |
+| Project                           | Description                 | Models                         | Tasks                                |
+| --------------------------------- | --------------------------- | ------------------------------ | ------------------------------------ |
+| **[YOLO26](../models/yolo26.md)** | Latest January 2026 release | 25 models (5 sizes × 5 tasks)  | detect, segment, pose, OBB, classify |
+| **[YOLO11](../models/yolo11.md)** | Current stable release      | 25 models (5 sizes × 5 tasks)  | detect, segment, pose, OBB, classify |
+| **YOLOv8**                        | Previous generation         | 20+ models (5 sizes × 4 tasks) | detect, segment, pose, classify      |
+| **YOLOv5**                        | Legacy, widely adopted      | 15+ models                     | detect, segment, classify            |
 
 Official datasets include benchmark datasets like [coco8](../datasets/detect/coco8.md) (8-image COCO subset), [VOC](../datasets/detect/voc.md), [african-wildlife](../datasets/detect/african-wildlife.md), [dota8](../datasets/obb/dota8.md), and other commonly used computer vision datasets.
 
@@ -221,12 +221,17 @@ Click on a creator's username to view their public profile at `platform.ultralyt
 
 ![Ultralytics Platform User Profile Public Content](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-user-profile-public-content.avif)
 
-| Section      | Content                      |
-| ------------ | ---------------------------- |
-| **Bio**      | User description and company |
-| **Links**    | Social profiles              |
-| **Projects** | Public projects with models  |
-| **Datasets** | Public datasets              |
+| Section       | Content                      |
+| ------------- | ---------------------------- |
+| **Bio**       | User description and company |
+| **Links**     | Social profiles              |
+| **Followers** | Follower count               |
+| **Projects**  | Public projects with models  |
+| **Datasets**  | Public datasets              |
+
+### Follow Users
+
+Click the **Follow** button on any user's profile to follow them. Following helps you discover new content from creators you're interested in. Your follower count is displayed on your profile.
 
 ## Make Your Content Public
 
@@ -289,6 +294,22 @@ When contributing public content:
 - Spam low-quality content
 - Misrepresent performance
 
+## Share Content
+
+Click the **Share** button on any public project, model, or dataset to share it. The share dialog provides pre-filled text for social platforms and a direct copy link.
+
+## Embed Widgets
+
+Public content can be embedded in external websites using embed URLs:
+
+| Content | Embed URL Pattern                                             |
+| ------- | ------------------------------------------------------------- |
+| Project | `platform.ultralytics.com/embed/{username}/{project}`         |
+| Model   | `platform.ultralytics.com/embed/{username}/{project}/{model}` |
+| Dataset | `platform.ultralytics.com/embed/{username}/datasets/{slug}`   |
+
+Use these URLs in an `<iframe>` to embed interactive project views, model prediction widgets, or dataset viewers on your website.
+
 ## Public Content URLs
 
 Public content on the platform uses clean, shareable URLs:
@@ -322,12 +343,12 @@ Contact creators for commercial licensing.
 To report inappropriate content:
 
 1. Navigate to the public page containing the content (project or dataset), if accessible
-2. Click the **Feedback** button in the sidebar
+2. Open the **Help** page from the sidebar
 3. Select **General** as the feedback type
 4. Describe the content and the issue, including a link to the page
 5. Submit the report
 
-If the content is no longer accessible, use the **Feedback** button from any page and include as much detail as possible (URL, username, or description).
+If the content is no longer accessible, use the **Help** page from any page and include as much detail as possible (URL, username, or description).
 
 Our team reviews reports within 24-48 hours.
 

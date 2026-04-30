@@ -146,7 +146,7 @@ Train YOLO26n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
 
 ### Dataset format
 
-YOLO classification dataset format can be found in detail in the [Dataset Guide](../datasets/classify/index.md).
+YOLO classification dataset format can be found in detail in the [Dataset Guide](../datasets/classify/index.md). Classification datasets can also be managed and labeled on [Ultralytics Platform](https://platform.ultralytics.com).
 
 ## Val
 

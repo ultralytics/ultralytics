@@ -32,7 +32,7 @@ When compared to other models in the YOLO family, such as [YOLOv5](https://docs.
 
 ## Usage Examples
 
-As of the time of writing, Ultralytics does not currently support YOLOv4 models. Therefore, any users interested in using YOLOv4 will need to refer directly to the YOLOv4 GitHub repository for installation and usage instructions.
+YOLOv4 is a Darknet-based model and is **not natively supported** by the Ultralytics Python package: there are no `yolov4.pt` pretrained weights published on [ultralytics/assets](https://github.com/ultralytics/assets/releases) and no `ultralytics/cfg/models/v4/` YAMLs. This page is kept as an architectural reference. Users interested in running YOLOv4 should refer directly to the YOLOv4 GitHub repository for installation and usage instructions.
 
 Here is a brief overview of the typical steps you might take to use YOLOv4:
 
@@ -44,13 +44,13 @@ Here is a brief overview of the typical steps you might take to use YOLOv4:
 
 Please note that the specific steps may vary depending on your specific use case and the current state of the YOLOv4 repository. Therefore, it is strongly recommended to refer directly to the instructions provided in the YOLOv4 GitHub repository.
 
-We regret any inconvenience this may cause and will strive to update this document with usage examples for Ultralytics once support for YOLOv4 is implemented.
+For training and inference within the Ultralytics framework, see [YOLO11](yolo11.md) or [YOLO26](yolo26.md).
 
 ## Conclusion
 
 YOLOv4 is a powerful and efficient object detection model that strikes a balance between speed and accuracy. Its use of unique features and bag of freebies techniques during training allows it to perform excellently in real-time object detection tasks. YOLOv4 can be trained and used by anyone with a conventional GPU, making it accessible and practical for a wide range of applications including [surveillance systems](https://www.ultralytics.com/blog/shattering-the-surveillance-status-quo-with-vision-ai), [autonomous vehicles](https://www.ultralytics.com/solutions/ai-in-automotive), and [industrial automation](https://www.ultralytics.com/blog/improving-manufacturing-with-computer-vision).
 
-For those looking to implement object detection in their projects, YOLOv4 remains a strong contender, especially when real-time performance is a priority. While Ultralytics currently focuses on supporting newer YOLO versions like [YOLOv8](https://docs.ultralytics.com/models/yolov8/) and [YOLO11](https://docs.ultralytics.com/models/yolo11/), the architectural innovations introduced in YOLOv4 have influenced the development of these later models.
+For those looking to implement object detection in their projects, YOLOv4 remains a strong contender, especially when real-time performance is a priority. While Ultralytics currently focuses on supporting newer YOLO versions like [YOLO11](yolo11.md) and [YOLO26](yolo26.md), the architectural innovations introduced in YOLOv4 have influenced the development of these later models.
 
 ## Citations and Acknowledgments
 

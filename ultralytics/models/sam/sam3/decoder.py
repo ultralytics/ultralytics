@@ -330,7 +330,7 @@ class TransformerDecoder(nn.Module):
             # cache miss, will create compilation issue
             # In case we're not compiling, we'll still rely on the dict-based cache
             if feat_size not in self.coord_cache:
-                self.coord_cache[feat_size] = self._get_coords(H, W, reference_boxes.device)
+                self.coord_cache[feat_size] = self._get_coords(H, W, reference_boxes.device, reference_boxes.dtype)
             coords_h, coords_w = self.coord_cache[feat_size]
 
             assert coords_h.shape == (H,)
@@ -522,7 +522,7 @@ class TransformerDecoder(nn.Module):
 
                 # clamp to mitigate numerical issues
                 if self.clamp_presence_logits:
-                    intermediate_layer_presence_logits.clamp(
+                    intermediate_layer_presence_logits.clamp_(
                         min=-self.clamp_presence_logit_max_val,
                         max=self.clamp_presence_logit_max_val,
                     )

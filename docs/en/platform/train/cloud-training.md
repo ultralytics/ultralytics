@@ -62,12 +62,12 @@ Choose a dataset to train on (see [Datasets](../data/datasets.md)):
 
 Set core training parameters:
 
-| Parameter      | Description                                                                 | Default |
-| -------------- | --------------------------------------------------------------------------- | ------- |
-| **Epochs**     | Number of training iterations                                               | 100     |
-| **Batch Size** | Samples per iteration                                                       | 16      |
-| **Image Size** | Input resolution (320/416/512/640/1280 dropdown, or 32-4096 in YAML editor) | 640     |
-| **Run Name**   | Optional name for the training run                                          | auto    |
+| Parameter      | Description                                                                                      | Default   |
+| -------------- | ------------------------------------------------------------------------------------------------ | --------- |
+| **Epochs**     | Number of training iterations                                                                    | 100       |
+| **Batch Size** | Samples per iteration                                                                            | -1 (auto) |
+| **Image Size** | Input resolution (320/416/512/640/1280 dropdown, any multiple of 32 from 32-4096 in YAML editor) | 640       |
+| **Run Name**   | Optional name for the training run                                                               | auto      |
 
 ### Step 4: Advanced Settings (Optional)
 
@@ -76,7 +76,7 @@ Expand **Advanced Settings** to access the full YAML-based parameter editor with
 | Group                   | Parameters                                                                       |
 | ----------------------- | -------------------------------------------------------------------------------- |
 | **Learning Rate**       | lr0, lrf, momentum, weight_decay, warmup_epochs, warmup_momentum, warmup_bias_lr |
-| **Optimizer**           | SGD, MuSGD, Adam, AdamW, NAdam, RAdam, RMSProp, Adamax                           |
+| **Optimizer**           | auto (default), SGD, MuSGD, Adam, AdamW, NAdam, RAdam, RMSProp, Adamax           |
 | **Loss Weights**        | box, cls, dfl, pose, kobj, label_smoothing                                       |
 | **Color Augmentation**  | hsv_h, hsv_s, hsv_v                                                              |
 | **Geometric Augment.**  | degrees, translate, scale, shear, perspective                                    |
@@ -105,37 +105,15 @@ Choose your GPU from Ultralytics Cloud:
 
 ![Ultralytics Platform Training Dialog Gpu Selector And Cost](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-training-dialog-gpu-selector-and-cost.avif)
 
-| GPU          | VRAM   | Cost/Hour |
-| ------------ | ------ | --------- |
-| RTX 2000 Ada | 16 GB  | $0.24     |
-| RTX A4500    | 20 GB  | $0.24     |
-| RTX A5000    | 24 GB  | $0.26     |
-| RTX 4000 Ada | 20 GB  | $0.38     |
-| L4           | 24 GB  | $0.39     |
-| A40          | 48 GB  | $0.40     |
-| RTX 3090     | 24 GB  | $0.46     |
-| RTX A6000    | 48 GB  | $0.49     |
-| RTX 4090     | 24 GB  | $0.59     |
-| RTX 6000 Ada | 48 GB  | $0.77     |
-| L40S         | 48 GB  | $0.86     |
-| RTX 5090     | 32 GB  | $0.89     |
-| L40          | 48 GB  | $0.99     |
-| A100 PCIe    | 80 GB  | $1.39     |
-| A100 SXM     | 80 GB  | $1.49     |
-| RTX PRO 6000 | 96 GB  | $1.89     |
-| H100 PCIe    | 80 GB  | $2.39     |
-| H100 SXM     | 80 GB  | $2.69     |
-| H100 NVL     | 94 GB  | $3.07     |
-| H200 NVL     | 143 GB | $3.39     |
-| H200 SXM     | 141 GB | $3.59     |
-| B200         | 180 GB | $4.99     |
+{% include "macros/platform-gpu-table.md" %}
 
 !!! tip "GPU Selection"
 
-    - **RTX PRO 6000**: 96 GB Blackwell generation, recommended default for most jobs
-    - **A100 SXM**: Required for large batch sizes or big models
-    - **H100/H200**: Maximum performance for time-sensitive training
-    - **B200**: NVIDIA Blackwell architecture for cutting-edge workloads
+    - **RTX PRO 6000**: 96 GB Blackwell, recommended default for most jobs
+    - **A100 SXM**: 80 GB HBM2e — strong choice for large batch sizes or bigger models
+    - **H100 PCIe / H100 SXM / H100 NVL**: 80–94 GB Hopper for time-sensitive training (available on all plans)
+    - **H200 NVL / H200 SXM**: 141–143 GB Hopper — requires [Pro or Enterprise](../account/billing.md#plans)
+    - **B200**: 180 GB NVIDIA Blackwell for cutting-edge workloads — requires [Pro or Enterprise](../account/billing.md#plans)
 
 The dialog shows your current **balance** and a **Top Up** button. An estimated cost and duration are calculated based on your configuration (model size, dataset images, epochs, GPU speed).
 
@@ -192,11 +170,7 @@ Real-time GPU utilization, memory, temperature, CPU, and disk usage.
 
 ### Checkpoints
 
-Checkpoints are saved automatically:
-
-- **Every epoch**: Latest weights saved
-- **Best model**: Highest mAP checkpoint preserved
-- **Final model**: Weights at training completion
+After training completes, the **best model** (`best.pt`, the highest-mAP checkpoint) is uploaded to the platform and made available for download, export, and deployment.
 
 ## Cancel Training
 
@@ -204,7 +178,7 @@ Click **Cancel Training** on the model page to stop a running job:
 
 - The compute instance is terminated
 - Credits stop being charged
-- Checkpoints saved up to that point are preserved
+- The best checkpoint remains available if it was reached before cancellation
 
 ## Remote Training
 
@@ -224,7 +198,7 @@ Train on your own hardware while streaming metrics to the platform.
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.14**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.35**. Lower versions will NOT work with Platform.
 
     ```bash
     pip install -U ultralytics
@@ -232,12 +206,12 @@ Train on your own hardware while streaming metrics to the platform.
 
 ### Setup API Key
 
-1. Go to [`Settings > Profile`](../account/api-keys.md) (API Keys section)
+1. Go to [`Settings > API Keys`](../account/api-keys.md)
 2. Create a new key (or the platform auto-creates one when you open the Local Training tab)
 3. Set the environment variable:
 
 ```bash
-export ULTRALYTICS_API_KEY="your_api_key"
+export ULTRALYTICS_API_KEY="YOUR_API_KEY"
 ```
 
 ### Train with Streaming
@@ -433,11 +407,15 @@ Training time depends on:
 
 Typical times (1000 images, 100 epochs):
 
-| Model   | RTX PRO 6000 | A100   |
-| ------- | ------------ | ------ |
-| YOLO26n | 20 min       | 20 min |
-| YOLO26m | 40 min       | 40 min |
-| YOLO26x | 80 min       | 80 min |
+| Model   | RTX PRO 6000 | A100 SXM |
+| ------- | ------------ | -------- |
+| YOLO26n | ~20 min      | ~15 min  |
+| YOLO26m | ~40 min      | ~30 min  |
+| YOLO26x | ~80 min      | ~60 min  |
+
+!!! note "Approximate Times"
+
+    Training times are approximate and vary with dataset complexity, augmentation settings, and batch size. Use the training dialog's cost estimate for more accurate predictions.
 
 ### Can I train overnight?
 
@@ -485,11 +463,11 @@ Yes, the **Train** button on dataset pages opens the training dialog with the da
 
 === "Core"
 
-    | Parameter      | Type | Default | Range    | Description                          |
-    | -------------- | ---- | ------- | -------- | ------------------------------------ |
-    | `epochs`       | int  | 100     | 1-10000  | Number of training epochs            |
-    | `batch`        | int  | 16      | 1-512    | Batch size                     |
-    | `imgsz`        | int  | 640     | 32-4096  | Input image size                     |
+    | Parameter      | Type | Default   | Range     | Description                                      |
+    | -------------- | ---- | --------- | --------- | ------------------------------------------------ |
+    | `epochs`       | int  | 100       | 1-10000   | Number of training epochs                        |
+    | `batch`        | int  | -1 (auto) | -1 to 512 | Batch size (`-1` = auto-fit to available VRAM)   |
+    | `imgsz`        | int  | 640       | 32-4096   | Input image size                                 |
     | `patience`     | int  | 100     | 1-1000   | Early stopping patience              |
     | `seed`         | int  | 0       | 0-2147483647 | Random seed for reproducibility  |
     | `deterministic`| bool | True    | -        | Deterministic training mode          |

@@ -12,13 +12,13 @@ The Crack Segmentation Dataset is an extensive resource designed for individuals
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/C4mc40YKm-g"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/GAFlmuk0fZI"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Crack segmentation using Ultralytics YOLOv9.
+  <strong>Watch:</strong> How to Train a Crack Segmentation Model using Ultralytics YOLO26 | AI in Construction 🎉
 </p>
 
 Comprising 4029 static images captured from diverse road and wall scenarios, this dataset is a valuable asset for crack segmentation tasks. Whether you are researching transportation infrastructure or aiming to enhance the [accuracy](https://www.ultralytics.com/glossary/accuracy) of autonomous driving systems, this dataset provides a rich collection of images for training [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models.

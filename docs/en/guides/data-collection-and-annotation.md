@@ -106,7 +106,7 @@ Let's say you are ready to annotate now. There are several open-source tools ava
   <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/labelme-instance-segmentation-annotation.avif" alt="LabelMe annotation tool for instance segmentation">
 </p>
 
-These open-source tools are budget-friendly and provide a range of features to meet different annotation needs.
+These open-source tools are budget-friendly and provide a range of features to meet different annotation needs. [Ultralytics Platform](https://platform.ultralytics.com) also provides a built-in [annotation editor](../platform/data/annotation.md) supporting all YOLO task types (detection, segmentation, pose, OBB, and classification) with [SAM-powered smart annotation](https://www.ultralytics.com/annotate) for spatial tasks.
 
 ### Some More Things to Consider Before Annotating Data
 

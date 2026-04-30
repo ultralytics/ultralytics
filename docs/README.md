@@ -41,72 +41,33 @@ To install the `ultralytics` package in developer mode, which allows you to modi
 
 ## 🚀 Building and Serving Locally
 
-The `mkdocs serve` command builds and serves a local version of your [MkDocs](https://www.mkdocs.org/) documentation. This is highly useful during development and testing to preview changes.
+### Full Build (Recommended)
+
+The `build_docs.py` script runs the full documentation build pipeline — the same process used for production deployments. It renders Jinja macros, generates API reference pages, pulls in model comparison pages, and applies HTML postprocessing.
 
 ```bash
-mkdocs serve
+# Requires Python >= 3.10
+pip install -e '.[dev]'
+
+cd docs
+python build_docs.py
 ```
 
-- **Command Breakdown:**
-    - `mkdocs`: The main MkDocs command-line interface tool.
-    - `serve`: The subcommand used to build and locally serve your documentation site.
-- **Note:**
-    - `mkdocs serve` includes live reloading, automatically updating the preview in your browser as you save changes to the documentation files.
-    - To stop the local server, simply press `CTRL+C` in your terminal.
+The script builds the site into the `site/` directory and automatically serves it at `http://localhost:8000`. Press `CTRL+C` to stop.
 
-## 🌍 Building and Serving Multi-Language
+### Quick Preview
 
-If your documentation supports multiple languages, follow these steps to build and preview all versions:
+For quick edits to pages that don't use `{% include %}` macros, you can use `zensical serve` for faster iteration with live reloading:
 
-1.  Stage all new or modified language Markdown (`.md`) files using Git:
+```bash
+zensical serve
+```
 
-    ```bash
-    git add docs/**/*.md -f
-    ```
-
-2.  Build all language versions into the `/site` directory. This script ensures that relevant root-level files are included and clears the previous build:
-
-    ```bash
-    # Clear existing /site directory to prevent conflicts
-    rm -rf site
-
-    # Build the default language site using the primary config file
-    mkdocs build -f docs/mkdocs.yml
-
-    # Loop through each language-specific config file and build its site
-    for file in docs/mkdocs_*.yml; do
-      echo "Building MkDocs site with $file"
-      mkdocs build -f "$file"
-    done
-    ```
-
-3.  To preview the complete multi-language site locally, navigate into the build output directory and start a simple [Python HTTP server](https://docs.python.org/3/library/http.server.html):
-    ```bash
-    cd site
-    python -m http.server
-    # Open http://localhost:8000 in your preferred web browser
-    ```
-    Access the live preview site at `http://localhost:8000`.
+Note that `zensical serve` does **not** render Jinja macros or include compare pages, so some pages (train, predict, val, export, tasks, and others) will display raw `{% include %}` tags instead of their actual content. Use the full build above to verify these pages.
 
 ## 📤 Deploying Your Documentation Site
 
-To deploy your MkDocs documentation site, choose a hosting provider and configure your deployment method. Common options include [GitHub Pages](https://pages.github.com/), GitLab Pages, or other static site hosting services.
-
-- Configure deployment settings within your `mkdocs.yml` file.
-- Use your hosting provider's recommended workflow (for example running `mkdocs build` in CI or `mkdocs gh-deploy` for GitHub Pages) to publish the generated `site/` directory.
-
-* **GitHub Pages Deployment Example:**
-  If deploying to GitHub Pages, you can use the built-in command:
-
-    ```bash
-    mkdocs gh-deploy
-    ```
-
-    After deployment, you might need to update the "Custom domain" settings in your repository's settings page if you wish to use a personalized URL.
-
-    ![GitHub Pages Custom Domain Setting](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/github-pages-custom-domain-setting.avif)
-
-- For detailed instructions on various deployment methods, consult the official [MkDocs Deploying your docs guide](https://www.mkdocs.org/user-guide/deploying-your-docs/).
+Documentation is automatically built and deployed to [docs.ultralytics.com](https://docs.ultralytics.com) via the CI pipeline in `.github/workflows/docs.yml` on every push to `main`.
 
 ## 💡 Contribute
 

@@ -10,13 +10,13 @@ This dataset showcases four common animal classes typically found in South Afric
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/biIW5Z6GYl0"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/EXYB-dbgJjY"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> African Wildlife Animals Detection using Ultralytics YOLO26
+  <strong>Watch:</strong> How to Train Ultralytics YOLO26 on the African Wildlife Dataset | Inference, Metrics & ONNX Export 🐘
 </p>
 
 ## Dataset Structure

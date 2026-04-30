@@ -1,7 +1,4 @@
 # Ultralytics AGPL-3.0 License - https://ultralytics.com/license
-
-from __future__ import annotations
-
 r"""
 DOTA v1.0 OBB External Feature Reclassifier
 ============================================
@@ -97,6 +94,8 @@ API:
 
     Encoder docs: https://authorize.earth/r&d/spatial
 """
+
+from __future__ import annotations
 
 import argparse
 import base64

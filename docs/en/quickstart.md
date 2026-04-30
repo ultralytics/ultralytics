@@ -548,11 +548,9 @@ Explore more commands and usage examples in the full [CLI Guide](usage/cli.md).
 <!-- Article Links -->
 
 [Ultralytics Platform]: https://platform.ultralytics.com
-[API Key]: https://platform.ultralytics.com/settings
 [pip]: https://pypi.org/project/ultralytics/
 [DVC for experiment tracking]: https://dvc.org/doc/dvclive/ml-frameworks/yolo
 [Comet ML]: https://bit.ly/yolov8-readme-comet
-[Ultralytics Platform]: https://platform.ultralytics.com
 [ClearML]: ./integrations/clearml.md
 [MLFlow]: ./integrations/mlflow.md
 [Neptune]: https://neptune.ai/

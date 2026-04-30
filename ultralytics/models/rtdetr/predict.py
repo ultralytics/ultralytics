@@ -39,8 +39,8 @@ class RTDETRPredictor(BasePredictor):
         predictions to Results objects containing properly scaled bounding boxes.
 
         Args:
-            preds (list | tuple): List of `[predictions, extra]` from the model, where predictions contain bounding boxes
-                and scores.
+            preds (list | tuple): List of `[predictions, extra]` from the model, where predictions contain bounding
+                boxes and scores.
             img (torch.Tensor): Processed input images with shape (N, 3, H, W).
             orig_imgs (list | torch.Tensor): Original, unprocessed images.
 

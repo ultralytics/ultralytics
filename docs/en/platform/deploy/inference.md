@@ -253,16 +253,16 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
 
 ### Response Fields
 
-| Field                           | Type   | Description                       |
-| ------------------------------- | ------ | --------------------------------- |
-| `images`                        | array  | List of processed images          |
+| Field                           | Type   | Description                        |
+| ------------------------------- | ------ | ---------------------------------- |
+| `images`                        | array  | List of processed images           |
 | `images[].shape`                | array  | Image dimensions `[height, width]` |
-| `images[].results`              | array  | List of detections                |
-| `images[].results[].name`       | string | Class name                        |
-| `images[].results[].confidence` | float  | Detection confidence (0-1)        |
-| `images[].results[].box`        | object | Bounding box coordinates          |
-| `images[].speed`                | object | Processing times in milliseconds  |
-| `metadata`                      | object | Request metadata and version info |
+| `images[].results`              | array  | List of detections                 |
+| `images[].results[].name`       | string | Class name                         |
+| `images[].results[].confidence` | float  | Detection confidence (0-1)         |
+| `images[].results[].box`        | object | Bounding box coordinates           |
+| `images[].speed`                | object | Processing times in milliseconds   |
+| `metadata`                      | object | Request metadata and version info  |
 
 ### Task-Specific Responses
 

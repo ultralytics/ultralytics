@@ -1004,8 +1004,8 @@ class Boxes(BaseTensor):
 
         Returns:
             (torch.Tensor | np.ndarray): Normalized bounding boxes with shape (N, 4), where N is the number of boxes.
-                Each row contains `[x_center, y_center, width, height]` values normalized to `[0, 1]` based on the original
-                image dimensions.
+                Each row contains `[x_center, y_center, width, height]` values normalized to `[0, 1]` based on the
+                original image dimensions.
 
         Examples:
             >>> boxes = Boxes(torch.tensor([[100, 50, 150, 100, 0.9, 0]]), orig_shape=(480, 640))

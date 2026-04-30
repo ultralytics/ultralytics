@@ -2051,7 +2051,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 consolidated_out["pred_masks"][obj_idx : obj_idx + 1] = obj_mask
                 consolidated_out["obj_ptr"][obj_idx : obj_idx + 1] = out["obj_ptr"]
 
-                if "object_score_logits" in out.keys():
+                if "object_score_logits" in out:
                     consolidated_out["object_score_logits"][obj_idx : obj_idx + 1] = out["object_score_logits"]
 
         high_res_masks = F.interpolate(
@@ -2273,8 +2273,9 @@ class SAM3SemanticPredictor(SAM3Predictor):
         """Run inference on the extracted features with optional bounding boxes and labels."""
         # NOTE: priority: bboxes > text > pre-set classes
         nc = 1 if bboxes is not None else len(text) if text is not None else len(self.model.names)
-        geometric_prompt = self._get_dummy_prompt(nc)
+        geometric_prompt = None
         if bboxes is not None:
+            geometric_prompt = self._get_dummy_prompt(nc)
             for i in range(len(bboxes)):
                 geometric_prompt.append_boxes(bboxes[[i]], labels[[i]])
             if text is None:
@@ -2509,8 +2510,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         hotstart_delay=0,
         hotstart_unmatch_thresh=3,
         hotstart_dup_thresh=3,
-        init_trk_keep_alive=30,
-        max_trk_keep_alive=30,
+        init_trk_keep_alive=10,
+        max_trk_keep_alive=10,
         min_trk_keep_alive=-4,
         # Threshold for suppressing overlapping objects based on recent occlusion
         suppress_overlapping_based_on_recent_occlusion_threshold=0.0,
@@ -2522,7 +2523,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         max_num_objects=-1,
         recondition_every_nth_frame=-1,
         # masket confirmation status (to suppress unconfirmed masklets)
-        masklet_confirmation_enable=False,
+        masklet_confirmation_enable=True,
         # a masklet is confirmed after being consecutively detected and matched for
         # `masklet_confirmation_consecutive_det_thresh`
         masklet_confirmation_consecutive_det_thresh=3,
@@ -2725,7 +2726,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         if self.masklet_confirmation_enable:
             status = metadata["masklet_confirmation"]["status"]
             is_unconfirmed = status == self.UNCONFIRMED
-            out["unconfirmed_obj_ids"] = tracker_metadata_new["obj_ids_all_gpu"][is_unconfirmed].tolist()
+            out["unconfirmed_obj_ids"] = tracker_metadata_new["obj_ids"][is_unconfirmed].tolist()
         else:
             out["unconfirmed_obj_ids"] = []
         return out

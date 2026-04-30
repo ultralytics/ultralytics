@@ -166,10 +166,9 @@ Access trash programmatically via the [REST API](../api/index.md#trash-api):
 
 === "Empty Trash"
 
-    ```bash
-    curl -X DELETE -H "Authorization: Bearer YOUR_API_KEY" \
-      https://platform.ultralytics.com/api/trash/empty
-    ```
+    !!! note "Browser session only"
+
+        `DELETE /api/trash/empty` requires an authenticated browser session and cannot be called with an API key. Use the **Empty Trash** button in [**Settings > Trash**](../account/settings.md#trash-tab) instead, or permanently delete individual items via `DELETE /api/trash` (API-key compatible).
 
 ## FAQ
 

@@ -6,7 +6,7 @@ keywords: Ultralytics Platform, datasets, dataset management, dataset versioning
 
 # Datasets
 
-[Ultralytics Platform](https://platform.ultralytics.com) datasets provide a streamlined solution for managing your training data. After upload, the platform processes images, labels, and statistics automatically. A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, and at least one labeled image.
+[Ultralytics Platform](https://platform.ultralytics.com) datasets provide a streamlined solution for managing your training data. After upload, the platform processes images, labels, and statistics automatically. A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, at least one labeled image, and a total of at least two images.
 
 ## Upload Dataset
 
@@ -218,7 +218,9 @@ graph LR
 
 ## Browse Images
 
-View your dataset images in multiple layouts:
+View your dataset images in multiple layouts.
+
+Open the [Clustering](#clustering) panel from the gallery toolbar to explore your dataset as an interactive 2D scatter plot.
 
 | View        | Description                                                                       |
 | ----------- | --------------------------------------------------------------------------------- |
@@ -234,28 +236,31 @@ Images can be sorted and filtered for efficient browsing:
 
 === "Sort Options"
 
-    | Sort            | Description          |
-    | --------------- | -------------------- |
-    | Newest          | Most recently added  |
-    | Oldest          | Earliest added       |
-    | Name A-Z        | Alphabetical         |
-    | Name Z-A        | Reverse alphabetical |
-    | Size (smallest) | Smallest files first |
-    | Size (largest)  | Largest files first  |
-    | Most labels     | Most annotations     |
-    | Fewest labels   | Fewest annotations   |
+    | Sort                 | Description                  |
+    | -------------------- | ---------------------------- |
+    | Newest / Oldest      | Upload / creation order      |
+    | Name A-Z / Z-A       | Filename alphabetical        |
+    | Height ↑/↓           | Image height in pixels       |
+    | Width ↑/↓            | Image width in pixels        |
+    | Size ↑/↓             | File size on disk            |
+    | Annotations ↑/↓      | Annotation count per image   |
+
+    !!! note "Large Datasets"
+
+        For datasets over 100,000 images, name / size / width / height sorts are disabled to keep the gallery responsive. Newest, oldest, and annotation-count sorts remain available.
 
 === "Filters"
 
-    | Filter           | Options                            |
-    | ---------------- | ---------------------------------- |
-    | **Split filter** | Train, Val, Test, or All           |
-    | **Label filter** | All images, Annotated, or Unannotated |
-    | **Search**       | Filter images by filename          |
+    | Filter           | Options                             |
+    | ---------------- | ----------------------------------- |
+    | **Split filter** | Train, Val, Test, or All            |
+    | **Label filter** | All, Labeled, or Unlabeled          |
+    | **Class filter** | Filter by class name                |
+    | **Search**       | Filter images by filename           |
 
 !!! tip "Finding Unlabeled Images"
 
-    Use the label filter set to `Unannotated` to quickly find images that still need annotation. This is especially useful for large datasets where you want to track labeling progress.
+    Use the label filter set to `Unlabeled` to quickly find images that still need annotation. This is especially useful for large datasets where you want to track labeling progress.
 
 ### Fullscreen Viewer
 
@@ -268,7 +273,9 @@ Click any image to open the fullscreen viewer with:
 - **Edit**: Enter annotation mode to add or modify labels
 - **Download**: Download the original image file
 - **Delete**: Delete the image from the dataset
-- **Zoom**: `Cmd/Ctrl+Scroll` to zoom in/out
+- **Zoom**: `Cmd/Ctrl+Scroll`, `Cmd/Ctrl++`, or `Cmd/Ctrl+=` to zoom in, and `Cmd/Ctrl+-` to zoom out
+- **Reset view**: `Cmd/Ctrl + 0` or the reset button to fit the image to the viewer
+- **Pan**: Hold `Space` and drag to pan the canvas when zoomed
 - **Pixel view**: Toggle pixelated rendering for close inspection
 
 ![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-fullscreen-viewer-with-metadata-panel.avif)
@@ -282,6 +289,67 @@ Filter images by their dataset split:
 | **Train** | Used for model training             |
 | **Val**   | Used for validation during training |
 | **Test**  | Used for final evaluation           |
+
+## Clustering
+
+The `Clustering` panel projects your dataset into an interactive 2D scatter plot where visually similar images sit close together. Use it to surface clusters, spot duplicates and outliers, and inspect how splits or classes are distributed across your data — without leaving the gallery. Open it from the scatter-chart icon in the gallery toolbar on any dataset page.
+
+![Ultralytics Platform Datasets Clustering Empty State](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-clustering-empty-state.avif)
+
+### Running Analysis
+
+Start an analysis:
+
+1. Open a dataset and click the scatter-chart icon in the gallery toolbar
+2. Click `Analyze Dataset`
+3. Wait for the progress bar to finish — results appear in the same panel
+
+Analysis runs in the background and can take a few minutes depending on the size of your dataset. You can close the panel or leave the page and come back later.
+
+### Visualization
+
+Once analysis completes, the panel shows a 2D scatter of all analyzed images. Gallery filters (split, class, labeled/unlabeled) dim out-of-filter points so you can focus on the subset you care about.
+
+![Ultralytics Platform Datasets Clustering Scatter Plot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-clustering.avif)
+
+#### Color By
+
+Change how data points are shaded with the `Color by` dropdown in the panel toolbar. Switch view modes at any time — the plot re-colors instantly so you can see how splits, classes, or image properties are distributed across your clusters:
+
+| Option          | Shading                              |
+| --------------- | ------------------------------------ |
+| **Splits**      | Train / Val / Test                   |
+| **Classes**     | First annotation class on each image |
+| **Width**       | Image width                          |
+| **Height**      | Image height                         |
+| **Size**        | File size                            |
+| **Annotations** | Number of annotations per image      |
+
+![Ultralytics Platform Datasets Clustering Color Modes](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-clustering-color-modes.avif)
+
+#### Lasso Selection
+
+Draw a free-form selection around a region to highlight points on the plot. The gallery filters down to the matching images, so you can inspect, relabel, move, or delete them using the usual [image operations](#image-operations).
+
+!!! tip "Clear Selection"
+
+    A chip above the chart shows how many points are selected — click the `×` to clear the lasso and return to the full gallery view.
+
+#### Pan and Zoom
+
+Navigate large scatters directly from your mouse and keyboard:
+
+| Input               | Action                                 |
+| ------------------- | -------------------------------------- |
+| **Scroll**          | Pan the plot in 2D                     |
+| **Cmd/Ctrl+Scroll** | Zoom in or out, anchored at the cursor |
+| **Hold Space**      | Switch to drag-to-pan mode             |
+
+### Re-analyzing
+
+If your dataset changes after analysis, a `Re-analyze` button appears at the top of the panel for owners and editors.
+
+Click `Re-analyze` to recompute embeddings and the 2D projection from scratch.
 
 ## Dataset Tabs
 

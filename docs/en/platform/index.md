@@ -66,15 +66,15 @@ graph LR
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Upload**   | Images (50MB), videos (1GB), and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON) with automatic processing                                                                                       |
 | **Annotate** | Manual tools for all 5 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM and YOLO models for detect, segment, and OBB (see [supported tasks](data/index.md#supported-tasks)) |
-| **Train**    | Cloud GPUs (20 free + 3 Pro-exclusive), real-time metrics, project organization                                                                                                                              |
+| **Train**    | Cloud GPUs (20 on all plans + 3 Pro/Enterprise-only: H200 NVL, H200 SXM, B200), real-time metrics, project organization                                                                                      |
 | **Export**   | [17 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.; see [supported formats](train/models.md#supported-formats))                                                               |
-| **Deploy**   | 43 global regions with dedicated endpoints, scale-to-zero behavior, and monitoring                                                                                                                           |
+| **Deploy**   | 43 global regions with dedicated endpoints, scale-to-zero by default (single active instance), and monitoring                                                                                                |
 
 **What you can do:**
 
 - **Upload** images, videos, and dataset files to create training datasets
 - **Visualize** annotations with interactive overlays for all 5 YOLO task types (see [supported tasks](data/index.md#supported-tasks))
-- **Train** models on cloud GPUs (20 free, 23 with Pro) with real-time metrics
+- **Train** models on cloud GPUs (20 on all plans, 23 with Pro or Enterprise for H200 and B200) with real-time metrics
 - **Export** to [17 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.)
 - **Deploy** to 43 global regions with one-click dedicated endpoints
 - **Monitor** training progress, deployment health, and usage metrics
@@ -84,11 +84,11 @@ graph LR
 
 Your data stays in your region. Ultralytics Platform operates infrastructure in three global regions:
 
-| Region | Label                        | Location                | Best For                                |
-| ------ | ---------------------------- | ----------------------- | --------------------------------------- |
-| **US** | Americas                     | Iowa, USA               | Americas users, fastest for Americas    |
-| **EU** | Europe, Middle East & Africa | Belgium, Europe         | European users, GDPR compliance         |
-| **AP** | Asia Pacific                 | Hong Kong, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+| Region | Label                        | Location             | Best For                                |
+| ------ | ---------------------------- | -------------------- | --------------------------------------- |
+| **US** | Americas                     | Iowa, USA            | Americas users, fastest for Americas    |
+| **EU** | Europe, Middle East & Africa | Belgium, Europe      | European users, GDPR compliance         |
+| **AP** | Asia Pacific                 | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
 
 You select your region during onboarding, and all your data, models, and deployments remain in that region.
 
@@ -101,7 +101,7 @@ You select your region during onboarding, and all your data, models, and deploym
 ### Data Preparation
 
 - **Dataset Management**: Upload images, videos, or dataset files with automatic processing
-- **Annotation Editor**: Manual annotation for all 5 YOLO task types (detect, segment, pose, OBB, classify; see [supported tasks](data/index.md#supported-tasks))
+- **[Annotation Editor](https://www.ultralytics.com/annotate)**: Manual annotation for all 5 YOLO task types (detect, segment, pose, OBB, classify; see [supported tasks](data/index.md#supported-tasks))
 - **Skeleton Templates**: Built-in (Person, Hand, Face, Dog, Box) and custom skeleton templates for one-click pose annotation
 - **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large), [SAM 3](../models/sam-3.md), pretrained Ultralytics YOLO models, or your own fine-tuned YOLO models from the annotation toolbar for detect, segment, and OBB tasks
 - **Dataset Versioning**: Create numbered NDJSON snapshots with descriptions for reproducible training
@@ -126,7 +126,7 @@ graph LR
 
 ### Model Training
 
-- **Cloud Training**: Train on cloud GPUs (20 free, 23 with [Pro](account/billing.md#plans)) with real-time metrics
+- **Cloud Training**: Train on cloud GPUs (20 on all plans, 23 with [Pro or Enterprise](account/billing.md#plans) for H200 and B200) with real-time metrics
 - **Remote Training**: Train anywhere and stream metrics to the platform (W&B-style)
 - **Project Organization**: Group related models, compare experiments, track activity
 - **17 Export Formats**: ONNX, TensorRT, CoreML, TFLite, and more (see [supported formats](train/models.md#supported-formats))
@@ -177,7 +177,7 @@ You can train models either through the web UI (cloud training) or from your own
 ### Deployment
 
 - **Inference Testing**: Test models directly in the browser with custom images
-- **Dedicated Endpoints**: Deploy to 43 global regions with scale-to-zero behavior
+- **Dedicated Endpoints**: Deploy to 43 global regions with scale-to-zero by default (single active instance)
 - **Monitoring**: Real-time metrics, request logs, and performance dashboards
 
 ```mermaid
@@ -243,17 +243,17 @@ Once deployed, call your endpoint from any language:
 
 !!! info "Plan Tiers"
 
-    | Feature              | Free           | Pro ($29/mo)        | Enterprise     |
-    | -------------------- | -------------- | ------------------- | -------------- |
-    | Signup Credit        | $5 / $25*      | -                   | Custom         |
-    | Monthly Credit       | -              | $30/seat/month      | Custom         |
-    | Models               | 100            | 500                 | Unlimited      |
-    | Concurrent Trainings | 3              | 10                  | Unlimited      |
-    | Deployments          | 3              | 10                  | Unlimited      |
-    | Storage              | 100 GB         | 500 GB              | Unlimited      |
-    | Cloud GPU Types      | 20             | 23 (incl. H200/B200)| 23             |
-    | Teams                | -              | Up to 5 members     | Up to 50       |
-    | Support              | Community      | Priority            | Dedicated      |
+    | Feature              | Free           | Pro ($29/mo)            | Enterprise     |
+    | -------------------- | -------------- | ----------------------- | -------------- |
+    | Signup Credit        | $5 / $25*      | -                       | Custom         |
+    | Monthly Credit       | -              | $30/seat/month          | Custom         |
+    | Models               | 100            | 500                     | Unlimited      |
+    | Concurrent Trainings | 3              | 10                      | Unlimited      |
+    | Deployments          | 3              | 10                      | Unlimited      |
+    | Storage              | 100 GB         | 500 GB                  | Unlimited      |
+    | Cloud GPU Types      | 20             | 23 (incl. H200 / B200)  | 23             |
+    | Teams                | -              | Up to 5 members         | Up to 50       |
+    | Support              | Community      | Priority                | Dedicated      |
 
     *$5 at signup, or $25 with a verified company/work email.
 
@@ -369,16 +369,16 @@ The Platform includes a full-featured annotation editor supporting:
 - **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) or [SAM 3](../models/sam-3.md) for click-based annotation, or run pretrained Ultralytics YOLO models and your own fine-tuned YOLO models from the toolbar for detect, segment, and OBB
 - **Keyboard Shortcuts**: Efficient workflows with hotkeys
 
-| Shortcut  | Action                     |
-| --------- | -------------------------- |
-| `V`       | Select mode                |
-| `S`       | SAM smart annotation mode  |
-| `A`       | Auto-annotate mode         |
-| `1` - `9` | Select class by number     |
-| `Delete`  | Delete selected annotation |
-| `Ctrl+Z`  | Undo                       |
-| `Ctrl+Y`  | Redo                       |
-| `Escape`  | Cancel current action      |
+| Shortcut  | Action                            |
+| --------- | --------------------------------- |
+| `V`       | Manual (draw) mode                |
+| `S`       | Smart mode (SAM or YOLO model)    |
+| `A`       | Toggle auto-apply (in Smart mode) |
+| `1` - `9` | Select class by number            |
+| `Delete`  | Delete selected annotation        |
+| `Ctrl+Z`  | Undo                              |
+| `Ctrl+Y`  | Redo                              |
+| `Escape`  | Save / deselect / exit            |
 
 See [Annotation](data/annotation.md) for the complete guide.
 
@@ -412,12 +412,12 @@ See [Models Export](train/models.md#export-model), the [Export mode guide](../mo
 
 ### Dataset Issues
 
-| Problem                | Solution                                                                                                                                                  |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Dataset won't process  | Check file format is supported (JPEG, PNG, WebP, etc.). Max file size: images 50MB, videos 1GB, datasets 10GB on Free / 20GB on Pro / 50GB on Enterprise  |
-| Missing annotations    | Verify labels are in [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format) with `.txt` files matching image filenames                        |
-| "Train split required" | Add `train/` folder to your dataset structure, or create splits in [dataset settings](data/datasets.md#filter-by-split)                                   |
-| Class names undefined  | Add a `data.yaml` file with `names:` list (see [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format)), or define classes in dataset settings |
+| Problem                | Solution                                                                                                                                                                                                      |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dataset won't process  | Check file format is supported (JPEG, PNG, WebP, TIFF, HEIC, AVIF, BMP, JP2, DNG, MPO for images). Max file size: images 50 MB, videos 1 GB, dataset archives 10 GB (Free) / 20 GB (Pro) / 50 GB (Enterprise) |
+| Missing annotations    | Verify labels are in [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format) with `.txt` files matching image filenames, or upload COCO JSON                                                       |
+| "Train split required" | Add `train/` folder to your dataset structure, or redistribute splits via the [split bar](data/datasets.md#split-redistribution)                                                                              |
+| Class names undefined  | Add a `data.yaml` file with `names:` list (see [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format)), or define classes in the [Classes tab](data/datasets.md#classes-tab)                      |
 
 ### Training Issues
 
@@ -473,4 +473,4 @@ See [Models Export](train/models.md#export-model), the [Export mode guide](../mo
 
 ??? question "Can I use Platform models commercially?"
 
-    Free and Pro plans use the AGPL license. For commercial use without AGPL requirements, see [Ultralytics Licensing](https://www.ultralytics.com/licensing).
+    Free and Pro plans use the AGPL license. For commercial use without AGPL requirements, see [Ultralytics Licensing](https://www.ultralytics.com/license).

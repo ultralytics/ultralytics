@@ -2,6 +2,7 @@
 
 import contextlib
 import csv
+import tarfile
 import urllib
 import zipfile
 from copy import copy
@@ -82,7 +83,7 @@ def test_predict_txt(tmp_path):
         for src in SOURCES_LIST:
             f.write(f"{src}\n")
     results = YOLO(MODEL)(source=file, imgsz=32)
-    assert len(results) == 7  # 1 + 2 + 2 + 2 = 7 images
+    assert len(results) == 7, f"Expected 7 results from source list, got {len(results)}"
 
 
 @pytest.mark.skipif(True, reason="disabled for testing")
@@ -94,7 +95,7 @@ def test_predict_csv_multi_row(tmp_path):
         writer.writerow(["source"])
         writer.writerows([[src] for src in SOURCES_LIST])
     results = YOLO(MODEL)(source=file, imgsz=32)
-    assert len(results) == 7  # 1 + 2 + 2 + 2 = 7 images
+    assert len(results) == 7, f"Expected 7 results from multi-row CSV, got {len(results)}"
 
 
 @pytest.mark.skipif(True, reason="disabled for testing")
@@ -105,7 +106,7 @@ def test_predict_csv_single_row(tmp_path):
         writer = csv.writer(f)
         writer.writerow(SOURCES_LIST)
     results = YOLO(MODEL)(source=file, imgsz=32)
-    assert len(results) == 7  # 1 + 2 + 2 + 2 = 7 images
+    assert len(results) == 7, f"Expected 7 results from single-row CSV, got {len(results)}"
 
 
 @pytest.mark.parametrize("model_name", MODELS)
@@ -156,7 +157,7 @@ def test_predict_gray_and_4ch(tmp_path):
     for f in source_rgba, source_grayscale, source_non_utf, source_spaces:
         for source in Image.open(f), cv2.imread(str(f)), f:
             results = model(source, save=True, verbose=True, imgsz=32)
-            assert len(results) == 1  # verify that an image was run
+            assert len(results) == 1, f"Expected 1 result for {f.name}, got {len(results)}"
         f.unlink()  # cleanup
 
 
@@ -335,16 +336,21 @@ def test_labels_and_crops():
         assert len(cls_idxs) >= 2, f"Expected at least 2 detections, got {len(cls_idxs)}"
         # Check label path
         labels = save_path / f"labels/{im_name}.txt"
-        assert labels.exists()
+        assert labels.exists(), f"Label file {labels} does not exist"
         # Check detections match label count
-        assert len(r.boxes.data) == len([line for line in labels.read_text().splitlines() if line])
+        label_count = len([line for line in labels.read_text().splitlines() if line])
+        assert len(r.boxes.data) == label_count, f"Box count {len(r.boxes.data)} != label count {label_count}"
         # Check crops path and files
         crop_dirs = list((save_path / "crops").iterdir())
         crop_files = [f for p in crop_dirs for f in p.glob("*")]
         # Crop directories match detections
-        assert all(r.names.get(c) in {d.name for d in crop_dirs} for c in cls_idxs)
+        crop_dir_names = {d.name for d in crop_dirs}
+        assert all(r.names.get(c) in crop_dir_names for c in cls_idxs), (
+            f"Crop dirs {crop_dir_names} don't match classes {cls_idxs}"
+        )
         # Same number of crops as detections
-        assert len([f for f in crop_files if im_name in f.name]) == len(r.boxes.data)
+        crop_count = len([f for f in crop_files if im_name in f.name])
+        assert crop_count == len(r.boxes.data), f"Crop count {crop_count} != detection count {len(r.boxes.data)}"
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
@@ -383,9 +389,38 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
             zf.write(path, arcname=path.relative_to(tmp_path))
 
     extracted = safe_download(archive, dir=tmp_path / "datasets", unzip=True, progress=False)
-    assert extracted == (tmp_path / "datasets" / dataset_dir.name)
-    assert (extracted / "data.yaml").is_file()
-    assert (extracted / "images" / "val").is_dir()
+    expected_path = tmp_path / "datasets" / dataset_dir.name
+    assert extracted == expected_path, f"Extracted path {extracted} != expected {expected_path}"
+    assert (extracted / "data.yaml").is_file(), f"data.yaml not found in {extracted}"
+    assert (extracted / "images" / "val").is_dir(), f"images/val not found in {extracted}"
+
+
+def test_safe_download_skips_unsafe_archive_members(tmp_path):
+    """Test safe_download() skips archive members that would extract outside the target directory."""
+    archive = tmp_path / "unsafe.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("../unsafe.txt", "bad")
+        zf.writestr("safe/file.txt", "ok")
+
+    extracted = safe_download(archive, dir=tmp_path / "datasets", unzip=True, progress=False)
+
+    assert not (tmp_path / "unsafe.txt").exists()
+    assert (extracted / "safe/file.txt").is_file()
+
+
+def test_safe_download_skips_unsafe_tar_members(tmp_path):
+    """Test safe_download() skips tar members that would extract outside the target directory."""
+    source = tmp_path / "safe.txt"
+    source.write_text("ok")
+    archive = tmp_path / "unsafe.tar"
+    with tarfile.open(archive, "w") as tar:
+        tar.add(source, arcname="../unsafe.txt")
+        tar.add(source, arcname="safe.txt")
+
+    extracted = safe_download(archive, dir=tmp_path / "datasets", unzip=True, progress=False)
+
+    assert not (tmp_path / "unsafe.txt").exists()
+    assert (extracted / "safe.txt").is_file()
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
@@ -543,7 +578,7 @@ def test_utils_ops():
 
 def test_utils_files(tmp_path):
     """Test file handling utilities including file age, date, and paths with spaces."""
-    from ultralytics.utils.files import file_age, file_date, get_latest_run, spaces_in_path
+    from ultralytics.utils.files import file_age, file_date, get_latest_run, increment_path, spaces_in_path
 
     file_age(SOURCE)
     file_date(SOURCE)
@@ -553,6 +588,14 @@ def test_utils_files(tmp_path):
     path.mkdir(parents=True, exist_ok=True)
     with spaces_in_path(path) as new_path:
         print(new_path)
+
+    exp_dir = tmp_path / "runs" / "exp"
+    exp_dir.mkdir(parents=True)
+    assert increment_path(exp_dir) == tmp_path / "runs" / "exp-2"
+
+    results_file = exp_dir / "results.txt"
+    results_file.touch()
+    assert increment_path(results_file) == exp_dir / "results-2.txt"
 
 
 @pytest.mark.slow

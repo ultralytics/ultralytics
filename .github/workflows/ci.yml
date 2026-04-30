@@ -51,7 +51,7 @@ jobs:
       fail-fast: false
       matrix:
         # Temporarily disable windows-latest due to https://github.com/ultralytics/ultralytics/actions/runs/13020330819/job/36319338854?pr=18921
-        os: [ubuntu-latest, macos-26, ubuntu-24.04-arm]
+        os: [cpu-latest, macos-26, ubuntu-24.04-arm]
         python: ["3.12"]
         model: [yolo26n]
     steps:
@@ -89,7 +89,7 @@ jobs:
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.185
       - name: Benchmark OBBModel
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.372
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.371
       - name: Merge Coverage Reports
         run: |
           coverage xml -o coverage-benchmarks.xml
@@ -355,7 +355,7 @@ jobs:
       - name: Benchmark PoseModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-pose.pt' imgsz=160 verbose=0.185
       - name: Benchmark OBBModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-obb.pt' imgsz=160 verbose=0.372
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-obb.pt' imgsz=160 verbose=0.371
       - name: Benchmark Summary
         run: |
           cat benchmarks.log
@@ -428,14 +428,14 @@ jobs:
         shell: bash -el {0}
     steps:
       - uses: astral-sh/setup-uv@v7
-      - uses: conda-incubator/setup-miniconda@v3
+      - uses: conda-incubator/setup-miniconda@v4
         with:
           python-version: ${{ matrix.python }}
           channels: conda-forge,defaults
           channel-priority: true
           activate-environment: anaconda-client-env
       - name: Install Ultralytics package from conda-forge
-        run: conda install -c pytorch -c conda-forge pytorch-cpu torchvision ultralytics "openvino!=2026.0.0"
+        run: conda install -c pytorch -c conda-forge pytorch-cpu torchvision ultralytics "openvino<2026"
       - name: Install pip packages
         run: uv pip install pytest
       - name: Check environment
@@ -486,7 +486,7 @@ jobs:
     steps:
       - name: Check for failure and notify
         if: (needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.SlowTests.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
-        uses: slackapi/slack-github-action@v3.0.1
+        uses: slackapi/slack-github-action@v3.0.2
         with:
           webhook-type: incoming-webhook
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}

@@ -8,7 +8,7 @@ To get started, you'll need to install the necessary dependencies. Follow the st
 
 ### Installing Required Dependencies
 
-Install the core requirements using [pip](https://pip.pypa.io/en/stable/) and the provided `requirements.txt` file this will install CPU-based inference, install the standard **`onnxruntime`** package. This version utilizes CPU resources for model execution. See the [ONNX Runtime Execution Providers documentation](https://onnxruntime.ai/docs/execution-providers/) for more information on different execution options.
+Install the core requirements using [pip](https://pip.pypa.io/en/stable/) and the provided `requirements.txt` file. This installs the standard **`onnxruntime`** package (CPU-based inference). See the [ONNX Runtime Execution Providers documentation](https://onnxruntime.ai/docs/execution-providers/) for more information on available execution options.
 
 ```bash
 pip install -r requirements.txt
@@ -16,7 +16,7 @@ pip install -r requirements.txt
 
 ### Installing `onnxruntime-gpu` (Optional)
 
-For accelerated inference using an NVIDIA GPU, install the **`onnxruntime-gpu`** package. Ensure you have the correct [NVIDIA drivers](https://www.nvidia.com/Download/index.aspx) and [CUDA toolkit](https://developer.nvidia.com/cuda-toolkit) installed first. Consult the official [ONNX Runtime GPU documentation](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html) for detailed compatibility information and setup instructions.
+For accelerated inference using an NVIDIA GPU, install the **`onnxruntime-gpu`** package. Ensure you have the correct [NVIDIA drivers](https://www.nvidia.com/Download/index.aspx) and [CUDA toolkit](https://developer.nvidia.com/cuda/toolkit) installed first. Consult the official [ONNX Runtime GPU documentation](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html) for detailed compatibility information and setup instructions.
 
 ```bash
 pip install onnxruntime-gpu

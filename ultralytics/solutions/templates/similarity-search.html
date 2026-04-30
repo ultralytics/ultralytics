@@ -7,10 +7,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Semantic Image Search</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
     <style>
       body {
         background: linear-gradient(135deg, #f0f4ff, #f9fbff);
@@ -109,7 +106,9 @@
         card.style.display = idx < k ? "block" : "none";
       });
       const buttons = document.querySelectorAll(".topk-btn");
-      buttons.forEach((btn) => btn.classList.remove("active"));
+      buttons.forEach((btn) => {
+        btn.classList.remove("active");
+      });
       event.target.classList.add("active");
     }
     document.addEventListener("DOMContentLoaded", () => {
@@ -138,19 +137,9 @@
       <button type="submit">Search</button>
       {% if results %}
       <div class="top-k-buttons">
-        <button type="button" class="topk-btn" onclick="filterResults(5)">
-          Top 5
-        </button>
-        <button
-          type="button"
-          class="topk-btn active"
-          onclick="filterResults(10)"
-        >
-          Top 10
-        </button>
-        <button type="button" class="topk-btn" onclick="filterResults(30)">
-          Top 30
-        </button>
+        <button type="button" class="topk-btn" onclick="filterResults(5)">Top 5</button>
+        <button type="button" class="topk-btn active" onclick="filterResults(10)">Top 10</button>
+        <button type="button" class="topk-btn" onclick="filterResults(30)">Top 30</button>
       </div>
       {% endif %}
     </form>

@@ -9,11 +9,10 @@ from ultralytics.models.yolo.segment import SegmentationPredictor
 
 
 class YOLOEVPDetectPredictor(DetectionPredictor):
-    """
-    A mixin class for YOLO-EVP (Enhanced Visual Prompting) predictors.
+    """A class extending DetectionPredictor for YOLO-EVP (Enhanced Visual Prompting) predictions.
 
-    This mixin provides common functionality for YOLO models that use visual prompting, including
-    model setup, prompt handling, and preprocessing transformations.
+    This class provides common functionality for YOLO models that use visual prompting, including model setup, prompt
+    handling, and preprocessing transformations.
 
     Attributes:
         model (torch.nn.Module): The YOLO model for inference.
@@ -29,8 +28,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
     """
 
     def setup_model(self, model, verbose: bool = True):
-        """
-        Set up the model for prediction.
+        """Set up the model for prediction.
 
         Args:
             model (torch.nn.Module): Model to load or use.
@@ -40,27 +38,25 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         self.done_warmup = True
 
     def set_prompts(self, prompts):
-        """
-        Set the visual prompts for the model.
+        """Set the visual prompts for the model.
 
         Args:
-            prompts (dict): Dictionary containing class indices and bounding boxes or masks.
-                Must include a 'cls' key with class indices.
+            prompts (dict): Dictionary containing class indices and bounding boxes or masks. Must include a 'cls' key
+                with class indices.
         """
         self.prompts = prompts
 
     def pre_transform(self, im):
-        """
-        Preprocess images and prompts before inference.
+        """Preprocess images and prompts before inference.
 
-        This method applies letterboxing to the input image and transforms the visual prompts
-        (bounding boxes or masks) accordingly.
+        This method applies letterboxing to the input image and transforms the visual prompts (bounding boxes or masks)
+        accordingly.
 
         Args:
-            im (list): List containing a single input image.
+            im (list): List of input images.
 
         Returns:
-            (list): Preprocessed image ready for model inference.
+            (list): Preprocessed images ready for model inference.
 
         Raises:
             ValueError: If neither valid bounding boxes nor masks are provided in the prompts.
@@ -94,13 +90,12 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         return img
 
     def _process_single_image(self, dst_shape, src_shape, category, bboxes=None, masks=None):
-        """
-        Process a single image by resizing bounding boxes or masks and generating visuals.
+        """Process a single image by resizing bounding boxes or masks and generating visuals.
 
         Args:
             dst_shape (tuple): The target shape (height, width) of the image.
             src_shape (tuple): The original shape (height, width) of the image.
-            category (str): The category of the image for visual prompts.
+            category (list | np.ndarray): The category indices for visual prompts.
             bboxes (list | np.ndarray, optional): A list of bounding boxes in the format [x1, y1, x2, y2].
             masks (np.ndarray, optional): A list of masks corresponding to the image.
 
@@ -117,8 +112,8 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
             # Calculate scaling factor and adjust bounding boxes
             gain = min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])  # gain = old / new
             bboxes *= gain
-            bboxes[..., 0::2] += round((dst_shape[1] - src_shape[1] * gain) / 2 - 0.1)
-            bboxes[..., 1::2] += round((dst_shape[0] - src_shape[0] * gain) / 2 - 0.1)
+            bboxes[..., 0::2] += round((dst_shape[1] - round(src_shape[1] * gain)) / 2 - 0.1)
+            bboxes[..., 1::2] += round((dst_shape[0] - round(src_shape[0] * gain)) / 2 - 0.1)
         elif masks is not None:
             # Resize and process masks
             resized_masks = super().pre_transform(masks)
@@ -131,8 +126,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         return LoadVisualPrompt().get_visuals(category, dst_shape, bboxes, masks)
 
     def inference(self, im, *args, **kwargs):
-        """
-        Run inference with visual prompts.
+        """Run inference with visual prompts.
 
         Args:
             im (torch.Tensor): Input image tensor.
@@ -145,13 +139,12 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         return super().inference(im, vpe=self.prompts, *args, **kwargs)
 
     def get_vpe(self, source):
-        """
-        Process the source to get the visual prompt embeddings (VPE).
+        """Process the source to get the visual prompt embeddings (VPE).
 
         Args:
-            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source
-                of the image to make predictions on. Accepts various types including file paths, URLs, PIL
-                images, numpy arrays, and torch tensors.
+            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source of the image to
+                make predictions on. Accepts various types including file paths, URLs, PIL images, numpy arrays, and
+                torch tensors.
 
         Returns:
             (torch.Tensor): The visual prompt embeddings (VPE) from the model.

@@ -29,11 +29,11 @@ xView builds on the success of challenges like [Common Objects in Context (COCO)
 - xView contains over 1 million object instances across 60 classes.
 - The dataset has a resolution of 0.3 meters, providing higher resolution imagery than most public satellite imagery datasets.
 - xView features a diverse collection of small, rare, fine-grained, and multi-type objects with [bounding box](https://www.ultralytics.com/glossary/bounding-box) annotation.
-- Comes with a pre-trained baseline model using the [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) object detection API and an example for [PyTorch](https://www.ultralytics.com/glossary/pytorch).
+- Comes with a pretrained baseline model using the [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) object detection API and an example for [PyTorch](https://www.ultralytics.com/glossary/pytorch).
 
 ## Dataset Structure
 
-The xView dataset is composed of satellite images collected from WorldView-3 satellites at a 0.3m ground sample distance. It contains over 1 million objects across 60 classes in over 1,400 km² of imagery. The dataset is particularly valuable for [remote sensing](https://www.ultralytics.com/blog/using-computer-vision-to-analyse-satellite-imagery) applications and environmental monitoring.
+The xView dataset is composed of satellite images collected from WorldView-3 satellites at a 0.3m ground sample distance. It contains over 1 million objects across 60 classes in over 1,400 km² of imagery. The dataset is particularly valuable for [remote sensing](https://www.ultralytics.com/blog/using-computer-vision-to-analyze-satellite-imagery) applications and environmental monitoring.
 
 ## Applications
 
@@ -67,7 +67,7 @@ To train a model on the xView dataset for 100 [epochs](https://www.ultralytics.c
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="xView.yaml", epochs=100, imgsz=640)
@@ -77,14 +77,14 @@ To train a model on the xView dataset for 100 [epochs](https://www.ultralytics.c
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=xView.yaml model=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=xView.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Data and Annotations
 
 The xView dataset contains high-resolution satellite images with a diverse set of objects annotated using bounding boxes. Here are some examples of data from the dataset, along with their corresponding annotations:
 
-![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/overhead-imagery-object-detection.avif)
+![xView dataset overhead satellite imagery with object detection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/overhead-imagery-object-detection.avif)
 
 - **Overhead Imagery**: This image demonstrates an example of [object detection](https://www.ultralytics.com/glossary/object-detection) in overhead imagery, where objects are annotated with bounding boxes. The dataset provides high-resolution satellite images to facilitate the development of models for this task.
 
@@ -127,7 +127,7 @@ The [xView](http://xviewdataset.org/) dataset is one of the largest publicly ava
 
 ### How can I use Ultralytics YOLO to train a model on the xView dataset?
 
-To train a model on the xView dataset using [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo11/), follow these steps:
+To train a model on the xView dataset using [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo26/), follow these steps:
 
 !!! example "Train Example"
 
@@ -137,7 +137,7 @@ To train a model on the xView dataset using [Ultralytics YOLO](https://docs.ultr
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="xView.yaml", epochs=100, imgsz=640)
@@ -148,7 +148,7 @@ To train a model on the xView dataset using [Ultralytics YOLO](https://docs.ultr
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=xView.yaml model=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=xView.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
 For detailed arguments and settings, refer to the model [Training](../../modes/train.md) page.
@@ -160,7 +160,7 @@ The xView dataset stands out due to its comprehensive set of features:
 - Over 1 million object instances across 60 distinct classes.
 - High-resolution imagery at 0.3 meters.
 - Diverse object types including small, rare, and fine-grained objects, all annotated with bounding boxes.
-- Availability of a pre-trained baseline model and examples in [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and PyTorch.
+- Availability of a pretrained baseline model and examples in [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and PyTorch.
 
 ### What is the dataset structure of xView, and how is it annotated?
 

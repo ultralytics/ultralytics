@@ -5,9 +5,9 @@ keywords: Ultralytics, loss functions, Varifocal Loss, Focal Loss, Bbox Loss, Ro
 
 # Reference for `ultralytics/utils/loss.py`
 
-!!! note
+!!! success "Improvements"
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/loss.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/loss.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/loss.py) 🛠️. Thank you 🙏!
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/loss.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/loss.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
 
 <br>
 
@@ -27,7 +27,19 @@ keywords: Ultralytics, loss functions, Varifocal Loss, Focal Loss, Bbox Loss, Ro
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.loss.RLELoss
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.loss.RotatedBboxLoss
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.loss.MultiChannelDiceLoss
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.loss.BCEDiceLoss
 
 <br><br><hr><br>
 
@@ -47,6 +59,10 @@ keywords: Ultralytics, loss functions, Varifocal Loss, Focal Loss, Bbox Loss, Ro
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.loss.PoseLoss26
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.loss.v8ClassificationLoss
 
 <br><br><hr><br>
@@ -56,6 +72,10 @@ keywords: Ultralytics, loss functions, Varifocal Loss, Focal Loss, Bbox Loss, Ro
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.loss.E2EDetectLoss
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.loss.E2ELoss
 
 <br><br><hr><br>
 

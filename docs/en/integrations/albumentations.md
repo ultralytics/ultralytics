@@ -1,14 +1,14 @@
 ---
 comments: true
-description: Learn how to use Albumentations with YOLO11 to enhance data augmentation, improve model performance, and streamline your computer vision projects.
-keywords: Albumentations, YOLO11, data augmentation, Ultralytics, computer vision, object detection, model training, image transformations, machine learning
+description: Learn how to use Albumentations with YOLO26 to enhance data augmentation, improve model performance, and streamline your computer vision projects.
+keywords: Albumentations, YOLO26, data augmentation, Ultralytics, computer vision, object detection, model training, image transformations, machine learning
 ---
 
-# Enhance Your Dataset to Train YOLO11 Using Albumentations
+# Enhance Your Dataset to Train YOLO26 Using Albumentations
 
-When you are building [computer vision models](../models/index.md), the quality and variety of your [training data](../datasets/index.md) can play a big role in how well your model performs. Albumentations offers a fast, flexible, and efficient way to apply a wide range of image transformations that can improve your model's ability to adapt to real-world scenarios. It easily integrates with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) and can help you create robust datasets for [object detection](../tasks/detect.md), [segmentation](../tasks/segment.md), and [classification](../tasks/classify.md) tasks.
+When you are building [computer vision models](../models/index.md), the quality and variety of your [training data](../datasets/index.md) can play a big role in how well your model performs. Albumentations offers a fast, flexible, and efficient way to apply a wide range of image transformations that can improve your model's ability to adapt to real-world scenarios. It easily integrates with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) and can help you create robust datasets for [object detection](../tasks/detect.md), [segmentation](../tasks/segment.md), and [classification](../tasks/classify.md) tasks.
 
-By using Albumentations, you can boost your YOLO11 training data with techniques like geometric transformations and color adjustments. In this article, we'll see how Albumentations can improve your [data augmentation](../guides/preprocessing_annotated_data.md) process and make your [YOLO11 projects](../solutions/index.md) even more impactful. Let's get started!
+By using Albumentations, you can boost your YOLO26 training data with techniques like geometric transformations and color adjustments. In this article, we'll see how Albumentations can improve your [data augmentation](../guides/preprocessing_annotated_data.md) process and make your [YOLO26 projects](../solutions/index.md) even more impactful. Let's get started!
 
 ## Albumentations for Image Augmentation
 
@@ -25,14 +25,14 @@ Albumentations offers many useful features that simplify complex image augmentat
 - **Wide Range of Transformations**: Albumentations offers over [70 different transformations](https://github.com/albumentations-team/albumentations?tab=readme-ov-file#list-of-augmentations), including geometric changes (e.g., rotation, flipping), color adjustments (e.g., brightness, contrast), and noise addition (e.g., Gaussian noise). Having multiple options enables the creation of highly diverse and robust training datasets.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/albumentations-augmentation.avif" alt="Example of Image Augmentations">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/albumentations-augmentation.avif" alt="Albumentations augmentation examples">
 </p>
 
 - **High Performance Optimization**: Built on OpenCV and NumPy, Albumentations uses advanced optimization techniques like SIMD (Single Instruction, Multiple Data), which processes multiple data points simultaneously to speed up processing. It handles large datasets quickly, making it one of the fastest options available for image augmentation.
 
-- **Three Levels of Augmentation**: Albumentations supports three levels of augmentation: pixel-level transformations, spatial-level transformations, and mixing-level transformation. Pixel-level transformations only affect the input images without altering masks, bounding boxes, or key points. Meanwhile, both the image and its elements, like masks and bounding boxes, are transformed using spatial-level transformations. Furthermore, mixing-level transformations are a unique way to augment data as it combines multiple images into one.
+- **Three Levels of Augmentation**: Albumentations supports three levels of augmentation: pixel-level transformations, spatial-level transformations, and mixing-level transformations. Pixel-level transformations only affect the input images without altering masks, bounding boxes, or key points. Meanwhile, both the image and its elements, like masks and bounding boxes, are transformed using spatial-level transformations. Furthermore, mixing-level transformations are a unique way to augment data as they combine multiple images into one.
 
-![Overview of the Different Levels of Augmentations](https://github.com/ultralytics/docs/releases/download/0/levels-of-augmentation.avif)
+![Overview of the Different Levels of Augmentations](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/levels-of-augmentation.avif)
 
 - **[Benchmarking Results](https://albumentations.ai/docs/benchmarks/image-benchmarks/)**: When it comes to benchmarking, Albumentations consistently outperforms other libraries, especially with large datasets.
 
@@ -46,13 +46,13 @@ With respect to image augmentation, Albumentations stands out as a reliable tool
 
 - **Extensibility**: Albumentations can be used to easily add new augmentations and use them in computer vision pipelines through a single interface along with built-in transformations.
 
-## How to Use Albumentations to Augment Data for YOLO11 Training
+## How to Use Albumentations to Augment Data for YOLO26 Training
 
-Now that we've covered what Albumentations is and what it can do, let's look at how to use it to augment your data for YOLO11 model training. It's easy to set up because it integrates directly into [Ultralytics' training mode](../modes/train.md) and applies automatically if you have the Albumentations package installed.
+Now that we've covered what Albumentations is and what it can do, let's look at how to use it to augment your data for YOLO26 model training. It's easy to set up because it integrates directly into [Ultralytics' training mode](../modes/train.md) and applies automatically if you have the Albumentations package installed.
 
 ### Installation
 
-To use Albumentations with YOLO11, start by making sure you have the necessary packages installed. If Albumentations isn't installed, the augmentations won't be applied during training. Once set up, you'll be ready to create an augmented dataset for training, with Albumentations integrated to enhance your model automatically.
+To use Albumentations with YOLO26, start by making sure you have the necessary packages installed. If Albumentations isn't installed, the augmentations won't be applied during training. Once set up, you'll be ready to create an augmented dataset for training, with Albumentations integrated to enhance your model automatically.
 
 !!! tip "Installation"
 
@@ -63,11 +63,11 @@ To use Albumentations with YOLO11, start by making sure you have the necessary p
         pip install albumentations ultralytics
         ```
 
-For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLO11, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
+For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLO26, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
 ### Usage
 
-After installing the necessary packages, you're ready to start using Albumentations with YOLO11. When you train YOLO11, a set of augmentations is automatically applied through its integration with Albumentations, making it easy to enhance your model's performance.
+After installing the necessary packages, you're ready to start using Albumentations with YOLO26. When you train YOLO26, a set of augmentations is automatically applied through its integration with Albumentations, making it easy to enhance your model's performance.
 
 !!! example "Usage"
 
@@ -76,14 +76,41 @@ After installing the necessary packages, you're ready to start using Albumentati
         ```python
         from ultralytics import YOLO
 
-        # Load a pre-trained model
-        model = YOLO("yolo11n.pt")
+        # Load a pretrained model
+        model = YOLO("yolo26n.pt")
 
-        # Train the model
+        # Train the model with default augmentations
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
         ```
 
-Next, let's take look a closer look at the specific augmentations that are applied during training.
+    === "Custom Transforms (Python API only)"
+
+        ```python
+        import albumentations as A
+
+        from ultralytics import YOLO
+
+        # Load a pretrained model
+        model = YOLO("yolo26n.pt")
+
+        # Define custom Albumentations transforms
+        custom_transforms = [
+            A.Blur(blur_limit=7, p=0.5),
+            A.GaussNoise(var_limit=(10.0, 50.0), p=0.3),
+            A.CLAHE(clip_limit=4.0, p=0.5),
+            A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.5),
+        ]
+
+        # Train the model with custom Albumentations transforms
+        results = model.train(
+            data="coco8.yaml",
+            epochs=100,
+            imgsz=640,
+            augmentations=custom_transforms,  # Pass custom transforms
+        )
+        ```
+
+Next, let's take a closer look at the specific augmentations that are applied during training.
 
 ### Blur
 
@@ -95,7 +122,7 @@ Here are the parameters and values used in this integration:
 
 - **p**: The probability of applying the blur. In the integration, p=0.01, so there's a 1% chance that this blur will be applied to each image. The low probability allows for occasional blur effects, introducing a bit of variation to help the model generalize without over-blurring the images.
 
-<img width="776" alt="An Example of the Blur Augmentation" src="https://github.com/ultralytics/docs/releases/download/0/albumentations-blur.avif">
+<img width="776" alt="Albumentations Blur augmentation result" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/albumentations-blur.avif">
 
 ### Median Blur
 
@@ -109,7 +136,7 @@ Here are the parameters and values used in this integration:
 
 The image below shows an example of this augmentation applied to an image.
 
-<img width="764" alt="An Example of the MedianBlur Augmentation" src="https://github.com/ultralytics/docs/releases/download/0/albumentations-median-blur.avif">
+<img width="764" alt="Albumentations MedianBlur augmentation" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/albumentations-median-blur.avif">
 
 ### Grayscale
 
@@ -125,7 +152,7 @@ Here are the parameters and values used in this integration:
 
 The image below shows an example of this grayscale transformation applied.
 
-<img width="759" alt="An Example of the ToGray Augmentation" src="https://github.com/ultralytics/docs/releases/download/0/albumentations-grayscale.avif">
+<img width="759" alt="Albumentations grayscale conversion" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/albumentations-grayscale.avif">
 
 ### Contrast Limited Adaptive Histogram Equalization (CLAHE)
 
@@ -141,7 +168,86 @@ Here are the parameters and values used in this integration:
 
 The image below shows an example of the CLAHE transformation applied.
 
-<img width="760" alt="An Example of the CLAHE Augmentation" src="https://github.com/ultralytics/docs/releases/download/0/albumentations-CLAHE.avif">
+<img width="760" alt="Albumentations CLAHE contrast enhancement" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/albumentations-CLAHE.avif">
+
+## Using Custom Albumentations Transforms
+
+While the default Albumentations integration provides a solid set of augmentations, you may want to customize the transforms for your specific use case. With Ultralytics YOLO26, you can easily pass custom Albumentations transforms via the Python API using the `augmentations` parameter.
+
+### How to Define Custom Transforms
+
+You can define your own list of Albumentations transforms and pass them to the training function. This replaces the default Albumentations transforms while keeping all other YOLO augmentations (like `hsv_h`, `degrees`, `mosaic`, etc.) active.
+
+Here's an example with more advanced transforms:
+
+```python
+import albumentations as A
+
+from ultralytics import YOLO
+
+# Load model
+model = YOLO("yolo26n.pt")
+
+# Define custom transforms with various augmentation techniques
+custom_transforms = [
+    # Blur variations
+    A.OneOf(
+        [
+            A.MotionBlur(blur_limit=7, p=1.0),
+            A.MedianBlur(blur_limit=7, p=1.0),
+            A.GaussianBlur(blur_limit=7, p=1.0),
+        ],
+        p=0.3,
+    ),
+    # Noise variations
+    A.OneOf(
+        [
+            A.GaussNoise(var_limit=(10.0, 50.0), p=1.0),
+            A.ISONoise(color_shift=(0.01, 0.05), intensity=(0.1, 0.5), p=1.0),
+        ],
+        p=0.2,
+    ),
+    # Color and contrast adjustments
+    A.CLAHE(clip_limit=4.0, tile_grid_size=(8, 8), p=0.5),
+    A.RandomBrightnessContrast(brightness_limit=0.3, contrast_limit=0.3, p=0.5),
+    A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
+    # Simulate occlusions
+    A.CoarseDropout(
+        max_holes=8, max_height=32, max_width=32, min_holes=1, min_height=8, min_width=8, fill_value=0, p=0.2
+    ),
+]
+
+# Train with custom transforms
+results = model.train(
+    data="coco8.yaml",
+    epochs=100,
+    imgsz=640,
+    augmentations=custom_transforms,
+)
+```
+
+### Important Considerations
+
+When using custom Albumentations transforms, keep these points in mind:
+
+- **Python API Only**: Custom transforms can only be passed through the Python API, not via CLI or YAML configuration files.
+- **Replaces Defaults**: Your custom transforms will completely replace the default Albumentations transforms. Other YOLO augmentations remain active.
+- **Bounding Box Handling**: Ultralytics automatically handles bounding box adjustments for most transforms, but complex spatial transforms may require additional testing.
+- **Performance**: Some transforms are computationally expensive. Monitor training speed and adjust accordingly.
+- **Task Compatibility**: Custom Albumentations transforms work with detection and segmentation tasks but not with classification (which uses a different augmentation pipeline).
+
+### Use Cases for Custom Transforms
+
+Different applications benefit from different augmentation strategies:
+
+- **Medical Imaging**: Use elastic deformations, grid distortions, and specialized noise patterns
+- **Aerial/Satellite Imagery**: Apply transforms that simulate different altitudes, weather conditions, and lighting angles
+- **Low-Light Scenarios**: Emphasize noise addition and brightness adjustments to train robust models for challenging lighting
+- **Industrial Inspection**: Add texture variations and simulated defects for quality control applications
+
+For a complete list of available transforms and their parameters, visit the [Albumentations documentation](https://albumentations.ai/docs/).
+
+For more detailed examples and best practices on using custom Albumentations transforms with YOLO26, see the [YOLO Data Augmentation guide](../guides/yolo-data-augmentation.md#custom-albumentations-transforms-augmentations).
 
 ## Keep Learning about Albumentations
 
@@ -155,15 +261,15 @@ If you are interested in learning more about Albumentations, check out the follo
 
 ## Key Takeaways
 
-In this guide, we explored the key aspects of Albumentations, a great Python library for image augmentation. We discussed its wide range of transformations, optimized performance, and how you can use it in your next YOLO11 project.
+In this guide, we explored the key aspects of Albumentations, a great Python library for image augmentation. We discussed its wide range of transformations, optimized performance, and how you can use it in your next YOLO26 project.
 
-Also, if you'd like to know more about other Ultralytics YOLO11 integrations, visit our [integration guide page](../integrations/index.md). You'll find valuable resources and insights there.
+Also, if you'd like to know more about other Ultralytics YOLO26 integrations, visit our [integration guide page](../integrations/index.md). You'll find valuable resources and insights there.
 
 ## FAQ
 
-### How can I integrate Albumentations with YOLO11 for improved data augmentation?
+### How can I integrate Albumentations with YOLO26 for improved data augmentation?
 
-Albumentations integrates seamlessly with YOLO11 and applies automatically during training if you have the package installed. Here's how to get started:
+Albumentations integrates seamlessly with YOLO26 and applies automatically during training if you have the package installed. Here's how to get started:
 
 ```python
 # Install required packages
@@ -171,7 +277,7 @@ Albumentations integrates seamlessly with YOLO11 and applies automatically durin
 from ultralytics import YOLO
 
 # Load and train model with automatic augmentations
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 model.train(data="coco8.yaml", epochs=100)
 ```
 

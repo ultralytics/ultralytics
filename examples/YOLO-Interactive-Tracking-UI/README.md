@@ -13,7 +13,7 @@ https://github.com/user-attachments/assets/723e919e-555b-4cca-8e60-18e711d4f3b2
 - [Live terminal output](https://docs.ultralytics.com/guides/view-results-in-terminal/): object ID, label, [confidence](https://www.ultralytics.com/glossary/confidence), and center coordinates
 - Adjustable object tracking algorithms ([ByteTrack](https://docs.ultralytics.com/reference/trackers/byte_tracker/), [BoT-SORT](https://docs.ultralytics.com/reference/trackers/bot_sort/))
 - Supports:
-  - [PyTorch](https://pytorch.org/) `.pt` models (for GPU devices like [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson/) or [CUDA](https://developer.nvidia.com/cuda-zone)-enabled desktops)
+  - [PyTorch](https://pytorch.org/) `.pt` models (for GPU devices like [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson/) or [CUDA](https://developer.nvidia.com/cuda)-enabled desktops)
   - [NCNN](https://docs.ultralytics.com/integrations/ncnn/) `.param + .bin` models (for CPU-only devices like [Raspberry Pi](https://www.raspberrypi.org/) or ARM boards)
 
 ## 🏗️ Project Structure
@@ -124,7 +124,7 @@ The video file will be saved in the project's working directory when you quit th
 
 - **Alireza**
 - [Connect on LinkedIn](https://www.linkedin.com/in/alireza787b)
-- Published Date ![Published date](https://img.shields.io/badge/published_Date-2025--04--01-purple)
+- Published: 2025-04-01
 
 ## 📜 License & Disclaimer
 

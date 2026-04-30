@@ -24,17 +24,20 @@ jobs:
     if: github.repository == 'ultralytics/ultralytics'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Install lychee
-        run: curl -sSfL "https://github.com/lycheeverse/lychee/releases/latest/download/lychee-x86_64-unknown-linux-gnu.tar.gz" | sudo tar xz -C /usr/local/bin
+        run: |
+          curl -sSfL "https://github.com/lycheeverse/lychee/releases/latest/download/lychee-x86_64-unknown-linux-gnu.tar.gz" |
+            sudo tar xz --strip-components=1 -C /usr/local/bin lychee-x86_64-unknown-linux-gnu/lychee
 
       - name: Test Markdown and HTML links with retry
         uses: ultralytics/actions/retry@main
         with:
           timeout_minutes: 60
-          retry_delay_seconds: 900
+          retry_delay_seconds: 1800
           retries: 2
+          backoff: fixed
           run: |
             lychee \
             --scheme https \
@@ -68,8 +71,9 @@ jobs:
         uses: ultralytics/actions/retry@main
         with:
           timeout_minutes: 60
-          retry_delay_seconds: 900
+          retry_delay_seconds: 1800
           retries: 2
+          backoff: fixed
           run: |
             lychee \
             --scheme https \

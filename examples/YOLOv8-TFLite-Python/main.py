@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -19,11 +20,10 @@ except ImportError:
 
 
 class YOLOv8TFLite:
-    """
-    A YOLOv8 object detection class using TensorFlow Lite for efficient inference.
+    """A YOLOv8 object detection class using TensorFlow Lite for efficient inference.
 
-    This class handles model loading, preprocessing, inference, and visualization of detection results for YOLOv8
-    models converted to TensorFlow Lite format.
+    This class handles model loading, preprocessing, inference, and visualization of detection results for YOLOv8 models
+    converted to TensorFlow Lite format.
 
     Attributes:
         model (Interpreter): TensorFlow Lite interpreter for the YOLOv8 model.
@@ -56,8 +56,7 @@ class YOLOv8TFLite:
     """
 
     def __init__(self, model: str, conf: float = 0.25, iou: float = 0.45, metadata: str | None = None):
-        """
-        Initialize the YOLOv8TFLite detector.
+        """Initialize the YOLOv8TFLite detector.
 
         Args:
             model (str): Path to the TFLite model file.
@@ -70,8 +69,10 @@ class YOLOv8TFLite:
         if metadata is None:
             self.classes = {i: i for i in range(1000)}
         else:
-            with open(metadata) as f:
-                self.classes = yaml.safe_load(f)["names"]
+            metadata = Path(metadata).resolve()
+            if metadata.suffix not in {".yaml", ".yml"} or not metadata.is_file():
+                raise FileNotFoundError(f"Metadata YAML not found: {metadata}")
+            self.classes = yaml.safe_load(metadata.read_text(encoding="utf-8"))["names"]
         np.random.seed(42)  # Set seed for reproducible colors
         self.color_palette = np.random.uniform(128, 255, size=(len(self.classes), 3))
 
@@ -94,8 +95,7 @@ class YOLOv8TFLite:
     def letterbox(
         self, img: np.ndarray, new_shape: tuple[int, int] = (640, 640)
     ) -> tuple[np.ndarray, tuple[float, float]]:
-        """
-        Resize and pad image while maintaining aspect ratio.
+        """Resize and pad image while maintaining aspect ratio.
 
         Args:
             img (np.ndarray): Input image with shape (H, W, C).
@@ -111,20 +111,19 @@ class YOLOv8TFLite:
         r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
 
         # Compute padding
-        new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
+        new_unpad = round(shape[1] * r), round(shape[0] * r)
         dw, dh = (new_shape[1] - new_unpad[0]) / 2, (new_shape[0] - new_unpad[1]) / 2  # wh padding
 
         if shape[::-1] != new_unpad:  # Resize if needed
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
-        top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
-        left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
+        top, bottom = round(dh - 0.1), round(dh + 0.1)
+        left, right = round(dw - 0.1), round(dw + 0.1)
         img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114))
 
         return img, (top / img.shape[0], left / img.shape[1])
 
     def draw_detections(self, img: np.ndarray, box: np.ndarray, score: np.float32, class_id: int) -> None:
-        """
-        Draw bounding boxes and labels on the input image based on detected objects.
+        """Draw bounding boxes and labels on the input image based on detected objects.
 
         Args:
             img (np.ndarray): The input image to draw detections on.
@@ -161,8 +160,7 @@ class YOLOv8TFLite:
         cv2.putText(img, label, (int(label_x), int(label_y)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
 
     def preprocess(self, img: np.ndarray) -> tuple[np.ndarray, tuple[float, float]]:
-        """
-        Preprocess the input image before performing inference.
+        """Preprocess the input image before performing inference.
 
         Args:
             img (np.ndarray): The input image to be preprocessed with shape (H, W, C).
@@ -178,8 +176,7 @@ class YOLOv8TFLite:
         return img / 255, pad  # Normalize to [0, 1]
 
     def postprocess(self, img: np.ndarray, outputs: np.ndarray, pad: tuple[float, float]) -> np.ndarray:
-        """
-        Process model outputs to extract and visualize detections.
+        """Process model outputs to extract and visualize detections.
 
         Args:
             img (np.ndarray): The original input image.
@@ -216,8 +213,7 @@ class YOLOv8TFLite:
         return img
 
     def detect(self, img_path: str) -> np.ndarray:
-        """
-        Perform object detection on an input image.
+        """Perform object detection on an input image.
 
         Args:
             img_path (str): Path to the input image file.
@@ -261,7 +257,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     detector = YOLOv8TFLite(args.model, args.conf, args.iou, args.metadata)
-    result = detector.detect(str(ASSETS / "bus.jpg"))
+    result = detector.detect(args.img)
 
     cv2.imshow("Output", result)
     cv2.waitKey(0)

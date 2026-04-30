@@ -14,14 +14,14 @@ from .tasks import (
 )
 
 __all__ = (
-    "load_checkpoint",
-    "parse_model",
-    "yaml_model_load",
-    "guess_model_task",
-    "guess_model_scale",
-    "torch_safe_load",
+    "BaseModel",
+    "ClassificationModel",
     "DetectionModel",
     "SegmentationModel",
-    "ClassificationModel",
-    "BaseModel",
+    "guess_model_scale",
+    "guess_model_task",
+    "load_checkpoint",
+    "parse_model",
+    "torch_safe_load",
+    "yaml_model_load",
 )

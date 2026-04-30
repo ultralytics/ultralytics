@@ -63,8 +63,7 @@ class KalmanFilterXYAH:
                 and height h.
 
         Returns:
-            mean (np.ndarray): Mean vector (8-dimensional) of the new track. Unobserved velocities are initialized to 0
-                mean.
+            mean (np.ndarray): Mean vector (8-dimensional) of the new track. Unobserved velocities are initialized to 0.
             covariance (np.ndarray): Covariance matrix (8x8 dimensional) of the new track.
 
         Examples:
@@ -98,7 +97,7 @@ class KalmanFilterXYAH:
                 step.
 
         Returns:
-            mean (np.ndarray): Mean vector of the predicted state. Unobserved velocities are initialized to 0 mean.
+            mean (np.ndarray): Mean vector of the predicted state.
             covariance (np.ndarray): Covariance matrix of the predicted state.
 
         Examples:
@@ -316,8 +315,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
                 height.
 
         Returns:
-            mean (np.ndarray): Mean vector (8 dimensional) of the new track. Unobserved velocities are initialized to 0
-                mean.
+            mean (np.ndarray): Mean vector (8 dimensional) of the new track. Unobserved velocities are initialized to 0.
             covariance (np.ndarray): Covariance matrix (8x8 dimensional) of the new track.
 
         Examples:
@@ -327,14 +325,14 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
             >>> print(mean)
             [100.  50.  20.  40.   0.   0.   0.   0.]
             >>> print(covariance)
-            [[ 4.  0.  0.  0.  0.  0.  0.  0.]
-             [ 0.  4.  0.  0.  0.  0.  0.  0.]
-             [ 0.  0.  4.  0.  0.  0.  0.  0.]
-             [ 0.  0.  0.  4.  0.  0.  0.  0.]
-             [ 0.  0.  0.  0.  0.25  0.  0.  0.]
-             [ 0.  0.  0.  0.  0.  0.25  0.  0.]
-             [ 0.  0.  0.  0.  0.  0.  0.25  0.]
-             [ 0.  0.  0.  0.  0.  0.  0.  0.25]]
+            [[ 4.      0.      0.      0.      0.      0.      0.      0.    ]
+             [ 0.     16.      0.      0.      0.      0.      0.      0.    ]
+             [ 0.      0.      4.      0.      0.      0.      0.      0.    ]
+             [ 0.      0.      0.     16.      0.      0.      0.      0.    ]
+             [ 0.      0.      0.      0.      1.5625  0.      0.      0.    ]
+             [ 0.      0.      0.      0.      0.      6.25    0.      0.    ]
+             [ 0.      0.      0.      0.      0.      0.      1.5625  0.    ]
+             [ 0.      0.      0.      0.      0.      0.      0.      6.25  ]]
         """
         mean_pos = measurement
         mean_vel = np.zeros_like(mean_pos)
@@ -362,7 +360,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
                 step.
 
         Returns:
-            mean (np.ndarray): Mean vector of the predicted state. Unobserved velocities are initialized to 0 mean.
+            mean (np.ndarray): Mean vector of the predicted state.
             covariance (np.ndarray): Covariance matrix of the predicted state.
 
         Examples:

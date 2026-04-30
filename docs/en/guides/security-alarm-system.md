@@ -79,6 +79,15 @@ The Security Alarm System Project utilizing Ultralytics YOLO26 integrates advanc
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
+    === "CLI"
+
+        ```bash
+        yolo solutions security source="path/to/video.mp4" show=True
+        ```
+
+        !!! note
+            Email alerts require the Python API to call `.authenticate()`. The CLI provides detection and visualization only.
+
 When you run the code, you will receive a single email notification if any object is detected. The notification is sent immediately, not repeatedly. You can customize the code to suit your project requirements.
 
 #### Email Received Sample

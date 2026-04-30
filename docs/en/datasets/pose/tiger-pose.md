@@ -101,7 +101,7 @@ The example showcases the variety and complexity of the images in the Tiger-Pose
 
 ## Citations and Acknowledgments
 
-The dataset has been released available under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
+The dataset has been released under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
 
 ## FAQ
 

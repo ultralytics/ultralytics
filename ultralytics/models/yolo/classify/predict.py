@@ -86,9 +86,7 @@ class ClassificationPredictor(BasePredictor):
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)[..., ::-1]
 
         preds = preds[0] if isinstance(preds, (list, tuple)) else preds
-        multi_label = (
-            getattr(self.model, "args", {}).get("multi_label", False) if hasattr(self.model, "args") else False
-        )
+        multi_label = getattr(self.args, "multi_label", False)
         return [
             Results(orig_img, path=img_path, names=self.model.names, probs=pred, multi_label=multi_label)
             for pred, orig_img, img_path in zip(preds, orig_imgs, self.batch[0])

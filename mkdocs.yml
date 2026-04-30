@@ -62,6 +62,7 @@ theme:
     - navigation.tracking
     - navigation.instant
     - navigation.instant.progress
+    - announce.dismiss
     - navigation.indexes
     - navigation.sections # groups top-level sections instead of expanding all
     - content.tabs.link # all content tabs with the same label change simultaneously
@@ -142,7 +143,7 @@ extra_css:
   - stylesheets/style.css
 
 extra_javascript:
-  - https://cdn.jsdelivr.net/gh/ultralytics/llm@v0.2.7/js/chat.min.js
+  - https://cdn.jsdelivr.net/gh/ultralytics/llm@v0.2.8/js/chat.min.js
   - https://unpkg.com/tablesort@5.7.0/dist/tablesort.min.js
   - javascript/extra.js
   - javascript/giscus.js
@@ -189,6 +190,8 @@ validation:
     absolute_links: relative_to_docs
     anchors: warn
     unrecognized_links: warn
+    # Zensical treats bracketed examples like [0, 1] and [x1, y1, x2, y2] as shortcut references.
+    unresolved_references: false
 
 # Primary navigation ---------------------------------------------------------------------------------------------------
 not_in_nav: |
@@ -525,13 +528,17 @@ nav:
       - Docker Quickstart: guides/docker-quickstart.md
       - Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md
       - End-to-End Detection: guides/end2end-detection.md
+      - Export Non-YOLO Models: guides/export-non-yolo-models.md
+      - Fine-Tuning YOLO on Custom Data: guides/finetuning-guide.md
       - Hyperparameter Tuning: guides/hyperparameter-tuning.md
       - Insights on Model Evaluation and Fine-Tuning: guides/model-evaluation-insights.md
       - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
       - K-Fold Cross Validation: guides/kfold-cross-validation.md
       - Maintaining Your Computer Vision Model: guides/model-monitoring-and-maintenance.md
+      - Modal Quickstart: guides/modal-quickstart.md
       - Model Deployment Options: guides/model-deployment-options.md
       - Model YAML Configuration Guide: guides/model-yaml-config.md
+      - NVIDIA DALI GPU Preprocessing: guides/nvidia-dali.md
       - NVIDIA DGX Spark: guides/nvidia-dgx-spark.md
       - NVIDIA Jetson: guides/nvidia-jetson.md
       - OpenVINO Latency vs Throughput modes: guides/optimizing-openvino-latency-vs-throughput-modes.md

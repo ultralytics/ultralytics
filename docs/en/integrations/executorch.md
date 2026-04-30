@@ -80,8 +80,10 @@ Exporting YOLO26 models to ExecuTorch is straightforward:
         # Export the model to ExecuTorch format
         model.export(format="executorch")  # creates 'yolo26n_executorch_model' directory
 
+        # Load the exported ExecuTorch model
         executorch_model = YOLO("yolo26n_executorch_model")
 
+        # Run inference on a single image
         results = executorch_model.predict("https://ultralytics.com/images/bus.jpg")
         ```
 
@@ -101,16 +103,18 @@ Exporting YOLO26 models to ExecuTorch is straightforward:
 
 When exporting to ExecuTorch format, you can specify the following arguments:
 
-| Argument | Type            | Default | Description                                |
-| -------- | --------------- | ------- | ------------------------------------------ |
-| `imgsz`  | `int` or `list` | `640`   | Image size for model input (height, width) |
-| `device` | `str`           | `'cpu'` | Device to use for export (`'cpu'`)         |
+| Argument | Type             | Default        | Description                                                                                                                             |
+| -------- | ---------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `format` | `str`            | `'executorch'` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
+| `imgsz`  | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
+| `batch`  | `int`            | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
+| `device` | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                         |
 
 ### Output Structure
 
 The ExecuTorch export creates a directory containing the model and metadata:
 
-```text
+```
 yolo26n_executorch_model/
 ├── yolo26n.pte              # ExecuTorch model file
 └── metadata.yaml            # Model metadata (classes, image size, etc.)

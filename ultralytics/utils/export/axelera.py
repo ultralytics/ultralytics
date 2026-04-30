@@ -2,69 +2,96 @@
 
 from __future__ import annotations
 
+import os
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
+
+import numpy as np
+import torch
 
 from ultralytics.utils import LOGGER, YAML
+from ultralytics.utils.checks import check_requirements
 
 
-def onnx2axelera(
-    onnx_file: str,
-    compile_config=None,
+def torch2axelera(
+    model: torch.nn.Module,
+    output_dir: Path | str,
+    calibration_dataset: torch.utils.data.DataLoader,
+    transform_fn: Callable[[Any], np.ndarray],
+    model_name: str = "model",
     metadata: dict | None = None,
-    calibration_dataset: Any | None = None,
-    transform_fn: Callable | None = None,
     prefix: str = "",
-):
-    """Export an ONNX model to Axelera format.
+) -> str:
+    """Convert a YOLO model to Axelera format.
 
     Args:
-        onnx_file (str): Path to the source ONNX file (already exported).
-        compile_config (axelera.compiler.CompilerConfig): Compiler configuration object. If None, a default
-            ``CompilerConfig`` is created.
-        metadata (dict | None): Metadata saved as ``metadata.yaml``.
-        calibration_dataset: Dataloader for INT8 calibration.
-        transform_fn: Transformation function applied to calibration batches.
-        prefix (str): Prefix for log messages.
+        model (torch.nn.Module): Source YOLO model for quantization.
+        output_dir (Path | str): Directory to save the exported Axelera model.
+        calibration_dataset (torch.utils.data.DataLoader): Calibration dataloader for quantization.
+        transform_fn (Callable[[Any], np.ndarray]): Calibration preprocessing transform function.
+        model_name (str, optional): Name for the compiled model. Defaults to "model".
+        metadata (dict | None, optional): Optional metadata to save as YAML. Defaults to None.
+        prefix (str, optional): Prefix for log messages. Defaults to "".
 
     Returns:
-        (Path): Path to the exported ``_axelera_model`` directory.
+        (str): Path to exported Axelera model directory.
     """
-    from axelera import compiler
-
-    LOGGER.info(f"\n{prefix} starting export with axelera...")
-
-    model_name = Path(onnx_file).stem
-    export_path = Path(f"{model_name}_axelera_model")
-    export_path.mkdir(exist_ok=True)
-
-    if compile_config is None:
-        from axelera.compiler import CompilerConfig
-
-        compile_config = CompilerConfig(
-            tiling_depth=6,
-            split_buffer_promotion=True,
-            resources_used=0.25,
-            aipu_cores_used=1,
-            multicore_mode="batch",
-            output_axm_format=True,
-            model_name=model_name,
+    prev_protobuf = os.environ.get("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION")
+    os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
+    try:
+        from axelera import compiler
+    except ImportError:
+        check_requirements(
+            "axelera-devkit==1.6.0",
+            cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
         )
+        from axelera import compiler
 
+    from axelera.compiler import CompilerConfig
+    from axelera.compiler.config.model_specific import extract_ultralytics_metadata
+
+    LOGGER.info(f"\n{prefix} starting export with Axelera compiler...")
+
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    axelera_model_metadata = extract_ultralytics_metadata(model)
+    config = CompilerConfig(
+        model_metadata=axelera_model_metadata,
+        model_name=model_name,
+        resources_used=0.25,
+        aipu_cores_used=1,
+        multicore_mode="batch",
+        output_axm_format=True,
+    )
     qmodel = compiler.quantize(
-        model=onnx_file,
+        model=model,
         calibration_dataset=calibration_dataset,
-        config=compile_config,
+        config=config,
         transform_fn=transform_fn,
     )
-    compiler.compile(model=qmodel, config=compile_config, output_dir=export_path)
+    compiler.compile(model=qmodel, config=config, output_dir=output_dir)
 
-    axm_name = f"{model_name}.axm"
-    axm_src = Path(axm_name)
-    axm_dst = export_path / axm_name
-    if axm_src.exists():
-        axm_src.replace(axm_dst)
+    for artifact in [f"{model_name}.axm", "compiler_config_final.toml"]:
+        artifact_path = Path(artifact)
+        if artifact_path.exists():
+            artifact_path.replace(output_dir / artifact_path.name)
 
-    if metadata:
-        YAML.save(export_path / "metadata.yaml", metadata)
-    return export_path
+    # Remove intermediate compiler artifacts, keeping only the compiled model and config.
+    keep_suffixes = {".axm"}
+    keep_names = {"compiler_config_final.toml", "metadata.yaml"}
+    for f in output_dir.iterdir():
+        if f.is_file() and f.suffix not in keep_suffixes and f.name not in keep_names:
+            f.unlink()
+
+    if metadata is not None:
+        YAML.save(output_dir / "metadata.yaml", metadata)
+
+    # Restore original PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION value
+    if prev_protobuf is None:
+        os.environ.pop("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION", None)
+    else:
+        os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = prev_protobuf
+
+    return str(output_dir)

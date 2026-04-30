@@ -28,8 +28,8 @@ def linear_assignment(cost_matrix: np.ndarray, thresh: float, use_lap: bool = Tr
     Returns:
         matched_indices (list[list[int]] | np.ndarray): Matched indices of shape (K, 2), where K is the number of
             matches.
-        unmatched_a (np.ndarray): Unmatched indices from the first set, with shape (L,).
-        unmatched_b (np.ndarray): Unmatched indices from the second set, with shape (M,).
+        unmatched_a (tuple | list | np.ndarray): Unmatched indices from the first set.
+        unmatched_b (tuple | list | np.ndarray): Unmatched indices from the second set.
 
     Examples:
         >>> cost_matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
@@ -104,8 +104,8 @@ def embedding_distance(tracks: list, detections: list, metric: str = "cosine") -
     """Compute distance between tracks and detections based on embeddings.
 
     Args:
-        tracks (list[STrack]): List of tracks, where each track contains embedding features.
-        detections (list[BaseTrack]): List of detections, where each detection contains embedding features.
+        tracks (list[BOTrack]): List of tracks, where each track contains embedding features.
+        detections (list[BOTrack]): List of detections, where each detection contains embedding features.
         metric (str): Metric for distance computation. Supported metrics include 'cosine', 'euclidean', etc.
 
     Returns:
@@ -114,8 +114,8 @@ def embedding_distance(tracks: list, detections: list, metric: str = "cosine") -
 
     Examples:
         Compute the embedding distance between tracks and detections using cosine metric
-        >>> tracks = [STrack(...), STrack(...)]  # List of track objects with embedding features
-        >>> detections = [BaseTrack(...), BaseTrack(...)]  # List of detection objects with embedding features
+        >>> tracks = [BOTrack(...), BOTrack(...)]  # List of track objects with embedding features
+        >>> detections = [BOTrack(...), BOTrack(...)]  # List of detection objects with embedding features
         >>> cost_matrix = embedding_distance(tracks, detections, metric="cosine")
     """
     cost_matrix = np.zeros((len(tracks), len(detections)), dtype=np.float32)
@@ -130,14 +130,14 @@ def embedding_distance(tracks: list, detections: list, metric: str = "cosine") -
 
 
 def fuse_score(cost_matrix: np.ndarray, detections: list) -> np.ndarray:
-    """Fuse cost matrix with detection scores to produce a single similarity matrix.
+    """Fuse cost matrix with detection scores to produce a single cost matrix.
 
     Args:
         cost_matrix (np.ndarray): The matrix containing cost values for assignments, with shape (N, M).
         detections (list[BaseTrack]): List of detections, each containing a score attribute.
 
     Returns:
-        (np.ndarray): Fused similarity matrix with shape (N, M).
+        (np.ndarray): Fused cost matrix with shape (N, M).
 
     Examples:
         Fuse a cost matrix with detection scores

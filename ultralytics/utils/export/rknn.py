@@ -26,7 +26,6 @@ def onnx2rknn(
     Returns:
         (str): Path to the exported ``_rknn_model`` directory.
     """
-
     if name in {"rv1103", "rv1106", "rv1103b", "rv1106b"}:
         raise ValueError(
             f"Rockchip target '{name}' requires INT8 quantization, which is not yet supported by Ultralytics RKNN. "

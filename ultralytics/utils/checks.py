@@ -478,7 +478,10 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
                 text=True,
             )
         return subprocess.check_output(
-            f"pip install --no-cache-dir {packages} {commands}", shell=True, stderr=subprocess.STDOUT, text=True
+            f'"{sys.executable}" -m pip install --no-cache-dir {packages} {commands}',
+            shell=True,
+            stderr=subprocess.STDOUT,
+            text=True,
         )
 
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
@@ -528,7 +531,7 @@ def check_tensorrt(min_version: str = "7.0.0"):
     """
     if LINUX:
         cuda_version = torch.version.cuda.split(".")[0]
-        check_requirements(f"tensorrt-cu{cuda_version}>={min_version},!=10.1.0")
+        check_requirements(f"tensorrt-cu{cuda_version}>={min_version},!=10.2.0")
 
 
 def check_torchvision():
@@ -654,7 +657,9 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
         if url is None:
             return []  # Not found, soft fail (consistent with file search behavior)
         # Use URI path for unique directory structure: ul://user/project/model -> user/project/model/filename.pt
-        uri_path = file[5:]  # Remove "ul://"
+        uri_path = Path(file[5:])  # Remove "ul://"
+        if uri_path.is_absolute() or ".." in uri_path.parts:
+            raise ValueError(f"Unsafe Ultralytics Platform URI path: {file}")
         local_file = Path(download_dir) / uri_path / url2file(url)
         # Always re-download NDJSON datasets (cheap, ensures fresh data after updates)
         if local_file.suffix == ".ndjson":

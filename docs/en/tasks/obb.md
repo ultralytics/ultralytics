@@ -66,7 +66,7 @@ Train YOLO26n-obb on the DOTA8 dataset for 100 [epochs](https://www.ultralytics.
         # Load a model
         model = YOLO("yolo26n-obb.yaml")  # build a new model from YAML
         model = YOLO("yolo26n-obb.pt")  # load a pretrained model (recommended for training)
-        model = YOLO("yolo26n-obb.yaml").load("yolo26n.pt")  # build from YAML and transfer weights
+        model = YOLO("yolo26n-obb.yaml").load("yolo26n-obb.pt")  # build from YAML and transfer weights
 
         # Train the model
         results = model.train(data="dota8.yaml", epochs=100, imgsz=640)
@@ -98,7 +98,7 @@ Train YOLO26n-obb on the DOTA8 dataset for 100 [epochs](https://www.ultralytics.
 
 ### Dataset format
 
-OBB dataset format can be found in detail in the [Dataset Guide](../datasets/obb/index.md). The YOLO OBB format designates bounding boxes by their four corner points with coordinates normalized between 0 and 1, following this structure:
+OBB dataset format can be found in detail in the [Dataset Guide](../datasets/obb/index.md). The YOLO OBB format designates bounding boxes by their four corner points with coordinates normalized between 0 and 1, following this structure. [Ultralytics Platform](https://platform.ultralytics.com) supports OBB annotation with a dedicated oriented bounding box drawing tool:
 
 ```
 class_index x1 y1 x2 y2 x3 y3 x4 y4
@@ -127,6 +127,7 @@ Validate trained YOLO26n-obb model [accuracy](https://www.ultralytics.com/glossa
         metrics.box.map50  # map50(B)
         metrics.box.map75  # map75(B)
         metrics.box.maps  # a list containing mAP50-95(B) for each category
+        metrics.box.image_metrics  # per-image metrics dictionary with precision, recall, F1, TP, FP, and FN
         ```
 
     === "CLI"

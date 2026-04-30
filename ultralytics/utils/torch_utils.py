@@ -43,6 +43,7 @@ TORCH_1_11 = check_version(TORCH_VERSION, "1.11.0")
 TORCH_1_13 = check_version(TORCH_VERSION, "1.13.0")
 TORCH_2_0 = check_version(TORCH_VERSION, "2.0.0")
 TORCH_2_1 = check_version(TORCH_VERSION, "2.1.0")
+TORCH_2_3 = check_version(TORCH_VERSION, "2.3.0")
 TORCH_2_4 = check_version(TORCH_VERSION, "2.4.0")
 TORCH_2_8 = check_version(TORCH_VERSION, "2.8.0")
 TORCH_2_9 = check_version(TORCH_VERSION, "2.9.0")
@@ -141,8 +142,8 @@ def select_device(device="", newline=False, verbose=True):
 
     Args:
         device (str | torch.device, optional): Device string or torch.device object. Options include 'cpu', 'cuda', '0',
-            '0,1,2,3', 'mps', or '-1' for auto-select. Defaults to auto-selecting the first available GPU, or CPU if no
-            GPU is available.
+            '0,1,2,3', 'mps', 'npu', 'npu:0', or '-1' for auto-select. Defaults to auto-selecting the first available
+            GPU, or CPU if no GPU is available.
         newline (bool, optional): If True, adds a newline at the end of the log string.
         verbose (bool, optional): If True, logs the device information.
 
@@ -166,6 +167,34 @@ def select_device(device="", newline=False, verbose=True):
     device = str(device).lower()
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
+
+    # Huawei Ascend NPU
+    if device.startswith("npu"):
+        try:
+            import torch_npu  # noqa
+        except ImportError:
+            raise ValueError(f"Invalid NPU 'device={device}'. Install 'torch_npu' at https://github.com/Ascend/pytorch")
+
+        if not hasattr(torch, "npu") or not torch.npu.is_available():
+            raise ValueError(f"Invalid NPU 'device={device}' requested. Ascend NPU is not available.")
+
+        # Parse 'npu' or 'npu:N' (multi-NPU not yet supported)
+        suffix = device[3:]
+        if suffix == "":
+            idx = 0
+        elif suffix.startswith(":") and suffix[1:].isdigit():
+            idx = int(suffix[1:])
+        else:
+            raise ValueError(f"Invalid NPU 'device={device}' format. Use 'npu' or 'npu:0'.")
+
+        n = torch.npu.device_count()
+        if idx >= n:
+            raise ValueError(f"Invalid NPU 'device={device}' requested. Only {n} NPU(s) available.")
+
+        torch.npu.set_device(idx)
+        if verbose:
+            LOGGER.info(f"{s}NPU:{idx} ({torch.npu.get_device_name(idx)})\n")
+        return torch.device(f"npu:{idx}")
 
     # Auto-select GPUs
     if "-1" in device:
@@ -741,7 +770,7 @@ def convert_optimizer_state_dict_to_fp16(state_dict):
     """
     for state in state_dict["state"].values():
         for k, v in state.items():
-            if k != "step" and isinstance(v, torch.Tensor) and v.dtype is torch.float32:
+            if k not in {"step", "exp_avg_sq"} and isinstance(v, torch.Tensor) and v.dtype is torch.float32:
                 state[k] = v.half()
 
     return state_dict

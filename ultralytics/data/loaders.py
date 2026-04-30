@@ -359,7 +359,7 @@ class LoadImagesAndVideos:
             if "*" in a:
                 files.extend(sorted(glob.glob(a, recursive=True)))  # glob
             elif os.path.isdir(a):
-                files.extend(sorted(glob.glob(os.path.join(a, "*.*"))))  # dir
+                files.extend(sorted(glob.glob(os.path.join(glob.escape(a), "*.*"))))  # dir
             elif os.path.isfile(a):
                 files.append(a)  # files (absolute or relative to CWD)
             elif parent and (parent / p).is_file():
@@ -442,19 +442,9 @@ class LoadImagesAndVideos:
                     if self.count < self.nf:
                         self._new_video(self.files[self.count])
             else:
-                # Handle image files (including HEIC)
+                # Handle image files
                 self.mode = "image"
-                if path.rpartition(".")[-1].lower() == "heic":
-                    # Load HEIC image using Pillow with pillow-heif
-                    check_requirements("pi-heif")
-
-                    from pi_heif import register_heif_opener
-
-                    register_heif_opener()  # Register HEIF opener with Pillow
-                    with Image.open(path) as img:
-                        im0 = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)  # convert image to BGR nparray
-                else:
-                    im0 = imread(path, flags=self.cv2_flag)  # BGR
+                im0 = imread(path, flags=self.cv2_flag)  # BGR
                 if im0 is None:
                     LOGGER.warning(f"Image Read Error {path}")
                 else:

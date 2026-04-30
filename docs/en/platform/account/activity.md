@@ -24,10 +24,11 @@ The Activity Feed serves as your central hub for:
 
 ## Accessing Activity
 
-Navigate to the Activity Feed:
+Navigate to the Activity Feed in any of the following ways:
 
-1. Click **Activity** in the sidebar
-2. Or navigate directly to `/activity`
+1. Click the activity indicator in the top navigation bar
+2. Open the profile menu at the bottom of the sidebar and select **Activity**
+3. Navigate directly to `/activity`
 
 ![Ultralytics Platform Activity Page Inbox With Search And Date Filter](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/activity-page-inbox-with-search-and-date-filter.avif)
 
@@ -103,7 +104,7 @@ Use the search bar to find events by resource name or event description.
 Filter by time period using the date range picker:
 
 - Select a start and end date
-- No default date filter (shows all events)
+- The page defaults to the last 30 days
 - Custom date ranges supported
 
 ![Ultralytics Platform Activity Page Date Range Picker Expanded](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/activity-page-date-range-picker-expanded.avif)
@@ -123,8 +124,8 @@ Each event displays:
 
 Some actions support undo directly from the Activity feed:
 
-- **Settings changes**: Click **Undo** next to a settings update event to revert the change
-- Undo is available for a short time window after the action
+- **Settings changes**: Click **Undo** next to a recent settings update event to revert the change
+- Undo is available for **one hour** after the action; after that, the undo button disappears
 
 ## Pagination
 
@@ -134,9 +135,13 @@ The Activity feed supports pagination:
 - Navigate between pages using the pagination controls
 - Page size is configurable via URL query parameter
 
-## API Access
+## API Routes
 
-Access activity programmatically via the [REST API](../api/index.md#activity-api):
+The Activity feed is powered by browser-authenticated routes — it is not exposed as a public API and cannot be accessed with an API key. The route shapes are listed below for reference; to view, mark, or archive activity, use the Activity feed in the platform UI.
+
+!!! note "Browser Session Only"
+
+    The routes shown below require an active platform browser session. The `Authorization: Bearer YOUR_API_KEY` header in the examples will not authenticate these routes — they are documented only to describe how the in-app feed talks to the server.
 
 === "List Activity"
 

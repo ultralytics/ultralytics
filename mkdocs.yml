@@ -190,6 +190,8 @@ validation:
     absolute_links: relative_to_docs
     anchors: warn
     unrecognized_links: warn
+    # Zensical treats bracketed examples like [0, 1] and [x1, y1, x2, y2] as shortcut references.
+    unresolved_references: false
 
 # Primary navigation ---------------------------------------------------------------------------------------------------
 not_in_nav: |

@@ -6,7 +6,7 @@ keywords: object detection, YOLO26, pretrained models, training, validation, pre
 
 # Object Detection
 
-<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/object-detection-examples.avif" alt="Object detection examples">
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/object-detection-examples.avif" alt="YOLO object detection with bounding boxes">
 
 [Object detection](https://www.ultralytics.com/glossary/object-detection) is a task that involves identifying the location and class of objects in an image or video stream.
 
@@ -37,6 +37,7 @@ YOLO26 pretrained Detect models are shown here. Detect, Segment, and Pose models
 
 - **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce by `yolo val detect data=coco.yaml device=0`
 - **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val detect data=coco.yaml batch=1 device=0|cpu`
+- **Params** and **FLOPs** values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers and, for end2end models, removes the auxiliary one-to-many detection head. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
 ## Train
 
@@ -71,9 +72,11 @@ Train YOLO26n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/
         yolo detect train data=coco8.yaml model=yolo26n.yaml pretrained=yolo26n.pt epochs=100 imgsz=640
         ```
 
+See full `train` mode details in the [Train](../modes/train.md) page. Detection models can also be trained on cloud GPUs through [Ultralytics Platform](https://platform.ultralytics.com).
+
 ### Dataset format
 
-YOLO detection dataset format can be found in detail in the [Dataset Guide](../datasets/detect/index.md). To convert your existing dataset from other formats (like COCO etc.) to YOLO format, please use [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics.
+YOLO detection dataset format can be found in detail in the [Dataset Guide](../datasets/detect/index.md). To convert your existing dataset from other formats (like COCO etc.) to YOLO format, please use [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics. You can also annotate and manage detection datasets directly on [Ultralytics Platform](https://platform.ultralytics.com) with AI-assisted labeling tools.
 
 ## Val
 
@@ -96,6 +99,7 @@ Validate trained YOLO26n model [accuracy](https://www.ultralytics.com/glossary/a
         metrics.box.map50  # map50
         metrics.box.map75  # map75
         metrics.box.maps  # a list containing mAP50-95 for each category
+        metrics.box.image_metrics  # per-image metrics dictionary with precision, recall, F1, TP, FP, and FN
         ```
 
     === "CLI"
@@ -175,6 +179,10 @@ Available YOLO26 export formats are in the table below. You can export to any fo
 See full `export` details in the [Export](../modes/export.md) page.
 
 ## FAQ
+
+### Can I train and deploy detection models without coding?
+
+Yes. [Ultralytics Platform](https://platform.ultralytics.com) provides a browser-based workflow for annotating datasets, training detection models on cloud GPUs, and deploying them to inference endpoints. See the [Platform quickstart](../platform/quickstart.md) to get started.
 
 ### How do I train a YOLO26 model on my custom dataset?
 

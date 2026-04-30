@@ -10,8 +10,8 @@ keywords: Meituan YOLOv6, object detection, real-time applications, BiC module, 
 
 [Meituan](https://www.meituan.com/) YOLOv6, released in 2022, offers a strong balance between speed and accuracy, making it a popular choice for real-time applications. This model introduces several notable enhancements on its architecture and training scheme, including the implementation of a Bi-directional Concatenation (BiC) module, an anchor-aided training (AAT) strategy, and an improved [backbone](https://www.ultralytics.com/glossary/backbone) and neck design for high accuracy on the [COCO dataset](https://docs.ultralytics.com/datasets/detect/coco/).
 
-![Meituan YOLOv6](https://github.com/ultralytics/docs/releases/download/0/meituan-yolov6.avif)
-![Model example image](https://github.com/ultralytics/docs/releases/download/0/yolov6-architecture-diagram.avif) **Overview of YOLOv6.** Model architecture diagram showing the redesigned network components and training strategies that have led to significant performance improvements. (a) The neck of YOLOv6 (N and S are shown). Note for M/L, RepBlocks is replaced with CSPStackRep. (b) The structure of a BiC module. (c) A SimCSPSPPF block. ([source](https://arxiv.org/pdf/2301.05586)).
+![YOLOv6 real-time object detection model by Meituan](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/meituan-yolov6.avif)
+![YOLOv6 model architecture diagram](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov6-architecture-diagram.avif) **Overview of YOLOv6.** Model architecture diagram showing the redesigned network components and training strategies that have led to significant performance improvements. (a) The neck of YOLOv6 (N and S are shown). Note for M/L, RepBlocks is replaced with CSPStackRep. (b) The structure of a BiC module. (c) A SimCSPSPPF block. ([source](https://arxiv.org/pdf/2301.05586)).
 
 ### Key Features
 

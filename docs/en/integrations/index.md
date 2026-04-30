@@ -8,7 +8,7 @@ keywords: Ultralytics, machine learning, ML workflows, dataset management, model
 
 Welcome to the Ultralytics Integrations page! This page provides an overview of our partnerships with various tools and platforms, designed to streamline your [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) workflows, enhance dataset management, simplify model training, and facilitate efficient deployment.
 
-<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-ecosystem-integrations.avif" alt="Ultralytics YOLO ecosystem and integrations">
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-ecosystem-integrations.avif" alt="Ultralytics YOLO ecosystem and integrations">
 
 <p align="center">
   <br>
@@ -40,6 +40,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 - [JupyterLab](jupyterlab.md): Find out how to use JupyterLab's interactive and customizable environment to train and evaluate Ultralytics models with ease and efficiency.
 
 - [Kaggle](kaggle.md): Explore how you can use Kaggle to train and evaluate Ultralytics models in a cloud-based environment with pre-installed libraries, GPU support, and a vibrant community for collaboration and sharing.
+
+- [Modal](../guides/modal-quickstart.md): Run Ultralytics models on Modal's serverless cloud platform with automatic GPU provisioning, pay-per-second pricing, and seamless scaling for inference and training workloads.
 
 - [MLFlow](mlflow.md): Streamline the entire ML lifecycle of Ultralytics models, from experimentation and reproducibility to deployment.
 

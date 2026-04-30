@@ -31,10 +31,10 @@ A heatmap generated with [Ultralytics YOLO26](https://github.com/ultralytics/ult
 
 ## Real World Applications
 
-|                                                                    Transportation                                                                    |                                                                Retail                                                                |
-| :--------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------: |
-| ![Ultralytics YOLO26 Transportation Heatmap](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-transportation-heatmap.avif) | ![Ultralytics YOLO26 Retail Heatmap](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-retail-heatmap.avif) |
-|                                                      Ultralytics YOLO26 Transportation Heatmap                                                       |                                                  Ultralytics YOLO26 Retail Heatmap                                                   |
+|                                                                    Transportation                                                                     |                                                                Retail                                                                 |
+| :---------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------: |
+| ![Ultralytics YOLO26 Transportation Heatmap](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-transportation-heatmap.avif) | ![Ultralytics YOLO26 Retail Heatmap](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-retail-heatmap.avif) |
+|                                                       Ultralytics YOLO26 Transportation Heatmap                                                       |                                                   Ultralytics YOLO26 Retail Heatmap                                                   |
 
 !!! example "Heatmaps using Ultralytics YOLO"
 
@@ -216,4 +216,4 @@ cv2.destroyAllWindows()
 
 ### Why should businesses choose Ultralytics YOLO26 for heatmap generation in data analysis?
 
-Ultralytics YOLO26 offers seamless integration of advanced object detection and real-time heatmap generation, making it an ideal choice for businesses looking to visualize data more effectively. The key advantages include intuitive data distribution visualization, efficient pattern detection, and enhanced spatial analysis for better decision-making. Additionally, YOLO26's cutting-edge features such as persistent tracking, customizable colormaps, and support for various export formats make it superior to other tools like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and OpenCV for comprehensive data analysis. Learn more about business applications at [Ultralytics Plans](https://www.ultralytics.com/plans).
+Ultralytics YOLO26 offers seamless integration of advanced object detection and real-time heatmap generation, making it an ideal choice for businesses looking to visualize data more effectively. The key advantages include intuitive data distribution visualization, efficient pattern detection, and enhanced spatial analysis for better decision-making. Additionally, YOLO26's cutting-edge features such as persistent tracking, customizable colormaps, and support for various export formats make it superior to other tools like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and OpenCV for comprehensive data analysis. Learn more about business applications at [Ultralytics Plans](https://www.ultralytics.com/pricing).

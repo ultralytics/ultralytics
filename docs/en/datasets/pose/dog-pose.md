@@ -23,7 +23,7 @@ The [Ultralytics](https://www.ultralytics.com/) Dog-Pose dataset is a high-quali
 
 Each annotated image includes 24 keypoints with 3 dimensions per keypoint (x, y, visibility), making it a valuable resource for advanced research and development in computer vision.
 
-<img src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-dogs.avif" alt="Ultralytics Dog-pose display image" width="800">
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-dogs.avif" alt="Ultralytics Dog-pose display image" width="800">
 
 This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
 
@@ -78,7 +78,7 @@ To train a YOLO26n-pose model on the Dog-pose dataset for 100 [epochs](https://w
 
 Here are some examples of images from the Dog-pose dataset, along with their corresponding annotations:
 
-<img src="https://github.com/ultralytics/docs/releases/download/0/mosaiced-training-batch-2-dog-pose.avif" alt="Dataset sample image" width="800">
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaiced-training-batch-2-dog-pose.avif" alt="Dog pose estimation dataset mosaic training batch" width="800">
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 

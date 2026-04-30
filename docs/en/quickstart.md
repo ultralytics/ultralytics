@@ -146,7 +146,7 @@ See the `ultralytics` [pyproject.toml](https://github.com/ultralytics/ultralytic
     [PyTorch](https://www.ultralytics.com/glossary/pytorch) requirements vary by operating system and CUDA requirements, so install PyTorch first by following the instructions at [PyTorch](https://pytorch.org/get-started/locally/).
 
     <a href="https://pytorch.org/get-started/locally/">
-        <img width="800" alt="PyTorch Installation Instructions" src="https://github.com/ultralytics/docs/releases/download/0/pytorch-installation-instructions.avif">
+        <img width="800" alt="PyTorch installation selector for different platforms" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/pytorch-installation-instructions.avif">
     </a>
 
 ## Headless Server Installation
@@ -548,11 +548,9 @@ Explore more commands and usage examples in the full [CLI Guide](usage/cli.md).
 <!-- Article Links -->
 
 [Ultralytics Platform]: https://platform.ultralytics.com
-[API Key]: https://platform.ultralytics.com/settings
 [pip]: https://pypi.org/project/ultralytics/
 [DVC for experiment tracking]: https://dvc.org/doc/dvclive/ml-frameworks/yolo
 [Comet ML]: https://bit.ly/yolov8-readme-comet
-[Ultralytics Platform]: https://platform.ultralytics.com
 [ClearML]: ./integrations/clearml.md
 [MLFlow]: ./integrations/mlflow.md
 [Neptune]: https://neptune.ai/

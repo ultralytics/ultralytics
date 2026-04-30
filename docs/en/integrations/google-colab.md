@@ -61,7 +61,7 @@ Now, let's look at some of the standout features that make Google Colab a go-to 
 
 - **Hardware Resources:** Users can also switch between different hardware options by modifying the runtime settings as shown below. Google Colab provides access to advanced hardware like Tesla K80 GPUs and TPUs, which are specialized circuits designed specifically for machine learning tasks.
 
-![Runtime Settings](https://github.com/ultralytics/docs/releases/download/0/runtime-settings.avif)
+![Google Colab runtime settings for GPU selection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/runtime-settings.avif)
 
 - **Collaboration:** Google Colab makes collaborating and working with other developers easy. You can easily share your notebooks with others and perform edits in real-time.
 
@@ -103,7 +103,7 @@ If you'd like to dive deeper into Google Colab, here are a few resources to guid
 
 - **[Image Segmentation with Ultralytics YOLO26 on Google Colab](https://www.ultralytics.com/blog/image-segmentation-with-ultralytics-yolo11-on-google-colab)**: Explore how to perform image segmentation tasks using YOLO26 in the Google Colab environment, with practical examples using datasets like the Roboflow Carparts Segmentation Dataset.
 
-- **[Curated Notebooks](https://colab.google/notebooks/)**: Here you can explore a series of organized and educational notebooks, each grouped by specific topic areas.
+- **[Curated Notebooks](https://developers.google.com/colab)**: Here you can explore a series of organized and educational notebooks, each grouped by specific topic areas.
 
 - **[Google Colab's Medium Page](https://medium.com/google-colab)**: You can find tutorials, updates, and community contributions here that can help you better understand and utilize this tool.
 
@@ -130,7 +130,7 @@ Google Colab offers several advantages for training YOLO26 models:
 - **Integration with Google Drive:** Easily store and access datasets and models.
 - **Collaboration:** Share notebooks with others and collaborate in real-time.
 
-For more information on why you should use Google Colab, explore the [training guide](../modes/train.md) and visit the [Google Colab page](https://colab.google/notebooks/).
+For more information on why you should use Google Colab, explore the [training guide](../modes/train.md) and visit the [Google Colab page](https://developers.google.com/colab).
 
 ### How can I handle Google Colab session timeouts during YOLO26 training?
 

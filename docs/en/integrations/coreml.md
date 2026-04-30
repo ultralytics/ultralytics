@@ -24,7 +24,7 @@ The CoreML export format allows you to optimize your [Ultralytics YOLO26](https:
 ## CoreML
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/coreml-overview.avif" alt="CoreML Overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/coreml-overview.avif" alt="Apple CoreML deployment pipeline">
 </p>
 
 [CoreML](https://developer.apple.com/documentation/coreml) is Apple's foundational machine learning framework that builds upon Accelerate, BNNS, and Metal Performance Shaders. It provides a machine-learning model format that seamlessly integrates into iOS applications and supports tasks such as image analysis, [natural language processing](https://www.ultralytics.com/glossary/natural-language-processing-nlp), audio-to-text conversion, and sound analysis.
@@ -38,7 +38,7 @@ Apple's CoreML framework offers robust features for on-device machine learning. 
 - **Comprehensive Model Support**: Converts and runs models from popular frameworks like TensorFlow, [PyTorch](https://www.ultralytics.com/glossary/pytorch), scikit-learn, XGBoost, and LibSVM.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/coreml-supported-models.avif" alt="CoreML Supported Models">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/coreml-supported-models.avif" alt="CoreML supported deep learning frameworks">
 </p>
 
 - **On-device [Machine Learning](https://www.ultralytics.com/glossary/machine-learning-ml)**: Ensures data privacy and swift processing by executing models directly on the user's device, eliminating the need for network connectivity.
@@ -117,15 +117,16 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
 ### Export Arguments
 
-| Argument | Type             | Default    | Description                                                                                                                                                                                   |
-| -------- | ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format` | `str`            | `'coreml'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                            |
-| `imgsz`  | `int` or `tuple` | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                             |
-| `half`   | `bool`           | `False`    | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.                                                                  |
-| `int8`   | `bool`           | `False`    | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices. |
-| `nms`    | `bool`           | `False`    | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                           |
-| `batch`  | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                       |
-| `device` | `str`            | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                               |
+| Argument  | Type             | Default    | Description                                                                                                                                                                                   |
+| --------- | ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`  | `str`            | `'coreml'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                            |
+| `imgsz`   | `int` or `tuple` | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                             |
+| `dynamic` | `bool`           | `False`    | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                                                                       |
+| `half`    | `bool`           | `False`    | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.                                                                  |
+| `int8`    | `bool`           | `False`    | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices. |
+| `nms`     | `bool`           | `False`    | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                           |
+| `batch`   | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                       |
+| `device`  | `str`            | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                               |
 
 !!! tip
 

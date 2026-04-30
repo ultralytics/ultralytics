@@ -10,8 +10,11 @@ keywords: YOLO26, Ultralytics YOLO, object detection, end-to-end NMS-free, simpl
 
 [Ultralytics](https://www.ultralytics.com/) YOLO26 is the latest evolution in the YOLO series of real-time object detectors, engineered from the ground up for **edge and low-power devices**. It introduces a streamlined design that removes unnecessary complexity while integrating targeted innovations to deliver faster, lighter, and more accessible deployment.
 
-![Ultralytics YOLO26 Comparison Plots](https://github.com/ultralytics/assets/releases/download/v0.0.0/Ultralytics-YOLO26-Benchmark.jpg)
-![Ultralytics YOLO26 End-to-End Comparison Plots](https://github.com/ultralytics/assets/releases/download/v0.0.0/Ultralytics-YOLO26-Benchmark-E2E.jpg)
+![Ultralytics YOLO26 Comparison Plots](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/Ultralytics-YOLO26-Benchmark.jpg)
+
+!!! tip "Try on Ultralytics Platform"
+
+    Explore and run YOLO26 models directly on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26).
 
 The architecture of YOLO26 is guided by three core principles:
 
@@ -48,6 +51,8 @@ Together, these innovations deliver a model family that achieves higher accuracy
 - **Refined OBB Decoding**  
   Introduces a specialized angle loss to improve detection accuracy for square-shaped objects and optimizes OBB decoding to resolve boundary discontinuity issues.
 
+![Ultralytics YOLO26 End-to-End Comparison Plots](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/Ultralytics-YOLO26-Benchmark-E2E.jpg)
+
 ---
 
 ## Supported Tasks and Modes
@@ -63,6 +68,10 @@ YOLO26 builds upon the versatile model range established by earlier Ultralytics 
 | YOLO26-cls  | `yolo26n-cls.pt` `yolo26s-cls.pt` `yolo26m-cls.pt` `yolo26l-cls.pt` `yolo26x-cls.pt`      | [Classification](../tasks/classify.md)       | ✅        | ✅         | ✅       | ✅     |
 
 This unified framework ensures YOLO26 is applicable across real-time detection, segmentation, classification, pose estimation, and oriented object detection — all with training, validation, inference, and export support.
+
+!!! note "Architecture-only variants"
+
+    [`yolo26-p2.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/26/yolo26-p2.yaml) and [`yolo26-p6.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/26/yolo26-p6.yaml) add a P2 (small-object) or P6 (large-input) detection head and are shipped as YAML architectures only. No scale-specific `yolo26*-p2.pt` or `yolo26*-p6.pt` weights are released. Instantiate a scaled config from YAML (for example, `YOLO("yolo26n-p6.yaml")`) and train or fine-tune it as needed.
 
 ---
 
@@ -99,6 +108,8 @@ This unified framework ensures YOLO26 is applicable across real-time detection, 
         See [Oriented Detection Docs](../tasks/obb.md) for usage examples with these models trained on [DOTAv1](../datasets/obb/dota-v2.md#dota-v10), which include 15 pretrained classes.
 
         --8<-- "docs/macros/yolo-obb-perf.md"
+
+_Params and FLOPs values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers and removes the auxiliary one-to-many detection head. Pretrained checkpoints retain the full training architecture and may show higher counts._
 
 ---
 
@@ -138,6 +149,49 @@ Note that the example below is for YOLO26 [Detect](../tasks/detect.md) models fo
         # Load a COCO-pretrained YOLO26n model and run inference on the 'bus.jpg' image
         yolo predict model=yolo26n.pt source=path/to/bus.jpg
         ```
+
+!!! note "Dual-Head Architecture"
+
+    YOLO26 features a **dual-head architecture** that provides flexibility for different deployment scenarios:
+
+    - **One-to-One Head (Default)**: Produces end-to-end predictions without NMS, outputting `(N, 300, 6)` with a maximum of 300 detections per image. This head is optimized for fast inference and simplified deployment.
+    - **One-to-Many Head**: Generates traditional YOLO outputs requiring NMS post-processing, outputting `(N, nc + 4, 8400)` where `nc` is the number of classes. This head typically achieves slightly higher accuracy at the cost of additional processing.
+
+    You can switch between heads during export, prediction, or validation:
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n.pt")
+
+        # Use one-to-one head (default, no NMS required)
+        results = model.predict("image.jpg")  # inference
+        metrics = model.val(data="coco.yaml")  # validation
+        model.export(format="onnx")  # export
+
+        # Use one-to-many head (requires NMS)
+        results = model.predict("image.jpg", end2end=False)  # inference
+        metrics = model.val(data="coco.yaml", end2end=False)  # validation
+        model.export(format="onnx", end2end=False)  # export
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Use one-to-one head (default, no NMS required)
+        yolo predict model=yolo26n.pt source=image.jpg
+        yolo val model=yolo26n.pt data=coco.yaml
+        yolo export model=yolo26n.pt format=onnx
+
+        # Use one-to-many head (requires NMS)
+        yolo predict model=yolo26n.pt source=image.jpg end2end=False
+        yolo val model=yolo26n.pt data=coco.yaml end2end=False
+        yolo export model=yolo26n.pt format=onnx end2end=False
+        ```
+
+    The choice depends on your deployment requirements: use the one-to-one head for maximum speed and simplicity, or the one-to-many head when accuracy is the top priority.
 
 ## YOLOE-26: Open-Vocabulary Instance Segmentation
 
@@ -189,8 +243,7 @@ YOLOE-26 supports both text-based and visual prompting. Using prompts is straigh
         model = YOLO("yoloe-26l-seg.pt")  # or select yoloe-26s/m-seg.pt for different sizes
 
         # Set text prompt to detect person and bus. You only need to do this once after you load the model.
-        names = ["person", "bus"]
-        model.set_classes(names, model.get_text_pe(names))
+        model.set_classes(["person", "bus"])
 
         # Run detection on the given image
         results = model.predict("path/to/image.jpg")
@@ -224,7 +277,7 @@ YOLOE-26 supports both text-based and visual prompting. Using prompts is straigh
             cls=np.array(
                 [
                     0,  # ID to be assigned for person
-                    1,  # ID to be assigned for glassses
+                    1,  # ID to be assigned for glasses
                 ]
             ),
         )

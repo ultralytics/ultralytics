@@ -7,7 +7,7 @@ keywords: Ultralytics, utilities, data processing, auto annotation, YOLO, datase
 # Simple Utilities
 
 <p align="center">
-  <img src="https://github.com/ultralytics/docs/releases/download/0/code-with-perspective.avif" alt="code with perspective">
+  <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/code-with-perspective.avif" alt="YOLO model code with 3D perspective visualization">
 </p>
 
 The `ultralytics` package provides a variety of utilities to support, enhance, and accelerate your workflows. While there are many more available, this guide highlights some of the most useful ones for developers, serving as a practical reference for programming with Ultralytics tools.
@@ -27,7 +27,7 @@ The `ultralytics` package provides a variety of utilities to support, enhance, a
 
 ### Auto Labeling / Annotations
 
-Dataset annotation is a resource-intensive and time-consuming process. If you have an Ultralytics YOLO [object detection](https://www.ultralytics.com/glossary/object-detection) model trained on a reasonable amount of data, you can use it with [SAM](../models/sam.md) to auto-annotate additional data in segmentation format.
+[Dataset annotation](https://www.ultralytics.com/annotate) is a resource-intensive and time-consuming process. If you have an Ultralytics YOLO [object detection](https://www.ultralytics.com/glossary/object-detection) model trained on a reasonable amount of data, you can use it with [SAM](../models/sam.md) to auto-annotate additional data in segmentation format.
 
 ```python
 from ultralytics.data.annotator import auto_annotate
@@ -68,7 +68,7 @@ visualize_image_annotations(
 
 ### Convert Segmentation Masks into YOLO Format
 
-![Segmentation Masks to YOLO Format](https://github.com/ultralytics/docs/releases/download/0/segmentation-masks-to-yolo-format.avif)
+![Segmentation Masks to YOLO Format](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/segmentation-masks-to-yolo-format.avif)
 
 Use this to convert a dataset of segmentation mask images to the [Ultralytics YOLO](../models/yolo26.md) segmentation format. This function takes the directory containing the binary format mask images and converts them into YOLO segmentation format.
 
@@ -467,7 +467,7 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
         ```
 
 Names can be used from `model.names` when [working with detection results](../modes/predict.md#working-with-results).
-Also see the [`Annotator` Reference Page](../reference/utils/plotting.md/#ultralytics.utils.plotting.Annotator) for additional insight.
+Also see the [`Annotator` Reference Page](../reference/utils/plotting.md#ultralytics.utils.plotting.Annotator) for additional insight.
 
 #### Ultralytics Sweep Annotation
 
@@ -561,7 +561,7 @@ Also see the [`Annotator` Reference Page](../reference/utils/plotting.md/#ultral
     cv2.destroyAllWindows()
     ```
 
-Find additional details about the `sweep_annotator` method in our reference section [here](../reference/solutions/solutions.md/#ultralytics.solutions.solutions.SolutionAnnotator.sweep_annotator).
+Find additional details about the `sweep_annotator` method in our reference section [here](../reference/solutions/solutions.md#ultralytics.solutions.solutions.SolutionAnnotator.sweep_annotator).
 
 #### Adaptive label Annotation
 
@@ -585,7 +585,7 @@ Find additional details about the `sweep_annotator` method in our reference sect
 
 !!! example "Adaptive label Annotation using Ultralytics Utilities"
 
-    === "[Circle Annotation](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator.adaptive_label)"
+    === "[Circle Annotation](https://docs.ultralytics.com/reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator.adaptive_label)"
 
         ```python
         import cv2
@@ -624,7 +624,7 @@ Find additional details about the `sweep_annotator` method in our reference sect
         cv2.destroyAllWindows()
         ```
 
-    === "[Text Annotation](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator.adaptive_label)"
+    === "[Text Annotation](https://docs.ultralytics.com/reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator.adaptive_label)"
 
         ```python
         import cv2
@@ -664,7 +664,7 @@ Find additional details about the `sweep_annotator` method in our reference sect
         cv2.destroyAllWindows()
         ```
 
-See the [`SolutionAnnotator` Reference Page](../reference/solutions/solutions.md/#ultralytics.solutions.solutions.SolutionAnnotator.adaptive_label) for additional insight.
+See the [`SolutionAnnotator` Reference Page](../reference/solutions/solutions.md#ultralytics.solutions.solutions.SolutionAnnotator.adaptive_label) for additional insight.
 
 ## Miscellaneous
 
@@ -690,10 +690,10 @@ Need to programmatically use the supported [image or video formats](../modes/pre
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
 
 print(IMG_FORMATS)
-# {'tiff', 'pfm', 'bmp', 'mpo', 'dng', 'jpeg', 'png', 'webp', 'tif', 'jpg'}
+# {'avif', 'bmp', 'dng', 'heic', 'heif', 'jp2', 'jpeg', 'jpeg2000', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp'}
 
 print(VID_FORMATS)
-# {'avi', 'mpg', 'wmv', 'mpeg', 'm4v', 'mov', 'mp4', 'asf', 'mkv', 'ts', 'gif', 'webm'}
+# {'asf', 'avi', 'gif', 'm4v', 'mkv', 'mov', 'mp4', 'mpeg', 'mpg', 'ts', 'wmv', 'webm'}
 ```
 
 ### Make Divisible
@@ -731,7 +731,7 @@ auto_annotate(
 )
 ```
 
-For more details, check the [auto_annotate reference section](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate).
+For more details, check the [auto_annotate reference section](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate), or use [Ultralytics Platform](https://platform.ultralytics.com/) as a hosted, no-code alternative with click-based masking via [SAM 2.1](../models/sam-2.md) or [SAM 3](../models/sam-3.md), or predictions from pretrained and fine-tuned YOLO models for detect, segment, and OBB tasks.
 
 ### How do I convert COCO dataset annotations to YOLO format in Ultralytics?
 
@@ -750,9 +750,9 @@ convert_coco(
 
 For additional information, visit the [convert_coco reference page](../reference/data/converter.md#ultralytics.data.converter.convert_coco).
 
-### What is the purpose of the YOLO Data Explorer in the Ultralytics package?
+### How can I analyze my dataset composition and distribution?
 
-The [YOLO Explorer](../datasets/explorer/index.md) is a powerful tool introduced in the `8.1.0` update to enhance dataset understanding. It allows you to use text queries to find object instances in your dataset, making it easier to analyze and manage your data. This tool provides valuable insights into dataset composition and distribution, helping to improve model training and performance.
+[Ultralytics Platform](https://platform.ultralytics.com/) provides automatic dataset analytics: the `Charts` tab shows split distribution, top class counts, image-dimension histograms, and 2D heatmaps of annotation positions, helping you spot imbalances and outliers before training.
 
 ### How can I convert bounding boxes to segments in Ultralytics?
 

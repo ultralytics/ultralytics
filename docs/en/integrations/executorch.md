@@ -13,7 +13,7 @@ This guide outlines how to export Ultralytics YOLO models to ExecuTorch format, 
 ## Why export to ExecuTorch?
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/executorch-pipeline.avif" alt="PyTorch ExecuTorch overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/executorch-pipeline.avif" alt="PyTorch ExecuTorch mobile inference framework">
 </p>
 
 [ExecuTorch](https://docs.pytorch.org/executorch/) is PyTorch's end-to-end solution for enabling on-device inference capabilities across mobile and edge devices. Built with the goal of being portable and efficient, ExecuTorch can be used to run PyTorch programs on a wide variety of computing platforms.
@@ -80,8 +80,10 @@ Exporting YOLO26 models to ExecuTorch is straightforward:
         # Export the model to ExecuTorch format
         model.export(format="executorch")  # creates 'yolo26n_executorch_model' directory
 
+        # Load the exported ExecuTorch model
         executorch_model = YOLO("yolo26n_executorch_model")
 
+        # Run inference on a single image
         results = executorch_model.predict("https://ultralytics.com/images/bus.jpg")
         ```
 
@@ -101,16 +103,18 @@ Exporting YOLO26 models to ExecuTorch is straightforward:
 
 When exporting to ExecuTorch format, you can specify the following arguments:
 
-| Argument | Type            | Default | Description                                |
-| -------- | --------------- | ------- | ------------------------------------------ |
-| `imgsz`  | `int` or `list` | `640`   | Image size for model input (height, width) |
-| `device` | `str`           | `'cpu'` | Device to use for export (`'cpu'`)         |
+| Argument | Type             | Default        | Description                                                                                                                             |
+| -------- | ---------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `format` | `str`            | `'executorch'` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
+| `imgsz`  | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
+| `batch`  | `int`            | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
+| `device` | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                         |
 
 ### Output Structure
 
 The ExecuTorch export creates a directory containing the model and metadata:
 
-```text
+```
 yolo26n_executorch_model/
 ├── yolo26n.pte              # ExecuTorch model file
 └── metadata.yaml            # Model metadata (classes, image size, etc.)
@@ -216,12 +220,14 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
 
         | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
         | ------- | ----------- | ------ | --------- | ------------------- | ---------------------- |
-        | YOLO11n | PyTorch     | ✅     | 5.4       | 0.5060              | 337.67                 |
-        | YOLO11n | ExecuTorch  | ✅     | 11        | 0.5080              | 167.28                 |
-        | YOLO11s | PyTorch     | ✅     | 19        | 0.5770              |  928.80                |
-        | YOLO11s | ExecuTorch  | ✅     | 37        | 0.5780              | 388.31                 |
+        | YOLO26n | PyTorch     | ✅     | 5.3       | 0.4790              | 314.80                  |
+        | YOLO26n | ExecuTorch  | ✅     | 9.4        | 0.4800              | 142                    |
+        | YOLO26s | PyTorch     | ✅     | 19.5       | 0.5730             | 930.90                 |
+        | YOLO26s | ExecuTorch  | ✅     | 36.5        | 0.5780              | 376.1                 |
 
     === "More devices coming soon!"
+
+    Benchmarked with Ultralytics 8.4.9
 
     !!! note
 

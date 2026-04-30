@@ -112,7 +112,7 @@ python export.py --weights yolov5s.pt --include torchscript onnx
 
 Output:
 
-```text
+```
 export: data=data/coco128.yaml, weights=['yolov5s.pt'], imgsz=[640, 640], batch_size=1, device=cpu, half=False, inplace=False, train=False, keras=False, optimize=False, int8=False, dynamic=False, simplify=False, opset=12, verbose=False, workspace=4, nms=False, agnostic_nms=False, topk_per_class=100, topk_all=100, iou_thres=0.45, conf_thres=0.25, include=['torchscript', 'onnx']
 YOLOv5 🚀 v6.2-104-ge3e5122 Python-3.8.0 torch-1.12.1+cu113 CPU
 
@@ -140,11 +140,11 @@ Visualize:       https://netron.app/
 
 The 3 exported models will be saved alongside the original PyTorch model:
 
-<p align="center"><img width="700" src="https://github.com/ultralytics/docs/releases/download/0/yolo-export-locations.avif" alt="YOLO export locations"></p>
+<p align="center"><img width="700" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-export-locations.avif" alt="YOLO export locations"></p>
 
 [Netron Viewer](https://github.com/lutzroeder/netron) is recommended for visualizing exported models:
 
-<p align="center"><img width="850" src="https://github.com/ultralytics/docs/releases/download/0/yolo-model-visualization.avif" alt="YOLO model visualization"></p>
+<p align="center"><img width="850" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-model-visualization.avif" alt="YOLO model visualization"></p>
 
 ## Exported Model Usage Examples
 

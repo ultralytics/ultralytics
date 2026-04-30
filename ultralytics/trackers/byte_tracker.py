@@ -99,7 +99,7 @@ class STrack(BaseTrack):
 
     @staticmethod
     def multi_gmc(stracks: list[STrack], H: np.ndarray = np.eye(2, 3)):
-        """Update state tracks positions and covariances using a homography matrix for multiple tracks."""
+        """Update multiple track positions and covariances using a homography matrix."""
         if stracks:
             multi_mean = np.asarray([st.mean.copy() for st in stracks])
             multi_covariance = np.asarray([st.covariance for st in stracks])
@@ -154,8 +154,8 @@ class STrack(BaseTrack):
 
         Examples:
             Update the state of a track with new detection information
-            >>> track = STrack([100, 200, 50, 80, 0.9, 1])
-            >>> new_track = STrack([105, 205, 55, 85, 0.95, 1])
+            >>> track = STrack([100, 200, 50, 80, 0], score=0.9, cls=0)
+            >>> new_track = STrack([105, 205, 55, 85, 0], score=0.95, cls=0)
             >>> track.update(new_track, 2)
         """
         self.frame_id = frame_id
@@ -229,7 +229,7 @@ class STrack(BaseTrack):
 
 
 class BYTETracker:
-    """BYTETracker: A tracking algorithm built on top of YOLOv8 for object detection and tracking.
+    """BYTETracker: A tracking algorithm built on top of YOLO for object detection and tracking.
 
     This class encapsulates the functionality for initializing, updating, and managing the tracks for detected objects
     in a video sequence. It maintains the state of tracked, lost, and removed tracks over frames, utilizes Kalman
@@ -241,7 +241,7 @@ class BYTETracker:
         removed_stracks (list[STrack]): List of removed tracks.
         frame_id (int): The current frame ID.
         args (Namespace): Command-line arguments.
-        max_time_lost (int): The maximum frames for a track to be considered as 'lost'.
+        max_frames_lost (int): The maximum frames for a track to be considered as 'lost'.
         kalman_filter (KalmanFilterXYAH): Kalman Filter object.
 
     Methods:
@@ -270,13 +270,13 @@ class BYTETracker:
             args (Namespace): Command-line arguments containing tracking parameters.
             frame_rate (int): Frame rate of the video sequence.
         """
-        self.tracked_stracks = []  # type: list[STrack]
-        self.lost_stracks = []  # type: list[STrack]
-        self.removed_stracks = []  # type: list[STrack]
+        self.tracked_stracks: list[STrack] = []
+        self.lost_stracks: list[STrack] = []
+        self.removed_stracks: list[STrack] = []
 
         self.frame_id = 0
         self.args = args
-        self.max_time_lost = int(frame_rate / 30.0 * args.track_buffer)
+        self.max_frames_lost = args.track_buffer
         self.kalman_filter = self.get_kalmanfilter()
         self.reset_id()
 
@@ -304,7 +304,7 @@ class BYTETracker:
         detections = self.init_track(results, feats_keep)
         # Add newly detected tracklets to tracked_stracks
         unconfirmed = []
-        tracked_stracks = []  # type: list[STrack]
+        tracked_stracks: list[STrack] = []
         for track in self.tracked_stracks:
             if not track.is_activated:
                 unconfirmed.append(track)
@@ -338,8 +338,9 @@ class BYTETracker:
         # Step 3: Second association, with low score detection boxes association the untrack to the low score detections
         detections_second = self.init_track(results_second, feats_second)
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
-        # TODO: consider fusing scores or appearance features for second association.
         dists = matching.iou_distance(r_tracked_stracks, detections_second)
+        if self.args.fuse_score:
+            dists = matching.fuse_score(dists, detections_second)
         matches, u_track, _u_detection_second = matching.linear_assignment(dists, thresh=0.5)
         for itracked, idet in matches:
             track = r_tracked_stracks[itracked]
@@ -376,7 +377,7 @@ class BYTETracker:
             activated_stracks.append(track)
         # Step 5: Update state
         for track in self.lost_stracks:
-            if self.frame_id - track.end_frame > self.max_time_lost:
+            if self.frame_id - track.end_frame > self.max_frames_lost:
                 track.mark_removed()
                 removed_stracks.append(track)
 
@@ -398,7 +399,7 @@ class BYTETracker:
         return KalmanFilterXYAH()
 
     def init_track(self, results, img: np.ndarray | None = None) -> list[STrack]:
-        """Initialize object tracking with given detections, scores, and class labels using the STrack algorithm."""
+        """Initialize object tracking with given detections, scores, and class labels as STrack instances."""
         if len(results) == 0:
             return []
         bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
@@ -423,9 +424,9 @@ class BYTETracker:
 
     def reset(self):
         """Reset the tracker by clearing all tracked, lost, and removed tracks and reinitializing the Kalman filter."""
-        self.tracked_stracks = []  # type: list[STrack]
-        self.lost_stracks = []  # type: list[STrack]
-        self.removed_stracks = []  # type: list[STrack]
+        self.tracked_stracks: list[STrack] = []
+        self.lost_stracks: list[STrack] = []
+        self.removed_stracks: list[STrack] = []
         self.frame_id = 0
         self.kalman_filter = self.get_kalmanfilter()
         self.reset_id()

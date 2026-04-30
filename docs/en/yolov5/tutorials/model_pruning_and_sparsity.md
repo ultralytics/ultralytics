@@ -39,7 +39,7 @@ python val.py --weights yolov5x.pt --data coco.yaml --img 640 --half
 
 Output:
 
-```text
+```
 val: data=/content/yolov5/data/coco.yaml, weights=['yolov5x.pt'], batch_size=32, imgsz=640, conf_thres=0.001, iou_thres=0.65, task=val, device=, workers=8, single_cls=False, augment=False, verbose=False, save_txt=False, save_conf=False, save_json=True, project=runs/val, name=exp, exist_ok=False, half=True, dnn=False
 YOLOv5 🚀 v6.0-224-g4c40933 torch 1.10.0+cu111 CUDA:0 (Tesla V100-SXM2-16GB, 16160MiB)
 
@@ -50,7 +50,7 @@ val: Scanning '/content/datasets/coco/val2017.cache' images and labels... 4952 f
                  all       5000      36335      0.732      0.628      0.683      0.496
 Speed: 0.1ms pre-process, 5.2ms inference, 1.7ms NMS per image at shape (32, 3, 640, 640)  # <--- base speed
 
-Evaluating pycocotools mAP... saving runs/val/exp2/yolov5x_predictions.json...
+Evaluating pycocotools mAP... saving runs/val/exp-2/yolov5x_predictions.json...
 ...
  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.507  # <--- base mAP
  Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.689
@@ -71,11 +71,11 @@ Results saved to runs/val/exp
 
 We can apply pruning to the model using the `torch_utils.prune()` command defined in `utils/torch_utils.py`. To test a pruned model, we update `val.py` to prune YOLOv5x to 0.3 sparsity (30% of weights set to zero):
 
-<img width="894" alt="Screenshot showing code for pruning YOLOv5x to 30% sparsity" src="https://github.com/ultralytics/docs/releases/download/0/sparsity-test-yolov5x-coco.avif">
+<img width="894" alt="YOLOv5 model pruning to 30% sparsity code" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sparsity-test-yolov5x-coco.avif">
 
 30% pruned output:
 
-```text
+```
 val: data=/content/yolov5/data/coco.yaml, weights=['yolov5x.pt'], batch_size=32, imgsz=640, conf_thres=0.001, iou_thres=0.65, task=val, device=, workers=8, single_cls=False, augment=False, verbose=False, save_txt=False, save_conf=False, save_json=True, project=runs/val, name=exp, exist_ok=False, half=True, dnn=False
 YOLOv5 🚀 v6.0-224-g4c40933 torch 1.10.0+cu111 CUDA:0 (Tesla V100-SXM2-16GB, 16160MiB)
 
@@ -87,7 +87,7 @@ val: Scanning '/content/datasets/coco/val2017.cache' images and labels... 4952 f
                  all       5000      36335      0.724      0.614      0.671      0.478
 Speed: 0.1ms pre-process, 5.2ms inference, 1.7ms NMS per image at shape (32, 3, 640, 640)  # <--- prune speed
 
-Evaluating pycocotools mAP... saving runs/val/exp3/yolov5x_predictions.json...
+Evaluating pycocotools mAP... saving runs/val/exp-3/yolov5x_predictions.json...
 ...
  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.489  # <--- prune mAP
  Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.677
@@ -101,7 +101,7 @@ Evaluating pycocotools mAP... saving runs/val/exp3/yolov5x_predictions.json...
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.496
  Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.722
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.803
-Results saved to runs/val/exp3
+Results saved to runs/val/exp-3
 ```
 
 ## Results Analysis

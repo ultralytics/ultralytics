@@ -21,20 +21,20 @@ The output of an oriented object detector is a set of rotated bounding boxes tha
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Z7Z9pHF8wJc"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/128JhhR2DlM"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Object Detection using Ultralytics YOLO Oriented Bounding Boxes (YOLO-OBB)
+  <strong>Watch:</strong> How to Detect & Track Objects with Ultralytics YOLO26 Oriented Bounding Boxes (OBB) | Ship Tracking 🚢
 </p>
 
 ## Visual Samples
 
-|                                              Ships Detection using OBB                                               |                                               Vehicle Detection using OBB                                                |
-| :------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------: |
-| ![Ships Detection using OBB](https://github.com/ultralytics/docs/releases/download/0/ships-detection-using-obb.avif) | ![Vehicle Detection using OBB](https://github.com/ultralytics/docs/releases/download/0/vehicle-detection-using-obb.avif) |
+|                                               Ships Detection using OBB                                               |                                                Vehicle Detection using OBB                                                |
+| :-------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------: |
+| ![Ships Detection using OBB](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ships-detection-using-obb.avif) | ![Vehicle Detection using OBB](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/vehicle-detection-using-obb.avif) |
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
 
@@ -46,6 +46,7 @@ YOLO26 pretrained OBB models are shown here, which are pretrained on the [DOTAv1
 
 - **mAP<sup>test</sup>** values are for single-model multiscale on [DOTAv1](https://captain-whu.github.io/DOTA/index.html) dataset. <br>Reproduce by `yolo val obb data=DOTAv1.yaml device=0 split=test` and submit merged results to [DOTA evaluation](https://captain-whu.github.io/DOTA/evaluation.html).
 - **Speed** averaged over DOTAv1 val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val obb data=DOTAv1.yaml batch=1 device=0|cpu`
+- **Params** and **FLOPs** values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers and, for end2end models, removes the auxiliary one-to-many detection head. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
 ## Train
 
@@ -65,7 +66,7 @@ Train YOLO26n-obb on the DOTA8 dataset for 100 [epochs](https://www.ultralytics.
         # Load a model
         model = YOLO("yolo26n-obb.yaml")  # build a new model from YAML
         model = YOLO("yolo26n-obb.pt")  # load a pretrained model (recommended for training)
-        model = YOLO("yolo26n-obb.yaml").load("yolo26n.pt")  # build from YAML and transfer weights
+        model = YOLO("yolo26n-obb.yaml").load("yolo26n-obb.pt")  # build from YAML and transfer weights
 
         # Train the model
         results = model.train(data="dota8.yaml", epochs=100, imgsz=640)
@@ -97,7 +98,7 @@ Train YOLO26n-obb on the DOTA8 dataset for 100 [epochs](https://www.ultralytics.
 
 ### Dataset format
 
-OBB dataset format can be found in detail in the [Dataset Guide](../datasets/obb/index.md). The YOLO OBB format designates bounding boxes by their four corner points with coordinates normalized between 0 and 1, following this structure:
+OBB dataset format can be found in detail in the [Dataset Guide](../datasets/obb/index.md). The YOLO OBB format designates bounding boxes by their four corner points with coordinates normalized between 0 and 1, following this structure. [Ultralytics Platform](https://platform.ultralytics.com) supports OBB annotation with a dedicated oriented bounding box drawing tool:
 
 ```
 class_index x1 y1 x2 y2 x3 y3 x4 y4
@@ -126,6 +127,7 @@ Validate trained YOLO26n-obb model [accuracy](https://www.ultralytics.com/glossa
         metrics.box.map50  # map50(B)
         metrics.box.map75  # map75(B)
         metrics.box.maps  # a list containing mAP50-95(B) for each category
+        metrics.box.image_metrics  # per-image metrics dictionary with precision, recall, F1, TP, FP, and FN
         ```
 
     === "CLI"

@@ -40,8 +40,8 @@ For a full list of augmentation hyperparameters used in YOLO26 please refer to t
 
 Ultralytics YOLO uses [genetic algorithms](https://en.wikipedia.org/wiki/Genetic_algorithm) to optimize hyperparameters. Genetic algorithms are inspired by the mechanism of natural selection and genetics.
 
-- **Mutation**: In the context of Ultralytics YOLO, mutation helps in locally searching the hyperparameter space by applying small, random changes to existing hyperparameters, producing new candidates for evaluation.
-- **Crossover**: Although crossover is a popular genetic algorithm technique, it is not currently used in Ultralytics YOLO for hyperparameter tuning. The focus is mainly on mutation for generating new hyperparameter sets.
+- **Crossover**: Each iteration combines genes from up to nine of the highest-fitness configurations seen so far, using BLX-α crossover with fitness-weighted parent selection.
+- **Mutation**: The recombined candidate is then perturbed by a log-normal multiplicative factor applied to each hyperparameter (with probability 0.5 per parameter). The mutation strength sigma decays linearly from 0.2 to 0.1 over the first 300 iterations, so the algorithm explores broadly early and refines as it converges. Iteration 1 has no parents to crossover from and uses the default training hyperparameters as a baseline.
 
 ## Preparing for Hyperparameter Tuning
 
@@ -239,7 +239,7 @@ This YAML file contains the best-performing hyperparameters found during the tun
 
 #### tune_fitness.png
 
-This is a plot displaying fitness (typically a performance metric like AP50) against the number of iterations. It helps you visualize how well the genetic algorithm performed over time.
+This is a plot displaying fitness against the number of iterations. It helps you visualize how the genetic algorithm performed over time.
 
 - **Format**: PNG
 - **Usage**: Performance visualization
@@ -247,6 +247,11 @@ This is a plot displaying fitness (typically a performance metric like AP50) aga
 <p align="center">
   <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/best-fitness.avif" alt="Hyperparameter Tuning Fitness vs Iteration">
 </p>
+
+The plot contains:
+
+- **One marker per iteration per dataset**, so a single-dataset run shows one point per iteration, and a multi-dataset run shows one point per dataset per iteration.
+- **A dotted "smoothed mean" line** computed as a Gaussian smoothing (`sigma=3`) over the per-iteration top-level fitness values.
 
 #### tune_results.ndjson
 
@@ -260,47 +265,48 @@ A pretty-printed example is shown below for readability. In the actual `.ndjson`
 
 ```json
 {
-  "iteration": 1,
-  "fitness": 0.23345,
-  "hyperparameters": {
-    "lr0": 0.01,
-    "lrf": 0.01,
-    "momentum": 0.937,
-    "weight_decay": 0.0005
-  },
-  "datasets": {
-    "coco8": {
-      "fitness": 0.28992
+    "iteration": 1,
+    "fitness": 0.48628,
+    "hyperparameters": {
+        "lr0": 0.01,
+        "lrf": 0.01,
+        "momentum": 0.937,
+        "weight_decay": 0.0005
     },
-    "coco8-grayscale": {
-      "fitness": 0.17697
-    }
-  }
-}
-
-{
-  "iteration": 2,
-  "fitness": 0.23661,
-  "hyperparameters": {
-    "lr0": 0.0062,
-    "lrf": 0.01,
-    "momentum": 0.90058,
-    "weight_decay": 0.0
-  },
-  "datasets": {
-    "coco8": {
-      "fitness": 0.29561
+    "datasets": {
+        "coco8": {
+            "metrics/precision(B)": 0.65666,
+            "metrics/recall(B)": 0.85,
+            "metrics/mAP50(B)": 0.85086,
+            "metrics/mAP50-95(B)": 0.64104,
+            "val/box_loss": 1.57958,
+            "val/cls_loss": 1.04986,
+            "val/dfl_loss": 1.32641,
+            "fitness": 0.64104
+        },
+        "coco8-grayscale": {
+            "metrics/precision(B)": 0.6582,
+            "metrics/recall(B)": 0.51667,
+            "metrics/mAP50(B)": 0.59106,
+            "metrics/mAP50-95(B)": 0.33152,
+            "val/box_loss": 1.95424,
+            "val/cls_loss": 1.64059,
+            "val/dfl_loss": 1.70226,
+            "fitness": 0.33152
+        }
     },
-    "coco8-grayscale": {
-      "fitness": 0.1776
+    "save_dirs": {
+        "coco8": "runs/detect/coco8",
+        "coco8-grayscale": "runs/detect/coco8-grayscale"
     }
-  }
 }
 ```
 
+The top-level `fitness` is the arithmetic mean of the per-dataset `fitness` values. For single-dataset tuning the `datasets` dict has one entry whose `fitness` equals the top-level `fitness`. One JSON object is recorded per completed iteration. The actual `save_dirs` paths are absolute; they are abbreviated above for readability.
+
 #### tune_scatter_plots.png
 
-This file contains scatter plots generated from `tune_results.ndjson`, helping you visualize relationships between different hyperparameters and performance metrics. Note that hyperparameters initialized to 0 will not be tuned, such as `degrees` and `shear` below.
+This file contains scatter plots generated from `tune_results.ndjson`, helping you visualize relationships between different hyperparameters and performance metrics. Hyperparameters whose default value is 0 (for example, `degrees` and `shear` below) may evolve only slowly from their initial seed because the multiplicative mutation factor has very little to expand from a near-zero value.
 
 - **Format**: PNG
 - **Usage**: Exploratory data analysis
@@ -320,7 +326,7 @@ Using these results, you can make more informed decisions for your future model 
 
 ## Conclusion
 
-The hyperparameter tuning process in Ultralytics YOLO is simplified yet powerful, thanks to its genetic algorithm-based approach focused on mutation. Following the steps outlined in this guide will assist you in systematically tuning your model to achieve better performance.
+The hyperparameter tuning process in Ultralytics YOLO is simplified yet powerful, thanks to its genetic algorithm-based approach combining BLX-α crossover with log-normal mutation. Following the steps outlined in this guide will assist you in systematically tuning your model to achieve better performance.
 
 ### Further Reading
 
@@ -356,9 +362,9 @@ For more details, check the [Ultralytics YOLO configuration page](../usage/cfg.m
 
 Genetic algorithms in Ultralytics YOLO26 provide a robust method for exploring the hyperparameter space, leading to highly optimized model performance. Key benefits include:
 
-- **Efficient Search**: Genetic algorithms like mutation can quickly explore a large set of hyperparameters.
+- **Efficient Search**: BLX-α crossover combines genes from the highest-fitness parents, while log-normal mutation perturbs the result to discover new candidates.
 - **Avoiding Local Minima**: By introducing randomness, they help in avoiding local minima, ensuring better global optimization.
-- **Performance Metrics**: They adapt based on performance metrics such as AP50 and F1-score.
+- **Performance Metrics**: They adapt based on a task-specific fitness score (mAP50-95 for detection).
 
 To see how genetic algorithms can optimize hyperparameters, check out the [hyperparameter evolution guide](../yolov5/tutorials/hyperparameter_evolution.md).
 

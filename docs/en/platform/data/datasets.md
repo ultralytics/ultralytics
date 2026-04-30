@@ -6,7 +6,7 @@ keywords: Ultralytics Platform, datasets, dataset management, dataset versioning
 
 # Datasets
 
-[Ultralytics Platform](https://platform.ultralytics.com) datasets provide a streamlined solution for managing your training data. Once uploaded, datasets can be immediately used for model training, with automatic processing and statistics generation.
+[Ultralytics Platform](https://platform.ultralytics.com) datasets provide a streamlined solution for managing your training data. After upload, the platform processes images, labels, and statistics automatically. A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, at least one labeled image, and a total of at least two images.
 
 ## Upload Dataset
 
@@ -50,16 +50,15 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
     Archives are extracted and processed automatically.
 
-    | Format | Extensions        | Notes                | Max Size |
-    | ------ | ----------------- | -------------------- | -------- |
-    | ZIP    | `.zip`            | Most common          | 10 GB    |
-    | TAR    | `.tar`            | Uncompressed archive | 10 GB    |
-    | TAR.GZ | `.tar.gz`, `.tgz` | Compressed archive   | 10 GB    |
-    | GZ     | `.gz`             | Gzip compressed      | 10 GB    |
+    | Format | Extensions              | Notes             | Free   | Pro    | Enterprise |
+    | ------ | ----------------------- | ----------------- | ------ | ------ | ---------- |
+    | ZIP    | `.zip`                  | Most common       | 10 GB  | 20 GB  | 50 GB      |
+    | TAR    | `.tar` `.tar.gz` `.tgz` | Compressed or raw | 10 GB  | 20 GB  | 50 GB      |
+    | NDJSON | `.ndjson`               | Dataset export    | 10 GB  | 20 GB  | 50 GB      |
 
 ### Preparing Your Dataset
 
-The Platform supports two annotation formats plus raw uploads: [Ultralytics YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), [COCO](https://cocodataset.org/#format-data), and raw (unannotated images):
+The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), [COCO](https://cocodataset.org/#format-data), [Ultralytics NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format), and raw (unannotated) uploads:
 
 === "YOLO Format"
 
@@ -126,17 +125,43 @@ The Platform supports two annotation formats plus raw uploads: [Ultralytics YOLO
 
     COCO annotations are automatically converted during upload. Detection (`bbox`), segmentation (`segmentation` polygons), and pose (`keypoints`) tasks are supported. Category IDs are remapped to a dense 0-indexed sequence across all annotation files. For converting between formats, see [format conversion tools](../../datasets/detect/index.md#port-or-convert-label-formats).
 
+=== "Classification Layouts"
+
+    Classification uploads are auto-detected from common folder layouts:
+
+    ```
+    split/class/image.jpg
+    class/split/image.jpg
+    class/image.jpg
+    ```
+
+    Example:
+
+    ```
+    my-classify-dataset/
+    ├── train/
+    │   ├── cats/
+    │   └── dogs/
+    └── val/
+        ├── cats/
+        └── dogs/
+    ```
+
+=== "NDJSON"
+
+    Ultralytics NDJSON exports can be uploaded directly back into Platform. This is useful for moving datasets between workspaces while preserving metadata, classes, splits, and annotations.
+
 !!! tip "Raw Uploads"
 
     **Raw**: Upload unannotated images (no labels). Useful when you plan to annotate directly on the platform using the [annotation editor](annotation.md).
 
 !!! tip "Flat Directory Structure"
 
-    You can also upload images without the train/val folder structure. Images uploaded without split folders are assigned to the `train` split by default. You can reassign them later using the bulk move-to-split feature.
+    You can also upload images without explicit split folders. Platform respects the active split target during upload, and for non-classify datasets it may automatically create a validation split from part of the training set when no split information is provided. You can always reassign images later with bulk move-to-split or split redistribution.
 
 !!! tip "Format Auto-Detection"
 
-    The format is detected automatically: datasets with a `data.yaml` containing `names`, `train`, or `val` keys are treated as YOLO. Datasets with COCO JSON files (containing `images`, `annotations`, and `categories` arrays) are treated as COCO. Datasets with only images and no annotations are treated as raw.
+    The format is detected automatically: datasets with a `data.yaml` containing `names`, `train`, or `val` keys are treated as YOLO. Datasets with COCO JSON files (containing `images`, `annotations`, and `categories` arrays) are treated as COCO. `.ndjson` exports are imported as Ultralytics NDJSON. Datasets with only images and no annotations are treated as raw.
 
 For task-specific format details, see [supported tasks](index.md#supported-tasks) and the [Datasets Overview](../../datasets/index.md).
 
@@ -193,7 +218,9 @@ graph LR
 
 ## Browse Images
 
-View your dataset images in multiple layouts:
+View your dataset images in multiple layouts.
+
+Open the [Clustering](#clustering) panel from the gallery toolbar to explore your dataset as an interactive 2D scatter plot.
 
 | View        | Description                                                                       |
 | ----------- | --------------------------------------------------------------------------------- |
@@ -209,28 +236,31 @@ Images can be sorted and filtered for efficient browsing:
 
 === "Sort Options"
 
-    | Sort            | Description          |
-    | --------------- | -------------------- |
-    | Newest          | Most recently added  |
-    | Oldest          | Earliest added       |
-    | Name A-Z        | Alphabetical         |
-    | Name Z-A        | Reverse alphabetical |
-    | Size (smallest) | Smallest files first |
-    | Size (largest)  | Largest files first  |
-    | Most labels     | Most annotations     |
-    | Fewest labels   | Fewest annotations   |
+    | Sort                 | Description                  |
+    | -------------------- | ---------------------------- |
+    | Newest / Oldest      | Upload / creation order      |
+    | Name A-Z / Z-A       | Filename alphabetical        |
+    | Height ↑/↓           | Image height in pixels       |
+    | Width ↑/↓            | Image width in pixels        |
+    | Size ↑/↓             | File size on disk            |
+    | Annotations ↑/↓      | Annotation count per image   |
+
+    !!! note "Large Datasets"
+
+        For datasets over 100,000 images, name / size / width / height sorts are disabled to keep the gallery responsive. Newest, oldest, and annotation-count sorts remain available.
 
 === "Filters"
 
-    | Filter           | Options                            |
-    | ---------------- | ---------------------------------- |
-    | **Split filter** | Train, Val, Test, or All           |
-    | **Label filter** | All images, Annotated, or Unannotated |
-    | **Search**       | Filter images by filename          |
+    | Filter           | Options                             |
+    | ---------------- | ----------------------------------- |
+    | **Split filter** | Train, Val, Test, or All            |
+    | **Label filter** | All, Labeled, or Unlabeled          |
+    | **Class filter** | Filter by class name                |
+    | **Search**       | Filter images by filename           |
 
 !!! tip "Finding Unlabeled Images"
 
-    Use the label filter set to `Unannotated` to quickly find images that still need annotation. This is especially useful for large datasets where you want to track labeling progress.
+    Use the label filter set to `Unlabeled` to quickly find images that still need annotation. This is especially useful for large datasets where you want to track labeling progress.
 
 ### Fullscreen Viewer
 
@@ -243,7 +273,9 @@ Click any image to open the fullscreen viewer with:
 - **Edit**: Enter annotation mode to add or modify labels
 - **Download**: Download the original image file
 - **Delete**: Delete the image from the dataset
-- **Zoom**: `Cmd/Ctrl+Scroll` to zoom in/out
+- **Zoom**: `Cmd/Ctrl+Scroll`, `Cmd/Ctrl++`, or `Cmd/Ctrl+=` to zoom in, and `Cmd/Ctrl+-` to zoom out
+- **Reset view**: `Cmd/Ctrl + 0` or the reset button to fit the image to the viewer
+- **Pan**: Hold `Space` and drag to pan the canvas when zoomed
 - **Pixel view**: Toggle pixelated rendering for close inspection
 
 ![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-fullscreen-viewer-with-metadata-panel.avif)
@@ -258,15 +290,78 @@ Filter images by their dataset split:
 | **Val**   | Used for validation during training |
 | **Test**  | Used for final evaluation           |
 
+## Clustering
+
+The `Clustering` panel projects your dataset into an interactive 2D scatter plot where visually similar images sit close together. Use it to surface clusters, spot duplicates and outliers, and inspect how splits or classes are distributed across your data — without leaving the gallery. Open it from the scatter-chart icon in the gallery toolbar on any dataset page.
+
+![Ultralytics Platform Datasets Clustering Empty State](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-clustering-empty-state.avif)
+
+### Running Analysis
+
+Start an analysis:
+
+1. Open a dataset and click the scatter-chart icon in the gallery toolbar
+2. Click `Analyze Dataset`
+3. Wait for the progress bar to finish — results appear in the same panel
+
+Analysis runs in the background and can take a few minutes depending on the size of your dataset. You can close the panel or leave the page and come back later.
+
+### Visualization
+
+Once analysis completes, the panel shows a 2D scatter of all analyzed images. Gallery filters (split, class, labeled/unlabeled) dim out-of-filter points so you can focus on the subset you care about.
+
+![Ultralytics Platform Datasets Clustering Scatter Plot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-clustering.avif)
+
+#### Color By
+
+Change how data points are shaded with the `Color by` dropdown in the panel toolbar. Switch view modes at any time — the plot re-colors instantly so you can see how splits, classes, or image properties are distributed across your clusters:
+
+| Option          | Shading                              |
+| --------------- | ------------------------------------ |
+| **Splits**      | Train / Val / Test                   |
+| **Classes**     | First annotation class on each image |
+| **Width**       | Image width                          |
+| **Height**      | Image height                         |
+| **Size**        | File size                            |
+| **Annotations** | Number of annotations per image      |
+
+![Ultralytics Platform Datasets Clustering Color Modes](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-clustering-color-modes.avif)
+
+#### Lasso Selection
+
+Draw a free-form selection around a region to highlight points on the plot. The gallery filters down to the matching images, so you can inspect, relabel, move, or delete them using the usual [image operations](#image-operations).
+
+!!! tip "Clear Selection"
+
+    A chip above the chart shows how many points are selected — click the `×` to clear the lasso and return to the full gallery view.
+
+#### Pan and Zoom
+
+Navigate large scatters directly from your mouse and keyboard:
+
+| Input               | Action                                 |
+| ------------------- | -------------------------------------- |
+| **Scroll**          | Pan the plot in 2D                     |
+| **Cmd/Ctrl+Scroll** | Zoom in or out, anchored at the cursor |
+| **Hold Space**      | Switch to drag-to-pan mode             |
+
+### Re-analyzing
+
+If your dataset changes after analysis, a `Re-analyze` button appears at the top of the panel for owners and editors.
+
+Click `Re-analyze` to recompute embeddings and the 2D projection from scratch.
+
 ## Dataset Tabs
 
-Each dataset page has six tabs accessible from the tab bar:
+Each dataset page can show up to six tabs, depending on the dataset state and your permissions:
 
 ### Images Tab
 
 The default view showing the image gallery with annotation overlays. Supports grid, compact, and table view modes. Drag and drop files here to add more images.
 
 ### Classes Tab
+
+This tab appears when the dataset has images.
 
 Manage annotation classes for your dataset:
 
@@ -283,6 +378,8 @@ Manage annotation classes for your dataset:
     If your dataset has class imbalance (e.g., 10,000 "person" annotations but only 50 "bicycle"), use the `Log Scale` toggle on the class histogram to visualize all classes clearly.
 
 ### Charts Tab
+
+This tab appears when the dataset has images.
 
 Automatic statistics computed from your dataset:
 
@@ -325,6 +422,8 @@ View all models trained on this dataset in a searchable table:
 
 ### Errors Tab
 
+This tab appears only when one or more files fail processing.
+
 Images that failed processing are listed here with:
 
 - **Error banner**: Total count of failed images and guidance
@@ -361,9 +460,14 @@ To create a version:
 1. Open the **Versions** tab
 2. Optionally enter a description (e.g., "Added 500 training images" or "Fixed mislabeled classes")
 3. Click **+ New Version**
-4. The NDJSON snapshot is generated and downloads automatically
+4. The new version appears in the table
+5. Download the version separately from the table when needed
 
 Each version is numbered sequentially (v1, v2, v3...) and stored permanently. You can download any previous version at any time from the versions table.
+
+!!! note "Ready Datasets Only"
+
+    Version creation is available after the dataset reaches `ready` status.
 
 !!! tip "When to Create Versions"
 
@@ -375,20 +479,13 @@ Each version is numbered sequentially (v1, v2, v3...) and stored permanently. Yo
 
 ## Export Dataset
 
-Export your dataset for offline use. The Platform supports multiple export formats:
-
-| Format         | Description                                        |
-| -------------- | -------------------------------------------------- |
-| **YOLO**       | Standard YOLO format with images and `.txt` labels |
-| **COCO**       | COCO JSON format with annotation arrays            |
-| **Pascal VOC** | XML annotation files per image                     |
-| **NDJSON**     | One JSON object per line (lightweight metadata)    |
+Export your dataset for offline use with an NDJSON download from the dataset header or the Versions tab.
 
 To export:
 
 1. Click the **Export** button in the dataset header
-2. Select the desired format
-3. The export job runs asynchronously — you'll be notified when the download is ready
+2. Download the current NDJSON snapshot directly
+3. Use the **Versions** tab when you want an immutable numbered snapshot you can re-download later
 
 ![Ultralytics Platform Datasets Export Ndjson Download](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-export-ndjson-download.avif)
 
@@ -439,14 +536,30 @@ You can also drag and drop images onto the split filter tabs in grid view.
 
     Upload all images to one dataset, then use bulk move-to-split to organize subsets into train, validation, and test splits.
 
-### Auto Split Redistribution
+### Split Redistribution
 
-Automatically distribute images across train, validation, and test splits:
+Redistribute all images across train, validation, and test splits using custom ratios:
 
-1. Click the split redistribution button in the dataset toolbar
-2. The Platform automatically assigns images to splits based on standard ratios
+1. Click the **split bar** in the dataset toolbar to open the **Redistribute Splits** dialog
+2. Adjust split percentages using any of the methods below
+3. Review the live image count preview to confirm the distribution
+4. Click **Apply** to randomly reassign all images according to your percentages
 
-This is useful when you upload images without split folders and want to quickly organize them for training.
+![Ultralytics Platform Datasets Split Redistribution Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-split-redistribution-dialog.avif)
+
+The dialog provides three ways to set your target split ratios:
+
+| Method   | Description                                                                                  |
+| -------- | -------------------------------------------------------------------------------------------- |
+| **Drag** | Drag the handles between the colored segments to visually adjust split boundaries            |
+| **Type** | Edit the percentage input for any split (the other two splits auto-rebalance proportionally) |
+| **Auto** | One-click to instantly set an 80/20 train/validation split with the test split set to 0%     |
+
+A live preview shows exactly how many images will land in each split before you apply.
+
+!!! tip "Quick 80/20 Split"
+
+    Click the **Auto** button to instantly set the recommended 80/20 train/validation split. This is the most common ratio for training.
 
 ### Bulk Delete
 
@@ -536,9 +649,9 @@ Dataset metadata is edited inline directly on the dataset page — no dialog nee
 - **Task type**: Click the task badge to select a different task type.
 - **License**: Click the license selector to change the dataset license.
 
-!!! warning "Changing Task Type"
+!!! info "Changing Task Type"
 
-    Changing the task type may affect how existing annotations are visualized. Incompatible annotations won't be displayed.
+    Each image stores annotations for all task types together. Changing the dataset task type controls which annotations are visible in the editor and included in exports and training. Annotations for other task types are preserved in the database and reappear when you switch back.
 
 ## Clone Dataset
 
@@ -618,7 +731,7 @@ Use the bulk move-to-split feature:
 
 ### What label formats are supported?
 
-Ultralytics Platform supports two annotation formats for upload:
+Ultralytics Platform supports YOLO labels, COCO JSON, Ultralytics NDJSON, and raw image uploads:
 
 === "YOLO Format"
 
@@ -637,3 +750,11 @@ Ultralytics Platform supports two annotation formats for upload:
 === "COCO Format"
 
     JSON files with `images`, `annotations`, and `categories` arrays. Supports detection (`bbox`), segmentation (polygon), and pose (`keypoints`) tasks. COCO uses absolute pixel coordinates which are automatically converted to normalized format during upload.
+
+=== "NDJSON"
+
+    Ultralytics NDJSON exports can be re-imported into Platform. This is the most complete way to move dataset metadata, splits, and annotations between workspaces.
+
+### Can I annotate the same dataset for multiple task types?
+
+Yes. Each image stores annotations for all 5 task types (detect, segment, pose, OBB, classify) together. You can switch the dataset's active task type at any time without losing existing annotations. Only annotations matching the active task type are shown in the editor and included in exports and training — annotations for other tasks are preserved and reappear when you switch back.

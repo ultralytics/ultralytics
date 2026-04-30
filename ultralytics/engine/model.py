@@ -426,7 +426,7 @@ class Model(torch.nn.Module):
         self._check_is_pytorch_model()
         return self.model.info(detailed=detailed, verbose=verbose, imgsz=imgsz)
 
-    def fuse(self) -> None:
+    def fuse(self) -> Model:
         """Fuse Conv2d and BatchNorm2d layers in the model for optimized inference.
 
         This method iterates through the model's modules and fuses consecutive Conv2d and BatchNorm2d layers into a
@@ -444,6 +444,7 @@ class Model(torch.nn.Module):
         """
         self._check_is_pytorch_model()
         self.model.fuse()
+        return self
 
     def embed(
         self,
@@ -756,8 +757,6 @@ class Model(torch.nn.Module):
 
         checks.check_pip_update_available()
 
-        if isinstance(kwargs.get("pretrained", None), (str, Path)):
-            self.load(kwargs["pretrained"])  # load pretrained weights if provided
         overrides = YAML.load(checks.check_yaml(kwargs["cfg"])) if kwargs.get("cfg") else self.overrides
         custom = {
             # NOTE: handle the case when 'cfg' includes 'data'.
@@ -768,6 +767,7 @@ class Model(torch.nn.Module):
             "task": self.task,
         }  # method defaults
         args = {**overrides, **custom, **kwargs, "mode": "train", "session": self.session}  # prioritizes rightmost args
+        pretrained = kwargs.get("pretrained", overrides.get("pretrained", True) if kwargs.get("cfg") else True)
         if args.get("resume"):
             if args["resume"] is True:  # resume=True (boolean) uses current model as checkpoint
                 if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
@@ -781,8 +781,12 @@ class Model(torch.nn.Module):
                     args["resume"] = False
 
         self.trainer = (trainer or self._smart_load("trainer"))(overrides=args, _callbacks=self.callbacks)
-        if not args.get("resume"):  # manually set model only if not resuming
-            self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
+        if not args.get("resume") and self.ckpt:
+            # Reuse the already-loaded checkpoint model to avoid re-resolving remote weight sources during trainer setup.
+            weights = None if pretrained is False else self.model
+            if isinstance(pretrained, (str, Path)):
+                weights, _ = load_checkpoint(pretrained)
+            self.trainer.model = self.trainer.get_model(weights=weights, cfg=self.model.yaml)
             self.model = self.trainer.model
 
         self.trainer.train()
@@ -834,7 +838,7 @@ class Model(torch.nn.Module):
         if use_ray:
             from ultralytics.utils.tuner import run_ray_tune
 
-            return run_ray_tune(self, max_samples=iterations, *args, **kwargs)
+            return run_ray_tune(self, iterations=iterations, *args, **kwargs)
         else:
             from .tuner import Tuner
 

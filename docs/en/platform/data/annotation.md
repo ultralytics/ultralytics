@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Learn to annotate images in Ultralytics Platform with manual tools, skeleton templates for pose estimation, SAM smart annotation, and YOLO auto-labeling for all 5 task types.
+description: Learn to annotate images in Ultralytics Platform with manual tools, skeleton templates for pose estimation, and Smart annotation with SAM and YOLO models for detect, segment, and OBB tasks.
 keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, bounding box, polygon, keypoints, skeleton templates, pose estimation, segmentation, YOLO
 ---
 
 # Annotation Editor
 
-[Ultralytics Platform](https://platform.ultralytics.com) includes a powerful annotation editor for labeling images with bounding boxes, polygons, keypoints, oriented boxes, and classifications. The editor supports manual drawing and SAM-powered smart annotation.
+[Ultralytics Platform](https://platform.ultralytics.com) includes a powerful annotation editor for labeling images with bounding boxes, polygons, keypoints, oriented boxes, and classifications. The editor supports manual drawing and [SAM-powered smart annotation](https://www.ultralytics.com/annotate).
 
 ![Ultralytics Platform Annotate Editor Toolbar With Canvas](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-editor-toolbar-with-canvas.avif)
 
@@ -33,6 +33,10 @@ The annotation editor supports all 5 YOLO task types:
 | **[Pose](../../datasets/pose/index.md)**         | Keypoint       | Skeleton templates (Person, Hand, Face, Dog, Box, custom) |
 | **[OBB](../../datasets/obb/index.md)**           | Oriented Box   | Rotated bounding boxes (4 corners)                        |
 | **[Classify](../../datasets/classify/index.md)** | Class Selector | Image-level labels                                        |
+
+!!! tip "Multi-Task Annotations"
+
+    All 5 annotation types are stored together on each image. You can switch the dataset's active task type without losing existing annotations — they are preserved and reappear when you switch back.
 
 ### Task Details
 
@@ -117,10 +121,10 @@ graph LR
 
 The editor provides two annotation modes, selectable from the toolbar:
 
-| Mode      | Description                                             | Shortcut |
-| --------- | ------------------------------------------------------- | -------- |
-| **Draw**  | Manual annotation with task-specific tools              | `V`      |
-| **Smart** | SAM-powered interactive annotation (detect/segment/OBB) | `S`      |
+| Mode       | Description                                                       | Shortcut |
+| ---------- | ----------------------------------------------------------------- | -------- |
+| **Manual** | Draw annotations with task-specific tools (all 5 task types)      | `V`      |
+| **Smart**  | SAM or YOLO model-assisted annotation (detect, segment, OBB only) | `S`      |
 
 ## Manual Annotation Tools
 
@@ -146,8 +150,8 @@ Draw rectangular boxes around objects:
 Draw precise polygon masks:
 
 1. Enter edit mode and select `Draw`
-2. Click to add vertices
-3. Right-click or press `Enter` to close the polygon
+2. Click to add vertices, or hold `Shift` and move the mouse to freehand-draw dense points
+3. Click the first vertex, or press `Enter` or `Escape` to close the polygon
 4. Select a class from the dropdown
 
 ![Ultralytics Platform Annotate Segment Polygon Vertices](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-segment-polygon-vertices.avif)
@@ -175,13 +179,13 @@ Annotate poses using skeleton templates. Select a template from the toolbar, cli
 
 The editor includes 5 built-in templates:
 
-| Template   | Keypoints | Description                                                                                                        |
-| ---------- | --------- | ------------------------------------------------------------------------------------------------------------------ |
-| **Person** | 17        | [COCO human pose](../../datasets/pose/index.md) — nose, eyes, ears, shoulders, elbows, wrists, hips, knees, ankles |
-| **Hand**   | 21        | MediaPipe hand landmarks — wrist, thumb, index, middle, ring, pinky joints                                         |
-| **Face**   | 68        | [iBUG 300W](https://ibug.doc.ic.ac.uk/resources/300-W/) facial landmarks — jaw, eyebrows, nose, eyes, mouth        |
-| **Dog**    | 18        | Animal pose — nose, head, neck, shoulders, legs, paws, tail                                                        |
-| **Box**    | 4         | Corner keypoints — top-left, top-right, bottom-right, bottom-left                                                  |
+| Template   | Keypoints | Description                                                                                                            |
+| ---------- | --------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Person** | 17        | [COCO human body pose](../../datasets/pose/coco.md) — nose, eyes, ears, shoulders, elbows, wrists, hips, knees, ankles |
+| **Hand**   | 21        | [Ultralytics Hand Keypoints](../../datasets/pose/hand-keypoints.md) — wrist, thumb, index, middle, ring, pinky joints  |
+| **Face**   | 68        | [iBUG 300W](https://ibug.doc.ic.ac.uk/resources/300-W/) facial landmarks — jaw, eyebrows, nose, eyes, mouth            |
+| **Dog**    | 18        | AP-10K animal pose — nose, head, neck, shoulders, tailbase, tail, and 4 legs (elbows, knees, paws)                     |
+| **Box**    | 4         | Corner keypoints — top-left, top-right, bottom-right, bottom-left                                                      |
 
 ![Ultralytics Platform Annotate Pose Keypoints Skeleton](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-pose-keypoints-skeleton.avif)
 
@@ -230,15 +234,18 @@ Assign image-level class labels:
 
 ![Ultralytics Platform Annotate Classify Side Panel](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-classify-side-panel.avif)
 
-## SAM Smart Annotation
+## Smart Annotation
 
-[Segment Anything Model (SAM)](https://docs.ultralytics.com/models/sam/) enables intelligent annotation with just a few clicks. Smart mode is available for **detect**, **segment**, and **OBB** tasks.
+Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](https://docs.ultralytics.com/models/sam/) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. Smart annotation is available for **detect**, **segment**, and **OBB** tasks.
+
+### SAM Smart Annotation
+
+With a SAM model selected:
 
 1. Enter edit mode and select `Smart` or press `S`
-2. **Left-click** to add positive points (include this area)
-3. **Right-click** to add negative points (exclude this area)
-4. SAM generates a precise mask in real-time
-5. Press `Enter` or `Escape` to save the annotation, or enable **auto-apply** for one-click workflows
+2. Click on the object you want to annotate — SAM generates an initial mask in real-time
+3. Refine the mask with additional clicks: click **outside** the current mask to add coverage, or click **inside** the current mask to subtract regions
+4. Press `Enter` or `Escape` to save the annotation, or enable **auto-apply** for one-click workflows
 
 ![Ultralytics Platform Annotate Sam Positive Negative Points Mask](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-sam-positive-negative-points-mask.avif)
 
@@ -261,14 +268,13 @@ graph LR
 
 !!! tip "SAM Tips"
 
-    - Start with a positive click on the object center
-    - Add negative clicks to exclude background
-    - Hold `Alt`/`Option` to invert click behavior (left-click becomes negative, right-click becomes positive)
-    - Enable **auto-apply** (`A`) for one-click annotation — the mask saves automatically after each click
+    - Start with a click on the object center
+    - Click again outside the mask to expand coverage
+    - Click inside the mask to subtract unwanted regions
+    - Enable **auto-apply** (`A`) for one-click annotation
     - Hold `Shift` while auto-apply is on to place multiple points before the mask is applied
-    - Positive and negative points appear as square markers with `+` and `−` symbols on the canvas
     - Works best for distinct objects with clear edges
-    - Use 2-3 positive points for elongated objects
+    - Use a few refinement clicks for elongated or overlapping objects
 
 SAM smart annotation can generate:
 
@@ -280,15 +286,15 @@ SAM smart annotation can generate:
 
     SAM smart annotation is only available for **detect**, **segment**, and **OBB** tasks. Classification and pose tasks require manual annotation.
 
-### Auto-Apply Mode
+#### Auto-Apply Mode
 
 Auto-apply mode speeds up Smart annotation by automatically saving the SAM mask after each click — no need to press `Enter`. Toggle it with the auto-apply button in the toolbar or press `A`.
 
-| Mode                        | Behavior                                             |
-| --------------------------- | ---------------------------------------------------- |
-| **Auto-apply ON** (default) | Mask applies automatically after each click          |
-| **Auto-apply ON + `Shift`** | Place multiple points first, mask applies on release |
-| **Auto-apply OFF**          | Place points freely, press `Enter` to apply          |
+| Mode                         | Behavior                                             |
+| ---------------------------- | ---------------------------------------------------- |
+| **Auto-apply ON**            | Mask applies automatically after each click          |
+| **Auto-apply ON + `Shift`**  | Place multiple points first, mask applies on release |
+| **Auto-apply OFF** (default) | Place points freely, press `Enter` to apply          |
 
 ![Ultralytics Platform Annotate Sam Auto Apply Toggle](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-sam-auto-apply-toggle.avif)
 
@@ -296,21 +302,37 @@ Auto-apply mode speeds up Smart annotation by automatically saving the SAM mask 
 
     Auto-apply is ideal for datasets with well-separated objects where a single click produces an accurate mask. For complex or overlapping objects, turn auto-apply off and use multiple positive/negative points to refine the mask before saving.
 
-### SAM Model Selection
+#### SAM Model Selection
 
-When Smart mode is active, a model picker appears in the toolbar. Five models are available — choose based on the speed vs. accuracy trade-off that suits your dataset:
+When Smart mode is active, a model picker appears in the toolbar. Five SAM models are available — choose based on the speed vs. accuracy trade-off that suits your dataset:
 
-| Model             | Size    | Speed    | Notes                    |
-| ----------------- | ------- | -------- | ------------------------ |
-| **SAM 2.1 Tiny**  | 74.5 MB | Fastest  |                          |
-| **SAM 2.1 Small** | 88 MB   | Fast     | Default                  |
-| **SAM 2.1 Base**  | 154 MB  | Moderate |                          |
-| **SAM 2.1 Large** | 428 MB  | Slower   | Most accurate of SAM 2.1 |
-| **SAM 3**         | 3.45 GB | Slowest  | Latest generation        |
+| Model             | Size    | Speed    | Notes                      |
+| ----------------- | ------- | -------- | -------------------------- |
+| **SAM 2.1 Tiny**  | 75 MB   | Fastest  |                            |
+| **SAM 2.1 Small** | 88 MB   | Fast     |                            |
+| **SAM 2.1 Base**  | 154 MB  | Moderate |                            |
+| **SAM 2.1 Large** | 428 MB  | Slower   | Most accurate of SAM 2.1   |
+| **SAM 3**         | 3.45 GB | Slowest  | Default, latest generation |
 
 ![Ultralytics Platform Annotate Sam Model Selector](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-sam-model-selector.avif)
 
 Switching models while Smart mode is active re-initializes the predictor for the current image automatically.
+
+### YOLO Smart Annotation
+
+With a YOLO model selected, Smart annotation can add predictions from pretrained Ultralytics models or your own fine-tuned models.
+
+1. Enter edit mode and select `Smart` or press `S`
+2. Select a YOLO model from the model picker in the toolbar (`Official` or `My Models`)
+3. Click `Predict`
+4. Review the added annotations and make any needed corrections
+
+![Ultralytics Platform Annotate Smart Annotation Yolo Model](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-yolo-auto-labeling.avif)
+
+!!! tip "YOLO Model Notes"
+
+    - The model picker only lists models that match the current dataset task.
+    - Duplicate predictions are skipped when they overlap an existing annotation of the same class at IoU `0.7` or higher.
 
 ## Class Sidebar
 
@@ -358,7 +380,7 @@ In edit mode, a crosshair overlay tracks the cursor position and displays pixel 
 
 ## SAM Hover Preview
 
-In Smart mode for **segment** tasks, SAM provides a real-time mask preview as you hover over the image — before clicking any points. This lets you see the predicted segmentation boundary and decide where to click. Once you add positive or negative points, the preview updates to reflect your refinements.
+In Smart mode, SAM provides a real-time hover preview before you click any points. This preview is available for **detect**, **segment**, and **OBB** tasks. Once you add refinement clicks, the preview updates to reflect the current mask and the annotation type for the active task.
 
 ## Polygon Vertex Editing
 
@@ -412,37 +434,42 @@ Efficient annotation with keyboard shortcuts:
 
 === "General"
 
-    | Shortcut               | Action                     |
-    | ---------------------- | -------------------------- |
-    | `Cmd/Ctrl+S`           | Save annotations           |
-    | `Cmd/Ctrl+Z`           | Undo                       |
-    | `Cmd/Ctrl+Shift+Z`     | Redo                       |
-    | `Cmd/Ctrl+Y`           | Redo (alternative)         |
-    | `Escape`               | Save / Deselect / Exit     |
-    | `Delete` / `Backspace` | Delete selected annotation |
-    | `1-9`                  | Select class 1-9           |
-    | `Cmd/Ctrl+Scroll`      | Zoom in/out                |
-    | `Shift+Click`          | Multi-select annotations   |
-    | `Cmd/Ctrl+A`           | Select all annotations     |
+    | Shortcut                      | Action                       |
+    | ----------------------------- | ---------------------------- |
+    | `Cmd/Ctrl+S`                  | Save annotations             |
+    | `Cmd/Ctrl+Z`                  | Undo                         |
+    | `Cmd/Ctrl+Y`                  | Redo                         |
+    | `Escape`                      | Save / Deselect / Exit       |
+    | `Delete` / `Backspace`        | Delete selected annotation   |
+    | `1-9`                         | Select class 1-9             |
+    | `Cmd/Ctrl+Scroll`             | Zoom in/out                  |
+    | `Cmd/Ctrl++` or `Cmd/Ctrl+=`  | Zoom in                      |
+    | `Cmd/Ctrl+-`                  | Zoom out                     |
+    | `Cmd/Ctrl+0`                  | Reset to fit                 |
+    | `Space+Drag`                  | Pan canvas when zoomed       |
+    | `Shift+Click`                 | Multi-select annotations     |
+    | `Cmd/Ctrl+A`                  | Select all annotations       |
 
 === "Modes"
 
-    | Shortcut | Action             |
-    | -------- | ------------------ |
-    | `V`      | Draw mode (manual) |
-    | `S`      | Smart mode (SAM)   |
+    | Shortcut | Action                          |
+    | -------- | ------------------------------- |
+    | `V`      | Manual mode (draw)              |
+    | `S`      | Smart mode (SAM or YOLO model)  |
 
 === "Drawing"
 
-    | Shortcut       | Action                                                                     |
-    | -------------- | ---------------------------------------------------------                  |
-    | `Click+Drag`   | Draw bounding box (detect/OBB)                                             |
-    | `Click`        | Add polygon point (segment) / Place skeleton (pose)                        |
-    | `Right-click`  | Complete polygon / Add SAM negative point                                  |
-    | `Shift` + `click`/`right-click` | Place multiple SAM points before applying (auto-apply on) |
-    | `A`            | Toggle auto-apply (Smart mode)                                             |
-    | `Enter`        | Complete polygon / Confirm pose / Save SAM annotation                      |
-    | `Escape`       | Cancel pose / Save SAM annotation / Deselect / Exit                        |
+    | Shortcut                | Action                                                                                 |
+    | ----------------------- | -------------------------------------------------------------------------------------- |
+    | `Click+Drag`            | Draw bounding box (detect/OBB)                                                         |
+    | `Click`                 | Add polygon point (segment) / Place skeleton (pose) / Place SAM point (smart)          |
+    | `Shift (hold) + Move`   | Freehand draw — continuously adds polygon vertices as the mouse moves                  |
+    | `Click inside mask`     | Subtract region from SAM mask (negative point)                                         |
+    | `Click outside mask`    | Add to SAM mask (positive point)                                                       |
+    | `Shift (hold) + Click`  | Place multiple SAM points before auto-apply commits (Smart mode, auto-apply on)        |
+    | `A`                     | Toggle auto-apply (Smart mode)                                                         |
+    | `Enter`                 | Complete polygon / Confirm pose / Save SAM annotation                                  |
+    | `Escape`                | Cancel pose / Save SAM annotation / Deselect / Exit                                    |
 
 === "Arrange (Z-Order)"
 
@@ -464,7 +491,7 @@ Efficient annotation with keyboard shortcuts:
 The annotation editor maintains a full undo/redo history:
 
 - **Undo**: `Cmd/Ctrl+Z`
-- **Redo**: `Cmd/Ctrl+Shift+Z` or `Cmd/Ctrl+Y`
+- **Redo**: `Cmd/Ctrl+Y`
 
 History tracks:
 
@@ -502,7 +529,7 @@ SAM provides high-quality masks for most objects. Accuracy depends on:
 - Image quality and resolution
 - Number of positive/negative points provided
 
-For best results, start with a positive point on the object center and add negative points to exclude nearby objects.
+For best results, start with a click on the object center, then use outside-mask clicks to add coverage and inside-mask clicks to subtract nearby objects or background.
 
 ### Can I import existing annotations?
 
@@ -523,12 +550,12 @@ The keyboard shortcut `1-9` quickly selects classes.
 Yes, but for best results:
 
 - Label all objects of your target classes in each image
-- Use the label filter set to `Unannotated` to identify unlabeled images
-- Exclude unannotated images from training configuration
+- Use the label filter set to `Unlabeled` to identify images that still need annotation
+- Unlabeled images are excluded from training; only labeled images contribute to the loss
 
 ### Which SAM model should I use?
 
-Start with **SAM 2.1 Small** (the default) — it's fast and accurate for most objects. Switch to **SAM 2.1 Large** when you need higher mask precision on complex shapes. Use **SAM 2.1 Tiny** for maximum speed on simple, high-contrast objects. **SAM 3** is the latest generation model and may produce better results on challenging images, but is significantly slower.
+**SAM 3** is the default and the latest generation model — start there for the highest quality masks. Switch to **SAM 2.1 Small** for a faster interactive workflow on common objects, or **SAM 2.1 Large** when you need higher mask precision on complex shapes. Use **SAM 2.1 Tiny** for maximum speed on simple, high-contrast objects.
 
 ### Which tasks support SAM smart annotation?
 

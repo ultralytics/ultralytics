@@ -70,7 +70,7 @@ class Profile(contextlib.ContextDecorator):
         return time.perf_counter()
 
 
-def segment2box(segment, width: int = 640, height: int = 640):
+def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.ndarray:
     """Convert segment coordinates to bounding box coordinates.
 
     Converts a single segment label to a box label by finding the minimum and maximum x and y coordinates. Applies
@@ -99,22 +99,29 @@ def segment2box(segment, width: int = 640, height: int = 640):
     )  # xyxy
 
 
-def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding: bool = True, xywh: bool = False):
+def scale_boxes(
+    img1_shape: tuple[int, int],
+    boxes: torch.Tensor | np.ndarray,
+    img0_shape: tuple[int, int],
+    ratio_pad: tuple | None = None,
+    padding: bool = True,
+    xywh: bool = False,
+) -> torch.Tensor | np.ndarray:
     """Rescale bounding boxes from one image shape to another.
 
     Rescales bounding boxes from img1_shape to img0_shape, accounting for padding and aspect ratio changes. Supports
     both xyxy and xywh box formats.
 
     Args:
-        img1_shape (tuple): Shape of the source image (height, width).
-        boxes (torch.Tensor): Bounding boxes to rescale in format (N, 4).
-        img0_shape (tuple): Shape of the target image (height, width).
+        img1_shape (tuple[int, int]): Shape of the source image (height, width).
+        boxes (torch.Tensor | np.ndarray): Bounding boxes to rescale in format (N, 4).
+        img0_shape (tuple[int, int]): Shape of the target image (height, width).
         ratio_pad (tuple, optional): Tuple of (ratio, pad) for scaling. If None, calculated from image shapes.
         padding (bool): Whether boxes are based on YOLO-style augmented images with padding.
         xywh (bool): Whether box format is xywh (True) or xyxy (False).
 
     Returns:
-        (torch.Tensor): Rescaled bounding boxes in the same format as input.
+        (torch.Tensor | np.ndarray): Rescaled bounding boxes in the same format as input.
     """
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
@@ -464,7 +471,7 @@ def crop_mask(masks: torch.Tensor, boxes: torch.Tensor) -> torch.Tensor:
         boxes = boxes.to(masks.device)
     n, h, w = masks.shape
     if n < 50 and not masks.is_cuda:  # faster for fewer masks (predict)
-        for i, (x1, y1, x2, y2) in enumerate(boxes.round().int()):
+        for i, (x1, y1, x2, y2) in enumerate(boxes.clamp(min=0).round().int()):
             masks[i, :y1] = 0
             masks[i, y2:] = 0
             masks[i, :, :x1] = 0

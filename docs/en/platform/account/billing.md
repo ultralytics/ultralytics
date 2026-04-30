@@ -16,20 +16,21 @@ Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 
 ![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-plans-tab-free-pro-enterprise-comparison.avif)
 
-| Feature                    | Free       | Pro ($29/mo)    | Enterprise |
-| -------------------------- | ---------- | --------------- | ---------- |
-| **Signup Credit**          | $5 / $25\* | -               | Custom     |
-| **Monthly Credit**         | -          | $30/seat/month  | Custom     |
-| **Models**                 | 100        | 500             | Unlimited  |
-| **Concurrent Trainings**   | 3          | 10              | Unlimited  |
-| **Storage**                | 100 GB     | 500 GB          | Unlimited  |
-| **Deployments**            | 3          | 10              | Unlimited  |
-| **Cloud GPU Types**        | 20         | 23              | 23         |
-| **Best GPUs (H200, B200)** | -          | Yes             | Yes        |
-| **Teams**                  | -          | Up to 5 members | Up to 50   |
-| **SSO / SAML**             | -          | -               | Yes        |
-| **Enterprise License**     | -          | -               | Yes        |
-| **License**                | AGPL-3.0   | AGPL-3.0        | Enterprise |
+| Feature                                                    | Free       | Pro ($29/mo)    | Enterprise |
+| ---------------------------------------------------------- | ---------- | --------------- | ---------- |
+| **Signup Credit**                                          | $5 / $25\* | -               | Custom     |
+| **Monthly Credit**                                         | -          | $30/seat/month  | Custom     |
+| **Models**                                                 | 100        | 500             | Unlimited  |
+| **Concurrent Trainings**                                   | 3          | 10              | Unlimited  |
+| **Storage**                                                | 100 GB     | 500 GB          | Unlimited  |
+| **Dataset Upload (ZIP/TAR incl. `.tar.gz`/`.tgz`/NDJSON)** | 10 GB      | 20 GB           | 50 GB      |
+| **Deployments**                                            | 3          | 10              | Unlimited  |
+| **Cloud GPU Types**                                        | 20         | 23              | 23         |
+| **Best GPUs (H200, B200)**                                 | -          | Yes             | Yes        |
+| **Teams**                                                  | -          | Up to 5 members | Up to 50   |
+| **SSO / SAML**                                             | -          | -               | Yes        |
+| **Enterprise License**                                     | -          | -               | Yes        |
+| **License**                                                | AGPL-3.0   | AGPL-3.0        | Enterprise |
 
 \*Free plan: $5 at signup, or $25 if you verify a company/work email address.
 
@@ -42,7 +43,7 @@ Get started at no cost:
 - 100 models
 - 3 concurrent cloud trainings
 - 3 deployments
-- 100 GB storage
+- 100 GB storage · 10 GB dataset upload limit
 - Model export to all 17+ formats
 - Manual, SAM 3 & YOLO Smart annotation
 - 20 cloud GPU types including 5090 & H100 ($0.24–$3.07/hr)
@@ -59,9 +60,9 @@ For professionals and small teams ($29/month or $290/year):
 - $30/seat/month in credits (recurring)
 - 500 models
 - 10 concurrent cloud trainings
-- 500 GB storage
+- 500 GB storage · 20 GB dataset upload limit
 - 10 cloud deployments
-- [Team collaboration](teams.md) (up to 5 members)
+- [Team collaboration](teams.md) with 4-role RBAC (up to 5 members)
 - Access to the best GPUs (H200, B200)
 - Priority support
 
@@ -74,16 +75,15 @@ For professionals and small teams ($29/month or $290/year):
 For organizations with advanced needs:
 
 - Custom credit allocation
-- Unlimited models, storage, trainings, and deployments
+- Unlimited models, storage, trainings, and deployments · 50 GB dataset upload limit
 - Enterprise License (commercial use, non-AGPL)
 - SSO / SAML authentication
-- RBAC with 4 roles (Owner, Admin, Editor, Viewer)
 - On-premise deployment (coming soon)
 - ISO/SOC compliance (coming soon)
 - SLA guarantees (coming soon)
 - Enterprise support
 
-Contact [sales@ultralytics.com](mailto:sales@ultralytics.com) for Enterprise pricing.
+See [Ultralytics Licensing](https://www.ultralytics.com/license) for Enterprise plan details.
 
 ## Credits
 
@@ -224,7 +224,7 @@ Upgrade for more features and monthly credits:
 After upgrading:
 
 - $30/seat/month credit added immediately and each month
-- Storage increased to 500 GB
+- Storage increased to 500 GB · 20 GB dataset upload limit
 - 500 models
 - 10 concurrent cloud trainings
 - 10 cloud deployments
@@ -235,31 +235,33 @@ After upgrading:
 
 ### Cancel Pro
 
-Cancel anytime from the billing portal:
+Cancel anytime from the Plans tab:
 
-1. Go to **Settings > Billing**
-2. Click **Manage Subscription**
-3. Select **Cancel**
-4. Confirm cancellation
+1. Go to **Settings > Plans**
+2. Click **Cancel Subscription** on the Pro plan card
+3. Confirm in the dialog
+
+If you cancel before the end of your billing period, a **Resume Subscription** button appears — click it to undo the cancellation before the period ends.
 
 !!! note "Cancellation Timing"
 
-    Pro features remain active until the end of your billing period. Monthly credits stop at cancellation.
+    Pro features remain active until the end of your current billing period. Monthly credits stop being granted at cancellation.
 
 ### Downgrading to Free
 
 When your Pro subscription ends (cancelled or expired), your account reverts to the Free plan. Here's what happens to your existing resources:
 
-| Resource                 | What Happens                                                                     |
-| ------------------------ | -------------------------------------------------------------------------------- |
-| **Models**               | All models preserved. Cannot create new models beyond 100-model limit            |
-| **Deployments**          | All deployments preserved. Cannot create new beyond 3-deployment limit           |
-| **Storage**              | All data preserved. Cannot upload new data beyond 100 GB limit                   |
-| **Credit Balance**       | Existing credits preserved and usable                                            |
-| **Monthly Credits**      | $30/seat/month grants stop immediately                                           |
-| **Team Members**         | Members notified and lose access to team resources                               |
-| **GPU Access**           | Standard GPUs remain available. Best GPUs (H200, B200) require Pro or Enterprise |
-| **Concurrent Trainings** | Limit reduced from 10 to 3                                                       |
+| Resource                                                   | What Happens                                                                     |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| **Models**                                                 | All models preserved. Cannot create new models beyond 100-model limit            |
+| **Deployments**                                            | All deployments preserved. Cannot create new beyond 3-deployment limit           |
+| **Storage**                                                | All data preserved. Cannot upload new data beyond 100 GB limit                   |
+| **Dataset Upload (ZIP/TAR incl. `.tar.gz`/`.tgz`/NDJSON)** | Upload limit reduced from 20 GB to 10 GB per file                                |
+| **Credit Balance**                                         | Existing credits preserved and usable                                            |
+| **Monthly Credits**                                        | $30/seat/month grants stop immediately                                           |
+| **Team Members**                                           | Members notified and lose access to team resources                               |
+| **GPU Access**                                             | Standard GPUs remain available. Best GPUs (H200, B200) require Pro or Enterprise |
+| **Concurrent Trainings**                                   | Limit reduced from 10 to 3                                                       |
 
 !!! tip "No Data Loss"
 
@@ -271,13 +273,13 @@ View all transactions in `Settings > Billing`:
 
 ![Ultralytics Platform Settings Billing Tab Transaction History Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-transaction-history-table.avif)
 
-| Column      | Description                                                                                                 |
-| ----------- | ----------------------------------------------------------------------------------------------------------- |
-| **Date**    | Transaction date                                                                                            |
-| **Type**    | Signup Bonus, Credit Purchase, Monthly Grant, Training, Refund, Adjustment, Auto Top-Up, Auto Top-Up Failed |
-| **Amount**  | Transaction value (green for credits, red for charges)                                                      |
-| **Balance** | Resulting balance after transaction                                                                         |
-| **Details** | Additional context (model link, receipt, period)                                                            |
+| Column      | Description                                                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **Date**    | Transaction date                                                                                                                       |
+| **Type**    | Signup, Purchase, Subscription, Monthly Grant, Training, Refund, Adjustment, Promo, Auto Top-Up, Auto Top-Up Failed, Pro Credit Expiry |
+| **Amount**  | Transaction value (green for credits, red for charges)                                                                                 |
+| **Balance** | Resulting balance after transaction                                                                                                    |
+| **Details** | Additional context (model link, receipt, period)                                                                                       |
 
 ## FAQ
 

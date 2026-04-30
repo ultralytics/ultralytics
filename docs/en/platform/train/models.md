@@ -139,7 +139,7 @@ GPU and system metrics during training:
 
 Run interactive inference directly in the browser:
 
-- Upload an image, paste a URL, or use webcam
+- Upload an image, use example images, or use webcam
 - Results display with bounding boxes, masks, or keypoints
 - Auto-inference when an image is provided
 - Supports all task types ([detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [classify](../../tasks/classify.md))
@@ -269,11 +269,17 @@ Export jobs progress through the following statuses:
 
 Some export formats have architecture or task restrictions:
 
-| Format           | Restriction                                                     |
-| ---------------- | --------------------------------------------------------------- |
-| **IMX500**       | Only available for YOLOv8 and YOLO11 models                     |
-| **Axelera**      | Only available for detection models                             |
-| **PaddlePaddle** | Not available for YOLO26 detection/segmentation/pose/OBB models |
+| Format           | Restriction                                             |
+| ---------------- | ------------------------------------------------------- |
+| **IMX500**       | Available only for `YOLOv8n` and `YOLO11n`              |
+| **Axelera**      | Detect models only                                      |
+| **PaddlePaddle** | Not available for YOLO26 detect/segment/pose/OBB models |
+
+!!! note "Additional Export Rules"
+
+    - Classification exports do not include NMS.
+    - CoreML exports with batch sizes greater than `1` use `dynamic=true`.
+    - Unsupported format/model combinations are disabled in the export dialog before you launch.
 
 ## Clone Model
 

@@ -64,8 +64,8 @@ def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
     for thread in threads:
         thread.join()
 
-    assert not errors
-    assert max_active == 1
+    assert not errors, f"Concurrent export errors: {errors}"
+    assert max_active == 1, f"Expected max 1 concurrent export, got {max_active}"
 
 
 @pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")
@@ -341,7 +341,7 @@ def test_export_executorch():
     file = YOLO(MODEL).export(format="executorch", imgsz=32)
     assert Path(file).exists(), f"ExecuTorch export failed, directory not found: {file}"
     # Check that .pte file exists in the exported directory
-    pte_file = Path(file) / Path(MODEL).with_suffix(".pte").name
+    pte_file = Path(file) / "model.pte"
     assert pte_file.exists(), f"ExecuTorch .pte file not found: {pte_file}"
     # Check that metadata.yaml exists
     metadata_file = Path(file) / "metadata.yaml"
@@ -359,8 +359,7 @@ def test_export_executorch_matrix(task):
     file = YOLO(TASK2MODEL[task]).export(format="executorch", imgsz=32)
     assert Path(file).exists(), f"ExecuTorch export failed for task '{task}', directory not found: {file}"
     # Check that .pte file exists in the exported directory
-    model_name = Path(TASK2MODEL[task]).with_suffix(".pte").name
-    pte_file = Path(file) / model_name
+    pte_file = Path(file) / "model.pte"
     assert pte_file.exists(), f"ExecuTorch .pte file not found for task '{task}': {pte_file}"
     # Check that metadata.yaml exists
     metadata_file = Path(file) / "metadata.yaml"

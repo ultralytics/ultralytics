@@ -70,6 +70,7 @@ Validate a trained YOLO26n model [accuracy](https://www.ultralytics.com/glossary
         metrics.box.map50  # map50
         metrics.box.map75  # map75
         metrics.box.maps  # a list containing mAP50-95 for each category
+        metrics.box.image_metrics  # per-image metrics dictionary with precision, recall, F1, TP, FP, and FN
         ```
 
     === "CLI"
@@ -137,6 +138,42 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
     print(results.confusion_matrix.to_df())
     ```
 
+!!! tip "Per-Image Precision, Recall, and F1"
+
+    Validation stores per-image precision, recall, F1, TP, FP, and FN metrics (at IoU threshold 0.5) for all tasks
+    except classification. Access them through `results.box.image_metrics` for detection and OBB, `results.seg.image_metrics`
+    for segmentation, and `results.pose.image_metrics` for pose after validation completes.
+
+    ```python
+    from ultralytics import YOLO
+
+    # Load a model
+    model = YOLO("yolo26n.pt")
+
+    # Validate and access per-image metrics
+    results = model.val(data="coco8.yaml")
+
+    # image_metrics is a dictionary with image filenames as keys
+    print(results.box.image_metrics)
+    # Output: {'image1.jpg': {'precision': 0.85, 'recall': 0.92, 'f1': 0.88, 'tp': 17, 'fp': 3, 'fn': 1}, ...}
+
+    # Access metrics for a specific image
+    results.box.image_metrics["image1.jpg"]  # {'precision': 0.85, 'recall': 0.92, 'f1': 0.88, 'tp': 17, 'fp': 3, 'fn': 1}
+    ```
+
+    Each entry in `image_metrics` contains the following keys:
+
+    | Key         | Description                                       |
+    |-------------|---------------------------------------------------|
+    | `precision` | Precision score for the image (`tp / (tp + fp)`). |
+    | `recall`    | Recall score for the image (`tp / (tp + fn)`).    |
+    | `f1`        | Harmonic mean of precision and recall.            |
+    | `tp`        | Number of true positives for the image.           |
+    | `fp`        | Number of false positives for the image.          |
+    | `fn`        | Number of false negatives for the image.          |
+
+    This feature is available for detection, segmentation, pose, and OBB tasks.
+
 | Method      | Return Type            | Description                                                                |
 | ----------- | ---------------------- | -------------------------------------------------------------------------- |
 | `summary()` | `List[Dict[str, Any]]` | Converts validation results to a summarized dictionary.                    |
@@ -187,6 +224,7 @@ print(metrics.box.map)  # mAP50-95
 print(metrics.box.map50)  # mAP50
 print(metrics.box.map75)  # mAP75
 print(metrics.box.maps)  # list of mAP50-95 for each category
+print(metrics.box.image_metrics)  # per-image metrics dictionary with precision, recall, F1, TP, FP, and FN
 ```
 
 For a complete performance evaluation, it's crucial to review all these metrics. For more details, refer to the [Key Features of Val Mode](#key-features-of-val-mode).

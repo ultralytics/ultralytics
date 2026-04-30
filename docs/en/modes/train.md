@@ -31,6 +31,7 @@ Here are some compelling reasons to opt for YOLO26's Train mode:
 - **Versatility:** Train on custom datasets in addition to readily available ones like COCO, VOC, and ImageNet.
 - **User-Friendly:** Simple yet powerful CLI and Python interfaces for a straightforward training experience.
 - **Hyperparameter Flexibility:** A broad range of customizable hyperparameters to fine-tune model performance. For deeper control, you can [customize the trainer](../guides/custom-trainer.md) itself.
+- **Cloud Training:** Train on cloud GPUs through [Ultralytics Platform](https://platform.ultralytics.com) with real-time metrics and automatic checkpointing.
 
 ### Key Features of Train Mode
 
@@ -351,6 +352,10 @@ This will load TensorBoard and direct it to the directory where your training lo
 After setting up your logger, you can then proceed with your model training. All training metrics will be automatically logged in your chosen platform, and you can access these logs to monitor your model's performance over time, compare different models, and identify areas for improvement.
 
 ## FAQ
+
+### Can I train without a local GPU?
+
+Yes. [Ultralytics Platform](https://platform.ultralytics.com) supports cloud training with free credits to get started. Upload your dataset, select a model and GPU, and train directly from the browser. See the [cloud training guide](../platform/train/cloud-training.md) for details.
 
 ### How do I train an [object detection](https://www.ultralytics.com/glossary/object-detection) model using Ultralytics YOLO26?
 

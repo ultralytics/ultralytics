@@ -867,6 +867,88 @@ When using NVIDIA Jetson, there are a couple of best practices to follow in orde
 
 <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/jetson-stats-application.avif" alt="Jetson Stats">
 
+## Memory Optimization Tips for NVIDIA Jetson
+
+Available memory is often the limiting factor on Jetson devices, particularly on lower-memory variants such as the Jetson Orin Nano (8 GB) or Orin NX 8 GB. The tips below are practical, low-risk changes that can collectively free several hundred megabytes and let you run larger YOLO models or support additional parallel workloads. For a comprehensive treatment see the [NVIDIA blog on maximizing memory efficiency on Jetson](https://developer.nvidia.com/blog/maximizing-memory-efficiency-to-run-bigger-models-on-nvidia-jetson/).
+
+### 1. Switch to Headless (No-GUI) Boot
+
+If your Jetson is connected over SSH or running as a production appliance without a display attached, eliminating the desktop environment and display server can recover up to **865 MB** of RAM:
+
+```bash
+sudo systemctl set-default multi-user.target
+sudo reboot
+```
+
+To restore the desktop later:
+
+```bash
+sudo systemctl set-default graphical.target
+sudo reboot
+```
+
+### 2. Disable Unused System Services
+
+Non-essential background services (Bluetooth, connectivity managers, unused hardware daemons) consume around **32 MB** combined. List active services and disable anything your deployment doesn't require:
+
+```bash
+# List running services
+systemctl list-units --type=service --state=running
+
+# Disable a service
+sudo systemctl disable <service-name>
+```
+
+### 3. Profile Memory Usage
+
+Before optimizing, identify which processes are actually consuming RAM. `procrank` sorts processes by PSS (Proportional Set Size), which reflects the true per-process memory footprint more accurately than RSS (Resident Set Size, the total physical RAM pages mapped by a process, including pages shared with other processes):
+
+```bash
+git clone https://github.com/csimmonds/procrank_linux.git
+cd procrank_linux && make
+sudo ./procrank
+```
+
+To see per-process GPU and NvMap (CUDA/video pipeline) allocations:
+
+```bash
+sudo cat /sys/kernel/debug/nvmap/iovmm/clients
+```
+
+### 4. Run Inference Without a Display in Production
+
+For inference pipelines that have no live-preview requirement, disabling display-related components (Tiler, OSD, DisplaySink) can save **200+ MB** from the pipeline alone. With Ultralytics YOLO, suppress the viewer and write results to disk instead:
+
+!!! example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo11n.engine")
+
+        # show=False prevents any display window; save=True writes annotated output to disk
+        results = model.predict(source="video.mp4", show=False, save=True)
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo predict model=yolo11n.engine source=video.mp4 show=False save=True
+        ```
+
+### Cumulative Impact
+
+| Optimization                             | Approx. Memory Saved |
+| ---------------------------------------- | -------------------- |
+| Disable desktop GUI                      | ~865 MB              |
+| Disable unused OS services               | ~32 MB               |
+| Headless inference pipeline (no display) | ~200+ MB             |
+| **Total (easy wins)**                    | **~1 GB+**           |
+
+Combining these changes is especially valuable when targeting TensorRT INT8 models on memory-constrained devices — it can be the difference between fitting a larger model variant in memory or not.
+
 ## Next Steps
 
 For further learning and support, see the [Ultralytics YOLO26 Docs](../index.md).
@@ -898,3 +980,28 @@ To maximize performance on NVIDIA Jetson with YOLO26, follow these best practice
 3. Install the Jetson Stats application for monitoring system metrics.
 
 For commands and additional details, refer to the [Best Practices when using NVIDIA Jetson](#best-practices-when-using-nvidia-jetson) section.
+
+### How do I free up memory on NVIDIA Jetson to run larger YOLO models?
+
+Available RAM is often the bottleneck on lower-memory Jetson devices. Three easy wins that together can recover over 1 GB:
+
+1. **Switch to headless boot** (`sudo systemctl set-default multi-user.target`) to eliminate the desktop GUI (~865 MB saved).
+2. **Disable unused services** such as Bluetooth or connectivity managers (~32 MB saved).
+3. **Run inference without a display** by setting `show=False` in your YOLO `predict` call, which avoids allocating display pipeline memory (~200+ MB saved).
+
+Use `procrank` to profile per-process RAM usage and `sudo cat /sys/kernel/debug/nvmap/iovmm/clients` to inspect GPU allocations. See the [Memory Optimization Tips](#memory-optimization-tips-for-nvidia-jetson) section for full details.
+
+### Why does my TensorRT INT8 export disable end2end on JetPack 6?
+
+TensorRT 10.3.0 shipped with JetPack 6 has a known issue that prevents INT8 engine builds when `end2end=True` is enabled. When Ultralytics detects this combination, it automatically disables the end2end branch to ensure the export succeeds.
+
+To restore end2end INT8 exports, upgrade TensorRT to a newer version (e.g., 10.7.0+):
+
+```bash
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/arm64/cuda-keyring_1.1-1_all.deb
+sudo dpkg -i cuda-keyring_1.1-1_all.deb
+sudo apt-get update
+sudo apt-get install -y tensorrt
+```
+
+After upgrading, re-run your export. For more details, see [GitHub issue #23841](https://github.com/ultralytics/ultralytics/issues/23841).

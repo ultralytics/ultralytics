@@ -990,3 +990,18 @@ Available RAM is often the bottleneck on lower-memory Jetson devices. Three easy
 3. **Run inference without a display** by setting `show=False` in your YOLO `predict` call, which avoids allocating display pipeline memory (~200+ MB saved).
 
 Use `procrank` to profile per-process RAM usage and `sudo cat /sys/kernel/debug/nvmap/iovmm/clients` to inspect GPU allocations. See the [Memory Optimization Tips](#memory-optimization-tips-for-nvidia-jetson) section for full details.
+
+### Why does my TensorRT INT8 export disable end2end on JetPack 6?
+
+TensorRT 10.3.0 shipped with JetPack 6 has a known issue that prevents INT8 engine builds when `end2end=True` is enabled. When Ultralytics detects this combination, it automatically disables the end2end branch to ensure the export succeeds.
+
+To restore end2end INT8 exports, upgrade TensorRT to a newer version (e.g., 10.7.0+):
+
+```bash
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/arm64/cuda-keyring_1.1-1_all.deb
+sudo dpkg -i cuda-keyring_1.1-1_all.deb
+sudo apt-get update
+sudo apt-get install -y tensorrt
+```
+
+After upgrading, re-run your export. For more details, see [GitHub issue #23841](https://github.com/ultralytics/ultralytics/issues/23841).

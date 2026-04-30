@@ -11,7 +11,7 @@ keywords: VisionEye, YOLO26, Ultralytics, object mapping, object tracking, dista
 [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) VisionEye offers the capability for computers to identify and pinpoint objects, simulating the observational [precision](https://www.ultralytics.com/glossary/precision) of the human eye. This functionality enables computers to discern and focus on specific objects, much like the way the human eye observes details from a particular viewpoint.
 
 <p align="center">
-  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/visioneye-object-mapping-with-tracking.avif" alt="VisionEye View Object Mapping with Object Tracking using Ultralytics YOLO26">
+  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/visioneye-object-mapping-with-tracking.avif" alt="VisionEye object mapping with YOLO tracking">
 </p>
 
 !!! example "VisionEye Mapping using Ultralytics YOLO"
@@ -171,7 +171,7 @@ Ultralytics YOLO26 is renowned for its speed, [accuracy](https://www.ultralytics
 3. **Community and Support**: Extensive documentation and active GitHub community for troubleshooting and enhancements.
 4. **Ease of Use**: Intuitive API simplifies complex tasks, allowing for rapid deployment and iteration.
 
-For more information on applications and benefits, check out the [Ultralytics YOLO26 documentation](https://docs.ultralytics.com/models/yolov8/).
+For more information on applications and benefits, check out the [Ultralytics YOLO26 documentation](https://docs.ultralytics.com/models/yolo26/).
 
 ### How can I integrate VisionEye with other [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) tools like Comet or ClearML?
 

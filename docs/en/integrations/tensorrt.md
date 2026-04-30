@@ -13,7 +13,7 @@ By using the TensorRT export format, you can enhance your [Ultralytics YOLO26](h
 ## TensorRT
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tensorrt-overview.avif" alt="TensorRT Overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tensorrt-overview.avif" alt="NVIDIA TensorRT optimization workflow">
 </p>
 
 [TensorRT](https://developer.nvidia.com/tensorrt), developed by NVIDIA, is an advanced software development kit (SDK) designed for high-speed deep learning inference. It's well-suited for real-time applications like [object detection](https://www.ultralytics.com/glossary/object-detection).
@@ -31,7 +31,7 @@ TensorRT models offer a range of key features that contribute to their efficienc
 - **Layer Fusion**: The TensorRT optimization process includes layer fusion, where multiple layers of a [neural network](https://www.ultralytics.com/glossary/neural-network-nn) are combined into a single operation. This reduces computational overhead and improves inference speed by minimizing memory access and computation.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tensorrt-layer-fusion.avif" alt="TensorRT Layer Fusion">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tensorrt-layer-fusion.avif" alt="TensorRT neural network layer fusion optimization">
 </p>
 
 - **Dynamic Tensor Memory Management**: TensorRT efficiently manages tensor memory usage during inference, reducing memory overhead and optimizing memory allocation. This results in more efficient GPU memory utilization.
@@ -47,7 +47,7 @@ TensorRT offers several deployment options, and each option balances ease of int
 - **Deploying within [TensorFlow](https://www.ultralytics.com/glossary/tensorflow)**: This method integrates TensorRT into TensorFlow, allowing optimized models to run in a familiar TensorFlow environment. It's useful for models with a mix of supported and unsupported layers, as TF-TRT can handle these efficiently.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tf-trt-workflow.avif" alt="TensorRT Overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tf-trt-workflow.avif" alt="NVIDIA TensorRT optimization workflow">
 </p>
 
 - **Standalone TensorRT Runtime API**: Offers granular control, ideal for performance-critical applications. It's more complex but allows for custom implementation of unsupported operators.
@@ -159,7 +159,7 @@ The arguments provided when using [export](../modes/export.md) for an Ultralytic
 
 !!! note
 
-    During calibration, twice the `batch` size provided will be used. Using small batches can lead to inaccurate scaling during calibration. This is because the process adjusts based on the data it sees. Small batches might not capture the full range of values, leading to issues with the final calibration, so the `batch` size is doubled automatically. If no [batch size](https://www.ultralytics.com/glossary/batch-size) is specified `batch=1`, calibration will be run at `batch=1 * 2` to reduce calibration scaling errors.
+    Using small batches can lead to inaccurate scaling during INT8 calibration. This is because the process adjusts based on the data it sees. Small batches might not capture the full range of values, leading to issues with the final calibration. Using a larger [batch size](https://www.ultralytics.com/glossary/batch-size) helps ensure more representative calibration results.
 
 Experimentation by NVIDIA led them to recommend using at least 500 calibration images that are representative of the data for your model, with INT8 quantization calibration. This is a guideline and not a _hard_ requirement, and <u>**you will need to experiment with what is required to perform well for your dataset**.</u> Since the calibration data is required for INT8 calibration with TensorRT, make certain to use the `data` argument when `int8=True` for TensorRT and use `data="my_dataset.yaml"`, which will use the images from [validation](../modes/val.md) to calibrate with. When no value is passed for `data` with export to TensorRT with INT8 quantization, the default will be to use one of the ["small" example datasets based on the model task](../datasets/index.md) instead of throwing an error.
 
@@ -188,7 +188,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         ```
 
         1. Exports with dynamic axes, this will be enabled by default when exporting with `int8=True` even when not explicitly set. See [export arguments](../modes/export.md#arguments) for additional information.
-        2. Sets max batch size of 8 for exported model, which calibrates with `batch = 2 * 8` to avoid scaling errors during calibration.
+        2. Sets max batch size of 8 for exported model and INT8 calibration.
         3. Allocates 4 GiB of memory instead of allocating the entire device for conversion process.
         4. Uses [COCO dataset](../datasets/detect/coco.md) for calibration, specifically the images used for [validation](../modes/val.md) (5,000 total).
 

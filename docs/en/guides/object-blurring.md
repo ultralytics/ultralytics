@@ -12,13 +12,13 @@ Object blurring with [Ultralytics YOLO26](https://github.com/ultralytics/ultraly
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/J1BaCqytBmA"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/m-Lc5MXbydg"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Object Blurring using Ultralytics YOLO26
+  <strong>Watch:</strong> How to Train Face Detection Model using Ultralytics Platform & Blur Faces | Ultralytics YOLO26 🚀
 </p>
 
 ## Advantages of Object Blurring

@@ -20,7 +20,7 @@ class_index x1 y1 x2 y2 x3 y3 x4 y4
 
 Internally, YOLO processes losses and outputs in the `xywhr` format, which represents the [bounding box](https://www.ultralytics.com/glossary/bounding-box)'s center point (xy), width, height, and rotation.
 
-<p align="center"><img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/obb-format-examples.avif" alt="OBB format examples"></p>
+<p align="center"><img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/obb-format-examples.avif" alt="Oriented bounding box annotation format examples"></p>
 
 An example of a `*.txt` label file for the above image, which contains an object of class `0` in OBB format, could look like:
 
@@ -71,6 +71,7 @@ Currently, the following datasets with oriented bounding boxes are supported:
 - [DOTA-v1.5](dota-v2.md#dota-v15): An intermediate version of the DOTA dataset, offering additional annotations and improvements over DOTA-v1 for enhanced object detection tasks.
 - [DOTA-v2](dota-v2.md#dota-v20): DOTA (A Large-scale Dataset for Object Detection in Aerial Images) version 2, emphasizes detection from aerial perspectives and contains oriented bounding boxes with 1.7 million instances and 11,268 images.
 - [DOTA8](dota8.md): A small, 8-image subset of the full DOTA dataset suitable for testing workflows and Continuous Integration (CI) checks of OBB training in the `ultralytics` repository.
+- [DOTA128](dota128.md): A 128-image subset of the DOTA dataset with all images in the train folder (used for both train and val), providing a good balance between size and diversity for testing OBB models.
 
 ### Incorporating your own OBB dataset
 
@@ -149,6 +150,7 @@ Currently, Ultralytics supports the following datasets for OBB training:
 - [DOTA-v1.5](dota-v2.md): An intermediate version of the DOTA dataset, offering additional annotations and improvements over DOTA-v1 for enhanced object detection tasks.
 - [DOTA-v2](dota-v2.md): This dataset includes 1.7 million instances with oriented bounding boxes and 11,268 images, primarily focusing on aerial object detection.
 - [DOTA8](dota8.md): A smaller, 8-image subset of the DOTA dataset used for testing and [continuous integration](../../help/CI.md) (CI) checks.
+- [DOTA128](dota128.md): A 128-image subset with all images in the train folder (used for both train and val), offering more diversity than DOTA8 while remaining manageable for initial OBB model development and experimentation.
 
 These datasets are tailored for scenarios where OBBs offer a significant advantage, such as aerial and satellite image analysis.
 

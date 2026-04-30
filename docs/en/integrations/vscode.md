@@ -116,7 +116,7 @@ The snippets are named in the most descriptive way possible, but this means ther
 
 <p align="center">
   <br>
-    <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/incomplete-snippet-example.avif" alt="Incomplete Snippet Example">
+    <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/incomplete-snippet-example.avif" alt="VS Code incomplete code snippet preview">
   <br>
   Typing <code>ex-yolo-p</code> will <em>still</em> arrive at the correct snippet.
 </p>
@@ -172,7 +172,7 @@ However, since Ultralytics supports numerous [tasks](../tasks/index.md), when [w
 
 <p align="center">
   <br>
-    <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/results-loop-options.avif" alt="Results Loop Options">
+    <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/results-loop-options.avif" alt="VS Code YOLO results visualization options">
   <br>
   Once tabbed to the <code>boxes</code> field, a dropdown menu appears to allow selection of another attribute as required.
 </p>

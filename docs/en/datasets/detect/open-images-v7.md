@@ -142,11 +142,11 @@ To train a YOLO26n model on the Open Images V7 dataset for 100 [epochs](https://
 
 Illustrations of the dataset help provide insights into its richness:
 
-![Dataset sample image](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/oidv7-all-in-one-example-ab.avif)
+![Open Images V7 dataset sample with bounding box annotations](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/oidv7-all-in-one-example-ab.avif)
 
 - **Open Images V7**: This image exemplifies the depth and detail of annotations available, including bounding boxes, relationships, and segmentation masks.
 
-Researchers can gain invaluable insights into the array of computer vision challenges that the dataset addresses, from basic object detection to intricate relationship identification. The [diversity of annotations](https://docs.ultralytics.com/datasets/explorer/) makes Open Images V7 particularly valuable for developing models that can understand complex visual scenes.
+Researchers can gain invaluable insights into the array of computer vision challenges that the dataset addresses, from basic object detection to intricate relationship identification. The diversity of annotations makes Open Images V7 particularly valuable for developing models that can understand complex visual scenes.
 
 ## Citations and Acknowledgments
 

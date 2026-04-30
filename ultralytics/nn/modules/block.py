@@ -371,7 +371,7 @@ class RepC3(nn.Module):
     """Rep C3."""
 
     def __init__(self, c1: int, c2: int, n: int = 3, e: float = 1.0):
-        """Initialize CSP Bottleneck with a single convolution.
+        """Initialize RepC3 module with RepConv blocks.
 
         Args:
             c1 (int): Input channels.
@@ -550,7 +550,7 @@ class GhostBottleneck(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Apply skip connection and concatenation to input tensor."""
+        """Apply skip connection and addition to input tensor."""
         return self.conv(x) + self.shortcut(x)
 
 
@@ -606,7 +606,7 @@ class BottleneckCSP(nn.Module):
         self.m = nn.Sequential(*(Bottleneck(c_, c_, shortcut, g, e=1.0) for _ in range(n)))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Apply CSP bottleneck with 3 convolutions."""
+        """Apply CSP bottleneck with 4 convolutions."""
         y1 = self.cv3(self.m(self.cv1(x)))
         y2 = self.cv2(x)
         return self.cv4(self.act(self.bn(torch.cat((y1, y2), 1))))
@@ -905,7 +905,7 @@ class BNContrastiveHead(nn.Module):
 
     @staticmethod
     def forward_fuse(x: torch.Tensor, w: torch.Tensor) -> torch.Tensor:
-        """Passes input out unchanged."""
+        """Passes image features through unchanged after fusing."""
         return x
 
     def forward(self, x: torch.Tensor, w: torch.Tensor) -> torch.Tensor:
@@ -1139,10 +1139,10 @@ class CBFuse(nn.Module):
 
 
 class C3f(nn.Module):
-    """Faster Implementation of CSP Bottleneck with 2 convolutions."""
+    """Faster Implementation of CSP Bottleneck with 3 convolutions."""
 
     def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = False, g: int = 1, e: float = 0.5):
-        """Initialize CSP bottleneck layer with two convolutions.
+        """Initialize CSP bottleneck layer with three convolutions.
 
         Args:
             c1 (int): Input channels.
@@ -1228,7 +1228,7 @@ class C3k(C3):
 
 
 class RepVGGDW(torch.nn.Module):
-    """RepVGGDW is a class that represents a depth wise separable convolutional block in RepVGG architecture."""
+    """RepVGGDW is a class that represents a depth-wise convolutional block in RepVGG architecture."""
 
     def __init__(self, ed: int) -> None:
         """Initialize RepVGGDW module.
@@ -1249,18 +1249,18 @@ class RepVGGDW(torch.nn.Module):
             x (torch.Tensor): Input tensor.
 
         Returns:
-            (torch.Tensor): Output tensor after applying the depth wise separable convolution.
+            (torch.Tensor): Output tensor after applying the depth-wise convolution.
         """
         return self.act(self.conv(x) + self.conv1(x))
 
     def forward_fuse(self, x: torch.Tensor) -> torch.Tensor:
-        """Perform a forward pass of the RepVGGDW block without fusing the convolutions.
+        """Perform a forward pass of the fused RepVGGDW block.
 
         Args:
             x (torch.Tensor): Input tensor.
 
         Returns:
-            (torch.Tensor): Output tensor after applying the depth wise separable convolution.
+            (torch.Tensor): Output tensor after applying the depth-wise convolution.
         """
         return self.act(self.conv(x))
 
@@ -1487,7 +1487,7 @@ class PSA(nn.Module):
     Attributes:
         c (int): Number of hidden channels after applying the initial convolution.
         cv1 (Conv): 1x1 convolution layer to reduce the number of input channels to 2*c.
-        cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c.
+        cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c1.
         attn (Attention): Attention module for position-sensitive attention.
         ffn (nn.Sequential): Feed-forward network for further processing.
 
@@ -1542,7 +1542,7 @@ class C2PSA(nn.Module):
     Attributes:
         c (int): Number of hidden channels.
         cv1 (Conv): 1x1 convolution layer to reduce the number of input channels to 2*c.
-        cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c.
+        cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c1.
         m (nn.Sequential): Sequential container of PSABlock modules for attention and feed-forward operations.
 
     Methods:
@@ -1597,8 +1597,8 @@ class C2fPSA(C2f):
     Attributes:
         c (int): Number of hidden channels.
         cv1 (Conv): 1x1 convolution layer to reduce the number of input channels to 2*c.
-        cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c.
-        m (nn.ModuleList): List of PSA blocks for feature extraction.
+        cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c2.
+        m (nn.ModuleList): List of PSABlock modules for feature extraction.
 
     Methods:
         forward: Performs a forward pass through the C2fPSA module.
@@ -1606,7 +1606,7 @@ class C2fPSA(C2f):
 
     Examples:
         >>> import torch
-        >>> from ultralytics.models.common import C2fPSA
+        >>> from ultralytics.nn.modules.block import C2fPSA
         >>> model = C2fPSA(c1=64, c2=64, n=3, e=0.5)
         >>> x = torch.randn(1, 64, 128, 128)
         >>> output = model(x)
@@ -1624,7 +1624,7 @@ class C2fPSA(C2f):
         """
         assert c1 == c2
         super().__init__(c1, c2, n=n, e=e)
-        self.m = nn.ModuleList(PSABlock(self.c, attn_ratio=0.5, num_heads=self.c // 64) for _ in range(n))
+        self.m = nn.ModuleList(PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1)) for _ in range(n))
 
 
 class SCDown(nn.Module):
@@ -1642,7 +1642,7 @@ class SCDown(nn.Module):
 
     Examples:
         >>> import torch
-        >>> from ultralytics import SCDown
+        >>> from ultralytics.nn.modules.block import SCDown
         >>> model = SCDown(c1=64, c2=128, k=3, s=2)
         >>> x = torch.randn(1, 64, 128, 128)
         >>> y = model(x)
@@ -1745,7 +1745,7 @@ class AAttn(nn.Module):
     making it particularly effective for object detection tasks.
 
     Attributes:
-        area (int): Number of areas the feature map is divided.
+        area (int): Number of areas the feature map is divided into.
         num_heads (int): Number of heads into which the attention mechanism is divided.
         head_dim (int): Dimension of each attention head.
         qkv (Conv): Convolution layer for computing query, key and value tensors.
@@ -1769,18 +1769,24 @@ class AAttn(nn.Module):
         Args:
             dim (int): Number of hidden channels.
             num_heads (int): Number of heads into which the attention mechanism is divided.
-            area (int): Number of areas the feature map is divided.
+            area (int): Number of areas the feature map is divided into.
         """
         super().__init__()
         self.area = area
 
         self.num_heads = num_heads
         self.head_dim = head_dim = dim // num_heads
-        all_head_dim = head_dim * self.num_heads
+        self.all_head_dim = all_head_dim = head_dim * self.num_heads
 
         self.qkv = Conv(dim, all_head_dim * 3, 1, act=False)
         self.proj = Conv(all_head_dim, dim, 1, act=False)
-        self.pe = Conv(all_head_dim, dim, 7, 1, 3, g=dim, act=False)
+        self.pe = Conv(all_head_dim, all_head_dim, 7, 1, 3, g=all_head_dim, act=False)
+
+    def __setstate__(self, state):
+        """Add missing all_head_dim attribute to old checkpoints."""
+        super().__setstate__(state)
+        if not hasattr(self, "all_head_dim"):
+            self.all_head_dim = self.head_dim * self.num_heads
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Process the input tensor through the area-attention.
@@ -1791,12 +1797,12 @@ class AAttn(nn.Module):
         Returns:
             (torch.Tensor): Output tensor after area-attention.
         """
-        B, C, H, W = x.shape
+        B, _, H, W = x.shape
         N = H * W
 
         qkv = self.qkv(x).flatten(2).transpose(1, 2)
         if self.area > 1:
-            qkv = qkv.reshape(B * self.area, N // self.area, C * 3)
+            qkv = qkv.reshape(B * self.area, N // self.area, self.all_head_dim * 3)
             B, N, _ = qkv.shape
         q, k, v = (
             qkv.view(B, N, self.num_heads, self.head_dim * 3)
@@ -1810,12 +1816,12 @@ class AAttn(nn.Module):
         v = v.permute(0, 3, 1, 2)
 
         if self.area > 1:
-            x = x.reshape(B // self.area, N * self.area, C)
-            v = v.reshape(B // self.area, N * self.area, C)
+            x = x.reshape(B // self.area, N * self.area, self.all_head_dim)
+            v = v.reshape(B // self.area, N * self.area, self.all_head_dim)
             B, N, _ = x.shape
 
-        x = x.reshape(B, H, W, C).permute(0, 3, 1, 2).contiguous()
-        v = v.reshape(B, H, W, C).permute(0, 3, 1, 2).contiguous()
+        x = x.reshape(B, H, W, self.all_head_dim).permute(0, 3, 1, 2).contiguous()
+        v = v.reshape(B, H, W, self.all_head_dim).permute(0, 3, 1, 2).contiguous()
 
         x = x + self.pe(v)
         return self.proj(x)
@@ -1851,7 +1857,7 @@ class ABlock(nn.Module):
             dim (int): Number of input channels.
             num_heads (int): Number of heads into which the attention mechanism is divided.
             mlp_ratio (float): Expansion ratio for MLP hidden dimension.
-            area (int): Number of areas the feature map is divided.
+            area (int): Number of areas the feature map is divided into.
         """
         super().__init__()
 
@@ -1929,7 +1935,7 @@ class A2C2f(nn.Module):
             c2 (int): Number of output channels.
             n (int): Number of ABlock or C3k modules to stack.
             a2 (bool): Whether to use area attention blocks. If False, uses C3k blocks instead.
-            area (int): Number of areas the feature map is divided.
+            area (int): Number of areas the feature map is divided into.
             residual (bool): Whether to use residual connections with learnable gamma parameter.
             mlp_ratio (float): Expansion ratio for MLP hidden dimension.
             e (float): Channel expansion ratio for hidden channels.
@@ -2089,7 +2095,7 @@ class Proto26(Proto):
         self.semseg = nn.Sequential(Conv(ch[0], c_, k=3), Conv(c_, c_, k=3), nn.Conv2d(c_, nc, 1))
 
     def forward(self, x: torch.Tensor, return_semseg: bool = True) -> torch.Tensor:
-        """Perform a forward pass through layers using an upsampled input image."""
+        """Perform a forward pass by fusing multi-scale feature maps and generating proto masks."""
         feat = x[0]
         for i, f in enumerate(self.feat_refine):
             up_feat = f(x[i + 1])
@@ -2116,12 +2122,12 @@ class RealNVP(nn.Module):
 
     @staticmethod
     def nets():
-        """Get the scale model in a single invertable mapping."""
+        """Get the scale model in a single invertible mapping."""
         return nn.Sequential(nn.Linear(2, 64), nn.SiLU(), nn.Linear(64, 64), nn.SiLU(), nn.Linear(64, 2), nn.Tanh())
 
     @staticmethod
     def nett():
-        """Get the translation model in a single invertable mapping."""
+        """Get the translation model in a single invertible mapping."""
         return nn.Sequential(nn.Linear(2, 64), nn.SiLU(), nn.Linear(64, 64), nn.SiLU(), nn.Linear(64, 2))
 
     @property
@@ -2141,13 +2147,13 @@ class RealNVP(nn.Module):
         self.init_weights()
 
     def init_weights(self):
-        """Initialization model weights."""
+        """Initialize model weights."""
         for m in self.modules():
             if isinstance(m, nn.Linear):
                 nn.init.xavier_uniform_(m.weight, gain=0.01)
 
     def backward_p(self, x):
-        """Apply mapping form the data space to the latent space and calculate the log determinant of the Jacobian
+        """Apply mapping from the data space to the latent space and calculate the log determinant of the Jacobian
         matrix.
         """
         log_det_jacob, z = x.new_zeros(x.shape[0]), x

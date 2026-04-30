@@ -48,6 +48,9 @@ SOLUTION_MAP = {
     "analytics": "Analytics",
     "inference": "Inference",
     "trackzone": "TrackZone",
+    "region": "RegionCounter",
+    "security": "SecurityAlarm",
+    "parking": "ParkingManagement",
     "help": None,
 }
 
@@ -60,6 +63,13 @@ TASK2DATA = {
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
     "obb": "dota8.yaml",
+}
+TASK2CALIBRATIONDATA = {
+    "detect": "coco128.yaml",
+    "segment": "coco128-seg.yaml",
+    "classify": "imagenet100",
+    "pose": "coco8-pose.yaml",
+    "obb": "dota128.yaml",
 }
 TASK2MODEL = {
     "detect": "yolo26n.pt",
@@ -104,7 +114,16 @@ SOLUTIONS_HELP_MSG = f"""
     6. Track objects within specific zones
         yolo solutions trackzone source="path/to/video.mp4" region="[(150, 150), (1130, 150), (1130, 570), (150, 570)]"
 
-    7. Streamlit real-time webcam inference GUI
+    7. Count objects inside specific regions
+        yolo solutions region source="path/to/video.mp4" region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
+
+    8. Run security alarm monitoring (email alerts require Python API)
+        yolo solutions security source="path/to/video.mp4"
+
+    9. Monitor parking occupancy (create JSON annotations first via Python ParkingPtsSelection)
+        yolo solutions parking source="path/to/video.mp4" json_file="bounding_boxes.json"
+
+    10. Streamlit real-time webcam inference GUI
         yolo streamlit-predict
     """
 CLI_HELP_MSG = f"""
@@ -153,6 +172,7 @@ CFG_FLOAT_KEYS = frozenset(
         "warmup_epochs",
         "box",
         "cls",
+        "cls_pw",
         "dfl",
         "degrees",
         "shear",
@@ -238,6 +258,7 @@ CFG_BOOL_KEYS = frozenset(
         "simplify",
         "nms",
         "profile",
+        "end2end",
     }
 )
 
@@ -401,16 +422,16 @@ def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
         >>> args = SimpleNamespace(project="my_project", task="detect", mode="train", exist_ok=True)
         >>> save_dir = get_save_dir(args)
         >>> print(save_dir)
-        my_project/detect/train
+        runs/detect/my_project/train
     """
     if getattr(args, "save_dir", None):
         save_dir = args.save_dir
     else:
         from ultralytics.utils.files import increment_path
 
-        runs = (ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR) / args.task
-        nested = args.project and len(Path(args.project).parts) > 1  # e.g. "user/project" or "org\repo"
-        project = runs / args.project if nested else args.project or runs
+        project = args.project or ""
+        if not Path(project).is_absolute():
+            project = (ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR) / args.task / project
         name = name or args.name or f"{args.mode}"
         save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in {-1, 0} else True)
 

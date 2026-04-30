@@ -40,7 +40,7 @@ Enter your project details:
 - **Name**: A descriptive name for your project (a random name is auto-generated)
 - **Description**: Optional notes about the project purpose
 - **Visibility**: Public (anyone can view) or Private (only you can access)
-- **License**: Optional license for your project (AGPL-3.0, Apache-2.0, MIT, GPL-3.0, BSD-3-Clause, LGPL-3.0, MPL-2.0, EUPL-1.1, Unlicense, Ultralytics-Enterprise, and more)
+- **License**: Optional license for your project (AGPL-3.0, Apache-2.0, MIT, GPL-3.0, BSD-3-Clause, LGPL-3.0, MPL-2.0, EUPL-1.1, Unlicense, Ultralytics-Enterprise, and more). The **Ultralytics-Enterprise** license is for commercial use without AGPL requirements and is available with an Enterprise plan — see [Ultralytics Licensing](https://www.ultralytics.com/license).
 
 ![Ultralytics Platform New Project Dialog Name Visibility License](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-new-project-dialog-name-visibility-license.avif)
 
@@ -81,10 +81,11 @@ Action buttons in the header:
 
 ### View Modes
 
-Toggle between two view modes using the view controls:
+Toggle between three view modes using the view controls:
 
-- **Charts view**: Interactive charts dashboard showing loss curves and metric comparisons for selected models
-- **Table view**: Comparison table showing training arguments and final metrics side-by-side with a diff mode to highlight differing columns
+- **Cards**: Full-width models sidebar with the Charts dashboard on the right — loss curves and metric comparisons for checked models.
+- **Compact**: Condensed models sidebar with the Charts dashboard on the right — more vertical room for models in projects with many experiments.
+- **Table**: Comparison table showing training arguments and final metrics side-by-side. Enable **Diff** to highlight only the columns where values differ across models.
 
 ![Ultralytics Platform Project Comparison Table View](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-project-comparison-table-view.avif)
 
@@ -119,14 +120,18 @@ Control who can see your project:
 
 ## Share with Collaborators
 
-Share private projects with other users:
+Share private projects with specific users without creating a full team workspace:
 
 1. Click the **Share** button on the project page
 2. Enter the collaborator's username or email
 3. Set their role
 4. Click **Invite**
 
-Collaborators with editor access can upload models and start training within your project. See [Teams](../account/settings.md#teams-tab) for role permissions.
+Collaborators with editor access can upload models and start training within your project.
+
+!!! tip "Sharing vs Teams"
+
+    **Sharing** grants per-project access to individual users — ideal for one-off collaborations. **[Teams](../account/teams.md)** create a shared workspace where all resources (projects, datasets, models, deployments) are accessible to team members with role-based permissions. Use Teams for ongoing collaboration with multiple people.
 
 ## Clone Project
 

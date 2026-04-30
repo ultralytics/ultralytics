@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Deploy YOLO models to dedicated endpoints in 43 global regions with auto-scaling and monitoring on Ultralytics Platform.
+description: Deploy YOLO models to dedicated endpoints in 43 global regions with scale-to-zero behavior and monitoring on Ultralytics Platform.
 keywords: Ultralytics Platform, deployment, endpoints, YOLO, production, scaling, global regions
 ---
 
 # Dedicated Endpoints
 
-[Ultralytics Platform](https://platform.ultralytics.com) enables deployment of YOLO models to dedicated endpoints in 43 global regions. Each endpoint is a single-tenant service with auto-scaling, a unique endpoint URL, and independent monitoring.
+[Ultralytics Platform](https://platform.ultralytics.com) enables deployment of YOLO models to dedicated endpoints in 43 global regions. Each endpoint is a single-tenant service with scale-to-zero behavior, a unique endpoint URL, and independent monitoring.
 
 ![Ultralytics Platform Model Deploy Tab With Region Map And Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/model-deploy-tab-with-region-map-and-table.avif)
 
@@ -18,10 +18,10 @@ Deploy a model from its `Deploy` tab:
 
 1. Navigate to your model
 2. Click the **Deploy** tab
-3. Select a region from the region table (sorted by latency from your location)
+3. Select a region from the interactive world map — regions are color-coded by latency from your location (green < 100ms, yellow < 200ms, red > 200ms)
 4. Click **Deploy** on the region row
 
-The deployment name is auto-generated from the model name and region city (e.g., `yolo11n-iowa`).
+The deployment name is auto-generated from the model name and region city (e.g., `yolo26n-iowa`).
 
 ### From the Deployments Page
 
@@ -30,7 +30,7 @@ Create a deployment from the global `Deploy` page in the sidebar:
 1. Click **New Deployment**
 2. Select a model from the model selector
 3. Select a region from the map or table
-4. Optionally customize the deployment name and resources
+4. Review the auto-generated deployment name (editable) and the default resources
 5. Click **Deploy Model**
 
 ![Ultralytics Platform New Deployment Dialog With Model Selector And Region Map](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/new-deployment-dialog-with-model-selector-and-region-map.avif)
@@ -157,16 +157,16 @@ The `New Deployment` dialog provides:
 | **Model**           | Select from completed models | -       |
 | **Region**          | Deployment region            | -       |
 | **Deployment Name** | Auto-generated, editable     | -       |
-| **CPU Cores**       | CPU allocation (1-8)         | 1       |
-| **Memory (GB)**     | Memory allocation (1-32 GB)  | 2       |
+| **CPU Cores**       | Fixed default                | 1       |
+| **Memory (GB)**     | Fixed default                | 2       |
 
 ![Ultralytics Platform New Deployment Dialog Resources Panel Expanded](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/new-deployment-dialog-resources-panel-expanded.avif)
 
-Resource settings are available under the collapsible **Resources** section. Deployments use scale-to-zero by default (min instances = 0, max instances = 1) — you only pay for active inference time.
+Deployments use fixed defaults of `1 CPU`, `2 GiB` memory, `minInstances = 0`, and `maxInstances = 1`. They scale to zero when idle, so you only pay for active inference time.
 
 !!! note "Auto-Generated Names"
 
-    The deployment name is automatically generated from the model name and region city (e.g., `yolo11n-iowa`). If you deploy the same model to the same region again, a numeric suffix is added (e.g., `yolo11n-iowa-2`).
+    The deployment name is automatically generated from the model name and region city (e.g., `yolo26n-iowa`). If you deploy the same model to the same region again, a numeric suffix is added (e.g., `yolo26n-iowa-2`).
 
 ### Deploy Tab (Quick Deploy)
 
@@ -344,13 +344,24 @@ Dedicated endpoints are **not subject to the Platform API rate limits**. Request
 
 ### Request Parameters
 
-| Parameter   | Type   | Default | Description                   |
-| ----------- | ------ | ------- | ----------------------------- |
-| `file`      | file   | -       | Image file (required)         |
-| `conf`      | float  | 0.25    | Minimum confidence threshold  |
-| `iou`       | float  | 0.7     | NMS IoU threshold             |
-| `imgsz`     | int    | 640     | Input image size              |
-| `normalize` | string | -       | Return normalized coordinates |
+| Parameter   | Type   | Default | Range      | Description                                        |
+| ----------- | ------ | ------- | ---------- | -------------------------------------------------- |
+| `file`      | file   | -       | -          | Image or video file (required)                     |
+| `conf`      | float  | 0.25    | 0.01 – 1.0 | Minimum confidence threshold                       |
+| `iou`       | float  | 0.7     | 0.0 – 0.95 | NMS IoU threshold                                  |
+| `imgsz`     | int    | 640     | 32 – 1280  | Input image size in pixels                         |
+| `normalize` | bool   | false   | -          | Return bounding box coordinates as 0 – 1           |
+| `decimals`  | int    | 5       | 0 – 10     | Decimal precision for coordinate values            |
+| `source`    | string | -       | -          | Image URL or base64 string (alternative to `file`) |
+
+!!! tip "Video Inference"
+
+    Dedicated endpoints accept both images and videos via the `file` parameter.
+
+    - **Image formats** (up to 50 MB): AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WEBP
+    - **Video formats** (up to 100 MB): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV
+
+    Each video frame is processed individually and results are returned per frame. You can also pass a public image URL or a base64-encoded image via the `source` parameter instead of `file`.
 
 ### Response Format
 
@@ -358,20 +369,13 @@ Same as [shared inference](inference.md#response) with task-specific fields.
 
 ## Pricing
 
-Dedicated endpoints bill based on:
-
-| Component    | Rate                 |
-| ------------ | -------------------- |
-| **CPU**      | Per vCPU-second      |
-| **Memory**   | Per GB-second        |
-| **Requests** | Per million requests |
+Basic dedicated endpoints are **free on all plans**. Higher-resource configurations (more vCPUs, more memory, warm start) will offer usage-based pricing in the future.
 
 !!! tip "Cost Optimization"
 
-    - Use scale-to-zero for development endpoints
-    - Set appropriate max instances
+    - Use scale-to-zero (default) so endpoints only run when receiving requests
+    - Set appropriate max instances for your traffic
     - Monitor usage in the [Monitoring](monitoring.md) dashboard
-    - Review costs in [Settings > Billing](../account/billing.md)
 
 ## FAQ
 

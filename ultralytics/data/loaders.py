@@ -359,7 +359,7 @@ class LoadImagesAndVideos:
             if "*" in a:
                 files.extend(sorted(glob.glob(a, recursive=True)))  # glob
             elif os.path.isdir(a):
-                files.extend(sorted(glob.glob(os.path.join(a, "*.*"))))  # dir
+                files.extend(sorted(glob.glob(os.path.join(glob.escape(a), "*.*"))))  # dir
             elif os.path.isfile(a):
                 files.append(a)  # files (absolute or relative to CWD)
             elif parent and (parent / p).is_file():

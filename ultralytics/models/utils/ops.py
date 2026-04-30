@@ -201,8 +201,8 @@ def get_cdn_group(
     boxes and class labels. It generates both positive and negative samples to improve model robustness.
 
     Args:
-        batch (dict[str, Any]): Batch dictionary containing 'cls' (torch.Tensor with shape (num_gts,)), 'bboxes'
-            (torch.Tensor with shape (num_gts, 4)), 'batch_idx' (torch.Tensor), and 'gt_groups' (list[int]) indicating
+        batch (`dict[str, Any]`): Batch dictionary containing 'cls' (torch.Tensor with shape (num_gts,)), 'bboxes'
+            (torch.Tensor with shape (num_gts, 4)), 'batch_idx' (torch.Tensor), and 'gt_groups' (`list[int]`) indicating
             number of ground truths per image.
         num_classes (int): Total number of object classes.
         num_queries (int): Number of object queries.

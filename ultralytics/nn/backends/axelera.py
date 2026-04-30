@@ -51,7 +51,7 @@ class AxeleraBackend(BaseBackend):
         """Run inference on the Axelera hardware accelerator.
 
         Args:
-            im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
+            im (torch.Tensor): Input image tensor in BCHW format, normalized to `[0, 1]`.
 
         Returns:
             (list): Model predictions as a list of output arrays.

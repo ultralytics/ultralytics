@@ -58,7 +58,7 @@ Another preprocessing technique is normalization. Normalization scales the pixel
 - **Min-Max Scaling**: Scales pixel values to a range of 0 to 1.
 - **Z-Score Normalization**: Scales pixel values based on their mean and standard deviation.
 
-With respect to YOLO26, normalization is seamlessly handled as part of its preprocessing pipeline during model training. YOLO26 automatically performs several preprocessing steps, including conversion to RGB, scaling pixel values to the range [0, 1], and normalization using predefined mean and standard deviation values.
+With respect to YOLO26, normalization is seamlessly handled as part of its preprocessing pipeline during model training. YOLO26 automatically performs several preprocessing steps, including conversion to RGB, scaling pixel values to the range `[0, 1]`, and normalization using predefined mean and standard deviation values.
 
 ### Splitting the Dataset
 

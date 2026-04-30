@@ -116,8 +116,8 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
     """Distributed sampler that assigns contiguous batch-aligned chunks of the dataset to each GPU.
 
     Unlike PyTorch's DistributedSampler which distributes samples in a round-robin fashion (GPU 0 gets indices
-    [0,2,4,...], GPU 1 gets [1,3,5,...]), this sampler gives each GPU contiguous batches of the dataset (GPU 0 gets
-    batches [0,1,2,...], GPU 1 gets batches [k,k+1,...], etc.). This preserves any ordering or grouping in the original
+    `[0,2,4,...]`, GPU 1 gets `[1,3,5,...]`), this sampler gives each GPU contiguous batches of the dataset (GPU 0 gets
+    batches `[0,1,2,...]`, GPU 1 gets batches `[k,k+1,...]`, etc.). This preserves any ordering or grouping in the original
     dataset, which is critical when samples are organized by similarity (e.g., images sorted by size to enable efficient
     batching without padding when using rect=True).
 

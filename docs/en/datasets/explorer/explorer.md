@@ -68,7 +68,7 @@ exp.create_embeddings_table()
 Once the embeddings table is built, you can run semantic search in any of the following ways:
 
 - On a given index/list of indices in the dataset, e.g., `exp.get_similar(idx=[1, 10], limit=10)`
-- On any image/ list of images not in the dataset - exp.get_similar(img=["path/to/img1", "path/to/img2"], limit=10) In case of multiple inputs, the aggregate of their embeddings is used.
+- On any image/ list of images not in the dataset, e.g., `exp.get_similar(img=["path/to/img1", "path/to/img2"], limit=10)`. In case of multiple inputs, the aggregate of their embeddings is used.
 
 You get a pandas DataFrame with the limit number of most similar data points to the input, along with their distance in the embedding space. You can use this dataset to perform further filtering.
 

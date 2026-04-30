@@ -256,7 +256,7 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
 | Field                           | Type   | Description                       |
 | ------------------------------- | ------ | --------------------------------- |
 | `images`                        | array  | List of processed images          |
-| `images[].shape`                | array  | Image dimensions [height, width]  |
+| `images[].shape`                | array  | Image dimensions `[height, width]` |
 | `images[].results`              | array  | List of detections                |
 | `images[].results[].name`       | string | Class name                        |
 | `images[].results[].confidence` | float  | Detection confidence (0-1)        |

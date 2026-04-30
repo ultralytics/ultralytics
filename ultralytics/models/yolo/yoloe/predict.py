@@ -96,7 +96,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
             dst_shape (tuple): The target shape (height, width) of the image.
             src_shape (tuple): The original shape (height, width) of the image.
             category (list | np.ndarray): The category indices for visual prompts.
-            bboxes (list | np.ndarray, optional): A list of bounding boxes in the format [x1, y1, x2, y2].
+            bboxes (list | np.ndarray, optional): A list of bounding boxes in the format `[x1, y1, x2, y2]`.
             masks (np.ndarray, optional): A list of masks corresponding to the image.
 
         Returns:

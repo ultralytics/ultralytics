@@ -59,7 +59,7 @@ class NCNNBackend(BaseBackend):
         """Run inference using the NCNN runtime.
 
         Args:
-            im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
+            im (torch.Tensor): Input image tensor in BCHW format, normalized to `[0, 1]`.
 
         Returns:
             (list[np.ndarray]): Model predictions as a list of numpy arrays, one per output layer.

@@ -175,7 +175,7 @@ class YOLOWorld(Model):
         """Set the model's class names for detection.
 
         Args:
-            classes (list[str]): A list of categories i.e. ["person"].
+            classes (list[str]): A list of categories i.e. `["person"]`.
         """
         self.model.set_classes(classes)
         # Remove background if it's given
@@ -307,7 +307,7 @@ class YOLOE(Model):
         """Set the model's class names and embeddings for detection.
 
         Args:
-            classes (list[str]): A list of categories i.e. ["person"].
+            classes (list[str]): A list of categories i.e. `["person"]`.
             embeddings (torch.Tensor, optional): Embeddings corresponding to the classes.
         """
         # Verify no background class is present

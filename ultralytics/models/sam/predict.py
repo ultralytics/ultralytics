@@ -350,11 +350,11 @@ class Predictor(BasePredictor):
             crop_n_layers (int): Number of layers for additional mask predictions on image crops.
             crop_overlap_ratio (float): Overlap between crops, scaled down in subsequent layers.
             crop_downscale_factor (int): Scaling factor for sampled points-per-side in each layer.
-            point_grids (list[np.ndarray] | None): Custom grids for point sampling normalized to [0,1].
+            point_grids (list[np.ndarray] | None): Custom grids for point sampling normalized to `[0,1]`.
             points_stride (int): Number of points to sample along each side of the image.
             points_batch_size (int): Batch size for the number of points processed simultaneously.
-            conf_thres (float): Confidence threshold [0,1] for filtering based on mask quality prediction.
-            stability_score_thresh (float): Stability threshold [0,1] for mask filtering based on stability.
+            conf_thres (float): Confidence threshold `[0,1]` for filtering based on mask quality prediction.
+            stability_score_thresh (float): Stability threshold `[0,1]` for mask filtering based on stability.
             stability_score_offset (float): Offset value for calculating stability score.
             crop_nms_thresh (float): IoU cutoff for NMS to remove duplicate masks between crops.
 
@@ -666,7 +666,7 @@ class Predictor(BasePredictor):
                 Each box is in xyxy format with additional columns for score and class.
 
         Notes:
-            - The input features is a torch.Tensor of shape (B, C, H, W) if performing on SAM, or a dict[str, Any] if performing on SAM2.
+            - The input features is a `torch.Tensor` of shape (B, C, H, W) if performing on SAM, or a `dict[str, Any]` if performing on SAM2.
         """
         dst_shape = dst_shape or (self.args.imgsz, self.args.imgsz)
         prompts = self._prepare_prompts(dst_shape, src_shape, bboxes, points, labels, masks)
@@ -788,7 +788,7 @@ class SAM2Predictor(Predictor):
         Args:
             features (torch.Tensor | dict[str, Any]): Extracted image features with shape (B, C, H, W) from the SAM2
                 model image encoder. Can also be a dict with 'image_embed' (torch.Tensor) of shape (B, C, H, W) and
-                'high_res_feats' (list[torch.Tensor]) high-resolution feature maps from the backbone.
+                'high_res_feats' (`list[torch.Tensor]`) high-resolution feature maps from the backbone.
             points (np.ndarray | list[list[float]] | None): Object location points with shape (N, 2), in pixels.
             labels (np.ndarray | list[int] | None): Point prompt labels with shape (N,). 1 = foreground, 0 = background.
             masks (list[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
@@ -1931,7 +1931,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             im (torch.Tensor | np.ndarray): The input image tensor or numpy array.
             bboxes (list[list[float]] | None): Optional list of bounding boxes to update the memory.
             masks (torch.Tensor | np.ndarray | None): Optional masks to update the memory.
-            points (list[list[float]] | None): Optional list of points to update the memory, each point is [x, y].
+            points (list[list[float]] | None): Optional list of points to update the memory, each point is `[x, y]`.
             labels (list[int] | None): Optional list of labels for point prompts (>0 for positive, 0 for negative).
             obj_ids (list[int] | None): Optional list of object IDs corresponding to the prompts.
             update_memory (bool): Flag to indicate whether to update the memory with new objects.
@@ -2362,7 +2362,7 @@ class SAM3SemanticPredictor(SAM3Predictor):
                 Each box is in xyxy format with additional columns for score and class.
 
         Notes:
-            - The input features is a torch.Tensor of shape (B, C, H, W) if performing on SAM, or a dict[str, Any] if performing on SAM2.
+            - The input features is a `torch.Tensor` of shape (B, C, H, W) if performing on SAM, or a `dict[str, Any]` if performing on SAM2.
         """
         import torchvision
 
@@ -2898,7 +2898,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
     def _suppress_detections_close_to_boundary(boxes, margin=0.025):
         """Suppress detections too close to image edges (for normalized boxes).
 
-        boxes: (N, 4) in xyxy format, normalized [0,1]
+        boxes: (N, 4) in xyxy format, normalized `[0,1]`
         margin: fraction of image
         """
         x_min, y_min, x_max, y_max = boxes.unbind(-1)
@@ -3496,7 +3496,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             new_det_fa_inds: array of new object indices.
             unmatched_trk_obj_ids: array of existing masklet object IDs that are not matched to any detections on this
                 frame (for unmatched, we only count masklets with >0 area)
-            det_to_matched_trk_obj_ids: dict[int, np.ndarray]: mapping from detector's detection indices to the list of
+            det_to_matched_trk_obj_ids: `dict[int, np.ndarray]`: mapping from detector's detection indices to the list of
                 matched tracklet object IDs
             empty_trk_obj_ids: array of existing masklet object IDs with zero area in SAM2 prediction
         """

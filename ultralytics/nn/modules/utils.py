@@ -81,7 +81,7 @@ def inverse_sigmoid(x, eps=1e-5):
     operations, particularly in attention mechanisms and coordinate transformations.
 
     Args:
-        x (torch.Tensor): Input tensor with values in range [0, 1].
+        x (torch.Tensor): Input tensor with values in range `[0, 1]`.
         eps (float, optional): Small epsilon value to prevent numerical instability.
 
     Returns:

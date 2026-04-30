@@ -25,7 +25,7 @@ keywords: Meituan YOLOv6, object detection, real-time applications, BiC module, 
 <script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script defer src="../../javascript/benchmark.js"></script>
 
-<canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv6-3.0"]'></canvas>
+<canvas id="modelComparisonChart" width="1024" height="400" active-models='&#91;"YOLOv6-3.0"&#93;'></canvas>
 
 YOLOv6 provides various pretrained models with different scales:
 

@@ -51,7 +51,7 @@ class ExecuTorchBackend(BaseBackend):
         """Run inference using the ExecuTorch runtime.
 
         Args:
-            im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
+            im (torch.Tensor): Input image tensor in BCHW format, normalized to `[0, 1]`.
 
         Returns:
             (list): Model predictions as a list of ExecuTorch output values.

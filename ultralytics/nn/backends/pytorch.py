@@ -78,7 +78,7 @@ class PyTorchBackend(BaseBackend):
         """Run native PyTorch inference with support for augmentation, visualization, and embeddings.
 
         Args:
-            im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
+            im (torch.Tensor): Input image tensor in BCHW format, normalized to `[0, 1]`.
             augment (bool): Whether to apply test-time augmentation.
             visualize (bool): Whether to visualize intermediate feature maps.
             embed (list | None): List of layer indices to extract embeddings from, or None.
@@ -129,7 +129,7 @@ class TorchScriptBackend(BaseBackend):
         """Run TorchScript inference.
 
         Args:
-            im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
+            im (torch.Tensor): Input image tensor in BCHW format, normalized to `[0, 1]`.
 
         Returns:
             (torch.Tensor | list[torch.Tensor]): Model predictions as tensor(s).

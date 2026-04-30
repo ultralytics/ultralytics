@@ -188,7 +188,7 @@ class BaseSolution:
 
         Args:
             track_id (int): The unique identifier for the tracked object.
-            box (list[float]): The bounding box coordinates of the object in the format [x1, y1, x2, y2].
+            box (list[float]): The bounding box coordinates of the object in the format `[x1, y1, x2, y2]`.
 
         Examples:
             >>> solution = BaseSolution()
@@ -465,7 +465,7 @@ class SolutionAnnotator(Annotator):
         """Draw specific keypoints for gym steps counting.
 
         Args:
-            keypoints (list[list[float]]): Keypoints data to be plotted, each in format [x, y, confidence].
+            keypoints (list[list[float]]): Keypoints data to be plotted, each in format `[x, y, confidence]`.
             indices (list[int], optional): Keypoint indices to be plotted. The drawing order follows the order of this
                 list.
             radius (int): Keypoint radius.
@@ -475,7 +475,7 @@ class SolutionAnnotator(Annotator):
             (np.ndarray): Image with drawn keypoints.
 
         Notes:
-            Keypoint format: [x, y] or [x, y, confidence].
+            Keypoint format: `[x, y]` or `[x, y, confidence]`.
             Modifies self.im in-place.
         """
         indices = indices or [2, 5, 7]
@@ -699,7 +699,7 @@ class SolutionAnnotator(Annotator):
         """Perform pinpoint human-vision eye mapping and plotting.
 
         Args:
-            box (list[float]): Bounding box coordinates in format [x1, y1, x2, y2].
+            box (list[float]): Bounding box coordinates in format `[x1, y1, x2, y2]`.
             center_point (tuple[int, int]): Center point for vision eye view.
             color (tuple[int, int, int]): Object centroid and line color.
             pin_color (tuple[int, int, int]): Visioneye point color.

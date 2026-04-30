@@ -29,8 +29,8 @@ The Ultralytics command line interface (CLI) provides a straightforward way to u
         ```
 
         Where:
-        - `TASK` (optional) is one of [detect, segment, classify, pose, obb]
-        - `MODE` (required) is one of [train, val, predict, export, track, benchmark]
+        - `TASK` (optional) is one of `[detect, segment, classify, pose, obb]`
+        - `MODE` (required) is one of `[train, val, predict, export, track, benchmark]`
         - `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults.
 
         See all ARGS in the full [Configuration Guide](cfg.md) or with `yolo cfg`.

@@ -85,7 +85,7 @@ def muon_update(grad: torch.Tensor, momentum: torch.Tensor, beta: float = 0.95, 
         - With Nesterov: update = beta * momentum + (1-beta) * grad.
         - Without Nesterov: update = momentum.
         - 4D tensors (conv filters) are reshaped to 2D as (out_channels, in_channels*height*width) for orthogonalization.
-        - Final update is scaled by sqrt(max(1, dim[-2] / dim[-1])) to account for parameter dimensions.
+        - Final update is scaled by `sqrt(max(1, dim[-2] / dim[-1]))` to account for parameter dimensions.
     """
     momentum.lerp_(grad, 1 - beta)
     update = grad.lerp(momentum, beta) if nesterov else momentum

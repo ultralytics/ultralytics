@@ -300,7 +300,7 @@ class TaskAlignedAssigner(nn.Module):
 
         Notes:
             - b: batch size, n_boxes: number of ground truth boxes, h: height, w: width.
-            - Bounding box format: [x_min, y_min, x_max, y_max].
+            - Bounding box format: `[x_min, y_min, x_max, y_max]`.
         """
         gt_bboxes_xywh = xyxy2xywh(gt_bboxes)
         wh_mask = gt_bboxes_xywh[..., 2:] < self.stride[0]  # the smallest stride
@@ -465,14 +465,14 @@ def rbox2dist(
     """Transform rotated bounding box (xywh) to distance (ltrb). This is the inverse of dist2rbox.
 
     Args:
-        target_bboxes (torch.Tensor): Target rotated bounding boxes with shape (bs, h*w, 4), format [x, y, w, h].
+        target_bboxes (torch.Tensor): Target rotated bounding boxes with shape (bs, h*w, 4), format `[x, y, w, h]`.
         anchor_points (torch.Tensor): Anchor points with shape (h*w, 2).
         target_angle (torch.Tensor): Target angle with shape (bs, h*w, 1).
         dim (int, optional): Dimension along which to split.
         reg_max (int, optional): Maximum regression value for clamping.
 
     Returns:
-        (torch.Tensor): Rotated distance with shape (bs, h*w, 4), format [l, t, r, b].
+        (torch.Tensor): Rotated distance with shape (bs, h*w, 4), format `[l, t, r, b]`.
     """
     xy, wh = target_bboxes.split(2, dim=dim)
     offset = xy - anchor_points  # (bs, h*w, 2)

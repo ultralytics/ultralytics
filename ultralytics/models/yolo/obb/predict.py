@@ -43,7 +43,7 @@ class OBBPredictor(DetectionPredictor):
 
         Args:
             pred (torch.Tensor): The predicted bounding boxes, scores, and rotation angles with shape (N, 7) where the
-                last dimension contains [x, y, w, h, confidence, class_id, angle].
+                last dimension contains `[x, y, w, h, confidence, class_id, angle]`.
             img (torch.Tensor): The image after preprocessing with shape (B, C, H, W).
             orig_img (np.ndarray): The original image before preprocessing.
             img_path (str): The path to the original image.

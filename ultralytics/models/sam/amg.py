@@ -18,8 +18,8 @@ def is_box_near_crop_edge(
 
     Args:
         boxes (torch.Tensor): Bounding boxes in XYXY format.
-        crop_box (list[int]): Crop box coordinates in [x0, y0, x1, y1] format.
-        orig_box (list[int]): Original image box coordinates in [x0, y0, x1, y1] format.
+        crop_box (list[int]): Crop box coordinates in `[x0, y0, x1, y1]` format.
+        orig_box (list[int]): Original image box coordinates in `[x0, y0, x1, y1]` format.
         atol (float, optional): Absolute tolerance for edge proximity detection.
 
     Returns:
@@ -98,7 +98,7 @@ def calculate_stability_score(masks: torch.Tensor, mask_threshold: float, thresh
 
 
 def build_point_grid(n_per_side: int) -> np.ndarray:
-    """Generate a 2D grid of evenly spaced points in the range [0,1]x[0,1] for image segmentation tasks."""
+    """Generate a 2D grid of evenly spaced points in the range `[0,1] x [0,1]` for image segmentation tasks."""
     offset = 1 / (2 * n_per_side)
     points_one_side = np.linspace(offset, 1 - offset, n_per_side)
     points_x = np.tile(points_one_side[None, :], (n_per_side, 1))
@@ -122,7 +122,7 @@ def generate_crop_boxes(
         overlap_ratio (float): Ratio of overlap between adjacent crop boxes.
 
     Returns:
-        crop_boxes (list[list[int]]): List of crop boxes in [x0, y0, x1, y1] format.
+        crop_boxes (list[list[int]]): List of crop boxes in `[x0, y0, x1, y1]` format.
         layer_idxs (list[int]): List of layer indices corresponding to each crop box.
 
     Examples:

@@ -332,7 +332,7 @@ class BaseMixTransform:
         Args:
             dataset (Any): The dataset object containing images and labels for mixing.
             pre_transform (Callable | None): Optional transform to apply before mixing.
-            p (float): Probability of applying the mix transformation. Should be in the range [0.0, 1.0].
+            p (float): Probability of applying the mix transformation. Should be in the range `[0.0, 1.0]`.
         """
         self.dataset = dataset
         self.pre_transform = pre_transform
@@ -676,8 +676,8 @@ class Mosaic(BaseMixTransform):
 
         Args:
             labels (dict[str, Any]): A dictionary containing the input image and its associated labels. It should have
-                the following keys: 'img' (np.ndarray) the input image, 'resized_shape' (tuple[int, int]) the shape
-                of the resized image (height, width), and 'mix_labels' (list[dict]) a list of dictionaries containing
+                the following keys: 'img' (np.ndarray) the input image, 'resized_shape' (`tuple[int, int]`) the shape
+                of the resized image (height, width), and 'mix_labels' (`list[dict]`) a list of dictionaries containing
                 information for the additional eight images, each with the same structure as the input labels.
 
         Returns:
@@ -780,7 +780,7 @@ class Mosaic(BaseMixTransform):
                 - resized_shape (tuple[int, int]): Shape of the mosaic image (imgsz * 2, imgsz * 2).
                 - cls (np.ndarray): Concatenated class labels.
                 - instances (Instances): Concatenated instance annotations.
-                - mosaic_border (tuple[int, int]): Mosaic border size.
+                - mosaic_border (`tuple[int, int]`): Mosaic border size.
                 - texts (list[str], optional): Text labels if present in the original labels.
 
         Examples:
@@ -845,7 +845,7 @@ class MixUp(BaseMixTransform):
         Args:
             dataset (Any): The dataset to which MixUp augmentation will be applied.
             pre_transform (Callable | None): Optional transform to apply to images before MixUp.
-            p (float): Probability of applying MixUp augmentation to an image. Must be in the range [0, 1].
+            p (float): Probability of applying MixUp augmentation to an image. Must be in the range `[0, 1]`.
         """
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
 
@@ -1235,7 +1235,7 @@ class RandomPerspective:
                 - 'img' (np.ndarray): The transformed image.
                 - 'cls' (np.ndarray): Updated class labels.
                 - 'instances' (Instances): Updated object instances.
-                - 'resized_shape' (tuple[int, int]): New image shape after transformation.
+                - 'resized_shape' (`tuple[int, int]`): New image shape after transformation.
 
         Examples:
             >>> transform = RandomPerspective()
@@ -1254,7 +1254,7 @@ class RandomPerspective:
                 - 'cls' (np.ndarray): Class labels.
                 - 'instances' (Instances): Object instances with bounding boxes, segments, and keypoints.
             May include:
-                - 'mosaic_border' (tuple[int, int]): Border size for mosaic augmentation.
+                - 'mosaic_border' (`tuple[int, int]`): Border size for mosaic augmentation.
         """
         if self.pre_transform and "mosaic_border" not in labels:
             labels = self.pre_transform(labels)
@@ -1316,8 +1316,8 @@ class RandomPerspective:
 
         Args:
             box1 (np.ndarray): Original boxes before augmentation, shape (4, N) where N is the number of boxes. Format
-                is [x1, y1, x2, y2] in absolute coordinates.
-            box2 (np.ndarray): Augmented boxes after transformation, shape (4, N). Format is [x1, y1, x2, y2] in
+                is `[x1, y1, x2, y2]` in absolute coordinates.
+            box2 (np.ndarray): Augmented boxes after transformation, shape (4, N). Format is `[x1, y1, x2, y2]` in
                 absolute coordinates.
             wh_thr (int): Width and height threshold in pixels. Boxes smaller than this in either dimension are
                 rejected.
@@ -1350,9 +1350,9 @@ class RandomHSV:
     This class applies random HSV augmentation to images within predefined limits set by hgain, sgain, and vgain.
 
     Attributes:
-        hgain (float): Maximum variation for hue. Range is typically [0, 1].
-        sgain (float): Maximum variation for saturation. Range is typically [0, 1].
-        vgain (float): Maximum variation for value. Range is typically [0, 1].
+        hgain (float): Maximum variation for hue. Range is typically `[0, 1]`.
+        sgain (float): Maximum variation for saturation. Range is typically `[0, 1]`.
+        vgain (float): Maximum variation for value. Range is typically `[0, 1]`.
 
     Methods:
         __call__: Apply random HSV augmentation to an image.
@@ -1373,9 +1373,9 @@ class RandomHSV:
         This class applies random adjustments to the HSV channels of an image within specified limits.
 
         Args:
-            hgain (float): Maximum variation for hue. Should be in the range [0, 1].
-            sgain (float): Maximum variation for saturation. Should be in the range [0, 1].
-            vgain (float): Maximum variation for value. Should be in the range [0, 1].
+            hgain (float): Maximum variation for hue. Should be in the range `[0, 1]`.
+            sgain (float): Maximum variation for saturation. Should be in the range `[0, 1]`.
+            vgain (float): Maximum variation for value. Should be in the range `[0, 1]`.
         """
         self.hgain = hgain
         self.sgain = sgain
@@ -2000,7 +2000,7 @@ class Format:
 
         Args:
             bbox_format (str): Format for bounding boxes. Options are 'xywh', 'xyxy', etc.
-            normalize (bool): Whether to normalize bounding boxes to [0,1].
+            normalize (bool): Whether to normalize bounding boxes to `[0,1]`.
             return_mask (bool): If True, returns instance masks for segmentation tasks.
             return_keypoint (bool): If True, returns keypoints for pose estimation tasks.
             return_obb (bool): If True, returns oriented bounding boxes.
@@ -2612,7 +2612,7 @@ def classify_augmentations(
 class ClassifyLetterBox:
     """A class for resizing and padding images for classification tasks.
 
-    This class is designed to be part of a transformation pipeline, e.g., T.Compose([LetterBox(size), ToTensor()]). It
+    This class is designed to be part of a transformation pipeline, e.g., T.Compose(`[LetterBox(size), ToTensor()]`). It
     resizes and pads images to a specified size while maintaining the original aspect ratio.
 
     Attributes:
@@ -2688,7 +2688,7 @@ class CenterCrop:
     """Apply center cropping to images for classification tasks.
 
     This class performs center cropping on input images, resizing them to a specified size while maintaining the aspect
-    ratio. It is designed to be part of a transformation pipeline, e.g., T.Compose([CenterCrop(size), ToTensor()]).
+    ratio. It is designed to be part of a transformation pipeline, e.g., T.Compose(`[CenterCrop(size), ToTensor()]`).
 
     Attributes:
         h (int): Target height of the cropped image.
@@ -2708,7 +2708,7 @@ class CenterCrop:
     def __init__(self, size: int | tuple[int, int] = (640, 640)):
         """Initialize the CenterCrop object for image preprocessing.
 
-        This class is designed to be part of a transformation pipeline, e.g., T.Compose([CenterCrop(size), ToTensor()]).
+        This class is designed to be part of a transformation pipeline, e.g., T.Compose(`[CenterCrop(size), ToTensor()]`).
         It performs a center crop on input images to a specified size.
 
         Args:
@@ -2748,7 +2748,7 @@ class CenterCrop:
 class ToTensor:
     """Convert an image from a numpy array to a PyTorch tensor.
 
-    This class is designed to be part of a transformation pipeline, e.g., T.Compose([LetterBox(size), ToTensor()]).
+    This class is designed to be part of a transformation pipeline, e.g., T.Compose(`[LetterBox(size), ToTensor()]`).
 
     Attributes:
         half (bool): If True, converts the image to half precision (float16).
@@ -2765,7 +2765,7 @@ class ToTensor:
 
     Notes:
         The input image is expected to be in BGR format with shape (H, W, C).
-        The output tensor will be in BGR format with shape (C, H, W), normalized to [0, 1].
+        The output tensor will be in BGR format with shape (C, H, W), normalized to `[0, 1]`.
     """
 
     def __init__(self, half: bool = False):
@@ -2791,7 +2791,7 @@ class ToTensor:
             im (np.ndarray): Input image as a numpy array with shape (H, W, C) in BGR order.
 
         Returns:
-            (torch.Tensor): The transformed image as a PyTorch tensor in float32 or float16, normalized to [0, 1] with
+            (torch.Tensor): The transformed image as a PyTorch tensor in float32 or float16, normalized to `[0, 1]` with
                 shape (C, H, W) in BGR order.
 
         Examples:

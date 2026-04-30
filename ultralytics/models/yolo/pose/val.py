@@ -21,7 +21,7 @@ class PoseValidator(DetectionValidator):
 
     Attributes:
         sigma (np.ndarray): Sigma values for OKS calculation, either OKS_SIGMA or ones divided by number of keypoints.
-        kpt_shape (list[int]): Shape of the keypoints, typically [17, 3] for COCO format.
+        kpt_shape (list[int]): Shape of the keypoints, typically `[17, 3]` for COCO format.
         args (dict): Arguments for the validator including task set to "pose".
         metrics (PoseMetrics): Metrics object for pose evaluation.
 
@@ -109,7 +109,7 @@ class PoseValidator(DetectionValidator):
 
         This method extends the parent class postprocessing by extracting keypoints from the 'extra' field of
         predictions and reshaping them according to the keypoint shape configuration. The keypoints are reshaped from a
-        flattened format to the proper dimensional structure (typically [N, 17, 3] for COCO pose format).
+        flattened format to the proper dimensional structure (typically `[N, 17, 3]` for COCO pose format).
 
         Args:
             preds (torch.Tensor): Raw prediction tensor from the YOLO pose model containing bounding boxes, confidence

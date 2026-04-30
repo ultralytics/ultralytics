@@ -67,7 +67,7 @@ class BaseBackend(ABC):
         """Run inference on the input image tensor.
 
         Args:
-            im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
+            im (torch.Tensor): Input image tensor in BCHW format, normalized to `[0, 1]`.
 
         Returns:
             (Any): The raw output from the model's forward pass, which may require post-processing.

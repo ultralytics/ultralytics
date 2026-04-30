@@ -364,9 +364,9 @@ class Annotator:
         """Plot masks on image.
 
         Args:
-            masks (torch.Tensor | np.ndarray): Predicted masks with shape [n, h, w].
-            colors (list[list[int]]): Colors for predicted masks, [[r, g, b] * n].
-            im_gpu (torch.Tensor | None): Image on GPU with shape [3, h, w], range [0, 1].
+            masks (torch.Tensor | np.ndarray): Predicted masks with shape `[n, h, w]`.
+            colors (`list[list[int]]`): Colors for predicted masks, `[[r, g, b] * n]`.
+            im_gpu (torch.Tensor | None): Image on GPU with shape `[3, h, w]`, range `[0, 1]`.
             alpha (float, optional): Mask transparency: 0.0 fully transparent, 1.0 opaque.
             retina_masks (bool, optional): Whether to use high resolution masks or not.
         """
@@ -422,7 +422,7 @@ class Annotator:
         """Plot keypoints on the image.
 
         Args:
-            kpts (torch.Tensor): Keypoints, shape [17, 3] (x, y, confidence).
+            kpts (torch.Tensor): Keypoints, shape `[17, 3]` (x, y, confidence).
             shape (tuple, optional): Image shape (h, w).
             radius (int, optional): Keypoint radius.
             kpt_line (bool, optional): Draw lines between keypoints.
@@ -566,7 +566,7 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     """Plot training labels including class histograms and box statistics.
 
     Args:
-        boxes (np.ndarray): Bounding box coordinates in format [x, y, width, height].
+        boxes (np.ndarray): Bounding box coordinates in format `[x, y, width, height]`.
         cls (np.ndarray): Class indices.
         names (dict, optional): Dictionary mapping class indices to class names.
         save_dir (Path, optional): Directory to save the plot.

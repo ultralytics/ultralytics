@@ -55,7 +55,7 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
 <script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script defer src="../../javascript/benchmark.js"></script>
 
-<canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv8"]'></canvas>
+<canvas id="modelComparisonChart" width="1024" height="400" active-models='&#91;"YOLOv8"&#93;'></canvas>
 
 !!! tip "Performance"
 

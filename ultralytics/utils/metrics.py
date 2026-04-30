@@ -221,7 +221,7 @@ def probiou(obb1: torch.Tensor, obb2: torch.Tensor, CIoU: bool = False, eps: flo
         (torch.Tensor): OBB similarities, shape (N,).
 
     Notes:
-        OBB format: [center_x, center_y, width, height, rotation_angle].
+        OBB format: `[center_x, center_y, width, height, rotation_angle]`.
 
     References:
         https://arxiv.org/pdf/2106.06072v1.pdf
@@ -338,7 +338,7 @@ class ConfusionMatrix(DataExportMixin):
 
         Args:
             mtype (str): Match type identifier ('TP', 'FP', 'FN' or 'GT').
-            batch (dict[str, Any]): Batch data containing detection results with keys like 'bboxes', 'cls', 'conf',
+            batch (`dict[str, Any]`): Batch data containing detection results with keys like 'bboxes', 'cls', 'conf',
                 'keypoints', 'masks'.
             idx (int): Index of the specific detection to append from the batch.
 
@@ -377,10 +377,10 @@ class ConfusionMatrix(DataExportMixin):
 
         Args:
             detections (dict[str, torch.Tensor]): Dictionary containing detected bounding boxes and their associated
-                information. Should contain 'cls', 'conf', and 'bboxes' keys, where 'bboxes' can be Array[N, 4] for
-                regular boxes or Array[N, 5] for OBB with angle.
-            batch (dict[str, Any]): Batch dictionary containing ground truth data with 'bboxes' (Array[M, 4]| Array[M,
-                5]) and 'cls' (Array[M]) keys, where M is the number of ground truth objects.
+                information. Should contain 'cls', 'conf', and 'bboxes' keys, where 'bboxes' can be `Array[N, 4]` for
+                regular boxes or `Array[N, 5]` for OBB with angle.
+            batch (`dict[str, Any]`): Batch dictionary containing ground truth data with 'bboxes'
+                (`Array[M, 4]` | `Array[M, 5]`) and 'cls' (`Array[M]`) keys, where M is the number of ground truth objects.
             conf (float, optional): Confidence threshold for detections.
             iou_thres (float, optional): IoU threshold for matching detections to ground truth.
         """
@@ -863,7 +863,7 @@ class Metric(SimpleClass):
         map75: Mean AP at IoU threshold of 0.75 for all classes.
         map: Mean AP at IoU thresholds from 0.5 to 0.95 for all classes.
         mean_results: Mean of results, returns mp, mr, map50, map.
-        class_result: Class-aware result, returns p[i], r[i], ap50[i], ap[i].
+        class_result: Class-aware result, returns `p[i]`, `r[i]`, `ap50[i]`, `ap[i]`.
         maps: mAP of each class.
         fitness: Model fitness as a weighted combination of metrics.
         update: Update metric attributes with new evaluation results.
@@ -949,7 +949,7 @@ class Metric(SimpleClass):
         return [self.mp, self.mr, self.map50, self.map]
 
     def class_result(self, i: int) -> tuple[float, float, float, float]:
-        """Return class-aware result, p[i], r[i], ap50[i], ap[i]."""
+        """Return class-aware result, `p[i]`, `r[i]`, `ap50[i]`, `ap[i]`."""
         return self.p[i], self.r[i], self.ap50[i], self.ap[i]
 
     @property
@@ -1183,7 +1183,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         shared scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
 
         Args:
-            normalize (bool): For Detect metrics, everything is normalized by default [0-1].
+            normalize (bool): For Detect metrics, everything is normalized by default `[0-1]`.
             decimals (int): Number of decimal places to round the metrics values to.
 
         Returns:
@@ -1341,7 +1341,7 @@ class SegmentMetrics(DetMetrics):
         each class.
 
         Args:
-            normalize (bool): For Segment metrics, everything is normalized by default [0-1].
+            normalize (bool): For Segment metrics, everything is normalized by default `[0-1]`.
             decimals (int): Number of decimal places to round the metrics values to.
 
         Returns:
@@ -1495,7 +1495,7 @@ class PoseMetrics(DetMetrics):
         and pose scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
 
         Args:
-            normalize (bool): For Pose metrics, everything is normalized by default [0-1].
+            normalize (bool): For Pose metrics, everything is normalized by default `[0-1]`.
             decimals (int): Number of decimal places to round the metrics values to.
 
         Returns:
@@ -1583,7 +1583,7 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
         """Generate a single-row summary of classification metrics (Top-1 and Top-5 accuracy).
 
         Args:
-            normalize (bool): For Classify metrics, everything is normalized by default [0-1].
+            normalize (bool): For Classify metrics, everything is normalized by default `[0-1]`.
             decimals (int): Number of decimal places to round the metrics values to.
 
         Returns:

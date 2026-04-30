@@ -200,10 +200,10 @@ class AIFI(TransformerEncoderLayer):
         """Forward pass for the AIFI transformer layer.
 
         Args:
-            x (torch.Tensor): Input tensor with shape [B, C, H, W].
+            x (torch.Tensor): Input tensor with shape `[B, C, H, W]`.
 
         Returns:
-            (torch.Tensor): Output tensor with shape [B, C, H, W].
+            (torch.Tensor): Output tensor with shape `[B, C, H, W]`.
         """
         c, h, w = x.shape[1:]
         pos_embed = self.build_2d_sincos_position_embedding(w, h, c)
@@ -224,7 +224,7 @@ class AIFI(TransformerEncoderLayer):
             temperature (float): Temperature for the sine/cosine functions.
 
         Returns:
-            (torch.Tensor): Position embedding with shape [1, h*w, embed_dim].
+            (torch.Tensor): Position embedding with shape `[1, h*w, embed_dim]`.
         """
         assert embed_dim % 4 == 0, "Embed dimension must be divisible by 4 for 2D sin-cos position embedding"
         grid_w = torch.arange(w, dtype=torch.float32)
@@ -305,10 +305,10 @@ class TransformerBlock(nn.Module):
         """Forward propagate the input through the transformer block.
 
         Args:
-            x (torch.Tensor): Input tensor with shape [b, c1, h, w].
+            x (torch.Tensor): Input tensor with shape `[b, c1, h, w]`.
 
         Returns:
-            (torch.Tensor): Output tensor with shape [b, c2, h, w].
+            (torch.Tensor): Output tensor with shape `[b, c2, h, w]`.
         """
         if self.conv is not None:
             x = self.conv(x)
@@ -538,16 +538,16 @@ class MSDeformAttn(nn.Module):
         """Perform forward pass for multiscale deformable attention.
 
         Args:
-            query (torch.Tensor): Query tensor with shape [bs, query_length, C].
-            refer_bbox (torch.Tensor): Reference bounding boxes with shape [bs, query_length, n_levels, 2 or 4], range
-                in [0, 1], top-left (0,0), bottom-right (1, 1), including padding area.
-            value (torch.Tensor): Value tensor with shape [bs, value_length, C].
-            value_shapes (list): List with shape [n_levels, 2], [(H_0, W_0), (H_1, W_1), ..., (H_{L-1}, W_{L-1})].
-            value_mask (torch.Tensor, optional): Mask tensor with shape [bs, value_length], True for padding elements,
+            query (torch.Tensor): Query tensor with shape `[bs, query_length, C]`.
+            refer_bbox (torch.Tensor): Reference bounding boxes with shape `[bs, query_length, n_levels, 2 or 4]`, range
+                in `[0, 1]`, top-left (0,0), bottom-right (1, 1), including padding area.
+            value (torch.Tensor): Value tensor with shape `[bs, value_length, C]`.
+            value_shapes (list): List with shape `[n_levels, 2]`, `[(H_0, W_0), (H_1, W_1), ..., (H_{L-1}, W_{L-1})]`.
+            value_mask (torch.Tensor, optional): Mask tensor with shape `[bs, value_length]`, True for padding elements,
                 False for non-padding elements.
 
         Returns:
-            (torch.Tensor): Output tensor with shape [bs, Length_{query}, C].
+            (torch.Tensor): Output tensor with shape `[bs, Length_{query}, C]`.
 
         References:
             https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py

@@ -62,7 +62,7 @@ This table provides an overview of the YOLO11 model variants, showcasing their a
 <script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script defer src="../../javascript/benchmark.js"></script>
 
-<canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLO11"]'></canvas>
+<canvas id="modelComparisonChart" width="1024" height="400" active-models='&#91;"YOLO11"&#93;'></canvas>
 
 !!! tip "Performance"
 

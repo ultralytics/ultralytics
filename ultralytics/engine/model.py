@@ -629,7 +629,7 @@ class Model(torch.nn.Module):
             format (str): Export format name for specific benchmarking.
             verbose (bool): Whether to print detailed benchmark information.
             **kwargs (Any): Arbitrary keyword arguments to customize the benchmarking process. Common options include:
-                - imgsz (int | list[int]): Image size for benchmarking.
+                - imgsz (`int | list[int]`): Image size for benchmarking.
                 - half (bool): Whether to use half-precision (FP16) mode.
                 - int8 (bool): Whether to use int8 precision mode.
                 - device (str): Device to run the benchmark on (e.g., 'cpu', 'cuda').
@@ -739,7 +739,7 @@ class Model(torch.nn.Module):
                 - optimizer (str): Optimizer to use for training.
                 - lr0 (float): Initial learning rate.
                 - patience (int): Epochs to wait for no observable improvement for early stopping of training.
-                - augmentations (list[Callable]): List of augmentation functions to apply during training.
+                - augmentations (`list[Callable]`): List of augmentation functions to apply during training.
 
         Returns:
             (ultralytics.utils.metrics.DetMetrics | None): Training metrics if available and training is successful;

@@ -668,7 +668,7 @@ Delete a dataset you no longer need:
 
 1. Open dataset actions menu
 2. Click `Delete`
-3. Confirm in the dialog: "This will move [name] to trash. You can restore it within 30 days."
+3. Confirm in the dialog: "This will move \[name\] to trash. You can restore it within 30 days."
 
 !!! note "Trash and Restore"
 

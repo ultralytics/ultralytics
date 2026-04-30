@@ -62,12 +62,12 @@ class Attention(nn.Module):
             qkv_bias (bool): If True, add a learnable bias to query, key, value.
             use_rel_pos (bool): If True, add relative positional embeddings to the attention map.
             rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
-            input_size (tuple[int, int] or None): Input resolution for calculating the relative positional parameter
+            input_size (`tuple[int, int]` or None): Input resolution for calculating the relative positional parameter
                 size or rope size.
             cls_token (bool): Whether a cls_token is present.
             use_rope (bool): Whether to use rope 2d (independent of use_rel_pos, as it can be used together).
             rope_theta (float): Control frequencies of rope.
-            rope_pt_size (tuple[int, int] or None): Size of rope in previous stage of training, needed for interpolation
+            rope_pt_size (`tuple[int, int]` or None): Size of rope in previous stage of training, needed for interpolation
                 or tiling.
             rope_interp (bool): Whether to interpolate (or extrapolate) rope to match input size.
         """
@@ -248,10 +248,10 @@ class Block(nn.Module):
             use_rel_pos (bool): If True, add relative positional embeddings to the attention map.
             rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
             window_size (int): Window size for window attention blocks. If it equals 0, then not use window attention.
-            input_size (tuple[int, int] | None): Input resolution for calculating the relative positional parameter
+            input_size (`tuple[int, int] | None`): Input resolution for calculating the relative positional parameter
                 size.
             use_rope (bool): Whether to use rope 2d (independent of use_rel_pos, as it can be used together).
-            rope_pt_size (tuple[int, int] | None): Size of rope in previous stage of training, needed for interpolation
+            rope_pt_size (`tuple[int, int] | None`): Size of rope in previous stage of training, needed for interpolation
                 or tiling.
             rope_interp (bool): Whether to interpolate (or extrapolate) rope to match target input size, expected to
                 specify source size as rope_pt_size.
@@ -365,10 +365,10 @@ class ViT(nn.Module):
             act_layer (Callable): Activation layer constructor.
             use_abs_pos (bool): If True, use absolute positional embeddings.
             tile_abs_pos (bool): If True, tile absolute positional embeddings instead of interpolation.
-            rel_pos_blocks (tuple[int, ...] | bool): Blocks which have rel pos embeddings.
+            rel_pos_blocks (`tuple[int, ...] | bool`): Blocks which have rel pos embeddings.
             rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
             window_size (int): Window size for window attention blocks.
-            global_att_blocks (tuple[int, ...]): Indexes for blocks using global attention (other blocks use window
+            global_att_blocks (`tuple[int, ...]`): Indexes for blocks using global attention (other blocks use window
                 attention).
             use_rope (bool): Whether to use rope 2d (independent of rel_pos_blocks, as it can be used together).
             rope_pt_size (int | None): Size of rope in previous stage of training, needed for interpolation or tiling.

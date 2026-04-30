@@ -556,7 +556,7 @@ class v8SegmentationLoss(v8DetectionLoss):
             gt_mask (torch.Tensor): Ground truth mask of shape (N, H, W), where N is the number of objects.
             pred (torch.Tensor): Predicted mask coefficients of shape (N, 32).
             proto (torch.Tensor): Prototype masks of shape (32, H, W).
-            xyxy (torch.Tensor): Ground truth bounding boxes in xyxy format, normalized to [0, 1], of shape (N, 4).
+            xyxy (torch.Tensor): Ground truth bounding boxes in xyxy format, normalized to `[0, 1]`, of shape (N, 4).
             area (torch.Tensor): Area of each ground truth bounding box of shape (N,).
 
         Returns:
@@ -1108,8 +1108,8 @@ class v8OBBLoss(v8DetectionLoss):
         """Calculate oriented angle loss.
 
         Args:
-            pred_bboxes (torch.Tensor): Predicted bounding boxes with shape [N, 5] (x, y, w, h, theta).
-            target_bboxes (torch.Tensor): Target bounding boxes with shape [N, 5] (x, y, w, h, theta).
+            pred_bboxes (torch.Tensor): Predicted bounding boxes with shape `[N, 5]` (x, y, w, h, theta).
+            target_bboxes (torch.Tensor): Target bounding boxes with shape `[N, 5]` (x, y, w, h, theta).
             fg_mask (torch.Tensor): Foreground mask indicating valid predictions.
             weight (torch.Tensor): Loss weights for each prediction.
             target_scores_sum (torch.Tensor): Sum of target scores for normalization.

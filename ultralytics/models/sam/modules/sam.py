@@ -134,7 +134,7 @@ class SAM2Model(torch.nn.Module):
         multimask_max_pt_num (int): Maximum number of clicks to use multimask output in SAM.
         multimask_output_for_tracking (bool): Whether to use multimask output for tracking.
         use_multimask_token_for_obj_ptr (bool): Whether to use multimask tokens for object pointers.
-        iou_prediction_use_sigmoid (bool): Whether to use sigmoid to restrict IoU prediction to [0-1].
+        iou_prediction_use_sigmoid (bool): Whether to use sigmoid to restrict IoU prediction to `[0-1]`.
         memory_temporal_stride_for_eval (int): Memory bank's temporal stride during evaluation.
         non_overlap_masks_for_mem_enc (bool): Whether to apply non-overlapping constraints on object masks in memory
             encoder during evaluation.
@@ -223,7 +223,7 @@ class SAM2Model(torch.nn.Module):
             multimask_max_pt_num (int): Maximum number of clicks to use multimask output in SAM.
             multimask_output_for_tracking (bool): Whether to use multimask output for tracking.
             use_multimask_token_for_obj_ptr (bool): Whether to use multimask tokens for object pointers.
-            iou_prediction_use_sigmoid (bool): Whether to use sigmoid to restrict IoU prediction to [0-1].
+            iou_prediction_use_sigmoid (bool): Whether to use sigmoid to restrict IoU prediction to `[0-1]`.
             memory_temporal_stride_for_eval (int): Memory bank's temporal stride during evaluation.
             non_overlap_masks_for_mem_enc (bool): Whether to apply non-overlapping constraints on object masks in memory
                 encoder during evaluation.

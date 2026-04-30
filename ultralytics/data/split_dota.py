@@ -29,8 +29,8 @@ def bbox_iof(polygon1: np.ndarray, bbox2: np.ndarray, eps: float = 1e-6) -> np.n
         (np.ndarray): IoF scores with shape (N, M).
 
     Notes:
-        Polygon format: [x1, y1, x2, y2, x3, y3, x4, y4].
-        Bounding box format: [x_min, y_min, x_max, y_max].
+        Polygon format: `[x1, y1, x2, y2, x3, y3, x4, y4]`.
+        Bounding box format: `[x_min, y_min, x_max, y_max]`.
     """
     check_requirements("shapely>=2.0.0")
     from shapely.geometry import Polygon
@@ -115,7 +115,7 @@ def get_windows(
         eps (float, optional): Epsilon value for math operations.
 
     Returns:
-        (np.ndarray): Array of window coordinates of shape (N, 4) where each row is [x_start, y_start, x_stop, y_stop].
+        (np.ndarray): Array of window coordinates of shape (N, 4) where each row is `[x_start, y_start, x_stop, y_stop]`.
     """
     h, w = im_size
     windows = []

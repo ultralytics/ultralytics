@@ -153,7 +153,7 @@ class BasePredictor:
         """Prepare input image before inference.
 
         Args:
-            im (torch.Tensor | list[np.ndarray]): Images of shape (N, 3, H, W) for tensor, [(H, W, 3) x N] for list.
+            im (torch.Tensor | list[np.ndarray]): Images of shape (N, 3, H, W) for tensor, `[(H, W, 3) x N]` for list.
 
         Returns:
             (torch.Tensor): Preprocessed image tensor of shape (N, 3, H, W).
@@ -186,7 +186,7 @@ class BasePredictor:
         """Pre-transform input image before inference.
 
         Args:
-            im (list[np.ndarray]): List of images with shape [(H, W, 3) x N].
+            im (list[np.ndarray]): List of images with shape `[(H, W, 3) x N]`.
 
         Returns:
             (list[np.ndarray]): List of transformed images.

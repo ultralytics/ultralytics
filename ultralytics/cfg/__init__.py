@@ -369,7 +369,7 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
     Notes:
         - The function modifies the input dictionary in-place.
         - None values are ignored as they may be from optional arguments.
-        - Fraction keys are checked to be within the range [0.0, 1.0].
+        - Fraction keys are checked to be within the range `[0.0, 1.0]`.
     """
     for k, v in cfg.items():
         if v is not None:  # None values may be from optional args
@@ -530,10 +530,10 @@ def merge_equals_args(args: list[str]) -> list[str]:
     """Merge arguments around isolated '=' in a list of strings and join fragments with brackets.
 
     This function handles the following cases:
-        1. ['arg', '=', 'val'] becomes ['arg=val']
-        2. ['arg=', 'val'] becomes ['arg=val']
-        3. ['arg', '=val'] becomes ['arg=val']
-        4. Joins fragments with brackets, e.g., ['imgsz=[3,', '640,', '640]'] becomes ['imgsz=[3,640,640]']
+        1. `['arg', '=', 'val']` becomes `['arg=val']`
+        2. `['arg=', 'val']` becomes `['arg=val']`
+        3. `['arg', '=val']` becomes `['arg=val']`
+        4. Joins fragments with brackets, e.g., `['imgsz=[3,', '640,', '640]']` becomes `['imgsz=[3,640,640]']`
 
     Args:
         args (list[str]): A list of strings where each element represents an argument or fragment.

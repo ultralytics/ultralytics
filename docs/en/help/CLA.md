@@ -63,7 +63,7 @@ You represent that:
 
 (d) You have followed the instructions provided by Ultralytics if You do not own the Copyright in the entire work of authorship submitted.
 
-(e) Should You wish to submit work that is not Your original creation, You may submit it to Ultralytics separately from any Contribution, identifying the complete details of its source and of any license or other restriction (including, but not limited to, related patents, trademarks, and license agreements) of which You are personally aware, and conspicuously marking the work as "Submitted on behalf of a third-party: [named here]."
+(e) Should You wish to submit work that is not Your original creation, You may submit it to Ultralytics separately from any Contribution, identifying the complete details of its source and of any license or other restriction (including, but not limited to, related patents, trademarks, and license agreements) of which You are personally aware, and conspicuously marking the work as "Submitted on behalf of a third-party: \[named here\]."
 
 (f) You agree to notify Ultralytics of any facts or circumstances of which You become aware that would make these representations inaccurate in any respect.
 

@@ -17,7 +17,7 @@ From the results in the YOLO comparison table we know that the proposed method h
 <script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script defer src="../../javascript/benchmark.js"></script>
 
-<canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv7"]'></canvas>
+<canvas id="modelComparisonChart" width="1024" height="400" active-models='&#91;"YOLOv7"&#93;'></canvas>
 
 If we compare YOLOv7-X with 114 fps inference speed to YOLOv5-L (r6.1) with 99 fps inference speed, YOLOv7-X can improve AP by 3.9%. If YOLOv7-X is compared with YOLOv5-X (r6.1) of similar scale, the inference speed of YOLOv7-X is 31 fps faster. In addition, in terms of the amount of parameters and computation, YOLOv7-X reduces 22% of parameters and 8% of computation compared to YOLOv5-X (r6.1), but improves AP by 2.2% ([Source](https://arxiv.org/pdf/2207.02696)).
 

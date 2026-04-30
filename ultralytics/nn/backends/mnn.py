@@ -48,7 +48,7 @@ class MNNBackend(BaseBackend):
         """Run inference using the MNN runtime.
 
         Args:
-            im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
+            im (torch.Tensor): Input image tensor in BCHW format, normalized to `[0, 1]`.
 
         Returns:
             (list): Model predictions as a list of numpy arrays.

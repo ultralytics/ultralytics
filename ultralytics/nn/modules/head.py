@@ -210,7 +210,7 @@ class Detect(nn.Module):
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc) with last dimension
-                format [x1, y1, x2, y2, class_probs].
+                format `[x1, y1, x2, y2, class_probs]`.
 
         Returns:
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6) and last
@@ -338,7 +338,7 @@ class Segment(Detect):
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + nm) with last dimension
-                format [x1, y1, x2, y2, class_probs, mask_coefficient].
+                format `[x1, y1, x2, y2, class_probs, mask_coefficient]`.
 
         Returns:
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + nm) and last
@@ -493,7 +493,7 @@ class OBB(Detect):
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + ne) with last dimension
-                format [x, y, w, h, class_probs, angle].
+                format `[x, y, w, h, class_probs, angle]`.
 
         Returns:
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 7) and last
@@ -614,7 +614,7 @@ class Pose(Detect):
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + nk) with last dimension
-                format [x1, y1, x2, y2, class_probs, keypoints].
+                format `[x1, y1, x2, y2, class_probs, keypoints]`.
 
         Returns:
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + self.nk) and
@@ -1320,7 +1320,7 @@ class YOLOESegment(YOLOEDetect):
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + nm) with last dimension
-                format [x1, y1, x2, y2, class_probs, mask_coefficient].
+                format `[x1, y1, x2, y2, class_probs, mask_coefficient]`.
 
         Returns:
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + nm) and last

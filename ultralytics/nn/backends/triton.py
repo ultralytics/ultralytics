@@ -37,7 +37,7 @@ class TritonBackend(BaseBackend):
         """Run inference via the NVIDIA Triton Inference Server.
 
         Args:
-            im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
+            im (torch.Tensor): Input image tensor in BCHW format, normalized to `[0, 1]`.
 
         Returns:
             (list): Model predictions as a list of numpy arrays from the Triton server.

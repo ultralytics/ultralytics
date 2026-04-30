@@ -833,13 +833,13 @@ class Boxes(BaseTensor):
         data (torch.Tensor | np.ndarray): The raw tensor containing detection boxes and associated data.
         orig_shape (tuple[int, int]): The original image dimensions (height, width).
         is_track (bool): Indicates whether tracking IDs are included in the box data.
-        xyxy (torch.Tensor | np.ndarray): Boxes in [x1, y1, x2, y2] format.
+        xyxy (torch.Tensor | np.ndarray): Boxes in `[x1, y1, x2, y2]` format.
         conf (torch.Tensor | np.ndarray): Confidence scores for each box.
         cls (torch.Tensor | np.ndarray): Class labels for each box.
         id (torch.Tensor | None): Tracking IDs for each box (if available).
-        xywh (torch.Tensor | np.ndarray): Boxes in [x, y, width, height] format.
-        xyxyn (torch.Tensor | np.ndarray): Normalized [x1, y1, x2, y2] boxes relative to orig_shape.
-        xywhn (torch.Tensor | np.ndarray): Normalized [x, y, width, height] boxes relative to orig_shape.
+        xywh (torch.Tensor | np.ndarray): Boxes in `[x, y, width, height]` format.
+        xyxyn (torch.Tensor | np.ndarray): Normalized `[x1, y1, x2, y2]` boxes relative to orig_shape.
+        xywhn (torch.Tensor | np.ndarray): Normalized `[x, y, width, height]` boxes relative to orig_shape.
 
     Methods:
         cpu: Return a copy of the object with all tensors on CPU memory.
@@ -867,7 +867,7 @@ class Boxes(BaseTensor):
 
         Args:
             boxes (torch.Tensor | np.ndarray): A tensor or numpy array with detection boxes of shape (num_boxes, 6) or
-                (num_boxes, 7). Columns should contain [x1, y1, x2, y2, (optional) track_id, confidence, class].
+                (num_boxes, 7). Columns should contain `[x1, y1, x2, y2, (optional) track_id, confidence, class]`.
             orig_shape (tuple[int, int]): The original image shape as (height, width). Used for normalization.
         """
         if boxes.ndim == 1:
@@ -880,11 +880,11 @@ class Boxes(BaseTensor):
 
     @property
     def xyxy(self) -> torch.Tensor | np.ndarray:
-        """Return bounding boxes in [x1, y1, x2, y2] format.
+        """Return bounding boxes in `[x1, y1, x2, y2]` format.
 
         Returns:
             (torch.Tensor | np.ndarray): A tensor or numpy array of shape (n, 4) containing bounding box coordinates in
-                [x1, y1, x2, y2] format, where n is the number of boxes.
+                `[x1, y1, x2, y2]` format, where n is the number of boxes.
 
         Examples:
             >>> results = model("image.jpg")
@@ -953,10 +953,10 @@ class Boxes(BaseTensor):
     @property
     @lru_cache(maxsize=2)
     def xywh(self) -> torch.Tensor | np.ndarray:
-        """Convert bounding boxes from [x1, y1, x2, y2] format to [x, y, width, height] format.
+        """Convert bounding boxes from `[x1, y1, x2, y2]` format to `[x, y, width, height]` format.
 
         Returns:
-            (torch.Tensor | np.ndarray): Boxes in [x_center, y_center, width, height] format, where x_center, y_center
+            (torch.Tensor | np.ndarray): Boxes in `[x_center, y_center, width, height]` format, where x_center, y_center
                 are the coordinates of the center point of the bounding box, width, height are the dimensions of the
                 bounding box and the shape of the returned tensor is (N, 4), where N is the number of boxes.
 
@@ -976,12 +976,12 @@ class Boxes(BaseTensor):
     def xyxyn(self) -> torch.Tensor | np.ndarray:
         """Return normalized bounding box coordinates relative to the original image size.
 
-        This property calculates and returns the bounding box coordinates in [x1, y1, x2, y2] format, normalized to the
-        range [0, 1] based on the original image dimensions.
+        This property calculates and returns the bounding box coordinates in `[x1, y1, x2, y2]` format, normalized to the
+        range `[0, 1]` based on the original image dimensions.
 
         Returns:
             (torch.Tensor | np.ndarray): Normalized bounding box coordinates with shape (N, 4), where N is the number of
-                boxes. Each row contains [x1, y1, x2, y2] values normalized to [0, 1].
+                boxes. Each row contains `[x1, y1, x2, y2]` values normalized to `[0, 1]`.
 
         Examples:
             >>> boxes = Boxes(torch.tensor([[100, 50, 300, 400, 0.9, 0]]), orig_shape=(480, 640))
@@ -997,14 +997,14 @@ class Boxes(BaseTensor):
     @property
     @lru_cache(maxsize=2)
     def xywhn(self) -> torch.Tensor | np.ndarray:
-        """Return normalized bounding boxes in [x, y, width, height] format.
+        """Return normalized bounding boxes in `[x, y, width, height]` format.
 
-        This property calculates and returns the normalized bounding box coordinates in the format [x_center, y_center,
-        width, height], where all values are relative to the original image dimensions.
+        This property calculates and returns the normalized bounding box coordinates in the format
+        `[x_center, y_center, width, height]`, where all values are relative to the original image dimensions.
 
         Returns:
             (torch.Tensor | np.ndarray): Normalized bounding boxes with shape (N, 4), where N is the number of boxes.
-                Each row contains [x_center, y_center, width, height] values normalized to [0, 1] based on the original
+                Each row contains `[x_center, y_center, width, height]` values normalized to `[0, 1]` based on the original
                 image dimensions.
 
         Examples:
@@ -1083,13 +1083,13 @@ class Masks(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def xy(self) -> list[np.ndarray]:
-        """Return the [x, y] pixel coordinates for each segment in the mask tensor.
+        """Return the `[x, y]` pixel coordinates for each segment in the mask tensor.
 
         This property calculates and returns a list of pixel coordinates for each segmentation mask in the Masks object.
         The coordinates are scaled to match the original image dimensions.
 
         Returns:
-            (list[np.ndarray]): A list of numpy arrays, where each array contains the [x, y] pixel coordinates for a
+            (list[np.ndarray]): A list of numpy arrays, where each array contains the `[x, y]` pixel coordinates for a
                 single segmentation mask. Each array has shape (N, 2), where N is the number of points in the segment.
 
         Examples:
@@ -1115,8 +1115,8 @@ class Keypoints(BaseTensor):
         data (torch.Tensor): The raw tensor containing keypoint data.
         orig_shape (tuple[int, int]): The original image dimensions (height, width).
         has_visible (bool): Indicates whether visibility information is available for keypoints.
-        xy (torch.Tensor): Keypoint coordinates in [x, y] format.
-        xyn (torch.Tensor): Normalized keypoint coordinates in [x, y] format, relative to orig_shape.
+        xy (torch.Tensor): Keypoint coordinates in `[x, y]` format.
+        xyn (torch.Tensor): Normalized keypoint coordinates in `[x, y]` format, relative to orig_shape.
         conf (torch.Tensor | None): Confidence values for each keypoint, if available.
 
     Methods:
@@ -1182,7 +1182,7 @@ class Keypoints(BaseTensor):
         Returns:
             (torch.Tensor | np.ndarray): A tensor or array of shape (N, K, 2) containing normalized keypoint
                 coordinates, where N is the number of instances, K is the number of keypoints, and the last dimension
-                contains [x, y] values in the range [0, 1].
+                contains `[x, y]` values in the range `[0, 1]`.
 
         Examples:
             >>> keypoints = Keypoints(torch.rand(1, 17, 2), orig_shape=(480, 640))
@@ -1340,13 +1340,13 @@ class OBB(BaseTensor):
         data (torch.Tensor): The raw OBB tensor containing box coordinates and associated data.
         orig_shape (tuple[int, int]): Original image size as (height, width).
         is_track (bool): Indicates whether tracking IDs are included in the box data.
-        xywhr (torch.Tensor | np.ndarray): Boxes in [x_center, y_center, width, height, rotation] format.
+        xywhr (torch.Tensor | np.ndarray): Boxes in `[x_center, y_center, width, height, rotation]` format.
         conf (torch.Tensor | np.ndarray): Confidence scores for each box.
         cls (torch.Tensor | np.ndarray): Class labels for each box.
         id (torch.Tensor | np.ndarray): Tracking IDs for each box, if available.
-        xyxyxyxy (torch.Tensor | np.ndarray): Boxes in 8-point [x1, y1, x2, y2, x3, y3, x4, y4] format.
+        xyxyxyxy (torch.Tensor | np.ndarray): Boxes in 8-point `[x1, y1, x2, y2, x3, y3, x4, y4]` format.
         xyxyxyxyn (torch.Tensor | np.ndarray): Normalized 8-point coordinates relative to orig_shape.
-        xyxy (torch.Tensor | np.ndarray): Axis-aligned bounding boxes in [x1, y1, x2, y2] format.
+        xyxy (torch.Tensor | np.ndarray): Axis-aligned bounding boxes in `[x1, y1, x2, y2]` format.
 
     Methods:
         cpu: Return a copy of the OBB object with all tensors on CPU memory.
@@ -1387,11 +1387,11 @@ class OBB(BaseTensor):
 
     @property
     def xywhr(self) -> torch.Tensor | np.ndarray:
-        """Return boxes in [x_center, y_center, width, height, rotation] format.
+        """Return boxes in `[x_center, y_center, width, height, rotation]` format.
 
         Returns:
             (torch.Tensor | np.ndarray): A tensor or numpy array containing the oriented bounding boxes with format
-                [x_center, y_center, width, height, rotation]. The shape is (N, 5) where N is the number of boxes.
+                `[x_center, y_center, width, height, rotation]`. The shape is (N, 5) where N is the number of boxes.
 
         Examples:
             >>> results = model("image.jpg")
@@ -1411,7 +1411,7 @@ class OBB(BaseTensor):
 
         Returns:
             (torch.Tensor | np.ndarray): A tensor or numpy array of shape (N,) containing confidence scores for N
-                detections, where each score is in the range [0, 1].
+                detections, where each score is in the range `[0, 1]`.
 
         Examples:
             >>> results = model("image.jpg")
@@ -1506,7 +1506,7 @@ class OBB(BaseTensor):
 
         Returns:
             (torch.Tensor | np.ndarray): Axis-aligned bounding boxes in xyxy format with shape (N, 4), where N is the
-                number of boxes. Each row contains [x1, y1, x2, y2] coordinates.
+                number of boxes. Each row contains `[x1, y1, x2, y2]` coordinates.
 
         Examples:
             >>> import torch

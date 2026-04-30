@@ -109,7 +109,7 @@ class ONNXBackend(BaseBackend):
         """Run ONNX inference using IO binding (CUDA) or standard session execution.
 
         Args:
-            im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
+            im (torch.Tensor): Input image tensor in BCHW format, normalized to `[0, 1]`.
 
         Returns:
             (torch.Tensor | list[torch.Tensor] | np.ndarray): Model predictions as tensor(s) or numpy array(s).
@@ -175,7 +175,7 @@ class ONNXIMXBackend(ONNXBackend):
         """Run IMX inference with task-specific output concatenation for detect, pose, and segment tasks.
 
         Args:
-            im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
+            im (torch.Tensor): Input image tensor in BCHW format, normalized to `[0, 1]`.
 
         Returns:
             (np.ndarray | list[np.ndarray] | tuple[np.ndarray, ...]): Task-formatted model predictions.

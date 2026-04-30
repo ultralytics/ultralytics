@@ -355,7 +355,7 @@ class Tuner:
 
     @staticmethod
     def _crossover(x: np.ndarray, alpha: float = 0.2, k: int = 9) -> np.ndarray:
-        """BLX-α crossover from up to top-k parents (x[:,0]=fitness, rest=genes)."""
+        """BLX-α crossover from up to top-k parents (`x[:,0]`=fitness, rest=genes)."""
         k = min(k, len(x))
         # fitness weights (shifted to >0); fallback to uniform if degenerate
         weights = x[:, 0] - x[:, 0].min() + 1e-6

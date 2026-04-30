@@ -785,9 +785,9 @@ class PositionEmbeddingRandom(nn.Module):
         positional_encoding_gaussian_matrix (torch.Tensor): A buffer containing random values for encoding.
 
     Methods:
-        _pe_encoding: Positionally encodes points that are normalized to [0,1].
+        _pe_encoding: Positionally encodes points that are normalized to `[0,1]`.
         forward: Generates positional encoding for a grid of the specified size.
-        forward_with_coords: Positionally encodes points that are not normalized to [0,1].
+        forward_with_coords: Positionally encodes points that are not normalized to `[0,1]`.
 
     Examples:
         >>> pe = PositionEmbeddingRandom(num_pos_feats=64)
@@ -809,7 +809,7 @@ class PositionEmbeddingRandom(nn.Module):
         torch.backends.cudnn.deterministic = False
 
     def _pe_encoding(self, coords: torch.Tensor) -> torch.Tensor:
-        """Encode normalized [0,1] coordinates using random spatial frequencies."""
+        """Encode normalized `[0,1]` coordinates using random spatial frequencies."""
         # Assuming coords are in [0, 1]^2 square and have d_1 x ... x d_n x 2 shape
         coords = 2 * coords - 1
         coords = coords @ self.positional_encoding_gaussian_matrix
@@ -834,7 +834,7 @@ class PositionEmbeddingRandom(nn.Module):
         return pe.permute(2, 0, 1)  # C x H x W
 
     def forward_with_coords(self, coords_input: torch.Tensor, image_size: tuple[int, int]) -> torch.Tensor:
-        """Positionally encode input coordinates, normalizing them to [0,1] based on the given image size."""
+        """Positionally encode input coordinates, normalizing them to `[0,1]` based on the given image size."""
         coords = coords_input.clone()
         coords[:, :, 0] = coords[:, :, 0] / image_size[1]
         coords[:, :, 1] = coords[:, :, 1] / image_size[0]

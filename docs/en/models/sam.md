@@ -31,6 +31,10 @@ SAM's advanced design allows it to adapt to new image distributions and tasks wi
 
 For an in-depth look at the Segment Anything Model and the SA-1B dataset, please visit the [Segment Anything GitHub](https://github.com/facebookresearch/segment-anything) and check out the research paper [Segment Anything](https://arxiv.org/abs/2304.02643).
 
+!!! tip "SAM on Ultralytics Platform"
+
+    SAM powers the [smart annotation feature](https://www.ultralytics.com/annotate) on [Ultralytics Platform](https://platform.ultralytics.com), enabling click-based intelligent masking for fast dataset labeling. See the [annotation guide](../platform/data/annotation.md) for details.
+
 ## Available Models, Supported Tasks, and Operating Modes
 
 This table presents the available models with their specific pretrained weights, the tasks they support, and their compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), indicated by ✅ emojis for supported modes and ❌ emojis for unsupported modes.

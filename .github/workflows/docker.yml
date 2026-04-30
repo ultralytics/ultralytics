@@ -118,24 +118,42 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v4
+        uses: ultralytics/actions/retry@main
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          run: |
+            if ! out=$(printf '%s' "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin 2>&1); then
+              printf '%s\n' "$out" >&2
+              exit 1
+            fi
+            echo "Logged in to docker.io"
 
       - name: Login to GHCR
-        uses: docker/login-action@v4
+        uses: ultralytics/actions/retry@main
+        env:
+          GHCR_USERNAME: ${{ github.repository_owner }}
+          GHCR_TOKEN: ${{ secrets._GITHUB_TOKEN }}
         with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets._GITHUB_TOKEN }}
+          run: |
+            if ! out=$(printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin 2>&1); then
+              printf '%s\n' "$out" >&2
+              exit 1
+            fi
+            echo "Logged in to ghcr.io"
 
       - name: Login to NVIDIA NGC
-        uses: docker/login-action@v4
+        uses: ultralytics/actions/retry@main
+        env:
+          NVIDIA_NGC_API_KEY: ${{ secrets.NVIDIA_NGC_API_KEY }}
         with:
-          registry: nvcr.io
-          username: $oauthtoken
-          password: ${{ secrets.NVIDIA_NGC_API_KEY }}
+          run: |
+            if ! out=$(printf '%s' "$NVIDIA_NGC_API_KEY" | docker login nvcr.io -u '$oauthtoken' --password-stdin 2>&1); then
+              printf '%s\n' "$out" >&2
+              exit 1
+            fi
+            echo "Logged in to nvcr.io"
 
       - name: Retrieve Ultralytics version
         id: get_version
@@ -285,7 +303,7 @@ jobs:
     steps:
       - name: Check for failure and notify
         if: needs.docker.result == 'failure' && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push' && github.run_attempt == '1'
-        uses: slackapi/slack-github-action@v3.0.1
+        uses: slackapi/slack-github-action@v3.0.2
         with:
           webhook-type: incoming-webhook
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}

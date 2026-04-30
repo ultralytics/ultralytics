@@ -2,6 +2,7 @@
 
 import contextlib
 import csv
+import tarfile
 import urllib
 import zipfile
 from copy import copy
@@ -394,6 +395,34 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
     assert (extracted / "images" / "val").is_dir(), f"images/val not found in {extracted}"
 
 
+def test_safe_download_skips_unsafe_archive_members(tmp_path):
+    """Test safe_download() skips archive members that would extract outside the target directory."""
+    archive = tmp_path / "unsafe.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("../unsafe.txt", "bad")
+        zf.writestr("safe/file.txt", "ok")
+
+    extracted = safe_download(archive, dir=tmp_path / "datasets", unzip=True, progress=False)
+
+    assert not (tmp_path / "unsafe.txt").exists()
+    assert (extracted / "safe/file.txt").is_file()
+
+
+def test_safe_download_skips_unsafe_tar_members(tmp_path):
+    """Test safe_download() skips tar members that would extract outside the target directory."""
+    source = tmp_path / "safe.txt"
+    source.write_text("ok")
+    archive = tmp_path / "unsafe.tar"
+    with tarfile.open(archive, "w") as tar:
+        tar.add(source, arcname="../unsafe.txt")
+        tar.add(source, arcname="safe.txt")
+
+    extracted = safe_download(archive, dir=tmp_path / "datasets", unzip=True, progress=False)
+
+    assert not (tmp_path / "unsafe.txt").exists()
+    assert (extracted / "safe.txt").is_file()
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_data_converter(tmp_path):
     """Test dataset conversion functions from COCO to YOLO format and class mappings."""
@@ -549,7 +578,7 @@ def test_utils_ops():
 
 def test_utils_files(tmp_path):
     """Test file handling utilities including file age, date, and paths with spaces."""
-    from ultralytics.utils.files import file_age, file_date, get_latest_run, spaces_in_path
+    from ultralytics.utils.files import file_age, file_date, get_latest_run, increment_path, spaces_in_path
 
     file_age(SOURCE)
     file_date(SOURCE)
@@ -559,6 +588,14 @@ def test_utils_files(tmp_path):
     path.mkdir(parents=True, exist_ok=True)
     with spaces_in_path(path) as new_path:
         print(new_path)
+
+    exp_dir = tmp_path / "runs" / "exp"
+    exp_dir.mkdir(parents=True)
+    assert increment_path(exp_dir) == tmp_path / "runs" / "exp-2"
+
+    results_file = exp_dir / "results.txt"
+    results_file.touch()
+    assert increment_path(results_file) == exp_dir / "results-2.txt"
 
 
 @pytest.mark.slow

@@ -550,7 +550,7 @@ class Exporter:
             q = "int8" if self.args.int8 else "half" if self.args.half else ""  # quantization
             LOGGER.info(
                 f"\nExport complete ({time.time() - t:.1f}s)"
-                f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
+                f"\nResults saved to {colorstr('bold', Path(f).resolve())}"
                 f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
                 f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}"
                 f"\nVisualize:       https://netron.app"

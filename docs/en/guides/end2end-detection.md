@@ -230,7 +230,7 @@ You can check using either the Ultralytics Python API or by inspecting the expor
         print(metadata.get("end2end"))  # 'True' if end-to-end is enabled
         ```
 
-Alternatively, check the output shape — end-to-end detection models output `(1, 300, 6)`, while traditional models output `(1, nc + 4, 8400)`. For other task shapes, see the [output shapes FAQ](#my-exported-onnx-model-outputs-1-300-6--is-that-correct).
+Alternatively, check the output shape — end-to-end detection models output `(1, 300, 6)`, while traditional models output `(1, nc + 4, 8400)`. For other task shapes, see the [output shapes FAQ](#my-exported-onnx-model-outputs-1-300-6-is-that-correct).
 
 ### Is end-to-end supported for segmentation, pose, and OBB tasks?
 

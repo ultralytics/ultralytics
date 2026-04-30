@@ -49,13 +49,13 @@ class ClassificationTrainer(BaseTrainer):
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks: dict | None = None):
         """Initialize a ClassificationTrainer object.
 
         Args:
             cfg (dict[str, Any], optional): Default configuration dictionary containing training parameters.
             overrides (dict[str, Any], optional): Dictionary of parameter overrides for the default configuration.
-            _callbacks (list[Any], optional): List of callback functions to be executed during training.
+            _callbacks (dict, optional): Dictionary of callback functions to be executed during training.
         """
         if overrides is None:
             overrides = {}
@@ -84,7 +84,7 @@ class ClassificationTrainer(BaseTrainer):
             model.load(weights)
 
         for m in model.modules():
-            if not self.args.pretrained and hasattr(m, "reset_parameters"):
+            if self.args.pretrained is False and hasattr(m, "reset_parameters"):
                 m.reset_parameters()
             if isinstance(m, torch.nn.Dropout) and self.args.dropout:
                 m.p = self.args.dropout  # set dropout

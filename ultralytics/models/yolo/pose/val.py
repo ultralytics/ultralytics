@@ -52,7 +52,7 @@ class PoseValidator(DetectionValidator):
         due to a known bug with pose models.
     """
 
-    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks: dict | None = None) -> None:
         """Initialize a PoseValidator object for pose estimation validation.
 
         This validator is specifically designed for pose estimation tasks, handling keypoints and implementing
@@ -62,7 +62,7 @@ class PoseValidator(DetectionValidator):
             dataloader (torch.utils.data.DataLoader, optional): DataLoader to be used for validation.
             save_dir (Path | str, optional): Directory to save results.
             args (dict, optional): Arguments for the validator including task set to "pose".
-            _callbacks (list, optional): List of callback functions to be executed during validation.
+            _callbacks (dict, optional): Dictionary of callback functions to be executed during validation.
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.sigma = None
@@ -184,6 +184,11 @@ class PoseValidator(DetectionValidator):
             tp_p = self.match_predictions(preds["cls"], gt_cls, iou).cpu().numpy()
         tp.update({"tp_p": tp_p})  # update tp with kpts IoU
         return tp
+
+    def gather_stats(self) -> None:
+        """Gather stats from all GPUs."""
+        super().gather_stats()  # gather stats from DetectionValidator
+        self._gather_image_metrics(self.metrics.pose)
 
     def save_one_txt(self, predn: dict[str, torch.Tensor], save_conf: bool, shape: tuple[int, int], file: Path) -> None:
         """Save YOLO pose detections to a text file in normalized coordinates.

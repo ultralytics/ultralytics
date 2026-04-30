@@ -8,12 +8,23 @@ keywords: Ultralytics Platform, data management, datasets, annotation, YOLO, com
 
 Data preparation is the foundation of successful [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models. [Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive tools for managing your training data, from upload through annotation to analysis.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/kA09zsjZGdA"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Get Started with Ultralytics Platform - Data
+</p>
+
 ## Overview
 
 The Data section of Ultralytics Platform helps you:
 
-- **Upload** images, videos, and archives (ZIP, TAR, GZ)
-- **Annotate** with manual drawing tools and SAM-powered smart labeling
+- **Upload** images, videos, and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON)
+- **Annotate** with manual drawing tools and SAM-powered smart labeling — choose from [SAM 2.1](../../models/sam-2.md) or the new [SAM 3](../../models/sam-3.md)
 - **Analyze** your data with statistics and visualizations
 - **Export** in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for local training
 
@@ -36,7 +47,7 @@ graph LR
 | Stage        | Description                                                                                           |
 | ------------ | ----------------------------------------------------------------------------------------------------- |
 | **Upload**   | Import images, videos, or archives with automatic processing                                          |
-| **Annotate** | Label data with bounding boxes, polygons, keypoints, or classifications                               |
+| **Annotate** | Label data with manual tools for all 5 task types, or use SAM annotation for detect, segment, and OBB |
 | **Analyze**  | View class distributions, spatial heatmaps, and dimension statistics                                  |
 | **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use |
 
@@ -44,17 +55,17 @@ graph LR
 
 Ultralytics Platform supports all 5 YOLO task types:
 
-| Task                                             | Description                                 | Annotation Tool   |
-| ------------------------------------------------ | ------------------------------------------- | ----------------- |
-| **[Detect](../../datasets/detect/index.md)**     | Object detection with bounding boxes        | Rectangle tool    |
-| **[Segment](../../datasets/segment/index.md)**   | Instance segmentation with pixel masks      | Polygon tool      |
-| **[Pose](../../datasets/pose/index.md)**         | Keypoint estimation (17-point COCO format)  | Keypoint tool     |
-| **[OBB](../../datasets/obb/index.md)**           | Oriented bounding boxes for rotated objects | Oriented box tool |
-| **[Classify](../../datasets/classify/index.md)** | Image-level classification                  | Class selector    |
+| Task                                             | Description                                                     | Annotation Tool   |
+| ------------------------------------------------ | --------------------------------------------------------------- | ----------------- |
+| **[Detect](../../datasets/detect/index.md)**     | Object detection with bounding boxes                            | Rectangle tool    |
+| **[Segment](../../datasets/segment/index.md)**   | Instance segmentation with pixel masks                          | Polygon tool      |
+| **[Pose](../../datasets/pose/index.md)**         | Keypoint estimation with built-in and custom skeleton templates | Keypoint tool     |
+| **[OBB](../../datasets/obb/index.md)**           | Oriented bounding boxes for rotated objects                     | Oriented box tool |
+| **[Classify](../../datasets/classify/index.md)** | Image-level classification                                      | Class selector    |
 
 !!! info "Task Type Selection"
 
-    The task type is set when creating a dataset and determines which annotation tools are available. You can change it later from the dataset settings, but incompatible annotations won't be displayed after switching.
+    The task type is set when creating a dataset and determines which annotation tools are available. You can change it later from the dataset header task selector, but incompatible annotations won't be displayed after switching.
 
 ## Key Features
 
@@ -85,17 +96,28 @@ This allows training on the platform's datasets from any machine with your [API 
     model.train(data="ul://username/datasets/my-dataset", epochs=100)
     ```
 
+### Dataset Versioning
+
+Create immutable NDJSON snapshots of your dataset for reproducible training. Each version captures image counts, class counts, and annotation counts at the time of creation. See [Versions Tab](datasets.md#versions-tab) for details.
+
 ### Dataset Tabs
 
-Every dataset page provides five tabs:
+Dataset pages can show up to six tabs, depending on the dataset state and your permissions:
 
-| Tab         | Description                                                                  |
-| ----------- | ---------------------------------------------------------------------------- |
-| **Images**  | Browse images in grid, compact, or table view with annotation overlays       |
-| **Classes** | View and edit class names, colors, and label counts per class                |
-| **Charts**  | Automatic statistics: split distribution, class counts, heatmaps             |
-| **Models**  | [Models](../train/models.md) trained on this dataset with metrics and status |
-| **Errors**  | Images that failed processing with error details and fix guidance            |
+| Tab          | Description                                                                  |
+| ------------ | ---------------------------------------------------------------------------- |
+| **Images**   | Browse images in grid, compact, or table view with annotation overlays       |
+| **Classes**  | View and edit class names, colors, and label counts per class                |
+| **Charts**   | Automatic statistics: split distribution, class counts, heatmaps             |
+| **Models**   | [Models](../train/models.md) trained on this dataset with metrics and status |
+| **Versions** | Create and download immutable NDJSON snapshots for reproducible training     |
+| **Errors**   | Images that failed processing with error details and fix guidance            |
+
+`Classes` and `Charts` appear when the dataset has images. `Errors` appears only when processing failures exist. `Versions` appears for owners, or for non-owners when versions already exist.
+
+### Clustering
+
+Explore your dataset as an interactive 2D scatter plot where visually similar images sit close together — useful for surfacing clusters, duplicates, and outliers, and for inspecting how splits or classes are distributed across your data. Lasso a region of the plot to filter the gallery to those images. See [Clustering](datasets.md#clustering) for details.
 
 ### Statistics and Visualization
 
@@ -111,8 +133,10 @@ The `Charts` tab provides automatic analysis including:
 
 ## Quick Links
 
-- [**Datasets**](datasets.md): Upload and manage your training data
+- [**Datasets**](datasets.md): Upload, manage, and export your training data
 - [**Annotation**](annotation.md): Label data with manual and AI-assisted tools
+- [**Cloud Training**](../train/cloud-training.md): Train models on your annotated datasets
+- [**Dataset URI**](datasets.md#dataset-uri): Use `ul://` URIs to train from anywhere
 
 ## FAQ
 
@@ -124,7 +148,7 @@ Ultralytics Platform supports:
 
 **Videos:** MP4, WebM, MOV, AVI, MKV, M4V (max 1GB, frames extracted at 1 FPS, max 100 frames)
 
-**Archives:** ZIP, TAR, TAR.GZ, TGZ, GZ (max 10GB) containing images with optional [YOLO-format labels](../../datasets/detect/index.md#ultralytics-yolo-format)
+**Dataset files:** ZIP or TAR archives including `.tar.gz` and `.tgz` (max 10GB on Free, 20GB on Pro, 50GB on Enterprise) containing images with optional [YOLO-format labels](../../datasets/detect/index.md#ultralytics-yolo-format), plus NDJSON exports
 
 ### What is the maximum dataset size?
 
@@ -134,9 +158,9 @@ Storage limits depend on your plan:
 | ---------- | ------------- |
 | Free       | 100 GB        |
 | Pro        | 500 GB        |
-| Enterprise | Custom        |
+| Enterprise | Unlimited     |
 
-Individual file limits: Images 50MB, Videos 1GB, Archives 10GB
+Individual file limits: Images 50MB, Videos 1GB, datasets 10GB on Free / 20GB on Pro / 50GB on Enterprise
 
 ### Can I use my Platform datasets for local training?
 
@@ -145,7 +169,7 @@ Yes! Use the dataset URI format to train locally:
 === "CLI"
 
     ```bash
-    export ULTRALYTICS_API_KEY="your_key"
+    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100
     ```
 
@@ -154,7 +178,7 @@ Yes! Use the dataset URI format to train locally:
     ```python
     import os
 
-    os.environ["ULTRALYTICS_API_KEY"] = "your_key"
+    os.environ["ULTRALYTICS_API_KEY"] = "YOUR_API_KEY"
 
     from ultralytics import YOLO
 

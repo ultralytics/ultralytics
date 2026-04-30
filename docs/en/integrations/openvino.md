@@ -6,7 +6,7 @@ keywords: YOLO26, OpenVINO, model export, Intel, AI inference, CPU speedup, GPU 
 
 # Intel OpenVINO Export
 
-<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ecosystem.avif" alt="OpenVINO Ecosystem">
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ecosystem.avif" alt="OpenVINO Intel AI inference toolkit">
 
 In this guide, we cover exporting YOLO26 models to the [OpenVINO](https://docs.openvino.ai/) format, which can provide up to 3x [CPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/cpu-device.html) speedup, as well as accelerating YOLO inference on Intel [GPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/gpu-device.html) and [NPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/npu-device.html) hardware.
 
@@ -99,7 +99,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 1. **Performance**: OpenVINO delivers high-performance inference by utilizing the power of Intel CPUs, integrated and discrete GPUs, and FPGAs.
 2. **Support for Heterogeneous Execution**: OpenVINO provides an API to write once and deploy on any supported Intel hardware (CPU, GPU, FPGA, VPU, etc.).
 3. **Model Optimizer**: OpenVINO provides a Model Optimizer that imports, converts, and optimizes models from popular [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) frameworks such as PyTorch, [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), TensorFlow Lite, Keras, ONNX, PaddlePaddle, and Caffe.
-4. **Ease of Use**: The toolkit comes with more than [80 tutorial notebooks](https://github.com/openvinotoolkit/openvino_notebooks) (including [YOLOv8 optimization](https://github.com/openvinotoolkit/openvino_notebooks/tree/latest/notebooks/yolov8-optimization)) teaching different aspects of the toolkit.
+4. **Ease of Use**: The toolkit comes with more than [80 tutorial notebooks](https://github.com/openvinotoolkit/openvino_notebooks) (including [YOLO26 optimization](https://github.com/openvinotoolkit/openvino_notebooks/tree/latest/notebooks/yolov26-optimization)) teaching different aspects of the toolkit.
 
 ## OpenVINO Export Structure
 
@@ -136,7 +136,7 @@ This approach is ideal for fast prototyping or deployment when you don't need fu
 
 ### Inference with OpenVINO Runtime
 
-The OpenVINO Runtime provides a unified API for inference across all supported Intel hardware. It also provides advanced capabilities like load balancing across Intel hardware and asynchronous execution. For more information on running inference, refer to the [YOLO26 notebooks](https://github.com/openvinotoolkit/openvino_notebooks/tree/latest/notebooks/yolov11-optimization).
+The OpenVINO Runtime provides a unified API for inference across all supported Intel hardware. It also provides advanced capabilities like load balancing across Intel hardware and asynchronous execution. For more information on running inference, refer to the [YOLO26 notebooks](https://github.com/openvinotoolkit/openvino_notebooks/tree/latest/notebooks/yolov26-optimization).
 
 Remember, you'll need the XML and BIN files as well as any application-specific settings like input size, scale factor for normalization, etc., to correctly set up and use the model with the Runtime.
 
@@ -167,7 +167,7 @@ The Intel® Core® series is a range of high-performance processors by Intel. Th
 Benchmarks below run on 12th Gen Intel® Core® i9-12900KS CPU at FP32 precision.
 
 <div align="center">
-<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-corei9.avif" alt="Core CPU benchmarks">
+<img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-corei9.avif" alt="OpenVINO YOLO inference benchmarks on Intel CPU">
 </div>
 
 ??? abstract "Detailed Benchmark Results"
@@ -214,7 +214,7 @@ Benchmarks below run on Intel® Core™ Ultra™ 7 258V and Intel® Core™ Ultr
     === "Integrated Intel® Arc™ GPU"
 
         <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra7-258V-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
+        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultra7-258V-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -240,7 +240,7 @@ Benchmarks below run on Intel® Core™ Ultra™ 7 258V and Intel® Core™ Ultr
     === "Intel® Lunar Lake CPU"
 
         <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra7-258V-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
+        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultra7-258V-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -267,7 +267,7 @@ Benchmarks below run on Intel® Core™ Ultra™ 7 258V and Intel® Core™ Ultr
     === "Integrated Intel® AI Boost NPU"
 
         <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra7-258V-npu.avif" alt="Intel Core Ultra NPU benchmarks">
+        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultra7-258V-npu.avif" alt="Intel Core Ultra NPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -297,7 +297,7 @@ Benchmarks below run on Intel® Core™ Ultra™ 7 258V and Intel® Core™ Ultr
     === "Integrated Intel® Arc™ GPU"
 
         <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra7-265K-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
+        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultra7-265K-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -324,7 +324,7 @@ Benchmarks below run on Intel® Core™ Ultra™ 7 258V and Intel® Core™ Ultr
     === "Intel® Arrow Lake CPU"
 
         <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra7-265K-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
+        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultra7-265K-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -351,7 +351,7 @@ Benchmarks below run on Intel® Core™ Ultra™ 7 258V and Intel® Core™ Ultr
     === "Integrated Intel® AI Boost NPU"
 
         <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra7-265K-npu.avif" alt="Intel Core Ultra NPU benchmarks">
+        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultra7-265K-npu.avif" alt="Intel Core Ultra NPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -383,7 +383,7 @@ Benchmarks below run on Intel Arc A770 and Intel Arc B580 at FP32 and INT8 preci
 ### Intel Arc A770
 
 <div align="center">
-<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-arc-a770-gpu.avif" alt="Intel Core Ultra CPU benchmarks">
+<img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-arc-a770-gpu.avif" alt="Intel Core Ultra CPU benchmarks">
 </div>
 
 ??? abstract "Detailed Benchmark Results"
@@ -409,7 +409,7 @@ Benchmarks below run on Intel Arc A770 and Intel Arc B580 at FP32 and INT8 preci
 ### Intel Arc B580
 
 <div align="center">
-<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-arc-b580-gpu.avif" alt="Intel Core Ultra CPU benchmarks">
+<img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-arc-b580-gpu.avif" alt="Intel Core Ultra CPU benchmarks">
 </div>
 
 ??? abstract "Detailed Benchmark Results"
@@ -544,9 +544,9 @@ Ultralytics YOLO26 is optimized for real-time object detection with high accurac
 
 For in-depth performance analysis, check our detailed [YOLO11 benchmarks](#openvino-yolo11-benchmarks) on different hardware.
 
-### Can I benchmark YOLO11 models on different formats such as PyTorch, ONNX, and OpenVINO?
+### Can I benchmark YOLO26 models on different formats such as PyTorch, ONNX, and OpenVINO?
 
-Yes, you can benchmark YOLO11 models in various formats including PyTorch, TorchScript, ONNX, and OpenVINO. Use the following code snippet to run benchmarks on your chosen dataset:
+Yes, you can benchmark YOLO26 models in various formats including PyTorch, TorchScript, ONNX, and OpenVINO. Use the following code snippet to run benchmarks on your chosen dataset:
 
 !!! example
 
@@ -555,18 +555,18 @@ Yes, you can benchmark YOLO11 models in various formats including PyTorch, Torch
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLO11n PyTorch model
-        model = YOLO("yolo11n.pt")
+        # Load a YOLO26n PyTorch model
+        model = YOLO("yolo26n.pt")
 
-        # Benchmark YOLO11n speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8 dataset for all export formats
+        # Benchmark YOLO26n speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8 dataset for all export formats
         results = model.benchmark(data="coco8.yaml")
         ```
 
     === "CLI"
 
         ```bash
-        # Benchmark YOLO11n speed and accuracy on the COCO8 dataset for all export formats
-        yolo benchmark model=yolo11n.pt data=coco8.yaml
+        # Benchmark YOLO26n speed and accuracy on the COCO8 dataset for all export formats
+        yolo benchmark model=yolo26n.pt data=coco8.yaml
         ```
 
 For detailed benchmark results, refer to our [benchmarks section](#openvino-yolo11-benchmarks) and [export formats](../modes/export.md) documentation.

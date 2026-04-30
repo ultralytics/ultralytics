@@ -15,7 +15,7 @@ keywords: Neptune, YOLO26, Ultralytics, experiment tracking, MLOps, model regist
 Ultralytics YOLO26 integrates with Neptune to streamline [experiment tracking](https://www.ultralytics.com/glossary/experiment-tracking). This integration allows you to automatically log training metrics, visualize model predictions, and store model artifacts without writing custom logging code.
 
 <p align="center">
-  <img width="800" src="https://docs.neptune.ai/img/app/app_preview.png" alt="Neptune.ai Dashboard Overview">
+  <img width="800" src="https://docs.neptune.ai/img/app/app_preview.png" alt="Neptune.ai ML experiment tracking dashboard">
 </p>
 
 ## Key Features
@@ -74,7 +74,6 @@ The securest way to handle credentials is via environment variables. Note that t
     import os
 
     os.environ["NEPTUNE_API_TOKEN"] = "your_long_api_token_here"
-    os.environ["NEPTUNE_PROJECT"] = "your_workspace/your_project"
     ```
 
 ## Usage

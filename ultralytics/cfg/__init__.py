@@ -48,6 +48,9 @@ SOLUTION_MAP = {
     "analytics": "Analytics",
     "inference": "Inference",
     "trackzone": "TrackZone",
+    "region": "RegionCounter",
+    "security": "SecurityAlarm",
+    "parking": "ParkingManagement",
     "help": None,
 }
 
@@ -60,6 +63,13 @@ TASK2DATA = {
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
     "obb": "dota8.yaml",
+}
+TASK2CALIBRATIONDATA = {
+    "detect": "coco128.yaml",
+    "segment": "coco128-seg.yaml",
+    "classify": "imagenet100",
+    "pose": "coco8-pose.yaml",
+    "obb": "dota128.yaml",
 }
 TASK2MODEL = {
     "detect": "yolo26n.pt",
@@ -90,13 +100,13 @@ SOLUTIONS_HELP_MSG = f"""
         yolo solutions count source="path/to/video.mp4" region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
 
     2. Call heatmap solution
-        yolo solutions heatmap colormap=cv2.COLORMAP_PARULA model=yolo11n.pt
+        yolo solutions heatmap colormap=cv2.COLORMAP_PARULA model=yolo26n.pt
 
     3. Call queue management solution
-        yolo solutions queue region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]" model=yolo11n.pt
+        yolo solutions queue region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]" model=yolo26n.pt
 
     4. Call workout monitoring solution for push-ups
-        yolo solutions workout model=yolo11n-pose.pt kpts=[6, 8, 10]
+        yolo solutions workout model=yolo26n-pose.pt kpts=[6, 8, 10]
 
     5. Generate analytical graphs
         yolo solutions analytics analytics_type="pie"
@@ -104,7 +114,16 @@ SOLUTIONS_HELP_MSG = f"""
     6. Track objects within specific zones
         yolo solutions trackzone source="path/to/video.mp4" region="[(150, 150), (1130, 150), (1130, 570), (150, 570)]"
 
-    7. Streamlit real-time webcam inference GUI
+    7. Count objects inside specific regions
+        yolo solutions region source="path/to/video.mp4" region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
+
+    8. Run security alarm monitoring (email alerts require Python API)
+        yolo solutions security source="path/to/video.mp4"
+
+    9. Monitor parking occupancy (create JSON annotations first via Python ParkingPtsSelection)
+        yolo solutions parking source="path/to/video.mp4" json_file="bounding_boxes.json"
+
+    10. Streamlit real-time webcam inference GUI
         yolo streamlit-predict
     """
 CLI_HELP_MSG = f"""
@@ -118,16 +137,16 @@ CLI_HELP_MSG = f"""
                     See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
 
     1. Train a detection model for 10 epochs with an initial learning_rate of 0.01
-        yolo train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
+        yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
 
     2. Predict a YouTube video using a pretrained segmentation model at image size 320:
-        yolo predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
+        yolo predict model=yolo26n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
 
     3. Validate a pretrained detection model at batch-size 1 and image size 640:
-        yolo val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640
+        yolo val model=yolo26n.pt data=coco8.yaml batch=1 imgsz=640
 
-    4. Export a YOLO11n classification model to ONNX format at image size 224 by 128 (no TASK required)
-        yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
+    4. Export a YOLO26n classification model to ONNX format at image size 224 by 128 (no TASK required)
+        yolo export model=yolo26n-cls.pt format=onnx imgsz=224,128
 
     5. Ultralytics solutions usage
         yolo solutions count or any of {list(SOLUTION_MAP.keys())[1:-1]} source="path/to/video.mp4"
@@ -153,6 +172,7 @@ CFG_FLOAT_KEYS = frozenset(
         "warmup_epochs",
         "box",
         "cls",
+        "cls_pw",
         "dfl",
         "degrees",
         "shear",
@@ -238,6 +258,7 @@ CFG_BOOL_KEYS = frozenset(
         "simplify",
         "nms",
         "profile",
+        "end2end",
     }
 )
 
@@ -401,18 +422,18 @@ def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
         >>> args = SimpleNamespace(project="my_project", task="detect", mode="train", exist_ok=True)
         >>> save_dir = get_save_dir(args)
         >>> print(save_dir)
-        my_project/detect/train
+        runs/detect/my_project/train
     """
     if getattr(args, "save_dir", None):
         save_dir = args.save_dir
     else:
         from ultralytics.utils.files import increment_path
 
-        runs = (ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR) / args.task
-        nested = args.project and len(Path(args.project).parts) > 1  # e.g. "user/project" or "org\repo"
-        project = runs / args.project if nested else args.project or runs
+        project = args.project or ""
+        if not Path(project).is_absolute():
+            project = (ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR) / args.task / project
         name = name or args.name or f"{args.mode}"
-        save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in {-1, 0} else True, mkdir=True)
+        save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in {-1, 0} else True)
 
     return Path(save_dir).resolve()  # resolve to display full path in console
 
@@ -604,7 +625,7 @@ def handle_yolo_settings(args: list[str]) -> None:
 
     Examples:
         >>> handle_yolo_settings(["reset"])  # Reset YOLO settings
-        >>> handle_yolo_settings(["default_cfg_path=yolo11n.yaml"])  # Update a specific setting
+        >>> handle_yolo_settings(["default_cfg_path=yolo26n.yaml"])  # Update a specific setting
 
     Notes:
         - If no arguments are provided, the function will display the current settings.
@@ -649,7 +670,7 @@ def handle_yolo_solutions(args: list[str]) -> None:
         >>> handle_yolo_solutions(["analytics", "conf=0.25", "source=path/to/video.mp4"])
 
         Run inference with custom configuration, requires Streamlit version 1.29.0 or higher.
-        >>> handle_yolo_solutions(["inference", "model=yolo11n.pt"])
+        >>> handle_yolo_solutions(["inference", "model=yolo26n.pt"])
 
     Notes:
         - Arguments can be provided in the format 'key=value' or as boolean flags
@@ -707,7 +728,7 @@ def handle_yolo_solutions(args: list[str]) -> None:
                 str(ROOT / "solutions/streamlit_inference.py"),
                 "--server.headless",
                 "true",
-                overrides.pop("model", "yolo11n.pt"),
+                overrides.pop("model", "yolo26n.pt"),
             ]
         )
     else:
@@ -758,9 +779,9 @@ def parse_key_value_pair(pair: str = "key=value") -> tuple:
         AssertionError: If the value is missing or empty.
 
     Examples:
-        >>> key, value = parse_key_value_pair("model=yolo11n.pt")
+        >>> key, value = parse_key_value_pair("model=yolo26n.pt")
         >>> print(f"Key: {key}, Value: {value}")
-        Key: model, Value: yolo11n.pt
+        Key: model, Value: yolo26n.pt
 
         >>> key, value = parse_key_value_pair("epochs=100")
         >>> print(f"Key: {key}, Value: {value}")
@@ -832,13 +853,13 @@ def entrypoint(debug: str = "") -> None:
 
     Examples:
         Train a detection model for 10 epochs with an initial learning_rate of 0.01:
-        >>> entrypoint("train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01")
+        >>> entrypoint("train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01")
 
         Predict a YouTube video using a pretrained segmentation model at image size 320:
-        >>> entrypoint("predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320")
+        >>> entrypoint("predict model=yolo26n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320")
 
         Validate a pretrained detection model at batch-size 1 and image size 640:
-        >>> entrypoint("val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640")
+        >>> entrypoint("val model=yolo26n.pt data=coco8.yaml batch=1 imgsz=640")
 
     Notes:
         - If no arguments are passed, the function will display the usage help message.
@@ -933,7 +954,7 @@ def entrypoint(debug: str = "") -> None:
     # Model
     model = overrides.pop("model", DEFAULT_CFG.model)
     if model is None:
-        model = "yolo11n.pt"
+        model = "yolo26n.pt"
         LOGGER.warning(f"'model' argument is missing. Using default 'model={model}'.")
     overrides["model"] = model
     stem = Path(model).stem.lower()
@@ -1022,5 +1043,5 @@ def copy_default_cfg() -> None:
 
 
 if __name__ == "__main__":
-    # Example: entrypoint(debug='yolo predict model=yolo11n.pt')
+    # Example: entrypoint(debug='yolo predict model=yolo26n.pt')
     entrypoint(debug="")

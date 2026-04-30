@@ -73,7 +73,7 @@ To train a CNN model on the MNIST dataset for 100 [epochs](https://www.ultralyti
 
 The MNIST dataset contains grayscale images of handwritten digits, providing a well-structured dataset for image classification tasks. Here are some examples of images from the dataset:
 
-![Dataset sample image](https://upload.wikimedia.org/wikipedia/commons/2/27/MnistExamples.png)
+![MNIST handwritten digit classification dataset samples](https://upload.wikimedia.org/wikipedia/commons/2/27/MnistExamples.png)
 
 The example showcases the variety and complexity of the handwritten digits in the MNIST dataset, highlighting the importance of a diverse dataset for training robust image classification models.
 

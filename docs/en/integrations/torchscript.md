@@ -12,13 +12,13 @@ Export to TorchScript to serialize your [Ultralytics YOLO26](https://github.com/
 
 ## Why should you export to TorchScript?
 
-![Torchscript Overview](https://github.com/ultralytics/docs/releases/download/0/torchscript-overview.avif)
+![TorchScript model serialization and deployment workflow overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/torchscript-overview.avif)
 
 Developed by the creators of PyTorch, TorchScript is a powerful tool for optimizing and deploying PyTorch models across a variety of platforms. Exporting YOLO26 models to [TorchScript](https://docs.pytorch.org/docs/stable/jit.html) is crucial for moving from research to real-world applications. TorchScript, part of the PyTorch framework, helps make this transition smoother by allowing PyTorch models to be used in environments that don't support Python.
 
 The process involves two techniques: tracing and scripting. Tracing records operations during model execution, while scripting allows for the definition of models using a subset of Python. These techniques ensure that models like YOLO26 can still work their magic even outside their usual Python environment.
 
-![TorchScript Script and Trace](https://github.com/ultralytics/docs/releases/download/0/torchscript-script-and-trace.avif)
+![TorchScript scripting vs tracing comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/torchscript-script-and-trace.avif)
 
 TorchScript models can also be optimized through techniques such as operator fusion and refinements in memory usage, ensuring efficient execution. Another advantage of exporting to TorchScript is its potential to accelerate model execution across various hardware platforms. It creates a standalone, production-ready representation of your PyTorch model that can be integrated into C++ environments, embedded systems, or deployed in web or mobile applications.
 
@@ -26,7 +26,7 @@ TorchScript models can also be optimized through techniques such as operator fus
 
 TorchScript, a key part of the PyTorch ecosystem, provides powerful features for optimizing and deploying [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models.
 
-![TorchScript Features](https://github.com/ultralytics/docs/releases/download/0/torchscript-features.avif)
+![TorchScript key features overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/torchscript-features.avif)
 
 Here are the key features that make TorchScript a valuable tool for developers:
 
@@ -112,6 +112,7 @@ All [Ultralytics YOLO26 models](../models/index.md) are designed to support expo
 | `format`   | `str`            | `'torchscript'` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
 | `imgsz`    | `int` or `tuple` | `640`           | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
 | `dynamic`  | `bool`           | `False`         | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                 |
+| `half`     | `bool`           | `False`         | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.            |
 | `optimize` | `bool`           | `False`         | Applies optimization for mobile devices, potentially reducing model size and improving performance.                                     |
 | `nms`      | `bool`           | `False`         | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                     |
 | `batch`    | `int`            | `1`             | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |

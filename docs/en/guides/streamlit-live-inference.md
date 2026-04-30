@@ -12,19 +12,19 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/1H9ktpHUUB8"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Fm72tfuQG70"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Use Streamlit with Ultralytics for Real-Time <a href="https://www.ultralytics.com/glossary/computer-vision-cv">Computer Vision</a> in Your Browser
+  <strong>Watch:</strong> How to Build a Live Inference App with Ultralytics YOLO26 & Streamlit | Detection & Segmentation 🚀
 </p>
 
-|                                                                Aquaculture                                                                 |                                                           Animal Husbandry                                                           |
-| :----------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------: |
-| ![Fish Detection using Ultralytics YOLO26](https://github.com/ultralytics/docs/releases/download/0/fish-detection-ultralytics-yolov8.avif) | ![Animals Detection using Ultralytics YOLO26](https://github.com/ultralytics/docs/releases/download/0/animals-detection-yolov8.avif) |
-|                                                  Fish Detection using Ultralytics YOLO26                                                   |                                              Animals Detection using Ultralytics YOLO26                                              |
+|                                                                 Aquaculture                                                                 |                                                           Animal Husbandry                                                            |
+| :-----------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------: |
+| ![Fish Detection using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/fish-detection-ultralytics-yolov8.avif) | ![Animals Detection using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/animals-detection-yolov8.avif) |
+|                                                   Fish Detection using Ultralytics YOLO26                                                   |                                              Animals Detection using Ultralytics YOLO26                                               |
 
 ## Advantages of Live Inference
 

@@ -29,10 +29,10 @@ keywords: object counting, regions, YOLO26, computer vision, Ultralytics, effici
 
 ## Real World Applications
 
-|                                                                                      Retail                                                                                       |                                                                                 Market Streets                                                                                  |
-| :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![People Counting in Different Region using Ultralytics YOLO26](https://github.com/ultralytics/docs/releases/download/0/people-counting-different-region-ultralytics-yolov8.avif) | ![Crowd Counting in Different Region using Ultralytics YOLO26](https://github.com/ultralytics/docs/releases/download/0/crowd-counting-different-region-ultralytics-yolov8.avif) |
-|                                                           People Counting in Different Region using Ultralytics YOLO26                                                            |                                                           Crowd Counting in Different Region using Ultralytics YOLO26                                                           |
+|                                                                                       Retail                                                                                       |                                                                                  Market Streets                                                                                  |
+| :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| ![People Counting in Different Region using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/people-counting-different-region-ultralytics-yolov8.avif) | ![Crowd Counting in Different Region using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/crowd-counting-different-region-ultralytics-yolov8.avif) |
+|                                                            People Counting in Different Region using Ultralytics YOLO26                                                            |                                                           Crowd Counting in Different Region using Ultralytics YOLO26                                                            |
 
 ## Usage Examples
 
@@ -85,6 +85,12 @@ keywords: object counting, regions, YOLO26, computer vision, Ultralytics, effici
          cap.release()
          video_writer.release()
          cv2.destroyAllWindows()  # destroy all opened windows
+         ```
+
+    === "CLI"
+
+         ```bash
+         yolo solutions region source="path/to/video.mp4" show=True region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
          ```
 
 !!! tip "Ultralytics Example Code"

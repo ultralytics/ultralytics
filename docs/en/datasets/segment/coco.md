@@ -70,7 +70,7 @@ To train a YOLO26n-seg model on the COCO-Seg dataset for 100 [epochs](https://ww
 
 COCO-Seg, like its predecessor COCO, contains a diverse set of images with various object categories and complex scenes. However, COCO-Seg introduces more detailed instance segmentation masks for each object in the images. Here are some examples of images from the dataset, along with their corresponding instance segmentation masks:
 
-![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/mosaiced-training-batch-3.avif)
+![COCO segmentation dataset mosaic training batch](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaiced-training-batch-3.avif)
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. [Mosaicing](https://docs.ultralytics.com/guides/hyperparameter-tuning/) is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This aids the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 

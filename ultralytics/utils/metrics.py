@@ -174,7 +174,7 @@ def kpt_iou(
         kpt1 (torch.Tensor): A tensor of shape (N, 17, 3) representing ground truth keypoints.
         kpt2 (torch.Tensor): A tensor of shape (M, 17, 3) representing predicted keypoints.
         area (torch.Tensor): A tensor of shape (N,) representing areas from ground truth.
-        sigma (list): A list containing 17 values representing keypoint scales.
+        sigma (list[float]): A list containing 17 values representing keypoint scales.
         eps (float, optional): A small value to avoid division by zero.
 
     Returns:
@@ -312,8 +312,8 @@ class ConfusionMatrix(DataExportMixin):
         task (str): The type of task, either 'detect' or 'classify'.
         matrix (np.ndarray): The confusion matrix, with dimensions depending on the task.
         nc (int): The number of classes.
-        names (list[str]): The names of the classes, used as labels on the plot.
-        matches (dict): Contains the indices of ground truths and predictions categorized into TP, FP and FN.
+        names (dict[int, str]): The names of the classes, used as labels on the plot.
+        matches (dict | None): Contains the indices of ground truths and predictions categorized into TP, FP and FN.
     """
 
     def __init__(self, names: dict[int, str] = {}, task: str = "detect", save_matches: bool = False):
@@ -359,8 +359,8 @@ class ConfusionMatrix(DataExportMixin):
         """Update confusion matrix for classification task.
 
         Args:
-            preds (list[N, min(nc,5)]): Predicted class labels.
-            targets (list[N, 1]): Ground truth class labels.
+            preds (list[torch.Tensor]): Predicted class labels.
+            targets (list[torch.Tensor]): Ground truth class labels.
         """
         preds, targets = torch.cat(preds)[:, 0], torch.cat(targets)
         for p, t in zip(preds.cpu().numpy(), targets.cpu().numpy()):
@@ -481,7 +481,7 @@ class ConfusionMatrix(DataExportMixin):
             if "conf" not in mbatch:
                 mbatch["conf"] = torch.tensor([1.0] * len(mbatch["bboxes"]), device=img.device)
             mbatch["batch_idx"] = torch.ones(len(mbatch["bboxes"]), device=img.device) * i
-            for k in mbatch.keys():
+            for k in mbatch:
                 labels[k] += mbatch[k]
 
         labels = {k: torch.stack(v, 0) if len(v) else torch.empty(0) for k, v in labels.items()}
@@ -521,9 +521,11 @@ class ConfusionMatrix(DataExportMixin):
             names = names[keep_idx]  # slice class names
             array = array[keep_idx, :][:, keep_idx]  # slice matrix rows and cols
             n = (self.nc + k - 1) // k  # number of retained classes
-        nc = nn = n if self.task == "classify" else n + 1  # adjust for background if needed
-        ticklabels = ([*names, "background"]) if (0 < nn < 99) and (nn == nc) else "auto"
-        xy_ticks = np.arange(len(ticklabels))
+        nc = n if self.task == "classify" else n + 1  # adjust for background if needed
+        ticklabels = "auto"
+        if 0 < nc < 99:
+            ticklabels = names if self.task == "classify" else [*names, "background"]
+        xy_ticks = np.arange(len(ticklabels)) if ticklabels != "auto" else np.arange(nc)
         tick_fontsize = max(6, 15 - 0.1 * nc)  # Minimum size is 6
         label_fontsize = max(6, 12 - 0.1 * nc)
         title_fontsize = max(6, 12 - 0.1 * nc)
@@ -717,8 +719,8 @@ def compute_ap(recall: list[float], precision: list[float]) -> tuple[float, np.n
     """Compute the average precision (AP) given the recall and precision curves.
 
     Args:
-        recall (list): The recall curve.
-        precision (list): The precision curve.
+        recall (list[float]): The recall curve.
+        precision (list[float]): The precision curve.
 
     Returns:
         ap (float): Average precision.
@@ -726,8 +728,8 @@ def compute_ap(recall: list[float], precision: list[float]) -> tuple[float, np.n
         mrec (np.ndarray): Modified recall curve with sentinel values added at the beginning and end.
     """
     # Append sentinel values to beginning and end
-    mrec = np.concatenate(([0.0], recall, [1.0]))
-    mpre = np.concatenate(([1.0], precision, [0.0]))
+    mrec = np.concatenate(([0.0], recall, [recall[-1] if len(recall) else 1.0], [1.0]))
+    mpre = np.concatenate(([1.0], precision, [0.0], [0.0]))
 
     # Compute the precision envelope
     mpre = np.flip(np.maximum.accumulate(np.flip(mpre)))
@@ -763,7 +765,7 @@ def ap_per_class(
         tp (np.ndarray): Binary array indicating whether the detection is correct (True) or not (False).
         conf (np.ndarray): Array of confidence scores of the detections.
         pred_cls (np.ndarray): Array of predicted classes of the detections.
-        target_cls (np.ndarray): Array of true classes of the detections.
+        target_cls (np.ndarray): Array of true classes of the targets.
         plot (bool, optional): Whether to plot PR curves or not.
         on_plot (callable, optional): A callback to pass plots path and data when they are rendered.
         save_dir (Path, optional): Directory to save the PR curves.
@@ -870,13 +872,14 @@ class Metric(SimpleClass):
     """
 
     def __init__(self) -> None:
-        """Initialize a Metric instance for computing evaluation metrics for the YOLOv8 model."""
+        """Initialize a Metric instance for computing evaluation metrics for the YOLO model."""
         self.p = []  # (nc, )
         self.r = []  # (nc, )
         self.f1 = []  # (nc, )
         self.all_ap = []  # (nc, 10)
         self.ap_class_index = []  # (nc, )
         self.nc = 0
+        self.image_metrics = {}
 
     @property
     def ap50(self) -> np.ndarray | list:
@@ -960,7 +963,7 @@ class Metric(SimpleClass):
     def fitness(self) -> float:
         """Return model fitness as a weighted combination of metrics."""
         w = [0.0, 0.0, 0.0, 1.0]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
-        return (np.nan_to_num(np.array(self.mean_results())) * w).sum()
+        return float((np.nan_to_num(np.array(self.mean_results())) * w).sum())
 
     def update(self, results: tuple):
         """Update the evaluation metrics with a new set of results.
@@ -991,6 +994,10 @@ class Metric(SimpleClass):
             self.prec_values,
         ) = results
 
+    def clear_image_metrics(self) -> None:
+        """Clear stored per-image metrics from the current validation run."""
+        self.image_metrics.clear()
+
     @property
     def curves(self) -> list:
         """Return a list of curves for accessing specific metrics curves."""
@@ -998,13 +1005,40 @@ class Metric(SimpleClass):
 
     @property
     def curves_results(self) -> list[list]:
-        """Return a list of curves for accessing specific metrics curves."""
+        """Return a list of curves results for accessing specific metrics curves."""
         return [
             [self.px, self.prec_values, "Recall", "Precision"],
             [self.px, self.f1_curve, "Confidence", "F1"],
             [self.px, self.p_curve, "Confidence", "Precision"],
             [self.px, self.r_curve, "Confidence", "Recall"],
         ]
+
+    def update_image_metrics(self, tp: np.ndarray, target_cls: np.ndarray, pred_cls: np.ndarray, im_name: str) -> None:
+        """Update per-image precision, recall, F1, TP, FP, and FN at IoU threshold 0.5.
+
+        Args:
+            tp (np.ndarray): True positive array of shape (num_preds, num_iou_thresholds), where the first column (IoU
+                >= 0.5) is used.
+            target_cls (np.ndarray): Ground truth class labels for the image.
+            pred_cls (np.ndarray): Predicted class labels for the image.
+            im_name (str): The image filename used as the per-image key.
+        """
+        # Use the default IoU=0.5 column to match the validator's image-level matching policy.
+        tp = int(tp[:, 0].sum())
+        num_preds = pred_cls.shape[0]
+        num_targets = target_cls.shape[0]
+        fp = num_preds - tp
+        fn = num_targets - tp
+        precision = tp / num_preds if num_preds else 0
+        recall = tp / num_targets if num_targets else 0
+        self.image_metrics[im_name] = {
+            "precision": float(precision),
+            "recall": float(recall),
+            "f1": float(2 * (precision * recall) / (precision + recall)) if (precision + recall) else 0.0,
+            "tp": int(tp),
+            "fp": int(fp),
+            "fn": int(fn),
+        }
 
 
 class DetMetrics(SimpleClass, DataExportMixin):
@@ -1014,7 +1048,6 @@ class DetMetrics(SimpleClass, DataExportMixin):
         names (dict[int, str]): A dictionary of class names.
         box (Metric): An instance of the Metric class for storing detection results.
         speed (dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
-        task (str): The task type, set to 'detect'.
         stats (dict[str, list]): A dictionary containing lists for true positives, confidence scores, predicted classes,
             target classes, and target images.
         nt_per_class: Number of targets per class.
@@ -1037,7 +1070,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
     """
 
     def __init__(self, names: dict[int, str] = {}) -> None:
-        """Initialize a DetMetrics instance with a save directory, plot flag, and class names.
+        """Initialize a DetMetrics instance with class names.
 
         Args:
             names (dict[int, str], optional): Dictionary of class names.
@@ -1045,7 +1078,6 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.names = names
         self.box = Metric()
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
-        self.task = "detect"
         self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
         self.nt_per_class = None
         self.nt_per_image = None
@@ -1054,11 +1086,12 @@ class DetMetrics(SimpleClass, DataExportMixin):
         """Update statistics by appending new values to existing stat collections.
 
         Args:
-            stat (dict[str, any]): Dictionary containing new statistical values to append. Keys should match existing
+            stat (dict[str, Any]): Dictionary containing new statistical values to append. Keys should match existing
                 keys in self.stats.
         """
         for k in self.stats.keys():
             self.stats[k].append(stat[k])
+        self.box.update_image_metrics(stat["tp"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
 
     def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
         """Process predicted results for object detection and update metrics.
@@ -1095,6 +1128,10 @@ class DetMetrics(SimpleClass, DataExportMixin):
         """Clear the stored statistics."""
         for v in self.stats.values():
             v.clear()
+
+    def clear_image_metrics(self) -> None:
+        """Clear stored per-image metrics."""
+        self.box.clear_image_metrics()
 
     @property
     def keys(self) -> list[str]:
@@ -1184,7 +1221,6 @@ class SegmentMetrics(DetMetrics):
         box (Metric): An instance of the Metric class for storing detection results.
         seg (Metric): An instance of the Metric class to calculate mask segmentation metrics.
         speed (dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
-        task (str): The task type, set to 'segment'.
         stats (dict[str, list]): A dictionary containing lists for true positives, confidence scores, predicted classes,
             target classes, and target images.
         nt_per_class: Number of targets per class.
@@ -1195,7 +1231,7 @@ class SegmentMetrics(DetMetrics):
         keys: Return a list of keys for accessing metrics.
         mean_results: Return the mean metrics for bounding box and segmentation results.
         class_result: Return classification results for a specified class index.
-        maps: Return mAP scores for object detection and semantic segmentation models.
+        maps: Return mAP scores for object detection and segmentation models.
         fitness: Return the fitness score for both segmentation and bounding box models.
         curves: Return a list of curves for accessing specific metrics curves.
         curves_results: Provide a list of computed performance metrics and statistics.
@@ -1203,15 +1239,29 @@ class SegmentMetrics(DetMetrics):
     """
 
     def __init__(self, names: dict[int, str] = {}) -> None:
-        """Initialize a SegmentMetrics instance with a save directory, plot flag, and class names.
+        """Initialize a SegmentMetrics instance with class names.
 
         Args:
             names (dict[int, str], optional): Dictionary of class names.
         """
         DetMetrics.__init__(self, names)
         self.seg = Metric()
-        self.task = "segment"
         self.stats["tp_m"] = []  # add additional stats for masks
+
+    def update_stats(self, stat: dict[str, Any]) -> None:
+        """Update statistics by appending new values to existing stat collections.
+
+        Args:
+            stat (dict[str, Any]): Dictionary containing new statistical values to append. Keys should match existing
+                keys in self.stats.
+        """
+        super().update_stats(stat)  # update box stats
+        self.seg.update_image_metrics(stat["tp_m"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
+
+    def clear_image_metrics(self) -> None:
+        """Clear stored per-image metrics."""
+        super().clear_image_metrics()
+        self.seg.clear_image_metrics()
 
     def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
         """Process the detection and segmentation metrics over the given set of predictions.
@@ -1261,7 +1311,7 @@ class SegmentMetrics(DetMetrics):
 
     @property
     def maps(self) -> np.ndarray:
-        """Return mAP scores for object detection and semantic segmentation models."""
+        """Return mAP scores for object detection and segmentation models."""
         return DetMetrics.maps.fget(self) + self.seg.maps
 
     @property
@@ -1322,14 +1372,13 @@ class PoseMetrics(DetMetrics):
         pose (Metric): An instance of the Metric class to calculate pose metrics.
         box (Metric): An instance of the Metric class for storing detection results.
         speed (dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
-        task (str): The task type, set to 'pose'.
         stats (dict[str, list]): A dictionary containing lists for true positives, confidence scores, predicted classes,
             target classes, and target images.
         nt_per_class: Number of targets per class.
         nt_per_image: Number of targets per image.
 
     Methods:
-        process: Process the detection and pose metrics over the given set of predictions. R
+        process: Process the detection and pose metrics over the given set of predictions.
         keys: Return a list of keys for accessing metrics.
         mean_results: Return the mean results of box and pose.
         class_result: Return the class-wise detection results for a specific class i.
@@ -1341,15 +1390,29 @@ class PoseMetrics(DetMetrics):
     """
 
     def __init__(self, names: dict[int, str] = {}) -> None:
-        """Initialize the PoseMetrics class with directory path, class names, and plotting options.
+        """Initialize the PoseMetrics class with class names.
 
         Args:
             names (dict[int, str], optional): Dictionary of class names.
         """
         super().__init__(names)
         self.pose = Metric()
-        self.task = "pose"
         self.stats["tp_p"] = []  # add additional stats for pose
+
+    def update_stats(self, stat: dict[str, Any]) -> None:
+        """Update statistics by appending new values to existing stat collections.
+
+        Args:
+            stat (dict[str, Any]): Dictionary containing new statistical values to append. Keys should match existing
+                keys in self.stats.
+        """
+        super().update_stats(stat)  # update box stats
+        self.pose.update_image_metrics(stat["tp_p"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
+
+    def clear_image_metrics(self) -> None:
+        """Clear stored per-image metrics."""
+        super().clear_image_metrics()
+        self.pose.clear_image_metrics()
 
     def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
         """Process the detection and pose metrics over the given set of predictions.
@@ -1461,8 +1524,7 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
     Attributes:
         top1 (float): The top-1 accuracy.
         top5 (float): The top-5 accuracy.
-        speed (dict): A dictionary containing the time taken for each step in the pipeline.
-        task (str): The task type, set to 'classify'.
+        speed (dict[str, float]): A dictionary containing the time taken for each step in the pipeline.
 
     Methods:
         process: Process target classes and predicted classes to compute metrics.
@@ -1479,7 +1541,6 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
         self.top1 = 0
         self.top5 = 0
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
-        self.task = "classify"
 
     def process(self, targets: torch.Tensor, pred: torch.Tensor):
         """Process target classes and predicted classes to compute metrics.
@@ -1515,7 +1576,7 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
 
     @property
     def curves_results(self) -> list:
-        """Return a list of curves for accessing specific metrics curves."""
+        """Return a list of curves results for accessing specific metrics curves."""
         return []
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict[str, float]]:
@@ -1543,7 +1604,6 @@ class OBBMetrics(DetMetrics):
         names (dict[int, str]): Dictionary of class names.
         box (Metric): An instance of the Metric class for storing detection results.
         speed (dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
-        task (str): The task type, set to 'obb'.
         stats (dict[str, list]): A dictionary containing lists for true positives, confidence scores, predicted classes,
             target classes, and target images.
         nt_per_class: Number of targets per class.
@@ -1554,11 +1614,9 @@ class OBBMetrics(DetMetrics):
     """
 
     def __init__(self, names: dict[int, str] = {}) -> None:
-        """Initialize an OBBMetrics instance with directory, plotting, and class names.
+        """Initialize an OBBMetrics instance with class names.
 
         Args:
             names (dict[int, str], optional): Dictionary of class names.
         """
         DetMetrics.__init__(self, names)
-        # TODO: probably remove task as well
-        self.task = "obb"

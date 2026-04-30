@@ -21,18 +21,18 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
 
     Examples:
         >>> from ultralytics.models.yolo.segment import SegmentationTrainer
-        >>> args = dict(model="yolo11n-seg.pt", data="coco8-seg.yaml", epochs=3)
+        >>> args = dict(model="yolo26n-seg.pt", data="coco8-seg.yaml", epochs=3)
         >>> trainer = SegmentationTrainer(overrides=args)
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides: dict | None = None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: dict | None = None, _callbacks: dict | None = None):
         """Initialize a SegmentationTrainer object.
 
         Args:
             cfg (dict): Configuration dictionary with default training settings.
             overrides (dict, optional): Dictionary of parameter overrides for the default configuration.
-            _callbacks (list, optional): List of callback functions to be executed during training.
+            _callbacks (dict, optional): Dictionary of callback functions to be executed during training.
         """
         if overrides is None:
             overrides = {}
@@ -52,8 +52,8 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
 
         Examples:
             >>> trainer = SegmentationTrainer()
-            >>> model = trainer.get_model(cfg="yolo11n-seg.yaml")
-            >>> model = trainer.get_model(weights="yolo11n-seg.pt", verbose=False)
+            >>> model = trainer.get_model(cfg="yolo26n-seg.yaml")
+            >>> model = trainer.get_model(weights="yolo26n-seg.pt", verbose=False)
         """
         model = SegmentationModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         if weights:

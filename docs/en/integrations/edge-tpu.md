@@ -15,7 +15,7 @@ The export to TFLite Edge TPU format feature allows you to optimize your [Ultral
 Exporting models to [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) Edge TPU makes [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) tasks fast and efficient. This technology suits applications with limited power, computing resources, and connectivity. The Edge TPU is a hardware accelerator by Google. It speeds up TensorFlow Lite models on edge devices. The image below shows an example of the process involved.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/tflite-edge-tpu-compile-workflow.avif" alt="TFLite Edge TPU">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tflite-edge-tpu-compile-workflow.avif" alt="TensorFlow Lite Edge TPU compilation workflow">
 </p>
 
 The Edge TPU works with quantized models. Quantization makes models smaller and faster without losing much [accuracy](https://www.ultralytics.com/glossary/accuracy). It is ideal for the limited resources of edge computing, allowing applications to respond quickly by reducing latency and allowing for quick data processing locally, without cloud dependency. Local processing also keeps user data private and secure since it's not sent to a remote server.
@@ -97,11 +97,14 @@ All [Ultralytics YOLO26 models](../models/index.md) are designed to support expo
 
 ### Export Arguments
 
-| Argument | Type             | Default     | Description                                                                                                                       |
-| -------- | ---------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `format` | `str`            | `'edgetpu'` | Target format for the exported model, defining compatibility with various deployment environments.                                |
-| `imgsz`  | `int` or `tuple` | `640`       | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions. |
-| `device` | `str`            | `None`      | Specifies the device for exporting: CPU (`device=cpu`).                                                                           |
+| Argument   | Type             | Default        | Description                                                                                                                                                                                                                                                      |
+| ---------- | ---------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'edgetpu'`    | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                               |
+| `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                |
+| `int8`     | `bool`           | `True`         | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices.                                                                    |
+| `data`     | `str`            | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets/) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                            |
+| `fraction` | `float`          | `1.0`          | Specifies the fraction of the dataset to use for INT8 quantization calibration. Allows for calibrating on a subset of the full dataset, useful for experiments or when resources are limited. If not specified with INT8 enabled, the full dataset will be used. |
+| `device`   | `str`            | `None`         | Specifies the device for exporting: CPU (`device=cpu`).                                                                                                                                                                                                          |
 
 !!! tip
 

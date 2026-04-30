@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from copy import copy
 from pathlib import Path
-from typing import Any
 
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import OBBModel
@@ -18,8 +17,8 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
     objects at arbitrary angles rather than just axis-aligned rectangles.
 
     Attributes:
-        loss_names (tuple): Names of the loss components used during training including box_loss, cls_loss, and
-            dfl_loss.
+        loss_names (tuple): Names of the loss components used during training including box_loss, cls_loss, dfl_loss,
+            and angle_loss.
 
     Methods:
         get_model: Return OBBModel initialized with specified config and weights.
@@ -27,12 +26,12 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
 
     Examples:
         >>> from ultralytics.models.yolo.obb import OBBTrainer
-        >>> args = dict(model="yolo11n-obb.pt", data="dota8.yaml", epochs=3)
+        >>> args = dict(model="yolo26n-obb.pt", data="dota8.yaml", epochs=3)
         >>> trainer = OBBTrainer(overrides=args)
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides: dict | None = None, _callbacks: list[Any] | None = None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: dict | None = None, _callbacks: dict | None = None):
         """Initialize an OBBTrainer object for training Oriented Bounding Box (OBB) models.
 
         Args:
@@ -40,7 +39,7 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
                 configuration.
             overrides (dict, optional): Dictionary of parameter overrides for the configuration. Any values here will
                 take precedence over those in cfg.
-            _callbacks (list[Any], optional): List of callback functions to be invoked during training.
+            _callbacks (dict, optional): Dictionary of callback functions to be invoked during training.
         """
         if overrides is None:
             overrides = {}
@@ -63,7 +62,7 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
 
         Examples:
             >>> trainer = OBBTrainer()
-            >>> model = trainer.get_model(cfg="yolo11n-obb.yaml", weights="yolo11n-obb.pt")
+            >>> model = trainer.get_model(cfg="yolo26n-obb.yaml", weights="yolo26n-obb.pt")
         """
         model = OBBModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         if weights:

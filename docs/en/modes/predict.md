@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLO26, model prediction, inference, predict mode, real-t
 
 # Model Prediction with Ultralytics YOLO
 
-<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-ecosystem-integrations.avif" alt="Ultralytics YOLO ecosystem and integrations">
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-ecosystem-integrations.avif" alt="Ultralytics YOLO ecosystem and integrations">
 
 ## Introduction
 
@@ -38,6 +38,7 @@ Here's why you should consider YOLO26's predict mode for your various inference 
 - **Performance:** Engineered for real-time, high-speed processing without sacrificing [accuracy](https://www.ultralytics.com/glossary/accuracy).
 - **Ease of Use:** Intuitive Python and CLI interfaces for rapid deployment and testing.
 - **Highly Customizable:** Various settings and parameters to tune the model's inference behavior according to your specific requirements.
+- **Production Ready:** Deploy models as API endpoints on [Ultralytics Platform](https://platform.ultralytics.com) with auto-scaling and monitoring, or run inference locally.
 
 ### Key Features of Predict Mode
 
@@ -367,7 +368,7 @@ Below are code examples for using each source type:
 
         Example `.streams` text file:
 
-        ```text
+        ```
         rtsp://example.com/media1.mp4
         rtsp://example.com/media2.mp4
         rtmp://example2.com/live
@@ -442,12 +443,16 @@ The below table contains valid Ultralytics image formats.
 
 !!! note
 
-    HEIC images are supported for inference only, not for training.
+    HEIC/HEIF formats require `pi-heif`, which is installed automatically on first use. AVIF is supported natively by Pillow.
 
 | Image Suffixes | Example Predict Command          | Reference                                                                  |
 | -------------- | -------------------------------- | -------------------------------------------------------------------------- |
+| `.avif`        | `yolo predict source=image.avif` | [AV1 Image File Format](https://en.wikipedia.org/wiki/AVIF)                |
 | `.bmp`         | `yolo predict source=image.bmp`  | [Microsoft BMP File Format](https://en.wikipedia.org/wiki/BMP_file_format) |
 | `.dng`         | `yolo predict source=image.dng`  | [Adobe DNG](https://en.wikipedia.org/wiki/Digital_Negative)                |
+| `.heic`        | `yolo predict source=image.heic` | [High Efficiency Image Format](https://en.wikipedia.org/wiki/HEIF)         |
+| `.heif`        | `yolo predict source=image.heif` | [High Efficiency Image Format](https://en.wikipedia.org/wiki/HEIF)         |
+| `.jp2`         | `yolo predict source=image.jp2`  | [JPEG 2000](https://en.wikipedia.org/wiki/JPEG_2000)                       |
 | `.jpeg`        | `yolo predict source=image.jpeg` | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                 |
 | `.jpg`         | `yolo predict source=image.jpg`  | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                 |
 | `.mpo`         | `yolo predict source=image.mpo`  | [Multi Picture Object](https://fileinfo.com/extension/mpo)                 |
@@ -455,8 +460,6 @@ The below table contains valid Ultralytics image formats.
 | `.tif`         | `yolo predict source=image.tif`  | [Tag Image File Format](https://en.wikipedia.org/wiki/TIFF)                |
 | `.tiff`        | `yolo predict source=image.tiff` | [Tag Image File Format](https://en.wikipedia.org/wiki/TIFF)                |
 | `.webp`        | `yolo predict source=image.webp` | [WebP](https://en.wikipedia.org/wiki/WebP)                                 |
-| `.pfm`         | `yolo predict source=image.pfm`  | [Portable FloatMap](https://en.wikipedia.org/wiki/Netpbm#File_formats)     |
-| `.HEIC`        | `yolo predict source=image.HEIC` | [High Efficiency Image Format](https://en.wikipedia.org/wiki/HEIF)         |
 
 ### Videos
 
@@ -578,7 +581,7 @@ For more details see the [`Boxes` class documentation](../reference/engine/resul
 
 ### Masks
 
-`Masks` object can be used index, manipulate and convert masks to segments.
+`Masks` object can be used to index, manipulate and convert masks to segments.
 
 !!! example "Masks"
 
@@ -611,7 +614,7 @@ For more details see the [`Masks` class documentation](../reference/engine/resul
 
 ### Keypoints
 
-`Keypoints` object can be used index, manipulate and normalize coordinates.
+`Keypoints` object can be used to index, manipulate and normalize coordinates.
 
 !!! example "Keypoints"
 
@@ -847,9 +850,9 @@ Here's a Python script using OpenCV (`cv2`) and YOLO to run inference on video f
 
 This script will run predictions on each frame of the video, visualize the results, and display them in a window. The loop can be exited by pressing 'q'.
 
-[car spare parts]: https://github.com/ultralytics/docs/releases/download/0/car-parts-detection-for-predict.avif
-[football player detect]: https://github.com/ultralytics/docs/releases/download/0/football-players-detection.avif
-[human fall detect]: https://github.com/ultralytics/docs/releases/download/0/person-fall-detection.avif
+[car spare parts]: https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/car-parts-detection-for-predict.avif
+[football player detect]: https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/football-players-detection.avif
+[human fall detect]: https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/person-fall-detection.avif
 
 ## FAQ
 
@@ -871,4 +874,4 @@ The `model.predict()` method in YOLO supports various arguments such as `conf`, 
 
 ### How can I visualize and save the results of YOLO predictions?
 
-After running inference with YOLO, the `Results` objects contain methods for displaying and saving annotated images. You can use methods like `result.show()` and `result.save(filename="result.jpg")` to visualize and save the results. For a comprehensive list of these methods, refer to the [working with results](#working-with-results) section.
+After running inference with YOLO, the `Results` objects contain methods for displaying and saving annotated images. You can use methods like `result.show()` and `result.save(filename="result.jpg")` to visualize and save the results. Any missing parent directories in the filename path are created automatically (e.g., `result.save("path/to/result.jpg")`). For a comprehensive list of these methods, refer to the [working with results](#working-with-results) section.

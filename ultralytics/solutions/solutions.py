@@ -64,7 +64,7 @@ class BaseSolution:
         process: Process method to be implemented by each Solution subclass.
 
     Examples:
-        >>> solution = BaseSolution(model="yolo11n.pt", region=[(0, 0), (100, 0), (100, 100), (0, 100)])
+        >>> solution = BaseSolution(model="yolo26n.pt", region=[(0, 0), (100, 0), (100, 100), (0, 100)])
         >>> solution.initialize_region()
         >>> image = cv2.imread("image.jpg")
         >>> solution.extract_tracks(image)
@@ -106,7 +106,7 @@ class BaseSolution:
 
         # Load Model and store additional information (classes, show_conf, show_label)
         if self.CFG["model"] is None:
-            self.CFG["model"] = "yolo11n.pt"
+            self.CFG["model"] = "yolo26n.pt"
         self.model = YOLO(self.CFG["model"])
         self.names = self.model.names
         self.classes = self.CFG["classes"]
@@ -253,7 +253,7 @@ class BaseSolution:
                 f" {', '.join([f'{v} {self.names[k]}' for k, v in counts.items()])}\n"
                 f"Speed: {track_or_predict_speed:.1f}ms {track_or_predict}, "
                 f"{solution_speed:.1f}ms solution per image at shape "
-                f"(1, {getattr(self.model, 'ch', 3)}, {result.plot_im.shape[0]}, {result.plot_im.shape[1]})\n"
+                f"(1, {getattr(self.model, 'channels', 3)}, {result.plot_im.shape[0]}, {result.plot_im.shape[1]})\n"
             )
         return result
 
@@ -466,7 +466,8 @@ class SolutionAnnotator(Annotator):
 
         Args:
             keypoints (list[list[float]]): Keypoints data to be plotted, each in format [x, y, confidence].
-            indices (list[int], optional): Keypoint indices to be plotted.
+            indices (list[int], optional): Keypoint indices to be plotted. The drawing order follows the order of this
+                list.
             radius (int): Keypoint radius.
             conf_thresh (float): Confidence threshold for keypoints.
 
@@ -478,7 +479,12 @@ class SolutionAnnotator(Annotator):
             Modifies self.im in-place.
         """
         indices = indices or [2, 5, 7]
-        points = [(int(k[0]), int(k[1])) for i, k in enumerate(keypoints) if i in indices and k[2] >= conf_thresh]
+        n = len(keypoints)
+        points = [
+            (int(keypoints[j][0]), int(keypoints[j][1]))
+            for j in indices
+            if 0 <= j < n and (float(keypoints[j][2]) if len(keypoints[j]) > 2 else 1.0) >= conf_thresh
+        ]
 
         # Draw lines between consecutive points
         for start, end in zip(points[:-1], points[1:]):

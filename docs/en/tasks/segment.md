@@ -7,7 +7,7 @@ model_name: yolo26n-seg
 
 # Instance Segmentation
 
-<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/instance-segmentation-examples.avif" alt="Instance segmentation examples">
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/instance-segmentation-examples.avif" alt="Instance segmentation examples">
 
 [Instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) goes a step further than object detection and involves identifying individual objects in an image and segmenting them from the rest of the image.
 
@@ -38,6 +38,7 @@ YOLO26 pretrained Segment models are shown here. Detect, Segment and Pose models
 
 - **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce by `yolo val segment data=coco.yaml device=0`
 - **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val segment data=coco.yaml batch=1 device=0|cpu`
+- **Params** and **FLOPs** values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers and, for end2end models, removes the auxiliary one-to-many detection head. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
 ## Train
 
@@ -53,7 +54,7 @@ Train YOLO26n-seg on the COCO8-seg dataset for 100 [epochs](https://www.ultralyt
         # Load a model
         model = YOLO("yolo26n-seg.yaml")  # build a new model from YAML
         model = YOLO("yolo26n-seg.pt")  # load a pretrained model (recommended for training)
-        model = YOLO("yolo26n-seg.yaml").load("yolo26n.pt")  # build from YAML and transfer weights
+        model = YOLO("yolo26n-seg.yaml").load("yolo26n-seg.pt")  # build from YAML and transfer weights
 
         # Train the model
         results = model.train(data="coco8-seg.yaml", epochs=100, imgsz=640)
@@ -72,9 +73,11 @@ Train YOLO26n-seg on the COCO8-seg dataset for 100 [epochs](https://www.ultralyt
         yolo segment train data=coco8-seg.yaml model=yolo26n-seg.yaml pretrained=yolo26n-seg.pt epochs=100 imgsz=640
         ```
 
+See full `train` mode details in the [Train](../modes/train.md) page. Segmentation models can also be trained on cloud GPUs through [Ultralytics Platform](https://platform.ultralytics.com).
+
 ### Dataset format
 
-YOLO segmentation dataset format can be found in detail in the [Dataset Guide](../datasets/segment/index.md). To convert your existing dataset from other formats (like COCO etc.) to YOLO format, please use [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics.
+YOLO segmentation dataset format can be found in detail in the [Dataset Guide](../datasets/segment/index.md). To convert your existing dataset from other formats (like COCO etc.) to YOLO format, please use [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics. You can also create segmentation masks on [Ultralytics Platform](https://platform.ultralytics.com) using polygon tools and SAM-powered smart annotation.
 
 ## Val
 
@@ -97,10 +100,12 @@ Validate trained YOLO26n-seg model [accuracy](https://www.ultralytics.com/glossa
         metrics.box.map50  # map50(B)
         metrics.box.map75  # map75(B)
         metrics.box.maps  # a list containing mAP50-95(B) for each category
+        metrics.box.image_metrics  # per-image metrics dictionary for det with precision, recall, F1, TP, FP, and FN
         metrics.seg.map  # map50-95(M)
         metrics.seg.map50  # map50(M)
         metrics.seg.map75  # map75(M)
         metrics.seg.maps  # a list containing mAP50-95(M) for each category
+        metrics.seg.image_metrics  # per-image metrics dictionary for seg with precision, recall, F1, TP, FP, and FN
         ```
 
     === "CLI"

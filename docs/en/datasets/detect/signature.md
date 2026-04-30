@@ -87,7 +87,7 @@ To train a YOLO26n model on the signature detection dataset for 100 [epochs](htt
 
 The signature detection dataset comprises a wide variety of images showcasing different document types and annotated signatures. Below are examples of images from the dataset, each accompanied by its corresponding annotations.
 
-![Signature detection dataset sample image](https://github.com/ultralytics/docs/releases/download/0/signature-detection-mosaiced-sample.avif)
+![Signature detection dataset sample image](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/signature-detection-mosaiced-sample.avif)
 
 - **Mosaiced Image**: Here, we present a training batch consisting of mosaiced dataset images. Mosaicing, a training technique, combines multiple images into one, enriching batch diversity. This method helps enhance the model's ability to generalize across different signature sizes, aspect ratios, and contexts.
 
@@ -95,7 +95,7 @@ This example illustrates the variety and complexity of images in the signature D
 
 ## Citations and Acknowledgments
 
-The dataset has been released available under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
+The dataset has been released under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
 
 ## FAQ
 

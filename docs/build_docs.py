@@ -26,6 +26,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 from pathlib import Path
@@ -274,8 +275,9 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
                 span.insert_after(tail)
             modified = True
 
-    highlight_labels(soup.select("main h1, main h2, main h3, main h4, main h5"))
-    highlight_labels(soup.select("nav.md-nav--secondary .md-ellipsis, nav.md-nav__list .md-ellipsis"))
+    if "reference" in rel_path:
+        highlight_labels(soup.select("main h1, main h2, main h3, main h4, main h5"))
+        highlight_labels(soup.select("nav.md-nav--secondary .md-ellipsis, nav.md-nav__list .md-ellipsis"))
 
     if "reference" in rel_path:
         for ellipsis in soup.select("nav.md-nav--secondary .md-ellipsis"):
@@ -582,6 +584,9 @@ def restore_docs_sources(backup_root: Path, backups: list[tuple[Path, Path]]):
 
 def main():
     """Build docs, update titles and edit links, minify HTML, and print local server command."""
+    if not shutil.which("zensical"):
+        raise SystemExit("zensical is not installed. Install it with: pip install -e '.[dev]'")
+
     start_time = time.perf_counter()
     backup_root: Path | None = None
     docs_backups: list[tuple[Path, Path]] = []
@@ -606,7 +611,7 @@ def main():
 
         # Build the main documentation
         LOGGER.info(f"Building docs from {DOCS}")
-        subprocess.run(["zensical", "build", "-f", str(DOCS.parent / "mkdocs.yml")], check=True)
+        subprocess.run(["zensical", "build", "-f", str(DOCS.parent / "mkdocs.yml"), "--strict"], check=True)
         LOGGER.info(f"Site built at {SITE}")
 
         # Remove search index JSON files to disable search
@@ -637,6 +642,25 @@ def main():
         # Minify files
         minify_files(html=False, css=False, js=False)
 
+        # Add missing pages to sitemap
+        sitemap = SITE / "sitemap.xml"
+        if sitemap.exists():
+            content = sitemap.read_text()
+            in_sitemap = set(re.findall(r"<loc>([^<]+)</loc>", content))
+            all_pages = {
+                f"https://docs.ultralytics.com/{f.relative_to(SITE).as_posix().replace('index.html', '')}"
+                for f in SITE.rglob("*.html")
+                if f.name != "404.html"
+            }
+            if missing := (all_pages - in_sitemap):
+                entries = "\n".join(f"  <url>\n    <loc>{u}</loc>\n  </url>" for u in sorted(missing))
+                sitemap.write_text(content.replace("</urlset>", f"{entries}\n</urlset>"))
+            LOGGER.info(
+                f"{len(all_pages)}/{len(all_pages)} pages in sitemap.xml ✅ (+{len(missing)} added)"
+                if missing
+                else f"{len(in_sitemap)}/{len(all_pages)} pages in sitemap.xml ✅"
+            )
+
         # Print results and auto-serve on macOS
         size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file()) >> 20
         duration = time.perf_counter() - start_time
@@ -652,7 +676,7 @@ def main():
             LOGGER.info(f"Opening browser at {url}")
             webbrowser.open(url)
             try:
-                subprocess.run(["python", "-m", "http.server", "--directory", str(SITE), "8000"], check=True)
+                subprocess.run([sys.executable, "-m", "http.server", "--directory", str(SITE), "8000"], check=True)
             except KeyboardInterrupt:
                 LOGGER.info(f"\n✅ Server stopped. Restart at {url}")
             except Exception as e:

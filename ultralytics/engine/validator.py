@@ -3,25 +3,29 @@
 Check a model's accuracy on a test or val split of a dataset.
 
 Usage:
-    $ yolo mode=val model=yolo11n.pt data=coco8.yaml imgsz=640
+    $ yolo mode=val model=yolo26n.pt data=coco8.yaml imgsz=640
 
 Usage - formats:
-    $ yolo mode=val model=yolo11n.pt                 # PyTorch
-                          yolo11n.torchscript        # TorchScript
-                          yolo11n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
-                          yolo11n_openvino_model     # OpenVINO
-                          yolo11n.engine             # TensorRT
-                          yolo11n.mlpackage          # CoreML (macOS-only)
-                          yolo11n_saved_model        # TensorFlow SavedModel
-                          yolo11n.pb                 # TensorFlow GraphDef
-                          yolo11n.tflite             # TensorFlow Lite
-                          yolo11n_edgetpu.tflite     # TensorFlow Edge TPU
-                          yolo11n_paddle_model       # PaddlePaddle
-                          yolo11n.mnn                # MNN
-                          yolo11n_ncnn_model         # NCNN
-                          yolo11n_imx_model          # Sony IMX
-                          yolo11n_rknn_model         # Rockchip RKNN
+    $ yolo mode=val model=yolo26n.pt                 # PyTorch
+                          yolo26n.torchscript        # TorchScript
+                          yolo26n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
+                          yolo26n_openvino_model     # OpenVINO
+                          yolo26n.engine             # TensorRT
+                          yolo26n.mlpackage          # CoreML (macOS-only)
+                          yolo26n_saved_model        # TensorFlow SavedModel
+                          yolo26n.pb                 # TensorFlow GraphDef
+                          yolo26n.tflite             # TensorFlow Lite
+                          yolo26n_edgetpu.tflite     # TensorFlow Edge TPU
+                          yolo26n_paddle_model       # PaddlePaddle
+                          yolo26n.mnn                # MNN
+                          yolo26n_ncnn_model         # NCNN
+                          yolo26n_imx_model          # Sony IMX
+                          yolo26n_rknn_model         # Rockchip RKNN
+                          yolo26n_executorch_model   # ExecuTorch
+                          yolo26n_axelera_model      # Axelera AI
 """
+
+from __future__ import annotations
 
 import json
 import time
@@ -32,12 +36,18 @@ import torch
 import torch.distributed as dist
 
 from ultralytics.cfg import get_cfg, get_save_dir
-from ultralytics.data.utils import check_cls_dataset, check_det_dataset
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import LOGGER, RANK, TQDM, callbacks, colorstr, emojis
+from ultralytics.utils import LOCAL_RANK, LOGGER, RANK, TQDM, callbacks, colorstr, emojis
 from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.ops import Profile
-from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode, unwrap_model
+from ultralytics.utils.torch_utils import (
+    attempt_compile,
+    select_device,
+    smart_inference_mode,
+    torch_distributed_zero_first,
+    unwrap_model,
+)
 
 
 class BaseValidator:
@@ -59,7 +69,7 @@ class BaseValidator:
         stats (dict): Statistics collected during validation.
         confusion_matrix: Confusion matrix for classification evaluation.
         nc (int): Number of classes.
-        iouv (torch.Tensor): IoU thresholds from 0.50 to 0.95 in spaces of 0.05.
+        iouv (torch.Tensor): IoU thresholds from 0.50 to 0.95 in steps of 0.05.
         jdict (list): List to store JSON validation results.
         speed (dict): Dictionary with keys 'preprocess', 'inference', 'loss', 'postprocess' and their respective batch
             processing times in milliseconds.
@@ -91,7 +101,7 @@ class BaseValidator:
         eval_json: Evaluate and return JSON format of prediction statistics.
     """
 
-    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None):
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks: dict | None = None):
         """Initialize a BaseValidator instance.
 
         Args:
@@ -156,6 +166,13 @@ class BaseValidator:
             if str(self.args.model).endswith(".yaml") and model is None:
                 LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)
+            if hasattr(model, "end2end"):
+                if self.args.end2end is not None:
+                    model.end2end = self.args.end2end
+                if model.end2end:
+                    model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms)
+            with torch_distributed_zero_first(LOCAL_RANK):
+                self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data)
             model = AutoBackend(
                 model=model or self.args.model,
                 device=select_device(self.args.device) if RANK == -1 else torch.device("cuda", RANK),
@@ -165,9 +182,10 @@ class BaseValidator:
             )
             self.device = model.device  # update device
             self.args.half = model.fp16  # update half
-            stride, pt, jit = model.stride, model.pt, model.jit
+            stride, fmt = model.stride, model.format
+            pt = fmt == "pt"
             imgsz = check_imgsz(self.args.imgsz, stride=stride)
-            if not (pt or jit or getattr(model, "dynamic", False)):
+            if fmt not in {"pt", "torchscript"} and not getattr(model, "dynamic", False):
                 self.args.batch = model.metadata.get("batch", 1)  # export.py models default to batch-size 1
                 LOGGER.info(f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz}, {imgsz})")
 
@@ -180,7 +198,7 @@ class BaseValidator:
 
             if self.device.type in {"cpu", "mps"}:
                 self.args.workers = 0  # faster CPU val as time dominated by inference, not dataloading
-            if not (pt or (getattr(model, "dynamic", False) and not model.imx)):
+            if not (pt or (getattr(model, "dynamic", False) and fmt != "imx")):
                 self.args.rect = False
             self.stride = model.stride  # used in get_dataloader() for padding
             self.dataloader = self.dataloader or self.get_dataloader(self.data.get(self.args.split), self.args.batch)
@@ -285,12 +303,11 @@ class BaseValidator:
         iou = iou.cpu().numpy()
         for i, threshold in enumerate(self.iouv.cpu().tolist()):
             if use_scipy:
-                # WARNING: known issue that reduces mAP in https://github.com/ultralytics/ultralytics/pull/4708
                 import scipy  # scope import to avoid importing for all commands
 
                 cost_matrix = iou * (iou >= threshold)
                 if cost_matrix.any():
-                    labels_idx, detections_idx = scipy.optimize.linear_sum_assignment(cost_matrix)
+                    labels_idx, detections_idx = scipy.optimize.linear_sum_assignment(cost_matrix, maximize=True)
                     valid = cost_matrix[labels_idx, detections_idx] > 0
                     if valid.any():
                         correct[detections_idx[valid], i] = True

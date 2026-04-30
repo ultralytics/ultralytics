@@ -37,19 +37,19 @@ class DetectionValidator(BaseValidator):
 
     Examples:
         >>> from ultralytics.models.yolo.detect import DetectionValidator
-        >>> args = dict(model="yolo11n.pt", data="coco8.yaml")
+        >>> args = dict(model="yolo26n.pt", data="coco8.yaml")
         >>> validator = DetectionValidator(args=args)
         >>> validator()
     """
 
-    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks: dict | None = None) -> None:
         """Initialize detection validator with necessary variables and settings.
 
         Args:
             dataloader (torch.utils.data.DataLoader, optional): DataLoader to use for validation.
             save_dir (Path, optional): Directory to save results.
             args (dict[str, Any], optional): Arguments for the validator.
-            _callbacks (list[Any], optional): List of callback functions.
+            _callbacks (dict, optional): Dictionary of callback functions.
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.is_coco = False
@@ -96,6 +96,8 @@ class DetectionValidator(BaseValidator):
         self.seen = 0
         self.jdict = []
         self.metrics.names = model.names
+        self.metrics.clear_stats()
+        self.metrics.clear_image_metrics()
         self.confusion_matrix = ConfusionMatrix(names=model.names, save_matches=self.args.plots and self.args.visualize)
 
     def get_desc(self) -> str:
@@ -129,7 +131,7 @@ class DetectionValidator(BaseValidator):
         """Prepare a batch of images and annotations for validation.
 
         Args:
-            si (int): Batch index.
+            si (int): Sample index within the batch.
             batch (dict[str, Any]): Batch data containing images and annotations.
 
         Returns:
@@ -186,6 +188,7 @@ class DetectionValidator(BaseValidator):
                     "target_img": np.unique(cls),
                     "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),
                     "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
+                    "im_name": Path(pbatch["im_file"]).name,
                 }
             )
             # Evaluate
@@ -219,6 +222,19 @@ class DetectionValidator(BaseValidator):
         self.metrics.confusion_matrix = self.confusion_matrix
         self.metrics.save_dir = self.save_dir
 
+    def _gather_image_metrics(self, metric) -> None:
+        """Gather per-image metrics from all GPUs for a single metric object."""
+        if RANK == 0:
+            gathered_image_metrics = [None] * dist.get_world_size()
+            dist.gather_object(metric.image_metrics, gathered_image_metrics, dst=0)
+            metric.clear_image_metrics()
+            for image_metrics in gathered_image_metrics:
+                if image_metrics:
+                    metric.image_metrics.update(image_metrics)
+        elif RANK > 0:
+            dist.gather_object(metric.image_metrics, None, dst=0)
+            metric.clear_image_metrics()
+
     def gather_stats(self) -> None:
         """Gather stats from all GPUs."""
         if RANK == 0:
@@ -234,10 +250,12 @@ class DetectionValidator(BaseValidator):
             for jdict in gathered_jdict:
                 self.jdict.extend(jdict)
             self.metrics.stats = merged_stats
+            self._gather_image_metrics(self.metrics.box)
             self.seen = len(self.dataloader.dataset)  # total image count from dataset
         elif RANK > 0:
             dist.gather_object(self.metrics.stats, None, dst=0)
             dist.gather_object(self.jdict, None, dst=0)
+            self._gather_image_metrics(self.metrics.box)
             self.jdict = []
             self.metrics.clear_stats()
 
@@ -345,7 +363,7 @@ class DetectionValidator(BaseValidator):
             batch (dict[str, Any]): Batch containing images and annotations.
             preds (list[dict[str, torch.Tensor]]): List of predictions from the model.
             ni (int): Batch index.
-            max_det (Optional[int]): Maximum number of detections to plot.
+            max_det (int | None): Maximum number of detections to plot.
         """
         if not preds:
             return

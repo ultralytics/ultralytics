@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import torch
 
 from ultralytics.engine.results import Results
@@ -20,18 +22,18 @@ class OBBPredictor(DetectionPredictor):
     Examples:
         >>> from ultralytics.utils import ASSETS
         >>> from ultralytics.models.yolo.obb import OBBPredictor
-        >>> args = dict(model="yolo11n-obb.pt", source=ASSETS)
+        >>> args = dict(model="yolo26n-obb.pt", source=ASSETS)
         >>> predictor = OBBPredictor(overrides=args)
         >>> predictor.predict_cli()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
         """Initialize OBBPredictor with optional model and data configuration overrides.
 
         Args:
             cfg (dict, optional): Default configuration for the predictor.
             overrides (dict, optional): Configuration overrides that take precedence over the default config.
-            _callbacks (list, optional): List of callback functions to be invoked during prediction.
+            _callbacks (dict, optional): Dictionary of callback functions to be invoked during prediction.
         """
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "obb"

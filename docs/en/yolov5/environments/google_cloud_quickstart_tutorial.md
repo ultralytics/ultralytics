@@ -8,7 +8,7 @@ keywords: YOLOv5, Google Cloud Platform, GCP, Deep Learning VM, object detection
 
 Embarking on the journey of [artificial intelligence (AI)](https://www.ultralytics.com/glossary/artificial-intelligence-ai) and [machine learning (ML)](https://www.ultralytics.com/glossary/machine-learning-ml) can be exhilarating, especially when you leverage the power and flexibility of a [cloud computing](https://www.ultralytics.com/glossary/cloud-computing) platform. Google Cloud Platform (GCP) offers robust tools tailored for ML enthusiasts and professionals alike. One such tool is the Deep Learning VM, preconfigured for data science and ML tasks. In this tutorial, we will navigate the process of setting up [Ultralytics YOLOv5](../../models/yolov5.md) on a [GCP Deep Learning VM](https://docs.cloud.google.com/deep-learning-vm/docs). Whether you're taking your first steps in ML or you're a seasoned practitioner, this guide provides a clear pathway to implementing [object detection](https://www.ultralytics.com/glossary/object-detection) models powered by YOLOv5.
 
-🆓 Plus, if you're a new GCP user, you're in luck with a [$300 free credit offer](https://cloud.google.com/free/docs/free-cloud-features#free-trial) to kickstart your projects.
+🆓 Plus, if you're a new GCP user, you're in luck with a [$300 free credit offer](https://docs.cloud.google.com/free/docs/free-cloud-features) to kickstart your projects.
 
 In addition to GCP, explore other accessible quickstart options for YOLOv5, like our [Google Colab Notebook](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb) <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"> for a browser-based experience, or the scalability of [Amazon AWS](./aws_quickstart_tutorial.md). Furthermore, container aficionados can utilize our official Docker image available on [Docker Hub](https://hub.docker.com/r/ultralytics/yolov5) <img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"> for an encapsulated environment, following our [Docker Quickstart Guide](../../guides/docker-quickstart.md).
 
@@ -25,7 +25,7 @@ Let's begin by creating a virtual machine optimized for [deep learning](https://
 
 This VM comes pre-loaded with essential tools and frameworks, including the [Anaconda](https://www.anaconda.com/) Python distribution, which conveniently bundles many necessary dependencies for YOLOv5.
 
-![GCP Marketplace illustration of setting up a Deep Learning VM](https://github.com/ultralytics/docs/releases/download/0/gcp-deep-learning-vm-setup.avif)
+![GCP Marketplace illustration of setting up a Deep Learning VM](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/gcp-deep-learning-vm-setup.avif)
 
 ## Step 2: Prepare the VM for YOLOv5
 
@@ -62,7 +62,7 @@ python export.py --weights yolov5s.pt --include onnx coreml tflite
 
 Using just a few commands, YOLOv5 enables you to train custom [object detection](https://docs.ultralytics.com/tasks/detect/) models tailored to your specific needs or utilize pretrained weights for rapid results across various tasks. Explore different [model deployment options](../../guides/model-deployment-options.md) after exporting.
 
-![Terminal command image illustrating model training on a GCP Deep Learning VM](https://github.com/ultralytics/docs/releases/download/0/terminal-command-model-training.avif)
+![YOLOv5 model training on GCP VM](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/terminal-command-model-training.avif)
 
 ## Allocate Swap Space (Optional)
 

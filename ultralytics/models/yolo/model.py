@@ -161,7 +161,7 @@ class YOLOWorld(Model):
 
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:
-        """Map head to model, validator, and predictor classes."""
+        """Map head to model, trainer, validator, and predictor classes."""
         return {
             "detect": {
                 "model": WorldModel,
@@ -235,7 +235,7 @@ class YOLOE(Model):
 
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:
-        """Map head to model, validator, and predictor classes."""
+        """Map head to model, trainer, validator, and predictor classes."""
         return {
             "detect": {
                 "model": YOLOEModel,
@@ -308,7 +308,7 @@ class YOLOE(Model):
 
         Args:
             classes (list[str]): A list of categories i.e. ["person"].
-            embeddings (torch.Tensor): Embeddings corresponding to the classes.
+            embeddings (torch.Tensor, optional): Embeddings corresponding to the classes.
         """
         # Verify no background class is present
         assert " " not in classes
@@ -367,8 +367,8 @@ class YOLOE(Model):
             visual_prompts (dict[str, list]): Dictionary containing visual prompts for the model. Must include 'bboxes'
                 and 'cls' keys when non-empty.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
-            predictor (callable, optional): Custom predictor function. If None, a predictor is automatically loaded
-                based on the task.
+            predictor (callable): Custom predictor class for visual prompt predictions. Defaults to
+                YOLOEVPDetectPredictor.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:

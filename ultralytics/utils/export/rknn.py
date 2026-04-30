@@ -26,6 +26,13 @@ def onnx2rknn(
     Returns:
         (str): Path to the exported ``_rknn_model`` directory.
     """
+
+    if name in {"rv1103", "rv1106", "rv1103b", "rv1106b"}:
+        raise ValueError(
+            f"Rockchip target '{name}' requires INT8 quantization, which is not yet supported by Ultralytics RKNN. "
+            f"Use a target that supports FP16 builds (e.g. rk2118, rk3562, rk3566, rk3568, rk3576, rk3588, rv1126b)."
+        )
+
     from ultralytics.utils.checks import check_requirements
 
     LOGGER.info(f"\n{prefix} starting export with rknn-toolkit2...")
@@ -42,12 +49,6 @@ def onnx2rknn(
 
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-
-    if name in {"rv1103", "rv1106", "rv1103b", "rv1106b"}:
-        raise RuntimeError(
-            f"Rockchip target '{name}' requires INT8 quantization, which is not yet supported by Ultralytics RKNN. "
-            f"Use a target that supports FP16 builds (e.g. rk2118, rk3562, rk3566, rk3568, rk3576, rk3588, rv1126b)."
-        )
 
     rknn = RKNN(verbose=False)
     rknn.config(mean_values=[[0, 0, 0]], std_values=[[255, 255, 255]], target_platform=name)

@@ -76,7 +76,7 @@ Benchmark mode profiles the speed and accuracy of various export formats for YOL
 
 ### How do I train a custom [object detection](https://www.ultralytics.com/glossary/object-detection) model with Ultralytics YOLO26?
 
-Training a custom object detection model with Ultralytics YOLO26 involves using the train mode. You need a dataset formatted in YOLO format, containing images and corresponding annotation files. Use the following command to start the training process:
+Training a custom object detection model with Ultralytics YOLO26 involves using the train mode. You need a dataset formatted in [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format), containing images and corresponding annotation files. Use the following command to start the training process:
 
 !!! example
 

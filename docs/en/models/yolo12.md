@@ -48,13 +48,19 @@ YOLO12, released in early 2025, introduces an attention-centric architecture tha
 
 YOLO12 supports a variety of computer vision tasks. The table below shows task support and the operational modes (Inference, Validation, Training, and Export) enabled for each:
 
-| Model Type                                                                                                     | Task                                   | Inference | Validation | Training | Export |
-| -------------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
-| [YOLO12](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12.yaml)           | [Detection](../tasks/detect.md)        | ✅        | ✅         | ✅       | ✅     |
-| [YOLO12-seg](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-seg.yaml)   | [Segmentation](../tasks/segment.md)    | ✅        | ✅         | ✅       | ✅     |
-| [YOLO12-pose](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-pose.yaml) | [Pose](../tasks/pose.md)               | ✅        | ✅         | ✅       | ✅     |
-| [YOLO12-cls](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-cls.yaml)   | [Classification](../tasks/classify.md) | ✅        | ✅         | ✅       | ✅     |
-| [YOLO12-obb](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-obb.yaml)   | [OBB](../tasks/obb.md)                 | ✅        | ✅         | ✅       | ✅     |
+!!! warning "Pretrained weights availability"
+
+    Only detection weights (`yolo12n.pt`, `yolo12s.pt`, `yolo12m.pt`, `yolo12l.pt`, `yolo12x.pt`) are released on [ultralytics/assets](https://github.com/ultralytics/assets/releases). Segmentation, classification, pose, and OBB architectures are defined in [ultralytics/cfg/models/12/](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/12), so those variants support training from scratch from the `.yaml` config, but no pretrained `.pt` files are currently available for them. For pretrained segmentation, pose, classification, or OBB checkpoints, Ultralytics recommends [YOLO11](yolo11.md) or [YOLO26](yolo26.md).
+
+| Model Type                                                                                                     | Task                                   | Pretrained Weights | Inference | Validation | Training | Export |
+| -------------------------------------------------------------------------------------------------------------- | -------------------------------------- | ------------------ | --------- | ---------- | -------- | ------ |
+| [YOLO12](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12.yaml)           | [Detection](../tasks/detect.md)        | ✅                 | ✅        | ✅         | ✅       | ✅     |
+| [YOLO12-seg](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-seg.yaml)   | [Segmentation](../tasks/segment.md)    | ❌                 | ✅        | ✅         | ✅       | ✅     |
+| [YOLO12-pose](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-pose.yaml) | [Pose](../tasks/pose.md)               | ❌                 | ✅        | ✅         | ✅       | ✅     |
+| [YOLO12-cls](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-cls.yaml)   | [Classification](../tasks/classify.md) | ❌                 | ✅        | ✅         | ✅       | ✅     |
+| [YOLO12-obb](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-obb.yaml)   | [OBB](../tasks/obb.md)                 | ❌                 | ✅        | ✅         | ✅       | ✅     |
+
+All YOLO12 architectures support every mode once a trained checkpoint is available. The `Pretrained Weights` column indicates only whether Ultralytics publishes an official pretrained `.pt` on [ultralytics/assets](https://github.com/ultralytics/assets/releases): for segmentation, pose, classification, and OBB, you must train your own checkpoint from the corresponding `.yaml` before running inference, validation, or export.
 
 ## Performance Metrics
 
@@ -173,7 +179,7 @@ YOLO12 incorporates several key innovations to balance speed and accuracy. The A
 
 ### What [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks does YOLO12 support?
 
-YOLO12 is a versatile model that supports a wide range of core computer vision tasks. It excels in object [detection](../tasks/detect.md), instance [segmentation](../tasks/segment.md), image [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and oriented object detection (OBB) ([see details](../tasks/obb.md)). This comprehensive task support makes YOLO12 a powerful tool for diverse applications, from [robotics](https://www.ultralytics.com/glossary/robotics) and autonomous driving to medical imaging and industrial inspection. Each of these tasks can be performed in Inference, Validation, Training, and Export modes.
+YOLO12 is a versatile model that supports a wide range of core computer vision tasks. It excels in object [detection](../tasks/detect.md), instance [segmentation](../tasks/segment.md), image [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and oriented object detection (OBB) ([see details](../tasks/obb.md)). This comprehensive task support makes YOLO12 a powerful tool for diverse applications, from [robotics](https://www.ultralytics.com/glossary/robotics) and autonomous driving to medical imaging and industrial inspection. Note that pretrained `.pt` weights are currently published for detection only; the segmentation, pose, classification, and OBB architectures are provided as `.yaml` configs for training from scratch.
 
 ### How does YOLO12 compare to other YOLO models and competitors like RT-DETR?
 

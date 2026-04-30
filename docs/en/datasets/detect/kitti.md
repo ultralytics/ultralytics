@@ -81,7 +81,7 @@ You can also perform evaluation, [inference](../../modes/predict.md), and [expor
 
 ## Sample Images and Annotations
 
-The kitti dataset provides diverse driving scenarios. Each image includes bounding box annotations for 2D object detection tasks. The example showcase the dataset rich variety, enabling robust model generalization across diverse real-world conditions.
+The kitti dataset provides diverse driving scenarios. Each image includes bounding box annotations for 2D object detection tasks. The examples showcase the dataset's rich variety, enabling robust model generalization across diverse real-world conditions.
 
 <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/kitti-dataset-sample.avif" alt="KITTI dataset vehicle detection sample" width="800">
 

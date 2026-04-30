@@ -257,7 +257,7 @@ class ConvTranspose(nn.Module):
         return self.act(self.bn(self.conv_transpose(x)))
 
     def forward_fuse(self, x):
-        """Apply activation and convolution transpose operation to input.
+        """Apply convolution transpose and activation to input.
 
         Args:
             x (torch.Tensor): Input tensor.
@@ -296,7 +296,7 @@ class Focus(nn.Module):
     def forward(self, x):
         """Apply Focus operation and convolution to input tensor.
 
-        Input shape is (B, C, W, H) and output shape is (B, 4C, W/2, H/2).
+        Input shape is (B, C, H, W) and output shape is (B, c2, H/2, W/2).
 
         Args:
             x (torch.Tensor): Input tensor.

@@ -466,7 +466,7 @@ class OBB(Detect):
     def _inference(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
         """Decode predicted bounding boxes and class probabilities, concatenated with rotation angles."""
         # For decode_bboxes convenience
-        self.angle = x["angle"]  # TODO: need to test obb
+        self.angle = x["angle"]
         preds = super()._inference(x)
         return torch.cat([preds, x["angle"]], dim=1)
 
@@ -1040,7 +1040,8 @@ class YOLOEDetect(Detect):
 
         assert not self.training
         txt_feats = txt_feats.to(torch.float32).squeeze(0)
-        self._fuse_tp(txt_feats, self.cv3, self.cv4)
+        if self.cv3 and self.cv4:
+            self._fuse_tp(txt_feats, self.cv3, self.cv4)
         if self.end2end:
             self._fuse_tp(txt_feats, self.one2one_cv3, self.one2one_cv4)
         del self.reprta

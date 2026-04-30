@@ -141,6 +141,7 @@ warnings.filterwarnings("ignore", category=FutureWarning, module="timm")  # mobi
 warnings.filterwarnings("ignore", category=torch.jit.TracerWarning)  # ONNX/TorchScript export tracer warnings
 warnings.filterwarnings("ignore", category=UserWarning, message=".*prim::Constant.*")  # ONNX shape warning
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="coremltools")  # CoreML np.bool deprecation
+logging.getLogger("coremltools").setLevel(logging.ERROR)  # Suppress native binary load failures on non-macOS
 
 # Precompiled type tuples for faster isinstance() checks
 FLOAT_OR_INT = (float, int)
@@ -370,6 +371,22 @@ def plt_settings(rcparams=None, backend="Agg"):
             """Set rc parameters and backend, call the original function, and restore the settings."""
             import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
 
+            # Prepend Arial Unicode for non-Latin text (CJK, Arabic, etc.); matplotlib falls back if missing
+            if "font.sans-serif" not in rcparams and not wrapper._fonts_registered:
+                from matplotlib import font_manager
+
+                # Register any fonts in Ultralytics config dir (e.g. Arial.Unicode.ttf) with matplotlib
+                known = {f.fname for f in font_manager.fontManager.ttflist}
+                for f in USER_CONFIG_DIR.glob("*.ttf"):
+                    if str(f) not in known:
+                        font_manager.fontManager.addfont(str(f))
+                wrapper._fonts_registered = True
+            rc = (
+                rcparams
+                if "font.sans-serif" in rcparams
+                else {**rcparams, "font.sans-serif": ["Arial Unicode MS", *plt.rcParams.get("font.sans-serif", [])]}
+            )
+
             original_backend = plt.get_backend()
             switch = backend.lower() != original_backend.lower()
             if switch:
@@ -378,7 +395,7 @@ def plt_settings(rcparams=None, backend="Agg"):
 
             # Plot with backend and always revert to original backend
             try:
-                with plt.rc_context(rcparams):
+                with plt.rc_context(rc):
                     result = func(*args, **kwargs)
             finally:
                 if switch:
@@ -386,6 +403,7 @@ def plt_settings(rcparams=None, backend="Agg"):
                     plt.switch_backend(original_backend)
             return result
 
+        wrapper._fonts_registered = False
         return wrapper
 
     return decorator
@@ -602,10 +620,15 @@ class YAML:
         # Try loading YAML with fallback for problematic characters
         try:
             data = instance.yaml.load(s, Loader=instance.SafeLoader) or {}
-        except Exception:
+        except Exception as e:
             # Remove problematic characters and retry
             s = re.sub(r"[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]+", "", s)
-            data = instance.yaml.load(s, Loader=instance.SafeLoader) or {}
+            try:
+                data = instance.yaml.load(s, Loader=instance.SafeLoader) or {}
+            except Exception:
+                raise ValueError(
+                    f"YAML syntax error in '{file}': {e}\nVerify YAML with https://ray.run/tools/yaml-formatter"
+                ) from None
 
         # Check for accidental user-error None strings (should be 'null' in YAML)
         if "None" in data.values():
@@ -1421,7 +1444,7 @@ def clean_url(url):
 
 def url2file(url):
     """Convert URL to filename, i.e. https://url.com/file.txt?auth -> file.txt."""
-    return Path(clean_url(url)).name
+    return Path(clean_url(url)).name or "download"
 
 
 def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:

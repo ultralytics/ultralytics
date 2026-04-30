@@ -14,13 +14,13 @@ keywords: YOLOE, open-vocabulary detection, real-time object detection, instance
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/HMOoM2NwFIQ"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/JcZsqUc8PMM"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to use YOLOE with Ultralytics Python package: Open Vocabulary & Real-Time Seeing Anything 🚀
+  <strong>Watch:</strong> How to use Ultralytics YOLOE-26 (New) | Open Vocabulary & Real-Time Seeing Anything 🚀
 </p>
 
 Compared to earlier YOLO models, YOLOE significantly boosts efficiency and accuracy. It improves by **+3.5 AP** over YOLO-Worldv2 on LVIS while using just a third of the training resources and achieving 1.4× faster inference speeds. Fine-tuned on COCO, YOLOE-v8-large surpasses YOLOv8-L by **0.1 mAP**, using nearly **4× less training time**. This demonstrates YOLOE's exceptional balance of accuracy, efficiency, and versatility. The sections below explore YOLOE's architecture, benchmark comparisons, and integration with the [Ultralytics](https://www.ultralytics.com/) framework.
@@ -930,6 +930,7 @@ Quickly set up YOLOE with Ultralytics by following these steps:
 6. **Integration Tips**:
     - **Class names**: Default YOLOE outputs use LVIS categories; use `set_classes()` to specify your own labels.
     - **Speed**: YOLOE has no overhead unless using prompts. Text prompts have minimal impact; visual prompts slightly more.
+    - **NMS behavior**: YOLOE automatically uses `agnostic_nms=True` during prediction, merging overlapping boxes across classes. This prevents duplicate detections when the same object matches multiple categories in YOLOE's large vocabulary (1200+ LVIS classes). You can override this by passing `agnostic_nms=False` explicitly.
     - **Batch inference**: Supported directly (`model.predict([img1, img2])`). For image-specific prompts, run images individually.
 
 The [Ultralytics documentation](https://docs.ultralytics.com/) provides further resources. YOLOE lets you easily explore powerful open-world capabilities within the familiar YOLO ecosystem.

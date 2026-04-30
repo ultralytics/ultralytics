@@ -1524,7 +1524,7 @@ class C2fPSA(C2f):
         """
         assert c1 == c2
         super().__init__(c1, c2, n=n, e=e)
-        self.m = nn.ModuleList(PSABlock(self.c, attn_ratio=0.5, num_heads=self.c // 64) for _ in range(n))
+        self.m = nn.ModuleList(PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1)) for _ in range(n))
 
 
 class SCDown(nn.Module):
@@ -1676,11 +1676,17 @@ class AAttn(nn.Module):
 
         self.num_heads = num_heads
         self.head_dim = head_dim = dim // num_heads
-        all_head_dim = head_dim * self.num_heads
+        self.all_head_dim = all_head_dim = head_dim * self.num_heads
 
         self.qkv = Conv(dim, all_head_dim * 3, 1, act=False)
         self.proj = Conv(all_head_dim, dim, 1, act=False)
-        self.pe = Conv(all_head_dim, dim, 7, 1, 3, g=dim, act=False)
+        self.pe = Conv(all_head_dim, all_head_dim, 7, 1, 3, g=all_head_dim, act=False)
+
+    def __setstate__(self, state):
+        """Add missing all_head_dim attribute to old checkpoints."""
+        super().__setstate__(state)
+        if not hasattr(self, "all_head_dim"):
+            self.all_head_dim = self.head_dim * self.num_heads
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Process the input tensor through the area-attention.
@@ -1691,12 +1697,12 @@ class AAttn(nn.Module):
         Returns:
             (torch.Tensor): Output tensor after area-attention.
         """
-        B, C, H, W = x.shape
+        B, _, H, W = x.shape
         N = H * W
 
         qkv = self.qkv(x).flatten(2).transpose(1, 2)
         if self.area > 1:
-            qkv = qkv.reshape(B * self.area, N // self.area, C * 3)
+            qkv = qkv.reshape(B * self.area, N // self.area, self.all_head_dim * 3)
             B, N, _ = qkv.shape
         q, k, v = (
             qkv.view(B, N, self.num_heads, self.head_dim * 3)
@@ -1710,12 +1716,12 @@ class AAttn(nn.Module):
         v = v.permute(0, 3, 1, 2)
 
         if self.area > 1:
-            x = x.reshape(B // self.area, N * self.area, C)
-            v = v.reshape(B // self.area, N * self.area, C)
+            x = x.reshape(B // self.area, N * self.area, self.all_head_dim)
+            v = v.reshape(B // self.area, N * self.area, self.all_head_dim)
             B, N, _ = x.shape
 
-        x = x.reshape(B, H, W, C).permute(0, 3, 1, 2).contiguous()
-        v = v.reshape(B, H, W, C).permute(0, 3, 1, 2).contiguous()
+        x = x.reshape(B, H, W, self.all_head_dim).permute(0, 3, 1, 2).contiguous()
+        v = v.reshape(B, H, W, self.all_head_dim).permute(0, 3, 1, 2).contiguous()
 
         x = x + self.pe(v)
         return self.proj(x)

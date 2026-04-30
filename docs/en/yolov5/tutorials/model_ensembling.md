@@ -32,7 +32,7 @@ python val.py --weights yolov5x.pt --data coco.yaml --img 640 --half
 
 Output:
 
-```text
+```
 val: data=./data/coco.yaml, weights=['yolov5x.pt'], batch_size=32, imgsz=640, conf_thres=0.001, iou_thres=0.65, task=val, device=, single_cls=False, augment=False, verbose=False, save_txt=False, save_conf=False, save_json=True, project=runs/val, name=exp, exist_ok=False, half=True
 YOLOv5 🚀 v5.0-267-g6a3ee7c torch 1.9.0+cu102 CUDA:0 (Tesla P100-PCIE-16GB, 16280.875MB)
 
@@ -72,11 +72,11 @@ Multiple pretrained models can be ensembled together at test and inference time 
 python val.py --weights yolov5x.pt yolov5l6.pt --data coco.yaml --img 640 --half
 ```
 
-You can list as many checkpoints as you would like, including custom weights such as `runs/train/exp5/weights/best.pt`. YOLOv5 will automatically run each model, align the predictions on a per-image basis, and average the outputs before performing NMS.
+You can list as many checkpoints as you would like, including custom weights such as `runs/train/exp-5/weights/best.pt`. YOLOv5 will automatically run each model, align the predictions on a per-image basis, and average the outputs before performing NMS.
 
 Output:
 
-```text
+```
 val: data=./data/coco.yaml, weights=['yolov5x.pt', 'yolov5l6.pt'], batch_size=32, imgsz=640, conf_thres=0.001, iou_thres=0.6, task=val, device=, single_cls=False, augment=False, verbose=False, save_txt=False, save_conf=False, save_json=True, project=runs/val, name=exp, exist_ok=False, half=True
 YOLOv5 🚀 v5.0-267-g6a3ee7c torch 1.9.0+cu102 CUDA:0 (Tesla P100-PCIE-16GB, 16280.875MB)
 
@@ -91,7 +91,7 @@ val: Scanning '../datasets/coco/val2017.cache' images and labels... 4952 found, 
                  all       5000      36335      0.747      0.637      0.692      0.502
 Speed: 0.1ms pre-process, 39.5ms inference, 2.0ms NMS per image at shape (32, 3, 640, 640)  # <--- ensemble speed
 
-Evaluating pycocotools mAP... saving runs/val/exp3/yolov5x_predictions.json...
+Evaluating pycocotools mAP... saving runs/val/exp-3/yolov5x_predictions.json...
 ...
  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.515  # <--- ensemble mAP
  Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.699
@@ -117,7 +117,7 @@ python detect.py --weights yolov5x.pt yolov5l6.pt --img 640 --source data/images
 
 Output:
 
-```text
+```
 YOLOv5 🚀 v5.0-267-g6a3ee7c torch 1.9.0+cu102 CUDA:0 (Tesla P100-PCIE-16GB, 16280.875MB)
 
 Fusing layers...
@@ -128,7 +128,7 @@ Ensemble created with ['yolov5x.pt', 'yolov5l6.pt']
 
 image 1/2 /content/yolov5/data/images/bus.jpg: 640x512 4 persons, 1 bus, 1 tie, Done. (0.063s)
 image 2/2 /content/yolov5/data/images/zidane.jpg: 384x640 3 persons, 2 ties, Done. (0.056s)
-Results saved to runs/detect/exp2
+Results saved to runs/detect/exp-2
 Done. (0.223s)
 ```
 

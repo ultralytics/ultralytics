@@ -103,11 +103,11 @@ Adjust detection behavior with parameters in the collapsible **Parameters** sect
 
 ![Ultralytics Platform Predict Tab Parameters Sliders](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/predict-tab-parameters-sliders.avif)
 
-| Parameter      | Range          | Default | Description                            |
-| -------------- | -------------- | ------- | -------------------------------------- |
-| **Confidence** | 0.01-1.0       | 0.25    | Minimum confidence threshold           |
-| **IoU**        | 0.0-0.95       | 0.70    | NMS IoU threshold                      |
-| **Image Size** | 320, 640, 1280 | 640     | Input resize dimension (button toggle) |
+| Parameter      | Range                      | Default | Description                                              |
+| -------------- | -------------------------- | ------- | -------------------------------------------------------- |
+| **Confidence** | 0.01 – 1.0                 | 0.25    | Minimum confidence threshold                             |
+| **IoU**        | 0.0 – 0.95                 | 0.7     | NMS IoU threshold                                        |
+| **Image Size** | 320, 640, 1280 (UI toggle) | 640     | Input resize dimension (API accepts any value 32 – 1280) |
 
 !!! note "Auto-Rerun"
 
@@ -127,7 +127,7 @@ Control Non-Maximum Suppression:
 
 - **Higher (0.7+)**: Allow more overlapping boxes
 - **Lower (0.3-0.5)**: Merge nearby detections more aggressively
-- **Default (0.70)**: Balanced NMS behavior for most use cases
+- **Default (0.7)**: Balanced NMS behavior for most use cases
 
 ## Deployment Predict
 
@@ -147,11 +147,11 @@ Authorization: Bearer YOUR_API_KEY
 
 !!! warning "API Key Required"
 
-    To run inference from your own scripts, notebooks, or apps, include an API key. Generate one in [`Settings`](../account/api-keys.md) (API Keys section on the Profile tab).
+    To run inference from your own scripts, notebooks, or apps, include an API key. Generate one in [`Settings > API Keys`](../account/api-keys.md).
 
 ### Endpoint
 
-```
+```http
 POST https://platform.ultralytics.com/api/models/{modelId}/predict
 ```
 
@@ -359,13 +359,10 @@ Common error responses:
 
 ### Can I run inference on video?
 
-The API accepts individual frames. For video:
+Both inference methods accept video files:
 
-1. Extract frames locally
-2. Send each frame to the API
-3. Aggregate results
-
-For real-time video, consider deploying a [dedicated endpoint](endpoints.md).
+- **Dedicated endpoints** accept video files directly. Supported formats (up to 100 MB): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV. Each frame is processed individually and results are returned per frame. See [dedicated endpoints](endpoints.md#request-parameters) for details.
+- **Shared inference** (`/api/models/{id}/predict`) uses the same predict service and accepts the same video formats. However, the browser **Predict tab** in the UI only uploads images — use the REST API directly or a [dedicated endpoint](endpoints.md) for video workflows. The shared endpoint is also [rate-limited to 20 req/min](../api/index.md#per-api-key-limits), so dedicated endpoints are the better choice for heavy video workloads.
 
 ### How do I get the annotated image?
 

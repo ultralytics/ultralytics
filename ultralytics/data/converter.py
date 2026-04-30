@@ -431,9 +431,10 @@ def convert_segment_masks_to_yolo_seg(
     format. The converted masks are saved in the specified output directory.
 
     Args:
-        masks_dir (str): The path to the directory where all mask images (png, jpg) are stored.
-        output_dir (str): The path to the directory where the converted YOLO segmentation masks will be stored.
+        masks_dir (str | Path): The path to the directory where all mask images (png, jpg) are stored.
+        output_dir (str | Path): The path to the directory where the converted YOLO segmentation masks will be stored.
         classes (int): Total number of classes in the dataset, e.g., 80 for COCO.
+        verbose (bool): Enables/Disables a progress bar tracking the conversion progress (default: True).
 
     Examples:
         >>> from ultralytics.data.converter import convert_segment_masks_to_yolo_seg

@@ -8,11 +8,11 @@ keywords: Ultralytics Platform, settings, profile, preferences, GDPR, data expor
 
 [Ultralytics Platform](https://platform.ultralytics.com) settings allow you to configure your profile, social links, workspace preferences, and manage your data with GDPR-compliant export and deletion options.
 
-Settings is organized into five tabs: `Profile`, `Plans`, `Billing`, `Teams`, and `Trash`.
+Settings is organized into six tabs (in order): `Profile`, `API Keys`, `Plans`, `Billing`, `Teams`, and `Trash`.
 
 ## Profile Tab
 
-The `Profile` tab contains your profile information, social links, API keys, data region, and account management options.
+The `Profile` tab contains your profile information, social links, data region, and account management options.
 
 ### Profile Information
 
@@ -65,17 +65,16 @@ Connect your professional profiles:
 
 ![Ultralytics Platform Settings Profile Tab Social Links Grid](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-social-links-grid.avif)
 
-| Platform           | Format               |
-| ------------------ | -------------------- |
-| **GitHub**         | username             |
-| **LinkedIn**       | profile-slug         |
-| **X (Twitter)**    | username             |
-| **YouTube**        | channel-handle       |
-| **Bilibili**       | user-id              |
-| **Google Scholar** | user-id              |
-| **Discord**        | username             |
-| **WeChat**         | username             |
-| **Website**        | https://yoursite.com |
+| Platform           | Format         |
+| ------------------ | -------------- |
+| **GitHub**         | username       |
+| **LinkedIn**       | profile-slug   |
+| **X (Twitter)**    | username       |
+| **YouTube**        | channel-handle |
+| **Bilibili**       | user-id        |
+| **Google Scholar** | user-id        |
+| **Discord**        | username       |
+| **WeChat**         | username       |
 
 Social links appear on your public profile page.
 
@@ -83,7 +82,7 @@ Social links appear on your public profile page.
 
 Manage email addresses linked to your account in the `Profile` tab:
 
-<!-- Screenshot: settings-profile-tab-emails-section.avif -->
+![Ultralytics Platform Settings Profile Tab Emails Section](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-emails-section.avif)
 
 | Action             | Description                                    |
 | ------------------ | ---------------------------------------------- |
@@ -95,10 +94,6 @@ Manage email addresses linked to your account in the `Profile` tab:
 !!! note "Primary Email"
 
     Your primary email is used for notifications and account recovery. Only verified emails can be set as primary.
-
-### API Keys
-
-API keys are managed directly on the `Profile` tab. See [API Keys](api-keys.md) for full documentation.
 
 ### Data Region
 
@@ -116,32 +111,56 @@ View your data region on the `Profile` tab:
 
 ### Storage Usage
 
-Monitor your storage consumption on the `Profile` tab:
+Monitor your storage consumption on the `Profile` tab and the **Home** page:
 
 ![Ultralytics Platform Settings Profile Tab Storage Usage Card](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-storage-usage-card.avif)
 
-| Type         | Description             |
-| ------------ | ----------------------- |
-| **Datasets** | Image and label storage |
-| **Models**   | Checkpoint storage      |
-| **Exports**  | Exported model formats  |
+The storage card shows:
+
+- **Overall progress bar** with color-coded status (green under 70%, amber 70-89%, red 90%+)
+- **Category breakdown** for datasets, models, and exports
+- **Resource counts** for projects, datasets, models, images, and deployments
+- **Largest items** to help identify what consumes the most space
+
+| Category     | Description                                           |
+| ------------ | ----------------------------------------------------- |
+| **Datasets** | Uploaded images, videos, labels, and annotation files |
+| **Models**   | Trained model checkpoints (`.pt` files)               |
+| **Exports**  | Exported model formats (ONNX, TensorRT, CoreML, etc)  |
+
+!!! tip "Recalculate Storage"
+
+    To refresh your storage values, click the **Recalculate** button on the storage card.
 
 #### Storage Limits
 
-| Plan       | Limit     |
-| ---------- | --------- |
-| Free       | 100 GB    |
-| Pro        | 500 GB    |
-| Enterprise | Unlimited |
+| Plan           | Storage   | Models    | Deployments |
+| -------------- | --------- | --------- | ----------- |
+| **Free**       | 100 GB    | 100       | 3           |
+| **Pro**        | 500 GB    | 500       | 10          |
+| **Enterprise** | Unlimited | Unlimited | Unlimited   |
+
+#### Upload Size Limits
+
+| File Type                                           | Free  | Pro   | Enterprise |
+| --------------------------------------------------- | ----- | ----- | ---------- |
+| **Image**                                           | 50 MB | 50 MB | 50 MB      |
+| **Video**                                           | 1 GB  | 1 GB  | 1 GB       |
+| **Model (.pt)**                                     | 1 GB  | 1 GB  | 1 GB       |
+| **Dataset (ZIP/TAR incl. `.tar.gz`/`.tgz`/NDJSON)** | 10 GB | 20 GB | 50 GB      |
+
+#### Trash and Storage
+
+Items in the trash still count toward your storage quota. To free up space, permanently delete items from the trash. Trash items are automatically removed after 30 days. See [Trash](trash.md) for details.
 
 #### Reduce Storage
 
 To free up storage:
 
-1. Delete unused datasets
+1. Delete unused datasets or remove unnecessary images
 2. Remove old model checkpoints
-3. Delete exported formats
-4. Empty trash ([`Settings > Trash`](trash.md))
+3. Delete exported model formats you no longer need
+4. Empty trash in [**Settings > Trash**](trash.md)
 
 ### Security
 
@@ -161,7 +180,7 @@ Download all your data:
 1. Go to **Settings > Profile**
 2. Scroll to the bottom section
 3. Click **Export Data**
-4. Receive download link via email
+4. An asynchronous export job runs in the background; a **Download** link appears on the same page when the job completes (download link valid for 1 hour)
 
 Export includes:
 
@@ -169,7 +188,7 @@ Export includes:
 - Dataset metadata
 - Model metadata
 - Training history
-- API key metadata (not secrets)
+- API key metadata (keys themselves are never exported in plaintext)
 
 #### Account Deletion
 
@@ -198,63 +217,119 @@ Permanently delete your account:
 - Server logs (90 days)
 - Legal compliance records
 
+## API Keys Tab
+
+The `API Keys` tab lets you create and manage API keys for remote training and inference. See [API Keys](api-keys.md) for full documentation.
+
 ## Plans Tab
 
-Compare available plans. See [Billing](billing.md) for detailed plan information and pricing.
+The `Plans` tab lets you compare available plans and upgrade or downgrade your subscription.
+
+![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-plans-tab-free-pro-enterprise-comparison.avif)
+
+| Plan           | Storage   | Models    | Deployments | Concurrent Trainings | Team Seats |
+| -------------- | --------- | --------- | ----------- | -------------------- | ---------- |
+| **Free**       | 100 GB    | 100       | 3           | 3                    | —          |
+| **Pro**        | 500 GB    | 500       | 10          | 10                   | Up to 5    |
+| **Enterprise** | Unlimited | Unlimited | Unlimited   | Unlimited            | Up to 50   |
+
+From this tab you can:
+
+- **Compare features** across Free, Pro, and Enterprise tiers
+- **Upgrade to Pro** to unlock more storage, models, team collaboration, and priority GPU access
+- **Review Enterprise** capabilities including SSO/SAML and commercial licensing — see [Ultralytics Licensing](https://www.ultralytics.com/license)
+
+See [Billing](billing.md) for detailed plan information, pricing, and upgrade instructions.
 
 ## Billing Tab
 
-Manage credits, payment methods, and view transaction history. See [Billing](billing.md) for full documentation.
+The `Billing` tab is where you manage credits, payment methods, and review transaction history. Credits are the currency used for cloud training and deployments on the platform.
+
+![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-credit-balance-and-plan-card.avif)
+
+From this tab you can:
+
+- **View credit balance** and monitor remaining credits
+- **Add credits** via manual top-up (presets from $10–$500 or custom amounts up to $1,000)
+- **Enable auto top-up** to automatically add credits when your balance falls below a threshold, preventing training interruptions
+- **Manage payment methods** and update your billing address
+- **Review transaction history** to track all credit movements including purchases, training costs, and refunds
+
+!!! tip "Training Costs"
+
+    Before each training run, the platform estimates the cost based on your selected GPU, dataset size, and epochs. You're charged for actual usage upon completion — unused estimated credits are returned to your balance.
+
+See [Billing](billing.md) for full documentation on credits, payment, and plan management.
 
 ## Teams Tab
 
-Manage workspace members, roles, and invitations. Teams are available on [Pro and Enterprise plans](billing.md#plans).
+The `Teams` tab lets you manage workspace members, roles, and invitations. Teams are available on [Pro and Enterprise plans](billing.md#plans).
 
-### Team Overview
+![Ultralytics Platform Teams Member List With Roles](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-teams-tab-member-list-with-roles.avif)
 
-The Teams tab displays:
+### Roles and Permissions
 
-- Workspace name and avatar
-- Seat usage summary (used / available)
-- Member list with roles
-- Pending invitations
-
-### Member Roles
-
-| Role       | Permissions                                            |
-| ---------- | ------------------------------------------------------ |
-| **Owner**  | Full control, transfer ownership, delete workspace     |
-| **Admin**  | Manage members, billing, settings, content             |
-| **Editor** | Create and manage projects, datasets, models, API keys |
-| **Viewer** | Read-only access to workspace resources                |
-
-!!! note "Role Availability"
-
-    Owner, Admin, Editor, and Viewer roles are available on all team plans (Pro and Enterprise).
-
-### Invite Members
-
-1. Go to **Settings > Teams**
-2. Click **Invite**
-3. Enter email address
-4. Select role
-5. Send invitation
-
-The invitee receives an email and can accept the invitation to join the workspace. Invitations expire after 7 days. Inviting members requires the Admin role or higher.
+| Role       | Description                                                          |
+| ---------- | -------------------------------------------------------------------- |
+| **Owner**  | Full control including billing, member management, and team deletion |
+| **Admin**  | Manage members, resources, and settings (cannot delete team)         |
+| **Editor** | Create and edit projects, datasets, and models                       |
+| **Viewer** | Read-only access to shared resources                                 |
 
 ### Manage Members
 
 Owners and admins can manage the team:
 
+- **Invite members** via email (invites stay valid until accepted or canceled; pending invites count against the seat limit)
 - **Change roles**: Click the role dropdown next to a member (only the owner can assign/remove the admin role)
 - **Remove members**: Click the menu and select **Remove**
 - **Cancel invites**: Cancel pending invitations that haven't been accepted
 - **Resend invites**: Resend invitation emails
 - **Transfer ownership**: Transfer workspace ownership to another member (Owner only)
 
+### Shared Resources
+
+All resources created in a team workspace belong to the team, not individual members. Team members share:
+
+- **Datasets, projects, and models** — accessible by all members based on their role
+- **Credit balance** — a single shared pool for training and deployments
+- **Storage and resource limits** — counted at the team level
+
+!!! note "Team Billing"
+
+    On Pro plans, each team member is a paid seat. The team credit balance is shared across all members.
+
+See [Teams](teams.md) for full documentation on team creation, switching workspaces, and enterprise features.
+
 ## Trash Tab
 
-Manage deleted items. See [Trash](trash.md) for full documentation.
+The `Trash` tab shows all deleted items and lets you restore or permanently remove them. Deleted items follow a 30-day soft delete policy before automatic permanent deletion.
+
+![Ultralytics Platform Settings Trash Tab With Items And Storage Treemap](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-trash-tab-with-items-and-storage-treemap.avif)
+
+From this tab you can:
+
+- **Browse deleted items** filtered by type (All, Projects, Datasets, Models)
+- **View the storage treemap** to see the relative size of trashed items
+- **Restore items** to their original location with all data intact
+- **Permanently delete** individual items or use **Empty Trash** to remove everything at once
+
+!!! warning "Storage Impact"
+
+    Items in the trash still count toward your storage quota. To free up space immediately, permanently delete items you no longer need.
+
+See [Trash](trash.md) for full documentation including cascade behavior and API access.
+
+## Help & Feedback
+
+The **Help** page is accessible from the sidebar footer. Use it to:
+
+- **Rate your experience** with a 1-5 star rating
+- **Choose a feedback type**: Bug Report, Feature Request, or General
+- **Describe the issue** with a text message
+- **Attach screenshots** for visual context
+
+Feedback is private and sent directly to the Ultralytics team to help prioritize features and fix issues.
 
 ## FAQ
 

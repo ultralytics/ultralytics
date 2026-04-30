@@ -16,19 +16,21 @@ Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 
 ![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-plans-tab-free-pro-enterprise-comparison.avif)
 
-| Feature                    | Free       | Pro ($29/mo)    | Enterprise |
-| -------------------------- | ---------- | --------------- | ---------- |
-| **Signup Credit**          | $5 / $25\* | -               | Custom     |
-| **Monthly Credit**         | -          | $30/seat/month  | Custom     |
-| **Models**                 | 100        | 500             | Unlimited  |
-| **Concurrent Trainings**   | 3          | 10              | Unlimited  |
-| **Storage**                | 100 GB     | 500 GB          | Unlimited  |
-| **Deployments**            | 3          | 10 (warm-start) | Unlimited  |
-| **Teams**                  | -          | Up to 5 members | Up to 50   |
-| **Best GPUs (H200, B200)** | -          | Yes             | Yes        |
-| **SSO / SAML**             | -          | -               | Yes        |
-| **Enterprise License**     | -          | -               | Yes        |
-| **License**                | AGPL-3.0   | AGPL-3.0        | Enterprise |
+| Feature                                                    | Free       | Pro ($29/mo)    | Enterprise |
+| ---------------------------------------------------------- | ---------- | --------------- | ---------- |
+| **Signup Credit**                                          | $5 / $25\* | -               | Custom     |
+| **Monthly Credit**                                         | -          | $30/seat/month  | Custom     |
+| **Models**                                                 | 100        | 500             | Unlimited  |
+| **Concurrent Trainings**                                   | 3          | 10              | Unlimited  |
+| **Storage**                                                | 100 GB     | 500 GB          | Unlimited  |
+| **Dataset Upload (ZIP/TAR incl. `.tar.gz`/`.tgz`/NDJSON)** | 10 GB      | 20 GB           | 50 GB      |
+| **Deployments**                                            | 3          | 10              | Unlimited  |
+| **Cloud GPU Types**                                        | 20         | 23              | 23         |
+| **Best GPUs (H200, B200)**                                 | -          | Yes             | Yes        |
+| **Teams**                                                  | -          | Up to 5 members | Up to 50   |
+| **SSO / SAML**                                             | -          | -               | Yes        |
+| **Enterprise License**                                     | -          | -               | Yes        |
+| **License**                                                | AGPL-3.0   | AGPL-3.0        | Enterprise |
 
 \*Free plan: $5 at signup, or $25 if you verify a company/work email address.
 
@@ -41,9 +43,10 @@ Get started at no cost:
 - 100 models
 - 3 concurrent cloud trainings
 - 3 deployments
-- 100 GB storage
-- Model export to all formats
-- Manual annotation
+- 100 GB storage · 10 GB dataset upload limit
+- Model export to all 17+ formats
+- Manual, SAM 3 & YOLO Smart annotation
+- 20 cloud GPU types including 5090 & H100 ($0.24–$3.07/hr)
 - Community support
 
 !!! tip "Company Email Bonus"
@@ -57,9 +60,9 @@ For professionals and small teams ($29/month or $290/year):
 - $30/seat/month in credits (recurring)
 - 500 models
 - 10 concurrent cloud trainings
-- 500 GB storage
-- 10 warm-start deployments (faster cold starts)
-- Team collaboration (up to 5 members)
+- 500 GB storage · 20 GB dataset upload limit
+- 10 cloud deployments
+- [Team collaboration](teams.md) with 4-role RBAC (up to 5 members)
 - Access to the best GPUs (H200, B200)
 - Priority support
 
@@ -71,19 +74,16 @@ For professionals and small teams ($29/month or $290/year):
 
 For organizations with advanced needs:
 
-- $1,000/month in credits (starting allocation)
 - Custom credit allocation
-- Unlimited models, storage, trainings, and deployments
+- Unlimited models, storage, trainings, and deployments · 50 GB dataset upload limit
 - Enterprise License (commercial use, non-AGPL)
 - SSO / SAML authentication
-- RBAC with 4 roles (Owner, Admin, Editor, Viewer)
-- Custom roles with granular permissions
-- On-premise deployment options
-- Compliance (ISO/SOC)
-- SLA guarantees
+- On-premise deployment (coming soon)
+- ISO/SOC compliance (coming soon)
+- SLA guarantees (coming soon)
 - Enterprise support
 
-Contact [sales@ultralytics.com](mailto:sales@ultralytics.com) for Enterprise pricing.
+See [Ultralytics Licensing](https://www.ultralytics.com/license) for Enterprise plan details.
 
 ## Credits
 
@@ -190,30 +190,9 @@ flowchart LR
 
 Cloud training costs depend on GPU selection:
 
-| GPU          | VRAM   | Rate/Hour |
-| ------------ | ------ | --------- |
-| RTX 2000 Ada | 16 GB  | $0.24     |
-| RTX A4500    | 20 GB  | $0.24     |
-| RTX A5000    | 24 GB  | $0.26     |
-| RTX 4000 Ada | 20 GB  | $0.38     |
-| L4           | 24 GB  | $0.39     |
-| A40          | 48 GB  | $0.40     |
-| RTX 3090     | 24 GB  | $0.46     |
-| RTX A6000    | 48 GB  | $0.49     |
-| RTX 4090     | 24 GB  | $0.59     |
-| RTX 6000 Ada | 48 GB  | $0.77     |
-| L40S         | 48 GB  | $0.86     |
-| RTX 5090     | 32 GB  | $0.89     |
-| L40          | 48 GB  | $0.99     |
-| A100 PCIe    | 80 GB  | $1.39     |
-| A100 SXM     | 80 GB  | $1.49     |
-| RTX PRO 6000 | 96 GB  | $1.89     |
-| H100 PCIe    | 80 GB  | $2.39     |
-| H100 SXM     | 80 GB  | $2.69     |
-| H100 NVL     | 94 GB  | $3.07     |
-| H200 NVL     | 143 GB | $3.39     |
-| H200 SXM     | 141 GB | $3.59     |
-| B200         | 180 GB | $4.99     |
+{% include "macros/platform-gpu-table.md" %}
+
+H200 and B200 GPUs require a [Pro or Enterprise plan](#plans). All other GPUs are available on all plans.
 
 See [Cloud Training](../train/cloud-training.md) for complete GPU options and pricing.
 
@@ -226,7 +205,7 @@ Total Cost = GPU Rate x Training Time (hours)
 Example: Training for 2.5 hours on RTX PRO 6000
 
 ```
-$1.89 x 2.5 = $4.73
+$1.69 x 2.5 = $4.23
 ```
 
 ## Upgrade to Pro
@@ -238,33 +217,55 @@ Upgrade for more features and monthly credits:
 3. Choose billing cycle (Monthly or Yearly)
 4. Complete checkout
 
-<!-- Screenshot: settings-plans-tab-upgrade-to-pro-dialog.avif -->
+![Upgrade to Pro dialog in Settings Plans tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-plans-tab-upgrade-to-pro-dialog.avif)
 
 ### Pro Benefits
 
 After upgrading:
 
 - $30/seat/month credit added immediately and each month
-- Storage increased to 500 GB
+- Storage increased to 500 GB · 20 GB dataset upload limit
 - 500 models
 - 10 concurrent cloud trainings
-- 10 warm-start deployments
-- Team collaboration (up to 5 members)
-- Access to best GPUs
+- 10 cloud deployments
+- [Team collaboration](teams.md) (up to 5 members)
+- Access to best GPUs (H200, B200)
+- Full monitoring dashboard
 - Priority support
 
 ### Cancel Pro
 
-Cancel anytime from the billing portal:
+Cancel anytime from the Plans tab:
 
-1. Go to **Settings > Billing**
-2. Click **Manage Subscription**
-3. Select **Cancel**
-4. Confirm cancellation
+1. Go to **Settings > Plans**
+2. Click **Cancel Subscription** on the Pro plan card
+3. Confirm in the dialog
+
+If you cancel before the end of your billing period, a **Resume Subscription** button appears — click it to undo the cancellation before the period ends.
 
 !!! note "Cancellation Timing"
 
-    Pro features remain active until the end of your billing period. Monthly credits stop at cancellation.
+    Pro features remain active until the end of your current billing period. Monthly credits stop being granted at cancellation.
+
+### Downgrading to Free
+
+When your Pro subscription ends (cancelled or expired), your account reverts to the Free plan. Here's what happens to your existing resources:
+
+| Resource                                                   | What Happens                                                                     |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| **Models**                                                 | All models preserved. Cannot create new models beyond 100-model limit            |
+| **Deployments**                                            | All deployments preserved. Cannot create new beyond 3-deployment limit           |
+| **Storage**                                                | All data preserved. Cannot upload new data beyond 100 GB limit                   |
+| **Dataset Upload (ZIP/TAR incl. `.tar.gz`/`.tgz`/NDJSON)** | Upload limit reduced from 20 GB to 10 GB per file                                |
+| **Credit Balance**                                         | Existing credits preserved and usable                                            |
+| **Monthly Credits**                                        | $30/seat/month grants stop immediately                                           |
+| **Team Members**                                           | Members notified and lose access to team resources                               |
+| **GPU Access**                                             | Standard GPUs remain available. Best GPUs (H200, B200) require Pro or Enterprise |
+| **Concurrent Trainings**                                   | Limit reduced from 10 to 3                                                       |
+
+!!! tip "No Data Loss"
+
+    Downgrading never deletes your models, datasets, or deployments. Limits are only enforced when creating **new** resources — existing resources remain fully accessible.
 
 ## Transaction History
 
@@ -272,23 +273,23 @@ View all transactions in `Settings > Billing`:
 
 ![Ultralytics Platform Settings Billing Tab Transaction History Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-transaction-history-table.avif)
 
-| Column      | Description                                                                                                 |
-| ----------- | ----------------------------------------------------------------------------------------------------------- |
-| **Date**    | Transaction date                                                                                            |
-| **Type**    | Signup Bonus, Credit Purchase, Monthly Grant, Training, Refund, Adjustment, Auto Top-Up, Auto Top-Up Failed |
-| **Amount**  | Transaction value (green for credits, red for charges)                                                      |
-| **Balance** | Resulting balance after transaction                                                                         |
-| **Details** | Additional context (model link, receipt, period)                                                            |
+| Column      | Description                                                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **Date**    | Transaction date                                                                                                                       |
+| **Type**    | Signup, Purchase, Subscription, Monthly Grant, Training, Refund, Adjustment, Promo, Auto Top-Up, Auto Top-Up Failed, Pro Credit Expiry |
+| **Amount**  | Transaction value (green for credits, red for charges)                                                                                 |
+| **Balance** | Resulting balance after transaction                                                                                                    |
+| **Details** | Additional context (model link, receipt, period)                                                                                       |
 
 ## FAQ
 
 ### What happens when I run out of credits?
 
-- **Active training**: Cannot start new training jobs
-- **Deployments**: Continue running
-- **New training**: Requires credits to start
+- **Running training**: Continues to completion — your balance may go negative
+- **New training**: Cannot start new jobs until balance is positive
+- **Deployments**: Continue running regardless of balance
 
-Add credits or enable auto top-up to continue training.
+If a training run completes and the actual cost exceeds your remaining balance, your balance goes negative. Add credits to restore a positive balance before starting new training jobs. Enable [auto top-up](#auto-top-up) to avoid interruptions.
 
 ### Are unused credits refundable?
 
@@ -305,7 +306,7 @@ Transaction receipts are available in the transaction history. Click the receipt
 
 ### What if training fails?
 
-You're only charged for completed compute time. Failed jobs don't charge for unused time.
+**Failed training runs are not charged.** If a job fails due to a configuration error, out-of-memory issue, or any other reason, no credits are deducted. Completed, user-cancelled, and auto-terminated stuck jobs may incur charges based on actual GPU time used. See [Cloud Training Billing](../train/cloud-training.md#billing-by-job-status) for a full breakdown by job status.
 
 ### Is there a free trial?
 

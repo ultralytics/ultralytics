@@ -676,11 +676,9 @@ class Mosaic(BaseMixTransform):
 
         Args:
             labels (dict[str, Any]): A dictionary containing the input image and its associated labels. It should have
-            the following keys:
-                - 'img' (np.ndarray): The input image.
-                - 'resized_shape' (tuple[int, int]): The shape of the resized image (height, width).
-                - 'mix_labels' (list[dict]): A list of dictionaries containing information for the additional
-            eight images, each with the same structure as the input labels.
+                the following keys: 'img' (np.ndarray) the input image, 'resized_shape' (tuple[int, int]) the shape
+                of the resized image (height, width), and 'mix_labels' (list[dict]) a list of dictionaries containing
+                information for the additional eight images, each with the same structure as the input labels.
 
         Returns:
             (dict[str, Any]): A dictionary containing the mosaic image and updated labels. It includes the following

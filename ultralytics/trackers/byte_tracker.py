@@ -241,7 +241,7 @@ class BYTETracker:
         removed_stracks (list[STrack]): List of removed tracks.
         frame_id (int): The current frame ID.
         args (Namespace): Command-line arguments.
-        max_time_lost (int): The maximum frames for a track to be considered as 'lost'.
+        max_frames_lost (int): The maximum frames for a track to be considered as 'lost'.
         kalman_filter (KalmanFilterXYAH): Kalman Filter object.
 
     Methods:
@@ -276,7 +276,7 @@ class BYTETracker:
 
         self.frame_id = 0
         self.args = args
-        self.max_time_lost = int(frame_rate / 30.0 * args.track_buffer)
+        self.max_frames_lost = args.track_buffer
         self.kalman_filter = self.get_kalmanfilter()
         self.reset_id()
 
@@ -377,7 +377,7 @@ class BYTETracker:
             activated_stracks.append(track)
         # Step 5: Update state
         for track in self.lost_stracks:
-            if self.frame_id - track.end_frame > self.max_time_lost:
+            if self.frame_id - track.end_frame > self.max_frames_lost:
                 track.mark_removed()
                 removed_stracks.append(track)
 

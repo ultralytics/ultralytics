@@ -1644,14 +1644,6 @@ GET /api/storage
 }
 ```
 
-### Recalculate Storage
-
-```http
-POST /api/storage
-```
-
-Triggers a recalculation of storage usage.
-
 ---
 
 ## Upload API

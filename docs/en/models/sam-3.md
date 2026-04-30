@@ -532,7 +532,7 @@ SAM 3's concept segmentation capability enables new use cases:
 - **Medical Imaging**: Identify all occurrences of specific tissue types or abnormalities
 - **Autonomous Systems**: Track all instances of traffic signs, pedestrians, or vehicles by category
 - **Video Analytics**: Count and track all people wearing specific clothing or performing actions
-- **Dataset Annotation**: Rapidly annotate all instances of rare object categories
+- **[Dataset Annotation](https://www.ultralytics.com/annotate)**: Rapidly annotate all instances of rare object categories
 - **Scientific Research**: Quantify and analyze all specimens matching specific criteria
 
 ## SAM 3 Agent: Extended Language Reasoning

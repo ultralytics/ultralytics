@@ -84,7 +84,7 @@ The quality of your computer vision models depends on the quality of your datase
 
 Some libraries, like Ultralytics, provide [built-in support for various datasets](../datasets/index.md), making it easier to get started with high-quality data. These libraries often include utilities for using popular datasets seamlessly, which can save you a lot of time and effort in the initial stages of your project.
 
-However, if you choose to collect images or take your own pictures, you'll need to annotate your data. Data annotation is the process of labeling your data to impart knowledge to your model. The type of data annotation you'll work with depends on your specific computer vision technique. Here are some examples:
+However, if you choose to collect images or take your own pictures, you'll need to annotate your data. [Data annotation](https://www.ultralytics.com/annotate) is the process of labeling your data to impart knowledge to your model. The type of data annotation you'll work with depends on your specific computer vision technique. Here are some examples:
 
 - **Image Classification:** You'll label the entire image as a single class.
 - **[Object Detection](https://www.ultralytics.com/glossary/object-detection):** You'll draw bounding boxes around each object in the image and label each box.

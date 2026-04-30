@@ -6,7 +6,7 @@ keywords: Axelera AI, Metis AIPU, Voyager SDK, Edge AI, YOLOv8, YOLO11, YOLO26, 
 
 # Axelera AI Export and Deployment
 
-Ultralytics partners with [Axelera AI](https://www.axelera.ai/) to enable high-performance, energy-efficient inference on [Edge AI](https://www.ultralytics.com/glossary/edge-ai) devices. Export and deploy **Ultralytics YOLO models** directly to the **Metis® AIPU** using the **Voyager SDK**.
+Ultralytics partners with [Axelera AI](https://axelera.ai/) to enable high-performance, energy-efficient inference on [Edge AI](https://www.ultralytics.com/glossary/edge-ai) devices. Export and deploy **Ultralytics YOLO models** directly to the **Metis® AIPU** using the **Voyager SDK**.
 
 ![Axelera AI edge deployment ecosystem for YOLO](https://github.com/user-attachments/assets/c97a0297-390d-47df-bb13-ff1aa499f34a)
 
@@ -106,8 +106,16 @@ For detailed instructions, see our [Ultralytics Installation guide](../quickstar
 
 2. Add the repository to apt:
 
+    Choose the appropriate snippet from below to match the OS being used.
+
     ```bash
-    sudo sh -c "echo 'deb [signed-by=/etc/apt/keyrings/axelera.gpg] https://software.axelera.ai/artifactory/axelera-apt-source/ ubuntu22 main' > /etc/apt/sources.list.d/axelera.list"
+    # Ubuntu 22.04
+    sudo sh -c "echo 'deb [signed-by=/etc/apt/keyrings/axelera.gpg] https://software.axelera.ai/artifactory/axelera-apt-source ubuntu22 main' > /etc/apt/sources.list.d/axelera.list"
+    ```
+
+    ```bash
+    # Ubuntu 24.04
+    sudo sh -c "echo 'deb [signed-by=/etc/apt/keyrings/axelera.gpg] https://software.axelera.ai/artifactory/axelera-apt-source ubuntu24 main' > /etc/apt/sources.list.d/axelera.list"
     ```
 
 3. Install the SDK and load the driver:
@@ -116,6 +124,15 @@ For detailed instructions, see our [Ultralytics Installation guide](../quickstar
     sudo apt update
     sudo apt install -y metis-dkms=1.4.16
     sudo modprobe metis
+    ```
+
+!!! tip "First run downloads the SDK automatically"
+
+    The first `yolo export format=axelera` or `yolo predict` with an Axelera model will automatically download and install the Axelera SDK packages. This may take several minutes depending on your connection speed, and no progress is shown during the download. To install manually beforehand:
+
+    ```bash
+    pip install axelera-devkit==1.6.0 --extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple
+    pip install axelera-rt==1.6.0 --extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple
     ```
 
 ## Exporting YOLO Models to Axelera
@@ -148,20 +165,21 @@ Export your trained YOLO models using the standard Ultralytics export command.
 
 ### Export Arguments
 
-| Argument   | Type             | Default          | Description                                                                                  |
-| :--------- | :--------------- | :--------------- | :------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'axelera'`      | Target format for Axelera Metis AIPU hardware                                                |
-| `imgsz`    | `int` or `tuple` | `640`            | Image size for model input                                                                   |
-| `int8`     | `bool`           | `True`           | Enable [INT8 quantization](https://www.ultralytics.com/glossary/model-quantization) for AIPU |
-| `data`     | `str`            | `'coco128.yaml'` | [Dataset](https://docs.ultralytics.com/datasets/) config for quantization calibration        |
-| `fraction` | `float`          | `1.0`            | Fraction of dataset for calibration (100-400 images recommended)                             |
-| `device`   | `str`            | `None`           | Export device: GPU (`device=0`) or CPU (`device=cpu`)                                        |
+| Argument   | Type             | Default          | Description                                                                                                                             |
+| :--------- | :--------------- | :--------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'axelera'`      | Target format for Axelera Metis AIPU hardware.                                                                                          |
+| `imgsz`    | `int` or `tuple` | `640`            | Image size for model input.                                                                                                             |
+| `batch`    | `int`            | `1`              | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
+| `int8`     | `bool`           | `True`           | Enable [INT8 quantization](https://www.ultralytics.com/glossary/model-quantization) for AIPU.                                           |
+| `data`     | `str`            | `'coco128.yaml'` | [Dataset](https://docs.ultralytics.com/datasets/) config for quantization calibration.                                                  |
+| `fraction` | `float`          | `1.0`            | Fraction of dataset for calibration (100-400 images recommended).                                                                       |
+| `device`   | `str`            | `None`           | Export device: GPU (`device=0`) or CPU (`device=cpu`).                                                                                  |
 
 For all export options, see the [Export Mode documentation](https://docs.ultralytics.com/modes/export/).
 
 ### Output Structure
 
-```text
+```
 yolo26n_axelera_model/
 ├── yolo26n.axm              # Axelera model file
 └── metadata.yaml            # Model metadata (classes, image size, etc.)

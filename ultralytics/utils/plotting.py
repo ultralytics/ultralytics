@@ -144,7 +144,7 @@ class Colors:
         )
 
     def __call__(self, i: int | torch.Tensor, bgr: bool = False) -> tuple:
-        """Convert hex color codes to RGB values.
+        """Return a color from the palette by index.
 
         Args:
             i (int | torch.Tensor): Color index.
@@ -172,10 +172,10 @@ class Annotator:
         im (Image.Image | np.ndarray): The image to annotate.
         pil (bool): Whether to use PIL or cv2 for drawing annotations.
         font (ImageFont.truetype | ImageFont.load_default): Font used for text annotations.
-        lw (float): Line width for drawing.
+        lw (int): Line width for drawing.
         skeleton (list[list[int]]): Skeleton structure for keypoints.
-        limb_color (list[int]): Color palette for limbs.
-        kpt_color (list[int]): Color palette for keypoints.
+        limb_color (np.ndarray): Color palette for limbs.
+        kpt_color (np.ndarray): Color palette for keypoints.
         dark_colors (set): Set of colors considered dark for text contrast.
         light_colors (set): Set of colors considered light for text contrast.
 
@@ -280,8 +280,8 @@ class Annotator:
         """Assign text color based on background color.
 
         Args:
-            color (tuple, optional): The background color of the rectangle for text (B, G, R).
-            txt_color (tuple, optional): The color of the text (R, G, B).
+            color (tuple, optional): The background color of the rectangle for text.
+            txt_color (tuple, optional): The fallback color of the text.
 
         Returns:
             (tuple): Text color for label.
@@ -305,8 +305,8 @@ class Annotator:
         Args:
             box (tuple): The bounding box coordinates (x1, y1, x2, y2).
             label (str, optional): The text label to be displayed.
-            color (tuple, optional): The background color of the rectangle (B, G, R).
-            txt_color (tuple, optional): The color of the text (R, G, B).
+            color (tuple, optional): The background color of the rectangle.
+            txt_color (tuple, optional): The color of the text.
 
         Examples:
             >>> from ultralytics.utils.plotting import Annotator
@@ -364,9 +364,9 @@ class Annotator:
         """Plot masks on image.
 
         Args:
-            masks (torch.Tensor | np.ndarray): Predicted masks with shape: [n, h, w]
-            colors (list[list[int]]): Colors for predicted masks, [[r, g, b] * n]
-            im_gpu (torch.Tensor | None): Image is in cuda, shape: [3, h, w], range: [0, 1]
+            masks (torch.Tensor | np.ndarray): Predicted masks with shape [n, h, w].
+            colors (list[list[int]]): Colors for predicted masks, [[r, g, b] * n].
+            im_gpu (torch.Tensor | None): Image on GPU with shape [3, h, w], range [0, 1].
             alpha (float, optional): Mask transparency: 0.0 fully transparent, 1.0 opaque.
             retina_masks (bool, optional): Whether to use high resolution masks or not.
         """
@@ -427,7 +427,7 @@ class Annotator:
             radius (int, optional): Keypoint radius.
             kpt_line (bool, optional): Draw lines between keypoints.
             conf_thres (float, optional): Confidence threshold.
-            kpt_color (tuple, optional): Keypoint color (B, G, R).
+            kpt_color (tuple, optional): Keypoint color.
 
         Notes:
             - `kpt_line=True` currently only supports human pose plotting.
@@ -487,9 +487,9 @@ class Annotator:
         Args:
             xy (list[int]): Top-left coordinates for text placement.
             text (str): Text to be drawn.
-            txt_color (tuple, optional): Text color (R, G, B).
+            txt_color (tuple, optional): Text color.
             anchor (str, optional): Text anchor position ('top' or 'bottom').
-            box_color (tuple, optional): Box color (R, G, B, A) with optional alpha.
+            box_color (tuple, optional): Box background color with optional alpha.
         """
         if self.pil:
             w, h = self.font.getsize(text)
@@ -691,18 +691,18 @@ def plot_images(
     Args:
         labels (dict[str, Any]): Dictionary containing detection data with keys like 'cls', 'bboxes', 'conf', 'masks',
             'keypoints', 'batch_idx', 'img'.
-        images (torch.Tensor | np.ndarray]): Batch of images to plot. Shape: (batch_size, channels, height, width).
-        paths (Optional[list[str]]): List of file paths for each image in the batch.
+        images (torch.Tensor | np.ndarray): Batch of images to plot. Shape: (batch_size, channels, height, width).
+        paths (list[str] | None): List of file paths for each image in the batch.
         fname (str): Output filename for the plotted image grid.
-        names (Optional[dict[int, str]]): Dictionary mapping class indices to class names.
-        on_plot (Optional[Callable]): Optional callback function to be called after saving the plot.
+        names (dict[int, str] | None): Dictionary mapping class indices to class names.
+        on_plot (Callable | None): Callback function to be called after saving the plot.
         max_size (int): Maximum size of the output image grid.
         max_subplots (int): Maximum number of subplots in the image grid.
         save (bool): Whether to save the plotted image grid to a file.
         conf_thres (float): Confidence threshold for displaying detections.
 
     Returns:
-        (np.ndarray): Plotted image grid as a numpy array if save is False, None otherwise.
+        (np.ndarray | None): Plotted image grid as a numpy array if save is False, None otherwise.
 
     Notes:
         This function supports both tensor and numpy array inputs. It will automatically
@@ -861,11 +861,11 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
     Args:
         file (str, optional): Path to the CSV file containing the training results.
         dir (str, optional): Directory where the CSV file is located if 'file' is not provided.
-        on_plot (callable, optional): Callback function to be executed after plotting. Takes filename as an argument.
+        on_plot (Callable, optional): Callback function to be executed after plotting. Takes filename as an argument.
 
     Examples:
         >>> from ultralytics.utils.plotting import plot_results
-        >>> plot_results("path/to/results.csv", segment=True)
+        >>> plot_results("path/to/results.csv")
     """
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
     import polars as pl
@@ -876,6 +876,7 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
     assert len(files), f"No results.csv files found in {save_dir.resolve()}, nothing to plot."
 
     loss_keys, metric_keys = [], []
+    fig, ax = None, None
     for i, f in enumerate(files):
         try:
             data = pl.read_csv(f, infer_schema_length=None)
@@ -899,12 +900,13 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
                 ax[i].set_title(j, fontsize=12)
         except Exception as e:
             LOGGER.error(f"Plotting error for {f}: {e}")
-    ax[1].legend()
-    fname = save_dir / "results.png"
-    fig.savefig(fname, dpi=200)
-    plt.close()
-    if on_plot:
-        on_plot(fname)
+    if ax is not None:
+        ax[1].legend()
+        fname = save_dir / "results.png"
+        fig.savefig(fname, dpi=200)
+        plt.close()
+        if on_plot:
+            on_plot(fname)
 
 
 def plt_color_scatter(v, f, bins: int = 20, cmap: str = "viridis", alpha: float = 0.8, edgecolors: str = "none"):
@@ -940,20 +942,19 @@ def plt_color_scatter(v, f, bins: int = 20, cmap: str = "viridis", alpha: float 
 
 
 @plt_settings()
-def plot_tune_results(csv_file: str = "tune_results.csv", exclude_zero_fitness_points: bool = True):
-    """Plot the evolution results stored in a 'tune_results.csv' file. The function generates a scatter plot for each
-    key in the CSV, color-coded based on fitness scores. The best-performing configurations are highlighted on
-    the plots.
+def plot_tune_results(results_file: str = "tune_results.ndjson", exclude_zero_fitness_points: bool = True):
+    """Plot the evolution results stored in a tuning NDJSON file.
 
     Args:
-        csv_file (str, optional): Path to the CSV file containing the tuning results.
+        results_file (str, optional): Path to the NDJSON file containing the tuning results.
         exclude_zero_fitness_points (bool, optional): Don't include points with zero fitness in tuning plots.
 
     Examples:
-        >>> plot_tune_results("path/to/tune_results.csv")
+        >>> plot_tune_results("path/to/tune_results.ndjson")
     """
+    import json
+
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
-    import polars as pl
     from scipy.ndimage import gaussian_filter1d
 
     def _save_one_file(file):
@@ -962,19 +963,27 @@ def plot_tune_results(csv_file: str = "tune_results.csv", exclude_zero_fitness_p
         plt.close()
         LOGGER.info(f"Saved {file}")
 
-    # Scatter plots for each hyperparameter
-    csv_file = Path(csv_file)
-    data = pl.read_csv(csv_file, infer_schema_length=None)
-    num_metrics_columns = 1
-    keys = [x.strip() for x in data.columns][num_metrics_columns:]
-    x = data.to_numpy()
-    fitness = x[:, 0]  # fitness
+    results_file = Path(results_file)
+    with open(results_file, encoding="utf-8") as f:
+        records = [json.loads(line) for line in f if line.strip()]
+    if not records:
+        return
+
+    keys = list(records[0].get("hyperparameters", {}))
+    x = np.array(
+        [[r.get("fitness", 0.0)] + [r.get("hyperparameters", {}).get(k, np.nan) for k in keys] for r in records],
+        dtype=float,
+    )
+    len(x)
+    all_fitness = x[:, 0]  # fitness
+    zero_mask = slice(None)
     if exclude_zero_fitness_points:
-        mask = fitness > 0  # exclude zero-fitness points
-        x, fitness = x[mask], fitness[mask]
-    if len(fitness) == 0:
+        zero_mask = all_fitness > 0  # exclude zero-fitness points
+        x, all_fitness = x[zero_mask], all_fitness[zero_mask]
+    if len(all_fitness) == 0:
         LOGGER.warning("No valid fitness values to plot (all iterations may have failed)")
         return
+    fitness = all_fitness.copy()
     # Iterative sigma rejection on lower bound only
     for _ in range(3):  # max 3 iterations
         mean, std = fitness.mean(), fitness.std()
@@ -987,7 +996,7 @@ def plot_tune_results(csv_file: str = "tune_results.csv", exclude_zero_fitness_p
     n = math.ceil(len(keys) ** 0.5)  # columns and rows in plot
     plt.figure(figsize=(10, 10), tight_layout=True)
     for i, k in enumerate(keys):
-        v = x[:, i + num_metrics_columns]
+        v = x[:, i + 1]
         mu = v[j]  # best single result
         plt.subplot(n, n, i + 1)
         plt_color_scatter(v, fitness, cmap="viridis", alpha=0.8, edgecolors="none")
@@ -996,19 +1005,23 @@ def plot_tune_results(csv_file: str = "tune_results.csv", exclude_zero_fitness_p
         plt.tick_params(axis="both", labelsize=8)  # Set axis label size to 8
         if i % n != 0:
             plt.yticks([])
-    _save_one_file(csv_file.with_name("tune_scatter_plots.png"))
+    _save_one_file(results_file.with_name("tune_scatter_plots.png"))
 
     # Fitness vs iteration
-    x = range(1, len(fitness) + 1)
+    x = range(1, len(all_fitness) + 1)
     plt.figure(figsize=(10, 6), tight_layout=True)
-    plt.plot(x, fitness, marker="o", linestyle="none", label="fitness")
-    plt.plot(x, gaussian_filter1d(fitness, sigma=3), ":", label="smoothed", linewidth=2)  # smoothing line
+    for dataset in sorted({k for r in records for k in r.get("datasets", {})}):
+        y = np.array([r.get("datasets", {}).get(dataset, {}).get("fitness", np.nan) for r in records], dtype=float)
+        if exclude_zero_fitness_points and not isinstance(zero_mask, slice):
+            y = y[zero_mask]
+        plt.plot(x, y, "o", markersize=5, alpha=0.8, label=dataset)
+    plt.plot(x, gaussian_filter1d(all_fitness, sigma=3), ":", color="0.35", label="smoothed mean", linewidth=2)
     plt.title("Fitness vs Iteration")
     plt.xlabel("Iteration")
     plt.ylabel("Fitness")
     plt.grid(True)
     plt.legend()
-    _save_one_file(csv_file.with_name("tune_fitness.png"))
+    _save_one_file(results_file.with_name("tune_fitness.png"))
 
 
 @plt_settings()

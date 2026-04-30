@@ -45,8 +45,8 @@ class RTDETRPredictor(BasePredictor):
             orig_imgs (list | torch.Tensor): Original, unprocessed images.
 
         Returns:
-            results (list[Results]): A list of Results objects containing the post-processed bounding boxes, confidence
-                scores, and class labels.
+            (list[Results]): A list of Results objects containing the post-processed bounding boxes, confidence scores,
+                and class labels.
         """
         if not isinstance(preds, (list, tuple)):  # list for PyTorch inference but list[0] Tensor for export inference
             preds = [preds, None]
@@ -78,8 +78,7 @@ class RTDETRPredictor(BasePredictor):
         The input images are letterboxed to ensure a square aspect ratio and scale-filled.
 
         Args:
-            im (list[np.ndarray] | torch.Tensor): Input images of shape (N, 3, H, W) for tensor, [(H, W, 3) x N] for
-                list.
+            im (list[np.ndarray]): Input images of shape [(H, W, 3) x N].
 
         Returns:
             (list): List of pre-transformed images ready for model inference.

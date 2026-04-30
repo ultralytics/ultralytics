@@ -16,7 +16,7 @@ pip install -r requirements.txt
 
 ### Installing `onnxruntime-gpu` (Optional)
 
-For accelerated inference using an NVIDIA GPU, install the **`onnxruntime-gpu`** package. Ensure you have the correct [NVIDIA drivers](https://www.nvidia.com/Download/index.aspx) and [CUDA toolkit](https://developer.nvidia.com/cuda-toolkit) installed first. Consult the official [ONNX Runtime GPU documentation](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html) for detailed compatibility information and setup instructions.
+For accelerated inference using an NVIDIA GPU, install the **`onnxruntime-gpu`** package. Ensure you have the correct [NVIDIA drivers](https://www.nvidia.com/Download/index.aspx) and [CUDA toolkit](https://developer.nvidia.com/cuda/toolkit) installed first. Consult the official [ONNX Runtime GPU documentation](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html) for detailed compatibility information and setup instructions.
 
 ```bash
 pip install onnxruntime-gpu

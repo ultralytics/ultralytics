@@ -238,7 +238,7 @@ Using ONNX format for Ultralytics YOLO26 models provides numerous benefits:
 - **Flexibility**: ONNX supports various deployment environments, enabling you to use the same model on different platforms without modification.
 - **Standardization**: ONNX provides a standardized format that is widely supported across the industry, ensuring long-term compatibility.
 
-Refer to the comprehensive guide on [exporting YOLO26 models to ONNX](https://www.ultralytics.com/blog/export-and-optimize-a-yolov8-model-for-inference-on-openvino).
+Refer to the comprehensive guide on [exporting YOLO26 models to ONNX](../integrations/onnx.md).
 
 ### How can I troubleshoot issues when exporting YOLO26 models to ONNX?
 

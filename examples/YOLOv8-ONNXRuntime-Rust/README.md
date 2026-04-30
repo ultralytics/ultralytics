@@ -35,7 +35,7 @@ Please follow the official Rust installation guide: [https://www.rust-lang.org/t
 
 ### 3. [Optional] Install CUDA & CuDNN & TensorRT
 
-- The CUDA execution provider requires [CUDA](https://developer.nvidia.com/cuda-toolkit) v11.6+.
+- The CUDA execution provider requires [CUDA](https://developer.nvidia.com/cuda/toolkit) v11.6+.
 - The TensorRT execution provider requires CUDA v11.4+ and [TensorRT](https://developer.nvidia.com/tensorrt) v8.4+. You may also need [cuDNN](https://developer.nvidia.com/cudnn).
 
 ## ▶️ Get Started

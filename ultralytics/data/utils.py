@@ -398,6 +398,18 @@ def find_dataset_yaml(path: Path) -> Path:
     return files[0]
 
 
+def convert_ndjson_to_yolo_if_needed(data: str | Path) -> str | Path:
+    """Convert an NDJSON dataset or Platform dataset URI to YOLO format."""
+    data_str = str(data)
+    if data_str.endswith(".ndjson") or (data_str.startswith("ul://") and "/datasets/" in data_str):
+        import asyncio
+
+        from ultralytics.data.converter import convert_ndjson_to_yolo
+
+        return asyncio.run(convert_ndjson_to_yolo(check_file(data)))
+    return data
+
+
 def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]:
     """Download, verify, and/or unzip a dataset if not found locally.
 
@@ -412,7 +424,9 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
     Returns:
         (dict[str, Any]): Parsed dataset information and paths.
     """
-    file = check_file(dataset)
+    file = Path(check_file(dataset))
+    if file.is_dir():
+        file = find_dataset_yaml(file)
 
     # Download (optional)
     extract_dir = ""
@@ -806,8 +820,12 @@ def save_dataset_cache_file(prefix: str, path: Path, x: dict, version: str):
     if is_dir_writeable(path.parent):
         if path.exists():
             path.unlink()  # remove *.cache file if exists
-        with open(str(path), "wb") as file:  # context manager here fixes windows async np.save bug
-            np.save(file, x)
-        LOGGER.info(f"{prefix}New cache created: {path}")
+        try:
+            with open(str(path), "wb") as file:  # context manager here fixes windows async np.save bug
+                np.save(file, x)
+            LOGGER.info(f"{prefix}New cache created: {path}")
+        except Exception as e:
+            Path(path).unlink(missing_ok=True)  # remove partially written file
+            LOGGER.warning(f"{prefix}WARNING ⚠️ Failed to save cache to {path}: {e}")
     else:
         LOGGER.warning(f"{prefix}Cache directory {path.parent} is not writable, cache not saved.")

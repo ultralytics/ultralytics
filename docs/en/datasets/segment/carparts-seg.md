@@ -14,13 +14,13 @@ Whether you're working on [automotive research](https://www.ultralytics.com/solu
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/7lZa3Yi2kbo"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/FvWl00sD4rc"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Carparts <a href="https://www.ultralytics.com/glossary/instance-segmentation">Instance Segmentation</a> with Ultralytics YOLO26.
+  <strong>Watch:</strong> How to Segment Carparts with Ultralytics Platform | Train, Deploy & Inference | Ultralytics YOLO26 🚀
 </p>
 
 ## Dataset Structure

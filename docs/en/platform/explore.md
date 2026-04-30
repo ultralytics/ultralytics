@@ -118,11 +118,14 @@ graph TD
     C --> F[Clone Dataset]
     D --> G[Clone Project]
     E --> H[Download Model]
-    F --> I[Private Copy in Your Account]
-    G --> J[Private Copy with All Models]
-    H --> K[.pt / ONNX / Other Formats]
-    I --> L[Edit, Annotate, Train]
-    J --> L
+    E --> I[Clone Model]
+    F --> J[Private Copy in Your Account]
+    G --> K[Private Copy with All Models]
+    H --> L[.pt / ONNX / Other Formats]
+    I --> M[Copy to Your Project]
+    J --> N[Edit, Annotate, Train]
+    K --> N
+    M --> N
 ```
 
 ### Clone Dataset
@@ -130,15 +133,17 @@ graph TD
 Use a public dataset for your training:
 
 1. Click on the dataset to open its detail page
-2. Click `Clone`
+2. Click `Clone Dataset`
 3. Dataset copies to your account
+
+![Ultralytics Platform Explore Clone Dataset](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-clone-dataset.avif)
 
 !!! note "Cloned Dataset Properties"
 
     - Cloned datasets are **private by default**
     - You can modify classes, annotations, and splits
     - Changes don't affect the original dataset
-    - Images are deduplicated using content-addressable storage — cloning is fast
+    - Images are deduplicated using content-addressable storage (CAS) — cloning is fast and **does not double your storage usage**
 
 See [Datasets](data/datasets.md) for managing and annotating your cloned dataset.
 
@@ -160,26 +165,44 @@ yolo predict model=path/to/downloaded-model.pt source=image.jpg
 yolo train model=path/to/downloaded-model.pt data=my-dataset.yaml epochs=50
 ```
 
+### Clone Model
+
+Clone a public model to one of your projects:
+
+1. Click on the model within a project
+2. Click `Clone Model`
+3. Select a target project or create a new one
+4. Optionally, rename the model
+5. Click `Clone Model` to confirm
+
+![Ultralytics Platform Explore Clone Model Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-clone-model-dialog.avif)
+
+!!! note "Clone vs Download"
+
+    **Clone** copies the model to a project on the Platform for further training or deployment. **Download** saves the model file to your local machine.
+
 ### Clone Project
 
 Copy a public project to your workspace:
 
 1. Click on the project to open its detail page
-2. Click `Clone`
+2. Click `Clone Project`
 3. Project copies with all models to your account
 
-See [Projects](train/projects.md) for organizing models in your cloned project.
+![Ultralytics Platform Explore Clone Project](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-clone-project.avif)
+
+See [Projects](train/projects.md) for organizing models in your project.
 
 ## Official Ultralytics Content
 
 Official `@ultralytics` content is pinned to the top of the Explore page. This includes:
 
-| Project                           | Description                 | Models                       | Tasks                                |
-| --------------------------------- | --------------------------- | ---------------------------- | ------------------------------------ |
-| **[YOLO26](../models/yolo26.md)** | Latest January 2026 release | 25 models (all sizes, tasks) | detect, segment, pose, OBB, classify |
-| **[YOLO11](../models/yolo11.md)** | Current stable release      | 10+ models                   | detect, segment, pose, OBB, classify |
-| **YOLOv8**                        | Previous generation         | Various                      | detect, segment, pose, classify      |
-| **YOLOv5**                        | Legacy, widely adopted      | Various                      | detect, segment, classify            |
+| Project                           | Description                 | Models                         | Tasks                                |
+| --------------------------------- | --------------------------- | ------------------------------ | ------------------------------------ |
+| **[YOLO26](../models/yolo26.md)** | Latest January 2026 release | 25 models (5 sizes × 5 tasks)  | detect, segment, pose, OBB, classify |
+| **[YOLO11](../models/yolo11.md)** | Current stable release      | 25 models (5 sizes × 5 tasks)  | detect, segment, pose, OBB, classify |
+| **YOLOv8**                        | Previous generation         | 20+ models (5 sizes × 4 tasks) | detect, segment, pose, classify      |
+| **YOLOv5**                        | Legacy, widely adopted      | 15+ models                     | detect, segment, classify            |
 
 Official datasets include benchmark datasets like [coco8](../datasets/detect/coco8.md) (8-image COCO subset), [VOC](../datasets/detect/voc.md), [african-wildlife](../datasets/detect/african-wildlife.md), [dota8](../datasets/obb/dota8.md), and other commonly used computer vision datasets.
 
@@ -198,12 +221,17 @@ Click on a creator's username to view their public profile at `platform.ultralyt
 
 ![Ultralytics Platform User Profile Public Content](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-user-profile-public-content.avif)
 
-| Section      | Content                      |
-| ------------ | ---------------------------- |
-| **Bio**      | User description and company |
-| **Links**    | Social profiles              |
-| **Projects** | Public projects with models  |
-| **Datasets** | Public datasets              |
+| Section       | Content                      |
+| ------------- | ---------------------------- |
+| **Bio**       | User description and company |
+| **Links**     | Social profiles              |
+| **Followers** | Follower count               |
+| **Projects**  | Public projects with models  |
+| **Datasets**  | Public datasets              |
+
+### Follow Users
+
+Click the **Follow** button on any user's profile to follow them. Following helps you discover new content from creators you're interested in. Your follower count is displayed on your profile.
 
 ## Make Your Content Public
 
@@ -266,6 +294,22 @@ When contributing public content:
 - Spam low-quality content
 - Misrepresent performance
 
+## Share Content
+
+Click the **Share** button on any public project, model, or dataset to share it. The share dialog provides pre-filled text for social platforms and a direct copy link.
+
+## Embed Widgets
+
+Public content can be embedded in external websites using embed URLs:
+
+| Content | Embed URL Pattern                                             |
+| ------- | ------------------------------------------------------------- |
+| Project | `platform.ultralytics.com/embed/{username}/{project}`         |
+| Model   | `platform.ultralytics.com/embed/{username}/{project}/{model}` |
+| Dataset | `platform.ultralytics.com/embed/{username}/datasets/{slug}`   |
+
+Use these URLs in an `<iframe>` to embed interactive project views, model prediction widgets, or dataset viewers on your website.
+
 ## Public Content URLs
 
 Public content on the platform uses clean, shareable URLs:
@@ -296,10 +340,15 @@ Contact creators for commercial licensing.
 
 ### How do I report inappropriate content?
 
-1. Click the report button on the content
-2. Select violation type
-3. Add details
-4. Submit report
+To report inappropriate content:
+
+1. Navigate to the public page containing the content (project or dataset), if accessible
+2. Open the **Help** page from the sidebar
+3. Select **General** as the feedback type
+4. Describe the content and the issue, including a link to the page
+5. Submit the report
+
+If the content is no longer accessible, use the **Help** page from any page and include as much detail as possible (URL, username, or description).
 
 Our team reviews reports within 24-48 hours.
 
@@ -323,7 +372,3 @@ Featured content is selected based on:
 - Clear documentation
 
 There's no application process - just create great content!
-
-### Can I monetize public content?
-
-Currently, the platform doesn't support monetization. This may be added in future updates.

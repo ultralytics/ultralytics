@@ -19,7 +19,7 @@ class ObjectCounter(BaseSolution):
         in_count (int): Counter for objects moving inward.
         out_count (int): Counter for objects moving outward.
         counted_ids (list[int]): List of IDs of objects that have been counted.
-        classwise_counts (dict[str, dict[str, int]]): Dictionary for counts, categorized by object class.
+        classwise_count (dict[str, dict[str, int]]): Dictionary for counts, categorized by object class.
         region_initialized (bool): Flag indicating whether the counting region has been initialized.
         show_in (bool): Flag to control display of inward count.
         show_out (bool): Flag to control display of outward count.
@@ -129,7 +129,7 @@ class ObjectCounter(BaseSolution):
             str.capitalize(key): f"{'IN ' + str(value['IN']) if self.show_in else ''} "
             f"{'OUT ' + str(value['OUT']) if self.show_out else ''}".strip()
             for key, value in self.classwise_count.items()
-            if value["IN"] != 0 or (value["OUT"] != 0 and (self.show_in or self.show_out))
+            if (value["IN"] != 0 and self.show_in) or (value["OUT"] != 0 and self.show_out)
         }
         if labels_dict:
             self.annotator.display_analytics(plot_im, labels_dict, (104, 31, 17), (255, 255, 255), self.margin)

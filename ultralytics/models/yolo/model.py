@@ -46,32 +46,27 @@ class YOLO(Model):
         task_map: Map tasks to their corresponding model, trainer, validator, and predictor classes.
 
     Examples:
-        Load a pretrained YOLOv11n detection model
-        >>> model = YOLO("yolo11n.pt")
+        Load a pretrained YOLO26n detection model
+        >>> model = YOLO("yolo26n.pt")
 
-        Load a pretrained YOLO11n segmentation model
-        >>> model = YOLO("yolo11n-seg.pt")
+        Load a pretrained YOLO26n segmentation model
+        >>> model = YOLO("yolo26n-seg.pt")
 
         Initialize from a YAML configuration
-        >>> model = YOLO("yolo11n.yaml")
+        >>> model = YOLO("yolo26n.yaml")
     """
 
-    def __init__(self, model: str | Path = "yolo11n.pt", task: str | None = None, verbose: bool = False):
+    def __init__(self, model: str | Path = "yolo26n.pt", task: str | None = None, verbose: bool = False):
         """Initialize a YOLO model.
 
         This constructor initializes a YOLO model, automatically switching to specialized model types (YOLOWorld or
         YOLOE) based on the model filename.
 
         Args:
-            model (str | Path): Model name or path to model file, i.e. 'yolo11n.pt', 'yolo11n.yaml'.
+            model (str | Path): Model name or path to model file, i.e. 'yolo26n.pt', 'yolo26n.yaml'.
             task (str, optional): YOLO task specification, i.e. 'detect', 'segment', 'classify', 'pose', 'obb'. Defaults
                 to auto-detection based on model.
             verbose (bool): Display model info on load.
-
-        Examples:
-            >>> from ultralytics import YOLO
-            >>> model = YOLO("yolo11n.pt")  # load a pretrained YOLOv11n detection model
-            >>> model = YOLO("yolo11n-seg.pt")  # load a pretrained YOLO11n segmentation model
         """
         path = Path(model if isinstance(model, (str, Path)) else "")
         if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
@@ -172,7 +167,7 @@ class YOLOWorld(Model):
 
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:
-        """Map head to model, validator, and predictor classes."""
+        """Map head to model, trainer, validator, and predictor classes."""
         return {
             "detect": {
                 "model": WorldModel,
@@ -267,7 +262,7 @@ class YOLOE(Model):
 
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:
-        """Map head to model, validator, and predictor classes."""
+        """Map head to model, trainer, validator, and predictor classes."""
         return {
             "detect": {
                 "model": YOLOEModel,
@@ -340,19 +335,19 @@ class YOLOE(Model):
 
         Args:
             classes (list[str]): A list of categories i.e. ["person"].
-            embeddings (torch.Tensor): Embeddings corresponding to the classes.
+            embeddings (torch.Tensor, optional): Embeddings corresponding to the classes.
         """
-        assert isinstance(self.model, YOLOEModel)
-        if embeddings is None:
-            embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
-        self.model.set_classes(classes, embeddings)
         # Verify no background class is present
         assert " " not in classes
-        self.model.names = classes
+        assert isinstance(self.model, YOLOEModel)
+        if sorted(list(self.model.names.values())) != sorted(classes):
+            if embeddings is None:
+                embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
+            self.model.set_classes(classes, embeddings)
 
         # Reset method class names
         if self.predictor:
-            self.predictor.model.names = classes
+            self.predictor.model.names = self.model.names
 
     def val(
         self,
@@ -399,8 +394,8 @@ class YOLOE(Model):
             visual_prompts (dict[str, list]): Dictionary containing visual prompts for the model. Must include 'bboxes'
                 and 'cls' keys when non-empty.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
-            predictor (callable, optional): Custom predictor function. If None, a predictor is automatically loaded
-                based on the task.
+            predictor (callable): Custom predictor class for visual prompt predictions. Defaults to
+                YOLOEVPDetectPredictor.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:
@@ -431,7 +426,7 @@ class YOLOE(Model):
                         "batch": 1,
                         "device": kwargs.get("device", None),
                         "half": kwargs.get("half", False),
-                        "imgsz": kwargs.get("imgsz", self.overrides["imgsz"]),
+                        "imgsz": kwargs.get("imgsz", self.overrides.get("imgsz", 640)),
                     },
                     _callbacks=self.callbacks,
                 )
@@ -458,6 +453,7 @@ class YOLOE(Model):
                 self.predictor = None  # reset predictor
         elif isinstance(self.predictor, yolo.yoloe.YOLOEVPDetectPredictor):
             self.predictor = None  # reset predictor if no visual prompts
+        self.overrides["agnostic_nms"] = True  # use agnostic nms for YOLOE default
 
         return super().predict(source, stream, **kwargs)
 

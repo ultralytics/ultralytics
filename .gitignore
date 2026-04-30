@@ -27,6 +27,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 requirements.txt
+!examples/**/requirements.txt
 setup.py
 ultralytics.egg-info
 
@@ -97,6 +98,12 @@ ipython_config.py
 #   having no cross-platform support, pipenv may install dependencies that don't work, or not
 #   install all needed dependencies.
 #Pipfile.lock
+
+# UV
+#   Similar to Pipfile.lock, it is generally recommended to include uv.lock in version control.
+#   This is especially recommended for binary packages to ensure reproducibility, and is more
+#   commonly ignored for libraries.
+uv.lock
 
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow
 __pypackages__/
@@ -192,3 +199,7 @@ calibration_*.npy
 *.heic
 *.ico
 *.raw
+
+# Training logs
+args.yaml
+results.csv

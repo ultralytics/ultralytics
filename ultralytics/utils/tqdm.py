@@ -24,9 +24,9 @@ class TQDM:
     description updates.
 
     Attributes:
-        iterable (object): Iterable to wrap with progress bar.
+        iterable (Any): Iterable to wrap with progress bar.
         desc (str): Prefix description for the progress bar.
-        total (int): Expected number of iterations.
+        total (int | None): Expected number of iterations.
         disable (bool): Whether to disable the progress bar.
         unit (str): String for units of iteration.
         unit_scale (bool): Auto-scale units flag.
@@ -36,8 +36,8 @@ class TQDM:
         initial (int): Initial counter value.
         n (int): Current iteration count.
         closed (bool): Whether the progress bar is closed.
-        bar_format (str): Custom bar format string.
-        file (object): Output file stream.
+        bar_format (str | None): Custom bar format string.
+        file (IO[str]): Output file stream.
 
     Methods:
         update: Update progress by n steps.
@@ -96,11 +96,11 @@ class TQDM:
         """Initialize the TQDM progress bar with specified configuration options.
 
         Args:
-            iterable (object, optional): Iterable to wrap with progress bar.
+            iterable (Any, optional): Iterable to wrap with progress bar.
             desc (str, optional): Prefix description for the progress bar.
             total (int, optional): Expected number of iterations.
             leave (bool, optional): Whether to leave the progress bar after completion.
-            file (object, optional): Output file stream for progress display.
+            file (IO[str], optional): Output file stream for progress display.
             mininterval (float, optional): Minimum time interval between updates (default 0.1s, 60s in GitHub Actions).
             disable (bool, optional): Whether to disable the progress bar. Auto-detected if None.
             unit (str, optional): String for units of iteration (default "it" for items).
@@ -109,11 +109,6 @@ class TQDM:
             bar_format (str, optional): Custom bar format string.
             initial (int, optional): Initial counter value.
             **kwargs (Any): Additional keyword arguments for compatibility (ignored).
-
-        Examples:
-            >>> pbar = TQDM(range(100), desc="Processing")
-            >>> with TQDM(total=1000, unit="B", unit_scale=True) as pbar:
-            ...     pbar.update(1024)  # Updates by 1KB
         """
         # Disable if not verbose
         if disable is None:
@@ -159,9 +154,17 @@ class TQDM:
             self._display()
 
     def _format_rate(self, rate: float) -> str:
-        """Format rate with units."""
+        """Format rate with units, switching between it/s and s/it for readability."""
         if rate <= 0:
             return ""
+
+        inv_rate = 1 / rate if rate else None
+
+        # Use s/it format when inv_rate > 1 (i.e., rate < 1 it/s) for better readability
+        if inv_rate and inv_rate > 1:
+            return f"{inv_rate:.1f}s/B" if self.is_bytes else f"{inv_rate:.1f}s/{self.unit}"
+
+        # Use it/s format for fast iterations
         fallback = f"{rate:.1f}B/s" if self.is_bytes else f"{rate:.1f}{self.unit}/s"
         return next((f"{rate / t:.1f}{u}" for t, u in self.scales if rate >= t), fallback)
 
@@ -176,7 +179,8 @@ class TQDM:
             num /= self.unit_divisor
         return f"{num:.1f}PB"
 
-    def _format_time(self, seconds: float) -> str:
+    @staticmethod
+    def _format_time(seconds: float) -> str:
         """Format time duration."""
         if seconds < 60:
             return f"{seconds:.1f}s"
@@ -313,7 +317,10 @@ class TQDM:
             # Final display
             if self.total and self.n >= self.total:
                 self.n = self.total
-            self._display(final=True)
+                if self.n != self.last_print_n:  # Skip if 100% already shown
+                    self._display(final=True)
+            else:
+                self._display(final=True)
 
             # Cleanup
             if self.leave:

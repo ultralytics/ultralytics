@@ -34,7 +34,7 @@ For more information on Triton, see the [NVIDIA Triton Inference Server document
    wget https://github.com/triton-inference-server/server/releases/download/v2.23.0/v2.23.0_ubuntu2004.clients.tar.gz
    mkdir tritonclient
    tar -xvf v2.23.0_ubuntu2004.clients.tar.gz -C tritonclient
-   rm -rf v2.23.0_ubuntu2004.clients.tar.gz
+   rm -f v2.23.0_ubuntu2004.clients.tar.gz
    ```
 
 2. **Clone the Ultralytics repository:**
@@ -69,7 +69,7 @@ For additional guidance on integrating Ultralytics YOLO models with various plat
 By default, the application will:
 
 - Connect to the Triton server at `localhost:8001`
-- Use the model named `yolov11` with version `1`
+- Use the model named `yolo11` with version `1`
 - Process the image file `test.jpg`
 - Save detection results to `output.jpg`
 
@@ -81,7 +81,7 @@ You can modify the following parameters in [main.cpp](main.cpp):
 
 ```cpp
 std::string triton_address = "localhost:8001";
-std::string model_name = "yolov11";
+std::string model_name = "yolo11";
 std::string model_version = "1";
 std::string image_path = "test.jpg";
 std::string output_path = "output.jpg";
@@ -105,6 +105,6 @@ Contributions are welcome! If you find any issues or have suggestions for improv
 
 ---
 
-For more resources, explore the [Ultralytics documentation](https://docs.ultralytics.com/), [Ultralytics blog](https://www.ultralytics.com/blog), and [Ultralytics HUB](https://docs.ultralytics.com/hub/).
+For more resources, explore the [Ultralytics documentation](https://docs.ultralytics.com/) and [Ultralytics blog](https://www.ultralytics.com/blog).
 
-**We encourage your contributions to make this project even better! 🚀**
+**We encourage your contributions to help improve this project.**

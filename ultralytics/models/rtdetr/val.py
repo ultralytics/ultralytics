@@ -35,7 +35,7 @@ class RTDETRDataset(YOLODataset):
     Examples:
         Initialize an RT-DETR dataset
         >>> dataset = RTDETRDataset(img_path="path/to/images", imgsz=640)
-        >>> image, hw = dataset.load_image(0)
+        >>> image, hw0, hw = dataset.load_image(0)
     """
 
     def __init__(self, *args, data=None, **kwargs):
@@ -59,13 +59,14 @@ class RTDETRDataset(YOLODataset):
             rect_mode (bool, optional): Whether to use rectangular mode for batch inference.
 
         Returns:
-            im (torch.Tensor): The loaded image.
-            resized_hw (tuple): Height and width of the resized image with shape (2,).
+            im (np.ndarray): Loaded image as a NumPy array.
+            hw_original (tuple[int, int]): Original image dimensions in (height, width) format.
+            hw_resized (tuple[int, int]): Resized image dimensions in (height, width) format.
 
         Examples:
             Load an image from the dataset
             >>> dataset = RTDETRDataset(img_path="path/to/images")
-            >>> image, hw = dataset.load_image(0)
+            >>> image, hw0, hw = dataset.load_image(0)
         """
         return super().load_image(i=i, rect_mode=rect_mode)
 
@@ -85,7 +86,7 @@ class RTDETRDataset(YOLODataset):
             transforms = v8_transforms(self, self.imgsz, hyp, stretch=True)
         else:
             # transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scale_fill=True)])
-            transforms = Compose([lambda x: {**x, **{"ratio_pad": [x["ratio_pad"], [0, 0]]}}])
+            transforms = Compose([])
         transforms.append(
             Format(
                 bbox_format="xywh",
@@ -104,7 +105,7 @@ class RTDETRValidator(DetectionValidator):
     """RTDETRValidator extends the DetectionValidator class to provide validation capabilities specifically tailored for
     the RT-DETR (Real-Time DETR) object detection model.
 
-    The class allows building of an RTDETR-specific dataset for validation, applies Non-maximum suppression for
+    The class allows building of an RTDETR-specific dataset for validation, applies confidence thresholding for
     post-processing, and updates evaluation metrics accordingly.
 
     Attributes:
@@ -113,7 +114,7 @@ class RTDETRValidator(DetectionValidator):
 
     Methods:
         build_dataset: Build an RTDETR Dataset for validation.
-        postprocess: Apply Non-maximum suppression to prediction outputs.
+        postprocess: Apply confidence thresholding to prediction outputs.
 
     Examples:
         Initialize and run RT-DETR validation
@@ -150,10 +151,14 @@ class RTDETRValidator(DetectionValidator):
             data=self.data,
         )
 
+    def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
+        """Return predictions unchanged as RT-DETR handles scaling in postprocessing."""
+        return predn
+
     def postprocess(
         self, preds: torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor]
     ) -> list[dict[str, torch.Tensor]]:
-        """Apply Non-maximum suppression to prediction outputs.
+        """Apply confidence thresholding to prediction outputs.
 
         Args:
             preds (torch.Tensor | list | tuple): Raw predictions from the model. If tensor, should have shape

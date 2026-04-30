@@ -35,7 +35,7 @@ from ultralytics.utils.torch_utils import TORCH_2_0
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
-    """Dataloader that reuses workers for infinite iteration.
+    """DataLoader that reuses workers for infinite iteration.
 
     This dataloader extends the PyTorch DataLoader to provide infinite recycling of workers, which improves efficiency
     for training loops that need to iterate through the dataset multiple times without recreating workers.
@@ -46,12 +46,12 @@ class InfiniteDataLoader(dataloader.DataLoader):
 
     Methods:
         __len__: Return the length of the batch sampler's sampler.
-        __iter__: Create a sampler that repeats indefinitely.
+        __iter__: Yield batches from the underlying iterator.
         __del__: Ensure workers are properly terminated.
         reset: Reset the iterator, useful when modifying dataset settings during training.
 
     Examples:
-        Create an infinite dataloader for training
+        Create an infinite DataLoader for training
         >>> dataset = YOLODataset(...)
         >>> dataloader = InfiniteDataLoader(dataset, batch_size=16, shuffle=True)
         >>> for batch in dataloader:  # Infinite iteration
@@ -76,7 +76,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
             yield next(self.iterator)
 
     def __del__(self):
-        """Ensure that workers are properly terminated when the dataloader is deleted."""
+        """Ensure that workers are properly terminated when the DataLoader is deleted."""
         try:
             if not hasattr(self.iterator, "_workers"):
                 return
@@ -99,7 +99,7 @@ class _RepeatSampler:
     dataset without recreating the sampler.
 
     Attributes:
-        sampler (Dataset.sampler): The sampler to repeat.
+        sampler (torch.utils.data.Sampler): The sampler to repeat.
     """
 
     def __init__(self, sampler: Any):
@@ -127,7 +127,7 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
     Args:
         dataset (Dataset): Dataset to sample from. Must implement __len__.
         num_replicas (int, optional): Number of distributed processes. Defaults to world size.
-        batch_size (int, optional): Batch size used by dataloader. Defaults to dataset batch size.
+        batch_size (int, optional): Batch size used by dataloader. Defaults to dataset.batch_size or 1.
         rank (int, optional): Rank of current process. Defaults to current rank.
         shuffle (bool, optional): Whether to shuffle indices within each rank's chunk. Defaults to False. When True,
             shuffling is deterministic and controlled by set_epoch() for reproducibility.
@@ -161,11 +161,12 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
             batch_size = getattr(dataset, "batch_size", 1)
 
         self.num_replicas = num_replicas
-        self.batch_size = batch_size
         self.rank = rank
         self.epoch = 0
         self.shuffle = shuffle
         self.total_size = len(dataset)
+        # ensure all ranks have a sample if batch size >= total size; degenerates to round-robin sampler
+        self.batch_size = 1 if batch_size >= self.total_size else batch_size
         self.num_batches = math.ceil(self.total_size / self.batch_size)
 
     def _get_rank_indices(self) -> tuple[int, int]:
@@ -291,12 +292,12 @@ def build_dataloader(
     drop_last: bool = False,
     pin_memory: bool = True,
 ) -> InfiniteDataLoader:
-    """Create and return an InfiniteDataLoader or DataLoader for training or validation.
+    """Create and return an InfiniteDataLoader for training or validation.
 
     Args:
         dataset (Dataset): Dataset to load data from.
         batch (int): Batch size for the dataloader.
-        workers (int): Number of worker threads for loading data.
+        workers (int): Number of worker processes for data loading.
         shuffle (bool, optional): Whether to shuffle the dataset.
         rank (int, optional): Process rank in distributed training. -1 for single-GPU training.
         drop_last (bool, optional): Whether to drop the last incomplete batch.
@@ -397,7 +398,8 @@ def load_inference_source(
     """Load an inference source for object detection and apply necessary transformations.
 
     Args:
-        source (str | Path | list | tuple | torch.Tensor | PIL.Image | np.ndarray): The input source for inference.
+        source (str | int | Path | list | tuple | np.ndarray | PIL.Image | torch.Tensor): The input source for
+            inference.
         batch (int, optional): Batch size for dataloaders.
         vid_stride (int, optional): The frame interval for video sources.
         buffer (bool, optional): Whether stream frames will be buffered.
@@ -416,7 +418,7 @@ def load_inference_source(
     source, stream, screenshot, from_img, in_memory, tensor = check_source(source)
     source_type = source.source_type if in_memory else SourceTypes(stream, screenshot, from_img, tensor)
 
-    # Dataloader
+    # DataLoader
     if tensor:
         dataset = LoadTensor(source)
     elif in_memory:

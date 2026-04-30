@@ -42,7 +42,7 @@ Before we can merge your pull request, you must sign our [Contributor License Ag
 
 After submitting your pull request, the CLA bot will guide you through the signing process. To sign the CLA, simply add a comment in your PR stating:
 
-```text
+```
 I have read the CLA Document and I sign the CLA
 ```
 
@@ -207,11 +207,11 @@ We highly value bug reports as they help us improve the quality and reliability 
 
 Ultralytics uses the [GNU Affero General Public License v3.0 (AGPL-3.0)](https://www.ultralytics.com/legal/agpl-3-0-software-license) for its repositories. This license promotes [openness](https://en.wikipedia.org/wiki/Openness), [transparency](https://www.ultralytics.com/glossary/transparency-in-ai), and [collaborative improvement](https://en.wikipedia.org/wiki/Collaborative_software) in software development. It ensures that all users have the freedom to use, modify, and share the software, fostering a strong community of collaboration and innovation.
 
-We encourage all contributors to familiarize themselves with the terms of the [AGPL-3.0 license](https://opensource.org/license/agpl-v3) to contribute effectively and ethically to the Ultralytics open-source community.
+We encourage all contributors to familiarize themselves with the terms of the [AGPL-3.0 license](https://opensource.org/license/agpl-3.0) to contribute effectively and ethically to the Ultralytics open-source community.
 
 ## 🌍 Open-Sourcing Your YOLO Project Under AGPL-3.0
 
-Using Ultralytics YOLO models or code in your project? The [AGPL-3.0 license](https://opensource.org/license/agpl-v3) requires that your entire derivative work also be open-sourced under AGPL-3.0. This ensures modifications and larger projects built upon open-source foundations remain open.
+Using Ultralytics YOLO models or code in your project? The [AGPL-3.0 license](https://opensource.org/license/agpl-3.0) requires that your entire derivative work also be open-sourced under AGPL-3.0. This ensures modifications and larger projects built upon open-source foundations remain open.
 
 ### Why AGPL-3.0 Compliance Matters
 
@@ -230,14 +230,14 @@ Complying means making the **complete corresponding source code** of your projec
     - **Use Ultralytics Template:** Start with the [Ultralytics template repository](https://github.com/ultralytics/template) for a clean, modular setup integrating YOLO.
 
 2. **License Your Project:**
-    - Add an `LICENSE` file containing the full text of the [AGPL-3.0 license](https://opensource.org/license/agpl-v3).
+    - Add a `LICENSE` file containing the full text of the [AGPL-3.0 license](https://opensource.org/license/agpl-3.0).
     - Add a notice at the top of each source file indicating the license.
 
 3. **Publish Your Source Code:**
     - Make your **entire project's source code** publicly accessible (e.g., on GitHub). This includes:
         - The complete larger application or system that incorporates the YOLO model or code.
         - Any modifications made to the original Ultralytics YOLO code.
-        - Scripts for training, validation, inference.
+        - Scripts for training, validation, and inference.
         - [Model weights](https://www.ultralytics.com/glossary/model-weights) if modified or fine-tuned.
         - [Configuration files](https://docs.ultralytics.com/usage/cfg/), environment setups (`requirements.txt`, [`Dockerfiles`](https://docs.docker.com/reference/dockerfile/)).
         - Backend and frontend code if it's part of a [web application](https://en.wikipedia.org/wiki/Web_application).
@@ -279,11 +279,11 @@ my-yolo-project/
 
 By following these guidelines, you ensure compliance with AGPL-3.0, supporting the open-source ecosystem that enables powerful tools like Ultralytics YOLO.
 
-## 🎉 Conclusion
+## Conclusion
 
 Thank you for your interest in contributing to [Ultralytics](https://www.ultralytics.com/) [open-source](https://github.com/ultralytics) YOLO projects. Your participation is essential in shaping the future of our software and building a vibrant community of innovation and collaboration. Whether you're enhancing code, reporting bugs, or suggesting new features, your contributions are invaluable.
 
-We're excited to see your ideas come to life and appreciate your commitment to advancing [object detection](https://www.ultralytics.com/glossary/object-detection) technology. Together, let's continue to grow and innovate in this exciting open-source journey. Happy coding! 🚀🌟
+We're excited to see your ideas come to life and appreciate your commitment to advancing [object detection](https://www.ultralytics.com/glossary/object-detection) technology. Together, let's continue to grow and innovate in this exciting open-source journey.
 
 ## FAQ
 
@@ -295,7 +295,7 @@ Contributing to Ultralytics YOLO open-source repositories improves the software,
 
 To sign the Contributor License Agreement (CLA), follow the instructions provided by the CLA bot after submitting your pull request. This process ensures that your contributions are properly licensed under the AGPL-3.0 license, maintaining the legal integrity of the open-source project. Add a comment in your pull request stating:
 
-```text
+```
 I have read the CLA Document and I sign the CLA
 ```
 

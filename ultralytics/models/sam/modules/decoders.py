@@ -52,14 +52,9 @@ class MaskDecoder(nn.Module):
             transformer_dim (int): Channel dimension for the transformer module.
             transformer (nn.Module): Transformer module used for mask prediction.
             num_multimask_outputs (int): Number of masks to predict for disambiguating masks.
-            activation (Type[nn.Module]): Type of activation to use when upscaling masks.
+            activation (type[nn.Module]): Type of activation to use when upscaling masks.
             iou_head_depth (int): Depth of the MLP used to predict mask quality.
             iou_head_hidden_dim (int): Hidden dimension of the MLP used to predict mask quality.
-
-        Examples:
-            >>> transformer = nn.TransformerEncoder(nn.TransformerEncoderLayer(d_model=256, nhead=8), num_layers=6)
-            >>> decoder = MaskDecoder(transformer_dim=256, transformer=transformer)
-            >>> print(decoder)
         """
         super().__init__()
         self.transformer_dim = transformer_dim
@@ -238,7 +233,7 @@ class SAM2MaskDecoder(nn.Module):
             transformer_dim (int): Channel dimension of the transformer.
             transformer (nn.Module): Transformer used to predict masks.
             num_multimask_outputs (int): Number of masks to predict when disambiguating masks.
-            activation (Type[nn.Module]): Type of activation to use when upscaling masks.
+            activation (type[nn.Module]): Type of activation to use when upscaling masks.
             iou_head_depth (int): Depth of the MLP used to predict mask quality.
             iou_head_hidden_dim (int): Hidden dimension of the MLP used to predict mask quality.
             use_high_res_features (bool): Whether to use high-resolution features.
@@ -249,11 +244,6 @@ class SAM2MaskDecoder(nn.Module):
             pred_obj_scores (bool): Whether to predict object scores.
             pred_obj_scores_mlp (bool): Whether to use MLP for object score prediction.
             use_multimask_token_for_obj_ptr (bool): Whether to use multimask token for object pointer.
-
-        Examples:
-            >>> transformer = nn.TransformerEncoder(nn.TransformerEncoderLayer(d_model=256, nhead=8), num_layers=6)
-            >>> decoder = SAM2MaskDecoder(transformer_dim=256, transformer=transformer)
-            >>> print(decoder)
         """
         super().__init__()
         self.transformer_dim = transformer_dim
@@ -446,9 +436,8 @@ class SAM2MaskDecoder(nn.Module):
     def _get_stability_scores(self, mask_logits):
         """Compute mask stability scores based on IoU between upper and lower thresholds."""
         mask_logits = mask_logits.flatten(-2)
-        stability_delta = self.dynamic_multimask_stability_delta
-        area_i = torch.sum(mask_logits > stability_delta, dim=-1).float()
-        area_u = torch.sum(mask_logits > -stability_delta, dim=-1).float()
+        area_i = torch.sum(mask_logits > self.dynamic_multimask_stability_delta, dim=-1).float()
+        area_u = torch.sum(mask_logits > -self.dynamic_multimask_stability_delta, dim=-1).float()
         return torch.where(area_u > 0, area_i / area_u, 1.0)
 
     def _dynamic_multimask_via_stability(self, all_mask_logits, all_iou_scores):

@@ -50,7 +50,7 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
             and isinstance(predictor.model.model.model[-1], Detect)
             and not predictor.model.model.model[-1].end2end
         ):
-            cfg.model = "yolo11n-cls.pt"
+            cfg.model = "yolo26n-cls.pt"
         else:
             # Register hook to extract input of Detect layer
             def pre_hook(module, input):

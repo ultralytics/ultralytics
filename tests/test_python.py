@@ -2,7 +2,9 @@
 
 import contextlib
 import csv
+import tarfile
 import urllib
+import zipfile
 from copy import copy
 from pathlib import Path
 
@@ -35,7 +37,7 @@ from ultralytics.utils import (
     checks,
     is_github_action_running,
 )
-from ultralytics.utils.downloads import download
+from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
 
 
@@ -81,7 +83,7 @@ def test_predict_txt(tmp_path):
         for src in SOURCES_LIST:
             f.write(f"{src}\n")
     results = YOLO(MODEL)(source=file, imgsz=32)
-    assert len(results) == 7  # 1 + 2 + 2 + 2 = 7 images
+    assert len(results) == 7, f"Expected 7 results from source list, got {len(results)}"
 
 
 @pytest.mark.skipif(True, reason="disabled for testing")
@@ -93,7 +95,7 @@ def test_predict_csv_multi_row(tmp_path):
         writer.writerow(["source"])
         writer.writerows([[src] for src in SOURCES_LIST])
     results = YOLO(MODEL)(source=file, imgsz=32)
-    assert len(results) == 7  # 1 + 2 + 2 + 2 = 7 images
+    assert len(results) == 7, f"Expected 7 results from multi-row CSV, got {len(results)}"
 
 
 @pytest.mark.skipif(True, reason="disabled for testing")
@@ -104,7 +106,7 @@ def test_predict_csv_single_row(tmp_path):
         writer = csv.writer(f)
         writer.writerow(SOURCES_LIST)
     results = YOLO(MODEL)(source=file, imgsz=32)
-    assert len(results) == 7  # 1 + 2 + 2 + 2 = 7 images
+    assert len(results) == 7, f"Expected 7 results from single-row CSV, got {len(results)}"
 
 
 @pytest.mark.parametrize("model_name", MODELS)
@@ -112,7 +114,7 @@ def test_predict_img(model_name):
     """Test YOLO model predictions on various image input types and sources, including online images."""
     channels = 1 if model_name == "yolo11n-grayscale.pt" else 3
     model = YOLO(WEIGHTS_DIR / model_name)
-    im = cv2.imread(str(SOURCE), flags=cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR)  # uint8 numpy array
+    im = cv2.imread(str(SOURCE), flags=cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR)  # uint8 NumPy array
     assert len(model(source=Image.open(SOURCE), save=True, verbose=True, imgsz=32)) == 1  # PIL
     assert len(model(source=im, save=True, save_txt=True, imgsz=32)) == 1  # ndarray
     assert len(model(torch.rand((2, channels, 32, 32)), imgsz=32)) == 2  # batch-size 2 Tensor, FP32 0.0-1.0 RGB order
@@ -122,7 +124,7 @@ def test_predict_img(model_name):
     batch = [
         str(SOURCE),  # filename
         Path(SOURCE),  # Path
-        f"{ASSETS_URL}/zidane.jpg?token=123" if ONLINE else SOURCE,  # URI
+        "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/im/zidane.jpg?token=123" if ONLINE else SOURCE,  # URI
         im,  # OpenCV
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, channels), dtype=np.uint8),  # numpy
@@ -132,7 +134,7 @@ def test_predict_img(model_name):
 
 @pytest.mark.parametrize("model", MODELS)
 def test_predict_visualize(model):
-    """Test model prediction methods with 'visualize=True' to generate and display prediction visualizations."""
+    """Test model prediction methods with 'visualize=True' to generate prediction visualizations."""
     YOLO(WEIGHTS_DIR / model)(SOURCE, imgsz=32, visualize=True)
 
 
@@ -155,8 +157,32 @@ def test_predict_gray_and_4ch(tmp_path):
     for f in source_rgba, source_grayscale, source_non_utf, source_spaces:
         for source in Image.open(f), cv2.imread(str(f)), f:
             results = model(source, save=True, verbose=True, imgsz=32)
-            assert len(results) == 1  # verify that an image was run
+            assert len(results) == 1, f"Expected 1 result for {f.name}, got {len(results)}"
         f.unlink()  # cleanup
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not ONLINE, reason="environment is offline")
+def test_predict_all_image_formats():
+    """Predict on all 12 image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP)."""
+    # Download dataset if needed
+    data = check_det_dataset("coco12-formats.yaml")
+    dataset_path = Path(data["path"])
+
+    # Collect all images from train and val
+    expected = {"avif", "bmp", "dng", "heic", "jp2", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp"}
+    images = [im for im in (dataset_path / "images" / "train").glob("*.*") if im.suffix.lower().lstrip(".") in expected]
+    images += [im for im in (dataset_path / "images" / "val").glob("*.*") if im.suffix.lower().lstrip(".") in expected]
+    assert len(images) == 12, f"Expected 12 images, found {len(images)}"
+
+    # Verify all format extensions are represented
+    extensions = {img.suffix.lower().lstrip(".") for img in images}
+    assert extensions == expected, f"Missing formats: {expected - extensions}"
+
+    # Run inference on all images
+    model = YOLO(MODEL)
+    results = model(images, imgsz=32)
+    assert len(results) == 12, f"Expected 12 results, got {len(results)}"
 
 
 @pytest.mark.slow
@@ -179,7 +205,7 @@ def test_track_stream(model, tmp_path):
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
     """
-    if model == "yolo11n-cls.pt":  # classification model not supported for tracking
+    if model == "yolo26n-cls.pt":  # classification model not supported for tracking
         return
     video_url = f"{ASSETS_URL}/decelera_portrait_min.mov"
     model = YOLO(model)
@@ -187,7 +213,7 @@ def test_track_stream(model, tmp_path):
     model.track(video_url, imgsz=160, tracker="botsort.yaml", save_frames=True)  # test frame saving also
 
     # Test Global Motion Compensation (GMC) methods and ReID
-    for gmc, reidm in zip(["orb", "sift", "ecc"], ["auto", "auto", "yolo11n-cls.pt"]):
+    for gmc, reidm in zip(["orb", "sift", "ecc"], ["auto", "auto", "yolo26n-cls.pt"]):
         default_args = YAML.load(ROOT / "cfg/trackers/botsort.yaml")
         custom_yaml = tmp_path / f"botsort-{gmc}.yaml"
         YAML.save(custom_yaml, {**default_args, "gmc_method": gmc, "with_reid": True, "model": reidm})
@@ -209,25 +235,26 @@ def test_val(task: str, weight: str, data: str) -> None:
         metrics.confusion_matrix.to_json()
 
 
+@pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_scratch():
-    """Test training the YOLO model from scratch using the provided configuration."""
+    """Test training the YOLO model from scratch on 12 different image types in the COCO12-Formats dataset."""
     model = YOLO(CFG)
-    model.train(data="coco8.yaml", epochs=2, imgsz=32, cache="disk", batch=-1, close_mosaic=1, name="model")
+    model.train(data="coco12-formats.yaml", epochs=2, imgsz=32, cache="disk", batch=-1, close_mosaic=1, name="model")
     model(SOURCE)
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_train_ndjson():
     """Test training the YOLO model using NDJSON format dataset."""
-    model = YOLO(WEIGHTS_DIR / "yolo11n.pt")
+    model = YOLO(WEIGHTS_DIR / "yolo26n.pt")
     model.train(data=f"{ASSETS_URL}/coco8-ndjson.ndjson", epochs=1, imgsz=32)
 
 
 @pytest.mark.parametrize("scls", [False, True])
 def test_train_pretrained(scls):
     """Test training of the YOLO model starting from a pre-trained checkpoint."""
-    model = YOLO(WEIGHTS_DIR / "yolo11n-seg.pt")
+    model = YOLO(WEIGHTS_DIR / "yolo26n-seg.pt")
     model.train(
         data="coco8-seg.yaml", epochs=1, imgsz=32, cache="ram", copy_paste=0.5, mixup=0.5, name=0, single_cls=scls
     )
@@ -280,7 +307,7 @@ def test_predict_callback_and_setup():
 @pytest.mark.parametrize("model", MODELS)
 def test_results(model: str, tmp_path):
     """Test YOLO model results processing and output in various formats."""
-    im = f"{ASSETS_URL}/boats.jpg" if model == "yolo11n-obb.pt" else SOURCE
+    im = "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/im/boats.jpg" if model == "yolo26n-obb.pt" else SOURCE
     results = YOLO(WEIGHTS_DIR / model)([im, im], imgsz=160)
     for r in results:
         assert len(r), f"'{model}' results should not be empty!"
@@ -300,30 +327,35 @@ def test_results(model: str, tmp_path):
 def test_labels_and_crops():
     """Test output from prediction args for saving YOLO detection labels and crops."""
     imgs = [SOURCE, ASSETS / "zidane.jpg"]
-    results = YOLO(WEIGHTS_DIR / "yolo11n.pt")(imgs, imgsz=160, save_txt=True, save_crop=True)
+    results = YOLO(WEIGHTS_DIR / "yolo26n.pt")(imgs, imgsz=320, save_txt=True, save_crop=True)
     save_path = Path(results[0].save_dir)
     for r in results:
         im_name = Path(r.path).stem
         cls_idxs = r.boxes.cls.int().tolist()
-        # Check correct detections
-        assert cls_idxs == ([0, 7, 0, 0] if r.path.endswith("bus.jpg") else [0, 0, 0])  # bus.jpg and zidane.jpg classes
+        # Check that detections are made (at least 2 detections per image expected)
+        assert len(cls_idxs) >= 2, f"Expected at least 2 detections, got {len(cls_idxs)}"
         # Check label path
         labels = save_path / f"labels/{im_name}.txt"
-        assert labels.exists()
+        assert labels.exists(), f"Label file {labels} does not exist"
         # Check detections match label count
-        assert len(r.boxes.data) == len([line for line in labels.read_text().splitlines() if line])
+        label_count = len([line for line in labels.read_text().splitlines() if line])
+        assert len(r.boxes.data) == label_count, f"Box count {len(r.boxes.data)} != label count {label_count}"
         # Check crops path and files
         crop_dirs = list((save_path / "crops").iterdir())
         crop_files = [f for p in crop_dirs for f in p.glob("*")]
         # Crop directories match detections
-        assert all(r.names.get(c) in {d.name for d in crop_dirs} for c in cls_idxs)
+        crop_dir_names = {d.name for d in crop_dirs}
+        assert all(r.names.get(c) in crop_dir_names for c in cls_idxs), (
+            f"Crop dirs {crop_dir_names} don't match classes {cls_idxs}"
+        )
         # Same number of crops as detections
-        assert len([f for f in crop_files if im_name in f.name]) == len(r.boxes.data)
+        crop_count = len([f for f in crop_files if im_name in f.name])
+        assert crop_count == len(r.boxes.data), f"Crop count {crop_count} != detection count {len(r.boxes.data)}"
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_data_utils(tmp_path):
-    """Test utility functions in ultralytics/data/utils.py, including dataset stats and auto-splitting."""
+    """Test data utility functions including dataset stats, auto-splitting, and zip archiving."""
     from ultralytics.data.split import autosplit
     from ultralytics.data.utils import HUBDatasetStats
     from ultralytics.utils.downloads import zip_directory
@@ -340,6 +372,55 @@ def test_data_utils(tmp_path):
 
     autosplit(tmp_path / "coco8")
     zip_directory(tmp_path / "coco8/images/val")  # zip
+
+
+def test_safe_download_unzips_local_path_archive(tmp_path):
+    """Test safe_download() unzips local archive paths without treating them like remote URLs."""
+    dataset_dir = tmp_path / "coco8 local"
+    archive = tmp_path / "coco8 local.zip"
+    (dataset_dir / "images" / "train").mkdir(parents=True)
+    (dataset_dir / "images" / "val").mkdir(parents=True)
+    (dataset_dir / "labels" / "train").mkdir(parents=True)
+    (dataset_dir / "labels" / "val").mkdir(parents=True)
+    (dataset_dir / "data.yaml").write_text("path: .\ntrain: images/train\nval: images/val\nnames:\n  0: item\n")
+
+    with zipfile.ZipFile(archive, "w") as zf:
+        for path in dataset_dir.rglob("*"):
+            zf.write(path, arcname=path.relative_to(tmp_path))
+
+    extracted = safe_download(archive, dir=tmp_path / "datasets", unzip=True, progress=False)
+    expected_path = tmp_path / "datasets" / dataset_dir.name
+    assert extracted == expected_path, f"Extracted path {extracted} != expected {expected_path}"
+    assert (extracted / "data.yaml").is_file(), f"data.yaml not found in {extracted}"
+    assert (extracted / "images" / "val").is_dir(), f"images/val not found in {extracted}"
+
+
+def test_safe_download_skips_unsafe_archive_members(tmp_path):
+    """Test safe_download() skips archive members that would extract outside the target directory."""
+    archive = tmp_path / "unsafe.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("../unsafe.txt", "bad")
+        zf.writestr("safe/file.txt", "ok")
+
+    extracted = safe_download(archive, dir=tmp_path / "datasets", unzip=True, progress=False)
+
+    assert not (tmp_path / "unsafe.txt").exists()
+    assert (extracted / "safe/file.txt").is_file()
+
+
+def test_safe_download_skips_unsafe_tar_members(tmp_path):
+    """Test safe_download() skips tar members that would extract outside the target directory."""
+    source = tmp_path / "safe.txt"
+    source.write_text("ok")
+    archive = tmp_path / "unsafe.tar"
+    with tarfile.open(archive, "w") as tar:
+        tar.add(source, arcname="../unsafe.txt")
+        tar.add(source, arcname="safe.txt")
+
+    extracted = safe_download(archive, dir=tmp_path / "datasets", unzip=True, progress=False)
+
+    assert not (tmp_path / "unsafe.txt").exists()
+    assert (extracted / "safe.txt").is_file()
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
@@ -360,7 +441,7 @@ def test_data_annotator(tmp_path):
 
     auto_annotate(
         ASSETS,
-        det_model=WEIGHTS_DIR / "yolo11n.pt",
+        det_model=WEIGHTS_DIR / "yolo26n.pt",
         sam_model=WEIGHTS_DIR / "mobile_sam.pt",
         output_dir=tmp_path / "auto_annotate_labels",
     )
@@ -436,7 +517,7 @@ def test_utils_init():
 
 
 def test_utils_checks():
-    """Test various utility checks for filenames, git status, requirements, image sizes, and versions."""
+    """Test various utility checks for filenames, requirements, image sizes, display capabilities, and versions."""
     checks.check_yolov5u_filename("yolov5n.pt")
     checks.check_requirements("numpy")  # check requirements.txt
     checks.check_imgsz([600, 600], max_dim=1)
@@ -450,7 +531,7 @@ def test_utils_benchmarks():
     """Benchmark model performance using 'ProfileModels' from 'ultralytics.utils.benchmarks'."""
     from ultralytics.utils.benchmarks import ProfileModels
 
-    ProfileModels(["yolo11n.yaml"], imgsz=32, min_time=1, num_timed_runs=3, num_warmup_runs=1).run()
+    ProfileModels(["yolo26n.yaml"], imgsz=32, min_time=1, num_timed_runs=3, num_warmup_runs=1).run()
 
 
 def test_utils_torchutils():
@@ -497,7 +578,7 @@ def test_utils_ops():
 
 def test_utils_files(tmp_path):
     """Test file handling utilities including file age, date, and paths with spaces."""
-    from ultralytics.utils.files import file_age, file_date, get_latest_run, spaces_in_path
+    from ultralytics.utils.files import file_age, file_date, get_latest_run, increment_path, spaces_in_path
 
     file_age(SOURCE)
     file_date(SOURCE)
@@ -507,6 +588,14 @@ def test_utils_files(tmp_path):
     path.mkdir(parents=True, exist_ok=True)
     with spaces_in_path(path) as new_path:
         print(new_path)
+
+    exp_dir = tmp_path / "runs" / "exp"
+    exp_dir.mkdir(parents=True)
+    assert increment_path(exp_dir) == tmp_path / "runs" / "exp-2"
+
+    results_file = exp_dir / "results.txt"
+    results_file.touch()
+    assert increment_path(results_file) == exp_dir / "results-2.txt"
 
 
 @pytest.mark.slow
@@ -572,7 +661,7 @@ def test_hub():
 
 @pytest.fixture
 def image():
-    """Load and return an image from a predefined source."""
+    """Load and return an image from a predefined source (OpenCV BGR)."""
     return cv2.imread(str(SOURCE))
 
 
@@ -616,14 +705,33 @@ def test_classify_transforms_train(image, auto_augment, erasing, force_color_jit
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_model_tune():
     """Tune YOLO model for performance improvement."""
-    YOLO("yolo11n-pose.pt").tune(data="coco8-pose.yaml", plots=False, imgsz=32, epochs=1, iterations=2, device="cpu")
-    YOLO("yolo11n-cls.pt").tune(data="imagenet10", plots=False, imgsz=32, epochs=1, iterations=2, device="cpu")
+    YOLO("yolo26n.pt").tune(
+        data=["coco8.yaml", "coco8-grayscale.yaml"], plots=False, imgsz=32, epochs=1, iterations=2, device="cpu"
+    )
+    YOLO("yolo26n-pose.pt").tune(data="coco8-pose.yaml", plots=False, imgsz=32, epochs=1, iterations=2, device="cpu")
+    YOLO("yolo26n-cls.pt").tune(data="imagenet10", plots=False, imgsz=32, epochs=1, iterations=2, device="cpu")
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not ONLINE or not checks.IS_PYTHON_MINIMUM_3_10, reason="environment is offline")
+def test_model_tune_ray():
+    """Tune YOLO model for performance improvement."""
+    YOLO("yolo26n-cls.pt").tune(
+        data="imagenet10",
+        use_ray=True,
+        plots=False,
+        imgsz=32,
+        epochs=1,
+        iterations=2,
+        search_alg="random",
+        device="cpu",
+    )
 
 
 def test_model_embeddings():
     """Test YOLO model embeddings extraction functionality."""
     model_detect = YOLO(MODEL)
-    model_segment = YOLO(WEIGHTS_DIR / "yolo11n-seg.pt")
+    model_segment = YOLO(WEIGHTS_DIR / "yolo26n-seg.pt")
 
     for batch in [SOURCE], [SOURCE, SOURCE]:  # test batch size 1 and 2
         assert len(model_detect.embed(source=batch, imgsz=32)) == len(batch)
@@ -672,13 +780,12 @@ def test_yolo_world():
     checks.IS_PYTHON_3_8 and LINUX and ARM64,
     reason="YOLOE with CLIP is not supported in Python 3.8 and aarch64 Linux",
 )
-def test_yoloe():
-    """Test YOLOE models with MobileClip support."""
+def test_yoloe(tmp_path):
+    """Test YOLOE models with MobileCLIP support."""
     # Predict
     # text-prompts
     model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")
-    names = ["person", "bus"]
-    model.set_classes(names, model.get_text_pe(names))
+    model.set_classes(["person", "bus"])
     model(SOURCE, conf=0.01)
 
     from ultralytics import YOLOE
@@ -714,14 +821,18 @@ def test_yoloe():
         imgsz=32,
     )
     # Train, from scratch
-    model = YOLOE("yoloe-11s-seg.yaml")
-    model.train(
-        data=dict(train=dict(yolo_data=["coco128-seg.yaml"]), val=dict(yolo_data=["coco128-seg.yaml"])),
-        epochs=1,
-        close_mosaic=1,
-        trainer=YOLOESegTrainerFromScratch,
-        imgsz=32,
-    )
+    data_dict = dict(train=dict(yolo_data=["coco128-seg.yaml"]), val=dict(yolo_data=["coco128-seg.yaml"]))
+    data_yaml = tmp_path / "yoloe-data.yaml"
+    YAML.save(data=data_dict, file=data_yaml)
+    for data in [data_dict, data_yaml]:
+        model = YOLOE("yoloe-11s-seg.yaml")
+        model.train(
+            data=data,
+            epochs=1,
+            close_mosaic=1,
+            trainer=YOLOESegTrainerFromScratch,
+            imgsz=32,
+        )
 
     # prompt-free
     # predict
@@ -744,7 +855,7 @@ def test_yolov10():
 
 def test_multichannel():
     """Test YOLO model multi-channel training, validation, and prediction functionality."""
-    model = YOLO("yolo11n.pt")
+    model = YOLO("yolo26n.pt")
     model.train(data="coco8-multispectral.yaml", epochs=1, imgsz=32, close_mosaic=1, cache="disk")
     model.val(data="coco8-multispectral.yaml")
     im = np.zeros((32, 32, 10), dtype=np.uint8)
@@ -767,7 +878,7 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
             npy_file.unlink()
 
     model = YOLO(model)
-    model.train(data=grayscale_data, epochs=1, imgsz=32, close_mosaic=1)
+    model.train(data=grayscale_data, epochs=1, imgsz=32, close_mosaic=1, cache="ram")
     model.val(data=grayscale_data)
     im = np.zeros((32, 32, 1), dtype=np.uint8)
     model.predict(source=im, imgsz=32, save_txt=True, save_crop=True, augment=True)

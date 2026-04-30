@@ -8,10 +8,9 @@ from typing import Any
 import cv2.dnn
 import numpy as np
 
-from ultralytics.utils import ASSETS, YAML
-from ultralytics.utils.checks import check_yaml
+from ultralytics.utils import ASSETS, ROOT, YAML
 
-CLASSES = YAML.load(check_yaml("coco8.yaml"))["names"]
+CLASSES = YAML.load(ROOT / "cfg/datasets/coco8.yaml")["names"]
 colors = np.random.uniform(0, 255, size=(len(CLASSES), 3))
 
 
@@ -92,13 +91,13 @@ def main(onnx_model: str, input_image: str) -> list[dict[str, Any]]:
             class_ids.append(maxClassIndex)
 
     # Apply NMS (Non-maximum suppression)
-    result_boxes = cv2.dnn.NMSBoxes(boxes, scores, 0.25, 0.45, 0.5)
+    result_boxes = np.array(cv2.dnn.NMSBoxes(boxes, scores, 0.25, 0.45, 0.5)).flatten()
 
     detections = []
 
     # Iterate through NMS results to draw bounding boxes and labels
-    for i in range(len(result_boxes)):
-        index = result_boxes[i]
+    for index in result_boxes:
+        index = int(index)
         box = boxes[index]
         detection = {
             "class_id": class_ids[index],

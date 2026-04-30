@@ -5,9 +5,9 @@ keywords: Ultralytics, SAM, AMG, API Reference, models, mask stability, crop box
 
 # Reference for `ultralytics/models/sam/amg.py`
 
-!!! note
+!!! success "Improvements"
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/amg.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/amg.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/sam/amg.py) 🛠️. Thank you 🙏!
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/amg.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/amg.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
 
 <br>
 

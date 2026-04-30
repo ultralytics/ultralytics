@@ -12,7 +12,7 @@ from .val import FastSAMValidator
 
 
 class FastSAM(Model):
-    """FastSAM model interface for segment anything tasks.
+    """FastSAM model interface for Segment Anything tasks.
 
     This class extends the base Model class to provide specific functionality for the FastSAM (Fast Segment Anything
     Model) implementation, allowing for efficient and accurate image segmentation with optional prompting support.
@@ -39,7 +39,7 @@ class FastSAM(Model):
         """Initialize the FastSAM model with the specified pre-trained weights."""
         if str(model) == "FastSAM.pt":
             model = "FastSAM-x.pt"
-        assert Path(model).suffix not in {".yaml", ".yml"}, "FastSAM models only support pre-trained models."
+        assert Path(model).suffix not in {".yaml", ".yml"}, "FastSAM only supports pre-trained weights."
         super().__init__(model=model, task="segment")
 
     def predict(

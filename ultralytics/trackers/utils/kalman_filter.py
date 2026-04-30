@@ -42,10 +42,6 @@ class KalmanFilterXYAH:
         represents the bounding box center position, 'a' is the aspect ratio, 'h' is the height, and their respective
         velocities are (vx, vy, va, vh). The filter uses a constant velocity model for object motion and a linear
         observation model for bounding box location.
-
-        Examples:
-            Initialize a Kalman filter for tracking:
-            >>> kf = KalmanFilterXYAH()
         """
         ndim, dt = 4, 1.0
 
@@ -67,8 +63,7 @@ class KalmanFilterXYAH:
                 and height h.
 
         Returns:
-            mean (np.ndarray): Mean vector (8-dimensional) of the new track. Unobserved velocities are initialized to 0
-                mean.
+            mean (np.ndarray): Mean vector (8-dimensional) of the new track. Unobserved velocities are initialized to 0.
             covariance (np.ndarray): Covariance matrix (8x8 dimensional) of the new track.
 
         Examples:
@@ -102,7 +97,7 @@ class KalmanFilterXYAH:
                 step.
 
         Returns:
-            mean (np.ndarray): Mean vector of the predicted state. Unobserved velocities are initialized to 0 mean.
+            mean (np.ndarray): Mean vector of the predicted state.
             covariance (np.ndarray): Covariance matrix of the predicted state.
 
         Examples:
@@ -171,9 +166,10 @@ class KalmanFilterXYAH:
             covariance (np.ndarray): Covariance matrix of the predicted states with shape (N, 8, 8).
 
         Examples:
+            >>> kf = KalmanFilterXYAH()
             >>> mean = np.random.rand(10, 8)  # 10 object states
             >>> covariance = np.random.rand(10, 8, 8)  # Covariance matrices for 10 object states
-            >>> predicted_mean, predicted_covariance = kalman_filter.multi_predict(mean, covariance)
+            >>> predicted_mean, predicted_covariance = kf.multi_predict(mean, covariance)
         """
         std_pos = [
             self._std_weight_position * mean[:, 3],
@@ -319,8 +315,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
                 height.
 
         Returns:
-            mean (np.ndarray): Mean vector (8 dimensional) of the new track. Unobserved velocities are initialized to 0
-                mean.
+            mean (np.ndarray): Mean vector (8 dimensional) of the new track. Unobserved velocities are initialized to 0.
             covariance (np.ndarray): Covariance matrix (8x8 dimensional) of the new track.
 
         Examples:
@@ -330,14 +325,14 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
             >>> print(mean)
             [100.  50.  20.  40.   0.   0.   0.   0.]
             >>> print(covariance)
-            [[ 4.  0.  0.  0.  0.  0.  0.  0.]
-             [ 0.  4.  0.  0.  0.  0.  0.  0.]
-             [ 0.  0.  4.  0.  0.  0.  0.  0.]
-             [ 0.  0.  0.  4.  0.  0.  0.  0.]
-             [ 0.  0.  0.  0.  0.25  0.  0.  0.]
-             [ 0.  0.  0.  0.  0.  0.25  0.  0.]
-             [ 0.  0.  0.  0.  0.  0.  0.25  0.]
-             [ 0.  0.  0.  0.  0.  0.  0.  0.25]]
+            [[ 4.      0.      0.      0.      0.      0.      0.      0.    ]
+             [ 0.     16.      0.      0.      0.      0.      0.      0.    ]
+             [ 0.      0.      4.      0.      0.      0.      0.      0.    ]
+             [ 0.      0.      0.     16.      0.      0.      0.      0.    ]
+             [ 0.      0.      0.      0.      1.5625  0.      0.      0.    ]
+             [ 0.      0.      0.      0.      0.      6.25    0.      0.    ]
+             [ 0.      0.      0.      0.      0.      0.      1.5625  0.    ]
+             [ 0.      0.      0.      0.      0.      0.      0.      6.25  ]]
         """
         mean_pos = measurement
         mean_vel = np.zeros_like(mean_pos)
@@ -365,7 +360,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
                 step.
 
         Returns:
-            mean (np.ndarray): Mean vector of the predicted state. Unobserved velocities are initialized to 0 mean.
+            mean (np.ndarray): Mean vector of the predicted state.
             covariance (np.ndarray): Covariance matrix of the predicted state.
 
         Examples:

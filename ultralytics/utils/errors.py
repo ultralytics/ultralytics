@@ -31,11 +31,5 @@ class HUBModelError(Exception):
 
         Args:
             message (str, optional): The error message to display when the exception is raised.
-
-        Examples:
-            >>> try:
-            ...     raise HUBModelError("Custom model error message")
-            ... except HUBModelError as e:
-            ...     print(e)
         """
         super().__init__(emojis(message))

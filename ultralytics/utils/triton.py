@@ -47,10 +47,6 @@ class TritonRemoteModel:
             url (str): The URL of the Triton server.
             endpoint (str, optional): The name of the model on the Triton server.
             scheme (str, optional): The communication scheme ('http' or 'grpc').
-
-        Examples:
-            >>> model = TritonRemoteModel(url="localhost:8000", endpoint="yolov8", scheme="http")
-            >>> model = TritonRemoteModel(url="http://localhost:8000/yolov8")
         """
         if not endpoint and not scheme:  # Parse all args from URL string
             splits = urlsplit(url)
@@ -94,8 +90,8 @@ class TritonRemoteModel:
                 corresponding model input.
 
         Returns:
-            (list[np.ndarray]): Model outputs with the same dtype as the input. Each element in the list corresponds to
-                one of the model's output tensors.
+            (list[np.ndarray]): Model outputs cast to the dtype of the first input. Each element in the list corresponds
+                to one of the model's output tensors.
 
         Examples:
             >>> model = TritonRemoteModel(url="localhost:8000", endpoint="yolov8", scheme="http")

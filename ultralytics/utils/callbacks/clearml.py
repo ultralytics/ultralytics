@@ -38,7 +38,7 @@ def _log_plot(title: str, plot_path: str) -> None:
 
     Args:
         title (str): The title of the plot.
-        plot_path (str): The path to the saved image file.
+        plot_path (str | Path): The path to the saved image file.
     """
     import matplotlib.image as mpimg
     import matplotlib.pyplot as plt
@@ -77,7 +77,7 @@ def on_pretrain_routine_start(trainer) -> None:
                 "ClearML Initialized a new task. If you want to run remotely, "
                 "please add clearml-init and connect your arguments before initializing YOLO."
             )
-        task.connect(vars(trainer.args), name="General")
+        task.connect(vars(trainer.args), name="General", ignore_remote_overrides=True)
     except Exception as e:
         LOGGER.warning(f"ClearML installed but not initialized correctly, not logging this run. {e}")
 
@@ -123,15 +123,9 @@ def on_train_end(trainer) -> None:
     """Log final model and training results on training completion."""
     if task := Task.current_task():
         # Log final results, confusion matrix and PR plots
-        files = [
-            "results.png",
-            "confusion_matrix.png",
-            "confusion_matrix_normalized.png",
-            *(f"{x}_curve.png" for x in ("F1", "PR", "P", "R")),
-        ]
-        files = [(trainer.save_dir / f) for f in files if (trainer.save_dir / f).exists()]  # filter existing files
-        for f in files:
-            _log_plot(title=f.stem, plot_path=f)
+        for f in [*trainer.plots.keys(), *trainer.validator.plots.keys()]:
+            if "batch" not in f.name:
+                _log_plot(title=f.stem, plot_path=f)
         # Report final metrics
         for k, v in trainer.validator.metrics.results_dict.items():
             task.get_logger().report_single_value(k, v)

@@ -13,7 +13,7 @@ class AIGym(BaseSolution):
     repetitions of exercises based on predefined angle thresholds for up and down positions.
 
     Attributes:
-        states (dict[float, int, str]): Stores per-track angle, count, and stage for workout monitoring.
+        states (dict[int, dict[str, float | int | str]]): Per-track angle, rep count, and stage for workout monitoring.
         up_angle (float): Angle threshold for considering the 'up' position of an exercise.
         down_angle (float): Angle threshold for considering the 'down' position of an exercise.
         kpts (list[int]): Indices of keypoints used for angle calculation.
@@ -22,7 +22,7 @@ class AIGym(BaseSolution):
         process: Process a frame to detect poses, calculate angles, and count repetitions.
 
     Examples:
-        >>> gym = AIGym(model="yolo11n-pose.pt")
+        >>> gym = AIGym(model="yolo26n-pose.pt")
         >>> image = cv2.imread("gym_scene.jpg")
         >>> results = gym.process(image)
         >>> processed_image = results.plot_im
@@ -35,9 +35,9 @@ class AIGym(BaseSolution):
 
         Args:
             **kwargs (Any): Keyword arguments passed to the parent class constructor including:
-                - model (str): Model name or path, defaults to "yolo11n-pose.pt".
+                - model (str): Model name or path, defaults to "yolo26n-pose.pt".
         """
-        kwargs["model"] = kwargs.get("model", "yolo11n-pose.pt")
+        kwargs["model"] = kwargs.get("model", "yolo26n-pose.pt")
         super().__init__(**kwargs)
         self.states = defaultdict(lambda: {"angle": 0, "count": 0, "stage": "-"})  # Dict for count, angle and stage
 

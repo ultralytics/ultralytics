@@ -39,7 +39,7 @@ Developing a custom [object detection](https://docs.ultralytics.com/tasks/detect
 
     Ultralytics provides two licensing options to accommodate diverse usage scenarios:
 
-    - **AGPL-3.0 License**: This [OSI-approved](https://opensource.org/license/agpl-v3) open-source license is ideal for students, researchers, and enthusiasts passionate about open collaboration and knowledge sharing. It requires derived works to be shared under the same license. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for full details.
+    - **AGPL-3.0 License**: This [OSI-approved](https://opensource.org/license/agpl-3.0) open-source license is ideal for students, researchers, and enthusiasts passionate about open collaboration and knowledge sharing. It requires derived works to be shared under the same license. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for full details.
     - **Enterprise License**: Designed for commercial applications, this license permits the seamless integration of Ultralytics software and AI models into commercial products and services without the open-source stipulations of AGPL-3.0. If your project requires commercial deployment, request an [Enterprise License](https://www.ultralytics.com/license).
 
     Explore our licensing options further on the [Ultralytics Licensing](https://www.ultralytics.com/license) page.
@@ -170,7 +170,7 @@ python train.py --img 640 --batch 16 --epochs 3 --data coco128.yaml --weights yo
 
     💡 Always train using datasets stored locally. Accessing data from network drives (like Google Drive) or remote storage can be significantly slower and impede training performance. Copying your dataset to a local SSD is often the best practice.
 
-All training outputs, including weights and logs, are saved in the `runs/train/` directory. Each training session creates a new subdirectory (e.g., `runs/train/exp`, `runs/train/exp2`, etc.). For an interactive, hands-on experience, explore the training section in our official tutorial notebooks: <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
+All training outputs, including weights and logs, are saved in the `runs/train/` directory. Each training session creates a new subdirectory (e.g., `runs/train/exp`, `runs/train/exp-2`, etc.). For an interactive, hands-on experience, explore the training section in our official tutorial notebooks: <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 
 ## 4. Visualize
 

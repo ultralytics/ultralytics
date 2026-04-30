@@ -62,7 +62,7 @@ For professionals and small teams ($29/month or $290/year):
 - 10 concurrent cloud trainings
 - 500 GB storage · 20 GB dataset upload limit
 - 10 cloud deployments
-- [Team collaboration](teams.md) (up to 5 members)
+- [Team collaboration](teams.md) with 4-role RBAC (up to 5 members)
 - Access to the best GPUs (H200, B200)
 - Priority support
 
@@ -78,13 +78,12 @@ For organizations with advanced needs:
 - Unlimited models, storage, trainings, and deployments · 50 GB dataset upload limit
 - Enterprise License (commercial use, non-AGPL)
 - SSO / SAML authentication
-- RBAC with 4 roles (Owner, Admin, Editor, Viewer)
 - On-premise deployment (coming soon)
 - ISO/SOC compliance (coming soon)
 - SLA guarantees (coming soon)
 - Enterprise support
 
-See [Ultralytics Licensing](https://www.ultralytics.com/licensing) for Enterprise plan details.
+See [Ultralytics Licensing](https://www.ultralytics.com/license) for Enterprise plan details.
 
 ## Credits
 
@@ -236,16 +235,17 @@ After upgrading:
 
 ### Cancel Pro
 
-Cancel anytime from the billing portal:
+Cancel anytime from the Plans tab:
 
-1. Go to **Settings > Billing**
-2. Click **Manage Subscription**
-3. Select **Cancel**
-4. Confirm cancellation
+1. Go to **Settings > Plans**
+2. Click **Cancel Subscription** on the Pro plan card
+3. Confirm in the dialog
+
+If you cancel before the end of your billing period, a **Resume Subscription** button appears — click it to undo the cancellation before the period ends.
 
 !!! note "Cancellation Timing"
 
-    Pro features remain active until the end of your billing period. Monthly credits stop at cancellation.
+    Pro features remain active until the end of your current billing period. Monthly credits stop being granted at cancellation.
 
 ### Downgrading to Free
 
@@ -273,13 +273,13 @@ View all transactions in `Settings > Billing`:
 
 ![Ultralytics Platform Settings Billing Tab Transaction History Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-transaction-history-table.avif)
 
-| Column      | Description                                                                                                 |
-| ----------- | ----------------------------------------------------------------------------------------------------------- |
-| **Date**    | Transaction date                                                                                            |
-| **Type**    | Signup Bonus, Credit Purchase, Monthly Grant, Training, Refund, Adjustment, Auto Top-Up, Auto Top-Up Failed |
-| **Amount**  | Transaction value (green for credits, red for charges)                                                      |
-| **Balance** | Resulting balance after transaction                                                                         |
-| **Details** | Additional context (model link, receipt, period)                                                            |
+| Column      | Description                                                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **Date**    | Transaction date                                                                                                                       |
+| **Type**    | Signup, Purchase, Subscription, Monthly Grant, Training, Refund, Adjustment, Promo, Auto Top-Up, Auto Top-Up Failed, Pro Credit Expiry |
+| **Amount**  | Transaction value (green for credits, red for charges)                                                                                 |
+| **Balance** | Resulting balance after transaction                                                                                                    |
+| **Details** | Additional context (model link, receipt, period)                                                                                       |
 
 ## FAQ
 

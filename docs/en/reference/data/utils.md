@@ -59,6 +59,10 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 
 <br><br><hr><br>
 
+## ::: ultralytics.data.utils.convert_ndjson_to_yolo_if_needed
+
+<br><br><hr><br>
+
 ## ::: ultralytics.data.utils.check_det_dataset
 
 <br><br><hr><br>

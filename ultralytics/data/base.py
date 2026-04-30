@@ -164,7 +164,7 @@ class BaseDataset(Dataset):
             for p in img_path if isinstance(img_path, list) else [img_path]:
                 p = Path(p)  # os-agnostic
                 if p.is_dir():  # dir
-                    f += glob.glob(str(p / "**" / "*.*"), recursive=True)
+                    f += glob.glob(str(Path(glob.escape(p)) / "**" / "*.*"), recursive=True)
                     # F = list(p.rglob('*.*'))  # pathlib
                 elif p.is_file():  # file
                     with open(p, encoding="utf-8") as t:
@@ -280,7 +280,11 @@ class BaseDataset(Dataset):
         """Save an image as an *.npy file for faster loading."""
         f = self.npy_files[i]
         if not f.exists():
-            np.save(f.as_posix(), imread(self.im_files[i], flags=self.cv2_flag), allow_pickle=False)
+            try:
+                np.save(f.as_posix(), imread(self.im_files[i], flags=self.cv2_flag), allow_pickle=False)
+            except Exception as e:
+                f.unlink(missing_ok=True)
+                LOGGER.warning(f"{self.prefix}WARNING ⚠️ Failed to cache image {f}: {e}")
 
     def check_cache_disk(self, safety_margin: float = 0.5) -> bool:
         """Check if there's enough disk space for caching images.

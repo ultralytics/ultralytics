@@ -156,7 +156,7 @@ class MuSGD(optim.Optimizer):
         """Initialize MuSGD optimizer with hybrid Muon and SGD capabilities.
 
         Args:
-            params: Iterable of parameters to optimize or dicts defining parameter groups.
+            params (Iterable): Iterable of parameters to optimize or dicts defining parameter groups.
             lr (float): Learning rate.
             momentum (float): Momentum factor for SGD.
             weight_decay (float): Weight decay (L2 penalty).
@@ -285,7 +285,7 @@ class Muon(optim.Optimizer):
         """Initialize Muon optimizer with orthogonalization-based updates.
 
         Args:
-            params: Iterable of parameters to optimize or dicts defining parameter groups.
+            params (Iterable): Iterable of parameters to optimize or dicts defining parameter groups.
             lr (float): Learning rate.
             weight_decay (float): Weight decay factor applied multiplicatively.
             momentum (float): Momentum factor for gradient accumulation.

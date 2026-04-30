@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
 from ultralytics.utils import DEFAULT_CFG, ops
@@ -29,7 +31,7 @@ class SegmentationPredictor(DetectionPredictor):
         >>> predictor.predict_cli()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
         """Initialize the SegmentationPredictor with configuration, overrides, and callbacks.
 
         This class specializes in processing segmentation model outputs, handling both bounding boxes and masks in the
@@ -38,7 +40,7 @@ class SegmentationPredictor(DetectionPredictor):
         Args:
             cfg (dict): Configuration for the predictor.
             overrides (dict, optional): Configuration overrides that take precedence over cfg.
-            _callbacks (list, optional): List of callback functions to be invoked during prediction.
+            _callbacks (dict, optional): Dictionary of callback functions to be invoked during prediction.
         """
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "segment"

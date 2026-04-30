@@ -141,6 +141,7 @@ warnings.filterwarnings("ignore", category=FutureWarning, module="timm")  # mobi
 warnings.filterwarnings("ignore", category=torch.jit.TracerWarning)  # ONNX/TorchScript export tracer warnings
 warnings.filterwarnings("ignore", category=UserWarning, message=".*prim::Constant.*")  # ONNX shape warning
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="coremltools")  # CoreML np.bool deprecation
+logging.getLogger("coremltools").setLevel(logging.ERROR)  # Suppress native binary load failures on non-macOS
 
 # Precompiled type tuples for faster isinstance() checks
 FLOAT_OR_INT = (float, int)
@@ -1443,7 +1444,7 @@ def clean_url(url):
 
 def url2file(url):
     """Convert URL to filename, i.e. https://url.com/file.txt?auth -> file.txt."""
-    return Path(clean_url(url)).name
+    return Path(clean_url(url)).name or "download"
 
 
 def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:

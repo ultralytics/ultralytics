@@ -83,7 +83,7 @@ All Ultralytics Solutions use the separate class [`SolutionAnnotator`](https://d
 
 ### Working with SolutionResults
 
-Except [`Similarity Search`](../guides/similarity-search.md), each Solution calls return a list of `SolutionResults` object.
+Except [`Similarity Search`](../guides/similarity-search.md), each Solution call returns a list of `SolutionResults` objects.
 
 - For object counting, the results include `in_count`, `out_count`, and `classwise_count`.
 
@@ -141,7 +141,7 @@ For more details, refer to the [`SolutionResults` class documentation](https://d
 
     Most of the Solutions can be used directly through the command-line interface, including:
 
-    `Count`, `Crop`, `Blur`, `Workout`, `Heatmap`, `Isegment`, `Visioneye`, `Speed`, `Queue`, `Analytics`, `Inference`
+    `Count`, `Crop`, `Blur`, `Workout`, `Heatmap`, `Isegment`, `Visioneye`, `Speed`, `Queue`, `Analytics`, `Inference`, `Trackzone`
 
     **Syntax**
 

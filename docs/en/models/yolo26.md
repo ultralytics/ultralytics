@@ -69,6 +69,10 @@ YOLO26 builds upon the versatile model range established by earlier Ultralytics 
 
 This unified framework ensures YOLO26 is applicable across real-time detection, segmentation, classification, pose estimation, and oriented object detection — all with training, validation, inference, and export support.
 
+!!! note "Architecture-only variants"
+
+    [`yolo26-p2.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/26/yolo26-p2.yaml) and [`yolo26-p6.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/26/yolo26-p6.yaml) add a P2 (small-object) or P6 (large-input) detection head and are shipped as YAML architectures only. No scale-specific `yolo26*-p2.pt` or `yolo26*-p6.pt` weights are released. Instantiate a scaled config from YAML (for example, `YOLO("yolo26n-p6.yaml")`) and train or fine-tune it as needed.
+
 ---
 
 ## Performance Metrics
@@ -104,6 +108,8 @@ This unified framework ensures YOLO26 is applicable across real-time detection, 
         See [Oriented Detection Docs](../tasks/obb.md) for usage examples with these models trained on [DOTAv1](../datasets/obb/dota-v2.md#dota-v10), which include 15 pretrained classes.
 
         --8<-- "docs/macros/yolo-obb-perf.md"
+
+_Params and FLOPs values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers and removes the auxiliary one-to-many detection head. Pretrained checkpoints retain the full training architecture and may show higher counts._
 
 ---
 
@@ -237,8 +243,7 @@ YOLOE-26 supports both text-based and visual prompting. Using prompts is straigh
         model = YOLO("yoloe-26l-seg.pt")  # or select yoloe-26s/m-seg.pt for different sizes
 
         # Set text prompt to detect person and bus. You only need to do this once after you load the model.
-        names = ["person", "bus"]
-        model.set_classes(names, model.get_text_pe(names))
+        model.set_classes(["person", "bus"])
 
         # Run detection on the given image
         results = model.predict("path/to/image.jpg")

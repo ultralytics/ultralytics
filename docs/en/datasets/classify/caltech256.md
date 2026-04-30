@@ -10,13 +10,13 @@ The [Caltech-256](https://data.caltech.edu/records/nyy15-4j048) dataset is an ex
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/isc06_9qnM0"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Y7cfNkqSdMg"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train <a href="https://www.ultralytics.com/glossary/image-classification">Image Classification</a> Model using Caltech-256 Dataset with Ultralytics Platform
+  <strong>Watch:</strong> How to Train <a href="https://www.ultralytics.com/glossary/image-classification">Image Classification</a> Model using Caltech-256 Dataset with Ultralytics YOLO26
 </p>
 
 !!! note "Automatic Data Splitting"

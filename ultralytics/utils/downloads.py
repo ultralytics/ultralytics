@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 import shutil
 import subprocess
+import tarfile
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
@@ -192,9 +193,15 @@ def unzip_file(
             LOGGER.warning(f"Skipping {file} unzip as destination directory {path} is not empty.")
             return path
 
+        extract_path = Path(extract_path).resolve()
         for f in TQDM(files, desc=f"Unzipping {file} to {Path(path).resolve()}...", unit="files", disable=not progress):
-            # Ensure the file is within the extract_path to avoid path traversal security vulnerability
-            if ".." in Path(f).parts:
+            f_path = Path(f)
+            target = (extract_path / f_path).resolve()
+            if (
+                f_path.is_absolute()
+                or ".." in f_path.parts
+                or target.parts[: len(extract_path.parts)] != extract_path.parts
+            ):
                 LOGGER.warning(f"Potentially insecure file path: {f}, skipping extraction.")
                 continue
             zipObj.extract(f, extract_path)
@@ -223,10 +230,13 @@ def check_disk_space(
     if file_bytes * sf < free:
         return True  # sufficient space
 
+    def fmt_bytes(b):
+        return f"{b / (1 << 20):.1f} MB" if b < (1 << 30) else f"{b / (1 << 30):.3f} GB"
+
     # Insufficient space
     text = (
-        f"Insufficient free disk space {free >> 30:.3f} GB < {int(file_bytes * sf) >> 30:.3f} GB required, "
-        f"Please free {int(file_bytes * sf - free) >> 30:.3f} GB additional disk space and try again."
+        f"Insufficient free disk space {fmt_bytes(free)} < {fmt_bytes(int(file_bytes * sf))} required, "
+        f"Please free {fmt_bytes(int(file_bytes * sf - free))} additional disk space and try again."
     )
     if hard:
         raise MemoryError(text)
@@ -311,66 +321,73 @@ def safe_download(
         >>> link = "https://ultralytics.com/assets/bus.jpg"
         >>> path = safe_download(link)
     """
-    gdrive = url.startswith("https://drive.google.com/")  # check if the URL is a Google Drive link
-    if gdrive:
-        url, file = get_google_drive_file_info(url)
+    url = str(url)
+    if "://" not in url and Path(url).is_file():  # local file path ('://' check required in Windows Python<3.10)
+        f = Path(url)
+    else:
+        gdrive = url.startswith("https://drive.google.com/")  # check if the URL is a Google Drive link
+        if gdrive:
+            url, file = get_google_drive_file_info(url)
+        url = url.replace(" ", "%20")  # encode spaces for curl/urllib compatibility
 
-    f = Path(dir or ".") / (file or url2file(url))  # URL converted to filename
-    if "://" not in str(url) and Path(url).is_file():  # URL exists ('://' check required in Windows Python<3.10)
-        f = Path(url)  # filename
-    elif not f.is_file():  # URL and file do not exist
-        uri = (url if gdrive else clean_url(url)).replace(ASSETS_URL, "https://ultralytics.com/assets")  # clean
-        desc = f"Downloading {uri} to '{f}'"
-        f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
-        curl_installed = shutil.which("curl")
-        for i in range(retry + 1):
-            try:
-                if (curl or i > 0) and curl_installed:  # curl download with retry, continue
-                    s = "sS" * (not progress)  # silent
-                    r = subprocess.run(["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]).returncode
-                    assert r == 0, f"Curl return value {r}"
-                    expected_size = None  # Can't get size with curl
-                else:  # urllib download
-                    with request.urlopen(url) as response:
-                        expected_size = int(response.getheader("Content-Length", 0))
-                        if i == 0 and expected_size > 1048576:
-                            check_disk_space(expected_size, path=f.parent)
-                        buffer_size = max(8192, min(1048576, expected_size // 1000)) if expected_size else 8192
-                        with TQDM(
-                            total=expected_size,
-                            desc=desc,
-                            disable=not progress,
-                            unit="B",
-                            unit_scale=True,
-                            unit_divisor=1024,
-                        ) as pbar:
-                            with open(f, "wb") as f_opened:
-                                while True:
-                                    data = response.read(buffer_size)
-                                    if not data:
-                                        break
-                                    f_opened.write(data)
-                                    pbar.update(len(data))
+        f = Path(dir or ".") / (file or url2file(url))  # URL converted to filename
+        if not f.is_file():  # URL and file do not exist
+            uri = (url if gdrive else clean_url(url)).replace(ASSETS_URL, "https://ultralytics.com/assets")  # clean
+            desc = f"Downloading {uri} to '{f}'"
+            f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
+            curl_installed = shutil.which("curl")
+            for i in range(retry + 1):
+                try:
+                    if (curl or i > 0) and curl_installed:  # curl download with retry, continue
+                        s = "sS" * (not progress)  # silent
+                        r = subprocess.run(["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]).returncode
+                        assert r == 0, f"Curl return value {r}"
+                        expected_size = None  # Can't get size with curl
+                    else:  # urllib download
+                        with request.urlopen(url) as response:
+                            expected_size = int(response.getheader("Content-Length", 0))
+                            if i == 0 and expected_size > 1048576:
+                                check_disk_space(expected_size, path=f.parent)
+                            buffer_size = max(8192, min(1048576, expected_size // 1000)) if expected_size else 8192
+                            with TQDM(
+                                total=expected_size,
+                                desc=desc,
+                                disable=not progress,
+                                unit="B",
+                                unit_scale=True,
+                                unit_divisor=1024,
+                            ) as pbar:
+                                with open(f, "wb") as f_opened:
+                                    while True:
+                                        data = response.read(buffer_size)
+                                        if not data:
+                                            break
+                                        f_opened.write(data)
+                                        pbar.update(len(data))
 
-                if f.exists():
-                    file_size = f.stat().st_size
-                    if file_size > min_bytes:
-                        # Check if download is complete (only if we have expected_size)
-                        if expected_size and file_size != expected_size:
-                            LOGGER.warning(
-                                f"Partial download: {file_size}/{expected_size} bytes ({file_size / expected_size * 100:.1f}%)"
-                            )
-                        else:
-                            break  # success
-                    f.unlink()  # remove partial downloads
-            except MemoryError:
-                raise  # Re-raise immediately - no point retrying if insufficient disk space
-            except Exception as e:
-                if i == 0 and not is_online():
-                    raise ConnectionError(emojis(f"❌  Download failure for {uri}. Environment may be offline.")) from e
-                elif i >= retry:
-                    raise ConnectionError(emojis(f"❌  Download failure for {uri}. Retry limit reached. {e}")) from e
-                LOGGER.warning(f"Download failure, retrying {i + 1}/{retry} {uri}... {e}")
+                    if f.exists():
+                        file_size = f.stat().st_size
+                        if file_size > min_bytes:
+                            # Check if download is complete (only if we have expected_size)
+                            if expected_size and file_size != expected_size:
+                                LOGGER.warning(
+                                    f"Partial download: {file_size}/{expected_size} bytes ({file_size / expected_size * 100:.1f}%)"
+                                )
+                            else:
+                                break  # success
+                        f.unlink()  # remove partial downloads
+                except MemoryError:
+                    raise  # Re-raise immediately - no point retrying if insufficient disk space
+                except Exception as e:
+                    if i == 0 and not is_online():
+                        raise ConnectionError(
+                            emojis(f"❌  Download failure for {uri}. Environment may be offline.")
+                        ) from e
+                    elif i >= retry:
+                        raise ConnectionError(
+                            emojis(f"❌  Download failure for {uri}. Retry limit reached. {e}")
+                        ) from e
+                    LOGGER.warning(f"Download failure, retrying {i + 1}/{retry} {uri}... {e}")
 
     if unzip and f.exists() and f.suffix in {"", ".zip", ".tar", ".gz"}:
         from zipfile import is_zipfile
@@ -380,7 +397,26 @@ def safe_download(
             unzip_dir = unzip_file(file=f, path=unzip_dir, exist_ok=exist_ok, progress=progress)  # unzip
         elif f.suffix in {".tar", ".gz"}:
             LOGGER.info(f"Unzipping {f} to {unzip_dir}...")
-            subprocess.run(["tar", "xf" if f.suffix == ".tar" else "xfz", f, "--directory", unzip_dir], check=True)
+            with tarfile.open(f, "r:*") as tar:
+                for m in tar:
+                    if not (m.isfile() or m.isdir()) or m.issym() or m.islnk():
+                        LOGGER.warning(f"Potentially insecure tar member: {m.name}, skipping extraction.")
+                        continue
+                    m_path = Path(m.name)
+                    target = (unzip_dir / m_path).resolve()
+                    if (
+                        m_path.is_absolute()
+                        or ".." in m_path.parts
+                        or target.parts[: len(unzip_dir.parts)] != unzip_dir.parts
+                    ):
+                        LOGGER.warning(f"Potentially insecure file path: {m.name}, skipping extraction.")
+                        continue
+                    if m.isdir():
+                        target.mkdir(parents=True, exist_ok=True)
+                    elif source := tar.extractfile(m):
+                        target.parent.mkdir(parents=True, exist_ok=True)
+                        with source, open(target, "wb") as f:
+                            shutil.copyfileobj(source, f)
         if delete:
             f.unlink()  # remove zip
         return unzip_dir

@@ -270,6 +270,10 @@ class ConsoleLogger:
             """Flush the wrapped stream to propagate buffered output promptly during console capture."""
             self.original.flush()
 
+        def isatty(self):
+            """Delegate isatty check to the original stream."""
+            return self.original.isatty()
+
     class _LogHandler(logging.Handler):
         """Lightweight logging handler."""
 

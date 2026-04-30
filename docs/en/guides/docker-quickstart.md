@@ -158,8 +158,11 @@ Ultralytics offers several Docker images optimized for various platforms and use
 - **Dockerfile-jetson-jetpack5:** Optimized for [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson/) devices running [NVIDIA JetPack 5](https://developer.nvidia.com/embedded/jetpack-sdk-512).
 - **Dockerfile-jetson-jetpack6:** Optimized for [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson/) devices running [NVIDIA JetPack 6](https://developer.nvidia.com/embedded/jetpack-sdk-61).
 - **Dockerfile-jupyter:** For interactive development using JupyterLab in the browser.
+- **Dockerfile-nvidia-arm64:** For NVIDIA ARM64 devices such as Jetson AGX Thor and DGX Spark, supporting JetPack 7.0 and DGX OS.
 - **Dockerfile-python:** Minimal Python environment for lightweight applications.
+- **Dockerfile-python-export:** Minimal Python image extended with full export capabilities for YOLO model conversion.
 - **Dockerfile-conda:** Includes [Miniconda3](https://www.anaconda.com/docs/main) and Ultralytics package installed via Conda.
+- **Dockerfile-export:** GPU image with all export format dependencies pre-installed for model conversion and benchmarking.
 
 To pull the latest image:
 

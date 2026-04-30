@@ -93,15 +93,15 @@ class TransformerEncoderLayer(nn.Module):
         In post-norm architecture, normalization is applied after attention and feedforward operations.
 
         Args:
-            tgt: Input tensor to be processed
-            memory: Memory tensor for cross-attention
-            tgt_mask: Mask for self-attention
-            memory_mask: Mask for cross-attention
-            tgt_key_padding_mask: Key padding mask for self-attention
-            memory_key_padding_mask: Key padding mask for cross-attention
-            pos: Positional encoding for memory
-            query_pos: Positional encoding for query
-            **kwargs: Additional keyword arguments
+            tgt (torch.Tensor): Input tensor to be processed.
+            memory (torch.Tensor): Memory tensor for cross-attention.
+            tgt_mask (torch.Tensor): Mask for self-attention.
+            memory_mask (torch.Tensor): Mask for cross-attention.
+            tgt_key_padding_mask (torch.Tensor): Key padding mask for self-attention.
+            memory_key_padding_mask (torch.Tensor): Key padding mask for cross-attention.
+            pos (torch.Tensor): Positional encoding for memory.
+            query_pos (torch.Tensor): Positional encoding for query.
+            **kwargs (Any): Additional keyword arguments.
 
         Returns:
             Processed tensor
@@ -414,14 +414,14 @@ class TransformerEncoderFusion(TransformerEncoder):
     features to image features for better cross-modal fusion. It supports torch.compile for performance optimization.
 
     Args:
-        layer: The encoder layer to be stacked multiple times
-        num_layers: Number of encoder layers to stack
-        d_model: Model dimension/hidden size
-        num_feature_levels: Number of feature levels to process
-        add_pooled_text_to_img_feat: Whether to add pooled text features to image features
-        pool_text_with_mask: Whether to use the mask when pooling text features
-        compile_mode: Mode for torch.compile, or None to disable compilation
-        **kwargs: Additional arguments to pass to the parent class
+        layer (nn.Module): The encoder layer to be stacked multiple times.
+        num_layers (int): Number of encoder layers to stack.
+        d_model (int): Model dimension/hidden size.
+        num_feature_levels (int): Number of feature levels to process.
+        add_pooled_text_to_img_feat (bool): Whether to add pooled text features to image features.
+        pool_text_with_mask (bool): Whether to use the mask when pooling text features.
+        compile_mode (str | None): Mode for torch.compile, or None to disable compilation.
+        **kwargs (Any): Additional arguments to pass to the parent class.
     """
 
     def __init__(

@@ -2,6 +2,7 @@
 
 import contextlib
 import csv
+import tarfile
 import urllib
 import zipfile
 from copy import copy
@@ -392,6 +393,34 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
     assert extracted == expected_path, f"Extracted path {extracted} != expected {expected_path}"
     assert (extracted / "data.yaml").is_file(), f"data.yaml not found in {extracted}"
     assert (extracted / "images" / "val").is_dir(), f"images/val not found in {extracted}"
+
+
+def test_safe_download_skips_unsafe_archive_members(tmp_path):
+    """Test safe_download() skips archive members that would extract outside the target directory."""
+    archive = tmp_path / "unsafe.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("../unsafe.txt", "bad")
+        zf.writestr("safe/file.txt", "ok")
+
+    extracted = safe_download(archive, dir=tmp_path / "datasets", unzip=True, progress=False)
+
+    assert not (tmp_path / "unsafe.txt").exists()
+    assert (extracted / "safe/file.txt").is_file()
+
+
+def test_safe_download_skips_unsafe_tar_members(tmp_path):
+    """Test safe_download() skips tar members that would extract outside the target directory."""
+    source = tmp_path / "safe.txt"
+    source.write_text("ok")
+    archive = tmp_path / "unsafe.tar"
+    with tarfile.open(archive, "w") as tar:
+        tar.add(source, arcname="../unsafe.txt")
+        tar.add(source, arcname="safe.txt")
+
+    extracted = safe_download(archive, dir=tmp_path / "datasets", unzip=True, progress=False)
+
+    assert not (tmp_path / "unsafe.txt").exists()
+    assert (extracted / "safe.txt").is_file()
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

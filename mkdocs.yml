@@ -190,6 +190,8 @@ validation:
     absolute_links: relative_to_docs
     anchors: warn
     unrecognized_links: warn
+    # Zensical treats bracketed examples like [0, 1] and [x1, y1, x2, y2] as shortcut references.
+    unresolved_references: false
 
 # Primary navigation ---------------------------------------------------------------------------------------------------
 not_in_nav: |
@@ -526,6 +528,7 @@ nav:
       - Docker Quickstart: guides/docker-quickstart.md
       - Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md
       - End-to-End Detection: guides/end2end-detection.md
+      - Export Non-YOLO Models: guides/export-non-yolo-models.md
       - Fine-Tuning YOLO on Custom Data: guides/finetuning-guide.md
       - Hyperparameter Tuning: guides/hyperparameter-tuning.md
       - Insights on Model Evaluation and Fine-Tuning: guides/model-evaluation-insights.md

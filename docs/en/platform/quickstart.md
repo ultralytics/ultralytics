@@ -74,9 +74,9 @@ Every new account receives free credits for cloud GPU training:
 
 The onboarding flow guides you through three steps:
 
-1. **Username** — Choose a unique username (permanent, cannot be changed later)
-2. **Data Region** — Select US, EU, or AP with a visual world map showing latency
-3. **Profile** — Set your display name, company, and primary use case
+1. **Profile** - Enter your display name, unique username (permanent, cannot be changed later), organization (optional), and primary use case
+2. **Data Region** - Select US, EU, or AP with a visual world map showing latency
+3. **Complete** - Review your selections, optionally apply a promo code, and finish signup to claim your welcome credits
 
 ![Ultralytics Platform Onboarding Profile With Use Case](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-onboarding-profile-with-use-case.avif)
 
@@ -237,21 +237,9 @@ From your project, click `Train Model` to start cloud training.
 ### Training Configuration
 
 1. **Select Dataset**: Choose from your uploaded datasets (only datasets with a [`train` split](data/datasets.md#filter-by-split) are shown)
-2. **Choose Model**: Select a base model — official Ultralytics models or your own trained models
+2. **Choose Model**: Select a base model - official Ultralytics models or your own trained models
 3. **Set Epochs**: Number of training iterations (default: 100)
-4. **Select GPU**: Choose compute resources based on your budget and model size
-
-| Model   | Size        | Speed    | Accuracy | Recommended GPU                                                         |
-| ------- | ----------- | -------- | -------- | ----------------------------------------------------------------------- |
-| YOLO26n | Nano        | Fastest  | Good     | RTX PRO 6000 (96 GB) or RTX 4090 (24 GB)                                |
-| YOLO26s | Small       | Fast     | Better   | RTX PRO 6000 (96 GB)                                                    |
-| YOLO26m | Medium      | Moderate | High     | RTX PRO 6000 (96 GB)                                                    |
-| YOLO26l | Large       | Slower   | Higher   | RTX PRO 6000 (96 GB) or A100 SXM (80 GB)                                |
-| YOLO26x | Extra Large | Slowest  | Best     | H100 SXM (80 GB); H200 (141 GB) or B200 (180 GB) with Pro or Enterprise |
-
-!!! info "GPU Selection"
-
-    GPUs range from $0.24/hr (RTX 2000 Ada, 16 GB) to $4.99/hr (B200, 180 GB). The default GPU is **RTX PRO 6000** (96 GB Blackwell, $1.69/hr) — a great balance of memory and performance. 20 GPUs are available on all plans; H200 and B200 require [Pro or Enterprise](account/billing.md#plans). See the full [GPU pricing table](index.md#what-gpu-options-are-available-for-cloud-training).
+4. **Select GPU**: Choose compute resources based on your budget and model size. The default is **RTX PRO 6000** (96 GB Blackwell, $1.69/hr), which handles every YOLO26 variant. See the full [GPU pricing table](index.md#what-gpu-options-are-available-for-cloud-training) or the [Cloud Training GPU step](train/cloud-training.md#step-5-select-gpu-cloud-tab) for the complete list and tier gating.
 
 !!! warning "Credit Balance Required"
 

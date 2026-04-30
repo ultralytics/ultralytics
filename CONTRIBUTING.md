@@ -29,9 +29,9 @@ First-time contributors are expected to submit small, well-scoped pull requests.
 
 #### Established Contributors
 
-Pull requests from established contributors generally receive higher review priority. Actions and results are fundamental to the [Ultralytics Mission & Values](https://handbook.ultralytics.com/mission-vision-values/). There is no specific threshold to becoming an 'established contributor' as it's impossible to fit all individuals to the same standard. The Ultralytics Team notices those who make consistent, high-quality contributions that follow the Ultralytics standards.
+Pull requests from established contributors generally receive higher review priority. Actions and results are fundamental to the [Ultralytics Mission & Values](https://handbook.ultralytics.com/mission-vision-values). There is no specific threshold to becoming an 'established contributor' as it's impossible to fit all individuals to the same standard. The Ultralytics Team notices those who make consistent, high-quality contributions that follow the Ultralytics standards.
 
-Following our [contributing guidelines](./CONTRIBUTING.md) and [our Development Workflow](https://handbook.ultralytics.com/workflows/development/) is the best way to improve your chances for your work to be reviewed, accepted, and/or recognized; this is not a guarantee. In addition, contributors with a strong track record of meaningful contributions to notable open-source projects may be treated as established contributors, even if they are technically first-time contributors to Ultralytics.
+Following our [contributing guidelines](./CONTRIBUTING.md) and [our Development Workflow](https://handbook.ultralytics.com/workflows/development) is the best way to improve your chances for your work to be reviewed, accepted, and/or recognized; this is not a guarantee. In addition, contributors with a strong track record of meaningful contributions to notable open-source projects may be treated as established contributors, even if they are technically first-time contributors to Ultralytics.
 
 #### Feature PRs
 
@@ -156,11 +156,11 @@ We highly value bug reports as they help us improve the quality and reliability 
 
 Ultralytics uses the [GNU Affero General Public License v3.0 (AGPL-3.0)](https://www.ultralytics.com/legal/agpl-3-0-software-license) for its repositories. This license promotes [openness](https://en.wikipedia.org/wiki/Openness), [transparency](https://www.ultralytics.com/glossary/transparency-in-ai), and [collaborative improvement](https://en.wikipedia.org/wiki/Collaborative_software) in software development. It ensures that all users have the freedom to use, modify, and share the software, fostering a strong community of collaboration and innovation.
 
-We encourage all contributors to familiarize themselves with the terms of the [AGPL-3.0 license](https://opensource.org/license/agpl-v3) to contribute effectively and ethically to the Ultralytics open-source community.
+We encourage all contributors to familiarize themselves with the terms of the [AGPL-3.0 license](https://opensource.org/license/agpl-3.0) to contribute effectively and ethically to the Ultralytics open-source community.
 
 ## 🌍 Open-Sourcing Your YOLO Project Under AGPL-3.0
 
-Using Ultralytics YOLO models or code in your project? The [AGPL-3.0 license](https://opensource.org/license/agpl-v3) requires that your entire derivative work also be open-sourced under AGPL-3.0. This ensures modifications and larger projects built upon open-source foundations remain open.
+Using Ultralytics YOLO models or code in your project? The [AGPL-3.0 license](https://opensource.org/license/agpl-3.0) requires that your entire derivative work also be open-sourced under AGPL-3.0. This ensures modifications and larger projects built upon open-source foundations remain open.
 
 ### Why AGPL-3.0 Compliance Matters
 
@@ -179,7 +179,7 @@ Complying means making the **complete corresponding source code** of your projec
    - **Use Ultralytics Template:** Start with the [Ultralytics template repository](https://github.com/ultralytics/template) for a clean, modular setup integrating YOLO.
 
 2. **License Your Project:**
-   - Add a `LICENSE` file containing the full text of the [AGPL-3.0 license](https://opensource.org/license/agpl-v3).
+   - Add a `LICENSE` file containing the full text of the [AGPL-3.0 license](https://opensource.org/license/agpl-3.0).
    - Add a notice at the top of each source file indicating the license.
 
 3. **Publish Your Source Code:**

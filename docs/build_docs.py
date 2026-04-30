@@ -275,8 +275,9 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
                 span.insert_after(tail)
             modified = True
 
-    highlight_labels(soup.select("main h1, main h2, main h3, main h4, main h5"))
-    highlight_labels(soup.select("nav.md-nav--secondary .md-ellipsis, nav.md-nav__list .md-ellipsis"))
+    if "reference" in rel_path:
+        highlight_labels(soup.select("main h1, main h2, main h3, main h4, main h5"))
+        highlight_labels(soup.select("nav.md-nav--secondary .md-ellipsis, nav.md-nav__list .md-ellipsis"))
 
     if "reference" in rel_path:
         for ellipsis in soup.select("nav.md-nav--secondary .md-ellipsis"):

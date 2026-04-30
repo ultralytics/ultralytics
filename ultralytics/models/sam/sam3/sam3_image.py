@@ -290,15 +290,18 @@ class SAM3SemanticModel(torch.nn.Module):
             self, backbone_out, batch=len(text_ids)
         )
         backbone_out.update({k: v for k, v in self.text_embeddings.items()})
-        with torch.profiler.record_function("SAM3Image._encode_prompt"):
-            prompt, prompt_mask = self._encode_prompt(img_feats, img_pos_embeds, vis_feat_sizes, geometric_prompt)
         # index text features (note that regardless of early or late fusion, the batch size of
         # `txt_feats` is always the number of *prompts* in the encoder)
         txt_feats = backbone_out["language_features"][:, text_ids]
         txt_masks = backbone_out["language_mask"][text_ids]
-        # encode text
-        prompt = torch.cat([txt_feats, prompt], dim=0)
-        prompt_mask = torch.cat([txt_masks, prompt_mask], dim=1)
+        if geometric_prompt is not None:
+            with torch.profiler.record_function("SAM3Image._encode_prompt"):
+                geo_prompt, geo_mask = self._encode_prompt(img_feats, img_pos_embeds, vis_feat_sizes, geometric_prompt)
+            prompt = torch.cat([txt_feats, geo_prompt], dim=0)
+            prompt_mask = torch.cat([txt_masks, geo_mask], dim=1)
+        else:
+            prompt = txt_feats
+            prompt_mask = txt_masks
 
         # Run the encoder
         with torch.profiler.record_function("SAM3Image._run_encoder"):

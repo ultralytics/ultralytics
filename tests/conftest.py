@@ -3,6 +3,49 @@
 import shutil
 from pathlib import Path
 
+import pytest
+
+
+@pytest.fixture(scope="session")
+def solution_assets():
+    """Session-scoped fixture to cache solution test assets.
+
+    Lazily downloads solution assets into a persistent directory (WEIGHTS_DIR/solution_assets) and returns a callable
+    that resolves asset names to cached paths.
+    """
+    from ultralytics.utils import ASSETS_URL, WEIGHTS_DIR
+    from ultralytics.utils.downloads import safe_download
+
+    # Use persistent directory alongside weights
+    cache_dir = WEIGHTS_DIR / "solution_assets"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+
+    # Define all assets needed for solution tests
+    assets = {
+        # Videos
+        "demo_video": "solutions_ci_demo.mp4",
+        "crop_video": "decelera_landscape_min.mov",
+        "pose_video": "solution_ci_pose_demo.mp4",
+        "parking_video": "solution_ci_parking_demo.mp4",
+        "vertical_video": "solution_vertical_demo.mp4",
+        # Parking manager files
+        "parking_areas": "solution_ci_parking_areas.json",
+        "parking_model": "solutions_ci_parking_model.pt",
+    }
+
+    asset_paths = {}
+
+    def get_asset(name):
+        """Return the cached path for a named solution asset, downloading it on first use."""
+        if name not in asset_paths:
+            asset_path = cache_dir / assets[name]
+            if not asset_path.exists():
+                safe_download(url=f"{ASSETS_URL}/{asset_path.name}", dir=cache_dir)
+            asset_paths[name] = asset_path
+        return asset_paths[name]
+
+    return get_asset
+
 
 def pytest_addoption(parser):
     """Add custom command-line options to pytest."""
@@ -55,5 +98,5 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
 
     # Remove directories
     models = [path for x in {"*.mlpackage", "*_openvino_model"} for path in WEIGHTS_DIR.rglob(x)]
-    for directory in [WEIGHTS_DIR / "path with spaces", *models]:
+    for directory in [WEIGHTS_DIR / "solution_assets", WEIGHTS_DIR / "path with spaces", *models]:
         shutil.rmtree(directory, ignore_errors=True)

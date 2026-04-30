@@ -5,9 +5,9 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 
 # Reference for `ultralytics/data/utils.py`
 
-!!! note
+!!! success "Improvements"
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/data/utils.py) 🛠️. Thank you 🙏!
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
 
 <br>
 
@@ -16,6 +16,10 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 <br><br><hr><br>
 
 ## ::: ultralytics.data.utils.img2label_paths
+
+<br><br><hr><br>
+
+## ::: ultralytics.data.utils.check_file_speeds
 
 <br><br><hr><br>
 
@@ -55,6 +59,10 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 
 <br><br><hr><br>
 
+## ::: ultralytics.data.utils.convert_ndjson_to_yolo_if_needed
+
+<br><br><hr><br>
+
 ## ::: ultralytics.data.utils.check_det_dataset
 
 <br><br><hr><br>
@@ -64,10 +72,6 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 <br><br><hr><br>
 
 ## ::: ultralytics.data.utils.compress_one_image
-
-<br><br><hr><br>
-
-## ::: ultralytics.data.utils.autosplit
 
 <br><br><hr><br>
 

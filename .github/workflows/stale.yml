@@ -13,7 +13,7 @@ jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v9
+      - uses: actions/stale@v10
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -23,7 +23,7 @@ jobs:
             For additional resources and information, please see the links below:
 
             - **Docs**: https://docs.ultralytics.com
-            - **HUB**: https://hub.ultralytics.com
+            - **Platform**: https://platform.ultralytics.com/ultralytics/yolo26
             - **Community**: https://community.ultralytics.com
 
             Feel free to inform us of any other **issues** you discover or **feature requests** that come to mind in the future. Pull Requests (PRs) are also always welcomed!
@@ -38,14 +38,18 @@ jobs:
             For additional resources and information, please see the links below:
 
             - **Docs**: https://docs.ultralytics.com
-            - **HUB**: https://hub.ultralytics.com
+            - **Platform**: https://platform.ultralytics.com/ultralytics/yolo26
             - **Community**: https://community.ultralytics.com
 
             Thank you for your contributions to YOLO 🚀 and Vision AI ⭐
 
+          ignore-pr-updates: true
+          remove-pr-stale-when-updated: false
+          exempt-all-assignees: true
           days-before-issue-stale: 30
           days-before-issue-close: 10
           days-before-pr-stale: 90
           days-before-pr-close: 30
           exempt-issue-labels: "documentation,tutorial,TODO"
+          exempt-pr-labels: "TODO"
           operations-per-run: 300 # The maximum number of operations per run, used to control rate limiting.

@@ -6,7 +6,7 @@ keywords: ImageWoof dataset, ImageNet subset, dog breeds, image classification, 
 
 # ImageWoof Dataset
 
-The [ImageWoof](https://github.com/fastai/imagenette) dataset is a subset of the ImageNet consisting of 10 classes that are challenging to classify, since they're all dog breeds. It was created as a more difficult task for [image classification](https://www.ultralytics.com/glossary/image-classification) algorithms to solve, aiming at encouraging development of more advanced models.
+The [ImageWoof](https://github.com/fastai/imagenette) dataset is a subset of the [ImageNet](imagenet.md) consisting of 10 classes that are challenging to classify, since they're all dog breeds. It was created as a more difficult task for [image classification](https://www.ultralytics.com/glossary/image-classification) algorithms to solve, aiming at encouraging development of more advanced models.
 
 ## Key Features
 
@@ -16,11 +16,16 @@ The [ImageWoof](https://github.com/fastai/imagenette) dataset is a subset of the
 
 ## Dataset Structure
 
-The ImageWoof dataset structure is based on the dog breed classes, with each breed having its own directory of images.
+The ImageWoof dataset structure is based on the dog breed classes, with each breed having its own directory of images. Similar to other classification datasets, it follows a split-directory format with separate folders for training and validation sets.
 
 ## Applications
 
-The ImageWoof dataset is widely used for training and evaluating deep learning models in image classification tasks, especially when it comes to more complex and similar classes. The dataset's challenge lies in the subtle differences between the dog breeds, pushing the limits of model's performance and generalization.
+The ImageWoof dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in image classification tasks, especially when it comes to more complex and similar classes. The dataset's challenge lies in the subtle differences between the dog breeds, pushing the limits of model performance and generalization. It's particularly valuable for:
+
+- Benchmarking classification model performance on fine-grained categories
+- Testing model robustness against similar-looking classes
+- Developing algorithms that can distinguish subtle visual differences
+- Evaluating transfer learning capabilities from general to specific domains
 
 ## Usage
 
@@ -34,7 +39,7 @@ To train a CNN model on the ImageWoof dataset for 100 [epochs](https://www.ultra
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="imagewoof", epochs=100, imgsz=224)
@@ -44,7 +49,7 @@ To train a CNN model on the ImageWoof dataset for 100 [epochs](https://www.ultra
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=imagewoof model=yolo11n-cls.pt epochs=100 imgsz=224
+        yolo classify train data=imagewoof model=yolo26n-cls.pt epochs=100 imgsz=224
         ```
 
 ## Dataset Variants
@@ -67,7 +72,7 @@ To use these variants in your training, simply replace 'imagewoof' in the datase
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-cls.pt")  # load a pretrained model (recommended for training)
 
         # For medium-sized dataset
         model.train(data="imagewoof320", epochs=100, imgsz=224)
@@ -79,8 +84,8 @@ To use these variants in your training, simply replace 'imagewoof' in the datase
     === "CLI"
 
         ```bash
-        # Load a pretrained model and train on the small-sized dataset
-        yolo classify train model=yolo11n-cls.pt data=imagewoof320 epochs=100 imgsz=224
+        # Load a pretrained model and train on the medium-sized dataset
+        yolo classify train model=yolo26n-cls.pt data=imagewoof320 epochs=100 imgsz=224
         ```
 
 It's important to note that using smaller images will likely yield lower performance in terms of classification accuracy. However, it's an excellent way to iterate quickly in the early stages of model development and prototyping.
@@ -89,7 +94,7 @@ It's important to note that using smaller images will likely yield lower perform
 
 The ImageWoof dataset contains colorful images of various dog breeds, providing a challenging dataset for image classification tasks. Here are some examples of images from the dataset:
 
-![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/imagewoof-dataset-sample.avif)
+![ImageWoof dog breed classification dataset samples](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/imagewoof-dataset-sample.avif)
 
 The example showcases the subtle differences and similarities among the different dog breeds in the ImageWoof dataset, highlighting the complexity and difficulty of the classification task.
 
@@ -97,7 +102,7 @@ The example showcases the subtle differences and similarities among the differen
 
 If you use the ImageWoof dataset in your research or development work, please make sure to acknowledge the creators of the dataset by linking to the [official dataset repository](https://github.com/fastai/imagenette).
 
-We would like to acknowledge the FastAI team for creating and maintaining the ImageWoof dataset as a valuable resource for the [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) research community. For more information about the ImageWoof dataset, visit the [ImageWoof dataset repository](https://github.com/fastai/imagenette).
+We would like to acknowledge the [FastAI](https://www.fast.ai/) team for creating and maintaining the ImageWoof dataset as a valuable resource for the [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) research community. For more information about the ImageWoof dataset, visit the [ImageWoof dataset repository](https://github.com/fastai/imagenette).
 
 ## FAQ
 
@@ -116,7 +121,7 @@ To train a [Convolutional Neural Network](https://www.ultralytics.com/glossary/c
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolo11n-cls.pt")  # Load a pretrained model
+        model = YOLO("yolo26n-cls.pt")  # Load a pretrained model
         results = model.train(data="imagewoof", epochs=100, imgsz=224)
         ```
 
@@ -124,7 +129,7 @@ To train a [Convolutional Neural Network](https://www.ultralytics.com/glossary/c
     === "CLI"
 
         ```bash
-        yolo classify train data=imagewoof model=yolo11n-cls.pt epochs=100 imgsz=224
+        yolo classify train data=imagewoof model=yolo26n-cls.pt epochs=100 imgsz=224
         ```
 
 For more details on available training arguments, refer to the [Training](../../modes/train.md) page.

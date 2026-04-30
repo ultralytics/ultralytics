@@ -1,0 +1,346 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Tsinghua-Tencent 100K (TT100K) dataset https://cg.cs.tsinghua.edu.cn/traffic-sign/ by Tsinghua University
+# Documentation: https://cg.cs.tsinghua.edu.cn/traffic-sign/tutorial.html
+# Paper: Traffic-Sign Detection and Classification in the Wild (CVPR 2016)
+# License: CC BY-NC 2.0 license for non-commercial use only
+# Example usage: yolo train data=TT100K.yaml
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── TT100K ← downloads here (~18 GB)
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: TT100K # dataset root dir
+train: images/train # train images (relative to 'path') 6105 images
+val: images/val # val images (relative to 'path') 7641 images (original 'other' split)
+test: images/test # test images (relative to 'path') 3071 images
+
+# Classes (221 traffic sign categories, 45 with sufficient training instances)
+names:
+  0: pl5
+  1: pl10
+  2: pl15
+  3: pl20
+  4: pl25
+  5: pl30
+  6: pl40
+  7: pl50
+  8: pl60
+  9: pl70
+  10: pl80
+  11: pl90
+  12: pl100
+  13: pl110
+  14: pl120
+  15: pm5
+  16: pm10
+  17: pm13
+  18: pm15
+  19: pm20
+  20: pm25
+  21: pm30
+  22: pm35
+  23: pm40
+  24: pm46
+  25: pm50
+  26: pm55
+  27: pm8
+  28: pn
+  29: pne
+  30: ph4
+  31: ph4.5
+  32: ph5
+  33: ps
+  34: pg
+  35: ph1.5
+  36: ph2
+  37: ph2.1
+  38: ph2.2
+  39: ph2.4
+  40: ph2.5
+  41: ph2.8
+  42: ph2.9
+  43: ph3
+  44: ph3.2
+  45: ph3.5
+  46: ph3.8
+  47: ph4.2
+  48: ph4.3
+  49: ph4.8
+  50: ph5.3
+  51: ph5.5
+  52: pb
+  53: pr10
+  54: pr100
+  55: pr20
+  56: pr30
+  57: pr40
+  58: pr45
+  59: pr50
+  60: pr60
+  61: pr70
+  62: pr80
+  63: pr90
+  64: p1
+  65: p2
+  66: p3
+  67: p4
+  68: p5
+  69: p6
+  70: p7
+  71: p8
+  72: p9
+  73: p10
+  74: p11
+  75: p12
+  76: p13
+  77: p14
+  78: p15
+  79: p16
+  80: p17
+  81: p18
+  82: p19
+  83: p20
+  84: p21
+  85: p22
+  86: p23
+  87: p24
+  88: p25
+  89: p26
+  90: p27
+  91: p28
+  92: pa8
+  93: pa10
+  94: pa12
+  95: pa13
+  96: pa14
+  97: pb5
+  98: pc
+  99: pg
+  100: ph1
+  101: ph1.3
+  102: ph1.5
+  103: ph2
+  104: ph3
+  105: ph4
+  106: ph5
+  107: pi
+  108: pl0
+  109: pl4
+  110: pl5
+  111: pl8
+  112: pl10
+  113: pl15
+  114: pl20
+  115: pl25
+  116: pl30
+  117: pl35
+  118: pl40
+  119: pl50
+  120: pl60
+  121: pl65
+  122: pl70
+  123: pl80
+  124: pl90
+  125: pl100
+  126: pl110
+  127: pl120
+  128: pm2
+  129: pm8
+  130: pm10
+  131: pm13
+  132: pm15
+  133: pm20
+  134: pm25
+  135: pm30
+  136: pm35
+  137: pm40
+  138: pm46
+  139: pm50
+  140: pm55
+  141: pn
+  142: pne
+  143: po
+  144: pr10
+  145: pr100
+  146: pr20
+  147: pr30
+  148: pr40
+  149: pr45
+  150: pr50
+  151: pr60
+  152: pr70
+  153: pr80
+  154: ps
+  155: w1
+  156: w2
+  157: w3
+  158: w5
+  159: w8
+  160: w10
+  161: w12
+  162: w13
+  163: w16
+  164: w18
+  165: w20
+  166: w21
+  167: w22
+  168: w24
+  169: w28
+  170: w30
+  171: w31
+  172: w32
+  173: w34
+  174: w35
+  175: w37
+  176: w38
+  177: w41
+  178: w42
+  179: w43
+  180: w44
+  181: w45
+  182: w46
+  183: w47
+  184: w48
+  185: w49
+  186: w50
+  187: w51
+  188: w52
+  189: w53
+  190: w54
+  191: w55
+  192: w56
+  193: w57
+  194: w58
+  195: w59
+  196: w60
+  197: w62
+  198: w63
+  199: w66
+  200: i1
+  201: i2
+  202: i3
+  203: i4
+  204: i5
+  205: i6
+  206: i7
+  207: i8
+  208: i9
+  209: i10
+  210: i11
+  211: i12
+  212: i13
+  213: i14
+  214: i15
+  215: il60
+  216: il80
+  217: il100
+  218: il110
+  219: io
+  220: ip
+
+# Download script/URL (optional) ---------------------------------------------------------------------------------------
+download: |
+  import json
+  import shutil
+  from pathlib import Path
+
+  from PIL import Image
+
+  from ultralytics.utils import TQDM
+  from ultralytics.utils.downloads import download
+
+
+  def tt100k2yolo(dir):
+      """Convert TT100K annotations to YOLO format with images/{split} and labels/{split} structure."""
+      data_dir = dir / "data"
+      anno_file = data_dir / "annotations.json"
+
+      print("Loading annotations...")
+      with open(anno_file, encoding="utf-8") as f:
+          data = json.load(f)
+
+      # Build class name to index mapping from yaml
+      names = yaml["names"]
+      class_to_idx = {v: k for k, v in names.items()}
+
+      # Create directories
+      for split in ["train", "val", "test"]:
+          (dir / "images" / split).mkdir(parents=True, exist_ok=True)
+          (dir / "labels" / split).mkdir(parents=True, exist_ok=True)
+
+      print("Converting annotations to YOLO format...")
+      skipped = 0
+      for img_id, img_data in TQDM(data["imgs"].items(), desc="Processing"):
+          img_path_str = img_data["path"]
+          if "train" in img_path_str:
+              split = "train"
+          elif "test" in img_path_str:
+              split = "test"
+          else:
+              split = "val"
+
+          # Source and destination paths
+          src_img = data_dir / img_path_str
+          if not src_img.exists():
+              continue
+
+          dst_img = dir / "images" / split / src_img.name
+
+          # Get image dimensions
+          try:
+              with Image.open(src_img) as img:
+                  img_width, img_height = img.size
+          except Exception as e:
+              print(f"Error reading {src_img}: {e}")
+              continue
+
+          # Copy image to destination
+          shutil.copy2(src_img, dst_img)
+
+          # Convert annotations
+          label_file = dir / "labels" / split / f"{src_img.stem}.txt"
+          lines = []
+
+          for obj in img_data.get("objects", []):
+              category = obj["category"]
+              if category not in class_to_idx:
+                  skipped += 1
+                  continue
+
+              bbox = obj["bbox"]
+              xmin, ymin = bbox["xmin"], bbox["ymin"]
+              xmax, ymax = bbox["xmax"], bbox["ymax"]
+
+              # Convert to YOLO format (normalized center coordinates and dimensions)
+              x_center = ((xmin + xmax) / 2.0) / img_width
+              y_center = ((ymin + ymax) / 2.0) / img_height
+              width = (xmax - xmin) / img_width
+              height = (ymax - ymin) / img_height
+
+              # Clip to valid range
+              x_center = max(0, min(1, x_center))
+              y_center = max(0, min(1, y_center))
+              width = max(0, min(1, width))
+              height = max(0, min(1, height))
+
+              cls_idx = class_to_idx[category]
+              lines.append(f"{cls_idx} {x_center:.6f} {y_center:.6f} {width:.6f} {height:.6f}\n")
+
+          # Write label file
+          if lines:
+              label_file.write_text("".join(lines), encoding="utf-8")
+
+      if skipped:
+          print(f"Skipped {skipped} annotations with unknown categories")
+      print("Conversion complete!")
+
+
+  # Download
+  dir = Path(yaml["path"])  # dataset root dir
+  urls = ["https://cg.cs.tsinghua.edu.cn/traffic-sign/data_model_code/data.zip"]
+  download(urls, dir=dir, curl=True, threads=1)
+
+  # Convert
+  tt100k2yolo(dir)

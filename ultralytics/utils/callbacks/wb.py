@@ -16,31 +16,36 @@ except (ImportError, AssertionError):
 
 
 def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall", y_title="Precision"):
-    """
-    Create and log a custom metric visualization to wandb.plot.pr_curve.
+    """Create and log a custom metric visualization table.
 
     This function crafts a custom metric visualization that mimics the behavior of the default wandb precision-recall
     curve while allowing for enhanced customization. The visual metric is useful for monitoring model performance across
     different classes.
 
     Args:
-        x (List): Values for the x-axis; expected to have length N.
-        y (List): Corresponding values for the y-axis; also expected to have length N.
-        classes (List): Labels identifying the class of each point; length N.
-        title (str, optional): Title for the plot; defaults to 'Precision Recall Curve'.
-        x_title (str, optional): Label for the x-axis; defaults to 'Recall'.
-        y_title (str, optional): Label for the y-axis; defaults to 'Precision'.
+        x (list): Values for the x-axis; expected to have length N.
+        y (list): Corresponding values for the y-axis; also expected to have length N.
+        classes (list): Labels identifying the class of each point; length N.
+        title (str, optional): Title for the plot.
+        x_title (str, optional): Label for the x-axis.
+        y_title (str, optional): Label for the y-axis.
 
     Returns:
         (wandb.Object): A wandb object suitable for logging, showcasing the crafted metric visualization.
     """
-    import pandas  # scope for faster 'import ultralytics'
+    import polars as pl  # scope for faster 'import ultralytics'
+    import polars.selectors as cs
 
-    df = pandas.DataFrame({"class": classes, "y": y, "x": x}).round(3)
+    df = pl.DataFrame({"class": classes, "y": y, "x": x}).with_columns(cs.numeric().round(3))
+    data = df.select(["class", "y", "x"]).rows()
+
     fields = {"x": "x", "y": "y", "class": "class"}
     string_fields = {"title": title, "x-axis-title": x_title, "y-axis-title": y_title}
     return wb.plot_table(
-        "wandb/area-under-curve/v0", wb.Table(dataframe=df), fields=fields, string_fields=string_fields
+        "wandb/area-under-curve/v0",
+        wb.Table(data=data, columns=["class", "y", "x"]),
+        fields=fields,
+        string_fields=string_fields,
     )
 
 
@@ -55,24 +60,23 @@ def _plot_curve(
     num_x=100,
     only_mean=False,
 ):
-    """
-    Log a metric curve visualization.
+    """Log a metric curve visualization.
 
-    This function generates a metric curve based on input data and logs the visualization to wandb.
-    The curve can represent aggregated data (mean) or individual class data, depending on the 'only_mean' flag.
+    This function generates a metric curve based on input data and logs the visualization to wandb. The curve can
+    represent aggregated data (mean) or individual class data, depending on the 'only_mean' flag.
 
     Args:
         x (np.ndarray): Data points for the x-axis with length N.
-        y (np.ndarray): Corresponding data points for the y-axis with shape CxN, where C is the number of classes.
-        names (list, optional): Names of the classes corresponding to the y-axis data; length C. Defaults to [].
-        id (str, optional): Unique identifier for the logged data in wandb. Defaults to 'precision-recall'.
-        title (str, optional): Title for the visualization plot. Defaults to 'Precision Recall Curve'.
-        x_title (str, optional): Label for the x-axis. Defaults to 'Recall'.
-        y_title (str, optional): Label for the y-axis. Defaults to 'Precision'.
-        num_x (int, optional): Number of interpolated data points for visualization. Defaults to 100.
-        only_mean (bool, optional): Flag to indicate if only the mean curve should be plotted. Defaults to True.
+        y (np.ndarray): Corresponding data points for the y-axis with shape (C, N), where C is the number of classes.
+        names (list, optional): Names of the classes corresponding to the y-axis data; length C.
+        id (str, optional): Unique identifier for the logged data in wandb.
+        title (str, optional): Title for the visualization plot.
+        x_title (str, optional): Label for the x-axis.
+        y_title (str, optional): Label for the y-axis.
+        num_x (int, optional): Number of interpolated data points for visualization.
+        only_mean (bool, optional): Flag to indicate if only the mean curve should be plotted.
 
-    Note:
+    Notes:
         The function leverages the '_custom_table' function to generate the actual visualization.
     """
     import numpy as np
@@ -99,7 +103,21 @@ def _plot_curve(
 
 
 def _log_plots(plots, step):
-    """Logs plots from the input dictionary if they haven't been logged already at the specified step."""
+    """Log plots to WandB at a specific step if they haven't been logged already.
+
+    This function checks each plot in the input dictionary against previously processed plots and logs new or updated
+    plots to WandB at the specified step.
+
+    Args:
+        plots (dict): Dictionary of plots to log, where keys are plot names and values are dictionaries containing plot
+            metadata including timestamps.
+        step (int): The step/epoch at which to log the plots in the WandB run.
+
+    Notes:
+        The function uses a shallow copy of the plots dictionary to prevent modification during iteration.
+        Plots are identified by their stem name (filename without extension).
+        Each plot is logged as a WandB Image object.
+    """
     for name, params in plots.copy().items():  # shallow copy to prevent plots dict changing during iteration
         timestamp = params["timestamp"]
         if _processed_plots.get(name) != timestamp:
@@ -108,22 +126,33 @@ def _log_plots(plots, step):
 
 
 def on_pretrain_routine_start(trainer):
-    """Initiate and start project if module is present."""
+    """Initialize and start wandb project if module is present."""
     if not wb.run:
+        from datetime import datetime
+        from pathlib import Path
+
+        name = str(trainer.args.name).replace("/", "-").replace(" ", "_")
+        latest_run = Path(trainer.save_dir) / "wandb" / "latest-run"
+        resuming = trainer.args.resume and latest_run.exists()
         wb.init(
             project=str(trainer.args.project).replace("/", "-") if trainer.args.project else "Ultralytics",
-            name=str(trainer.args.name).replace("/", "-"),
+            name=name,
             config=vars(trainer.args),
+            id=latest_run.resolve().name.split("-", 2)[2]
+            if resuming
+            else f"{name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            resume="allow" if resuming else None,
+            dir=str(trainer.save_dir),
         )
 
 
 def on_fit_epoch_end(trainer):
-    """Logs training metrics and model information at the end of an epoch."""
-    wb.run.log(trainer.metrics, step=trainer.epoch + 1)
+    """Log training metrics and model information at the end of an epoch."""
     _log_plots(trainer.plots, step=trainer.epoch + 1)
     _log_plots(trainer.validator.plots, step=trainer.epoch + 1)
     if trainer.epoch == 0:
         wb.run.log(model_info_for_loggers(trainer), step=trainer.epoch + 1)
+    wb.run.log(trainer.metrics, step=trainer.epoch + 1, commit=True)  # commit forces sync
 
 
 def on_train_epoch_end(trainer):
@@ -135,7 +164,7 @@ def on_train_epoch_end(trainer):
 
 
 def on_train_end(trainer):
-    """Save the best model as an artifact at end of training."""
+    """Save the best model as an artifact and log final plots at the end of training."""
     _log_plots(trainer.validator.plots, step=trainer.epoch + 1)
     _log_plots(trainer.plots, step=trainer.epoch + 1)
     art = wb.Artifact(type="model", name=f"run_{wb.run.id}_model")

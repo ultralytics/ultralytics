@@ -1,6 +1,32 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+"""
+Module for YOLO model metadata.
 
+This module stores detailed metadata for various YOLO models including authors, organizations,
+publication dates, arXiv links, GitHub repositories, documentation URLs, and performance metrics.
+When executed as a script, it serializes this metadata to a JSON file named "model_data.json".
+
+Examples:
+    >>> python model_metadata.py
+"""
+
+# Dictionary containing metadata for various models
 data = {
+    "YOLO26": {
+        "author": "Glenn Jocher and Jing Qiu",
+        "org": "Ultralytics",
+        "date": "2026-01-14",
+        "arxiv": None,
+        "github": "https://github.com/ultralytics/ultralytics",
+        "docs": "https://docs.ultralytics.com/models/yolo26/",
+        "performance": {
+            "n": {"size": 640, "map": 40.9, "cpu": "", "t4": 1.7, "params": 2.4, "flops": 5.4},
+            "s": {"size": 640, "map": 48.6, "cpu": "", "t4": 2.5, "params": 9.5, "flops": 20.7},
+            "m": {"size": 640, "map": 53.1, "cpu": "", "t4": 4.7, "params": 20.4, "flops": 68.2},
+            "l": {"size": 640, "map": 55.0, "cpu": "", "t4": 6.2, "params": 24.8, "flops": 86.4},
+            "x": {"size": 640, "map": 57.5, "cpu": "", "t4": 11.8, "params": 55.7, "flops": 193.9},
+        },
+    },
     "YOLO12": {
         "author": "Yunjie Tian, Qixiang Ye, and David Doermann",
         "org": "University at Buffalo and University of Chinese Academy of Sciences",
@@ -196,7 +222,7 @@ data = {
         },
     },
     "Gold-YOLO": {
-        "author": "Mingxing Tan, Ruoming Pang, and Quoc V. Le",
+        "author": "Cheng Wang, Wei He, Ying Nie, Jianyuan Guo, Chuanjian Liu, Yunhe Wang, and Kai Han",
         "org": "Huawei Noah's Ark Lab",
         "date": "2023-09-20",
         "arxiv": "https://arxiv.org/abs/2309.11331",
@@ -257,9 +283,9 @@ data = {
         "author": "Shay Aharon, Louis-Dupont, Ofri Masad, Kate Yurkova, Lotem Fridman, Lkdci, Eugene Khvedchenya, Ran Rubin, Natan Bagrov, Borys Tymchenko, Tomer Keren, Alexander Zhilko, and Eran-Deci",
         "org": "Deci AI (acquired by NVIDIA)",
         "date": "2023-05-03",
-        "Arxiv": None,
+        "arxiv": None,
         "github": "https://github.com/Deci-AI/super-gradients/blob/master/YOLONAS.md",
-        "Documentation": "https://docs.ultralytics.com/models/yolo-nas/",
+        "docs": "https://docs.ultralytics.com/models/yolo-nas/",
         "performance": {
             "s": {"size": 640, "map": 47.5, "cpu": "", "t4": 3.09, "params": 12.2, "flops": 32.8},
             "m": {"size": 640, "map": 51.6, "cpu": "", "t4": 6.07, "params": 31.9, "flops": 88.9},
@@ -270,9 +296,9 @@ data = {
         "author": "Zhi Tian, Chunhua Shen, Hao Chen, and Tong He",
         "org": "The University of Adelaide",
         "date": "2019-04-02",
-        "Arxiv": "https://arxiv.org/abs/1904.01355",
+        "arxiv": "https://arxiv.org/abs/1904.01355",
         "github": "https://github.com/tianzhi0549/FCOS/",
-        "Documentation": "https://github.com/tianzhi0549/FCOS/?tab=readme-ov-file#installation",
+        "docs": "https://github.com/tianzhi0549/FCOS/?tab=readme-ov-file#installation",
         "performance": {
             "R50": {"size": 800, "map": 36.6, "cpu": "", "t4": 15.18, "params": 32.3, "flops": 250.9},
             "R101": {"size": 800, "map": 39.1, "cpu": "", "t4": 18.91, "params": 51.28, "flops": 346.1},
@@ -282,9 +308,9 @@ data = {
         "author": "Wei Liu, Dragomir Anguelov, Dumitru Erhan, Christian Szegedy, Scott Reed, Cheng-Yang Fu, and Alexander C. Berg",
         "org": "University of North Carolina at Chapel Hill",
         "date": "2015-12-08",
-        "Arxiv": "https://arxiv.org/abs/1512.02325",
+        "arxiv": "https://arxiv.org/abs/1512.02325",
         "github": "https://github.com/weiliu89/caffe/tree/ssd",
-        "Documentation": "https://github.com/weiliu89/caffe/tree/ssd?tab=readme-ov-file#installation",
+        "docs": "https://github.com/weiliu89/caffe/tree/ssd?tab=readme-ov-file#installation",
         "performance": {
             "300": {"size": 300, "map": 25.5, "cpu": "", "t4": 3.97, "params": 34.3, "flops": 68.7},
             "512": {"size": 512, "map": 29.5, "cpu": "", "t4": 8.96, "params": 36.0, "flops": 197.3},
@@ -324,5 +350,6 @@ data = {
 if __name__ == "__main__":
     import json
 
+    # Save the YOLO model metadata to "model_data.json"
     with open("model_data.json", "w") as f:
         json.dump(data, f)

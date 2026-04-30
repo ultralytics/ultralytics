@@ -1,4 +1,5 @@
 #![allow(clippy::type_complexity)]
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 use ab_glyph::FontArc;
 use anyhow::Result;
@@ -513,7 +514,7 @@ impl YOLOv8 {
                     let mask_nd: ImageBuffer<image::Luma<_>, Vec<u8>> =
                         match ImageBuffer::from_vec(img.width(), img.height(), mask.to_vec()) {
                             Some(image) => image,
-                            None => panic!("can not crate image from ndarray"),
+                            None => panic!("can not create image from ndarray"),
                         };
 
                     for _x in 0..img.width() {

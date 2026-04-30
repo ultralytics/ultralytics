@@ -4,6 +4,8 @@ description: Learn how to load YOLOv5 from PyTorch Hub for seamless model infere
 keywords: YOLOv5, PyTorch Hub, model loading, Ultralytics, object detection, machine learning, AI, tutorial, inference
 ---
 
+# Loading YOLOv5 from PyTorch Hub
+
 📚 This guide explains how to load YOLOv5 🚀 from [PyTorch](https://www.ultralytics.com/glossary/pytorch) Hub at [https://pytorch.org/hub/ultralytics_yolov5](https://pytorch.org/hub/ultralytics_yolov5/).
 
 ## Before You Start
@@ -76,8 +78,8 @@ results.pandas().xyxy[0]  # im1 predictions (pandas)
 # 3  986.00  304.00  1028.0  420.0    0.286865     27     tie
 ```
 
-<img src="https://github.com/ultralytics/docs/releases/download/0/yolo-inference-results-zidane.avif" width="500" alt="YOLO inference results on zidane.jpg">
-<img src="https://github.com/ultralytics/docs/releases/download/0/yolo-inference-results-on-bus.avif" width="300" alt="YOLO inference results on bus.jpg">
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-inference-results-zidane.avif" width="500" alt="YOLO inference results on zidane.jpg">
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-inference-results-on-bus.avif" width="300" alt="YOLO inference results on bus.jpg">
 
 For all inference options see YOLOv5 `AutoShape()` forward [method](https://github.com/ultralytics/yolov5/blob/30e4c4f09297b67afedf8b2bcd851833ddc9dead/models/common.py#L243-L252).
 
@@ -87,12 +89,12 @@ YOLOv5 models contain various inference attributes such as **confidence threshol
 
 ```python
 model.conf = 0.25  # NMS confidence threshold
-iou = 0.45  # NMS IoU threshold
-agnostic = False  # NMS class-agnostic
-multi_label = False  # NMS multiple labels per box
-classes = None  # (optional list) filter by class, i.e. = [0, 15, 16] for COCO persons, cats and dogs
-max_det = 1000  # maximum number of detections per image
-amp = False  # Automatic Mixed Precision (AMP) inference
+model.iou = 0.45  # NMS IoU threshold
+model.agnostic = False  # NMS class-agnostic
+model.multi_label = False  # NMS multiple labels per box
+model.classes = None  # (optional list) filter by class, i.e. = [0, 15, 16] for COCO persons, cats and dogs
+model.max_det = 1000  # maximum number of detections per image
+model.amp = False  # Automatic Mixed Precision (AMP) inference
 
 results = model(im, size=320)  # custom inference size
 ```
@@ -145,7 +147,7 @@ In this case the model will be composed of pretrained weights **except for** the
 
 ### Force Reload
 
-If you run into problems with the above steps, setting `force_reload=True` may help by discarding the existing cache and force a fresh download of the latest YOLOv5 version from PyTorch Hub.
+If you run into problems with the above steps, setting `force_reload=True` may help by discarding the existing cache and force a fresh download of the latest YOLOv5 version from PyTorch Hub. Cached copies live in `~/.cache/torch/hub`; deleting that folder achieves the same effect.
 
 ```python
 model = torch.hub.load("ultralytics/yolov5", "yolov5s", force_reload=True)  # force reload
@@ -207,9 +209,14 @@ model = torch.hub.load("ultralytics/yolov5", "yolov5s", autoshape=False, pretrai
 
 ### Base64 Results
 
-For use with API services. See https://github.com/ultralytics/yolov5/pull/2291 and [Flask REST API](https://github.com/ultralytics/yolov5/tree/master/utils/flask_rest_api) example for details.
+For use with API services. See [Flask REST API](https://github.com/ultralytics/yolov5/tree/master/utils/flask_rest_api) example for details.
 
 ```python
+import base64
+from io import BytesIO
+
+from PIL import Image
+
 results = model(im)  # inference
 
 results.ims  # array of original images (as np array) passed to model for inference
@@ -260,15 +267,6 @@ Results can be sorted by column, i.e. to sort license plate digit detection left
 ```python
 results = model(im)  # inference
 results.pandas().xyxy[0].sort_values("xmin")  # sorted left-right
-```
-
-### Box-Cropped Results
-
-Results can be returned and saved as detection crops:
-
-```python
-results = model(im)  # inference
-crops = results.crop(save=True)  # cropped detections dictionary
 ```
 
 ### JSON Results
@@ -339,7 +337,7 @@ model = torch.hub.load("path/to/yolov5", "custom", path="path/to/best.pt", sourc
 
 ## TensorRT, ONNX and OpenVINO Models
 
-PyTorch Hub supports inference on most YOLOv5 export formats, including custom trained models. See [TFLite, ONNX, CoreML, TensorRT Export tutorial](./model_export.md) for details on exporting models.
+PyTorch Hub supports inference on most YOLOv5 export formats, including custom-trained models. See [TFLite, ONNX, CoreML, TensorRT Export tutorial](./model_export.md) for details on exporting models.
 
 💡 ProTip: **TensorRT** may be up to 2-5X faster than PyTorch on [**GPU benchmarks**](https://github.com/ultralytics/yolov5/pull/6963)
 💡 ProTip: **ONNX** and **OpenVINO** may be up to 2-3X faster than PyTorch on [**CPU benchmarks**](https://github.com/ultralytics/yolov5/pull/6613)
@@ -359,7 +357,7 @@ model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s_paddle_mode
 
 ## Supported Environments
 
-Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda-zone), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google_cloud_quickstart_tutorial.md)

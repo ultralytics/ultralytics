@@ -197,12 +197,12 @@ See [Projects](train/projects.md) for organizing models in your project.
 
 Official `@ultralytics` content is pinned to the top of the Explore page. This includes:
 
-| Project                           | Description                 | Models                       | Tasks                                |
-| --------------------------------- | --------------------------- | ---------------------------- | ------------------------------------ |
-| **[YOLO26](../models/yolo26.md)** | Latest January 2026 release | 25 models (all sizes, tasks) | detect, segment, pose, OBB, classify |
-| **[YOLO11](../models/yolo11.md)** | Current stable release      | 10+ models                   | detect, segment, pose, OBB, classify |
-| **YOLOv8**                        | Previous generation         | Various                      | detect, segment, pose, classify      |
-| **YOLOv5**                        | Legacy, widely adopted      | Various                      | detect, segment, classify            |
+| Project                           | Description                 | Models                         | Tasks                                |
+| --------------------------------- | --------------------------- | ------------------------------ | ------------------------------------ |
+| **[YOLO26](../models/yolo26.md)** | Latest January 2026 release | 25 models (5 sizes × 5 tasks)  | detect, segment, pose, OBB, classify |
+| **[YOLO11](../models/yolo11.md)** | Current stable release      | 25 models (5 sizes × 5 tasks)  | detect, segment, pose, OBB, classify |
+| **YOLOv8**                        | Previous generation         | 20+ models (5 sizes × 4 tasks) | detect, segment, pose, classify      |
+| **YOLOv5**                        | Legacy, widely adopted      | 15+ models                     | detect, segment, classify            |
 
 Official datasets include benchmark datasets like [coco8](../datasets/detect/coco8.md) (8-image COCO subset), [VOC](../datasets/detect/voc.md), [african-wildlife](../datasets/detect/african-wildlife.md), [dota8](../datasets/obb/dota8.md), and other commonly used computer vision datasets.
 

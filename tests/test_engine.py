@@ -11,6 +11,7 @@ from tests import MODEL, SOURCE, TASK_MODEL_DATA
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
+from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models.yolo import classify, detect, obb, pose, segment
 from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
@@ -25,7 +26,7 @@ def test_export():
     """Test model exporting functionality by adding a callback and verifying its execution."""
     exporter = Exporter()
     exporter.add_callback("on_export_start", test_func)
-    assert test_func in exporter.callbacks["on_export_start"], "callback test failed"
+    assert test_func in exporter.callbacks["on_export_start"], "on_export_start callback not registered"
     f = exporter(model=YOLO("yolo26n.yaml").model)
     YOLO(f)(SOURCE)  # exported model inference
 
@@ -76,7 +77,7 @@ def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
     # Trainer
     trainer = trainer_cls(overrides=overrides)
     trainer.add_callback("on_train_start", test_func)
-    assert test_func in trainer.callbacks["on_train_start"], "callback test failed"
+    assert test_func in trainer.callbacks["on_train_start"], "on_train_start callback not registered"
     trainer.train()
 
     # Validator
@@ -85,13 +86,13 @@ def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
     cfg.imgsz = 32
     val = validator_cls(args=cfg)
     val.add_callback("on_val_start", test_func)
-    assert test_func in val.callbacks["on_val_start"], "callback test failed"
+    assert test_func in val.callbacks["on_val_start"], "on_val_start callback not registered"
     val(model=trainer.best)
 
     # Predictor
     pred = predictor_cls(overrides={"imgsz": [64, 64]})
     pred.add_callback("on_predict_start", test_func)
-    assert test_func in pred.callbacks["on_predict_start"], "callback test failed"
+    assert test_func in pred.callbacks["on_predict_start"], "on_predict_start callback not registered"
 
     # Determine model path for prediction
     model_path = weights if weights else trainer.best
@@ -99,10 +100,10 @@ def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
         # Confirm there is no issue with sys.argv being empty
         with mock.patch.object(sys, "argv", []):
             result = pred(source=ASSETS, model=model_path)
-            assert len(result), "predictor test failed"
+            assert len(result) > 0, f"Predictor returned no results for {model}"
     else:
         result = pred(source=ASSETS, model=model_path)
-        assert len(result), "predictor test failed"
+        assert len(result) > 0, f"Predictor returned no results for {model}"
 
     # Test resume functionality
     with pytest.raises(AssertionError):
@@ -162,12 +163,17 @@ def test_nan_recovery():
     assert nan_injected[0], "NaN injection failed"
 
 
-def test_train_reuses_loaded_checkpoint_model(monkeypatch):
-    """Test training reuses an already-loaded checkpoint model instead of re-parsing the model source."""
+@pytest.mark.parametrize(
+    "kwargs,uses_weights",
+    [({}, True), ({"pretrained": True}, True), ({"pretrained": False}, False), ({"pretrained": MODEL}, True)],
+)
+def test_train_reuses_loaded_checkpoint_model(monkeypatch, kwargs, uses_weights):
+    """Test training reuses loaded checkpoint config while respecting the pretrained argument."""
     model = YOLO("yolo26n.yaml")
     model.ckpt = {"checkpoint": True}
     model.ckpt_path = "/tmp/fake.pt"
     model.overrides["model"] = "ul://glenn-jocher/m2/exp-14"
+    model.overrides["pretrained"] = False
     original_model = model.model
     captured = {}
 
@@ -196,8 +202,34 @@ def test_train_reuses_loaded_checkpoint_model(monkeypatch):
         lambda path: (original_model, {"checkpoint": True}),
     )
 
-    model.train(data="coco8.yaml", epochs=1)
+    model.train(data="coco8.yaml", epochs=1, **kwargs)
 
-    assert captured["trainer"].model is original_model
-    assert captured["cfg"] == original_model.yaml
-    assert captured["weights"] is original_model
+    assert captured["trainer"].model is original_model, "Trainer model does not match original"
+    assert captured["cfg"] == original_model.yaml, f"Config mismatch: {captured['cfg']} != {original_model.yaml}"
+    assert captured["weights"] is (original_model if uses_weights else None), "Unexpected weights loaded"
+
+
+@pytest.mark.parametrize("pretrained,uses_weights", [(True, True), (False, False), (MODEL, True)])
+def test_setup_model_respects_pretrained_arg_for_pt_models(monkeypatch, pretrained, uses_weights):
+    """Test .pt models use checkpoint config while respecting the pretrained argument."""
+    captured = {}
+    checkpoint_model = SimpleNamespace(yaml={"nc": 80})
+    trainer = object.__new__(BaseTrainer)
+    trainer.model = "yolo26n.pt"
+    trainer.args = SimpleNamespace(pretrained=pretrained)
+    trainer.resume = False
+
+    def fake_get_model(cfg=None, weights=None, verbose=True):
+        captured["cfg"] = cfg
+        captured["weights"] = weights
+        return SimpleNamespace()
+
+    trainer.get_model = fake_get_model
+    monkeypatch.setattr(
+        "ultralytics.engine.trainer.load_checkpoint", lambda path: (checkpoint_model, {"checkpoint": True})
+    )
+
+    trainer.setup_model()
+
+    assert captured["cfg"] == checkpoint_model.yaml, "Checkpoint config was not used"
+    assert captured["weights"] is (checkpoint_model if uses_weights else None), "Unexpected weights loaded"

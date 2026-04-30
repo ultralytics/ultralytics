@@ -21,7 +21,7 @@ class WorldTrainerFromScratch(WorldTrainer):
     Attributes:
         cfg (dict): Configuration dictionary with default parameters for model training.
         overrides (dict): Dictionary of parameter overrides to customize the configuration.
-        _callbacks (list): List of callback functions to be executed during different stages of training.
+        _callbacks (dict): Dictionary of callback functions to be executed during different stages of training.
         data (dict): Final processed data configuration containing train/val paths and metadata.
         training_data (dict): Dictionary mapping training dataset paths to their configurations.
 
@@ -54,7 +54,7 @@ class WorldTrainerFromScratch(WorldTrainer):
         >>> model.train(data=data, trainer=WorldTrainerFromScratch)
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
         """Initialize a WorldTrainerFromScratch object.
 
         This initializes a trainer for YOLO-World models from scratch, supporting mixed datasets including both object
@@ -63,7 +63,7 @@ class WorldTrainerFromScratch(WorldTrainer):
         Args:
             cfg (dict): Configuration dictionary with default parameters for model training.
             overrides (dict, optional): Dictionary of parameter overrides to customize the configuration.
-            _callbacks (list, optional): List of callback functions to be executed during different stages of training.
+            _callbacks (dict, optional): Dictionary of callback functions to run during different stages of training.
         """
         if overrides is None:
             overrides = {}

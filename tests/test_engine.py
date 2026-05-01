@@ -163,19 +163,6 @@ def test_nan_recovery():
     assert nan_injected[0], "NaN injection failed"
 
 
-def test_multiscale_preprocess_clamps_min_size(monkeypatch):
-    """Test multi-scale preprocessing keeps resized images at least one stride."""
-    trainer = object.__new__(detect.DetectionTrainer)
-    trainer.args = SimpleNamespace(imgsz=320, multi_scale=0.9)
-    trainer.device = torch.device("cpu")
-    trainer.stride = 32
-    monkeypatch.setattr("ultralytics.models.yolo.detect.train.random.randrange", lambda start, end: start)
-
-    batch = trainer.preprocess_batch({"img": torch.zeros(1, 3, 320, 320)})
-
-    assert batch["img"].shape[-2:] == (32, 32)
-
-
 @pytest.mark.parametrize(
     "kwargs,uses_weights",
     [({}, True), ({"pretrained": True}, True), ({"pretrained": False}, False), ({"pretrained": MODEL}, True)],

@@ -373,10 +373,13 @@ def convert_single_segment_mask_to_yolo_seg(
     if not isinstance(output_dir, Path):
         output_dir = Path(output_dir)
 
-    if mask_path.suffix in {".png", ".jpg"}:
+    if mask_path.suffix.lower() in {".png", ".jpg"}:
         mask = cv2.imread(
             str(mask_path), cv2.IMREAD_GRAYSCALE
         )  # Read the mask image in grayscale
+        if mask is None:
+            LOGGER.warning(f"Failed to read the mask {mask_path}, skipping file.")
+            return
         img_height, img_width = mask.shape[:2]  # Get image dimensions
 
         unique_values = np.unique(
@@ -461,7 +464,16 @@ def convert_segment_masks_to_yolo_seg(
     """
     if not isinstance(masks_dir, Path):
         masks_dir = Path(masks_dir)
-    img_paths = list(masks_dir.iterdir())
+    if not isinstance(output_dir, Path):
+        output_dir = Path(output_dir)
+    if not output_dir.exists():
+        output_dir.mkdir(exist_ok=True)
+
+    img_paths = [
+        img_path
+        for img_path in masks_dir.iterdir()
+        if img_path.suffix.lower() in {".png", ".jpg"}
+    ]
 
     with Pool(processes=NUM_THREADS) as executor:
         list(

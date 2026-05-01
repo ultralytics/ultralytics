@@ -176,10 +176,10 @@ class Model(torch.nn.Module):
 
     def __call__(
         self,
-        source=None,
-        stream=False,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: bool = False,
         **kwargs,
-    ):
+    ) -> Iterator[Results] | list[Results]:
         """Alias for the predict method, enabling the model instance to be callable for predictions.
 
         This method simplifies the process of making predictions by allowing the model instance to be called directly
@@ -536,11 +536,11 @@ class Model(torch.nn.Module):
 
     def predict(
         self,
-        source=None,
-        stream=False,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: bool = False,
         predictor=None,
         **kwargs,
-    ):
+    ) -> Iterator[Results] | list[Results]:
         """Perform predictions on the given image source using the YOLO model.
 
         This method facilitates the prediction process, allowing various configurations through keyword arguments. It

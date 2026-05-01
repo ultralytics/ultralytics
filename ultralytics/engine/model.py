@@ -160,7 +160,7 @@ class Model(torch.nn.Module):
     def __call__(
         self,
         source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor,
-        stream: Literal[False],
+        stream: Literal[False] = False,
         **kwargs: Any,
     ) -> list[Results]:
         ...
@@ -169,7 +169,7 @@ class Model(torch.nn.Module):
     def __call__(
         self,
         source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor,
-        stream: bool,
+        stream: bool = False,
         **kwargs: Any,
     ) -> Iterator[Results] | list[Results]:
         ...
@@ -518,7 +518,7 @@ class Model(torch.nn.Module):
     def predict(
         self,
         source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor,
-        stream: Literal[False],
+        stream: Literal[False] = False,
         predictor=None,
         **kwargs: Any,
     ) -> list[Results]:
@@ -528,8 +528,8 @@ class Model(torch.nn.Module):
     def predict(
         self,
         source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor,
-        stream: bool,
-        predictor,
+        stream: bool = False,
+        predictor=None,
         **kwargs: Any,
     ) -> Iterator[Results] | list[Results]:
         ...

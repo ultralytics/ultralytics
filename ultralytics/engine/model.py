@@ -159,7 +159,7 @@ class Model(torch.nn.Module):
     @overload
     def __call__(
         self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: Literal[False] = False,
         **kwargs: Any,
     ) -> list[Results]:
@@ -517,7 +517,7 @@ class Model(torch.nn.Module):
     @overload
     def predict(
         self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: Literal[False] = False,
         predictor=None,
         **kwargs: Any,

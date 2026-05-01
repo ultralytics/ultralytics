@@ -98,14 +98,9 @@ from ultralytics.utils import (
     callbacks,
     colorstr,
     get_default_args,
+    is_jetson,
 )
-from ultralytics.utils.checks import (
-    IS_PYTHON_MINIMUM_3_9,
-    check_imgsz,
-    check_requirements,
-    check_version,
-    is_intel,
-)
+from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_9, check_imgsz, check_requirements, check_version, is_intel
 from ultralytics.utils.files import file_size
 from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
@@ -134,7 +129,7 @@ def export_formats():
             "_openvino_model",
             True,
             False,
-            ["batch", "dynamic", "half", "int8", "nms", "fraction"],
+            ["batch", "data", "dynamic", "half", "int8", "nms", "fraction"],
         ],
         [
             "TensorRT",
@@ -142,18 +137,25 @@ def export_formats():
             ".engine",
             False,
             True,
-            ["batch", "dynamic", "half", "int8", "simplify", "nms", "fraction"],
+            ["batch", "data", "dynamic", "half", "int8", "simplify", "nms", "fraction"],
         ],
         ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "dynamic", "half", "int8", "nms"]],
-        ["TensorFlow SavedModel", "saved_model", "_saved_model", True, True, ["batch", "int8", "keras", "nms"]],
+        [
+            "TensorFlow SavedModel",
+            "saved_model",
+            "_saved_model",
+            True,
+            True,
+            ["batch", "data", "fraction", "int8", "keras", "nms"],
+        ],
         ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"]],
-        ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "half", "int8", "nms", "fraction"]],
-        ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, []],
-        ["TensorFlow.js", "tfjs", "_web_model", True, False, ["batch", "half", "int8", "nms"]],
+        ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "data", "half", "int8", "nms", "fraction"]],
+        ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, ["data", "fraction", "int8"]],
+        ["TensorFlow.js", "tfjs", "_web_model", True, False, ["batch", "data", "fraction", "half", "int8", "nms"]],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"]],
         ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"]],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
-        ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
+        ["IMX", "imx", "_imx_model", True, True, ["data", "int8", "fraction", "nms"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
         ["Axelera AI", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction", "data"]],
@@ -172,7 +174,7 @@ def validate_args(format, passed_args, valid_args):
     Raises:
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
     """
-    export_args = ["half", "int8", "dynamic", "keras", "nms", "batch", "fraction"]
+    export_args = ["half", "int8", "dynamic", "keras", "nms", "batch", "fraction", "data"]
 
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults
@@ -344,15 +346,17 @@ class Exporter:
                 model.end2end = False
                 LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
             if fmt == "engine" and self.args.int8:
-                # TensorRT<=10.3.0 with int8 has known end2end build issues
+                # TensorRT 10.3.0 on JetPack 6 with int8 has known end2end build issues
                 # https://github.com/ultralytics/ultralytics/issues/23841
                 try:
                     import tensorrt as trt
 
-                    if check_version(trt.__version__, "<=10.3.0", hard=True):
+                    if check_version(trt.__version__, "==10.3.0") and is_jetson(jetpack=6):
                         model.end2end = False
                         LOGGER.warning(
-                            "TensorRT<=10.3.0 with int8 has known end2end build issues, disabling end2end branch."
+                            "TensorRT 10.3.0 on JetPack 6 with int8 has known end2end build issues, disabling end2end branch. "
+                            "For a fix, see https://docs.ultralytics.com/guides/nvidia-jetson/#why-does-my-tensorrt-int8-export-disable-end2end-on-jetpack-6"
+                            ""
                         )
                 except ImportError:
                     pass
@@ -546,7 +550,7 @@ class Exporter:
             q = "int8" if self.args.int8 else "half" if self.args.half else ""  # quantization
             LOGGER.info(
                 f"\nExport complete ({time.time() - t:.1f}s)"
-                f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
+                f"\nResults saved to {colorstr('bold', Path(f).resolve())}"
                 f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
                 f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}"
                 f"\nVisualize:       https://netron.app"

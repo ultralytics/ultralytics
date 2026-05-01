@@ -54,7 +54,15 @@ from ultralytics.utils import (
     url2file,
 )
 
-REMOTE_MODEL_PREFIXES = ("https://", "http://", "rtsp://", "rtmp://", "tcp://", "ul://", "gs://")  # Remote model sources
+REMOTE_MODEL_PREFIXES = (
+    "https://",
+    "http://",
+    "rtsp://",
+    "rtmp://",
+    "tcp://",
+    "ul://",
+    "gs://",
+)  # Remote model sources
 
 
 def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):

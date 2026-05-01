@@ -54,15 +54,7 @@ from ultralytics.utils import (
     url2file,
 )
 
-REMOTE_FILE_PREFIXES = (
-    "https://",
-    "http://",
-    "rtsp://",
-    "rtmp://",
-    "tcp://",
-    "ul://",
-    "gs://"
-)
+REMOTE_FILE_PREFIXES = ("https://", "http://", "rtsp://", "rtmp://", "tcp://", "ul://", "gs://")
 
 
 def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):

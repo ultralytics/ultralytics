@@ -150,7 +150,7 @@ class Model(torch.nn.Module):
     @overload
     def __call__(
         self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None,
         stream: Literal[True],
         **kwargs: Any,
     ) -> Iterator[Results]:
@@ -159,7 +159,7 @@ class Model(torch.nn.Module):
     @overload
     def __call__(
         self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None,
         stream: Literal[False] = False,
         **kwargs: Any,
     ) -> list[Results]:
@@ -168,7 +168,7 @@ class Model(torch.nn.Module):
     @overload
     def __call__(
         self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: bool = False,
         **kwargs: Any,
     ) -> Iterator[Results] | list[Results]:
@@ -186,9 +186,9 @@ class Model(torch.nn.Module):
         with the required arguments.
 
         Args:
-            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source of the image(s)
+            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple | None): The source of the image(s)
                 to make predictions on. Can be a file path, URL, PIL image, numpy array, PyTorch tensor, or a list/tuple
-                of these.
+                of these. If you don't provide a source, it defaults to a sample image with a warning.
             stream (bool): If True, treat the input source as a continuous stream for predictions.
             **kwargs (Any): Additional keyword arguments to configure the prediction process.
 
@@ -507,7 +507,7 @@ class Model(torch.nn.Module):
     @overload
     def predict(
         self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None,
         stream: Literal[True],
         predictor=None,
         **kwargs: Any,
@@ -517,7 +517,7 @@ class Model(torch.nn.Module):
     @overload
     def predict(
         self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None,
         stream: Literal[False] = False,
         predictor=None,
         **kwargs: Any,
@@ -527,7 +527,7 @@ class Model(torch.nn.Module):
     @overload
     def predict(
         self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: bool = False,
         predictor=None,
         **kwargs: Any,
@@ -550,7 +550,7 @@ class Model(torch.nn.Module):
         Args:
             source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source of the image(s)
                 to make predictions on. Accepts various types including file paths, URLs, PIL images, numpy arrays, and
-                torch tensors.
+                torch tensors. If no source is provided, it defaults to a sample image with a warning.
             stream (bool): If True, treats the input source as a continuous stream for predictions.
             predictor (BasePredictor, optional): An instance of a custom predictor class for making predictions. If
                 None, the method uses a default predictor.

@@ -233,3 +233,26 @@ def test_setup_model_respects_pretrained_arg_for_pt_models(monkeypatch, pretrain
 
     assert captured["cfg"] == checkpoint_model.yaml, "Checkpoint config was not used"
     assert captured["weights"] is (checkpoint_model if uses_weights else None), "Unexpected weights loaded"
+
+
+def test_load_checkpoint_resolves_platform_uri(monkeypatch):
+    """Test checkpoint loading resolves platform URIs before loading weights."""
+    captured = {}
+    loaded_model = torch.nn.Sequential()
+
+    def fake_check_file(weight, download_dir="."):
+        captured["weight"] = weight
+        captured["download_dir"] = download_dir
+        return "downloaded.pt"
+
+    monkeypatch.setattr("ultralytics.nn.tasks.check_file", fake_check_file)
+    monkeypatch.setattr(
+        "ultralytics.nn.tasks.torch_safe_load",
+        lambda weight: ({"model": loaded_model, "train_args": {}}, weight),
+    )
+
+    model, _ = load_checkpoint("ul://user/project/model")
+
+    assert model is loaded_model, "Checkpoint model was not returned"
+    assert model.pt_path == "downloaded.pt", "Resolved checkpoint path was not used"
+    assert captured == {"weight": "ul://user/project/model", "download_dir": str(WEIGHTS_DIR)}

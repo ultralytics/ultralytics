@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import inspect
 from pathlib import Path
-from typing import Any
+from collections.abc import Iterator
+from typing import Any, Literal, overload
 
 import numpy as np
 import torch
@@ -146,12 +147,30 @@ class Model(torch.nn.Module):
         # Delete super().training for accessing self.model.training
         del self.training
 
+    @overload
+    def __call__(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor,
+        stream: Literal[True],
+        **kwargs: Any,
+    ) -> Iterator[Results]:
+        ...
+
+    @overload
+    def __call__(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor,
+        stream: Literal[False],
+        **kwargs: Any,
+    ) -> list[Results]:
+        ...
+
     def __call__(
         self,
         source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor = None,
         stream: bool = False,
         **kwargs: Any,
-    ) -> list:
+    ) -> Iterator[Results] | list[Results]:
         """Alias for the predict method, enabling the model instance to be callable for predictions.
 
         This method simplifies the process of making predictions by allowing the model instance to be called directly
@@ -165,7 +184,7 @@ class Model(torch.nn.Module):
             **kwargs (Any): Additional keyword arguments to configure the prediction process.
 
         Returns:
-            (list[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a Results
+            (Iterator[ultralytics.engine.results.Results] | list[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a Results
                 object.
 
         Examples:
@@ -476,13 +495,33 @@ class Model(torch.nn.Module):
             kwargs["embed"] = [len(self.model.model) - 2]  # embed second-to-last layer if no indices passed
         return self.predict(source, stream, **kwargs)
 
+    @overload
+    def predict(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor,
+        stream: Literal[True],
+        predictor=None,
+        **kwargs: Any,
+    ) -> Iterator[Results]:
+        ...
+
+    @overload
+    def predict(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor,
+        stream: Literal[False],
+        predictor=None,
+        **kwargs: Any,
+    ) -> list[Results]:
+        ...
+
     def predict(
         self,
         source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor = None,
         stream: bool = False,
         predictor=None,
         **kwargs: Any,
-    ) -> list[Results]:
+    ) -> Iterator[Results] | list[Results]:
         """Perform predictions on the given image source using the YOLO model.
 
         This method facilitates the prediction process, allowing various configurations through keyword arguments. It
@@ -499,7 +538,7 @@ class Model(torch.nn.Module):
             **kwargs (Any): Additional keyword arguments for configuring the prediction process.
 
         Returns:
-            (list[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a Results
+            (Iterator[ultralytics.engine.results.Results] | list[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a Results
                 object.
 
         Examples:

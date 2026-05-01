@@ -61,8 +61,8 @@ REMOTE_FILE_PREFIXES = (
     "rtmp://",
     "tcp://",
     "ul://",
-    "gs://",
-)  # Remote file sources
+    "gs://"
+)
 
 
 def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):

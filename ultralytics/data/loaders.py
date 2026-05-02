@@ -582,6 +582,7 @@ class LoadTensor:
         self.bs = self.im0.shape[0]
         self.mode = "image"
         self.paths = [f"image{i}.jpg" for i in range(self.bs)]
+        self.count = 0
 
     @staticmethod
     def _single_check(im: torch.Tensor, stride: int = 32) -> torch.Tensor:

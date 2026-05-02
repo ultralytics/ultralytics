@@ -32,7 +32,7 @@ class FastSAMPredictor(SegmentationPredictor):
         set_prompts: Set prompts to be used during inference.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None, if_set_batch_explicitly: bool=False):
         """Initialize the FastSAMPredictor with configuration and callbacks.
 
         This initializes a predictor specialized for Fast SAM (Segment Anything Model) segmentation tasks. The predictor
@@ -43,8 +43,9 @@ class FastSAMPredictor(SegmentationPredictor):
             cfg (dict): Configuration for the predictor.
             overrides (dict, optional): Configuration overrides.
             _callbacks (dict, optional): Dictionary of callback functions.
+            if_set_batch_explicitly (bool, optional): Whether to set the batch size explicitly.
         """
-        super().__init__(cfg, overrides, _callbacks)
+        super().__init__(cfg, overrides, _callbacks, if_set_batch_explicitly)
         self.prompts = {}
 
     def postprocess(self, preds, img, orig_imgs):

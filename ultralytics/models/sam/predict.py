@@ -84,7 +84,7 @@ class Predictor(BasePredictor):
 
     stride = 16
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None, if_set_batch_explicitly: bool=False):
         """Initialize the Predictor with configuration, overrides, and callbacks.
 
         Sets up the Predictor object for SAM (Segment Anything Model) and applies any configuration overrides or
@@ -95,11 +95,12 @@ class Predictor(BasePredictor):
             cfg (dict): Configuration dictionary containing default settings.
             overrides (dict | None): Dictionary of values to override default configuration.
             _callbacks (dict | None): Dictionary of callback functions to customize behavior.
+            if_set_batch_explicitly (bool, optional): Whether to set the batch size explicitly.
         """
         if overrides is None:
             overrides = {}
         overrides.update(dict(task="segment", mode="predict", batch=1))
-        super().__init__(cfg, overrides, _callbacks)
+        super().__init__(cfg, overrides, _callbacks, if_set_batch_explicitly)
         self.args.retina_masks = True
         self.im = None
         self.features = None

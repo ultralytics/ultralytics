@@ -27,7 +27,7 @@ class PosePredictor(DetectionPredictor):
         >>> predictor.predict_cli()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None, if_set_batch_explicitly: bool=False):
         """Initialize PosePredictor for pose estimation tasks.
 
         Sets up a PosePredictor instance, configuring it for pose detection tasks and handling device-specific warnings
@@ -37,8 +37,9 @@ class PosePredictor(DetectionPredictor):
             cfg (Any): Configuration for the predictor.
             overrides (dict, optional): Configuration overrides that take precedence over cfg.
             _callbacks (dict, optional): Dictionary of callback functions to be invoked during prediction.
+            if_set_batch_explicitly (bool, optional): Whether to set the batch size explicitly.
         """
-        super().__init__(cfg, overrides, _callbacks)
+        super().__init__(cfg, overrides, _callbacks, if_set_batch_explicitly)
         self.args.task = "pose"
 
     def construct_result(self, pred, img, orig_img, img_path):

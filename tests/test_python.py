@@ -121,6 +121,11 @@ def test_predict_img(model_name):
     assert len(model(source=[im, im], save=True, save_txt=True, imgsz=32)) == 2  # batch
     assert len(list(model(source=[im, im], save=True, stream=True, imgsz=32))) == 2  # stream
     assert len(model(torch.zeros(320, 640, channels).numpy().astype(np.uint8), imgsz=32)) == 1  # tensor to numpy
+    assert len(model(source=[im] * 12, save=True,save_txt=True, imgsz=32, batch=4)) == 12 # ndarray with batch
+    assert len(model(source=[Image.open(SOURCE)] * 12, save=True,save_txt=True,imgsz=32, batch=4)) == 12 # PIL with batch
+    assert len(model(source=[im], save=True,save_txt=True,imgsz=32, batch=4)) == 1 # Single image test with batch
+    assert len(model(source=[im] * 10, save=True, save_txt=True, imgsz=32, batch=4)) == 10 # non-divisible batch
+    assert len(model(source=[im] * 12, save=True, save_txt=True, imgsz=32)) == 12  # default behavior when batch is not explicitly
     batch = [
         str(SOURCE),  # filename
         Path(SOURCE),  # Path

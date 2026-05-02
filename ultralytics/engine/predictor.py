@@ -114,6 +114,7 @@ class BasePredictor:
         cfg=DEFAULT_CFG,
         overrides: dict[str, Any] | None = None,
         _callbacks: dict | None = None,
+        if_set_batch_explicitly: bool = False,
     ):
         """Initialize the BasePredictor class.
 
@@ -121,6 +122,7 @@ class BasePredictor:
             cfg (str | Path | dict | SimpleNamespace): Path to a configuration file or a configuration dictionary.
             overrides (dict, optional): Configuration overrides.
             _callbacks (dict, optional): Dictionary of callback functions.
+            if_set_batch_explicitly (bool, optional): Whether batch size was explicitly set.
         """
         self.args = get_cfg(cfg, overrides)
         self.save_dir = get_save_dir(self.args)
@@ -147,6 +149,7 @@ class BasePredictor:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.txt_path = None
         self._lock = threading.Lock()  # for automatic thread-safe inference
+        self.if_set_batch_explicitly = if_set_batch_explicitly
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, im: torch.Tensor | list[np.ndarray]) -> torch.Tensor:
@@ -260,6 +263,7 @@ class BasePredictor:
             vid_stride=self.args.vid_stride,
             buffer=self.args.stream_buffer,
             channels=getattr(self.model, "channels", 3),
+            if_set_batch_explicitly=self.if_set_batch_explicitly
         )
         self.source_type = self.dataset.source_type
         if (

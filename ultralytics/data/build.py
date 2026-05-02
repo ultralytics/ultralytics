@@ -394,6 +394,7 @@ def load_inference_source(
     vid_stride: int = 1,
     buffer: bool = False,
     channels: int = 3,
+    if_set_batch_explicitly: bool = False
 ):
     """Load an inference source for object detection and apply necessary transformations.
 
@@ -404,6 +405,7 @@ def load_inference_source(
         vid_stride (int, optional): The frame interval for video sources.
         buffer (bool, optional): Whether stream frames will be buffered.
         channels (int, optional): The number of input channels for the model.
+        if_set_batch_explicitly (bool, optional): Whether batch size was explicitly set.
 
     Returns:
         (Dataset): A dataset object for the specified input source with attached source_type attribute.
@@ -428,7 +430,7 @@ def load_inference_source(
     elif screenshot:
         dataset = LoadScreenshots(source, channels=channels)
     elif from_img:
-        dataset = LoadPilAndNumpy(source, channels=channels)
+        dataset = LoadPilAndNumpy(source,batch=batch, channels=channels, if_set_batch_explicitly=if_set_batch_explicitly)
     else:
         dataset = LoadImagesAndVideos(source, batch=batch, vid_stride=vid_stride, channels=channels)
 

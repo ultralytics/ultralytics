@@ -18,6 +18,7 @@ from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source
+from ultralytics.data.loaders import LoadPilAndNumpy, LoadTensor
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
     ARM64,
@@ -130,6 +131,52 @@ def test_predict_img(model_name):
         np.zeros((320, 640, channels), dtype=np.uint8),  # numpy
     ]
     assert len(model(batch, imgsz=32, classes=0)) == len(batch)  # multiple sources in a batch
+
+
+def test_single_batch_loaders_next_without_iter():
+    """Test single-batch image loaders work when next() is called without explicit iter()."""
+    pil = Image.new("RGB", (32, 32))
+    pil.filename = "custom.jpg"
+    paths, images, info = next(LoadPilAndNumpy(pil))
+    assert paths == ["custom.jpg"]
+    assert len(images) == len(info) == 1
+
+    paths, tensor, info = next(LoadTensor(torch.rand(3, 32, 32)))
+    assert paths == ["image0.jpg"]
+    assert tensor.shape == (1, 3, 32, 32)
+    assert len(info) == 1
+
+
+def test_check_file_speeds_handles_empty_read_speeds(tmp_path, monkeypatch):
+    """Test file speed checks handle zero read-time samples without an unbound average speed."""
+    from ultralytics.data import utils as data_utils
+
+    file = tmp_path / "image.jpg"
+    file.write_bytes(b"x")
+    times = iter([0.0, 1.0, 2.0, 2.0])
+    monkeypatch.setattr(data_utils.time, "perf_counter", lambda: next(times))
+    data_utils.check_file_speeds([str(file)])
+
+
+def test_hub_request_queue_failure_warning_has_closing_parenthesis(monkeypatch):
+    """Test HUB request failure warnings include a balanced status-code suffix."""
+    from ultralytics.hub import session as hub_session
+
+    class Response:
+        status_code = 400
+        headers = {}
+
+        @staticmethod
+        def json():
+            """Return a mock HUB error body."""
+            return {"message": "bad request"}
+
+    warnings = []
+    monkeypatch.setattr(hub_session.LOGGER, "warning", warnings.append)
+    session = object.__new__(hub_session.HUBTrainingSession)
+    response = session.request_queue(lambda: Response(), retry=0, thread=False, verbose=False)
+    assert response.status_code == 400
+    assert any(warning.endswith("(400)") for warning in warnings)
 
 
 @pytest.mark.parametrize("model", MODELS)

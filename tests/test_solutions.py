@@ -4,7 +4,7 @@
 # Includes all solutions except DistanceCalculation and the Security Alarm System.
 
 import os
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import cv2
 import numpy as np
@@ -248,6 +248,54 @@ def test_area_chart_padding():
     analytics.update_graph(frame_number=1, count_dict={"car": 2}, plot="area")
     plot_im = analytics.update_graph(frame_number=2, count_dict={"car": 3, "person": 1}, plot="area")
     assert plot_im is not None, "Area chart plot returned None"
+
+
+def test_line_analytics_counts_boxes_directly():
+    """Test line analytics count uses the current box count."""
+    analytics = object.__new__(solutions.Analytics)
+    analytics.type = "line"
+    analytics.boxes = [object(), object(), object()]
+    analytics.total_counts = 0
+    analytics.update_every = 30
+    analytics.last_plot_im = None
+    analytics.clswise_count = {}
+    analytics.track_ids = [1, 2, 3]
+    analytics.extract_tracks = lambda im0: None
+    analytics.update_graph = Mock(return_value="plot")
+
+    result = solutions.Analytics.process(analytics, np.zeros((8, 8, 3), dtype=np.uint8), frame_number=1)
+    assert analytics.update_graph.call_args.kwargs == {"frame_number": 1}
+    assert result.plot_im == "plot"
+    assert result.total_tracks == 3
+    assert analytics.total_counts == 0
+
+
+def test_heatmap_initializes_zero_heatmap():
+    """Test heatmap initialization creates an all-zero float32 array."""
+    heatmap = object.__new__(solutions.Heatmap)
+    heatmap.initialized = False
+    heatmap.region = None
+    heatmap.colormap = cv2.COLORMAP_JET
+    heatmap.line_width = 1
+    heatmap.boxes = []
+    heatmap.track_ids = []
+    heatmap.clss = []
+    heatmap.in_count = 0
+    heatmap.out_count = 0
+    heatmap.classwise_count = {}
+    heatmap.extract_tracks = lambda im0: None
+    heatmap.display_output = lambda im0: None
+    heatmap.track_data = type("TrackData", (), {"is_track": False})()
+
+    with patch("ultralytics.solutions.heatmap.SolutionAnnotator") as annotator:
+        annotator.return_value.result.return_value = np.ones((8, 8, 3), dtype=np.uint8)
+        result = solutions.Heatmap.process(heatmap, np.zeros((8, 8, 3), dtype=np.uint8))
+
+    assert heatmap.initialized is True
+    assert heatmap.heatmap.shape == (8, 8, 3)
+    assert heatmap.heatmap.dtype == np.float32
+    assert float(heatmap.heatmap.max()) == 0.0
+    assert result.total_tracks == 0
 
 
 def test_config_update_method_with_invalid_argument():

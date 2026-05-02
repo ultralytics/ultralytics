@@ -38,8 +38,8 @@ def fraction_for_split(fraction: float | list[float], mode: str = "train") -> fl
     """Resolve a scalar fraction for the requested dataset split."""
     if isinstance(fraction, (list, tuple)):
         index = 0 if mode == "train" else 1
-        return float(fraction[index]) if len(fraction) > index else 1.0
-    return float(fraction) if mode == "train" else 1.0
+        return fraction[index] if len(fraction) > index else 1.0
+    return fraction if mode == "train" else 1.0
 
 
 class InfiniteDataLoader(dataloader.DataLoader):

@@ -303,7 +303,7 @@ class HUBTrainingSession:
                         LOGGER.warning(f"{PREFIX}{message} {HELP_MSG} ({response.status_code})")
 
                 if not self._should_retry(response.status_code):
-                    LOGGER.warning(f"{PREFIX}Request failed. {HELP_MSG} ({response.status_code}")
+                    LOGGER.warning(f"{PREFIX}Request failed. {HELP_MSG} ({response.status_code})")
                     break  # Not an error that should be retried, exit loop
 
                 time.sleep(2**i)  # Exponential backoff for retries

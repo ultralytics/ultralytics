@@ -737,8 +737,7 @@ def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, A
         x["model"] = x["ema"]  # replace model with EMA
     if hasattr(x["model"], "args"):
         x["model"].args = dict(x["model"].args)  # convert from IterableSimpleNamespace to dict
-    if hasattr(x["model"], "criterion"):
-        x["model"].criterion = None  # strip loss criterion
+    normalize_checkpoint_for_safe_save(x)
     x["model"].half()  # to FP16
     for p in x["model"].parameters():
         p.requires_grad = False
@@ -757,6 +756,50 @@ def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, A
     mb = os.path.getsize(s or f) / 1e6  # file size
     LOGGER.info(f"Optimizer stripped from {f},{f' saved as {s},' if s else ''} {mb:.1f}MB")
     return combined
+
+
+def normalize_checkpoint_for_safe_save(ckpt: dict[str, Any]) -> dict[str, list[str]]:
+    """Strip known non-portable legacy fields before re-saving a checkpoint.
+
+    This keeps SafeUnpickler policy unchanged and only removes compatibility residue that is re-emitted by
+    ``torch.save(...)`` on legacy segmentation, pose, and OBB checkpoints.
+
+    Args:
+        ckpt (dict[str, Any]): Checkpoint dictionary containing optional ``model`` and ``ema`` roots.
+
+    Returns:
+        (dict[str, list[str]]): Roots where known fields were normalized.
+    """
+    normalized = {"criterion": [], "detect": []}
+    if not isinstance(ckpt, dict):
+        return normalized
+
+    for root in ("model", "ema"):
+        obj = ckpt.get(root)
+        if obj is None:
+            continue
+
+        if hasattr(obj, "criterion"):
+            obj.criterion = None
+            normalized["criterion"].append(root)
+
+        modules = getattr(obj, "model", None)
+        head = modules[-1] if modules else None
+        head_dict = getattr(head, "__dict__", None) if head is not None else None
+        detect = head_dict.get("detect") if isinstance(head_dict, dict) else None
+
+        # Legacy checkpoints can persist an unbound Detect.forward alias on the head object. Deleting the stored
+        # alias is enough to stop torch.save(...) from re-emitting __builtin__.getattr for these families.
+        if (
+            isinstance(head_dict, dict)
+            and "detect" in head_dict
+            and getattr(detect, "__module__", None) == "ultralytics.nn.modules.head"
+            and getattr(detect, "__qualname__", None) == "Detect.forward"
+        ):
+            del head_dict["detect"]
+            normalized["detect"].append(root)
+
+    return normalized
 
 
 def convert_optimizer_state_dict_to_fp16(state_dict):

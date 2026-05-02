@@ -119,6 +119,10 @@ keywords: Ultralytics, torch utils, model optimization, device selection, infere
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.torch_utils.normalize_checkpoint_for_safe_save
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.torch_utils.convert_optimizer_state_dict_to_fp16
 
 <br><br><hr><br>

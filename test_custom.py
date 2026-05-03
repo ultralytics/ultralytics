@@ -12,4 +12,5 @@ x = torch.randn(1, 3, 640, 640)
 y = model.model(x)
 print([t.shape for t in y])
 
+model = YOLO("/home/ralampay/workspace/ultralytics/custom_yolo12.yaml")
 print(model.model)

@@ -164,7 +164,7 @@ class BaseDataset(Dataset):
             for p in img_path if isinstance(img_path, list) else [img_path]:
                 p = Path(p)  # os-agnostic
                 if p.is_dir():  # dir
-                    f += glob.glob(str(p / "**" / "*.*"), recursive=True)
+                    f += glob.glob(str(Path(glob.escape(p)) / "**" / "*.*"), recursive=True)
                     # F = list(p.rglob('*.*'))  # pathlib
                 elif p.is_file():  # file
                     with open(p, encoding="utf-8") as t:

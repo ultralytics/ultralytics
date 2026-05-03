@@ -654,6 +654,10 @@ def check_multilabel_cls_dataset(dataset: str | Path) -> dict[str, Any]:
     Returns:
         (dict[str, Any]): Dictionary with keys 'train', 'val', 'test', 'nc', 'names', 'channels', and per-split
             'labels_file' paths (e.g., 'train_labels_file').
+
+    Examples:
+        >>> data = check_multilabel_cls_dataset("path/to/dataset.yaml")
+        >>> print(data["nc"], data["train_labels_file"])
     """
     dataset = Path(check_file(dataset)).resolve()
     data = YAML.load(dataset)

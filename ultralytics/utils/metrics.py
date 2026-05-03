@@ -1669,10 +1669,27 @@ class MultiLabelClassifyMetrics(SimpleClass, DataExportMixin):
         fitness: Return mAP as fitness score.
         results_dict: Return dict with performance metrics.
         keys: Return metric key names.
+
+    Examples:
+        >>> from ultralytics.utils.metrics import MultiLabelClassifyMetrics
+        >>> metrics = MultiLabelClassifyMetrics()
+        >>> targets = [torch.tensor([[1, 0, 1], [0, 1, 0]], dtype=torch.float32)]
+        >>> preds = [torch.tensor([[0.9, 0.1, 0.8], [0.1, 0.9, 0.2]])]
+        >>> metrics.process(targets, preds)
+        >>> print(f"mAP={metrics.map:.3f}, F1={metrics.f1:.3f}")
     """
 
     def __init__(self) -> None:
-        """Initialize a MultiLabelClassifyMetrics instance."""
+        """Initialize a MultiLabelClassifyMetrics instance.
+
+        Examples:
+            >>> from ultralytics.utils.metrics import MultiLabelClassifyMetrics
+            >>> metrics = MultiLabelClassifyMetrics()
+            >>> metrics.process(
+            ...     targets=[torch.tensor([[1, 0], [0, 1]])], preds=[torch.tensor([[0.9, 0.1], [0.1, 0.9]])]
+            ... )
+            >>> print(metrics.map)  # mean Average Precision
+        """
         self.map = 0.0
         self.precision = 0.0
         self.recall = 0.0

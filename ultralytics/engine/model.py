@@ -516,6 +516,16 @@ class Model(torch.nn.Module):
         **kwargs: Any,
     ) -> Generator[Results]: ...
 
+    # `model.predict(stream=bool_var)` hint this
+    @overload
+    def predict(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor = None,
+        stream: bool = False,
+        predictor=None,
+        **kwargs: Any,
+    ) -> Generator[Results] | list[Results]: ...
+
     def predict(
         self,
         source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor = None,

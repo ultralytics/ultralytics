@@ -386,6 +386,17 @@ class YOLOE(Model):
         **kwargs,
     ) -> Generator[Results]: ...
 
+    @overload
+    def predict(
+        self,
+        source=None,
+        stream: bool = False,
+        visual_prompts: dict[str, list] = {},
+        refer_image=None,
+        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
+        **kwargs,
+    ) -> Generator[Results] | list[Results]: ...
+
     def predict(
         self,
         source=None,

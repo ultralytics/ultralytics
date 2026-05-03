@@ -9,14 +9,14 @@ scales:
 
 backbone:
   # [from, repeats, module, args]  (c1 is inferred automatically)
-  - [-1, 1, MyConvBlock, [64, 3, 2]]         # 0-P1/2
-  - [-1, 1, MyConvBlock, [128, 3, 2]]        # 1-P2/4
+  - [-1, 1, CoordAttConv, [64, 3, 2]]         # 0-P1/2
+  - [-1, 1, CoordAttConv, [128, 3, 2]]        # 1-P2/4
   - [-1, 2, C3k2, [256, False, 0.25]]
-  - [-1, 1, MyConvBlock, [256, 3, 2]]        # 3-P3/8
+  - [-1, 1, CoordAttConv, [256, 3, 2]]        # 3-P3/8
   - [-1, 2, C3k2, [512, False, 0.25]]
-  - [-1, 1, MyConvBlock, [512, 3, 2]]        # 5-P4/16
+  - [-1, 1, CoordAttConv, [512, 3, 2]]        # 5-P4/16
   - [-1, 4, A2C2f, [512, True, 4]]
-  - [-1, 1, MyConvBlock, [1024, 3, 2]]       # 7-P5/32
+  - [-1, 1, CoordAttConv, [1024, 3, 2]]       # 7-P5/32
   - [-1, 4, A2C2f, [1024, True, 1]]          # 8
 
 head:

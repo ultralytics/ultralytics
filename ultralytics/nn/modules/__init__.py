@@ -19,7 +19,8 @@ Examples:
 
 from .custom_blocks import (
     ConvAttnLite,
-    MyConvBlock
+    MyConvBlock,
+    CoordAttConv
 )
 
 from .block import (
@@ -117,6 +118,7 @@ __all__ = (
     "Conv2",
     "ConvAttnLite",
     "MyConvBlock",
+    "CoordAttConv",
     "LightConv",
     "RepConv",
     "DWConv",

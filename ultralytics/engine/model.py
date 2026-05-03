@@ -480,6 +480,7 @@ class Model(torch.nn.Module):
             kwargs["embed"] = [len(self.model.model) - 2]  # embed second-to-last layer if no indices passed
         return self.predict(source, stream, **kwargs)
 
+    # `model.predict(source, True)/model.predict(source, stream=True)` hint this
     @overload
     def predict(
         self,
@@ -489,6 +490,7 @@ class Model(torch.nn.Module):
         **kwargs: Any,
     ) -> Generator[Results]: ...
 
+    # `model.predict()/model.predict(source)/model.predict(source, False)` hint this
     @overload
     def predict(
         self,
@@ -498,6 +500,7 @@ class Model(torch.nn.Module):
         **kwargs: Any,
     ) -> list[Results]: ...
 
+    # `model.predict(stream=True)` hint this
     @overload
     def predict(
         self,

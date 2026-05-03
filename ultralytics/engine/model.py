@@ -802,17 +802,16 @@ class Model(torch.nn.Module):
         }  # method defaults
         args = {**overrides, **custom, **kwargs, "mode": "train", "session": self.session}  # prioritizes rightmost args
         pretrained = kwargs.get("pretrained", overrides.get("pretrained", True) if kwargs.get("cfg") else True)
-        if args.get("resume"):
-            if args["resume"] is True:  # resume=True (boolean) uses current model as checkpoint
-                if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
-                    args["resume"] = self.ckpt_path
-                else:
-                    LOGGER.warning(
-                        f"model '{self.ckpt_path}' is not a resumable training checkpoint "
-                        f"(missing epoch/optimizer state). Use 'resume' only to continue incomplete training. "
-                        f"Starting new training instead."
-                    )
-                    args["resume"] = False
+        if args.get("resume") is True:  # resume=True (boolean) uses current model as checkpoint
+            if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
+                args["resume"] = self.ckpt_path
+            else:
+                LOGGER.warning(
+                    f"model '{self.ckpt_path}' is not a resumable training checkpoint "
+                    f"(missing epoch/optimizer state). Use 'resume' only to continue incomplete training. "
+                    f"Starting new training instead."
+                )
+                args["resume"] = False
 
         self.trainer = (trainer or self._smart_load("trainer"))(overrides=args, _callbacks=self.callbacks)
         if not args.get("resume") and self.ckpt:
@@ -872,7 +871,7 @@ class Model(torch.nn.Module):
         if use_ray:
             from ultralytics.utils.tuner import run_ray_tune
 
-            return run_ray_tune(self, iterations=iterations, *args, **kwargs)
+            return run_ray_tune(self, *args, iterations=iterations, **kwargs)
         else:
             from .tuner import Tuner
 
@@ -1047,8 +1046,8 @@ class Model(torch.nn.Module):
             >>> model.reset_callbacks()
             # All callbacks are now reset to their default functions
         """
-        for event in callbacks.default_callbacks.keys():
-            self.callbacks[event] = [callbacks.default_callbacks[event][0]]
+        for event, value in callbacks.default_callbacks.items():
+            self.callbacks[event] = [value[0]]
 
     @staticmethod
     def _reset_ckpt_args(args: dict[str, Any]) -> dict[str, Any]:

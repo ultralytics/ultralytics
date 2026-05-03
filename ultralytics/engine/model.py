@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING, Any, Literal, overload
 import torch
 
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
-from ultralytics.engine.results import Results
 from ultralytics.nn.tasks import guess_model_task, load_checkpoint, yaml_model_load
 from ultralytics.utils import (
     ARGV,
@@ -29,6 +28,8 @@ if TYPE_CHECKING:
 
     import numpy as np
     from PIL import Image
+
+    from ultralytics.engine.results import Results
 
     if sys.version_info >= (3, 11):
         from typing import Self

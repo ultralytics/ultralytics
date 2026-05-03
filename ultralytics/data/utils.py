@@ -128,6 +128,7 @@ def check_file_speeds(
         std_speed = np.std(read_speeds, ddof=1) if len(read_speeds) > 1 else 0
         speed_msg = f", read: {avg_speed:.1f}±{std_speed:.1f} MB/s"
     else:
+        avg_speed = float("inf")
         speed_msg = ""
 
     if avg_ping < threshold_ms or avg_speed < threshold_mb:

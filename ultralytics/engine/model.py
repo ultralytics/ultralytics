@@ -483,6 +483,15 @@ class Model(torch.nn.Module):
     @overload
     def predict(
         self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor,
+        stream: Literal[True],
+        predictor=None,
+        **kwargs: Any,
+    ) -> Generator[Results]: ...
+
+    @overload
+    def predict(
+        self,
         source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor = None,
         stream: Literal[False] = False,
         predictor=None,

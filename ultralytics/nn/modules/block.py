@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -41,6 +43,9 @@ __all__ = (
     "CBFuse",
     "CBLinear",
     "ContrastiveHead",
+    "DraxBlock",
+    "DraxNet",
+    "DraxResidualBlock",
     "GhostBottleneck",
     "HGBlock",
     "HGStem",
@@ -1636,6 +1641,425 @@ class TorchVision(nn.Module):
         else:
             y = self.m(x)
         return y
+
+
+class DropPath(nn.Module):
+    """Stochastic depth for residual branches."""
+
+    def __init__(self, drop_prob: float = 0.0) -> None:
+        super().__init__()
+        self.drop_prob = float(drop_prob)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Randomly drop entire residual paths during training."""
+        if self.drop_prob == 0.0 or not self.training:
+            return x
+        keep_prob = 1.0 - self.drop_prob
+        shape = (x.shape[0],) + (1,) * (x.ndim - 1)
+        random_tensor = keep_prob + torch.rand(shape, dtype=x.dtype, device=x.device)
+        random_tensor.floor_()
+        return x.div(keep_prob) * random_tensor
+
+
+class LayerNorm2D(nn.Module):
+    """Channel-last layer norm wrapper for image tensors."""
+
+    def __init__(self, num_channels: int, eps: float = 1e-6) -> None:
+        super().__init__()
+        self.norm = nn.LayerNorm(num_channels, eps=eps)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Normalize over channels while preserving NCHW I/O."""
+        x = x.permute(0, 2, 3, 1)
+        x = self.norm(x)
+        return x.permute(0, 3, 1, 2)
+
+
+class SelfAttention2D(nn.Module):
+    """Spatial self-attention over 2D feature maps."""
+
+    def __init__(
+        self,
+        dim: int,
+        num_heads: int = 8,
+        *,
+        qkv_bias: bool = False,
+        attn_dropout: float = 0.0,
+        proj_dropout: float = 0.0,
+    ) -> None:
+        super().__init__()
+        if dim % num_heads != 0:
+            raise ValueError("dim must be divisible by num_heads")
+
+        self.dim = dim
+        self.num_heads = num_heads
+        self.head_dim = dim // num_heads
+        self.norm = nn.GroupNorm(1, dim)
+        self.qkv = nn.Conv2d(dim, dim * 3, kernel_size=1, bias=qkv_bias)
+        self.proj = nn.Conv2d(dim, dim, kernel_size=1)
+        self.scale = self.head_dim**-0.5
+        self.attn_dropout = nn.Dropout(attn_dropout)
+        self.proj_dropout = nn.Dropout(proj_dropout)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply self-attention and add the attended delta back to the input."""
+        batch_size, channels, height, width = x.shape
+        residual = x
+        qkv = self.qkv(self.norm(x))
+        q, k, v = torch.chunk(qkv, 3, dim=1)
+
+        def reshape_heads(tensor: torch.Tensor) -> torch.Tensor:
+            return tensor.reshape(batch_size, self.num_heads, self.head_dim, height * width)
+
+        q = reshape_heads(q).transpose(-2, -1)
+        k = reshape_heads(k)
+        v = reshape_heads(v).transpose(-2, -1)
+
+        attn = torch.matmul(q, k) * self.scale
+        attn = attn.softmax(dim=-1)
+        attn = self.attn_dropout(attn)
+        out = torch.matmul(attn, v)
+        out = out.transpose(-2, -1).contiguous().reshape(batch_size, channels, height, width)
+        out = self.proj(out)
+        out = self.proj_dropout(out)
+        return residual + out
+
+
+class ConvNeXtBlock(nn.Module):
+    """Light ConvNeXt-style mixer used inside Drax blocks."""
+
+    def __init__(
+        self,
+        dim: int,
+        *,
+        expansion: int = 4,
+        kernel_size: int = 7,
+        layer_scale_init_value: float = 1e-6,
+        dropout: float = 0.0,
+    ) -> None:
+        super().__init__()
+        if expansion < 1:
+            raise ValueError("expansion must be at least 1")
+        if kernel_size % 2 == 0:
+            raise ValueError("kernel_size must be odd to preserve spatial size")
+
+        hidden_dim = dim * expansion
+        self.dwconv = nn.Conv2d(
+            dim,
+            dim,
+            kernel_size=kernel_size,
+            padding=kernel_size // 2,
+            groups=dim,
+        )
+        self.norm = LayerNorm2D(dim)
+        self.pwconv1 = nn.Conv2d(dim, hidden_dim, kernel_size=1)
+        self.activation = nn.GELU()
+        self.pwconv2 = nn.Conv2d(hidden_dim, dim, kernel_size=1)
+        self.dropout = nn.Dropout(dropout)
+        if layer_scale_init_value > 0:
+            self.layer_scale = nn.Parameter(layer_scale_init_value * torch.ones(dim))
+        else:
+            self.layer_scale = None
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply the ConvNeXt-style residual branch."""
+        residual = x
+        x = self.dwconv(x)
+        x = self.norm(x)
+        x = self.pwconv1(x)
+        x = self.activation(x)
+        x = self.pwconv2(x)
+        if self.layer_scale is not None:
+            x = x * self.layer_scale.view(1, -1, 1, 1)
+        x = self.dropout(x)
+        return residual + x
+
+
+def _resolve_num_heads(dim: int, max_heads: int = 8) -> int:
+    """Pick the largest valid attention head count up to `max_heads`."""
+    for num_heads in range(min(max_heads, dim), 0, -1):
+        if dim % num_heads == 0:
+            return num_heads
+    return 1
+
+
+def _resolve_efficient_dim(dim: int) -> int:
+    """Pick a reduced attention width that still divides the channel count."""
+    reduced_dim = max(32, dim // 2)
+    while reduced_dim > 1 and dim % reduced_dim != 0:
+        reduced_dim -= 1
+    return reduced_dim
+
+
+class DraxBlock(nn.Module):
+    """Conv-attention hybrid mixer copied from the sibling MLX experiments."""
+
+    def __init__(
+        self,
+        dim: int = 128,
+        *,
+        use_attention: bool = True,
+        efficient: bool = True,
+        drop_path: float = 0.0,
+    ) -> None:
+        super().__init__()
+        self.use_attention = use_attention
+        self.efficient = efficient
+        self.convnext = ConvNeXtBlock(dim)
+        self.drop_path = DropPath(drop_path)
+
+        if not use_attention:
+            self.attention = None
+            self.attn_down = None
+            self.attn_up = None
+            return
+
+        attention_dim = _resolve_efficient_dim(dim) if efficient else dim
+        self.attention = SelfAttention2D(attention_dim, num_heads=_resolve_num_heads(attention_dim))
+        if efficient:
+            self.attn_down = nn.Conv2d(dim, attention_dim, kernel_size=1)
+            self.attn_up = nn.Conv2d(attention_dim, dim, kernel_size=1)
+        else:
+            self.attn_down = None
+            self.attn_up = None
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Fuse local ConvNeXt-style and optional attention deltas."""
+        conv_delta = self.convnext(x) - x
+        if not self.use_attention or self.attention is None:
+            return x + self.drop_path(conv_delta)
+
+        if self.efficient:
+            reduced = self.attn_down(x)
+            attention_delta = self.attn_up(self.attention(reduced) - reduced)
+        else:
+            attention_delta = self.attention(x) - x
+
+        fused_delta = 0.5 * (conv_delta + attention_delta)
+        return x + self.drop_path(fused_delta)
+
+
+class BasicResidualBlock(nn.Module):
+    """ResNet-18 style basic residual block."""
+
+    expansion = 1
+
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        *,
+        stride: int = 1,
+        downsample: nn.Module | None = None,
+    ) -> None:
+        super().__init__()
+        self.conv1 = nn.Conv2d(
+            in_channels,
+            out_channels,
+            kernel_size=3,
+            stride=stride,
+            padding=1,
+            bias=False,
+        )
+        self.bn1 = nn.BatchNorm2d(out_channels)
+        self.relu = nn.ReLU(inplace=True)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(out_channels)
+        self.downsample = downsample
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply the basic residual block."""
+        identity = x
+
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+
+        x = self.conv2(x)
+        x = self.bn2(x)
+
+        if self.downsample is not None:
+            identity = self.downsample(identity)
+
+        x = x + identity
+        return self.relu(x)
+
+
+class DraxResidualBlock(nn.Module):
+    """Residual block that uses DraxBlock as its internal mixer."""
+
+    expansion = 1
+
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        *,
+        stride: int = 1,
+        downsample: nn.Module | None = None,
+        use_attention: bool = True,
+        efficient_attention: bool = True,
+    ) -> None:
+        super().__init__()
+        self.conv1 = nn.Conv2d(
+            in_channels,
+            out_channels,
+            kernel_size=3,
+            stride=stride,
+            padding=1,
+            bias=False,
+        )
+        self.bn1 = nn.BatchNorm2d(out_channels)
+        self.relu = nn.ReLU(inplace=True)
+        self.drax = DraxBlock(
+            dim=out_channels,
+            use_attention=use_attention,
+            efficient=efficient_attention,
+        )
+        self.proj = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(out_channels)
+        self.downsample = downsample
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply the Drax residual block."""
+        identity = x
+
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+
+        x = self.drax(x)
+        x = self.proj(x)
+        x = self.bn2(x)
+
+        if self.downsample is not None:
+            identity = self.downsample(identity)
+
+        x = x + identity
+        return self.relu(x)
+
+
+class DraxNet(nn.Module):
+    """Detection backbone that adapts the MLX DraxNet idea to YOLO feature pyramids."""
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int = 1024,
+        layers: Sequence[int] = (2, 2, 2, 2),
+        stage_block_types: Sequence[str] = ("basic", "basic", "basic", "drax"),
+        use_attention: bool = True,
+        efficient_attention: bool = True,
+        out_channels: Sequence[int] = (256, 512, 1024),
+        zero_init_residual: bool = False,
+    ) -> None:
+        super().__init__()
+        if tuple(layers) != (2, 2, 2, 2):
+            raise ValueError("DraxNet currently implements a ResNet-18 stage layout, so layers must be (2, 2, 2, 2).")
+        if len(stage_block_types) != len(layers):
+            raise ValueError("stage_block_types must have one entry per backbone stage.")
+        if len(out_channels) != 3:
+            raise ValueError("out_channels must provide P3, P4, and P5 channel sizes.")
+
+        self.c2 = c2
+        self.inplanes = 64
+        self.use_attention = use_attention
+        self.efficient_attention = efficient_attention
+        self.conv1 = nn.Conv2d(c1, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False)
+        self.bn1 = nn.BatchNorm2d(self.inplanes)
+        self.relu = nn.ReLU(inplace=True)
+        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+
+        stage_blocks = [self._resolve_stage_block(block_type) for block_type in stage_block_types]
+        self.layer1 = self._make_layer(stage_blocks[0], 64, layers[0])
+        self.layer2 = self._make_layer(stage_blocks[1], 128, layers[1], stride=2)
+        self.layer3 = self._make_layer(stage_blocks[2], 256, layers[2], stride=2)
+        self.layer4 = self._make_layer(stage_blocks[3], 512, layers[3], stride=2)
+
+        self.p3_proj = Conv(128, out_channels[0], k=1, s=1)
+        self.p4_proj = Conv(256, out_channels[1], k=1, s=1)
+        self.p5_proj = Conv(512, out_channels[2], k=1, s=1)
+
+        self._init_weights()
+
+        if zero_init_residual:
+            for module in self.modules():
+                if isinstance(module, (BasicResidualBlock, DraxResidualBlock)):
+                    nn.init.constant_(module.bn2.weight, 0)
+
+    def _resolve_stage_block(self, block_type: str) -> type[nn.Module]:
+        """Map configuration strings to stage block implementations."""
+        normalized = block_type.strip().lower()
+        if normalized == "basic":
+            return BasicResidualBlock
+        if normalized in {"cax", "drax"}:
+            return DraxResidualBlock
+        raise ValueError(f"Unsupported DraxNet stage block type '{block_type}'.")
+
+    def _make_layer(
+        self,
+        block: type[nn.Module],
+        planes: int,
+        blocks: int,
+        *,
+        stride: int = 1,
+    ) -> nn.Sequential:
+        """Build one residual stage."""
+        downsample = None
+        if stride != 1 or self.inplanes != planes * block.expansion:
+            downsample = nn.Sequential(
+                nn.Conv2d(self.inplanes, planes * block.expansion, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(planes * block.expansion),
+            )
+
+        layers = [
+            block(
+                self.inplanes,
+                planes,
+                stride=stride,
+                downsample=downsample,
+                use_attention=self.use_attention,
+                efficient_attention=self.efficient_attention,
+            )
+            if block is DraxResidualBlock
+            else block(self.inplanes, planes, stride=stride, downsample=downsample)
+        ]
+        self.inplanes = planes * block.expansion
+        for _ in range(1, blocks):
+            layers.append(
+                block(
+                    self.inplanes,
+                    planes,
+                    use_attention=self.use_attention,
+                    efficient_attention=self.efficient_attention,
+                )
+                if block is DraxResidualBlock
+                else block(self.inplanes, planes)
+            )
+        return nn.Sequential(*layers)
+
+    def _init_weights(self) -> None:
+        """Initialize conv and batch norm parameters."""
+        for module in self.modules():
+            if isinstance(module, nn.Conv2d):
+                nn.init.kaiming_normal_(module.weight, mode="fan_out", nonlinearity="relu")
+            elif isinstance(module, nn.BatchNorm2d):
+                nn.init.constant_(module.weight, 1)
+                nn.init.constant_(module.bias, 0)
+
+    def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
+        """Return P3, P4, and P5 feature maps for YOLO heads."""
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+
+        x = self.layer1(x)
+        p3 = self.layer2(x)
+        p4 = self.layer3(p3)
+        p5 = self.layer4(p4)
+
+        return [self.p3_proj(p3), self.p4_proj(p4), self.p5_proj(p5)]
 
 
 class AAttn(nn.Module):

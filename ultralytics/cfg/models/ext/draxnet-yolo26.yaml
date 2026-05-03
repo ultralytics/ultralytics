@@ -1,0 +1,46 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Ultralytics YOLO26 object detection model with a DraxNet backbone and P3/8 - P5/32 outputs
+# Based on: ultralytics/cfg/models/26/yolo26.yaml
+
+# Parameters
+nc: 80 # number of classes
+end2end: True # whether to use end-to-end mode
+reg_max: 1 # DFL bins
+scales: # model compound scaling constants for the YOLO head; DraxNet backbone stays fixed
+  # [depth, width, max_channels]
+  n: [0.50, 0.25, 1024]
+  s: [0.50, 0.50, 1024]
+  m: [0.50, 1.00, 512]
+  l: [1.00, 1.00, 512]
+  x: [1.00, 1.50, 512]
+
+# DraxNet backbone
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, DraxNet, [1024, [2, 2, 2, 2], [basic, basic, basic, drax], True, True, [256, 512, 1024]]] # 0
+  - [0, 1, Index, [256, 0]] # 1-P3/8
+  - [0, 1, Index, [512, 1]] # 2-P4/16
+  - [0, 1, Index, [1024, 2]] # 3-P5/32
+  - [-1, 1, SPPF, [1024, 5, 3, True]] # 4
+  - [-1, 2, C2PSA, [1024]] # 5
+
+# YOLO26 head
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 2], 1, Concat, [1]] # cat backbone P4
+  - [-1, 2, C3k2, [512, True]] # 8
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 1], 1, Concat, [1]] # cat backbone P3
+  - [-1, 2, C3k2, [256, True]] # 11 (P3/8-small)
+
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 8], 1, Concat, [1]] # cat head P4
+  - [-1, 2, C3k2, [512, True]] # 14 (P4/16-medium)
+
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 5], 1, Concat, [1]] # cat head P5
+  - [-1, 1, C3k2, [1024, True, 0.5, True]] # 17 (P5/32-large)
+
+  - [[11, 14, 17], 1, Detect, [nc]] # Detect(P3, P4, P5)

@@ -159,6 +159,8 @@ norecursedirs = [".git", "dist", "build"]
 source = ["ultralytics/"]
 data_file = "tests/.coverage"
 omit = ["ultralytics/utils/callbacks/*"]
+
+[tool.coverage.report]
 exclude_also = [
     "if TYPE_CHECKING:",
 ]

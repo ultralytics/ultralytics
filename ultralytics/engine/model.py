@@ -487,6 +487,18 @@ class Model(torch.nn.Module):
             kwargs["embed"] = [len(self.model.model) - 2]  # embed second-to-last layer if no indices passed
         return self.predict(source, stream, **kwargs)
 
+    # Without explicitly passing `is_cli=False`, the result type can not be determined
+    @overload
+    def predict(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: bool = False,
+        predictor=None,
+        *,
+        is_cli: Literal[None] = None,
+        **kwargs: Any,
+    ) -> Generator[Results, None, None] | list[Results] | None: ...
+
     # `model.predict(source, True)/model.predict(source, stream=True)` hint this
     @overload
     def predict(
@@ -494,6 +506,8 @@ class Model(torch.nn.Module):
         source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None,
         stream: Literal[True],
         predictor=None,
+        *,
+        is_cli: Literal[False],
         **kwargs: Any,
     ) -> Generator[Results, None, None]: ...
 
@@ -504,6 +518,8 @@ class Model(torch.nn.Module):
         source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: Literal[False] = False,
         predictor=None,
+        *,
+        is_cli: Literal[False],
         **kwargs: Any,
     ) -> list[Results]: ...
 
@@ -514,6 +530,8 @@ class Model(torch.nn.Module):
         source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: Literal[True] = True,
         predictor=None,
+        *,
+        is_cli: Literal[False],
         **kwargs: Any,
     ) -> Generator[Results, None, None]: ...
 
@@ -524,16 +542,31 @@ class Model(torch.nn.Module):
         source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: bool = False,
         predictor=None,
+        *,
+        is_cli: Literal[False],
         **kwargs: Any,
     ) -> Generator[Results, None, None] | list[Results]: ...
+
+    @overload
+    def predict(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: bool = False,
+        predictor=None,
+        *,
+        is_cli: Literal[True],
+        **kwargs: Any,
+    ) -> None: ...
 
     def predict(
         self,
         source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: bool = False,
         predictor=None,
+        *,
+        is_cli: bool | None = None,
         **kwargs: Any,
-    ) -> Generator[Results, None, None] | list[Results]:
+    ) -> Generator[Results, None, None] | list[Results] | None:
         """Perform predictions on the given image source using the YOLO model.
 
         This method facilitates the prediction process, allowing various configurations through keyword arguments. It
@@ -567,10 +600,10 @@ class Model(torch.nn.Module):
         if source is None:
             source = "https://ultralytics.com/images/boats.jpg" if self.task == "obb" else ASSETS
             LOGGER.warning(f"'source' is missing. Using 'source={source}'.")
-
-        is_cli = (ARGV[0].endswith("yolo") or ARGV[0].endswith("ultralytics")) and any(
-            x in ARGV for x in ("predict", "track", "mode=predict", "mode=track")
-        )
+        if is_cli is None:
+            is_cli = (ARGV[0].endswith("yolo") or ARGV[0].endswith("ultralytics")) and any(
+                x in ARGV for x in ("predict", "track", "mode=predict", "mode=track")
+            )
 
         custom = {"conf": 0.25, "batch": 1, "save": is_cli, "mode": "predict", "rect": True}  # method defaults
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right

@@ -494,7 +494,7 @@ class Model(torch.nn.Module):
         stream: Literal[True],
         predictor=None,
         **kwargs: Any,
-    ) -> Generator[Results]: ...
+    ) -> Generator[Results, None, None]: ...
 
     # `model.predict()/model.predict(source)/model.predict(source, False)` hint this
     @overload
@@ -514,7 +514,7 @@ class Model(torch.nn.Module):
         stream: Literal[True] = True,
         predictor=None,
         **kwargs: Any,
-    ) -> Generator[Results]: ...
+    ) -> Generator[Results, None, None]: ...
 
     # `model.predict(stream=bool_var)` hint this
     @overload
@@ -524,7 +524,7 @@ class Model(torch.nn.Module):
         stream: bool = False,
         predictor=None,
         **kwargs: Any,
-    ) -> Generator[Results] | list[Results]: ...
+    ) -> Generator[Results, None, None] | list[Results]: ...
 
     def predict(
         self,
@@ -532,7 +532,7 @@ class Model(torch.nn.Module):
         stream: bool = False,
         predictor=None,
         **kwargs: Any,
-    ) -> Generator[Results] | list[Results]:
+    ) -> Generator[Results, None, None] | list[Results]:
         """Perform predictions on the given image source using the YOLO model.
 
         This method facilitates the prediction process, allowing various configurations through keyword arguments. It

@@ -362,7 +362,7 @@ class YOLOE(Model):
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         **kwargs,
-    ) -> Generator[Results]: ...
+    ) -> Generator[Results, None, None]: ...
 
     @overload
     def predict(
@@ -384,7 +384,7 @@ class YOLOE(Model):
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         **kwargs,
-    ) -> Generator[Results]: ...
+    ) -> Generator[Results, None, None]: ...
 
     @overload
     def predict(
@@ -395,7 +395,7 @@ class YOLOE(Model):
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         **kwargs,
-    ) -> Generator[Results] | list[Results]: ...
+    ) -> Generator[Results, None, None] | list[Results]: ...
 
     def predict(
         self,
@@ -405,7 +405,7 @@ class YOLOE(Model):
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         **kwargs,
-    ) -> Generator[Results] | list[Results]:
+    ) -> Generator[Results, None, None] | list[Results]:
         """Run prediction on images, videos, directories, streams, etc.
 
         Args:

@@ -55,7 +55,7 @@ class YOLO(Model):
         >>> model = YOLO("yolo26n.yaml")
     """
 
-    def __init__(self, model: str | Path = "yolo26n.pt", task: str | None = None, verbose: bool = False) -> None:
+    def __init__(self, model: str | Path = "yolo26n.pt", task: str | None = None, verbose: bool = False):
         """Initialize a YOLO model.
 
         This constructor initializes a YOLO model, automatically switching to specialized model types (YOLOWorld or
@@ -356,8 +356,8 @@ class YOLOE(Model):
     @overload
     def predict(
         self,
-        source=None,
-        stream: Literal[True] = True,
+        source,
+        stream: Literal[True],
         visual_prompts: dict[str, list] = {},
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
@@ -374,6 +374,17 @@ class YOLOE(Model):
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         **kwargs,
     ) -> list[Results]: ...
+
+    @overload
+    def predict(
+        self,
+        source=None,
+        stream: Literal[True] = True,
+        visual_prompts: dict[str, list] = {},
+        refer_image=None,
+        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
+        **kwargs,
+    ) -> Generator[Results]: ...
 
     def predict(
         self,

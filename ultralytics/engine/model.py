@@ -490,7 +490,7 @@ class Model(torch.nn.Module):
     @overload
     def predict(
         self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None,
         stream: Literal[True],
         predictor=None,
         **kwargs: Any,
@@ -500,7 +500,7 @@ class Model(torch.nn.Module):
     @overload
     def predict(
         self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor = None,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: Literal[False] = False,
         predictor=None,
         **kwargs: Any,
@@ -510,7 +510,7 @@ class Model(torch.nn.Module):
     @overload
     def predict(
         self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor = None,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: Literal[True] = True,
         predictor=None,
         **kwargs: Any,
@@ -520,7 +520,7 @@ class Model(torch.nn.Module):
     @overload
     def predict(
         self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor = None,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: bool = False,
         predictor=None,
         **kwargs: Any,
@@ -528,7 +528,7 @@ class Model(torch.nn.Module):
 
     def predict(
         self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor = None,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: bool = False,
         predictor=None,
         **kwargs: Any,

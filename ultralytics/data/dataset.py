@@ -1160,6 +1160,14 @@ class MultiLabelClassificationDataset:
         __getitem__: Return transformed image and multi-hot class vector for a given index.
         __len__: Return total number of samples.
         verify_images: Verify all images in dataset.
+
+    Examples:
+        >>> from ultralytics.data.dataset import MultiLabelClassificationDataset
+        >>> ds = MultiLabelClassificationDataset(root="path/to/images", args=args, nc=10, labels_file="labels.csv")
+        >>> len(ds)
+        100
+        >>> ds[0]["cls"].shape
+        torch.Size([10])
     """
 
     def __init__(self, root: str, args, augment: bool = False, prefix: str = "", nc: int = 0, labels_file: str = ""):
@@ -1172,6 +1180,12 @@ class MultiLabelClassificationDataset:
             prefix (str): Prefix for logging.
             nc (int): Number of classes.
             labels_file (str): Path to labels CSV file.
+
+        Examples:
+            >>> from ultralytics.data.dataset import MultiLabelClassificationDataset
+            >>> ds = MultiLabelClassificationDataset(root="path/to/images", args=args, nc=10, labels_file="labels.csv")
+            >>> sample = ds[0]
+            >>> sample["cls"].shape  # (10,) multi-hot vector
         """
         self.root = root
         self.nc = nc

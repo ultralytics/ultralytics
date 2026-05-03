@@ -986,10 +986,29 @@ class v8ClassificationLoss:
 
 
 class v8MultiLabelClassificationLoss:
-    """Criterion class for computing multi-label classification training losses using BCE with logits."""
+    """Criterion class for computing multi-label classification training losses using BCE with logits.
+
+    Uses ``F.binary_cross_entropy_with_logits`` which applies sigmoid internally for numerical stability.
+    Expects multi-hot encoded targets of shape (B, nc) instead of integer class indices.
+
+    Examples:
+        >>> criterion = v8MultiLabelClassificationLoss()
+        >>> preds = torch.randn(4, 10)  # (batch, num_classes) logits
+        >>> targets = torch.zeros(4, 10)
+        >>> targets[0, [0, 3]] = 1.0  # image 0 has classes 0 and 3
+        >>> loss, loss_detached = criterion(preds, {"cls": targets})
+    """
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
-        """Compute the multi-label classification loss between predictions and multi-hot targets."""
+        """Compute the multi-label classification loss between predictions and multi-hot targets.
+
+        Args:
+            preds (Any): Model predictions, either logits tensor (B, nc) or tuple of (probs, logits).
+            batch (dict[str, torch.Tensor]): Batch dict with 'cls' key containing multi-hot targets (B, nc).
+
+        Returns:
+            (tuple[torch.Tensor, torch.Tensor]): Tuple of (loss, loss_detached) scalar tensors.
+        """
         preds = preds[1] if isinstance(preds, (list, tuple)) else preds
         loss = F.binary_cross_entropy_with_logits(preds, batch["cls"].float(), reduction="mean")
         return loss, loss.detach()

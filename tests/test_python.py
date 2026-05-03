@@ -1613,7 +1613,7 @@ def test_multilabel_classify_end_to_end(multilabel_dataset):
     """Test full multi-label pipeline: train, validate, and predict."""
     yaml_path, nc, names, tmpdir = multilabel_dataset
 
-    model = YOLO("yolo11n-cls.pt")
+    model = YOLO("yolo26n-cls.pt")
     model.train(data=yaml_path, epochs=2, imgsz=32, batch=4, multi_label=True, plots=False, verbose=False)
 
     metrics = model.val(data=yaml_path, imgsz=32, multi_label=True)
@@ -1638,7 +1638,7 @@ def test_multilabel_classify_reload_consistency(multilabel_dataset):
     test_imgs = list((tmpdir / "images" / "val").glob("*.jpg"))[:2]
 
     # Train and save checkpoint
-    model = YOLO("yolo11n-cls.pt")
+    model = YOLO("yolo26n-cls.pt")
     model.train(data=yaml_path, epochs=1, imgsz=32, batch=4, multi_label=True, plots=False, verbose=False)
     ckpt_path = model.trainer.best if model.trainer.best.exists() else model.trainer.last
 
@@ -1658,7 +1658,7 @@ def test_multilabel_classify_reload_consistency(multilabel_dataset):
         assert r.multi_label is True, "predict should set multi_label=True on Results after reload"
 
     # Verify single-label model predict stays multi_label=False
-    sl_model = YOLO("yolo11n-cls.pt")
+    sl_model = YOLO("yolo26n-cls.pt")
     sl_results = sl_model.predict(source=test_imgs, imgsz=32, verbose=False)
     for r in sl_results:
         assert r.multi_label is False, "single-label model predict should have multi_label=False"

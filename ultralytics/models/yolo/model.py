@@ -356,11 +356,26 @@ class YOLOE(Model):
     @overload
     def predict(
         self,
+        source=None,
+        stream: bool = False,
+        visual_prompts: dict[str, list] = {},
+        refer_image=None,
+        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
+        *,
+        is_cli: Literal[None] = None,
+        **kwargs,
+    ) -> Generator[Results, None, None] | list[Results] | None: ...
+
+    @overload
+    def predict(
+        self,
         source,
         stream: Literal[True],
         visual_prompts: dict[str, list] = {},
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
+        *,
+        is_cli: Literal[False],
         **kwargs,
     ) -> Generator[Results, None, None]: ...
 
@@ -372,6 +387,8 @@ class YOLOE(Model):
         visual_prompts: dict[str, list] = {},
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
+        *,
+        is_cli: Literal[False],
         **kwargs,
     ) -> list[Results]: ...
 
@@ -383,6 +400,8 @@ class YOLOE(Model):
         visual_prompts: dict[str, list] = {},
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
+        *,
+        is_cli: Literal[False],
         **kwargs,
     ) -> Generator[Results, None, None]: ...
 
@@ -394,6 +413,8 @@ class YOLOE(Model):
         visual_prompts: dict[str, list] = {},
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
+        *,
+        is_cli: Literal[False],
         **kwargs,
     ) -> Generator[Results, None, None] | list[Results]: ...
 
@@ -404,8 +425,10 @@ class YOLOE(Model):
         visual_prompts: dict[str, list] = {},
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
+        *,
+        is_cli: bool | None = None,
         **kwargs,
-    ) -> Generator[Results, None, None] | list[Results]:
+    ) -> Generator[Results, None, None] | list[Results] | None:
         """Run prediction on images, videos, directories, streams, etc.
 
         Args:
@@ -477,4 +500,4 @@ class YOLOE(Model):
             self.predictor = None  # reset predictor if no visual prompts
         self.overrides["agnostic_nms"] = True  # use agnostic nms for YOLOE default
 
-        return super().predict(source, stream, **kwargs)
+        return super().predict(source, stream, is_cli=is_cli, **kwargs)

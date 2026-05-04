@@ -137,6 +137,7 @@ def benchmark(
                 assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
             elif format == "edgetpu":
                 assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
+                assert shutil.which("edgetpu_compiler"), "Edge TPU benchmark requires edgetpu_compiler"
             elif format == "tfjs":
                 assert not (LINUX and ARM64), "TF.js export not supported on ARM64 Linux"
             elif format == "coreml":

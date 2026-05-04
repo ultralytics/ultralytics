@@ -354,19 +354,6 @@ class YOLOE(Model):
     @overload
     def predict(
         self,
-        source=None,
-        stream: bool = False,
-        visual_prompts: dict[str, list] = {},
-        refer_image=None,
-        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
-        *,
-        is_cli: Literal[None] = None,
-        **kwargs,
-    ) -> Generator["Results", None, None] | list["Results"] | None: ...
-
-    @overload
-    def predict(
-        self,
         source,
         stream: Literal[True],
         visual_prompts: dict[str, list] = {},
@@ -415,6 +402,19 @@ class YOLOE(Model):
         is_cli: Literal[False],
         **kwargs,
     ) -> Generator["Results", None, None] | list["Results"]: ...
+
+    @overload
+    def predict(
+        self,
+        source=None,
+        stream: bool = False,
+        visual_prompts: dict[str, list] = {},
+        refer_image=None,
+        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
+        *,
+        is_cli: Literal[None] = None,
+        **kwargs,
+    ) -> Generator["Results", None, None] | list["Results"] | None: ...
 
     def predict(
         self,

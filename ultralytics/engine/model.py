@@ -7,7 +7,9 @@ from collections.abc import Generator
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, overload
 
+import numpy as np
 import torch
+from PIL import Image
 
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
@@ -26,9 +28,6 @@ from ultralytics.utils import (
 
 if TYPE_CHECKING:
     import sys
-
-    import numpy as np
-    from PIL import Image
 
     if sys.version_info >= (3, 11):
         from typing import Self
@@ -330,7 +329,7 @@ class Model(torch.nn.Module):
                 f"argument directly in your inference command, i.e. 'model.predict(source=..., device=0)'"
             )
 
-    def reset_weights(self) -> Self:
+    def reset_weights(self) -> "Self":
         """Reset the model's weights to their initial state.
 
         This method iterates through all modules in the model and resets their parameters if they have a
@@ -355,7 +354,7 @@ class Model(torch.nn.Module):
             p.requires_grad = True
         return self
 
-    def load(self, weights: str | Path = "yolo26n.pt") -> Self:
+    def load(self, weights: str | Path = "yolo26n.pt") -> "Self":
         """Load parameters from the specified weights file into the model.
 
         This method supports loading weights from a file or directly from a weights object. It matches parameters by
@@ -436,7 +435,7 @@ class Model(torch.nn.Module):
         self._check_is_pytorch_model()
         return self.model.info(detailed=detailed, verbose=verbose, imgsz=imgsz)
 
-    def fuse(self) -> Self:
+    def fuse(self) -> "Self":
         """Fuse Conv2d and BatchNorm2d layers in the model for optimized inference.
 
         This method iterates through the model's modules and fuses consecutive Conv2d and BatchNorm2d layers into a
@@ -485,18 +484,6 @@ class Model(torch.nn.Module):
         if not kwargs.get("embed"):
             kwargs["embed"] = [len(self.model.model) - 2]  # embed second-to-last layer if no indices passed
         return self.predict(source, stream, **kwargs)
-
-    # Without explicitly passing `is_cli=False`, the result type can not be determined
-    @overload
-    def predict(
-        self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
-        stream: bool = False,
-        predictor=None,
-        *,
-        is_cli: Literal[None] = None,
-        **kwargs: Any,
-    ) -> Generator[Results, None, None] | list[Results] | None: ...
 
     # `model.predict(source, True)/model.predict(source, stream=True)` hint this
     @overload
@@ -556,6 +543,18 @@ class Model(torch.nn.Module):
         is_cli: Literal[True],
         **kwargs: Any,
     ) -> None: ...
+
+    # Without explicitly passing `is_cli=False`, the result type can not be determined
+    @overload
+    def predict(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: bool = False,
+        predictor=None,
+        *,
+        is_cli: Literal[None] = None,
+        **kwargs: Any,
+    ) -> Generator[Results, None, None] | list[Results] | None: ...
 
     def predict(
         self,
@@ -851,16 +850,17 @@ class Model(torch.nn.Module):
         }  # method defaults
         args = {**overrides, **custom, **kwargs, "mode": "train", "session": self.session}  # prioritizes rightmost args
         pretrained = kwargs.get("pretrained", overrides.get("pretrained", True) if kwargs.get("cfg") else True)
-        if args.get("resume") is True:  # resume=True (boolean) uses current model as checkpoint
-            if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
-                args["resume"] = self.ckpt_path
-            else:
-                LOGGER.warning(
-                    f"model '{self.ckpt_path}' is not a resumable training checkpoint "
-                    f"(missing epoch/optimizer state). Use 'resume' only to continue incomplete training. "
-                    f"Starting new training instead."
-                )
-                args["resume"] = False
+        if args.get("resume"):
+            if args["resume"] is True:  # resume=True (boolean) uses current model as checkpoint
+                if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
+                    args["resume"] = self.ckpt_path
+                else:
+                    LOGGER.warning(
+                        f"model '{self.ckpt_path}' is not a resumable training checkpoint "
+                        f"(missing epoch/optimizer state). Use 'resume' only to continue incomplete training."
+                        f"Starting new training instead."
+                    )
+                    args["resume"] = False
 
         self.trainer = (trainer or self._smart_load("trainer"))(overrides=args, _callbacks=self.callbacks)
         if not args.get("resume") and self.ckpt:
@@ -928,7 +928,7 @@ class Model(torch.nn.Module):
             args = {**self.overrides, **custom, **kwargs, "mode": "train"}  # highest priority args on the right
             return Tuner(args=args, _callbacks=self.callbacks)(iterations=iterations)
 
-    def _apply(self, fn) -> Self:
+    def _apply(self, fn) -> "Self":
         """Apply a function to model parameters, buffers, and tensors.
 
         This method extends the functionality of the parent class's _apply method by additionally resetting the
@@ -1095,8 +1095,8 @@ class Model(torch.nn.Module):
             >>> model.reset_callbacks()
             # All callbacks are now reset to their default functions
         """
-        for event, value in callbacks.default_callbacks.items():
-            self.callbacks[event] = [value[0]]
+        for event in callbacks.default_callbacks.keys():
+            self.callbacks[event] = [callbacks.default_callbacks[event][0]]
 
     @staticmethod
     def _reset_ckpt_args(args: dict[str, Any]) -> dict[str, Any]:
@@ -1179,7 +1179,7 @@ class Model(torch.nn.Module):
         """
         raise NotImplementedError("Please provide task map for your model!")
 
-    def eval(self) -> Self:
+    def eval(self) -> "Self":
         """Sets the model to evaluation mode.
 
         This method changes the model's mode to evaluation, which affects layers like dropout and batch normalization

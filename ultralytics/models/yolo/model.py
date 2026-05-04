@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, overload
 
+import torch
 from ultralytics.data.build import load_inference_source
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
@@ -21,10 +23,6 @@ from ultralytics.nn.tasks import (
 from ultralytics.utils import ROOT, YAML
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
-
-    import torch
-
     from ultralytics.engine.results import Results
 
 
@@ -364,7 +362,7 @@ class YOLOE(Model):
         *,
         is_cli: Literal[None] = None,
         **kwargs,
-    ) -> Generator[Results, None, None] | list[Results] | None: ...
+    ) -> Generator["Results", None, None] | list["Results"] | None: ...
 
     @overload
     def predict(
@@ -377,7 +375,7 @@ class YOLOE(Model):
         *,
         is_cli: Literal[False],
         **kwargs,
-    ) -> Generator[Results, None, None]: ...
+    ) -> Generator["Results", None, None]: ...
 
     @overload
     def predict(
@@ -390,7 +388,7 @@ class YOLOE(Model):
         *,
         is_cli: Literal[False],
         **kwargs,
-    ) -> list[Results]: ...
+    ) -> list["Results"]: ...
 
     @overload
     def predict(
@@ -403,7 +401,7 @@ class YOLOE(Model):
         *,
         is_cli: Literal[False],
         **kwargs,
-    ) -> Generator[Results, None, None]: ...
+    ) -> Generator["Results", None, None]: ...
 
     @overload
     def predict(
@@ -416,7 +414,7 @@ class YOLOE(Model):
         *,
         is_cli: Literal[False],
         **kwargs,
-    ) -> Generator[Results, None, None] | list[Results]: ...
+    ) -> Generator["Results", None, None] | list["Results"]: ...
 
     def predict(
         self,
@@ -428,7 +426,7 @@ class YOLOE(Model):
         *,
         is_cli: bool | None = None,
         **kwargs,
-    ) -> Generator[Results, None, None] | list[Results] | None:
+    ) -> Generator["Results", None, None] | list["Results"] | None:
         """Run prediction on images, videos, directories, streams, etc.
 
         Args:

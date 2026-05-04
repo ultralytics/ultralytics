@@ -349,10 +349,11 @@ def convert_coco(
     LOGGER.info(f"{'LVIS' if lvis else 'COCO'} data converted successfully.\nResults saved to {save_dir.resolve()}")
 
 
-def convert_single_segment_mask_to_yolo_seg(
+def _convert_single_segment_mask_to_yolo_seg(
     mask_path: str | Path, output_dir: str | Path, classes: int
 ) -> None:
     """Convert a single segmentation mask image to the YOLO segmentation format.
+    Internal helper function for `convert_segment_masks_to_yolo_seg`.
 
     This function takes the path to a binary format mask image and converts it into the YOLO segmentation
     format. The converted mask is saved to the specified output directory under the same name as the original image.
@@ -373,56 +374,55 @@ def convert_single_segment_mask_to_yolo_seg(
     if not isinstance(output_dir, Path):
         output_dir = Path(output_dir)
 
-    if mask_path.suffix.lower() in {".png", ".jpg"}:
-        mask = cv2.imread(
-            str(mask_path), cv2.IMREAD_GRAYSCALE
-        )  # Read the mask image in grayscale
-        if mask is None:
-            LOGGER.warning(f"Failed to read the mask {mask_path}, skipping file.")
-            return
-        img_height, img_width = mask.shape[:2]  # Get image dimensions
+    mask = cv2.imread(
+        str(mask_path), cv2.IMREAD_GRAYSCALE
+    )  # Read the mask image in grayscale
+    if mask is None:
+        LOGGER.warning(f"Failed to read the mask {mask_path}, skipping file.")
+        return
+    img_height, img_width = mask.shape[:2]  # Get image dimensions
 
-        unique_values = np.unique(
-            mask
-        )  # Get unique pixel values representing different classes
-        yolo_format_data = []
+    unique_values = np.unique(
+        mask
+    )  # Get unique pixel values representing different classes
+    yolo_format_data = []
 
-        for value in unique_values:
-            if value == 0:
-                continue  # Skip background
-            if value > classes:
-                LOGGER.warning(
-                    f"Unknown class for pixel value {value} in file {mask_path}, skipping."
-                )
-                continue
-            class_index = value - 1
+    for value in unique_values:
+        if value == 0:
+            continue  # Skip background
+        if value > classes:
+            LOGGER.warning(
+                f"Unknown class for pixel value {value} in file {mask_path}, skipping."
+            )
+            continue
+        class_index = value - 1
 
-            # Create a binary mask for the current class and find contours
-            contours, _ = cv2.findContours(
-                (mask == value).astype(np.uint8),
-                cv2.RETR_EXTERNAL,
-                cv2.CHAIN_APPROX_SIMPLE,
-            )  # Find contours
+        # Create a binary mask for the current class and find contours
+        contours, _ = cv2.findContours(
+            (mask == value).astype(np.uint8),
+            cv2.RETR_EXTERNAL,
+            cv2.CHAIN_APPROX_SIMPLE,
+        )  # Find contours
 
-            for contour in contours:
-                if (
-                    len(contour) >= 3
-                ):  # YOLO requires at least 3 points for a valid segmentation
-                    contour = contour.squeeze()  # Remove single-dimensional entries
-                    yolo_format = [class_index]
-                    for point in contour:
-                        # Normalize the coordinates
-                        yolo_format.append(
-                            round(point[0] / img_width, 6)
-                        )  # Rounding to 6 decimal places
-                        yolo_format.append(round(point[1] / img_height, 6))
-                    yolo_format_data.append(yolo_format)
-        # Save Ultralytics YOLO format data to file
-        output_path = output_dir / f"{mask_path.stem}.txt"
-        with open(output_path, "w", encoding="utf-8") as file:
-            for item in yolo_format_data:
-                line = " ".join(map(str, item))
-                file.write(line + "\n")
+        for contour in contours:
+            if (
+                len(contour) >= 3
+            ):  # YOLO requires at least 3 points for a valid segmentation
+                contour = contour.squeeze()  # Remove single-dimensional entries
+                yolo_format = [class_index]
+                for point in contour:
+                    # Normalize the coordinates
+                    yolo_format.append(
+                        round(point[0] / img_width, 6)
+                    )  # Rounding to 6 decimal places
+                    yolo_format.append(round(point[1] / img_height, 6))
+                yolo_format_data.append(yolo_format)
+    # Save Ultralytics YOLO format data to file
+    output_path = output_dir / f"{mask_path.stem}.txt"
+    with open(output_path, "w", encoding="utf-8") as file:
+        for item in yolo_format_data:
+            line = " ".join(map(str, item))
+            file.write(line + "\n")
 
 
 def convert_segment_masks_to_yolo_seg(
@@ -480,7 +480,7 @@ def convert_segment_masks_to_yolo_seg(
             TQDM(
                 executor.imap_unordered(
                     partial(
-                        convert_single_segment_mask_to_yolo_seg,
+                        _convert_single_segment_mask_to_yolo_seg,
                         classes=classes,
                         output_dir=output_dir,
                     ),

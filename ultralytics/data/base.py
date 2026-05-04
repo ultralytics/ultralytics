@@ -111,9 +111,7 @@ class BaseDataset(Dataset):
         self.augment = augment
         self.single_cls = single_cls
         self.prefix = prefix
-
         self.fraction = fraction
-
         self.channels = channels
         self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR
         self.im_files = self.get_img_files(self.img_path)

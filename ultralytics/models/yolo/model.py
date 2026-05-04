@@ -412,6 +412,32 @@ class YOLOE(Model):
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         *,
+        is_cli: Literal[True] = True,
+        **kwargs,
+    ) -> None: ...
+
+    @overload
+    def predict(
+        self,
+        source=None,
+        stream: bool = False,
+        visual_prompts: dict[str, list] = {},
+        refer_image=None,
+        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
+        *,
+        is_cli: bool,
+        **kwargs,
+    ) -> Generator["Results", None, None] | list["Results"] | None: ...
+
+    @overload
+    def predict(
+        self,
+        source=None,
+        stream: bool = False,
+        visual_prompts: dict[str, list] = {},
+        refer_image=None,
+        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
+        *,
         is_cli: Literal[None] = None,
         **kwargs,
     ) -> Generator["Results", None, None] | list["Results"] | None: ...

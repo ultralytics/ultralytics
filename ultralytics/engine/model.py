@@ -544,7 +544,18 @@ class Model(torch.nn.Module):
         **kwargs: Any,
     ) -> None: ...
 
-    # Without explicitly passing `is_cli=False`, the result type can not be determined
+    @overload
+    def predict(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: bool = False,
+        predictor=None,
+        *,
+        is_cli: bool,
+        **kwargs: Any,
+    ) -> Generator[Results, None, None] | list[Results] | None: ...
+
+    # Without explicitly passing `is_cli`, the result type can not be determined
     @overload
     def predict(
         self,
@@ -857,7 +868,7 @@ class Model(torch.nn.Module):
                 else:
                     LOGGER.warning(
                         f"model '{self.ckpt_path}' is not a resumable training checkpoint "
-                        f"(missing epoch/optimizer state). Use 'resume' only to continue incomplete training."
+                        f"(missing epoch/optimizer state). Use 'resume' only to continue incomplete training. "
                         f"Starting new training instead."
                     )
                     args["resume"] = False

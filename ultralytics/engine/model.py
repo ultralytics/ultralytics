@@ -275,7 +275,7 @@ class Model(torch.nn.Module):
             >>> model._load("yolo26n.pt")
             >>> model._load("path/to/weights.pth", task="detect")
         """
-        if weights.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://", "ul://")):
+        if weights.lower().startswith(checks.REMOTE_FILE_PREFIXES):
             weights = checks.check_file(weights, download_dir=SETTINGS["weights_dir"])  # download and return local file
         weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolo26 -> yolo26n.pt
 
@@ -767,6 +767,7 @@ class Model(torch.nn.Module):
             "task": self.task,
         }  # method defaults
         args = {**overrides, **custom, **kwargs, "mode": "train", "session": self.session}  # prioritizes rightmost args
+        pretrained = kwargs.get("pretrained", overrides.get("pretrained", True) if kwargs.get("cfg") else True)
         if args.get("resume"):
             if args["resume"] is True:  # resume=True (boolean) uses current model as checkpoint
                 if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
@@ -782,7 +783,10 @@ class Model(torch.nn.Module):
         self.trainer = (trainer or self._smart_load("trainer"))(overrides=args, _callbacks=self.callbacks)
         if not args.get("resume") and self.ckpt:
             # Reuse the already-loaded checkpoint model to avoid re-resolving remote weight sources during trainer setup.
-            self.trainer.model = self.trainer.get_model(weights=self.model, cfg=self.model.yaml)
+            weights = None if pretrained is False else self.model
+            if isinstance(pretrained, (str, Path)):
+                weights, _ = load_checkpoint(pretrained)
+            self.trainer.model = self.trainer.get_model(weights=weights, cfg=self.model.yaml)
             self.model = self.trainer.model
 
         self.trainer.train()

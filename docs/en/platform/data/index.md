@@ -115,6 +115,10 @@ Dataset pages can show up to six tabs, depending on the dataset state and your p
 
 `Classes` and `Charts` appear when the dataset has images. `Errors` appears only when processing failures exist. `Versions` appears for owners, or for non-owners when versions already exist.
 
+### Clustering
+
+Explore your dataset as an interactive 2D scatter plot where visually similar images sit close together — useful for surfacing clusters, duplicates, and outliers, and for inspecting how splits or classes are distributed across your data. Lasso a region of the plot to filter the gallery to those images. See [Clustering](datasets.md#clustering) for details.
+
 ### Statistics and Visualization
 
 The `Charts` tab provides automatic analysis including:

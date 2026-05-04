@@ -43,7 +43,6 @@ def zeropower_via_newtonschulz5(G: torch.Tensor, eps: float = 1e-7) -> torch.Ten
     a, b, c = 3.4445, -4.7750, 2.0315 # original params
     _num_steps = 5
     for _ in range(_num_steps):
-        # for _ in range(steps):
         A = X @ X.T
         B = b * A + c * A @ A
         X = a * X + B @ X

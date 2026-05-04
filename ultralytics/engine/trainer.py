@@ -718,8 +718,10 @@ class BaseTrainer:
         if str(self.model).endswith(".pt"):
             weights, ckpt = load_checkpoint(self.model)
             cfg = weights.yaml
-        elif isinstance(self.args.pretrained, (str, Path)):
+        if isinstance(self.args.pretrained, (str, Path)):
             weights, _ = load_checkpoint(self.args.pretrained)
+        elif self.args.pretrained is False and not self.resume:
+            weights = None
         self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK in {-1, 0})  # calls Model(cfg, weights)
         return ckpt
 
@@ -941,7 +943,7 @@ class BaseTrainer:
         if ckpt is None or not self.resume:
             return
         start_epoch = ckpt.get("epoch", -1) + 1
-        assert start_epoch > 0, (
+        assert 0 < start_epoch < self.epochs, (
             f"{self.args.model} training to {self.epochs} epochs is finished, nothing to resume.\n"
             f"Start a new training without resuming, i.e. 'yolo train model={self.args.model}'"
         )

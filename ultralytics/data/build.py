@@ -34,7 +34,7 @@ from ultralytics.utils.checks import check_file
 from ultralytics.utils.torch_utils import TORCH_2_0
 
 
-def fraction_for_split(fraction: float | list[float], mode: str = "train") -> float:
+def get_split_fraction(fraction: float | list[float], mode: str = "train") -> float:
     """Resolve a scalar fraction for the requested dataset split."""
     if isinstance(fraction, (list, tuple)):
         index = 0 if mode == "train" else 1
@@ -256,7 +256,7 @@ def build_yolo_dataset(
         task=cfg.task,
         classes=cfg.classes,
         data=data,
-        fraction=fraction_for_split(cfg.fraction, mode),
+        fraction=get_split_fraction(cfg.fraction, mode),
     )
 
 
@@ -287,7 +287,7 @@ def build_grounding(
         prefix=colorstr(f"{mode}: "),
         task=cfg.task,
         classes=cfg.classes,
-        fraction=fraction_for_split(cfg.fraction, mode),
+        fraction=get_split_fraction(cfg.fraction, mode),
     )
 
 

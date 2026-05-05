@@ -1587,8 +1587,8 @@ class RTDETRDecoder(nn.Module):
             scores (torch.Tensor): Class scores with shape (batch_size, num_queries, nc).
 
         Returns:
-            (torch.Tensor): Processed predictions with shape (batch_size, num_queries, 6) and last dimension format
-                [cx, cy, w, h, max_class_prob, class_index].
+            (torch.Tensor): Processed predictions with shape (batch_size, num_queries, 6) and last dimension format [cx,
+                cy, w, h, max_class_prob, class_index].
         """
         if self.disable_topk:
             scores, class_idx = scores.max(dim=-1, keepdim=True)

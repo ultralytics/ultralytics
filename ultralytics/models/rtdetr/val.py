@@ -179,10 +179,7 @@ class RTDETRValidator(DetectionValidator):
         bboxes, scores, labels = preds[0].split((4, 1, 1), dim=-1)
         bboxes = ops.xywh2xyxy(bboxes) * self.args.imgsz
 
-        return [
-            {"bboxes": b, "conf": s.squeeze(-1), "cls": l.squeeze(-1)}
-            for b, s, l in zip(bboxes, scores, labels)
-        ]
+        return [{"bboxes": b, "conf": s.squeeze(-1), "cls": l.squeeze(-1)} for b, s, l in zip(bboxes, scores, labels)]
 
     def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> None:
         """Serialize YOLO predictions to COCO json format.

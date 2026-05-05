@@ -40,8 +40,8 @@ class RTDETRPredictor(BasePredictor):
         boxes.
 
         Args:
-            preds (list | tuple): List of [predictions, extra] from the model, where predictions have shape
-                (bs, num_queries, 6) with format [cx, cy, w, h, score, class].
+            preds (list | tuple): List of [predictions, extra] from the model, where predictions have shape (bs,
+                num_queries, 6) with format [cx, cy, w, h, score, class].
             img (torch.Tensor): Processed input images with shape (N, 3, H, W).
             orig_imgs (list | torch.Tensor): Original, unprocessed images.
 

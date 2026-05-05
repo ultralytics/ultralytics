@@ -178,10 +178,12 @@ class RTDETRValidator(DetectionValidator):
 
         bboxes, scores, labels = preds[0].split((4, 1, 1), dim=-1)
         bboxes = ops.xywh2xyxy(bboxes) * self.args.imgsz
+        scores, labels = scores.squeeze(-1), labels.squeeze(-1)
+        masks = scores > self.args.conf
 
         return [
-            {"bboxes": bbox, "conf": score.squeeze(-1), "cls": label.squeeze(-1)}
-            for bbox, score, label in zip(bboxes, scores, labels)
+            {"bboxes": bbox[m], "conf": score[m], "cls": label[m]}
+            for bbox, score, label, m in zip(bboxes, scores, labels, masks)
         ]
 
     def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> None:

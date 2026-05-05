@@ -381,12 +381,14 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                     )
                 cfg[k] = float(v)
             elif k in CFG_FRACTION_KEYS:
+                if isinstance(v, (list, tuple)) and len(v) != 2:
+                    raise ValueError(f"'{k}={v}' is invalid. Use a single float or a two-item list like [0.5, 1.0].")
                 for item in v if isinstance(v, (list, tuple)) else [v]:
                     if not isinstance(item, FLOAT_OR_INT):
                         if hard:
                             raise TypeError(
                                 f"'{k}={v}' is of invalid type {type(v).__name__}. "
-                                f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
+                                f"Valid '{k}' types are int (i.e. '{k}=0'), float (i.e. '{k}=0.5'), or a two-item list like '{k}=[0.5,1.0]'"
                             )
                     if not (0.0 <= float(item) <= 1.0):
                         raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")

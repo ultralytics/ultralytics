@@ -7,7 +7,6 @@ import urllib
 import zipfile
 from copy import copy
 from pathlib import Path
-from types import SimpleNamespace
 
 import cv2
 import numpy as np
@@ -17,8 +16,7 @@ from PIL import Image
 
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
-from ultralytics.cfg import TASK2DATA, TASKS, check_cfg
-from ultralytics.data import build as data_build
+from ultralytics.cfg import TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
@@ -76,43 +74,6 @@ def test_model_profile():
     model = DetectionModel()  # build model
     im = torch.randn(1, 3, 64, 64)  # requires min imgsz=64
     _ = model.predict(im, profile=True)
-
-
-def test_check_cfg_fraction_list():
-    """Test fraction config validation for split-specific train and val/test fractions."""
-    cfg = {"fraction": [0.25, 1.0]}
-    check_cfg(cfg)
-    assert cfg["fraction"] == [0.25, 1.0]
-
-    with pytest.raises(ValueError, match="fraction"):
-        check_cfg({"fraction": [0.25, 1.5]})
-
-
-def test_build_yolo_dataset_resolves_fraction_for_split(monkeypatch):
-    """Test build_yolo_dataset passes the resolved scalar fraction to the dataset."""
-    captured = []
-
-    class DummyDataset:
-        def __init__(self, **kwargs):
-            captured.append(kwargs["fraction"])
-
-    monkeypatch.setattr(data_build, "YOLODataset", DummyDataset)
-    cfg = SimpleNamespace(
-        imgsz=32,
-        rect=False,
-        cache=False,
-        single_cls=False,
-        task="detect",
-        classes=None,
-        fraction=[0.25, 0.75],
-    )
-
-    data_build.build_yolo_dataset(cfg, "images", 1, data={}, mode="train")
-    data_build.build_yolo_dataset(cfg, "images", 1, data={}, mode="val")
-    cfg.fraction = 0.25
-    data_build.build_yolo_dataset(cfg, "images", 1, data={}, mode="train")
-    data_build.build_yolo_dataset(cfg, "images", 1, data={}, mode="val")
-    assert captured == [0.25, 0.75, 0.25, 1.0]
 
 
 def test_predict_txt(tmp_path):

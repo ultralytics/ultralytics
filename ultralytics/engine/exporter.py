@@ -77,7 +77,6 @@ import torch
 from ultralytics import __version__
 from ultralytics.cfg import TASK2CALIBRATIONDATA, TASK2DATA, get_cfg
 from ultralytics.data import build_dataloader
-from ultralytics.data.build import fraction_for_split
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
@@ -569,7 +568,7 @@ class Exporter:
         dataset = YOLODataset(
             data[self.args.split or "val"],
             data=data,
-            fraction=fraction_for_split(self.args.fraction, self.args.split or "val"),
+            fraction=self.args.fraction,
             task=self.model.task,
             imgsz=max(self.imgsz),
             augment=False,

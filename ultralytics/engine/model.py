@@ -327,7 +327,7 @@ class Model(torch.nn.Module):
                 f"argument directly in your inference command, i.e. 'model.predict(source=..., device=0)'"
             )
 
-    def reset_weights(self) -> "Self":
+    def reset_weights(self) -> Self:
         """Reset the model's weights to their initial state.
 
         This method iterates through all modules in the model and resets their parameters if they have a
@@ -352,7 +352,7 @@ class Model(torch.nn.Module):
             p.requires_grad = True
         return self
 
-    def load(self, weights: str | Path = "yolo26n.pt") -> "Self":
+    def load(self, weights: str | Path = "yolo26n.pt") -> Self:
         """Load parameters from the specified weights file into the model.
 
         This method supports loading weights from a file or directly from a weights object. It matches parameters by
@@ -433,7 +433,7 @@ class Model(torch.nn.Module):
         self._check_is_pytorch_model()
         return self.model.info(detailed=detailed, verbose=verbose, imgsz=imgsz)
 
-    def fuse(self) -> "Self":
+    def fuse(self) -> Self:
         """Fuse Conv2d and BatchNorm2d layers in the model for optimized inference.
 
         This method iterates through the model's modules and fuses consecutive Conv2d and BatchNorm2d layers into a
@@ -927,7 +927,7 @@ class Model(torch.nn.Module):
             args = {**self.overrides, **custom, **kwargs, "mode": "train"}  # highest priority args on the right
             return Tuner(args=args, _callbacks=self.callbacks)(iterations=iterations)
 
-    def _apply(self, fn) -> "Self":
+    def _apply(self, fn) -> Self:
         """Apply a function to model parameters, buffers, and tensors.
 
         This method extends the functionality of the parent class's _apply method by additionally resetting the
@@ -1178,7 +1178,7 @@ class Model(torch.nn.Module):
         """
         raise NotImplementedError("Please provide task map for your model!")
 
-    def eval(self) -> "Self":
+    def eval(self) -> Self:
         """Sets the model to evaluation mode.
 
         This method changes the model's mode to evaluation, which affects layers like dropout and batch normalization

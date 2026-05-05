@@ -353,15 +353,15 @@ class YOLOE(Model):
     @overload
     def predict(
         self,
-        source,
-        stream: Literal[True],
+        source=None,
+        stream: bool = False,
         visual_prompts: dict[str, list] = {},
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         *,
-        is_cli: Literal[False],
+        is_cli: Literal[None] = None,
         **kwargs,
-    ) -> Generator[Results, None, None]: ...
+    ) -> Generator[Results, None, None] | list[Results] | None: ...
 
     @overload
     def predict(
@@ -372,7 +372,7 @@ class YOLOE(Model):
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         *,
-        is_cli: Literal[False],
+        is_cli: Literal[False] = False,
         **kwargs,
     ) -> list[Results]: ...
 
@@ -385,7 +385,7 @@ class YOLOE(Model):
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         *,
-        is_cli: Literal[False],
+        is_cli: Literal[False] = False,
         **kwargs,
     ) -> Generator[Results, None, None]: ...
 
@@ -398,7 +398,7 @@ class YOLOE(Model):
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         *,
-        is_cli: Literal[False],
+        is_cli: Literal[False] = False,
         **kwargs,
     ) -> Generator[Results, None, None] | list[Results]: ...
 
@@ -411,7 +411,7 @@ class YOLOE(Model):
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         *,
-        is_cli: Literal[True],
+        is_cli: Literal[True] = True,
         **kwargs,
     ) -> None: ...
 
@@ -424,20 +424,7 @@ class YOLOE(Model):
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         *,
-        is_cli: bool,
-        **kwargs,
-    ) -> Generator[Results, None, None] | list[Results] | None: ...
-
-    @overload
-    def predict(
-        self,
-        source=None,
-        stream: bool = False,
-        visual_prompts: dict[str, list] = {},
-        refer_image=None,
-        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
-        *,
-        is_cli: Literal[None] = None,
+        is_cli: bool = ...,
         **kwargs,
     ) -> Generator[Results, None, None] | list[Results] | None: ...
 
@@ -494,7 +481,7 @@ class YOLOE(Model):
                         "save": False,
                         "verbose": refer_image is None,
                         "batch": 1,
-                        "device": kwargs.get("device", None),
+                        "device": kwargs.get("device"),
                         "half": kwargs.get("half", False),
                         "imgsz": kwargs.get("imgsz", self.overrides.get("imgsz", 640)),
                     },

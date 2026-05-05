@@ -483,17 +483,17 @@ class Model(torch.nn.Module):
             kwargs["embed"] = [len(self.model.model) - 2]  # embed second-to-last layer if no indices passed
         return self.predict(source, stream, **kwargs)
 
-    # `model.predict(source, True)/model.predict(source, stream=True)` hint this
+    # Without explicitly passing `is_cli`, the result type can not be determined
     @overload
     def predict(
         self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None,
-        stream: Literal[True],
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: bool = False,
         predictor=None,
         *,
-        is_cli: Literal[False],
+        is_cli: Literal[None] = None,
         **kwargs: Any,
-    ) -> Generator[Results, None, None]: ...
+    ) -> Generator[Results, None, None] | list[Results] | None: ...
 
     # `model.predict()/model.predict(source)/model.predict(source, False)` hint this
     @overload
@@ -503,11 +503,11 @@ class Model(torch.nn.Module):
         stream: Literal[False] = False,
         predictor=None,
         *,
-        is_cli: Literal[False],
+        is_cli: Literal[False] = False,
         **kwargs: Any,
     ) -> list[Results]: ...
 
-    # `model.predict(stream=True)` hint this
+    # `model.predict(source, True)/model.predict(stream=True)/model.predict(source, stream=True)` hint this
     @overload
     def predict(
         self,
@@ -515,7 +515,7 @@ class Model(torch.nn.Module):
         stream: Literal[True] = True,
         predictor=None,
         *,
-        is_cli: Literal[False],
+        is_cli: Literal[False] = False,
         **kwargs: Any,
     ) -> Generator[Results, None, None]: ...
 
@@ -527,7 +527,7 @@ class Model(torch.nn.Module):
         stream: bool = False,
         predictor=None,
         *,
-        is_cli: Literal[False],
+        is_cli: Literal[False] = False,
         **kwargs: Any,
     ) -> Generator[Results, None, None] | list[Results]: ...
 
@@ -538,7 +538,7 @@ class Model(torch.nn.Module):
         stream: bool = False,
         predictor=None,
         *,
-        is_cli: Literal[True],
+        is_cli: Literal[True] = True,
         **kwargs: Any,
     ) -> None: ...
 
@@ -549,19 +549,7 @@ class Model(torch.nn.Module):
         stream: bool = False,
         predictor=None,
         *,
-        is_cli: bool,
-        **kwargs: Any,
-    ) -> Generator[Results, None, None] | list[Results] | None: ...
-
-    # Without explicitly passing `is_cli`, the result type can not be determined
-    @overload
-    def predict(
-        self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
-        stream: bool = False,
-        predictor=None,
-        *,
-        is_cli: Literal[None] = None,
+        is_cli: bool = ...,
         **kwargs: Any,
     ) -> Generator[Results, None, None] | list[Results] | None: ...
 

@@ -465,6 +465,8 @@ class YOLOE(Model):
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
             predictor (callable): Custom predictor class for visual prompt predictions. Defaults to
                 YOLOEVPDetectPredictor.
+            is_cli (bool, optional): Whether run by command line. If True, return None. If False, return the prediction
+                results. Defaults to None, which will determine the value by `sys.argv`.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:

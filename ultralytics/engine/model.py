@@ -589,6 +589,8 @@ class Model(torch.nn.Module):
             stream (bool): If True, treats the input source as a continuous stream for predictions.
             predictor (BasePredictor, optional): An instance of a custom predictor class for making predictions. If
                 None, the method uses a default predictor.
+            is_cli (bool, optional): Whether run by command line. If True, return None. If False, return the prediction
+                results. Defaults to None, which will determine the value by `sys.argv`.
             **kwargs (Any): Additional keyword arguments for configuring the prediction process.
 
         Returns:

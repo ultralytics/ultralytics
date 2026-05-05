@@ -360,7 +360,7 @@ class YOLOE(Model):
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         *,
-        is_cli: Literal[False],
+        is_cli: Literal[False] = False,
         **kwargs,
     ) -> Generator["Results", None, None]: ...
 

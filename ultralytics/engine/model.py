@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import inspect
+import sys
 from collections.abc import Generator
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, overload
+from typing import Any, Literal, overload
 
 import numpy as np
 import torch
@@ -26,13 +27,10 @@ from ultralytics.utils import (
     checks,
 )
 
-if TYPE_CHECKING:
-    import sys
-
-    if sys.version_info >= (3, 11):
-        from typing import Self
-    else:
-        from typing_extensions import Self
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 
 class Model(torch.nn.Module):

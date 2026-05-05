@@ -62,7 +62,7 @@ class RTDETRPredictor(BasePredictor):
             bbox = ops.xywh2xyxy(bbox)
             idx = score.squeeze(-1) > self.args.conf
             if self.args.classes is not None:
-                idx = (label.squeeze(-1) == torch.tensor(self.args.classes, device=label.device)).any(1) & idx
+                idx = (label == torch.tensor(self.args.classes, device=label.device)).any(1) & idx
             pred = torch.cat([bbox, score, label], dim=-1)[idx][: self.args.max_det]
             oh, ow = orig_img.shape[:2]
             pred[..., [0, 2]] *= ow  # scale x coordinates to original width

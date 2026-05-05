@@ -493,7 +493,7 @@ class Model(torch.nn.Module):
         stream: Literal[True],
         predictor=None,
         *,
-        is_cli: Literal[False] = False,
+        is_cli: Literal[False],
         **kwargs: Any,
     ) -> Generator[Results, None, None]: ...
 

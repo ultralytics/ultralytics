@@ -372,7 +372,12 @@ class BaseDataset(Dataset):
             elif mini > 1:
                 shapes[i] = [1, 1 / mini]
 
-        self.batch_shapes = np.ceil(np.array(shapes) * self.imgsz / self.stride + self.pad).astype(int) * self.stride
+        # Calculate batch shapes - use ceil for val to ensure coverage, floor for train when already aligned to stride
+        raw_shapes = np.array(shapes) * self.imgsz / self.stride
+        if self.pad == 0:  # train mode - avoid unnecessary padding when already divisible by stride
+            self.batch_shapes = np.round(raw_shapes).astype(int) * self.stride
+        else:  # val mode with pad=0.5 - use ceil to ensure coverage for aspect-ratio batching
+            self.batch_shapes = np.ceil(raw_shapes + self.pad).astype(int) * self.stride
         self.batch = bi  # batch index of image
 
     def __getitem__(self, index: int) -> dict[str, Any]:

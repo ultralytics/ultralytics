@@ -33,6 +33,9 @@ from ultralytics.utils import (
     deprecation_warn,
     vscode_msg,
 )
+from ultralytics.utils import (
+    cv2 as cv2,
+)
 
 # Define valid solutions
 SOLUTION_MAP = {

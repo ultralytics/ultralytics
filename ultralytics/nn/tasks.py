@@ -1506,7 +1506,7 @@ class YOLOAnomalyModel(DetectionModel):
         head = self.model[-1]
         if not isinstance(head, AnomalyDetection) or head.adhead is None:
             raise RuntimeError("Call setup_anomaly_detection() first.")
-        return [h for h in head.adhead if isinstance(h, ADMBHead)]
+        return head.iter_ad_heads(include_fused=True)
 
     def set_memory_update(self, update: bool) -> None:
         """Toggle memory bank accumulation for all anomaly detection heads."""

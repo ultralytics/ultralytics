@@ -8,6 +8,7 @@ from typing import Any
 import torch
 
 from ultralytics.data.build import load_inference_source
+from ultralytics.engine.results import Results
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.modules.head import ADMBHead, AnomalyDetection
@@ -22,7 +23,7 @@ from ultralytics.nn.tasks import (
     YOLOEModel,
     YOLOESegModel,
 )
-from ultralytics.utils import ROOT, YAML
+from ultralytics.utils import LOGGER, ROOT, YAML, ops
 
 
 class YOLO(Model):
@@ -441,10 +442,44 @@ class AnomalyValidator(yolo.detect.DetectionValidator):
     For end2end models (e.g. yoloe26n), non_max_suppression skips IoU-based NMS
     and only confidence-filters the top-k output, leaving overlapping boxes.
     This subclass applies real torchvision IoU NMS after confidence filtering.
+
+    On top of standard detection mAP, when the model is in ``feature_mode='fused_heatmap'``
+    this validator also computes:
+
+      * ``image_auroc`` — image-level AUROC, score=max(heatmap), label=1 if image has any GT box.
+      * ``pixel_auroc`` — pixel-level AUROC, heatmap vs binary GT mask, anomaly images only.
+
+    The pixel-level GT mask is rasterized from the YOLO segmentation polygons in the
+    image's ``.txt`` label file (alongside the image, ``../labels/<stem>.txt`` if a
+    ``labels/`` mirror directory exists). All pixels inside any instance polygon are
+    labeled 1 (anomalous), all others 0 (normal). Image is "anomaly" if it has ≥1 GT box.
+    AUROC is NaN if the model is not in heatmap mode or no GT polygons are found.
     """
 
+    # Pixel-AUROC eval resolution (heatmap+GT both resized to this square before flattening).
+    _pix_eval_size: int = 256
+
+    def init_metrics(self, model: torch.nn.Module) -> None:
+        super().init_metrics(model)
+        # Reset per-call AUROC accumulators.
+        self._heatmaps_for_batch: torch.Tensor | None = None
+        self._image_scores: list[float] = []
+        self._image_labels: list[int] = []
+        self._pixel_scores: list = []  # list[np.ndarray]
+        self._pixel_labels: list = []
+        self._n_anom_with_gt: int = 0
+        self.image_auroc: float = float("nan")
+        self.pixel_auroc: float = float("nan")
+
     def postprocess(self, preds):
-        """Apply real IoU NMS for end2end models, then delegate."""
+        """Apply real IoU NMS for end2end models, then delegate. Also stash heatmap for AUROC."""
+        # Capture raw heatmap from the (y, preds_dict) tuple before unpacking discards it.
+        self._heatmaps_for_batch = None
+        if isinstance(preds, (tuple, list)) and len(preds) > 1 and isinstance(preds[1], dict):
+            hm = preds[1].get("heatmap", None)
+            if hm is not None:
+                self._heatmaps_for_batch = hm.detach().cpu()
+
         if isinstance(preds, (tuple, list)):
             preds = preds[0]
 
@@ -465,6 +500,131 @@ class AnomalyValidator(yolo.detect.DetectionValidator):
 
         return super().postprocess(preds)
 
+    @staticmethod
+    def _label_path(im_file: str) -> Path | None:
+        """Resolve YOLO label .txt for an image. Tries ``labels/`` mirror first, then sibling."""
+        p = Path(im_file)
+        # Mirror layout: <root>/images/.../foo.png → <root>/labels/.../foo.txt
+        for parts in [p.parts]:
+            if "images" in parts:
+                idx = parts.index("images")
+                mirrored = Path(*parts[:idx], "labels", *parts[idx + 1:]).with_suffix(".txt")
+                if mirrored.exists():
+                    return mirrored
+        # Sibling layout: foo.png → foo.txt next to it (MVTec-YOLO uses this).
+        sibling = p.with_suffix(".txt")
+        if sibling.exists():
+            return sibling
+        return None
+
+    @classmethod
+    def _gt_mask_from_polygons(cls, im_file: str, mask_size: int) -> "np.ndarray | None":
+        """Rasterize all instance polygons from the YOLO label file into a binary mask.
+
+        Returns ``None`` if no label file or no polygons are found.
+        Output shape: (mask_size, mask_size), uint8, values in {0, 1}.
+        """
+        import cv2
+        import numpy as np
+
+        label_path = cls._label_path(im_file)
+        if label_path is None:
+            return None
+        try:
+            text = label_path.read_text().strip()
+        except OSError:
+            return None
+        if not text:
+            return None
+
+        mask = np.zeros((mask_size, mask_size), dtype=np.uint8)
+        any_drawn = False
+        for line in text.splitlines():
+            tokens = line.strip().split()
+            # YOLO seg polygon line: cls x1 y1 x2 y2 ... xn yn  (normalized, pairs of points)
+            if len(tokens) < 7 or (len(tokens) - 1) % 2 != 0:
+                continue
+            try:
+                coords = np.array(tokens[1:], dtype=np.float32)
+            except ValueError:
+                continue
+            pts = coords.reshape(-1, 2) * mask_size  # to pixel coords on mask_size x mask_size
+            pts_int = pts.astype(np.int32)
+            cv2.fillPoly(mask, [pts_int], 1)
+            any_drawn = True
+        return mask if any_drawn else None
+
+    def update_metrics(self, preds, batch) -> None:
+        """Standard detection metrics + AUROC accumulation when heatmap is available."""
+        super().update_metrics(preds, batch)
+        if self._heatmaps_for_batch is None:
+            return
+        import cv2
+
+        for si in range(len(preds)):
+            hm = self._heatmaps_for_batch[si]
+            if hm.dim() == 3:
+                hm = hm.squeeze(0)
+            hm_np = hm.float().numpy()
+
+            self._image_scores.append(float(hm_np.max()))
+            n_gt = int((batch["batch_idx"] == si).sum().item())
+            label = 1 if n_gt > 0 else 0
+            self._image_labels.append(label)
+
+            if label == 1:
+                gt_d = self._gt_mask_from_polygons(batch["im_file"][si], self._pix_eval_size)
+                if gt_d is None:
+                    continue
+                hm_d = cv2.resize(hm_np, (self._pix_eval_size, self._pix_eval_size), interpolation=cv2.INTER_LINEAR)
+                self._pixel_scores.append(hm_d.flatten())
+                self._pixel_labels.append(gt_d.flatten())
+                self._n_anom_with_gt += 1
+
+    def finalize_metrics(self) -> None:
+        super().finalize_metrics()
+        if not self._image_scores:
+            return  # no heatmaps captured — model wasn't in fused_heatmap mode
+        try:
+            from sklearn.metrics import roc_auc_score
+        except ImportError:
+            LOGGER.warning("sklearn not available — skipping anomaly AUROC computation")
+            return
+        import numpy as np
+
+        if len(set(self._image_labels)) > 1:
+            self.image_auroc = float(roc_auc_score(self._image_labels, self._image_scores))
+        if self._pixel_scores:
+            ps = np.concatenate(self._pixel_scores)
+            pl = np.concatenate(self._pixel_labels)
+            if pl.any() and not pl.all():
+                self.pixel_auroc = float(roc_auc_score(pl, ps))
+
+        # Surface AUROC on the metrics object so model.val()'s return carries them
+        # (validator.metrics is what model.val() returns).
+        self.metrics.image_auroc = self.image_auroc
+        self.metrics.pixel_auroc = self.pixel_auroc
+
+    def get_stats(self) -> dict:
+        stats = super().get_stats()
+        # Surface AUROC alongside detection metrics so callers (e.g. trainer/val script) can read them.
+        stats["metrics/image_auroc"] = self.image_auroc
+        stats["metrics/pixel_auroc"] = self.pixel_auroc
+        return stats
+
+    def print_results(self) -> None:
+        super().print_results()
+        if self._image_scores:
+            n_good = sum(1 for v in self._image_labels if v == 0)
+            n_anom = sum(self._image_labels)
+            LOGGER.info(
+                "Anomaly AUROC — image: %.4f  pixel: %.4f  "
+                "(n_img=%d good=%d anom=%d, anom_w_gt=%d, pix_size=%d)",
+                self.image_auroc, self.pixel_auroc,
+                len(self._image_labels), n_good, n_anom,
+                self._n_anom_with_gt, self._pix_eval_size,
+            )
+
 
 class AnomalyPredictor(yolo.detect.DetectionPredictor):
     """Predictor for YOLOAnomaly models.
@@ -474,15 +634,19 @@ class AnomalyPredictor(yolo.detect.DetectionPredictor):
     """
 
     def postprocess(self, preds, img, orig_imgs, **kwargs):
-        """Unpack model output tuple then apply IoU NMS for end2end models."""
-        # AnomalyDetection.forward() returns (y_tensor, preds_dict) in non-export mode.
-        # y_tensor is already top-k selected by AnomalyDetection.postprocess (end2end path).
+        """Unpack model output tuple, run bbox NMS, and attach heatmap to each Result.
+
+        When ``feature_mode='fused_heatmap'`` is on, the AnomalyDetection forward returns
+        ``(y_tensor, preds_dict)`` where ``preds_dict['heatmap']`` is the fused heatmap.
+        We always run the standard bbox postprocess (so detection mAP still works) and
+        attach the upsampled heatmap to each Result as ``.heatmap`` / ``.heatmap_conf``.
+        """
+        aux_preds = None
         if isinstance(preds, (tuple, list)):
+            aux_preds = preds[1] if len(preds) > 1 and isinstance(preds[1], dict) else None
             preds = preds[0]
 
-        # For end2end models (e.g. yoloe26n), non_max_suppression skips IoU-based NMS and
-        # only confidence-filters the top-k output, leaving overlapping boxes.  Apply real
-        # NMS here so duplicates are removed before results are constructed.
+        # Standard bbox postprocess path (per-level adhead → boxes).
         if getattr(self.model, "end2end", False):
             import torchvision
 
@@ -495,9 +659,34 @@ class AnomalyPredictor(yolo.detect.DetectionPredictor):
                     continue
                 keep = torchvision.ops.nms(pred[:, :4].float(), pred[:, 4].float(), self.args.iou)
                 output.append(pred[keep[: self.args.max_det]])
-            return self.construct_results(output, img, orig_imgs, **kwargs)
+            results = self.construct_results(output, img, orig_imgs, **kwargs)
+        else:
+            results = super().postprocess(preds, img, orig_imgs, **kwargs)
 
-        return super().postprocess(preds, img, orig_imgs, **kwargs)
+        # Attach fused heatmap to each Result (if AnomalyDetection produced one).
+        heatmap_tensor = aux_preds.get("heatmap") if isinstance(aux_preds, dict) else None
+        if heatmap_tensor is not None:
+            self._attach_heatmaps(results, heatmap_tensor)
+        return results
+
+    @staticmethod
+    def _attach_heatmaps(results: list, heatmaps: torch.Tensor) -> None:
+        """Bilinear-upsample each per-image heatmap to its orig shape and attach to the Result."""
+        for i, res in enumerate(results):
+            hm = heatmaps[i]
+            if hm.dim() == 3:
+                hm = hm.squeeze(0)
+            full = torch.nn.functional.interpolate(
+                hm[None, None].float(),
+                size=res.orig_img.shape[:2],
+                mode="bilinear",
+                align_corners=False,
+            )[0, 0]
+            if full.min() < 0 or full.max() > 1:
+                full = full.sigmoid()
+            full = full.clamp_(0, 1)
+            res.heatmap = full
+            res.heatmap_conf = float(full.max())
 
 
 class YOLOAnomaly(Model):
@@ -783,6 +972,11 @@ class YOLOAnomaly(Model):
         calibration_interval: int | None = None,
         em_iters: int | None = None,
         calibration_target_score: float | None = None,
+        feature_mode: str | None = None,
+        return_heatmap: bool | None = None,
+        heatmap_logits: bool | None = None,
+        fused_layers: list[int] | None = None,
+        fused_use_pre_clshead: bool | None = None,
     ) -> None:
         """Set anomaly-detection inference parameters and optionally switch mode.
 
@@ -801,6 +995,9 @@ class YOLOAnomaly(Model):
             em_iters (int | None): EM iteration rounds during bank construction (1=single pass, default).
             calibration_target_score (float | None): Desired anomaly score for typical normal features.
                                                      Must be strictly less than ``accumulate_thresh``.
+            feature_mode (str | None): Feature scoring path, ``per_level`` or ``fused_heatmap``.
+            return_heatmap (bool | None): Attach fused heatmap to the auxiliary prediction dict.
+            heatmap_logits (bool | None): Return fused heatmap in logits instead of probabilities.
         """
         assert isinstance(self.model, YOLOAnomalyModel), "Call setup() before set_ad_params()."
         head = self.model.model[-1]
@@ -815,6 +1012,11 @@ class YOLOAnomaly(Model):
             calibration_interval=calibration_interval,
             em_iters=em_iters,
             calibration_target_score=calibration_target_score,
+            feature_mode=feature_mode,
+            return_heatmap=return_heatmap,
+            heatmap_logits=heatmap_logits,
+            fused_layers=fused_layers,
+            fused_use_pre_clshead=fused_use_pre_clshead,
         )
         if mode is not None:
             self.set_mode(mode)
@@ -873,10 +1075,17 @@ class YOLOAnomaly(Model):
         if not isinstance(head, AnomalyDetection) or head.adhead is None:
             return False
         # Check at least one head has real features (beyond the 10-entry padding from _memory_tensor)
-        for h in head.adhead:
-            if isinstance(h, ADMBHead) and h.memory_bank.numel() > 0 and h.memory_bank.shape[0] > 10:
+        for h in head.iter_ad_heads(include_fused=True):
+            if h.memory_bank.numel() > 0 and h.memory_bank.shape[0] > 10:
                 return True
         return False
+
+    def get_last_heatmap(self) -> torch.Tensor | None:
+        """Return the most recent fused anomaly heatmap produced by the head, if available."""
+        head = self.model.model[-1]
+        if not isinstance(head, AnomalyDetection):
+            return None
+        return head.last_heatmap
 
     def save(self, filename: str | Path = "saved_model.pt") -> None:
         """Save the anomaly model with memory bank and metadata embedded in the checkpoint.
@@ -908,6 +1117,9 @@ class YOLOAnomaly(Model):
                 "K": head.K,
                 "accumulate_thresh": head.accumulate_thresh,
                 "score_filter_kernel": head.score_filter_kernel,
+                "feature_mode": head.feature_mode,
+                "return_heatmap": head.return_heatmap,
+                "heatmap_logits": head.heatmap_logits,
             }
 
         updates = {
@@ -953,14 +1165,16 @@ class YOLOAnomaly(Model):
                 head.K = meta.get("K", 15)
                 head.accumulate_thresh = meta.get("accumulate_thresh", 0.4)
                 head.score_filter_kernel = meta.get("score_filter_kernel", 1)
+                head.feature_mode = meta.get("feature_mode", "per_level")
+                head.return_heatmap = meta.get("return_heatmap", False)
+                head.heatmap_logits = meta.get("heatmap_logits", False)
 
                 # Propagate params to ADMBHead sub-modules
-                for h in head.adhead:
-                    if isinstance(h, ADMBHead):
-                        h.temperature = head.temperature
-                        h.K = head.K
-                        h.accumulate_thresh = head.accumulate_thresh
-                        h.score_filter_kernel = head.score_filter_kernel
+                for h in head.iter_ad_heads(include_fused=True):
+                    h.temperature = head.temperature
+                    h.K = head.K
+                    h.accumulate_thresh = head.accumulate_thresh
+                    h.score_filter_kernel = head.score_filter_kernel
 
                 anomaly_mode = meta.get("anomaly_mode", True)
                 head.set_anomaly_mode(anomaly_mode)
@@ -974,7 +1188,7 @@ class YOLOAnomaly(Model):
 
             has_mb = any(
                 h.memory_bank.numel() > 0 and h.memory_bank.shape[0] > 10
-                for h in head.adhead if isinstance(h, ADMBHead)
+                for h in head.iter_ad_heads(include_fused=True)
             )
             if has_mb:
                 stats = self.model.get_memory_bank_stats()

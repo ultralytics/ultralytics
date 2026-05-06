@@ -1807,7 +1807,8 @@ class ADMBHead(nn.Module):
     def __init__(self, vocab: nn.Module, loc: nn.Module, temperature: float = 3.0,
                  accumulate_thresh: float = 0.4, K=15, score_filter_kernel: int = 1) -> None:
         super().__init__()
-        self.vocab_linear = self._conv2linear(vocab)
+        # Accept either a 1x1 Conv2d or a pre-built Linear (e.g. copied from another head).
+        self.vocab_linear = vocab if isinstance(vocab, nn.Linear) else self._conv2linear(vocab)
         self.loc = loc
         self.register_buffer("memory_bank", torch.empty(0, 0), persistent=True)
         self.feature_dim: int | None = None
@@ -1851,11 +1852,63 @@ class ADMBHead(nn.Module):
 
     def get_memory_bank_stats(self) -> dict:
         """Return size and feature dimension of the current memory bank."""
-        mem = self._memory_tensor()
+        mem = self._effective_memory_bank()
         return {
             "size": mem.shape[0],
             "feature_dim": self.feature_dim,
         }
+
+    def _effective_memory_bank(self) -> torch.Tensor:
+        """Return the real memory-bank entries, excluding zero-padding placeholders."""
+        mem = self._memory_tensor()
+        if self.feature_dim is None or mem.numel() == 0 or mem.shape[0] == 0:
+            return mem[:0]
+        valid = mem.norm(dim=1) > 0
+        return mem[valid]
+
+    def _prepare_cls_feat(self, cls_feat: torch.Tensor) -> torch.Tensor:
+        """Apply the configured pre-scoring spatial filter."""
+        if self.score_filter_kernel > 1:
+            pad = self.score_filter_kernel // 2
+            cls_feat = F.avg_pool2d(
+                cls_feat,
+                kernel_size=self.score_filter_kernel,
+                stride=1,
+                padding=pad,
+                count_include_pad=True,
+            )
+        return cls_feat
+
+    def forward_dense(self, cls_feat: torch.Tensor, anomaly_mode: bool = True, return_logits: bool = False) -> torch.Tensor:
+        """Return dense anomaly or classification scores without proposal filtering."""
+        if not self.enabled:
+            channels = 1 if anomaly_mode else self.vocab_linear.out_features
+            return torch.zeros(
+                cls_feat.shape[0],
+                channels,
+                cls_feat.shape[2],
+                cls_feat.shape[3],
+                device=cls_feat.device,
+                dtype=cls_feat.dtype,
+            )
+
+        batch_size, channels, height, width = cls_feat.shape
+        if self.feature_dim is None:
+            self.feature_dim = channels
+
+        cls_feat = self._prepare_cls_feat(cls_feat)
+        if self.update:
+            self._online_bootstrapped_memory_accumulation(cls_feat, batch_size, height, width, self.accumulate_thresh)
+
+        if anomaly_mode:
+            heatmap = self._anomaly_scores(cls_feat, mem=self._memory_tensor()).view(batch_size, 1, height, width)
+            if return_logits:
+                heatmap = heatmap.clamp(1e-6, 1 - 1e-6)
+                heatmap = torch.log(heatmap / (1 - heatmap))
+            return heatmap
+
+        cls_scores = self.vocab_linear(cls_feat.flatten(2).transpose(-1, -2)).transpose(-1, -2)
+        return cls_scores.view(batch_size, self.vocab_linear.out_features, height, width)
 
     # ── internals ─────────────────────────────────────────────────────────────
 
@@ -1925,6 +1978,10 @@ class ADMBHead(nn.Module):
                         Set to None to disable chunking (processes all N positions at once —
                         risks OOM if N × M is large, e.g. N=102 400, M=57 000 → ~23 GB).
         """
+        if mem is None:
+            mem = self._effective_memory_bank()
+        elif mem.numel() and mem.dim() == 2:
+            mem = mem[mem.norm(dim=1) > 0]
         if mem is None or mem.numel() == 0 or mem.shape[0] == 0:
             n = features.numel() // features.shape[1] if features.dim() == 4 else features.shape[0]
             return torch.full((n,), 0.5, device=features.device)
@@ -1981,7 +2038,7 @@ class ADMBHead(nn.Module):
         Returns:
             keep: bool [H*W] — positions accepted from the first batch image.
         """
-        mem = self._memory_tensor()
+        mem = self._effective_memory_bank()
         total_added = 0
         keep_flags = torch.zeros(H * W, dtype=torch.bool, device=cls_feat.device)
 
@@ -2114,11 +2171,7 @@ class ADMBHead(nn.Module):
         if self.feature_dim is None:
             self.feature_dim = C
 
-        # spatial mean filter on feature map to suppress isolated-pixel noise before scoring
-        if self.score_filter_kernel > 1:
-            pad = self.score_filter_kernel // 2
-            cls_feat = F.avg_pool2d(cls_feat, kernel_size=self.score_filter_kernel, stride=1, padding=pad,
-                                    count_include_pad=True)
+        cls_feat = self._prepare_cls_feat(cls_feat)
 
         # compute per-image anomaly scores: [B, H*W]
         scores_per_image = self._anomaly_scores(cls_feat, mem=self._memory_tensor()).view(B, -1)
@@ -2172,6 +2225,7 @@ class AnomalyDetection(Detect):
     """
     is_fused = False
     _fixed_nc=None
+
     def __init__(
         self, nc: int = 80, embed: int = 512, with_bn: bool = True, reg_max=16, end2end=False, ch: tuple = ()
     ):
@@ -2197,6 +2251,15 @@ class AnomalyDetection(Detect):
         self.ad_conf = 0.5      # confidence threshold for anomaly proposals during inference; see ADMBHead.forward()
         self.ad_max_det = 9     # maximum number of detections per image during inference; see ADMBHead.forward()
         self.anomaly_mode = True  # whether to output single-channel anomaly logits (True) or nc-class vocabulary scores (False); see ADMBHead.forward()
+        self.feature_mode = "per_level"  # per_level | fused_heatmap
+        self.return_heatmap = False
+        self.heatmap_logits = False
+        self.fused_adhead = None
+        self.last_heatmap = None
+        # Fused-heatmap fusion controls (used only when feature_mode=="fused_heatmap")
+        # Default [0, 1] keeps the highest-resolution layers (P3+P4) for fine-grained heatmap localization.
+        self.fused_layers: list[int] | None = [0, 1]      # which layer indices to fuse; None = all
+        self.fused_use_pre_clshead: bool = False          # True → fuse raw x[i]; False → fuse cls_heads[i](x[i])
 
         # Auto-build ADMBHead sub-modules when constructed from YAML (not from from_detect_head)
         if ch:
@@ -2255,7 +2318,37 @@ class AnomalyDetection(Detect):
         new.K = getattr(head, "K", 15)
         new.score_filter_kernel = getattr(head, "score_filter_kernel", 1)
         new.anomaly_mode = getattr(head, "anomaly_mode", True)
+        new.feature_mode = getattr(head, "feature_mode", "per_level")
+        new.return_heatmap = getattr(head, "return_heatmap", False)
+        new.heatmap_logits = getattr(head, "heatmap_logits", False)
+        new.fused_adhead = getattr(head, "fused_adhead", None)
+        new.last_heatmap = getattr(head, "last_heatmap", None)
+        new.fused_layers = getattr(head, "fused_layers", [0, 1])
+        new.fused_use_pre_clshead = getattr(head, "fused_use_pre_clshead", False)
         return new
+
+    def _get_feature_heads(self) -> tuple[nn.ModuleList, nn.ModuleList]:
+        """Return truncated localization and classification branches for anomaly scoring."""
+        has_end2end = hasattr(self, "one2one_cv2")
+        return (self.one2one_cv2, self.one2one_cv3) if has_end2end else (self.cv2, self.cv3)
+
+    def _build_fused_head(self, vocab: "nn.Module | nn.Linear") -> ADMBHead:
+        """Build the dedicated fused memory-bank head for dense anomaly heatmaps.
+
+        ``vocab`` may be either the original 1×1 Conv2d (from ``build_adhead``) or a
+        pre-built ``nn.Linear`` copied from an existing ADMBHead (for backward-compat
+        with models saved before ``fused_adhead`` existed).
+        """
+        fused_head = ADMBHead(
+            vocab=vocab,
+            loc=nn.Identity(),
+            accumulate_thresh=self.accumulate_thresh,
+            temperature=self.temperature,
+            K=self.K,
+            score_filter_kernel=self.score_filter_kernel,
+        )
+        fused_head._memory_tensor()
+        return fused_head
 
     def build_adhead(self):
         """Build anomaly detection sub-heads from self's cv2/cv3 layers.
@@ -2304,6 +2397,7 @@ class AnomalyDetection(Detect):
                      score_filter_kernel=self.score_filter_kernel)
             for i in range(self.nl)
         )
+        self.fused_adhead = self._build_fused_head(saved_vocab[0])
         # Pre-fill memory banks with zeros so forward() never hits an empty-bank edge case
         # (e.g. during stride computation in DetectionModel.__init__).
         for h in self.adhead:
@@ -2324,6 +2418,74 @@ class AnomalyDetection(Detect):
         self.nc = 1 if anomaly_mode else getattr(self, "original_nc", self.nc)
         for h in self.adhead:
             h.anomaly_mode = anomaly_mode
+        fused = getattr(self, "fused_adhead", None)
+        if fused is not None:
+            fused.anomaly_mode = anomaly_mode
+
+    def iter_ad_heads(self, include_fused: bool = True) -> list[ADMBHead]:
+        """Return all anomaly memory-bank heads, optionally including the fused heatmap head."""
+        heads = [h for h in (self.adhead or []) if isinstance(h, ADMBHead)]
+        fused = getattr(self, "fused_adhead", None)
+        if include_fused and isinstance(fused, ADMBHead):
+            heads.append(fused)
+        return heads
+
+    def _build_fused_feature_map(self, x: list[torch.Tensor], cls_heads: nn.ModuleList) -> torch.Tensor:
+        """Fuse multi-scale anomaly features onto the highest-resolution selected scale.
+
+        Source features:
+          * ``self.fused_use_pre_clshead = False`` (default) — fuse ``cls_heads[i](x[i])``.
+          * ``self.fused_use_pre_clshead = True``           — fuse raw backbone features ``x[i]``.
+
+        Layer selection:
+          * ``self.fused_layers = None`` (default) — fuse all ``self.nl`` layers.
+          * ``self.fused_layers = [1, 2]`` (e.g.)  — fuse only those indices.
+        The first selected index becomes the base resolution; remaining feats are
+        nearest-interpolated up to it. Channels must match across selected layers.
+        """
+        # Use getattr so models loaded from .pt files saved before these attrs existed still work.
+        fused_layers = getattr(self, "fused_layers", None)
+        use_pre_clshead = getattr(self, "fused_use_pre_clshead", False)
+        layers = fused_layers if fused_layers else list(range(self.nl))
+        if not layers:
+            raise ValueError("fused_layers is empty; need at least one layer to fuse.")
+        # use_pre_clshead=True # for debug
+        if use_pre_clshead:
+            feats = [x[i] for i in layers]
+        else:
+            feats = [cls_heads[i](x[i]) for i in layers]
+
+        base = feats[0]
+        target_size = base.shape[-2:]
+        target_channels = base.shape[1]
+        fused = base
+        for feat in feats[1:]:
+            if feat.shape[1] != target_channels:
+                raise ValueError(
+                    f"Fused anomaly heatmap requires matching channels across fused_layers={layers}, "
+                    f"got {target_channels} and {feat.shape[1]}. "
+                    f"With fused_use_pre_clshead={use_pre_clshead}, channels per layer are: "
+                    f"{[x[i].shape[1] if use_pre_clshead else cls_heads[i](x[i]).shape[1] for i in layers]}."
+                )
+            if feat.shape[-2:] != target_size:
+                feat = F.interpolate(feat, size=target_size, mode="nearest")
+            fused = fused + feat
+        return fused
+
+    def forward_heatmap(self, x: list[torch.Tensor], cls_heads: nn.ModuleList | None = None) -> torch.Tensor:
+        """Build a dense anomaly heatmap from fused multi-scale features."""
+        fused_adhead = getattr(self, "fused_adhead", None)
+        if fused_adhead is None:
+            raise RuntimeError("Call build_adhead() before forward_heatmap().")
+        if cls_heads is None:
+            _, cls_heads = self._get_feature_heads()
+        heatmap = fused_adhead.forward_dense(
+            self._build_fused_feature_map(x, cls_heads),
+            anomaly_mode=self.anomaly_mode,
+            return_logits=self.heatmap_logits,
+        )
+        self.last_heatmap = heatmap
+        return heatmap
 
 
     def set_ad_params(
@@ -2337,6 +2499,11 @@ class AnomalyDetection(Detect):
         calibration_interval: int | None = None,
         em_iters: int | None = None,
         calibration_target_score: float | None = None,
+        feature_mode: str | None = None,
+        return_heatmap: bool | None = None,
+        heatmap_logits: bool | None = None,
+        fused_layers: list[int] | None = None,
+        fused_use_pre_clshead: bool | None = None,
     ) -> None:
         """Set anomaly-detection inference parameters.
 
@@ -2362,23 +2529,45 @@ class AnomalyDetection(Detect):
                                    or em_iters rounds are exhausted.
             calibration_target_score (float | None): Desired anomaly score for typical normal features.
                                                      Must be strictly less than ``accumulate_thresh``.
+            feature_mode (str | None): Feature scoring path. Supported values are ``per_level`` and ``fused_heatmap``.
+            return_heatmap (bool | None): Whether to attach the fused heatmap to the auxiliary prediction dict.
+            heatmap_logits (bool | None): Whether fused heatmap outputs should be returned as logits.
         """
         if ad_conf is not None:
             self.ad_conf = ad_conf
         if ad_max_det is not None:
             self.ad_max_det = ad_max_det
+        if feature_mode is not None:
+            if feature_mode not in {"per_level", "fused_heatmap"}:
+                raise ValueError(f"Unsupported feature_mode={feature_mode!r}.")
+            self.feature_mode = feature_mode
+            # Auto-build fused_adhead for models saved before this feature was added.
+            if feature_mode == "fused_heatmap" and self.adhead is not None:
+                if not isinstance(getattr(self, "fused_adhead", None), ADMBHead):
+                    import copy
+                    self.fused_adhead = self._build_fused_head(
+                        copy.deepcopy(self.adhead[0].vocab_linear)
+                    )
+        if return_heatmap is not None:
+            self.return_heatmap = return_heatmap
+        if heatmap_logits is not None:
+            self.heatmap_logits = heatmap_logits
+        if fused_layers is not None:
+            self.fused_layers = list(fused_layers) if fused_layers else None
+        if fused_use_pre_clshead is not None:
+            self.fused_use_pre_clshead = bool(fused_use_pre_clshead)
         if accumulate_thresh is not None:
             self.accumulate_thresh = accumulate_thresh
             if self.adhead is not None:
-                for h in self.adhead:
+                for h in self.iter_ad_heads():
                     h.accumulate_thresh = accumulate_thresh
         if calibration_target_score is not None and self.adhead is not None:
-            for h in self.adhead:
+            for h in self.iter_ad_heads():
                 h.calibration_target_score = calibration_target_score
         # Enforce invariant: calibration_target_score < accumulate_thresh.
         # Checked whenever either value is updated so silent violations are caught immediately.
         if (accumulate_thresh is not None or calibration_target_score is not None) and self.adhead is not None:
-            for h in self.adhead:
+            for h in self.iter_ad_heads():
                 assert h.calibration_target_score < h.accumulate_thresh, (
                     f"calibration_target_score ({h.calibration_target_score}) must be "
                     f"< accumulate_thresh ({h.accumulate_thresh})"
@@ -2386,19 +2575,19 @@ class AnomalyDetection(Detect):
         if score_filter_kernel is not None:
             self.score_filter_kernel = score_filter_kernel
             if self.adhead is not None:
-                for h in self.adhead:
+                for h in self.iter_ad_heads():
                     h.score_filter_kernel = score_filter_kernel
         if active_layers is not None and self.adhead is not None:
             for i, h in enumerate(self.adhead):
                 h.enabled = (i in active_layers)
         if auto_temperature is not None and self.adhead is not None:
-            for h in self.adhead:
+            for h in self.iter_ad_heads():
                 h.auto_temperature = auto_temperature
         if calibration_interval is not None and self.adhead is not None:
-            for h in self.adhead:
+            for h in self.iter_ad_heads():
                 h.calibration_interval = calibration_interval
         if em_iters is not None and self.adhead is not None:
-            for h in self.adhead:
+            for h in self.iter_ad_heads():
                 h.em_iters = em_iters
 
 
@@ -2422,14 +2611,16 @@ class AnomalyDetection(Detect):
         bs = x[0].shape[0]
         # Always use the branches that build_adhead() truncated — determined by architecture,
         # not by self.end2end.  self.end2end only controls the *output format* (top-k vs raw).
-        _has_e2e = hasattr(self, "one2one_cv2")
-        cv2 = self.one2one_cv2 if _has_e2e else self.cv2
-        cv3 = self.one2one_cv3 if _has_e2e else self.cv3
+        cv2, cv3 = self._get_feature_heads()
 
         # Export/dense mode: conf=0 routes each ADMBHead to the fixed-shape path (no boolean
         # indexing), producing [B, 1|nc, H*W] scores. Downstream postprocess topk + predictor
         # conf threshold do all selection. Mirrors YOLOEDetect.forward_lrpc (conf=0 on export).
         ad_conf = 0 if (self.export and not self.dynamic) else self.ad_conf
+
+        heatmap = None
+        if self.feature_mode == "fused_heatmap" or self.return_heatmap:
+            heatmap = self.forward_heatmap(x, cls_heads=cv3)
 
         boxes, scores, index = [], [], []
         for i in range(self.nl):
@@ -2446,6 +2637,17 @@ class AnomalyDetection(Detect):
             index.append(idx)
 
         preds = dict(boxes=torch.cat(boxes, 2), scores=torch.cat(scores, 2), feats=x, index=torch.cat(index))
+        if heatmap is not None:
+            preds["heatmap"] = heatmap
+            preds["feature_mode"] = self.feature_mode
+        if self.training:
+            if self.end2end:
+                one2one = {
+                    key: value.detach() if isinstance(value, torch.Tensor) else value
+                    for key, value in preds.items()
+                }
+                return {"one2many": preds, "one2one": one2one}
+            return preds
         # Do not mutate self.nc from tensor shape during export — set_anomaly_mode() keeps it correct.
         if not (self.export and not self.dynamic):
             self.nc = preds["scores"].shape[1]

@@ -341,7 +341,9 @@ class BaseTrainer:
         self.stride = gs  # for multiscale training
 
         if self.world_size > 1:
-            self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
+            self.model = nn.parallel.DistributedDataParallel(
+                self.model, device_ids=[RANK], find_unused_parameters=True, broadcast_buffers=False
+            )
 
         # Batch size
         if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size

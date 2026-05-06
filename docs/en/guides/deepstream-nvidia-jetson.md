@@ -301,13 +301,13 @@ deepstream-app -c deepstream_app_config.txt
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/wWmXKIteRLA"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/BpSuXSUzEYY"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Run Multiple Streams with DeepStream SDK on Jetson Nano using Ultralytics YOLO26 🎉
+  <strong>Watch:</strong> How to Run Multi-Stream Inference with Ultralytics YOLO26 using NVIDIA DeepStream on Jetson Orin 🚀
 </p>
 
 To set up multiple streams under a single DeepStream application, make the following changes to the `deepstream_app_config.txt` file:

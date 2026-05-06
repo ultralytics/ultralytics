@@ -121,8 +121,8 @@ class DetectionTrainer(BaseTrainer):
             imgs = batch["img"]
             sz = (
                 random.randrange(
-                    int(self.args.imgsz * (1.0 - self.args.multi_scale)),
-                    int(self.args.imgsz * (1.0 + self.args.multi_scale) + self.stride),
+                    max(self.stride, int(self.args.imgsz * (1.0 - self.args.multi_scale))),  # min imgsz
+                    int(self.args.imgsz * (1.0 + self.args.multi_scale) + self.stride),  # max imgsz
                 )
                 // self.stride
                 * self.stride

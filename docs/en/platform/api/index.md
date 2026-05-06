@@ -579,13 +579,17 @@ PUT /api/datasets/{datasetId}/images/{hash}/labels
 
 ```json
 {
-    "labels": [{ "classId": 0, "bbox": [0.5, 0.5, 0.2, 0.3] }]
+    "labels": [
+        { "classId": 0, "bbox": [0.5, 0.5, 0.2, 0.3] },
+        { "classId": 1, "segments": [0.1, 0.2, 0.3, 0.2, 0.2, 0.4] }
+    ]
 }
 ```
 
 !!! info "Coordinate Format"
 
-    Bounding boxes use YOLO normalized format: `[x_center, y_center, width, height]` where all values are between 0 and 1.
+    Label coordinates use YOLO normalized values between 0 and 1. Bounding boxes use `[x_center, y_center, width, height]`.
+    Segmentation labels use `segments`, a flattened list of polygon vertices `[x1, y1, x2, y2, ...]`.
 
 #### Bulk Image Operations
 
@@ -1639,14 +1643,6 @@ GET /api/storage
     }
 }
 ```
-
-### Recalculate Storage
-
-```http
-POST /api/storage
-```
-
-Triggers a recalculation of storage usage.
 
 ---
 

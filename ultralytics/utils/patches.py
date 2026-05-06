@@ -33,7 +33,7 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
         >>> img = imread("path/to/image.jpg", cv2.IMREAD_GRAYSCALE)
     """
     try:
-        file_bytes = np.fromfile(path, dtype=dtype)
+        file_bytes = np.fromfile(filename, np.uint8)
     except Exception:
         return None
     if filename.endswith((".tiff", ".tif")):

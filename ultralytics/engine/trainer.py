@@ -344,7 +344,9 @@ class BaseTrainer:
             # static_graph=True permits params used >1 time per forward (e.g. flow_model in
             # o2m+o2o pose loss branches) under torch.compile.
             self.model = nn.parallel.DistributedDataParallel(
-                self.model, device_ids=[RANK], static_graph=bool(self.args.compile),
+                self.model,
+                device_ids=[RANK],
+                static_graph=bool(self.args.compile),
             )
 
         # Batch size

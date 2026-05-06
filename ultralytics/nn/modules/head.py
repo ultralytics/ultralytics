@@ -1804,8 +1804,11 @@ class ADMBHead(nn.Module):
             nc-class vocabulary scores (False).
     """
 
-    def __init__(self, vocab: nn.Module, loc: nn.Module, temperature: float = 3.0,
-                 accumulate_thresh: float = 0.4, K=15, score_filter_kernel: int = 1) -> None:
+    def __init__(self, vocab: nn.Module, loc: nn.Module,
+                 anomaly_args: dict | None = None,
+                 # Legacy individual params — used when anomaly_args is None (backward compat).
+                 temperature: float = 3.0, accumulate_thresh: float = 0.4,
+                 K: int = 15, score_filter_kernel: int = 1) -> None:
         super().__init__()
         # Accept either a 1x1 Conv2d or a pre-built Linear (e.g. copied from another head).
         self.vocab_linear = vocab if isinstance(vocab, nn.Linear) else self._conv2linear(vocab)
@@ -1813,28 +1816,31 @@ class ADMBHead(nn.Module):
         self.register_buffer("memory_bank", torch.empty(0, 0), persistent=True)
         self.feature_dim: int | None = None
         self.update = True
-        self.temperature = temperature
-        self.K = K
-        self.accumulate_thresh = accumulate_thresh
-        self.score_filter_kernel = score_filter_kernel
         self.enabled = True  # set False to skip this head entirely (no accumulation, no proposals)
+        self._calibrated = False
+        self._calibration_image_count = 0
 
-        # ── auto temperature calibration ──────────────────────────────────────
-        self.auto_temperature = True        # derive β from data rather than keeping the fixed default
-        self.calibration_interval = 0       # 0 = calibrate once; N>0 = re-calibrate every N support images
-        self.min_calibration_bank_size = 50 # minimum bank size before calibration fires
-        self.calibration_target_score = 0.2 # desired anomaly-score for "typical normal" features (< accumulate_thresh)
+        # All scoring / calibration params — seeded from anomaly_args dict (or legacy kwargs).
+        args = anomaly_args if anomaly_args is not None else {
+            "temperature": temperature,
+            "accumulate_thresh": accumulate_thresh,
+            "K": K,
+            "score_filter_kernel": score_filter_kernel,
+        }
+        self.temperature               = args.get("temperature",               3.0)
+        self.K                         = args.get("K",                         15)
+        self.accumulate_thresh         = args.get("accumulate_thresh",         0.4)
+        self.score_filter_kernel       = args.get("score_filter_kernel",       1)
+        self.auto_temperature          = args.get("auto_temperature",          True)
+        self.calibration_interval      = args.get("calibration_interval",      0)
+        self.min_calibration_bank_size = args.get("min_calibration_bank_size", 50)
+        self.calibration_target_score  = args.get("calibration_target_score",  0.2)
+        self.em_iters                  = args.get("em_iters",                  1)
+
         assert self.calibration_target_score < self.accumulate_thresh, (
             f"calibration_target_score ({self.calibration_target_score}) must be "
             f"< accumulate_thresh ({self.accumulate_thresh})"
         )
-        self._calibrated = False            # whether the first calibration has already run
-        self._calibration_image_count = 0   # total support images processed so far
-
-        # ── EM-style iterative bank construction ──────────────────────────────
-        self.em_iters = 1  # total E-step passes; 1 = single-pass (current behaviour);
-                           # >1 = after E-step₁ run M-step (calibrate β) then E-step₂ … until
-                           # no new features are added (convergence) or em_iters exhausted.
 
 
     # ── configuration ────────────────────────────────────────────────────────
@@ -2242,28 +2248,72 @@ class AnomalyDetection(Detect):
         """
         super().__init__(nc, reg_max, end2end, ch)
         self.adhead = None  # Anomaly detection head will be built separately with build_adhead()
-
-        self.accumulate_thresh = 0.4  # score threshold for memory-bank accumulation during update; see ADMBHead._online_bootstrapped_memory_accumulation()
-        self.temperature = 3.0         # Noisy-OR temperature exponent; see ADMBHead._anomaly_scores()
-        self.K = 15                    # number of top-k most similar features to consider in anomaly scoring; see ADMBHead._anomaly_scores()
-        self.score_filter_kernel = 1   # kernel size for spatial mean filter on score map (1 = disabled, 3/5/7 = smoothing)
-
-        self.ad_conf = 0.5      # confidence threshold for anomaly proposals during inference; see ADMBHead.forward()
-        self.ad_max_det = 9     # maximum number of detections per image during inference; see ADMBHead.forward()
-        self.anomaly_mode = True  # whether to output single-channel anomaly logits (True) or nc-class vocabulary scores (False); see ADMBHead.forward()
-        self.feature_mode = "per_level"  # per_level | fused_heatmap
-        self.return_heatmap = False
-        self.heatmap_logits = False
         self.fused_adhead = None
         self.last_heatmap = None
-        # Fused-heatmap fusion controls (used only when feature_mode=="fused_heatmap")
-        # Default [0, 1] keeps the highest-resolution layers (P3+P4) for fine-grained heatmap localization.
-        self.fused_layers: list[int] | None = [0, 1]      # which layer indices to fuse; None = all
-        self.fused_use_pre_clshead: bool = False          # True → fuse raw x[i]; False → fuse cls_heads[i](x[i])
+
+        # Central parameter store — all anomaly-specific params live here.
+        # Use set_anomaly_args(**kwargs) or direct attribute access (via @property) to update.
+        self.anomaly_args: dict = {
+            "ad_conf": 0.5, "ad_max_det": 9, "anomaly_mode": True,
+            "feature_mode": "per_level", "return_heatmap": False, "heatmap_logits": False,
+            "fused_layers": [0, 1], "fused_use_pre_clshead": False,
+            "accumulate_thresh": 0.4, "temperature": 3.0, "K": 15, "score_filter_kernel": 1,
+            "auto_temperature": True, "calibration_interval": 0, "calibration_target_score": 0.2,
+            "min_calibration_bank_size": 50, "em_iters": 1,
+        }
 
         # Auto-build ADMBHead sub-modules when constructed from YAML (not from from_detect_head)
         if ch:
             self.build_adhead()
+
+    def __getattr__(self, name: str):
+        """Backward-compat fallback: build anomaly_args from old flat attrs on legacy .pt models.
+
+        Also provides transparent dict-key access for any key in anomaly_args that doesn't have
+        an explicit @property (e.g. ``head.em_iters``, ``head.auto_temperature``).
+        """
+        if name == "anomaly_args":
+            _defaults = {
+                "ad_conf": 0.5, "ad_max_det": 9, "anomaly_mode": True,
+                "feature_mode": "per_level", "return_heatmap": False, "heatmap_logits": False,
+                "fused_layers": [0, 1], "fused_use_pre_clshead": False,
+                "accumulate_thresh": 0.4, "temperature": 3.0, "K": 15, "score_filter_kernel": 1,
+                "auto_temperature": True, "calibration_interval": 0, "calibration_target_score": 0.2,
+                "min_calibration_bank_size": 50, "em_iters": 1,
+            }
+            args = {k: (list(v) if isinstance(v, list) else v) for k, v in _defaults.items()}
+            for k in _defaults:
+                v = self.__dict__.get(k)
+                if v is not None:
+                    args[k] = list(v) if isinstance(v, list) else v
+            # Clean up stale flat attrs from __dict__ to avoid confusion.
+            for k in _defaults:
+                self.__dict__.pop(k, None)
+            self.__dict__["anomaly_args"] = args
+            return args
+        if "anomaly_args" in self.__dict__ and name in self.__dict__["anomaly_args"]:
+            return self.__dict__["anomaly_args"][name]
+        return super().__getattr__(name)
+
+    def __setattr__(self, name: str, value) -> None:
+        """Route anomaly_args key writes to the dict; handle side-effects for anomaly_mode/feature_mode."""
+        if "anomaly_args" in self.__dict__ and name in self.__dict__["anomaly_args"]:
+            if name == "anomaly_mode":
+                if getattr(self, "adhead", None) is not None:
+                    self.set_anomaly_mode(bool(value))
+                else:
+                    self.__dict__["anomaly_args"]["anomaly_mode"] = bool(value)
+            elif name == "feature_mode":
+                if value not in {"per_level", "fused_heatmap"}:
+                    raise ValueError(f"Unsupported feature_mode={value!r}.")
+                self.__dict__["anomaly_args"]["feature_mode"] = value
+                if value == "fused_heatmap" and getattr(self, "adhead", None) is not None:
+                    if not isinstance(getattr(self, "fused_adhead", None), ADMBHead):
+                        self.fused_adhead = self._build_fused_head(copy.deepcopy(self.adhead[0].vocab_linear))
+            else:
+                self.__dict__["anomaly_args"][name] = value
+        else:
+            super().__setattr__(name, value)
 
     @classmethod
     def from_detect_head(cls, head: "Detect") -> "AnomalyDetection":
@@ -2311,20 +2361,25 @@ class AnomalyDetection(Detect):
 
         # Set AD-specific defaults (absent on a raw Detect/YOLOEDetect head).
         new.adhead = None
-        new.ad_conf = getattr(head, "ad_conf", 0.5)
-        new.ad_max_det = getattr(head, "ad_max_det", 15)
-        new.accumulate_thresh = getattr(head, "accumulate_thresh", 0.4)
-        new.temperature = getattr(head, "temperature", 3.0)
-        new.K = getattr(head, "K", 15)
-        new.score_filter_kernel = getattr(head, "score_filter_kernel", 1)
-        new.anomaly_mode = getattr(head, "anomaly_mode", True)
-        new.feature_mode = getattr(head, "feature_mode", "per_level")
-        new.return_heatmap = getattr(head, "return_heatmap", False)
-        new.heatmap_logits = getattr(head, "heatmap_logits", False)
         new.fused_adhead = getattr(head, "fused_adhead", None)
         new.last_heatmap = getattr(head, "last_heatmap", None)
-        new.fused_layers = getattr(head, "fused_layers", [0, 1])
-        new.fused_use_pre_clshead = getattr(head, "fused_use_pre_clshead", False)
+        # Build anomaly_args: migrate from old flat attrs if head is pre-refactor style.
+        if "anomaly_args" not in new.__dict__:
+            _defaults = {
+                "ad_conf": 0.5, "ad_max_det": 9, "anomaly_mode": True,
+                "feature_mode": "per_level", "return_heatmap": False, "heatmap_logits": False,
+                "fused_layers": [0, 1], "fused_use_pre_clshead": False,
+                "accumulate_thresh": 0.4, "temperature": 3.0, "K": 15, "score_filter_kernel": 1,
+                "auto_temperature": True, "calibration_interval": 0, "calibration_target_score": 0.2,
+                "min_calibration_bank_size": 50, "em_iters": 1,
+            }
+            args = {k: (list(v) if isinstance(v, list) else v) for k, v in _defaults.items()}
+            for k in _defaults:
+                v = new.__dict__.pop(k, None)
+                if v is not None:
+                    args[k] = list(v) if isinstance(v, list) else v
+            new.__dict__["anomaly_args"] = args
+        new.__dict__.setdefault("original_nc", head.nc)
         return new
 
     def _get_feature_heads(self) -> tuple[nn.ModuleList, nn.ModuleList]:
@@ -2342,10 +2397,7 @@ class AnomalyDetection(Detect):
         fused_head = ADMBHead(
             vocab=vocab,
             loc=nn.Identity(),
-            accumulate_thresh=self.accumulate_thresh,
-            temperature=self.temperature,
-            K=self.K,
-            score_filter_kernel=self.score_filter_kernel,
+            anomaly_args=self.anomaly_args,
         )
         fused_head._memory_tensor()
         return fused_head
@@ -2390,11 +2442,7 @@ class AnomalyDetection(Detect):
             del cls_head[-1]
 
         self.adhead = nn.ModuleList(
-            ADMBHead(vocab=saved_vocab[i], loc=saved_loc[i],
-                     accumulate_thresh=self.accumulate_thresh,
-                     temperature=self.temperature,
-                     K=self.K,
-                     score_filter_kernel=self.score_filter_kernel)
+            ADMBHead(vocab=saved_vocab[i], loc=saved_loc[i], anomaly_args=self.anomaly_args)
             for i in range(self.nl)
         )
         self.fused_adhead = self._build_fused_head(saved_vocab[0])
@@ -2407,6 +2455,21 @@ class AnomalyDetection(Detect):
         """No-op: ADMBHead manages its own scoring; standard Detect bias init does not apply."""
         pass
 
+    def _propagate_to_subheads(self) -> None:
+        """Sync shared params from anomaly_args to every ADMBHead instance."""
+        if getattr(self, "adhead", None) is None:
+            return
+        for h in self.iter_ad_heads():
+            for k, v in self.anomaly_args.items():
+                if hasattr(h, k):
+                    setattr(h, k, v)
+        # Invariant: calibration_target_score < accumulate_thresh.
+        for h in self.iter_ad_heads():
+            assert h.calibration_target_score < h.accumulate_thresh, (
+                f"calibration_target_score ({h.calibration_target_score}) must be "
+                f"< accumulate_thresh ({h.accumulate_thresh})"
+            )
+
     def set_anomaly_mode(self, anomaly_mode: bool) -> None:
         """Switch between anomaly scoring (nc=1) and original classification (nc=original_nc).
 
@@ -2415,6 +2478,7 @@ class AnomalyDetection(Detect):
                                  False = original nc-class classification (e.g., 80 COCO classes).
         """
         assert self.adhead is not None, "Call build_adhead() first."
+        self.anomaly_args["anomaly_mode"] = bool(anomaly_mode)  # keep dict in sync
         self.nc = 1 if anomaly_mode else getattr(self, "original_nc", self.nc)
         for h in self.adhead:
             h.anomaly_mode = anomaly_mode
@@ -2488,108 +2552,35 @@ class AnomalyDetection(Detect):
         return heatmap
 
 
-    def set_ad_params(
+    def set_anomaly_args(
         self,
-        ad_conf: float | None = None,
-        ad_max_det: int | None = None,
-        accumulate_thresh: float | None = None,
-        score_filter_kernel: int | None = None,
-        active_layers: list[int] | None = None,
-        auto_temperature: bool | None = None,
-        calibration_interval: int | None = None,
-        em_iters: int | None = None,
-        calibration_target_score: float | None = None,
-        feature_mode: str | None = None,
-        return_heatmap: bool | None = None,
-        heatmap_logits: bool | None = None,
-        fused_layers: list[int] | None = None,
-        fused_use_pre_clshead: bool | None = None,
+        active_layers: "list[int] | None" = None,
+        mode: "str | None" = None,
+        **kwargs,
     ) -> None:
-        """Set anomaly-detection inference parameters.
+        """Set anomaly-detection parameters from keyword arguments.
 
-        Args:
-            ad_conf (float | None): Confidence threshold for anomaly proposals.
-            ad_max_det (int | None): Maximum number of detections per image.
-            accumulate_thresh (float | None): Score threshold for OBMA memory-bank accumulation.
-            score_filter_kernel (int | None): Kernel size for spatial mean filter on score map.
-                                              1 = disabled, 3/5/7 = increasing smoothing.
-            active_layers (list[int] | None): Indices of detection layers to enable, e.g. [0, 1] to use
-                                             only the first two (P3+P4) heads.  None = all enabled.
-                                             Head 0 = largest feature map (most detections),
-                                             head 2 = smallest (coarsest features).
-            auto_temperature (bool | None): Enable automatic temperature calibration from data.
-                                            When True (default), β is derived from the 90th-percentile
-                                            cosine similarity in the bank once it reaches
-                                            ``min_calibration_bank_size`` features.
-            calibration_interval (int | None): Re-calibrate every N support images (0 = once only).
-            em_iters (int | None): Number of EM-style E↔M iteration rounds during bank construction.
-                                   1 = single pass (default, current behaviour).
-                                   >1 = after the initial OBMA E-step, re-calibrate β (M-step) then
-                                   re-score all features (E-step) until no new features are added
-                                   or em_iters rounds are exhausted.
-            calibration_target_score (float | None): Desired anomaly score for typical normal features.
-                                                     Must be strictly less than ``accumulate_thresh``.
-            feature_mode (str | None): Feature scoring path. Supported values are ``per_level`` and ``fused_heatmap``.
-            return_heatmap (bool | None): Whether to attach the fused heatmap to the auxiliary prediction dict.
-            heatmap_logits (bool | None): Whether fused heatmap outputs should be returned as logits.
+        All parameter names map directly to keys in ``self.anomaly_args``.
+        Property setters fire automatically via ``setattr``, handling side-effects
+        (e.g. ``feature_mode`` auto-builds ``fused_adhead``, ``anomaly_mode`` updates ``self.nc``).
+
+        Special non-dict args:
+            active_layers (list[int] | None): Indices of adheads to enable; None = all.
+            mode (str | None): Shortcut to switch mode (``'anomaly'`` or ``'detect'``).
+
+        Valid keys: see ``self.anomaly_args`` for the full list.
         """
-        if ad_conf is not None:
-            self.ad_conf = ad_conf
-        if ad_max_det is not None:
-            self.ad_max_det = ad_max_det
-        if feature_mode is not None:
-            if feature_mode not in {"per_level", "fused_heatmap"}:
-                raise ValueError(f"Unsupported feature_mode={feature_mode!r}.")
-            self.feature_mode = feature_mode
-            # Auto-build fused_adhead for models saved before this feature was added.
-            if feature_mode == "fused_heatmap" and self.adhead is not None:
-                if not isinstance(getattr(self, "fused_adhead", None), ADMBHead):
-                    import copy
-                    self.fused_adhead = self._build_fused_head(
-                        copy.deepcopy(self.adhead[0].vocab_linear)
-                    )
-        if return_heatmap is not None:
-            self.return_heatmap = return_heatmap
-        if heatmap_logits is not None:
-            self.heatmap_logits = heatmap_logits
-        if fused_layers is not None:
-            self.fused_layers = list(fused_layers) if fused_layers else None
-        if fused_use_pre_clshead is not None:
-            self.fused_use_pre_clshead = bool(fused_use_pre_clshead)
-        if accumulate_thresh is not None:
-            self.accumulate_thresh = accumulate_thresh
-            if self.adhead is not None:
-                for h in self.iter_ad_heads():
-                    h.accumulate_thresh = accumulate_thresh
-        if calibration_target_score is not None and self.adhead is not None:
-            for h in self.iter_ad_heads():
-                h.calibration_target_score = calibration_target_score
-        # Enforce invariant: calibration_target_score < accumulate_thresh.
-        # Checked whenever either value is updated so silent violations are caught immediately.
-        if (accumulate_thresh is not None or calibration_target_score is not None) and self.adhead is not None:
-            for h in self.iter_ad_heads():
-                assert h.calibration_target_score < h.accumulate_thresh, (
-                    f"calibration_target_score ({h.calibration_target_score}) must be "
-                    f"< accumulate_thresh ({h.accumulate_thresh})"
-                )
-        if score_filter_kernel is not None:
-            self.score_filter_kernel = score_filter_kernel
-            if self.adhead is not None:
-                for h in self.iter_ad_heads():
-                    h.score_filter_kernel = score_filter_kernel
+        unknown = set(kwargs) - self.anomaly_args.keys()
+        if unknown:
+            raise ValueError(f"Unknown anomaly args: {unknown}. Valid keys: {set(self.anomaly_args)}")
+        for k, v in kwargs.items():
+            setattr(self, k, v)  # routes through __setattr__ → handles side-effects for anomaly_mode/feature_mode
+        self._propagate_to_subheads()
         if active_layers is not None and self.adhead is not None:
             for i, h in enumerate(self.adhead):
                 h.enabled = (i in active_layers)
-        if auto_temperature is not None and self.adhead is not None:
-            for h in self.iter_ad_heads():
-                h.auto_temperature = auto_temperature
-        if calibration_interval is not None and self.adhead is not None:
-            for h in self.iter_ad_heads():
-                h.calibration_interval = calibration_interval
-        if em_iters is not None and self.adhead is not None:
-            for h in self.iter_ad_heads():
-                h.em_iters = em_iters
-
+        if mode is not None:
+            self.set_anomaly_mode(mode == "anomaly")
 
     def _get_decode_boxes(self, x):
         """Decode boxes; for end2end filter to anomaly-selected positions, for non-end2end keep all."""

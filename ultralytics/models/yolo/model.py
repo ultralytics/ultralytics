@@ -776,7 +776,7 @@ class YOLOAnomaly(Model):
         scoring (nc=1).  Pass ``["detect"]`` to use the model's original classification head
         scores with the original class names — useful for baseline comparison.
 
-        Use set_ad_params() to configure the detection threshold (ad_conf) and max detections
+        Use set_anomaly_args() to configure the detection threshold (ad_conf) and max detections
         (ad_max_det) independently before running predict().
 
         Args:
@@ -960,7 +960,7 @@ class YOLOAnomaly(Model):
         assert isinstance(self.model, YOLOAnomalyModel)
         return self.model.get_memory_bank_stats()
 
-    def set_ad_params(
+    def set_anomaly_args(
         self,
         ad_conf: float | None = None,
         ad_max_det: int | None = None,
@@ -989,37 +989,41 @@ class YOLOAnomaly(Model):
             active_layers (list[int] | None): Indices of detection layers to enable, e.g. [0, 1] uses only
                                               the first two (P3+P4). None = all layers enabled.
             auto_temperature (bool | None): Enable/disable automatic temperature calibration from data.
-                                            When True (default), β is derived from the 90th-percentile
-                                            cosine similarity once the bank has enough features.
             calibration_interval (int | None): Re-calibrate every N support images (0 = calibrate once only).
             em_iters (int | None): EM iteration rounds during bank construction (1=single pass, default).
             calibration_target_score (float | None): Desired anomaly score for typical normal features.
-                                                     Must be strictly less than ``accumulate_thresh``.
             feature_mode (str | None): Feature scoring path, ``per_level`` or ``fused_heatmap``.
             return_heatmap (bool | None): Attach fused heatmap to the auxiliary prediction dict.
             heatmap_logits (bool | None): Return fused heatmap in logits instead of probabilities.
         """
-        assert isinstance(self.model, YOLOAnomalyModel), "Call setup() before set_ad_params()."
+        assert isinstance(self.model, YOLOAnomalyModel), "Call setup() before set_anomaly_args()."
         head = self.model.model[-1]
-        assert isinstance(head, AnomalyDetection), "Call setup() before set_ad_params()."
-        head.set_ad_params(
-            ad_conf=ad_conf,
-            ad_max_det=ad_max_det,
-            accumulate_thresh=accumulate_thresh,
-            score_filter_kernel=score_filter_kernel,
-            active_layers=active_layers,
-            auto_temperature=auto_temperature,
-            calibration_interval=calibration_interval,
-            em_iters=em_iters,
-            calibration_target_score=calibration_target_score,
-            feature_mode=feature_mode,
-            return_heatmap=return_heatmap,
-            heatmap_logits=heatmap_logits,
-            fused_layers=fused_layers,
-            fused_use_pre_clshead=fused_use_pre_clshead,
-        )
-        if mode is not None:
-            self.set_mode(mode)
+        assert isinstance(head, AnomalyDetection), "Call setup() before set_anomaly_args()."
+        # Build kwargs dict for head.set_anomaly_args (excludes special non-dict params).
+        kwargs = {k: v for k, v in {
+            "ad_conf": ad_conf,
+            "ad_max_det": ad_max_det,
+            "accumulate_thresh": accumulate_thresh,
+            "score_filter_kernel": score_filter_kernel,
+            "auto_temperature": auto_temperature,
+            "calibration_interval": calibration_interval,
+            "em_iters": em_iters,
+            "calibration_target_score": calibration_target_score,
+            "feature_mode": feature_mode,
+            "return_heatmap": return_heatmap,
+            "heatmap_logits": heatmap_logits,
+            "fused_layers": fused_layers,
+            "fused_use_pre_clshead": fused_use_pre_clshead,
+        }.items() if v is not None}
+        head.set_anomaly_args(active_layers=active_layers, mode=mode, **kwargs)
+
+    @property
+    def anomaly_args(self) -> dict:
+        """Return the current anomaly_args dict from the head for quick inspection."""
+        head = self.model.model[-1]
+        if isinstance(head, AnomalyDetection):
+            return head.anomaly_args
+        return {}
 
     def set_mode(self, mode: str) -> None:
         """
@@ -1110,16 +1114,7 @@ class YOLOAnomaly(Model):
                 "anomaly_names": getattr(self.model, "_anomaly_names", dict(self.model.names)),
                 "original_names": getattr(self.model, "_original_names", {}),
                 "original_nc": getattr(self.model, "_original_nc", getattr(head, "original_nc", head.nc)),
-                "anomaly_mode": head.anomaly_mode,
-                "ad_conf": head.ad_conf,
-                "ad_max_det": head.ad_max_det,
-                "temperature": head.temperature,
-                "K": head.K,
-                "accumulate_thresh": head.accumulate_thresh,
-                "score_filter_kernel": head.score_filter_kernel,
-                "feature_mode": head.feature_mode,
-                "return_heatmap": head.return_heatmap,
-                "heatmap_logits": head.heatmap_logits,
+                "anomaly_args": dict(head.anomaly_args),
             }
 
         updates = {
@@ -1159,24 +1154,20 @@ class YOLOAnomaly(Model):
                 self.model._original_names = meta.get("original_names", {})
                 self.model._original_nc = meta.get("original_nc", head.nc)
                 head.original_nc = self.model._original_nc
-                head.ad_conf = meta.get("ad_conf", 0.5)
-                head.ad_max_det = meta.get("ad_max_det", 9)
-                head.temperature = meta.get("temperature", 3.0)
-                head.K = meta.get("K", 15)
-                head.accumulate_thresh = meta.get("accumulate_thresh", 0.4)
-                head.score_filter_kernel = meta.get("score_filter_kernel", 1)
-                head.feature_mode = meta.get("feature_mode", "per_level")
-                head.return_heatmap = meta.get("return_heatmap", False)
-                head.heatmap_logits = meta.get("heatmap_logits", False)
 
-                # Propagate params to ADMBHead sub-modules
-                for h in head.iter_ad_heads(include_fused=True):
-                    h.temperature = head.temperature
-                    h.K = head.K
-                    h.accumulate_thresh = head.accumulate_thresh
-                    h.score_filter_kernel = head.score_filter_kernel
+                # Restore anomaly_args (new format) or fall back to old per-key format.
+                saved_args = meta.get("anomaly_args")
+                if saved_args:
+                    head.set_anomaly_args(**{k: v for k, v in saved_args.items()
+                                            if k not in ("anomaly_mode",)})
+                else:
+                    # Legacy checkpoint: individual keys stored at the meta top level.
+                    legacy = {k: meta[k] for k in head.anomaly_args if k in meta
+                              and k != "anomaly_mode"}
+                    if legacy:
+                        head.set_anomaly_args(**legacy)
 
-                anomaly_mode = meta.get("anomaly_mode", True)
+                anomaly_mode = (saved_args or meta).get("anomaly_mode", True)
                 head.set_anomaly_mode(anomaly_mode)
                 if anomaly_mode:
                     self.model.names = {0: list(self.model._anomaly_names.values())[0]}

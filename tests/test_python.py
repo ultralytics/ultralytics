@@ -2,6 +2,7 @@
 
 import contextlib
 import csv
+import subprocess
 import tarfile
 import urllib
 import zipfile
@@ -506,6 +507,14 @@ def test_cfg_init():
     assert smart_value("__import__('os').system('ls')") == "__import__('os').system('ls')"
     assert smart_value("eval('1+1')") == "eval('1+1')"
     assert smart_value("exec('x=1')") == "exec('x=1')"
+
+    # Test dotted numeric constant resolution (e.g. colormap=cv2.COLORMAP_INFERNO from CLI)
+    assert smart_value("cv2.COLORMAP_INFERNO") == cv2.COLORMAP_INFERNO
+    assert smart_value("cv2.COLORMAP_PARULA") == cv2.COLORMAP_PARULA
+    assert smart_value("subprocess.PIPE") == subprocess.PIPE
+    assert smart_value("cv2.VideoCapture") == "cv2.VideoCapture"  # non-int attr falls through
+    assert smart_value("cv2.NOT_A_REAL_CONSTANT") == "cv2.NOT_A_REAL_CONSTANT"  # unknown name falls through
+    assert smart_value("os.PATH") == "os.PATH"  # unimported modules fall through
 
 
 def test_utils_init():

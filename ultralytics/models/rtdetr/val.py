@@ -173,7 +173,7 @@ class RTDETRValidator(DetectionValidator):
                 - 'conf': Tensor of shape (N,) with confidence scores
                 - 'cls': Tensor of shape (N,) with class indices
         """
-        if isinstance(preds, (list, tuple)):  # list for PyTorch inference but list[0] Tensor for export inference
+        if isinstance(preds, (list, tuple)):
             preds = preds[0]
 
         bboxes, scores, labels = preds.split((4, 1, 1), dim=-1)

@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from types import ModuleType, SimpleNamespace
+from types import SimpleNamespace
 from typing import Any
 
 from ultralytics import __version__
@@ -30,7 +30,6 @@ from ultralytics.utils import (
     IterableSimpleNamespace,
     checks,
     colorstr,
-    cv2 as cv2,
     deprecation_warn,
     vscode_msg,
 )
@@ -841,8 +840,8 @@ def smart_value(v: str) -> Any:
             return ast.literal_eval(v)
         except Exception:
             name, _, attr = v.partition(".")
-            module = globals().get(name)
-            if isinstance(module, ModuleType) and attr.isupper() and attr.replace("_", "").isalnum():
+            module = sys.modules.get(name)
+            if module and attr.isupper() and attr.replace("_", "").isalnum():
                 value = getattr(module, attr, None)
                 if isinstance(value, (int, float)):
                     return value

@@ -33,9 +33,6 @@ from ultralytics.utils import (
     deprecation_warn,
     vscode_msg,
 )
-from ultralytics.utils import (
-    cv2 as cv2,
-)
 
 # Define valid solutions
 SOLUTION_MAP = {
@@ -843,8 +840,7 @@ def smart_value(v: str) -> Any:
             return ast.literal_eval(v)
         except Exception:
             name, _, attr = v.partition(".")
-            module = sys.modules.get(name)
-            if module and attr.isupper() and attr.replace("_", "").isalnum():
+            if (module := sys.modules.get(name)) and attr.isupper():
                 value = getattr(module, attr, None)
                 if isinstance(value, (int, float)):
                     return value

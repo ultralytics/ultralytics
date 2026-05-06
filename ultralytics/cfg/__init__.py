@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
 from typing import Any
 
 from ultralytics import __version__
@@ -30,6 +30,7 @@ from ultralytics.utils import (
     IterableSimpleNamespace,
     checks,
     colorstr,
+    cv2 as cv2,
     deprecation_warn,
     vscode_msg,
 )
@@ -839,16 +840,12 @@ def smart_value(v: str) -> Any:
         try:
             return ast.literal_eval(v)
         except Exception:
-            # Resolve cv2.<UPPERCASE_CONSTANT> (e.g. colormap=cv2.COLORMAP_INFERNO from CLI)
-            if v.startswith("cv2.") and v[4:].replace("_", "").isalnum() and v[4:].isupper():
-                try:
-                    import cv2
-
-                    attr = getattr(cv2, v[4:], None)
-                    if isinstance(attr, int):
-                        return attr
-                except Exception:
-                    pass
+            name, _, attr = v.partition(".")
+            module = globals().get(name)
+            if isinstance(module, ModuleType) and attr.isupper() and attr.replace("_", "").isalnum():
+                value = getattr(module, attr, None)
+                if isinstance(value, (int, float)):
+                    return value
             return v
 
 

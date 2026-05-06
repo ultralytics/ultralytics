@@ -34,7 +34,7 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
     """
     try:
         file_bytes = np.fromfile(path, dtype=dtype)
-    except Exception as e:
+    except Exception:
         return None
     if filename.endswith((".tiff", ".tif")):
         success, frames = cv2.imdecodemulti(file_bytes, cv2.IMREAD_UNCHANGED)

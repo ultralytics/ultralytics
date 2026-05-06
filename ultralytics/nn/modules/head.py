@@ -1783,6 +1783,46 @@ class v10Detect(Detect):
         self.cv2 = self.cv3 = None
 
 
+def _coreset_subsample(mem: "torch.Tensor", max_size: int) -> "torch.Tensor":
+    """Greedy k-center coreset selection on an L2-normalised feature matrix.
+
+    Selects *max_size* rows from *mem* that maximally cover the feature space
+    (minimises the largest nearest-neighbour distance to any un-selected point).
+    Uses cosine distance (1 - cos_sim) as the metric; features must be L2-normalised.
+
+    Complexity: O(max_size × M) dot-products — runs once at freeze time.
+
+    Args:
+        mem: [M, C] L2-normalised feature matrix.
+        max_size: Target number of entries to keep.
+
+    Returns:
+        [max_size, C] selected subset.
+    """
+    import torch
+    M = mem.shape[0]
+    if M <= max_size:
+        return mem
+    device = mem.device
+    # dist_to_selected[i] = cosine distance from point i to its nearest selected centre.
+    # Initialise to inf (nothing selected yet).
+    dist = torch.full((M,), float("inf"), device=device, dtype=torch.float32)
+    selected: list[int] = []
+    # Seed: pick the point closest to the global mean (most "typical").
+    mean = mem.mean(dim=0)
+    mean = mean / mean.norm().clamp(min=1e-8)
+    seed = int((mem @ mean).argmax().item())
+    selected.append(seed)
+    for _ in range(max_size - 1):
+        centre = mem[selected[-1]].unsqueeze(0)          # [1, C]
+        cos_sim = (mem @ centre.t()).squeeze(1)           # [M]  in [-1, 1]
+        new_dist = (1.0 - cos_sim).clamp(min=0.0)        # cosine distance
+        dist = torch.minimum(dist, new_dist)
+        selected.append(int(dist.argmax().item()))
+    idx = torch.tensor(selected, device=device)
+    return mem[idx]
+
+
 class ADMBHead(nn.Module):
     """Memory-bank anomaly detection head.
 
@@ -1836,6 +1876,7 @@ class ADMBHead(nn.Module):
         self.min_calibration_bank_size = args.get("min_calibration_bank_size", 50)
         self.calibration_target_score  = args.get("calibration_target_score",  0.2)
         self.em_iters                  = args.get("em_iters",                  1)
+        self.max_bank_size             = args.get("max_bank_size",             None)
 
         assert self.calibration_target_score < self.accumulate_thresh, (
             f"calibration_target_score ({self.calibration_target_score}) must be "
@@ -1855,6 +1896,22 @@ class ADMBHead(nn.Module):
         self.feature_dim = None
         self._calibrated = False
         self._calibration_image_count = 0
+
+    def compress_memory_bank(self, max_size: int) -> None:
+        """Compress the memory bank to *max_size* entries using greedy k-center coreset selection.
+
+        Features are already L2-normalised, so cosine distance  (1 − cos_sim) is used as the
+        distance metric.  Greedy k-center guarantees that the selected subset maximally covers
+        the original feature space (minimises the largest gap), which is far better than random
+        subsampling.  Complexity: O(max_size × M) dot-products — runs once, on the stored bank.
+
+        Called automatically after each OBMA pass when ``max_bank_size`` is set.
+        Can also be called manually at any time, e.g. after ``load_support_set``.
+        """
+        mem = self._effective_memory_bank()
+        if mem.shape[0] <= max_size:
+            return
+        self.memory_bank = _coreset_subsample(mem, max_size)
 
     def get_memory_bank_stats(self) -> dict:
         """Return size and feature dimension of the current memory bank."""
@@ -2044,8 +2101,6 @@ class ADMBHead(nn.Module):
         Returns:
             keep: bool [H*W] — positions accepted from the first batch image.
         """
-        mem = self._effective_memory_bank()
-        total_added = 0
         keep_flags = torch.zeros(H * W, dtype=torch.bool, device=cls_feat.device)
 
         # Pre-cache normalised features — reused across all EM passes.
@@ -2057,6 +2112,31 @@ class ADMBHead(nn.Module):
             )
             for b in range(B)
         ]  # list of [H*W, C]
+
+        # ── Coreset fast-path ────────────────────────────────────────────────
+        # When max_bank_size is set, collect ALL spatial features from every image
+        # (no threshold filtering) so that freeze_memory_bank() has the full picture
+        # before running k-center coreset once across all batches.
+        if self.max_bank_size is not None:
+            cur_bank = self._effective_memory_bank()
+            all_new = torch.cat(
+                [n.to(cls_feat.device, dtype=cls_feat.dtype) for n in all_normed], dim=0
+            )  # [B*H*W, C] — everything, no filtering
+            self.memory_bank = (
+                torch.cat([cur_bank, all_new], dim=0)
+                if cur_bank.shape[0] > 0
+                else all_new
+            )
+            LOGGER.debug(
+                "ADMBHead(coreset fast-path): batch collected +%d, bank_size=%d (compress deferred to freeze)",
+                all_new.shape[0],
+                self.memory_bank.shape[0],
+            )
+            return keep_flags
+        # ── /Coreset fast-path ───────────────────────────────────────────────
+
+        mem = self._effective_memory_bank()
+        total_added = 0
 
         def _run_obma_pass(mem_in: torch.Tensor, is_first_pass: bool):
             """One E-step: iterate over all images, add novel features to mem_in."""
@@ -2259,7 +2339,7 @@ class AnomalyDetection(Detect):
             "fused_layers": [0, 1], "fused_use_pre_clshead": False,
             "accumulate_thresh": 0.4, "temperature": 3.0, "K": 15, "score_filter_kernel": 1,
             "auto_temperature": True, "calibration_interval": 0, "calibration_target_score": 0.2,
-            "min_calibration_bank_size": 50, "em_iters": 1,
+            "min_calibration_bank_size": 50, "em_iters": 1, "max_bank_size": None,
         }
 
         # Auto-build ADMBHead sub-modules when constructed from YAML (not from from_detect_head)
@@ -2279,7 +2359,7 @@ class AnomalyDetection(Detect):
                 "fused_layers": [0, 1], "fused_use_pre_clshead": False,
                 "accumulate_thresh": 0.4, "temperature": 3.0, "K": 15, "score_filter_kernel": 1,
                 "auto_temperature": True, "calibration_interval": 0, "calibration_target_score": 0.2,
-                "min_calibration_bank_size": 50, "em_iters": 1,
+                "min_calibration_bank_size": 50, "em_iters": 1, "max_bank_size": None,
             }
             args = {k: (list(v) if isinstance(v, list) else v) for k, v in _defaults.items()}
             for k in _defaults:
@@ -2371,7 +2451,7 @@ class AnomalyDetection(Detect):
                 "fused_layers": [0, 1], "fused_use_pre_clshead": False,
                 "accumulate_thresh": 0.4, "temperature": 3.0, "K": 15, "score_filter_kernel": 1,
                 "auto_temperature": True, "calibration_interval": 0, "calibration_target_score": 0.2,
-                "min_calibration_bank_size": 50, "em_iters": 1,
+                "min_calibration_bank_size": 50, "em_iters": 1, "max_bank_size": None,
             }
             args = {k: (list(v) if isinstance(v, list) else v) for k, v in _defaults.items()}
             for k in _defaults:

@@ -972,11 +972,15 @@ class YOLOAnomaly(Model):
         calibration_interval: int | None = None,
         em_iters: int | None = None,
         calibration_target_score: float | None = None,
+        min_calibration_bank_size: int | None = None,
+        temperature: float | None = None,
+        K: int | None = None,
         feature_mode: str | None = None,
         return_heatmap: bool | None = None,
         heatmap_logits: bool | None = None,
         fused_layers: list[int] | None = None,
         fused_use_pre_clshead: bool | None = None,
+        max_bank_size: int | None = None,
     ) -> None:
         """Set anomaly-detection inference parameters and optionally switch mode.
 
@@ -995,6 +999,8 @@ class YOLOAnomaly(Model):
             feature_mode (str | None): Feature scoring path, ``per_level`` or ``fused_heatmap``.
             return_heatmap (bool | None): Attach fused heatmap to the auxiliary prediction dict.
             heatmap_logits (bool | None): Return fused heatmap in logits instead of probabilities.
+            max_bank_size (int | None): If set, use coreset fast-path during bank build and compress
+                                        bank to this size on freeze. None = normal OBMA (no size cap).
         """
         assert isinstance(self.model, YOLOAnomalyModel), "Call setup() before set_anomaly_args()."
         head = self.model.model[-1]
@@ -1009,11 +1015,15 @@ class YOLOAnomaly(Model):
             "calibration_interval": calibration_interval,
             "em_iters": em_iters,
             "calibration_target_score": calibration_target_score,
+            "min_calibration_bank_size": min_calibration_bank_size,
+            "temperature": temperature,
+            "K": K,
             "feature_mode": feature_mode,
             "return_heatmap": return_heatmap,
             "heatmap_logits": heatmap_logits,
             "fused_layers": fused_layers,
             "fused_use_pre_clshead": fused_use_pre_clshead,
+            "max_bank_size": max_bank_size,
         }.items() if v is not None}
         head.set_anomaly_args(active_layers=active_layers, mode=mode, **kwargs)
 

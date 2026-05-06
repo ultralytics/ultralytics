@@ -1514,7 +1514,23 @@ class YOLOAnomalyModel(DetectionModel):
             h.set_update(update)
 
     def freeze_memory_bank(self) -> None:
-        """Freeze the memory bank. Call after loading the support set."""
+        """Freeze the memory bank. Call after loading the support set.
+
+        When ``max_bank_size`` is set on a head (coreset mode), runs k-center
+        coreset compression once across all collected features before freezing.
+        """
+        from ultralytics.utils import LOGGER
+        for i, h in enumerate(self._get_ad_heads()):
+            raw = h.memory_bank.shape[0]
+            if h.max_bank_size is not None and raw > h.max_bank_size:
+                h.compress_memory_bank(h.max_bank_size)
+                after = h.memory_bank.shape[0]
+                LOGGER.info(
+                    "Head[%d]: coreset %d → %d (kept %.1f%%)",
+                    i, raw, after, 100.0 * after / max(raw, 1),
+                )
+            elif raw > 0:
+                LOGGER.info("Head[%d]: bank size=%d (no coreset)", i, raw)
         self.set_memory_update(False)
 
     def reset_memory_bank(self) -> None:

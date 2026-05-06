@@ -54,6 +54,8 @@ from ultralytics.utils import (
     url2file,
 )
 
+REMOTE_FILE_PREFIXES = ("https://", "http://", "rtsp://", "rtmp://", "tcp://", "ul://", "gs://")
+
 
 def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
     """Parse a requirements.txt file, ignoring lines that start with '#' and any text after '#'.
@@ -670,9 +672,7 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
             local_file.parent.mkdir(parents=True, exist_ok=True)
             downloads.safe_download(url=url, file=local_file, unzip=False)
         return str(local_file)
-    elif download and file.lower().startswith(
-        ("https://", "http://", "rtsp://", "rtmp://", "tcp://", "gs://")
-    ):  # download
+    elif download and file.lower().startswith(REMOTE_FILE_PREFIXES):  # download
         if file.startswith("gs://"):
             file = "https://storage.googleapis.com/" + file[5:]  # convert gs:// to public HTTPS URL
         url = file  # warning: Pathlib turns :// -> :/

@@ -352,6 +352,8 @@ class RTDETRBackboneLRTrainer(RTDETRTrainer):
 
         for module_name, module in unwrapped.named_modules():
             for param_name, param in module.named_parameters(recurse=False):
+                if not param.requires_grad:
+                    continue
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
                 parts = fullname.split(".")
                 section = (

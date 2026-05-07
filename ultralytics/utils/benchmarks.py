@@ -187,7 +187,14 @@ def benchmark(
             else:
                 export_data = data if "data" in valid_args else None
                 filename = deepcopy(model).export(
-                    imgsz=imgsz, format=format, half=half, int8=int8, data=export_data, device=device, verbose=False, **kwargs
+                    imgsz=imgsz,
+                    format=format,
+                    half=half,
+                    int8=int8,
+                    data=export_data,
+                    device=device,
+                    verbose=False,
+                    **kwargs,
                 )
                 exported_model = YOLO(filename, task=model.task)
                 assert suffix in str(filename), "export failed"

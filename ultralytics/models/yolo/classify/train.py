@@ -84,7 +84,7 @@ class ClassificationTrainer(BaseTrainer):
             model.load(weights)
 
         for m in model.modules():
-            if not self.args.pretrained and hasattr(m, "reset_parameters"):
+            if self.args.pretrained is False and hasattr(m, "reset_parameters"):
                 m.reset_parameters()
             if isinstance(m, torch.nn.Dropout) and self.args.dropout:
                 m.p = self.args.dropout  # set dropout

@@ -218,7 +218,9 @@ graph LR
 
 ## Browse Images
 
-View your dataset images in multiple layouts:
+View your dataset images in multiple layouts.
+
+Open the [Clustering](#clustering) panel from the gallery toolbar to explore your dataset as an interactive 2D scatter plot.
 
 | View        | Description                                                                       |
 | ----------- | --------------------------------------------------------------------------------- |
@@ -287,6 +289,67 @@ Filter images by their dataset split:
 | **Train** | Used for model training             |
 | **Val**   | Used for validation during training |
 | **Test**  | Used for final evaluation           |
+
+## Clustering
+
+The `Clustering` panel projects your dataset into an interactive 2D scatter plot where visually similar images sit close together. Use it to surface clusters, spot duplicates and outliers, and inspect how splits or classes are distributed across your data — without leaving the gallery. Open it from the scatter-chart icon in the gallery toolbar on any dataset page.
+
+![Ultralytics Platform Datasets Clustering Empty State](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-clustering-empty-state.avif)
+
+### Running Analysis
+
+Start an analysis:
+
+1. Open a dataset and click the scatter-chart icon in the gallery toolbar
+2. Click `Analyze Dataset`
+3. Wait for the progress bar to finish — results appear in the same panel
+
+Analysis runs in the background and can take a few minutes depending on the size of your dataset. You can close the panel or leave the page and come back later.
+
+### Visualization
+
+Once analysis completes, the panel shows a 2D scatter of all analyzed images. Gallery filters (split, class, labeled/unlabeled) dim out-of-filter points so you can focus on the subset you care about.
+
+![Ultralytics Platform Datasets Clustering Scatter Plot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-clustering.avif)
+
+#### Color By
+
+Change how data points are shaded with the `Color by` dropdown in the panel toolbar. Switch view modes at any time — the plot re-colors instantly so you can see how splits, classes, or image properties are distributed across your clusters:
+
+| Option          | Shading                              |
+| --------------- | ------------------------------------ |
+| **Splits**      | Train / Val / Test                   |
+| **Classes**     | First annotation class on each image |
+| **Width**       | Image width                          |
+| **Height**      | Image height                         |
+| **Size**        | File size                            |
+| **Annotations** | Number of annotations per image      |
+
+![Ultralytics Platform Datasets Clustering Color Modes](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-clustering-color-modes.avif)
+
+#### Lasso Selection
+
+Draw a free-form selection around a region to highlight points on the plot. The gallery filters down to the matching images, so you can inspect, relabel, move, or delete them using the usual [image operations](#image-operations).
+
+!!! tip "Clear Selection"
+
+    A chip above the chart shows how many points are selected — click the `×` to clear the lasso and return to the full gallery view.
+
+#### Pan and Zoom
+
+Navigate large scatters directly from your mouse and keyboard:
+
+| Input               | Action                                 |
+| ------------------- | -------------------------------------- |
+| **Scroll**          | Pan the plot in 2D                     |
+| **Cmd/Ctrl+Scroll** | Zoom in or out, anchored at the cursor |
+| **Hold Space**      | Switch to drag-to-pan mode             |
+
+### Re-analyzing
+
+If your dataset changes after analysis, a `Re-analyze` button appears at the top of the panel for owners and editors.
+
+Click `Re-analyze` to recompute embeddings and the 2D projection from scratch.
 
 ## Dataset Tabs
 

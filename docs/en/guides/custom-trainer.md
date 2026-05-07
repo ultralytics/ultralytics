@@ -316,7 +316,7 @@ model.train(data="coco8.yaml", epochs=20, trainer=PerLayerLRTrainer)
 
 ### RT-DETR Variant
 
-For RT-DETR the pattern is the same with two refinements. The backbone length is read from `model.yaml["backbone"]` so the same trainer works across RT-DETR variants (RT-DETR-L, RT-DETR-X, ResNet-50/101 backbones) without hardcoding layer counts. Parameters are also split into weight, BatchNorm, and bias groups within each section so weight decay applies only to convolutional weights, matching the default trainer's policy. This is especially useful for RT-DETR fine-tuning, where the decoder head is typically randomly initialized while the backbone carries pretrained features that benefit from a lower learning rate:
+For RT-DETR the pattern is the same with two refinements. The backbone length is read from `model.yaml["backbone"]` so the same trainer works across RT-DETR variants (RT-DETR-L, RT-DETR-X, ResNet-50/101 backbones) without hardcoding layer counts. Parameters are also split into weight, BatchNorm, and bias groups within each section so weight decay is excluded from BatchNorm parameters and biases, matching the default trainer's policy. This is especially useful for RT-DETR fine-tuning, where the decoder head is typically randomly initialized while the backbone carries pretrained features that benefit from a lower learning rate:
 
 ```python
 import torch

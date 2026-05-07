@@ -1,20 +1,21 @@
 ---
 comments: true
-description: Learn how to customize the Ultralytics YOLO trainer with custom metrics, class-weighted loss, custom model saving, backbone freezing, and per-layer learning rates.
-keywords: Ultralytics, YOLO, Custom Trainer, DetectionTrainer, BaseTrainer, Custom Metrics, F1 Score, Class Weights, Backbone Freezing, Per-Layer Learning Rate, Fine-Tuning, Transfer Learning
+description: Learn how to customize the Ultralytics YOLO trainer with custom metrics, class-weighted loss, custom model saving, backbone freezing, per-layer learning rates, and gradient clipping.
+keywords: Ultralytics, YOLO, Custom Trainer, DetectionTrainer, BaseTrainer, Custom Metrics, F1 Score, Class Weights, Backbone Freezing, Per-Layer Learning Rate, Gradient Clipping, Fine-Tuning, Transfer Learning
 ---
 
 # Customizing Trainer
 
 The Ultralytics training pipeline is built around `BaseTrainer` and task-specific trainers like `DetectionTrainer`. These classes handle the training loop, validation, checkpointing, and logging out of the box. When you need more control — tracking custom metrics, adjusting loss weighting, or implementing learning rate schedules — you can subclass the trainer and override specific methods.
 
-This guide walks through five common customizations:
+This guide walks through six common customizations:
 
 1. [Logging custom metrics (F1 score)](#logging-custom-metrics) at the end of each [epoch](https://www.ultralytics.com/glossary/epoch)
 2. [Adding class weights](#adding-class-weights) to handle class imbalance
 3. [Saving the best model](#saving-the-best-model-by-custom-metric) based on a different metric
 4. [Freezing the backbone](#freezing-and-unfreezing-the-backbone) for the first N epochs, then unfreezing
 5. [Specifying per-layer learning rates](#per-layer-learning-rates)
+6. [Configuring gradient clipping](#configurable-gradient-clipping) for stability tuning
 
 !!! tip "Prerequisites"
 
@@ -321,6 +322,48 @@ model.train(data="coco8.yaml", epochs=20, trainer=PerLayerLRTrainer)
 !!! tip "Combining Techniques"
 
     These customizations can be combined into a single trainer class by overriding multiple methods and adding callbacks as needed.
+
+## Configurable Gradient Clipping
+
+The default trainer clips gradients to `max_norm=10.0` in `optimizer_step()`, a loose value tuned for YOLO models where gradients rarely exceed it. DETR-family detectors (RT-DETR, DEIM, DINO) typically use much tighter values such as `0.1` to stabilize the decoder's cross-attention layers, where gradient magnitudes can spike. To override the clip value, subclass the trainer and override `optimizer_step()`:
+
+```python
+import torch
+
+from ultralytics import RTDETR
+from ultralytics.models.rtdetr.train import RTDETRTrainer
+
+
+class CustomClipTrainer(RTDETRTrainer):
+    """RT-DETR trainer with configurable gradient clipping."""
+
+    clip_grad_norm = 0.1  # max gradient norm; set to 0 to disable clipping
+
+    def optimizer_step(self):
+        """Run an optimizer step with a configurable gradient-norm clip."""
+        self.scaler.unscale_(self.optimizer)
+        if self.clip_grad_norm > 0:
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self.clip_grad_norm)
+        self.scaler.step(self.optimizer)
+        self.scaler.update()
+        self.optimizer.zero_grad()
+        if self.ema:
+            self.ema.update(self.model)
+
+
+model = RTDETR("rtdetr-l.pt")
+model.train(data="coco8.yaml", epochs=20, trainer=CustomClipTrainer)
+```
+
+The same trainer works for YOLO by switching the parent class to `DetectionTrainer` (`from ultralytics.models.yolo.detect import DetectionTrainer`) and loading a YOLO checkpoint with `YOLO("yolo26n.pt")`. The `optimizer_step` body is unchanged.
+
+!!! tip "Typical `clip_grad_norm` values"
+
+    | Architecture family          | Typical `max_norm` |
+    | ---------------------------- | ------------------ |
+    | RT-DETR / DEIM / DETR family | `0.1`              |
+    | YOLO (Ultralytics default)   | `10.0`             |
+    | Disable clipping             | `0`                |
 
 ## FAQ
 

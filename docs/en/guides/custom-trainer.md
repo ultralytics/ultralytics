@@ -1,20 +1,21 @@
 ---
 comments: true
-description: Learn how to customize the Ultralytics YOLO trainer with custom metrics, class-weighted loss, custom model saving, backbone freezing, and per-layer learning rates.
-keywords: Ultralytics, YOLO, Custom Trainer, DetectionTrainer, BaseTrainer, Custom Metrics, F1 Score, Class Weights, Backbone Freezing, Per-Layer Learning Rate, Fine-Tuning, Transfer Learning
+description: Learn how to customize the Ultralytics YOLO trainer with custom metrics, class-weighted loss, custom model saving, backbone freezing, per-layer learning rates, and SyncBatchNorm.
+keywords: Ultralytics, YOLO, Custom Trainer, DetectionTrainer, BaseTrainer, Custom Metrics, F1 Score, Class Weights, Backbone Freezing, Per-Layer Learning Rate, SyncBatchNorm, Multi-GPU Training, Fine-Tuning, Transfer Learning
 ---
 
 # Customizing Trainer
 
 The Ultralytics training pipeline is built around `BaseTrainer` and task-specific trainers like `DetectionTrainer`. These classes handle the training loop, validation, checkpointing, and logging out of the box. When you need more control — tracking custom metrics, adjusting loss weighting, or implementing learning rate schedules — you can subclass the trainer and override specific methods.
 
-This guide walks through five common customizations:
+This guide walks through six common customizations:
 
 1. [Logging custom metrics (F1 score)](#logging-custom-metrics) at the end of each [epoch](https://www.ultralytics.com/glossary/epoch)
 2. [Adding class weights](#adding-class-weights) to handle class imbalance
 3. [Saving the best model](#saving-the-best-model-by-custom-metric) based on a different metric
 4. [Freezing the backbone](#freezing-and-unfreezing-the-backbone) for the first N epochs, then unfreezing
 5. [Specifying per-layer learning rates](#per-layer-learning-rates)
+6. [Synchronizing BatchNorm across GPUs](#synchronized-batchnorm-for-multi-gpu-training) for multi-GPU training
 
 !!! tip "Prerequisites"
 
@@ -321,6 +322,43 @@ model.train(data="coco8.yaml", epochs=20, trainer=PerLayerLRTrainer)
 !!! tip "Combining Techniques"
 
     These customizations can be combined into a single trainer class by overriding multiple methods and adding callbacks as needed.
+
+## Synchronized BatchNorm for Multi-GPU Training
+
+When training on multiple GPUs with DistributedDataParallel, the default `BatchNorm2d` layers compute statistics independently on each GPU. For RT-DETR fine-tuning and other recipes that use small per-GPU batch sizes, per-GPU batch statistics can be noisy. PyTorch's `SyncBatchNorm` synchronizes mean and variance across all ranks for a single global batch statistic, which often improves convergence at the cost of a small inter-GPU communication overhead.
+
+The conversion has to happen after the model is on the GPU but before DDP wraps it. The cleanest hook for this is `set_model_attributes()`, which `BaseTrainer` calls in exactly that window:
+
+```python
+from torch import nn
+
+from ultralytics import RTDETR
+from ultralytics.models.rtdetr.train import RTDETRTrainer
+
+
+class SyncBNTrainer(RTDETRTrainer):
+    """RT-DETR trainer that converts BatchNorm to SyncBatchNorm for multi-GPU training."""
+
+    def set_model_attributes(self):
+        """Run the parent setup, then convert BN to SyncBatchNorm when training on multiple GPUs."""
+        super().set_model_attributes()
+        if self.world_size > 1:
+            self.model = nn.SyncBatchNorm.convert_sync_batchnorm(self.model)
+
+
+model = RTDETR("rtdetr-l.pt")
+model.train(data="coco8.yaml", epochs=20, device=[0, 1], trainer=SyncBNTrainer)
+```
+
+The `world_size > 1` guard ensures the trainer is safe to use in single-GPU runs as well; on a single GPU the conversion is skipped and training proceeds with regular `BatchNorm2d`. The same pattern works for YOLO by switching the parent class to `DetectionTrainer`.
+
+!!! tip "When to use SyncBatchNorm"
+
+    | Scenario                                       | Recommendation           |
+    | ---------------------------------------------- | ------------------------ |
+    | Multi-GPU training, small per-GPU batch (≤ 16) | Enable                   |
+    | Multi-GPU training, large per-GPU batch (≥ 32) | Optional; minor benefit  |
+    | Single-GPU training                            | Not applicable (skipped) |
 
 ## FAQ
 

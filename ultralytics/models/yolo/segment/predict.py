@@ -55,14 +55,19 @@ class SegmentationPredictor(DetectionPredictor):
 
         Returns:
             (list): List of Results objects containing the segmentation predictions for each image in the batch. Each
-                Results object includes both bounding boxes and segmentation masks.
+                Results object includes both bounding boxes and segmentation masks, and optionally semseg logits.
 
         Examples:
             >>> predictor = SegmentationPredictor(overrides=dict(model="yolo26n-seg.pt"))
             >>> results = predictor.postprocess(preds, img, orig_img)
         """
-        # Extract protos - tuple if PyTorch model or array if exported
-        protos = preds[0][1] if isinstance(preds[0], tuple) else preds[1]
+        # Extract protos and optional semseg - tuple if PyTorch model or array if exported
+        if isinstance(preds[0], tuple):
+            protos = preds[0][1]
+            self._semseg = preds[0][2] if len(preds[0]) > 2 else None  # auxiliary semseg logits (B, nc, H, W)
+        else:
+            protos = preds[1]
+            self._semseg = None
         return super().postprocess(preds[0], img, orig_imgs, protos=protos)
 
     def construct_results(self, preds, img, orig_imgs, protos):
@@ -76,14 +81,15 @@ class SegmentationPredictor(DetectionPredictor):
 
         Returns:
             (list[Results]): List of result objects containing the original images, image paths, class names, bounding
-                boxes, and masks.
+                boxes, masks, and optionally semseg logits.
         """
+        semseg_batch = self._semseg  # (B, nc, H, W) or None
         return [
-            self.construct_result(pred, img, orig_img, img_path, proto)
-            for pred, orig_img, img_path, proto in zip(preds, orig_imgs, self.batch[0], protos)
+            self.construct_result(pred, img, orig_img, img_path, proto, semseg_batch[i] if semseg_batch is not None else None)
+            for i, (pred, orig_img, img_path, proto) in enumerate(zip(preds, orig_imgs, self.batch[0], protos))
         ]
 
-    def construct_result(self, pred, img, orig_img, img_path, proto):
+    def construct_result(self, pred, img, orig_img, img_path, proto, semseg=None):
         """Construct a single result object from the prediction.
 
         Args:
@@ -92,9 +98,11 @@ class SegmentationPredictor(DetectionPredictor):
             orig_img (np.ndarray): The original image before preprocessing.
             img_path (str): The path to the original image.
             proto (torch.Tensor): The prototype masks.
+            semseg (torch.Tensor | None): Auxiliary semantic segmentation logits (nc, H, W), or None.
 
         Returns:
-            (Results): Result object containing the original image, image path, class names, bounding boxes, and masks.
+            (Results): Result object containing the original image, image path, class names, bounding boxes, masks,
+                and optionally semseg logits.
         """
         if pred.shape[0] == 0:  # save empty boxes
             masks = None
@@ -108,4 +116,4 @@ class SegmentationPredictor(DetectionPredictor):
             keep = masks.amax((-2, -1)) > 0  # only keep predictions with masks
             if not all(keep):  # most predictions have masks
                 pred, masks = pred[keep], masks[keep]  # indexing is slow
-        return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks)
+        return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks, semseg=semseg)

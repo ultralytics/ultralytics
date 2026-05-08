@@ -13,7 +13,7 @@ from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models.yolo import classify, detect, obb, pose, segment
-from ultralytics.nn.tasks import load_checkpoint
+from ultralytics.nn.tasks import load_checkpoint, torch_safe_load
 from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
 
 
@@ -207,6 +207,44 @@ def test_train_reuses_loaded_checkpoint_model(monkeypatch, kwargs, uses_weights)
     assert captured["trainer"].model is original_model, "Trainer model does not match original"
     assert captured["cfg"] == original_model.yaml, f"Config mismatch: {captured['cfg']} != {original_model.yaml}"
     assert captured["weights"] is (original_model if uses_weights else None), "Unexpected weights loaded"
+
+
+def test_train_without_checkpoint_fails_clearly(monkeypatch, tmp_path):
+    """Test training raises a clear error when no checkpoint is saved."""
+    model = YOLO("yolo26n.yaml")
+
+    class FakeTrainer:
+        def __init__(self, overrides=None, _callbacks=None):
+            self.model = model.model
+            self.validator = SimpleNamespace(metrics=None)
+            self.best = tmp_path / "best.pt"
+            self.last = tmp_path / "last.pt"
+
+        def train(self):
+            return None
+
+    monkeypatch.setattr("ultralytics.engine.model.checks.check_pip_update_available", lambda: None)
+    monkeypatch.setattr(model, "_smart_load", lambda key: FakeTrainer)
+
+    with pytest.raises(FileNotFoundError, match="no checkpoint was saved"):
+        model.train(data="coco8.yaml", epochs=1)
+
+
+def test_torch_safe_load_missing_ultralytics_module(monkeypatch, tmp_path):
+    """Test internal Ultralytics checkpoint module errors skip AutoInstall."""
+    weight = tmp_path / "model.pt"
+    weight.touch()
+
+    def raise_missing_module(*args, **kwargs):
+        raise ModuleNotFoundError(
+            "No module named 'ultralytics.nn.modules.ConvAtt'", name="ultralytics.nn.modules.ConvAtt"
+        )
+
+    monkeypatch.setattr("ultralytics.nn.tasks.torch_load", raise_missing_module)
+    monkeypatch.setattr("ultralytics.nn.tasks.check_requirements", lambda name: pytest.fail("AutoInstall ran"))
+
+    with pytest.raises(ModuleNotFoundError, match="requires missing Ultralytics module"):
+        torch_safe_load(weight)
 
 
 @pytest.mark.parametrize("pretrained,uses_weights", [(True, True), (False, False), (MODEL, True)])

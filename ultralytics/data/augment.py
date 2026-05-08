@@ -2061,7 +2061,12 @@ class Format:
                 masks = torch.from_numpy(masks)
                 cls_tensor = torch.from_numpy(cls.squeeze(1))
                 if self.mask_overlap:
-                    sem_masks = cls_tensor[masks[0].long() - 1]  # (H, W) from (1, H, W) instance indices
+                    mask_shape = masks.shape[1:] if masks.ndim == 3 else (h // self.mask_ratio, w // self.mask_ratio)
+                    sem_masks = torch.zeros(mask_shape, dtype=cls_tensor.dtype)
+                    if masks.shape[0] and cls_tensor.numel():
+                        instance_ids = masks[0].long()
+                        valid = (instance_ids > 0) & (instance_ids <= cls_tensor.numel())
+                        sem_masks[valid] = cls_tensor[instance_ids[valid] - 1]
                 else:
                     # Create sem_masks consistent with mask_overlap=True
                     sem_masks = (masks * cls_tensor[:, None, None]).max(0).values  # (H, W) from (N, H, W) binary

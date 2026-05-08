@@ -76,44 +76,6 @@ def test_model_profile():
     _ = model.predict(im, profile=True)
 
 
-@pytest.mark.parametrize("mask_overlap", [True, False])
-def test_format_empty_semantic_masks(mask_overlap):
-    """Test semantic mask formatting handles empty segments after instance filtering."""
-    from ultralytics.data.augment import Format
-    from ultralytics.utils.instance import Instances
-
-    labels = {
-        "img": np.zeros((16, 16, 3), dtype=np.uint8),
-        "cls": np.empty((0, 1), dtype=np.float32),
-        "instances": Instances(
-            bboxes=np.array([[0.5, 0.5, 0.2, 0.2]], dtype=np.float32),
-            segments=np.empty((0, 0, 2), dtype=np.float32),
-        ),
-    }
-
-    result = Format(return_mask=True, mask_ratio=4, mask_overlap=mask_overlap)(labels)
-
-    assert result["sem_masks"].shape == (4, 4)
-    assert result["sem_masks"].sum() == 0
-
-
-def test_rle_loss_empty_keypoint_mask():
-    """Test RLE loss short-circuits empty keypoint masks."""
-    from ultralytics.utils.loss import PoseLoss26
-
-    loss = object.__new__(PoseLoss26)
-    pred = torch.full((1, 17, 5), float("nan"), requires_grad=True)
-    gt = torch.zeros(1, 17, 5)
-    kpt_mask = torch.zeros(1, 17, dtype=torch.bool)
-
-    result = loss.calculate_rle_loss(pred, gt, kpt_mask)
-
-    assert torch.isfinite(result)
-    assert result.item() == 0
-    result.backward()
-    assert pred.grad is not None
-
-
 def test_predict_txt(tmp_path):
     """Test YOLO predictions with file, directory, and pattern sources listed in a text file."""
     file = tmp_path / "sources_multi_row.txt"

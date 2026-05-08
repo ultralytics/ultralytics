@@ -2060,26 +2060,20 @@ class Format:
                 masks, instances, cls = self._format_segments(instances, cls, w, h)
                 masks = torch.from_numpy(masks)
                 cls_tensor = torch.from_numpy(cls.squeeze(1))
-                if self.mask_overlap:
-                    mask_shape = masks.shape[1:] if masks.ndim == 3 else (h // self.mask_ratio, w // self.mask_ratio)
-                    sem_masks = torch.zeros(mask_shape, dtype=cls_tensor.dtype)
-                    if masks.shape[0] and cls_tensor.numel():
-                        instance_ids = masks[0].long()
-                        valid = (instance_ids > 0) & (instance_ids <= cls_tensor.numel())
-                        sem_masks[valid] = cls_tensor[instance_ids[valid] - 1]
+                if not masks.shape[0] or not cls_tensor.numel():
+                    sem_masks = torch.zeros(img.shape[0] // self.mask_ratio, img.shape[1] // self.mask_ratio)
+                elif self.mask_overlap:
+                    sem_masks = cls_tensor[masks[0].long() - 1]  # (H, W) from (1, H, W) instance indices
                 else:
                     # Create sem_masks consistent with mask_overlap=True
-                    mask_shape = masks.shape[1:] if masks.ndim == 3 else (h // self.mask_ratio, w // self.mask_ratio)
-                    sem_masks = torch.zeros(mask_shape, dtype=cls_tensor.dtype)
-                    if masks.shape[0] == cls_tensor.numel() and cls_tensor.numel():
-                        sem_masks = (masks * cls_tensor[:, None, None]).max(0).values  # (H, W) from (N, H, W) binary
-                        overlap = masks.sum(dim=0) > 1  # (H, W)
-                        if overlap.any():
-                            weights = masks.sum(axis=(1, 2))
-                            weighted_masks = masks * weights[:, None, None]  # (N, H, W)
-                            weighted_masks[masks == 0] = weights.max() + 1  # handle background
-                            smallest_idx = weighted_masks.argmin(dim=0)  # (H, W)
-                            sem_masks[overlap] = cls_tensor[smallest_idx[overlap]]
+                    sem_masks = (masks * cls_tensor[:, None, None]).max(0).values  # (H, W) from (N, H, W) binary
+                    overlap = masks.sum(dim=0) > 1  # (H, W)
+                    if overlap.any():
+                        weights = masks.sum(axis=(1, 2))
+                        weighted_masks = masks * weights[:, None, None]  # (N, H, W)
+                        weighted_masks[masks == 0] = weights.max() + 1  # handle background
+                        smallest_idx = weighted_masks.argmin(dim=0)  # (H, W)
+                        sem_masks[overlap] = cls_tensor[smallest_idx[overlap]]
             else:
                 masks = torch.zeros(
                     1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio, img.shape[1] // self.mask_ratio

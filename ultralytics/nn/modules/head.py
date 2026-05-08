@@ -1538,8 +1538,8 @@ class RTDETRDecoder(nn.Module):
 
         Returns:
             outputs (tuple | torch.Tensor): During training, returns a tuple of bounding boxes, scores, and other
-                metadata. During inference, returns a tensor of shape (bs, 300, 4+nc) containing bounding boxes and
-                class scores.
+                metadata. During inference, returns a tensor of shape (bs, num_queries, 6) containing bounding boxes,
+                confidence scores, and class labels.
         """
         from ultralytics.models.utils.ops import get_cdn_group
 
@@ -1574,9 +1574,25 @@ class RTDETRDecoder(nn.Module):
         x = dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta
         if self.training:
             return x
-        # (bs, 300, 4+nc)
-        y = torch.cat((dec_bboxes.squeeze(0), dec_scores.squeeze(0).sigmoid()), -1)
+        # (bs, num_queries, 4), (bs, num_queries, nc)
+        y = self.postprocess(dec_bboxes.squeeze(0), dec_scores.squeeze(0).sigmoid())
         return y if self.export else (y, x)
+
+    def postprocess(self, boxes: torch.Tensor, scores: torch.Tensor) -> torch.Tensor:
+        """Post-process predictions to select top-k detections.
+
+        Args:
+            boxes (torch.Tensor): Predicted bounding boxes with shape (batch_size, num_queries, 4) in xywh format.
+            scores (torch.Tensor): Class scores with shape (batch_size, num_queries, nc).
+
+        Returns:
+            (torch.Tensor): Processed predictions with shape (batch_size, num_queries, 6) and last dimension format [cx,
+                cy, w, h, max_class_prob, class_index].
+        """
+        scores, index = scores.flatten(1).topk(self.num_queries)
+        query_idx = index // self.nc
+        boxes = boxes.gather(dim=1, index=query_idx.unsqueeze(-1).expand(-1, -1, 4))
+        return torch.cat([boxes, scores[..., None], (index % self.nc)[..., None].float()], dim=-1)
 
     @staticmethod
     def _generate_anchors(

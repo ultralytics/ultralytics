@@ -842,7 +842,9 @@ class ReID(nn.Module):
     export = False  # export mode
     arcface = False  # class default for backward-compat with checkpoints predating this attr
     gem_p = 0.0  # class default; instances may override after construction
-    _gem_param = None
+    # NOTE: do NOT set _gem_param here as a class attribute. PyTorch's nn.Module __setattr__
+    # raises "attribute already exists" when later assigning an nn.Parameter to that name.
+    # Read via getattr(self, '_gem_param', None) instead.
 
     def __init__(self, c1: int, c2: int, embed_dim: int = 512, k: int = 1, s: int = 1, p: int | None = None, g: int = 1):
         """Initialize ReID head.
@@ -882,8 +884,9 @@ class ReID(nn.Module):
         The Parameter `_gem_param` is created eagerly by ReidModel.__init__ when gem_p>0 (so DDP
         sees it). If somehow missing here, fall back to avg+max (safe degradation).
         """
-        if self.gem_p > 0 and isinstance(self._gem_param, nn.Parameter):
-            p = self._gem_param.clamp(min=1.0)  # keep >=1 for stability
+        gem = getattr(self, "_gem_param", None)
+        if self.gem_p > 0 and isinstance(gem, nn.Parameter):
+            p = gem.clamp(min=1.0)  # keep >=1 for stability
             return torch.nn.functional.adaptive_avg_pool2d(x.clamp(min=1e-6).pow(p), 1).pow(1.0 / p).flatten(1)
         return (self.pool_avg(x) + self.pool_max(x)).flatten(1)
 

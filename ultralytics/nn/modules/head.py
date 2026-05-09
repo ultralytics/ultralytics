@@ -840,6 +840,9 @@ class ReID(nn.Module):
     """
 
     export = False  # export mode
+    arcface = False  # class default for backward-compat with checkpoints predating this attr
+    gem_p = 0.0  # class default; instances may override after construction
+    _gem_param = None
 
     def __init__(self, c1: int, c2: int, embed_dim: int = 512, k: int = 1, s: int = 1, p: int | None = None, g: int = 1):
         """Initialize ReID head.

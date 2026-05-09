@@ -1522,8 +1522,11 @@ class YOLOAnomalyModel(DetectionModel):
         from ultralytics.utils import LOGGER
         for i, h in enumerate(self._get_ad_heads()):
             raw = h.memory_bank.shape[0]
-            if h.max_bank_size is not None and raw > h.max_bank_size:
-                h.compress_memory_bank(h.max_bank_size)
+            # getattr() gives backward compat for checkpoints saved before
+            # max_bank_size existed on ADMBHead.
+            max_bank_size = getattr(h, "max_bank_size", None)
+            if max_bank_size is not None and raw > max_bank_size:
+                h.compress_memory_bank(max_bank_size)
                 after = h.memory_bank.shape[0]
                 LOGGER.info(
                     "Head[%d]: coreset %d → %d (kept %.1f%%)",

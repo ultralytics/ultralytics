@@ -462,6 +462,7 @@ class AnomalyValidator(yolo.detect.DetectionValidator):
     def init_metrics(self, model: torch.nn.Module) -> None:
         super().init_metrics(model)
         # Reset per-call AUROC accumulators.
+        self._anomaly_mode = self.nc == 1  # True when nc=1 (anomaly mode), False in detect mode
         self._heatmaps_for_batch: torch.Tensor | None = None
         self._image_scores: list[float] = []
         self._image_labels: list[int] = []
@@ -470,6 +471,19 @@ class AnomalyValidator(yolo.detect.DetectionValidator):
         self._n_anom_with_gt: int = 0
         self.image_auroc: float = float("nan")
         self.pixel_auroc: float = float("nan")
+
+    def _prepare_batch(self, si: int, batch) -> dict:
+        """Prepare batch; in anomaly mode (nc=1) map all GT class ids to 0.
+
+        MVTec-YOLO GT labels carry per-defect-type class ids (0, 1, 2, …), but the
+        anomaly head always outputs class 0.  Without this remap the strict
+        class-equality check in match_predictions zeros out IoU for every GT box
+        whose class id is > 0, making mAP meaninglessly low.
+        """
+        pbatch = super()._prepare_batch(si, batch)
+        if self._anomaly_mode and pbatch["cls"].shape[0]:
+            pbatch["cls"] = torch.zeros_like(pbatch["cls"])
+        return pbatch
 
     def postprocess(self, preds):
         """Apply real IoU NMS for end2end models, then delegate. Also stash heatmap for AUROC."""
@@ -807,18 +821,24 @@ class YOLOAnomaly(Model):
         verbose: bool = True,
         **kwargs,
     ) -> list[dict]:
-        """
-        Feed normal (non-anomalous) images to populate the memory bank.
+        """Feed normal (non-anomalous) images to populate the memory bank.
 
         Memory bank is automatically frozen after this call. Run once before predict().
+        Subclasses can override individual pipeline stages without touching this method:
+
+            _prepare_support_session()   – one-time setup (enable YOLO memory updates)
+            _iter_support_sources()      – normalise source → iterator of image paths
+            _extract_support_features()  – Stage 1: backbone feature extraction per image
+            _accumulate_features()       – Stage 2: filter + push into bank
+            _finalize_memory_bank()      – Stage 3: compact (coreset/PCA/no-op) + freeze
 
         Args:
-            source: Image source - file path, directory, list of paths, etc.
+            source: Image source — file path, directory, list of paths, etc.
             conf (float): Very low confidence to capture all candidate regions.
             imgsz (int): Inference image size.
             device: Device to run on (e.g. 'cuda:0', 'cpu').
             verbose (bool): Print memory bank stats after building.
-            **kwargs: Additional keyword arguments passed to predict().
+            **kwargs: Additional keyword arguments forwarded to predict().
 
         Returns:
             list[dict]: Memory bank statistics per detection head.
@@ -828,38 +848,220 @@ class YOLOAnomaly(Model):
         """
         from ultralytics.utils import LOGGER, TQDM
 
-        def iter_support_sources(src):
-            """Yield support images one-by-one so memory updates happen incrementally."""
-            if isinstance(src, (list, tuple, set)):
-                for item in src:
-                    yield item
-                return
-
-            path = Path(src) if isinstance(src, (str, Path)) else None
-            if path and path.is_dir():
-                exts = {".bmp", ".dng", ".jpeg", ".jpg", ".mpo", ".png", ".tif", ".tiff", ".webp", ".pfm"}
-                for item in sorted(path.iterdir()):
-                    if item.is_file() and item.suffix.lower() in exts:
-                        yield str(item)
-                return
-
-            yield src
-
-        assert isinstance(self.model, YOLOAnomalyModel), (
-            "Call setup() before load_support_set()."
-        )
         if verbose:
             LOGGER.info("YOLOAnomaly: building memory bank from support set...")
-        self.model.set_memory_update(True)
-        items = list(iter_support_sources(source))
+        self._prepare_support_session(conf=conf, imgsz=imgsz, device=device, **kwargs)
+        items = list(self._iter_support_sources(source))
         for item in TQDM(items, desc="Building memory bank"):
-            self.predict(source=item, conf=conf, imgsz=imgsz, device=device, verbose=False, **kwargs)
+            feats = self._extract_support_features(item)
+            self._accumulate_features(feats)
+        return self._finalize_memory_bank(verbose=verbose)
+
+    # ── pipeline stage hooks ────────────────────────────────────────────────
+
+    def _prepare_support_session(self, conf: float = 1e-6, imgsz: int = 640, device=None, **kwargs) -> None:
+        """Stage 0: one-time setup before iterating support images.
+
+        Stores predict kwargs and enables YOLO memory-bank accumulation.
+        Override to skip the YOLOAnomalyModel assertion (e.g. AnomalyDINO).
+        """
+        assert isinstance(self.model, YOLOAnomalyModel), "Call setup() before load_support_set()."
+        self._support_conf   = conf
+        self._support_imgsz  = imgsz
+        self._support_device = device
+        self._support_kw     = kwargs
+        self.model.set_memory_update(True)
+
+    @staticmethod
+    def _iter_support_sources(source):
+        """Yield image paths one-by-one from a directory, list, or single path.
+
+        Args:
+            source: Directory path, list/tuple of paths, or a single image path/tensor.
+
+        Yields:
+            str | Path: Individual image paths (or the original item if non-path).
+        """
+        if isinstance(source, (list, tuple, set)):
+            yield from source
+            return
+        path = Path(source) if isinstance(source, (str, Path)) else None
+        if path and path.is_dir():
+            exts = {".bmp", ".dng", ".jpeg", ".jpg", ".mpo", ".png", ".tif", ".tiff", ".webp", ".pfm"}
+            for item in sorted(path.iterdir()):
+                if item.is_file() and item.suffix.lower() in exts:
+                    yield str(item)
+            return
+        yield source
+
+    def _extract_support_features(self, img_path) -> None:
+        """Stage 1: run backbone on one support image and accumulate features.
+
+        Default: runs a low-conf YOLO predict so ADMBHead accumulates internally.
+        The return value is passed straight to _accumulate_features(); the default
+        YOLO path returns None because accumulation happens as a side-effect inside
+        ADMBHead.forward() during the predict call.
+
+        Override to return explicit feature tensors (e.g. AnomalyDINO returns a
+        (N, D) patch-token tensor from DINOv2).
+        """
+        self.predict(
+            source=img_path,
+            conf=self._support_conf,
+            imgsz=self._support_imgsz,
+            device=self._support_device,
+            verbose=False,
+            **self._support_kw,
+        )
+        return None  # YOLO: ADMBHead accumulated internally
+
+    def _accumulate_features(self, feats) -> None:
+        """Stage 2: push extracted features into the memory bank.
+
+        Default: no-op — the YOLO path accumulates inside ADMBHead.forward()
+        during _extract_support_features().
+
+        Override to maintain an explicit bank tensor (e.g. AnomalyDINO cats
+        (N, D) patch-token tensors into self._dino_bank).
+        """
+
+    def _compact_memory_bank(self) -> None:
+        """Stage 3a: reduce bank size before freezing.
+
+        Default: delegates to YOLOAnomalyModel.freeze_memory_bank() which runs
+        k-center coreset compression if max_bank_size is set on the head, then
+        disables further accumulation.
+
+        Override for alternative compaction (PCA projection, random subsample, etc.)
+        or to compact a custom bank tensor (e.g. AnomalyDINO).
+        """
         self.model.freeze_memory_bank()
+
+    def _finalize_memory_bank(self, verbose: bool = True) -> list[dict]:
+        """Stage 3b: compact then return per-head stats.
+
+        Args:
+            verbose (bool): Log per-head size and feature dimension.
+
+        Returns:
+            list[dict]: Each dict has 'size' and 'feature_dim' keys.
+        """
+        from ultralytics.utils import LOGGER
+        self._compact_memory_bank()
         stats = self.model.get_memory_bank_stats()
         if verbose:
             for i, s in enumerate(stats):
                 LOGGER.info(f"  Head[{i}]: {s['size']} features, dim={s['feature_dim']}")
         return stats
+
+    # ── shared scoring utilities (usable by subclasses) ────────────────────
+
+    @staticmethod
+    def _compute_knn_distances(
+        q: "torch.Tensor",
+        bank: "torch.Tensor",
+        K: "int | list[int]",
+    ) -> "torch.Tensor":
+        """Compute cosine-distance KNN scores for query features against a memory bank.
+
+        Both *q* and *bank* must be **L2-normalised** before calling so that the
+        dot product equals the cosine similarity.
+
+        Args:
+            q (Tensor): Query features, shape (N, D).
+            bank (Tensor): Normal-feature memory bank, shape (M, D).
+            K (int | list[int]): Number of nearest neighbours.  When a list is
+                provided, KNN is run independently for each k-value and the
+                resulting distances are averaged — useful for ensemble scoring
+                without extra bank lookups.
+
+        Returns:
+            Tensor: Cosine distances (1 − mean_top_k_cosine_sim), shape (N,).
+        """
+        import torch
+        Ks = [K] if isinstance(K, int) else list(K)
+        sims = q @ bank.T  # (N, M)
+        dists_list = []
+        for k in Ks:
+            k = min(k, sims.size(1))
+            topk = sims.topk(k, dim=-1).values  # (N, k)
+            dists_list.append(1.0 - topk.mean(dim=-1))  # (N,)
+        return torch.stack(dists_list).mean(0)  # average over K values
+
+    def _aggregate_scores(
+        self,
+        patch_scores: "torch.Tensor",
+        method: "str | None" = None,
+    ) -> "torch.Tensor":
+        """Reduce per-patch anomaly scores to a single image-level scalar.
+
+        Supported methods (set via set_anomaly_args(score_aggregation=...)):
+
+        * ``"max"``       – spatial max-pool (default, matches current behaviour).
+        * ``"mean"``      – spatial mean; less sensitive to isolated hot pixels.
+        * ``"topk_mean"`` – mean of top-10 patches; a soft-max robust to outliers.
+        * ``"noise_or"``  – Noisy-OR: ``1 − ∏(1 − pᵢ)`` over all patches;
+                            most sensitive to defects spread across multiple patches.
+
+        Args:
+            patch_scores (Tensor): Per-patch scores in [0, 1], shape (N,).
+            method (str | None): Override the stored score_aggregation setting.
+
+        Returns:
+            Tensor: Scalar image-level anomaly score.
+        """
+        import torch
+        method = method or self.anomaly_args.get("score_aggregation", "max")
+        if method == "noise_or":
+            return 1.0 - (1.0 - patch_scores.clamp(0.0, 1.0)).prod()
+        if method == "topk_mean":
+            k = min(10, patch_scores.numel())
+            return patch_scores.topk(k).values.mean()
+        if method == "mean":
+            return patch_scores.mean()
+        return patch_scores.max()  # "max" — default
+
+    @staticmethod
+    def _heatmap_to_boxes(
+        heatmap: "torch.Tensor",
+        thresh: float = 0.5,
+        max_det: int = 9,
+        min_area: int = 64,
+    ) -> "torch.Tensor":
+        """Threshold a spatial heatmap and fit bounding boxes via connected components.
+
+        Args:
+            heatmap (Tensor): (H, W) float tensor, values in [0, 1].
+            thresh (float): Score threshold for foreground pixels.
+            max_det (int): Maximum number of boxes returned.
+            min_area (int): Minimum connected-component area (pixels) to keep.
+
+        Returns:
+            Tensor: Shape (N, 6) — ``[x1, y1, x2, y2, score, class_id=0]``,
+                sorted by score descending.  Returns empty (0, 6) when no
+                component passes the threshold or min_area filter.
+        """
+        import cv2
+        import numpy as np
+        import torch
+
+        h_np = heatmap.detach().cpu().float().numpy()
+        mask = (h_np >= thresh).astype(np.uint8)
+        if mask.sum() == 0:
+            return torch.zeros((0, 6), dtype=torch.float32)
+        num, labels, stats, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
+        boxes = []
+        for lbl in range(1, num):  # skip background label 0
+            x, y, w, h, area = stats[lbl]
+            if area < min_area:
+                continue
+            score = float(h_np[labels == lbl].mean())
+            boxes.append([float(x), float(y), float(x + w), float(y + h), score, 0.0])
+        if not boxes:
+            return torch.zeros((0, 6), dtype=torch.float32)
+        t = torch.tensor(boxes, dtype=torch.float32)
+        order = t[:, 4].argsort(descending=True)[:max_det]
+        return t[order]
 
     def reset_memory_bank(self) -> None:
         """
@@ -974,13 +1176,14 @@ class YOLOAnomaly(Model):
         calibration_target_score: float | None = None,
         min_calibration_bank_size: int | None = None,
         temperature: float | None = None,
-        K: int | None = None,
+        K: int | list[int] | None = None,
         feature_mode: str | None = None,
         return_heatmap: bool | None = None,
         heatmap_logits: bool | None = None,
         fused_layers: list[int] | None = None,
         fused_use_pre_clshead: bool | None = None,
         max_bank_size: int | None = None,
+        score_aggregation: str | None = None,
     ) -> None:
         """Set anomaly-detection inference parameters and optionally switch mode.
 
@@ -1024,6 +1227,7 @@ class YOLOAnomaly(Model):
             "fused_layers": fused_layers,
             "fused_use_pre_clshead": fused_use_pre_clshead,
             "max_bank_size": max_bank_size,
+            "score_aggregation": score_aggregation,
         }.items() if v is not None}
         head.set_anomaly_args(active_layers=active_layers, mode=mode, **kwargs)
 
@@ -1196,5 +1400,245 @@ class YOLOAnomaly(Model):
                 LOGGER.info("YOLOAnomaly: restored anomaly model from checkpoint")
                 for i, s in enumerate(stats):
                     LOGGER.info(f"  Head[{i}]: {s['size']} features, dim={s['feature_dim']}")
+
+
+class AnomalyDINO(YOLOAnomaly):
+    """Training-free anomaly detector backed by a frozen DINOv2 ViT.
+
+    Reuses ``YOLOAnomaly``'s ``predict()`` and ``val()`` unchanged.  The DINOv2
+    backbone is wired in by replacing ``self.model.forward`` with a function
+    that returns the same ``(preds, {"heatmap": hm})`` tuple ``AnomalyDetection``
+    emits, so ``AnomalyPredictor`` / ``AnomalyValidator`` handle the rest
+    (NMS, mAP, image/pixel AUROC).  Only the support-set pipeline stages 1–3
+    (feature extraction, accumulation, coreset) are overridden.
+
+    Memory bank: flat (M, D) tensor of L2-normalised DINOv2 patch tokens.
+    Heatmap:     (H_in, W_in) cosine-distance map upsampled from the patch grid.
+    Boxes:       thresholded heatmap → connected components → xyxy (cls=0).
+
+    Args:
+        model: Path to any YOLO/YOLOE checkpoint (used for YOLO predict/val plumbing).
+        dino_model: torch.hub DINOv2 variant, e.g. ``"dinov2_vitb14"``.
+        device: Device for DINOv2 (None = auto).
+        verbose: Verbose logging.
+
+    Examples:
+        >>> d = AnomalyDINO("yolo26l.pt", dino_model="dinov2_vitb14")
+        >>> d.load_support_set("mvtec/leather/train/good/")
+        >>> results = d.predict("mvtec/leather/test/")
+        >>> metrics = d.val(data="mvtec/leather.yaml")
+    """
+
+    # ImageNet normalisation used by all DINOv2 models.
+    _DINO_MEAN = (0.485, 0.456, 0.406)
+    _DINO_STD  = (0.229, 0.224, 0.225)
+    # 518 = 37 × 14 (patch_size=14) — DINOv2 canonical resolution.
+    _DINO_SIZE = 518
+
+    def __init__(
+        self,
+        model: str | Path,
+        dino_model: str = "dinov2_vitb14",
+        device: str | None = None,
+        verbose: bool = False,
+    ) -> None:
+        """Initialize AnomalyDINO with a YOLO checkpoint and a DINOv2 backbone."""
+        super().__init__(model, verbose=verbose)
+        # Install AnomalyDetection head so the predict/val routes through
+        # AnomalyPredictor/AnomalyValidator; flip end2end so they take the
+        # per-image (N, 6) post-processing path.
+        self.setup(["anomaly"])
+        self.model.end2end = True
+
+        # DINOv2 nn.Module stored via __dict__ to bypass nn.Module.__setattr__.
+        self.__dict__["_dino"] = None
+        self._dino_model_name = dino_model
+        self._dino_device     = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        self._dino_bank: "torch.Tensor | None" = None
+        self._dino_frozen = False
+        self._anomaly_args: dict = {
+            "K": 5,
+            "score_aggregation": "max",
+            "max_bank_size": 10000,
+            "ad_conf": 0.3,         # raw cosine-distance threshold for boxes
+            "ad_max_det": 9,
+        }
+        # Redirect the YOLO model's forward to our DINOv2-driven implementation.
+        # nn.Module.__call__ → self.forward(x); instance attribute shadows the class method.
+        self.model.forward = self._dino_forward
+
+    # ── anomaly_args: own dict, not tied to YOLO head ──────────────────────
+
+    @property
+    def anomaly_args(self) -> dict:
+        """Return AnomalyDINO's own parameter dict."""
+        return self._anomaly_args
+
+    def set_anomaly_args(self, **kwargs) -> None:
+        """Update inference parameters (K, score_aggregation, max_bank_size, ad_conf, ad_max_det)."""
+        for k in ("K", "score_aggregation", "max_bank_size", "ad_conf", "ad_max_det"):
+            if k in kwargs and kwargs[k] is not None:
+                self._anomaly_args[k] = kwargs[k]
+
+    # ── is_configured ───────────────────────────────────────────────────────
+
+    @property
+    def is_configured(self) -> bool:
+        """True when the DINOv2 memory bank is built and frozen."""
+        return self._dino_bank is not None and self._dino_frozen
+
+    # ── pipeline stage overrides ────────────────────────────────────────────
+
+    def _prepare_support_session(self, **kwargs) -> None:
+        """Stage 0: reset DINOv2 bank; skip YOLO memory-update machinery."""
+        self._dino_bank   = None
+        self._dino_frozen = False
+
+    def _extract_support_features(self, img_path) -> "torch.Tensor":
+        """Stage 1: extract L2-normalised DINOv2 patch tokens.
+
+        Returns:
+            Tensor: (N_patches, D) float32 on CPU.
+        """
+        patches, _, _ = self._extract_dino_features(img_path)
+        return patches.detach().cpu()
+
+    def _accumulate_features(self, feats: "torch.Tensor") -> None:
+        """Stage 2: concatenate patch tokens into the flat bank."""
+        self._dino_bank = feats if self._dino_bank is None \
+                          else torch.cat([self._dino_bank, feats], dim=0)
+
+    def _compact_memory_bank(self) -> None:
+        """Stage 3a: optional k-center coreset on the flat DINOv2 bank."""
+        cap = self._anomaly_args.get("max_bank_size")
+        if cap and self._dino_bank is not None and self._dino_bank.shape[0] > cap:
+            from ultralytics.nn.modules.head import _coreset_subsample
+            LOGGER.info(
+                "AnomalyDINO: coreset %d → %d", self._dino_bank.shape[0], cap
+            )
+            self._dino_bank = _coreset_subsample(self._dino_bank, cap)
+        self._dino_frozen = True
+
+    def _finalize_memory_bank(self, verbose: bool = True) -> list[dict]:
+        """Stage 3b: compact + return stats (one entry; no per-YOLO-head split)."""
+        self._compact_memory_bank()
+        size = self._dino_bank.shape[0] if self._dino_bank is not None else 0
+        dim  = self._dino_bank.shape[1] if self._dino_bank is not None else None
+        stats = [{"size": size, "feature_dim": dim}]
+        if verbose:
+            LOGGER.info(f"  DINOv2 bank: {size} patch tokens, dim={dim}")
+        return stats
+
+    # ── DINOv2 backbone helpers ─────────────────────────────────────────────
+
+    def _load_dino(self) -> None:
+        """Lazy-load DINOv2 from torch.hub on first call.
+
+        The loaded nn.Module is stored via ``self.__dict__`` directly so that
+        ``nn.Module.__setattr__`` does not route it to ``self._modules`` (which
+        would make it invisible to normal attribute lookup through
+        ``Model.__getattr__``).
+        """
+        if self.__dict__.get("_dino") is not None:
+            return
+        LOGGER.info("AnomalyDINO: loading %s from torch.hub…", self._dino_model_name)
+        dino = torch.hub.load("facebookresearch/dinov2", self._dino_model_name, verbose=False)
+        dino.eval().to(self._dino_device)
+        self.__dict__["_dino"] = dino
+
+    def _preprocess_for_dino(self, img_path: "str | Path") -> "torch.Tensor":
+        """Load and preprocess one image for DINOv2 input.
+
+        Resizes to _DINO_SIZE × _DINO_SIZE, applies ImageNet normalisation.
+
+        Args:
+            img_path: Path to an RGB-compatible image.
+
+        Returns:
+            Tensor: (1, 3, H, W) float32 on self._dino_device.
+        """
+        import torchvision.transforms.functional as TF
+        from PIL import Image
+
+        img = Image.open(img_path).convert("RGB")
+        img = TF.resize(img, [self._DINO_SIZE, self._DINO_SIZE],
+                        interpolation=TF.InterpolationMode.BICUBIC)
+        t = TF.to_tensor(img)
+        t = TF.normalize(t, mean=list(self._DINO_MEAN), std=list(self._DINO_STD))
+        return t.unsqueeze(0).to(self._dino_device)
+
+    def _extract_dino_features(
+        self, img_path: "str | Path"
+    ) -> "tuple[torch.Tensor, int, int]":
+        """Run DINOv2 on one image and return patch tokens + grid shape.
+
+        Args:
+            img_path: Path to image.
+
+        Returns:
+            tuple:
+                - patches (Tensor): (N, D) L2-normalised patch tokens.
+                - grid_h (int): Number of patch rows.
+                - grid_w (int): Number of patch columns.
+        """
+        import torch.nn.functional as F
+
+        self._load_dino()
+        img_t = self._preprocess_for_dino(img_path)   # (1, 3, H, W)
+        with torch.no_grad():
+            out = self._dino.forward_features(img_t)
+        patches = out["x_norm_patchtokens"]            # (1, N, D)
+        patches = F.normalize(patches.squeeze(0), dim=-1)  # (N, D)
+        patch_size = getattr(self._dino, "patch_size", 14)
+        grid_h = img_t.shape[2] // patch_size
+        grid_w = img_t.shape[3] // patch_size
+        return patches, grid_h, grid_w
+
+    # ── Forward: bridges DINOv2 into the YOLO predict/val pipeline ──────────
+
+    def _dino_forward(self, x, *args, **kwargs):
+        """Drop-in replacement for ``YOLOAnomalyModel.forward``.
+
+        Receives a YOLO-preprocessed batch ``(B, 3, H, W)`` of float [0, 1]
+        tensors and emits the same tuple shape ``AnomalyDetection.forward``
+        produces in end2end mode, so ``AnomalyPredictor`` /
+        ``AnomalyValidator`` can consume it unchanged.
+
+        Returns:
+            tuple: ``(preds, {"heatmap": hm})`` where ``preds`` is a list of
+                ``(N, 6)`` tensors (one per image; columns ``[x1, y1, x2, y2,
+                score, cls=0]`` in input-image coords) and ``hm`` is a
+                ``(B, H, W)`` heatmap tensor on CPU.
+        """
+        import torch.nn.functional as F
+
+        assert self.is_configured, "Call load_support_set() before predict/val."
+        B, _, H_in, W_in = x.shape
+        K       = self._anomaly_args.get("K", 5)
+        ad_conf = self._anomaly_args.get("ad_conf", 0.3)
+        max_det = self._anomaly_args.get("ad_max_det", 9)
+        bank    = self._dino_bank.to(self._dino_device)
+
+        # YOLO preprocess emits [0, 1] float; DINOv2 needs ImageNet normalisation.
+        mean = torch.tensor(self._DINO_MEAN, device=x.device).view(1, 3, 1, 1)
+        std  = torch.tensor(self._DINO_STD,  device=x.device).view(1, 3, 1, 1)
+        x_dino = (x - mean) / std
+
+        preds_per_img: list[torch.Tensor] = []
+        hm_full_list:  list[torch.Tensor] = []
+        for i in range(B):
+            patches, gh, gw = self._extract_dino_features(x_dino[i:i + 1])
+            dists = self._compute_knn_distances(patches, bank, K).clamp(0.0, 2.0)
+            hm = dists.reshape(gh, gw)
+            hm_full = F.interpolate(
+                hm[None, None].float(), size=(H_in, W_in),
+                mode="bilinear", align_corners=False,
+            )[0, 0]
+            hm_full_list.append(hm_full.detach().cpu())
+            boxes = self._heatmap_to_boxes(hm_full, thresh=ad_conf, max_det=max_det)
+            if boxes.shape[0] == 0:
+                boxes = torch.zeros((0, 6), dtype=torch.float32)
+            preds_per_img.append(boxes)
+        return preds_per_img, {"heatmap": torch.stack(hm_full_list, dim=0)}
 
 

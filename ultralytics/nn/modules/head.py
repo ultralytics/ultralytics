@@ -1877,6 +1877,7 @@ class ADMBHead(nn.Module):
         self.calibration_target_score  = args.get("calibration_target_score",  0.2)
         self.em_iters                  = args.get("em_iters",                  1)
         self.max_bank_size             = args.get("max_bank_size",             None)
+        self.score_aggregation         = args.get("score_aggregation",         "max")
 
         assert self.calibration_target_score < self.accumulate_thresh, (
             f"calibration_target_score ({self.calibration_target_score}) must be "
@@ -2340,6 +2341,7 @@ class AnomalyDetection(Detect):
             "accumulate_thresh": 0.4, "temperature": 3.0, "K": 15, "score_filter_kernel": 1,
             "auto_temperature": True, "calibration_interval": 0, "calibration_target_score": 0.2,
             "min_calibration_bank_size": 50, "em_iters": 1, "max_bank_size": None,
+            "score_aggregation": "max",
         }
 
         # Auto-build ADMBHead sub-modules when constructed from YAML (not from from_detect_head)
@@ -2360,6 +2362,7 @@ class AnomalyDetection(Detect):
                 "accumulate_thresh": 0.4, "temperature": 3.0, "K": 15, "score_filter_kernel": 1,
                 "auto_temperature": True, "calibration_interval": 0, "calibration_target_score": 0.2,
                 "min_calibration_bank_size": 50, "em_iters": 1, "max_bank_size": None,
+                "score_aggregation": "max",
             }
             args = {k: (list(v) if isinstance(v, list) else v) for k, v in _defaults.items()}
             for k in _defaults:
@@ -2452,6 +2455,7 @@ class AnomalyDetection(Detect):
                 "accumulate_thresh": 0.4, "temperature": 3.0, "K": 15, "score_filter_kernel": 1,
                 "auto_temperature": True, "calibration_interval": 0, "calibration_target_score": 0.2,
                 "min_calibration_bank_size": 50, "em_iters": 1, "max_bank_size": None,
+                "score_aggregation": "max",
             }
             args = {k: (list(v) if isinstance(v, list) else v) for k, v in _defaults.items()}
             for k in _defaults:

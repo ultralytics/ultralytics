@@ -264,9 +264,11 @@ class IdentityBalancedSampler(torch.utils.data.Sampler):
         self.epoch = 0
 
         # Per-rank PID shard: each rank walks a disjoint slice of the globally shuffled PID list.
-        # num_batches is computed on this rank's shard only, not the full list.
-        num_pids_this_rank = len(self._shard_pids(self._shuffled_pids(epoch=0)))
-        self.num_batches = max(num_pids_this_rank // self.p, 1)
+        # num_batches must be IDENTICAL across all ranks — otherwise ranks with shorter shards
+        # finish early and DDP all-reduce hangs at the next collective. We take the floor of the
+        # smallest shard's batch count so every rank stops at the same iteration.
+        min_pids_per_rank = len(self.pids) // self.num_replicas
+        self.num_batches = max(min_pids_per_rank // self.p, 1)
         self.total_size = self.num_batches * self.batch_size
 
     def _derive_seed(self, epoch: int) -> int:

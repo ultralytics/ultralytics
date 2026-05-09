@@ -822,6 +822,35 @@ class Classify(nn.Module):
         return y if self.export else (y, x)
 
 
+class _NonLocal2d(nn.Module):
+    """Non-Local block (Wang et al. CVPR'18; AGW Wang et al. TPAMI'21).
+
+    Embedded-Gaussian variant: theta/phi/g project to C/2 channels, softmax over keys, residual add.
+    Init zeros W so the block starts as identity (safe to insert into pretrained networks).
+    """
+
+    def __init__(self, c: int):
+        super().__init__()
+        c_ = max(c // 2, 1)
+        self.theta = nn.Conv2d(c, c_, 1)
+        self.phi = nn.Conv2d(c, c_, 1)
+        self.g = nn.Conv2d(c, c_, 1)
+        self.W = nn.Conv2d(c_, c, 1)
+        nn.init.zeros_(self.W.weight)
+        nn.init.zeros_(self.W.bias)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        b, c, h, w = x.shape
+        theta = self.theta(x).reshape(b, -1, h * w)        # B, C/2, HW
+        phi = self.phi(x).reshape(b, -1, h * w)            # B, C/2, HW
+        g = self.g(x).reshape(b, -1, h * w)                # B, C/2, HW
+        attn = torch.bmm(theta.transpose(1, 2), phi)        # B, HW, HW
+        attn = attn.softmax(dim=-1)
+        out = torch.bmm(attn, g.transpose(1, 2))            # B, HW, C/2
+        out = out.transpose(1, 2).reshape(b, -1, h, w)
+        return x + self.W(out)
+
+
 class ReID(nn.Module):
     """Head for person re-identification using BNNeck architecture.
 
@@ -877,6 +906,9 @@ class ReID(nn.Module):
         # >0 -> learnable Generalized Mean Pooling with init exponent gem_p (BoT/AGW use p=3).
         self.gem_p = 0.0
         self._gem_param = None
+        # Non-Local block (AGW). Disabled by default — instance may set self.nonlocal_block to
+        # a _NonLocal2d module after construction (ReidModel.__init__ does this when nonlocal=1).
+        self.nonlocal_block = None
 
     def _pool(self, x):
         """Pool feature map to (B, C). avg+max default; learnable GeM when gem_p>0.
@@ -895,6 +927,8 @@ class ReID(nn.Module):
         if isinstance(x, list):
             x = torch.cat(x, 1)
         x = self.conv(x)
+        if self.nonlocal_block is not None:
+            x = self.nonlocal_block(x)
         feat = self.embed(self.drop(self._pool(x)))
         feat_bn = self.bottleneck(feat)  # BNNeck feature
         if self.training:

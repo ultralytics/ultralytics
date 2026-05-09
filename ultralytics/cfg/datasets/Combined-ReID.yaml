@@ -1,0 +1,13 @@
+# Combined Market-1501 + DukeMTMC + MSMT17 V1 joint training set
+# Folder-per-identity layout with globally-unique numeric folder names
+# (Market 00000-00750, Duke 01000-01701, MSMT 02000-03040).
+# Val/gallery point to Market-1501 query/gallery by default; for evaluation
+# on Duke or MSMT, call `yolo reid val data=<dataset>.yaml` separately on the
+# checkpoint trained from this yaml.
+
+path: Combined_ReID
+train: train
+val: /home/rick/.cache/autoresearch/Market-1501-v15.09.15/query
+gallery: /home/rick/.cache/autoresearch/Market-1501-v15.09.15/bounding_box_test
+
+nc: 2494

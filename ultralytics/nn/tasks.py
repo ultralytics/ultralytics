@@ -746,6 +746,7 @@ class ReidModel(BaseModel):
         arcface_margin: float = 0.3,
         arcface_scale: float = 30.0,
         gem_p: float = 0.0,
+        nonlocal_block: bool = False,
     ):
         """Initialize ReidModel with YAML, channels, number of identities, verbose flag.
 
@@ -791,6 +792,14 @@ class ReidModel(BaseModel):
                 if isinstance(m, ReID):
                     m.gem_p = float(gem_p)
                     m._gem_param = nn.Parameter(torch.full((1,), float(gem_p)))
+        # Insert Non-Local block before pooling on the ReID head if requested.
+        # The block is zero-initialized so it acts as identity at start (safe for FT).
+        self.nonlocal_block = nonlocal_block
+        if nonlocal_block:
+            from .modules.head import _NonLocal2d  # local to avoid circular import at module load
+            for m in self.modules():
+                if isinstance(m, ReID):
+                    m.nonlocal_block = _NonLocal2d(m.conv.conv.out_channels)
 
     def _from_yaml(self, cfg, ch, nc, verbose):
         """Set model configurations and define the model architecture.

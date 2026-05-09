@@ -60,12 +60,14 @@ from .block import (
     SCDown,
     TorchVision,
 )
+from .osnet import OSBlock, OSNetBackbone
 from .conv import (
     CBAM,
     ChannelAttention,
     Concat,
     Conv,
     Conv2,
+    ConvIBN,
     ConvTranspose,
     DWConv,
     DWConvTranspose2d,
@@ -121,6 +123,8 @@ __all__ = (
     "MLP",
     "OBB",
     "OBB26",
+    "OSBlock",
+    "OSNetBackbone",
     "PSA",
     "SPP",
     "SPPELAN",
@@ -147,6 +151,7 @@ __all__ = (
     "ContrastiveHead",
     "Conv",
     "Conv2",
+    "ConvIBN",
     "ConvTranspose",
     "DWConv",
     "DWConvTranspose2d",

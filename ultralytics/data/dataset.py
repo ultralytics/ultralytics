@@ -873,6 +873,8 @@ class ReidDataset(ClassificationDataset):
         "market1501": r"(-?\d+)_c(\d+)s\d+_\d+_\d+\.(?:jpg|png|bmp)",
         "dukemtmc": r"(\d+)_c(\d+)_f\d+\.(?:jpg|png|bmp)",
         "msmt17": r"(\d+)_(\d+)_\d+_\d+\.(?:jpg|png|bmp)",
+        # V1: 0000_000_01_0303morning_0015_0.jpg — pid_seq_camid_date_frame_suffix
+        "msmt17_v1": r"(\d+)_\d+_(\d+)_\d+[a-z]*_\d+_\d+(?:_ex)?\.(?:jpg|png|bmp)",
     }
 
     def __init__(self, root: str, args, augment: bool = False, prefix: str = "", data: dict | None = None):
@@ -931,8 +933,9 @@ class ReidDataset(ClassificationDataset):
         root_path = Path(self.root)
 
         # Auto-detect: folder-per-identity vs flat directory.
-        # Explicit filename_re in the YAML forces flat-directory mode.
-        if "filename_re" not in self.data and self._is_folder_per_identity(root_path):
+        # Layout takes precedence; ``filename_re`` is used for camid extraction
+        # inside folder mode (e.g. MSMT17 V1 has pid=folder, camid=filename).
+        if self._is_folder_per_identity(root_path):
             return self._get_samples_folder(root_path)
         return self._get_samples_flat(root_path)
 

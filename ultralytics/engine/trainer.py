@@ -474,9 +474,10 @@ class BaseTrainer:
                     if self.args.time:
                         self.stop = (time.time() - self.train_time_start) > (self.args.time * 3600)
                         if RANK != -1:  # if DDP training
-                            broadcast_list = [self.stop if RANK == 0 else None]
-                            dist.broadcast_object_list(broadcast_list, 0)  # broadcast 'stop' to all ranks
-                            self.stop = broadcast_list[0]
+                            # Tensor broadcast: avoids broadcast_object_list SymInt bug on PyTorch 2.9+CUDA.
+                            flag = torch.tensor([1.0 if self.stop else 0.0], device=self.device)
+                            dist.broadcast(flag, 0)
+                            self.stop = bool(flag.item())
                         if self.stop:  # training time exceeded
                             break
 
@@ -553,9 +554,10 @@ class BaseTrainer:
 
             # Early Stopping
             if RANK != -1:  # if DDP training
-                broadcast_list = [self.stop if RANK == 0 else None]
-                dist.broadcast_object_list(broadcast_list, 0)  # broadcast 'stop' to all ranks
-                self.stop = broadcast_list[0]
+                # Tensor broadcast: avoids broadcast_object_list SymInt bug on PyTorch 2.9+CUDA.
+                flag = torch.tensor([1.0 if self.stop else 0.0], device=self.device)
+                dist.broadcast(flag, 0)
+                self.stop = bool(flag.item())
             if self.stop:
                 break  # must break all DDP ranks
             epoch += 1
@@ -919,9 +921,12 @@ class BaseTrainer:
         corrupted = RANK in {-1, 0} and loss_nan and (fitness_nan or fitness_collapse)
         reason = "Loss NaN/Inf" if loss_nan else "Fitness NaN/Inf" if fitness_nan else "Fitness collapse"
         if RANK != -1:  # DDP: broadcast to all ranks
-            broadcast_list = [corrupted if RANK == 0 else None]
-            dist.broadcast_object_list(broadcast_list, 0)
-            corrupted = broadcast_list[0]
+            # Avoid dist.broadcast_object_list — buggy on PyTorch 2.9+CUDA (SymIntArrayRef
+            # error in the internal torch.empty buffer alloc). A single bool broadcasts
+            # fine as a 1-element tensor.
+            flag = torch.tensor([1.0 if corrupted else 0.0], device=self.device)
+            dist.broadcast(flag, 0)
+            corrupted = bool(flag.item())
         if not corrupted:
             return False
         if epoch == self.start_epoch:

@@ -80,6 +80,7 @@ class ReidTrainer(ClassificationTrainer):
                 "arcface_margin",
                 "arcface_scale",
                 "gem_p",
+                "nonlocal_block",
             )
             if hasattr(self.args, k)
         }

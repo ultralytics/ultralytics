@@ -985,6 +985,9 @@ class ReIDLoss:
         center_momentum: float = 0.9,
         focal_gamma: float = 0.0,
         supcon_temp: float = 0.0,
+        arcface: bool = False,
+        arcface_margin: float = 0.3,
+        arcface_scale: float = 30.0,
     ):
         """Initialize ReID loss with label-smoothed CE, batch-hard triplet, and center loss.
 
@@ -1008,6 +1011,9 @@ class ReIDLoss:
         self.center_momentum = center_momentum
         self.focal_gamma = focal_gamma
         self.supcon_temp = supcon_temp
+        self.arcface = arcface
+        self.arcface_margin = arcface_margin
+        self.arcface_scale = arcface_scale
         self.centers = None  # lazily initialized (nc, feat_dim)
 
     def __call__(self, preds, batch):
@@ -1027,6 +1033,14 @@ class ReIDLoss:
 
         cls_logits, bn_feat, raw_feat = preds
         labels = batch["cls"]
+
+        # In ArcFace mode the head returns cosine similarity in [-1, 1]; add margin
+        # on the target class (cos(theta + m)) then scale before the softmax/CE.
+        if self.arcface:
+            cos_sim = cls_logits.clamp(-1 + 1e-7, 1 - 1e-7)
+            target_cos = (cos_sim.acos() + self.arcface_margin).cos()
+            one_hot = F.one_hot(labels, num_classes=cos_sim.size(1)).bool()
+            cls_logits = self.arcface_scale * torch.where(one_hot, target_cos, cos_sim)
 
         # Cross-entropy with label smoothing (optionally focal)
         if self.focal_gamma > 0:

@@ -76,6 +76,10 @@ class ReidTrainer(ClassificationTrainer):
                 "center_momentum",
                 "focal_gamma",
                 "supcon_temp",
+                "arcface",
+                "arcface_margin",
+                "arcface_scale",
+                "gem_p",
             )
             if hasattr(self.args, k)
         }

@@ -864,17 +864,42 @@ class ReID(nn.Module):
         self.bottleneck.bias.requires_grad_(False)  # no shift per BoT paper
         self.classifier = nn.Linear(embed_dim, c2, bias=False)
         self.embed_dim = embed_dim
+        # ArcFace-style angular-margin softmax (set at runtime by the trainer from self.args).
+        # When arcface is True, the head returns cosine similarity in place of linear logits;
+        # the loss then adds the margin on the target class and applies the scale.
+        self.arcface = False
+        # GeM pooling switch (set by trainer from self.args.gem_p). 0 -> avg+max (default).
+        # >0 -> learnable Generalized Mean Pooling with init exponent gem_p (BoT/AGW use p=3).
+        self.gem_p = 0.0
+        self._gem_param = None
+
+    def _pool(self, x):
+        """Pool feature map to (B, C). avg+max default; learnable GeM when gem_p>0."""
+        if self.gem_p > 0:
+            if self._gem_param is None:
+                self._gem_param = nn.Parameter(torch.full((1,), float(self.gem_p), device=x.device))
+                # Register so it shows up in state_dict / optimizer.
+                self.register_parameter("gem_p_param", self._gem_param)
+            p = self._gem_param.clamp(min=1.0)  # keep >=1 for stability
+            return torch.nn.functional.adaptive_avg_pool2d(x.clamp(min=1e-6).pow(p), 1).pow(1.0 / p).flatten(1)
+        return (self.pool_avg(x) + self.pool_max(x)).flatten(1)
 
     def forward(self, x: list[torch.Tensor] | torch.Tensor) -> torch.Tensor | tuple:
         """Perform forward pass of the ReID head."""
         if isinstance(x, list):
             x = torch.cat(x, 1)
         x = self.conv(x)
-        feat = self.embed(self.drop((self.pool_avg(x) + self.pool_max(x)).flatten(1)))  # avg+max pooling
+        feat = self.embed(self.drop(self._pool(x)))
         feat_bn = self.bottleneck(feat)  # BNNeck feature
         if self.training:
-            cls_logits = self.classifier(feat_bn)
-            return cls_logits, feat_bn, feat  # (logits, bn_feat, raw_feat)
+            if self.arcface:
+                # Normalized cosine similarity instead of linear logits.
+                w = torch.nn.functional.normalize(self.classifier.weight, dim=1)
+                f = torch.nn.functional.normalize(feat_bn, dim=1)
+                cls_out = f @ w.T
+            else:
+                cls_out = self.classifier(feat_bn)
+            return cls_out, feat_bn, feat  # (logits_or_cos, bn_feat, raw_feat)
         emb = torch.nn.functional.normalize(feat_bn, dim=1)
         return emb if self.export else (emb, feat_bn)
 

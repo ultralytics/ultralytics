@@ -18,6 +18,7 @@ from ultralytics.nn.modules import (
     C2PSA,
     C3,
     C3TR,
+    CBAM,
     ELAN1,
     OBB,
     OBB26,
@@ -43,6 +44,7 @@ from ultralytics.nn.modules import (
     Concat,
     Conv,
     Conv2,
+    ConvIBN,
     ConvTranspose,
     Detect,
     ReID,
@@ -56,6 +58,7 @@ from ultralytics.nn.modules import (
     ImagePoolingAttn,
     Index,
     LRPCHead,
+    OSNetBackbone,
     Pose,
     Pose26,
     RepC3,
@@ -234,7 +237,7 @@ class BaseModel(torch.nn.Module):
         """
         if not self.is_fused():
             for m in self.model.modules():
-                if isinstance(m, (Conv, Conv2, DWConv)) and hasattr(m, "bn"):
+                if isinstance(m, (Conv, Conv2, DWConv)) and hasattr(m, "bn") and not isinstance(m, ConvIBN):
                     if isinstance(m, Conv2):
                         m.fuse_convs()
                     m.conv = fuse_conv_and_bn(m.conv, m.bn)  # update conv
@@ -739,6 +742,10 @@ class ReidModel(BaseModel):
         center_momentum: float = 0.9,
         focal_gamma: float = 0.0,
         supcon_temp: float = 0.0,
+        arcface: bool = False,
+        arcface_margin: float = 0.3,
+        arcface_scale: float = 30.0,
+        gem_p: float = 0.0,
     ):
         """Initialize ReidModel with YAML, channels, number of identities, verbose flag.
 
@@ -767,6 +774,22 @@ class ReidModel(BaseModel):
         self.center_momentum = center_momentum
         self.focal_gamma = focal_gamma
         self.supcon_temp = supcon_temp
+        self.arcface = arcface
+        self.arcface_margin = arcface_margin
+        self.arcface_scale = arcface_scale
+        # Enable ArcFace on the head if requested (head forward switches to cosine sim).
+        if arcface:
+            for m in self.modules():
+                if isinstance(m, ReID):
+                    m.arcface = True
+        # Enable GeM pooling on the head if gem_p>0. Eagerly create the parameter so DDP sees it.
+        self.gem_p = gem_p
+        if gem_p > 0:
+            for m in self.modules():
+                if isinstance(m, ReID):
+                    m.gem_p = float(gem_p)
+                    m._gem_param = nn.Parameter(torch.full((1,), float(gem_p)))
+                    m.register_parameter("gem_p_param", m._gem_param)
 
     def _from_yaml(self, cfg, ch, nc, verbose):
         """Set model configurations and define the model architecture.
@@ -825,6 +848,9 @@ class ReidModel(BaseModel):
             center_momentum=getattr(src, "center_momentum", self.center_momentum),
             focal_gamma=getattr(src, "focal_gamma", self.focal_gamma),
             supcon_temp=getattr(src, "supcon_temp", self.supcon_temp),
+            arcface=getattr(src, "arcface", self.arcface),
+            arcface_margin=getattr(src, "arcface_margin", self.arcface_margin),
+            arcface_scale=getattr(src, "arcface_scale", self.arcface_scale),
         )
 
 
@@ -1694,6 +1720,7 @@ def parse_model(d, ch, verbose=True):
             Classify,
             ReID,
             Conv,
+            ConvIBN,
             ConvTranspose,
             GhostConv,
             Bottleneck,
@@ -1792,6 +1819,9 @@ def parse_model(d, ch, verbose=True):
                 n = 1
         elif m is ResNetLayer:
             c2 = args[1] if args[3] else args[1] * 4
+        elif m is OSNetBackbone:
+            variant = args[0] if args else "x1_0"
+            c2 = OSNetBackbone._VARIANTS[variant][1][-1]  # last stage channel count
         elif m is torch.nn.BatchNorm2d:
             args = [ch[f]]
         elif m is Concat:

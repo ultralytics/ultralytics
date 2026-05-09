@@ -783,13 +783,14 @@ class ReidModel(BaseModel):
                 if isinstance(m, ReID):
                     m.arcface = True
         # Enable GeM pooling on the head if gem_p>0. Eagerly create the parameter so DDP sees it.
+        # Assigning an nn.Parameter to an attribute auto-registers it under that name; no
+        # explicit register_parameter call needed (and double-registering raises KeyError).
         self.gem_p = gem_p
         if gem_p > 0:
             for m in self.modules():
                 if isinstance(m, ReID):
                     m.gem_p = float(gem_p)
                     m._gem_param = nn.Parameter(torch.full((1,), float(gem_p)))
-                    m.register_parameter("gem_p_param", m._gem_param)
 
     def _from_yaml(self, cfg, ch, nc, verbose):
         """Set model configurations and define the model architecture.

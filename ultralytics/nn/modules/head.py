@@ -877,12 +877,12 @@ class ReID(nn.Module):
         self._gem_param = None
 
     def _pool(self, x):
-        """Pool feature map to (B, C). avg+max default; learnable GeM when gem_p>0."""
-        if self.gem_p > 0:
-            if self._gem_param is None:
-                self._gem_param = nn.Parameter(torch.full((1,), float(self.gem_p), device=x.device))
-                # Register so it shows up in state_dict / optimizer.
-                self.register_parameter("gem_p_param", self._gem_param)
+        """Pool feature map to (B, C). avg+max default; learnable GeM when gem_p>0.
+
+        The Parameter `_gem_param` is created eagerly by ReidModel.__init__ when gem_p>0 (so DDP
+        sees it). If somehow missing here, fall back to avg+max (safe degradation).
+        """
+        if self.gem_p > 0 and isinstance(self._gem_param, nn.Parameter):
             p = self._gem_param.clamp(min=1.0)  # keep >=1 for stability
             return torch.nn.functional.adaptive_avg_pool2d(x.clamp(min=1e-6).pow(p), 1).pow(1.0 / p).flatten(1)
         return (self.pool_avg(x) + self.pool_max(x)).flatten(1)

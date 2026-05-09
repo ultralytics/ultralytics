@@ -808,7 +808,7 @@ class Classify(nn.Module):
         c_ = 1280  # efficientnet_b0 size
         self.conv = Conv(c1, c_, k, s, p, g)
         self.pool = nn.AdaptiveAvgPool2d(1)  # to x(b,c_,1,1)
-        self.drop = nn.Dropout(p=0.0, inplace=True)
+        self.drop = nn.Dropout(p=0.0, inplace=False)  # inplace breaks GeM autograd via flatten view
         self.linear = nn.Linear(c_, c2)  # to x(b,c2)
 
     def forward(self, x: list[torch.Tensor] | torch.Tensor) -> torch.Tensor | tuple:
@@ -858,7 +858,7 @@ class ReID(nn.Module):
         self.conv = Conv(c1, c_, k, s, p, g)
         self.pool_avg = nn.AdaptiveAvgPool2d(1)
         self.pool_max = nn.AdaptiveMaxPool2d(1)
-        self.drop = nn.Dropout(p=0.0, inplace=True)
+        self.drop = nn.Dropout(p=0.0, inplace=False)  # inplace breaks GeM autograd via flatten view
         self.embed = nn.Linear(c_, embed_dim)
         self.bottleneck = nn.BatchNorm1d(embed_dim)
         self.bottleneck.bias.requires_grad_(False)  # no shift per BoT paper

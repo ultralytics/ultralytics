@@ -1479,6 +1479,14 @@ def torch_safe_load(weight, safe_only=False):
                     f"ERROR ❌️ {weight} requires numpy>=1.26.1, however numpy=={__import__('numpy').__version__} is installed."
                 )
             ) from e
+        elif e.name and e.name.startswith("ultralytics."):
+            raise ModuleNotFoundError(
+                emojis(
+                    f"ERROR ❌️ {weight} requires missing Ultralytics module '{e.name}'. "
+                    "Train a new model using the latest 'ultralytics' package or run a command with an official "
+                    "Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
+                )
+            ) from e
         LOGGER.warning(
             f"{weight} appears to require '{e.name}', which is not in Ultralytics requirements."
             f"\nAutoInstall will run now for '{e.name}' but this feature will be removed in the future."

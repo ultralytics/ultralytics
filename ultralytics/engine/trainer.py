@@ -446,6 +446,9 @@ class BaseTrainer:
                             )
                             batch = loss = preds = None
                             self.loss = self.loss_items = None
+                            if RANK != -1:
+                                skip_flag = torch.tensor([1], device=self.device, dtype=torch.int32)
+                                torch.distributed.all_reduce(skip_flag)
                             continue
                         if RANK != -1:
                             self.loss *= self.world_size
@@ -641,19 +644,14 @@ class BaseTrainer:
         """Save model training checkpoints with additional metadata."""
         import io
 
-        def _to_cpu(tensor):
-            """Move tensor to CPU and clone to avoid CUDA memory issues on Windows."""
-            if isinstance(tensor, torch.Tensor):
-                return tensor.cpu().clone()
-            return tensor
-
         ema = deepcopy(unwrap_model(self.ema.ema)).half()
         if not all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor)):
             LOGGER.warning(f"Skipping checkpoint save at epoch {self.epoch}: EMA contains NaN/Inf")
             return False
 
         # Move EMA tensors to CPU before serialization to avoid Windows/CUDA access violations (issue #24077)
-        ema = ema.apply(_to_cpu)
+        for p in ema.parameters():
+            p.data = p.data.cpu()
 
         # Convert optimizer state to FP16 and move tensors to CPU
         optimizer_state = convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict()))
@@ -1028,7 +1026,7 @@ class BaseTrainer:
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 
         use_muon = name == "MuSGD"
-        use_adamw = name == "AdamW"
+        use_adamw = name.lower() == "adamw"
         for module_name, module in unwrap_model(model).named_modules():
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name

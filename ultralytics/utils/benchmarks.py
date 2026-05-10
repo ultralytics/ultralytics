@@ -126,7 +126,7 @@ def benchmark(
     if format_arg:
         formats = frozenset(export_formats()["Argument"])
         assert format in formats, f"Expected format to be one of {formats}, but got '{format_arg}'."
-    for name, format, suffix, cpu, gpu, _ in zip(*export_formats().values()):
+    for name, format, suffix, cpu, gpu, valid_args in zip(*export_formats().values()):
         emoji, filename = "❌", None  # export defaults
         try:
             if format_arg and format_arg != format:
@@ -185,8 +185,16 @@ def benchmark(
                 filename = model.pt_path or model.ckpt_path or model.model_name
                 exported_model = deepcopy(model)  # PyTorch format
             else:
+                export_data = data if "data" in valid_args else None
                 filename = deepcopy(model).export(
-                    imgsz=imgsz, format=format, half=half, int8=int8, data=data, device=device, verbose=False, **kwargs
+                    imgsz=imgsz,
+                    format=format,
+                    half=half,
+                    int8=int8,
+                    data=export_data,
+                    device=device,
+                    verbose=False,
+                    **kwargs,
                 )
                 exported_model = YOLO(filename, task=model.task)
                 assert suffix in str(filename), "export failed"

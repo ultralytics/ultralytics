@@ -341,7 +341,13 @@ class BaseTrainer:
         self.stride = gs  # for multiscale training
 
         if self.world_size > 1:
-            self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
+            # static_graph=True permits params used >1 time per forward (e.g. flow_model in
+            # o2m+o2o pose loss branches) under torch.compile.
+            self.model = nn.parallel.DistributedDataParallel(
+                self.model,
+                device_ids=[RANK],
+                static_graph=bool(self.args.compile),
+            )
 
         # Batch size
         if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size

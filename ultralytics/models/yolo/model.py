@@ -459,6 +459,16 @@ class AnomalyValidator(yolo.detect.DetectionValidator):
     # Pixel-AUROC eval resolution (heatmap+GT both resized to this square before flattening).
     _pix_eval_size: int = 256
 
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
+        super().__init__(dataloader, save_dir, args, _callbacks)
+        self.iouv = torch.tensor([0.1, 0.25] + self.iouv.tolist())
+        self.niou = self.iouv.numel()
+
+    def get_desc(self) -> str:
+        return ("%22s" + "%11s" * 8) % (
+            "Class", "Images", "Instances", "Box(P", "R", "mAP10", "mAP25", "mAP50", "mAP50-95)"
+        )
+
     def init_metrics(self, model: torch.nn.Module) -> None:
         super().init_metrics(model)
         # Reset per-call AUROC accumulators.
@@ -620,14 +630,52 @@ class AnomalyValidator(yolo.detect.DetectionValidator):
         self.metrics.pixel_auroc = self.pixel_auroc
 
     def get_stats(self) -> dict:
-        stats = super().get_stats()
-        # Surface AUROC alongside detection metrics so callers (e.g. trainer/val script) can read them.
-        stats["metrics/image_auroc"] = self.image_auroc
-        stats["metrics/pixel_auroc"] = self.pixel_auroc
+        self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
+        self.metrics.clear_stats()
+        box = self.metrics.box
+        all_ap = box.all_ap
+        if len(all_ap):
+            vals = [box.mp, box.mr, all_ap[:, 0].mean(), all_ap[:, 1].mean(), all_ap[:, 2].mean(), all_ap[:, 2:].mean()]
+        else:
+            vals = [0.0] * 6
+        stats = {
+            "metrics/precision(B)": float(vals[0]),
+            "metrics/recall(B)": float(vals[1]),
+            "metrics/mAP10(B)": float(vals[2]),
+            "metrics/mAP25(B)": float(vals[3]),
+            "metrics/mAP50(B)": float(vals[4]),
+            "metrics/mAP50-95(B)": float(vals[5]),
+            "fitness": float(vals[5]),
+            "metrics/image_auroc": self.image_auroc,
+            "metrics/pixel_auroc": self.pixel_auroc,
+        }
+        # attach to metrics object so model.val() return carries them
+        self.metrics.map10 = stats["metrics/mAP10(B)"]
+        self.metrics.map25 = stats["metrics/mAP25(B)"]
         return stats
 
     def print_results(self) -> None:
-        super().print_results()
+        box = self.metrics.box
+        all_ap = box.all_ap
+        has_ap = len(all_ap) > 0
+        if has_ap:
+            mean_vals = [box.mp, box.mr, all_ap[:, 0].mean(), all_ap[:, 1].mean(), all_ap[:, 2].mean(), all_ap[:, 2:].mean()]
+        else:
+            mean_vals = [0.0] * 6
+
+        pf = "%22s" + "%11i" * 2 + "%11.3g" * 6
+        LOGGER.info(pf % ("all", self.seen, self.metrics.nt_per_class.sum(), *mean_vals))
+        if self.metrics.nt_per_class.sum() == 0:
+            LOGGER.warning(f"no labels found in {self.args.task} set, cannot compute metrics without labels")
+
+        if self.args.verbose and not self.training and self.nc > 1 and len(self.metrics.stats):
+            for i, c in enumerate(self.metrics.ap_class_index):
+                if has_ap:
+                    cls_vals = [box.p[i], box.r[i], all_ap[i, 0], all_ap[i, 1], all_ap[i, 2], all_ap[i, 2:].mean()]
+                else:
+                    cls_vals = [0.0] * 6
+                LOGGER.info(pf % (self.names[c], self.metrics.nt_per_image[c], self.metrics.nt_per_class[c], *cls_vals))
+
         if self._image_scores:
             n_good = sum(1 for v in self._image_labels if v == 0)
             n_anom = sum(self._image_labels)
@@ -1050,10 +1098,14 @@ class YOLOAnomaly(Model):
         if mask.sum() == 0:
             return torch.zeros((0, 6), dtype=torch.float32)
         num, labels, stats, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
+        H, W = h_np.shape
         boxes = []
         for lbl in range(1, num):  # skip background label 0
             x, y, w, h, area = stats[lbl]
             if area < min_area:
+                continue
+            # Skip components that touch the image border (resize / padding artifacts).
+            if x == 0 or y == 0 or (x + w) >= W or (y + h) >= H:
                 continue
             score = float(h_np[labels == lbl].mean())
             boxes.append([float(x), float(y), float(x + w), float(y + h), score, 0.0])
@@ -1444,11 +1496,14 @@ class AnomalyDINO(YOLOAnomaly):
     ) -> None:
         """Initialize AnomalyDINO with a YOLO checkpoint and a DINOv2 backbone."""
         super().__init__(model, verbose=verbose)
-        # Install AnomalyDetection head so the predict/val routes through
-        # AnomalyPredictor/AnomalyValidator; flip end2end so they take the
-        # per-image (N, 6) post-processing path.
+        # Install AnomalyDetection head so predict/val route through
+        # AnomalyPredictor/AnomalyValidator.  We deliberately leave end2end=False
+        # so post-processing flows through standard non_max_suppression →
+        # (Ni, 6) tensors, which DetectionValidator.update_metrics handles
+        # correctly (the dict-output end2end branch is incompatible with the
+        # default mAP accumulator).
         self.setup(["anomaly"])
-        self.model.end2end = True
+        self.model.end2end = False
 
         # DINOv2 nn.Module stored via __dict__ to bypass nn.Module.__setattr__.
         self.__dict__["_dino"] = None
@@ -1584,7 +1639,15 @@ class AnomalyDINO(YOLOAnomaly):
         import torch.nn.functional as F
 
         self._load_dino()
-        img_t = self._preprocess_for_dino(img_path)   # (1, 3, H, W)
+        if isinstance(img_path, torch.Tensor):
+            # Already a (1, 3, H, W) ImageNet-normalised tensor from _dino_forward.
+            img_t = img_path.to(self._dino_device)
+            if img_t.shape[-2:] != (self._DINO_SIZE, self._DINO_SIZE):
+                # Bicubic to match the support-set preprocessing in _preprocess_for_dino.
+                img_t = F.interpolate(img_t, size=(self._DINO_SIZE, self._DINO_SIZE),
+                                      mode="bicubic", align_corners=False)
+        else:
+            img_t = self._preprocess_for_dino(img_path)   # (1, 3, H, W)
         with torch.no_grad():
             out = self._dino.forward_features(img_t)
         patches = out["x_norm_patchtokens"]            # (1, N, D)
@@ -1599,16 +1662,15 @@ class AnomalyDINO(YOLOAnomaly):
     def _dino_forward(self, x, *args, **kwargs):
         """Drop-in replacement for ``YOLOAnomalyModel.forward``.
 
-        Receives a YOLO-preprocessed batch ``(B, 3, H, W)`` of float [0, 1]
-        tensors and emits the same tuple shape ``AnomalyDetection.forward``
-        produces in end2end mode, so ``AnomalyPredictor`` /
-        ``AnomalyValidator`` can consume it unchanged.
+        Receives a YOLO-preprocessed batch ``(B, 3, H, W)`` of [0, 1] floats and
+        emits the same tuple shape ``AnomalyDetection.forward`` produces:
+        ``(preds_tensor, {"heatmap": hm})``.  ``preds_tensor`` is the standard
+        pre-NMS YOLO format ``(B, 4 + nc, N) = (B, 5, N)`` (xywh + class score),
+        so ``AnomalyPredictor`` / ``AnomalyValidator`` flow through their normal
+        ``non_max_suppression`` → ``(Ni, 6)`` paths.
 
         Returns:
-            tuple: ``(preds, {"heatmap": hm})`` where ``preds`` is a list of
-                ``(N, 6)`` tensors (one per image; columns ``[x1, y1, x2, y2,
-                score, cls=0]`` in input-image coords) and ``hm`` is a
-                ``(B, H, W)`` heatmap tensor on CPU.
+            tuple: ``(preds, {"heatmap": hm})``.
         """
         import torch.nn.functional as F
 
@@ -1619,12 +1681,12 @@ class AnomalyDINO(YOLOAnomaly):
         max_det = self._anomaly_args.get("ad_max_det", 9)
         bank    = self._dino_bank.to(self._dino_device)
 
-        # YOLO preprocess emits [0, 1] float; DINOv2 needs ImageNet normalisation.
+        # YOLO preprocess emits [0, 1] floats; DINOv2 needs ImageNet normalisation.
         mean = torch.tensor(self._DINO_MEAN, device=x.device).view(1, 3, 1, 1)
         std  = torch.tensor(self._DINO_STD,  device=x.device).view(1, 3, 1, 1)
         x_dino = (x - mean) / std
 
-        preds_per_img: list[torch.Tensor] = []
+        boxes_per_img: list[torch.Tensor] = []
         hm_full_list:  list[torch.Tensor] = []
         for i in range(B):
             patches, gh, gw = self._extract_dino_features(x_dino[i:i + 1])
@@ -1634,11 +1696,30 @@ class AnomalyDINO(YOLOAnomaly):
                 hm[None, None].float(), size=(H_in, W_in),
                 mode="bilinear", align_corners=False,
             )[0, 0]
+            # Suppress border artifacts caused by letterbox padding / resizing.
+            # DINOv2 patch size=14; on 518 px → 37 patches. Upsampled to ~640–672 px
+            # each patch is ~18 px, so 2-patch artifacts need ~36 px margin.
+            border = max(24, min(H_in, W_in) // 16)
+            hm_full[:border, :] = 0
+            hm_full[-border:, :] = 0
+            hm_full[:, :border] = 0
+            hm_full[:, -border:] = 0
             hm_full_list.append(hm_full.detach().cpu())
-            boxes = self._heatmap_to_boxes(hm_full, thresh=ad_conf, max_det=max_det)
-            if boxes.shape[0] == 0:
-                boxes = torch.zeros((0, 6), dtype=torch.float32)
-            preds_per_img.append(boxes)
-        return preds_per_img, {"heatmap": torch.stack(hm_full_list, dim=0)}
+            boxes_per_img.append(self._heatmap_to_boxes(hm_full, thresh=ad_conf, max_det=max_det))
+
+        # Pack per-image (M, 6) xyxy boxes into a (B, 5, max_N) pre-NMS tensor.
+        max_n = max((b.shape[0] for b in boxes_per_img), default=0) or 1
+        preds = torch.zeros((B, 5, max_n), dtype=torch.float32, device=x.device)
+        for i, b in enumerate(boxes_per_img):
+            n = b.shape[0]
+            if n == 0:
+                continue
+            bb = b.to(x.device)
+            preds[i, 0, :n] = (bb[:, 0] + bb[:, 2]) / 2
+            preds[i, 1, :n] = (bb[:, 1] + bb[:, 3]) / 2
+            preds[i, 2, :n] = bb[:, 2] - bb[:, 0]
+            preds[i, 3, :n] = bb[:, 3] - bb[:, 1]
+            preds[i, 4, :n] = bb[:, 4]   # class-0 score (also used as objectness)
+        return preds, {"heatmap": torch.stack(hm_full_list, dim=0)}
 
 

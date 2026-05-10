@@ -444,7 +444,7 @@ class BaseTrainer:
                                 f"NaN/Inf loss detected at step {ni}. Skipping backward pass. "
                                 "Consider reducing learning rate or using SGD optimizer."
                             )
-                            if hasattr(self.optimizer, 'zero_grad'):
+                            if hasattr(self.optimizer, "zero_grad"):
                                 self.optimizer.zero_grad()  # Clear accumulated gradients
                             batch = loss = preds = None
                             self.loss = self.loss_items = None

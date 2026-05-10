@@ -361,6 +361,49 @@ The `world_size > 1` guard ensures the trainer is safe to use in single-GPU runs
     | Multi-GPU training, large per-GPU batch (≥ 32) | Optional; minor benefit  |
     | Single-GPU training                            | Not applicable (skipped) |
 
+
+## Configurable Gradient Clipping
+
+The default trainer clips gradients to `max_norm=10.0` in `optimizer_step()`, a loose value tuned for YOLO models where gradients rarely exceed it. DETR-family detectors (RT-DETR, DEIM, DINO) typically use much tighter values such as `0.1` to stabilize the decoder's cross-attention layers, where gradient magnitudes can spike. To override the clip value, subclass the trainer and override `optimizer_step()`:
+
+```python
+import torch
+
+from ultralytics import RTDETR
+from ultralytics.models.rtdetr.train import RTDETRTrainer
+
+
+class CustomClipTrainer(RTDETRTrainer):
+    """RT-DETR trainer with configurable gradient clipping."""
+
+    clip_grad_norm = 0.1  # max gradient norm; set to 0 to disable clipping
+
+    def optimizer_step(self):
+        """Run an optimizer step with a configurable gradient-norm clip."""
+        self.scaler.unscale_(self.optimizer)
+        if self.clip_grad_norm > 0:
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self.clip_grad_norm)
+        self.scaler.step(self.optimizer)
+        self.scaler.update()
+        self.optimizer.zero_grad()
+        if self.ema:
+            self.ema.update(self.model)
+
+
+model = RTDETR("rtdetr-l.pt")
+model.train(data="coco8.yaml", epochs=20, trainer=CustomClipTrainer)
+```
+
+The same trainer works for YOLO by switching the parent class to `DetectionTrainer` (`from ultralytics.models.yolo.detect import DetectionTrainer`) and loading a YOLO checkpoint with `YOLO("yolo26n.pt")`. The `optimizer_step` body is unchanged.
+
+!!! tip "Typical `clip_grad_norm` values"
+
+    | Architecture family          | Typical `max_norm` |
+    | ---------------------------- | ------------------ |
+    | RT-DETR / DEIM / DETR family | `0.1`              |
+    | YOLO (Ultralytics default)   | `10.0`             |
+    | Disable clipping             | `0`                |
+
 ## FAQ
 
 ### How do I pass a custom trainer to YOLO?

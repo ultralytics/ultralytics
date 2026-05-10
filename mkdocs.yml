@@ -651,7 +651,6 @@ nav:
       - REST API: platform/api/index.md
 
   - Reference:
-      - reference/index.md
       - __init__: reference/__init__.md
       - cfg:
           - __init__: reference/cfg/__init__.md

@@ -1092,13 +1092,12 @@ def update_mkdocs_file(reference_yaml: str) -> None:
 
     # Build new section with proper indentation. The hand-written `reference/index.md`
     # overview is pinned to the top so the Reference section has a landing page (matching
-    # the convention used by Modes, Tasks, Datasets, Help, etc.).
-    new_section_lines = ["\n  - Reference:", "        - reference/index.md"]
-    new_section_lines.extend(
-        f"    {line}"
-        for line in reference_yaml.splitlines()
-        if line.strip() != "- reference:"  # Skip redundant header
-    )
+    # the convention used by Modes, Tasks, Datasets, Help, etc.). It must share the same
+    # 4-space inner indent as the auto-generated sibling entries below so the resulting
+    # YAML is parseable (otherwise siblings nest under it as children of a string scalar).
+    inner_lines = [line for line in reference_yaml.splitlines() if line.strip() != "- reference:"]
+    inner_lines.insert(0, "    - reference/index.md")
+    new_section_lines = ["\n  - Reference:", *(f"    {line}" for line in inner_lines)]
     new_ref_section = "\n".join(new_section_lines) + "\n"
 
     if ref_match:

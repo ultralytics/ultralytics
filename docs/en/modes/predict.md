@@ -398,30 +398,18 @@ Below are code examples for using each source type:
 
 ### Fixed shape vs minimum rectangle (`rect`)
 
-By default, predict uses **`rect=True`**, which can turn on **minimum-rectangle** padding inside `LetterBox` (`auto=True`). In code, that happens only when **all images in the current batch share the same height and width**, **`rect=True`**, and the backend allows it—namely **`model.format == "pt"`** (PyTorch), or **`dynamic=True` with `model.format != "imx"`** (for example dynamic ONNX or Triton). Otherwise `auto` stays off and images are letterboxed to the **full** `imgsz` target. See [`BasePredictor.pre_transform`](../reference/engine/predictor.md#ultralytics.engine.predictor.BasePredictor.pre_transform) and [`LetterBox`](../reference/data/augment.md#ultralytics.data.augment.LetterBox) (in `__call__`, when `auto=True`, padding is reduced with `np.mod(..., stride)` so the tensor may be **smaller** than `imgsz` while staying stride-aligned).
+By default, predict uses **`rect=True`**, which enables **minimum-rectangle** padding when possible. The image is scaled to fit inside `imgsz` and padded only to the nearest stride multiple, so the final tensor may be **smaller** than `imgsz`. Minimum-rectangle padding is only used when **all images in the batch have the same shape** and the backend supports it (PyTorch `.pt`, or dynamic ONNX / Triton). Otherwise, images are padded to the **full** `imgsz` target.
 
-**What `imgsz` does with `rect=True` and `auto=True`**
+Use **`rect=False`** to always pad to the full `imgsz` target. This is recommended when you need a fixed input size to match exported models (ONNX, TensorRT, etc.).
 
-- An **integer** `imgsz=640` is expanded to a square target `(640, 640)` (after stride rounding in [`check_imgsz`](../reference/utils/checks.md#ultralytics.utils.checks.check_imgsz)). The image is scaled to **fit inside** that box; aspect ratio is preserved.
-- A **tuple** `imgsz=(384, 672)` defines a rectangular box the same way: the image is scaled to fit inside `H×W`. With `auto=True`, the tensor passed to the model is **not guaranteed** to be exactly `(384, 672)`; it can be a smaller stride-aligned size (“minimum rectangle”).
+**Integer vs tuple `imgsz`**
 
-That is usually faster, but two calls such as default `model(path)` and `model(path, imgsz=(384, 672))` can land on **different effective scales** for the same file. Compare metrics on a dataset, not a single frame, and align `imgsz`, `rect`, and export when benchmarking.
+- An **integer** `imgsz=640` becomes a square target `(640, 640)` after stride rounding.
+- A **tuple** `imgsz=(384, 672)` sets a rectangular target. With `rect=True` and `auto=True`, the actual tensor can be smaller than this target.
 
-**Fixed input size (match ONNX / TensorRT / deployment)**
+**Training vs predict/export**
 
-Use `rect=False` so `auto` is never used: the image is letterboxed to the **full** `imgsz`—an integer gives a square `N×N`, a tuple gives exactly `H×W` (stride-rounded). Use the same `imgsz` when exporting. Example: `model(path, imgsz=(384, 672), rect=False)`.
-
-**Batched inference**
-
-`auto=True` applies only when **every image in that batch has the same shape** (same `H` and `W`). If shapes differ, `auto=False` and each image is letterboxed to the **same** target `imgsz` (square if you passed an integer, or `H×W` if you passed a tuple), so the batch can be stacked—without minimum-rectangle shrinking.
-
-**Exported weights vs `.pt`**
-
-Static exports (e.g. typical ONNX / TensorRT) usually run with `auto=False` even when `rect=True`, so padding matches the fixed graph input. A `.pt` model with `rect=True` may still use minimum rectangles on single-image runs; behavior can differ from the exported graph unless you match `imgsz`, `rect`, and dynamic/static export settings.
-
-**Training `imgsz` vs predict / export `imgsz`**
-
-Training uses `check_imgsz(..., max_dim=1)`: pass a **single integer** `imgsz` for a square input (see [Train mode](train.md#train-settings)). If a `[height, width]`-style value is supplied, it is **logged and coerced** (largest side kept). **Predict** and **export** use `min_dim=2` and accept an integer or a `(height, width)` tuple/list. See [`check_imgsz`](../reference/utils/checks.md#ultralytics.utils.checks.check_imgsz) for the exact rules.
+Training accepts only a single integer `imgsz` (a `[h, w]` list is coerced to the largest value). Predict and export accept either an integer or a `(height, width)` tuple.
 
 !!! example
 

@@ -396,12 +396,32 @@ Below are code examples for using each source type:
 
 `model.predict()` accepts multiple arguments that can be passed at inference time to override defaults:
 
-!!! note
+### Fixed shape vs minimum rectangle (`rect`)
 
-    Ultralytics uses minimal padding during inference by default (`rect=True`). In this mode, the shorter side of each image is padded only as much as needed to make it divisible by the model's maximum stride, rather than padding it all the way to the full `imgsz`. When running inference on a batch of images, minimal padding only works if all images have identical size. Otherwise, images are uniformly padded to a square shape with both sides equal to `imgsz`.
+By default, predict uses **`rect=True`**, which can turn on **minimum-rectangle** padding inside `LetterBox` (`auto=True`). In code, that happens only when **all images in the current batch share the same height and width**, **`rect=True`**, and the backend allows it—namely **`model.format == "pt"`** (PyTorch), or **`dynamic=True` with `model.format != "imx"`** (for example dynamic ONNX or Triton). Otherwise `auto` stays off and images are letterboxed to the **full** `imgsz` target. See [`BasePredictor.pre_transform`](../reference/engine/predictor.md#ultralytics.engine.predictor.BasePredictor.pre_transform) and [`LetterBox`](../reference/data/augment.md#ultralytics.data.augment.LetterBox) (in `__call__`, when `auto=True`, padding is reduced with `np.mod(..., stride)` so the tensor may be **smaller** than `imgsz` while staying stride-aligned).
 
-    - `batch=1`, using `rect` padding by default.
-    - `batch>1`, using `rect` padding only if all the images in one batch have identical size, otherwise using square padding to `imgsz`.
+**What `imgsz` does with `rect=True` and `auto=True`**
+
+- An **integer** `imgsz=640` is expanded to a square target `(640, 640)` (after stride rounding in [`check_imgsz`](../reference/utils/checks.md#ultralytics.utils.checks.check_imgsz)). The image is scaled to **fit inside** that box; aspect ratio is preserved.
+- A **tuple** `imgsz=(384, 672)` defines a rectangular box the same way: the image is scaled to fit inside `H×W`. With `auto=True`, the tensor passed to the model is **not guaranteed** to be exactly `(384, 672)`; it can be a smaller stride-aligned size (“minimum rectangle”).
+
+That is usually faster, but two calls such as default `model(path)` and `model(path, imgsz=(384, 672))` can land on **different effective scales** for the same file. Compare metrics on a dataset, not a single frame, and align `imgsz`, `rect`, and export when benchmarking.
+
+**Fixed input size (match ONNX / TensorRT / deployment)**
+
+Use `rect=False` so `auto` is never used: the image is letterboxed to the **full** `imgsz`—an integer gives a square `N×N`, a tuple gives exactly `H×W` (stride-rounded). Use the same `imgsz` when exporting. Example: `model(path, imgsz=(384, 672), rect=False)`.
+
+**Batched inference**
+
+`auto=True` applies only when **every image in that batch has the same shape** (same `H` and `W`). If shapes differ, `auto=False` and each image is letterboxed to the **same** target `imgsz` (square if you passed an integer, or `H×W` if you passed a tuple), so the batch can be stacked—without minimum-rectangle shrinking.
+
+**Exported weights vs `.pt`**
+
+Static exports (e.g. typical ONNX / TensorRT) usually run with `auto=False` even when `rect=True`, so padding matches the fixed graph input. A `.pt` model with `rect=True` may still use minimum rectangles on single-image runs; behavior can differ from the exported graph unless you match `imgsz`, `rect`, and dynamic/static export settings.
+
+**Training `imgsz` vs predict / export `imgsz`**
+
+Training uses `check_imgsz(..., max_dim=1)`: pass a **single integer** `imgsz` for a square input (see [Train mode](train.md#train-settings)). If a `[height, width]`-style value is supplied, it is **logged and coerced** (largest side kept). **Predict** and **export** use `min_dim=2` and accept an integer or a `(height, width)` tuple/list. See [`check_imgsz`](../reference/utils/checks.md#ultralytics.utils.checks.check_imgsz) for the exact rules.
 
 !!! example
 

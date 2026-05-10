@@ -361,7 +361,6 @@ The `world_size > 1` guard ensures the trainer is safe to use in single-GPU runs
     | Multi-GPU training, large per-GPU batch (≥ 32) | Optional; minor benefit  |
     | Single-GPU training                            | Not applicable (skipped) |
 
-
 ## Configurable Gradient Clipping
 
 The default trainer clips gradients to `max_norm=10.0` in `optimizer_step()`, a loose value tuned for YOLO models where gradients rarely exceed it. DETR-family detectors (RT-DETR, DEIM, DINO) typically use much tighter values such as `0.1` to stabilize the decoder's cross-attention layers, where gradient magnitudes can spike. To override the clip value, subclass the trainer and override `optimizer_step()`:

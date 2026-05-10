@@ -1071,13 +1071,14 @@ def create_nav_menu_yaml(nav_items: list[str]) -> str:
 def extract_document_paths(yaml_section: str) -> list[str]:
     """Extract document paths from a YAML section, ignoring formatting and structure."""
     paths = []
-    # Match all paths that appear after a colon in the YAML
+    # Match `key: path` entries
     path_matches = re.findall(r":\s*([^\s][^:\n]*?)(?:\n|$)", yaml_section)
     for path in path_matches:
-        # Clean up the path
         path = path.strip()
         if path and not path.startswith("-") and not path.endswith(":"):
             paths.append(path)
+    # Also match bare `- path.md` entries (e.g. `- reference/index.md`)
+    paths.extend(re.findall(r"^\s*-\s+([^\s:][^:\n]*\.md)\s*$", yaml_section, re.MULTILINE))
     return sorted(paths)
 
 
@@ -1089,13 +1090,14 @@ def update_mkdocs_file(reference_yaml: str) -> None:
     ref_pattern = r"(\n  - Reference:[\s\S]*?)(?=\n  - \w|$)"
     ref_match = re.search(ref_pattern, mkdocs_content)
 
-    # Build new section with proper indentation
-    new_section_lines = ["\n  - Reference:"]
-    new_section_lines.extend(
-        f"    {line}"
-        for line in reference_yaml.splitlines()
-        if line.strip() != "- reference:"  # Skip redundant header
-    )
+    # Build new section with proper indentation. The hand-written `reference/index.md`
+    # overview is pinned to the top so the Reference section has a landing page (matching
+    # the convention used by Modes, Tasks, Datasets, Help, etc.). It must share the same
+    # 4-space inner indent as the auto-generated sibling entries below so the resulting
+    # YAML is parseable (otherwise siblings nest under it as children of a string scalar).
+    inner_lines = [line for line in reference_yaml.splitlines() if line.strip() != "- reference:"]
+    inner_lines.insert(0, "    - reference/index.md")
+    new_section_lines = ["\n  - Reference:", *(f"    {line}" for line in inner_lines)]
     new_ref_section = "\n".join(new_section_lines) + "\n"
 
     if ref_match:
@@ -1156,6 +1158,7 @@ def build_reference_placeholders(update_nav: bool = True) -> list[str]:
     nav_items: list[str] = []
     created = 0
     orphans = set(REFERENCE_DIR.rglob("*.md"))
+    orphans.discard(REFERENCE_DIR / "index.md")  # Preserve hand-written overview page
 
     for py_filepath in TQDM(list(PACKAGE_DIR.rglob("*.py")), desc="Building reference stubs", unit="file"):
         classes, functions = extract_classes_and_functions(py_filepath)

@@ -342,7 +342,7 @@ class RTDETRBackboneLRTrainer(RTDETRTrainer):
         name = {x.lower(): x for x in canonical}.get(name.lower(), name)
         if name == "auto":
             name, lr, momentum = "AdamW", 1e-4, 0.9
-            self.args.warmup_bias_lr = 0.0
+        self.args.warmup_bias_lr = 0.0  # RT-DETR warms biases from 0, unlike YOLO's 0.1
         if name not in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
             raise NotImplementedError(f"This trainer only supports AdamW-family optimizers; got {name}")
 
@@ -374,12 +374,12 @@ class RTDETRBackboneLRTrainer(RTDETRTrainer):
         # Build the optimizer with per-group lr and weight decay; backbone groups use lr * backbone_lr_ratio
         backbone_lr = lr * self.backbone_lr_ratio
         param_groups = [
-            {"params": groups["head_weight"], "lr": lr, "weight_decay": decay},
-            {"params": groups["head_bn"], "lr": lr, "weight_decay": 0.0},
-            {"params": groups["head_bias"], "lr": lr, "weight_decay": 0.0},
-            {"params": groups["backbone_weight"], "lr": backbone_lr, "weight_decay": decay},
-            {"params": groups["backbone_bn"], "lr": backbone_lr, "weight_decay": 0.0},
-            {"params": groups["backbone_bias"], "lr": backbone_lr, "weight_decay": 0.0},
+            {"params": groups["head_weight"], "lr": lr, "weight_decay": decay, "param_group": "weight"},
+            {"params": groups["head_bn"], "lr": lr, "weight_decay": 0.0, "param_group": "bn"},
+            {"params": groups["head_bias"], "lr": lr, "weight_decay": 0.0, "param_group": "bias"},
+            {"params": groups["backbone_weight"], "lr": backbone_lr, "weight_decay": decay, "param_group": "weight"},
+            {"params": groups["backbone_bn"], "lr": backbone_lr, "weight_decay": 0.0, "param_group": "bn"},
+            {"params": groups["backbone_bias"], "lr": backbone_lr, "weight_decay": 0.0, "param_group": "bias"},
         ]
         param_groups = [pg for pg in param_groups if pg["params"]]  # drop empty groups
         optimizer = getattr(torch.optim, name)(param_groups, betas=(momentum, 0.999))

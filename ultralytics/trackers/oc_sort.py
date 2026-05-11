@@ -185,6 +185,8 @@ class OCSORT(BYTETracker):
         use_byte (bool): Whether to use ByteTrack-style low-confidence second pass.
     """
 
+    track_class = OCSortTrack
+
     def __init__(self, args: Any, frame_rate: int = 30):
         """Initialize OC-SORT tracker.
 
@@ -210,10 +212,6 @@ class OCSORT(BYTETracker):
         """Return the per-detection input for `init_track`. Default: pass `img` through."""
         return img
 
-    def _pre_first_associate(self, strack_pool, unconfirmed, img, results_high) -> None:
-        """Hook called after Kalman predict, before first-stage assignment. Default: no-op."""
-        return None
-
     def _fuse_appearance(self, dists, tracks, detections, iou_dists=None):
         """Hook combining motion cost with appearance cost. Default: pass-through (no ReID)."""
         return dists
@@ -225,145 +223,51 @@ class OCSORT(BYTETracker):
         dists = dists + self.inertia * self._velocity_direction_cost(tracks, detections)
         return self._fuse_appearance(dists, tracks, detections, iou_dists=iou_dists)
 
-    def update(self, results, img: np.ndarray | None = None, feats: np.ndarray | None = None) -> np.ndarray:
-        """Advance the tracker by one frame and return active tracks as `[..., id, score, cls, det_idx]` rows."""
-        self.frame_id += 1
-        activated_stracks = []
-        refind_stracks = []
-        lost_stracks = []
-        removed_stracks = []
-
-        scores = results.conf
-        remain_inds = scores >= self.args.track_high_thresh
-        inds_low = scores > self.args.track_low_thresh
-        inds_high = scores < self.args.track_high_thresh
-
-        inds_second = inds_low & inds_high
-        results_second = results[inds_second]
-        results = results[remain_inds]
-
-        detections = self.init_track(results, self._input_for(img, feats, remain_inds))
-
-        # Separate into confirmed and unconfirmed tracks
-        unconfirmed = []
-        tracked_stracks = []
-        for track in self.tracked_stracks:
-            if not track.is_activated:
-                unconfirmed.append(track)
-            else:
-                tracked_stracks.append(track)
-
-        # Stage 1: First association with high-score detections
-        strack_pool = joint_stracks(tracked_stracks, self.lost_stracks)
-        self.multi_predict(strack_pool)
-        self._pre_first_associate(strack_pool, unconfirmed, img, results)
-
-        dists = self.get_dists(strack_pool, detections)
-        matches, u_track, u_detection = matching.linear_assignment(dists, thresh=self.args.match_thresh)
-
-        for itracked, idet in matches:
-            track = strack_pool[itracked]
-            det = detections[idet]
-            if track.state == TrackState.Tracked:
-                track.update(det, self.frame_id)
-                activated_stracks.append(track)
-            else:
-                # ORU: repair Kalman state before re-activation for lost tracks
-                track.apply_oru(det.xyxy, self.frame_id)
-                track.re_activate(det, self.frame_id, new_id=False)
-                refind_stracks.append(track)
-
-        # OCR: Observation-Centric Recovery pass
-        # Re-associate unmatched tracked (not lost) using last_observation position
+    def _post_first_association(self, strack_pool, detections, u_track, u_detection, activated, refind, lost):
+        """Observation-Centric Recovery (OCR) pass after first-stage association."""
         ocr_tracked = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
         ocr_dets = [detections[i] for i in u_detection]
 
-        if ocr_tracked and ocr_dets:
-            ocr_dists = self._ocr_distance(ocr_tracked, ocr_dets)
-            if self.args.fuse_score:
-                ocr_dists = matching.fuse_score(ocr_dists, ocr_dets)
-            ocr_dists = self._fuse_appearance(ocr_dists, ocr_tracked, ocr_dets)  # no-op in OC-SORT
-            ocr_matches, ocr_u_track, ocr_u_det = matching.linear_assignment(ocr_dists, thresh=self.args.match_thresh)
+        if not ocr_tracked or not ocr_dets:
+            return u_track, u_detection
 
-            for itracked, idet in ocr_matches:
-                track = ocr_tracked[itracked]
-                det = ocr_dets[idet]
-                if track.state == TrackState.Tracked:
-                    track.update(det, self.frame_id)
-                    activated_stracks.append(track)
-                else:
-                    track.apply_oru(det.xyxy, self.frame_id)
-                    track.re_activate(det, self.frame_id, new_id=False)
-                    refind_stracks.append(track)
+        ocr_dists = self._ocr_distance(ocr_tracked, ocr_dets)
+        if self.args.fuse_score:
+            ocr_dists = matching.fuse_score(ocr_dists, ocr_dets)
+        ocr_dists = self._fuse_appearance(ocr_dists, ocr_tracked, ocr_dets)
+        ocr_matches, ocr_u_track, ocr_u_det = matching.linear_assignment(ocr_dists, thresh=self.args.match_thresh)
 
-            # Update unmatched sets after OCR
-            ocr_u_track_set = {id(ocr_tracked[i]) for i in ocr_u_track}
-            ocr_u_det_set = {id(ocr_dets[i]) for i in ocr_u_det}
-            u_track = [
-                i
-                for i in u_track
-                if id(strack_pool[i]) in ocr_u_track_set or strack_pool[i].state != TrackState.Tracked
-            ]
-            u_detection = [i for i in u_detection if id(detections[i]) in ocr_u_det_set]
+        for itracked, idet in ocr_matches:
+            track = ocr_tracked[itracked]
+            det = ocr_dets[idet]
+            if track.state == TrackState.Tracked:
+                track.update(det, self.frame_id)
+                activated.append(track)
+            else:
+                track.apply_oru(det.xyxy, self.frame_id)
+                track.re_activate(det, self.frame_id, new_id=False)
+                refind.append(track)
 
-        # Stage 2: Low-confidence second pass (optional, ByteTrack-style)
-        if self.use_byte:
-            detections_second = self.init_track(results_second, self._input_for(img, feats, inds_second))
-            r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
-            dists = matching.iou_distance(r_tracked_stracks, detections_second)
-            if self.args.fuse_score:
-                dists = matching.fuse_score(dists, detections_second)
-            matches, u_track_second, _u_detection_second = matching.linear_assignment(dists, thresh=0.5)
-            for itracked, idet in matches:
-                track = r_tracked_stracks[itracked]
-                det = detections_second[idet]
-                if track.state == TrackState.Tracked:
-                    track.update(det, self.frame_id)
-                    activated_stracks.append(track)
-                else:
-                    track.re_activate(det, self.frame_id, new_id=False)
-                    refind_stracks.append(track)
-            for it in u_track_second:
-                track = r_tracked_stracks[it]
-                if track.state != TrackState.Lost:
-                    track.mark_lost()
-                    lost_stracks.append(track)
-        else:
-            # Mark unmatched tracked as lost (when not using byte second pass)
+        ocr_u_track_set = {id(ocr_tracked[i]) for i in ocr_u_track}
+        ocr_u_det_set = {id(ocr_dets[i]) for i in ocr_u_det}
+        u_track = [
+            i
+            for i in u_track
+            if id(strack_pool[i]) in ocr_u_track_set or strack_pool[i].state != TrackState.Tracked
+        ]
+        u_detection = [i for i in u_detection if id(detections[i]) in ocr_u_det_set]
+        return u_track, u_detection
+
+    def _second_association(self, strack_pool, u_track, detections_second, activated, refind, lost):
+        """Run ByteTrack-style second pass only when ``use_byte`` is enabled."""
+        if not self.use_byte:
             for i in u_track:
                 track = strack_pool[i]
                 if track.state == TrackState.Tracked:
                     track.mark_lost()
-                    lost_stracks.append(track)
-
-        # Stage 3: Deal with unconfirmed tracks
-        detections = [detections[i] for i in u_detection]
-        dists = self.get_dists(unconfirmed, detections)
-        matches, u_unconfirmed, u_detection = matching.linear_assignment(dists, thresh=0.7)
-        for itracked, idet in matches:
-            unconfirmed[itracked].update(detections[idet], self.frame_id)
-            activated_stracks.append(unconfirmed[itracked])
-        for it in u_unconfirmed:
-            track = unconfirmed[it]
-            track.mark_removed()
-            removed_stracks.append(track)
-
-        # Stage 4: Init new tracks
-        for inew in u_detection:
-            track = detections[inew]
-            if track.score < self.args.new_track_thresh:
-                continue
-            track.activate(self.kalman_filter, self.frame_id)
-            activated_stracks.append(track)
-
-        # Stage 5: Update state
-        for track in self.lost_stracks:
-            if self.frame_id - track.end_frame > self.max_frames_lost:
-                track.mark_removed()
-                removed_stracks.append(track)
-
-        merge_track_pools(self, activated_stracks, refind_stracks, lost_stracks, removed_stracks)
-        return np.asarray([x.result for x in self.tracked_stracks if x.is_activated], dtype=np.float32)
+                    lost.append(track)
+            return
+        super()._second_association(strack_pool, u_track, detections_second, activated, refind, lost)
 
     def _velocity_direction_cost(self, tracks: list[OCSortTrack], detections: list[OCSortTrack]) -> np.ndarray:
         """Compute OCM velocity direction consistency cost matrix (vectorized).

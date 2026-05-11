@@ -147,6 +147,8 @@ class FASTTracker(BYTETracker):
         >>> tracks = tracker.update(detections)
     """
 
+    track_class = FastSTrack
+
     def __init__(self, args, frame_rate: int = 30):
         """Initialize FastTracker with tunables read from ``args``.
 
@@ -190,90 +192,21 @@ class FASTTracker(BYTETracker):
         hl = self._history_len
         return [FastSTrack(xywh, s, c, history_len=hl) for (xywh, s, c) in zip(bboxes, results.conf, results.cls)]
 
-    def update(self, results, img: np.ndarray | None = None, feats: np.ndarray | None = None) -> np.ndarray:
-        """Advance the tracker by one frame and return the currently active tracked objects.
+    def _apply_match(self, track, det, activated, refind):
+        """Update or re-activate a track and clear any occlusion bookkeeping on a successful match."""
+        super()._apply_match(track, det, activated, refind)
+        track.is_occluded = False
+        track.not_matched = 0
+        track.occluded_len = 0
 
-        Performs the BYTE two-pass association (high-score then low-score), then runs occlusion
-        handling on any tracks that remain unmatched, associates unconfirmed tracks against leftover
-        detections, spawns new tracks (subject to IoU suppression), and retires lost tracks with a
-        grace window for recently-occluded ones.
+    def _post_second_association(self, r_tracked, u_track, activated, lost):
+        """Flag unmatched tracked tracks as occluded when covered by an active neighbor."""
+        self._handle_occlusions(r_tracked, u_track, activated, lost)
 
-        Args:
-            results (Any): ``Results``-like object exposing ``xywh`` (or ``xywhr``), ``conf``, and ``cls``, and
-                supporting boolean / ndarray indexing.
-            img (np.ndarray | None): Current frame. Unused by FastTracker.
-            feats (np.ndarray | None): Optional per-detection appearance features. Unused by FastTracker; accepted for
-                signature compatibility.
-
-        Returns:
-            (np.ndarray): Float32 array with one row per activated track of the form ``[..., track_id, score, cls,
-                det_idx]``. Leading coordinates are ``xyxy`` for standard boxes or ``xywha`` for oriented boxes.
-        """
-        self.frame_id += 1
-        activated_stracks: list[FastSTrack] = []
-        refind_stracks: list[FastSTrack] = []
-        lost_stracks: list[FastSTrack] = []
-        removed_stracks: list[FastSTrack] = []
-
-        scores = results.conf
-        remain_inds = scores >= self.args.track_high_thresh
-        inds_low = scores > self.args.track_low_thresh
-        inds_high = scores < self.args.track_high_thresh
-        inds_second = inds_low & inds_high
-
-        results_second = results[inds_second]
-        results_keep = results[remain_inds]
-
-        detections = self.init_track(results_keep, img)
-
-        unconfirmed: list[FastSTrack] = []
-        tracked_stracks: list[FastSTrack] = []
-        for track in self.tracked_stracks:
-            if not track.is_activated:
-                unconfirmed.append(track)
-            else:
-                tracked_stracks.append(track)
-
-        # --- First association (high-score detections) ---
-        strack_pool = joint_stracks(tracked_stracks, self.lost_stracks)
-        self.multi_predict(strack_pool)
-        dists = self.get_dists(strack_pool, detections)
-        matches, u_track, u_detection = matching.linear_assignment(dists, thresh=self.args.match_thresh)
-
-        self._apply_matches(matches, strack_pool, detections, activated_stracks, refind_stracks)
-
-        # --- Second association (low-score detections) ---
-        detections_second = self.init_track(results_second, img)
-        r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
-        dists = matching.iou_distance(r_tracked_stracks, detections_second)
-        if self.args.fuse_score:
-            dists = matching.fuse_score(dists, detections_second)
-        matches, u_track, _ = matching.linear_assignment(dists, thresh=0.5)
-        self._apply_matches(matches, r_tracked_stracks, detections_second, activated_stracks, refind_stracks)
-
-        # --- Occlusion handling for still-unmatched tracked tracks ---
-        self._handle_occlusions(r_tracked_stracks, u_track, activated_stracks, lost_stracks)
-
-        # --- Unconfirmed tracks (1-frame-old starts) ---
-        detections = [detections[i] for i in u_detection]
-        dists = self.get_dists(unconfirmed, detections)
-        matches, u_unconfirmed, u_detection = matching.linear_assignment(dists, thresh=0.7)
-        for itracked, idet in matches:
-            unconfirmed[itracked].update(detections[idet], self.frame_id)
-            activated_stracks.append(unconfirmed[itracked])
-        for it in u_unconfirmed:
-            track = unconfirmed[it]
-            track.mark_removed()
-            removed_stracks.append(track)
-
-        # --- Init new tracks, suppressed by IoU against already-active tracks ---
-        # Suppression pool includes both this-frame Tracked updates and re-found Lost tracks so
-        # a fresh detection that lands on a just-revived track doesn't spawn a duplicate ID.
-        # New tracks created in this loop are appended too, so they suppress each other.
-        # Note: tracks confirmed for the first time this frame may have is_activated=False until
-        # they hit min_track_len; they won't appear here.
-        active_boxes = [t.xyxy for t in activated_stracks if t.is_activated]
-        active_boxes.extend(t.xyxy for t in refind_stracks if t.is_activated)
+    def _init_new_tracks(self, u_detection, detections, activated):
+        """Activate new tracks, suppressing detections that heavily overlap already-active tracks."""
+        active_boxes = [t.xyxy for t in activated if t.is_activated]
+        active_boxes.extend(t.xyxy for t in self.tracked_stracks if t.state == TrackState.Tracked)
         suppress_on = self.init_iou_suppress < 1.0
         # Hoist the stack out of the loop; only restack when active_boxes grows.
         active_stack = np.asarray(active_boxes, dtype=np.float32) if active_boxes else None
@@ -285,23 +218,22 @@ class FASTTracker(BYTETracker):
                 if matching.bbox_ioa(det.xyxy[None, :], active_stack, iou=True).max() >= self.init_iou_suppress:
                     continue
             det.activate(self.kalman_filter, self.frame_id)
-            activated_stracks.append(det)
+            activated.append(det)
             active_boxes.append(det.xyxy)
             active_stack = np.asarray(active_boxes, dtype=np.float32)
 
-        # --- Retire lost tracks, with grace window for recently-occluded ones ---
+    def _remove_stale_lost(self, lost, removed):
+        """Remove lost tracks, with a grace window for recently-occluded ones."""
         for track in self.lost_stracks:
             recently_occluded = track.was_recently_occluded and (
                 self.frame_id - track.last_occluded_frame <= self.occ_reappear_window
             )
             if not recently_occluded and (self.frame_id - track.end_frame > self.max_frames_lost):
                 track.mark_removed()
-                removed_stracks.append(track)
+                removed.append(track)
 
-        merge_track_pools(self, activated_stracks, refind_stracks, lost_stracks, removed_stracks)
-        # Only emit tracks updated this frame: occluded tracks kept alive by `_handle_occlusions`
-        # carry stale `idx` values from a previous frame's detection list, which would index into
-        # today's results out-of-bounds.
+    def _format_output(self):
+        """Only emit tracks updated this frame to avoid stale ``idx`` values."""
         return np.asarray(
             [x.result for x in self.tracked_stracks if x.is_activated and x.frame_id == self.frame_id],
             dtype=np.float32,
@@ -390,29 +322,3 @@ class FASTTracker(BYTETracker):
                 ):
                     track.mark_lost()
                     lost_stracks.append(track)
-
-    def _apply_matches(self, matches, pool, detections, activated_stracks, refind_stracks):
-        """Apply matched ``(track, detection)`` pairs from an association pass.
-
-        Updates tracked tracks in place, re-activates lost ones, and clears per-track occlusion
-        bookkeeping on any successful match.
-
-        Args:
-            matches (Iterable[tuple[int, int]]): ``(track_idx, det_idx)`` pairs from :func:`matching.linear_assignment`.
-            pool (list[FastSTrack]): Track pool indexed by ``track_idx``.
-            detections (list[FastSTrack]): Detections indexed by ``det_idx``.
-            activated_stracks (list[FastSTrack]): Output list for tracks updated from the Tracked state.
-            refind_stracks (list[FastSTrack]): Output list for tracks re-activated from the Lost state.
-        """
-        for itracked, idet in matches:
-            track = pool[itracked]
-            det = detections[idet]
-            if track.state == TrackState.Tracked:
-                track.update(det, self.frame_id)
-                activated_stracks.append(track)
-            else:
-                track.re_activate(det, self.frame_id, new_id=False)
-                refind_stracks.append(track)
-            track.is_occluded = False
-            track.not_matched = 0
-            track.occluded_len = 0

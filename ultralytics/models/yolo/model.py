@@ -497,10 +497,15 @@ class AnomalyValidator(yolo.detect.DetectionValidator):
 
     def postprocess(self, preds):
         """Apply real IoU NMS for end2end models, then delegate. Also stash heatmap for AUROC."""
-        # Capture raw heatmap from the (y, preds_dict) tuple before unpacking discards it.
+        # Capture raw heatmap and feature_mode from (y, preds_dict) tuple before unpacking.
         self._heatmaps_for_batch = None
+        feature_mode = "per_level"
+        ad_conf = 0.4
         if isinstance(preds, (tuple, list)) and len(preds) > 1 and isinstance(preds[1], dict):
-            hm = preds[1].get("heatmap", None)
+            aux = preds[1]
+            hm = aux.get("heatmap")
+            feature_mode = aux.get("feature_mode", "per_level")
+            ad_conf = aux.get("ad_conf", ad_conf)
             if hm is not None:
                 self._heatmaps_for_batch = hm.detach().cpu()
 
@@ -520,9 +525,81 @@ class AnomalyValidator(yolo.detect.DetectionValidator):
                 keep = torchvision.ops.nms(pred[:, :4].float(), pred[:, 4].float(), self.args.iou)
                 pred = pred[keep[: self.args.max_det]]
                 output.append({"bboxes": pred[:, :4], "conf": pred[:, 4], "cls": pred[:, 5], "extra": pred[:, 6:]})
-            return output
+        else:
+            output = super().postprocess(preds)
 
-        return super().postprocess(preds)
+        if feature_mode == "fused_heatmap" and self._heatmaps_for_batch is not None:
+            output = self._heatmap_proposals(output, self._heatmaps_for_batch, self.args.imgsz, self.end2end, ad_conf=ad_conf)
+
+        return output
+
+    @staticmethod
+    def _heatmap_proposals(output, heatmaps, imgsz, end2end, ad_conf=0.4, min_area=4):
+        """Replace NMS predictions with connected-component bbox proposals from the fused heatmap.
+
+        Pixels with heatmap score >= ad_conf form the foreground mask; connected components of
+        that mask become bbox proposals.  Images where no pixel crosses ad_conf get no proposals.
+
+        Args:
+            output: List of per-image predictions (dicts for end2end, tensors [N,6] otherwise).
+            heatmaps: [B, 1, H, W] fused heatmap tensor (CPU, float).
+            imgsz: Inference image size (int, assumed square).
+            end2end: Whether the model uses end2end (dict) output format.
+            ad_conf: Absolute pixel threshold — only pixels >= ad_conf contribute to components.
+            min_area: Minimum connected-component area in feature-map pixels to keep.
+        """
+        import cv2
+        import numpy as np
+
+        hm_h, hm_w = heatmaps.shape[-2], heatmaps.shape[-1]
+        scale_h = imgsz / hm_h
+        scale_w = imgsz / hm_w
+
+        new_output = []
+        for si in range(len(output)):
+            hm = heatmaps[si]
+            if hm.dim() == 3:
+                hm = hm.squeeze(0)
+            hm_np = hm.float().numpy()
+
+            binary = (hm_np >= ad_conf).astype(np.uint8)
+            if binary.sum() == 0:
+                if end2end:
+                    new_output.append({"bboxes": torch.zeros((0, 4)), "conf": torch.zeros(0),
+                                       "cls": torch.zeros(0), "extra": torch.zeros((0, 0))})
+                else:
+                    new_output.append(torch.zeros((0, 6), dtype=torch.float32))
+                continue
+            num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(binary, connectivity=8)
+
+            rows = []
+            for j in range(1, num_labels):
+                area = int(stats[j, cv2.CC_STAT_AREA])
+                if area < min_area:
+                    continue
+                x1 = float(stats[j, cv2.CC_STAT_LEFT]) * scale_w
+                y1 = float(stats[j, cv2.CC_STAT_TOP]) * scale_h
+                x2 = float(stats[j, cv2.CC_STAT_LEFT] + stats[j, cv2.CC_STAT_WIDTH]) * scale_w
+                y2 = float(stats[j, cv2.CC_STAT_TOP] + stats[j, cv2.CC_STAT_HEIGHT]) * scale_h
+                score = float(hm_np[labels == j].max())
+                rows.append([x1, y1, x2, y2, score, 0.0])
+
+            if rows:
+                boxes = torch.tensor(rows, dtype=torch.float32)
+            else:
+                boxes = torch.zeros((0, 6), dtype=torch.float32)
+
+            if end2end:
+                new_output.append({
+                    "bboxes": boxes[:, :4],
+                    "conf": boxes[:, 4],
+                    "cls": boxes[:, 5],
+                    "extra": boxes[:, 6:] if boxes.shape[1] > 6 else boxes.new_zeros(len(boxes), 0),
+                })
+            else:
+                new_output.append(boxes)
+
+        return new_output
 
     @staticmethod
     def _label_path(im_file: str) -> Path | None:
@@ -629,6 +706,31 @@ class AnomalyValidator(yolo.detect.DetectionValidator):
         self.metrics.image_auroc = self.image_auroc
         self.metrics.pixel_auroc = self.pixel_auroc
 
+        # ── TEMP: optimal-F1 threshold ──────────────────────────────────────
+        self.metrics.opt_f1_threshold = self._compute_opt_f1_threshold(
+            self._pixel_scores, self._pixel_labels
+        )
+        # ────────────────────────────────────────────────────────────────────
+
+    # ── TEMP: optimal-F1 threshold ──────────────────────────────────────────
+    @staticmethod
+    def _compute_opt_f1_threshold(pixel_scores: list, pixel_labels: list) -> float:
+        """Return the pixel-level heatmap threshold that maximises F1 over the val set."""
+        if not pixel_scores or not pixel_labels:
+            return float("nan")
+        import numpy as np
+        from sklearn.metrics import precision_recall_curve
+
+        scores = np.concatenate(pixel_scores)
+        labels = np.concatenate(pixel_labels)
+        if not labels.any() or labels.all():
+            return float("nan")
+        precision, recall, thresholds = precision_recall_curve(labels, scores)
+        # precision/recall have length n+1; thresholds has length n
+        f1 = 2 * precision[:-1] * recall[:-1] / (precision[:-1] + recall[:-1] + 1e-8)
+        return float(thresholds[int(np.argmax(f1))])
+    # ────────────────────────────────────────────────────────────────────────
+
     def get_stats(self) -> dict:
         self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
         self.metrics.clear_stats()
@@ -652,6 +754,7 @@ class AnomalyValidator(yolo.detect.DetectionValidator):
         # attach to metrics object so model.val() return carries them
         self.metrics.map10 = stats["metrics/mAP10(B)"]
         self.metrics.map25 = stats["metrics/mAP25(B)"]
+        self.metrics.map50 = stats["metrics/mAP50(B)"]
         return stats
 
     def print_results(self) -> None:
@@ -663,8 +766,12 @@ class AnomalyValidator(yolo.detect.DetectionValidator):
         else:
             mean_vals = [0.0] * 6
 
+        auroc_suffix = ""
+        if self._image_scores:
+            auroc_suffix = f"   img_auroc: {self.image_auroc:.4f}  pix_auroc: {self.pixel_auroc:.4f}"
+
         pf = "%22s" + "%11i" * 2 + "%11.3g" * 6
-        LOGGER.info(pf % ("all", self.seen, self.metrics.nt_per_class.sum(), *mean_vals))
+        LOGGER.info(pf % ("all", self.seen, self.metrics.nt_per_class.sum(), *mean_vals) + auroc_suffix)
         if self.metrics.nt_per_class.sum() == 0:
             LOGGER.warning(f"no labels found in {self.args.task} set, cannot compute metrics without labels")
 
@@ -675,17 +782,6 @@ class AnomalyValidator(yolo.detect.DetectionValidator):
                 else:
                     cls_vals = [0.0] * 6
                 LOGGER.info(pf % (self.names[c], self.metrics.nt_per_image[c], self.metrics.nt_per_class[c], *cls_vals))
-
-        if self._image_scores:
-            n_good = sum(1 for v in self._image_labels if v == 0)
-            n_anom = sum(self._image_labels)
-            LOGGER.info(
-                "Anomaly AUROC — image: %.4f  pixel: %.4f  "
-                "(n_img=%d good=%d anom=%d, anom_w_gt=%d, pix_size=%d)",
-                self.image_auroc, self.pixel_auroc,
-                len(self._image_labels), n_good, n_anom,
-                self._n_anom_with_gt, self._pix_eval_size,
-            )
 
 
 class AnomalyPredictor(yolo.detect.DetectionPredictor):
@@ -729,7 +825,52 @@ class AnomalyPredictor(yolo.detect.DetectionPredictor):
         heatmap_tensor = aux_preds.get("heatmap") if isinstance(aux_preds, dict) else None
         if heatmap_tensor is not None:
             self._attach_heatmaps(results, heatmap_tensor)
+
+        # In fused_heatmap mode: override boxes with connected-component proposals derived
+        # from the full-resolution heatmap (already upsampled in _attach_heatmaps).
+        if isinstance(aux_preds, dict) and aux_preds.get("feature_mode") == "fused_heatmap":
+            ad_conf = aux_preds.get("ad_conf", 0.4)
+            self._inject_component_boxes(results, ad_conf=ad_conf)
+
         return results
+
+    @staticmethod
+    def _inject_component_boxes(results: list, ad_conf: float = 0.4, min_area: int = 100) -> None:
+        """Replace empty per-level boxes with connected-component proposals from res.heatmap.
+
+        Operates on the full-resolution heatmap already attached by _attach_heatmaps, so box
+        coordinates are in original image pixel space.  Pixels below ``ad_conf`` are treated as
+        background; images with no pixels >= ad_conf get no proposals.
+        """
+        import cv2
+        import numpy as np
+        from ultralytics.engine.results import Boxes
+
+        for res in results:
+            hm = getattr(res, "heatmap", None)
+            if hm is None:
+                continue
+            hm_np = hm.float().cpu().numpy()
+
+            binary = (hm_np >= ad_conf).astype(np.uint8)
+            if binary.sum() == 0:
+                res.boxes = Boxes(torch.zeros((0, 6), dtype=torch.float32), res.orig_img.shape[:2])
+                continue
+            num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(binary, connectivity=8)
+
+            rows = []
+            for j in range(1, num_labels):
+                if int(stats[j, cv2.CC_STAT_AREA]) < min_area:
+                    continue
+                x1 = float(stats[j, cv2.CC_STAT_LEFT])
+                y1 = float(stats[j, cv2.CC_STAT_TOP])
+                x2 = float(stats[j, cv2.CC_STAT_LEFT] + stats[j, cv2.CC_STAT_WIDTH])
+                y2 = float(stats[j, cv2.CC_STAT_TOP] + stats[j, cv2.CC_STAT_HEIGHT])
+                score = float(hm_np[labels == j].max())
+                rows.append([x1, y1, x2, y2, score, 0.0])
+
+            boxes_t = torch.tensor(rows, dtype=torch.float32) if rows else torch.zeros((0, 6), dtype=torch.float32)
+            res.boxes = Boxes(boxes_t, res.orig_img.shape[:2])
 
     @staticmethod
     def _attach_heatmaps(results: list, heatmaps: torch.Tensor) -> None:

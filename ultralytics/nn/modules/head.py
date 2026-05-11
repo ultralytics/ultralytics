@@ -2694,7 +2694,8 @@ class AnomalyDetection(Detect):
         ad_conf = 0 if (self.export and not self.dynamic) else self.ad_conf
 
         heatmap = None
-        if self.feature_mode == "fused_heatmap" or self.return_heatmap:
+        _fused = getattr(self, "fused_adhead", None)
+        if isinstance(_fused, ADMBHead) and (_fused.update or _fused.memory_bank.shape[0] > 0):
             heatmap = self.forward_heatmap(x, cls_heads=cv3)
 
         boxes, scores, index = [], [], []
@@ -2715,6 +2716,7 @@ class AnomalyDetection(Detect):
         if heatmap is not None:
             preds["heatmap"] = heatmap
             preds["feature_mode"] = self.feature_mode
+            preds["ad_conf"] = self.ad_conf
         if self.training:
             if self.end2end:
                 one2one = {

@@ -16,7 +16,7 @@ If you're new to Ultralytics, the [Quickstart](../quickstart.md), [Modes](../mod
 - [`cfg`](cfg/__init__.md): Default configuration loading, CLI argument parsing, and the global `DEFAULT_CFG` used across training, validation, prediction, and export.
 - [`data`](data/dataset.md): Dataset classes, data loaders, augmentations, and format converters for detection, segmentation, classification, pose, OBB, and tracking.
 - [`engine`](engine/model.md): Core training, validation, prediction, export, and tuning engine — the backbone of the `Model`, `Trainer`, `Validator`, `Predictor`, `Exporter`, and `Tuner` interfaces.
-- [`hub`](hub/__init__.md): [Ultralytics HUB](https://www.ultralytics.com/hub) integration for authentication, sessions, dataset uploads, and cloud-based training.
+- [`hub`](hub/__init__.md): [Ultralytics HUB](https://platform.ultralytics.com/) integration for authentication, sessions, dataset uploads, and cloud-based training.
 - [`models`](models/yolo/model.md): Model implementations for YOLO, YOLOE, YOLO-World, SAM, SAM3, FastSAM, RT-DETR, and YOLO-NAS, including their predict, train, val, and export pipelines.
 - [`nn`](nn/tasks.md): Neural network building blocks — backbones, necks, heads, layers, and the multi-backend `AutoBackend` runtime (PyTorch, ONNX, TensorRT, CoreML, OpenVINO, TFLite, and more).
 - [`optim`](optim/muon.md): Custom optimizers, including the Muon optimizer used for advanced training experiments.
@@ -26,7 +26,7 @@ If you're new to Ultralytics, the [Quickstart](../quickstart.md), [Modes](../mod
 
 ## How this reference is generated
 
-These pages are produced automatically by [`docs/build_reference.py`](https://github.com/ultralytics/ultralytics/blob/main/docs/build_reference.py), which walks the `ultralytics` package, parses each Python module, and renders the docstrings with [mkdocstrings](https://mkdocstrings.github.io/). The best way to improve a page is to improve the docstring in the corresponding source file — open a [Pull Request](https://docs.ultralytics.com/help/contributing/) and the docs will update on the next build. 🙏
+These pages are produced automatically by [`docs/build_reference.py`](https://github.com/ultralytics/ultralytics/blob/main/docs/build_reference.py), which walks the `ultralytics` package, parses each Python module, and renders the docstrings with [mkdocstrings](https://mkdocstrings.github.io/). The best way to improve a page is to improve the docstring in the corresponding source file — open a [Pull Request](https://docs.ultralytics.com/help/contributing) and the docs will update on the next build. 🙏
 
 ## Looking for something else?
 

@@ -55,11 +55,11 @@ Default `ARG` values are defined on this page and come from the `cfg/default.yam
 
 Ultralytics YOLO models can perform a variety of computer vision tasks, including:
 
-- **Detect**: [Object detection](https://docs.ultralytics.com/tasks/detect/) identifies and localizes objects within an image or video.
-- **Segment**: [Instance segmentation](https://docs.ultralytics.com/tasks/segment/) divides an image or video into regions corresponding to different objects or classes.
-- **Classify**: [Image classification](https://docs.ultralytics.com/tasks/classify/) predicts the class label of an input image.
-- **Pose**: [Pose estimation](https://docs.ultralytics.com/tasks/pose/) identifies objects and estimates their keypoints in an image or video.
-- **OBB**: [Oriented Bounding Boxes](https://docs.ultralytics.com/tasks/obb/) uses rotated bounding boxes, suitable for satellite or medical imagery.
+- **Detect**: [Object detection](https://docs.ultralytics.com/tasks/detect) identifies and localizes objects within an image or video.
+- **Segment**: [Instance segmentation](https://docs.ultralytics.com/tasks/segment) divides an image or video into regions corresponding to different objects or classes.
+- **Classify**: [Image classification](https://docs.ultralytics.com/tasks/classify) predicts the class label of an input image.
+- **Pose**: [Pose estimation](https://docs.ultralytics.com/tasks/pose) identifies objects and estimates their keypoints in an image or video.
+- **OBB**: [Oriented Bounding Boxes](https://docs.ultralytics.com/tasks/obb) uses rotated bounding boxes, suitable for satellite or medical imagery.
 
 | Argument | Default    | Description                                                                                                                                                                                                                                                                                                                        |
 | -------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -156,7 +156,7 @@ Adjust these settings to meet dataset and task requirements. Experimenting with 
 
 Logging, checkpoints, plotting, and file management are important when training a YOLO model:
 
-- **Logging**: Track the model's progress and diagnose issues using libraries like [TensorBoard](https://docs.ultralytics.com/integrations/tensorboard/) or by writing to a file.
+- **Logging**: Track the model's progress and diagnose issues using libraries like [TensorBoard](https://docs.ultralytics.com/integrations/tensorboard) or by writing to a file.
 - **Checkpoints**: Save the model at regular intervals to resume training or experiment with different configurations.
 - **Plotting**: Visualize performance and training progress using libraries like matplotlib or TensorBoard.
 - **File management**: Organize files generated during training, such as checkpoints, log files, and plots, for easy access and analysis.

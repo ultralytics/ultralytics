@@ -444,6 +444,17 @@ class BaseTrainer:
                         else:
                             loss, self.loss_items = self.model(batch)
                         self.loss = loss.sum()
+                        # Check for NaN/Inf loss to prevent training divergence with AdamW
+                        if torch.isnan(self.loss) or torch.isinf(self.loss):
+                            LOGGER.warning(
+                                f"NaN/Inf loss detected at step {ni}. Skipping backward pass. "
+                                "Consider reducing learning rate or using SGD optimizer."
+                            )
+                            if hasattr(self.optimizer, "zero_grad"):
+                                self.optimizer.zero_grad()  # Clear accumulated gradients
+                            batch = loss = preds = None
+                            self.loss = self.loss_items = None
+                            continue
                         if RANK != -1:
                             self.loss *= self.world_size
                         self.tloss = (
@@ -638,10 +649,28 @@ class BaseTrainer:
         """Save model training checkpoints with additional metadata."""
         import io
 
+        def _to_cpu(tensor):
+            """Move tensor to CPU and clone to avoid CUDA memory issues on Windows."""
+            if isinstance(tensor, torch.Tensor):
+                return tensor.cpu().clone()
+            return tensor
+
         ema = deepcopy(unwrap_model(self.ema.ema)).half()
         if not all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor)):
             LOGGER.warning(f"Skipping checkpoint save at epoch {self.epoch}: EMA contains NaN/Inf")
             return False
+
+        # Move EMA tensors to CPU before serialization to avoid Windows/CUDA access violations (issue #24077)
+        for k, v in ema.state_dict().items():
+            if isinstance(v, torch.Tensor):
+                ema.state_dict()[k] = v.cpu().clone()
+
+        # Convert optimizer state to FP16 and move tensors to CPU
+        optimizer_state = convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict()))
+        for state in optimizer_state.get("state", {}).values():
+            for k, v in state.items():
+                if isinstance(v, torch.Tensor):
+                    state[k] = v.cpu().clone()
 
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
         buffer = io.BytesIO()
@@ -652,7 +681,7 @@ class BaseTrainer:
                 "model": None,  # resume and final checkpoints derive from EMA
                 "ema": ema,
                 "updates": self.ema.updates,
-                "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
+                "optimizer": optimizer_state,
                 "scaler": self.scaler.state_dict(),
                 "train_args": vars(self.args),  # save as dict
                 "train_metrics": {**self.metrics, **{"fitness": self.fitness}},
@@ -734,7 +763,10 @@ class BaseTrainer:
     def optimizer_step(self):
         """Perform a single step of the training optimizer with gradient clipping and EMA update."""
         self.scaler.unscale_(self.optimizer)  # unscale gradients
-        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)
+        # Use more aggressive gradient clipping for AdamW to prevent NaN losses
+        optimizer_name = type(self.optimizer).__name__
+        max_norm = 5.0 if "Adam" in optimizer_name else 10.0
+        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=max_norm)
         self.scaler.step(self.optimizer)
         self.scaler.update()
         self.optimizer.zero_grad()
@@ -1014,7 +1046,6 @@ class BaseTrainer:
                 elif "bias" in fullname:  # bias (no decay)
                     g[2][fullname] = param
                 elif isinstance(module, bn) or "logit_scale" in fullname:  # weight (no decay)
-                    # ContrastiveHead and BNContrastiveHead included here with 'logit_scale'
                     g[1][fullname] = param
                 else:  # weight (with decay)
                     g[0][fullname] = param
@@ -1023,6 +1054,9 @@ class BaseTrainer:
 
         optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "MuSGD", "auto"}
         name = {x.lower(): x for x in optimizers}.get(name.lower())
+        use_adamw = name == "AdamW"
+        if use_adamw:
+            lr = lr * 0.5  # Reduce LR for AdamW to prevent NaN losses
         if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
             optim_args = dict(lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
         elif name == "RMSProp":

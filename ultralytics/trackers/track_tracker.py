@@ -14,7 +14,8 @@ from ultralytics.utils.metrics import bbox_ioa
 
 from ..utils import LOGGER
 from ..utils.ops import xywh2ltwh
-from .basetrack import BaseTrack, TrackState
+from .basetrack import TrackState
+from .byte_tracker import STrack
 from .utils.gmc import GMC
 from .utils.kalman_filter import KalmanFilterXYWH
 from .utils.stracks import joint_stracks, merge_track_pools, multi_gmc
@@ -231,8 +232,11 @@ def _cosine_distance(tracks: list[TTSTrack], dets: list[TTSTrack]) -> np.ndarray
     return np.clip(1 - track_feats @ det_feats.T, 0, 1)
 
 
-class TTSTrack(BaseTrack):
+class TTSTrack(STrack):
     """Single-object track for TrackTrack with corner velocity, score history, and ReID features.
+
+    Inherits bbox properties from :class:`STrack` but uses a XYWH Kalman state, so ``tlwh`` and
+    ``xywh`` are overridden accordingly.
 
     Attributes:
         shared_kalman (KalmanFilterXYWH): Shared Kalman filter used for batch prediction.
@@ -267,19 +271,8 @@ class TTSTrack(BaseTrack):
             cls (Any): Class label.
             feat (np.ndarray | None): Optional ReID feature vector.
         """
-        super().__init__()
-        assert len(xywh) in {5, 6}, f"expected 5 or 6 values but got {len(xywh)}"
-        self._tlwh = np.asarray(xywh2ltwh(xywh[:4]), dtype=np.float32)
-        self.kalman_filter: KalmanFilterXYWH | None = None
-        self.mean = self.covariance = None
-        self.is_activated = False
-
-        self.score = self.prev_score = score
-        self.tracklet_len = 0
-        self.cls = cls
-        self.idx = xywh[-1]
-        self.angle = xywh[4] if len(xywh) == 6 else None
-
+        super().__init__(xywh, score, cls)
+        self.prev_score = score
         self.velocity = np.zeros((4, 2), dtype=np.float32)
         self._history: deque[tuple[int, np.ndarray]] = deque(maxlen=self._delta_t + 1)
         self.smooth_feat = self.curr_feat = None
@@ -315,7 +308,7 @@ class TTSTrack(BaseTrack):
         self.mean, self.covariance = self.kalman_filter.predict(mean, self.covariance)
 
     @staticmethod
-    def multi_predict(stracks: list[TTSTrack]) -> None:
+    def multi_predict(stracks: list) -> None:
         """Batched Kalman predict over a list of tracks."""
         if not stracks:
             return
@@ -340,7 +333,7 @@ class TTSTrack(BaseTrack):
             self.is_activated = True
         self.frame_id = self.start_frame = frame_id
 
-    def re_activate(self, new_track: TTSTrack, frame_id: int, new_id: bool = False) -> None:
+    def re_activate(self, new_track, frame_id: int, new_id: bool = False) -> None:
         """Rebind a lost track to a fresh detection via NSA-Kalman."""
         self.prev_score = self.score
         self.mean, self.covariance = _nsa_kalman_update(
@@ -357,7 +350,7 @@ class TTSTrack(BaseTrack):
             self.track_id = self.next_id()
         self.score, self.cls, self.angle, self.idx = new_track.score, new_track.cls, new_track.angle, new_track.idx
 
-    def update(self, new_track: TTSTrack, frame_id: int) -> None:
+    def update(self, new_track, frame_id: int) -> None:
         """Update a matched track with a new detection; promote to Tracked after min_track_len."""
         self.frame_id = frame_id
         self.tracklet_len += 1
@@ -401,13 +394,6 @@ class TTSTrack(BaseTrack):
         return ret
 
     @property
-    def xyxy(self) -> np.ndarray:
-        """Get (min x, min y, max x, max y)."""
-        ret = self.tlwh
-        ret[2:] += ret[:2]
-        return ret
-
-    @property
     def xywh(self) -> np.ndarray:
         """Get (center x, center y, width, height)."""
         if self.mean is None:
@@ -415,20 +401,6 @@ class TTSTrack(BaseTrack):
             ret[:2] += ret[2:] / 2
             return ret
         return self.mean[:4].copy()
-
-    @property
-    def xywha(self) -> np.ndarray:
-        """Get (center x, center y, width, height, angle); falls back to xywh if angle is missing."""
-        if self.angle is None:
-            LOGGER.warning("`angle` attr not found, returning `xywh` instead.")
-            return self.xywh
-        return np.concatenate([self.xywh, self.angle[None]])
-
-    @property
-    def result(self) -> list[float]:
-        """Packed tracking result: `[*coords, track_id, score, cls, idx]`."""
-        coords = self.xyxy if self.angle is None else self.xywha
-        return [*coords.tolist(), self.track_id, self.score, self.cls, self.idx]
 
     def __repr__(self) -> str:
         """Short string representation of the track."""

@@ -152,7 +152,22 @@ class ReidTrainer(ClassificationTrainer):
         return model
 
     def setup_model(self):
-        """Load or create model for ReID tasks."""
+        """Load or create model for ReID tasks.
+
+        Intercept CLIP-style TorchScript weights here so the upstream loader (which expects
+        a yolo-style checkpoint with `.model`) never sees them. Build the model from cfg,
+        then route the CLIP path through `_extract_clip_visual_sd` + `load_clip_visual_into_sd`.
+        """
+        pretrained = getattr(self.args, "pretrained", None)
+        is_clip_path = isinstance(pretrained, str) and pretrained.lower().endswith((".pt", ".pth")) and (
+            "vit" in pretrained.lower().split("/")[-1] or "clip" in pretrained.lower().split("/")[-1]
+        )
+        if is_clip_path:
+            # Build model from cfg only; load CLIP visual weights ourselves.
+            cfg_path = self.model if isinstance(self.model, str) else getattr(self.args, "model", None)
+            self.model = self.get_model(cfg=cfg_path, weights=pretrained, verbose=RANK == -1)
+            ReidModel.reshape_outputs(self.model, self.data["nc"])
+            return None
         ckpt = super().setup_model()
         ReidModel.reshape_outputs(self.model, self.data["nc"])
         return ckpt

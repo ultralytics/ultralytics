@@ -2588,8 +2588,8 @@ class AnomalyDetection(Detect):
         Layer selection:
           * ``self.fused_layers = None`` (default) — fuse all ``self.nl`` layers.
           * ``self.fused_layers = [1, 2]`` (e.g.)  — fuse only those indices.
-        The first selected index becomes the base resolution; remaining feats are
-        nearest-interpolated up to it. Channels must match across selected layers.
+        The first selected index determines the base resolution; remaining feats are
+        nearest-interpolated up to it, then concatenated along the channel dimension.
         """
         # Use getattr so models loaded from .pt files saved before these attrs existed still work.
         fused_layers = getattr(self, "fused_layers", None)
@@ -2603,22 +2603,13 @@ class AnomalyDetection(Detect):
         else:
             feats = [cls_heads[i](x[i]) for i in layers]
 
-        base = feats[0]
-        target_size = base.shape[-2:]
-        target_channels = base.shape[1]
-        fused = base
-        for feat in feats[1:]:
-            if feat.shape[1] != target_channels:
-                raise ValueError(
-                    f"Fused anomaly heatmap requires matching channels across fused_layers={layers}, "
-                    f"got {target_channels} and {feat.shape[1]}. "
-                    f"With fused_use_pre_clshead={use_pre_clshead}, channels per layer are: "
-                    f"{[x[i].shape[1] if use_pre_clshead else cls_heads[i](x[i]).shape[1] for i in layers]}."
-                )
+        target_size = feats[0].shape[-2:]
+        aligned = []
+        for feat in feats:
             if feat.shape[-2:] != target_size:
                 feat = F.interpolate(feat, size=target_size, mode="nearest")
-            fused = fused + feat
-        return fused
+            aligned.append(feat)
+        return torch.cat(aligned, dim=1) if len(aligned) > 1 else aligned[0]
 
     def forward_heatmap(self, x: list[torch.Tensor], cls_heads: nn.ModuleList | None = None) -> torch.Tensor:
         """Build a dense anomaly heatmap from fused multi-scale features."""

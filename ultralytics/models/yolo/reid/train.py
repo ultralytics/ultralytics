@@ -15,6 +15,41 @@ from ultralytics.utils.torch_utils import is_parallel, torch_distributed_zero_fi
 from ..classify.train import ClassificationTrainer
 
 
+def _extract_clip_visual_sd(weights):
+    """Return CLIP visual-tower state_dict (without `visual.` prefix) if `weights` is a
+    CLIP checkpoint, else None.
+
+    Accepts:
+      - str path to TorchScript .pt (OpenAI CLIP)
+      - torch.jit.RecursiveScriptModule (already-loaded TorchScript)
+      - dict / state_dict with `visual.*` keys
+    """
+    sd = None
+    try:
+        # Already a loaded torchscript module
+        if hasattr(weights, "state_dict") and "RecursiveScript" in type(weights).__name__:
+            sd = weights.state_dict()
+        elif isinstance(weights, str):
+            # Try TorchScript load first; fall back to torch.load
+            try:
+                m = torch.jit.load(weights, map_location="cpu")
+                sd = m.state_dict()
+            except Exception:
+                sd = torch.load(weights, map_location="cpu", weights_only=False)
+                if isinstance(sd, dict) and "state_dict" in sd:
+                    sd = sd["state_dict"]
+        elif isinstance(weights, dict):
+            sd = weights
+        if not isinstance(sd, dict):
+            return None
+        # Need at least visual.conv1.weight and visual.class_embedding to call this CLIP.
+        if "visual.conv1.weight" in sd and "visual.class_embedding" in sd:
+            return {k[len("visual."):]: v for k, v in sd.items() if k.startswith("visual.")}
+    except Exception:
+        return None
+    return None
+
+
 class ReidTrainer(ClassificationTrainer):
     """Trainer for person re-identification models.
 
@@ -92,16 +127,15 @@ class ReidTrainer(ClassificationTrainer):
             **reid_kwargs,
         )
         if weights:
-            # Detect a CLIP ViT TorchScript checkpoint and route through the dedicated loader
-            # (visual-tower keys only, with bicubic pos-embed resize). Fall back to standard
-            # Ultralytics state_dict loading for everything else.
-            is_clip = isinstance(weights, str) and "clip" in weights.lower().split("/")[-1].split(".")[0] \
-                or isinstance(weights, str) and "vit" in weights.lower().split("/")[-1].split(".")[0]
-            if is_clip:
-                from ultralytics.nn.modules.vit import ViTBackbone, load_clip_visual_into
+            # Detect a CLIP-style TorchScript or weight-only checkpoint with a `visual.*` prefix
+            # (e.g. OpenAI CLIP ViT-B/16) and route through the dedicated loader. Fall back to
+            # standard Ultralytics state_dict loading for everything else.
+            visual_sd = _extract_clip_visual_sd(weights)
+            if visual_sd is not None:
+                from ultralytics.nn.modules.vit import ViTBackbone, load_clip_visual_into_sd
                 for m in model.modules():
                     if isinstance(m, ViTBackbone):
-                        info = load_clip_visual_into(m, weights, strict=False)
+                        info = load_clip_visual_into_sd(m, visual_sd, strict=False)
                         from ultralytics.utils import LOGGER
                         LOGGER.info(f"CLIP ViT visual weights loaded: {info['loaded']} keys; missing={len(info.get('missing', []))}, unexpected={len(info.get('unexpected', []))}")
                         break

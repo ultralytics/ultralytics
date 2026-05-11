@@ -133,13 +133,16 @@ def _resize_pos_embed(pos: torch.Tensor, new_grid: Tuple[int, int]) -> torch.Ten
 
 
 def load_clip_visual_into(model: ViTBackbone, clip_path: str, strict: bool = False) -> dict:
-    """Load CLIP ViT-B/16 visual-tower weights into a ViTBackbone.
-
-    Returns load info: keys remapped, keys skipped, mismatches. Pos embedding is
-    bicubic-resized if the model's grid differs from CLIP's 14x14.
-    """
+    """Convenience wrapper: load CLIP ViT-B/16 from a TorchScript file path."""
     sd = torch.jit.load(clip_path, map_location="cpu").state_dict()
     visual = {k[len("visual."):]: v for k, v in sd.items() if k.startswith("visual.")}
+    return load_clip_visual_into_sd(model, visual, strict=strict)
+
+
+def load_clip_visual_into_sd(model: ViTBackbone, visual: dict, strict: bool = False) -> dict:
+    """Load a CLIP visual-tower state_dict (keys WITHOUT the `visual.` prefix) into ViTBackbone.
+    Pos embedding is bicubic-resized when the model's patch grid differs from CLIP's 14x14.
+    """
     new = {}
     info = {"loaded": 0, "skipped": []}
     new["class_embedding"] = visual["class_embedding"]

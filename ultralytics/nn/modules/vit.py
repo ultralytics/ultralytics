@@ -105,9 +105,16 @@ class ViTBackbone(nn.Module):
         self.ln_post = nn.LayerNorm(embed_dim)
         nn.init.trunc_normal_(self.class_embedding, std=0.02)
         nn.init.trunc_normal_(self.positional_embedding, std=0.02)
+        # CLIP visual encoder expects its own normalization stats (not ImageNet).
+        # The ReID dataset passes [0,1] tensors with mean=(0,0,0) std=(1,1,1) by default —
+        # so we normalize inside the backbone, making this transparent to the data pipeline.
+        self.register_buffer("clip_mean", torch.tensor([0.48145466, 0.4578275, 0.40821073]).view(1, 3, 1, 1))
+        self.register_buffer("clip_std", torch.tensor([0.26862954, 0.26130258, 0.27577711]).view(1, 3, 1, 1))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         B = x.shape[0]
+        # Apply CLIP normalization in-band (input is [0,1] from ReidDataset).
+        x = (x - self.clip_mean) / self.clip_std
         x = self.patch_embed(x)                                                   # B, N, D
         cls = self.class_embedding.to(x.dtype).expand(B, 1, -1)
         x = torch.cat([cls, x], dim=1)                                            # B, N+1, D

@@ -358,6 +358,31 @@ div.highlight {
   text-decoration: none;
 }
 
+/* High-impact default buttons (black) ------------------------------------------------------------------------------ */
+.md-typeset .md-button:not(.md-button--primary) {
+  background-color: #000;
+  border-color: #000;
+  color: #fff;
+}
+.md-typeset .md-button:not(.md-button--primary):focus,
+.md-typeset .md-button:not(.md-button--primary):hover {
+  background-color: var(--md-accent-fg-color);
+  border-color: var(--md-accent-fg-color);
+  color: #fff;
+}
+[data-md-color-scheme="slate"] .md-typeset .md-button:not(.md-button--primary) {
+  background-color: #fff;
+  border-color: #fff;
+  color: #000;
+}
+[data-md-color-scheme="slate"] .md-typeset .md-button:not(.md-button--primary):focus,
+[data-md-color-scheme="slate"] .md-typeset .md-button:not(.md-button--primary):hover {
+  background-color: var(--md-accent-fg-color);
+  border-color: var(--md-accent-fg-color);
+  color: #fff;
+}
+/* High-impact default buttons (black) ------------------------------------------------------------------------------ */
+
 /* Remove language switcher */
 .weglot-container,
 .weglot_switcher,

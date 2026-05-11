@@ -8,8 +8,6 @@ keywords: YOLO, hyperparameters, configuration, training, validation, prediction
 
 YOLO settings and hyperparameters play a critical role in the model's performance, speed, and [accuracy](https://www.ultralytics.com/glossary/accuracy). These settings can affect the model's behavior at various stages, including training, validation, and prediction.
 
-**Watch:** Mastering Ultralytics YOLO: Configuration
-
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/GsXGnb-A4Kc?start=87"

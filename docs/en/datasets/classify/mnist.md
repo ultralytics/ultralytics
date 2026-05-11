@@ -24,7 +24,7 @@ The MNIST dataset is split into two subsets:
 
 ## Dataset Access
 
-- **Original files**: Download the gzip archives from [Yann LeCun's MNIST page](http://yann.lecun.com/exdb/mnist/) if you want direct control over preprocessing.
+- **Original files**: Download the gzip archives from the original MNIST archive if you want direct control over preprocessing.
 - **Ultralytics loader**: Use `data="mnist"` (or `data="mnist160"` for the subset below) in your command and the dataset will be downloaded, converted to PNG, and cached automatically.
 
 Each image in the dataset is labeled with the corresponding digit (0-9), making it a supervised learning dataset ideal for classification tasks.
@@ -89,7 +89,7 @@ If you use the MNIST dataset in your research or development work, please cite t
         @article{lecun2010mnist,
                  title={MNIST handwritten digit database},
                  author={LeCun, Yann and Cortes, Corinna and Burges, CJ},
-                 journal={ATT Labs [Online]. Available: http://yann.lecun.com/exdb/mnist},
+                 journal={ATT Labs [Online]},
                  volume={2},
                  year={2010}
         }

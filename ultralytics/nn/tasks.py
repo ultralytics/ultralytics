@@ -59,6 +59,7 @@ from ultralytics.nn.modules import (
     Index,
     LRPCHead,
     OSNetBackbone,
+    ViTBackbone,
     Pose,
     Pose26,
     RepC3,
@@ -1832,6 +1833,9 @@ def parse_model(d, ch, verbose=True):
         elif m is OSNetBackbone:
             variant = args[0] if args else "x1_0"
             c2 = OSNetBackbone._VARIANTS[variant][1][-1]  # last stage channel count
+        elif m is ViTBackbone:
+            # args: [img_size, patch_size, embed_dim, depth, heads]
+            c2 = args[2] if len(args) >= 3 else 768
         elif m is torch.nn.BatchNorm2d:
             args = [ch[f]]
         elif m is Concat:

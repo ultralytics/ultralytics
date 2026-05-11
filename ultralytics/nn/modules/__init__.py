@@ -61,6 +61,7 @@ from .block import (
     TorchVision,
 )
 from .osnet import OSBlock, OSNetBackbone
+from .vit import ViTBackbone, load_clip_visual_into
 from .conv import (
     CBAM,
     ChannelAttention,
@@ -126,6 +127,7 @@ __all__ = (
     "OSBlock",
     "OSNetBackbone",
     "PSA",
+    "ViTBackbone",
     "SPP",
     "SPPELAN",
     "SPPF",

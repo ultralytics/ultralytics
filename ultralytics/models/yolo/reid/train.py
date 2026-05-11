@@ -92,7 +92,21 @@ class ReidTrainer(ClassificationTrainer):
             **reid_kwargs,
         )
         if weights:
-            model.load(weights)
+            # Detect a CLIP ViT TorchScript checkpoint and route through the dedicated loader
+            # (visual-tower keys only, with bicubic pos-embed resize). Fall back to standard
+            # Ultralytics state_dict loading for everything else.
+            is_clip = isinstance(weights, str) and "clip" in weights.lower().split("/")[-1].split(".")[0] \
+                or isinstance(weights, str) and "vit" in weights.lower().split("/")[-1].split(".")[0]
+            if is_clip:
+                from ultralytics.nn.modules.vit import ViTBackbone, load_clip_visual_into
+                for m in model.modules():
+                    if isinstance(m, ViTBackbone):
+                        info = load_clip_visual_into(m, weights, strict=False)
+                        from ultralytics.utils import LOGGER
+                        LOGGER.info(f"CLIP ViT visual weights loaded: {info['loaded']} keys; missing={len(info.get('missing', []))}, unexpected={len(info.get('unexpected', []))}")
+                        break
+            else:
+                model.load(weights)
 
         for m in model.modules():
             if not self.args.pretrained and hasattr(m, "reset_parameters"):

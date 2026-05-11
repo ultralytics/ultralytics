@@ -62,7 +62,7 @@ To enable ClearML experiment tracking, simply install the ClearML pip package as
 pip install clearml
 ```
 
-This will enable integration with the YOLOv5 training script. Every training run from now on will be captured and stored by the ClearML [experiment manager](https://docs.ultralytics.com/integrations/clearml/).
+This will enable integration with the YOLOv5 training script. Every training run from now on will be captured and stored by the ClearML [experiment manager](https://docs.ultralytics.com/integrations/clearml).
 
 If you want to change the `project_name` or `task_name`, use the `--project` and `--name` arguments of the `train.py` script, by default the project will be called `YOLOv5` and the task `Training`. PLEASE NOTE: ClearML uses `/` as a delimiter for subprojects, so be careful when using `/` in your project name!
 
@@ -238,4 +238,4 @@ Check out the autoscalers getting started video below.
 
 ## Learn More
 
-For more information about integrating ClearML with Ultralytics models, check out our [ClearML integration guide](https://docs.ultralytics.com/integrations/clearml/) and explore how you can enhance your [MLOps workflow](https://www.ultralytics.com/blog/exploring-yolov8-ml-experiment-tracking-integrations) with other experiment tracking tools.
+For more information about integrating ClearML with Ultralytics models, check out our [ClearML integration guide](https://docs.ultralytics.com/integrations/clearml) and explore how you can enhance your [MLOps workflow](https://www.ultralytics.com/blog/exploring-yolov8-ml-experiment-tracking-integrations) with other experiment tracking tools.

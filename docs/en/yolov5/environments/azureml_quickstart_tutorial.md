@@ -102,7 +102,7 @@ With the setup complete, you can now train, validate, perform inference, and exp
     python detect.py --weights yolov5s.pt --source data/images --img 640
     ```
 
-- **Export** the model to different formats like ONNX, [TensorRT](https://www.ultralytics.com/glossary/tensorrt), or [CoreML](https://docs.ultralytics.com/integrations/coreml/) for deployment. Refer to the [Export Mode](../../modes/export.md) guide and the [ONNX Integration](../../integrations/onnx.md) page.
+- **Export** the model to different formats like ONNX, [TensorRT](https://www.ultralytics.com/glossary/tensorrt), or [CoreML](https://docs.ultralytics.com/integrations/coreml) for deployment. Refer to the [Export Mode](../../modes/export.md) guide and the [ONNX Integration](../../integrations/onnx.md) page.
 
     ```bash
     # Export yolov5s to ONNX format

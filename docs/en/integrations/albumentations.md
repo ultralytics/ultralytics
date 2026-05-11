@@ -255,7 +255,7 @@ If you are interested in learning more about Albumentations, check out the follo
 
 - **[Albumentations Documentation](https://albumentations.ai/docs/)**: The official documentation provides a full range of supported transformations and advanced usage techniques.
 
-- **[Ultralytics Albumentations Guide](https://docs.ultralytics.com/reference/data/augment/?h=albumentation#ultralytics.data.augment.Albumentations)**: Get a closer look at the details of the function that facilitate this integration.
+- **[Ultralytics Albumentations Guide](https://docs.ultralytics.com/reference/data/augment?h=albumentation#ultralytics.data.augment.Albumentations)**: Get a closer look at the details of the function that facilitate this integration.
 
 - **[Albumentations GitHub Repository](https://github.com/albumentations-team/albumentations/)**: The repository includes examples, benchmarks, and discussions to help you get started with customizing augmentations.
 

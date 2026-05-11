@@ -117,7 +117,7 @@ Additionally, the following visualization settings can be applied:
 
 ### How do I monitor my workouts using Ultralytics YOLO26?
 
-To monitor your workouts using Ultralytics YOLO26, you can utilize the [pose estimation capabilities](https://docs.ultralytics.com/tasks/pose/) to track and analyze key body landmarks and joints in real-time. This allows you to receive instant feedback on your exercise form, count repetitions, and measure performance metrics. You can start by using the provided example code for push-ups, pull-ups, or ab workouts as shown:
+To monitor your workouts using Ultralytics YOLO26, you can utilize the [pose estimation capabilities](https://docs.ultralytics.com/tasks/pose) to track and analyze key body landmarks and joints in real-time. This allows you to receive instant feedback on your exercise form, count repetitions, and measure performance metrics. You can start by using the provided example code for push-ups, pull-ups, or ab workouts as shown:
 
 ```python
 import cv2

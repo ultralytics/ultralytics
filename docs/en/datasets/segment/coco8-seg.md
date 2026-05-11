@@ -119,7 +119,7 @@ For a thorough explanation of available arguments and configuration options, you
 
 ### Why is the COCO8-Seg dataset important for model development and debugging?
 
-The **COCO8-Seg dataset** offers a compact yet diverse set of 8 images, making it perfect for quickly testing and debugging segmentation models or experimenting with new detection techniques. Its small size allows for fast sanity checks and early pipeline validation, helping identify issues before scaling to larger datasets. Learn more about supported dataset formats in the [Ultralytics segmentation dataset guide](https://docs.ultralytics.com/datasets/segment/).
+The **COCO8-Seg dataset** offers a compact yet diverse set of 8 images, making it perfect for quickly testing and debugging segmentation models or experimenting with new detection techniques. Its small size allows for fast sanity checks and early pipeline validation, helping identify issues before scaling to larger datasets. Learn more about supported dataset formats in the [Ultralytics segmentation dataset guide](https://docs.ultralytics.com/datasets/segment).
 
 ### Where can I find the YAML configuration file for the COCO8-Seg dataset?
 

@@ -8,17 +8,17 @@ keywords: Ultralytics Platform, YOLO, computer vision, model training, cloud dep
 
 <div align="center">
 <!-- Screenshot: platform-banner.avif -->
-<a href="https://docs.ultralytics.com/zh/platform/">中文</a> |
-<a href="https://docs.ultralytics.com/ko/platform/">한국어</a> |
-<a href="https://docs.ultralytics.com/ja/platform/">日本語</a> |
-<a href="https://docs.ultralytics.com/ru/platform/">Русский</a> |
-<a href="https://docs.ultralytics.com/de/platform/">Deutsch</a> |
-<a href="https://docs.ultralytics.com/fr/platform/">Français</a> |
+<a href="https://docs.ultralytics.com/zh/platform">中文</a> |
+<a href="https://docs.ultralytics.com/ko/platform">한국어</a> |
+<a href="https://docs.ultralytics.com/ja/platform">日本語</a> |
+<a href="https://docs.ultralytics.com/ru/platform">Русский</a> |
+<a href="https://docs.ultralytics.com/de/platform">Deutsch</a> |
+<a href="https://docs.ultralytics.com/fr/platform">Français</a> |
 <a href="https://docs.ultralytics.com/es/platform/">Español</a> |
-<a href="https://docs.ultralytics.com/pt/platform/">Português</a> |
-<a href="https://docs.ultralytics.com/tr/platform/">Türkçe</a> |
-<a href="https://docs.ultralytics.com/vi/platform/">Tiếng Việt</a> |
-<a href="https://docs.ultralytics.com/ar/platform/">العربية</a>
+<a href="https://docs.ultralytics.com/pt/platform">Português</a> |
+<a href="https://docs.ultralytics.com/tr/platform">Türkçe</a> |
+<a href="https://docs.ultralytics.com/vi/platform">Tiếng Việt</a> |
+<a href="https://docs.ultralytics.com/ar/platform">العربية</a>
 <br>
 <br>
 

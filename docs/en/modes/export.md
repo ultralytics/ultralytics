@@ -145,7 +145,7 @@ INT8 quantization is an excellent way to compress the model and speed up inferen
         yolo export model=yolo26n.pt format=engine int8=True # export TensorRT model with INT8 quantization
         ```
 
-INT8 quantization can be applied to various formats, such as [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), and [CoreML](../integrations/coreml.md). For optimal quantization results, provide a representative [dataset](https://docs.ultralytics.com/datasets/) using the `data` parameter.
+INT8 quantization can be applied to various formats, such as [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), and [CoreML](../integrations/coreml.md). For optimal quantization results, provide a representative [dataset](https://docs.ultralytics.com/datasets) using the `data` parameter.
 
 ### Why is dynamic input size important when exporting models?
 

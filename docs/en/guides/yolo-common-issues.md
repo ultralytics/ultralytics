@@ -298,4 +298,4 @@ Tracking and visualizing training progress can be efficiently managed through to
 
 ### What should I do if YOLO26 is not recognizing my dataset format?
 
-Ensure your dataset and labels conform to the expected format. Verify that annotations are accurate and of high quality. If you face any issues, refer to the [Data Collection and Annotation](https://docs.ultralytics.com/guides/data-collection-and-annotation/) guide for best practices. For more dataset-specific guidance, check the [Datasets](https://docs.ultralytics.com/datasets/) section in the documentation.
+Ensure your dataset and labels conform to the expected format. Verify that annotations are accurate and of high quality. If you face any issues, refer to the [Data Collection and Annotation](https://docs.ultralytics.com/guides/data-collection-and-annotation) guide for best practices. For more dataset-specific guidance, check the [Datasets](https://docs.ultralytics.com/datasets) section in the documentation.

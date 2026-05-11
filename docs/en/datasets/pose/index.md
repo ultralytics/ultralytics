@@ -77,7 +77,7 @@ The `train` and `val` fields specify the paths to the directories containing the
 
 ## Supported Datasets
 
-This section outlines the datasets that are compatible with Ultralytics YOLO format and can be used for training [pose estimation](https://docs.ultralytics.com/tasks/pose/) models:
+This section outlines the datasets that are compatible with Ultralytics YOLO format and can be used for training [pose estimation](https://docs.ultralytics.com/tasks/pose) models:
 
 ### COCO-Pose
 
@@ -96,7 +96,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 - **Number of Classes**: 1 (Human).
 - **Keypoints**: 17 keypoints including nose, eyes, ears, shoulders, elbows, wrists, hips, knees, and ankles.
 - **Usage**: Suitable for testing and debugging object detection models, or for experimenting with new detection approaches.
-- **Additional Notes**: COCO8-Pose is ideal for sanity checks and [CI checks](https://docs.ultralytics.com/help/CI/).
+- **Additional Notes**: COCO8-Pose is ideal for sanity checks and [CI checks](https://docs.ultralytics.com/help/CI).
 - [Read more about COCO8-Pose](coco8-pose.md)
 
 ### Dog-Pose
@@ -132,7 +132,7 @@ If you have your own dataset and would like to use it for training pose estimati
 
 ### Conversion Tool
 
-Ultralytics provides a convenient conversion tool to convert labels from the popular [COCO dataset](https://docs.ultralytics.com/datasets/detect/coco/) format to YOLO format:
+Ultralytics provides a convenient conversion tool to convert labels from the popular [COCO dataset](https://docs.ultralytics.com/datasets/detect/coco) format to YOLO format:
 
 !!! example
 
@@ -161,7 +161,7 @@ For 2D poses, keypoints include pixel coordinates. For 3D, each keypoint also ha
 
 ### How do I use the COCO-Pose dataset with Ultralytics YOLO?
 
-To use the [COCO-Pose dataset](https://docs.ultralytics.com/datasets/pose/coco/) with Ultralytics YOLO:
+To use the [COCO-Pose dataset](https://docs.ultralytics.com/datasets/pose/coco) with Ultralytics YOLO:
 
 1. Download the dataset and prepare your label files in the YOLO format.
 2. Create a YAML configuration file specifying paths to training and validation images, keypoint shape, and class names.
@@ -213,4 +213,4 @@ from ultralytics.data.converter import convert_coco
 convert_coco(labels_dir="path/to/coco/annotations/", use_keypoints=True)
 ```
 
-This tool helps seamlessly integrate COCO datasets into YOLO projects. For details, refer to the [Conversion Tool](#conversion-tool) section and the [data preprocessing guide](https://docs.ultralytics.com/guides/preprocessing_annotated_data/).
+This tool helps seamlessly integrate COCO datasets into YOLO projects. For details, refer to the [Conversion Tool](#conversion-tool) section and the [data preprocessing guide](https://docs.ultralytics.com/guides/preprocessing_annotated_data).

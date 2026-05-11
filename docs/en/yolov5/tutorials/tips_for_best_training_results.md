@@ -71,13 +71,13 @@ Before modifying anything, **first train with default settings to establish a pe
 - **[Transfer learning](https://www.ultralytics.com/glossary/transfer-learning).** For specialized datasets, start with pretrained weights and gradually unfreeze layers during training to adapt the model to your specific task.
 - **[Model pruning](https://www.ultralytics.com/glossary/model-pruning).** After training, consider pruning your model to remove redundant weights and reduce model size without significant performance loss.
 - **[Model ensemble](https://www.ultralytics.com/glossary/model-ensemble).** For critical applications, train multiple models with different configurations and combine their predictions for improved accuracy.
-- **[Test-time augmentation](https://docs.ultralytics.com/yolov5/tutorials/test_time_augmentation/).** Enable TTA during inference with `--augment` to improve prediction accuracy by averaging results from augmented versions of the input image.
+- **[Test-time augmentation](https://docs.ultralytics.com/yolov5/tutorials/test_time_augmentation).** Enable TTA during inference with `--augment` to improve prediction accuracy by averaging results from augmented versions of the input image.
 
 ## Further Reading
 
 If you'd like to know more, a good place to start is Karpathy's 'Recipe for Training [Neural Networks](https://www.ultralytics.com/glossary/neural-network-nn)', which has great ideas for training that apply broadly across all ML domains: [https://karpathy.github.io/2019/04/25/recipe/](https://karpathy.github.io/2019/04/25/recipe/)
 
-For more detailed information on training settings and configurations, refer to the [Ultralytics train settings documentation](https://docs.ultralytics.com/modes/train/), which provides comprehensive explanations of all available parameters.
+For more detailed information on training settings and configurations, refer to the [Ultralytics train settings documentation](https://docs.ultralytics.com/modes/train), which provides comprehensive explanations of all available parameters.
 
 Good luck 🍀 and let us know if you have any other questions!
 

@@ -130,7 +130,7 @@ Assign image-level class labels:
 
 ## SAM Smart Annotation
 
-[Segment Anything Model (SAM)](https://docs.ultralytics.com/models/sam/) enables intelligent annotation with just a few clicks:
+[Segment Anything Model (SAM)](https://docs.ultralytics.com/models/sam) enables intelligent annotation with just a few clicks:
 
 1. Select **SAM** mode or press `S`
 2. **Left-click** to add positive points (include this area)

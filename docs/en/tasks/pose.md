@@ -61,7 +61,7 @@ Ultralytics YOLO26 pretrained Pose models are shown here. Detect, Segment and Po
 
 ## Train
 
-Train a YOLO26-pose model on the COCO8-pose dataset. The [COCO8-pose dataset](https://docs.ultralytics.com/datasets/pose/coco8-pose/) is a small sample dataset that's perfect for testing and debugging your pose estimation models.
+Train a YOLO26-pose model on the COCO8-pose dataset. The [COCO8-pose dataset](https://docs.ultralytics.com/datasets/pose/coco8-pose) is a small sample dataset that's perfect for testing and debugging your pose estimation models.
 
 !!! example
 
@@ -94,9 +94,9 @@ Train a YOLO26-pose model on the COCO8-pose dataset. The [COCO8-pose dataset](ht
 
 ### Dataset format
 
-YOLO pose dataset format can be found in detail in the [Dataset Guide](../datasets/pose/index.md). To convert your existing dataset from other formats (like [COCO](https://docs.ultralytics.com/datasets/pose/coco/) etc.) to YOLO format, please use the [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics.
+YOLO pose dataset format can be found in detail in the [Dataset Guide](../datasets/pose/index.md). To convert your existing dataset from other formats (like [COCO](https://docs.ultralytics.com/datasets/pose/coco) etc.) to YOLO format, please use the [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics.
 
-For custom pose estimation tasks, you can also explore specialized datasets like [Tiger-Pose](https://docs.ultralytics.com/datasets/pose/tiger-pose/) for animal pose estimation, [Hand Keypoints](https://docs.ultralytics.com/datasets/pose/hand-keypoints/) for hand tracking, or [Dog-Pose](https://docs.ultralytics.com/datasets/pose/dog-pose/) for canine pose analysis.
+For custom pose estimation tasks, you can also explore specialized datasets like [Tiger-Pose](https://docs.ultralytics.com/datasets/pose/tiger-pose) for animal pose estimation, [Hand Keypoints](https://docs.ultralytics.com/datasets/pose/hand-keypoints) for hand tracking, or [Dog-Pose](https://docs.ultralytics.com/datasets/pose/dog-pose) for canine pose analysis.
 
 ## Val
 
@@ -134,7 +134,7 @@ Validate trained YOLO26n-pose model [accuracy](https://www.ultralytics.com/gloss
 
 ## Predict
 
-Use a trained YOLO26n-pose model to run predictions on images. The [predict mode](https://docs.ultralytics.com/modes/predict/) allows you to perform inference on images, videos, or real-time streams.
+Use a trained YOLO26n-pose model to run predictions on images. The [predict mode](https://docs.ultralytics.com/modes/predict) allows you to perform inference on images, videos, or real-time streams.
 
 !!! example
 

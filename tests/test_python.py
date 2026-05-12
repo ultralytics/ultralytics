@@ -579,6 +579,26 @@ def test_utils_ops():
     torch.allclose(boxes, xyxyxyxy2xywhr(xywhr2xyxyxyxy(boxes)), rtol=1e-3)
 
 
+def test_process_mask_crops_within_bbox():
+    """Regression test for #24272 to ensure process_mask(upsample=True) does not leak pixels outside the bbox."""
+    from ultralytics.utils.ops import process_mask
+
+    # Uniformly positive low-res prototypes make the post-crop boundary a hard 0->positive step,
+    # which the pre-fix bilinear upsample then smeared into pixels outside the image-space bbox.
+    protos = torch.ones(32, 40, 40)
+    masks_in = torch.ones(1, 32)
+    bboxes = torch.tensor([[40.0, 40.0, 120.0, 120.0]])
+    shape = (160, 160)
+
+    masks = process_mask(protos, masks_in, bboxes, shape, upsample=True)
+    assert masks.shape == (1, 160, 160)
+    m = masks[0]
+    assert m[:40].sum().item() == 0, "mask leaked above the bbox"
+    assert m[120:].sum().item() == 0, "mask leaked below the bbox"
+    assert m[:, :40].sum().item() == 0, "mask leaked left of the bbox"
+    assert m[:, 120:].sum().item() == 0, "mask leaked right of the bbox"
+
+
 def test_utils_files(tmp_path):
     """Test file handling utilities including file age, date, and paths with spaces."""
     from ultralytics.utils.files import file_age, file_date, get_latest_run, increment_path, spaces_in_path

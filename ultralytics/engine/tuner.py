@@ -18,9 +18,11 @@ from __future__ import annotations
 
 import gc
 import json
+import os
 import random
 import shutil
 import subprocess
+import sys
 import time
 from collections import Counter
 from datetime import datetime
@@ -491,13 +493,12 @@ class Tuner:
                     train_args["data"] = d
                     train_args["save_dir"] = str(save_dir[j])  # pass save_dir to subprocess to ensure same path is used
                     # Train YOLO model with mutated hyperparameters (run in subprocess to avoid dataloader hang)
-                    launch = [
-                        __import__("sys").executable,
-                        "-m",
-                        "ultralytics.cfg.__init__",
-                    ]  # workaround yolo not found
+                    launch = [sys.executable, "-m", "ultralytics.cfg.__init__"]  # workaround yolo not found
                     cmd = [*launch, "train", *(f"{k}={v}" for k, v in train_args.items())]
-                    return_code = subprocess.run(cmd, check=True).returncode
+                    # Propagate parent sys.path so subprocess imports the same ultralytics version as the parent,
+                    # avoiding a stale site-packages copy when running from an editable install or local working tree
+                    env = {**os.environ, "PYTHONPATH": os.pathsep.join(p for p in sys.path if p)}
+                    return_code = subprocess.run(cmd, check=True, env=env).returncode
                     ckpt_file = weights_dir[j] / ("best.pt" if (weights_dir[j] / "best.pt").exists() else "last.pt")
                     metrics_i = torch_load(ckpt_file)["train_metrics"]
                     metrics = metrics_i

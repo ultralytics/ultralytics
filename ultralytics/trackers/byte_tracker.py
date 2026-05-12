@@ -284,8 +284,12 @@ class BYTETracker:
         u_track, u_detection = self._post_first_association(
             strack_pool, detections, u_track, u_detection, activated_stracks, refind_stracks, lost_stracks
         )
-        self._second_association(strack_pool, u_track, detections_second, activated_stracks, refind_stracks, lost_stracks)
-        u_detection, detections = self._unconfirmed_association(unconfirmed, u_detection, detections, activated_stracks, removed_stracks)
+        self._second_association(
+            strack_pool, u_track, detections_second, activated_stracks, refind_stracks, lost_stracks
+        )
+        u_detection, detections = self._unconfirmed_association(
+            unconfirmed, u_detection, detections, activated_stracks, removed_stracks
+        )
         self._init_new_tracks(u_detection, detections, activated_stracks, refind_stracks)
         self._remove_stale_lost(lost_stracks, removed_stracks)
 
@@ -299,8 +303,8 @@ class BYTETracker:
             results (Any): Results-like object with ``conf`` attribute supporting boolean indexing.
 
         Returns:
-            (tuple[Any, Any, np.ndarray, np.ndarray]): High-confidence results, low-confidence results,
-                high mask, and low mask.
+            (tuple[Any, Any, np.ndarray, np.ndarray]): High-confidence results, low-confidence results, high mask, and
+                low mask.
         """
         scores = results.conf
         remain_inds = scores >= self.args.track_high_thresh
@@ -330,8 +334,8 @@ class BYTETracker:
         """Separate ``self.tracked_stracks`` into confirmed and unconfirmed lists.
 
         Returns:
-            (tuple[list, list]): ``(unconfirmed, tracked)`` where ``unconfirmed`` holds tracks whose
-            ``is_activated`` flag is False.
+            (tuple[list, list]): ``(unconfirmed, tracked)`` where ``unconfirmed`` holds tracks whose ``is_activated``
+                flag is False.
         """
         unconfirmed, tracked = [], []
         for track in self.tracked_stracks:
@@ -404,8 +408,8 @@ class BYTETracker:
         """Associate unconfirmed tracks with leftover high-score detections.
 
         Returns:
-            (tuple[list[int], list]): Unmatched detection indices after association, and the
-            filtered detection list those indices refer to.
+            (tuple[list[int], list]): Unmatched detection indices after association, and the filtered detection list
+                those indices refer to.
         """
         detections = [detections[i] for i in u_detection]
         if not unconfirmed:

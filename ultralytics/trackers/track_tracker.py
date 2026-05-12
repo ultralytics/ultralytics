@@ -234,8 +234,8 @@ def _cosine_distance(tracks: list[TTSTrack], dets: list[TTSTrack]) -> np.ndarray
 class TTSTrack(STrack):
     """Single-object track for TrackTrack with corner velocity, score history, and ReID features.
 
-    Inherits bbox properties from :class:`STrack` but uses a XYWH Kalman state, so ``tlwh`` and
-    ``xywh`` are overridden accordingly.
+    Inherits bbox properties from :class:`STrack` but uses a XYWH Kalman state, so ``tlwh`` and ``xywh`` are overridden
+    accordingly.
 
     Attributes:
         shared_kalman (KalmanFilterXYWH): Shared Kalman filter used for batch prediction.

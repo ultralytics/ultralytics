@@ -250,9 +250,7 @@ class OCSORT(BYTETracker):
         ocr_u_track_set = {id(ocr_tracked[i]) for i in ocr_u_track}
         ocr_u_det_set = {id(ocr_dets[i]) for i in ocr_u_det}
         u_track = [
-            i
-            for i in u_track
-            if id(strack_pool[i]) in ocr_u_track_set or strack_pool[i].state != TrackState.Tracked
+            i for i in u_track if id(strack_pool[i]) in ocr_u_track_set or strack_pool[i].state != TrackState.Tracked
         ]
         u_detection = [i for i in u_detection if id(detections[i]) in ocr_u_det_set]
         return u_track, u_detection

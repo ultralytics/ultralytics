@@ -6,16 +6,13 @@ from collections import deque
 from typing import Any
 
 import numpy as np
-import torch
-
-from ultralytics.utils.ops import xywh2xyxy
-from ultralytics.utils.plotting import save_one_box
 
 from .basetrack import TrackState
 from .byte_tracker import BYTETracker, STrack
 from .utils import matching
 from .utils.gmc import GMC
 from .utils.kalman_filter import KalmanFilterXYWH
+from .utils.reid import build_encoder
 
 
 class BOTrack(STrack):
@@ -70,21 +67,24 @@ class BOTrack(STrack):
 
         self.smooth_feat = None
         self.curr_feat = None
+        self.features = deque(maxlen=feat_history)  # init before update_features so first feat is kept
+        self.alpha = 0.9
         if feat is not None:
             self.update_features(feat)
-        self.features = deque(maxlen=feat_history)
-        self.alpha = 0.9
 
     def update_features(self, feat: np.ndarray) -> None:
         """Update the feature vector and apply exponential moving average smoothing."""
-        feat /= np.linalg.norm(feat)
+        norm = np.linalg.norm(feat)
+        if norm < 1e-12:  # skip zero-norm features so smooth_feat isn't poisoned by NaNs
+            return
+        feat = feat / norm  # do NOT mutate caller's array (was `feat /= norm`)
         self.curr_feat = feat
         if self.smooth_feat is None:
             self.smooth_feat = feat
         else:
             self.smooth_feat = self.alpha * self.smooth_feat + (1 - self.alpha) * feat
+            self.smooth_feat /= np.linalg.norm(self.smooth_feat)
         self.features.append(feat)
-        self.smooth_feat /= np.linalg.norm(self.smooth_feat)
 
     def predict(self) -> None:
         """Predict the object's future state using the Kalman filter to update its mean and covariance."""
@@ -184,13 +184,7 @@ class BOTSORT(BYTETracker):
         # ReID module
         self.proximity_thresh = args.proximity_thresh
         self.appearance_thresh = args.appearance_thresh
-        self.encoder = (
-            (lambda feats, s: [f.cpu().numpy() for f in feats])  # native features do not require any model
-            if args.with_reid and self.args.model == "auto"
-            else ReID(args.model)
-            if args.with_reid
-            else None
-        )
+        self.encoder = build_encoder(args.with_reid, args.model)
 
     def get_kalmanfilter(self) -> KalmanFilterXYWH:
         """Return an instance of KalmanFilterXYWH for predicting and updating object states in the tracking process."""
@@ -205,8 +199,7 @@ class BOTSORT(BYTETracker):
         if self.args.with_reid and self.encoder is not None:
             features_keep = self.encoder(img, bboxes)
             return [BOTrack(xywh, s, c, f) for (xywh, s, c, f) in zip(bboxes, results.conf, results.cls, features_keep)]
-        else:
-            return [BOTrack(xywh, s, c) for (xywh, s, c) in zip(bboxes, results.conf, results.cls)]
+        return [BOTrack(xywh, s, c) for (xywh, s, c) in zip(bboxes, results.conf, results.cls)]
 
     def get_dists(self, tracks: list[BOTrack], detections: list[BOTrack]) -> np.ndarray:
         """Calculate distances between tracks and detections using IoU and optionally ReID embeddings."""
@@ -231,27 +224,3 @@ class BOTSORT(BYTETracker):
         """Reset the BOTSORT tracker to its initial state, clearing all tracked objects and internal states."""
         super().reset()
         self.gmc.reset_params()
-
-
-class ReID:
-    """YOLO model as encoder for re-identification."""
-
-    def __init__(self, model: str):
-        """Initialize encoder for re-identification.
-
-        Args:
-            model (str): Path to the YOLO model for re-identification.
-        """
-        from ultralytics import YOLO
-
-        self.model = YOLO(model)
-        self.model(embed=[len(self.model.model.model) - 2 if ".pt" in model else -1], verbose=False, save=False)  # init
-
-    def __call__(self, img: np.ndarray, dets: np.ndarray) -> list[np.ndarray]:
-        """Extract embeddings for detected objects."""
-        feats = self.model.predictor(
-            [save_one_box(det, img, save=False) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))]
-        )
-        if len(feats) != dets.shape[0] and feats[0].shape[0] == dets.shape[0]:
-            feats = feats[0]  # batched prediction with non-PyTorch backend
-        return [f.cpu().numpy() for f in feats]

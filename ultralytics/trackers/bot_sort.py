@@ -67,7 +67,6 @@ class BOTrack(STrack):
 
         self.smooth_feat = None
         self.curr_feat = None
-        self.features = deque(maxlen=feat_history)  # init before update_features so first feat is kept
         self.alpha = 0.9
         if feat is not None:
             self.update_features(feat)
@@ -84,7 +83,6 @@ class BOTrack(STrack):
         else:
             self.smooth_feat = self.alpha * self.smooth_feat + (1 - self.alpha) * feat
             self.smooth_feat /= np.linalg.norm(self.smooth_feat)
-        self.features.append(feat)
 
     def predict(self) -> None:
         """Predict the object's future state using the Kalman filter to update its mean and covariance."""

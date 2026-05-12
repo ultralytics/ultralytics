@@ -285,7 +285,7 @@ class BYTETracker:
             strack_pool, detections, u_track, u_detection, activated_stracks, refind_stracks, lost_stracks
         )
         self._second_association(strack_pool, u_track, detections_second, activated_stracks, refind_stracks, lost_stracks)
-        u_detection = self._unconfirmed_association(unconfirmed, u_detection, detections, activated_stracks, removed_stracks)
+        u_detection, detections = self._unconfirmed_association(unconfirmed, u_detection, detections, activated_stracks, removed_stracks)
         self._init_new_tracks(u_detection, detections, activated_stracks, refind_stracks)
         self._remove_stale_lost(lost_stracks, removed_stracks)
 
@@ -404,9 +404,12 @@ class BYTETracker:
         """Associate unconfirmed tracks with leftover high-score detections.
 
         Returns:
-            (list[int]): Unmatched detection indices after association.
+            (tuple[list[int], list]): Unmatched detection indices after association, and the
+            filtered detection list those indices refer to.
         """
         detections = [detections[i] for i in u_detection]
+        if not unconfirmed:
+            return list(range(len(detections))), detections
         dists = self.get_dists(unconfirmed, detections)
         matches, u_unconfirmed, u_detection = matching.linear_assignment(dists, thresh=0.7)
         for itracked, idet in matches:
@@ -416,7 +419,7 @@ class BYTETracker:
             track = unconfirmed[it]
             track.mark_removed()
             removed.append(track)
-        return u_detection
+        return u_detection, detections
 
     def _init_new_tracks(self, u_detection, detections, activated, refind=None):
         """Activate new tracks from detections that survived all association stages."""

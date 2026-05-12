@@ -199,9 +199,18 @@ class FASTTracker(BYTETracker):
         track.not_matched = 0
         track.occluded_len = 0
 
-    def _post_second_association(self, r_tracked, u_track, activated, lost):
-        """Flag unmatched tracked tracks as occluded when covered by an active neighbor."""
-        self._handle_occlusions(r_tracked, u_track, activated, lost)
+    def _second_association(self, strack_pool, u_track, detections_second, activated, refind, lost):
+        """Second-stage association + occlusion handling (replaces base mark-lost loop)."""
+        r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
+        if r_tracked_stracks and detections_second:
+            dists = matching.iou_distance(r_tracked_stracks, detections_second)
+            if self.args.fuse_score:
+                dists = matching.fuse_score(dists, detections_second)
+            matches, u_track, _ = matching.linear_assignment(dists, thresh=0.5)
+            self._apply_matches(matches, r_tracked_stracks, detections_second, activated, refind)
+        else:
+            u_track = list(range(len(r_tracked_stracks)))
+        self._handle_occlusions(r_tracked_stracks, u_track, activated, lost)
 
     def _init_new_tracks(self, u_detection, detections, activated, refind=None):
         """Activate new tracks, suppressing detections that heavily overlap already-active tracks."""

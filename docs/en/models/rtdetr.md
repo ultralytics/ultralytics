@@ -40,7 +40,7 @@ The Ultralytics Python API provides pretrained PaddlePaddle RT-DETR models with 
 
 !!! tip "Faster Inference with Decoder Layers"
 
-    RT-DETR pretrained weights use the final decoder layer by default. For latency-sensitive deployments, you can set the decoder layer index (`eval_idx`) to stop evaluation at an earlier decoder layer, reducing inference time without retraining. This can lower mAP, so validate the chosen value on your dataset before deployment. The index is zero-based; for the default 6-layer decoder, `eval_idx=5` uses all layers, while `eval_idx=3` uses 4 decoder layers. For example, RT-DETR-L on a T4 GPU can improve from 8.0 ms at 52.7 mAP to 7.4 ms at 52.5 mAP with 4 decoder layers, gaining 0.6 ms with a 0.2 mAP reduction.
+    RT-DETR pretrained weights use the final decoder layer by default. For latency-sensitive deployments, you can set the decoder layer index (`eval_idx`) to stop evaluation at an earlier decoder layer, reducing inference time without retraining. This can lower mAP, so validate the chosen value on your dataset before deployment. The index is zero-based; for the default 6-layer decoder, `eval_idx=5` uses all layers, while `eval_idx=3` uses 4 decoder layers. For example, RT-DETR-L on a T4 GPU with TensorRT v10.11 can improve from 8.0 ms at 52.7 mAP to 7.4 ms at 52.5 mAP with 4 decoder layers, gaining 0.6 ms with a 0.2 mAP reduction.
 
     ```python
     from ultralytics import RTDETR

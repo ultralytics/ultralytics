@@ -63,8 +63,8 @@ Once your model is trained and validated, the next logical step is to evaluate i
 
 !!! tip "Recommended install"
 
-    Install the export extras before benchmarking to avoid missing dependencies and restart the runtime after installation.
-    
+    Install Ultralytics with export dependencies before benchmarking to avoid missing packages.
+
     ```bash
     pip install ultralytics[export]
     ```

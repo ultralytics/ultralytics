@@ -38,6 +38,25 @@ The Ultralytics Python API provides pretrained PaddlePaddle RT-DETR models with 
 - RT-DETR-L: 53.0% AP on COCO val2017, 114 FPS on T4 GPU
 - RT-DETR-X: 54.8% AP on COCO val2017, 74 FPS on T4 GPU
 
+!!! tip "Faster Inference with Fewer Queries"
+
+    RT-DETR defaults to 300 queries. The baseline runs at about 8.0 ms with the default mAP. Reducing `num_queries` to 100 can reach 7.4 ms with 51.7 mAP on COCO. On custom datasets with fewer objects per image, the mAP drop can be smaller because 300 queries can be redundant.
+
+    ```python
+    from ultralytics import RTDETR
+
+    rtdetr = RTDETR("rtdetr-l.pt")
+    decoder = rtdetr.model.model[-1]
+
+    # Reduce query count for faster inference.
+    decoder.num_queries = 100
+
+    results = rtdetr("path/to/image.jpg")
+
+    # Export uses the same query count, including TensorRT exports.
+    rtdetr.export(format="engine", device=0, half=True)
+    ```
+
 Additionally, Baidu has released RTDETRv2 in July 2024, which further improves upon the original architecture with enhanced performance metrics.
 
 <script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>

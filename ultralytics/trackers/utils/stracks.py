@@ -155,7 +155,7 @@ def multi_gmc(stracks: list, H: np.ndarray | None = None) -> None:
     multi_covariance = np.asarray([st.covariance for st in stracks])
 
     R = H[:2, :2]
-    R8x8 = np.kron(np.eye(4, dtype=float), R)
+    R8x8 = np.kron(np.eye(4, dtype=np.float32), R)
     t = H[:2, 2]
 
     for i, (mean, cov) in enumerate(zip(multi_mean, multi_covariance)):

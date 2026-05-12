@@ -132,7 +132,7 @@ class DeepOCSortTrack(OCSortTrack):
         t = H[:2, 2]
 
         # Build 8x8 transform: rotate (x,y) and (vx,vy), identity for (a,h) and (va,vh)
-        R8x8 = np.eye(8, dtype=float)
+        R8x8 = np.eye(8, dtype=np.float32)
         R8x8[:2, :2] = R  # rotate position (x, y)
         R8x8[4:6, 4:6] = R  # rotate velocity (vx, vy)
         # indices 2,3 (a,h) and 6,7 (va,vh) remain identity

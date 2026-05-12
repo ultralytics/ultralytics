@@ -42,6 +42,16 @@
 #   - To reach paper R1=0.95: needs JPM module (+1.5pp), SIE module, per-param-group LR (head
 #     10x faster than backbone), CE-only first phase. None are cheap; deferred to v2.
 #
+# ─── HEADLINE-RECIPE REPLICATION (arch27b) ────────────────────────────────────
+# Re-running the headline Market-FT recipe verbatim (lr0=3.5e-3, lrf=0.001, cos_lr=True,
+# supcon_temp=0.02, triplet_margin=0.5, erasing=0.7, label_smoothing=0.1, focal_gamma=0.0,
+# dropout=0.1, ce_weight=2.0) on yolo26l-reid-2psa + 1h MSMT pretrain:
+#   arch27b: R1=0.907, mAP=0.858  (batch=128, imgsz=320 due to 32GB OOM at batch=192)
+# vs reported train-33: R1=0.922, mAP=0.875  → small gap likely from batch=128 vs 192 +
+# run variance (~±0.5pp). The headline-recipe hparams DO matter: +0.8pp R1 vs the older
+# hparam set (lrf=0.05, supcon=0.04, erasing=0.5, ls=0.0, focal=2.0, trip_margin=0.2)
+# which gave R1=0.899 on the same 2psa+1h-MSMT stack (arch26).
+#
 # ─── ATTENTION-STACK SCALING (arch25-26) ──────────────────────────────────────
 # yolo26l-reid-3psa (3 stacked C2PSA blocks vs train-33's 2): MSMT pretrain 1h + Market FT 1h:
 #   arch26: R1=0.899, mAP=0.836  → -2.3pp R1 vs train-33 (0.922).

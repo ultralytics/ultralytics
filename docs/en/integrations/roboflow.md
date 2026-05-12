@@ -13,7 +13,7 @@ Roboflow provides tools for [data labeling](https://www.ultralytics.com/glossary
     Ultralytics offers two licensing options to accommodate different use cases:
 
     - **AGPL-3.0 License**: This [OSI-approved open-source license](https://www.ultralytics.com/legal/agpl-3-0-software-license) is ideal for students and enthusiasts, promoting open collaboration and knowledge sharing. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for more details.
-    - **Enterprise License**: Designed for development and production use, this license allows for the seamless integration of Ultralytics software and AI models into business products and services, including internal tools, automated workflows, and production deployments. If your use case involves developing or deploying models in any production or business setting, please reach out via [Ultralytics Licensing](https://www.ultralytics.com/license).
+    - **Enterprise License**: Designed for development and production use, this license covers both building and deploying AI-powered applications. It enables seamless integration of Ultralytics software and AI models into live business products and services, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0. If your use case involves developing or deploying models in any production or business setting, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
 
     For more details see the [Ultralytics Licensing page](https://www.ultralytics.com/license).
 

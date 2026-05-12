@@ -37,7 +37,7 @@ Developing a custom [object detection](https://docs.ultralytics.com/tasks/detect
     Ultralytics provides two licensing options to accommodate diverse usage scenarios:
 
     - **AGPL-3.0 License**: This [OSI-approved](https://opensource.org/license/agpl-3.0) open-source license is ideal for students, researchers, and enthusiasts passionate about open collaboration and knowledge sharing. It requires derived works to be shared under the same license. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for full details.
-    - **Enterprise License**: Designed for development and production use, this license permits the seamless integration of Ultralytics software and AI models into business products and services — including internal tools, automated workflows, and production deployments — without the open-source stipulations of AGPL-3.0. If your project involves developing or deploying models in any production or business setting, request an [Enterprise License](https://www.ultralytics.com/license).
+    - **Enterprise License**: Designed for development and production use, this license covers both building and deploying AI-powered applications. It enables seamless integration of Ultralytics software and AI models into live business products and services, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0. If your use case involves developing or deploying models in any production or business setting, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
 
     Explore our licensing options further on the [Ultralytics Licensing](https://www.ultralytics.com/license) page.
 

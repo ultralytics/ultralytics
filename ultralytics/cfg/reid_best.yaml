@@ -42,6 +42,13 @@
 #   - To reach paper R1=0.95: needs JPM module (+1.5pp), SIE module, per-param-group LR (head
 #     10x faster than backbone), CE-only first phase. None are cheap; deferred to v2.
 #
+# ─── ATTENTION-STACK SCALING (arch25-26) ──────────────────────────────────────
+# yolo26l-reid-3psa (3 stacked C2PSA blocks vs train-33's 2): MSMT pretrain 1h + Market FT 1h:
+#   arch26: R1=0.899, mAP=0.836  → -2.3pp R1 vs train-33 (0.922).
+# Conclusion: 2 stacked C2PSA is the optimum; adding a 3rd block adds 1.5M params,
+# slows convergence at fixed-time budget, and the extra capacity doesn't recover.
+# Series: 0psa (yolo26l)=0.850 → 2psa (train-33)=0.922 → 3psa=0.899 → diminishing then hurt.
+#
 # ─── PRETRAIN DURATION FINDING (arch23-24) ────────────────────────────────────
 # yolo26l-reid-2psa, 3h MSMT pretrain (vs train-33's 1h) → Market FT 1h:
 #   arch24: R1=0.897, mAP=0.840  → -2.5pp R1 vs train-33's 0.922.

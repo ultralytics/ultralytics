@@ -320,25 +320,15 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
-        if fmt == "deepx":
-            if not self.args.int8:
-                LOGGER.warning("DeepX export requires int8=True, setting int8=True.")
-                self.args.int8 = True
+        if fmt in {"deepx", "axelera", "imx", "edgetpu"} and not self.args.int8:
+            LOGGER.warning(f"{fmt} export requires int8=True, setting int8=True.")
+            self.args.int8 = True
         if fmt == "axelera":
             if model.task == "segment" and any(isinstance(m, Segment26) for m in model.modules()):
                 raise ValueError("Axelera export does not currently support YOLO26 segmentation models.")
-            if not self.args.int8:
-                LOGGER.warning("Setting int8=True for Axelera mixed-precision export.")
-                self.args.int8 = True
             if not self.args.data:
                 self.args.data = TASK2CALIBRATIONDATA.get(model.task)
-        if fmt == "edgetpu" and not self.args.int8:
-            LOGGER.warning("Edge TPU export requires int8=True, setting int8=True.")
-            self.args.int8 = True
         if fmt == "imx":
-            if not self.args.int8:
-                LOGGER.warning("IMX export requires int8=True, setting int8=True.")
-                self.args.int8 = True
             if not self.args.nms and model.task in {"detect", "pose", "segment"}:
                 LOGGER.warning("IMX export requires nms=True, setting nms=True.")
                 self.args.nms = True

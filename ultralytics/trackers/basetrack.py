@@ -3,8 +3,6 @@
 
 from typing import Any
 
-import numpy as np
-
 
 class TrackState:
     """Enumeration class representing the possible states of an object being tracked.

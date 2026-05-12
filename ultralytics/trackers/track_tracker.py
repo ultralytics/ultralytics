@@ -453,31 +453,30 @@ class TRACKTRACK:
         self.max_time_lost = int(frame_rate / 30.0 * args.track_buffer)
         self.kalman_filter = KalmanFilterXYWH()
 
-        get = lambda key, default: getattr(args, key, default)  # noqa: E731
-        self.det_thr = get("det_thr", 0.6)
-        self.match_thr = get("match_thresh", 0.7)
-        self.lost_match_thr = get("lost_match_thr", 0.0)
-        self.penalty_p = get("penalty_p", 0.2)
-        self.penalty_q = get("penalty_q", 0.4)
-        self.reduce_step = get("reduce_step", 0.05)
-        self.iou_weight = get("iou_weight", 0.5)
-        self.reid_weight = get("reid_weight", 0.5)
-        self.conf_weight = get("conf_weight", 0.1)
-        self.angle_weight = get("angle_weight", 0.05)
-        self.tai_thr = get("tai_thr", 0.55)
-        self.init_thr = get("init_thr", 0.7)
-        self.min_track_len = get("min_track_len", 3)
+        self.det_thr = getattr(args, "det_thr", 0.6)
+        self.match_thr = getattr(args, "match_thresh", 0.7)
+        self.lost_match_thr = getattr(args, "lost_match_thr", 0.0)
+        self.penalty_p = getattr(args, "penalty_p", 0.2)
+        self.penalty_q = getattr(args, "penalty_q", 0.4)
+        self.reduce_step = getattr(args, "reduce_step", 0.05)
+        self.iou_weight = getattr(args, "iou_weight", 0.5)
+        self.reid_weight = getattr(args, "reid_weight", 0.5)
+        self.conf_weight = getattr(args, "conf_weight", 0.1)
+        self.angle_weight = getattr(args, "angle_weight", 0.05)
+        self.tai_thr = getattr(args, "tai_thr", 0.55)
+        self.init_thr = getattr(args, "init_thr", 0.7)
+        self.min_track_len = getattr(args, "min_track_len", 3)
 
-        self.gmc = GMC(method=get("gmc_method", "sparseOptFlow"), downscale=get("gmc_downscale", 3))
+        self.gmc = GMC(method=getattr(args, "gmc_method", "sparseOptFlow"), downscale=getattr(args, "gmc_downscale", 3))
         if self.gmc.method == "sparseOptFlow":
-            self.gmc.feature_params["maxCorners"] = get("gmc_max_corners", 200)
-        self._gmc_skip = get("gmc_skip_frames", 0)
+            self.gmc.feature_params["maxCorners"] = getattr(args, "gmc_max_corners", 200)
+        self._gmc_skip = getattr(args, "gmc_skip_frames", 0)
         self._gmc_warp = np.eye(2, 3, dtype=np.float32)
         self._gmc_counter = 0
 
         from .utils.reid import build_encoder
 
-        self.encoder = build_encoder(get("with_reid", False), get("model", "auto"))
+        self.encoder = build_encoder(getattr(args, "with_reid", False), getattr(args, "model", "auto"))
 
     def _cost_matrix(self, tracks: list[TTSTrack], dets: list[TTSTrack]) -> np.ndarray:
         """Return the multi-cue cost matrix (HMIoU + ReID + confidence + angle), gated by IoU support."""

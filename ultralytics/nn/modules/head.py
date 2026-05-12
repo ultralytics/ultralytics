@@ -1818,6 +1818,8 @@ class SemanticSegment(nn.Module):
         stride (torch.Tensor): Feature map strides.
         export (bool): Export mode flag.
         format (str): Export format.
+        classifier (nn.Sequential): Final convolutional classifier head.
+        aux_head (nn.Sequential | None): Auxiliary classifier on P4 for deep supervision.
     """
 
     export = False  # export mode
@@ -1849,7 +1851,7 @@ class SemanticSegment(nn.Module):
 
         Returns:
             (torch.Tensor): Logits of shape [B, nc, H/8, W/8] during training and inference,
-                or [B, nc, H/2, W/2] during export.
+                or [B, nc, H, W] during export (full resolution).
         """
         # Classify
         logits = self.classifier(x[0])  # [B, nc, H/8, W/8]

@@ -71,7 +71,7 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
 
     trackers = []
     for _ in range(predictor.dataset.bs):
-        tracker = TRACKER_MAP[cfg.tracker_type](args=cfg, frame_rate=30)
+        tracker = TRACKER_MAP[cfg.tracker_type](args=cfg)
         trackers.append(tracker)
         if predictor.dataset.mode != "stream":  # non-stream modes reuse a single tracker
             break

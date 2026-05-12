@@ -191,14 +191,14 @@ class FASTTracker(BYTETracker):
         hl = self._history_len
         return [FastSTrack(xywh, s, c, history_len=hl) for (xywh, s, c) in zip(bboxes, results.conf, results.cls)]
 
-    def _apply_match(self, track, det, activated, refind):
+    def _apply_match(self, track: STrack, det: STrack, activated: list[STrack], refind: list[STrack]) -> None:
         """Update or re-activate a track and clear any occlusion bookkeeping on a successful match."""
         super()._apply_match(track, det, activated, refind)
         track.is_occluded = False
         track.not_matched = 0
         track.occluded_len = 0
 
-    def _second_association(self, strack_pool, u_track, detections_second, activated, refind, lost):
+    def _second_association(self, strack_pool: list[STrack], u_track: list[int], detections_second: list[STrack], activated: list[STrack], refind: list[STrack], lost: list[STrack]) -> None:
         """Second-stage association + occlusion handling (replaces base mark-lost loop)."""
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
         if r_tracked_stracks and detections_second:
@@ -211,7 +211,7 @@ class FASTTracker(BYTETracker):
             u_track = list(range(len(r_tracked_stracks)))
         self._handle_occlusions(r_tracked_stracks, u_track, activated, lost)
 
-    def _init_new_tracks(self, u_detection, detections, activated, refind=None):
+    def _init_new_tracks(self, u_detection: list[int], detections: list[STrack], activated: list[STrack], refind: list[STrack] | None = None) -> None:
         """Activate new tracks, suppressing detections that heavily overlap already-active tracks."""
         active_boxes = [t.xyxy for t in activated if t.is_activated]
         if refind:
@@ -232,7 +232,7 @@ class FASTTracker(BYTETracker):
             active_boxes.append(det.xyxy)
             active_stack = np.asarray(active_boxes, dtype=np.float32)
 
-    def _remove_stale_lost(self, lost, removed):
+    def _remove_stale_lost(self, lost: list[STrack], removed: list[STrack]) -> None:
         """Remove lost tracks, with a grace window for recently-occluded ones."""
         for track in self.lost_stracks:
             recently_occluded = track.was_recently_occluded and (
@@ -242,7 +242,7 @@ class FASTTracker(BYTETracker):
                 track.mark_removed()
                 removed.append(track)
 
-    def _format_output(self):
+    def _format_output(self) -> np.ndarray:
         """Only emit tracks updated this frame to avoid stale ``idx`` values."""
         return np.asarray(
             [x.result for x in self.tracked_stracks if x.is_activated and x.frame_id == self.frame_id],

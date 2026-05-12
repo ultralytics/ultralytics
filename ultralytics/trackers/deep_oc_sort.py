@@ -231,7 +231,7 @@ class DeepOCSORT(OCSORT):
             for (xywh, s, c) in zip(bboxes, results.conf, results.cls)
         ]
 
-    def _input_for(self, img: np.ndarray | None, feats: np.ndarray | None, mask) -> Any:
+    def _input_for(self, img: np.ndarray | None, feats: np.ndarray | None, mask: np.ndarray) -> Any:
         """Return what `init_track` should receive.
 
         For `model="auto"` (native-features mode) the encoder iterates a per-detection feature
@@ -245,7 +245,7 @@ class DeepOCSORT(OCSORT):
             return feats[mask] if (feats is not None and len(feats)) else None
         return img
 
-    def _pre_first_associate(self, strack_pool, unconfirmed, img, results_high) -> None:
+    def _pre_first_associate(self, strack_pool: list[DeepOCSortTrack], unconfirmed: list[DeepOCSortTrack], img: np.ndarray | None, results_high: Any) -> None:
         """Apply GMC warp to Kalman state before first-stage association."""
         if img is None:
             return
@@ -256,9 +256,9 @@ class DeepOCSORT(OCSORT):
         DeepOCSortTrack.multi_gmc(strack_pool, warp)
         DeepOCSortTrack.multi_gmc(unconfirmed, warp)
 
-    def _fuse_appearance(self, dists, tracks, detections, iou_dists=None):
+    def _fuse_appearance(self, dists: np.ndarray, tracks: list[DeepOCSortTrack], detections: list[DeepOCSortTrack], iou_dists: np.ndarray | None = None) -> np.ndarray:
         """Min-fuse appearance distance into the motion cost (BoT-SORT-style)."""
-        if not (self.encoder is not None) or not tracks or not detections:
+        if self.encoder is None or not tracks or not detections:
             return dists
         emb_dists = matching.embedding_distance(tracks, detections) / 2.0
         emb_dists[emb_dists > (1 - self.appearance_thresh)] = 1.0

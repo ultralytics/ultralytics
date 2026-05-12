@@ -207,11 +207,11 @@ class OCSORT(BYTETracker):
         bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
         return [OCSortTrack(xywh, s, c, self.delta_t) for (xywh, s, c) in zip(bboxes, results.conf, results.cls)]
 
-    def _input_for(self, img: np.ndarray | None, feats: np.ndarray | None, mask) -> Any:
+    def _input_for(self, img: np.ndarray | None, feats: np.ndarray | None, mask: np.ndarray) -> Any:
         """Return the per-detection input for `init_track`. Default: pass `img` through."""
         return img
 
-    def _fuse_appearance(self, dists, tracks, detections, iou_dists=None):
+    def _fuse_appearance(self, dists: np.ndarray, tracks: list[OCSortTrack], detections: list[OCSortTrack], iou_dists: np.ndarray | None = None) -> np.ndarray:
         """Hook combining motion cost with appearance cost. Default: pass-through (no ReID)."""
         return dists
 
@@ -222,7 +222,7 @@ class OCSORT(BYTETracker):
         dists = dists + self.inertia * self._velocity_direction_cost(tracks, detections)
         return self._fuse_appearance(dists, tracks, detections, iou_dists=iou_dists)
 
-    def _post_first_association(self, strack_pool, detections, u_track, u_detection, activated, refind, lost):
+    def _post_first_association(self, strack_pool: list[OCSortTrack], detections: list[OCSortTrack], u_track: list[int], u_detection: list[int], activated: list[OCSortTrack], refind: list[OCSortTrack], lost: list[OCSortTrack]) -> tuple[list[int], list[int]]:
         """Observation-Centric Recovery (OCR) pass after first-stage association."""
         ocr_tracked = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
         ocr_dets = [detections[i] for i in u_detection]
@@ -255,7 +255,7 @@ class OCSORT(BYTETracker):
         u_detection = [i for i in u_detection if id(detections[i]) in ocr_u_det_set]
         return u_track, u_detection
 
-    def _second_association(self, strack_pool, u_track, detections_second, activated, refind, lost):
+    def _second_association(self, strack_pool: list[OCSortTrack], u_track: list[int], detections_second: list[OCSortTrack], activated: list[OCSortTrack], refind: list[OCSortTrack], lost: list[OCSortTrack]) -> None:
         """Run ByteTrack-style second pass only when ``use_byte`` is enabled."""
         if not self.use_byte:
             for i in u_track:

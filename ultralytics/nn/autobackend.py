@@ -16,6 +16,7 @@ from .backends import (
     AxeleraBackend,
     CoreMLBackend,
     ExecuTorchBackend,
+    LiteRTBackend,
     MNNBackend,
     NCNNBackend,
     ONNXBackend,
@@ -110,6 +111,7 @@ class AutoBackend(nn.Module):
             | Triton Inference      | triton://model    |
             | ExecuTorch            | *.pte             |
             | Axelera AI            | *_axelera_model/  |
+            | LiteRT                | *_litert_model/   |
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.
@@ -153,6 +155,7 @@ class AutoBackend(nn.Module):
         "triton": TritonBackend,
         "executorch": ExecuTorchBackend,
         "axelera": AxeleraBackend,
+        "litert": LiteRTBackend,
     }
 
     @torch.no_grad()

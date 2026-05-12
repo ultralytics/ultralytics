@@ -42,6 +42,13 @@
 #   - To reach paper R1=0.95: needs JPM module (+1.5pp), SIE module, per-param-group LR (head
 #     10x faster than backbone), CE-only first phase. None are cheap; deferred to v2.
 #
+# ─── PRETRAIN DURATION FINDING (arch23-24) ────────────────────────────────────
+# yolo26l-reid-2psa, 3h MSMT pretrain (vs train-33's 1h) → Market FT 1h:
+#   arch24: R1=0.897, mAP=0.840  → -2.5pp R1 vs train-33's 0.922.
+# Conclusion: MSMT pretrain has an OPTIMUM at ~1h; longer pretrain overfits MSMT distribution
+# and degrades downstream Market FT. Combined with the earlier "3h Market FT" overfit finding,
+# both pretrain and FT durations are tightly bounded around 1h on yolo26l-2psa.
+#
 # ─── IBN-Net FINDINGS (arch19-22, Pan ECCV'18) ────────────────────────────────
 # yolo26l-reid-ibn (ConvIBN in stem + early downsamples) MSMT-pretrained 3h + Market FT 1h:
 #   arch20: IBN alone           Market R1=0.906, mAP=0.851  → -1.6pp R1 vs train-33 (0.922).

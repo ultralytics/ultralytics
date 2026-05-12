@@ -72,8 +72,18 @@ class LiteRTBackend(BaseBackend):
         y = []
         for output in self.output_details:
             x = self.interpreter.get_tensor(output["index"])
-            if is_int:
+            if output["dtype"] in {np.int8, np.int16}:
                 scale, zero_point = output["quantization"]
                 x = (x.astype(np.float32) - zero_point) * scale
             y.append(x)
+
+        # Rejoin split detection output (boxes, classes) exported for INT8 quantization
+        if (
+            len(y) == 2
+            and all(x.ndim == 3 for x in y)
+            and y[0].shape[0] == y[1].shape[0]  # same batch
+            and y[0].shape[2] == y[1].shape[2]  # same anchors
+        ):
+            y = [np.concatenate(y, axis=1)]
+
         return y

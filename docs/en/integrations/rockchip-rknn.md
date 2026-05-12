@@ -226,7 +226,7 @@ RKNN models are specifically designed to leverage the hardware acceleration capa
 
 ### Can I deploy RKNN models on devices from other manufacturers like NVIDIA or Google?
 
-RKNN models are specifically optimized for Rockchip platforms and their integrated NPUs. While you can technically run an RKNN model on other platforms using software emulation, you will not benefit from the hardware acceleration provided by Rockchip devices. For optimal performance on other platforms, it's recommended to export your Ultralytics YOLO models to formats specifically designed for those platforms, such as TensorRT for NVIDIA GPUs or [TensorFlow Lite](https://docs.ultralytics.com/integrations/tflite/) for Google's Edge TPU. Ultralytics supports exporting to a wide range of formats, ensuring compatibility with various hardware accelerators.
+RKNN models are specifically optimized for Rockchip platforms and their integrated NPUs. While you can technically run an RKNN model on other platforms using software emulation, you will not benefit from the hardware acceleration provided by Rockchip devices. For optimal performance on other platforms, it's recommended to export your Ultralytics YOLO models to formats specifically designed for those platforms, such as TensorRT for NVIDIA GPUs or [TensorFlow Lite](https://docs.ultralytics.com/integrations/tflite) for Google's Edge TPU. Ultralytics supports exporting to a wide range of formats, ensuring compatibility with various hardware accelerators.
 
 ### What Rockchip platforms are supported for RKNN model deployment?
 

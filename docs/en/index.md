@@ -8,17 +8,17 @@ keywords: Ultralytics, YOLO, YOLO26, YOLO11, object detection, image segmentatio
 <br><br>
 <a href="https://platform.ultralytics.com/ultralytics/yolo26?utm_source=docs&utm_medium=referral&utm_campaign=platform_launch&utm_content=banner&utm_term=ultralytics_docs" target="_blank"><img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png" alt="Ultralytics YOLO banner"></a>
 <br><br>
-<a href="https://docs.ultralytics.com/zh/">中文</a> ·
-<a href="https://docs.ultralytics.com/ko/">한국어</a> ·
-<a href="https://docs.ultralytics.com/ja/">日本語</a> ·
-<a href="https://docs.ultralytics.com/ru/">Русский</a> ·
-<a href="https://docs.ultralytics.com/de/">Deutsch</a> ·
-<a href="https://docs.ultralytics.com/fr/">Français</a> ·
-<a href="https://docs.ultralytics.com/es/">Español</a> ·
-<a href="https://docs.ultralytics.com/pt/">Português</a> ·
-<a href="https://docs.ultralytics.com/tr/">Türkçe</a> ·
-<a href="https://docs.ultralytics.com/vi/">Tiếng Việt</a> ·
-<a href="https://docs.ultralytics.com/ar/">العربية</a>
+<a href="https://docs.ultralytics.com/zh">中文</a> ·
+<a href="https://docs.ultralytics.com/ko">한국어</a> ·
+<a href="https://docs.ultralytics.com/ja">日本語</a> ·
+<a href="https://docs.ultralytics.com/ru">Русский</a> ·
+<a href="https://docs.ultralytics.com/de">Deutsch</a> ·
+<a href="https://docs.ultralytics.com/fr">Français</a> ·
+<a href="https://docs.ultralytics.com/es">Español</a> ·
+<a href="https://docs.ultralytics.com/pt">Português</a> ·
+<a href="https://docs.ultralytics.com/tr">Türkçe</a> ·
+<a href="https://docs.ultralytics.com/vi">Tiếng Việt</a> ·
+<a href="https://docs.ultralytics.com/ar">العربية</a>
 <br><br>
     <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml/badge.svg" alt="Ultralytics CI"></a>
     <a href="https://clickpy.clickhouse.com/dashboard/ultralytics"><img src="https://static.pepy.tech/badge/ultralytics" alt="Ultralytics Downloads"></a>

@@ -8,7 +8,7 @@ keywords: Seeed Studio reCamera, YOLO26, ONNX export, edge AI, computer vision, 
 
 [reCamera](https://www.seeedstudio.com/recamera) was introduced for the AI community at [YOLO Vision 2024 (YV24)](https://www.youtube.com/watch?v=rfI5vOo3-_A), [Ultralytics](https://www.ultralytics.com/) annual hybrid event. It is mainly designed for [edge AI applications](https://www.ultralytics.com/blog/understanding-the-real-world-applications-of-edge-ai), offering powerful processing capabilities and effortless deployment.
 
-With support for diverse hardware configurations and open-source resources, it serves as an ideal platform for prototyping and deploying innovative [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) [solutions](https://docs.ultralytics.com/solutions/#solutions) at the edge.
+With support for diverse hardware configurations and open-source resources, it serves as an ideal platform for prototyping and deploying innovative [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) [solutions](https://docs.ultralytics.com/solutions#solutions) at the edge.
 
 ![Seeed Studio reCamera](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/saeed-studio-recamera.avif)
 
@@ -16,7 +16,7 @@ With support for diverse hardware configurations and open-source resources, it s
 
 reCamera series is purpose-built for edge AI applications, tailored to meet the needs of developers and innovators. Here's why it stands out:
 
-- **RISC-V Powered Performance**: At its core is the SG200X processor, built on the RISC-V architecture, delivering exceptional performance for edge AI tasks while maintaining energy efficiency. With the ability to execute 1 trillion operations per second (1 TOPS), it handles demanding tasks like real-time [object detection](https://docs.ultralytics.com/tasks/detect/) easily.
+- **RISC-V Powered Performance**: At its core is the SG200X processor, built on the RISC-V architecture, delivering exceptional performance for edge AI tasks while maintaining energy efficiency. With the ability to execute 1 trillion operations per second (1 TOPS), it handles demanding tasks like real-time [object detection](https://docs.ultralytics.com/tasks/detect) easily.
 
 - **Optimized Video Technologies**: Supports advanced video compression standards, including H.264 and H.265, to reduce storage and bandwidth requirements without sacrificing quality. Features like HDR imaging, 3D noise reduction, and lens correction ensure professional visuals, even in challenging environments.
 
@@ -73,7 +73,7 @@ Here, we'll first convert a `PyTorch` model to `ONNX` and then convert it to the
 
 ### Export to ONNX
 
-Export an Ultralytics YOLO26 model to [ONNX model format](https://docs.ultralytics.com/integrations/onnx/).
+Export an Ultralytics YOLO26 model to [ONNX model format](https://docs.ultralytics.com/integrations/onnx).
 
 #### Installation
 

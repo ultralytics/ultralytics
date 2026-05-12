@@ -143,7 +143,7 @@ class Tuner:
             f"{self.prefix}💡 Learn about tuning at https://docs.ultralytics.com/guides/hyperparameter-tuning"
         )
 
-    def _connect(self, uri: str = "mongodb+srv://username:password@cluster.mongodb.net/", max_retries: int = 3):
+    def _connect(self, uri: str = "", max_retries: int = 3):
         """Create MongoDB client with exponential backoff retry on connection failures.
 
         Args:
@@ -190,7 +190,7 @@ class Tuner:
         saves results to a shared collection and reads the latest best hyperparameters from all workers for evolution.
 
         Args:
-            mongodb_uri (str): MongoDB connection string, e.g. 'mongodb+srv://username:password@cluster.mongodb.net/'.
+            mongodb_uri (str): MongoDB connection string.
             mongodb_db (str, optional): Database name.
             mongodb_collection (str, optional): Collection name.
 

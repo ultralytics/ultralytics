@@ -507,6 +507,9 @@ def test_cfg_init():
     assert smart_value("eval('1+1')") == "eval('1+1')"
     assert smart_value("exec('x=1')") == "exec('x=1')"
 
+    assert smart_value("zipfile.ZIP_DEFLATED") == zipfile.ZIP_DEFLATED
+    assert smart_value("zipfile.Path") == "zipfile.Path"
+
 
 def test_utils_init():
     """Test initialization utilities in the Ultralytics library."""

@@ -275,7 +275,7 @@ class Model(torch.nn.Module):
             >>> model._load("yolo26n.pt")
             >>> model._load("path/to/weights.pth", task="detect")
         """
-        if weights.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://", "ul://")):
+        if weights.lower().startswith(checks.REMOTE_FILE_PREFIXES):
             weights = checks.check_file(weights, download_dir=SETTINGS["weights_dir"])  # download and return local file
         weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolo26 -> yolo26n.pt
 
@@ -654,7 +654,7 @@ class Model(torch.nn.Module):
         custom = {"verbose": False}  # method defaults
         args = {**DEFAULT_CFG_DICT, **self.model.args, **custom, **kwargs, "mode": "benchmark"}
         fmts = export_formats()
-        export_args = set(dict(zip(fmts["Argument"], fmts["Arguments"])).get(format, [])) - {"batch"}
+        export_args = set(dict(zip(fmts["Argument"], fmts["Arguments"])).get(format, [])) - {"batch", "data"}
         export_kwargs = {k: v for k, v in args.items() if k in export_args}
         return benchmark(
             model=self,
@@ -793,6 +793,10 @@ class Model(torch.nn.Module):
         # Update model and cfg after training
         if RANK in {-1, 0}:
             ckpt = self.trainer.best if self.trainer.best.exists() else self.trainer.last
+            if not ckpt.exists():
+                raise FileNotFoundError(
+                    f"Training completed but no checkpoint was saved. Expected {self.trainer.best} or {self.trainer.last}."
+                )
             self.model, self.ckpt = load_checkpoint(ckpt)
             self.overrides = self._reset_ckpt_args(self.model.args)
             self.metrics = getattr(self.trainer.validator, "metrics", None)  # TODO: no metrics returned by DDP

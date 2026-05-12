@@ -1,6 +1,6 @@
 # Zero-Shot Action Recognition with Ultralytics YOLO11 (Inference on Video)
 
-Action recognition is a [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) technique used to identify and classify actions performed by individuals in a video. This process enables more advanced analyses when multiple actions are considered. Using models like [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/), actions can be detected and classified in real time. This system leverages **zero-shot learning**, allowing it to recognize actions it wasn't explicitly trained on by using descriptive labels. Learn more about zero-shot concepts on [Wikipedia](https://en.wikipedia.org/wiki/Zero-shot_learning).
+Action recognition is a [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) technique used to identify and classify actions performed by individuals in a video. This process enables more advanced analyses when multiple actions are considered. Using models like [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11), actions can be detected and classified in real time. This system leverages **zero-shot learning**, allowing it to recognize actions it wasn't explicitly trained on by using descriptive labels. Learn more about zero-shot concepts on [Wikipedia](https://en.wikipedia.org/wiki/Zero-shot_learning).
 
 The system can be customized to recognize specific actions based on the user's preferences and requirements by providing different text labels.
 
@@ -32,7 +32,7 @@ Here are the basic commands for running inference:
 
 ### Note
 
-The action recognition model will automatically perform [object detection](https://www.ultralytics.com/glossary/object-detection) and [tracking](https://docs.ultralytics.com/modes/track/) for people in the video, and classify their actions based on the specified labels. The results will be displayed in real-time on the video output. You can customize the action labels by modifying the `--labels` argument when running the [Python](https://www.python.org/) script. This utilizes a video classifier model, often sourced from platforms like [Hugging Face Models](https://huggingface.co/models).
+The action recognition model will automatically perform [object detection](https://www.ultralytics.com/glossary/object-detection) and [tracking](https://docs.ultralytics.com/modes/track) for people in the video, and classify their actions based on the specified labels. The results will be displayed in real-time on the video output. You can customize the action labels by modifying the `--labels` argument when running the [Python](https://www.python.org/) script. This utilizes a video classifier model, often sourced from platforms like [Hugging Face Models](https://huggingface.co/models).
 
 ```bash
 # Quick start with default video and labels
@@ -107,7 +107,7 @@ Additionally, you can choose between different video classification models:
 
 ### 3. Why Combine Action Recognition with YOLO11?
 
-[Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/) excels at fast and accurate [object detection](https://docs.ultralytics.com/tasks/detect/) and tracking in video streams. Combining it with action recognition allows the system not only to locate individuals (using YOLO11's detection capabilities) but also to understand _what_ they are doing. This synergy provides a richer analysis of video content, crucial for applications like automated surveillance, sports analytics, or human-robot interaction. See our blog post on [object detection and tracking](https://www.ultralytics.com/blog/object-detection-and-tracking-with-ultralytics-yolov8).
+[Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11) excels at fast and accurate [object detection](https://docs.ultralytics.com/tasks/detect) and tracking in video streams. Combining it with action recognition allows the system not only to locate individuals (using YOLO11's detection capabilities) but also to understand _what_ they are doing. This synergy provides a richer analysis of video content, crucial for applications like automated surveillance, sports analytics, or human-robot interaction. See our blog post on [object detection and tracking](https://www.ultralytics.com/blog/object-detection-and-tracking-with-ultralytics-yolov8).
 
 ### 4. Can I Employ Other YOLO Versions?
 
@@ -115,4 +115,4 @@ Certainly! While this example defaults to `yolo11n.pt`, you have the flexibility
 
 ---
 
-We hope this guide helps you implement zero-shot action recognition using Ultralytics YOLO11! Feel free to explore the code and experiment with different options. If you encounter issues or have suggestions, please consider contributing by opening an issue or pull request on the [GitHub repository](https://github.com/ultralytics/ultralytics). See our [Contributing Guide](https://docs.ultralytics.com/help/contributing/) for more details.
+We hope this guide helps you implement zero-shot action recognition using Ultralytics YOLO11! Feel free to explore the code and experiment with different options. If you encounter issues or have suggestions, please consider contributing by opening an issue or pull request on the [GitHub repository](https://github.com/ultralytics/ultralytics). See our [Contributing Guide](https://docs.ultralytics.com/help/contributing) for more details.

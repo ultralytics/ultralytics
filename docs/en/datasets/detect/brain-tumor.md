@@ -35,7 +35,7 @@ The dataset contains two classes:
 
 ## Applications
 
-The application of brain tumor detection using computer vision enables [early diagnosis](https://www.ultralytics.com/blog/ai-and-radiology-a-new-era-of-precision-and-efficiency), treatment planning, and monitoring of tumor progression. By analyzing medical imaging data like MRI or CT scans, [computer vision systems](https://docs.ultralytics.com/tasks/detect/) assist in accurately identifying brain tumors, aiding in timely medical intervention and personalized treatment strategies.
+The application of brain tumor detection using computer vision enables [early diagnosis](https://www.ultralytics.com/blog/ai-and-radiology-a-new-era-of-precision-and-efficiency), treatment planning, and monitoring of tumor progression. By analyzing medical imaging data like MRI or CT scans, [computer vision systems](https://docs.ultralytics.com/tasks/detect) assist in accurately identifying brain tumors, aiding in timely medical intervention and personalized treatment strategies.
 
 Medical professionals can leverage this technology to:
 
@@ -56,7 +56,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a [YOLO26](https://docs.ultralytics.com/models/yolo26/) model on the brain tumor dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, utilize the provided code snippets. For a detailed list of available arguments, consult the model's [Training](../../modes/train.md) page.
+To train a [YOLO26](https://docs.ultralytics.com/models/yolo26) model on the brain tumor dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, utilize the provided code snippets. For a detailed list of available arguments, consult the model's [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 

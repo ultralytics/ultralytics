@@ -85,9 +85,9 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Seeed Studio reCamera](seeedstudio-recamera.md): Developed by [Seeed Studio](https://www.seeedstudio.com/), the reCamera is an advanced edge AI device designed for real-time computer vision applications. Powered by the RISC-V-based SG200X processor, it delivers high-performance AI inference with energy efficiency. Its modular design, advanced video processing capabilities, and support for flexible deployment make it an ideal choice for various use cases, including safety monitoring, environmental applications, and manufacturing.
 
-- [SONY IMX500](sony-imx500.md): Optimize and deploy [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26/) models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.
+- [SONY IMX500](sony-imx500.md): Optimize and deploy [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26) models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.
 
-- [TensorRT](tensorrt.md): Developed by [NVIDIA](https://www.nvidia.com/), this high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference framework and model format optimizes AI models for accelerated speed and efficiency on NVIDIA GPUs, ensuring streamlined deployment.
+- [TensorRT](tensorrt.md): Developed by [NVIDIA](https://www.nvidia.com/ja-jp/), this high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference framework and model format optimizes AI models for accelerated speed and efficiency on NVIDIA GPUs, ensuring streamlined deployment.
 
 - [TF GraphDef](tf-graphdef.md): Developed by [Google](https://www.google.com/), GraphDef is TensorFlow's format for representing computation graphs, enabling optimized execution of machine learning models across diverse hardware.
 
@@ -127,7 +127,7 @@ Let's collaborate to make the Ultralytics YOLO ecosystem more expansive and feat
 
 ### What is Ultralytics Platform, and how does it streamline the ML workflow?
 
-[Ultralytics Platform](https://platform.ultralytics.com) is a cloud-based platform designed to make machine learning workflows for Ultralytics models seamless and efficient. By using this tool, you can easily upload datasets, train models, perform real-time tracking, and deploy YOLO models without needing extensive coding skills. The platform serves as a centralized workspace where you can manage your entire ML pipeline from data preparation to deployment. You can explore the key features on the [Ultralytics Platform](https://platform.ultralytics.com/) page and get started quickly with our [Quickstart](https://docs.ultralytics.com/platform/quickstart/) guide.
+[Ultralytics Platform](https://platform.ultralytics.com) is a cloud-based platform designed to make machine learning workflows for Ultralytics models seamless and efficient. By using this tool, you can easily upload datasets, train models, perform real-time tracking, and deploy YOLO models without needing extensive coding skills. The platform serves as a centralized workspace where you can manage your entire ML pipeline from data preparation to deployment. You can explore the key features on the [Ultralytics Platform](https://platform.ultralytics.com/) page and get started quickly with our [Quickstart](https://docs.ultralytics.com/platform/quickstart) guide.
 
 ### Can I track the performance of my Ultralytics models using MLFlow?
 

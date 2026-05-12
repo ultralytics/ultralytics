@@ -73,8 +73,8 @@ from ultralytics.nn.modules import (
     YOLOESegment26,
     v10Detect,
 )
-from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, WINDOWS, YAML, colorstr, emojis
-from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
+from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, SETTINGS, WINDOWS, YAML, colorstr, emojis
+from ultralytics.utils.checks import REMOTE_FILE_PREFIXES, check_file, check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
     E2ELoss,
     PoseLoss26,
@@ -1479,6 +1479,14 @@ def torch_safe_load(weight, safe_only=False):
                     f"ERROR ❌️ {weight} requires numpy>=1.26.1, however numpy=={__import__('numpy').__version__} is installed."
                 )
             ) from e
+        elif e.name and e.name.startswith("ultralytics."):
+            raise ModuleNotFoundError(
+                emojis(
+                    f"ERROR ❌️ {weight} requires missing Ultralytics module '{e.name}'. "
+                    "Train a new model using the latest 'ultralytics' package or run a command with an official "
+                    "Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
+                )
+            ) from e
         LOGGER.warning(
             f"{weight} appears to require '{e.name}', which is not in Ultralytics requirements."
             f"\nAutoInstall will run now for '{e.name}' but this feature will be removed in the future."
@@ -1512,6 +1520,8 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
         (torch.nn.Module): Loaded model.
         (dict): Model checkpoint dictionary.
     """
+    if str(weight).lower().startswith(REMOTE_FILE_PREFIXES):
+        weight = check_file(weight, download_dir=SETTINGS["weights_dir"])
     ckpt, weight = torch_safe_load(weight)  # load ckpt
     args = {**DEFAULT_CFG_DICT, **(ckpt.get("train_args", {}))}  # combine model and default args, preferring model args
     model = (ckpt.get("ema") or ckpt["model"]).float()  # FP32 model

@@ -1466,10 +1466,8 @@ def torch_safe_load(weight, safe_only=False):
         ckpt = _load()
 
     except RuntimeError as e:
-        # Corrupt cached download (e.g. truncated); skip for user-supplied local paths to avoid destructive unlink
-        if "PytorchStreamReader" not in str(e) or not (
-            isinstance(weight, str) and weight.startswith(("http:/", "https:/"))
-        ):
+        # Corrupt downloaded weight (e.g. truncated); skip user-supplied local paths to avoid destructive unlink.
+        if "PytorchStreamReader" not in str(e) or Path(str(weight)).exists():
             raise
         LOGGER.warning(f"Corrupt cache {file}, re-downloading {weight}...")
         Path(file).unlink(missing_ok=True)

@@ -38,6 +38,8 @@ The Ultralytics framework uses a YAML file format to define the dataset and mode
     --8<-- "ultralytics/cfg/datasets/dota8.yaml"
     ```
 
+Each of `train`, `val`, and `test` accepts a directory, a list of directories, or a `*.txt` file listing one image path per line (paths starting with `./` resolve relative to the `*.txt` file).
+
 ## Usage
 
 To train a model using these OBB formats:

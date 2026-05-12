@@ -46,7 +46,7 @@ The Ultralytics framework uses a YAML file format to define the dataset and mode
     --8<-- "ultralytics/cfg/datasets/coco8-pose.yaml"
     ```
 
-The `train` and `val` fields specify the paths to the directories containing the training and validation images, respectively.
+The `train` and `val` fields point to the training and validation images. Each accepts a directory, a list of directories, or a `*.txt` file listing one image path per line (paths starting with `./` resolve relative to the `*.txt` file).
 
 `names` is a dictionary of class names. The order of the names should match the order of the object class indices in the YOLO dataset files.
 

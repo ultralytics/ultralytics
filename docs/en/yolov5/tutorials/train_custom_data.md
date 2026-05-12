@@ -20,10 +20,7 @@ pip install -r requirements.txt # Install dependencies
 
 ## Train On Custom Data
 
-<a href="https://platform.ultralytics.com" target="_blank">
-<img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-active-learning-loop.avif" alt="Ultralytics active learning loop diagram"></a>
-<br>
-<br>
+[![Ultralytics active learning loop diagram](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-active-learning-loop.avif)](https://platform.ultralytics.com)
 
 Developing a custom [object detection](https://docs.ultralytics.com/tasks/detect) model is an iterative process:
 
@@ -86,7 +83,7 @@ names:
 
 ### 1.2 Leverage Models for Automated Labeling
 
-While manual labeling using tools is a common approach, the process can be time-consuming. Recent advancements in foundation models offer possibilities for automating or semi-automating the annotation process, potentially speeding up dataset creation significantly. Here are a few examples of models that can assist with generating labels:
+Manual labeling is the common approach but is time-consuming. Foundation models can automate or semi-automate annotation and speed up dataset creation. Examples of models that can help generate labels:
 
 - **[Google Gemini](https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-use-google-gemini-models-for-object-detection-image-captioning-and-ocr.ipynb)**: Large multimodal models like Gemini possess powerful image understanding capabilities. They can be prompted to identify and locate objects within images, generating bounding boxes or descriptions that can be converted into YOLO format labels. Explore its potential in the provided tutorial notebook.
 - **[SAM2 (Segment Anything Model 2)](https://docs.ultralytics.com/models/sam-2)**: Foundation models focused on segmentation, like SAM2, can identify and delineate objects with high precision. While primarily for segmentation, the resulting masks can often be converted into bounding box annotations suitable for object detection tasks.
@@ -176,7 +173,7 @@ All training outputs, including weights and logs, are saved in the `runs/train/`
 
 YOLOv5 seamlessly integrates with various tools for visualizing training progress, evaluating results, and monitoring performance in real-time.
 
-### Comet Logging and Visualization 🌟 NEW
+### Comet Logging and Visualization
 
 [Comet](https://docs.ultralytics.com/integrations/comet) is fully integrated for comprehensive experiment tracking. Visualize metrics live, save hyperparameters, manage datasets and model checkpoints, and analyze model predictions using interactive [Comet Custom Panels](https://bit.ly/yolov5-colab-comet-panels).
 
@@ -192,7 +189,7 @@ Dive deeper into the supported features in our [Comet Integration Guide](https:/
 
 <img width="1920" alt="Comet UI showing YOLOv5 training metrics and visualizations" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-ui.avif">
 
-### ClearML Logging and Automation 🌟 NEW
+### ClearML Logging and Automation
 
 [ClearML](https://docs.ultralytics.com/integrations/clearml) integration enables detailed experiment tracking, dataset version management, and even remote execution of training runs. Activate ClearML with these simple steps:
 

@@ -538,6 +538,8 @@ class Tuner:
             fitness = x[:, 0]  # first column
             best_idx = fitness.argmax()
             best_result = results[best_idx]
+            # Count iterations with real training metrics; failed subprocesses fall back to fitness=0.0
+            n_successful = int((fitness > 0).sum())
             current_best_save_dirs = best_result.get("save_dirs", {})
             best_is_current = best_idx == i
             if best_is_current:
@@ -562,8 +564,14 @@ class Tuner:
             plot_tune_results(str(self.tune_file))
 
             # Save and print tune results
+            if n_successful == i + 1:
+                status = "complete ✅"
+            elif n_successful == 0:
+                status = "complete (all failed) ❌"
+            else:
+                status = f"complete ({n_successful}/{i + 1} succeeded) ⚠️"
             header = (
-                f"{self.prefix}{i + 1}/{iterations} iterations complete ✅ ({time.time() - t0:.2f}s)\n"
+                f"{self.prefix}{i + 1}/{iterations} iterations {status} ({time.time() - t0:.2f}s)\n"
                 f"{self.prefix}Results saved to {colorstr('bold', self.tune_dir)}\n"
                 f"{self.prefix}Best fitness={fitness[best_idx]} observed at iteration {best_idx + 1}\n"
                 f"{self.prefix}Best fitness metrics are {self._best_metrics(best_result)}\n"
@@ -571,13 +579,20 @@ class Tuner:
                 f"{self.tune_dir / 'weights' if len(best_result.get('datasets', {})) == 1 else 'not saved for multi-dataset tuning'}"
             )
             LOGGER.info("\n" + header)
-            data = {k: int(v) if k in CFG_INT_KEYS else float(v) for k, v in zip(self.space.keys(), x[best_idx, 1:])}
-            YAML.save(
-                self.tune_dir / "best_hyperparameters.yaml",
-                data=data,
-                header=remove_colorstr(header.replace(self.prefix, "# ")) + "\n",
-            )
-            YAML.print(self.tune_dir / "best_hyperparameters.yaml")
+            if n_successful == 0:
+                LOGGER.error(
+                    f"{self.prefix}No iterations produced training metrics; skipping best_hyperparameters.yaml"
+                )
+            else:
+                data = {
+                    k: int(v) if k in CFG_INT_KEYS else float(v) for k, v in zip(self.space.keys(), x[best_idx, 1:])
+                }
+                YAML.save(
+                    self.tune_dir / "best_hyperparameters.yaml",
+                    data=data,
+                    header=remove_colorstr(header.replace(self.prefix, "# ")) + "\n",
+                )
+                YAML.print(self.tune_dir / "best_hyperparameters.yaml")
             if stop_after_iteration:
                 LOGGER.info(
                     f"{self.prefix}Target iterations ({iterations}) reached in MongoDB ({total_mongo_iterations}). Stopping."

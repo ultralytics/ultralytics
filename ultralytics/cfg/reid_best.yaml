@@ -42,6 +42,14 @@
 #   - To reach paper R1=0.95: needs JPM module (+1.5pp), SIE module, per-param-group LR (head
 #     10x faster than backbone), CE-only first phase. None are cheap; deferred to v2.
 #
+# ─── IBN-Net FINDINGS (arch19-20, Pan ECCV'18) ────────────────────────────────
+# yolo26l-reid-ibn (ConvIBN in stem + early downsamples) MSMT-pretrained 3h + Market FT 1h:
+#   Market R1=0.906, mAP=0.851  →  -1.6pp R1 vs train-33 champion (0.922).
+# Likely reasons IBN didn't transfer:
+#   - 2psa attention block in train-33 already provides similar normalization benefits
+#   - BN→IN+BN split loses some pretrained information from yolo26l-cls.pt initialization
+#   - IBN gains in literature were measured on plain ResNet-50, not attention-augmented YOLO backbones
+#
 # Reference comparisons:
 #   BoT (ResNet-50, no rerank):  mAP=0.859  Rank-1=0.945
 #   BoT (ResNet-50, +k-rerank):  mAP=0.942  Rank-1=0.954

@@ -343,6 +343,18 @@ class Tuner:
         return None
 
     @staticmethod
+    def _has_training_metrics(result: dict, require_all: bool = False) -> bool:
+        """Return whether a tuning result contains training metrics."""
+        datasets = result.get("datasets", {})
+        return bool(datasets) and (all(datasets.values()) if require_all else any(datasets.values()))
+
+    @classmethod
+    def _best_result_index(cls, results: list[dict], fitness: np.ndarray) -> int:
+        """Return the best result index, preferring rows with training metrics."""
+        valid = [i for i, result in enumerate(results) if cls._has_training_metrics(result)]
+        return valid[int(fitness[valid].argmax())] if valid else int(fitness.argmax())
+
+    @staticmethod
     def _dataset_names(data: list) -> list[str]:
         """Create stable unique dataset names for logging and per-run directories."""
         stems = [Path(str(d)).stem for d in data]
@@ -486,7 +498,6 @@ class Tuner:
             metrics = {}
             all_fitness = []
             dataset_metrics = {}
-            iter_succeeded = False
             for j, (d, dataset) in enumerate(zip(data, dataset_names)):
                 metrics_i = {}
                 try:
@@ -499,12 +510,10 @@ class Tuner:
                         "ultralytics.cfg.__init__",
                     ]  # workaround yolo not found
                     cmd = [*launch, "train", *(f"{k}={v}" for k, v in train_args.items())]
-                    return_code = subprocess.run(cmd, check=True).returncode
+                    subprocess.run(cmd, check=True)
                     ckpt_file = weights_dir[j] / ("best.pt" if (weights_dir[j] / "best.pt").exists() else "last.pt")
                     metrics_i = torch_load(ckpt_file)["train_metrics"]
                     metrics = metrics_i
-                    assert return_code == 0, "training failed"
-                    iter_succeeded = True
 
                     # Cleanup
                     time.sleep(1)
@@ -515,10 +524,8 @@ class Tuner:
                     LOGGER.error(f"training failure for hyperparameter tuning iteration {i + 1}\n{e}")
 
                 # Save results - MongoDB takes precedence
-                dataset_metrics[dataset] = metrics_i or {"fitness": 0.0}
-                all_fitness.append(dataset_metrics[dataset].get("fitness") or 0.0)
-            if iter_succeeded:
-                n_successful += 1
+                dataset_metrics[dataset] = metrics_i
+                all_fitness.append(metrics_i.get("fitness") or 0.0)
             fitness = sum(all_fitness) / len(all_fitness)
             result = self._result_record(
                 i + 1,
@@ -527,6 +534,8 @@ class Tuner:
                 dataset_metrics,
                 {dataset: str(s) for dataset, s in zip(dataset_names, save_dir)},
             )
+            if self._has_training_metrics(result, require_all=True):
+                n_successful += 1
             stop_after_iteration = False
             if self.mongodb:
                 self._save_to_mongodb(fitness, mutated_hyp, metrics, dataset_metrics, i + 1)
@@ -541,7 +550,7 @@ class Tuner:
             results = self._load_local_results()
             x = self._local_results_to_array(results)
             fitness = x[:, 0]  # first column
-            best_idx = fitness.argmax()
+            best_idx = self._best_result_index(results, fitness)
             best_result = results[best_idx]
             n_attempted = (i + 1) - start  # iters tried in this invocation
             current_best_save_dirs = best_result.get("save_dirs", {})
@@ -574,7 +583,7 @@ class Tuner:
                 status = "complete (all failed) ❌"
             else:
                 status = f"complete ({n_successful}/{n_attempted} succeeded) ⚠️"
-            has_valid_best = float(fitness[best_idx]) > 0  # false when all rows are zero placeholders
+            has_valid_best = self._has_training_metrics(best_result)
             header_lines = [
                 f"{self.prefix}{i + 1}/{iterations} iterations {status} ({time.time() - t0:.2f}s)",
                 f"{self.prefix}Results saved to {colorstr('bold', self.tune_dir)}",

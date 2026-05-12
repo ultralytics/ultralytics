@@ -12,12 +12,12 @@ from ultralytics.utils import LOGGER, YAML
 def torch2litert(
     model: torch.nn.Module,
     im: torch.Tensor,
-    file: Path ,
+    file: Path,
     half: bool,
-    int8: bool ,
+    int8: bool,
     calibration_dataset: torch.utils.data.DataLoader,
     metadata: dict,
-    prefix: str ,
+    prefix: str,
 ) -> Path:
     """Export a PyTorch model to LiteRT format using litert_torch, with optional FP16/INT8 quantization.
 
@@ -27,8 +27,8 @@ def torch2litert(
         file (Path | str): Source model file path used to derive output directory.
         half (bool): Whether to apply FP16 weight-only quantization.
         int8 (bool): Whether to apply static INT8 quantization with float32 output (takes precedence over half).
-        calibration_dataset (DataLoader | None): Calibration dataloader for INT8 quantization, as
-            returned by ``get_int8_calibration_dataloader``. Required when ``int8=True``.
+        calibration_dataset (DataLoader | None): Calibration dataloader for INT8 quantization, as returned by
+            ``get_int8_calibration_dataloader``. Required when ``int8=True``.
         metadata (dict | None): Optional metadata saved as ``metadata.yaml``.
         prefix (str): Prefix for log messages.
 

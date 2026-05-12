@@ -9,6 +9,7 @@ keywords: Ultralytics Explorer, data exploration, semantic search, vector simila
 <div align="center">
 
 <a href="https://www.ultralytics.com/events/yolovision" target="_blank"><img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-banner.avif" alt="Ultralytics YOLO banner"></a>
+
 </div>
 
 <p align="center">

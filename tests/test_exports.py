@@ -391,7 +391,7 @@ def test_export_axelera():
 )
 def test_export_deepx():
     """Test YOLO export to DeepX format."""
-    file = YOLO(MODEL).export(format="deepx", imgsz=32, data="coco8.yaml")
+    file = YOLO(MODEL).export(format="deepx", imgsz=32)
     assert Path(file).exists(), f"DeepX export failed, directory not found: {file}"
     # Note: Inference testing skipped as it requires DeepX hardware
     shutil.rmtree(file, ignore_errors=True)  # cleanup

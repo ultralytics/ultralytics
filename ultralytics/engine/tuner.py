@@ -453,7 +453,7 @@ class Tuner:
         self.tune_dir.mkdir(parents=True, exist_ok=True)
         (self.tune_dir / "weights").mkdir(parents=True, exist_ok=True)
         best_save_dirs = {}
-        n_successful = 0  # iters in THIS invocation that produced real training metrics (excludes resumed/MongoDB rows)
+        n_successful = 0  # iters with real training metrics in this invocation (excludes resumed/MongoDB rows)
 
         # Sync MongoDB to local NDJSON at startup for proper resume logic
         if self.mongodb:
@@ -486,7 +486,7 @@ class Tuner:
             metrics = {}
             all_fitness = []
             dataset_metrics = {}
-            iter_succeeded = False  # true if at least one dataset produced real training metrics
+            iter_succeeded = False
             for j, (d, dataset) in enumerate(zip(data, dataset_names)):
                 metrics_i = {}
                 try:
@@ -543,7 +543,7 @@ class Tuner:
             fitness = x[:, 0]  # first column
             best_idx = fitness.argmax()
             best_result = results[best_idx]
-            n_attempted = (i + 1) - start  # iters tried in THIS invocation; resume/MongoDB rows excluded from counters
+            n_attempted = (i + 1) - start  # iters tried in this invocation
             current_best_save_dirs = best_result.get("save_dirs", {})
             best_is_current = best_idx == i
             if best_is_current:
@@ -574,8 +574,7 @@ class Tuner:
                 status = "complete (all failed) ❌"
             else:
                 status = f"complete ({n_successful}/{n_attempted} succeeded) ⚠️"
-            # Best lines/yaml are valid only when some row has fitness > 0 (covers resume from prior runs)
-            has_valid_best = float(fitness[best_idx]) > 0
+            has_valid_best = float(fitness[best_idx]) > 0  # false when all rows are zero placeholders
             header_lines = [
                 f"{self.prefix}{i + 1}/{iterations} iterations {status} ({time.time() - t0:.2f}s)",
                 f"{self.prefix}Results saved to {colorstr('bold', self.tune_dir)}",

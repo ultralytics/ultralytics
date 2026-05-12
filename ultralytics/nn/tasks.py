@@ -1462,6 +1462,15 @@ def torch_safe_load(weight, safe_only=False):
             else:
                 ckpt = torch_load(file, map_location="cpu")
 
+    except RuntimeError as e:
+        # Corrupt cached file (e.g. truncated download); delete and re-fetch via existing safe_download retry
+        if "PytorchStreamReader" not in str(e):
+            raise
+        LOGGER.warning(f"Corrupt cache {file}, re-downloading {weight}...")
+        Path(file).unlink(missing_ok=True)
+        file = attempt_download_asset(weight)
+        ckpt = torch_load(file, map_location="cpu")
+
     except ModuleNotFoundError as e:  # e.name is missing module name
         if e.name == "models":
             raise TypeError(

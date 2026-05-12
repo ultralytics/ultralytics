@@ -151,6 +151,11 @@ class ClassificationTrainer(BaseTrainer):
                 f"Skipping {skipped} samples from extra classes: {extra_classes}"
             )
 
+        if not dataset.samples:
+            raise FileNotFoundError(
+                f"No images found in '{mode}' split of {dataset_path}. "
+                f"See https://docs.ultralytics.com/datasets/classify for cls dataset format."
+            )
         loader = build_dataloader(dataset, batch_size, self.args.workers, rank=rank, drop_last=self.args.compile)
         # Attach inference transforms
         if mode != "train":

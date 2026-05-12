@@ -453,6 +453,7 @@ class Tuner:
         self.tune_dir.mkdir(parents=True, exist_ok=True)
         (self.tune_dir / "weights").mkdir(parents=True, exist_ok=True)
         best_save_dirs = {}
+        n_successful = 0  # iters in THIS invocation that produced real training metrics (excludes resumed/MongoDB rows)
 
         # Sync MongoDB to local NDJSON at startup for proper resume logic
         if self.mongodb:
@@ -485,6 +486,7 @@ class Tuner:
             metrics = {}
             all_fitness = []
             dataset_metrics = {}
+            iter_succeeded = False  # true if at least one dataset produced real training metrics
             for j, (d, dataset) in enumerate(zip(data, dataset_names)):
                 metrics_i = {}
                 try:
@@ -502,6 +504,7 @@ class Tuner:
                     metrics_i = torch_load(ckpt_file)["train_metrics"]
                     metrics = metrics_i
                     assert return_code == 0, "training failed"
+                    iter_succeeded = True
 
                     # Cleanup
                     time.sleep(1)
@@ -514,6 +517,8 @@ class Tuner:
                 # Save results - MongoDB takes precedence
                 dataset_metrics[dataset] = metrics_i or {"fitness": 0.0}
                 all_fitness.append(dataset_metrics[dataset].get("fitness") or 0.0)
+            if iter_succeeded:
+                n_successful += 1
             fitness = sum(all_fitness) / len(all_fitness)
             result = self._result_record(
                 i + 1,
@@ -538,8 +543,7 @@ class Tuner:
             fitness = x[:, 0]  # first column
             best_idx = fitness.argmax()
             best_result = results[best_idx]
-            # Count iterations with real training metrics; failed subprocesses fall back to fitness=0.0
-            n_successful = int((fitness > 0).sum())
+            n_attempted = (i + 1) - start  # iters tried in THIS invocation; resume/MongoDB rows excluded from counters
             current_best_save_dirs = best_result.get("save_dirs", {})
             best_is_current = best_idx == i
             if best_is_current:
@@ -564,22 +568,30 @@ class Tuner:
             plot_tune_results(str(self.tune_file))
 
             # Save and print tune results
-            if n_successful == i + 1:
+            if n_successful == n_attempted:
                 status = "complete ✅"
             elif n_successful == 0:
                 status = "complete (all failed) ❌"
             else:
-                status = f"complete ({n_successful}/{i + 1} succeeded) ⚠️"
-            header = (
-                f"{self.prefix}{i + 1}/{iterations} iterations {status} ({time.time() - t0:.2f}s)\n"
-                f"{self.prefix}Results saved to {colorstr('bold', self.tune_dir)}\n"
-                f"{self.prefix}Best fitness={fitness[best_idx]} observed at iteration {best_idx + 1}\n"
-                f"{self.prefix}Best fitness metrics are {self._best_metrics(best_result)}\n"
-                f"{self.prefix}Best fitness model is "
-                f"{self.tune_dir / 'weights' if len(best_result.get('datasets', {})) == 1 else 'not saved for multi-dataset tuning'}"
-            )
+                status = f"complete ({n_successful}/{n_attempted} succeeded) ⚠️"
+            # Best lines/yaml are valid only when some row has fitness > 0 (covers resume from prior runs)
+            has_valid_best = float(fitness[best_idx]) > 0
+            header_lines = [
+                f"{self.prefix}{i + 1}/{iterations} iterations {status} ({time.time() - t0:.2f}s)",
+                f"{self.prefix}Results saved to {colorstr('bold', self.tune_dir)}",
+            ]
+            if has_valid_best:
+                header_lines.extend(
+                    [
+                        f"{self.prefix}Best fitness={fitness[best_idx]} observed at iteration {best_idx + 1}",
+                        f"{self.prefix}Best fitness metrics are {self._best_metrics(best_result)}",
+                        f"{self.prefix}Best fitness model is "
+                        f"{self.tune_dir / 'weights' if len(best_result.get('datasets', {})) == 1 else 'not saved for multi-dataset tuning'}",
+                    ]
+                )
+            header = "\n".join(header_lines)
             LOGGER.info("\n" + header)
-            if n_successful == 0:
+            if not has_valid_best:
                 LOGGER.error(
                     f"{self.prefix}No iterations produced training metrics; skipping best_hyperparameters.yaml"
                 )

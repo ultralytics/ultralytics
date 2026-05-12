@@ -3,24 +3,22 @@
 from __future__ import annotations
 
 from copy import copy
+from typing import Any
 
 import cv2
 import numpy as np
-import torch
 from PIL import Image
 import matplotlib.pyplot as plt
 
-from ultralytics.data import build_dataloader
 from ultralytics.data.dataset import PolygonSemsegDataset, SemsegDataset, add_polygon_background
-from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
-from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
+from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import SemanticSegmentationModel
+from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.plotting import Annotator, colors, plt_settings
-from ultralytics.utils.torch_utils import torch_distributed_zero_first
 
 
-class SemanticSegmentationTrainer(BaseTrainer):
+class SemanticSegmentationTrainer(DetectionTrainer):
     """Trainer for YOLO semantic segmentation models.
 
     This trainer handles semantic segmentation specific training including dataset building,
@@ -33,7 +31,7 @@ class SemanticSegmentationTrainer(BaseTrainer):
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks: dict | None = None):
         """Initialize SemanticSegmentationTrainer.
 
         Args:
@@ -50,7 +48,7 @@ class SemanticSegmentationTrainer(BaseTrainer):
         """Parse the dataset YAML and bump nc/names with a background class for the polygon path."""
         return add_polygon_background(super().get_dataset())
 
-    def build_dataset(self, img_path, mode="train", batch=None):
+    def build_dataset(self, img_path: str, mode: str = "train", batch: int | None = None):
         """Build semantic segmentation dataset.
 
         Routes to `PolygonSemsegDataset` when the dataset YAML lacks 'masks_dir' (polygon labels
@@ -80,31 +78,7 @@ class SemanticSegmentationTrainer(BaseTrainer):
             pad=0,
         )
 
-    def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train"):
-        """Construct and return dataloader.
-
-        Args:
-            dataset_path (str): Path to the dataset.
-            batch_size (int): Number of images per batch.
-            rank (int): Process rank for distributed training.
-            mode (str): 'train' or 'val'.
-
-        Returns:
-            (DataLoader): PyTorch dataloader.
-        """
-        assert mode in {"train", "val"}, f"Mode must be 'train' or 'val', not {mode}."
-        with torch_distributed_zero_first(rank):
-            dataset = self.build_dataset(dataset_path, mode, batch_size)
-        shuffle = mode == "train"
-        return build_dataloader(
-            dataset,
-            batch=batch_size,
-            workers=self.args.workers if mode == "train" else self.args.workers * 2,
-            shuffle=shuffle,
-            rank=rank,
-        )
-
-    def get_model(self, cfg=None, weights=None, verbose=True):
+    def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True):
         """Return a SemanticSegmentationModel with optional pretrained backbone.
 
         Args:
@@ -116,7 +90,7 @@ class SemanticSegmentationTrainer(BaseTrainer):
             (SemanticSegmentationModel): Semantic segmentation model.
         """
         model = SemanticSegmentationModel(
-            cfg, nc=self.data["nc"], ch=self.data.get("channels", 3), verbose=verbose and RANK == -1
+            cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1
         )
         if weights:
             model.load(weights)
@@ -130,52 +104,14 @@ class SemanticSegmentationTrainer(BaseTrainer):
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
 
-    def set_model_attributes(self):
-        """Set model attributes based on dataset information."""
-        self.model.nc = self.data["nc"]
-        self.model.names = self.data["names"]
-        self.model.args = self.args
+    def set_class_weights(self):
+        """Skip bbox-based class weight computation for semantic segmentation.
 
-    def preprocess_batch(self, batch):
-        """Preprocess a batch of images and masks.
-
-        Args:
-            batch (dict): Dictionary containing batch data.
-
-        Returns:
-            (dict): Preprocessed batch.
+        Semantic segmentation requires pixel-level class frequency counting from masks,
+        which is not performed here. The loss function uses dataset-level Cityscapes
+        weights when applicable instead.
         """
-        for k, v in batch.items():
-            if isinstance(v, torch.Tensor):
-                batch[k] = v.to(self.device, non_blocking=self.device.type == "cuda")
-        batch["img"] = batch["img"].float() / 255
-        return batch
-
-    def label_loss_items(self, loss_items=None, prefix="train"):
-        """Return a loss dict with labeled training loss items.
-
-        Args:
-            loss_items (list, optional): List of loss values.
-            prefix (str): Prefix for keys.
-
-        Returns:
-            (dict | list): Dictionary of labeled loss items or list of keys.
-        """
-        keys = [f"{prefix}/{x}" for x in self.loss_names]
-        if loss_items is not None:
-            loss_items = [round(float(x), 5) for x in loss_items]
-            return dict(zip(keys, loss_items))
-        return keys
-
-    def progress_string(self):
-        """Return a formatted string of training progress."""
-        return ("\n" + "%11s" * (4 + len(self.loss_names))) % (
-            "Epoch",
-            "GPU_mem",
-            *self.loss_names,
-            "Instances",
-            "Size",
-        )
+        pass
 
     def plot_training_samples(self, batch, ni):
         """Plot training samples with semantic mask overlay.

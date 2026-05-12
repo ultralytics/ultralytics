@@ -12,7 +12,6 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-import cv2
 import numpy as np
 import torch
 
@@ -299,7 +298,10 @@ class Results(SimpleClass, DataExportMixin):
         for k in self._keys:
             v = getattr(self, k)
             if v is not None:
+                if k == "semantic_mask":
+                    return 1  # one result per image for semantic segmentation
                 return len(v)
+        return 0
 
     def update(
         self,
@@ -308,6 +310,7 @@ class Results(SimpleClass, DataExportMixin):
         probs: torch.Tensor | None = None,
         obb: torch.Tensor | None = None,
         keypoints: torch.Tensor | None = None,
+        semantic_mask: torch.Tensor | None = None,
     ):
         """Update the Results object with new detection data.
 
@@ -321,6 +324,7 @@ class Results(SimpleClass, DataExportMixin):
             probs (torch.Tensor | None): A tensor of shape (num_classes,) containing class probabilities.
             obb (torch.Tensor | None): A tensor of shape (N, 7) or (N, 8) containing oriented bounding box coordinates.
             keypoints (torch.Tensor | None): A tensor of shape (N, K, 3) containing keypoints, were K=17 for persons.
+            semantic_mask (torch.Tensor | None): A tensor of shape (H, W) containing class IDs for semantic segmentation.
 
         Examples:
             >>> results = model("image.jpg")
@@ -337,6 +341,8 @@ class Results(SimpleClass, DataExportMixin):
             self.obb = OBB(obb, self.orig_shape)
         if keypoints is not None:
             self.keypoints = Keypoints(keypoints, self.orig_shape)
+        if semantic_mask is not None:
+            self.semantic_mask = semantic_mask
 
     def _apply(self, fn: str, *args, **kwargs):
         """Apply a function to all non-empty attributes and return a new Results object with modified attributes.

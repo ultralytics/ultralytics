@@ -41,6 +41,15 @@ class RTDETRTrainer(DetectionTrainer):
         - AMP training can lead to NaN outputs and may produce errors during bipartite graph matching.
     """
 
+    def _on_train_epoch_start(self, trainer=None):
+        """Propagate the epoch to the RTDETR YOLOv8 augmentation decay scheduler."""
+        trainer = trainer or self
+        dataset = trainer.train_loader.dataset
+        if not getattr(dataset, "aug_decay", False):
+            return
+        dataset.set_epoch(trainer.epoch)
+        trainer.train_loader.reset()
+
     def get_model(self, cfg: dict | None = None, weights: str | None = None, verbose: bool = True):
         """Initialize and return an RT-DETR model for object detection tasks.
 
@@ -87,3 +96,13 @@ class RTDETRTrainer(DetectionTrainer):
         """Return an RTDETRValidator suitable for RT-DETR model validation."""
         self.loss_names = "giou_loss", "cls_loss", "l1_loss"
         return RTDETRValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
+
+    def train(self, *args, **kwargs):
+        """Run RTDETR training with optional YOLOv8 augmentation decay scheduling."""
+        if self.args.aug_decay:
+            # Let aug_decay own the no-augmentation tail instead of the base hard-close mosaic hook.
+            self.args.close_mosaic = 0
+            if not getattr(self, "_rtdetr_aug_callback_registered", False):
+                self.add_callback("on_train_epoch_start", self._on_train_epoch_start)
+                self._rtdetr_aug_callback_registered = True
+        return super().train(*args, **kwargs)

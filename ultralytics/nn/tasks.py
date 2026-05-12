@@ -1433,7 +1433,8 @@ def torch_safe_load(weight, safe_only=False):
 
     check_suffix(file=weight, suffix=".pt")
     file = attempt_download_asset(weight)  # search online if missing locally
-    try:
+
+    def _load():
         with temporary_modules(
             modules={
                 "ultralytics.yolo.utils": "ultralytics.utils",
@@ -1458,18 +1459,22 @@ def torch_safe_load(weight, safe_only=False):
                 safe_pickle.Unpickler = SafeUnpickler
                 safe_pickle.load = lambda file_obj: SafeUnpickler(file_obj).load()
                 with open(file, "rb") as f:
-                    ckpt = torch_load(f, pickle_module=safe_pickle)
-            else:
-                ckpt = torch_load(file, map_location="cpu")
+                    return torch_load(f, pickle_module=safe_pickle)
+            return torch_load(file, map_location="cpu")
+
+    try:
+        ckpt = _load()
 
     except RuntimeError as e:
-        # Corrupt cached file (e.g. truncated download); delete and re-fetch via existing safe_download retry
-        if "PytorchStreamReader" not in str(e):
+        # Corrupt cached download (e.g. truncated); skip for user-supplied local paths to avoid destructive unlink
+        if "PytorchStreamReader" not in str(e) or not (
+            isinstance(weight, str) and weight.startswith(("http:/", "https:/"))
+        ):
             raise
         LOGGER.warning(f"Corrupt cache {file}, re-downloading {weight}...")
         Path(file).unlink(missing_ok=True)
         file = attempt_download_asset(weight)
-        ckpt = torch_load(file, map_location="cpu")
+        ckpt = _load()
 
     except ModuleNotFoundError as e:  # e.name is missing module name
         if e.name == "models":

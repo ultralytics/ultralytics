@@ -85,7 +85,7 @@ class STrack(BaseTrack):
     @staticmethod
     def multi_predict(stracks: list[STrack]):
         """Perform multi-object predictive tracking using Kalman filter for the provided list of STrack instances."""
-        if len(stracks) <= 0:
+        if not stracks:
             return
         multi_mean = np.asarray([st.mean.copy() for st in stracks])
         multi_covariance = np.asarray([st.covariance for st in stracks])
@@ -296,7 +296,7 @@ class BYTETracker:
         merge_track_pools(self, activated_stracks, refind_stracks, lost_stracks, removed_stracks)
         return self._format_output()
 
-    def _split_detections(self, results):
+    def _split_detections(self, results: Any) -> tuple[Any, Any, np.ndarray, np.ndarray]:
         """Split detections into high-confidence and low-confidence subsets.
 
         Args:
@@ -309,10 +309,10 @@ class BYTETracker:
         scores = results.conf
         remain_inds = scores >= self.args.track_high_thresh
         inds_low = scores > self.args.track_low_thresh
-        inds_high = scores < self.args.track_high_thresh
-        return results[remain_inds], results[inds_low & inds_high], remain_inds, inds_low & inds_high
+        inds_below_high = scores < self.args.track_high_thresh
+        return results[remain_inds], results[inds_low & inds_below_high], remain_inds, inds_low & inds_below_high
 
-    def _input_for(self, img: np.ndarray | None, feats: np.ndarray | None, mask) -> Any:
+    def _input_for(self, img: np.ndarray | None, feats: np.ndarray | None, mask: np.ndarray) -> Any:
         """Return the per-detection auxiliary input for ``init_track``.
 
         Default behavior preserves the legacy flow: when ``feats`` is provided it is sliced by the
@@ -330,19 +330,19 @@ class BYTETracker:
             return feats[mask]
         return img
 
-    def _split_tracked(self):
+    def _split_tracked(self) -> tuple[list[STrack], list[STrack]]:
         """Separate ``self.tracked_stracks`` into confirmed and unconfirmed lists.
 
         Returns:
-            (tuple[list, list]): ``(unconfirmed, tracked)`` where ``unconfirmed`` holds tracks whose ``is_activated``
-                flag is False.
+            (tuple[list[STrack], list[STrack]]): ``(unconfirmed, tracked)`` where ``unconfirmed`` holds tracks whose
+                ``is_activated`` flag is False.
         """
         unconfirmed, tracked = [], []
         for track in self.tracked_stracks:
             (unconfirmed if not track.is_activated else tracked).append(track)
         return unconfirmed, tracked
 
-    def _pre_first_associate(self, strack_pool, unconfirmed, img, results_high) -> None:
+    def _pre_first_associate(self, strack_pool: list[STrack], unconfirmed: list[STrack], img: np.ndarray | None, results_high: Any) -> None:
         """Hook called after Kalman predict, before first-stage assignment. Default: GMC if available."""
         if hasattr(self, "gmc") and img is not None:
             try:
@@ -353,31 +353,31 @@ class BYTETracker:
             multi_gmc(strack_pool, warp)
             multi_gmc(unconfirmed, warp)
 
-    def _first_association(self, strack_pool, detections, activated, refind):
+    def _first_association(self, strack_pool: list[STrack], detections: list[STrack], activated: list[STrack], refind: list[STrack]) -> tuple[list[int], list[int]]:
         """First-stage association between track pool and high-score detections.
 
         Returns:
-            (tuple[list, list]): Unmatched track indices and unmatched detection indices.
+            (tuple[list[int], list[int]]): Unmatched track indices and unmatched detection indices.
         """
         dists = self.get_dists(strack_pool, detections)
         matches, u_track, u_detection = matching.linear_assignment(dists, thresh=self.args.match_thresh)
         self._apply_matches(matches, strack_pool, detections, activated, refind)
         return u_track, u_detection
 
-    def _post_first_association(self, strack_pool, detections, u_track, u_detection, activated, refind, lost):
+    def _post_first_association(self, strack_pool: list[STrack], detections: list[STrack], u_track: list[int], u_detection: list[int], activated: list[STrack], refind: list[STrack], lost: list[STrack]) -> tuple[list[int], list[int]]:
         """Hook executed after the first association stage and before the second.
 
         Returns:
-            (tuple[list, list]): Potentially modified unmatched track and detection indices.
+            (tuple[list[int], list[int]]): Potentially modified unmatched track and detection indices.
         """
         return u_track, u_detection
 
-    def _apply_matches(self, matches, pool, detections, activated, refind):
+    def _apply_matches(self, matches: list[list[int]] | np.ndarray, pool: list[STrack], detections: list[STrack], activated: list[STrack], refind: list[STrack]) -> None:
         """Apply a list of matched (track, detection) pairs from an association stage."""
         for itracked, idet in matches:
             self._apply_match(pool[itracked], detections[idet], activated, refind)
 
-    def _apply_match(self, track, det, activated, refind):
+    def _apply_match(self, track: STrack, det: STrack, activated: list[STrack], refind: list[STrack]) -> None:
         """Update or re-activate a single track with its matched detection."""
         if track.state == TrackState.Tracked:
             track.update(det, self.frame_id)
@@ -386,7 +386,7 @@ class BYTETracker:
             track.re_activate(det, self.frame_id, new_id=False)
             refind.append(track)
 
-    def _second_association(self, strack_pool, u_track, detections_second, activated, refind, lost):
+    def _second_association(self, strack_pool: list[STrack], u_track: list[int], detections_second: list[STrack], activated: list[STrack], refind: list[STrack], lost: list[STrack]) -> None:
         """Second-stage association between remaining tracked tracks and low-score detections."""
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
         if r_tracked_stracks and detections_second:
@@ -404,12 +404,12 @@ class BYTETracker:
                 track.mark_lost()
                 lost.append(track)
 
-    def _unconfirmed_association(self, unconfirmed, u_detection, detections, activated, removed):
+    def _unconfirmed_association(self, unconfirmed: list[STrack], u_detection: list[int], detections: list[STrack], activated: list[STrack], removed: list[STrack]) -> tuple[list[int], list[STrack]]:
         """Associate unconfirmed tracks with leftover high-score detections.
 
         Returns:
-            (tuple[list[int], list]): Unmatched detection indices after association, and the filtered detection list
-                those indices refer to.
+            (tuple[list[int], list[STrack]]): Unmatched detection indices after association, and the filtered detection
+                list those indices refer to.
         """
         detections = [detections[i] for i in u_detection]
         if not unconfirmed:
@@ -425,7 +425,7 @@ class BYTETracker:
             removed.append(track)
         return u_detection, detections
 
-    def _init_new_tracks(self, u_detection, detections, activated, refind=None):
+    def _init_new_tracks(self, u_detection: list[int], detections: list[STrack], activated: list[STrack], refind: list[STrack] | None = None) -> None:
         """Activate new tracks from detections that survived all association stages."""
         for inew in u_detection:
             track = detections[inew]
@@ -434,14 +434,14 @@ class BYTETracker:
             track.activate(self.kalman_filter, self.frame_id)
             activated.append(track)
 
-    def _remove_stale_lost(self, lost, removed):
+    def _remove_stale_lost(self, lost: list[STrack], removed: list[STrack]) -> None:
         """Remove lost tracks that have exceeded the maximum allowed frames."""
         for track in self.lost_stracks:
             if self.frame_id - track.end_frame > self.max_frames_lost:
                 track.mark_removed()
                 removed.append(track)
 
-    def _format_output(self):
+    def _format_output(self) -> np.ndarray:
         """Format the current tracked objects into the output array."""
         return np.asarray([x.result for x in self.tracked_stracks if x.is_activated], dtype=np.float32)
 
@@ -475,9 +475,9 @@ class BYTETracker:
 
     def reset(self):
         """Reset the tracker by clearing all tracked, lost, and removed tracks and reinitializing the Kalman filter."""
-        self.tracked_stracks: list[STrack] = []
-        self.lost_stracks: list[STrack] = []
-        self.removed_stracks: list[STrack] = []
+        self.tracked_stracks = []
+        self.lost_stracks = []
+        self.removed_stracks = []
         self.frame_id = 0
         self.kalman_filter = self.get_kalmanfilter()
         self.reset_id()

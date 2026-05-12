@@ -1,0 +1,23 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# FastTracker tracker defaults for mode="track"
+# Paper: https://arxiv.org/abs/2508.14370
+# Occlusion-aware ByteTrack-style tracker with lightweight Kalman rollback and init IoU suppression.
+
+tracker_type: fasttrack # (str) Tracker backend: fasttrack
+track_high_thresh: 0.25 # (float) First-stage match threshold
+track_low_thresh: 0.1 # (float) Second-stage threshold for low-score matches
+new_track_thresh: 0.25 # (float) Start a new track if no match ≥ this
+track_buffer: 30 # (int) Frames to keep lost tracks alive
+match_thresh: 0.8 # (float) First-stage association similarity threshold
+fuse_score: True # (bool) Fuse detection score with IoU when matching
+
+# --- FastTracker-specific knobs ---
+reset_velocity_offset_occ: 5 # (int) History frames back to restore KF velocity on occlusion onset
+reset_pos_offset_occ: 3 # (int) History frames back to restore KF position on occlusion onset
+enlarge_bbox_occ: 1.1 # (float) One-shot bbox height scale while occluded (widens search region)
+dampen_motion_occ: 0.5 # (float) Velocity dampening factor applied while occluded (0-1)
+active_occ_to_lost_thresh: 10 # (int) Max consecutive occluded frames before marking lost
+occ_cover_thresh: 0.7 # (float) Fraction of track's area covered by another to declare occlusion
+occ_reappear_window: 40 # (int) Frames a recently-occluded lost track stays re-findable
+init_iou_suppress: 0.7 # (float) Suppress new-track init if IoU with any active track ≥ this (1.0 disables)

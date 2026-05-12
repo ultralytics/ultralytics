@@ -201,7 +201,7 @@ def test_youtube():
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.parametrize("model", MODELS)
 def test_track_stream(model, tmp_path):
-    """Test streaming tracking on a short 10 frame video using ByteTrack tracker and different GMC methods.
+    """Test streaming tracking on a short video with all built-in trackers and various GMC/ReID configurations.
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
     """
@@ -218,6 +218,11 @@ def test_track_stream(model, tmp_path):
         custom_yaml = tmp_path / f"botsort-{gmc}.yaml"
         YAML.save(custom_yaml, {**default_args, "gmc_method": gmc, "with_reid": True, "model": reidm})
         model.track(video_url, imgsz=160, tracker=custom_yaml)
+
+    # Test trackers with no GMC/ReID variants; their per-tracker behavior
+    # is exercised by end-to-end run with default config.
+    for yaml_name in ("ocsort.yaml", "deepocsort.yaml", "fasttrack.yaml", "tracktrack.yaml"):
+        model.track(video_url, imgsz=160, tracker=yaml_name)
 
 
 @pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)

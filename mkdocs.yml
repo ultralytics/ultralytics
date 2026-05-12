@@ -807,11 +807,17 @@ nav:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md
           - byte_tracker: reference/trackers/byte_tracker.md
+          - deep_oc_sort: reference/trackers/deep_oc_sort.md
+          - fast_tracker: reference/trackers/fast_tracker.md
+          - oc_sort: reference/trackers/oc_sort.md
           - track: reference/trackers/track.md
+          - track_tracker: reference/trackers/track_tracker.md
           - utils:
               - gmc: reference/trackers/utils/gmc.md
               - kalman_filter: reference/trackers/utils/kalman_filter.md
               - matching: reference/trackers/utils/matching.md
+              - reid: reference/trackers/utils/reid.md
+              - stracks: reference/trackers/utils/stracks.md
       - utils:
           - __init__: reference/utils/__init__.md
           - autobatch: reference/utils/autobatch.md

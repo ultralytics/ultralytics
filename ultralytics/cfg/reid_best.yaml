@@ -28,6 +28,20 @@
 # Conclusion: the proven peak on 1h Market FT is yolo26l-2psa + MSMT-pretrain + the recipe below.
 # Architectural ADDITIONS to a well-pretrained model don't help; the lever is pretrain quality / data.
 #
+# ─── BACKBONE-SWAP FINDINGS (TransReID v1: CLIP ViT-B/16, 8 more runs arch11-18) ──
+# Implemented ultralytics/nn/modules/vit.py + CLIP visual-tower weight loading. Best ViT result:
+#   arch16: ViT-B/16 + CLIP init + Market FT 3h + lr=1e-4   → Market R1=0.714, mAP=0.601
+#   arch18: ViT-B/16 + MSMT-pretrain 3h + Market FT 1h     → Market R1=0.703, mAP=0.580
+# vs yolo26l-2psa+MSMT-pretrain CNN champion: R1=0.922  (gap: -21pp R1).
+# Key learnings:
+#   - CLIP visual encoder needs its own normalization (mean=[0.4815,0.4578,0.4082] std=[0.2686,
+#     0.2613,0.2758]) — baked into ViTBackbone now.
+#   - lr=1e-3 used by yolo26 recipe is too high for ViT-B FT-from-CLIP — must be 1e-4 or lower.
+#   - MSMT pretraining of ViT does not transfer to Market gains (vs CNN where it does).
+#   - 1h budget is insufficient for ViT; 3h gets +0.08pp R1 vs 1h. SOTA TransReID uses 120 epochs.
+#   - To reach paper R1=0.95: needs JPM module (+1.5pp), SIE module, per-param-group LR (head
+#     10x faster than backbone), CE-only first phase. None are cheap; deferred to v2.
+#
 # Reference comparisons:
 #   BoT (ResNet-50, no rerank):  mAP=0.859  Rank-1=0.945
 #   BoT (ResNet-50, +k-rerank):  mAP=0.942  Rank-1=0.954

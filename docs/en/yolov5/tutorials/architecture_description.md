@@ -225,6 +225,6 @@ This way, the build targets process ensures that each ground truth object is pro
 
 ## Conclusion
 
-In conclusion, YOLOv5 represents a significant step forward in the development of real-time object detection models. By incorporating various new features, enhancements, and training strategies, it surpasses previous versions of the YOLO family in performance and efficiency.
+YOLOv5 represents a meaningful step in the evolution of real-time object detection. Its architectural choices, training strategies, and engineering refinements deliver strong performance and efficiency relative to earlier YOLO versions.
 
 The primary enhancements in YOLOv5 include the use of a dynamic architecture, an extensive range of data augmentation techniques, innovative training strategies, as well as important adjustments in computing losses and the process of building targets. All these innovations significantly improve the accuracy and efficiency of object detection while retaining a high degree of speed, which is the trademark of YOLO models.

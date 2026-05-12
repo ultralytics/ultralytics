@@ -66,8 +66,10 @@ RF_DETR_OBJ365_TOPK_IMGSZ = [
 
 DFINE_DINOV3PLUS_OBJ365_IMGSZ640 = [
     # T4 TensorRT v10.11, imgsz640 fp16 engine. The paired ~887 ms values are PT latency.
-    ("fp32", 15.0, {"ap": 59.6}, 0.4),
-    ("no-fp32", 14.7, {"ap": 59.2}, 0.4),
+    ("l4", 14.4, {"ap": 59.5, "ap50": 77.1, "ap75": 65.0, "ap_small": 42.2, "ap_medium": 64.6, "ap_large": 77.1}),
+    ("no-fp32", 15.0, {"ap": 59.5, "ap50": 77.3, "ap75": 64.9, "ap_small": 41.8, "ap_medium": 64.5, "ap_large": 77.2}),
+    ("fp32", 15.0, {"ap": 59.7, "ap50": 77.4, "ap75": 65.1, "ap_small": 42.2, "ap_medium": 64.7, "ap_large": 77.2}),
+    ("imgsz800", 25.3, {"ap": 60.7, "ap50": 78.4, "ap75": 66.4, "ap_small": 44.6, "ap_medium": 65.1, "ap_large": 76.9}),
 ]
 
 BENCHMARKS = {

@@ -342,7 +342,9 @@ class BYTETracker:
             (unconfirmed if not track.is_activated else tracked).append(track)
         return unconfirmed, tracked
 
-    def _pre_first_associate(self, strack_pool: list[STrack], unconfirmed: list[STrack], img: np.ndarray | None, results_high: Any) -> None:
+    def _pre_first_associate(
+        self, strack_pool: list[STrack], unconfirmed: list[STrack], img: np.ndarray | None, results_high: Any
+    ) -> None:
         """Hook called after Kalman predict, before first-stage assignment. Default: GMC if available."""
         if hasattr(self, "gmc") and img is not None:
             try:
@@ -353,7 +355,9 @@ class BYTETracker:
             multi_gmc(strack_pool, warp)
             multi_gmc(unconfirmed, warp)
 
-    def _first_association(self, strack_pool: list[STrack], detections: list[STrack], activated: list[STrack], refind: list[STrack]) -> tuple[list[int], list[int]]:
+    def _first_association(
+        self, strack_pool: list[STrack], detections: list[STrack], activated: list[STrack], refind: list[STrack]
+    ) -> tuple[list[int], list[int]]:
         """First-stage association between track pool and high-score detections.
 
         Returns:
@@ -364,7 +368,16 @@ class BYTETracker:
         self._apply_matches(matches, strack_pool, detections, activated, refind)
         return u_track, u_detection
 
-    def _post_first_association(self, strack_pool: list[STrack], detections: list[STrack], u_track: list[int], u_detection: list[int], activated: list[STrack], refind: list[STrack], lost: list[STrack]) -> tuple[list[int], list[int]]:
+    def _post_first_association(
+        self,
+        strack_pool: list[STrack],
+        detections: list[STrack],
+        u_track: list[int],
+        u_detection: list[int],
+        activated: list[STrack],
+        refind: list[STrack],
+        lost: list[STrack],
+    ) -> tuple[list[int], list[int]]:
         """Hook executed after the first association stage and before the second.
 
         Returns:
@@ -372,7 +385,14 @@ class BYTETracker:
         """
         return u_track, u_detection
 
-    def _apply_matches(self, matches: list[list[int]] | np.ndarray, pool: list[STrack], detections: list[STrack], activated: list[STrack], refind: list[STrack]) -> None:
+    def _apply_matches(
+        self,
+        matches: list[list[int]] | np.ndarray,
+        pool: list[STrack],
+        detections: list[STrack],
+        activated: list[STrack],
+        refind: list[STrack],
+    ) -> None:
         """Apply a list of matched (track, detection) pairs from an association stage."""
         for itracked, idet in matches:
             self._apply_match(pool[itracked], detections[idet], activated, refind)
@@ -386,7 +406,15 @@ class BYTETracker:
             track.re_activate(det, self.frame_id, new_id=False)
             refind.append(track)
 
-    def _second_association(self, strack_pool: list[STrack], u_track: list[int], detections_second: list[STrack], activated: list[STrack], refind: list[STrack], lost: list[STrack]) -> None:
+    def _second_association(
+        self,
+        strack_pool: list[STrack],
+        u_track: list[int],
+        detections_second: list[STrack],
+        activated: list[STrack],
+        refind: list[STrack],
+        lost: list[STrack],
+    ) -> None:
         """Second-stage association between remaining tracked tracks and low-score detections."""
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
         if r_tracked_stracks and detections_second:
@@ -404,7 +432,14 @@ class BYTETracker:
                 track.mark_lost()
                 lost.append(track)
 
-    def _unconfirmed_association(self, unconfirmed: list[STrack], u_detection: list[int], detections: list[STrack], activated: list[STrack], removed: list[STrack]) -> tuple[list[int], list[STrack]]:
+    def _unconfirmed_association(
+        self,
+        unconfirmed: list[STrack],
+        u_detection: list[int],
+        detections: list[STrack],
+        activated: list[STrack],
+        removed: list[STrack],
+    ) -> tuple[list[int], list[STrack]]:
         """Associate unconfirmed tracks with leftover high-score detections.
 
         Returns:
@@ -425,7 +460,13 @@ class BYTETracker:
             removed.append(track)
         return u_detection, detections
 
-    def _init_new_tracks(self, u_detection: list[int], detections: list[STrack], activated: list[STrack], refind: list[STrack] | None = None) -> None:
+    def _init_new_tracks(
+        self,
+        u_detection: list[int],
+        detections: list[STrack],
+        activated: list[STrack],
+        refind: list[STrack] | None = None,
+    ) -> None:
         """Activate new tracks from detections that survived all association stages."""
         for inew in u_detection:
             track = detections[inew]

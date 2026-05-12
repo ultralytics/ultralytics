@@ -198,7 +198,15 @@ class FASTTracker(BYTETracker):
         track.not_matched = 0
         track.occluded_len = 0
 
-    def _second_association(self, strack_pool: list[STrack], u_track: list[int], detections_second: list[STrack], activated: list[STrack], refind: list[STrack], lost: list[STrack]) -> None:
+    def _second_association(
+        self,
+        strack_pool: list[STrack],
+        u_track: list[int],
+        detections_second: list[STrack],
+        activated: list[STrack],
+        refind: list[STrack],
+        lost: list[STrack],
+    ) -> None:
         """Second-stage association + occlusion handling (replaces base mark-lost loop)."""
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
         if r_tracked_stracks and detections_second:
@@ -211,7 +219,13 @@ class FASTTracker(BYTETracker):
             u_track = list(range(len(r_tracked_stracks)))
         self._handle_occlusions(r_tracked_stracks, u_track, activated, lost)
 
-    def _init_new_tracks(self, u_detection: list[int], detections: list[STrack], activated: list[STrack], refind: list[STrack] | None = None) -> None:
+    def _init_new_tracks(
+        self,
+        u_detection: list[int],
+        detections: list[STrack],
+        activated: list[STrack],
+        refind: list[STrack] | None = None,
+    ) -> None:
         """Activate new tracks, suppressing detections that heavily overlap already-active tracks."""
         active_boxes = [t.xyxy for t in activated if t.is_activated]
         if refind:

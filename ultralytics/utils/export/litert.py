@@ -29,8 +29,8 @@ def torch2litert(
         half (bool): Whether to apply FP16 weight-only quantization.
         int8 (bool): Whether to apply static INT8 quantization (takes precedence over half).
         end2end (bool): Whether the model has built-in NMS (end-to-end detection).
-        calibration_dataset (DataLoader | None): Calibration dataloader for INT8 quantization, as
-            returned by ``get_int8_calibration_dataloader``. Required when ``int8=True``.
+        calibration_dataset (DataLoader | None): Calibration dataloader for INT8 quantization, as returned by
+            ``get_int8_calibration_dataloader``. Required when ``int8=True``.
         metadata (dict | None): Optional metadata saved as ``metadata.yaml``.
         prefix (str): Prefix for log messages.
 
@@ -68,7 +68,7 @@ def torch2litert(
                     return {"one2many": self.forward_head(feat_maps, **self.one2many), "one2one": one2one}
                 # Separate tensors — each will get its own int8 scale during calibration
                 boxes = self._get_decode_boxes(one2one).permute(0, 2, 1)  # (B, N, 4)  [0, 640]
-                scores = one2one["scores"].sigmoid().permute(0, 2, 1)       # (B, N, nc) [0, 1]
+                scores = one2one["scores"].sigmoid().permute(0, 2, 1)  # (B, N, nc) [0, 1]
                 # topk on correctly-scaled scores → right detections selected
                 scores_top, conf_top, idx = self.get_topk_index(scores, self.max_det)
                 boxes_top = boxes.gather(1, idx.expand(-1, -1, 4))

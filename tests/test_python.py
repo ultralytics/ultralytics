@@ -580,7 +580,7 @@ def test_utils_ops():
 
 
 def test_process_mask_crops_within_bbox():
-    """Regression test for #24272 to ensure process_mask(upsample=True) does not leak pixels outside the bbox."""
+    """Regression test for #24272 to ensure process_mask keeps the mask strictly within the bbox."""
     from ultralytics.utils.ops import process_mask
 
     # Uniformly positive low-res prototypes make the post-crop boundary a hard 0->positive step,
@@ -590,13 +590,21 @@ def test_process_mask_crops_within_bbox():
     bboxes = torch.tensor([[40.0, 40.0, 120.0, 120.0]])
     shape = (160, 160)
 
-    masks = process_mask(protos, masks_in, bboxes, shape, upsample=True)
-    assert masks.shape == (1, 160, 160)
-    m = masks[0]
+    # upsample=True: crops at image resolution after bilinear upsample (the fixed path).
+    m = process_mask(protos, masks_in, bboxes, shape, upsample=True)[0]
+    assert m.shape == (160, 160)
     assert m[:40].sum().item() == 0, "mask leaked above the bbox"
     assert m[120:].sum().item() == 0, "mask leaked below the bbox"
     assert m[:, :40].sum().item() == 0, "mask leaked left of the bbox"
     assert m[:, 120:].sum().item() == 0, "mask leaked right of the bbox"
+    assert m[40:120, 40:120].sum().item() == 80 * 80, "bbox interior should remain fully set"
+
+    # upsample=False: original low-res crop path; assert the same containment at prototype scale.
+    ml = process_mask(protos, masks_in, bboxes, shape, upsample=False)[0]
+    assert ml.shape == (40, 40)
+    assert ml[:10].sum().item() == 0 and ml[30:].sum().item() == 0
+    assert ml[:, :10].sum().item() == 0 and ml[:, 30:].sum().item() == 0
+    assert ml[10:30, 10:30].sum().item() == 20 * 20
 
 
 def test_utils_files(tmp_path):

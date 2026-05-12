@@ -1664,12 +1664,11 @@ class SemsegMetrics(SimpleClass, DataExportMixin):
         _per_class_pixel_acc (np.ndarray): Cached per-class pixel accuracy.
     """
 
-    def __init__(self, names: dict[int, str] = None) -> None:
+    def __init__(self, names: dict[int, str] | None = None) -> None:
         """Initialize SemanticMetrics.
 
         Args:
             names (dict, optional): Dictionary mapping class indices to names.
-            device (torch.device | str | None, optional): Device for metric accumulation.
         """
         self.names = names or {}
         self.nc = len(self.names)
@@ -1683,12 +1682,12 @@ class SemsegMetrics(SimpleClass, DataExportMixin):
         self._per_class_pixel_acc = np.zeros(self.nc, dtype=np.float32)
         self.nt_per_class = np.zeros(self.nc, dtype=np.int32)
 
-    def update_stats(self, preds, targets):
+    def update_stats(self, preds: torch.Tensor, targets: torch.Tensor) -> None:
         """Accumulate confusion matrix from predictions and targets.
 
         Args:
-            preds (torch.Tensor | np.ndarray): Predicted class IDs [B, H, W].
-            targets (torch.Tensor | np.ndarray): Ground truth class IDs [B, H, W].
+            preds (torch.Tensor): Predicted class IDs [B, H, W].
+            targets (torch.Tensor): Ground truth class IDs [B, H, W].
         """
         if self.matrix is None:
             self.matrix = torch.zeros((self.cm_nc, self.cm_nc), device=preds.device, dtype=torch.float32)
@@ -1711,7 +1710,7 @@ class SemsegMetrics(SimpleClass, DataExportMixin):
                 elif 0 <= c < self.nc:
                     self.nt_per_image[c] += 1
 
-    def process(self, save_dir=Path("."), plot=False, on_plot=None):
+    def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot: callable | None = None) -> None:
         """Compute final metrics from accumulated confusion matrix.
 
         Args:
@@ -1724,7 +1723,7 @@ class SemsegMetrics(SimpleClass, DataExportMixin):
 
         intersection = torch.diagonal(self.matrix)
         union = self.matrix.sum(1) + self.matrix.sum(0) - intersection
-        iou = intersection / (union + 1e-10)
+        iou = torch.where(union > 0, intersection / union, torch.tensor(float("nan"), device=union.device))
         row_sum = self.matrix.sum(1)
         pa = intersection / (row_sum + 1e-10)
 
@@ -1869,7 +1868,7 @@ class SemsegMetrics(SimpleClass, DataExportMixin):
         """Return mean results for logging."""
         return [self.miou, self.pixel_accuracy]
 
-    def class_result(self, i):
+    def class_result(self, i: int) -> list[float]:
         """Return the result of evaluating the performance on a specific class.
 
         Args:
@@ -1902,7 +1901,7 @@ class SemsegMetrics(SimpleClass, DataExportMixin):
         """Return empty list (no PR curve results)."""
         return []
 
-    def summary(self, normalize=True, decimals=5):
+    def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict]:
         """Generate a per-class summary of semantic segmentation metrics, with global mIoU and pixel accuracy on each row.
 
         Args:
@@ -1910,7 +1909,7 @@ class SemsegMetrics(SimpleClass, DataExportMixin):
             decimals (int): Number of decimal places to round the metric values to.
 
         Returns:
-            (list[dict[str, Any]]): A list of dictionaries, one per class, with per-class IoU and shared scalars.
+            (list[dict]): A list of dictionaries, one per class, with per-class IoU and shared scalars.
         """
         miou = round(self.miou, decimals)
         pixel_acc = round(self.pixel_accuracy, decimals)

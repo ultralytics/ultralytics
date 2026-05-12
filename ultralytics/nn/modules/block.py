@@ -55,6 +55,7 @@ __all__ = (
     "SCDown",
     "SpatialPriorModulev2",
     "DEIMDINOv3STAs",
+    "DEIMEUPESTAs",
     "PResNet",
     "TorchVision",
     "Timm",
@@ -1949,6 +1950,50 @@ class DEIMDINOv3STAs(nn.Module):
             qk_layernorm=qk_layernorm,
             num_windows=num_windows,
             global_block_indexes=list(global_block_indexes) if global_block_indexes is not None else None,
+        )
+        self.split = split
+        self.channels = self.m.out_channels
+
+    def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
+        """Forward pass returning [input, P3, P4, P5] when split=True."""
+        y = self.m(x)
+        return [x, *y] if self.split else y
+
+
+class DEIMEUPESTAs(nn.Module):
+    """Wrapper for DEIMv2 EUPE+STA backbone."""
+
+    def __init__(
+        self,
+        name: str = "eupe_vits16",
+        pretrained: bool = True,
+        interaction_indexes: tuple[int, ...] = (5, 8, 11),
+        finetune: bool = True,
+        patch_size: int = 16,
+        use_sta: bool = True,
+        conv_inplane: int = 32,
+        hidden_dim: int = 224,
+        split: bool = True,
+        weights: str | None = None,
+        repo_dir: str | None = None,
+        check_hash: bool = False,
+    ):
+        """Initialize DEIMv2 EUPE wrapper for Ultralytics model parser."""
+        from ultralytics.nn.backbones.eupe_adapter import EUPESTAs as _EUPESTAs  # scope for faster import
+
+        super().__init__()
+        self.m = _EUPESTAs(
+            name=name,
+            pretrained=pretrained,
+            interaction_indexes=list(interaction_indexes),
+            finetune=finetune,
+            patch_size=patch_size,
+            use_sta=use_sta,
+            conv_inplane=conv_inplane,
+            hidden_dim=hidden_dim,
+            weights=weights,
+            repo_dir=repo_dir,
+            check_hash=check_hash,
         )
         self.split = split
         self.channels = self.m.out_channels

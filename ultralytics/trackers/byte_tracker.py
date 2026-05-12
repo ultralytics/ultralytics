@@ -286,7 +286,7 @@ class BYTETracker:
         )
         self._second_association(strack_pool, u_track, detections_second, activated_stracks, refind_stracks, lost_stracks)
         u_detection = self._unconfirmed_association(unconfirmed, u_detection, detections, activated_stracks, removed_stracks)
-        self._init_new_tracks(u_detection, detections, activated_stracks)
+        self._init_new_tracks(u_detection, detections, activated_stracks, refind_stracks)
         self._remove_stale_lost(lost_stracks, removed_stracks)
 
         merge_track_pools(self, activated_stracks, refind_stracks, lost_stracks, removed_stracks)
@@ -418,7 +418,7 @@ class BYTETracker:
             removed.append(track)
         return u_detection
 
-    def _init_new_tracks(self, u_detection, detections, activated):
+    def _init_new_tracks(self, u_detection, detections, activated, refind=None):
         """Activate new tracks from detections that survived all association stages."""
         for inew in u_detection:
             track = detections[inew]

@@ -12,7 +12,7 @@ from ultralytics.utils.metrics import bbox_ioa
 from .basetrack import TrackState
 from .byte_tracker import BYTETracker, STrack
 from .utils import matching
-from .utils.stracks import joint_stracks, merge_track_pools
+
 
 
 class FastSTrack(STrack):
@@ -203,9 +203,11 @@ class FASTTracker(BYTETracker):
         """Flag unmatched tracked tracks as occluded when covered by an active neighbor."""
         self._handle_occlusions(r_tracked, u_track, activated, lost)
 
-    def _init_new_tracks(self, u_detection, detections, activated):
+    def _init_new_tracks(self, u_detection, detections, activated, refind=None):
         """Activate new tracks, suppressing detections that heavily overlap already-active tracks."""
         active_boxes = [t.xyxy for t in activated if t.is_activated]
+        if refind:
+            active_boxes.extend(t.xyxy for t in refind if t.is_activated)
         active_boxes.extend(t.xyxy for t in self.tracked_stracks if t.state == TrackState.Tracked)
         suppress_on = self.init_iou_suppress < 1.0
         # Hoist the stack out of the loop; only restack when active_boxes grows.

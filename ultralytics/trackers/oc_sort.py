@@ -9,7 +9,7 @@ import numpy as np
 from .basetrack import TrackState
 from .byte_tracker import BYTETracker, STrack
 from .utils import matching
-from .utils.stracks import joint_stracks, merge_track_pools
+
 
 
 class OCSortTrack(STrack):

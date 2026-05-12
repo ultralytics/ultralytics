@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Explore Baidu's RT-DETR, a Vision Transformer-based real-time object detector offering high accuracy and adaptable inference speed. Learn more with Ultralytics.
-keywords: RT-DETR, Baidu, Vision Transformer, real-time object detection, PaddlePaddle, Ultralytics, pretrained models, AI, machine learning, computer vision
+keywords: RT-DETR, Baidu, Vision Transformer, real-time object detection, PaddlePaddle, Ultralytics, pretrained models, query count, AI, machine learning, computer vision
 ---
 
 # Baidu's RT-DETR: A Vision [Transformer](https://www.ultralytics.com/glossary/transformer)-Based Real-Time Object Detector
@@ -40,7 +40,7 @@ The Ultralytics Python API provides pretrained PaddlePaddle RT-DETR models with 
 
 !!! tip "Faster Inference with Fewer Queries"
 
-    RT-DETR defaults to 300 queries. The baseline runs at about 8.0 ms with the default mAP. Reducing `num_queries` to 100 can reach 7.4 ms with 51.7 mAP on COCO. On custom datasets with fewer objects per image, the mAP drop can be smaller because 300 queries can be redundant.
+    RT-DETR defaults to 300 queries. On a T4 GPU with TensorRT v10.11, the baseline runs at about 8.0 ms with the default mAP. Reducing `num_queries` to 100 can reach 7.4 ms with 51.7 mAP on COCO. On custom datasets with fewer objects per image, the mAP drop can be smaller because 300 queries can be redundant.
 
     ```python
     from ultralytics import RTDETR

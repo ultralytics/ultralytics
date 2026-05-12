@@ -17,7 +17,7 @@ from ultralytics.data.dataset import PolygonSemsegDataset, SemsegDataset, add_po
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.metrics import SemsegMetrics
-from ultralytics.utils.plotting import Annotator, colors, plot_images, plt_settings
+from ultralytics.utils.plotting import Annotator, plot_images, plt_settings
 
 
 class SemanticSegmentationValidator(BaseValidator):
@@ -106,7 +106,7 @@ class SemanticSegmentationValidator(BaseValidator):
         if self.nc > 1:
             pred_mask = preds.argmax(dim=1).to(torch.int32)
         else:
-            pred_mask = preds.gt(0).squeeze(1)
+            pred_mask = preds.gt(0).squeeze(1).to(torch.int32)
         return pred_mask
 
     def update_metrics(self, preds, batch):
@@ -180,7 +180,7 @@ class SemanticSegmentationValidator(BaseValidator):
         Returns:
             (str): Formatted string with metric names.
         """
-        return ("%22s" + "%11s" * 4) % ("Class", "Images", "Instances", "mIoU", "PixAcc")
+        return ("%22s" + "%11s" * 4) % ("Class", "Images", "Pixels", "mIoU", "PixAcc")
 
     def print_results(self):
         """Print validation results including per-class IoU."""
@@ -219,7 +219,6 @@ class SemanticSegmentationValidator(BaseValidator):
         """
         self.data = add_polygon_background(self.data)
         use_rect = mode == "val"
-        # TODO
         dataset_cls = SemsegDataset if self.data.get("masks_dir") else PolygonSemsegDataset
         return dataset_cls(
             img_path=img_path,
@@ -246,7 +245,15 @@ class SemanticSegmentationValidator(BaseValidator):
             (DataLoader): Validation dataloader.
         """
         dataset = self.build_dataset(dataset_path, batch=batch_size)
-        return build_dataloader(dataset, batch=batch_size, workers=self.args.workers * 2, shuffle=False, rank=-1)
+        return build_dataloader(
+            dataset,
+            batch=batch_size,
+            workers=self.args.workers * 2,
+            shuffle=False,
+            rank=-1,
+            drop_last=self.args.compile,
+            pin_memory=self.training,
+        )
 
     @plt_settings()
     def plot_val_samples(self, batch, ni):

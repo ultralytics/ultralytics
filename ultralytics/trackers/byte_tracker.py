@@ -245,6 +245,7 @@ class BYTETracker:
     """
 
     track_class = STrack
+
     def __init__(self, args):
         """Initialize a BYTETracker instance for object tracking.
 

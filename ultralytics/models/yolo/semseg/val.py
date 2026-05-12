@@ -14,13 +14,13 @@ from PIL import Image
 
 from ultralytics.data.build import build_dataloader
 from ultralytics.data.dataset import PolygonSemsegDataset, SemsegDataset, add_polygon_background
-from ultralytics.engine.validator import BaseValidator
+from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.metrics import SemsegMetrics
 from ultralytics.utils.plotting import Annotator, plot_images, plt_settings
 
 
-class SemanticSegmentationValidator(BaseValidator):
+class SemanticSegmentationValidator(DetectionValidator):
     """Validator for semantic segmentation models.
 
     This validator evaluates semantic segmentation models using mIoU and pixel accuracy metrics.
@@ -79,11 +79,8 @@ class SemanticSegmentationValidator(BaseValidator):
         Returns:
             (dict): Preprocessed batch.
         """
-        batch["img"] = batch["img"].to(self.device, non_blocking=self.device.type == "cuda")
-        batch["img"] = (batch["img"].half() if self.args.half else batch["img"].float()) / 255
-        batch["semantic_mask"] = (
-            batch["semantic_mask"].to(self.device, non_blocking=self.device.type == "cuda").to(torch.int32)
-        )
+        batch = super().preprocess(batch)
+        batch["semantic_mask"] = batch["semantic_mask"].to(torch.int32)
         self._semantic_target_shape = tuple(batch["semantic_mask"].shape[-2:])
         return batch
 
@@ -172,6 +169,7 @@ class SemanticSegmentationValidator(BaseValidator):
             (dict): Dictionary of validation metrics.
         """
         self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
+        self.metrics.clear_stats()
         return self.metrics.results_dict
 
     def get_desc(self):
@@ -232,27 +230,6 @@ class SemanticSegmentationValidator(BaseValidator):
             stride=self.stride,
             pad=0,
             prefix=f"{mode}: ",
-        )
-
-    def get_dataloader(self, dataset_path, batch_size=16):
-        """Build and return a dataloader for semantic segmentation validation.
-
-        Args:
-            dataset_path (str): Path to the dataset.
-            batch_size (int): Batch size.
-
-        Returns:
-            (DataLoader): Validation dataloader.
-        """
-        dataset = self.build_dataset(dataset_path, batch=batch_size)
-        return build_dataloader(
-            dataset,
-            batch=batch_size,
-            workers=self.args.workers * 2,
-            shuffle=False,
-            rank=-1,
-            drop_last=self.args.compile,
-            pin_memory=self.training,
         )
 
     @plt_settings()

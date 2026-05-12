@@ -814,6 +814,7 @@ class SemsegDataset(BaseDataset):
         if not labels:
             raise RuntimeError(f"No valid images found in {cache_path}. {HELP_URL}")
         self.im_files = [lb["im_file"] for lb in labels]
+        self.mask_files = [lb["mask_file"] for lb in labels]
         return labels
 
     def load_image(self, i, rect_mode=True):
@@ -842,7 +843,7 @@ class SemsegDataset(BaseDataset):
 
         bboxes = label.pop("bboxes", np.zeros((0, 4), dtype=np.float32))
         label["instances"] = Instances(
-            bboxes, segments=np.zeros((0, 0, 2), dtype=np.float32), bbox_format="xywh", normalized=True
+            bboxes, segments=np.zeros((0, 1000, 2), dtype=np.float32), bbox_format="xywh", normalized=True
         )
         return label
 
@@ -874,6 +875,7 @@ class SemsegDataset(BaseDataset):
         else:
             transforms.append(
                 LetterBox(
+                    new_shape=(self.imgsz, self.imgsz),
                     auto=False,
                     scaleup=False,
                     center=False,
@@ -959,8 +961,10 @@ def add_polygon_background(data: dict) -> dict:
     if nc == 1:  # assign background as 0, and class 0 as 1
         names[1] = names.get(0, "class0")
         names[0] = "background"
+        data["bg_class_idx"] = 0
     else:
         names[nc] = "background"
+        data["bg_class_idx"] = nc
     data["nc"] = nc + 1
     data["names"] = names
     data["_polygon_bg_added"] = True
@@ -985,7 +989,7 @@ class PolygonSemsegDataset(YOLODataset):
             **kwargs: Keyword arguments forwarded to `SemsegDataset` / `BaseDataset`.
         """
         nc = (data or {}).get("nc") or len((data or {}).get("names", {}))
-        self.bg_class_idx = max(int(nc) - 1, 0)
+        self.bg_class_idx = data.get("bg_class_idx", max(int(nc) - 1, 0))
         self.ignore_label = 255
         super().__init__(*args, data=data, **kwargs)
 

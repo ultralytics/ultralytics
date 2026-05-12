@@ -196,7 +196,7 @@ class BaseDataset(Dataset):
                 cls = self.labels[i]["cls"]
                 bboxes = self.labels[i]["bboxes"]
                 segments = self.labels[i]["segments"]
-                keypoints = self.labels[i]["keypoints"]
+                keypoints = self.labels[i].get("keypoints")
                 j = (cls == include_class_array).any(1)
                 self.labels[i]["cls"] = cls[j]
                 self.labels[i]["bboxes"] = bboxes[j]

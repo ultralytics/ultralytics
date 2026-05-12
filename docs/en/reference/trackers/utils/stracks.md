@@ -7,7 +7,7 @@ keywords: Ultralytics, stracks, track pools, multi-object tracking, GMC, STrack 
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/stracks.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/stracks.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/stracks.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/stracks.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

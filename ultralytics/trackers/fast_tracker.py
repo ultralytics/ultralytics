@@ -14,7 +14,6 @@ from .byte_tracker import BYTETracker, STrack
 from .utils import matching
 
 
-
 class FastSTrack(STrack):
     """Single-object track for FastTracker with occlusion-aware state.
 

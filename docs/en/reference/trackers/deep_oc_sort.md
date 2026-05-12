@@ -7,7 +7,7 @@ keywords: Ultralytics, Deep OC-SORT, DeepOCSORT, observation-centric, object tra
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/deep_oc_sort.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/deep_oc_sort.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/deep_oc_sort.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/deep_oc_sort.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

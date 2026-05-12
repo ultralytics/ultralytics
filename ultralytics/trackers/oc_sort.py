@@ -11,7 +11,6 @@ from .byte_tracker import BYTETracker, STrack
 from .utils import matching
 
 
-
 class OCSortTrack(STrack):
     """Track object for OC-SORT with observation-centric state management.
 

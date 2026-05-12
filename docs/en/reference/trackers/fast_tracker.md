@@ -7,7 +7,7 @@ keywords: Ultralytics, FastTracker, FASTTracker, occlusion-aware, object trackin
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/fast_tracker.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/fast_tracker.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/fast_tracker.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/fast_tracker.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

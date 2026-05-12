@@ -7,7 +7,7 @@ keywords: Ultralytics, TrackTrack, TTSTrack, HMIoU, iterative assignment, Track-
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/track_tracker.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/track_tracker.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/track_tracker.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/track_tracker.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

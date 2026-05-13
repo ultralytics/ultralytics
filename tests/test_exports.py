@@ -82,7 +82,7 @@ def test_exporter_int8_calibration_batch(monkeypatch):
     """Ensure INT8 calibration dataloader uses calibration_batch when set."""
     import ultralytics.engine.exporter as exporter_module
 
-    exporter = exporter_module.Exporter(overrides={"format": "engine", "int8": True, "batch": 2, "data": "coco128.yaml"})
+    exporter = exporter_module.Exporter(overrides={"format": "engine", "int8": True, "batch": 4, "data": "coco128.yaml"})
     exporter.model = SimpleNamespace(task="detect")
     exporter.imgsz = [640, 640]
     exporter.args.split = "val"
@@ -112,6 +112,27 @@ def test_exporter_int8_calibration_batch(monkeypatch):
 
     dataloader = exporter.get_int8_calibration_dataloader()
     assert dataloader.batch_size == 4
+
+
+def test_exporter_int8_calibration_batch_exceeds_engine_batch(monkeypatch):
+    """Ensure TensorRT calibration_batch cannot exceed batch."""
+    import ultralytics.engine.exporter as exporter_module
+
+    exporter = exporter_module.Exporter(overrides={"format": "engine", "int8": True, "batch": 2, "data": "coco128.yaml"})
+    exporter.model = SimpleNamespace(task="detect")
+    exporter.imgsz = [640, 640]
+    exporter.args.split = "val"
+    exporter.args.fraction = 1.0
+    exporter.args.format = "engine"
+    exporter.args.calibration_batch = 4
+
+    def fake_check_det_dataset(data):
+        return {"val": "dummy_path"}
+
+    monkeypatch.setattr(exporter_module, "check_det_dataset", fake_check_det_dataset)
+
+    with pytest.raises(ValueError, match="calibration_batch cannot exceed batch for TensorRT export"):
+        exporter.get_int8_calibration_dataloader()
 
 
 @pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")

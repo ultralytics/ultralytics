@@ -564,7 +564,13 @@ class Exporter:
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
         calibration_batch = self.args.calibration_batch if self.args.calibration_batch is not None else self.args.batch
-        assert calibration_batch > 0, "calibration_batch must be a positive integer"
+        if calibration_batch <= 0:
+            raise ValueError("calibration_batch must be a positive integer")
+        if self.args.format == "engine" and calibration_batch > self.args.batch:
+            raise ValueError(
+                "calibration_batch cannot exceed batch for TensorRT export. "
+                "Please set calibration_batch <= batch or increase batch."
+            )
         dataset = YOLODataset(
             data[self.args.split or "val"],
             data=data,

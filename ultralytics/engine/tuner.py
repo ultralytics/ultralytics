@@ -143,7 +143,7 @@ class Tuner:
             f"{self.prefix}💡 Learn about tuning at https://docs.ultralytics.com/guides/hyperparameter-tuning"
         )
 
-    def _connect(self, uri: str = "mongodb+srv://username:password@cluster.mongodb.net/", max_retries: int = 3):
+    def _connect(self, uri: str = "", max_retries: int = 3):
         """Create MongoDB client with exponential backoff retry on connection failures.
 
         Args:
@@ -190,7 +190,7 @@ class Tuner:
         saves results to a shared collection and reads the latest best hyperparameters from all workers for evolution.
 
         Args:
-            mongodb_uri (str): MongoDB connection string, e.g. 'mongodb+srv://username:password@cluster.mongodb.net/'.
+            mongodb_uri (str): MongoDB connection string.
             mongodb_db (str, optional): Database name.
             mongodb_collection (str, optional): Collection name.
 
@@ -406,7 +406,7 @@ class Tuner:
 
         # Mutate if we have data, otherwise use defaults
         if x is not None:
-            np.random.seed(int(time.time()))
+            rng = np.random.default_rng()
             ng = len(self.space)
 
             # Crossover
@@ -416,8 +416,8 @@ class Tuner:
             gains = np.array([v[2] if len(v) == 3 else 1.0 for v in self.space.values()])  # gains 0-1
             factors = np.ones(ng)
             while np.all(factors == 1):  # mutate until a change occurs (prevent duplicates)
-                mask = np.random.random(ng) < mutation
-                step = np.random.randn(ng) * (sigma * gains)
+                mask = rng.random(ng) < mutation
+                step = rng.standard_normal(ng) * (sigma * gains)
                 factors = np.where(mask, np.exp(step), 1.0).clip(0.25, 4.0)
             hyp = {k: float(genes[i] * factors[i]) for i, k in enumerate(self.space.keys())}
         else:

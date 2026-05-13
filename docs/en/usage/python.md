@@ -6,7 +6,7 @@ keywords: YOLO, Python, object detection, segmentation, classification, machine 
 
 # Python Usage
 
-Welcome to the Ultralytics YOLO Python Usage documentation! This guide is designed to help you seamlessly integrate Ultralytics YOLO into your Python projects for [object detection](https://www.ultralytics.com/glossary/object-detection), [segmentation](https://docs.ultralytics.com/tasks/segment/), and [classification](https://docs.ultralytics.com/tasks/classify/). Here, you'll learn how to load and use pretrained models, train new models, and perform predictions on images. The easy-to-use Python interface is a valuable resource for anyone looking to incorporate YOLO into their Python projects, allowing you to quickly implement advanced object detection capabilities. Let's get started!
+Welcome to the Ultralytics YOLO Python Usage documentation! This guide is designed to help you seamlessly integrate Ultralytics YOLO into your Python projects for [object detection](https://www.ultralytics.com/glossary/object-detection), [segmentation](https://docs.ultralytics.com/tasks/segment), and [classification](https://docs.ultralytics.com/tasks/classify). Here, you'll learn how to load and use pretrained models, train new models, and perform predictions on images. The easy-to-use Python interface is a valuable resource for anyone looking to incorporate YOLO into their Python projects, allowing you to quickly implement advanced object detection capabilities. Let's get started!
 
 <p align="center">
   <br>
@@ -240,7 +240,7 @@ For example, users can load a model, train it, evaluate its performance on a val
 
 ## Benchmark
 
-[Benchmark mode](../modes/benchmark.md) is used to profile the speed and accuracy of various export formats for YOLO. The benchmarks provide information on the size of the exported format, its `mAP50-95` metrics (for object detection and segmentation) or `accuracy_top5` metrics (for classification), and the inference time in milliseconds per image across various export formats like ONNX, [OpenVINO](https://docs.ultralytics.com/integrations/openvino/), TensorRT and others. This information can help users choose the optimal export format for their specific use case based on their requirements for speed and accuracy.
+[Benchmark mode](../modes/benchmark.md) is used to profile the speed and accuracy of various export formats for YOLO. The benchmarks provide information on the size of the exported format, its `mAP50-95` metrics (for object detection and segmentation) or `accuracy_top5` metrics (for classification), and the inference time in milliseconds per image across various export formats like ONNX, [OpenVINO](https://docs.ultralytics.com/integrations/openvino), TensorRT and others. This information can help users choose the optimal export format for their specific use case based on their requirements for speed and accuracy.
 
 !!! example "Benchmark"
 
@@ -258,7 +258,7 @@ For example, users can load a model, train it, evaluate its performance on a val
 
 ## Using Trainers
 
-The `YOLO` model class serves as a high-level wrapper for Trainer classes. Each YOLO task has its own trainer, which inherits from `BaseTrainer`. This architecture allows for greater flexibility and customization in your [machine learning workflows](https://docs.ultralytics.com/guides/model-training-tips/).
+The `YOLO` model class serves as a high-level wrapper for Trainer classes. Each YOLO task has its own trainer, which inherits from `BaseTrainer`. This architecture allows for greater flexibility and customization in your [machine learning workflows](https://docs.ultralytics.com/guides/model-training-tips).
 
 !!! tip "Detection Trainer Example"
 
@@ -320,7 +320,7 @@ Ultralytics YOLO provides various modes to cater to different [machine learning]
 - **[Track](../modes/track.md)**: Real-time object tracking in video streams.
 - **[Benchmark](../modes/benchmark.md)**: Benchmark model performance across different configurations.
 
-Each mode is designed to provide comprehensive functionalities for different stages of [model development and deployment](https://docs.ultralytics.com/guides/model-deployment-options/).
+Each mode is designed to provide comprehensive functionalities for different stages of [model development and deployment](https://docs.ultralytics.com/guides/model-deployment-options).
 
 ### How do I train a custom YOLO model using my dataset?
 

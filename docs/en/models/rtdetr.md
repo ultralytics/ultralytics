@@ -44,7 +44,7 @@ The Ultralytics Python API provides pretrained PaddlePaddle RT-DETR models with 
 
     For the default 6-layer decoder, assign `eval_idx` directly as a zero-based value from `0` to `num_layers - 1`: `eval_idx=5` uses all layers, while `eval_idx=3` uses 4 decoder layers. On a T4 GPU with TensorRT v10.11, RT-DETR-L can improve from 8.0 ms at 52.7 mAP to 7.4 ms at 52.5 mAP with 4 decoder layers, gaining 0.6 ms with a 0.2 mAP reduction.
 
-    RT-DETR defaults to 300 queries. Reducing `num_queries` to 100 can reach 7.4 ms with 51.7 mAP on COCO in the same TensorRT setup. On custom datasets with fewer objects per image, the mAP drop can be smaller because 300 queries may be redundant.
+    RT-DETR-L and RT-DETR-X default to 300 queries. When assigning `num_queries` directly for faster inference, use an integer from `1` to the model default (`300` for the Ultralytics pretrained RT-DETR models). Reducing `num_queries` to 100 can reach 7.4 ms with 51.7 mAP on COCO in the same TensorRT setup. On custom datasets with fewer objects per image, the mAP drop can be smaller because 300 queries may be redundant, but keep the value above the maximum number of objects you expect per image.
 
     ```python
     from ultralytics import RTDETR

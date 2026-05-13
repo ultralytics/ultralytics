@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Explore Baidu's RT-DETR, a Vision Transformer-based real-time object detector offering high accuracy and adaptable inference speed. Learn more with Ultralytics.
-keywords: RT-DETR, Baidu, Vision Transformer, real-time object detection, PaddlePaddle, Ultralytics, pretrained models, query count, AI, machine learning, computer vision
+keywords: RT-DETR, Baidu, Vision Transformer, real-time object detection, PaddlePaddle, Ultralytics, pretrained models, decoder layer index, query count, AI, machine learning, computer vision
 ---
 
 # Baidu's RT-DETR: A Vision [Transformer](https://www.ultralytics.com/glossary/transformer)-Based Real-Time Object Detector
@@ -38,22 +38,27 @@ The Ultralytics Python API provides pretrained PaddlePaddle RT-DETR models with 
 - RT-DETR-L: 53.0% AP on COCO val2017, 114 FPS on T4 GPU
 - RT-DETR-X: 54.8% AP on COCO val2017, 74 FPS on T4 GPU
 
-!!! tip "Faster Inference with Fewer Queries"
+!!! tip "Faster Inference Trade-Offs"
 
-    RT-DETR defaults to 300 queries. On a T4 GPU with TensorRT v10.11, the baseline runs at about 8.0 ms with the default mAP. Reducing `num_queries` to 100 can reach 7.4 ms with 51.7 mAP on COCO. On custom datasets with fewer objects per image, the mAP drop can be smaller because 300 queries can be redundant.
+    RT-DETR pretrained weights expose inference-time settings that can reduce latency without retraining. You can stop evaluation at an earlier decoder layer with the decoder layer index (`eval_idx`) or reduce the number of object queries with `num_queries`. Both settings can lower mAP, so validate the selected trade-off on your dataset before deployment.
+
+    For the default 6-layer decoder, assign `eval_idx` directly as a zero-based value from `0` to `num_layers - 1`: `eval_idx=5` uses all layers, while `eval_idx=3` uses 4 decoder layers. On a T4 GPU with TensorRT v10.11, RT-DETR-L can improve from 8.0 ms at 52.7 mAP to 7.4 ms at 52.5 mAP with 4 decoder layers, gaining 0.6 ms with a 0.2 mAP reduction.
+
+    RT-DETR defaults to 300 queries. Reducing `num_queries` to 100 can reach 7.4 ms with 51.7 mAP on COCO in the same TensorRT setup. On custom datasets with fewer objects per image, the mAP drop can be smaller because 300 queries may be redundant.
 
     ```python
     from ultralytics import RTDETR
 
     rtdetr = RTDETR("rtdetr-l.pt")
-    decoder = rtdetr.model.model[-1]
+    head = rtdetr.model.model[-1]
 
-    # Reduce query count for faster inference.
-    decoder.num_queries = 100
+    # Choose one or both settings after validating the speed/accuracy trade-off.
+    head.decoder.eval_idx = 3  # Use 4 of 6 decoder layers.
+    head.num_queries = 100  # Use fewer object queries.
 
     results = rtdetr("path/to/image.jpg")
 
-    # Export uses the same query count, including TensorRT exports.
+    # Export uses the same decoder and query settings, including TensorRT exports.
     rtdetr.export(format="engine", device=0, half=True)
     ```
 

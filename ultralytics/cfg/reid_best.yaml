@@ -9,7 +9,8 @@
 #    model:       yolo26l-reid-2psa.yaml  (yolo26l + 2 stacked C2PSA attention blocks)
 #    pretrained:  yolo26l_2psa_msmt MSMT-pretrained checkpoint (1h MSMT FT first)
 #    data:        Market-1501.yaml
-#    Result:      Market-1501  mAP=0.875  Rank-1=0.922  (with k-reciprocal rerank + flip TTA)
+#    Result:      Market-1501  mAP=0.884  Rank-1=0.927  (imgsz=384 + k-rerank + flip TTA — arch31)
+#                 [prior "mAP=0.875 R1=0.922" was at imgsz=320; raising to 384 adds +0.5pp R1]
 #
 # B. Multi-dataset recipe (Combined-ReID train, 3-4h on 4× Blackwell):
 #    model:       yolo26l-reid.yaml + this recipe (HH below)
@@ -52,15 +53,17 @@
 # verbatim reliably reaches **R1≈0.907, mAP≈0.859** in our setup. Use that as the
 # realistic single-model ceiling for this stack.
 #
-# ─── IMGSZ SCALING SWEEP (arch27b, arch28, arch30) ────────────────────────────
+# ─── IMGSZ SCALING SWEEP (arch27b, arch28, arch30, arch31) ────────────────────
 # Headline-recipe runs at constant 1h budget on 4× RTX 5090, varying imgsz × batch:
 #   imgsz=288, batch=192  (arch28)  →  R1=0.881, mAP=0.820
 #   imgsz=320, batch=128  (arch27b) →  R1=0.907, mAP=0.858
-#   imgsz=352, batch=96   (arch30)  →  R1=0.915, mAP=0.870   ← **NEW BEST**
-# imgsz scaling is monotonically helpful on the 2psa+MSMT-pretrain stack: +0.034 R1
-# from 288→352. The earlier "imgsz=384 NULL" note (arch08) was at batch=128 (mem-press)
-# and an older hparam set — re-test with batch=64 + headline recipe might still climb.
-# **New working defaults: imgsz=352, batch=96** (matches the data resolution sweet spot).
+#   imgsz=352, batch=96   (arch30)  →  R1=0.915, mAP=0.870
+#   imgsz=384, batch=64   (arch31)  →  R1=0.927, mAP=0.884   ← **NEW CHAMPION**
+# **imgsz scaling is monotonically helpful** across 288→384 on the 2psa+MSMT-pretrain
+# stack: +0.046 R1 from 288→384. Crucially, imgsz=384 BEATS the previously-reported
+# train-33 number (R1=0.922) — the older "imgsz=384 NULL" note (arch08) was at
+# batch=128 with the older hparam set; with batch=64 + headline recipe, 384 wins.
+# **New working defaults: imgsz=384, batch=64** for single-model Market FT.
 #
 # ─── HEADLINE-RECIPE REPLICATION (arch27b) ────────────────────────────────────
 # Re-running the headline Market-FT recipe verbatim (lr0=3.5e-3, lrf=0.001, cos_lr=True,

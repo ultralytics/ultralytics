@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Explore Baidu's RT-DETR, a Vision Transformer-based real-time object detector offering high accuracy and adaptable inference speed. Learn more with Ultralytics.
-keywords: RT-DETR, Baidu, Vision Transformer, real-time object detection, PaddlePaddle, Ultralytics, pretrained models, AI, machine learning, computer vision
+keywords: RT-DETR, Baidu, Vision Transformer, real-time object detection, PaddlePaddle, Ultralytics, pretrained models, decoder layer index, AI, machine learning, computer vision
 ---
 
 # Baidu's RT-DETR: A Vision [Transformer](https://www.ultralytics.com/glossary/transformer)-Based Real-Time Object Detector
@@ -37,6 +37,25 @@ The Ultralytics Python API provides pretrained PaddlePaddle RT-DETR models with 
 
 - RT-DETR-L: 53.0% AP on COCO val2017, 114 FPS on T4 GPU
 - RT-DETR-X: 54.8% AP on COCO val2017, 74 FPS on T4 GPU
+
+!!! tip "Faster Inference with Decoder Layers"
+
+    RT-DETR pretrained weights use the final decoder layer by default. For latency-sensitive deployments, you can set the decoder layer index (`eval_idx`) to stop evaluation at an earlier decoder layer, reducing inference time without retraining. This can lower mAP, so validate the chosen value on your dataset before deployment. When assigning `eval_idx` directly, use a zero-based value from `0` to `num_layers - 1`. For the default 6-layer decoder, `eval_idx=5` uses all layers, while `eval_idx=3` uses 4 decoder layers. For example, RT-DETR-L on a T4 GPU with TensorRT v10.11 can improve from 8.0 ms at 52.7 mAP to 7.4 ms at 52.5 mAP with 4 decoder layers, gaining 0.6 ms with a 0.2 mAP reduction.
+
+    ```python
+    from ultralytics import RTDETR
+
+    rtdetr = RTDETR("rtdetr-l.pt")
+    decoder = rtdetr.model.model[-1].decoder
+
+    # Use 4 of 6 decoder layers for faster inference.
+    decoder.eval_idx = 3
+
+    results = rtdetr("path/to/image.jpg")
+
+    # Export uses the same decoder setting, including TensorRT exports.
+    rtdetr.export(format="engine", device=0, half=True)
+    ```
 
 Additionally, Baidu has released RTDETRv2 in July 2024, which further improves upon the original architecture with enhanced performance metrics.
 

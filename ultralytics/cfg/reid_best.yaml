@@ -52,13 +52,15 @@
 # verbatim reliably reaches **R1≈0.907, mAP≈0.859** in our setup. Use that as the
 # realistic single-model ceiling for this stack.
 #
-# ─── IMGSZ vs BATCH TRADE-OFF (arch27b vs arch28) ─────────────────────────────
-# Two headline-recipe runs differing only in imgsz×batch under the same 1h compute budget:
-#   arch27b: imgsz=320, batch=128  →  R1=0.907, mAP=0.858  (SESSION BEST)
-#   arch28:  imgsz=288, batch=192  →  R1=0.881, mAP=0.820  (-2.6pp R1)
-# Conclusion: at fixed 1h on 4× RTX 5090, **imgsz=320 beats batch=192**. Adopt
-# `imgsz=320, batch=128` as the working defaults; the previously-stated `batch=192`
-# in the recipe header requires imgsz≤288 (which is worse) or >32GB GPUs.
+# ─── IMGSZ SCALING SWEEP (arch27b, arch28, arch30) ────────────────────────────
+# Headline-recipe runs at constant 1h budget on 4× RTX 5090, varying imgsz × batch:
+#   imgsz=288, batch=192  (arch28)  →  R1=0.881, mAP=0.820
+#   imgsz=320, batch=128  (arch27b) →  R1=0.907, mAP=0.858
+#   imgsz=352, batch=96   (arch30)  →  R1=0.915, mAP=0.870   ← **NEW BEST**
+# imgsz scaling is monotonically helpful on the 2psa+MSMT-pretrain stack: +0.034 R1
+# from 288→352. The earlier "imgsz=384 NULL" note (arch08) was at batch=128 (mem-press)
+# and an older hparam set — re-test with batch=64 + headline recipe might still climb.
+# **New working defaults: imgsz=352, batch=96** (matches the data resolution sweet spot).
 #
 # ─── HEADLINE-RECIPE REPLICATION (arch27b) ────────────────────────────────────
 # Re-running the headline Market-FT recipe verbatim (lr0=3.5e-3, lrf=0.001, cos_lr=True,

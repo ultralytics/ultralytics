@@ -42,6 +42,16 @@
 #   - To reach paper R1=0.95: needs JPM module (+1.5pp), SIE module, per-param-group LR (head
 #     10x faster than backbone), CE-only first phase. None are cheap; deferred to v2.
 #
+# ─── SEED-VARIANCE / REPRODUCIBILITY (arch27b + arch29) ───────────────────────
+# Two-seed replication of the headline recipe (yolo26l-reid-2psa + 1h MSMT pretrain +
+# 1h Market FT at imgsz=320, batch=128):
+#   arch27b (default seed): R1=0.907, mAP=0.858
+#   arch29  (seed=1):       R1=0.907, mAP=0.860
+# Run variance: ±0.2pp R1. The headline-claimed R1=0.922 (above) appears to be either
+# a peak-checkpoint number or relied on non-recorded factors; replicating the recipe
+# verbatim reliably reaches **R1≈0.907, mAP≈0.859** in our setup. Use that as the
+# realistic single-model ceiling for this stack.
+#
 # ─── IMGSZ vs BATCH TRADE-OFF (arch27b vs arch28) ─────────────────────────────
 # Two headline-recipe runs differing only in imgsz×batch under the same 1h compute budget:
 #   arch27b: imgsz=320, batch=128  →  R1=0.907, mAP=0.858  (SESSION BEST)

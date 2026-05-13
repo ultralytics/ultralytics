@@ -1344,6 +1344,53 @@ class RandomPerspective:
         return (w2 > wh_thr) & (h2 > wh_thr) & (w2 * h2 / (w1 * h1 + eps) > area_thr) & (ar < ar_thr)  # candidates
 
 
+class RandomErasing:
+    """RandomErasing augmentation for YOLO detection and segmentation models.
+    
+    This class performs random patch removal on images, typically improving robustness of detection.
+    """
+    
+    def __init__(self, p: float = 0.5, scale: tuple[float, float] = (0.02, 0.33), ratio: tuple[float, float] = (0.3, 3.3), value: int = 114) -> None:
+        """Initialize the RandomErasing object.
+
+        Args:
+            p (float): Probability of applying RandomErasing.
+            scale (tuple[float, float]): Range of proportion of erased area against input image.
+            ratio (tuple[float, float]): Range of aspect ratio of erased area.
+            value (int): Pixel value used to fill the erased area.
+        """
+        self.p = p
+        self.scale = scale
+        self.ratio = ratio
+        self.value = value
+
+    def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
+        """Apply random erasing to an image."""
+        if random.random() > self.p:
+            return labels
+        
+        img = labels["img"]
+        h, w = img.shape[:2]
+        area = h * w
+        
+        for _ in range(10):
+            target_area = random.uniform(*self.scale) * area
+            log_ratio = (math.log(self.ratio[0]), math.log(self.ratio[1]))
+            aspect_ratio = math.exp(random.uniform(*log_ratio))
+
+            ew = int(round(math.sqrt(target_area * aspect_ratio)))
+            eh = int(round(math.sqrt(target_area / aspect_ratio)))
+
+            if ew < w and eh < h:
+                x = random.randint(0, w - ew)
+                y = random.randint(0, h - eh)
+
+                labels["img"][y:y+eh, x:x+ew] = self.value
+                break
+                
+        return labels
+
+
 class RandomHSV:
     """Randomly adjust the Hue, Saturation, and Value (HSV) channels of an image.
 
@@ -1887,6 +1934,15 @@ class Albumentations:
                 if self.contains_spatial
                 else A.Compose(T)
             )
+            self.transform_kpt = (
+                A.Compose(
+                    T,
+                    bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]),
+                    keypoint_params=A.KeypointParams(format="xy", label_fields=["keypoint_labels"], remove_invisible=False),
+                )
+                if self.contains_spatial
+                else A.Compose(T)
+            )
             if hasattr(self.transform, "set_random_seed"):
                 # Required for deterministic transforms in albumentations>=1.4.21
                 self.transform.set_random_seed(torch.initial_seed())
@@ -1939,13 +1995,62 @@ class Albumentations:
                 labels["instances"].convert_bbox("xywh")
                 labels["instances"].normalize(*im.shape[:2][::-1])
                 bboxes = labels["instances"].bboxes
-                # TODO: add supports of segments and keypoints
-                new = self.transform(image=im, bboxes=bboxes, class_labels=cls)  # transformed
-                if len(new["class_labels"]) > 0:  # skip update if no bbox in new im
-                    labels["img"] = new["image"]
-                    labels["cls"] = np.array(new["class_labels"]).reshape(-1, 1)
-                    bboxes = np.array(new["bboxes"], dtype=np.float32)
-                labels["instances"].update(bboxes=bboxes)
+
+                keypoints = labels["instances"].keypoints
+                segments = labels["instances"].segments
+
+                if keypoints is not None or len(segments):
+                    kpts = []
+                    kpt_labels = []
+
+                    if keypoints is not None:
+                        kpts_flat = keypoints.reshape(-1, 3)[:, :2].tolist()
+                        kpts.extend(kpts_flat)
+                        kpt_labels.extend([0] * len(kpts_flat))
+
+                    if len(segments):
+                        seg_flat = np.concatenate(segments, axis=0) if isinstance(segments, (list, tuple)) else segments.reshape(-1, 2)
+                        kpts.extend(seg_flat.tolist())
+                        kpt_labels.extend([1] * len(seg_flat))
+
+                    new = self.transform_kpt(image=im, bboxes=bboxes, class_labels=cls, keypoints=kpts, keypoint_labels=kpt_labels)
+                    if len(new["keypoints"]) > 0:
+                        new_kpts = np.array(new["keypoints"])
+                    else:
+                        new_kpts = np.empty((0, 2))
+
+                    idx = 0
+                    if keypoints is not None:
+                        num_kpts = keypoints.shape[0] * keypoints.shape[1]
+                        keypoints[..., :2] = new_kpts[idx:idx+num_kpts].reshape(keypoints.shape[0], keypoints.shape[1], 2)
+                        idx += num_kpts
+
+                    if len(segments):
+                        new_seg_flat = new_kpts[idx:]
+                        if isinstance(segments, (list, tuple)):
+                            new_segments = []
+                            curr = 0
+                            for s in segments:
+                                new_segments.append(new_seg_flat[curr:curr+len(s)])
+                                curr += len(s)
+                            segments = new_segments
+                        else:
+                            segments = new_seg_flat.reshape(segments.shape)
+
+                    labels["instances"].update(bboxes=np.array(new["bboxes"], dtype=np.float32) if len(new["class_labels"]) else bboxes, 
+                                               segments=segments, 
+                                               keypoints=keypoints)
+
+                    if len(new["class_labels"]) > 0:
+                        labels["img"] = new["image"]
+                        labels["cls"] = np.array(new["class_labels"]).reshape(-1, 1)
+                else:
+                    new = self.transform(image=im, bboxes=bboxes, class_labels=cls)  # transformed
+                    if len(new["class_labels"]) > 0:  # skip update if no bbox in new im
+                        labels["img"] = new["image"]
+                        labels["cls"] = np.array(new["class_labels"]).reshape(-1, 1)
+                        bboxes = np.array(new["bboxes"], dtype=np.float32)
+                    labels["instances"].update(bboxes=bboxes)
         else:
             labels["img"] = self.transform(image=labels["img"])["image"]  # transformed
 
@@ -2450,6 +2555,7 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bo
             MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup),
             CutMix(dataset, pre_transform=pre_transform, p=hyp.cutmix),
             Albumentations(p=1.0, transforms=getattr(hyp, "augmentations", None)),
+            RandomErasing(p=getattr(hyp, "erasing", 0.0)),
             RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
             RandomFlip(direction="vertical", p=hyp.flipud, flip_idx=flip_idx),
             RandomFlip(direction="horizontal", p=hyp.fliplr, flip_idx=flip_idx),

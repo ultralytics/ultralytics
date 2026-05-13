@@ -382,3 +382,16 @@ def test_export_axelera():
     assert Path(file).exists(), f"Axelera export failed, directory not found: {file}"
     # Note: Inference testing skipped as it requires Axelera hardware
     shutil.rmtree(file, ignore_errors=True)  # cleanup
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not LINUX or ARM64, reason="DeepX export only supported on non-aarch64 Linux")
+@pytest.mark.skipif(
+    not checks.IS_PYTHON_MINIMUM_3_12, reason="Requires Python>=3.12 for CI validation due to torch upgrades"
+)
+def test_export_deepx():
+    """Test YOLO export to DeepX format."""
+    file = YOLO(MODEL).export(format="deepx", imgsz=32)
+    assert Path(file).exists(), f"DeepX export failed, directory not found: {file}"
+    # Note: Inference testing skipped as it requires DeepX hardware
+    shutil.rmtree(file, ignore_errors=True)  # cleanup

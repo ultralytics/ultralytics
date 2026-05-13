@@ -43,8 +43,9 @@ If your dataset already has Ultralytics YOLO polygon labels (one `.txt` per imag
 
 This path is selected automatically when the dataset YAML **omits** `masks_dir`. Behavior:
 
-- Polygons are rasterized into a per-image semantic mask at load time, sorted by area so smaller objects override larger ones in overlap regions.
-- An extra **background** class is appended after your declared classes for pixels not covered by any polygon. If you list `N` classes in `names`, the model is built with `N + 1` output channels and the last channel is background.
+- Polygons are converted to a per-image semantic mask at load time, sorted by area so smaller objects override larger ones in overlap regions.
+- **Multi-class** (`N > 1` in `names`): an extra `background` class is appended after your declared classes for pixels not covered by any polygon. The model is built with `N + 1` output channels and the last channel is background.
+- **Single-class** (`N == 1` in `names`): still trained as 1 class. The mask is binary, with your declared class shown as `1` and pixels not covered by any polygon as `0`. No extra background class is added to `names`.
 - Pixels added by augmentation padding (e.g. random crop) still use `255` as ignore_label.
 
 Use this path when your data is already labeled as instance polygons and you want a semantic segmentation model from the same files.
@@ -129,7 +130,7 @@ names:
 
 1. Lay out images and `.txt` polygon files exactly as for [instance segmentation](../segment/index.md).
 2. Create a dataset YAML with `path`, `train`, `val`, and `names` — **omit** `masks_dir`.
-3. Do not add a "background" entry to `names`; the loader appends it automatically.
+3. Do not add a "background" entry to `names`. For multi-class datasets the loader appends one automatically; for single-class datasets training stays at 1 class — your declared class becomes `1` in the mask and uncovered pixels become `0`.
 
 ```yaml
 path: path/to/my-polygon-dataset
@@ -159,6 +160,6 @@ Yes. Each semantic mask should have the same file stem as the corresponding imag
 
 Yes, if they already match your `names` class IDs. If the source dataset uses non-contiguous IDs or includes labels that should be ignored, add a `label_mapping` section to convert source pixel values to training IDs.
 
-### Can I train semantic segmentation from instance polygon labels?
+### Can I use my instance segmentation dataset to train semantic segmentation?
 
-Yes. If your dataset YAML omits `masks_dir`, polygon labels are rasterized into per-image masks at load time and an extra "background" class is appended for pixels not covered by any polygon. Your model is built with `N + 1` output channels, where `N` is the number of classes in your `names` mapping.
+Yes. Instance segmentation datasets use Ultralytics YOLO polygon labels (one `.txt` per image with `<class-index> <x1> <y1> <x2> <y2> ...` rows), and the same files can be reused for semantic segmentation — just **omit** `masks_dir` from the dataset YAML. The loader converts polygons to per-image masks on the fly. For multi-class datasets (`N > 1`) an extra `background` class is appended and the model is built with `N + 1` output channels. For single-class datasets (`N == 1`) training stays at 1 class — the mask shows your declared class as `1` and uncovered pixels as `0`.

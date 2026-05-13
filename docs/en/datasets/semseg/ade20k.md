@@ -20,12 +20,12 @@ The Ultralytics configuration expects the official ADEChallengeData2016 layout:
 
 ```text
 ADEChallengeData2016/
-|-- images/
-|   |-- training/
-|   `-- validation/
-`-- annotations/
-    |-- training/
-    `-- validation/
+├── images/
+│   ├── training/
+│   └── validation/
+└── annotations/
+    ├── training/
+    └── validation/
 ```
 
 The `masks_dir` field is set to `annotations`, so each image under `images/` is paired with its corresponding mask under `annotations/`. The original ADE20K masks use source label IDs where `0` is ignored, and the `label_mapping` section converts valid labels `1` through `150` to contiguous train IDs `0` through `149`, mapping ignored pixels to `255`.

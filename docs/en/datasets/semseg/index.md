@@ -27,12 +27,12 @@ The default layout keeps images and masks in parallel folders. The `masks_dir` v
 
 ```text
 dataset/
-|-- images/
-|   |-- train/
-|   `-- val/
-`-- masks/
-    |-- train/
-    `-- val/
+├── images/
+│   ├── train/
+│   └── val/
+└── masks/
+    ├── train/
+    └── val/
 ```
 
 For example, an image at `images/train/aachen_000000_000019.png` is paired with a mask at `masks/train/aachen_000000_000019.png` when `masks_dir: masks`.

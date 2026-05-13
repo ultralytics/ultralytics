@@ -20,14 +20,14 @@ The Ultralytics configuration expects the following layout after preparation:
 
 ```text
 cityscapes/
-|-- images/
-|   |-- train/
-|   |-- val/
-|   `-- test/
-`-- masks/
-    |-- train/
-    |-- val/
-    `-- test/
+├── images/
+│   ├── train/
+│   ├── val/
+│   └── test/
+└── masks/
+    ├── train/
+    ├── val/
+    └── test/
 ```
 
 The semantic masks are single-channel PNG files. The original Cityscapes label IDs are mapped to the standard 19 train IDs via the `label_mapping` section, and ignored or void labels are mapped to `255` so they are excluded from training and evaluation. The official `leftImg8bit` and `gtFine` archives must be downloaded from the Cityscapes website and extracted into the dataset root before the preparation script organizes images and masks into this layout.

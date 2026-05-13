@@ -8,6 +8,7 @@ import uuid
 from contextlib import redirect_stderr, redirect_stdout
 from itertools import product
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 import torch
@@ -66,6 +67,51 @@ def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
 
     assert not errors, f"Concurrent export errors: {errors}"
     assert max_active == 1, f"Expected max 1 concurrent export, got {max_active}"
+
+
+def test_export_formats_support_calibration_batch():
+    """Ensure export formats support calibration_batch."""
+    from ultralytics.engine.exporter import export_formats
+
+    format_args = dict(zip(export_formats()["Argument"], export_formats()["Arguments"]))
+    assert "calibration_batch" in format_args["engine"]
+    assert "calibration_batch" in format_args["openvino"]
+
+
+def test_exporter_int8_calibration_batch(monkeypatch):
+    """Ensure INT8 calibration dataloader uses calibration_batch when set."""
+    import ultralytics.engine.exporter as exporter_module
+
+    exporter = exporter_module.Exporter(overrides={"format": "engine", "int8": True, "batch": 2, "data": "coco128.yaml"})
+    exporter.model = SimpleNamespace(task="detect")
+    exporter.imgsz = [640, 640]
+    exporter.args.split = "val"
+    exporter.args.fraction = 1.0
+    exporter.args.format = "engine"
+    exporter.args.calibration_batch = 4
+
+    def fake_check_det_dataset(data):
+        return {"val": "dummy_path"}
+
+    class DummyDataset:
+        def __init__(self, *args, **kwargs):
+            self.batch_size = kwargs["batch_size"]
+            self.transforms = SimpleNamespace(transforms=[SimpleNamespace(new_shape=None)])
+
+        def __len__(self):
+            return 10
+
+    def fake_build_dataloader(dataset, batch, workers, drop_last):
+        assert batch == 4
+        assert dataset.batch_size == 4
+        return SimpleNamespace(batch_size=batch, dataset=dataset)
+
+    monkeypatch.setattr(exporter_module, "check_det_dataset", fake_check_det_dataset)
+    monkeypatch.setattr(exporter_module, "YOLODataset", DummyDataset)
+    monkeypatch.setattr(exporter_module, "build_dataloader", fake_build_dataloader)
+
+    dataloader = exporter.get_int8_calibration_dataloader()
+    assert dataloader.batch_size == 4
 
 
 @pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")

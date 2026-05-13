@@ -131,7 +131,7 @@ def export_formats():
             "_openvino_model",
             True,
             False,
-            ["batch", "data", "dynamic", "half", "int8", "nms", "fraction"],
+            ["batch", "data", "dynamic", "half", "int8", "nms", "fraction", "calibration_batch"],
         ],
         [
             "TensorRT",
@@ -139,7 +139,7 @@ def export_formats():
             ".engine",
             False,
             True,
-            ["batch", "data", "dynamic", "half", "int8", "simplify", "nms", "fraction"],
+            ["batch", "data", "dynamic", "half", "int8", "simplify", "nms", "fraction", "calibration_batch"],
         ],
         ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "dynamic", "half", "int8", "nms"]],
         [
@@ -177,7 +177,7 @@ def validate_args(format, passed_args, valid_args):
     Raises:
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
     """
-    export_args = ["half", "int8", "dynamic", "keras", "nms", "batch", "fraction", "data"]
+    export_args = ["half", "int8", "dynamic", "keras", "nms", "batch", "calibration_batch", "fraction", "data"]
 
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults
@@ -563,6 +563,8 @@ class Exporter:
         """Build and return a dataloader for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
+        calibration_batch = self.args.calibration_batch if self.args.calibration_batch is not None else self.args.batch
+        assert calibration_batch > 0, "calibration_batch must be a positive integer"
         dataset = YOLODataset(
             data[self.args.split or "val"],
             data=data,
@@ -570,15 +572,15 @@ class Exporter:
             task=self.model.task,
             imgsz=max(self.imgsz),
             augment=False,
-            batch_size=self.args.batch,
+            batch_size=calibration_batch,
         )
         if hasattr(dataset.transforms.transforms[0], "new_shape"):
             dataset.transforms.transforms[0].new_shape = self.imgsz  # LetterBox with non-square imgsz
         n = len(dataset)
         if n < 1:
             raise ValueError(f"The calibration dataset must have at least 1 image, but found {n} images.")
-        batch = min(self.args.batch, n)
-        if n < self.args.batch:
+        batch = min(calibration_batch, n)
+        if n < calibration_batch:
             LOGGER.warning(
                 f"{prefix} calibration dataset has only {n} images, reducing calibration batch size to {batch}."
             )

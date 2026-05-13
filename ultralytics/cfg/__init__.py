@@ -222,6 +222,7 @@ CFG_INT_KEYS = frozenset(
         "line_width",
         "nbs",
         "save_period",
+        "calibration_batch",
     }
 )
 CFG_BOOL_KEYS = frozenset(

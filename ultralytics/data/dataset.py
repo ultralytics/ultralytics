@@ -819,13 +819,16 @@ class SemsegDataset(BaseDataset):
 
     def load_image(self, i, rect_mode=True):
         """Load an image for semantic segmentation, scaling the short side to imgsz when rect_mode=True."""
-        return super().load_image(i, rect_mode=rect_mode, resize_short=True)
+        return super().load_image(i, rect_mode=rect_mode, resize_short=self.augment)
 
     def load_mask(self, index: int, image_shape: tuple[int, int] | None = None) -> np.ndarray:
         """Load and map a semantic mask from source mask file."""
         mask = cv2.imread(self.labels[index]["mask_file"], cv2.IMREAD_GRAYSCALE)
         if mask is None:
             return np.full(image_shape, self.ignore_label, dtype=np.uint8)
+        if int(self.data.get("nc", 0)) == 1:
+            # cv2 expands 1-bit PNG (PIL mode "1") to 8-bit as {0, 255}; remap to {0, 1} for binary masks.
+            mask[mask == 255] = 1
         if self.label_mapping:
             mask = self.convert_label(mask, inverse=False)
         return mask.astype(np.uint8, copy=False)
@@ -949,24 +952,24 @@ class SemsegDataset(BaseDataset):
 
 
 def add_polygon_background(data: dict) -> dict:
-    """Append a 'background' class for the polygon-based semseg path (yaml without 'masks_dir').
+    """Set up the background class for the polygon-based semseg path (yaml without 'masks_dir').
 
-    When the dataset provides instance polygon labels and no PNG masks, an extra background lass id is
-    reserved for pixels not covered by any polygon.
+    - nc > 1: appends a 'background' class at id=nc and bumps data['nc'] to nc+1; polygon
+      cls values are kept as foreground ids.
+    - nc == 1: keeps nc=1 (binary segmentation). Polygon rasterization
+      yields a {0=bg, 1=fg} mask regardless of the label cls value.
     """
     if data.get("masks_dir") or data.get("_polygon_bg_added"):
         return data
     nc = int(data.get("nc") or len(data.get("names") or {}))
-    names = dict(data.get("names") or {})
-    if nc == 1:  # assign background as 0, and class 0 as 1
-        names[1] = names.get(0, "class0")
-        names[0] = "background"
+    if nc == 1:  # binary: bg=0, fg=1 (implicit); model uses BCE on a single output channel
         data["bg_class_idx"] = 0
     else:
+        names = dict(data.get("names") or {})
         names[nc] = "background"
         data["bg_class_idx"] = nc
-    data["nc"] = nc + 1
-    data["names"] = names
+        data["nc"] = nc + 1
+        data["names"] = names
     data["_polygon_bg_added"] = True
     return data
 
@@ -975,16 +978,17 @@ class PolygonSemsegDataset(YOLODataset):
     """Semantic segmentation dataset that rasterizes YOLO polygon labels into masks on the fly.
 
     Used when the dataset YAML lacks 'masks_dir'. Pixels not covered by any polygon become a
-    dedicated background class. Requires `add_polygon_background(data)` to be called first, which
-    bumps `data['nc']` to user_nc + 1; the background id is then `data['nc'] - 1`.
+    dedicated background class. Requires `add_polygon_background(data)` to be called first:
+    for nc > 1 it bumps `data['nc']` to user_nc + 1 with background at `nc - 1`; for nc == 1
+    it keeps nc=1 and rasterizes a {0=bg, 1=fg} binary mask for use with BCEWithLogitsLoss.
     """
 
     def __init__(self, *args, data=None, **kwargs):
         """Initialize PolygonSemsegDataset.
 
         Args:
-            data (dict): Dataset configuration. `data['nc']` must already include the background
-                class; the last class id (`nc - 1`) is reserved for background.
+            data (dict): Dataset configuration. `data['bg_class_idx']` indicates the background
+                class id (0 in the nc==1 binary case, `nc - 1` for nc>1).
             *args: Positional arguments forwarded to `SemsegDataset` / `BaseDataset`.
             **kwargs: Keyword arguments forwarded to `SemsegDataset` / `BaseDataset`.
         """
@@ -1030,10 +1034,13 @@ class PolygonSemsegDataset(YOLODataset):
         polys = [np.asarray(s, dtype=np.float32).reshape(-1, 2) * scale for s in segments]
         # Returns (H, W) instance index map: 0 = no polygon, 1..N = sorted instance index.
         inst, sorted_idx = polygons2masks_overlap((h, w), polys, downsample_ratio=1)
-        cls_arr = np.asarray(cls).reshape(-1).astype(np.int32)[sorted_idx]
         out = np.full((h, w), self.bg_class_idx, dtype=np.uint8)
         fg = inst > 0
-        out[fg] = cls_arr[inst[fg] - 1].astype(np.uint8)
+        if int(self.data.get("nc", 0)) == 1:  # binary: fg=1 regardless of label cls value
+            out[fg] = 1
+        else:
+            cls_arr = np.asarray(cls).reshape(-1).astype(np.int32)[sorted_idx]
+            out[fg] = cls_arr[inst[fg] - 1].astype(np.uint8)
         return out
 
     def get_image_and_label(self, index):

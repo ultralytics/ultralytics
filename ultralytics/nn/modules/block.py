@@ -56,6 +56,7 @@ __all__ = (
     "SpatialPriorModulev2",
     "DEIMDINOv3STAs",
     "DEIMEUPESTAs",
+    "DEIMEUPEConvNeXt",
     "PResNet",
     "TorchVision",
     "Timm",
@@ -1994,6 +1995,40 @@ class DEIMEUPESTAs(nn.Module):
             weights=weights,
             repo_dir=repo_dir,
             check_hash=check_hash,
+        )
+        self.split = split
+        self.channels = self.m.out_channels
+
+    def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
+        """Forward pass returning [input, P3, P4, P5] when split=True."""
+        y = self.m(x)
+        return [x, *y] if self.split else y
+
+
+class DEIMEUPEConvNeXt(nn.Module):
+    """Wrapper for EUPE ConvNeXt backbones."""
+
+    def __init__(
+        self,
+        name: str = "eupe_convnext_tiny",
+        pretrained: bool = True,
+        out_indices: tuple[int, ...] = (1, 2, 3),
+        finetune: bool = True,
+        split: bool = True,
+        weights: str | None = None,
+        repo_dir: str | None = None,
+    ):
+        """Initialize EUPE ConvNeXt wrapper for Ultralytics model parser."""
+        from ultralytics.nn.backbones.eupe_adapter import EUPEConvNeXt as _EUPEConvNeXt  # scope for faster import
+
+        super().__init__()
+        self.m = _EUPEConvNeXt(
+            name=name,
+            pretrained=pretrained,
+            out_indices=list(out_indices),
+            finetune=finetune,
+            weights=weights,
+            repo_dir=repo_dir,
         )
         self.split = split
         self.channels = self.m.out_channels

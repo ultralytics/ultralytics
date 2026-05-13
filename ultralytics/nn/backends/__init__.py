@@ -9,6 +9,7 @@ Each backend implements the `BaseBackend` interface and can be used independentl
 from .axelera import AxeleraBackend
 from .base import BaseBackend
 from .coreml import CoreMLBackend
+from .deepx import DeepXBackend
 from .executorch import ExecuTorchBackend
 from .mnn import MNNBackend
 from .ncnn import NCNNBackend
@@ -25,6 +26,7 @@ __all__ = [
     "AxeleraBackend",
     "BaseBackend",
     "CoreMLBackend",
+    "DeepXBackend",
     "ExecuTorchBackend",
     "MNNBackend",
     "NCNNBackend",

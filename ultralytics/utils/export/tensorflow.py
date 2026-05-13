@@ -216,7 +216,7 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
     help_url = "https://coral.ai/docs/edgetpu/compiler/"
     if not LINUX:
         raise SystemError(f"export only supported on Linux. See {help_url}")
-    if _sp.run(check_cmd, stdout=_sp.DEVNULL, stderr=_sp.DEVNULL).returncode != 0:
+    if __import__("shutil").which("edgetpu_compiler") is None or _sp.run(check_cmd, stdout=_sp.DEVNULL, stderr=_sp.DEVNULL).returncode != 0:
         LOGGER.info(f"\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}")
         sudo_prefix = ["sudo"] if is_sudo_available() else []
         _sp.run(sudo_prefix + ["mkdir", "-p", "/etc/apt/keyrings"], check=True)

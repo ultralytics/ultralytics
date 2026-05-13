@@ -36,11 +36,11 @@ Before we dive into the process of exporting YOLO26 models to the TF SavedModel 
 
 TF SavedModel provides a range of options to deploy your machine learning models:
 
-- **TensorFlow Serving:** TensorFlow Serving is a flexible, high-performance serving system designed for production environments. It natively supports TF SavedModels, making it easy to deploy and serve your models on cloud platforms, on-premises servers, or [edge devices](https://docs.ultralytics.com/guides/raspberry-pi/).
+- **TensorFlow Serving:** TensorFlow Serving is a flexible, high-performance serving system designed for production environments. It natively supports TF SavedModels, making it easy to deploy and serve your models on cloud platforms, on-premises servers, or [edge devices](https://docs.ultralytics.com/guides/raspberry-pi).
 
-- **Cloud Platforms:** Major cloud providers like [Google Cloud Platform (GCP)](https://cloud.google.com/vertex-ai), [Amazon Web Services (AWS)](https://aws.amazon.com/sagemaker/), and [Microsoft Azure](https://azure.microsoft.com/en-us/services/machine-learning/) offer services for deploying and running TensorFlow models, including TF SavedModels. These services provide scalable and managed infrastructure, allowing you to deploy and scale your models easily.
+- **Cloud Platforms:** Major cloud providers like [Google Cloud Platform (GCP)](https://cloud.google.com/products/gemini-enterprise-agent-platform), [Amazon Web Services (AWS)](https://aws.amazon.com/sagemaker/), and [Microsoft Azure](https://azure.microsoft.com/en-us/services/machine-learning/) offer services for deploying and running TensorFlow models, including TF SavedModels. These services provide scalable and managed infrastructure, allowing you to deploy and scale your models easily.
 
-- **Mobile and Embedded Devices:** [TensorFlow Lite](https://docs.ultralytics.com/integrations/tflite/), a lightweight solution for running machine learning models on mobile, embedded, and IoT devices, supports converting TF SavedModels to the TensorFlow Lite format. This allows you to deploy your models on a wide range of devices, from smartphones and tablets to microcontrollers and edge devices.
+- **Mobile and Embedded Devices:** [TensorFlow Lite](https://docs.ultralytics.com/integrations/tflite), a lightweight solution for running machine learning models on mobile, embedded, and IoT devices, supports converting TF SavedModels to the TensorFlow Lite format. This allows you to deploy your models on a wide range of devices, from smartphones and tablets to microcontrollers and edge devices.
 
 - **TensorFlow Runtime:** TensorFlow Runtime (`tfrt`) is a high-performance runtime for executing [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) graphs. It provides lower-level APIs for loading and running TF SavedModels in C++ environments. TensorFlow Runtime offers better performance compared to the standard TensorFlow runtime. It is suitable for deployment scenarios that require low-latency inference and tight integration with existing C++ codebases.
 
@@ -107,7 +107,7 @@ All [Ultralytics YOLO26 models](../models/index.md) are designed to support expo
 | `int8`     | `bool`           | `False`         | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices.                                                                    |
 | `nms`      | `bool`           | `False`         | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                                                                                              |
 | `batch`    | `int`            | `1`             | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
-| `data`     | `str`            | `'coco8.yaml'`  | Path to the [dataset](https://docs.ultralytics.com/datasets/) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                            |
+| `data`     | `str`            | `'coco8.yaml'`  | Path to the [dataset](https://docs.ultralytics.com/datasets) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                             |
 | `fraction` | `float`          | `1.0`           | Specifies the fraction of the dataset to use for INT8 quantization calibration. Allows for calibrating on a subset of the full dataset, useful for experiments or when resources are limited. If not specified with INT8 enabled, the full dataset will be used. |
 | `device`   | `str`            | `None`          | Specifies the device for exporting: CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                                                                    |
 
@@ -185,7 +185,7 @@ TF SavedModel can be deployed in various environments, including:
 
 - **TensorFlow Serving:** Ideal for production environments requiring scalable and high-performance model serving.
 - **Cloud Platforms:** Supports major cloud services like Google Cloud Platform (GCP), Amazon Web Services (AWS), and Microsoft Azure for scalable model deployment.
-- **Mobile and Embedded Devices:** Using [TensorFlow Lite](https://docs.ultralytics.com/integrations/tflite/) to convert TF SavedModels allows for deployment on mobile devices, IoT devices, and microcontrollers.
+- **Mobile and Embedded Devices:** Using [TensorFlow Lite](https://docs.ultralytics.com/integrations/tflite) to convert TF SavedModels allows for deployment on mobile devices, IoT devices, and microcontrollers.
 - **TensorFlow Runtime:** For C++ environments needing low-latency inference with better performance.
 
 For detailed deployment options, visit the official guides on [deploying TensorFlow models](https://www.tensorflow.org/tfx/guide/serving).

@@ -720,7 +720,7 @@ def contribution_admonition(pretty: str, url: str, *, kind: str = "note", title:
     label = f' "{title}"' if title else ""
     body = (
         f"This page is sourced from [{pretty}]({url}). Have an improvement or example to add? "
-        f"Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏"
+        f"Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏"
     )
     return f"!!! {kind}{label}\n\n    {body}\n\n"
 

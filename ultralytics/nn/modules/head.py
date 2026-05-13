@@ -37,6 +37,7 @@ __all__ = (
     "Classify",
     "Detect",
     "DeimDecoder",
+    "DeimLayerNormDecoder",
     "DFineDecoder",
     "Pose",
     "RTDETRDecoder",
@@ -2309,6 +2310,7 @@ class DeimDecoder(DFineDecoder):
         use_gateway: bool = True,
         share_bbox_head: bool = False,
         share_score_head: bool = False,
+        use_rmsnorm: bool = True,
     ):
         nn.Module.__init__(self)
         self.hidden_dim = hd
@@ -2355,6 +2357,7 @@ class DeimDecoder(DFineDecoder):
             ndp,
             enable_cuda_acceleration=enable_cuda_acceleration,
             use_gateway=use_gateway,
+            use_rmsnorm=use_rmsnorm,
         )
         decoder_layer_wide = DeimTransformerDecoderLayer(
             hd,
@@ -2367,6 +2370,7 @@ class DeimDecoder(DFineDecoder):
             enable_cuda_acceleration=enable_cuda_acceleration,
             layer_scale=layer_scale if layer_scale > 1 else None,
             use_gateway=use_gateway,
+            use_rmsnorm=use_rmsnorm,
         )
         self.decoder = DeimTransformerDecoder(
             hd,
@@ -2442,6 +2446,14 @@ class DeimDecoder(DFineDecoder):
         for layer in self.input_proj:
             if isinstance(layer, nn.Sequential) and len(layer) and hasattr(layer[0], "weight"):
                 xavier_uniform_(layer[0].weight)
+
+
+class DeimLayerNormDecoder(DeimDecoder):
+    """DEIMv2 decoder variant that keeps DEIM compute paths but uses LayerNorm instead of RMSNorm."""
+
+    def __init__(self, *args, **kwargs):
+        kwargs["use_rmsnorm"] = False
+        super().__init__(*args, **kwargs)
 
 
 class v10Detect(Detect):

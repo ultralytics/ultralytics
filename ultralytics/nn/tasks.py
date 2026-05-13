@@ -50,6 +50,7 @@ from ultralytics.nn.modules import (
     DEIMEUPESTAs,
     Detect,
     DeimDecoder,
+    DeimLayerNormDecoder,
     DWConv,
     DWConvTranspose2d,
     Focus,
@@ -2003,7 +2004,7 @@ def parse_model(d, ch, verbose=True):
             args.append([ch[x] for x in f])
         elif m is ImagePoolingAttn:
             args.insert(1, [ch[x] for x in f])  # channels as second arg
-        elif m in {RTDETRDecoder, RTDETRDecoderv2, DFineDecoder, DeimDecoder}:  # special case, channels arg must be passed in index 1
+        elif m in {RTDETRDecoder, RTDETRDecoderv2, DFineDecoder, DeimDecoder, DeimLayerNormDecoder}:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
         elif m is CBLinear:
             c2 = args[0]

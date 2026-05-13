@@ -464,6 +464,7 @@ class DeimTransformerDecoderLayer(nn.Module):
         cross_attn_method: str = "default",
         layer_scale=None,
         use_gateway: bool = False,
+        use_rmsnorm: bool = True,
     ):
         super().__init__()
         del act, enable_cuda_acceleration
@@ -473,19 +474,20 @@ class DeimTransformerDecoderLayer(nn.Module):
 
         self.self_attn = nn.MultiheadAttention(d_model, n_heads, dropout=dropout, batch_first=True)
         self.dropout1 = nn.Dropout(dropout)
-        self.norm1 = DEIMRMSNorm(d_model)
+        norm_layer = DEIMRMSNorm if use_rmsnorm else nn.LayerNorm
+        self.norm1 = norm_layer(d_model)
 
         self.cross_attn = MSDeformableAttention(d_model, n_heads, n_levels, n_points, method=cross_attn_method)
         self.dropout2 = nn.Dropout(dropout)
         self.use_gateway = use_gateway
         if use_gateway:
-            self.gateway = DeimGate(d_model, use_rmsnorm=True)
+            self.gateway = DeimGate(d_model, use_rmsnorm=use_rmsnorm)
         else:
-            self.norm2 = DEIMRMSNorm(d_model)
+            self.norm2 = norm_layer(d_model)
 
         self.swish_ffn = DEIMSwiGLUFFN(d_model, d_ffn // 2, d_model)
         self.dropout4 = nn.Dropout(dropout)
-        self.norm3 = DEIMRMSNorm(d_model)
+        self.norm3 = norm_layer(d_model)
 
     @staticmethod
     def with_pos_embed(tensor, pos):

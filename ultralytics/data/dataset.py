@@ -866,10 +866,10 @@ class SemsegDataset(BaseDataset):
             transforms.append(RandomFlip(p=0.5, direction="horizontal"))
             transforms.append(
                 PhotoMetricDistortion(
-                    brightness_delta=12,
-                    contrast_range=(0.85, 1.15),
-                    saturation_range=(0.85, 1.15),
-                    hue_delta=0,
+                    brightness_delta=32,
+                    contrast_range=(0.5, 1.5),
+                    saturation_range=(0.5, 1.5),
+                    hue_delta=18,
                 )
             )
         else:

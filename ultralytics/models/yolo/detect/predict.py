@@ -112,7 +112,7 @@ class DetectionPredictor(BasePredictor):
         if probs_list is None:
             probs_list = [None] * len(preds)
         return [
-            self.construct_result(pred, img, orig_img, img_path, class_probs=cp)
+            self.construct_result(pred, img, orig_img, img_path, **({}  if cp is None else {"class_probs": cp}))
             for pred, orig_img, img_path, cp in zip(preds, orig_imgs, self.batch[0], probs_list)
         ]
 

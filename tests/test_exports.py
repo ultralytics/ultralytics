@@ -404,7 +404,7 @@ def test_export_deepx():
     assert Path(file).exists(), f"DeepX export failed, directory not found: {file}"
     # Note: Inference testing skipped as it requires DeepX hardware
     shutil.rmtree(file, ignore_errors=True)  # cleanup
-    
+
 
 def test_export_ethos():
     """Test YOLO model export to Arm Ethos-U NPU ExecuTorch format."""

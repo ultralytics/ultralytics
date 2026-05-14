@@ -447,7 +447,7 @@ class Mosaic(BaseMixTransform):
         >>> augmented_labels = mosaic_aug(original_labels)
     """
 
-    def __init__(self, dataset, imgsz: int = 640, p: float = 1.0, n: int = 4):
+    def __init__(self, dataset, imgsz: int = 640, p: float = 1.0, n: int = 4, ignore_label: int = 255):
         """Initialize the Mosaic augmentation object.
 
         This class performs mosaic augmentation by combining multiple (4 or 9) images into a single mosaic image. The
@@ -458,6 +458,7 @@ class Mosaic(BaseMixTransform):
             imgsz (int): Image size (height and width) after mosaic pipeline of a single image.
             p (float): Probability of applying the mosaic augmentation. Must be in the range 0-1.
             n (int): The grid size, either 4 (for 2x2) or 9 (for 3x3).
+            ignore_label (int): Label value to use for padded/empty regions in the semantic mask.
         """
         assert 0 <= p <= 1.0, f"The probability should be in range [0, 1], but got {p}."
         assert n in {4, 9}, "grid must be equal to 4 or 9."
@@ -465,6 +466,7 @@ class Mosaic(BaseMixTransform):
         self.imgsz = imgsz
         self.border = (-imgsz // 2, -imgsz // 2)  # width, height
         self.n = n
+        self.ignore_label = ignore_label
         self.buffer_enabled = self.dataset.cache != "ram"
 
     def get_indexes(self):
@@ -657,7 +659,7 @@ class Mosaic(BaseMixTransform):
         s = self.imgsz
         layout = params["layout"]
         if self.n == 4:
-            mask4 = np.full((s * 2, s * 2), 255, dtype=np.uint8)
+            mask4 = np.full((s * 2, s * 2), self.ignore_label, dtype=np.uint8)
             for item in layout:
                 labels_patch = item["labels_patch"]
                 mask = labels_patch.get("semantic_mask")
@@ -668,7 +670,7 @@ class Mosaic(BaseMixTransform):
                 mask4[y1a:y2a, x1a:x2a] = mask[y1b:y2b, x1b:x2b]
             labels["semantic_mask"] = mask4
         elif self.n == 9:
-            mask9 = np.full((s * 3, s * 3), 255, dtype=np.uint8)
+            mask9 = np.full((s * 3, s * 3), self.ignore_label, dtype=np.uint8)
             for item in layout:
                 labels_patch = item["labels_patch"]
                 mask = labels_patch.get("semantic_mask")
@@ -1008,7 +1010,9 @@ class CutMix(BaseMixTransform):
         x1, y1, x2, y2 = params["area"].astype(np.int32)
         labels2 = labels["mix_labels"][0]
         if labels2.get("semantic_mask") is not None:
-            labels["semantic_mask"][y1:y2, x1:x2] = labels2["semantic_mask"][y1:y2, x1:x2]
+            mask = labels["semantic_mask"].copy()
+            mask[y1:y2, x1:x2] = labels2["semantic_mask"][y1:y2, x1:x2]
+            labels["semantic_mask"] = mask
         return labels
 
 
@@ -1065,7 +1069,8 @@ class RandomPerspective(BaseTransform):
         Args:
             degrees (float): Degree range for random rotations.
             translate (float): Fraction of total width and height for random translation.
-            scale (float): Scaling factor interval, e.g., a scale factor of 0.5 allows a resize between 50%-150%.
+            scale (float | tuple[float, float]): Scaling factor interval. If float, e.g. 0.5 means resize between
+                50%-150%. If tuple, interpreted as absolute (min, max) scale factors.
             shear (float): Shear intensity (angle in degrees).
             perspective (float): Perspective distortion factor.
             border (tuple[int, int]): Tuple specifying mosaic border (y, x).
@@ -2148,7 +2153,9 @@ class CopyPaste(BaseMixTransform):
         result_mask = params.get("labels2_semantic_mask")
         if result_mask is None:
             result_mask = cv2.flip(labels["semantic_mask"], 1)
-        labels["semantic_mask"][i] = result_mask[i]
+        mask = labels["semantic_mask"].copy()
+        mask[i] = result_mask[i]
+        labels["semantic_mask"] = mask
         return labels
 
 

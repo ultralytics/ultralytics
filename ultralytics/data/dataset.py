@@ -861,7 +861,7 @@ class SemsegDataset(BaseDataset):
         transforms = []
         nc = self.data.get("nc", len(self.data.get("names", [])))
         if self.augment:
-            scale = hyp.scale if hyp and hasattr(hyp, "scale") else 0.5
+            scale = getattr(hyp, "scale", 0.5)
             transforms.append(
                 RandomPerspective(
                     degrees=0,
@@ -879,11 +879,11 @@ class SemsegDataset(BaseDataset):
                     ),
                 )
             )
-            transforms.append(RandomFlip(p=hyp.fliplr if hyp and hasattr(hyp, "fliplr") else 0.5, direction="horizontal"))
-            brightness_delta = int(hyp.brightness * 255) if hyp and hasattr(hyp, "brightness") else 32
-            contrast = hyp.contrast if hyp and hasattr(hyp, "contrast") else 0.5
-            saturation = hyp.saturation if hyp and hasattr(hyp, "saturation") else 0.5
-            hue_delta = int(hyp.hue * 180) if hyp and hasattr(hyp, "hue") else 18
+            transforms.append(RandomFlip(p=getattr(hyp, "fliplr", 0.5), direction="horizontal"))
+            brightness_delta = round(getattr(hyp, "brightness", 0.125) * 255)
+            contrast = getattr(hyp, "contrast", 0.5)
+            saturation = getattr(hyp, "saturation", 0.5)
+            hue_delta = round(getattr(hyp, "hue", 0.1) * 180)
             transforms.append(
                 PhotoMetricDistortion(
                     brightness_delta=brightness_delta,

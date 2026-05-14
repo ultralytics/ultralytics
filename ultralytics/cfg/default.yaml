@@ -117,7 +117,7 @@ saturation: 0.5   # (float) photometric distortion saturation range fraction (1 
 hue: 0.1          # (float) photometric distortion hue delta fraction (0.1 * 180 = 18 degrees)
 degrees: 0.0 # (float) rotation degrees (+/-)
 translate: 0.1 # (float) translation fraction (+/-)
-scale: 0.5 # (float) scale gain (+/-)
+scale: 0.5 # (float | tuple) scale gain (+/-) as float, or explicit (min, max) tuple
 shear: 0.0 # (float) shear degrees (+/-)
 perspective: 0.0 # (float) perspective fraction (0–0.001 typical)
 flipud: 0.0 # (float) vertical flip probability

@@ -386,13 +386,15 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
                     )
                 cfg[k] = float(v)
-            if k == "scale":
+            elif k == "scale":
                 if isinstance(v, (list, tuple)):
                     if len(v) != 2 or not all(isinstance(x, (int, float)) for x in v):
-                        raise TypeError(
-                            f"'{k}={v}' is of invalid type {type(v).__name__}. "
-                            f"Valid '{k}' types are int, float, or a tuple/list of two floats (i.e. '{k}=(0.5, 2.0)')"
-                        )
+                        if hard:
+                            raise TypeError(
+                                f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                                f"Valid '{k}' types are int, float, or a tuple/list of two floats (i.e. '{k}=(0.5, 2.0)')"
+                            )
+                        continue
                     continue
                 elif not isinstance(v, FLOAT_OR_INT):
                     if hard:

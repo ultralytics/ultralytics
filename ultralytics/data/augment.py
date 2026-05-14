@@ -1655,49 +1655,6 @@ class PhotoMetricDistortion(BaseTransform):
         return labels
 
 
-class SemanticFormat(BaseTransform):
-    """Format transform for semantic segmentation that converts images and masks to tensors.
-
-    This transform handles the letterboxed semantic mask by resizing it to match the image dimensions
-    and converts both to the appropriate tensor formats.
-    """
-
-    def apply_image(self, labels, params=None):
-        """Apply formatting to semantic segmentation labels.
-
-        Args:
-            labels (dict): Dictionary with 'img' (np.ndarray) and 'semantic_mask' (np.ndarray).
-            params (dict | None): Unused parameters for API compatibility.
-
-        Returns:
-            (dict): Dictionary with 'img' as CHW float32 tensor and 'semantic_mask' as int32 tensor.
-        """
-        img = labels.get("img")
-        if img is not None:
-            labels["img"] = self._format_img(img)
-        mask = labels.get("semantic_mask")
-        if mask is not None:
-            labels["semantic_mask"] = torch.from_numpy(mask.copy()).to(torch.int32)
-        # Remove keys not needed downstream (preserved from old SemanticFormat for compatibility)
-        for k in ("instances", "cls", "resized_shape", "ori_shape", "ratio_pad"):
-            labels.pop(k, None)
-        return labels
-
-    @staticmethod
-    def _format_img(img: np.ndarray) -> torch.Tensor:
-        """Format an image for semantic segmentation from Numpy array to PyTorch tensor."""
-        if len(img.shape) < 3:
-            img = img[..., None]
-        img = img.transpose(2, 0, 1)
-        # Preserve old random-state consumption for backward compatibility.
-        # Old SemanticFormat inherited Format._format_img which called
-        # random.uniform(0, 1) to decide BGR flip (with bgr=0.0 it always flipped).
-        random.uniform(0, 1)
-        img = np.ascontiguousarray(img[::-1])
-        img = torch.from_numpy(img)
-        return img
-
-
 class RandomFlip(BaseTransform):
     """Apply a random horizontal or vertical flip to an image with a given probability.
 
@@ -2611,6 +2568,34 @@ class Format(BaseTransform):
             masks = polygons2masks((h, w), segments, color=1, downsample_ratio=self.mask_ratio)
 
         return masks, instances, cls
+
+
+class SemanticFormat(Format):
+    """Format transform for semantic segmentation that converts images and masks to tensors.
+
+    This transform handles the letterboxed semantic mask by resizing it to match the image dimensions
+    and converts both to the appropriate tensor formats.
+    """
+
+    def __call__(self, labels):
+        """Apply formatting to semantic segmentation labels.
+
+        Args:
+            labels (dict): Dictionary with 'img' (np.ndarray) and 'semantic_mask' (np.ndarray).
+
+        Returns:
+            (dict): Dictionary with 'img' as CHW float32 tensor and 'semantic_mask' as int32 tensor.
+        """
+        img = self._format_img(labels.get("img"))
+        mask = labels.get("semantic_mask")
+        labels["img"] = img
+        labels["semantic_mask"] = torch.from_numpy(mask.copy()).to(torch.int32)
+
+        # Remove keys not needed downstream
+        for k in ("instances", "cls", "resized_shape", "ori_shape", "ratio_pad"):
+            labels.pop(k, None)
+
+        return labels
 
 
 class LoadVisualPrompt(BaseTransform):

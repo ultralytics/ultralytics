@@ -520,9 +520,11 @@ class ConfusionMatrix(DataExportMixin):
 
         fig, ax = plt.subplots(1, 1, figsize=(12, 9))
         names, n = list(self.names.values()), self.nc
+        downsample_idx = slice(None)  # identity slice; overwritten when nc >= 100
         if self.nc >= 100:  # downsample for large class count
             k = max(2, self.nc // 60)  # step size for downsampling, always > 1
             keep_idx = slice(None, None, k)  # create slice instead of array
+            downsample_idx = keep_idx  # save for filter_empty raw-count computation
             names = names[keep_idx]  # slice class names
             array = array[keep_idx, :][:, keep_idx]  # slice matrix rows and cols
             n = (self.nc + k - 1) // k  # number of retained classes
@@ -534,7 +536,8 @@ class ConfusionMatrix(DataExportMixin):
             ticklabels_full = names if self.task == "classify" else [*names, "background"]
 
         if filter_empty and ticklabels_full != "auto":
-            raw = self.matrix[:nc, :nc]  # un-normalised counts for presence check
+            # Use the same downsampling applied to `array` so the mask aligns with plotted rows/cols
+            raw = self.matrix[downsample_idx, :][:, downsample_idx][:nc, :nc]
             keep_mask = (raw.sum(axis=1) > 0) | (raw.sum(axis=0) > 0)
             keep_idx_f = np.where(keep_mask)[0]
             array = array[np.ix_(keep_idx_f, keep_idx_f)]

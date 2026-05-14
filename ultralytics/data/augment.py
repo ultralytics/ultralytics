@@ -1678,6 +1678,9 @@ class SemanticFormat(BaseTransform):
         mask = labels.get("semantic_mask")
         if mask is not None:
             labels["semantic_mask"] = torch.from_numpy(mask.copy()).to(torch.int32)
+        # Remove keys not needed downstream (preserved from old SemanticFormat for compatibility)
+        for k in ("instances", "cls", "resized_shape", "ori_shape", "ratio_pad"):
+            labels.pop(k, None)
         return labels
 
     @staticmethod
@@ -1686,6 +1689,10 @@ class SemanticFormat(BaseTransform):
         if len(img.shape) < 3:
             img = img[..., None]
         img = img.transpose(2, 0, 1)
+        # Preserve old random-state consumption for backward compatibility.
+        # Old SemanticFormat inherited Format._format_img which called
+        # random.uniform(0, 1) to decide BGR flip (with bgr=0.0 it always flipped).
+        random.uniform(0, 1)
         img = np.ascontiguousarray(img[::-1])
         img = torch.from_numpy(img)
         return img

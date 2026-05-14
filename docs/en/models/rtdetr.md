@@ -38,30 +38,6 @@ The Ultralytics Python API provides pretrained PaddlePaddle RT-DETR models with 
 - RT-DETR-L: 53.0% AP on COCO val2017, 114 FPS on T4 GPU
 - RT-DETR-X: 54.8% AP on COCO val2017, 74 FPS on T4 GPU
 
-!!! tip "Faster Inference Trade-Offs"
-
-    RT-DETR pretrained weights expose inference-time settings that can reduce latency without retraining. You can stop evaluation at an earlier decoder layer with the decoder layer index (`eval_idx`) or reduce the number of object queries with `num_queries`. Both settings can lower mAP, so validate the selected trade-off on your dataset before deployment.
-
-    For the default 6-layer decoder, assign `eval_idx` directly as a zero-based value from `0` to `num_layers - 1`: `eval_idx=5` uses all layers, while `eval_idx=3` uses 4 decoder layers. On a T4 GPU with TensorRT v10.11, RT-DETR-L can improve from 8.0 ms at 52.7 mAP to 7.4 ms at 52.5 mAP with 4 decoder layers, gaining 0.6 ms with a 0.2 mAP reduction.
-
-    RT-DETR-L and RT-DETR-X default to 300 queries. When assigning `num_queries` directly for faster inference, use an integer from `1` to the model default (`300` for the Ultralytics pretrained RT-DETR models). Reducing `num_queries` to 100 can reach 7.4 ms with 51.7 mAP on COCO in the same TensorRT setup. On custom datasets with fewer objects per image, the mAP drop can be smaller because 300 queries may be redundant, but keep the value above the maximum number of objects you expect per image.
-
-    ```python
-    from ultralytics import RTDETR
-
-    rtdetr = RTDETR("rtdetr-l.pt")
-    head = rtdetr.model.model[-1]
-
-    # Choose one or both settings after validating the speed/accuracy trade-off.
-    head.decoder.eval_idx = 3  # Use 4 of 6 decoder layers.
-    head.num_queries = 100  # Use fewer object queries.
-
-    results = rtdetr("path/to/image.jpg")
-
-    # Export uses the same decoder and query settings, including TensorRT exports.
-    rtdetr.export(format="engine", device=0, half=True)
-    ```
-
 Additionally, Baidu has released RTDETRv2 in July 2024, which further improves upon the original architecture with enhanced performance metrics.
 
 <script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -102,6 +78,32 @@ This example provides simple RT-DETR training and inference examples. For full d
         # Load a COCO-pretrained RT-DETR-l model and run inference on the 'bus.jpg' image
         yolo predict model=rtdetr-l.pt source=path/to/bus.jpg
         ```
+
+!!! tip "Faster Inference Trade-Offs"
+
+    RT-DETR pretrained weights support two inference-time settings to reduce latency without retraining:
+
+    - **`eval_idx`**: Stop decoding early. For the default 6-layer decoder, use a zero-based index (`0`–`5`). `eval_idx=5` uses all layers; `eval_idx=3` uses 4 layers. On a T4 GPU with TensorRT v10.11, RT-DETR-L improves from 8.0 ms / 52.7 mAP to 7.4 ms / 52.5 mAP with 4 layers.
+    - **`num_queries`**: Reduce object queries (default: 300). Lowering to 100 can reach 7.4 ms / 51.7 mAP on COCO in the same setup. On datasets with fewer objects per image the mAP drop is typically smaller, but keep the value above the maximum expected objects per image.
+
+    Both settings can lower mAP — validate the trade-off on your dataset before deployment.
+
+    ```python
+    from ultralytics import RTDETR
+
+    rtdetr = RTDETR("rtdetr-l.pt")
+    head = rtdetr.model.model[-1]
+
+    # Choose one or both settings after validating the speed/accuracy trade-off.
+    head.decoder.eval_idx = 3  # Use 4 of 6 decoder layers.
+    head.num_queries = 100  # Use fewer object queries.
+
+    results = rtdetr("path/to/image.jpg")
+
+    # Export uses the same decoder and query settings, including TensorRT exports.
+    rtdetr.export(format="engine", device=0, half=True)
+    ```
+
 
 ## Supported Tasks and Modes
 

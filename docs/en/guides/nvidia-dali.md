@@ -73,7 +73,7 @@ Install the required packages:
 **Requirements:**
 
 - NVIDIA GPU (compute capability 5.0+ / Maxwell or newer)
-- CUDA 11.0+ or 12.0+
+- CUDA 11.0+, 12.0+ or 13.0+
 - Python 3.10-3.14
 - Linux operating system
 

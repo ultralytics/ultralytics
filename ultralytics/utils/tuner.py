@@ -93,17 +93,26 @@ def run_ray_tune(
         model_to_train.reset_callbacks()
         config.update(train_args)
 
-        # Set trial-specific name for W&B logging
+        # Ray ≥2.7 moved the API from `tune.get_trial_id()` to `tune.get_context().get_trial_id()`.
         try:
-            trial_id = tune.get_trial_id()  # Get current trial ID (e.g., "2c2fc_00000")
+            if hasattr(tune, "get_context"):
+                trial_id = tune.get_context().get_trial_id()
+            else:
+                trial_id = tune.get_trial_id()  # Ray <2.7
             trial_suffix = trial_id.split("_")[-1] if "_" in trial_id else trial_id
             config["name"] = f"{base_name}_{trial_suffix}"
-        except Exception:
-            # Not in Ray Tune context or error getting trial ID, use base name
+        except Exception as e:
+            LOGGER.warning(f"Tuner: failed to resolve trial id ({e}); falling back to base name {base_name!r}")
             config["name"] = base_name
 
         results = model_to_train.train(**config)
-        return results.results_dict
+        if results is not None:
+            return results.results_dict
+
+        # DDP path: validator runs only in the spawned subprocess, so `model.train()` returns None.
+        # reuse the in-memory `train_metrics` recorded by the trainer.
+        ckpt = getattr(model_to_train, "ckpt", None) or {}
+        return ckpt.get("train_metrics") or {}
 
     # Get search space
     if not space and not train_args.get("resume"):

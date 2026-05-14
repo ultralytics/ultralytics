@@ -9,6 +9,10 @@ keywords: Ultralytics Explorer, data exploration, semantic search, vector simila
 <div align="center">
 
 <a href="https://www.ultralytics.com/events/yolovision" target="_blank"><img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-banner.avif" alt="Ultralytics YOLO banner"></a>
+
+</div>
+
+<p align="center">
 <a href="https://docs.ultralytics.com/zh">中文</a> |
 <a href="https://docs.ultralytics.com/ko">한국어</a> |
 <a href="https://docs.ultralytics.com/ja">日本語</a> |
@@ -20,12 +24,12 @@ keywords: Ultralytics Explorer, data exploration, semantic search, vector simila
 <a href="https://docs.ultralytics.com/tr">Türkçe</a> |
 <a href="https://docs.ultralytics.com/vi">Tiếng Việt</a> |
 <a href="https://docs.ultralytics.com/ar">العربية</a>
-<br>
+</p>
 
+<div align="center">
 <br>
     <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml/badge.svg" alt="Ultralytics CI"></a>
     <a href="https://clickpy.clickhouse.com/dashboard/ultralytics"><img src="https://static.pepy.tech/badge/ultralytics" alt="Ultralytics Downloads"></a>
-    <a href="https://zenodo.org/badge/latestdoi/264818686"><img src="https://zenodo.org/badge/264818686.svg" alt="Ultralytics YOLO Citation"></a>
     <a href="https://discord.com/invite/ultralytics"><img alt="Ultralytics Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a>
     <a href="https://community.ultralytics.com/"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
     <a href="https://www.reddit.com/r/ultralytics/"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>

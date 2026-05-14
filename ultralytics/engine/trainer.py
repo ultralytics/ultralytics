@@ -322,6 +322,11 @@ class BaseTrainer:
                     "See ultralytics.engine.trainer for customization of frozen layers."
                 )
                 v.requires_grad = True
+        if not any(v.requires_grad for v in self.model.parameters()):
+            raise RuntimeError(
+                f"'freeze={self.args.freeze}' froze the entire model with no trainable parameters left. "
+                f"Reduce 'freeze' or pass a list of specific layer indices."
+            )
 
         # Check AMP
         self.amp = torch.tensor(self.args.amp).to(self.device)  # True or False

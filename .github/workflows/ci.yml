@@ -286,7 +286,8 @@ jobs:
           activate-environment: true
       - name: Install requirements
         run: |
-          uv pip install -e . pytest-cov nvidia-ml-py "torch<2.11"  # TODO: remove torch pin after GPU runner driver update to CUDA 13.0
+          # Install TensorRT into the job venv so uv can reuse the runner image cache.
+          uv pip install -e . pytest-cov nvidia-ml-py "torch<2.11" "tensorrt-cu12>=7.0.0,!=10.2.0"  # TODO: remove torch pin after GPU runner driver update to CUDA 13.0
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Check environment

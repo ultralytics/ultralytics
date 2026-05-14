@@ -112,7 +112,7 @@ YOLO26 can process different types of input sources for inference, as shown in t
 | screenshot                                            | `'screen'`                                 | `str`           | Capture a screenshot.                                                                        |
 | PIL                                                   | `Image.open('image.jpg')`                  | `PIL.Image`     | HWC format with RGB channels.                                                                |
 | [OpenCV](https://www.ultralytics.com/glossary/opencv) | `cv2.imread('image.jpg')`                  | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                                |
-| numpy                                                 | `np.zeros((640,1280,3))`                   | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                                |
+| NumPy                                                 | `np.zeros((640,1280,3))`                   | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                                |
 | torch                                                 | `torch.zeros(16,3,320,640)`                | `torch.Tensor`  | BCHW format with RGB channels `float32 (0.0-1.0)`.                                           |
 | CSV                                                   | `'sources.csv'`                            | `str` or `Path` | CSV file containing paths to images, videos, or directories.                                 |
 | video ✅                                              | `'video.mp4'`                              | `str` or `Path` | Video file in formats like MP4, AVI, etc.                                                    |
@@ -211,9 +211,9 @@ Below are code examples for using each source type:
         results = model(source)  # list of Results objects
         ```
 
-    === "numpy"
+    === "NumPy"
 
-        Run inference on an image represented as a numpy array.
+        Run inference on an image represented as a NumPy array.
         ```python
         import numpy as np
 
@@ -396,12 +396,20 @@ Below are code examples for using each source type:
 
 `model.predict()` accepts multiple arguments that can be passed at inference time to override defaults:
 
-!!! note
+### Fixed shape vs minimum rectangle (`rect`)
 
-    Ultralytics uses minimal padding during inference by default (`rect=True`). In this mode, the shorter side of each image is padded only as much as needed to make it divisible by the model's maximum stride, rather than padding it all the way to the full `imgsz`. When running inference on a batch of images, minimal padding only works if all images have identical size. Otherwise, images are uniformly padded to a square shape with both sides equal to `imgsz`.
+By default, predict uses **`rect=True`**, which enables **minimum-rectangle** padding when possible. The image is scaled to fit inside `imgsz` and padded only to the nearest stride multiple, so the final tensor may be **smaller** than `imgsz`. Minimum-rectangle padding is only used when **all images in the batch have the same shape** and the backend supports it (PyTorch `.pt`, or dynamic ONNX / Triton). Otherwise, images are padded to the **full** `imgsz` target.
 
-    - `batch=1`, using `rect` padding by default.
-    - `batch>1`, using `rect` padding only if all the images in one batch have identical size, otherwise using square padding to `imgsz`.
+Use **`rect=False`** to always pad to the full `imgsz` target. This is recommended when you need a fixed input size to match exported models (ONNX, TensorRT, etc.).
+
+**Integer vs tuple `imgsz`**
+
+- An **integer** `imgsz=640` becomes a square target `(640, 640)` after stride rounding.
+- A **tuple** `imgsz=(384, 672)` sets a rectangular target. With `rect=True` and `auto=True`, the actual tensor can be smaller than this target.
+
+**Training vs predict/export**
+
+Training accepts only a single integer `imgsz` (a `[h, w]` list is coerced to the largest value). Predict and export accept either an integer or a `(height, width)` tuple.
 
 !!! example
 
@@ -506,7 +514,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 
 | Attribute    | Type                  | Description                                                                              |
 | ------------ | --------------------- | ---------------------------------------------------------------------------------------- |
-| `orig_img`   | `np.ndarray`          | The original image as a numpy array.                                                     |
+| `orig_img`   | `np.ndarray`          | The original image as a NumPy array.                                                     |
 | `orig_shape` | `tuple`               | The original image shape in (height, width) format.                                      |
 | `boxes`      | `Boxes, optional`     | A Boxes object containing the detection bounding boxes.                                  |
 | `masks`      | `Masks, optional`     | A Masks object containing the detection masks.                                           |
@@ -524,7 +532,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 | ------------- | ---------------------- | ----------------------------------------------------------------------------------------- |
 | `update()`    | `None`                 | Updates the Results object with new detection data (boxes, masks, probs, obb, keypoints). |
 | `cpu()`       | `Results`              | Returns a copy of the Results object with all tensors moved to CPU memory.                |
-| `numpy()`     | `Results`              | Returns a copy of the Results object with all tensors converted to numpy arrays.          |
+| `numpy()`     | `Results`              | Returns a copy of the Results object with all tensors converted to NumPy arrays.          |
 | `cuda()`      | `Results`              | Returns a copy of the Results object with all tensors moved to GPU memory.                |
 | `to()`        | `Results`              | Returns a copy of the Results object with tensors moved to specified device and dtype.    |
 | `new()`       | `Results`              | Creates a new Results object with the same image, path, names, and speed attributes.      |
@@ -566,7 +574,7 @@ Here is a table for the `Boxes` class methods and properties, including their na
 | Name      | Type                      | Description                                                        |
 | --------- | ------------------------- | ------------------------------------------------------------------ |
 | `cpu()`   | Method                    | Move the object to CPU memory.                                     |
-| `numpy()` | Method                    | Convert the object to a numpy array.                               |
+| `numpy()` | Method                    | Convert the object to a NumPy array.                               |
 | `cuda()`  | Method                    | Move the object to CUDA memory.                                    |
 | `to()`    | Method                    | Move the object to the specified device.                           |
 | `xyxy`    | Property (`torch.Tensor`) | Return the boxes in xyxy format.                                   |
@@ -604,7 +612,7 @@ Here is a table for the `Masks` class methods and properties, including their na
 | Name      | Type                      | Description                                                     |
 | --------- | ------------------------- | --------------------------------------------------------------- |
 | `cpu()`   | Method                    | Returns the masks tensor on CPU memory.                         |
-| `numpy()` | Method                    | Returns the masks tensor as a numpy array.                      |
+| `numpy()` | Method                    | Returns the masks tensor as a NumPy array.                      |
 | `cuda()`  | Method                    | Returns the masks tensor on GPU memory.                         |
 | `to()`    | Method                    | Returns the masks tensor with the specified device and dtype.   |
 | `xyn`     | Property (`torch.Tensor`) | A list of normalized segments represented as tensors.           |
@@ -637,7 +645,7 @@ Here is a table for the `Keypoints` class methods and properties, including thei
 | Name      | Type                      | Description                                                       |
 | --------- | ------------------------- | ----------------------------------------------------------------- |
 | `cpu()`   | Method                    | Returns the keypoints tensor on CPU memory.                       |
-| `numpy()` | Method                    | Returns the keypoints tensor as a numpy array.                    |
+| `numpy()` | Method                    | Returns the keypoints tensor as a NumPy array.                    |
 | `cuda()`  | Method                    | Returns the keypoints tensor on GPU memory.                       |
 | `to()`    | Method                    | Returns the keypoints tensor with the specified device and dtype. |
 | `xyn`     | Property (`torch.Tensor`) | A list of normalized keypoints represented as tensors.            |
@@ -671,7 +679,7 @@ Here's a table summarizing the methods and properties for the `Probs` class:
 | Name       | Type                      | Description                                                             |
 | ---------- | ------------------------- | ----------------------------------------------------------------------- |
 | `cpu()`    | Method                    | Returns a copy of the probs tensor on CPU memory.                       |
-| `numpy()`  | Method                    | Returns a copy of the probs tensor as a numpy array.                    |
+| `numpy()`  | Method                    | Returns a copy of the probs tensor as a NumPy array.                    |
 | `cuda()`   | Method                    | Returns a copy of the probs tensor on GPU memory.                       |
 | `to()`     | Method                    | Returns a copy of the probs tensor with the specified device and dtype. |
 | `top1`     | Property (`int`)          | Index of the top 1 class.                                               |
@@ -706,7 +714,7 @@ Here is a table for the `OBB` class methods and properties, including their name
 | Name        | Type                      | Description                                                           |
 | ----------- | ------------------------- | --------------------------------------------------------------------- |
 | `cpu()`     | Method                    | Move the object to CPU memory.                                        |
-| `numpy()`   | Method                    | Convert the object to a numpy array.                                  |
+| `numpy()`   | Method                    | Convert the object to a NumPy array.                                  |
 | `cuda()`    | Method                    | Move the object to CUDA memory.                                       |
 | `to()`      | Method                    | Move the object to the specified device.                              |
 | `conf`      | Property (`torch.Tensor`) | Return the confidence values of the boxes.                            |

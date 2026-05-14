@@ -26,6 +26,7 @@ def non_max_suppression(
     rotated: bool = False,
     end2end: bool = False,
     return_idxs: bool = False,
+    return_probs: bool = False,
 ):
     """Perform non-maximum suppression (NMS) on prediction results.
 
@@ -54,6 +55,8 @@ def non_max_suppression(
         (list[torch.Tensor] | tuple[list[torch.Tensor], list[torch.Tensor]]): List of detections per image with shape
             (num_boxes, 6 + num_masks) containing (x1, y1, x2, y2, confidence, class, mask1, mask2, ...). If
             return_idxs=True, returns a tuple of (output, keepi) where keepi contains indices of kept detections.
+            If return_probs=True, returns a tuple of (output, probs_out) where probs_out[i] is a (num_boxes, nc)
+            tensor of class probabilities for each detection.
     """
     # Checks
     assert 0 <= conf_thres <= 1, f"Invalid Confidence threshold {conf_thres}, valid values are between 0.0 and 1.0"
@@ -88,6 +91,7 @@ def non_max_suppression(
     t = time.time()
     output = [torch.zeros((0, 6 + extra), device=prediction.device)] * bs
     keepi = [torch.zeros((0, 1), device=prediction.device)] * bs  # to store the kept idxs
+    probs_out = [torch.zeros((0, nc), device=prediction.device)] * bs  # to store per-box class probs
     for xi, (x, xk) in enumerate(zip(prediction, xinds)):  # image index, (preds, preds indices)
         # Apply constraints
         # x[((x[:, 2:4] < min_wh) | (x[:, 2:4] > max_wh)).any(1), 4] = 0  # width-height
@@ -110,16 +114,19 @@ def non_max_suppression(
 
         # Detections matrix nx6 (xyxy, conf, cls)
         box, cls, mask = x.split((4, nc, extra), 1)
+        cls_full = cls  # (M, nc) — full class probability matrix tracked in parallel
 
         if multi_label:
             i, j = torch.where(cls > conf_thres)
             x = torch.cat((box[i], x[i, 4 + j, None], j[:, None].float(), mask[i]), 1)
+            cls_full = cls[i]
             if return_idxs:
                 xk = xk[i]
         else:  # best class only
             conf, j = cls.max(1, keepdim=True)
             filt = conf.view(-1) > conf_thres
             x = torch.cat((box, conf, j.float(), mask), 1)[filt]
+            cls_full = cls_full[filt]
             if return_idxs:
                 xk = xk[filt]
 
@@ -127,6 +134,7 @@ def non_max_suppression(
         if classes is not None:
             filt = (x[:, 5:6] == classes).any(1)
             x = x[filt]
+            cls_full = cls_full[filt]
             if return_idxs:
                 xk = xk[filt]
 
@@ -137,6 +145,7 @@ def non_max_suppression(
         if n > max_nms:  # excess boxes
             filt = x[:, 4].argsort(descending=True)[:max_nms]  # sort by confidence and remove excess boxes
             x = x[filt]
+            cls_full = cls_full[filt]
             if return_idxs:
                 xk = xk[filt]
 
@@ -157,13 +166,19 @@ def non_max_suppression(
         i = i[:max_det]  # limit detections
 
         output[xi] = x[i]
+        if return_probs:
+            probs_out[xi] = cls_full[i]
         if return_idxs:
             keepi[xi] = xk[i].view(-1)
         if (time.time() - t) > time_limit:
             LOGGER.warning(f"NMS time limit {time_limit:.3f}s exceeded")
             break  # time limit exceeded
 
-    return (output, keepi) if return_idxs else output
+    if return_idxs:
+        return output, keepi
+    if return_probs:
+        return output, probs_out
+    return output
 
 
 class TorchNMS:

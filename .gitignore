@@ -203,10 +203,3 @@ calibration_*.npy
 # Training logs
 args.yaml
 results.csv
-
-# Claude & Codex
-.claude/
-.agents/
-.codex/
-AGENTS.md
-encoder-distillation.md

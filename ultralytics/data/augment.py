@@ -1488,9 +1488,7 @@ class SemsegRandomScale(BaseTransform):
             return labels
         img = labels["img"]
         new_h, new_w = img.shape[:2]
-        labels["semantic_mask"] = cv2.resize(
-            labels["semantic_mask"], (new_w, new_h), interpolation=cv2.INTER_NEAREST
-        )
+        labels["semantic_mask"] = cv2.resize(labels["semantic_mask"], (new_w, new_h), interpolation=cv2.INTER_NEAREST)
         return labels
 
 
@@ -1528,7 +1526,9 @@ class SemsegRandomCrop(BaseTransform):
         pad_h, pad_w = params["pad_h"], params["pad_w"]
         if pad_h > 0 or pad_w > 0:
             img = cv2.copyMakeBorder(img, 0, pad_h, 0, pad_w, cv2.BORDER_CONSTANT, value=(self.pad_val,) * 3)
-        labels["img"] = img[params["y0"] : params["y0"] + params["crop_h"], params["x0"] : params["x0"] + params["crop_w"]]
+        labels["img"] = img[
+            params["y0"] : params["y0"] + params["crop_h"], params["x0"] : params["x0"] + params["crop_w"]
+        ]
         return labels
 
     def apply_semantic(self, labels, params=None):
@@ -1538,10 +1538,10 @@ class SemsegRandomCrop(BaseTransform):
         mask = labels["semantic_mask"]
         pad_h, pad_w = params["pad_h"], params["pad_w"]
         if pad_h > 0 or pad_w > 0:
-            mask = cv2.copyMakeBorder(
-                mask, 0, pad_h, 0, pad_w, cv2.BORDER_CONSTANT, value=self.ignore_label
-            )
-        labels["semantic_mask"] = mask[params["y0"] : params["y0"] + params["crop_h"], params["x0"] : params["x0"] + params["crop_w"]]
+            mask = cv2.copyMakeBorder(mask, 0, pad_h, 0, pad_w, cv2.BORDER_CONSTANT, value=self.ignore_label)
+        labels["semantic_mask"] = mask[
+            params["y0"] : params["y0"] + params["crop_h"], params["x0"] : params["x0"] + params["crop_w"]
+        ]
         return labels
 
 
@@ -1684,11 +1684,11 @@ class SemanticFormat(BaseTransform):
     def _format_img(img: np.ndarray) -> torch.Tensor:
         """Format an image for semantic segmentation from Numpy array to PyTorch tensor."""
         if len(img.shape) < 3:
-            img = np.expand_dims(img, -1)
+            img = img[..., None]
         img = img.transpose(2, 0, 1)
-        img = np.ascontiguousarray(img)
+        img = np.ascontiguousarray(img[::-1])
         img = torch.from_numpy(img)
-        return img.float() / 255.0
+        return img
 
 
 class RandomFlip(BaseTransform):
@@ -2015,9 +2015,7 @@ class LetterBox(BaseTransform):
             mask = cv2.resize(mask, new_unpad, interpolation=cv2.INTER_NEAREST)
         top, bottom = params["top"], params["bottom"]
         left, right = params["left"], params["right"]
-        mask = cv2.copyMakeBorder(
-            mask, top, bottom, left, right, cv2.BORDER_CONSTANT, value=self.ignore_label
-        )
+        mask = cv2.copyMakeBorder(mask, top, bottom, left, right, cv2.BORDER_CONSTANT, value=self.ignore_label)
         labels["semantic_mask"] = mask
         return labels
 

@@ -6,25 +6,6 @@ keywords: Ultralytics Platform, YOLO, computer vision, model training, cloud dep
 
 # Ultralytics Platform
 
-<div align="center">
-<a href="https://docs.ultralytics.com/zh/platform/">中文</a> |
-<a href="https://docs.ultralytics.com/ko/platform/">한국어</a> |
-<a href="https://docs.ultralytics.com/ja/platform/">日本語</a> |
-<a href="https://docs.ultralytics.com/ru/platform/">Русский</a> |
-<a href="https://docs.ultralytics.com/de/platform/">Deutsch</a> |
-<a href="https://docs.ultralytics.com/fr/platform/">Français</a> |
-<a href="https://docs.ultralytics.com/es/platform/">Español</a> |
-<a href="https://docs.ultralytics.com/pt/platform/">Português</a> |
-<a href="https://docs.ultralytics.com/tr/platform/">Türkçe</a> |
-<a href="https://docs.ultralytics.com/vi/platform/">Tiếng Việt</a> |
-<a href="https://docs.ultralytics.com/ar/platform/">العربية</a>
-<br>
-<br>
-
-<a href="https://discord.com/invite/ultralytics"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a> <a href="https://community.ultralytics.com/"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a> <a href="https://www.reddit.com/r/ultralytics/"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
-
-</div>
-
 [Ultralytics Platform](https://platform.ultralytics.com) is a comprehensive end-to-end computer vision platform that streamlines the entire ML workflow from data preparation to model deployment. Built for teams and individuals who need production-ready [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) solutions without the infrastructure complexity.
 
 ![Ultralytics Platform Dataset Screenshot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/dataset-screenshot.avif)

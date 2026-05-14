@@ -505,12 +505,15 @@ def on_train_end(trainer):
     names = getattr(getattr(trainer, "validator", None), "names", None) or (trainer.data or {}).get("names")
     class_names = list(names.values()) if isinstance(names, dict) else list(names) if names else None
 
+    # stopper.best_epoch is 1-indexed; -1 aligns with the 0-indexed `epoch` field
+    best_epoch = max(0, getattr(getattr(trainer, "stopper", None), "best_epoch", trainer.epoch + 1) - 1)
+
     _send(
         "training_complete",
         {
             "results": {
                 "metrics": {**trainer.metrics, "fitness": trainer.fitness},
-                "bestEpoch": getattr(trainer, "best_epoch", trainer.epoch),
+                "bestEpoch": best_epoch,
                 "bestFitness": trainer.best_fitness,
                 "modelPath": gcs_path,  # Only send GCS path, not local path
                 "modelSize": model_size,

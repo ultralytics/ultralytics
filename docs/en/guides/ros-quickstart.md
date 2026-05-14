@@ -557,7 +557,7 @@ rospy.spin()
 
 ### What are ROS topics and how are they used in Ultralytics YOLO?
 
-ROS topics facilitate communication between nodes in a ROS network by using a publish-subscribe model. A topic is a named channel that nodes use to send and receive messages asynchronously. In the context of Ultralytics YOLO, you can make a node subscribe to an image topic, process the images using YOLO for tasks like [detection](https://docs.ultralytics.com/tasks/detect/) or [segmentation](https://docs.ultralytics.com/tasks/segment/), and publish outcomes to new topics.
+ROS topics facilitate communication between nodes in a ROS network by using a publish-subscribe model. A topic is a named channel that nodes use to send and receive messages asynchronously. In the context of Ultralytics YOLO, you can make a node subscribe to an image topic, process the images using YOLO for tasks like [detection](https://docs.ultralytics.com/tasks/detect) or [segmentation](https://docs.ultralytics.com/tasks/segment), and publish outcomes to new topics.
 
 For example, subscribe to a camera topic and process the incoming image for detection:
 
@@ -626,4 +626,4 @@ for index, class_id in enumerate(classes):
     o3d.visualization.draw_geometries([pcd])
 ```
 
-This approach provides a 3D visualization of segmented objects, useful for tasks like navigation and manipulation in [robotics applications](https://docs.ultralytics.com/guides/steps-of-a-cv-project/).
+This approach provides a 3D visualization of segmented objects, useful for tasks like navigation and manipulation in [robotics applications](https://docs.ultralytics.com/guides/steps-of-a-cv-project).

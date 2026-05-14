@@ -49,6 +49,13 @@ With DALI, all these operations run on the GPU, eliminating the CPU bottleneck. 
 
 Install the required packages:
 
+=== "CUDA 13.x"
+
+    ```bash
+    pip install ultralytics
+    pip install --extra-index-url https://pypi.nvidia.com nvidia-dali-cuda130
+    ```
+
 === "CUDA 12.x"
 
     ```bash

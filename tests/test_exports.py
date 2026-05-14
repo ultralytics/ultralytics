@@ -17,7 +17,16 @@ from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ARM64, IS_DOCKER, IS_RASPBERRYPI, LINUX, MACOS, MACOS_VERSION, WINDOWS, checks
 from ultralytics.utils.export.engine import torch2onnx
-from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_0, TORCH_2_1, TORCH_2_8, TORCH_2_9
+from ultralytics.utils.torch_utils import (
+    TORCH_1_10,
+    TORCH_1_11,
+    TORCH_1_13,
+    TORCH_2_0,
+    TORCH_2_1,
+    TORCH_2_8,
+    TORCH_2_9,
+    TORCH_2_12,
+)
 
 
 @pytest.mark.parametrize("end2end", [False, True])
@@ -369,7 +378,7 @@ def test_export_executorch_matrix(task):
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(not TORCH_2_8, reason="Axelera export requires torch>=2.8.0")
+@pytest.mark.skipif(not TORCH_2_8 or TORCH_2_12, reason="Axelera export requires 2.8.0<=torch<2.12.0")
 @pytest.mark.skipif(
     not LINUX or (ARM64 and IS_DOCKER),
     reason="Axelera export is only supported on Linux and is not supported on ARM64 Docker",

@@ -1733,11 +1733,10 @@ class RTDETRDecoder(nn.Module):
         if self.disable_topk:
             scores, class_idx = scores.max(dim=-1, keepdim=True)  # (bs, nq, 1), (bs, nq, 1)
             return torch.cat([boxes, scores, class_idx.float()], dim=-1)  # (bs, nq, 6)
-        scores, index = scores.flatten(1).topk(self.num_queries)  # (bs, nq)
-        query_idx = index // self.nc  # (bs, nq)
-        boxes = boxes.gather(dim=1, index=query_idx.unsqueeze(-1).expand(-1, -1, 4))  # (bs, nq, 4)
-        class_idx = (index - query_idx * self.nc).unsqueeze(-1).float()  # (bs, nq, 1)
-        return torch.cat([boxes, scores.unsqueeze(-1), class_idx], dim=-1)  # (bs, nq, 6)
+        scores, index = scores.flatten(1).topk(self.num_queries)
+        query_idx = index // self.nc
+        boxes = boxes.gather(dim=1, index=query_idx.unsqueeze(-1).expand(-1, -1, 4))
+        return torch.cat([boxes, scores[..., None], (index % self.nc)[..., None].float()], dim=-1)
 
     def _extend_attn_mask_for_o2m(
         self,

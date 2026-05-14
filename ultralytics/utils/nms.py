@@ -50,6 +50,7 @@ def non_max_suppression(
         rotated (bool): Whether to handle Oriented Bounding Boxes (OBB).
         end2end (bool): Whether the model is end-to-end and doesn't require NMS.
         return_idxs (bool): Whether to return the indices of kept detections.
+        return_probs (bool): Whether to return per-detection class probability tensors alongside output.
 
     Returns:
         (list[torch.Tensor] | tuple[list[torch.Tensor], list[torch.Tensor]]): List of detections per image with shape

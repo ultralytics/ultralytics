@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 # "jetson-agx-thor-cpu", "jetson-agx-orin-gpu", "jetson-agx-orin-cpu",
 # "jetson-orin-nano-super-gpu", or "jetson-orin-nano-super-cpu"
 # =============================================================================
-BENCHMARK = "t4"
+BENCHMARK = "rf_compare"
 
 # Default metric for Y axis.
 DEFAULT_METRIC = "ap"
@@ -49,7 +49,7 @@ DEIMV2_ULTRALYTICS_OBJ365_IMGSZ_SWEEP = [
     ("480/l2/q100", 7.7, {"ap": 55.8, "ap50": 73.5, "ap75": 60.7, "ap_small": 35.5, "ap_medium": 61.5, "ap_large": 75.2}, 0.1),
     ("512/l3", 9.1, {"ap": 57.5, "ap50": 75.0, "ap75": 62.4, "ap_small": 37.8, "ap_medium": 63.1, "ap_large": 76.4}, 0.2),
     ("576/l4", 11.6, {"ap": 58.8, "ap50": 76.5, "ap75": 64.0, "ap_small": 40.6, "ap_medium": 64.1, "ap_large": 76.9}, 0.2),
-    ("640/l6", 14.2, {"ap": 59.8, "ap50": 77.7, "ap75": 65.3, "ap_small": 43.3, "ap_medium": 64.8, "ap_large": 77.4}, 0.4),
+    ("640/l6", 14.1, {"ap": 59.8, "ap50": 77.7, "ap75": 65.3, "ap_small": 43.3, "ap_medium": 64.8, "ap_large": 77.4}, 0.4),
     ("704/l6", 19.1, {"ap": 60.3, "ap50": 77.9, "ap75": 66.0, "ap_small": 43.9, "ap_medium": 65.2, "ap_large": 77.7}, 0.9),
     ("800/l6", 24.8, {"ap": 60.9, "ap50": 78.3, "ap75": 66.5, "ap_small": 45.3, "ap_medium": 65.3, "ap_large": 77.2}, 0.9),
 ]
@@ -68,7 +68,7 @@ DFINE_DINOV3PLUS_OBJ365_IMGSZ640 = [
     # T4 TensorRT v10.11, imgsz640 fp16 engine. The paired ~887 ms values are PT latency.
     ("l4", 14.4, {"ap": 59.5, "ap50": 77.1, "ap75": 65.0, "ap_small": 42.2, "ap_medium": 64.6, "ap_large": 77.1}),
     ("no-fp32", 15.0, {"ap": 59.5, "ap50": 77.3, "ap75": 64.9, "ap_small": 41.8, "ap_medium": 64.5, "ap_large": 77.2}),
-    ("fp32", 15.0, {"ap": 59.7, "ap50": 77.4, "ap75": 65.1, "ap_small": 42.2, "ap_medium": 64.7, "ap_large": 77.2}),
+    ("fp32", 14.9, {"ap": 59.7, "ap50": 77.4, "ap75": 65.1, "ap_small": 42.2, "ap_medium": 64.7, "ap_large": 77.2}),
     ("imgsz800", 25.3, {"ap": 60.7, "ap50": 78.4, "ap75": 66.4, "ap_small": 44.6, "ap_medium": 65.1, "ap_large": 76.9}),
 ]
 
@@ -339,7 +339,7 @@ BENCHMARKS = {
                 ("n", 1.8, {"ap": 40.1, "ap50": 55.6, "ap75": 43.5, "ap_small": 19.7, "ap_medium": 44.0, "ap_large": 58.4}),
                 ("s", 2.6, {"ap": 47.8, "ap50": 64.6, "ap75": 52.2, "ap_small": 29.1, "ap_medium": 52.5, "ap_large": 64.3}),
                 ("m", 5.0, {"ap": 52.5, "ap50": 69.8, "ap75": 57.2, "ap_small": 36.2, "ap_medium": 56.9, "ap_large": 68.5}),
-                ("l", 6.6, {"ap": 54.4, "ap50": 71.5, "ap75": 59.4, "ap_small": 37.8, "ap_medium": 58.6, "ap_large": 70.3}),
+                ("l", 6.5, {"ap": 54.4, "ap50": 71.5, "ap75": 59.4, "ap_small": 37.8, "ap_medium": 58.6, "ap_large": 70.3}),
                 ("x", 12.2, {"ap": 56.9, "ap50": 74.1, "ap75": 62.1, "ap_small": 41.3, "ap_medium": 61.2, "ap_large": 72.7}),
             ],
             "YOLO26 (NMS)": [
@@ -361,6 +361,7 @@ BENCHMARKS = {
             "YOLO26_RTDETR (obj365)": [
                 ("l4", 7.6, {"ap": 56.5, "ap50": 74.1, "ap75": 61.6, "ap_small": 41.3, "ap_medium": 61.0, "ap_large": 70.9}),
                 ("l", 8.1, {"ap": 56.7, "ap50": 74.3, "ap75": 61.8, "ap_small": 41.7, "ap_medium": 61.1, "ap_large": 71.0}),
+                ("x", 13.2, {"ap": 58.4, "ap50": 75.8, "ap75": 64.0, "ap_small": 43.7, "ap_medium": 62.8, "ap_large": 73.9}, 0.3),
             ],
             "YOLO26_Dfine (obj365)": [
                 ("xl", 13.1, {"ap": 58.5, "ap50": 75.6, "ap75": 63.9, "ap_small": 43.8, "ap_medium": 62.7, "ap_large": 74.0}, 0.3),
@@ -473,8 +474,9 @@ BENCHMARKS = {
                 ("xxl", 32.6, {"ap": 59.8, "ap50": 77.1, "ap75": 65.3, "ap_small": 42.8, "ap_medium": 65.5, "ap_large": 77.1}),
             ],
             "YOLO26_RTDETR (obj365)": [
-                ("l4", 7.6, {"ap": 56.5, "ap50": 74.1, "ap75": 61.6, "ap_small": 41.3, "ap_medium": 61.0, "ap_large": 70.9}),
-                ("l", 8.1, {"ap": 56.7, "ap50": 74.3, "ap75": 61.8, "ap_small": 41.7, "ap_medium": 61.1, "ap_large": 71.0}),
+                ("l4", 7.5, {"ap": 56.5, "ap50": 74.1, "ap75": 61.6, "ap_small": 41.3, "ap_medium": 61.0, "ap_large": 70.9}),
+                ("l", 8.0, {"ap": 56.7, "ap50": 74.3, "ap75": 61.8, "ap_small": 41.7, "ap_medium": 61.1, "ap_large": 71.0}),
+                ("x", 13.2, {"ap": 58.4, "ap50": 75.8, "ap75": 64.0, "ap_small": 43.7, "ap_medium": 62.8, "ap_large": 73.9}, 0.3),
             ],
             "YOLO26_Dfine (obj365)": [
                 ("xl", 13.1, {"ap": 58.5, "ap50": 75.6, "ap75": 63.9, "ap_small": 43.8, "ap_medium": 62.7, "ap_large": 74.0}, 0.3),

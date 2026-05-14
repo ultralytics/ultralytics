@@ -214,29 +214,9 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 
 我们与领先 AI 平台的关键集成扩展了 Ultralytics 产品的功能，增强了数据集标注、训练、可视化和模型管理等任务。了解 Ultralytics 如何与 [Weights & Biases](https://docs.ultralytics.com/integrations/weights-biases)、[Comet ML](https://docs.ultralytics.com/integrations/comet)、[Roboflow](https://docs.ultralytics.com/integrations/roboflow) 和 [Intel OpenVINO](https://docs.ultralytics.com/integrations/openvino) 等合作伙伴协作，优化您的 AI 工作流程。在 [Ultralytics 集成](https://docs.ultralytics.com/integrations)了解更多信息。
 
-<a href="https://docs.ultralytics.com/integrations" target="_blank">
+<a href="https://platform.ultralytics.com" target="_blank">
     <img width="100%" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png" alt="Ultralytics active learning integrations">
 </a>
-<br>
-<br>
-
-<div align="center">
-  <a href="https://platform.ultralytics.com/ultralytics/yolo26">
-    <img src="https://github.com/ultralytics/assets/raw/main/partners/logo-ultralytics-hub.png" width="10%" alt="Ultralytics Platform logo"></a>
-  <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="15%" height="0" alt="space">
-  <a href="https://docs.ultralytics.com/integrations/weights-biases">
-    <img src="https://github.com/ultralytics/assets/raw/main/partners/logo-wb.png" width="10%" alt="Weights & Biases logo"></a>
-  <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="15%" height="0" alt="space">
-  <a href="https://docs.ultralytics.com/integrations/comet">
-    <img src="https://github.com/ultralytics/assets/raw/main/partners/logo-comet.png" width="10%" alt="Comet ML logo"></a>
-  <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="15%" height="0" alt="space">
-  <a href="https://docs.ultralytics.com/integrations/neural-magic">
-    <img src="https://github.com/ultralytics/assets/raw/main/partners/logo-neuralmagic.png" width="10%" alt="Neural Magic logo"></a>
-</div>
-
-|                                                        Ultralytics Platform 🌟                                                        |                                              Weights & Biases                                              |                                                               Comet                                                               |                                                      Neural Magic                                                       |
-| :-----------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------: |
-| 简化 YOLO 工作流程：使用 [Ultralytics 平台](https://platform.ultralytics.com/ultralytics/yolo26) 轻松进行标注、训练和部署。立即试用！ | 使用 [Weights & Biases](https://docs.ultralytics.com/integrations/weights-biases) 跟踪实验、超参数和结果。 | 永久免费的 [Comet ML](https://docs.ultralytics.com/integrations/comet) 让您能够保存 YOLO 模型、恢复训练并交互式地可视化预测结果。 | 使用 [Neural Magic DeepSparse](https://docs.ultralytics.com/integrations/neural-magic)，将 YOLO 推理速度提高多达 6 倍。 |
 
 ## 🤝 贡献
 

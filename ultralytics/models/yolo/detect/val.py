@@ -103,7 +103,7 @@ class DetectionValidator(BaseValidator):
 
     def get_desc(self) -> str:
         """Return a formatted string summarizing class metrics of YOLO model."""
-        extra = "".join(f"%11s" % f"mAP{round(t * 100)}" for t in self.metrics.iou_metrics)
+        extra = "".join(f"{'mAP' + str(round(t * 100)):>11}" for t in self.metrics.iou_metrics)
         return ("%22s" + "%11s" * 6) % ("Class", "Images", "Instances", "Box(P", "R", "mAP50", "mAP50-95)") + extra
 
     def postprocess(self, preds: torch.Tensor) -> list[dict[str, torch.Tensor]]:

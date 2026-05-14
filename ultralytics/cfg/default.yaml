@@ -111,6 +111,10 @@ nbs: 64 # (int) nominal batch size used for loss normalization
 hsv_h: 0.015 # (float) HSV hue augmentation fraction
 hsv_s: 0.7 # (float) HSV saturation augmentation fraction
 hsv_v: 0.4 # (float) HSV value (brightness) augmentation fraction
+brightness: 0.125  # (float) photometric distortion brightness delta fraction (0.125 = 32/255)
+contrast: 0.5     # (float) photometric distortion contrast range fraction (1 - contrast, 1 + contrast)
+saturation: 0.5   # (float) photometric distortion saturation range fraction (1 - saturation, 1 + saturation)
+hue: 0.1          # (float) photometric distortion hue delta fraction (0.1 * 180 = 18 degrees)
 degrees: 0.0 # (float) rotation degrees (+/-)
 translate: 0.1 # (float) translation fraction (+/-)
 scale: 0.5 # (float) scale gain (+/-)

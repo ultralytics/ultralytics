@@ -26,11 +26,10 @@ from .augment import (
     LetterBox,
     RandomFlip,
     RandomLoadText,
+    RandomPerspective,
     classify_augmentations,
     classify_transforms,
     v8_transforms,
-    SemsegRandomScale,
-    SemsegRandomCrop,
     PhotoMetricDistortion,
     SemanticFormat,
 )
@@ -862,17 +861,35 @@ class SemsegDataset(BaseDataset):
         transforms = []
         nc = self.data.get("nc", len(self.data.get("names", [])))
         if self.augment:
-            transforms.append(SemsegRandomScale(scale_min=0.5, scale_max=2.0))
+            scale = hyp.scale if hyp and hasattr(hyp, "scale") else 0.5
             transforms.append(
-                SemsegRandomCrop(crop_size=int(self.imgsz), ignore_label=self.ignore_label if nc > 1 else 0)
+                RandomPerspective(
+                    degrees=0,
+                    translate=0,
+                    scale=scale,
+                    shear=0,
+                    perspective=0,
+                    pre_transform=LetterBox(
+                        new_shape=(self.imgsz, self.imgsz),
+                        auto=False,
+                        scaleup=True,
+                        center=False,
+                        stride=self.stride,
+                        ignore_label=self.ignore_label if nc > 1 else 0,
+                    ),
+                )
             )
-            transforms.append(RandomFlip(p=0.5, direction="horizontal"))
+            transforms.append(RandomFlip(p=hyp.fliplr if hyp and hasattr(hyp, "fliplr") else 0.5, direction="horizontal"))
+            brightness_delta = int(hyp.brightness * 255) if hyp and hasattr(hyp, "brightness") else 32
+            contrast = hyp.contrast if hyp and hasattr(hyp, "contrast") else 0.5
+            saturation = hyp.saturation if hyp and hasattr(hyp, "saturation") else 0.5
+            hue_delta = int(hyp.hue * 180) if hyp and hasattr(hyp, "hue") else 18
             transforms.append(
                 PhotoMetricDistortion(
-                    brightness_delta=32,
-                    contrast_range=(0.5, 1.5),
-                    saturation_range=(0.5, 1.5),
-                    hue_delta=18,
+                    brightness_delta=brightness_delta,
+                    contrast_range=(1 - contrast, 1 + contrast),
+                    saturation_range=(1 - saturation, 1 + saturation),
+                    hue_delta=hue_delta,
                 )
             )
         else:

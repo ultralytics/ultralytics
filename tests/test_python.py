@@ -237,7 +237,7 @@ def test_val(task: str, weight: str, data: str) -> None:
 
 def test_val_iou_metrics() -> None:
     """Test that iou_metrics adds extra mAP thresholds to validation results."""
-    model = YOLO("yolo11n.pt")
+    model = YOLO(WEIGHTS_DIR / "yolo11n.pt")
     metrics = model.val(data="coco8.yaml", imgsz=32, iou_metrics=[0.75, 0.90, 0.95])
     assert "metrics/mAP75(B)" in metrics.results_dict, "mAP75 key missing from results_dict"
     assert "metrics/mAP90(B)" in metrics.results_dict, "mAP90 key missing from results_dict"
@@ -249,9 +249,7 @@ def test_val_iou_metrics() -> None:
 
 def test_val_save_csv(tmp_path) -> None:
     """Test that save_csv=True writes per_class_metrics.csv after validation."""
-    import shutil
-
-    model = YOLO("yolo11n.pt")
+    model = YOLO(WEIGHTS_DIR / "yolo11n.pt")
     metrics = model.val(data="coco8.yaml", imgsz=32, save_csv=True, project=str(tmp_path), name="csv_test")
     csv_file = tmp_path / "csv_test" / "per_class_metrics.csv"
     assert csv_file.exists(), f"per_class_metrics.csv not found at {csv_file}"

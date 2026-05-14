@@ -1090,7 +1090,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
         self.nt_per_class = None
         self.nt_per_image = None
-        self.iou_metrics: list[float] = list(iou_metrics) if iou_metrics else []
+        self.iou_metrics = list(iou_metrics) if iou_metrics else []  # normalized via property setter
 
     def update_stats(self, stat: dict[str, Any]) -> None:
         """Update statistics by appending new values to existing stat collections.
@@ -1143,14 +1143,36 @@ class DetMetrics(SimpleClass, DataExportMixin):
         """Clear stored per-image metrics."""
         self.box.clear_image_metrics()
 
+    @property
+    def iou_metrics(self) -> list[float]:
+        """Extra IoU thresholds for mAP reporting, normalized to the 0.50–0.95 grid."""
+        return self._iou_metrics
+
+    @iou_metrics.setter
+    def iou_metrics(self, value: list[float] | None) -> None:
+        """Normalize and store extra IoU thresholds: clamp to [0.50, 0.95], snap to 0.05 grid, de-duplicate, sort."""
+        if not value:
+            self._iou_metrics: list[float] = []
+            return
+        seen, normalized = set(), []
+        for t in value:
+            idx = min(9, max(0, int((min(0.95, max(0.5, t)) - 0.5) / 0.05 + 0.5)))
+            snapped = round(idx * 0.05 + 0.5, 2)
+            if snapped not in seen:
+                seen.add(snapped)
+                normalized.append(snapped)
+        self._iou_metrics = sorted(normalized)
+
     def _iou_idx(self, t: float) -> int:
-        """Convert an IoU threshold to its index in the 0.50–0.95 evaluation grid (step 0.05)."""
-        return int(min(9, max(0, round((t - 0.5) / 0.05))))
+        """Convert a normalized IoU threshold to its index in the 0.50–0.95 evaluation grid (step 0.05)."""
+        return int(round((t - 0.5) / 0.05))
 
     def _extra_maps(self) -> list[float]:
-        """Return mean AP at each threshold in self.iou_metrics, or [] when no extra thresholds are configured."""
-        if not self.iou_metrics or not len(self.box.all_ap):
+        """Return mean AP at each threshold in self.iou_metrics, or zeros when no data is available."""
+        if not self.iou_metrics:
             return []
+        if not len(self.box.all_ap):
+            return [0.0] * len(self.iou_metrics)
         return [float(self.box.all_ap[:, self._iou_idx(t)].mean()) for t in self.iou_metrics]
 
     @property
@@ -1166,8 +1188,10 @@ class DetMetrics(SimpleClass, DataExportMixin):
     def class_result(self, i: int) -> tuple:
         """Return the result of evaluating the performance of an object detection model on a specific class."""
         base = self.box.class_result(i)
-        if not self.iou_metrics or not len(self.box.all_ap):
+        if not self.iou_metrics:
             return base
+        if not len(self.box.all_ap):
+            return base + (0.0,) * len(self.iou_metrics)
         extra = tuple(float(self.box.all_ap[i, self._iou_idx(t)]) for t in self.iou_metrics)
         return base + extra
 

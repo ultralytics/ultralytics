@@ -23,7 +23,7 @@ report = ImagePropertyAnalyzer(model="yolo11n.pt", data="coco128.yaml").run()
 
 # Path 2: from a previous model.val() result, no re-validation
 model = YOLO("yolo11n.pt")
-metrics = model.val(data="coco128.yaml", analyze_images=True)
+metrics = model.val(data="coco128.yaml", score_labels=True)
 report = ImagePropertyAnalyzer.from_metrics(metrics, dataset=model.validator.dataloader.dataset).run()
 
 # Path 3: dataset-only audit, no model required
@@ -54,10 +54,10 @@ Rendered on COCO val2017 (5000 images) with `yolo11n.pt` at `conf=0.25`. `summar
 
 ## Enabling label-quality scores
 
-The 4 ObjectLab fields (`overlooked_score`, `badloc_score`, `swap_score`, `label_quality_score`) require the validator to compute them inline during validation. Pass `analyze_images=True` to `model.val()`:
+The 4 ObjectLab fields (`overlooked_score`, `badloc_score`, `swap_score`, `label_quality_score`) require the validator to compute them inline during validation. Pass `score_labels=True` to `model.val()`:
 
 ```python
-metrics = model.val(data="coco128.yaml", analyze_images=True)
+metrics = model.val(data="coco128.yaml", score_labels=True)
 ```
 
 The model+data path (`ImagePropertyAnalyzer(model=..., data=...)`) sets this flag automatically. The validator stores ~32 bytes/image extra in `metrics.box.image_metrics` (4 float scores per image). Raw IoU matrices and pred/GT arrays are not retained. Without the flag, ObjectLab columns are populated as `NaN`.

@@ -174,7 +174,7 @@ class DetectionValidator(BaseValidator):
             preds (list[dict[str, torch.Tensor]]): List of predictions from the model.
             batch (dict[str, Any]): Batch data containing ground truth.
         """
-        if self.args.analyze_images:
+        if self.args.score_labels:
             from ultralytics.utils.analysis import compute_objectlab_scores
         for si, pred in enumerate(preds):
             self.seen += 1
@@ -199,7 +199,7 @@ class DetectionValidator(BaseValidator):
                 }
             )
             # Skip rotated-box tasks (OBB) where pbatch["bboxes"] is (N, 5) xywha and ops.scale_boxes would corrupt it.
-            if self.args.analyze_images and pbatch["bboxes"].shape[-1] == 4:
+            if self.args.score_labels and pbatch["bboxes"].shape[-1] == 4:
                 pred_xyxy = ops.scale_boxes(
                     pbatch["imgsz"], predn["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
                 )
@@ -327,14 +327,14 @@ class DetectionValidator(BaseValidator):
 
         Returns:
             (dict[str, np.ndarray]): ``tp`` key holds the (N, 10) correct-prediction matrix at 10 IoU levels. When
-                ``args.analyze_images`` is set and both predictions and GT exist, ``iou_matrix`` is also returned for
+                ``args.score_labels`` is set and both predictions and GT exist, ``iou_matrix`` is also returned for
                 ObjectLab label-quality scoring in ``update_metrics``.
         """
         if batch["cls"].shape[0] == 0 or preds["cls"].shape[0] == 0:
             return {"tp": np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)}
         iou = box_iou(batch["bboxes"], preds["bboxes"])
         out = {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
-        if self.args.analyze_images:
+        if self.args.score_labels:
             out["iou_matrix"] = iou.cpu().numpy()
         return out
 

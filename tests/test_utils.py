@@ -100,7 +100,7 @@ def test_softmin1d_bounded_by_min_max():
     scores = np.array([0.2, 0.5, 0.8])
     s = _softmin1d(scores, T=0.1)
     assert scores.min() <= s <= scores.max()
-    assert s == pytest.approx(scores.min(), abs=0.05)  # low T → near min
+    assert s == pytest.approx(scores.min(), abs=0.05)  # low T -> near min
 
 
 def test_softmin1d_uniform_returns_constant():
@@ -163,7 +163,7 @@ def test_run_from_metrics_path(tmp_path):
         save_json=False,
         imgsz=320,
         verbose=False,
-        analyze_images=True,
+        score_labels=True,
         device="cpu",
     )
     out_dir = tmp_path / "from_metrics"
@@ -184,5 +184,5 @@ def test_lazy_matplotlib_import():
     import subprocess
     import sys
 
-    code = "import sys, ultralytics.utils.analysis; sys.exit('matplotlib' in sys.modules)"
+    code = "import sys, ultralytics.utils.analysis\nsys.exit('matplotlib' in sys.modules)"
     assert subprocess.run([sys.executable, "-c", code]).returncode == 0

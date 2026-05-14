@@ -510,7 +510,7 @@ class ImagePropertyAnalyzer:
             "workers": self.workers,
             "batch": self.batch,
             "conf": self.conf,
-            "analyze_images": True,
+            "score_labels": True,
             "plots": False,
             "save_json": False,
             "verbose": False,

@@ -1850,6 +1850,7 @@ class LetterBox(BaseTransform):
         stride: int = 32,
         padding_value: int = 114,
         interpolation: int = cv2.INTER_LINEAR,
+        ignore_label: int = 255,
     ):
         """Initialize LetterBox object for resizing and padding images.
 
@@ -1865,6 +1866,7 @@ class LetterBox(BaseTransform):
             stride (int): Stride of the model (e.g., 32 for YOLOv5).
             padding_value (int): Value for padding the image. Default is 114.
             interpolation (int): Interpolation method for resizing. Default is cv2.INTER_LINEAR.
+            ignore_label (int): Label value used to pad the semantic mask. Default is 255.
         """
         self.new_shape = new_shape
         self.auto = auto
@@ -1874,7 +1876,7 @@ class LetterBox(BaseTransform):
         self.center = center  # Put the image in the middle or top-left
         self.padding_value = padding_value
         self.interpolation = interpolation
-        self.ignore_label = 255
+        self.ignore_label = ignore_label
 
     def __call__(self, labels: dict[str, Any] | None = None, image: np.ndarray = None) -> dict[str, Any] | np.ndarray:
         """Resize and pad an image for object detection, instance segmentation, or pose estimation tasks.

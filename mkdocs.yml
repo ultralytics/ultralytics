@@ -592,6 +592,7 @@ nav:
       - ClearML: integrations/clearml.md
       - Comet ML: integrations/comet.md
       - CoreML: integrations/coreml.md
+      - DeepX: integrations/deepx.md
       - DVC: integrations/dvc.md
       - ExecuTorch: integrations/executorch.md
       - Google Colab: integrations/google-colab.md
@@ -652,6 +653,7 @@ nav:
       - REST API: platform/api/index.md
 
   - Reference:
+      - reference/index.md
       - __init__: reference/__init__.md
       - cfg:
           - __init__: reference/cfg/__init__.md
@@ -761,6 +763,7 @@ nav:
               - axelera: reference/nn/backends/axelera.md
               - base: reference/nn/backends/base.md
               - coreml: reference/nn/backends/coreml.md
+              - deepx: reference/nn/backends/deepx.md
               - executorch: reference/nn/backends/executorch.md
               - mnn: reference/nn/backends/mnn.md
               - ncnn: reference/nn/backends/ncnn.md
@@ -838,6 +841,7 @@ nav:
           - export:
               - axelera: reference/utils/export/axelera.md
               - coreml: reference/utils/export/coreml.md
+              - deepx: reference/utils/export/deepx.md
               - engine: reference/utils/export/engine.md
               - executorch: reference/utils/export/executorch.md
               - imx: reference/utils/export/imx.md

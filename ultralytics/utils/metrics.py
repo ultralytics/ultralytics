@@ -1029,12 +1029,19 @@ class Metric(SimpleClass):
         num_targets = target_cls.shape[0]
         fp = num_preds - tp
         fn = num_targets - tp
-        precision = tp / num_preds if num_preds else 0
-        recall = tp / num_targets if num_targets else 0
+        if num_preds == 0 and num_targets == 0:
+            # Empty-GT image with no predictions is a trivially correct call, so report a perfect score rather than
+            # zeroing out P/R/F1 by the standard 0/0 fallback below.
+            precision = recall = f1 = 1.0
+        else:
+            precision = tp / num_preds if num_preds else 0.0
+            recall = tp / num_targets if num_targets else 0.0
+            denom = precision + recall
+            f1 = 2 * precision * recall / denom if denom else 0.0
         self.image_metrics[im_name] = {
             "precision": float(precision),
             "recall": float(recall),
-            "f1": float(2 * (precision * recall) / (precision + recall)) if (precision + recall) else 0.0,
+            "f1": float(f1),
             "tp": int(tp),
             "fp": int(fp),
             "fn": int(fn),

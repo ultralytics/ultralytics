@@ -286,7 +286,8 @@ jobs:
           activate-environment: true
       - name: Install requirements
         run: |
-          uv pip install -e . pytest-cov nvidia-ml-py "torch<2.11"  # TODO: remove torch pin after GPU runner driver update to CUDA 13.0
+          # Install TensorRT into the job venv so uv can reuse the runner image cache.
+          uv pip install -e . pytest-cov nvidia-ml-py "torch<2.11" "tensorrt-cu12>=7.0.0,!=10.2.0"  # TODO: remove torch pin after GPU runner driver update to CUDA 13.0
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Check environment
@@ -486,7 +487,7 @@ jobs:
     steps:
       - name: Check for failure and notify
         if: (needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.SlowTests.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
-        uses: slackapi/slack-github-action@v3.0.2
+        uses: slackapi/slack-github-action@v3.0.3
         with:
           webhook-type: incoming-webhook
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}

@@ -82,7 +82,7 @@ We look forward to your contributions!
 Ultralytics Docs are available under two licensing options to accommodate different usage scenarios:
 
 - **AGPL-3.0 License**: Ideal for students, researchers, and enthusiasts involved in academic pursuits and open collaboration. See the [LICENSE](https://github.com/ultralytics/docs/blob/main/LICENSE) file for full details. This license promotes sharing improvements back with the community.
-- **Enterprise License**: Designed for development and production use, this license covers both building and deploying AI-powered applications. It enables seamless integration of Ultralytics software and [AI models](https://docs.ultralytics.com/models) into live business products and services, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0. If your use case involves developing or deploying models in any production or business setting, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
+- **Enterprise License**: For development and production use, this license enables seamless integration of Ultralytics software and [AI models](https://docs.ultralytics.com/models) into business products and services, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0. To get started, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
 
 ## ✉️ Contact
 

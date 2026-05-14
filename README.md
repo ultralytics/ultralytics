@@ -253,7 +253,7 @@ We look forward to your contributions to help make the Ultralytics ecosystem eve
 Ultralytics offers two licensing options to suit different needs:
 
 - **AGPL-3.0 License**: This [OSI-approved](https://opensource.org/license/agpl-3.0) open-source license is perfect for students, researchers, and enthusiasts. It encourages open collaboration and knowledge sharing. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for full details.
-- **Ultralytics Enterprise License**: Designed for development and production use, this license covers both building and deploying AI-powered applications. It enables seamless integration of Ultralytics software and AI models into live business products and services, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0. If your use case involves developing or deploying models in any production or business setting, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
+- **Ultralytics Enterprise License**: For development and production use, this license enables seamless integration of Ultralytics software and AI models into business products and services, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0. To get started, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
 
 ## 📞 Contact
 

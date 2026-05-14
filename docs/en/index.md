@@ -170,7 +170,7 @@ Request an Enterprise License for commercial use at [Ultralytics Licensing](http
 Ultralytics offers two licensing options to accommodate diverse use cases:
 
 - **AGPL-3.0 License**: This [OSI-approved](https://opensource.org/license/agpl-3.0) open-source license is ideal for students and enthusiasts, promoting open collaboration and knowledge sharing. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for more details.
-- **Enterprise License**: Designed for development and production use, this license covers both building and deploying AI-powered applications. It enables seamless integration of Ultralytics software and AI models into live business products and services, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0. If your use case involves developing or deploying models in any production or business setting, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
+- **Enterprise License**: For development and production use, this license enables seamless integration of Ultralytics software and AI models into business products and services, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0. To get started, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
 
 Our licensing strategy is designed to ensure that any improvements to our open-source projects are returned to the community. We believe in open source, and our mission is to ensure that our contributions can be used and expanded in ways that benefit everyone.
 
@@ -240,7 +240,7 @@ For a detailed walkthrough, check out our [Train a Model](modes/train.md) guide,
 Ultralytics offers two licensing options for YOLO:
 
 - **AGPL-3.0 License**: This open-source license is ideal for educational and non-commercial use, promoting open collaboration.
-- **Enterprise License**: Designed for development and production use — including internal tools, automated workflows, and production deployments — bypassing the open-source requirements of AGPL-3.0.
+- **Enterprise License**: For development and production use, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0.
 
 For more details, visit our [Licensing](https://www.ultralytics.com/license) page.
 

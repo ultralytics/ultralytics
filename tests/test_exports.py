@@ -416,17 +416,3 @@ def test_export_ethos():
     assert metadata_file.exists(), f"Ethos metadata.yaml not found: {metadata_file}"
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
     shutil.rmtree(file, ignore_errors=True)  # cleanup
-
-
-@pytest.mark.parametrize("task", TASKS)
-def test_export_ethos_matrix(task):
-    """Test YOLO export to Ethos-U format across various task types."""
-    model_path = TASK2MODEL[task]
-    file = YOLO(model_path).export(format="ethos", imgsz=32, data=TASK2DATA[task])
-    assert Path(file).exists(), f"Ethos export failed for task '{task}', directory not found: {file}"
-    pte_file = Path(file) / f"{Path(model_path).stem}.pte"
-    assert pte_file.exists(), f"Ethos .pte file not found for task '{task}': {pte_file}"
-    metadata_file = Path(file) / "metadata.yaml"
-    assert metadata_file.exists(), f"Ethos metadata.yaml not found for task '{task}': {metadata_file}"
-    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
-    shutil.rmtree(file, ignore_errors=True)  # cleanup

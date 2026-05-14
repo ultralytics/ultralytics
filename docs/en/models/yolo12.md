@@ -155,21 +155,16 @@ If you use YOLO12 in your research, please cite the original work by [University
     === "BibTeX"
 
         ```bibtex
-        @article{tian2025yolo12,
-          title={YOLO12: Attention-Centric Real-Time Object Detectors},
-          author={Tian, Yunjie and Ye, Qixiang and Doermann, David},
-          journal={arXiv preprint arXiv:2502.12524},
-          year={2025}
-        }
-
-        @software{yolo12,
-          author = {Tian, Yunjie and Ye, Qixiang and Doermann, David},
-          title = {YOLO12: Attention-Centric Real-Time Object Detectors},
-          year = {2025},
-          url = {https://github.com/sunsmarterjie/yolov12},
-          license = {AGPL-3.0}
+        @inproceedings{tian2026yolov,
+          title={{YOLO}v12: Attention-Centric Real-Time Object Detectors},
+          author={Yunjie Tian and Qixiang Ye and David Doermann},
+          booktitle={The Thirty-ninth Annual Conference on Neural Information Processing Systems},
+          year={2026},
+          url={https://openreview.net/forum?id=gCvByDI4FN}
         }
         ```
+
+The official YOLOv12 paper was accepted as a **NeurIPS 2025** poster. The peer-reviewed version is available on [OpenReview](https://openreview.net/forum?id=gCvByDI4FN), with a preprint on [arXiv](https://arxiv.org/abs/2502.12524). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/sunsmarterjie/yolov12). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
 ## FAQ
 

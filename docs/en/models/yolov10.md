@@ -245,17 +245,17 @@ We would like to acknowledge the YOLOv10 authors from [Tsinghua University](http
     === "BibTeX"
 
         ```bibtex
-        @article{THU-MIGyolov10,
-          title={YOLOv10: Real-Time End-to-End Object Detection},
-          author={Ao Wang, Hui Chen, Lihao Liu, et al.},
-          journal={arXiv preprint arXiv:2405.14458},
-          year={2024},
-          institution={Tsinghua University},
-          license = {AGPL-3.0}
+        @article{wang2024yolov10,
+          title={YOLOv10: Real-time end-to-end object detection},
+          author={Wang, Ao and Chen, Hui and Liu, Lihao and Chen, Kai and Lin, Zijia and Han, Jungong and Ding, Guiguang},
+          journal={Advances in neural information processing systems},
+          volume={37},
+          pages={107984--108011},
+          year={2024}
         }
         ```
 
-For detailed implementation, architectural innovations, and experimental results, please refer to the YOLOv10 [research paper](https://arxiv.org/pdf/2405.14458) and [GitHub repository](https://github.com/THU-MIG/yolov10) by the Tsinghua University team.
+For detailed implementation, architectural innovations, and experimental results, please refer to the YOLOv10 [research paper](https://proceedings.neurips.cc/paper_files/paper/2024/file/c34ddd05eb089991f06f3c5dc36836e0-Paper-Conference.pdf) and [GitHub repository](https://github.com/THU-MIG/yolov10) by the Tsinghua University team.
 
 ## FAQ
 

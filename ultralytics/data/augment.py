@@ -648,14 +648,36 @@ class Mosaic(BaseMixTransform):
 
         Returns:
             (dict): Updated labels with concatenated semantic mask.
-
-        Raises:
-            NotImplementedError: Mosaic does not yet support semantic masks.
         """
-        if labels.get("semantic_mask") is not None or any(
-            m.get("semantic_mask") is not None for m in labels.get("mix_labels", [])
+        if labels.get("semantic_mask") is None and all(
+            m.get("semantic_mask") is None for m in labels.get("mix_labels", [])
         ):
-            raise NotImplementedError("Mosaic does not yet support semantic masks.")
+            return labels
+
+        s = self.imgsz
+        layout = params["layout"]
+        if self.n == 4:
+            mask4 = np.full((s * 2, s * 2), 255, dtype=np.uint8)
+            for item in layout:
+                labels_patch = item["labels_patch"]
+                mask = labels_patch.get("semantic_mask")
+                if mask is None:
+                    continue
+                x1a, y1a, x2a, y2a = item["x1a"], item["y1a"], item["x2a"], item["y2a"]
+                x1b, y1b, x2b, y2b = item["x1b"], item["y1b"], item["x2b"], item["y2b"]
+                mask4[y1a:y2a, x1a:x2a] = mask[y1b:y2b, x1b:x2b]
+            labels["semantic_mask"] = mask4
+        elif self.n == 9:
+            mask9 = np.full((s * 3, s * 3), 255, dtype=np.uint8)
+            for item in layout:
+                labels_patch = item["labels_patch"]
+                mask = labels_patch.get("semantic_mask")
+                if mask is None:
+                    continue
+                x1, y1, x2, y2 = item["x1"], item["y1"], item["x2"], item["y2"]
+                padw, padh = item["padw"], item["padh"]
+                mask9[y1:y2, x1:x2] = mask[y1 - padh :, x1 - padw :]
+            labels["semantic_mask"] = mask9[-self.border[0] : self.border[0], -self.border[1] : self.border[1]]
         return labels
 
     @staticmethod
@@ -816,6 +838,18 @@ class MixUp(BaseMixTransform):
         labels["cls"] = np.concatenate([labels["cls"], labels2["cls"]], 0)
         return labels
 
+    def apply_semantic(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
+        if labels.get("semantic_mask") is None:
+            return labels
+        labels2 = labels["mix_labels"][0]
+        if labels2.get("semantic_mask") is None:
+            return labels
+        r = params["r"]
+        # Use mask from the image with higher weight to avoid fractional class indices
+        if r < 0.5:
+            labels["semantic_mask"] = labels2["semantic_mask"].copy()
+        return labels
+
 
 class CutMix(BaseMixTransform):
     """Apply CutMix augmentation to image datasets as described in the paper https://arxiv.org/abs/1905.04899.
@@ -966,6 +1000,17 @@ class CutMix(BaseMixTransform):
         labels["instances"] = Instances.concatenate([labels["instances"], instances2], axis=0)
         return labels
 
+    def apply_semantic(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
+        if params.get("skip"):
+            return labels
+        if labels.get("semantic_mask") is None:
+            return labels
+        x1, y1, x2, y2 = params["area"].astype(np.int32)
+        labels2 = labels["mix_labels"][0]
+        if labels2.get("semantic_mask") is not None:
+            labels["semantic_mask"][y1:y2, x1:x2] = labels2["semantic_mask"][y1:y2, x1:x2]
+        return labels
+
 
 class RandomPerspective(BaseTransform):
     """Implement random perspective and affine transformations on images and corresponding annotations.
@@ -1006,7 +1051,7 @@ class RandomPerspective(BaseTransform):
         self,
         degrees: float = 0.0,
         translate: float = 0.1,
-        scale: float = 0.5,
+        scale: float | tuple[float, float] = 0.5,
         shear: float = 0.0,
         perspective: float = 0.0,
         border: tuple[int, int] = (0, 0),
@@ -1058,7 +1103,10 @@ class RandomPerspective(BaseTransform):
         # Rotation and Scale
         R = np.eye(3, dtype=np.float32)
         a = random.uniform(-self.degrees, self.degrees)
-        s = random.uniform(1 - self.scale, 1 + self.scale)
+        if isinstance(self.scale, (tuple, list)):
+            s = random.uniform(self.scale[0], self.scale[1])
+        else:
+            s = random.uniform(1 - self.scale, 1 + self.scale)
         R[:2] = cv2.getRotationMatrix2D(angle=a, center=(0, 0), scale=s)
 
         # Shear
@@ -1453,98 +1501,6 @@ class RandomHSV(BaseTransform):
         return labels
 
 
-class SemsegRandomScale(BaseTransform):
-    """Random scale augmentation for semantic segmentation.
-
-    Randomly scales image and semantic mask by a factor in [scale_min, scale_max].
-
-    Attributes:
-        scale_min (float): Minimum scale factor.
-        scale_max (float): Maximum scale factor.
-    """
-
-    def __init__(self, scale_min=0.5, scale_max=2.0):
-        """Initialize SemanticRandomScale."""
-        self.scale_min = scale_min
-        self.scale_max = scale_max
-
-    def get_params(self, labels):
-        """Compute random scale factor."""
-        return {"scale": random.uniform(self.scale_min, self.scale_max)}
-
-    def apply_image(self, labels, params=None):
-        """Apply random scale to image."""
-        img = labels["img"]
-        h, w = img.shape[:2]
-        scale = params["scale"]
-        new_h, new_w = int(h * scale), int(w * scale)
-        labels["img"] = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
-        labels["resized_shape"] = (new_h, new_w)
-        return labels
-
-    def apply_semantic(self, labels, params=None):
-        """Apply random scale to semantic mask."""
-        if "semantic_mask" not in labels or labels["semantic_mask"] is None:
-            return labels
-        img = labels["img"]
-        new_h, new_w = img.shape[:2]
-        labels["semantic_mask"] = cv2.resize(labels["semantic_mask"], (new_w, new_h), interpolation=cv2.INTER_NEAREST)
-        return labels
-
-
-class SemsegRandomCrop(BaseTransform):
-    """Random crop augmentation for semantic segmentation.
-
-    Pads the image to crop_size if smaller, then takes a random crop of fixed size.
-
-    Attributes:
-        crop_size (tuple): Target (h, w) after cropping.
-        pad_val (int): Pixel value used to pad the image when smaller than crop_size.
-        ignore_label (int): Label value used to pad the semantic mask.
-    """
-
-    def __init__(self, crop_size=512, pad_val=114, ignore_label=255):
-        """Initialize SemanticRandomCrop."""
-        self.crop_size = (crop_size, crop_size) if isinstance(crop_size, int) else tuple(crop_size)
-        self.pad_val = pad_val
-        self.ignore_label = ignore_label
-
-    def get_params(self, labels):
-        """Compute crop parameters."""
-        img = labels["img"]
-        h, w = img.shape[:2]
-        crop_h, crop_w = self.crop_size
-        pad_h = max(crop_h - h, 0)
-        pad_w = max(crop_w - w, 0)
-        y0 = random.randint(0, max(h - crop_h, 0))
-        x0 = random.randint(0, max(w - crop_w, 0))
-        return {"pad_h": pad_h, "pad_w": pad_w, "y0": y0, "x0": x0, "crop_h": crop_h, "crop_w": crop_w}
-
-    def apply_image(self, labels, params=None):
-        """Apply padding (if needed) and random crop to image."""
-        img = labels["img"]
-        pad_h, pad_w = params["pad_h"], params["pad_w"]
-        if pad_h > 0 or pad_w > 0:
-            img = cv2.copyMakeBorder(img, 0, pad_h, 0, pad_w, cv2.BORDER_CONSTANT, value=(self.pad_val,) * 3)
-        labels["img"] = img[
-            params["y0"] : params["y0"] + params["crop_h"], params["x0"] : params["x0"] + params["crop_w"]
-        ]
-        return labels
-
-    def apply_semantic(self, labels, params=None):
-        """Apply padding (if needed) and random crop to semantic mask."""
-        if "semantic_mask" not in labels or labels["semantic_mask"] is None:
-            return labels
-        mask = labels["semantic_mask"]
-        pad_h, pad_w = params["pad_h"], params["pad_w"]
-        if pad_h > 0 or pad_w > 0:
-            mask = cv2.copyMakeBorder(mask, 0, pad_h, 0, pad_w, cv2.BORDER_CONSTANT, value=self.ignore_label)
-        labels["semantic_mask"] = mask[
-            params["y0"] : params["y0"] + params["crop_h"], params["x0"] : params["x0"] + params["crop_w"]
-        ]
-        return labels
-
-
 class PhotoMetricDistortion(BaseTransform):
     """Apply photometric distortion to an image, each transformation applied with a probability of 0.5.
 
@@ -1652,6 +1608,10 @@ class PhotoMetricDistortion(BaseTransform):
         if mode == 0:
             img = self.contrast(img)
         labels["img"] = img
+        return labels
+
+    def apply_semantic(self, labels: dict[str, Any], params=None) -> dict[str, Any]:
+        """Photometric distortion does not affect semantic masks."""
         return labels
 
 
@@ -2117,6 +2077,7 @@ class CopyPaste(BaseMixTransform):
         params["im_new"] = im_new
         params["labels2_cls"] = labels2.get("cls")
         params["labels2_img"] = labels2.get("img")
+        params["labels2_semantic_mask"] = labels2.get("semantic_mask")
         return params
 
     def apply_image(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -2173,6 +2134,21 @@ class CopyPaste(BaseMixTransform):
 
         labels["cls"] = cls
         labels["instances"] = instances
+        return labels
+
+    def apply_semantic(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
+        if labels.get("semantic_mask") is None:
+            return labels
+        im_new = np.zeros(labels["img"].shape[:2], dtype=np.uint8)
+        instances2 = params["instances2"]
+        selected = params["selected"]
+        for j in selected:
+            cv2.drawContours(im_new, instances2.segments[[j]].astype(np.int32), -1, 1, cv2.FILLED)
+        i = im_new.astype(bool)
+        result_mask = params.get("labels2_semantic_mask")
+        if result_mask is None:
+            result_mask = cv2.flip(labels["semantic_mask"], 1)
+        labels["semantic_mask"][i] = result_mask[i]
         return labels
 
 

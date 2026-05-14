@@ -235,6 +235,42 @@ def test_val(task: str, weight: str, data: str) -> None:
         metrics.confusion_matrix.to_json()
 
 
+
+
+def test_confusion_matrix_filter_empty(tmp_path) -> None:
+    """Test that filter_empty=True removes all-zero rows/cols from the confusion matrix plot."""
+    import numpy as np
+    from ultralytics.utils.metrics import ConfusionMatrix
+
+    # Build a 4-class matrix where class 2 (index 2) has no GT and no predictions
+    names = {0: "cat", 1: "dog", 2: "bird"}
+    cm = ConfusionMatrix(names=names)
+    cm.nc = 3
+    cm.matrix = np.array([
+        [5, 1, 0, 0],
+        [0, 4, 0, 0],
+        [0, 0, 0, 0],  # bird: all zeros
+        [1, 0, 0, 2],  # background
+    ], dtype=np.float64)
+
+    # filter_empty=True (default) should save without error
+    cm.plot(save_dir=str(tmp_path), filter_empty=True, normalize=False)
+    assert (tmp_path / "confusion_matrix.png").exists(), "Plot not saved with filter_empty=True"
+
+    # filter_empty=False should also save
+    (tmp_path / "confusion_matrix.png").unlink()
+    cm.plot(save_dir=str(tmp_path), filter_empty=False, normalize=False)
+    assert (tmp_path / "confusion_matrix.png").exists(), "Plot not saved with filter_empty=False"
+
+    # show_values=True should always annotate regardless of nc
+    big_names = {i: f"cls{i}" for i in range(31)}
+    cm_big = ConfusionMatrix(names=big_names)
+    cm_big.nc = 31
+    cm_big.matrix = np.zeros((32, 32), dtype=np.float64)
+    (tmp_path / "confusion_matrix.png").unlink()
+    cm_big.plot(save_dir=str(tmp_path), filter_empty=False, show_values=True, normalize=False)
+    assert (tmp_path / "confusion_matrix.png").exists(), "Plot not saved with show_values=True on large matrix"
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_scratch():

@@ -98,6 +98,20 @@ This example provides simple RT-DETR training and inference examples. For full d
         yolo predict model=rtdetr-l.pt source=path/to/bus.jpg
         ```
 
+!!! tip "Lower learning rate for the backbone"
+
+    RT-DETR's `RTDETRTrainer` honors the `backbone_lr_ratio` argument, which scales the learning rate of all backbone parameters relative to `lr0`. This is useful when fine-tuning a pretrained backbone alongside a freshly-initialized detection head: keep the head at full LR while training the backbone more conservatively.
+
+    ```python
+    from ultralytics import RTDETR
+
+    model = RTDETR("rtdetr-l.pt")
+    # Backbone trains at lr0 * 0.1, head at lr0
+    model.train(data="coco8.yaml", epochs=100, imgsz=640, backbone_lr_ratio=0.1)
+    ```
+
+    The default value `1.0` keeps backbone and head at the same LR (no behavior change). This argument is currently only consumed by the RT-DETR trainer; it is ignored by YOLO training paths.
+
 ## Supported Tasks and Modes
 
 This table presents the model types, the specific pretrained weights, the tasks supported by each model, and the various modes ([Train](../modes/train.md) , [Val](../modes/val.md), [Predict](../modes/predict.md), [Export](../modes/export.md)) that are supported, indicated by ✅ emojis.

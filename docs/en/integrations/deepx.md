@@ -186,7 +186,7 @@ Compiler: v1.18.1
 
 ### Visualizing with dxtron
 
-[dxtron](https://sdk.deepx.ai/) is DeepX's graph visualizer for inspecting the compiled `.dxnn` model.
+[dxtron](https://developer.deepx.ai) is DeepX's graph visualizer for inspecting the compiled `.dxnn` model.
 
 Install `dxtron` on x86-64 Linux by downloading the `.deb` package from the DeepX SDK and installing it via `dpkg`:
 

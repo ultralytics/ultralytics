@@ -396,12 +396,20 @@ Below are code examples for using each source type:
 
 `model.predict()` accepts multiple arguments that can be passed at inference time to override defaults:
 
-!!! note
+### Fixed shape vs minimum rectangle (`rect`)
 
-    Ultralytics uses minimal padding during inference by default (`rect=True`). In this mode, the shorter side of each image is padded only as much as needed to make it divisible by the model's maximum stride, rather than padding it all the way to the full `imgsz`. When running inference on a batch of images, minimal padding only works if all images have identical size. Otherwise, images are uniformly padded to a square shape with both sides equal to `imgsz`.
+By default, predict uses **`rect=True`**, which enables **minimum-rectangle** padding when possible. The image is scaled to fit inside `imgsz` and padded only to the nearest stride multiple, so the final tensor may be **smaller** than `imgsz`. Minimum-rectangle padding is only used when **all images in the batch have the same shape** and the backend supports it (PyTorch `.pt`, or dynamic ONNX / Triton). Otherwise, images are padded to the **full** `imgsz` target.
 
-    - `batch=1`, using `rect` padding by default.
-    - `batch>1`, using `rect` padding only if all the images in one batch have identical size, otherwise using square padding to `imgsz`.
+Use **`rect=False`** to always pad to the full `imgsz` target. This is recommended when you need a fixed input size to match exported models (ONNX, TensorRT, etc.).
+
+**Integer vs tuple `imgsz`**
+
+- An **integer** `imgsz=640` becomes a square target `(640, 640)` after stride rounding.
+- A **tuple** `imgsz=(384, 672)` sets a rectangular target. With `rect=True` and `auto=True`, the actual tensor can be smaller than this target.
+
+**Training vs predict/export**
+
+Training accepts only a single integer `imgsz` (a `[h, w]` list is coerced to the largest value). Predict and export accept either an integer or a `(height, width)` tuple.
 
 !!! example
 

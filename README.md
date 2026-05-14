@@ -1,4 +1,3 @@
-
 <div align="center">
   <p>
     <a href="https://platform.ultralytics.com/?utm_source=github&utm_medium=referral&utm_campaign=platform_launch&utm_content=banner&utm_term=ultralytics_github" target="_blank">

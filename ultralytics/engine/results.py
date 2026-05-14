@@ -949,6 +949,44 @@ class Boxes(BaseTensor):
         """
         return self._class_probs
 
+    def cpu(self):
+        """Return a copy of this Boxes with data on CPU, preserving class_probs."""
+        if isinstance(self.data, np.ndarray):
+            return self
+        cp = self._class_probs
+        return self.__class__(self.data.cpu(), self.orig_shape, class_probs=cp.cpu() if cp is not None else None)
+
+    def numpy(self):
+        """Return a copy of this Boxes with data as numpy arrays, preserving class_probs."""
+        if isinstance(self.data, np.ndarray):
+            return self
+        cp = self._class_probs
+        new_cp = cp.numpy() if (cp is not None and isinstance(cp, torch.Tensor)) else cp
+        return self.__class__(self.data.numpy(), self.orig_shape, class_probs=new_cp)
+
+    def cuda(self):
+        """Return a copy of this Boxes on GPU, preserving class_probs."""
+        cp = self._class_probs
+        return self.__class__(
+            torch.as_tensor(self.data).cuda(),
+            self.orig_shape,
+            class_probs=cp.cuda() if cp is not None else None,
+        )
+
+    def to(self, *args, **kwargs):
+        """Return a copy of this Boxes with the specified device/dtype, preserving class_probs."""
+        cp = self._class_probs
+        return self.__class__(
+            torch.as_tensor(self.data).to(*args, **kwargs),
+            self.orig_shape,
+            class_probs=cp.to(*args, **kwargs) if cp is not None else None,
+        )
+
+    def __getitem__(self, idx):
+        """Return a new Boxes containing the indexed detections, preserving class_probs."""
+        cp = self._class_probs
+        return self.__class__(self.data[idx], self.orig_shape, class_probs=cp[idx] if cp is not None else None)
+
     @property
     def id(self) -> torch.Tensor | np.ndarray | None:
         """Return the tracking IDs for each detection box if available.

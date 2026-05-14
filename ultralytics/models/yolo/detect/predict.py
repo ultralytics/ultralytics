@@ -74,7 +74,7 @@ class DetectionPredictor(BasePredictor):
             preds = preds[0]
 
         probs_list = None
-        if return_probs:
+        if return_probs and isinstance(preds, tuple):
             preds, probs_list = preds
 
         results = self.construct_results(preds, img, orig_imgs, probs_list=probs_list, **kwargs)

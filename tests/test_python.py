@@ -142,7 +142,7 @@ def test_predict_visualize(model):
 
 def test_predict_return_probs() -> None:
     """Test that return_probs=True attaches a (N, nc) class_probs tensor to each detection."""
-    model = YOLO("yolo11n.pt")
+    model = YOLO(WEIGHTS_DIR / "yolo11n.pt")
     results = model.predict(SOURCE, imgsz=32, return_probs=True)
     for r in results:
         if r.boxes is not None and len(r.boxes):

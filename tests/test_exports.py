@@ -404,3 +404,29 @@ def test_export_deepx():
     assert Path(file).exists(), f"DeepX export failed, directory not found: {file}"
     # Note: Inference testing skipped as it requires DeepX hardware
     shutil.rmtree(file, ignore_errors=True)  # cleanup
+    
+
+def test_export_ethos():
+    """Test YOLO model export to Arm Ethos-U NPU ExecuTorch format."""
+    file = YOLO(MODEL).export(format="ethos", imgsz=32)
+    assert Path(file).exists(), f"Ethos export failed, directory not found: {file}"
+    pte_file = Path(file) / f"{Path(MODEL).stem}.pte"
+    assert pte_file.exists(), f"Ethos .pte file not found: {pte_file}"
+    metadata_file = Path(file) / "metadata.yaml"
+    assert metadata_file.exists(), f"Ethos metadata.yaml not found: {metadata_file}"
+    # Note: Inference testing skipped as it requires Ethos-U hardware
+    shutil.rmtree(file, ignore_errors=True)  # cleanup
+
+
+@pytest.mark.parametrize("task", TASKS)
+def test_export_ethos_matrix(task):
+    """Test YOLO export to Ethos-U format across various task types."""
+    model_path = TASK2MODEL[task]
+    file = YOLO(model_path).export(format="ethos", imgsz=32, data=TASK2DATA[task])
+    assert Path(file).exists(), f"Ethos export failed for task '{task}', directory not found: {file}"
+    pte_file = Path(file) / f"{Path(model_path).stem}.pte"
+    assert pte_file.exists(), f"Ethos .pte file not found for task '{task}': {pte_file}"
+    metadata_file = Path(file) / "metadata.yaml"
+    assert metadata_file.exists(), f"Ethos metadata.yaml not found for task '{task}': {metadata_file}"
+    # Note: Inference testing skipped as it requires Ethos-U hardware
+    shutil.rmtree(file, ignore_errors=True)  # cleanup

@@ -77,7 +77,8 @@ class DetectionPredictor(BasePredictor):
         if return_probs and isinstance(preds, tuple):
             preds, probs_list = preds
 
-        results = self.construct_results(preds, img, orig_imgs, probs_list=probs_list, **kwargs)
+        extra = {"probs_list": probs_list} if probs_list is not None else {}
+        results = self.construct_results(preds, img, orig_imgs, **extra, **kwargs)
 
         if save_feats:
             for r, f in zip(results, obj_feats):

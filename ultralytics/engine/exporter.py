@@ -321,7 +321,7 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
-        if fmt in {"deepx", "axelera", "imx", "edgetpu"} and not self.args.int8:
+        if fmt in {"deepx", "axelera", "imx", "edgetpu", "ethos"} and not self.args.int8:
             LOGGER.warning(f"{fmt} export requires int8=True, setting int8=True.")
             self.args.int8 = True
         if fmt == "axelera":
@@ -330,13 +330,7 @@ class Exporter:
             if not self.args.data:
                 self.args.data = TASK2CALIBRATIONDATA.get(model.task)
         if fmt == "ethos":
-            if not self.args.int8:
-                LOGGER.warning("Ethos export requires INT8 quantization, setting int8=True.")
-                self.args.int8 = True
             self.args.target = self.args.target or "ethos-u85-256"
-        if fmt == "edgetpu" and not self.args.int8:
-            LOGGER.warning("Edge TPU export requires int8=True, setting int8=True.")
-            self.args.int8 = True
         if fmt == "imx":
             if not self.args.nms and model.task in {"detect", "pose", "segment"}:
                 LOGGER.warning("IMX export requires nms=True, setting nms=True.")

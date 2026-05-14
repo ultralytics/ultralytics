@@ -104,7 +104,6 @@ This example provides simple RT-DETR training and inference examples. For full d
     rtdetr.export(format="engine", device=0, half=True)
     ```
 
-
 ## Supported Tasks and Modes
 
 This table presents the model types, the specific pretrained weights, the tasks supported by each model, and the various modes ([Train](../modes/train.md) , [Val](../modes/val.md), [Predict](../modes/predict.md), [Export](../modes/export.md)) that are supported, indicated by ✅ emojis.

@@ -207,4 +207,4 @@ Training a model using Ultralytics YOLO can be done easily in both Python and CL
         yolo classify train data=path/to/data model=yolo26n-cls.pt epochs=100 imgsz=640
         ```
 
-These examples demonstrate the straightforward process of training a YOLO model using either approach. For more information, visit the [Usage](#usage) section and the [Train](https://docs.ultralytics.com/tasks/classify/#train) page for classification tasks.
+These examples demonstrate the straightforward process of training a YOLO model using either approach. For more information, visit the [Usage](#usage) section and the [Train](https://docs.ultralytics.com/tasks/classify#train) page for classification tasks.

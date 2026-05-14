@@ -15,6 +15,7 @@ from ultralytics.utils.downloads import is_url
 from .backends import (
     AxeleraBackend,
     CoreMLBackend,
+    DeepXBackend,
     ExecuTorchBackend,
     MNNBackend,
     NCNNBackend,
@@ -110,6 +111,7 @@ class AutoBackend(nn.Module):
             | Triton Inference      | triton://model    |
             | ExecuTorch            | *.pte             |
             | Axelera AI            | *_axelera_model/  |
+            | DeepX                 | *_deepx_model/    |
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.
@@ -153,6 +155,7 @@ class AutoBackend(nn.Module):
         "triton": TritonBackend,
         "executorch": ExecuTorchBackend,
         "axelera": AxeleraBackend,
+        "deepx": DeepXBackend,
     }
 
     @torch.no_grad()

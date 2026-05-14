@@ -48,6 +48,7 @@ TORCH_2_4 = check_version(TORCH_VERSION, "2.4.0")
 TORCH_2_8 = check_version(TORCH_VERSION, "2.8.0")
 TORCH_2_9 = check_version(TORCH_VERSION, "2.9.0")
 TORCH_2_10 = check_version(TORCH_VERSION, "2.10.0")
+TORCH_2_12 = check_version(TORCH_VERSION, "2.12.0")
 TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
 TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
@@ -286,7 +287,11 @@ def fuse_conv_and_bn(conv, bn):
     conv.weight.data = torch.mm(w_bn, w_conv).view(conv.weight.shape)
 
     # Compute fused bias
-    b_conv = torch.zeros(conv.out_channels, device=conv.weight.device) if conv.bias is None else conv.bias
+    b_conv = (
+        torch.zeros(conv.out_channels, device=conv.weight.device, dtype=conv.weight.dtype)
+        if conv.bias is None
+        else conv.bias
+    )
     b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
     fused_bias = torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn
 
@@ -319,7 +324,11 @@ def fuse_deconv_and_bn(deconv, bn):
     deconv.weight.data = torch.mm(w_bn, w_deconv).view(deconv.weight.shape)
 
     # Compute fused bias
-    b_conv = torch.zeros(deconv.out_channels, device=deconv.weight.device) if deconv.bias is None else deconv.bias
+    b_conv = (
+        torch.zeros(deconv.out_channels, device=deconv.weight.device, dtype=deconv.weight.dtype)
+        if deconv.bias is None
+        else deconv.bias
+    )
     b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
     fused_bias = torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn
 

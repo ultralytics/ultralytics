@@ -1,8 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from __future__ import annotations
-
-import subprocess
 from functools import cached_property
 from pathlib import Path
 
@@ -11,9 +9,9 @@ class GitRepo:
     """Represent a local Git repository and expose branch, commit, and remote metadata.
 
     This class discovers the repository root by searching for a .git entry from the given path upward, resolves the
-    actual .git directory (including worktrees), and reads core Git metadata directly from on-disk files. The commit
-    message is resolved lazily with the git binary when available. All metadata properties are cached; construct a new
-    instance to refresh state.
+    actual .git directory (including worktrees), and reads Git metadata directly from on-disk files. It does not invoke
+    the git binary and therefore works in restricted environments. All metadata properties are resolved lazily and
+    cached; construct a new instance to refresh state.
 
     Attributes:
         root (Path | None): Repository root directory containing the .git entry; None if not in a repository.
@@ -22,7 +20,7 @@ class GitRepo:
         is_repo (bool): Whether the provided path resides inside a Git repository.
         branch (str | None): Current branch name when HEAD points to a branch; None for detached HEAD or non-repo.
         commit (str | None): Current commit SHA for HEAD; None if not determinable.
-        message (str | None): Current commit subject; None if not determinable.
+        message (str | None): Current commit subject from reflog; None if not determinable.
         origin (str | None): URL of the "origin" remote as read from gitdir/config; None if unset or unavailable.
 
     Examples:
@@ -35,7 +33,7 @@ class GitRepo:
         ('main', '1a2b3c4', 'https://example.com/owner/repo.git')
 
     Notes:
-        - Resolves core metadata by reading files: HEAD, packed-refs, and config.
+        - Resolves metadata by reading files: HEAD, packed-refs, config, and reflogs; no subprocess calls are used.
         - Caches properties on first access using cached_property; recreate the object to reflect repository changes.
     """
 
@@ -113,21 +111,19 @@ class GitRepo:
 
     @cached_property
     def message(self) -> str | None:
-        """Current commit subject or None."""
-        if not self.is_repo or not self.root:
+        """Current commit subject from reflog or None."""
+        if not self.is_repo or not self.commit:
             return None
-        cmd = ["git", "-C", str(self.root), "log", "-1", "--format=%s"]
-        if self.commit:
-            cmd.append(self.commit)
-        try:
-            return subprocess.check_output(
-                cmd,
-                stderr=subprocess.DEVNULL,
-                timeout=1,
-                text=True,
-            ).strip()
-        except (OSError, subprocess.SubprocessError):
-            return None
+        logs = [self.gitdir / "logs" / "HEAD"]
+        if self.head and self.head.startswith("ref: "):
+            logs.append(self.gitdir / "logs" / self.head[5:].strip())
+        for log in logs:
+            for line in reversed((self._read(log) or "").splitlines()):
+                head, _, message = line.partition("\t")
+                fields = head.split()
+                if len(fields) >= 2 and fields[1] == self.commit:
+                    return message.removeprefix("commit: ").strip() or None
+        return None
 
     @cached_property
     def origin(self) -> str | None:

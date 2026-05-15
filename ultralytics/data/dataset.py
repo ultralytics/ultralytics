@@ -869,14 +869,7 @@ class SemsegDataset(BaseDataset):
                     scale=scale,
                     shear=0,
                     perspective=0,
-                    pre_transform=LetterBox(
-                        new_shape=(self.imgsz, self.imgsz),
-                        auto=False,
-                        scaleup=True,
-                        center=False,
-                        stride=self.stride,
-                        ignore_label=self.ignore_label if nc > 1 else 0,
-                    ),
+                    size=(self.imgsz, self.imgsz),
                 )
             )
             transforms.append(RandomFlip(p=getattr(hyp, "fliplr", 0.5), direction="horizontal"))
@@ -892,6 +885,7 @@ class SemsegDataset(BaseDataset):
                     hue_delta=hue_delta,
                 )
             )
+            # transforms = v8_transforms(self, self.imgsz, hyp)
         else:
             transforms.append(
                 LetterBox(

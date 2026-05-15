@@ -1030,7 +1030,6 @@ class RandomPerspective(BaseTransform):
         shear (float): Maximum shear angle in degrees.
         perspective (float): Perspective distortion factor.
         border (tuple[int, int]): Mosaic border size as (y, x).
-        pre_transform (Callable | None): Optional transform to apply before the random perspective.
 
     Methods:
         get_params: Compute affine transformation matrix and related parameters.
@@ -1059,7 +1058,7 @@ class RandomPerspective(BaseTransform):
         shear: float = 0.0,
         perspective: float = 0.0,
         border: tuple[int, int] = (0, 0),
-        pre_transform=None,
+        size: tuple[int, int] | None = None,
     ):
         """Initialize RandomPerspective object with transformation parameters.
 
@@ -1074,8 +1073,6 @@ class RandomPerspective(BaseTransform):
             shear (float): Shear intensity (angle in degrees).
             perspective (float): Perspective distortion factor.
             border (tuple[int, int]): Tuple specifying mosaic border (y, x).
-            pre_transform (Callable | None): Function/transform to apply to the image before starting the random
-                transformation.
         """
         self.degrees = degrees
         self.translate = translate
@@ -1083,7 +1080,7 @@ class RandomPerspective(BaseTransform):
         self.shear = shear
         self.perspective = perspective
         self.border = border  # mosaic border
-        self.pre_transform = pre_transform
+        self.size = size
 
     def _compute_affine_matrix(self, img: np.ndarray, size: tuple[int, int]) -> tuple[np.ndarray, float]:
         """Compute the affine transformation matrix without applying it.
@@ -1140,7 +1137,10 @@ class RandomPerspective(BaseTransform):
         """
         img = labels["img"]
         border = labels.pop("mosaic_border", self.border)
-        size = img.shape[1] + border[1] * 2, img.shape[0] + border[0] * 2  # w, h
+        if self.size is None:
+            size = img.shape[1] + border[1] * 2, img.shape[0] + border[0] * 2  # w, h
+        else:
+            size = self.size
         orig_shape = img.shape[:2]
         M, scale = self._compute_affine_matrix(img, size)
         return {"M": M, "scale": scale, "border": border, "orig_shape": orig_shape, "size": size}
@@ -1379,8 +1379,6 @@ class RandomPerspective(BaseTransform):
             May include:
                 - 'mosaic_border' (tuple[int, int]): Border size for mosaic augmentation.
         """
-        if self.pre_transform and "mosaic_border" not in labels:
-            labels = self.pre_transform(labels)
         labels.pop("ratio_pad", None)  # do not need ratio pad
         return super().__call__(labels)
 
@@ -2880,7 +2878,7 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bo
         scale=hyp.scale,
         shear=hyp.shear,
         perspective=hyp.perspective,
-        pre_transform=None if stretch else LetterBox(new_shape=(imgsz, imgsz)),
+        size=(imgsz, imgsz) if not stretch else None,
     )
 
     pre_transform = Compose([mosaic, affine])
@@ -2896,7 +2894,7 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bo
             )
         )
     flip_idx = dataset.data.get("flip_idx", [])  # for keypoints augmentation
-    if dataset.use_keypoints:
+    if getattr(dataset, "use_keypoints", False):
         kpt_shape = dataset.data.get("kpt_shape", None)
         if len(flip_idx) == 0 and (hyp.fliplr > 0.0 or hyp.flipud > 0.0):
             hyp.fliplr = hyp.flipud = 0.0  # both fliplr and flipud require flip_idx

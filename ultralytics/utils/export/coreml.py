@@ -198,17 +198,21 @@ def torch2coreml(
     LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
     ts = torch.jit.trace(model.eval(), im, strict=False)  # TorchScript model
 
-    # Based on apple's documentation it is better to leave out the minimum_deployment target and let that get set
-    # Internally based on the model conversion and output type.
-    # Setting minimum_deployment_target >= iOS16 will require setting compute_precision=ct.precision.FLOAT32.
-    # iOS16 adds in better support for FP16, but none of the CoreML NMS specifications handle FP16 as input.
-    ct_model = ct.convert(
-        ts,
+    # Selective fp32 for numerically fragile ops in the RT-DETR decoder (attention softmax, deformable
+    # sampling). Leaves the rest in fp16 so the ANE still accelerates conv/matmul.
+    convert_kwargs = dict(
         inputs=inputs,
         classifier_config=ct.ClassifierConfig(classifier_names) if classifier_names else None,
         convert_to="neuralnetwork" if mlmodel else "mlprogram",
         skip_model_load=True,
     )
+    if not mlmodel:
+        # Keep numerically fragile ops (attention softmax, layer norm, deformable sampling) in fp32.
+        fp32_op_types = {"softmax", "layer_norm", "gather", "gather_nd", "gather_along_axis", "linear"}
+        convert_kwargs["compute_precision"] = ct.transform.FP16ComputePrecision(
+            op_selector=lambda op: op.op_type not in fp32_op_types
+        )
+    ct_model = ct.convert(ts, **convert_kwargs)
     bits, mode = (8, "kmeans") if int8 else (16, "linear") if half else (32, None)
     if bits < 32:
         if "kmeans" in mode:

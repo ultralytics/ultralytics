@@ -173,7 +173,7 @@ class AnalysisReport(SimpleClass, DataExportMixin):
         fig.savefig(out_dir / "correlation_scatter.png", dpi=120)
         plt.close(fig)
 
-        prop_columns = plotted_props + ["f1"]
+        prop_columns = [*plotted_props, "f1"]
         mat = np.full((len(prop_columns), len(prop_columns)), np.nan)
         cols = {p: np.array([v.get(p, np.nan) for v in scored], dtype=float) for p in prop_columns}
         for i, p1 in enumerate(prop_columns):

@@ -262,15 +262,8 @@ def torch2imx(
             LOGGER.info(f"\n{prefix} installing Java 17 for Raspberry Pi or Debian ...")
             check_apt_requirements(["openjdk-17-jre"])
 
-    check_requirements(
-        (
-            "model-compression-toolkit>=2.4.1",
-            "edge-mdt-cl<1.1.0",
-            "edge-mdt-tpc>=1.2.0",
-            "pydantic>=2.13.4",
-        )
-    )
-    check_requirements("imx500-converter[pt]>=3.17.3")
+    check_requirements("edge-mdt[pt]")
+    check_requirements("pydantic>=2.13.4")
     dataset = dataset() if callable(dataset) else dataset  # resolve lazy dataloader
 
     import model_compression_toolkit as mct

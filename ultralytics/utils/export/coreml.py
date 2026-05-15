@@ -198,8 +198,10 @@ def torch2coreml(
     LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
     ts = torch.jit.trace(model.eval(), im, strict=False)  # TorchScript model
 
-    # Selective fp32 for numerically fragile ops in the RT-DETR decoder (attention softmax, deformable
-    # sampling). Leaves the rest in fp16 so the ANE still accelerates conv/matmul.
+    # Based on apple's documentation it is better to leave out the minimum_deployment target and let that get set
+    # Internally based on the model conversion and output type.
+    # Setting minimum_deployment_target >= iOS16 will require setting compute_precision=ct.precision.FLOAT32.
+    # iOS16 adds in better support for FP16, but none of the CoreML NMS specifications handle FP16 as input.
     convert_kwargs = dict(
         inputs=inputs,
         classifier_config=ct.ClassifierConfig(classifier_names) if classifier_names else None,
@@ -207,9 +209,7 @@ def torch2coreml(
         skip_model_load=True,
     )
     if not mlmodel:
-        # Keep linear and gather variants in fp32 to preserve RT-DETR decoder accuracy: linear matmuls
-        # in the score head shift class logits, and fp16 gather/gather_nd in deformable-attention
-        # sampling and top-k indexing perturbs which features feed each query.
+        # Keep linear/gather ops in fp32: fp16 shifts RT-DETR decoder class logits and deformable-sampling indices.
         fp32_ops = {"linear", "gather", "gather_nd", "gather_along_axis"}
         convert_kwargs["compute_precision"] = ct.transform.FP16ComputePrecision(
             op_selector=lambda op: op.op_type not in fp32_ops

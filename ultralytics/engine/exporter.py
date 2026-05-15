@@ -548,11 +548,12 @@ class Exporter:
             )
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(" ", "")
             q = "int8" if self.args.int8 else "half" if self.args.half else ""  # quantization
+            val_data = data if data and Path(data).exists() else (Path(data).name if data else "")
             LOGGER.info(
                 f"\nExport complete ({time.time() - t:.1f}s)"
                 f"\nResults saved to {colorstr('bold', Path(f).resolve())}"
                 f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
-                f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}"
+                f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={val_data} {q} {s}"
                 f"\nVisualize:       https://netron.app"
             )
 

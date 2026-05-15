@@ -13,16 +13,10 @@ from ultralytics.utils.ops import xywhn2xyxy
 
 
 @pytest.fixture
-def synthetic_gray():
-    """Return a deterministic 320x480 grayscale image with mid-range intensity and structure."""
-    rng = np.random.default_rng(42)
-    return rng.integers(20, 200, size=(320, 480), dtype=np.uint8)
-
-
-@pytest.fixture
-def synthetic_bgr(synthetic_gray):
-    """Return a 320x480 BGR image derived from the synthetic gray fixture."""
-    return cv2.cvtColor(synthetic_gray, cv2.COLOR_GRAY2BGR)
+def synthetic_bgr():
+    """Return a deterministic 320x480 BGR image with mid-range intensity and structure."""
+    gray = np.random.default_rng(42).integers(20, 200, size=(320, 480), dtype=np.uint8)
+    return cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
 
 
 def test_brightness_in_unit_interval(synthetic_bgr):

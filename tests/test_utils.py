@@ -6,7 +6,9 @@ import numpy as np
 import pytest
 
 from ultralytics import YOLO
-from ultralytics.utils.analysis import ImagePropertyAnalyzer, _softmin1d, compute_objectlab_scores
+from ultralytics.data.build import build_yolo_dataset
+from ultralytics.data.utils import check_det_dataset
+from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor, _softmin1d, compute_objectlab_scores
 from ultralytics.utils.ops import xywhn2xyxy
 
 
@@ -25,7 +27,7 @@ def synthetic_bgr(synthetic_gray):
 
 def test_brightness_in_unit_interval(synthetic_bgr):
     """Brightness is HSP perceptual [0,1] (Finley 2006)."""
-    v = ImagePropertyAnalyzer._brightness(synthetic_bgr)
+    v = ImagePropertyExtractor._brightness(synthetic_bgr)
     assert 0.0 <= v <= 1.0
 
 
@@ -33,13 +35,13 @@ def test_blurriness_inverse_relationship():
     """A sharp checkerboard returns a lower blurriness than a uniform image (Pech-Pacheco 2000)."""
     sharp = np.tile(np.array([[0, 255], [255, 0]], dtype=np.uint8), (160, 240))
     flat = np.full((320, 480), 128, dtype=np.uint8)
-    assert ImagePropertyAnalyzer._blurriness(sharp) < ImagePropertyAnalyzer._blurriness(flat)
+    assert ImagePropertyExtractor._blurriness(sharp) < ImagePropertyExtractor._blurriness(flat)
 
 
 def test_contrast_zero_for_flat_image():
     """A constant-intensity image has zero contrast."""
     flat = np.full((320, 480), 128, dtype=np.uint8)
-    assert ImagePropertyAnalyzer._contrast(flat) == 0.0
+    assert ImagePropertyExtractor._contrast(flat) == 0.0
 
 
 def test_dark_and_bright_pixel_ratios():
@@ -47,23 +49,23 @@ def test_dark_and_bright_pixel_ratios():
     img = np.zeros((10, 10), dtype=np.uint8)
     img[:5] = 5  # half the image is dark
     img[5:] = 250  # other half bright
-    assert ImagePropertyAnalyzer._dark_pixel_ratio(img) == pytest.approx(0.5)
-    assert ImagePropertyAnalyzer._bright_pixel_ratio(img) == pytest.approx(0.5)
+    assert ImagePropertyExtractor._dark_pixel_ratio(img) == pytest.approx(0.5)
+    assert ImagePropertyExtractor._bright_pixel_ratio(img) == pytest.approx(0.5)
 
 
 def test_entropy_uniform_higher_than_constant():
     """Uniform random has higher Shannon entropy than constant image (Shannon 1948)."""
     uniform = np.random.default_rng(0).integers(0, 256, size=(64, 64), dtype=np.uint8)
     flat = np.full((64, 64), 128, dtype=np.uint8)
-    assert ImagePropertyAnalyzer._entropy(uniform) > ImagePropertyAnalyzer._entropy(flat)
-    assert ImagePropertyAnalyzer._entropy(flat) == 0.0
+    assert ImagePropertyExtractor._entropy(uniform) > ImagePropertyExtractor._entropy(flat)
+    assert ImagePropertyExtractor._entropy(flat) == 0.0
 
 
 def test_edge_density_higher_for_checkerboard():
     """Checkerboard has higher Canny edge density than flat (Canny 1986)."""
     sharp = np.tile(np.array([[0, 255], [255, 0]], dtype=np.uint8), (160, 240))
     flat = np.full((320, 480), 128, dtype=np.uint8)
-    assert ImagePropertyAnalyzer._edge_density(sharp) > ImagePropertyAnalyzer._edge_density(flat)
+    assert ImagePropertyExtractor._edge_density(sharp) > ImagePropertyExtractor._edge_density(flat)
 
 
 def test_sharpness_higher_for_step_edge():
@@ -71,20 +73,20 @@ def test_sharpness_higher_for_step_edge():
     edge = np.zeros((320, 480), dtype=np.uint8)
     edge[:, 240:] = 255  # vertical step edge in the middle
     flat = np.full((320, 480), 128, dtype=np.uint8)
-    assert ImagePropertyAnalyzer._sharpness(edge) > ImagePropertyAnalyzer._sharpness(flat)
+    assert ImagePropertyExtractor._sharpness(edge) > ImagePropertyExtractor._sharpness(flat)
 
 
 def test_pairwise_iou_stats_three_box_example():
     """Two overlapping boxes yield max IoU in (0.1, 0.5), a third disjoint box doesn't increase it."""
     boxes = np.array([[0, 0, 10, 10], [5, 5, 15, 15], [100, 100, 110, 110]], dtype=np.float32)
-    max_iou, _ = ImagePropertyAnalyzer._pairwise_iou_stats(boxes)
+    max_iou, _ = ImagePropertyExtractor._pairwise_iou_stats(boxes)
     assert 0.1 < max_iou < 0.5
 
 
 def test_pairwise_iou_stats_zero_for_disjoint_boxes():
     """Three pairwise-disjoint boxes have mean IoU == 0."""
     boxes = np.array([[0, 0, 10, 10], [100, 100, 110, 110], [200, 200, 210, 210]], dtype=np.float32)
-    _, mean_iou = ImagePropertyAnalyzer._pairwise_iou_stats(boxes)
+    _, mean_iou = ImagePropertyExtractor._pairwise_iou_stats(boxes)
     assert mean_iou == 0.0
 
 
@@ -138,23 +140,24 @@ def test_objectlab_swap_drops_quality():
     assert out["swap_score"] < 0.1, f"expected low swap score, got {out['swap_score']}"
 
 
-def test_run_dataset_only_path(tmp_path):
-    """Dataset-only path produces a CSV, JSON, and summary on COCO128 with no model."""
-    out_dir = tmp_path / "ds_only"
-    report = ImagePropertyAnalyzer(data="coco128.yaml", save_dir=out_dir).run()
-    assert report.has_predictions is False
-    assert len(report.per_image) > 0
-    for fname in ("per_image_analysis.csv", "correlations.json", "worst_images.json", "summary.md"):
-        p = out_dir / fname
-        assert p.exists() and p.stat().st_size > 0
-    # No prediction-quality columns when there is no model
-    sample = next(iter(report.per_image.values()))
-    assert sample.get("f1") is None
-    assert np.isnan(sample.get("overlooked_score"))
+def test_extractor_augments_labels():
+    """ImagePropertyExtractor mutates dataset.labels in place with property keys, no model or I/O."""
+    from ultralytics.cfg import get_cfg
+
+    data = check_det_dataset("coco128.yaml")
+    cfg = get_cfg(overrides={"task": "detect", "imgsz": 320})
+    ds = build_yolo_dataset(cfg, data["val"], 1, data, mode="val", rect=False, stride=32)
+    extractor = ImagePropertyExtractor(ds)
+    assert extractor.labels is ds.labels, "extractor.labels must be the same list as dataset.labels"
+    lbl = ds.labels[0]
+    assert "im_file" in lbl  # original key survives
+    for key in ("brightness", "blurriness", "num_small", "num_medium", "num_large", "max_pairwise_iou"):
+        assert key in lbl, f"missing property key {key!r} after extraction"
+    assert 0.0 <= lbl["brightness"] <= 1.0
 
 
-def test_run_from_metrics_path(tmp_path):
-    """From_metrics reuses an existing model.val() result and produces full ObjectLab output."""
+def test_run_correlation_analysis_path(tmp_path):
+    """CorrelationAnalysis joins extractor labels with validator metrics and writes the full report."""
     model = YOLO("yolo11n.pt")
     metrics = model.val(
         data="coco128.yaml",
@@ -166,11 +169,9 @@ def test_run_from_metrics_path(tmp_path):
         score_labels=True,
         device="cpu",
     )
-    out_dir = tmp_path / "from_metrics"
-    report = ImagePropertyAnalyzer.from_metrics(
-        metrics, dataset=model.validator.dataloader.dataset, save_dir=out_dir
-    ).run()
-    assert report.has_predictions is True
+    labels = ImagePropertyExtractor(model.validator.dataloader.dataset).labels
+    out_dir = tmp_path / "corr"
+    report = CorrelationAnalysis(labels, metrics).run(save_dir=out_dir)
     sample = next(iter(report.per_image.values()))
     assert sample.get("f1") is not None
     assert "overlooked_score" in sample  # full ObjectLab populated

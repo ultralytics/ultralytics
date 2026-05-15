@@ -1,14 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""Per-image property correlation analysis for object detection.
+"""Per-image property extraction and correlation analysis for object detection.
 
-Joins per-image P/R/F1 scores from the validator with image properties (brightness, blurriness,
-crowdedness, etc.) and computes Pearson + Spearman correlations to surface which properties drive
-poor performance. Also ranks worst-performing images for downstream synthetic-data pipelines.
-
-Three entry-point paths:
-    - ``ImagePropertyAnalyzer(model=..., data=...)``: run validation internally, then analyze.
-    - ``ImagePropertyAnalyzer.from_metrics(metrics, dataset)``: reuse a prior ``model.val()`` result.
-    - ``ImagePropertyAnalyzer(data=...)``: dataset-only audit, no model required.
+Two single-purpose pieces:
+    - ``ImagePropertyExtractor(yolo_dataset)``: augment ``dataset.labels`` in place with 31 per-image
+      properties (brightness, blurriness, crowdedness, object-size counts, ...). No model, no metrics,
+      no I/O. The augmented labels are platform-consumable as JSON for JS/TS plotting.
+    - ``CorrelationAnalysis(labels, metrics).run()``: join property-augmented labels with per-image F1
+      and ObjectLab scores from ``model.val(score_labels=True)``, compute Pearson + Spearman
+      correlations, rank worst-performing images, and write CSV/JSON/plots/``summary.md``.
 
 References:
     - Hendrycks & Dietterich, ICLR 2019 (brightness/contrast as detection corruptions).
@@ -35,7 +34,7 @@ import cv2
 import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER, NUM_THREADS, RUNS_DIR, SETTINGS, TQDM, DataExportMixin, SimpleClass
+from ultralytics.utils import LOGGER, NUM_THREADS, RUNS_DIR, TQDM, DataExportMixin, SimpleClass
 from ultralytics.utils.files import increment_path
 from ultralytics.utils.metrics import box_iou
 from ultralytics.utils.ops import xywh2xyxy, xywhn2xyxy
@@ -93,19 +92,16 @@ class AnalysisReport(SimpleClass, DataExportMixin):
 
     Attributes:
         per_image (dict[str, dict]): Per-image record keyed by image basename. Each record holds metric fields
-            (precision/recall/f1/tp/fp/fn) when predictions exist, plus all computed image properties, plus an
-            ``anomaly_score`` for ranking.
+            (precision/recall/f1/tp/fp/fn), all computed image properties, and an ``anomaly_score`` for ranking.
         correlations (dict[str, dict]): Per-property correlation summary against F1. Each entry has ``pearson_r``,
             ``pearson_p``, ``spearman_r``, ``spearman_p``, ``n``, ``effect_band``, ``direction``.
         save_dir (Path): Output directory for CSV / JSON / plots / summary.md.
-        has_predictions (bool): True when prediction-quality columns are populated.
         names (dict[int, str] | None): Optional class id to name mapping used to label boxes on the worst-image strip.
     """
 
     per_image: dict[str, dict] = field(default_factory=dict)
     correlations: dict[str, dict] = field(default_factory=dict)
     save_dir: Path = field(default_factory=Path)
-    has_predictions: bool = False
     names: dict[int, str] | None = None
 
     def summary(self, normalize: bool = False, decimals: int = 5) -> list[dict]:
@@ -116,13 +112,10 @@ class AnalysisReport(SimpleClass, DataExportMixin):
             decimals (int, optional): Decimal precision for float fields.
 
         Returns:
-            (list[dict]): One dict per image, sorted ascending by F1 when predictions exist or descending by
-                ``anomaly_score`` otherwise.
+            (list[dict]): One dict per image, sorted ascending by F1.
         """
         rows = []
-        for im_name, rec in sorted(
-            self.per_image.items(), key=lambda kv: _worst_record_score(kv[1], self.has_predictions)
-        ):
+        for im_name, rec in sorted(self.per_image.items(), key=lambda kv: _worst_record_score(kv[1])):
             out = {"im_name": im_name, "im_path": rec.get("im_path", "")}
             for k in _METRIC_FIELDS:
                 v = rec.get(k)
@@ -150,38 +143,37 @@ class AnalysisReport(SimpleClass, DataExportMixin):
             return
         plotted_props = [p for p in _ALL_PROPERTIES if any(np.isfinite(v.get(p, np.nan)) for v in scored)]
 
-        if self.has_predictions:
-            ncols = 4
-            nrows = (len(plotted_props) + ncols - 1) // ncols
-            fig, axes = plt.subplots(nrows, ncols, figsize=(ncols * 3.2, nrows * 2.8))
-            axes = np.atleast_2d(axes).ravel()
-            ys = np.array([v.get("f1", np.nan) for v in scored], dtype=float)
-            for ax, prop in zip(axes, plotted_props):
-                xs = np.array([v.get(prop, np.nan) for v in scored], dtype=float)
-                m = np.isfinite(xs) & np.isfinite(ys)
-                ax.scatter(xs[m], ys[m], s=4, alpha=0.5, c="tab:blue")
-                if m.sum() > 1 and np.std(xs[m]) > 0:
-                    coef = np.polyfit(xs[m], ys[m], 1)
-                    xline = np.linspace(xs[m].min(), xs[m].max(), 50)
-                    ax.plot(xline, np.polyval(coef, xline), color="tab:red", lw=1.0)
-                r = self.correlations.get(prop, {}).get("pearson_r")
-                title = f"{prop}\nr={r:.2f}" if isinstance(r, (int, float)) else f"{prop}\nr=n/a"
-                ax.set_title(title, fontsize=8)
-                ax.set_xlabel(prop, fontsize=7)
-                ax.set_ylabel("f1", fontsize=7)
-                ax.tick_params(axis="both", labelsize=6)
-            for ax in axes[len(plotted_props) :]:
-                ax.set_visible(False)
-            fig.suptitle(
-                "Per-image F1 vs each property (one dot = one image, red line = linear fit, r = Pearson)",
-                fontsize=10,
-                y=0.995,
-            )
-            fig.tight_layout(rect=(0, 0, 1, 0.99))
-            fig.savefig(out_dir / "correlation_scatter.png", dpi=120)
-            plt.close(fig)
+        ncols = 4
+        nrows = (len(plotted_props) + ncols - 1) // ncols
+        fig, axes = plt.subplots(nrows, ncols, figsize=(ncols * 3.2, nrows * 2.8))
+        axes = np.atleast_2d(axes).ravel()
+        ys = np.array([v.get("f1", np.nan) for v in scored], dtype=float)
+        for ax, prop in zip(axes, plotted_props):
+            xs = np.array([v.get(prop, np.nan) for v in scored], dtype=float)
+            m = np.isfinite(xs) & np.isfinite(ys)
+            ax.scatter(xs[m], ys[m], s=4, alpha=0.5, c="tab:blue")
+            if m.sum() > 1 and np.std(xs[m]) > 0:
+                coef = np.polyfit(xs[m], ys[m], 1)
+                xline = np.linspace(xs[m].min(), xs[m].max(), 50)
+                ax.plot(xline, np.polyval(coef, xline), color="tab:red", lw=1.0)
+            r = self.correlations.get(prop, {}).get("pearson_r")
+            title = f"{prop}\nr={r:.2f}" if isinstance(r, (int, float)) else f"{prop}\nr=n/a"
+            ax.set_title(title, fontsize=8)
+            ax.set_xlabel(prop, fontsize=7)
+            ax.set_ylabel("f1", fontsize=7)
+            ax.tick_params(axis="both", labelsize=6)
+        for ax in axes[len(plotted_props) :]:
+            ax.set_visible(False)
+        fig.suptitle(
+            "Per-image F1 vs each property (one dot = one image, red line = linear fit, r = Pearson)",
+            fontsize=10,
+            y=0.995,
+        )
+        fig.tight_layout(rect=(0, 0, 1, 0.99))
+        fig.savefig(out_dir / "correlation_scatter.png", dpi=120)
+        plt.close(fig)
 
-        prop_columns = plotted_props + (["f1"] if self.has_predictions else [])
+        prop_columns = plotted_props + ["f1"]
         mat = np.full((len(prop_columns), len(prop_columns)), np.nan)
         cols = {p: np.array([v.get(p, np.nan) for v in scored], dtype=float) for p in prop_columns}
         for i, p1 in enumerate(prop_columns):
@@ -210,10 +202,7 @@ class AnalysisReport(SimpleClass, DataExportMixin):
         fig.savefig(out_dir / "correlation_heatmap.png", dpi=120)
         plt.close(fig)
 
-        worst = sorted(
-            (v for v in scored if v.get("im_path")),
-            key=lambda v: _worst_record_score(v, self.has_predictions),
-        )[:n_strip]
+        worst = sorted((v for v in scored if v.get("im_path")), key=_worst_record_score)[:n_strip]
         if worst:
             from matplotlib.patches import Rectangle  # scope for faster 'import ultralytics'
 
@@ -228,13 +217,12 @@ class AnalysisReport(SimpleClass, DataExportMixin):
                 ax.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
                 ax.set_xticks([])
                 ax.set_yticks([])
-                for box in rec.get("gt_bboxes", []) if self.has_predictions else []:
+                for box in rec.get("gt_bboxes", []):
                     x1, y1, x2, y2 = box
                     ax.add_patch(Rectangle((x1, y1), x2 - x1, y2 - y1, lw=1.2, ec="lime", fc="none"))
-                pred_bb = rec.get("pred_bboxes", []) if self.has_predictions else []
-                pred_conf = rec.get("pred_conf", []) if self.has_predictions else []
-                pred_cls = rec.get("pred_cls", []) if self.has_predictions else []
-                for box, conf, cid in zip(pred_bb, pred_conf, pred_cls):
+                for box, conf, cid in zip(
+                    rec.get("pred_bboxes", []), rec.get("pred_conf", []), rec.get("pred_cls", [])
+                ):
                     x1, y1, x2, y2 = box
                     ax.add_patch(Rectangle((x1, y1), x2 - x1, y2 - y1, lw=1.2, ec="red", fc="none", ls="--"))
                     label = self.names.get(int(cid), str(int(cid))) if self.names else str(int(cid))
@@ -246,19 +234,15 @@ class AnalysisReport(SimpleClass, DataExportMixin):
                         color="red",
                         bbox={"facecolor": "white", "alpha": 0.7, "pad": 0.6, "edgecolor": "none"},
                     )
-                tag = f"F1={rec['f1']:.2f}" if self.has_predictions else f"anomaly={rec['anomaly_score']:.2f}"
-                ax.set_title(f"{Path(rec['im_path']).stem}\n{tag}", fontsize=8)
+                ax.set_title(f"{Path(rec['im_path']).stem}\nF1={rec['f1']:.2f}", fontsize=8)
             for ax in axes[len(worst) :]:
                 ax.set_visible(False)
-            if self.has_predictions:
-                fig.suptitle(
-                    f"{len(worst)} worst-performing images (lowest F1). Green = ground truth, red dashed = model "
-                    f"predictions.",
-                    fontsize=11,
-                    y=0.995,
-                )
-            else:
-                fig.suptitle(f"{len(worst)} most anomalous images (highest anomaly score)", fontsize=11, y=0.995)
+            fig.suptitle(
+                f"{len(worst)} worst-performing images (lowest F1). Green = ground truth, red dashed = model "
+                f"predictions.",
+                fontsize=11,
+                y=0.995,
+            )
             fig.tight_layout(rect=(0, 0, 1, 0.985))
             fig.savefig(out_dir / "worst_images_strip.png", dpi=140)
             plt.close(fig)
@@ -272,38 +256,32 @@ class AnalysisReport(SimpleClass, DataExportMixin):
         """
         out_dir = Path(save_dir or self.save_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
-        ranked_corr = sorted(
+        top_corr = sorted(
             self.correlations.items(),
             key=lambda kv: abs(kv[1].get("spearman_r") or 0),
             reverse=True,
-        )
-        top_corr = ranked_corr[:3]
-        worst = sorted(self.per_image.items(), key=lambda kv: _worst_record_score(kv[1], self.has_predictions))[
-            :n_strip
-        ]
+        )[:3]
+        worst = sorted(self.per_image.items(), key=lambda kv: _worst_record_score(kv[1]))[:n_strip]
 
         lines = [
             "# Image Property Analysis Report",
             "",
-            f"**Dataset:** {len(self.per_image)} images. "
-            f"**Predictions available:** {'yes' if self.has_predictions else 'no'}.",
+            f"**Dataset:** {len(self.per_image)} images.",
+            "",
+            "## Top 3 things that hurt F1",
             "",
         ]
+        strong_enough = [(p, c) for p, c in top_corr if abs(c.get("spearman_r") or 0) >= 0.1]
+        if strong_enough:
+            for prop, c in strong_enough:
+                r = c.get("spearman_r")
+                lines.append(f"- **`{prop}`** ({_strength_band(r)}, {_direction_phrase(prop, r)})")
+        else:
+            lines.append("- No image property strongly predicts F1 in this dataset (all correlations negligible).")
 
-        if self.has_predictions:
-            lines += ["## Top 3 things that hurt F1", ""]
-            strong_enough = [(p, c) for p, c in top_corr if abs(c.get("spearman_r") or 0) >= 0.1]
-            if strong_enough:
-                for prop, c in strong_enough:
-                    r = c.get("spearman_r")
-                    lines.append(f"- **`{prop}`** ({_strength_band(r)}, {_direction_phrase(prop, r)})")
-            else:
-                lines.append("- No image property strongly predicts F1 in this dataset (all correlations negligible).")
-            lines.append("")
-
-        worst_title = "lowest F1" if self.has_predictions else "most unusual properties"
         lines += [
-            f"## Worst {len(worst)} images ({worst_title})",
+            "",
+            f"## Worst {len(worst)} images (lowest F1)",
             "",
             "**Why it stands out** lists the properties where this image is most extreme.",
             "",
@@ -316,34 +294,31 @@ class AnalysisReport(SimpleClass, DataExportMixin):
             f1_s = f"{f1:.2f}" if isinstance(f1, (int, float)) else "-"
             lines.append(f"| `{im_name}` | {f1_s} | {top3} |")
 
-        lines += ["", "## Plots", ""]
-        if self.has_predictions:
-            lines.append(
-                "- **F1 vs each property** (`correlation_scatter.png`): one dot per image, red line is a linear fit."
-            )
         lines += [
+            "",
+            "## Plots",
+            "",
+            "- **F1 vs each property** (`correlation_scatter.png`): one dot per image, red line is a linear fit.",
             "- **Property correlation heatmap** (`correlation_heatmap.png`): how each pair of properties moves together.",
             f"- **Worst-image strip** (`worst_images_strip.png`): the {len(worst)} worst images with **green** ground-truth boxes and **red dashed** model predictions.",
         ]
 
         notes: list[str] = []
-        if self.has_predictions:
-            f1_vals = np.array([r.get("f1", np.nan) for r in self.per_image.values()], dtype=float)
-            median_f1 = float(np.nanmedian(f1_vals)) if np.isfinite(f1_vals).any() else float("nan")
-            lq_present = any(np.isfinite(r.get("label_quality_score", np.nan)) for r in self.per_image.values())
-            if median_f1 < 0.1:
-                notes.append(
-                    f"Per-image F1 median is **{median_f1:.3f}**, which is low. The validator default `conf=0.001` "
-                    f"lets ~300 false positives through per image (max_det), which dominates the F1 denominator. "
-                    f"For meaningful per-image F1 re-run with `model.val(..., conf=0.25)`."
-                )
-            if lq_present:
-                notes.append(
-                    "`label_quality_score` is the geometric mean of `overlooked_score`, `badloc_score`, and "
-                    "`swap_score`. When two of those subtypes saturate at 1.0 on a clean dataset (common on COCO), "
-                    "`label_quality_score` collapses into a monotonic transform of the third, so a near-perfect "
-                    "correlation in the heatmap between it and that subtype is expected."
-                )
+        f1_vals = np.array([r.get("f1", np.nan) for r in self.per_image.values()], dtype=float)
+        median_f1 = float(np.nanmedian(f1_vals)) if np.isfinite(f1_vals).any() else float("nan")
+        if median_f1 < 0.1:
+            notes.append(
+                f"Per-image F1 median is **{median_f1:.3f}**, which is low. The validator default `conf=0.001` "
+                f"lets ~300 false positives through per image (max_det), which dominates the F1 denominator. "
+                f"For meaningful per-image F1 re-run with `model.val(..., conf=0.25)`."
+            )
+        if any(np.isfinite(r.get("label_quality_score", np.nan)) for r in self.per_image.values()):
+            notes.append(
+                "`label_quality_score` is the geometric mean of `overlooked_score`, `badloc_score`, and "
+                "`swap_score`. When two of those subtypes saturate at 1.0 on a clean dataset (common on COCO), "
+                "`label_quality_score` collapses into a monotonic transform of the third, so a near-perfect "
+                "correlation in the heatmap between it and that subtype is expected."
+            )
         notes.extend(
             [
                 "**Strength** is based on the Spearman rank correlation magnitude: "
@@ -357,236 +332,69 @@ class AnalysisReport(SimpleClass, DataExportMixin):
         (out_dir / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-class ImagePropertyAnalyzer:
-    """Analyze per-image properties, correlate them with F1, and rank worst-performing images.
+class ImagePropertyExtractor:
+    """Augment a ``YOLODataset``'s labels in place with 31 per-image properties.
+
+    Computes pixel-level properties (brightness, blurriness, contrast, dark/bright-pixel ratio, entropy, edge density,
+    sharpness), cache-derived properties (W/H, aspect ratio, COCO-bucket object counts, near-edge counts, class entropy,
+    center spread, ...), and annotation-interaction properties (max/mean pairwise IoU). Each label dict in
+    ``dataset.labels`` gains the property keys; the ``dataset.labels`` list is mutated in place and re-exposed as
+    ``self.labels`` for chaining.
+
+    Has no model, metrics, or I/O dependency: the property step is platform-consumable. Serialize ``self.labels`` (after
+    dropping numpy arrays) to feed a JS/TS visualizer.
 
     Attributes:
-        model: Local ``.pt`` path, ``ul://`` URI, or ``YOLO`` instance. ``None`` for dataset-only path.
-        data: Dataset YAML path or ``ul://`` URI.
-        api_key (str | None): Ultralytics API key (sets ``settings.api_key`` for ``ul://`` resolution).
-        save_dir (Path): Output directory for the report.
-        imgsz (int): Validation image size.
-        device (str | int | None): Inference device.
-        workers (int): Dataloader workers for the validation path.
-        batch (int): Validation batch size.
-        conf (float): Confidence threshold used when running validation internally (model+data path). The default 0.25
-            matches ``model.predict`` and yields meaningful per-image F1, unlike the validator default 0.001 which
-            saturates max_det=300 and dominates F1 by false positives.
+        labels (list[dict]): The same list as ``dataset.labels``, with property keys added per image.
+
+    Examples:
+        >>> from ultralytics.data.build import build_yolo_dataset
+        >>> from ultralytics.data.utils import check_det_dataset
+        >>> from ultralytics.utils.analysis import ImagePropertyExtractor
+        >>> data = check_det_dataset("coco128.yaml")
+        >>> ds = build_yolo_dataset(None, data["val"], 1, data, mode="val", rect=False, stride=32)
+        >>> labels = ImagePropertyExtractor(ds).labels
+        >>> labels[0]["brightness"], labels[0]["num_small"]
     """
 
-    def __init__(
-        self,
-        model: Any = None,
-        data: str | Path | None = None,
-        api_key: str | None = None,
-        save_dir: Path | str | None = None,
-        imgsz: int = 640,
-        device: str | int | None = None,
-        workers: int = 8,
-        batch: int = 16,
-        conf: float = 0.25,
-        metrics: Any = None,
-        dataset: Any = None,
-    ):
-        """Initialize the analyzer with model and/or dataset references.
+    def __init__(self, dataset: Any):
+        """Extract per-image properties and mutate ``dataset.labels`` in place.
 
         Args:
-            model (Any, optional): Local ``.pt`` path, ``ul://`` URI, or YOLO instance. ``None`` for dataset-only audit.
-            data (str | Path, optional): Dataset YAML path or ``ul://`` URI.
-            api_key (str, optional): Ultralytics API key for platform resolution.
-            save_dir (Path | str, optional): Output directory.
-            imgsz (int, optional): Validation image size.
-            device (str | int, optional): Inference device.
-            workers (int, optional): Dataloader workers.
-            batch (int, optional): Validation batch size.
-            conf (float, optional): Confidence threshold for the model+data path's internal ``model.val()`` call.
-            metrics (Any, optional): Pre-computed metrics object from ``model.val()`` (skips re-validation).
-            dataset (Any, optional): Pre-built dataset instance, used together with ``metrics``.
+            dataset (Any): A ``YOLODataset`` instance with non-empty ``labels`` and ``im_file`` per entry.
         """
-        if model is None and data is None and metrics is None:
-            raise ValueError("ImagePropertyAnalyzer requires 'model'+'data', 'data', or 'metrics'+'dataset'.")
-        if api_key:
-            SETTINGS["api_key"] = api_key
-        self.model = model
-        self.data = data
-        self.imgsz = imgsz
-        self.device = device
-        self.workers = workers
-        self.batch = batch
-        self.conf = conf
-        self.save_dir = Path(save_dir) if save_dir else increment_path(RUNS_DIR / "analyze", exist_ok=False)
-        self._metrics_override = metrics
-        self._dataset_override = dataset
-
-    @classmethod
-    def from_metrics(cls, metrics: Any, dataset: Any, save_dir: Path | str | None = None) -> ImagePropertyAnalyzer:
-        """Build an analyzer that reuses an existing ``model.val()`` result.
-
-        Args:
-            metrics (Any): The metrics object returned by ``model.val()`` (e.g. ``DetMetrics``).
-            dataset (Any): The dataset instance used during validation, e.g. ``model.validator.dataloader.dataset``.
-            save_dir (Path | str, optional): Output directory.
-
-        Returns:
-            (ImagePropertyAnalyzer): An analyzer pre-loaded with the metrics + dataset reference.
-        """
-        return cls(metrics=metrics, dataset=dataset, save_dir=save_dir)
-
-    def run(self, n_worst: int = 100, n_strip: int = 20) -> AnalysisReport:
-        """Resolve inputs, extract properties, compute correlations, rank images, write outputs.
-
-        Args:
-            n_worst (int, optional): Number of worst-performing images saved in ``worst_images.json``.
-            n_strip (int, optional): Number of thumbnails on the worst-image strip plot.
-
-        Returns:
-            (AnalysisReport): A fully populated report. Outputs (CSV/JSON/plots/summary.md) are also written under
-                ``self.save_dir``.
-        """
-        self.save_dir.mkdir(parents=True, exist_ok=True)
-        per_image, dataset, has_predictions = self._resolve_inputs()
-        self._check_basename_collisions(dataset)
-        self._extract_properties(per_image, dataset)
-        if has_predictions:
-            f1s = np.array([rec.get("f1", np.nan) for rec in per_image.values()], dtype=float)
-            median_f1 = float(np.nanmedian(f1s)) if np.isfinite(f1s).any() else float("nan")
-            if median_f1 < 0.1:
-                LOGGER.warning(
-                    f"ImagePropertyAnalyzer: per-image F1 median is {median_f1:.3f}. "
-                    f"Re-run model.val(..., conf=0.25) for meaningful per-image F1 (see summary.md)."
-                )
-        correlations = self._compute_correlations(per_image, has_predictions)
-        self._rank_and_score(per_image, correlations, has_predictions)
-
-        names = None
-        if dataset is not None:
-            names = getattr(dataset, "names", None) or (getattr(dataset, "data", {}) or {}).get("names")
-            if names and not isinstance(names, dict):
-                names = dict(enumerate(names))
-        report = AnalysisReport(
-            per_image=per_image,
-            correlations=correlations,
-            save_dir=self.save_dir,
-            has_predictions=has_predictions,
-            names=names,
-        )
-        (self.save_dir / "per_image_analysis.csv").write_text(report.to_csv(), encoding="utf-8")
-        (self.save_dir / "correlations.json").write_text(
-            json.dumps(correlations, indent=2, default=_json_default), encoding="utf-8"
-        )
-        worst = self._top_worst_records(per_image, has_predictions, top_n=n_worst)
-        (self.save_dir / "worst_images.json").write_text(
-            json.dumps(worst, indent=2, default=_json_default), encoding="utf-8"
-        )
-        report.plot(n_strip=n_strip)
-        report.write_summary_md(n_strip=n_strip)
-        return report
-
-    def _resolve_inputs(self) -> tuple[dict, Any, bool]:
-        """Resolve ``per_image_dict``, ``dataset``, and ``has_predictions`` from constructor inputs."""
-        if self._metrics_override is not None:
-            metric_obj = getattr(self._metrics_override, "box", self._metrics_override)
-            per_image = {k: dict(v) for k, v in getattr(metric_obj, "image_metrics", {}).items()}
-            return per_image, self._dataset_override, True
-
-        if self.model is None:
-            from ultralytics.cfg import get_cfg
-            from ultralytics.data.build import build_yolo_dataset
-            from ultralytics.data.utils import check_det_dataset, convert_ndjson_to_yolo_if_needed
-
-            data_resolved = convert_ndjson_to_yolo_if_needed(self.data)
-            data_dict = check_det_dataset(str(data_resolved))
-            cfg = get_cfg(overrides={"task": "detect", "imgsz": self.imgsz})
-            split = data_dict.get("val") or data_dict.get("test") or data_dict.get("train")
-            dataset = build_yolo_dataset(cfg, split, self.batch, data_dict, mode="val", rect=False, stride=32)
-            per_image = {Path(p).name: {"im_path": str(p)} for p in dataset.im_files}
-            return per_image, dataset, False
-
-        from ultralytics import YOLO
-
-        model_obj = self.model if isinstance(self.model, YOLO) else YOLO(self.model)
-        val_kwargs = {
-            "imgsz": self.imgsz,
-            "workers": self.workers,
-            "batch": self.batch,
-            "conf": self.conf,
-            "score_labels": True,
-            "plots": False,
-            "save_json": False,
-            "verbose": False,
-        }
-        if self.data:
-            val_kwargs["data"] = str(self.data)
-        if self.device is not None:
-            val_kwargs["device"] = self.device
-        metrics = model_obj.val(**val_kwargs)
-        metric_obj = getattr(metrics, "box", metrics)
-        per_image = {k: dict(v) for k, v in getattr(metric_obj, "image_metrics", {}).items()}
-        dataset = model_obj.validator.dataloader.dataset
-        return per_image, dataset, True
+        labels = getattr(dataset, "labels", None)
+        if not labels:
+            raise ValueError("ImagePropertyExtractor requires a YOLODataset with non-empty labels.")
+        with ThreadPool(NUM_THREADS) as pool:
+            for _ in TQDM(pool.imap_unordered(self._augment_label, labels), total=len(labels), desc="Image properties"):
+                pass
+        self.labels = labels
 
     @staticmethod
-    def _check_basename_collisions(dataset: Any) -> None:
-        """Warn if two images share the same basename (silent ``image_metrics`` collision)."""
-        if dataset is None:
-            return
-        from collections import Counter
-
-        c = Counter(Path(p).name for p in getattr(dataset, "im_files", []))
-        dups = [(name, n) for name, n in c.items() if n > 1]
-        if dups:
-            sample = ", ".join(f"{n}x {name}" for name, n in dups[:3])
-            LOGGER.warning(
-                f"ImagePropertyAnalyzer: {len(dups)} duplicate basename(s) in dataset, e.g. {sample}. "
-                f"Per-image records keyed by basename will collide silently."
+    def _augment_label(lbl: dict) -> dict:
+        """Compute pixel, cache, and pairwise-IoU properties for one label dict and merge them in place."""
+        im_file = lbl["im_file"]
+        cls_arr = np.asarray(lbl.get("cls", np.zeros((0, 1)))).reshape(-1).astype(int)
+        bboxes_n = np.asarray(lbl.get("bboxes", np.zeros((0, 4)))).reshape(-1, 4)
+        img = imread(im_file)
+        if img is not None and img.size:
+            h, w = img.shape[:2]
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            lbl.update(ImagePropertyExtractor._pixel_properties(img, gray))
+        else:
+            h, w = 0, 0
+            for k in _PIXEL_PROPERTIES:
+                lbl[k] = np.nan
+        lbl.update(ImagePropertyExtractor._cache_properties(w, h, bboxes_n, cls_arr))
+        if bboxes_n.shape[0] >= 2 and h > 0 and w > 0:
+            lbl["max_pairwise_iou"], lbl["mean_pairwise_iou"] = ImagePropertyExtractor._pairwise_iou_stats(
+                xywhn2xyxy(bboxes_n, w=w, h=h)
             )
-
-    def _extract_properties(self, per_image: dict, dataset: Any) -> None:
-        """Compute every property for each image and merge into ``per_image``."""
-        if dataset is None:
-            LOGGER.warning("ImagePropertyAnalyzer: no dataset available, skipping property extraction")
-            return
-        labels_by_path = {lbl["im_file"]: lbl for lbl in getattr(dataset, "labels", [])}
-        im_files = list(getattr(dataset, "im_files", []))
-
-        def _worker(im_file: str) -> tuple[str, dict]:
-            im_name = Path(im_file).name
-            lbl = labels_by_path.get(im_file, {})
-            cls_arr = np.asarray(lbl.get("cls", np.zeros((0, 1)))).reshape(-1).astype(int)
-            bboxes_n = np.asarray(lbl.get("bboxes", np.zeros((0, 4)))).reshape(-1, 4)
-
-            img = imread(im_file)
-            props: dict[str, Any] = {"im_path": im_file}
-            if img is not None and img.size:
-                h, w = img.shape[:2]
-                gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                props.update(self._pixel_properties(img, gray))
-            else:
-                h, w = 0, 0
-                for k in _PIXEL_PROPERTIES:
-                    props[k] = np.nan
-
-            props.update(self._cache_properties(w, h, bboxes_n, cls_arr))
-
-            if bboxes_n.shape[0] >= 2 and h > 0 and w > 0:
-                props["max_pairwise_iou"], props["mean_pairwise_iou"] = self._pairwise_iou_stats(
-                    xywhn2xyxy(bboxes_n, w=w, h=h)
-                )
-            else:
-                props["max_pairwise_iou"] = np.nan
-                props["mean_pairwise_iou"] = np.nan
-
-            return im_name, props
-
-        if im_files:
-            with ThreadPool(NUM_THREADS) as pool:
-                for im_name, props in TQDM(pool.imap(_worker, im_files), total=len(im_files), desc="Image properties"):
-                    per_image.setdefault(im_name, {}).update(props)
-
-        # Default ObjectLab fields to NaN if the validator did not populate them.
-        for rec in per_image.values():
-            for k in _OBJECTLAB_PROPERTIES:
-                rec.setdefault(k, np.nan)
+        else:
+            lbl["max_pairwise_iou"] = np.nan
+            lbl["mean_pairwise_iou"] = np.nan
+        return lbl
 
     @staticmethod
     def _cache_properties(w: int, h: int, bboxes_n: np.ndarray, cls_arr: np.ndarray) -> dict[str, Any]:
@@ -647,14 +455,14 @@ class ImagePropertyAnalyzer:
     def _pixel_properties(img_bgr: np.ndarray, gray: np.ndarray) -> dict[str, float]:
         """Compute the 8 pixel-reading properties from a BGR image and its grayscale conversion."""
         return {
-            "brightness": ImagePropertyAnalyzer._brightness(img_bgr),
-            "blurriness": ImagePropertyAnalyzer._blurriness(gray),
-            "contrast": ImagePropertyAnalyzer._contrast(gray),
-            "dark_pixel_ratio": ImagePropertyAnalyzer._dark_pixel_ratio(gray),
-            "bright_pixel_ratio": ImagePropertyAnalyzer._bright_pixel_ratio(gray),
-            "entropy": ImagePropertyAnalyzer._entropy(gray),
-            "edge_density": ImagePropertyAnalyzer._edge_density(gray),
-            "sharpness": ImagePropertyAnalyzer._sharpness(gray),
+            "brightness": ImagePropertyExtractor._brightness(img_bgr),
+            "blurriness": ImagePropertyExtractor._blurriness(gray),
+            "contrast": ImagePropertyExtractor._contrast(gray),
+            "dark_pixel_ratio": ImagePropertyExtractor._dark_pixel_ratio(gray),
+            "bright_pixel_ratio": ImagePropertyExtractor._bright_pixel_ratio(gray),
+            "entropy": ImagePropertyExtractor._entropy(gray),
+            "edge_density": ImagePropertyExtractor._edge_density(gray),
+            "sharpness": ImagePropertyExtractor._sharpness(gray),
         }
 
     @staticmethod
@@ -716,11 +524,132 @@ class ImagePropertyAnalyzer:
         iou = box_iou(t, t).triu_(diagonal=1)
         return float(iou.max()), float(iou.sum() / (n * (n - 1) / 2))
 
+
+class CorrelationAnalysis:
+    """Join property-augmented labels with per-image metrics, correlate, rank, and write reports.
+
+    Consumes the labels returned by :class:`ImagePropertyExtractor` together with a metrics object from
+    ``model.val(score_labels=True)``. Computes Pearson + Spearman correlations of every property against per-image F1,
+    ranks the worst-performing images by F1 with anomaly score as tiebreak, and writes ``per_image_analysis.csv``,
+    ``correlations.json``, ``worst_images.json``, ``summary.md``, and three plots into ``save_dir``.
+
+    Attributes:
+        labels (list[dict]): Property-augmented label dicts from ``ImagePropertyExtractor.labels``.
+        metrics: A metrics object exposing ``.box.image_metrics`` (e.g. ``DetMetrics``).
+        names (dict[int, str] | None): Optional class id to name mapping. Auto-resolved from ``metrics`` when ``None``.
+
+    Examples:
+        >>> from ultralytics import YOLO
+        >>> from ultralytics.utils.analysis import ImagePropertyExtractor, CorrelationAnalysis
+        >>> m = YOLO("yolo11n.pt")
+        >>> metrics = m.val(data="coco128.yaml", score_labels=True)
+        >>> labels = ImagePropertyExtractor(m.validator.dataloader.dataset).labels
+        >>> report = CorrelationAnalysis(labels, metrics).run()
+    """
+
+    def __init__(self, labels: list[dict], metrics: Any, names: dict[int, str] | None = None):
+        """Bind labels and metrics; no computation runs until :meth:`run`.
+
+        Args:
+            labels (list[dict]): Property-augmented labels (output of ``ImagePropertyExtractor``).
+            metrics (Any): Metrics object from ``model.val(score_labels=True)`` exposing ``.box.image_metrics``.
+            names (dict[int, str], optional): Class id to name mapping. Auto-resolved from metrics if omitted.
+        """
+        if not labels:
+            raise ValueError("CorrelationAnalysis requires non-empty labels from ImagePropertyExtractor.")
+        if metrics is None:
+            raise ValueError("CorrelationAnalysis requires a metrics object from model.val(score_labels=True).")
+        self.labels = labels
+        self.metrics = metrics
+        self.names = names
+
+    def run(self, save_dir: Path | str | None = None, n_worst: int = 100, n_strip: int = 20) -> AnalysisReport:
+        """Compute correlations, rank worst images, write outputs, and return the populated report.
+
+        Args:
+            save_dir (Path | str, optional): Output directory. Defaults to an auto-incremented ``runs/analyze``.
+            n_worst (int, optional): Number of worst-performing images saved in ``worst_images.json``.
+            n_strip (int, optional): Number of thumbnails on the worst-image strip plot.
+
+        Returns:
+            (AnalysisReport): A fully populated report. CSV / JSON / plots / summary.md are written to ``save_dir``.
+        """
+        save_dir = Path(save_dir) if save_dir else increment_path(RUNS_DIR / "analyze", exist_ok=False)
+        save_dir.mkdir(parents=True, exist_ok=True)
+        per_image = self._join(self.labels, self.metrics)
+
+        f1s = np.array([rec.get("f1", np.nan) for rec in per_image.values()], dtype=float)
+        median_f1 = float(np.nanmedian(f1s)) if np.isfinite(f1s).any() else float("nan")
+        if median_f1 < 0.1:
+            LOGGER.warning(
+                f"CorrelationAnalysis: per-image F1 median is {median_f1:.3f}. "
+                f"Re-run model.val(..., conf=0.25) for meaningful per-image F1 (see summary.md)."
+            )
+
+        correlations = self._compute_correlations(per_image)
+        self._rank_and_score(per_image, correlations)
+
+        names = self.names
+        if names is None:
+            names = getattr(self.metrics, "names", None)
+            if names and not isinstance(names, dict):
+                names = dict(enumerate(names))
+
+        report = AnalysisReport(
+            per_image=per_image,
+            correlations=correlations,
+            save_dir=save_dir,
+            names=names,
+        )
+        (save_dir / "per_image_analysis.csv").write_text(report.to_csv(), encoding="utf-8")
+        (save_dir / "correlations.json").write_text(
+            json.dumps(correlations, indent=2, default=_json_default), encoding="utf-8"
+        )
+        worst = self._top_worst_records(per_image, top_n=n_worst)
+        (save_dir / "worst_images.json").write_text(
+            json.dumps(worst, indent=2, default=_json_default), encoding="utf-8"
+        )
+        report.plot(n_strip=n_strip)
+        report.write_summary_md(n_strip=n_strip)
+        return report
+
     @staticmethod
-    def _compute_correlations(per_image: dict, has_predictions: bool) -> dict[str, dict]:
+    def _join(labels: list[dict], metrics: Any) -> dict[str, dict]:
+        """Merge per-image validator metrics with property fields, keyed by image basename.
+
+        Warns if two labels share the same basename (the join is keyed on it and would silently collide).
+        """
+        metric_obj = getattr(metrics, "box", metrics)
+        image_metrics = getattr(metric_obj, "image_metrics", {})
+        per_image: dict[str, dict] = {}
+        dup_names: list[str] = []
+        for lbl in labels:
+            im_file = lbl.get("im_file")
+            if im_file is None:
+                continue
+            im_name = Path(im_file).name
+            if im_name in per_image:
+                dup_names.append(im_name)
+                continue
+            rec = dict(image_metrics.get(im_name, {}))
+            rec["im_path"] = im_file
+            for k in _ALL_PROPERTIES:
+                if k in lbl:
+                    rec[k] = lbl[k]
+            for k in _OBJECTLAB_PROPERTIES:
+                rec.setdefault(k, np.nan)
+            per_image[im_name] = rec
+        if dup_names:
+            sample = ", ".join(dup_names[:3])
+            LOGGER.warning(
+                f"CorrelationAnalysis: dropped {len(dup_names)} duplicate basename(s) from join, e.g. {sample}. "
+                f"Per-image records are keyed by basename."
+            )
+        return per_image
+
+    @staticmethod
+    def _compute_correlations(per_image: dict) -> dict[str, dict]:
         """Run Pearson + Spearman per property vs F1 with effect-size band and direction string."""
-        if not has_predictions:
-            return {}
         from scipy.stats import pearsonr, spearmanr  # scope for faster 'import ultralytics'
 
         f1 = np.array([rec.get("f1", np.nan) for rec in per_image.values()], dtype=float)
@@ -755,7 +684,7 @@ class ImagePropertyAnalyzer:
         return out
 
     @staticmethod
-    def _rank_and_score(per_image: dict, correlations: dict, has_predictions: bool) -> None:
+    def _rank_and_score(per_image: dict, correlations: dict) -> None:
         """Compute per-image ``anomaly_score`` (sign-aligned z-mean) + top-3 problematic properties."""
         prop_arrays = {}
         for prop in _ALL_PROPERTIES:
@@ -764,11 +693,8 @@ class ImagePropertyAnalyzer:
             if m.sum() < 2 or np.std(xs[m]) == 0:
                 continue
             mu, sd = float(xs[m].mean()), float(xs[m].std())
-            sign = 1.0
-            if has_predictions:
-                pr = correlations.get(prop, {}).get("pearson_r")
-                if pr is not None:
-                    sign = -1.0 if pr > 0 else 1.0  # bad direction = side that lowers F1
+            pr = correlations.get(prop, {}).get("pearson_r")
+            sign = -1.0 if pr is not None and pr > 0 else 1.0  # bad direction = side that lowers F1
             prop_arrays[prop] = (mu, sd, sign)
 
         for rec in per_image.values():
@@ -786,9 +712,9 @@ class ImagePropertyAnalyzer:
                 rec["top_3_problematic"] = [names[i] for i in idx]
 
     @staticmethod
-    def _top_worst_records(per_image: dict, has_predictions: bool, top_n: int = 100) -> list[dict]:
+    def _top_worst_records(per_image: dict, top_n: int = 100) -> list[dict]:
         """Return ranked worst-image dicts ready for ``worst_images.json``."""
-        ranked = sorted(per_image.items(), key=lambda kv: _worst_record_score(kv[1], has_predictions))[:top_n]
+        ranked = sorted(per_image.items(), key=lambda kv: _worst_record_score(kv[1]))[:top_n]
         return [
             {
                 "im_name": name,
@@ -822,15 +748,12 @@ def _direction_phrase(prop: str, r: float | None) -> str:
     return f"higher {prop} -> lower F1" if r < 0 else f"higher {prop} -> higher F1"
 
 
-def _worst_record_score(rec: dict, has_predictions: bool) -> tuple[float, float]:
-    """Sortable tuple where lower is worse.
+def _worst_record_score(rec: dict) -> tuple[float, float]:
+    """Sortable tuple where lower is worse: F1 ascending with anomaly score descending as the tiebreak.
 
-    For prediction-aware paths the primary key is F1 ascending with anomaly score descending as the tiebreak. Empty-GT
-    images (``num_objects == 0``) have undefined per-image F1 and are pushed past every real image so they never pollute
-    the worst-image table. For dataset-only paths the primary key is ``-anomaly_score`` (most anomalous first).
+    Empty-GT images (``num_objects == 0``) have undefined per-image F1 and are pushed past every real image so they
+    never pollute the worst-image table.
     """
-    if not has_predictions:
-        return (-float(rec.get("anomaly_score", 0.0)), 0.0)
     f1 = float("inf") if not rec.get("num_objects", 0) else float(rec.get("f1", 1.0))
     return (f1, -float(rec.get("anomaly_score", 0.0)))
 

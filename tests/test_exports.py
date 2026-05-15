@@ -406,6 +406,7 @@ def test_export_deepx():
     shutil.rmtree(file, ignore_errors=True)  # cleanup
 
 
+@pytest.mark.skipif(not TORCH_2_9 or TORCH_2_12, reason="Ethos export requires 2.9.0<=torch<2.12.0")
 def test_export_ethos():
     """Test YOLO model export to Arm Ethos-U NPU ExecuTorch format."""
     file = YOLO(MODEL).export(format="ethos", imgsz=32)

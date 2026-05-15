@@ -2012,6 +2012,11 @@ class CopyPaste(BaseMixTransform):
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
         assert mode in {"flip", "mixup"}, f"Expected `mode` to be `flip` or `mixup`, but got {mode}."
         self.mode = mode
+        if p > 0 and dataset is not None and hasattr(dataset, "ignore_label"):
+            LOGGER.warning(
+                "WARNING ⚠️ CopyPaste augmentation is not supported for semantic segmentation and will be skipped. "
+                "Set copy_paste=0 in your hyperparameters to silence this warning."
+            )
 
     def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
         """Apply Copy-Paste augmentation to an image and its labels."""
@@ -2021,7 +2026,6 @@ class CopyPaste(BaseMixTransform):
             params = self.get_params(labels)
             labels = self.apply_image(labels, params)
             labels = self.apply_instances(labels, params)
-            labels = self.apply_semantic(labels, params)
             return labels
         return super().__call__(labels)
 
@@ -2066,7 +2070,6 @@ class CopyPaste(BaseMixTransform):
         params["im_new"] = im_new
         params["labels2_cls"] = labels2.get("cls")
         params["labels2_img"] = labels2.get("img")
-        params["labels2_semantic_mask"] = labels2.get("semantic_mask")
         return params
 
     def apply_image(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -2121,23 +2124,6 @@ class CopyPaste(BaseMixTransform):
 
         labels["cls"] = cls
         labels["instances"] = instances
-        return labels
-
-    def apply_semantic(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
-        if labels.get("semantic_mask") is None:
-            return labels
-        im_new = np.zeros(labels["img"].shape[:2], dtype=np.uint8)
-        instances2 = params["instances2"]
-        selected = params["selected"]
-        for j in selected:
-            cv2.drawContours(im_new, instances2.segments[[j]].astype(np.int32), -1, 1, cv2.FILLED)
-        i = im_new.astype(bool)
-        result_mask = params.get("labels2_semantic_mask")
-        if result_mask is None:
-            result_mask = cv2.flip(labels["semantic_mask"], 1)
-        mask = labels["semantic_mask"].copy()
-        mask[i] = result_mask[i]
-        labels["semantic_mask"] = mask
         return labels
 
 
@@ -2867,7 +2853,7 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bo
 
     pre_transform = Compose([mosaic, affine])
     if hyp.copy_paste_mode == "flip":
-        pre_transform.insert(1, CopyPaste(p=hyp.copy_paste, mode=hyp.copy_paste_mode))
+        pre_transform.insert(1, CopyPaste(dataset, p=hyp.copy_paste, mode=hyp.copy_paste_mode))
     else:
         pre_transform.append(
             CopyPaste(

@@ -80,6 +80,7 @@ All 4 ObjectLab scores follow the quality convention: **low = likely label issue
 
 ```python
 import os
+
 os.environ["ULTRALYTICS_API_KEY"] = "ul_xxx_40hex"  # or set in shell, or use settings.update(...)
 
 from ultralytics import YOLO

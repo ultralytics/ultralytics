@@ -18,12 +18,12 @@ class GitRepo:
     Attributes:
         root (Path | None): Repository root directory containing the .git entry; None if not in a repository.
         gitdir (Path | None): Resolved .git directory path; handles worktrees; None if unresolved.
-        commondir (Path | None): Common .git directory path for refs/config shared by worktrees; None if unresolved.
+        refdir (Path | None): Directory containing shared refs, objects, and config; None if unresolved.
         head (str | None): Raw contents of HEAD; a SHA for detached HEAD or "ref: <refname>" for branch heads.
         is_repo (bool): Whether the provided path resides inside a Git repository.
         branch (str | None): Current branch name when HEAD points to a branch; None for detached HEAD or non-repo.
         commit (str | None): Current commit SHA for HEAD; None if not determinable.
-        message (str | None): Current commit subject; None if not determinable.
+        message (str | None): Current commit subject from a loose object; None if not determinable.
         origin (str | None): URL of the "origin" remote as read from gitdir/config; None if unset or unavailable.
 
     Examples:
@@ -36,8 +36,7 @@ class GitRepo:
         ('main', '1a2b3c4', 'https://example.com/owner/repo.git')
 
     Notes:
-        - Resolves metadata by reading files: HEAD, packed-refs, config, objects, and reflogs; no subprocess calls are
-          used.
+        - Resolves metadata by reading files: HEAD, packed-refs, config, and objects; no subprocess calls are used.
         - Caches properties on first access using cached_property; recreate the object to reflect repository changes.
     """
 
@@ -49,7 +48,7 @@ class GitRepo:
         """
         self.root = self._find_root(path)
         self.gitdir = self._gitdir(self.root) if self.root else None
-        self.commondir = self._commondir(self.gitdir)
+        self.refdir = self._refdir(self.gitdir)
 
     @staticmethod
     def _find_root(p: Path) -> Path | None:
@@ -69,11 +68,9 @@ class GitRepo:
         return None
 
     @staticmethod
-    def _commondir(gitdir: Path | None) -> Path | None:
-        """Resolve common .git directory shared by worktrees."""
-        if not gitdir:
-            return None
-        p = gitdir / "commondir"
+    def _refdir(gitdir: Path | None) -> Path | None:
+        """Resolve directory containing refs, objects, and config."""
+        p = gitdir / "commondir" if gitdir else None
         if s := GitRepo._read(p):
             d = Path(s)
             return (gitdir / d).resolve() if not d.is_absolute() else d
@@ -84,15 +81,6 @@ class GitRepo:
         """Read and strip file if exists."""
         return p.read_text(errors="ignore").strip() if p and p.exists() else None
 
-    def _paths(self, *parts: str) -> list[Path]:
-        """Return unique gitdir and commondir paths for parts."""
-        paths = []
-        for base in (self.gitdir, self.commondir):
-            p = base.joinpath(*parts) if base else None
-            if p and p not in paths:
-                paths.append(p)
-        return paths
-
     @cached_property
     def head(self) -> str | None:
         """HEAD file contents."""
@@ -100,37 +88,33 @@ class GitRepo:
 
     def _ref_commit(self, ref: str) -> str | None:
         """Commit for ref (handles packed-refs)."""
-        for rf in self._paths(*ref.split("/")):
-            if s := self._read(rf):
-                return s
-        for pf in self._paths("packed-refs"):
-            b = pf.read_bytes().splitlines() if pf.exists() else []
-            tgt = ref.encode()
-            for line in b:
-                if line[:1] in (b"#", b"^") or b" " not in line:
-                    continue
-                sha, name = line.split(b" ", 1)
-                if name.strip() == tgt:
-                    return sha.decode()
+        rf = self.refdir / ref
+        if s := self._read(rf):
+            return s
+        pf = self.refdir / "packed-refs"
+        b = pf.read_bytes().splitlines() if pf.exists() else []
+        tgt = ref.encode()
+        for line in b:
+            if line[:1] in (b"#", b"^") or b" " not in line:
+                continue
+            sha, name = line.split(b" ", 1)
+            if name.strip() == tgt:
+                return sha.decode()
         return None
 
     def _commit_subject(self, commit: str) -> str | None:
         """Commit subject from loose object or None."""
-        for obj in self._paths("objects", commit[:2], commit[2:]):
-            if not obj.exists():
-                continue
-            try:
-                data = zlib.decompress(obj.read_bytes())
-            except (OSError, zlib.error):
-                return None
-            if b"\0" not in data:
-                return None
-            kind, body = data.split(b"\0", 1)
-            if not kind.startswith(b"commit ") or b"\n\n" not in body:
-                return None
-            subject = body.split(b"\n\n", 1)[1].splitlines()[0].decode(errors="replace").strip()
-            return subject or None
-        return None
+        obj = self.refdir / "objects" / commit[:2] / commit[2:]
+        if not obj.exists():
+            return None
+        data = zlib.decompress(obj.read_bytes())
+        if b"\0" not in data:
+            return None
+        kind, body = data.split(b"\0", 1)
+        if not kind.startswith(b"commit ") or b"\n\n" not in body:
+            return None
+        subject = body.split(b"\n\n", 1)[1].splitlines()[0].decode(errors="replace").strip()
+        return subject or None
 
     @property
     def is_repo(self) -> bool:
@@ -157,37 +141,21 @@ class GitRepo:
         """Current commit subject or None."""
         if not self.is_repo or not self.commit:
             return None
-        if subject := self._commit_subject(self.commit):
-            return subject
-        logs = self._paths("logs", "HEAD")
-        if self.head and self.head.startswith("ref: "):
-            logs.extend(self._paths("logs", *self.head[5:].strip().split("/")))
-        for log in logs:
-            for line in reversed((self._read(log) or "").splitlines()):
-                head, _, message = line.partition("\t")
-                fields = head.split()
-                if len(fields) >= 2 and fields[1] == self.commit:
-                    message = message.strip()
-                    if message.startswith("commit"):
-                        _, _, message = message.partition(":")
-                    return message.strip() or None
-        return None
+        return self._commit_subject(self.commit)
 
     @cached_property
     def origin(self) -> str | None:
         """Origin URL or None."""
         if not self.is_repo:
             return None
+        cfg = self.refdir / "config"
         remote, url = None, None
-        for cfg in self._paths("config"):
-            for s in (self._read(cfg) or "").splitlines():
-                t = s.strip()
-                if t.startswith("[") and t.endswith("]"):
-                    remote = t.lower()
-                elif t.lower().startswith("url =") and remote == '[remote "origin"]':
-                    url = t.split("=", 1)[1].strip()
-                    break
-            if url:
+        for s in (self._read(cfg) or "").splitlines():
+            t = s.strip()
+            if t.startswith("[") and t.endswith("]"):
+                remote = t.lower()
+            elif t.lower().startswith("url =") and remote == '[remote "origin"]':
+                url = t.split("=", 1)[1].strip()
                 break
         return url
 

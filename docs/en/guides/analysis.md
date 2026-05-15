@@ -72,7 +72,16 @@ metrics = model.val(data="coco128.yaml", score_labels=True)
 
 The validator stores ~32 bytes/image extra in `metrics.box.image_metrics` (4 float scores per image). Raw IoU matrices and pred/GT arrays are not retained. Without the flag, ObjectLab columns are populated as `NaN`.
 
-All 4 ObjectLab scores follow the quality convention: **low = likely label issue**, **high = clean label**.
+All 4 ObjectLab scores follow the same convention. **Low score = model behavior that suggests a label issue. 1.0 = no such behavior observed, not a clean bill of health.**
+
+| Score                 | Low means                                                                          |
+| --------------------- | ---------------------------------------------------------------------------------- |
+| `overlooked_score`    | Model confidently predicts an object the annotator did not label.                  |
+| `badloc_score`        | Model predicts the right class but disagrees with the annotated box location.      |
+| `swap_score`          | Model confidently predicts a different class than the annotated one.               |
+| `label_quality_score` | Geometric mean of the above (1/3 each).                                            |
+
+`overlooked_score` needs preds with `conf ≥ 0.95` *and* zero IoU with every GT, so it saturates at 1.0 on clean datasets or small models. Look for **variance** in these columns, not absolute values.
 
 ## Ultralytics Platform integration (`ul://`)
 

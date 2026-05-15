@@ -207,10 +207,12 @@ def torch2coreml(
         skip_model_load=True,
     )
     if not mlmodel:
-        # Keep numerically fragile ops (attention softmax, layer norm, deformable sampling) in fp32.
-        fp32_op_types = {"softmax", "layer_norm", "gather", "gather_nd", "gather_along_axis", "linear"}
+        # Keep linear and gather variants in fp32 to preserve RT-DETR decoder accuracy: linear matmuls
+        # in the score head shift class logits, and fp16 gather/gather_nd in deformable-attention
+        # sampling and top-k indexing perturbs which features feed each query.
+        fp32_ops = {"linear", "gather", "gather_nd", "gather_along_axis"}
         convert_kwargs["compute_precision"] = ct.transform.FP16ComputePrecision(
-            op_selector=lambda op: op.op_type not in fp32_op_types
+            op_selector=lambda op: op.op_type not in fp32_ops
         )
     ct_model = ct.convert(ts, **convert_kwargs)
     bits, mode = (8, "kmeans") if int8 else (16, "linear") if half else (32, None)

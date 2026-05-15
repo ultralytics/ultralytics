@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import zlib
 from functools import cached_property
 from pathlib import Path
 
@@ -22,7 +23,7 @@ class GitRepo:
         is_repo (bool): Whether the provided path resides inside a Git repository.
         branch (str | None): Current branch name when HEAD points to a branch; None for detached HEAD or non-repo.
         commit (str | None): Current commit SHA for HEAD; None if not determinable.
-        message (str | None): Current commit subject from reflog; None if not determinable.
+        message (str | None): Current commit subject; None if not determinable.
         origin (str | None): URL of the "origin" remote as read from gitdir/config; None if unset or unavailable.
 
     Examples:
@@ -35,7 +36,8 @@ class GitRepo:
         ('main', '1a2b3c4', 'https://example.com/owner/repo.git')
 
     Notes:
-        - Resolves metadata by reading files: HEAD, packed-refs, config, and reflogs; no subprocess calls are used.
+        - Resolves metadata by reading files: HEAD, packed-refs, config, objects, and reflogs; no subprocess calls are
+          used.
         - Caches properties on first access using cached_property; recreate the object to reflect repository changes.
     """
 
@@ -112,6 +114,24 @@ class GitRepo:
                     return sha.decode()
         return None
 
+    def _commit_subject(self, commit: str) -> str | None:
+        """Commit subject from loose object or None."""
+        for obj in self._paths("objects", commit[:2], commit[2:]):
+            if not obj.exists():
+                continue
+            try:
+                data = zlib.decompress(obj.read_bytes())
+            except (OSError, zlib.error):
+                return None
+            if b"\0" not in data:
+                return None
+            kind, body = data.split(b"\0", 1)
+            if not kind.startswith(b"commit ") or b"\n\n" not in body:
+                return None
+            subject = body.split(b"\n\n", 1)[1].splitlines()[0].decode(errors="replace").strip()
+            return subject or None
+        return None
+
     @property
     def is_repo(self) -> bool:
         """True if inside a git repo."""
@@ -134,9 +154,11 @@ class GitRepo:
 
     @cached_property
     def message(self) -> str | None:
-        """Current commit subject from reflog or None."""
+        """Current commit subject or None."""
         if not self.is_repo or not self.commit:
             return None
+        if subject := self._commit_subject(self.commit):
+            return subject
         logs = self._paths("logs", "HEAD")
         if self.head and self.head.startswith("ref: "):
             logs.extend(self._paths("logs", *self.head[5:].strip().split("/")))

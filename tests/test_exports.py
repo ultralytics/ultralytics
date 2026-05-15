@@ -407,6 +407,7 @@ def test_export_deepx():
 
 
 @pytest.mark.skipif(not TORCH_2_9 or TORCH_2_12, reason="Ethos export requires 2.9.0<=torch<2.12.0")
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Test disabled due to OOM (Out of Memory) issues on Raspberry Pi 5 16GB")
 def test_export_ethos():
     """Test YOLO model export to Arm Ethos-U NPU ExecuTorch format."""
     file = YOLO(MODEL).export(format="ethos", imgsz=32)

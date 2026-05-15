@@ -17,6 +17,7 @@ class GitRepo:
     Attributes:
         root (Path | None): Repository root directory containing the .git entry; None if not in a repository.
         gitdir (Path | None): Resolved .git directory path; handles worktrees; None if unresolved.
+        commondir (Path | None): Common .git directory path for refs/config shared by worktrees; None if unresolved.
         head (str | None): Raw contents of HEAD; a SHA for detached HEAD or "ref: <refname>" for branch heads.
         is_repo (bool): Whether the provided path resides inside a Git repository.
         branch (str | None): Current branch name when HEAD points to a branch; None for detached HEAD or non-repo.
@@ -46,6 +47,7 @@ class GitRepo:
         """
         self.root = self._find_root(path)
         self.gitdir = self._gitdir(self.root) if self.root else None
+        self.commondir = self._commondir(self.gitdir)
 
     @staticmethod
     def _find_root(p: Path) -> Path | None:
@@ -65,9 +67,29 @@ class GitRepo:
         return None
 
     @staticmethod
+    def _commondir(gitdir: Path | None) -> Path | None:
+        """Resolve common .git directory shared by worktrees."""
+        if not gitdir:
+            return None
+        p = gitdir / "commondir"
+        if s := GitRepo._read(p):
+            d = Path(s)
+            return (gitdir / d).resolve() if not d.is_absolute() else d
+        return gitdir
+
+    @staticmethod
     def _read(p: Path | None) -> str | None:
         """Read and strip file if exists."""
         return p.read_text(errors="ignore").strip() if p and p.exists() else None
+
+    def _paths(self, *parts: str) -> list[Path]:
+        """Return unique gitdir and commondir paths for parts."""
+        paths = []
+        for base in (self.gitdir, self.commondir):
+            p = base.joinpath(*parts) if base else None
+            if p and p not in paths:
+                paths.append(p)
+        return paths
 
     @cached_property
     def head(self) -> str | None:
@@ -76,18 +98,18 @@ class GitRepo:
 
     def _ref_commit(self, ref: str) -> str | None:
         """Commit for ref (handles packed-refs)."""
-        rf = self.gitdir / ref
-        if s := self._read(rf):
-            return s
-        pf = self.gitdir / "packed-refs"
-        b = pf.read_bytes().splitlines() if pf.exists() else []
-        tgt = ref.encode()
-        for line in b:
-            if line[:1] in (b"#", b"^") or b" " not in line:
-                continue
-            sha, name = line.split(b" ", 1)
-            if name.strip() == tgt:
-                return sha.decode()
+        for rf in self._paths(*ref.split("/")):
+            if s := self._read(rf):
+                return s
+        for pf in self._paths("packed-refs"):
+            b = pf.read_bytes().splitlines() if pf.exists() else []
+            tgt = ref.encode()
+            for line in b:
+                if line[:1] in (b"#", b"^") or b" " not in line:
+                    continue
+                sha, name = line.split(b" ", 1)
+                if name.strip() == tgt:
+                    return sha.decode()
         return None
 
     @property
@@ -115,15 +137,18 @@ class GitRepo:
         """Current commit subject from reflog or None."""
         if not self.is_repo or not self.commit:
             return None
-        logs = [self.gitdir / "logs" / "HEAD"]
+        logs = self._paths("logs", "HEAD")
         if self.head and self.head.startswith("ref: "):
-            logs.append(self.gitdir / "logs" / self.head[5:].strip())
+            logs.extend(self._paths("logs", *self.head[5:].strip().split("/")))
         for log in logs:
             for line in reversed((self._read(log) or "").splitlines()):
                 head, _, message = line.partition("\t")
                 fields = head.split()
                 if len(fields) >= 2 and fields[1] == self.commit:
-                    return message.removeprefix("commit: ").strip() or None
+                    message = message.strip()
+                    if message.startswith("commit"):
+                        _, _, message = message.partition(":")
+                    return message.strip() or None
         return None
 
     @cached_property
@@ -131,14 +156,16 @@ class GitRepo:
         """Origin URL or None."""
         if not self.is_repo:
             return None
-        cfg = self.gitdir / "config"
         remote, url = None, None
-        for s in (self._read(cfg) or "").splitlines():
-            t = s.strip()
-            if t.startswith("[") and t.endswith("]"):
-                remote = t.lower()
-            elif t.lower().startswith("url =") and remote == '[remote "origin"]':
-                url = t.split("=", 1)[1].strip()
+        for cfg in self._paths("config"):
+            for s in (self._read(cfg) or "").splitlines():
+                t = s.strip()
+                if t.startswith("[") and t.endswith("]"):
+                    remote = t.lower()
+                elif t.lower().startswith("url =") and remote == '[remote "origin"]':
+                    url = t.split("=", 1)[1].strip()
+                    break
+            if url:
                 break
         return url
 

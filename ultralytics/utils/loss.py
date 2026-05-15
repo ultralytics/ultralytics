@@ -878,6 +878,9 @@ class PoseLoss26(v8PoseLoss):
         Returns:
             (torch.Tensor): The RLE loss.
         """
+        if not kpt_mask.any():
+            return pred_kpt[..., :0].sum()
+
         pred_kpt_visible = pred_kpt[kpt_mask]
         gt_kpt_visible = gt_kpt[kpt_mask]
         pred_coords = pred_kpt_visible[:, 0:2]
@@ -889,11 +892,13 @@ class PoseLoss26(v8PoseLoss):
 
         pred_sigma = pred_sigma.sigmoid()
         error = (pred_coords - gt_coords) / (pred_sigma + 1e-9)
+        if not error.numel():
+            return pred_kpt[..., :0].sum()
 
         # Filter out NaN and Inf values to prevent MultivariateNormal validation errors
         valid_mask = ~(torch.isnan(error) | torch.isinf(error)).any(dim=-1)
         if not valid_mask.any():
-            return torch.tensor(0.0, device=pred_kpt.device)
+            return pred_kpt[..., :0].sum()
 
         error = error[valid_mask]
         error = error.clamp(-100, 100)  # Prevent numerical instability

@@ -258,7 +258,7 @@ Export jobs progress through the following statuses:
 
 !!! tip "Export Time"
 
-    Export time varies by format. TensorRT exports may take several minutes due to engine optimization. GPU-required formats (TensorRT) run on Ultralytics Cloud GPUs — the default export GPU is RTX 5090.
+    Export time varies by format. TensorRT exports may take several minutes due to engine optimization. GPU-required formats (TensorRT) run on Ultralytics Cloud GPUs — the default export GPU is RTX 4090.
 
 ### Bulk Export Actions
 

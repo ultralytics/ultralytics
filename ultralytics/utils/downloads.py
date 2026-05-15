@@ -495,7 +495,7 @@ def attempt_download_asset(
         download_url = f"https://github.com/{repo}/releases/download"
         if str(file).startswith(("http:/", "https:/")):  # download
             url = str(file).replace(":/", "://")  # Pathlib turns :// -> :/
-            file = url2file(name)  # parse authentication https://url.com/file.txt?auth...
+            file = url2file(name)  # parse authentication query strings
             if Path(file).is_file():
                 LOGGER.info(f"Found {clean_url(url)} locally at {file}")  # file already exists
             else:

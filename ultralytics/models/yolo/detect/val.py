@@ -199,25 +199,31 @@ class DetectionValidator(BaseValidator):
                 }
             )
             # Skip rotated-box tasks (OBB) where pbatch["bboxes"] is (N, 5) xywha and ops.scale_boxes would corrupt it.
-            if self.args.score_labels and pbatch["bboxes"].shape[-1] == 4:
-                pred_xyxy = ops.scale_boxes(
-                    pbatch["imgsz"], predn["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
+            if self.args.score_labels and pbatch["bboxes"].shape[-1] == 4 and not (no_pred and cls.shape[0] == 0):
+                pred_xyxy_np = (
+                    ops.scale_boxes(
+                        pbatch["imgsz"], predn["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
+                    )
+                    .cpu()
+                    .numpy()
                 )
-                gt_xyxy = ops.scale_boxes(
-                    pbatch["imgsz"], pbatch["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
+                gt_xyxy_np = (
+                    ops.scale_boxes(
+                        pbatch["imgsz"], pbatch["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
+                    )
+                    .cpu()
+                    .numpy()
                 )
                 extras = {
-                    "pred_bboxes": pred_xyxy.cpu().numpy(),
+                    "pred_bboxes": pred_xyxy_np,
                     "pred_cls": pred_cls_np,
                     "pred_conf": pred_conf_np,
-                    "gt_bboxes": gt_xyxy.cpu().numpy(),
+                    "gt_bboxes": gt_xyxy_np,
                     "gt_cls": cls,
                 }
                 if iou_matrix is not None:
                     extras.update(
-                        compute_objectlab_scores(
-                            iou_matrix, extras["pred_bboxes"], pred_cls_np, pred_conf_np, extras["gt_bboxes"], cls
-                        )
+                        compute_objectlab_scores(iou_matrix, pred_xyxy_np, pred_cls_np, pred_conf_np, gt_xyxy_np, cls)
                     )
                 self.metrics.box.image_metrics[im_name].update(extras)
             # Evaluate

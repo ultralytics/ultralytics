@@ -573,8 +573,7 @@ class MSDeformAttn(nn.Module):
             sampling_locations = refer_bbox[:, :, None, :, :] + sampling_offsets / offset_normalizer
         elif num_points == 4:
             sampling_locations = (
-                refer_bbox[:, :, None, :, :2]
-                + sampling_offsets / self.n_points * refer_bbox[:, :, None, :, 2:] * 0.5
+                refer_bbox[:, :, None, :, :2] + sampling_offsets / self.n_points * refer_bbox[:, :, None, :, 2:] * 0.5
             )
         else:
             raise ValueError(f"Last dim of reference_points must be 2 or 4, but got {num_points}.")

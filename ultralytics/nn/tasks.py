@@ -595,8 +595,6 @@ class SemanticSegmentationModel(BaseModel):
         >>> model = SemanticSegmentationModel("yolo26n-semseg.yaml", ch=3, nc=19)
     """
 
-    end2end = False
-
     def __init__(self, cfg="yolo26n-semseg.yaml", ch=3, nc=None, verbose=True):
         """Initialize the YOLO semantic segmentation model.
 

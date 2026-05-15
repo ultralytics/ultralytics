@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import uniform_
 
-__all__ = "inverse_sigmoid", "multi_scale_deformable_attn_pytorch"
+__all__ = "deformable_attention_core_func_v2", "inverse_sigmoid", "multi_scale_deformable_attn_pytorch"
 
 
 def _get_clones(module, n):
@@ -155,3 +155,58 @@ def multi_scale_deformable_attn_pytorch(
         .view(bs, num_heads * embed_dims, num_queries)
     )
     return output.transpose(1, 2).contiguous()
+
+
+def deformable_attention_core_func_v2(
+    value: torch.Tensor,
+    value_spatial_shapes: list,
+    sampling_locations: torch.Tensor,
+    attention_weights: torch.Tensor,
+    num_points_list: list,
+    value_shape: str = "default",
+) -> torch.Tensor:
+    """Compute deformable attention with rank-5 sampling tensors for CoreML-friendly export.
+
+    Folds the (n_levels, n_points) axes into a single axis so traced tensors stay at rank <= 5, which is required by
+    CoreML's MIL converter.
+
+    Args:
+        value (torch.Tensor): Flattened value tensor with shape (bs, num_keys, num_heads, embed_dims) when
+            value_shape="reshape", or a tuple of per-level tensors with shape (bs, num_heads, embed_dims, H*W)
+            when value_shape="default".
+        value_spatial_shapes (list): Spatial shapes per level as [(H_0, W_0), ...].
+        sampling_locations (torch.Tensor): Sampling locations with shape (bs, num_queries, num_heads,
+            sum(num_points_list), 2).
+        attention_weights (torch.Tensor): Attention weights with shape (bs, num_queries, num_heads,
+            sum(num_points_list)).
+        num_points_list (list): Number of sampling points per level.
+        value_shape (str, optional): "default" for per-level inputs, "reshape" for a flattened RT-DETR value tensor.
+
+    Returns:
+        (torch.Tensor): Output tensor with shape (bs, num_queries, num_heads * embed_dims).
+    """
+    if value_shape == "default":
+        bs, n_head, c, _ = value[0].shape
+    elif value_shape == "reshape":
+        bs, _, n_head, c = value.shape
+        split_shape = [h * w for h, w in value_spatial_shapes]
+        value = value.permute(0, 2, 3, 1).flatten(0, 1).split(split_shape, dim=-1)
+    else:
+        raise ValueError(f"Unsupported value_shape: {value_shape}")
+
+    _, len_q, _, _, _ = sampling_locations.shape
+    sampling_grids = 2 * sampling_locations - 1
+    sampling_grids = sampling_grids.permute(0, 2, 1, 3, 4).flatten(0, 1)
+    sampling_locations_list = sampling_grids.split(num_points_list, dim=-2)
+
+    sampling_value_list = []
+    for level, (h, w) in enumerate(value_spatial_shapes):
+        value_l = value[level].reshape(bs * n_head, c, h, w)
+        sampling_value_l = F.grid_sample(
+            value_l, sampling_locations_list[level], mode="bilinear", padding_mode="zeros", align_corners=False
+        )
+        sampling_value_list.append(sampling_value_l)
+
+    attn_weights = attention_weights.permute(0, 2, 1, 3).reshape(bs * n_head, 1, len_q, sum(num_points_list))
+    output = (torch.concat(sampling_value_list, dim=-1) * attn_weights).sum(-1).reshape(bs, n_head * c, len_q)
+    return output.permute(0, 2, 1)

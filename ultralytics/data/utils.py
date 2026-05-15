@@ -501,7 +501,10 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
             try:
                 trusted = yaml_file.is_relative_to(trusted_root)
             except AttributeError:  # Python < 3.9 fallback
-                trusted = str(yaml_file).startswith(str(trusted_root) + os.sep)
+                yaml_str, root_str = str(yaml_file), str(trusted_root) + os.sep
+                if os.name == "nt":
+                    yaml_str, root_str = yaml_str.lower(), root_str.lower()
+                trusted = yaml_str.startswith(root_str)
             if s.startswith("http") and s.endswith(".zip"):  # URL
                 safe_download(url=s, dir=DATASETS_DIR, delete=True)
             elif not trusted:

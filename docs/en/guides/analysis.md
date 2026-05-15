@@ -130,7 +130,7 @@ See the [Platform API docs](https://docs.ultralytics.com/platform/api/) for URI 
 
 ## Output schema
 
-`per_image_analysis.csv` columns: `im_name`, `im_path`, then validator-supplied prediction-quality fields (`precision`, `recall`, `f1`, `tp`, `fp`, `fn`), then all 31 property fields plus `anomaly_score`. The CSV is always fully sorted ascending by F1.
+`per_image_analysis.csv` columns: `im_name`, `im_file`, then validator-supplied prediction-quality fields (`precision`, `recall`, `f1`, `tp`, `fp`, `fn`), then all 31 property fields plus `anomaly_score`. The CSV is always fully sorted ascending by F1.
 
 `correlations.json` entries:
 

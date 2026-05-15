@@ -116,7 +116,7 @@ class AnalysisReport(SimpleClass, DataExportMixin):
         """
         rows = []
         for im_name, rec in sorted(self.per_image.items(), key=lambda kv: _worst_record_score(kv[1])):
-            out = {"im_name": im_name, "im_path": rec.get("im_path", "")}
+            out = {"im_name": im_name, "im_file": rec.get("im_file", "")}
             for k in _METRIC_FIELDS:
                 v = rec.get(k)
                 out[k] = round(float(v), decimals) if isinstance(v, (int, float)) else v
@@ -202,7 +202,7 @@ class AnalysisReport(SimpleClass, DataExportMixin):
         fig.savefig(out_dir / "correlation_heatmap.png", dpi=120)
         plt.close(fig)
 
-        worst = sorted((v for v in scored if v.get("im_path")), key=_worst_record_score)[:n_strip]
+        worst = sorted((v for v in scored if v.get("im_file")), key=_worst_record_score)[:n_strip]
         if worst:
             from matplotlib.patches import Rectangle  # scope for faster 'import ultralytics'
 
@@ -211,7 +211,7 @@ class AnalysisReport(SimpleClass, DataExportMixin):
             fig, axes = plt.subplots(nrows, ncols, figsize=(ncols * 3.4, nrows * 3.0))
             axes = np.atleast_1d(axes).ravel()
             for ax, rec in zip(axes, worst):
-                img = imread(rec["im_path"])
+                img = imread(rec["im_file"])
                 if img is None:
                     continue
                 ax.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
@@ -234,7 +234,7 @@ class AnalysisReport(SimpleClass, DataExportMixin):
                         color="red",
                         bbox={"facecolor": "white", "alpha": 0.7, "pad": 0.6, "edgecolor": "none"},
                     )
-                ax.set_title(f"{Path(rec['im_path']).stem}\nF1={rec['f1']:.2f}", fontsize=8)
+                ax.set_title(f"{Path(rec['im_file']).stem}\nF1={rec['f1']:.2f}", fontsize=8)
             for ax in axes[len(worst) :]:
                 ax.set_visible(False)
             fig.suptitle(
@@ -408,21 +408,17 @@ class ImagePropertyExtractor:
             "num_objects": n,
         }
         if n == 0 or h == 0 or w == 0:
+            out.update({"num_small": 0, "num_medium": 0, "num_large": 0, "num_near_edge": 0})
             for k in (
-                "num_small",
-                "num_medium",
-                "num_large",
                 "small_object_ratio",
-                "num_near_edge",
                 "mean_center_x",
                 "mean_center_y",
                 "center_spread",
                 "box_area_std_norm",
                 "object_scale_variance",
             ):
-                out[k] = 0 if k.startswith("num_") else np.nan
-            uniq = np.unique(cls_arr)
-            out["num_classes_present"] = int(uniq.size)
+                out[k] = np.nan
+            out["num_classes_present"] = int(np.unique(cls_arr).size)
             out["class_entropy"] = 0.0
             return out
 
@@ -632,7 +628,7 @@ class CorrelationAnalysis:
                 dup_names.append(im_name)
                 continue
             rec = dict(image_metrics.get(im_name, {}))
-            rec["im_path"] = im_file
+            rec["im_file"] = im_file
             for k in _ALL_PROPERTIES:
                 if k in lbl:
                     rec[k] = lbl[k]
@@ -720,7 +716,7 @@ class CorrelationAnalysis:
         return [
             {
                 "im_name": name,
-                "im_path": rec.get("im_path"),
+                "im_file": rec.get("im_file"),
                 "f1": rec.get("f1"),
                 "anomaly_score": rec.get("anomaly_score"),
                 "top_3_problematic": rec.get("top_3_problematic", []),

@@ -1571,6 +1571,9 @@ class RTDETRDecoder(nn.Module):
             self.query_pos_head,
             attn_mask=attn_mask,
         )
+        if self.training and dn_meta is None:
+            # Touch denoising_class_embed so DDP sees it as used when batch has zero GTs.
+            dec_bboxes = dec_bboxes + 0 * self.denoising_class_embed.weight.sum()
         x = dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta
         if self.training:
             return x

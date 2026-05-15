@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import uniform_
 
-__all__ = "inverse_sigmoid", "multi_scale_deformable_attn_pytorch", "deformable_attention_core_func_v2"
+__all__ = "deformable_attention_core_func_v2", "inverse_sigmoid", "multi_scale_deformable_attn_pytorch"
 
 
 def _get_clones(module, n):

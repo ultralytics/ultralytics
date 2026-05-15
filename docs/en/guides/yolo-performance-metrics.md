@@ -180,11 +180,11 @@ Mean Average Precision (mAP) is crucial for evaluating YOLO26 models as it provi
 
 ### How do I interpret the Intersection over Union (IoU) value for YOLO26 object detection?
 
-Intersection over Union (IoU) measures the overlap between the predicted and ground truth bounding boxes. IoU values range from 0 to 1, where higher values indicate better localization accuracy. An IoU of 1.0 means perfect alignment. Typically, an IoU threshold of 0.50 is used to define true positives in metrics like mAP. Lower IoU values suggest that the model struggles with precise object localization, which can be improved by refining bounding box regression or increasing annotation accuracy in your [training dataset](https://docs.ultralytics.com/datasets/).
+Intersection over Union (IoU) measures the overlap between the predicted and ground truth bounding boxes. IoU values range from 0 to 1, where higher values indicate better localization accuracy. An IoU of 1.0 means perfect alignment. Typically, an IoU threshold of 0.50 is used to define true positives in metrics like mAP. Lower IoU values suggest that the model struggles with precise object localization, which can be improved by refining bounding box regression or increasing annotation accuracy in your [training dataset](https://docs.ultralytics.com/datasets).
 
 ### Why is the F1 Score important for evaluating YOLO26 models in object detection?
 
-The F1 Score is important for evaluating YOLO26 models because it provides a harmonic mean of precision and recall, balancing both false positives and false negatives. It is particularly valuable when dealing with imbalanced datasets or applications where either precision or recall alone is insufficient. A high F1 Score indicates that the model effectively detects objects while minimizing both missed detections and false alarms, making it suitable for critical applications like [security systems](https://docs.ultralytics.com/guides/security-alarm-system/) and [medical imaging](https://www.ultralytics.com/solutions/ai-in-healthcare).
+The F1 Score is important for evaluating YOLO26 models because it provides a harmonic mean of precision and recall, balancing both false positives and false negatives. It is particularly valuable when dealing with imbalanced datasets or applications where either precision or recall alone is insufficient. A high F1 Score indicates that the model effectively detects objects while minimizing both missed detections and false alarms, making it suitable for critical applications like [security systems](https://docs.ultralytics.com/guides/security-alarm-system) and [medical imaging](https://www.ultralytics.com/solutions/ai-in-healthcare).
 
 ### What are the key advantages of using Ultralytics YOLO26 for real-time object detection?
 
@@ -195,7 +195,7 @@ Ultralytics YOLO26 offers multiple advantages for real-time object detection:
 - **Flexibility**: Supports various tasks including object detection, segmentation, and classification.
 - **Ease of Use**: User-friendly interfaces, extensive documentation, and seamless integration with tools like Ultralytics Platform ([Platform Quickstart](../platform/quickstart.md)).
 
-This makes YOLO26 ideal for diverse applications from autonomous vehicles to [smart city solutions](https://docs.ultralytics.com/guides/queue-management/).
+This makes YOLO26 ideal for diverse applications from autonomous vehicles to [smart city solutions](https://docs.ultralytics.com/guides/queue-management).
 
 ### How can validation metrics from YOLO26 help improve model performance?
 
@@ -206,4 +206,4 @@ Validation metrics from YOLO26 like precision, recall, mAP, and IoU help diagnos
 - **mAP**: Offers an overall performance snapshot, guiding general improvements.
 - **IoU**: Helps fine-tune object localization accuracy.
 
-By analyzing these metrics, specific weaknesses can be targeted, such as adjusting confidence thresholds to improve precision or gathering more diverse data to enhance recall. For detailed explanations of these metrics and how to interpret them, check [Object Detection Metrics](#object-detection-metrics) and consider implementing [hyperparameter tuning](https://docs.ultralytics.com/guides/hyperparameter-tuning/) to optimize your model.
+By analyzing these metrics, specific weaknesses can be targeted, such as adjusting confidence thresholds to improve precision or gathering more diverse data to enhance recall. For detailed explanations of these metrics and how to interpret them, check [Object Detection Metrics](#object-detection-metrics) and consider implementing [hyperparameter tuning](https://docs.ultralytics.com/guides/hyperparameter-tuning) to optimize your model.

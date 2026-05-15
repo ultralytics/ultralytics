@@ -31,9 +31,8 @@ class CoreMLBackend(BaseBackend):
         check_requirements(["coremltools>=9.0", "numpy>=1.14.5,<=2.3.5"])
         import coremltools as ct
 
-        cu_name = os.environ.get("ULTRALYTICS_COREML_COMPUTE_UNITS", "ALL")
-        LOGGER.info(f"Loading {weight} for CoreML inference (compute_units={cu_name})...")
-        self.model = ct.models.MLModel(weight, compute_units=getattr(ct.ComputeUnit, cu_name))
+        LOGGER.info(f"Loading {weight} for CoreML inference...")
+        self.model = ct.models.MLModel(weight)
         spec = self.model.get_spec()
         self.input_name = spec.description.input[0].name
         self.dynamic = spec.description.input[0].type.HasField("multiArrayType")

@@ -173,8 +173,8 @@ If training fails:
 
 ### How do I choose the right GPU?
 
-| Scenario                      | Recommended GPU         |
-| ----------------------------- | ----------------------- |
-| Most training jobs            | RTX PRO 6000            |
-| Large datasets or batch sizes | H100 SXM or H200        |
-| Budget-conscious              | RTX 4090                |
+| Scenario                      | Recommended GPU  |
+| ----------------------------- | ---------------- |
+| Most training jobs            | RTX PRO 6000     |
+| Large datasets or batch sizes | H100 SXM or H200 |
+| Budget-conscious              | RTX 4090         |

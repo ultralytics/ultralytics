@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 # "jetson-agx-thor-cpu", "jetson-agx-orin-gpu", "jetson-agx-orin-cpu",
 # "jetson-orin-nano-super-gpu", or "jetson-orin-nano-super-cpu"
 # =============================================================================
-BENCHMARK = "rf_compare"
+BENCHMARK = "t4"
 
 # Default metric for Y axis.
 DEFAULT_METRIC = "ap"

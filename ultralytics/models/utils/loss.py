@@ -12,16 +12,17 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ultralytics.utils.loss import FocalLoss, MALoss, VarifocalLoss
+from ultralytics.utils.metrics import bbox_iou
 
-from .box_ops import aligned_box_iou, aligned_giou
+from .box_ops import aligned_box_iou, aligned_giou_old
 from .ops import HungarianMatcher
 
 
 def _global_num_gts(num_gts: int, device: torch.device) -> float:
     """Compute the global average number of ground truths across distributed workers.
 
-    In distributed training, this function sums local ground-truth counts across all processes and
-    returns the average per process. It also enforces a minimum of 1.0 to avoid zero-division issues.
+    In distributed training, this function sums local ground-truth counts across all processes and returns the average
+    per process. It also enforces a minimum of 1.0 to avoid zero-division issues.
 
     Args:
         num_gts (int): Number of ground-truth objects on the current process.
@@ -53,6 +54,7 @@ class DETRLoss(nn.Module):
         fl (FocalLoss | None): Focal Loss object if use_fl is True, otherwise None.
         vfl (VarifocalLoss | None): Varifocal Loss object if use_vfl is True, otherwise None.
         mal (MALoss | None): MALoss object if use_mal is True, otherwise None.
+        debug_old_aligned_giou (bool): If True, replace the GIoU loss term with the legacy aligned GIoU implementation.
         device (torch.device): Device on which tensors are stored.
     """
 
@@ -104,6 +106,7 @@ class DETRLoss(nn.Module):
 
         self.use_uni_match = use_uni_match
         self.uni_match_ind = uni_match_ind
+        self.debug_old_aligned_giou = False
         self.device = None
 
     def _get_loss_class(
@@ -187,7 +190,10 @@ class DETRLoss(nn.Module):
             return loss
 
         loss[name_bbox] = self.loss_gain["bbox"] * F.l1_loss(pred_bboxes, gt_bboxes, reduction="sum") / global_num_gts
-        loss[name_giou] = 1.0 - aligned_giou(pred_bboxes, gt_bboxes, xywh=True)
+        if self.debug_old_aligned_giou:
+            loss[name_giou] = 1.0 - aligned_giou_old(pred_bboxes, gt_bboxes, xywh=True)
+        else:
+            loss[name_giou] = 1.0 - bbox_iou(pred_bboxes, gt_bboxes, xywh=True, GIoU=True)
         loss[name_giou] = loss[name_giou].sum() / global_num_gts
         loss[name_giou] = self.loss_gain["giou"] * loss[name_giou]
         return {k: v.squeeze() for k, v in loss.items()}

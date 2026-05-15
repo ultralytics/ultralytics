@@ -186,28 +186,28 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
 
         ??? abstract "Detailed Benchmark Results"
 
-                | Model   | Format        | Precision | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
-                | ------- | ------------- | --------- | ------ | --------- | ------------------- | ---------------------- |
-                | YOLO26n | PyTorch (CPU) | FP32      | ✅      | 5.3       | 0.4765              | 25.18                  |
-                | YOLO26n | OpenVINO      | FP32      | ✅      | 9.6       | 0.4763              | 2.67                   |
-                | YOLO26n | OpenVINO      | FP16      | ✅      | 5.1       | 0.4763              | 2.64                   |
-                | YOLO26n | OpenVINO      | INT8      | ✅      | 3.2       | 0.4625              | 2.73                   |
-                | YOLO26s | PyTorch (CPU) | FP32      | ✅      | 19.5      | 0.5703              | 50.09                  |
-                | YOLO26s | OpenVINO      | FP32      | ✅      | 36.7      | 0.5615              | 3.57                   |
-                | YOLO26s | OpenVINO      | FP16      | ✅      | 18.6      | 0.5615              | 3.55                   |
-                | YOLO26s | OpenVINO      | INT8      | ✅      | 10.0      | 0.547               | 3.09                   |
-                | YOLO26m | PyTorch (CPU) | FP32      | ✅      | 42.2      | 0.6196              | 135.1                  |
-                | YOLO26m | OpenVINO      | FP32      | ✅      | 78.3      | 0.6168              | 5.64                   |
-                | YOLO26m | OpenVINO      | FP16      | ✅      | 39.5      | 0.6168              | 5.85                   |
-                | YOLO26m | OpenVINO      | INT8      | ✅      | 20.5      | 0.5994              | 4.14                   |
-                | YOLO26l | PyTorch (CPU) | FP32      | ✅      | 50.7      | 0.6215              | 169.75                 |
-                | YOLO26l | OpenVINO      | FP32      | ✅      | 95.3      | 0.6206              | 8.14                   |
-                | YOLO26l | OpenVINO      | FP16      | ✅      | 48.1      | 0.6206              | 8.18                   |
-                | YOLO26l | OpenVINO      | INT8      | ✅      | 25.2      | 0.5999              | 4.67                   |
-                | YOLO26x | PyTorch (CPU) | FP32      | ✅      | 113.2     | 0.6512              | 407.56                 |
-                | YOLO26x | OpenVINO      | FP32      | ✅      | 213.2     | 0.6569              | 13.11                  |
-                | YOLO26x | OpenVINO      | FP16      | ✅      | 107.1     | 0.6569              | 13.15                  |
-                | YOLO26x | OpenVINO      | INT8      | ✅      | 54.8      | 0.6374              | 9.24                   |
+            | Model   | Format        | Precision | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
+            | ------- | ------------- | --------- | ------ | --------- | ------------------- | ---------------------- |
+            | YOLO26n | PyTorch (CPU) | FP32      | ✅      | 5.3       | 0.4765              | 25.18                  |
+            | YOLO26n | OpenVINO      | FP32      | ✅      | 9.6       | 0.4763              | 2.67                   |
+            | YOLO26n | OpenVINO      | FP16      | ✅      | 5.1       | 0.4763              | 2.64                   |
+            | YOLO26n | OpenVINO      | INT8      | ✅      | 3.2       | 0.4625              | 2.73                   |
+            | YOLO26s | PyTorch (CPU) | FP32      | ✅      | 19.5      | 0.5703              | 50.09                  |
+            | YOLO26s | OpenVINO      | FP32      | ✅      | 36.7      | 0.5615              | 3.57                   |
+            | YOLO26s | OpenVINO      | FP16      | ✅      | 18.6      | 0.5615              | 3.55                   |
+            | YOLO26s | OpenVINO      | INT8      | ✅      | 10.0      | 0.547               | 3.09                   |
+            | YOLO26m | PyTorch (CPU) | FP32      | ✅      | 42.2      | 0.6196              | 135.1                  |
+            | YOLO26m | OpenVINO      | FP32      | ✅      | 78.3      | 0.6168              | 5.64                   |
+            | YOLO26m | OpenVINO      | FP16      | ✅      | 39.5      | 0.6168              | 5.85                   |
+            | YOLO26m | OpenVINO      | INT8      | ✅      | 20.5      | 0.5994              | 4.14                   |
+            | YOLO26l | PyTorch (CPU) | FP32      | ✅      | 50.7      | 0.6215              | 169.75                 |
+            | YOLO26l | OpenVINO      | FP32      | ✅      | 95.3      | 0.6206              | 8.14                   |
+            | YOLO26l | OpenVINO      | FP16      | ✅      | 48.1      | 0.6206              | 8.18                   |
+            | YOLO26l | OpenVINO      | INT8      | ✅      | 25.2      | 0.5999              | 4.67                   |
+            | YOLO26x | PyTorch (CPU) | FP32      | ✅      | 113.2     | 0.6512              | 407.56                 |
+            | YOLO26x | OpenVINO      | FP32      | ✅      | 213.2     | 0.6569              | 13.11                  |
+            | YOLO26x | OpenVINO      | FP16      | ✅      | 107.1     | 0.6569              | 13.15                  |
+            | YOLO26x | OpenVINO      | INT8      | ✅      | 54.8      | 0.6374              | 9.24                   |
 
     === "Intel® Panther Lake CPU"
 

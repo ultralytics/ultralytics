@@ -726,7 +726,6 @@ class Mosaic(BaseMixTransform):
                 - resized_shape (tuple[int, int]): Shape of the mosaic image (imgsz * 2, imgsz * 2).
                 - cls (np.ndarray): Concatenated class labels.
                 - instances (Instances): Concatenated instance annotations.
-                - mosaic_border (tuple[int, int]): Mosaic border size.
                 - texts (list[str], optional): Text labels if present in the original labels.
 
         Examples:
@@ -734,7 +733,7 @@ class Mosaic(BaseMixTransform):
             >>> mosaic_labels = [{"cls": np.array([0, 1]), "instances": Instances(...)} for _ in range(4)]
             >>> result = mosaic._cat_labels(mosaic_labels)
             >>> print(result.keys())
-            dict_keys(['im_file', 'ori_shape', 'resized_shape', 'cls', 'instances', 'mosaic_border'])
+            dict_keys(['im_file', 'ori_shape', 'resized_shape', 'cls', 'instances'])
         """
         if not mosaic_labels:
             return {}
@@ -751,7 +750,6 @@ class Mosaic(BaseMixTransform):
             "resized_shape": (imgsz, imgsz),
             "cls": np.concatenate(cls, 0),
             "instances": Instances.concatenate(instances, axis=0),
-            "mosaic_border": self.border,
         }
         final_labels["instances"].clip(imgsz, imgsz)
         good = final_labels["instances"].remove_zero_area_boxes()
@@ -1029,7 +1027,7 @@ class RandomPerspective(BaseTransform):
         scale (float): Scaling factor range, e.g., scale=0.1 means 0.9-1.1.
         shear (float): Maximum shear angle in degrees.
         perspective (float): Perspective distortion factor.
-        border (tuple[int, int]): Mosaic border size as (y, x).
+        size (tuple[int, int] | None): Output size (width, height). If None, uses the input image size.
 
     Methods:
         get_params: Compute affine transformation matrix and related parameters.
@@ -1057,7 +1055,6 @@ class RandomPerspective(BaseTransform):
         scale: float | tuple[float, float] = 0.5,
         shear: float = 0.0,
         perspective: float = 0.0,
-        border: tuple[int, int] = (0, 0),
         size: tuple[int, int] | None = None,
     ):
         """Initialize RandomPerspective object with transformation parameters.
@@ -1072,14 +1069,13 @@ class RandomPerspective(BaseTransform):
                 50%-150%. If tuple, interpreted as absolute (min, max) scale factors.
             shear (float): Shear intensity (angle in degrees).
             perspective (float): Perspective distortion factor.
-            border (tuple[int, int]): Tuple specifying mosaic border (y, x).
+            size (tuple[int, int] | None): Output size (width, height). If None, uses the input image size.
         """
         self.degrees = degrees
         self.translate = translate
         self.scale = scale
         self.shear = shear
         self.perspective = perspective
-        self.border = border  # mosaic border
         self.size = size
 
     def _compute_affine_matrix(self, img: np.ndarray, size: tuple[int, int]) -> tuple[np.ndarray, float]:
@@ -1133,33 +1129,31 @@ class RandomPerspective(BaseTransform):
             labels (dict[str, Any]): Input labels dictionary containing 'img'.
 
         Returns:
-            (dict): Parameters including 'M' (affine matrix), 'scale', 'border', 'orig_shape', and 'size'.
+            (dict): Parameters including 'M' (affine matrix), 'scale', 'orig_shape', and 'size'.
         """
         img = labels["img"]
-        border = labels.pop("mosaic_border", self.border)
         if self.size is None:
-            size = img.shape[1] + border[1] * 2, img.shape[0] + border[0] * 2  # w, h
+            size = img.shape[1], img.shape[0]  # w, h
         else:
             size = self.size
         orig_shape = img.shape[:2]
         M, scale = self._compute_affine_matrix(img, size)
-        return {"M": M, "scale": scale, "border": border, "orig_shape": orig_shape, "size": size}
+        return {"M": M, "scale": scale, "orig_shape": orig_shape, "size": size}
 
     def apply_image(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
         """Apply affine warp to the image.
 
         Args:
             labels (dict[str, Any]): Dictionary containing 'img'.
-            params (dict | None): Parameters from get_params, including 'M', 'border', and 'size'.
+            params (dict | None): Parameters from get_params, including 'M' and 'size'.
 
         Returns:
             (dict): Updated labels with warped image and 'resized_shape'.
         """
         img = labels["img"]
         M = params["M"]
-        border = params["border"]
         size = params["size"]
-        if (border[0] != 0) or (border[1] != 0) or (M != np.eye(3)).any():  # image changed
+        if (size[0] != img.shape[1] or size[1] != img.shape[0]) or (M != np.eye(3)).any():  # image changed
             if self.perspective:
                 img = cv2.warpPerspective(img, M, dsize=size, borderValue=(114, 114, 114))
             else:  # affine
@@ -1324,7 +1318,7 @@ class RandomPerspective(BaseTransform):
 
         Args:
             labels (dict[str, Any]): Dictionary containing 'semantic_mask'.
-            params (dict | None): Parameters from get_params, including 'M', 'border', and 'size'.
+            params (dict | None): Parameters from get_params, including 'M' and 'size'.
 
         Returns:
             (dict): Updated labels with transformed semantic mask.
@@ -1333,9 +1327,8 @@ class RandomPerspective(BaseTransform):
             return labels
         mask = labels["semantic_mask"]
         M = params["M"]
-        border = params["border"]
         size = params["size"]
-        if (border[0] != 0) or (border[1] != 0) or (M != np.eye(3)).any():
+        if (size[0] != mask.shape[1] or size[1] != mask.shape[0]) or (M != np.eye(3)).any():
             if self.perspective:
                 mask = cv2.warpPerspective(mask, M, dsize=size, flags=cv2.INTER_NEAREST, borderValue=255)
             else:
@@ -1371,13 +1364,6 @@ class RandomPerspective(BaseTransform):
             >>> result = transform(labels)
             >>> assert result["img"].shape[:2] == result["resized_shape"]
 
-        Notes:
-            'labels' arg must include:
-                - 'img' (np.ndarray): The input image.
-                - 'cls' (np.ndarray): Class labels.
-                - 'instances' (Instances): Object instances with bounding boxes, segments, and keypoints.
-            May include:
-                - 'mosaic_border' (tuple[int, int]): Border size for mosaic augmentation.
         """
         labels.pop("ratio_pad", None)  # do not need ratio pad
         return super().__call__(labels)
@@ -2093,9 +2079,7 @@ class CopyPaste(BaseMixTransform):
         Returns:
             (dict): Updated labels with pasted objects.
         """
-        im = labels["img"]
-        if "mosaic_border" not in labels:
-            im = im.copy()
+        im = labels["img"].copy()
 
         instances2 = params["instances2"]
         selected = params["selected"]

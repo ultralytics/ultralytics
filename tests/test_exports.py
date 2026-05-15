@@ -414,5 +414,5 @@ def test_export_ethos():
     assert pte_file.exists(), f"Ethos .pte file not found: {pte_file}"
     metadata_file = Path(file) / "metadata.yaml"
     assert metadata_file.exists(), f"Ethos metadata.yaml not found: {metadata_file}"
-    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+    # Note: Inference testing skipped as it requires Ethos-U hardware
     shutil.rmtree(file, ignore_errors=True)  # cleanup

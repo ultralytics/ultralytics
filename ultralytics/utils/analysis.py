@@ -692,9 +692,11 @@ class CorrelationAnalysis:
             m = np.isfinite(xs)
             if m.sum() < 2 or np.std(xs[m]) == 0:
                 continue
-            mu, sd = float(xs[m].mean()), float(xs[m].std())
             pr = correlations.get(prop, {}).get("pearson_r")
-            sign = -1.0 if pr is not None and pr > 0 else 1.0  # bad direction = side that lowers F1
+            if pr is None:  # insufficient evidence to pick a direction, skip rather than default to +1
+                continue
+            mu, sd = float(xs[m].mean()), float(xs[m].std())
+            sign = -1.0 if pr > 0 else 1.0  # bad direction = side that lowers F1
             prop_arrays[prop] = (mu, sd, sign)
 
         for rec in per_image.values():

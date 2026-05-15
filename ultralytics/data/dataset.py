@@ -861,31 +861,31 @@ class SemsegDataset(BaseDataset):
         transforms = []
         nc = self.data.get("nc", len(self.data.get("names", [])))
         if self.augment:
-            scale = getattr(hyp, "scale", 0.5)
-            transforms.append(
-                RandomPerspective(
-                    degrees=0,
-                    translate=0,
-                    scale=scale,
-                    shear=0,
-                    perspective=0,
-                    size=(self.imgsz, self.imgsz),
-                )
-            )
-            transforms.append(RandomFlip(p=getattr(hyp, "fliplr", 0.5), direction="horizontal"))
-            brightness_delta = round(getattr(hyp, "brightness", 0.125) * 255)
-            contrast = getattr(hyp, "contrast", 0.5)
-            saturation = getattr(hyp, "saturation", 0.5)
-            hue_delta = round(getattr(hyp, "hue", 0.1) * 180)
-            transforms.append(
-                PhotoMetricDistortion(
-                    brightness_delta=brightness_delta,
-                    contrast_range=(1 - contrast, 1 + contrast),
-                    saturation_range=(1 - saturation, 1 + saturation),
-                    hue_delta=hue_delta,
-                )
-            )
-            # transforms = v8_transforms(self, self.imgsz, hyp)
+            # scale = getattr(hyp, "scale", 0.5)
+            # transforms.append(
+            #     RandomPerspective(
+            #         degrees=0,
+            #         translate=0,
+            #         scale=scale,
+            #         shear=0,
+            #         perspective=0,
+            #         size=(self.imgsz, self.imgsz),
+            #     )
+            # )
+            # transforms.append(RandomFlip(p=getattr(hyp, "fliplr", 0.5), direction="horizontal"))
+            # brightness_delta = round(getattr(hyp, "brightness", 0.125) * 255)
+            # contrast = getattr(hyp, "contrast", 0.5)
+            # saturation = getattr(hyp, "saturation", 0.5)
+            # hue_delta = round(getattr(hyp, "hue", 0.1) * 180)
+            # transforms.append(
+            #     PhotoMetricDistortion(
+            #         brightness_delta=brightness_delta,
+            #         contrast_range=(1 - contrast, 1 + contrast),
+            #         saturation_range=(1 - saturation, 1 + saturation),
+            #         hue_delta=hue_delta,
+            #     )
+            # )
+            transforms = v8_transforms(self, self.imgsz, hyp)
         else:
             transforms.append(
                 LetterBox(

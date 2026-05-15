@@ -294,7 +294,7 @@ pip install onnxruntime_gpu-1.17.0-cp38-cp38-linux_aarch64.whl
 
 !!! note
 
-    `onnxruntime-gpu` will automatically revert back the numpy version to latest. So we need to reinstall numpy to `1.23.5` to fix an issue by executing:
+    `onnxruntime-gpu` will automatically revert back the NumPy version to latest. So we need to reinstall NumPy to `1.23.5` to fix an issue by executing:
 
     `pip install numpy==1.23.5`
 

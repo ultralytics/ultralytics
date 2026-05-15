@@ -1,7 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from __future__ import annotations
-
 from functools import cached_property
 from pathlib import Path
 
@@ -21,6 +20,7 @@ class GitRepo:
         is_repo (bool): Whether the provided path resides inside a Git repository.
         branch (str | None): Current branch name when HEAD points to a branch; None for detached HEAD or non-repo.
         commit (str | None): Current commit SHA for HEAD; None if not determinable.
+        message (str | None): Current commit subject from reflog; None if not determinable.
         origin (str | None): URL of the "origin" remote as read from gitdir/config; None if unset or unavailable.
 
     Examples:
@@ -33,7 +33,7 @@ class GitRepo:
         ('main', '1a2b3c4', 'https://example.com/owner/repo.git')
 
     Notes:
-        - Resolves metadata by reading files: HEAD, packed-refs, and config; no subprocess calls are used.
+        - Resolves metadata by reading files: HEAD, packed-refs, config, and reflogs; no subprocess calls are used.
         - Caches properties on first access using cached_property; recreate the object to reflect repository changes.
     """
 
@@ -110,6 +110,22 @@ class GitRepo:
         return self._ref_commit(self.head[5:].strip()) if self.head.startswith("ref: ") else self.head
 
     @cached_property
+    def message(self) -> str | None:
+        """Current commit subject from reflog or None."""
+        if not self.is_repo or not self.commit:
+            return None
+        logs = [self.gitdir / "logs" / "HEAD"]
+        if self.head and self.head.startswith("ref: "):
+            logs.append(self.gitdir / "logs" / self.head[5:].strip())
+        for log in logs:
+            for line in reversed((self._read(log) or "").splitlines()):
+                head, _, message = line.partition("\t")
+                fields = head.split()
+                if len(fields) >= 2 and fields[1] == self.commit:
+                    return message.removeprefix("commit: ").strip() or None
+        return None
+
+    @cached_property
     def origin(self) -> str | None:
         """Origin URL or None."""
         if not self.is_repo:
@@ -132,6 +148,6 @@ if __name__ == "__main__":
     g = GitRepo()
     if g.is_repo:
         t0 = time.perf_counter()
-        print(f"repo={g.root}\nbranch={g.branch}\ncommit={g.commit}\norigin={g.origin}")
+        print(f"repo={g.root}\nbranch={g.branch}\ncommit={g.commit}\nmessage={g.message}\norigin={g.origin}")
         dt = (time.perf_counter() - t0) * 1000
         print(f"\n⏱️ Profiling: total {dt:.3f} ms")

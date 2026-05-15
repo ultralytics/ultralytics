@@ -263,7 +263,6 @@ def torch2imx(
             check_apt_requirements(["openjdk-17-jre"])
 
     check_requirements("edge-mdt[pt]")
-    check_requirements("pydantic>=2.13.4")
     dataset = dataset() if callable(dataset) else dataset  # resolve lazy dataloader
 
     import model_compression_toolkit as mct

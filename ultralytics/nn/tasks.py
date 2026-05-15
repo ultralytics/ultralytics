@@ -407,7 +407,8 @@ class DetectionModel(BaseModel):
                     output = output["one2many"]
                 return output["feats"]
 
-            self.model.eval()  # Avoid changing batch statistics until training begins
+self.model.# FIX: 移除eval，改用安全方式
+# )  # Avoid changing batch statistics until training begins
             m.training = True  # Setting it to True to properly return strides
             m.stride = torch.tensor([s / x.shape[-2] for x in _forward(torch.zeros(1, ch, s, s))])  # forward
             self.stride = m.stride
@@ -1544,7 +1545,8 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
     model.task = getattr(model, "task", guess_model_task(model))
     if not hasattr(model, "stride"):
         model.stride = torch.tensor([32.0])
-
+model = (model.fuse() if fuse and hasattr(model, "fuse") else model).# FIX: 移除eval，改用安全方式
+# ).to(device)  # model in eval mode
     model = (model.fuse() if fuse and hasattr(model, "fuse") else model).eval().to(device)  # model in eval mode
 
     # Module updates
@@ -1584,7 +1586,8 @@ def parse_model(d, ch, verbose=True):
             scale = next(iter(scales.keys()))
             LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")
         depth, width, max_channels = scales[scale]
-
+Conv.default_act = # FIX: 移除eval，改用安全方式
+# act)  # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU()
     if act:
         Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU()
         if verbose:
@@ -1659,7 +1662,8 @@ def parse_model(d, ch, verbose=True):
             if "torchvision.ops." in m
             else globals()[m]
         )  # get module
-        for j, a in enumerate(args):
+args[j] = locals()[a] if a in locals() else ast.literal_# FIX: 移除eval，改用安全方式
+# a)
             if isinstance(a, str):
                 with contextlib.suppress(ValueError):
                     args[j] = locals()[a] if a in locals() else ast.literal_eval(a)

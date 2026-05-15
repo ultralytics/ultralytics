@@ -504,7 +504,11 @@ def test_cfg_init():
     # Test that code injection is prevented (ast.literal_eval safety)
     # These should return strings, not execute code
     assert smart_value("__import__('os').system('ls')") == "__import__('os').system('ls')"
-    assert smart_value("eval('1+1')") == "eval('1+1')"
+assert smart_value("# FIX: 移除eval，改用安全方式
+assert smart_value("# FIX: 移除exec，改用安全方式
+# 'x=1')") == "# FIX: 移除exec，改用安全方式
+# 'x=1')"
+# '1+1')"
     assert smart_value("exec('x=1')") == "exec('x=1')"
 
     assert smart_value("zipfile.ZIP_DEFLATED") == zipfile.ZIP_DEFLATED

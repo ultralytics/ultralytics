@@ -409,6 +409,7 @@ class ProfileModels:
         imgsz: int = 640,
         half: bool = True,
         trt: bool = True,
+        cpu: bool = True,
         device: torch.device | str | None = None,
         save_dir: str | Path = ".",
         val: bool = True,
@@ -423,6 +424,7 @@ class ProfileModels:
             imgsz (int): Size of the image used during profiling.
             half (bool): Flag to indicate whether to use FP16 half-precision for TensorRT profiling.
             trt (bool): Flag to indicate whether to profile using TensorRT.
+            cpu (bool): Flag to indicate whether to profile ONNX on CPU.
             device (torch.device | str | None): Device used for profiling. If None, it is determined automatically.
             save_dir (str | Path): Directory to save markdown output. Default is current directory.
             val (bool): Run validation to get mAP metrics. Set False for speed-only profiling.
@@ -437,6 +439,7 @@ class ProfileModels:
         self.imgsz = imgsz
         self.half = half
         self.trt = trt  # run TensorRT profiling
+        self.cpu = cpu  # run ONNX CPU profiling
         self.device = device if isinstance(device, torch.device) else select_device(device)
         self.save_dir = Path(save_dir)
         self.val = val
@@ -509,11 +512,10 @@ class ProfileModels:
                         device=self.device,
                         verbose=False,
                     )
-                onnx_file = model.export(
-                    format="onnx",
-                    imgsz=self.imgsz,
-                    device=self.device,
-                    verbose=False,
+                onnx_file = (
+                    model.export(format="onnx", imgsz=self.imgsz, device=self.device, verbose=False)
+                    if self.cpu
+                    else None
                 )
             elif file.suffix == ".onnx":
                 model_info = self.get_onnx_model_info(file)
@@ -522,7 +524,7 @@ class ProfileModels:
                 continue
 
             t_engine = self.profile_tensorrt_model(str(engine_file))
-            t_onnx = self.profile_onnx_model(str(onnx_file))
+            t_onnx = self.profile_onnx_model(str(onnx_file)) if self.cpu and onnx_file else (0.0, 0.0)
 
             # Store baseline metrics from first model
             if idx == 0:

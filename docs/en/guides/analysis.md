@@ -6,41 +6,51 @@ keywords: Ultralytics, image property analysis, label quality, ObjectLab, correl
 
 # Image Property Correlation Analysis
 
-After training a detection model, you often want to know **why** some images are mispredicted. The [`ImagePropertyAnalyzer`](../reference/utils/analysis.md) joins per-image F1 scores from validation with image properties (brightness, blurriness, crowdedness, label-quality scores, etc.), computes Pearson and Spearman correlations against F1, and ranks the worst-performing images so you can feed them into a synthetic-data pipeline.
+After training a detection model, you often want to know **why** some images are mispredicted. The [`ImagePropertyExtractor`](../reference/utils/analysis.md) augments a `YOLODataset`'s labels in place with 31 per-image properties (brightness, blurriness, crowdedness, ...). [`CorrelationAnalysis`](../reference/utils/analysis.md) then joins those properties with per-image F1 scores from validation, computes Pearson and Spearman correlations, and ranks the worst-performing images so you can feed them into a synthetic-data pipeline.
 
-The analyzer ships **31 properties** out of the box: 8 pixel-reading (brightness, contrast, entropy, edge density, ...), 17 cache-derived (object counts in COCO size buckets, class entropy, edge proximity, ...), 2 annotation-interaction (max/mean pairwise IoU), and 4 ObjectLab label-quality scores (overlooked, badloc, swap, label_quality_score) following [Tkachenko, Thyagarajan & Mueller, ICML Workshop 2023](https://arxiv.org/abs/2309.00832).
+The two-piece split is deliberate: `ImagePropertyExtractor` needs no model or metrics, so you can compute properties once and reuse them across many model evaluations, or hand the augmented labels to a JS/TS front-end for custom visualizations. The extractor ships **31 properties** out of the box: 8 pixel-reading (brightness, contrast, entropy, edge density, ...), 17 cache-derived (object counts in COCO size buckets, class entropy, edge proximity, ...), 2 annotation-interaction (max/mean pairwise IoU), and 4 ObjectLab label-quality scores (overlooked, badloc, swap, label_quality_score) following [Tkachenko, Thyagarajan & Mueller, ICML Workshop 2023](https://arxiv.org/abs/2309.00832).
 
 ## Quick start
 
-Three entry-point paths cover the common use cases:
+Three composition patterns cover the common use cases:
 
 ```python
 from ultralytics import YOLO
-from ultralytics.utils.analysis import ImagePropertyAnalyzer
+from ultralytics.data.build import build_yolo_dataset
+from ultralytics.data.utils import check_det_dataset
+from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor
 
-# Path 1: model + dataset, runs validation internally
-report = ImagePropertyAnalyzer(model="yolo11n.pt", data="coco128.yaml").run()
+# Path 1: dataset-only, no model. Platform-friendly (consume `labels` directly in JS/TS).
+data = check_det_dataset("coco128.yaml")
+dataset = build_yolo_dataset(None, data["val"], 1, data, mode="val", rect=False, stride=32)
+labels = ImagePropertyExtractor(dataset).labels  # list[dict], augmented in place
 
-# Path 2: from a previous model.val() result, no re-validation
+# Path 2: full analysis after model.val(). Use score_labels=True to enable ObjectLab.
 model = YOLO("yolo11n.pt")
 metrics = model.val(data="coco128.yaml", score_labels=True)
-report = ImagePropertyAnalyzer.from_metrics(metrics, dataset=model.validator.dataloader.dataset).run()
+labels = ImagePropertyExtractor(model.validator.dataloader.dataset).labels
+report = CorrelationAnalysis(labels, metrics).run()
 
-# Path 3: dataset-only audit, no model required
-report = ImagePropertyAnalyzer(data="coco128.yaml").run()
+# Path 3: reuse one extraction across many models. Property compute happens once.
+labels = ImagePropertyExtractor(dataset).labels
+for ckpt in ("yolo11n.pt", "yolo11s.pt", "yolo11m.pt"):
+    metrics = YOLO(ckpt).val(data="coco128.yaml", score_labels=True)
+    CorrelationAnalysis(labels, metrics).run(save_dir=f"runs/analyze-{ckpt[:-3]}")
 ```
 
-Each call writes the following to an auto-incremented `runs/analyze/` directory (`runs/analyze`, `runs/analyze-2`, ...), following the same `increment_path` convention used for `runs/detect/train`, `runs/detect/val`, etc.:
+`CorrelationAnalysis.run()` writes the following to an auto-incremented `runs/analyze/` directory (`runs/analyze`, `runs/analyze-2`, ...), following the same `increment_path` convention used for `runs/detect/train`, `runs/detect/val`, etc.:
 
 | File                      | Purpose                                                                               |
 | ------------------------- | ------------------------------------------------------------------------------------- |
-| `per_image_analysis.csv`  | One row per image, sorted ascending by F1 (or by anomaly_score in dataset-only path)  |
+| `per_image_analysis.csv`  | One row per image, sorted ascending by F1                                             |
 | `correlations.json`       | Pearson + Spearman r and p-values per property, with effect-size band and direction   |
 | `worst_images.json`       | Top 100 worst-performing images plus their top 3 problematic properties               |
 | `summary.md`              | Human-readable summary with top correlations and worst-image table                    |
 | `correlation_scatter.png` | Per-property scatter against F1 with regression line and Pearson r                    |
 | `correlation_heatmap.png` | Property × property Pearson r matrix (self-correlations blanked)                      |
 | `worst_images_strip.png`  | Thumbnails of bottom 20 by F1 with green ground-truth and red dashed prediction boxes |
+
+`ImagePropertyExtractor` does not write any files. To export property fields for a JS/TS front-end, serialize `labels` yourself (drop the numpy `bboxes`/`cls`/`segments` arrays if you only need scalar properties).
 
 ## Example outputs
 
@@ -54,26 +64,31 @@ Rendered on COCO val2017 (5000 images) with `yolo11n.pt` at `conf=0.25`. `summar
 
 ## Enabling label-quality scores
 
-The 4 ObjectLab fields (`overlooked_score`, `badloc_score`, `swap_score`, `label_quality_score`) require the validator to compute them inline during validation. Pass `score_labels=True` to `model.val()`:
+The 4 ObjectLab fields (`overlooked_score`, `badloc_score`, `swap_score`, `label_quality_score`) require the validator to compute them inline during validation. Pass `score_labels=True` to `model.val()` before constructing `CorrelationAnalysis`:
 
 ```python
 metrics = model.val(data="coco128.yaml", score_labels=True)
 ```
 
-The model+data path (`ImagePropertyAnalyzer(model=..., data=...)`) sets this flag automatically. The validator stores ~32 bytes/image extra in `metrics.box.image_metrics` (4 float scores per image). Raw IoU matrices and pred/GT arrays are not retained. Without the flag, ObjectLab columns are populated as `NaN`.
+The validator stores ~32 bytes/image extra in `metrics.box.image_metrics` (4 float scores per image). Raw IoU matrices and pred/GT arrays are not retained. Without the flag, ObjectLab columns are populated as `NaN`.
 
 All 4 ObjectLab scores follow the quality convention: **low = likely label issue**, **high = clean label**.
 
-## Platform integration (`ul://`)
+## Ultralytics Platform integration (`ul://`)
 
-Both the `model=` and `data=` arguments accept the modern Ultralytics Platform URI scheme. The analyzer forwards them to existing `YOLO()` and `check_det_dataset()` resolution paths, which handle download and conversion:
+`ul://` URIs from the [Ultralytics Platform](https://platform.ultralytics.com/) are resolved by the underlying `YOLO()` constructor and `model.val()`, not by the analyzer. The API key must be set **before** `YOLO("ul://...")` is constructed (the URI is resolved at load time), via the `ULTRALYTICS_API_KEY` environment variable or `settings.update({"api_key": ...})`. Once that's in place, use the URIs as you would with any standard validation call, then pass the metrics and the validator's dataset through to the two analysis classes:
 
 ```python
-ImagePropertyAnalyzer(
-    model="ul://owner/project/model-name",
-    data="ul://owner/datasets/slug",
-    api_key="ul_xxx_40hex",  # optional, falls back to ULTRALYTICS_API_KEY env or settings
-).run()
+import os
+os.environ["ULTRALYTICS_API_KEY"] = "ul_xxx_40hex"  # or set in shell, or use settings.update(...)
+
+from ultralytics import YOLO
+from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor
+
+model = YOLO("ul://owner/project/model-name")
+metrics = model.val(data="ul://owner/datasets/slug", score_labels=True)
+labels = ImagePropertyExtractor(model.validator.dataloader.dataset).labels
+CorrelationAnalysis(labels, metrics).run()
 ```
 
 See the [Platform API docs](https://docs.ultralytics.com/platform/api/) for URI details.
@@ -105,7 +120,7 @@ See the [Platform API docs](https://docs.ultralytics.com/platform/api/) for URI 
 
 ## Output schema
 
-`per_image_analysis.csv` columns: `im_name`, `im_path`, then validator-supplied prediction-quality fields (`precision`, `recall`, `f1`, `tp`, `fp`, `fn`) when predictions are available, then all 31 property fields plus `anomaly_score`. The CSV is always fully sorted, ascending by F1 (model+data and from-metrics paths) or descending by `anomaly_score` (dataset-only path).
+`per_image_analysis.csv` columns: `im_name`, `im_path`, then validator-supplied prediction-quality fields (`precision`, `recall`, `f1`, `tp`, `fp`, `fn`), then all 31 property fields plus `anomaly_score`. The CSV is always fully sorted ascending by F1.
 
 `correlations.json` entries:
 

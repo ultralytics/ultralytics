@@ -16,7 +16,7 @@ from ultralytics.data.build import build_dataloader
 from ultralytics.data.dataset import PolygonSemsegDataset, SemsegDataset, add_polygon_background
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, RANK
-from ultralytics.utils.metrics import SemsegMetrics
+from ultralytics.utils.metrics import ConfusionMatrix, SemsegMetrics
 from ultralytics.utils.plotting import Annotator, plot_images, plt_settings
 
 
@@ -69,6 +69,13 @@ class SemanticSegmentationValidator(DetectionValidator):
         if self.args.save_json:
             self.results_dir = self.save_dir / "results"
             self.results_dir.mkdir(parents=True, exist_ok=True)
+        cm_nc = self.metrics.cm_nc
+        if cm_nc == 2 and len(self.names) == 1:  # binary segmentation, expand to include background
+            cm_names = {0: "background", 1: next(iter(self.names.values()))}
+        else:
+            base = list(self.names.values()) + [str(i) for i in range(len(self.names), cm_nc)]
+            cm_names = {i: base[i] for i in range(cm_nc)}
+        self.confusion_matrix = ConfusionMatrix(names=cm_names, task="semseg")
 
     def preprocess(self, batch):
         """Preprocess a batch of images and masks.
@@ -169,6 +176,10 @@ class SemanticSegmentationValidator(DetectionValidator):
             (dict): Dictionary of validation metrics.
         """
         self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
+        if self.metrics.matrix is not None:
+            # Internal layout is [gt, pred]; transpose to [pred, gt] for ConfusionMatrix export format.
+            self.confusion_matrix.matrix = self.metrics.matrix.detach().cpu().numpy().astype(float).T
+        self.metrics.confusion_matrix = self.confusion_matrix
         self.metrics.clear_stats()
         return self.metrics.results_dict
 

@@ -350,7 +350,11 @@ class ConfusionMatrix(DataExportMixin):
         """
         self.task = task
         self.nc = len(names)  # number of classes
-        self.matrix = np.zeros((self.nc, self.nc)) if self.task == "classify" else np.zeros((self.nc + 1, self.nc + 1))
+        self.matrix = (
+            np.zeros((self.nc, self.nc))
+            if self.task in {"classify", "semseg"}
+            else np.zeros((self.nc + 1, self.nc + 1))
+        )
         self.names = names  # name of classes
         self.matches = {} if save_matches else None
 
@@ -622,7 +626,11 @@ class ConfusionMatrix(DataExportMixin):
         """
         import re
 
-        names = list(self.names.values()) if self.task == "classify" else [*list(self.names.values()), "background"]
+        names = (
+            list(self.names.values())
+            if self.task in {"classify", "semseg"}
+            else [*list(self.names.values()), "background"]
+        )
         clean_names, seen = [], set()
         for name in names:
             clean_name = re.sub(r"[^a-zA-Z0-9_]", "_", name)

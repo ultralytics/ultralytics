@@ -26,7 +26,7 @@ SAHI (Slicing Aided Hyper Inference) is an innovative library designed to optimi
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Inference with SAHI (Slicing Aided Hyper Inference) using Ultralytics YOLO26
+  <strong>Watch:</strong> How to use SAHI with Ultralytics YOLO26 to Detect Small Objects | Slicing Aided Hyper Inference 🚀
 </p>
 
 ### Key Features of SAHI

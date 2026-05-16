@@ -886,14 +886,14 @@ class SemsegDataset(BaseDataset):
             #     )
             # )
             transforms = v8_transforms(self, self.imgsz, hyp)
-            # transforms.append(
-            #     PhotoMetricDistortion(
-            #         brightness_delta=32,
-            #         contrast_range=(0.5, 1.5),
-            #         saturation_range=(0.5, 1.5),
-            #         hue_delta=18,
-            #     )
-            # )
+            transforms.append(
+                PhotoMetricDistortion(
+                    brightness_delta=32,
+                    contrast_range=(0.5, 1.5),
+                    saturation_range=(0.5, 1.5),
+                    hue_delta=18,
+                )
+            )
         else:
             transforms.append(
                 LetterBox(

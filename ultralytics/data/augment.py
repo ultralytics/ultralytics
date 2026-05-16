@@ -1686,7 +1686,7 @@ class SemanticFormat(BaseTransform):
         if len(img.shape) < 3:
             img = img[..., None]
         img = img.transpose(2, 0, 1)
-        img = np.ascontiguousarray(img[::-1])
+        img = np.ascontiguousarray(img[::-1] if img.shape[0] == 3 else img)
         img = torch.from_numpy(img)
         return img
 

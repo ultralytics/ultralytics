@@ -12,7 +12,6 @@ import torch.distributed as dist
 import torch.nn.functional as F
 from PIL import Image
 
-from ultralytics.data.build import build_dataloader
 from ultralytics.data.dataset import PolygonSemsegDataset, SemsegDataset, add_polygon_background
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, RANK
@@ -227,7 +226,6 @@ class SemanticSegmentationValidator(DetectionValidator):
             (SemsegDataset): Dataset object.
         """
         self.data = add_polygon_background(self.data)
-        use_rect = mode == "val"
         dataset_cls = SemsegDataset if self.data.get("masks_dir") else PolygonSemsegDataset
         return dataset_cls(
             img_path=img_path,
@@ -236,7 +234,7 @@ class SemanticSegmentationValidator(DetectionValidator):
             hyp=self.args,
             cache=self.args.cache or None,
             data=self.data,
-            rect=use_rect,
+            rect=self.args.rect,
             batch_size=batch,
             stride=self.stride,
             pad=0,

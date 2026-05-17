@@ -112,8 +112,8 @@ Choose your GPU from Ultralytics Cloud:
     - **RTX PRO 6000**: 96 GB Blackwell, recommended default for most jobs
     - **A100 SXM**: 80 GB HBM2e — strong choice for large batch sizes or bigger models
     - **H100 PCIe / H100 SXM / H100 NVL**: 80–94 GB Hopper for time-sensitive training (available on all plans)
-    - **H200 NVL / H200 SXM**: 141–143 GB Hopper — requires [Pro or Enterprise](../account/billing.md#plans)
-    - **B200**: 180 GB NVIDIA Blackwell for cutting-edge workloads — requires [Pro or Enterprise](../account/billing.md#plans)
+    - **H200 NVL / H200 SXM**: 141–143 GB Hopper for high-memory workloads (available on all plans)
+    - **B200 / B300**: 180–288 GB NVIDIA Blackwell for cutting-edge workloads — requires [Pro or Enterprise](../account/billing.md#plans)
 
 The dialog shows your current **balance** and a **Top Up** button. An estimated cost and duration are calculated based on your configuration (model size, dataset images, epochs, GPU speed).
 

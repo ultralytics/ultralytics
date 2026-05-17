@@ -668,6 +668,7 @@ class BaseTrainer:
                     "root": str(GIT.root),
                     "branch": GIT.branch,
                     "commit": GIT.commit,
+                    "message": GIT.message,
                     "origin": GIT.origin,
                 },
                 "license": "AGPL-3.0 (https://ultralytics.com/license)",

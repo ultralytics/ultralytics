@@ -73,7 +73,7 @@ Available GPUs for cloud training on Ultralytics Cloud:
 
 !!! info "GPU Tier Access"
 
-    H200 and B200 GPUs require a [Pro or Enterprise plan](../account/billing.md#plans). All other GPUs are available on all plans including Free.
+    B200 and B300 GPUs require a [Pro or Enterprise plan](../account/billing.md#plans). All other GPUs are available on all plans including Free.
 
 !!! tip "Signup Credits"
 
@@ -173,8 +173,8 @@ If training fails:
 
 ### How do I choose the right GPU?
 
-| Scenario                      | Recommended GPU         |
-| ----------------------------- | ----------------------- |
-| Most training jobs            | RTX PRO 6000            |
-| Large datasets or batch sizes | H100 SXM or H200 (Pro+) |
-| Budget-conscious              | RTX 4090                |
+| Scenario                      | Recommended GPU  |
+| ----------------------------- | ---------------- |
+| Most training jobs            | RTX PRO 6000     |
+| Large datasets or batch sizes | H100 SXM or H200 |
+| Budget-conscious              | RTX 4090         |

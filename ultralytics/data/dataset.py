@@ -695,7 +695,7 @@ class SemsegDataset(BaseDataset):
         mask_files (list[str]): List of mask file paths corresponding to images.
     """
 
-    def __init__(self, *args, data=None, **kwargs):
+    def __init__(self, *args, data: dict | None = None, **kwargs):
         """Initialize SemsegDataset.
 
         Args:
@@ -985,7 +985,7 @@ class PolygonSemsegDataset(YOLODataset):
     BCEWithLogitsLoss.
     """
 
-    def __init__(self, *args, data=None, **kwargs):
+    def __init__(self, *args, data: dict | None = None, **kwargs):
         """Initialize PolygonSemsegDataset.
 
         Args:

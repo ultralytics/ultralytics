@@ -333,7 +333,9 @@ class KeypointLoss(nn.Module):
 class v8DetectionLoss:
     """Criterion class for computing training losses for YOLOv8 object detection."""
 
-    def __init__(self, model, tal_topk: int = 10, tal_topk2: int | None = None):  # model must be de-paralleled
+    def __init__(
+        self, model: torch.nn.Module, tal_topk: int = 10, tal_topk2: int | None = None
+    ):  # model must be de-paralleled
         """Initialize v8DetectionLoss with model parameters and task-aligned assignment settings."""
         device = next(model.parameters()).device  # get model device
         h = model.args  # hyperparameters
@@ -480,7 +482,9 @@ class v8DetectionLoss:
 class v8SegmentationLoss(v8DetectionLoss):
     """Criterion class for computing training losses for YOLOv8 segmentation."""
 
-    def __init__(self, model, tal_topk: int = 10, tal_topk2: int | None = None):  # model must be de-paralleled
+    def __init__(
+        self, model: torch.nn.Module, tal_topk: int = 10, tal_topk2: int | None = None
+    ):  # model must be de-paralleled
         """Initialize the v8SegmentationLoss class with model parameters and mask overlap setting."""
         super().__init__(model, tal_topk, tal_topk2)
         self.overlap = model.args.overlap_mask
@@ -637,7 +641,7 @@ class v8SegmentationLoss(v8DetectionLoss):
 class v8PoseLoss(v8DetectionLoss):
     """Criterion class for computing training losses for YOLOv8 pose estimation."""
 
-    def __init__(self, model, tal_topk: int = 10, tal_topk2: int = 10):  # model must be de-paralleled
+    def __init__(self, model: torch.nn.Module, tal_topk: int = 10, tal_topk2: int = 10):  # model must be de-paralleled
         """Initialize v8PoseLoss with model parameters and keypoint-specific loss functions."""
         super().__init__(model, tal_topk, tal_topk2)
         self.kpt_shape = model.model[-1].kpt_shape
@@ -795,7 +799,7 @@ class v8PoseLoss(v8DetectionLoss):
 class PoseLoss26(v8PoseLoss):
     """Criterion class for computing training losses for YOLOv8 pose estimation with RLE loss support."""
 
-    def __init__(self, model, tal_topk: int = 10, tal_topk2: int | None = None):  # model must be de-paralleled
+    def __init__(self, model: torch.nn.Module, tal_topk: int = 10, tal_topk2: int | None = None):  # model must be de-paralleled
         """Initialize PoseLoss26 with model parameters and keypoint-specific loss functions including RLE loss."""
         super().__init__(model, tal_topk, tal_topk2)
         is_pose = self.kpt_shape == [17, 3]
@@ -979,7 +983,7 @@ class v8ClassificationLoss:
 class v8OBBLoss(v8DetectionLoss):
     """Calculates losses for object detection, classification, and box distribution in rotated YOLO models."""
 
-    def __init__(self, model, tal_topk=10, tal_topk2: int | None = None):
+    def __init__(self, model: torch.nn.Module, tal_topk=10, tal_topk2: int | None = None):
         """Initialize v8OBBLoss with model, assigner, and rotated bbox loss; model must be de-paralleled."""
         super().__init__(model, tal_topk=tal_topk)
         self.assigner = RotatedTaskAlignedAssigner(
@@ -1144,7 +1148,7 @@ class v8OBBLoss(v8DetectionLoss):
 class E2EDetectLoss:
     """Criterion class for computing training losses for end-to-end detection."""
 
-    def __init__(self, model):
+    def __init__(self, model: torch.nn.Module):
         """Initialize E2EDetectLoss with one-to-many and one-to-one detection losses using the provided model."""
         self.one2many = v8DetectionLoss(model, tal_topk=10)
         self.one2one = v8DetectionLoss(model, tal_topk=1)
@@ -1162,7 +1166,7 @@ class E2EDetectLoss:
 class E2ELoss:
     """Criterion class for computing training losses for end-to-end detection."""
 
-    def __init__(self, model, loss_fn=v8DetectionLoss):
+    def __init__(self, model: torch.nn.Module, loss_fn=v8DetectionLoss):
         """Initialize E2ELoss with one-to-many and one-to-one detection losses using the provided model."""
         self.one2many = loss_fn(model, tal_topk=10)
         self.one2one = loss_fn(model, tal_topk=7, tal_topk2=1)
@@ -1197,7 +1201,7 @@ class E2ELoss:
 class TVPDetectLoss:
     """Criterion class for computing training losses for text-visual prompt detection."""
 
-    def __init__(self, model, tal_topk=10, tal_topk2: int | None = None):
+    def __init__(self, model: torch.nn.Module, tal_topk=10, tal_topk2: int | None = None):
         """Initialize TVPDetectLoss with task-prompt and visual-prompt criteria using the provided model."""
         self.vp_criterion = v8DetectionLoss(model, tal_topk, tal_topk2)
         # NOTE: store following info as it's changeable in __call__
@@ -1239,7 +1243,7 @@ class TVPDetectLoss:
 class TVPSegmentLoss(TVPDetectLoss):
     """Criterion class for computing training losses for text-visual prompt segmentation."""
 
-    def __init__(self, model, tal_topk=10):
+    def __init__(self, model: torch.nn.Module, tal_topk=10):
         """Initialize TVPSegmentLoss with task-prompt and visual-prompt criteria using the provided model."""
         super().__init__(model)
         self.vp_criterion = v8SegmentationLoss(model, tal_topk)
@@ -1269,7 +1273,7 @@ class SemanticSegmentationLoss(nn.Module):
         ce (nn.CrossEntropyLoss): Cross-entropy loss with ignore_index=255.
     """
 
-    def __init__(self, model):
+    def __init__(self, model: torch.nn.Module):
         """Initialize semantic segmentation loss.
 
         Args:

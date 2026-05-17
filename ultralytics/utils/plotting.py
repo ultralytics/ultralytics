@@ -735,7 +735,7 @@ def plot_images(
         - 3 channels: Used as-is (standard RGB)
         - 4+ channels: Cropped to first 3 channels
     """
-    for k in {"cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images"}:
+    for k in {"cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images", "semantic_mask"}:
         if k not in labels:
             continue
         if k == "cls" and labels[k].ndim == 2:
@@ -749,6 +749,7 @@ def plot_images(
     confs = labels.get("conf", None)
     masks = labels.get("masks", np.zeros(0, dtype=np.uint8))
     kpts = labels.get("keypoints", np.zeros(0, dtype=np.float32))
+    semantic_masks = labels.get("semantic_mask", np.zeros(0, dtype=np.int64))
     images = labels.get("img", images)  # default to input images
 
     if len(images) and isinstance(images, torch.Tensor):
@@ -866,6 +867,18 @@ def plot_images(
                         except Exception:
                             pass
                 annotator.fromarray(im)
+
+        # Plot semantic masks
+        if len(semantic_masks) and i < len(semantic_masks):
+            mask = semantic_masks[i]
+            mh, mw = mask.shape
+            if mh != h or mw != w:
+                mask = cv2.resize(mask.astype(np.uint8), (w, h), interpolation=cv2.INTER_NEAREST)
+            im = np.asarray(annotator.im).copy()
+            sub_annotator = Annotator(np.ascontiguousarray(im[y : y + h, x : x + w]), line_width=1, pil=False)
+            sub_annotator.semantic_mask(mask, alpha=0.4)
+            im[y : y + h, x : x + w] = sub_annotator.im
+            annotator.fromarray(im)
     if not save:
         return np.asarray(annotator.im)
     annotator.im.save(fname)  # save

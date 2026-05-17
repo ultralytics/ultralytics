@@ -5,7 +5,6 @@ from __future__ import annotations
 from copy import copy
 from typing import Any
 
-import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
@@ -15,7 +14,7 @@ from ultralytics.models import yolo
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import SemanticSegmentationModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-from ultralytics.utils.plotting import Annotator, colors, plt_settings
+from ultralytics.utils.plotting import colors, plot_images
 
 
 class SemanticSegmentationTrainer(DetectionTrainer):
@@ -84,44 +83,14 @@ class SemanticSegmentationTrainer(DetectionTrainer):
         pass
 
     def plot_training_samples(self, batch, ni):
-        """Plot training samples with semantic mask overlay.
+        """Plot training samples with semantic mask overlay."""
+        plot_images(
+            labels=batch,
+            paths=batch["im_file"],
+            fname=self.save_dir / f"train_batch{ni}.jpg",
+            on_plot=self.on_plot,
+        )
 
-        Args:
-            batch (dict): Batch data containing 'img' and 'semantic_mask'.
-            ni (int): Batch index for naming output file.
-        """
-        images = batch["img"]  # [B, 3, H, W] float 0-1
-        masks = batch["semantic_mask"]  # [B, H, W] long
-        max_subplots = min(16, len(images))
-        images = images[:max_subplots]
-        masks = masks[:max_subplots]
-
-        bs, _, h, w = images.shape
-        # Create grid
-        ns = int(np.ceil(bs**0.5))  # grid size
-        mosaic = np.zeros((ns * h, ns * w, 3), dtype=np.uint8)
-
-        for i in range(bs):
-            # Image
-            img = (images[i].permute(1, 2, 0).cpu().numpy() * 255).astype(np.uint8)
-            img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-
-            # Mask overlay
-            mask = masks[i].cpu().numpy()
-            annotator = Annotator(img, line_width=1)
-            annotator.semantic_mask(mask, alpha=0.4)
-            img = annotator.result()
-
-            # Place in grid
-            row, col = i // ns, i % ns
-            mosaic[row * h : (row + 1) * h, col * w : (col + 1) * w] = img
-
-        fname = self.save_dir / f"train_batch{ni}.jpg"
-        cv2.imwrite(str(fname), mosaic)
-        if self.on_plot:
-            self.on_plot(fname)
-
-    @plt_settings()
     def plot_training_labels(self):
         """Plot training labels class distribution for semantic segmentation.
 

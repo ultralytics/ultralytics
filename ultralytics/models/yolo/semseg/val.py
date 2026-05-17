@@ -16,7 +16,7 @@ from ultralytics.data.dataset import SemsegDataset, add_polygon_background
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.metrics import ConfusionMatrix, SemsegMetrics
-from ultralytics.utils.plotting import Annotator, plot_images, plt_settings
+from ultralytics.utils.plotting import plot_images
 
 
 class SemanticSegmentationValidator(DetectionValidator):
@@ -214,77 +214,22 @@ class SemanticSegmentationValidator(DetectionValidator):
         """Parse the dataset YAML and bump nc/names with a background class for the polygon path."""
         return add_polygon_background(super().get_dataset())
 
-    @plt_settings()
     def plot_val_samples(self, batch, ni):
-        """Plot validation image samples with semantic mask overlays.
-
-        Args:
-            batch (dict): Batch containing images and semantic masks.
-            ni (int): Batch index.
-        """
-        images = batch["img"]
-        masks = batch["semantic_mask"]
-        bs = min(len(images), 16)
-        images = images[:bs]
-        masks = masks[:bs]
-        images_np = images.cpu().float().numpy()
-        if images_np.max() <= 1:
-            images_np *= 255
-        masks_np = masks.cpu().numpy()
-        overlaid = []
-        for i in range(bs):
-            img = images_np[i].transpose(1, 2, 0).astype(np.uint8)
-            if img.shape[2] == 3:
-                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-            mask = masks_np[i]
-            annotator = Annotator(img, line_width=1)
-            annotator.semantic_mask(mask, alpha=0.4)
-            img = annotator.result()
-            if img.shape[2] == 3:
-                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            overlaid.append(img)
-        overlaid = np.stack(overlaid).transpose(0, 3, 1, 2)
+        """Plot validation image samples with semantic mask overlays."""
         plot_images(
-            labels={"img": overlaid, "cls": np.zeros(0)},
-            paths=batch.get("im_file", []),
+            labels=batch,
+            paths=batch["im_file"],
             fname=self.save_dir / f"val_batch{ni}_labels.jpg",
             names=self.names,
             on_plot=self.on_plot,
         )
 
-    @plt_settings()
     def plot_predictions(self, batch, preds, ni):
-        """Plot predicted semantic masks on input images.
-
-        Args:
-            batch (dict): Batch containing images.
-            preds (torch.Tensor): Predicted class IDs [B, H, W].
-            ni (int): Batch index.
-        """
-        images = batch["img"]
-        bs = min(len(images), 16)
-        images = images[:bs]
-        preds = preds[:bs]
-        images_np = images.cpu().float().numpy()
-        if images_np.max() <= 1:
-            images_np *= 255
-        preds_np = preds.cpu().numpy() if isinstance(preds, torch.Tensor) else preds
-        overlaid = []
-        for i in range(bs):
-            img = images_np[i].transpose(1, 2, 0).astype(np.uint8)
-            if img.shape[2] == 3:
-                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-            mask = preds_np[i]
-            annotator = Annotator(img, line_width=1)
-            annotator.semantic_mask(mask, alpha=0.4)
-            img = annotator.result()
-            if img.shape[2] == 3:
-                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            overlaid.append(img)
-        overlaid = np.stack(overlaid).transpose(0, 3, 1, 2)
+        """Plot predicted semantic masks on input images."""
         plot_images(
-            labels={"img": overlaid, "cls": np.zeros(0)},
-            paths=batch.get("im_file", []),
+            images=batch["img"],
+            labels={"semantic_mask": preds},
+            paths=batch["im_file"],
             fname=self.save_dir / f"val_batch{ni}_pred.jpg",
             names=self.names,
             on_plot=self.on_plot,

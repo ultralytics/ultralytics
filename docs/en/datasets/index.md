@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Explore Ultralytics' diverse datasets for vision tasks like detection, segmentation, classification, and more. Enhance your projects with high-quality annotated data.
-keywords: Ultralytics, datasets, computer vision, object detection, instance segmentation, pose estimation, image classification, multi-object tracking
+description: Explore Ultralytics' diverse datasets for vision tasks like detection, segmentation, semantic segmentation, classification, and more. Enhance your projects with high-quality annotated data.
+keywords: Ultralytics, datasets, computer vision, object detection, instance segmentation, semantic segmentation, pose estimation, image classification, multi-object tracking
 ---
 
 # Datasets Overview
 
-Ultralytics provides support for various datasets to facilitate computer vision tasks such as detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), pose estimation, classification, and multi-object tracking. Below is a list of the main Ultralytics datasets, followed by a summary of each computer vision task and the respective datasets.
+Ultralytics provides support for various datasets to facilitate computer vision tasks such as detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), semantic segmentation, pose estimation, classification, and multi-object tracking. Below is a list of the main Ultralytics datasets, followed by a summary of each computer vision task and the respective datasets.
 
 <p align="center">
   <br>
@@ -56,6 +56,14 @@ Instance segmentation is a computer vision technique that involves identifying a
 - [COCO128-seg](segment/coco128-seg.md): A smaller dataset for instance segmentation tasks, containing a subset of 128 COCO images with segmentation annotations.
 - [Crack-seg](segment/crack-seg.md): Specifically crafted dataset for detecting cracks on roads and walls, applicable for both object detection and segmentation tasks.
 - [Package-seg](segment/package-seg.md): Tailored dataset for identifying packages in warehouses or industrial settings, suitable for both object detection and segmentation applications.
+
+## [Semantic Segmentation](semseg/index.md)
+
+Semantic segmentation assigns a class label to every pixel in an image, producing dense scene maps for applications such as autonomous driving, scene parsing, and land-cover mapping.
+
+- [Cityscapes](semseg/cityscapes.md): Urban street-scene semantic segmentation dataset with 19 train classes.
+- [Cityscapes8](semseg/cityscapes8.md): A compact 8-image Cityscapes subset for quick semantic segmentation pipeline checks.
+- [ADE20K](semseg/ade20k.md): Scene parsing dataset with 150 semantic classes.
 
 ## [Pose Estimation](pose/index.md)
 

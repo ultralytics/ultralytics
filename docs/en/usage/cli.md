@@ -417,7 +417,7 @@ This command uses the `train` mode with specific arguments. For a full list of a
 
 ### What tasks can I perform with the Ultralytics YOLO CLI?
 
-The Ultralytics YOLO CLI supports various tasks, including [detection](../tasks/detect.md), [segmentation](../tasks/segment.md), [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [oriented bounding box detection](../tasks/obb.md). You can also perform operations like:
+The Ultralytics YOLO CLI supports various tasks, including [detection](../tasks/detect.md), [segmentation](../tasks/segment.md), [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), [oriented bounding box detection](../tasks/obb.md), and [semantic segmentation](../tasks/semseg.md). You can also perform operations like:
 
 - **Train a Model**: Run `yolo train data=<data.yaml> model=<model.pt> epochs=<num>`.
 - **Run Predictions**: Use `yolo predict model=<model.pt> source=<data_source> imgsz=<image_size>`.

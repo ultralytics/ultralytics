@@ -231,6 +231,7 @@ class Results(SimpleClass, DataExportMixin):
         keypoints: torch.Tensor | None = None,
         obb: torch.Tensor | None = None,
         speed: dict[str, float] | None = None,
+        semantic_mask: torch.Tensor | None = None,
     ) -> None:
         """Initialize the Results class for storing and manipulating inference results.
 
@@ -243,6 +244,7 @@ class Results(SimpleClass, DataExportMixin):
             probs (torch.Tensor | None): A 1D tensor of probabilities of each class for classification task.
             keypoints (torch.Tensor | None): A 2D tensor of keypoint coordinates for each detection.
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
+            semantic_mask (torch.Tensor | None): A 2D tensor of class IDs for semantic segmentation results.
             speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
 
         Notes:
@@ -259,11 +261,12 @@ class Results(SimpleClass, DataExportMixin):
         self.probs = Probs(probs) if probs is not None else None
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
         self.obb = OBB(obb, self.orig_shape) if obb is not None else None
+        self.semantic_mask = semantic_mask  # [H, W] tensor of class IDs for semantic segmentation
         self.speed = speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}
         self.names = names
         self.path = path
         self.save_dir = None
-        self._keys = "boxes", "masks", "probs", "keypoints", "obb"
+        self._keys = "boxes", "masks", "probs", "keypoints", "obb", "semantic_mask"
 
     def __getitem__(self, idx):
         """Return a Results object for a specific index of inference results.
@@ -296,7 +299,10 @@ class Results(SimpleClass, DataExportMixin):
         for k in self._keys:
             v = getattr(self, k)
             if v is not None:
+                if k == "semantic_mask":
+                    return 1  # one result per image for semantic segmentation
                 return len(v)
+        return 0
 
     def update(
         self,
@@ -305,6 +311,7 @@ class Results(SimpleClass, DataExportMixin):
         probs: torch.Tensor | None = None,
         obb: torch.Tensor | None = None,
         keypoints: torch.Tensor | None = None,
+        semantic_mask: torch.Tensor | None = None,
     ):
         """Update the Results object with new detection data.
 
@@ -318,6 +325,8 @@ class Results(SimpleClass, DataExportMixin):
             probs (torch.Tensor | None): A tensor of shape (num_classes,) containing class probabilities.
             obb (torch.Tensor | None): A tensor of shape (N, 7) or (N, 8) containing oriented bounding box coordinates.
             keypoints (torch.Tensor | None): A tensor of shape (N, K, 3) containing keypoints, were K=17 for persons.
+            semantic_mask (torch.Tensor | None): A tensor of shape (H, W) containing class IDs for semantic
+                segmentation.
 
         Examples:
             >>> results = model("image.jpg")
@@ -334,6 +343,8 @@ class Results(SimpleClass, DataExportMixin):
             self.obb = OBB(obb, self.orig_shape)
         if keypoints is not None:
             self.keypoints = Keypoints(keypoints, self.orig_shape)
+        if semantic_mask is not None:
+            self.semantic_mask = semantic_mask
 
     def _apply(self, fn: str, *args, **kwargs):
         """Apply a function to all non-empty attributes and return a new Results object with modified attributes.
@@ -357,8 +368,17 @@ class Results(SimpleClass, DataExportMixin):
         r = self.new()
         for k in self._keys:
             v = getattr(self, k)
-            if v is not None:
-                setattr(r, k, getattr(v, fn)(*args, **kwargs))
+            if v is None:
+                continue
+            if k == "semantic_mask":
+                # Raw torch.Tensor / np.ndarray (no BaseTensor wrapper)
+                if fn in {"cpu", "numpy"}:
+                    v = getattr(v, fn)() if isinstance(v, torch.Tensor) else v
+                else:  # cuda, to
+                    v = getattr(torch.as_tensor(v), fn)(*args, **kwargs)
+            else:
+                v = getattr(v, fn)(*args, **kwargs)
+            setattr(r, k, v)
         return r
 
     def cpu(self):
@@ -557,6 +577,13 @@ class Results(SimpleClass, DataExportMixin):
             x = round(self.orig_shape[0] * 0.03)
             annotator.text([x, x], text, txt_color=txt_color, box_color=(64, 64, 64, 128))  # RGBA box
 
+        # Plot Semantic Segmentation results
+        if self.semantic_mask is not None and show_masks:
+            sem_mask = (
+                self.semantic_mask.cpu().numpy() if isinstance(self.semantic_mask, torch.Tensor) else self.semantic_mask
+            )
+            annotator.semantic_mask(sem_mask, alpha=0.5)
+
         # Plot Pose results
         if self.keypoints is not None:
             for i, k in enumerate(reversed(self.keypoints.data)):
@@ -657,6 +684,8 @@ class Results(SimpleClass, DataExportMixin):
         if boxes:
             counts = boxes.cls.int().bincount()
             return "".join(f"{n} {self.names[i]}{'s' * (n > 1)}, " for i, n in enumerate(counts) if n > 0)
+        if self.semantic_mask is not None:
+            return ""
 
     def save_txt(self, txt_file: str | Path, save_conf: bool = False) -> str:
         """Save detection results to a text file.
@@ -683,7 +712,11 @@ class Results(SimpleClass, DataExportMixin):
             - The function will create the output directory if it does not exist.
             - If save_conf is False, the confidence scores will be excluded from the output.
             - Existing contents of the file will not be overwritten; new results will be appended.
+            - This method does not support Semantic Segmentation tasks.
         """
+        if self.semantic_mask is not None:
+            LOGGER.warning("Semantic Segmentation task does not support `save_txt`.")
+            return str(txt_file)
         is_obb = self.obb is not None
         boxes = self.obb if is_obb else self.boxes
         masks = self.masks
@@ -730,7 +763,7 @@ class Results(SimpleClass, DataExportMixin):
             ...     result.save_crop(save_dir="path/to/crops", file_name="detection")
 
         Notes:
-            - This method does not support Classify or Oriented Bounding Box (OBB) tasks.
+            - This method does not support Classify, Oriented Bounding Box (OBB), or Semantic Segmentation tasks.
             - Crops are saved as 'save_dir/class_name/file_name.jpg'.
             - The method will create necessary subdirectories if they don't exist.
             - Original image is copied before cropping to avoid modifying the original.
@@ -740,6 +773,9 @@ class Results(SimpleClass, DataExportMixin):
             return
         if self.obb is not None:
             LOGGER.warning("OBB task does not support `save_crop`.")
+            return
+        if self.semantic_mask is not None:
+            LOGGER.warning("Semantic Segmentation task does not support `save_crop`.")
             return
         for d in self.boxes:
             save_one_box(
@@ -783,6 +819,25 @@ class Results(SimpleClass, DataExportMixin):
                         "name": self.names[class_id],
                         "class": class_id,
                         "confidence": round(conf, decimals),
+                    }
+                )
+            return results
+
+        if self.semantic_mask is not None:
+            # Return per-class pixel coverage for semantic segmentation
+            mask = self.semantic_mask
+            if isinstance(mask, torch.Tensor):
+                mask = mask.cpu().numpy()
+            unique, counts = np.unique(mask, return_counts=True)
+            total = mask.size
+            for class_id, count in zip(unique.tolist(), counts.tolist()):
+                if class_id not in self.names:  # skip ignore label (e.g., 255)
+                    continue
+                results.append(
+                    {
+                        "name": self.names[class_id],
+                        "class": class_id,
+                        "pixel_ratio": round(count / total, decimals),
                     }
                 )
             return results

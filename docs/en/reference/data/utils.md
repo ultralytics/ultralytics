@@ -31,7 +31,15 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 
 <br><br><hr><br>
 
+## ::: ultralytics.data.utils.check_image
+
+<br><br><hr><br>
+
 ## ::: ultralytics.data.utils.verify_image
+
+<br><br><hr><br>
+
+## ::: ultralytics.data.utils.verify_image_mask
 
 <br><br><hr><br>
 

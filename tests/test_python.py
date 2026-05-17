@@ -205,7 +205,7 @@ def test_track_stream(model, tmp_path):
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
     """
-    if model == "yolo26n-cls.pt":  # classification model not supported for tracking
+    if model == "yolo26n-cls.pt" or model == "yolo26n-semseg.pt":  # classification and semseg models not supported for tracking
         return
     video_url = f"{ASSETS_URL}/decelera_portrait_min.mov"
     model = YOLO(model)
@@ -308,19 +308,26 @@ def test_predict_callback_and_setup():
 def test_results(model: str, tmp_path):
     """Test YOLO model results processing and output in various formats."""
     im = "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/im/boats.jpg" if model == "yolo26n-obb.pt" else SOURCE
+    is_semseg = "semseg" in model
     results = YOLO(WEIGHTS_DIR / model)([im, im], imgsz=160)
     for r in results:
-        assert len(r), f"'{model}' results should not be empty!"
+        if is_semseg:
+            assert r.semantic_mask is not None and r.semantic_mask.shape == r.orig_shape, (
+                f"'{model}' semantic_mask should match the original image shape!"
+            )
+        else:
+            assert len(r), f"'{model}' results should not be empty!"
         r = r.cpu().numpy()
         print(r, len(r), r.path)  # print numpy attributes
         r = r.to(device="cpu", dtype=torch.float32)
-        r.save_txt(txt_file=tmp_path / "runs/tests/label.txt", save_conf=True)
-        r.save_crop(save_dir=tmp_path / "runs/tests/crops/")
+        if not is_semseg:  # save_txt / save_crop are no-ops for semseg
+            r.save_txt(txt_file=tmp_path / "runs/tests/label.txt", save_conf=True)
+            r.save_crop(save_dir=tmp_path / "runs/tests/crops/")
         r.to_df(decimals=3)  # Align to_ methods: https://docs.ultralytics.com/modes/predict/#working-with-results
         r.to_csv()
         r.to_json(normalize=True)
         r.plot(pil=True, save=True, filename=tmp_path / "results_plot_save.jpg")
-        r.plot(conf=True, boxes=True)
+        r.plot(conf=True, boxes=not is_semseg)
         print(r, len(r), r.path)  # print after methods
 
 

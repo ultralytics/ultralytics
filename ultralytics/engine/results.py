@@ -802,8 +802,8 @@ class Results(SimpleClass, DataExportMixin):
                 result["track_id"] = int(row.id.item())  # track ID
             if self.masks:
                 result["segments"] = {
-                    "x": (self.masks.xy[i][:, 0] / w).round(decimals).tolist(),
-                    "y": (self.masks.xy[i][:, 1] / h).round(decimals).tolist(),
+                    "x": (self.masks.xy[i][:, 0] / w).astype(float).round(decimals).tolist(),
+                    "y": (self.masks.xy[i][:, 1] / h).astype(float).round(decimals).tolist(),
                 }
             if self.keypoints is not None:
                 kpt = self.keypoints[i]
@@ -812,11 +812,11 @@ class Results(SimpleClass, DataExportMixin):
                 else:
                     x, y = kpt.data[0].cpu().unbind(dim=1)
                 result["keypoints"] = {
-                    "x": (x / w).numpy().round(decimals).tolist(),
-                    "y": (y / h).numpy().round(decimals).tolist(),
+                    "x": (x / w).numpy().astype(float).round(decimals).tolist(),
+                    "y": (y / h).numpy().astype(float).round(decimals).tolist(),
                 }
                 if kpt.has_visible:
-                    result["keypoints"]["visible"] = visible.numpy().round(decimals).tolist()
+                    result["keypoints"]["visible"] = visible.numpy().astype(float).round(decimals).tolist()
             results.append(result)
 
         return results

@@ -235,6 +235,7 @@ nav:
       - tasks/index.md
       - Detect: tasks/detect.md
       - Segment: tasks/segment.md
+      - Semseg: tasks/semseg.md
       - Classify: tasks/classify.md
       - Pose: tasks/pose.md
       - OBB: tasks/obb.md
@@ -467,6 +468,11 @@ nav:
           - COCO128-seg: datasets/segment/coco128-seg.md
           - Crack-seg: datasets/segment/crack-seg.md
           - Package-seg: datasets/segment/package-seg.md
+      - Semantic Segmentation:
+          - datasets/semseg/index.md
+          - Cityscapes: datasets/semseg/cityscapes.md
+          - Cityscapes8: datasets/semseg/cityscapes8.md
+          - ADE20K: datasets/semseg/ade20k.md
       - Pose:
           - datasets/pose/index.md
           - COCO: datasets/pose/coco.md
@@ -748,6 +754,10 @@ nav:
                   - predict: reference/models/yolo/segment/predict.md
                   - train: reference/models/yolo/segment/train.md
                   - val: reference/models/yolo/segment/val.md
+              - semseg:
+                  - predict: reference/models/yolo/semseg/predict.md
+                  - train: reference/models/yolo/semseg/train.md
+                  - val: reference/models/yolo/semseg/val.md
               - world:
                   - train: reference/models/yolo/world/train.md
                   - train_world: reference/models/yolo/world/train_world.md

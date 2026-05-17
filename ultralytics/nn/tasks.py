@@ -66,6 +66,7 @@ from ultralytics.nn.modules import (
     SCDown,
     Segment,
     Segment26,
+    SemanticSegment,
     TorchVision,
     WorldDetect,
     YOLOEDetect,
@@ -78,6 +79,7 @@ from ultralytics.utils.checks import REMOTE_FILE_PREFIXES, check_file, check_req
 from ultralytics.utils.loss import (
     E2ELoss,
     PoseLoss26,
+    SemanticSegmentationLoss,
     v8ClassificationLoss,
     v8DetectionLoss,
     v8OBBLoss,
@@ -576,6 +578,87 @@ class SegmentationModel(DetectionModel):
     def init_criterion(self):
         """Initialize the loss criterion for the SegmentationModel."""
         return E2ELoss(self, v8SegmentationLoss) if getattr(self, "end2end", False) else v8SegmentationLoss(self)
+
+
+class SemanticSegmentationModel(BaseModel):
+    """YOLO semantic segmentation model.
+
+    This class implements a semantic segmentation model that produces per-pixel class predictions. Unlike
+    SegmentationModel (instance segmentation), this does not produce bounding boxes.
+
+    Methods:
+        __init__: Initialize the semantic segmentation model.
+        init_criterion: Initialize the loss criterion for semantic segmentation.
+
+    Examples:
+        Initialize a semantic segmentation model
+        >>> model = SemanticSegmentationModel("yolo26n-semseg.yaml", ch=3, nc=19)
+    """
+
+    def __init__(self, cfg="yolo26n-semseg.yaml", ch=3, nc=None, verbose=True):
+        """Initialize the YOLO semantic segmentation model.
+
+        Args:
+            cfg (str | dict): Model configuration file path or dictionary.
+            ch (int): Number of input channels.
+            nc (int, optional): Number of classes.
+            verbose (bool): Whether to display model information.
+        """
+        super().__init__()
+        self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)
+
+        # Define model
+        self.yaml["channels"] = ch
+        if nc and nc != self.yaml["nc"]:
+            LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
+            self.yaml["nc"] = nc
+        self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)
+        self.names = {i: f"{i}" for i in range(self.yaml["nc"])}
+        self.inplace = self.yaml.get("inplace", True)
+
+        # Build strides — track smallest spatial size across all layers to find the deepest
+        # backbone stride (e.g. P5/32). Head input alone is insufficient: the FPN upsamples
+        # P5 away before the head, but the encoder still requires inputs aligned to that
+        # deepest stride or FPN concats fail on rounding mismatches.
+        m = self.model[-1]
+        if isinstance(m, SemanticSegment):
+            s = 256
+            self.model.eval()
+            m.training = True  # get training output (stride-4)
+            min_h = [s]
+
+            def _record(_m, _inp, out, _h=min_h):
+                if isinstance(out, torch.Tensor) and out.ndim == 4:
+                    _h[0] = min(_h[0], out.shape[-2])
+
+            hooks = [layer.register_forward_hook(_record) for layer in self.model]
+            try:
+                self.forward(torch.zeros(1, ch, s, s))
+            finally:
+                for h in hooks:
+                    h.remove()
+            m.stride = torch.tensor([s / min_h[0]], dtype=torch.float32)  # e.g., 256/8 = 32
+            self.stride = m.stride
+            self.model.train()
+        else:
+            self.stride = torch.Tensor([32])
+
+        initialize_weights(self)
+        if verbose:
+            self.info()
+            LOGGER.info("")
+
+    def init_criterion(self):
+        """Initialize the loss criterion for semantic segmentation."""
+        return SemanticSegmentationLoss(self)
+
+    def _apply(self, fn):
+        """Apply a function to all tensors in the model."""
+        self = super()._apply(fn)
+        m = self.model[-1]
+        if isinstance(m, SemanticSegment):
+            m.stride = fn(m.stride)
+        return self
 
 
 class PoseModel(DetectionModel):
@@ -1720,6 +1803,8 @@ def parse_model(d, ch, verbose=True):
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {Detect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
                 m.legacy = legacy
+        elif m is SemanticSegment:
+            args.append([ch[x] for x in f])  # nc, ch tuple
         elif m is v10Detect:
             args.append([ch[x] for x in f])
         elif m is ImagePoolingAttn:
@@ -1808,6 +1893,8 @@ def guess_model_task(model):
             return "classify"
         if "detect" in m:
             return "detect"
+        if "semanticsegment" in m:
+            return "semseg"
         if "segment" in m:
             return "segment"
         if "pose" in m:
@@ -1828,7 +1915,9 @@ def guess_model_task(model):
             with contextlib.suppress(Exception):
                 return cfg2task(eval(x))  # nosec B307: safe eval of known attribute paths
         for m in model.modules():
-            if isinstance(m, (Segment, YOLOESegment)):
+            if isinstance(m, SemanticSegment):
+                return "semseg"
+            elif isinstance(m, (Segment, YOLOESegment)):
                 return "segment"
             elif isinstance(m, Classify):
                 return "classify"
@@ -1842,7 +1931,9 @@ def guess_model_task(model):
     # Guess from model filename
     if isinstance(model, (str, Path)):
         model = Path(model)
-        if "-seg" in model.stem or "segment" in model.parts:
+        if "-semseg" in model.stem or "semseg" in model.parts:
+            return "semseg"
+        elif "-seg" in model.stem or "segment" in model.parts:
             return "segment"
         elif "-cls" in model.stem or "classify" in model.parts:
             return "classify"

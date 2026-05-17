@@ -57,10 +57,10 @@ VID_FORMATS = {"asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "
 FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
 
 
-def img2label_paths(img_paths: list[str]) -> list[str]:
+def img2label_paths(img_paths: list[str], label_dir: str = "labels", suffix: str = ".txt") -> list[str]:
     """Convert image paths to label paths by replacing 'images' with 'labels' and extension with '.txt'."""
-    sa, sb = f"{os.sep}images{os.sep}", f"{os.sep}labels{os.sep}"  # /images/, /labels/ substrings
-    return [sb.join(x.rsplit(sa, 1)).rsplit(".", 1)[0] + ".txt" for x in img_paths]
+    sa, sb = f"{os.sep}images{os.sep}", f"{os.sep}{label_dir}{os.sep}"  # /images/, /labels/ substrings
+    return [sb.join(x.rsplit(sa, 1)).rsplit(".", 1)[0] + f"{suffix}" for x in img_paths]
 
 
 def check_file_speeds(
@@ -168,29 +168,73 @@ def exif_size(img: Image.Image) -> tuple[int, int]:
     return s
 
 
+def check_image(im_file: str) -> tuple[str, tuple[int, int]]:
+    """Verify an image file for integrity and correct corrupt JPEGs if found.
+
+    Args:
+        im_file (str): Path to the image file to check.
+
+    Returns:
+        (str): A message describing any corrective action taken, or an empty string if the image is valid.
+        (tuple[int, int]): Image shape as (height, width) in pixels.
+
+    Raises:
+        AssertionError: If the image size is less than 10 pixels in any dimension or the format is invalid.
+    """
+    msg = ""
+    im = Image.open(im_file)
+    im.verify()  # PIL verify
+    shape = exif_size(im)  # image size
+    shape = (shape[1], shape[0])  # hw
+    assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
+    assert im.format.lower() in IMG_FORMATS, f"Invalid image format {im.format}. {FORMATS_HELP_MSG}"
+    if im.format.lower() in {"jpg", "jpeg"}:
+        with open(im_file, "rb") as f:
+            f.seek(-2, 2)
+            if f.read() != b"\xff\xd9":  # corrupt JPEG
+                ImageOps.exif_transpose(Image.open(im_file)).save(im_file, "JPEG", subsampling=0, quality=100)
+                msg = f"{im_file}: corrupt JPEG restored and saved"
+    return msg, shape
+
+
 def verify_image(args: tuple) -> tuple:
     """Verify one image."""
     (im_file, cls), prefix = args
     # Number (found, corrupt), message
     nf, nc, msg = 0, 0, ""
     try:
-        im = Image.open(im_file)
-        im.verify()  # PIL verify
-        shape = exif_size(im)  # image size
-        shape = (shape[1], shape[0])  # hw
-        assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
-        assert im.format.lower() in IMG_FORMATS, f"Invalid image format {im.format}. {FORMATS_HELP_MSG}"
-        if im.format.lower() in {"jpg", "jpeg"}:
-            with open(im_file, "rb") as f:
-                f.seek(-2, 2)
-                if f.read() != b"\xff\xd9":  # corrupt JPEG
-                    ImageOps.exif_transpose(Image.open(im_file)).save(im_file, "JPEG", subsampling=0, quality=100)
-                    msg = f"{prefix}{im_file}: corrupt JPEG restored and saved"
+        msg = check_image(im_file)[0]
+        msg = f"{prefix}{msg}" if msg else ""
         nf = 1
     except Exception as e:
         nc = 1
         msg = f"{prefix}{im_file}: ignoring corrupt image/label: {e}"
     return (im_file, cls), nf, nc, msg
+
+
+def verify_image_mask(args: tuple) -> tuple:
+    """Verify one image-mask pair."""
+    im_file, mask_file, prefix = args
+    # Number (found, corrupt), message
+    nf, nm, nc, msg = 0, 0, 0, ""
+    try:
+        msg, shape = check_image(im_file)
+        msg = f"{prefix}{msg}" if msg else ""
+        if not os.path.isfile(mask_file):
+            for ext in IMG_FORMATS:  # check other suffixes
+                alt_mask_file = mask_file.rsplit(".", 1)[0] + f".{ext}"
+                if os.path.isfile(alt_mask_file):
+                    mask_file = alt_mask_file
+                    break
+        if os.path.isfile(mask_file):
+            nf = 1
+        else:
+            nm = 1
+        return im_file, mask_file, shape, nm, nf, nc, msg
+    except Exception as e:
+        nc = 1
+        msg = f"{prefix}{im_file}: ignoring corrupt image: {e}"
+    return None, None, None, nm, nf, nc, msg
 
 
 def verify_image_label(args: tuple) -> list:
@@ -200,18 +244,8 @@ def verify_image_label(args: tuple) -> list:
     nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", [], None
     try:
         # Verify images
-        im = Image.open(im_file)
-        im.verify()  # PIL verify
-        shape = exif_size(im)  # image size
-        shape = (shape[1], shape[0])  # hw
-        assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
-        assert im.format.lower() in IMG_FORMATS, f"invalid image format {im.format}. {FORMATS_HELP_MSG}"
-        if im.format.lower() in {"jpg", "jpeg"}:
-            with open(im_file, "rb") as f:
-                f.seek(-2, 2)
-                if f.read() != b"\xff\xd9":  # corrupt JPEG
-                    ImageOps.exif_transpose(Image.open(im_file)).save(im_file, "JPEG", subsampling=0, quality=100)
-                    msg = f"{prefix}{im_file}: corrupt JPEG restored and saved"
+        msg, shape = check_image(im_file)
+        msg = f"{prefix}{msg}" if msg else ""
 
         # Verify labels
         if os.path.isfile(lb_file):

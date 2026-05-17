@@ -27,6 +27,10 @@ keywords: Ultralytics, YOLO, nn tasks, DetectionModel, PoseModel, RTDETRDetectio
 
 <br><br><hr><br>
 
+## ::: ultralytics.nn.tasks.SemanticSegmentationModel
+
+<br><br><hr><br>
+
 ## ::: ultralytics.nn.tasks.PoseModel
 
 <br><br><hr><br>

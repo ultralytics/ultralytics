@@ -1917,7 +1917,8 @@ class SemsegMetrics(SimpleClass, DataExportMixin):
         return []
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict]:
-        """Generate a per-class summary of semantic segmentation metrics, with global mIoU and pixel accuracy on each row.
+        """Generate a per-class summary of semantic segmentation metrics, with global mIoU and pixel accuracy on each
+        row.
 
         Args:
             normalize (bool): For semseg metrics, values are already in [0, 1].

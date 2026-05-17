@@ -215,8 +215,8 @@ class BaseDataset(Dataset):
         Args:
             i (int): Index of the image to load.
             rect_mode (bool): Whether to use rectangular resizing (long side to imgsz).
-            resize_short (bool): Whether to resize the shorter side to imgsz while maintaining aspect ratio.
-                Overrides rect_mode when True.
+            resize_short (bool): Whether to resize the shorter side to imgsz while maintaining aspect ratio. Overrides
+                rect_mode when True.
 
         Returns:
             im (np.ndarray): Loaded image as a NumPy array.

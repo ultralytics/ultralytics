@@ -684,11 +684,11 @@ class YOLOConcatDataset(ConcatDataset):
 class SemsegDataset(BaseDataset):
     """Dataset for semantic segmentation with PNG mask labels.
 
-    Expects a directory structure where each image has a corresponding PNG mask file with the same stem.
-    Pixel values in masks represent class IDs, with 255 as the ignore label.
+    Expects a directory structure where each image has a corresponding PNG mask file with the same stem. Pixel values in
+    masks represent class IDs, with 255 as the ignore label.
 
-    The mask directory is specified in the dataset YAML via 'masks_dir' key, and mirrors the
-    images/ directory structure (e.g., images/train/ -> masks/train/).
+    The mask directory is specified in the dataset YAML via 'masks_dir' key, and mirrors the images/ directory structure
+    (e.g., images/train/ -> masks/train/).
 
     Attributes:
         data (dict): Dataset configuration from YAML.
@@ -948,9 +948,9 @@ def add_polygon_background(data: dict) -> dict:
     """Set up the background class for the polygon-based semseg path (yaml without 'masks_dir').
 
     - nc > 1: appends a 'background' class at id=nc and bumps data['nc'] to nc+1; polygon
-      cls values are kept as foreground ids.
+    cls values are kept as foreground ids.
     - nc == 1: keeps nc=1 (binary segmentation). Polygon rasterization
-      yields a {0=bg, 1=fg} mask regardless of the label cls value.
+    yields a {0=bg, 1=fg} mask regardless of the label cls value.
     """
     if data.get("masks_dir") or data.get("_polygon_bg_added"):
         return data
@@ -970,18 +970,18 @@ def add_polygon_background(data: dict) -> dict:
 class PolygonSemsegDataset(YOLODataset):
     """Semantic segmentation dataset that rasterizes YOLO polygon labels into masks on the fly.
 
-    Used when the dataset YAML lacks 'masks_dir'. Pixels not covered by any polygon become a
-    dedicated background class. Requires `add_polygon_background(data)` to be called first:
-    for nc > 1 it bumps `data['nc']` to user_nc + 1 with background at `nc - 1`; for nc == 1
-    it keeps nc=1 and rasterizes a {0=bg, 1=fg} binary mask for use with BCEWithLogitsLoss.
+    Used when the dataset YAML lacks 'masks_dir'. Pixels not covered by any polygon become a dedicated background class.
+    Requires `add_polygon_background(data)` to be called first: for nc > 1 it bumps `data['nc']` to user_nc + 1 with
+    background at `nc - 1`; for nc == 1 it keeps nc=1 and rasterizes a {0=bg, 1=fg} binary mask for use with
+    BCEWithLogitsLoss.
     """
 
     def __init__(self, *args, data=None, **kwargs):
         """Initialize PolygonSemsegDataset.
 
         Args:
-            data (dict): Dataset configuration. `data['bg_class_idx']` indicates the background
-                class id (0 in the nc==1 binary case, `nc - 1` for nc>1).
+            data (dict): Dataset configuration. `data['bg_class_idx']` indicates the background class id (0 in the nc==1
+                binary case, `nc - 1` for nc>1).
             *args: Positional arguments forwarded to `SemsegDataset` / `BaseDataset`.
             **kwargs: Keyword arguments forwarded to `SemsegDataset` / `BaseDataset`.
         """

@@ -123,7 +123,7 @@ names:
   102: van
   103: ship
   104: fountain
-  105: conveyer belt
+  105: conveyor belt
   106: canopy
   107: washer
   108: plaything
@@ -322,6 +322,5 @@ label_mapping:
   148: 147
   149: 148
   150: 149
-  
 # download
 # http://data.csail.mit.edu/places/ADEchallenge/ADEChallengeData2016.zip

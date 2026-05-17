@@ -1363,7 +1363,6 @@ class RandomPerspective(BaseTransform):
             ... }
             >>> result = transform(labels)
             >>> assert result["img"].shape[:2] == result["resized_shape"]
-
         """
         labels.pop("ratio_pad", None)  # do not need ratio pad
         return super().__call__(labels)
@@ -1493,8 +1492,8 @@ class RandomHSV(BaseTransform):
 class PhotoMetricDistortion(BaseTransform):
     """Apply photometric distortion to an image, each transformation applied with a probability of 0.5.
 
-    The pipeline applies random brightness, contrast, saturation, and hue adjustments. Random contrast is
-    applied either second (mode 0) or last (mode 1):
+    The pipeline applies random brightness, contrast, saturation, and hue adjustments. Random contrast is applied either
+    second (mode 0) or last (mode 1):
         1. Random brightness
         2. Random contrast (mode 0)
         3. Convert color from BGR to HSV
@@ -2541,8 +2540,8 @@ class Format(BaseTransform):
 class SemanticFormat(Format):
     """Format transform for semantic segmentation that converts images and masks to tensors.
 
-    This transform handles the letterboxed semantic mask by resizing it to match the image dimensions
-    and converts both to the appropriate tensor formats.
+    This transform handles the letterboxed semantic mask by resizing it to match the image dimensions and converts both
+    to the appropriate tensor formats.
     """
 
     def apply_image(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:

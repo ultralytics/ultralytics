@@ -1294,7 +1294,9 @@ class SemanticSegmentationLoss(nn.Module):
     def _resize_masks(self, masks, target_shape):
         """Resize masks to match prediction spatial dims."""
         if masks.shape[1:] != target_shape:
-            return F.interpolate(masks.float().unsqueeze(1), size=target_shape, mode="nearest").squeeze(1).to(torch.int32)
+            return (
+                F.interpolate(masks.float().unsqueeze(1), size=target_shape, mode="nearest").squeeze(1).to(torch.int32)
+            )
         return masks
 
     def _ce_loss(self, preds, masks):

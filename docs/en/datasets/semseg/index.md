@@ -54,15 +54,15 @@ Use this path when your data is already labeled as instance polygons and you wan
 
 Semantic segmentation datasets are configured with YAML files. The main fields are:
 
-| Key             | Description                                                                 |
-| --------------- | --------------------------------------------------------------------------- |
-| `path`          | Dataset root directory.                                                     |
-| `train`         | Training image path relative to `path`, or an absolute path.                |
-| `val`           | Validation image path relative to `path`, or an absolute path.              |
-| `test`          | Optional test image path.                                                   |
+| Key             | Description                                                                                       |
+| --------------- | ------------------------------------------------------------------------------------------------- |
+| `path`          | Dataset root directory.                                                                           |
+| `train`         | Training image path relative to `path`, or an absolute path.                                      |
+| `val`           | Validation image path relative to `path`, or an absolute path.                                    |
+| `test`          | Optional test image path.                                                                         |
 | `masks_dir`     | Directory name used for semantic masks. Omit this key to switch to the YOLO polygon label format. |
-| `names`         | Class ID to class name mapping.                                             |
-| `label_mapping` | Optional mapping from source dataset IDs to training IDs or `ignore_label`. |
+| `names`         | Class ID to class name mapping.                                                                   |
+| `label_mapping` | Optional mapping from source dataset IDs to training IDs or `ignore_label`.                       |
 
 !!! example "ultralytics/cfg/datasets/cityscapes8.yaml"
 
@@ -121,9 +121,9 @@ val: images/val
 masks_dir: masks
 
 names:
-  0: background
-  1: road
-  2: building
+    0: background
+    1: road
+    2: building
 ```
 
 ### Option B — Polygon labels
@@ -138,8 +138,8 @@ train: images/train
 val: images/val
 
 names:
-  0: person
-  1: car
+    0: person
+    1: car
 ```
 
 ## FAQ

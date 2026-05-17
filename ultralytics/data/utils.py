@@ -169,8 +169,7 @@ def exif_size(img: Image.Image) -> tuple[int, int]:
 
 
 def check_image(im_file: str) -> tuple[str, tuple[int, int]]:
-    """
-    Verify an image file for integrity and correct corrupt JPEGs if found.
+    """Verify an image file for integrity and correct corrupt JPEGs if found.
 
     Args:
         im_file (str): Path to the image file to check.

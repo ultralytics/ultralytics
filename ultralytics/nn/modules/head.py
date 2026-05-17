@@ -1812,8 +1812,8 @@ class v10Detect(Detect):
 class SemanticSegment(nn.Module):
     """YOLO semantic segmentation head for per-pixel classification.
 
-    This head produces dense per-pixel class predictions.
-    Unlike instance segmentation, no bounding boxes or instance masks are produced.
+    This head produces dense per-pixel class predictions. Unlike instance segmentation, no bounding boxes or instance
+    masks are produced.
 
     Attributes:
         nc (int): Number of semantic classes.
@@ -1853,8 +1853,8 @@ class SemanticSegment(nn.Module):
             x (list[torch.Tensor]): List of feature maps [P3, P4, P5].
 
         Returns:
-            (torch.Tensor): Logits of shape [B, nc, H/8, W/8] during training and inference,
-                or [B, nc, H, W] during export (full resolution).
+            (torch.Tensor): Logits of shape [B, nc, H/8, W/8] during training and inference, or [B, nc, H, W] during
+                export (full resolution).
         """
         # Classify
         logits = self.classifier(x[0])  # [B, nc, H/8, W/8]

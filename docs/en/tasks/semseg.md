@@ -92,8 +92,8 @@ Validate trained YOLO26n-semseg model [accuracy](https://www.ultralytics.com/glo
     === "CLI"
 
         ```bash
-        yolo semseg val model=yolo26n-semseg.pt  # val official model
-        yolo semseg val model=path/to/best.pt  # val custom model
+        yolo semseg val model=yolo26n-semseg.pt # val official model
+        yolo semseg val model=path/to/best.pt   # val custom model
         ```
 
 ## Predict
@@ -122,8 +122,8 @@ Use a trained YOLO26n-semseg model to run predictions on images.
     === "CLI"
 
         ```bash
-        yolo semseg predict model=yolo26n-semseg.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
-        yolo semseg predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
+        yolo semseg predict model=yolo26n-semseg.pt source='https://ultralytics.com/images/bus.jpg' # predict with official model
+        yolo semseg predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'   # predict with custom model
         ```
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
@@ -150,8 +150,8 @@ Export a YOLO26n-semseg model to a different format like ONNX, CoreML, etc.
     === "CLI"
 
         ```bash
-        yolo export model=yolo26n-semseg.pt format=onnx  # export official model
-        yolo export model=path/to/best.pt format=onnx  # export custom-trained model
+        yolo export model=yolo26n-semseg.pt format=onnx # export official model
+        yolo export model=path/to/best.pt format=onnx   # export custom-trained model
         ```
 
 Available YOLO26-semseg export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-semseg.onnx`. Usage examples are shown for your model after export completes.

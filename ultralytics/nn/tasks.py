@@ -583,8 +583,8 @@ class SegmentationModel(DetectionModel):
 class SemanticSegmentationModel(BaseModel):
     """YOLO semantic segmentation model.
 
-    This class implements a semantic segmentation model that produces per-pixel class predictions.
-    Unlike SegmentationModel (instance segmentation), this does not produce bounding boxes.
+    This class implements a semantic segmentation model that produces per-pixel class predictions. Unlike
+    SegmentationModel (instance segmentation), this does not produce bounding boxes.
 
     Methods:
         __init__: Initialize the semantic segmentation model.

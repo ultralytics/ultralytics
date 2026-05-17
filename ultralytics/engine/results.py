@@ -324,7 +324,8 @@ class Results(SimpleClass, DataExportMixin):
             probs (torch.Tensor | None): A tensor of shape (num_classes,) containing class probabilities.
             obb (torch.Tensor | None): A tensor of shape (N, 7) or (N, 8) containing oriented bounding box coordinates.
             keypoints (torch.Tensor | None): A tensor of shape (N, K, 3) containing keypoints, were K=17 for persons.
-            semantic_mask (torch.Tensor | None): A tensor of shape (H, W) containing class IDs for semantic segmentation.
+            semantic_mask (torch.Tensor | None): A tensor of shape (H, W) containing class IDs for semantic
+                segmentation.
 
         Examples:
             >>> results = model("image.jpg")
@@ -577,7 +578,9 @@ class Results(SimpleClass, DataExportMixin):
 
         # Plot Semantic Segmentation results
         if self.semantic_mask is not None and show_masks:
-            sem_mask = self.semantic_mask.cpu().numpy() if isinstance(self.semantic_mask, torch.Tensor) else self.semantic_mask
+            sem_mask = (
+                self.semantic_mask.cpu().numpy() if isinstance(self.semantic_mask, torch.Tensor) else self.semantic_mask
+            )
             annotator.semantic_mask(sem_mask, alpha=0.5)
 
         # Plot Pose results

@@ -21,8 +21,8 @@ from ultralytics.utils.plotting import Annotator, colors, plt_settings
 class SemanticSegmentationTrainer(DetectionTrainer):
     """Trainer for YOLO semantic segmentation models.
 
-    This trainer handles semantic segmentation specific training including dataset building,
-    model initialization, and validation setup.
+    This trainer handles semantic segmentation specific training including dataset building, model initialization, and
+    validation setup.
 
     Examples:
         >>> from ultralytics.models.yolo.semseg import SemanticSegmentationTrainer

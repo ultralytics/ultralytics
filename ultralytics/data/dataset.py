@@ -699,9 +699,9 @@ class SemsegDataset(BaseDataset):
         """Initialize SemsegDataset.
 
         Args:
-            *args: Arguments passed to BaseDataset.
+            *args (Any): Additional positional arguments for the parent class.
             data (dict): Dataset configuration dictionary.
-            **kwargs: Keyword arguments passed to BaseDataset.
+            **kwargs (Any): Additional keyword arguments for the parent class.
         """
         self.data = data or {}
         self.ignore_label = 255
@@ -989,10 +989,9 @@ class PolygonSemsegDataset(YOLODataset):
         """Initialize PolygonSemsegDataset.
 
         Args:
-            data (dict): Dataset configuration. `data['bg_class_idx']` indicates the background class id (0 in the nc==1
-                binary case, `nc - 1` for nc>1).
-            *args: Positional arguments forwarded to `SemsegDataset` / `BaseDataset`.
-            **kwargs: Keyword arguments forwarded to `SemsegDataset` / `BaseDataset`.
+            *args (Any): Additional positional arguments for the parent class.
+            data (dict): Dataset configuration dictionary.
+            **kwargs (Any): Additional keyword arguments for the parent class.
         """
         nc = (data or {}).get("nc") or len((data or {}).get("names", {}))
         self.bg_class_idx = data.get("bg_class_idx", max(int(nc) - 1, 0))

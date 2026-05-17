@@ -66,7 +66,7 @@ class SemanticSegmentationTrainer(DetectionTrainer):
         dataset_cls = SemsegDataset if self.data.get("masks_dir") else PolygonSemsegDataset
         return dataset_cls(
             img_path=img_path,
-            imgsz=self.args.imgsz * 2 if mode == "val" else self.args.imgsz,
+            imgsz=self.args.imgsz,
             augment=mode == "train",
             hyp=self.args,
             cache=self.args.cache or None,

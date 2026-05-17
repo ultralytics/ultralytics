@@ -19,10 +19,10 @@ from torch.utils.data import Dataset, dataloader, distributed
 from ultralytics.cfg import IterableSimpleNamespace
 from ultralytics.data.dataset import (
     GroundingDataset,
+    PolygonSemsegDataset,
+    SemsegDataset,
     YOLODataset,
     YOLOMultiModalDataset,
-    SemsegDataset,
-    PolygonSemsegDataset,
 )
 from ultralytics.data.loaders import (
     LOADERS,

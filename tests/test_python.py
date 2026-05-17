@@ -900,3 +900,9 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
 
     model = YOLO(export_model, task=task)
     model.predict(source=im, imgsz=32)
+
+def test_semseg_ploygon_data():
+    """Test YOLO semantic segmentation model with polygon data."""
+    model = YOLO("yolo26n-semseg.pt")
+    model.train(data="coco8-seg.yaml", epochs=1, imgsz=32, close_mosaic=1)
+    model.val(data="coco8-seg.yaml")

@@ -14,7 +14,7 @@ from ultralytics.models import yolo
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import SemanticSegmentationModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-from ultralytics.utils.plotting import colors, plot_images
+from ultralytics.utils.plotting import colors
 
 
 class SemanticSegmentationTrainer(DetectionTrainer):

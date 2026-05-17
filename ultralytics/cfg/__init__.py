@@ -71,6 +71,7 @@ TASK2CALIBRATIONDATA = {
     "classify": "imagenet100",
     "pose": "coco8-pose.yaml",
     "obb": "dota128.yaml",
+    "semseg": "cityscapes8.yaml",
 }
 TASK2MODEL = {
     "detect": "yolo26n.pt",

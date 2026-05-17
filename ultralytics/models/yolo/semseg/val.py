@@ -86,7 +86,7 @@ class SemanticSegmentationValidator(DetectionValidator):
             (dict): Preprocessed batch.
         """
         batch = super().preprocess(batch)
-        batch["semantic_mask"] = batch["semantic_mask"].to(torch.int32)
+        batch["semantic_mask"] = batch["semantic_mask"].to(self.device, dtype=torch.int32)
         self._semantic_target_shape = tuple(batch["semantic_mask"].shape[-2:])
         return batch
 

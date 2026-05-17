@@ -26,11 +26,10 @@ from .augment import (
     LetterBox,
     RandomFlip,
     RandomLoadText,
+    RandomPerspective,
     classify_augmentations,
     classify_transforms,
     v8_transforms,
-    SemsegRandomScale,
-    SemsegRandomCrop,
     PhotoMetricDistortion,
     SemanticFormat,
 )
@@ -860,22 +859,19 @@ class SemsegDataset(BaseDataset):
             (Compose): Composed transforms.
         """
         transforms = []
-        nc = self.data.get("nc", len(self.data.get("names", [])))
         if self.augment:
-            transforms.append(SemsegRandomScale(scale_min=0.5, scale_max=2.0))
-            transforms.append(
-                SemsegRandomCrop(crop_size=int(self.imgsz), ignore_label=self.ignore_label if nc > 1 else 0)
-            )
-            transforms.append(RandomFlip(p=0.5, direction="horizontal"))
-            transforms.append(
-                PhotoMetricDistortion(
-                    brightness_delta=32,
-                    contrast_range=(0.5, 1.5),
-                    saturation_range=(0.5, 1.5),
-                    hue_delta=18,
-                )
-            )
+            transforms = v8_transforms(self, self.imgsz, hyp)
+            # TODO: remove this?
+            # transforms.append(
+            #     PhotoMetricDistortion(
+            #         brightness_delta=32,
+            #         contrast_range=(0.5, 1.5),
+            #         saturation_range=(0.5, 1.5),
+            #         hue_delta=18,
+            #     )
+            # )
         else:
+            nc = self.data.get("nc", len(self.data.get("names", [])))
             transforms.append(
                 LetterBox(
                     new_shape=(self.imgsz, self.imgsz),

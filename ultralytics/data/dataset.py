@@ -888,8 +888,7 @@ class SemsegDataset(BaseDataset):
         self.transforms = self.build_transforms(hyp)
 
     def convert_label(self, label, inverse=False):
-        """
-        Convert label values using the dataset's label mapping.
+        """Convert label values using the dataset's label mapping.
 
         Args:
             label (np.ndarray): Segmentation label array to convert.

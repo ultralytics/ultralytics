@@ -839,8 +839,7 @@ class MixUp(BaseMixTransform):
         return labels
 
     def apply_semantic(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
-        """
-        Apply MixUp augmentation to semantic segmentation masks.
+        """Apply MixUp augmentation to semantic segmentation masks.
 
         Args:
             labels (dict[str, Any]): Primary image labels containing 'semantic_mask' and 'mix_labels'.
@@ -1011,13 +1010,12 @@ class CutMix(BaseMixTransform):
         return labels
 
     def apply_semantic(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
-        """
-        Apply CopyPaste augmentation to semantic segmentation masks.
+        """Apply CopyPaste augmentation to semantic segmentation masks.
 
         Args:
             labels (dict[str, Any]): Primary image labels containing 'semantic_mask' and 'mix_labels'.
-            params (dict[str, Any] | None): Parameters dict with 'area' (bounding box coordinates) and
-                'skip' (bool flag). Defaults to None.
+            params (dict[str, Any] | None): Parameters dict with 'area' (bounding box coordinates) and 'skip' (bool
+                flag). Defaults to None.
 
         Returns:
             (dict[str, Any]): Updated labels with the semantic mask region replaced by the mixed image's mask.

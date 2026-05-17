@@ -681,7 +681,7 @@ class YOLOConcatDataset(ConcatDataset):
             dataset.close_mosaic(hyp)
 
 
-class SemsegDataset(BaseDataset):
+class SemsegDataset(YOLODataset):
     """Dataset for semantic segmentation with PNG mask labels.
 
     Expects a directory structure where each image has a corresponding PNG mask file with the same stem. Pixel values in
@@ -707,7 +707,7 @@ class SemsegDataset(BaseDataset):
         self.ignore_label = 255
         self.label_mapping = self._parse_label_mapping(self.data.get("label_mapping"))
         self.mask_files = []
-        super().__init__(*args, channels=self.data.get("channels", 3), **kwargs)
+        super().__init__(*args, data=data, **kwargs)
 
     def _parse_label_mapping(self, mapping):
         """Normalize label_mapping entries from dataset YAML into integer-to-integer ids."""

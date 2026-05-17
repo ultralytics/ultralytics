@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
-from ultralytics.data.dataset import PolygonSemsegDataset, SemsegDataset, add_polygon_background
+from ultralytics.data.dataset import add_polygon_background
 from ultralytics.models import yolo
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import SemanticSegmentationModel
@@ -47,36 +47,6 @@ class SemanticSegmentationTrainer(DetectionTrainer):
     def get_dataset(self):
         """Parse the dataset YAML and bump nc/names with a background class for the polygon path."""
         return add_polygon_background(super().get_dataset())
-
-    def build_dataset(self, img_path: str, mode: str = "train", batch: int | None = None):
-        """Build semantic segmentation dataset.
-
-        Routes to `PolygonSemsegDataset` when the dataset YAML lacks 'masks_dir' (polygon labels
-        rasterized on the fly) and to `SemsegDataset` otherwise (PNG mask labels).
-
-        Args:
-            img_path (str): Path to the folder containing images.
-            mode (str): 'train' or 'val' mode.
-            batch (int, optional): Batch size for rect mode.
-
-        Returns:
-            (SemsegDataset): Semantic segmentation dataset.
-        """
-        use_rect = mode == "val"
-        dataset_cls = SemsegDataset if self.data.get("masks_dir") else PolygonSemsegDataset
-        return dataset_cls(
-            img_path=img_path,
-            imgsz=self.args.imgsz,
-            augment=mode == "train",
-            hyp=self.args,
-            cache=self.args.cache or None,
-            data=self.data,
-            rect=use_rect,
-            batch_size=batch,
-            stride=max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32),
-            prefix=f"{mode}: ",
-            pad=0,
-        )
 
     def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True):
         """Return a SemanticSegmentationModel with optional pretrained backbone.

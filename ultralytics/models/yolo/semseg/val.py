@@ -12,7 +12,7 @@ import torch.distributed as dist
 import torch.nn.functional as F
 from PIL import Image
 
-from ultralytics.data.dataset import PolygonSemsegDataset, SemsegDataset, add_polygon_background
+from ultralytics.data.dataset import add_polygon_background, SemsegDataset
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.metrics import ConfusionMatrix, SemsegMetrics
@@ -210,36 +210,9 @@ class SemanticSegmentationValidator(DetectionValidator):
         if self.args.save_json and self.results_dir is not None:
             LOGGER.info(f"Semantic prediction masks saved to {self.results_dir}")
 
-    def build_dataset(self, img_path, mode="val", batch=None):
-        """Build semantic segmentation dataset.
-
-        Routes to `PolygonSemsegDataset` when the dataset YAML lacks 'masks_dir' and to
-        `SemsegDataset` otherwise. The helper call is idempotent: in trainer-driven validation
-        the data dict has already been bumped with the background class.
-
-        Args:
-            img_path (str): Path to images.
-            mode (str): Dataset mode.
-            batch (int, optional): Batch size.
-
-        Returns:
-            (SemsegDataset): Dataset object.
-        """
-        self.data = add_polygon_background(self.data)
-        dataset_cls = SemsegDataset if self.data.get("masks_dir") else PolygonSemsegDataset
-        return dataset_cls(
-            img_path=img_path,
-            imgsz=self.args.imgsz,
-            augment=False,
-            hyp=self.args,
-            cache=self.args.cache or None,
-            data=self.data,
-            rect=self.args.rect,
-            batch_size=batch,
-            stride=self.stride,
-            pad=0,
-            prefix=f"{mode}: ",
-        )
+    def get_dataset(self):
+        """Parse the dataset YAML and bump nc/names with a background class for the polygon path."""
+        return add_polygon_background(super().get_dataset())
 
     @plt_settings()
     def plot_val_samples(self, batch, ni):

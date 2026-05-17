@@ -6,9 +6,9 @@ from copy import copy
 from typing import Any
 
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
-import matplotlib.pyplot as plt
 
 from ultralytics.data.dataset import PolygonSemsegDataset, SemsegDataset, add_polygon_background
 from ultralytics.models import yolo

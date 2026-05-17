@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import torch
 import numpy as np
+import torch
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
-from ultralytics.utils import DEFAULT_CFG
-from ultralytics.utils import ops
+from ultralytics.utils import DEFAULT_CFG, ops
 
 
 class SemanticSegmentationPredictor(BasePredictor):

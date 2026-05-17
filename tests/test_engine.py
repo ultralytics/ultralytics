@@ -11,8 +11,8 @@ from tests import MODEL, SOURCE, TASK_MODEL_DATA
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
-from ultralytics.models.yolo import classify, detect, obb, pose, segment, semseg
 from ultralytics.engine.trainer import BaseTrainer
+from ultralytics.models.yolo import classify, detect, obb, pose, segment, semseg
 from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
 

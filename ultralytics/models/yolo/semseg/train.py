@@ -82,15 +82,6 @@ class SemanticSegmentationTrainer(DetectionTrainer):
         """
         pass
 
-    def plot_training_samples(self, batch, ni):
-        """Plot training samples with semantic mask overlay."""
-        plot_images(
-            labels=batch,
-            paths=batch["im_file"],
-            fname=self.save_dir / f"train_batch{ni}.jpg",
-            on_plot=self.on_plot,
-        )
-
     def plot_training_labels(self):
         """Plot training labels class distribution for semantic segmentation.
 

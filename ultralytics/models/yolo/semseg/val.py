@@ -214,16 +214,6 @@ class SemanticSegmentationValidator(DetectionValidator):
         """Parse the dataset YAML and bump nc/names with a background class for the polygon path."""
         return add_polygon_background(super().get_dataset())
 
-    def plot_val_samples(self, batch, ni):
-        """Plot validation image samples with semantic mask overlays."""
-        plot_images(
-            labels=batch,
-            paths=batch["im_file"],
-            fname=self.save_dir / f"val_batch{ni}_labels.jpg",
-            names=self.names,
-            on_plot=self.on_plot,
-        )
-
     def plot_predictions(self, batch, preds, ni):
         """Plot predicted semantic masks on input images."""
         plot_images(

@@ -108,6 +108,16 @@ For detailed instructions and best practices related to the installation process
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
+## INT8 Quantization Notes
+When exporting YOLO26 models to RKNN with INT8 quantization, many users reported that they encounter
+cases where the exported model runs successfully but produces no detections at
+inference time.
+
+As a workaround, a hybrid quantization approach (FP16 + INT8) has been shown to
+produce valid detections on supported Rockchip platforms. A reference workflow
+and reproducible example are available here:
+[YOLO to RKNN INT8 Quantization Pipeline](https://github.com/mahdieh-jokar/yolo26n-rknn-int8-quantization)
+
 ## Deploying Exported YOLO26 RKNN Models
 
 Once you've successfully exported your Ultralytics YOLO26 models to RKNN format, the next step is deploying these models on Rockchip-based devices.

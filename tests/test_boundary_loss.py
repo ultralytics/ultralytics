@@ -37,9 +37,7 @@ from ultralytics.utils.loss import boundary_band, v8SegmentationLoss
 
 def _make_gt_circle(size: int = 80, cy: int = 40, cx: int = 40, r: int = 20, device: str = "cpu") -> torch.Tensor:
     """Return a (1, H, W) binary mask with a single filled circle."""
-    yy, xx = torch.meshgrid(
-        torch.arange(size, device=device), torch.arange(size, device=device), indexing="ij"
-    )
+    yy, xx = torch.meshgrid(torch.arange(size, device=device), torch.arange(size, device=device), indexing="ij")
     mask = ((yy - cy) ** 2 + (xx - cx) ** 2 <= r * r).float()
     return mask.unsqueeze(0)
 
@@ -55,10 +53,9 @@ def _hard_iou(pred_logits: torch.Tensor, gt: torch.Tensor) -> float:
 def _soft_boundary_iou(pred_logits: torch.Tensor, gt: torch.Tensor, k: int = 3) -> float:
     """Soft Boundary-IoU on the GT boundary band: probability-weighted overlap.
 
-    Unlike hard IoU, this metric never saturates at 1.0 with finite logits — it keeps reflecting
-    how *confidently* the model classifies boundary pixels. That's exactly what boundary-weighted
-    BCE is supposed to improve: not just getting boundary pixels on the right side of 0.5, but
-    pushing their logits further from 0.
+    Unlike hard IoU, this metric never saturates at 1.0 with finite logits — it keeps reflecting how *confidently* the
+    model classifies boundary pixels. That's exactly what boundary-weighted BCE is supposed to improve: not just getting
+    boundary pixels on the right side of 0.5, but pushing their logits further from 0.
     """
     p = pred_logits.sigmoid()
     band = boundary_band(gt, k)
@@ -113,8 +110,8 @@ def test_boundary_band_kernel_5_is_thicker_than_kernel_3():
 def _make_mask_loss_inputs(device: str = "cpu"):
     """Build minimal inputs for v8SegmentationLoss.single_mask_loss.
 
-    We use a single instance and exploit the einsum: pred (1, K) @ proto (K, H, W) → (1, H, W).
-    Choosing K=1, pred=[[1.0]], and using `proto` directly as the logits map gives us full control.
+    We use a single instance and exploit the einsum: pred (1, K) @ proto (K, H, W) → (1, H, W). Choosing K=1,
+    pred=[[1.0]], and using `proto` directly as the logits map gives us full control.
     """
     H = W = 64
     gt = _make_gt_circle(size=H, r=15, device=device)  # (1, H, W)
@@ -127,23 +124,19 @@ def _make_mask_loss_inputs(device: str = "cpu"):
 
 def test_single_mask_loss_bnd_is_zero_when_weight_is_zero():
     gt, pred, proto, xyxy, area = _make_mask_loss_inputs()
-    seg, bnd = v8SegmentationLoss.single_mask_loss(
-        gt, pred, proto, xyxy, area, boundary_weight=0.0, boundary_kernel=3
-    )
+    seg, bnd = v8SegmentationLoss.single_mask_loss(gt, pred, proto, xyxy, area, boundary_weight=0.0, boundary_kernel=3)
     assert seg.item() > 0.0
     assert bnd.item() == 0.0
 
 
 def test_single_mask_loss_bnd_is_positive_when_weight_is_positive():
     gt, pred, proto, xyxy, area = _make_mask_loss_inputs()
-    _, bnd = v8SegmentationLoss.single_mask_loss(
-        gt, pred, proto, xyxy, area, boundary_weight=1.0, boundary_kernel=3
-    )
+    _, bnd = v8SegmentationLoss.single_mask_loss(gt, pred, proto, xyxy, area, boundary_weight=1.0, boundary_kernel=3)
     assert bnd.item() > 0.0
 
 
 def test_single_mask_loss_seg_independent_of_boundary_weight():
-    """seg column is plain BCE — must be identical regardless of boundary_weight."""
+    """Seg column is plain BCE — must be identical regardless of boundary_weight."""
     gt, pred, proto, xyxy, area = _make_mask_loss_inputs()
     seg_0, _ = v8SegmentationLoss.single_mask_loss(gt, pred, proto, xyxy, area, 0.0, 3)
     seg_5, _ = v8SegmentationLoss.single_mask_loss(gt, pred, proto, xyxy, area, 5.0, 3)
@@ -151,7 +144,7 @@ def test_single_mask_loss_seg_independent_of_boundary_weight():
 
 
 def test_single_mask_loss_bnd_scales_linearly_with_weight():
-    """bnd = w * Σ(bce * band) → doubling w doubles bnd."""
+    """Bnd = w * Σ(bce * band) → doubling w doubles bnd."""
     gt, pred, proto, xyxy, area = _make_mask_loss_inputs()
     _, bnd_1 = v8SegmentationLoss.single_mask_loss(gt, pred, proto, xyxy, area, 1.0, 3)
     _, bnd_2 = v8SegmentationLoss.single_mask_loss(gt, pred, proto, xyxy, area, 2.0, 3)
@@ -189,13 +182,12 @@ def _train_synthetic(
 ):
     """Optimize a per-pixel logit map to fit a synthetic circle with SGD.
 
-    SGD is used (not Adam) because Adam's adaptive per-parameter scaling normalizes away the
-    gradient-magnitude difference that's the *whole point* of boundary weighting. With SGD, a
-    band pixel under weight=5 receives a 6× larger update step than the same pixel under
-    weight=0, so the optimization paths genuinely differ.
+    SGD is used (not Adam) because Adam's adaptive per-parameter scaling normalizes away the gradient-magnitude
+    difference that's the *whole point* of boundary weighting. With SGD, a band pixel under weight=5 receives a 6×
+    larger update step than the same pixel under weight=0, so the optimization paths genuinely differ.
 
-    Loss uses `.sum()` reduction (not `.mean()`) so per-pixel gradients are not diluted by the
-    1/(H·W) factor — this keeps the effective per-pixel learning rate at `lr`, not `lr/6400`.
+    Loss uses `.sum()` reduction (not `.mean()`) so per-pixel gradients are not diluted by the 1/(H·W) factor — this
+    keeps the effective per-pixel learning rate at `lr`, not `lr/6400`.
 
     Returns history and final logits.
     """
@@ -232,10 +224,9 @@ def _train_synthetic(
 
 @pytest.mark.parametrize("steps", [200])
 def test_demo_higher_weight_improves_boundary_iou(steps: int) -> None:
-    """End-to-end: higher boundary_weight produces higher soft Boundary-IoU at the same step
-    budget. Soft B-IoU (probability-weighted, on the GT boundary band) keeps increasing as the
-    model becomes more confident on edge pixels, so it stays sensitive even after hard IoU
-    saturates at 1.0.
+    """End-to-end: higher boundary_weight produces higher soft Boundary-IoU at the same step budget. Soft B-IoU
+    (probability-weighted, on the GT boundary band) keeps increasing as the model becomes more confident on edge
+    pixels, so it stays sensitive even after hard IoU saturates at 1.0.
     """
     settings = [0.0, 2.0, 5.0]
     finals = {}
@@ -244,10 +235,7 @@ def test_demo_higher_weight_improves_boundary_iou(steps: int) -> None:
     for w in settings:
         history, _ = _train_synthetic(weight=w, steps=steps)
         for h in history:
-            print(
-                f"{w:>8.1f} | {h['step']:>5d} | {h['loss']:>8.4f} | "
-                f"{h['iou']:>6.3f} | {h['sbiou']:>7.4f}"
-            )
+            print(f"{w:>8.1f} | {h['step']:>5d} | {h['loss']:>8.4f} | {h['iou']:>6.3f} | {h['sbiou']:>7.4f}")
         print()
         finals[w] = history[-1]
 

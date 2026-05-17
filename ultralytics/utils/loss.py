@@ -22,9 +22,9 @@ from .tal import bbox2dist, rbox2dist
 def boundary_band(gt: torch.Tensor, kernel: int) -> torch.Tensor:
     """Compute a boundary band on binary GT masks via morphological gradient (dilation - erosion).
 
-    Operates at the resolution of `gt` (prototype resolution in segmentation training). The returned
-    tensor is 1 on a `kernel`-wide band straddling each object's contour and 0 elsewhere. No autograd
-    flows through this op since the input is GT.
+    Operates at the resolution of `gt` (prototype resolution in segmentation training). The returned tensor is 1 on a
+    `kernel`-wide band straddling each object's contour and 0 elsewhere. No autograd flows through this op since the
+    input is GT.
 
     Args:
         gt (torch.Tensor): Binary masks of shape (N, H, W) with values in {0, 1}.

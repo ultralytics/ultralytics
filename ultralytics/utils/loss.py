@@ -19,6 +19,27 @@ from .metrics import bbox_iou, probiou
 from .tal import bbox2dist, rbox2dist
 
 
+def boundary_band(gt: torch.Tensor, kernel: int) -> torch.Tensor:
+    """Compute a boundary band on binary GT masks via morphological gradient (dilation - erosion).
+
+    Operates at the resolution of `gt` (prototype resolution in segmentation training). The returned
+    tensor is 1 on a `kernel`-wide band straddling each object's contour and 0 elsewhere. No autograd
+    flows through this op since the input is GT.
+
+    Args:
+        gt (torch.Tensor): Binary masks of shape (N, H, W) with values in {0, 1}.
+        kernel (int): Odd integer >= 3 controlling band thickness.
+
+    Returns:
+        (torch.Tensor): Boundary band of shape (N, H, W).
+    """
+    g = gt.unsqueeze(1)
+    pad = kernel // 2
+    dil = F.max_pool2d(g, kernel, stride=1, padding=pad)
+    ero = -F.max_pool2d(-g, kernel, stride=1, padding=pad)
+    return (dil - ero).squeeze(1)
+
+
 class VarifocalLoss(nn.Module):
     """Varifocal loss by Zhang et al.
 
@@ -494,10 +515,23 @@ class v8SegmentationLoss(v8DetectionLoss):
         self.overlap = model.args.overlap_mask
         self.bcedice_loss = BCEDiceLoss(weight_bce=0.5, weight_dice=0.5)
 
+        self.boundary_weight = float(getattr(self.hyp, "seg_boundary_weight", 0.0) or 0.0)
+        k = int(getattr(self.hyp, "seg_boundary_kernel", 3) or 3)
+        if k < 3:
+            k = 3
+        if k % 2 == 0:
+            k += 1
+        self.boundary_kernel = k
+        if self.boundary_weight > 0:
+            LOGGER.info(
+                f"Boundary-weighted seg loss enabled: weight={self.boundary_weight}, "
+                f"kernel={self.boundary_kernel} (proto-pixel)"
+            )
+
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate and return the combined loss for detection and segmentation."""
         pred_masks, proto = preds["mask_coefficient"].permute(0, 2, 1).contiguous(), preds["proto"]
-        loss = torch.zeros(5, device=self.device)  # box, seg, cls, dfl
+        loss = torch.zeros(6, device=self.device)  # box, seg, cls, dfl, sem, bnd
         if isinstance(proto, tuple) and len(proto) == 2:
             proto, pred_semseg = proto
         else:
@@ -517,7 +551,7 @@ class v8SegmentationLoss(v8DetectionLoss):
             imgsz = (
                 torch.tensor(preds["feats"][0].shape[2:], device=self.device, dtype=pred_masks.dtype) * self.stride[0]
             )
-            loss[1] = self.calculate_segmentation_loss(
+            loss[1], loss[5] = self.calculate_segmentation_loss(
                 fg_mask,
                 masks,
                 target_gt_idx,
@@ -552,13 +586,23 @@ class v8SegmentationLoss(v8DetectionLoss):
                 loss[4] += (pred_semseg * 0).sum()
 
         loss[1] *= self.hyp.box  # seg gain
-        return loss * batch_size, loss.detach()  # loss(box, cls, dfl)
+        loss[5] *= self.hyp.box  # bnd shares the seg gain (it's the boundary uplift of the same BCE pixels)
+        return loss * batch_size, loss.detach()  # loss(box, seg, cls, dfl, sem, bnd)
 
     @staticmethod
     def single_mask_loss(
-        gt_mask: torch.Tensor, pred: torch.Tensor, proto: torch.Tensor, xyxy: torch.Tensor, area: torch.Tensor
-    ) -> torch.Tensor:
+        gt_mask: torch.Tensor,
+        pred: torch.Tensor,
+        proto: torch.Tensor,
+        xyxy: torch.Tensor,
+        area: torch.Tensor,
+        boundary_weight: float = 0.0,
+        boundary_kernel: int = 3,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute the instance segmentation loss for a single image.
+
+        Returns a (seg, bnd) pair so the boundary-weighted uplift is logged separately. The total
+        gradient is exactly `bce * (1 + boundary_weight * band)` since (seg + bnd) is summed downstream.
 
         Args:
             gt_mask (torch.Tensor): Ground truth mask of shape (N, H, W), where N is the number of objects.
@@ -566,17 +610,26 @@ class v8SegmentationLoss(v8DetectionLoss):
             proto (torch.Tensor): Prototype masks of shape (32, H, W).
             xyxy (torch.Tensor): Ground truth bounding boxes in xyxy format, normalized to [0, 1], of shape (N, 4).
             area (torch.Tensor): Area of each ground truth bounding box of shape (N,).
+            boundary_weight (float): Multiplier on the boundary-band BCE uplift; 0 disables.
+            boundary_kernel (int): Odd kernel size (proto-pixel) for the boundary band.
 
         Returns:
-            (torch.Tensor): The calculated mask loss for a single image.
+            (tuple[torch.Tensor, torch.Tensor]): (seg_loss, bnd_loss) scalars summed over instances.
 
         Notes:
             The function uses the equation pred_mask = torch.einsum('in,nhw->ihw', pred, proto) to produce the
             predicted masks from the prototype masks and predicted mask coefficients.
         """
         pred_mask = torch.einsum("in,nhw->ihw", pred, proto)  # (n, 32) @ (32, 80, 80) -> (n, 80, 80)
-        loss = F.binary_cross_entropy_with_logits(pred_mask, gt_mask, reduction="none")
-        return (crop_mask(loss, xyxy).mean(dim=(1, 2)) / area).sum()
+        bce = F.binary_cross_entropy_with_logits(pred_mask, gt_mask, reduction="none")
+        if boundary_weight > 0:
+            band = boundary_band(gt_mask, boundary_kernel)
+            bnd_pix = boundary_weight * bce * band
+        else:
+            bnd_pix = torch.zeros_like(bce)
+        seg_loss = (crop_mask(bce, xyxy).mean(dim=(1, 2)) / area).sum()
+        bnd_loss = (crop_mask(bnd_pix, xyxy).mean(dim=(1, 2)) / area).sum()
+        return seg_loss, bnd_loss
 
     def calculate_segmentation_loss(
         self,
@@ -588,7 +641,7 @@ class v8SegmentationLoss(v8DetectionLoss):
         proto: torch.Tensor,
         pred_masks: torch.Tensor,
         imgsz: torch.Tensor,
-    ) -> torch.Tensor:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the loss for instance segmentation.
 
         Args:
@@ -602,7 +655,7 @@ class v8SegmentationLoss(v8DetectionLoss):
             imgsz (torch.Tensor): Size of the input image as a tensor of shape (2), i.e., (H, W).
 
         Returns:
-            (torch.Tensor): The calculated loss for instance segmentation.
+            (tuple[torch.Tensor, torch.Tensor]): (seg_loss, bnd_loss) averaged over positive anchors.
 
         Notes:
             The batch loss can be computed for improved speed at higher memory usage.
@@ -610,7 +663,8 @@ class v8SegmentationLoss(v8DetectionLoss):
                 pred_mask = torch.einsum('in,nhw->ihw', pred, proto)  # (i, 32) @ (32, 160, 160) -> (i, 160, 160)
         """
         _, _, mask_h, mask_w = proto.shape
-        loss = 0
+        seg_loss = proto.new_zeros(())
+        bnd_loss = proto.new_zeros(())
 
         # Normalize to 0-1
         target_bboxes_normalized = target_bboxes / imgsz[[1, 0, 1, 0]]
@@ -631,15 +685,24 @@ class v8SegmentationLoss(v8DetectionLoss):
                 else:
                     gt_mask = masks[batch_idx.view(-1) == i][mask_idx]
 
-                loss += self.single_mask_loss(
-                    gt_mask, pred_masks_i[fg_mask_i], proto_i, mxyxy_i[fg_mask_i], marea_i[fg_mask_i]
+                s_i, b_i = self.single_mask_loss(
+                    gt_mask,
+                    pred_masks_i[fg_mask_i],
+                    proto_i,
+                    mxyxy_i[fg_mask_i],
+                    marea_i[fg_mask_i],
+                    self.boundary_weight,
+                    self.boundary_kernel,
                 )
+                seg_loss = seg_loss + s_i
+                bnd_loss = bnd_loss + b_i
 
             # WARNING: lines below prevents Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
             else:
-                loss += (proto * 0).sum() + (pred_masks * 0).sum()  # inf sums may lead to nan loss
+                seg_loss = seg_loss + (proto * 0).sum() + (pred_masks * 0).sum()  # inf sums may lead to nan loss
 
-        return loss / fg_mask.sum()
+        denom = fg_mask.sum()
+        return seg_loss / denom, bnd_loss / denom
 
 
 class v8PoseLoss(v8DetectionLoss):

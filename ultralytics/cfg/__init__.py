@@ -162,6 +162,7 @@ CFG_FLOAT_KEYS = frozenset(
         "focal_gamma",
         "arcface_margin",
         "arcface_scale",
+        "seg_boundary_weight",
     }
 )
 CFG_FRACTION_KEYS = frozenset(
@@ -207,6 +208,7 @@ CFG_INT_KEYS = frozenset(
         "line_width",
         "nbs",
         "save_period",
+        "seg_boundary_kernel",
     }
 )
 CFG_BOOL_KEYS = frozenset(

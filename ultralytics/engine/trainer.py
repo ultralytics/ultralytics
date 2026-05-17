@@ -1052,14 +1052,13 @@ class BaseTrainer:
             import re
 
             # higher lr for certain parameters in MuSGD when funetuning
-            # pattern = re.compile(r"(?=.*23)(?=.*cv3)|proto\.semseg|SemanticSegment")
-            pattern = re.compile(r'(?:1[0-9]|2[0-3])\.')  # '10.' ~ '23.'
+            pattern = re.compile(r"(?=.*23)(?=.*cv3)|proto\.semseg|SemanticSegment")
             g_ = []  # new param groups
             for x in g:
                 p = x.pop("params")
                 p1 = [v for k, v in p.items() if pattern.search(k)]
                 p2 = [v for k, v in p.items() if not pattern.search(k)]
-                g_.extend([{"params": p1, **x, "lr": lr * 10}, {"params": p2, **x}])
+                g_.extend([{"params": p1, **x, "lr": lr * 3}, {"params": p2, **x}])
             g = g_
         optimizer = getattr(optim, name, partial(MuSGD, muon=muon, sgd=sgd))(params=g)
 

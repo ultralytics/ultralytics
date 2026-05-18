@@ -463,6 +463,10 @@ BENCHMARKS = {
         "title": "Object Detection Models: Latency vs mAP (Tesla T4 GPU, TensorRT v10.11)",
         "models": {
             "RF-DETR (obj365, TopK)": RF_DETR_OBJ365_TOPK_IMGSZ,
+            "RT-DETR (Ultralytics)": [
+                ("l", 8.0, {"ap": 52.7, "ap50": 71.2, "ap75": 57.1, "ap_small": 34.4, "ap_medium": 57.3, "ap_large": 70.8}, 0.0),
+                ("x", 13.6, {"ap": 54.4, "ap50": 72.6, "ap75": 59.1, "ap_small": 35.3, "ap_medium": 59.3, "ap_large": 72.2}, 0.4),
+            ],
             "DEIMv2 (Ultralytics, obj365)": [
                 ("xl4", 13.9, {"ap": 59.5, "ap50": 77.1, "ap75": 65.1, "ap_small": 42.7, "ap_medium": 64.8, "ap_large": 76.8}),
                 ("xl6", 14.3, {"ap": 59.8, "ap50": 77.7, "ap75": 65.3, "ap_small": 43.3, "ap_medium": 64.8, "ap_large": 77.4}),
@@ -554,6 +558,7 @@ MODEL_STYLES = {
     "D-FINE (obj365)": ("D", 8),
     "RT-DETR": ("v", -12),
     "RT-DETR (obj365)": ("v", 8),
+    "RT-DETR (Ultralytics)": ("v", -12),
     "ConvNeXt D-FINE": ("h", 8),
     "DEIMv2 (Ultralytics)": ("p", 8),
     "DEIMv2 (Ultralytics, obj365)": ("p", -12),

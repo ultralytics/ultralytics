@@ -838,30 +838,20 @@ class SemsegDataset(YOLODataset):
         Returns:
             (Compose): Composed transforms.
         """
-        transforms = []
+        transforms = super().build_transforms(hyp)
         if self.augment:
-            transforms = v8_transforms(self, self.imgsz, hyp)
-            # TODO: remove this?
-            # transforms.append(
+            pass
+            # transforms.insert(
+            #     -1,
             #     PhotoMetricDistortion(
             #         brightness_delta=32,
             #         contrast_range=(0.5, 1.5),
             #         saturation_range=(0.5, 1.5),
             #         hue_delta=18,
-            #     )
+            #     ),
             # )
-        else:
-            transforms.append(
-                LetterBox(
-                    new_shape=(self.imgsz, self.imgsz),
-                    auto=False,
-                    scaleup=False,
-                    center=False,
-                    stride=self.stride,
-                )
-            )
-        transforms.append(SemanticFormat())
-        return Compose(transforms)
+        transforms[-1] = SemanticFormat()  # replace the last transform with SemanticFormat
+        return transforms
 
     def convert_label(self, label, inverse=False):
         """Convert label values using the dataset's label mapping.

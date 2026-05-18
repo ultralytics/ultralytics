@@ -55,7 +55,7 @@ Inference:
                          yolo26n_executorch_model   # ExecuTorch
                          yolo26n_axelera_model      # Axelera AI
                          yolo26n_deepx_model        # DeepX
-                         yolo26n_litert_model       # LiteRT                         
+                         yolo26n_litert_model       # LiteRT
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example

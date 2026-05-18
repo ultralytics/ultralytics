@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Export any PyTorch model (timm, torchvision, or custom) to ONNX, OpenVINO, CoreML, TensorFlow SavedModel, TorchScript, NCNN, MNN, PaddlePaddle, and ExecuTorch with Ultralytics export utilities.
-keywords: export PyTorch model, convert PyTorch to ONNX, PyTorch to CoreML, PyTorch to OpenVINO, PyTorch to TensorFlow, non-YOLO export, timm export, torchvision export, TorchScript export, NCNN export, MNN export, PaddlePaddle export, ExecuTorch export, TFLite export, Ultralytics export utilities, torch.nn.Module export, model conversion, model deployment, pytorch deployment
+keywords: export PyTorch model, convert PyTorch to ONNX, PyTorch to CoreML, PyTorch to OpenVINO, PyTorch to TensorFlow, non-YOLO export, timm export, torchvision export, TorchScript export, NCNN export, MNN export, PaddlePaddle export, ExecuTorch export, TFLite export, Ultralytics export utilities, torch.nn.Module export, model conversion, model deployment, PyTorch deployment
 ---
 
 # How to Export Non-YOLO PyTorch Models with Ultralytics

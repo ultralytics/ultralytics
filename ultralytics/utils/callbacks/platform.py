@@ -304,6 +304,8 @@ def _get_environment_info():
                 env["gitBranch"] = GIT.branch
             if GIT.commit:
                 env["gitCommit"] = GIT.commit[:12]  # Short hash
+            if GIT.message:
+                env["gitCommitMessage"] = GIT.message
     except Exception:
         pass
 

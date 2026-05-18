@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Explore Baidu's RT-DETR, a Vision Transformer-based real-time object detector offering high accuracy and adaptable inference speed. Learn more with Ultralytics.
-keywords: RT-DETR, Baidu, Vision Transformer, real-time object detection, PaddlePaddle, Ultralytics, pretrained models, AI, machine learning, computer vision
+keywords: RT-DETR, Baidu, Vision Transformer, real-time object detection, PaddlePaddle, Ultralytics, pretrained models, decoder layer index, query count, AI, machine learning, computer vision
 ---
 
 # Baidu's RT-DETR: A Vision [Transformer](https://www.ultralytics.com/glossary/transformer)-Based Real-Time Object Detector
@@ -78,6 +78,31 @@ This example provides simple RT-DETR training and inference examples. For full d
         # Load a COCO-pretrained RT-DETR-l model and run inference on the 'bus.jpg' image
         yolo predict model=rtdetr-l.pt source=path/to/bus.jpg
         ```
+
+!!! tip "Faster Inference Trade-Offs"
+
+    RT-DETR pretrained weights support two inference-time settings to reduce latency without retraining:
+
+    - **`eval_idx`**: Stop decoding early. For the default 6-layer decoder, use a zero-based index (`0`–`5`). `eval_idx=5` uses all layers; `eval_idx=3` uses 4 layers. On a T4 GPU with TensorRT v10.11, RT-DETR-L improves from 8.0 ms / 52.7 mAP to 7.4 ms / 52.5 mAP with 4 layers.
+    - **`num_queries`**: Reduce object queries (default: 300). Lowering to 100 can reach 7.4 ms / 51.7 mAP on COCO in the same setup. On datasets with fewer objects per image the mAP drop is typically smaller, but keep the value above the maximum expected objects per image.
+
+    Both settings can lower mAP — validate the trade-off on your dataset before deployment.
+
+    ```python
+    from ultralytics import RTDETR
+
+    rtdetr = RTDETR("rtdetr-l.pt")
+    head = rtdetr.model.model[-1]
+
+    # Choose one or both settings after validating the speed/accuracy trade-off.
+    head.decoder.eval_idx = 3  # Use 4 of 6 decoder layers.
+    head.num_queries = 100  # Use fewer object queries.
+
+    results = rtdetr("path/to/image.jpg")
+
+    # Export uses the same decoder and query settings, including TensorRT exports.
+    rtdetr.export(format="engine", device=0, half=True)
+    ```
 
 ## Supported Tasks and Modes
 

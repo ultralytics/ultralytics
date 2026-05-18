@@ -883,7 +883,7 @@ class SemsegDataset(YOLODataset):
         return label
 
 
-class PolygonSemsegDataset(YOLODataset):
+class PolygonSemsegDataset(SemsegDataset, YOLODataset):
     """Semantic segmentation dataset that rasterizes YOLO polygon labels into masks on the fly.
 
     Used when the dataset YAML lacks 'masks_dir'. Pixels not covered by any polygon become a dedicated background class.
@@ -903,19 +903,6 @@ class PolygonSemsegDataset(YOLODataset):
         nc = (data or {}).get("nc") or len((data or {}).get("names", {}))
         self.bg_class_idx = data.get("bg_class_idx", max(int(nc) - 1, 0))
         super().__init__(*args, data=data, **kwargs)
-
-    def build_transforms(self, hyp=None):
-        """Build transforms for semantic segmentation.
-
-        Args:
-            hyp (dict): Hyperparameters.
-
-        Returns:
-            (Compose): Composed transforms.
-        """
-        transforms = super().build_transforms(hyp)
-        transforms[-1] = SemanticFormat()  # replace the last transform with SemanticFormat
-        return transforms
 
     def load_mask(self, index: int, image_shape: tuple[int, int] | None = None) -> np.ndarray:
         """Rasterize this image's polygons into a (H, W) uint8 semantic mask, bg = self.bg_class_idx."""
@@ -940,26 +927,26 @@ class PolygonSemsegDataset(YOLODataset):
             out[fg] = cls_arr[inst[fg] - 1].astype(np.uint8)
         return out
 
-    def get_image_and_label(self, index):
-        """Get image, label and semantic mask for the given index.
-
-        Overrides parent to include semantic mask so that Mosaic/CopyPaste mix images
-        also have their masks loaded.
-
-        Args:
-            index (int): Dataset index.
-
-        Returns:
-            (dict): Label dict with 'img', 'semantic_mask', and metadata.
-        """
-        label = super().get_image_and_label(index)
-        h, w = label["img"].shape[:2]
-        mask = self.load_mask(index, image_shape=(h, w))
-        # Resize mask to match the resized image dimensions
-        if mask.shape[:2] != (h, w):
-            mask = cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
-        label["semantic_mask"] = mask
-        return label
+    # def get_image_and_label(self, index):
+        # """Get image, label and semantic mask for the given index.
+        #
+        # Overrides parent to include semantic mask so that Mosaic/CopyPaste mix images
+        # also have their masks loaded.
+        #
+        # Args:
+        #     index (int): Dataset index.
+        #
+        # Returns:
+        #     (dict): Label dict with 'img', 'semantic_mask', and metadata.
+        # """
+        # label = super().get_image_and_label(index)
+        # h, w = label["img"].shape[:2]
+        # mask = self.load_mask(index, image_shape=(h, w))
+        # # Resize mask to match the resized image dimensions
+        # if mask.shape[:2] != (h, w):
+        #     mask = cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
+        # label["semantic_mask"] = mask
+        # return label
 
 
 class ClassificationDataset:

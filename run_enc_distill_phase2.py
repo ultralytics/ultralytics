@@ -95,6 +95,12 @@ def main(argv: list[str]) -> None:
         else resume_args.get("pretrained", "runs/classify/yolo-next-encoder/phase1-d7-dinov3-convnextb/weights/best.pt")
     )
     mode = argv[2] if len(argv) > 2 else ("inet_linear_probe" if resume_args.get("freeze") else "inet_finetune")
+    if mode in ("coco_det_finetune", "coco_det_finetune_frozen", "dota_obb_finetune") and "," in gpu:
+        raise SystemExit(
+            f"ERROR: mode={mode!r} requires a single GPU. Phase-2 DetectionTrainer/OBBTrainer "
+            f"re-spawns workers under DDP and silently drops our model.add_callback registrations "
+            f"(grad_clip/muon_w/nfs_sync would no-op). Got gpu={gpu!r}. Pass a single GPU id like '0'."
+        )
     name = argv[3] if len(argv) > 3 else resume_args.get("name", f"phase2-{mode}-d7")
     phase1_wandb_id = argv[4] if len(argv) > 4 else ""
     epochs = int(argv[5]) if len(argv) > 5 else resume_args.get("epochs")

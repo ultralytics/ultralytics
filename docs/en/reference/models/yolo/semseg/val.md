@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Reference for YOLO semantic segmentation validator. Learn about the SemanticSegmentationValidator class and its validation metrics.
+keywords: Ultralytics, semantic segmentation, validator, validation, mIoU, YOLO, semseg
 ---
 
 # Reference for `ultralytics/models/yolo/semseg/val.py`

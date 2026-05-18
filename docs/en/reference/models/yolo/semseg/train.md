@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Reference for YOLO semantic segmentation trainer. Learn about the SemanticSegmentationTrainer class and its training methods.
+keywords: Ultralytics, semantic segmentation, trainer, training, YOLO, semseg
 ---
 
 # Reference for `ultralytics/models/yolo/semseg/train.py`

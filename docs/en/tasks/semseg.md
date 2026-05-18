@@ -25,8 +25,8 @@ YOLO26 pretrained Semantic Segmentation models are shown here, which are pretrai
 
 {% include "macros/yolo-semseg-perf.md" %}
 
-- **mIoU<sup>val</sup>** values are for single-model single-scale on [Cityscapes](https://www.cityscapes-dataset.com/) dataset. <br>Reproduce by `yolo val semseg data=cityscapes.yaml device=0 imgsz=2048`
-- **Speed** averaged over cityscapes val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val semseg data=cityscapes.yaml batch=1 device=0|cpu imgsz=2048`
+- **mIoU<sup>val</sup>** values are for single-model single-scale on [Cityscapes](https://www.cityscapes-dataset.com/) dataset. <br>Reproduce by `yolo semseg val data=cityscapes.yaml device=0 imgsz=2048`
+- **Speed** averaged over cityscapes val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo semseg val data=cityscapes.yaml batch=1 device=0|cpu imgsz=2048`
 - **Params** and **FLOPs** values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
 ## Train
@@ -199,7 +199,7 @@ Semantic segmentation is best suited for scene understanding tasks like autonomo
 
 ### Can I use instance segmentation data to train semantic segmentation?
 
-Yes. If your dataset uses Ultralytics YOLO polygon labels (one `.txt` per image), simply **omit** `masks_dir` from the dataset YAML and the loader will convert polygons to per-image semantic masks on the fly. For multi-class datasets (`N > 1`) an extra `background` class is appended to `names` automatically. For single-class datasets (`N == 1`) training stays at 1 class — your declared class becomes `1` in the mask and uncovered pixels become `0`. See the [Semantic Segmentation Dataset Guide](../datasets/semseg/index.md#yolo-polygon-label-format) for details.
+Yes. If your dataset uses Ultralytics YOLO polygon labels (one `.txt` per image), **omit** `masks_dir` from the dataset YAML and the loader will convert polygons to per-image semantic masks on the fly. For multi-class datasets (`N > 1`) an extra `background` class is appended to `names` automatically. For single-class datasets (`N == 1`) training stays at 1 class — your declared class becomes `1` in the mask and uncovered pixels become `0`. See the [Semantic Segmentation Dataset Guide](../datasets/semseg/index.md#yolo-polygon-label-format) for details.
 
 ### What datasets are supported for semantic segmentation?
 

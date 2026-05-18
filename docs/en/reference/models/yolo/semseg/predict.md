@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Reference for YOLO semantic segmentation predictor. Learn about the SemanticSegmentationPredictor class and its inference methods.
+keywords: Ultralytics, semantic segmentation, predictor, inference, YOLO, semseg, predict
 ---
 
 # Reference for `ultralytics/models/yolo/semseg/predict.py`

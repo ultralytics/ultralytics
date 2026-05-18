@@ -8,7 +8,7 @@ keywords: Cityscapes8, Ultralytics, dataset, semantic segmentation, YOLO26, sems
 
 ## Introduction
 
-The [Ultralytics](https://www.ultralytics.com/) Cityscapes8 dataset is a compact yet powerful [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) dataset, consisting of 8 images sampled from the [Cityscapes](cityscapes.md) dataset—4 for training and 4 for validation. This dataset is specifically designed for rapid testing, debugging, and experimentation with [YOLO](https://docs.ultralytics.com/models/yolo26/) semseg models and training pipelines. Its small size makes it highly manageable, while its urban-scene content ensures it serves as an effective sanity check before scaling up to the full Cityscapes dataset.
+The [Ultralytics](https://www.ultralytics.com/) Cityscapes8 dataset is a compact [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) dataset, consisting of 8 images sampled from the [Cityscapes](cityscapes.md) dataset—4 for training and 4 for validation. This dataset is specifically designed for rapid testing, debugging, and experimentation with [YOLO](https://docs.ultralytics.com/models/yolo26/) semseg models and training pipelines. Its small size makes it highly manageable, while its urban-scene content ensures it serves as an effective sanity check before scaling up to the full Cityscapes dataset.
 
 Cityscapes8 uses the same 19 evaluation classes and the same `label_mapping` behavior as the full Cityscapes dataset, and is fully compatible with [YOLO26](../../models/yolo26.md) for seamless integration into your computer vision workflows.
 

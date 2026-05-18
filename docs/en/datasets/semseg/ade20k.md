@@ -32,7 +32,9 @@ The `masks_dir` field is set to `annotations`, so each image under `images/` is 
 
 ## Applications
 
-ADE20K is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in semantic segmentation and scene parsing. Its diverse set of categories and complex scenes make it valuable for applications such as autonomous navigation, robotics, augmented reality, image editing, and any task that requires dense pixel-level understanding of an image. The breadth of indoor and outdoor scenes also makes ADE20K a strong benchmark for evaluating model generalization across domains.
+ADE20K is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in semantic segmentation and scene parsing. Its diverse set of categories and complex scenes make it valuable for applications such as autonomous navigation, robotics, augmented reality, and image editing.
+
+The breadth of indoor and outdoor scenes also makes ADE20K a strong benchmark for evaluating model generalization across domains.
 
 ## Dataset YAML
 
@@ -92,7 +94,7 @@ We would like to acknowledge the MIT CSAIL Computer Vision Group for creating an
 
 ### What is the ADE20K dataset and why is it important for computer vision?
 
-The [ADE20K](http://sceneparsing.csail.mit.edu/) dataset is a large-scale scene parsing benchmark used for [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation). It contains over 25,000 densely annotated images across 150 categories covering indoor, outdoor, object, and stuff classes. Researchers use ADE20K because of its diverse scenes, fine-grained category set, and standardized evaluation metrics like mean Intersection over Union (mIoU), which make it ideal for benchmarking dense prediction models.
+The [ADE20K](http://sceneparsing.csail.mit.edu/) dataset is a large-scale scene parsing benchmark used for [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation). It contains 25,562 densely annotated images across 150 categories covering indoor, outdoor, object, and stuff classes. Researchers use ADE20K because of its diverse scenes, fine-grained category set, and standardized evaluation metrics like mean Intersection over Union (mIoU), which make it ideal for benchmarking dense prediction models.
 
 ### How can I train a YOLO model using the ADE20K dataset?
 

@@ -594,10 +594,9 @@ class Mosaic(BaseMixTransform):
         Returns:
             (dict): Updated labels with mosaic image.
         """
-        s = self.imgsz
         layout = params["layout"]
         if self.n == 4:
-            img4 = np.full((s * 2, s * 2, labels["img"].shape[2]), 114, dtype=np.uint8)
+            img4 = np.full((self.imgsz * 2, self.imgsz * 2, labels["img"].shape[2]), 114, dtype=np.uint8)
             for item in layout:
                 labels_patch = item["labels_patch"]
                 img = labels_patch["img"]
@@ -606,7 +605,7 @@ class Mosaic(BaseMixTransform):
                 img4[y1a:y2a, x1a:x2a] = img[y1b:y2b, x1b:x2b]
             labels["img"] = img4
         elif self.n == 9:
-            img9 = np.full((s * 3, s * 3, labels["img"].shape[2]), 114, dtype=np.uint8)
+            img9 = np.full((self.imgsz * 3, self.imgsz * 3, labels["img"].shape[2]), 114, dtype=np.uint8)
             for item in layout:
                 labels_patch = item["labels_patch"]
                 img = labels_patch["img"]
@@ -656,10 +655,9 @@ class Mosaic(BaseMixTransform):
         ):
             return labels
 
-        s = self.imgsz
         layout = params["layout"]
         if self.n == 4:
-            mask4 = np.full((s * 2, s * 2), self.ignore_label, dtype=np.uint8)
+            mask4 = np.full((self.imgsz * 2, self.imgsz * 2), self.ignore_label, dtype=np.uint8)
             for item in layout:
                 labels_patch = item["labels_patch"]
                 mask = labels_patch.get("semantic_mask")
@@ -670,7 +668,7 @@ class Mosaic(BaseMixTransform):
                 mask4[y1a:y2a, x1a:x2a] = mask[y1b:y2b, x1b:x2b]
             labels["semantic_mask"] = mask4
         elif self.n == 9:
-            mask9 = np.full((s * 3, s * 3), self.ignore_label, dtype=np.uint8)
+            mask9 = np.full((self.imgsz * 3, self.imgsz * 3), self.ignore_label, dtype=np.uint8)
             for item in layout:
                 labels_patch = item["labels_patch"]
                 mask = labels_patch.get("semantic_mask")
@@ -1354,37 +1352,6 @@ class RandomPerspective(BaseTransform):
                 mask = cv2.warpAffine(mask, M[:2], dsize=size, flags=cv2.INTER_NEAREST, borderValue=255)
         labels["semantic_mask"] = mask
         return labels
-
-    def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
-        """Apply random perspective and affine transformations to an image and its associated labels.
-
-        This method performs a series of transformations including rotation, translation, scaling, shearing, and
-        perspective distortion on the input image and adjusts the corresponding bounding boxes, segments, and keypoints
-        accordingly.
-
-        Args:
-            labels (dict[str, Any]): A dictionary containing image data and annotations.
-
-        Returns:
-            (dict[str, Any]): Transformed labels dictionary containing:
-                - 'img' (np.ndarray): The transformed image.
-                - 'cls' (np.ndarray): Updated class labels.
-                - 'instances' (Instances): Updated object instances.
-                - 'resized_shape' (tuple[int, int]): New image shape after transformation.
-
-        Examples:
-            >>> transform = RandomPerspective()
-            >>> image = np.random.randint(0, 255, (640, 640, 3), dtype=np.uint8)
-            >>> labels = {
-            ...     "img": image,
-            ...     "cls": np.array([0, 1, 2]),
-            ...     "instances": Instances(bboxes=np.array([[10, 10, 50, 50], [100, 100, 150, 150]])),
-            ... }
-            >>> result = transform(labels)
-            >>> assert result["img"].shape[:2] == result["resized_shape"]
-        """
-        labels.pop("ratio_pad", None)  # do not need ratio pad
-        return super().__call__(labels)
 
     @staticmethod
     def box_candidates(

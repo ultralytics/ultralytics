@@ -12,7 +12,8 @@ import torch.distributed as dist
 import torch.nn.functional as F
 from PIL import Image
 
-from ultralytics.data.dataset import SemsegDataset, add_polygon_background
+from ultralytics.data.dataset import SemsegDataset
+from ultralytics.data.utils import add_polygon_background
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.metrics import ConfusionMatrix, SemsegMetrics

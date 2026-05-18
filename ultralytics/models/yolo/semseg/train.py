@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
-from ultralytics.data.dataset import add_polygon_background
+from ultralytics.data.utils import add_polygon_background
 from ultralytics.models import yolo
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import SemanticSegmentationModel

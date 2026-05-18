@@ -16,7 +16,7 @@ from ultralytics.utils import LOGGER
 from .dinov3 import DinoVisionTransformer, WindowedDinoVisionTransformer
 from .dinov3.vision_transformer import configs as dinov3_configs
 
-__all__ = ["DINOv3STAs"]
+__all__ = ["DINOv3", "DINOv3STAs"]
 
 
 # Official DINOv3 checkpoint hash suffixes (from facebookresearch/dinov3 hub/backbones.py).
@@ -277,3 +277,53 @@ class DINOv3STAs(nn.Module):
             LOGGER.info(f"DINOv3 load missing keys: {len(missing)}")
         if unexpected:
             LOGGER.info(f"DINOv3 load unexpected keys: {len(unexpected)}")
+
+
+class DINOv3(DINOv3STAs):
+    """Native DINOv3 backbone wrapper returning reshaped intermediate ViT features without STA."""
+
+    def __init__(
+        self,
+        name: str = "dinov3_vits16",
+        pretrained: bool = True,
+        out_indices: tuple[int, ...] | list[int] = (11,),
+        finetune: bool = True,
+        patch_size: int = 16,
+        qk_layernorm: bool = False,
+        num_windows: int = 1,
+        global_block_indexes: list[int] | None = None,
+    ):
+        nn.Module.__init__(self)
+        if num_windows > 1:
+            self.dinov3 = WindowedDinoVisionTransformer(
+                name=name,
+                qk_layernorm=qk_layernorm,
+                num_windows=num_windows,
+                global_block_indexes=global_block_indexes or list(out_indices),
+            )
+        else:
+            self.dinov3 = DinoVisionTransformer(name=name, qk_layernorm=qk_layernorm)
+        self.out_indices = list(out_indices)
+        self.patch_size = patch_size
+        self._last_load_source = "none"
+
+        loaded = False
+        if pretrained:
+            loaded = self._autoload_pretrained(name=name)
+
+        if loaded:
+            LOGGER.info(f"DINOv3 pretrained weights loaded from {self._last_load_source}.")
+        elif pretrained:
+            LOGGER.warning("DINOv3 backbone weights were not loaded. Backbone will train from scratch.")
+
+        self._sanitize_qkv_bias_mask()
+
+        if not finetune:
+            self.dinov3.eval()
+            self.dinov3.requires_grad_(False)
+
+        self.out_channels = [self.dinov3.embed_dim for _ in self.out_indices]
+
+    def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
+        """Return native DINOv3 intermediate patch features as B,C,H,W maps."""
+        return list(self.dinov3.get_intermediate_layers(x, n=self.out_indices, reshape=True))

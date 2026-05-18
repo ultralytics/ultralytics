@@ -54,6 +54,7 @@ __all__ = (
     "ResNetLayer",
     "SCDown",
     "SpatialPriorModulev2",
+    "DINOv3",
     "DEIMDINOv3STAs",
     "DEIMEUPESTAs",
     "DEIMEUPEConvNeXt",
@@ -1957,6 +1958,44 @@ class DEIMDINOv3STAs(nn.Module):
 
     def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
         """Forward pass returning [input, P3, P4, P5] when split=True."""
+        y = self.m(x)
+        return [x, *y] if self.split else y
+
+
+class DINOv3(nn.Module):
+    """Wrapper for native DINOv3 backbones without STA."""
+
+    def __init__(
+        self,
+        name: str = "dinov3_vits16",
+        pretrained: bool = True,
+        out_indices: tuple[int, ...] = (11,),
+        finetune: bool = True,
+        patch_size: int = 16,
+        split: bool = True,
+        qk_layernorm: bool = False,
+        num_windows: int = 1,
+        global_block_indexes: list[int] | None = None,
+    ):
+        """Initialize native DINOv3 wrapper for Ultralytics model parser."""
+        from ultralytics.nn.backbones.dinov3_adapter import DINOv3 as _DINOv3  # scope for faster import
+
+        super().__init__()
+        self.m = _DINOv3(
+            name=name,
+            pretrained=pretrained,
+            out_indices=list(out_indices),
+            finetune=finetune,
+            patch_size=patch_size,
+            qk_layernorm=qk_layernorm,
+            num_windows=num_windows,
+            global_block_indexes=list(global_block_indexes) if global_block_indexes is not None else None,
+        )
+        self.split = split
+        self.channels = self.m.out_channels
+
+    def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
+        """Forward pass returning [input, features...] when split=True."""
         y = self.m(x)
         return [x, *y] if self.split else y
 

@@ -53,7 +53,7 @@ def torch2litert(
     # quantization scale dominated by box coords, collapsing all class scores to zero and
     # breaking NMS.  Fix: patch the head instance so boxes and scores are kept as separate
     # tensors with independent scales throughout, then rejoin in the backend after dequant.
-    
+
     _head_patched = False
     if int8:
         import types as _types

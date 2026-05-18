@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import numpy as np
 import torch
 
-from ultralytics.data.augment import LetterBox
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import DEFAULT_CFG, ops
@@ -34,26 +32,6 @@ class SemanticSegmentationPredictor(BasePredictor):
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "semseg"
 
-    def pre_transform(self, im: list[np.ndarray]) -> list[np.ndarray]:
-        """Pre-transform input image before inference using top-left aligned letterbox.
-
-        Args:
-            im (list[np.ndarray]): List of images with shape [(H, W, 3) x N].
-
-        Returns:
-            (list[np.ndarray]): List of transformed images.
-        """
-        same_shapes = len({x.shape for x in im}) == 1
-        letterbox = LetterBox(
-            self.imgsz,
-            auto=same_shapes
-            and self.args.rect
-            and (self.model.format == "pt" or (getattr(self.model, "dynamic", False) and self.model.format != "imx")),
-            center=False,
-            stride=self.model.stride,
-        )
-        return [letterbox(image=x) for x in im]
-
     def postprocess(self, preds, img, orig_imgs):
         """Convert model logits to semantic segmentation results.
 
@@ -75,8 +53,7 @@ class SemanticSegmentationPredictor(BasePredictor):
         for i, (pred, orig_img) in enumerate(zip(preds, orig_imgs)):
             img_path = self.batch[0][i] if isinstance(self.batch[0], list) else self.batch[0]
             # pred: [nc, H, W] logits on letterboxed input. Remove padding, then resize to original image.
-            oh, ow = orig_img.shape[:2]
-            pred = ops.scale_masks(pred.unsqueeze(0), (oh, ow), padding=False)[0]
+            pred = ops.scale_masks(pred.unsqueeze(0), orig_img.shape[:2])[0]
             class_map = pred.argmax(0).to(torch.int32)  # [H, W]
             results.append(Results(orig_img, path=img_path, names=self.model.names, semantic_mask=class_map))
         return results

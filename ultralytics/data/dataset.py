@@ -913,7 +913,9 @@ class PolygonSemsegDataset(YOLODataset):
         Returns:
             (Compose): Composed transforms.
         """
-        return SemsegDataset.build_transforms(self, hyp)
+        transforms = super().build_transforms(hyp)
+        transforms[-1] = SemanticFormat()  # replace the last transform with SemanticFormat
+        return transforms
 
     def load_mask(self, index: int, image_shape: tuple[int, int] | None = None) -> np.ndarray:
         """Rasterize this image's polygons into a (H, W) uint8 semantic mask, bg = self.bg_class_idx."""

@@ -1147,10 +1147,7 @@ class RandomPerspective(BaseTransform):
             (dict): Parameters including 'M' (affine matrix), 'scale', 'orig_shape', and 'size'.
         """
         img = labels["img"]
-        if self.size is None:
-            size = img.shape[1], img.shape[0]  # w, h
-        else:
-            size = self.size
+        size = (img.shape[1], img.shape[0]) if self.size is None else self.size  # w, h
         orig_shape = img.shape[:2]
         M, scale = self._compute_affine_matrix(img, size)
         return {"M": M, "scale": scale, "orig_shape": orig_shape, "size": size}

@@ -1310,9 +1310,6 @@ class SemanticSegmentationLoss(nn.Module):
         if self.nc == 1:
             logits = preds.reshape(-1)
             target = masks.reshape(-1).float()
-            # Map 255 (ignore/pad) to 0 (background) since BCE has no ignore_index.
-            # This treats padded/ignored regions as background, consistent with old LetterBox behavior for nc==1.
-            target[target == 255] = 0
         else:
             logits = preds.permute(0, 2, 3, 1).reshape(-1, self.nc)
             target = masks.reshape(-1).long()
@@ -1336,10 +1333,11 @@ class SemanticSegmentationLoss(nn.Module):
         Pixels with value 255 (ignore/pad) are treated as background (0) to remain consistent
         with BCE loss which has no ignore_index support.
         """
+        valid = (masks != 255).float()
         pred_soft = preds.squeeze(1).sigmoid()
         target = (masks == 1).float()
-        intersection = (pred_soft * target).sum()
-        cardinality = (pred_soft + target).sum()
+        intersection = (pred_soft * target * valid).sum()
+        cardinality = ((pred_soft + target) * valid).sum()
         return 1.0 - (2.0 * intersection + 1.0) / (cardinality + 1.0)
 
     def forward(self, preds, batch):

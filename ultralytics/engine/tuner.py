@@ -343,6 +343,18 @@ class Tuner:
         return None
 
     @staticmethod
+    def _has_training_metrics(result: dict, require_all: bool = False) -> bool:
+        """Return whether a tuning result contains training metrics."""
+        datasets = result.get("datasets", {})
+        return bool(datasets) and (all(datasets.values()) if require_all else any(datasets.values()))
+
+    @classmethod
+    def _best_result_index(cls, results: list[dict], fitness: np.ndarray) -> int:
+        """Return the best result index, preferring rows with training metrics."""
+        valid = [i for i, result in enumerate(results) if cls._has_training_metrics(result)]
+        return valid[int(fitness[valid].argmax())] if valid else int(fitness.argmax())
+
+    @staticmethod
     def _dataset_names(data: list) -> list[str]:
         """Create stable unique dataset names for logging and per-run directories."""
         stems = [Path(str(d)).stem for d in data]
@@ -453,6 +465,7 @@ class Tuner:
         self.tune_dir.mkdir(parents=True, exist_ok=True)
         (self.tune_dir / "weights").mkdir(parents=True, exist_ok=True)
         best_save_dirs = {}
+        n_successful = 0  # iters with real training metrics in this invocation (excludes resumed/MongoDB rows)
 
         # Sync MongoDB to local NDJSON at startup for proper resume logic
         if self.mongodb:
@@ -497,11 +510,10 @@ class Tuner:
                         "ultralytics.cfg.__init__",
                     ]  # workaround yolo not found
                     cmd = [*launch, "train", *(f"{k}={v}" for k, v in train_args.items())]
-                    return_code = subprocess.run(cmd, check=True).returncode
+                    subprocess.run(cmd, check=True)
                     ckpt_file = weights_dir[j] / ("best.pt" if (weights_dir[j] / "best.pt").exists() else "last.pt")
                     metrics_i = torch_load(ckpt_file)["train_metrics"]
                     metrics = metrics_i
-                    assert return_code == 0, "training failed"
 
                     # Cleanup
                     time.sleep(1)
@@ -512,8 +524,8 @@ class Tuner:
                     LOGGER.error(f"training failure for hyperparameter tuning iteration {i + 1}\n{e}")
 
                 # Save results - MongoDB takes precedence
-                dataset_metrics[dataset] = metrics_i or {"fitness": 0.0}
-                all_fitness.append(dataset_metrics[dataset].get("fitness") or 0.0)
+                dataset_metrics[dataset] = metrics_i
+                all_fitness.append(metrics_i.get("fitness") or 0.0)
             fitness = sum(all_fitness) / len(all_fitness)
             result = self._result_record(
                 i + 1,
@@ -522,6 +534,8 @@ class Tuner:
                 dataset_metrics,
                 {dataset: str(s) for dataset, s in zip(dataset_names, save_dir)},
             )
+            if self._has_training_metrics(result, require_all=True):
+                n_successful += 1
             stop_after_iteration = False
             if self.mongodb:
                 self._save_to_mongodb(fitness, mutated_hyp, metrics, dataset_metrics, i + 1)
@@ -536,8 +550,9 @@ class Tuner:
             results = self._load_local_results()
             x = self._local_results_to_array(results)
             fitness = x[:, 0]  # first column
-            best_idx = fitness.argmax()
+            best_idx = self._best_result_index(results, fitness)
             best_result = results[best_idx]
+            n_attempted = (i + 1) - start  # iters tried in this invocation
             current_best_save_dirs = best_result.get("save_dirs", {})
             best_is_current = best_idx == i
             if best_is_current:
@@ -562,22 +577,42 @@ class Tuner:
             plot_tune_results(str(self.tune_file))
 
             # Save and print tune results
-            header = (
-                f"{self.prefix}{i + 1}/{iterations} iterations complete ✅ ({time.time() - t0:.2f}s)\n"
-                f"{self.prefix}Results saved to {colorstr('bold', self.tune_dir)}\n"
-                f"{self.prefix}Best fitness={fitness[best_idx]} observed at iteration {best_idx + 1}\n"
-                f"{self.prefix}Best fitness metrics are {self._best_metrics(best_result)}\n"
-                f"{self.prefix}Best fitness model is "
-                f"{self.tune_dir / 'weights' if len(best_result.get('datasets', {})) == 1 else 'not saved for multi-dataset tuning'}"
-            )
+            if n_successful == n_attempted:
+                status = "complete ✅"
+            elif n_successful == 0:
+                status = "complete (all failed) ❌"
+            else:
+                status = f"complete ({n_successful}/{n_attempted} succeeded) ⚠️"
+            has_valid_best = self._has_training_metrics(best_result)
+            header_lines = [
+                f"{self.prefix}{i + 1}/{iterations} iterations {status} ({time.time() - t0:.2f}s)",
+                f"{self.prefix}Results saved to {colorstr('bold', self.tune_dir)}",
+            ]
+            if has_valid_best:
+                header_lines.extend(
+                    [
+                        f"{self.prefix}Best fitness={fitness[best_idx]} observed at iteration {best_idx + 1}",
+                        f"{self.prefix}Best fitness metrics are {self._best_metrics(best_result)}",
+                        f"{self.prefix}Best fitness model is "
+                        f"{self.tune_dir / 'weights' if len(best_result.get('datasets', {})) == 1 else 'not saved for multi-dataset tuning'}",
+                    ]
+                )
+            header = "\n".join(header_lines)
             LOGGER.info("\n" + header)
-            data = {k: int(v) if k in CFG_INT_KEYS else float(v) for k, v in zip(self.space.keys(), x[best_idx, 1:])}
-            YAML.save(
-                self.tune_dir / "best_hyperparameters.yaml",
-                data=data,
-                header=remove_colorstr(header.replace(self.prefix, "# ")) + "\n",
-            )
-            YAML.print(self.tune_dir / "best_hyperparameters.yaml")
+            if not has_valid_best:
+                LOGGER.error(
+                    f"{self.prefix}No iterations produced training metrics; skipping best_hyperparameters.yaml"
+                )
+            else:
+                data = {
+                    k: int(v) if k in CFG_INT_KEYS else float(v) for k, v in zip(self.space.keys(), x[best_idx, 1:])
+                }
+                YAML.save(
+                    self.tune_dir / "best_hyperparameters.yaml",
+                    data=data,
+                    header=remove_colorstr(header.replace(self.prefix, "# ")) + "\n",
+                )
+                YAML.print(self.tune_dir / "best_hyperparameters.yaml")
             if stop_after_iteration:
                 LOGGER.info(
                     f"{self.prefix}Target iterations ({iterations}) reached in MongoDB ({total_mongo_iterations}). Stopping."

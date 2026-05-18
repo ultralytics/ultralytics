@@ -405,7 +405,7 @@ def check_apt_requirements(requirements):
 
 
 @TryExcept()
-def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=(), install=True, cmds=""):
+def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=(), install=True, cmds="", constrain=()):
     """Check if installed dependencies meet Ultralytics YOLO models requirements and attempt to auto-update if needed.
 
     Args:
@@ -415,6 +415,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         exclude (tuple): Tuple of package names to exclude from checking.
         install (bool): If True, attempt to auto-update packages that don't meet requirements.
         cmds (str): Additional commands to pass to the pip install command when auto-updating.
+        constrain (tuple | list): Extra version constraints always appended to the install command even if already
+            satisfied, preventing the resolver from upgrading those packages during install.
 
     Examples:
         >>> from ultralytics.utils.checks import check_requirements
@@ -488,6 +490,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         )
 
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
+    if s and constrain:  # append version constraints to prevent upgrades during install
+        s += " " + " ".join(f'"{c}"' for c in constrain)
     if s:
         if install and AUTOINSTALL:  # check environment variable
             # Note uv fails on arm64 macOS and Raspberry Pi runners

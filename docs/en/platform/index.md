@@ -6,25 +6,6 @@ keywords: Ultralytics Platform, YOLO, computer vision, model training, cloud dep
 
 # Ultralytics Platform
 
-<div align="center">
-<a href="https://docs.ultralytics.com/zh/platform/">中文</a> |
-<a href="https://docs.ultralytics.com/ko/platform/">한국어</a> |
-<a href="https://docs.ultralytics.com/ja/platform/">日本語</a> |
-<a href="https://docs.ultralytics.com/ru/platform/">Русский</a> |
-<a href="https://docs.ultralytics.com/de/platform/">Deutsch</a> |
-<a href="https://docs.ultralytics.com/fr/platform/">Français</a> |
-<a href="https://docs.ultralytics.com/es/platform/">Español</a> |
-<a href="https://docs.ultralytics.com/pt/platform/">Português</a> |
-<a href="https://docs.ultralytics.com/tr/platform/">Türkçe</a> |
-<a href="https://docs.ultralytics.com/vi/platform/">Tiếng Việt</a> |
-<a href="https://docs.ultralytics.com/ar/platform/">العربية</a>
-<br>
-<br>
-
-<a href="https://discord.com/invite/ultralytics"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a> <a href="https://community.ultralytics.com/"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a> <a href="https://www.reddit.com/r/ultralytics/"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
-
-</div>
-
 [Ultralytics Platform](https://platform.ultralytics.com) is a comprehensive end-to-end computer vision platform that streamlines the entire ML workflow from data preparation to model deployment. Built for teams and individuals who need production-ready [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) solutions without the infrastructure complexity.
 
 ![Ultralytics Platform Dataset Screenshot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/dataset-screenshot.avif)
@@ -66,7 +47,7 @@ graph LR
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Upload**   | Images (50MB), videos (1GB), and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON) with automatic processing                                                                                       |
 | **Annotate** | Manual tools for all 5 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM and YOLO models for detect, segment, and OBB (see [supported tasks](data/index.md#supported-tasks)) |
-| **Train**    | Cloud GPUs (20 on all plans + 3 Pro/Enterprise-only: H200 NVL, H200 SXM, B200), real-time metrics, project organization                                                                                      |
+| **Train**    | Cloud GPUs (22 on all plans + 2 Pro/Enterprise-only: B200, B300), real-time metrics, project organization                                                                                                    |
 | **Export**   | [17 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.; see [supported formats](train/models.md#supported-formats))                                                               |
 | **Deploy**   | 43 global regions with dedicated endpoints, scale-to-zero by default (single active instance), and monitoring                                                                                                |
 
@@ -74,7 +55,7 @@ graph LR
 
 - **Upload** images, videos, and dataset files to create training datasets
 - **Visualize** annotations with interactive overlays for all 5 YOLO task types (see [supported tasks](data/index.md#supported-tasks))
-- **Train** models on cloud GPUs (20 on all plans, 23 with Pro or Enterprise for H200 and B200) with real-time metrics
+- **Train** models on cloud GPUs (22 on all plans, 24 with Pro or Enterprise for B200 and B300) with real-time metrics
 - **Export** to [17 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.)
 - **Deploy** to 43 global regions with one-click dedicated endpoints
 - **Monitor** training progress, deployment health, and usage metrics
@@ -126,7 +107,7 @@ graph LR
 
 ### Model Training
 
-- **Cloud Training**: Train on cloud GPUs (20 on all plans, 23 with [Pro or Enterprise](account/billing.md#plans) for H200 and B200) with real-time metrics
+- **Cloud Training**: Train on cloud GPUs (22 on all plans, 24 with [Pro or Enterprise](account/billing.md#plans) for B200 and B300) with real-time metrics
 - **Remote Training**: Train anywhere and stream metrics to the platform (W&B-style)
 - **Project Organization**: Group related models, compare experiments, track activity
 - **17 Export Formats**: ONNX, TensorRT, CoreML, TFLite, and more (see [supported formats](train/models.md#supported-formats))
@@ -251,7 +232,7 @@ Once deployed, call your endpoint from any language:
     | Concurrent Trainings | 3              | 10                      | Unlimited      |
     | Deployments          | 3              | 10                      | Unlimited      |
     | Storage              | 100 GB         | 500 GB                  | Unlimited      |
-    | Cloud GPU Types      | 20             | 23 (incl. H200 / B200)  | 23             |
+    | Cloud GPU Types      | 22             | 24 (incl. B200 / B300)  | 24             |
     | Teams                | -              | Up to 5 members         | Up to 50       |
     | Support              | Community      | Priority                | Dedicated      |
 

@@ -839,6 +839,11 @@ def smart_value(v: str) -> Any:
         try:
             return ast.literal_eval(v)
         except Exception:
+            name, _, attr = v.rpartition(".")
+            if (module := sys.modules.get(name)) and attr.isupper():
+                value = getattr(module, attr, None)
+                if isinstance(value, (int, float)):
+                    return value
             return v
 
 

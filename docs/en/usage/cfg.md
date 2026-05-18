@@ -45,7 +45,7 @@ Ultralytics commands use the following syntax:
 
 Where:
 
-- `TASK` (optional) is one of ([detect](../tasks/detect.md), [segment](../tasks/segment.md), [classify](../tasks/classify.md), [pose](../tasks/pose.md), [obb](../tasks/obb.md))
+- `TASK` (optional) is one of ([detect](../tasks/detect.md), [segment](../tasks/segment.md), [classify](../tasks/classify.md), [pose](../tasks/pose.md), [obb](../tasks/obb.md), [semseg](../tasks/semseg.md))
 - `MODE` (required) is one of ([train](../modes/train.md), [val](../modes/val.md), [predict](../modes/predict.md), [export](../modes/export.md), [track](../modes/track.md), [benchmark](../modes/benchmark.md))
 - `ARGS` (optional) are `arg=value` pairs like `imgsz=640` that override defaults.
 
@@ -60,10 +60,11 @@ Ultralytics YOLO models can perform a variety of computer vision tasks, includin
 - **Classify**: [Image classification](https://docs.ultralytics.com/tasks/classify) predicts the class label of an input image.
 - **Pose**: [Pose estimation](https://docs.ultralytics.com/tasks/pose) identifies objects and estimates their keypoints in an image or video.
 - **OBB**: [Oriented Bounding Boxes](https://docs.ultralytics.com/tasks/obb) uses rotated bounding boxes, suitable for satellite or medical imagery.
+- **Semseg**: [Semantic segmentation](https://docs.ultralytics.com/tasks/semseg) assigns a class label to every pixel in an image for dense scene understanding.
 
-| Argument | Default    | Description                                                                                                                                                                                                                                                                                                                        |
-| -------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `task`   | `'detect'` | Specifies the YOLO task: `detect` for [object detection](https://www.ultralytics.com/glossary/object-detection), `segment` for segmentation, `classify` for classification, `pose` for pose estimation, and `obb` for oriented bounding boxes. Each task is tailored to specific outputs and problems in image and video analysis. |
+| Argument | Default    | Description                                                                                                                                                                                                                                                                                                                                                                     |
+| -------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `task`   | `'detect'` | Specifies the YOLO task: `detect` for [object detection](https://www.ultralytics.com/glossary/object-detection), `segment` for instance segmentation, `classify` for classification, `pose` for pose estimation, `obb` for oriented bounding boxes, and `semseg` for semantic segmentation. Each task is tailored to specific outputs and problems in image and video analysis. |
 
 [Tasks Guide](../tasks/index.md){ .md-button }
 

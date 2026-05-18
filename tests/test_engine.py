@@ -12,7 +12,7 @@ from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.engine.trainer import BaseTrainer
-from ultralytics.models.yolo import classify, detect, obb, pose, segment
+from ultralytics.models.yolo import classify, detect, obb, pose, segment, semseg
 from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
 
@@ -60,6 +60,14 @@ def test_export():
         ),
         (obb.OBBTrainer, obb.OBBValidator, obb.OBBPredictor, "dota8.yaml", "yolo26n-obb.yaml", None),
         (pose.PoseTrainer, pose.PoseValidator, pose.PosePredictor, "coco8-pose.yaml", "yolo26n-pose.yaml", None),
+        (
+            semseg.SemanticSegmentationTrainer,
+            semseg.SemanticSegmentationValidator,
+            semseg.SemanticSegmentationPredictor,
+            "cityscapes8.yaml",
+            "yolo26n-semseg.yaml",
+            None,
+        ),
     ],
 )
 def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):

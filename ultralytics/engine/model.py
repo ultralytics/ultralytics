@@ -368,6 +368,7 @@ class Model(torch.nn.Module):
         self._check_is_pytorch_model()
         if isinstance(weights, (str, Path)):
             self.overrides["pretrained"] = weights  # remember the weights for DDP training
+            self.ckpt_path = weights  # remember source path so resume=True can locate the checkpoint
             weights, self.ckpt = load_checkpoint(weights)
         self.model.load(weights)
         return self

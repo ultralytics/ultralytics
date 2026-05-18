@@ -220,7 +220,7 @@ class SemanticSegmentationValidator(DetectionValidator):
         dataset_cls = SemsegDataset if self.data.get("masks_dir") else PolygonSemsegDataset
         return dataset_cls(
             img_path=img_path,
-            imgsz=self.args.imgsz * 2,
+            imgsz=self.args.imgsz,
             augment=False,
             hyp=self.args,
             cache=self.args.cache or None,

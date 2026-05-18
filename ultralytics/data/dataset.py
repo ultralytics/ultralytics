@@ -43,7 +43,6 @@ from .utils import (
     verify_image,
     verify_image_label,
     verify_image_mask,
-    add_polygon_background,
 )
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models

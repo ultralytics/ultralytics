@@ -839,17 +839,6 @@ class SemsegDataset(YOLODataset):
             (Compose): Composed transforms.
         """
         transforms = super().build_transforms(hyp)
-        if self.augment:
-            pass
-            # transforms.insert(
-            #     -1,
-            #     PhotoMetricDistortion(
-            #         brightness_delta=32,
-            #         contrast_range=(0.5, 1.5),
-            #         saturation_range=(0.5, 1.5),
-            #         hue_delta=18,
-            #     ),
-            # )
         transforms[-1] = SemanticFormat()  # replace the last transform with SemanticFormat
         return transforms
 

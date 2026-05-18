@@ -14,7 +14,7 @@ from ultralytics.models import yolo
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import SemanticSegmentationModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-from ultralytics.utils.plotting import colors
+from ultralytics.utils.plotting import colors, plt_settings
 
 
 class SemanticSegmentationTrainer(DetectionTrainer):
@@ -82,6 +82,7 @@ class SemanticSegmentationTrainer(DetectionTrainer):
         """
         pass
 
+    @plt_settings()
     def plot_training_labels(self):
         """Plot training labels class distribution for semantic segmentation.
 

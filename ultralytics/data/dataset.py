@@ -851,7 +851,7 @@ class SemsegDataset(YOLODataset):
             #     )
             # )
         else:
-            nc = self.data.get("nc", len(self.data.get("names", [])))
+            self.data.get("nc", len(self.data.get("names", [])))
             transforms.append(
                 LetterBox(
                     new_shape=(self.imgsz, self.imgsz),

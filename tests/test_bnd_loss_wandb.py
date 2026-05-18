@@ -23,10 +23,8 @@ from __future__ import annotations
 import sys
 import types
 from pathlib import Path
-from types import SimpleNamespace
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock
 
-import pytest
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -94,7 +92,7 @@ def test_loss_names_contains_bnd_loss():
 
 
 def test_label_loss_items_train_keys():
-    """label_loss_items with prefix='train' must include train/bnd_loss."""
+    """Label_loss_items with prefix='train' must include train/bnd_loss."""
     trainer = _make_mock_trainer()
     result = trainer.label_loss_items(trainer.tloss, prefix="train")
 
@@ -103,7 +101,7 @@ def test_label_loss_items_train_keys():
 
 
 def test_label_loss_items_val_keys():
-    """label_loss_items with prefix='val' must include val/bnd_loss."""
+    """Label_loss_items with prefix='val' must include val/bnd_loss."""
     trainer = _make_mock_trainer()
     result = trainer.label_loss_items(prefix="val")  # no loss_items → returns key list
 
@@ -153,7 +151,7 @@ def _build_wb_module():
 
 
 def test_on_train_epoch_end_logs_bnd_loss():
-    """on_train_epoch_end must pass train/bnd_loss to wb.run.log."""
+    """On_train_epoch_end must pass train/bnd_loss to wb.run.log."""
     wb_mod, wb_stub = _build_wb_module()
     run_mock = MagicMock()
     wb_stub.run = run_mock
@@ -184,7 +182,7 @@ def test_on_train_epoch_end_logs_bnd_loss():
 
 
 def test_on_fit_epoch_end_logs_val_bnd_loss():
-    """on_fit_epoch_end must commit trainer.metrics, which includes val/bnd_loss."""
+    """On_fit_epoch_end must commit trainer.metrics, which includes val/bnd_loss."""
     wb_mod, wb_stub = _build_wb_module()
     run_mock = MagicMock()
     wb_stub.run = run_mock
@@ -204,9 +202,7 @@ def test_on_fit_epoch_end_logs_val_bnd_loss():
     for d in logged_dicts:
         merged.update(d)
 
-    assert "val/bnd_loss" in merged, (
-        f"val/bnd_loss not found in WandB log calls.\nLogged keys: {list(merged.keys())}"
-    )
+    assert "val/bnd_loss" in merged, f"val/bnd_loss not found in WandB log calls.\nLogged keys: {list(merged.keys())}"
 
 
 # ---------------------------------------------------------------------------
@@ -215,7 +211,7 @@ def test_on_fit_epoch_end_logs_val_bnd_loss():
 
 
 def test_bnd_loss_zero_when_boundary_weight_disabled():
-    """bnd_loss must be logged as 0.0 when seg_boundary_weight=0 (feature disabled)."""
+    """Bnd_loss must be logged as 0.0 when seg_boundary_weight=0 (feature disabled)."""
     # Simulate loss tensor with bnd_loss=0 (boundary_weight=0 default)
     values = [0.10, 0.20, 0.05, 0.08, 0.00, 0.00]  # bnd_loss=0
     trainer = _make_mock_trainer(tloss=_make_loss_tensor(values))
@@ -231,7 +227,7 @@ def test_bnd_loss_zero_when_boundary_weight_disabled():
 
 
 def test_bnd_loss_positive_when_boundary_weight_enabled():
-    """bnd_loss must be logged as a positive value when seg_boundary_weight>0."""
+    """Bnd_loss must be logged as a positive value when seg_boundary_weight>0."""
     values = [0.10, 0.20, 0.05, 0.08, 0.00, 0.03]  # bnd_loss=0.03
     trainer = _make_mock_trainer(tloss=_make_loss_tensor(values))
     result = trainer.label_loss_items(trainer.tloss, prefix="train")

@@ -447,7 +447,7 @@ class Mosaic(BaseMixTransform):
         >>> augmented_labels = mosaic_aug(original_labels)
     """
 
-    def __init__(self, dataset, imgsz: int = 640, p: float = 1.0, n: int = 4, ignore_label: int = 255):
+    def __init__(self, dataset, imgsz: int = 640, p: float = 1.0, n: int = 4):
         """Initialize the Mosaic augmentation object.
 
         This class performs mosaic augmentation by combining multiple (4 or 9) images into a single mosaic image. The
@@ -458,7 +458,6 @@ class Mosaic(BaseMixTransform):
             imgsz (int): Image size (height and width) after mosaic pipeline of a single image.
             p (float): Probability of applying the mosaic augmentation. Must be in the range 0-1.
             n (int): The grid size, either 4 (for 2x2) or 9 (for 3x3).
-            ignore_label (int): Label value to use for padded/empty regions in the semantic mask.
         """
         assert 0 <= p <= 1.0, f"The probability should be in range [0, 1], but got {p}."
         assert n in {4, 9}, "grid must be equal to 4 or 9."
@@ -466,7 +465,6 @@ class Mosaic(BaseMixTransform):
         self.imgsz = imgsz
         self.border = (-imgsz // 2, -imgsz // 2)  # width, height
         self.n = n
-        self.ignore_label = ignore_label
         self.buffer_enabled = self.dataset.cache != "ram"
 
     def get_indexes(self):
@@ -657,7 +655,7 @@ class Mosaic(BaseMixTransform):
 
         layout = params["layout"]
         if self.n == 4:
-            mask4 = np.full((self.imgsz * 2, self.imgsz * 2), self.ignore_label, dtype=np.uint8)
+            mask4 = np.full((self.imgsz * 2, self.imgsz * 2), 255, dtype=np.uint8)
             for item in layout:
                 labels_patch = item["labels_patch"]
                 mask = labels_patch.get("semantic_mask")
@@ -668,7 +666,7 @@ class Mosaic(BaseMixTransform):
                 mask4[y1a:y2a, x1a:x2a] = mask[y1b:y2b, x1b:x2b]
             labels["semantic_mask"] = mask4
         elif self.n == 9:
-            mask9 = np.full((self.imgsz * 3, self.imgsz * 3), self.ignore_label, dtype=np.uint8)
+            mask9 = np.full((self.imgsz * 3, self.imgsz * 3), 255, dtype=np.uint8)
             for item in layout:
                 labels_patch = item["labels_patch"]
                 mask = labels_patch.get("semantic_mask")
@@ -1748,7 +1746,6 @@ class LetterBox(BaseTransform):
         stride: int = 32,
         padding_value: int = 114,
         interpolation: int = cv2.INTER_LINEAR,
-        ignore_label: int = 255,
     ):
         """Initialize LetterBox object for resizing and padding images.
 
@@ -1764,7 +1761,6 @@ class LetterBox(BaseTransform):
             stride (int): Stride of the model (e.g., 32 for YOLOv5).
             padding_value (int): Value for padding the image. Default is 114.
             interpolation (int): Interpolation method for resizing. Default is cv2.INTER_LINEAR.
-            ignore_label (int): Label value used to pad the semantic mask. Default is 255.
         """
         self.new_shape = new_shape
         self.auto = auto
@@ -1774,7 +1770,6 @@ class LetterBox(BaseTransform):
         self.center = center  # Put the image in the middle or top-left
         self.padding_value = padding_value
         self.interpolation = interpolation
-        self.ignore_label = ignore_label
 
     def __call__(self, labels: dict[str, Any] | None = None, image: np.ndarray = None) -> dict[str, Any] | np.ndarray:
         """Resize and pad an image for object detection, instance segmentation, or pose estimation tasks.
@@ -1915,7 +1910,7 @@ class LetterBox(BaseTransform):
             mask = cv2.resize(mask, new_unpad, interpolation=cv2.INTER_NEAREST)
         top, bottom = params["top"], params["bottom"]
         left, right = params["left"], params["right"]
-        mask = cv2.copyMakeBorder(mask, top, bottom, left, right, cv2.BORDER_CONSTANT, value=self.ignore_label)
+        mask = cv2.copyMakeBorder(mask, top, bottom, left, right, cv2.BORDER_CONSTANT, value=255)
         labels["semantic_mask"] = mask
         return labels
 
@@ -1997,11 +1992,6 @@ class CopyPaste(BaseMixTransform):
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
         assert mode in {"flip", "mixup"}, f"Expected `mode` to be `flip` or `mixup`, but got {mode}."
         self.mode = mode
-        if p > 0 and dataset is not None and hasattr(dataset, "ignore_label"):
-            LOGGER.warning(
-                "WARNING ⚠️ CopyPaste augmentation is not supported for semantic segmentation and will be skipped. "
-                "Set copy_paste=0 in your hyperparameters to silence this warning."
-            )
 
     def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
         """Apply Copy-Paste augmentation to an image and its labels."""

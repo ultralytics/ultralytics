@@ -705,7 +705,6 @@ class SemsegDataset(YOLODataset):
             **kwargs (Any): Additional keyword arguments for the parent class.
         """
         self.data = data or {}
-        self.ignore_label = 255
         self.label_mapping = self._parse_label_mapping(self.data.get("label_mapping"))
         self.mask_files = []
         super().__init__(*args, data=data, **kwargs)
@@ -722,9 +721,9 @@ class SemsegDataset(YOLODataset):
             src = int(src)
             if isinstance(dst, str):
                 dst = dst.strip()
-                dst = self.ignore_label if dst == "ignore_label" else int(dst)
+                dst = 255 if dst == "ignore_label" else int(dst)
             elif dst is None:
-                dst = self.ignore_label
+                dst = 255
             else:
                 dst = int(dst)
             normalized[src] = dst
@@ -822,7 +821,7 @@ class SemsegDataset(YOLODataset):
         """Load and map a semantic mask from source mask file."""
         mask = cv2.imread(self.labels[index]["mask_file"], cv2.IMREAD_GRAYSCALE)
         if mask is None:
-            return np.full(image_shape, self.ignore_label, dtype=np.uint8)
+            return np.full(image_shape, 255, dtype=np.uint8)
         if int(self.data.get("nc", 0)) == 1:
             # cv2 expands 1-bit PNG (PIL mode "1") to 8-bit as {0, 255}; remap to {0, 1} for binary masks.
             mask[mask == 255] = 1
@@ -860,7 +859,6 @@ class SemsegDataset(YOLODataset):
                     scaleup=False,
                     center=False,
                     stride=self.stride,
-                    ignore_label=self.ignore_label if nc > 1 else 0,
                 )
             )
         transforms.append(SemanticFormat())
@@ -926,7 +924,6 @@ class PolygonSemsegDataset(YOLODataset):
         """
         nc = (data or {}).get("nc") or len((data or {}).get("names", {}))
         self.bg_class_idx = data.get("bg_class_idx", max(int(nc) - 1, 0))
-        self.ignore_label = 255
         super().__init__(*args, data=data, **kwargs)
 
     def build_transforms(self, hyp=None):

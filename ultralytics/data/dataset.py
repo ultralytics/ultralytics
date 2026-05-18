@@ -927,27 +927,6 @@ class PolygonSemsegDataset(SemsegDataset, YOLODataset):
             out[fg] = cls_arr[inst[fg] - 1].astype(np.uint8)
         return out
 
-    # def get_image_and_label(self, index):
-    # """Get image, label and semantic mask for the given index.
-    #
-    # Overrides parent to include semantic mask so that Mosaic/CopyPaste mix images
-    # also have their masks loaded.
-    #
-    # Args:
-    #     index (int): Dataset index.
-    #
-    # Returns:
-    #     (dict): Label dict with 'img', 'semantic_mask', and metadata.
-    # """
-    # label = super().get_image_and_label(index)
-    # h, w = label["img"].shape[:2]
-    # mask = self.load_mask(index, image_shape=(h, w))
-    # # Resize mask to match the resized image dimensions
-    # if mask.shape[:2] != (h, w):
-    #     mask = cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
-    # label["semantic_mask"] = mask
-    # return label
-
 
 class ClassificationDataset:
     """Dataset class for image classification tasks wrapping torchvision ImageFolder functionality.

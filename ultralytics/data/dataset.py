@@ -43,6 +43,7 @@ from .utils import (
     verify_image,
     verify_image_label,
     verify_image_mask,
+    add_polygon_background,
 )
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models
@@ -297,17 +298,18 @@ class YOLODataset(BaseDataset):
         values = list(zip(*[list(b.values()) for b in batch]))
         for i, k in enumerate(keys):
             value = values[i]
-            if k in {"img", "text_feats", "sem_masks"}:
+            if k in {"img", "text_feats", "semantic_mask"}:
                 value = torch.stack(value, 0)
             elif k == "visuals":
                 value = torch.nn.utils.rnn.pad_sequence(value, batch_first=True)
             if k in {"masks", "keypoints", "bboxes", "cls", "segments", "obb"}:
                 value = torch.cat(value, 0)
             new_batch[k] = value
-        new_batch["batch_idx"] = list(new_batch["batch_idx"])
-        for i in range(len(new_batch["batch_idx"])):
-            new_batch["batch_idx"][i] += i  # add target image index for build_targets()
-        new_batch["batch_idx"] = torch.cat(new_batch["batch_idx"], 0)
+        if "batch_idx" in new_batch:
+            new_batch["batch_idx"] = list(new_batch["batch_idx"])
+            for i in range(len(new_batch["batch_idx"])):
+                new_batch["batch_idx"][i] += i  # add target image index for build_targets()
+            new_batch["batch_idx"] = torch.cat(new_batch["batch_idx"], 0)
         return new_batch
 
 
@@ -829,23 +831,6 @@ class SemsegDataset(YOLODataset):
             mask = self.convert_label(mask, inverse=False)
         return mask.astype(np.uint8, copy=False)
 
-    def update_labels_info(self, label):
-        """Update label info — minimal for semantic segmentation.
-
-        Args:
-            label (dict): Label dictionary.
-
-        Returns:
-            (dict): Updated label with Instances object.
-        """
-        from ultralytics.utils.instance import Instances
-
-        bboxes = label.pop("bboxes", np.zeros((0, 4), dtype=np.float32))
-        label["instances"] = Instances(
-            bboxes, segments=np.zeros((0, 1000, 2), dtype=np.float32), bbox_format="xywh", normalized=True
-        )
-        return label
-
     def build_transforms(self, hyp=None):
         """Build transforms for semantic segmentation.
 
@@ -881,11 +866,6 @@ class SemsegDataset(YOLODataset):
             )
         transforms.append(SemanticFormat())
         return Compose(transforms)
-
-    def close_mosaic(self, hyp) -> None:
-        """Disable mosaic augmentation and rebuild transforms."""
-        hyp.mosaic = 0.0
-        self.transforms = self.build_transforms(hyp)
 
     def convert_label(self, label, inverse=False):
         """Convert label values using the dataset's label mapping.
@@ -927,54 +907,6 @@ class SemsegDataset(YOLODataset):
         label["semantic_mask"] = mask
         return label
 
-    @staticmethod
-    def collate_fn(batch):
-        """Collate semantic segmentation batch into tensors.
-
-        Args:
-            batch (list[dict]): List of sample dictionaries.
-
-        Returns:
-            (dict): Collated batch with stacked tensors.
-        """
-        new_batch = {}
-        # Only collate keys that all samples share (mosaic vs non-mosaic may differ)
-        keys = set(batch[0].keys())
-        for b in batch[1:]:
-            keys &= set(b.keys())
-        for k in keys:
-            values = [b[k] for b in batch]
-            if k in {"img", "semantic_mask"}:
-                new_batch[k] = torch.stack(values, 0)
-            else:
-                new_batch[k] = values
-        # Add empty cls tensor for compatibility with BaseTrainer progress logging
-        new_batch["cls"] = torch.zeros(len(batch))
-        return new_batch
-
-
-def add_polygon_background(data: dict) -> dict:
-    """Set up the background class for the polygon-based semseg path (yaml without 'masks_dir').
-
-    - nc > 1: appends a 'background' class at id=nc and bumps data['nc'] to nc+1; polygon
-    cls values are kept as foreground ids.
-    - nc == 1: keeps nc=1 (binary segmentation). Polygon rasterization
-    yields a {0=bg, 1=fg} mask regardless of the label cls value.
-    """
-    if data.get("masks_dir") or data.get("_polygon_bg_added"):
-        return data
-    nc = int(data.get("nc") or len(data.get("names") or {}))
-    if nc == 1:  # binary: bg=0, fg=1 (implicit); model uses BCE on a single output channel
-        data["bg_class_idx"] = 0
-    else:
-        names = dict(data.get("names") or {})
-        names[nc] = "background"
-        data["bg_class_idx"] = nc
-        data["nc"] = nc + 1
-        data["names"] = names
-    data["_polygon_bg_added"] = True
-    return data
-
 
 class PolygonSemsegDataset(YOLODataset):
     """Semantic segmentation dataset that rasterizes YOLO polygon labels into masks on the fly.
@@ -997,18 +929,6 @@ class PolygonSemsegDataset(YOLODataset):
         self.bg_class_idx = data.get("bg_class_idx", max(int(nc) - 1, 0))
         self.ignore_label = 255
         super().__init__(*args, data=data, **kwargs)
-
-    @staticmethod
-    def collate_fn(batch):
-        """Collate semantic segmentation batch into tensors.
-
-        Args:
-            batch (list[dict]): List of sample dictionaries.
-
-        Returns:
-            (dict): Collated batch with stacked tensors.
-        """
-        return SemsegDataset.collate_fn(batch)
 
     def build_transforms(self, hyp=None):
         """Build transforms for semantic segmentation.

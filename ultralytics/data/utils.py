@@ -864,3 +864,26 @@ def save_dataset_cache_file(prefix: str, path: Path, x: dict, version: str):
             LOGGER.warning(f"{prefix}WARNING ⚠️ Failed to save cache to {path}: {e}")
     else:
         LOGGER.warning(f"{prefix}Cache directory {path.parent} is not writable, cache not saved.")
+
+
+def add_polygon_background(data: dict) -> dict:
+    """Set up the background class for the polygon-based semseg path (yaml without 'masks_dir').
+
+    - nc > 1: appends a 'background' class at id=nc and bumps data['nc'] to nc+1; polygon
+    cls values are kept as foreground ids.
+    - nc == 1: keeps nc=1 (binary segmentation). Polygon rasterization
+    yields a {0=bg, 1=fg} mask regardless of the label cls value.
+    """
+    if data.get("masks_dir") or data.get("_polygon_bg_added"):
+        return data
+    nc = int(data.get("nc") or len(data.get("names") or {}))
+    if nc == 1:  # binary: bg=0, fg=1 (implicit); model uses BCE on a single output channel
+        data["bg_class_idx"] = 0
+    else:
+        names = dict(data.get("names") or {})
+        names[nc] = "background"
+        data["bg_class_idx"] = nc
+        data["nc"] = nc + 1
+        data["names"] = names
+    data["_polygon_bg_added"] = True
+    return data

@@ -341,7 +341,9 @@ class BaseTrainer:
         self.stride = gs  # for multiscale training
 
         if self.world_size > 1:
-            self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
+            self.model = nn.parallel.DistributedDataParallel(
+                self.model, device_ids=[RANK], find_unused_parameters=True, broadcast_buffers=False
+            )
 
         # Batch size
         if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size
@@ -519,6 +521,8 @@ class BaseTrainer:
             # Validation
             final_epoch = epoch + 1 >= self.epochs
             if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
+                if RANK != -1:
+                    dist.barrier()  # sync all ranks before validation to prevent NCCL collective mismatch
                 self._clear_memory(None if self.device.type == "mps" else 0.5)  # prevent VRAM spike
                 self.metrics, self.fitness = self.validate()
 

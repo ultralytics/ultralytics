@@ -67,8 +67,9 @@ The `train` and `val` fields point to the training and validation images. Each a
     === "train.txt"
 
         ```text
-        ./images/im0.jpg # ./ resolves next to train.txt -> datasets/coco8-seg/images/im0.jpg
-        /data/shared/im1.jpg # absolute path, used as-is
+        ./images/im0.jpg
+        ./images/im1.jpg
+        /data/shared/im2.jpg
         ```
 
 `names` is a dictionary of class names. The order of the names should match the order of the object class indices in the YOLO dataset files.

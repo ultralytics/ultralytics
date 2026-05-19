@@ -55,8 +55,9 @@ Each of `train`, `val`, and `test` accepts a directory, a list of directories, o
     === "train.txt"
 
         ```text
-        ./images/im0.jpg # ./ resolves next to train.txt -> datasets/dota8/images/im0.jpg
-        /data/shared/im1.jpg # absolute path, used as-is
+        ./images/im0.jpg
+        ./images/im1.jpg
+        /data/shared/im2.jpg
         ```
 
 ## Usage

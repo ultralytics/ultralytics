@@ -37,8 +37,9 @@ Each of `train`, `val`, and `test` accepts a directory, a list of directories, o
     === "train.txt"
 
         ```text
-        ./images/im0.jpg # ./ resolves next to train.txt -> datasets/coco8/images/im0.jpg
-        /data/shared/im1.jpg # absolute path, used as-is
+        ./images/im0.jpg
+        ./images/im1.jpg
+        /data/shared/im2.jpg
         ```
 
 Labels for this format should be exported to YOLO format with one `*.txt` file per image. If there are no objects in an image, no `*.txt` file is required. The `*.txt` file should be formatted with one row per object in `class x_center y_center width height` format. Box coordinates must be in **normalized xywh** format (from 0 to 1). If your boxes are in pixels, you should divide `x_center` and `width` by image width, and `y_center` and `height` by image height. Class numbers should be zero-indexed (start with 0).

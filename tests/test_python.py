@@ -41,6 +41,12 @@ from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
 
 
+def skip_rpi_semseg():
+    """Skip semantic segmentation tests on Raspberry Pi due to memory constraints."""
+    if IS_RASPBERRYPI:
+        pytest.skip("Semantic segmentation tests are skipped on Raspberry Pi due to memory constraints.")
+
+
 def test_model_forward():
     """Test the forward pass of the YOLO model."""
     model = YOLO(CFG)
@@ -112,6 +118,8 @@ def test_predict_csv_single_row(tmp_path):
 @pytest.mark.parametrize("model_name", MODELS)
 def test_predict_img(model_name):
     """Test YOLO model predictions on various image input types and sources, including online images."""
+    if IS_RASPBERRYPI and model_name == "yolo26n-sem.pt":
+        skip_rpi_semseg()
     channels = 1 if model_name == "yolo11n-grayscale.pt" else 3
     model = YOLO(WEIGHTS_DIR / model_name)
     im = cv2.imread(str(SOURCE), flags=cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR)  # uint8 NumPy array
@@ -135,6 +143,8 @@ def test_predict_img(model_name):
 @pytest.mark.parametrize("model", MODELS)
 def test_predict_visualize(model):
     """Test model prediction methods with 'visualize=True' to generate prediction visualizations."""
+    if IS_RASPBERRYPI and model == "yolo26n-sem.pt":
+        skip_rpi_semseg()
     YOLO(WEIGHTS_DIR / model)(SOURCE, imgsz=32, visualize=True)
 
 
@@ -223,6 +233,8 @@ def test_track_stream(model, tmp_path):
 @pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)
 def test_val(task: str, weight: str, data: str) -> None:
     """Test the validation mode of the YOLO model."""
+    if IS_RASPBERRYPI and task == "semseg":
+        skip_rpi_semseg()
     model = YOLO(weight)
     for plots in {True, False}:  # Test both cases i.e. plots=True and plots=False
         metrics = model.val(data=data, imgsz=32, plots=plots)
@@ -307,6 +319,8 @@ def test_predict_callback_and_setup():
 @pytest.mark.parametrize("model", MODELS)
 def test_results(model: str, tmp_path):
     """Test YOLO model results processing and output in various formats."""
+    if IS_RASPBERRYPI and model == "yolo26n-sem.pt":
+        skip_rpi_semseg()
     im = "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/im/boats.jpg" if model == "yolo26n-obb.pt" else SOURCE
     is_semseg = "semseg" in model
     results = YOLO(WEIGHTS_DIR / model)([im, im], imgsz=160)
@@ -878,6 +892,8 @@ def test_multichannel():
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
     """Test YOLO model grayscale training, validation, and prediction functionality."""
+    if IS_RASPBERRYPI and task == "semseg":
+        skip_rpi_semseg()
     if task == "classify":  # not support grayscale classification yet
         return
     grayscale_data = tmp_path / f"{Path(data).stem}-grayscale.yaml"
@@ -902,6 +918,7 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
 
 def test_semseg_polygon_data():
     """Test YOLO semantic segmentation model with polygon data."""
+    skip_rpi_semseg()
     model = YOLO("yolo26n-sem.pt")
     model.train(data="coco8-seg.yaml", epochs=1, imgsz=32, close_mosaic=1)
     model.val(data="coco8-seg.yaml")

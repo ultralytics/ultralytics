@@ -908,6 +908,10 @@ class PolygonSemsegDataset(SemsegDataset, YOLODataset):
         """Parse YOLO polygon .txt labels."""
         return YOLODataset.get_labels(self)
 
+    def cache_labels(self, path: Path = Path("./labels.cache")) -> dict[str, Any]:
+        """Cache polygon labels via YOLODataset to keep the 5-tuple `results` format expected by get_labels."""
+        return YOLODataset.cache_labels(self, path)
+
     def load_mask(self, index: int, image_shape: tuple[int, int] | None = None) -> np.ndarray:
         """Rasterize this image's polygons into a (H, W) uint8 semantic mask, bg = self.bg_class_idx."""
         h, w = image_shape

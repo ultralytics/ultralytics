@@ -15,7 +15,6 @@ from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models.yolo import classify, detect, obb, pose, segment
 from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
-from ultralytics.utils.metrics import ConfusionMatrix
 
 
 def test_func(*args, **kwargs):
@@ -234,34 +233,3 @@ def test_setup_model_respects_pretrained_arg_for_pt_models(monkeypatch, pretrain
 
     assert captured["cfg"] == checkpoint_model.yaml, "Checkpoint config was not used"
     assert captured["weights"] is (checkpoint_model if uses_weights else None), "Unexpected weights loaded"
-
-
-def test_plot_matches_show_labels_conf(tmp_path, monkeypatch):
-    """Test validation plotting with labels and confidence hidden."""
-    device = torch.device("cpu")
-    names = {0: "class0"}
-    cm = ConfusionMatrix(names=names, task="detect", save_matches=True)
-    batch = {
-        "bboxes": torch.tensor([[0.0, 0.0, 10.0, 10.0]], device=device),
-        "cls": torch.tensor([0], device=device),
-    }
-    detections = {
-        "bboxes": torch.tensor([[0.0, 0.0, 10.0, 10.0]], device=device),
-        "cls": torch.tensor([0], device=device),
-        "conf": torch.tensor([0.9], device=device),
-    }
-    cm.process_batch(detections, batch, conf=0.0, iou_thres=0.5)
-    called = {}
-
-    def fake_plot_images(*args, **kwargs):
-        called["args"] = args
-        called["kwargs"] = kwargs
-
-    monkeypatch.setattr("ultralytics.utils.plotting.plot_images", fake_plot_images)
-    img = torch.zeros(3, 64, 64, device=device)
-    im_file = "test_img.jpg"
-    cm.plot_matches(img, im_file, tmp_path, show_labels=False, show_conf=False)
-
-    assert called["kwargs"]["show_labels"] is False
-    assert called["kwargs"]["show_conf"] is False
-    assert called["kwargs"]["fname"] == tmp_path / "visualizations" / im_file

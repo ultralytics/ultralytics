@@ -250,8 +250,8 @@ def _log_callbacks(callbacks_list: List[Dict[str, Union[str, Callable]]], instan
     if all("callback_name" in cb for cb in callbacks_list if cb):
         _cb_names = ", ".join(str(cb["callback_name"]) for cb in callbacks_list if cb)
         if not _cb_names:
-            # If no callbacks are added, log a warning instead of an info message.
-            LOGGER.warning(
+            # If no callbacks are added, log a debug message instead of an info/warning message.
+            LOGGER.debug(
                 f"{colorstr('bold', 'yellow', 'No integration callbacks attached to ')} "
                 f"`{colorstr('bold', 'blue', instance.__class__.__name__)}`. "
                 f"Please ensure that integration callback modules are properly defined and imported."

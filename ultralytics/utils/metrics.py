@@ -506,13 +506,18 @@ class ConfusionMatrix(DataExportMixin):
 
     @TryExcept(msg="ConfusionMatrix plot failure")
     @plt_settings()
-    def plot(self, normalize: bool = True, save_dir: str = "", on_plot=None):
+    def plot(self, normalize: bool = True, save_dir: str = "", on_plot=None, filter_empty: bool = True, show_values: bool | None = None):
         """Plot the confusion matrix using matplotlib and save it to a file.
 
         Args:
             normalize (bool, optional): Whether to normalize the confusion matrix.
             save_dir (str, optional): Directory where the plot will be saved.
             on_plot (callable, optional): An optional callback to pass plots path and data when they are rendered.
+            filter_empty (bool, optional): If True (default), suppress rows and columns whose ground-truth count AND
+                predicted count are both zero. Useful when evaluating on a subset of classes.
+            show_values (bool | None, optional): Whether to annotate each cell with its numeric value.
+                If None (default), values are shown automatically when the (possibly filtered) matrix has fewer than
+                30 classes.
         """
         import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
 
@@ -521,26 +526,42 @@ class ConfusionMatrix(DataExportMixin):
 
         fig, ax = plt.subplots(1, 1, figsize=(12, 9))
         names, n = list(self.names.values()), self.nc
+        downsample_idx = slice(None)  # identity slice; overwritten when nc >= 100
         if self.nc >= 100:  # downsample for large class count
             k = max(2, self.nc // 60)  # step size for downsampling, always > 1
             keep_idx = slice(None, None, k)  # create slice instead of array
+            downsample_idx = keep_idx  # save for filter_empty raw-count computation
             names = names[keep_idx]  # slice class names
             array = array[keep_idx, :][:, keep_idx]  # slice matrix rows and cols
             n = (self.nc + k - 1) // k  # number of retained classes
         nc = n if self.task == "classify" else n + 1  # adjust for background if needed
-        ticklabels = "auto"
+
+        # Build full label list before optional filtering
+        ticklabels_full = "auto"
         if 0 < nc < 99:
-            ticklabels = names if self.task == "classify" else [*names, "background"]
+            ticklabels_full = names if self.task == "classify" else [*names, "background"]
+
+        if filter_empty and ticklabels_full != "auto":
+            # Use the same downsampling applied to `array` so the mask aligns with plotted rows/cols
+            raw = self.matrix[downsample_idx, :][:, downsample_idx][:nc, :nc]
+            keep_mask = (raw.sum(axis=1) > 0) | (raw.sum(axis=0) > 0)
+            keep_idx_f = np.where(keep_mask)[0]
+            array = array[np.ix_(keep_idx_f, keep_idx_f)]
+            ticklabels_full = [ticklabels_full[i] for i in keep_idx_f]
+            nc = len(keep_idx_f)
+
+        ticklabels = ticklabels_full
         xy_ticks = np.arange(len(ticklabels)) if ticklabels != "auto" else np.arange(nc)
         tick_fontsize = max(6, 15 - 0.1 * nc)  # Minimum size is 6
         label_fontsize = max(6, 12 - 0.1 * nc)
         title_fontsize = max(6, 12 - 0.1 * nc)
         btm = max(0.1, 0.25 - 0.001 * nc)  # Minimum value is 0.1
+        _show = (nc < 30) if show_values is None else show_values
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")  # suppress empty matrix RuntimeWarning: All-NaN slice encountered
             im = ax.imshow(array, cmap="Blues", vmin=0.0, interpolation="none")
             ax.xaxis.set_label_position("bottom")
-            if nc < 30:  # Add score for each cell of confusion matrix
+            if _show:  # Add score for each cell of confusion matrix
                 color_threshold = 0.45 * (1 if normalize else np.nanmax(array))  # text color threshold
                 for i, row in enumerate(array[:nc]):
                     for j, val in enumerate(row[:nc]):

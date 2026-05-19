@@ -11,7 +11,7 @@ model_name: yolo26n-sem
 
 [Semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) assigns a class label to every pixel in an image, producing a dense class map that covers the entire scene. Unlike [instance segmentation](segment.md), which separates individual objects, semantic segmentation groups all pixels of the same class together regardless of how many distinct objects are present.
 
-The output of a semantic segmentation model is a single H x W class map where each pixel value corresponds to a predicted class ID. This makes semantic segmentation ideal for scene parsing tasks such as autonomous driving, medical imaging, and land-cover mapping.
+The output of a semantic segmentation model is a single height-by-width class map where each pixel value corresponds to a predicted class ID. This makes semantic segmentation ideal for scene parsing tasks such as autonomous driving, medical imaging, and land-cover mapping.
 
 !!! tip
 
@@ -19,14 +19,14 @@ The output of a semantic segmentation model is a single H x W class map where ea
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
 
-YOLO26 pretrained Semantic Segmentation models are shown here, which are pretrained on the [Cityscapes](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/cityscapes.yaml) dataset.
+YOLO26 semantic segmentation models pretrained on the [Cityscapes](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/cityscapes.yaml) dataset are shown below.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
 {% include "macros/yolo-semseg-perf.md" %}
 
-- **mIoU<sup>val</sup>** values are for single-model single-scale on [Cityscapes](https://www.cityscapes-dataset.com/) dataset. <br>Reproduce by `yolo semseg val data=cityscapes.yaml device=0 imgsz=2048`
-- **Speed** averaged over cityscapes val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo semseg val data=cityscapes.yaml batch=1 device=0|cpu imgsz=2048`
+- **mIoU<sup>val</sup>** values are for single-model single-scale on the [Cityscapes](https://www.cityscapes-dataset.com/) validation set. <br>Reproduce with `yolo semseg val data=cityscapes.yaml device=0 imgsz=2048`
+- **Speed** metrics are averaged over Cityscapes validation images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce with `yolo semseg val data=cityscapes.yaml batch=1 device=0|cpu imgsz=2048`
 - **Params** and **FLOPs** values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
 ## Train
@@ -66,7 +66,7 @@ See full `train` mode details in the [Train](../modes/train.md) page.
 
 ### Dataset format
 
-Semantic segmentation datasets use PNG mask images where each pixel value represents a class ID. Pixels with value 255 are treated as "ignore" and excluded from loss computation. The dataset YAML should specify paths to images and their corresponding mask directories. See the [Semantic Segmentation Dataset Guide](../datasets/semseg/index.md) for format details. Supported datasets include [Cityscapes](../datasets/semseg/cityscapes.md) and [ADE20K](../datasets/semseg/ade20k.md).
+Semantic segmentation datasets use single-channel mask images, typically PNG, where each pixel value represents a class ID. Pixels with value 255 are treated as "ignore" and excluded from loss computation. The dataset YAML should specify paths to images and their corresponding mask directories. See the [Semantic Segmentation Dataset Guide](../datasets/semantic/index.md) for format details. Supported datasets include [Cityscapes](../datasets/semantic/cityscapes.md) and [ADE20K](../datasets/semantic/ade20k.md).
 
 ## Val
 
@@ -92,8 +92,8 @@ Validate trained YOLO26n-sem model [accuracy](https://www.ultralytics.com/glossa
     === "CLI"
 
         ```bash
-        yolo semseg val model=yolo26n-sem.pt  # val official model
-        yolo semseg val model=path/to/best.pt # val custom model
+        yolo semseg val model=yolo26n-sem.pt  # validate official model
+        yolo semseg val model=path/to/best.pt # validate custom model
         ```
 
 ## Predict
@@ -116,7 +116,7 @@ Use a trained YOLO26n-sem model to run predictions on images.
 
         # Access the results
         for result in results:
-            semantic_mask = result.semantic_mask.data  # H x W class map (torch.Tensor)
+            semantic_mask = result.semantic_mask.data  # height x width class map (torch.Tensor)
         ```
 
     === "CLI"
@@ -141,7 +141,7 @@ Export a YOLO26n-sem model to a different format like ONNX, CoreML, etc.
 
         # Load a model
         model = YOLO("yolo26n-sem.pt")  # load an official model
-        model = YOLO("path/to/best.pt")  # load a custom-trained model
+        model = YOLO("path/to/best.pt")  # load a custom model
 
         # Export the model
         model.export(format="onnx")
@@ -151,7 +151,7 @@ Export a YOLO26n-sem model to a different format like ONNX, CoreML, etc.
 
         ```bash
         yolo export model=yolo26n-sem.pt format=onnx  # export official model
-        yolo export model=path/to/best.pt format=onnx # export custom-trained model
+        yolo export model=path/to/best.pt format=onnx # export custom model
         ```
 
 Available YOLO26-sem export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-sem.onnx`. Usage examples are shown for your model after export completes.
@@ -199,14 +199,14 @@ Semantic segmentation is best suited for scene understanding tasks like autonomo
 
 ### Can I use instance segmentation data to train semantic segmentation?
 
-Yes. If your dataset uses Ultralytics YOLO polygon labels (one `.txt` per image), **omit** `masks_dir` from the dataset YAML and the loader will convert polygons to per-image semantic masks on the fly. For multi-class datasets (`N > 1`) an extra `background` class is appended to `names` automatically. For single-class datasets (`N == 1`) training stays at 1 class — your declared class becomes `1` in the mask and uncovered pixels become `0`. See the [Semantic Segmentation Dataset Guide](../datasets/semseg/index.md#yolo-polygon-label-format) for details.
+Yes. If your dataset uses Ultralytics YOLO polygon labels (one `.txt` per image), **omit** `masks_dir` from the dataset YAML and the loader will convert polygons to per-image semantic masks on the fly. For multi-class datasets (`N > 1`) an extra `background` class is appended to `names` automatically. For single-class datasets (`N == 1`) training stays at 1 class — your declared class becomes `1` in the mask and uncovered pixels become `0`. See the [Semantic Segmentation Dataset Guide](../datasets/semantic/index.md#yolo-polygon-label-format) for details.
 
 ### What datasets are supported for semantic segmentation?
 
 Ultralytics YOLO26 supports several semantic segmentation datasets out of the box:
 
-- **[Cityscapes](../datasets/semseg/cityscapes.md):** Urban street scenes with 19 classes, widely used for autonomous driving research.
-- **[ADE20K](../datasets/semseg/ade20k.md):** A large-scale scene parsing dataset with 150 classes.
+- **[Cityscapes](../datasets/semantic/cityscapes.md):** Urban street scenes with 19 classes, widely used for autonomous driving research.
+- **[ADE20K](../datasets/semantic/ade20k.md):** A large-scale scene parsing dataset with 150 classes.
 
 You can also use any custom dataset that provides PNG mask annotations where pixel values correspond to class IDs.
 

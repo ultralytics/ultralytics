@@ -179,7 +179,7 @@ class SemanticSegmentationValidator(DetectionValidator):
             LOGGER.info(f"Semantic prediction masks saved to {self.results_dir}")
 
     def get_dataset(self):
-        """Parse the dataset YAML and bump nc/names with a background class for the polygon path."""
+        """Parse the dataset YAML and add background only for multi-class polygon labels."""
         return add_polygon_background(super().get_dataset())
 
     def plot_predictions(self, batch, preds, ni):

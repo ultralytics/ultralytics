@@ -1268,7 +1268,7 @@ class TVPSegmentLoss(TVPDetectLoss):
 
 
 class SemanticSegmentationLoss(nn.Module):
-    """Loss function for semantic segmentation: CrossEntropy + Dice.
+    """Loss function for semantic segmentation using cross-entropy and Dice terms.
 
     Attributes:
         nc (int): Number of semantic classes.
@@ -1279,7 +1279,7 @@ class SemanticSegmentationLoss(nn.Module):
         """Initialize semantic segmentation loss.
 
         Args:
-            model: Model containing the SemanticSegment head.
+            model (torch.nn.Module): Model containing the SemanticSegment head.
         """
         super().__init__()
         m = model.model[-1]
@@ -1298,7 +1298,7 @@ class SemanticSegmentationLoss(nn.Module):
                 self.ce.register_buffer("weight", weight, persistent=False)
 
     def _resize_masks(self, masks, target_shape):
-        """Resize masks to match prediction spatial dims."""
+        """Resize masks to match prediction spatial dimensions."""
         if masks.shape[1:] != target_shape:
             return (
                 F.interpolate(masks.float().unsqueeze(1), size=target_shape, mode="nearest").squeeze(1).to(torch.int32)
@@ -1332,8 +1332,7 @@ class SemanticSegmentationLoss(nn.Module):
     def _binary_dice_loss(self, preds, masks):
         """Compute Dice loss for single-class (binary) segmentation.
 
-        Pixels with value 255 (ignore/pad) are treated as background (0) to remain consistent
-        with BCE loss which has no ignore_index support.
+        Pixels with value 255 are excluded from Dice terms to match BCE valid-pixel filtering.
         """
         valid = (masks != 255).float()
         pred_soft = preds.squeeze(1).sigmoid()
@@ -1352,7 +1351,7 @@ class SemanticSegmentationLoss(nn.Module):
         Returns:
             (tuple[torch.Tensor, torch.Tensor]): (total_loss * batch_size, detached loss items [ce, dice, aux]).
         """
-        # Unpack aux logits if present
+        # Unpack auxiliary logits when present.
         aux_logits = None
         if isinstance(preds, tuple):
             preds, aux_logits = preds
@@ -1361,12 +1360,12 @@ class SemanticSegmentationLoss(nn.Module):
         if preds.shape[2:] != masks.shape[1:]:
             preds = F.interpolate(preds, size=masks.shape[1:], mode="bilinear", align_corners=False)
 
-        # Main CE + Dice
+        # Main cross-entropy and Dice loss.
         ce_loss = self._ce_loss(preds, masks)
         dice_loss = self._dice_loss(preds, masks)
         total = ce_loss + dice_loss
 
-        # Auxiliary CE loss
+        # Auxiliary cross-entropy loss.
         aux_loss = torch.tensor(0.0, device=preds.device)
         if aux_logits is not None:
             if aux_logits.shape[2:] != masks.shape[1:]:

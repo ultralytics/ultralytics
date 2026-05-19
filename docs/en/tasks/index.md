@@ -8,7 +8,7 @@ keywords: Ultralytics YOLO26, detection, segmentation, semantic segmentation, cl
 
 <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-tasks-banner.avif" alt="Ultralytics YOLO supported computer vision tasks">
 
-Ultralytics YOLO26 is a versatile AI framework that supports multiple [computer vision](https://www.ultralytics.com/blog/everything-you-need-to-know-about-computer-vision-in-2025) **tasks**. The framework can be used to perform [detection](detect.md), [segmentation](segment.md), [semantic segmentation](semseg.md), [OBB](obb.md), [classification](classify.md), and [pose](pose.md) estimation. Each of these tasks has a different objective and use case, allowing you to address various computer vision challenges with a single framework.
+Ultralytics YOLO26 is a versatile AI framework that supports multiple [computer vision](https://www.ultralytics.com/blog/everything-you-need-to-know-about-computer-vision-in-2025) **tasks**. The framework can be used to perform [detection](detect.md), [segmentation](segment.md), [semantic segmentation](semantic.md), [OBB](obb.md), [classification](classify.md), and [pose](pose.md) estimation. Each of these tasks has a different objective and use case, allowing you to address various computer vision challenges with a single framework.
 
 <p align="center">
   <br>
@@ -33,11 +33,11 @@ Segmentation takes object detection further by producing pixel-level masks for e
 
 [Segmentation Examples](segment.md){ .md-button }
 
-## [Semantic Segmentation](semseg.md)
+## [Semantic Segmentation](semantic.md)
 
 Semantic segmentation assigns a class label to every pixel in an image, producing a dense class map of the entire scene. Unlike instance segmentation, it does not distinguish between individual objects of the same class. This makes it ideal for [autonomous driving](https://www.ultralytics.com/solutions/ai-in-automotive), [scene parsing](https://www.ultralytics.com/glossary/semantic-segmentation), and land-cover mapping where understanding the full spatial layout matters more than identifying individual objects.
 
-[Semantic Segmentation Examples](semseg.md){ .md-button }
+[Semantic Segmentation Examples](semantic.md){ .md-button }
 
 ## [Classification](classify.md)
 
@@ -69,7 +69,7 @@ Ultralytics YOLO26 is a versatile AI framework capable of performing various com
 
 - **[Object Detection](detect.md):** Identifying and localizing objects in images or video frames by drawing bounding boxes around them.
 - **[Image segmentation](segment.md):** Segmenting images into different regions based on their content, useful for applications like medical imaging.
-- **[Semantic Segmentation](semseg.md):** Assigning a class label to every pixel in an image for dense scene understanding.
+- **[Semantic Segmentation](semantic.md):** Assigning a class label to every pixel in an image for dense scene understanding.
 - **[Classification](classify.md):** Categorizing entire images based on their content.
 - **[Pose estimation](pose.md):** Detecting specific keypoints in an image or video frame to track movements or poses.
 - **[Oriented Object Detection (OBB)](obb.md):** Detecting rotated objects with an added orientation angle for enhanced accuracy.

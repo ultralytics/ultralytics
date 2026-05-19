@@ -38,7 +38,7 @@ The breadth of indoor and outdoor scenes also makes ADE20K a strong benchmark fo
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the ADE20K dataset, the `ade20k.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ade20k.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ade20k.yaml).
+A dataset YAML file defines the ADE20K paths, classes, mask directory, and label mapping. The `ade20k.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ade20k.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ade20k.yaml).
 
 !!! example "ultralytics/cfg/datasets/ade20k.yaml"
 

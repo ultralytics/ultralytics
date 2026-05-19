@@ -40,7 +40,7 @@ Its high-resolution images and detailed annotations also make it valuable for re
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the Cityscapes dataset, the `cityscapes.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/cityscapes.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/cityscapes.yaml).
+A dataset YAML file defines the Cityscapes paths, classes, mask directory, and label mapping. The `cityscapes.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/cityscapes.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/cityscapes.yaml).
 
 !!! example "ultralytics/cfg/datasets/cityscapes.yaml"
 

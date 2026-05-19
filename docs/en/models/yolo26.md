@@ -63,7 +63,7 @@ YOLO26 builds upon the versatile model range established by earlier Ultralytics 
 | ----------- | ----------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
 | YOLO26      | `yolo26n.pt` `yolo26s.pt` `yolo26m.pt` `yolo26l.pt` `yolo26x.pt`                          | [Detection](../tasks/detect.md)              | ✅        | ✅         | ✅       | ✅     |
 | YOLO26-seg  | `yolo26n-seg.pt` `yolo26s-seg.pt` `yolo26m-seg.pt` `yolo26l-seg.pt` `yolo26x-seg.pt`      | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLO26-sem  | `yolo26n-sem.pt` `yolo26s-sem.pt` `yolo26m-sem.pt` `yolo26l-sem.pt` `yolo26x-sem.pt`      | [Semantic Segmentation](../tasks/semseg.md)  | ✅        | ✅         | ✅       | ✅     |
+| YOLO26-sem  | `yolo26n-sem.pt` `yolo26s-sem.pt` `yolo26m-sem.pt` `yolo26l-sem.pt` `yolo26x-sem.pt`      | [Semantic Segmentation](../tasks/semantic.md) | ✅        | ✅         | ✅       | ✅     |
 | YOLO26-pose | `yolo26n-pose.pt` `yolo26s-pose.pt` `yolo26m-pose.pt` `yolo26l-pose.pt` `yolo26x-pose.pt` | [Pose/Keypoints](../tasks/pose.md)           | ✅        | ✅         | ✅       | ✅     |
 | YOLO26-obb  | `yolo26n-obb.pt` `yolo26s-obb.pt` `yolo26m-obb.pt` `yolo26l-obb.pt` `yolo26x-obb.pt`      | [Oriented Detection](../tasks/obb.md)        | ✅        | ✅         | ✅       | ✅     |
 | YOLO26-cls  | `yolo26n-cls.pt` `yolo26s-cls.pt` `yolo26m-cls.pt` `yolo26l-cls.pt` `yolo26x-cls.pt`      | [Classification](../tasks/classify.md)       | ✅        | ✅         | ✅       | ✅     |
@@ -94,7 +94,7 @@ This unified framework ensures YOLO26 is applicable across real-time detection, 
 
     === "Semantic Segmentation (Cityscapes)"
 
-        See [Semantic Segmentation Docs](../tasks/semseg.md) for usage examples with these models trained on [Cityscapes](../datasets/semseg/cityscapes.md), which include 19 pretrained classes.
+        See [Semantic Segmentation Docs](../tasks/semantic.md) for usage examples with these models trained on [Cityscapes](../datasets/semantic/cityscapes.md), which include 19 pretrained classes.
 
         --8<-- "docs/macros/yolo-semseg-perf.md"
 
@@ -124,7 +124,7 @@ _Params and FLOPs values are for the fused model after `model.fuse()`, which mer
 
 This section provides simple YOLO26 training and inference examples. For full documentation on these and other [modes](../modes/index.md), see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md), and [Export](../modes/export.md) docs pages.
 
-Note that the example below is for YOLO26 [Detect](../tasks/detect.md) models for [object detection](https://www.ultralytics.com/glossary/object-detection). For additional supported tasks, see the [Segment](../tasks/segment.md), [Semantic Segmentation](../tasks/semseg.md), [Classify](../tasks/classify.md), [OBB](../tasks/obb.md), and [Pose](../tasks/pose.md) docs.
+Note that the example below is for YOLO26 [Detect](../tasks/detect.md) models for [object detection](https://www.ultralytics.com/glossary/object-detection). For additional supported tasks, see the [Segment](../tasks/segment.md), [Semantic Segmentation](../tasks/semantic.md), [Classify](../tasks/classify.md), [OBB](../tasks/obb.md), and [Pose](../tasks/pose.md) docs.
 
 !!! example
 
@@ -363,7 +363,7 @@ YOLO26 is a **unified model family**, providing end-to-end support for multiple 
 
 - [Object Detection](../tasks/detect.md)
 - [Instance Segmentation](../tasks/segment.md)
-- [Semantic Segmentation](../tasks/semseg.md)
+- [Semantic Segmentation](../tasks/semantic.md)
 - [Image Classification](../tasks/classify.md)
 - [Pose Estimation](../tasks/pose.md)
 - [Oriented Object Detection (OBB)](../tasks/obb.md)

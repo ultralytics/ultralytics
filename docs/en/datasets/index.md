@@ -57,13 +57,13 @@ Instance segmentation is a computer vision technique that involves identifying a
 - [Crack-seg](segment/crack-seg.md): Specifically crafted dataset for detecting cracks on roads and walls, applicable for both object detection and segmentation tasks.
 - [Package-seg](segment/package-seg.md): Tailored dataset for identifying packages in warehouses or industrial settings, suitable for both object detection and segmentation applications.
 
-## [Semantic Segmentation](semseg/index.md)
+## [Semantic Segmentation](semantic/index.md)
 
 Semantic segmentation assigns a class label to every pixel in an image, producing dense scene maps for applications such as autonomous driving, scene parsing, and land-cover mapping.
 
-- [Cityscapes](semseg/cityscapes.md): Urban street-scene semantic segmentation dataset with 19 train classes.
-- [Cityscapes8](semseg/cityscapes8.md): A compact 8-image Cityscapes subset for quick semantic segmentation pipeline checks.
-- [ADE20K](semseg/ade20k.md): Scene parsing dataset with 150 semantic classes.
+- [Cityscapes](semantic/cityscapes.md): Urban street-scene semantic segmentation dataset with 19 train classes.
+- [Cityscapes8](semantic/cityscapes8.md): A compact 8-image Cityscapes subset for quick semantic segmentation pipeline checks.
+- [ADE20K](semantic/ade20k.md): Scene parsing dataset with 150 semantic classes.
 
 ## [Pose Estimation](pose/index.md)
 

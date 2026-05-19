@@ -611,7 +611,7 @@ class SemanticSegmentationModel(BaseModel):
         super().__init__()
         _initialize_yolo_model(self, cfg, ch, nc, verbose)
 
-        # Build strides — track smallest spatial size across all layers to find the deepest
+        # Build strides: track smallest spatial size across all layers to find the deepest
         # backbone stride (e.g. P5/32). Head input alone is insufficient: the FPN upsamples
         # P5 away before the head, but the encoder still requires inputs aligned to that
         # deepest stride or FPN concats fail on rounding mismatches.

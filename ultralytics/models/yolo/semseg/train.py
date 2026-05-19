@@ -44,7 +44,7 @@ class SemanticSegmentationTrainer(DetectionTrainer):
         super().__init__(cfg, overrides, _callbacks)
 
     def get_dataset(self):
-        """Parse the dataset YAML and bump nc/names with a background class for the polygon path."""
+        """Parse the dataset YAML and add background only for multi-class polygon labels."""
         return add_polygon_background(super().get_dataset())
 
     def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True):
@@ -89,7 +89,7 @@ class SemanticSegmentationTrainer(DetectionTrainer):
         Samples up to 1000 mask files from the training dataset, accumulates per-class pixel
         counts, and plots a bar chart of class distribution saved to 'labels.jpg'.
         """
-        LOGGER.info(f"Plotting labels to {self.save_dir / 'labels.jpg'}... ")
+        LOGGER.info(f"Plotting labels to {self.save_dir / 'labels.jpg'}...")
         nc = self.data["nc"]
         names = self.data["names"]
         pixel_counts = np.zeros(nc, dtype=np.int32)
@@ -97,7 +97,7 @@ class SemanticSegmentationTrainer(DetectionTrainer):
         dataset = self.train_loader.dataset
         mask_files = getattr(dataset, "mask_files", [])
         if not mask_files:
-            LOGGER.warning("No mask files found, skipping plot_training_labels")
+            LOGGER.warning("No semantic mask files found, skipping label plot.")
             return
 
         sample_size = min(1000, len(mask_files))

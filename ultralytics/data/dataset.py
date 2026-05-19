@@ -773,7 +773,7 @@ class SemsegDataset(YOLODataset):
                     )
                 if msg:
                     msgs.append(msg)
-                pbar.desc = f"{desc} {nf} images, {nm} backgrounds, {nc} corrupt"
+                pbar.desc = f"{desc} {nf} images, {nm} missing masks, {nc} corrupt"
             pbar.close()
         x["hash"] = self._semantic_cache_hash(self.mask_files)
         x["results"] = nf, nm, nc, total
@@ -818,14 +818,14 @@ class SemsegDataset(YOLODataset):
         return super().load_image(i, rect_mode=rect_mode, resize_short=self.augment)
 
     def load_mask(self, index: int, image_shape: tuple[int, int] | None = None) -> np.ndarray:
-        """Load and map a semantic mask from source mask file."""
+        """Load a semantic mask and apply optional dataset label mapping."""
         mask_file = self.labels[index]["mask_file"]
         mask = cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
         if mask is None:
             raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}")
         if int(self.data.get("nc", 0)) == 1:
             with Image.open(mask_file) as im:
-                if im.mode == "1":  # cv2 expands 1-bit PNGs to {0, 255}; keep 255 as ignore for regular masks.
+                if im.mode == "1":  # cv2 expands 1-bit PNGs to {0, 255}; map only true 1-bit foreground to 1.
                     mask[mask == 255] = 1
         if self.label_mapping:
             mask = self.convert_label(mask, inverse=False)

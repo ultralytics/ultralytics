@@ -45,7 +45,7 @@ Ultralytics commands use the following syntax:
 
 Where:
 
-- `TASK` (optional) is one of ([detect](../tasks/detect.md), [segment](../tasks/segment.md), [classify](../tasks/classify.md), [pose](../tasks/pose.md), [obb](../tasks/obb.md), [semseg](../tasks/semseg.md))
+- `TASK` (optional) is one of ([detect](../tasks/detect.md), [segment](../tasks/segment.md), [classify](../tasks/classify.md), [pose](../tasks/pose.md), [obb](../tasks/obb.md), [semseg](../tasks/semantic.md))
 - `MODE` (required) is one of ([train](../modes/train.md), [val](../modes/val.md), [predict](../modes/predict.md), [export](../modes/export.md), [track](../modes/track.md), [benchmark](../modes/benchmark.md))
 - `ARGS` (optional) are `arg=value` pairs like `imgsz=640` that override defaults.
 
@@ -60,7 +60,7 @@ Ultralytics YOLO models can perform a variety of computer vision tasks, includin
 - **Classify**: [Image classification](https://docs.ultralytics.com/tasks/classify) predicts the class label of an input image.
 - **Pose**: [Pose estimation](https://docs.ultralytics.com/tasks/pose) identifies objects and estimates their keypoints in an image or video.
 - **OBB**: [Oriented Bounding Boxes](https://docs.ultralytics.com/tasks/obb) uses rotated bounding boxes, suitable for satellite or medical imagery.
-- **Semseg**: [Semantic segmentation](https://docs.ultralytics.com/tasks/semseg) assigns a class label to every pixel in an image for dense scene understanding.
+- **Semantic segmentation (`semseg`)**: [Semantic segmentation](https://docs.ultralytics.com/tasks/semantic) assigns a class label to every pixel in an image for dense scene understanding.
 
 | Argument | Default    | Description                                                                                                                                                                                                                                                                                                                                                                     |
 | -------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

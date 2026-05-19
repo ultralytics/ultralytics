@@ -1668,7 +1668,7 @@ class OBBMetrics(DetMetrics):
 
 
 class SemsegMetrics(SimpleClass, DataExportMixin):
-    """Metrics for semantic segmentation: mIoU, pixel accuracy, per-class IoU.
+    """Metrics for semantic segmentation, including mIoU, pixel accuracy, and per-class IoU.
 
     Attributes:
         names (dict): Class names mapping.
@@ -1686,7 +1686,7 @@ class SemsegMetrics(SimpleClass, DataExportMixin):
     """
 
     def __init__(self, names: dict[int, str] | None = None) -> None:
-        """Initialize SemanticMetrics.
+        """Initialize semantic segmentation metrics.
 
         Args:
             names (dict, optional): Dictionary mapping class indices to names.
@@ -1858,7 +1858,7 @@ class SemsegMetrics(SimpleClass, DataExportMixin):
 
     @property
     def curves(self):
-        """Return empty list (no PR curves for semantic seg)."""
+        """Return an empty list because semantic segmentation has no PR curves."""
         return []
 
     @property

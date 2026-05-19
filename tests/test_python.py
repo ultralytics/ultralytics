@@ -207,7 +207,7 @@ def test_track_stream(model, tmp_path):
     """
     if (
         model == "yolo26n-cls.pt" or model == "yolo26n-sem.pt"
-    ):  # classification and semseg models not supported for tracking
+    ):  # classification and semantic segmentation models are not supported for tracking
         return
     video_url = f"{ASSETS_URL}/decelera_portrait_min.mov"
     model = YOLO(model)
@@ -372,7 +372,7 @@ def test_data_utils(tmp_path):
     # with WorkingDirectory(ROOT.parent / 'tests'):
 
     for task in TASKS:
-        if task == "semseg":  # semseg dataset not updated yet
+        if task == "semseg":  # HUB stats do not support semantic segmentation datasets yet.
             continue
         file = Path(TASK2DATA[task]).with_suffix(".zip")  # i.e. coco8.zip
         download(f"https://github.com/ultralytics/hub/raw/main/example_datasets/{file}", unzip=False, dir=tmp_path)
@@ -901,7 +901,7 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
     model.predict(source=im, imgsz=32)
 
 
-def test_semseg_ploygon_data():
+def test_semseg_polygon_data():
     """Test YOLO semantic segmentation model with polygon data."""
     model = YOLO("yolo26n-sem.pt")
     model.train(data="coco8-seg.yaml", epochs=1, imgsz=32, close_mosaic=1)

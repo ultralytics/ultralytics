@@ -235,7 +235,7 @@ nav:
       - tasks/index.md
       - Detect: tasks/detect.md
       - Segment: tasks/segment.md
-      - Semseg: tasks/semseg.md
+      - Semantic Segmentation: tasks/semantic.md
       - Classify: tasks/classify.md
       - Pose: tasks/pose.md
       - OBB: tasks/obb.md
@@ -469,10 +469,10 @@ nav:
           - Crack-seg: datasets/segment/crack-seg.md
           - Package-seg: datasets/segment/package-seg.md
       - Semantic Segmentation:
-          - datasets/semseg/index.md
-          - Cityscapes: datasets/semseg/cityscapes.md
-          - Cityscapes8: datasets/semseg/cityscapes8.md
-          - ADE20K: datasets/semseg/ade20k.md
+          - datasets/semantic/index.md
+          - Cityscapes: datasets/semantic/cityscapes.md
+          - Cityscapes8: datasets/semantic/cityscapes8.md
+          - ADE20K: datasets/semantic/ade20k.md
       - Pose:
           - datasets/pose/index.md
           - COCO: datasets/pose/coco.md

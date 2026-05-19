@@ -8,13 +8,13 @@ keywords: Cityscapes8, Ultralytics, dataset, semantic segmentation, YOLO26, sems
 
 ## Introduction
 
-The [Ultralytics](https://www.ultralytics.com/) Cityscapes8 dataset is a compact [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) dataset, consisting of 8 images sampled from the [Cityscapes](cityscapes.md) dataset—4 for training and 4 for validation. This dataset is specifically designed for rapid testing, debugging, and experimentation with [YOLO](https://docs.ultralytics.com/models/yolo26/) semseg models and training pipelines. Its small size makes it highly manageable, while its urban-scene content ensures it serves as an effective sanity check before scaling up to the full Cityscapes dataset.
+The [Ultralytics](https://www.ultralytics.com/) Cityscapes8 dataset is a compact [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) dataset with 8 images sampled from the [Cityscapes](cityscapes.md) dataset: 4 for training and 4 for validation. It is designed for rapid testing, debugging, and experimentation with [YOLO](https://docs.ultralytics.com/models/yolo26/) semantic segmentation models and training pipelines. Its small size makes it easy to manage, while its urban-scene content provides a useful sanity check before scaling to the full Cityscapes dataset.
 
-Cityscapes8 uses the same 19 evaluation classes and the same `label_mapping` behavior as the full Cityscapes dataset, and is fully compatible with [YOLO26](../../models/yolo26.md) for seamless integration into your computer vision workflows.
+Cityscapes8 uses the same 19 evaluation classes and the same `label_mapping` behavior as the full Cityscapes dataset, and is fully compatible with [YOLO26](../../models/yolo26.md) semantic segmentation workflows.
 
 ## Dataset YAML
 
-The Cityscapes8 dataset configuration is defined in a YAML (Yet Another Markup Language) file, which specifies dataset paths, class names, and other essential metadata. You can review the official `cityscapes8.yaml` file in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/cityscapes8.yaml). The YAML includes a download URL for the small packaged subset.
+The Cityscapes8 dataset configuration is defined in a dataset YAML file, which specifies dataset paths, class names, and other essential metadata. You can review the official `cityscapes8.yaml` file in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/cityscapes8.yaml). The YAML includes a download URL for the small packaged subset.
 
 !!! example "ultralytics/cfg/datasets/cityscapes8.yaml"
 
@@ -70,11 +70,11 @@ Special thanks to the [Cityscapes team](https://www.cityscapes-dataset.com/) for
 
 ### What Is the Ultralytics Cityscapes8 Dataset Used For?
 
-The Ultralytics Cityscapes8 dataset is designed for rapid testing and debugging of [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) models. With only 8 images (4 for training, 4 for validation), it is ideal for verifying your [YOLO](https://docs.ultralytics.com/models/yolo26/) semseg training pipelines—mask loading, augmentations, validation, and export paths—before scaling to the full [Cityscapes](cityscapes.md) dataset. Explore the [Cityscapes8 YAML configuration](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/cityscapes8.yaml) for more details.
+The Ultralytics Cityscapes8 dataset is designed for rapid testing and debugging of [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) models. With only 8 images (4 for training, 4 for validation), it is ideal for verifying [YOLO](https://docs.ultralytics.com/models/yolo26/) semantic segmentation pipelines, including mask loading, augmentations, validation, and export paths, before scaling to the full [Cityscapes](cityscapes.md) dataset. Explore the [Cityscapes8 YAML configuration](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/cityscapes8.yaml) for more details.
 
 ### How Do I Train a YOLO26 Model Using the Cityscapes8 Dataset?
 
-You can train a YOLO26 semseg model on Cityscapes8 using either Python or the CLI:
+You can train a YOLO26 semantic segmentation model on Cityscapes8 using either Python or the CLI:
 
 !!! example "Train Example"
 

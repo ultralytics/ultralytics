@@ -115,6 +115,7 @@ def on_fit_epoch_end(trainer) -> None:
 
 callbacks = (
     {
+        "callback_name": "tensorboard",
         "on_pretrain_routine_start": on_pretrain_routine_start,
         "on_train_start": on_train_start,
         "on_fit_epoch_end": on_fit_epoch_end,

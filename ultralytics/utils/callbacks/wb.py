@@ -189,6 +189,7 @@ def on_train_end(trainer):
 
 callbacks = (
     {
+        "callback_name": "wandb",
         "on_pretrain_routine_start": on_pretrain_routine_start,
         "on_train_epoch_end": on_train_epoch_end,
         "on_fit_epoch_end": on_fit_epoch_end,

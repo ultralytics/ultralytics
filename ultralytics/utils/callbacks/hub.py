@@ -96,6 +96,7 @@ def on_export_start(exporter):
 
 callbacks = (
     {
+        "callback_name": "hub",
         "on_pretrain_routine_start": on_pretrain_routine_start,
         "on_pretrain_routine_end": on_pretrain_routine_end,
         "on_fit_epoch_end": on_fit_epoch_end,

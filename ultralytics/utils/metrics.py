@@ -461,7 +461,9 @@ class ConfusionMatrix(DataExportMixin):
         # fn = self.matrix.sum(0) - tp  # false negatives (missed detections)
         return (tp, fp) if self.task == "classify" else (tp[:-1], fp[:-1])  # remove background class if task=detect
 
-    def plot_matches(self, img: torch.Tensor, im_file: str, save_dir: Path, show_labels: bool = True, show_conf: bool = True) -> None:
+    def plot_matches(
+        self, img: torch.Tensor, im_file: str, save_dir: Path, show_labels: bool = True, show_conf: bool = True
+    ) -> None:
         """Plot grid of GT, TP, FP, FN for each image.
 
         Args:
@@ -470,7 +472,6 @@ class ConfusionMatrix(DataExportMixin):
             save_dir (Path): Location to save the visualizations to.
             show_labels (bool): Whether to display class labels in the visualization.
             show_conf (bool): Whether to display confidence values in the visualization.
-
         """
         if not self.matches:
             return

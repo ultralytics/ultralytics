@@ -150,6 +150,9 @@ def main(argv: list[str]) -> None:
         --batch <int>: per-GPU (per-rank) batch. Global batch = per-GPU * world_size. When the
             global batch exceeds NBS_CANONICAL (512), lr0 and warmup_epochs scale linearly and
             nbs is raised to the global batch so wd_eff is invariant.
+        --sample_t <float>: per-source temperature for ConcatDataset sampling. 0=uniform (default,
+            existing behavior), 0.5=sqrt-balanced (EUPE / DINOv3 convention), 1=fully balanced.
+            Active only when the dataset is a ConcatDataset (multi-source ``data=`` arg).
     """
     args = argv[1:]
     args, resume = _pop_flag(args, "--resume")
@@ -161,12 +164,14 @@ def main(argv: list[str]) -> None:
     args, fork_from = _pop_flag(args, "--fork_from")  # format: <parent_run_id>:<fork_step>
     args, distill_path = _pop_flag(args, "--distill_path")
     args, adaptor_arch = _pop_flag(args, "--adaptor_arch")
+    args, sample_t_str = _pop_flag(args, "--sample_t")
 
     cos_weight = float(cos_w) if cos_w else 0.9
     l1_weight = float(l1_w) if l1_w else 0.1
     cls_l1 = bool(cls_l1_str)
     distill_path = distill_path or "adaptor"
     adaptor_arch = adaptor_arch or "mlp"
+    sample_t = float(sample_t_str) if sample_t_str else 0.0
 
     if resume:
         resume = paths.patch_resume(resume)
@@ -190,6 +195,7 @@ def main(argv: list[str]) -> None:
             ("distill_path", distill_path, "adaptor"),
             ("adaptor_arch", adaptor_arch, "mlp"),
             ("data", data, DATA_7SRC_DEFAULT),
+            ("sample_t", sample_t, 0.0),
         ):
             prev = resume_args.get(key, default)
             if now != prev:
@@ -231,6 +237,7 @@ def main(argv: list[str]) -> None:
             cls_l1=cls_l1,
             distill_path=distill_path,
             adaptor_arch=adaptor_arch,
+            sample_t=sample_t,
             grad_clip=r["grad_clip"],
             beta2=r["beta2"],
             wandb_group="distill",
@@ -246,6 +253,7 @@ def main(argv: list[str]) -> None:
         cls_l1=cls_l1,
         distill_path=distill_path,
         adaptor_arch=adaptor_arch,
+        sample_t=sample_t,
         device=gpu,
         **paths.run_paths(name),
         epochs=epochs or r["epochs"],

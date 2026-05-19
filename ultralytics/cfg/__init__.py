@@ -511,6 +511,7 @@ def check_dict_alignment(
             "cls_l1",
             "distill_path",
             "adaptor_arch",
+            "sample_t",
             "grad_clip",
             "beta2",
             "muon_w",

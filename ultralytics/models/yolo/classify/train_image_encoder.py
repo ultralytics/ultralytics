@@ -39,6 +39,36 @@ IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD = (0.229, 0.224, 0.225)
 
 
+class BalancedSampler(torch.utils.data.WeightedRandomSampler):
+    """Per-source temperature-balanced sampler for ConcatDataset.
+
+    For source sizes ``N_i`` and temperature ``t`` in [0, 1], per-sample weight is ``N_i ** -t``. t=0 reproduces uniform
+    sampling; t=0.5 is sqrt-balanced (EUPE / DINOv3 convention); t=1 fully balances across sources regardless of size.
+
+    DDP-safe: each rank seeds its own generator with ``epoch * num_replicas + rank`` and draws ``num_samples //
+    num_replicas`` IID samples with replacement.
+
+    Args:
+        sizes (list[int]): Per-source sample counts (``[len(d) for d in concat.datasets]``).
+        t (float): Temperature in [0, 1].
+        total_n (int): Total epoch samples across all ranks (typically ``len(concat)``).
+        num_replicas (int, optional): DDP world size.
+        rank (int, optional): DDP rank.
+    """
+
+    def __init__(self, sizes: list[int], t: float, total_n: int, num_replicas: int = 1, rank: int = 0):
+        weights = torch.cat([torch.full((s,), s ** -t, dtype=torch.double) for s in sizes])
+        super().__init__(weights, total_n // num_replicas, replacement=True)
+        self.num_replicas, self.rank, self.epoch = num_replicas, rank, 0
+
+    def __iter__(self):
+        g = torch.Generator().manual_seed(self.epoch * self.num_replicas + self.rank)
+        yield from torch.multinomial(self.weights, self.num_samples, replacement=True, generator=g).tolist()
+
+    def set_epoch(self, epoch: int) -> None:
+        self.epoch = epoch
+
+
 class _WebDatasetLoader(DataLoader):
     """DataLoader for WebDataset shards, compatible with ultralytics trainer.
 
@@ -412,9 +442,25 @@ class ImageEncoderTrainer(ClassificationTrainer):
             # Infinite cycling so short ranks don't exhaust early; islice caps at len(self)
             dataset.with_epoch(per_rank)
             return _WebDatasetLoader(dataset, per_rank, batch_size, self.args.workers, drop_last=mode == "train")
-        sampler = (
-            torch.utils.data.distributed.DistributedSampler(dataset, shuffle=mode == "train") if RANK != -1 else None
-        )
+        sample_t = float(getattr(self.args, "sample_t", 0.0) or 0.0)
+        if mode == "train" and sample_t > 0 and isinstance(dataset, torch.utils.data.ConcatDataset):
+            sizes = [len(d) for d in dataset.datasets]
+            world = torch.distributed.get_world_size() if RANK != -1 else 1
+            sampler = BalancedSampler(sizes, sample_t, len(dataset), world, max(RANK, 0))
+            if RANK in (-1, 0):
+                probs = [s ** (1 - sample_t) for s in sizes]
+                norm = sum(probs)
+                LOGGER.info(
+                    f"BalancedSampler t={sample_t}: per-source p=["
+                    + ", ".join(f"{p / norm:.4f}" for p in probs)
+                    + f"] sizes={sizes}"
+                )
+        else:
+            sampler = (
+                torch.utils.data.distributed.DistributedSampler(dataset, shuffle=mode == "train")
+                if RANK != -1
+                else None
+            )
         return DataLoader(
             dataset,
             batch_size=batch_size,

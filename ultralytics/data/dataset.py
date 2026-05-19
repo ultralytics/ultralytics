@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from collections import defaultdict
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
@@ -34,9 +35,12 @@ from .converter import merge_multi_segment
 from .utils import (
     HELP_URL,
     check_file_speeds,
+    get_cache_file_path,
     get_hash,
     img2label_paths,
     load_dataset_cache_file,
+    parse_image_cache,
+    prepare_cache_dir,
     save_dataset_cache_file,
     verify_image,
     verify_image_label,
@@ -715,7 +719,8 @@ class ClassificationDataset:
         Args:
             root (str): Path to the dataset directory where images are stored in a class-specific folder structure.
             args (Namespace): Configuration containing dataset-related settings such as image size, augmentation
-                parameters, and cache settings.
+                parameters, and cache settings, where `cache="disk"` writes beside each image and a path-like value
+                writes under that directory.
             augment (bool, optional): Whether to apply augmentations to the dataset.
             prefix (str, optional): Prefix for logging and cache filenames, aiding in dataset identification.
         """
@@ -740,9 +745,14 @@ class ClassificationDataset:
                 "https://github.com/ultralytics/ultralytics/issues/9824, setting `cache_ram=False`."
             )
             self.cache_ram = False
-        self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files
+        cache_mode, self.cache_dir = parse_image_cache(args.cache)
+        self.cache_disk = cache_mode == "disk"  # cache images on hard drive as uncompressed *.npy files
+        if self.cache_dir:
+            self.cache_dir = prepare_cache_dir(self.cache_dir, self.prefix, "classification disk cache")
+            if self.cache_dir is None:
+                self.cache_disk = False
         self.samples = self.verify_images()  # filter out bad images
-        self.samples = [[*list(x), Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
+        self.samples = [[*list(x), get_cache_file_path(x[0], self.cache_dir), None] for x in self.samples]  # file, index, npy, im
         scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
         self.torch_transforms = (
             classify_augmentations(
@@ -775,6 +785,7 @@ class ClassificationDataset:
                 im = self.samples[i][3] = cv2.imread(f)
         elif self.cache_disk:
             if not fn.exists():  # load npy
+                fn.parent.mkdir(parents=True, exist_ok=True)
                 np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
             im = np.load(fn)
         else:  # read image

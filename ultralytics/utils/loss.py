@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from pathlib import Path
 from typing import Any
 
 import torch
@@ -1286,8 +1287,8 @@ class SemanticSegmentationLoss(nn.Module):
         self.nc = m.nc
         self.device = next(model.parameters()).device
         self.dtype = next(model.parameters()).dtype
-        data_arg = str(getattr(model.args, "data", "") or "").lower()
-        self.use_cityscapes_weight = "cityscapes" in data_arg and self.nc == len(CITYSCAPES_WEIGHT)
+        data_name = Path(str(getattr(model.args, "data", "") or "")).stem.lower()
+        self.use_cityscapes_weight = data_name in {"cityscapes", "cityscapes8"} and self.nc == len(CITYSCAPES_WEIGHT)
         if self.nc == 1:
             self.ce = nn.BCEWithLogitsLoss()
         else:

@@ -1833,7 +1833,7 @@ class SemanticSegment(nn.Module):
 
         Args:
             nc (int): Number of semantic classes.
-            ch (tuple): Tuple of channel sizes from backbone feature maps (P3, P4, P5).
+            ch (tuple): Tuple of channel sizes from neck feature maps (P3, P4).
         """
         super().__init__()
         self.nc = nc
@@ -1850,11 +1850,11 @@ class SemanticSegment(nn.Module):
         """Forward pass: fuse multi-scale features and predict per-pixel classes.
 
         Args:
-            x (list[torch.Tensor]): List of feature maps [P3, P4, P5].
+            x (list[torch.Tensor]): List of feature maps [P3, P4].
 
         Returns:
-            (torch.Tensor): Logits of shape [B, nc, H/8, W/8] during training and inference, or [B, nc, H, W] during
-                export (full resolution).
+            (torch.Tensor): Logits of shape [B, nc, H/8, W/8] during training, inference, and CoreML export. Other
+                export formats return upsampled logits of shape [B, nc, H, W].
         """
         # Classify
         logits = self.classifier(x[0])  # [B, nc, H/8, W/8]

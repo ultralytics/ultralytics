@@ -1006,7 +1006,7 @@ class CutMix(BaseMixTransform):
         return labels
 
     def apply_semantic(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
-        """Apply CopyPaste augmentation to semantic segmentation masks.
+        """Apply CutMix augmentation to semantic segmentation masks.
 
         Args:
             labels (dict[str, Any]): Primary image labels containing 'semantic_mask' and 'mix_labels'.

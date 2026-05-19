@@ -242,7 +242,7 @@ def build_yolo_dataset(
     pad = 0.0 if mode == "train" else 0.5
     if cfg.task == "semseg":
         data_path = Path(data.get("path", ""))
-        if data.get("masks_dir") and (data_path / data["masks_dir"]).exists():
+        if "masks_dir" in data:
             dataset = SemsegDataset
         elif (data_path / "masks").exists():
             dataset = SemsegDataset

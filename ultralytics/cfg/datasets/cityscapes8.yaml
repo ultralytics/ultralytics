@@ -6,7 +6,7 @@
 # parent
 # ├── ultralytics
 # └── datasets
-#     └── cityscapes8 ← downloads here (11 GB)
+#     └── cityscapes8 ← downloads here (small subset)
 #         └── images
 #         └── masks
 

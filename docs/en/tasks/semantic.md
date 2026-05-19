@@ -70,7 +70,7 @@ Semantic segmentation datasets use single-channel mask images, typically PNG, wh
 
 ## Val
 
-Validate trained YOLO26n-sem model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the Cityscapes8 dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
+Validate trained YOLO26n-sem model [accuracy](https://www.ultralytics.com/glossary/accuracy) on a semantic segmentation dataset. Pass `data` explicitly so validation uses the intended dataset YAML.
 
 !!! example
 
@@ -84,7 +84,7 @@ Validate trained YOLO26n-sem model [accuracy](https://www.ultralytics.com/glossa
         model = YOLO("path/to/best.pt")  # load a custom model
 
         # Validate the model
-        metrics = model.val()  # no arguments needed, dataset and settings remembered
+        metrics = model.val(data="cityscapes.yaml")
         metrics.miou  # mean Intersection over Union
         metrics.pixel_accuracy  # overall pixel accuracy
         ```
@@ -92,8 +92,8 @@ Validate trained YOLO26n-sem model [accuracy](https://www.ultralytics.com/glossa
     === "CLI"
 
         ```bash
-        yolo semseg val model=yolo26n-sem.pt  # validate official model
-        yolo semseg val model=path/to/best.pt # validate custom model
+        yolo semseg val model=yolo26n-sem.pt data=cityscapes.yaml   # validate official model
+        yolo semseg val model=path/to/best.pt data=path/to/data.yaml # validate custom model
         ```
 
 ## Predict
@@ -225,7 +225,7 @@ Loading and validating a pretrained YOLO26 semantic segmentation model is straig
         model = YOLO("yolo26n-sem.pt")
 
         # Validate the model
-        metrics = model.val()
+        metrics = model.val(data="cityscapes.yaml")
         print("Mean IoU:", metrics.miou)
         print("Pixel Accuracy:", metrics.pixel_accuracy)
         ```
@@ -233,7 +233,7 @@ Loading and validating a pretrained YOLO26 semantic segmentation model is straig
     === "CLI"
 
         ```bash
-        yolo semseg val model=yolo26n-sem.pt
+        yolo semseg val model=yolo26n-sem.pt data=cityscapes.yaml
         ```
 
 These steps will provide you with validation metrics like mean Intersection over Union (mIoU) and pixel accuracy, which are standard measures for assessing semantic segmentation performance.

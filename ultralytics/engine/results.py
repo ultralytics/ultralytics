@@ -12,12 +12,25 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+import cv2
 import numpy as np
 import torch
+from PIL import Image
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, ops
 from ultralytics.utils.plotting import Annotator, colors, save_one_box
+
+FAST_PLOT_COLORS = (
+    (255, 56, 56),
+    (255, 157, 151),
+    (255, 112, 31),
+    (255, 178, 29),
+    (207, 210, 49),
+    (72, 249, 10),
+    (146, 204, 23),
+    (61, 219, 134),
+)
 
 
 class BaseTensor(SimpleClass):
@@ -264,6 +277,40 @@ class Results(SimpleClass, DataExportMixin):
         self.path = path
         self.save_dir = None
         self._keys = "boxes", "masks", "probs", "keypoints", "obb"
+        self._fast_plot_cache = {}
+
+    def _cached_tensor_to_numpy(self, key: str, value: torch.Tensor | np.ndarray | None) -> np.ndarray | None:
+        """Convert tensor to NumPy array with simple per-result cache to reduce repeated conversions."""
+        if value is None or isinstance(value, np.ndarray):
+            return value
+        value = value.detach()
+        cache_key = (
+            key,
+            value.device.type,
+            value.data_ptr(),
+            tuple(value.shape),
+            str(value.dtype),
+        )
+        cached = self._fast_plot_cache.get(cache_key)
+        if cached is None:
+            cached = value.cpu().numpy()
+            self._fast_plot_cache[cache_key] = cached
+            if len(self._fast_plot_cache) > 16:
+                self._fast_plot_cache.pop(next(iter(self._fast_plot_cache)))
+        return cached
+
+    def _fast_orig_img_numpy(self) -> np.ndarray:
+        """Return original tensor image as cached uint8 NumPy array for fast plotting."""
+        assert isinstance(self.orig_img, torch.Tensor)
+        src = self.orig_img[0].detach()
+        cache_key = ("orig_img", src.device.type, src.data_ptr(), tuple(src.shape), str(src.dtype))
+        cached = self._fast_plot_cache.get(cache_key)
+        if cached is None:
+            cached = (src.permute(1, 2, 0).contiguous() * 255).byte().cpu().numpy()
+            self._fast_plot_cache[cache_key] = cached
+            if len(self._fast_plot_cache) > 16:
+                self._fast_plot_cache.pop(next(iter(self._fast_plot_cache)))
+        return cached
 
     def __getitem__(self, idx):
         """Return a Results object for a specific index of inference results.
@@ -459,6 +506,7 @@ class Results(SimpleClass, DataExportMixin):
         filename: str | None = None,
         color_mode: str = "class",
         txt_color: tuple[int, int, int] = (255, 255, 255),
+        fast: bool = False,
     ) -> np.ndarray:
         """Plot detection results on an input BGR image.
 
@@ -481,6 +529,7 @@ class Results(SimpleClass, DataExportMixin):
             filename (str | None): Filename to save image if save is True.
             color_mode (str): Specify the color mode, e.g., 'instance' or 'class'.
             txt_color (tuple[int, int, int]): Text color in BGR format for classification output.
+            fast (bool): Use a simplified OpenCV-only rendering path for maximum plotting throughput.
 
         Returns:
             (np.ndarray | PIL.Image.Image): Annotated image as a NumPy array (BGR) or PIL image (RGB) if `pil=True`.
@@ -493,20 +542,220 @@ class Results(SimpleClass, DataExportMixin):
         """
         assert color_mode in {"instance", "class"}, f"Expected color_mode='instance' or 'class', not {color_mode}."
         if img is None and isinstance(self.orig_img, torch.Tensor):
-            img = (self.orig_img[0].detach().permute(1, 2, 0).contiguous() * 255).byte().cpu().numpy()
+            img = (
+                self._fast_orig_img_numpy()
+                if fast
+                else (self.orig_img[0].detach().permute(1, 2, 0).contiguous() * 255).byte().cpu().numpy()
+            )
+
+        if fast:
+            pred_boxes = self.obb if self.obb is not None else self.boxes
+            pred_masks, pred_probs = self.masks, self.probs
+            im = self.orig_img if img is None else img
+            if isinstance(im, torch.Tensor):
+                im = self._fast_orig_img_numpy()
+            elif isinstance(im, Image.Image):
+                im = np.asarray(im)
+                if im.ndim == 3 and im.shape[2] == 3:  # PIL is RGB, plotting expects BGR
+                    im = im[..., ::-1]
+            elif not isinstance(im, np.ndarray):
+                im = np.asarray(im)
+            if im.ndim == 2:
+                im = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
+            elif im.ndim == 3 and im.shape[2] == 4:
+                im = cv2.cvtColor(im, cv2.COLOR_RGBA2BGR)
+            if not im.flags.writeable:
+                im = im.copy()
+            if not im.flags.c_contiguous:
+                im = np.ascontiguousarray(im)
+            lw = int(line_width or 2)
+            tf, sf = max(lw - 1, 1), lw / 3
+
+            if pred_masks is not None and masks:
+                if isinstance(pred_masks.data, torch.Tensor):
+                    masks_t = pred_masks.data
+                    if len(masks_t):
+                        if pred_boxes is not None and pred_boxes.is_track and color_mode == "instance":
+                            idx = pred_boxes.id
+                        elif pred_boxes is not None and color_mode == "class":
+                            idx = pred_boxes.cls
+                        else:
+                            idx = range(len(masks_t) - 1, -1, -1)
+
+                        ih, iw = im.shape[:2]
+                        masks_t = ops.scale_masks(masks_t[None].float(), (ih, iw))[0] > 0.5
+                        im_gpu = (
+                            torch.from_numpy(im).to(masks_t.device).permute(2, 0, 1).flip(0).contiguous().float()
+                            / 255.0
+                        )
+                        colors_t = (
+                            torch.tensor(
+                                [FAST_PLOT_COLORS[int(x) % len(FAST_PLOT_COLORS)] for x in idx],
+                                device=masks_t.device,
+                                dtype=torch.float32,
+                            )
+                            / 255.0
+                        )
+                        alpha = 0.5
+                        colors_t = colors_t[:, None, None]
+                        masks_u = masks_t.unsqueeze(3)
+                        masks_color = masks_u * (colors_t * alpha)
+                        inv_alpha_masks = (1 - masks_u * alpha).cumprod(0)
+                        mcs = masks_color.max(dim=0).values
+                        out = im_gpu.flip(0).permute(1, 2, 0).contiguous()
+                        out = out * inv_alpha_masks[-1] + mcs
+                        im[:] = (out * 255).byte().cpu().numpy()
+                else:
+                    m = self._cached_tensor_to_numpy("masks_data", pred_masks.data)
+                    if len(m) and m.shape[-2:] != im.shape[:2]:
+                        m = np.stack(
+                            [
+                                cv2.resize(
+                                    mask.astype(np.uint8), (im.shape[1], im.shape[0]), interpolation=cv2.INTER_NEAREST
+                                )
+                                > 0
+                                for mask in m
+                            ],
+                            axis=0,
+                        )
+                    else:
+                        m = m > 0.5
+                    if pred_boxes is not None and pred_boxes.is_track and color_mode == "instance":
+                        idx = self._cached_tensor_to_numpy("mask_idx_id", pred_boxes.id)
+                    elif pred_boxes is not None and color_mode == "class":
+                        idx = self._cached_tensor_to_numpy("mask_idx_cls", pred_boxes.cls)
+                    else:
+                        idx = range(len(m) - 1, -1, -1)
+                    if len(m):
+                        idx = np.asarray(list(idx), dtype=np.int32)
+                        color_lut = np.asarray(FAST_PLOT_COLORS, dtype=np.float32)
+                        alpha = 0.5
+                        m = m.astype(bool, copy=False)
+                        any_mask = m.any(axis=0)
+                        if any_mask.any():
+                            top_rev = np.argmax(m[::-1], axis=0)
+                            top_idx = len(m) - 1 - top_rev
+                            color_ids = idx[top_idx] % len(color_lut)
+                            color_img = color_lut[color_ids].astype(np.uint8)
+                            blended = cv2.addWeighted(im, 1 - alpha, color_img, alpha, 0)
+                            im[any_mask] = blended[any_mask]
+
+            if pred_boxes is not None and boxes:
+                b = self._cached_tensor_to_numpy("boxes_data", pred_boxes.data)
+                obb_points = (
+                    self._cached_tensor_to_numpy("obb_xyxyxyxy", pred_boxes.xyxyxyxy) if self.obb is not None else None
+                )
+                has_id = pred_boxes.is_track
+                for i in range(len(b) - 1, -1, -1):
+                    row = b[i]
+                    cls = int(row[-1])
+                    tid = int(row[-3]) if has_id else None
+                    conf_v = float(row[-2]) if conf else None
+                    ci = cls if color_mode == "class" else (tid if tid is not None else i)
+                    draw_color = FAST_PLOT_COLORS[int(ci) % len(FAST_PLOT_COLORS)]
+                    if self.obb is not None:
+                        pts = np.asarray(obb_points[i], dtype=np.int32)
+                        cv2.polylines(im, [pts], True, draw_color, lw, lineType=cv2.LINE_8)
+                        tx, ty = int(pts[0, 0]), int(pts[0, 1]) - 2
+                    else:
+                        x1, y1, x2, y2 = row[:4].astype(np.int32)
+                        cv2.rectangle(im, (x1, y1), (x2, y2), draw_color, lw, lineType=cv2.LINE_8)
+                        tx, ty = int(x1), int(y1) - 2
+                    if labels:
+                        name = ("" if tid is None else f"id:{tid} ") + self.names[cls]
+                        label = f"{name} {conf_v:.2f}" if conf and conf_v is not None else name
+                        cv2.putText(im, label, (tx, ty), 0, sf, txt_color, thickness=tf, lineType=cv2.LINE_8)
+
+            if self.keypoints is not None:
+                kpts = self._cached_tensor_to_numpy("keypoints_data", self.keypoints.data)
+                pose_kpt = colors.pose_palette[[16, 16, 16, 16, 16, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9, 9, 9]]
+                pose_limb = colors.pose_palette[[9, 9, 9, 9, 7, 7, 7, 0, 0, 0, 0, 0, 16, 16, 16, 16, 16, 16, 16]]
+                skeleton = np.array(
+                    [
+                        [16, 14],
+                        [14, 12],
+                        [17, 15],
+                        [15, 13],
+                        [12, 13],
+                        [6, 12],
+                        [7, 13],
+                        [6, 7],
+                        [6, 8],
+                        [7, 9],
+                        [8, 10],
+                        [9, 11],
+                        [2, 3],
+                        [1, 2],
+                        [1, 3],
+                        [2, 4],
+                        [3, 5],
+                        [4, 6],
+                        [5, 7],
+                    ],
+                    dtype=np.int32,
+                )
+                h, w = self.orig_shape
+                for i, k in enumerate(kpts[::-1]):
+                    kc = FAST_PLOT_COLORS[i % len(FAST_PLOT_COLORS)] if color_mode == "instance" else None
+                    for j, p in enumerate(k):
+                        x, y = int(p[0]), int(p[1])
+                        if x % w == 0 or y % h == 0:
+                            continue
+                        if p.shape[0] == 3 and p[2] < 0.25:
+                            continue
+                        cv2.circle(im, (x, y), kpt_radius, kc or pose_kpt[j].tolist(), -1, cv2.LINE_8)
+                    if kpt_line and k.shape[0] == 17:
+                        for sidx, (a, b) in enumerate(skeleton):
+                            p1, p2 = k[a - 1], k[b - 1]
+                            if p1.shape[0] == 3 and (p1[2] < 0.25 or p2[2] < 0.25):
+                                continue
+                            cv2.line(
+                                im,
+                                (int(p1[0]), int(p1[1])),
+                                (int(p2[0]), int(p2[1])),
+                                kc or pose_limb[sidx].tolist(),
+                                max((lw + 1) // 2, 1),
+                                cv2.LINE_8,
+                            )
+
+            if pred_probs is not None and probs:
+                p = self._cached_tensor_to_numpy("probs_data", pred_probs.data)
+                top5 = pred_probs.top5 if isinstance(pred_probs.top5, list) else list(pred_probs.top5)
+                x = round(self.orig_shape[0] * 0.03)
+                for t, j in enumerate(top5):
+                    cj = int(j)
+                    cv2.putText(
+                        im,
+                        f"{self.names[cj] if self.names else cj} {p[cj]:.2f}",
+                        (x, x + int((t + 1) * 18)),
+                        0,
+                        sf,
+                        txt_color,
+                        tf,
+                        cv2.LINE_8,
+                    )
+
+            if show:
+                Annotator(im).show(self.path)
+            if save:
+                cv2.imwrite(str(filename or f"results_{Path(self.path).name}"), im)
+            return Annotator(im).result(pil)
 
         names = self.names
         is_obb = self.obb is not None
         pred_boxes, show_boxes = self.obb if is_obb else self.boxes, boxes
         pred_masks, show_masks = self.masks, masks
         pred_probs, show_probs = self.probs, probs
+        base_img = self.orig_img if img is None else img
+        use_pil = (pil or (pred_probs is not None and show_probs)) and not fast  # Classify tasks default to pil=True
         annotator = Annotator(
-            deepcopy(self.orig_img if img is None else img),
-            line_width,
+            base_img if fast else deepcopy(base_img),
+            line_width if not fast else (line_width or 2),
             font_size,
             font,
-            pil or (pred_probs is not None and show_probs),  # Classify tasks default to pil=True
+            use_pil,
             example=names,
+            fast=fast,
         )
 
         # Plot Segment results
@@ -536,19 +785,14 @@ class Results(SimpleClass, DataExportMixin):
                 name = ("" if id is None else f"id:{id} ") + names[c]
                 label = (f"{name} {d_conf:.2f}" if conf else name) if labels else (f"{d_conf:.2f}" if conf else None)
                 box = d.xyxyxyxy.squeeze() if is_obb else d.xyxy.squeeze()
+                draw_color = colors(
+                    c if color_mode == "class" else id if id is not None else i if color_mode == "instance" else None,
+                    True,
+                )
                 annotator.box_label(
                     box,
                     label,
-                    color=colors(
-                        c
-                        if color_mode == "class"
-                        else id
-                        if id is not None
-                        else i
-                        if color_mode == "instance"
-                        else None,
-                        True,
-                    ),
+                    color=draw_color,
                 )
 
         # Plot Classify results

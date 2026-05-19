@@ -321,6 +321,7 @@ def test_results(model: str, tmp_path):
         r.to_json(normalize=True)
         r.plot(pil=True, save=True, filename=tmp_path / "results_plot_save.jpg")
         r.plot(conf=True, boxes=True)
+        r.plot(conf=True, boxes=True, fast=True)
         print(r, len(r), r.path)  # print after methods
 
 

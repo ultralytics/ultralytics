@@ -194,11 +194,13 @@ class Annotator:
         font: str = "Arial.ttf",
         pil: bool = False,
         example: str = "abc",
+        fast: bool = False,
     ):
         """Initialize the Annotator class with image and line width along with color palette for keypoints and limbs."""
         non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
         input_is_pil = isinstance(im, Image.Image)
-        self.pil = pil or non_ascii or input_is_pil
+        self.fast = fast
+        self.pil = False if fast else (pil or non_ascii or input_is_pil)
         self.lw = line_width or max(round(sum(im.size if input_is_pil else im.shape) / 2 * 0.003), 2)
         if not input_is_pil:
             if im.shape[2] == 1:  # handle grayscale
@@ -292,6 +294,8 @@ class Annotator:
             >>> annotator = Annotator(im0, line_width=10)
             >>> annotator.get_txt_color(color=(104, 31, 17))  # return (255, 255, 255)
         """
+        if self.fast:
+            return txt_color
         if color in self.dark_colors:
             return 104, 31, 17
         elif color in self.light_colors:
@@ -336,28 +340,32 @@ class Annotator:
                 # self.draw.text([box[0], box[1]], label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
                 self.draw.text((p1[0], p1[1] - h if outside else p1[1]), label, fill=txt_color, font=self.font)
         else:  # cv2
+            line_type = cv2.LINE_8 if self.fast else cv2.LINE_AA
             cv2.polylines(
-                self.im, [np.asarray(box, dtype=int)], True, color, self.lw
+                self.im, [np.asarray(box, dtype=int)], True, color, self.lw, lineType=line_type
             ) if multi_points else cv2.rectangle(
-                self.im, p1, (int(box[2]), int(box[3])), color, thickness=self.lw, lineType=cv2.LINE_AA
+                self.im, p1, (int(box[2]), int(box[3])), color, thickness=self.lw, lineType=line_type
             )
             if label:
-                w, h = cv2.getTextSize(label, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
-                h += 3  # add pixels to pad text
-                outside = p1[1] >= h  # label fits outside box
-                if p1[0] > self.im.shape[1] - w:  # shape is (h, w), check if label extend beyond right side of image
-                    p1 = self.im.shape[1] - w, p1[1]
-                p2 = p1[0] + w, p1[1] - h if outside else p1[1] + h
-                cv2.rectangle(self.im, p1, p2, color, -1, cv2.LINE_AA)  # filled
+                if not self.fast:
+                    w, h = cv2.getTextSize(label, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
+                    h += 3  # add pixels to pad text
+                    outside = p1[1] >= h  # label fits outside box
+                    if (
+                        p1[0] > self.im.shape[1] - w
+                    ):  # shape is (h, w), check if label extend beyond right side of image
+                        p1 = self.im.shape[1] - w, p1[1]
+                    p2 = p1[0] + w, p1[1] - h if outside else p1[1] + h
+                    cv2.rectangle(self.im, p1, p2, color, -1, line_type)  # filled
                 cv2.putText(
                     self.im,
                     label,
-                    (p1[0], p1[1] - 2 if outside else p1[1] + h - 1),
+                    (p1[0], p1[1] - 2 if self.fast else (p1[1] - 2 if outside else p1[1] + h - 1)),
                     0,
                     self.sf,
                     txt_color,
                     thickness=self.tf,
-                    lineType=cv2.LINE_AA,
+                    lineType=line_type,
                 )
 
     def masks(self, masks, colors, im_gpu: torch.Tensor = None, alpha: float = 0.5, retina_masks: bool = False):
@@ -375,10 +383,18 @@ class Annotator:
             self.im = np.asarray(self.im).copy()
         if im_gpu is None:
             assert isinstance(masks, np.ndarray), "`masks` must be a np.ndarray if `im_gpu` is not provided."
-            overlay = self.im.copy()
-            for i, mask in enumerate(masks):
-                overlay[mask.astype(bool)] = colors[i]
-            self.im = cv2.addWeighted(self.im, 1 - alpha, overlay, alpha, 0)
+            if self.fast:
+                for i, mask in enumerate(masks):
+                    m = mask.astype(bool)
+                    if m.any():
+                        self.im[m] = (
+                            (1 - alpha) * self.im[m] + alpha * np.asarray(colors[i], dtype=np.float32)
+                        ).astype(np.uint8)
+            else:
+                overlay = self.im.copy()
+                for i, mask in enumerate(masks):
+                    overlay[mask.astype(bool)] = colors[i]
+                self.im = cv2.addWeighted(self.im, 1 - alpha, overlay, alpha, 0)
         else:
             assert isinstance(masks, torch.Tensor), "'masks' must be a torch.Tensor if 'im_gpu' is provided."
             if len(masks) == 0:
@@ -449,7 +465,14 @@ class Annotator:
                     conf = k[2]
                     if conf < conf_thres:
                         continue
-                cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, color_k, -1, lineType=cv2.LINE_AA)
+                cv2.circle(
+                    self.im,
+                    (int(x_coord), int(y_coord)),
+                    radius,
+                    color_k,
+                    -1,
+                    lineType=cv2.LINE_8 if self.fast else cv2.LINE_AA,
+                )
 
         if kpt_line:
             ndim = kpts.shape[-1]
@@ -471,7 +494,7 @@ class Annotator:
                     pos2,
                     kpt_color or self.limb_color[i].tolist(),
                     thickness=int(np.ceil(self.lw / 2)),
-                    lineType=cv2.LINE_AA,
+                    lineType=cv2.LINE_8 if self.fast else cv2.LINE_AA,
                 )
         if self.pil:
             # Convert im back to PIL and update draw
@@ -503,13 +526,14 @@ class Annotator:
                 self.draw.text(xy, line, fill=txt_color, font=self.font)
                 xy[1] += h
         else:
+            line_type = cv2.LINE_8 if self.fast else cv2.LINE_AA
             if box_color:
                 w, h = cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]
                 h += 3  # add pixels to pad text
                 outside = xy[1] >= h  # label fits outside box
                 p2 = xy[0] + w, xy[1] - h if outside else xy[1] + h
-                cv2.rectangle(self.im, xy, p2, box_color, -1, cv2.LINE_AA)  # filled
-            cv2.putText(self.im, text, xy, 0, self.sf, txt_color, thickness=self.tf, lineType=cv2.LINE_AA)
+                cv2.rectangle(self.im, xy, p2, box_color, -1, line_type)  # filled
+            cv2.putText(self.im, text, xy, 0, self.sf, txt_color, thickness=self.tf, lineType=line_type)
 
     def fromarray(self, im):
         """Update `self.im` from a NumPy array or PIL image."""

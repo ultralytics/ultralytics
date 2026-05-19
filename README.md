@@ -163,8 +163,8 @@ Refer to the [Segmentation Docs](https://docs.ultralytics.com/tasks/segment) for
 
 See the [Semantic Segmentation Docs](https://docs.ultralytics.com/tasks/semseg) for usage examples. These models are trained on [Cityscapes](https://docs.ultralytics.com/datasets/semseg/cityscapes), including 19 classes.
 
-| Model                                                                                            | size<br><sup>(pixels)</sup> | mIoU<sup>val</sup> | Speed<br><sup>P4d PyTorch<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-| ------------------------------------------------------------------------------------------------ | --------------------------- | ------------------ | --------------------------------------- | ------------------------ | ----------------------- |
+| Model                                                                                        | size<br><sup>(pixels)</sup> | mIoU<sup>val</sup> | Speed<br><sup>P4d PyTorch<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+| -------------------------------------------------------------------------------------------- | --------------------------- | ------------------ | --------------------------------------- | ------------------------ | ----------------------- |
 | [YOLO26n-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-sem.pt) | 1024 x 2048                 | 78.3               | 4.4 ± 0.0                               | 1.6                      | 22.7                    |
 | [YOLO26s-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-sem.pt) | 1024 x 2048                 | 80.8               | 8.4 ± 0.0                               | 6.5                      | 88.8                    |
 | [YOLO26m-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-sem.pt) | 1024 x 2048                 | 82.0               | 19.9 ± 0.1                              | 14.3                     | 304.5                   |

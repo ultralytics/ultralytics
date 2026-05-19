@@ -1,0 +1,47 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# P4-only neckless DEIMv2-L variant with native DINOv3 small backbone.
+# This follows the channel/decoder settings from `deim_dinov3s_sta_l6_l.yaml`
+# while avoiding DEIMDINOv3STAs/STA and timm.
+# Model docs: https://docs.ultralytics.com/models/rtdetr
+# Task docs: https://docs.ultralytics.com/tasks/detect
+
+# Parameters
+nc: 80 # number of classes
+
+backbone:
+  # [from, repeats, module, args]
+  # DINOv3 args: [name, pretrained, out_indices, finetune, patch_size, split]
+  # ViT patch16 output at layer 11 has reduction 16, so this is P4.
+  - [-1, 1, DINOv3, [384, dinov3_vits16, True, [11], True, 16, True]] # 0
+  - [0, 1, Index, [384, 1]] # 1 P4
+
+head:
+  # P4-only local refinement; projects native DINOv3-S 384 channels to DEIMv2-L hidden_dim=224.
+  - [-1, 1, C3k2, [224, True, 0.5, True]] # 2 P4 refine
+
+  # DeimDecoder with L settings from `deim_dinov3s_sta_l6_l.yaml`.
+  # Single-level input uses scalar ndp=4.
+  # Args: [nc, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
+  #        learnt_init_query, enable_cuda_acceleration, one_to_many_groups, dab_sine_embedding,
+  #        efficient_msdeformable_attn, query_select_method, reg_max, reg_scale, layer_scale, mlp_act,
+  #        o2m_topk_mode, use_gateway, share_bbox_head, share_score_head]
+  - [[2], 1, DeimDecoder, [nc, 224, 300, 4, 8, 6, 1792, 0.0, "silu", -1, 100, 0.5, 1.0, False, False, 0, False, False, "default", 32, 4.0, 1.0, "silu", "unshared", True, False, False]]
+
+loss:
+  gamma: 1.5
+  alpha: 0.75
+  use_fl: False
+  use_vfl: False
+  use_mal: True
+  use_union_set: True
+  reg_max: 32
+  loss_gain: {class: 1, bbox: 5, giou: 2, fgl: 0.15, ddf: 1.5}
+  matcher:
+    cost_gain: {class: 2, bbox: 5, giou: 2}
+    use_fl: True
+    alpha: 0.25
+    gamma: 2.0
+    change_matcher: True
+    iou_order_alpha: 4.0
+    matcher_change_epoch: 50

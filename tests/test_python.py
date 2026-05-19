@@ -205,7 +205,9 @@ def test_track_stream(model, tmp_path):
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
     """
-    if model == "yolo26n-cls.pt":  # classification model not supported for tracking
+    if (
+        model == "yolo26n-cls.pt" or model == "yolo26n-semseg.pt"
+    ):  # classification and semseg models not supported for tracking
         return
     video_url = f"{ASSETS_URL}/decelera_portrait_min.mov"
     model = YOLO(model)
@@ -308,9 +310,15 @@ def test_predict_callback_and_setup():
 def test_results(model: str, tmp_path):
     """Test YOLO model results processing and output in various formats."""
     im = "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/im/boats.jpg" if model == "yolo26n-obb.pt" else SOURCE
+    is_semseg = "semseg" in model
     results = YOLO(WEIGHTS_DIR / model)([im, im], imgsz=160)
     for r in results:
-        assert len(r), f"'{model}' results should not be empty!"
+        if is_semseg:
+            assert r.semantic_mask is not None and r.semantic_mask.shape == r.orig_shape, (
+                f"'{model}' semantic_mask should match the original image shape!"
+            )
+        else:
+            assert len(r), f"'{model}' results should not be empty!"
         r = r.cpu().numpy()
         print(r, len(r), r.path)  # print numpy attributes
         r = r.to(device="cpu", dtype=torch.float32)
@@ -364,6 +372,8 @@ def test_data_utils(tmp_path):
     # with WorkingDirectory(ROOT.parent / 'tests'):
 
     for task in TASKS:
+        if task == "semseg":  # semseg dataset not updated yet
+            continue
         file = Path(TASK2DATA[task]).with_suffix(".zip")  # i.e. coco8.zip
         download(f"https://github.com/ultralytics/hub/raw/main/example_datasets/{file}", unzip=False, dir=tmp_path)
         stats = HUBDatasetStats(tmp_path / file, task=task)
@@ -889,3 +899,10 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
 
     model = YOLO(export_model, task=task)
     model.predict(source=im, imgsz=32)
+
+
+def test_semseg_ploygon_data():
+    """Test YOLO semantic segmentation model with polygon data."""
+    model = YOLO("yolo26n-semseg.pt")
+    model.train(data="coco8-seg.yaml", epochs=1, imgsz=32, close_mosaic=1)
+    model.val(data="coco8-seg.yaml")

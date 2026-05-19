@@ -117,11 +117,6 @@ class SemanticSegmentationValidator(DetectionValidator):
         self.metrics.update_stats(preds, batch["semantic_mask"])
         self.seen += preds.shape[0]
 
-    def finalize_metrics(self):
-        """Set final values on semantic metrics."""
-        self.metrics.speed = self.speed
-        self.metrics.save_dir = self.save_dir
-
     def gather_stats(self):
         """Reduce semantic confusion matrix to rank 0 during DDP validation."""
         if RANK == -1 or not dist.is_available() or not dist.is_initialized():
@@ -164,9 +159,8 @@ class SemanticSegmentationValidator(DetectionValidator):
         """
         self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
         if self.metrics.matrix is not None:
-            # TODO
             # Internal layout is [gt, pred]; transpose to [pred, gt] for ConfusionMatrix export format.
-            self.confusion_matrix.matrix = self.metrics.matrix.detach().cpu().numpy().astype(float).T
+            self.confusion_matrix.matrix = self.metrics.matrix.detach().cpu().numpy().astype(float)
         self.metrics.confusion_matrix = self.confusion_matrix
         self.metrics.clear_stats()
         return self.metrics.results_dict

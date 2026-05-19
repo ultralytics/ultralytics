@@ -552,7 +552,7 @@ class ConfusionMatrix(DataExportMixin):
         nc = n if self.task == "classify" else n + 1  # adjust for background if needed
         ticklabels = "auto"
         if 0 < nc < 99:
-            ticklabels = names if self.task == "classify" else [*names, "background"]
+            ticklabels = names if self.task in {"classify", "semseg"} else [*names, "background"]
         xy_ticks = np.arange(len(ticklabels)) if ticklabels != "auto" else np.arange(nc)
         tick_fontsize = max(6, 15 - 0.1 * nc)  # Minimum size is 6
         label_fontsize = max(6, 12 - 0.1 * nc)
@@ -1757,7 +1757,6 @@ class SemsegMetrics(SimpleClass, DataExportMixin):
 
         if plot:
             self._plot_iou_bars(save_dir, on_plot)
-            self._plot_confusion_matrix(save_dir, on_plot)
 
     def clear_stats(self):
         """Clear accumulated statistics."""
@@ -1793,61 +1792,6 @@ class SemsegMetrics(SimpleClass, DataExportMixin):
         plt.close(fig)
         if on_plot:
             on_plot(fname)
-
-    @plt_settings()
-    def _plot_confusion_matrix(self, save_dir, on_plot):
-        """Plot confusion matrix heatmap (normalized and raw).
-
-        Args:
-            save_dir (Path | str): Directory to save the plots.
-            on_plot (callable, optional): Function to call after plots are saved.
-        """
-        import matplotlib.pyplot as plt
-
-        cm = self.matrix.cpu().numpy()
-        for normalize in (False, True):
-            fig, ax = plt.subplots(1, 1, figsize=(12, 9))
-            array = cm.copy()
-            if normalize:
-                array = array / (array.sum(axis=0, keepdims=True) + 1e-9)
-            array[array < 0.005] = np.nan
-            names = list(self.names.values()) if self.nc != 1 else ["background", next(iter(self.names.values()), "1")]
-            if len(names) < self.cm_nc:
-                names = names + [str(i) for i in range(len(names), self.cm_nc)]
-            im = ax.imshow(array, cmap="Blues", vmin=0.0, interpolation="none")
-            ax.set_xlabel("Predicted")
-            ax.set_ylabel("Ground Truth")
-            title = "Confusion Matrix" + (" Normalized" if normalize else "")
-            ax.set_title(title)
-            ticklabels = names if self.cm_nc < 99 else "auto"
-            if ticklabels != "auto":
-                ticks = np.arange(len(ticklabels))
-                ax.set_xticks(ticks)
-                ax.set_yticks(ticks)
-                ax.set_xticklabels(ticklabels, rotation=90, fontsize=max(6, 12 - 0.1 * self.cm_nc))
-                ax.set_yticklabels(ticklabels, fontsize=max(6, 12 - 0.1 * self.cm_nc))
-            if self.cm_nc < 30:
-                color_threshold = 0.45 * (1 if normalize else np.nanmax(array))
-                for i in range(self.cm_nc):
-                    for j in range(self.cm_nc):
-                        val = array[i, j]
-                        if np.isnan(val):
-                            continue
-                        ax.text(
-                            j,
-                            i,
-                            f"{val:.2f}" if normalize else f"{int(val)}",
-                            ha="center",
-                            va="center",
-                            fontsize=10,
-                            color="white" if val > color_threshold else "black",
-                        )
-            fig.colorbar(im, ax=ax, fraction=0.046, pad=0.05)
-            fname = Path(save_dir) / f"confusion_matrix{'_normalized' if normalize else ''}.png"
-            plt.savefig(fname, dpi=250)
-            plt.close(fig)
-            if on_plot:
-                on_plot(fname)
 
     @property
     def miou(self):

@@ -854,6 +854,7 @@ class BaseTrainer:
             self.validator.args.compile = False  # disable final val compile as too slow
             self.metrics = self.validator(model=model)
             self.metrics.pop("fitness", None)
+            self.epoch += 1
             self.run_callbacks("on_fit_epoch_end")
 
     def check_resume(self, overrides):

@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from PIL import Image
 import torch
 import torch.distributed as dist
 
@@ -196,6 +197,8 @@ class DetectionValidator(BaseValidator):
                 self.confusion_matrix.process_batch(predn, pbatch, conf=self.args.conf)
                 if self.args.visualize:
                     self.confusion_matrix.plot_matches(batch["img"][si], pbatch["im_file"], self.save_dir)
+                if not self.training and RANK in {-1, 0}:
+                    self._save_per_image_gt_pred(batch["img"][si : si + 1], predn, pbatch)
 
             if no_pred:
                 continue
@@ -353,6 +356,70 @@ class DetectionValidator(BaseValidator):
             names=self.names,
             on_plot=self.on_plot,
         )
+
+    def _save_per_image_gt_pred(
+        self, image: torch.Tensor, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]
+    ) -> None:
+        """Save per-image GT|Pred side-by-side visualization.
+
+        Uses the same drawing logic as `plot_images` for both ground-truth and prediction panels,
+        then concatenates the two panels horizontally and saves them.
+
+        Args:
+            image (torch.Tensor): Single-image tensor with shape (1, C, H, W).
+            predn (dict[str, torch.Tensor]): Prepared predictions for one sample.
+            pbatch (dict[str, Any]): Prepared ground-truth metadata for one sample.
+        """
+        image_path = Path(pbatch["im_file"])
+        save_dir = self.save_dir / "gt_pred_per_image"
+        save_dir.mkdir(parents=True, exist_ok=True)
+
+        gt_boxes = pbatch["bboxes"].clone()
+        if gt_boxes.shape[-1] == 4:
+            gt_boxes = ops.xyxy2xywh(gt_boxes)
+        elif gt_boxes.shape[-1] != 5:
+            return
+
+        pred_boxes = predn["bboxes"].clone()
+        if pred_boxes.shape[-1] == 4:
+            pred_boxes = ops.xyxy2xywh(pred_boxes)
+        elif pred_boxes.shape[-1] != 5:
+            return
+
+        gt_labels = {
+            "cls": pbatch["cls"],
+            "bboxes": gt_boxes,
+            "batch_idx": torch.zeros_like(pbatch["cls"], dtype=torch.int64),
+        }
+        pred_labels = {
+            "cls": predn["cls"],
+            "conf": predn["conf"],
+            "bboxes": pred_boxes,
+            "batch_idx": torch.zeros_like(predn["cls"], dtype=torch.int64),
+        }
+
+        gt_img = plot_images(
+            labels=gt_labels,
+            images=image,
+            paths=[pbatch["im_file"]],
+            names=self.names,
+            save=False,
+            conf_thres=self.args.conf,
+            threaded=False,
+        )
+        pred_img = plot_images(
+            labels=pred_labels,
+            images=image,
+            paths=[pbatch["im_file"]],
+            names=self.names,
+            save=False,
+            conf_thres=self.args.conf,
+            threaded=False,
+        )
+        if gt_img is None or pred_img is None:
+            return
+
+        Image.fromarray(np.concatenate((gt_img, pred_img), axis=1)).save(save_dir / f"{image_path.stem}_gt_pred.jpg")
 
     def plot_predictions(
         self, batch: dict[str, Any], preds: list[dict[str, torch.Tensor]], ni: int, max_det: int | None = None

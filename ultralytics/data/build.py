@@ -34,6 +34,18 @@ from ultralytics.utils.checks import check_file
 from ultralytics.utils.torch_utils import TORCH_2_0
 
 
+def _yolo_family_dataset_kwargs(
+    cfg: IterableSimpleNamespace, img_path: str, batch: int, mode: str, rect: bool, stride: int
+) -> dict[str, Any]:
+    """Shared kwargs for YOLODataset and GroundingDataset."""
+    t = mode == "train"
+    return dict(
+        img_path=img_path, imgsz=cfg.imgsz, batch_size=batch, augment=t, hyp=cfg, rect=cfg.rect or rect,
+        cache=cfg.cache or None, single_cls=cfg.single_cls or False, stride=stride, pad=0.0 if t else 0.5,
+        prefix=colorstr(f"{mode}: "), task=cfg.task, classes=cfg.classes, fraction=cfg.fraction if t else 1.0,
+    )
+
+
 class InfiniteDataLoader(dataloader.DataLoader):
     """DataLoader that reuses workers for infinite iteration.
 
@@ -232,23 +244,8 @@ def build_yolo_dataset(
     multi_modal: bool = False,
 ) -> Dataset:
     """Build and return a YOLO dataset based on configuration parameters."""
-    dataset = YOLOMultiModalDataset if multi_modal else YOLODataset
-    return dataset(
-        img_path=img_path,
-        imgsz=cfg.imgsz,
-        batch_size=batch,
-        augment=mode == "train",  # augmentation
-        hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function
-        rect=cfg.rect or rect,  # rectangular batches
-        cache=cfg.cache or None,
-        single_cls=cfg.single_cls or False,
-        stride=stride,
-        pad=0.0 if mode == "train" else 0.5,
-        prefix=colorstr(f"{mode}: "),
-        task=cfg.task,
-        classes=cfg.classes,
-        data=data,
-        fraction=cfg.fraction if mode == "train" else 1.0,
+    return (YOLOMultiModalDataset if multi_modal else YOLODataset)(
+        **_yolo_family_dataset_kwargs(cfg, img_path, batch, mode, rect, stride), data=data
     )
 
 
@@ -264,22 +261,9 @@ def build_grounding(
 ) -> Dataset:
     """Build and return a GroundingDataset based on configuration parameters."""
     return GroundingDataset(
-        img_path=img_path,
+        **_yolo_family_dataset_kwargs(cfg, img_path, batch, mode, rect, stride),
         json_file=json_file,
         max_samples=max_samples,
-        imgsz=cfg.imgsz,
-        batch_size=batch,
-        augment=mode == "train",  # augmentation
-        hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function
-        rect=cfg.rect or rect,  # rectangular batches
-        cache=cfg.cache or None,
-        single_cls=cfg.single_cls or False,
-        stride=stride,
-        pad=0.0 if mode == "train" else 0.5,
-        prefix=colorstr(f"{mode}: "),
-        task=cfg.task,
-        classes=cfg.classes,
-        fraction=cfg.fraction if mode == "train" else 1.0,
     )
 
 

@@ -16,7 +16,8 @@ Branch `yolo_anomaly`: training-free anomaly detection on top of YOLO/YOLOE chec
 | `ultralytics/models/yolo/model.py` | `YOLOAnomaly`, `AnomalyValidator`, `AnomalyPredictor` |
 | `ultralytics/nn/tasks.py` | `YOLOAnomalyModel(DetectionModel)` |
 | `ultralytics/nn/modules/head.py` | `AnomalyDetection(Detect)` |
-| `scripts/yolo_anomaly.py` | `MVTEC_CATEGORIES`, `get_mvtec_yolo_data`, `build_ad_model`, `get_arguments` |
+| `ultralytics/anomaly_utils.py` | `MVTEC_CATEGORIES`, `get_mvtec_yolo_data`, `build_ad_model`, `get_arguments`, `collect_images`, `save_heatmap_overlay` |
+| `scripts/yolo_anomaly.py` | thin re-export + `iter_predict`, `iter_predict_heatmap` (VS Code dev tools) |
 | `scripts/val_mvtec_all.py` | 14-category sweep → `runs/temp/mvtec_all_metrics.csv` |
 
 ## Flow
@@ -40,5 +41,5 @@ m.save(path)                            # round-trips bank via _restore_anomaly_
 - `YOLOAnomalyModel.train()` raises — training-free by contract.
 - New anomaly knobs: thread through `AnomalyDetection.set_anomaly_args` → `YOLOAnomaly.set_anomaly_args` (model.py ~L963).
 - Cached per-category models: `runs/temp/{category}_{base_stem}_anomaly_model.pt`.
-- `scripts/yolo_anomaly.py` uses tabs; library code is 4-space.
+- `ultralytics/anomaly_utils.py` uses 4-space indent (library); `scripts/yolo_anomaly.py` keeps tabs (dev scripts).
 - Paths: MVTec at `/Users/louis/workspace/ultra_louis_work/buffer/MVTEC/MVTec-YOLO`; sibling lib `ultra_ext` at `../ultra_ext_lib/`.

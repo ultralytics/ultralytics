@@ -1008,6 +1008,7 @@ class YOLOAnomaly(Model):
         imgsz: int = 640,
         device=None,
         verbose: bool = True,
+        batch: int = 1,
         **kwargs,
     ) -> list[dict]:
         """Feed normal (non-anomalous) images to populate the memory bank.
@@ -1027,6 +1028,13 @@ class YOLOAnomaly(Model):
             imgsz (int): Inference image size.
             device: Device to run on (e.g. 'cuda:0', 'cpu').
             verbose (bool): Print memory bank stats after building.
+            batch (int): Number of images per backbone forward.  ``batch=1`` is
+                the original strictly-serial behaviour.  ``batch>1`` groups
+                support images into chunks for a single backbone call, which
+                is much faster for AnomalyDINO and for YOLOAnomaly in its
+                coreset fast-path (``max_bank_size`` set).  OBMA gating in
+                YOLOAnomaly is per-image, so for the OBMA path stick with
+                ``batch=1`` to keep its semantics.
             **kwargs: Additional keyword arguments forwarded to predict().
 
         Returns:
@@ -1039,16 +1047,38 @@ class YOLOAnomaly(Model):
 
         if verbose:
             LOGGER.info("YOLOAnomaly: building memory bank from support set...")
-        self._prepare_support_session(conf=conf, imgsz=imgsz, device=device, **kwargs)
+        self._prepare_support_session(conf=conf, imgsz=imgsz, device=device,
+                                      batch=batch, **kwargs)
         items = list(self._iter_support_sources(source))
-        for item in TQDM(items, desc="Building memory bank"):
-            feats = self._extract_support_features(item)
+        batch = max(1, int(batch))
+        chunks = [items[i:i + batch] for i in range(0, len(items), batch)]
+        pbar = TQDM(chunks, desc="Building memory bank", total=len(items))
+        for chunk in pbar:
+            feats = self._extract_support_features(chunk)
             self._accumulate_features(feats)
+            pbar.update(len(chunk) - 1)   # TQDM iterates chunks; each chunk = len(chunk) items
+            sizes, temps = self._head_stats()
+            if sizes:
+                pbar.set_postfix(
+                    bank="/".join(str(s) for s in sizes),
+                    T="/".join(f"{t:.2f}" for t in temps),
+                )
         return self._finalize_memory_bank(verbose=verbose)
+
+    def _head_stats(self) -> tuple[list[int], list[float]]:
+        """Return ``(bank_sizes, temperatures)`` for each AD head (empty if N/A)."""
+        try:
+            heads = list(self.model._get_ad_heads())
+            sizes = [int(h.memory_bank.shape[0]) for h in heads]
+            temps = [float(getattr(h, "temperature", float("nan"))) for h in heads]
+            return sizes, temps
+        except (AttributeError, TypeError):
+            return [], []
 
     # ── pipeline stage hooks ────────────────────────────────────────────────
 
-    def _prepare_support_session(self, conf: float = 1e-6, imgsz: int = 640, device=None, **kwargs) -> None:
+    def _prepare_support_session(self, conf: float = 1e-6, imgsz: int = 640,
+                                 device=None, batch: int = 1, **kwargs) -> None:
         """Stage 0: one-time setup before iterating support images.
 
         Stores predict kwargs and enables YOLO memory-bank accumulation.
@@ -1058,6 +1088,7 @@ class YOLOAnomaly(Model):
         self._support_conf   = conf
         self._support_imgsz  = imgsz
         self._support_device = device
+        self._support_batch  = batch
         self._support_kw     = kwargs
         self.model.set_memory_update(True)
 
@@ -1083,22 +1114,26 @@ class YOLOAnomaly(Model):
             return
         yield source
 
-    def _extract_support_features(self, img_path) -> None:
-        """Stage 1: run backbone on one support image and accumulate features.
+    def _extract_support_features(self, items) -> None:
+        """Stage 1: run backbone on a chunk of support images, accumulate features.
 
-        Default: runs a low-conf YOLO predict so ADMBHead accumulates internally.
-        The return value is passed straight to _accumulate_features(); the default
-        YOLO path returns None because accumulation happens as a side-effect inside
-        ADMBHead.forward() during the predict call.
+        Args:
+            items: A single image path/tensor, or a list of them.  When a list
+                is passed, ``model.predict`` runs them as one batched forward
+                so ``ADMBHead.forward`` sees ``B = len(items)``.  The internal
+                accumulation logic (OBMA / coreset fast-path) already handles
+                ``B > 1``.
 
         Override to return explicit feature tensors (e.g. AnomalyDINO returns a
         (N, D) patch-token tensor from DINOv2).
         """
+        source = items if isinstance(items, (list, tuple)) else [items]
         self.predict(
-            source=img_path,
+            source=source,
             conf=self._support_conf,
             imgsz=self._support_imgsz,
             device=self._support_device,
+            batch=len(source),
             verbose=False,
             **self._support_kw,
         )
@@ -1625,18 +1660,31 @@ class AnomalyDINO(YOLOAnomaly):
     # ImageNet normalisation used by all DINOv2 models.
     _DINO_MEAN = (0.485, 0.456, 0.406)
     _DINO_STD  = (0.229, 0.224, 0.225)
-    # 518 = 37 × 14 (patch_size=14) — DINOv2 canonical resolution.
+    # 518 = 37 × 14 (patch_size=14) — DINOv2 canonical resolution; overridable per-instance.
     _DINO_SIZE = 518
 
     def __init__(
         self,
         model: str | Path,
         dino_model: str = "dinov2_vitb14",
+        imgsz: int | None = None,
         device: str | None = None,
         verbose: bool = False,
     ) -> None:
-        """Initialize AnomalyDINO with a YOLO checkpoint and a DINOv2 backbone."""
+        """Initialize AnomalyDINO with a YOLO checkpoint and a DINOv2 backbone.
+
+        Args:
+            imgsz: DINOv2 input resolution.  Defaults to 518.  Must be a
+                multiple of the patch size (14).  Smaller values (e.g. 448)
+                speed up the forward by ~``(imgsz/518)**2``.
+        """
         super().__init__(model, verbose=verbose)
+        # Per-instance override of the class-level _DINO_SIZE so different
+        # AnomalyDINO instances can use different resolutions.
+        if imgsz is not None:
+            if imgsz % 14 != 0:
+                raise ValueError(f"imgsz must be a multiple of 14 (DINOv2 patch size); got {imgsz}")
+            self._DINO_SIZE = int(imgsz)
         # Install AnomalyDetection head so predict/val route through
         # AnomalyPredictor/AnomalyValidator.  We deliberately leave end2end=False
         # so post-processing flows through standard non_max_suppression →
@@ -1690,13 +1738,27 @@ class AnomalyDINO(YOLOAnomaly):
         self._dino_bank   = None
         self._dino_frozen = False
 
-    def _extract_support_features(self, img_path) -> "torch.Tensor":
-        """Stage 1: extract L2-normalised DINOv2 patch tokens.
+    def _extract_support_features(self, items) -> "torch.Tensor":
+        """Stage 1: extract L2-normalised DINOv2 patch tokens, batched.
+
+        Args:
+            items: Single image path/tensor or a list of them.  Lists are
+                batched into one DINOv2 forward, which dominates wall-time.
 
         Returns:
-            Tensor: (N_patches, D) float32 on CPU.
+            Tensor: (B * N_patches, D) float32 on CPU.
         """
-        patches, _, _ = self._extract_dino_features(img_path)
+        import torch.nn.functional as F
+
+        sources = items if isinstance(items, (list, tuple)) else [items]
+        self._load_dino()
+        # Stack per-image preprocessed tensors into one batch.
+        imgs = torch.cat([self._preprocess_for_dino(p) for p in sources], dim=0)
+        with torch.no_grad():
+            out = self._dino.forward_features(imgs)
+        patches = out["x_norm_patchtokens"]            # (B, N_patches, D)
+        D = patches.shape[-1]
+        patches = F.normalize(patches.reshape(-1, D), dim=-1)   # (B*N_patches, D)
         return patches.detach().cpu()
 
     def _accumulate_features(self, feats: "torch.Tensor") -> None:

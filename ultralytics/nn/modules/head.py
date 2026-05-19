@@ -2007,7 +2007,7 @@ class ADMBHead(nn.Module):
             beta = max(0.1, min(20.0, beta))                        # safety clamp
         old_temp = self.temperature
         self.temperature = beta
-        LOGGER.info(
+        LOGGER.debug(
             "ADMBHead: auto-calibrated temperature %.3f → %.3f  (s_90=%.4f, target_score=%.2f)",
             old_temp, beta, s_typical.item(), self.calibration_target_score,
         )
@@ -2199,13 +2199,9 @@ class ADMBHead(nn.Module):
             # M-step — calibrate β from the bank just built
             just_calibrated = _maybe_calibrate(mem)
 
-            # Reset-and-rebuild: after seeding on pass 0 and calibrating β,
-            # throw away the seed bank so pass 1 builds cleanly with correct β.
-            if is_first_pass and just_calibrated and self.em_iters >= 2:
-                mem = torch.zeros((0, self.feature_dim), device=cls_feat.device, dtype=cls_feat.dtype)
-                keep_flags.zero_()  # visualisation flags will be set properly in pass 1
-                total_added = 0     # restart counter — seed bank is discarded
-                continue            # go straight to pass 1 E-step
+            # Reset-and-rebuild is disabled by design: bank is never wiped
+            # during accumulation.  Recalibrations update β only; features
+            # already collected stay in the bank.
 
             # Convergence check — skip on pass 0 (bank was just seeded)
             if not is_first_pass and added == 0:
@@ -2213,7 +2209,7 @@ class ADMBHead(nn.Module):
                 break
 
         self.memory_bank = mem
-        LOGGER.info(
+        LOGGER.debug(
             "OBMA: total_added=%d keep=%.1f%% mem_size=%d temperature=%.3f em_extra_iters=%d/%d",
             total_added,
             100.0 * keep_flags.sum() / max(H * W, 1),

@@ -1,0 +1,99 @@
+Ultralytich 8.4.51 🚀 Python-3.12.13 torch-2.11.0 CPU (Apple A18 Pro)
+[34m[1mengine/trainer: [0magnostic_nms=False, amp=True, angle=1.0, augment=False, auto_augment=randaugment, batch=16, bgr=0.0, box=7.5, cache=False, cfg=None, classes=None, close_mosaic=10, cls=0.5, cls_pw=0.0, compile=False, conf=None, copy_paste=0.0, copy_paste_mode=flip, cos_lr=False, cutmix=0.0, data=coco8.yaml, degrees=0.0, deterministic=True, device=cpu, dfl=1.5, dnn=False, dropout=0.0, dynamic=False, embed=None, end2end=None, epochs=5, erasing=0.4, exist_ok=False, fliplr=0.5, flipud=0.0, format=torchscript, fraction=1.0, freeze=None, half=False, hsv_h=0.015, hsv_s=0.7, hsv_v=0.4, imgsz=640, int8=False, iou=0.7, keras=False, kobj=1.0, line_width=None, lr0=0.01, lrf=0.01, mask_ratio=4, max_det=300, mixup=0.0, mode=train, model=yolov10s.pt, momentum=0.937, mosaic=1.0, multi_scale=0.0, name=exp-30, nbs=64, nms=False, opset=None, optimize=False, optimizer=auto, overlap_mask=True, patience=100, perspective=0.0, plots=True, pose=12.0, pretrained=True, profile=False, project=runs/train, rect=False, resume=False, retina_masks=False, rle=1.0, save=True, save_conf=False, save_crop=False, save_dir=/Users/deependu/codes/oss/ultralytics/ultralytics/runs/detect/runs/train/exp-30, save_frames=False, save_json=False, save_period=-1, save_txt=False, scale=0.5, seed=0, shear=0.0, show=False, show_boxes=True, show_conf=True, show_labels=True, simplify=True, single_cls=False, source=None, split=val, stream_buffer=False, task=detect, time=None, tracker=botsort.yaml, translate=0.1, val=True, verbose=True, vid_stride=1, visualize=False, warmup_bias_lr=0.1, warmup_epochs=3.0, warmup_momentum=0.8, weight_decay=0.0005, workers=8, workspace=None
+[34m[1mTensorBoard: [0mStart with 'tensorboard --logdir /Users/deependu/codes/oss/ultralytics/ultralytics/runs/detect/runs/train/exp-30', view at http://localhost:6006/
+
+                   from  n    params  module                                       arguments                     
+  0                  -1  1       928  ultralytics.nn.modules.conv.Conv             [3, 32, 3, 2]                 
+  1                  -1  1     18560  ultralytics.nn.modules.conv.Conv             [32, 64, 3, 2]                
+  2                  -1  1     29056  ultralytics.nn.modules.block.C2f             [64, 64, 1, True]             
+  3                  -1  1     73984  ultralytics.nn.modules.conv.Conv             [64, 128, 3, 2]               
+  4                  -1  2    197632  ultralytics.nn.modules.block.C2f             [128, 128, 2, True]           
+  5                  -1  1     36096  ultralytics.nn.modules.block.SCDown          [128, 256, 3, 2]              
+  6                  -1  2    788480  ultralytics.nn.modules.block.C2f             [256, 256, 2, True]           
+  7                  -1  1    137728  ultralytics.nn.modules.block.SCDown          [256, 512, 3, 2]              
+  8                  -1  1    958464  ultralytics.nn.modules.block.C2fCIB          [512, 512, 1, True, True]     
+  9                  -1  1    656896  ultralytics.nn.modules.block.SPPF            [512, 512, 5]                 
+ 10                  -1  1    990976  ultralytics.nn.modules.block.PSA             [512, 512]                    
+ 11                  -1  1         0  torch.nn.modules.upsampling.Upsample         [None, 2, 'nearest']          
+ 12             [-1, 6]  1         0  ultralytics.nn.modules.conv.Concat           [1]                           
+ 13                  -1  1    591360  ultralytics.nn.modules.block.C2f             [768, 256, 1]                 
+ 14                  -1  1         0  torch.nn.modules.upsampling.Upsample         [None, 2, 'nearest']          
+ 15             [-1, 4]  1         0  ultralytics.nn.modules.conv.Concat           [1]                           
+ 16                  -1  1    148224  ultralytics.nn.modules.block.C2f             [384, 128, 1]                 
+ 17                  -1  1    147712  ultralytics.nn.modules.conv.Conv             [128, 128, 3, 2]              
+ 18            [-1, 13]  1         0  ultralytics.nn.modules.conv.Concat           [1]                           
+ 19                  -1  1    493056  ultralytics.nn.modules.block.C2f             [384, 256, 1]                 
+ 20                  -1  1     68864  ultralytics.nn.modules.block.SCDown          [256, 256, 3, 2]              
+ 21            [-1, 10]  1         0  ultralytics.nn.modules.conv.Concat           [1]                           
+ 22                  -1  1   1089536  ultralytics.nn.modules.block.C2fCIB          [768, 512, 1, True, True]     
+ 23        [16, 19, 22]  1   1700720  ultralytics.nn.modules.head.v10Detect        [80, [128, 256, 512]]         
+YOLOv10s summary: 235 layers, 8,128,272 parameters, 8,128,256 gradients, 25.1 GFLOPs
+
+Transferred 619/619 items from pretrained weights
+Freezing layer 'model.23.dfl.conv.weight'
+[34m[1mtrain: [0mFast image access ✅ (ping: 0.0±0.0 ms, read: 227.8±108.7 MB/s, size: 50.0 KB)
+[K[34m[1mtrain: [0mScanning /Users/deependu/codes/oss/ultralytics/datasets/coco8/labels/train.cache... 4 images, 0 backgrounds, 0 corrupt: 100% ━━━━━━━━━━━━ 4/4 441.5Kit/s 0.0s
+[34m[1mval: [0mFast image access ✅ (ping: 0.0±0.0 ms, read: 242.2±56.1 MB/s, size: 54.0 KB)
+[K[34m[1mval: [0mScanning /Users/deependu/codes/oss/ultralytics/datasets/coco8/labels/val.cache... 4 images, 0 backgrounds, 0 corrupt: 100% ━━━━━━━━━━━━ 4/4 3.4Mit/s 0.0s
+[34m[1moptimizer:[0m 'optimizer=auto' found, ignoring 'lr0=0.01' and 'momentum=0.937' and determining best 'optimizer', 'lr0' and 'momentum' automatically... 
+[34m[1moptimizer:[0m AdamW(lr=0.000119, momentum=0.9) with parameter groups 99 weight(decay=0.0), 112 weight(decay=0.0005), 111 bias(decay=0.0)
+Plotting labels to /Users/deependu/codes/oss/ultralytics/ultralytics/runs/detect/runs/train/exp-30/labels.jpg... 
+[34m[1mTensorBoard: [0mmodel graph visualization added ✅
+Image sizes 640 train, 640 val
+Using 0 dataloader workers
+Logging results to [1m/Users/deependu/codes/oss/ultralytics/ultralytics/runs/detect/runs/train/exp-30[0m
+Starting training for 5 epochs...
+
+      Epoch    GPU_mem   box_loss   cls_loss   dfl_loss  Instances       Size
+[K        1/5         0G     0.7923      1.316      1.191         30        640: 0% ──────────── 0/1  3.7s[K        1/5         0G     0.7923      1.316      1.191         30        640: 100% ━━━━━━━━━━━━ 1/1 3.7s/it 3.7s
+tensorboard on_train_epoch_end: epoch-1 & trainer.metrics={'metrics/precision(B)': 0, 'metrics/recall(B)': 0, 'metrics/mAP50(B)': 0, 'metrics/mAP50-95(B)': 0, 'val/box_loss': 0, 'val/cls_loss': 0, 'val/dfl_loss': 0}
+[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 100% ━━━━━━━━━━━━ 1/1 1.4it/s 0.7s
+                   all          4         17      0.771      0.861      0.929      0.745
+tensorboard on_fit_epoch_end: epoch-1 & trainer.metrics={'metrics/precision(B)': 0.77075, 'metrics/recall(B)': 0.86115, 'metrics/mAP50(B)': 0.92882, 'metrics/mAP50-95(B)': 0.74537, 'val/box_loss': 1.35518, 'val/cls_loss': 0.83255, 'val/dfl_loss': 1.19526}
+
+      Epoch    GPU_mem   box_loss   cls_loss   dfl_loss  Instances       Size
+[K        2/5         0G     0.8515      1.957      1.255         30        640: 0% ──────────── 0/1  2.7s[K        2/5         0G     0.8515      1.957      1.255         30        640: 100% ━━━━━━━━━━━━ 1/1 2.7s/it 2.7s
+tensorboard on_train_epoch_end: epoch-2 & trainer.metrics={'metrics/precision(B)': 0.77075, 'metrics/recall(B)': 0.86115, 'metrics/mAP50(B)': 0.92882, 'metrics/mAP50-95(B)': 0.74537, 'val/box_loss': 1.35518, 'val/cls_loss': 0.83255, 'val/dfl_loss': 1.19526}
+[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 100% ━━━━━━━━━━━━ 1/1 1.4it/s 0.7s
+                   all          4         17      0.783      0.859      0.929      0.745
+tensorboard on_fit_epoch_end: epoch-2 & trainer.metrics={'metrics/precision(B)': 0.78297, 'metrics/recall(B)': 0.85872, 'metrics/mAP50(B)': 0.92896, 'metrics/mAP50-95(B)': 0.74547, 'val/box_loss': 1.3521, 'val/cls_loss': 0.82959, 'val/dfl_loss': 1.19237}
+
+      Epoch    GPU_mem   box_loss   cls_loss   dfl_loss  Instances       Size
+[K        3/5         0G     0.6339      1.275      1.182         16        640: 0% ──────────── 0/1  2.8s[K        3/5         0G     0.6339      1.275      1.182         16        640: 100% ━━━━━━━━━━━━ 1/1 2.8s/it 2.8s
+tensorboard on_train_epoch_end: epoch-3 & trainer.metrics={'metrics/precision(B)': 0.78297, 'metrics/recall(B)': 0.85872, 'metrics/mAP50(B)': 0.92896, 'metrics/mAP50-95(B)': 0.74547, 'val/box_loss': 1.3521, 'val/cls_loss': 0.82959, 'val/dfl_loss': 1.19237}
+[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 100% ━━━━━━━━━━━━ 1/1 1.4it/s 0.7s
+                   all          4         17      0.794      0.856      0.929       0.74
+tensorboard on_fit_epoch_end: epoch-3 & trainer.metrics={'metrics/precision(B)': 0.79375, 'metrics/recall(B)': 0.85623, 'metrics/mAP50(B)': 0.92904, 'metrics/mAP50-95(B)': 0.7399, 'val/box_loss': 1.35481, 'val/cls_loss': 0.83051, 'val/dfl_loss': 1.19046}
+
+      Epoch    GPU_mem   box_loss   cls_loss   dfl_loss  Instances       Size
+[K        4/5         0G     0.8807      1.602      1.695         16        640: 0% ──────────── 0/1  2.8s[K        4/5         0G     0.8807      1.602      1.695         16        640: 100% ━━━━━━━━━━━━ 1/1 2.8s/it 2.8s
+tensorboard on_train_epoch_end: epoch-4 & trainer.metrics={'metrics/precision(B)': 0.79375, 'metrics/recall(B)': 0.85623, 'metrics/mAP50(B)': 0.92904, 'metrics/mAP50-95(B)': 0.7399, 'val/box_loss': 1.35481, 'val/cls_loss': 0.83051, 'val/dfl_loss': 1.19046}
+[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 100% ━━━━━━━━━━━━ 1/1 1.3it/s 0.7s
+                   all          4         17      0.806      0.853      0.929      0.738
+tensorboard on_fit_epoch_end: epoch-4 & trainer.metrics={'metrics/precision(B)': 0.80646, 'metrics/recall(B)': 0.85259, 'metrics/mAP50(B)': 0.92913, 'metrics/mAP50-95(B)': 0.73811, 'val/box_loss': 1.35525, 'val/cls_loss': 0.83068, 'val/dfl_loss': 1.18926}
+
+      Epoch    GPU_mem   box_loss   cls_loss   dfl_loss  Instances       Size
+[K        5/5         0G      1.069       2.48      1.549         31        640: 0% ──────────── 0/1  2.7s[K        5/5         0G      1.069       2.48      1.549         31        640: 100% ━━━━━━━━━━━━ 1/1 2.7s/it 2.7s
+tensorboard on_train_epoch_end: epoch-5 & trainer.metrics={'metrics/precision(B)': 0.80646, 'metrics/recall(B)': 0.85259, 'metrics/mAP50(B)': 0.92913, 'metrics/mAP50-95(B)': 0.73811, 'val/box_loss': 1.35525, 'val/cls_loss': 0.83068, 'val/dfl_loss': 1.18926}
+[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 100% ━━━━━━━━━━━━ 1/1 1.4it/s 0.7s
+                   all          4         17      0.818      0.848       0.93      0.738
+tensorboard on_fit_epoch_end: epoch-5 & trainer.metrics={'metrics/precision(B)': 0.81768, 'metrics/recall(B)': 0.84839, 'metrics/mAP50(B)': 0.92977, 'metrics/mAP50-95(B)': 0.73845, 'val/box_loss': 1.35518, 'val/cls_loss': 0.83155, 'val/dfl_loss': 1.18767}
+
+5 epochs completed in 0.006 hours.
+Optimizer stripped from /Users/deependu/codes/oss/ultralytics/ultralytics/runs/detect/runs/train/exp-30/weights/last.pt, 16.6MB
+Optimizer stripped from /Users/deependu/codes/oss/ultralytics/ultralytics/runs/detect/runs/train/exp-30/weights/best.pt, 16.6MB
+
+Validating /Users/deependu/codes/oss/ultralytics/ultralytics/runs/detect/runs/train/exp-30/weights/best.pt...
+Ultralytics 8.4.51 🚀 Python-3.12.13 torch-2.11.0 CPU (Apple A18 Pro)
+YOLOv10s summary (fused): 106 layers, 7,248,960 parameters, 0 gradients, 21.6 GFLOPs
+[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 100% ━━━━━━━━━━━━ 1/1 1.7it/s 0.6s
+                   all          4         17      0.783      0.859      0.929       0.74
+                person          3         10          1      0.652      0.765      0.444
+                   dog          1          1      0.931          1      0.995      0.895
+                 horse          1          2      0.796          1      0.995      0.696
+              elephant          1          2      0.567        0.5      0.828      0.513
+              umbrella          1          1      0.695          1      0.995      0.995
+          potted plant          1          1      0.712          1      0.995      0.895
+Speed: 0.5ms preprocess, 143.8ms inference, 0.0ms loss, 0.0ms postprocess per image
+Results saved to [1m/Users/deependu/codes/oss/ultralytics/ultralytics/runs/detect/runs/train/exp-30[0m
+tensorboard on_fit_epoch_end: epoch-5 & trainer.metrics={'metrics/precision(B)': 0.7834690049436511, 'metrics/recall(B)': 0.8586800386962515, 'metrics/mAP50(B)': 0.9289646464646464, 'metrics/mAP50-95(B)': 0.7399184002725668}

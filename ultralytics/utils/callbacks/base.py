@@ -243,9 +243,6 @@ def add_integration_callbacks(instance):
 def _log_callbacks(callbacks_list: list[dict[str, Union[str, Callable]]], instance: object) -> None:
     """Log the names of the attached callbacks.
 
-    This function is used to log the names of the callbacks that are currently being executed. It extracts the
-    `callback_name` from each callback dictionary in the provided list and logs them in a formatted manner.
-
     Args:
         callbacks_list (list): A list of callback dictionaries, each containing a `callback_name` key.
         instance (object): The instance to which the callbacks are attached.

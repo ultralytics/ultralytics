@@ -195,7 +195,13 @@ class DetectionValidator(BaseValidator):
             if self.args.plots:
                 self.confusion_matrix.process_batch(predn, pbatch, conf=self.args.conf)
                 if self.args.visualize:
-                    self.confusion_matrix.plot_matches(batch["img"][si], pbatch["im_file"], self.save_dir)
+                    self.confusion_matrix.plot_matches(
+                        batch["img"][si],
+                        pbatch["im_file"],
+                        self.save_dir,
+                        self.args.show_labels,
+                        self.args.show_conf,
+                    )
 
             if no_pred:
                 continue

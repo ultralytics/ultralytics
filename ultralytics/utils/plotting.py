@@ -706,6 +706,8 @@ def plot_images(
     max_subplots: int = 16,
     save: bool = True,
     conf_thres: float = 0.25,
+    show_labels: bool = True,
+    show_conf: bool = True,
 ) -> np.ndarray | None:
     """Plot image grid with labels, bounding boxes, masks, and keypoints.
 
@@ -721,6 +723,8 @@ def plot_images(
         max_subplots (int): Maximum number of subplots in the image grid.
         save (bool): Whether to save the plotted image grid to a file.
         conf_thres (float): Confidence threshold for displaying detections.
+        show_labels (bool): Whether to display class labels.
+        show_conf (bool): Whether to display confidence values.
 
     Returns:
         (np.ndarray | None): Plotted image grid as a numpy array if save is False, None otherwise.
@@ -814,7 +818,9 @@ def plot_images(
                     color = colors(c)
                     c = names.get(c, c) if names else c
                     if labels or conf[j] > conf_thres:
-                        label = f"{c}" if labels else f"{c} {conf[j]:.1f}"
+                        conf_text = f"{conf[j]:.1f}" if conf is not None else ""
+                        label = f"{c}" if show_labels else ""
+                        label += f" {conf_text}".strip() if show_conf else ""
                         annotator.box_label(box, label, color=color)
 
             elif len(classes):

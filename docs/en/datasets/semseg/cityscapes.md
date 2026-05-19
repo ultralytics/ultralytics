@@ -50,7 +50,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLO26n-semseg model on the Cityscapes dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 1024, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO26n-sem model on the Cityscapes dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 1024, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -60,7 +60,7 @@ To train a YOLO26n-semseg model on the Cityscapes dataset for 100 [epochs](https
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo26n-semseg.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-sem.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="cityscapes.yaml", epochs=100, imgsz=1024)
@@ -70,7 +70,7 @@ To train a YOLO26n-semseg model on the Cityscapes dataset for 100 [epochs](https
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo semseg train data=cityscapes.yaml model=yolo26n-semseg.pt epochs=100 imgsz=1024
+        yolo semseg train data=cityscapes.yaml model=yolo26n-sem.pt epochs=100 imgsz=1024
         ```
 
 ## Citations and Acknowledgments
@@ -100,7 +100,7 @@ The [Cityscapes](https://www.cityscapes-dataset.com/) dataset is a large-scale [
 
 ### How can I train a YOLO model using the Cityscapes dataset?
 
-To train a YOLO26n-semseg model on the Cityscapes dataset for 100 epochs with an image size of 1024, you can use the following code snippets. For a detailed list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO26n-sem model on the Cityscapes dataset for 100 epochs with an image size of 1024, you can use the following code snippets. For a detailed list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -110,7 +110,7 @@ To train a YOLO26n-semseg model on the Cityscapes dataset for 100 epochs with an
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo26n-semseg.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-sem.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="cityscapes.yaml", epochs=100, imgsz=1024)
@@ -120,7 +120,7 @@ To train a YOLO26n-semseg model on the Cityscapes dataset for 100 epochs with an
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo semseg train data=cityscapes.yaml model=yolo26n-semseg.pt epochs=100 imgsz=1024
+        yolo semseg train data=cityscapes.yaml model=yolo26n-sem.pt epochs=100 imgsz=1024
         ```
 
 ### How is the Cityscapes dataset structured?

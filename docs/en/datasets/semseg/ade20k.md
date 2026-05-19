@@ -48,7 +48,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLO26n-semseg model on the ADE20K dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 512, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO26n-sem model on the ADE20K dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 512, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -58,7 +58,7 @@ To train a YOLO26n-semseg model on the ADE20K dataset for 100 [epochs](https://w
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo26n-semseg.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-sem.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="ade20k.yaml", epochs=100, imgsz=512)
@@ -68,7 +68,7 @@ To train a YOLO26n-semseg model on the ADE20K dataset for 100 [epochs](https://w
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo semseg train data=ade20k.yaml model=yolo26n-semseg.pt epochs=100 imgsz=512
+        yolo semseg train data=ade20k.yaml model=yolo26n-sem.pt epochs=100 imgsz=512
         ```
 
 ## Citations and Acknowledgments
@@ -98,7 +98,7 @@ The [ADE20K](http://sceneparsing.csail.mit.edu/) dataset is a large-scale scene 
 
 ### How can I train a YOLO model using the ADE20K dataset?
 
-To train a YOLO26n-semseg model on the ADE20K dataset for 100 epochs with an image size of 512, you can use the following code snippets. For a detailed list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO26n-sem model on the ADE20K dataset for 100 epochs with an image size of 512, you can use the following code snippets. For a detailed list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -108,7 +108,7 @@ To train a YOLO26n-semseg model on the ADE20K dataset for 100 epochs with an ima
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo26n-semseg.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-sem.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="ade20k.yaml", epochs=100, imgsz=512)
@@ -118,7 +118,7 @@ To train a YOLO26n-semseg model on the ADE20K dataset for 100 epochs with an ima
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo semseg train data=ade20k.yaml model=yolo26n-semseg.pt epochs=100 imgsz=512
+        yolo semseg train data=ade20k.yaml model=yolo26n-sem.pt epochs=100 imgsz=512
         ```
 
 ### How is the ADE20K dataset structured?

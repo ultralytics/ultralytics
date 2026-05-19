@@ -24,7 +24,7 @@ The Cityscapes8 dataset configuration is defined in a YAML (Yet Another Markup L
 
 ## Usage
 
-To train a YOLO26n-semseg model on the Cityscapes8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 1024, use the following examples. For a full list of training options, see the [YOLO Training documentation](../../modes/train.md).
+To train a YOLO26n-sem model on the Cityscapes8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 1024, use the following examples. For a full list of training options, see the [YOLO Training documentation](../../modes/train.md).
 
 !!! example "Train Example"
 
@@ -33,8 +33,8 @@ To train a YOLO26n-semseg model on the Cityscapes8 dataset for 100 [epochs](http
         ```python
         from ultralytics import YOLO
 
-        # Load a pretrained YOLO26n-semseg model
-        model = YOLO("yolo26n-semseg.pt")
+        # Load a pretrained YOLO26n-sem model
+        model = YOLO("yolo26n-sem.pt")
 
         # Train the model on Cityscapes8
         results = model.train(data="cityscapes8.yaml", epochs=100, imgsz=1024)
@@ -43,8 +43,8 @@ To train a YOLO26n-semseg model on the Cityscapes8 dataset for 100 [epochs](http
     === "CLI"
 
         ```bash
-        # Train YOLO26n-semseg on Cityscapes8 using the command line
-        yolo semseg train data=cityscapes8.yaml model=yolo26n-semseg.pt epochs=100 imgsz=1024
+        # Train YOLO26n-sem on Cityscapes8 using the command line
+        yolo semseg train data=cityscapes8.yaml model=yolo26n-sem.pt epochs=100 imgsz=1024
         ```
 
 ## Citations and Acknowledgments
@@ -83,8 +83,8 @@ You can train a YOLO26 semseg model on Cityscapes8 using either Python or the CL
         ```python
         from ultralytics import YOLO
 
-        # Load a pretrained YOLO26n-semseg model
-        model = YOLO("yolo26n-semseg.pt")
+        # Load a pretrained YOLO26n-sem model
+        model = YOLO("yolo26n-sem.pt")
 
         # Train the model on Cityscapes8
         results = model.train(data="cityscapes8.yaml", epochs=100, imgsz=1024)
@@ -93,7 +93,7 @@ You can train a YOLO26 semseg model on Cityscapes8 using either Python or the CL
     === "CLI"
 
         ```bash
-        yolo semseg train data=cityscapes8.yaml model=yolo26n-semseg.pt epochs=100 imgsz=1024
+        yolo semseg train data=cityscapes8.yaml model=yolo26n-sem.pt epochs=100 imgsz=1024
         ```
 
 For additional training options, refer to the [YOLO Training documentation](../../modes/train.md).

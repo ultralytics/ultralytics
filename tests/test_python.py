@@ -206,7 +206,7 @@ def test_track_stream(model, tmp_path):
     Note imgsz=160 required for tracking for higher confidence and better matches.
     """
     if (
-        model == "yolo26n-cls.pt" or model == "yolo26n-semseg.pt"
+        model == "yolo26n-cls.pt" or model == "yolo26n-sem.pt"
     ):  # classification and semseg models not supported for tracking
         return
     video_url = f"{ASSETS_URL}/decelera_portrait_min.mov"
@@ -903,6 +903,6 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
 
 def test_semseg_ploygon_data():
     """Test YOLO semantic segmentation model with polygon data."""
-    model = YOLO("yolo26n-semseg.pt")
+    model = YOLO("yolo26n-sem.pt")
     model.train(data="coco8-seg.yaml", epochs=1, imgsz=32, close_mosaic=1)
     model.val(data="coco8-seg.yaml")

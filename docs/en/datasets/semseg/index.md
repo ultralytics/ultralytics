@@ -84,7 +84,7 @@ Train a YOLO26 semantic segmentation model with Python or CLI:
         from ultralytics import YOLO
 
         # Load a pretrained semantic segmentation model
-        model = YOLO("yolo26n-semseg.pt")
+        model = YOLO("yolo26n-sem.pt")
 
         # Train on the Cityscapes8 semantic segmentation dataset
         results = model.train(data="cityscapes8.yaml", epochs=100, imgsz=1024)
@@ -93,7 +93,7 @@ Train a YOLO26 semantic segmentation model with Python or CLI:
     === "CLI"
 
         ```bash
-        yolo semseg train data=cityscapes8.yaml model=yolo26n-semseg.pt epochs=100 imgsz=1024
+        yolo semseg train data=cityscapes8.yaml model=yolo26n-sem.pt epochs=100 imgsz=1024
         ```
 
 ## Supported Datasets

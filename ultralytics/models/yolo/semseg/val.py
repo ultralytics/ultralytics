@@ -30,7 +30,7 @@ class SemanticSegmentationValidator(DetectionValidator):
 
     Examples:
         >>> from ultralytics.models.yolo.semseg import SemanticSegmentationValidator
-        >>> args = dict(model="yolo26n-semseg.pt", data="cityscapes8.yaml")
+        >>> args = dict(model="yolo26n-sem.pt", data="cityscapes8.yaml")
         >>> validator = SemanticSegmentationValidator(args=args)
         >>> validator()
     """

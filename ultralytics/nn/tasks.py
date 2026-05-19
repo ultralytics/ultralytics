@@ -596,10 +596,10 @@ class SemanticSegmentationModel(BaseModel):
 
     Examples:
         Initialize a semantic segmentation model
-        >>> model = SemanticSegmentationModel("yolo26n-semseg.yaml", ch=3, nc=19)
+        >>> model = SemanticSegmentationModel("yolo26n-sem.yaml", ch=3, nc=19)
     """
 
-    def __init__(self, cfg="yolo26n-semseg.yaml", ch=3, nc=None, verbose=True):
+    def __init__(self, cfg="yolo26n-sem.yaml", ch=3, nc=None, verbose=True):
         """Initialize the YOLO semantic segmentation model.
 
         Args:
@@ -1926,7 +1926,7 @@ def guess_model_task(model):
     # Guess from model filename
     if isinstance(model, (str, Path)):
         model = Path(model)
-        if "-semseg" in model.stem or "semseg" in model.parts:
+        if "-sem" in model.stem or "semseg" in model.parts:
             return "semseg"
         elif "-seg" in model.stem or "segment" in model.parts:
             return "segment"

@@ -25,7 +25,7 @@ class SemanticSegmentationTrainer(DetectionTrainer):
 
     Examples:
         >>> from ultralytics.models.yolo.semseg import SemanticSegmentationTrainer
-        >>> args = dict(model="yolo26n-semseg.yaml", data="cityscapes8.yaml", epochs=3)
+        >>> args = dict(model="yolo26n-sem.yaml", data="cityscapes8.yaml", epochs=3)
         >>> trainer = SemanticSegmentationTrainer(overrides=args)
         >>> trainer.train()
     """

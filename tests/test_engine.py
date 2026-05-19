@@ -65,7 +65,7 @@ def test_export():
             semseg.SemanticSegmentationValidator,
             semseg.SemanticSegmentationPredictor,
             "cityscapes8.yaml",
-            "yolo26n-semseg.yaml",
+            "yolo26n-sem.yaml",
             None,
         ),
     ],

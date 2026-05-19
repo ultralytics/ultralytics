@@ -2,7 +2,7 @@
 comments: true
 description: Learn about semantic segmentation using YOLO26. Assign class labels to every pixel for dense scene understanding with Cityscapes and ADE20K support.
 keywords: semantic segmentation, YOLO26, pixel-wise classification, scene parsing, Cityscapes, ADE20K, VOC, dense prediction, Ultralytics
-model_name: yolo26n-semseg
+model_name: yolo26n-sem
 ---
 
 # Semantic Segmentation
@@ -15,7 +15,7 @@ The output of a semantic segmentation model is a single H x W class map where ea
 
 !!! tip
 
-    YOLO26 Semantic Segmentation models use the `-semseg` suffix, i.e., `yolo26n-semseg.pt`, and are pretrained on [Cityscapes](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/cityscapes.yaml).
+    YOLO26 Semantic Segmentation models use the `-sem` suffix, i.e., `yolo26n-sem.pt`, and are pretrained on [Cityscapes](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/cityscapes.yaml).
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
 
@@ -31,7 +31,7 @@ YOLO26 pretrained Semantic Segmentation models are shown here, which are pretrai
 
 ## Train
 
-Train YOLO26n-semseg on the Cityscapes8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 1024. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+Train YOLO26n-sem on the Cityscapes8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 1024. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
 !!! example
 
@@ -41,9 +41,9 @@ Train YOLO26n-semseg on the Cityscapes8 dataset for 100 [epochs](https://www.ult
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo26n-semseg.yaml")  # build a new model from YAML
-        model = YOLO("yolo26n-semseg.pt")  # load a pretrained model (recommended for training)
-        model = YOLO("yolo26n-semseg.yaml").load("yolo26n-semseg.pt")  # build from YAML and transfer weights
+        model = YOLO("yolo26n-sem.yaml")  # build a new model from YAML
+        model = YOLO("yolo26n-sem.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-sem.yaml").load("yolo26n-sem.pt")  # build from YAML and transfer weights
 
         # Train the model
         results = model.train(data="cityscapes8.yaml", epochs=100, imgsz=1024)
@@ -53,13 +53,13 @@ Train YOLO26n-semseg on the Cityscapes8 dataset for 100 [epochs](https://www.ult
 
         ```bash
         # Build a new model from YAML and start training from scratch
-        yolo semseg train data=cityscapes8.yaml model=yolo26n-semseg.yaml epochs=100 imgsz=1024
+        yolo semseg train data=cityscapes8.yaml model=yolo26n-sem.yaml epochs=100 imgsz=1024
 
         # Start training from a pretrained *.pt model
-        yolo semseg train data=cityscapes8.yaml model=yolo26n-semseg.pt epochs=100 imgsz=1024
+        yolo semseg train data=cityscapes8.yaml model=yolo26n-sem.pt epochs=100 imgsz=1024
 
         # Build a new model from YAML, transfer pretrained weights to it and start training
-        yolo semseg train data=cityscapes8.yaml model=yolo26n-semseg.yaml pretrained=yolo26n-semseg.pt epochs=100 imgsz=1024
+        yolo semseg train data=cityscapes8.yaml model=yolo26n-sem.yaml pretrained=yolo26n-sem.pt epochs=100 imgsz=1024
         ```
 
 See full `train` mode details in the [Train](../modes/train.md) page.
@@ -70,7 +70,7 @@ Semantic segmentation datasets use PNG mask images where each pixel value repres
 
 ## Val
 
-Validate trained YOLO26n-semseg model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the Cityscapes8 dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
+Validate trained YOLO26n-sem model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the Cityscapes8 dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
 
 !!! example
 
@@ -80,7 +80,7 @@ Validate trained YOLO26n-semseg model [accuracy](https://www.ultralytics.com/glo
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo26n-semseg.pt")  # load an official model
+        model = YOLO("yolo26n-sem.pt")  # load an official model
         model = YOLO("path/to/best.pt")  # load a custom model
 
         # Validate the model
@@ -92,13 +92,13 @@ Validate trained YOLO26n-semseg model [accuracy](https://www.ultralytics.com/glo
     === "CLI"
 
         ```bash
-        yolo semseg val model=yolo26n-semseg.pt # val official model
+        yolo semseg val model=yolo26n-sem.pt # val official model
         yolo semseg val model=path/to/best.pt   # val custom model
         ```
 
 ## Predict
 
-Use a trained YOLO26n-semseg model to run predictions on images.
+Use a trained YOLO26n-sem model to run predictions on images.
 
 !!! example
 
@@ -108,7 +108,7 @@ Use a trained YOLO26n-semseg model to run predictions on images.
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo26n-semseg.pt")  # load an official model
+        model = YOLO("yolo26n-sem.pt")  # load an official model
         model = YOLO("path/to/best.pt")  # load a custom model
 
         # Predict with the model
@@ -122,7 +122,7 @@ Use a trained YOLO26n-semseg model to run predictions on images.
     === "CLI"
 
         ```bash
-        yolo semseg predict model=yolo26n-semseg.pt source='https://ultralytics.com/images/bus.jpg' # predict with official model
+        yolo semseg predict model=yolo26n-sem.pt source='https://ultralytics.com/images/bus.jpg' # predict with official model
         yolo semseg predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'   # predict with custom model
         ```
 
@@ -130,7 +130,7 @@ See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
 ## Export
 
-Export a YOLO26n-semseg model to a different format like ONNX, CoreML, etc.
+Export a YOLO26n-sem model to a different format like ONNX, CoreML, etc.
 
 !!! example
 
@@ -140,7 +140,7 @@ Export a YOLO26n-semseg model to a different format like ONNX, CoreML, etc.
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo26n-semseg.pt")  # load an official model
+        model = YOLO("yolo26n-sem.pt")  # load an official model
         model = YOLO("path/to/best.pt")  # load a custom-trained model
 
         # Export the model
@@ -150,11 +150,11 @@ Export a YOLO26n-semseg model to a different format like ONNX, CoreML, etc.
     === "CLI"
 
         ```bash
-        yolo export model=yolo26n-semseg.pt format=onnx # export official model
+        yolo export model=yolo26n-sem.pt format=onnx # export official model
         yolo export model=path/to/best.pt format=onnx   # export custom-trained model
         ```
 
-Available YOLO26-semseg export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-semseg.onnx`. Usage examples are shown for your model after export completes.
+Available YOLO26-sem export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-sem.onnx`. Usage examples are shown for your model after export completes.
 
 {% include "macros/export-table.md" %}
 
@@ -174,7 +174,7 @@ To train a YOLO26 semantic segmentation model on a custom dataset, you need to p
         from ultralytics import YOLO
 
         # Load a pretrained YOLO26 semantic segmentation model
-        model = YOLO("yolo26n-semseg.pt")
+        model = YOLO("yolo26n-sem.pt")
 
         # Train the model
         results = model.train(data="path/to/your_dataset.yaml", epochs=100, imgsz=512)
@@ -183,7 +183,7 @@ To train a YOLO26 semantic segmentation model on a custom dataset, you need to p
     === "CLI"
 
         ```bash
-        yolo semseg train data=path/to/your_dataset.yaml model=yolo26n-semseg.pt epochs=100 imgsz=512
+        yolo semseg train data=path/to/your_dataset.yaml model=yolo26n-sem.pt epochs=100 imgsz=512
         ```
 
 Check the [Configuration](../usage/cfg.md) page for more available arguments.
@@ -222,7 +222,7 @@ Loading and validating a pretrained YOLO26 semantic segmentation model is straig
         from ultralytics import YOLO
 
         # Load a pretrained model
-        model = YOLO("yolo26n-semseg.pt")
+        model = YOLO("yolo26n-sem.pt")
 
         # Validate the model
         metrics = model.val()
@@ -233,7 +233,7 @@ Loading and validating a pretrained YOLO26 semantic segmentation model is straig
     === "CLI"
 
         ```bash
-        yolo semseg val model=yolo26n-semseg.pt
+        yolo semseg val model=yolo26n-sem.pt
         ```
 
 These steps will provide you with validation metrics like mean Intersection over Union (mIoU) and pixel accuracy, which are standard measures for assessing semantic segmentation performance.
@@ -250,7 +250,7 @@ Exporting a YOLO26 semantic segmentation model to ONNX format is simple and can 
         from ultralytics import YOLO
 
         # Load a pretrained model
-        model = YOLO("yolo26n-semseg.pt")
+        model = YOLO("yolo26n-sem.pt")
 
         # Export the model to ONNX format
         model.export(format="onnx")
@@ -259,7 +259,7 @@ Exporting a YOLO26 semantic segmentation model to ONNX format is simple and can 
     === "CLI"
 
         ```bash
-        yolo export model=yolo26n-semseg.pt format=onnx
+        yolo export model=yolo26n-sem.pt format=onnx
         ```
 
 For more details on exporting to various formats, refer to the [Export](../modes/export.md) page.

@@ -16,7 +16,7 @@ class SemanticSegmentationPredictor(BasePredictor):
 
     Examples:
         >>> from ultralytics.models.yolo.semseg import SemanticSegmentationPredictor
-        >>> args = dict(model="yolo26n-semseg.pt", source="path/to/image.jpg")
+        >>> args = dict(model="yolo26n-sem.pt", source="path/to/image.jpg")
         >>> predictor = SemanticSegmentationPredictor(overrides=args)
         >>> predictor.predict_cli()
     """

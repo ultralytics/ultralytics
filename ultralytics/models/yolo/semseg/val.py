@@ -161,7 +161,6 @@ class SemanticSegmentationValidator(DetectionValidator):
         if self.metrics.matrix is not None:
             # Internal layout is [gt, pred]; transpose to [pred, gt] for ConfusionMatrix export format.
             self.confusion_matrix.matrix = self.metrics.matrix.detach().cpu().numpy().astype(float)
-        self.metrics.confusion_matrix = self.confusion_matrix
         self.metrics.clear_stats()
         return self.metrics.results_dict
 

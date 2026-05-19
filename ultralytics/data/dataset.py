@@ -904,6 +904,10 @@ class PolygonSemsegDataset(SemsegDataset, YOLODataset):
         self.bg_class_idx = data.get("bg_class_idx", max(int(nc) - 1, 0))
         super().__init__(*args, data=data, **kwargs)
 
+    def get_labels(self):
+        """Parse YOLO polygon .txt labels."""
+        return YOLODataset.get_labels(self)
+
     def load_mask(self, index: int, image_shape: tuple[int, int] | None = None) -> np.ndarray:
         """Rasterize this image's polygons into a (H, W) uint8 semantic mask, bg = self.bg_class_idx."""
         h, w = image_shape

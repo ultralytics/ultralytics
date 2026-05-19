@@ -341,6 +341,25 @@ class BaseModel(torch.nn.Module):
         raise NotImplementedError("compute_loss() needs to be implemented by task heads")
 
 
+def _initialize_yolo_model(model, cfg, ch, nc, verbose):
+    """Initialize common YOLO model attributes from a YAML config."""
+    model.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
+    if model.yaml["backbone"][0][2] == "Silence":
+        LOGGER.warning(
+            "YOLOv9 `Silence` module is deprecated in favor of torch.nn.Identity. "
+            "Please delete local *.pt file and re-download the latest model checkpoint."
+        )
+        model.yaml["backbone"][0][2] = "nn.Identity"
+
+    model.yaml["channels"] = ch  # save channels
+    if nc and nc != model.yaml["nc"]:
+        LOGGER.info(f"Overriding model.yaml nc={model.yaml['nc']} with nc={nc}")
+        model.yaml["nc"] = nc  # override YAML value
+    model.model, model.save = parse_model(deepcopy(model.yaml), ch=ch, verbose=verbose)  # model, savelist
+    model.names = {i: f"{i}" for i in range(model.yaml["nc"])}  # default names dict
+    model.inplace = model.yaml.get("inplace", True)
+
+
 class DetectionModel(BaseModel):
     """YOLO detection model.
 
@@ -379,22 +398,7 @@ class DetectionModel(BaseModel):
             verbose (bool): Whether to display model information.
         """
         super().__init__()
-        self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
-        if self.yaml["backbone"][0][2] == "Silence":
-            LOGGER.warning(
-                "YOLOv9 `Silence` module is deprecated in favor of torch.nn.Identity. "
-                "Please delete local *.pt file and re-download the latest model checkpoint."
-            )
-            self.yaml["backbone"][0][2] = "nn.Identity"
-
-        # Define model
-        self.yaml["channels"] = ch  # save channels
-        if nc and nc != self.yaml["nc"]:
-            LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
-            self.yaml["nc"] = nc  # override YAML value
-        self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
-        self.names = {i: f"{i}" for i in range(self.yaml["nc"])}  # default names dict
-        self.inplace = self.yaml.get("inplace", True)
+        _initialize_yolo_model(self, cfg, ch, nc, verbose)
 
         # Build strides
         m = self.model[-1]  # Detect()
@@ -605,16 +609,7 @@ class SemanticSegmentationModel(BaseModel):
             verbose (bool): Whether to display model information.
         """
         super().__init__()
-        self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)
-
-        # Define model
-        self.yaml["channels"] = ch
-        if nc and nc != self.yaml["nc"]:
-            LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
-            self.yaml["nc"] = nc
-        self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)
-        self.names = {i: f"{i}" for i in range(self.yaml["nc"])}
-        self.inplace = self.yaml.get("inplace", True)
+        _initialize_yolo_model(self, cfg, ch, nc, verbose)
 
         # Build strides — track smallest spatial size across all layers to find the deepest
         # backbone stride (e.g. P5/32). Head input alone is insufficient: the FPN upsamples

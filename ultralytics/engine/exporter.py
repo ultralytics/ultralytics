@@ -78,7 +78,7 @@ import torch
 
 from ultralytics import __version__
 from ultralytics.cfg import TASK2CALIBRATIONDATA, TASK2DATA, get_cfg
-from ultralytics.data import build_dataloader
+from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
@@ -567,15 +567,27 @@ class Exporter:
         """Build and return a dataloader for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
-        dataset = YOLODataset(
-            data[self.args.split or "val"],
-            data=data,
-            fraction=self.args.fraction,
-            task=self.model.task,
-            imgsz=max(self.imgsz),
-            augment=False,
-            batch_size=self.args.batch,
-        )
+        if self.model.task == "classify":
+            dataset = YOLODataset(
+                data[self.args.split or "val"],
+                data=data,
+                fraction=self.args.fraction,
+                task=self.model.task,
+                imgsz=max(self.imgsz),
+                augment=False,
+                batch_size=self.args.batch,
+            )
+        else:
+            cfg = deepcopy(self.args)
+            cfg.imgsz = max(self.imgsz)
+            dataset = build_yolo_dataset(
+                cfg,
+                data[self.args.split or "val"],
+                self.args.batch,
+                data,
+                mode="val",
+                fraction=self.args.fraction,
+            )
         if hasattr(dataset.transforms.transforms[0], "new_shape"):
             dataset.transforms.transforms[0].new_shape = self.imgsz  # LetterBox with non-square imgsz
         n = len(dataset)

@@ -236,6 +236,7 @@ def build_yolo_dataset(
     rect: bool = False,
     stride: int = 32,
     multi_modal: bool = False,
+    fraction: float | None = None,
 ) -> Dataset:
     """Build and return a YOLO dataset based on configuration parameters."""
     pad = 0.0 if mode == "train" else 0.5
@@ -253,6 +254,8 @@ def build_yolo_dataset(
     else:
         dataset = YOLODataset
 
+    if fraction is None:
+        fraction = cfg.fraction if mode == "train" else 1.0
     return dataset(
         img_path=img_path,
         imgsz=cfg.imgsz,
@@ -268,7 +271,7 @@ def build_yolo_dataset(
         task=cfg.task,
         classes=cfg.classes,
         data=data,
-        fraction=cfg.fraction if mode == "train" else 1.0,
+        fraction=fraction,
     )
 
 

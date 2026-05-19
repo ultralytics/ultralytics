@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
-Ultralytics Results, Boxes, Masks, Keypoints, Probs, and OBB classes for handling inference results.
+Ultralytics Results, Boxes, Masks, SemanticMask, Keypoints, Probs, and OBB classes for handling inference results.
 
 Usage: See https://docs.ultralytics.com/modes/predict/
 """
@@ -173,6 +173,14 @@ class BaseTensor(SimpleClass):
         return self.__class__(self.data[idx], self.orig_shape)
 
 
+class SemanticMask(BaseTensor):
+    """Semantic segmentation class map for one image."""
+
+    def __len__(self) -> int:
+        """Return one semantic segmentation result per image."""
+        return 1
+
+
 class Results(SimpleClass, DataExportMixin):
     """A class for storing and manipulating inference results.
 
@@ -188,6 +196,7 @@ class Results(SimpleClass, DataExportMixin):
         probs (Probs | None): Classification probabilities.
         keypoints (Keypoints | None): Detected keypoints.
         obb (OBB | None): Oriented bounding boxes.
+        semantic_mask (SemanticMask | None): Semantic segmentation class map.
         speed (dict): Dictionary containing inference speed information.
         names (dict): Dictionary mapping class indices to class names.
         path (str): Path to the input image file.
@@ -261,7 +270,7 @@ class Results(SimpleClass, DataExportMixin):
         self.probs = Probs(probs) if probs is not None else None
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
         self.obb = OBB(obb, self.orig_shape) if obb is not None else None
-        self.semantic_mask = semantic_mask  # [H, W] tensor of class IDs for semantic segmentation
+        self.semantic_mask = SemanticMask(semantic_mask, self.orig_shape) if semantic_mask is not None else None
         self.speed = speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}
         self.names = names
         self.path = path
@@ -299,8 +308,6 @@ class Results(SimpleClass, DataExportMixin):
         for k in self._keys:
             v = getattr(self, k)
             if v is not None:
-                if k == "semantic_mask":
-                    return 1  # one result per image for semantic segmentation
                 return len(v)
         return 0
 
@@ -344,7 +351,7 @@ class Results(SimpleClass, DataExportMixin):
         if keypoints is not None:
             self.keypoints = Keypoints(keypoints, self.orig_shape)
         if semantic_mask is not None:
-            self.semantic_mask = semantic_mask
+            self.semantic_mask = SemanticMask(semantic_mask, self.orig_shape)
 
     def _apply(self, fn: str, *args, **kwargs):
         """Apply a function to all non-empty attributes and return a new Results object with modified attributes.
@@ -370,15 +377,7 @@ class Results(SimpleClass, DataExportMixin):
             v = getattr(self, k)
             if v is None:
                 continue
-            if k == "semantic_mask":
-                # Raw torch.Tensor / np.ndarray (no BaseTensor wrapper)
-                if fn in {"cpu", "numpy"}:
-                    v = getattr(v, fn)() if isinstance(v, torch.Tensor) else v
-                else:  # cuda, to
-                    v = getattr(torch.as_tensor(v), fn)(*args, **kwargs)
-            else:
-                v = getattr(v, fn)(*args, **kwargs)
-            setattr(r, k, v)
+            setattr(r, k, getattr(v, fn)(*args, **kwargs))
         return r
 
     def cpu(self):
@@ -579,9 +578,9 @@ class Results(SimpleClass, DataExportMixin):
 
         # Plot Semantic Segmentation results
         if self.semantic_mask is not None and show_masks:
-            sem_mask = (
-                self.semantic_mask.cpu().numpy() if isinstance(self.semantic_mask, torch.Tensor) else self.semantic_mask
-            )
+            sem_mask = self.semantic_mask.data
+            if isinstance(sem_mask, torch.Tensor):
+                sem_mask = sem_mask.cpu().numpy()
             annotator.semantic_mask(sem_mask, alpha=0.5)
 
         # Plot Pose results
@@ -825,13 +824,17 @@ class Results(SimpleClass, DataExportMixin):
 
         if self.semantic_mask is not None:
             # Return per-class pixel coverage for semantic segmentation
-            mask = self.semantic_mask
+            mask = self.semantic_mask.data
             if isinstance(mask, torch.Tensor):
                 mask = mask.cpu().numpy()
             unique, counts = np.unique(mask, return_counts=True)
             total = mask.size
             for class_id, count in zip(unique.tolist(), counts.tolist()):
-                if class_id not in self.names:  # skip ignore label (e.g., 255)
+                if len(self.names) == 1:
+                    if class_id != 1:  # skip binary background and ignore label
+                        continue
+                    class_id = 0
+                elif class_id not in self.names:  # skip ignore label (e.g., 255)
                     continue
                 results.append(
                     {

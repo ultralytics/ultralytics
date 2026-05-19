@@ -819,12 +819,14 @@ class SemsegDataset(YOLODataset):
 
     def load_mask(self, index: int, image_shape: tuple[int, int] | None = None) -> np.ndarray:
         """Load and map a semantic mask from source mask file."""
-        mask = cv2.imread(self.labels[index]["mask_file"], cv2.IMREAD_GRAYSCALE)
+        mask_file = self.labels[index]["mask_file"]
+        mask = cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
         if mask is None:
-            return np.full(image_shape, 255, dtype=np.uint8)
+            raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}")
         if int(self.data.get("nc", 0)) == 1:
-            # cv2 expands 1-bit PNG (PIL mode "1") to 8-bit as {0, 255}; remap to {0, 1} for binary masks.
-            mask[mask == 255] = 1
+            with Image.open(mask_file) as im:
+                if im.mode == "1":  # cv2 expands 1-bit PNGs to {0, 255}; keep 255 as ignore for regular masks.
+                    mask[mask == 255] = 1
         if self.label_mapping:
             mask = self.convert_label(mask, inverse=False)
         return mask.astype(np.uint8, copy=False)

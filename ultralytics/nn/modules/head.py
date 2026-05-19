@@ -1862,6 +1862,6 @@ class SemanticSegment(nn.Module):
             if self.aux_head is not None:
                 return logits, self.aux_head(x[1])  # main + aux (P4)
             return logits
-        # if self.export and self.format != "coreml":
-        #     return F.interpolate(logits, scale_factor=8, mode="bilinear", align_corners=False)
+        if self.export and self.format != "coreml":  # coreml does not support interpolate
+            return F.interpolate(logits, scale_factor=8, mode="bilinear", align_corners=False)
         return logits

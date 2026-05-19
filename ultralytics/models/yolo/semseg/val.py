@@ -88,7 +88,6 @@ class SemanticSegmentationValidator(DetectionValidator):
         """
         batch = super().preprocess(batch)
         batch["semantic_mask"] = batch["semantic_mask"].to(self.device, dtype=torch.int32)
-        self._semantic_target_shape = tuple(batch["semantic_mask"].shape[-2:])
         return batch
 
     def postprocess(self, preds):
@@ -102,16 +101,8 @@ class SemanticSegmentationValidator(DetectionValidator):
         """
         if isinstance(preds, (tuple, list)):
             preds = preds[0]
-        preds = (
-            F.interpolate(preds, size=self._semantic_target_shape, mode="bilinear", align_corners=False)
-            if self._semantic_target_shape is not None
-            else F.interpolate(preds, scale_factor=8, mode="bilinear", align_corners=False)
-        )
-        if self.nc > 1:
-            pred_mask = preds.argmax(dim=1).to(torch.int32)
-        else:
-            pred_mask = preds.gt(0).squeeze(1).to(torch.int32)
-        return pred_mask
+        preds = F.interpolate(preds, scale_factor=8, mode="bilinear", align_corners=False)
+        return preds.argmax(dim=1).to(torch.int32) if self.nc > 1 else preds.gt(0).squeeze(1).to(torch.int32)
 
     def update_metrics(self, preds, batch):
         """Update metrics with predictions and ground truth.
@@ -120,14 +111,9 @@ class SemanticSegmentationValidator(DetectionValidator):
             preds (torch.Tensor): Predicted class IDs [B, H, W].
             batch (dict): Batch containing 'semantic_mask'.
         """
-        targets = batch["semantic_mask"]
-        if preds.shape[1:] != targets.shape[1:]:
-            preds = (
-                F.interpolate(preds.float().unsqueeze(1), targets.shape[1:], mode="nearest").squeeze(1).to(torch.int32)
-            )
         if self.args.save_json:
             self.save_pred_masks(preds, batch)
-        self.metrics.update_stats(preds, targets)
+        self.metrics.update_stats(preds, batch["semantic_mask"])
         self.seen += preds.shape[0]
 
     def finalize_metrics(self):
@@ -177,6 +163,7 @@ class SemanticSegmentationValidator(DetectionValidator):
         """
         self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
         if self.metrics.matrix is not None:
+            # TODO
             # Internal layout is [gt, pred]; transpose to [pred, gt] for ConfusionMatrix export format.
             self.confusion_matrix.matrix = self.metrics.matrix.detach().cpu().numpy().astype(float).T
         self.metrics.confusion_matrix = self.confusion_matrix
@@ -191,23 +178,9 @@ class SemanticSegmentationValidator(DetectionValidator):
         """
         return ("%22s" + "%11s" * 4) % ("Class", "Images", "Pixels", "mIoU", "PixAcc")
 
-    def print_results(self):
-        """Print validation results including per-class IoU."""
-        pf = "%22s" + "%11i" * 2 + "%11.3g" * len(self.metrics.keys)
-        LOGGER.info(pf % ("all", self.seen, self.metrics.nt_per_class.sum(), *self.metrics.mean_results()))
-        if self.metrics.nt_per_class.sum() == 0:
-            LOGGER.warning(f"no labels found in {self.args.task} set, cannot compute metrics without labels")
-        if self.args.verbose and not self.training and self.nc > 1:
-            for i, c in enumerate(self.metrics.ap_class_index):
-                LOGGER.info(
-                    pf
-                    % (
-                        self.names[c],
-                        self.metrics.nt_per_image[c],
-                        self.metrics.nt_per_class[c],
-                        *self.metrics.class_result(i),
-                    )
-                )
+    def print_results(self) -> None:
+        """Print training/validation set metrics per class."""
+        super().print_results()
         if self.args.save_json and self.results_dir is not None:
             LOGGER.info(f"Semantic prediction masks saved to {self.results_dir}")
 

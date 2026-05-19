@@ -158,7 +158,7 @@ Logging, checkpoints, plotting, and file management are important when training 
 
 - **Logging**: Track the model's progress and diagnose issues using libraries like [TensorBoard](https://docs.ultralytics.com/integrations/tensorboard) or by writing to a file.
 - **Checkpoints**: Save the model at regular intervals to resume training or experiment with different configurations.
-- **Plotting**: Visualize performance and training progress using libraries like matplotlib or TensorBoard.
+- **Plotting**: Visualize performance and training progress using libraries like Matplotlib or TensorBoard.
 - **File management**: Organize files generated during training, such as checkpoints, log files, and plots, for easy access and analysis.
 
 Effective management of these aspects helps track progress and makes debugging and optimization easier.

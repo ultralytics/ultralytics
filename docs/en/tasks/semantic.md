@@ -92,7 +92,7 @@ Validate trained YOLO26n-sem model [accuracy](https://www.ultralytics.com/glossa
     === "CLI"
 
         ```bash
-        yolo semseg val model=yolo26n-sem.pt data=cityscapes.yaml   # validate official model
+        yolo semseg val model=yolo26n-sem.pt data=cityscapes.yaml    # validate official model
         yolo semseg val model=path/to/best.pt data=path/to/data.yaml # validate custom model
         ```
 

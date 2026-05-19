@@ -45,6 +45,7 @@ mask_ratio: 4 # (int) mask downsample ratio (segment only)
 
 # Classification
 dropout: 0.0 # (float) dropout for classification head (classify only)
+multi_label: False # (bool) multi-label classification mode with sigmoid+BCE (classify only)
 
 # Val/Test settings ----------------------------------------------------------------------------------------------------
 val: True # (bool) run validation/testing during training

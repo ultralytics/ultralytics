@@ -76,6 +76,52 @@ cifar-10-/
 
 This structured approach ensures that the model can effectively learn from well-organized classes during the training phase and accurately evaluate performance during testing and validation phases.
 
+### Multi-Label Dataset Structure
+
+For multi-label classification (where each image can have multiple classes), use a `labels.csv` file in each split directory instead of the folder-per-class structure. Each row maps an image filename to one or more class indices:
+
+```
+dataset_root/
+|-- images/
+|   |-- train/
+|   |   |-- img001.jpg
+|   |   |-- img002.jpg
+|   |   |-- labels.csv
+|   |-- val/
+|       |-- img003.jpg
+|       |-- labels.csv
+|-- dataset.yaml
+```
+
+**labels.csv** format (no header row):
+
+```
+img001.jpg,0,3,7
+img002.jpg,1
+img003.jpg,0,2,5
+```
+
+**dataset.yaml** must specify `nc` and `names`:
+
+```yaml
+path: /path/to/dataset_root
+train: images/train
+val: images/val
+nc: 10
+names:
+  0: class_a
+  1: class_b
+  # ...
+```
+
+Train with `multi_label=True`:
+
+```python
+model.train(data="path/to/dataset.yaml", multi_label=True)
+```
+
+See the [Multi-Label Classification](../../tasks/classify.md#multi-label-classification) section for full details on training, validation, and metrics.
+
 ## Usage
 
 !!! example

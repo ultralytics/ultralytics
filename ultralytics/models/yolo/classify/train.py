@@ -7,7 +7,7 @@ from typing import Any
 
 import torch
 
-from ultralytics.data import ClassificationDataset, build_dataloader
+from ultralytics.data import ClassificationDataset, MultiLabelClassificationDataset, build_dataloader
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel
@@ -88,6 +88,12 @@ class ClassificationTrainer(BaseTrainer):
                 m.reset_parameters()
             if isinstance(m, torch.nn.Dropout) and self.args.dropout:
                 m.p = self.args.dropout  # set dropout
+        if getattr(self.args, "multi_label", False):
+            from ultralytics.nn.modules.head import Classify
+
+            for m in model.modules():
+                if isinstance(m, Classify):
+                    m.multi_label = True
         for p in model.parameters():
             p.requires_grad = True  # for training
         return model
@@ -105,6 +111,12 @@ class ClassificationTrainer(BaseTrainer):
                 weights="IMAGENET1K_V1" if self.args.pretrained else None
             )
             ckpt = None
+            if getattr(self.args, "multi_label", False):
+                # TorchVision models have no Classify head; attach criterion directly
+                from ultralytics.utils.loss import v8MultiLabelClassificationLoss
+
+                self.model.criterion = v8MultiLabelClassificationLoss()
+                LOGGER.info("Multi-label mode: attached BCEWithLogitsLoss to TorchVision model")
         else:
             ckpt = super().setup_model()
         ClassificationModel.reshape_outputs(self.model, self.data["nc"])
@@ -119,8 +131,18 @@ class ClassificationTrainer(BaseTrainer):
             batch (Any, optional): Batch information (unused in this implementation).
 
         Returns:
-            (ClassificationDataset): Dataset for the specified mode.
+            (ClassificationDataset | MultiLabelClassificationDataset): Dataset for the specified mode.
         """
+        if getattr(self.args, "multi_label", False):
+            labels_file = self.data.get(f"{mode}_labels_file", self.data.get("train_labels_file", ""))
+            return MultiLabelClassificationDataset(
+                root=img_path,
+                args=self.args,
+                augment=mode == "train",
+                prefix=mode,
+                nc=self.data["nc"],
+                labels_file=labels_file,
+            )
         return ClassificationDataset(root=img_path, args=self.args, augment=mode == "train", prefix=mode)
 
     def get_dataloader(self, dataset_path: str, batch_size: int = 16, rank: int = 0, mode: str = "train"):
@@ -145,22 +167,24 @@ class ClassificationTrainer(BaseTrainer):
             )
 
         # Filter out samples with class indices >= nc (prevents CUDA assertion errors)
+        # Skip for multi-label datasets which handle class indices internally
         nc = self.data.get("nc", 0)
-        dataset_nc = len(dataset.base.classes)
-        if nc and dataset_nc > nc:
-            extra_classes = dataset.base.classes[nc:]
-            original_count = len(dataset.samples)
-            dataset.samples = [s for s in dataset.samples if s[1] < nc]
-            skipped = original_count - len(dataset.samples)
-            LOGGER.warning(
-                f"{mode} split has {dataset_nc} classes but model expects {nc}. "
-                f"Skipping {skipped} samples from extra classes: {extra_classes}"
-            )
-            if not dataset.samples:
-                raise RuntimeError(
-                    f"All {original_count} samples in '{mode}' split filtered out: every sample had class index >= "
-                    f"model nc={nc}. Reset the model's class count or align dataset class indices."
+        if not getattr(self.args, "multi_label", False) and hasattr(dataset, "base"):
+            dataset_nc = len(dataset.base.classes)
+            if nc and dataset_nc > nc:
+                extra_classes = dataset.base.classes[nc:]
+                original_count = len(dataset.samples)
+                dataset.samples = [s for s in dataset.samples if s[1] < nc]
+                skipped = original_count - len(dataset.samples)
+                LOGGER.warning(
+                    f"{mode} split has {dataset_nc} classes but model expects {nc}. "
+                    f"Skipping {skipped} samples from extra classes: {extra_classes}"
                 )
+                if not dataset.samples:
+                    raise RuntimeError(
+                        f"All {original_count} samples in '{mode}' split filtered out: every sample had class index >= "
+                        f"model nc={nc}. Reset the model's class count or align dataset class indices."
+                    )
         loader = build_dataloader(dataset, batch_size, self.args.workers, rank=rank, drop_last=self.args.compile)
         # Attach inference transforms
         if mode != "train":
@@ -216,9 +240,13 @@ class ClassificationTrainer(BaseTrainer):
             batch (dict[str, torch.Tensor]): Batch containing images and class labels.
             ni (int): Batch index used for naming the output file.
         """
-        batch["batch_idx"] = torch.arange(batch["img"].shape[0])  # add batch index for plotting
+        plot_batch = {**batch}
+        plot_batch["batch_idx"] = torch.arange(batch["img"].shape[0])
+        if getattr(self.args, "multi_label", False) and batch["cls"].ndim == 2:
+            # Convert multi-hot (B, nc) to first active class index for plotting
+            plot_batch["cls"] = batch["cls"].argmax(dim=1)
         plot_images(
-            labels=batch,
+            labels=plot_batch,
             fname=self.save_dir / f"train_batch{ni}.jpg",
             on_plot=self.on_plot,
         )

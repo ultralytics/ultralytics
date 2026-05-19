@@ -231,6 +231,7 @@ CFG_BOOL_KEYS = frozenset(
         "verbose",
         "deterministic",
         "single_cls",
+        "multi_label",
         "rect",
         "cos_lr",
         "overlap_mask",
@@ -403,6 +404,11 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')"
                     )
                 cfg[k] = bool(v)
+
+    # Validate multi_label is only used with classify task
+    if cfg.get("multi_label") and cfg.get("task", "detect") != "classify":
+        t = cfg.get("task", "detect")
+        raise ValueError(f"'multi_label=True' is only supported with task='classify', not task={t!r}.")
 
 
 def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:

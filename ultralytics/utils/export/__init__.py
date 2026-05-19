@@ -2,6 +2,7 @@
 
 from .axelera import torch2axelera
 from .coreml import torch2coreml
+from .deepx import onnx2deepx
 from .engine import onnx2engine, torch2onnx
 from .executorch import torch2executorch
 from .imx import torch2imx
@@ -15,6 +16,7 @@ from .torchscript import torch2torchscript
 
 __all__ = [
     "keras2pb",
+    "onnx2deepx",
     "onnx2engine",
     "onnx2mnn",
     "onnx2rknn",

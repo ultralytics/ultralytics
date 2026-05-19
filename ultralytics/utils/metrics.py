@@ -461,13 +461,17 @@ class ConfusionMatrix(DataExportMixin):
         # fn = self.matrix.sum(0) - tp  # false negatives (missed detections)
         return (tp, fp) if self.task == "classify" else (tp[:-1], fp[:-1])  # remove background class if task=detect
 
-    def plot_matches(self, img: torch.Tensor, im_file: str, save_dir: Path) -> None:
+    def plot_matches(
+        self, img: torch.Tensor, im_file: str, save_dir: Path, show_labels: bool = True, show_conf: bool = True
+    ) -> None:
         """Plot grid of GT, TP, FP, FN for each image.
 
         Args:
             img (torch.Tensor): Image to plot onto.
             im_file (str): Image filename to save visualizations.
             save_dir (Path): Location to save the visualizations to.
+            show_labels (bool): Whether to display class labels in the visualization.
+            show_conf (bool): Whether to display confidence values in the visualization.
         """
         if not self.matches:
             return
@@ -496,6 +500,8 @@ class ConfusionMatrix(DataExportMixin):
             names=self.names,
             max_subplots=4,
             conf_thres=0.001,
+            show_labels=show_labels,
+            show_conf=show_conf,
         )
 
     @TryExcept(msg="ConfusionMatrix plot failure")
@@ -1029,12 +1035,19 @@ class Metric(SimpleClass):
         num_targets = target_cls.shape[0]
         fp = num_preds - tp
         fn = num_targets - tp
-        precision = tp / num_preds if num_preds else 0
-        recall = tp / num_targets if num_targets else 0
+        if num_preds == 0 and num_targets == 0:
+            # Empty-GT image with no predictions is a trivially correct call, so report a perfect score rather than
+            # zeroing out P/R/F1 by the standard 0/0 fallback below.
+            precision = recall = f1 = 1.0
+        else:
+            precision = tp / num_preds if num_preds else 0.0
+            recall = tp / num_targets if num_targets else 0.0
+            denom = precision + recall
+            f1 = 2 * precision * recall / denom if denom else 0.0
         self.image_metrics[im_name] = {
             "precision": float(precision),
             "recall": float(recall),
-            "f1": float(2 * (precision * recall) / (precision + recall)) if (precision + recall) else 0.0,
+            "f1": float(f1),
             "tp": int(tp),
             "fp": int(fp),
             "fn": int(fn),

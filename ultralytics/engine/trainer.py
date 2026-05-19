@@ -322,6 +322,11 @@ class BaseTrainer:
                     "See ultralytics.engine.trainer for customization of frozen layers."
                 )
                 v.requires_grad = True
+        if not any(v.requires_grad for v in self.model.parameters()):
+            raise RuntimeError(
+                f"'freeze={self.args.freeze}' froze the entire model with no trainable parameters left. "
+                f"Reduce 'freeze' or pass a list of specific layer indices."
+            )
 
         # Check AMP
         self.amp = torch.tensor(self.args.amp).to(self.device)  # True or False
@@ -661,6 +666,7 @@ class BaseTrainer:
                     "root": str(GIT.root),
                     "branch": GIT.branch,
                     "commit": GIT.commit,
+                    "message": GIT.message,
                     "origin": GIT.origin,
                 },
                 "license": "AGPL-3.0 (https://ultralytics.com/license)",
@@ -846,7 +852,9 @@ class BaseTrainer:
             self.validator.args.compile = False  # disable final val compile as too slow
             self.metrics = self.validator(model=model)
             self.metrics.pop("fitness", None)
+            self.epoch += 1  # log best metrics at step epochs+1, not overwriting last epoch
             self.run_callbacks("on_fit_epoch_end")
+            self.epoch -= 1  # restore epoch
 
     def check_resume(self, overrides):
         """Check if resume checkpoint exists and update arguments accordingly."""

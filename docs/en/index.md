@@ -8,21 +8,26 @@ keywords: Ultralytics, YOLO, YOLO26, YOLO11, object detection, image segmentatio
 <br><br>
 <a href="https://platform.ultralytics.com/ultralytics/yolo26?utm_source=docs&utm_medium=referral&utm_campaign=platform_launch&utm_content=banner&utm_term=ultralytics_docs" target="_blank"><img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png" alt="Ultralytics YOLO banner"></a>
 <br><br>
-<a href="https://docs.ultralytics.com/zh/">中文</a> ·
-<a href="https://docs.ultralytics.com/ko/">한국어</a> ·
-<a href="https://docs.ultralytics.com/ja/">日本語</a> ·
-<a href="https://docs.ultralytics.com/ru/">Русский</a> ·
-<a href="https://docs.ultralytics.com/de/">Deutsch</a> ·
-<a href="https://docs.ultralytics.com/fr/">Français</a> ·
-<a href="https://docs.ultralytics.com/es/">Español</a> ·
-<a href="https://docs.ultralytics.com/pt/">Português</a> ·
-<a href="https://docs.ultralytics.com/tr/">Türkçe</a> ·
-<a href="https://docs.ultralytics.com/vi/">Tiếng Việt</a> ·
-<a href="https://docs.ultralytics.com/ar/">العربية</a>
-<br><br>
+</div>
+
+<p align="center">
+<a href="https://docs.ultralytics.com/zh">中文</a> ·
+<a href="https://docs.ultralytics.com/ko">한국어</a> ·
+<a href="https://docs.ultralytics.com/ja">日本語</a> ·
+<a href="https://docs.ultralytics.com/ru">Русский</a> ·
+<a href="https://docs.ultralytics.com/de">Deutsch</a> ·
+<a href="https://docs.ultralytics.com/fr">Français</a> ·
+<a href="https://docs.ultralytics.com/es">Español</a> ·
+<a href="https://docs.ultralytics.com/pt">Português</a> ·
+<a href="https://docs.ultralytics.com/tr">Türkçe</a> ·
+<a href="https://docs.ultralytics.com/vi">Tiếng Việt</a> ·
+<a href="https://docs.ultralytics.com/ar">العربية</a>
+</p>
+
+<div align="center">
+<br>
     <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml/badge.svg" alt="Ultralytics CI"></a>
     <a href="https://clickpy.clickhouse.com/dashboard/ultralytics"><img src="https://static.pepy.tech/badge/ultralytics" alt="Ultralytics Downloads"></a>
-    <a href="https://zenodo.org/badge/latestdoi/264818686"><img src="https://zenodo.org/badge/264818686.svg" alt="Ultralytics YOLO Citation"></a>
     <a href="https://discord.com/invite/ultralytics"><img alt="Ultralytics Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a>
     <a href="https://community.ultralytics.com/"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
     <a href="https://www.reddit.com/r/ultralytics/"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
@@ -170,7 +175,7 @@ Request an Enterprise License for commercial use at [Ultralytics Licensing](http
 Ultralytics offers two licensing options to accommodate diverse use cases:
 
 - **AGPL-3.0 License**: This [OSI-approved](https://opensource.org/license/agpl-3.0) open-source license is ideal for students and enthusiasts, promoting open collaboration and knowledge sharing. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for more details.
-- **Enterprise License**: Designed for commercial use, this license permits seamless integration of Ultralytics software and AI models into commercial goods and services, bypassing the open-source requirements of AGPL-3.0. If your scenario involves embedding our solutions into a commercial offering, reach out through [Ultralytics Licensing](https://www.ultralytics.com/license).
+- **Enterprise License**: For development and production use, this license enables seamless integration of Ultralytics software and AI models into business products and services, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0. To get started, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
 
 Our licensing strategy is designed to ensure that any improvements to our open-source projects are returned to the community. We believe in open source, and our mission is to ensure that our contributions can be used and expanded in ways that benefit everyone.
 
@@ -240,7 +245,7 @@ For a detailed walkthrough, check out our [Train a Model](modes/train.md) guide,
 Ultralytics offers two licensing options for YOLO:
 
 - **AGPL-3.0 License**: This open-source license is ideal for educational and non-commercial use, promoting open collaboration.
-- **Enterprise License**: This is designed for commercial applications, allowing seamless integration of Ultralytics software into commercial products without the restrictions of the AGPL-3.0 license.
+- **Enterprise License**: For development and production use, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0.
 
 For more details, visit our [Licensing](https://www.ultralytics.com/license) page.
 

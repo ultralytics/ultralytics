@@ -725,6 +725,7 @@ def test_model_tune():
 
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE or not checks.IS_PYTHON_MINIMUM_3_10, reason="environment is offline")
+@pytest.mark.skipif(not checks.check_requirements("ray", install=False), reason="ray[tune] not installed")
 def test_model_tune_ray():
     """Tune YOLO model for performance improvement."""
     YOLO("yolo26n-cls.pt").tune(

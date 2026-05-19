@@ -885,6 +885,9 @@ class SemsegDataset(YOLODataset):
         return label
 
 
+SemanticDataset = SemsegDataset
+
+
 class PolygonSemsegDataset(SemsegDataset, YOLODataset):
     """Semantic segmentation dataset that rasterizes YOLO polygon labels into masks on the fly.
 

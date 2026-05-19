@@ -205,9 +205,7 @@ def test_track_stream(model, tmp_path):
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
     """
-    if (
-        model == "yolo26n-cls.pt" or model == "yolo26n-sem.pt"
-    ):  # classification and semantic segmentation models are not supported for tracking
+    if model in {"yolo26n-cls.pt", "yolo26n-sem.pt"}:  # classification and semantic segmentation not supported
         return
     video_url = f"{ASSETS_URL}/decelera_portrait_min.mov"
     model = YOLO(model)

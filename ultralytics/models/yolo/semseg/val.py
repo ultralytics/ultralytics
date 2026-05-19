@@ -88,6 +88,7 @@ class SemanticSegmentationValidator(DetectionValidator):
         """
         batch = super().preprocess(batch)
         batch["semantic_mask"] = batch["semantic_mask"].to(self.device, dtype=torch.int32)
+        self._semantic_target_shape = tuple(batch["semantic_mask"].shape[-2:])
         return batch
 
     def postprocess(self, preds):
@@ -101,7 +102,7 @@ class SemanticSegmentationValidator(DetectionValidator):
         """
         if isinstance(preds, (tuple, list)):
             preds = preds[0]
-        preds = F.interpolate(preds, scale_factor=8, mode="bilinear", align_corners=False)
+        preds = F.interpolate(preds, size=self._semantic_target_shape, mode="bilinear", align_corners=False)
         return preds.argmax(dim=1).to(torch.int32) if self.nc > 1 else preds.gt(0).squeeze(1).to(torch.int32)
 
     def update_metrics(self, preds, batch):

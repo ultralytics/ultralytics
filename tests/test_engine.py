@@ -12,6 +12,7 @@ from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.engine.trainer import BaseTrainer
+from ultralytics.models.yolo import classify, detect, segment
 from ultralytics.models.yolo import classify, detect, obb, pose, segment
 from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
@@ -163,6 +164,35 @@ def test_nan_recovery():
     assert nan_injected[0], "NaN injection failed"
 
 
+def test_patience_progress_bar_string():
+    """Test that patience is formatted correctly for the training progress display."""
+    trainer = BaseTrainer.__new__(BaseTrainer)
+    trainer.args = SimpleNamespace(patience=5, val=True)
+    trainer.stopper = SimpleNamespace(best_epoch=2)
+    assert trainer._patience_str(epoch=4) == "   Patience: 3/5"
+    assert trainer._patience_str(epoch=2) == "   Patience: 5/5"
+    trainer.args.val = False
+    assert trainer._patience_str(epoch=4) == ""
+    trainer.args.val = True
+    trainer.args.patience = 0
+    assert trainer._patience_str(epoch=4) == ""
+    
+def test_resume_patience_state():
+    """Test that early stopping patience state (best_epoch) is correctly restored from a checkpoint."""
+    trainer = BaseTrainer.__new__(BaseTrainer)
+    trainer.ema = None
+    trainer.stopper = SimpleNamespace(best_epoch=0)
+    mock_ckpt = {"best_fitness": 0.95, "best_epoch": 12}
+    trainer._load_checkpoint_state(mock_ckpt)
+    assert trainer.stopper.best_epoch == 12, "best_epoch was not restored correctly from the checkpoint."
+    assert trainer.best_fitness == 0.95, "best_fitness was not restored correctly."
+    trainer.stopper.best_epoch = 5  # Reset to a known state
+    legacy_ckpt = {"best_fitness": 0.96}  # Notice 'best_epoch' is missing
+    trainer._load_checkpoint_state(legacy_ckpt)
+    assert trainer.stopper.best_epoch == 5, "best_epoch should not be altered if missing from checkpoint."
+    
+def test_train_reuses_loaded_checkpoint_model(monkeypatch):
+    """Test training reuses an already-loaded checkpoint model instead of re-parsing the model source."""
 @pytest.mark.parametrize(
     "kwargs,uses_weights",
     [({}, True), ({"pretrained": True}, True), ({"pretrained": False}, False), ({"pretrained": MODEL}, True)],

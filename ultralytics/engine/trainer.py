@@ -855,8 +855,10 @@ class BaseTrainer:
             self.metrics = self.validator(model=model)
             self.metrics.pop("fitness", None)
             self.epoch += 1  # log best metrics at step epochs+1, not overwriting last epoch
-            self.run_callbacks("on_fit_epoch_end")
-            self.epoch -= 1  # restore
+            try:
+                self.run_callbacks("on_fit_epoch_end")
+            finally:
+                self.epoch -= 1  # restore epoch
 
     def check_resume(self, overrides):
         """Check if resume checkpoint exists and update arguments accordingly."""

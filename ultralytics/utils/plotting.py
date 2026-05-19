@@ -797,10 +797,8 @@ def plot_images(
                     c = names.get(c, c) if names else c
                     if labels or conf[j] > conf_thres:
                         conf_text = f"{conf[j]:.1f}" if conf is not None else ""
-                        if show_labels:
-                            label = f"{c} {conf_text}".strip() if show_conf else f"{c}"
-                        else:
-                            label = conf_text if show_conf else ""
+                        label = f"{c}" if show_labels else ""
+                        label += f" {conf_text}".strip() if show_conf else ""
                         annotator.box_label(box, label, color=color)
 
             elif len(classes):

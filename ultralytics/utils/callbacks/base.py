@@ -3,7 +3,7 @@
 
 from collections import defaultdict
 from copy import deepcopy
-from typing import Callable, Union
+from typing import Callable, Dict, List, Union
 
 from ultralytics.utils import colorstr, LOGGER
 
@@ -240,7 +240,7 @@ def add_integration_callbacks(instance):
                 instance.callbacks[k].append(v)
 
 
-def _log_callbacks(callbacks_list: list[dict[str, Union[str, Callable]]], instance: object) -> None:
+def _log_callbacks(callbacks_list: List[Dict[str, Union[str, Callable]]], instance: object) -> None:
     """Log the names of the attached callbacks.
 
     Args:

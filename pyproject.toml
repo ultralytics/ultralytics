@@ -26,7 +26,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ultralytics"
 dynamic = ["version"]
-description = "Ultralytics YOLO26 🚀 for SOTA object detection, tracking, instance segmentation, pose estimation, classification, and oriented object detection."
+description = "Ultralytics YOLO 🚀 for SOTA object detection, tracking, instance segmentation, pose estimation, classification, and oriented object detection."
 readme = "README.md"
 requires-python = ">=3.8"
 license = { "text" = "AGPL-3.0" }

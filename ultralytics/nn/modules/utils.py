@@ -140,5 +140,9 @@ def multi_scale_deformable_attn_pytorch(
             F.grid_sample(value_l, sampling_grids[level], mode="bilinear", padding_mode="zeros", align_corners=False)
         )
     attention_weights = attention_weights.permute(0, 2, 1, 3).reshape(bs * num_heads, 1, num_queries, num_total_points)
-    output = (torch.cat(sampling_value_list, dim=-1) * attention_weights).sum(-1).view(bs, num_heads * embed_dims, num_queries)
+    output = (
+        (torch.cat(sampling_value_list, dim=-1) * attention_weights)
+        .sum(-1)
+        .view(bs, num_heads * embed_dims, num_queries)
+    )
     return output.transpose(1, 2).contiguous()

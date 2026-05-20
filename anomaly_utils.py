@@ -133,16 +133,28 @@ def get_arguments(category: str = "screw") -> tuple[dict, dict]:
     Returns:
         Tuple of (model_arg, anomaly_arg) dicts.
     """
-    model_arg = dict(conf=0.001, iou=0.001, max_det=1000, imgsz=640, single_cls=True, rect=False)
+    model_arg = dict(conf=0.1, iou=0.25, max_det=1000, imgsz=640, single_cls=True, rect=False)
     anomaly_arg = dict(
-        accumulate_thresh=0.3,
-        score_filter_kernel=1,
-        ad_conf=0.4,
-        ad_max_det=9,
-        em_iters=5,
-        auto_temperature=True,
+        
         mode="anomaly",
-        active_layers=[0,1, 2],
+        score_filter_kernel=1,
+        active_layers=[1, 2],
+
+        # for bank building and calibration
+        auto_temperature=True,
+        em_iters=5,
+        accumulate_thresh=0.3,
+        calibration_interval=3,
+        calibration_target_score=0.2,
+        
+        # ------- for infer 
+        ad_conf=0.4,
+        ad_max_det=10,
+        # ------------ for heatmpa 
+        return_heatmap=True,
+        feature_mode="fused_heatmap", 
+		fused_use_pre_clshead=True, 
+        fused_layers=[0]
     )
     return model_arg, anomaly_arg
 

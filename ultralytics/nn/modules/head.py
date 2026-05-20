@@ -1878,6 +1878,7 @@ class ADMBHead(nn.Module):
         self.em_iters                  = args.get("em_iters",                  1)
         self.max_bank_size             = args.get("max_bank_size",             None)
         self.score_aggregation         = args.get("score_aggregation",         "max")
+        self.yolo_weight               = args.get("yolo_weight",               0.0)
 
         assert self.calibration_target_score < self.accumulate_thresh, (
             f"calibration_target_score ({self.calibration_target_score}) must be "
@@ -2263,7 +2264,16 @@ class ADMBHead(nn.Module):
         # Using max(dim=0) means: flag a position if ANY image in the batch scores it high.
         # Each image then gets its OWN score at those positions so normal images are not
         # falsely assigned the high score of an anomalous batch-mate.
-        scores_hw = scores_per_image.max(dim=0).values  # [H*W] — for mask only
+        #
+        # If yolo_weight > 0, also blend YOLO head probability into the *mask* score so
+        # this parameter affects proposal selection, not only post-mask logits.
+        if anomaly_mode and self.yolo_weight > 0:
+            cls_flat_all = cls_feat.flatten(2).transpose(-1, -2)                         # [B, H*W, C]
+            yolo_prob_all = torch.sigmoid(self.vocab_linear(cls_flat_all).max(dim=-1).values)  # [B, H*W]
+            scores_for_mask = (1 - self.yolo_weight) * scores_per_image + self.yolo_weight * yolo_prob_all
+            scores_hw = scores_for_mask.max(dim=0).values  # [H*W] — for mask only
+        else:
+            scores_hw = scores_per_image.max(dim=0).values  # [H*W] — for mask only
 
         # accumulate high-confidence normal features into the memory bank (only when self.update is True)
         if self.update:
@@ -2279,7 +2289,12 @@ class ADMBHead(nn.Module):
             mask = torch.ones(H * W, dtype=torch.bool, device=cls_feat.device)
             if anomaly_mode:
                 per_img_scores = scores_per_image.clamp(1e-6, 1 - 1e-6)                     # [B, H*W]
-                cls_scores = torch.log(per_img_scores / (1 - per_img_scores)).unsqueeze(1)  # [B, 1, H*W]
+                mem_logit = torch.log(per_img_scores / (1 - per_img_scores))                # [B, H*W]
+                if self.yolo_weight > 0:
+                    cls_flat = cls_feat.flatten(2).transpose(-1, -2)                        # [B, H*W, C]
+                    yolo_logit = self.vocab_linear(cls_flat).max(dim=-1).values             # [B, H*W]
+                    mem_logit = (1 - self.yolo_weight) * mem_logit + self.yolo_weight * yolo_logit
+                cls_scores = mem_logit.unsqueeze(1)                                         # [B, 1, H*W]
             else:
                 cls_flat = cls_feat.flatten(2).transpose(-1, -2)                            # [B, H*W, C]
                 cls_scores = self.vocab_linear(cls_flat).transpose(-1, -2)                  # [B, nc, H*W]
@@ -2290,7 +2305,12 @@ class ADMBHead(nn.Module):
                 # positions, NOT the shared batch-max score. This prevents a single anomalous
                 # image from contaminating normal images in the same batch with its high scores.
                 per_img_scores = scores_per_image[:, mask].clamp(1e-6, 1 - 1e-6)           # [B, k]
-                cls_scores = torch.log(per_img_scores / (1 - per_img_scores)).unsqueeze(1)  # [B, 1, k]
+                mem_logit = torch.log(per_img_scores / (1 - per_img_scores))               # [B, k]
+                if self.yolo_weight > 0:
+                    cls_flat = cls_feat.flatten(2).transpose(-1, -2)                        # [B, H*W, C]
+                    yolo_logit = self.vocab_linear(cls_flat[:, mask]).max(dim=-1).values    # [B, k]
+                    mem_logit = (1 - self.yolo_weight) * mem_logit + self.yolo_weight * yolo_logit
+                cls_scores = mem_logit.unsqueeze(1)                                         # [B, 1, k]
             else:
                 cls_flat = cls_feat.flatten(2).transpose(-1, -2)                            # [B, H*W, C]
                 cls_scores = self.vocab_linear(cls_flat[:, mask]).transpose(-1, -2)         # [B, nc, k]
@@ -2337,7 +2357,7 @@ class AnomalyDetection(Detect):
             "accumulate_thresh": 0.4, "temperature": 3.0, "K": 15, "score_filter_kernel": 1,
             "auto_temperature": True, "calibration_interval": 0, "calibration_target_score": 0.2,
             "min_calibration_bank_size": 50, "em_iters": 1, "max_bank_size": None,
-            "score_aggregation": "max",
+            "score_aggregation": "max", "yolo_weight": 0.0,
         }
 
         # Auto-build ADMBHead sub-modules when constructed from YAML (not from from_detect_head)
@@ -2358,7 +2378,7 @@ class AnomalyDetection(Detect):
                 "accumulate_thresh": 0.4, "temperature": 3.0, "K": 15, "score_filter_kernel": 1,
                 "auto_temperature": True, "calibration_interval": 0, "calibration_target_score": 0.2,
                 "min_calibration_bank_size": 50, "em_iters": 1, "max_bank_size": None,
-                "score_aggregation": "max",
+                "score_aggregation": "max", "yolo_weight": 0.0,
             }
             args = {k: (list(v) if isinstance(v, list) else v) for k, v in _defaults.items()}
             for k in _defaults:
@@ -2451,7 +2471,7 @@ class AnomalyDetection(Detect):
                 "accumulate_thresh": 0.4, "temperature": 3.0, "K": 15, "score_filter_kernel": 1,
                 "auto_temperature": True, "calibration_interval": 0, "calibration_target_score": 0.2,
                 "min_calibration_bank_size": 50, "em_iters": 1, "max_bank_size": None,
-                "score_aggregation": "max",
+                "score_aggregation": "max", "yolo_weight": 0.0,
             }
             args = {k: (list(v) if isinstance(v, list) else v) for k, v in _defaults.items()}
             for k in _defaults:

@@ -1412,6 +1412,7 @@ class YOLOAnomaly(Model):
         fused_use_pre_clshead: bool | None = None,
         max_bank_size: int | None = None,
         score_aggregation: str | None = None,
+        yolo_weight: float | None = None,
     ) -> None:
         """Set anomaly-detection inference parameters and optionally switch mode.
 
@@ -1456,6 +1457,7 @@ class YOLOAnomaly(Model):
             "fused_use_pre_clshead": fused_use_pre_clshead,
             "max_bank_size": max_bank_size,
             "score_aggregation": score_aggregation,
+            "yolo_weight": yolo_weight,
         }.items() if v is not None}
         head.set_anomaly_args(active_layers=active_layers, mode=mode, **kwargs)
 

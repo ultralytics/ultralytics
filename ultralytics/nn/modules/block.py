@@ -2002,7 +2002,7 @@ class Proto26(Proto):
             up_feat = F.interpolate(up_feat, size=feat.shape[2:], mode="nearest")
             feat = feat + up_feat
         p = super().forward(self.feat_fuse(feat))
-        if self.training and return_semseg:
+        if return_semseg and self.semseg is not None:
             semseg = self.semseg(feat)
             return (p, semseg)
         return p

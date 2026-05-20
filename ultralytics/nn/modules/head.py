@@ -394,18 +394,25 @@ class Segment26(Segment):
         """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""
         outputs = Detect.forward(self, x)
         preds = outputs[1] if isinstance(outputs, tuple) else outputs
-        proto = self.proto(x)  # mask protos
+        proto_out = self.proto(x)  # mask protos, optionally (proto, semseg) tuple
+        semseg = None
+        if isinstance(proto_out, tuple):
+            proto, semseg = proto_out
+        else:
+            proto = proto_out
         if isinstance(preds, dict):  # training and validating during training
             if self.end2end:
-                preds["one2many"]["proto"] = proto
+                preds["one2many"]["proto"] = proto_out
                 preds["one2one"]["proto"] = (
-                    tuple(p.detach() for p in proto) if isinstance(proto, tuple) else proto.detach()
+                    tuple(p.detach() for p in proto_out) if isinstance(proto_out, tuple) else proto_out.detach()
                 )
             else:
-                preds["proto"] = proto
+                preds["proto"] = proto_out
         if self.training:
             return preds
-        return (outputs, proto) if self.export else ((outputs[0], proto), preds)
+        if self.export:
+            return (outputs, proto)
+        return ((outputs[0], proto, semseg), preds)
 
     def fuse(self) -> None:
         """Remove the one2many head and extra part of proto module for inference optimization."""

@@ -2571,7 +2571,7 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bo
         if len(flip_idx) == 0 and (hyp.fliplr > 0.0 or hyp.flipud > 0.0):
             hyp.fliplr = hyp.flipud = 0.0  # both fliplr and flipud require flip_idx
             LOGGER.warning("No 'flip_idx' array defined in data.yaml, disabling 'fliplr' and 'flipud' augmentations.")
-        elif flip_idx and (len(flip_idx) != kpt_shape[0]):
+        elif flip_idx and kpt_shape is not None and (len(flip_idx) != kpt_shape[0]):
             raise ValueError(f"data.yaml flip_idx={flip_idx} length must be equal to kpt_shape[0]={kpt_shape[0]}")
 
     return Compose(

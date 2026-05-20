@@ -346,12 +346,8 @@ class BaseTrainer:
         self.stride = gs  # for multiscale training
 
         if self.world_size > 1:
-            # static_graph=True permits params used >1 time per forward (e.g. flow_model in
-            # o2m+o2o pose loss branches) under torch.compile.
             self.model = nn.parallel.DistributedDataParallel(
-                self.model,
-                device_ids=[RANK],
-                static_graph=bool(self.args.compile),
+                self.model, device_ids=[RANK], find_unused_parameters=True, broadcast_buffers=False
             )
 
         # Batch size
@@ -530,6 +526,8 @@ class BaseTrainer:
             # Validation
             final_epoch = epoch + 1 >= self.epochs
             if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
+                if RANK != -1:
+                    dist.barrier()  # sync all ranks before validation to prevent NCCL collective mismatch
                 self._clear_memory(None if self.device.type == "mps" else 0.5)  # prevent VRAM spike
                 self.metrics, self.fitness = self.validate()
 

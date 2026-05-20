@@ -102,7 +102,7 @@ Request an Enterprise License for commercial use at [Ultralytics Licensing](http
 
     ***
 
-    Discover YOLO tasks like detect, segment, classify, pose, OBB and track <br /> &nbsp;
+    Discover YOLO tasks like detect, segment, semantic, classify, pose, OBB and track <br /> &nbsp;
 
     ***
 

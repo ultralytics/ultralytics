@@ -6,7 +6,7 @@
 
 # Site metadata
 site_name: Ultralytics YOLO Docs
-site_description: Explore Ultralytics YOLO, a cutting-edge real-time model for object detection, segmentation, classification, pose estimation, and tracking across various applications and hardware platforms.
+site_description: Explore Ultralytics YOLO, a cutting-edge real-time model for object detection, segmentation, semantic segmentation, classification, pose estimation, and tracking across various applications and hardware platforms.
 site_url: https://docs.ultralytics.com
 site_author: Ultralytics
 repo_url: https://github.com/ultralytics/ultralytics
@@ -235,7 +235,7 @@ nav:
       - tasks/index.md
       - Detect: tasks/detect.md
       - Segment: tasks/segment.md
-      - Semantic Segmentation: tasks/semantic.md
+      - Semantic: tasks/semantic.md
       - Classify: tasks/classify.md
       - Pose: tasks/pose.md
       - OBB: tasks/obb.md

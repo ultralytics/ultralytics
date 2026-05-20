@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn to integrate Ultralytics YOLO in Python for object detection, segmentation, and classification. Load and train models, and make predictions easily with our comprehensive guide.
-keywords: YOLO, Python, object detection, segmentation, classification, machine learning, AI, pretrained models, train models, make predictions
+description: Learn to integrate Ultralytics YOLO in Python for object detection, segmentation, semantic segmentation, and classification. Load and train models, and make predictions easily with our comprehensive guide.
+keywords: YOLO, Python, object detection, segmentation, semantic segmentation, classification, machine learning, AI, pretrained models, train models, make predictions
 ---
 
 # Python Usage

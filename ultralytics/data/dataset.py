@@ -884,6 +884,7 @@ class SemanticDataset(YOLODataset):
         label["semantic_mask"] = mask
         return label
 
+
 class PolygonSemanticDataset(SemanticDataset, YOLODataset):
     """Semantic segmentation dataset that rasterizes YOLO polygon labels into masks on the fly.
 

@@ -323,7 +323,7 @@ def test_results(model: str, tmp_path):
         skip_rpi_semseg()
     im = "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/im/boats.jpg" if model == "yolo26n-obb.pt" else SOURCE
     is_semseg = "semseg" in model or "-sem" in model
-    results = YOLO(WEIGHTS_DIR / model)([im, im], imgsz=160)
+    results = YOLO(WEIGHTS_DIR / model)([im, im], imgsz=32 if is_semseg else 160)
     for r in results:
         if is_semseg:
             assert r.semantic_mask is not None and r.semantic_mask.shape == r.orig_shape, (

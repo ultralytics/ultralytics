@@ -609,7 +609,9 @@ class Mosaic(BaseMixTransform):
                 img = labels_patch["img"]
                 x1, y1, x2, y2 = item["x1"], item["y1"], item["x2"], item["y2"]
                 padw, padh = item["padw"], item["padh"]
-                img9[y1:y2, x1:x2] = img[y1 - padh :, x1 - padw :]
+                x1b, y1b = x1 - padw, y1 - padh
+                x2b, y2b = x1b + (x2 - x1), y1b + (y2 - y1)
+                img9[y1:y2, x1:x2] = img[y1b:y2b, x1b:x2b]
             labels["img"] = img9[-self.border[0] : self.border[0], -self.border[1] : self.border[1]]
         return labels
 
@@ -674,7 +676,9 @@ class Mosaic(BaseMixTransform):
                     continue
                 x1, y1, x2, y2 = item["x1"], item["y1"], item["x2"], item["y2"]
                 padw, padh = item["padw"], item["padh"]
-                mask9[y1:y2, x1:x2] = mask[y1 - padh :, x1 - padw :]
+                x1b, y1b = x1 - padw, y1 - padh
+                x2b, y2b = x1b + (x2 - x1), y1b + (y2 - y1)
+                mask9[y1:y2, x1:x2] = mask[y1b:y2b, x1b:x2b]
             labels["semantic_mask"] = mask9[-self.border[0] : self.border[0], -self.border[1] : self.border[1]]
         return labels
 
@@ -1884,6 +1888,7 @@ class CopyPaste(BaseMixTransform):
             params = self.get_params(labels)
             labels = self.apply_image(labels, params)
             labels = self.apply_instances(labels, params)
+            labels = self.apply_semantic(labels, params)
             return labels
         return super().__call__(labels)
 
@@ -1982,6 +1987,21 @@ class CopyPaste(BaseMixTransform):
 
         labels["cls"] = cls
         labels["instances"] = instances
+        return labels
+
+    def apply_semantic(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Apply CopyPaste to semantic segmentation masks."""
+        mask = labels.get("semantic_mask")
+        if mask is None:
+            return labels
+
+        source = labels.get("mix_labels", [{}])[0].get("semantic_mask") if self.mode == "mixup" else cv2.flip(mask, 1)
+        if source is None:
+            return labels
+        pasted = params["im_new"].astype(bool)
+        mask = mask.copy()
+        mask[pasted] = source[pasted]
+        labels["semantic_mask"] = mask
         return labels
 
 

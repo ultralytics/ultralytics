@@ -294,11 +294,11 @@ class Results(SimpleClass, DataExportMixin):
         return self._apply("__getitem__", idx)
 
     def __len__(self) -> int:
-        """Return the number of detections in the Results object.
+        """Return the number of results in the Results object.
 
         Returns:
-            (int): The number of detections, determined by the length of the first non-empty attribute in (boxes, masks,
-                probs, keypoints, or obb).
+            (int): The number of results, determined by the length of the first non-empty attribute in (boxes, masks,
+                probs, keypoints, obb, or semantic_mask). Empty Results objects return 0.
 
         Examples:
             >>> results = Results(orig_img, path, names, boxes=torch.rand(5, 6))

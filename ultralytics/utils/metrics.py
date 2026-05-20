@@ -1719,17 +1719,13 @@ class SemsegMetrics(SimpleClass, DataExportMixin):
         )
         self.matrix += hist.to(self.matrix.dtype)
 
-        # Track per-image class presence
-        for b in range(targets.shape[0]):
-            valid_b = valid[b]
-            if not valid_b.any():
-                continue
-            classes = torch.unique(targets[b][valid_b])
-            for c in classes:
-                if self.nc == 1 and c == 1:
-                    self.nt_per_image[0] += 1
-                elif 0 <= c < self.nc:
-                    self.nt_per_image[c] += 1
+        present = torch.zeros((targets.shape[0], self.cm_nc), dtype=torch.bool, device=targets.device)
+        batch_idx = torch.arange(targets.shape[0], device=targets.device).view(-1, 1, 1).expand_as(targets)
+        present[batch_idx[valid], targets[valid].long()] = True
+        if self.nc == 1:
+            self.nt_per_image[0] += int(present[:, 1].sum())
+        else:
+            self.nt_per_image += present[:, : self.nc].sum(0).cpu().numpy()
 
     def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot: callable | None = None) -> None:
         """Compute final metrics from accumulated confusion matrix.

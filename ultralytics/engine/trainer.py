@@ -688,8 +688,8 @@ class BaseTrainer:
             log_parts.append("\n--- Total Fitness Calculation:")
             log_parts.append(f"  {box_fitness:.4f} (box) + {pose_fitness:.4f} (pose) = {self.fitness:.4f}")
 
-        elif task == "segment" and len(fitness_weight) == 8:
-            # Segment task with 8 weights
+        elif task == "segment" and len(fitness_weight) in (8, 10):
+            # Segment task with 8 or 10 weights (10 adds Dice + BIoU as boundary-aware terms)
             log_parts.append(f"\n--- Box Detection Metrics (weights: {fitness_weight[:4]}):")
             box_metrics = []
             metric_names_box = ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP50(B)", "metrics/mAP50-95(B)"]
@@ -703,7 +703,7 @@ class BaseTrainer:
             box_fitness = sum(v * w for v, w in zip(box_vals, fitness_weight[:4]))
             log_parts.append(f"  Box fitness contribution: {box_fitness:.4f}")
 
-            log_parts.append(f"\n--- Mask Segmentation Metrics (weights: {fitness_weight[4:]}):")
+            log_parts.append(f"\n--- Mask Segmentation Metrics (weights: {fitness_weight[4:8]}):")
             mask_metrics = []
             metric_names_mask = ["metrics/precision(M)", "metrics/recall(M)", "metrics/mAP50(M)", "metrics/mAP50-95(M)"]
             for i, name in enumerate(metric_names_mask):
@@ -713,11 +713,24 @@ class BaseTrainer:
 
             # Calculate mask fitness contribution
             mask_vals = [self.metrics.get(name, 0.0) for name in metric_names_mask]
-            mask_fitness = sum(v * w for v, w in zip(mask_vals, fitness_weight[4:]))
+            mask_fitness = sum(v * w for v, w in zip(mask_vals, fitness_weight[4:8]))
             log_parts.append(f"  Mask fitness contribution: {mask_fitness:.4f}")
 
+            boundary_fitness = 0.0
+            if len(fitness_weight) == 10:
+                dice_val = self.metrics.get("metrics/dice(M)", 0.0)
+                biou_val = self.metrics.get("metrics/biou(M)", 0.0)
+                dice_w, biou_w = fitness_weight[8], fitness_weight[9]
+                boundary_fitness = dice_val * dice_w + biou_val * biou_w
+                log_parts.append(f"\n--- Mask Boundary Metrics (weights: [{dice_w}, {biou_w}]):")
+                log_parts.append(f"  metrics/dice(M): {dice_val:.4f} | metrics/biou(M): {biou_val:.4f}")
+                log_parts.append(f"  Boundary fitness contribution: {boundary_fitness:.4f}")
+
             log_parts.append("\n--- Total Fitness Calculation:")
-            log_parts.append(f"  {box_fitness:.4f} (box) + {mask_fitness:.4f} (mask) = {self.fitness:.4f}")
+            total_terms = f"{box_fitness:.4f} (box) + {mask_fitness:.4f} (mask)"
+            if len(fitness_weight) == 10:
+                total_terms += f" + {boundary_fitness:.4f} (boundary)"
+            log_parts.append(f"  {total_terms} = {self.fitness:.4f}")
 
         else:
             # Standard task (detect, pose with 4 weights, segment with 4 weights, obb, classify)

@@ -11,6 +11,7 @@ from typing import Any
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 
 from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, TryExcept, checks, plt_settings
 
@@ -156,6 +157,67 @@ def mask_iou(mask1: torch.Tensor, mask2: torch.Tensor, eps: float = 1e-7) -> tor
     """
     intersection = torch.matmul(mask1, mask2.T).clamp_(0)
     union = (mask1.sum(1)[:, None] + mask2.sum(1)[None]) - intersection  # (area1 + area2) - intersection
+    return intersection / (union + eps)
+
+
+def mask_dice(mask1: torch.Tensor, mask2: torch.Tensor, eps: float = 1e-7) -> torch.Tensor:
+    """Calculate pairwise Dice (F1) coefficient between two sets of binary masks.
+
+    Dice = 2 * |A ∩ B| / (|A| + |B|). Equivalent to F1 on per-pixel labels and monotonic with IoU (Dice = 2*IoU / (1 +
+    IoU)) but more lenient on small misalignments — useful as a complementary overlap metric for instance segmentation
+    evaluation.
+
+    Args:
+        mask1 (torch.Tensor): Ground-truth binary masks of shape (N, H*W) (flattened).
+        mask2 (torch.Tensor): Predicted binary masks of shape (M, H*W) (flattened).
+        eps (float, optional): Small constant to avoid division by zero.
+
+    Returns:
+        (torch.Tensor): Pairwise Dice of shape (N, M).
+    """
+    intersection = torch.matmul(mask1, mask2.T).clamp_(0)
+    denom = mask1.sum(1)[:, None] + mask2.sum(1)[None]
+    return (2.0 * intersection) / (denom + eps)
+
+
+def mask_boundary_rim(mask: torch.Tensor, kernel: int) -> torch.Tensor:
+    """Extract the paper-style boundary rim of binary masks via mask - erode(mask, k).
+
+    Computes the inside-k rim used by the Boundary-IoU definition of Cheng et al. 2021. Performed on the GPU when the
+    input lives there, no autograd is needed (operates on GT/binarized preds).
+
+    Args:
+        mask (torch.Tensor): Binary masks of shape (N, H, W) with values in {0, 1}.
+        kernel (int): Odd integer >= 3 controlling rim thickness in pixels.
+
+    Returns:
+        (torch.Tensor): Boundary rims of shape (N, H, W), values in {0, 1}.
+    """
+    g = mask.unsqueeze(1).float()
+    pad = kernel // 2
+    eroded = -F.max_pool2d(-g, kernel, stride=1, padding=pad)
+    return (g - eroded).clamp_(0).squeeze(1)
+
+
+def mask_biou(mask1: torch.Tensor, mask2: torch.Tensor, kernel: int = 3, eps: float = 1e-7) -> torch.Tensor:
+    """Calculate paper-style Boundary IoU between two sets of binary masks (Cheng et al. 2021).
+
+    Each mask is reduced to its inside-`kernel` rim (`mask - erode(mask, kernel)`), then IoU is computed between rims.
+    This focuses the score on contour accuracy and is far more sensitive to boundary errors than standard mask IoU.
+
+    Args:
+        mask1 (torch.Tensor): Ground-truth binary masks of shape (N, H, W).
+        mask2 (torch.Tensor): Predicted binary masks of shape (M, H, W).
+        kernel (int, optional): Odd integer >= 3 for rim thickness; should match `seg_boundary_kernel`.
+        eps (float, optional): Small constant to avoid division by zero.
+
+    Returns:
+        (torch.Tensor): Pairwise Boundary-IoU of shape (N, M).
+    """
+    rim1 = mask_boundary_rim(mask1, kernel).flatten(1)  # (N, H*W)
+    rim2 = mask_boundary_rim(mask2, kernel).flatten(1)  # (M, H*W)
+    intersection = torch.matmul(rim1, rim2.T).clamp_(0)
+    union = (rim1.sum(1)[:, None] + rim2.sum(1)[None]) - intersection
     return intersection / (union + eps)
 
 
@@ -878,9 +940,10 @@ class Metric(SimpleClass):
         self.all_ap = []  # (nc, 10)
         self.ap_class_index = []  # (nc, )
         self.nc = 0
-        # Handle fitness_weight: if 8 values provided, use only first 4 for detection metrics
-        if fitness_weight and len(fitness_weight) == 8:
-            self.fitness_weight = fitness_weight[:4]  # use first 4 for box detection
+        # Handle fitness_weight: only the first 4 entries describe box/mask detection metrics.
+        # Accept legacy 8-value (segment/pose) and new 10-value (segment with Dice/BIoU) layouts.
+        if fitness_weight and len(fitness_weight) in (8, 10):
+            self.fitness_weight = fitness_weight[:4]
         else:
             self.fitness_weight = fitness_weight or [0.0, 0.9, 0.1, 0.0]  # default weights for SkillReal dataset
         # Per-class weights for weighted mean metrics (None = standard unweighted mean)
@@ -1241,7 +1304,11 @@ class SegmentMetrics(DetMetrics):
     """
 
     def __init__(
-        self, names: dict[int, str] = {}, fitness_weight: list | None = None, class_weights: list | None = None
+        self,
+        names: dict[int, str] = {},
+        fitness_weight: list | None = None,
+        class_weights: list | None = None,
+        boundary_kernel: int = 3,
     ) -> None:
         """Initialize a SegmentMetrics instance with a save directory, plot flag, and class names.
 
@@ -1251,26 +1318,43 @@ class SegmentMetrics(DetMetrics):
                 - 4 values [P, R, mAP@0.5, mAP@0.5:0.95]: same weights used for both box and mask (backward compatible)
                 - 8 values [box_P, box_R, box_mAP@0.5, box_mAP@0.5:0.95, mask_P, mask_R, mask_mAP@0.5, mask_mAP@0.5:0.95]:
                   separate weights for box and mask metrics
+                - 10 values: 8-value layout plus [mask_Dice, mask_BIoU]; only valid for segment task and
+                  lets boundary-quality scores influence best-checkpoint selection.
             class_weights (list, optional): Per-class importance weights for weighted mean metrics in fitness.
+            boundary_kernel (int, optional): Odd kernel size (>=3) for paper-style Boundary IoU; should match
+                `seg_boundary_kernel` used by the loss so train/val agree on rim thickness.
         """
-        # Split fitness weights for box and mask metrics
-        if fitness_weight and len(fitness_weight) == 8:
-            # New format: separate weights for box and mask
+        self.dice_fitness_weight = 0.0
+        self.biou_fitness_weight = 0.0
+        if fitness_weight and len(fitness_weight) == 10:
+            box_weights = fitness_weight[:4]
+            mask_weights = fitness_weight[4:8]
+            self.dice_fitness_weight = float(fitness_weight[8])
+            self.biou_fitness_weight = float(fitness_weight[9])
+        elif fitness_weight and len(fitness_weight) == 8:
             box_weights = fitness_weight[:4]
             mask_weights = fitness_weight[4:]
         elif fitness_weight and len(fitness_weight) == 4:
-            # Backward compatibility: use same weights for both
             box_weights = fitness_weight
             mask_weights = fitness_weight
         else:
-            # Default or None
             box_weights = fitness_weight
             mask_weights = fitness_weight
 
         DetMetrics.__init__(self, names, box_weights, class_weights=class_weights)
         self.seg = Metric(fitness_weight=mask_weights, class_weights=class_weights)
         self.task = "segment"
+        self.boundary_kernel = max(3, int(boundary_kernel) | 1)  # force odd, >=3
         self.stats["tp_m"] = []  # add additional stats for masks
+        # Boundary-quality stats: per matched (GT, pred) pair scalar Dice / BIoU and the class index
+        self.stats["mask_dice"] = []
+        self.stats["mask_biou"] = []
+        self.stats["matched_cls"] = []
+        # Per-class aggregates populated in process(); aligned with self.seg.ap_class_index when set.
+        self.dice_per_class = np.zeros(0)
+        self.biou_per_class = np.zeros(0)
+        self.dice_mean = 0.0
+        self.biou_mean = 0.0
 
     def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
         """Process the detection and segmentation metrics over the given set of predictions.
@@ -1297,6 +1381,41 @@ class SegmentMetrics(DetMetrics):
         )[2:]
         self.seg.nc = len(self.names)
         self.seg.update(results_mask)
+
+        # Aggregate per-matched-pair Dice / BIoU into per-class arrays + overall means.
+        # `mask_dice`, `mask_biou`, `matched_cls` come from SegmentationValidator._process_batch.
+        nc = len(self.names)
+        self.dice_per_class = np.zeros(nc, dtype=np.float64)
+        self.biou_per_class = np.zeros(nc, dtype=np.float64)
+        self.dice_mean = 0.0
+        self.biou_mean = 0.0
+        dice_all = stats.get("mask_dice", np.zeros(0, dtype=np.float64))
+        biou_all = stats.get("mask_biou", np.zeros(0, dtype=np.float64))
+        matched_cls_all = stats.get("matched_cls", np.zeros(0, dtype=np.int64))
+        if len(dice_all):
+            per_class_counts = np.bincount(matched_cls_all.astype(int), minlength=nc)
+            for c in np.unique(matched_cls_all.astype(int)):
+                m = matched_cls_all == c
+                self.dice_per_class[c] = dice_all[m].mean()
+                self.biou_per_class[c] = biou_all[m].mean()
+            # Use the same aggregation strategy as Metric.mean_results: optional class_weights, restricted to
+            # classes that produced detections (ap_class_index) so a class with no matches doesn't drag mean to 0.
+            detected = np.asarray(self.seg.ap_class_index, dtype=int) if len(self.seg.ap_class_index) else None
+            if detected is not None and detected.size:
+                d_vals = self.dice_per_class[detected]
+                b_vals = self.biou_per_class[detected]
+                # Only average over detected classes that actually had matched pairs (per_class_counts > 0).
+                have = per_class_counts[detected] > 0
+                d_sel, b_sel = d_vals[have], b_vals[have]
+                if d_sel.size:
+                    cw = self.seg._get_detected_class_weights()
+                    if cw is not None:
+                        cw_sel = cw[have]
+                        self.dice_mean = float(np.average(d_sel, weights=cw_sel))
+                        self.biou_mean = float(np.average(b_sel, weights=cw_sel))
+                    else:
+                        self.dice_mean = float(d_sel.mean())
+                        self.biou_mean = float(b_sel.mean())
         return stats
 
     @property
@@ -1308,15 +1427,20 @@ class SegmentMetrics(DetMetrics):
             "metrics/recall(M)",
             "metrics/mAP50(M)",
             "metrics/mAP50-95(M)",
+            "metrics/dice(M)",
+            "metrics/biou(M)",
         ]
 
     def mean_results(self) -> list[float]:
         """Return the mean metrics for bounding box and segmentation results."""
-        return DetMetrics.mean_results(self) + self.seg.mean_results()
+        return DetMetrics.mean_results(self) + self.seg.mean_results() + [self.dice_mean, self.biou_mean]
 
     def class_result(self, i: int) -> list[float]:
         """Return classification results for a specified class index."""
-        return DetMetrics.class_result(self, i) + self.seg.class_result(i)
+        c = int(self.seg.ap_class_index[i]) if i < len(self.seg.ap_class_index) else 0
+        dice_i = float(self.dice_per_class[c]) if c < len(self.dice_per_class) else 0.0
+        biou_i = float(self.biou_per_class[c]) if c < len(self.biou_per_class) else 0.0
+        return DetMetrics.class_result(self, i) + self.seg.class_result(i) + (dice_i, biou_i)
 
     @property
     def maps(self) -> np.ndarray:
@@ -1325,8 +1449,13 @@ class SegmentMetrics(DetMetrics):
 
     @property
     def fitness(self) -> float:
-        """Return the fitness score for both segmentation and bounding box models."""
-        return self.seg.fitness() + DetMetrics.fitness.fget(self)
+        """Return the fitness score for both segmentation and bounding box models.
+
+        When fitness_weight has 10 entries, the last two elements weight mean Dice and mean BIoU
+        (segment task only) so boundary quality can drive best-checkpoint selection.
+        """
+        base = self.seg.fitness() + DetMetrics.fitness.fget(self)
+        return base + self.dice_fitness_weight * self.dice_mean + self.biou_fitness_weight * self.biou_mean
 
     @property
     def curves(self) -> list[str]:
@@ -1370,6 +1499,11 @@ class SegmentMetrics(DetMetrics):
         summary = DetMetrics.summary(self, normalize, decimals)  # get box summary
         for i, s in enumerate(summary):
             s.update({**{k: round(v[i], decimals) for k, v in per_class.items()}})
+            # Per-class Dice / BIoU live in arrays indexed by absolute class id (not ap_class_index order).
+            c = int(self.seg.ap_class_index[i]) if i < len(self.seg.ap_class_index) else 0
+            if c < len(self.dice_per_class):
+                s["Mask-Dice"] = round(float(self.dice_per_class[c]), decimals)
+                s["Mask-BIoU"] = round(float(self.biou_per_class[c]), decimals)
         return summary
 
 

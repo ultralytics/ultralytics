@@ -247,5 +247,26 @@ def test_matched_mask_quality_below_threshold_no_pairs():
     assert cls.size == 0
 
 
+def test_segment_metrics_class_result_includes_boundary():
+    """`class_result` returns a tuple of 10 values (4 box + 4 mask + Dice + BIoU), no TypeError."""
+    sm = _build_segment_metrics(nc=2)
+    sm.dice_per_class = np.array([0.8, 0.6])
+    sm.biou_per_class = np.array([0.7, 0.5])
+    # Seed the underlying Metric objects so class_result(0) doesn't IndexError.
+    # ap50 / ap are properties derived from all_ap (nc, 10), so seed that directly.
+    for metric in (sm.box, sm.seg):
+        metric.p = [0.9, 0.85]
+        metric.r = [0.8, 0.75]
+        metric.all_ap = np.ones((2, 10)) * 0.7
+        metric.ap_class_index = [0, 1]
+
+    result = sm.class_result(0)
+
+    # 4 box + 4 mask + 2 boundary = 10 values (tuple, matching Metric.class_result return type)
+    assert len(result) == 10
+    assert result[-2] == pytest.approx(0.8)  # Dice for class 0
+    assert result[-1] == pytest.approx(0.7)  # BIoU for class 0
+
+
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__, "-v", "-s"]))

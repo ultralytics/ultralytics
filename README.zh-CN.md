@@ -164,7 +164,7 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 请参阅[语义分割文档](https://docs.ultralytics.com/tasks/semantic)获取使用示例。这些模型在 [Cityscapes](https://docs.ultralytics.com/datasets/semantic/cityscapes) 数据集上训练，包含 19 个类别。
 
 | 模型                                                                                         | 尺寸<br><sup>(像素) | mIoU<sup>val | 速度<br><sup>RTX3090 PyTorch<br>(毫秒) | 参数<br><sup>(百万) | FLOPs<br><sup>(十亿) |
-| -------------------------------------------------------------------------------------------- | ------------------- | ------------ | ----------------------------------     | ------------------- | -------------------- |
+| -------------------------------------------------------------------------------------------- | ------------------- | ------------ | -------------------------------------- | ------------------- | -------------------- |
 | [YOLO26n-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-sem.pt) | 1024 &times; 2048   | 78.3         | 4.4 ± 0.0                              | 1.6                 | 22.7                 |
 | [YOLO26s-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-sem.pt) | 1024 &times; 2048   | 80.8         | 8.4 ± 0.0                              | 6.5                 | 88.8                 |
 | [YOLO26m-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-sem.pt) | 1024 &times; 2048   | 82.0         | 19.9 ± 0.1                             | 14.3                | 304.5                |

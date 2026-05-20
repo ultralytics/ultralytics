@@ -13,7 +13,7 @@ from torch.nn.init import constant_, xavier_uniform_
 from ultralytics.utils.torch_utils import TORCH_1_11
 
 from .conv import Conv
-from .utils import _get_clones, deformable_attention_core_func_v2, inverse_sigmoid
+from .utils import _get_clones, inverse_sigmoid, multi_scale_deformable_attn_pytorch
 
 __all__ = (
     "AIFI",
@@ -234,6 +234,7 @@ class AIFI(TransformerEncoderLayer):
         omega = torch.arange(pos_dim, dtype=torch.float32) / pos_dim
         omega = 1.0 / (temperature**omega)
 
+        # Pin matmul to fp32 for CoreML export: fp16 sin/cos on integer-derived positions accumulates visible error.
         out_w = grid_w.flatten()[..., None].float() @ omega[None]
         out_h = grid_h.flatten()[..., None].float() @ omega[None]
 
@@ -539,8 +540,8 @@ class MSDeformAttn(nn.Module):
 
         Args:
             query (torch.Tensor): Query tensor with shape [bs, query_length, C].
-            refer_bbox (torch.Tensor): Reference bounding boxes with shape [bs, query_length, n_levels, 2 or 4], range
-                in [0, 1], top-left (0,0), bottom-right (1, 1), including padding area.
+            refer_bbox (torch.Tensor): Reference bounding boxes with shape [bs, query_length, 1, 2 or 4], range in [0,
+                1], top-left (0,0), bottom-right (1, 1). The size-1 axis broadcasts across n_levels.
             value (torch.Tensor): Value tensor with shape [bs, value_length, C].
             value_shapes (list): List with shape [n_levels, 2], [(H_0, W_0), (H_1, W_1), ..., (H_{L-1}, W_{L-1})].
             value_mask (torch.Tensor, optional): Mask tensor with shape [bs, value_length], True for padding elements,
@@ -577,14 +578,7 @@ class MSDeformAttn(nn.Module):
             )
         else:
             raise ValueError(f"Last dim of reference_points must be 2 or 4, but got {num_points}.")
-        output = deformable_attention_core_func_v2(
-            value,
-            value_shapes,
-            sampling_locations,
-            attention_weights,
-            num_points_list=[self.n_points] * self.n_levels,
-            value_shape="reshape",
-        )
+        output = multi_scale_deformable_attn_pytorch(value, value_shapes, sampling_locations, attention_weights)
         return self.output_proj(output)
 
 

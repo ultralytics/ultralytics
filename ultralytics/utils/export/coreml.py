@@ -209,11 +209,15 @@ def torch2coreml(
         skip_model_load=True,
     )
     if not mlmodel:
-        # Keep linear/gather ops in fp32: fp16 shifts RT-DETR decoder class logits and deformable-sampling indices.
-        fp32_ops = {"linear", "gather", "gather_nd", "gather_along_axis"}
-        convert_kwargs["compute_precision"] = ct.transform.FP16ComputePrecision(
-            op_selector=lambda op: op.op_type not in fp32_ops
-        )
+        # RT-DETR decoder class logits and deformable-sampling indices drift in fp16; pin those op types to fp32
+        # only when an RTDETRDecoder is present. YOLO detect/segment/pose/OBB keep mlprogram's fp16 default.
+        from ultralytics.nn.modules.head import RTDETRDecoder
+
+        if any(isinstance(m, RTDETRDecoder) for m in model.modules()):
+            fp32_ops = {"linear", "gather", "gather_nd", "gather_along_axis"}
+            convert_kwargs["compute_precision"] = ct.transform.FP16ComputePrecision(
+                op_selector=lambda op: op.op_type not in fp32_ops
+            )
     ct_model = ct.convert(ts, **convert_kwargs)
     bits, mode = (8, "kmeans") if int8 else (16, "linear") if half else (32, None)
     if bits < 32:

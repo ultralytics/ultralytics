@@ -335,8 +335,6 @@ def test_results(model: str, tmp_path):
         r = r.cpu().numpy()
         print(r, len(r), r.path)  # print numpy attributes
         r = r.to(device="cpu", dtype=torch.float32)
-        if is_semseg:
-            assert r.semantic_mask.data.dtype == torch.uint8, f"'{model}' semantic_mask should preserve class ID dtype!"
         r.save_txt(txt_file=tmp_path / "runs/tests/label.txt", save_conf=True)
         r.save_crop(save_dir=tmp_path / "runs/tests/crops/")
         r.to_df(decimals=3)  # Align to_ methods: https://docs.ultralytics.com/modes/predict/#working-with-results

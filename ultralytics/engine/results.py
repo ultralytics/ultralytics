@@ -180,17 +180,6 @@ class SemanticMask(BaseTensor):
         """Return one semantic segmentation result per image."""
         return 1
 
-    def to(self, *args, **kwargs):
-        """Return a copy of the semantic mask, preserving integer class IDs for floating dtype requests."""
-        args = tuple(
-            arg for arg in args if not (isinstance(arg, torch.dtype) and torch.empty((), dtype=arg).is_floating_point())
-        )
-        kwargs = kwargs.copy()
-        dtype = kwargs.get("dtype")
-        if isinstance(dtype, torch.dtype) and torch.empty((), dtype=dtype).is_floating_point():
-            kwargs.pop("dtype")
-        return super().to(*args, **kwargs)
-
 
 class Results(SimpleClass, DataExportMixin):
     """A class for storing and manipulating inference results.

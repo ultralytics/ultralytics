@@ -12,7 +12,7 @@ import torch.nn.functional as F
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.metrics import SegmentMetrics, mask_iou
+from ultralytics.utils.metrics import SegmentMetrics, mask_biou, mask_dice, mask_iou
 
 
 class SegmentationValidator(DetectionValidator):
@@ -50,17 +50,22 @@ class SegmentationValidator(DetectionValidator):
 
         # Validate fitness_weight length for segment task
         fitness_weight = getattr(self.args, "fitness_weight", None)
-        if fitness_weight is not None and len(fitness_weight) not in [4, 8]:
+        if fitness_weight is not None and len(fitness_weight) not in [4, 8, 10]:
             LOGGER.warning(
-                f"fitness_weight must have 4 or 8 values for segment task, got {len(fitness_weight)}. "
-                f"Using default weights. Expected: [P, R, mAP@0.5, mAP@0.5:0.95] (4 values) or "
-                f"[box_P, box_R, box_mAP@0.5, box_mAP@0.5:0.95, mask_P, mask_R, mask_mAP@0.5, mask_mAP@0.5:0.95] (8 values)."
+                f"fitness_weight must have 4, 8 or 10 values for segment task, got {len(fitness_weight)}. "
+                f"Using default weights. Expected: [P, R, mAP@0.5, mAP@0.5:0.95] (4 values), "
+                f"[box_P, box_R, box_mAP@0.5, box_mAP@0.5:0.95, mask_P, mask_R, mask_mAP@0.5, mask_mAP@0.5:0.95] (8 values), "
+                f"or the 8-value layout plus [mask_Dice, mask_BIoU] for boundary-aware fitness (10 values)."
             )
             fitness_weight = None
+
+        # Reuse the boundary kernel from the loss config so val/train agree on rim thickness.
+        boundary_kernel = int(getattr(self.args, "seg_boundary_kernel", 3) or 3)
 
         self.metrics = SegmentMetrics(
             fitness_weight=fitness_weight,
             class_weights=getattr(self.args, "class_weights_resolved", None),
+            boundary_kernel=boundary_kernel,
         )
 
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
@@ -90,7 +95,7 @@ class SegmentationValidator(DetectionValidator):
 
     def get_desc(self) -> str:
         """Return a formatted description of evaluation metrics."""
-        return ("%22s" + "%11s" * 10) % (
+        return ("%22s" + "%11s" * 12) % (
             "Class",
             "Images",
             "Instances",
@@ -101,7 +106,9 @@ class SegmentationValidator(DetectionValidator):
             "Mask(P",
             "R",
             "mAP50",
-            "mAP50-95)",
+            "mAP50-95",
+            "Dice",
+            "BIoU)",
         )
 
     def postprocess(self, preds: list[torch.Tensor]) -> list[dict[str, torch.Tensor]]:
@@ -163,7 +170,9 @@ class SegmentationValidator(DetectionValidator):
             batch (dict[str, Any]): Dictionary containing batch data with keys like 'cls' and 'masks'.
 
         Returns:
-            (dict[str, np.ndarray]): A dictionary containing correct prediction matrices including 'tp_m' for mask IoU.
+            (dict[str, np.ndarray]): A dictionary containing correct prediction matrices including 'tp_m' for mask IoU,
+                and per matched-pair scalar arrays `mask_dice`, `mask_biou`, `matched_cls` consumed by
+                :class:`SegmentMetrics` for Dice / Boundary-IoU reporting.
 
         Examples:
             >>> preds = {"cls": torch.tensor([1, 0]), "masks": torch.rand(2, 640, 640), "bboxes": torch.rand(2, 4)}
@@ -173,16 +182,89 @@ class SegmentationValidator(DetectionValidator):
         Notes:
             - If `masks` is True, the function computes IoU between predicted and ground truth masks.
             - If `overlap` is True and `masks` is True, overlapping masks are taken into account when computing IoU.
+            - Dice / Boundary-IoU are recorded for pairs matched at IoU >= 0.5 with class agreement, mirroring the
+              greedy matching used by :py:meth:`BaseValidator.match_predictions`.
         """
         tp = super()._process_batch(preds, batch)
         gt_cls = batch["cls"]
+        empty_scores = np.zeros(0, dtype=np.float32)
+        empty_cls = np.zeros(0, dtype=np.int64)
         if gt_cls.shape[0] == 0 or preds["cls"].shape[0] == 0:
             tp_m = np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)
+            dice_scores, biou_scores, matched_cls = empty_scores, empty_scores, empty_cls
         else:
-            iou = mask_iou(batch["masks"].flatten(1), preds["masks"].flatten(1).float())  # float, uint8
+            gt_masks = batch["masks"]
+            pred_masks = preds["masks"].float()
+            iou = mask_iou(gt_masks.flatten(1), pred_masks.flatten(1))  # (M, N)
             tp_m = self.match_predictions(preds["cls"], gt_cls, iou).cpu().numpy()
-        tp.update({"tp_m": tp_m})  # update tp with mask IoU
+            dice_scores, biou_scores, matched_cls = self._matched_mask_quality(
+                gt_masks, pred_masks, gt_cls, preds["cls"], iou
+            )
+        tp.update(
+            {
+                "tp_m": tp_m,
+                "mask_dice": dice_scores,
+                "mask_biou": biou_scores,
+                "matched_cls": matched_cls,
+            }
+        )
         return tp
+
+    def _matched_mask_quality(
+        self,
+        gt_masks: torch.Tensor,
+        pred_masks: torch.Tensor,
+        gt_cls: torch.Tensor,
+        pred_cls: torch.Tensor,
+        iou: torch.Tensor,
+        iou_threshold: float = 0.5,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Greedy-match predictions to GT at `iou_threshold` (with class agreement) and score each pair.
+
+        Mirrors the non-scipy branch of :py:meth:`BaseValidator.match_predictions` but returns the actual
+        (gt_idx, pred_idx) pairs so we can compute scalar Dice / Boundary-IoU per matched instance.
+
+        Args:
+            gt_masks (torch.Tensor): GT binary masks (M, H, W).
+            pred_masks (torch.Tensor): Predicted binary masks (N, H, W).
+            gt_cls (torch.Tensor): GT class indices (M,).
+            pred_cls (torch.Tensor): Predicted class indices (N,).
+            iou (torch.Tensor): Pairwise mask IoU (M, N).
+            iou_threshold (float, optional): Matching threshold.
+
+        Returns:
+            (tuple[np.ndarray, np.ndarray, np.ndarray]): (dice_scores, biou_scores, matched_cls), each of shape (K,)
+            where K is the number of matched pairs. Empty arrays when no matches.
+        """
+        # Mask out cross-class candidates (class agreement, like match_predictions).
+        correct_class = gt_cls[:, None] == pred_cls  # (M, N)
+        iou_masked = (iou * correct_class).cpu().numpy()
+
+        matches = np.nonzero(iou_masked >= iou_threshold)
+        matches = np.array(matches).T  # (K, 2): columns are (gt_idx, pred_idx)
+        if not matches.shape[0]:
+            empty_scores = np.zeros(0, dtype=np.float32)
+            return empty_scores, empty_scores, np.zeros(0, dtype=np.int64)
+
+        if matches.shape[0] > 1:
+            # Standard greedy reduction: keep highest-IoU per GT and per pred (same order as match_predictions).
+            order = iou_masked[matches[:, 0], matches[:, 1]].argsort()[::-1]
+            matches = matches[order]
+            matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
+            matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
+
+        gi = matches[:, 0].astype(np.int64)
+        pi = matches[:, 1].astype(np.int64)
+        gt_sel = gt_masks[gi]  # (K, H, W)
+        pred_sel = pred_masks[pi]  # (K, H, W), float in {0,1}
+
+        # Pairwise (K, K) wastes work for large K — compute only the K matched scalars via the diagonal.
+        dice_mat = mask_dice(gt_sel.flatten(1), pred_sel.flatten(1))
+        biou_mat = mask_biou(gt_sel, pred_sel, self.metrics.boundary_kernel)
+        dice_scores = dice_mat.diagonal().detach().cpu().numpy().astype(np.float32)
+        biou_scores = biou_mat.diagonal().detach().cpu().numpy().astype(np.float32)
+        matched_cls = gt_cls[gi].detach().cpu().numpy().astype(np.int64)
+        return dice_scores, biou_scores, matched_cls
 
     def plot_predictions(self, batch: dict[str, Any], preds: list[dict[str, torch.Tensor]], ni: int) -> None:
         """Plot batch predictions with masks and bounding boxes.

@@ -39,7 +39,7 @@ freeze: # (int | list, optional) freeze first N layers (int) or specific layer i
 multi_scale: 0.0 # (float) multi-scale range as a fraction of imgsz; sizes are rounded to stride multiples
 compile: False # (bool | str) enable torch.compile() backend='inductor'; True="default", False=off, or "default|reduce-overhead|max-autotune-no-cudagraphs"
 
-fitness_weight: [0.0, 0.9, 0.1, 0.0] # (list[float]) fitness weights for [P, R, mAP@0.5, mAP@0.5:0.95] for detection/OBB/classify tasks, or [box_P, box_R, box_mAP@0.5, box_mAP@0.5:0.95, pose_P, pose_R, pose_mAP@0.5, pose_mAP@0.5:0.95] for pose/segment tasks (4 or 8 values). Can be overridden for custom optimization targets.
+fitness_weight: [0.0, 0.9, 0.1, 0.0] # (list[float]) fitness weights for [P, R, mAP@0.5, mAP@0.5:0.95] for detection/OBB/classify tasks, or [box_P, box_R, box_mAP@0.5, box_mAP@0.5:0.95, pose_P/mask_P, pose_R/mask_R, pose_mAP@0.5/mask_mAP@0.5, pose_mAP@0.5:0.95/mask_mAP@0.5:0.95] for pose/segment tasks (8 values). Segment task additionally accepts 10 values: the 8-value layout followed by [mask_Dice, mask_BIoU] to weight boundary-quality metrics into fitness. Can be overridden for custom optimization targets.
 class_weights: # (dict | list, optional) per-class loss weights to reduce FN for important classes, e.g. {cone: 5.0, person: 1.0}. Dict maps class names to weights; list provides one weight per class. Unspecified classes default to 1.0. Affects box/DFL loss and fitness (best model selection).
 class_weights_resolved: # (list, optional) internally resolved per-class weight list derived from class_weights. Auto-populated by the trainer; not intended for direct user configuration.
 channels: 3 # (int) number of input image channels (1 for grayscale, 3 for RGB, N for multispectral)

@@ -6,7 +6,7 @@ keywords: YOLO, Python, object detection, segmentation, semantic segmentation, c
 
 # Python Usage
 
-Welcome to the Ultralytics YOLO Python Usage documentation! This guide is designed to help you seamlessly integrate Ultralytics YOLO into your Python projects for [object detection](https://www.ultralytics.com/glossary/object-detection), [segmentation](https://docs.ultralytics.com/tasks/segment), and [classification](https://docs.ultralytics.com/tasks/classify). Here, you'll learn how to load and use pretrained models, train new models, and perform predictions on images. The easy-to-use Python interface is a valuable resource for anyone looking to incorporate YOLO into their Python projects, allowing you to quickly implement advanced object detection capabilities. Let's get started!
+Welcome to the Ultralytics YOLO Python Usage documentation! This guide is designed to help you seamlessly integrate Ultralytics YOLO into your Python projects for [object detection](https://www.ultralytics.com/glossary/object-detection), [instance segmentation](https://docs.ultralytics.com/tasks/segment), [semantic segmentation](https://docs.ultralytics.com/tasks/semantic), and [classification](https://docs.ultralytics.com/tasks/classify). Here, you'll learn how to load and use pretrained models, train new models, and perform predictions on images. The easy-to-use Python interface is a valuable resource for anyone looking to incorporate YOLO into their Python projects, allowing you to quickly implement advanced object detection capabilities. Let's get started!
 
 <p align="center">
   <br>

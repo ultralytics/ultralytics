@@ -19,8 +19,8 @@ from torch.utils.data import Dataset, dataloader, distributed
 from ultralytics.cfg import IterableSimpleNamespace
 from ultralytics.data.dataset import (
     GroundingDataset,
-    PolygonSemsegDataset,
-    SemsegDataset,
+    PolygonSemanticDataset,
+    SemanticDataset,
     YOLODataset,
     YOLOMultiModalDataset,
 )
@@ -240,15 +240,15 @@ def build_yolo_dataset(
 ) -> Dataset:
     """Build and return a YOLO dataset based on configuration parameters."""
     pad = 0.0 if mode == "train" else 0.5
-    if cfg.task == "semseg":
+    if cfg.task == "semantic":
         data_path = Path(data.get("path", ""))
         if "masks_dir" in data:
-            dataset = SemsegDataset
+            dataset = SemanticDataset
         elif (data_path / "masks").exists():
-            dataset = SemsegDataset
+            dataset = SemanticDataset
         else:
-            dataset = PolygonSemsegDataset
-        pad = 0.0  # no pad for semseg
+            dataset = PolygonSemanticDataset
+        pad = 0.0  # no pad for semantic
     elif multi_modal:
         dataset = YOLOMultiModalDataset
     else:

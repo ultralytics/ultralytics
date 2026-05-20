@@ -70,7 +70,7 @@ To train a YOLO26n-sem model on the Cityscapes dataset for 100 [epochs](https://
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo semseg train data=cityscapes.yaml model=yolo26n-sem.pt epochs=100 imgsz=1024
+        yolo semantic train data=cityscapes.yaml model=yolo26n-sem.pt epochs=100 imgsz=1024
         ```
 
 ## Citations and Acknowledgments
@@ -120,7 +120,7 @@ To train a YOLO26n-sem model on the Cityscapes dataset for 100 epochs with an im
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo semseg train data=cityscapes.yaml model=yolo26n-sem.pt epochs=100 imgsz=1024
+        yolo semantic train data=cityscapes.yaml model=yolo26n-sem.pt epochs=100 imgsz=1024
         ```
 
 ### How is the Cityscapes dataset structured?

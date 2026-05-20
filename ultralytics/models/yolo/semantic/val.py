@@ -12,11 +12,11 @@ import torch.distributed as dist
 import torch.nn.functional as F
 from PIL import Image
 
-from ultralytics.data.dataset import SemsegDataset
+from ultralytics.data.dataset import SemanticDataset
 from ultralytics.data.utils import add_polygon_background
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, RANK
-from ultralytics.utils.metrics import ConfusionMatrix, SemsegMetrics
+from ultralytics.utils.metrics import ConfusionMatrix, SemanticMetrics
 from ultralytics.utils.plotting import plot_images
 
 
@@ -26,10 +26,10 @@ class SemanticSegmentationValidator(DetectionValidator):
     This validator evaluates semantic segmentation models using mIoU and pixel accuracy metrics.
 
     Attributes:
-        metrics (SemsegMetrics): Metrics calculator for semantic segmentation.
+        metrics (SemanticMetrics): Metrics calculator for semantic segmentation.
 
     Examples:
-        >>> from ultralytics.models.yolo.semseg import SemanticSegmentationValidator
+        >>> from ultralytics.models.yolo.semantic import SemanticSegmentationValidator
         >>> args = dict(model="yolo26n-sem.pt", data="cityscapes8.yaml")
         >>> validator = SemanticSegmentationValidator(args=args)
         >>> validator()
@@ -42,13 +42,13 @@ class SemanticSegmentationValidator(DetectionValidator):
             dataloader (DataLoader, optional): DataLoader for validation.
             save_dir (Path, optional): Directory to save results.
             args (dict, optional): Arguments for the validator.
-            _callbacks (list, optional): Callback functions.
+            _callbacks (dict, optional): Callback functions.
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
-        self.args.task = "semseg"
+        self.args.task = "semantic"
         self.dataset = None
         self.results_dir = None
-        self.metrics = SemsegMetrics()
+        self.metrics = SemanticMetrics()
         self.image_shapes = {}
         self._semantic_target_shape = None
 
@@ -60,7 +60,7 @@ class SemanticSegmentationValidator(DetectionValidator):
         """
         self.names = model.names
         self.nc = len(self.names)
-        self.metrics = SemsegMetrics(names=self.names)
+        self.metrics = SemanticMetrics(names=self.names)
         self.seen = 0
         self.dataset = getattr(self.dataloader, "dataset", None)
         labels = getattr(self.dataset, "labels", []) if self.dataset is not None else []
@@ -75,7 +75,7 @@ class SemanticSegmentationValidator(DetectionValidator):
         else:
             base = list(self.names.values()) + [str(i) for i in range(len(self.names), cm_nc)]
             cm_names = {i: base[i] for i in range(cm_nc)}
-        self.confusion_matrix = ConfusionMatrix(names=cm_names, task="semseg")
+        self.confusion_matrix = ConfusionMatrix(names=cm_names, task="semantic")
 
     def preprocess(self, batch):
         """Preprocess a batch of images and masks.
@@ -141,7 +141,7 @@ class SemanticSegmentationValidator(DetectionValidator):
         if not im_files:
             return
         preds = preds.cpu().numpy()
-        if isinstance(self.dataset, SemsegDataset) and self.dataset.label_mapping:
+        if isinstance(self.dataset, SemanticDataset) and self.dataset.label_mapping:
             preds = self.dataset.convert_label(preds, inverse=True)
         preds = preds.astype(np.uint8, copy=False)
         for pred, im_file in zip(preds, im_files):

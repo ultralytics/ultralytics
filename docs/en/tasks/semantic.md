@@ -23,10 +23,10 @@ YOLO26 semantic segmentation models pretrained on the [Cityscapes](https://githu
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
-{% include "macros/yolo-semseg-perf.md" %}
+{% include "macros/yolo-semantic-perf.md" %}
 
-- **mIoU<sup>val</sup>** values are for single-model single-scale on the [Cityscapes](https://www.cityscapes-dataset.com/) validation set. <br>Reproduce with `yolo semseg val data=cityscapes.yaml device=0 imgsz=2048`
-- **Speed** metrics are averaged over Cityscapes validation images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce with `yolo semseg val data=cityscapes.yaml batch=1 device=0|cpu imgsz=2048`
+- **mIoU<sup>val</sup>** values are for single-model single-scale on the [Cityscapes](https://www.cityscapes-dataset.com/) validation set. <br>Reproduce with `yolo semantic val data=cityscapes.yaml device=0 imgsz=2048`
+- **Speed** metrics are averaged over Cityscapes validation images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce with `yolo semantic val data=cityscapes.yaml batch=1 device=0|cpu imgsz=2048`
 - **Params** and **FLOPs** values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
 ## Train
@@ -53,13 +53,13 @@ Train YOLO26n-sem on the Cityscapes8 dataset for 100 [epochs](https://www.ultral
 
         ```bash
         # Build a new model from YAML and start training from scratch
-        yolo semseg train data=cityscapes8.yaml model=yolo26n-sem.yaml epochs=100 imgsz=1024
+        yolo semantic train data=cityscapes8.yaml model=yolo26n-sem.yaml epochs=100 imgsz=1024
 
         # Start training from a pretrained *.pt model
-        yolo semseg train data=cityscapes8.yaml model=yolo26n-sem.pt epochs=100 imgsz=1024
+        yolo semantic train data=cityscapes8.yaml model=yolo26n-sem.pt epochs=100 imgsz=1024
 
         # Build a new model from YAML, transfer pretrained weights to it and start training
-        yolo semseg train data=cityscapes8.yaml model=yolo26n-sem.yaml pretrained=yolo26n-sem.pt epochs=100 imgsz=1024
+        yolo semantic train data=cityscapes8.yaml model=yolo26n-sem.yaml pretrained=yolo26n-sem.pt epochs=100 imgsz=1024
         ```
 
 See full `train` mode details in the [Train](../modes/train.md) page.
@@ -92,8 +92,8 @@ Validate trained YOLO26n-sem model [accuracy](https://www.ultralytics.com/glossa
     === "CLI"
 
         ```bash
-        yolo semseg val model=yolo26n-sem.pt data=cityscapes.yaml    # validate official model
-        yolo semseg val model=path/to/best.pt data=path/to/data.yaml # validate custom model
+        yolo semantic val model=yolo26n-sem.pt data=cityscapes.yaml    # validate official model
+        yolo semantic val model=path/to/best.pt data=path/to/data.yaml # validate custom model
         ```
 
 ## Predict
@@ -122,8 +122,8 @@ Use a trained YOLO26n-sem model to run predictions on images.
     === "CLI"
 
         ```bash
-        yolo semseg predict model=yolo26n-sem.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
-        yolo semseg predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg' # predict with custom model
+        yolo semantic predict model=yolo26n-sem.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
+        yolo semantic predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg' # predict with custom model
         ```
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
@@ -183,7 +183,7 @@ To train a YOLO26 semantic segmentation model on a custom dataset, you need to p
     === "CLI"
 
         ```bash
-        yolo semseg train data=path/to/your_dataset.yaml model=yolo26n-sem.pt epochs=100 imgsz=512
+        yolo semantic train data=path/to/your_dataset.yaml model=yolo26n-sem.pt epochs=100 imgsz=512
         ```
 
 Check the [Configuration](../usage/cfg.md) page for more available arguments.
@@ -233,7 +233,7 @@ Loading and validating a pretrained YOLO26 semantic segmentation model is straig
     === "CLI"
 
         ```bash
-        yolo semseg val model=yolo26n-sem.pt data=cityscapes.yaml
+        yolo semantic val model=yolo26n-sem.pt data=cityscapes.yaml
         ```
 
 These steps will provide you with validation metrics like mean Intersection over Union (mIoU) and pixel accuracy, which are standard measures for assessing semantic segmentation performance.

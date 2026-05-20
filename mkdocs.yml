@@ -754,10 +754,10 @@ nav:
                   - predict: reference/models/yolo/segment/predict.md
                   - train: reference/models/yolo/segment/train.md
                   - val: reference/models/yolo/segment/val.md
-              - semseg:
-                  - predict: reference/models/yolo/semseg/predict.md
-                  - train: reference/models/yolo/semseg/train.md
-                  - val: reference/models/yolo/semseg/val.md
+              - semantic:
+                  - predict: reference/models/yolo/semantic/predict.md
+                  - train: reference/models/yolo/semantic/train.md
+                  - val: reference/models/yolo/semantic/val.md
               - world:
                   - train: reference/models/yolo/world/train.md
                   - train_world: reference/models/yolo/world/train_world.md

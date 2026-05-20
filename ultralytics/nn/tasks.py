@@ -1878,7 +1878,7 @@ def guess_model_task(model):
         model (torch.nn.Module | dict | str | Path): PyTorch model, model configuration dict, or model file path.
 
     Returns:
-        (str): Task of the model ('detect', 'segment', 'classify', 'pose', 'obb').
+        (str): Task of the model ('detect', 'segment', 'classify', 'pose', 'obb', 'semantic').
     """
 
     def cfg2task(cfg):
@@ -1889,7 +1889,7 @@ def guess_model_task(model):
         if "detect" in m:
             return "detect"
         if "semanticsegment" in m:
-            return "semseg"
+            return "semantic"
         if "segment" in m:
             return "segment"
         if "pose" in m:
@@ -1911,7 +1911,7 @@ def guess_model_task(model):
                 return cfg2task(eval(x))  # nosec B307: safe eval of known attribute paths
         for m in model.modules():
             if isinstance(m, SemanticSegment):
-                return "semseg"
+                return "semantic"
             elif isinstance(m, (Segment, YOLOESegment)):
                 return "segment"
             elif isinstance(m, Classify):
@@ -1926,8 +1926,8 @@ def guess_model_task(model):
     # Guess from model filename
     if isinstance(model, (str, Path)):
         model = Path(model)
-        if "-sem" in model.stem or "semseg" in model.parts:
-            return "semseg"
+        if "-sem" in model.stem or "semantic" in model.parts:
+            return "semantic"
         elif "-seg" in model.stem or "segment" in model.parts:
             return "segment"
         elif "-cls" in model.stem or "classify" in model.parts:

@@ -96,7 +96,7 @@ This unified framework ensures YOLO26 is applicable across real-time detection, 
 
         See [Semantic Segmentation Docs](../tasks/semantic.md) for usage examples with these models trained on [Cityscapes](../datasets/semantic/cityscapes.md), which include 19 pretrained classes.
 
-        --8<-- "docs/macros/yolo-semseg-perf.md"
+        --8<-- "docs/macros/yolo-semantic-perf.md"
 
     === "Classification (ImageNet)"
 

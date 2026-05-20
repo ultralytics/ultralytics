@@ -24,7 +24,7 @@ class SemanticSegmentationTrainer(DetectionTrainer):
     validation setup.
 
     Examples:
-        >>> from ultralytics.models.yolo.semseg import SemanticSegmentationTrainer
+        >>> from ultralytics.models.yolo.semantic import SemanticSegmentationTrainer
         >>> args = dict(model="yolo26n-sem.yaml", data="cityscapes8.yaml", epochs=3)
         >>> trainer = SemanticSegmentationTrainer(overrides=args)
         >>> trainer.train()
@@ -36,11 +36,11 @@ class SemanticSegmentationTrainer(DetectionTrainer):
         Args:
             cfg (dict): Configuration dictionary with default training settings.
             overrides (dict, optional): Dictionary of parameter overrides.
-            _callbacks (list, optional): List of callback functions.
+            _callbacks (dict, optional): Callback functions.
         """
         if overrides is None:
             overrides = {}
-        overrides["task"] = "semseg"
+        overrides["task"] = "semantic"
         super().__init__(cfg, overrides, _callbacks)
 
     def get_dataset(self):
@@ -69,7 +69,7 @@ class SemanticSegmentationTrainer(DetectionTrainer):
     def get_validator(self):
         """Return a SemanticSegmentationValidator for model evaluation."""
         self.loss_names = "ce_loss", "dice_loss", "aux_loss"
-        return yolo.semseg.SemanticSegmentationValidator(
+        return yolo.semantic.SemanticSegmentationValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
 
@@ -77,8 +77,8 @@ class SemanticSegmentationTrainer(DetectionTrainer):
         """Skip bbox-based class weight computation for semantic segmentation.
 
         Semantic segmentation requires pixel-level class frequency counting from masks,
-        which is not performed here. The loss function uses dataset-level Cityscapes
-        weights when applicable instead.
+        which is not performed here. The loss function applies Cityscapes weights when
+        the dataset YAML stem is 'cityscapes' or 'cityscapes8'.
         """
         pass
 

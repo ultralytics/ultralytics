@@ -384,7 +384,7 @@ class Exporter:
             assert self.args.name in RKNN_CHIPS, (
                 f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
             )
-        if self.args.nms and model.task == "semseg":
+        if self.args.nms and model.task == "semantic":
             LOGGER.warning("'nms=True' is not valid for semantic segmentation models. Forcing 'nms=False'.")
             self.args.nms = False
         if self.args.nms:

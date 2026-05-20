@@ -352,7 +352,7 @@ class ConfusionMatrix(DataExportMixin):
         self.nc = len(names)  # number of classes
         self.matrix = (
             np.zeros((self.nc, self.nc))
-            if self.task in {"classify", "semseg"}
+            if self.task in {"classify", "semantic"}
             else np.zeros((self.nc + 1, self.nc + 1))
         )
         self.names = names  # name of classes
@@ -558,7 +558,7 @@ class ConfusionMatrix(DataExportMixin):
         nc = n if self.task == "classify" else n + 1  # adjust for background if needed
         ticklabels = "auto"
         if 0 < nc < 99:
-            ticklabels = names if self.task in {"classify", "semseg"} else [*names, "background"]
+            ticklabels = names if self.task in {"classify", "semantic"} else [*names, "background"]
         xy_ticks = np.arange(len(ticklabels)) if ticklabels != "auto" else np.arange(nc)
         tick_fontsize = max(6, 15 - 0.1 * nc)  # Minimum size is 6
         label_fontsize = max(6, 12 - 0.1 * nc)
@@ -634,7 +634,7 @@ class ConfusionMatrix(DataExportMixin):
 
         names = (
             list(self.names.values())
-            if self.task in {"classify", "semseg"}
+            if self.task in {"classify", "semantic"}
             else [*list(self.names.values()), "background"]
         )
         clean_names, seen = [], set()
@@ -1667,7 +1667,7 @@ class OBBMetrics(DetMetrics):
         DetMetrics.__init__(self, names)
 
 
-class SemsegMetrics(SimpleClass, DataExportMixin):
+class SemanticMetrics(SimpleClass, DataExportMixin):
     """Metrics for semantic segmentation, including mIoU, pixel accuracy, and per-class IoU.
 
     Attributes:
@@ -1867,7 +1867,7 @@ class SemsegMetrics(SimpleClass, DataExportMixin):
         row.
 
         Args:
-            normalize (bool): For semseg metrics, values are already in [0, 1].
+            normalize (bool): For semantic metrics, values are already in [0, 1].
             decimals (int): Number of decimal places to round the metric values to.
 
         Returns:

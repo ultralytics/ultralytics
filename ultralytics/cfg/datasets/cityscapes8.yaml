@@ -2,7 +2,7 @@
 
 # Cityscapes semantic segmentation dataset (19 classes)
 # Documentation: https://www.cityscapes-dataset.com/
-# Example usage: yolo semseg train data=cityscapes8.yaml model=yolo26n-sem.pt
+# Example usage: yolo semantic train data=cityscapes8.yaml model=yolo26n-sem.pt
 # parent
 # ├── ultralytics
 # └── datasets

@@ -494,11 +494,11 @@ class v8SegmentationLoss(v8DetectionLoss):
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate and return the combined loss for detection and segmentation."""
         pred_masks, proto = preds["mask_coefficient"].permute(0, 2, 1).contiguous(), preds["proto"]
-        loss = torch.zeros(5, device=self.device)  # box, seg, cls, dfl, semseg
+        loss = torch.zeros(5, device=self.device)  # box, seg, cls, dfl, semantic
         if isinstance(proto, tuple) and len(proto) == 2:
-            proto, pred_semseg = proto
+            proto, pred_semantic = proto
         else:
-            pred_semseg = None
+            pred_semantic = None
         (fg_mask, target_gt_idx, target_bboxes, _, _), det_loss, _ = self.get_assigned_targets_and_loss(preds, batch)
         # NOTE: re-assign index for consistency for now. Need to be removed in the future.
         loss[0], loss[2], loss[3] = det_loss[0], det_loss[1], det_loss[2]
@@ -524,7 +524,7 @@ class v8SegmentationLoss(v8DetectionLoss):
                 pred_masks,
                 imgsz,
             )
-            if pred_semseg is not None:
+            if pred_semantic is not None:
                 sem_masks = batch["sem_masks"].to(self.device)  # NxHxW
                 sem_masks = F.one_hot(sem_masks.long(), num_classes=self.nc).permute(0, 3, 1, 2).float()  # NxCxHxW
 
@@ -539,17 +539,17 @@ class v8SegmentationLoss(v8DetectionLoss):
                             continue
                         sem_masks[i, :, instance_mask_i.sum(dim=0) == 0] = 0
 
-                loss[4] = self.bcedice_loss(pred_semseg, sem_masks)
+                loss[4] = self.bcedice_loss(pred_semantic, sem_masks)
                 loss[4] *= self.hyp.box  # seg gain
 
         # WARNING: lines below prevent Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
         else:
             loss[1] += (proto * 0).sum() + (pred_masks * 0).sum()  # inf sums may lead to nan loss
-            if pred_semseg is not None:
-                loss[4] += (pred_semseg * 0).sum()
+            if pred_semantic is not None:
+                loss[4] += (pred_semantic * 0).sum()
 
         loss[1] *= self.hyp.box  # seg gain
-        return loss * batch_size, loss.detach()  # loss(box, seg, cls, dfl, semseg)
+        return loss * batch_size, loss.detach()  # loss(box, seg, cls, dfl, semantic)
 
     @staticmethod
     def single_mask_loss(

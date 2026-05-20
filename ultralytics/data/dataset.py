@@ -682,7 +682,7 @@ class YOLOConcatDataset(ConcatDataset):
             dataset.close_mosaic(hyp)
 
 
-class SemsegDataset(YOLODataset):
+class SemanticDataset(YOLODataset):
     """Dataset for semantic segmentation with PNG mask labels.
 
     Expects a directory structure where each image has a corresponding PNG mask file with the same stem. Pixel values in
@@ -697,7 +697,7 @@ class SemsegDataset(YOLODataset):
     """
 
     def __init__(self, *args, data: dict | None = None, **kwargs):
-        """Initialize SemsegDataset.
+        """Initialize SemanticDataset.
 
         Args:
             *args (Any): Additional positional arguments for the parent class.
@@ -884,11 +884,7 @@ class SemsegDataset(YOLODataset):
         label["semantic_mask"] = mask
         return label
 
-
-SemanticDataset = SemsegDataset
-
-
-class PolygonSemsegDataset(SemsegDataset, YOLODataset):
+class PolygonSemanticDataset(SemanticDataset, YOLODataset):
     """Semantic segmentation dataset that rasterizes YOLO polygon labels into masks on the fly.
 
     Used when the dataset YAML lacks 'masks_dir'. Pixels not covered by any polygon become a dedicated background class.
@@ -898,7 +894,7 @@ class PolygonSemsegDataset(SemsegDataset, YOLODataset):
     """
 
     def __init__(self, *args, data: dict | None = None, **kwargs):
-        """Initialize PolygonSemsegDataset.
+        """Initialize PolygonSemanticDataset.
 
         Args:
             *args (Any): Additional positional arguments for the parent class.

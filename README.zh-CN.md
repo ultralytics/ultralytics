@@ -171,8 +171,8 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 | [YOLO26l-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-sem.pt) | 1024 &times; 2048   | 82.9         | 26.5 ± 0.1                             | 17.9                | 384.7                |
 | [YOLO26x-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-sem.pt) | 1024 &times; 2048   | 83.6         | 48.9 ± 0.2                             | 40.2                | 861.7                |
 
-- **mIoU<sup>val</sup>** 值指的是在 [Cityscapes](https://www.cityscapes-dataset.com/) 验证集上的单模型单尺度性能。<br>使用 `yolo semseg val data=cityscapes.yaml device=0 imgsz=2048` 复现结果。
-- **速度** 指标是在 RTX3090 实例上对 Cityscapes 验证集图像进行平均测量的。<br>使用 `yolo semseg val data=cityscapes.yaml batch=1 device=0 imgsz=2048` 复现结果。
+- **mIoU<sup>val</sup>** 值指的是在 [Cityscapes](https://www.cityscapes-dataset.com/) 验证集上的单模型单尺度性能。<br>使用 `yolo semantic val data=cityscapes.yaml device=0 imgsz=2048` 复现结果。
+- **速度** 指标是在 RTX3090 实例上对 Cityscapes 验证集图像进行平均测量的。<br>使用 `yolo semantic val data=cityscapes.yaml batch=1 device=0 imgsz=2048` 复现结果。
 
 </details>
 

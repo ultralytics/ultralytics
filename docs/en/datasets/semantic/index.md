@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn how to prepare semantic segmentation datasets for Ultralytics YOLO, including PNG mask labels, dataset YAML fields, ignore labels, and supported datasets.
-keywords: Ultralytics, YOLO, semantic segmentation, semseg, dataset format, pixel masks, Cityscapes, ADE20K, Pascal VOC
+keywords: Ultralytics, YOLO, semantic segmentation, semantic, dataset format, pixel masks, Cityscapes, ADE20K, Pascal VOC
 ---
 
 # Semantic Segmentation Datasets Overview
@@ -93,7 +93,7 @@ Train a YOLO26 semantic segmentation model with Python or CLI:
     === "CLI"
 
         ```bash
-        yolo semseg train data=cityscapes8.yaml model=yolo26n-sem.pt epochs=100 imgsz=1024
+        yolo semantic train data=cityscapes8.yaml model=yolo26n-sem.pt epochs=100 imgsz=1024
         ```
 
 ## Supported Datasets
@@ -115,7 +115,7 @@ Ultralytics provides semantic segmentation dataset YAML files for these datasets
 5. Add `label_mapping` only when your mask IDs need conversion to contiguous train IDs.
 
 ```yaml
-path: path/to/my-semseg-dataset
+path: path/to/my-semantic-dataset
 train: images/train
 val: images/val
 masks_dir: masks

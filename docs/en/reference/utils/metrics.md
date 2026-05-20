@@ -39,7 +39,7 @@ keywords: Ultralytics, metrics, model validation, performance analysis, IoU, con
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.metrics.SemsegMetrics
+## ::: ultralytics.utils.metrics.SemanticMetrics
 
 <br><br><hr><br>
 

@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Explore the Ultralytics Cityscapes8 dataset, a compact set of 8 urban-scene images perfect for testing semantic segmentation models and training pipelines.
-keywords: Cityscapes8, Ultralytics, dataset, semantic segmentation, YOLO26, semseg, training, validation, urban scenes, computer vision
+keywords: Cityscapes8, Ultralytics, dataset, semantic segmentation, YOLO26, semantic, training, validation, urban scenes, computer vision
 ---
 
 # Cityscapes8 Dataset
@@ -44,7 +44,7 @@ To train a YOLO26n-sem model on the Cityscapes8 dataset for 100 [epochs](https:/
 
         ```bash
         # Train YOLO26n-sem on Cityscapes8 using the command line
-        yolo semseg train data=cityscapes8.yaml model=yolo26n-sem.pt epochs=100 imgsz=1024
+        yolo semantic train data=cityscapes8.yaml model=yolo26n-sem.pt epochs=100 imgsz=1024
         ```
 
 ## Citations and Acknowledgments
@@ -93,7 +93,7 @@ You can train a YOLO26 semantic segmentation model on Cityscapes8 using either P
     === "CLI"
 
         ```bash
-        yolo semseg train data=cityscapes8.yaml model=yolo26n-sem.pt epochs=100 imgsz=1024
+        yolo semantic train data=cityscapes8.yaml model=yolo26n-sem.pt epochs=100 imgsz=1024
         ```
 
 For additional training options, refer to the [YOLO Training documentation](../../modes/train.md).

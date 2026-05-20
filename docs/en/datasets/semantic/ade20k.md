@@ -68,7 +68,7 @@ To train a YOLO26n-sem model on the ADE20K dataset for 100 [epochs](https://www.
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo semseg train data=ade20k.yaml model=yolo26n-sem.pt epochs=100 imgsz=512
+        yolo semantic train data=ade20k.yaml model=yolo26n-sem.pt epochs=100 imgsz=512
         ```
 
 ## Citations and Acknowledgments
@@ -118,7 +118,7 @@ To train a YOLO26n-sem model on the ADE20K dataset for 100 epochs with an image 
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo semseg train data=ade20k.yaml model=yolo26n-sem.pt epochs=100 imgsz=512
+        yolo semantic train data=ade20k.yaml model=yolo26n-sem.pt epochs=100 imgsz=512
         ```
 
 ### How is the ADE20K dataset structured?

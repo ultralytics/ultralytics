@@ -116,11 +116,11 @@ class YOLO(Model):
                 "validator": yolo.obb.OBBValidator,
                 "predictor": yolo.obb.OBBPredictor,
             },
-            "semseg": {
+            "semantic": {
                 "model": SemanticSegmentationModel,
-                "trainer": yolo.semseg.SemanticSegmentationTrainer,
-                "validator": yolo.semseg.SemanticSegmentationValidator,
-                "predictor": yolo.semseg.SemanticSegmentationPredictor,
+                "trainer": yolo.semantic.SemanticSegmentationTrainer,
+                "validator": yolo.semantic.SemanticSegmentationValidator,
+                "predictor": yolo.semantic.SemanticSegmentationPredictor,
             },
         }
 

@@ -186,7 +186,7 @@ Read more about the benefits in the [TF GraphDef section](#why-should-you-export
 
 Ultralytics YOLO26 offers numerous advantages compared to other models like YOLOv5 and YOLOv7. Some key benefits include:
 
-1. **State-of-the-Art Performance**: YOLO26 provides exceptional speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) for real-time object detection, segmentation, and classification.
+1. **State-of-the-Art Performance**: YOLO26 provides exceptional speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) for real-time [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [classification](../tasks/classify.md).
 2. **Ease of Use**: Features a user-friendly API for model training, validation, prediction, and export, making it accessible for both beginners and experts.
 3. **Broad Compatibility**: Supports multiple export formats including ONNX, TensorRT, CoreML, and TensorFlow, for versatile deployment options.
 

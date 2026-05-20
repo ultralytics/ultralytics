@@ -1910,19 +1910,19 @@ class AnomalyDINO(YOLOAnomaly):
             hm_full_list.append(hm_full.detach().cpu())
             boxes_per_img.append(self._heatmap_to_boxes(hm_full, thresh=ad_conf, max_det=max_det))
 
-        # Pack per-image (M, 6) xyxy boxes into a (B, 5, max_N) pre-NMS tensor.
+        # Pack per-image (M, 6) xyxy boxes into a (B, max_N, 6) end2end-format tensor:
+        # rows are [x1, y1, x2, y2, conf, cls].  This is the unambiguous shape that
+        # `non_max_suppression` recognises via its `prediction.shape[-1] == 6` shortcut,
+        # so it just filters by conf and skips the pre-NMS pipeline (which would otherwise
+        # misinterpret the (B, 5, max_N) layout when max_N happens to equal 6).  Padded
+        # rows have conf=0 and are dropped by that filter.
         max_n = max((b.shape[0] for b in boxes_per_img), default=0) or 1
-        preds = torch.zeros((B, 5, max_n), dtype=torch.float32, device=x.device)
+        preds = torch.zeros((B, max_n, 6), dtype=torch.float32, device=x.device)
         for i, b in enumerate(boxes_per_img):
             n = b.shape[0]
             if n == 0:
                 continue
-            bb = b.to(x.device)
-            preds[i, 0, :n] = (bb[:, 0] + bb[:, 2]) / 2
-            preds[i, 1, :n] = (bb[:, 1] + bb[:, 3]) / 2
-            preds[i, 2, :n] = bb[:, 2] - bb[:, 0]
-            preds[i, 3, :n] = bb[:, 3] - bb[:, 1]
-            preds[i, 4, :n] = bb[:, 4]   # class-0 score (also used as objectness)
+            preds[i, :n] = b.to(x.device)
         return preds, {"heatmap": torch.stack(hm_full_list, dim=0)}
 
 

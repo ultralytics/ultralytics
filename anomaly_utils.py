@@ -14,21 +14,7 @@ from typing import Any
 import cv2
 import numpy as np
 
-MVTEC_CATEGORIES: list[str] = [
-    "leather", "grid", "tile", "wood", "carpet",
-    "cable", "hazelnut", "pill", "screw",
-    "metal_nut", "capsule", "bottle", "transistor", "zipper",
-]
-BTAD_CATEGORIES: list[str] = [ "01","02","03"]
 
-
-WEIGHTS_BANK= {
-		"yoloe26n_mvtec_defect": "./runs/yoloe27_tp/26n_ptwobjv1_bs256_epo10_close2_old_mvtec_yolo_merge1/weights/best.pt",
-        "yoloe26n": "yoloe-26n-seg.pt",
-        "yoloe26l": "yoloe-26l-seg.pt",
-        "yolo26n": "yolo26n.pt",
-        "yolo26l": "yolo26l.pt",
-	}
 
 
 # Default fused-heatmap bank config (P3 raw backbone features).
@@ -41,85 +27,7 @@ FUSED_HEATMAP_ARGS: dict[str, Any] = dict(
 )
 
 
-def collect_images(
-    directory: str | Path,
-    exts: tuple[str, ...] = (".png", ".jpg", ".jpeg", ".bmp"),
-    max_n: int | None = None,
-    recursively: bool = True,
-) -> list[str]:
-    """Return sorted image paths under *directory*, optionally capped at *max_n*.
 
-    Args:
-        directory: Root directory to search.
-        exts: Allowed file extensions (lower-case).
-        max_n: If set, return at most this many paths.
-        recursively: Search sub-directories when True, top-level only otherwise.
-
-    Returns:
-        Sorted list of absolute path strings.
-    """
-    glob = Path(directory).rglob if recursively else Path(directory).glob
-    imgs = sorted(str(p) for p in glob("*") if p.suffix.lower() in exts)
-    return imgs[:max_n] if max_n else imgs
-
-
-def get_gt_mask(im_file: str) -> str | None:
-    """Return the MVTec ground-truth mask path for *im_file*, or None if absent.
-
-    Converts ``…/test/<defect>/image.png`` →
-    ``…/ground_truth/<defect>/image_mask.png``.
-    """
-    mask = im_file.replace("test", "ground_truth").replace(".png", "_mask.png")
-    return mask if os.path.exists(mask) else None
-
-
-def get_mvtec_yolo_data(
-    category: str,
-    data_root: str = "/Users/louis/workspace/ultra_louis_work/buffer/MVTEC/MVTec-YOLO",
-) -> dict[str, Any]:
-    """Return train/test image paths and YAML config for one MVTec category.
-
-    Args:
-        category: One of :data:`MVTEC_CATEGORIES`.
-        data_root: Root directory of the MVTec-YOLO dataset.
-
-    Returns:
-        Dict with keys ``train_im_dir``, ``test_im_dir``, ``train_im_list``,
-        ``train_im10`` (first 10 train images for quick smoke tests),
-        ``test_im_list``, ``test_good_im_list``, ``test_anomaly_im_list``,
-        ``data_yaml``.
-    """
-    
-
-    if category in MVTEC_CATEGORIES:
-        data_root = "/Users/louis/workspace/ultra_louis_work/buffer/MVTEC/MVTec-YOLO"
-        train_im_dir = f"{data_root}/{category}/train/good"
-        test_im_dir = f"{data_root}/{category}/test"
-        test_good_im_dir = f"{test_im_dir}/good"
-    elif category in BTAD_CATEGORIES:
-        data_root = "/Users/louis/workspace/ultra_louis_work/buffer/BTAD/BTech_Dataset_transformed"
-        train_im_dir = f"{data_root}/{category}/train/ok"
-        test_im_dir = f"{data_root}/{category}/test"
-        test_good_im_dir = f"{test_im_dir}/ok"
-    else:
-        raise ValueError(f"Unknown category '{category}'. Must be one of {MVTEC_CATEGORIES} or {BTAD_CATEGORIES}.")
- 
-
-
-    train_im_list = collect_images(train_im_dir, recursively=True)
-    test_im_list = collect_images(test_im_dir, recursively=True)
-    test_good_im_list = collect_images(test_good_im_dir, recursively=True)
-    test_anomaly_im_list = [im for im in test_im_list if im not in test_good_im_list]
-    return dict(
-        train_im_dir=train_im_dir,
-        test_im_dir=test_im_dir,
-        train_im_list=train_im_list,
-        train_im10=train_im_list[:10],
-        test_im_list=test_im_list,
-        test_good_im_list=test_good_im_list,
-        test_anomaly_im_list=test_anomaly_im_list,
-        data_yaml=f"{data_root}/{category}.yaml",
-    )
 
 
 
@@ -234,7 +142,7 @@ def get_arguments(category: str = "screw") -> tuple[dict, dict]:
         em_iters=5,
         auto_temperature=True,
         mode="anomaly",
-        active_layers=[1, 2],
+        active_layers=[0,1, 2],
     )
     return model_arg, anomaly_arg
 

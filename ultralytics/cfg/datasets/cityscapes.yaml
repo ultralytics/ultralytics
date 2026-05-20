@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Cityscapes semantic segmentation dataset (19 classes)
-# Documentation: https://www.cityscapes-dataset.com/
+# Documentation: https://docs.ultralytics.com/datasets/semantic/cityscapes/
 # Example usage: yolo semantic train data=cityscapes.yaml model=yolo26n-sem.pt
 # parent
 # ├── ultralytics
@@ -16,7 +16,7 @@ train: images/train # train images (relative to 'path') 2975 images
 val: images/val # val images (relative to 'path') 500 images
 test: images/test # test images (relative to 'path') 1525 images
 
-masks_dir: masks # mask dir
+masks_dir: masks # semantic mask directory
 
 # Cityscapes 19-class labels
 names:
@@ -40,7 +40,7 @@ names:
   17: motorcycle
   18: bicycle
 
-# mapping from labelIDs to trainIDs, ignore_label=255
+# Map source label IDs to train IDs; ignore_label is converted to 255.
 label_mapping:
   -1: ignore_label
   0: ignore_label
@@ -78,13 +78,13 @@ label_mapping:
   32: 17
   33: 18
 
-# Download script/URL (optional)
+# Preparation script (requires manual Cityscapes download)
 download: |
   from pathlib import Path
   from shutil import copy2
 
   cityscapes_dir = Path(yaml["path"])  # dataset root dir
-  # Manually download and extract the official Cityscapes leftImg8bit and gtFine archives into cityscapes_dir first.
+  # Download and extract the official Cityscapes leftImg8bit and gtFine archives into cityscapes_dir first.
   leftimg8bit_dir = cityscapes_dir / "leftImg8bit"
   gtfine_dir = cityscapes_dir / "gtFine"
 

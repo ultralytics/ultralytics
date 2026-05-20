@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # ADE20K semantic segmentation dataset (150 classes)
-# Documentation: http://sceneparsing.csail.mit.edu/
+# Documentation: https://docs.ultralytics.com/datasets/semantic/ade20k/
 # Example usage: yolo semantic train data=ade20k.yaml model=yolo26n-sem.pt
 # parent
 # ├── ultralytics
@@ -10,11 +10,12 @@
 #         └── images
 #         └── annotations
 
+# Dataset root directory
 path: ADEChallengeData2016
 train: images/training
 val: images/validation
 
-masks_dir: annotations # mask dir
+masks_dir: annotations # semantic mask directory
 
 # ADE20K 150-class labels
 names:
@@ -169,7 +170,7 @@ names:
   148: clock
   149: flag
 
-# mapping from labelIDs to trainIDs, ignore_label=255
+# Map source label IDs to train IDs; ignore_label is converted to 255.
 label_mapping:
   0: ignore_label
   1: 0
@@ -322,5 +323,4 @@ label_mapping:
   148: 147
   149: 148
   150: 149
-# download
-# http://data.csail.mit.edu/places/ADEchallenge/ADEChallengeData2016.zip
+# Download URL (manual): http://data.csail.mit.edu/places/ADEchallenge/ADEChallengeData2016.zip

@@ -42,7 +42,7 @@ METRIC_TITLE_TOKENS = {
 #         or a metric dict with keys like:
 #         {"ap", "ap50", "ap75", "ap_small", "ap_medium", "ap_large"}
 
-DEIMV2_ULTRALYTICS_OBJ365_IMGSZ_SWEEP = [
+DEIM_DINOV3SPLUS_OBJ365_IMGSZ_SWEEP = [
     # T4 TensorRT v10.11, rtdetr_best_op17_nosim_norope_*_fp32attn_debug_fp16.engine.
     # The 640 point was exported before imgsz was added to artifact names.
     # Labels use decoder layer count; export_eval_idx=eidx means l{eidx + 1}.
@@ -64,7 +64,7 @@ RF_DETR_OBJ365_TOPK_IMGSZ = [
     ("xxl/880", 26.6, {"ap": 60.1, "ap50": 78.5, "ap75": 65.8, "ap_small": 43.7, "ap_medium": 65.1, "ap_large": 76.3}),
 ]
 
-DFINE_DINOV3PLUS_OBJ365_IMGSZ640 = [
+DFINE_DINOV3SPLUS_OBJ365_IMGSZ640 = [
     # T4 TensorRT v10.11, imgsz640 fp16 engine. The paired ~887 ms values are PT latency.
     ("l4", 14.4, {"ap": 59.5, "ap50": 77.1, "ap75": 65.0, "ap_small": 42.2, "ap_medium": 64.6, "ap_large": 77.1}),
     ("no-fp32", 15.0, {"ap": 59.5, "ap50": 77.3, "ap75": 64.9, "ap_small": 41.8, "ap_medium": 64.5, "ap_large": 77.2}),
@@ -376,8 +376,8 @@ BENCHMARKS = {
             "YOLO26_Dfine (obj365)": [
                 ("xl", 13.1, {"ap": 58.5, "ap50": 75.6, "ap75": 63.9, "ap_small": 43.8, "ap_medium": 62.7, "ap_large": 74.0}, 0.3),
             ],
-            "Dfine_DinoV3Plus (obj365)": DFINE_DINOV3PLUS_OBJ365_IMGSZ640,
-            "Dfine_DinoV3S (obj365)": DFINE_DINOV3S_OBJ365_IMGSZ_SWEEP,
+            "D-FINE-DINOv3SPlus (obj365)": DFINE_DINOV3SPLUS_OBJ365_IMGSZ640,
+            "D-FINE-DINOv3S (obj365)": DFINE_DINOV3S_OBJ365_IMGSZ_SWEEP,
             "ConvNeXt D-FINE": [
                 ("t", 11.8, {"ap": 55.1, "ap50": 72.6, "ap75": 60.0, "ap_small": 37.6, "ap_medium": 59.6, "ap_large": 72.8}, 0.2),
                 ("s", 15.1, {"ap": 56.9, "ap50": 74.5, "ap75": 62.1, "ap_small": 40.4, "ap_medium": 61.9, "ap_large": 74.0}, 0.5),
@@ -395,7 +395,7 @@ BENCHMARKS = {
                 ("xl", 14.6, {"ap": 58.0, "ap50": 75.3, "ap75": 63.2, "ap_small": 39.6, "ap_medium": 63.3, "ap_large": 76.3}),
                 ("xxl", 32.6, {"ap": 59.8, "ap50": 77.1, "ap75": 65.3, "ap_small": 42.8, "ap_medium": 65.5, "ap_large": 77.1}),
             ],
-            "DEIMv2 (Ultralytics, obj365, imgsz sweep)": DEIMV2_ULTRALYTICS_OBJ365_IMGSZ_SWEEP,
+            "DEIM-DINOv3SPlus (obj365)": DEIM_DINOV3SPLUS_OBJ365_IMGSZ_SWEEP,
             # "DINOv3-RTDETR": [
             #     ("s", 4.3, {"ap": 50.3, "ap50": 69.0, "ap75": 54.4, "ap_small": 27.8, "ap_medium": 55.8, "ap_large": 72.5}),
             # ],
@@ -473,8 +473,9 @@ BENCHMARKS = {
                 ("l", 8.0, {"ap": 52.7, "ap50": 71.2, "ap75": 57.1, "ap_small": 34.4, "ap_medium": 57.3, "ap_large": 70.8}, 0.0),
                 ("x", 13.6, {"ap": 54.4, "ap50": 72.6, "ap75": 59.1, "ap_small": 35.3, "ap_medium": 59.3, "ap_large": 72.2}, 0.4),
             ],
-            "DEIMv2 (Ultralytics, obj365, imgsz sweep)": DEIMV2_ULTRALYTICS_OBJ365_IMGSZ_SWEEP,
+            "DEIM-DINOv3SPlus (obj365)": DEIM_DINOV3SPLUS_OBJ365_IMGSZ_SWEEP,
             "DEIMv2 (Ultralytics)": [
+                ("sp-n/l6", 9.6, {"ap": 54.7, "ap50": 72.7, "ap75": 59.7, "ap_small": 34.6, "ap_medium": 60.6, "ap_large": 73.9}, 0.2),
                 ("l", 10.7, {"ap": 56.2, "ap50": 73.5, "ap75": 61.2, "ap_small": 37.1, "ap_medium": 61.3, "ap_large": 74.9}),
                 ("xl", 14.6, {"ap": 58.0, "ap50": 75.3, "ap75": 63.2, "ap_small": 39.6, "ap_medium": 63.3, "ap_large": 76.3}),
                 ("xxl", 32.6, {"ap": 59.8, "ap50": 77.1, "ap75": 65.3, "ap_small": 42.8, "ap_medium": 65.5, "ap_large": 77.1}),
@@ -487,8 +488,8 @@ BENCHMARKS = {
             "YOLO26_Dfine (obj365)": [
                 ("xl", 13.1, {"ap": 58.5, "ap50": 75.6, "ap75": 63.9, "ap_small": 43.8, "ap_medium": 62.7, "ap_large": 74.0}, 0.3),
             ],
-            "Dfine_DinoV3Plus (obj365)": DFINE_DINOV3PLUS_OBJ365_IMGSZ640,
-            "Dfine_DinoV3S (obj365)": DFINE_DINOV3S_OBJ365_IMGSZ_SWEEP,
+            "D-FINE-DINOv3SPlus (obj365)": DFINE_DINOV3SPLUS_OBJ365_IMGSZ640,
+            "D-FINE-DINOv3S (obj365)": DFINE_DINOV3S_OBJ365_IMGSZ_SWEEP,
             "ConvNeXt D-FINE": [
                 ("t", 11.8, {"ap": 55.1, "ap50": 72.6, "ap75": 60.0, "ap_small": 37.6, "ap_medium": 59.6, "ap_large": 72.8}, 0.2),
                 ("s", 15.1, {"ap": 56.9, "ap50": 74.5, "ap75": 62.1, "ap_small": 40.4, "ap_medium": 61.9, "ap_large": 74.0}, 0.5),
@@ -514,7 +515,7 @@ BENCHMARKS = {
                 ("Q100", 13.5, {"ap": 58.7}),
                 ("Q300", 13.9, {"ap": 59.2}),
             ],
-            "Image Size / Export Variants": DEIMV2_ULTRALYTICS_OBJ365_IMGSZ_SWEEP,
+            "Image Size / Export Variants": DEIM_DINOV3SPLUS_OBJ365_IMGSZ_SWEEP,
         },
     },
     "t4_deim_backbone_map": {
@@ -540,8 +541,8 @@ MODEL_STYLES = {
     "YOLO26_RTDETR": ("^", -12),
     "YOLO26_RTDETR (obj365)": ("^", 8),
     "YOLO26_Dfine (obj365)": ("D", -12),
-    "Dfine_DinoV3Plus (obj365)": ("X", -16),
-    "Dfine_DinoV3S (obj365)": ("P", 10),
+    "D-FINE-DINOv3SPlus (obj365)": ("X", -16),
+    "D-FINE-DINOv3S (obj365)": ("P", 10),
     "DINOv3-RTDETR": ("X", 8),
     "DINOv3-RTDETR (obj365)": ("X", -12),
     "DINOv3-STA-RTDETR": ("X", -12),
@@ -565,7 +566,7 @@ MODEL_STYLES = {
     "RT-DETR (Ultralytics)": ("v", -12),
     "ConvNeXt D-FINE": ("h", 8),
     "DEIMv2 (Ultralytics)": ("p", 8),
-    "DEIMv2 (Ultralytics, obj365, imgsz sweep)": ("*", 14),
+    "DEIM-DINOv3SPlus (obj365)": ("*", 14),
     "Decoder Layers": ("o", 8),
     "Queries @ 4L": ("s", -12),
     "Image Size / Export Variants": ("*", 14),

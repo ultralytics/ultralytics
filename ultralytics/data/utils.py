@@ -872,7 +872,7 @@ def save_dataset_cache_file(prefix: str, path: Path, x: dict, version: str):
 
 
 def add_polygon_background(data: dict) -> dict:
-    """Set up the background class for the polygon-based semantic path (yaml without 'masks_dir').
+    """Set up the background class for polygon-based semantic datasets without 'masks_dir'.
 
     - nc > 1: appends a 'background' class at id=nc and bumps data['nc'] to nc+1; polygon
     cls values are kept as foreground ids.

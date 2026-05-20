@@ -1881,7 +1881,7 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
             {
                 "Class": names.get(i, str(i)),
                 "Images": int(self.nt_per_image[i]),
-                "Instances": int(self.nt_per_class[i]),
+                "Pixels": int(self.nt_per_class[i]),
                 "IoU": round(float(per_class[i]), decimals),
                 "mIoU": miou,
                 "pixel_acc": pixel_acc,

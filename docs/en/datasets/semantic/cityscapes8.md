@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Explore the Ultralytics Cityscapes8 dataset, a compact set of 8 urban-scene images perfect for testing semantic segmentation models and training pipelines.
+description: Explore the Ultralytics Cityscapes8 dataset, a compact set of 8 urban-scene images for testing semantic segmentation models and training pipelines.
 keywords: Cityscapes8, Ultralytics, dataset, semantic segmentation, YOLO26, semantic, training, validation, urban scenes, computer vision
 ---
 
@@ -8,7 +8,7 @@ keywords: Cityscapes8, Ultralytics, dataset, semantic segmentation, YOLO26, sema
 
 ## Introduction
 
-The [Ultralytics](https://www.ultralytics.com/) Cityscapes8 dataset is a compact [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) dataset with 8 images sampled from the [Cityscapes](cityscapes.md) dataset: 4 for training and 4 for validation. It is designed for rapid testing, debugging, and experimentation with [YOLO](https://docs.ultralytics.com/models/yolo26/) semantic segmentation models and training pipelines. Its small size makes it easy to manage, while its urban-scene content provides a useful sanity check before scaling to the full Cityscapes dataset.
+The [Ultralytics](https://www.ultralytics.com/) Cityscapes8 dataset is a compact [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) dataset with 8 images sampled from the [Cityscapes](cityscapes.md) dataset: 4 for training and 4 for validation. It is designed for rapid testing, debugging, and experimentation with [YOLO](https://docs.ultralytics.com/models/yolo26/) semantic segmentation models and training pipelines. Its urban-scene content provides a useful pipeline check before scaling to the full Cityscapes dataset.
 
 Cityscapes8 uses the same 19 evaluation classes and the same `label_mapping` behavior as the full Cityscapes dataset, and is fully compatible with [YOLO26](../../models/yolo26.md) semantic segmentation workflows.
 
@@ -100,4 +100,4 @@ For additional training options, refer to the [YOLO Training documentation](../.
 
 ### Should I Use Cityscapes8 for Benchmarking?
 
-No. Cityscapes8 is too small for meaningful model comparison and is intended only as a quick sanity check for your training and evaluation pipeline. Use the full [Cityscapes](cityscapes.md) validation set when you need representative benchmark results for semantic segmentation.
+No. Cityscapes8 is too small for meaningful model comparison and is intended for training and evaluation pipeline checks. Use the full [Cityscapes](cityscapes.md) validation set when you need representative benchmark results for semantic segmentation.

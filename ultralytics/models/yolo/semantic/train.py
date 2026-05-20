@@ -20,8 +20,8 @@ from ultralytics.utils.plotting import colors, plt_settings
 class SemanticSegmentationTrainer(DetectionTrainer):
     """Trainer for YOLO semantic segmentation models.
 
-    This trainer handles semantic segmentation specific training including dataset building, model initialization, and
-    validation setup.
+    This trainer handles semantic segmentation training, including dataset building, model initialization, and validation
+    setup.
 
     Examples:
         >>> from ultralytics.models.yolo.semantic import SemanticSegmentationTrainer
@@ -44,7 +44,7 @@ class SemanticSegmentationTrainer(DetectionTrainer):
         super().__init__(cfg, overrides, _callbacks)
 
     def get_dataset(self):
-        """Parse the dataset YAML and add background only for multi-class polygon labels."""
+        """Parse the dataset YAML and add background metadata for polygon labels when required."""
         return add_polygon_background(super().get_dataset())
 
     def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True):
@@ -74,7 +74,7 @@ class SemanticSegmentationTrainer(DetectionTrainer):
         )
 
     def set_class_weights(self):
-        """Skip bbox-based class weight computation for semantic segmentation.
+        """Skip detection-style class weight computation for semantic segmentation.
 
         Semantic segmentation requires pixel-level class frequency counting from masks,
         which is not performed here. The loss function applies Cityscapes weights when

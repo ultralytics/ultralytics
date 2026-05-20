@@ -30,7 +30,7 @@ cityscapes/
     └── test/
 ```
 
-The semantic masks are single-channel PNG files. The original Cityscapes label IDs are mapped to the standard 19 train IDs via the `label_mapping` section, and ignored or void labels are mapped to `255` so they are excluded from training and evaluation. The official `leftImg8bit` and `gtFine` archives must be downloaded from the Cityscapes website and extracted into the dataset root before the preparation script organizes images and masks into this layout.
+The semantic masks are single-channel PNG files. The original Cityscapes label IDs are mapped to the standard 19 train IDs via the `label_mapping` section, and ignored or void labels are mapped to `255` so they are excluded from training and evaluation. Download the official `leftImg8bit` and `gtFine` archives from the Cityscapes website and extract them into the dataset root; the preparation block in `cityscapes.yaml` then organizes images and masks into this layout.
 
 ## Applications
 
@@ -129,7 +129,7 @@ After preparation, the dataset is organized into `images/{train,val,test}/` and 
 
 ### Do I need to download Cityscapes manually?
 
-Yes. Cityscapes requires accepting the dataset terms on the official website. Download and extract `leftImg8bit` and `gtFine` into the `cityscapes` dataset root before running the Ultralytics preparation script that organizes the data into the expected `images/` and `masks/` layout.
+Yes. Cityscapes requires accepting the dataset terms on the official website. Download and extract `leftImg8bit` and `gtFine` into the `cityscapes` dataset root before using the preparation block in `cityscapes.yaml` to create the expected `images/` and `masks/` layout.
 
 ### Why does Cityscapes use `label_mapping`?
 

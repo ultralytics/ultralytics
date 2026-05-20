@@ -15,7 +15,7 @@ The output of a semantic segmentation model is a single height-by-width class ma
 
 !!! tip
 
-    YOLO26 Semantic Segmentation models use the `-sem` suffix, i.e., `yolo26n-sem.pt`, and are pretrained on [Cityscapes](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/cityscapes.yaml).
+    Use `task=semantic` or the `yolo semantic` CLI task for semantic segmentation. YOLO26 semantic segmentation model files use the `-sem` suffix, such as `yolo26n-sem.pt`.
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
 
@@ -154,7 +154,7 @@ Export a YOLO26n-sem model to a different format like ONNX, CoreML, etc.
         yolo export model=path/to/best.pt format=onnx # export custom model
         ```
 
-Available YOLO26-sem export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-sem.onnx`. Usage examples are shown for your model after export completes.
+Available YOLO26 semantic segmentation export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-sem.onnx`. Usage examples are shown for your model after export completes.
 
 {% include "macros/export-table.md" %}
 
@@ -203,7 +203,7 @@ Yes. If your dataset uses Ultralytics YOLO polygon labels (one `.txt` per image)
 
 ### What datasets are supported for semantic segmentation?
 
-Ultralytics YOLO26 supports several semantic segmentation datasets out of the box:
+Ultralytics YOLO26 provides built-in configurations for several semantic segmentation datasets:
 
 - **[Cityscapes](../datasets/semantic/cityscapes.md):** Urban street scenes with 19 classes, widely used for autonomous driving research.
 - **[ADE20K](../datasets/semantic/ade20k.md):** A large-scale scene parsing dataset with 150 classes.
@@ -212,7 +212,7 @@ You can also use any custom dataset that provides PNG mask annotations where pix
 
 ### How do I validate a pretrained YOLO26 semantic segmentation model?
 
-Loading and validating a pretrained YOLO26 semantic segmentation model is straightforward:
+Validate a pretrained YOLO26 semantic segmentation model with the dataset YAML used for evaluation:
 
 !!! example
 
@@ -240,7 +240,7 @@ These steps will provide you with validation metrics like mean Intersection over
 
 ### How can I export a YOLO26 semantic segmentation model to ONNX format?
 
-Exporting a YOLO26 semantic segmentation model to ONNX format is simple and can be done using Python or CLI commands:
+Export a YOLO26 semantic segmentation model to ONNX format with Python or CLI commands:
 
 !!! example
 

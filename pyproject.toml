@@ -30,7 +30,7 @@ description = "Ultralytics YOLO 🚀 for SOTA object detection, multi-object tra
 readme = "README.md"
 requires-python = ">=3.8"
 license = { "text" = "AGPL-3.0" }
-keywords = ["machine-learning", "deep-learning", "computer-vision", "ML", "DL", "AI", "RT-DETR", "YOLO", "YOLOv3", "YOLOv5", "YOLOv8", "YOLO11", "YOLO26", "Platform", "Ultralytics"]
+keywords = ["machine-learning", "deep-learning", "computer-vision", "ML", "DL", "AI", "RT-DETR", "SAM3", "YOLO", "YOLOv3", "YOLOv5", "YOLOv8", "YOLO11", "YOLO26", "Platform", "Ultralytics"]
 authors = [
     { name = "Glenn Jocher", email = "glenn.jocher@ultralytics.com" },
     { name = "Jing Qiu", email = "jing.qiu@ultralytics.com" },

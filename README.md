@@ -120,7 +120,7 @@ Discover more examples in the YOLO [Python Docs](https://docs.ultralytics.com/us
 Ultralytics supports a wide range of YOLO models, from early versions like [YOLOv3](https://docs.ultralytics.com/models/yolov3) to the latest [YOLO26](https://docs.ultralytics.com/models/yolo26). The tables below showcase YOLO26 models pretrained on the [COCO](https://docs.ultralytics.com/datasets/detect/coco) dataset for [Detection](https://docs.ultralytics.com/tasks/detect), [Segmentation](https://docs.ultralytics.com/tasks/segment), and [Pose Estimation](https://docs.ultralytics.com/tasks/pose). Additionally, [Classification](https://docs.ultralytics.com/tasks/classify) models pretrained on the [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet) dataset are available. [Tracking](https://docs.ultralytics.com/modes/track) mode is compatible with all Detection, Segmentation, and Pose models. All [Models](https://docs.ultralytics.com/models) are automatically downloaded from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) upon first use.
 
 <a href="https://docs.ultralytics.com/tasks" target="_blank">
-    <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-tasks-banner.avif" alt="Ultralytics YOLO supported tasks">
+    <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/docs/ultralytics-yolo26-tasks-banner.avif" alt="Ultralytics YOLO supported tasks">
 </a>
 <br>
 <br>

@@ -120,7 +120,7 @@ path = model.export(format="onnx")  # 返回导出模型的路径
 Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https://docs.ultralytics.com/models/yolov3) 到最新的 [YOLO26](https://docs.ultralytics.com/models/yolo26)。下表展示了在 [COCO](https://docs.ultralytics.com/datasets/detect/coco) 数据集上预训练的 YOLO26 模型，用于[检测](https://docs.ultralytics.com/tasks/detect)、[分割](https://docs.ultralytics.com/tasks/segment)和[姿态估计](https://docs.ultralytics.com/tasks/pose)任务。此外，还提供了在 [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet) 数据集上预训练的[分类](https://docs.ultralytics.com/tasks/classify)模型。[跟踪](https://docs.ultralytics.com/modes/track)模式与所有检测、分割和姿态模型兼容。所有[模型](https://docs.ultralytics.com/models)在首次使用时都会自动从最新的 Ultralytics [发布版本](https://github.com/ultralytics/assets/releases)下载。
 
 <a href="https://docs.ultralytics.com/tasks" target="_blank">
-    <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-tasks-banner.avif" alt="Ultralytics YOLO supported tasks">
+    <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/docs/ultralytics-yolo26-tasks-banner.avif" alt="Ultralytics YOLO supported tasks">
 </a>
 <br>
 <br>

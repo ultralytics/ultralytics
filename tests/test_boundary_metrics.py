@@ -131,9 +131,9 @@ def test_segment_metrics_mean_results_widens_to_match_keys():
 def test_segment_metrics_process_aggregates_per_class():
     """Per-pair scalars get bucketed by class id and averaged on `process()`.
 
-    We seed `self.stats` with synthetic per-batch arrays for both the base detection stats
-    (so `DetMetrics.process` doesn't crash on empty concatenation) and the new boundary stats,
-    then assert the per-class / mean aggregation matches by-hand averages.
+    We seed `self.stats` with synthetic per-batch arrays for both the base detection stats (so `DetMetrics.process`
+    doesn't crash on empty concatenation) and the new boundary stats, then assert the per-class / mean aggregation
+    matches by-hand averages.
     """
     sm = _build_segment_metrics(nc=2)
     # Base detection stats: three predictions across two classes, all TP at IoU 0.5+.
@@ -163,7 +163,7 @@ def test_segment_metrics_process_aggregates_per_class():
 
 
 def test_segment_metrics_fitness_weight_length_10_adds_boundary_terms():
-    """fitness_weight = [box×4, mask×4, dice, biou] adds dice/biou contribution to fitness()."""
+    """Fitness_weight = [box×4, mask×4, dice, biou] adds dice/biou contribution to fitness()."""
     weights = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 3.0]
     sm = _build_segment_metrics(fitness_weight=weights)
     assert sm.dice_fitness_weight == 2.0
@@ -192,8 +192,8 @@ def test_segment_metrics_fitness_weight_length_8_skips_boundary_terms():
 def _make_validator_with_metrics(boundary_kernel=3):
     """Construct a minimal SegmentationValidator-like object exposing only what the helper needs.
 
-    We avoid the full constructor (which requires a dataloader / save_dir) and instead bind the
-    SegmentMetrics instance + the helper method onto a SimpleNamespace.
+    We avoid the full constructor (which requires a dataloader / save_dir) and instead bind the SegmentMetrics instance
+    + the helper method onto a SimpleNamespace.
     """
     from ultralytics.models.yolo.segment.val import SegmentationValidator
 

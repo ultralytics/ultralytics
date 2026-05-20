@@ -163,9 +163,9 @@ def mask_iou(mask1: torch.Tensor, mask2: torch.Tensor, eps: float = 1e-7) -> tor
 def mask_dice(mask1: torch.Tensor, mask2: torch.Tensor, eps: float = 1e-7) -> torch.Tensor:
     """Calculate pairwise Dice (F1) coefficient between two sets of binary masks.
 
-    Dice = 2 * |A ∩ B| / (|A| + |B|). Equivalent to F1 on per-pixel labels and monotonic with IoU
-    (Dice = 2*IoU / (1 + IoU)) but more lenient on small misalignments — useful as a complementary
-    overlap metric for instance segmentation evaluation.
+    Dice = 2 * |A ∩ B| / (|A| + |B|). Equivalent to F1 on per-pixel labels and monotonic with IoU (Dice = 2*IoU / (1 +
+    IoU)) but more lenient on small misalignments — useful as a complementary overlap metric for instance segmentation
+    evaluation.
 
     Args:
         mask1 (torch.Tensor): Ground-truth binary masks of shape (N, H*W) (flattened).
@@ -183,8 +183,8 @@ def mask_dice(mask1: torch.Tensor, mask2: torch.Tensor, eps: float = 1e-7) -> to
 def mask_boundary_rim(mask: torch.Tensor, kernel: int) -> torch.Tensor:
     """Extract the paper-style boundary rim of binary masks via mask - erode(mask, k).
 
-    Computes the inside-k rim used by the Boundary-IoU definition of Cheng et al. 2021. Performed
-    on the GPU when the input lives there, no autograd is needed (operates on GT/binarized preds).
+    Computes the inside-k rim used by the Boundary-IoU definition of Cheng et al. 2021. Performed on the GPU when the
+    input lives there, no autograd is needed (operates on GT/binarized preds).
 
     Args:
         mask (torch.Tensor): Binary masks of shape (N, H, W) with values in {0, 1}.
@@ -202,9 +202,8 @@ def mask_boundary_rim(mask: torch.Tensor, kernel: int) -> torch.Tensor:
 def mask_biou(mask1: torch.Tensor, mask2: torch.Tensor, kernel: int = 3, eps: float = 1e-7) -> torch.Tensor:
     """Calculate paper-style Boundary IoU between two sets of binary masks (Cheng et al. 2021).
 
-    Each mask is reduced to its inside-`kernel` rim (`mask - erode(mask, kernel)`), then IoU is
-    computed between rims. This focuses the score on contour accuracy and is far more sensitive to
-    boundary errors than standard mask IoU.
+    Each mask is reduced to its inside-`kernel` rim (`mask - erode(mask, kernel)`), then IoU is computed between rims.
+    This focuses the score on contour accuracy and is far more sensitive to boundary errors than standard mask IoU.
 
     Args:
         mask1 (torch.Tensor): Ground-truth binary masks of shape (N, H, W).
@@ -1322,8 +1321,8 @@ class SegmentMetrics(DetMetrics):
                 - 10 values: 8-value layout plus [mask_Dice, mask_BIoU]; only valid for segment task and
                   lets boundary-quality scores influence best-checkpoint selection.
             class_weights (list, optional): Per-class importance weights for weighted mean metrics in fitness.
-            boundary_kernel (int, optional): Odd kernel size (>=3) for paper-style Boundary IoU; should
-                match `seg_boundary_kernel` used by the loss so train/val agree on rim thickness.
+            boundary_kernel (int, optional): Odd kernel size (>=3) for paper-style Boundary IoU; should match
+                `seg_boundary_kernel` used by the loss so train/val agree on rim thickness.
         """
         self.dice_fitness_weight = 0.0
         self.biou_fitness_weight = 0.0

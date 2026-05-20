@@ -234,7 +234,7 @@ class SegmentationValidator(DetectionValidator):
 
         Returns:
             (tuple[np.ndarray, np.ndarray, np.ndarray]): (dice_scores, biou_scores, matched_cls), each of shape (K,)
-            where K is the number of matched pairs. Empty arrays when no matches.
+                where K is the number of matched pairs. Empty arrays when no matches.
         """
         # Mask out cross-class candidates (class agreement, like match_predictions).
         correct_class = gt_cls[:, None] == pred_cls  # (M, N)

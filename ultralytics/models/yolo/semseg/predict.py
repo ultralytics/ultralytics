@@ -32,6 +32,11 @@ class SemanticSegmentationPredictor(BasePredictor):
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "semseg"
 
+    @staticmethod
+    def _class_map_dtype(num_classes: int) -> torch.dtype:
+        """Return the smallest practical integer dtype for semantic class IDs."""
+        return torch.uint8 if num_classes <= 256 else torch.int16 if num_classes <= 32768 else torch.int32
+
     def postprocess(self, preds, img, orig_imgs):
         """Convert model logits to semantic segmentation results.
 
@@ -54,6 +59,7 @@ class SemanticSegmentationPredictor(BasePredictor):
             img_path = self.batch[0][i] if isinstance(self.batch[0], list) else self.batch[0]
             # pred: [nc, H, W] logits on letterboxed input. Remove padding, then resize to original image.
             pred = ops.scale_masks(pred.unsqueeze(0), orig_img.shape[:2])[0]
-            class_map = pred.argmax(0).to(torch.int32) if pred.shape[0] > 1 else pred.gt(0).squeeze(0).to(torch.int32)
+            dtype = self._class_map_dtype(max(pred.shape[0], 2))
+            class_map = pred.argmax(0).to(dtype) if pred.shape[0] > 1 else pred.gt(0).squeeze(0).to(dtype)
             results.append(Results(orig_img, path=img_path, names=self.model.names, semantic_mask=class_map))
         return results

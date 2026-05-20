@@ -322,18 +322,21 @@ def test_results(model: str, tmp_path):
     if IS_RASPBERRYPI and model == "yolo26n-sem.pt":
         skip_rpi_semseg()
     im = "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/im/boats.jpg" if model == "yolo26n-obb.pt" else SOURCE
-    is_semseg = "semseg" in model
+    is_semseg = "semseg" in model or "-sem" in model
     results = YOLO(WEIGHTS_DIR / model)([im, im], imgsz=160)
     for r in results:
         if is_semseg:
             assert r.semantic_mask is not None and r.semantic_mask.shape == r.orig_shape, (
                 f"'{model}' semantic_mask should match the original image shape!"
             )
+            assert r.semantic_mask.data.dtype == torch.uint8, f"'{model}' semantic_mask should use compact class IDs!"
         else:
             assert len(r), f"'{model}' results should not be empty!"
         r = r.cpu().numpy()
         print(r, len(r), r.path)  # print numpy attributes
         r = r.to(device="cpu", dtype=torch.float32)
+        if is_semseg:
+            assert r.semantic_mask.data.dtype == torch.uint8, f"'{model}' semantic_mask should preserve class ID dtype!"
         r.save_txt(txt_file=tmp_path / "runs/tests/label.txt", save_conf=True)
         r.save_crop(save_dir=tmp_path / "runs/tests/crops/")
         r.to_df(decimals=3)  # Align to_ methods: https://docs.ultralytics.com/modes/predict/#working-with-results

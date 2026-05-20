@@ -163,16 +163,16 @@ Refer to the [Segmentation Docs](https://docs.ultralytics.com/tasks/segment) for
 
 See the [Semantic Segmentation Docs](https://docs.ultralytics.com/tasks/semantic) for usage examples. These models are trained on [Cityscapes](https://docs.ultralytics.com/datasets/semantic/cityscapes), including 19 classes.
 
-| Model                                                                                        | size<br><sup>(pixels)</sup> | mIoU<sup>val</sup> | Speed<br><sup>P4d PyTorch<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-| -------------------------------------------------------------------------------------------- | --------------------------- | ------------------ | --------------------------------------- | ------------------------ | ----------------------- |
-| [YOLO26n-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-sem.pt) | 1024 &times; 2048           | 78.3               | 4.4 ± 0.0                               | 1.6                      | 22.7                    |
-| [YOLO26s-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-sem.pt) | 1024 &times; 2048           | 80.8               | 8.4 ± 0.0                               | 6.5                      | 88.8                    |
-| [YOLO26m-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-sem.pt) | 1024 &times; 2048           | 82.0               | 19.9 ± 0.1                              | 14.3                     | 304.5                   |
-| [YOLO26l-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-sem.pt) | 1024 &times; 2048           | 82.9               | 26.5 ± 0.1                              | 17.9                     | 384.7                   |
-| [YOLO26x-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-sem.pt) | 1024 &times; 2048           | 83.6               | 48.9 ± 0.2                              | 40.2                     | 861.7                   |
+| Model                                                                                        | size<br><sup>(pixels)</sup> | mIoU<sup>val</sup> | Speed<br><sup>RTX3090 PyTorch<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+| -------------------------------------------------------------------------------------------- | --------------------------- | ------------------ | ---------------------------------------     | ------------------------ | ----------------------- |
+| [YOLO26n-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-sem.pt) | 1024 &times; 2048           | 78.3               | 4.4 ± 0.0                                   | 1.6                      | 22.7                    |
+| [YOLO26s-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-sem.pt) | 1024 &times; 2048           | 80.8               | 8.4 ± 0.0                                   | 6.5                      | 88.8                    |
+| [YOLO26m-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-sem.pt) | 1024 &times; 2048           | 82.0               | 19.9 ± 0.1                                  | 14.3                     | 304.5                   |
+| [YOLO26l-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-sem.pt) | 1024 &times; 2048           | 82.9               | 26.5 ± 0.1                                  | 17.9                     | 384.7                   |
+| [YOLO26x-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-sem.pt) | 1024 &times; 2048           | 83.6               | 48.9 ± 0.2                                  | 40.2                     | 861.7                   |
 
 - **mIoU<sup>val</sup>** values are for single-model single-scale on the [Cityscapes](https://www.cityscapes-dataset.com/) validation set. <br>Reproduce with `yolo semseg val data=cityscapes.yaml device=0 imgsz=2048`
-- **Speed** metrics are averaged over Cityscapes validation images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce with `yolo semseg val data=cityscapes.yaml batch=1 device=0|cpu imgsz=2048`
+- **Speed** metrics are averaged over Cityscapes validation images using an RTX3090 instance. <br>Reproduce with `yolo semseg val data=cityscapes.yaml batch=1 device=0|cpu imgsz=2048`
 
 </details>
 

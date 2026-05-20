@@ -30,6 +30,12 @@ from ultralytics.utils.torch_utils import (
 )
 
 
+def skip_rpi_semantic(task):
+    """Skip semantic segmentation export tests on Raspberry Pi due to memory constraints."""
+    if IS_RASPBERRYPI and task == "semantic":
+        pytest.skip("Semantic segmentation export tests are skipped on Raspberry Pi due to memory constraints.")
+
+
 @pytest.mark.parametrize("end2end", [False, True])
 def test_export_torchscript(end2end):
     """Test YOLO model export to TorchScript format for compatibility and correctness."""
@@ -171,6 +177,7 @@ def test_export_openvino(end2end):
 # disable end2end=False test for now due to github runner OOM during openvino tests
 def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms, end2end):
     """Test YOLO model export to OpenVINO under various configuration matrix conditions."""
+    skip_rpi_semantic(task)
     file = YOLO(TASK2MODEL[task]).export(
         format="openvino",
         imgsz=32,
@@ -203,6 +210,7 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms, end2end):
 )
 def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms, end2end):
     """Test YOLO export to ONNX format with various configurations and parameters."""
+    skip_rpi_semantic(task)
     file = YOLO(TASK2MODEL[task]).export(
         format="onnx",
         imgsz=32,
@@ -231,6 +239,7 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms, end
 )
 def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms, end2end):
     """Test YOLO model export to TorchScript format under varied configurations."""
+    skip_rpi_semantic(task)
     file = YOLO(TASK2MODEL[task]).export(
         format="torchscript", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms, end2end=end2end
     )
@@ -261,6 +270,7 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms, end2en
 )
 def test_export_coreml_matrix(task, dynamic, int8, half, nms, batch, end2end):
     """Test YOLO export to CoreML format with various parameter configurations."""
+    skip_rpi_semantic(task)
     file = YOLO(TASK2MODEL[task]).export(
         format="coreml",
         imgsz=32,
@@ -301,6 +311,7 @@ def test_export_coreml_matrix(task, dynamic, int8, half, nms, batch, end2end):
 )
 def test_export_tflite_matrix(task, dynamic, int8, half, batch, nms, end2end):
     """Test YOLO export to TFLite format considering various export configurations."""
+    skip_rpi_semantic(task)
     file = YOLO(TASK2MODEL[task]).export(
         format="tflite", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms, end2end=end2end
     )
@@ -373,6 +384,7 @@ def test_export_mnn():
 )
 def test_export_mnn_matrix(task, int8, half, batch, end2end):
     """Test YOLO export to MNN format considering various export configurations."""
+    skip_rpi_semantic(task)
     file = YOLO(TASK2MODEL[task]).export(format="mnn", imgsz=32, int8=int8, half=half, batch=batch, end2end=end2end)
     YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
     Path(file).unlink()  # cleanup
@@ -391,6 +403,7 @@ def test_export_ncnn():
 @pytest.mark.parametrize("task, half, batch", list(product(TASKS, [True, False], [1])))
 def test_export_ncnn_matrix(task, half, batch):
     """Test YOLO export to NCNN format considering various export configurations."""
+    skip_rpi_semantic(task)
     file = YOLO(TASK2MODEL[task]).export(format="ncnn", imgsz=32, half=half, batch=batch)
     YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
@@ -432,6 +445,7 @@ def test_export_executorch():
 @pytest.mark.parametrize("task", TASKS)
 def test_export_executorch_matrix(task):
     """Test YOLO export to ExecuTorch format for various task types."""
+    skip_rpi_semantic(task)
     file = YOLO(TASK2MODEL[task]).export(format="executorch", imgsz=32)
     assert Path(file).exists(), f"ExecuTorch export failed for task '{task}', directory not found: {file}"
     # Check that .pte file exists in the exported directory

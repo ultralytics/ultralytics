@@ -146,6 +146,21 @@ Use a trained YOLO26n model to run predictions on images.
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
+### Results Output
+
+Object detection returns one `Results` object per image. The primary prediction field is `result.boxes`, which contains
+box coordinates, class IDs, and confidence scores for each detected object.
+
+| Attribute           | Type            | Shape     | Description                                           |
+| ------------------- | --------------- | --------- | ----------------------------------------------------- |
+| `result.boxes`      | `Boxes`         | `(N)`     | Detection boxes.                                      |
+| `result.boxes.data` | `torch.float32` | `(N,6/7)` | Raw `[x1,y1,x2,y2,conf,cls]`, plus optional track ID. |
+| `result.boxes.xyxy` | `torch.float32` | `(N,4)`   | `xyxy` pixel boxes.                                   |
+| `result.boxes.conf` | `torch.float32` | `(N,)`    | Confidence scores.                                    |
+| `result.boxes.cls`  | `torch.float32` | `(N,)`    | Class IDs; cast to `int` for names.                   |
+
+For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
+
 ## Export
 
 Export a YOLO26n model to a different format like ONNX, CoreML, etc.

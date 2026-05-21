@@ -197,6 +197,12 @@ Use a trained YOLO26n-cls model to run predictions on images.
 
         # Predict with the model
         results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
+
+        # Access the results
+        for result in results:
+            top1 = result.probs.top1  # top predicted class ID
+            top1_conf = result.probs.top1conf  # top prediction confidence
+            top1_name = result.names[top1]  # top predicted class name
         ```
 
     === "CLI"
@@ -207,6 +213,21 @@ Use a trained YOLO26n-cls model to run predictions on images.
         ```
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
+
+### Results Output
+
+Image classification returns one `Results` object per image. The primary prediction field is `result.probs`, which
+contains the class probability vector and helpers for top predictions.
+
+| Attribute               | Type            | Shape   | Description            |
+| ----------------------- | --------------- | ------- | ---------------------- |
+| `result.probs`          | `Probs`         | `(C,)`  | Class probabilities.   |
+| `result.probs.data`     | `torch.float32` | `(C,)`  | Probability per class. |
+| `result.probs.top1`     | `int`           | `()`    | Top class ID.          |
+| `result.probs.top1conf` | `torch.float32` | `()`    | Top confidence.        |
+| `result.probs.top5`     | `list[int]`     | `(<=5)` | Top-5 class IDs.       |
+
+For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
 
 ## Export
 

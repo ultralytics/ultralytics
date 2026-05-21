@@ -247,7 +247,7 @@ def test_val(task: str, weight: str, data: str) -> None:
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
-@pytest.mark.skipif(IS_RASPBERRYPI, reason="Insufficient memory for training on Raspberry Pi")
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_scratch():
     """Test training the YOLO model from scratch on 12 different image types in the COCO12-Formats dataset."""
     model = YOLO(CFG)
@@ -256,7 +256,7 @@ def test_train_scratch():
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
-@pytest.mark.skipif(IS_RASPBERRYPI, reason="Insufficient memory for training on Raspberry Pi")
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_ndjson():
     """Test training the YOLO model using NDJSON format dataset."""
     model = YOLO(WEIGHTS_DIR / "yolo26n.pt")
@@ -264,7 +264,7 @@ def test_train_ndjson():
 
 
 @pytest.mark.parametrize("scls", [False, True])
-@pytest.mark.skipif(IS_RASPBERRYPI, reason="Insufficient memory for training on Raspberry Pi")
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_pretrained(scls):
     """Test training of the YOLO model starting from a pre-trained checkpoint."""
     model = YOLO(WEIGHTS_DIR / "yolo26n-seg.pt")

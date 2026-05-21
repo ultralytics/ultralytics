@@ -26,7 +26,7 @@ def test_special_modes() -> None:
 
 
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
-@pytest.mark.skipif(IS_RASPBERRYPI, reason="Insufficient memory for training on Raspberry Pi")
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train(task: str, model: str, data: str) -> None:
     """Test YOLO training for different tasks, models, and datasets."""
     run(f"yolo train {task} model={model} data={data} imgsz=32 epochs=1 cache=disk")

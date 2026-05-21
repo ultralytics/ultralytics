@@ -70,7 +70,7 @@ def test_export():
         ),
     ],
 )
-@pytest.mark.skipif(IS_RASPBERRYPI, reason="Insufficient memory for training on Raspberry Pi")
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
     """Test YOLO training, validation, and prediction for various tasks."""
     overrides = {

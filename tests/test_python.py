@@ -25,7 +25,6 @@ from ultralytics.utils import (
     ASSETS_URL,
     DEFAULT_CFG,
     DEFAULT_CFG_PATH,
-    IS_JETSON,
     IS_RASPBERRYPI,
     LINUX,
     LOGGER,

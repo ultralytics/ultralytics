@@ -311,7 +311,9 @@ def test_export_mnn():
     "task, int8, half, batch, end2end",
     [  # generate all combinations except for exclusion cases
         (task, int8, half, batch, end2end)
-        for task, int8, half, batch, end2end in product(sorted(TASKS), [True, False], [True, False], [1, 2], [True, False])
+        for task, int8, half, batch, end2end in product(
+            sorted(TASKS), [True, False], [True, False], [1, 2], [True, False]
+        )
         if not (int8 and half)
     ],
 )

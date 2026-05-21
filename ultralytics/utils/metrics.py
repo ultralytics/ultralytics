@@ -1740,7 +1740,7 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
 
         intersection = torch.diagonal(self.matrix)
         union = self.matrix.sum(1) + self.matrix.sum(0) - intersection
-        iou = torch.where(union > 0, intersection / union, 0)
+        iou = torch.where(union > 0, intersection / union, torch.zeros_like(intersection, dtype=torch.float32))
         row_sum = self.matrix.sum(1)
         pa = intersection / (row_sum + 1e-10)
 

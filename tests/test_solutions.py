@@ -281,7 +281,9 @@ def test_streamlit_handle_video_upload_creates_file(tmp_path):
         output_path = str(tmp_path / "ultralytics.mp4")
     else:
         output_path = None
-    assert output_path == str(tmp_path / "ultralytics.mp4"), f"Expected output_path '{tmp_path / 'ultralytics.mp4'}', got {output_path}"
+    assert output_path == str(tmp_path / "ultralytics.mp4"), (
+        f"Expected output_path '{tmp_path / 'ultralytics.mp4'}', got {output_path}"
+    )
     assert os.path.exists(tmp_path / "ultralytics.mp4"), "ultralytics.mp4 file not created"
     with open(tmp_path / "ultralytics.mp4", "rb") as f:
         content = f.read()

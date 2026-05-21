@@ -31,6 +31,7 @@ if _xdist_worker:
 def disable_settings_save(monkeypatch):
     """Prevent tests from writing to the shared Ultralytics settings JSON file."""
     from ultralytics.utils import SETTINGS
+
     monkeypatch.setattr(SETTINGS, "_save", lambda: None)
 
 

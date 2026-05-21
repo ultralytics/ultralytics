@@ -346,7 +346,9 @@ def safe_download(
                     try:
                         if (curl or i > 0) and curl_installed:  # curl download with retry, continue
                             s = "sS" * (not progress)  # silent
-                            r = subprocess.run(["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]).returncode
+                            r = subprocess.run(
+                                ["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]
+                            ).returncode
                             assert r == 0, f"Curl return value {r}"
                             expected_size = None  # Can't get size with curl
                         else:  # urllib download

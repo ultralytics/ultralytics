@@ -19,6 +19,8 @@ from pathlib import Path
 
 from ultralytics.utils import YAML
 
+from . import paths
+
 EXTRA_ATTRS = ("loss_mode", "muon_w", "use_clip_classifier", "teacher_variant", "teacher_temps", "grad_clip_norm")
 _WANDB_INTERNAL_PREFIX = "_"
 
@@ -70,8 +72,8 @@ def fork_and_attach(
     parent_run_id: str,
     fork_step: int,
     name: str,
-    entity: str = "fca",
-    project: str = "yolo-next-encoder",
+    entity: str = paths.WANDB_ENTITY,
+    project: str = paths.WANDB_PROJECT,
     use_native_fork: bool = False,
 ) -> str:
     """Create a new wandb run that inherits parent's history up to ``fork_step``, then DDP-handoff via env vars.
@@ -126,3 +128,32 @@ def fork_and_attach(
 
     os.environ.update(WANDB_RUN_ID=forked_id, WANDB_RESUME="must", WANDB_PROJECT=project, WANDB_ENTITY=entity)
     return forked_id
+
+
+def push_summary_to_parent(
+    parent_run_id: str,
+    summary: dict,
+    entity: str = paths.WANDB_ENTITY,
+    project: str = paths.WANDB_PROJECT,
+) -> None:
+    """Merge ``summary`` keys into a parent W&B run's summary via the public API.
+
+    Used to attach phase-2 downstream metrics (e.g. multi-det macro mAP) back onto the phase-1 run that produced the
+    backbone, so phase-1 sweep views directly rank recipes by downstream score. Merges by key; existing parent summary
+    entries are preserved. Network or bad-id failures are logged but do not raise, so a multi-day phase-2 run does not
+    abort at the final step on a typo.
+
+    Args:
+        parent_run_id (str): W&B run id of the parent (phase-1) run. Empty/None is a no-op.
+        summary (dict): Keys to merge into the parent's summary.
+        entity (str, optional): WandB entity.
+        project (str, optional): WandB project.
+    """
+    if not parent_run_id or not summary:
+        return
+    import wandb
+
+    try:
+        wandb.Api().run(f"{entity}/{project}/{parent_run_id}").summary.update(summary)
+    except Exception as e:
+        print(f"[wandb] failed to push summary to parent {parent_run_id}: {e}")

@@ -21,6 +21,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+WANDB_ENTITY = "fca"
 WANDB_PROJECT = "yolo-next-encoder"
 LOCAL_ROOT = Path("/home/fatih/runs/yolo-next-encoder")
 NFS_MIRROR_ROOT = Path("/data/shared-datasets/fatih-runs/classify/yolo-next-encoder")

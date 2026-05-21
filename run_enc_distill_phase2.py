@@ -312,6 +312,13 @@ def _run_multi_det(
         f"\n[multi_det_finetune] MACRO over {len(results)} datasets: "
         f"mAP50={macro['map50']:.4f} mAP50-95={macro['map50_95']:.4f} fitness={macro['fitness']:.4f}"
     )
+    wandb_config.push_summary_to_parent(
+        phase1_wandb_id,
+        {
+            "downstream_multi_macro_map50_95": float(macro["map50_95"]),
+            "downstream_multi_n_datasets": len(results),
+        },
+    )
 
 
 def main(argv: list[str]) -> None:

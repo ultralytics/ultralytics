@@ -15,7 +15,6 @@ import json
 import os
 import shutil
 import tempfile
-from copy import deepcopy
 from pathlib import Path
 
 from ultralytics.data.utils import IMG_FORMATS
@@ -41,51 +40,35 @@ DATASETS: list[tuple[str, str, str]] = [
 SPLITS = ("train", "valid", "test")
 
 
-def get_clean_ann_data(data: dict) -> dict | None:
-    """Normalize COCO to 1-indexed so ``convert_coco`` (which subtracts 1) yields 0-indexed YOLO classes.
-
-    Drops the Roboflow class-0 placeholder when present, then shifts remaining ids so the minimum category id becomes 1.
-    Annotations referencing dropped categories are removed.
-
-    Args:
-        data (dict): Parsed COCO annotation dict.
-
-    Returns:
-        (dict | None): Normalized COCO dict, or None when no change is needed.
-    """
-    cats = data.get("categories") or []
-    if not cats:
-        return None
-    real_cats = [c for c in cats if not (c["id"] == 0 and c.get("supercategory") == "none")]
-    if not real_cats:
-        return None
-    shift = 1 - min(c["id"] for c in real_cats)
-    if shift == 0 and len(real_cats) == len(cats):
-        return None
-    valid_old_ids = {c["id"] for c in real_cats}
-    cleaned = deepcopy(data)
-    cleaned["categories"] = [{**c, "id": c["id"] + shift} for c in real_cats]
-    cleaned["annotations"] = [
-        {**a, "category_id": a["category_id"] + shift}
-        for a in data.get("annotations", [])
-        if a["category_id"] in valid_old_ids
-    ]
-    return cleaned
-
-
 def clean_coco_inplace(coco_root: Path) -> None:
-    """Rewrite each split's ``_annotations.coco.json`` under ``coco_root`` after normalization."""
+    """Normalize each split's COCO to 1-indexed so ``convert_coco`` (which subtracts 1) yields 0-indexed YOLO classes.
+
+    Drops the Roboflow class-0 placeholder when present, shifts remaining ids so the minimum becomes 1, and drops
+    annotations referencing dropped categories. Rewrites the file in place; skips splits that are already 1-indexed and
+    have no placeholder.
+    """
     for split in SPLITS:
         ann_path = coco_root / split / "_annotations.coco.json"
         if not ann_path.exists():
             continue
         with ann_path.open() as f:
             data = json.load(f)
-        cleaned = get_clean_ann_data(data)
-        if cleaned is None:
+        cats = data.get("categories") or []
+        real_cats = [c for c in cats if not (c["id"] == 0 and c.get("supercategory") == "none")]
+        if not real_cats:
             continue
+        shift = 1 - min(c["id"] for c in real_cats)
+        if shift == 0 and len(real_cats) == len(cats):
+            continue
+        valid_old_ids = {c["id"] for c in real_cats}
+        data["categories"] = [{**c, "id": c["id"] + shift} for c in real_cats]
+        data["annotations"] = [
+            {**a, "category_id": a["category_id"] + shift}
+            for a in data.get("annotations", [])
+            if a["category_id"] in valid_old_ids
+        ]
         with ann_path.open("w") as f:
-            json.dump(cleaned, f)
+            json.dump(data, f)
 
 
 def download_coco(slug: str, dest: Path, api_key: str) -> None:

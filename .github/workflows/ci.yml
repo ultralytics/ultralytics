@@ -145,7 +145,7 @@ jobs:
           if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          uv pip install ${{ matrix.os != 'cpu-latest' && '--system' || '' }} -e ".[export,solutions]" $torch pytest-cov pytest-xdist --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install ${{ matrix.os != 'cpu-latest' && '--system' || '' }} --reinstall-package numpy -e ".[export,solutions]" $torch pytest-cov pytest-xdist --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks
@@ -285,7 +285,7 @@ jobs:
           if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          uv pip install ${{ matrix.os != 'cpu-latest' && '--system' || '' }} -e ".[export,solutions]" $torch faster-coco-eval mlflow pytest-cov pytest-xdist --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install ${{ matrix.os != 'cpu-latest' && '--system' || '' }} --reinstall-package numpy -e ".[export,solutions]" $torch faster-coco-eval mlflow pytest-cov pytest-xdist --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks
@@ -374,7 +374,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7
       - name: Install requirements
         run: |
-          uv pip install -e ".[export]" pytest pytest-xdist mlflow faster-coco-eval --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install --reinstall-package numpy -e ".[export]" pytest pytest-xdist mlflow faster-coco-eval --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks

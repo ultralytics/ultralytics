@@ -887,5 +887,44 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
     model.predict(source=im, imgsz=32, save_txt=True, save_crop=True, augment=True)
     export_model = model.export(format="onnx")
 
+
+def test_v8_transforms_flip_idx_without_kpt_shape():
+    """Regression test: v8_transforms must not raise TypeError when flip_idx is set but kpt_shape is missing."""
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+
+    from ultralytics.data.augment import v8_transforms
+
+    dataset = MagicMock()
+    dataset.use_keypoints = True
+    dataset.data = {"flip_idx": [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]}  # no kpt_shape key
+    dataset.imgsz = 640
+
+    hyp = SimpleNamespace(
+        mosaic=1.0,
+        degrees=0.0,
+        translate=0.1,
+        scale=0.5,
+        shear=0.0,
+        perspective=0.0,
+        flipud=0.0,
+        fliplr=0.5,
+        bgr=0.0,
+        hsv_h=0.015,
+        hsv_s=0.7,
+        hsv_v=0.4,
+        copy_paste=0.0,
+        copy_paste_mode="flip",
+        mixup=0.0,
+        cutmix=0.0,
+        augmentations=None,
+        close_mosaic=10,
+        erasing=0.4,
+        auto_augment=None,
+    )
+
+    # Must not raise TypeError: 'NoneType' object is not subscriptable
+    v8_transforms(dataset, imgsz=640, hyp=hyp)
+
     model = YOLO(export_model, task=task)
     model.predict(source=im, imgsz=32)

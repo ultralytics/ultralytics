@@ -42,38 +42,39 @@ SPLITS = ("train", "valid", "test")
 
 
 def get_clean_ann_data(data: dict) -> dict | None:
-    """Drop the Roboflow class-0 placeholder and re-index categories and annotation IDs.
+    """Normalize COCO to 1-indexed so ``convert_coco`` (which subtracts 1) yields 0-indexed YOLO classes.
+
+    Drops the Roboflow class-0 placeholder when present, then shifts remaining ids so the minimum category id becomes 1.
+    Annotations referencing dropped categories are removed.
 
     Args:
         data (dict): Parsed COCO annotation dict.
 
     Returns:
-        (dict | None): Cleaned COCO dict, or None when category 0 is not the Roboflow placeholder.
+        (dict | None): Normalized COCO dict, or None when no change is needed.
     """
-    if not data.get("categories") or data["categories"][0].get("supercategory") != "none":
+    cats = data.get("categories") or []
+    if not cats:
         return None
-    cleaned = {}
-    if data.get("info"):
-        cleaned["info"] = data["info"]
-    if data.get("licenses"):
-        cleaned["licenses"] = data["licenses"]
-    cleaned["categories"] = [
-        {"id": c["id"] - 1, "name": c["name"], "supercategory": c["supercategory"]}
-        for c in data["categories"]
-        if c["id"] != 0
+    real_cats = [c for c in cats if not (c["id"] == 0 and c.get("supercategory") == "none")]
+    if not real_cats:
+        return None
+    shift = 1 - min(c["id"] for c in real_cats)
+    if shift == 0 and len(real_cats) == len(cats):
+        return None
+    valid_old_ids = {c["id"] for c in real_cats}
+    cleaned = deepcopy(data)
+    cleaned["categories"] = [{**c, "id": c["id"] + shift} for c in real_cats]
+    cleaned["annotations"] = [
+        {**a, "category_id": a["category_id"] + shift}
+        for a in data.get("annotations", [])
+        if a["category_id"] in valid_old_ids
     ]
-    cleaned["images"] = deepcopy(data["images"])
-    cleaned["annotations"] = deepcopy(data["annotations"])
-    if cleaned["annotations"]:
-        shift = 1 - min(a["id"] for a in cleaned["annotations"])
-        for ann in cleaned["annotations"]:
-            ann["category_id"] = ann["category_id"] - 1
-            ann["id"] = ann["id"] + shift
     return cleaned
 
 
 def clean_coco_inplace(coco_root: Path) -> None:
-    """Rewrite each split's ``_annotations.coco.json`` under ``coco_root`` after dropping class 0."""
+    """Rewrite each split's ``_annotations.coco.json`` under ``coco_root`` after normalization."""
     for split in SPLITS:
         ann_path = coco_root / split / "_annotations.coco.json"
         if not ann_path.exists():
@@ -169,7 +170,11 @@ def write_data_yaml(dataset_root: Path, names: dict[int, str]) -> None:
 
 
 def load_names(coco_root: Path) -> dict[int, str]:
-    """Return ``{id: name}`` for the first split that has a cleaned annotation file."""
+    """Return ``{yolo_id: name}`` (0-indexed) for the first split that has a normalized annotation file.
+
+    Normalized COCO is 1-indexed (to round-trip through ``convert_coco``'s ``id - 1``); YOLO ``data.yaml`` needs
+    0-indexed names, so subtract 1 here.
+    """
     for split in SPLITS:
         ann_path = coco_root / split / "_annotations.coco.json"
         if not ann_path.exists():
@@ -177,7 +182,7 @@ def load_names(coco_root: Path) -> dict[int, str]:
         with ann_path.open() as f:
             data = json.load(f)
         cats = sorted(data["categories"], key=lambda c: c["id"])
-        return {int(c["id"]): c["name"] for c in cats}
+        return {int(c["id"]) - 1: c["name"] for c in cats}
     raise RuntimeError(f"no annotations found under {coco_root}")
 
 

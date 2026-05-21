@@ -1,9 +1,62 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import os
 import shutil
 from pathlib import Path
+import numpy.testing  # noqa: F401
 
 import pytest
+
+import ultralytics.utils
+
+_xdist_worker = os.environ.get("PYTEST_XDIST_WORKER")
+if _xdist_worker:
+    _workspace = Path(__file__).parent / ".xdist_workspace" / _xdist_worker
+    _workspace.mkdir(parents=True, exist_ok=True)
+    os.chdir(_workspace)
+
+    _original_weights_dir = ultralytics.utils.WEIGHTS_DIR
+    _original_datasets_dir = ultralytics.utils.DATASETS_DIR
+
+    _redirects = {
+        "WEIGHTS_DIR": _workspace / "weights",
+        "DATASETS_DIR": _workspace / "datasets",
+    }
+    for _attr, _dst in _redirects.items():
+        _dst.mkdir(parents=True, exist_ok=True)
+        setattr(ultralytics.utils, _attr, _dst)
+
+    for _orig, _dst in (
+        (_original_weights_dir, _redirects["WEIGHTS_DIR"]),
+        (_original_datasets_dir, _redirects["DATASETS_DIR"]),
+    ):
+        if _orig.exists():
+            for _item in _orig.iterdir():
+                _link_target = _dst / _item.name
+                if not _link_target.exists():
+                    try:
+                        if _item.is_dir():
+                            os.symlink(_item, _link_target, target_is_directory=True)
+                        else:
+                            os.symlink(_item, _link_target)
+                    except (OSError, NotImplementedError):
+                        pass
+
+    _original_save = ultralytics.utils.SETTINGS._save
+    ultralytics.utils.SETTINGS._save = lambda: None
+    try:
+        ultralytics.utils.SETTINGS["weights_dir"] = str(_redirects["WEIGHTS_DIR"])
+        ultralytics.utils.SETTINGS["datasets_dir"] = str(_redirects["DATASETS_DIR"])
+    finally:
+        ultralytics.utils.SETTINGS._save = _original_save
+
+
+@pytest.fixture(autouse=True)
+def disable_settings_save(monkeypatch):
+    """Prevent tests from writing to the shared Ultralytics settings JSON file."""
+    from ultralytics.utils import SETTINGS
+
+    monkeypatch.setattr(SETTINGS, "_save", lambda: None)
 
 
 @pytest.fixture(scope="session")

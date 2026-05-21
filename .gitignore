@@ -55,6 +55,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 mlruns/
+tests/.xdist_workspace/
 
 # Translations
 *.mo

@@ -74,6 +74,7 @@ dependencies = [
     "psutil>=5.8.0", # system utilization
     "polars>=0.20.0",
     "ultralytics-thop>=2.0.18", # FLOPs computation https://github.com/ultralytics/thop
+    "filelock>=3.0.0",
 ]
 
 # Optional dependencies ------------------------------------------------------------------------------------------------
@@ -82,6 +83,7 @@ dev = [
     "ipython",
     "pytest",
     "pytest-cov",
+    "pytest-xdist>=3.0.0",
     "coverage[toml]",
     "zensical>=0.0.15; python_version >= '3.10'",
     "mkdocs-ultralytics-plugin>=0.2.4", # for meta descriptions and images, dates and authors

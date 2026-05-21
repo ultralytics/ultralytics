@@ -154,14 +154,14 @@ See full `predict` mode details in the [Predict](../modes/predict.md) page.
 YOLO instance segmentation returns one `Results` object per image. Each result stores object-level predictions, where
 each detected instance has its own binary mask, class, confidence, and box.
 
-| Attribute           | Type               | Shape / Format                       | Description                                                                       |
-| ------------------- | ------------------ | ------------------------------------ | --------------------------------------------------------------------------------- |
-| `result.masks`      | `Masks`            | `N` masks                            | Mask container for detected object instances.                                     |
-| `result.masks.data` | `torch.Tensor`     | `(N, H, W)`, `torch.uint8`           | Binary mask stack where `N` is the number of instances and values are `0` or `1`. |
-| `result.masks.xy`   | `list[np.ndarray]` | One `(points, 2)` array per instance | Mask polygons in pixel coordinates.                                               |
-| `result.masks.xyn`  | `list[np.ndarray]` | One `(points, 2)` array per instance | Normalized mask polygons with coordinates in `[0, 1]`.                            |
-| `result.boxes`      | `Boxes`            | `N` boxes                            | Bounding boxes, confidences, and class IDs aligned with the masks.                |
-| `result.boxes.cls`  | `torch.Tensor`     | `(N,)`                               | Class ID for each detected instance.                                              |
+| Attribute           | Type               | Shape / Format                       | Dtype                    | Description                                                                       |
+| ------------------- | ------------------ | ------------------------------------ | ------------------------ | --------------------------------------------------------------------------------- |
+| `result.masks`      | `Masks`            | `N` masks                            | Container                | Mask container for detected object instances.                                     |
+| `result.masks.data` | `torch.Tensor`     | `(N, H, W)`                          | `torch.uint8`            | Binary mask stack where `N` is the number of instances and values are `0` or `1`. |
+| `result.masks.xy`   | `list[np.ndarray]` | One `(points, 2)` array per instance | Floating point           | Mask polygons in pixel coordinates.                                               |
+| `result.masks.xyn`  | `list[np.ndarray]` | One `(points, 2)` array per instance | Floating point           | Normalized mask polygons with coordinates in `[0, 1]`.                            |
+| `result.boxes`      | `Boxes`            | `N` boxes                            | Container                | Bounding boxes, confidences, and class IDs aligned with the masks.                |
+| `result.boxes.cls`  | `torch.Tensor`     | `(N,)`                               | Floating point class IDs | Class ID for each detected instance; cast to `int` for name lookup.               |
 
 For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
 

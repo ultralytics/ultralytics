@@ -151,13 +151,13 @@ See full `predict` mode details in the [Predict](../modes/predict.md) page.
 Object detection returns one `Results` object per image. The primary prediction field is `result.boxes`, which contains
 box coordinates, class IDs, and confidence scores for each detected object.
 
-| Attribute           | Type           | Shape / Format       | Description                                                         |
-| ------------------- | -------------- | -------------------- | ------------------------------------------------------------------- |
-| `result.boxes`      | `Boxes`        | `N` boxes            | Detection boxes for each object.                                    |
-| `result.boxes.data` | `torch.Tensor` | `(N, 6)` or `(N, 7)` | Raw boxes as `[x1, y1, x2, y2, conf, cls]`, with optional track ID. |
-| `result.boxes.xyxy` | `torch.Tensor` | `(N, 4)`             | Boxes in `[x1, y1, x2, y2]` pixel coordinates.                      |
-| `result.boxes.conf` | `torch.Tensor` | `(N,)`               | Confidence score for each detection.                                |
-| `result.boxes.cls`  | `torch.Tensor` | `(N,)`               | Class ID for each detection.                                        |
+| Attribute           | Type           | Shape / Format         | Dtype                    | Description                                                                  |
+| ------------------- | -------------- | ---------------------- | ------------------------ | ---------------------------------------------------------------------------- |
+| `result.boxes`      | `Boxes`        | `N` boxes              | Container                | Detection boxes for each object.                                             |
+| `result.boxes.data` | `torch.Tensor` | `(N, 6)` or `(N, 7)`   | Floating point           | Raw boxes as `[x1, y1, x2, y2, conf, cls]`, with optional track ID.          |
+| `result.boxes.xyxy` | `torch.Tensor` | `(N, 4)`               | Floating point           | Boxes in `[x1, y1, x2, y2]` pixel coordinates.                               |
+| `result.boxes.conf` | `torch.Tensor` | `(N,)`                 | Floating point           | Confidence score for each detection.                                         |
+| `result.boxes.cls`  | `torch.Tensor` | `(N,)`                 | Floating point class IDs | Class ID for each detection; cast to `int` for name lookup.                  |
 
 For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
 

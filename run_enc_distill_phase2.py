@@ -284,7 +284,6 @@ def _run_multi_det(
             pretrained=phase1_weights,
             device=int(gpu),
             **paths.run_paths(sub_name),
-            warmup_bias_lr=0,
             dropout=0,
             amp=True,
             seed=0,

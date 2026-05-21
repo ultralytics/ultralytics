@@ -161,19 +161,15 @@ each detected instance has its own binary mask, class, confidence, and box.
 | `result.masks.xy`   | `list[np.ndarray]` | One `(points, 2)` array per instance | Mask polygons in pixel coordinates.                                               |
 | `result.masks.xyn`  | `list[np.ndarray]` | One `(points, 2)` array per instance | Normalized mask polygons with coordinates in `[0, 1]`.                            |
 | `result.boxes`      | `Boxes`            | `N` boxes                            | Bounding boxes, confidences, and class IDs aligned with the masks.                |
+| `result.boxes.cls`  | `torch.Tensor`     | `(N,)`                              | Class ID for each detected instance.                                              |
 
-### Instance vs Semantic Segmentation
+For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
 
-| Aspect               | Instance Segmentation (`task="segment"`)              | Semantic Segmentation (`task="semantic"`)                                         |
-| -------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------- |
-| Output field         | `result.masks`                                        | `result.semantic_mask`                                                            |
-| Main data            | `result.masks.data`                                   | `result.semantic_mask.data`                                                       |
-| Shape                | `(N, H, W)`                                           | `(H, W)`                                                                          |
-| Pixel values         | Binary mask values: `0` or `1`                        | Class IDs: `0`, `1`, `2`, ...                                                     |
-| Dtype                | `torch.uint8`                                         | Usually `torch.uint8`; larger class counts may use `torch.int16` or `torch.int32` |
-| Object separation    | Separates each detected object instance               | Groups all pixels of the same class together                                      |
-| Polygons             | Yes, through `result.masks.xy` and `result.masks.xyn` | No polygon output by default                                                      |
-| Boxes and confidence | Yes, through `result.boxes`                           | No per-instance boxes or confidence scores                                        |
+### How This Differs from Semantic Segmentation
+
+Instance segmentation is object-level segmentation: two cars produce two masks, two boxes, and two confidence scores.
+[Semantic segmentation](semantic.md) is pixel-level classification: those same cars become pixels with the same class ID
+in one image-sized class map, with no per-object boxes, confidences, or default polygon list.
 
 ## Export
 

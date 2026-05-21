@@ -521,16 +521,82 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 | `probs`      | `Probs, optional`     | A Probs object containing probabilities of each class for classification task.           |
 | `keypoints`  | `Keypoints, optional` | A Keypoints object containing detected keypoints for each object.                        |
 | `obb`        | `OBB, optional`       | An OBB object containing oriented bounding boxes.                                        |
+| `semantic_mask` | `SemanticMask, optional` | A SemanticMask object containing a dense per-pixel class map.                        |
 | `speed`      | `dict`                | A dictionary of preprocess, inference, and postprocess speeds in milliseconds per image. |
 | `names`      | `dict`                | A dictionary mapping class indices to class names.                                       |
 | `path`       | `str`                 | The path to the image file.                                                              |
 | `save_dir`   | `str, optional`       | Directory to save results.                                                               |
 
+### Results by Task
+
+Each prediction returns one `Results` object per image or frame. The common fields above are always available, while the
+task-specific prediction data is stored in the fields below.
+
+=== "Detect"
+
+    | Field | Type | Shape / Values | Description |
+    |---|---|---|---|
+    | `result.boxes` | `Boxes` | `N` boxes | Detection boxes for each object. |
+    | `result.boxes.data` | `torch.Tensor` | `(N, 6)` or `(N, 7)` | Raw boxes as `[x1, y1, x2, y2, conf, cls]`, with optional track ID. |
+    | `result.boxes.xyxy` | `torch.Tensor` | `(N, 4)` | Box coordinates in `[x1, y1, x2, y2]` pixel format. |
+    | `result.boxes.conf` | `torch.Tensor` | `(N,)` | Confidence score for each detection. |
+    | `result.boxes.cls` | `torch.Tensor` | `(N,)` | Class ID for each detection. |
+
+=== "Segment"
+
+    | Field | Type | Shape / Values | Description |
+    |---|---|---|---|
+    | `result.boxes` | `Boxes` | `N` boxes | Boxes, confidences, and class IDs for each detected instance. |
+    | `result.masks` | `Masks` | `N` masks | Instance mask container aligned with `result.boxes`. |
+    | `result.masks.data` | `torch.Tensor` | `(N, H, W)`, `torch.uint8` | Binary mask stack with values `0` or `1`, one mask per instance. |
+    | `result.masks.xy` | `list[np.ndarray]` | One `(points, 2)` array per instance | Mask polygons in pixel coordinates. |
+    | `result.masks.xyn` | `list[np.ndarray]` | One `(points, 2)` array per instance | Normalized mask polygons. |
+
+=== "Semantic"
+
+    | Field | Type | Shape / Values | Description |
+    |---|---|---|---|
+    | `result.semantic_mask` | `SemanticMask` | One mask per image | Dense semantic class-map container. |
+    | `result.semantic_mask.data` | `torch.Tensor` | `(H, W)` | Per-pixel class IDs for the full image. |
+    | Class map dtype | `torch.dtype` | `uint8`, `int16`, or `int32` | Uses `torch.uint8` for up to 256 classes, then larger integer dtypes as needed. |
+    | `result.masks` | `None` | Not applicable | Semantic segmentation does not return per-instance mask stacks. |
+    | `result.boxes` | `None` | Not applicable | Semantic segmentation does not return per-instance boxes or confidence scores. |
+
+=== "Classify"
+
+    | Field | Type | Shape / Values | Description |
+    |---|---|---|---|
+    | `result.probs` | `Probs` | One probability vector | Classification probabilities for the image. |
+    | `result.probs.data` | `torch.Tensor` | `(num_classes,)` | Probability score for each class. |
+    | `result.probs.top1` | `int` | Class index | Highest-probability class ID. |
+    | `result.probs.top1conf` | `torch.Tensor` | Scalar | Confidence for the top class. |
+    | `result.probs.top5` | `list[int]` | Up to 5 class indices | Top-5 class IDs ordered by confidence. |
+
+=== "Pose"
+
+    | Field | Type | Shape / Values | Description |
+    |---|---|---|---|
+    | `result.boxes` | `Boxes` | `N` boxes | Person or object boxes associated with keypoints. |
+    | `result.keypoints` | `Keypoints` | `N` instances | Keypoint container for each detected instance. |
+    | `result.keypoints.data` | `torch.Tensor` | `(N, K, 2)` or `(N, K, 3)` | Keypoints as `x, y` plus optional visibility/confidence. |
+    | `result.keypoints.xy` | `torch.Tensor` | `(N, K, 2)` | Keypoint coordinates in pixels. |
+    | `result.keypoints.xyn` | `torch.Tensor` | `(N, K, 2)` | Normalized keypoint coordinates. |
+
+=== "OBB"
+
+    | Field | Type | Shape / Values | Description |
+    |---|---|---|---|
+    | `result.obb` | `OBB` | `N` rotated boxes | Oriented bounding boxes for each detection. |
+    | `result.obb.data` | `torch.Tensor` | `(N, 7)` or `(N, 8)` | Raw rotated boxes with confidence, class, and optional track ID. |
+    | `result.obb.xywhr` | `torch.Tensor` | `(N, 5)` | Rotated boxes as `[x_center, y_center, width, height, rotation]`. |
+    | `result.obb.xyxyxyxy` | `torch.Tensor` | `(N, 4, 2)` | Four corner points for each rotated box. |
+    | `result.obb.conf` | `torch.Tensor` | `(N,)` | Confidence score for each rotated box. |
+
 `Results` objects have the following methods:
 
 | Method        | Return Type            | Description                                                                               |
 | ------------- | ---------------------- | ----------------------------------------------------------------------------------------- |
-| `update()`    | `None`                 | Updates the Results object with new detection data (boxes, masks, probs, obb, keypoints). |
+| `update()`    | `None`                 | Updates the Results object with new data such as boxes, masks, probs, obb, keypoints, or semantic masks. |
 | `cpu()`       | `Results`              | Returns a copy of the Results object with all tensors moved to CPU memory.                |
 | `numpy()`     | `Results`              | Returns a copy of the Results object with all tensors converted to NumPy arrays.          |
 | `cuda()`      | `Results`              | Returns a copy of the Results object with all tensors moved to GPU memory.                |
@@ -609,16 +675,47 @@ For more details see the [`Boxes` class documentation](../reference/engine/resul
 
 Here is a table for the `Masks` class methods and properties, including their name, type, and description:
 
-| Name      | Type                      | Description                                                     |
-| --------- | ------------------------- | --------------------------------------------------------------- |
-| `cpu()`   | Method                    | Returns the masks tensor on CPU memory.                         |
-| `numpy()` | Method                    | Returns the masks tensor as a NumPy array.                      |
-| `cuda()`  | Method                    | Returns the masks tensor on GPU memory.                         |
-| `to()`    | Method                    | Returns the masks tensor with the specified device and dtype.   |
-| `xyn`     | Property (`torch.Tensor`) | A list of normalized segments represented as tensors.           |
-| `xy`      | Property (`torch.Tensor`) | A list of segments in pixel coordinates represented as tensors. |
+| Name      | Type                      | Description                                                   |
+| --------- | ------------------------- | ------------------------------------------------------------- |
+| `data`    | Property (`torch.Tensor`) | Binary mask tensor with shape `(N, H, W)` and values `0` or `1`. |
+| `cpu()`   | Method                    | Returns the masks tensor on CPU memory.                       |
+| `numpy()` | Method                    | Returns the masks tensor as a NumPy array.                    |
+| `cuda()`  | Method                    | Returns the masks tensor on GPU memory.                       |
+| `to()`    | Method                    | Returns the masks tensor with the specified device and dtype. |
+| `xyn`     | Property (`list[np.ndarray]`) | A list of normalized mask polygons.                        |
+| `xy`      | Property (`list[np.ndarray]`) | A list of mask polygons in pixel coordinates.              |
 
 For more details see the [`Masks` class documentation](../reference/engine/results.md#ultralytics.engine.results.Masks).
+
+### SemanticMask
+
+`SemanticMask` stores one dense class map for semantic segmentation results. Unlike `Masks`, it does not contain one
+binary mask per object and does not provide polygon helpers.
+
+!!! example "SemanticMask"
+
+    ```python
+    from ultralytics import YOLO
+
+    # Load a pretrained YOLO26n-sem Semantic model
+    model = YOLO("yolo26n-sem.pt")
+
+    # Run inference on an image
+    results = model("https://ultralytics.com/images/bus.jpg")  # results list
+
+    # View results
+    for r in results:
+        print(r.semantic_mask.data)  # print the H x W class-ID map
+    ```
+
+| Name      | Type                      | Description                                                             |
+| --------- | ------------------------- | ----------------------------------------------------------------------- |
+| `data`    | Property (`torch.Tensor`) | Class-ID map with shape `(H, W)`.                                       |
+| `shape`   | Property (`tuple`)        | Shape of the class map, usually matching `result.orig_shape`.           |
+| `cpu()`   | Method                    | Returns the semantic mask tensor on CPU memory.                         |
+| `numpy()` | Method                    | Returns the semantic mask tensor as a NumPy array.                      |
+| `cuda()`  | Method                    | Returns the semantic mask tensor on GPU memory.                         |
+| `to()`    | Method                    | Returns the semantic mask tensor with the specified device and dtype.   |
 
 ### Keypoints
 

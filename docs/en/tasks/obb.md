@@ -183,6 +183,21 @@ Use a trained YOLO26n-obb model to run predictions on images.
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
+### Results Output
+
+Oriented bounding box detection returns one `Results` object per image. The primary prediction field is `result.obb`,
+which contains rotated boxes, class IDs, and confidence scores for each detected object.
+
+| Attribute | Type | Shape / Format | Description |
+|---|---|---|---|
+| `result.obb` | `OBB` | `N` rotated boxes | Oriented bounding boxes for each detection. |
+| `result.obb.data` | `torch.Tensor` | `(N, 7)` or `(N, 8)` | Raw rotated boxes with confidence, class, and optional track ID. |
+| `result.obb.xywhr` | `torch.Tensor` | `(N, 5)` | Rotated boxes as `[x_center, y_center, width, height, rotation]`. |
+| `result.obb.xyxyxyxy` | `torch.Tensor` | `(N, 4, 2)` | Four corner points for each rotated box. |
+| `result.obb.conf` | `torch.Tensor` | `(N,)` | Confidence score for each rotated box. |
+
+For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
+
 ## Export
 
 Export a YOLO26n-obb model to a different format like ONNX, CoreML, etc.

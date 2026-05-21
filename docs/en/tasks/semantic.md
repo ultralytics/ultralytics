@@ -140,20 +140,25 @@ belong to separate objects.
 | `result.semantic_mask.data` | `torch.Tensor` | `(H, W)`                     | Class map where each pixel value is a predicted class ID.                       |
 | Class map dtype             | `torch.dtype`  | `uint8`, `int16`, or `int32` | Uses `torch.uint8` for up to 256 classes, then larger integer dtypes as needed. |
 | `result.masks`              | `None`         | Not applicable               | Semantic segmentation does not return instance mask stacks.                     |
+| `result.boxes`              | `None`         | Not applicable               | Semantic segmentation does not return per-instance boxes or confidence scores.  |
 | `result.masks.xy`           | Not available  | Not applicable               | Polygon coordinates are not returned by default for semantic results.           |
+
+For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
 
 ### Instance vs Semantic Segmentation
 
 | Aspect               | Instance Segmentation (`task="segment"`)              | Semantic Segmentation (`task="semantic"`)                                         |
 | -------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------- |
+| Prediction goal      | Segment each detected object separately               | Assign one class ID to every pixel                                                |
 | Output field         | `result.masks`                                        | `result.semantic_mask`                                                            |
 | Main data            | `result.masks.data`                                   | `result.semantic_mask.data`                                                       |
 | Shape                | `(N, H, W)`                                           | `(H, W)`                                                                          |
 | Pixel values         | Binary mask values: `0` or `1`                        | Class IDs: `0`, `1`, `2`, ...                                                     |
 | Dtype                | `torch.uint8`                                         | Usually `torch.uint8`; larger class counts may use `torch.int16` or `torch.int32` |
-| Object separation    | Separates each detected object instance               | Groups all pixels of the same class together                                      |
+| Same-class objects   | Kept as separate instances                            | Merged into the same class region                                                 |
 | Polygons             | Yes, through `result.masks.xy` and `result.masks.xyn` | No polygon output by default                                                      |
 | Boxes and confidence | Yes, through `result.boxes`                           | No per-instance boxes or confidence scores                                        |
+| Typical use          | Counting, tracking, cropping, object-level measurement | Dense scene labeling, drivable area, land cover, medical regions                 |
 
 ## Export
 

@@ -171,6 +171,21 @@ Use a trained YOLO26n-pose model to run predictions on images. The [predict mode
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
+### Results Output
+
+Pose estimation returns one `Results` object per image. The primary prediction fields are `result.keypoints` for pose
+coordinates and `result.boxes` for the detected instances that those keypoints belong to.
+
+| Attribute | Type | Shape / Format | Description |
+|---|---|---|---|
+| `result.keypoints` | `Keypoints` | `N` instances | Keypoint container for each detected instance. |
+| `result.keypoints.data` | `torch.Tensor` | `(N, K, 2)` or `(N, K, 3)` | Keypoints as `x, y` plus optional visibility/confidence. |
+| `result.keypoints.xy` | `torch.Tensor` | `(N, K, 2)` | Keypoint coordinates in pixels. |
+| `result.keypoints.xyn` | `torch.Tensor` | `(N, K, 2)` | Normalized keypoint coordinates. |
+| `result.boxes` | `Boxes` | `N` boxes | Boxes, confidences, and class IDs for the detected instances. |
+
+For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
+
 ## Export
 
 Export a YOLO26n Pose model to a different format like ONNX, CoreML, etc. This allows you to deploy your model on various platforms and devices for [real-time inference](https://www.ultralytics.com/glossary/real-time-inference).

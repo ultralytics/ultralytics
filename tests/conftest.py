@@ -3,6 +3,7 @@
 import os
 import shutil
 from pathlib import Path
+import numpy.testing  # noqa: F401
 
 import pytest
 

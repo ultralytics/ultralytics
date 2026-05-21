@@ -536,62 +536,62 @@ Instance masks are `torch.uint8` binary tensors, while semantic masks use compac
 
 === "Detect"
 
-    | Field | Type | Shape | Dtype | Description |
-    |---|---|---|---|---|
-    | `result.boxes` | `Boxes` | `(N)` | - | Detection boxes. |
-    | `result.boxes.data` | `Tensor` | `(N,6/7)` | `torch.float32` | Raw `[x1,y1,x2,y2,conf,cls]`, plus optional track ID. |
-    | `result.boxes.xyxy` | `Tensor` | `(N,4)` | `torch.float32` | `xyxy` pixel boxes. |
-    | `result.boxes.conf` | `Tensor` | `(N,)` | `torch.float32` | Confidence scores. |
-    | `result.boxes.cls` | `Tensor` | `(N,)` | `torch.float32` | Class IDs; cast to `int` for names. |
+    | Field | Type | Shape | Description |
+    |---|---|---|---|
+    | `result.boxes` | `Boxes` | `(N)` | Detection boxes. |
+    | `result.boxes.data` | `torch.float32` | `(N,6/7)` | Raw `[x1,y1,x2,y2,conf,cls]`, plus optional track ID. |
+    | `result.boxes.xyxy` | `torch.float32` | `(N,4)` | `xyxy` pixel boxes. |
+    | `result.boxes.conf` | `torch.float32` | `(N,)` | Confidence scores. |
+    | `result.boxes.cls` | `torch.float32` | `(N,)` | Class IDs; cast to `int` for names. |
 
 === "Segment"
 
-    | Field | Type | Shape | Dtype | Description |
-    |---|---|---|---|---|
-    | `result.boxes` | `Boxes` | `(N)` | - | Instance boxes/classes/confidences. |
-    | `result.masks` | `Masks` | `(N)` | - | Instance masks. |
-    | `result.masks.data` | `Tensor` | `(N,H,W)` | `torch.uint8` | Binary masks, values `0` or `1`. |
-    | `result.masks.xy` | `list[ndarray]` | `list[(P,2)]` | `np.float32` | Pixel polygons. |
-    | `result.masks.xyn` | `list[ndarray]` | `list[(P,2)]` | `np.float32` | Normalized polygons. |
+    | Field | Type | Shape | Description |
+    |---|---|---|---|
+    | `result.boxes` | `Boxes` | `(N)` | Instance boxes/classes/confidences. |
+    | `result.masks` | `Masks` | `(N)` | Instance masks. |
+    | `result.masks.data` | `torch.uint8` | `(N,H,W)` | Binary masks, values `0` or `1`. |
+    | `result.masks.xy` | `np.float32` | `list[(P,2)]` | Pixel polygons. |
+    | `result.masks.xyn` | `np.float32` | `list[(P,2)]` | Normalized polygons. |
 
 === "Semantic"
 
-    | Field | Type | Shape | Dtype | Description |
-    |---|---|---|---|---|
-    | `result.semantic_mask` | `SemanticMask` | `(H,W)` | - | Dense class map. |
-    | `result.semantic_mask.data` | `Tensor` | `(H,W)` | `torch.uint8`<br>`torch.int16`<br>`torch.int32` | Per-pixel class IDs. |
-    | `result.masks` | `None` | - | - | No instance masks. |
-    | `result.boxes` | `None` | - | - | No instance boxes/confidences. |
+    | Field | Type | Shape | Description |
+    |---|---|---|---|
+    | `result.semantic_mask` | `SemanticMask` | `(H,W)` | Dense class map. |
+    | `result.semantic_mask.data` | `torch.uint8`<br>`torch.int16`<br>`torch.int32` | `(H,W)` | Per-pixel class IDs. |
+    | `result.masks` | - | - | No instance masks. |
+    | `result.boxes` | - | - | No instance boxes/confidences. |
 
 === "Classify"
 
-    | Field | Type | Shape | Dtype | Description |
-    |---|---|---|---|---|
-    | `result.probs` | `Probs` | `(C,)` | - | Class probabilities. |
-    | `result.probs.data` | `Tensor` | `(C,)` | `torch.float32` | Probability per class. |
-    | `result.probs.top1` | `int` | `()` | `int` | Top class ID. |
-    | `result.probs.top1conf` | `Tensor` | `()` | `torch.float32` | Top confidence. |
-    | `result.probs.top5` | `list[int]` | `(<=5)` | `list[int]` | Top-5 class IDs. |
+    | Field | Type | Shape | Description |
+    |---|---|---|---|
+    | `result.probs` | `Probs` | `(C,)` | Class probabilities. |
+    | `result.probs.data` | `torch.float32` | `(C,)` | Probability per class. |
+    | `result.probs.top1` | `int` | `()` | Top class ID. |
+    | `result.probs.top1conf` | `torch.float32` | `()` | Top confidence. |
+    | `result.probs.top5` | `list[int]` | `(<=5)` | Top-5 class IDs. |
 
 === "Pose"
 
-    | Field | Type | Shape | Dtype | Description |
-    |---|---|---|---|---|
-    | `result.boxes` | `Boxes` | `(N)` | - | Instance boxes. |
-    | `result.keypoints` | `Keypoints` | `(N)` | - | Keypoints. |
-    | `result.keypoints.data` | `Tensor` | `(N,K,2/3)` | `torch.float32` | `x,y` plus optional visibility/confidence. |
-    | `result.keypoints.xy` | `Tensor` | `(N,K,2)` | `torch.float32` | Pixel keypoints. |
-    | `result.keypoints.xyn` | `Tensor` | `(N,K,2)` | `torch.float32` | Normalized keypoints. |
+    | Field | Type | Shape | Description |
+    |---|---|---|---|
+    | `result.boxes` | `Boxes` | `(N)` | Instance boxes. |
+    | `result.keypoints` | `Keypoints` | `(N)` | Keypoints. |
+    | `result.keypoints.data` | `torch.float32` | `(N,K,2/3)` | `x,y` plus optional visibility/confidence. |
+    | `result.keypoints.xy` | `torch.float32` | `(N,K,2)` | Pixel keypoints. |
+    | `result.keypoints.xyn` | `torch.float32` | `(N,K,2)` | Normalized keypoints. |
 
 === "OBB"
 
-    | Field | Type | Shape | Dtype | Description |
-    |---|---|---|---|---|
-    | `result.obb` | `OBB` | `(N)` | - | Oriented boxes. |
-    | `result.obb.data` | `Tensor` | `(N,7/8)` | `torch.float32` | Raw rotated boxes with confidence/class. |
-    | `result.obb.xywhr` | `Tensor` | `(N,5)` | `torch.float32` | `xywhr` rotated boxes. |
-    | `result.obb.xyxyxyxy` | `Tensor` | `(N,4,2)` | `torch.float32` | Four corner points. |
-    | `result.obb.conf` | `Tensor` | `(N,)` | `torch.float32` | Confidence scores. |
+    | Field | Type | Shape | Description |
+    |---|---|---|---|
+    | `result.obb` | `OBB` | `(N)` | Oriented boxes. |
+    | `result.obb.data` | `torch.float32` | `(N,7/8)` | Raw rotated boxes with confidence/class. |
+    | `result.obb.xywhr` | `torch.float32` | `(N,5)` | `xywhr` rotated boxes. |
+    | `result.obb.xyxyxyxy` | `torch.float32` | `(N,4,2)` | Four corner points. |
+    | `result.obb.conf` | `torch.float32` | `(N,)` | Confidence scores. |
 
 `Results` objects have the following methods:
 

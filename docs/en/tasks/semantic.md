@@ -134,13 +134,13 @@ YOLO semantic segmentation returns one `Results` object per image. Each result s
 image instead of a list of object masks. Pixels with the same predicted class share the same class ID, even when they
 belong to separate objects.
 
-| Attribute                   | Type           | Shape     | Dtype                                      | Description                                                                    |
-| --------------------------- | -------------- | ------------------ | ------------------------------------------ | ------------------------------------------------------------------------------ |
-| `result.semantic_mask`      | `SemanticMask` | `(H,W)` | - | Dense class map.                 |
-| `result.semantic_mask.data` | `Tensor` | `(H,W)`           | `torch.uint8`<br>`torch.int16`<br>`torch.int32` | Per-pixel class IDs.                  |
-| `result.masks`              | `None`         | - | -                             | No instance masks.                    |
-| `result.boxes`              | `None`         | - | -                             | No instance boxes/confidences. |
-| `result.masks.xy`           | -  | - | -                             | No default polygons.          |
+| Attribute                   | Type                                             | Shape   | Description                    |
+| --------------------------- | ------------------------------------------------ | ------- | ------------------------------ |
+| `result.semantic_mask`      | `SemanticMask`                                   | `(H,W)` | Dense class map.               |
+| `result.semantic_mask.data` | `torch.uint8`<br>`torch.int16`<br>`torch.int32` | `(H,W)` | Per-pixel class IDs.           |
+| `result.masks`              | -                                                | -       | No instance masks.             |
+| `result.boxes`              | -                                                | -       | No instance boxes/confidences. |
+| `result.masks.xy`           | -                                                | -       | No default polygons.           |
 
 For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
 

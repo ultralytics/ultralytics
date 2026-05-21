@@ -1322,19 +1322,14 @@ class SemanticSegmentationLoss(nn.Module):
         """Compute Dice loss excluding ignore pixels."""
         if self.nc == 1:
             return self._binary_dice_loss(preds, masks)
-        flat_target = masks.reshape(-1)
-        valid = flat_target != 255
-        if not valid.any():
-            return preds.sum() * 0
+        valid = masks != 255
 
         pred_soft = F.softmax(preds, dim=1)
-        target = flat_target[valid].long()
-        flat_pred = pred_soft.permute(0, 2, 3, 1).reshape(-1, self.nc)[valid]
-        intersection = torch.zeros(self.nc, device=preds.device, dtype=pred_soft.dtype)
-        intersection.scatter_add_(0, target, flat_pred.gather(1, target[:, None]).squeeze(1))
-        pred_sum = flat_pred.sum(dim=0)
-        target_sum = torch.bincount(target, minlength=self.nc).to(device=preds.device, dtype=pred_soft.dtype)
-        cardinality = pred_sum + target_sum
+        target_onehot = F.one_hot(masks.clamp(0, self.nc - 1).long(), self.nc).permute(0, 3, 1, 2).float()
+        valid_mask = valid.unsqueeze(1).expand_as(target_onehot).float()
+        intersection = (pred_soft * target_onehot * valid_mask).sum(dim=(0, 2, 3))
+        cardinality = ((pred_soft + target_onehot) * valid_mask).sum(dim=(0, 2, 3))
+
         return (1.0 - (2.0 * intersection + 1.0) / (cardinality + 1.0)).mean()
 
     def _binary_dice_loss(self, preds, masks):

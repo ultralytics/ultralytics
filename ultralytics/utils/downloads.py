@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import re
 import shutil
 import subprocess
@@ -331,63 +332,68 @@ def safe_download(
         url = url.replace(" ", "%20")  # encode spaces for curl/urllib compatibility
 
         f = Path(dir or ".") / (file or url2file(url))  # URL converted to filename
-        if not f.is_file():  # URL and file do not exist
-            uri = (url if gdrive else clean_url(url)).replace(ASSETS_URL, "https://ultralytics.com/assets")  # clean
-            desc = f"Downloading {uri} to '{f}'"
-            f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
-            curl_installed = shutil.which("curl")
-            for i in range(retry + 1):
-                try:
-                    if (curl or i > 0) and curl_installed:  # curl download with retry, continue
-                        s = "sS" * (not progress)  # silent
-                        r = subprocess.run(["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]).returncode
-                        assert r == 0, f"Curl return value {r}"
-                        expected_size = None  # Can't get size with curl
-                    else:  # urllib download
-                        with request.urlopen(url) as response:
-                            expected_size = int(response.getheader("Content-Length", 0))
-                            if i == 0 and expected_size > 1048576:
-                                check_disk_space(expected_size, path=f.parent)
-                            buffer_size = max(8192, min(1048576, expected_size // 1000)) if expected_size else 8192
-                            with TQDM(
-                                total=expected_size,
-                                desc=desc,
-                                disable=not progress,
-                                unit="B",
-                                unit_scale=True,
-                                unit_divisor=1024,
-                            ) as pbar:
-                                with open(f, "wb") as f_opened:
-                                    while True:
-                                        data = response.read(buffer_size)
-                                        if not data:
-                                            break
-                                        f_opened.write(data)
-                                        pbar.update(len(data))
+        try:
+            from filelock import FileLock
+        except ImportError:
+            FileLock = contextlib.nullcontext
+        with FileLock(f.with_suffix(f.suffix + ".lock")):
+            if not f.is_file():  # URL and file do not exist
+                uri = (url if gdrive else clean_url(url)).replace(ASSETS_URL, "https://ultralytics.com/assets")  # clean
+                desc = f"Downloading {uri} to '{f}'"
+                f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
+                curl_installed = shutil.which("curl")
+                for i in range(retry + 1):
+                    try:
+                        if (curl or i > 0) and curl_installed:  # curl download with retry, continue
+                            s = "sS" * (not progress)  # silent
+                            r = subprocess.run(["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]).returncode
+                            assert r == 0, f"Curl return value {r}"
+                            expected_size = None  # Can't get size with curl
+                        else:  # urllib download
+                            with request.urlopen(url) as response:
+                                expected_size = int(response.getheader("Content-Length", 0))
+                                if i == 0 and expected_size > 1048576:
+                                    check_disk_space(expected_size, path=f.parent)
+                                buffer_size = max(8192, min(1048576, expected_size // 1000)) if expected_size else 8192
+                                with TQDM(
+                                    total=expected_size,
+                                    desc=desc,
+                                    disable=not progress,
+                                    unit="B",
+                                    unit_scale=True,
+                                    unit_divisor=1024,
+                                ) as pbar:
+                                    with open(f, "wb") as f_opened:
+                                        while True:
+                                            data = response.read(buffer_size)
+                                            if not data:
+                                                break
+                                            f_opened.write(data)
+                                            pbar.update(len(data))
 
-                    if f.exists():
-                        file_size = f.stat().st_size
-                        if file_size > min_bytes:
-                            # Check if download is complete (only if we have expected_size)
-                            if expected_size and file_size != expected_size:
-                                LOGGER.warning(
-                                    f"Partial download: {file_size}/{expected_size} bytes ({file_size / expected_size * 100:.1f}%)"
-                                )
-                            else:
-                                break  # success
-                        f.unlink()  # remove partial downloads
-                except MemoryError:
-                    raise  # Re-raise immediately - no point retrying if insufficient disk space
-                except Exception as e:
-                    if i == 0 and not is_online():
-                        raise ConnectionError(
-                            emojis(f"❌  Download failure for {uri}. Environment may be offline.")
-                        ) from e
-                    elif i >= retry:
-                        raise ConnectionError(
-                            emojis(f"❌  Download failure for {uri}. Retry limit reached. {e}")
-                        ) from e
-                    LOGGER.warning(f"Download failure, retrying {i + 1}/{retry} {uri}... {e}")
+                        if f.exists():
+                            file_size = f.stat().st_size
+                            if file_size > min_bytes:
+                                # Check if download is complete (only if we have expected_size)
+                                if expected_size and file_size != expected_size:
+                                    LOGGER.warning(
+                                        f"Partial download: {file_size}/{expected_size} bytes ({file_size / expected_size * 100:.1f}%)"
+                                    )
+                                else:
+                                    break  # success
+                            f.unlink()  # remove partial downloads
+                    except MemoryError:
+                        raise  # Re-raise immediately - no point retrying if insufficient disk space
+                    except Exception as e:
+                        if i == 0 and not is_online():
+                            raise ConnectionError(
+                                emojis(f"❌  Download failure for {uri}. Environment may be offline.")
+                            ) from e
+                        elif i >= retry:
+                            raise ConnectionError(
+                                emojis(f"❌  Download failure for {uri}. Retry limit reached. {e}")
+                            ) from e
+                        LOGGER.warning(f"Download failure, retrying {i + 1}/{retry} {uri}... {e}")
 
     if unzip and f.exists() and f.suffix in {"", ".zip", ".tar", ".gz"}:
         from zipfile import is_zipfile

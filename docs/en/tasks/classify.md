@@ -219,13 +219,13 @@ See full `predict` mode details in the [Predict](../modes/predict.md) page.
 Image classification returns one `Results` object per image. The primary prediction field is `result.probs`, which
 contains the class probability vector and helpers for top predictions.
 
-| Attribute              | Type           | Shape          | Dtype             | Description                                  |
-| ---------------------- | -------------- | ----------------------- | ----------------- | -------------------------------------------- |
-| `result.probs`         | `Probs`        | `(C,)`  | - | Class probabilities.  |
-| `result.probs.data`    | `Tensor` | `(C,)`        | `torch.float32` | Probability per class.            |
-| `result.probs.top1`    | `int`          | `()`             | `int`      | Top class ID.                |
-| `result.probs.top1conf` | `Tensor` | `()`                 | `torch.float32` | Top confidence.          |
-| `result.probs.top5`    | `list[int]`    | `(<=5)`   | `list[int]` | Top-5 class IDs.       |
+| Attribute               | Type        | Shape   | Dtype           | Description            |
+| ----------------------- | ----------- | ------- | --------------- | ---------------------- |
+| `result.probs`          | `Probs`     | `(C,)`  | -               | Class probabilities.   |
+| `result.probs.data`     | `Tensor`    | `(C,)`  | `torch.float32` | Probability per class. |
+| `result.probs.top1`     | `int`       | `()`    | `int`           | Top class ID.          |
+| `result.probs.top1conf` | `Tensor`    | `()`    | `torch.float32` | Top confidence.        |
+| `result.probs.top5`     | `list[int]` | `(<=5)` | `list[int]`     | Top-5 class IDs.       |
 
 For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
 

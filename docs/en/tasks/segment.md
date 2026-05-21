@@ -154,14 +154,14 @@ See full `predict` mode details in the [Predict](../modes/predict.md) page.
 YOLO instance segmentation returns one `Results` object per image. Each result stores object-level predictions, where
 each detected instance has its own binary mask, class, confidence, and box.
 
-| Attribute           | Type               | Shape                       | Dtype                    | Description                                                                       |
-| ------------------- | ------------------ | ------------------------------------ | ------------------------ | --------------------------------------------------------------------------------- |
-| `result.masks`      | `Masks`            | `(N)`                            | - | Instance masks.                                     |
-| `result.masks.data` | `Tensor`     | `(N,H,W)`                          | `torch.uint8`            | Binary masks, values `0` or `1`. |
-| `result.masks.xy`   | `list[ndarray]` | `list[(P,2)]` | `np.float32`            | Pixel polygons.                                               |
-| `result.masks.xyn`  | `list[ndarray]` | `list[(P,2)]` | `np.float32`            | Normalized polygons.                            |
-| `result.boxes`      | `Boxes`            | `(N)`                            | - | Instance boxes/classes/confidences.                |
-| `result.boxes.cls`  | `Tensor`     | `(N,)`                               | `torch.float32` | Class IDs; cast to `int` for names.               |
+| Attribute           | Type            | Shape         | Dtype           | Description                         |
+| ------------------- | --------------- | ------------- | --------------- | ----------------------------------- |
+| `result.masks`      | `Masks`         | `(N)`         | -               | Instance masks.                     |
+| `result.masks.data` | `Tensor`        | `(N,H,W)`     | `torch.uint8`   | Binary masks, values `0` or `1`.    |
+| `result.masks.xy`   | `list[ndarray]` | `list[(P,2)]` | `np.float32`    | Pixel polygons.                     |
+| `result.masks.xyn`  | `list[ndarray]` | `list[(P,2)]` | `np.float32`    | Normalized polygons.                |
+| `result.boxes`      | `Boxes`         | `(N)`         | -               | Instance boxes/classes/confidences. |
+| `result.boxes.cls`  | `Tensor`        | `(N,)`        | `torch.float32` | Class IDs; cast to `int` for names. |
 
 For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
 

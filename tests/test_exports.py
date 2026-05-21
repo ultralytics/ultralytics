@@ -102,7 +102,7 @@ def test_export_openvino(end2end):
     [  # generate all combinations except for exclusion cases
         (task, dynamic, int8, half, batch, nms, end2end)
         for task, dynamic, int8, half, batch, nms, end2end in product(
-            TASKS, [True, False], [True, False], [True, False], [1, 2], [True, False], [True]
+            sorted(TASKS), [True, False], [True, False], [True, False], [1, 2], [True, False], [True]
         )
         if not ((int8 and half) or (task == "classify" and nms) or (end2end and nms))
     ],
@@ -136,7 +136,7 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms, end2end):
     [  # generate all combinations except for exclusion cases
         (task, dynamic, int8, half, batch, simplify, nms, end2end)
         for task, dynamic, int8, half, batch, simplify, nms, end2end in product(
-            TASKS, [True, False], [False], [False], [1, 2], [True, False], [True, False], [True, False]
+            sorted(TASKS), [True, False], [False], [False], [1, 2], [True, False], [True, False], [True, False]
         )
         if not ((int8 and half) or (task == "classify" and nms) or (nms and not TORCH_1_13) or (end2end and nms))
     ],
@@ -165,7 +165,7 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms, end
     [  # generate all combinations except for exclusion cases
         (task, dynamic, int8, half, batch, nms, end2end)
         for task, dynamic, int8, half, batch, nms, end2end in product(
-            TASKS, [False, True], [False], [False, True], [1, 2], [True, False], [True, False]
+            sorted(TASKS), [False, True], [False], [False, True], [1, 2], [True, False], [True, False]
         )
         if not ((task == "classify" and nms) or (end2end and nms))
     ],
@@ -192,7 +192,7 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms, end2en
     [  # generate all combinations except for exclusion cases
         (task, dynamic, int8, half, nms, batch, end2end)
         for task, dynamic, int8, half, nms, batch, end2end in product(
-            TASKS, [True, False], [True, False], [True, False], [True, False], [1], [True, False]
+            sorted(TASKS), [True, False], [True, False], [True, False], [True, False], [1], [True, False]
         )
         if not (int8 and half)
         and not (task != "detect" and nms)
@@ -231,7 +231,7 @@ def test_export_coreml_matrix(task, dynamic, int8, half, nms, batch, end2end):
     [  # generate all combinations except for exclusion cases
         (task, dynamic, int8, half, batch, nms, end2end)
         for task, dynamic, int8, half, batch, nms, end2end in product(
-            TASKS, [False], [True, False], [True, False], [1], [True, False], [True, False]
+            sorted(TASKS), [False], [True, False], [True, False], [1], [True, False], [True, False]
         )
         if not (
             (int8 and half)
@@ -311,7 +311,7 @@ def test_export_mnn():
     "task, int8, half, batch, end2end",
     [  # generate all combinations except for exclusion cases
         (task, int8, half, batch, end2end)
-        for task, int8, half, batch, end2end in product(TASKS, [True, False], [True, False], [1, 2], [True, False])
+        for task, int8, half, batch, end2end in product(sorted(TASKS), [True, False], [True, False], [1, 2], [True, False])
         if not (int8 and half)
     ],
 )
@@ -333,7 +333,7 @@ def test_export_ncnn():
 
 @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_2_0, reason="NCNN inference causes segfault on PyTorch<2.0")
-@pytest.mark.parametrize("task, half, batch", list(product(TASKS, [True, False], [1])))
+@pytest.mark.parametrize("task, half, batch", list(product(sorted(TASKS), [True, False], [1])))
 def test_export_ncnn_matrix(task, half, batch):
     """Test YOLO export to NCNN format considering various export configurations."""
     skip_rpi_semantic(task)
@@ -375,7 +375,7 @@ def test_export_executorch():
 @pytest.mark.slow
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_2_9, reason="Requires Python>=3.10 and Torch>=2.9.0")
 @pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")
-@pytest.mark.parametrize("task", TASKS)
+@pytest.mark.parametrize("task", sorted(TASKS))
 def test_export_executorch_matrix(task):
     """Test YOLO export to ExecuTorch format for various task types."""
     skip_rpi_semantic(task)

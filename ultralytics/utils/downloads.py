@@ -340,7 +340,9 @@ def safe_download(
         if not f.is_file():
             with FileLock(f.with_suffix(f.suffix + ".lock")):
                 if not f.is_file():  # second check after acquiring lock
-                    uri = (url if gdrive else clean_url(url)).replace(ASSETS_URL, "https://ultralytics.com/assets")  # clean
+                    uri = (url if gdrive else clean_url(url)).replace(
+                        ASSETS_URL, "https://ultralytics.com/assets"
+                    )  # clean
                     desc = f"Downloading {uri} to '{f}'"
                     curl_installed = shutil.which("curl")
                     for i in range(retry + 1):
@@ -357,7 +359,9 @@ def safe_download(
                                     expected_size = int(response.getheader("Content-Length", 0))
                                     if i == 0 and expected_size > 1048576:
                                         check_disk_space(expected_size, path=f.parent)
-                                    buffer_size = max(8192, min(1048576, expected_size // 1000)) if expected_size else 8192
+                                    buffer_size = (
+                                        max(8192, min(1048576, expected_size // 1000)) if expected_size else 8192
+                                    )
                                     with TQDM(
                                         total=expected_size,
                                         desc=desc,

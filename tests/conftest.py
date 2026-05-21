@@ -1,9 +1,43 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import os
 import shutil
 from pathlib import Path
 
 import pytest
+
+import ultralytics.utils
+
+_xdist_worker = os.environ.get("PYTEST_XDIST_WORKER")
+if _xdist_worker:
+    _workspace = Path(__file__).parent / ".xdist_workspace" / _xdist_worker
+    _workspace.mkdir(parents=True, exist_ok=True)
+    os.chdir(_workspace)
+
+    _redirects = {
+        "WEIGHTS_DIR": _workspace / "weights",
+        "DATASETS_DIR": _workspace / "datasets",
+        "ASSETS": _workspace / "assets",
+    }
+    for _attr, _dst in _redirects.items():
+        _src = getattr(ultralytics.utils, _attr)
+        _dst.mkdir(parents=True, exist_ok=True)
+        if _src.exists() and _src != _dst:
+            if _src.is_dir():
+                shutil.copytree(_src, _dst, dirs_exist_ok=True)
+            else:
+                shutil.copy2(_src, _dst)
+        setattr(ultralytics.utils, _attr, _dst)
+
+    ultralytics.utils.SETTINGS["weights_dir"] = str(_redirects["WEIGHTS_DIR"])
+    ultralytics.utils.SETTINGS["datasets_dir"] = str(_redirects["DATASETS_DIR"])
+
+
+@pytest.fixture(autouse=True)
+def disable_settings_save(monkeypatch):
+    """Prevent tests from writing to the shared Ultralytics settings JSON file."""
+    from ultralytics.utils import SETTINGS
+    monkeypatch.setattr(SETTINGS, "_save", lambda: None)
 
 
 @pytest.fixture(scope="session")

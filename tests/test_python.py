@@ -886,6 +886,8 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
     im = np.zeros((32, 32, 1), dtype=np.uint8)
     model.predict(source=im, imgsz=32, save_txt=True, save_crop=True, augment=True)
     export_model = model.export(format="onnx")
+    model = YOLO(export_model, task=task)
+    model.predict(source=im, imgsz=32)
 
 
 def test_v8_transforms_flip_idx_without_kpt_shape():
@@ -925,6 +927,3 @@ def test_v8_transforms_flip_idx_without_kpt_shape():
 
     # Must not raise TypeError: 'NoneType' object is not subscriptable
     v8_transforms(dataset, imgsz=640, hyp=hyp)
-
-    model = YOLO(export_model, task=task)
-    model.predict(source=im, imgsz=32)

@@ -26,7 +26,7 @@ YOLO26 semantic segmentation models pretrained on the [Cityscapes](https://githu
 {% include "macros/yolo-semantic-perf.md" %}
 
 - **mIoU<sup>val</sup>** values are for single-model single-scale on the [Cityscapes](https://www.cityscapes-dataset.com/) validation set. <br>Reproduce with `yolo semantic val data=cityscapes.yaml device=0 imgsz=2048`
-- **Speed** metrics are averaged over Cityscapes validation images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce with `yolo semantic val data=cityscapes.yaml batch=1 device=0|cpu imgsz=2048`
+- **Speed** metrics are averaged over Cityscapes validation images using a RTX3090 instance. <br>Reproduce with `yolo semantic val data=cityscapes.yaml batch=1 device=0|cpu imgsz=2048`
 - **Params** and **FLOPs** values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
 ## Train

@@ -172,7 +172,7 @@ See the [Semantic Segmentation Docs](https://docs.ultralytics.com/tasks/semantic
 | [YOLO26x-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-sem.pt) | 1024 &times; 2048           | 83.6               | 48.9 ± 0.2                                  | 40.2                     | 861.7                   |
 
 - **mIoU<sup>val</sup>** values are for single-model single-scale on the [Cityscapes](https://www.cityscapes-dataset.com/) validation set. <br>Reproduce with `yolo semantic val data=cityscapes.yaml device=0 imgsz=2048`
-- **Speed** metrics are averaged over Cityscapes validation images using an RTX3090 instance. <br>Reproduce with `yolo semantic val data=cityscapes.yaml batch=1 device=0|cpu imgsz=2048`
+- **Speed** metrics are averaged over Cityscapes validation images using a RTX3090 instance. <br>Reproduce with `yolo semantic val data=cityscapes.yaml batch=1 device=0|cpu imgsz=2048`
 
 </details>
 

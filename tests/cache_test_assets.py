@@ -96,6 +96,7 @@ def cache_solution_assets() -> None:
 
 
 def main() -> None:
+    """Main function to orchestrate caching of all test assets."""
     cache_weights()
     cache_datasets()
     cache_solution_assets()

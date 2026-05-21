@@ -154,26 +154,26 @@ See full `predict` mode details in the [Predict](../modes/predict.md) page.
 YOLO instance segmentation returns one `Results` object per image. Each result stores object-level predictions, where
 each detected instance has its own binary mask, class, confidence, and box.
 
-| Attribute | Type | Shape / Format | Description |
-|---|---|---|---|
-| `result.masks` | `Masks` | `N` masks | Mask container for detected object instances. |
-| `result.masks.data` | `torch.Tensor` | `(N, H, W)`, `torch.uint8` | Binary mask stack where `N` is the number of instances and values are `0` or `1`. |
-| `result.masks.xy` | `list[np.ndarray]` | One `(points, 2)` array per instance | Mask polygons in pixel coordinates. |
-| `result.masks.xyn` | `list[np.ndarray]` | One `(points, 2)` array per instance | Normalized mask polygons with coordinates in `[0, 1]`. |
-| `result.boxes` | `Boxes` | `N` boxes | Bounding boxes, confidences, and class IDs aligned with the masks. |
+| Attribute           | Type               | Shape / Format                       | Description                                                                       |
+| ------------------- | ------------------ | ------------------------------------ | --------------------------------------------------------------------------------- |
+| `result.masks`      | `Masks`            | `N` masks                            | Mask container for detected object instances.                                     |
+| `result.masks.data` | `torch.Tensor`     | `(N, H, W)`, `torch.uint8`           | Binary mask stack where `N` is the number of instances and values are `0` or `1`. |
+| `result.masks.xy`   | `list[np.ndarray]` | One `(points, 2)` array per instance | Mask polygons in pixel coordinates.                                               |
+| `result.masks.xyn`  | `list[np.ndarray]` | One `(points, 2)` array per instance | Normalized mask polygons with coordinates in `[0, 1]`.                            |
+| `result.boxes`      | `Boxes`            | `N` boxes                            | Bounding boxes, confidences, and class IDs aligned with the masks.                |
 
 ### Instance vs Semantic Segmentation
 
-| Aspect | Instance Segmentation (`task="segment"`) | Semantic Segmentation (`task="semantic"`) |
-|---|---|---|
-| Output field | `result.masks` | `result.semantic_mask` |
-| Main data | `result.masks.data` | `result.semantic_mask.data` |
-| Shape | `(N, H, W)` | `(H, W)` |
-| Pixel values | Binary mask values: `0` or `1` | Class IDs: `0`, `1`, `2`, ... |
-| Dtype | `torch.uint8` | Usually `torch.uint8`; larger class counts may use `torch.int16` or `torch.int32` |
-| Object separation | Separates each detected object instance | Groups all pixels of the same class together |
-| Polygons | Yes, through `result.masks.xy` and `result.masks.xyn` | No polygon output by default |
-| Boxes and confidence | Yes, through `result.boxes` | No per-instance boxes or confidence scores |
+| Aspect               | Instance Segmentation (`task="segment"`)              | Semantic Segmentation (`task="semantic"`)                                         |
+| -------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------- |
+| Output field         | `result.masks`                                        | `result.semantic_mask`                                                            |
+| Main data            | `result.masks.data`                                   | `result.semantic_mask.data`                                                       |
+| Shape                | `(N, H, W)`                                           | `(H, W)`                                                                          |
+| Pixel values         | Binary mask values: `0` or `1`                        | Class IDs: `0`, `1`, `2`, ...                                                     |
+| Dtype                | `torch.uint8`                                         | Usually `torch.uint8`; larger class counts may use `torch.int16` or `torch.int32` |
+| Object separation    | Separates each detected object instance               | Groups all pixels of the same class together                                      |
+| Polygons             | Yes, through `result.masks.xy` and `result.masks.xyn` | No polygon output by default                                                      |
+| Boxes and confidence | Yes, through `result.boxes`                           | No per-instance boxes or confidence scores                                        |
 
 ## Export
 

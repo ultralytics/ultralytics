@@ -20,6 +20,7 @@ from pathlib import Path
 
 from ultralytics.data.utils import IMG_FORMATS
 from ultralytics.utils import YAML
+from ultralytics.utils.checks import check_requirements
 
 DATASETS: list[tuple[str, str, str]] = [
     ("medical", "nih-xray-itazg-xeoi", "nih-xray"),
@@ -206,11 +207,15 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
-    """Prepare the curated RF100-VL subset under ``args.root``."""
+    """Prepare the curated RF100-VL subset under ``args.root``.
+
+    Assumes the ultralytics venv is active; auto-installs ``roboflow`` if missing.
+    """
     args = parse_args()
     api_key = args.api_key or os.environ.get("ROBOFLOW_API_KEY")
     if not api_key:
         raise SystemExit("provide --api_key or set ROBOFLOW_API_KEY")
+    check_requirements("roboflow")
 
     selected = DATASETS
     if args.datasets:

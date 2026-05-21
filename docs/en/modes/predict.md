@@ -532,11 +532,12 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 Each prediction returns one `Results` object per image or frame. The common fields above are always available, while the
 task-specific prediction data is stored in the fields below. Coordinate, confidence, and probability tensors are
 `torch.float32` unless half precision is used, then `torch.float16`. After `result.numpy()`, tensors become NumPy arrays with matching NumPy dtypes.
-Instance masks are `torch.uint8` binary tensors, while semantic masks use compact integer class IDs.
+Instance masks are `torch.uint8` binary tensors, while semantic masks use the smallest practical integer dtype for class
+IDs: `torch.uint8`, `torch.int16`, or `torch.int32`, depending on class count.
 
 === "Detect"
 
-    | Field | Type | Shape | Description |
+    | Attribute | Type | Shape | Description |
     |---|---|---|---|
     | `result.boxes` | `Boxes` | `(N)` | Detection boxes. |
     | `result.boxes.data` | `torch.float32` | `(N,6/7)` | Raw `[x1,y1,x2,y2,conf,cls]`, plus optional track ID. |
@@ -546,7 +547,7 @@ Instance masks are `torch.uint8` binary tensors, while semantic masks use compac
 
 === "Segment"
 
-    | Field | Type | Shape | Description |
+    | Attribute | Type | Shape | Description |
     |---|---|---|---|
     | `result.boxes` | `Boxes` | `(N)` | Instance boxes/classes/confidences. |
     | `result.masks` | `Masks` | `(N)` | Instance masks. |
@@ -556,16 +557,16 @@ Instance masks are `torch.uint8` binary tensors, while semantic masks use compac
 
 === "Semantic"
 
-    | Field | Type | Shape | Description |
+    | Attribute | Type | Shape | Description |
     |---|---|---|---|
     | `result.semantic_mask` | `SemanticMask` | `(H,W)` | Dense class map. |
-    | `result.semantic_mask.data` | `torch.uint8`<br>`torch.int16`<br>`torch.int32` | `(H,W)` | Per-pixel class IDs. |
+    | `result.semantic_mask.data` | `torch.uint8`<br>`torch.int16`<br>`torch.int32` | `(H,W)` | Per-pixel class IDs, dtype selected by class count. |
     | `result.masks` | - | - | No instance masks. |
     | `result.boxes` | - | - | No instance boxes/confidences. |
 
 === "Classify"
 
-    | Field | Type | Shape | Description |
+    | Attribute | Type | Shape | Description |
     |---|---|---|---|
     | `result.probs` | `Probs` | `(C,)` | Class probabilities. |
     | `result.probs.data` | `torch.float32` | `(C,)` | Probability per class. |
@@ -575,7 +576,7 @@ Instance masks are `torch.uint8` binary tensors, while semantic masks use compac
 
 === "Pose"
 
-    | Field | Type | Shape | Description |
+    | Attribute | Type | Shape | Description |
     |---|---|---|---|
     | `result.boxes` | `Boxes` | `(N)` | Instance boxes. |
     | `result.keypoints` | `Keypoints` | `(N)` | Keypoints. |
@@ -585,7 +586,7 @@ Instance masks are `torch.uint8` binary tensors, while semantic masks use compac
 
 === "OBB"
 
-    | Field | Type | Shape | Description |
+    | Attribute | Type | Shape | Description |
     |---|---|---|---|
     | `result.obb` | `OBB` | `(N)` | Oriented boxes. |
     | `result.obb.data` | `torch.float32` | `(N,7/8)` | Raw rotated boxes with confidence/class. |
@@ -711,7 +712,7 @@ binary mask per object and does not provide polygon helpers.
 
 | Name      | Type                      | Description                                                                                |
 | --------- | ------------------------- | ------------------------------------------------------------------------------------------ |
-| `data`    | Property (`torch.Tensor`) | Class-ID map with shape `(H,W)` and dtype `torch.uint8`<br>`torch.int16`<br>`torch.int32`. |
+| `data`    | Property (`torch.Tensor`) | Class-ID map with shape `(H,W)`. Dtype is `torch.uint8`, `torch.int16`, or `torch.int32`, selected by class count. |
 | `shape`   | Property (`tuple`)        | Shape of the class map, usually matching `result.orig_shape`.                              |
 | `cpu()`   | Method                    | Returns the semantic mask tensor on CPU memory.                                            |
 | `numpy()` | Method                    | Returns the semantic mask tensor as a NumPy array.                                         |

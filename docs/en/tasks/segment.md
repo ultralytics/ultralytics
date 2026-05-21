@@ -137,7 +137,7 @@ Use a trained YOLO26n-seg model to run predictions on images.
         for result in results:
             xy = result.masks.xy  # mask polygons in pixel coordinates
             xyn = result.masks.xyn  # normalized mask polygons
-            masks = result.masks.data  # binary masks, shape (N,H,W), dtype uint8
+            masks = result.masks.data  # binary masks, shape (N,H,W), dtype torch.uint8
         ```
 
     === "CLI"

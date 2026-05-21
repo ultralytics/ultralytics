@@ -710,14 +710,14 @@ binary mask per object and does not provide polygon helpers.
         print(r.semantic_mask.data)  # print the H x W class-ID map
     ```
 
-| Name      | Type                      | Description                                                                                |
-| --------- | ------------------------- | ------------------------------------------------------------------------------------------ |
+| Name      | Type                      | Description                                                                                                        |
+| --------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `data`    | Property (`torch.Tensor`) | Class-ID map with shape `(H,W)`. Dtype is `torch.uint8`, `torch.int16`, or `torch.int32`, selected by class count. |
-| `shape`   | Property (`tuple`)        | Shape of the class map, usually matching `result.orig_shape`.                              |
-| `cpu()`   | Method                    | Returns the semantic mask tensor on CPU memory.                                            |
-| `numpy()` | Method                    | Returns the semantic mask tensor as a NumPy array.                                         |
-| `cuda()`  | Method                    | Returns the semantic mask tensor on GPU memory.                                            |
-| `to()`    | Method                    | Returns the semantic mask tensor with the specified device and dtype.                      |
+| `shape`   | Property (`tuple`)        | Shape of the class map, usually matching `result.orig_shape`.                                                      |
+| `cpu()`   | Method                    | Returns the semantic mask tensor on CPU memory.                                                                    |
+| `numpy()` | Method                    | Returns the semantic mask tensor as a NumPy array.                                                                 |
+| `cuda()`  | Method                    | Returns the semantic mask tensor on GPU memory.                                                                    |
+| `to()`    | Method                    | Returns the semantic mask tensor with the specified device and dtype.                                              |
 
 ### Keypoints
 

@@ -25,6 +25,7 @@ from ultralytics.utils import (
     ASSETS_URL,
     DEFAULT_CFG,
     DEFAULT_CFG_PATH,
+    IS_JETSON,
     IS_RASPBERRYPI,
     LINUX,
     LOGGER,
@@ -247,7 +248,7 @@ def test_val(task: str, weight: str, data: str) -> None:
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
-@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
+@pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_scratch():
     """Test training the YOLO model from scratch on 12 different image types in the COCO12-Formats dataset."""
     model = YOLO(CFG)

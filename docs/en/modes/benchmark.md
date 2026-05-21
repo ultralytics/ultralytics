@@ -112,7 +112,7 @@ Arguments such as `model`, `data`, `imgsz`, `half`, `device`, `verbose` and `for
 
 !!! note "Standalone `benchmark()` function defaults"
 
-    The `imgsz` and `device` defaults above are the `yolo benchmark` CLI and `model.benchmark()` values (resolved from `DEFAULT_CFG`). The standalone `benchmark()` function instead falls back to its own signature for omitted arguments: `model="yolo26n.pt"`, `imgsz=160`, and `device='cpu'`. Note that `model.benchmark()` runs on the already-loaded model instance, so `model` is an argument only for the CLI and the standalone function. Pass `imgsz`/`device` explicitly to make the standalone function match the CLI.
+    The `imgsz` and `device` defaults above are the `yolo benchmark` CLI and `model.benchmark()` values (resolved from `DEFAULT_CFG`). The standalone `benchmark()` function instead falls back to its own signature for omitted arguments: a default `yolo26n.pt` model path, `imgsz=160`, and `device='cpu'`. Note that `model.benchmark()` runs on the already-loaded model instance, so `model` is an argument only for the CLI and the standalone function. Pass `imgsz`/`device` explicitly to make the standalone function match the CLI.
 
 ## Export Formats
 

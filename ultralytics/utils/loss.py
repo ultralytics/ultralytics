@@ -1325,7 +1325,9 @@ class SemanticSegmentationLoss(nn.Module):
         valid = masks != 255
 
         pred_soft = F.softmax(preds, dim=1)
-        target_onehot = F.one_hot(masks.clamp(0, self.nc - 1).long(), self.nc).permute(0, 3, 1, 2).float()
+        target_onehot = (
+            torch.zeros_like(pred_soft).scatter_(1, masks.unsqueeze(1).clamp(0, self.nc - 1).long(), 1.0).float()
+        )
         valid_mask = valid.unsqueeze(1).expand_as(target_onehot).float()
         intersection = (pred_soft * target_onehot * valid_mask).sum(dim=(0, 2, 3))
         cardinality = ((pred_soft + target_onehot) * valid_mask).sum(dim=(0, 2, 3))

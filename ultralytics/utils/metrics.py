@@ -1740,7 +1740,7 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
 
         intersection = torch.diagonal(self.matrix)
         union = self.matrix.sum(1) + self.matrix.sum(0) - intersection
-        iou = torch.where(union > 0, intersection / union, torch.tensor(float("nan"), device=union.device))
+        iou = torch.where(union > 0, intersection / union, 0)
         row_sum = self.matrix.sum(1)
         pa = intersection / (row_sum + 1e-10)
 
@@ -1750,7 +1750,7 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
             self._per_class_pixel_acc = pa[1:].cpu().numpy()
             self.nt_per_class = np.array([row_sum[1].item()], dtype=np.int32)
         else:
-            self._miou = float(iou[~torch.isnan(iou)].mean().item())
+            self._miou = float(iou.mean().item())
             self._per_class_iou = iou.cpu().numpy()
             self._per_class_pixel_acc = pa.cpu().numpy()
             self.nt_per_class = row_sum[: self.nc].cpu().numpy().astype(np.int32)

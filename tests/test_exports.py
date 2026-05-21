@@ -17,7 +17,22 @@ from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ARM64, IS_DOCKER, IS_RASPBERRYPI, LINUX, MACOS, MACOS_VERSION, WINDOWS, checks
 from ultralytics.utils.export.engine import torch2onnx
-from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_0, TORCH_2_1, TORCH_2_8, TORCH_2_9
+from ultralytics.utils.torch_utils import (
+    TORCH_1_10,
+    TORCH_1_11,
+    TORCH_1_13,
+    TORCH_2_0,
+    TORCH_2_1,
+    TORCH_2_8,
+    TORCH_2_9,
+    TORCH_2_12,
+)
+
+
+def skip_rpi_semantic(task):
+    """Skip semantic segmentation export tests on Raspberry Pi due to memory constraints."""
+    if IS_RASPBERRYPI and task == "semantic":
+        pytest.skip("Semantic segmentation export tests are skipped on Raspberry Pi due to memory constraints.")
 
 
 @pytest.mark.parametrize("end2end", [False, True])
@@ -95,6 +110,7 @@ def test_export_openvino(end2end):
 # disable end2end=False test for now due to github runner OOM during openvino tests
 def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms, end2end):
     """Test YOLO model export to OpenVINO under various configuration matrix conditions."""
+    skip_rpi_semantic(task)
     file = YOLO(TASK2MODEL[task]).export(
         format="openvino",
         imgsz=32,
@@ -127,6 +143,7 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms, end2end):
 )
 def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms, end2end):
     """Test YOLO export to ONNX format with various configurations and parameters."""
+    skip_rpi_semantic(task)
     file = YOLO(TASK2MODEL[task]).export(
         format="onnx",
         imgsz=32,
@@ -155,6 +172,7 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms, end
 )
 def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms, end2end):
     """Test YOLO model export to TorchScript format under varied configurations."""
+    skip_rpi_semantic(task)
     file = YOLO(TASK2MODEL[task]).export(
         format="torchscript", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms, end2end=end2end
     )
@@ -185,6 +203,7 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms, end2en
 )
 def test_export_coreml_matrix(task, dynamic, int8, half, nms, batch, end2end):
     """Test YOLO export to CoreML format with various parameter configurations."""
+    skip_rpi_semantic(task)
     file = YOLO(TASK2MODEL[task]).export(
         format="coreml",
         imgsz=32,
@@ -225,6 +244,7 @@ def test_export_coreml_matrix(task, dynamic, int8, half, nms, batch, end2end):
 )
 def test_export_tflite_matrix(task, dynamic, int8, half, batch, nms, end2end):
     """Test YOLO export to TFLite format considering various export configurations."""
+    skip_rpi_semantic(task)
     file = YOLO(TASK2MODEL[task]).export(
         format="tflite", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms, end2end=end2end
     )
@@ -297,6 +317,7 @@ def test_export_mnn():
 )
 def test_export_mnn_matrix(task, int8, half, batch, end2end):
     """Test YOLO export to MNN format considering various export configurations."""
+    skip_rpi_semantic(task)
     file = YOLO(TASK2MODEL[task]).export(format="mnn", imgsz=32, int8=int8, half=half, batch=batch, end2end=end2end)
     YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
     Path(file).unlink()  # cleanup
@@ -315,6 +336,7 @@ def test_export_ncnn():
 @pytest.mark.parametrize("task, half, batch", list(product(TASKS, [True, False], [1])))
 def test_export_ncnn_matrix(task, half, batch):
     """Test YOLO export to NCNN format considering various export configurations."""
+    skip_rpi_semantic(task)
     file = YOLO(TASK2MODEL[task]).export(format="ncnn", imgsz=32, half=half, batch=batch)
     YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
@@ -356,6 +378,7 @@ def test_export_executorch():
 @pytest.mark.parametrize("task", TASKS)
 def test_export_executorch_matrix(task):
     """Test YOLO export to ExecuTorch format for various task types."""
+    skip_rpi_semantic(task)
     file = YOLO(TASK2MODEL[task]).export(format="executorch", imgsz=32)
     assert Path(file).exists(), f"ExecuTorch export failed for task '{task}', directory not found: {file}"
     # Check that .pte file exists in the exported directory
@@ -369,7 +392,7 @@ def test_export_executorch_matrix(task):
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(not TORCH_2_8, reason="Axelera export requires torch>=2.8.0")
+@pytest.mark.skipif(not TORCH_2_8 or TORCH_2_12, reason="Axelera export requires 2.8.0<=torch<2.12.0")
 @pytest.mark.skipif(
     not LINUX or (ARM64 and IS_DOCKER),
     reason="Axelera export is only supported on Linux and is not supported on ARM64 Docker",
@@ -381,4 +404,17 @@ def test_export_axelera():
     file = YOLO(MODEL).export(format="axelera", imgsz=64, data="coco8.yaml")
     assert Path(file).exists(), f"Axelera export failed, directory not found: {file}"
     # Note: Inference testing skipped as it requires Axelera hardware
+    shutil.rmtree(file, ignore_errors=True)  # cleanup
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not LINUX or ARM64, reason="DeepX export only supported on non-aarch64 Linux")
+@pytest.mark.skipif(
+    not checks.IS_PYTHON_MINIMUM_3_12, reason="Requires Python>=3.12 for CI validation due to torch upgrades"
+)
+def test_export_deepx():
+    """Test YOLO export to DeepX format."""
+    file = YOLO(MODEL).export(format="deepx", imgsz=32)
+    assert Path(file).exists(), f"DeepX export failed, directory not found: {file}"
+    # Note: Inference testing skipped as it requires DeepX hardware
     shutil.rmtree(file, ignore_errors=True)  # cleanup

@@ -512,108 +512,107 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 
 `Results` objects have the following attributes:
 
-| Attribute       | Type                     | Description                                                                              |
-| --------------- | ------------------------ | ---------------------------------------------------------------------------------------- |
-| `orig_img`      | `np.ndarray`             | The original image as a NumPy array.                                                     |
-| `orig_shape`    | `tuple`                  | The original image shape in (height, width) format.                                      |
-| `boxes`         | `Boxes, optional`        | A Boxes object containing the detection bounding boxes.                                  |
-| `masks`         | `Masks, optional`        | A Masks object containing the detection masks.                                           |
-| `probs`         | `Probs, optional`        | A Probs object containing probabilities of each class for classification task.           |
-| `keypoints`     | `Keypoints, optional`    | A Keypoints object containing detected keypoints for each object.                        |
-| `obb`           | `OBB, optional`          | An OBB object containing oriented bounding boxes.                                        |
-| `semantic_mask` | `SemanticMask, optional` | A SemanticMask object containing a dense per-pixel class map.                            |
-| `speed`         | `dict`                   | A dictionary of preprocess, inference, and postprocess speeds in milliseconds per image. |
-| `names`         | `dict`                   | A dictionary mapping class indices to class names.                                       |
-| `path`          | `str`                    | The path to the image file.                                                              |
-| `save_dir`      | `str, optional`          | Directory to save results.                                                               |
+| Attribute    | Type                  | Description                                                                              |
+| ------------ | --------------------- | ---------------------------------------------------------------------------------------- |
+| `orig_img`   | `np.ndarray`          | The original image as a NumPy array.                                                     |
+| `orig_shape` | `tuple`               | The original image shape in (height, width) format.                                      |
+| `boxes`      | `Boxes, optional`     | A Boxes object containing the detection bounding boxes.                                  |
+| `masks`      | `Masks, optional`     | A Masks object containing the detection masks.                                           |
+| `probs`      | `Probs, optional`     | A Probs object containing probabilities of each class for classification task.           |
+| `keypoints`  | `Keypoints, optional` | A Keypoints object containing detected keypoints for each object.                        |
+| `obb`        | `OBB, optional`       | An OBB object containing oriented bounding boxes.                                        |
+| `semantic_mask` | `SemanticMask, optional` | A SemanticMask object containing a dense per-pixel class map.                        |
+| `speed`      | `dict`                | A dictionary of preprocess, inference, and postprocess speeds in milliseconds per image. |
+| `names`      | `dict`                | A dictionary mapping class indices to class names.                                       |
+| `path`       | `str`                 | The path to the image file.                                                              |
+| `save_dir`   | `str, optional`       | Directory to save results.                                                               |
 
 ### Results by Task
 
 Each prediction returns one `Results` object per image or frame. The common fields above are always available, while the
 task-specific prediction data is stored in the fields below. Coordinate, confidence, and probability tensors are
-floating point tensors, usually `torch.float32` in standard PyTorch inference. They may be `torch.float16` when using
-half-precision inference or some exported backends, and they become NumPy floating dtypes after `result.numpy()`.
+`torch.float32` unless half precision is used, then `torch.float16`. After `result.numpy()`, tensors become NumPy arrays with matching NumPy dtypes.
 Instance masks are `torch.uint8` binary tensors, while semantic masks use compact integer class IDs.
 
 === "Detect"
 
-    | Field | Type | Shape / Values | Dtype | Description |
+    | Field | Type | Shape | Dtype | Description |
     |---|---|---|---|---|
-    | `result.boxes` | `Boxes` | `N` boxes | Container | Detection boxes for each object. |
-    | `result.boxes.data` | `torch.Tensor` | `(N, 6)` or `(N, 7)` | Floating point | Raw boxes as `[x1, y1, x2, y2, conf, cls]`, with optional track ID. |
-    | `result.boxes.xyxy` | `torch.Tensor` | `(N, 4)` | Floating point | Box coordinates in `[x1, y1, x2, y2]` pixel format. |
-    | `result.boxes.conf` | `torch.Tensor` | `(N,)` | Floating point | Confidence score for each detection. |
-    | `result.boxes.cls` | `torch.Tensor` | `(N,)` | Floating point class IDs | Class ID for each detection; cast to `int` for name lookup. |
+    | `result.boxes` | `Boxes` | `(N)` | - | Detection boxes. |
+    | `result.boxes.data` | `Tensor` | `(N,6|7)` | `torch.float32` | Raw `[x1,y1,x2,y2,conf,cls]`, plus optional track ID. |
+    | `result.boxes.xyxy` | `Tensor` | `(N,4)` | `torch.float32` | `xyxy` pixel boxes. |
+    | `result.boxes.conf` | `Tensor` | `(N,)` | `torch.float32` | Confidence scores. |
+    | `result.boxes.cls` | `Tensor` | `(N,)` | `torch.float32` | Class IDs; cast to `int` for names. |
 
 === "Segment"
 
-    | Field | Type | Shape / Values | Dtype | Description |
+    | Field | Type | Shape | Dtype | Description |
     |---|---|---|---|---|
-    | `result.boxes` | `Boxes` | `N` boxes | Container | Boxes, confidences, and class IDs for each detected instance. |
-    | `result.masks` | `Masks` | `N` masks | Container | Instance mask container aligned with `result.boxes`. |
-    | `result.masks.data` | `torch.Tensor` | `(N, H, W)` | `torch.uint8` | Binary mask stack with values `0` or `1`, one mask per instance. |
-    | `result.masks.xy` | `list[np.ndarray]` | One `(points, 2)` array per instance | Floating point | Mask polygons in pixel coordinates. |
-    | `result.masks.xyn` | `list[np.ndarray]` | One `(points, 2)` array per instance | Floating point | Normalized mask polygons. |
+    | `result.boxes` | `Boxes` | `(N)` | - | Instance boxes/classes/confidences. |
+    | `result.masks` | `Masks` | `(N)` | - | Instance masks. |
+    | `result.masks.data` | `Tensor` | `(N,H,W)` | `torch.uint8` | Binary masks, values `0` or `1`. |
+    | `result.masks.xy` | `list[ndarray]` | `list[(P,2)]` | `np.float32` | Pixel polygons. |
+    | `result.masks.xyn` | `list[ndarray]` | `list[(P,2)]` | `np.float32` | Normalized polygons. |
 
 === "Semantic"
 
-    | Field | Type | Shape / Values | Dtype | Description |
+    | Field | Type | Shape | Dtype | Description |
     |---|---|---|---|---|
-    | `result.semantic_mask` | `SemanticMask` | One mask per image | Container | Dense semantic class-map container. |
-    | `result.semantic_mask.data` | `torch.Tensor` | `(H, W)` | `torch.uint8`, `torch.int16`, or `torch.int32` | Per-pixel class IDs for the full image. |
-    | `result.masks` | `None` | Not applicable | Not applicable | Semantic segmentation does not return per-instance mask stacks. |
-    | `result.boxes` | `None` | Not applicable | Not applicable | Semantic segmentation does not return per-instance boxes or confidence scores. |
+    | `result.semantic_mask` | `SemanticMask` | `(H,W)` | - | Dense class-map container. |
+    | `result.semantic_mask.data` | `Tensor` | `(H,W)` | `torch.uint8`<br>`torch.int16`<br>`torch.int32` | Per-pixel class IDs. |
+    | `result.masks` | `None` | - | - | No instance masks. |
+    | `result.boxes` | `None` | - | - | No instance boxes/confidences. |
 
 === "Classify"
 
-    | Field | Type | Shape / Values | Dtype | Description |
+    | Field | Type | Shape | Dtype | Description |
     |---|---|---|---|---|
-    | `result.probs` | `Probs` | One probability vector | Container | Classification probabilities for the image. |
-    | `result.probs.data` | `torch.Tensor` | `(num_classes,)` | Floating point | Probability score for each class. |
-    | `result.probs.top1` | `int` | Class index | Python `int` | Highest-probability class ID. |
-    | `result.probs.top1conf` | `torch.Tensor` | Scalar | Floating point | Confidence for the top class. |
-    | `result.probs.top5` | `list[int]` | Up to 5 class indices | Python `int` list | Top-5 class IDs ordered by confidence. |
+    | `result.probs` | `Probs` | `(C,)` | - | Class probabilities. |
+    | `result.probs.data` | `Tensor` | `(C,)` | `torch.float32` | Probability per class. |
+    | `result.probs.top1` | `int` | `()` | `int` | Top class ID. |
+    | `result.probs.top1conf` | `Tensor` | `()` | `torch.float32` | Top confidence. |
+    | `result.probs.top5` | `list[int]` | `(<=5)` | `list[int]` | Top-5 class IDs. |
 
 === "Pose"
 
-    | Field | Type | Shape / Values | Dtype | Description |
+    | Field | Type | Shape | Dtype | Description |
     |---|---|---|---|---|
-    | `result.boxes` | `Boxes` | `N` boxes | Container | Person or object boxes associated with keypoints. |
-    | `result.keypoints` | `Keypoints` | `N` instances | Container | Keypoint container for each detected instance. |
-    | `result.keypoints.data` | `torch.Tensor` | `(N, K, 2)` or `(N, K, 3)` | Floating point | Keypoints as `x, y` plus optional visibility/confidence. |
-    | `result.keypoints.xy` | `torch.Tensor` | `(N, K, 2)` | Floating point | Keypoint coordinates in pixels. |
-    | `result.keypoints.xyn` | `torch.Tensor` | `(N, K, 2)` | Floating point | Normalized keypoint coordinates. |
+    | `result.boxes` | `Boxes` | `(N)` | - | Instance boxes. |
+    | `result.keypoints` | `Keypoints` | `(N)` | - | Keypoint container. |
+    | `result.keypoints.data` | `Tensor` | `(N,K,2|3)` | `torch.float32` | `x,y` plus optional visibility/confidence. |
+    | `result.keypoints.xy` | `Tensor` | `(N,K,2)` | `torch.float32` | Pixel keypoints. |
+    | `result.keypoints.xyn` | `Tensor` | `(N,K,2)` | `torch.float32` | Normalized keypoints. |
 
 === "OBB"
 
-    | Field | Type | Shape / Values | Dtype | Description |
+    | Field | Type | Shape | Dtype | Description |
     |---|---|---|---|---|
-    | `result.obb` | `OBB` | `N` rotated boxes | Container | Oriented bounding boxes for each detection. |
-    | `result.obb.data` | `torch.Tensor` | `(N, 7)` or `(N, 8)` | Floating point | Raw rotated boxes with confidence, class, and optional track ID. |
-    | `result.obb.xywhr` | `torch.Tensor` | `(N, 5)` | Floating point | Rotated boxes as `[x_center, y_center, width, height, rotation]`. |
-    | `result.obb.xyxyxyxy` | `torch.Tensor` | `(N, 4, 2)` | Floating point | Four corner points for each rotated box. |
-    | `result.obb.conf` | `torch.Tensor` | `(N,)` | Floating point | Confidence score for each rotated box. |
+    | `result.obb` | `OBB` | `(N)` | - | Oriented boxes. |
+    | `result.obb.data` | `Tensor` | `(N,7|8)` | `torch.float32` | Raw rotated boxes with confidence/class. |
+    | `result.obb.xywhr` | `Tensor` | `(N,5)` | `torch.float32` | `xywhr` rotated boxes. |
+    | `result.obb.xyxyxyxy` | `Tensor` | `(N,4,2)` | `torch.float32` | Four corner points. |
+    | `result.obb.conf` | `Tensor` | `(N,)` | `torch.float32` | Confidence scores. |
 
 `Results` objects have the following methods:
 
-| Method        | Return Type            | Description                                                                                              |
-| ------------- | ---------------------- | -------------------------------------------------------------------------------------------------------- |
+| Method        | Return Type            | Description                                                                               |
+| ------------- | ---------------------- | ----------------------------------------------------------------------------------------- |
 | `update()`    | `None`                 | Updates the Results object with new data such as boxes, masks, probs, obb, keypoints, or semantic masks. |
-| `cpu()`       | `Results`              | Returns a copy of the Results object with all tensors moved to CPU memory.                               |
-| `numpy()`     | `Results`              | Returns a copy of the Results object with all tensors converted to NumPy arrays.                         |
-| `cuda()`      | `Results`              | Returns a copy of the Results object with all tensors moved to GPU memory.                               |
-| `to()`        | `Results`              | Returns a copy of the Results object with tensors moved to specified device and dtype.                   |
-| `new()`       | `Results`              | Creates a new Results object with the same image, path, names, and speed attributes.                     |
-| `plot()`      | `np.ndarray`           | Plots detection results on an input RGB image and returns the annotated image.                           |
-| `show()`      | `None`                 | Displays the image with annotated inference results.                                                     |
-| `save()`      | `str`                  | Saves annotated inference results image to file and returns the filename.                                |
-| `verbose()`   | `str`                  | Returns a log string for each task, detailing detection and classification outcomes.                     |
-| `save_txt()`  | `str`                  | Saves detection results to a text file and returns the path to the saved file.                           |
-| `save_crop()` | `None`                 | Saves cropped detection images to specified directory.                                                   |
-| `summary()`   | `List[Dict[str, Any]]` | Converts inference results to a summarized dictionary with optional normalization.                       |
-| `to_df()`     | `DataFrame`            | Converts detection results to a Polars DataFrame.                                                        |
-| `to_csv()`    | `str`                  | Converts detection results to CSV format.                                                                |
-| `to_json()`   | `str`                  | Converts detection results to JSON format.                                                               |
+| `cpu()`       | `Results`              | Returns a copy of the Results object with all tensors moved to CPU memory.                |
+| `numpy()`     | `Results`              | Returns a copy of the Results object with all tensors converted to NumPy arrays.          |
+| `cuda()`      | `Results`              | Returns a copy of the Results object with all tensors moved to GPU memory.                |
+| `to()`        | `Results`              | Returns a copy of the Results object with tensors moved to specified device and dtype.    |
+| `new()`       | `Results`              | Creates a new Results object with the same image, path, names, and speed attributes.      |
+| `plot()`      | `np.ndarray`           | Plots detection results on an input RGB image and returns the annotated image.            |
+| `show()`      | `None`                 | Displays the image with annotated inference results.                                      |
+| `save()`      | `str`                  | Saves annotated inference results image to file and returns the filename.                 |
+| `verbose()`   | `str`                  | Returns a log string for each task, detailing detection and classification outcomes.      |
+| `save_txt()`  | `str`                  | Saves detection results to a text file and returns the path to the saved file.            |
+| `save_crop()` | `None`                 | Saves cropped detection images to specified directory.                                    |
+| `summary()`   | `List[Dict[str, Any]]` | Converts inference results to a summarized dictionary with optional normalization.        |
+| `to_df()`     | `DataFrame`            | Converts detection results to a Polars DataFrame.                                         |
+| `to_csv()`    | `str`                  | Converts detection results to CSV format.                                                 |
+| `to_json()`   | `str`                  | Converts detection results to JSON format.                                                |
 
 For more details see the [`Results` class documentation](../reference/engine/results.md).
 
@@ -677,15 +676,15 @@ For more details see the [`Boxes` class documentation](../reference/engine/resul
 
 Here is a table for the `Masks` class methods and properties, including their name, type, and description:
 
-| Name      | Type                          | Description                                                                    |
-| --------- | ----------------------------- | ------------------------------------------------------------------------------ |
-| `data`    | Property (`torch.Tensor`)     | `torch.uint8` binary mask tensor with shape `(N, H, W)` and values `0` or `1`. |
-| `cpu()`   | Method                        | Returns the masks tensor on CPU memory.                                        |
-| `numpy()` | Method                        | Returns the masks tensor as a NumPy array.                                     |
-| `cuda()`  | Method                        | Returns the masks tensor on GPU memory.                                        |
-| `to()`    | Method                        | Returns the masks tensor with the specified device and dtype.                  |
-| `xyn`     | Property (`list[np.ndarray]`) | A list of normalized mask polygons.                                            |
-| `xy`      | Property (`list[np.ndarray]`) | A list of mask polygons in pixel coordinates.                                  |
+| Name      | Type                      | Description                                                   |
+| --------- | ------------------------- | ------------------------------------------------------------- |
+| `data`    | Property (`torch.Tensor`) | `torch.uint8` binary mask tensor with shape `(N,H,W)` and values `0` or `1`. |
+| `cpu()`   | Method                    | Returns the masks tensor on CPU memory.                       |
+| `numpy()` | Method                    | Returns the masks tensor as a NumPy array.                    |
+| `cuda()`  | Method                    | Returns the masks tensor on GPU memory.                       |
+| `to()`    | Method                    | Returns the masks tensor with the specified device and dtype. |
+| `xyn`     | Property (`list[np.ndarray]`) | A list of normalized mask polygons.                        |
+| `xy`      | Property (`list[np.ndarray]`) | A list of mask polygons in pixel coordinates.              |
 
 For more details see the [`Masks` class documentation](../reference/engine/results.md#ultralytics.engine.results.Masks).
 
@@ -710,14 +709,14 @@ binary mask per object and does not provide polygon helpers.
         print(r.semantic_mask.data)  # print the H x W class-ID map
     ```
 
-| Name      | Type                      | Description                                                                                |
-| --------- | ------------------------- | ------------------------------------------------------------------------------------------ |
-| `data`    | Property (`torch.Tensor`) | Class-ID map with shape `(H, W)` and dtype `torch.uint8`, `torch.int16`, or `torch.int32`. |
-| `shape`   | Property (`tuple`)        | Shape of the class map, usually matching `result.orig_shape`.                              |
-| `cpu()`   | Method                    | Returns the semantic mask tensor on CPU memory.                                            |
-| `numpy()` | Method                    | Returns the semantic mask tensor as a NumPy array.                                         |
-| `cuda()`  | Method                    | Returns the semantic mask tensor on GPU memory.                                            |
-| `to()`    | Method                    | Returns the semantic mask tensor with the specified device and dtype.                      |
+| Name      | Type                      | Description                                                             |
+| --------- | ------------------------- | ----------------------------------------------------------------------- |
+| `data`    | Property (`torch.Tensor`) | Class-ID map with shape `(H,W)` and dtype `torch.uint8`<br>`torch.int16`<br>`torch.int32`. |
+| `shape`   | Property (`tuple`)        | Shape of the class map, usually matching `result.orig_shape`.           |
+| `cpu()`   | Method                    | Returns the semantic mask tensor on CPU memory.                         |
+| `numpy()` | Method                    | Returns the semantic mask tensor as a NumPy array.                      |
+| `cuda()`  | Method                    | Returns the semantic mask tensor on GPU memory.                         |
+| `to()`    | Method                    | Returns the semantic mask tensor with the specified device and dtype.   |
 
 ### Keypoints
 

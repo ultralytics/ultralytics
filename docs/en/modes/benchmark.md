@@ -107,7 +107,12 @@ Arguments such as `model`, `data`, `imgsz`, `half`, `device`, `verbose` and `for
 | `int8`    | `False`       | Activates INT8 quantization for further optimized performance on supported devices, especially useful for edge devices. Set `int8=True` to use.                                                         |
 | `device`  | `None`        | Defines the computation device(s) for benchmarking, such as `"cpu"` or `"cuda:0"`.                                                                                                                      |
 | `verbose` | `False`       | Controls the level of detail in logging output. Set `verbose=True` for detailed logs.                                                                                                                   |
+| `eps`     | `0.001`       | Minimum elapsed time (seconds) added when computing FPS as `1000 / (speed + eps)` to prevent division by zero. Rarely needs changing.                                                                   |
 | `format`  | `''`          | Benchmarks only the specified export format (e.g., `format=onnx`). Leave it blank to test every supported format automatically.                                                                         |
+
+!!! note "Standalone `benchmark()` function defaults"
+
+    The default values above apply to the `yolo benchmark` CLI and `model.benchmark()`. When calling the standalone `benchmark()` function directly (as shown in the Python example above) without passing `imgsz` or `device`, it uses `imgsz=160` and `device='cpu'` instead. Pass these arguments explicitly to match the CLI behavior.
 
 ## Export Formats
 

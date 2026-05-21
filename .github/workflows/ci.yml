@@ -150,9 +150,31 @@ jobs:
         run: |
           yolo checks
           uv pip list
+      - name: Configure Ultralytics cache paths
+        shell: bash
+        run: |
+          python -c "
+          from ultralytics import settings
+          import os
+          cache = os.path.join(os.environ['GITHUB_WORKSPACE'], '.ultralytics_cache')
+          settings.update({
+              'weights_dir': os.path.join(cache, 'weights'),
+              'datasets_dir': os.path.join(cache, 'datasets'),
+          })
+          "
+      - name: Cache test assets
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.ultralytics_cache
+          key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py') }}
+          restore-keys: |
+            ultralytics-test-assets-${{ runner.os }}-
+      - name: Pre-cache test assets
+        shell: bash # for Windows compatibility
+        run: python tests/cache_test_assets.py
       - name: Pytest tests
         shell: bash # for Windows compatibility
-        run: pytest -n auto --dist=loadfile --cov=ultralytics/ --cov-report=xml tests/
+        run: pytest -n auto --cov=ultralytics/ --cov-report=xml tests/
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
         uses: codecov/codecov-action@v6
@@ -268,11 +290,33 @@ jobs:
         run: |
           yolo checks
           uv pip list
+      - name: Configure Ultralytics cache paths
+        shell: bash
+        run: |
+          python -c "
+          from ultralytics import settings
+          import os
+          cache = os.path.join(os.environ['GITHUB_WORKSPACE'], '.ultralytics_cache')
+          settings.update({
+              'weights_dir': os.path.join(cache, 'weights'),
+              'datasets_dir': os.path.join(cache, 'datasets'),
+          })
+          "
+      - name: Cache test assets
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.ultralytics_cache
+          key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py') }}
+          restore-keys: |
+            ultralytics-test-assets-${{ runner.os }}-
+      - name: Pre-cache test assets
+        shell: bash # for Windows compatibility
+        run: python tests/cache_test_assets.py
       - name: Pytest tests
         uses: ultralytics/actions/retry@main
         with:
           shell: bash # for Windows compatibility
-          run: pytest -n auto --dist=loadfile --slow --cov=ultralytics/ --cov-report=xml tests/ --deselect tests/test_exports.py::test_export_imx
+          run: pytest -n auto --slow --cov=ultralytics/ --cov-report=xml tests/ --deselect tests/test_exports.py::test_export_imx
           retries: 1 # Retry once after initial attempt (2 total runs)
           timeout_minutes: 180
           retry_delay_seconds: 60
@@ -335,8 +379,29 @@ jobs:
         run: |
           yolo checks
           uv pip list
+      - name: Configure Ultralytics cache paths
+        shell: bash
+        run: |
+          python -c "
+          from ultralytics import settings
+          import os
+          cache = os.path.join(os.environ['GITHUB_WORKSPACE'], '.ultralytics_cache')
+          settings.update({
+              'weights_dir': os.path.join(cache, 'weights'),
+              'datasets_dir': os.path.join(cache, 'datasets'),
+          })
+          "
+      - name: Cache test assets
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.ultralytics_cache
+          key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py') }}
+          restore-keys: |
+            ultralytics-test-assets-${{ runner.os }}-
+      - name: Pre-cache test assets
+        run: python tests/cache_test_assets.py
       - name: Pytest tests
-        run: pytest -n auto --dist=loadfile --slow tests/
+        run: pytest -n auto --slow tests/
       - name: Activate Virtual Environment for Benchmarks
         run: |
           python3.11 -m venv env-benchmarks
@@ -470,18 +535,39 @@ jobs:
         run: |
           VERSION=$(conda list ultralytics | grep ultralytics | awk '{print $2}')
           git clone --branch v$VERSION https://github.com/ultralytics/ultralytics.git
+      - name: Configure Ultralytics cache paths
+        shell: bash
+        run: |
+          python -c "
+          from ultralytics import settings
+          import os
+          cache = os.path.join(os.environ['GITHUB_WORKSPACE'], '.ultralytics_cache')
+          settings.update({
+              'weights_dir': os.path.join(cache, 'weights'),
+              'datasets_dir': os.path.join(cache, 'datasets'),
+          })
+          "
+      - name: Cache test assets
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.ultralytics_cache
+          key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py') }}
+          restore-keys: |
+            ultralytics-test-assets-${{ runner.os }}-
+      - name: Pre-cache test assets
+        run: python tests/cache_test_assets.py
       - name: test_cli.py
-        run: pytest -n auto --dist=loadfile ultralytics/tests/test_cli.py -v -s
+        run: pytest -n auto ultralytics/tests/test_cli.py -v -s
       - name: test_cuda.py
-        run: pytest -n auto --dist=loadfile ultralytics/tests/test_cuda.py -v -s
+        run: pytest -n auto ultralytics/tests/test_cuda.py -v -s
       - name: test_engine.py
-        run: pytest -n auto --dist=loadfile ultralytics/tests/test_engine.py -v -s
+        run: pytest -n auto ultralytics/tests/test_engine.py -v -s
       - name: test_exports.py
-        run: pytest -n auto --dist=loadfile ultralytics/tests/test_exports.py -v -s
+        run: pytest -n auto ultralytics/tests/test_exports.py -v -s
       - name: test_integrations.py
-        run: pytest -n auto --dist=loadfile ultralytics/tests/test_integrations.py -v -s
+        run: pytest -n auto ultralytics/tests/test_integrations.py -v -s
       - name: test_solutions.py
-        run: pytest -n auto --dist=loadfile ultralytics/tests/test_solutions.py -v -s
+        run: pytest -n auto ultralytics/tests/test_solutions.py -v -s
       # WARNING: tests hang here for unknown reasons https://github.com/ultralytics/ultralytics/pull/21577
       # - name: test_python.py
       #   run: pytest ultralytics/tests/test_python.py -vv -s

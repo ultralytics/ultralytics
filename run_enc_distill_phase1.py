@@ -153,6 +153,8 @@ def main(argv: list[str]) -> None:
         --sample_t <float>: per-source temperature for ConcatDataset sampling. 0=uniform (default,
             existing behavior), 0.5=sqrt-balanced (EUPE / DINOv3 convention), 1=fully balanced.
             Active only when the dataset is a ConcatDataset (multi-source ``data=`` arg).
+        --optimizer <name>: ultralytics optimizer name (default ``AdamW``). ``MuSGD`` swaps in
+            Muon-based updates for distillation ablations. Recipe ``beta2`` is ignored when non-AdamW.
     """
     args = argv[1:]
     args, resume = _pop_flag(args, "--resume")
@@ -165,6 +167,7 @@ def main(argv: list[str]) -> None:
     args, distill_path = _pop_flag(args, "--distill_path")
     args, adaptor_arch = _pop_flag(args, "--adaptor_arch")
     args, sample_t_str = _pop_flag(args, "--sample_t")
+    args, optimizer = _pop_flag(args, "--optimizer")
 
     cos_weight = float(cos_w) if cos_w else 0.9
     l1_weight = float(l1_w) if l1_w else 0.1
@@ -172,6 +175,7 @@ def main(argv: list[str]) -> None:
     distill_path = distill_path or "adaptor"
     adaptor_arch = adaptor_arch or "mlp"
     sample_t = float(sample_t_str) if sample_t_str else 0.0
+    optimizer = optimizer or "AdamW"
 
     if resume:
         resume = paths.patch_resume(resume)
@@ -196,6 +200,7 @@ def main(argv: list[str]) -> None:
             ("adaptor_arch", adaptor_arch, "mlp"),
             ("data", data, DATA_7SRC_DEFAULT),
             ("sample_t", sample_t, 0.0),
+            ("optimizer", optimizer, "AdamW"),
         ):
             prev = resume_args.get(key, default)
             if now != prev:
@@ -238,6 +243,7 @@ def main(argv: list[str]) -> None:
             distill_path=distill_path,
             adaptor_arch=adaptor_arch,
             sample_t=sample_t,
+            optimizer=optimizer,
             grad_clip=r["grad_clip"],
             beta2=r["beta2"],
             wandb_group="distill",
@@ -271,7 +277,7 @@ def main(argv: list[str]) -> None:
         warmup_epochs=warmup_epochs,
         warmup_bias_lr=0,
         dropout=0,
-        optimizer="AdamW",
+        optimizer=optimizer,
         pretrained=False,
         amp=True,
         seed=0,

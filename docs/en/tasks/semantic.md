@@ -147,18 +147,18 @@ For task-specific `Results` fields across every task, see the [Predict Results b
 
 ### Instance vs Semantic Segmentation
 
-| Aspect               | Instance Segmentation (`task="segment"`)              | Semantic Segmentation (`task="semantic"`)                                         |
-| -------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------- |
-| Prediction goal      | Segment each detected object separately               | Assign one class ID to every pixel                                                |
-| Output field         | `result.masks`                                        | `result.semantic_mask`                                                            |
-| Main data            | `result.masks.data`                                   | `result.semantic_mask.data`                                                       |
-| Shape                | `(N, H, W)`                                           | `(H, W)`                                                                          |
-| Pixel values         | Binary mask values: `0` or `1`                        | Class IDs: `0`, `1`, `2`, ...                                                     |
-| Dtype                | `torch.uint8`                                         | Usually `torch.uint8`; larger class counts may use `torch.int16` or `torch.int32` |
-| Same-class objects   | Kept as separate instances                            | Merged into the same class region                                                 |
-| Polygons             | Yes, through `result.masks.xy` and `result.masks.xyn` | No polygon output by default                                                      |
-| Boxes and confidence | Yes, through `result.boxes`                           | No per-instance boxes or confidence scores                                        |
-| Typical use          | Counting, tracking, cropping, object-level measurement | Dense scene labeling, drivable area, land cover, medical regions                 |
+| Aspect               | Instance Segmentation (`task="segment"`)               | Semantic Segmentation (`task="semantic"`)                                         |
+| -------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| Prediction goal      | Segment each detected object separately                | Assign one class ID to every pixel                                                |
+| Output field         | `result.masks`                                         | `result.semantic_mask`                                                            |
+| Main data            | `result.masks.data`                                    | `result.semantic_mask.data`                                                       |
+| Shape                | `(N, H, W)`                                            | `(H, W)`                                                                          |
+| Pixel values         | Binary mask values: `0` or `1`                         | Class IDs: `0`, `1`, `2`, ...                                                     |
+| Dtype                | `torch.uint8`                                          | Usually `torch.uint8`; larger class counts may use `torch.int16` or `torch.int32` |
+| Same-class objects   | Kept as separate instances                             | Merged into the same class region                                                 |
+| Polygons             | Yes, through `result.masks.xy` and `result.masks.xyn`  | No polygon output by default                                                      |
+| Boxes and confidence | Yes, through `result.boxes`                            | No per-instance boxes or confidence scores                                        |
+| Typical use          | Counting, tracking, cropping, object-level measurement | Dense scene labeling, drivable area, land cover, medical regions                  |
 
 ## Export
 

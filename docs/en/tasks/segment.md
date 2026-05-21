@@ -161,7 +161,7 @@ each detected instance has its own binary mask, class, confidence, and box.
 | `result.masks.xy`   | `list[np.ndarray]` | One `(points, 2)` array per instance | Mask polygons in pixel coordinates.                                               |
 | `result.masks.xyn`  | `list[np.ndarray]` | One `(points, 2)` array per instance | Normalized mask polygons with coordinates in `[0, 1]`.                            |
 | `result.boxes`      | `Boxes`            | `N` boxes                            | Bounding boxes, confidences, and class IDs aligned with the masks.                |
-| `result.boxes.cls`  | `torch.Tensor`     | `(N,)`                              | Class ID for each detected instance.                                              |
+| `result.boxes.cls`  | `torch.Tensor`     | `(N,)`                               | Class ID for each detected instance.                                              |
 
 For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
 

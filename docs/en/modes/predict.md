@@ -539,7 +539,7 @@ Instance masks are `torch.uint8` binary tensors, while semantic masks use compac
     | Field | Type | Shape | Dtype | Description |
     |---|---|---|---|---|
     | `result.boxes` | `Boxes` | `(N)` | - | Detection boxes. |
-    | `result.boxes.data` | `Tensor` | `(N,6|7)` | `torch.float32` | Raw `[x1,y1,x2,y2,conf,cls]`, plus optional track ID. |
+    | `result.boxes.data` | `Tensor` | `(N,6/7)` | `torch.float32` | Raw `[x1,y1,x2,y2,conf,cls]`, plus optional track ID. |
     | `result.boxes.xyxy` | `Tensor` | `(N,4)` | `torch.float32` | `xyxy` pixel boxes. |
     | `result.boxes.conf` | `Tensor` | `(N,)` | `torch.float32` | Confidence scores. |
     | `result.boxes.cls` | `Tensor` | `(N,)` | `torch.float32` | Class IDs; cast to `int` for names. |
@@ -558,7 +558,7 @@ Instance masks are `torch.uint8` binary tensors, while semantic masks use compac
 
     | Field | Type | Shape | Dtype | Description |
     |---|---|---|---|---|
-    | `result.semantic_mask` | `SemanticMask` | `(H,W)` | - | Dense class-map container. |
+    | `result.semantic_mask` | `SemanticMask` | `(H,W)` | - | Dense class map. |
     | `result.semantic_mask.data` | `Tensor` | `(H,W)` | `torch.uint8`<br>`torch.int16`<br>`torch.int32` | Per-pixel class IDs. |
     | `result.masks` | `None` | - | - | No instance masks. |
     | `result.boxes` | `None` | - | - | No instance boxes/confidences. |
@@ -578,8 +578,8 @@ Instance masks are `torch.uint8` binary tensors, while semantic masks use compac
     | Field | Type | Shape | Dtype | Description |
     |---|---|---|---|---|
     | `result.boxes` | `Boxes` | `(N)` | - | Instance boxes. |
-    | `result.keypoints` | `Keypoints` | `(N)` | - | Keypoint container. |
-    | `result.keypoints.data` | `Tensor` | `(N,K,2|3)` | `torch.float32` | `x,y` plus optional visibility/confidence. |
+    | `result.keypoints` | `Keypoints` | `(N)` | - | Keypoints. |
+    | `result.keypoints.data` | `Tensor` | `(N,K,2/3)` | `torch.float32` | `x,y` plus optional visibility/confidence. |
     | `result.keypoints.xy` | `Tensor` | `(N,K,2)` | `torch.float32` | Pixel keypoints. |
     | `result.keypoints.xyn` | `Tensor` | `(N,K,2)` | `torch.float32` | Normalized keypoints. |
 
@@ -588,7 +588,7 @@ Instance masks are `torch.uint8` binary tensors, while semantic masks use compac
     | Field | Type | Shape | Dtype | Description |
     |---|---|---|---|---|
     | `result.obb` | `OBB` | `(N)` | - | Oriented boxes. |
-    | `result.obb.data` | `Tensor` | `(N,7|8)` | `torch.float32` | Raw rotated boxes with confidence/class. |
+    | `result.obb.data` | `Tensor` | `(N,7/8)` | `torch.float32` | Raw rotated boxes with confidence/class. |
     | `result.obb.xywhr` | `Tensor` | `(N,5)` | `torch.float32` | `xywhr` rotated boxes. |
     | `result.obb.xyxyxyxy` | `Tensor` | `(N,4,2)` | `torch.float32` | Four corner points. |
     | `result.obb.conf` | `Tensor` | `(N,)` | `torch.float32` | Confidence scores. |

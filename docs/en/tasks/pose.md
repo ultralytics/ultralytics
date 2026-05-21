@@ -176,13 +176,13 @@ See full `predict` mode details in the [Predict](../modes/predict.md) page.
 Pose estimation returns one `Results` object per image. The primary prediction fields are `result.keypoints` for pose
 coordinates and `result.boxes` for the detected instances that those keypoints belong to.
 
-| Attribute               | Type        | Shape     | Dtype           | Description           |
-| ----------------------- | ----------- | --------- | --------------- | --------------------- | ------------------------------------------ |
-| `result.keypoints`      | `Keypoints` | `(N)`     | -               | Keypoint container.   |
-| `result.keypoints.data` | `Tensor`    | `(N,K,2   | 3)`             | `torch.float32`       | `x,y` plus optional visibility/confidence. |
-| `result.keypoints.xy`   | `Tensor`    | `(N,K,2)` | `torch.float32` | Pixel keypoints.      |
-| `result.keypoints.xyn`  | `Tensor`    | `(N,K,2)` | `torch.float32` | Normalized keypoints. |
-| `result.boxes`          | `Boxes`     | `(N)`     | -               | Instance boxes.       |
+| Attribute               | Type           | Shape              | Dtype          | Description                                                        |
+| ----------------------- | -------------- | --------------------------- | -------------- | ------------------------------------------------------------------ |
+| `result.keypoints`      | `Keypoints`    | `(N)`               | - | Keypoints.                     |
+| `result.keypoints.data` | `Tensor` | `(N,K,2/3)`  | `torch.float32` | `x,y` plus optional visibility/confidence.           |
+| `result.keypoints.xy`   | `Tensor` | `(N,K,2)`                 | `torch.float32` | Pixel keypoints.                                    |
+| `result.keypoints.xyn`  | `Tensor` | `(N,K,2)`                 | `torch.float32` | Normalized keypoints.                                   |
+| `result.boxes`          | `Boxes`        | `(N)`                   | - | Instance boxes.      |
 
 For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
 

@@ -134,30 +134,30 @@ YOLO semantic segmentation returns one `Results` object per image. Each result s
 image instead of a list of object masks. Pixels with the same predicted class share the same class ID, even when they
 belong to separate objects.
 
-| Attribute                   | Type           | Shape   | Dtype                                           | Description                    |
-| --------------------------- | -------------- | ------- | ----------------------------------------------- | ------------------------------ |
-| `result.semantic_mask`      | `SemanticMask` | `(H,W)` | -                                               | Dense class-map container.     |
-| `result.semantic_mask.data` | `Tensor`       | `(H,W)` | `torch.uint8`<br>`torch.int16`<br>`torch.int32` | Per-pixel class IDs.           |
-| `result.masks`              | `None`         | -       | -                                               | No instance masks.             |
-| `result.boxes`              | `None`         | -       | -                                               | No instance boxes/confidences. |
-| `result.masks.xy`           | -              | -       | -                                               | No default polygons.           |
+| Attribute                   | Type           | Shape     | Dtype                                      | Description                                                                    |
+| --------------------------- | -------------- | ------------------ | ------------------------------------------ | ------------------------------------------------------------------------------ |
+| `result.semantic_mask`      | `SemanticMask` | `(H,W)` | - | Dense class map.                 |
+| `result.semantic_mask.data` | `Tensor` | `(H,W)`           | `torch.uint8`<br>`torch.int16`<br>`torch.int32` | Per-pixel class IDs.                  |
+| `result.masks`              | `None`         | - | -                             | No instance masks.                    |
+| `result.boxes`              | `None`         | - | -                             | No instance boxes/confidences. |
+| `result.masks.xy`           | -  | - | -                             | No default polygons.          |
 
 For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
 
 ### Instance vs Semantic Segmentation
 
-| Aspect               | Instance Segmentation (`task="segment"`)               | Semantic Segmentation (`task="semantic"`)                        |
-| -------------------- | ------------------------------------------------------ | ---------------------------------------------------------------- |
-| Prediction goal      | Segment each detected object separately                | Assign one class ID to every pixel                               |
-| Output field         | `result.masks`                                         | `result.semantic_mask`                                           |
-| Main data            | `result.masks.data`                                    | `result.semantic_mask.data`                                      |
-| Shape                | `(N,H,W)`                                              | `(H,W)`                                                          |
-| Pixel values         | Binary mask values: `0` or `1`                         | Class IDs: `0`, `1`, `2`, ...                                    |
-| Dtype                | `torch.uint8`                                          | `torch.uint8`<br>`torch.int16`<br>`torch.int32`                  |
-| Same-class objects   | Kept as separate instances                             | Merged into the same class region                                |
-| Polygons             | Yes, through `result.masks.xy` and `result.masks.xyn`  | No polygon output by default                                     |
-| Boxes and confidence | Yes, through `result.boxes`                            | No per-instance boxes or confidence scores                       |
-| Typical use          | Counting, tracking, cropping, object-level measurement | Dense scene labeling, drivable area, land cover, medical regions |
+| Aspect               | Instance Segmentation (`task="segment"`)              | Semantic Segmentation (`task="semantic"`)                                         |
+| -------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------- |
+| Prediction goal      | Segment each detected object separately               | Assign one class ID to every pixel                                                |
+| Output field         | `result.masks`                                        | `result.semantic_mask`                                                            |
+| Main data            | `result.masks.data`                                   | `result.semantic_mask.data`                                                       |
+| Shape                | `(N,H,W)`                                           | `(H,W)`                                                                          |
+| Pixel values         | Binary mask values: `0` or `1`                        | Class IDs: `0`, `1`, `2`, ...                                                     |
+| Dtype                | `torch.uint8`                                         | `torch.uint8`<br>`torch.int16`<br>`torch.int32`                                    |
+| Same-class objects   | Kept as separate instances                            | Merged into the same class region                                                 |
+| Polygons             | Yes, through `result.masks.xy` and `result.masks.xyn` | No polygon output by default                                                      |
+| Boxes and confidence | Yes, through `result.boxes`                           | No per-instance boxes or confidence scores                                        |
+| Typical use          | Counting, tracking, cropping, object-level measurement | Dense scene labeling, drivable area, land cover, medical regions                 |
 
 ## Export
 

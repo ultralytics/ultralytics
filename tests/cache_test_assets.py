@@ -77,7 +77,7 @@ def cache_datasets() -> None:
     print("[cache] Downloading datasets ...")
     for ds in DATASETS:
         if ds.startswith("imagenet"):
-            check_cls_dataset(ds, autodownload=True)
+            check_cls_dataset(ds)
         else:
             check_det_dataset(ds, autodownload=True)
     print("[cache] Datasets done.")

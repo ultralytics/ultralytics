@@ -219,13 +219,13 @@ See full `predict` mode details in the [Predict](../modes/predict.md) page.
 Image classification returns one `Results` object per image. The primary prediction field is `result.probs`, which
 contains the class probability vector and helpers for top predictions.
 
-| Attribute              | Type           | Shape / Format          | Dtype             | Description                                  |
-| ---------------------- | -------------- | ----------------------- | ----------------- | -------------------------------------------- |
-| `result.probs`         | `Probs`        | One probability vector  | Container         | Classification probabilities for the image.  |
-| `result.probs.data`    | `torch.Tensor` | `(num_classes,)`        | Floating point    | Probability score for each class.            |
-| `result.probs.top1`    | `int`          | Class index             | Python `int`      | Highest-probability class ID.                |
-| `result.probs.top1conf` | `torch.Tensor` | Scalar                 | Floating point    | Confidence score for the top class.          |
-| `result.probs.top5`    | `list[int]`    | Up to 5 class indices   | Python `int` list | Top-5 class IDs ordered by confidence.       |
+| Attribute               | Type           | Shape / Format         | Dtype             | Description                                 |
+| ----------------------- | -------------- | ---------------------- | ----------------- | ------------------------------------------- |
+| `result.probs`          | `Probs`        | One probability vector | Container         | Classification probabilities for the image. |
+| `result.probs.data`     | `torch.Tensor` | `(num_classes,)`       | Floating point    | Probability score for each class.           |
+| `result.probs.top1`     | `int`          | Class index            | Python `int`      | Highest-probability class ID.               |
+| `result.probs.top1conf` | `torch.Tensor` | Scalar                 | Floating point    | Confidence score for the top class.         |
+| `result.probs.top5`     | `list[int]`    | Up to 5 class indices  | Python `int` list | Top-5 class IDs ordered by confidence.      |
 
 For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
 

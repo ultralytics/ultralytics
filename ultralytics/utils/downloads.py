@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import contextlib
 import re
 import shutil
 import subprocess
@@ -334,18 +333,14 @@ def safe_download(
         f = Path(dir or ".") / (file or url2file(url))  # URL converted to filename
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
         if not f.is_file():
-            uri = (url if gdrive else clean_url(url)).replace(
-                ASSETS_URL, "https://ultralytics.com/assets"
-            )  # clean
+            uri = (url if gdrive else clean_url(url)).replace(ASSETS_URL, "https://ultralytics.com/assets")  # clean
             desc = f"Downloading {uri} to '{f}'"
             curl_installed = shutil.which("curl")
             for i in range(retry + 1):
                 try:
                     if (curl or i > 0) and curl_installed:  # curl download with retry, continue
                         s = "sS" * (not progress)  # silent
-                        r = subprocess.run(
-                            ["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]
-                        ).returncode
+                        r = subprocess.run(["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]).returncode
                         assert r == 0, f"Curl return value {r}"
                         expected_size = None  # Can't get size with curl
                     else:  # urllib download
@@ -353,9 +348,7 @@ def safe_download(
                             expected_size = int(response.getheader("Content-Length", 0))
                             if i == 0 and expected_size > 1048576:
                                 check_disk_space(expected_size, path=f.parent)
-                            buffer_size = (
-                                max(8192, min(1048576, expected_size // 1000)) if expected_size else 8192
-                            )
+                            buffer_size = max(8192, min(1048576, expected_size // 1000)) if expected_size else 8192
                             with TQDM(
                                 total=expected_size,
                                 desc=desc,

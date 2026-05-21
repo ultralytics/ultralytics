@@ -7,7 +7,6 @@ will then only create symlinks / read existing files instead of competing
 to download the same remote resources.
 """
 
-
 from ultralytics.cfg import TASK2MODEL
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.utils import ASSETS_URL, WEIGHTS_DIR

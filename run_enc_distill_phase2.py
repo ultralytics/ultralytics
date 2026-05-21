@@ -42,6 +42,7 @@ import torch
 
 from callbacks import grad_clip, muon_w, nfs_sync, paths, wandb_config
 from ultralytics import YOLO
+from ultralytics.utils import YAML
 
 
 def _pop_flag(argv: list[str], flag: str, is_bool: bool = False) -> tuple[list[str], str]:
@@ -84,26 +85,27 @@ _AUG_ARGS = dict(
 
 
 def _infer_model_yaml(phase1_weights: str, head_suffix: str = "") -> str:
-    """Resolve the task-specific model yaml from a phase-1 cls weights path.
+    """Resolve the task-specific model yaml from a weights path.
 
-    Reads ``args.yaml`` next to the weights and rewrites the ``-cls`` suffix into ``head_suffix`` (e.g. ``""`` for det,
-    ``"-pose"`` for pose, ``"-obb"`` for obb).
+    Reads ``args.yaml`` next to the weights when the path follows the standard ``<run>/weights/<file>.pt`` layout
+    (phase-1 distill checkpoints); otherwise derives the cls yaml from the weights filename so bare ultralytics weights
+    like ``yolo26l-cls.pt`` pick up the right scale. The trailing ``-cls.yaml`` is rewritten to ``{head_suffix}.yaml``
+    (e.g. ``""`` for det, ``"-pose"`` for pose, ``"-obb"`` for obb).
 
     Args:
-        phase1_weights (str): Path to a phase-1 ``weights/best.pt`` or ``weights/last.pt``.
+        phase1_weights (str): Path to a weights ``.pt`` file.
         head_suffix (str, optional): Suffix to substitute for ``-cls``.
 
     Returns:
-        (str): Model yaml name, e.g. ``"yolo26s.yaml"`` or ``"yolo26nexta-cls.yaml".replace(...)``.
+        (str): Model yaml name, e.g. ``"yolo26s.yaml"`` or ``"yolo26l-obb.yaml"``.
     """
-    cls_yaml = "yolo26s-cls.yaml"
-    args_yaml = Path(phase1_weights).parent.parent / "args.yaml"
-    if args_yaml.exists():
-        for line in args_yaml.read_text().splitlines():
-            if line.startswith("model:"):
-                cls_yaml = line.split(":", 1)[1].strip()
-                break
-    return cls_yaml.replace("-cls", head_suffix)
+    w = Path(phase1_weights)
+    cls_yaml = w.stem + ".yaml"
+    if w.parent.name == "weights":
+        args_yaml = w.parent.parent / "args.yaml"
+        if args_yaml.exists():
+            cls_yaml = YAML.load(args_yaml)["model"]
+    return cls_yaml.replace("-cls.yaml", f"{head_suffix}.yaml")
 
 
 def _build_det_train_args(

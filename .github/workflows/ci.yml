@@ -477,7 +477,7 @@ jobs:
       - name: test_engine.py
         run: pytest ultralytics/tests/test_engine.py -v -s
       - name: test_exports.py
-        run: pytest ultralytics/tests/test_exports.py -v -s --deselect tests/test_exports.py::test_export_imx
+        run: pytest ultralytics/tests/test_exports.py -v -s --deselect ultralytics/tests/test_exports.py::test_export_imx
       - name: test_integrations.py
         run: pytest ultralytics/tests/test_integrations.py -v -s
       - name: test_solutions.py

@@ -20,13 +20,7 @@ if _xdist_worker:
         "ASSETS": _workspace / "assets",
     }
     for _attr, _dst in _redirects.items():
-        _src = getattr(ultralytics.utils, _attr)
         _dst.mkdir(parents=True, exist_ok=True)
-        if _src.exists() and _src != _dst:
-            if _src.is_dir():
-                shutil.copytree(_src, _dst, dirs_exist_ok=True)
-            else:
-                shutil.copy2(_src, _dst)
         setattr(ultralytics.utils, _attr, _dst)
 
     ultralytics.utils.SETTINGS["weights_dir"] = str(_redirects["WEIGHTS_DIR"])

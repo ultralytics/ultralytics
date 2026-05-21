@@ -107,7 +107,7 @@ Arguments such as `model`, `data`, `imgsz`, `half`, `device`, `verbose` and `for
 | `int8`    | `False`       | Activates INT8 quantization for further optimized performance on supported devices, especially useful for edge devices. Set `int8=True` to use.                                                         |
 | `device`  | `None`        | Defines the computation device(s) for benchmarking, such as `"cpu"` or `"cuda:0"`.                                                                                                                      |
 | `verbose` | `False`       | Controls the level of detail in logging output. Set `verbose=True` for detailed logs.                                                                                                                   |
-| `eps`     | `0.001`       | Small epsilon added to the per-image inference time (milliseconds) when computing FPS as `1000 / (speed + eps)`, preventing division by zero. Rarely changed.                                           |
+| `eps`     | `0.001`       | Small epsilon (milliseconds) added to the per-image inference time before converting it to FPS, preventing division by zero. Rarely changed.                                                            |
 | `format`  | `''`          | Benchmarks only the specified export format (e.g., `format=onnx`). Leave it blank to test every supported format automatically.                                                                         |
 
 !!! note "Standalone `benchmark()` function defaults"

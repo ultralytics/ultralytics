@@ -36,6 +36,7 @@ def get_solution_asset(name):
     """
     return str(SOLUTION_ASSETS_DIR / SOLUTION_ASSETS[name])
 
+
 # Predefined argument values
 SHOW = False
 REGION = [(10, 200), (540, 200), (540, 180), (10, 180)]  # for object counting, speed estimation and queue management

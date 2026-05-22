@@ -38,8 +38,8 @@ def pytest_sessionstart(session):
 def pytest_sessionfinish(session, exitstatus):
     """Cleanup operations after pytest session.
 
-    Runs only on the pytest controller (or serial run), skipping xdist workers to avoid
-    race conditions where one worker deletes shared assets while another is still reading them.
+    Runs only on the pytest controller (or serial run), skipping xdist workers to avoid race conditions where one worker
+    deletes shared assets while another is still reading them.
     """
     # Skip on xdist workers – only the controller should clean up shared resources
     if hasattr(session.config, "workerinput"):

@@ -457,14 +457,17 @@ class BaseTrainer:
 
                     # Backward
                     self.scaler.scale(self.loss).backward()
-                except torch.cuda.OutOfMemoryError:
+                except RuntimeError as e:
+                    is_oom = isinstance(e, torch.cuda.OutOfMemoryError)
+                    if not is_oom and not any(s in str(e) for s in ("CUDNN_STATUS_INTERNAL_ERROR", "unable to find an engine")):
+                        raise
                     if epoch > self.start_epoch or self._oom_retries >= 3 or RANK != -1:
                         raise  # only auto-reduce during first epoch on single GPU, max 3 retries
                     self._oom_retries += 1
                     old_batch = self.batch_size
                     self.args.batch = self.batch_size = max(self.batch_size // 2, 1)
                     LOGGER.warning(
-                        f"CUDA out of memory with batch={old_batch}. "
+                        f"{'CUDA out of memory' if is_oom else 'CUDA backend memory error'} with batch={old_batch}. "
                         f"Reducing to batch={self.batch_size} and retrying ({self._oom_retries}/3)."
                     )
                     batch = loss = preds = None

@@ -68,7 +68,7 @@ class VisualAISearch:
             safe_download(url=f"{ASSETS_URL}/images.zip", unzip=True, retry=3)
             self.data_dir = Path("images")
 
-        self.model = build_text_model("clip:ViT-B/32", device=self.device)
+        self.model = build_text_model("mobileclip2_b.ts", device=self.device)
 
         self.index = None
         self.image_paths = []

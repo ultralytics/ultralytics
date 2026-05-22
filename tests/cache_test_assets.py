@@ -9,13 +9,12 @@ to download the same remote resources.
 
 import shutil
 
+# Import MODEL so we know exactly where tests/__init__.py expects the file
+from tests import MODEL
 from ultralytics.cfg import TASK2MODEL
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.utils import ASSETS_URL, WEIGHTS_DIR
 from ultralytics.utils.downloads import attempt_download_asset, safe_download
-
-# Import MODEL so we know exactly where tests/__init__.py expects the file
-from tests import MODEL
 
 # ---------------------------------------------------------------------------
 # 1. Model weights referenced by the test suite

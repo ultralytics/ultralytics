@@ -309,7 +309,7 @@ jobs:
             PY
             df -h .
             if command -v free >/dev/null 2>&1; then free -h; fi
-            PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -vv -s -n auto --dist=loadfile --max-worker-restart=0 --slow --cov=ultralytics/ --cov-report=xml tests/ --deselect tests/test_exports.py::test_export_imx
+            PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -vv -s -n 2 --dist=loadfile --max-worker-restart=0 --slow --cov=ultralytics/ --cov-report=xml tests/ --deselect tests/test_exports.py::test_export_imx
           retries: 0 # Retry once after initial attempt (2 total runs)
           timeout_minutes: 180
           retry_delay_seconds: 60
@@ -535,7 +535,8 @@ jobs:
 
   Summary:
     runs-on: ubuntu-latest
-    needs: [Benchmarks, Tests, SlowTests, GPU, RaspberryPi, NVIDIA_Jetson, Conda]
+    needs:
+      [Benchmarks, Tests, SlowTests, GPU, RaspberryPi, NVIDIA_Jetson, Conda]
     if: always()
     steps:
       - name: Check for failure and notify

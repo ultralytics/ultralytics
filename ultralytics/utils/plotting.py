@@ -171,7 +171,8 @@ def _gaussian_smooth(y, sigma=3):
     x = np.arange(kernel_size) - kernel_size // 2
     kernel = np.exp(-(x**2) / (2 * sigma**2))
     kernel /= kernel.sum()
-    return np.convolve(y, kernel, mode="same")
+    result = np.convolve(y, kernel, mode="same")
+    return result[: len(y)] if len(result) > len(y) else result
 
 
 class Annotator:

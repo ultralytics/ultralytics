@@ -54,8 +54,6 @@ class VisualAISearch:
         check_requirements("faiss-cpu")
 
         self.faiss = __import__("faiss")
-        self.faiss_index = "faiss.index"
-        self.data_path_npy = "paths.npy"
         self.data_dir = Path(kwargs.get("data", "images"))
         self.device = select_device(kwargs.get("device", "cpu"))
 
@@ -68,7 +66,10 @@ class VisualAISearch:
             safe_download(url=f"{ASSETS_URL}/images.zip", unzip=True, retry=3)
             self.data_dir = Path("images")
 
-        self.model = build_text_model("mobileclip2_b.ts", device=self.device)
+        model = kwargs.get("model", "mobileclip2_b.ts")
+        self.model = build_text_model(model, device=self.device)
+        self.faiss_index = f"faiss-{Path(model).stem}.index"
+        self.data_path_npy = f"paths-{Path(model).stem}.npy"
 
         self.index = None
         self.image_paths = []

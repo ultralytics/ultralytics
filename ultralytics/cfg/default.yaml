@@ -68,6 +68,7 @@ agnostic_nms: False # (bool) class-agnostic NMS
 classes: # (int | list[int], optional) filter by class id(s), e.g. 0 or [0,2,3]
 retina_masks: False # (bool) use high-resolution segmentation masks (segment)
 embed: # (list[int], optional) return feature embeddings from given layer indices
+logits: False # (bool) attach pre-sigmoid per-detection class scores as results[i].logits (detect/segment/pose/obb)
 
 # Visualize settings ---------------------------------------------------------------------------------------------------
 show: False # (bool) show images/videos in a window if supported

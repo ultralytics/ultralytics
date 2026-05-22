@@ -1373,8 +1373,8 @@ class SemanticSegmentationLoss(nn.Module):
         dice_loss = self._dice_loss(preds, masks)
         total = ce_loss + dice_loss
 
-        # Auxiliary cross-entropy loss.
-        aux_loss = torch.tensor(0.0, device=preds.device)
+        # Auxiliary cross-entropy loss. Match ce_loss dtype so torch.stack below succeeds under AMP.
+        aux_loss = torch.tensor(0.0, device=preds.device, dtype=ce_loss.dtype)
         if aux_logits is not None:
             if aux_logits.shape[2:] != masks.shape[1:]:
                 aux_logits = F.interpolate(aux_logits, size=masks.shape[1:], mode="bilinear", align_corners=False)

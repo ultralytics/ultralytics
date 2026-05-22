@@ -173,12 +173,12 @@ def test_autobatch():
 
 @pytest.mark.slow
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
-def test_utils_benchmarks():
+def test_utils_benchmarks(isolated_model):
     """Profile YOLO models for performance benchmarks."""
     from ultralytics.utils.benchmarks import ProfileModels
 
     # Pre-export a dynamic engine model to use dynamic inference
-    YOLO(MODEL).export(format="engine", imgsz=32, dynamic=True, batch=1, device=DEVICES[0])
+    YOLO(isolated_model).export(format="engine", imgsz=32, dynamic=True, batch=1, device=DEVICES[0])
     ProfileModels(
         [MODEL],
         imgsz=32,

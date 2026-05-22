@@ -4,6 +4,7 @@ import shutil
 from pathlib import Path
 
 import numpy.testing  # noqa: F401  # Pre-import before any test can corrupt numpy via in-place upgrade
+import pytest
 
 
 def pytest_addoption(parser):
@@ -35,6 +36,22 @@ def pytest_sessionstart(session):
     from ultralytics.utils.torch_utils import init_seeds
 
     init_seeds()
+
+
+@pytest.fixture
+def isolated_model(tmp_path):
+    """Provide an isolated copy of the test model to prevent export file races under pytest-xdist.
+
+    When multiple xdist workers run export tests simultaneously, they derive output filenames from
+    the model path (e.g., model.onnx, model.torchscript). Using the same MODEL path causes
+    workers to overwrite each other's intermediate/export files. This fixture copies the shared
+    model to a per-test temporary directory so each test exports to a unique path.
+    """
+    from tests import MODEL
+
+    dst = tmp_path / "model.pt"
+    shutil.copy(MODEL, dst)
+    return str(dst)
 
 
 def pytest_sessionfinish(session, exitstatus):

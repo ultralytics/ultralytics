@@ -197,7 +197,7 @@ Taking on a computer vision project can be exciting and rewarding. By following 
 
 ### How do I choose the right computer vision task for my project?
 
-Choosing the right computer vision task depends on your project's end goal. For instance, if you want to monitor traffic, **object detection** is suitable as it can locate and identify multiple vehicle types in real-time. For medical imaging, **image segmentation** is ideal for providing detailed boundaries of tumors, aiding in diagnosis and treatment planning. Learn more about specific tasks like [object detection](../tasks/detect.md), [image classification](../tasks/classify.md), and [instance segmentation](../tasks/segment.md).
+Choosing the right computer vision task depends on your project's end goal. For instance, if you want to monitor traffic, **object detection** is suitable as it can locate and identify multiple vehicle types in real-time. For medical imaging, **image segmentation** is ideal for providing detailed boundaries of tumors, aiding in diagnosis and treatment planning. Learn more about specific tasks like [object detection](../tasks/detect.md), [image classification](../tasks/classify.md), [instance segmentation](../tasks/segment.md), and [semantic segmentation](../tasks/semantic.md).
 
 ### Why is data annotation crucial in computer vision projects?
 

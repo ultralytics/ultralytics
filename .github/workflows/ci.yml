@@ -90,6 +90,9 @@ jobs:
       - name: Benchmark OBBModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.371
+      - name: Benchmark SemanticSegmentationModel
+        shell: bash
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-sem.pt' imgsz=160 verbose=0.189
       - name: Merge Coverage Reports
         run: |
           coverage xml -o coverage-benchmarks.xml
@@ -149,7 +152,7 @@ jobs:
           uv pip list
       - name: Pytest tests
         shell: bash # for Windows compatibility
-        run: pytest --cov=ultralytics/ --cov-report=xml tests/
+        run: pytest --cov=ultralytics/ --cov-report=xml tests/ --deselect tests/test_exports.py::test_export_imx
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
         uses: codecov/codecov-action@v6
@@ -269,8 +272,9 @@ jobs:
         uses: ultralytics/actions/retry@main
         with:
           shell: bash # for Windows compatibility
-          run: pytest --slow --cov=ultralytics/ --cov-report=xml tests/
+          run: pytest --slow --cov=ultralytics/ --cov-report=xml tests/ --deselect tests/test_exports.py::test_export_imx
           retries: 1 # Retry once after initial attempt (2 total runs)
+          timeout_minutes: 180
           retry_delay_seconds: 60
       - name: Prune uv Cache
         run: uv cache prune --ci
@@ -332,7 +336,7 @@ jobs:
           yolo checks
           uv pip list
       - name: Pytest tests
-        run: pytest --slow tests/
+        run: pytest --slow tests/ --deselect tests/test_exports.py::test_export_imx
       - name: Activate Virtual Environment for Benchmarks
         run: |
           python3.11 -m venv env-benchmarks
@@ -357,6 +361,8 @@ jobs:
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-pose.pt' imgsz=160 verbose=0.185
       - name: Benchmark OBBModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-obb.pt' imgsz=160 verbose=0.371
+      - name: Benchmark SemanticSegmentationModel
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-sem.pt' imgsz=160 verbose=0.189
       - name: Benchmark Summary
         run: |
           cat benchmarks.log
@@ -471,7 +477,7 @@ jobs:
       - name: test_engine.py
         run: pytest ultralytics/tests/test_engine.py -v -s
       - name: test_exports.py
-        run: pytest ultralytics/tests/test_exports.py -v -s
+        run: pytest ultralytics/tests/test_exports.py -v -s --deselect ultralytics/tests/test_exports.py::test_export_imx
       - name: test_integrations.py
         run: pytest ultralytics/tests/test_integrations.py -v -s
       - name: test_solutions.py

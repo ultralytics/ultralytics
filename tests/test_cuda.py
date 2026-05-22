@@ -52,7 +52,7 @@ def test_amp():
     [  # generate all combinations except for exclusion cases
         (task, dynamic, int8, half, batch, simplify, nms)
         for task, dynamic, int8, half, batch, simplify, nms in product(
-            TASKS, [True, False], [False], [False], [1, 2], [True, False], [True, False]
+            sorted(TASKS), [True, False], [False], [False], [1, 2], [True, False], [True, False]
         )
         if not (
             (int8 and half) or (task == "classify" and nms) or (task == "obb" and nms and (not TORCH_1_13 or IS_JETSON))
@@ -85,7 +85,7 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
         (task, dynamic, int8, half, batch)
         # Note: tests reduced below pending compute availability expansion as GPU CI runner utilization is high
         # for task, dynamic, int8, half, batch in product(TASKS, [True, False], [True, False], [True, False], [1, 2])
-        for task, dynamic, int8, half, batch in product(TASKS, [True], [True], [False], [2])
+        for task, dynamic, int8, half, batch in product(sorted(TASKS), [True], [True], [False], [2])
         if not (int8 and half)  # exclude cases where both int8 and half are True
     ],
 )
@@ -173,12 +173,12 @@ def test_autobatch():
 
 @pytest.mark.slow
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
-def test_utils_benchmarks():
+def test_utils_benchmarks(isolated_model):
     """Profile YOLO models for performance benchmarks."""
     from ultralytics.utils.benchmarks import ProfileModels
 
     # Pre-export a dynamic engine model to use dynamic inference
-    YOLO(MODEL).export(format="engine", imgsz=32, dynamic=True, batch=1, device=DEVICES[0])
+    YOLO(isolated_model).export(format="engine", imgsz=32, dynamic=True, batch=1, device=DEVICES[0])
     ProfileModels(
         [MODEL],
         imgsz=32,

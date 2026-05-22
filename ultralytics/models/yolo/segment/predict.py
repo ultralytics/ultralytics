@@ -61,6 +61,16 @@ class SegmentationPredictor(DetectionPredictor):
             >>> predictor = SegmentationPredictor(overrides=dict(model="yolo26n-seg.pt"))
             >>> results = predictor.postprocess(preds, img, orig_img)
         """
+        # Stash raw class scores for logits=True before the segment-specific tuple is unwrapped.
+        if getattr(self.args, "logits", False):
+            if (
+                isinstance(preds, (tuple, list))
+                and len(preds) == 2
+                and isinstance(preds[1], dict)
+                and "scores" in preds[1]
+            ):
+                self._raw_scores = preds[1]["scores"]
+
         # Extract protos - tuple if PyTorch model or array if exported
         protos = preds[0][1] if isinstance(preds[0], tuple) else preds[1]
         return super().postprocess(preds[0], img, orig_imgs, protos=protos)

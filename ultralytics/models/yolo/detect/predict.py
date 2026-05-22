@@ -1,8 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from ultralytics.engine.predictor import BasePredictor
-from ultralytics.engine.results import Results
-from ultralytics.utils import nms, ops
+from ultralytics.engine.results import Logits, Results
+from ultralytics.utils import LOGGER, nms, ops
 
 
 class DetectionPredictor(BasePredictor):
@@ -51,6 +51,28 @@ class DetectionPredictor(BasePredictor):
             >>> processed_results = predictor.postprocess(preds, img, orig_imgs)
         """
         save_feats = getattr(self, "_feats", None) is not None
+        save_logits = getattr(self.args, "logits", False)
+        is_end2end = getattr(self.model, "end2end", False)
+
+        # Capture pre-sigmoid class scores for logits=True before NMS rebinds preds.
+        # Subclasses (e.g. SegmentationPredictor) may have already stashed them on self._raw_scores.
+        raw_scores = getattr(self, "_raw_scores", None)
+        if save_logits and raw_scores is None and not is_end2end:
+            if (
+                isinstance(preds, (tuple, list))
+                and len(preds) == 2
+                and isinstance(preds[1], dict)
+                and "scores" in preds[1]
+            ):
+                raw_scores = preds[1]["scores"]
+        self._raw_scores = None  # reset for next batch
+        if save_logits and (raw_scores is None or is_end2end):
+            LOGGER.warning(
+                "logits=True but raw class scores are unavailable for this model "
+                "(end2end or exported model). Disabling logits for this call."
+            )
+            save_logits = False
+
         preds = nms.non_max_suppression(
             preds,
             self.args.conf,
@@ -59,23 +81,38 @@ class DetectionPredictor(BasePredictor):
             self.args.agnostic_nms,
             max_det=self.args.max_det,
             nc=0 if self.args.task == "detect" else len(self.model.names),
-            end2end=getattr(self.model, "end2end", False),
+            end2end=is_end2end,
             rotated=self.args.task == "obb",
-            return_idxs=save_feats,
+            return_idxs=save_feats or save_logits,
         )
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)[..., ::-1]
 
-        if save_feats:
-            obj_feats = self.get_obj_feats(self._feats, preds[1])
+        obj_feats = obj_logits = None
+        if save_feats or save_logits:
+            idxs = preds[1]
             preds = preds[0]
+            if save_feats:
+                obj_feats = self.get_obj_feats(self._feats, idxs)
+            if save_logits:
+                # raw_scores: (B, nc, num_anchors). Gather columns per image by surviving anchor indices.
+                nc = raw_scores.shape[1]
+                obj_logits = [
+                    raw_scores[i].index_select(-1, idx.long()).T
+                    if idx.numel()
+                    else raw_scores.new_zeros((0, nc))
+                    for i, idx in enumerate(idxs)
+                ]
 
         results = self.construct_results(preds, img, orig_imgs, **kwargs)
 
         if save_feats:
             for r, f in zip(results, obj_feats):
                 r.feats = f  # add object features to results
+        if save_logits:
+            for r, l in zip(results, obj_logits):
+                r.logits = Logits(l, r.orig_shape)
 
         return results
 

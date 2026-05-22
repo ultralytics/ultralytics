@@ -524,11 +524,9 @@ def check_executorch_requirements():
     if LINUX and ARM64 and IS_DOCKER:
         check_requirements("packaging>=22.0")
 
-    # Constrain numpy to prevent an in-place upgrade that leaves a mixed installation
-    # (new .py files on disk + old C extensions in memory), which breaks scipy imports
-    # under pytest-xdist when later tests on the same worker trigger numpy.testing.
-    check_requirements("executorch", cmds=f"torch=={TORCH_VERSION.split('+')[0]}", constrain=("numpy<2.0",))
-    check_requirements("numpy<2.0")
+    check_requirements("executorch", cmds=f"torch=={TORCH_VERSION.split('+')[0]}")
+    # Pin numpy to avoid coremltools errors with numpy>=2.4.0, must be separate
+    check_requirements("numpy<=2.3.5")
 
 
 def check_tensorrt(min_version: str = "7.0.0"):

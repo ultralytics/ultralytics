@@ -537,62 +537,62 @@ IDs: `torch.uint8`, `torch.int16`, or `torch.int32`, depending on class count.
 
 === "Detect"
 
-    | Attribute | Type | Shape | Description |
-    |---|---|---|---|
-    | `result.boxes` | `Boxes` | `(N)` | Detection boxes. |
+    | Attribute           | Type            | Shape     | Description                                           |
+    |---------------------|-----------------|-----------|-------------------------------------------------------|
+    | `result.boxes`      | `Boxes`         | `(N)`     | Detection boxes.                                      |
     | `result.boxes.data` | `torch.float32` | `(N,6/7)` | Raw `[x1,y1,x2,y2,conf,cls]`, plus optional track ID. |
-    | `result.boxes.xyxy` | `torch.float32` | `(N,4)` | `xyxy` pixel boxes. |
-    | `result.boxes.conf` | `torch.float32` | `(N,)` | Confidence scores. |
-    | `result.boxes.cls` | `torch.float32` | `(N,)` | Class IDs; cast to `int` for names. |
+    | `result.boxes.xyxy` | `torch.float32` | `(N,4)`   | `xyxy` pixel boxes.                                   |
+    | `result.boxes.conf` | `torch.float32` | `(N,)`    | Confidence scores.                                    |
+    | `result.boxes.cls`  | `torch.float32` | `(N,)`    | Class IDs; cast to `int` for names.                   |
 
 === "Segment"
 
-    | Attribute | Type | Shape | Description |
-    |---|---|---|---|
-    | `result.boxes` | `Boxes` | `(N)` | Instance boxes/classes/confidences. |
-    | `result.masks` | `Masks` | `(N)` | Instance masks. |
-    | `result.masks.data` | `torch.uint8` | `(N,H,W)` | Binary masks, values `0` or `1`. |
-    | `result.masks.xy` | `np.float32` | `list[(P,2)]` | Pixel polygons. |
-    | `result.masks.xyn` | `np.float32` | `list[(P,2)]` | Normalized polygons. |
+    | Attribute           | Type          | Shape         | Description                         |
+    |---------------------|---------------|---------------|-------------------------------------|
+    | `result.boxes`      | `Boxes`       | `(N)`         | Instance boxes/classes/confidences. |
+    | `result.masks`      | `Masks`       | `(N)`         | Instance masks.                     |
+    | `result.masks.data` | `torch.uint8` | `(N,H,W)`     | Binary masks, values `0` or `1`.    |
+    | `result.masks.xy`   | `np.float32`  | `list[(P,2)]` | Pixel polygons.                     |
+    | `result.masks.xyn`  | `np.float32`  | `list[(P,2)]` | Normalized polygons.                |
 
 === "Semantic"
 
-    | Attribute | Type | Shape | Description |
-    |---|---|---|---|
-    | `result.semantic_mask` | `SemanticMask` | `(H,W)` | Dense class map. |
+    | Attribute                   | Type                                            | Shape   | Description                                         |
+    |-----------------------------|-------------------------------------------------|---------|-----------------------------------------------------|
+    | `result.semantic_mask`      | `SemanticMask`                                  | `(H,W)` | Dense class map.                                    |
     | `result.semantic_mask.data` | `torch.uint8`<br>`torch.int16`<br>`torch.int32` | `(H,W)` | Per-pixel class IDs, dtype selected by class count. |
-    | `result.masks` | - | - | No instance masks. |
-    | `result.boxes` | - | - | No instance boxes/confidences. |
+    | `result.masks`              | -                                               | -       | No instance masks.                                  |
+    | `result.boxes`              | -                                               | -       | No instance boxes/confidences.                      |
 
 === "Classify"
 
-    | Attribute | Type | Shape | Description |
-    |---|---|---|---|
-    | `result.probs` | `Probs` | `(C,)` | Class probabilities. |
-    | `result.probs.data` | `torch.float32` | `(C,)` | Probability per class. |
-    | `result.probs.top1` | `int` | `()` | Top class ID. |
-    | `result.probs.top1conf` | `torch.float32` | `()` | Top confidence. |
-    | `result.probs.top5` | `list[int]` | `(<=5)` | Top-5 class IDs. |
+    | Attribute               | Type            | Shape   | Description            |
+    |-------------------------|-----------------|---------|------------------------|
+    | `result.probs`          | `Probs`         | `(C,)`  | Class probabilities.   |
+    | `result.probs.data`     | `torch.float32` | `(C,)`  | Probability per class. |
+    | `result.probs.top1`     | `int`           | `()`    | Top class ID.          |
+    | `result.probs.top1conf` | `torch.float32` | `()`    | Top confidence.        |
+    | `result.probs.top5`     | `list[int]`     | `(<=5)` | Top-5 class IDs.       |
 
 === "Pose"
 
-    | Attribute | Type | Shape | Description |
-    |---|---|---|---|
-    | `result.boxes` | `Boxes` | `(N)` | Instance boxes. |
-    | `result.keypoints` | `Keypoints` | `(N)` | Keypoints. |
+    | Attribute               | Type            | Shape       | Description                                |
+    |-------------------------|-----------------|-------------|--------------------------------------------|
+    | `result.boxes`          | `Boxes`         | `(N)`       | Instance boxes.                            |
+    | `result.keypoints`      | `Keypoints`     | `(N)`       | Keypoints.                                 |
     | `result.keypoints.data` | `torch.float32` | `(N,K,2/3)` | `x,y` plus optional visibility/confidence. |
-    | `result.keypoints.xy` | `torch.float32` | `(N,K,2)` | Pixel keypoints. |
-    | `result.keypoints.xyn` | `torch.float32` | `(N,K,2)` | Normalized keypoints. |
+    | `result.keypoints.xy`   | `torch.float32` | `(N,K,2)`   | Pixel keypoints.                           |
+    | `result.keypoints.xyn`  | `torch.float32` | `(N,K,2)`   | Normalized keypoints.                      |
 
 === "OBB"
 
-    | Attribute | Type | Shape | Description |
-    |---|---|---|---|
-    | `result.obb` | `OBB` | `(N)` | Oriented boxes. |
-    | `result.obb.data` | `torch.float32` | `(N,7/8)` | Raw rotated boxes with confidence/class. |
-    | `result.obb.xywhr` | `torch.float32` | `(N,5)` | `xywhr` rotated boxes. |
-    | `result.obb.xyxyxyxy` | `torch.float32` | `(N,4,2)` | Four corner points. |
-    | `result.obb.conf` | `torch.float32` | `(N,)` | Confidence scores. |
+    | Attribute             | Type            | Shape     | Description                              |
+    |-----------------------|-----------------|-----------|------------------------------------------|
+    | `result.obb`          | `OBB`           | `(N)`     | Oriented boxes.                          |
+    | `result.obb.data`     | `torch.float32` | `(N,7/8)` | Raw rotated boxes with confidence/class. |
+    | `result.obb.xywhr`    | `torch.float32` | `(N,5)`   | `xywhr` rotated boxes.                   |
+    | `result.obb.xyxyxyxy` | `torch.float32` | `(N,4,2)` | Four corner points.                      |
+    | `result.obb.conf`     | `torch.float32` | `(N,)`    | Confidence scores.                       |
 
 `Results` objects have the following methods:
 

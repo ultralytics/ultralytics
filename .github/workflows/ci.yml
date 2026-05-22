@@ -469,8 +469,7 @@ jobs:
         uses: eviden-actions/clean-self-hosted-runner@v1
 
   Conda:
-    # if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')
-    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')
     timeout-minutes: 120
     runs-on: ${{ matrix.os }}
     strategy:
@@ -492,7 +491,7 @@ jobs:
       - name: Install Ultralytics package from conda-forge
         run: conda install -c pytorch -c conda-forge pytorch-cpu torchvision ultralytics "openvino<2026"
       - name: Install pip packages
-        run: uv pip install pytest pytest-xdist
+        run: uv pip install pytest
       - name: Check environment
         run: conda list
       - name: Test CLI
@@ -514,42 +513,22 @@ jobs:
           results = model.predict(imgsz=160)
           results = model.export(format='onnx', imgsz=160)
           "
-      - name: Configure Ultralytics cache paths
-        run: |
-          python -c "
-          from ultralytics import settings
-          import os
-          cache = os.path.join(os.environ['GITHUB_WORKSPACE'], '.ultralytics_cache')
-          settings.update({
-              'weights_dir': os.path.join(cache, 'weights'),
-              'datasets_dir': os.path.join(cache, 'datasets'),
-          })
-          "
       - name: PyTest Setup
         run: |
           VERSION=$(conda list ultralytics | grep ultralytics | awk '{print $2}')
           git clone --branch v$VERSION https://github.com/ultralytics/ultralytics.git
-      - name: Cache test assets
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/.ultralytics_cache
-          key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py') }}
-          restore-keys: |
-            ultralytics-test-assets-${{ runner.os }}-
-      - name: Pre-cache test assets
-        run: python tests/cache_test_assets.py
       - name: test_cli.py
-        run: pytest -n auto ultralytics/tests/test_cli.py -v -s
+        run: pytest ultralytics/tests/test_cli.py -v -s
       - name: test_cuda.py
-        run: pytest -n auto ultralytics/tests/test_cuda.py -v -s
+        run: pytest ultralytics/tests/test_cuda.py -v -s
       - name: test_engine.py
-        run: pytest -n auto ultralytics/tests/test_engine.py -v -s
+        run: pytest ultralytics/tests/test_engine.py -v -s
       - name: test_exports.py
-        run: pytest -n auto ultralytics/tests/test_exports.py -v -s --deselect ultralytics/tests/test_exports.py::test_export_imx
+        run: pytest ultralytics/tests/test_exports.py -v -s --deselect ultralytics/tests/test_exports.py::test_export_imx
       - name: test_integrations.py
-        run: pytest -n auto ultralytics/tests/test_integrations.py -v -s
+        run: pytest ultralytics/tests/test_integrations.py -v -s
       - name: test_solutions.py
-        run: pytest -n auto ultralytics/tests/test_solutions.py -v -s
+        run: pytest ultralytics/tests/test_solutions.py -v -s
       # WARNING: tests hang here for unknown reasons https://github.com/ultralytics/ultralytics/pull/21577
       # - name: test_python.py
       #   run: pytest ultralytics/tests/test_python.py -vv -s

@@ -12,9 +12,29 @@ import pytest
 
 from tests import MODEL
 from ultralytics import solutions
-from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, TORCH_VERSION, checks
+from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, TORCH_VERSION, WEIGHTS_DIR, checks
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.torch_utils import TORCH_2_4
+
+SOLUTION_ASSETS_DIR = WEIGHTS_DIR / "solution_assets"
+
+SOLUTION_ASSETS = {
+    "demo_video": "solutions_ci_demo.mp4",
+    "crop_video": "decelera_landscape_min.mov",
+    "pose_video": "solution_ci_pose_demo.mp4",
+    "parking_video": "solution_ci_parking_demo.mp4",
+    "vertical_video": "solution_vertical_demo.mp4",
+    "parking_areas": "solution_ci_parking_areas.json",
+    "parking_model": "solutions_ci_parking_model.pt",
+}
+
+
+def get_solution_asset(name):
+    """Return the path to a pre-cached solution asset.
+
+    Assets are expected to exist already (pre-downloaded by tests/cache_test_assets.py).
+    """
+    return str(SOLUTION_ASSETS_DIR / SOLUTION_ASSETS[name])
 
 # Predefined argument values
 SHOW = False
@@ -176,10 +196,10 @@ def process_video(solution, video_path: str, needs_frame_count: bool = False):
         ),
     ],
 )
-def test_solution(name, solution_class, needs_frame_count, video_key, kwargs_update, tmp_path, solution_assets):
+def test_solution(name, solution_class, needs_frame_count, video_key, kwargs_update, tmp_path):
     """Test individual Ultralytics solution with video processing and parameter validation."""
     # Get video path from persistent cache (no copying needed, read-only access)
-    video_path = str(solution_assets(video_key)) if video_key else None
+    video_path = get_solution_asset(video_key) if video_key else None
 
     # Update kwargs to use cached paths for parking manager
     kwargs = {}
@@ -187,9 +207,9 @@ def test_solution(name, solution_class, needs_frame_count, video_key, kwargs_upd
         if key.startswith("temp_"):
             kwargs[key.replace("temp_", "")] = str(tmp_path / value)
         elif value == "parking_model":
-            kwargs[key] = str(solution_assets("parking_model"))
+            kwargs[key] = get_solution_asset("parking_model")
         elif value == "parking_areas":
-            kwargs[key] = str(solution_assets("parking_areas"))
+            kwargs[key] = get_solution_asset("parking_areas")
         else:
             kwargs[key] = value
 

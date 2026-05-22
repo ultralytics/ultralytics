@@ -42,10 +42,10 @@ def pytest_sessionstart(session):
 def isolated_model(tmp_path):
     """Provide an isolated copy of the test model to prevent export file races under pytest-xdist.
 
-    When multiple xdist workers run export tests simultaneously, they derive output filenames from
-    the model path (e.g., model.onnx, model.torchscript). Using the same MODEL path causes
-    workers to overwrite each other's intermediate/export files. This fixture copies the shared
-    model to a per-test temporary directory so each test exports to a unique path.
+    When multiple xdist workers run export tests simultaneously, they derive output filenames from the model path (e.g.,
+    model.onnx, model.torchscript). Using the same MODEL path causes workers to overwrite each other's
+    intermediate/export files. This fixture copies the shared model to a per-test temporary directory so each test
+    exports to a unique path.
     """
     from tests import MODEL
 

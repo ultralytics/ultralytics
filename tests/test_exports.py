@@ -28,6 +28,8 @@ from ultralytics.utils.torch_utils import (
     TORCH_2_12,
 )
 
+heavy_memory = pytest.mark.xdist_group("heavy_memory")
+
 
 def skip_rpi_semantic(task):
     """Skip semantic segmentation export tests on Raspberry Pi due to memory constraints."""
@@ -95,6 +97,7 @@ def test_export_openvino(end2end, isolated_model):
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
+@heavy_memory
 @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")
 @pytest.mark.parametrize(
@@ -180,6 +183,7 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms, end2en
     Path(file).unlink()  # cleanup
 
 
+@heavy_memory
 @pytest.mark.slow
 @pytest.mark.skipif(not MACOS, reason="CoreML inference only supported on macOS")
 @pytest.mark.skipif(not TORCH_1_11, reason="CoreML export requires torch>=1.11")
@@ -218,6 +222,7 @@ def test_export_coreml_matrix(task, dynamic, int8, half, nms, batch, end2end):
     shutil.rmtree(file)  # cleanup
 
 
+@heavy_memory
 @pytest.mark.slow
 @pytest.mark.skipif(
     not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_1_13, reason="TFLite export requires Python>=3.10 and torch>=1.13"
@@ -305,6 +310,7 @@ def test_export_mnn(isolated_model):
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
+@heavy_memory
 @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_1_10, reason="MNN export requires torch>=1.10")
 @pytest.mark.parametrize(
@@ -393,6 +399,7 @@ def test_export_executorch_matrix(task):
     shutil.rmtree(file, ignore_errors=True)  # cleanup
 
 
+@heavy_memory
 @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_2_8 or TORCH_2_12, reason="Axelera export requires 2.8.0<=torch<2.12.0")
 @pytest.mark.skipif(
@@ -409,6 +416,7 @@ def test_export_axelera(isolated_model):
     shutil.rmtree(file, ignore_errors=True)  # cleanup
 
 
+@heavy_memory
 @pytest.mark.slow
 @pytest.mark.skipif(not LINUX or ARM64, reason="DeepX export only supported on non-aarch64 Linux")
 @pytest.mark.skipif(

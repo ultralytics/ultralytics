@@ -459,7 +459,9 @@ class BaseTrainer:
                     self.scaler.scale(self.loss).backward()
                 except RuntimeError as e:
                     is_oom = isinstance(e, torch.cuda.OutOfMemoryError)
-                    if not is_oom and not any(s in str(e) for s in ("CUDNN_STATUS_INTERNAL_ERROR", "unable to find an engine")):
+                    if not is_oom and not any(
+                        s in str(e) for s in ("CUDNN_STATUS_INTERNAL_ERROR", "unable to find an engine")
+                    ):
                         raise
                     if epoch > self.start_epoch or self._oom_retries >= 3 or RANK != -1:
                         raise  # only auto-reduce during first epoch on single GPU, max 3 retries

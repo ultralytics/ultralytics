@@ -150,18 +150,7 @@ jobs:
         run: |
           yolo checks
           uv pip list
-      - name: Configure Ultralytics cache paths
-        shell: bash
-        run: |
-          python -c "
-          from ultralytics import settings
-          import os
-          cache = os.path.join(os.environ['GITHUB_WORKSPACE'], '.ultralytics_cache')
-          settings.update({
-              'weights_dir': os.path.join(cache, 'weights'),
-              'datasets_dir': os.path.join(cache, 'datasets'),
-          })
-          "
+      - uses: ./.github/workflows/configure-ultralytics-cache
       - name: Cache test assets
         uses: actions/cache@v4
         with:
@@ -290,18 +279,7 @@ jobs:
         run: |
           yolo checks
           uv pip list
-      - name: Configure Ultralytics cache paths
-        shell: bash
-        run: |
-          python -c "
-          from ultralytics import settings
-          import os
-          cache = os.path.join(os.environ['GITHUB_WORKSPACE'], '.ultralytics_cache')
-          settings.update({
-              'weights_dir': os.path.join(cache, 'weights'),
-              'datasets_dir': os.path.join(cache, 'datasets'),
-          })
-          "
+      - uses: ./.github/workflows/configure-ultralytics-cache
       - name: Cache test assets
         uses: actions/cache@v4
         with:
@@ -379,18 +357,7 @@ jobs:
         run: |
           yolo checks
           uv pip list
-      - name: Configure Ultralytics cache paths
-        shell: bash
-        run: |
-          python -c "
-          from ultralytics import settings
-          import os
-          cache = os.path.join(os.environ['GITHUB_WORKSPACE'], '.ultralytics_cache')
-          settings.update({
-              'weights_dir': os.path.join(cache, 'weights'),
-              'datasets_dir': os.path.join(cache, 'datasets'),
-          })
-          "
+      - uses: ./.github/workflows/configure-ultralytics-cache
       - name: Cache test assets
         uses: actions/cache@v4
         with:
@@ -535,18 +502,7 @@ jobs:
         run: |
           VERSION=$(conda list ultralytics | grep ultralytics | awk '{print $2}')
           git clone --branch v$VERSION https://github.com/ultralytics/ultralytics.git
-      - name: Configure Ultralytics cache paths
-        shell: bash
-        run: |
-          python -c "
-          from ultralytics import settings
-          import os
-          cache = os.path.join(os.environ['GITHUB_WORKSPACE'], '.ultralytics_cache')
-          settings.update({
-              'weights_dir': os.path.join(cache, 'weights'),
-              'datasets_dir': os.path.join(cache, 'datasets'),
-          })
-          "
+      - uses: ./.github/workflows/configure-ultralytics-cache
       - name: Cache test assets
         uses: actions/cache@v4
         with:

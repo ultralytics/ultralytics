@@ -1378,8 +1378,8 @@ class SemanticSegmentationLoss(nn.Module):
         if aux_logits is not None:
             if aux_logits.shape[2:] != masks.shape[1:]:
                 aux_logits = F.interpolate(aux_logits, size=masks.shape[1:], mode="bilinear", align_corners=False)
-            aux_loss = (self._ce_loss(aux_logits, masks)) * 0.4
-            total = total + aux_loss
+            aux_loss = self._ce_loss(aux_logits, masks) * 0.4
+            total += aux_loss
 
         loss_items = torch.stack([ce_loss, dice_loss, aux_loss]).detach()
         return total * preds.shape[0], loss_items

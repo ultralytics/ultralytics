@@ -129,8 +129,6 @@ def embedding_distance(tracks: list, detections: list, metric: str = "cosine") -
         track_norm = np.linalg.norm(track_features, axis=1, keepdims=True)
         det_norm = np.linalg.norm(det_features, axis=1, keepdims=True).T
         cost_matrix = 1 - track_features @ det_features.T / np.maximum(track_norm * det_norm, np.finfo(float).eps)
-    elif metric == "euclidean":
-        cost_matrix = np.linalg.norm(track_features[:, None] - det_features[None], axis=2)
     else:
         from scipy.spatial.distance import cdist
 

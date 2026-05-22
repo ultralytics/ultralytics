@@ -49,6 +49,12 @@ def isolated_model(tmp_path):
     """
     from tests import MODEL
 
+    # Ensure the shared model is present (download on-demand for local runs that skipped cache_test_assets.py)
+    if not Path(MODEL).exists():
+        from ultralytics.utils.downloads import attempt_download_asset
+
+        attempt_download_asset(MODEL)
+
     dst = tmp_path / "model.pt"
     shutil.copy(MODEL, dst)
     return str(dst)

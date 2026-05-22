@@ -7,10 +7,15 @@ will then only create symlinks / read existing files instead of competing
 to download the same remote resources.
 """
 
+import shutil
+
 from ultralytics.cfg import TASK2MODEL
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.utils import ASSETS_URL, WEIGHTS_DIR
 from ultralytics.utils.downloads import attempt_download_asset, safe_download
+
+# Import MODEL so we know exactly where tests/__init__.py expects the file
+from tests import MODEL
 
 # ---------------------------------------------------------------------------
 # 1. Model weights referenced by the test suite
@@ -69,6 +74,12 @@ def cache_weights() -> None:
     print("[cache] Downloading model weights ...")
     for w in WEIGHTS:
         attempt_download_asset(WEIGHTS_DIR / w)
+    # Copy yolo26n.pt into the exact path tests/__init__.py::MODEL expects
+    if not MODEL.exists():
+        MODEL.parent.mkdir(parents=True, exist_ok=True)
+        src = WEIGHTS_DIR / "yolo26n.pt"
+        if src.exists():
+            shutil.copy2(src, MODEL)
     print("[cache] Weights done.")
 
 

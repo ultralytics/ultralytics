@@ -68,7 +68,7 @@ def cache_weights() -> None:
     """Download all model weights used by tests."""
     print("[cache] Downloading model weights ...")
     for w in WEIGHTS:
-        attempt_download_asset(w)
+        attempt_download_asset(WEIGHTS_DIR / w)
     print("[cache] Weights done.")
 
 

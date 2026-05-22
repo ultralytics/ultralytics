@@ -1138,10 +1138,11 @@ class v8DepthLoss:
 
     def __init__(self, model):
         """Initialize v8DepthLoss."""
+        import os
         device = next(model.parameters()).device
         self.device = device
-        self.silog_weight = 1.0
-        self.grad_weight = 0.5
+        self.silog_weight = float(os.environ.get("DEPTH_SILOG_WEIGHT", 1.0))
+        self.grad_weight  = float(os.environ.get("DEPTH_GRAD_WEIGHT", 0.5))
 
     def __call__(self, preds, batch):
         """Calculate depth estimation loss.

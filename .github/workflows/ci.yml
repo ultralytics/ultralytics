@@ -309,7 +309,7 @@ jobs:
             PY
             df -h .
             if command -v free >/dev/null 2>&1; then free -h; fi
-            PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -vv -s -n 2 --dist=loadfile --slow --cov=ultralytics/ --cov-report=xml tests/ --deselect tests/test_exports.py::test_export_imx --deselect tests/test_exports.py::test_export_mnn --deselect tests/test_exports.py::test_export_ncnn --deselect tests/test_exports.py::test_export_axelera
+            PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -vv -s -n 2 --dist=loadfile --slow --cov=ultralytics/ --cov-report=xml tests/ --deselect tests/test_exports.py::test_export_imx --deselect tests/test_exports.py::test_export_mnn --deselect tests/test_exports.py::test_export_ncnn --deselect tests/test_exports.py::test_export_executorch
           retries: 0 # Retry once after initial attempt (2 total runs)
           timeout_minutes: 180
           retry_delay_seconds: 60

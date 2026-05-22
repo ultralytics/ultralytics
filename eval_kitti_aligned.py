@@ -12,6 +12,7 @@ def parse_args():
     p.add_argument("--max_depth", type=float, default=80.0)
     p.add_argument("--imgsz", type=int, default=640)
     p.add_argument("--device", default="0")
+    p.add_argument("--label", type=str, default="eval")
     return p.parse_args()
 
 def log_ls_align(pred, gt_valid):
@@ -101,6 +102,8 @@ def main():
     print(f"  rmse:     {a['rmse']:.4f}")
     print(f"  rmse_log: {a['rmse_log']:.4f}")
     print(f"  silog:    {a['silog']:.4f}")
+    print(f"TSV\t{args.label}\tkitti_eigen\t{a['d1']:.4f}\t{a['d2']:.4f}\t{a['d3']:.4f}\t"
+          f"{a['abs_rel']:.4f}\t{a['sq_rel']:.4f}\t{a['rmse']:.4f}\t{a['rmse_log']:.4f}\t{a['silog']:.2f}")
 
 if __name__ == "__main__":
     main()

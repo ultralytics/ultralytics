@@ -302,6 +302,7 @@ def main():
                         choices=["least_squares", "least_squares_log", "median", "none"],
                         help="Alignment method (least_squares_log recommended for relative models)")
     parser.add_argument("--half", action="store_true", help="Use FP16")
+    parser.add_argument("--label", type=str, default="eval", help="Label for TSV row")
     args = parser.parse_args()
 
     device = torch.device(f"cuda:{args.device}" if torch.cuda.is_available() else "cpu")
@@ -396,6 +397,8 @@ def main():
     out_path = Path("eval_results.json")
     with open(out_path, "w") as f:
         json.dump(agg, f, indent=2)
+    print(f"TSV\t{args.label}\tnyu_eigen\t{agg['delta1']:.4f}\t{agg['delta2']:.4f}\t{agg['delta3']:.4f}\t"
+          f"{agg['abs_rel']:.4f}\t{agg['sq_rel']:.4f}\t{agg['rmse']:.4f}\t{agg['rmse_log']:.4f}\t{agg['silog']:.2f}")
     print(f"\nResults saved to {out_path}")
 
 

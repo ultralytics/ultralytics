@@ -3,6 +3,7 @@
 import shutil
 from pathlib import Path
 
+import numpy.testing  # noqa: F401  # Pre-import before any test can corrupt numpy via in-place upgrade
 import pytest
 
 

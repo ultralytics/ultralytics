@@ -469,7 +469,8 @@ jobs:
         uses: eviden-actions/clean-self-hosted-runner@v1
 
   Conda:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')
+    # if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
     timeout-minutes: 120
     runs-on: ${{ matrix.os }}
     strategy:
@@ -514,7 +515,6 @@ jobs:
           results = model.export(format='onnx', imgsz=160)
           "
       - name: Configure Ultralytics cache paths
-        shell: bash
         run: |
           python -c "
           from ultralytics import settings

@@ -30,11 +30,17 @@ SOLUTION_ASSETS = {
 
 
 def get_solution_asset(name):
-    """Return the path to a pre-cached solution asset.
+    """Return the path to a solution asset, downloading it if not already cached.
 
-    Assets are expected to exist already (pre-downloaded by tests/cache_test_assets.py).
+    In CI, assets are pre-downloaded by tests/cache_test_assets.py before pytest runs.
+    Locally, this function provides a convenient fallback so tests work without manually
+    running the cache script first.
     """
-    return str(SOLUTION_ASSETS_DIR / SOLUTION_ASSETS[name])
+    asset_path = SOLUTION_ASSETS_DIR / SOLUTION_ASSETS[name]
+    if not asset_path.exists():
+        SOLUTION_ASSETS_DIR.mkdir(parents=True, exist_ok=True)
+        safe_download(url=f"{ASSETS_URL}/{asset_path.name}", dir=SOLUTION_ASSETS_DIR)
+    return str(asset_path)
 
 
 # Predefined argument values

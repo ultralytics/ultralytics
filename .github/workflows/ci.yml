@@ -513,10 +513,6 @@ jobs:
           results = model.predict(imgsz=160)
           results = model.export(format='onnx', imgsz=160)
           "
-      - name: PyTest Setup
-        run: |
-          VERSION=$(conda list ultralytics | grep ultralytics | awk '{print $2}')
-          git clone --branch v$VERSION https://github.com/ultralytics/ultralytics.git
       - name: Configure Ultralytics cache paths
         shell: bash
         run: |
@@ -536,6 +532,10 @@ jobs:
           key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py') }}
           restore-keys: |
             ultralytics-test-assets-${{ runner.os }}-
+      - name: PyTest Setup
+        run: |
+          VERSION=$(conda list ultralytics | grep ultralytics | awk '{print $2}')
+          git clone --branch v$VERSION https://github.com/ultralytics/ultralytics.git
       - name: Pre-cache test assets
         run: python tests/cache_test_assets.py
       - name: test_cli.py

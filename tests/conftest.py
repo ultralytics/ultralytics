@@ -41,7 +41,7 @@ def pytest_sessionfinish(session, exitstatus):
     Runs only on the pytest controller (or serial run), skipping xdist workers to avoid race conditions where one worker
     deletes shared assets while another is still reading them.
     """
-    # Skip on xdist workers – only the controller should clean up shared resources
+    # Skip on xdist workers - only the controller should clean up shared resources
     if hasattr(session.config, "workerinput"):
         return
 

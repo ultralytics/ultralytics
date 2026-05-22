@@ -174,7 +174,7 @@ jobs:
         run: python tests/cache_test_assets.py
       - name: Pytest tests
         shell: bash # for Windows compatibility
-        run: pytest -n auto --cov=ultralytics/ --cov-report=xml tests/ --deselect tests/test_exports.py::test_export_imx
+        run: pytest -n auto --dist=loadfile --cov=ultralytics/ --cov-report=xml tests/ --deselect tests/test_exports.py::test_export_imx
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
         uses: codecov/codecov-action@v6
@@ -316,7 +316,7 @@ jobs:
         uses: ultralytics/actions/retry@main
         with:
           shell: bash # for Windows compatibility
-          run: pytest -n auto --slow --cov=ultralytics/ --cov-report=xml tests/ --deselect tests/test_exports.py::test_export_imx
+          run: pytest -n auto --dist=loadfile --slow --cov=ultralytics/ --cov-report=xml tests/ --deselect tests/test_exports.py::test_export_imx
           retries: 1 # Retry once after initial attempt (2 total runs)
           timeout_minutes: 180
           retry_delay_seconds: 60
@@ -401,7 +401,7 @@ jobs:
       - name: Pre-cache test assets
         run: python tests/cache_test_assets.py
       - name: Pytest tests
-        run: pytest -n auto --slow tests/ --deselect tests/test_exports.py::test_export_imx
+        run: pytest -n auto --dist=loadfile --slow tests/ --deselect tests/test_exports.py::test_export_imx
       - name: Activate Virtual Environment for Benchmarks
         run: |
           python3.11 -m venv env-benchmarks

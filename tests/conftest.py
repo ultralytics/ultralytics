@@ -72,6 +72,5 @@ def pytest_sessionfinish(session, exitstatus):
         Path(file).unlink(missing_ok=True)
 
     # Remove directories
-    models = [path for x in {"*.mlpackage", "*_openvino_model"} for path in WEIGHTS_DIR.rglob(x)]
-    for directory in [WEIGHTS_DIR / "path with spaces", *models]:
+    for directory in [path for x in {"*.mlpackage", "*_openvino_model"} for path in WEIGHTS_DIR.rglob(x)]:
         shutil.rmtree(directory, ignore_errors=True)

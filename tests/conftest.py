@@ -2,49 +2,7 @@
 
 import shutil
 from pathlib import Path
-
-import pytest
-
-
-@pytest.fixture(scope="session")
-def solution_assets():
-    """Session-scoped fixture to cache solution test assets.
-
-    Lazily downloads solution assets into a persistent directory (WEIGHTS_DIR/solution_assets) and returns a callable
-    that resolves asset names to cached paths.
-    """
-    from ultralytics.utils import ASSETS_URL, WEIGHTS_DIR
-    from ultralytics.utils.downloads import safe_download
-
-    # Use persistent directory alongside weights
-    cache_dir = WEIGHTS_DIR / "solution_assets"
-    cache_dir.mkdir(parents=True, exist_ok=True)
-
-    # Define all assets needed for solution tests
-    assets = {
-        # Videos
-        "demo_video": "solutions_ci_demo.mp4",
-        "crop_video": "decelera_landscape_min.mov",
-        "pose_video": "solution_ci_pose_demo.mp4",
-        "parking_video": "solution_ci_parking_demo.mp4",
-        "vertical_video": "solution_vertical_demo.mp4",
-        # Parking manager files
-        "parking_areas": "solution_ci_parking_areas.json",
-        "parking_model": "solutions_ci_parking_model.pt",
-    }
-
-    asset_paths = {}
-
-    def get_asset(name):
-        """Return the cached path for a named solution asset, downloading it on first use."""
-        if name not in asset_paths:
-            asset_path = cache_dir / assets[name]
-            if not asset_path.exists():
-                safe_download(url=f"{ASSETS_URL}/{asset_path.name}", dir=cache_dir)
-            asset_paths[name] = asset_path
-        return asset_paths[name]
-
-    return get_asset
+import numpy.testing  # noqa: F401  # Pre-import before any test can corrupt numpy via in-place upgrade
 
 
 def pytest_addoption(parser):
@@ -78,17 +36,16 @@ def pytest_sessionstart(session):
     init_seeds()
 
 
-def pytest_terminal_summary(terminalreporter, exitstatus, config):
+def pytest_sessionfinish(session, exitstatus):
     """Cleanup operations after pytest session.
 
-    This function is automatically called by pytest at the end of the entire test session. It removes certain files and
-    directories used during testing.
-
-    Args:
-        terminalreporter: The terminal reporter object used for terminal output.
-        exitstatus (int): The exit status of the test run.
-        config: The pytest config object.
+    Runs only on the pytest controller (or serial run), skipping xdist workers to avoid race conditions where one worker
+    deletes shared assets while another is still reading them.
     """
+    # Skip on xdist workers - only the controller should clean up shared resources
+    if hasattr(session.config, "workerinput"):
+        return
+
     from ultralytics.utils import WEIGHTS_DIR
 
     # Remove files

@@ -66,7 +66,7 @@ class VisualAISearch:
             safe_download(url=f"{ASSETS_URL}/images.zip", unzip=True, retry=3)
             self.data_dir = Path("images")
 
-        model = kwargs.get("model", "mobileclip2_b.ts")
+        model = kwargs.get("model", "mobileclip2:b")
         self.model = build_text_model(model, device=self.device)
         model_str = model.replace(":", "_").replace("/", "_")
         self.faiss_index = f"faiss-{model_str}.index"

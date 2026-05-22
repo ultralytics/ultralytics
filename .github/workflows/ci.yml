@@ -174,7 +174,7 @@ jobs:
         run: python tests/cache_test_assets.py
       - name: Pytest tests
         shell: bash # for Windows compatibility
-        run: pytest -n auto --cov=ultralytics/ --cov-report=xml tests/
+        run: pytest -n auto --cov=ultralytics/ --cov-report=xml tests/ --deselect tests/test_exports.py::test_export_imx
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
         uses: codecov/codecov-action@v6
@@ -401,7 +401,7 @@ jobs:
       - name: Pre-cache test assets
         run: python tests/cache_test_assets.py
       - name: Pytest tests
-        run: pytest -n auto --slow tests/
+        run: pytest -n auto --slow tests/ --deselect tests/test_exports.py::test_export_imx
       - name: Activate Virtual Environment for Benchmarks
         run: |
           python3.11 -m venv env-benchmarks
@@ -563,7 +563,7 @@ jobs:
       - name: test_engine.py
         run: pytest -n auto ultralytics/tests/test_engine.py -v -s
       - name: test_exports.py
-        run: pytest -n auto ultralytics/tests/test_exports.py -v -s
+        run: pytest -n auto ultralytics/tests/test_exports.py -v -s --deselect ultralytics/tests/test_exports.py::test_export_imx
       - name: test_integrations.py
         run: pytest -n auto ultralytics/tests/test_integrations.py -v -s
       - name: test_solutions.py

@@ -68,8 +68,9 @@ class VisualAISearch:
 
         model = kwargs.get("model", "mobileclip2_b.ts")
         self.model = build_text_model(model, device=self.device)
-        self.faiss_index = f"faiss-{Path(model).stem}.index"
-        self.data_path_npy = f"paths-{Path(model).stem}.npy"
+        model_str = model.replace(":", "_").replace("/", "_")
+        self.faiss_index = f"faiss-{model_str}.index"
+        self.data_path_npy = f"paths-{model_str}.npy"
 
         self.index = None
         self.image_paths = []

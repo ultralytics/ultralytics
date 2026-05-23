@@ -165,15 +165,6 @@ class Colors:
 colors = Colors()  # create instance for 'from utils.plots import colors'
 
 
-def _gaussian_smooth(y, sigma=3):
-    """Apply Gaussian smoothing to a 1D array using convolution with a Gaussian kernel."""
-    kernel_size = int(6 * sigma + 1) | 1
-    x = np.arange(kernel_size) - kernel_size // 2
-    kernel = np.exp(-(x**2) / (2 * sigma**2))
-    kernel /= kernel.sum()
-    return np.convolve(y, kernel, mode="same")
-
-
 class Annotator:
     """Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
 
@@ -918,6 +909,7 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
     """
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
     import polars as pl
+    from scipy.ndimage import gaussian_filter1d
 
     save_dir = Path(file).parent if file else Path(dir)
     files = list(save_dir.glob("results*.csv"))
@@ -944,7 +936,7 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
             for i, j in enumerate(columns):
                 y = data.select(j).to_numpy().flatten().astype("float")
                 ax[i].plot(x, y, marker=".", label=f.stem, linewidth=2, markersize=8)  # actual results
-                ax[i].plot(x, _gaussian_smooth(y, sigma=3), ":", label="smooth", linewidth=2)  # smoothing line
+                ax[i].plot(x, gaussian_filter1d(y, sigma=3), ":", label="smooth", linewidth=2)  # smoothing line
                 ax[i].set_title(j, fontsize=12)
         except Exception as e:
             LOGGER.error(f"Plotting error for {f}: {e}")
@@ -1003,6 +995,7 @@ def plot_tune_results(results_file: str = "tune_results.ndjson", exclude_zero_fi
     import json
 
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+    from scipy.ndimage import gaussian_filter1d
 
     def _save_one_file(file):
         """Save one matplotlib plot to 'file'."""
@@ -1062,7 +1055,7 @@ def plot_tune_results(results_file: str = "tune_results.ndjson", exclude_zero_fi
         if exclude_zero_fitness_points and not isinstance(zero_mask, slice):
             y = y[zero_mask]
         plt.plot(x, y, "o", markersize=5, alpha=0.8, label=dataset)
-    plt.plot(x, _gaussian_smooth(all_fitness, sigma=3), ":", color="0.35", label="smoothed mean", linewidth=2)
+    plt.plot(x, gaussian_filter1d(all_fitness, sigma=3), ":", color="0.35", label="smoothed mean", linewidth=2)
     plt.title("Fitness vs Iteration")
     plt.xlabel("Iteration")
     plt.ylabel("Fitness")

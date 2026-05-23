@@ -202,7 +202,7 @@ def test_youtube():
     """Test YOLO model on a YouTube video stream, handling potential network-related errors."""
     model = YOLO(MODEL)
     try:
-        model.predict("https://youtu.be/G17sBkb38XQ", imgsz=96, save=True)
+        model.predict("https://youtu.be/G17sBkb38XQ", imgsz=32, save=True)
     # Handle internet connection errors and 'urllib.error.HTTPError: HTTP Error 429: Too Many Requests'
     except (urllib.error.HTTPError, ConnectionError) as e:
         LOGGER.error(f"YouTube Test Error: {e}")
@@ -310,7 +310,7 @@ def test_predict_callback_and_setup():
 
     dataset = load_inference_source(source=SOURCE)
     bs = dataset.bs  # access predictor properties
-    results = model.predict(dataset, stream=True, imgsz=160)  # source already setup
+    results = model.predict(dataset, stream=True, imgsz=32)  # source already setup
     for r, im0, bs in results:
         print("test_callback", im0.shape)
         print("test_callback", bs)
@@ -350,7 +350,7 @@ def test_results(model: str, tmp_path):
 def test_labels_and_crops():
     """Test output from prediction args for saving YOLO detection labels and crops."""
     imgs = [SOURCE, ASSETS / "zidane.jpg"]
-    results = YOLO(WEIGHTS_DIR / "yolo26n.pt")(imgs, imgsz=320, save_txt=True, save_crop=True)
+    results = YOLO(WEIGHTS_DIR / "yolo26n.pt")(imgs, imgsz=160, save_txt=True, save_crop=True)
     save_path = Path(results[0].save_dir)
     for r in results:
         im_name = Path(r.path).stem

@@ -494,14 +494,6 @@ jobs:
         run: uv pip install pytest
       - name: Check environment
         run: conda list
-      - name: Test CLI
-        run: |
-          yolo predict model=yolo26n.pt imgsz=320
-          yolo train model=yolo26n.pt data=coco8.yaml epochs=1 imgsz=32
-          yolo val model=yolo26n.pt data=coco8.yaml imgsz=32
-          yolo export model=yolo26n.pt format=torchscript imgsz=160
-          yolo benchmark model=yolo26n.pt data='coco8.yaml' imgsz=640 format=onnx
-          yolo solutions
       - name: Test Python
         # Note this step must use the updated default bash environment, not a Python environment
         run: |

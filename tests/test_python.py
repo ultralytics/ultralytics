@@ -275,6 +275,7 @@ def test_train_pretrained(scls):
     model(SOURCE)
 
 
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Model YAML validation is too slow on edge devices")
 def test_all_model_yamls():
     """Test YOLO model creation for all available YAML configurations in the `cfg/models` directory."""
     for m in (ROOT / "cfg" / "models").rglob("*.yaml"):
@@ -730,6 +731,7 @@ def test_classify_transforms_train(image, auto_augment, erasing, force_color_jit
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(IS_RASPBERRYPI or IS_JETSON, reason="Edge devices not intended for tuning")
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_model_tune():
     """Tune YOLO model for performance improvement."""
@@ -741,6 +743,7 @@ def test_model_tune():
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(IS_RASPBERRYPI or IS_JETSON, reason="Edge devices not intended for tuning")
 @pytest.mark.skipif(not ONLINE or not checks.IS_PYTHON_MINIMUM_3_10, reason="environment is offline")
 @pytest.mark.skipif(not checks.check_requirements("ray", install=False), reason="ray[tune] not installed")
 def test_model_tune_ray():
@@ -767,6 +770,7 @@ def test_model_embeddings():
         assert len(model_segment.embed(source=batch, imgsz=32)) == len(batch)
 
 
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for CLIP-based models")
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOWorld with CLIP is not supported in Python 3.12")
 @pytest.mark.skipif(
     checks.IS_PYTHON_3_8 and LINUX and ARM64,
@@ -803,6 +807,7 @@ def test_yolo_world():
     )
 
 
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for heavy CLIP-based models")
 @pytest.mark.skipif(not TORCH_1_13, reason="YOLOE with CLIP requires torch>=1.13")
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOE with CLIP is not supported in Python 3.12")
 @pytest.mark.skipif(

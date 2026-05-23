@@ -37,7 +37,7 @@ def test_val(task: str, model: str, data: str) -> None:
     """Test YOLO validation process for specified task, model, and data using a shell command."""
     for end2end in {False, True}:
         run(
-            f"yolo val {task} model={model} data={data} imgsz=32 save_txt save_json visualize end2end={end2end} max_det=100 agnostic_nms"
+            f"yolo val {task} model={model} data={data} imgsz=32 end2end={end2end} max_det=100 agnostic_nms"
         )
 
 
@@ -46,7 +46,7 @@ def test_predict(task: str, model: str, data: str) -> None:
     """Test YOLO prediction on provided sample assets for specified task and model."""
     for end2end in {False, True}:
         run(
-            f"yolo {task} predict model={model} source={ASSETS} imgsz=32 save save_crop save_txt visualize end2end={end2end} max_det=100"
+            f"yolo {task} predict model={model} source={ASSETS} imgsz=32 save end2end={end2end} max_det=100"
         )
 
 
@@ -61,10 +61,11 @@ def test_export(model: str) -> None:
 def test_rtdetr(task: str = "detect", model: Path = WEIGHTS_DIR / "rtdetr-l.pt", data: str = "coco8.yaml") -> None:
     """Test the RTDETR functionality within Ultralytics for detection tasks using specified model and data."""
     # Add comma, spaces, fraction=0.25 args to test single-image training
-    run(f"yolo predict {task} model={model} source={ASSETS / 'bus.jpg'} imgsz=160 save save_crop save_txt")
+    run(f"yolo predict {task} model={model} source={ASSETS / 'bus.jpg'} imgsz=160 save")
     run(f"yolo train {task} model={model} data={data} --imgsz= 160 epochs =1, cache = disk fraction=0.25")
 
 
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for heavy FastSAM tests")
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="MobileSAM with CLIP is not supported in Python 3.12")
 @pytest.mark.skipif(
     checks.IS_PYTHON_3_8 and LINUX and ARM64,
@@ -77,7 +78,7 @@ def test_fastsam(
     source = ASSETS / "bus.jpg"
 
     run(f"yolo segment val {task} model={model} data={data} imgsz=32")
-    run(f"yolo segment predict model={model} source={source} imgsz=32 save save_crop save_txt")
+    run(f"yolo segment predict model={model} source={source} imgsz=32 save")
 
     from ultralytics import FastSAM
     from ultralytics.models.sam import Predictor

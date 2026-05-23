@@ -36,18 +36,14 @@ def test_train(task: str, model: str, data: str) -> None:
 def test_val(task: str, model: str, data: str) -> None:
     """Test YOLO validation process for specified task, model, and data using a shell command."""
     for end2end in {False, True}:
-        run(
-            f"yolo val {task} model={model} data={data} imgsz=32 end2end={end2end} max_det=100 agnostic_nms"
-        )
+        run(f"yolo val {task} model={model} data={data} imgsz=32 end2end={end2end} max_det=100 agnostic_nms")
 
 
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_predict(task: str, model: str, data: str) -> None:
     """Test YOLO prediction on provided sample assets for specified task and model."""
     for end2end in {False, True}:
-        run(
-            f"yolo {task} predict model={model} source={ASSETS} imgsz=32 save end2end={end2end} max_det=100"
-        )
+        run(f"yolo {task} predict model={model} source={ASSETS} imgsz=32 save end2end={end2end} max_det=100")
 
 
 @pytest.mark.parametrize("model", MODELS)

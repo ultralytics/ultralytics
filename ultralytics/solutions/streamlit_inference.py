@@ -246,7 +246,9 @@ class Inference:
                         frame, conf=self.conf, iou=self.iou, classes=self.selected_ind, imgsz=self.imgsz, persist=True
                     )
                 else:
-                    results = self.model(frame, conf=self.conf, iou=self.iou, classes=self.selected_ind, imgsz=self.imgsz)
+                    results = self.model(
+                        frame, conf=self.conf, iou=self.iou, classes=self.selected_ind, imgsz=self.imgsz
+                    )
 
                 annotated_frame = results[0].plot()  # Add annotations on frame
 

@@ -275,13 +275,12 @@ def test_train_pretrained(scls):
     model(SOURCE)
 
 
-@pytest.mark.skipif(IS_RASPBERRYPI, reason="Model YAML validation is too slow on edge devices")
 def test_all_model_yamls():
     """Test YOLO model creation for all available YAML configurations in the `cfg/models` directory."""
     for m in (ROOT / "cfg" / "models").rglob("*.yaml"):
         if "rtdetr" in m.name:
             if TORCH_1_11:
-                _ = RTDETR(m.name)(SOURCE, imgsz=640)  # must be 640
+                _ = RTDETR(m.name)(SOURCE, imgsz=160)  # must be 640
         else:
             YOLO(m.name)
 

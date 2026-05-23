@@ -42,6 +42,7 @@ import torch
 
 from callbacks import grad_clip, muon_w, nfs_sync, paths, wandb_config
 from ultralytics import YOLO
+from ultralytics.data.utils import IMG_FORMATS
 from ultralytics.utils import YAML
 
 
@@ -206,6 +207,35 @@ def _resolve_dataset_list(datasets_arg: str) -> list[Path]:
     return yamls
 
 
+_MULTI_DET_TARGET_ITERS = 1500
+_MULTI_DET_EPOCH_CAP = 200
+
+
+def _scale_epochs_patience_for_dataset(
+    data_yaml: Path, batch: int, base_epochs: int, base_patience: int
+) -> tuple[int, int, int, int]:
+    """Scale epochs/patience per dataset so each sees >=`_MULTI_DET_TARGET_ITERS` total training iterations.
+
+    Tiny RF13-style datasets (87-1000 train) at batch=128 get only 1-8 iters/epoch. A flat base_epochs=30 gives 30-240
+    total iters, half consumed by LR warmup, leaving essentially no training. Scale epochs up to meet the iteration
+    floor; cap at `_MULTI_DET_EPOCH_CAP` to bound wall time. Returns extras for logging.
+    """
+    d = YAML.load(data_yaml)
+    root = Path(d.get("path", data_yaml.parent))
+    train = d.get("train", "images/train")
+    train_path = Path(train) if Path(train).is_absolute() else root / train
+    if train_path.is_file() and train_path.suffix == ".txt":
+        with train_path.open() as f:
+            n_imgs = sum(1 for line in f if line.strip() and not line.startswith("#"))
+    else:
+        n_imgs = sum(1 for p in train_path.rglob("*") if p.suffix[1:].lower() in IMG_FORMATS)
+    iters_per_ep = max(1, (n_imgs + batch - 1) // batch)
+    needed_eps = (_MULTI_DET_TARGET_ITERS + iters_per_ep - 1) // iters_per_ep
+    epochs = max(base_epochs, min(_MULTI_DET_EPOCH_CAP, needed_eps))
+    patience = max(base_patience, epochs // 10)
+    return epochs, patience, n_imgs, iters_per_ep
+
+
 def _run_multi_det(
     gpu: str,
     phase1_weights: str,
@@ -253,14 +283,25 @@ def _run_multi_det(
     if not csv_path.exists():
         csv_path.write_text("dataset,map50,map50_95,fitness\n")
 
+    base_epochs = epochs or 70
+    base_patience = patience or 100
+    batch_actual = int(batch_override) if batch_override else 128
     print(f"[multi_det_finetune] parent={parent_name} datasets={len(dataset_yamls)} model={model_yaml}")
     print(f"[multi_det_finetune] aggregate csv -> {csv_path}")
+    print(
+        f"[multi_det_finetune] per-dataset epoch scaling: target_iters={_MULTI_DET_TARGET_ITERS}, "
+        f"cap={_MULTI_DET_EPOCH_CAP}, base_epochs={base_epochs}, base_patience={base_patience}, batch={batch_actual}"
+    )
 
     results = []
     for i, ds_yaml in enumerate(dataset_yamls, start=1):
         basename = ds_yaml.parent.name
         sub_name = f"{parent_name}-{basename}"
+        ep_d, pat_d, n_imgs, iters_per_ep = _scale_epochs_patience_for_dataset(
+            ds_yaml, batch_actual, base_epochs, base_patience
+        )
         print(f"\n=== [{i}/{len(dataset_yamls)}] {basename} -> {sub_name} ===")
+        print(f"[multi_det_finetune] {basename}: n_train={n_imgs} iters/ep={iters_per_ep} epochs={ep_d} patience={pat_d}")
 
         model = YOLO(model_yaml)
         model.add_callback("on_train_start", grad_clip.override(1.0))
@@ -279,9 +320,13 @@ def _run_multi_det(
                 wandb_group="downstream-multi-det",
                 parent_run=parent_name,
                 dataset=basename,
+                n_train_images=n_imgs,
+                iters_per_epoch=iters_per_ep,
+                scaled_epochs=ep_d,
+                scaled_patience=pat_d,
             ),
         )
-        det_args = _build_det_train_args(epochs, patience, batch_override, lr_override, nbs_override)
+        det_args = _build_det_train_args(ep_d, pat_d, batch_override, lr_override, nbs_override)
         train_args = dict(
             pretrained=phase1_weights,
             device=int(gpu),

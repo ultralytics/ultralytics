@@ -751,10 +751,14 @@ class AnomalyValidator(yolo.detect.DetectionValidator):
             "metrics/image_auroc": self.image_auroc,
             "metrics/pixel_auroc": self.pixel_auroc,
         }
-        # attach to metrics object so model.val() return carries them
-        self.metrics.map10 = stats["metrics/mAP10(B)"]
-        self.metrics.map25 = stats["metrics/mAP25(B)"]
-        self.metrics.map50 = stats["metrics/mAP50(B)"]
+        # Attach to metrics object so model.val() return carries them.  Necessary
+        # because `box.map50` / `box.map` hardcode column indices that assume the
+        # default iouv = [0.5..0.95]; with our extended iouv = [0.1, 0.25, 0.5..0.95]
+        # those properties return the wrong columns (e.g. box.map50 → AP@0.1).
+        self.metrics.map10    = stats["metrics/mAP10(B)"]
+        self.metrics.map25    = stats["metrics/mAP25(B)"]
+        self.metrics.map50    = stats["metrics/mAP50(B)"]
+        self.metrics.map50_95 = stats["metrics/mAP50-95(B)"]
         return stats
 
     def print_results(self) -> None:

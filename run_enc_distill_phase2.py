@@ -285,8 +285,7 @@ def _run_multi_det(
     dataset_yamls = _resolve_dataset_list(datasets_arg)
     model_yaml = _infer_model_yaml(phase1_weights)
 
-    parent_paths = paths.run_paths(parent_name)
-    parent_save_dir = Path(parent_paths["project"]) / parent_paths["name"]
+    parent_save_dir = paths.LOCAL_ROOT / parent_name
     parent_save_dir.mkdir(parents=True, exist_ok=True)
     csv_path = parent_save_dir / "multi_results.csv"
     if not csv_path.exists():
@@ -305,17 +304,20 @@ def _run_multi_det(
     results = []
     for i, ds_yaml in enumerate(dataset_yamls, start=1):
         basename = ds_yaml.parent.name
-        sub_name = f"{parent_name}-{basename}"[:64]  # cap at 64 to fit wandb's 128-char artifact-name limit
         ep_d, pat_d, n_imgs, iters_per_ep = _scale_epochs_patience_for_dataset(
             ds_yaml, batch_actual, base_epochs, base_patience
         )
-        print(f"\n=== [{i}/{len(dataset_yamls)}] {basename} -> {sub_name} ===")
+        print(f"\n=== [{i}/{len(dataset_yamls)}] {basename} ===")
         print(f"[multi_det_finetune] {basename}: n_train={n_imgs} iters/ep={iters_per_ep} epochs={ep_d} patience={pat_d}")
 
         model = YOLO(model_yaml)
         model.add_callback("on_train_start", grad_clip.override(1.0))
         model.add_callback("on_train_start", muon_w.override(0.4355))
-        sync_start, sync_end = nfs_sync.setup(str(paths.NFS_MIRROR_ROOT), interval_sec=paths.SYNC_INTERVAL_SEC)
+        # Nest NFS mirror under parent so different parents' same-basename sub-runs (e.g. two parents both training
+        # `aerial-cows`) don't collide on the flat `NFS_MIRROR_ROOT / Path(save_dir).name` mapping in nfs_sync.setup.
+        sync_start, sync_end = nfs_sync.setup(
+            str(paths.NFS_MIRROR_ROOT / parent_name), interval_sec=paths.SYNC_INTERVAL_SEC
+        )
         model.add_callback("on_train_start", sync_start)
         model.add_callback("on_train_end", sync_end)
         model.add_callback(
@@ -326,7 +328,7 @@ def _run_multi_det(
                 phase1_wandb_id=phase1_wandb_id,
                 mode="multi_det_finetune",
                 cls_to_det_remap=True,
-                wandb_group="downstream-multi-det",
+                wandb_group=parent_name,
                 parent_run=parent_name,
                 dataset=basename,
                 n_train_images=n_imgs,
@@ -339,7 +341,10 @@ def _run_multi_det(
         train_args = dict(
             pretrained=phase1_weights,
             device=int(gpu),
-            **paths.run_paths(sub_name),
+            project=paths.WANDB_PROJECT,
+            name=basename,
+            save_dir=str(parent_save_dir / basename),
+            exist_ok=False,
             dropout=0,
             amp=True,
             seed=0,

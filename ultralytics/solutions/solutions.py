@@ -254,7 +254,7 @@ class BaseSolution:
             else:
                 input_h, input_w = result.plot_im.shape[:2]
             LOGGER.info(
-                f"{self.frame_no}: {result.plot_im.shape[0]}x{result.plot_im.shape[1]} {solution_speed:.1f}ms,"
+                f"{self.frame_no}: {input_h}x{input_w} {solution_speed:.1f}ms,"
                 f" {', '.join([f'{v} {self.names[k]}' for k, v in counts.items()])}\n"
                 f"Speed: {track_or_predict_speed:.1f}ms {track_or_predict}, "
                 f"{solution_speed:.1f}ms solution per image at shape "

@@ -11,7 +11,7 @@ import shutil
 
 from ultralytics.cfg import TASK2MODEL
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
-from ultralytics.utils import ASSETS_URL, WEIGHTS_DIR
+from ultralytics.utils import ASSETS_URL, WEIGHTS_DIR, LOGGER
 from ultralytics.utils.downloads import attempt_download_asset, safe_download
 
 # MODEL path (must stay in sync with tests/__init__.py)
@@ -71,7 +71,7 @@ SOLUTION_ASSETS = [
 
 def cache_weights() -> None:
     """Download all model weights used by tests."""
-    print("[cache] Downloading model weights ...")
+    LOGGER.info("[cache] Downloading model weights ...")
     for w in WEIGHTS:
         attempt_download_asset(WEIGHTS_DIR / w)
     # Copy yolo26n.pt into the exact path tests/__init__.py::MODEL expects
@@ -80,30 +80,30 @@ def cache_weights() -> None:
         src = WEIGHTS_DIR / "yolo26n.pt"
         if src.exists():
             shutil.copy2(src, MODEL)
-    print("[cache] Weights done.")
+    LOGGER.info("[cache] Weights done.")
 
 
 def cache_datasets() -> None:
     """Download / extract all datasets used by tests."""
-    print("[cache] Downloading datasets ...")
+    LOGGER.info("[cache] Downloading datasets ...")
     for ds in DATASETS:
         if ds.startswith("imagenet"):
             check_cls_dataset(ds)
         else:
             check_det_dataset(ds, autodownload=True)
-    print("[cache] Datasets done.")
+    LOGGER.info("[cache] Datasets done.")
 
 
 def cache_solution_assets() -> None:
     """Download solution test assets (videos, parking json, etc.)."""
-    print("[cache] Downloading solution assets ...")
+    LOGGER.info("[cache] Downloading solution assets ...")
     cache_dir = WEIGHTS_DIR / "solution_assets"
     cache_dir.mkdir(parents=True, exist_ok=True)
     for asset in SOLUTION_ASSETS:
         dst = cache_dir / asset
         if not dst.exists():
             safe_download(url=f"{ASSETS_URL}/{asset}", dir=cache_dir)
-    print("[cache] Solution assets done.")
+    LOGGER.info("[cache] Solution assets done.")
 
 
 def main() -> None:
@@ -111,7 +111,7 @@ def main() -> None:
     cache_weights()
     cache_datasets()
     cache_solution_assets()
-    print("[cache] All test assets are ready.")
+    LOGGER.info("[cache] All test assets are ready.")
 
 
 if __name__ == "__main__":

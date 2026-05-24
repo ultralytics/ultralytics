@@ -218,6 +218,7 @@ def test_solution(name, solution_class, needs_frame_count, video_key, kwargs_upd
             kwargs[key] = get_solution_asset("parking_areas")
         else:
             kwargs[key] = value
+    kwargs.setdefault("imgsz", 320)
 
     if name == "StreamlitInference":
         if checks.check_imshow():  # do not merge with elif above

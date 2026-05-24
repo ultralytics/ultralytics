@@ -26,14 +26,13 @@ import numpy as np
 import torch
 
 from ultralytics import __version__
+from ultralytics.utils.git import GitRepo
 from ultralytics.utils.patches import (
     imread_unicode,
     imshow_unicode,
     imwrite_unicode,
     torch_save,
-    torch_save,
 )  # for patches
-from ultralytics.utils.git import GitRepo
 from ultralytics.utils.tqdm import TQDM  # noqa
 
 # PyTorch Multi-GPU DDP Constants

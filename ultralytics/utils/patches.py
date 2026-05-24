@@ -1,11 +1,12 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Monkey patches to update/extend functionality of existing functions."""
+from __future__ import annotations
 
 import time
 from contextlib import contextmanager
 from copy import copy
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import cv2
 import numpy as np
@@ -120,7 +121,7 @@ def imread_unicode(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray:
     return cv2.imdecode(np.fromfile(filename, np.uint8), flags)
 
 
-def imwrite_unicode(filename: str, img: np.ndarray, params: Optional[List[int]] = None) -> bool:
+def imwrite_unicode(filename: str, img: np.ndarray, params: list[int] | None = None) -> bool:
     """
     Write an image to a file with multilanguage filename support.
 
@@ -243,7 +244,7 @@ def arange_patch(args):
 
 
 @contextmanager
-def override_configs(args, overrides: Optional[Dict[str, Any]] = None):
+def override_configs(args, overrides: dict[str, Any] | None = None):
     """
     Context manager to temporarily override configurations in args.
 

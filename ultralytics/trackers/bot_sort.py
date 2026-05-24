@@ -116,7 +116,7 @@ class BOTrack(STrack):
     @staticmethod
     def multi_predict(stracks: list[BOTrack]) -> None:
         """Predict the mean and covariance for multiple object tracks using a shared Kalman filter."""
-        if len(stracks) <= 0:
+        if not stracks:
             return
         multi_mean = np.asarray([st.mean.copy() for st in stracks])
         multi_covariance = np.asarray([st.covariance for st in stracks])

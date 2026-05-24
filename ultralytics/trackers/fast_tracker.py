@@ -238,7 +238,7 @@ class FASTTracker(BYTETracker):
             if det.score < self.args.new_track_thresh:
                 continue
             if suppress_on and active_stack is not None:
-                if matching.bbox_ioa(det.xyxy[None, :], active_stack, iou=True).max() >= self.init_iou_suppress:
+                if bbox_ioa(det.xyxy[None, :], active_stack, iou=True).max() >= self.init_iou_suppress:
                     continue
             det.activate(self.kalman_filter, self.frame_id)
             activated.append(det)

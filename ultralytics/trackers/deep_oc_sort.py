@@ -226,7 +226,9 @@ class DeepOCSORT(OCSORT):
                 for (xywh, s, c, f) in zip(bboxes, results.conf, results.cls, features)
             ]
         return [
-            DeepOCSortTrack(xywh, s, c, self.delta_t, alpha_fixed_emb=self.alpha_fixed_emb)
+            DeepOCSortTrack(
+                xywh, s, c, self.delta_t, alpha_fixed_emb=self.alpha_fixed_emb, det_thresh=self.args.track_high_thresh
+            )
             for (xywh, s, c) in zip(bboxes, results.conf, results.cls)
         ]
 

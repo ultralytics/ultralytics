@@ -629,5 +629,7 @@ class TRACKTRACK:
         self.removed_stracks = []
         self.frame_id = 0
         self.kalman_filter = KalmanFilterXYWH()
+        self._gmc_counter = 0
+        self._gmc_warp = np.eye(2, 3, dtype=np.float32)
         TTSTrack.reset_id()
         self.gmc.reset_params()

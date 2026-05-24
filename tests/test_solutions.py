@@ -129,13 +129,7 @@ def process_video(solution, video_path: str, needs_frame_count: bool = False):
             "demo_video",
             {"analytics_type": "area", "model": MODEL, "show": SHOW, "figsize": (6.4, 3.2)},
         ),
-        (
-            "TrackZone",
-            solutions.TrackZone,
-            False,
-            "demo_video",
-            {"region": REGION, "model": MODEL, "show": SHOW},
-        ),
+        ("TrackZone", solutions.TrackZone, False, "demo_video", {"region": REGION, "model": MODEL, "show": SHOW}),
         (
             "ObjectCropper",
             solutions.ObjectCropper,
@@ -178,7 +172,7 @@ def process_video(solution, video_path: str, needs_frame_count: bool = False):
             solutions.Inference,
             False,
             None,  # streamlit application doesn't require video file
-            {},
+            {},  # streamlit application doesn't accept arguments
         ),
     ],
 )

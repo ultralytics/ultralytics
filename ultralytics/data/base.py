@@ -234,7 +234,9 @@ class BaseDataset(Dataset):
                     # Validate channel count; stale .npy files from other configs may have wrong channels
                     npy_channels = im.shape[-1] if im.ndim >= 3 else 1
                     if npy_channels != self.channels:
-                        LOGGER.warning(f"{self.prefix}Removing stale *.npy image file {fn} with {npy_channels} channels, expected {self.channels}")
+                        LOGGER.warning(
+                            f"{self.prefix}Removing stale *.npy image file {fn} with {npy_channels} channels, expected {self.channels}"
+                        )
                         Path(fn).unlink(missing_ok=True)
                         im = imread(f, flags=self.cv2_flag)
                 except Exception as e:

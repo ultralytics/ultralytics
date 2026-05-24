@@ -28,8 +28,6 @@ from ultralytics.utils.torch_utils import (
     TORCH_2_12,
 )
 
-heavy_memory = pytest.mark.xdist_group("heavy_memory")
-
 
 def skip_rpi_semantic(task):
     """Skip semantic segmentation export tests on Raspberry Pi due to memory constraints."""

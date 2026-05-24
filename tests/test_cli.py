@@ -47,10 +47,12 @@ def test_predict(task: str, model: str, data: str) -> None:
 
 
 @pytest.mark.parametrize("model", MODELS)
-def test_export(model: str) -> None:
+def test_export(model: str, tmp_path: Path) -> None:  # use tmp_path to prevent the race condition with test_exports.py
     """Test exporting a YOLO model to TorchScript format."""
     for end2end in {False, True}:
-        run(f"yolo export model={model} format=torchscript imgsz=32 end2end={end2end} max_det=100")
+        run(
+            f"yolo export model={model} format=torchscript imgsz=32 end2end={end2end} max_det=100 project={tmp_path} name=export"
+        )
 
 
 @pytest.mark.skipif(not TORCH_1_11, reason="RTDETR requires torch>=1.11")

@@ -348,9 +348,9 @@ def test_export_ncnn_matrix(task, half, batch):
 @pytest.mark.skipif(
     IS_RASPBERRYPI, reason="Test disabled as IMX export suffers from OOM (Out of Memory) on Raspberry Pi 5 16GB"
 )
-def test_export_imx():
+def test_export_imx(isolated_model):
     """Test YOLO export to IMX format."""
-    model = YOLO("yolo11n.pt")  # IMX export only supports YOLO11
+    model = YOLO(isolated_model)  # IMX export only supports YOLO11
     file = model.export(format="imx", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)
 

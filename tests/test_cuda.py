@@ -180,7 +180,7 @@ def test_utils_benchmarks(isolated_model):
     # Pre-export a dynamic engine model to use dynamic inference
     YOLO(isolated_model).export(format="engine", imgsz=32, dynamic=True, batch=1, device=DEVICES[0])
     ProfileModels(
-        [MODEL],
+        [isolated_model],
         imgsz=32,
         half=False,
         min_time=1,

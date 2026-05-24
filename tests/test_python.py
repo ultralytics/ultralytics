@@ -280,7 +280,7 @@ def test_all_model_yamls():
     for m in (ROOT / "cfg" / "models").rglob("*.yaml"):
         if "rtdetr" in m.name:
             if TORCH_1_11:
-                _ = RTDETR(m.name)(SOURCE, imgsz=160)
+                _ = RTDETR(m.name)(SOURCE, imgsz=640)
         else:
             YOLO(m.name)
 

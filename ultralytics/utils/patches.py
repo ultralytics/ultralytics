@@ -6,7 +6,6 @@ from __future__ import annotations
 import time
 from contextlib import contextmanager
 from copy import copy
-from pathlib import Path
 from typing import Any
 
 import cv2
@@ -15,7 +14,6 @@ import torch
 from PIL import Image
 
 # OpenCV Multilanguage-friendly functions ------------------------------------------------------------------------------
-_imshow = cv2.imshow  # copy to avoid recursion errors
 
 
 def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
@@ -106,51 +104,6 @@ def _imread_pil(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | No
             return cv2.cvtColor(np.asarray(img.convert("RGB")), cv2.COLOR_RGB2BGR)
     except Exception:
         return None
-
-
-def imwrite(filename: str, img: np.ndarray, params: list[int] | None = None) -> bool:
-    """Write an image to a file with multilanguage filename support.
-
-    Args:
-        filename (str): Path to the file to write.
-        img (np.ndarray): Image to write.
-        params (list[int], optional): Additional parameters for image encoding.
-
-    Returns:
-        (bool): True if the file was written successfully, False otherwise.
-
-    Examples:
-        >>> import numpy as np
-        >>> img = np.zeros((100, 100, 3), dtype=np.uint8)  # Create a black image
-        >>> success = imwrite("output.jpg", img)  # Write image to file
-        >>> print(success)
-        True
-    """
-    try:
-        cv2.imencode(Path(filename).suffix, img, params)[1].tofile(filename)
-        return True
-    except Exception:
-        return False
-
-
-def imshow(winname: str, mat: np.ndarray) -> None:
-    """Display an image in the specified window with multilanguage window name support.
-
-    This function is a wrapper around OpenCV's imshow function that displays an image in a named window. It handles
-    multilanguage window names by encoding them properly for OpenCV compatibility.
-
-    Args:
-        winname (str): Name of the window where the image will be displayed. If a window with this name already exists,
-            the image will be displayed in that window.
-        mat (np.ndarray): Image to be shown. Should be a valid numpy array representing an image.
-
-    Examples:
-        >>> import numpy as np
-        >>> img = np.zeros((300, 300, 3), dtype=np.uint8)  # Create a black image
-        >>> img[:100, :100] = [255, 0, 0]  # Add a blue square
-        >>> imshow("Example Window", img)  # Display the image
-    """
-    _imshow(winname.encode("unicode_escape").decode(), mat)
 
 
 # PyTorch functions ----------------------------------------------------------------------------------------------------

@@ -515,8 +515,7 @@ jobs:
 
   Summary:
     runs-on: ubuntu-latest
-    needs:
-      [Benchmarks, Tests, SlowTests, GPU, RaspberryPi, NVIDIA_Jetson, Conda]
+    needs: [Benchmarks, Tests, SlowTests, GPU, RaspberryPi, NVIDIA_Jetson, Conda]
     if: always()
     steps:
       - name: Check for failure and notify

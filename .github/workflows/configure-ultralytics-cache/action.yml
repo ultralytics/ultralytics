@@ -7,7 +7,7 @@ runs:
     - name: Configure Ultralytics cache paths
       shell: bash
       run: |
-        python -c "
+        python3 <<'PYEOF'
         from ultralytics import settings
         import os
         cache = os.path.join(os.environ['GITHUB_WORKSPACE'], '.ultralytics_cache')
@@ -15,4 +15,4 @@ runs:
             'weights_dir': os.path.join(cache, 'weights'),
             'datasets_dir': os.path.join(cache, 'datasets'),
         })
-        "
+        PYEOF

@@ -297,6 +297,7 @@ def test_export_paddle(isolated_model):
     YOLO(isolated_model).export(format="paddle", imgsz=32)
 
 
+@pytest.mark.slow
 @pytest.mark.skipif(not TORCH_1_10, reason="MNN export requires torch>=1.10")
 def test_export_mnn(isolated_model):
     """Test YOLO export to MNN format (WARNING: MNN test must precede NCNN test or CI error on Windows)."""
@@ -324,6 +325,7 @@ def test_export_mnn_matrix(task, int8, half, batch, end2end):
     Path(file).unlink()  # cleanup
 
 
+@pytest.mark.slow
 @pytest.mark.skipif(not TORCH_2_0, reason="NCNN inference causes segfault on PyTorch<2.0")
 def test_export_ncnn(isolated_model):
     """Test YOLO export to NCNN format."""

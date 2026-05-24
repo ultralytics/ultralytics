@@ -172,15 +172,14 @@ class DeepOCSORT(OCSORT):
     - ByteTrack-style low-confidence second pass disabled by default
     """
 
-    def __init__(self, args: Any, frame_rate: int = 30):
+    def __init__(self, args: Any):
         """Initialize Deep OC-SORT tracker.
 
         Args:
             args (Namespace | IterableSimpleNamespace): Parsed tracker config providing the OC-SORT keys plus
                 `gmc_method`, `proximity_thresh`, `appearance_thresh`, `alpha_fixed_emb`, `with_reid`, and `model`.
-            frame_rate (int): Source video frame rate.
         """
-        super().__init__(args, frame_rate)
+        super().__init__(args)
 
         # GMC for camera motion compensation
         self.gmc = GMC(method=getattr(args, "gmc_method", "sparseOptFlow"))

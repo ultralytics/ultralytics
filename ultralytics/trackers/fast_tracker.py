@@ -142,13 +142,13 @@ class FASTTracker(BYTETracker):
         >>> from ultralytics.trackers import FastTracker
         >>> from ultralytics.utils import YAML, IterableSimpleNamespace
         >>> cfg = IterableSimpleNamespace(**YAML.load("ultralytics/cfg/trackers/fasttrack.yaml"))
-        >>> tracker = FastTracker(cfg, frame_rate=30)
+        >>> tracker = FastTracker(cfg)
         >>> tracks = tracker.update(detections)
     """
 
     track_class = FastSTrack
 
-    def __init__(self, args, frame_rate: int = 30):
+    def __init__(self, args):
         """Initialize FastTracker with tunables read from ``args``.
 
         Any FastTracker-specific key missing on ``args`` falls back to a sensible default, so
@@ -158,9 +158,8 @@ class FASTTracker(BYTETracker):
             args (Namespace | IterableSimpleNamespace): Parsed tracker config. Must provide the BYTETracker keys
                 (``track_high_thresh``, ``track_low_thresh``, ``new_track_thresh``, ``track_buffer``, ``match_thresh``,
                 ``fuse_score``) and may provide the FastTracker-specific keys described in the class docstring.
-            frame_rate (int): Source video frame rate.
         """
-        super().__init__(args, frame_rate=frame_rate)
+        super().__init__(args)
         # Occlusion-handling knobs (fall back to sensible defaults if absent on args)
         self.reset_velocity_offset_occ = int(getattr(args, "reset_velocity_offset_occ", 5))
         self.reset_pos_offset_occ = int(getattr(args, "reset_pos_offset_occ", 3))

@@ -433,24 +433,23 @@ class TRACKTRACK:
 
     Examples:
         Initialize and run on a single frame
-        >>> tracker = TRACKTRACK(args, frame_rate=30)
+        >>> tracker = TRACKTRACK(args)
         >>> tracked_objects = tracker.update(yolo_results, img=image)
     """
 
-    def __init__(self, args, frame_rate: int = 30):
+    def __init__(self, args):
         """Initialize TRACKTRACK from a tracker config (see `ultralytics/cfg/trackers/tracktrack.yaml`).
 
         Args:
             args (Any): Parsed tracker configuration. All knobs are read with `getattr(..., default)` so legacy YAMLs
                 missing recently added keys still load.
-            frame_rate (int): Source video frame rate; used to scale `track_buffer` into `max_time_lost`.
         """
         self.tracked_stracks: list[TTSTrack] = []
         self.lost_stracks: list[TTSTrack] = []
         self.removed_stracks: list[TTSTrack] = []
         self.frame_id = 0
         self.args = args
-        self.max_time_lost = int(frame_rate / 30.0 * args.track_buffer)
+        self.max_time_lost = args.track_buffer
         self.kalman_filter = KalmanFilterXYWH()
 
         self.det_thr = getattr(args, "det_thr", 0.6)

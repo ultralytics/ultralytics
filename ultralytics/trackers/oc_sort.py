@@ -186,15 +186,14 @@ class OCSORT(BYTETracker):
 
     track_class = OCSortTrack
 
-    def __init__(self, args: Any, frame_rate: int = 30):
+    def __init__(self, args: Any):
         """Initialize OC-SORT tracker.
 
         Args:
             args (Namespace | IterableSimpleNamespace): Parsed tracker config providing the BYTE keys plus `delta_t`,
                 `inertia`, and `use_byte`.
-            frame_rate (int): Source video frame rate.
         """
-        super().__init__(args, frame_rate)
+        super().__init__(args)
         self.delta_t = getattr(args, "delta_t", 3)
         self.inertia = getattr(args, "inertia", 0.2)
         self.use_byte = getattr(args, "use_byte", False)

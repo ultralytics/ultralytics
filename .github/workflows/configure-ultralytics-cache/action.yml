@@ -7,7 +7,7 @@ runs:
     - name: Configure Ultralytics cache paths
       shell: bash
       run: |
-        python3 <<'PYEOF'
+        python <<'PYEOF'
         from ultralytics import settings
         import os
         cache = os.path.join(os.environ['GITHUB_WORKSPACE'], '.ultralytics_cache')

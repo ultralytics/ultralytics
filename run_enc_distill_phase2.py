@@ -31,9 +31,10 @@ Flags:
                 one level deep for ``*/data.yaml``.
 """
 
+import os
+import re
 import sys
 from pathlib import Path
-import os
 
 _REPO_ROOT = str(Path(__file__).resolve().parent)
 os.environ["PYTHONPATH"] = _REPO_ROOT + os.pathsep + os.environ.get("PYTHONPATH", "")
@@ -106,7 +107,15 @@ def _infer_model_yaml(phase1_weights: str, head_suffix: str = "") -> str:
         args_yaml = w.parent.parent / "args.yaml"
         if args_yaml.exists():
             cls_yaml = YAML.load(args_yaml)["model"]
-    return cls_yaml.replace("-cls.yaml", f"{head_suffix}.yaml")
+    # Strip the `-cls` task suffix. Lookahead matches both end-position (`yolo26s-cls.yaml` -> `yolo26s.yaml`)
+    # and middle-position when a custom arch suffix follows (`yolo26s-cls-attn.yaml` -> `yolo26s-attn.yaml`).
+    out = re.sub(r"-cls(?=[-.])", head_suffix, cls_yaml, count=1)
+    if "-cls" in out:
+        raise ValueError(
+            f"_infer_model_yaml: stripped -cls failed for {cls_yaml!r} -> {out!r} "
+            f"(source weights: {phase1_weights}). Would route to ClassificationTrainer and crash."
+        )
+    return out
 
 
 def _build_det_train_args(
@@ -296,7 +305,7 @@ def _run_multi_det(
     results = []
     for i, ds_yaml in enumerate(dataset_yamls, start=1):
         basename = ds_yaml.parent.name
-        sub_name = f"{parent_name}-{basename}"
+        sub_name = f"{parent_name}-{basename}"[:64]  # cap at 64 to fit wandb's 128-char artifact-name limit
         ep_d, pat_d, n_imgs, iters_per_ep = _scale_epochs_patience_for_dataset(
             ds_yaml, batch_actual, base_epochs, base_patience
         )

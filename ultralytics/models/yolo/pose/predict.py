@@ -1,12 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
-from ultralytics.utils import DEFAULT_CFG, LOGGER, ops
+from ultralytics.utils import DEFAULT_CFG, ops
 
 
 class PosePredictor(DetectionPredictor):
-    """
-    A class extending the DetectionPredictor class for prediction based on a pose model.
+    """A class extending the DetectionPredictor class for prediction based on a pose model.
 
     This class specializes in pose estimation, handling keypoints detection alongside standard object detection
     capabilities inherited from DetectionPredictor.
@@ -21,41 +22,27 @@ class PosePredictor(DetectionPredictor):
     Examples:
         >>> from ultralytics.utils import ASSETS
         >>> from ultralytics.models.yolo.pose import PosePredictor
-        >>> args = dict(model="yolo11n-pose.pt", source=ASSETS)
+        >>> args = dict(model="yolo26n-pose.pt", source=ASSETS)
         >>> predictor = PosePredictor(overrides=args)
         >>> predictor.predict_cli()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """
-        Initialize PosePredictor for pose estimation tasks.
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
+        """Initialize PosePredictor for pose estimation tasks.
 
-        Sets up a PosePredictor instance, configuring it for pose detection tasks and handling device-specific
-        warnings for Apple MPS.
+        Sets up a PosePredictor instance, configuring it for pose detection tasks and handling device-specific warnings
+        for Apple MPS.
 
         Args:
             cfg (Any): Configuration for the predictor.
             overrides (dict, optional): Configuration overrides that take precedence over cfg.
-            _callbacks (list, optional): List of callback functions to be invoked during prediction.
-
-        Examples:
-            >>> from ultralytics.utils import ASSETS
-            >>> from ultralytics.models.yolo.pose import PosePredictor
-            >>> args = dict(model="yolo11n-pose.pt", source=ASSETS)
-            >>> predictor = PosePredictor(overrides=args)
-            >>> predictor.predict_cli()
+            _callbacks (dict, optional): Dictionary of callback functions to be invoked during prediction.
         """
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "pose"
-        if isinstance(self.args.device, str) and self.args.device.lower() == "mps":
-            LOGGER.warning(
-                "Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
-                "See https://github.com/ultralytics/ultralytics/issues/4031."
-            )
 
     def construct_result(self, pred, img, orig_img, img_path):
-        """
-        Construct the result object from the prediction, including keypoints.
+        """Construct the result object from the prediction, including keypoints.
 
         Extends the parent class implementation by extracting keypoint data from predictions and adding them to the
         result object.
@@ -73,7 +60,7 @@ class PosePredictor(DetectionPredictor):
         """
         result = super().construct_result(pred, img, orig_img, img_path)
         # Extract keypoints from prediction and reshape according to model's keypoint shape
-        pred_kpts = pred[:, 6:].view(len(pred), *self.model.kpt_shape) if len(pred) else pred[:, 6:]
+        pred_kpts = pred[:, 6:].view(pred.shape[0], *self.model.kpt_shape)
         # Scale keypoints coordinates to match the original image dimensions
         pred_kpts = ops.scale_coords(img.shape[2:], pred_kpts, orig_img.shape)
         result.update(keypoints=pred_kpts)

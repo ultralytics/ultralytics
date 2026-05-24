@@ -3,8 +3,9 @@
 import json
 from time import time
 
-from ultralytics.hub import HUB_WEB_ROOT, PREFIX, HUBTrainingSession, events
+from ultralytics.hub import HUB_WEB_ROOT, PREFIX, HUBTrainingSession
 from ultralytics.utils import LOGGER, RANK, SETTINGS
+from ultralytics.utils.events import events
 
 
 def on_pretrain_routine_start(trainer):
@@ -84,7 +85,8 @@ def on_val_start(validator):
 
 def on_predict_start(predictor):
     """Run events on predict start."""
-    events(predictor.args, predictor.device)
+    backend = getattr(getattr(predictor, "model", None), "backend", None)
+    events(predictor.args, predictor.device, backend=backend)
 
 
 def on_export_start(exporter):
@@ -106,4 +108,4 @@ callbacks = (
     }
     if SETTINGS["hub"] is True
     else {}
-)  # verify hub is enabled before registering callbacks
+)

@@ -1,0 +1,26 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Builds ultralytics/ultralytics:latest-export image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
+# Export-optimized derivative of ultralytics/ultralytics:latest for testing and benchmarks
+# Includes all export format dependencies and pre-installed export packages
+
+FROM ultralytics/ultralytics:latest
+
+# Install export dependencies and run exports to AutoInstall packages
+# Numpy 1.26.4 required for TensorFlow export compatibility
+# Note tensorrt installed on-demand as depends on runtime environment CUDA version
+RUN uv pip install --system -e ".[export]" "onnxruntime-gpu" paddlepaddle x2paddle numpy==1.26.4 && \
+    # Run exports to AutoInstall packages \
+    yolo export model=tmp/yolo26n.pt format=edgetpu imgsz=32 && \
+    yolo export model=tmp/yolo26n.pt format=ncnn imgsz=32 && \
+    # Remove temporary files \
+    rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
+
+# Usage --------------------------------------------------------------------------------------------------------------
+
+# Production builds: https://github.com/ultralytics/ultralytics/blob/main/.github/workflows/docker.yml
+# Example (build): t=ultralytics/ultralytics:latest-export && docker build -f docker/Dockerfile-export -t $t .
+# Example (push): docker push $t
+# Example (pull): t=ultralytics/ultralytics:latest-export && docker pull $t
+# Example (run): docker run -it --ipc=host --runtime=nvidia --gpus all $t
+# Example (run-with-volume): docker run -it --ipc=host --runtime=nvidia --gpus all -v "$PWD/shared/datasets:/datasets" $t

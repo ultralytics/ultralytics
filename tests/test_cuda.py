@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import os
 from itertools import product
 from pathlib import Path
 
@@ -11,7 +12,7 @@ from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ASSETS, IS_JETSON, WEIGHTS_DIR
 from ultralytics.utils.autodevice import GPUInfo
-from ultralytics.utils.checks import check_amp
+from ultralytics.utils.checks import check_amp, check_tensorrt
 from ultralytics.utils.torch_utils import TORCH_1_13
 
 # Try to find idle devices if CUDA is available
@@ -23,10 +24,11 @@ if CUDA_IS_AVAILABLE:
         gpu_info = GPUInfo()
         gpu_info.print_status()
         autodevice_fraction = __import__("os").environ.get("YOLO_AUTODEVICE_FRACTION_FREE", 0.3)
-        idle_gpus = gpu_info.select_idle_gpu(
-            count=2, min_memory_fraction=autodevice_fraction, min_util_fraction=autodevice_fraction
-        )
-        if idle_gpus:
+        if idle_gpus := gpu_info.select_idle_gpu(
+            count=2,
+            min_memory_fraction=autodevice_fraction,
+            min_util_fraction=autodevice_fraction,
+        ):
             DEVICES = idle_gpus
 
 
@@ -39,7 +41,7 @@ def test_checks():
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 def test_amp():
     """Test AMP training checks."""
-    model = YOLO("yolo11n.pt").model.to(f"cuda:{DEVICES[0]}")
+    model = YOLO("yolo26n.pt").model.to(f"cuda:{DEVICES[0]}")
     assert check_amp(model)
 
 
@@ -69,13 +71,13 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
         simplify=simplify,
         nms=nms,
         device=DEVICES[0],
+        # opset=20 if nms else None,  # fix ONNX Runtime errors with NMS
     )
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, device=DEVICES[0])  # exported model inference
     Path(file).unlink()  # cleanup
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(True, reason="CUDA export tests disabled pending additional Ultralytics GPU server availability")
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch",
@@ -89,6 +91,13 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
 )
 def test_export_engine_matrix(task, dynamic, int8, half, batch):
     """Test YOLO model export to TensorRT format for various configurations and run inference."""
+    check_tensorrt()
+    import tensorrt as trt
+
+    is_trt10 = int(trt.__version__.split(".", 1)[0]) >= 10
+    if is_trt10 and int8 and dynamic:
+        pytest.skip("YOLO26 INT8+dynamic export requires explicit quantization on TensorRT 10+")
+
     file = YOLO(TASK2MODEL[task]).export(
         format="engine",
         imgsz=32,
@@ -103,30 +112,30 @@ def test_export_engine_matrix(task, dynamic, int8, half, batch):
     )
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, device=DEVICES[0])  # exported model inference
     Path(file).unlink()  # cleanup
-    Path(file).with_suffix(".cache").unlink() if int8 else None  # cleanup INT8 cache
+    Path(file).with_suffix(".cache").unlink(missing_ok=True) if int8 else None  # cleanup INT8 cache
 
 
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 def test_train():
     """Test model training on a minimal dataset using available CUDA devices."""
-    import os
-
     device = tuple(DEVICES) if len(DEVICES) > 1 else DEVICES[0]
-    results = YOLO(MODEL).train(data="coco8.yaml", imgsz=64, epochs=1, device=device)  # requires imgsz>=64
     # NVIDIA Jetson only has one GPU and therefore skipping checks
     if not IS_JETSON:
-        visible = eval(os.environ["CUDA_VISIBLE_DEVICES"])
+        results = YOLO(MODEL).train(data="coco8-grayscale.yaml", imgsz=64, epochs=1, device=DEVICES[0], batch=-1)
+        results = YOLO(MODEL).train(data="coco8.yaml", imgsz=64, epochs=1, device=device, batch=15, compile=True)
+        results = YOLO(MODEL).train(data="coco128.yaml", imgsz=64, epochs=1, device=device, batch=15, val=False)
+        visible = tuple(int(x) for x in os.environ["CUDA_VISIBLE_DEVICES"].split(","))
+        visible = visible[0] if len(visible) == 1 else visible
         assert visible == device, f"Passed GPUs '{device}', but used GPUs '{visible}'"
-        assert (
-            (results is None) if len(DEVICES) > 1 else (results is not None)
-        )  # DDP returns None, single-GPU returns metrics
+        # Note DDP training returns None, single-GPU returns metrics
+        assert (results is None) if len(DEVICES) > 1 else (results is not None)
 
 
 @pytest.mark.slow
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 def test_predict_multiple_devices():
     """Validate model prediction consistency across CPU and CUDA devices."""
-    model = YOLO("yolo11n.pt")
+    model = YOLO("yolo26n.pt")
 
     # Test CPU
     model = model.cpu()
@@ -208,6 +217,7 @@ def test_predict_sam():
             imgsz=1024,
             model=WEIGHTS_DIR / "mobile_sam.pt",
             device=DEVICES[0],
+            half=True,
         )
     )
     predictor.set_image(ASSETS / "zidane.jpg")

@@ -12,7 +12,7 @@ clap = { version = "4.2.4", features = ["derive"] }
 image = { version = "0.25.2"}
 imageproc = { version = "0.25.0"}
 ndarray = { version = "0.16" }
-ort = { version = "2.0.0-rc.5", features = ["cuda", "tensorrt", "load-dynamic", "copy-dylibs", "half"]}
+ort = { version = "2.0.0-rc.5", features = ["cuda", "tensorrt", "download-binaries", "copy-dylibs", "half"]}
 rusttype = { version = "0.9.3" }
 anyhow = { version = "1.0.75" }
 regex = { version = "1.5.4" }

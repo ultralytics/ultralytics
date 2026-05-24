@@ -3,7 +3,7 @@
 Run prediction on images, videos, directories, globs, YouTube, webcam, streams, etc.
 
 Usage - sources:
-    $ yolo mode=predict model=yolo11n.pt source=0                               # webcam
+    $ yolo mode=predict model=yolo26n.pt source=0                               # webcam
                                                 img.jpg                         # image
                                                 vid.mp4                         # video
                                                 screen                          # screenshot
@@ -15,28 +15,33 @@ Usage - sources:
                                                 'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP, TCP stream
 
 Usage - formats:
-    $ yolo mode=predict model=yolo11n.pt                 # PyTorch
-                              yolo11n.torchscript        # TorchScript
-                              yolo11n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
-                              yolo11n_openvino_model     # OpenVINO
-                              yolo11n.engine             # TensorRT
-                              yolo11n.mlpackage          # CoreML (macOS-only)
-                              yolo11n_saved_model        # TensorFlow SavedModel
-                              yolo11n.pb                 # TensorFlow GraphDef
-                              yolo11n.tflite             # TensorFlow Lite
-                              yolo11n_edgetpu.tflite     # TensorFlow Edge TPU
-                              yolo11n_paddle_model       # PaddlePaddle
-                              yolo11n.mnn                # MNN
-                              yolo11n_ncnn_model         # NCNN
-                              yolo11n_imx_model          # Sony IMX
-                              yolo11n_rknn_model         # Rockchip RKNN
+    $ yolo mode=predict model=yolo26n.pt                 # PyTorch
+                              yolo26n.torchscript        # TorchScript
+                              yolo26n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
+                              yolo26n_openvino_model     # OpenVINO
+                              yolo26n.engine             # TensorRT
+                              yolo26n.mlpackage          # CoreML (macOS-only)
+                              yolo26n_saved_model        # TensorFlow SavedModel
+                              yolo26n.pb                 # TensorFlow GraphDef
+                              yolo26n.tflite             # TensorFlow Lite
+                              yolo26n_edgetpu.tflite     # TensorFlow Edge TPU
+                              yolo26n_paddle_model       # PaddlePaddle
+                              yolo26n.mnn                # MNN
+                              yolo26n_ncnn_model         # NCNN
+                              yolo26n_imx_model          # Sony IMX
+                              yolo26n_rknn_model         # Rockchip RKNN
+                              yolo26n_executorch_model   # PyTorch Executorch
+                              yolo26n_axelera_model      # Axelera AI
+                              yolo26n_deepx_model        # DeepX
 """
+
+from __future__ import annotations
 
 import platform
 import re
 import threading
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable
 
 import cv2
 import numpy as np
@@ -49,11 +54,11 @@ from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, WINDOWS, callbacks, colorstr, ops
 from ultralytics.utils.checks import check_imgsz, check_imshow
 from ultralytics.utils.files import increment_path
-from ultralytics.utils.torch_utils import select_device, smart_inference_mode
+from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode
 
 STREAM_WARNING = """
-inference results will accumulate in RAM unless `stream=True` is passed, causing potential out-of-memory
-errors for large sources or long-running streams and videos. See https://docs.ultralytics.com/modes/predict/ for help.
+Inference results will accumulate in RAM unless `stream=True` is passed, which can cause out-of-memory errors for large
+sources or long-running streams and videos. See https://docs.ultralytics.com/modes/predict/ for help.
 
 Example:
     results = model(source=..., stream=True)  # generator of Results objects
@@ -65,29 +70,28 @@ Example:
 
 
 class BasePredictor:
-    """
-    A base class for creating predictors.
+    """A base class for creating predictors.
 
-    This class provides the foundation for prediction functionality, handling model setup, inference,
-    and result processing across various input sources.
+    This class provides the foundation for prediction functionality, handling model setup, inference, and result
+    processing across various input sources.
 
     Attributes:
         args (SimpleNamespace): Configuration for the predictor.
         save_dir (Path): Directory to save results.
         done_warmup (bool): Whether the predictor has finished setup.
         model (torch.nn.Module): Model used for prediction.
-        data (dict): Data configuration.
+        data (str): Data configuration.
         device (torch.device): Device used for prediction.
         dataset (Dataset): Dataset used for prediction.
-        vid_writer (Dict[str, cv2.VideoWriter]): Dictionary of {save_path: video_writer} for saving video output.
+        vid_writer (dict[Path, cv2.VideoWriter]): Dictionary of {save_path: video_writer} for saving video output.
         plotted_img (np.ndarray): Last plotted image.
         source_type (SimpleNamespace): Type of input source.
         seen (int): Number of images processed.
-        windows (List[str]): List of window names for visualization.
+        windows (list[str]): List of window names for visualization.
         batch (tuple): Current batch data.
-        results (List[Any]): Current batch results.
-        transforms (callable): Image transforms for classification.
-        callbacks (Dict[str, List[callable]]): Callback functions for different events.
+        results (list[Any]): Current batch results.
+        transforms (Callable): Image transforms for classification.
+        callbacks (dict[str, list[Callable]]): Callback functions for different events.
         txt_path (Path): Path to save text results.
         _lock (threading.Lock): Lock for thread-safe inference.
 
@@ -109,14 +113,13 @@ class BasePredictor:
     def __init__(
         self,
         cfg=DEFAULT_CFG,
-        overrides: Optional[Dict[str, Any]] = None,
-        _callbacks: Optional[Dict[str, List[callable]]] = None,
+        overrides: dict[str, Any] | None = None,
+        _callbacks: dict | None = None,
     ):
-        """
-        Initialize the BasePredictor class.
+        """Initialize the BasePredictor class.
 
         Args:
-            cfg (str | dict): Path to a configuration file or a configuration dictionary.
+            cfg (str | Path | dict | SimpleNamespace): Path to a configuration file or a configuration dictionary.
             overrides (dict, optional): Configuration overrides.
             _callbacks (dict, optional): Dictionary of callback functions.
         """
@@ -147,12 +150,11 @@ class BasePredictor:
         self._lock = threading.Lock()  # for automatic thread-safe inference
         callbacks.add_integration_callbacks(self)
 
-    def preprocess(self, im: Union[torch.Tensor, List[np.ndarray]]) -> torch.Tensor:
-        """
-        Prepare input image before inference.
+    def preprocess(self, im: torch.Tensor | list[np.ndarray]) -> torch.Tensor:
+        """Prepare input image before inference.
 
         Args:
-            im (torch.Tensor | List[np.ndarray]): Images of shape (N, 3, H, W) for tensor, [(H, W, 3) x N] for list.
+            im (torch.Tensor | list[np.ndarray]): Images of shape (N, 3, H, W) for tensor, [(H, W, 3) x N] for list.
 
         Returns:
             (torch.Tensor): Preprocessed image tensor of shape (N, 3, H, W).
@@ -181,22 +183,21 @@ class BasePredictor:
         )
         return self.model(im, augment=self.args.augment, visualize=visualize, embed=self.args.embed, *args, **kwargs)
 
-    def pre_transform(self, im: List[np.ndarray]) -> List[np.ndarray]:
-        """
-        Pre-transform input image before inference.
+    def pre_transform(self, im: list[np.ndarray]) -> list[np.ndarray]:
+        """Pre-transform input image before inference.
 
         Args:
-            im (List[np.ndarray]): List of images with shape [(H, W, 3) x N].
+            im (list[np.ndarray]): List of images with shape [(H, W, 3) x N].
 
         Returns:
-            (List[np.ndarray]): List of transformed images.
+            (list[np.ndarray]): List of transformed images.
         """
         same_shapes = len({x.shape for x in im}) == 1
         letterbox = LetterBox(
             self.imgsz,
             auto=same_shapes
             and self.args.rect
-            and (self.model.pt or (getattr(self.model, "dynamic", False) and not self.model.imx)),
+            and (self.model.format == "pt" or (getattr(self.model, "dynamic", False) and self.model.format != "imx")),
             stride=self.model.stride,
         )
         return [letterbox(image=x) for x in im]
@@ -206,11 +207,10 @@ class BasePredictor:
         return preds
 
     def __call__(self, source=None, model=None, stream: bool = False, *args, **kwargs):
-        """
-        Perform inference on an image or stream.
+        """Perform inference on an image or stream.
 
         Args:
-            source (str | Path | List[str] | List[Path] | List[np.ndarray] | np.ndarray | torch.Tensor, optional):
+            source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor, optional):
                 Source for inference.
             model (str | Path | torch.nn.Module, optional): Model for inference.
             stream (bool): Whether to stream the inference results. If True, returns a generator.
@@ -218,28 +218,27 @@ class BasePredictor:
             **kwargs (Any): Additional keyword arguments for the inference method.
 
         Returns:
-            (List[ultralytics.engine.results.Results] | generator): Results objects or generator of Results objects.
+            (list[ultralytics.engine.results.Results] | generator): Results objects or generator of Results objects.
         """
         self.stream = stream
         if stream:
             return self.stream_inference(source, model, *args, **kwargs)
         else:
-            return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Result into one
+            return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Results into one
 
     def predict_cli(self, source=None, model=None):
-        """
-        Method used for Command Line Interface (CLI) prediction.
+        """Method used for Command Line Interface (CLI) prediction.
 
-        This function is designed to run predictions using the CLI. It sets up the source and model, then processes
-        the inputs in a streaming manner. This method ensures that no outputs accumulate in memory by consuming the
+        This function is designed to run predictions using the CLI. It sets up the source and model, then processes the
+        inputs in a streaming manner. This method ensures that no outputs accumulate in memory by consuming the
         generator without storing results.
 
         Args:
-            source (str | Path | List[str] | List[Path] | List[np.ndarray] | np.ndarray | torch.Tensor, optional):
+            source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor, optional):
                 Source for inference.
             model (str | Path | torch.nn.Module, optional): Model for inference.
 
-        Note:
+        Notes:
             Do not modify this function or remove the generator. The generator ensures that no outputs are
             accumulated in memory, which is critical for preventing memory issues during long-running predictions.
         """
@@ -247,39 +246,41 @@ class BasePredictor:
         for _ in gen:  # sourcery skip: remove-empty-nested-block, noqa
             pass
 
-    def setup_source(self, source):
-        """
-        Set up source and inference mode.
+    def setup_source(self, source, stride: int | None = None):
+        """Set up source and inference mode.
 
         Args:
-            source (str | Path | List[str] | List[Path] | List[np.ndarray] | np.ndarray | torch.Tensor):
-                Source for inference.
+            source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor): Source for
+                inference.
+            stride (int, optional): Model stride for image size checking.
         """
-        self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
+        self.imgsz = check_imgsz(self.args.imgsz, stride=stride or self.model.stride, min_dim=2)  # check image size
         self.dataset = load_inference_source(
             source=source,
             batch=self.args.batch,
             vid_stride=self.args.vid_stride,
             buffer=self.args.stream_buffer,
-            channels=getattr(self.model, "ch", 3),
+            channels=getattr(self.model, "channels", 3),
         )
         self.source_type = self.dataset.source_type
-        if not getattr(self, "stream", True) and (
+        if (
             self.source_type.stream
             or self.source_type.screenshot
             or len(self.dataset) > 1000  # many images
             or any(getattr(self.dataset, "video_flag", [False]))
-        ):  # videos
-            LOGGER.warning(STREAM_WARNING)
+        ):  # long sequence
+            import torchvision  # noqa (import here triggers torchvision NMS use in nms.py)
+
+            if not getattr(self, "stream", True):  # videos
+                LOGGER.warning(STREAM_WARNING)
         self.vid_writer = {}
 
     @smart_inference_mode()
     def stream_inference(self, source=None, model=None, *args, **kwargs):
-        """
-        Stream real-time inference on camera feed and save results to file.
+        """Stream inference on input source and save results to file.
 
         Args:
-            source (str | Path | List[str] | List[Path] | List[np.ndarray] | np.ndarray | torch.Tensor, optional):
+            source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor, optional):
                 Source for inference.
             model (str | Path | torch.nn.Module, optional): Model for inference.
             *args (Any): Additional arguments for the inference method.
@@ -306,7 +307,11 @@ class BasePredictor:
             # Warmup model
             if not self.done_warmup:
                 self.model.warmup(
-                    imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, self.model.ch, *self.imgsz)
+                    imgsz=(
+                        1 if self.model.format in {"pt", "triton"} else self.dataset.bs,
+                        self.model.channels,
+                        *self.imgsz,
+                    )
                 )
                 self.done_warmup = True
 
@@ -317,7 +322,8 @@ class BasePredictor:
                 ops.Profile(device=self.device),
             )
             self.run_callbacks("on_predict_start")
-            for self.batch in self.dataset:
+            for batch in self.dataset:
+                self.batch = batch
                 self.run_callbacks("on_predict_batch_start")
                 paths, im0s, s = self.batch
 
@@ -372,7 +378,7 @@ class BasePredictor:
             t = tuple(x.t / self.seen * 1e3 for x in profilers)  # speeds per image
             LOGGER.info(
                 f"Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape "
-                f"{(min(self.args.batch, self.seen), getattr(self.model, 'ch', 3), *im.shape[2:])}" % t
+                f"{(min(self.args.batch, self.seen), getattr(self.model, 'channels', 3), *im.shape[2:])}" % t
             )
         if self.args.save or self.args.save_txt or self.args.save_crop:
             nl = len(list(self.save_dir.glob("labels/*.txt")))  # number of labels
@@ -381,20 +387,23 @@ class BasePredictor:
         self.run_callbacks("on_predict_end")
 
     def setup_model(self, model, verbose: bool = True):
-        """
-        Initialize YOLO model with given parameters and set it to evaluation mode.
+        """Initialize YOLO model with given parameters and set it to evaluation mode.
 
         Args:
-            model (str | Path | torch.nn.Module, optional): Model to load or use.
+            model (str | Path | torch.nn.Module): Model to load or use.
             verbose (bool): Whether to print verbose output.
         """
+        if hasattr(model, "end2end"):
+            if self.args.end2end is not None:
+                model.end2end = self.args.end2end
+            if model.end2end:
+                model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms)
         self.model = AutoBackend(
-            weights=model or self.args.model,
+            model=model or self.args.model,
             device=select_device(self.args.device, verbose=verbose),
             dnn=self.args.dnn,
             data=self.args.data,
             fp16=self.args.half,
-            batch=self.args.batch,
             fuse=True,
             verbose=verbose,
         )
@@ -404,16 +413,16 @@ class BasePredictor:
         if hasattr(self.model, "imgsz") and not getattr(self.model, "dynamic", False):
             self.args.imgsz = self.model.imgsz  # reuse imgsz from export metadata
         self.model.eval()
+        self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 
-    def write_results(self, i: int, p: Path, im: torch.Tensor, s: List[str]) -> str:
-        """
-        Write inference results to a file or directory.
+    def write_results(self, i: int, p: Path, im: torch.Tensor, s: list[str]) -> str:
+        """Write inference results to a file or directory.
 
         Args:
             i (int): Index of the current image in the batch.
             p (Path): Path to the current image.
             im (torch.Tensor): Preprocessed image tensor.
-            s (List[str]): List of result strings.
+            s (list[str]): List of result strings.
 
         Returns:
             (str): String with result information.
@@ -452,16 +461,15 @@ class BasePredictor:
         if self.args.show:
             self.show(str(p))
         if self.args.save:
-            self.save_predicted_images(str(self.save_dir / p.name), frame)
+            self.save_predicted_images(self.save_dir / p.name, frame)
 
         return string
 
-    def save_predicted_images(self, save_path: str = "", frame: int = 0):
-        """
-        Save video predictions as mp4 or images as jpg at specified path.
+    def save_predicted_images(self, save_path: Path, frame: int = 0):
+        """Save video predictions as mp4/avi or images as jpg at specified path.
 
         Args:
-            save_path (str): Path to save the results.
+            save_path (Path): Path to save the results.
             frame (int): Frame number for video mode.
         """
         im = self.plotted_img
@@ -469,7 +477,7 @@ class BasePredictor:
         # Save videos and streams
         if self.dataset.mode in {"stream", "video"}:
             fps = self.dataset.fps if self.dataset.mode == "video" else 30
-            frames_path = f"{save_path.split('.', 1)[0]}_frames/"
+            frames_path = self.save_dir / f"{save_path.stem}_frames"  # save frames to a separate directory
             if save_path not in self.vid_writer:  # new video
                 if self.args.save_frames:
                     Path(frames_path).mkdir(parents=True, exist_ok=True)
@@ -484,11 +492,11 @@ class BasePredictor:
             # Save video
             self.vid_writer[save_path].write(im)
             if self.args.save_frames:
-                cv2.imwrite(f"{frames_path}{frame}.jpg", im)
+                cv2.imwrite(f"{frames_path}/{save_path.stem}_{frame}.jpg", im)
 
         # Save images
         else:
-            cv2.imwrite(str(Path(save_path).with_suffix(".jpg")), im)  # save to JPG for best support
+            cv2.imwrite(str(save_path.with_suffix(".jpg")), im)  # save to JPG for best support
 
     def show(self, p: str = ""):
         """Display an image in a window."""
@@ -506,6 +514,6 @@ class BasePredictor:
         for callback in self.callbacks.get(event, []):
             callback(self)
 
-    def add_callback(self, event: str, func: callable):
+    def add_callback(self, event: str, func: Callable):
         """Add a callback function for a specific event."""
         self.callbacks[event].append(func)

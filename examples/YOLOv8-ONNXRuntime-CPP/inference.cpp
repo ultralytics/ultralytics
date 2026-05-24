@@ -59,22 +59,19 @@ char* YOLO_V8::PreProcess(cv::Mat& iImg, std::vector<int> iImgSize, cv::Mat& oIm
     switch (modelType)
     {
     case YOLO_DETECT_V8:
-    case YOLO_POSE:
+    case YOLO_POSE_V8:
     case YOLO_DETECT_V8_HALF:
     case YOLO_POSE_V8_HALF://LetterBox
     {
-        if (iImg.cols >= iImg.rows)
-        {
-            resizeScales = iImg.cols / (float)iImgSize.at(0);
-            cv::resize(oImg, oImg, cv::Size(iImgSize.at(0), int(iImg.rows / resizeScales)));
-        }
-        else
-        {
-            resizeScales = iImg.rows / (float)iImgSize.at(0);
-            cv::resize(oImg, oImg, cv::Size(int(iImg.cols / resizeScales), iImgSize.at(1)));
-        }
-        cv::Mat tempImg = cv::Mat::zeros(iImgSize.at(0), iImgSize.at(1), CV_8UC3);
-        oImg.copyTo(tempImg(cv::Rect(0, 0, oImg.cols, oImg.rows)));
+        int new_h = iImgSize.at(0);
+        int new_w = iImgSize.at(1);
+        float r = min(new_w / (float)iImg.cols, new_h / (float)iImg.rows);
+        int resized_w = static_cast<int>(iImg.cols * r);
+        int resized_h = static_cast<int>(iImg.rows * r);
+        resizeScales = 1.0f / r;
+        cv::resize(oImg, oImg, cv::Size(resized_w, resized_h));
+        cv::Mat tempImg = cv::Mat::zeros(new_h, new_w, CV_8UC3);
+        oImg.copyTo(tempImg(cv::Rect(0, 0, resized_w, resized_h)));
         oImg = tempImg;
         break;
     }
@@ -93,8 +90,8 @@ char* YOLO_V8::PreProcess(cv::Mat& iImg, std::vector<int> iImgSize, cv::Mat& oIm
 }
 
 
-char* YOLO_V8::CreateSession(DL_INIT_PARAM& iParams) {
-    char* Ret = RET_OK;
+const char* YOLO_V8::CreateSession(DL_INIT_PARAM& iParams) {
+    const char* Ret = RET_OK;
     std::regex pattern("[\u4e00-\u9fa5]");
     bool result = std::regex_search(iParams.modelPath, pattern);
     if (result)
@@ -106,6 +103,7 @@ char* YOLO_V8::CreateSession(DL_INIT_PARAM& iParams) {
     try
     {
         rectConfidenceThreshold = iParams.rectConfidenceThreshold;
+        pointScoresThreshold = iParams.pointScoresThreshold;//change
         iouThreshold = iParams.iouThreshold;
         imgSize = iParams.imgSize;
         modelType = iParams.modelType;
@@ -139,15 +137,15 @@ char* YOLO_V8::CreateSession(DL_INIT_PARAM& iParams) {
         {
             Ort::AllocatedStringPtr input_node_name = session->GetInputNameAllocated(i, allocator);
             char* temp_buf = new char[50];
-            strcpy(temp_buf, input_node_name.get());
+            strcpy_s(temp_buf, 50, input_node_name.get());
             inputNodeNames.push_back(temp_buf);
         }
         size_t OutputNodesNum = session->GetOutputCount();
         for (size_t i = 0; i < OutputNodesNum; i++)
         {
             Ort::AllocatedStringPtr output_node_name = session->GetOutputNameAllocated(i, allocator);
-            char* temp_buf = new char[10];
-            strcpy(temp_buf, output_node_name.get());
+            char* temp_buf = new char[50];
+            strcpy_s(temp_buf, 50, output_node_name.get());
             outputNodeNames.push_back(temp_buf);
         }
         options = Ort::RunOptions{ nullptr };
@@ -160,10 +158,11 @@ char* YOLO_V8::CreateSession(DL_INIT_PARAM& iParams) {
         const char* str2 = e.what();
         std::string result = std::string(str1) + std::string(str2);
         char* merged = new char[result.length() + 1];
-        std::strcpy(merged, result.c_str());
+        strcpy_s(merged, result.length() + 1, result.c_str());
         std::cout << merged << std::endl;
         delete[] merged;
-        return "[YOLO_V8]:Create session failed.";
+        Ret = "[YOLO_V8]:Create session failed.";
+        return Ret;
     }
 
 }
@@ -242,7 +241,7 @@ char* YOLO_V8::TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std::
         }
         // Note:
         // ultralytics add transpose operator to the output of yolov8 model.which make yolov8/v5/v7 has same shape
-        // https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8n.pt
+        // https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov8n.pt
         rawData = rawData.t();
 
         float* data = (float*)rawData.data;
@@ -323,6 +322,104 @@ char* YOLO_V8::TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std::
             result.confidence = data[i];
             oResult.push_back(result);
         }
+        break;
+    }
+    case YOLO_POSE_V8://change
+    case YOLO_POSE_V8_HALF:
+    {
+        int signalResultNum = outputNodeDims[1];//56: "4+1+3*17"
+        int strideNum = outputNodeDims[2];//8400
+        //std::vector<int> class_ids;
+        std::vector<float> confidences;
+        std::vector<cv::Rect> boxes;
+        std::vector<cv::Point2f> keyPoints;
+        std::vector<float> keyPointsScores;
+        cv::Mat rawData;
+        if (modelType == YOLO_POSE_V8)
+        {
+            // FP32
+            rawData = cv::Mat(signalResultNum, strideNum, CV_32F, output);
+        }
+        else
+        {
+            // FP16
+            rawData = cv::Mat(signalResultNum, strideNum, CV_16F, output);
+            rawData.convertTo(rawData, CV_32F);
+        }
+        // Note:
+        // ultralytics add transpose operator to the output of yolov8 model.which make yolov8/v5/v7 has same shape
+        // https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov8n-pose.pt
+        rawData = rawData.t();
+
+        float* pdata = (float*)rawData.data;
+        for (int i = 0; i < strideNum; ++i)
+        {
+            float* classesScores = pdata + 4;
+
+            if (pdata[4] > rectConfidenceThreshold)
+            {
+                cv::Mat kpts = cv::Mat(kpts_num, 3, CV_32FC1, pdata + 5);//keypoints & scores
+                confidences.push_back(pdata[4]);
+                float x = pdata[0];
+                float y = pdata[1];
+                float w = pdata[2];
+                float h = pdata[3];
+
+                int left = int((x - 0.5 * w) * resizeScales);
+                int top = int((y - 0.5 * h) * resizeScales);
+
+                int width = int(w * resizeScales);
+                int height = int(h * resizeScales);
+
+                boxes.push_back(cv::Rect(left, top, width, height));
+                for (int kp = 0; kp < kpts.rows; ++kp) {
+                    float x = kpts.at<float>(kp, 0) * resizeScales;      // x
+                    float y = kpts.at<float>(kp, 1) * resizeScales;      // y
+                    float score = kpts.at<float>(kp, 2);  // score
+                    keyPoints.push_back(cv::Point2f(x, y));
+                    keyPointsScores.push_back(kpts.at<float>(kp, 2));
+                }
+            }
+            pdata += signalResultNum;
+        }
+        std::vector<int> nmsResult;
+        cv::dnn::NMSBoxes(boxes, confidences, rectConfidenceThreshold, iouThreshold, nmsResult);
+
+        for (int i = 0; i < nmsResult.size(); i++)
+        {
+            int idx = nmsResult[i];
+            DL_RESULT result;
+            result.classId = 0;
+            result.confidence = confidences[idx];
+            result.box = boxes[idx];
+            result.keyPoints.clear();
+            result.keyPointsScore.clear();
+            for (int j = 0; j < this->classes.size() - 1; j++)
+            {
+                if (keyPointsScores[idx * (this->classes.size() - 1) + j] > pointScoresThreshold)
+                {
+                    result.keyPoints.push_back(keyPoints[idx * (this->classes.size() - 1) + j]);
+                    result.keyPointsScore.push_back(keyPointsScores[idx * (this->classes.size() - 1) + j]);
+                }
+            }
+            oResult.push_back(result);
+        }
+
+#ifdef benchmark
+        clock_t starttime_4 = clock();
+        double pre_process_time = (double)(starttime_2 - starttime_1) / CLOCKS_PER_SEC * 1000;
+        double process_time = (double)(starttime_3 - starttime_2) / CLOCKS_PER_SEC * 1000;
+        double post_process_time = (double)(starttime_4 - starttime_3) / CLOCKS_PER_SEC * 1000;
+        if (cudaEnable)
+        {
+            std::cout << "[YOLO_V8(CUDA)]: " << pre_process_time << "ms pre-process, " << process_time << "ms inference, " << post_process_time << "ms post-process." << std::endl;
+        }
+        else
+        {
+            std::cout << "[YOLO_V8(CPU)]: " << pre_process_time << "ms pre-process, " << process_time << "ms inference, " << post_process_time << "ms post-process." << std::endl;
+        }
+#endif // benchmark
+
         break;
     }
     default:

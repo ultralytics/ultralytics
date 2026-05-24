@@ -76,8 +76,11 @@ void Inference::Preprocessing(const cv::Mat &frame) {
 	scale_factor_.x = static_cast<float>(frame.cols / model_input_shape_.width);
 	scale_factor_.y = static_cast<float>(frame.rows / model_input_shape_.height);
 
-	float *input_data = (float *)resized_frame.data; // Get pointer to resized frame data
-	const ov::Tensor input_tensor = ov::Tensor(compiled_model_.input().get_element_type(), compiled_model_.input().get_shape(), input_data); // Create input tensor
+    ov::Tensor input_tensor = inference_request_.get_input_tensor();
+    uint8_t* input_data = input_tensor.data<uint8_t>();
+    size_t bytes_to_copy = resized_frame.total() * resized_frame.elemSize();
+    memcpy(input_data, resized_frame.data, bytes_to_copy);
+
 	inference_request_.set_input_tensor(input_tensor); // Set input tensor for inference
 }
 
@@ -104,14 +107,14 @@ void Inference::PostProcessing(cv::Mat &frame) {
 			class_list.push_back(class_id.y);
 			confidence_list.push_back(score);
 
-			const float x = detection_outputs.at<float>(0, i);
-			const float y = detection_outputs.at<float>(1, i);
+			const float cx = detection_outputs.at<float>(0, i);
+			const float cy = detection_outputs.at<float>(1, i);
 			const float w = detection_outputs.at<float>(2, i);
 			const float h = detection_outputs.at<float>(3, i);
 
 			cv::Rect box;
-			box.x = static_cast<int>(x);
-			box.y = static_cast<int>(y);
+			box.x = static_cast<int>((cx - w / 2));
+			box.y = static_cast<int>((cy - h / 2));
 			box.width = static_cast<int>(w);
 			box.height = static_cast<int>(h);
 			box_list.push_back(box);
@@ -138,10 +141,10 @@ void Inference::PostProcessing(cv::Mat &frame) {
 // Method to get the bounding box in the correct scale
 cv::Rect Inference::GetBoundingBox(const cv::Rect &src) const {
 	cv::Rect box = src;
-	box.x = (box.x - box.width / 2) * scale_factor_.x;
-	box.y = (box.y - box.height / 2) * scale_factor_.y;
-	box.width *= scale_factor_.x;
-	box.height *= scale_factor_.y;
+	box.x = static_cast<int>(box.x * scale_factor_.x);
+	box.y = static_cast<int>(box.y * scale_factor_.y);
+	box.width = static_cast<int>(box.width * scale_factor_.x);
+	box.height = static_cast<int>(box.height * scale_factor_.y);
 	return box;
 }
 
@@ -149,26 +152,26 @@ void Inference::DrawDetectedObject(cv::Mat &frame, const Detection &detection) c
 	const cv::Rect &box = detection.box;
 	const float &confidence = detection.confidence;
 	const int &class_id = detection.class_id;
-	
+
 	// Generate a random color for the bounding box
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<int> dis(120, 255);
 	const cv::Scalar &color = cv::Scalar(dis(gen), dis(gen), dis(gen));
-	
+
 	// Draw the bounding box around the detected object
 	cv::rectangle(frame, cv::Point(box.x, box.y), cv::Point(box.x + box.width, box.y + box.height), color, 3);
-	
+
 	// Prepare the class label and confidence text
 	std::string classString = classes_[class_id] + std::to_string(confidence).substr(0, 4);
-	
+
 	// Get the size of the text box
 	cv::Size textSize = cv::getTextSize(classString, cv::FONT_HERSHEY_DUPLEX, 0.75, 2, 0);
 	cv::Rect textBox(box.x, box.y - 40, textSize.width + 10, textSize.height + 20);
-	
+
 	// Draw the text box
 	cv::rectangle(frame, textBox, color, cv::FILLED);
-	
+
 	// Put the class label and confidence text above the bounding box
 	cv::putText(frame, classString, cv::Point(box.x + 5, box.y - 10), cv::FONT_HERSHEY_DUPLEX, 0.75, cv::Scalar(0, 0, 0), 2, 0);
 }

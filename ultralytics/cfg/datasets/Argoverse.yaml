@@ -1,15 +1,15 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# Argoverse-HD dataset (ring-front-center camera) https://www.cs.cmu.edu/~mengtial/proj/streaming/ by Argo AI
+# Argoverse-HD dataset (ring-front-center camera) by Argo AI: https://www.cs.cmu.edu/~mengtial/proj/streaming/
 # Documentation: https://docs.ultralytics.com/datasets/detect/argoverse/
 # Example usage: yolo train data=Argoverse.yaml
 # parent
 # ├── ultralytics
 # └── datasets
-#     └── Argoverse  ← downloads here (31.5 GB)
+#     └── Argoverse ← downloads here (31.5 GB)
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/Argoverse # dataset root dir
+path: Argoverse # dataset root dir
 train: Argoverse-1.1/images/train/ # train images (relative to 'path') 39384 images
 val: Argoverse-1.1/images/val/ # val images (relative to 'path') 15062 images
 test: Argoverse-1.1/images/test/ # test images (optional) https://eval.ai/web/challenges/challenge-page/800/overview
@@ -30,17 +30,18 @@ download: |
   import json
   from pathlib import Path
 
-  from tqdm import tqdm
+  from ultralytics.utils import TQDM
   from ultralytics.utils.downloads import download
 
-  def argoverse2yolo(set):
+  def argoverse2yolo(annotation_file):
       """Convert Argoverse dataset annotations to YOLO format for object detection tasks."""
       labels = {}
-      a = json.load(open(set, "rb"))
-      for annot in tqdm(a["annotations"], desc=f"Converting {set} to YOLOv5 format..."):
+      with open(annotation_file, encoding="utf-8") as f:
+          a = json.load(f)
+      for annot in TQDM(a["annotations"], desc=f"Converting {annotation_file} to YOLO format..."):
           img_id = annot["image_id"]
           img_name = a["images"][img_id]["name"]
-          img_label_name = f"{img_name[:-3]}txt"
+          img_label_name = f"{Path(img_name).stem}.txt"
 
           cls = annot["category_id"]  # instance class id
           x_center, y_center, width, height = annot["bbox"]
@@ -49,7 +50,7 @@ download: |
           width /= 1920.0  # scale
           height /= 1200.0  # scale
 
-          img_dir = set.parents[2] / "Argoverse-1.1" / "labels" / a["seq_dirs"][a["images"][annot["image_id"]]["sid"]]
+          img_dir = annotation_file.parents[2] / "Argoverse-1.1" / "labels" / a["seq_dirs"][a["images"][annot["image_id"]]["sid"]]
           if not img_dir.exists():
               img_dir.mkdir(parents=True, exist_ok=True)
 

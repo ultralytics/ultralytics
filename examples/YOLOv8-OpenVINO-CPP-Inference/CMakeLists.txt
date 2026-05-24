@@ -10,7 +10,7 @@ include_directories(
 	/path/to/intel/openvino/runtime/include
 )
 
-add_executable(detect 
+add_executable(detect
 	main.cc
 	inference.cc
 )

@@ -8,7 +8,7 @@ keywords: CLIP, FAISS, Flask, semantic search, image retrieval, OpenAI, Ultralyt
 
 ## Introduction
 
-This guide walks you through building a **semantic image search** engine using [OpenAI CLIP](https://openai.com/blog/clip), [Meta FAISS](https://github.com/facebookresearch/faiss), and [Flask](https://flask.palletsprojects.com/). By combining CLIP's powerful visual-language embeddings with FAISS's efficient nearest-neighbor search, you can create a fully functional web interface where you can retrieve relevant images using natural language queries.
+This guide walks you through building a **semantic image search** engine using [OpenAI CLIP](https://openai.com/blog/clip), [Meta FAISS](https://github.com/facebookresearch/faiss), and [Flask](https://flask.palletsprojects.com/en/stable/). By combining CLIP's powerful visual-language embeddings with FAISS's efficient nearest-neighbor search, you can create a fully functional web interface where you can retrieve relevant images using natural language queries.
 
 <p align="center">
   <br>
@@ -23,7 +23,7 @@ This guide walks you through building a **semantic image search** engine using [
 
 ## Semantic Image Search Visual Preview
 
-![Flask webpage with semantic search results overview](https://github.com/ultralytics/docs/releases/download/0/flask-ui.avif)
+![Flask webpage with semantic search results overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/flask-ui.avif)
 
 ## How It Works
 
@@ -46,7 +46,7 @@ This architecture supports zero-shot search, meaning you don't need labels or ca
 
         app = solutions.SearchApp(
             # data = "path/to/img/directory" # Optional, build search engine with your own images
-            device="cpu"  # configure the device for processing i.e "cpu" or "cuda"
+            device="cpu"  # configure the device for processing, e.g., "cpu" or "cuda"
         )
 
         app.run(debug=False)  # You can also use `debug=True` argument for testing
@@ -60,7 +60,7 @@ This class performs all the backend operations:
 - Extracts image and text [embeddings](https://platform.openai.com/docs/guides/embeddings) using CLIP.
 - Performs similarity search using cosine similarity.
 
-!!! Example "Similar Images Search"
+!!! example "Similar Images Search"
 
     ??? note "Image Path Warning"
 
@@ -73,7 +73,7 @@ This class performs all the backend operations:
 
         searcher = solutions.VisualAISearch(
             # data = "path/to/img/directory" # Optional, build search engine with your own images
-            device="cuda"  # configure the device for processing i.e "cpu" or "cuda"
+            device="cuda"  # configure the device for processing, e.g., "cpu" or "cuda"
         )
 
         results = searcher("a dog sitting on a bench")
@@ -103,13 +103,13 @@ Building your own semantic image search system with CLIP and FAISS provides seve
 
 2. **Human-Like Understanding**: Unlike keyword-based search engines, CLIP understands semantic context. It can retrieve images based on abstract, emotional, or relational queries like "a happy child in nature" or "a futuristic city skyline at night".
 
-    ![OpenAI Clip image retrieval workflow](https://github.com/ultralytics/docs/releases/download/0/clip-image-retrieval.avif)
+    ![OpenAI Clip image retrieval workflow](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/clip-image-retrieval.avif)
 
 3. **No Need for Labels or Metadata**: Traditional image search systems require carefully labeled data. This approach only needs raw images. CLIP generates embeddings without needing any manual annotation.
 
 4. **Flexible and Scalable Search**: FAISS enables fast nearest-neighbor search even with large-scale datasets. It's optimized for speed and memory, allowing real-time response even with thousands (or millions) of embeddings.
 
-    ![Meta FAISS embedding vectors building workflow](https://github.com/ultralytics/docs/releases/download/0/faiss-indexing-workflow.avif)
+    ![Meta FAISS embedding vectors building workflow](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/faiss-indexing-workflow.avif)
 
 5. **Cross-Domain Applications**: Whether you're building a personal photo archive, a creative inspiration tool, a product search engine, or even an art recommendation system, this stack adapts to diverse domains with minimal tweaking.
 
@@ -127,11 +127,11 @@ What makes CLIP stand out is its ability to generalize. Instead of being trained
 
 [FAISS](https://engineering.fb.com/2017/03/29/data-infrastructure/faiss-a-library-for-efficient-similarity-search/) (Facebook AI Similarity Search) is a toolkit that helps you search through high-dimensional vectors very efficiently. Once CLIP turns your images into embeddings, FAISS makes it fast and easy to find the closest matches to a text query, perfect for real-time image retrieval.
 
-### Why use the [Ultralytics](https://ultralytics.com/) [Python package](https://github.com/ultralytics/ultralytics/) if CLIP and FAISS are from OpenAI and Meta?
+### Why use the [Ultralytics](https://www.ultralytics.com/) [Python package](https://github.com/ultralytics/ultralytics/) if CLIP and FAISS are from OpenAI and Meta?
 
 While CLIP and FAISS are developed by OpenAI and Meta respectively, the [Ultralytics Python package](https://pypi.org/project/ultralytics/) simplifies their integration into a complete semantic image search pipeline in a 2-lines workflow that just works:
 
-!!! Example "Similar Images Search"
+!!! example "Similar Images Search"
 
     === "Python"
 
@@ -140,7 +140,7 @@ While CLIP and FAISS are developed by OpenAI and Meta respectively, the [Ultraly
 
         searcher = solutions.VisualAISearch(
             # data = "path/to/img/directory" # Optional, build search engine with your own images
-            device="cuda"  # configure the device for processing i.e "cpu" or "cuda"
+            device="cuda"  # configure the device for processing, e.g., "cpu" or "cuda"
         )
 
         results = searcher("a dog sitting on a bench")
@@ -162,8 +162,8 @@ This high-level implementation handles:
 
 ### Can I customize the frontend of this app?
 
-Yes, you absolutely can. The current setup uses Flask with a basic HTML frontend, but you're free to swap in your own HTML or even build something more dynamic with React, Vue, or another frontend framework. Flask can easily serve as the backend API for your custom interface.
+Yes. The current setup uses Flask with a basic HTML frontend, but you can replace it with your own HTML or build a more dynamic UI with React, Vue, or another frontend framework. Flask can serve as the backend API for your custom interface.
 
 ### Is it possible to search through videos instead of static images?
 
-Not directly—but there's a simple workaround. You can extract individual frames from your videos (e.g., one every second), treat them as standalone images, and feed those into the system. This way, the search engine can semantically index visual moments from your videos.
+Not directly. A simple workaround is to extract individual frames from your videos (e.g., one every second), treat them as standalone images, and feed those into the system. This way, the search engine can semantically index visual moments from your videos.

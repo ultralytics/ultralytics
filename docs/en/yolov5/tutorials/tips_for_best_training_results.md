@@ -8,7 +8,7 @@ keywords: YOLOv5 training, mAP, dataset best practices, model selection, trainin
 
 📚 This guide explains how to produce the best mAP and training results with YOLOv5 🚀.
 
-Most of the time good results can be obtained with no changes to the models or training settings, **provided your dataset is sufficiently large and well labelled**. If at first you don't get good results, there are steps you might be able to take to improve, but we always recommend users **first train with all default settings** before considering any changes. This helps establish a performance baseline and spot areas for improvement.
+Most of the time good results can be obtained with no changes to the models or training settings, **provided your dataset is sufficiently large and well labeled**. If at first you don't get good results, there are steps you might be able to take to improve, but we always recommend users **first train with all default settings** before considering any changes. This helps establish a performance baseline and spot areas for improvement.
 
 If you have questions about your training results **we recommend you provide the maximum amount of information possible** if you expect a helpful response, including results plots (train losses, val losses, P, R, mAP), PR curve, [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix), training mosaics, test results and dataset statistics images such as labels.png. All of these are located in your `project/name` directory, typically `yolov5/runs/train/exp`.
 
@@ -19,18 +19,19 @@ We've put together a full guide for users looking to get the best results on the
 - **Images per class.** ≥ 1500 images per class recommended
 - **Instances per class.** ≥ 10000 instances (labeled objects) per class recommended
 - **Image variety.** Must be representative of deployed environment. For real-world use cases we recommend images from different times of day, different seasons, different weather, different lighting, different angles, different sources (scraped online, collected locally, different cameras) etc.
-- **Label consistency.** All instances of all classes in all images must be labelled. Partial labelling will not work.
-- **Label [accuracy](https://www.ultralytics.com/glossary/accuracy).** Labels must closely enclose each object. No space should exist between an object, and it's [bounding box](https://www.ultralytics.com/glossary/bounding-box). No objects should be missing a label.
+- **Label consistency.** All instances of all classes in all images must be labeled. Partial labeling will not work.
+- **Label [accuracy](https://www.ultralytics.com/glossary/accuracy).** Labels must closely enclose each object. No space should exist between an object and its [bounding box](https://www.ultralytics.com/glossary/bounding-box). No objects should be missing a label.
+- **Train/val split discipline.** Ensure that validation and test images never appear in the training set to avoid overly optimistic metrics. Keep class distributions similar between the splits.
 - **Label verification.** View `train_batch*.jpg` on train start to verify your labels appear correct, i.e. see [example](./train_custom_data.md#local-logging) mosaic.
 - **Background images.** Background images are images with no objects that are added to a dataset to reduce False Positives (FP). We recommend about 0-10% background images to help reduce FPs (COCO has 1000 background images for reference, 1% of the total). No labels are required for background images.
 
-<a href="https://arxiv.org/abs/1405.0312"><img width="800" src="https://github.com/ultralytics/docs/releases/download/0/coco-analysis.avif" alt="COCO Analysis"></a>
+<a href="https://arxiv.org/abs/1405.0312"><img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/coco-analysis.avif" alt="COCO dataset class distribution analysis"></a>
 
 ## Model Selection
 
 Larger models like YOLOv5x and [YOLOv5x6](https://github.com/ultralytics/yolov5/releases/tag/v5.0) will produce better results in nearly all cases, but have more parameters, require more CUDA memory to train, and are slower to run. For **mobile** deployments we recommend YOLOv5s/m, for **cloud** deployments we recommend YOLOv5l/x. See our README [table](https://github.com/ultralytics/yolov5#pretrained-checkpoints) for a full comparison of all models.
 
-<p align="center"><img width="700" alt="YOLOv5 Models" src="https://github.com/ultralytics/docs/releases/download/0/yolov5-model-comparison.avif"></p>
+<p align="center"><img width="700" alt="YOLOv5 Models" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov5-model-comparison.avif"></p>
 
 - **Start from Pretrained weights.** Recommended for small to medium-sized datasets (i.e. [VOC](https://github.com/ultralytics/yolov5/blob/master/data/VOC.yaml), [VisDrone](https://github.com/ultralytics/yolov5/blob/master/data/VisDrone.yaml), [GlobalWheat](https://github.com/ultralytics/yolov5/blob/master/data/GlobalWheat2020.yaml)). Pass the name of the model to the `--weights` argument. Models download automatically from the [latest YOLOv5 release](https://github.com/ultralytics/yolov5/releases).
 
@@ -70,13 +71,13 @@ Before modifying anything, **first train with default settings to establish a pe
 - **[Transfer learning](https://www.ultralytics.com/glossary/transfer-learning).** For specialized datasets, start with pretrained weights and gradually unfreeze layers during training to adapt the model to your specific task.
 - **[Model pruning](https://www.ultralytics.com/glossary/model-pruning).** After training, consider pruning your model to remove redundant weights and reduce model size without significant performance loss.
 - **[Model ensemble](https://www.ultralytics.com/glossary/model-ensemble).** For critical applications, train multiple models with different configurations and combine their predictions for improved accuracy.
-- **[Test-time augmentation](https://docs.ultralytics.com/yolov5/tutorials/test_time_augmentation/).** Enable TTA during inference with `--augment` to improve prediction accuracy by averaging results from augmented versions of the input image.
+- **[Test-time augmentation](https://docs.ultralytics.com/yolov5/tutorials/test_time_augmentation).** Enable TTA during inference with `--augment` to improve prediction accuracy by averaging results from augmented versions of the input image.
 
 ## Further Reading
 
 If you'd like to know more, a good place to start is Karpathy's 'Recipe for Training [Neural Networks](https://www.ultralytics.com/glossary/neural-network-nn)', which has great ideas for training that apply broadly across all ML domains: [https://karpathy.github.io/2019/04/25/recipe/](https://karpathy.github.io/2019/04/25/recipe/)
 
-For more detailed information on training settings and configurations, refer to the [Ultralytics train settings documentation](https://docs.ultralytics.com/modes/train/), which provides comprehensive explanations of all available parameters.
+For more detailed information on training settings and configurations, refer to the [Ultralytics train settings documentation](https://docs.ultralytics.com/modes/train), which provides comprehensive explanations of all available parameters.
 
 Good luck 🍀 and let us know if you have any other questions!
 

@@ -29,7 +29,7 @@ A compute instance in AzureML provides a managed cloud-based workstation for dat
 3.  Go to the **Compute instances** tab and click **New**.
 4.  Configure your instance by selecting the appropriate CPU or [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit) resources based on your needs for training or inference.
 
-<img width="1741" alt="create-compute-arrow" src="https://github.com/ultralytics/docs/releases/download/0/create-compute-arrow.avif">
+<img width="1741" alt="Azure ML create compute instance interface" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/create-compute-arrow.avif">
 
 ## Open a Terminal
 
@@ -39,7 +39,7 @@ Once your compute instance is running, you can access its terminal directly from
 2.  Find your compute instance in the top dropdown menu.
 3.  Click on the **Terminal** option below the file browser to open a command-line interface to your instance.
 
-![open-terminal-arrow](https://github.com/ultralytics/docs/releases/download/0/open-terminal-arrow.avif)
+![Azure ML open terminal button location](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/open-terminal-arrow.avif)
 
 ## Setup and Run YOLOv5
 
@@ -74,7 +74,7 @@ Install the necessary Python packages listed in the `requirements.txt` file. We 
 
 ```bash
 pip install -r requirements.txt # Install core dependencies
-pip install onnx > =1.12.0      # Install ONNX for exporting
+pip install "onnx>=1.12.0"      # Install ONNX for exporting
 ```
 
 ### 4. Perform YOLOv5 Tasks
@@ -102,7 +102,7 @@ With the setup complete, you can now train, validate, perform inference, and exp
     python detect.py --weights yolov5s.pt --source data/images --img 640
     ```
 
-- **Export** the model to different formats like ONNX, [TensorRT](https://www.ultralytics.com/glossary/tensorrt), or [CoreML](https://docs.ultralytics.com/integrations/coreml/) for deployment. Refer to the [Export Mode](../../modes/export.md) guide and the [ONNX Integration](../../integrations/onnx.md) page.
+- **Export** the model to different formats like ONNX, [TensorRT](https://www.ultralytics.com/glossary/tensorrt), or [CoreML](https://docs.ultralytics.com/integrations/coreml) for deployment. Refer to the [Export Mode](../../modes/export.md) guide and the [ONNX Integration](../../integrations/onnx.md) page.
 
     ```bash
     # Export yolov5s to ONNX format

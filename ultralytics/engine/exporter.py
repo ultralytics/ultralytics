@@ -576,7 +576,6 @@ class Exporter:
                 "calibration_batch cannot exceed batch for TensorRT export. "
                 "Please set calibration_batch <= batch or increase batch."
             )
-
         # Use YOLODataset for calibration to allow predictable batch sizing across tasks
         dataset = YOLODataset(
             data[self.args.split or "val"],

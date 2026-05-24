@@ -127,7 +127,7 @@ def imwrite_unicode(filename: str, img: np.ndarray, params: list[int] | None = N
     Args:
         filename (str): Path to the file to write.
         img (np.ndarray): Image to write.
-        params (List[int], optional): Additional parameters for image encoding.
+        params (list[int], optional): Additional parameters for image encoding.
 
     Returns:
         (bool): True if the file was written successfully, False otherwise.

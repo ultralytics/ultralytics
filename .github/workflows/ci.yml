@@ -294,6 +294,7 @@ jobs:
         uses: ultralytics/actions/retry@main
         with:
           shell: bash # for Windows compatibility
+          # -n 2 limits parallelism for resource-heavy export tests on shared runners
           run: pytest -vv -s -n 2 --dist=loadfile --slow --cov=ultralytics/ --cov-report=xml tests/ --deselect tests/test_exports.py::test_export_imx --deselect tests/test_exports.py::test_export_mnn --deselect tests/test_exports.py::test_export_ncnn --deselect tests/test_exports.py::test_export_executorch
           retries: 1 # Retry once after initial attempt (2 total runs)
           timeout_minutes: 180
@@ -479,6 +480,8 @@ jobs:
         run: uv pip install pytest
       - name: Check environment
         run: conda list
+      - name: Test benchmark CLI
+        run: yolo benchmark model=yolo26n.pt data='coco8.yaml' imgsz=640 format=onnx
       - name: Test Python
         # Note this step must use the updated default bash environment, not a Python environment
         run: |

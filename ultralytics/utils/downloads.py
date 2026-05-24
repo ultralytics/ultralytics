@@ -331,8 +331,8 @@ def safe_download(
         url = url.replace(" ", "%20")  # encode spaces for curl/urllib compatibility
 
         f = Path(dir or ".") / (file or url2file(url))  # URL converted to filename
-        f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
-        if not f.is_file():
+        if not f.is_file():  # URL and file do not exist
+            f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
             uri = (url if gdrive else clean_url(url)).replace(ASSETS_URL, "https://ultralytics.com/assets")  # clean
             desc = f"Downloading {uri} to '{f}'"
             curl_installed = shutil.which("curl")

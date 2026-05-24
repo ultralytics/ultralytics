@@ -456,7 +456,7 @@ def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
         if not Path(project).is_absolute():
             base = ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR
             worker = os.environ.get("PYTEST_XDIST_WORKER")
-            if worker and TESTS_RUNNING:
+            if worker and TESTS_RUNNING:  # isolate parallel pytest-xdist workers
                 base = base / worker
             project = base / args.task / project
         name = name or args.name or f"{args.mode}"

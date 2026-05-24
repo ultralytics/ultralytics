@@ -10,14 +10,14 @@ from typing import Any, Dict, List, Optional
 import cv2
 import numpy as np
 import torch
+from PIL import Image
 
 # OpenCV Multilanguage-friendly functions ------------------------------------------------------------------------------
 _imshow = cv2.imshow  # copy to avoid recursion errors
 
 
-def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> Optional[np.ndarray]:
-    """
-    Read an image from a file with multilanguage filename support.
+def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
+    """Read an image from a file with multilanguage filename support.
 
     Args:
         filename (str): Path to the file to read.
@@ -30,15 +30,80 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> Optional[np.ndarray]
         >>> img = imread("path/to/image.jpg")
         >>> img = imread("path/to/image.jpg", cv2.IMREAD_GRAYSCALE)
     """
+    try:
+        file_bytes = np.fromfile(filename, np.uint8)
+    except (FileNotFoundError, OSError):
+        return None
     if filename.endswith((".tiff", ".tif")):
-        success, frames = cv2.imreadmulti(filename, flags=cv2.IMREAD_UNCHANGED)
+        success, frames = cv2.imdecodemulti(file_bytes, cv2.IMREAD_UNCHANGED)
         if success:
-            # Handle RGB images in tif/tiff format
+            # Handle multi-frame TIFFs and color images
             return frames[0] if len(frames) == 1 and frames[0].ndim == 3 else np.stack(frames, axis=2)
         return None
     else:
-        im = cv2.imread(filename, flags)
-        return im[..., None] if im.ndim == 2 else im  # Always ensure 3 dimensions
+        im = cv2.imdecode(file_bytes, flags)
+        # Fallback for formats OpenCV imdecode may not support (AVIF, HEIC)
+        if im is None and filename.lower().endswith((".avif", ".heic")):
+            im = _imread_pil(filename, flags)
+        return im[..., None] if im is not None and im.ndim == 2 else im  # Always ensure 3 dimensions
+
+
+# PIL patches ---------------------------------------------------------------------------------------------------------
+_image_open = Image.open  # copy to avoid recursion errors
+_pil_plugins_registered = False
+
+
+def image_open(filename, *args, **kwargs):
+    """Open an image with PIL, lazily registering the HEIF plugin on first failure.
+
+    This monkey-patches PIL.Image.open to add HEIC/HEIF support via pi-heif (lightweight, decode-only), avoiding the
+    ~800ms startup cost of importing the package unless actually needed. AVIF is supported natively by Pillow 12+ and
+    does not require a plugin.
+
+    Args:
+        filename (str): Path to the image file.
+        *args (Any): Additional positional arguments passed to PIL.Image.open.
+        **kwargs (Any): Additional keyword arguments passed to PIL.Image.open.
+
+    Returns:
+        (PIL.Image.Image): The opened PIL image.
+    """
+    global _pil_plugins_registered
+    if _pil_plugins_registered:
+        return _image_open(filename, *args, **kwargs)
+    try:
+        return _image_open(filename, *args, **kwargs)
+    except Exception:
+        from ultralytics.utils.checks import check_requirements
+
+        check_requirements("pi-heif")
+        from pi_heif import register_heif_opener
+
+        register_heif_opener()
+        _pil_plugins_registered = True
+        return _image_open(filename, *args, **kwargs)
+
+
+Image.open = image_open  # apply patch
+
+
+def _imread_pil(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
+    """Read an image using PIL as fallback for formats not supported by OpenCV.
+
+    Args:
+        filename (str): Path to the file to read.
+        flags (int, optional): OpenCV imread flags (used to determine grayscale conversion).
+
+    Returns:
+        (np.ndarray | None): The read image array in BGR format, or None if reading fails.
+    """
+    try:
+        with Image.open(filename) as img:
+            if flags == cv2.IMREAD_GRAYSCALE:
+                return np.asarray(img.convert("L"))
+            return cv2.cvtColor(np.asarray(img.convert("RGB")), cv2.COLOR_RGB2BGR)
+    except Exception:
+        return None
 
 
 def imread_unicode(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray:

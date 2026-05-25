@@ -162,7 +162,7 @@ Using Ultralytics YOLO26 for speed estimation offers significant advantages in t
 
 - **Enhanced Safety**: Accurately estimate vehicle speeds to detect over-speeding and improve road safety.
 - **Real-Time Monitoring**: Benefit from YOLO26's real-time object detection capability to monitor traffic flow and congestion effectively.
-- **Scalability**: Deploy the model on various hardware setups, from [edge devices](https://docs.ultralytics.com/guides/nvidia-jetson/) to servers, ensuring flexible and scalable solutions for large-scale implementations.
+- **Scalability**: Deploy the model on various hardware setups, from [edge devices](https://docs.ultralytics.com/guides/nvidia-jetson) to servers, ensuring flexible and scalable solutions for large-scale implementations.
 
 For more applications, see [advantages of speed estimation](#advantages-of-speed-estimation).
 

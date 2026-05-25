@@ -60,7 +60,7 @@ python detect.py --weights yolov5s.pt --source path/to/your/images_or_videos
 python export.py --weights yolov5s.pt --include onnx coreml tflite
 ```
 
-Using just a few commands, YOLOv5 enables you to train custom [object detection](https://docs.ultralytics.com/tasks/detect/) models tailored to your specific needs or utilize pretrained weights for rapid results across various tasks. Explore different [model deployment options](../../guides/model-deployment-options.md) after exporting.
+Using just a few commands, YOLOv5 enables you to train custom [object detection](https://docs.ultralytics.com/tasks/detect) models tailored to your specific needs or utilize pretrained weights for rapid results across various tasks. Explore different [model deployment options](../../guides/model-deployment-options.md) after exporting.
 
 ![YOLOv5 model training on GCP VM](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/terminal-command-model-training.avif)
 

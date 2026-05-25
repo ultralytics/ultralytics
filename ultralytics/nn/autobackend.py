@@ -24,6 +24,7 @@ from .backends import (
     OpenVINOBackend,
     PaddleBackend,
     PyTorchBackend,
+    QNNBackend,
     RKNNBackend,
     TensorFlowBackend,
     TensorRTBackend,
@@ -112,6 +113,7 @@ class AutoBackend(nn.Module):
             | ExecuTorch            | *.pte             |
             | Axelera AI            | *_axelera_model/  |
             | DeepX                 | *_deepx_model/    |
+            | Qualcomm QNN          | *_qnn_model/      |
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.
@@ -156,6 +158,7 @@ class AutoBackend(nn.Module):
         "executorch": ExecuTorchBackend,
         "axelera": AxeleraBackend,
         "deepx": DeepXBackend,
+        "qnn": QNNBackend,
     }
 
     @torch.no_grad()
@@ -337,7 +340,9 @@ class AutoBackend(nn.Module):
         types[5] |= name.endswith(".mlmodel")
         types[8] &= not types[9]
         format = next((f for i, f in enumerate(export_formats()["Argument"]) if types[i]), None)
-        if format == "-":
+        if name.endswith("_qnn.onnx"):  # QNN context-binary file otherwise matches the plain '.onnx' suffix
+            format = "qnn"
+        elif format == "-":
             format = "pt"
         elif format == "onnx" and dnn:
             format = "dnn"

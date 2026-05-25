@@ -328,9 +328,7 @@ def _segment26_forward(self, x):
     if isinstance(preds, dict):
         if self.end2end:
             preds["one2many"]["proto"] = proto
-            preds["one2one"]["proto"] = (
-                tuple(p.detach() for p in proto) if isinstance(proto, tuple) else proto.detach()
-            )
+            preds["one2one"]["proto"] = tuple(p.detach() for p in proto) if isinstance(proto, tuple) else proto.detach()
         else:
             preds["proto"] = proto
     if self.training:
@@ -415,9 +413,9 @@ def enable_semseg(yolo_or_module):
 Then run inference. The semantic segmentation result is stored on each `Results` object as `r.semantic_mask`:
 
 ```python
-from ultralytics import YOLO
 from semseg_wrapper import enable_semseg
 
+from ultralytics import YOLO
 
 model = YOLO("yolo26n-seg.pt")
 enable_semseg(model)

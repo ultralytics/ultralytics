@@ -79,15 +79,17 @@ The QNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
         # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
-        # Export the model to Qualcomm QNN format
-        model.export(format="qnn")  # creates 'yolo26n_qnn_model/'
+        # Export the model to Qualcomm QNN format, targeting an HTP architecture via 'name'
+        # 'name' can be one of 68, 69, 73, 75, 79 (Snapdragon 865, 888/8 Gen 1, 8 Gen 2, 8 Gen 3, 8 Elite)
+        model.export(format="qnn", name="73")  # creates 'yolo26n_qnn_model/'
         ```
 
     === "CLI"
 
         ```bash
-        # Export a YOLO26n PyTorch model to Qualcomm QNN format
-        yolo export model=yolo26n.pt format=qnn # creates 'yolo26n_qnn_model/'
+        # Export a YOLO26n PyTorch model to Qualcomm QNN format for the target HTP architecture
+        # 'name' can be one of 68, 69, 73, 75, 79 (Snapdragon 865, 888/8 Gen 1, 8 Gen 2, 8 Gen 3, 8 Elite)
+        yolo export model=yolo26n.pt format=qnn name=73 # creates 'yolo26n_qnn_model/'
         ```
 
 !!! example "Predict"
@@ -139,6 +141,7 @@ The QNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
 | `format` | `str`            | `'qnn'` | Target format for the exported model, defining compatibility with the Qualcomm QNN runtime.               |
 | `imgsz`  | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)`. |
 | `batch`  | `int`            | `1`     | Specifies the export model batch size, which is baked into the generated QNN context binary.              |
+| `name`   | `str`            | `'73'`  | Target Hexagon HTP architecture version: `68`, `69`, `73`, `75`, or `79` (Snapdragon 865, 888/8 Gen 1, 8 Gen 2, 8 Gen 3, 8 Elite). The context binary is finalized for this architecture. |
 | `device` | `str`            | `None`  | Specifies the device for the ONNX export step: GPU (`device=0`) or CPU (`device=cpu`).                    |
 
 !!! note "Precision"

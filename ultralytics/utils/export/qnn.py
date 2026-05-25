@@ -11,6 +11,7 @@ from ultralytics.utils.checks import check_requirements
 def onnx2qnn(
     onnx_file: str | Path,
     output_dir: Path | str,
+    name: str = "73",
     metadata: dict | None = None,
     prefix: str = "",
 ) -> str:
@@ -24,6 +25,9 @@ def onnx2qnn(
     Args:
         onnx_file (str | Path): Path to the source ONNX file (already exported).
         output_dir (Path | str): Directory to save the exported QNN model.
+        name (str): Target Hexagon Tensor Processor (HTP) architecture version, e.g. ``"73"`` (Snapdragon 8 Gen 2),
+            ``"75"`` (8 Gen 3), ``"79"`` (8 Elite). Required to finalize the graph for the target chip when exporting
+            on a host without a Snapdragon NPU.
         metadata (dict | None): Metadata saved as ``metadata.yaml``.
         prefix (str): Prefix for log messages.
 
@@ -63,10 +67,15 @@ def onnx2qnn(
         options.add_session_config_entry("ep.context_enable", "1")
         options.add_session_config_entry("ep.context_file_path", str(ctx_file))
         options.add_session_config_entry("ep.context_embed_mode", "1")
-        # HTP (Hexagon NPU) backend; run the float model at fp16 (no int8 calibration)
-        options.add_provider_for_devices(
-            devices, {"backend_path": qnn_ep.get_qnn_htp_path(), "enable_htp_fp16_precision": "1"}
-        )
+        # HTP (Hexagon NPU) backend; run the float model at fp16 (no int8 calibration). htp_arch/soc_model target the
+        # chip so the graph finalizes offline on a host without an NPU; shared-memory allocator disabled (no device).
+        ep_options = {
+            "backend_path": qnn_ep.get_qnn_htp_path(),
+            "enable_htp_fp16_precision": "1",
+            "htp_arch": name,
+            "enable_htp_shared_memory_allocator": "0",
+        }
+        options.add_provider_for_devices(devices, ep_options)
         ort.InferenceSession(str(onnx_file), sess_options=options)
     finally:
         ort.unregister_execution_provider_library(ep_name)

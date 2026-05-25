@@ -183,7 +183,7 @@ The editor includes 5 built-in templates:
 | ---------- | --------- | ---------------------------------------------------------------------------------------------------------------------- |
 | **Person** | 17        | [COCO human body pose](../../datasets/pose/coco.md) — nose, eyes, ears, shoulders, elbows, wrists, hips, knees, ankles |
 | **Hand**   | 21        | [Ultralytics Hand Keypoints](../../datasets/pose/hand-keypoints.md) — wrist, thumb, index, middle, ring, pinky joints  |
-| **Face**   | 68        | [iBUG 300W](https://ibug.doc.ic.ac.uk/resources/300-W/) facial landmarks — jaw, eyebrows, nose, eyes, mouth            |
+| **Face**   | 68        | iBUG 300W facial landmarks — jaw, eyebrows, nose, eyes, mouth                                                          |
 | **Dog**    | 18        | AP-10K animal pose — nose, head, neck, shoulders, tailbase, tail, and 4 legs (elbows, knees, paws)                     |
 | **Box**    | 4         | Corner keypoints — top-left, top-right, bottom-right, bottom-left                                                      |
 
@@ -236,7 +236,7 @@ Assign image-level class labels:
 
 ## Smart Annotation
 
-Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](https://docs.ultralytics.com/models/sam/) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. Smart annotation is available for **detect**, **segment**, and **OBB** tasks.
+Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](https://docs.ultralytics.com/models/sam) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. Smart annotation is available for **detect**, **segment**, and **OBB** tasks.
 
 ### SAM Smart Annotation
 

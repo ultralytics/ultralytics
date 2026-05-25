@@ -45,15 +45,16 @@ The exported `_qnn_model/` directory bundles the context-binary ONNX and a `meta
 
 ## Supported Tasks
 
-All standard Ultralytics tasks are supported for QNN export across the [YOLO26](../models/yolo26.md), [YOLO11](../models/yolo11.md), and [YOLOv8](../models/yolov8.md) model families.
+QNN export supports the standard task set available in each model family, including YOLO26 semantic segmentation.
 
-| Task                                                           | Supported |
-| :------------------------------------------------------------- | :-------- |
-| [Object Detection](https://docs.ultralytics.com/tasks/detect/) | ✅        |
-| [Segmentation](https://docs.ultralytics.com/tasks/segment/)    | ✅        |
-| [Pose Estimation](https://docs.ultralytics.com/tasks/pose/)    | ✅        |
-| [OBB Detection](https://docs.ultralytics.com/tasks/obb/)       | ✅        |
-| [Classification](https://docs.ultralytics.com/tasks/classify/) | ✅        |
+| Task                                                                  | Supported |
+| :-------------------------------------------------------------------- | :-------- |
+| [Object Detection](https://docs.ultralytics.com/tasks/detect/)        | ✅        |
+| [Instance Segmentation](https://docs.ultralytics.com/tasks/segment/)  | ✅        |
+| [Semantic Segmentation](https://docs.ultralytics.com/tasks/semantic/) | ✅        |
+| [Pose Estimation](https://docs.ultralytics.com/tasks/pose/)           | ✅        |
+| [OBB Detection](https://docs.ultralytics.com/tasks/obb/)              | ✅        |
+| [Classification](https://docs.ultralytics.com/tasks/classify/)        | ✅        |
 
 ## Export to QNN: Converting Your YOLO Model
 

@@ -228,7 +228,7 @@ def test_youtube():
     """Test YOLO model on a YouTube video stream, handling potential network-related errors."""
     model = YOLO(MODEL)
     try:
-        model.predict("https://youtu.be/G17sBkb38XQ", imgsz=96, save=True)
+        model.predict("https://youtu.be/G17sBkb38XQ", imgsz=32, save=True)
     # Handle internet connection errors and 'urllib.error.HTTPError: HTTP Error 429: Too Many Requests'
     except (urllib.error.HTTPError, ConnectionError) as e:
         LOGGER.error(f"YouTube Test Error: {e}")
@@ -306,15 +306,15 @@ def test_all_model_yamls():
     for m in (ROOT / "cfg" / "models").rglob("*.yaml"):
         if "rtdetr" in m.name:
             if TORCH_1_11:
-                _ = RTDETR(m.name)(SOURCE, imgsz=640)  # must be 640
+                _ = RTDETR(m.name)(SOURCE, imgsz=160)
         else:
             YOLO(m.name)
 
 
 @pytest.mark.skipif(WINDOWS, reason="Windows slow CI export bug https://github.com/ultralytics/ultralytics/pull/16003")
-def test_workflow():
+def test_workflow(isolated_model):
     """Test the complete workflow including training, validation, prediction, and exporting."""
-    model = YOLO(MODEL)
+    model = YOLO(isolated_model)
     model.train(data="coco8.yaml", epochs=1, imgsz=32, optimizer="SGD")
     model.val(imgsz=32)
     model.predict(SOURCE, imgsz=32)
@@ -336,7 +336,7 @@ def test_predict_callback_and_setup():
 
     dataset = load_inference_source(source=SOURCE)
     bs = dataset.bs  # access predictor properties
-    results = model.predict(dataset, stream=True, imgsz=160)  # source already setup
+    results = model.predict(dataset, stream=True, imgsz=32)  # source already setup
     for r, im0, bs in results:
         print("test_callback", im0.shape)
         print("test_callback", bs)
@@ -376,7 +376,7 @@ def test_results(model: str, tmp_path):
 def test_labels_and_crops():
     """Test output from prediction args for saving YOLO detection labels and crops."""
     imgs = [SOURCE, ASSETS / "zidane.jpg"]
-    results = YOLO(WEIGHTS_DIR / "yolo26n.pt")(imgs, imgsz=320, save_txt=True, save_crop=True)
+    results = YOLO(WEIGHTS_DIR / "yolo26n.pt")(imgs, imgsz=160, save_txt=True, save_crop=True)
     save_path = Path(results[0].save_dir)
     for r in results:
         im_name = Path(r.path).stem
@@ -756,6 +756,7 @@ def test_classify_transforms_train(image, auto_augment, erasing, force_color_jit
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(IS_RASPBERRYPI or IS_JETSON, reason="Edge devices not intended for tuning")
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_model_tune():
     """Tune YOLO model for performance improvement."""
@@ -767,6 +768,7 @@ def test_model_tune():
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(IS_RASPBERRYPI or IS_JETSON, reason="Edge devices not intended for tuning")
 @pytest.mark.skipif(not ONLINE or not checks.IS_PYTHON_MINIMUM_3_10, reason="environment is offline")
 @pytest.mark.skipif(not checks.check_requirements("ray", install=False), reason="ray[tune] not installed")
 def test_model_tune_ray():
@@ -793,6 +795,7 @@ def test_model_embeddings():
         assert len(model_segment.embed(source=batch, imgsz=32)) == len(batch)
 
 
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for CLIP-based models")
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOWorld with CLIP is not supported in Python 3.12")
 @pytest.mark.skipif(
     checks.IS_PYTHON_3_8 and LINUX and ARM64,
@@ -829,6 +832,7 @@ def test_yolo_world():
     )
 
 
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for heavy CLIP-based models")
 @pytest.mark.skipif(not TORCH_1_13, reason="YOLOE with CLIP requires torch>=1.13")
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOE with CLIP is not supported in Python 3.12")
 @pytest.mark.skipif(

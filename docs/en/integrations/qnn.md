@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Export Ultralytics YOLO models to Qualcomm QNN for fast on-device inference on Snapdragon Hexagon NPU, Adreno GPU, and CPU. Step-by-step Qualcomm Snapdragon export guide.
-keywords: Qualcomm QNN, Qualcomm export, Snapdragon export, export YOLO to Qualcomm, QNN export, YOLO Snapdragon, YOLO on Snapdragon, Hexagon NPU, Hexagon HTP, Qualcomm AI Engine Direct, QAIRT, onnxruntime-qnn, ONNX Runtime QNN, Snapdragon NPU, on-device inference, edge AI deployment, Ultralytics YOLO, model export
+keywords: Qualcomm QNN, Qualcomm export, Snapdragon export, export YOLO to Qualcomm, QNN export, YOLO Snapdragon, YOLO on Snapdragon, Qualcomm AI Hub, Hexagon NPU, Hexagon HTP, Qualcomm AI Engine Direct, QAIRT, SNPE, onnxruntime-qnn, ONNX Runtime QNN, Snapdragon NPU, on-device inference, edge AI deployment, Ultralytics YOLO, model export
 ---
 
 # Qualcomm QNN Export for Ultralytics YOLO Models
@@ -29,6 +29,8 @@ Snapdragon is the most widely deployed mobile compute platform in the world. Exp
 ## QNN Export Format
 
 Ultralytics compiles YOLO models to QNN **locally** using the [ONNX Runtime](https://onnxruntime.ai/) QNN Execution Provider (the pip-installable `onnxruntime-qnn` package, which bundles the QAIRT libraries). The exporter converts your model to [ONNX](onnx.md), **INT8-quantizes it** with calibration data (the Hexagon NPU is an int8 accelerator), then initializes an ONNX Runtime session with context-binary caching enabled — this compiles the quantized graph into a **QNN context binary** embedded in `<model>_qnn.onnx`. No Qualcomm account, cloud upload, or separate SDK download is required.
+
+Unlike the cloud-based [Qualcomm AI Hub](https://aihub.qualcomm.com/), which compiles and profiles models on Qualcomm-hosted Snapdragon devices and requires a Qualcomm account, the Ultralytics QNN export runs entirely on your own machine with a single `export(format="qnn")` call. You get the same QNN/QAIRT runtime target — Snapdragon CPU, Adreno GPU, and Hexagon NPU — without sign-up, upload limits, or queue times, and it drops straight into the standard YOLO export workflow.
 
 The exported `_qnn_model/` directory bundles the context-binary ONNX and a `metadata.yaml` describing class names, image size, and task.
 
@@ -259,6 +261,10 @@ You can export your model using the `export()` method in Python or via the CLI w
 ### Do I need a Qualcomm account or cloud access?
 
 No. QNN export runs entirely on your local machine using the `onnxruntime-qnn` package, which bundles the QAIRT libraries. No Qualcomm account, API token, or network access is required.
+
+### How does Ultralytics QNN export compare to Qualcomm AI Hub?
+
+[Qualcomm AI Hub](https://aihub.qualcomm.com/) is Qualcomm's cloud service for compiling, profiling, and benchmarking models on hosted Snapdragon devices, and it requires a Qualcomm account. Ultralytics QNN export targets the same QNN/QAIRT runtime (Snapdragon CPU, Adreno GPU, and Hexagon NPU) but compiles the context binary **locally** with the ONNX Runtime QNN Execution Provider — no account, no upload, and no queue. It is the fastest way to go from a `.pt` model to a Snapdragon-ready build directly inside the standard YOLO export workflow.
 
 ### Which platforms can I export on?
 

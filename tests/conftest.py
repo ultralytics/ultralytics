@@ -3,48 +3,8 @@
 import shutil
 from pathlib import Path
 
+import numpy.testing  # noqa: F401  # Pre-import before any test can corrupt numpy via in-place upgrade
 import pytest
-
-
-@pytest.fixture(scope="session")
-def solution_assets():
-    """Session-scoped fixture to cache solution test assets.
-
-    Lazily downloads solution assets into a persistent directory (WEIGHTS_DIR/solution_assets) and returns a callable
-    that resolves asset names to cached paths.
-    """
-    from ultralytics.utils import ASSETS_URL, WEIGHTS_DIR
-    from ultralytics.utils.downloads import safe_download
-
-    # Use persistent directory alongside weights
-    cache_dir = WEIGHTS_DIR / "solution_assets"
-    cache_dir.mkdir(parents=True, exist_ok=True)
-
-    # Define all assets needed for solution tests
-    assets = {
-        # Videos
-        "demo_video": "solutions_ci_demo.mp4",
-        "crop_video": "decelera_landscape_min.mov",
-        "pose_video": "solution_ci_pose_demo.mp4",
-        "parking_video": "solution_ci_parking_demo.mp4",
-        "vertical_video": "solution_vertical_demo.mp4",
-        # Parking manager files
-        "parking_areas": "solution_ci_parking_areas.json",
-        "parking_model": "solutions_ci_parking_model.pt",
-    }
-
-    asset_paths = {}
-
-    def get_asset(name):
-        """Return the cached path for a named solution asset, downloading it on first use."""
-        if name not in asset_paths:
-            asset_path = cache_dir / assets[name]
-            if not asset_path.exists():
-                safe_download(url=f"{ASSETS_URL}/{asset_path.name}", dir=cache_dir)
-            asset_paths[name] = asset_path
-        return asset_paths[name]
-
-    return get_asset
 
 
 def pytest_addoption(parser):
@@ -78,17 +38,38 @@ def pytest_sessionstart(session):
     init_seeds()
 
 
-def pytest_terminal_summary(terminalreporter, exitstatus, config):
+@pytest.fixture
+def isolated_model(tmp_path):
+    """Provide an isolated copy of the test model to prevent export file races under pytest-xdist.
+
+    When multiple xdist workers run export tests simultaneously, they derive output filenames from the model path (e.g.,
+    model.onnx, model.torchscript). Using the same MODEL path causes workers to overwrite each other's
+    intermediate/export files. This fixture copies the shared model to a per-test temporary directory so each test
+    exports to a unique path.
+    """
+    from tests import MODEL
+
+    # Ensure the shared model is present (download on-demand for local runs that skipped cache_test_assets.py)
+    if not Path(MODEL).exists():
+        from ultralytics.utils.downloads import attempt_download_asset
+
+        attempt_download_asset(MODEL)
+
+    dst = tmp_path / "model.pt"
+    shutil.copy(MODEL, dst)
+    return str(dst)
+
+
+def pytest_sessionfinish(session, exitstatus):
     """Cleanup operations after pytest session.
 
-    This function is automatically called by pytest at the end of the entire test session. It removes certain files and
-    directories used during testing.
-
-    Args:
-        terminalreporter: The terminal reporter object used for terminal output.
-        exitstatus (int): The exit status of the test run.
-        config: The pytest config object.
+    Runs only on the pytest controller (or serial run), skipping xdist workers to avoid race conditions where one worker
+    deletes shared assets while another is still reading them.
     """
+    # Skip on xdist workers - only the controller should clean up shared resources
+    if hasattr(session.config, "workerinput"):
+        return
+
     from ultralytics.utils import WEIGHTS_DIR
 
     # Remove files
@@ -97,6 +78,5 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
         Path(file).unlink(missing_ok=True)
 
     # Remove directories
-    models = [path for x in {"*.mlpackage", "*_openvino_model"} for path in WEIGHTS_DIR.rglob(x)]
-    for directory in [WEIGHTS_DIR / "solution_assets", WEIGHTS_DIR / "path with spaces", *models]:
+    for directory in [path for x in {"*.mlpackage", "*_openvino_model"} for path in WEIGHTS_DIR.rglob(x)]:
         shutil.rmtree(directory, ignore_errors=True)

@@ -12,9 +12,35 @@ import pytest
 
 from tests import MODEL
 from ultralytics import solutions
-from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, TORCH_VERSION, checks
+from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, TORCH_VERSION, WEIGHTS_DIR, checks
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.torch_utils import TORCH_2_4
+
+SOLUTION_ASSETS_DIR = WEIGHTS_DIR / "solution_assets"
+
+SOLUTION_ASSETS = {
+    "demo_video": "solutions_ci_demo.mp4",
+    "crop_video": "decelera_landscape_min.mov",
+    "pose_video": "solution_ci_pose_demo.mp4",
+    "parking_video": "solution_ci_parking_demo.mp4",
+    "vertical_video": "solution_vertical_demo.mp4",
+    "parking_areas": "solution_ci_parking_areas.json",
+    "parking_model": "solutions_ci_parking_model.pt",
+}
+
+
+def get_solution_asset(name):
+    """Return the path to a solution asset, downloading it if not already cached.
+
+    In CI, assets are pre-downloaded by tests/cache_test_assets.py before pytest runs. Locally, this function provides a
+    convenient fallback so tests work without manually running the cache script first.
+    """
+    asset_path = SOLUTION_ASSETS_DIR / SOLUTION_ASSETS[name]
+    if not asset_path.exists():
+        SOLUTION_ASSETS_DIR.mkdir(parents=True, exist_ok=True)
+        safe_download(url=f"{ASSETS_URL}/{asset_path.name}", dir=SOLUTION_ASSETS_DIR)
+    return str(asset_path)
+
 
 # Predefined argument values
 SHOW = False
@@ -176,10 +202,10 @@ def process_video(solution, video_path: str, needs_frame_count: bool = False):
         ),
     ],
 )
-def test_solution(name, solution_class, needs_frame_count, video_key, kwargs_update, tmp_path, solution_assets):
+def test_solution(name, solution_class, needs_frame_count, video_key, kwargs_update, tmp_path):
     """Test individual Ultralytics solution with video processing and parameter validation."""
     # Get video path from persistent cache (no copying needed, read-only access)
-    video_path = str(solution_assets(video_key)) if video_key else None
+    video_path = get_solution_asset(video_key) if video_key else None
 
     # Update kwargs to use cached paths for parking manager
     kwargs = {}
@@ -187,9 +213,9 @@ def test_solution(name, solution_class, needs_frame_count, video_key, kwargs_upd
         if key.startswith("temp_"):
             kwargs[key.replace("temp_", "")] = str(tmp_path / value)
         elif value == "parking_model":
-            kwargs[key] = str(solution_assets("parking_model"))
+            kwargs[key] = get_solution_asset("parking_model")
         elif value == "parking_areas":
-            kwargs[key] = str(solution_assets("parking_areas"))
+            kwargs[key] = get_solution_asset("parking_areas")
         else:
             kwargs[key] = value
     kwargs.setdefault("imgsz", 320)
@@ -269,7 +295,7 @@ def test_plot_with_no_masks():
     assert results.plot_im is not None, "Instance segmentation plot returned None"
 
 
-def test_streamlit_handle_video_upload_creates_file():
+def test_streamlit_handle_video_upload_creates_file(tmp_path):
     """Test Streamlit video upload logic saves file correctly."""
     import io
 
@@ -277,17 +303,18 @@ def test_streamlit_handle_video_upload_creates_file():
     fake_file.read = fake_file.getvalue
     if fake_file is not None:
         g = io.BytesIO(fake_file.read())
-        with open("ultralytics.mp4", "wb") as out:
+        with open(tmp_path / "ultralytics.mp4", "wb") as out:
             out.write(g.read())
-        output_path = "ultralytics.mp4"
+        output_path = str(tmp_path / "ultralytics.mp4")
     else:
         output_path = None
-    assert output_path == "ultralytics.mp4", f"Expected output_path 'ultralytics.mp4', got {output_path}"
-    assert os.path.exists("ultralytics.mp4"), "ultralytics.mp4 file not created"
-    with open("ultralytics.mp4", "rb") as f:
+    assert output_path == str(tmp_path / "ultralytics.mp4"), (
+        f"Expected output_path '{tmp_path / 'ultralytics.mp4'}', got {output_path}"
+    )
+    assert os.path.exists(tmp_path / "ultralytics.mp4"), "ultralytics.mp4 file not created"
+    with open(tmp_path / "ultralytics.mp4", "rb") as f:
         content = f.read()
         assert content == b"fake video content", f"File content mismatch: {content}"
-    os.remove("ultralytics.mp4")
 
 
 @pytest.mark.skipif(not TORCH_2_4, reason=f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})")

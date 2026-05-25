@@ -10,7 +10,7 @@ keywords: COCO12-Formats, Ultralytics, dataset, image formats, object detection,
 
 The [Ultralytics](https://www.ultralytics.com/) COCO12-Formats dataset is a specialized test dataset designed to validate image loading across 12 image format extensions. It contains 12 images (6 for training, 6 for validation), each saved in a different format to exercise the image loading pipeline.
 
-The HEIF extension `.heif` is also supported in `IMG_FORMATS` and uses the same Pillow / pillow-heif decoder as `.heic`, but is not currently represented by a sample image in this fixed-size fixture.
+The HEIF extension `.heif` is also supported in `IMG_FORMATS` and uses the same Pillow / `pi-heif` decoder path as `.heic`, but is not currently represented by a sample image in this fixed-size fixture.
 
 This dataset is invaluable for:
 

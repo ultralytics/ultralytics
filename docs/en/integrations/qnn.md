@@ -50,13 +50,13 @@ Export an Ultralytics YOLO model to QNN format for deployment on Snapdragon hard
 
 Pass the target architecture via `name` (e.g. `name="73"`). Valid values:
 
-| `name` | Hexagon HTP | Snapdragon platform           |
-| :----- | :---------- | :---------------------------- |
-| `68`   | v68         | Snapdragon 865                |
-| `69`   | v69         | Snapdragon 888 / 8 Gen 1      |
-| `73`   | v73         | Snapdragon 8 Gen 2 (default)  |
-| `75`   | v75         | Snapdragon 8 Gen 3            |
-| `79`   | v79         | Snapdragon 8 Elite            |
+| `name` | Hexagon HTP | Snapdragon platform          |
+| :----- | :---------- | :--------------------------- |
+| `68`   | v68         | Snapdragon 865               |
+| `69`   | v69         | Snapdragon 888 / 8 Gen 1     |
+| `73`   | v73         | Snapdragon 8 Gen 2 (default) |
+| `75`   | v75         | Snapdragon 8 Gen 3           |
+| `79`   | v79         | Snapdragon 8 Elite           |
 
 !!! note "Platform support"
 

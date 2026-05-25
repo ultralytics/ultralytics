@@ -429,14 +429,15 @@ def test_export_qnn():
     """Test YOLO export to Qualcomm QNN format via the ONNX Runtime QNN Execution Provider."""
     import importlib.util
 
-    # QNN EP ships two ways: the 'onnxruntime_qnn' plugin module (Windows/Linux-aarch64) or built into onnxruntime
-    # (monolithic Linux x86-64 nightly). Skip cleanly only when neither is present.
-    has_plugin = importlib.util.find_spec("onnxruntime_qnn") is not None
-    has_monolithic = (
-        importlib.util.find_spec("onnxruntime") is not None
-        and "QNNExecutionProvider" in __import__("onnxruntime").get_available_providers()
-    )
-    if not (has_plugin or has_monolithic):
+    # QNN EP ships either as the 'onnxruntime_qnn' plugin module (Windows/Linux-aarch64) or as a provider library
+    # bundled in onnxruntime/capi (Linux x86-64). Skip cleanly only when neither is present.
+    has_qnn = importlib.util.find_spec("onnxruntime_qnn") is not None
+    if not has_qnn and importlib.util.find_spec("onnxruntime") is not None:
+        import onnxruntime
+
+        capi = Path(onnxruntime.__file__).parent / "capi"
+        has_qnn = (capi / "libonnxruntime_providers_qnn.so").exists() or (capi / "onnxruntime_providers_qnn.dll").exists()
+    if not has_qnn:
         pytest.skip("onnxruntime-qnn / QNN Execution Provider not available (exercised in the dedicated QNN CI job)")
     file = YOLO(MODEL).export(format="qnn", imgsz=32)
     assert next(Path(file).rglob("*_qnn.onnx"), None), f"QNN export failed, no context binary found in: {file}"

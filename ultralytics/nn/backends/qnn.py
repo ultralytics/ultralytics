@@ -6,7 +6,7 @@ from pathlib import Path
 
 import torch
 
-from ultralytics.utils import LOGGER, WINDOWS, YAML
+from ultralytics.utils import LOGGER, YAML
 from ultralytics.utils.checks import check_requirements
 
 from .base import BaseBackend
@@ -33,35 +33,25 @@ class QNNBackend(BaseBackend):
         check_requirements("onnxruntime-qnn")
         import onnxruntime
 
-        try:
-            import onnxruntime_qnn as qnn_ep  # plugin EP packaging (Windows/Linux-aarch64)
-        except ImportError:
-            qnn_ep = None  # monolithic build with the QNN EP built into onnxruntime (Linux x86-64)
+        from ultralytics.utils.export.qnn import qnn_library_paths
 
         w = Path(weight)
         onnx_file = w if w.is_file() else next(w.rglob("*_qnn.onnx"))
         LOGGER.info(f"Loading {onnx_file} for Qualcomm QNN inference...")
 
+        # Register the QNN EP (libraries resolved from the plugin helper or the onnxruntime/capi bundle) and select it
         ep_name = "QNNExecutionProvider"
-        backend_path = qnn_ep.get_qnn_htp_path() if qnn_ep else ("QnnHtp.dll" if WINDOWS else "libQnnHtp.so")
-        options = onnxruntime.SessionOptions()
-        if qnn_ep:  # plugin EP: register the library and select its device(s)
-            onnxruntime.register_execution_provider_library(ep_name, qnn_ep.get_library_path())
-            devices = [d for d in onnxruntime.get_ep_devices() if d.ep_name == ep_name]
-            if not devices:
-                raise OSError(
-                    "QNN Execution Provider registered but no QNN devices were found. Run on a Qualcomm Snapdragon "
-                    "device with 'onnxruntime-qnn' installed."
-                )
-            options.add_provider_for_devices(devices, {"backend_path": backend_path})
-            self.session = onnxruntime.InferenceSession(str(onnx_file), sess_options=options)
-        else:  # monolithic build: QNN EP selected by name
-            self.session = onnxruntime.InferenceSession(
-                str(onnx_file),
-                sess_options=options,
-                providers=[ep_name],
-                provider_options=[{"backend_path": backend_path}],
+        ep_library, htp_backend = qnn_library_paths()
+        onnxruntime.register_execution_provider_library(ep_name, ep_library)
+        devices = [d for d in onnxruntime.get_ep_devices() if d.ep_name == ep_name]
+        if not devices:
+            raise OSError(
+                "QNN Execution Provider registered but no QNN devices were found. Run on a Qualcomm Snapdragon device "
+                "with 'onnxruntime-qnn' installed."
             )
+        options = onnxruntime.SessionOptions()
+        options.add_provider_for_devices(devices, {"backend_path": htp_backend})
+        self.session = onnxruntime.InferenceSession(str(onnx_file), sess_options=options)
         self.output_names = [x.name for x in self.session.get_outputs()]
 
         # Load metadata saved alongside the model during export

@@ -8,6 +8,30 @@ from ultralytics.utils import LOGGER, WINDOWS, YAML
 from ultralytics.utils.checks import check_requirements
 
 
+def qnn_library_paths() -> tuple[str, str]:
+    """Resolve the QNN Execution Provider and HTP backend library paths for the installed onnxruntime-qnn build.
+
+    onnxruntime-qnn ships two ways: the Windows/Linux-aarch64 wheels expose an ``onnxruntime_qnn`` helper module, while
+    the Linux x86-64 build bundles the libraries in ``onnxruntime/capi``. Both register the QNN Execution Provider via
+    ``register_execution_provider_library``; only the library locations differ.
+
+    Returns:
+        (tuple[str, str]): ``(ep_library_path, htp_backend_path)`` for ``register_execution_provider_library`` and the
+            QNN HTP ``backend_path`` provider option.
+    """
+    try:
+        import onnxruntime_qnn as qnn_ep
+
+        return qnn_ep.get_library_path(), qnn_ep.get_qnn_htp_path()
+    except ImportError:
+        import onnxruntime
+
+        capi = Path(onnxruntime.__file__).parent / "capi"
+        ep_lib = "onnxruntime_providers_qnn.dll" if WINDOWS else "libonnxruntime_providers_qnn.so"
+        htp_lib = "QnnHtp.dll" if WINDOWS else "libQnnHtp.so"
+        return str(capi / ep_lib), str(capi / htp_lib)
+
+
 def onnx2qnn(
     onnx_file: str | Path,
     output_dir: Path | str,
@@ -45,34 +69,13 @@ def onnx2qnn(
         Linux x86-64 or macOS wheel — on those hosts build ONNX Runtime from source with ``--use_qnn``, or generate the
         context binary on a supported platform.
     """
-    # Ensure 'onnxruntime-qnn' is available. Newer builds (Windows/Linux-aarch64 stable) ship a plugin EP exposing the
-    # 'onnxruntime_qnn' helper module; the Linux x86-64 build (ORT-Nightly feed) is monolithic with the QNN EP built
-    # into 'onnxruntime'. Both are supported below.
-    try:
-        import onnxruntime  # noqa: F401
-    except ImportError:
-        try:
-            check_requirements("onnxruntime-qnn")
-        except Exception as e:
-            raise ImportError(
-                "QNN export requires 'onnxruntime-qnn'. Prebuilt wheels exist for Windows (x64/ARM64) and Linux ARM64; "
-                "for Linux x86-64 install from the ONNX Runtime nightly feed, or build ONNX Runtime with '--use_qnn'."
-            ) from e
+    check_requirements("onnxruntime-qnn")
     import onnxruntime as ort
     from onnxruntime.quantization import CalibrationDataReader, quantize
     from onnxruntime.quantization.execution_providers.qnn import get_qnn_qdq_config
     from onnxruntime.quantization.shape_inference import quant_pre_process
 
-    try:
-        import onnxruntime_qnn as qnn_ep  # plugin EP packaging (Windows/Linux-aarch64)
-    except ImportError:
-        qnn_ep = None  # monolithic build with the QNN EP built into onnxruntime (Linux x86-64)
-
-    if ort.get_available_providers().count("QNNExecutionProvider") == 0 and qnn_ep is None:
-        raise ImportError(
-            "QNN export requires 'onnxruntime-qnn' with the QNN Execution Provider. Install it (Windows/Linux-aarch64 "
-            "wheel, the ONNX Runtime nightly feed for Linux x86-64, or a source build) before exporting to QNN."
-        )
+    ep_library, htp_backend = qnn_library_paths()
 
     onnx_file = Path(onnx_file)
     output_dir = Path(output_dir)
@@ -101,12 +104,12 @@ def onnx2qnn(
     qdq_config = get_qnn_qdq_config(str(pre_file), _CalibrationReader())
     quantize(str(pre_file), str(qdq_file), qdq_config)
 
-    # Compile the quantized graph to a context binary during session init (no inference run). The HTP backend libs are
-    # bundled with onnxruntime-qnn; htp_arch targets the chip so the graph finalizes offline on a host without an NPU,
-    # and the shared-memory allocator is disabled (no device present).
+    # Register the QNN EP, then compile the quantized graph to a context binary during session init (no inference run).
+    # htp_arch targets the chip so the graph finalizes offline on a host without an NPU, and the shared-memory
+    # allocator is disabled (no device present).
     ep_name = "QNNExecutionProvider"
     ep_options = {
-        "backend_path": qnn_ep.get_qnn_htp_path() if qnn_ep else ("QnnHtp.dll" if WINDOWS else "libQnnHtp.so"),
+        "backend_path": htp_backend,
         "htp_arch": name,
         "htp_graph_finalization_optimization_mode": "3",
         "enable_htp_shared_memory_allocator": "0",
@@ -115,18 +118,15 @@ def onnx2qnn(
     options.add_session_config_entry("ep.context_enable", "1")
     options.add_session_config_entry("ep.context_file_path", str(ctx_file))
     options.add_session_config_entry("ep.context_embed_mode", "1")
-    if qnn_ep:  # plugin EP: register the library, select its device(s), then create the session
-        ort.register_execution_provider_library(ep_name, qnn_ep.get_library_path())
-        try:
-            devices = [d for d in ort.get_ep_devices() if d.ep_name == ep_name]
-            if not devices:
-                raise RuntimeError("QNN EP registered but no QNN devices were found by ONNX Runtime.")
-            options.add_provider_for_devices(devices, ep_options)
-            ort.InferenceSession(str(qdq_file), sess_options=options)
-        finally:
-            ort.unregister_execution_provider_library(ep_name)
-    else:  # monolithic build: the QNN EP is built into onnxruntime and selected by name
-        ort.InferenceSession(str(qdq_file), sess_options=options, providers=[ep_name], provider_options=[ep_options])
+    ort.register_execution_provider_library(ep_name, ep_library)
+    try:
+        devices = [d for d in ort.get_ep_devices() if d.ep_name == ep_name]
+        if not devices:
+            raise RuntimeError("QNN EP registered but no QNN devices were found by ONNX Runtime.")
+        options.add_provider_for_devices(devices, ep_options)
+        ort.InferenceSession(str(qdq_file), sess_options=options)
+    finally:
+        ort.unregister_execution_provider_library(ep_name)
 
     if not ctx_file.exists():
         raise RuntimeError(f"QNN context binary was not generated at {ctx_file}. See {prefix} logs for details.")

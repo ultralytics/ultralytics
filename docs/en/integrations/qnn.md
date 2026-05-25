@@ -61,7 +61,7 @@ Pass the target architecture via `name` (e.g. `name="73"`). Valid values:
 
 !!! note "Platform support"
 
-    QNN export uses the `onnxruntime-qnn` package, which ships prebuilt wheels for **Windows (x64 and ARM64)** and **Linux ARM64 (aarch64)** only. There is no Linux x86-64 or macOS wheel — on those hosts, build ONNX Runtime from source with `--use_qnn`, or run the export on a supported platform. QNN context-binary generation works on an x64 host (no Snapdragon device required for the export step).
+    QNN export uses the `onnxruntime-qnn` package. Stable wheels are published for **Windows (x64 and ARM64)** and **Linux ARM64 (aarch64)**; a **Linux x86-64** wheel is available on the [ONNX Runtime nightly feed](https://onnxruntime.ai/docs/install/#inference-install-table-for-all-languages). There is no macOS wheel — on macOS build ONNX Runtime from source with `--use_qnn`, or run the export on a supported platform. QNN context-binary generation works on an x64 host (no Snapdragon device required for the export step).
 
 ### Installation
 

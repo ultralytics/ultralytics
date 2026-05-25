@@ -9,7 +9,7 @@ to download the same remote resources.
 
 import shutil
 
-from ultralytics.cfg import TASK2MODEL
+from ultralytics.cfg import TASK2MODEL, TASK2DATA, TASK2CALIBRATIONDATA
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.utils import ASSETS_URL, LOGGER, WEIGHTS_DIR
 from ultralytics.utils.downloads import attempt_download_asset, safe_download
@@ -33,26 +33,17 @@ WEIGHTS = [
     "yolov8s-worldv2.pt",
     "yoloe-11s-seg.pt",
     "yoloe-11s-seg-pf.pt",
-    "solutions_ci_parking_model.pt",
 ]
 
 # ---------------------------------------------------------------------------
 # 2. Datasets referenced by the test suite
 # ---------------------------------------------------------------------------
 DATASETS = [
-    "coco8.yaml",
-    "coco8-seg.yaml",
-    "coco8-pose.yaml",
+    *TASK2DATA.values(),
+    *TASK2CALIBRATIONDATA.values(),
     "coco8-grayscale.yaml",
     "coco8-multispectral.yaml",
     "coco12-formats.yaml",
-    "coco128.yaml",
-    "coco128-seg.yaml",
-    "dota8.yaml",
-    "dota128.yaml",
-    "cityscapes8.yaml",
-    "imagenet10",
-    "imagenet100",
 ]
 
 # ---------------------------------------------------------------------------

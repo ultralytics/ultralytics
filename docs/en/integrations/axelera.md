@@ -137,9 +137,9 @@ For detailed instructions, see our [Ultralytics Installation guide](../quickstar
 
 ## Exporting YOLO Models to Axelera
 
-Export your trained YOLO models using the standard Ultralytics export command.
+The Axelera format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on Axelera Metis AIPU hardware. Export your model, then load the exported model to run inference or validate its accuracy.
 
-!!! example "Export to Axelera Format"
+!!! example "Export"
 
     === "Python"
 
@@ -149,14 +149,57 @@ Export your trained YOLO models using the standard Ultralytics export command.
         # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
-        # Export to Axelera format
-        model.export(format="axelera")  # creates 'yolo26n_axelera_model' directory
+        # Export the model to Axelera format
+        model.export(format="axelera")  # creates 'yolo26n_axelera_model'
         ```
 
     === "CLI"
 
         ```bash
-        yolo export model=yolo26n.pt format=axelera
+        # Export a YOLO26n PyTorch model to Axelera format
+        yolo export model=yolo26n.pt format=axelera # creates 'yolo26n_axelera_model'
+        ```
+
+!!! example "Predict"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported Axelera model
+        model = YOLO("yolo26n_axelera_model")
+
+        # Run inference
+        results = model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Run inference with the exported Axelera model
+        yolo predict model=yolo26n_axelera_model source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+!!! example "Validate"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported Axelera model
+        model = YOLO("yolo26n_axelera_model")
+
+        # Validate accuracy on the COCO8 dataset
+        metrics = model.val(data="coco8.yaml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Validate the exported Axelera model
+        yolo val model=yolo26n_axelera_model data=coco8.yaml
         ```
 
 !!! warning "First export may fail after dependency update"
@@ -184,35 +227,6 @@ yolo26n_axelera_model/
 ├── yolo26n.axm              # Axelera model file
 └── metadata.yaml            # Model metadata (classes, image size, etc.)
 ```
-
-## Running Inference
-
-Load the exported model with the Ultralytics API and run inference, similar to loading [ONNX](https://docs.ultralytics.com/integrations/onnx) models.
-
-!!! example "Inference with Axelera Model"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load the exported Axelera model
-        model = YOLO("yolo26n_axelera_model")
-
-        # Run inference
-        results = model("https://ultralytics.com/images/bus.jpg")
-
-        # Process results
-        for r in results:
-            print(f"Detected {len(r.boxes)} objects")
-            r.show()  # Display results
-        ```
-
-    === "CLI"
-
-        ```bash
-        yolo predict model='yolo26n_axelera_model' source='https://ultralytics.com/images/bus.jpg'
-        ```
 
 ## Axelera AI Benchmarks
 

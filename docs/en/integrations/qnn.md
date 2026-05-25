@@ -10,6 +10,10 @@ Deploying computer vision models on Qualcomm Snapdragon devices requires a model
 
 ## What is Qualcomm QNN?
 
+<p align="center">
+  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/qnn_cover.avif" alt="Qualcomm QNN on-device inference">
+</p>
+
 [Qualcomm AI Engine Direct](https://www.qualcomm.com/developer/software/qualcomm-ai-engine-direct-sdk) — commonly referred to as **QNN** and distributed as part of the Qualcomm AI Runtime (QAIRT) SDK — is Qualcomm's low-level inference stack for Snapdragon processors. It provides a unified API with backend-specific libraries that target the CPU, the Adreno GPU, and the Hexagon Tensor Processor (HTP/NPU), giving developers full-stack access to the Snapdragon AI accelerators. QNN is the modern successor to the older Snapdragon Neural Processing Engine (SNPE) SDK.
 
 ## QNN Export Format
@@ -68,16 +72,18 @@ For detailed instructions and best practices related to the installation process
 
 ### Usage
 
+The Qualcomm QNN format is **export-only** in Ultralytics — [Predict](../modes/predict.md) and [Validate](../modes/val.md) are not available locally because QNN models are compiled for Snapdragon hardware. Deploy the exported model on a Snapdragon device with the QNN/QAIRT runtime, or run it through Qualcomm AI Hub.
+
 Before exporting, browse the available Qualcomm AI Hub devices to pick a target, then pass it via the `name` argument:
 
-!!! example "Usage"
+!!! example "Export"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO26 model
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
         # Export the model to Qualcomm QNN format for a specific Snapdragon target
@@ -90,6 +96,10 @@ Before exporting, browse the available Qualcomm AI Hub devices to pick a target,
         # Export a YOLO26n PyTorch model to Qualcomm QNN format
         yolo export model=yolo26n.pt format=qnn name="Snapdragon 8 Elite QRD" # creates 'yolo26n_qnn_model/'
         ```
+
+!!! note "Predict and Validate"
+
+    Ultralytics does not provide a local QNN inference backend, so `yolo predict` and `yolo val` cannot load a `_qnn_model`. Deploy the exported model on a Snapdragon device with the QNN/QAIRT runtime, or run inference and profiling jobs through Qualcomm AI Hub. See [Deploying Exported YOLO QNN Models](#deploying-exported-yolo-qnn-models) below.
 
 To list every device available on your account:
 

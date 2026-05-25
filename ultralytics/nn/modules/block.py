@@ -52,6 +52,8 @@ __all__ = (
     "ResNetLayer",
     "SCDown",
     "TorchVision",
+    "C3k2Simple",
+    "C3k2Rep",
 )
 
 
@@ -2071,3 +2073,113 @@ class RealNVP(nn.Module):
             self.float()
         z, log_det = self.backward_p(x)
         return self.prior.log_prob(z) + log_det
+
+
+class SimpleBlock(nn.Module):
+    """Single 3x3 conv with optional residual - TFJS friendly."""
+
+    def __init__(self, c1: int, c2: int, shortcut: bool = True, g: int = 1):
+        super().__init__()
+        self.cv1 = Conv(c1, c2, 3, 1, g=g)
+        self.add = shortcut and c1 == c2
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return x + self.cv1(x) if self.add else self.cv1(x)
+
+
+class C2fSimple(nn.Module):
+    """C2f with single-conv blocks instead of Bottleneck."""
+
+    def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = False, g: int = 1, e: float = 0.5):
+        super().__init__()
+        self.c = int(c2 * e)
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)
+        self.m = nn.ModuleList(SimpleBlock(self.c, self.c, shortcut, g) for _ in range(n))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+
+class C3k2Simple(C2fSimple):
+    """C3k2 replacement without Bottleneck."""
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        n: int = 1,
+        c3k: bool = False,
+        e: float = 0.5,
+        attn: bool = False,
+        g: int = 1,
+        shortcut: bool = True,
+    ):
+        super().__init__(c1, c2, n, shortcut, g, e)
+        if attn:
+            self.m = nn.ModuleList(
+                nn.Sequential(
+                    SimpleBlock(self.c, self.c, shortcut, g),
+                    PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1)),
+                )
+                for _ in range(n)
+            )
+        elif c3k:
+            self.m = nn.ModuleList(
+                nn.Sequential(
+                    SimpleBlock(self.c, self.c, shortcut, g),
+                    SimpleBlock(self.c, self.c, shortcut, g),
+                )
+                for _ in range(n)
+            )
+
+
+class C2fRep(nn.Module):
+    """C2f with RepConv blocks instead of Bottleneck."""
+
+    def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = False, g: int = 1, e: float = 0.5):
+        super().__init__()
+        self.c = int(c2 * e)
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)
+        self.m = nn.ModuleList(RepConv(self.c, self.c, bn=shortcut) for _ in range(n))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+
+class C3k2Rep(C2fRep):
+    """C3k2 replacement using RepConv."""
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        n: int = 1,
+        c3k: bool = False,
+        e: float = 0.5,
+        attn: bool = False,
+        g: int = 1,
+        shortcut: bool = True,
+    ):
+        super().__init__(c1, c2, n, shortcut, g, e)
+        if attn:
+            self.m = nn.ModuleList(
+                nn.Sequential(
+                    RepConv(self.c, self.c, bn=shortcut),
+                    PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1)),
+                )
+                for _ in range(n)
+            )
+        elif c3k:
+            self.m = nn.ModuleList(
+                nn.Sequential(
+                    RepConv(self.c, self.c, bn=shortcut),
+                    RepConv(self.c, self.c, bn=shortcut),
+                )
+                for _ in range(n)
+            )

@@ -18,12 +18,13 @@ Deploying computer vision models on Qualcomm Snapdragon devices requires a model
 
 ## QNN Export Format
 
-Ultralytics compiles YOLO models to QNN **locally** using the [ONNX Runtime](https://onnxruntime.ai/) QNN Execution Provider (the pip-installable `onnxruntime-qnn` package, which bundles the QAIRT libraries). The exporter converts your model to [ONNX](onnx.md), then initializes an ONNX Runtime session with context-binary caching enabled — this compiles the graph into a **QNN context binary** embedded in `<model>_qnn.onnx`. No Qualcomm account, cloud upload, or separate SDK download is required.
+Ultralytics compiles YOLO models to QNN **locally** using the [ONNX Runtime](https://onnxruntime.ai/) QNN Execution Provider (the pip-installable `onnxruntime-qnn` package, which bundles the QAIRT libraries). The exporter converts your model to [ONNX](onnx.md), **INT8-quantizes it** with calibration data (the Hexagon NPU is an int8 accelerator), then initializes an ONNX Runtime session with context-binary caching enabled — this compiles the quantized graph into a **QNN context binary** embedded in `<model>_qnn.onnx`. No Qualcomm account, cloud upload, or separate SDK download is required.
 
 The exported `_qnn_model/` directory bundles the context-binary ONNX and a `metadata.yaml` describing class names, image size, and task.
 
 ## Key Features of QNN Models
 
+- **INT8 Quantization**: The model is quantized to INT8 with the ONNX Runtime QNN QDQ flow and a calibration dataset, matching the Hexagon NPU's native precision for maximum throughput and minimal size. Learn more about [model quantization](https://www.ultralytics.com/glossary/model-quantization).
 - **Fully Local Compilation**: The context binary is generated entirely on your host machine — no Qualcomm account, API token, or cloud upload.
 - **Full Snapdragon Acceleration**: Run inference on the Hexagon NPU (HTP), Adreno GPU, or CPU through a single unified runtime.
 - **Broad Device Reach**: Target the wide range of Snapdragon platforms shipping in phones, PCs (Windows on Snapdragon), automotive, XR, and embedded products.
@@ -91,7 +92,7 @@ The QNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
         # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
-        # Export the model to Qualcomm QNN format, targeting an HTP architecture via 'name'
+        # Export to Qualcomm QNN format (INT8, enforced automatically), targeting an HTP architecture via 'name'
         # 'name' can be one of 68, 69, 73, 75, 79 (Snapdragon 865, 888/8 Gen 1, 8 Gen 2, 8 Gen 3, 8 Elite)
         model.export(format="qnn", name="73")  # creates 'yolo26n_qnn_model/'
         ```
@@ -154,11 +155,14 @@ The QNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
 | `imgsz`  | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)`.                                                                                 |
 | `batch`  | `int`            | `1`     | Specifies the export model batch size, which is baked into the generated QNN context binary.                                                                                              |
 | `name`   | `str`            | `'73'`  | Target Hexagon HTP architecture version: `68`, `69`, `73`, `75`, or `79` (Snapdragon 865, 888/8 Gen 1, 8 Gen 2, 8 Gen 3, 8 Elite). The context binary is finalized for this architecture. |
+| `int8`   | `bool`           | `True`  | Enables INT8 quantization. Required for QNN HTP export — automatically set to `True` if not specified.                                                                                    |
+| `data`   | `str`            | `'coco8.yaml'` | Dataset configuration file used for INT8 calibration. Specifies the calibration image source.                                                                                     |
+| `fraction` | `float`        | `1.0`   | Fraction of the calibration dataset to use for INT8 quantization.                                                                                                                        |
 | `device` | `str`            | `None`  | Specifies the device for the ONNX export step: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                    |
 
 !!! note "Precision"
 
-    The export targets the Hexagon NPU (HTP) backend and runs the float model at **fp16** precision (via the ONNX Runtime `enable_htp_fp16_precision` option). INT8 quantization with calibration is not currently performed.
+    The Hexagon NPU (HTP) is an int8 accelerator, so QNN export quantizes the model to **INT8** using the ONNX Runtime QNN QDQ flow with calibration images from `data`. `int8=True` is enforced automatically.
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 

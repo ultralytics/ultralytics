@@ -165,7 +165,7 @@ def export_formats():
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
         ["Axelera AI", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction", "data"]],
         ["DeepX", "deepx", "_deepx_model", False, False, ["data", "int8", "optimize"]],
-        ["Qualcomm QNN", "qnn", "_qnn_model", False, False, ["batch", "name"]],
+        ["Qualcomm QNN", "qnn", "_qnn_model", False, False, ["batch", "name", "int8", "fraction", "data"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -324,7 +324,7 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
-        if fmt in {"deepx", "axelera", "imx", "edgetpu"} and not self.args.int8:
+        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn"} and not self.args.int8:
             LOGGER.warning(f"{fmt} export requires int8=True, setting int8=True.")
             self.args.int8 = True
         if fmt == "axelera":
@@ -1123,6 +1123,8 @@ class Exporter:
         return onnx2qnn(
             onnx_file=f_onnx,
             output_dir=str(self.file).replace(self.file.suffix, f"_qnn_model{os.sep}"),
+            dataset=self.get_int8_calibration_dataloader(prefix),
+            transform_fn=self._transform_fn,
             name=self.args.name,
             metadata=self.metadata,
             prefix=prefix,

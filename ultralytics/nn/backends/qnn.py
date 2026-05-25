@@ -49,9 +49,7 @@ class QNNBackend(BaseBackend):
             )
 
         options = onnxruntime.SessionOptions()
-        options.add_provider_for_devices(
-            devices, {"backend_path": qnn_ep.get_qnn_htp_path(), "enable_htp_fp16_precision": "1"}
-        )
+        options.add_provider_for_devices(devices, {"backend_path": qnn_ep.get_qnn_htp_path()})
         self.session = onnxruntime.InferenceSession(str(onnx_file), sess_options=options)
         self.output_names = [x.name for x in self.session.get_outputs()]
 

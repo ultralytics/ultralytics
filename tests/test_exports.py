@@ -418,3 +418,16 @@ def test_export_deepx():
     assert Path(file).exists(), f"DeepX export failed, directory not found: {file}"
     # Note: Inference testing skipped as it requires DeepX hardware
     shutil.rmtree(file, ignore_errors=True)  # cleanup
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(
+    not (Path.home() / ".qai_hub" / "client.ini").exists(),
+    reason="QNN export requires a configured Qualcomm AI Hub API token (qai-hub configure --api_token <TOKEN>)",
+)
+def test_export_qnn():
+    """Test YOLO export to Qualcomm QNN format via Qualcomm AI Hub."""
+    file = YOLO(MODEL).export(format="qnn", imgsz=32)
+    assert Path(file).exists(), f"QNN export failed, directory not found: {file}"
+    # Note: Inference testing skipped as it requires Qualcomm Snapdragon hardware
+    shutil.rmtree(file, ignore_errors=True)  # cleanup

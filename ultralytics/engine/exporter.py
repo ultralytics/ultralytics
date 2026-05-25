@@ -23,6 +23,7 @@ RKNN                    | `rknn`                    | yolo26n_rknn_model/
 ExecuTorch              | `executorch`              | yolo26n_executorch_model/
 Axelera AI              | `axelera`                 | yolo26n_axelera_model/
 DeepX                   | `deepx`                   | yolo26n_deepx_model/
+Qualcomm QNN            | `qnn`                     | yolo26n_qnn_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -54,6 +55,7 @@ Inference:
                          yolo26n_executorch_model   # ExecuTorch
                          yolo26n_axelera_model      # Axelera AI
                          yolo26n_deepx_model        # DeepX
+                         yolo26n_qnn_model          # Qualcomm QNN
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -162,6 +164,7 @@ def export_formats():
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
         ["Axelera AI", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction", "data"]],
         ["DeepX", "deepx", "_deepx_model", False, False, ["data", "int8", "optimize"]],
+        ["Qualcomm QNN", "qnn", "_qnn_model", False, False, ["batch", "name"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -342,7 +345,7 @@ class Exporter:
         if hasattr(model, "end2end"):
             if self.args.end2end is not None:
                 model.end2end = self.args.end2end
-            if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu"}:
+            if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"}:
                 # Disable end2end branch for certain export formats as they does not support topk
                 model.end2end = False
                 LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
@@ -384,6 +387,12 @@ class Exporter:
             assert self.args.name in RKNN_CHIPS, (
                 f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
             )
+        if fmt == "qnn" and not self.args.name:
+            LOGGER.warning(
+                "Qualcomm QNN export requires a missing 'name' arg for the AI Hub target device. "
+                "Using default name='Snapdragon 8 Elite QRD'."
+            )
+            self.args.name = "Snapdragon 8 Elite QRD"
         if self.args.nms and model.task == "semantic":
             LOGGER.warning("'nms=True' is not valid for semantic segmentation models. Forcing 'nms=False'.")
             self.args.nms = False
@@ -1089,6 +1098,21 @@ class Exporter:
             dataset=self.get_int8_calibration_dataloader(prefix),
             metadata=self.metadata,
             optimize=self.args.optimize,
+            prefix=prefix,
+        )
+
+    @try_export
+    def export_qnn(self, prefix=colorstr("Qualcomm QNN:")):
+        """Export YOLO model to Qualcomm QNN format using Qualcomm AI Hub."""
+        from ultralytics.utils.export.qnn import onnx2qnn
+
+        f_onnx = self.export_onnx()
+        return onnx2qnn(
+            onnx_file=f_onnx,
+            output_dir=str(self.file).replace(self.file.suffix, f"_qnn_model{os.sep}"),
+            imgsz=self.imgsz,
+            name=self.args.name,
+            metadata=self.metadata,
             prefix=prefix,
         )
 

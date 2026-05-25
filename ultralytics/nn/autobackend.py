@@ -112,6 +112,7 @@ class AutoBackend(nn.Module):
             | ExecuTorch            | *.pte             |
             | Axelera AI            | *_axelera_model/  |
             | DeepX                 | *_deepx_model/    |
+            | Qualcomm QNN          | *_qnn_model/      |
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.
@@ -201,6 +202,11 @@ class AutoBackend(nn.Module):
 
         if format == "tfjs":
             raise NotImplementedError("Ultralytics TF.js inference is not currently supported.")
+        if format == "qnn":
+            raise NotImplementedError(
+                "Ultralytics QNN inference is not supported locally. Deploy the exported '_qnn_model' on a Qualcomm "
+                "Snapdragon device with the QNN runtime, or run it through Qualcomm AI Hub."
+            )
         if format not in self._BACKEND_MAP:
             from ultralytics.engine.exporter import export_formats
 

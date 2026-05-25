@@ -19,17 +19,17 @@ def onnx2qnn(
 ) -> str:
     """Convert an ONNX model to Qualcomm QNN format using Qualcomm AI Hub.
 
-    The conversion is performed by `Qualcomm AI Hub <https://aihub.qualcomm.com/>`_, which compiles the ONNX graph
-    into a Qualcomm AI Engine Direct (QNN) artifact for the requested Snapdragon target. A free API token is required
-    and must be configured once with ``qai-hub configure --api_token <TOKEN>`` (get a token at
+    The conversion is performed by `Qualcomm AI Hub <https://aihub.qualcomm.com/>`_, which compiles the ONNX graph into
+    a Qualcomm AI Engine Direct (QNN) artifact for the requested Snapdragon target. A free API token is required and
+    must be configured once with ``qai-hub configure --api_token <TOKEN>`` (get a token at
     https://app.aihub.qualcomm.com/).
 
     Args:
         onnx_file (str | Path): Path to the source ONNX file (already exported).
         output_dir (Path | str): Directory to save the exported QNN model.
         imgsz (tuple[int, int]): Export image size as ``(height, width)``.
-        name (str): Qualcomm AI Hub target device name, e.g. ``"Snapdragon 8 Elite QRD"``. Run
-            ``qai_hub.get_devices()`` to list every available device.
+        name (str): Qualcomm AI Hub target device name, e.g. ``"Snapdragon 8 Elite QRD"``. Run ``qai_hub.get_devices()``
+            to list every available device.
         runtime (str): Target runtime, either ``"qnn_dlc"`` (portable QNN Deep Learning Container) or
             ``"qnn_context_binary"`` (device-specific precompiled context binary).
         metadata (dict | None): Metadata saved as ``metadata.yaml``.

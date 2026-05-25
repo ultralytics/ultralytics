@@ -174,8 +174,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest] # x64 host for offline HTP context-binary generation (onnxruntime-qnn win_amd64 wheel)
         python: ["3.12"]
+        include:
+          - os: windows-latest # stable PyPI wheel (win_amd64)
+            qnn_pip: "onnxruntime-qnn"
+          - os: ubuntu-latest # Linux x86-64 == Platform worker OS; wheel only on the ORT-Nightly feed
+            qnn_pip: "--prerelease=allow --extra-index-url https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT-Nightly/pypi/simple/ onnxruntime-qnn"
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
@@ -187,7 +191,8 @@ jobs:
       - name: Install requirements (with onnxruntime-qnn plugin EP)
         shell: bash
         run: |
-          uv pip install --system -e ".[export]" onnxruntime-qnn pytest --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install --system -e ".[export]" pytest --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install --system --index-strategy unsafe-best-match ${{ matrix.qnn_pip }}
       - name: Verify QNN Execution Provider can be registered
         run: |
           python -c "import onnxruntime as ort, onnxruntime_qnn as qnn; ort.register_execution_provider_library('QNNExecutionProvider', qnn.get_library_path()); d = [x for x in ort.get_ep_devices() if x.ep_name == 'QNNExecutionProvider']; print('QNN devices:', d); assert d, 'no QNN devices'"

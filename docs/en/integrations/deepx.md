@@ -34,14 +34,14 @@ DeepX models offer several advantages for edge deployment:
 
 DeepX export supports the standard task set available in each model family, including YOLO26 semantic segmentation.
 
-| Task                                                           | Supported |
-| :------------------------------------------------------------- | :-------- |
-| [Object Detection](https://docs.ultralytics.com/tasks/detect/) | ✅        |
-| [Instance Segmentation](https://docs.ultralytics.com/tasks/segment/) | ✅        |
+| Task                                                                  | Supported |
+| :-------------------------------------------------------------------- | :-------- |
+| [Object Detection](https://docs.ultralytics.com/tasks/detect/)        | ✅        |
+| [Instance Segmentation](https://docs.ultralytics.com/tasks/segment/)  | ✅        |
 | [Semantic Segmentation](https://docs.ultralytics.com/tasks/semantic/) | ✅        |
-| [Pose Estimation](https://docs.ultralytics.com/tasks/pose/)    | ✅        |
-| [OBB Detection](https://docs.ultralytics.com/tasks/obb/)       | ✅        |
-| [Classification](https://docs.ultralytics.com/tasks/classify/) | ✅        |
+| [Pose Estimation](https://docs.ultralytics.com/tasks/pose/)           | ✅        |
+| [OBB Detection](https://docs.ultralytics.com/tasks/obb/)              | ✅        |
+| [Classification](https://docs.ultralytics.com/tasks/classify/)        | ✅        |
 
 ## Export to DeepX: Converting Your YOLO Model
 

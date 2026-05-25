@@ -65,14 +65,14 @@ For turnkey solutions, Axelera partners with manufacturers to provide systems pr
 
 The following tasks are supported across YOLOv8, YOLO11, and YOLO26 models.
 
-| Task                                                              | YOLOv8 | YOLO11 | YOLO26              |
-| :---------------------------------------------------------------- | :----- | :----- | :------------------ |
-| [Object Detection](https://docs.ultralytics.com/tasks/detect)     | ✅     | ✅     | ✅                  |
-| [Pose Estimation](https://docs.ultralytics.com/tasks/pose)        | ✅     | ✅     | ✅                  |
-| [Instance Segmentation](https://docs.ultralytics.com/tasks/segment) | ✅     | ✅     | ⚠️ Voyager SDK only |
+| Task                                                                 | YOLOv8 | YOLO11 | YOLO26              |
+| :------------------------------------------------------------------- | :----- | :----- | :------------------ |
+| [Object Detection](https://docs.ultralytics.com/tasks/detect)        | ✅     | ✅     | ✅                  |
+| [Pose Estimation](https://docs.ultralytics.com/tasks/pose)           | ✅     | ✅     | ✅                  |
+| [Instance Segmentation](https://docs.ultralytics.com/tasks/segment)  | ✅     | ✅     | ⚠️ Voyager SDK only |
 | [Semantic Segmentation](https://docs.ultralytics.com/tasks/semantic) | ❌     | ❌     | ✅                  |
-| [Oriented Bounding Boxes](https://docs.ultralytics.com/tasks/obb) | ✅     | ✅     | ✅                  |
-| [Classification](https://docs.ultralytics.com/tasks/classify)     | ✅     | ✅     | ✅                  |
+| [Oriented Bounding Boxes](https://docs.ultralytics.com/tasks/obb)    | ✅     | ✅     | ✅                  |
+| [Classification](https://docs.ultralytics.com/tasks/classify)        | ✅     | ✅     | ✅                  |
 
 !!! note
 

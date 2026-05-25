@@ -69,18 +69,19 @@ For detailed instructions and best practices related to the installation process
 
     Export is currently only supported for detection models. More model support will be coming in the future.
 
-!!! example "Usage"
+The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on Rockchip NPU hardware. Export your model, then load the exported model to run inference or validate its accuracy.
+
+!!! example "Export"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO26 model
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
         # Export the model to RKNN format
-        # 'name' can be one of rk3588, rk3576, rk3566, rk3568, rk3562, rk2118, rv1126b (FP16). INT8-only targets rv1103, rv1106, rv1103b, rv1106b are not yet supported.
         model.export(format="rknn", name="rk3588")  # creates '/yolo26n_rknn_model'
         ```
 
@@ -88,8 +89,49 @@ For detailed instructions and best practices related to the installation process
 
         ```bash
         # Export a YOLO26n PyTorch model to RKNN format
-        # 'name' can be one of rk3588, rk3576, rk3566, rk3568, rk3562, rk2118, rv1126b (FP16). INT8-only targets rv1103, rv1106, rv1103b, rv1106b are not yet supported.
         yolo export model=yolo26n.pt format=rknn name=rk3588 # creates '/yolo26n_rknn_model'
+        ```
+
+!!! example "Predict"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported RKNN model
+        model = YOLO("./yolo26n_rknn_model")
+
+        # Run inference
+        results = model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Run inference with the exported RKNN model
+        yolo predict model=./yolo26n_rknn_model source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+!!! example "Validate"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported RKNN model
+        model = YOLO("./yolo26n_rknn_model")
+
+        # Validate accuracy on the COCO8 dataset
+        metrics = model.val(data="coco8.yaml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Validate the exported RKNN model
+        yolo val model=./yolo26n_rknn_model data=coco8.yaml
         ```
 
 ### Export Arguments
@@ -125,28 +167,7 @@ To install the required packages, run:
         pip install ultralytics
         ```
 
-### Usage
-
-!!! example "Usage"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load the exported RKNN model
-        rknn_model = YOLO("./yolo26n_rknn_model")
-
-        # Run inference
-        results = rknn_model("https://ultralytics.com/images/bus.jpg")
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Run inference with the exported model
-        yolo predict model='./yolo26n_rknn_model' source='https://ultralytics.com/images/bus.jpg'
-        ```
+Once installed, run inference and validation on your Rockchip device exactly as shown in the [Usage](#usage) section above — the exported `_rknn_model` loads directly with `YOLO(...)`.
 
 !!! note
 

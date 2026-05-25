@@ -432,9 +432,10 @@ def test_export_qnn():
     # QNN EP ships two ways: the 'onnxruntime_qnn' plugin module (Windows/Linux-aarch64) or built into onnxruntime
     # (monolithic Linux x86-64 nightly). Skip cleanly only when neither is present.
     has_plugin = importlib.util.find_spec("onnxruntime_qnn") is not None
-    has_monolithic = importlib.util.find_spec("onnxruntime") is not None and "QNNExecutionProvider" in __import__(
-        "onnxruntime"
-    ).get_available_providers()
+    has_monolithic = (
+        importlib.util.find_spec("onnxruntime") is not None
+        and "QNNExecutionProvider" in __import__("onnxruntime").get_available_providers()
+    )
     if not (has_plugin or has_monolithic):
         pytest.skip("onnxruntime-qnn / QNN Execution Provider not available (exercised in the dedicated QNN CI job)")
     file = YOLO(MODEL).export(format="qnn", imgsz=32)

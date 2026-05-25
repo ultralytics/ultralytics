@@ -36,7 +36,7 @@ The shapes above are for [detection](../tasks/detect.md). Other tasks extend the
 | Task                                | End-to-End Output                          | Extra Data                          |
 | ----------------------------------- | ------------------------------------------ | ----------------------------------- |
 | [Detection](../tasks/detect.md)     | `(N, 300, 6)`                              | —                                   |
-| [Segmentation](../tasks/segment.md) | `(N, 300, 6 + nm)` + proto `(N, nm, H, W)` | `nm` mask coefficients (default 32) |
+| [Instance Segmentation](../tasks/segment.md) | `(N, 300, 6 + nm)` + proto `(N, nm, H, W)` | `nm` mask coefficients (default 32) |
 | [Pose](../tasks/pose.md)            | `(N, 300, 57)`                             | 17 keypoints × 3 (x, y, visibility) |
 | [OBB](../tasks/obb.md)              | `(N, 300, 7)`                              | Rotation angle                      |
 
@@ -232,15 +232,15 @@ You can check using either the Ultralytics Python API or by inspecting the expor
 
 Alternatively, check the output shape — end-to-end detection models output `(1, 300, 6)`, while traditional models output `(1, nc + 4, 8400)`. For other task shapes, see the [output shapes FAQ](#my-exported-onnx-model-outputs-1-300-6-is-that-correct).
 
-### Is end-to-end supported for segmentation, pose, and OBB tasks?
+### Is end-to-end supported for instance segmentation, pose, and OBB tasks?
 
-Yes. All YOLO26 task variants — [detection](../tasks/detect.md), [segmentation](../tasks/segment.md), [pose estimation](../tasks/pose.md), and [oriented object detection (OBB)](../tasks/obb.md) — support end-to-end inference by default. The `end2end=False` fallback is available across all tasks as well.
+Yes. YOLO26 detection-style task variants — [detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [pose estimation](../tasks/pose.md), and [oriented object detection (OBB)](../tasks/obb.md) — support end-to-end inference by default. The `end2end=False` fallback is available across these tasks as well.
 
 Each task extends the base detection output with task-specific data:
 
 | Task         | Model             | End-to-End Output                          |
 | ------------ | ----------------- | ------------------------------------------ |
 | Detection    | `yolo26n.pt`      | `(N, 300, 6)`                              |
-| Segmentation | `yolo26n-seg.pt`  | `(N, 300, 38)` + proto `(N, 32, 160, 160)` |
+| Instance Segmentation | `yolo26n-seg.pt`  | `(N, 300, 38)` + proto `(N, 32, 160, 160)` |
 | Pose         | `yolo26n-pose.pt` | `(N, 300, 57)`                             |
 | OBB          | `yolo26n-obb.pt`  | `(N, 300, 7)`                              |

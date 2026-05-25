@@ -34,7 +34,7 @@ class YOLO(Model):
 
     Attributes:
         model: The loaded YOLO model instance.
-        task: The task type (detect, segment, classify, pose, obb).
+        task: The task type (detect, segment, semantic, classify, pose, obb).
         overrides: Configuration overrides for the model.
 
     Methods:

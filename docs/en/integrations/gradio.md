@@ -52,7 +52,7 @@ pip install gradio
 
 ## Usage Example
 
-This section provides the Python code used to create the Gradio interface with the Ultralytics YOLO26 model. The code supports classification, detection, instance segmentation, semantic segmentation, and keypoint tasks.
+This section provides the Python code used to create the Gradio interface with the Ultralytics YOLO26 model. The code supports detection, instance segmentation, semantic segmentation, classification, and keypoint tasks.
 
 ```python
 import gradio as gr

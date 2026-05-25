@@ -331,7 +331,7 @@ model = YOLO("yolo26n.pt")
 onnx_file = model.export(format="onnx", dynamic=True)
 ```
 
-You can follow the steps in the [ONNX integration guide](https://docs.ultralytics.com/integrations/onnx/) to complete the process.
+You can follow the steps in the [ONNX integration guide](https://docs.ultralytics.com/integrations/onnx) to complete the process.
 
 ### Can I run inference using the Ultralytics YOLO26 model on Triton Inference Server?
 

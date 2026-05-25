@@ -204,8 +204,8 @@ class AutoBackend(nn.Module):
             raise NotImplementedError("Ultralytics TF.js inference is not currently supported.")
         if format == "qnn":
             raise NotImplementedError(
-                "Ultralytics QNN inference is not supported locally. Deploy the exported '_qnn_model' on a Qualcomm "
-                "Snapdragon device with the QNN runtime, or run it through Qualcomm AI Hub."
+                "Ultralytics QNN inference is not supported on a desktop host. Deploy the exported '_qnn_model' on a "
+                "Qualcomm Snapdragon device and run it with ONNX Runtime using the QNN Execution Provider."
             )
         if format not in self._BACKEND_MAP:
             from ultralytics.engine.exporter import export_formats

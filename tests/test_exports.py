@@ -422,11 +422,11 @@ def test_export_deepx():
 
 @pytest.mark.slow
 @pytest.mark.skipif(
-    not (Path.home() / ".qai_hub" / "client.ini").exists(),
-    reason="QNN export requires a configured Qualcomm AI Hub API token (qai-hub configure --api_token <TOKEN>)",
+    not (WINDOWS or (LINUX and ARM64)),
+    reason="onnxruntime-qnn ships prebuilt wheels only for Windows (x64/ARM64) and Linux ARM64",
 )
 def test_export_qnn():
-    """Test YOLO export to Qualcomm QNN format via Qualcomm AI Hub."""
+    """Test YOLO export to Qualcomm QNN format via the ONNX Runtime QNN Execution Provider."""
     file = YOLO(MODEL).export(format="qnn", imgsz=32)
     assert Path(file).exists(), f"QNN export failed, directory not found: {file}"
     # Note: Inference testing skipped as it requires Qualcomm Snapdragon hardware

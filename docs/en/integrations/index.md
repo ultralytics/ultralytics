@@ -83,7 +83,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [PaddlePaddle](paddlepaddle.md): An open-source deep learning platform by [Baidu](https://www.baidu.com/), PaddlePaddle enables the efficient deployment of AI models and focuses on the scalability of industrial applications.
 
-- [Qualcomm QNN](qnn.md): Compile Ultralytics YOLO models with [Qualcomm](https://www.qualcomm.com/) AI Hub into the QNN (AI Engine Direct) format for accelerated inference on Snapdragon CPU, GPU, and Hexagon NPU hardware in mobile and edge devices.
+- [Qualcomm QNN](qnn.md): Compile Ultralytics YOLO models locally into the QNN (AI Engine Direct) context-binary format with the [ONNX Runtime](https://onnxruntime.ai/) QNN Execution Provider for accelerated inference on Snapdragon CPU, Adreno GPU, and Hexagon NPU hardware in mobile and edge devices.
 
 - [Rockchip RKNN](rockchip-rknn.md): Developed by [Rockchip](https://www.rock-chips.com/), RKNN is a specialized neural network inference framework optimized for Rockchip's hardware platforms, particularly their NPUs. It facilitates efficient deployment of AI models on edge devices, enabling high-performance inference in real-time applications.
 

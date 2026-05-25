@@ -2,85 +2,71 @@
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
-from ultralytics.utils import LOGGER, YAML
+from ultralytics.utils import ARM64, LINUX, LOGGER, WINDOWS, YAML
 from ultralytics.utils.checks import check_requirements
 
 
 def onnx2qnn(
     onnx_file: str | Path,
     output_dir: Path | str,
-    imgsz: tuple[int, int],
-    batch: int = 1,
-    name: str | None = None,
-    runtime: str = "qnn_dlc",
+    backend: str = "htp",
     metadata: dict | None = None,
     prefix: str = "",
 ) -> str:
-    """Convert an ONNX model to Qualcomm QNN format using Qualcomm AI Hub.
+    """Convert an ONNX model to a Qualcomm QNN context binary locally using the ONNX Runtime QNN Execution Provider.
 
-    The conversion is performed by `Qualcomm AI Hub <https://aihub.qualcomm.com/>`_, which compiles the ONNX graph into
-    a Qualcomm AI Engine Direct (QNN) artifact for the requested Snapdragon target. A free API token is required and
-    must be configured once with ``qai-hub configure --api_token <TOKEN>`` (get a token at
-    https://app.aihub.qualcomm.com/).
+    The conversion runs entirely on the host with no Qualcomm account or cloud upload — the ``onnxruntime-qnn`` package
+    bundles the Qualcomm AI Runtime (QAIRT) libraries. Initializing an ONNX Runtime session with context-binary caching
+    enabled compiles the ONNX graph into a QNN context binary embedded in ``<stem>_qnn.onnx``; no inference is run.
+
+    Note:
+        ``onnxruntime-qnn`` ships prebuilt wheels for Windows (x64/ARM64) and Linux ARM64 (aarch64) only. There is no
+        Linux x86-64 or macOS wheel — on those hosts build ONNX Runtime from source with ``--use_qnn``, or generate the
+        context binary on a supported platform.
 
     Args:
         onnx_file (str | Path): Path to the source ONNX file (already exported).
         output_dir (Path | str): Directory to save the exported QNN model.
-        imgsz (tuple[int, int]): Export image size as ``(height, width)``.
-        batch (int): Batch size of the exported ONNX model, used to build the compile input spec.
-        name (str | None): Qualcomm AI Hub target device name, e.g. ``"Snapdragon 8 Elite QRD"``. If ``None``, the first
-            device available to the account is selected (preferring a Snapdragon 8 Elite reference device). Run
-            ``qai_hub.get_devices()`` to list every available device.
-        runtime (str): Target runtime, either ``"qnn_dlc"`` (portable QNN Deep Learning Container) or
-            ``"qnn_context_binary"`` (device-specific precompiled context binary).
+        backend (str): QNN backend to target, one of ``"htp"`` (Hexagon NPU), ``"gpu"`` (Adreno), or ``"cpu"``.
         metadata (dict | None): Metadata saved as ``metadata.yaml``.
         prefix (str): Prefix for log messages.
 
     Returns:
         (str): Path to the exported ``_qnn_model`` directory.
     """
-    assert runtime in {"qnn_dlc", "qnn_context_binary"}, (
-        f"Invalid QNN runtime '{runtime}', use 'qnn_dlc' or 'qnn_context_binary'."
+    assert WINDOWS or (LINUX and ARM64), (
+        "QNN export requires 'onnxruntime-qnn', which ships prebuilt wheels only for Windows (x64/ARM64) and Linux "
+        "ARM64 (aarch64). No wheel exists for Linux x86-64 or macOS — build ONNX Runtime from source with '--use_qnn' "
+        "or run the export on a supported platform."
     )
-    check_requirements("qai-hub")
-    import qai_hub as hub
+    backends = {"htp": "QnnHtp", "gpu": "QnnGpu", "cpu": "QnnCpu"}
+    assert backend in backends, f"Invalid QNN backend '{backend}', use one of {list(backends)}."
 
-    # Mirror the qai_hub config resolution (QAIHUB_CLIENT_INI env var, else ~/.qai_hub/client.ini)
-    config_path = Path(os.environ.get("QAIHUB_CLIENT_INI", Path.home() / ".qai_hub" / "client.ini"))
-    if not config_path.exists():
-        raise FileNotFoundError(
-            "Qualcomm AI Hub API token not configured. Create a free token at https://app.aihub.qualcomm.com/ "
-            "and run 'qai-hub configure --api_token <TOKEN>' once before exporting to QNN."
-        )
+    check_requirements("onnxruntime-qnn")
+    import onnxruntime as ort
 
-    if not name:  # resolve a device from the account instead of assuming a specific one exists
-        devices = hub.get_devices()
-        if not devices:
-            raise RuntimeError("No Qualcomm AI Hub devices available for this account.")
-        name = next((d.name for d in devices if "Snapdragon 8 Elite" in d.name), devices[0].name)
-        LOGGER.info(f"{prefix} no 'name' provided, auto-selecting Qualcomm AI Hub device '{name}'.")
-
-    LOGGER.info(f"\n{prefix} starting export with Qualcomm AI Hub targeting '{name}'...")
+    backend_lib = f"{backends[backend]}.dll" if WINDOWS else f"lib{backends[backend]}.so"
+    LOGGER.info(f"\n{prefix} starting export with ONNX Runtime QNN ({backend_lib})...")
 
     onnx_file = Path(onnx_file)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+    ctx_file = output_dir / f"{onnx_file.stem}_qnn.onnx"
 
-    compile_job = hub.submit_compile_job(
-        model=str(onnx_file),
-        device=hub.Device(name),
-        options=f"--target_runtime {runtime}",
-        input_specs={"images": (batch, 3, imgsz[0], imgsz[1])},
+    # Enable QNN context-binary caching, then initialize the session to compile and write the binary (no run needed)
+    options = ort.SessionOptions()
+    options.add_session_config_entry("ep.context_enable", "1")
+    options.add_session_config_entry("ep.context_file_path", str(ctx_file))
+    options.add_session_config_entry("ep.context_embed_mode", "1")
+    ort.InferenceSession(
+        str(onnx_file),
+        sess_options=options,
+        providers=["QNNExecutionProvider"],
+        provider_options=[{"backend_path": backend_lib}],
     )
-    target_model = compile_job.get_target_model()  # blocks until the cloud compile job completes
-    if target_model is None:
-        raise RuntimeError(f"Qualcomm AI Hub compile job failed, see {compile_job.url} for details.")
 
-    suffix = ".bin" if runtime == "qnn_context_binary" else ".dlc"
-    target_model.download(str(output_dir / f"{onnx_file.stem}{suffix}"))
     if metadata:
         YAML.save(output_dir / "metadata.yaml", metadata)
     return str(output_dir)

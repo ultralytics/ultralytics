@@ -164,7 +164,7 @@ def export_formats():
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
         ["Axelera AI", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction", "data"]],
         ["DeepX", "deepx", "_deepx_model", False, False, ["data", "int8", "optimize"]],
-        ["Qualcomm QNN", "qnn", "_qnn_model", False, False, ["batch", "name"]],
+        ["Qualcomm QNN", "qnn", "_qnn_model", False, False, ["batch"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -1103,16 +1103,13 @@ class Exporter:
 
     @try_export
     def export_qnn(self, prefix=colorstr("Qualcomm QNN:")):
-        """Export YOLO model to Qualcomm QNN format using Qualcomm AI Hub."""
+        """Export YOLO model to a Qualcomm QNN context binary using ONNX Runtime QNN."""
         from ultralytics.utils.export.qnn import onnx2qnn
 
         f_onnx = self.export_onnx()
         return onnx2qnn(
             onnx_file=f_onnx,
             output_dir=str(self.file).replace(self.file.suffix, f"_qnn_model{os.sep}"),
-            imgsz=self.imgsz,
-            batch=self.args.batch,
-            name=self.args.name,
             metadata=self.metadata,
             prefix=prefix,
         )

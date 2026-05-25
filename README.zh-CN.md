@@ -21,7 +21,7 @@
 </div>
 <br>
 
-[Ultralytics](https://www.ultralytics.com/) 基于多年在计算机视觉和人工智能领域的基础研究，创造了尖端的、最先进的 (SOTA) [YOLO 模型](https://www.ultralytics.com/yolo)。我们的模型不断更新以提高性能和灵活性，具有**速度快**、**精度高**和**易于使用**的特点。它们在[目标检测](https://docs.ultralytics.com/tasks/detect)、[跟踪](https://docs.ultralytics.com/modes/track)、[实例分割](https://docs.ultralytics.com/tasks/segment)、[图像分类](https://docs.ultralytics.com/tasks/classify)和[姿态估计](https://docs.ultralytics.com/tasks/pose)任务中表现出色。
+[Ultralytics](https://www.ultralytics.com/) 基于多年在计算机视觉和人工智能领域的基础研究，创造了尖端的、最先进的 (SOTA) [YOLO 模型](https://www.ultralytics.com/yolo)。我们的模型不断更新以提高性能和灵活性，具有**速度快**、**精度高**和**易于使用**的特点。它们在[目标检测](https://docs.ultralytics.com/tasks/detect)、[跟踪](https://docs.ultralytics.com/modes/track)、[实例分割](https://docs.ultralytics.com/tasks/segment)、[语义分割](https://docs.ultralytics.com/tasks/semantic)、[图像分类](https://docs.ultralytics.com/tasks/classify)和[姿态估计](https://docs.ultralytics.com/tasks/pose)任务中表现出色。
 
 在 [Ultralytics 文档](https://docs.ultralytics.com/)中查找详细文档。通过 [GitHub Issues](https://github.com/ultralytics/ultralytics/issues/new/choose) 获取支持。加入 [Discord](https://discord.com/invite/ultralytics)、[Reddit](https://www.reddit.com/r/ultralytics/) 和 [Ultralytics 社区论坛](https://community.ultralytics.com/)参与讨论！
 
@@ -117,10 +117,10 @@ path = model.export(format="onnx")  # 返回导出模型的路径
 
 ## ✨ 模型
 
-Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https://docs.ultralytics.com/models/yolov3) 到最新的 [YOLO26](https://docs.ultralytics.com/models/yolo26)。下表展示了在 [COCO](https://docs.ultralytics.com/datasets/detect/coco) 数据集上预训练的 YOLO26 模型，用于[检测](https://docs.ultralytics.com/tasks/detect)、[分割](https://docs.ultralytics.com/tasks/segment)和[姿态估计](https://docs.ultralytics.com/tasks/pose)任务。此外，还提供了在 [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet) 数据集上预训练的[分类](https://docs.ultralytics.com/tasks/classify)模型。[跟踪](https://docs.ultralytics.com/modes/track)模式与所有检测、分割和姿态模型兼容。所有[模型](https://docs.ultralytics.com/models)在首次使用时都会自动从最新的 Ultralytics [发布版本](https://github.com/ultralytics/assets/releases)下载。
+Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https://docs.ultralytics.com/models/yolov3) 到最新的 [YOLO26](https://docs.ultralytics.com/models/yolo26)。下表展示了在 [COCO](https://docs.ultralytics.com/datasets/detect/coco) 上预训练的 YOLO26 模型，用于[检测](https://docs.ultralytics.com/tasks/detect)、[分割](https://docs.ultralytics.com/tasks/segment)和[姿态估计](https://docs.ultralytics.com/tasks/pose)任务。[语义分割](https://docs.ultralytics.com/tasks/semantic)模型在 [Cityscapes](https://docs.ultralytics.com/datasets/semantic/cityscapes) 上预训练，[分类](https://docs.ultralytics.com/tasks/classify)模型在 [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet) 上预训练。[跟踪](https://docs.ultralytics.com/modes/track)模式与检测、分割和姿态模型兼容。所有[模型](https://docs.ultralytics.com/models)在首次使用时都会自动从最新的 Ultralytics [发布版本](https://github.com/ultralytics/assets/releases)下载。
 
 <a href="https://docs.ultralytics.com/tasks" target="_blank">
-    <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-tasks-banner.avif" alt="Ultralytics YOLO supported tasks">
+    <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/docs/ultralytics-yolov8-tasks-banner.avif" alt="Ultralytics YOLO supported tasks">
 </a>
 <br>
 <br>
@@ -156,6 +156,23 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 
 - **mAP<sup>val</sup>** 值指的是在 [COCO val2017](https://cocodataset.org/) 数据集上的单模型单尺度性能。详见 [YOLO 性能指标](https://docs.ultralytics.com/guides/yolo-performance-metrics)。<br>使用 `yolo val segment data=coco.yaml device=0` 复现结果。
 - **速度** 指标是在 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例上对 COCO val 图像进行平均测量的。CPU 速度使用 [ONNX](https://onnx.ai/) 导出进行测量。GPU 速度使用 [TensorRT](https://developer.nvidia.com/tensorrt) 导出进行测量。<br>使用 `yolo val segment data=coco.yaml batch=1 device=0|cpu` 复现结果。
+
+</details>
+
+<details><summary>语义分割 (Cityscapes)</summary>
+
+请参阅[语义分割文档](https://docs.ultralytics.com/tasks/semantic)获取使用示例。这些模型在 [Cityscapes](https://docs.ultralytics.com/datasets/semantic/cityscapes) 数据集上训练，包含 19 个类别。
+
+| 模型                                                                                         | 尺寸<br><sup>(像素) | mIoU<sup>val | 速度<br><sup>RTX3090 PyTorch<br>(毫秒) | 参数<br><sup>(百万) | FLOPs<br><sup>(十亿) |
+| -------------------------------------------------------------------------------------------- | ------------------- | ------------ | -------------------------------------- | ------------------- | -------------------- |
+| [YOLO26n-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-sem.pt) | 1024 &times; 2048   | 78.3         | 4.4 ± 0.0                              | 1.6                 | 22.7                 |
+| [YOLO26s-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-sem.pt) | 1024 &times; 2048   | 80.8         | 8.4 ± 0.0                              | 6.5                 | 88.8                 |
+| [YOLO26m-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-sem.pt) | 1024 &times; 2048   | 82.0         | 19.9 ± 0.1                             | 14.3                | 304.5                |
+| [YOLO26l-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-sem.pt) | 1024 &times; 2048   | 82.9         | 26.5 ± 0.1                             | 17.9                | 384.7                |
+| [YOLO26x-sem](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-sem.pt) | 1024 &times; 2048   | 83.6         | 48.9 ± 0.2                             | 40.2                | 861.7                |
+
+- **mIoU<sup>val</sup>** 值指的是在 [Cityscapes](https://www.cityscapes-dataset.com/) 验证集上的单模型单尺度性能。<br>使用 `yolo semantic val data=cityscapes.yaml device=0 imgsz=2048` 复现结果。
+- **速度** 指标是在 RTX3090 实例上对 Cityscapes 验证集图像进行平均测量的。<br>使用 `yolo semantic val data=cityscapes.yaml batch=1 device=0 imgsz=2048` 复现结果。
 
 </details>
 
@@ -233,7 +250,7 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 Ultralytics 提供两种许可选项以满足不同需求：
 
 - **AGPL-3.0 许可证**：这种经 [OSI 批准](https://opensource.org/license/agpl-3.0)的开源许可证非常适合学生、研究人员和爱好者。它鼓励开放协作和知识共享。有关完整详细信息，请参阅 [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) 文件。
-- **Ultralytics 企业许可证**：专为商业用途设计，此许可证允许将 Ultralytics 软件和 AI 模型无缝集成到商业产品和服务中，绕过 AGPL-3.0 的开源要求。如果您的使用场景涉及商业部署，请通过 [Ultralytics 授权许可](https://www.ultralytics.com/license)与我们联系。
+- **Ultralytics 企业许可证**：适用于开发和生产用途，此许可证允许将 Ultralytics 软件和 AI 模型无缝集成到业务产品和服务中，包括内部工具、自动化工作流和生产部署，绕过 AGPL-3.0 的开源要求。如需开始使用，请通过 [Ultralytics 授权许可](https://www.ultralytics.com/license)与我们联系。
 
 ## 📞 联系方式
 

@@ -1,8 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import numpy as np
-import scipy
-from scipy.spatial.distance import cdist
 
 from ultralytics.utils.metrics import batch_probiou, bbox_ioa
 
@@ -49,7 +47,9 @@ def linear_assignment(cost_matrix: np.ndarray, thresh: float, use_lap: bool = Tr
     else:
         # Use scipy.optimize.linear_sum_assignment
         # https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html
-        x, y = scipy.optimize.linear_sum_assignment(cost_matrix)  # row x, col y
+        from scipy.optimize import linear_sum_assignment
+
+        x, y = linear_sum_assignment(cost_matrix)  # row x, col y
         matches = np.asarray([[x[i], y[i]] for i in range(len(x)) if cost_matrix[x[i], y[i]] <= thresh])
         if len(matches) == 0:
             unmatched_a = list(np.arange(cost_matrix.shape[0]))
@@ -125,7 +125,15 @@ def embedding_distance(tracks: list, detections: list, metric: str = "cosine") -
     # for i, track in enumerate(tracks):
     # cost_matrix[i, :] = np.maximum(0.0, cdist(track.smooth_feat.reshape(1,-1), det_features, metric))
     track_features = np.asarray([track.smooth_feat for track in tracks], dtype=np.float32)
-    cost_matrix = np.maximum(0.0, cdist(track_features, det_features, metric))  # Normalized features
+    if metric == "cosine":
+        track_norm = np.linalg.norm(track_features, axis=1, keepdims=True)
+        det_norm = np.linalg.norm(det_features, axis=1, keepdims=True).T
+        cost_matrix = 1 - track_features @ det_features.T / np.maximum(track_norm * det_norm, np.finfo(float).eps)
+    else:
+        from scipy.spatial.distance import cdist
+
+        cost_matrix = cdist(track_features, det_features, metric)
+    cost_matrix = np.maximum(0.0, cost_matrix)  # Normalized features
     return cost_matrix
 
 

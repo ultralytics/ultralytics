@@ -425,7 +425,7 @@ def test_export_deepx(isolated_model):
     not (WINDOWS or (LINUX and ARM64)) or sys.version_info < (3, 11),
     reason="onnxruntime-qnn ships prebuilt wheels only for Windows (x64/ARM64) and Linux ARM64 on Python>=3.11",
 )
-def test_export_qnn():
+def test_export_qnn(isolated_model):
     """Test YOLO export to Qualcomm QNN format via the ONNX Runtime QNN Execution Provider."""
     import importlib.util
 
@@ -441,7 +441,7 @@ def test_export_qnn():
         ).exists()
     if not has_qnn:
         pytest.skip("onnxruntime-qnn / QNN Execution Provider not available")
-    file = YOLO(MODEL).export(format="qnn", imgsz=32)
+    file = YOLO(isolated_model).export(format="qnn", imgsz=32)
     assert next(Path(file).rglob("*_qnn.onnx"), None), f"QNN export failed, no context binary found in: {file}"
     # Note: on-device inference is not exercised here as it requires Qualcomm Snapdragon hardware
     shutil.rmtree(file, ignore_errors=True)  # cleanup

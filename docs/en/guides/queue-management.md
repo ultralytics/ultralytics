@@ -157,7 +157,7 @@ cap.release()
 cv2.destroyAllWindows()
 ```
 
-Leveraging [Ultralytics Platform](https://docs.ultralytics.com/platform/) can streamline this process by providing a user-friendly platform for deploying and managing your queue management solution.
+Leveraging [Ultralytics Platform](https://docs.ultralytics.com/platform) can streamline this process by providing a user-friendly platform for deploying and managing your queue management solution.
 
 ### What are the key advantages of using Ultralytics YOLO26 for queue management?
 
@@ -168,18 +168,18 @@ Using Ultralytics YOLO26 for queue management offers several benefits:
 - **Real-time Alerts:** Provides real-time notifications for long queues, enabling quick intervention.
 - **Scalability:** Easily scalable across different environments like retail, airports, and healthcare.
 
-For more details, explore our [Queue Management](https://docs.ultralytics.com/reference/solutions/queue_management/) solutions.
+For more details, explore our [Queue Management](https://docs.ultralytics.com/reference/solutions/queue_management) solutions.
 
 ### Why should I choose Ultralytics YOLO26 over competitors like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) or Detectron2 for queue management?
 
 Ultralytics YOLO26 has several advantages over TensorFlow and Detectron2 for queue management:
 
 - **Real-time Performance:** YOLO26 is known for its real-time detection capabilities, offering faster processing speeds.
-- **Ease of Use:** Ultralytics provides a user-friendly experience, from training to deployment, via [Ultralytics Platform](https://docs.ultralytics.com/platform/).
+- **Ease of Use:** Ultralytics provides a user-friendly experience, from training to deployment, via [Ultralytics Platform](https://docs.ultralytics.com/platform).
 - **Pretrained Models:** Access to a range of pretrained models, minimizing the time needed for setup.
 - **Community Support:** Extensive documentation and active community support make problem-solving easier.
 
-Learn how to get started with [Ultralytics YOLO](https://docs.ultralytics.com/quickstart/).
+Learn how to get started with [Ultralytics YOLO](https://docs.ultralytics.com/quickstart).
 
 ### Can Ultralytics YOLO26 handle multiple types of queues, such as in airports and retail?
 

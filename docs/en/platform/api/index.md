@@ -745,7 +745,7 @@ POST /api/models
 | `slug`        | string | No       | URL slug (lowercase alphanumeric/hyphens)        |
 | `name`        | string | No       | Display name (max 100 chars)                     |
 | `description` | string | No       | Model description (max 1000 chars)               |
-| `task`        | string | No       | Task type (detect, segment, pose, obb, classify) |
+| `task`        | string | No       | Task type (detect, segment, semantic, pose, obb, classify) |
 
 !!! note "Model File Upload"
 

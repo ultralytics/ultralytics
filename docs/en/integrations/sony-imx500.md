@@ -52,6 +52,8 @@ Currently, you can only export models that include the following tasks to IMX500
 
 Export an Ultralytics YOLO11 model to IMX500 format and run inference with the exported model.
 
+The IMX500 format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on the Raspberry Pi AI Camera (IMX500).
+
 !!! note
 
     Here we perform inference just to make sure the model works as expected. However, for deployment and inference on the Raspberry Pi AI Camera, please jump to [Using IMX500 Export in Deployment](#using-imx500-export-in-deployment) section.
@@ -174,6 +176,27 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
 
          # Run inference with the exported model
          yolo predict model=yolo11n-seg_imx_model source='https://ultralytics.com/images/bus.jpg'
+         ```
+
+!!! example "Validate"
+
+    === "Python"
+
+         ```python
+         from ultralytics import YOLO
+
+         # Load the exported IMX500 model
+         model = YOLO("yolo11n_imx_model")
+
+         # Validate accuracy on the COCO8 dataset
+         metrics = model.val(data="coco8.yaml")
+         ```
+
+    === "CLI"
+
+         ```bash
+         # Validate the exported IMX500 model
+         yolo val model=yolo11n_imx_model data=coco8.yaml
          ```
 
 !!! warning

@@ -24,6 +24,7 @@ from .backends import (
     OpenVINOBackend,
     PaddleBackend,
     PyTorchBackend,
+    QNNBackend,
     RKNNBackend,
     TensorFlowBackend,
     TensorRTBackend,
@@ -112,13 +113,14 @@ class AutoBackend(nn.Module):
             | ExecuTorch            | *.pte             |
             | Axelera AI            | *_axelera_model/  |
             | DeepX                 | *_deepx_model/    |
+            | Qualcomm QNN          | *_qnn_model/      |
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.
         format (str): The model format (e.g., 'pt', 'onnx', 'engine').
         model: The underlying model (nn.Module for PyTorch backends, backend instance otherwise).
         device (torch.device): The device (CPU or GPU) on which the model is loaded.
-        task (str): The type of task the model performs (detect, segment, classify, pose).
+        task (str): The type of task the model performs (detect, segment, semantic, classify, pose, obb).
         names (dict): A dictionary of class names that the model can detect.
         stride (int): The model stride, typically 32 for YOLO models.
         fp16 (bool): Whether the model uses half-precision (FP16) inference.
@@ -156,6 +158,7 @@ class AutoBackend(nn.Module):
         "executorch": ExecuTorchBackend,
         "axelera": AxeleraBackend,
         "deepx": DeepXBackend,
+        "qnn": QNNBackend,
     }
 
     @torch.no_grad()
@@ -337,7 +340,9 @@ class AutoBackend(nn.Module):
         types[5] |= name.endswith(".mlmodel")
         types[8] &= not types[9]
         format = next((f for i, f in enumerate(export_formats()["Argument"]) if types[i]), None)
-        if format == "-":
+        if name.endswith("_qnn.onnx"):  # QNN context-binary file otherwise matches the plain '.onnx' suffix
+            format = "qnn"
+        elif format == "-":
             format = "pt"
         elif format == "onnx" and dnn:
             format = "dnn"

@@ -11,13 +11,13 @@ from ultralytics.utils.checks import check_requirements
 def qnn_library_paths() -> tuple[str, str]:
     """Resolve the QNN Execution Provider and HTP backend library paths for the installed onnxruntime-qnn build.
 
-    onnxruntime-qnn ships two ways: the Windows/Linux-aarch64 wheels expose an ``onnxruntime_qnn`` helper module, while
-    the Linux x86-64 build bundles the libraries in ``onnxruntime/capi``. Both register the QNN Execution Provider via
-    ``register_execution_provider_library``; only the library locations differ.
+    onnxruntime-qnn ships two ways: the Windows/Linux-aarch64 wheels expose an `onnxruntime_qnn` helper module, while
+    the Linux x86-64 build bundles the libraries in `onnxruntime/capi`. Both register the QNN Execution Provider via
+    `register_execution_provider_library`; only the library locations differ.
 
     Returns:
-        (tuple[str, str]): ``(ep_library_path, htp_backend_path)`` for ``register_execution_provider_library`` and the
-            QNN HTP ``backend_path`` provider option.
+        (tuple[str, str]): `(ep_library_path, htp_backend_path)` for `register_execution_provider_library` and the
+            QNN HTP `backend_path` provider option.
     """
     try:
         import onnxruntime_qnn as qnn_ep
@@ -44,29 +44,29 @@ def onnx2qnn(
     """Convert an ONNX model to an INT8 Qualcomm QNN context binary using the ONNX Runtime QNN Execution Provider.
 
     The conversion runs entirely on the host with no Qualcomm account or cloud upload. The model is INT8-quantized with
-    ONNX Runtime's QNN QDQ flow (the Hexagon NPU is an int8 accelerator), then the ``onnxruntime-qnn`` plugin Execution
+    ONNX Runtime's QNN QDQ flow (the Hexagon NPU is an int8 accelerator), then the `onnxruntime-qnn` plugin Execution
     Provider — which bundles the Qualcomm AI Runtime (QAIRT) libraries and is registered at runtime — compiles the
-    quantized graph into a QNN context binary embedded in ``<stem>_qnn.onnx``. No inference is run.
+    quantized graph into a QNN context binary embedded in `<stem>_qnn.onnx`. No inference is run.
 
     Args:
         onnx_file (str | Path): Path to the source ONNX file (already exported).
         output_dir (Path | str): Directory to save the exported QNN model.
-        dataset (DataLoader): Calibration dataloader (from ``Exporter.get_int8_calibration_dataloader``) used for INT8
+        dataset (DataLoader): Calibration dataloader (from `Exporter.get_int8_calibration_dataloader`) used for INT8
             quantization.
-        transform_fn (Callable): Preprocessing transform (``Exporter._transform_fn``) converting a calibration item to a
-            normalized ``float32`` NCHW array.
-        name (str): Target Hexagon Tensor Processor (HTP) architecture version, e.g. ``"73"`` (Snapdragon 8 Gen 2),
-            ``"75"`` (8 Gen 3), ``"79"`` (8 Elite). Finalizes the graph for the target chip when exporting on a host
+        transform_fn (Callable): Preprocessing transform (`Exporter._transform_fn`) converting a calibration item to a
+            normalized `float32` NCHW array.
+        name (str): Target Hexagon Tensor Processor (HTP) architecture version, e.g. `"73"` (Snapdragon 8 Gen 2),
+            `"75"` (8 Gen 3), `"79"` (8 Elite). Finalizes the graph for the target chip when exporting on a host
             without a Snapdragon NPU.
-        metadata (dict | None): Metadata saved as ``metadata.yaml``.
+        metadata (dict | None): Metadata saved as `metadata.yaml`.
         prefix (str): Prefix for log messages.
 
     Returns:
-        (str): Path to the exported ``_qnn_model`` directory.
+        (str): Path to the exported `_qnn_model` directory.
 
     Notes:
-        ``onnxruntime-qnn`` ships prebuilt wheels for Windows (x64/ARM64) and Linux ARM64 (aarch64) only. There is no
-        Linux x86-64 or macOS wheel — on those hosts build ONNX Runtime from source with ``--use_qnn``, or generate the
+        `onnxruntime-qnn` ships prebuilt wheels for Windows (x64/ARM64) and Linux ARM64 (aarch64) only. There is no
+        Linux x86-64 or macOS wheel — on those hosts build ONNX Runtime from source with `--use_qnn`, or generate the
         context binary on a supported platform.
     """
     check_requirements("onnxruntime-qnn")
@@ -87,7 +87,7 @@ def onnx2qnn(
     # INT8 QDQ quantization (HTP is an int8 accelerator). Reuses the shared calibration dataloader + transform_fn.
     class _CalibrationReader(CalibrationDataReader):
         def __init__(self):
-            """Materialize calibration inputs as ``{input_name: float32_NCHW}`` dicts."""
+            """Materialize calibration inputs as `{input_name: float32_NCHW}` dicts."""
             self.samples = [{"images": transform_fn(batch)} for batch in dataset]
             self.iterator = iter(self.samples)
 

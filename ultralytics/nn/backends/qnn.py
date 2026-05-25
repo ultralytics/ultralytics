@@ -15,8 +15,8 @@ from .base import BaseBackend
 class QNNBackend(BaseBackend):
     """Qualcomm QNN inference backend for Snapdragon hardware.
 
-    Loads and runs the QNN context binary produced by the Ultralytics QNN export (an ``*_qnn.onnx`` file inside a
-    ``_qnn_model`` directory) using ONNX Runtime with the QNN Execution Provider plugin (``onnxruntime-qnn``). Inference
+    Loads and runs the QNN context binary produced by the Ultralytics QNN export (an `*_qnn.onnx` file inside a
+    `_qnn_model` directory) using ONNX Runtime with the QNN Execution Provider plugin (`onnxruntime-qnn`). Inference
     runs on Qualcomm Snapdragon devices (Android, Windows on Snapdragon, or Qualcomm Linux boards) via the HTP (NPU)
     backend.
     """
@@ -25,7 +25,7 @@ class QNNBackend(BaseBackend):
         """Load a QNN context-binary model with ONNX Runtime's QNN Execution Provider plugin.
 
         Args:
-            weight (str | Path): Path to the ``*_qnn.onnx`` file or the ``_qnn_model`` directory containing it.
+            weight (str | Path): Path to the `*_qnn.onnx` file or the `_qnn_model` directory containing it.
 
         Raises:
             OSError: If the QNN Execution Provider cannot be registered (e.g. not on Snapdragon hardware).

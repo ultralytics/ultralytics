@@ -33,7 +33,7 @@ During training, the model iteratively makes predictions, calculates errors, and
   <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/backpropagation-diagram.avif" alt="What is Backpropagation?">
 </p>
 
-This learning process makes it possible for the [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) model to perform various [tasks](../tasks/index.md), including [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), and [image classification](../tasks/classify.md). The ultimate goal is to create a model that can generalize its learning to new, unseen images so that it can accurately understand visual data in real-world applications.
+This learning process makes it possible for the [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) model to perform various [tasks](../tasks/index.md), including [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [image classification](../tasks/classify.md). The ultimate goal is to create a model that can generalize its learning to new, unseen images so that it can accurately understand visual data in real-world applications.
 
 Now that we know what is happening behind the scenes when we train a model, let's look at points to consider when training a model.
 

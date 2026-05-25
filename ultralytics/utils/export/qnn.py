@@ -64,15 +64,17 @@ def onnx2qnn(
         if not devices:
             raise RuntimeError("QNN EP registered but no QNN devices were found by ONNX Runtime.")
         options = ort.SessionOptions()
+        options.log_severity_level = 0  # TEMP: verbose QNN logging to surface the exact finalize failure in CI
         options.add_session_config_entry("ep.context_enable", "1")
         options.add_session_config_entry("ep.context_file_path", str(ctx_file))
         options.add_session_config_entry("ep.context_embed_mode", "1")
-        # HTP (Hexagon NPU) backend; run the float model at fp16 (no int8 calibration). htp_arch/soc_model target the
-        # chip so the graph finalizes offline on a host without an NPU; shared-memory allocator disabled (no device).
+        # HTP (Hexagon NPU) backend; run the float model at fp16 (no int8 calibration). htp_arch targets the chip so
+        # the graph finalizes offline on a host without an NPU; shared-memory allocator disabled (no device).
         ep_options = {
             "backend_path": qnn_ep.get_qnn_htp_path(),
             "enable_htp_fp16_precision": "1",
             "htp_arch": name,
+            "htp_graph_finalization_optimization_mode": "3",
             "enable_htp_shared_memory_allocator": "0",
         }
         options.add_provider_for_devices(devices, ep_options)

@@ -340,7 +340,9 @@ class AutoBackend(nn.Module):
         types[5] |= name.endswith(".mlmodel")
         types[8] &= not types[9]
         format = next((f for i, f in enumerate(export_formats()["Argument"]) if types[i]), None)
-        if format == "-":
+        if name.endswith("_qnn.onnx"):  # QNN context-binary file otherwise matches the plain '.onnx' suffix
+            format = "qnn"
+        elif format == "-":
             format = "pt"
         elif format == "onnx" and dnn:
             format = "dnn"

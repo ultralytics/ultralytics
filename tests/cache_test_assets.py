@@ -3,27 +3,22 @@
 
 Run this script once before `pytest -n auto` to ensure all model weights,
 datasets, and solution assets are already cached locally. Each xdist worker
-will then only create symlinks / read existing files instead of competing
-to download the same remote resources.
+can then reuse existing files instead of competing to download the same remote resources.
 """
 
 import shutil
+import sys
+from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from tests import MODEL, SOLUTION_ASSETS
 from ultralytics.cfg import TASK2CALIBRATIONDATA, TASK2DATA, TASK2MODEL
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.utils import ASSETS_URL, LOGGER, WEIGHTS_DIR
 from ultralytics.utils.downloads import attempt_download_asset, safe_download
 
-# MODEL path (must stay in sync with tests/__init__.py)
-MODEL = WEIGHTS_DIR / "path with spaces" / "yolo26n.pt"
-
-# ---------------------------------------------------------------------------
-# 1. Model weights referenced by the test suite
-# ---------------------------------------------------------------------------
 WEIGHTS = [
-    # Core task models
     *TASK2MODEL.values(),
-    # Extra models used in parametrization / specific tests
     "yolo11n-grayscale.pt",
     "rtdetr-l.pt",
     "FastSAM-s.pt",
@@ -35,9 +30,6 @@ WEIGHTS = [
     "yoloe-11s-seg-pf.pt",
 ]
 
-# ---------------------------------------------------------------------------
-# 2. Datasets referenced by the test suite
-# ---------------------------------------------------------------------------
 DATASETS = [
     *TASK2DATA.values(),
     *TASK2CALIBRATIONDATA.values(),
@@ -46,31 +38,15 @@ DATASETS = [
     "coco12-formats.yaml",
 ]
 
-# ---------------------------------------------------------------------------
-# 3. Solution assets (videos, JSONs, etc.)
-# ---------------------------------------------------------------------------
-SOLUTION_ASSETS = [
-    "solutions_ci_demo.mp4",
-    "decelera_landscape_min.mov",
-    "solution_ci_pose_demo.mp4",
-    "solution_ci_parking_demo.mp4",
-    "solution_vertical_demo.mp4",
-    "solution_ci_parking_areas.json",
-    "solutions_ci_parking_model.pt",
-]
-
 
 def cache_weights() -> None:
     """Download all model weights used by tests."""
     LOGGER.info("[cache] Downloading model weights ...")
     for w in WEIGHTS:
         attempt_download_asset(WEIGHTS_DIR / w)
-    # Copy yolo26n.pt into the exact path tests/__init__.py::MODEL expects
     if not MODEL.exists():
         MODEL.parent.mkdir(parents=True, exist_ok=True)
-        src = WEIGHTS_DIR / "yolo26n.pt"
-        if src.exists():
-            shutil.copy2(src, MODEL)
+        shutil.copy2(WEIGHTS_DIR / "yolo26n.pt", MODEL)
     LOGGER.info("[cache] Weights done.")
 
 
@@ -90,7 +66,7 @@ def cache_solution_assets() -> None:
     LOGGER.info("[cache] Downloading solution assets ...")
     cache_dir = WEIGHTS_DIR / "solution_assets"
     cache_dir.mkdir(parents=True, exist_ok=True)
-    for asset in SOLUTION_ASSETS:
+    for asset in SOLUTION_ASSETS.values():
         dst = cache_dir / asset
         if not dst.exists():
             safe_download(url=f"{ASSETS_URL}/{asset}", dir=cache_dir)

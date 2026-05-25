@@ -7,6 +7,25 @@ import numpy.testing  # noqa: F401  # Pre-import before any test can corrupt num
 import pytest
 
 
+@pytest.fixture(scope="session")
+def solution_assets():
+    """Return cached solution asset paths by name."""
+    from tests import SOLUTION_ASSETS
+    from ultralytics.utils import ASSETS_URL, WEIGHTS_DIR
+    from ultralytics.utils.downloads import safe_download
+
+    cache_dir = WEIGHTS_DIR / "solution_assets"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+
+    def get_asset(name):
+        asset_path = cache_dir / SOLUTION_ASSETS[name]
+        if not asset_path.exists():
+            safe_download(url=f"{ASSETS_URL}/{asset_path.name}", dir=cache_dir)
+        return asset_path
+
+    return get_asset
+
+
 def pytest_addoption(parser):
     """Add custom command-line options to pytest."""
     parser.addoption("--slow", action="store_true", default=False, help="Run slow tests")
@@ -49,11 +68,11 @@ def isolated_model(tmp_path):
     """
     from tests import MODEL
 
-    # Ensure the shared model is present (download on-demand for local runs that skipped cache_test_assets.py)
     if not Path(MODEL).exists():
         from ultralytics.utils.downloads import attempt_download_asset
 
-        attempt_download_asset(MODEL)
+        MODEL.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(attempt_download_asset("yolo26n.pt"), MODEL)
 
     dst = tmp_path / "model.pt"
     shutil.copy(MODEL, dst)

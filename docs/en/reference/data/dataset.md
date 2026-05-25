@@ -31,6 +31,10 @@ keywords: Ultralytics, YOLODataset, object detection, segmentation, dataset load
 
 <br><br><hr><br>
 
+## ::: ultralytics.data.dataset.PolygonSemanticDataset
+
+<br><br><hr><br>
+
 ## ::: ultralytics.data.dataset.ClassificationDataset
 
 <br><br>

@@ -98,7 +98,7 @@ For detailed instructions and best practices related to the installation process
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO26 model
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
         # Export the model to ONNX format

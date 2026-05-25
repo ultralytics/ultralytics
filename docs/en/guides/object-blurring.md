@@ -180,8 +180,8 @@ For more detailed applications, check the [advantages of object blurring section
 
 ### Can I use Ultralytics YOLO26 to blur faces in a video for privacy reasons?
 
-Yes, Ultralytics YOLO26 can be configured to detect and blur faces in videos to protect privacy. By training or using a pretrained model to specifically recognize faces, the detection results can be processed with [OpenCV](https://www.ultralytics.com/glossary/opencv) to apply a blur effect. Refer to our guide on [object detection with YOLO26](https://docs.ultralytics.com/models/yolo26/) and modify the code to target face detection.
+Yes, Ultralytics YOLO26 can be configured to detect and blur faces in videos to protect privacy. By training or using a pretrained model to specifically recognize faces, the detection results can be processed with [OpenCV](https://www.ultralytics.com/glossary/opencv) to apply a blur effect. Refer to our guide on [object detection with YOLO26](https://docs.ultralytics.com/models/yolo26) and modify the code to target face detection.
 
 ### How does YOLO26 compare to other object detection models like Faster R-CNN for object blurring?
 
-Ultralytics YOLO26 typically outperforms models like Faster R-CNN in terms of speed, making it more suitable for real-time applications. While both models offer accurate detection, YOLO26's architecture is optimized for rapid inference, which is critical for tasks like real-time object blurring. Learn more about the technical differences and performance metrics in our [YOLO26 documentation](https://docs.ultralytics.com/models/yolo26/).
+Ultralytics YOLO26 typically outperforms models like Faster R-CNN in terms of speed, making it more suitable for real-time applications. While both models offer accurate detection, YOLO26's architecture is optimized for rapid inference, which is critical for tasks like real-time object blurring. Learn more about the technical differences and performance metrics in our [YOLO26 documentation](https://docs.ultralytics.com/models/yolo26).

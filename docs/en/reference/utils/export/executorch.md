@@ -7,7 +7,7 @@ keywords: Ultralytics, ExecuTorch, YOLO, model export, PyTorch, edge AI, mobile 
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/export/executorch.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/export/executorch.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/export/executorch.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/export/executorch.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

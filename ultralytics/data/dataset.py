@@ -34,7 +34,6 @@ from .augment import (
     classify_augmentations,
     classify_transforms,
     v8_transforms,
-    SemanticRandomScaleCrop,
     SemanticRandomScale,
     SemanticRandomCrop,
     PhotoMetricDistortion,
@@ -1096,9 +1095,8 @@ class SemanticDataset(BaseDataset):
         transforms = []
         nc = self.data.get("nc", len(self.data.get("names", [])))
         if self.augment:
-            crop_size = self.data.get("crop_size", 512)
             transforms.append(SemanticRandomScale(scale_min=0.5, scale_max=2.0))
-            transforms.append(SemanticRandomCrop(crop_size=crop_size, ignore_label=255 if nc > 1 else 0))
+            transforms.append(SemanticRandomCrop(crop_size=self.imgsz, ignore_label=255 if nc > 1 else 0))
             transforms.append(RandomFlip(p=0.5, direction="horizontal"))
             transforms.append(PhotoMetricDistortion(        
                 brightness_delta=12,

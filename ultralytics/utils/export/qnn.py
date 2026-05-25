@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from ultralytics.utils import LOGGER, YAML
@@ -47,7 +48,9 @@ def onnx2qnn(
     check_requirements("qai-hub")
     import qai_hub as hub
 
-    if not (Path.home() / ".qai_hub" / "client.ini").exists():
+    # Mirror the qai_hub config resolution (QAIHUB_CLIENT_INI env var, else ~/.qai_hub/client.ini)
+    config_path = Path(os.environ.get("QAIHUB_CLIENT_INI", Path.home() / ".qai_hub" / "client.ini"))
+    if not config_path.exists():
         raise FileNotFoundError(
             "Qualcomm AI Hub API token not configured. Create a free token at https://app.aihub.qualcomm.com/ "
             "and run 'qai-hub configure --api_token <TOKEN>' once before exporting to QNN."

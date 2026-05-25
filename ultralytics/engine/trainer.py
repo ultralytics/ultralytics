@@ -274,7 +274,7 @@ class BaseTrainer:
         # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
         self.test_loader = self.get_dataloader(
             self.data.get("val") or self.data.get("test"),
-            batch_size=batch_size if self.args.task == "obb" else batch_size * 2,
+            batch_size=batch_size if self.args.task in {"obb", "semantic"} else batch_size * 2,
             rank=LOCAL_RANK,
             mode="val",
         )
@@ -322,6 +322,11 @@ class BaseTrainer:
                     "See ultralytics.engine.trainer for customization of frozen layers."
                 )
                 v.requires_grad = True
+        if not any(v.requires_grad for v in self.model.parameters()):
+            raise RuntimeError(
+                f"'freeze={self.args.freeze}' froze the entire model with no trainable parameters left. "
+                f"Reduce 'freeze' or pass a list of specific layer indices."
+            )
 
         # Check AMP
         self.amp = torch.tensor(self.args.amp).to(self.device)  # True or False
@@ -341,7 +346,13 @@ class BaseTrainer:
         self.stride = gs  # for multiscale training
 
         if self.world_size > 1:
-            self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
+            # static_graph=True permits params used >1 time per forward (e.g. flow_model in
+            # o2m+o2o pose loss branches) under torch.compile.
+            self.model = nn.parallel.DistributedDataParallel(
+                self.model,
+                device_ids=[RANK],
+                static_graph=bool(self.args.compile),
+            )
 
         # Batch size
         if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size
@@ -446,14 +457,19 @@ class BaseTrainer:
 
                     # Backward
                     self.scaler.scale(self.loss).backward()
-                except torch.cuda.OutOfMemoryError:
+                except RuntimeError as e:
+                    is_oom = isinstance(e, torch.cuda.OutOfMemoryError)
+                    if not is_oom and not any(
+                        s in str(e) for s in ("CUDNN_STATUS_INTERNAL_ERROR", "unable to find an engine")
+                    ):
+                        raise
                     if epoch > self.start_epoch or self._oom_retries >= 3 or RANK != -1:
                         raise  # only auto-reduce during first epoch on single GPU, max 3 retries
                     self._oom_retries += 1
                     old_batch = self.batch_size
                     self.args.batch = self.batch_size = max(self.batch_size // 2, 1)
                     LOGGER.warning(
-                        f"CUDA out of memory with batch={old_batch}. "
+                        f"{'CUDA out of memory' if is_oom else 'CUDA backend memory error'} with batch={old_batch}. "
                         f"Reducing to batch={self.batch_size} and retrying ({self._oom_retries}/3)."
                     )
                     batch = loss = preds = None
@@ -489,7 +505,7 @@ class BaseTrainer:
                             f"{epoch + 1}/{self.epochs}",
                             f"{self._get_memory():.3g}G",  # (GB) GPU memory util
                             *(self.tloss if loss_length > 1 else torch.unsqueeze(self.tloss, 0)),  # losses
-                            batch["cls"].shape[0],  # batch size, i.e. 8
+                            batch["img"].shape[0],  # batch size, i.e. 8
                             batch["img"].shape[-1],  # imgsz, i.e 640
                         )
                     )
@@ -657,6 +673,7 @@ class BaseTrainer:
                     "root": str(GIT.root),
                     "branch": GIT.branch,
                     "commit": GIT.commit,
+                    "message": GIT.message,
                     "origin": GIT.origin,
                 },
                 "license": "AGPL-3.0 (https://ultralytics.com/license)",
@@ -692,6 +709,7 @@ class BaseTrainer:
                 "segment",
                 "pose",
                 "obb",
+                "semantic",
             }:
                 data = check_det_dataset(self.args.data)
                 if "yaml_file" in data:
@@ -842,7 +860,9 @@ class BaseTrainer:
             self.validator.args.compile = False  # disable final val compile as too slow
             self.metrics = self.validator(model=model)
             self.metrics.pop("fitness", None)
+            self.epoch += 1  # log best metrics at step epochs+1, not overwriting last epoch
             self.run_callbacks("on_fit_epoch_end")
+            self.epoch -= 1  # restore epoch
 
     def check_resume(self, overrides):
         """Check if resume checkpoint exists and update arguments accordingly."""
@@ -1051,7 +1071,8 @@ class BaseTrainer:
             import re
 
             # higher lr for certain parameters in MuSGD when funetuning
-            pattern = re.compile(r"(?=.*23)(?=.*cv3)|proto\.semseg")
+            # proto.semseg is the checkpoint parameter name for YOLO26 semantic auxiliary heads.
+            pattern = re.compile(r"(?=.*23)(?=.*cv3)|proto\.semseg|SemanticSegment")
             g_ = []  # new param groups
             for x in g:
                 p = x.pop("params")

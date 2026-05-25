@@ -34,7 +34,7 @@ The semantic masks are single-channel PNG files. The original Cityscapes label I
 
 ## Applications
 
-Cityscapes is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in semantic segmentation, particularly for [autonomous driving](https://www.ultralytics.com/glossary/self-driving-cars), advanced driver-assistance systems (ADAS), and urban robotics.
+Cityscapes is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in semantic segmentation, particularly for [autonomous driving](https://www.ultralytics.com/glossary/autonomous-vehicles), advanced driver-assistance systems (ADAS), and urban robotics.
 
 Its high-resolution images and detailed annotations also make it valuable for research on real-time scene parsing, lane and obstacle understanding, and any task that requires dense pixel-level understanding of complex urban environments.
 

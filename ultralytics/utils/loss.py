@@ -1329,11 +1329,11 @@ class SemanticSegmentationLoss(nn.Module):
 
         pred_soft = F.softmax(preds, dim=1)
         target = flat_target[valid].long()
-        flat_pred = pred_soft.permute(0, 2, 3, 1).reshape(-1, self.nc)[valid]
-        intersection = torch.zeros(self.nc, device=preds.device, dtype=pred_soft.dtype)
+        flat_pred = pred_soft.float().permute(0, 2, 3, 1).reshape(-1, self.nc)[valid]
+        intersection = torch.zeros(self.nc, device=preds.device, dtype=torch.float32)
         intersection.scatter_add_(0, target, flat_pred.gather(1, target[:, None]).squeeze(1))
         pred_sum = flat_pred.sum(dim=0)
-        target_sum = torch.bincount(target, minlength=self.nc).to(device=preds.device, dtype=pred_soft.dtype)
+        target_sum = torch.bincount(target, minlength=self.nc).to(device=preds.device, dtype=torch.float32)
         cardinality = pred_sum + target_sum
         return (1.0 - (2.0 * intersection + 1.0) / (cardinality + 1.0)).mean()
 
@@ -1373,13 +1373,13 @@ class SemanticSegmentationLoss(nn.Module):
         dice_loss = self._dice_loss(preds, masks)
         total = ce_loss + dice_loss
 
-        # Auxiliary cross-entropy loss.
-        aux_loss = torch.tensor(0.0, device=preds.device)
+        # Auxiliary cross-entropy loss. Match ce_loss dtype so torch.stack below succeeds under AMP.
+        aux_loss = torch.tensor(0.0, device=preds.device, dtype=ce_loss.dtype)
         if aux_logits is not None:
             if aux_logits.shape[2:] != masks.shape[1:]:
                 aux_logits = F.interpolate(aux_logits, size=masks.shape[1:], mode="bilinear", align_corners=False)
-            aux_loss = (self._ce_loss(aux_logits, masks)) * 0.4
-            total = total + aux_loss
+            aux_loss = self._ce_loss(aux_logits, masks) * 0.4
+            total += aux_loss
 
         loss_items = torch.stack([ce_loss, dice_loss, aux_loss]).detach()
         return total * preds.shape[0], loss_items

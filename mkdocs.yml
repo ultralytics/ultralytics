@@ -615,6 +615,7 @@ nav:
       - OpenVINO: integrations/openvino.md
       - PaddlePaddle: integrations/paddlepaddle.md
       - Paperspace Gradient: integrations/paperspace.md
+      - Qualcomm QNN: integrations/qnn.md
       - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md
       - Rockchip RKNN: integrations/rockchip-rknn.md
@@ -781,6 +782,7 @@ nav:
               - openvino: reference/nn/backends/openvino.md
               - paddle: reference/nn/backends/paddle.md
               - pytorch: reference/nn/backends/pytorch.md
+              - qnn: reference/nn/backends/qnn.md
               - rknn: reference/nn/backends/rknn.md
               - tensorflow: reference/nn/backends/tensorflow.md
               - tensorrt: reference/nn/backends/tensorrt.md
@@ -860,6 +862,7 @@ nav:
               - ncnn: reference/utils/export/ncnn.md
               - openvino: reference/utils/export/openvino.md
               - paddle: reference/utils/export/paddle.md
+              - qnn: reference/utils/export/qnn.md
               - rknn: reference/utils/export/rknn.md
               - tensorflow: reference/utils/export/tensorflow.md
               - torchscript: reference/utils/export/torchscript.md

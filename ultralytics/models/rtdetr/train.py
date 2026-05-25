@@ -54,7 +54,12 @@ class RTDETRTrainer(DetectionTrainer):
         """
         model = RTDETRDetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         if weights:
-            model.load(weights)
+            model.load(
+                weights,
+                verbose=RANK in {-1, 0},
+                src_names=getattr(weights, "names", None),
+                dst_names=self.data.get("names"),
+            )
         return model
 
     def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None):

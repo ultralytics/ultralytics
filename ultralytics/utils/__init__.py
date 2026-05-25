@@ -27,13 +27,7 @@ import torch
 
 from ultralytics import __version__
 from ultralytics.utils.git import GitRepo
-from ultralytics.utils.patches import (
-    imread,
-    imread_unicode,
-    imshow,
-    imwrite,
-    torch_save,
-)  # for patches
+from ultralytics.utils.patches import imread_unicode, imshow, imwrite, torch_save  # for patches
 from ultralytics.utils.tqdm import TQDM  # noqa
 
 # PyTorch Multi-GPU DDP Constants

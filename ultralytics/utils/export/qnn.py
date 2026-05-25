@@ -49,6 +49,14 @@ def onnx2qnn(
     check_requirements("onnxruntime-qnn")
     import onnxruntime as ort
 
+    available = ort.get_available_providers()
+    if "QNNExecutionProvider" not in available:
+        raise RuntimeError(
+            "QNNExecutionProvider is not available, so no QNN context binary can be generated. Install 'onnxruntime-qnn' "
+            "in an environment that does not already have a standard 'onnxruntime' build loaded (they cannot coexist in "
+            f"one process). Available providers: {', '.join(available)}."
+        )
+
     backend_lib = f"{backends[backend]}.dll" if WINDOWS else f"lib{backends[backend]}.so"
     LOGGER.info(f"\n{prefix} starting export with ONNX Runtime QNN ({backend_lib})...")
 
@@ -72,6 +80,8 @@ def onnx2qnn(
         providers=["QNNExecutionProvider"],
         provider_options=[provider_options],
     )
+    if not ctx_file.exists():
+        raise RuntimeError(f"QNN context binary was not generated at {ctx_file}. See {prefix} logs for details.")
 
     if metadata:
         YAML.save(output_dir / "metadata.yaml", metadata)

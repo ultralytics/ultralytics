@@ -67,7 +67,7 @@ The `onnxruntime-qnn` package (which provides the ONNX Runtime QNN Execution Pro
 
 ### Usage
 
-The Qualcomm QNN format is **export-only** in Ultralytics — [Predict](../modes/predict.md) and [Validate](../modes/val.md) are not available on a desktop host because the compiled context binary targets Snapdragon hardware. Deploy the exported model on a Snapdragon device with the ONNX Runtime QNN runtime.
+The QNN format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on Qualcomm Snapdragon hardware through ONNX Runtime's QNN Execution Provider (the same `onnxruntime-qnn` package used for export). Export your model, then load the exported model on a Snapdragon device to run inference or validate its accuracy.
 
 !!! example "Export"
 
@@ -90,9 +90,47 @@ The Qualcomm QNN format is **export-only** in Ultralytics — [Predict](../modes
         yolo export model=yolo26n.pt format=qnn # creates 'yolo26n_qnn_model/'
         ```
 
-!!! note "Predict and Validate"
+!!! example "Predict"
 
-    Ultralytics does not provide a local desktop QNN inference backend, so `yolo predict` and `yolo val` cannot load a `_qnn_model` on an x86 host. Deploy the exported context binary on a Snapdragon device and run it with the ONNX Runtime QNN Execution Provider (see [Deploying Exported YOLO QNN Models](#deploying-exported-yolo-qnn-models) below).
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported QNN model (on a Snapdragon device with onnxruntime-qnn)
+        model = YOLO("yolo26n_qnn_model")
+
+        # Run inference
+        results = model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Run inference with the exported QNN model
+        yolo predict model=yolo26n_qnn_model source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+!!! example "Validate"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported QNN model (on a Snapdragon device with onnxruntime-qnn)
+        model = YOLO("yolo26n_qnn_model")
+
+        # Validate accuracy on the COCO8 dataset
+        metrics = model.val(data="coco8.yaml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Validate the exported QNN model
+        yolo val model=yolo26n_qnn_model data=coco8.yaml
+        ```
 
 ### Export Arguments
 
@@ -121,7 +159,9 @@ The `yolo26n_qnn.onnx` file embeds the QNN context binary and is loaded by ONNX 
 
 ## Deploying Exported YOLO QNN Models
 
-QNN models run on Qualcomm Snapdragon hardware, so local desktop inference through `yolo predict` is not supported. Deploy the context-binary ONNX to a Snapdragon device (Android, Windows on Snapdragon, or a Qualcomm Linux board) and run it with the [ONNX Runtime QNN Execution Provider](https://onnxruntime.ai/docs/execution-providers/QNN-ExecutionProvider.html), selecting the HTP (NPU), GPU, or CPU backend:
+QNN models run on Qualcomm Snapdragon hardware. On a Snapdragon device with `onnxruntime-qnn` installed, run the exported model directly with the Ultralytics API (`yolo predict`/`yolo val`, see [Usage](#usage) above) — Ultralytics loads the context binary through the [ONNX Runtime QNN Execution Provider](https://onnxruntime.ai/docs/execution-providers/QNN-ExecutionProvider.html) and selects the HTP (NPU), GPU, or CPU backend.
+
+For custom pipelines, you can also load the context-binary ONNX directly with ONNX Runtime:
 
 ```python
 import onnxruntime as ort
@@ -197,9 +237,9 @@ No. QNN export runs entirely on your local machine using the `onnxruntime-qnn` p
 
 QNN (Qualcomm AI Engine Direct, part of the QAIRT SDK) is Qualcomm's current inference stack and the recommended replacement for the older Snapdragon Neural Processing Engine (SNPE) SDK. New deployments should target QNN.
 
-### Can I run a QNN model locally with `yolo predict`?
+### Can I run a QNN model with `yolo predict` and `yolo val`?
 
-No. QNN models are compiled for Snapdragon hardware and are not loadable in the local Ultralytics inference pipeline on an x86 host. Deploy the exported context-binary ONNX to a Snapdragon device and run it with ONNX Runtime using the QNN Execution Provider.
+Yes, on a Qualcomm Snapdragon device with `onnxruntime-qnn` installed — `YOLO("yolo26n_qnn_model")` loads the context binary through the QNN Execution Provider and runs `predict`/`val` like any other format. On an x86 host without QNN hardware the model cannot execute, since the context binary targets the Snapdragon NPU.
 
 ### What is the output of a QNN export?
 

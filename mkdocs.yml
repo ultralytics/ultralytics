@@ -781,6 +781,7 @@ nav:
               - openvino: reference/nn/backends/openvino.md
               - paddle: reference/nn/backends/paddle.md
               - pytorch: reference/nn/backends/pytorch.md
+              - qnn: reference/nn/backends/qnn.md
               - rknn: reference/nn/backends/rknn.md
               - tensorflow: reference/nn/backends/tensorflow.md
               - tensorrt: reference/nn/backends/tensorrt.md

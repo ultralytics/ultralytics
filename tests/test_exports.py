@@ -427,7 +427,17 @@ def test_export_deepx():
 )
 def test_export_qnn():
     """Test YOLO export to Qualcomm QNN format via the ONNX Runtime QNN Execution Provider."""
+    import importlib.util
+
+    if importlib.util.find_spec("onnxruntime") is None:
+        pytest.skip("onnxruntime not installed")
+    import onnxruntime
+
+    # QNNExecutionProvider is only present when onnxruntime-qnn is the active build (cannot coexist with standard
+    # onnxruntime in one process), so skip cleanly rather than silently exporting on CPU.
+    if "QNNExecutionProvider" not in onnxruntime.get_available_providers():
+        pytest.skip("QNNExecutionProvider unavailable (onnxruntime-qnn not the active onnxruntime build)")
     file = YOLO(MODEL).export(format="qnn", imgsz=32)
-    assert Path(file).exists(), f"QNN export failed, directory not found: {file}"
-    # Note: Inference testing skipped as it requires Qualcomm Snapdragon hardware
+    assert next(Path(file).rglob("*_qnn.onnx"), None), f"QNN export failed, no context binary found in: {file}"
+    # Note: on-device inference is not exercised here as it requires Qualcomm Snapdragon hardware
     shutil.rmtree(file, ignore_errors=True)  # cleanup

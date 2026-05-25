@@ -555,10 +555,10 @@ class Exporter:
             )
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(" ", "")
             q = "int8" if self.args.int8 else "half" if self.args.half else ""  # quantization
-            # Export-only formats deploy on-device/in-browser and are not loadable by AutoBackend
+            # Export-only formats deploy in-browser and are not loadable by AutoBackend
             predict_validate = (
                 ""
-                if fmt in {"tfjs", "qnn"}
+                if fmt == "tfjs"
                 else f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
                 f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}"
             )

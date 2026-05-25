@@ -22,6 +22,8 @@ IMX                     | `imx`                     | yolo26n_imx_model/
 RKNN                    | `rknn`                    | yolo26n_rknn_model/
 ExecuTorch              | `executorch`              | yolo26n_executorch_model/
 Axelera AI              | `axelera`                 | yolo26n_axelera_model/
+DeepX                   | `deepx`                   | yolo26n_deepx_model/
+Qualcomm QNN            | `qnn`                     | yolo26n_qnn_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -52,6 +54,8 @@ Inference:
                          yolo26n_rknn_model         # RKNN
                          yolo26n_executorch_model   # ExecuTorch
                          yolo26n_axelera_model      # Axelera AI
+                         yolo26n_deepx_model        # DeepX
+                         yolo26n_qnn_model          # Qualcomm QNN
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -76,11 +80,11 @@ import torch
 
 from ultralytics import __version__
 from ultralytics.cfg import TASK2CALIBRATIONDATA, TASK2DATA, get_cfg
-from ultralytics.data import build_dataloader
+from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
-from ultralytics.nn.modules import C2f, Classify, Detect, RTDETRDecoder, Segment26
+from ultralytics.nn.modules import C2f, Classify, Detect, RTDETRDecoder, Segment26, SemanticSegment
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
@@ -90,6 +94,7 @@ from ultralytics.utils import (
     LOGGER,
     MACOS,
     MACOS_VERSION,
+    QNN_HTP_ARCHS,
     RKNN_CHIPS,
     SETTINGS,
     TORCH_VERSION,
@@ -159,6 +164,8 @@ def export_formats():
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
         ["Axelera AI", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction", "data"]],
+        ["DeepX", "deepx", "_deepx_model", False, False, ["data", "int8", "optimize"]],
+        ["Qualcomm QNN", "qnn", "_qnn_model", False, False, ["batch", "name", "int8", "fraction", "data"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -247,6 +254,7 @@ class Exporter:
         export_imx: Export model to IMX format.
         export_executorch: Export model to ExecuTorch format.
         export_axelera: Export model to Axelera format.
+        export_deepx: Export model to DeepX format.
 
     Examples:
         Export a YOLO26 model to ONNX format
@@ -316,18 +324,15 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
+        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn"} and not self.args.int8:
+            LOGGER.warning(f"{fmt} export requires int8=True, setting int8=True.")
+            self.args.int8 = True
         if fmt == "axelera":
             if model.task == "segment" and any(isinstance(m, Segment26) for m in model.modules()):
                 raise ValueError("Axelera export does not currently support YOLO26 segmentation models.")
-            if not self.args.int8:
-                LOGGER.warning("Setting int8=True for Axelera mixed-precision export.")
-                self.args.int8 = True
             if not self.args.data:
                 self.args.data = TASK2CALIBRATIONDATA.get(model.task)
         if fmt == "imx":
-            if not self.args.int8:
-                LOGGER.warning("IMX export requires int8=True, setting int8=True.")
-                self.args.int8 = True
             if not self.args.nms and model.task in {"detect", "pose", "segment"}:
                 LOGGER.warning("IMX export requires nms=True, setting nms=True.")
                 self.args.nms = True
@@ -341,7 +346,7 @@ class Exporter:
         if hasattr(model, "end2end"):
             if self.args.end2end is not None:
                 model.end2end = self.args.end2end
-            if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu"}:
+            if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"}:
                 # Disable end2end branch for certain export formats as they does not support topk
                 model.end2end = False
                 LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
@@ -383,6 +388,21 @@ class Exporter:
             assert self.args.name in RKNN_CHIPS, (
                 f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
             )
+        if fmt == "qnn":
+            if not self.args.name:
+                LOGGER.warning(
+                    "Qualcomm QNN export requires a missing 'name' arg for the target Hexagon HTP architecture. "
+                    "Using default name='73' (Snapdragon 8 Gen 2)."
+                )
+                self.args.name = "73"
+            self.args.name = str(self.args.name).lower().lstrip("v")  # accept '73' or 'v73'
+            assert self.args.name in QNN_HTP_ARCHS, (
+                f"Invalid HTP architecture '{self.args.name}' for Qualcomm QNN export. Valid archs are {QNN_HTP_ARCHS} "
+                "(Snapdragon 865/888/8Gen2/8Gen3/8Elite respectively)."
+            )
+        if self.args.nms and model.task == "semantic":
+            LOGGER.warning("'nms=True' is not valid for semantic segmentation models. Forcing 'nms=False'.")
+            self.args.nms = False
         if self.args.nms:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
             assert fmt != "tflite" or not ARM64 or not LINUX, "TFLite export with NMS unsupported on ARM64 Linux"
@@ -457,8 +477,9 @@ class Exporter:
 
             model = executorch_wrapper(model)
         for m in model.modules():
-            if isinstance(m, Classify):
+            if isinstance(m, (Classify, SemanticSegment)):
                 m.export = True
+                m.format = self.args.format
             if isinstance(m, (Detect, RTDETRDecoder)):  # includes all Detect subclasses like Segment, Pose, OBB
                 m.dynamic = self.args.dynamic
                 m.export = True
@@ -524,7 +545,6 @@ class Exporter:
 
         # Export
         if is_tf_format:
-            self.args.int8 |= fmt == "edgetpu"
             f, keras_model = self.export_saved_model()
             if fmt in {"pb", "tfjs"}:  # pb prerequisite to tfjs
                 f = self.export_pb(keras_model=keras_model)
@@ -548,11 +568,17 @@ class Exporter:
             )
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(" ", "")
             q = "int8" if self.args.int8 else "half" if self.args.half else ""  # quantization
+            # Export-only formats deploy in-browser and are not loadable by AutoBackend
+            predict_validate = (
+                ""
+                if fmt == "tfjs"
+                else f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
+                f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}"
+            )
             LOGGER.info(
                 f"\nExport complete ({time.time() - t:.1f}s)"
                 f"\nResults saved to {colorstr('bold', Path(f).resolve())}"
-                f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
-                f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}"
+                f"{predict_validate}"
                 f"\nVisualize:       https://netron.app"
             )
 
@@ -563,15 +589,27 @@ class Exporter:
         """Build and return a dataloader for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
-        dataset = YOLODataset(
-            data[self.args.split or "val"],
-            data=data,
-            fraction=self.args.fraction,
-            task=self.model.task,
-            imgsz=max(self.imgsz),
-            augment=False,
-            batch_size=self.args.batch,
-        )
+        if self.model.task == "classify":
+            dataset = YOLODataset(
+                data[self.args.split or "val"],
+                data=data,
+                fraction=self.args.fraction,
+                task=self.model.task,
+                imgsz=max(self.imgsz),
+                augment=False,
+                batch_size=self.args.batch,
+            )
+        else:
+            cfg = deepcopy(self.args)
+            cfg.imgsz = max(self.imgsz)
+            dataset = build_yolo_dataset(
+                cfg,
+                data[self.args.split or "val"],
+                self.args.batch,
+                data,
+                mode="val",
+                fraction=self.args.fraction,
+            )
         if hasattr(dataset.transforms.transforms[0], "new_shape"):
             dataset.transforms.transforms[0].new_shape = self.imgsz  # LetterBox with non-square imgsz
         n = len(dataset)
@@ -1057,6 +1095,38 @@ class Exporter:
             max_det=self.args.max_det,
             metadata=self.metadata,
             dataset=partial(self.get_int8_calibration_dataloader, prefix),
+            prefix=prefix,
+        )
+
+    @try_export
+    def export_deepx(self, prefix=colorstr("DeepX:")):
+        """Export YOLO model to DeepX format."""
+        assert LINUX and not ARM64, "DeepX export only supported on non-aarch64 Linux"
+        from ultralytics.utils.export.deepx import onnx2deepx
+
+        f = self.export_onnx()
+        return onnx2deepx(
+            onnx_file=f,
+            imgsz=self.imgsz,
+            dataset=self.get_int8_calibration_dataloader(prefix),
+            metadata=self.metadata,
+            optimize=self.args.optimize,
+            prefix=prefix,
+        )
+
+    @try_export
+    def export_qnn(self, prefix=colorstr("Qualcomm QNN:")):
+        """Export YOLO model to a Qualcomm QNN context binary using ONNX Runtime QNN."""
+        from ultralytics.utils.export.qnn import onnx2qnn
+
+        f_onnx = self.export_onnx()
+        return onnx2qnn(
+            onnx_file=f_onnx,
+            output_dir=str(self.file).replace(self.file.suffix, f"_qnn_model{os.sep}"),
+            dataset=self.get_int8_calibration_dataloader(prefix),
+            transform_fn=self._transform_fn,
+            name=self.args.name,
+            metadata=self.metadata,
             prefix=prefix,
         )
 

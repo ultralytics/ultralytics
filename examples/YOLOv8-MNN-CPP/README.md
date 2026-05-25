@@ -1,6 +1,6 @@
 # YOLOv8 MNN Inference in C++
 
-Welcome to the Ultralytics YOLOv8 MNN Inference example in C++! This guide will help you get started with leveraging the powerful [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) models using the [Alibaba MNN](https://mnn-docs.readthedocs.io/en/latest/) inference engine in your C++ projects. Whether you're looking to enhance performance on CPU hardware or add flexibility to your applications, this example provides a solid foundation. Learn more about optimizing models and deployment strategies on the [Ultralytics blog](https://www.ultralytics.com/blog).
+Welcome to the Ultralytics YOLOv8 MNN Inference example in C++! This guide will help you get started with leveraging the powerful [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) models using the [Alibaba MNN](https://mnn-docs.readthedocs.io/en/latest/) inference engine in your C++ projects. Whether you're looking to enhance performance on CPU hardware or add flexibility to your applications, this example provides a solid foundation. Learn more about optimizing models and deployment strategies on the [Ultralytics blog](https://www.ultralytics.com/blog).
 
 ## 🌟 Features
 
@@ -87,7 +87,7 @@ Follow these steps to build the project:
 
 To use your Ultralytics YOLOv8 model with this C++ example, you first need to export it to the MNN format. This can be done easily using the `yolo export` command provided by the Ultralytics Python package.
 
-Refer to the [Ultralytics Export documentation](https://docs.ultralytics.com/modes/export/) for detailed instructions and options.
+Refer to the [Ultralytics Export documentation](https://docs.ultralytics.com/modes/export) for detailed instructions and options.
 
 ```bash
 # Export a YOLOv8n model to MNN format with input size 640x640
@@ -180,6 +180,6 @@ _(Note: Speed and specific detections might vary based on hardware and MNN confi
 
 ## ❤️ Contributions
 
-We hope this example helps you integrate Ultralytics YOLOv8 with MNN into your C++ projects effortlessly! Contributions to improve this example or add new features are highly welcome. Please see the [Ultralytics contribution guidelines](https://docs.ultralytics.com/help/contributing/) for more information on how to get involved.
+We hope this example helps you integrate Ultralytics YOLOv8 with MNN into your C++ projects effortlessly! Contributions to improve this example or add new features are highly welcome. Please see the [Ultralytics contribution guidelines](https://docs.ultralytics.com/help/contributing) for more information on how to get involved.
 
 For further guides, tutorials, and documentation on Ultralytics YOLO models and tools, visit the main [Ultralytics documentation](https://docs.ultralytics.com/). Happy coding! 🚀

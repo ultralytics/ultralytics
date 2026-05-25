@@ -164,7 +164,9 @@ jobs:
         run: uv cache prune --ci
 
   # TEMPORARY (PR #24591): validate QNN export with the 'onnxruntime-qnn' plugin EP installed alongside onnxruntime.
-  # Not in the Tests job to avoid pulling the large plugin into every run. Remove once QNN export is validated.
+  # Offline HTP context-binary generation runs on an x64 host (the generic ubuntu-arm runner is not a Snapdragon
+  # device, so its HTP backend cannot initialize). Not in the Tests job to avoid pulling the large plugin into every
+  # run. Remove once QNN export is validated.
   QNN:
     if: github.event_name == 'pull_request' || github.event_name == 'push'
     timeout-minutes: 30
@@ -172,7 +174,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-24.04-arm] # onnxruntime-qnn ships wheels for Windows (x64/ARM64) and Linux ARM64
+        os: [windows-latest] # x64 host for offline HTP context-binary generation (onnxruntime-qnn win_amd64 wheel)
         python: ["3.12"]
     steps:
       - uses: actions/checkout@v6

@@ -68,17 +68,17 @@ The script below runs the full pipeline in one go — from a Ultralytics `.pt` f
 
     ```python
     import random
-    from pathlib import Path
 
     import numpy as np
     from hailo_sdk_client import ClientRunner
     from PIL import Image
+
     from ultralytics import YOLO
     from ultralytics.data.utils import check_det_dataset
     from ultralytics.utils import DATASETS_DIR
 
     # ── Configuration ─────────────────────────────────────────────────────────
-    MODEL = "yolo11n"   # any Ultralytics detection model: yolo11n, yolov8s, yolov9c …
+    MODEL = "yolo11n"  # any Ultralytics detection model: yolo11n, yolov8s, yolov9c …
     HW_ARCH = "hailo8"  # hailo8 | hailo8l | hailo15h
     IMGSZ = 640
     CALIB_IMAGES = 1024
@@ -234,10 +234,10 @@ All Ultralytics detection models can be exported to HEF. The `end_node_names` pa
 
 YOLO11 and YOLOv8 share the same decoupled detection head. The layer index differs by one between the two families:
 
-| Model Family | Detection Head Layer | End Node Pattern                              |
-| ------------ | -------------------- | --------------------------------------------- |
-| YOLO11 (all) | `model.23`           | `/model.23/cv2.0/cv2.0.2/Conv` (6 nodes)      |
-| YOLOv8 (all) | `model.22`           | `/model.22/cv2.0/cv2.0.2/Conv` (6 nodes)      |
+| Model Family | Detection Head Layer | End Node Pattern                         |
+| ------------ | -------------------- | ---------------------------------------- |
+| YOLO11 (all) | `model.23`           | `/model.23/cv2.0/cv2.0.2/Conv` (6 nodes) |
+| YOLOv8 (all) | `model.22`           | `/model.22/cv2.0/cv2.0.2/Conv` (6 nodes) |
 
 **YOLO11 end nodes** (all sizes: n, s, m, l, x):
 
@@ -280,14 +280,13 @@ Pre-compiled `.alls` scripts and NMS config files for many YOLO variants are ava
 
 ## Supported Hardware Architectures
 
-| Architecture | Device    | Performance | Common Use Case             |
-| ------------ | --------- | ----------- | --------------------------- |
-| `hailo8`     | Hailo-8   | 26 TOPS     | Standard edge AI module     |
-| `hailo8l`    | Hailo-8L  | 13 TOPS     | Raspberry Pi AI Kit         |
-| `hailo15h`   | Hailo-15H | 40 TOPS     | Higher-performance variant  |
+| Architecture | Device    | Performance | Common Use Case            |
+| ------------ | --------- | ----------- | -------------------------- |
+| `hailo8`     | Hailo-8   | 26 TOPS     | Standard edge AI module    |
+| `hailo8l`    | Hailo-8L  | 13 TOPS     | Raspberry Pi AI Kit        |
+| `hailo15h`   | Hailo-15H | 40 TOPS     | Higher-performance variant |
 
 Set `HW_ARCH` in the script to match your target device before compiling.
-
 
 ## Running Inference on Hailo Hardware
 
@@ -325,36 +324,103 @@ The script below runs object detection on a single image using the compiled HEF 
     import numpy as np
     from hailo_platform import (
         HEF,
-        VDevice,
         ConfigureParams,
+        FormatType,
         HailoStreamInterface,
+        InferVStreams,
         InputVStreamParams,
         OutputVStreamParams,
-        FormatType,
-        InferVStreams,
+        VDevice,
     )
-    from PIL import Image, ImageDraw, ImageFont
+    from PIL import Image, ImageDraw
 
     # ── Configuration ──────────────────────────────────────────────────────────
-    HEF_PATH = "yolo11n.hef"   # path to your compiled HEF file
-    SOURCE = "bus.jpg"          # image path, 0 for webcam, or a video path
+    HEF_PATH = "yolo11n.hef"  # path to your compiled HEF file
+    SOURCE = "bus.jpg"  # image path, 0 for webcam, or a video path
     IMGSZ = 640
     CONF = 0.25
 
     COCO_NAMES = [
-        "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train",
-        "truck", "boat", "traffic light", "fire hydrant", "stop sign",
-        "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
-        "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella",
-        "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard",
-        "sports ball", "kite", "baseball bat", "baseball glove", "skateboard",
-        "surfboard", "tennis racket", "bottle", "wine glass", "cup", "fork",
-        "knife", "spoon", "bowl", "banana", "apple", "sandwich", "orange",
-        "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair",
-        "couch", "potted plant", "bed", "dining table", "toilet", "tv",
-        "laptop", "mouse", "remote", "keyboard", "cell phone", "microwave",
-        "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase",
-        "scissors", "teddy bear", "hair drier", "toothbrush",
+        "person",
+        "bicycle",
+        "car",
+        "motorcycle",
+        "airplane",
+        "bus",
+        "train",
+        "truck",
+        "boat",
+        "traffic light",
+        "fire hydrant",
+        "stop sign",
+        "parking meter",
+        "bench",
+        "bird",
+        "cat",
+        "dog",
+        "horse",
+        "sheep",
+        "cow",
+        "elephant",
+        "bear",
+        "zebra",
+        "giraffe",
+        "backpack",
+        "umbrella",
+        "handbag",
+        "tie",
+        "suitcase",
+        "frisbee",
+        "skis",
+        "snowboard",
+        "sports ball",
+        "kite",
+        "baseball bat",
+        "baseball glove",
+        "skateboard",
+        "surfboard",
+        "tennis racket",
+        "bottle",
+        "wine glass",
+        "cup",
+        "fork",
+        "knife",
+        "spoon",
+        "bowl",
+        "banana",
+        "apple",
+        "sandwich",
+        "orange",
+        "broccoli",
+        "carrot",
+        "hot dog",
+        "pizza",
+        "donut",
+        "cake",
+        "chair",
+        "couch",
+        "potted plant",
+        "bed",
+        "dining table",
+        "toilet",
+        "tv",
+        "laptop",
+        "mouse",
+        "remote",
+        "keyboard",
+        "cell phone",
+        "microwave",
+        "oven",
+        "toaster",
+        "sink",
+        "refrigerator",
+        "book",
+        "clock",
+        "vase",
+        "scissors",
+        "teddy bear",
+        "hair drier",
+        "toothbrush",
     ]
 
     # ── Load HEF and connect to device ─────────────────────────────────────────
@@ -368,12 +434,8 @@ The script below runs object detection on a single image using the compiled HEF 
     network_group_params = network_group.create_params()
 
     # ── Setup I/O virtual streams ───────────────────────────────────────────────
-    input_vstreams_params = InputVStreamParams.make(
-        network_group, quantized=False, format_type=FormatType.FLOAT32
-    )
-    output_vstreams_params = OutputVStreamParams.make(
-        network_group, quantized=False, format_type=FormatType.FLOAT32
-    )
+    input_vstreams_params = InputVStreamParams.make(network_group, quantized=False, format_type=FormatType.FLOAT32)
+    output_vstreams_params = OutputVStreamParams.make(network_group, quantized=False, format_type=FormatType.FLOAT32)
 
     # ── Preprocess ─────────────────────────────────────────────────────────────
     orig = Image.open(SOURCE).convert("RGB")
@@ -392,7 +454,7 @@ The script below runs object detection on a single image using the compiled HEF 
     # When compiled with nms_postprocess the HEF outputs detections grouped by
     # class: shape (batch, num_classes, max_dets, 5) where 5 = [y1,x1,y2,x2,score]
     draw = ImageDraw.Draw(orig)
-    output_key = list(raw.keys())[0]
+    output_key = next(iter(raw.keys()))
     batch_dets = raw[output_key][0]  # shape: (num_classes, max_dets, 5)
 
     for cls_idx, cls_dets in enumerate(batch_dets):
@@ -435,9 +497,9 @@ For high-throughput video pipelines, [TAPPAS](https://github.com/hailo-ai/tappas
 
 ```bash
 gst-launch-1.0 filesrc location=video.mp4 ! decodebin ! \
-    hailonet hef-path=yolo11n.hef ! \
-    hailofilter function-name=yolov8 ! \
-    hailooverlay ! autovideosink
+  hailonet hef-path=yolo11n.hef ! \
+  hailofilter function-name=yolov8 ! \
+  hailooverlay ! autovideosink
 ```
 
 See the [TAPPAS documentation](https://github.com/hailo-ai/tappas) for full pipeline configuration options.

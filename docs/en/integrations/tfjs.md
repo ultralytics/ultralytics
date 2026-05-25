@@ -65,24 +65,20 @@ For detailed instructions and best practices related to the installation process
 
 All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
-!!! example "Usage"
+The TF.js format is **export-only** in Ultralytics — [Predict](../modes/predict.md) and [Validate](../modes/val.md) are not available locally. Deploy the exported model in the browser or a Node.js application with the [TensorFlow.js](https://www.tensorflow.org/js) runtime.
+
+!!! example "Export"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO26 model
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
         # Export the model to TF.js format
         model.export(format="tfjs")  # creates '/yolo26n_web_model'
-
-        # Load the exported TF.js model
-        tfjs_model = YOLO("./yolo26n_web_model")
-
-        # Run inference
-        results = tfjs_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
@@ -90,10 +86,11 @@ All [Ultralytics YOLO26 models](../models/index.md) are designed to support expo
         ```bash
         # Export a YOLO26n PyTorch model to TF.js format
         yolo export model=yolo26n.pt format=tfjs # creates '/yolo26n_web_model'
-
-        # Run inference with the exported model
-        yolo predict model='./yolo26n_web_model' source='https://ultralytics.com/images/bus.jpg'
         ```
+
+!!! note "Predict and Validate"
+
+    Ultralytics does not provide a local TF.js inference backend, so `yolo predict` and `yolo val` cannot load a `_web_model`. Run the exported model with the TensorFlow.js runtime in your web or Node.js application instead.
 
 ### Export Arguments
 
@@ -105,7 +102,7 @@ All [Ultralytics YOLO26 models](../models/index.md) are designed to support expo
 | `int8`     | `bool`           | `False`        | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices.                                                                    |
 | `nms`      | `bool`           | `False`        | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                                                                                              |
 | `batch`    | `int`            | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
-| `data`     | `str`            | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets/) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                            |
+| `data`     | `str`            | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                             |
 | `fraction` | `float`          | `1.0`          | Specifies the fraction of the dataset to use for INT8 quantization calibration. Allows for calibrating on a subset of the full dataset, useful for experiments or when resources are limited. If not specified with INT8 enabled, the full dataset will be used. |
 | `device`   | `str`            | `None`         | Specifies the device for exporting: CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                                                                    |
 
@@ -144,7 +141,7 @@ Exporting Ultralytics YOLO26 models to TensorFlow.js (TF.js) format is straightf
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO26 model
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
         # Export the model to TF.js format

@@ -67,34 +67,69 @@ For detailed instructions and best practices related to the installation process
 
 Exporting YOLO26 models to ExecuTorch is straightforward:
 
-!!! example "Usage"
+The ExecuTorch format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or validate its accuracy.
+
+!!! example "Export"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO26 model
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
         # Export the model to ExecuTorch format
-        model.export(format="executorch")  # creates 'yolo26n_executorch_model' directory
-
-        # Load the exported ExecuTorch model
-        executorch_model = YOLO("yolo26n_executorch_model")
-
-        # Run inference on a single image
-        results = executorch_model.predict("https://ultralytics.com/images/bus.jpg")
+        model.export(format="executorch")  # creates 'yolo26n_executorch_model'
         ```
 
     === "CLI"
 
         ```bash
         # Export a YOLO26n PyTorch model to ExecuTorch format
-        yolo export model=yolo26n.pt format=executorch # creates 'yolo26n_executorch_model' directory
+        yolo export model=yolo26n.pt format=executorch # creates 'yolo26n_executorch_model'
+        ```
 
-        # Run inference with the exported model
-        yolo predict model=yolo26n_executorch_model source=https://ultralytics.com/images/bus.jpg
+!!! example "Predict"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported ExecuTorch model
+        model = YOLO("yolo26n_executorch_model")
+
+        # Run inference
+        results = model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Run inference with the exported ExecuTorch model
+        yolo predict model=yolo26n_executorch_model source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+!!! example "Validate"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported ExecuTorch model
+        model = YOLO("yolo26n_executorch_model")
+
+        # Validate accuracy on the COCO8 dataset
+        metrics = model.val(data="coco8.yaml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Validate the exported ExecuTorch model
+        yolo val model=yolo26n_executorch_model data=coco8.yaml
         ```
 
     ExecuTorch exports generate a directory that includes a `.pte` file and metadata. Use the ExecuTorch runtime in your mobile or embedded application to load the `.pte` model and perform inference.

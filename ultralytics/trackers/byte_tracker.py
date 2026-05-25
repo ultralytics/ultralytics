@@ -258,17 +258,16 @@ class BYTETracker:
 
     Examples:
         Initialize BYTETracker and update with detection results
-        >>> tracker = BYTETracker(args, frame_rate=30)
+        >>> tracker = BYTETracker(args)
         >>> results = yolo_model.detect(image)
         >>> tracked_objects = tracker.update(results)
     """
 
-    def __init__(self, args, frame_rate: int = 30):
+    def __init__(self, args):
         """Initialize a BYTETracker instance for object tracking.
 
         Args:
             args (Namespace): Command-line arguments containing tracking parameters.
-            frame_rate (int): Frame rate of the video sequence.
         """
         self.tracked_stracks: list[STrack] = []
         self.lost_stracks: list[STrack] = []

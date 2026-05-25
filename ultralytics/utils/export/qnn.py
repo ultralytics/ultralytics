@@ -16,8 +16,8 @@ def qnn_library_paths() -> tuple[str, str]:
     `register_execution_provider_library`; only the library locations differ.
 
     Returns:
-        (tuple[str, str]): `(ep_library_path, htp_backend_path)` for `register_execution_provider_library` and the
-            QNN HTP `backend_path` provider option.
+        (tuple[str, str]): `(ep_library_path, htp_backend_path)` for `register_execution_provider_library` and the QNN
+            HTP `backend_path` provider option.
     """
     try:
         import onnxruntime_qnn as qnn_ep
@@ -55,9 +55,9 @@ def onnx2qnn(
             quantization.
         transform_fn (Callable): Preprocessing transform (`Exporter._transform_fn`) converting a calibration item to a
             normalized `float32` NCHW array.
-        name (str): Target Hexagon Tensor Processor (HTP) architecture version, e.g. `"73"` (Snapdragon 8 Gen 2),
-            `"75"` (8 Gen 3), `"79"` (8 Elite). Finalizes the graph for the target chip when exporting on a host
-            without a Snapdragon NPU.
+        name (str): Target Hexagon Tensor Processor (HTP) architecture version, e.g. `"73"` (Snapdragon 8 Gen 2), `"75"`
+            (8 Gen 3), `"79"` (8 Elite). Finalizes the graph for the target chip when exporting on a host without a
+            Snapdragon NPU.
         metadata (dict | None): Metadata saved as `metadata.yaml`.
         prefix (str): Prefix for log messages.
 

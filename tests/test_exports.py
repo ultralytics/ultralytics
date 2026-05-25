@@ -15,7 +15,17 @@ import torch
 from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-from ultralytics.utils import ARM64, IS_DOCKER, IS_RASPBERRYPI, LINUX, MACOS, MACOS_VERSION, WEIGHTS_DIR, WINDOWS, checks
+from ultralytics.utils import (
+    ARM64,
+    IS_DOCKER,
+    IS_RASPBERRYPI,
+    LINUX,
+    MACOS,
+    MACOS_VERSION,
+    WEIGHTS_DIR,
+    WINDOWS,
+    checks,
+)
 from ultralytics.utils.export.engine import torch2onnx
 from ultralytics.utils.torch_utils import (
     TORCH_1_10,

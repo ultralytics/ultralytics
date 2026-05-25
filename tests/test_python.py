@@ -175,8 +175,8 @@ def test_predict_gray_and_4ch(tmp_path):
 def test_imread_heif_fallback(tmp_path):
     """Ensure imread() decodes `.heif` via the OpenCV → Pillow fallback in `ultralytics/utils/patches.py`.
 
-    Regression guard for the fallback extension tuple: without `.heif` in it, the file silently returns
-    `None` despite being a supported `IMG_FORMATS` entry, since `cv2.imdecode` cannot handle HEIF.
+    Regression guard for the fallback extension tuple: without `.heif` in it, the file silently returns `None` despite
+    being a supported `IMG_FORMATS` entry, since `cv2.imdecode` cannot handle HEIF.
     """
     from ultralytics.utils.checks import check_requirements
 

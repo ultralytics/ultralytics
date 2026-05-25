@@ -1,0 +1,25 @@
+name: Trigger training image rebuild
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send repository_dispatch to algo-ai-training
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.TRAINING_REPO_DISPATCH_TOKEN }}
+          script: |
+            await github.rest.repos.createDispatchEvent({
+              owner: 'SkillReal-LTD',
+              repo: 'algo-ai-training',
+              event_type: 'ultralytics-updated',
+              client_payload: {
+                ultralytics_sha: context.sha,
+                ultralytics_ref: context.ref
+              }
+            });

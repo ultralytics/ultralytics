@@ -53,7 +53,7 @@ The hand keypoint dataset is split into two subsets:
 
 ## Applications
 
-Hand keypoints can be used for [gesture recognition](https://www.ultralytics.com/blog/enhancing-hand-keypoints-estimation-with-ultralytics-yolo11), [AR/VR controls](https://docs.ultralytics.com/tasks/pose/), robotic manipulation, and hand movement analysis in healthcare. They can also be applied in animation for motion capture and biometric authentication systems for security. The detailed tracking of finger positions enables precise interaction with virtual objects and touchless control interfaces.
+Hand keypoints can be used for [gesture recognition](https://www.ultralytics.com/blog/enhancing-hand-keypoints-estimation-with-ultralytics-yolo11), [AR/VR controls](https://docs.ultralytics.com/tasks/pose), robotic manipulation, and hand movement analysis in healthcare. They can also be applied in animation for motion capture and biometric authentication systems for security. The detailed tracking of finger positions enables precise interaction with virtual objects and touchless control interfaces.
 
 ## Dataset YAML
 
@@ -149,7 +149,7 @@ For a comprehensive list of available arguments, refer to the model [Training](.
 
 ### What are the key features of the Hand Keypoints dataset?
 
-The Hand Keypoints dataset is designed for advanced [pose estimation](https://docs.ultralytics.com/datasets/pose/) tasks and includes several key features:
+The Hand Keypoints dataset is designed for advanced [pose estimation](https://docs.ultralytics.com/datasets/pose) tasks and includes several key features:
 
 - **Large Dataset**: Contains 26,768 images with hand keypoint annotations.
 - **YOLO26 Compatibility**: Ready for use with YOLO26 models.

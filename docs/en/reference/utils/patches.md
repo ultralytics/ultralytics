@@ -27,11 +27,11 @@ keywords: Ultralytics, utils, patches, imread, imwrite, imshow, torch_save, Open
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.patches.imwrite_unicode
+## ::: ultralytics.utils.patches.imwrite
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.patches.imshow_unicode
+## ::: ultralytics.utils.patches.imshow
 
 <br><br><hr><br>
 

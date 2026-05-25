@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to export Ultralytics YOLO models locally to the Qualcomm QNN context-binary format with the ONNX Runtime QNN Execution Provider for accelerated inference on Snapdragon CPU, GPU, and Hexagon NPU hardware.
-keywords: Qualcomm QNN, AI Engine Direct, QAIRT, ONNX Runtime, onnxruntime-qnn, Snapdragon, Hexagon NPU, model export, Ultralytics, YOLO, edge AI, context binary, on-device inference
+description: Export Ultralytics YOLO models to Qualcomm QNN for fast on-device inference on Snapdragon Hexagon NPU, Adreno GPU, and CPU. Step-by-step Qualcomm Snapdragon export guide.
+keywords: Qualcomm QNN, Qualcomm export, Snapdragon export, export YOLO to Qualcomm, QNN export, YOLO Snapdragon, YOLO on Snapdragon, Hexagon NPU, Hexagon HTP, Qualcomm AI Engine Direct, QAIRT, onnxruntime-qnn, ONNX Runtime QNN, Snapdragon NPU, on-device inference, edge AI deployment, Ultralytics YOLO, model export
 ---
 
 # Qualcomm QNN Export for Ultralytics YOLO Models
@@ -252,7 +252,11 @@ No. QNN export runs entirely on your local machine using the `onnxruntime-qnn` p
 
 ### Which platforms can I export on?
 
-`onnxruntime-qnn` ships prebuilt wheels for **Windows (x64 and ARM64)** and **Linux ARM64 (aarch64)**. There is currently no Linux x86-64 or macOS wheel; on those hosts you can build ONNX Runtime from source with `--use_qnn`, or run the export on a supported platform. The context-binary generation step itself works on an x64 host and does not require a physical Snapdragon device.
+`onnxruntime-qnn` provides stable wheels for **Windows (x64 and ARM64)** and **Linux ARM64 (aarch64)**, plus a **Linux x86-64** wheel on the ONNX Runtime nightly feed. macOS has no wheel — build ONNX Runtime from source with `--use_qnn` or export on a supported platform. Context-binary generation runs on an x64 host and does not require a physical Snapdragon device.
+
+### How do I run YOLO on a Qualcomm Snapdragon NPU?
+
+Export with `model.export(format="qnn")`, copy the resulting `yolo26n_qnn_model` directory to your Snapdragon device, and run `yolo predict model=yolo26n_qnn_model source=image.jpg` (or `yolo val`). Ultralytics loads the context binary through the ONNX Runtime QNN Execution Provider and runs it on the Hexagon NPU — see [Deploying Exported YOLO QNN Models](#deploying-exported-yolo-qnn-models).
 
 ### What is the difference between QNN and SNPE?
 

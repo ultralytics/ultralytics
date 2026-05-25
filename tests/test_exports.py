@@ -421,7 +421,6 @@ def test_export_deepx():
     shutil.rmtree(file, ignore_errors=True)  # cleanup
 
 
-@pytest.mark.slow
 @pytest.mark.skipif(
     not (WINDOWS or (LINUX and ARM64)) or sys.version_info < (3, 11),
     reason="onnxruntime-qnn ships prebuilt wheels only for Windows (x64/ARM64) and Linux ARM64 on Python>=3.11",

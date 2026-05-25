@@ -77,11 +77,4 @@ class LiteRTBackend(BaseBackend):
                 x = (x.astype(np.float32) - zero_point) * scale
             y.append(x)
 
-        # Rejoin split detection output (boxes, classes) produced by the INT8 export wrapper
-        if len(y) == 2 and all(x.ndim == 3 for x in y) and y[0].shape[0] == y[1].shape[0]:
-            if y[0].shape[1] == y[1].shape[1]:  # end2end: same N_det → concat on last dim
-                y = [np.concatenate(y, axis=-1)]  # (B, N_det, 4) + (B, N_det, 2) → (B, N_det, 6)
-            elif y[0].shape[2] == y[1].shape[2]:  # non-end2end: same anchors → concat on axis 1
-                y = [np.concatenate(y, axis=1)]  # (B, 4, N) + (B, C, N) → (B, 4+C, N)
-
         return y

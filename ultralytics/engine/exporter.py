@@ -773,7 +773,6 @@ class Exporter:
             self.file,
             half=self.args.half,
             int8=self.args.int8,
-            end2end=getattr(self.model, "end2end", False),
             calibration_dataset=self.get_int8_calibration_dataloader(prefix) if self.args.int8 else None,
             metadata=self.metadata,
             prefix=prefix,

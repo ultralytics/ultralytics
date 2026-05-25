@@ -15,7 +15,6 @@ def torch2litert(
     file: Path,
     half: bool,
     int8: bool,
-    end2end: bool,
     calibration_dataset: torch.utils.data.DataLoader,
     metadata: dict,
     prefix: str,
@@ -28,7 +27,6 @@ def torch2litert(
         file (Path | str): Source model file path used to derive output directory.
         half (bool): Whether to apply FP16 weight-only quantization.
         int8 (bool): Whether to apply static INT8 quantization (takes precedence over half).
-        end2end (bool): Whether the model has built-in NMS (end-to-end detection).
         calibration_dataset (DataLoader | None): Calibration dataloader for INT8 quantization, as returned by
             ``get_int8_calibration_dataloader``. Required when ``int8=True``.
         metadata (dict | None): Optional metadata saved as ``metadata.yaml``.
@@ -48,60 +46,10 @@ def torch2litert(
     f = Path(str(file).replace(file.suffix, f"{quant_tag}_litert_model"))
     f.mkdir(parents=True, exist_ok=True)
 
-    # For static INT8 the detection head's torch.cat([decoded_boxes, class_scores], dim=1)
-    # creates a mixed-range tensor ([0,640] coords + [0,1] probs) that gets a single
-    # quantization scale dominated by box coords, collapsing all class scores to zero and
-    # breaking NMS.  Fix: patch the head instance so boxes and scores are kept as separate
-    # tensors with independent scales throughout, then rejoin in the backend after dequant.
-
-    _head_patched = False
-    if int8:
-        import types as _types
-
-        head = model.model[-1]
-
-        if end2end and hasattr(head, "one2one"):
-            # End2end: override head.forward to skip the cat+split round-trip in _inference /
-            # postprocess and instead apply topk directly on the separately-quantized tensors.
-            def _int8_e2e_forward(self, feat_maps):
-                one2one = self.forward_head([f.detach() for f in feat_maps], **self.one2one)
-                if self.training:
-                    return {"one2many": self.forward_head(feat_maps, **self.one2many), "one2one": one2one}
-                # Separate tensors — each will get its own int8 scale during calibration
-                boxes = self._get_decode_boxes(one2one).permute(0, 2, 1)  # (B, N, 4)  [0, 640]
-                scores = one2one["scores"].sigmoid().permute(0, 2, 1)  # (B, N, nc) [0, 1]
-                # topk on correctly-scaled scores → right detections selected
-                scores_top, conf_top, idx = self.get_topk_index(scores, self.max_det)
-                boxes_top = boxes.gather(1, idx.expand(-1, -1, 4))
-                return boxes_top, torch.cat([scores_top, conf_top], dim=-1)
-
-            head.forward = _types.MethodType(_int8_e2e_forward, head)
-            _head_patched = True
-            traced = model
-        else:
-            # Non-end2end: wrap model to split output (boxes, classes) into separate tensors.
-            class _SplitDetectionOutput(torch.nn.Module):
-                def __init__(self, m):
-                    super().__init__()
-                    self.model = m
-
-                def forward(self, x):
-                    y = self.model(x)
-                    if isinstance(y, torch.Tensor) and y.ndim == 3:
-                        return y[:, :4], y[:, 4:]  # (B, 4, N), (B, nc, N)
-                    return y
-
-            traced = _SplitDetectionOutput(model)
-    else:
-        traced = model
-
-    edge_model = litert_torch.convert(traced, (im,))
+    edge_model = litert_torch.convert(model, (im,))
     suffix = "int8" if int8 else "float16" if half else "float32"
     tflite_file = f / f"{file.stem}_{suffix}.tflite"
     edge_model.export(tflite_file)
-
-    if _head_patched:
-        del head.forward  # Remove instance override, restores class-level method
 
     if int8 or half:
         check_requirements("ai-edge-quantizer>=0.6.0")

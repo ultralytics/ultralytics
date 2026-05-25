@@ -21,12 +21,6 @@ def onnx2qnn(
     via ``register_execution_provider_library``. Initializing an ONNX Runtime session with context-binary caching
     enabled compiles the ONNX graph into a QNN context binary embedded in ``<stem>_qnn.onnx``; no inference is run.
 
-    Note:
-        ``onnxruntime-qnn`` ships prebuilt wheels for Windows (x64/ARM64) and Linux ARM64 (aarch64) only. There is no
-        Linux x86-64 or macOS wheel — on those hosts build ONNX Runtime from source with ``--use_qnn``, or generate the
-        context binary on a supported platform. The HTP backend runs the float model at fp16 precision (via
-        ``enable_htp_fp16_precision``); int8 calibration is not performed.
-
     Args:
         onnx_file (str | Path): Path to the source ONNX file (already exported).
         output_dir (Path | str): Directory to save the exported QNN model.
@@ -35,6 +29,12 @@ def onnx2qnn(
 
     Returns:
         (str): Path to the exported ``_qnn_model`` directory.
+
+    Notes:
+        ``onnxruntime-qnn`` ships prebuilt wheels for Windows (x64/ARM64) and Linux ARM64 (aarch64) only. There is no
+        Linux x86-64 or macOS wheel — on those hosts build ONNX Runtime from source with ``--use_qnn``, or generate the
+        context binary on a supported platform. The HTP backend runs the float model at fp16 precision (via
+        ``enable_htp_fp16_precision``); int8 calibration is not performed.
     """
     assert WINDOWS or (LINUX and ARM64), (
         "QNN export requires 'onnxruntime-qnn', which ships prebuilt wheels only for Windows (x64/ARM64) and Linux "

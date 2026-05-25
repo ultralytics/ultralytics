@@ -6,7 +6,7 @@ keywords: Qualcomm QNN, Qualcomm export, Snapdragon export, export YOLO to Qualc
 
 # Qualcomm QNN Export for Ultralytics YOLO Models
 
-Deploying computer vision models on Qualcomm Snapdragon devices requires a model format tuned for the Qualcomm AI Engine Direct (QNN) runtime. Exporting [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) models to the QNN format lets you run accelerated inference across Snapdragon CPU, GPU (Adreno), and NPU (Hexagon) hardware found in billions of mobile phones, laptops, automotive systems, and IoT devices.
+Deploying computer vision models on Qualcomm Snapdragon devices requires a model format tuned for the Qualcomm AI Engine Direct (QNN) runtime. Exporting [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) models to the QNN format lets you run accelerated, on-device inference across Snapdragon CPU, Adreno GPU, and Hexagon NPU hardware found in billions of mobile phones, laptops, automotive systems, and IoT devices. This guide walks through how to export YOLO to Qualcomm QNN and deploy it for fast, low-power inference on Snapdragon hardware.
 
 ## What is Qualcomm QNN?
 
@@ -14,7 +14,17 @@ Deploying computer vision models on Qualcomm Snapdragon devices requires a model
   <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/qnn_cover.avif" alt="Qualcomm QNN on-device inference">
 </p>
 
-[Qualcomm AI Engine Direct](https://www.qualcomm.com/developer/software/qualcomm-ai-engine-direct-sdk) — commonly referred to as **QNN** and distributed as part of the Qualcomm AI Runtime (QAIRT) SDK — is Qualcomm's low-level inference stack for Snapdragon processors. It provides a unified API with backend-specific libraries that target the CPU, the Adreno GPU, and the Hexagon Tensor Processor (HTP/NPU), giving developers full-stack access to the Snapdragon AI accelerators. QNN is the modern successor to the older Snapdragon Neural Processing Engine (SNPE) SDK.
+[Qualcomm AI Engine Direct](https://www.qualcomm.com/developer/software/qualcomm-ai-engine-direct-sdk) — commonly referred to as **QNN** and distributed as part of the Qualcomm AI Runtime (QAIRT) SDK — is Qualcomm's low-level inference stack for Snapdragon processors. It provides a unified API with backend-specific libraries that target the Snapdragon CPU, the Adreno GPU, and the Hexagon Tensor Processor (HTP), the dedicated neural processing unit (NPU) inside modern Snapdragon SoCs. QNN gives developers full-stack access to these Snapdragon AI accelerators and is the modern successor to the older Snapdragon Neural Processing Engine (SNPE) SDK. It powers on-device AI across the Snapdragon 8 Gen 2, 8 Gen 3, and 8 Elite mobile platforms, Snapdragon X laptops, and automotive and XR products.
+
+## Why Export to Qualcomm QNN?
+
+Snapdragon is the most widely deployed mobile compute platform in the world. Exporting Ultralytics YOLO to the Qualcomm QNN format unlocks the dedicated AI hardware on these devices:
+
+- **Hexagon NPU acceleration**: Running YOLO on the Hexagon Tensor Processor delivers dramatically higher throughput and lower power than CPU inference — ideal for real-time, always-on computer vision on Snapdragon.
+- **On-device and offline**: QNN inference runs entirely on the Snapdragon device, so there are no cloud round-trips, latency stays low, and data never leaves the device.
+- **INT8 efficiency**: QNN export quantizes YOLO to [INT8](https://www.ultralytics.com/glossary/model-quantization), the Hexagon NPU's native precision, shrinking model size and maximizing frames per second on battery-powered hardware.
+- **One format, many devices**: A single Qualcomm QNN export targets Snapdragon CPU, Adreno GPU, and Hexagon NPU across the Snapdragon 8 Gen 2, 8 Gen 3, and 8 Elite families and beyond.
+- **Production-ready Qualcomm AI stack**: QNN (Qualcomm AI Engine Direct / QAIRT) is Qualcomm's current, actively maintained on-device AI runtime and the recommended replacement for SNPE.
 
 ## QNN Export Format
 
@@ -221,7 +231,7 @@ In this guide, you've learned how to export Ultralytics YOLO models to the Qualc
 
 The combination of [Ultralytics YOLO](https://www.ultralytics.com/yolo) and Qualcomm's on-device AI stack provides an effective solution for running advanced [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) workloads across the broad Snapdragon ecosystem.
 
-Also, if you'd like to know more about other Ultralytics YOLO integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of useful resources and insights there.
+For other on-device and mobile deployment targets, see the related [ONNX](onnx.md), [NCNN](ncnn.md), [ExecuTorch](executorch.md), [TFLite](tflite.md), and [TensorRT](tensorrt.md) export guides. For the full list of formats and options, visit the [Export mode](../modes/export.md) documentation and the [integrations guide page](../integrations/index.md).
 
 ## FAQ
 

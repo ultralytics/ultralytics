@@ -73,24 +73,20 @@ For detailed instructions and best practices related to the installation process
 
 All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
-!!! example "Usage"
+The TF GraphDef format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or validate its accuracy.
+
+!!! example "Export"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO26 model
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
         # Export the model to TF GraphDef format
         model.export(format="pb")  # creates 'yolo26n.pb'
-
-        # Load the exported TF GraphDef model
-        tf_graphdef_model = YOLO("yolo26n.pb")
-
-        # Run inference
-        results = tf_graphdef_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
@@ -98,9 +94,48 @@ All [Ultralytics YOLO26 models](../models/index.md) are designed to support expo
         ```bash
         # Export a YOLO26n PyTorch model to TF GraphDef format
         yolo export model=yolo26n.pt format=pb # creates 'yolo26n.pb'
+        ```
 
-        # Run inference with the exported model
-        yolo predict model='yolo26n.pb' source='https://ultralytics.com/images/bus.jpg'
+!!! example "Predict"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported TF GraphDef model
+        model = YOLO("yolo26n.pb")
+
+        # Run inference
+        results = model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Run inference with the exported TF GraphDef model
+        yolo predict model=yolo26n.pb source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+!!! example "Validate"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported TF GraphDef model
+        model = YOLO("yolo26n.pb")
+
+        # Validate accuracy on the COCO8 dataset
+        metrics = model.val(data="coco8.yaml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Validate the exported TF GraphDef model
+        yolo val model=yolo26n.pb data=coco8.yaml
         ```
 
 ### Export Arguments
@@ -147,7 +182,7 @@ Ultralytics YOLO26 models can be exported to TensorFlow GraphDef (TF GraphDef) f
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO26 model
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
         # Export the model to TF GraphDef format

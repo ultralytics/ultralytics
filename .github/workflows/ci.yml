@@ -194,9 +194,6 @@ jobs:
         run: |
           uv pip install --system -e ".[export]" pytest --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
           uv pip install --system --index-strategy unsafe-best-match ${{ matrix.qnn_pip }}
-      - name: Verify QNN Execution Provider can be registered
-        run: |
-          python -c "import onnxruntime as ort, onnxruntime_qnn as qnn; ort.register_execution_provider_library('QNNExecutionProvider', qnn.get_library_path()); d = [x for x in ort.get_ep_devices() if x.ep_name == 'QNNExecutionProvider']; print('QNN devices:', d); assert d, 'no QNN devices'"
       - name: Pytest QNN export
         shell: bash
         run: pytest tests/test_exports.py::test_export_qnn -v

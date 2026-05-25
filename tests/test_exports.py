@@ -429,9 +429,14 @@ def test_export_qnn():
     """Test YOLO export to Qualcomm QNN format via the ONNX Runtime QNN Execution Provider."""
     import importlib.util
 
-    # onnxruntime-qnn is a plugin EP (registered at runtime); skip cleanly when it is not installed
-    if importlib.util.find_spec("onnxruntime_qnn") is None:
-        pytest.skip("onnxruntime-qnn not installed (exercised in the dedicated QNN CI job)")
+    # QNN EP ships two ways: the 'onnxruntime_qnn' plugin module (Windows/Linux-aarch64) or built into onnxruntime
+    # (monolithic Linux x86-64 nightly). Skip cleanly only when neither is present.
+    has_plugin = importlib.util.find_spec("onnxruntime_qnn") is not None
+    has_monolithic = importlib.util.find_spec("onnxruntime") is not None and "QNNExecutionProvider" in __import__(
+        "onnxruntime"
+    ).get_available_providers()
+    if not (has_plugin or has_monolithic):
+        pytest.skip("onnxruntime-qnn / QNN Execution Provider not available (exercised in the dedicated QNN CI job)")
     file = YOLO(MODEL).export(format="qnn", imgsz=32)
     assert next(Path(file).rglob("*_qnn.onnx"), None), f"QNN export failed, no context binary found in: {file}"
     # Note: on-device inference is not exercised here as it requires Qualcomm Snapdragon hardware

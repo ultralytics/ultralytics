@@ -28,7 +28,7 @@ NVIDIA DGX Spark is a compact desktop AI supercomputer powered by the NVIDIA GB1
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Get up to 1000 FPS with Ultralytics YOLO26 on NVIDIA DGX Spark | <a href="https://docs.ultralytics.com/integrations/tensorrt/">TensorRT</a> & Batch Inference
+  <strong>Watch:</strong> How to Get up to 1000 FPS with Ultralytics YOLO26 on NVIDIA DGX Spark | <a href="https://docs.ultralytics.com/integrations/tensorrt">TensorRT</a> & Batch Inference
 </p>
 
 ### Key Specifications

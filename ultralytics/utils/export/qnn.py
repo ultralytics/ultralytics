@@ -26,8 +26,8 @@ def onnx2qnn(
         onnx_file (str | Path): Path to the source ONNX file (already exported).
         output_dir (Path | str): Directory to save the exported QNN model.
         name (str): Target Hexagon Tensor Processor (HTP) architecture version, e.g. ``"73"`` (Snapdragon 8 Gen 2),
-            ``"75"`` (8 Gen 3), ``"79"`` (8 Elite). Required to finalize the graph for the target chip when exporting
-            on a host without a Snapdragon NPU.
+            ``"75"`` (8 Gen 3), ``"79"`` (8 Elite). Required to finalize the graph for the target chip when exporting on
+            a host without a Snapdragon NPU.
         metadata (dict | None): Metadata saved as ``metadata.yaml``.
         prefix (str): Prefix for log messages.
 

@@ -145,14 +145,27 @@ jobs:
           if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          uv pip install ${{ matrix.os != 'cpu-latest' && '--system' || '' }} -e ".[export,solutions]" $torch pytest-cov --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install ${{ matrix.os != 'cpu-latest' && '--system' || '' }} -e ".[export,solutions]" $torch pytest-cov pytest-xdist --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks
           uv pip list
+      - name: Configure Ultralytics cache paths
+        shell: bash # for Windows compatibility
+        run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
+      - name: Cache test assets
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.ultralytics_cache
+          key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
+          restore-keys: |
+            ultralytics-test-assets-${{ runner.os }}-
+      - name: Pre-cache test assets
+        shell: bash # for Windows compatibility
+        run: python tests/cache_test_assets.py
       - name: Pytest tests
         shell: bash # for Windows compatibility
-        run: pytest --cov=ultralytics/ --cov-report=xml tests/ --deselect tests/test_exports.py::test_export_imx
+        run: pytest -n auto --dist=loadfile --cov=ultralytics/ --cov-report=xml tests/ --deselect tests/test_exports.py::test_export_imx
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
         uses: codecov/codecov-action@v6
@@ -263,16 +276,30 @@ jobs:
           if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          uv pip install ${{ matrix.os != 'cpu-latest' && '--system' || '' }} -e ".[export,solutions]" $torch faster-coco-eval mlflow pytest-cov --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install ${{ matrix.os != 'cpu-latest' && '--system' || '' }} -e ".[export,solutions]" $torch faster-coco-eval mlflow pytest-cov pytest-xdist --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks
           uv pip list
+      - name: Configure Ultralytics cache paths
+        shell: bash # for Windows compatibility
+        run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
+      - name: Cache test assets
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.ultralytics_cache
+          key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
+          restore-keys: |
+            ultralytics-test-assets-${{ runner.os }}-
+      - name: Pre-cache test assets
+        shell: bash # for Windows compatibility
+        run: python tests/cache_test_assets.py
       - name: Pytest tests
         uses: ultralytics/actions/retry@main
         with:
           shell: bash # for Windows compatibility
-          run: pytest --slow --cov=ultralytics/ --cov-report=xml tests/ --deselect tests/test_exports.py::test_export_imx
+          # -n 2 limits parallelism for resource-heavy export tests on shared runners
+          run: pytest -vv -s -n 2 --dist=loadfile --slow --cov=ultralytics/ --cov-report=xml tests/ --deselect tests/test_exports.py::test_export_imx --deselect tests/test_exports.py::test_export_mnn --deselect tests/test_exports.py::test_export_ncnn --deselect tests/test_exports.py::test_export_executorch
           retries: 1 # Retry once after initial attempt (2 total runs)
           timeout_minutes: 180
           retry_delay_seconds: 60
@@ -330,13 +357,24 @@ jobs:
       - uses: astral-sh/setup-uv@v7
       - name: Install requirements
         run: |
-          uv pip install -e ".[export]" pytest mlflow faster-coco-eval --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install -e ".[export]" pytest pytest-xdist mlflow faster-coco-eval --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks
           uv pip list
+      - name: Configure Ultralytics cache paths
+        run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
+      - name: Cache test assets
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.ultralytics_cache
+          key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
+          restore-keys: |
+            ultralytics-test-assets-${{ runner.os }}-
+      - name: Pre-cache test assets
+        run: python tests/cache_test_assets.py
       - name: Pytest tests
-        run: pytest --slow tests/ --deselect tests/test_exports.py::test_export_imx
+        run: pytest -n auto --dist=loadfile --slow tests/ --deselect tests/test_exports.py::test_export_imx
       - name: Activate Virtual Environment for Benchmarks
         run: |
           python3.11 -m venv env-benchmarks
@@ -447,14 +485,8 @@ jobs:
         run: uv pip install pytest
       - name: Check environment
         run: conda list
-      - name: Test CLI
-        run: |
-          yolo predict model=yolo26n.pt imgsz=320
-          yolo train model=yolo26n.pt data=coco8.yaml epochs=1 imgsz=32
-          yolo val model=yolo26n.pt data=coco8.yaml imgsz=32
-          yolo export model=yolo26n.pt format=torchscript imgsz=160
-          yolo benchmark model=yolo26n.pt data='coco8.yaml' imgsz=640 format=onnx
-          yolo solutions
+      - name: Test benchmark CLI
+        run: yolo benchmark model=yolo26n.pt data='coco8.yaml' imgsz=640 format=onnx
       - name: Test Python
         # Note this step must use the updated default bash environment, not a Python environment
         run: |

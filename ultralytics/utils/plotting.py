@@ -894,9 +894,9 @@ def plot_images(
 
 @plt_settings()
 def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Callable | None = None):
-    """Plot training results from a results CSV file. The function supports various types of data including
-    segmentation, pose estimation, and classification. Plots are saved as 'results.png' in the directory where the
-    CSV is located.
+    """Plot training results from a results CSV file. The function supports various types of data including instance
+    segmentation, semantic segmentation, pose estimation, and classification. Plots are saved as 'results.png' in
+    the directory where the CSV is located.
 
     Args:
         file (str, optional): Path to the CSV file containing the training results.

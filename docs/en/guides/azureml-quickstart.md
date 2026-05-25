@@ -193,7 +193,7 @@ Troubleshooting common issues with YOLO26 on AzureML can involve the following s
 - **Environment Setup**: Verify that your conda environment is correctly activated before running commands.
 - **Resource Allocation**: Make sure your compute instances have sufficient resources to handle the training workload.
 
-For additional guidance, review our [YOLO Common Issues](https://docs.ultralytics.com/guides/yolo-common-issues/) documentation.
+For additional guidance, review our [YOLO Common Issues](https://docs.ultralytics.com/guides/yolo-common-issues) documentation.
 
 ### Can I use both the Ultralytics CLI and Python interface on AzureML?
 

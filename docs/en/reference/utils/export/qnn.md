@@ -1,6 +1,6 @@
 ---
-description: Reference for the Ultralytics Qualcomm QNN export utility. Learn how to compile ONNX models to the QNN format using Qualcomm AI Hub.
-keywords: onnx2qnn, QNN export, Qualcomm AI Hub, AI Engine Direct, ONNX, model conversion, Ultralytics, Snapdragon, Hexagon NPU
+description: Reference for the Ultralytics Qualcomm QNN export utility. Learn how to compile ONNX models to the QNN format locally with the ONNX Runtime QNN Execution Provider.
+keywords: onnx2qnn, QNN export, ONNX Runtime QNN, onnxruntime-qnn, Qualcomm AI Engine Direct, QAIRT, ONNX, model conversion, Ultralytics, Snapdragon, Hexagon NPU
 ---
 
 # Reference for `ultralytics/utils/export/qnn.py`

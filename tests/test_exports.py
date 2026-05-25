@@ -440,7 +440,7 @@ def test_export_qnn():
             capi / "onnxruntime_providers_qnn.dll"
         ).exists()
     if not has_qnn:
-        pytest.skip("onnxruntime-qnn / QNN Execution Provider not available (exercised in the dedicated QNN CI job)")
+        pytest.skip("onnxruntime-qnn / QNN Execution Provider not available")
     file = YOLO(MODEL).export(format="qnn", imgsz=32)
     assert next(Path(file).rglob("*_qnn.onnx"), None), f"QNN export failed, no context binary found in: {file}"
     # Note: on-device inference is not exercised here as it requires Qualcomm Snapdragon hardware

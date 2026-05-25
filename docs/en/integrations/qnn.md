@@ -115,7 +115,7 @@ print(hub.get_devices())  # e.g. "Snapdragon 8 Elite QRD", "Samsung Galaxy S24 (
 | :------- | :--------------- | :------------------------- | :-------------------------------------------------------------------------------------------------------------------------------- |
 | `format` | `str`            | `'qnn'`                    | Target format for the exported model, defining compatibility with the Qualcomm QNN runtime.                                       |
 | `imgsz`  | `int` or `tuple` | `640`                      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)`.                         |
-| `name`   | `str`            | `'Snapdragon 8 Elite QRD'` | Qualcomm AI Hub target device. Run `qai_hub.get_devices()` to list every available device.                                        |
+| `name`   | `str`            | `None`                     | Qualcomm AI Hub target device. If omitted, the first device available to your account is auto-selected (preferring a Snapdragon 8 Elite reference device). Run `qai_hub.get_devices()` to list every available device. |
 | `batch`  | `int`            | `1`                        | Specifies export model batch inference size.                                                                                      |
 | `device` | `str`            | `None`                     | Specifies the device for the ONNX export step: GPU (`device=0`) or CPU (`device=cpu`). Cloud compilation runs on Qualcomm AI Hub. |
 

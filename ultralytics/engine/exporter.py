@@ -387,12 +387,6 @@ class Exporter:
             assert self.args.name in RKNN_CHIPS, (
                 f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
             )
-        if fmt == "qnn" and not self.args.name:
-            LOGGER.warning(
-                "Qualcomm QNN export requires a missing 'name' arg for the AI Hub target device. "
-                "Using default name='Snapdragon 8 Elite QRD'."
-            )
-            self.args.name = "Snapdragon 8 Elite QRD"
         if self.args.nms and model.task == "semantic":
             LOGGER.warning("'nms=True' is not valid for semantic segmentation models. Forcing 'nms=False'.")
             self.args.nms = False
@@ -1111,6 +1105,7 @@ class Exporter:
             onnx_file=f_onnx,
             output_dir=str(self.file).replace(self.file.suffix, f"_qnn_model{os.sep}"),
             imgsz=self.imgsz,
+            batch=self.args.batch,
             name=self.args.name,
             metadata=self.metadata,
             prefix=prefix,

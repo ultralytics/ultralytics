@@ -12,7 +12,8 @@ def onnx2qnn(
     onnx_file: str | Path,
     output_dir: Path | str,
     imgsz: tuple[int, int],
-    name: str = "Snapdragon 8 Elite QRD",
+    batch: int = 1,
+    name: str | None = None,
     runtime: str = "qnn_dlc",
     metadata: dict | None = None,
     prefix: str = "",
@@ -28,8 +29,10 @@ def onnx2qnn(
         onnx_file (str | Path): Path to the source ONNX file (already exported).
         output_dir (Path | str): Directory to save the exported QNN model.
         imgsz (tuple[int, int]): Export image size as ``(height, width)``.
-        name (str): Qualcomm AI Hub target device name, e.g. ``"Snapdragon 8 Elite QRD"``. Run ``qai_hub.get_devices()``
-            to list every available device.
+        batch (int): Batch size of the exported ONNX model, used to build the compile input spec.
+        name (str | None): Qualcomm AI Hub target device name, e.g. ``"Snapdragon 8 Elite QRD"``. If ``None``, the
+            first device available to the account is selected (preferring a Snapdragon 8 Elite reference device).
+            Run ``qai_hub.get_devices()`` to list every available device.
         runtime (str): Target runtime, either ``"qnn_dlc"`` (portable QNN Deep Learning Container) or
             ``"qnn_context_binary"`` (device-specific precompiled context binary).
         metadata (dict | None): Metadata saved as ``metadata.yaml``.
@@ -50,6 +53,13 @@ def onnx2qnn(
             "and run 'qai-hub configure --api_token <TOKEN>' once before exporting to QNN."
         )
 
+    if not name:  # resolve a device from the account instead of assuming a specific one exists
+        devices = hub.get_devices()
+        if not devices:
+            raise RuntimeError("No Qualcomm AI Hub devices available for this account.")
+        name = next((d.name for d in devices if "Snapdragon 8 Elite" in d.name), devices[0].name)
+        LOGGER.info(f"{prefix} no 'name' provided, auto-selecting Qualcomm AI Hub device '{name}'.")
+
     LOGGER.info(f"\n{prefix} starting export with Qualcomm AI Hub targeting '{name}'...")
 
     onnx_file = Path(onnx_file)
@@ -60,7 +70,7 @@ def onnx2qnn(
         model=str(onnx_file),
         device=hub.Device(name),
         options=f"--target_runtime {runtime}",
-        input_specs={"images": (1, 3, imgsz[0], imgsz[1])},
+        input_specs={"images": (batch, 3, imgsz[0], imgsz[1])},
     )
     target_model = compile_job.get_target_model()  # blocks until the cloud compile job completes
     if target_model is None:

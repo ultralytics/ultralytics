@@ -654,7 +654,7 @@ class Model(torch.nn.Module):
         custom = {"verbose": False}  # method defaults
         args = {**DEFAULT_CFG_DICT, **self.model.args, **custom, **kwargs, "mode": "benchmark"}
         fmts = export_formats()
-        export_args = set(dict(zip(fmts["Argument"], fmts["Arguments"])).get(format, [])) - {"batch"}
+        export_args = set(dict(zip(fmts["Argument"], fmts["Arguments"])).get(format, [])) - {"batch", "data"}
         export_kwargs = {k: v for k, v in args.items() if k in export_args}
         return benchmark(
             model=self,
@@ -793,6 +793,10 @@ class Model(torch.nn.Module):
         # Update model and cfg after training
         if RANK in {-1, 0}:
             ckpt = self.trainer.best if self.trainer.best.exists() else self.trainer.last
+            if not ckpt.exists():
+                raise FileNotFoundError(
+                    f"Training completed but no checkpoint was saved. Expected {self.trainer.best} or {self.trainer.last}."
+                )
             self.model, self.ckpt = load_checkpoint(ckpt)
             self.overrides = self._reset_ckpt_args(self.model.args)
             self.metrics = getattr(self.trainer.validator, "metrics", None)  # TODO: no metrics returned by DDP
@@ -1076,9 +1080,9 @@ class Model(torch.nn.Module):
     def task_map(self) -> dict:
         """Provide a mapping from model tasks to corresponding classes for different modes.
 
-        This property method returns a dictionary that maps each supported task (e.g., detect, segment, classify) to a
-        nested dictionary. The nested dictionary contains mappings for different operational modes (model, trainer,
-        validator, predictor) to their respective class implementations.
+        This property method returns a dictionary that maps each supported task (e.g., detect, segment, semantic,
+        classify) to a nested dictionary. The nested dictionary contains mappings for different operational modes
+        (model, trainer, validator, predictor) to their respective class implementations.
 
         The mapping allows for dynamic loading of appropriate classes based on the model's task and the desired
         operational mode. This facilitates a flexible and extensible architecture for handling various tasks and modes

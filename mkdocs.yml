@@ -774,6 +774,7 @@ nav:
               - coreml: reference/nn/backends/coreml.md
               - deepx: reference/nn/backends/deepx.md
               - executorch: reference/nn/backends/executorch.md
+              - litert: reference/nn/backends/litert.md
               - mnn: reference/nn/backends/mnn.md
               - ncnn: reference/nn/backends/ncnn.md
               - onnx: reference/nn/backends/onnx.md
@@ -854,6 +855,7 @@ nav:
               - engine: reference/utils/export/engine.md
               - executorch: reference/utils/export/executorch.md
               - imx: reference/utils/export/imx.md
+              - litert: reference/utils/export/litert.md
               - mnn: reference/utils/export/mnn.md
               - ncnn: reference/utils/export/ncnn.md
               - openvino: reference/utils/export/openvino.md

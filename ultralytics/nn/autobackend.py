@@ -17,6 +17,7 @@ from .backends import (
     CoreMLBackend,
     DeepXBackend,
     ExecuTorchBackend,
+    LiteRTBackend,
     MNNBackend,
     NCNNBackend,
     ONNXBackend,
@@ -112,6 +113,7 @@ class AutoBackend(nn.Module):
             | ExecuTorch            | *.pte             |
             | Axelera AI            | *_axelera_model/  |
             | DeepX                 | *_deepx_model/    |
+            | LiteRT                | *_litert_model/   |
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.
@@ -156,6 +158,7 @@ class AutoBackend(nn.Module):
         "executorch": ExecuTorchBackend,
         "axelera": AxeleraBackend,
         "deepx": DeepXBackend,
+        "litert": LiteRTBackend,
     }
 
     @torch.no_grad()

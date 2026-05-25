@@ -23,6 +23,7 @@ RKNN                    | `rknn`                    | yolo26n_rknn_model/
 ExecuTorch              | `executorch`              | yolo26n_executorch_model/
 Axelera AI              | `axelera`                 | yolo26n_axelera_model/
 DeepX                   | `deepx`                   | yolo26n_deepx_model/
+LiteRT                  | `litert`                  | yolo26n_litert_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -54,6 +55,7 @@ Inference:
                          yolo26n_executorch_model   # ExecuTorch
                          yolo26n_axelera_model      # Axelera AI
                          yolo26n_deepx_model        # DeepX
+                         yolo26n_litert_model       # LiteRT
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -162,6 +164,7 @@ def export_formats():
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
         ["Axelera AI", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction", "data"]],
         ["DeepX", "deepx", "_deepx_model", False, False, ["data", "int8", "optimize"]],
+        ["LiteRT", "litert", "_litert_model", True, False, ["batch", "half", "int8", "data"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -770,6 +773,23 @@ class Exporter:
             model=self.model,
             im=self.im,
             output_dir=str(self.file).replace(self.file.suffix, f"_paddle_model{os.sep}"),
+            metadata=self.metadata,
+            prefix=prefix,
+        )
+
+    @try_export
+    def export_litert(self, prefix=colorstr("LiteRT:")):
+        """Export YOLO model to LiteRT format using litert_torch with optional FP16/INT8 quantization."""
+        assert LINUX and not MACOS and not WINDOWS and not ARM64, "LiteRT export only supported on Linux x86"
+        from ultralytics.utils.export.litert import torch2litert
+
+        return torch2litert(
+            self.model,
+            self.im,
+            self.file,
+            half=self.args.half,
+            int8=self.args.int8,
+            calibration_dataset=self.get_int8_calibration_dataloader(prefix) if self.args.int8 else None,
             metadata=self.metadata,
             prefix=prefix,
         )

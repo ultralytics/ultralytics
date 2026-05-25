@@ -115,7 +115,7 @@ class BaseSolution:
         self.device = self.CFG["device"]
 
         self.track_add_args = {  # Tracker additional arguments for advance configuration
-            k: self.CFG[k] for k in {"iou", "conf", "device", "max_det", "half", "tracker"}
+            k: self.CFG[k] for k in {"iou", "conf", "device", "max_det", "half", "tracker", "imgsz"}
         }  # verbose must be passed to track method; setting it False in YOLO still logs the track information.
 
         if is_cli and self.CFG["source"] is None:
@@ -248,12 +248,17 @@ class BaseSolution:
         if self.CFG["verbose"]:
             self.frame_no += 1
             counts = Counter(self.clss)  # Only for logging.
+            # Use model input shape (reflects imgsz) if predictor is available
+            if hasattr(self.model, "predictor") and self.model.predictor and hasattr(self.model.predictor, "imgsz"):
+                input_h, input_w = self.model.predictor.imgsz
+            else:
+                input_h, input_w = result.plot_im.shape[:2]
             LOGGER.info(
-                f"{self.frame_no}: {result.plot_im.shape[0]}x{result.plot_im.shape[1]} {solution_speed:.1f}ms,"
+                f"{self.frame_no}: {input_h}x{input_w} {solution_speed:.1f}ms,"
                 f" {', '.join([f'{v} {self.names[k]}' for k, v in counts.items()])}\n"
                 f"Speed: {track_or_predict_speed:.1f}ms {track_or_predict}, "
                 f"{solution_speed:.1f}ms solution per image at shape "
-                f"(1, {getattr(self.model, 'channels', 3)}, {result.plot_im.shape[0]}, {result.plot_im.shape[1]})\n"
+                f"(1, {getattr(self.model, 'channels', 3)}, {input_h}, {input_w})\n"
             )
         return result
 

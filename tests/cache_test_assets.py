@@ -9,7 +9,7 @@ to download the same remote resources.
 
 import shutil
 
-from ultralytics.cfg import TASK2MODEL, TASK2DATA, TASK2CALIBRATIONDATA
+from ultralytics.cfg import TASK2CALIBRATIONDATA, TASK2DATA, TASK2MODEL
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.utils import ASSETS_URL, LOGGER, WEIGHTS_DIR
 from ultralytics.utils.downloads import attempt_download_asset, safe_download

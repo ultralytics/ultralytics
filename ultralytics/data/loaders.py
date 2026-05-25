@@ -512,6 +512,7 @@ class LoadPilAndNumpy:
         self.im0 = [self._single_check(im, pil_flag) for im in im0]
         self.mode = "image"
         self.bs = len(self.im0)
+        self.count = 0
 
     @staticmethod
     def _single_check(im: Image.Image | np.ndarray, flag: str = "RGB") -> np.ndarray:
@@ -580,7 +581,8 @@ class LoadTensor:
         self.im0 = self._single_check(im0)
         self.bs = self.im0.shape[0]
         self.mode = "image"
-        self.paths = [getattr(im, "filename", f"image{i}.jpg") for i, im in enumerate(im0)]
+        self.paths = [f"image{i}.jpg" for i in range(self.bs)]
+        self.count = 0
 
     @staticmethod
     def _single_check(im: torch.Tensor, stride: int = 32) -> torch.Tensor:

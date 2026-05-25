@@ -823,6 +823,8 @@ class SemanticDataset(YOLODataset):
         mask = cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
         if mask is None:
             raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}")
+        if mask.ndim == 3 and mask.shape[2] == 1:
+            mask = np.squeeze(mask, axis=2)
         if int(self.data.get("nc", 0)) == 1:
             with Image.open(mask_file) as im:
                 if im.mode == "1":  # cv2 expands 1-bit PNGs to {0, 255}; map only true 1-bit foreground to 1.

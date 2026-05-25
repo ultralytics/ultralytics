@@ -64,7 +64,6 @@ def onnx2qnn(
         if not devices:
             raise RuntimeError("QNN EP registered but no QNN devices were found by ONNX Runtime.")
         options = ort.SessionOptions()
-        options.log_severity_level = 0  # TEMP: verbose QNN logging to surface the exact finalize failure in CI
         options.add_session_config_entry("ep.context_enable", "1")
         options.add_session_config_entry("ep.context_file_path", str(ctx_file))
         options.add_session_config_entry("ep.context_embed_mode", "1")

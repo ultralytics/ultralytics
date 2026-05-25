@@ -89,7 +89,7 @@ You can control which layers are frozen using the `--freeze` argument in the tra
 
 ### Freeze Backbone Only
 
-To freeze the entire backbone (layers 0 through 9), which is common when adapting the model to new object classes while retaining general feature extraction capabilities learned from a large dataset like [COCO](https://docs.ultralytics.com/datasets/detect/coco/):
+To freeze the entire backbone (layers 0 through 9), which is common when adapting the model to new object classes while retaining general feature extraction capabilities learned from a large dataset like [COCO](https://docs.ultralytics.com/datasets/detect/coco):
 
 ```bash
 python train.py --weights yolov5m.pt --data your_dataset.yaml --freeze 10
@@ -109,7 +109,7 @@ This approach is useful when you primarily need to adjust the model for a differ
 
 ## Performance Comparison
 
-To illustrate the effects of freezing layers, we trained YOLOv5m on the [Pascal VOC dataset](https://docs.ultralytics.com/datasets/detect/voc/) for 50 [epochs](https://www.ultralytics.com/glossary/epoch), starting from the official COCO pretrained [weights](https://www.ultralytics.com/glossary/model-weights) (`yolov5m.pt`). We compared three scenarios: training all layers (`--freeze 0`), freezing the backbone (`--freeze 10`), and freezing all but the final detection layers (`--freeze 24`).
+To illustrate the effects of freezing layers, we trained YOLOv5m on the [Pascal VOC dataset](https://docs.ultralytics.com/datasets/detect/voc) for 50 [epochs](https://www.ultralytics.com/glossary/epoch), starting from the official COCO pretrained [weights](https://www.ultralytics.com/glossary/model-weights) (`yolov5m.pt`). We compared three scenarios: training all layers (`--freeze 0`), freezing the backbone (`--freeze 10`), and freezing all but the final detection layers (`--freeze 24`).
 
 ```bash
 # Example command for training with backbone frozen
@@ -148,7 +148,7 @@ Layer freezing during transfer learning is particularly advantageous in several 
 3.  **Rapid Prototyping**: When you need to quickly adapt an existing model to a new task or domain for initial evaluation.
 4.  **Similar Feature Domains**: If the low-level features in your new dataset are very similar to those in the dataset the model was pretrained on.
 
-Explore more about the nuances of transfer learning in our [glossary entry](https://www.ultralytics.com/glossary/transfer-learning) and consider techniques like [hyperparameter tuning](https://docs.ultralytics.com/guides/hyperparameter-tuning/) for optimizing performance.
+Explore more about the nuances of transfer learning in our [glossary entry](https://www.ultralytics.com/glossary/transfer-learning) and consider techniques like [hyperparameter tuning](https://docs.ultralytics.com/guides/hyperparameter-tuning) for optimizing performance.
 
 ## Supported Environments
 

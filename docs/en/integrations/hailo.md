@@ -45,13 +45,13 @@ YOLO (.pt) -> ONNX -> HAR (parse) -> HAR (optimize/quantize) -> HEF (compile)
 
 This guide focuses on Ultralytics YOLO **object detection** models, because the Hailo model script and NMS configuration are detection-head specific.
 
-| Task                                         | Supported |
-| :------------------------------------------- | :-------- |
-| [Object Detection](../tasks/detect.md)       | Yes       |
-| [Segmentation](../tasks/segment.md)          | No        |
-| [Pose Estimation](../tasks/pose.md)          | No        |
-| [OBB Detection](../tasks/obb.md)             | No        |
-| [Classification](../tasks/classify.md)       | No        |
+| Task                                   | Supported |
+| :------------------------------------- | :-------- |
+| [Object Detection](../tasks/detect.md) | Yes       |
+| [Segmentation](../tasks/segment.md)    | No        |
+| [Pose Estimation](../tasks/pose.md)    | No        |
+| [OBB Detection](../tasks/obb.md)       | No        |
+| [Classification](../tasks/classify.md) | No        |
 
 For segmentation, pose, OBB, and classification deployments, compare other edge formats in the [Export mode](../modes/export.md) table or use a generic ONNX pipeline where your target runtime supports the task.
 
@@ -89,6 +89,7 @@ Before running the script, download the matching YOLO11n NMS config file from th
     import numpy as np
     from hailo_sdk_client import ClientRunner
     from PIL import Image
+
     from ultralytics import YOLO
     from ultralytics.data.utils import check_det_dataset
     from ultralytics.utils import DATASETS_DIR

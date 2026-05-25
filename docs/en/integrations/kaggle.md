@@ -157,7 +157,7 @@ When working with Kaggle, you might encounter some common issues. Here are key p
 
 Next, let's understand the features Kaggle offers that make it an excellent platform for data science and machine learning enthusiasts. Here are some of the key highlights:
 
-- **Datasets**: Kaggle hosts a massive collection of [datasets](https://docs.ultralytics.com/datasets/) on various topics. You can easily search and use these datasets in your projects, which is particularly handy for training and testing your YOLO26 models.
+- **Datasets**: Kaggle hosts a massive collection of [datasets](https://docs.ultralytics.com/datasets) on various topics. You can easily search and use these datasets in your projects, which is particularly handy for training and testing your YOLO26 models.
 - **Competitions**: Known for its exciting competitions, Kaggle allows data scientists and machine learning enthusiasts to solve real-world problems. Competing helps you improve your skills, learn new techniques, and gain recognition in the community.
 - **Free Access to TPUs**: Kaggle provides free access to powerful [TPUs](https://www.ultralytics.com/glossary/tpu-tensor-processing-unit), which are beneficial for training complex machine learning models. This allows you to speed up processing and boost the performance of your YOLO26 projects without incurring extra costs.
 - **Integration with GitHub**: Kaggle allows you to easily connect your GitHub repository to upload notebooks and save your work. This integration makes it convenient to manage and access your files.
@@ -188,7 +188,7 @@ We've seen how Kaggle can boost your YOLO26 projects by providing free access to
 
 For more details, visit [Kaggle's documentation](https://www.kaggle.com/docs).
 
-Interested in more YOLO26 integrations? Check out the [Ultralytics integration guide](https://docs.ultralytics.com/integrations/) to explore additional tools and capabilities for your machine learning projects.
+Interested in more YOLO26 integrations? Check out the [Ultralytics integration guide](https://docs.ultralytics.com/integrations) to explore additional tools and capabilities for your machine learning projects.
 
 ## FAQ
 
@@ -215,7 +215,7 @@ Kaggle offers several advantages for training YOLO26 models:
 - **Community Collaboration**: Engage with a vast community of data scientists and machine learning enthusiasts.
 - **Version Control**: Easily manage different versions of your notebooks and revert to previous versions if needed.
 
-For more details, visit our [Ultralytics integration guide](https://docs.ultralytics.com/integrations/).
+For more details, visit our [Ultralytics integration guide](https://docs.ultralytics.com/integrations).
 
 ### What common issues might I encounter when using Kaggle for YOLO26, and how can I resolve them?
 

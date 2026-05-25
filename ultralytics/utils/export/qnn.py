@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ultralytics.utils import ARM64, LINUX, LOGGER, WINDOWS, YAML
+from ultralytics.utils import LOGGER, YAML
 from ultralytics.utils.checks import check_requirements
 
 
@@ -45,12 +45,18 @@ def onnx2qnn(
         Linux x86-64 or macOS wheel — on those hosts build ONNX Runtime from source with ``--use_qnn``, or generate the
         context binary on a supported platform.
     """
-    assert WINDOWS or (LINUX and ARM64), (
-        "QNN export requires 'onnxruntime-qnn', which ships prebuilt wheels only for Windows (x64/ARM64) and Linux "
-        "ARM64 (aarch64). No wheel exists for Linux x86-64 or macOS — build ONNX Runtime from source with '--use_qnn' "
-        "or run the export on a supported platform."
-    )
-    check_requirements("onnxruntime-qnn")
+    # 'onnxruntime-qnn' is a plugin EP. Use a pre-installed build if present (e.g. a Linux x86-64 source build), else
+    # install the prebuilt wheel (Windows x64/ARM64, Linux ARM64). No wheel exists for Linux x86-64 or macOS.
+    try:
+        import onnxruntime_qnn  # noqa: F401
+    except ImportError:
+        try:
+            check_requirements("onnxruntime-qnn")
+        except Exception as e:
+            raise ImportError(
+                "QNN export requires 'onnxruntime-qnn'. Prebuilt wheels exist only for Windows (x64/ARM64) and Linux "
+                "ARM64 (aarch64); on Linux x86-64 or macOS, build ONNX Runtime from source with '--use_qnn'."
+            ) from e
     import onnxruntime as ort
     import onnxruntime_qnn as qnn_ep
     from onnxruntime.quantization import CalibrationDataReader, quantize

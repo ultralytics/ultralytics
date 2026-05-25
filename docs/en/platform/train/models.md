@@ -362,7 +362,7 @@ Ultralytics Platform fully supports all YOLO architectures with dedicated projec
 - [**YOLOv8**](../../models/yolov8.md): n, s, m, l, x variants — [platform.ultralytics.com/ultralytics/yolov8](https://platform.ultralytics.com/ultralytics/yolov8)
 - [**YOLOv5**](../../models/yolov5.md): n, s, m, l, x variants — [platform.ultralytics.com/ultralytics/yolov5](https://platform.ultralytics.com/ultralytics/yolov5)
 
-YOLO26 supports 6 task types: [detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [semantic](../../tasks/semantic.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), and [classify](../../tasks/classify.md). YOLO11, YOLOv8, and YOLOv5 support the same set except semantic segmentation.
+YOLO26 supports 6 task types: [detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [semantic](../../tasks/semantic.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), and [classify](../../tasks/classify.md). YOLO11 and YOLOv8 support the same set except semantic segmentation, while YOLOv5 supports detect, segment, and classify.
 
 ### Can I download my trained model?
 

@@ -8,8 +8,6 @@ val: images/validation
 
 # Semantic mask directory (PNG files, pixel values = class IDs 0-149, 255 = ignore/void)
 masks_dir: annotations
-crop_size: 512
-size_range: [512, 2048]
 
 # ADE20K 150-class labels
 names:

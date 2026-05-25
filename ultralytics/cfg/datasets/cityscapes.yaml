@@ -10,8 +10,6 @@ test: images/test
 
 # Semantic mask directory (PNG files, pixel values = class IDs 0-18, 255 = ignore/void)
 masks_dir: masks
-crop_size: 1024
-size_range: [1024, 2048]
 
 # Cityscapes 19-class labels
 names:

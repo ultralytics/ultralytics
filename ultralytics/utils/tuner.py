@@ -425,9 +425,12 @@ def run_ray_tune(
         config = _sanitize_tune_value(dict(config))
         config.update(train_args)
 
-        # Set trial-specific name for W&B logging
+        # Ray ≥2.7 moved the API from `tune.get_trial_id()` to `tune.get_context().get_trial_id()`.
         try:
-            trial_id = tune.get_trial_id()  # Get current trial ID (e.g., "2c2fc_00000")
+            if hasattr(tune, "get_context"):
+                trial_id = tune.get_context().get_trial_id()
+            else:
+                trial_id = tune.get_trial_id()  # Ray <2.7
             trial_suffix = trial_id.split("_")[-1] if "_" in trial_id else trial_id
             config["name"] = f"{base_name}_{trial_suffix}"
         except Exception:

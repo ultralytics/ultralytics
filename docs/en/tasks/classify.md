@@ -30,7 +30,7 @@ The output of an image classifier is a single class label and a confidence score
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
 
-YOLO26 pretrained Classify models are shown here. Detect, Segment, and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, while Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
+YOLO26 pretrained Classify models are shown here. Detect, Segment, and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, [Semantic](semantic.md) models are pretrained on [Cityscapes](../datasets/semantic/cityscapes.md), and Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) are downloaded automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
@@ -197,6 +197,12 @@ Use a trained YOLO26n-cls model to run predictions on images.
 
         # Predict with the model
         results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
+
+        # Access the results
+        for result in results:
+            top1 = result.probs.top1  # top predicted class ID
+            top1_conf = result.probs.top1conf  # top prediction confidence
+            top1_name = result.names[top1]  # top predicted class name
         ```
 
     === "CLI"
@@ -207,6 +213,21 @@ Use a trained YOLO26n-cls model to run predictions on images.
         ```
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
+
+### Results Output
+
+Image classification returns one `Results` object per image. The primary prediction field is `result.probs`, which
+contains the class probability vector and helpers for top predictions.
+
+| Attribute               | Type            | Shape   | Description            |
+| ----------------------- | --------------- | ------- | ---------------------- |
+| `result.probs`          | `Probs`         | `(C,)`  | Class probabilities.   |
+| `result.probs.data`     | `torch.float32` | `(C,)`  | Probability per class. |
+| `result.probs.top1`     | `int`           | `()`    | Top class ID.          |
+| `result.probs.top1conf` | `torch.float32` | `()`    | Top confidence.        |
+| `result.probs.top5`     | `list[int]`     | `(<=5)` | Top-5 class IDs.       |
+
+For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
 
 ## Export
 

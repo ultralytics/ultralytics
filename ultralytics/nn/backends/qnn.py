@@ -57,7 +57,10 @@ class QNNBackend(BaseBackend):
             self.session = onnxruntime.InferenceSession(str(onnx_file), sess_options=options)
         else:  # monolithic build: QNN EP selected by name
             self.session = onnxruntime.InferenceSession(
-                str(onnx_file), sess_options=options, providers=[ep_name], provider_options=[{"backend_path": backend_path}]
+                str(onnx_file),
+                sess_options=options,
+                providers=[ep_name],
+                provider_options=[{"backend_path": backend_path}],
             )
         self.output_names = [x.name for x in self.session.get_outputs()]
 

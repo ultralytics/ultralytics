@@ -14,13 +14,13 @@ Deploying computer vision models on Qualcomm Snapdragon devices requires a model
   <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/qnn_cover.avif" alt="Qualcomm QNN on-device inference">
 </p>
 
-[Qualcomm AI Engine Direct](https://www.qualcomm.com/developer/software/qualcomm-ai-engine-direct-sdk) — commonly referred to as **QNN** and distributed as part of the Qualcomm AI Runtime (QAIRT) SDK — is Qualcomm's low-level inference stack for Snapdragon processors. It provides a unified API with backend-specific libraries that target the Snapdragon CPU, the Adreno GPU, and the Hexagon Tensor Processor (HTP), the dedicated neural processing unit (NPU) inside modern Snapdragon SoCs. QNN gives developers full-stack access to these Snapdragon AI accelerators and is the modern successor to the older Snapdragon Neural Processing Engine (SNPE) SDK. It powers on-device AI across the Snapdragon 8 Gen 2, 8 Gen 3, and 8 Elite mobile platforms, Snapdragon X laptops, and automotive and XR products.
+[Qualcomm AI Engine Direct](https://www.qualcomm.com/developer/software/qualcomm-ai-engine-direct-sdk) — commonly referred to as **QNN** and distributed as part of the Qualcomm AI Runtime (QAIRT) SDK — is Qualcomm's low-level inference stack for [Snapdragon](https://www.qualcomm.com/products/mobile/snapdragon) processors. It provides a unified API with backend-specific libraries that target the Snapdragon CPU, the Adreno GPU, and the Hexagon Tensor Processor (HTP), the dedicated [neural network](https://www.ultralytics.com/glossary/neural-network-nn) processing unit (NPU) inside modern Snapdragon SoCs. QNN gives developers full-stack access to these Snapdragon AI accelerators and is the modern successor to the older [Snapdragon Neural Processing Engine (SNPE)](https://www.qualcomm.com/developer/software/neural-processing-sdk-for-ai) SDK. It powers on-device AI across the Snapdragon 8 Gen 2, 8 Gen 3, and 8 Elite mobile platforms, Snapdragon X laptops, and automotive and XR products.
 
 ## Why Export to Qualcomm QNN?
 
 Snapdragon is the most widely deployed mobile compute platform in the world. Exporting Ultralytics YOLO to the Qualcomm QNN format unlocks the dedicated AI hardware on these devices:
 
-- **Hexagon NPU acceleration**: Running YOLO on the Hexagon Tensor Processor delivers dramatically higher throughput and lower power than CPU inference — ideal for real-time, always-on computer vision on Snapdragon.
+- **Hexagon NPU acceleration**: Running YOLO on the Hexagon Tensor Processor delivers dramatically higher throughput and lower power than CPU inference — ideal for [real-time inference](https://www.ultralytics.com/glossary/real-time-inference) and always-on computer vision on Snapdragon.
 - **On-device and offline**: QNN inference runs entirely on the Snapdragon device, so there are no cloud round-trips, latency stays low, and data never leaves the device.
 - **INT8 efficiency**: QNN export quantizes YOLO to [INT8](https://www.ultralytics.com/glossary/model-quantization), the Hexagon NPU's native precision, shrinking model size and maximizing frames per second on battery-powered hardware.
 - **One format, many devices**: A single Qualcomm QNN export targets Snapdragon CPU, Adreno GPU, and Hexagon NPU across the Snapdragon 8 Gen 2, 8 Gen 3, and 8 Elite families and beyond.
@@ -45,7 +45,7 @@ The exported `_qnn_model/` directory bundles the context-binary ONNX and a `meta
 
 ## Supported Tasks
 
-All standard Ultralytics tasks are supported for QNN export across YOLO26, YOLO11, and YOLOv8 model families.
+All standard Ultralytics tasks are supported for QNN export across the [YOLO26](../models/yolo26.md), [YOLO11](../models/yolo11.md), and [YOLOv8](../models/yolov8.md) model families.
 
 | Task                                                           | Supported |
 | :------------------------------------------------------------- | :-------- |
@@ -57,7 +57,7 @@ All standard Ultralytics tasks are supported for QNN export across YOLO26, YOLO1
 
 ## Export to QNN: Converting Your YOLO Model
 
-Export an Ultralytics YOLO model to QNN format for deployment on Snapdragon hardware. The context binary is finalized for a target Hexagon Tensor Processor (HTP) architecture, which you select with the `name` argument.
+Export an Ultralytics YOLO model to QNN format for deployment on Snapdragon hardware. The context binary is finalized for a target Hexagon Tensor Processor (HTP) architecture, which you select with the `name` argument — the same argument used to target a chip in [RKNN export](rockchip-rknn.md).
 
 ### Supported HTP Architectures
 
@@ -174,7 +174,7 @@ The QNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
 
 !!! note "Precision"
 
-    The Hexagon NPU (HTP) is an int8 accelerator, so QNN export quantizes the model to **INT8** using the ONNX Runtime QNN QDQ flow with calibration images from `data`. `int8=True` is enforced automatically.
+    The Hexagon NPU (HTP) is an int8 accelerator, so QNN export quantizes the model to **INT8** using the [ONNX Runtime QDQ quantization](https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html) flow with calibration images from `data`. `int8=True` is enforced automatically.
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -190,9 +190,9 @@ The `yolo26n_qnn.onnx` file embeds the QNN context binary and is loaded by ONNX 
 
 ## Deploying Exported YOLO QNN Models
 
-QNN models run on Qualcomm Snapdragon hardware. On a Snapdragon device with `onnxruntime-qnn` installed, run the exported model directly with the Ultralytics API (`yolo predict`/`yolo val`, see [Usage](#usage) above) — Ultralytics loads the context binary through the [ONNX Runtime QNN Execution Provider](https://onnxruntime.ai/docs/execution-providers/QNN-ExecutionProvider.html) and selects the HTP (NPU), GPU, or CPU backend.
+QNN models run on Qualcomm Snapdragon hardware, making on-device [model deployment](https://www.ultralytics.com/glossary/model-deployment) straightforward. On a Snapdragon device with `onnxruntime-qnn` installed, run the exported model directly with the Ultralytics API (`yolo predict`/`yolo val`, see [Usage](#usage) above) — Ultralytics loads the context binary through the [ONNX Runtime QNN Execution Provider](https://onnxruntime.ai/docs/execution-providers/QNN-ExecutionProvider.html) and selects the HTP (NPU), GPU, or CPU backend.
 
-For custom pipelines, you can also load the context-binary ONNX directly with ONNX Runtime. `onnxruntime-qnn` is a plugin Execution Provider, so register it at runtime:
+For custom pipelines, you can also load the context-binary [ONNX](https://onnx.ai/) directly with ONNX Runtime. `onnxruntime-qnn` is a plugin Execution Provider, so register it at runtime:
 
 ```python
 import onnxruntime as ort
@@ -233,7 +233,7 @@ In this guide, you've learned how to export Ultralytics YOLO models to the Qualc
 
 The combination of [Ultralytics YOLO](https://www.ultralytics.com/yolo) and Qualcomm's on-device AI stack provides an effective solution for running advanced [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) workloads across the broad Snapdragon ecosystem.
 
-For other on-device and mobile deployment targets, see the related [ONNX](onnx.md), [NCNN](ncnn.md), [ExecuTorch](executorch.md), [TFLite](tflite.md), and [TensorRT](tensorrt.md) export guides. For the full list of formats and options, visit the [Export mode](../modes/export.md) documentation and the [integrations guide page](../integrations/index.md).
+For other on-device and mobile deployment targets, see the related [ONNX](onnx.md), [CoreML](coreml.md), [NCNN](ncnn.md), [TFLite](tflite.md), [ExecuTorch](executorch.md), [RKNN](rockchip-rknn.md), [Sony IMX500](sony-imx500.md), and [TensorRT](tensorrt.md) export guides. To compare formats before shipping, use [Benchmark mode](../modes/benchmark.md). For the full list of formats and options, visit the [Export mode](../modes/export.md) documentation and the [integrations guide page](../integrations/index.md).
 
 ## FAQ
 

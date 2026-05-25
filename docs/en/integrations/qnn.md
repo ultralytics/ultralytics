@@ -44,7 +44,19 @@ All standard Ultralytics tasks are supported for QNN export across YOLO26, YOLO1
 
 ## Export to QNN: Converting Your YOLO Model
 
-Export an Ultralytics YOLO model to QNN format for deployment on Snapdragon hardware.
+Export an Ultralytics YOLO model to QNN format for deployment on Snapdragon hardware. The context binary is finalized for a target Hexagon Tensor Processor (HTP) architecture, which you select with the `name` argument.
+
+### Supported HTP Architectures
+
+Pass the target architecture via `name` (e.g. `name="73"`). Valid values:
+
+| `name` | Hexagon HTP | Snapdragon platform           |
+| :----- | :---------- | :---------------------------- |
+| `68`   | v68         | Snapdragon 865                |
+| `69`   | v69         | Snapdragon 888 / 8 Gen 1      |
+| `73`   | v73         | Snapdragon 8 Gen 2 (default)  |
+| `75`   | v75         | Snapdragon 8 Gen 3            |
+| `79`   | v79         | Snapdragon 8 Elite            |
 
 !!! note "Platform support"
 

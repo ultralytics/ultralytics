@@ -40,7 +40,7 @@ This guide serves as a comprehensive introduction to setting up a Docker environ
 
 - Make sure Docker is installed on your system. If not, you can download and install it from [Docker's website](https://www.docker.com/products/docker-desktop/).
 - Ensure that your system has an NVIDIA GPU and NVIDIA drivers are installed.
-- If you are using NVIDIA Jetson devices, ensure that you have the appropriate JetPack version installed. Refer to the [NVIDIA Jetson guide](https://docs.ultralytics.com/guides/nvidia-jetson/) for more details.
+- If you are using NVIDIA Jetson devices, ensure that you have the appropriate JetPack version installed. Refer to the [NVIDIA Jetson guide](https://docs.ultralytics.com/guides/nvidia-jetson) for more details.
 
 ---
 
@@ -154,9 +154,9 @@ Ultralytics offers several Docker images optimized for various platforms and use
 - **Dockerfile:** GPU image, ideal for training.
 - **Dockerfile-arm64:** For ARM64 architecture, suitable for devices like [Raspberry Pi](raspberry-pi.md).
 - **Dockerfile-cpu:** CPU-only version for inference and non-GPU environments.
-- **Dockerfile-jetson-jetpack4:** Optimized for [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson/) devices running [NVIDIA JetPack 4](https://developer.nvidia.com/embedded/jetpack-sdk-461).
-- **Dockerfile-jetson-jetpack5:** Optimized for [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson/) devices running [NVIDIA JetPack 5](https://developer.nvidia.com/embedded/jetpack-sdk-512).
-- **Dockerfile-jetson-jetpack6:** Optimized for [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson/) devices running [NVIDIA JetPack 6](https://developer.nvidia.com/embedded/jetpack-sdk-61).
+- **Dockerfile-jetson-jetpack4:** Optimized for [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson) devices running [NVIDIA JetPack 4](https://developer.nvidia.com/embedded/jetpack-sdk-461).
+- **Dockerfile-jetson-jetpack5:** Optimized for [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson) devices running [NVIDIA JetPack 5](https://developer.nvidia.com/embedded/jetpack-sdk-512).
+- **Dockerfile-jetson-jetpack6:** Optimized for [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson) devices running [NVIDIA JetPack 6](https://developer.nvidia.com/embedded/jetpack-sdk-61).
 - **Dockerfile-jupyter:** For interactive development using JupyterLab in the browser.
 - **Dockerfile-nvidia-arm64:** For NVIDIA ARM64 devices such as Jetson AGX Thor and DGX Spark, supporting JetPack 7.0 and DGX OS.
 - **Dockerfile-python:** Minimal Python environment for lightweight applications.

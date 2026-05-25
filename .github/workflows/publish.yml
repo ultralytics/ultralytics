@@ -79,6 +79,14 @@ jobs:
           path = Path("pyproject.toml")
           text = path.read_text()
           text = text.replace('name = "ultralytics"', 'name = "ultralytics-opencv-headless"', 1)
+          text = "\n".join(
+              (
+                  'description = "Ultralytics YOLO 🚀 for SOTA computer vision in server, container, and headless environments."'
+                  if line.startswith("description = ")
+                  else line
+              )
+              for line in text.splitlines()
+          ) + "\n"
           text = text.replace('"opencv-python>=', '"opencv-python-headless>=', 1)
           path.write_text(text)
           PY

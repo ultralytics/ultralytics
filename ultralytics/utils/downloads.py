@@ -332,9 +332,9 @@ def safe_download(
 
         f = Path(dir or ".") / (file or url2file(url))  # URL converted to filename
         if not f.is_file():  # URL and file do not exist
-            f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
             uri = (url if gdrive else clean_url(url)).replace(ASSETS_URL, "https://ultralytics.com/assets")  # clean
             desc = f"Downloading {uri} to '{f}'"
+            f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
             curl_installed = shutil.which("curl")
             for i in range(retry + 1):
                 try:

@@ -32,7 +32,10 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
         >>> img = imread("path/to/image.jpg")
         >>> img = imread("path/to/image.jpg", cv2.IMREAD_GRAYSCALE)
     """
-    file_bytes = np.fromfile(filename, np.uint8)
+    try:
+        file_bytes = np.fromfile(filename, np.uint8)
+    except (FileNotFoundError, OSError):
+        return None
     if filename.endswith((".tiff", ".tif")):
         success, frames = cv2.imdecodemulti(file_bytes, cv2.IMREAD_UNCHANGED)
         if success:

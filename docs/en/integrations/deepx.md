@@ -32,12 +32,13 @@ DeepX models offer several advantages for edge deployment:
 
 ## Supported Tasks
 
-All standard Ultralytics tasks are supported for DeepX export across YOLO26, YOLO11, and YOLOv8 model families.
+DeepX export supports the standard task set available in each model family, including YOLO26 semantic segmentation.
 
 | Task                                                           | Supported |
 | :------------------------------------------------------------- | :-------- |
 | [Object Detection](https://docs.ultralytics.com/tasks/detect/) | ✅        |
-| [Segmentation](https://docs.ultralytics.com/tasks/segment/)    | ✅        |
+| [Instance Segmentation](https://docs.ultralytics.com/tasks/segment/) | ✅        |
+| [Semantic Segmentation](https://docs.ultralytics.com/tasks/semantic/) | ✅        |
 | [Pose Estimation](https://docs.ultralytics.com/tasks/pose/)    | ✅        |
 | [OBB Detection](https://docs.ultralytics.com/tasks/obb/)       | ✅        |
 | [Classification](https://docs.ultralytics.com/tasks/classify/) | ✅        |
@@ -345,7 +346,7 @@ The export creates a directory (e.g., `yolo26n_deepx_model/`) containing:
 
 ### Can I deploy custom-trained models on DeepX hardware?
 
-Yes. Any model trained using [Ultralytics Train Mode](../modes/train.md) and exported with `format="deepx"` can be deployed on DeepX NPU hardware, provided it uses supported layer operations. Export supports detection, segmentation, pose estimation, oriented bounding box (OBB), and classification tasks.
+Yes. Any model trained using [Ultralytics Train Mode](../modes/train.md) and exported with `format="deepx"` can be deployed on DeepX NPU hardware, provided it uses supported layer operations. Export supports detection, instance segmentation, semantic segmentation, pose estimation, oriented bounding box (OBB), and classification tasks.
 
 ### How many calibration images should I use for DeepX export?
 

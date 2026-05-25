@@ -36,10 +36,10 @@ Choose from official YOLO26 models or your own trained models:
 
 | Category        | Description                              |
 | --------------- | ---------------------------------------- |
-| **Official**    | All 25 YOLO26 models (5 sizes x 5 tasks) |
+| **Official**    | All 30 YOLO26 models (5 sizes x 6 tasks) |
 | **Your Models** | Your completed models for fine-tuning    |
 
-Official models are organized by task type ([Detect](../../tasks/detect.md), [Segment](../../tasks/segment.md), [Pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [Classify](../../tasks/classify.md)) with sizes from nano to xlarge.
+Official models are organized by task type ([Detect](../../tasks/detect.md), [Segment](../../tasks/segment.md), [Semantic](../../tasks/semantic.md), [Pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [Classify](../../tasks/classify.md)) with sizes from nano to xlarge.
 
 ### Step 2: Select Dataset
 

@@ -52,8 +52,8 @@ DATASET_CACHE_VERSION = "1.0.3"
 class YOLODataset(BaseDataset):
     """Dataset class for loading object detection and/or segmentation labels in YOLO format.
 
-    This class supports loading data for object detection, segmentation, pose estimation, and oriented bounding box
-    (OBB) tasks using the YOLO format.
+    This class supports loading data for object detection, instance segmentation, semantic segmentation, pose
+    estimation, and oriented bounding box (OBB) tasks using the YOLO format.
 
     Attributes:
         use_segments (bool): Indicates if segmentation masks should be used.

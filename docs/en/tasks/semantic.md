@@ -26,7 +26,7 @@ YOLO26 semantic segmentation models pretrained on the [Cityscapes](https://githu
 {% include "macros/yolo-semantic-perf.md" %}
 
 - **mIoU<sup>val</sup>** values are for single-model single-scale on the [Cityscapes](https://www.cityscapes-dataset.com/) validation set. <br>Reproduce with `yolo semantic val data=cityscapes.yaml device=0 imgsz=2048`
-- **Speed** metrics are averaged over Cityscapes validation images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce with `yolo semantic val data=cityscapes.yaml batch=1 device=0|cpu imgsz=2048`
+- **Speed** metrics are averaged over Cityscapes validation images using an RTX3090 instance. <br>Reproduce with `yolo semantic val data=cityscapes.yaml batch=1 device=0|cpu imgsz=2048`
 - **Params** and **FLOPs** values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
 ## Train
@@ -116,7 +116,7 @@ Use a trained YOLO26n-sem model to run predictions on images.
 
         # Access the results
         for result in results:
-            semantic_mask = result.semantic_mask.data  # height x width class map (torch.Tensor)
+            semantic_mask = result.semantic_mask.data  # class map, shape (H,W), integer dtype selected by class count
         ```
 
     === "CLI"
@@ -127,6 +127,37 @@ Use a trained YOLO26n-sem model to run predictions on images.
         ```
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
+
+### Results Output
+
+YOLO semantic segmentation returns one `Results` object per image. Each result stores one dense class map for the full
+image instead of a list of object masks. Pixels with the same predicted class share the same class ID, even when they
+belong to separate objects.
+
+| Attribute                   | Type                                            | Shape   | Description                               |
+| --------------------------- | ----------------------------------------------- | ------- | ----------------------------------------- |
+| `result.semantic_mask`      | `SemanticMask`                                  | `(H,W)` | Dense class map.                          |
+| `result.semantic_mask.data` | `torch.uint8`<br>`torch.int16`<br>`torch.int32` | `(H,W)` | Class IDs; dtype selected by class count. |
+| `result.masks`              | -                                               | -       | No instance masks.                        |
+| `result.boxes`              | -                                               | -       | No instance boxes/confidences.            |
+| `result.masks.xy`           | -                                               | -       | No default polygons.                      |
+
+For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
+
+### Instance vs Semantic Segmentation
+
+| Aspect               | Instance Segmentation (`task="segment"`)               | Semantic Segmentation (`task="semantic"`)                        |
+| -------------------- | ------------------------------------------------------ | ---------------------------------------------------------------- |
+| Prediction goal      | Segment each detected object separately                | Assign one class ID to every pixel                               |
+| Output field         | `result.masks`                                         | `result.semantic_mask`                                           |
+| Main data            | `result.masks.data`                                    | `result.semantic_mask.data`                                      |
+| Shape                | `(N,H,W)`                                              | `(H,W)`                                                          |
+| Pixel values         | Binary mask values: `0` or `1`                         | Class IDs: `0`, `1`, `2`, ...                                    |
+| Dtype                | `torch.uint8`                                          | `torch.uint8`<br>`torch.int16`<br>`torch.int32`                  |
+| Same-class objects   | Kept as separate instances                             | Merged into the same class region                                |
+| Polygons             | Yes, through `result.masks.xy` and `result.masks.xyn`  | No polygon output by default                                     |
+| Boxes and confidence | Yes, through `result.boxes`                            | No per-instance boxes or confidence scores                       |
+| Typical use          | Counting, tracking, cropping, object-level measurement | Dense scene labeling, drivable area, land cover, medical regions |
 
 ## Export
 

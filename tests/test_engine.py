@@ -12,9 +12,9 @@ from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.engine.trainer import BaseTrainer
-from ultralytics.models.yolo import classify, detect, obb, pose, segment
+from ultralytics.models.yolo import classify, detect, obb, pose, segment, semantic
 from ultralytics.nn.tasks import load_checkpoint
-from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
+from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_RASPBERRYPI, WEIGHTS_DIR
 
 
 def test_func(*args, **kwargs):
@@ -60,8 +60,17 @@ def test_export():
         ),
         (obb.OBBTrainer, obb.OBBValidator, obb.OBBPredictor, "dota8.yaml", "yolo26n-obb.yaml", None),
         (pose.PoseTrainer, pose.PoseValidator, pose.PosePredictor, "coco8-pose.yaml", "yolo26n-pose.yaml", None),
+        (
+            semantic.SemanticSegmentationTrainer,
+            semantic.SemanticSegmentationValidator,
+            semantic.SemanticSegmentationPredictor,
+            "cityscapes8.yaml",
+            "yolo26n-sem.yaml",
+            None,
+        ),
     ],
 )
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
     """Test YOLO training, validation, and prediction for various tasks."""
     overrides = {
@@ -167,6 +176,7 @@ def test_nan_recovery():
     "kwargs,uses_weights",
     [({}, True), ({"pretrained": True}, True), ({"pretrained": False}, False), ({"pretrained": MODEL}, True)],
 )
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_reuses_loaded_checkpoint_model(monkeypatch, kwargs, uses_weights):
     """Test training reuses loaded checkpoint config while respecting the pretrained argument."""
     model = YOLO("yolo26n.yaml")

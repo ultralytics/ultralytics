@@ -1,25 +1,42 @@
-"""Training-free anomaly detection: memory bank of normal patch tokens, swappable backbone.
+"""Training-free patch-NN anomaly detection with swappable backbone.
 
-Pipeline (identical regardless of backbone — this is the whole point of the file):
-  - Extract patch tokens from each training image, L2-normalize, concat → bank [M, D].
-  - For each test image: per-patch cosine similarity vs bank, 1-NN → distance per patch.
-  - Image score = mean of top-1% patch distances.
-  - Pixel map = patch dist grid bilinear-upsampled to eval_size.
-  - GT mask via AnomalyValidator._gt_mask_from_polygons (same eval path as YOLOAnomaly).
+Architecture
+============
 
-Backbones (selected via ``--backbone``):
-  - ``dino_vits14`` / ``dino_vitb14`` / ``dino_vitl14``: DINOv2 patch tokens
-    (Damm et al., WACV 2025). Default imgsz=448 (must be a multiple of 14).
-  - ``yolo_p3`` / ``yolo_p4`` / ``yolo_p5``: YOLO backbone features at the chosen
-    pyramid level. Default imgsz=640 (must be a multiple of 32). Weight via ``--weight``.
+::
 
-Use ``--backbone yolo_p3`` to isolate the backbone variable: if numbers stay near
-YOLOAnomaly's, the gap is the YOLO backbone itself; if they jump toward DINO's, the gap
-is in YOLOAnomaly's bank-construction (EM/coreset) or score aggregation.
+    AnomalyBase                            # Pipeline contract (constructor + 4 standard modules below).
+     ├── AnomalyDINO                       # DINOv2 ViT, single layer (no fusion).
+     └── _MultiLayerAnomaly                # Adds: hooks → self._cached dict, multi-layer fuse.
+          ├── AnomalyYOLO                  # YOLO backbone (Ultralytics ckpt), taps {bb, pre, cv3}.
+          └── AnomalyPatchCore             # torchvision ResNet/WideResNet, layer1..4.
 
-Intentionally omits two paper tricks to keep the baseline minimal:
-  * PCA foreground masking (objects)  — would lift object-class numbers a few points
-  * rotation augmentation (objects)   — same
+The four standard modules every subclass plugs into (see ``AnomalyBase`` docstring for full
+contract). Override what you need:
+
+1. **Backbone**          — ``_build_model`` / ``_build_preprocess`` / ``_extract``.
+2. **Bank construction** — ``load_support_set`` is the for-loop; subclasses can override
+   ``_filter_tokens`` to drop irrelevant patches (e.g. PCA foreground mask) before banking.
+3. **Compaction**        — ``_compact``; default = PatchCore-style greedy FPS coreset (with optional
+   random pre-sample). Override for KMeans / random / no-op.
+4. **Scoring**           — ``_score_patches`` (cosine 1-NN or L2 1-NN) + ``_aggregate_image_score``
+   (top-k% mean) + ``_upsample_pixel_map``.
+
+Usage
+=====
+
+::
+
+    python tools/anomaly_dino.py --backbone dino_vits14
+    python tools/anomaly_dino.py --backbone yolo_p4_bb --weight yoloe-26l-seg.pt --coreset 10000 --coreset_presample 100000
+    python tools/anomaly_dino.py --backbone wrn50_l23 --fuse patchcore --patchsize 3
+
+Caveats
+=======
+
+* MPS adaptive_avg_pool1d on non-divisible (in, out) sizes is unimplemented → we run pool on CPU.
+* MPS allocator can silently corrupt large/high-dim banks across categories → ``empty_cache`` between cats.
+* MPS argmin on large/duplicate-heavy banks gives wrong results → FPS runs on CPU.
 """
 import argparse
 import csv
@@ -40,7 +57,11 @@ from ultra_ext.yoloa import MVTEC_CATEGORIES, get_mvtec_yolo_data
 from ultralytics.models.yolo.model import AnomalyValidator
 
 
-_DINOV2_HUB = {  # short name -> (torch.hub entry, feat_dim)
+# ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
+
+_DINOV2_HUB = {  # short → (torch.hub entry, feat_dim)
     "vits14": ("dinov2_vits14_reg", 384),
     "vitb14": ("dinov2_vitb14_reg", 768),
     "vitl14": ("dinov2_vitl14_reg", 1024),
@@ -50,115 +71,169 @@ _IMAGENET_MEAN = (0.485, 0.456, 0.406)
 _IMAGENET_STD = (0.229, 0.224, 0.225)
 
 _YOLO_LAYER_IDX = {"P3": 0, "P4": 1, "P5": 2}
-# tap = where we tap the network for patch tokens:
-#   "bb"  → backbone stage output (pre-FPN); layer indices below are for yolo26 / v8 / v11 detection.
-#   "pre" → Detect module input (post-neck/FPN, pre-head); current default.
-#   "cv3" → cls-branch c3-dim feat right before the 1x1 nc-projection.
-_YOLO_TAPS = ("bb", "pre", "cv3")
+_YOLO_TAPS = ("bb", "pre", "cv3")  # bb=pre-FPN backbone stage, pre=Detect input, cv3=cls-branch
 _YOLO_BB_LAYER = {"P3": 4, "P4": 6, "P5": 10}
 
+_RESNET_LAYERS = ("l1", "l2", "l3", "l4")
+_RESNET_LAYER_ATTR = {"l1": "layer1", "l2": "layer2", "l3": "layer3", "l4": "layer4"}
 
-class AnomalyDINO:
-    """DINOv2 + memory-bank anomaly detector (Damm et al., 2024)."""
+_FUSE_CHOICES = ("concat", "sum", "avg", "patchcore", "concat_pool")
+_SCORE_CHOICES = ("cosine", "l2")
+
+
+# ---------------------------------------------------------------------------
+# Base class — defines the contract for the 4 standard modules
+# ---------------------------------------------------------------------------
+
+
+class AnomalyBase:
+    """Training-free patch-NN anomaly detector. Subclass to plug in a backbone.
+
+    Standard modules (override as needed):
+
+    * **Backbone** (``_build_model``, ``_build_preprocess``, ``_extract``):
+      ``_extract(x: [B, 3, H, W]) → [B, N, D]`` returns L2-normalize-ready patch tokens.
+
+    * **Bank construction** (``load_support_set`` for-loop, ``_filter_tokens`` hook):
+      iterate over support images in batches, run ``_extract``, flatten to ``[N, D]``,
+      optionally drop tokens via ``_filter_tokens``, concat all, L2-normalize, then compact.
+
+    * **Compaction** (``_compact``): default = PatchCore greedy FPS coreset (with optional
+      random pre-sample). Triggered iff ``self.coreset_size`` is set and smaller than bank.
+
+    * **Scoring** (``_score_patches``, ``_aggregate_image_score``, ``_upsample_pixel_map``):
+      1-NN against bank under the chosen metric, top-k% mean as image score, bilinear
+      upsample of patch grid as pixel map.
+
+    Common state set by subclass ``__init__``:
+        ``self.model``, ``self.tf`` (PIL → tensor), ``self.grid``, ``self.feat_dim``,
+        ``self.device``, ``self.backbone`` (descriptive tag).
+    """
 
     def __init__(
         self,
-        backbone: str = "vits14",
-        imgsz: int = 448,
+        imgsz: int,
         device: str | None = None,
         top_pct: float = 0.01,
         sim_chunk: int = 4096,
+        score_metric: str = "cosine",
+        coreset_size: int | None = None,
+        coreset_presample: int | None = None,
     ) -> None:
-        if backbone not in _DINOV2_HUB:
-            raise ValueError(f"backbone must be one of {list(_DINOV2_HUB)}")
-        if imgsz % _DINO_PATCH != 0:
-            raise ValueError(f"imgsz must be divisible by {_DINO_PATCH}, got {imgsz}")
-        self.backbone = backbone
+        if score_metric not in _SCORE_CHOICES:
+            raise ValueError(f"score_metric must be in {_SCORE_CHOICES}, got {score_metric!r}")
         self.imgsz = imgsz
         self.top_pct = top_pct
         self.sim_chunk = sim_chunk
+        self.score_metric = score_metric
+        self.coreset_size = coreset_size
+        self.coreset_presample = coreset_presample
         self.device = device or ("cuda" if torch.cuda.is_available() else
                                  "mps" if torch.backends.mps.is_available() else "cpu")
+        # Subclass must set: model, tf, grid (H, W), feat_dim, backbone (tag).
+        self.bank: torch.Tensor | None = None
 
-        hub_name, self.feat_dim = _DINOV2_HUB[backbone]
-        self.model = torch.hub.load("facebookresearch/dinov2", hub_name).to(self.device).eval()
-        self.tf = transforms.Compose([
-            transforms.Resize((imgsz, imgsz), interpolation=transforms.InterpolationMode.BICUBIC),
-            transforms.ToTensor(),
-            transforms.Normalize(_IMAGENET_MEAN, _IMAGENET_STD),
-        ])
-        n = imgsz // _DINO_PATCH
-        self.grid = (n, n)
-        self.bank: torch.Tensor | None = None    # [M, D], L2-normalized
-        self.coreset_size: int | None = None     # if set, subsample bank to this many points via greedy FPS
-        self.coreset_presample: int | None = None  # if set, randomly subsample to this size before FPS
+    # ── 1. Backbone ─────────────────────────────────────────────────────
+    def _build_model(self) -> None:  # subclass: assign self.model, register hooks
+        raise NotImplementedError
+
+    def _build_preprocess(self) -> None:  # subclass: assign self.tf
+        raise NotImplementedError
+
+    @torch.inference_mode()
+    def _extract(self, x: torch.Tensor) -> torch.Tensor:  # → [B, N, D]
+        raise NotImplementedError
 
     def _load(self, path: str) -> torch.Tensor:
         return self.tf(Image.open(path).convert("RGB"))
 
-    @torch.inference_mode()
-    def _extract(self, x: torch.Tensor) -> torch.Tensor:
-        """Return DINOv2 patch tokens [B, N, D] for input [B, 3, H, W]."""
-        out = self.model.forward_features(x.to(self.device))
-        return out["x_norm_patchtokens"]
-
+    # ── 2. Bank construction ────────────────────────────────────────────
     def load_support_set(self, image_paths: list[str], batch: int = 8) -> None:
-        """Build (and L2-normalize) the memory bank from normal images.
-
-        Optionally compact via greedy FPS (PatchCore-style coreset) when ``self.coreset_size`` is set.
-        Big intermediate banks live on CPU to avoid blowing MPS' 30 GiB watermark; only the
-        final (post-coreset) bank moves to ``self.device``.
-        """
+        """Build memory bank: for-loop extract → optional per-image filter → L2-normalize → compact."""
         feats: list[torch.Tensor] = []
         for i in range(0, len(image_paths), batch):
             xs = torch.stack([self._load(p) for p in image_paths[i:i + batch]], dim=0)
-            tokens = self._extract(xs)  # [B, N, D]
-            feats.append(tokens.reshape(-1, tokens.shape[-1]).cpu())
+            tokens = self._extract(xs).reshape(-1, self.feat_dim).cpu()  # keep big intermediate on CPU
+            tokens = self._filter_tokens(tokens)
+            feats.append(tokens)
         bank = F.normalize(torch.cat(feats, dim=0), dim=-1)
-        if self.coreset_size and self.coreset_size < bank.shape[0]:
-            if self.coreset_presample and self.coreset_presample < bank.shape[0]:
-                # PatchCore-style speed trick: random pre-sample before FPS.
-                g = torch.Generator(device="cpu").manual_seed(0)
-                pre_idx = torch.randperm(bank.shape[0], generator=g)[: self.coreset_presample]
-                print(f"  coreset: pre-sample {bank.shape[0]} → {self.coreset_presample} before FPS")
-                bank = bank[pre_idx].contiguous()
-            bank = _greedy_fps(bank, self.coreset_size, sim_chunk=self.sim_chunk)
+        bank = self._compact(bank)
         self.bank = bank.to(self.device)
 
+    def _filter_tokens(self, tokens: torch.Tensor) -> torch.Tensor:
+        """Hook: drop / reweight patch tokens before banking. Default = identity.
+
+        Override for tricks like AnomalyDINO's PCA foreground masking on object classes,
+        or to skip border patches with low gradient.
+        """
+        return tokens
+
+    # ── 3. Compaction ───────────────────────────────────────────────────
+    def _compact(self, bank: torch.Tensor) -> torch.Tensor:
+        """Default = greedy FPS coreset with optional random pre-sample (PatchCore)."""
+        if not (self.coreset_size and self.coreset_size < bank.shape[0]):
+            return bank
+        if self.coreset_presample and self.coreset_presample < bank.shape[0]:
+            g = torch.Generator(device="cpu").manual_seed(0)
+            pre_idx = torch.randperm(bank.shape[0], generator=g)[: self.coreset_presample]
+            print(f"  coreset: pre-sample {bank.shape[0]} → {self.coreset_presample} before FPS")
+            bank = bank[pre_idx].contiguous()
+        return _greedy_fps(bank, self.coreset_size, sim_chunk=self.sim_chunk)
+
+    # ── 4. Scoring ──────────────────────────────────────────────────────
     @torch.inference_mode()
     def predict_one(self, image_path: str, eval_size: int = 256) -> tuple[float, np.ndarray]:
-        """Return (image_score, pixel_map[eval_size, eval_size])."""
+        """Score one test image. Return ``(image_score, pixel_map[eval_size, eval_size])``."""
         if self.bank is None:
             raise RuntimeError("call load_support_set() before predict_one()")
         x = self._load(image_path).unsqueeze(0)
         feats = F.normalize(self._extract(x).squeeze(0), dim=-1)  # [N, D]
+        dists = self._score_patches(feats)                         # [N]
+        image_score = self._aggregate_image_score(dists)
+        amap = self._upsample_pixel_map(dists, eval_size)
+        return image_score, amap
 
-        # 1-NN cosine distance against the bank, chunked over the bank dim to bound memory.
-        max_sim = torch.full((feats.shape[0],), -1.0, device=feats.device, dtype=feats.dtype)
+    def _score_patches(self, feats: torch.Tensor) -> torch.Tensor:
+        """1-NN distance per patch against the bank. Chunked over bank dim to bound memory."""
+        if self.score_metric == "cosine":
+            # For L2-normalized bank+query, cosine sim == dot product. Distance = 1 - sim.
+            max_sim = torch.full((feats.shape[0],), -1.0, device=feats.device, dtype=feats.dtype)
+            for s in range(0, self.bank.shape[0], self.sim_chunk):
+                sims = feats @ self.bank[s:s + self.sim_chunk].T  # [N, chunk]
+                max_sim = torch.maximum(max_sim, sims.max(dim=-1).values)
+            return 1.0 - max_sim
+        # L2 distance (squared, since monotonic ordering is what matters for top-k and AUROC).
+        min_d2 = torch.full((feats.shape[0],), float("inf"), device=feats.device, dtype=feats.dtype)
         for s in range(0, self.bank.shape[0], self.sim_chunk):
-            sims = feats @ self.bank[s:s + self.sim_chunk].T  # [N, chunk]
-            max_sim = torch.maximum(max_sim, sims.max(dim=-1).values)
-        dists = 1.0 - max_sim  # [N], min cosine distance
+            d2 = torch.cdist(feats, self.bank[s:s + self.sim_chunk]).pow(2)
+            min_d2 = torch.minimum(min_d2, d2.min(dim=-1).values)
+        return min_d2
 
+    def _aggregate_image_score(self, dists: torch.Tensor) -> float:
+        """Top-``top_pct`` mean of per-patch distances. ``top_pct=0.01`` ≈ PatchCore/AnomalyDINO default."""
         n = dists.numel()
         k = max(1, int(round(n * self.top_pct)))
-        image_score = float(dists.topk(k).values.mean())
+        return float(dists.topk(k).values.mean())
 
+    def _upsample_pixel_map(self, dists: torch.Tensor, eval_size: int) -> np.ndarray:
         H, W = self.grid
         amap = dists.reshape(1, 1, H, W).float()
         amap = F.interpolate(amap, size=(eval_size, eval_size), mode="bilinear", align_corners=False)
-        return image_score, amap.squeeze().cpu().numpy()
+        return amap.squeeze().cpu().numpy()
+
+
+# ---------------------------------------------------------------------------
+# Coreset helper (module-level so subclasses can swap _compact entirely without inheriting it)
+# ---------------------------------------------------------------------------
 
 
 @torch.inference_mode()
 def _greedy_fps(bank: torch.Tensor, n_keep: int, sim_chunk: int = 4096, seed: int = 0) -> torch.Tensor:
     """Greedy farthest-point sampling over L2-normalized features (cosine metric).
 
-    Returns the subsampled bank as a contiguous tensor. O(n_keep * M * D) — runs on CPU
-    because MPS produces wrong argmin results for large/high-dim banks (silently corrupts
-    grid-like patterns where many points have near-identical features). The matmul cost
-    is dwarfed by the per-iter sync overhead anyway, so CPU is competitive with GPU here.
-    Use CUDA explicitly via device='cuda' on the bank to get GPU speedup.
+    Runs on CPU: MPS argmin gives wrong results on large/duplicate-heavy banks (silently
+    corrupts grid-like patterns), and MPS sync overhead per-iter dominates the matmul cost
+    anyway. Pass a CUDA bank explicitly to get GPU speedup.
     """
     orig_device = bank.device
     if orig_device.type == "mps":
@@ -174,7 +249,7 @@ def _greedy_fps(bank: torch.Tensor, n_keep: int, sim_chunk: int = 4096, seed: in
     cur = bank[start]
     t0 = time.perf_counter()
     for i in range(1, n_keep):
-        sims = bank @ cur                       # [M]
+        sims = bank @ cur
         max_sim = torch.maximum(max_sim, sims)
         nxt = torch.argmin(max_sim)
         selected[i] = nxt
@@ -184,8 +259,197 @@ def _greedy_fps(bank: torch.Tensor, n_keep: int, sim_chunk: int = 4096, seed: in
     return bank[selected].contiguous().to(orig_device)
 
 
-class AnomalyYOLO(AnomalyDINO):
-    """Same pipeline as AnomalyDINO, but patch tokens come from a YOLO pyramid level."""
+# ---------------------------------------------------------------------------
+# DINOv2 — single layer, no fusion
+# ---------------------------------------------------------------------------
+
+
+class AnomalyDINO(AnomalyBase):
+    """DINOv2 ViT + memory-bank anomaly detector (Damm et al., WACV 2025).
+
+    Single layer (last block patch tokens), no multi-layer fusion. PCA foreground mask
+    omitted for minimal baseline — override ``_filter_tokens`` to add it back.
+    """
+
+    def __init__(
+        self,
+        backbone: str = "vits14",
+        imgsz: int = 448,
+        device: str | None = None,
+        top_pct: float = 0.01,
+        sim_chunk: int = 4096,
+        score_metric: str = "cosine",
+        coreset_size: int | None = None,
+        coreset_presample: int | None = None,
+    ) -> None:
+        if backbone not in _DINOV2_HUB:
+            raise ValueError(f"backbone must be in {list(_DINOV2_HUB)}, got {backbone!r}")
+        if imgsz % _DINO_PATCH != 0:
+            raise ValueError(f"imgsz must be divisible by {_DINO_PATCH}, got {imgsz}")
+        super().__init__(imgsz=imgsz, device=device, top_pct=top_pct, sim_chunk=sim_chunk,
+                         score_metric=score_metric, coreset_size=coreset_size,
+                         coreset_presample=coreset_presample)
+        self.dino_short = backbone
+        self.backbone = f"dino_{backbone}"
+        self._build_model()
+        self._build_preprocess()
+        n = imgsz // _DINO_PATCH
+        self.grid = (n, n)
+        # feat_dim set in _build_model from the hub registry.
+
+    def _build_model(self) -> None:
+        hub_name, self.feat_dim = _DINOV2_HUB[self.dino_short]
+        self.model = torch.hub.load("facebookresearch/dinov2", hub_name).to(self.device).eval()
+
+    def _build_preprocess(self) -> None:
+        self.tf = transforms.Compose([
+            transforms.Resize((self.imgsz, self.imgsz), interpolation=transforms.InterpolationMode.BICUBIC),
+            transforms.ToTensor(),
+            transforms.Normalize(_IMAGENET_MEAN, _IMAGENET_STD),
+        ])
+
+    @torch.inference_mode()
+    def _extract(self, x: torch.Tensor) -> torch.Tensor:
+        out = self.model.forward_features(x.to(self.device))
+        return out["x_norm_patchtokens"]  # [B, N, D]
+
+
+# ---------------------------------------------------------------------------
+# Multi-layer base — shared by YOLO and PatchCore (ResNet)
+# ---------------------------------------------------------------------------
+
+
+class _MultiLayerAnomaly(AnomalyBase):
+    """Adds hooks → ``self._cached: dict[lname → BCHW]`` + multi-layer fuse to ``_extract``.
+
+    Subclasses provide ``_register_hooks(layers)`` and set ``self.layers`` (highest-res first).
+    """
+
+    fuse: str
+    layers: list[str]
+    patchsize: int
+    pretrain_dim: int
+    target_dim: int
+    _cached: dict[str, torch.Tensor]
+
+    def __init__(
+        self,
+        imgsz: int,
+        layers: list[str],
+        fuse: str = "concat",
+        patchsize: int = 1,
+        pretrain_dim: int = 1024,
+        target_dim: int = 1024,
+        device: str | None = None,
+        top_pct: float = 0.01,
+        sim_chunk: int = 4096,
+        score_metric: str = "cosine",
+        coreset_size: int | None = None,
+        coreset_presample: int | None = None,
+    ) -> None:
+        if fuse not in _FUSE_CHOICES:
+            raise ValueError(f"fuse must be in {_FUSE_CHOICES}, got {fuse!r}")
+        if patchsize % 2 == 0:
+            raise ValueError(f"patchsize must be odd, got {patchsize}")
+        super().__init__(imgsz=imgsz, device=device, top_pct=top_pct, sim_chunk=sim_chunk,
+                         score_metric=score_metric, coreset_size=coreset_size,
+                         coreset_presample=coreset_presample)
+        self.layers = layers
+        self.fuse = fuse
+        self.patchsize = patchsize
+        self.pretrain_dim = pretrain_dim
+        self.target_dim = target_dim
+        self._cached = {}
+
+    def _probe_and_set_dims(self) -> None:
+        """Run a dummy forward to discover ``self.grid`` and ``self.feat_dim`` from cached features."""
+        with torch.inference_mode():
+            self.model(torch.zeros(1, 3, self.imgsz, self.imgsz, device=self.device))
+        missing = [l for l in self.layers if l not in self._cached]
+        assert not missing, f"hooks didn't fire for {missing}"
+        ref = self._cached[self.layers[0]]
+        self.grid = (ref.shape[2], ref.shape[3])
+        dims = [self._cached[l].shape[1] for l in self.layers]
+        if self.fuse == "concat":
+            self.feat_dim = sum(dims)
+        elif self.fuse in ("patchcore", "concat_pool"):
+            self.feat_dim = self.target_dim
+        else:  # sum / avg need matching dims
+            if len(set(dims)) > 1:
+                raise ValueError(f"fuse={self.fuse!r} needs equal channel dims, got {dict(zip(self.layers, dims))}")
+            self.feat_dim = dims[0]
+
+    @torch.inference_mode()
+    def _extract(self, x: torch.Tensor) -> torch.Tensor:
+        self._cached = {}
+        self.model(x.to(self.device))
+        H, W = self.grid
+        B = x.shape[0]
+        if self.fuse == "patchcore":
+            return self._fuse_patchcore(B, H, W)
+        if self.fuse == "concat_pool":
+            return self._fuse_concat_pool(B, H, W)
+        return self._fuse_simple(B, H, W)
+
+    def _fuse_simple(self, B: int, H: int, W: int) -> torch.Tensor:
+        """concat / sum / avg over upsampled channel-aligned feature maps."""
+        feats = []
+        for lname in self.layers:
+            f = self._cached[lname]
+            if f.shape[-2:] != (H, W):
+                f = F.interpolate(f, size=(H, W), mode="bilinear", align_corners=False)
+            feats.append(f)
+        if len(feats) == 1:
+            fused = feats[0]
+        elif self.fuse == "concat":
+            fused = torch.cat(feats, dim=1)
+        elif self.fuse == "sum":
+            fused = torch.stack(feats, dim=0).sum(dim=0)
+        else:  # avg
+            fused = torch.stack(feats, dim=0).mean(dim=0)
+        return fused.flatten(2).transpose(1, 2).contiguous()  # [B, H*W, D]
+
+    def _fuse_patchcore(self, B: int, H: int, W: int) -> torch.Tensor:
+        """3x3 unfold + per-layer adaptive_avg_pool → concat → adaptive_avg_pool to target_dim."""
+        ps, pad = self.patchsize, self.patchsize // 2
+        pool_dev = "cpu" if self.device == "mps" else self.device
+        per_layer = []
+        for lname in self.layers:
+            f = self._cached[lname]
+            if f.shape[-2:] != (H, W):
+                f = F.interpolate(f, size=(H, W), mode="bilinear", align_corners=False)
+            patches = F.unfold(f, kernel_size=ps, stride=1, padding=pad)        # [B, C*ps^2, H*W]
+            patches = patches.transpose(1, 2).reshape(B * H * W, -1)            # [B*N, C*ps^2]
+            pooled = F.adaptive_avg_pool1d(patches.to(pool_dev).unsqueeze(1), self.pretrain_dim).squeeze(1)
+            per_layer.append(pooled)
+        merged = torch.cat(per_layer, dim=-1) if len(per_layer) > 1 else per_layer[0]
+        final = F.adaptive_avg_pool1d(merged.unsqueeze(1), self.target_dim).squeeze(1)
+        return final.to(self.device).reshape(B, H * W, self.target_dim)
+
+    def _fuse_concat_pool(self, B: int, H: int, W: int) -> torch.Tensor:
+        """unfold + concat across layers + single adaptive_avg_pool to target_dim (no per-layer pool)."""
+        ps, pad = self.patchsize, self.patchsize // 2
+        pool_dev = "cpu" if self.device == "mps" else self.device
+        feats_list = []
+        for lname in self.layers:
+            f = self._cached[lname]
+            if f.shape[-2:] != (H, W):
+                f = F.interpolate(f, size=(H, W), mode="bilinear", align_corners=False)
+            patches = F.unfold(f, kernel_size=ps, stride=1, padding=pad)
+            patches = patches.transpose(1, 2).reshape(B * H * W, -1)
+            feats_list.append(patches)
+        merged = torch.cat(feats_list, dim=-1) if len(feats_list) > 1 else feats_list[0]
+        final = F.adaptive_avg_pool1d(merged.to(pool_dev).unsqueeze(1), self.target_dim).squeeze(1)
+        return final.to(self.device).reshape(B, H * W, self.target_dim)
+
+
+# ---------------------------------------------------------------------------
+# YOLO backbone
+# ---------------------------------------------------------------------------
+
+
+class AnomalyYOLO(_MultiLayerAnomaly):
+    """YOLO/YOLOE backbone, hooked at one of three taps (see ``_YOLO_TAPS``)."""
 
     def __init__(
         self,
@@ -200,184 +464,162 @@ class AnomalyYOLO(AnomalyDINO):
         device: str | None = None,
         top_pct: float = 0.01,
         sim_chunk: int = 4096,
+        score_metric: str = "cosine",
+        coreset_size: int | None = None,
+        coreset_presample: int | None = None,
     ) -> None:
         if isinstance(layers, str):
             layers = [layers]
         if not all(l in _YOLO_LAYER_IDX for l in layers):
-            raise ValueError(f"each layer must be one of {list(_YOLO_LAYER_IDX)}, got {layers}")
+            raise ValueError(f"each layer must be in {list(_YOLO_LAYER_IDX)}, got {layers}")
         if tap not in _YOLO_TAPS:
-            raise ValueError(f"tap must be one of {_YOLO_TAPS}")
-        if fuse not in ("concat", "sum", "avg", "patchcore", "concat_pool"):
-            raise ValueError(f"fuse must be one of (concat, sum, avg, patchcore, concat_pool), got {fuse!r}")
+            raise ValueError(f"tap must be in {_YOLO_TAPS}, got {tap!r}")
         if imgsz % 32 != 0:
             raise ValueError(f"imgsz must be divisible by 32 (YOLO stride), got {imgsz}")
-        if patchsize % 2 == 0:
-            raise ValueError(f"patchsize must be odd (for symmetric padding), got {patchsize}")
-        # Order by ascending P-level so the highest-resolution feature comes first (fusion target).
         layers = sorted(set(layers), key=lambda l: _YOLO_LAYER_IDX[l])
-        self.layers = layers
+        super().__init__(imgsz=imgsz, layers=layers, fuse=fuse, patchsize=patchsize,
+                         pretrain_dim=pretrain_dim, target_dim=target_dim, device=device,
+                         top_pct=top_pct, sim_chunk=sim_chunk, score_metric=score_metric,
+                         coreset_size=coreset_size, coreset_presample=coreset_presample)
+        self.weight = weight
         self.tap = tap
-        self.fuse = fuse
-        self.patchsize = patchsize
-        self.pretrain_dim = pretrain_dim
-        self.target_dim = target_dim
-        digits = "".join(l[-1] for l in layers)
-        if fuse == "patchcore":
-            fuse_suffix = f"_pc{patchsize}_e{pretrain_dim}_t{target_dim}"
-        elif fuse == "concat_pool":
-            fuse_suffix = f"_cp{patchsize}_t{target_dim}"
-        else:
-            fuse_suffix = f"_{fuse}" if (len(layers) > 1 and fuse != "concat") else ""
-        self.backbone = f"yolo_p{digits}" + (f"_{tap}" if tap != "pre" else "") + fuse_suffix
-        self.imgsz = imgsz
-        self.top_pct = top_pct
-        self.sim_chunk = sim_chunk
-        self.device = device or ("cuda" if torch.cuda.is_available() else
-                                 "mps" if torch.backends.mps.is_available() else "cpu")
+        self.backbone = self._make_tag()
+        self._build_model()
+        self._build_preprocess()
+        self._probe_and_set_dims()
 
+    def _make_tag(self) -> str:
+        digits = "".join(l[-1] for l in self.layers)
+        if self.fuse == "patchcore":
+            suf = f"_pc{self.patchsize}_e{self.pretrain_dim}_t{self.target_dim}"
+        elif self.fuse == "concat_pool":
+            suf = f"_cp{self.patchsize}_t{self.target_dim}"
+        else:
+            suf = f"_{self.fuse}" if (len(self.layers) > 1 and self.fuse != "concat") else ""
+        return f"yolo_p{digits}" + (f"_{self.tap}" if self.tap != "pre" else "") + suf
+
+    def _build_model(self) -> None:
         from ultralytics import YOLO
         from ultralytics.nn.modules.head import Detect
 
-        self.model = YOLO(weight).model.to(self.device).eval()
-        self._cached: dict[str, torch.Tensor] = {}
+        self.model = YOLO(self.weight).model.to(self.device).eval()
         det = next(m for m in self.model.modules() if isinstance(m, Detect))
 
-        for lname in layers:
+        for lname in self.layers:
             idx = _YOLO_LAYER_IDX[lname]
-            if tap == "pre":
-                # Detect's forward input = list[P3, P4, P5(, text)]. One pre-hook per Detect is enough,
-                # but registering once and indexing all levels is simpler than tracking state.
-                def _make_pre(i, k=lname):
+            if self.tap == "pre":
+                # Detect's forward input = list[P3, P4, P5(, text)].
+                def _make(i, k=lname):
                     def h(_m, inputs):
                         self._cached[k] = inputs[0][i]
                     return h
-                det.register_forward_pre_hook(_make_pre(idx))
-            elif tap == "bb":
-                # Pre-FPN backbone stage. Layer indices are yolo26/v8/v11-specific.
-                bb_layer = self.model.model[_YOLO_BB_LAYER[lname]]
+                det.register_forward_pre_hook(_make(idx))
+            elif self.tap == "bb":
+                # Pre-FPN backbone stage. Indices below assume yolo26/v8/v11 detection topology.
+                stage = self.model.model[_YOLO_BB_LAYER[lname]]
                 def _make_bb(k=lname):
-                    def h(_m, _inputs, output):
+                    def h(_m, _i, output):
                         self._cached[k] = output
                     return h
-                bb_layer.register_forward_hook(_make_bb())
-            else:  # "cv3": output of cls-branch's penultimate block (c3-dim, before 1x1 nc-projection).
-                def _make_cv3(k=lname):
-                    def h(_m, _inputs, output):
+                stage.register_forward_hook(_make_bb())
+            else:  # "cv3"
+                def _make_cv3(k=lname, i=idx):
+                    def h(_m, _i, output):
                         self._cached[k] = output
                     return h
                 det.cv3[idx][1].register_forward_hook(_make_cv3())
 
-        # YOLO preprocessing: resize (square) + ToTensor (/255). No ImageNet norm.
+    def _build_preprocess(self) -> None:
+        # YOLO: simple resize + /255, no ImageNet norm.
         self.tf = transforms.Compose([
-            transforms.Resize((imgsz, imgsz), interpolation=transforms.InterpolationMode.BILINEAR),
+            transforms.Resize((self.imgsz, self.imgsz), interpolation=transforms.InterpolationMode.BILINEAR),
             transforms.ToTensor(),
         ])
 
-        # Probe feat_dim and grid via a dummy forward.
-        with torch.inference_mode():
-            self.model(torch.zeros(1, 3, imgsz, imgsz, device=self.device))
-        missing = [l for l in layers if l not in self._cached]
-        assert not missing, f"hooks didn't fire for {missing}"
-        ref = self._cached[layers[0]]  # highest-res level → fusion target grid
-        self.grid = (ref.shape[2], ref.shape[3])
-        dims = [self._cached[l].shape[1] for l in layers]
-        if fuse == "concat":
-            self.feat_dim = sum(dims)
-        elif fuse in ("patchcore", "concat_pool"):
-            self.feat_dim = target_dim  # adaptive pool produces target_dim regardless of inputs
-        else:  # sum / avg require matching channel dims
-            if len(set(dims)) > 1:
-                raise ValueError(f"fuse={fuse!r} needs equal channel dims across layers, got {dict(zip(layers, dims))}")
-            self.feat_dim = dims[0]
-        self.bank: torch.Tensor | None = None
-        self.coreset_size: int | None = None
-        self.coreset_presample: int | None = None
 
-    @torch.inference_mode()
-    def _extract(self, x: torch.Tensor) -> torch.Tensor:
-        """Return [B, N, D] patch tokens.
+# ---------------------------------------------------------------------------
+# torchvision ResNet (PatchCore default = WideResNet50 + layer2+3)
+# ---------------------------------------------------------------------------
 
-        Multi-layer flow (concat/sum/avg): upsample each layer to highest-res grid → fuse channel-wise.
-        PatchCore flow: per-layer 3x3 unfold → per-layer adaptive_avg_pool to ``pretrain_dim`` →
-        layer-wise concat → adaptive_avg_pool to ``target_dim`` (paper's exact pipeline).
-        """
-        self._cached = {}
-        self.model(x.to(self.device))
-        H, W = self.grid
-        B = x.shape[0]
 
+class AnomalyPatchCore(_MultiLayerAnomaly):
+    """torchvision ResNet/WideResNet, ImageNet-pretrained, hooks on layer1..4 stages.
+
+    Paper PatchCore config: ``arch=wide_resnet50_2, layers=['l2','l3'], fuse='patchcore',
+    patchsize=3, pretrain_dim=1024, target_dim=1024, score_metric='l2'``.
+    """
+
+    def __init__(
+        self,
+        arch: str = "wide_resnet50_2",
+        imgsz: int = 224,
+        layers: str | list[str] = "l2",
+        fuse: str = "concat",
+        patchsize: int = 1,
+        pretrain_dim: int = 1024,
+        target_dim: int = 1024,
+        device: str | None = None,
+        top_pct: float = 0.01,
+        sim_chunk: int = 4096,
+        score_metric: str = "cosine",
+        coreset_size: int | None = None,
+        coreset_presample: int | None = None,
+    ) -> None:
+        if isinstance(layers, str):
+            layers = [layers]
+        if not all(l in _RESNET_LAYER_ATTR for l in layers):
+            raise ValueError(f"each layer must be in {_RESNET_LAYERS}, got {layers}")
+        layers = sorted(set(layers), key=lambda l: _RESNET_LAYERS.index(l))
+        super().__init__(imgsz=imgsz, layers=layers, fuse=fuse, patchsize=patchsize,
+                         pretrain_dim=pretrain_dim, target_dim=target_dim, device=device,
+                         top_pct=top_pct, sim_chunk=sim_chunk, score_metric=score_metric,
+                         coreset_size=coreset_size, coreset_presample=coreset_presample)
+        self.arch = arch
+        self.backbone = self._make_tag()
+        self._build_model()
+        self._build_preprocess()
+        self._probe_and_set_dims()
+
+    def _make_tag(self) -> str:
+        digits = "".join(l[-1] for l in self.layers)
         if self.fuse == "patchcore":
-            return self._extract_patchcore(B, H, W)
-        if self.fuse == "concat_pool":
-            return self._extract_concat_pool(B, H, W)
+            suf = f"_pc{self.patchsize}_e{self.pretrain_dim}_t{self.target_dim}"
+        elif self.fuse == "concat_pool":
+            suf = f"_cp{self.patchsize}_t{self.target_dim}"
+        else:
+            suf = f"_{self.fuse}" if (len(self.layers) > 1 and self.fuse != "concat") else ""
+        return f"{self.arch}_l{digits}{suf}"
 
-        feats = []
+    def _build_model(self) -> None:
+        from torchvision import models
+        ctor = getattr(models, self.arch)
+        self.model = ctor(weights="DEFAULT").to(self.device).eval()
         for lname in self.layers:
-            f = self._cached[lname]  # [B, C, h, w]
-            if f.shape[-2:] != (H, W):
-                f = F.interpolate(f, size=(H, W), mode="bilinear", align_corners=False)
-            feats.append(f)
-        if len(feats) == 1:
-            fused = feats[0]
-        elif self.fuse == "concat":
-            fused = torch.cat(feats, dim=1)
-        elif self.fuse == "sum":
-            fused = torch.stack(feats, dim=0).sum(dim=0)
-        else:  # "avg"
-            fused = torch.stack(feats, dim=0).mean(dim=0)
-        return fused.flatten(2).transpose(1, 2).contiguous()  # [B, H*W, D]
+            stage = getattr(self.model, _RESNET_LAYER_ATTR[lname])
+            def _make(k=lname):
+                def h(_m, _i, output):
+                    self._cached[k] = output
+                return h
+            stage.register_forward_hook(_make())
 
-    def _extract_patchcore(self, B: int, H: int, W: int) -> torch.Tensor:
-        """PatchCore-style extraction: 3x3 unfold + two-stage adaptive avg-pool.
-
-        Simplification vs upstream: we upsample feature maps to the reference grid BEFORE the
-        3x3 unfold (upstream unfolds first then upsamples the patch grid). The two orderings
-        produce slightly different boundary behavior but the same overall shape and semantics.
-
-        MPS workaround: adaptive_avg_pool1d on non-divisible (input, output) sizes is unimplemented
-        on MPS as of 2026, so we run the pool step on CPU and move the result back.
-        """
-        ps = self.patchsize
-        pad = ps // 2
-        pool_dev = "cpu" if self.device == "mps" else self.device
-        per_layer = []
-        for lname in self.layers:
-            f = self._cached[lname]  # [B, C, h, w]
-            if f.shape[-2:] != (H, W):
-                f = F.interpolate(f, size=(H, W), mode="bilinear", align_corners=False)
-            # Unfold ps×ps neighborhood per spatial position: each token becomes a C*ps^2 vector.
-            patches = F.unfold(f, kernel_size=ps, stride=1, padding=pad)  # [B, C*ps^2, H*W]
-            patches = patches.transpose(1, 2).reshape(B * H * W, -1)     # [B*N, C*ps^2]
-            pooled = F.adaptive_avg_pool1d(patches.to(pool_dev).unsqueeze(1), self.pretrain_dim).squeeze(1)
-            per_layer.append(pooled)                                      # [B*N, pretrain_dim]
-        merged = torch.cat(per_layer, dim=-1) if len(per_layer) > 1 else per_layer[0]
-        final = F.adaptive_avg_pool1d(merged.unsqueeze(1), self.target_dim).squeeze(1)
-        return final.to(self.device).reshape(B, H * W, self.target_dim)
-
-    def _extract_concat_pool(self, B: int, H: int, W: int) -> torch.Tensor:
-        """Single-stage variant of PatchCore: concat raw (optionally unfolded) features then one pool."""
-        ps = self.patchsize
-        pad = ps // 2
-        pool_dev = "cpu" if self.device == "mps" else self.device
-        feats_list = []
-        for lname in self.layers:
-            f = self._cached[lname]  # [B, C, h, w]
-            if f.shape[-2:] != (H, W):
-                f = F.interpolate(f, size=(H, W), mode="bilinear", align_corners=False)
-            patches = F.unfold(f, kernel_size=ps, stride=1, padding=pad)  # [B, C*ps^2, H*W]
-            patches = patches.transpose(1, 2).reshape(B * H * W, -1)     # [B*N, C*ps^2]
-            feats_list.append(patches)
-        merged = torch.cat(feats_list, dim=-1) if len(feats_list) > 1 else feats_list[0]
-        final = F.adaptive_avg_pool1d(merged.to(pool_dev).unsqueeze(1), self.target_dim).squeeze(1)
-        return final.to(self.device).reshape(B, H * W, self.target_dim)
+    def _build_preprocess(self) -> None:
+        self.tf = transforms.Compose([
+            transforms.Resize((self.imgsz, self.imgsz), interpolation=transforms.InterpolationMode.BICUBIC),
+            transforms.ToTensor(),
+            transforms.Normalize(_IMAGENET_MEAN, _IMAGENET_STD),
+        ])
 
 
-def val_one_category(category: str, ad: AnomalyDINO, eval_size: int = 256) -> dict:
+# ---------------------------------------------------------------------------
+# Eval driver
+# ---------------------------------------------------------------------------
+
+
+def val_one_category(category: str, ad: AnomalyBase, eval_size: int = 256) -> dict:
     """Build bank from train/good, score every test image, compute image/pixel AUROC."""
     from sklearn.metrics import roc_auc_score
 
-    # MPS allocator state from previous category can silently corrupt downstream ops
-    # (esp. 1024-dim banks with coreset → AUROC collapses to 0.5). Clear cache to be safe.
+    # MPS allocator state from previous category can silently corrupt downstream ops.
     if torch.backends.mps.is_available():
         torch.mps.empty_cache()
 
@@ -422,82 +664,101 @@ def val_one_category(category: str, ad: AnomalyDINO, eval_size: int = 256) -> di
     }
 
 
-def _build(args: argparse.Namespace) -> tuple[AnomalyDINO, str, Path]:
-    """Return (model, tag, default_csv_path) for the requested backbone."""
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
+
+
+_RESNET_ARCH_MAP = {
+    "wrn50": "wide_resnet50_2", "rn50": "resnet50", "rn18": "resnet18",
+    "rn34": "resnet34", "rn101": "resnet101", "rn152": "resnet152",
+}
+
+
+def _build(args: argparse.Namespace) -> tuple[AnomalyBase, Path]:
+    """Construct the requested model + return its default CSV path."""
     bb = args.backbone
+    kw = dict(
+        score_metric=args.score_metric,
+        coreset_size=args.coreset, coreset_presample=args.coreset_presample,
+    )
     if bb.startswith("dino_"):
-        short = bb.removeprefix("dino_")  # vits14 / vitb14 / vitl14
-        imgsz = args.imgsz or 448
-        ad = AnomalyDINO(backbone=short, imgsz=imgsz)
-        tag = f"dino_{short}_imgsz{imgsz}"
+        short = bb.removeprefix("dino_")
+        ad = AnomalyDINO(backbone=short, imgsz=args.imgsz or 448, **kw)
     elif bb.startswith("yolo_p"):
-        rest = bb.removeprefix("yolo_p")          # "3", "34_bb", "345_cv3"
+        rest = bb.removeprefix("yolo_p")
         digits, _, tap = rest.partition("_")
         if not digits or not all(d in "345" for d in digits):
-            raise ValueError(f"yolo backbone digits must be from {{3,4,5}}, got {digits!r}")
-        layers = [f"P{d}" for d in digits]
-        tap = tap or "pre"
-        imgsz = args.imgsz or 640
+            raise ValueError(f"yolo backbone digits must be ⊆ {{3,4,5}}, got {digits!r}")
         ad = AnomalyYOLO(
-            weight=args.weight, imgsz=imgsz, layers=layers, tap=tap, fuse=args.fuse,
+            weight=args.weight, imgsz=args.imgsz or 640,
+            layers=[f"P{d}" for d in digits], tap=tap or "pre", fuse=args.fuse,
             patchsize=args.patchsize, pretrain_dim=args.pretrain_dim, target_dim=args.target_dim,
+            **kw,
         )
-        tap_suffix = f"_{tap}" if tap != "pre" else ""
-        if args.fuse == "patchcore":
-            fuse_suffix = f"_pc{args.patchsize}_e{args.pretrain_dim}_t{args.target_dim}"
-        elif args.fuse == "concat_pool":
-            fuse_suffix = f"_cp{args.patchsize}_t{args.target_dim}"
-        else:
-            fuse_suffix = f"_{args.fuse}" if (len(layers) > 1 and args.fuse != "concat") else ""
-        tag = f"yolo_p{''.join(sorted(digits))}{tap_suffix}{fuse_suffix}_{Path(args.weight).stem}_imgsz{imgsz}"
+    elif "_l" in bb and bb.partition("_l")[0] in _RESNET_ARCH_MAP:
+        arch_key, _, digits = bb.partition("_l")
+        if not digits or not all(d in "1234" for d in digits):
+            raise ValueError(f"resnet backbone digits must be ⊆ {{1,2,3,4}}, got {digits!r}")
+        ad = AnomalyPatchCore(
+            arch=_RESNET_ARCH_MAP[arch_key], imgsz=args.imgsz or 224,
+            layers=[f"l{d}" for d in digits], fuse=args.fuse,
+            patchsize=args.patchsize, pretrain_dim=args.pretrain_dim, target_dim=args.target_dim,
+            **kw,
+        )
     else:
         raise ValueError(f"unknown --backbone {bb!r}")
-    out_csv = Path(f"./runs/temp/anomaly_{tag}_mvtec_metrics.csv")
-    return ad, tag, out_csv
+
+    tag = ad.backbone
+    if isinstance(ad, AnomalyYOLO):
+        tag = f"{tag}_{Path(args.weight).stem}_imgsz{ad.imgsz}"
+    elif isinstance(ad, AnomalyPatchCore):
+        tag = f"{tag}_imgsz{ad.imgsz}"
+    else:  # DINO
+        tag = f"{tag}_imgsz{ad.imgsz}"
+
+    if args.coreset:
+        tag += f"_cs{args.coreset}" + (f"_pre{args.coreset_presample}" if args.coreset_presample else "")
+    if args.score_metric != "cosine":
+        tag += f"_{args.score_metric}"
+    return ad, Path(f"./runs/temp/anomaly_{tag}_mvtec_metrics.csv")
 
 
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    # All non-empty subsets of {3,4,5}, kept in ascending order so the highest-res level is first.
     _yolo_digits = ("3", "4", "5", "34", "35", "45", "345")
-    yolo_choices = [
-        f"yolo_p{d}" + (f"_{t}" if t != "pre" else "")
-        for d in _yolo_digits for t in _YOLO_TAPS
-    ]
+    yolo_choices = [f"yolo_p{d}" + (f"_{t}" if t != "pre" else "")
+                    for d in _yolo_digits for t in _YOLO_TAPS]
+    _resnet_digits = ("1", "2", "3", "4", "12", "13", "14", "23", "24", "34", "123", "234", "1234")
+    resnet_choices = [f"{a}_l{d}" for a in _RESNET_ARCH_MAP for d in _resnet_digits]
+
     p.add_argument("--backbone", default="dino_vits14",
-                   choices=[f"dino_{k}" for k in _DINOV2_HUB] + yolo_choices,
-                   help="Feature extractor. yolo_p<digits> with digits ⊆ {3,4,5}: "
-                        "single = one level, multi = bilinear-upsample lower-res to highest-res grid + channel-concat. "
-                        "Suffix _bb = pre-FPN backbone stage; no suffix = pre-Detect (post-neck); "
-                        "_cv3 = cls-branch c3-dim feat before nc-projection. Pipeline downstream is identical.")
+                   choices=[f"dino_{k}" for k in _DINOV2_HUB] + yolo_choices + resnet_choices,
+                   help="Feature extractor. dino_*: DINOv2. yolo_p<digits>[_<tap>]: YOLO. "
+                        "{wrn50,rn18,rn34,rn50,rn101,rn152}_l<digits>: torchvision ResNet.")
     p.add_argument("--imgsz", type=int, default=None,
-                   help="Input size. Defaults: 448 (dino) / 640 (yolo).")
-    p.add_argument(
-        "--weight",
-        default="/Users/louis/workspace/ultra_louis_work/ultra6/runs/yoloa/26m_mergedata_v3/weights/best.pt",
-        help="YOLO checkpoint (only used for yolo_* backbones).",
-    )
+                   help="Input size. Defaults: 448 (dino) / 640 (yolo) / 224 (resnet).")
+    p.add_argument("--weight",
+                   default="/Users/louis/workspace/ultra_louis_work/ultra6/runs/yoloa/26m_mergedata_v3/weights/best.pt",
+                   help="YOLO checkpoint (only used for yolo_* backbones).")
     p.add_argument("--category", default=None,
                    help=f"Comma-separated subset of {MVTEC_CATEGORIES}. Default: all.")
-    p.add_argument("--fuse", choices=("concat", "sum", "avg", "patchcore", "concat_pool"), default="concat",
-                   help="Multi-layer fusion. concat = channel-concat (dim grows); "
-                        "sum/avg = element-wise (dim preserved, equal-dim layers only); "
-                        "patchcore = unfold + two-stage adaptive_avg_pool (paper's exact pipeline); "
-                        "concat_pool = unfold + concat across layers + single adaptive_avg_pool to target_dim "
-                        "(no per-layer pool; needs --patchsize and --target_dim).")
+    p.add_argument("--fuse", choices=_FUSE_CHOICES, default="concat",
+                   help="Multi-layer fusion. concat=channel-cat (dim grows); sum/avg=elementwise "
+                        "(equal-dim layers); patchcore=2-stage adaptive pool (paper); "
+                        "concat_pool=1-stage adaptive pool.")
     p.add_argument("--patchsize", type=int, default=3,
-                   help="Spatial neighborhood for PatchCore unfold (paper default = 3). Only used with --fuse patchcore.")
+                   help="Spatial unfold (PatchCore paper default = 3). Only used with patchcore/concat_pool.")
     p.add_argument("--pretrain_dim", type=int, default=1024,
-                   help="Per-layer target dim after first adaptive_avg_pool. PatchCore paper default = 1024.")
+                   help="Per-layer adaptive_avg_pool target (patchcore only). Paper default = 1024.")
     p.add_argument("--target_dim", type=int, default=1024,
-                   help="Final per-patch feature dim after cross-layer adaptive_avg_pool. PatchCore paper default = 1024.")
+                   help="Final per-patch dim after cross-layer adaptive_avg_pool. Paper default = 1024.")
+    p.add_argument("--score_metric", choices=_SCORE_CHOICES, default="cosine",
+                   help="1-NN metric: cosine (default) or l2 (PatchCore paper).")
     p.add_argument("--coreset", type=int, default=None,
-                   help="If set, compact the bank to this many points via greedy FPS (PatchCore-style). "
-                        "Skipped when bank is already smaller.")
+                   help="Compact bank to N points via greedy FPS (PatchCore-style coreset).")
     p.add_argument("--coreset_presample", type=int, default=None,
-                   help="If set, randomly subsample bank to this size BEFORE running FPS. "
-                        "PatchCore-style speed trick — much faster, near-identical quality. "
-                        "Only takes effect with --coreset.")
+                   help="Random pre-sample to this size BEFORE FPS. Only with --coreset.")
     p.add_argument("--out", type=Path, default=None, help="Output CSV path.")
     args = p.parse_args()
 
@@ -509,20 +770,14 @@ def main() -> None:
     else:
         cats = list(MVTEC_CATEGORIES)
 
-    ad, tag, out_csv = _build(args)
-    if args.coreset:
-        ad.coreset_size = args.coreset
-        ad.coreset_presample = args.coreset_presample
-        cs_tag = f"_cs{args.coreset}" + (f"_pre{args.coreset_presample}" if args.coreset_presample else "")
-        tag = f"{tag}{cs_tag}"
-        out_csv = out_csv.with_name(out_csv.name.replace("_mvtec_metrics", f"{cs_tag}_mvtec_metrics"))
+    ad, out_csv = _build(args)
     if args.out is not None:
         out_csv = args.out
     elif len(cats) < len(MVTEC_CATEGORIES):
         out_csv = out_csv.with_name(out_csv.stem + f"_{'_'.join(cats)}.csv")
     out_csv.parent.mkdir(parents=True, exist_ok=True)
-    print(f"ready: backbone={args.backbone} imgsz={ad.imgsz} device={ad.device} "
-          f"feat_dim={ad.feat_dim} grid={ad.grid}"
+    print(f"ready: backbone={ad.backbone} imgsz={ad.imgsz} device={ad.device} "
+          f"feat_dim={ad.feat_dim} grid={ad.grid} score={ad.score_metric}"
           + (f" coreset={args.coreset}" if args.coreset else ""))
 
     rows: list[dict] = []

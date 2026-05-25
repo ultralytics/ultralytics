@@ -103,6 +103,10 @@ The Qualcomm QNN format is **export-only** in Ultralytics — [Predict](../modes
 | `batch`  | `int`            | `1`     | Specifies the export model batch size, which is baked into the generated QNN context binary.              |
 | `device` | `str`            | `None`  | Specifies the device for the ONNX export step: GPU (`device=0`) or CPU (`device=cpu`).                    |
 
+!!! note "Precision"
+
+    The export targets the Hexagon NPU (HTP) backend and runs the float model at **fp16** precision (via the ONNX Runtime `enable_htp_fp16_precision` option). INT8 quantization with calibration is not currently performed.
+
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
 ### Output Structure

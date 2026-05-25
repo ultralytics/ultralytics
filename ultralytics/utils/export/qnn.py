@@ -24,7 +24,9 @@ def onnx2qnn(
     Args:
         onnx_file (str | Path): Path to the source ONNX file (already exported).
         output_dir (Path | str): Directory to save the exported QNN model.
-        backend (str): QNN backend to target, one of ``"htp"`` (Hexagon NPU), ``"gpu"`` (Adreno), or ``"cpu"``.
+        backend (str): QNN backend to target, one of ``"htp"`` (Hexagon NPU), ``"gpu"`` (Adreno), or ``"cpu"``. The
+            HTP backend runs the float model at fp16 precision (via ``enable_htp_fp16_precision``); int8 calibration is
+            not performed.
         metadata (dict | None): Metadata saved as ``metadata.yaml``.
         prefix (str): Prefix for log messages.
 
@@ -55,6 +57,10 @@ def onnx2qnn(
     output_dir.mkdir(parents=True, exist_ok=True)
     ctx_file = output_dir / f"{onnx_file.stem}_qnn.onnx"
 
+    provider_options = {"backend_path": backend_lib}
+    if backend == "htp":
+        provider_options["enable_htp_fp16_precision"] = "1"  # run the float model on HTP at fp16 (no int8 calibration)
+
     # Enable QNN context-binary caching, then initialize the session to compile and write the binary (no run needed)
     options = ort.SessionOptions()
     options.add_session_config_entry("ep.context_enable", "1")
@@ -64,7 +70,7 @@ def onnx2qnn(
         str(onnx_file),
         sess_options=options,
         providers=["QNNExecutionProvider"],
-        provider_options=[{"backend_path": backend_lib}],
+        provider_options=[provider_options],
     )
 
     if metadata:

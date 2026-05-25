@@ -11,6 +11,10 @@ keywords: onnx2qnn, QNN export, Qualcomm AI Hub, AI Engine Direct, ONNX, model c
 
 <br>
 
+## ::: ultralytics.utils.export.qnn.qnn_library_paths
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.export.qnn.onnx2qnn
 
 <br><br>

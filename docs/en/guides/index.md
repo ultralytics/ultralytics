@@ -103,7 +103,7 @@ Evaluating your YOLO model performance is crucial to understanding its efficacy.
 
 ### Why should I use Ultralytics Platform for my computer vision projects?
 
-Ultralytics Platform is a no-code platform that simplifies managing, training, and deploying YOLO models. It supports seamless integration, real-time tracking, and cloud training, making it ideal for both beginners and professionals. Discover more about its features and how it can streamline your workflow with our [Ultralytics Platform](https://docs.ultralytics.com/platform/) quickstart guide.
+Ultralytics Platform is a no-code platform that simplifies managing, training, and deploying YOLO models. It supports seamless integration, real-time tracking, and cloud training, making it ideal for both beginners and professionals. Discover more about its features and how it can streamline your workflow with our [Ultralytics Platform](https://docs.ultralytics.com/platform) quickstart guide.
 
 ### What are the common issues faced during YOLO model training, and how can I resolve them?
 

@@ -163,9 +163,8 @@ jobs:
       - name: Prune uv Cache
         run: uv cache prune --ci
 
-  # TEMPORARY (PR #24591): validate QNN export in an isolated env where 'onnxruntime-qnn' is the sole onnxruntime build.
-  # onnxruntime-qnn cannot coexist with the standard 'onnxruntime' in one process, so it can't run in the Tests job.
-  # Remove this job once QNN export has been validated.
+  # TEMPORARY (PR #24591): validate QNN export with the 'onnxruntime-qnn' plugin EP installed alongside onnxruntime.
+  # Not in the Tests job to avoid pulling the large plugin into every run. Remove once QNN export is validated.
   QNN:
     if: github.event_name == 'pull_request' || github.event_name == 'push'
     timeout-minutes: 30
@@ -175,8 +174,6 @@ jobs:
       matrix:
         os: [windows-latest, ubuntu-24.04-arm] # onnxruntime-qnn ships wheels for Windows (x64/ARM64) and Linux ARM64
         python: ["3.12"]
-    env:
-      ULTRALYTICS_SKIP_REQUIREMENTS_CHECKS: "1" # prevent runtime auto-install of standard onnxruntime (would clobber onnxruntime-qnn)
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
@@ -185,15 +182,13 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python }}
-      - name: Install requirements (onnxruntime-qnn as the sole onnxruntime build)
+      - name: Install requirements (with onnxruntime-qnn plugin EP)
         shell: bash
         run: |
-          uv pip install --system -e . onnx onnxslim pytest --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
-          uv pip uninstall onnxruntime onnxruntime-gpu || true
-          uv pip install --system onnxruntime-qnn
-      - name: Verify QNN Execution Provider is available
+          uv pip install --system -e ".[export]" onnxruntime-qnn pytest --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+      - name: Verify QNN Execution Provider can be registered
         run: |
-          python -c "import onnxruntime; p = onnxruntime.get_available_providers(); print(p); assert 'QNNExecutionProvider' in p, 'QNN EP missing'"
+          python -c "import onnxruntime as ort, onnxruntime_qnn as qnn; ort.register_execution_provider_library('QNNExecutionProvider', qnn.get_library_path()); d = [x for x in ort.get_ep_devices() if x.ep_name == 'QNNExecutionProvider']; print('QNN devices:', d); assert d, 'no QNN devices'"
       - name: Pytest QNN export
         shell: bash
         run: pytest tests/test_exports.py::test_export_qnn -v

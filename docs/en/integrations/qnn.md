@@ -161,17 +161,19 @@ The `yolo26n_qnn.onnx` file embeds the QNN context binary and is loaded by ONNX 
 
 QNN models run on Qualcomm Snapdragon hardware. On a Snapdragon device with `onnxruntime-qnn` installed, run the exported model directly with the Ultralytics API (`yolo predict`/`yolo val`, see [Usage](#usage) above) — Ultralytics loads the context binary through the [ONNX Runtime QNN Execution Provider](https://onnxruntime.ai/docs/execution-providers/QNN-ExecutionProvider.html) and selects the HTP (NPU), GPU, or CPU backend.
 
-For custom pipelines, you can also load the context-binary ONNX directly with ONNX Runtime:
+For custom pipelines, you can also load the context-binary ONNX directly with ONNX Runtime. `onnxruntime-qnn` is a plugin Execution Provider, so register it at runtime:
 
 ```python
 import onnxruntime as ort
+import onnxruntime_qnn as qnn_ep
 
-# On the Snapdragon device (onnxruntime-qnn installed), load the precompiled context binary
-session = ort.InferenceSession(
-    "yolo26n_qnn_model/yolo26n_qnn.onnx",
-    providers=["QNNExecutionProvider"],
-    provider_options=[{"backend_path": "libQnnHtp.so"}],  # 'QnnHtp.dll' on Windows
-)
+# On the Snapdragon device, register the QNN plugin EP and select its device(s)
+ort.register_execution_provider_library("QNNExecutionProvider", qnn_ep.get_library_path())
+devices = [d for d in ort.get_ep_devices() if d.ep_name == "QNNExecutionProvider"]
+
+options = ort.SessionOptions()
+options.add_provider_for_devices(devices, {"backend_path": qnn_ep.get_qnn_htp_path()})
+session = ort.InferenceSession("yolo26n_qnn_model/yolo26n_qnn.onnx", sess_options=options)
 outputs = session.run(None, {"images": input_tensor})  # input_tensor: float32 NCHW
 ```
 

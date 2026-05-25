@@ -30,9 +30,9 @@ def onnx2qnn(
         output_dir (Path | str): Directory to save the exported QNN model.
         imgsz (tuple[int, int]): Export image size as ``(height, width)``.
         batch (int): Batch size of the exported ONNX model, used to build the compile input spec.
-        name (str | None): Qualcomm AI Hub target device name, e.g. ``"Snapdragon 8 Elite QRD"``. If ``None``, the
-            first device available to the account is selected (preferring a Snapdragon 8 Elite reference device).
-            Run ``qai_hub.get_devices()`` to list every available device.
+        name (str | None): Qualcomm AI Hub target device name, e.g. ``"Snapdragon 8 Elite QRD"``. If ``None``, the first
+            device available to the account is selected (preferring a Snapdragon 8 Elite reference device). Run
+            ``qai_hub.get_devices()`` to list every available device.
         runtime (str): Target runtime, either ``"qnn_dlc"`` (portable QNN Deep Learning Container) or
             ``"qnn_context_binary"`` (device-specific precompiled context binary).
         metadata (dict | None): Metadata saved as ``metadata.yaml``.

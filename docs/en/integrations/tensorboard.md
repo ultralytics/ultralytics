@@ -87,10 +87,10 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 Upon running the usage code snippet above, you can expect the following output:
 
 ```bash
-TensorBoard: Start with 'tensorboard --logdir path_to_your_tensorboard_logs', view at http://localhost:6006/
+TensorBoard: Start with 'tensorboard --logdir path_to_your_tensorboard_logs', view at localhost:6006
 ```
 
-This output indicates that TensorBoard is now actively monitoring your YOLO26 training session. You can access the TensorBoard dashboard by visiting the provided URL (http://localhost:6006/) to view real-time training metrics and model performance. For users working in [Google Colab](../integrations/google-colab.md), the TensorBoard will be displayed in the same cell where you executed the TensorBoard configuration commands.
+This output indicates that TensorBoard is now actively monitoring your YOLO26 training session. You can access the TensorBoard dashboard at `localhost:6006` to view real-time training metrics and model performance. For users working in [Google Colab](../integrations/google-colab.md), the TensorBoard will be displayed in the same cell where you executed the TensorBoard configuration commands.
 
 For more information related to the model training process, be sure to check our [YOLO26 Model Training guide](../modes/train.md). If you are interested in learning more about logging, checkpoints, plotting, and file management, read our [usage guide on configuration](../usage/cfg.md).
 
@@ -185,7 +185,7 @@ To monitor training metrics while training a YOLO26 model with TensorBoard, foll
 2. **Configure TensorBoard Logging:** During the training process, YOLO26 logs metrics to a specified log directory.
 3. **Start TensorBoard:** Launch TensorBoard using the command `tensorboard --logdir path/to/your/tensorboard/logs`.
 
-The TensorBoard dashboard, accessible via [http://localhost:6006/](http://localhost:6006/), provides real-time insights into various training metrics. For a deeper dive into training configurations, visit our [YOLO26 Configuration guide](../usage/cfg.md).
+The TensorBoard dashboard, accessible at `localhost:6006`, provides real-time insights into various training metrics. For a deeper dive into training configurations, visit our [YOLO26 Configuration guide](../usage/cfg.md).
 
 ### What kind of metrics can I visualize with TensorBoard when training YOLO26 models?
 

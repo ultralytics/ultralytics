@@ -301,7 +301,7 @@ sim_idx["im_file"][sim_count > 30]
 
 ### Visualize Embedding Space
 
-You can also visualize the embedding space using the plotting tool of your choice. For example here is a simple example using matplotlib:
+You can also visualize the embedding space using the plotting tool of your choice. For example here is a simple example using Matplotlib:
 
 ```python
 import matplotlib.pyplot as plt

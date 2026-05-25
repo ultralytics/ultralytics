@@ -130,7 +130,7 @@ Key distinctions include:
 - MuSGD Optimizer: A hybrid of SGD and Muon (inspired by Moonshot AI's Kimi K2) for more stable training and faster convergence.
 - CPU Performance: YOLO26 delivers up to 43% faster CPU inference, making it ideal for devices without GPUs.
 - Task-Specific Optimizations: Enhanced segmentation with semantic loss and multi-scale protos, RLE for precision pose estimation, and improved OBB decoding with angle loss.
-- Tasks: Both models support [object detection](https://www.ultralytics.com/glossary/object-detection), instance segmentation, classification, pose estimation, and oriented object detection (OBB) in a unified framework. YOLO26 also adds [semantic segmentation](../tasks/semantic.md) for dense pixel-level prediction.
+- Tasks: Both models support [object detection](https://www.ultralytics.com/glossary/object-detection) and instance segmentation, while YOLO26 also adds [semantic segmentation](../tasks/semantic.md) for dense pixel-level prediction. Both models also support classification, pose estimation, and oriented object detection (OBB) in a unified framework.
 
 For an in-depth comparison of features and performance metrics, visit the [YOLO26 documentation page](https://docs.ultralytics.com/models/yolo26).
 

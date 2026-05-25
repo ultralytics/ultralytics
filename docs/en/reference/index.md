@@ -14,7 +14,7 @@ If you're new to Ultralytics, the [Quickstart](../quickstart.md), [Modes](../mod
 
 - [`__init__`](__init__.md): Top-level package entry point with lazy imports for `YOLO`, `NAS`, `RTDETR`, `SAM`, `FastSAM`, `YOLOE`, and related model classes.
 - [`cfg`](cfg/__init__.md): Default configuration loading, CLI argument parsing, and the global `DEFAULT_CFG` used across training, validation, prediction, and export.
-- [`data`](data/dataset.md): Dataset classes, data loaders, augmentations, and format converters for detection, segmentation, classification, pose, OBB, and tracking.
+- [`data`](data/dataset.md): Dataset classes, data loaders, augmentations, and format converters for detection, instance segmentation, semantic segmentation, classification, pose, OBB, and tracking.
 - [`engine`](engine/model.md): Core training, validation, prediction, export, and tuning engine — the backbone of the `Model`, `Trainer`, `Validator`, `Predictor`, `Exporter`, and `Tuner` interfaces.
 - [`hub`](hub/__init__.md): [Ultralytics HUB](https://platform.ultralytics.com/) integration for authentication, sessions, dataset uploads, and cloud-based training.
 - [`models`](models/yolo/model.md): Model implementations for YOLO, YOLOE, YOLO-World, SAM, SAM3, FastSAM, RT-DETR, and YOLO-NAS, including their predict, train, val, and export pipelines.

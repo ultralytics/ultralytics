@@ -1,14 +1,14 @@
 ---
 comments: true
 description: Export any PyTorch model (timm, torchvision, or custom) to ONNX, OpenVINO, CoreML, TensorFlow SavedModel, TorchScript, NCNN, MNN, PaddlePaddle, and ExecuTorch with Ultralytics export utilities.
-keywords: export PyTorch model, convert PyTorch to ONNX, PyTorch to CoreML, PyTorch to OpenVINO, PyTorch to TensorFlow, non-YOLO export, timm export, torchvision export, TorchScript export, NCNN export, MNN export, PaddlePaddle export, ExecuTorch export, TFLite export, Ultralytics export utilities, torch.nn.Module export, model conversion, model deployment, pytorch deployment
+keywords: export PyTorch model, convert PyTorch to ONNX, PyTorch to CoreML, PyTorch to OpenVINO, PyTorch to TensorFlow, non-YOLO export, timm export, torchvision export, TorchScript export, NCNN export, MNN export, PaddlePaddle export, ExecuTorch export, TFLite export, Ultralytics export utilities, torch.nn.Module export, model conversion, model deployment, PyTorch deployment
 ---
 
 # How to Export Non-YOLO PyTorch Models with Ultralytics
 
 Deploying PyTorch models to production usually means juggling a different exporter for every target: `torch.onnx.export` for ONNX, `coremltools` for Apple devices, `onnx2tf` for TensorFlow, `pnnx` for NCNN, and so on. Each tool has its own API, dependency quirks, and output conventions.
 
-Ultralytics ships standalone export utilities that wrap multiple backends behind one consistent interface. You can export any `torch.nn.Module`, including [timm](https://github.com/huggingface/pytorch-image-models) image models, [torchvision](https://pytorch.org/vision/) classifiers and detectors, or your own custom architectures, to [ONNX](../integrations/onnx.md), [TorchScript](../integrations/torchscript.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), [NCNN](../integrations/ncnn.md), [PaddlePaddle](../integrations/paddlepaddle.md), [MNN](../integrations/mnn.md), [ExecuTorch](../integrations/executorch.md), and [TensorFlow SavedModel](../integrations/tf-savedmodel.md) without learning each backend separately.
+Ultralytics ships standalone export utilities that wrap multiple backends behind one consistent interface. You can export any `torch.nn.Module`, including [timm](https://github.com/huggingface/pytorch-image-models) image models, [torchvision](https://docs.pytorch.org/vision/) classifiers and detectors, or your own custom architectures, to [ONNX](../integrations/onnx.md), [TorchScript](../integrations/torchscript.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), [NCNN](../integrations/ncnn.md), [PaddlePaddle](../integrations/paddlepaddle.md), [MNN](../integrations/mnn.md), [ExecuTorch](../integrations/executorch.md), and [TensorFlow SavedModel](../integrations/tf-savedmodel.md) without learning each backend separately.
 
 ## Why Use Ultralytics for Non-YOLO Export?
 

@@ -120,7 +120,7 @@ class AutoBackend(nn.Module):
         format (str): The model format (e.g., 'pt', 'onnx', 'engine').
         model: The underlying model (nn.Module for PyTorch backends, backend instance otherwise).
         device (torch.device): The device (CPU or GPU) on which the model is loaded.
-        task (str): The type of task the model performs (detect, segment, classify, pose).
+        task (str): The type of task the model performs (detect, segment, semantic, classify, pose, obb).
         names (dict): A dictionary of class names that the model can detect.
         stride (int): The model stride, typically 32 for YOLO models.
         fp16 (bool): Whether the model uses half-precision (FP16) inference.

@@ -24,8 +24,8 @@ def onnx2qnn(
     Args:
         onnx_file (str | Path): Path to the source ONNX file (already exported).
         output_dir (Path | str): Directory to save the exported QNN model.
-        backend (str): QNN backend to target, one of ``"htp"`` (Hexagon NPU), ``"gpu"`` (Adreno), or ``"cpu"``. The
-            HTP backend runs the float model at fp16 precision (via ``enable_htp_fp16_precision``); int8 calibration is
+        backend (str): QNN backend to target, one of ``"htp"`` (Hexagon NPU), ``"gpu"`` (Adreno), or ``"cpu"``. The HTP
+            backend runs the float model at fp16 precision (via ``enable_htp_fp16_precision``); int8 calibration is
             not performed.
         metadata (dict | None): Metadata saved as ``metadata.yaml``.
         prefix (str): Prefix for log messages.

@@ -482,6 +482,10 @@ Model validation on a dataset is streamlined as follows:
 
 The export process is similar to other YOLO models, with the added flexibility of handling text and visual prompts:
 
+!!! warning "Exported models are static"
+
+    Classes configured with `set_classes()` (or via `refer_image` for visual prompts) are baked into the exported weights. Once exported, the model can no longer accept new prompts: calling `set_classes()` or passing `visual_prompts=...` to `predict()` on a loaded export will fail. To change the detected classes, re-export from the original `.pt` checkpoint with the new prompts configured. The exported file behaves like a standard YOLO detector and can also be loaded with `YOLO()` instead of `YOLOE()`.
+
 !!! example
 
     ```python

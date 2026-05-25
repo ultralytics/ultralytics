@@ -25,8 +25,8 @@ Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 | **Storage**                                                | 100 GB     | 500 GB          | Unlimited  |
 | **Dataset Upload (ZIP/TAR incl. `.tar.gz`/`.tgz`/NDJSON)** | 10 GB      | 20 GB           | 50 GB      |
 | **Deployments**                                            | 3          | 10              | Unlimited  |
-| **Cloud GPU Types**                                        | 20         | 23              | 23         |
-| **Best GPUs (H200, B200)**                                 | -          | Yes             | Yes        |
+| **Cloud GPU Types**                                        | 22         | 24              | 24         |
+| **Best GPUs (B200, B300)**                                 | -          | Yes             | Yes        |
 | **Teams**                                                  | -          | Up to 5 members | Up to 50   |
 | **SSO / SAML**                                             | -          | -               | Yes        |
 | **Enterprise License**                                     | -          | -               | Yes        |
@@ -46,7 +46,7 @@ Get started at no cost:
 - 100 GB storage · 10 GB dataset upload limit
 - Model export to all 17+ formats
 - Manual, SAM 3 & YOLO Smart annotation
-- 20 cloud GPU types including 5090 & H100 ($0.24–$3.07/hr)
+- 22 cloud GPU types including 5090, H100 & H200 ($0.24–$3.99/hr)
 - Community support
 
 !!! tip "Company Email Bonus"
@@ -63,7 +63,7 @@ For professionals and small teams ($29/month or $290/year):
 - 500 GB storage · 20 GB dataset upload limit
 - 10 cloud deployments
 - [Team collaboration](teams.md) with 4-role RBAC (up to 5 members)
-- Access to the best GPUs (H200, B200)
+- Access to the best GPUs (B200, B300)
 - Priority support
 
 !!! tip "Save with Yearly Billing"
@@ -192,7 +192,7 @@ Cloud training costs depend on GPU selection:
 
 {% include "macros/platform-gpu-table.md" %}
 
-H200 and B200 GPUs require a [Pro or Enterprise plan](#plans). All other GPUs are available on all plans.
+B200 and B300 GPUs require a [Pro or Enterprise plan](#plans). All other GPUs are available on all plans.
 
 See [Cloud Training](../train/cloud-training.md) for complete GPU options and pricing.
 
@@ -229,7 +229,7 @@ After upgrading:
 - 10 concurrent cloud trainings
 - 10 cloud deployments
 - [Team collaboration](teams.md) (up to 5 members)
-- Access to best GPUs (H200, B200)
+- Access to best GPUs (B200, B300)
 - Full monitoring dashboard
 - Priority support
 
@@ -260,7 +260,7 @@ When your Pro subscription ends (cancelled or expired), your account reverts to 
 | **Credit Balance**                                         | Existing credits preserved and usable                                            |
 | **Monthly Credits**                                        | $30/seat/month grants stop immediately                                           |
 | **Team Members**                                           | Members notified and lose access to team resources                               |
-| **GPU Access**                                             | Standard GPUs remain available. Best GPUs (H200, B200) require Pro or Enterprise |
+| **GPU Access**                                             | Standard GPUs remain available. Best GPUs (B200, B300) require Pro or Enterprise |
 | **Concurrent Trainings**                                   | Limit reduced from 10 to 3                                                       |
 
 !!! tip "No Data Loss"

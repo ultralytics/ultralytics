@@ -65,7 +65,7 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 
 ### Usage of SolutionAnnotator
 
-All Ultralytics Solutions use the separate class [`SolutionAnnotator`](https://docs.ultralytics.com/reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator), that extends the main [`Annotator`](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator) class, and have the following methods:
+All Ultralytics Solutions use the separate class [`SolutionAnnotator`](https://docs.ultralytics.com/reference/solutions/solutions#ultralytics.solutions.solutions.SolutionAnnotator), that extends the main [`Annotator`](https://docs.ultralytics.com/reference/utils/plotting#ultralytics.utils.plotting.Annotator) class, and have the following methods:
 
 | Method                             | Return Type | Description                                                                      |
 | ---------------------------------- | ----------- | -------------------------------------------------------------------------------- |
@@ -136,7 +136,7 @@ Except [`Similarity Search`](../guides/similarity-search.md), each Solution call
 | `action_labels`      | `Dict[int, str]`   | Per-track predicted action labels from video classification (suitable for action recognition).                |
 | `action_confs`       | `Dict[int, float]` | Per-track confidence scores for predicted actions (suitable for action recognition).                          |
 
-For more details, refer to the [`SolutionResults` class documentation](https://docs.ultralytics.com/reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator).
+For more details, refer to the [`SolutionResults` class documentation](https://docs.ultralytics.com/reference/solutions/solutions#ultralytics.solutions.solutions.SolutionAnnotator).
 
 ### Solutions Usage via CLI
 

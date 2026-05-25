@@ -2,6 +2,7 @@
 
 import io
 import shutil
+import sys
 import threading
 import time
 import uuid
@@ -417,4 +418,30 @@ def test_export_deepx(isolated_model):
     file = YOLO(isolated_model).export(format="deepx", imgsz=32)
     assert Path(file).exists(), f"DeepX export failed, directory not found: {file}"
     # Note: Inference testing skipped as it requires DeepX hardware
+    shutil.rmtree(file, ignore_errors=True)  # cleanup
+
+
+@pytest.mark.skipif(
+    not (WINDOWS or (LINUX and ARM64)) or sys.version_info < (3, 11),
+    reason="onnxruntime-qnn ships prebuilt wheels only for Windows (x64/ARM64) and Linux ARM64 on Python>=3.11",
+)
+def test_export_qnn():
+    """Test YOLO export to Qualcomm QNN format via the ONNX Runtime QNN Execution Provider."""
+    import importlib.util
+
+    # QNN EP ships either as the 'onnxruntime_qnn' plugin module (Windows/Linux-aarch64) or as a provider library
+    # bundled in onnxruntime/capi (Linux x86-64). Skip cleanly only when neither is present.
+    has_qnn = importlib.util.find_spec("onnxruntime_qnn") is not None
+    if not has_qnn and importlib.util.find_spec("onnxruntime") is not None:
+        import onnxruntime
+
+        capi = Path(onnxruntime.__file__).parent / "capi"
+        has_qnn = (capi / "libonnxruntime_providers_qnn.so").exists() or (
+            capi / "onnxruntime_providers_qnn.dll"
+        ).exists()
+    if not has_qnn:
+        pytest.skip("onnxruntime-qnn / QNN Execution Provider not available")
+    file = YOLO(MODEL).export(format="qnn", imgsz=32)
+    assert next(Path(file).rglob("*_qnn.onnx"), None), f"QNN export failed, no context binary found in: {file}"
+    # Note: on-device inference is not exercised here as it requires Qualcomm Snapdragon hardware
     shutil.rmtree(file, ignore_errors=True)  # cleanup

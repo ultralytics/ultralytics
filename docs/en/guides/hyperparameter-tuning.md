@@ -58,7 +58,7 @@ Start with a reasonable set of initial hyperparameters. This could either be the
 
 ### Mutate Hyperparameters
 
-Use the `_mutate` method to produce a new set of hyperparameters based on the existing set. The [Tuner class](https://docs.ultralytics.com/reference/engine/tuner/) handles this process automatically.
+Use the `_mutate` method to produce a new set of hyperparameters based on the existing set. The [Tuner class](https://docs.ultralytics.com/reference/engine/tuner) handles this process automatically.
 
 ### Train Model
 
@@ -66,7 +66,7 @@ Training is performed using the mutated set of hyperparameters. The training per
 
 ### Evaluate Model
 
-Use metrics like AP50, F1-score, or custom metrics to evaluate the model's performance. The [evaluation process](https://docs.ultralytics.com/modes/val/) helps determine if the current hyperparameters are better than previous ones.
+Use metrics like AP50, F1-score, or custom metrics to evaluate the model's performance. The [evaluation process](https://docs.ultralytics.com/modes/val) helps determine if the current hyperparameters are better than previous ones.
 
 ### Log Results
 
@@ -334,7 +334,7 @@ The hyperparameter tuning process in Ultralytics YOLO is simplified yet powerful
 2. [YOLOv5 Hyperparameter Evolution Guide](../yolov5/tutorials/hyperparameter_evolution.md)
 3. [Efficient Hyperparameter Tuning with Ray Tune and YOLO26](../integrations/ray-tune.md)
 
-For deeper insights, you can explore the [`Tuner` class](https://docs.ultralytics.com/reference/engine/tuner/) source code and accompanying documentation. Should you have any questions, feature requests, or need further assistance, feel free to reach out to us on [GitHub](https://github.com/ultralytics/ultralytics/issues/new/choose) or [Discord](https://discord.com/invite/ultralytics).
+For deeper insights, you can explore the [`Tuner` class](https://docs.ultralytics.com/reference/engine/tuner) source code and accompanying documentation. Should you have any questions, feature requests, or need further assistance, feel free to reach out to us on [GitHub](https://github.com/ultralytics/ultralytics/issues/new/choose) or [Discord](https://discord.com/invite/ultralytics).
 
 ## FAQ
 

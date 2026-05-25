@@ -6,7 +6,7 @@ keywords: COCO-Seg, dataset, YOLO models, instance segmentation, object detectio
 
 # COCO-Seg Dataset
 
-The [COCO-Seg](https://cocodataset.org/#home) dataset, an extension of the COCO (Common Objects in Context) dataset, is specially designed to aid research in object [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation). It uses the same images as COCO but introduces more detailed segmentation annotations. This dataset is a crucial resource for researchers and developers working on instance segmentation tasks, especially for training [Ultralytics YOLO](https://docs.ultralytics.com/models/) models.
+The [COCO-Seg](https://cocodataset.org/#home) dataset, an extension of the COCO (Common Objects in Context) dataset, is specially designed to aid research in object [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation). It uses the same images as COCO but introduces more detailed segmentation annotations. This dataset is a crucial resource for researchers and developers working on instance segmentation tasks, especially for training [Ultralytics YOLO](https://docs.ultralytics.com/models) models.
 
 ## COCO-Seg Pretrained Models
 
@@ -72,7 +72,7 @@ COCO-Seg, like its predecessor COCO, contains a diverse set of images with vario
 
 ![COCO segmentation dataset mosaic training batch](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaiced-training-batch-3.avif)
 
-- **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. [Mosaicing](https://docs.ultralytics.com/guides/hyperparameter-tuning/) is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This aids the model's ability to generalize to different object sizes, aspect ratios, and contexts.
+- **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. [Mosaicing](https://docs.ultralytics.com/guides/hyperparameter-tuning) is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This aids the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 
 The example showcases the variety and complexity of the images in the COCO-Seg dataset and the benefits of using mosaicing during the training process.
 
@@ -101,7 +101,7 @@ We extend our thanks to the COCO Consortium for creating and maintaining this in
 
 ### What is the COCO-Seg dataset and how does it differ from the original COCO dataset?
 
-The [COCO-Seg](https://cocodataset.org/#home) dataset is an extension of the original COCO (Common Objects in Context) dataset, specifically designed for instance segmentation tasks. While it uses the same images as the COCO dataset, COCO-Seg includes more detailed segmentation annotations, making it a powerful resource for researchers and developers focusing on [object instance segmentation](https://docs.ultralytics.com/tasks/segment/).
+The [COCO-Seg](https://cocodataset.org/#home) dataset is an extension of the original COCO (Common Objects in Context) dataset, specifically designed for instance segmentation tasks. While it uses the same images as the COCO dataset, COCO-Seg includes more detailed segmentation annotations, making it a powerful resource for researchers and developers focusing on [object instance segmentation](https://docs.ultralytics.com/tasks/segment).
 
 ### How can I train a YOLO26 model using the COCO-Seg dataset?
 
@@ -143,7 +143,7 @@ The COCO-Seg dataset supports multiple pretrained YOLO26 segmentation models wit
 
 {% include "macros/yolo-seg-perf.md" %}
 
-These models range from the lightweight YOLO26n-seg to the more powerful YOLO26x-seg, offering different trade-offs between speed and accuracy to suit various application requirements. For more information on model selection, visit the [Ultralytics models page](https://docs.ultralytics.com/models/).
+These models range from the lightweight YOLO26n-seg to the more powerful YOLO26x-seg, offering different trade-offs between speed and accuracy to suit various application requirements. For more information on model selection, visit the [Ultralytics models page](https://docs.ultralytics.com/models).
 
 ### How is the COCO-Seg dataset structured and what subsets does it contain?
 
@@ -153,4 +153,4 @@ The COCO-Seg dataset is partitioned into three subsets for specific training and
 2. **Val2017**: Comprises 5K images utilized for validation during the training process.
 3. **Test2017**: Encompasses 20K images reserved for testing and benchmarking trained models. Note that ground truth annotations for this subset are not publicly available, and performance results are submitted to the [COCO evaluation server](https://codalab.lisn.upsaclay.fr/competitions/7383) for assessment.
 
-For smaller experimentation needs, you might also consider using the [COCO8-seg dataset](https://docs.ultralytics.com/datasets/segment/coco8-seg/), which is a compact version containing just 8 images from the COCO train 2017 set.
+For smaller experimentation needs, you might also consider using the [COCO8-seg dataset](https://docs.ultralytics.com/datasets/segment/coco8-seg), which is a compact version containing just 8 images from the COCO train 2017 set.

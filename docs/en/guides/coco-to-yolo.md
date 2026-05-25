@@ -10,7 +10,7 @@ Training [Ultralytics YOLO](https://www.ultralytics.com/) models requires annota
 
 ## Why Convert from COCO to YOLO?
 
-The COCO JSON format stores all annotations in a single file, while [YOLO](https://docs.ultralytics.com/datasets/detect/#ultralytics-yolo-format) uses one text file per image with normalized coordinates. Converting is necessary because:
+The COCO JSON format stores all annotations in a single file, while [YOLO](https://docs.ultralytics.com/datasets/detect#ultralytics-yolo-format) uses one text file per image with normalized coordinates. Converting is necessary because:
 
 - **YOLO models require `.txt` label files** with one file per image, containing `class x_center y_center width height` in normalized coordinates.
 - **COCO JSON uses pixel coordinates** in `[x_min, y_min, width, height]` format with a single JSON file for all images.

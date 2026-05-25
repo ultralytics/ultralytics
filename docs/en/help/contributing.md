@@ -23,7 +23,7 @@ Welcome! We're thrilled that you're considering contributing to our [Ultralytics
 
 ## 🤝 Code of Conduct
 
-To ensure a welcoming and inclusive environment for everyone, all contributors must adhere to our [Code of Conduct](https://docs.ultralytics.com/help/code-of-conduct/). **Respect**, **kindness**, and **professionalism** are at the heart of our community.
+To ensure a welcoming and inclusive environment for everyone, all contributors must adhere to our [Code of Conduct](https://docs.ultralytics.com/help/code-of-conduct). **Respect**, **kindness**, and **professionalism** are at the heart of our community.
 
 ## 🚀 Contributing via Pull Requests
 
@@ -38,7 +38,7 @@ We greatly appreciate contributions in the form of [pull requests (PRs)](https:/
 
 ### 📝 CLA Signing
 
-Before we can merge your pull request, you must sign our [Contributor License Agreement (CLA)](https://docs.ultralytics.com/help/CLA/). This legal agreement ensures that your contributions are properly licensed, allowing the project to continue being distributed under the [AGPL-3.0 license](https://www.ultralytics.com/legal/agpl-3-0-software-license).
+Before we can merge your pull request, you must sign our [Contributor License Agreement (CLA)](https://docs.ultralytics.com/help/CLA). This legal agreement ensures that your contributions are properly licensed, allowing the project to continue being distributed under the [AGPL-3.0 license](https://www.ultralytics.com/legal/agpl-3-0-software-license).
 
 After submitting your pull request, the CLA bot will guide you through the signing process. To sign the CLA, simply add a comment in your PR stating:
 
@@ -170,7 +170,7 @@ When adding new functions or classes, include [Google-style docstrings](https://
 
 ### ✅ GitHub Actions CI Tests
 
-All pull requests must pass the [GitHub Actions](https://github.com/features/actions) [Continuous Integration](https://docs.ultralytics.com/help/CI/) (CI) tests before they can be merged. These tests include linting, unit tests, and other checks to ensure that your changes meet the project's quality standards. Review the CI output and address any issues that arise.
+All pull requests must pass the [GitHub Actions](https://github.com/features/actions) [Continuous Integration](https://docs.ultralytics.com/help/CI) (CI) tests before they can be merged. These tests include linting, unit tests, and other checks to ensure that your changes meet the project's quality standards. Review the CI output and address any issues that arise.
 
 ## ✨ Best Practices for Code Contributions
 
@@ -181,7 +181,7 @@ When contributing code to Ultralytics projects, keep these best practices in min
 - **Simplify when possible:** Look for opportunities to simplify the code or remove unnecessary parts.
 - **Consider compatibility:** Before making changes, consider whether they might break existing code using Ultralytics.
 - **Use consistent formatting:** Tools like [Ruff Formatter](https://github.com/astral-sh/ruff) can help maintain stylistic consistency.
-- **Add appropriate tests:** Include [tests](https://docs.ultralytics.com/guides/model-testing/) for new features to ensure they work as expected.
+- **Add appropriate tests:** Include [tests](https://docs.ultralytics.com/guides/model-testing) for new features to ensure they work as expected.
 
 ## 👀 Reviewing Pull Requests
 
@@ -189,8 +189,8 @@ Reviewing pull requests is another valuable way to contribute. When reviewing PR
 
 - **Check for unit tests:** Verify that the PR includes tests for new features or changes.
 - **Review documentation updates:** Ensure [documentation](https://docs.ultralytics.com/) is updated to reflect changes.
-- **Evaluate performance impact:** Consider how changes might affect [performance](https://docs.ultralytics.com/guides/yolo-performance-metrics/).
-- **Verify CI tests:** Confirm all [Continuous Integration tests](https://docs.ultralytics.com/help/CI/) are passing.
+- **Evaluate performance impact:** Consider how changes might affect [performance](https://docs.ultralytics.com/guides/yolo-performance-metrics).
+- **Verify CI tests:** Confirm all [Continuous Integration tests](https://docs.ultralytics.com/help/CI) are passing.
 - **Provide constructive feedback:** Offer specific, clear feedback about any issues or concerns.
 - **Recognize effort:** Acknowledge the author's work to maintain a positive collaborative atmosphere.
 
@@ -239,7 +239,7 @@ Complying means making the **complete corresponding source code** of your projec
         - Any modifications made to the original Ultralytics YOLO code.
         - Scripts for training, validation, and inference.
         - [Model weights](https://www.ultralytics.com/glossary/model-weights) if modified or fine-tuned.
-        - [Configuration files](https://docs.ultralytics.com/usage/cfg/), environment setups (`requirements.txt`, [`Dockerfiles`](https://docs.docker.com/reference/dockerfile/)).
+        - [Configuration files](https://docs.ultralytics.com/usage/cfg), environment setups (`requirements.txt`, [`Dockerfiles`](https://docs.docker.com/reference/dockerfile/)).
         - Backend and frontend code if it's part of a [web application](https://en.wikipedia.org/wiki/Web_application).
         - Any [third-party libraries](<https://en.wikipedia.org/wiki/Library_(computing)#Third-party>) you've modified.
         - [Training data](https://www.ultralytics.com/glossary/training-data) if required to run/retrain _and_ redistributable.

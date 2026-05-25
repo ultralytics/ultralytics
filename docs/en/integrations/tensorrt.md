@@ -77,24 +77,20 @@ For detailed instructions and best practices related to the installation process
 
 Before diving into the usage instructions, be sure to check out the range of [YOLO26 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
-!!! example "Usage"
+The TensorRT format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation require an NVIDIA GPU. Export your model, then load the exported model to run inference or validate its accuracy.
+
+!!! example "Export"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO26 model
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
         # Export the model to TensorRT format
         model.export(format="engine")  # creates 'yolo26n.engine'
-
-        # Load the exported TensorRT model
-        tensorrt_model = YOLO("yolo26n.engine")
-
-        # Run inference
-        results = tensorrt_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
@@ -102,9 +98,48 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         ```bash
         # Export a YOLO26n PyTorch model to TensorRT format
         yolo export model=yolo26n.pt format=engine # creates 'yolo26n.engine'
+        ```
 
-        # Run inference with the exported model
+!!! example "Predict"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported TensorRT model
+        model = YOLO("yolo26n.engine")
+
+        # Run inference
+        results = model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Run inference with the exported TensorRT model
         yolo predict model=yolo26n.engine source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+!!! example "Validate"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported TensorRT model
+        model = YOLO("yolo26n.engine")
+
+        # Validate accuracy on the COCO8 dataset
+        metrics = model.val(data="coco8.yaml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Validate the exported TensorRT model
+        yolo val model=yolo26n.engine data=coco8.yaml
         ```
 
 ### Export Arguments

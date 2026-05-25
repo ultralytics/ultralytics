@@ -436,7 +436,9 @@ def test_export_qnn():
         import onnxruntime
 
         capi = Path(onnxruntime.__file__).parent / "capi"
-        has_qnn = (capi / "libonnxruntime_providers_qnn.so").exists() or (capi / "onnxruntime_providers_qnn.dll").exists()
+        has_qnn = (capi / "libonnxruntime_providers_qnn.so").exists() or (
+            capi / "onnxruntime_providers_qnn.dll"
+        ).exists()
     if not has_qnn:
         pytest.skip("onnxruntime-qnn / QNN Execution Provider not available (exercised in the dedicated QNN CI job)")
     file = YOLO(MODEL).export(format="qnn", imgsz=32)

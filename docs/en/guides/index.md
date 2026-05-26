@@ -38,6 +38,7 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 - [Docker Quickstart](docker-quickstart.md): Complete guide to setting up and using Ultralytics YOLO models with [Docker](https://hub.docker.com/r/ultralytics/ultralytics). Learn how to install Docker, manage GPU support, and run YOLO models in isolated containers for consistent development and deployment.
 - [Edge TPU on Raspberry Pi](coral-edge-tpu-on-raspberry-pi.md): [Google Edge TPU](https://developers.google.com/coral) accelerates YOLO inference on [Raspberry Pi](https://www.raspberrypi.com/).
 - [End-to-End Detection](end2end-detection.md): Understand YOLO26's NMS-free end-to-end detection, export compatibility, output format changes, and how to migrate from older YOLO models.
+- [Export Non-YOLO Models](export-non-yolo-models.md): Use Ultralytics standalone export utilities to convert any `torch.nn.Module` (timm, torchvision, custom) to ONNX, TorchScript, OpenVINO, CoreML, NCNN, MNN, PaddlePaddle, ExecuTorch, and TensorFlow SavedModel.
 - [Fine-Tuning YOLO on Custom Data](finetuning-guide.md): Complete guide to fine-tuning YOLO26 on custom datasets with pretrained weights, covering transfer learning, layer freezing, optimizer selection, two-stage training, and troubleshooting.
 - [Hyperparameter Tuning](hyperparameter-tuning.md): Discover how to optimize your YOLO models by fine-tuning hyperparameters using the Tuner class and genetic evolution algorithms.
 - [Insights on Model Evaluation and Fine-Tuning](model-evaluation-insights.md): Gain insights into the strategies and best practices for evaluating and fine-tuning your computer vision models. Learn about the iterative process of refining models to achieve optimal results.
@@ -102,7 +103,7 @@ Evaluating your YOLO model performance is crucial to understanding its efficacy.
 
 ### Why should I use Ultralytics Platform for my computer vision projects?
 
-Ultralytics Platform is a no-code platform that simplifies managing, training, and deploying YOLO models. It supports seamless integration, real-time tracking, and cloud training, making it ideal for both beginners and professionals. Discover more about its features and how it can streamline your workflow with our [Ultralytics Platform](https://docs.ultralytics.com/platform/) quickstart guide.
+Ultralytics Platform is a no-code platform that simplifies managing, training, and deploying YOLO models. It supports seamless integration, real-time tracking, and cloud training, making it ideal for both beginners and professionals. Discover more about its features and how it can streamline your workflow with our [Ultralytics Platform](https://docs.ultralytics.com/platform) quickstart guide.
 
 ### What are the common issues faced during YOLO model training, and how can I resolve them?
 

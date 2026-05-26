@@ -8,7 +8,8 @@ from pathlib import Path
 
 import torch
 
-from ultralytics.utils import IS_JETSON, LOGGER, TORCH_VERSION, ThreadingLocked
+from ultralytics.utils import IS_JETSON, LOGGER, TORCH_VERSION, ThreadingLocked, is_dgx, is_jetson
+from ultralytics.utils.checks import check_tensorrt, check_version
 from ultralytics.utils.torch_utils import TORCH_2_4, TORCH_2_9
 
 
@@ -131,8 +132,20 @@ def onnx2engine(
         INT8 calibration requires a dataset and generates a calibration cache.
         Metadata is serialized and written to the engine file if provided.
     """
-    import tensorrt as trt
+    # Force re-install TensorRT on CUDA 13 ARM devices to 10.15.x versions for RT-DETR exports
+    # https://github.com/ultralytics/ultralytics/issues/22873
+    if is_jetson(jetpack=7) or is_dgx():
+        check_tensorrt("10.15")
 
+    try:
+        import tensorrt as trt
+    except ImportError:
+        check_tensorrt()
+        import tensorrt as trt
+    check_version(trt.__version__, ">=7.0.0", hard=True)
+    check_version(trt.__version__, "!=10.2.0", msg="https://github.com/ultralytics/ultralytics/pull/24367")
+
+    LOGGER.info(f"\n{prefix} starting export with TensorRT {trt.__version__}...")
     output_file = output_file or Path(onnx_file).with_suffix(".engine")
 
     logger = trt.Logger(trt.Logger.INFO)

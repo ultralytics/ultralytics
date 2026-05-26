@@ -61,6 +61,14 @@ Once your model is trained and validated, the next logical step is to evaluate i
 
 ## Usage Examples
 
+!!! tip "Recommended install"
+
+    Install Ultralytics with export dependencies before benchmarking to avoid missing packages.
+
+    ```bash
+    pip install ultralytics[export]
+    ```
+
 Run YOLO26n benchmarks across all supported export formats (ONNX, TensorRT, etc.). See the Arguments section below for a full list of export options.
 
 !!! example
@@ -136,7 +144,7 @@ For more details on benchmark arguments, visit the [Arguments](#arguments) secti
 
 ### What are the benefits of exporting YOLO26 models to different formats?
 
-Exporting YOLO26 models to different formats such as [ONNX](https://docs.ultralytics.com/integrations/onnx/), [TensorRT](https://docs.ultralytics.com/integrations/tensorrt/), and [OpenVINO](https://docs.ultralytics.com/integrations/openvino/) allows you to optimize performance based on your deployment environment. For instance:
+Exporting YOLO26 models to different formats such as [ONNX](https://docs.ultralytics.com/integrations/onnx), [TensorRT](https://docs.ultralytics.com/integrations/tensorrt), and [OpenVINO](https://docs.ultralytics.com/integrations/openvino) allows you to optimize performance based on your deployment environment. For instance:
 
 - **ONNX:** Provides up to 3x CPU speedup.
 - **TensorRT:** Offers up to 5x GPU speedup.

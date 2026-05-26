@@ -1853,9 +1853,9 @@ class SemanticSegment(nn.Module):
             x (list[torch.Tensor]): List of feature maps [P3, P4].
 
         Returns:
-            (torch.Tensor): Logits of shape [B, nc, H/8, W/8] during training, inference, and CoreML export.
-                ONNX and TFLite export bake in the argmax and return a compact class map of shape [B, H, W]
-                (uint8 when nc <= 256, else int32). Other export formats return upsampled logits [B, nc, H, W].
+            (torch.Tensor): Logits of shape [B, nc, H/8, W/8] during training, inference, and CoreML export. ONNX and
+                TFLite export bake in the argmax and return a compact class map of shape [B, H, W] (uint8 when nc <=
+                256, else int32). Other export formats return upsampled logits [B, nc, H, W].
         """
         # Classify
         logits = self.classifier(x[0])  # [B, nc, H/8, W/8]

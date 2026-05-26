@@ -1,0 +1,8 @@
+# ARKitScenes only (676,080 train / 21,559 val)
+path: /data/depth_anything/raw/arkitscenes
+train: images/train
+val: images/val
+nc: 1
+names:
+  0: depth
+channels: 3

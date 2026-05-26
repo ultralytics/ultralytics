@@ -1,0 +1,8 @@
+# TartanAir only (55,660 train / 5,810 val)
+path: /data/depth_anything/raw/tartanair
+train: images/train
+val: images/val
+nc: 1
+names:
+  0: depth
+channels: 3

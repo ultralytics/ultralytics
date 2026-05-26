@@ -1,0 +1,8 @@
+# SUN RGB-D only (10,335 scenes; 9,245 train / 1,090 val)
+path: /data/depth_anything/raw/sunrgbd
+train: images/train
+val: images/val
+nc: 1
+names:
+  0: depth
+channels: 3

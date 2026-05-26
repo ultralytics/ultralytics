@@ -1,0 +1,8 @@
+# KITTI only (60,040 train / 32,378 val)
+path: /data/depth_anything/raw/kitti
+train: images/train
+val: images/val
+nc: 1
+names:
+  0: depth
+channels: 3

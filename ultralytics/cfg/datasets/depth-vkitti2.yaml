@@ -1,0 +1,8 @@
+# Virtual KITTI 2 only (25,780 train / 16,740 val)
+path: /data/depth_anything/raw/vkitti2
+train: images/train
+val: images/val
+nc: 1
+names:
+  0: depth
+channels: 3

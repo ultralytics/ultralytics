@@ -1,0 +1,8 @@
+# Hypersim only (68,242 train / 6,377 val)
+path: /data/depth_anything/raw/hypersim
+train: images/train
+val: images/val
+nc: 1
+names:
+  0: depth
+channels: 3

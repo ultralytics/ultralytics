@@ -433,7 +433,7 @@ def test_export_ethos():
     assert metadata_file.exists(), f"Ethos metadata.yaml not found: {metadata_file}"
     # Note: Inference testing skipped as it requires Ethos-U hardware
 
-    
+
 @pytest.mark.skipif(
     not (WINDOWS or (LINUX and ARM64)) or sys.version_info < (3, 11),
     reason="onnxruntime-qnn ships prebuilt wheels only for Windows (x64/ARM64) and Linux ARM64 on Python>=3.11",

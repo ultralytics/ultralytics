@@ -64,7 +64,6 @@ class SemanticSegmentationPredictor(BasePredictor):
                 class_map = pred.argmax(0).to(dtype) if pred.shape[0] > 1 else pred.gt(0).squeeze(0).to(dtype)
             else:
                 # pred: [H, W] class map with argmax already baked into the graph (ONNX export). Nearest-resize only.
-                cm = ops.scale_masks(pred[None, None].float(), orig_img.shape[:2], mode="nearest")
-                class_map = cm[0, 0].to(pred.dtype)
+                class_map = ops.scale_masks(pred[None, None].float(), orig_img.shape[:2], mode="nearest")[0, 0].to(pred.dtype)
             results.append(Results(orig_img, path=img_path, names=self.model.names, semantic_mask=class_map))
         return results

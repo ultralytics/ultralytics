@@ -142,16 +142,16 @@ Comet logs system metrics to help identify any bottlenecks in the training proce
 
 Comet offers the flexibility to customize its logging behavior by setting environment variables. These configurations allow you to tailor Comet to your specific needs and preferences. The Ultralytics callback reads the following environment variables (set them before training starts):
 
-| Environment Variable                | Default        | Description                                                                                              |
-| ----------------------------------- | -------------- | -------------------------------------------------------------------------------------------------------- |
-| `COMET_START_ONLINE`                | `1`            | Run the experiment in online (`1`) or offline (`0`) mode.                                                |
-| `COMET_PROJECT_NAME`                | `args.project` | Comet workspace project. Falls back to the YOLO `project` training argument when unset.                  |
-| `COMET_MODEL_NAME`                  | `Ultralytics`  | Name registered for the logged model artifact.                                                           |
-| `COMET_MAX_IMAGE_PREDICTIONS`       | `100`          | Total number of validation image predictions to log per run.                                             |
-| `COMET_EVAL_BATCH_LOGGING_INTERVAL` | `1`            | Log image predictions every Nth validation batch.                                                        |
-| `COMET_EVAL_LOG_IMAGE_PREDICTIONS`  | `true`         | Toggle image prediction logging on (`true`) or off (`false`).                                            |
-| `COMET_EVAL_LOG_CONFUSION_MATRIX`   | `false`        | Log a confusion matrix on every validation epoch. A final matrix is always logged at end of training.    |
-| `COMET_MAX_CONFIDENCE_SCORE`        | `100.0`        | Multiplier applied to detection confidence scores before logging (Comet's UI expects a percentage scale). |
+| Environment Variable                | Default        | Description                                                                                                |
+| ----------------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------- |
+| `COMET_START_ONLINE`                | `1`            | Run the experiment in online (`1`) or offline (`0`) mode.                                                  |
+| `COMET_PROJECT_NAME`                | `args.project` | Comet workspace project. Falls back to the YOLO `project` training argument when unset.                    |
+| `COMET_MODEL_NAME`                  | `Ultralytics`  | Name registered for the logged model artifact.                                                             |
+| `COMET_MAX_IMAGE_PREDICTIONS`       | `100`          | Total number of validation image predictions to log per run.                                               |
+| `COMET_EVAL_BATCH_LOGGING_INTERVAL` | `1`            | Log image predictions every Nth validation batch.                                                          |
+| `COMET_EVAL_LOG_IMAGE_PREDICTIONS`  | `true`         | Toggle image prediction logging on (`true`) or off (`false`).                                              |
+| `COMET_EVAL_LOG_CONFUSION_MATRIX`   | `false`        | Log a confusion matrix on every validation epoch. A final matrix is always logged at end of training.      |
+| `COMET_MAX_CONFIDENCE_SCORE`        | `100.0`        | Multiplier applied to detection confidence scores before logging (Comet's UI expects a percentage scale).  |
 | `COMET_MODE` _(deprecated)_         | `online`       | Legacy alias of `COMET_START_ONLINE` (`"online"` ↔ `1`, `"offline"` ↔ `0`). Emits a deprecation warning. |
 
 ### Logging Image Predictions

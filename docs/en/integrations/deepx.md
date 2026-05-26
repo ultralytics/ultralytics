@@ -49,7 +49,7 @@ Export an Ultralytics YOLO model to DEEPX format and run inference with the expo
 
 !!! note
 
-    DEEPX export is only supported on x86-64 Linux machines. ARM64 (aarch64) is not supported for the export step. However, the exported dxnn models are fully compatible and executable on ARM64 Linux platforms.
+    DEEPX export is only supported on x86-64 Linux machines. ARM64 (aarch64) is not supported for the export step. However, the exported dxnn models are fully compatible and executable on ARM64 platforms.
 
 ### Installation
 

@@ -58,13 +58,7 @@ class DetectionPredictor(BasePredictor):
         # Subclasses (e.g. SegmentationPredictor) may have already stashed them on self._raw_scores.
         raw_scores = getattr(self, "_raw_scores", None)
         if save_logits and raw_scores is None and not is_end2end:
-            if (
-                isinstance(preds, (tuple, list))
-                and len(preds) == 2
-                and isinstance(preds[1], dict)
-                and "scores" in preds[1]
-            ):
-                raw_scores = preds[1]["scores"]
+            raw_scores = self._extract_raw_scores(preds)
         self._raw_scores = None  # reset for next batch
         if save_logits and (raw_scores is None or is_end2end):
             LOGGER.warning(
@@ -126,6 +120,13 @@ class DetectionPredictor(BasePredictor):
             [x.permute(0, 2, 3, 1).reshape(x.shape[0], -1, s, x.shape[1] // s).mean(dim=-1) for x in feat_maps], dim=1
         )  # mean reduce all vectors to same length
         return [feats[idx] if idx.shape[0] else [] for feats, idx in zip(obj_feats, idxs)]  # for each img in batch
+
+    @staticmethod
+    def _extract_raw_scores(preds):
+        """Return raw pre-sigmoid class scores from a model output, or None if the model did not expose them."""
+        if isinstance(preds, (tuple, list)) and len(preds) == 2 and isinstance(preds[1], dict):
+            return preds[1].get("scores")
+        return None
 
     def construct_results(self, preds, img, orig_imgs):
         """Construct a list of Results objects from model predictions.

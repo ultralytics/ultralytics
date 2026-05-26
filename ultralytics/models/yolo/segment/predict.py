@@ -63,13 +63,7 @@ class SegmentationPredictor(DetectionPredictor):
         """
         # Stash raw class scores for logits=True before the segment-specific tuple is unwrapped.
         if getattr(self.args, "logits", False):
-            if (
-                isinstance(preds, (tuple, list))
-                and len(preds) == 2
-                and isinstance(preds[1], dict)
-                and "scores" in preds[1]
-            ):
-                self._raw_scores = preds[1]["scores"]
+            self._raw_scores = self._extract_raw_scores(preds)
 
         # Extract protos - tuple if PyTorch model or array if exported
         protos = preds[0][1] if isinstance(preds[0], tuple) else preds[1]

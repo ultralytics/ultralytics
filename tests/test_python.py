@@ -813,11 +813,13 @@ def test_logits(weights):
     r = model(SOURCE, imgsz=32, conf=0.001, logits=True)[0]
     det = r.obb if r.obb is not None else r.boxes
     assert tuple(r.logits.data.shape) == (len(det), len(model.names))
-    torch.testing.assert_close(r.logits.probs.max(dim=1).values.float(), det.conf.float(), rtol=1e-3, atol=1e-3)
-    assert isinstance(r.numpy().logits.data, np.ndarray)  # _keys propagates to .numpy()
+    probs = r.logits.probs
+    assert probs.shape == r.logits.data.shape and (probs >= 0).all() and (probs <= 1).all()  # sigmoid of data
+    torch.testing.assert_close(probs.max(dim=1).values.float(), det.conf.float(), rtol=1e-3, atol=1e-3)
+    assert isinstance(r.numpy().logits.probs, np.ndarray)  # _keys propagates and numpy sigmoid branch works
 
 
-def test_logits_end2end_warns():
+def test_logits_end2end_disabled():
     """Test logits=True is gracefully ignored on end2end models."""
     assert all(r.logits is None for r in YOLO(MODEL)(SOURCE, imgsz=32, logits=True))
 

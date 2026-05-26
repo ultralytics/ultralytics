@@ -49,15 +49,33 @@ YOLO (.pt) -> ONNX -> HAR (parse) -> HAR (optimize/quantize) -> HEF (compile)
 
 This guide focuses on Ultralytics YOLO **object detection** models, because the Hailo model script and NMS configuration are detection-head specific.
 
-| Task                                   | Supported |
-| :------------------------------------- | :-------- |
-| [Object Detection](../tasks/detect.md) | Yes       |
-| [Segmentation](../tasks/segment.md)    | No        |
-| [Pose Estimation](../tasks/pose.md)    | No        |
-| [OBB Detection](../tasks/obb.md)       | No        |
-| [Classification](../tasks/classify.md) | No        |
+| Task                                                 | Supported |
+| :--------------------------------------------------- | :-------- |
+| [Object Detection](../tasks/detect.md)               | ✅ Yes    |
+| [Instance Segmentation](../tasks/segment.md)         | ❌ No     |
+| [Semantic Segmentation](../tasks/semantic.md)        | ❌ No     |
+| [Pose Estimation](../tasks/pose.md)                  | ❌ No     |
+| [OBB Detection](../tasks/obb.md)                     | ❌ No     |
+| [Classification](../tasks/classify.md)               | ❌ No     |
 
-For segmentation, pose, OBB, and classification deployments, compare other edge formats in the [Export mode](../modes/export.md) table or use a generic ONNX pipeline where your target runtime supports the task.
+For instance segmentation, semantic segmentation, pose, OBB, and classification deployments, compare other edge formats in the [Export mode](../modes/export.md) table or use a generic ONNX pipeline where your target runtime supports the task.
+
+### Compatibility Notes
+
+Hailo export compatibility depends on the model head, input image size, class count, Hailo architecture, model script (`.alls`), and NMS configuration. Static files from the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo) are useful references, but they are not universal templates. For example, an NMS JSON created for a COCO 80-class YOLO11n model is not correct for a custom 3-class model or for a different fixed `imgsz`.
+
+| Scope                                      | Expected Support | Notes                                                                                                                                     |
+| :----------------------------------------- | :--------------- | :---------------------------------------------------------------------------------------------------------------------------------------- |
+| YOLOv8 / YOLO11 detection, stock models    | ✅ Good          | Shared decoupled detection head; `.alls`, end nodes, and NMS config still need to match the exported graph and fixed `imgsz`.             |
+| Custom YOLOv8 / YOLO11 detection           | ✅ Possible      | Requires per-model NMS configuration generated from class count, strides, and detection-head layout; static Model Zoo JSON will not match. |
+| YOLOv9 detection                           | ⚠️ Validate      | Similar detection-head pattern, but compile and output parsing should be tested before treating it as supported.                           |
+| YOLOv10 / YOLO26 end-to-end detection      | ❌ Not supported | End-to-end/NMS-free exports do not match the Hailo NMS post-processing path; use a traditional detection head if testing manually.         |
+| Instance segmentation                      | ⚠️ Separate work | Requires task-specific post-processing and validation outside this detection-focused guide.                                                 |
+| Semantic segmentation                      | ❌ Not supported | Dense class-map outputs do not use the YOLO detection-head NMS path covered here.                                                          |
+| Pose estimation                            | ⚠️ Separate work | Requires task-specific post-processing and validation outside this detection-focused guide.                                                 |
+| OBB detection                              | ❌ Not supported | No standard Hailo post-processing path is covered by this guide.                                                                           |
+| Classification                             | ❌ Not supported | Classification models do not use the detection-head NMS configuration described here.                                                       |
+| Dynamic or arbitrary image sizes           | ❌ Not supported | Hailo compilation uses a fixed input shape; `.alls` and NMS settings must match the exported `imgsz`.                                      |
 
 ## Installation
 
@@ -81,9 +99,9 @@ pip install /path/to/hailo_sdk_client-*.whl
 
 ## YOLO11n HEF Export Example
 
-The script below compiles a YOLO11n detection model from `.pt` to `.hef`. It exports to ONNX using Ultralytics, then compiles with Hailo DFC using COCO128 as a small calibration dataset.
+The script below compiles a YOLO11n detection model from `.pt` to `.hef` at a fixed 640-pixel input size. It exports to ONNX using Ultralytics, then compiles with Hailo DFC using COCO128 as a small calibration dataset.
 
-Before running the script, download the matching YOLO11n NMS config file from the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo) or create your own Hailo NMS JSON for the model. Hailo layer names and NMS config files are model-specific; reuse this script as a known YOLO11n starting point, not as a drop-in template for every model family.
+Before running the script, download the matching YOLO11n NMS config file from the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo) or create your own Hailo NMS JSON for the model. Hailo layer names, `.alls` directives, and NMS config files are model-specific and shape-specific; reuse this script as a known YOLO11n starting point, not as a drop-in template for every model family or custom class count.
 
 !!! example "Full Pipeline"
 

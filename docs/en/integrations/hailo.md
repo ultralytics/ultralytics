@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Export Ultralytics YOLO detection models to Hailo HEF for low-power edge AI inference on Hailo-8, Hailo-8L, Raspberry Pi AI Kit, AI HAT+, and Hailo-15 devices.
+description: Convert Ultralytics YOLO detection models from ONNX to Hailo HEF for Hailo-8, Hailo-8L, Raspberry Pi AI Kit, AI HAT+, and Hailo-15 devices.
 keywords: Hailo export, Hailo HEF, export YOLO to Hailo, YOLO Hailo, Hailo-8, Hailo-8L, Hailo-15, Raspberry Pi AI Kit, Raspberry Pi AI HAT+, Hailo Dataflow Compiler, Hailo DFC, HailoRT, Hailo Model Zoo, Hailo AI accelerator, edge AI deployment, embedded AI, model quantization, INT8 quantization, ONNX to HEF, Ultralytics YOLO, YOLO11, YOLOv8, object detection
 ---
 
@@ -8,23 +8,17 @@ keywords: Hailo export, Hailo HEF, export YOLO to Hailo, YOLO Hailo, Hailo-8, Ha
 
 !!! warning "Not a direct Ultralytics export format"
 
-    Hailo HEF is **not officially supported** as a direct Ultralytics `model.export(format="hailo")` target. The workflow below exports to ONNX first, then uses Hailo's external Dataflow Compiler toolchain to produce a `.hef` file. For improved edge performance over this unsupported Hailo path, use direct Ultralytics export formats such as [Axelera AI](axelera.md) or [DeepX](deepx.md) instead.
+    Hailo HEF is **not officially supported** as a direct Ultralytics `model.export(format="hailo")` target. The workflow below exports to ONNX first, then uses Hailo's external Dataflow Compiler toolchain to produce a `.hef` file. For better performance per watt than older Hailo HEF deployments, use newer direct Ultralytics export formats such as [Axelera AI](axelera.md) or [DeepX](deepx.md) instead.
 
-Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on edge devices requires a format optimized for the target hardware. The [Hailo](https://hailo.ai/) AI processor delivers high-performance, low-power inference on embedded platforms including the [Raspberry Pi AI Kit](https://www.raspberrypi.com/products/ai-kit/) and [AI HAT+](https://www.raspberrypi.com/documentation/accessories/ai-hat-plus.html), industrial cameras, edge gateways, and AI PCs without relying on cloud connectivity.
+Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on edge devices often requires a format built for the target runtime. The [Hailo](https://hailo.ai/) toolchain uses HEF files for embedded platforms including the [Raspberry Pi AI Kit](https://www.raspberrypi.com/products/ai-kit/) and [AI HAT+](https://www.raspberrypi.com/documentation/accessories/ai-hat-plus.html), industrial cameras, edge gateways, and AI PCs.
 
 This guide walks through exporting [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) detection models to Hailo's **HEF (Hailo Executable Format)** using the **Hailo Dataflow Compiler (DFC)** SDK. The workflow starts from a YOLO `.pt` model, exports to [ONNX](onnx.md), compiles with Hailo tools, and produces a `.hef` file ready for Hailo-8, Hailo-8L, and Hailo-15 accelerators.
 
-## Why Export to Hailo HEF?
+## When to Use Hailo HEF
 
-[Hailo](https://hailo.ai/products/ai-accelerators/) designs dedicated AI accelerators built specifically for [edge AI](https://www.ultralytics.com/glossary/edge-ai) inference. HEF is the compiled artifact consumed by HailoRT on target devices, similar in deployment role to hardware-specific formats such as [RKNN](rockchip-rknn.md) for Rockchip NPUs, [IMX500](sony-imx500.md) for Raspberry Pi AI Cameras, and [Qualcomm QNN](qnn.md) for Snapdragon NPUs.
+HEF is the compiled artifact consumed by HailoRT on Hailo target devices. Use this guide only when your deployment hardware specifically requires Hailo HEF. If you are still choosing edge hardware or export targets, start with newer direct Ultralytics export formats such as [Axelera AI](axelera.md) or [DeepX](deepx.md), which provide a supported `model.export(...)` workflow and better performance-per-watt options than older Hailo deployments.
 
-**Key reasons to use Hailo:**
-
-- **High throughput**: Hailo-8 delivers up to 26 TOPS, enabling [real-time inference](https://www.ultralytics.com/glossary/real-time-inference) for detection workloads at high frame rates.
-- **Low power consumption**: Purpose-built acceleration keeps always-on edge deployment within embedded power and thermal budgets.
-- **Raspberry Pi AI Kit support**: Hailo-8L powers the official Raspberry Pi AI Kit, adding hardware-accelerated inference to Raspberry Pi 5.
-- **Integrated post-processing**: HailoRT can include YOLO [non-maximum suppression](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) in the compiled inference pipeline, simplifying application code.
-- **INT8 efficiency**: The DFC quantizes the model with representative calibration images to produce an efficient INT8 graph for Hailo hardware. Learn more about [model quantization](https://www.ultralytics.com/glossary/model-quantization).
+HEF is similar in deployment role to hardware-specific formats such as [RKNN](rockchip-rknn.md) for Rockchip NPUs, [IMX500](sony-imx500.md) for Raspberry Pi AI Cameras, and [Qualcomm QNN](qnn.md) for Snapdragon NPUs, but it is not currently generated directly by Ultralytics.
 
 ## Hailo HEF Export Format
 
@@ -312,11 +306,11 @@ Pre-compiled `.alls` scripts and NMS config files for many YOLO variants are ava
 
 ## Supported Hardware Architectures
 
-| Architecture | Device    | Performance | Common Use Case            |
-| ------------ | --------- | ----------- | -------------------------- |
-| `hailo8`     | Hailo-8   | 26 TOPS     | Standard edge AI module    |
-| `hailo8l`    | Hailo-8L  | 13 TOPS     | Raspberry Pi AI Kit        |
-| `hailo15h`   | Hailo-15H | 40 TOPS     | Higher-performance variant |
+| Architecture | Device    | Peak Compute (Vendor Spec) | Common Use Case         |
+| ------------ | --------- | -------------------------- | ----------------------- |
+| `hailo8`     | Hailo-8   | 26 TOPS                    | Hailo accelerator card  |
+| `hailo8l`    | Hailo-8L  | 13 TOPS                    | Raspberry Pi AI Kit     |
+| `hailo15h`   | Hailo-15H | 20 TOPS                    | Hailo-15 target devices |
 
 Set `HW_ARCH` in the script to match your target device before compiling.
 

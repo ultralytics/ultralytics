@@ -645,11 +645,9 @@ class Exporter:
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.12.0,<2.0.0"]
         if self.args.simplify:
-            # onnxruntime variants (onnxruntime-gpu/-qnn/etc.) all provide the `onnxruntime` module; pass them as
-            # interchangeable candidates so AutoUpdate does not reinstall stable onnxruntime over an existing build
-            # (e.g. the nightly onnxruntime-qnn used for QNN export), which breaks the provider ABI. The first
-            # candidate is the install target when none is already present.
-            ort = "onnxruntime-gpu" if torch.cuda.is_available() else "onnxruntime"
+            # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
+            # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
+            ort = "onnxruntime-gpu" if "cuda" in self.device.type else "onnxruntime"
             requirements += ["onnxslim>=0.1.71", (ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")]
         check_requirements(requirements)
         import onnx

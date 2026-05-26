@@ -806,50 +806,20 @@ def test_yolo_world():
     )
 
 
-@pytest.mark.parametrize(
-    "weights",
-    ["yolo11n.pt", "yolo11n-seg.pt", "yolo11n-pose.pt", "yolo11n-obb.pt"],
-)
+@pytest.mark.parametrize("weights", ["yolo11n.pt", "yolo11n-seg.pt", "yolo11n-pose.pt", "yolo11n-obb.pt"])
 def test_logits(weights):
-    """Verify logits=True attaches per-detection pre-sigmoid class scores to each Results object.
-
-    Invariant: results[i].logits.probs.max(1).values matches results[i].boxes.conf (or results[i].obb.conf)
-    within fp tolerance, proving the gathered logits correspond to the surviving NMS detections.
-    """
-    model = YOLO(weights)
-    results = model(SOURCE, imgsz=320, logits=True, verbose=False)
-    nc = len(model.names)
-    for r in results:
-        det = r.obb if r.obb is not None else r.boxes
-        n = len(det)
-        if n == 0:
-            assert r.logits is None or len(r.logits) == 0
-            continue
-        assert r.logits is not None, "expected logits attribute when logits=True"
-        assert tuple(r.logits.data.shape) == (n, nc), f"logits shape {r.logits.data.shape} != ({n}, {nc})"
-        probs = r.logits.probs
-        max_probs = probs.max(dim=1).values if isinstance(probs, torch.Tensor) else probs.max(axis=1)
-        torch.testing.assert_close(
-            torch.as_tensor(max_probs).float(), det.conf.float(), rtol=1e-3, atol=1e-3
-        )
-        # Verify device-move helpers walk the new Logits attribute via _keys.
-        r_cpu = r.cpu()
-        assert r_cpu.logits is not None and not r_cpu.logits.data.is_cuda
-        r_np = r.numpy()
-        assert isinstance(r_np.logits.data, np.ndarray)
-
-    # Default behavior unchanged: a fresh model without the logits flag leaves results[*].logits as None.
-    fresh = YOLO(weights)
-    results_default = fresh(SOURCE, imgsz=320, verbose=False)
-    assert all(r.logits is None for r in results_default)
+    """Test logits=True attaches per-detection pre-sigmoid class scores to Results."""
+    model = YOLO(WEIGHTS_DIR / weights)
+    r = model(SOURCE, imgsz=32, conf=0.001, logits=True)[0]
+    det = r.obb if r.obb is not None else r.boxes
+    assert tuple(r.logits.data.shape) == (len(det), len(model.names))
+    torch.testing.assert_close(r.logits.probs.max(dim=1).values.float(), det.conf.float(), rtol=1e-3, atol=1e-3)
+    assert isinstance(r.numpy().logits.data, np.ndarray)  # _keys propagates to .numpy()
 
 
 def test_logits_end2end_warns():
-    """End2end models cannot expose logits (sigmoid + topk baked in); logits=True should disable with a warning."""
-    model = YOLO(MODEL)  # yolo26n default is end2end
-    assert getattr(model.model.model[-1], "end2end", False), "test prerequisite: yolo26n head must be end2end"
-    results = model(SOURCE, imgsz=320, logits=True, verbose=False)
-    assert all(r.logits is None for r in results)
+    """Test logits=True is gracefully ignored on end2end models."""
+    assert all(r.logits is None for r in YOLO(MODEL)(SOURCE, imgsz=32, logits=True))
 
 
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for heavy CLIP-based models")

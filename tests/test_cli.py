@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -47,12 +48,17 @@ def test_predict(task: str, model: str, data: str) -> None:
 
 
 @pytest.mark.parametrize("model", MODELS)
-def test_export(model: str, tmp_path: Path) -> None:  # use tmp_path to prevent the race condition with test_exports.py
+def test_export(model: str, tmp_path: Path) -> None:
     """Test exporting a YOLO model to TorchScript format."""
+    from ultralytics.utils.downloads import attempt_download_asset
+
+    model_path = WEIGHTS_DIR / model
+    if not model_path.exists():
+        model_path = Path(attempt_download_asset(model))
+    isolated = tmp_path / model
+    shutil.copy(model_path, isolated)
     for end2end in {False, True}:
-        run(
-            f"yolo export model={model} format=torchscript imgsz=32 end2end={end2end} max_det=100 project={tmp_path} name=export"
-        )
+        run(f"yolo export model={isolated} format=torchscript imgsz=32 end2end={end2end} max_det=100")
 
 
 @pytest.mark.skipif(not TORCH_1_11, reason="RTDETR requires torch>=1.11")

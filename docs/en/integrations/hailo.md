@@ -10,7 +10,7 @@ keywords: Hailo export, Hailo HEF, export YOLO to Hailo, YOLO Hailo, Hailo-8, Ha
 
     Hailo HEF is **not officially supported** as a direct Ultralytics `model.export(format="hailo")` target. The workflow below exports to ONNX first, then uses Hailo's external Dataflow Compiler toolchain to produce a `.hef` file. For better performance per watt than older Hailo HEF deployments, use newer direct Ultralytics export formats such as [Axelera AI](axelera.md) or [DeepX](deepx.md) instead.
 
-Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on edge devices often requires a format built for the target runtime. The [Hailo](https://hailo.ai/) toolchain uses HEF files for embedded platforms including the [Raspberry Pi AI Kit](https://www.raspberrypi.com/products/ai-kit/) and [AI HAT+](https://www.raspberrypi.com/documentation/accessories/ai-hat-plus.html), industrial cameras, edge gateways, and AI PCs.
+The [Hailo](https://hailo.ai/) toolchain uses HEF files for embedded platforms including the [Raspberry Pi AI Kit](https://www.raspberrypi.com/products/ai-kit/) and [AI HAT+](https://www.raspberrypi.com/documentation/accessories/ai-hat-plus.html), industrial cameras, edge gateways, and AI PCs.
 
 This guide walks through exporting [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) detection models to Hailo's **HEF (Hailo Executable Format)** using the **Hailo Dataflow Compiler (DFC)** SDK. The workflow starts from a YOLO `.pt` model, exports to [ONNX](onnx.md), compiles with Hailo tools, and produces a `.hef` file ready for Hailo-8, Hailo-8L, and Hailo-15 accelerators.
 

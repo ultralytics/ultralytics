@@ -192,6 +192,20 @@ import os
 os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "false"
 ```
 
+### Online and Offline Mode
+
+By default, Comet runs in online mode and streams experiment data to the Comet servers. If you need to train without internet access, set `COMET_START_ONLINE=0` before training starts. Experiment data is saved locally and can be uploaded later with the [`comet upload`](https://www.comet.com/docs/v2/guides/comet-cli/comet-upload-cli/) CLI.
+
+```python
+import os
+
+os.environ["COMET_START_ONLINE"] = "0"  # 1 (default) = online, 0 = offline
+```
+
+!!! note "`COMET_MODE` is deprecated"
+
+    Earlier versions used `COMET_MODE="offline"` for this purpose. The variable is still honored for backward compatibility but emits a deprecation warning. Use `COMET_START_ONLINE` going forward.
+
 ### Project Name
 
 By default, Comet groups runs under the YOLO `project` training argument (`runs/detect/train`, `runs/segment/train`, etc.). Override this with `COMET_PROJECT_NAME` to send all experiments to a specific Comet workspace project regardless of the training output directory:
@@ -220,16 +234,6 @@ Detection confidence scores are emitted in the `[0, 1]` range, but the Comet UI 
 import os
 
 os.environ["COMET_MAX_CONFIDENCE_SCORE"] = "1.0"  # log raw [0, 1] scores
-```
-
-### Offline Logging
-
-If you find yourself in a situation where internet access is limited, Comet provides an offline logging option. You can set the `COMET_MODE` environment variable to "offline" to enable this feature. Your experiment data will be saved locally in a directory that you can later upload to Comet when internet connectivity is available.
-
-```python
-import os
-
-os.environ["COMET_MODE"] = "offline"
 ```
 
 ## Summary
@@ -356,12 +360,12 @@ For a detailed overview of these features, visit the [Understanding Your Model's
 
 ### Can I use Comet for offline logging when training YOLO26 models?
 
-Yes, you can enable offline logging in Comet by setting the `COMET_MODE` environment variable to "offline":
+Yes. Set `COMET_START_ONLINE=0` before training starts to log locally:
 
 ```python
 import os
 
-os.environ["COMET_MODE"] = "offline"
+os.environ["COMET_START_ONLINE"] = "0"
 ```
 
-This feature allows you to log your experiment data locally, which can later be uploaded to Comet when internet connectivity is available. This is particularly useful when working in environments with limited internet access. For more details, refer to the [Offline Logging](#offline-logging) section.
+Experiment data is saved on disk and can be uploaded to Comet later with the [`comet upload`](https://www.comet.com/docs/v2/guides/comet-cli/comet-upload-cli/) CLI when connectivity is available. The earlier `COMET_MODE="offline"` variable still works but emits a deprecation warning. For more details, see the [Online and Offline Mode](#online-and-offline-mode) section.

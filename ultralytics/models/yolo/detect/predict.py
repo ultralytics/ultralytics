@@ -60,10 +60,7 @@ class DetectionPredictor(BasePredictor):
             raw_scores = self._extract_raw_scores(preds)
         self._raw_scores = None  # reset for next batch
         if save_logits and raw_scores is None:
-            LOGGER.warning(
-                "logits=True but raw class scores are unavailable for this model "
-                "(end2end or exported model). Disabling logits for this call."
-            )
+            LOGGER.warning("Disabling logits: model output lacks raw class scores (end2end or exported model).")
             save_logits = False
 
         preds = nms.non_max_suppression(
@@ -88,7 +85,7 @@ class DetectionPredictor(BasePredictor):
             if save_feats:
                 obj_feats = self.get_obj_feats(self._feats, idxs)
             if save_logits:
-                # raw_scores: (B, nc, num_anchors). Gather columns per image by surviving anchor indices.
+                # Gather per-image (N_det, nc) logits from raw_scores (B, nc, num_anchors).
                 obj_logits = [raw_scores[i].index_select(-1, idx.long().view(-1)).T for i, idx in enumerate(idxs)]
 
         results = self.construct_results(preds, img, orig_imgs, **kwargs)

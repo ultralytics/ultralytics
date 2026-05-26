@@ -360,6 +360,7 @@ def _patch_predictor(predictor):
                 cls_map = (scaled[0] > 0).to(torch.int32)
             else:
                 cls_map = scaled.argmax(0).to(torch.int32)
+                cls_map[scaled.amax(0) <= 0] = 255
             r.update(semantic_mask=cls_map)
         return results
 

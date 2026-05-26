@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Discover Ultralytics integrations for streamlined ML workflows, dataset management, optimized model training, and robust deployment solutions.
-keywords: Ultralytics, machine learning, ML workflows, dataset management, model training, model deployment, Roboflow, ClearML, Comet ML, DVC, MLFlow, Ultralytics Platform, Neptune, Ray Tune, TensorBoard, Weights & Biases, Amazon SageMaker, Paperspace Gradient, Google Colab, Neural Magic, Gradio, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TFLite, TFLite Edge TPU, TF.js, PaddlePaddle, NCNN
+keywords: Ultralytics, machine learning, ML workflows, dataset management, model training, model deployment, Roboflow, ClearML, Comet ML, DVC, MLFlow, Ultralytics Platform, Neptune, Ray Tune, TensorBoard, Weights & Biases, Amazon SageMaker, Paperspace Gradient, Google Colab, Neural Magic, Gradio, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TFLite, TFLite Edge TPU, TF.js, PaddlePaddle, NCNN, Hailo, Hailo HEF, Qualcomm QNN, RKNN, edge AI
 ---
 
 # Ultralytics Integrations
@@ -71,6 +71,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Gradio](gradio.md): Deploy Ultralytics models with Gradio for real-time, interactive object detection demos.
 
+- [Hailo](hailo.md): Convert Ultralytics YOLO detection models from ONNX to Hailo HEF with Hailo's external Dataflow Compiler for Hailo-8, Hailo-8L, Raspberry Pi AI Kit, and Hailo-15 devices.
+
 - [MNN](mnn.md): Developed by [Alibaba](https://www.alibabagroup.com/), MNN is a highly efficient and lightweight deep learning framework. It supports inference and training of deep learning models and has industry-leading performance for inference and training on-device.
 
 - [NCNN](ncnn.md): Developed by [Tencent](http://www.tencent.com/), NCNN is an efficient [neural network](https://www.ultralytics.com/glossary/neural-network-nn) inference framework tailored for mobile devices. It enables direct deployment of AI models into apps, optimizing performance across various mobile platforms.
@@ -82,6 +84,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 - [OpenVINO](openvino.md): Intel's toolkit for optimizing and deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models efficiently across various Intel CPU and GPU platforms.
 
 - [PaddlePaddle](paddlepaddle.md): An open-source deep learning platform by [Baidu](https://www.baidu.com/), PaddlePaddle enables the efficient deployment of AI models and focuses on the scalability of industrial applications.
+
+- [Qualcomm QNN](qnn.md): Compile Ultralytics YOLO models locally into the QNN (AI Engine Direct) context-binary format with the [ONNX Runtime](https://onnxruntime.ai/) QNN Execution Provider for accelerated inference on Snapdragon CPU, Adreno GPU, and Hexagon NPU hardware in mobile and edge devices.
 
 - [Rockchip RKNN](rockchip-rknn.md): Developed by [Rockchip](https://www.rock-chips.com/), RKNN is a specialized neural network inference framework optimized for Rockchip's hardware platforms, particularly their NPUs. It facilitates efficient deployment of AI models on edge devices, enabling high-performance inference in real-time applications.
 

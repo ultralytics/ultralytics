@@ -208,7 +208,7 @@ os.environ["COMET_START_ONLINE"] = "0"  # 1 (default) = online, 0 = offline
 
 ### Project Name
 
-By default, Comet groups runs under the YOLO `project` training argument (`runs/detect/train`, `runs/segment/train`, etc.). Override this with `COMET_PROJECT_NAME` to send all experiments to a specific Comet workspace project regardless of the training output directory:
+By default, the Comet callback passes the YOLO `project` training argument to Comet (or `None` when the argument is unset, in which case Comet uses your workspace default). Override this with `COMET_PROJECT_NAME` to send all experiments to a specific Comet workspace project regardless of the YOLO training argument:
 
 ```python
 import os

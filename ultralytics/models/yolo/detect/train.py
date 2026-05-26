@@ -169,6 +169,7 @@ class DetectionTrainer(BaseTrainer):
         Returns:
             (dict): Preprocessed batch with normalized images.
         """
+        batch = self._maybe_dump_training_batch(batch)
         for k, v in batch.items():
             if isinstance(v, torch.Tensor):
                 batch[k] = v.to(self.device, non_blocking=self.device.type == "cuda")
@@ -192,8 +193,33 @@ class DetectionTrainer(BaseTrainer):
             batch["img"] = imgs
         return batch
 
+    def _maybe_dump_training_batch(self, batch: dict) -> dict:
+        """Copy batch via ``ultralytics.data.batch_dump`` when ``args.dump_batches`` is True."""
+        if not getattr(self.args, "dump_batches", False) or RANK not in {-1, 0}:
+            return batch
+        from ultralytics.data import batch_dump
+
+        if not getattr(self, "_dump_batches_logged", False):
+            LOGGER.info(f"{colorstr('dump_batches:')} {batch_dump.log_message()}")
+            self._dump_batches_logged = True
+        epoch = getattr(self, "epoch", 0)
+        if getattr(self, "_dump_last_epoch", -1) != epoch:
+            self._dump_last_epoch = epoch
+            self._dump_batch_in_epoch = 0
+        n = getattr(self, "_dump_batch_in_epoch", 0)
+        if not batch_dump.should_dump(n):
+            return batch
+        data_root = self.data.get("path")
+        if not data_root:
+            return batch
+        batch_dump.dump_training_batch(batch, data_root=data_root, batch_in_epoch=n, epoch=epoch)
+        self._dump_batch_in_epoch = n + 1
+        return batch
+
     def set_model_attributes(self):
         """Set model attributes based on dataset information."""
+        self._dump_last_epoch = -1
+        self._dump_batch_in_epoch = 0
         self.model.nc = self.data["nc"]  # attach number of classes to model
         self.model.names = self.data["names"]  # attach class names to model
         self.model.args = self.args  # attach hyperparameters to model

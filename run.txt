@@ -1,6 +1,4 @@
-# 须先安装本仓库代码，否则会用到 conda 里旧版 ultralytics（无 dataset_fractions）：
-#   cd D:\Lenovo_Work\Solution_Technology_Team\Other_Dev\ultralytics
-#   pip install -e .
+# pip install -e .
 
-# batch 由 Katib 传入；大数据集建议降低 workers 避免 CPU 内存 OOM
-yolo detect train data=./ultralytics/cfg/datasets/coco8-multitaskdet2.yaml model=yolo11s.yaml pretrained=yolo26n.pt epochs=100 imgsz=640 batch=16 workers=4 cls_pw=0.5
+# dump_batches=True：拷贝训练 batch 做采样预览；改 ultralytics/data/batch_dump.py 顶部 OUT_DIR / BATCHES_PER_EPOCH
+yolo detect train data=./ultralytics/cfg/datasets/coco8-multitaskdet2.yaml model=yolo11s.yaml pretrained=yolo26n.pt epochs=100 imgsz=640 batch=16 workers=4 cls_pw=0.5 dump_batches=True

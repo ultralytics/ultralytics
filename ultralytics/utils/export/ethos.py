@@ -46,6 +46,11 @@ def torch2ethos(
     from executorch.extension.export_util.utils import save_pte_program
     from torchao.quantization.pt2e.quantize_pt2e import convert_pt2e, prepare_pt2e
 
+    try:
+        from torchao.quantization.pt2e import move_exported_model_to_eval
+    except ImportError:
+        from torchao.quantization.pt2e.utils import move_exported_model_to_eval
+
     LOGGER.info(f"\n{prefix} starting export with ExecuTorch {executorch_version.__version__}...")
 
     file = Path(file)
@@ -61,9 +66,16 @@ def torch2ethos(
         memory_mode="Shared_Sram",
     )
 
-    quantizer = EthosUQuantizer(compile_spec)
-    operator_config = get_symmetric_quantization_config()
+    quantizer = EthosUQuantizer(compile_spec, use_composable_quantizer=True)
+    operator_config = get_symmetric_quantization_config(is_per_channel=True)
     quantizer.set_global(operator_config)
+
+    # Keep final YOLO cat and model IO in FP32 (mixed precision)
+    nodes = list(graph_module.graph.nodes)
+    cat_nodes = [n for n in nodes if n.op == "call_function" and "aten.cat" in str(getattr(n, "target", ""))]
+    if cat_nodes:
+        quantizer.set_node_name(cat_nodes[-1].name, None)
+    quantizer.set_io(None)
 
     # Post training quantization
     quantized_graph_module = prepare_pt2e(graph_module, quantizer)
@@ -77,6 +89,7 @@ def torch2ethos(
         calibration_batches += 1
 
     quantized_graph_module = convert_pt2e(quantized_graph_module)
+    move_exported_model_to_eval(quantized_graph_module)
 
     _ = quantized_graph_module.print_readable()
 

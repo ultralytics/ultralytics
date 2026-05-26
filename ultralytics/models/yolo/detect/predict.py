@@ -52,15 +52,14 @@ class DetectionPredictor(BasePredictor):
         """
         save_feats = getattr(self, "_feats", None) is not None
         save_logits = getattr(self.args, "logits", False)
-        is_end2end = getattr(self.model, "end2end", False)
 
         # Capture pre-sigmoid class scores for logits=True before NMS rebinds preds.
         # Subclasses (e.g. SegmentationPredictor) may have already stashed them on self._raw_scores.
         raw_scores = getattr(self, "_raw_scores", None)
-        if save_logits and raw_scores is None and not is_end2end:
+        if save_logits and raw_scores is None:
             raw_scores = self._extract_raw_scores(preds)
         self._raw_scores = None  # reset for next batch
-        if save_logits and (raw_scores is None or is_end2end):
+        if save_logits and raw_scores is None:
             LOGGER.warning(
                 "logits=True but raw class scores are unavailable for this model "
                 "(end2end or exported model). Disabling logits for this call."
@@ -75,7 +74,7 @@ class DetectionPredictor(BasePredictor):
             self.args.agnostic_nms,
             max_det=self.args.max_det,
             nc=0 if self.args.task == "detect" else len(self.model.names),
-            end2end=is_end2end,
+            end2end=getattr(self.model, "end2end", False),
             rotated=self.args.task == "obb",
             return_idxs=save_feats or save_logits,
         )

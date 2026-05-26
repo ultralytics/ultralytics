@@ -92,6 +92,7 @@ class SolutionConfig:
     device: str | None = None
     max_det: int = 300
     half: bool = False
+    imgsz: int = 640
     tracker: str = "botsort.yaml"
     verbose: bool = True
     data: str = "images"

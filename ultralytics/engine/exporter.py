@@ -23,6 +23,7 @@ RKNN                    | `rknn`                    | yolo26n_rknn_model/
 ExecuTorch              | `executorch`              | yolo26n_executorch_model/
 Axelera AI              | `axelera`                 | yolo26n_axelera_model/
 DeepX                   | `deepx`                   | yolo26n_deepx_model/
+Qualcomm QNN            | `qnn`                     | yolo26n_qnn_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -54,6 +55,7 @@ Inference:
                          yolo26n_executorch_model   # ExecuTorch
                          yolo26n_axelera_model      # Axelera AI
                          yolo26n_deepx_model        # DeepX
+                         yolo26n_qnn_model          # Qualcomm QNN
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -92,6 +94,7 @@ from ultralytics.utils import (
     LOGGER,
     MACOS,
     MACOS_VERSION,
+    QNN_HTP_ARCHS,
     RKNN_CHIPS,
     SETTINGS,
     TORCH_VERSION,
@@ -162,6 +165,7 @@ def export_formats():
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
         ["Axelera AI", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction", "data"]],
         ["DeepX", "deepx", "_deepx_model", False, False, ["data", "int8", "optimize"]],
+        ["Qualcomm QNN", "qnn", "_qnn_model", False, False, ["batch", "name", "int8", "fraction", "data"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -320,7 +324,7 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
-        if fmt in {"deepx", "axelera", "imx", "edgetpu"} and not self.args.int8:
+        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn"} and not self.args.int8:
             LOGGER.warning(f"{fmt} export requires int8=True, setting int8=True.")
             self.args.int8 = True
         if fmt == "axelera":
@@ -342,7 +346,7 @@ class Exporter:
         if hasattr(model, "end2end"):
             if self.args.end2end is not None:
                 model.end2end = self.args.end2end
-            if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu"}:
+            if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"}:
                 # Disable end2end branch for certain export formats as they does not support topk
                 model.end2end = False
                 LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
@@ -383,6 +387,18 @@ class Exporter:
             self.args.name = self.args.name.lower()
             assert self.args.name in RKNN_CHIPS, (
                 f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
+            )
+        if fmt == "qnn":
+            if not self.args.name:
+                LOGGER.warning(
+                    "Qualcomm QNN export requires a missing 'name' arg for the target Hexagon HTP architecture. "
+                    "Using default name='73' (Snapdragon 8 Gen 2)."
+                )
+                self.args.name = "73"
+            self.args.name = str(self.args.name).lower().lstrip("v")  # accept '73' or 'v73'
+            assert self.args.name in QNN_HTP_ARCHS, (
+                f"Invalid HTP architecture '{self.args.name}' for Qualcomm QNN export. Valid archs are {QNN_HTP_ARCHS} "
+                "(Snapdragon 865/888/8Gen2/8Gen3/8Elite respectively)."
             )
         if self.args.nms and model.task == "semantic":
             LOGGER.warning("'nms=True' is not valid for semantic segmentation models. Forcing 'nms=False'.")
@@ -552,11 +568,17 @@ class Exporter:
             )
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(" ", "")
             q = "int8" if self.args.int8 else "half" if self.args.half else ""  # quantization
+            # Export-only formats deploy in-browser and are not loadable by AutoBackend
+            predict_validate = (
+                ""
+                if fmt == "tfjs"
+                else f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
+                f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}"
+            )
             LOGGER.info(
                 f"\nExport complete ({time.time() - t:.1f}s)"
                 f"\nResults saved to {colorstr('bold', Path(f).resolve())}"
-                f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
-                f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}"
+                f"{predict_validate}"
                 f"\nVisualize:       https://netron.app"
             )
 
@@ -623,7 +645,10 @@ class Exporter:
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.12.0,<2.0.0"]
         if self.args.simplify:
-            requirements += ["onnxslim>=0.1.71", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
+            # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
+            # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
+            ort = "onnxruntime-gpu" if "cuda" in self.device.type else "onnxruntime"
+            requirements += ["onnxslim>=0.1.71", (ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")]
         check_requirements(requirements)
         import onnx
 
@@ -1089,6 +1114,22 @@ class Exporter:
             dataset=self.get_int8_calibration_dataloader(prefix),
             metadata=self.metadata,
             optimize=self.args.optimize,
+            prefix=prefix,
+        )
+
+    @try_export
+    def export_qnn(self, prefix=colorstr("Qualcomm QNN:")):
+        """Export YOLO model to a Qualcomm QNN context binary using ONNX Runtime QNN."""
+        from ultralytics.utils.export.qnn import onnx2qnn
+
+        f_onnx = self.export_onnx()
+        return onnx2qnn(
+            onnx_file=f_onnx,
+            output_dir=str(self.file).replace(self.file.suffix, f"_qnn_model{os.sep}"),
+            dataset=self.get_int8_calibration_dataloader(prefix),
+            transform_fn=self._transform_fn,
+            name=self.args.name,
+            metadata=self.metadata,
             prefix=prefix,
         )
 

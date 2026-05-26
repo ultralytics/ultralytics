@@ -1,4 +1,4 @@
 # pip install -e .
 
 # dump_batches=True：拷贝训练 batch 做采样预览；改 ultralytics/data/batch_dump.py 顶部 OUT_DIR / BATCHES_PER_EPOCH
-yolo detect train data=./ultralytics/cfg/datasets/coco8-multitaskdet2.yaml model=yolo11s.yaml pretrained=yolo26n.pt epochs=100 imgsz=640 batch=16 workers=4 cls_pw=0.5 dump_batches=True
+yolo detect train data=./ultralytics/cfg/datasets/coco8-multitaskdet2.yaml model=yolo11s.yaml pretrained=yolo26n.pt epochs=100 imgsz=640 batch=16 workers=4 focal_loss=True cls_pw=0.5 dump_batches=True

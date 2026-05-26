@@ -53,12 +53,10 @@ class DetectionPredictor(BasePredictor):
         save_feats = getattr(self, "_feats", None) is not None
         save_logits = getattr(self.args, "logits", False)
 
-        # Capture pre-sigmoid class scores for logits=True before NMS rebinds preds.
-        # Subclasses (e.g. SegmentationPredictor) may have already stashed them on self._raw_scores.
         raw_scores = getattr(self, "_raw_scores", None)
         if save_logits and raw_scores is None:
             raw_scores = self._extract_raw_scores(preds)
-        self._raw_scores = None  # reset for next batch
+        self._raw_scores = None
         if save_logits and raw_scores is None:
             LOGGER.warning("Disabling logits: model output lacks raw class scores (end2end or exported model).")
             save_logits = False
@@ -85,7 +83,6 @@ class DetectionPredictor(BasePredictor):
             if save_feats:
                 obj_feats = self.get_obj_feats(self._feats, idxs)
             if save_logits:
-                # Gather per-image (N_det, nc) logits from raw_scores (B, nc, num_anchors).
                 obj_logits = [raw_scores[i].index_select(-1, idx.long().view(-1)).T for i, idx in enumerate(idxs)]
 
         results = self.construct_results(preds, img, orig_imgs, **kwargs)

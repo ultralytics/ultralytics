@@ -89,13 +89,7 @@ class DetectionPredictor(BasePredictor):
                 obj_feats = self.get_obj_feats(self._feats, idxs)
             if save_logits:
                 # raw_scores: (B, nc, num_anchors). Gather columns per image by surviving anchor indices.
-                nc = raw_scores.shape[1]
-                obj_logits = [
-                    raw_scores[i].index_select(-1, idx.long()).T
-                    if idx.numel()
-                    else raw_scores.new_zeros((0, nc))
-                    for i, idx in enumerate(idxs)
-                ]
+                obj_logits = [raw_scores[i].index_select(-1, idx.long().view(-1)).T for i, idx in enumerate(idxs)]
 
         results = self.construct_results(preds, img, orig_imgs, **kwargs)
 

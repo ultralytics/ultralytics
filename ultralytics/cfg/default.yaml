@@ -3,7 +3,7 @@
 # Global configuration YAML with settings and hyperparameters for YOLO training, validation, prediction and export
 # For documentation see https://docs.ultralytics.com/usage/cfg/
 
-task: detect # (str) YOLO task, i.e. detect, segment, classify, pose, obb, semantic
+task: detect # (str) YOLO task, i.e. detect, segment, semantic, classify, pose, obb
 mode: train # (str) YOLO mode, i.e. train, val, predict, export, track, benchmark
 
 # Train settings -------------------------------------------------------------------------------------------------------
@@ -81,7 +81,7 @@ show_boxes: True # (bool) draw bounding boxes on images
 line_width: # (int, optional) line width of boxes; auto-scales with image size if not set
 
 # Export settings ------------------------------------------------------------------------------------------------------
-format: torchscript # (str) target format, e.g. torchscript|onnx|openvino|engine|coreml|saved_model|pb|tflite|edgetpu|tfjs|paddle|mnn|ncnn|imx|rknn|executorch|axelera|deepx
+format: torchscript # (str) target format, e.g. torchscript|onnx|openvino|engine|coreml|saved_model|pb|tflite|edgetpu|tfjs|paddle|mnn|ncnn|imx|rknn|executorch|axelera|deepx|qnn
 keras: False # (bool) TF SavedModel only (format=saved_model); enable Keras layers during export
 optimize: False # (bool) TorchScript: mobile optimizations; DEEPX: higher compiler optimization (slower compile, faster inference)
 int8: False # (bool) INT8/PTQ where supported (openvino, engine, coreml, tflite, tfjs, mnn, imx, axelera, deepx); needs calibration data/fraction

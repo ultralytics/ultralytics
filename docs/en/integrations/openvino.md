@@ -25,29 +25,20 @@ OpenVINO, short for Open Visual Inference & [Neural Network](https://www.ultraly
 
 ## Usage Examples
 
-Export a YOLO26n model to OpenVINO format and run inference with the exported model.
+The OpenVINO format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or validate its accuracy on Intel CPU, integrated/discrete GPU, or NPU.
 
-!!! example
+!!! example "Export"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLO26n PyTorch model
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
-        # Export the model
+        # Export the model to OpenVINO format
         model.export(format="openvino")  # creates 'yolo26n_openvino_model/'
-
-        # Load the exported OpenVINO model
-        ov_model = YOLO("yolo26n_openvino_model/")
-
-        # Run inference
-        results = ov_model("https://ultralytics.com/images/bus.jpg")
-
-        # Run inference with specified device, available devices: ["intel:gpu", "intel:npu", "intel:cpu"]
-        results = ov_model("https://ultralytics.com/images/bus.jpg", device="intel:gpu")
         ```
 
     === "CLI"
@@ -55,12 +46,54 @@ Export a YOLO26n model to OpenVINO format and run inference with the exported mo
         ```bash
         # Export a YOLO26n PyTorch model to OpenVINO format
         yolo export model=yolo26n.pt format=openvino # creates 'yolo26n_openvino_model/'
+        ```
 
-        # Run inference with the exported model
+!!! example "Predict"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported OpenVINO model
+        model = YOLO("yolo26n_openvino_model/")
+
+        # Run inference
+        results = model("https://ultralytics.com/images/bus.jpg")
+
+        # Run inference on a specific device, available devices: ["intel:gpu", "intel:npu", "intel:cpu"]
+        results = model("https://ultralytics.com/images/bus.jpg", device="intel:gpu")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Run inference with the exported OpenVINO model
         yolo predict model=yolo26n_openvino_model source='https://ultralytics.com/images/bus.jpg'
 
-        # Run inference with specified device, available devices: ["intel:gpu", "intel:npu", "intel:cpu"]
+        # Run inference on a specific device, available devices: ["intel:gpu", "intel:npu", "intel:cpu"]
         yolo predict model=yolo26n_openvino_model source='https://ultralytics.com/images/bus.jpg' device="intel:gpu"
+        ```
+
+!!! example "Validate"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported OpenVINO model
+        model = YOLO("yolo26n_openvino_model/")
+
+        # Validate accuracy on the COCO8 dataset
+        metrics = model.val(data="coco8.yaml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Validate the exported OpenVINO model
+        yolo val model=yolo26n_openvino_model data=coco8.yaml
         ```
 
 ## Export Arguments

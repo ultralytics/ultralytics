@@ -34,13 +34,14 @@ DEEPX models offer several advantages for edge deployment:
 
 All standard Ultralytics tasks are supported for DEEPX export across YOLO26, YOLO11, and YOLOv8 model families.
 
-| Task                                                           | Supported |
-| :------------------------------------------------------------- | :-------- |
-| [Object Detection](https://docs.ultralytics.com/tasks/detect/) | ✅        |
-| [Segmentation](https://docs.ultralytics.com/tasks/segment/)    | ✅        |
-| [Pose Estimation](https://docs.ultralytics.com/tasks/pose/)    | ✅        |
-| [OBB Detection](https://docs.ultralytics.com/tasks/obb/)       | ✅        |
-| [Classification](https://docs.ultralytics.com/tasks/classify/) | ✅        |
+| Task                                                                  | Supported |
+| :-------------------------------------------------------------------- | :-------- |
+| [Object Detection](https://docs.ultralytics.com/tasks/detect/)        | ✅        |
+| [Instance Segmentation](https://docs.ultralytics.com/tasks/segment/)  | ✅        |
+| [Semantic Segmentation](https://docs.ultralytics.com/tasks/semantic/) | ✅        |
+| [Pose Estimation](https://docs.ultralytics.com/tasks/pose/)           | ✅        |
+| [OBB Detection](https://docs.ultralytics.com/tasks/obb/)              | ✅        |
+| [Classification](https://docs.ultralytics.com/tasks/classify/)        | ✅        |
 
 ## Export to DEEPX: Converting Your YOLO Model
 
@@ -67,14 +68,16 @@ The `dx_com` compiler package will be automatically installed from the DEEPX SDK
 
 ### Usage
 
-!!! example "Usage"
+The DeepX format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on DeepX NPU hardware. Export your model, then load the exported model to run inference or validate its accuracy.
+
+!!! example "Export"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO26 model
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
         # Export the model to DEEPX format (int8=True is enforced automatically)
@@ -86,6 +89,48 @@ The `dx_com` compiler package will be automatically installed from the DEEPX SDK
         ```bash
         # Export a YOLO26n PyTorch model to DEEPX format
         yolo export model=yolo26n.pt format=deepx # creates 'yolo26n_deepx_model/'
+        ```
+
+!!! example "Predict"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported DeepX model
+        model = YOLO("yolo26n_deepx_model")
+
+        # Run inference
+        results = model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Run inference with the exported DeepX model
+        yolo predict model=yolo26n_deepx_model source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+!!! example "Validate"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported DeepX model
+        model = YOLO("yolo26n_deepx_model")
+
+        # Validate accuracy on the COCO8 dataset
+        metrics = model.val(data="coco8.yaml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Validate the exported DeepX model
+        yolo val model=yolo26n_deepx_model data=coco8.yaml
         ```
 
 ### Export Arguments
@@ -156,33 +201,7 @@ Minimum Compiler Versions
   .dxnn File Format: v6
 ```
 
-### Usage
-
-!!! example "Usage"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load the exported DEEPX model
-        model = YOLO("yolo26n_deepx_model")
-
-        # Run inference
-        results = model("https://ultralytics.com/images/bus.jpg")
-
-        # Process results
-        for r in results:
-            print(f"Detected {len(r.boxes)} objects")
-            r.show()
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Run inference with the exported DEEPX model
-        yolo predict model='yolo26n_deepx_model' source='https://ultralytics.com/images/bus.jpg'
-        ```
+Once the runtime is installed, run inference and validation on your DeepX device exactly as shown in the [Usage](#usage) section above — the exported `_deepx_model` loads directly with `YOLO(...)`.
 
 ### Visualizing with dxtron
 

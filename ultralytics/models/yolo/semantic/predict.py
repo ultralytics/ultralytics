@@ -57,9 +57,14 @@ class SemanticSegmentationPredictor(BasePredictor):
         results = []
         for i, (pred, orig_img) in enumerate(zip(preds, orig_imgs)):
             img_path = self.batch[0][i] if isinstance(self.batch[0], list) else self.batch[0]
-            # pred: [nc, H, W] logits on letterboxed input. Remove padding, then resize to original image.
-            pred = ops.scale_masks(pred.unsqueeze(0), orig_img.shape[:2])[0]
-            dtype = self._class_map_dtype(max(pred.shape[0], 2))
-            class_map = pred.argmax(0).to(dtype) if pred.shape[0] > 1 else pred.gt(0).squeeze(0).to(dtype)
+            if pred.is_floating_point():
+                # pred: [nc, H, W] logits on letterboxed input. Remove padding, then resize to original image.
+                pred = ops.scale_masks(pred.unsqueeze(0), orig_img.shape[:2])[0]
+                dtype = self._class_map_dtype(max(pred.shape[0], 2))
+                class_map = pred.argmax(0).to(dtype) if pred.shape[0] > 1 else pred.gt(0).squeeze(0).to(dtype)
+            else:
+                # pred: [H, W] class map with argmax already baked into the graph (ONNX export). Nearest-resize only.
+                cm = ops.scale_masks(pred[None, None].float(), orig_img.shape[:2], mode="nearest")
+                class_map = cm[0, 0].to(pred.dtype)
             results.append(Results(orig_img, path=img_path, names=self.model.names, semantic_mask=class_map))
         return results

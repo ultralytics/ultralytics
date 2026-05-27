@@ -46,9 +46,9 @@ def onnx2qnn(
     """Convert an ONNX model to an INT8 Qualcomm QNN context binary using the ONNX Runtime QNN Execution Provider.
 
     The conversion runs entirely on the host with no Qualcomm account or cloud upload. The model is INT8-quantized with
-    ONNX Runtime's QNN QDQ flow (the Hexagon NPU is an int8 accelerator), then the `onnxruntime-qnn` Execution
-    Provider — which bundles the Qualcomm AI Runtime (QAIRT) libraries — compiles the
-    quantized graph into a QNN context binary embedded in `<stem>_qnn.onnx`. No inference is run.
+    ONNX Runtime's QNN QDQ flow (the Hexagon NPU is an int8 accelerator), then the `onnxruntime-qnn` Execution Provider
+    — which bundles the Qualcomm AI Runtime (QAIRT) libraries — compiles the quantized graph into a QNN context binary
+    embedded in `<stem>_qnn.onnx`. No inference is run.
 
     Args:
         onnx_file (str | Path): Path to the source ONNX file (already exported).
@@ -128,7 +128,9 @@ def onnx2qnn(
             options.add_provider_for_devices(devices, ep_options)
             ort.InferenceSession(str(qdq_file), sess_options=options)
         else:
-            ort.InferenceSession(str(qdq_file), sess_options=options, providers=[ep_name], provider_options=[ep_options])
+            ort.InferenceSession(
+                str(qdq_file), sess_options=options, providers=[ep_name], provider_options=[ep_options]
+            )
     finally:
         if ep_library:
             ort.unregister_execution_provider_library(ep_name)

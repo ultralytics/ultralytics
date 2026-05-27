@@ -111,7 +111,7 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
         det = (result.obb if is_obb else result.boxes).cpu().numpy()
         if isinstance(tracker, TRACKTRACK):
             dets_del = dets_del_list[i] if dets_del_list is not None else None
-            tracks = tracker.update(det, result.orig_img, getattr(result, "feats", None), dets_del=dets_del)
+            tracks = tracker.update(det, result.orig_img, dets_del=dets_del)
         else:
             tracks = tracker.update(det, result.orig_img, getattr(result, "feats", None))
         if len(tracks) == 0:

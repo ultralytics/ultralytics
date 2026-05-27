@@ -483,8 +483,6 @@ class TRACKTRACK:
         cost = self.iou_weight * hmiou_dist
         if self.encoder is not None:
             cost += self.reid_weight * _cosine_distance(tracks, dets)
-        else:
-            cost += self.reid_weight * hmiou_dist
         cost += self.conf_weight * _confidence_distance(tracks, dets)
         cost += self.angle_weight * _angle_distance(tracks, dets, self.frame_id)
         if iou_sim.size > 0:
@@ -506,9 +504,7 @@ class TRACKTRACK:
         for pool in pools:
             multi_gmc(pool, warp)
 
-    def update(
-        self, results, img: np.ndarray | None = None, feats: np.ndarray | None = None, dets_del=None
-    ) -> np.ndarray:
+    def update(self, results, img: np.ndarray | None = None, dets_del=None) -> np.ndarray:
         """Advance the tracker by one frame and return an `(N, 8)` array of `[x1, y1, x2, y2, id, score, cls, idx]`."""
         self.frame_id += 1
         activated, refind, lost, removed = [], [], [], []

@@ -12,6 +12,7 @@ from ultralytics.utils.metrics import bbox_ioa
 from .basetrack import TrackState
 from .byte_tracker import BYTETracker, STrack
 from .utils import matching
+from .utils.stracks import parse_bboxes
 
 
 class FastSTrack(STrack):
@@ -185,8 +186,7 @@ class FASTTracker(BYTETracker):
         """
         if len(results) == 0:
             return []
-        bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
-        bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
+        bboxes = parse_bboxes(results)
         hl = self._history_len
         return [FastSTrack(xywh, s, c, history_len=hl) for (xywh, s, c) in zip(bboxes, results.conf, results.cls)]
 
@@ -231,19 +231,17 @@ class FASTTracker(BYTETracker):
             active_boxes.extend(t.xyxy for t in refind if t.is_activated)
         active_boxes.extend(t.xyxy for t in self.tracked_stracks if t.state == TrackState.Tracked)
         suppress_on = self.init_iou_suppress < 1.0
-        # Hoist the stack out of the loop; only restack when active_boxes grows.
-        active_stack = np.asarray(active_boxes, dtype=np.float32) if active_boxes else None
+        active_stack = np.asarray(active_boxes, dtype=np.float32) if active_boxes else np.empty((0, 4), dtype=np.float32)
         for inew in u_detection:
             det = detections[inew]
             if det.score < self.args.new_track_thresh:
                 continue
-            if suppress_on and active_stack is not None:
+            if suppress_on and len(active_stack):
                 if bbox_ioa(det.xyxy[None, :], active_stack, iou=True).max() >= self.init_iou_suppress:
                     continue
             det.activate(self.kalman_filter, self.frame_id)
             activated.append(det)
-            active_boxes.append(det.xyxy)
-            active_stack = np.asarray(active_boxes, dtype=np.float32)
+            active_stack = np.concatenate([active_stack, det.xyxy[None, :]], axis=0)
 
     def _remove_stale_lost(self, lost: list[STrack], removed: list[STrack]) -> None:
         """Remove lost tracks, with a grace window for recently-occluded ones."""

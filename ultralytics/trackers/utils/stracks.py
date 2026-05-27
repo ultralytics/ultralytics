@@ -7,7 +7,7 @@ implementation exposes (`track_id`, `frame_id`, `start_frame`, `xyxy`, `mean`, `
 
 from __future__ import annotations
 
-__all__ = ("joint_stracks", "merge_track_pools", "multi_gmc", "remove_duplicate_stracks", "sub_stracks")
+__all__ = ("joint_stracks", "merge_track_pools", "multi_gmc", "parse_bboxes", "remove_duplicate_stracks", "sub_stracks")
 
 import numpy as np
 
@@ -53,6 +53,20 @@ def merge_track_pools(
     tracker.removed_stracks.extend(removed)
     if len(tracker.removed_stracks) > removed_buffer:
         tracker.removed_stracks = tracker.removed_stracks[-removed_buffer:]
+
+
+def parse_bboxes(results) -> np.ndarray:
+    """Return detection bounding boxes with appended indices from a Results-like object.
+
+    Args:
+        results (Any): Object exposing ``xywh`` (or ``xywhr``), ``conf``, and ``cls``.
+
+    Returns:
+        (np.ndarray): Array of shape ``(N, 5)`` for ``xywh`` or ``(N, 6)`` for ``xywhr``,
+            with the last column containing the original detection index.
+    """
+    bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
+    return np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
 
 
 def joint_stracks(atracks: list, btracks: list) -> list:

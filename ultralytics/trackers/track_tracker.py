@@ -17,7 +17,7 @@ from .basetrack import TrackState
 from .byte_tracker import STrack
 from .utils.gmc import GMC
 from .utils.kalman_filter import KalmanFilterXYWH
-from .utils.stracks import joint_stracks, merge_track_pools, multi_gmc
+from .utils.stracks import joint_stracks, merge_track_pools, multi_gmc, parse_bboxes
 
 # Corner index arrays (LT, LB, RT, RB of an (x1,y1,x2,y2) box) for angle-distance vectorization.
 _CORNER_DX_IDX = np.array([0, 0, 2, 2])
@@ -477,6 +477,16 @@ class TRACKTRACK:
 
         self.encoder = build_encoder(getattr(args, "with_reid", False), getattr(args, "model", "auto"))
 
+    @classmethod
+    def setup_predictor(cls, predictor):
+        """Attach raw predictions hook needed for Track-Aware Initialization."""
+        attach_raw_preds_hook(predictor)
+
+    @classmethod
+    def compute_frame_extras(cls, predictor):
+        """Return per-batch ``(xywh, conf, cls)`` tuples for detections dropped by tight NMS."""
+        return compute_dets_del(predictor)
+
     def _cost_matrix(self, tracks: list[TTSTrack], dets: list[TTSTrack]) -> np.ndarray:
         """Return the multi-cue cost matrix (HMIoU + ReID + confidence + angle), gated by IoU support."""
         iou_sim, hmiou_dist = _hmiou_distance(tracks, dets)
@@ -504,14 +514,13 @@ class TRACKTRACK:
         for pool in pools:
             multi_gmc(pool, warp)
 
-    def update(self, results, img: np.ndarray | None = None, dets_del=None) -> np.ndarray:
+    def update(self, results, img: np.ndarray | None = None, dets_del=None, **kwargs) -> np.ndarray:
         """Advance the tracker by one frame and return an `(N, 8)` array of `[x1, y1, x2, y2, id, score, cls, idx]`."""
         self.frame_id += 1
         activated, refind, lost, removed = [], [], [], []
 
         scores = results.conf
-        boxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
-        boxes = np.concatenate([boxes, np.arange(len(boxes)).reshape(-1, 1)], axis=-1)
+        boxes = parse_bboxes(results)
         high_mask = scores >= self.args.track_high_thresh
         low_mask = (scores > self.args.track_low_thresh) & (scores < self.args.track_high_thresh)
 

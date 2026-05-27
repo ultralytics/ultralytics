@@ -9,6 +9,7 @@ import numpy as np
 from .basetrack import TrackState
 from .byte_tracker import BYTETracker, STrack
 from .utils import matching
+from .utils.stracks import parse_bboxes
 
 
 class OCSortTrack(STrack):
@@ -202,8 +203,7 @@ class OCSORT(BYTETracker):
         """Build :class:`OCSortTrack` instances from a `Results`-like object."""
         if len(results) == 0:
             return []
-        bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
-        bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
+        bboxes = parse_bboxes(results)
         return [OCSortTrack(xywh, s, c, self.delta_t) for (xywh, s, c) in zip(bboxes, results.conf, results.cls)]
 
     def _input_for(self, img: np.ndarray | None, feats: np.ndarray | None, mask: np.ndarray) -> Any:

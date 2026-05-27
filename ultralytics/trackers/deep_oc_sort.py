@@ -12,6 +12,7 @@ from .utils import matching
 from .utils.gmc import GMC
 from .utils.kalman_filter import KalmanFilterXYAH
 from .utils.reid import build_encoder
+from .utils.stracks import parse_bboxes
 
 
 class DeepOCSortTrack(OCSortTrack):
@@ -208,8 +209,7 @@ class DeepOCSORT(OCSORT):
         """
         if len(results) == 0:
             return []
-        bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
-        bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
+        bboxes = parse_bboxes(results)
 
         if self.encoder is not None and img is not None:
             features = self.encoder(img, bboxes)

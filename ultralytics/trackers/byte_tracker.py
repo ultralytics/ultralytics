@@ -11,7 +11,7 @@ from ..utils.ops import xywh2ltwh
 from .basetrack import BaseTrack, TrackState
 from .utils import matching
 from .utils.kalman_filter import KalmanFilterXYAH
-from .utils.stracks import joint_stracks, merge_track_pools, multi_gmc
+from .utils.stracks import joint_stracks, merge_track_pools, multi_gmc, parse_bboxes
 
 
 class STrack(BaseTrack):
@@ -262,7 +262,7 @@ class BYTETracker:
         self.kalman_filter = self.get_kalmanfilter()
         self.reset_id()
 
-    def update(self, results, img: np.ndarray | None = None, feats: np.ndarray | None = None) -> np.ndarray:
+    def update(self, results, img: np.ndarray | None = None, feats: np.ndarray | None = None, **kwargs) -> np.ndarray:
         """Update the tracker with new detections and return the current list of tracked objects."""
         self.frame_id += 1
         activated_stracks = []
@@ -493,8 +493,7 @@ class BYTETracker:
         """Initialize object tracking with given detections, scores, and class labels as STrack instances."""
         if len(results) == 0:
             return []
-        bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
-        bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
+        bboxes = parse_bboxes(results)
         return [self.track_class(xywh, s, c) for (xywh, s, c) in zip(bboxes, results.conf, results.cls)]
 
     def get_dists(self, tracks: list[STrack], detections: list[STrack]) -> np.ndarray:

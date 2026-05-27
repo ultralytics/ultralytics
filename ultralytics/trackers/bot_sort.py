@@ -12,6 +12,7 @@ from .utils import matching
 from .utils.gmc import GMC
 from .utils.kalman_filter import KalmanFilterXYWH
 from .utils.reid import build_encoder
+from .utils.stracks import parse_bboxes
 
 
 class BOTrack(STrack):
@@ -190,8 +191,7 @@ class BOTSORT(BYTETracker):
         """Initialize object tracks using detection bounding boxes, scores, class labels, and optional ReID features."""
         if len(results) == 0:
             return []
-        bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
-        bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
+        bboxes = parse_bboxes(results)
         if self.args.with_reid and self.encoder is not None:
             features_keep = self.encoder(img, bboxes)
             return [BOTrack(xywh, s, c, f) for (xywh, s, c, f) in zip(bboxes, results.conf, results.cls, features_keep)]

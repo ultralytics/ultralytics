@@ -119,12 +119,12 @@ def _iterative_associate(cost: np.ndarray, match_thr: float, reduce_step: float 
     return matches, unmatched_tracks, unmatched_dets
 
 
-def _track_aware_nms(tracks: list, dets: list, tai_thr: float, init_thr: float) -> list[bool]:
+def _track_aware_nms(tracks: list, dets: list, tai_thr: float, new_track_thresh: float) -> list[bool]:
     """TAI NMS: suppress detections that heavily overlap an existing track or a stronger detection."""
     if not dets:
         return []
     scores = np.array([det.score for det in dets])
-    allow = list(scores > init_thr)
+    allow = list(scores > new_track_thresh)
     if len(tracks) + len(dets) < 2:
         return allow
     boxes = np.ascontiguousarray([obj.xyxy for obj in tracks + dets], dtype=np.float32)
@@ -463,7 +463,7 @@ class TRACKTRACK:
         self.conf_weight = getattr(args, "conf_weight", 0.1)
         self.angle_weight = getattr(args, "angle_weight", 0.05)
         self.tai_thr = getattr(args, "tai_thr", 0.55)
-        self.init_thr = getattr(args, "init_thr", 0.7)
+        self.new_track_thresh = getattr(args, "new_track_thresh", 0.7)
         self.min_track_len = getattr(args, "min_track_len", 3)
 
         self.gmc = GMC(method=getattr(args, "gmc_method", "sparseOptFlow"), downscale=getattr(args, "gmc_downscale", 3))
@@ -606,7 +606,7 @@ class TRACKTRACK:
 
         # TAI: spawn new tracks from leftover detections that survive NMS against existing tracks.
         active = [track for track in self.tracked_stracks if track.state == TrackState.Tracked] + activated
-        for det, ok in zip(leftover, _track_aware_nms(active, leftover, self.tai_thr, self.init_thr)):
+        for det, ok in zip(leftover, _track_aware_nms(active, leftover, self.tai_thr, self.new_track_thresh)):
             if ok:
                 det.activate(self.kalman_filter, self.frame_id)
                 activated.append(det)

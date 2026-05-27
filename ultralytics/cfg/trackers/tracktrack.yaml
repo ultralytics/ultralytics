@@ -8,7 +8,7 @@
 tracker_type: tracktrack # (str) Tracker backend: tracktrack
 track_high_thresh: 0.6 # (float) High-confidence detection threshold
 track_low_thresh: 0.25 # (float) Low-confidence detection threshold for second stage
-new_track_thresh: 0.6 # (float) Score threshold for starting a new track
+new_track_thresh: 0.7 # (float) Minimum score to start a new track via track-aware initialization (TAI)
 track_buffer: 30 # (int) Frames to keep lost tracks alive
 match_thresh: 0.7 # (float) Initial matching threshold for iterative assignment
 lost_match_thr: 0.0 # (float) Looser rebind cost gate for still-Lost tracks; 0 disables the relaxed second pass. Raise above match_thresh (e.g. 0.9) for long-occlusion scenes
@@ -28,7 +28,6 @@ reduce_step: 0.05 # (float) Threshold reduction per iteration
 
 # Track-Aware Initialization (TAI)
 tai_thr: 0.55 # (float) IoU threshold for TAI NMS suppression
-init_thr: 0.7 # (float) Minimum score for new track initialization
 min_track_len: 3 # (int) Minimum history length before track is confirmed
 
 # Camera motion compensation

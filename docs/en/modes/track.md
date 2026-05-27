@@ -368,7 +368,6 @@ In addition to the shared arguments (`track_high_thresh`, `track_low_thresh`, `n
 | `penalty_q`       | `0.0-1.0`                  | Cost penalty added to detections recovered by the looser secondary NMS (`D_del`).                                       |
 | `reduce_step`     | `0.0-1.0`                  | Amount by which the match threshold is relaxed at each iteration of the iterative assignment.                           |
 | `tai_thr`         | `0.0-1.0`                  | IoU threshold used by Track-Aware Initialization NMS to suppress duplicate-looking spawn candidates.                    |
-| `init_thr`        | `0.0-1.0`                  | Minimum detection score required to initialize a new track from TAI.                                                    |
 | `min_track_len`   | `>=0`                      | Minimum number of successful updates before a newly spawned track is confirmed (promoted to `Tracked`).                 |
 | `gmc_downscale`   | `>=1`                      | Downscale factor for the GMC input image. Higher values are faster but less accurate.                                   |
 | `gmc_max_corners` | `>=1`                      | Max keypoints for `sparseOptFlow`. 200 is typically enough for an affine warp.                                          |
@@ -562,7 +561,7 @@ Each algorithm exposes additional knobs on top of the shared parameters above. S
 | OC-SORT      | `ocsort.yaml`     | `delta_t`, `inertia`, `use_byte`                                                                                                                                                                                            | [OC-SORT-specific arguments](#oc-sort-specific-arguments)           |
 | Deep OC-SORT | `deepocsort.yaml` | OC-SORT args + `with_reid`, `model`, `proximity_thresh`, `appearance_thresh`, `alpha_fixed_emb`, `gmc_method`                                                                                                               | [Deep OC-SORT-specific arguments](#deep-oc-sort-specific-arguments) |
 | FastTracker  | `fasttrack.yaml`  | `reset_velocity_offset_occ`, `reset_pos_offset_occ`, `enlarge_bbox_occ`, `dampen_motion_occ`, `active_occ_to_lost_thresh`, `occ_cover_thresh`, `occ_reappear_window`, `init_iou_suppress`                                   | [FastTracker-specific arguments](#fasttracker-specific-arguments)   |
-| TrackTrack   | `tracktrack.yaml` | `iou_weight`, `reid_weight`, `conf_weight`, `angle_weight`, `det_thr`, `penalty_p`, `penalty_q`, `reduce_step`, `tai_thr`, `init_thr`, `min_track_len`, `gmc_method`, `gmc_downscale`, `gmc_max_corners`, `gmc_skip_frames` | [TrackTrack-specific arguments](#tracktrack-specific-arguments)     |
+| TrackTrack   | `tracktrack.yaml` | `iou_weight`, `reid_weight`, `conf_weight`, `angle_weight`, `det_thr`, `penalty_p`, `penalty_q`, `reduce_step`, `tai_thr`, `min_track_len`, `gmc_method`, `gmc_downscale`, `gmc_max_corners`, `gmc_skip_frames` | [TrackTrack-specific arguments](#tracktrack-specific-arguments)     |
 
 ### Enabling Re-Identification (ReID)
 

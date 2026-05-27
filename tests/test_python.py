@@ -815,7 +815,7 @@ def test_logits(weights):
     assert tuple(r.logits.data.shape) == (len(det), len(model.names))
     probs = r.logits.probs
     assert probs.shape == r.logits.data.shape and (probs >= 0).all() and (probs <= 1).all()  # sigmoid of data
-    torch.testing.assert_close(probs.max(dim=1).values.float(), det.conf.float(), rtol=1e-3, atol=1e-3)
+    assert torch.allclose(probs.max(dim=1).values.float(), det.conf.float(), rtol=1e-3, atol=1e-3)
     assert isinstance(r.numpy().logits.probs, np.ndarray)  # _keys propagates and numpy sigmoid branch works
 
 

@@ -22,7 +22,7 @@ IMX                     | `imx`                     | yolo26n_imx_model/
 RKNN                    | `rknn`                    | yolo26n_rknn_model/
 ExecuTorch              | `executorch`              | yolo26n_executorch_model/
 Axelera AI              | `axelera`                 | yolo26n_axelera_model/
-DeepX                   | `deepx`                   | yolo26n_deepx_model/
+DEEPX                   | `deepx`                   | yolo26n_deepx_model/
 Qualcomm QNN            | `qnn`                     | yolo26n_qnn_model/
 
 Requirements:
@@ -54,7 +54,7 @@ Inference:
                          yolo26n_rknn_model         # RKNN
                          yolo26n_executorch_model   # ExecuTorch
                          yolo26n_axelera_model      # Axelera AI
-                         yolo26n_deepx_model        # DeepX
+                         yolo26n_deepx_model        # DEEPX
                          yolo26n_qnn_model          # Qualcomm QNN
 
 TensorFlow.js:
@@ -164,7 +164,7 @@ def export_formats():
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
         ["Axelera AI", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction", "data"]],
-        ["DeepX", "deepx", "_deepx_model", False, False, ["data", "int8", "optimize"]],
+        ["DEEPX", "deepx", "_deepx_model", False, False, ["data", "int8", "optimize"]],
         ["Qualcomm QNN", "qnn", "_qnn_model", False, False, ["batch", "name", "int8", "fraction", "data"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
@@ -254,7 +254,7 @@ class Exporter:
         export_imx: Export model to IMX format.
         export_executorch: Export model to ExecuTorch format.
         export_axelera: Export model to Axelera format.
-        export_deepx: Export model to DeepX format.
+        export_deepx: Export model to DEEPX format.
 
     Examples:
         Export a YOLO26 model to ONNX format
@@ -1102,9 +1102,9 @@ class Exporter:
         )
 
     @try_export
-    def export_deepx(self, prefix=colorstr("DeepX:")):
-        """Export YOLO model to DeepX format."""
-        assert LINUX and not ARM64, "DeepX export only supported on non-aarch64 Linux"
+    def export_deepx(self, prefix=colorstr("DEEPX:")):
+        """Export YOLO model to DEEPX format."""
+        assert LINUX and not ARM64, "DEEPX export only supported on non-aarch64 Linux"
         from ultralytics.utils.export.deepx import onnx2deepx
 
         f = self.export_onnx()

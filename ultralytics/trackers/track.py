@@ -13,7 +13,7 @@ from .byte_tracker import BYTETracker
 from .deep_oc_sort import DeepOCSORT
 from .fast_tracker import FASTTracker
 from .oc_sort import OCSORT
-from .track_tracker import TRACKTRACK, attach_raw_preds_hook, compute_dets_del
+from .track_tracker import TRACKTRACK
 
 # A mapping of tracker types to corresponding tracker classes
 TRACKER_MAP = {
@@ -78,9 +78,9 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     predictor.trackers = trackers
     predictor.vid_path = [None] * predictor.dataset.bs  # used to reset the tracker when switching videos
 
-    # TrackTrack needs access to the pre-NMS predictions to compute D_del
-    if cfg.tracker_type == "tracktrack":
-        attach_raw_preds_hook(predictor)
+    tracker_cls = TRACKER_MAP[cfg.tracker_type]
+    if hasattr(tracker_cls, "setup_predictor"):
+        tracker_cls.setup_predictor(predictor)
 
 
 def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None:
@@ -98,8 +98,10 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
     is_obb = predictor.args.task == "obb"
     is_stream = predictor.dataset.mode == "stream"
 
-    # TrackTrack-only: compute D_del once per frame for all batch elements
-    dets_del_list = compute_dets_del(predictor) if isinstance(predictor.trackers[0], TRACKTRACK) else None
+    tracker_cls = type(predictor.trackers[0])
+    dets_del_list = (
+        tracker_cls.compute_frame_extras(predictor) if hasattr(tracker_cls, "compute_frame_extras") else None
+    )
 
     for i, result in enumerate(predictor.results):
         tracker = predictor.trackers[i if is_stream else 0]
@@ -109,11 +111,10 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
             predictor.vid_path[i if is_stream else 0] = vid_path
 
         det = (result.obb if is_obb else result.boxes).cpu().numpy()
-        if isinstance(tracker, TRACKTRACK):
-            dets_del = dets_del_list[i] if dets_del_list is not None else None
-            tracks = tracker.update(det, result.orig_img, dets_del=dets_del)
-        else:
-            tracks = tracker.update(det, result.orig_img, getattr(result, "feats", None))
+        kwargs = {"feats": getattr(result, "feats", None)}
+        if dets_del_list is not None:
+            kwargs["dets_del"] = dets_del_list[i]
+        tracks = tracker.update(det, result.orig_img, **kwargs)
         if len(tracks) == 0:
             continue
         idx = tracks[:, -1].astype(int)

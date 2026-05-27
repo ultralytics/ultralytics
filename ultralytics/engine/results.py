@@ -1409,7 +1409,7 @@ class Logits(BaseTensor):
         >>> results = model("image.jpg", logits=True)
         >>> r = results[0]
         >>> r.logits.data.shape  # (N, num_classes)
-        >>> r.logits.probs       # sigmoid'd view, same shape
+        >>> r.logits.probs  # sigmoid'd view, same shape
     """
 
     def __init__(self, logits: torch.Tensor | np.ndarray, orig_shape: tuple[int, int] | None = None) -> None:

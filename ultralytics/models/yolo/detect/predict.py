@@ -91,7 +91,7 @@ class DetectionPredictor(BasePredictor):
             for r, f in zip(results, obj_feats):
                 r.feats = f  # add object features to results
         if save_logits:
-            for r, l in zip(results, obj_logits):
+            for r, l in zip(results, obj_logits):  # noqa: E741
                 r.logits = Logits(l, r.orig_shape)
 
         return results

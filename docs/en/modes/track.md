@@ -186,7 +186,7 @@ Copy an existing tracker config file from [ultralytics/cfg/trackers](https://git
 
 ### Shared Tracker Arguments
 
-The following parameters are shared across all tracker YAML files:
+The following parameters are common to most tracker YAML files; not every parameter appears in every config:
 
 !!! warning "Tracker Threshold Information"
 

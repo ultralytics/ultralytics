@@ -1,0 +1,20 @@
+# path: /home/jovyan/datasets/MultiTask_v1 # dataset root dir
+path: /home/jovyan/datasets/MultiTask_v2 # dataset root dir
+train: images/train # train images (relative to 'path') 4 images
+val: images/val # val images (relative to 'path') 4 images
+test: # test images (optional)
+
+# Classes
+names:
+  0: head
+  1: body
+  2: phonecall
+  3: cellphone
+  4: face
+
+# names:
+#   0: head
+#   1: body
+#   2: cellphone
+#   3: phonecall
+#   4: face

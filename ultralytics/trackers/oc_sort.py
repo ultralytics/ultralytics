@@ -261,12 +261,11 @@ class OCSORT(BYTETracker):
                 track.re_activate(det, self.frame_id, new_id=False)
                 refind.append(track)
 
-        ocr_u_track_set = {id(ocr_tracked[i]) for i in ocr_u_track}
-        ocr_u_det_set = {id(ocr_dets[i]) for i in ocr_u_det}
+        ocr_u_track_set = {ocr_tracked[i].track_id for i in ocr_u_track}
         u_track = [
-            i for i in u_track if id(strack_pool[i]) in ocr_u_track_set or strack_pool[i].state != TrackState.Tracked
+            i for i in u_track if strack_pool[i].track_id in ocr_u_track_set or strack_pool[i].state != TrackState.Tracked
         ]
-        u_detection = [i for i in u_detection if id(detections[i]) in ocr_u_det_set]
+        u_detection = [u_detection[i] for i in ocr_u_det]
         return u_track, u_detection
 
     def _second_association(

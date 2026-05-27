@@ -32,6 +32,8 @@ Usage - formats:
                               yolo26n_rknn_model         # Rockchip RKNN
                               yolo26n_executorch_model   # PyTorch Executorch
                               yolo26n_axelera_model      # Axelera AI
+                              yolo26n_deepx_model        # DEEPX
+                              yolo26n_qnn_model          # Qualcomm QNN
 """
 
 from __future__ import annotations

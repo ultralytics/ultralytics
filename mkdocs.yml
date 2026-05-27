@@ -6,7 +6,7 @@
 
 # Site metadata
 site_name: Ultralytics YOLO Docs
-site_description: Explore Ultralytics YOLO, a cutting-edge real-time model for object detection, segmentation, classification, pose estimation, and tracking across various applications and hardware platforms.
+site_description: Explore Ultralytics YOLO, a cutting-edge real-time model for object detection, segmentation, semantic segmentation, classification, pose estimation, and tracking across various applications and hardware platforms.
 site_url: https://docs.ultralytics.com
 site_author: Ultralytics
 repo_url: https://github.com/ultralytics/ultralytics
@@ -235,6 +235,7 @@ nav:
       - tasks/index.md
       - Detect: tasks/detect.md
       - Segment: tasks/segment.md
+      - Semantic: tasks/semantic.md
       - Classify: tasks/classify.md
       - Pose: tasks/pose.md
       - OBB: tasks/obb.md
@@ -467,6 +468,11 @@ nav:
           - COCO128-seg: datasets/segment/coco128-seg.md
           - Crack-seg: datasets/segment/crack-seg.md
           - Package-seg: datasets/segment/package-seg.md
+      - Semantic Segmentation:
+          - datasets/semantic/index.md
+          - Cityscapes: datasets/semantic/cityscapes.md
+          - Cityscapes8: datasets/semantic/cityscapes8.md
+          - ADE20K: datasets/semantic/ade20k.md
       - Pose:
           - datasets/pose/index.md
           - COCO: datasets/pose/coco.md
@@ -591,10 +597,12 @@ nav:
       - ClearML: integrations/clearml.md
       - Comet ML: integrations/comet.md
       - CoreML: integrations/coreml.md
+      - DEEPX: integrations/deepx.md
       - DVC: integrations/dvc.md
       - ExecuTorch: integrations/executorch.md
       - Google Colab: integrations/google-colab.md
       - Gradio: integrations/gradio.md
+      - Hailo: integrations/hailo.md
       - IBM Watsonx: integrations/ibm-watsonx.md
       - JupyterLab: integrations/jupyterlab.md
       - Kaggle: integrations/kaggle.md
@@ -607,6 +615,7 @@ nav:
       - OpenVINO: integrations/openvino.md
       - PaddlePaddle: integrations/paddlepaddle.md
       - Paperspace Gradient: integrations/paperspace.md
+      - Qualcomm QNN: integrations/qnn.md
       - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md
       - Rockchip RKNN: integrations/rockchip-rknn.md
@@ -651,6 +660,7 @@ nav:
       - REST API: platform/api/index.md
 
   - Reference:
+      - reference/index.md
       - __init__: reference/__init__.md
       - cfg:
           - __init__: reference/cfg/__init__.md
@@ -746,6 +756,10 @@ nav:
                   - predict: reference/models/yolo/segment/predict.md
                   - train: reference/models/yolo/segment/train.md
                   - val: reference/models/yolo/segment/val.md
+              - semantic:
+                  - predict: reference/models/yolo/semantic/predict.md
+                  - train: reference/models/yolo/semantic/train.md
+                  - val: reference/models/yolo/semantic/val.md
               - world:
                   - train: reference/models/yolo/world/train.md
                   - train_world: reference/models/yolo/world/train_world.md
@@ -760,6 +774,7 @@ nav:
               - axelera: reference/nn/backends/axelera.md
               - base: reference/nn/backends/base.md
               - coreml: reference/nn/backends/coreml.md
+              - deepx: reference/nn/backends/deepx.md
               - executorch: reference/nn/backends/executorch.md
               - mnn: reference/nn/backends/mnn.md
               - ncnn: reference/nn/backends/ncnn.md
@@ -767,6 +782,7 @@ nav:
               - openvino: reference/nn/backends/openvino.md
               - paddle: reference/nn/backends/paddle.md
               - pytorch: reference/nn/backends/pytorch.md
+              - qnn: reference/nn/backends/qnn.md
               - rknn: reference/nn/backends/rknn.md
               - tensorflow: reference/nn/backends/tensorflow.md
               - tensorrt: reference/nn/backends/tensorrt.md
@@ -837,6 +853,7 @@ nav:
           - export:
               - axelera: reference/utils/export/axelera.md
               - coreml: reference/utils/export/coreml.md
+              - deepx: reference/utils/export/deepx.md
               - engine: reference/utils/export/engine.md
               - executorch: reference/utils/export/executorch.md
               - imx: reference/utils/export/imx.md
@@ -844,6 +861,7 @@ nav:
               - ncnn: reference/utils/export/ncnn.md
               - openvino: reference/utils/export/openvino.md
               - paddle: reference/utils/export/paddle.md
+              - qnn: reference/utils/export/qnn.md
               - rknn: reference/utils/export/rknn.md
               - tensorflow: reference/utils/export/tensorflow.md
               - torchscript: reference/utils/export/torchscript.md

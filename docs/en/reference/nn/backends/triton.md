@@ -7,7 +7,7 @@ keywords: Ultralytics, TritonBackend, Triton Inference Server, NVIDIA Triton, cl
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/backends/triton.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/backends/triton.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/backends/triton.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/backends/triton.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

@@ -52,11 +52,8 @@ def test_export(model: str, tmp_path: Path) -> None:
     """Test exporting a YOLO model to TorchScript format."""
     from ultralytics.utils.downloads import attempt_download_asset
 
-    model_path = WEIGHTS_DIR / model
-    if not model_path.exists():
-        model_path = Path(attempt_download_asset(model))
     isolated = tmp_path / model
-    shutil.copy(model_path, isolated)
+    shutil.copy(Path(attempt_download_asset(model)), isolated)
     for end2end in {False, True}:
         run(f"yolo export model={isolated} format=torchscript imgsz=32 end2end={end2end} max_det=100")
 

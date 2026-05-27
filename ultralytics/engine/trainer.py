@@ -352,6 +352,7 @@ class BaseTrainer:
                 self.model,
                 device_ids=[RANK],
                 static_graph=bool(self.args.compile),
+                find_unused_parameters=not bool(self.args.compile),
             )
 
         # Batch size

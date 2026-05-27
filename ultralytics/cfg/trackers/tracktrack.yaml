@@ -1,0 +1,42 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# TrackTrack defaults for mode="track"
+# Multi-cue tracker with HMIoU, iterative assignment, and track-aware initialization
+# Paper: "Focusing on Tracks for Online Multi-Object Tracking" (CVPR 2025)
+# Docs: https://docs.ultralytics.com/modes/track/
+
+tracker_type: tracktrack # (str) Tracker backend: tracktrack
+track_high_thresh: 0.6 # (float) High-confidence detection threshold
+track_low_thresh: 0.25 # (float) Low-confidence detection threshold for second stage
+new_track_thresh: 0.6 # (float) Score threshold for starting a new track
+track_buffer: 30 # (int) Frames to keep lost tracks alive
+match_thresh: 0.7 # (float) Initial matching threshold for iterative assignment
+lost_match_thr: 0.0 # (float) Looser rebind cost gate for still-Lost tracks; 0 disables the relaxed second pass. Raise above match_thresh (e.g. 0.9) for long-occlusion scenes
+fuse_score: False # (bool) Not used by TrackTrack (multi-cue cost handles this)
+
+# Association weights
+iou_weight: 0.5 # (float) Weight for HMIoU distance in cost matrix
+reid_weight: 0.5 # (float) Weight for cosine distance (or HMIoU fallback if no ReID)
+conf_weight: 0.1 # (float) Weight for confidence distance
+angle_weight: 0.05 # (float) Weight for corner angle distance
+
+# Iterative assignment
+det_thr: 0.6 # (float) Detection threshold separating high/low confidence
+penalty_p: 0.2 # (float) Cost penalty for low-confidence detections
+penalty_q: 0.4 # (float) Cost penalty for deleted/recovered detections
+reduce_step: 0.05 # (float) Threshold reduction per iteration
+
+# Track-Aware Initialization (TAI)
+tai_thr: 0.55 # (float) IoU threshold for TAI NMS suppression
+init_thr: 0.7 # (float) Minimum score for new track initialization
+min_track_len: 3 # (int) Minimum history length before track is confirmed
+
+# Camera motion compensation
+gmc_method: sparseOptFlow # (str) GMC method: sparseOptFlow, orb, ecc, none
+gmc_downscale: 3 # (int) Downscale factor for GMC (higher = faster, less accurate)
+gmc_max_corners: 200 # (int) Max keypoints for sparseOptFlow (lower = faster; 200 sufficient for affine)
+gmc_skip_frames: 0 # (int) Skip N frames between GMC updates (0 = every frame; >0 = faster)
+
+# ReID
+with_reid: False # (bool) Enable ReID feature matching
+model: auto # (str) ReID model path; 'auto' uses native YOLO features

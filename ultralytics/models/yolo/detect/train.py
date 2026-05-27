@@ -194,25 +194,33 @@ class DetectionTrainer(BaseTrainer):
         return batch
 
     def _maybe_dump_training_batch(self, batch: dict) -> dict:
-        """Copy batch via ``ultralytics.data.batch_dump`` when ``args.dump_batches`` is True."""
-        if not getattr(self.args, "dump_batches", False) or RANK not in {-1, 0}:
-            return batch
+        """Copy batch via ``ultralytics.data.batch_dump`` when ``dump_batches_dir`` is set."""
         from ultralytics.data import batch_dump
 
+        if not batch_dump.is_enabled(getattr(self.args, "dump_batches_dir", None)) or RANK not in {-1, 0}:
+            return batch
         if not getattr(self, "_dump_batches_logged", False):
-            LOGGER.info(f"{colorstr('dump_batches:')} {batch_dump.log_message()}")
+            LOGGER.info(
+                f"{colorstr('dump_batches:')} {batch_dump.log_message(self.args.dump_batches_dir, self.args.dump_batches_per_epoch)}"
+            )
             self._dump_batches_logged = True
         epoch = getattr(self, "epoch", 0)
         if getattr(self, "_dump_last_epoch", -1) != epoch:
             self._dump_last_epoch = epoch
             self._dump_batch_in_epoch = 0
         n = getattr(self, "_dump_batch_in_epoch", 0)
-        if not batch_dump.should_dump(n):
+        if not batch_dump.should_dump(n, self.args.dump_batches_per_epoch):
             return batch
         data_root = self.data.get("path")
         if not data_root:
             return batch
-        batch_dump.dump_training_batch(batch, data_root=data_root, batch_in_epoch=n, epoch=epoch)
+        batch_dump.dump_training_batch(
+            batch,
+            out_root=self.args.dump_batches_dir,
+            data_root=data_root,
+            batch_in_epoch=n,
+            epoch=epoch,
+        )
         self._dump_batch_in_epoch = n + 1
         return batch
 

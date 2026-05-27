@@ -228,6 +228,7 @@ CFG_INT_KEYS = frozenset(
         "line_width",
         "nbs",
         "save_period",
+        "dump_batches_per_epoch",
     }
 )
 CFG_BOOL_KEYS = frozenset(
@@ -265,7 +266,6 @@ CFG_BOOL_KEYS = frozenset(
         "nms",
         "profile",
         "end2end",
-        "dump_batches",
         "focal_loss",
     }
 )

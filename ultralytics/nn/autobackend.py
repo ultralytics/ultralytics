@@ -112,7 +112,7 @@ class AutoBackend(nn.Module):
             | Triton Inference      | triton://model    |
             | ExecuTorch            | *.pte             |
             | Axelera AI            | *_axelera_model/  |
-            | DeepX                 | *_deepx_model/    |
+            | DEEPX                 | *_deepx_model/    |
             | Qualcomm QNN          | *_qnn_model/      |
 
     Attributes:

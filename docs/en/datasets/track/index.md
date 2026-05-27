@@ -107,7 +107,7 @@ These commands load the YOLO26 model and use it for tracking objects in the give
 
 ### What are the upcoming features for training trackers in Ultralytics?
 
-Ultralytics is continuously enhancing its AI models. An upcoming feature will enable the training of standalone trackers. Until then, Multi-Object Detector leverages pretrained detection, segmentation, or Pose models for tracking without requiring standalone training. Stay updated by following our [blog](https://www.ultralytics.com/blog) or checking the [upcoming features](../../reference/trackers/track.md).
+Ultralytics is continuously enhancing its AI models. An upcoming feature will enable the training of standalone trackers. Until then, Multi-Object Detector leverages pretrained detection, segmentation, or Pose models for tracking without requiring standalone training. Stay updated by following our [blog](https://www.ultralytics.com/blog).
 
 ### Why should I use Ultralytics YOLO for multi-object tracking?
 

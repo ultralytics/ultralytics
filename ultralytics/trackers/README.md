@@ -15,7 +15,7 @@ Ultralytics YOLO trackers provide output consistent with standard [object detect
 - **Ease of Use:** Offers straightforward [Python API](https://docs.ultralytics.com/usage/python) and [CLI](https://docs.ultralytics.com/usage/cli) options for rapid integration and deployment.
 - **Customizability:** Easily integrates with [custom-trained YOLO models](https://docs.ultralytics.com/modes/train), enabling deployment in specialized, domain-specific applications.
 
-**Watch:** Object Detection and Tracking with Ultralytics YOLOv8.
+**Watch:** Object Detection and Tracking with Ultralytics YOLO26.
 
 [![Watch the video](https://user-images.githubusercontent.com/26833433/244171528-66a4a68d-cb85-466a-984a-34301616b7a3.png)](https://www.youtube.com/watch?v=hHyHmOtmEgs)
 

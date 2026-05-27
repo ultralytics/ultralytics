@@ -258,7 +258,8 @@ class DeepOCSORT(OCSORT):
             return
         try:
             warp = self.gmc.apply(img, results_high.xyxy if len(results_high) else np.empty((0, 4)))
-        except Exception:
+        except Exception as e:
+            LOGGER.warning(f"GMC failed, falling back to identity: {e}")
             warp = np.eye(2, 3)
         DeepOCSortTrack.multi_gmc(strack_pool, warp)
         DeepOCSortTrack.multi_gmc(unconfirmed, warp)

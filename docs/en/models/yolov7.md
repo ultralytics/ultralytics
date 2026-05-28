@@ -357,15 +357,15 @@ We would like to acknowledge the YOLOv7 authors for their significant contributi
 
         ```bibtex
         @inproceedings{wang2023yolov7,
-          title={YOLOv7: Trainable bag-of-freebies sets new state-of-the-art for real-time object detectors},
+          title={YOLOv7: Trainable Bag-of-Freebies Sets New State-of-the-Art for Real-Time Object Detectors},
           author={Wang, Chien-Yao and Bochkovskiy, Alexey and Liao, Hong-Yuan Mark},
-          booktitle={Proceedings of the IEEE/CVF conference on computer vision and pattern recognition},
+          booktitle={Proceedings of the IEEE/CVF conference on Computer Vision and Pattern Recognition (CVPR)},
           pages={7464--7475},
           year={2023}
         }
         ```
 
-The official YOLOv7 paper was accepted at **CVPR 2023** and published in the [CVF Open Access proceedings](https://openaccess.thecvf.com/content/CVPR2023/papers/Wang_YOLOv7_Trainable_Bag-of-Freebies_Sets_New_State-of-the-Art_for_Real-Time_Object_Detectors_CVPR_2023_paper.pdf), with a preprint on [arXiv](https://arxiv.org/pdf/2207.02696). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov7). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
+The official YOLOv7 paper was published in the [CVF 2023 Open Access](https://openaccess.thecvf.com/content/CVPR2023/papers/Wang_YOLOv7_Trainable_Bag-of-Freebies_Sets_New_State-of-the-Art_for_Real-Time_Object_Detectors_CVPR_2023_paper.pdf), with a preprint on [arXiv](https://arxiv.org/pdf/2207.02696). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov7). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
 ## FAQ
 

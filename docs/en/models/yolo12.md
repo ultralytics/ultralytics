@@ -155,16 +155,26 @@ If you use YOLO12 in your research, please cite the original work by [University
     === "BibTeX"
 
         ```bibtex
-        @inproceedings{tian2026yolov,
-          title={{YOLO}v12: Attention-Centric Real-Time Object Detectors},
-          author={Yunjie Tian and Qixiang Ye and David Doermann},
-          booktitle={The Thirty-ninth Annual Conference on Neural Information Processing Systems},
-          year={2026},
-          url={https://openreview.net/forum?id=gCvByDI4FN}
+        @inproceedings{tian2025yolov12,
+          title={YOLOv12: Attention-Centric Real-Time Object Detectors},
+          author={Tian, Yunjie and Ye, Qixiang and Doermann, David},
+          booktitle={Advances in Neural Information Processing Systems},
+          volume={38},
+          pages={78433--78457},
+          year={2025},
+          url={https://proceedings.neurips.cc/paper_files/paper/2025/file/7103444259031cc58051f8c9a4868533-Paper-Conference.pdf}
+        }
+
+        @software{yolo12,
+          author = {Tian, Yunjie and Ye, Qixiang and Doermann, David},
+          title = {YOLO12: Attention-Centric Real-Time Object Detectors},
+          year = {2025},
+          url = {https://github.com/sunsmarterjie/yolov12},
+          license = {AGPL-3.0}
         }
         ```
 
-The official YOLOv12 paper was accepted as a **NeurIPS 2025** poster. The peer-reviewed version is available on [OpenReview](https://openreview.net/forum?id=gCvByDI4FN), with a preprint on [arXiv](https://arxiv.org/abs/2502.12524). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/sunsmarterjie/yolov12). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
+The YOLO12 paper was published in the [NeurIPS 2025 proceedings](https://proceedings.neurips.cc/paper_files/paper/2025/hash/7103444259031cc58051f8c9a4868533-Abstract-Conference.html), with a preprint on [arXiv](https://arxiv.org/abs/2502.12524).
 
 ## FAQ
 

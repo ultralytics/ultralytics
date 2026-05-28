@@ -193,16 +193,16 @@ We would like to acknowledge the YOLOv9 authors for their significant contributi
 
         ```bibtex
         @inproceedings{wang2024yolov9,
-          title={YOLOv9: Learning what you want to learn using programmable gradient information},
+          title={YOLOv9: Learning What You Want to Learn Using Programmable Gradient Information},
           author={Wang, Chien-Yao and Yeh, I-Hau and Mark Liao, Hong-Yuan},
-          booktitle={European conference on computer vision},
+          booktitle={Computer Vision -- ECCV 2024},
           pages={1--21},
           year={2024},
-          organization={Springer}
+          organization={Springer Nature Switzerland}
         }
         ```
 
-The official YOLOv9 paper was accepted at **ECCV 2024** and published in the [Springer proceedings](https://link.springer.com/chapter/10.1007/978-3-031-72751-1_1), with a preprint on [arXiv](https://arxiv.org/pdf/2402.13616). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov9). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
+The official YOLOv9 paper was published in the [Springer ECCV 2024 proceedings](https://link.springer.com/chapter/10.1007/978-3-031-72751-1_1), with a preprint on [arXiv](https://arxiv.org/pdf/2402.13616). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov9). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
 ## FAQ
 

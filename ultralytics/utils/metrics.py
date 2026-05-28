@@ -1623,6 +1623,10 @@ class ReidMetrics(SimpleClass, DataExportMixin):
         self.gallery_feats = None
         self.gallery_pids = None
         self.gallery_camids = None
+        # True iff gallery was provided by the validator (vs. fabricated from queries in the
+        # fallback below). Lets process() emit the no-gallery warning every epoch instead of
+        # silently scoring later epochs against the fallback set populated on epoch 1.
+        self._gallery_provided = False
 
     def update_gallery(self, feats: np.ndarray, pids: np.ndarray, camids: np.ndarray):
         """Update gallery features, person IDs, and camera IDs for re-identification evaluation.
@@ -1635,9 +1639,15 @@ class ReidMetrics(SimpleClass, DataExportMixin):
         self.gallery_feats = feats
         self.gallery_pids = pids
         self.gallery_camids = camids
+        self._gallery_provided = True
 
     def process(self, query_feats, query_pids, query_camids, reranking: bool = False):
         """Compute mAP and CMC from query/gallery features using Market-1501 protocol.
+
+        Resets self.mAP/rank1/rank5/rank10 at the top so an empty-eval epoch (e.g., disjoint
+        query/gallery pid universes, or fraction sweep that strips all positives) reports
+        zero rather than persisting the previous epoch's values — which would mislead the
+        `fitness=mAP` best-checkpoint selection.
 
         Args:
             query_feats (np.ndarray): Query features (Q, D).
@@ -1645,9 +1655,21 @@ class ReidMetrics(SimpleClass, DataExportMixin):
             query_camids (np.ndarray): Query camera IDs (Q,).
             reranking (bool): Enable k-reciprocal re-ranking (Zhong et al., CVPR 2017).
         """
-        if self.gallery_feats is None:
-            LOGGER.warning("No gallery path found in dataset config. Using query as gallery.")
-            self.update_gallery(query_feats, query_pids, query_camids)
+        self.mAP = 0.0
+        self.rank1 = 0.0
+        self.rank5 = 0.0
+        self.rank10 = 0.0
+        if not self._gallery_provided:
+            # Warn EVERY epoch — not just the first — so the fallback is visible in the log.
+            # Note: do NOT call self.update_gallery() here (which would flip _gallery_provided
+            # to True and silence the warning on subsequent epochs); use a private set-only path.
+            LOGGER.warning(
+                "ReidMetrics: no gallery path found in dataset config; using query as gallery for "
+                "this epoch's eval. Reported mAP/Rank-k are NOT the standard Market-1501 protocol."
+            )
+            self.gallery_feats = query_feats
+            self.gallery_pids = query_pids
+            self.gallery_camids = query_camids
         if reranking:
             dist = self._rerank_distance(query_feats, self.gallery_feats)
         else:

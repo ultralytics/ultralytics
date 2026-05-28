@@ -940,3 +940,13 @@ def test_metrics_names_default_isolation():
         assert a.names is not b.names, f"{cls.__name__} shares default names dict across instances"
         a.names[0] = "mutated"
         assert 0 not in b.names, f"{cls.__name__} mutation in one instance leaked into another"
+
+
+def test_tal_assigner_stride_default_isolation():
+    """Each TaskAlignedAssigner instance with default `stride` must get its own list, not a shared module-level default."""
+    from ultralytics.utils.tal import TaskAlignedAssigner
+
+    a, b = TaskAlignedAssigner(), TaskAlignedAssigner()
+    assert a.stride is not b.stride, "TaskAlignedAssigner shares default stride list across instances"
+    a.stride.append(64)
+    assert 64 not in b.stride, "TaskAlignedAssigner mutation in one instance leaked into another"

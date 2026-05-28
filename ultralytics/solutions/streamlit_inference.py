@@ -150,6 +150,10 @@ class Inference:
     def configure(self) -> None:
         """Configure the model and load selected classes for inference."""
         # Add dropdown menu for model selection
+        # Note: '-reid' is intentionally omitted from T_ORD. The current Streamlit demo
+        # passes box-style kwargs (conf, iou, classes) and renders via Results.plot(), neither
+        # of which makes sense for ReID embeddings — until a dedicated ReID demo mode lands
+        # (query + uploaded gallery similarity), ReID checkpoints are not surfaced here.
         M_ORD, T_ORD = ["yolo26n", "yolo26s", "yolo26m", "yolo26l", "yolo26x"], ["", "-seg", "-pose", "-obb", "-cls"]
         available_models = sorted(
             [

@@ -26,12 +26,29 @@ def test_task2calibrationdata_has_reid():
     assert TASK2CALIBRATIONDATA["reid"]  # non-empty
 
 
-def test_streamlit_t_ord_has_reid_suffix():
-    """T_ORD must include '-reid' so the model picker doesn't ValueError on yolo26n-reid.pt."""
+def test_streamlit_t_ord_omits_reid_for_now():
+    """T_ORD intentionally OMITS '-reid' until a proper Streamlit ReID demo lands.
+
+    Surfacing ReID in the existing picker showed broken UX (Results.plot returns the original
+    image because no boxes/masks/probs are populated; the 'Classes' multiselect lists raw pid
+    strings). The right fix is a dedicated ReID demo mode, not widening T_ORD.
+
+    yolo26n-reid.pt is also missing from GITHUB_ASSETS_STEMS today, so widening T_ORD has
+    no immediate user benefit anyway — but if/when it lands, this test prevents accidental
+    re-introduction of the broken UX path.
+    """
+    import re
     from ultralytics.solutions.streamlit_inference import Inference
 
     src = inspect.getsource(Inference.configure)
-    assert "'-reid'" in src or '"-reid"' in src, "T_ORD must include '-reid'"
+    # Find the T_ORD list literal and check its contents only (ignore comments mentioning reid)
+    m = re.search(r"T_ORD\s*=\s*(\[[^\]]+\])", src)
+    assert m, f"could not locate T_ORD literal in configure()"
+    t_ord_literal = m.group(1)
+    assert "'-reid'" not in t_ord_literal and '"-reid"' not in t_ord_literal, (
+        f"T_ORD must NOT include '-reid' until Streamlit configure()/plot() can render embeddings; "
+        f"got: {t_ord_literal}"
+    )
 
 
 # ---------- Exporter import wiring -----------------------------------------------------------

@@ -3,20 +3,20 @@
 # Best ReID training recipe found by two ablation campaigns.
 # Single model, no ensemble. Use with: yolo reid train cfg=reid_best.yaml model=... data=... pretrained=...
 #
-# ─── HEADLINE: TWO RECIPES BY DEPLOYMENT TARGET ────────────────────────────────
+# ─── HEADLINE RECIPE ───────────────────────────────────────────────────────────
 #
-# A. Market-FT recipe (small-data target, 1h on 4× RTX 5090; matches public protocol):
+# Market-FT recipe (small-data target, 1h on 4× RTX 5090; matches public protocol):
 #    model:       yolo26l-reid-2psa.yaml  (yolo26l + 2 stacked C2PSA attention blocks)
 #    pretrained:  yolo26l_2psa_msmt MSMT-pretrained checkpoint (1h MSMT FT first)
 #    data:        Market-1501.yaml
 #    Result:      Market-1501  mAP=0.884  Rank-1=0.927  (imgsz=384 + k-rerank + flip TTA — arch31)
 #                 [prior "mAP=0.875 R1=0.922" was at imgsz=320; raising to 384 adds +0.5pp R1]
 #
-# B. Multi-dataset recipe (Combined-ReID train, 3-4h on 4× Blackwell):
-#    model:       yolo26l-reid.yaml + this recipe (HH below)
-#    pretrained:  yolo26l-cls.pt
-#    data:        Combined-ReID.yaml (Market+Duke+MSMT, 2493 IDs)
-#    Result:      Market mAP=0.894 R1=0.929 / Duke mAP=0.745 R1=0.812 / MSMT R1=0.662
+# Historical: a multi-dataset variant ("Combined-ReID": Market+Duke+MSMT joint training)
+# was previously evaluated and reached Market mAP=0.894 R1=0.929 / Duke mAP=0.745 R1=0.812 /
+# MSMT R1=0.662. The Combined-ReID.yaml shipped in early branches was a research artifact
+# with hardcoded local paths and has been removed; recreate it locally (per-dataset paths)
+# if you want to reproduce that experiment.
 #
 # ─── ARCHITECTURE FINDINGS (8 paper-driven arch experiments on 5090x4) ────────
 # Architecture levers tested ON TOP of train-33 baseline (yolo26l-2psa + MSMT-pretrain, Market 1h):
@@ -118,6 +118,9 @@
 # - Best overall (HH, this recipe):  cos_lr=True,  dropout=0.1   — wins Duke, ties EE on Market
 # - MSMT R1 favors:                  cos_lr=False, dropout=0.2   — set those for MSMT-leaning workloads (R1=0.667)
 # - Pure Market R1 (EE):             cos_lr=True,  dropout=0.0   — R1=0.930 (within ±0.001 of HH's 0.929)
+
+# --- Task ---
+task: reid                # required so `cfg=reid_best.yaml` validates ReID-only keys (reid_p, supcon_temp, ...)
 
 # --- Optimizer / schedule ---
 optimizer: AdamW

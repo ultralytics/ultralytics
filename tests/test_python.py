@@ -943,8 +943,7 @@ def test_metrics_names_default_isolation():
 
 
 def test_tal_assigner_stride_default_isolation():
-    """Each TaskAlignedAssigner instance with default `stride` must get its own list, not a shared module-level default.
-    """
+    """Each TaskAlignedAssigner instance with default `stride` must get its own list, not a shared module-level default."""
     from ultralytics.utils.tal import TaskAlignedAssigner
 
     a, b = TaskAlignedAssigner(), TaskAlignedAssigner()

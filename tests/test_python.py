@@ -929,3 +929,24 @@ def test_semantic_polygon_data():
     model = YOLO("yolo26n-sem.pt")
     model.train(data="coco8-seg.yaml", epochs=1, imgsz=32, close_mosaic=1)
     model.val(data="coco8-seg.yaml")
+
+
+def test_random_load_text_padding_value_default_isolation():
+    """Each RandomLoadText instance with default `padding_value` must get its own list, not a shared module-level
+    default.
+    """
+    import inspect
+
+    from ultralytics.data.augment import RandomLoadText
+
+    a, b = RandomLoadText(), RandomLoadText()
+    assert a.padding_value is not b.padding_value, "RandomLoadText shares default padding_value list across instances"
+    a.padding_value.append("LEAK")
+    assert "LEAK" not in b.padding_value, "RandomLoadText mutation in one instance leaked into another"
+    # Explicit None normalizes to default; explicit [] is preserved as-is
+    assert RandomLoadText(padding_value=None).padding_value == [""]
+    assert RandomLoadText(padding_value=[]).padding_value == []
+    # YOLOE.predict signature default is the None sentinel and body normalizes before use
+    from ultralytics.models.yolo.model import YOLOE
+
+    assert inspect.signature(YOLOE.predict).parameters["visual_prompts"].default is None

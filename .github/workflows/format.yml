@@ -20,6 +20,8 @@ permissions:
 
 jobs:
   actions:
+    # Skip self-triggered runs from UltralyticsAssistant PAT pushes to break Auto-format <-> Auto-update-Docs loop.
+    if: github.actor != 'UltralyticsAssistant' && github.triggering_actor != 'UltralyticsAssistant'
     runs-on: ubuntu-latest
     steps:
       - name: Run Ultralytics Actions

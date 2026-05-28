@@ -932,7 +932,9 @@ def test_semantic_polygon_data():
 
 
 def test_random_load_text_padding_value_default_isolation():
-    """Each RandomLoadText instance with default `padding_value` must get its own list, not a shared module-level default."""
+    """Each RandomLoadText instance with default `padding_value` must get its own list, not a shared module-level
+    default.
+    """
     import inspect
 
     from ultralytics.data.augment import RandomLoadText

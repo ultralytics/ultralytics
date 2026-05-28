@@ -71,6 +71,7 @@ TASK2CALIBRATIONDATA = {
     "classify": "imagenet100",
     "pose": "coco8-pose.yaml",
     "obb": "dota128.yaml",
+    "reid": "reid8.yaml",
 }
 TASK2MODEL = {
     "detect": "yolo26n.pt",
@@ -94,7 +95,7 @@ TASK_CUSTOM_KEYS = {
         "center_weight", "center_momentum", "focal_gamma", "supcon_temp",
         "arcface", "arcface_margin", "arcface_scale",
         "gem_p", "nonlocal_block",
-        "reid_reranking", "reid_tta",
+        "reid_reranking", "reid_tta", "reid_scales",
     },
 }
 

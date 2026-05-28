@@ -16,7 +16,17 @@ import torch
 from tests import SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-from ultralytics.utils import ARM64, IS_DOCKER, IS_RASPBERRYPI, LINUX, MACOS, MACOS_VERSION, WINDOWS, checks
+from ultralytics.utils import (
+    ARM64,
+    IS_DOCKER,
+    IS_RASPBERRYPI,
+    LINUX,
+    MACOS,
+    MACOS_VERSION,
+    WEIGHTS_DIR,
+    WINDOWS,
+    checks,
+)
 from ultralytics.utils.export.engine import torch2onnx
 from ultralytics.utils.torch_utils import (
     TORCH_1_10,
@@ -273,6 +283,23 @@ def test_export_coreml(isolated_model):
     assert "You will not be able to run predict()" not in output, "CoreML export has predict() error"
 
 
+@pytest.mark.skipif(not TORCH_1_11, reason="RTDETR CoreML export requires torch>=1.11")
+@pytest.mark.skipif(WINDOWS, reason="CoreML not supported on Windows")
+@pytest.mark.skipif(LINUX and ARM64, reason="CoreML not supported on aarch64 Linux")
+@pytest.mark.skipif(checks.IS_PYTHON_3_13, reason="CoreML not supported in Python 3.13")
+def test_export_coreml_rtdetr():
+    """Test RT-DETR export to CoreML format and check for errors."""
+    stdout, stderr = io.StringIO(), io.StringIO()
+    with redirect_stdout(stdout), redirect_stderr(stderr):
+        file = YOLO(WEIGHTS_DIR / "rtdetr-l.pt").export(format="coreml", imgsz=160)
+        if MACOS:
+            YOLO(file)(SOURCE, imgsz=160)
+
+    output = stdout.getvalue() + stderr.getvalue()
+    assert "Error" not in output, f"RTDETR CoreML export produced errors: {output}"
+    assert "You will not be able to run predict()" not in output, "RTDETR CoreML export has predict() error"
+
+
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")
 @pytest.mark.skipif(not TORCH_1_13, reason="TFLite export requires torch>=1.13")
 @pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
@@ -409,15 +436,15 @@ def test_export_axelera(isolated_model):
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(not LINUX or ARM64, reason="DeepX export only supported on non-aarch64 Linux")
+@pytest.mark.skipif(not LINUX or ARM64, reason="DEEPX export only supported on non-aarch64 Linux")
 @pytest.mark.skipif(
     not checks.IS_PYTHON_MINIMUM_3_12, reason="Requires Python>=3.12 for CI validation due to torch upgrades"
 )
 def test_export_deepx(isolated_model):
-    """Test YOLO export to DeepX format."""
+    """Test YOLO export to DEEPX format."""
     file = YOLO(isolated_model).export(format="deepx", imgsz=32)
-    assert Path(file).exists(), f"DeepX export failed, directory not found: {file}"
-    # Note: Inference testing skipped as it requires DeepX hardware
+    assert Path(file).exists(), f"DEEPX export failed, directory not found: {file}"
+    # Note: Inference testing skipped as it requires DEEPX hardware
     shutil.rmtree(file, ignore_errors=True)  # cleanup
 
 

@@ -73,6 +73,44 @@ def test_update_gallery_flips_provided_flag():
     assert m._gallery_provided is True
 
 
+def test_eval_distmat_handles_small_gallery_with_camid_filtering():
+    """Regression: when the gallery is small (G < 50) AND has_camid is True, the per-query
+    `matches` vector formerly had different lengths after the `g_pids[keep]` filter, and
+    `np.array(all_cmc)` raised 'inhomogeneous shape' on NumPy ≥1.24. The junk-mask approach
+    keeps the array constant-length so np.stack works. Reproduces on reid8 (36-image gallery)."""
+    m = ReidMetrics()
+    # Small gallery (G=8), with both query and gallery sharing some pids and camids
+    g_feats = _rng_features(8, seed=0)
+    g_pids = np.array([1, 1, 2, 2, 3, 3, 4, 4], dtype=np.int64)
+    g_camids = np.array([1, 2, 1, 2, 1, 2, 1, 2], dtype=np.int64)
+    m.update_gallery(g_feats, g_pids, g_camids)
+    # Queries that share both pid AND camid with multiple gallery rows → triggers the junk mask
+    q_feats = _rng_features(4, seed=1)
+    q_pids = np.array([1, 2, 3, 4], dtype=np.int64)
+    q_camids = np.array([1, 1, 1, 1], dtype=np.int64)  # same camid as some gallery rows
+    # Must not raise
+    m.process(q_feats, q_pids, q_camids)
+    # And metrics should be in [0, 1]
+    for v in (m.mAP, m.rank1, m.rank5, m.rank10):
+        assert 0.0 <= v <= 1.0, f"metric out of range: {v}"
+
+
+def test_eval_distmat_pads_cmc_for_gallery_smaller_than_50():
+    """When G < 50, the cmc curve has only G entries; padding ensures the K-length array is
+    valid for rank-50 reporting."""
+    m = ReidMetrics()
+    g = _rng_features(10, seed=0)
+    g_pids = np.array([1, 1, 2, 2, 3, 3, 4, 4, 5, 5], dtype=np.int64)
+    g_camids = np.array([1, 2] * 5, dtype=np.int64)
+    m.update_gallery(g, g_pids, g_camids)
+    q = _rng_features(2, seed=1)
+    q_pids = np.array([1, 2], dtype=np.int64)
+    q_camids = np.array([3, 3], dtype=np.int64)  # different camid; no junk masking
+    m.process(q, q_pids, q_camids)
+    # rank10 must not crash on G=10 (just below 50 cap)
+    assert 0.0 <= m.rank10 <= 1.0
+
+
 def test_fallback_warns_every_epoch():
     """When the gallery is never provided, the no-gallery warning should fire EVERY epoch —
     not just the first — so the misconfiguration stays visible in the log."""

@@ -1696,34 +1696,43 @@ class ReidMetrics(SimpleClass, DataExportMixin):
 
         all_ap = []
         all_cmc = []
+        # Cap cmc-curve length at K so per-query rows are constant length regardless of how
+        # many same-pid-same-camid positions get masked out (otherwise `np.array(all_cmc)`
+        # raises on inhomogeneous shape — small galleries like reid8 hit this).
+        K = min(50, len(self.gallery_pids))
         for i in range(len(query_pids)):
             q_pid = query_pids[i]
 
             # Sort gallery by distance
             order = np.argsort(dist[i])
-            g_pids = self.gallery_pids[order]
+            g_pids_ranked = self.gallery_pids[order]
 
-            # Remove same pid + same camid (standard Market-1501 protocol)
+            # Build the constant-length binary match vector first…
+            matches = (g_pids_ranked == q_pid).astype(np.float32)
+
+            # …then apply the standard Market-1501 junk mask in-place. Same-pid-same-camid
+            # positions are "junk": neither positive nor negative — zero them from matches
+            # rather than deleting from the array (deletion produced variable-length cmc rows
+            # and crashed `np.array(all_cmc)` for small/filtered galleries).
             if has_camid:
                 q_camid = query_camids[i]
-                g_camids = self.gallery_camids[order]
-                keep = ~((g_pids == q_pid) & (g_camids == q_camid))
-                g_pids = g_pids[keep]
-
-            # Binary match vector
-            matches = (g_pids == q_pid).astype(np.float32)
+                g_camids_ranked = self.gallery_camids[order]
+                junk = (g_pids_ranked == q_pid) & (g_camids_ranked == q_camid)
+                matches[junk] = 0.0
 
             if matches.sum() == 0:
-                continue  # skip queries with no gallery match
+                continue  # skip queries with no remaining gallery match
 
-            # CMC
-            cmc = matches.cumsum()
-            cmc = (cmc > 0).astype(np.float32)  # first hit and beyond
-            all_cmc.append(cmc[:50])  # keep top-50 for rank computation
+            # CMC: pad to constant length K. cmc is monotone non-decreasing, so when the
+            # ranking is shorter than K we extend with the last value (hit stays hit).
+            cum_tp = matches.cumsum()
+            cmc = (cum_tp > 0).astype(np.float32)
+            cmc_padded = np.full(K, cmc[-1], dtype=np.float32)
+            cmc_padded[: min(len(cmc), K)] = cmc[: min(len(cmc), K)]
+            all_cmc.append(cmc_padded)
 
             # AP
             num_rel = matches.sum()
-            cum_tp = matches.cumsum()
             precision = cum_tp / (np.arange(len(matches)) + 1)
             ap = (precision * matches).sum() / num_rel
             all_ap.append(ap)
@@ -1731,7 +1740,7 @@ class ReidMetrics(SimpleClass, DataExportMixin):
         if len(all_ap) == 0:
             return
 
-        all_cmc = np.array(all_cmc)
+        all_cmc = np.stack(all_cmc, axis=0)
         cmc_curve = all_cmc.mean(axis=0)
 
         self.mAP = float(np.mean(all_ap))

@@ -264,6 +264,44 @@ def test_init_metrics_caches_gallery_features():
     assert "id(model)" in src, "cache key must include id(model) so weight updates invalidate"
 
 
+def test_gallery_cache_hits_on_same_model():
+    """Cache HIT path: repeated init_metrics calls on the same Validator + same model
+    must reuse the cached gallery features (no second extraction). Cache MISS on model
+    change. Verified via a stubbed _extract_gallery_features that counts calls."""
+    import numpy as np
+    import torch
+    from types import SimpleNamespace
+    from ultralytics.models.yolo.reid.val import ReidValidator
+
+    args = SimpleNamespace(task="reid", batch=4, workers=0, half=False, imgsz=64,
+                           reid_scales=None, reid_tta=False)
+    v = ReidValidator.__new__(ReidValidator)
+    v.args = args
+    v._feats, v._pids, v._camids = [], [], []
+    v.metrics = SimpleNamespace(update_gallery=lambda *a, **kw: None)
+    v.data = {"path": "/tmp", "gallery": "g"}
+
+    calls = [0]
+
+    def stub(self, path):
+        calls[0] += 1
+        return (np.zeros((4, 8), dtype=np.float32),
+                np.zeros(4, dtype=np.int64),
+                np.zeros(4, dtype=np.int64))
+
+    v._extract_gallery_features = stub.__get__(v, ReidValidator)
+    model_a = torch.nn.Linear(8, 8); model_a.names = {0: "id0"}
+    model_b = torch.nn.Linear(8, 8); model_b.names = {0: "id0"}
+
+    v.init_metrics(model_a)
+    v.init_metrics(model_a)  # hit
+    v.init_metrics(model_a)  # hit
+    assert calls[0] == 1, f"expected 1 extraction on same model, got {calls[0]}"
+
+    v.init_metrics(model_b)  # miss (different id)
+    assert calls[0] == 2, f"expected cache miss on different model, got {calls[0]}"
+
+
 def test_get_dataset_task_set_includes_reid():
     """get_dataset's task-routing set must explicitly include reid (was implicit by .yaml suffix)."""
     import ultralytics.engine.trainer as trainer_mod

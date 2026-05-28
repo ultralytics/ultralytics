@@ -1204,10 +1204,19 @@ class Exporter:
 
     @staticmethod
     def _transform_fn(data_item) -> np.ndarray:
-        """The transformation function for Axelera/OpenVINO quantization preprocessing."""
+        """The transformation function for Axelera/OpenVINO quantization preprocessing.
+
+        Accepts both uint8 (YOLODataset / detect-style) and already-normalised float32
+        (ClassificationDataset / ReidDataset, which emit mean-subtracted/std-divided tensors
+        because their torch_transforms include Normalize). For uint8 inputs we normalise
+        here; for float32 we pass through unchanged.
+        """
         data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
-        assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
-        im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
+        if data_item.dtype == torch.uint8:
+            im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp32 and 0-255 to 0.0-1.0
+        else:
+            # Already a float tensor that's been through Normalize; just convert to numpy.
+            im = data_item.detach().cpu().numpy().astype(np.float32)
         return im[None] if im.ndim == 3 else im
 
     def add_callback(self, event: str, callback):

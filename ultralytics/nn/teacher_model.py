@@ -447,7 +447,12 @@ class MoonViTTeacher(TeacherModel):
         from transformers import AutoModel
 
         cfg = self.CONFIGS[variant]
-        self.model = AutoModel.from_pretrained(cfg["hf_model"], revision=cfg["revision"], trust_remote_code=True)
+        # Force fp32: MoonViT's saved weights default to bf16, but distillation feeds fp32 images (other teachers are
+        # fp32-on-disk and avoid this implicit dtype). Without this override the patch_embed Conv2d errors with
+        # ``Input type (float) and bias type (c10::BFloat16) should be the same``.
+        self.model = AutoModel.from_pretrained(
+            cfg["hf_model"], revision=cfg["revision"], trust_remote_code=True, dtype=torch.float32
+        )
         self._patch_size = cfg["patch_size"]
         self._merge_kernel = cfg["merge_kernel"]
         self._freeze(cfg, device)

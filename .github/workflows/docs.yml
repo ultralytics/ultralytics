@@ -31,7 +31,8 @@ permissions:
 
 jobs:
   Docs:
-    if: github.repository == 'ultralytics/ultralytics'
+    # Skip self-triggered runs from UltralyticsAssistant PAT pushes to break Auto-format <-> Auto-update-Docs loop.
+    if: github.repository == 'ultralytics/ultralytics' && github.actor != 'UltralyticsAssistant' && github.triggering_actor != 'UltralyticsAssistant'
     runs-on: ubuntu-latest
     env:
       GITHUB_REF: ${{ github.head_ref || github.ref }}

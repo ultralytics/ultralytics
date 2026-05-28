@@ -194,7 +194,7 @@ We would like to acknowledge the YOLOv9 authors for their significant contributi
         ```bibtex
         @inproceedings{wang2024yolov9,
           title={YOLOv9: Learning What You Want to Learn Using Programmable Gradient Information},
-          author={Wang, Chien-Yao and Yeh, I-Hau and Mark Liao, Hong-Yuan},
+          author={Wang, Chien-Yao and Yeh, I-Hau and Liao, Hong-Yuan Mark},
           booktitle={Computer Vision -- ECCV 2024},
           pages={1--21},
           year={2024},

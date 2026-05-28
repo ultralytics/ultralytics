@@ -245,7 +245,7 @@ We would like to acknowledge the YOLOv10 authors from [Tsinghua University](http
     === "BibTeX"
 
         ```bibtex
-        @article{wang2024yolov10,
+        @inproceedings{wang2024yolov10,
           title={YOLOv10: Real-Time End-to-End Object Detection},
           author={Wang, Ao and Chen, Hui and Liu, Lihao and Chen, Kai and Lin, Zijia and Han, Jungong and Ding, Guiguang},
           booktitle={Advances in Neural Information Processing Systems},

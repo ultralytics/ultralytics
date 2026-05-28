@@ -193,12 +193,12 @@ Verify the runtime is installed correctly with `dxrt-cli --version`. You should 
 ```sh
 DXRT v3.3.2
 Minimum Driver Versions
-  Device Driver: v2.4.0
-  PCIe Driver: v2.2.0
-  Firmware: v2.5.2
+Device Driver: v2.4.0
+PCIe Driver: v2.2.0
+Firmware: v2.5.2
 Minimum Compiler Versions
-  Compiler: v1.18.1
-  .dxnn File Format: v6
+Compiler: v1.18.1
+.dxnn File Format: v6
 ```
 
 Once the runtime is installed, run inference and validation on your DeepX device exactly as shown in the [Usage](#usage) section above — the exported `_deepx_model` loads directly with `YOLO(...)`.

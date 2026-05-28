@@ -128,7 +128,8 @@ class BboxLoss(nn.Module):
         stride: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute IoU and DFL losses for bounding boxes."""
-        if (_dev := pred_bboxes.device).type == "mps": pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, fg_mask, imgsz, stride = (t.cpu() for t in (pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, fg_mask, imgsz, stride))  # MPS: variable-shape ops pollute graph cache
+        if (_dev := pred_bboxes.device).type == "mps":
+            pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, fg_mask, imgsz, stride = (t.cpu() for t in (pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, fg_mask, imgsz, stride))  # MPS: variable-shape ops pollute graph cache
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
         iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=True)
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
@@ -229,7 +230,8 @@ class RotatedBboxLoss(BboxLoss):
         stride: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute IoU and DFL losses for rotated bounding boxes."""
-        if (_dev := pred_bboxes.device).type == "mps": pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, fg_mask, imgsz, stride = (t.cpu() for t in (pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, fg_mask, imgsz, stride))  # MPS: see BboxLoss.forward
+        if (_dev := pred_bboxes.device).type == "mps":
+            pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, fg_mask, imgsz, stride = (t.cpu() for t in (pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, fg_mask, imgsz, stride))  # MPS: see BboxLoss.forward
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
         iou = probiou(pred_bboxes[fg_mask], target_bboxes[fg_mask])
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum

@@ -66,16 +66,19 @@ def torch2ethos(
         memory_mode="Shared_Sram",
     )
 
-    quantizer = EthosUQuantizer(compile_spec, use_composable_quantizer=True)
+    from executorch.backends.arm.quantizer.arm_quantizer_utils import mark_node_as_annotated
+
+    quantizer = EthosUQuantizer(compile_spec)
     operator_config = get_symmetric_quantization_config(is_per_channel=True)
     quantizer.set_global(operator_config)
+    quantizer.set_io(None)
 
-    # Keep final YOLO cat and model IO in FP32 (mixed precision)
+    # Keep final YOLO cat and model IO in FP32 (mixed precision).
+    # Pre-mark the last cat node as annotated with no qspec so the quantizer skips it.
     nodes = list(graph_module.graph.nodes)
     cat_nodes = [n for n in nodes if n.op == "call_function" and "aten.cat" in str(getattr(n, "target", ""))]
     if cat_nodes:
-        quantizer.set_node_name(cat_nodes[-1].name, None)
-    quantizer.set_io(None)
+        mark_node_as_annotated(cat_nodes[-1])
 
     # Post training quantization
     quantized_graph_module = prepare_pt2e(graph_module, quantizer)

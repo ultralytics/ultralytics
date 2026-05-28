@@ -37,7 +37,9 @@ def torch2ethos(
         (str): Path to the exported ExecuTorch with ARM Ethos-U Backend model directory.
     """
     # check_executorch_requirements()
-    check_requirements("executorch[cortex_m]==1.3.1", cmds="--extra-index-url https://download.pytorch.org/whl") # add temporarily until stable is released
+    check_requirements(
+        "executorch[cortex_m]==1.3.1", cmds="--extra-index-url https://download.pytorch.org/whl"
+    )  # add temporarily until stable is released
     check_requirements("tosa-tools")
     check_requirements("ethos-u-vela")
 

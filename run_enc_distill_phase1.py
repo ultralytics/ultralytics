@@ -155,6 +155,10 @@ def main(argv: list[str]) -> None:
             Active only when the dataset is a ConcatDataset (multi-source ``data=`` arg).
         --optimizer <name>: ultralytics optimizer name (default ``AdamW``). ``MuSGD`` swaps in
             Muon-based updates for distillation ablations. Recipe ``beta2`` is ignored when non-AdamW.
+        --normalize_teacher_input: presence-only flag (no value). When set, convert the pipeline's ImageNet-normalized
+            input to each teacher's training-time distribution: no-op for EUPE/DINOv3 (which already match ImageNet
+            stats), SigLIP-style ``2x - 1`` for SigLIP2/MoonViT/SAM3. Default off matches all existing phase1 anchors.
+            On resume, inherits from the checkpoint when not re-passed.
     """
     args = argv[1:]
     args, resume = _pop_flag(args, "--resume")
@@ -168,6 +172,7 @@ def main(argv: list[str]) -> None:
     args, adaptor_arch = _pop_flag(args, "--adaptor_arch")
     args, sample_t_str = _pop_flag(args, "--sample_t")
     args, optimizer = _pop_flag(args, "--optimizer")
+    args, norm_in_str = _pop_flag(args, "--normalize_teacher_input", is_bool=True)
 
     cos_weight = float(cos_w) if cos_w else 0.9
     l1_weight = float(l1_w) if l1_w else 0.1
@@ -176,10 +181,17 @@ def main(argv: list[str]) -> None:
     adaptor_arch = adaptor_arch or "mlp"
     sample_t = float(sample_t_str) if sample_t_str else 0.0
     optimizer = optimizer or "AdamW"
+    normalize_teacher_input = bool(norm_in_str)
 
     if resume:
         resume = paths.patch_resume(resume)
     resume_args = _load_train_args(resume) if resume else {}
+
+    # Bool flags are presence-only: ``_pop_flag(is_bool=True)`` returns ``""`` when absent, so there's no way for a
+    # resume to express "stay True". Inherit from the checkpoint when the CLI didn't re-pass the flag, so the drift
+    # guard below doesn't fire spuriously on every resume of a normalize-on run.
+    if resume_args and not norm_in_str:
+        normalize_teacher_input = bool(resume_args.get("normalize_teacher_input", False))
 
     gpu = args[0] if args else "0"
     teachers = args[1] if len(args) > 1 else resume_args.get("teachers", "eupe:vitb16")
@@ -201,6 +213,7 @@ def main(argv: list[str]) -> None:
             ("data", data, DATA_7SRC_DEFAULT),
             ("sample_t", sample_t, 0.0),
             ("optimizer", optimizer, "AdamW"),
+            ("normalize_teacher_input", normalize_teacher_input, False),
         ):
             prev = resume_args.get(key, default)
             if now != prev:
@@ -244,6 +257,7 @@ def main(argv: list[str]) -> None:
             adaptor_arch=adaptor_arch,
             sample_t=sample_t,
             optimizer=optimizer,
+            normalize_teacher_input=normalize_teacher_input,
             grad_clip=r["grad_clip"],
             beta2=r["beta2"],
             wandb_group="distill",
@@ -254,6 +268,7 @@ def main(argv: list[str]) -> None:
         teachers=teachers,
         data=data,
         knn_eval="/data/shared-datasets/imagenet",
+        normalize_teacher_input=normalize_teacher_input,
         cos_weight=cos_weight,
         l1_weight=l1_weight,
         cls_l1=cls_l1,

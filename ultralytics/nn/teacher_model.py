@@ -16,6 +16,13 @@ from dataclasses import dataclass
 import torch
 import torch.nn as nn
 
+# Pipeline normalization that arrives at ``encode()``. The classification trainer at
+# ``ultralytics/models/yolo/classify/train_image_encoder.py:38-39`` applies these stats via
+# ``classify_augmentations_distill`` / ``classify_transforms`` before any teacher sees the tensor. ``_prep`` undoes this
+# before re-normalizing with each teacher's training-time stats.
+PIPELINE_IMAGE_MEAN: tuple[float, float, float] = (0.485, 0.456, 0.406)
+PIPELINE_IMAGE_STD: tuple[float, float, float] = (0.229, 0.224, 0.225)
+
 
 def safe_key(variant: str) -> str:
     """Convert teacher variant name to safe key (nn.ModuleDict keys can't contain ':')."""
@@ -59,9 +66,16 @@ class TeacherModel(nn.Module):
     num_patches: int = 0
     token_types: tuple[str, ...] = ("cls", "patches")
 
+    # Teacher's training-time normalization stats. Override per subclass: ImageNet for EUPE/DINOv3, SigLIP-style (0.5,
+    # 0.5, 0.5) for SigLIP2/MoonViT/SAM3. Defaults match ``PIPELINE_IMAGE_MEAN/STD`` so ``_prep`` is mathematically
+    # identity when un-overridden, and is bit-identity when ``_normalize_input=False`` (early return).
+    IMAGE_MEAN: tuple[float, float, float] = PIPELINE_IMAGE_MEAN
+    IMAGE_STD: tuple[float, float, float] = PIPELINE_IMAGE_STD
+
     def __init__(self):
         """Initialize the TeacherModel base class."""
         super().__init__()
+        self._normalize_input = False
 
     def _freeze(self, cfg, device):
         """Freeze model and set teacher attributes from config dict.
@@ -78,6 +92,32 @@ class TeacherModel(nn.Module):
         self.embed_dim = cfg["embed_dim"]
         self.num_patches = cfg["num_patches"]
         self.token_types = cfg["token_types"]
+
+    def _prep(self, image: torch.Tensor) -> torch.Tensor:
+        """Convert pipeline-normalized input to the teacher's training-time distribution.
+
+        ``train_image_encoder.py:_build_transforms`` already applies ``PIPELINE_IMAGE_MEAN/STD`` (ImageNet stats) before
+        this. When ``_normalize_input=True``, undo that and re-normalize with the teacher's ``IMAGE_MEAN/STD``. For
+        teachers that share ImageNet stats (EUPE/DINOv3) this collapses to a no-op (correct: no work to do). For
+        (0.5, 0.5, 0.5)-stat teachers (SigLIP2/MoonViT/SAM3) this converts ImageNet-normalized → SigLIP-normalized.
+
+        When ``_normalize_input=False`` the input tensor is returned verbatim, preserving bit-identical behavior with
+        the legacy pipeline (regression guard). Stats live on the class; tensors are created on the image's device per
+        call to avoid buffer device-tracking (``_freeze`` moves only ``self.model``, not ``self``).
+
+        Args:
+            image (torch.Tensor): Pipeline-normalized image tensor (B, 3, H, W), in ImageNet stats.
+
+        Returns:
+            (torch.Tensor): Re-normalized tensor (or the input unchanged when ``_normalize_input=False``).
+        """
+        if not self._normalize_input:
+            return image
+        pipe_mean = image.new_tensor(PIPELINE_IMAGE_MEAN).view(1, 3, 1, 1)
+        pipe_std = image.new_tensor(PIPELINE_IMAGE_STD).view(1, 3, 1, 1)
+        mean = image.new_tensor(self.IMAGE_MEAN).view(1, 3, 1, 1)
+        std = image.new_tensor(self.IMAGE_STD).view(1, 3, 1, 1)
+        return ((image * pipe_std + pipe_mean) - mean) / std
 
     @torch.no_grad()
     def encode(self, image: torch.Tensor) -> TeacherOutput:
@@ -109,6 +149,10 @@ class EUPETeacher(TeacherModel):
     Attributes:
         model: The EUPE backbone (DinoVisionTransformer or ConvNeXt).
     """
+
+    # EUPE preprocessing uses ImageNet stats (eupe/models/vit.py, default DinoVisionTransformer normalization).
+    IMAGE_MEAN = (0.485, 0.456, 0.406)
+    IMAGE_STD = (0.229, 0.224, 0.225)
 
     EUPE_REPO = "/home/fatih/dev/eupe"
     CONFIGS = {
@@ -172,6 +216,7 @@ class EUPETeacher(TeacherModel):
         Returns:
             (TeacherOutput): CLS and patch features.
         """
+        image = self._prep(image)
         out = self.model.forward_features(image)
         cls = out["x_norm_clstoken"] if "cls" in self.token_types else None
         return TeacherOutput(cls=cls, patches=out["x_norm_patchtokens"])
@@ -189,6 +234,10 @@ class DINOv3Teacher(TeacherModel):
     Attributes:
         model: The DINOv3 backbone from HuggingFace transformers.
     """
+
+    # DINOv3 preprocessing uses ImageNet stats (Meta DINOv3 release, dinov3 reference processor).
+    IMAGE_MEAN = (0.485, 0.456, 0.406)
+    IMAGE_STD = (0.229, 0.224, 0.225)
 
     CONFIGS = {
         "vitb16": {
@@ -257,6 +306,7 @@ class DINOv3Teacher(TeacherModel):
         Returns:
             (TeacherOutput): CLS and patch features, skipping register tokens.
         """
+        image = self._prep(image)
         out = self.model(pixel_values=image)
         hidden = out.last_hidden_state  # (B, 1 + n_reg + N_patches, D)
         cls = hidden[:, 0] if "cls" in self.token_types else None
@@ -274,6 +324,10 @@ class SigLIP2Teacher(TeacherModel):
     Attributes:
         model: SiglipVisionModel from HuggingFace transformers.
     """
+
+    # SigLIP preprocessing uses (0.5, 0.5, 0.5) mean/std (HF google/siglip2-giant-opt-patch16-384 processor config).
+    IMAGE_MEAN = (0.5, 0.5, 0.5)
+    IMAGE_STD = (0.5, 0.5, 0.5)
 
     CONFIGS = {
         "g": {
@@ -314,6 +368,7 @@ class SigLIP2Teacher(TeacherModel):
         Returns:
             (TeacherOutput): Attention-pooled CLS and patch token features.
         """
+        image = self._prep(image)
         out = self.model(pixel_values=image)
         return TeacherOutput(cls=out.pooler_output, patches=out.last_hidden_state)
 
@@ -332,6 +387,11 @@ class SAM3Teacher(TeacherModel):
     Attributes:
         model: SAM3 ViT backbone (without the FPN neck or decoder).
     """
+
+    # SAM3 preprocessing uses (0.5, 0.5, 0.5) at [0, 1] scale -- ``models/sam/predict.py:2202-2203`` sets the predictor
+    # mean/std = 127.5 at [0, 255] scale (SigLIP-style midpoint), not the ImageNet stats used for SAM1/2 at line 463.
+    IMAGE_MEAN = (0.5, 0.5, 0.5)
+    IMAGE_STD = (0.5, 0.5, 0.5)
 
     def __init__(self, variant: str = "l", device: torch.device = None):
         """Initialize SAM3 teacher from ultralytics built-in weights.
@@ -391,6 +451,7 @@ class SAM3Teacher(TeacherModel):
         Returns:
             (TeacherOutput): Patches only (cls=None, patches in (B, N, D) format).
         """
+        image = self._prep(image)
         feat_maps = self.model(image)  # list of (B, C, H, W)
         feat = feat_maps[-1]  # final feature map: (B, 1024, H', W')
         patches = feat.flatten(2).transpose(1, 2)  # (B, N, 1024)
@@ -416,6 +477,11 @@ class MoonViTTeacher(TeacherModel):
     Attributes:
         model: MoonViT-SO-400M backbone from HuggingFace (trust_remote_code).
     """
+
+    # MoonViT/Kimi-VL preprocessing uses (0.5, 0.5, 0.5) mean/std (LocateAnything-3B preprocessor_config.json,
+    # image_processing_locateanything.py:23-24).
+    IMAGE_MEAN = (0.5, 0.5, 0.5)
+    IMAGE_STD = (0.5, 0.5, 0.5)
 
     CONFIGS = {
         "so400m": {
@@ -474,6 +540,7 @@ class MoonViTTeacher(TeacherModel):
         Returns:
             (TeacherOutput): Patches only (cls=None), raster-ordered (B, Hg*Wg, D).
         """
+        image = self._prep(image)
         B, _, H, W = image.shape
         P = self._patch_size
         kh, kw = self._merge_kernel
@@ -532,6 +599,12 @@ class TorchScriptTeacher(TeacherModel):
     def encode(self, image: torch.Tensor) -> TeacherOutput:
         """Encode images via traced TorchScript model.
 
+        Does NOT call ``_prep``: traced ``.ts`` files bake their own preprocessing assumptions into the graph and the
+        ``TorchScriptTeacher`` class doesn't carry per-trace ``IMAGE_MEAN/STD`` overrides. Honoring ``_normalize_input``
+        here would silently no-op (inherited PIPELINE defaults) and mislead the user. ``.ts`` teachers are deprecated
+        for distillation (see ``CLAUDE.md`` "All supported teachers"); use native Python teachers when normalization
+        matters.
+
         Args:
             image (torch.Tensor): Preprocessed image tensor (B, 3, H, W).
 
@@ -566,12 +639,18 @@ TEACHER_REGISTRY["sam3:l"] = {
 }
 
 
-def build_teacher_model(variant: str, device: torch.device = None) -> TeacherModel:
+def build_teacher_model(
+    variant: str, device: torch.device = None, normalize_input: bool = False
+) -> TeacherModel:
     """Build a frozen teacher model for encoder distillation.
 
     Args:
         variant (str): Teacher variant (e.g., "eupe:vitb16", "dinov3:vitl16", "sam3:l").
         device (torch.device, optional): Device to load the model on.
+        normalize_input (bool, optional): When True, ``_prep`` converts the pipeline's ImageNet-normalized input to each
+            teacher's training-time distribution (no-op for EUPE/DINOv3 which already match ImageNet stats; SigLIP-style
+            ``2x - 1`` conversion for SigLIP2/MoonViT/SAM3). Default False returns the pipeline tensor verbatim,
+            preserving bit-identical legacy behavior.
 
     Returns:
         (TeacherModel): Instantiated frozen teacher model.
@@ -579,4 +658,6 @@ def build_teacher_model(variant: str, device: torch.device = None) -> TeacherMod
     if variant not in TEACHER_REGISTRY:
         raise ValueError(f"Unknown teacher '{variant}'. Supported: {list(TEACHER_REGISTRY)}")
     _, size = variant.split(":")
-    return TEACHER_REGISTRY[variant]["cls"](size, device)
+    teacher = TEACHER_REGISTRY[variant]["cls"](size, device)
+    teacher._normalize_input = normalize_input
+    return teacher

@@ -353,10 +353,11 @@ class ImageEncoderTrainer(ClassificationTrainer):
 
     def _load_teachers(self):
         """Load and cache all frozen teacher models."""
+        normalize_input = bool(getattr(self.args, "normalize_teacher_input", False))
         for name, sk in zip(self.teachers, self._safe_keys):
             if sk not in self.teacher_models:
-                LOGGER.info(f"Loading teacher '{name}'...")
-                self.teacher_models[sk] = build_teacher_model(name, self.device)
+                LOGGER.info(f"Loading teacher '{name}' (normalize_input={normalize_input})...")
+                self.teacher_models[sk] = build_teacher_model(name, self.device, normalize_input=normalize_input)
                 n = sum(p.numel() for p in self.teacher_models[sk].parameters()) / 1e6
                 LOGGER.info(f"  {name}: {n:.1f}M params, embed_dim={self.teacher_models[sk].embed_dim}")
 

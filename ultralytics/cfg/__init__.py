@@ -505,6 +505,7 @@ def check_dict_alignment(
             "save_dir",
             "teachers",
             "knn_eval",
+            "normalize_teacher_input",
             "proj_hidden_dim",
             "cos_weight",
             "l1_weight",

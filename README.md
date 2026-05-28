@@ -1,3 +1,5 @@
+Ultralytics develops state-of-the-art (SOTA) YOLO models built on extensive research in computer vision and artificial intelligence. Designed for speed, accuracy, and flexibility, these models support a wide range of tasks including object detection, segmentation, classification, tracking, and pose estimation across both research and production environments.
+
 <div align="center">
   <p>
     <a href="https://platform.ultralytics.com/?utm_source=github&utm_medium=referral&utm_campaign=platform_launch&utm_content=banner&utm_term=ultralytics_github" target="_blank">

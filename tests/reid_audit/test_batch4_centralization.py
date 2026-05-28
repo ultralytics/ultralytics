@@ -231,6 +231,39 @@ def test_trainer_val_batch_not_doubled_for_reid():
     )
 
 
+def test_update_metrics_consumes_preds_in_no_tta_path():
+    """update_metrics must reuse `preds` from the base validator loop when no TTA is requested
+    — was previously running a second forward via _embed unconditionally, doubling val compute."""
+    import inspect
+    from ultralytics.models.yolo.reid.val import ReidValidator
+
+    src = inspect.getsource(ReidValidator.update_metrics)
+    assert "_tta_active" in src, (
+        "update_metrics must check whether TTA is active and consume preds in the no-TTA path"
+    )
+    # The old form was an unconditional `emb = self._embed(batch['img'])`
+    assert src.count("self._embed(") <= 1, "update_metrics should only call _embed when TTA is active"
+
+
+def test_tta_active_helper_exists():
+    """A _tta_active() helper centralises the TTA-on check so both update_metrics and
+    other paths agree on what 'TTA is requested' means."""
+    from ultralytics.models.yolo.reid.val import ReidValidator
+
+    assert hasattr(ReidValidator, "_tta_active")
+
+
+def test_init_metrics_caches_gallery_features():
+    """init_metrics must memoize gallery feature extraction so re-running validation on the
+    same model snapshot doesn't pay the full gallery scan cost on every epoch."""
+    import inspect
+    from ultralytics.models.yolo.reid.val import ReidValidator
+
+    src = inspect.getsource(ReidValidator.init_metrics)
+    assert "_gallery_cache" in src, "init_metrics must use a _gallery_cache attribute"
+    assert "id(model)" in src, "cache key must include id(model) so weight updates invalidate"
+
+
 def test_get_dataset_task_set_includes_reid():
     """get_dataset's task-routing set must explicitly include reid (was implicit by .yaml suffix)."""
     import ultralytics.engine.trainer as trainer_mod

@@ -148,10 +148,19 @@ def onnx2engine(
         config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace_bytes)
     elif workspace_bytes > 0:  # TensorRT versions 7, 8
         config.max_workspace_size = workspace_bytes
-    flag = 1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
+    # TensorRT 11+ removed EXPLICIT_BATCH (it is now the default and the flag itself is gone);
+    # earlier versions still require it. Guard with hasattr so we work across both.
+    flag = (
+        1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
+        if hasattr(trt.NetworkDefinitionCreationFlag, "EXPLICIT_BATCH")
+        else 0
+    )
     network = builder.create_network(flag)
-    half = builder.platform_has_fast_fp16 and half
-    int8 = builder.platform_has_fast_int8 and int8
+    # TensorRT 11+ removed Builder.platform_has_fast_fp16 / platform_has_fast_int8 from the
+    # Python API; modern GPUs (Volta/Turing/Ampere/Hopper/Blackwell) all support both, so
+    # default to True when the attribute is missing.
+    half = getattr(builder, "platform_has_fast_fp16", True) and half
+    int8 = getattr(builder, "platform_has_fast_int8", True) and int8
 
     # Optionally switch to DLA if enabled
     if dla is not None:

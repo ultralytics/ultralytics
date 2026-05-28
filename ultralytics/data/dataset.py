@@ -804,7 +804,7 @@ class ClassificationDataset:
             check_file_speeds([sample[0] for sample in self.samples[:5]], prefix=self.prefix)  # check image read speeds
             cache = load_dataset_cache_file(path)  # attempt to load a *.cache file
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
-            assert cache["hash"] == get_hash([x[0] for x in self.samples])  # identical hash
+            assert cache["hash"] == self._cache_hash()  # identical hash
             nf, nc, n, samples = cache.pop("results")  # found, missing, empty, corrupt, total
             if LOCAL_RANK in {-1, 0}:
                 d = f"{desc} {nf} images, {nc} corrupt"
@@ -831,11 +831,20 @@ class ClassificationDataset:
                 pbar.close()
             if msgs:
                 LOGGER.info("\n".join(msgs))
-            x["hash"] = get_hash([x[0] for x in self.samples])
+            x["hash"] = self._cache_hash()
             x["results"] = nf, nc, len(samples), samples
             x["msgs"] = msgs  # warnings
             save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
             return samples
+
+    def _cache_hash(self) -> str:
+        """Return the cache-validity hash for this dataset.
+
+        Subclasses can override to extend the hash beyond image paths — e.g. ReidDataset
+        includes (pid, camid) tuples so a filename_re change in the YAML invalidates the
+        cache.
+        """
+        return get_hash([x[0] for x in self.samples])
 
 
 class ReidDataset(ClassificationDataset):
@@ -909,6 +918,16 @@ class ReidDataset(ClassificationDataset):
             raise FileNotFoundError(f"ReID dataset path not found: {root}")
         return None
 
+    def _cache_hash(self) -> str:
+        """Hash over (path, pid, camid) tuples — not just paths.
+
+        Changing ``filename_re`` or ``cam_0indexed`` in the YAML re-derives pid/camid for the
+        same image set; the parent's path-only hash would cache-hit and silently reuse the
+        OLD labels, breaking the same-pid-same-camid exclusion in the eval protocol. Include
+        the labels so any re-derivation invalidates the cache.
+        """
+        return get_hash([f"{p}|{pid}|{cam}" for p, pid, cam in self.samples])
+
     @staticmethod
     def _is_folder_per_identity(root_path: Path) -> bool:
         """Check if the directory uses folder-per-identity layout (has subdirs with images)."""
@@ -965,7 +984,13 @@ class ReidDataset(ClassificationDataset):
             try:
                 pid = int(identity_dir.name)
             except ValueError:
-                pid = hash(identity_dir.name) % (2**31)  # non-numeric folder names
+                # Python's built-in hash() is salted per process (PYTHONHASHSEED), so the
+                # same folder name maps to DIFFERENT pids across DDP ranks and across process
+                # restarts — breaks IdentityBalancedSampler's cross-rank shard invariant and
+                # destroys reproducibility. Use sha1 for a stable, salt-free fallback.
+                import hashlib
+
+                pid = int(hashlib.sha1(identity_dir.name.encode("utf-8")).hexdigest()[:8], 16)
             if pid < 0:
                 continue
             if pid == 0 and self.augment:

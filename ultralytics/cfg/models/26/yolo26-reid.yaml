@@ -5,7 +5,7 @@
 # Task docs: https://docs.ultralytics.com/tasks/reid
 
 # Parameters
-nc: 751 # number of identity classes (Market-1501 training identities)
+nc: 751 # number of identity classes (overridden by data=*.yaml -> nc; default tracks Market-1501)
 scales: # model compound scaling constants, i.e. 'model=yolo26n-reid.yaml' will call yolo26-reid.yaml with scale 'n'
   # [depth, width, max_channels]
   n: [0.50, 0.25, 1024]

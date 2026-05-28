@@ -272,9 +272,11 @@ class BaseTrainer:
             self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
         )
         # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
+        # ReID validation runs an optional flip-TTA + multi-scale TTA pass (see ReidValidator._embed)
+        # that already multiplies effective compute, so don't also double the batch size for ReID.
         self.test_loader = self.get_dataloader(
             self.data.get("val") or self.data.get("test"),
-            batch_size=batch_size if self.args.task == "obb" else batch_size * 2,
+            batch_size=batch_size if self.args.task in {"obb", "reid"} else batch_size * 2,
             rank=LOCAL_RANK,
             mode="val",
         )
@@ -702,6 +704,7 @@ class BaseTrainer:
                 "segment",
                 "pose",
                 "obb",
+                "reid",
             }:
                 data = check_det_dataset(self.args.data)
                 if "yaml_file" in data:

@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 # yolo26-reid with stacked C2PSA (extra attention block at backbone end)
 
-nc: 751
+nc: 751 # overridden by data=*.yaml -> nc
 scales:
   n: [0.50, 0.25, 1024]
   s: [0.50, 0.50, 1024]

@@ -6,7 +6,7 @@
 # semantic features (stems and P2/P3/P4 downsamples). Stage-5 (P5) downsample
 # and heavy C3k2 blocks keep plain BN, matching the IBN-a paper.
 
-nc: 751
+nc: 751 # overridden by data=*.yaml -> nc
 scales:
   n: [0.50, 0.25, 1024]
   s: [0.50, 0.50, 1024]

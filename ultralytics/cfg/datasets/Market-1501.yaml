@@ -3,7 +3,7 @@
 # Market-1501 person re-identification dataset
 # Paper: https://www.cv-foundation.org/openaccess/content_iccv_2015/papers/Zheng_Scalable_Person_Re-Identification_ICCV_2015_paper.pdf
 # Documentation: https://docs.ultralytics.com/datasets/reid/market1501/
-# Example usage: yolo train task=reid data=Market-1501.yaml model=yolo26n-reid.yaml
+# Example usage: yolo reid train data=Market-1501.yaml model=yolo26n-reid.yaml
 
 # Dataset root directory
 path: Market-1501-v15.09.15 # dataset root dir
@@ -14,17 +14,15 @@ gallery: bounding_box_test # gallery images for evaluation (relative to 'path') 
 # Classes (identities) - Market-1501 has 751 training identities
 nc: 751
 
+# Filename: 0002_c1s1_000451_03.jpg -> pid=2, camid=1 (1-indexed)
+filename_re: market1501
+
 # Download script
 download: |
+  from pathlib import Path
+
   from ultralytics.utils.downloads import download
-  import zipfile, os
 
-  # Market-1501 can be downloaded from various sources
-  # Option 1: Direct download (if available)
-  url = 'https://drive.google.com/uc?id=0B8-rUzbwVRk0c054eNQs0VN3elI'
-  # Note: Google Drive downloads may require gdown package
-  # pip install gdown && gdown url -O Market-1501-v15.09.15.zip
-
-  # Manual download instructions:
-  # 1. Download Market-1501-v15.09.15.zip from https://zheng-lab.cecs.anu.edu.au/Project/project_reid.html
-  # 2. Extract to datasets/Market-1501-v15.09.15/
+  # The original Google Drive link is no longer reachable; mirror hosted on Hugging Face Hub.
+  url = "https://huggingface.co/datasets/aveocr/Market-1501-v15.09.15/resolve/main/Market-1501-v15.09.15.zip"
+  download([url], dir=Path(yaml["path"]).parent, unzip=True)

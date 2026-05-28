@@ -489,6 +489,7 @@ nav:
           - datasets/reid/index.md
           - Market-1501: datasets/reid/market1501.md
           - DukeMTMC-reID: datasets/reid/dukemtmc.md
+          - MSMT17: datasets/reid/msmt17.md
       - Oriented Bounding Boxes (OBB):
           - datasets/obb/index.md
           - DOTA8: datasets/obb/dota8.md

@@ -76,7 +76,7 @@ cam_0indexed: false  # set true if camera IDs start at 0
 
     ```yaml
     # Example: custom dataset with PID-only filenames like "0001_001.jpg"
-    filename_re: "(\d+)_\d+\.(?:jpg|png|bmp)"  # one group = PID only, no camera ID needed
+    filename_re: '(\d+)_\d+\.(?i:jpg|png|bmp)'  # single-quoted: no YAML escape interpretation; (?i:...) matches .JPG too
     ```
 
 ## Usage

@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn about person re-identification (ReID) using YOLO26. Train, validate, predict, and export ReID models for matching people across camera views.
-keywords: YOLO26, person re-identification, ReID, metric learning, Market-1501, embedding extraction, train, validate, predict
+keywords: YOLO26, person re-identification, ReID, metric learning, Market-1501, DukeMTMC, MSMT17, BNNeck, PK sampling, triplet loss, re-ranking, embedding extraction, train, validate, predict
 model_name: yolo26n-reid
 ---
 
@@ -9,24 +9,24 @@ model_name: yolo26n-reid
 
 <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/person-reid-overview.avif" alt="YOLO person re-identification matching people across camera views">
 
-Person re-identification (ReID) is the task of matching the same individual across different camera views or time instances. Unlike object detection which locates objects, or classification which categorizes images, ReID produces a compact embedding vector for each person image that can be compared against other embeddings to determine identity matches.
+Person re-identification (ReID) matches the same individual across different camera views or time instances. Unlike object detection which locates objects, or classification which categorizes images, ReID produces a compact embedding vector for each person image that can be compared against other embeddings to determine identity matches.
 
 The output of a ReID model is a fixed-dimensional embedding vector. Two images of the same person should produce embeddings that are close in distance, while images of different people should produce embeddings that are far apart.
 
 !!! tip
 
-    YOLO26 ReID models use the `-reid` suffix, i.e., `yolo26n-reid.pt`, and support [Market-1501](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Market-1501.yaml), [DukeMTMC-reID](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DukeMTMC-reID.yaml), and [MSMT17](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/MSMT17.yaml) datasets.
+    YOLO26 ReID models use the `-reid` suffix, e.g., `yolo26n-reid.pt`, and support [Market-1501](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Market-1501.yaml), [DukeMTMC-reID](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DukeMTMC-reID.yaml), and [MSMT17](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/MSMT17.yaml) datasets.
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
 
-YOLO26 ReID models are available in multiple sizes. All models use a BNNeck architecture with PK batch sampling and multi-loss training (cross-entropy + triplet + optional center/supcon losses).
+YOLO26 ReID models are available in multiple sizes. All models use a BNNeck architecture with PK batch sampling and multi-loss training (cross-entropy + triplet **or** supervised-contrastive metric loss, with optional center loss on top).
 
 | Model                                                                                    | size<br><sup>(pixels) | mAP<br><sup>Market-1501 | Rank-1<br><sup>Market-1501 | mAP<br><sup>DukeMTMC | Rank-1<br><sup>DukeMTMC | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | ---------------------------------------------------------------------------------------- | --------------------- | ----------------------- | -------------------------- | --------------------- | ------------------------ | ------------------- | ------------------ |
 | [YOLO26n-reid](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo26n-reid.pt) | 256                   | 23.7                    | 42.5                       | 16.4                  | 30.5                     | 2.0                 | 3.3                |
 | [YOLO26s-reid](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo26s-reid.pt) | 256                   | 29.4                    | 50.4                       | 16.9                  | 30.7                     | 6.5                 | 12.7               |
 
-- **mAP** and **Rank-1** values are on the [Market-1501](../datasets/reid/market1501.md) and [DukeMTMC-reID](../datasets/reid/dukemtmc.md) datasets (60 epochs, SGD, imgsz=256). <br>Reproduce by `yolo reid val data=Market-1501.yaml device=0`
+- **mAP** and **Rank-1** values are on the [Market-1501](../datasets/reid/market1501.md) and [DukeMTMC-reID](../datasets/reid/dukemtmc.md) datasets (60 epochs, SGD, imgsz=256). <br>Reproduce Market-1501 numbers with `yolo reid val data=Market-1501.yaml device=0` and DukeMTMC numbers with `yolo reid val data=DukeMTMC-reID.yaml device=0`.
 - **Params** and **FLOPs** values are for the fused model after `model.fuse()`.
 
 ## Train
@@ -242,7 +242,7 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 ### What is person re-identification (ReID) and how does YOLO26 handle it?
 
-Person re-identification (ReID) is the task of recognizing the same person across different camera views or at different times. YOLO26 ReID models produce compact embedding vectors from person images. These embeddings can be compared using distance metrics (e.g., L2 or cosine distance) to determine if two images show the same person. The model is trained with PK batch sampling and a combination of cross-entropy, triplet, and optional center/supervised contrastive losses for robust metric learning.
+Person re-identification (ReID) recognizes the same person across different camera views or at different times. YOLO26 ReID models produce compact embedding vectors from person images. These embeddings can be compared using distance metrics (e.g., L2 or cosine distance) to determine if two images show the same person. The model is trained with PK batch sampling and a combination of cross-entropy plus either batch-hard triplet **or** supervised-contrastive metric loss (mutually exclusive), with an optional center-loss term on top.
 
 ### How do I train a YOLO26 ReID model?
 

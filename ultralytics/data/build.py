@@ -17,7 +17,7 @@ from PIL import Image
 from torch.utils.data import Dataset, dataloader, distributed
 
 from ultralytics.cfg import IterableSimpleNamespace
-from ultralytics.data.dataset import GroundingDataset, YOLODataset, YOLOMultiModalDataset
+from ultralytics.data.dataset import GroundingDataset, ReidDataset, YOLODataset, YOLOMultiModalDataset
 from ultralytics.data.loaders import (
     LOADERS,
     LoadImagesAndVideos,
@@ -407,7 +407,14 @@ def build_yolo_dataset(
     stride: int = 32,
     multi_modal: bool = False,
 ) -> Dataset:
-    """Build and return a YOLO dataset based on configuration parameters."""
+    """Build and return a YOLO dataset based on configuration parameters.
+
+    For ``task == 'reid'`` returns a ``ReidDataset`` configured for the requested mode; ReID
+    intentionally does not use the YOLO detection-style transform stack, but routing through
+    this single entry point keeps dataset selection centralised.
+    """
+    if cfg.task == "reid":
+        return ReidDataset(root=img_path, args=cfg, augment=mode == "train", prefix=mode, data=data)
     dataset = YOLOMultiModalDataset if multi_modal else YOLODataset
     return dataset(
         img_path=img_path,

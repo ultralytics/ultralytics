@@ -174,6 +174,11 @@ def benchmark(
                 assert not (model.task == "segment" and any(isinstance(m, Segment26) for m in model.model.modules())), (
                     "Axelera export does not currently support YOLO26 segmentation models"
                 )
+            if model.task == "reid":
+                assert format in {"-", "torchscript", "onnx", "openvino", "engine", "coreml", "mnn", "ncnn"}, (
+                    f"ReID benchmark to {format!r} is not supported — ReID outputs an embedding vector. "
+                    "Supported formats: torchscript, onnx, openvino, engine, coreml, mnn, ncnn."
+                )
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:

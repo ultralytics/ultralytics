@@ -17,3 +17,13 @@ nc: 1041
 # Filename: 0001_015_01_0201130904.jpg -> pid=1, camid=15 (0-indexed)
 filename_re: msmt17
 cam_0indexed: true
+
+# Download script
+download: |
+  from pathlib import Path
+
+  from ultralytics.utils.downloads import download
+
+  # Hugging Face mirror of MSMT17_V2 (the original distribution requires manual registration).
+  url = "https://huggingface.co/datasets/aveocr/MSMT17_V2/resolve/main/MSMT17_V2.zip"
+  download([url], dir=Path(yaml["path"]).parent, unzip=True)

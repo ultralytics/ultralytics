@@ -202,13 +202,23 @@ def torch2coreml(
     # Internally based on the model conversion and output type.
     # Setting minimum_deployment_target >= iOS16 will require setting compute_precision=ct.precision.FLOAT32.
     # iOS16 adds in better support for FP16, but none of the CoreML NMS specifications handle FP16 as input.
-    ct_model = ct.convert(
-        ts,
+    convert_kwargs = dict(
         inputs=inputs,
         classifier_config=ct.ClassifierConfig(classifier_names) if classifier_names else None,
         convert_to="neuralnetwork" if mlmodel else "mlprogram",
         skip_model_load=True,
     )
+    if not mlmodel:
+        # RT-DETR decoder class logits and deformable-sampling indices drift in fp16; pin those op types to fp32
+        # only when an RTDETRDecoder is present. YOLO detect/segment/pose/OBB keep mlprogram's fp16 default.
+        from ultralytics.nn.modules.head import RTDETRDecoder
+
+        if any(isinstance(m, RTDETRDecoder) for m in model.modules()):
+            fp32_ops = {"linear", "gather", "gather_nd", "gather_along_axis"}
+            convert_kwargs["compute_precision"] = ct.transform.FP16ComputePrecision(
+                op_selector=lambda op: op.op_type not in fp32_ops
+            )
+    ct_model = ct.convert(ts, **convert_kwargs)
     bits, mode = (8, "kmeans") if int8 else (16, "linear") if half else (32, None)
     if bits < 32:
         if "kmeans" in mode:

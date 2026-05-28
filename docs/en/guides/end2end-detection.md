@@ -20,7 +20,7 @@ For a deeper look at the motivation behind this architectural shift, see the [Ul
 
     - **Using the Ultralytics API or CLI?** No changes needed — just swap your model name to `yolo26n.pt`.
     - **Using custom inference code (ONNX Runtime, TensorRT, etc.)?** Update your post-processing — detection output is now `(N, 300, 6)` in `xyxy` format, no NMS required. Other tasks append extra data (mask coefficients, keypoints, or angle).
-    - **Exporting?** Most formats support end-to-end output natively. However, a few formats (NCNN, RKNN, PaddlePaddle, ExecuTorch, IMX, and Edge TPU) automatically fall back to traditional output due to unsupported operator constraints (e.g., `torch.topk`).
+    - **Exporting?** Most formats support end-to-end output natively. However, a few formats (NCNN, RKNN, PaddlePaddle, ExecuTorch, IMX, Edge TPU, and QNN) automatically fall back to traditional output due to unsupported operator constraints (e.g., `torch.topk`). Hailo HEF workflows compile from ONNX with Hailo-specific scripts, so verify the detection head and NMS configuration for your model.
 
 ## How End-to-End Detection Works
 
@@ -140,6 +140,8 @@ The following formats **do not** support end-to-end and automatically fall back 
 !!! tip "What happens when end-to-end isn't supported"
 
     When you export to one of these formats, Ultralytics automatically switches to the one-to-many head and logs a warning — no manual intervention needed. This means **you'll need NMS in your inference pipeline** for these formats, just like with [YOLOv8](../models/yolov8.md) or [YOLO11](../models/yolo11.md).
+
+For [Hailo HEF](../integrations/hailo.md), the compile step happens outside `model.export(format=...)` after an ONNX export. Use the Hailo DFC logs, `.alls` model script, and NMS JSON that match your exact detection model; if an end-to-end YOLO26 graph is not supported by your Hailo toolchain, export the ONNX model with `end2end=False` and compile the traditional detection head.
 
 !!! note "TensorRT + INT8"
 

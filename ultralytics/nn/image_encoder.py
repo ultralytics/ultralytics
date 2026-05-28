@@ -372,10 +372,11 @@ class ImageEncoderModel(ClassificationModel):
                     f"  {key}/s_patch: nan={s_patch.isnan().any()}, inf={s_patch.isinf().any()}, "
                     f"max={s_patch.abs().max():.4f}"
                 )
-                log.warning(
-                    f"  {key}/t_cls: nan={t_data['cls'].isnan().any() if t_data['cls'] is not None else 'N/A'}, "
-                    f"max={t_data['cls'].abs().max():.4f if t_data['cls'] is not None else 'N/A'}"
-                )
+                t_cls = t_data["cls"]
+                if t_cls is not None:
+                    log.warning(f"  {key}/t_cls: nan={t_cls.isnan().any()}, max={t_cls.abs().max():.4f}")
+                else:
+                    log.warning(f"  {key}/t_cls: N/A (patches-only teacher)")
                 log.warning(
                     f"  {key}/t_patch: nan={t_data['patches'].isnan().any()}, max={t_data['patches'].abs().max():.4f}"
                 )

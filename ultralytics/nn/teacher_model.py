@@ -397,6 +397,99 @@ class SAM3Teacher(TeacherModel):
         return TeacherOutput(cls=None, patches=patches)
 
 
+class MoonViTTeacher(TeacherModel):
+    """MoonViT-SO-400M teacher from Kimi-VL (https://huggingface.co/moonshotai/MoonViT-SO-400M).
+
+    NaFlex / native-resolution vision encoder, patch_size=14, with 2x2 patch-merging at the head. The HuggingFace
+    forward signature is ``model(pixel_values: (N_total_patches, 3, P, P), grid_hws: (B, 2)) -> list[Tensor]`` per
+    image; each output tensor has shape ``(N_merged, kh*kw, D)`` produced by ``patch_merger``
+    (modeling_moonvit.py:483-509) via ``view(new_h, kh, new_w, kw, D).permute(0, 2, 1, 3, 4).view(new_h*new_w, kh*kw,
+    D)``. We pre-patchify the input, forward, then un-merge with the self-inverse permute(0, 2, 1, 3, 4) to recover
+    raster-ordered patches for the student's spatial loss. Patches-only (no CLS / pooler module), like SAM3.
+
+    transformers>=5.5.0 ``PreTrainedModel.post_init`` assigns ``all_tied_weights_keys`` per-instance, and the
+    meta-device weight loading hook reads it back (``_move_missing_keys_from_meta_to_device`` and the
+    ``is_remote_code()`` branch of ``mark_tied_weights_as_initialized``). MoonViT's ``trust_remote_code`` modeling file
+    predates the attribute and never sets it; we install a class-level default before instantiation. Standard HF models
+    still set the instance attribute, which shadows this default for them.
+
+    Attributes:
+        model: MoonViT-SO-400M backbone from HuggingFace (trust_remote_code).
+    """
+
+    CONFIGS = {
+        "so400m": {
+            "hf_model": "moonshotai/MoonViT-SO-400M",
+            "revision": "a889d399ff2306053e4e28d499d3b8f97d3e5007",  # pin remote modeling code; bump after rev verification
+            "embed_dim": 1152,
+            "num_patches": 256,  # 16x16 raw patches at 224x224, patch_size=14 (un-merged from 8x8 cells x 4 patches)
+            "imgsz": 224,
+            "patch_size": 14,
+            "merge_kernel": (2, 2),
+            "token_types": ("patches",),
+        },
+    }
+
+    def __init__(self, variant: str = "so400m", device: torch.device = None):
+        """Initialize MoonViT teacher from HuggingFace.
+
+        Args:
+            variant (str): Model variant ('so400m').
+            device (torch.device, optional): Device to load the model on.
+        """
+        super().__init__()
+        if variant not in self.CONFIGS:
+            raise ValueError(f"Unknown MoonViT variant '{variant}'. Supported: {list(self.CONFIGS)}")
+        import transformers.modeling_utils as _mu
+
+        if not hasattr(_mu.PreTrainedModel, "all_tied_weights_keys"):
+            _mu.PreTrainedModel.all_tied_weights_keys = {}
+        from transformers import AutoModel
+
+        cfg = self.CONFIGS[variant]
+        self.model = AutoModel.from_pretrained(cfg["hf_model"], revision=cfg["revision"], trust_remote_code=True)
+        self._patch_size = cfg["patch_size"]
+        self._merge_kernel = cfg["merge_kernel"]
+        self._freeze(cfg, device)
+
+    @torch.no_grad()
+    def encode(self, image: torch.Tensor) -> TeacherOutput:
+        """Encode images via MoonViT NaFlex API.
+
+        Pre-patchifies (B, 3, H, W) into (B*Hg*Wg, 3, P, P), forwards with image_grid_hws, then un-merges the 2x2
+        patch-merging output back to raster-order (B, Hg*Wg, D). Inverse of the merge in modeling_moonvit.py:496-505:
+        ``view(new_h, new_w, kh, kw, D).permute(0, 2, 1, 3, 4)`` undoes ``view(new_h, kh, new_w, kw, D).permute(0, 2,
+        1, 3, 4)``. Verified mathematically: round-trip on identity tensor exactly recovers the input.
+
+        Args:
+            image (torch.Tensor): Preprocessed image tensor (B, 3, H, W); H and W must be divisible by ``patch_size *
+                merge_kernel`` (28 for SO-400M). Multi-teacher launches must constrain ``_teacher_imgsz`` to a multiple
+                of 28 or this raises ``ValueError``.
+
+        Returns:
+            (TeacherOutput): Patches only (cls=None), raster-ordered (B, Hg*Wg, D).
+        """
+        B, _, H, W = image.shape
+        P = self._patch_size
+        kh, kw = self._merge_kernel
+        if H % (P * kh) or W % (P * kw):
+            raise ValueError(
+                f"MoonViT requires H, W divisible by patch_size*merge_kernel ({P}*{kh}={P * kh}); got H={H}, W={W}. "
+                f"Multi-teacher launches: constrain student/teacher imgsz to a multiple of {P * kh}."
+            )
+        Hg, Wg = H // P, W // P
+        patches_in = image.unfold(2, P, P).unfold(3, P, P)  # (B, 3, Hg, Wg, P, P)
+        patches_in = patches_in.permute(0, 2, 3, 1, 4, 5).contiguous().reshape(B * Hg * Wg, 3, P, P)
+        grid_hws = torch.tensor([[Hg, Wg]], device=image.device, dtype=torch.long).expand(B, 2)
+        outputs = self.model(patches_in, grid_hws)  # list[Tensor], each (new_h*new_w, kh*kw, D)
+        new_h, new_w = Hg // kh, Wg // kw
+        D = self.embed_dim
+        unmerged = [
+            t.view(new_h, new_w, kh, kw, D).permute(0, 2, 1, 3, 4).contiguous().view(-1, D) for t in outputs
+        ]
+        return TeacherOutput(cls=None, patches=torch.stack(unmerged, dim=0))
+
+
 class TorchScriptTeacher(TeacherModel):
     """Load a TorchScript-traced teacher model (.ts file).
 
@@ -450,7 +543,7 @@ class TorchScriptTeacher(TeacherModel):
 # Teacher registry built from per-class CONFIGS to avoid duplicating embed_dim/num_patches/token_types.
 # SAM3 has no CONFIGS dict (hardcoded ViT-L config), so it's added manually.
 TEACHER_REGISTRY = {}
-for _prefix, _cls in [("eupe", EUPETeacher), ("dinov3", DINOv3Teacher), ("siglip2", SigLIP2Teacher)]:
+for _prefix, _cls in [("eupe", EUPETeacher), ("dinov3", DINOv3Teacher), ("siglip2", SigLIP2Teacher), ("moonvit", MoonViTTeacher)]:
     for _variant, _cfg in _cls.CONFIGS.items():
         TEACHER_REGISTRY[f"{_prefix}:{_variant}"] = {
             "cls": _cls,

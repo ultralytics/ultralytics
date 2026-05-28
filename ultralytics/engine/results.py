@@ -188,6 +188,7 @@ class Results(SimpleClass, DataExportMixin):
         probs (Probs | None): Classification probabilities.
         keypoints (Keypoints | None): Detected keypoints.
         obb (OBB | None): Oriented bounding boxes.
+        embeddings (Embeddings | None): ReID embedding vectors.
         speed (dict): Dictionary containing inference speed information.
         names (dict): Dictionary mapping class indices to class names.
         path (str): Path to the input image file.
@@ -230,6 +231,7 @@ class Results(SimpleClass, DataExportMixin):
         probs: torch.Tensor | None = None,
         keypoints: torch.Tensor | None = None,
         obb: torch.Tensor | None = None,
+        embeddings: torch.Tensor | None = None,
         speed: dict[str, float] | None = None,
     ) -> None:
         """Initialize the Results class for storing and manipulating inference results.
@@ -243,6 +245,7 @@ class Results(SimpleClass, DataExportMixin):
             probs (torch.Tensor | None): A 1D tensor of probabilities of each class for classification task.
             keypoints (torch.Tensor | None): A 2D tensor of keypoint coordinates for each detection.
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
+            embeddings (torch.Tensor | None): A (D,) or (B, D) tensor of L2-normalized ReID embedding vectors.
             speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
 
         Notes:
@@ -259,11 +262,12 @@ class Results(SimpleClass, DataExportMixin):
         self.probs = Probs(probs) if probs is not None else None
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
         self.obb = OBB(obb, self.orig_shape) if obb is not None else None
+        self.embeddings = Embeddings(embeddings) if embeddings is not None else None
         self.speed = speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}
         self.names = names
         self.path = path
         self.save_dir = None
-        self._keys = "boxes", "masks", "probs", "keypoints", "obb"
+        self._keys = "boxes", "masks", "probs", "keypoints", "obb", "embeddings"
 
     def __getitem__(self, idx):
         """Return a Results object for a specific index of inference results.
@@ -305,6 +309,7 @@ class Results(SimpleClass, DataExportMixin):
         probs: torch.Tensor | None = None,
         obb: torch.Tensor | None = None,
         keypoints: torch.Tensor | None = None,
+        embeddings: torch.Tensor | None = None,
     ):
         """Update the Results object with new detection data.
 
@@ -334,6 +339,8 @@ class Results(SimpleClass, DataExportMixin):
             self.obb = OBB(obb, self.orig_shape)
         if keypoints is not None:
             self.keypoints = Keypoints(keypoints, self.orig_shape)
+        if embeddings is not None:
+            self.embeddings = Embeddings(embeddings)
 
     def _apply(self, fn: str, *args, **kwargs):
         """Apply a function to all non-empty attributes and return a new Results object with modified attributes.
@@ -650,6 +657,11 @@ class Results(SimpleClass, DataExportMixin):
             - The returned string is comma-separated and ends with a comma and a space.
         """
         boxes = self.obb if self.obb is not None else self.boxes
+        # Only short-circuit to the embedding log line when no other typed field is set.
+        # A tracker can attach embeddings to a detection Results; in that case we still
+        # want the per-class detection counts in the per-image log line.
+        if self.embeddings is not None and boxes is None and self.masks is None and self.probs is None:
+            return f"embedding({self.embeddings.dim}-d), "
         if len(self) == 0:
             return "" if self.probs is not None else "(no detections), "
         if self.probs is not None:
@@ -689,8 +701,20 @@ class Results(SimpleClass, DataExportMixin):
         masks = self.masks
         probs = self.probs
         kpts = self.keypoints
+        emb = self.embeddings
         texts = []
-        if probs is not None:
+        if emb is not None:
+            # ReID: write the L2-normalized embedding as space-separated floats. A 512-d
+            # embedding is ~5 KB per image at %.6f — much larger than typical detect labels,
+            # so require explicit save_conf=True to opt in. Without the flag, no file is
+            # written for embedding-only results (no spurious GB-sized labels/ directory).
+            if save_conf:
+                data = emb.data
+                rows = data if data.ndim == 2 else data[None]
+                for row in rows:
+                    vals = row.tolist() if hasattr(row, "tolist") else list(row)
+                    texts.append(" ".join(f"{v:.6f}" for v in vals))
+        elif probs is not None:
             # Classify
             [texts.append(f"{probs.data[j]:.2f} {self.names[j]}") for j in probs.top5]
         elif boxes:
@@ -738,6 +762,9 @@ class Results(SimpleClass, DataExportMixin):
         if self.probs is not None:
             LOGGER.warning("Classify task does not support `save_crop`.")
             return
+        if self.embeddings is not None:
+            LOGGER.warning("ReID task does not support `save_crop`.")
+            return
         if self.obb is not None:
             LOGGER.warning("OBB task does not support `save_crop`.")
             return
@@ -774,6 +801,14 @@ class Results(SimpleClass, DataExportMixin):
         """
         # Create list of detection dictionaries
         results = []
+        if self.embeddings is not None:
+            # Return one entry per embedding row with the raw L2-normalized vector
+            data = self.embeddings.data
+            rows = data if data.ndim == 2 else data[None]
+            for row in rows:
+                vec = row.tolist() if hasattr(row, "tolist") else list(row)
+                results.append({"embedding": [round(v, decimals) for v in vec]})
+            return results
         if self.probs is not None:
             # Return top 5 classification results
             for class_id, conf in zip(self.probs.top5, self.probs.top5conf.tolist()):
@@ -1328,6 +1363,61 @@ class Probs(BaseTensor):
             >>> print(top5_conf)  # Prints confidence scores for top 5 classes
         """
         return self.data[self.top5]
+
+
+class Embeddings(BaseTensor):
+    """A class for storing person Re-Identification (ReID) embedding vectors.
+
+    Wraps a 1D (D,) or 2D (B, D) L2-normalized embedding tensor produced by a ReID model.
+    Embeddings are designed for similarity comparison via cosine or Euclidean distance — they
+    carry no per-class probability semantics, which is why ReID does not reuse the Probs slot.
+
+    Attributes:
+        data (torch.Tensor | np.ndarray): The L2-normalized embedding tensor.
+        orig_shape (tuple[int, int] | None): Original image shape (height, width). Not used.
+        dim (int): Embedding dimensionality D.
+
+    Examples:
+        >>> emb = torch.randn(512)
+        >>> e = Embeddings(emb)
+        >>> e.dim
+        512
+    """
+
+    def __init__(self, embeddings: torch.Tensor | np.ndarray, orig_shape: tuple[int, int] | None = None) -> None:
+        """Initialize Embeddings with a (D,) or (B, D) L2-normalized embedding tensor."""
+        # Unwrap accidentally double-wrapped inputs (e.g. Embeddings(existing_embeddings))
+        if isinstance(embeddings, BaseTensor):
+            embeddings = embeddings.data
+        super().__init__(embeddings, orig_shape)
+
+    @property
+    def dim(self) -> int:
+        """Return the embedding dimensionality D (last axis size).
+
+        Safe for 0-D scalars returned by slicing (e.g. Embeddings(t)[i] where t is 1-D):
+        returns 0 rather than IndexError on shape[-1].
+        """
+        return int(self.data.shape[-1]) if getattr(self.data, "ndim", 0) >= 1 else 0
+
+    def __len__(self) -> int:
+        """Return the per-image count, NOT the embedding dimensionality.
+
+        A 1-D (D,) embedding represents a single image — len() returns 1, not D.
+        A 2-D (B, D) batch returns B. This keeps ``len(results[i])`` / ``for det in r``
+        semantics consistent with detection-style Results (where len() counts detections).
+        """
+        return 1 if getattr(self.data, "ndim", 0) <= 1 else self.data.shape[0]
+
+    def __getitem__(self, idx):
+        """Slice along the batch axis (for 2-D) or return self unchanged (for 1-D).
+
+        Calling ``r[0]`` on a Results carrying a 1-D embedding should leave the embedding
+        intact — slicing the feature axis would produce a meaningless 0-D scalar.
+        """
+        if getattr(self.data, "ndim", 0) <= 1:
+            return self
+        return self.__class__(self.data[idx], self.orig_shape)
 
 
 class OBB(BaseTensor):

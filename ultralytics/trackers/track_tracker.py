@@ -169,8 +169,8 @@ def compute_dets_del(predictor) -> list | None:
     raw = getattr(predictor, "_raw_preds", None)
     if raw is None or not isinstance(raw, torch.Tensor):
         return None
-    from torchvision.ops import box_iou
     from ultralytics.utils import ops
+    from ultralytics.utils.metrics import box_iou
 
     orig_iou = predictor.args.iou
     predictor.args.iou = 0.95

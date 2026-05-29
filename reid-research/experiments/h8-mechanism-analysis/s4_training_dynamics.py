@@ -10,7 +10,6 @@ Writes:
   figures/s4/champion_saturation_fit.png
   figures/s4/t5fix_grad_attribution.png
   to_human/s4_findings.md
-  to_human/pretrain_transfer_table.md
 """
 
 from __future__ import annotations
@@ -23,12 +22,10 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import torch
 from scipy.optimize import curve_fit
 
 
 ROOT = Path(__file__).parent
-ART = ROOT / "artifacts"
 FIG = ROOT / "figures" / "s4"
 OUT = ROOT / "to_human"
 

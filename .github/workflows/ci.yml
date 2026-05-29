@@ -329,6 +329,30 @@ jobs:
               monitor_pid=$!
               trap 'kill "$monitor_pid" 2>/dev/null || true' EXIT
             fi
+            uv_system_args=()
+            if [ "${{ matrix.os }}" != "cpu-latest" ]; then
+              uv_system_args=(--system)
+            fi
+            restore_torch() {
+              if [ "${{ matrix.torch }}" != "latest" ]; then
+                echo "Restoring torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
+                uv pip install "${uv_system_args[@]}" "torch==${{ matrix.torch }}" "torchvision==${{ matrix.torchvision }}" \
+                  --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+                python - <<'PY'
+            import torch
+            import torchvision
+
+            print(f"Restored torch={torch.__version__} torchvision={torchvision.__version__}")
+            PY
+              fi
+            }
+            clean_disk() {
+              echo "Cleaning runner caches before isolated export test"
+              uv cache clean || true
+              rm -rf "${TMPDIR:-/tmp}"/pytest-of-* ~/.cache/pip ~/.cache/uv || true
+              dump_resources
+            }
+            restore_torch
             pytest_workers=2
             pytest_extra=()
             if [ "${{ matrix.os }}" = "ubuntu-24.04-arm" ]; then
@@ -355,6 +379,8 @@ jobs:
 
             # Run memory-heavy hardware exporter installs in fresh processes after TensorFlow/TFLite exits.
             for export_test in tests/test_exports.py::test_export_axelera tests/test_exports.py::test_export_deepx; do
+              clean_disk
+              restore_torch
               PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -vv -s --slow --cov=ultralytics/ --cov-append --cov-report=xml --durations=10 --durations-min=1 "$export_test"
             done
           retries: 1 # Retry once after initial attempt (2 total runs)

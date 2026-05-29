@@ -62,17 +62,23 @@ class AnomalyV2Trainer(DetectionTrainer):
 
     @staticmethod
     def _update_seg_alpha(trainer: "AnomalyV2Trainer") -> None:
-        """Anneal the GT->prediction blend: alpha = 1 at epoch 0, linear to 0 when mosaic closes.
+        """Set ``seg_alpha`` per ``model.seg_alpha_mode`` (curriculum|pinned_one|pinned_zero).
 
-        Past the mosaic-close epoch (``epochs - close_mosaic``) the fusion runs purely on the
-        SegBranch prediction, so the mask-on validation pass measures real prior-free inference.
+        Curriculum: alpha = 1 at epoch 0, linear to 0 at ``epochs - close_mosaic``, then 0.
+        Pinned modes hold alpha at 1 or 0 throughout — for ablation runs.
         The value is mirrored onto the EMA model, which validation actually runs on.
         """
         model = unwrap_model(trainer.model)
         if getattr(model, "seg_branch", None) is None:
             return
-        end_epoch = max(1, trainer.epochs - trainer.args.close_mosaic)
-        alpha = max(0.0, 1.0 - trainer.epoch / end_epoch)
+        mode = getattr(model, "seg_alpha_mode", "curriculum")
+        if mode == "pinned_one":
+            alpha = 1.0
+        elif mode == "pinned_zero":
+            alpha = 0.0
+        else:
+            end_epoch = max(1, trainer.epochs - trainer.args.close_mosaic)
+            alpha = max(0.0, 1.0 - trainer.epoch / end_epoch)
         model.seg_alpha = alpha
         if trainer.ema is not None:
             unwrap_model(trainer.ema.ema).seg_alpha = alpha

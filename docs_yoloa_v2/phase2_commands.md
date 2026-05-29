@@ -25,7 +25,15 @@ Because the **mask-on validation pass uses the current `seg_alpha`**, the
 The `mask_off/*` column stays a pure passthrough (vanilla) floor as before.
 New loss column: `seg_loss` (BCE+Dice on the predicted heatmap).
 
-## 1. Main run — rect supervision, p_drop=0.5, linear alpha curriculum
+Three runs form an α-curriculum ablation set; they differ ONLY in `model=`:
+
+| YAML | `seg_alpha_mode` | Reads as |
+|---|---|---|
+| `yolo26m-anomaly-v2-seg.yaml`    | `curriculum` (default) | main: GT→pred anneal |
+| `yolo26m-anomaly-v2-seg-a1.yaml` | `pinned_one`           | α=1 全程 (GT-only fusion; non-destructive check) |
+| `yolo26m-anomaly-v2-seg-a0.yaml` | `pinned_zero`          | α=0 全程 (pred-only fusion; necessity check) |
+
+## 1. Main — alpha curriculum (1.0 → 0.0)
 
 ```
 nohupyolo train task=anomaly_v2 \
@@ -38,13 +46,39 @@ nohupyolo train task=anomaly_v2 \
   project=yoloa_v2 name=26m_yoloav2seg_v5_binary_cm20_rect_pd50_acur_v1
 ```
 
-## 2. Sanity — alpha pinned at 1.0 (should ≈ Phase 0 rect_pd50)
+## 2. Ablation — alpha pinned at 1.0 (GT only)
 
-Verifies that adding the SegBranch + its loss does not degrade the GT-prior path.
-Pin alpha by setting `close_mosaic=0` is NOT enough (alpha still anneals over epochs);
-instead this is a code-level check — easiest is to compare the **early-epoch** mask-on
-numbers of run 1 against `26m_yoloav2_v5_binary_cm20_rect_pd50_v1`. If they track, the
-seg additions are non-destructive. (Skip a dedicated run unless run 1 looks off.)
+Expected: mask-on column ≈ Phase 0 `rect_pd50` throughout; `seg_loss` still trains
+(detached from detection). If this drops vs Phase 0, the SegBranch additions are
+destructive and run 1 results are suspect.
+
+```
+nohupyolo train task=anomaly_v2 \
+  model=yolo26m-anomaly-v2-seg-a1.yaml \
+  pretrained=yolo26m.pt \
+  data=/home/louis/ultra_louis_work/datasets/AnomalyDataset/merge_data_v5_binary/data.yaml \
+  epochs=50 batch=96 close_mosaic=20 device=2,3 \
+  optimizer=MuSGD lr0=0.00125 lrf=0.5 momentum=0.9 weight_decay=0.0005 \
+  scale=0.1 copy_paste=0.1 mixup=0.0 save_json=True \
+  project=yoloa_v2 name=26m_yoloav2seg_v5_binary_cm20_rect_pd50_a1_v1
+```
+
+## 3. Ablation — alpha pinned at 0.0 (prediction only)
+
+Expected: mask-on column starts near mask-off floor (random heatmap), climbs as
+`seg_loss` falls. If the final mask-on number matches run 1's, the curriculum
+adds nothing; if run 1 is clearly higher, the curriculum earns its keep.
+
+```
+nohupyolo train task=anomaly_v2 \
+  model=yolo26m-anomaly-v2-seg-a0.yaml \
+  pretrained=yolo26m.pt \
+  data=/home/louis/ultra_louis_work/datasets/AnomalyDataset/merge_data_v5_binary/data.yaml \
+  epochs=50 batch=96 close_mosaic=20 device=4,5 \
+  optimizer=MuSGD lr0=0.00125 lrf=0.5 momentum=0.9 weight_decay=0.0005 \
+  scale=0.1 copy_paste=0.1 mixup=0.0 save_json=True \
+  project=yoloa_v2 name=26m_yoloav2seg_v5_binary_cm20_rect_pd50_a0_v1
+```
 
 ## How to read results
 

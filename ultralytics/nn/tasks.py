@@ -567,6 +567,11 @@ class YOLOAnomalyV2Model(DetectionModel):
         # needs no external prior. ``seg_alpha`` blends GT vs predicted mask (curriculum).
         use_seg = bool(v2_cfg.get("seg_branch", False))
         seg_gain = float(v2_cfg.get("seg_gain", 1.0))
+        # ``seg_alpha_mode``: 'curriculum' (default, anneal 1->0), 'pinned_one' (GT only),
+        # 'pinned_zero' (pred only). Used by AnomalyV2Trainer._update_seg_alpha.
+        seg_alpha_mode = str(v2_cfg.get("seg_alpha_mode", "curriculum")).lower()
+        if seg_alpha_mode not in {"curriculum", "pinned_one", "pinned_zero"}:
+            raise ValueError(f"seg_alpha_mode must be curriculum|pinned_one|pinned_zero, got {seg_alpha_mode!r}")
 
         detect = self.model[-1]
         if not isinstance(detect, Detect):
@@ -597,7 +602,8 @@ class YOLOAnomalyV2Model(DetectionModel):
         # SegBranch consumes the P3/P4 PAN outputs (first two of pan_from_indices).
         self.mask_size = mask_size
         self.seg_gain = seg_gain
-        self.seg_alpha = 1.0  # 1.0 = pure GT mask; trainer anneals -> 0.0 (pure prediction)
+        self.seg_alpha_mode = seg_alpha_mode
+        self.seg_alpha = 0.0 if seg_alpha_mode == "pinned_zero" else 1.0
         self.seg_branch = SegBranch(ch=tuple(pan_channels[:2]), nc=1) if use_seg else None
         # Binary GT target for the seg loss is always a hard rectangle (independent of mask_mode).
         self.seg_target_renderer = BboxMaskRenderer(mask_size=mask_size, mode="rect") if use_seg else None

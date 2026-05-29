@@ -236,6 +236,7 @@ nav:
       - Detect: tasks/detect.md
       - Segment: tasks/segment.md
       - Semantic: tasks/semantic.md
+      - Depth: tasks/depth.md
       - Classify: tasks/classify.md
       - Pose: tasks/pose.md
       - OBB: tasks/obb.md
@@ -473,6 +474,8 @@ nav:
           - Cityscapes: datasets/semantic/cityscapes.md
           - Cityscapes8: datasets/semantic/cityscapes8.md
           - ADE20K: datasets/semantic/ade20k.md
+      - Depth Estimation:
+          - datasets/depth/index.md
       - Pose:
           - datasets/pose/index.md
           - COCO: datasets/pose/coco.md

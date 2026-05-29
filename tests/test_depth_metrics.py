@@ -13,3 +13,5 @@ def test_depth_metrics_perfect_prediction():
     assert res["metrics/abs_rel"] < 1e-4
     assert m.fitness == res["metrics/delta1"]
     assert m.keys[0] == "metrics/delta1"
+    assert m.delta1 == res["metrics/delta1"]
+    assert m.abs_rel == res["metrics/abs_rel"]

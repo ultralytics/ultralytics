@@ -1988,6 +1988,36 @@ class DepthMetrics(SimpleClass, DataExportMixin):
         return [self._results.get(k, 0.0) for k in self.keys]
 
     @property
+    def delta1(self):
+        """Fraction of pixels with max(p/g, g/p) < 1.25."""
+        return self._results.get("metrics/delta1", 0.0)
+
+    @property
+    def delta2(self):
+        """Fraction of pixels with max(p/g, g/p) < 1.25**2."""
+        return self._results.get("metrics/delta2", 0.0)
+
+    @property
+    def delta3(self):
+        """Fraction of pixels with max(p/g, g/p) < 1.25**3."""
+        return self._results.get("metrics/delta3", 0.0)
+
+    @property
+    def abs_rel(self):
+        """Mean absolute relative error."""
+        return self._results.get("metrics/abs_rel", 0.0)
+
+    @property
+    def rmse(self):
+        """Root mean squared error (meters)."""
+        return self._results.get("metrics/rmse", 0.0)
+
+    @property
+    def silog(self):
+        """Scale-invariant logarithmic error (x100)."""
+        return self._results.get("metrics/silog", 0.0)
+
+    @property
     def fitness(self):
         """Fitness = delta1 (higher is better)."""
         return self._results.get("metrics/delta1", 0.0)

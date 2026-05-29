@@ -39,6 +39,12 @@ Semantic segmentation assigns a class label to every pixel in an image, producin
 
 [Semantic Segmentation Examples](semantic.md){ .md-button }
 
+## [Monocular Depth Estimation](depth.md)
+
+Monocular depth estimation predicts a per-pixel depth map in meters from a single RGB image. The output is a dense float map aligned to the input image, making it suitable for 3D scene reconstruction, robot navigation, and AR/VR applications where spatial layout must be inferred from a single camera.
+
+[Depth Estimation Examples](depth.md){ .md-button }
+
 ## [Classification](classify.md)
 
 Classification involves categorizing entire images based on their content. This task is essential for applications like [product categorization](https://www.ultralytics.com/blog/understanding-vision-language-models-and-their-applications) in e-commerce, [content moderation](https://www.ultralytics.com/blog/ai-in-document-authentication-with-image-segmentation), and [wildlife monitoring](https://www.ultralytics.com/blog/monitoring-animal-behavior-using-ultralytics-yolov8).
@@ -59,7 +65,7 @@ Oriented Bounding Box (OBB) detection enhances traditional object detection by a
 
 ## Conclusion
 
-Ultralytics YOLO26 supports multiple computer vision tasks, including detection, instance segmentation, semantic segmentation, classification, oriented object detection, and keypoint detection. Each task addresses specific needs in the computer vision landscape, from basic object identification to detailed pose analysis. By understanding the capabilities and applications of each task, you can select the most appropriate approach for your specific computer vision challenges and leverage YOLO26's powerful features to build effective solutions.
+Ultralytics YOLO26 supports multiple computer vision tasks, including detection, instance segmentation, semantic segmentation, monocular depth estimation, classification, oriented object detection, and keypoint detection. Each task addresses specific needs in the computer vision landscape, from basic object identification to dense per-pixel depth inference. By understanding the capabilities and applications of each task, you can select the most appropriate approach for your specific computer vision challenges and leverage YOLO26's powerful features to build effective solutions.
 
 ## FAQ
 
@@ -70,6 +76,7 @@ Ultralytics YOLO26 is a versatile AI framework capable of performing various com
 - **[Object Detection](detect.md):** Identifying and localizing objects in images or video frames by drawing bounding boxes around them.
 - **[Image segmentation](segment.md):** Segmenting images into different regions based on their content, useful for applications like medical imaging.
 - **[Semantic Segmentation](semantic.md):** Assigning a class label to every pixel in an image for dense scene understanding.
+- **[Monocular Depth Estimation](depth.md):** Predicting a per-pixel depth map in meters from a single RGB image.
 - **[Classification](classify.md):** Categorizing entire images based on their content.
 - **[Pose estimation](pose.md):** Detecting specific keypoints in an image or video frame to track movements or poses.
 - **[Oriented Object Detection (OBB)](obb.md):** Detecting rotated objects with an added orientation angle for enhanced accuracy.

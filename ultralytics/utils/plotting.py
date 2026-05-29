@@ -431,6 +431,29 @@ class Annotator:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
 
+    def depth_map(self, depth, alpha: float = 0.6):
+        """Overlay a colorized depth map (normalized inverse-free min-max) onto the image.
+
+        Args:
+            depth (np.ndarray): (H, W) depth in meters.
+            alpha (float): Blend factor for the heatmap overlay.
+        """
+        if self.pil:
+            self.im = np.asarray(self.im).copy()
+        d = np.asarray(depth, dtype=np.float32)
+        valid = d > 0
+        if valid.any():
+            lo, hi = float(d[valid].min()), float(d[valid].max())
+            norm = np.clip((d - lo) / (hi - lo + 1e-8), 0, 1)
+        else:
+            norm = np.zeros_like(d)
+        heat = cv2.applyColorMap((norm * 255).astype(np.uint8), cv2.COLORMAP_INFERNO)
+        if heat.shape[:2] != self.im.shape[:2]:
+            heat = cv2.resize(heat, (self.im.shape[1], self.im.shape[0]))
+        self.im = cv2.addWeighted(self.im, 1 - alpha, heat, alpha, 0)
+        if self.pil:
+            self.fromarray(self.im)
+
     def kpts(
         self,
         kpts,
@@ -739,7 +762,7 @@ def plot_images(
         - 3 channels: Used as-is (standard RGB)
         - 4+ channels: Cropped to first 3 channels
     """
-    for k in {"cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images", "semantic_mask"}:
+    for k in {"cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images", "semantic_mask", "depth"}:
         if k not in labels:
             continue
         if k == "cls" and labels[k].ndim == 2:
@@ -754,6 +777,9 @@ def plot_images(
     masks = labels.get("masks", np.zeros(0, dtype=np.uint8))
     kpts = labels.get("keypoints", np.zeros(0, dtype=np.float32))
     semantic_masks = labels.get("semantic_mask", np.zeros(0, dtype=np.int64))
+    depths = labels.get("depth", np.zeros(0))
+    if hasattr(depths, "cpu"):
+        depths = depths.cpu().float().numpy()
     images = labels.get("img", images)  # default to input images
 
     if len(images) and isinstance(images, torch.Tensor):
@@ -883,6 +909,16 @@ def plot_images(
             im = np.asarray(annotator.im).copy()
             sub_annotator = Annotator(np.ascontiguousarray(im[y : y + h, x : x + w]), line_width=1, pil=False)
             sub_annotator.semantic_mask(mask, alpha=0.4)
+            im[y : y + h, x : x + w] = sub_annotator.im
+            annotator.fromarray(im)
+
+        # Plot depth maps
+        if len(depths) and i < len(depths):
+            dm = depths[i]
+            dm = dm[0] if getattr(dm, "ndim", 2) == 3 else dm
+            im = np.asarray(annotator.im).copy()
+            sub_annotator = Annotator(np.ascontiguousarray(im[y : y + h, x : x + w]), line_width=1, pil=False)
+            sub_annotator.depth_map(dm, alpha=0.6)
             im[y : y + h, x : x + w] = sub_annotator.im
             annotator.fromarray(im)
     if not save:

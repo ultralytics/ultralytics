@@ -53,3 +53,31 @@ def test_depth_predictor_postprocess_sets_depthmap():
     res = p.postprocess(preds, img, [orig])
     assert isinstance(res[0].depth, DepthMap)
     assert res[0].depth.data.shape == (40, 48)   # resized to original image size
+
+
+def test_annotator_depth_map_runs():
+    from ultralytics.utils.plotting import Annotator
+
+    ann = Annotator(np.zeros((32, 32, 3), dtype=np.uint8))
+    ann.depth_map(np.random.rand(32, 32).astype(np.float32))
+    out = ann.result()
+    assert out.shape == (32, 32, 3)
+
+
+def test_results_plot_with_depth_runs():
+    from ultralytics.engine.results import Results
+
+    img = np.zeros((24, 24, 3), dtype=np.uint8)
+    depth = np.random.rand(24, 24).astype(np.float32)
+    r = Results(orig_img=img, path="x.jpg", names={0: "depth"}, depth=depth)
+    out = r.plot()                      # must not raise; returns an annotated image (masks=True by default)
+    assert out.shape[:2] == (24, 24)
+
+
+def test_annotator_depth_map_all_zero():
+    from ultralytics.utils.plotting import Annotator
+
+    ann = Annotator(np.zeros((16, 16, 3), dtype=np.uint8))
+    ann.depth_map(np.zeros((16, 16), dtype=np.float32))   # no valid pixels → must not divide-by-zero
+    out = ann.result()
+    assert out.shape == (16, 16, 3)

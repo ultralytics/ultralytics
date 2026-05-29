@@ -54,6 +54,7 @@ class BaseTransform:
         labels = self.apply_image(labels, params)
         labels = self.apply_instances(labels, params)
         labels = self.apply_semantic(labels, params)
+        labels = self.apply_depth(labels, params)
         return labels
 
     def get_params(self, labels):
@@ -99,6 +100,18 @@ class BaseTransform:
 
         Args:
             labels (dict): Dictionary containing 'semantic_mask'.
+            params (dict | None): Parameters from get_params.
+
+        Returns:
+            (dict): Updated labels dictionary.
+        """
+        return labels
+
+    def apply_depth(self, labels, params=None):
+        """Apply transformation to depth map.
+
+        Args:
+            labels (dict): Dictionary containing 'depth'.
             params (dict | None): Parameters from get_params.
 
         Returns:
@@ -332,6 +345,7 @@ class BaseMixTransform(BaseTransform):
         labels = self.apply_image(labels, params)
         labels = self.apply_instances(labels, params)
         labels = self.apply_semantic(labels, params)
+        labels = self.apply_depth(labels, params)
         labels.pop("mix_labels", None)
         return labels
 
@@ -2565,7 +2579,6 @@ class LoadVisualPrompt(BaseTransform):
             visuals[idx] = torch.logical_or(visuals[idx], mask)
         return visuals
 
-
 class RandomLoadText(BaseTransform):
     """Randomly sample positive and negative texts and update class indices accordingly.
 
@@ -2914,6 +2927,144 @@ def classify_augmentations(
     ]
 
     return T.Compose(primary_tfl + secondary_tfl + final_tfl)
+
+
+class DepthRandomScale:
+    """Random scale and crop for depth estimation (applied to both image and depth).
+
+    Randomly scales the image/depth by a factor in [scale_range], then random-crops
+    to target_size. This improves scale invariance for zero-shot depth models.
+    """
+
+    def __init__(self, scale_range=(0.5, 1.5), target_size=640, p=0.5):
+        self.scale_min, self.scale_max = scale_range
+        self.target_size = target_size
+        self.p = p
+
+    def __call__(self, labels):
+        if random.random() >= self.p:
+            return labels
+        img = labels.get("img")
+        depth = labels.get("depth")
+        if img is None:
+            return labels
+
+        h, w = img.shape[:2]
+        scale = random.uniform(self.scale_min, self.scale_max)
+        new_h, new_w = int(h * scale), int(w * scale)
+
+        # Ensure minimum size
+        new_h = max(new_h, self.target_size)
+        new_w = max(new_w, self.target_size)
+
+        img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+        if depth is not None:
+            depth = cv2.resize(depth, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+            # Scale depth values are preserved (metric depth doesn't change with image scale)
+
+        # Random crop to target_size
+        if new_h > self.target_size or new_w > self.target_size:
+            top = random.randint(0, max(0, new_h - self.target_size))
+            left = random.randint(0, max(0, new_w - self.target_size))
+            img = img[top:top + self.target_size, left:left + self.target_size]
+            if depth is not None:
+                depth = depth[top:top + self.target_size, left:left + self.target_size]
+
+        labels["img"] = img
+        labels["resized_shape"] = img.shape[:2]
+        if depth is not None:
+            labels["depth"] = depth
+        return labels
+
+
+class DepthRandomFlip:
+    """Random horizontal flip for depth estimation (flips both image and depth)."""
+
+    def __init__(self, p=0.5):
+        self.p = p
+
+    def __call__(self, labels):
+        if random.random() < self.p:
+            img = labels.get("img")
+            depth = labels.get("depth")
+            if img is not None:
+                labels["img"] = np.ascontiguousarray(np.fliplr(img))
+            if depth is not None:
+                labels["depth"] = np.ascontiguousarray(np.fliplr(depth))
+        return labels
+
+
+class DepthColorJitter:
+    """Random color jitter for depth estimation (modifies image only, depth unchanged).
+
+    Applies random brightness, contrast, saturation adjustments in BGR space.
+    """
+
+    def __init__(self, brightness=0.3, contrast=0.3, saturation=0.3, hue=0.05):
+        self.brightness = brightness
+        self.contrast = contrast
+        self.saturation = saturation
+        self.hue = hue
+
+    def __call__(self, labels):
+        img = labels.get("img")
+        if img is None:
+            return labels
+
+        # Random brightness
+        if self.brightness > 0 and random.random() < 0.5:
+            factor = 1.0 + random.uniform(-self.brightness, self.brightness)
+            img = np.clip(img.astype(np.float32) * factor, 0, 255).astype(np.uint8)
+
+        # Random contrast
+        if self.contrast > 0 and random.random() < 0.5:
+            factor = 1.0 + random.uniform(-self.contrast, self.contrast)
+            mean = img.mean()
+            img = np.clip((img.astype(np.float32) - mean) * factor + mean, 0, 255).astype(np.uint8)
+
+        # Random saturation (convert to HSV, adjust S channel)
+        if self.saturation > 0 and random.random() < 0.5:
+            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV).astype(np.float32)
+            factor = 1.0 + random.uniform(-self.saturation, self.saturation)
+            hsv[:, :, 1] = np.clip(hsv[:, :, 1] * factor, 0, 255)
+            img = cv2.cvtColor(hsv.astype(np.uint8), cv2.COLOR_HSV2BGR)
+
+        # Random hue shift
+        if self.hue > 0 and random.random() < 0.5:
+            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV).astype(np.float32)
+            shift = random.uniform(-self.hue, self.hue) * 180
+            hsv[:, :, 0] = (hsv[:, :, 0] + shift) % 180
+            img = cv2.cvtColor(hsv.astype(np.uint8), cv2.COLOR_HSV2BGR)
+
+        labels["img"] = img
+        return labels
+
+
+class DepthFormat:
+    """Format transform for depth estimation: converts images and depth maps to tensors.
+
+    Applied after LetterBox, so img is already at target shape.
+    Resizes depth to match img, then converts both to tensors.
+    """
+
+    def __call__(self, labels):
+        img = labels.get("img")
+        if img is not None:
+            # Resize depth to match img shape (LetterBox may have changed img size)
+            depth = labels.get("depth")
+            if depth is not None:
+                img_h, img_w = img.shape[:2]
+                if depth.shape[:2] != (img_h, img_w):
+                    depth = cv2.resize(depth, (img_w, img_h), interpolation=cv2.INTER_LINEAR)
+                labels["depth"] = torch.from_numpy(np.ascontiguousarray(depth[None])).float()  # (1, H, W)
+
+            # Convert image: HWC BGR uint8 → CHW RGB uint8 (trainer handles /255 + float conversion)
+            if img.ndim == 2:
+                img = img[:, :, None]
+            img = np.ascontiguousarray(img.transpose(2, 0, 1)[::-1])  # HWC→CHW, BGR→RGB
+            labels["img"] = torch.from_numpy(img)
+
+        return labels
 
 
 # NOTE: keep this class for backward compatibility

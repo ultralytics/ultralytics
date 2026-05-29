@@ -46,6 +46,20 @@ def skip_rpi_semantic(task):
         pytest.skip("Semantic segmentation export tests are skipped on Raspberry Pi due to memory constraints.")
 
 
+def isolated_task_model(task, tmp_path):
+    """Copy a task model to a per-test path so exported artifacts cannot collide under xdist."""
+    source = WEIGHTS_DIR / TASK2MODEL[task]
+    if not source.exists():
+        from ultralytics.utils.downloads import attempt_download_asset
+
+        source.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(attempt_download_asset(source.name), source)
+
+    dst = tmp_path / source.name
+    shutil.copy(source, dst)
+    return dst
+
+
 @pytest.mark.parametrize("end2end", [False, True])
 def test_export_torchscript(end2end, isolated_model):
     """Test YOLO model export to TorchScript format for compatibility and correctness."""
@@ -181,10 +195,10 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms, end
         if not ((task == "classify" and nms) or (end2end and nms))
     ],
 )
-def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms, end2end):
+def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms, end2end, tmp_path):
     """Test YOLO model export to TorchScript format under varied configurations."""
     skip_rpi_semantic(task)
-    file = YOLO(TASK2MODEL[task]).export(
+    file = YOLO(isolated_task_model(task, tmp_path)).export(
         format="torchscript", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms, end2end=end2end
     )
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference

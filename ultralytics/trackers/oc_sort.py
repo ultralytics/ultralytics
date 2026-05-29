@@ -235,7 +235,6 @@ class OCSORT(BYTETracker):
         u_detection: list[int],
         activated: list[OCSortTrack],
         refind: list[OCSortTrack],
-        lost: list[OCSortTrack],
     ) -> tuple[list[int], list[int]]:
         """Observation-Centric Recovery (OCR) pass after first-stage association."""
         ocr_tracked = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
@@ -263,7 +262,9 @@ class OCSORT(BYTETracker):
 
         ocr_u_track_set = {ocr_tracked[i].track_id for i in ocr_u_track}
         u_track = [
-            i for i in u_track if strack_pool[i].track_id in ocr_u_track_set or strack_pool[i].state != TrackState.Tracked
+            i
+            for i in u_track
+            if strack_pool[i].track_id in ocr_u_track_set or strack_pool[i].state != TrackState.Tracked
         ]
         u_detection = [u_detection[i] for i in ocr_u_det]
         return u_track, u_detection
@@ -300,8 +301,7 @@ class OCSORT(BYTETracker):
         Returns:
             (np.ndarray): Cost matrix of shape (len(tracks), len(detections)).
         """
-        n_tracks, n_dets = len(tracks), len(detections)
-        cost = np.zeros((n_tracks, n_dets), dtype=np.float32)
+        cost = np.zeros((len(tracks), len(detections)), dtype=np.float32)
         if cost.size == 0:
             return cost
 

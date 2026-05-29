@@ -281,7 +281,7 @@ class BYTETracker:
 
         u_track, u_detection = self._first_association(strack_pool, detections, activated_stracks, refind_stracks)
         u_track, u_detection = self._post_first_association(
-            strack_pool, detections, u_track, u_detection, activated_stracks, refind_stracks, lost_stracks
+            strack_pool, detections, u_track, u_detection, activated_stracks, refind_stracks
         )
         self._second_association(
             strack_pool, u_track, detections_second, activated_stracks, refind_stracks, lost_stracks
@@ -290,7 +290,7 @@ class BYTETracker:
             unconfirmed, u_detection, detections, activated_stracks, removed_stracks
         )
         self._init_new_tracks(u_detection, detections, activated_stracks, refind_stracks)
-        self._remove_stale_lost(lost_stracks, removed_stracks)
+        self._remove_stale_lost(removed_stracks)
 
         merge_track_pools(self, activated_stracks, refind_stracks, lost_stracks, removed_stracks)
         return self._format_output()
@@ -375,7 +375,6 @@ class BYTETracker:
         u_detection: list[int],
         activated: list[STrack],
         refind: list[STrack],
-        lost: list[STrack],
     ) -> tuple[list[int], list[int]]:
         """Hook executed after the first association stage and before the second.
 
@@ -420,7 +419,7 @@ class BYTETracker:
             dists = matching.iou_distance(r_tracked_stracks, detections_second)
             if self.args.fuse_score:
                 dists = matching.fuse_score(dists, detections_second)
-            matches, u_track, _u_detection_second = matching.linear_assignment(dists, thresh=0.5)
+            matches, u_track, _ = matching.linear_assignment(dists, thresh=0.5)
             self._apply_matches(matches, r_tracked_stracks, detections_second, activated, refind)
         else:
             u_track = list(range(len(r_tracked_stracks)))
@@ -474,7 +473,7 @@ class BYTETracker:
             track.activate(self.kalman_filter, self.frame_id)
             activated.append(track)
 
-    def _remove_stale_lost(self, lost: list[STrack], removed: list[STrack]) -> None:
+    def _remove_stale_lost(self, removed: list[STrack]) -> None:
         """Remove lost tracks that have exceeded the maximum allowed frames."""
         for track in self.lost_stracks:
             if self.frame_id - track.end_frame > self.max_frames_lost:

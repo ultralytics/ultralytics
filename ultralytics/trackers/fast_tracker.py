@@ -187,8 +187,10 @@ class FASTTracker(BYTETracker):
         if len(results) == 0:
             return []
         bboxes = parse_bboxes(results)
-        hl = self._history_len
-        return [FastSTrack(xywh, s, c, history_len=hl) for (xywh, s, c) in zip(bboxes, results.conf, results.cls)]
+        return [
+            FastSTrack(xywh, s, c, history_len=self._history_len)
+            for (xywh, s, c) in zip(bboxes, results.conf, results.cls)
+        ]
 
     def _apply_match(self, track: STrack, det: STrack, activated: list[STrack], refind: list[STrack]) -> None:
         """Update or re-activate a track and clear any occlusion bookkeeping on a successful match."""
@@ -231,7 +233,9 @@ class FASTTracker(BYTETracker):
             active_boxes.extend(t.xyxy for t in refind if t.is_activated)
         active_boxes.extend(t.xyxy for t in self.tracked_stracks if t.state == TrackState.Tracked)
         suppress_on = self.init_iou_suppress < 1.0
-        active_stack = np.asarray(active_boxes, dtype=np.float32) if active_boxes else np.empty((0, 4), dtype=np.float32)
+        active_stack = (
+            np.asarray(active_boxes, dtype=np.float32) if active_boxes else np.empty((0, 4), dtype=np.float32)
+        )
         for inew in u_detection:
             det = detections[inew]
             if det.score < self.args.new_track_thresh:
@@ -243,7 +247,7 @@ class FASTTracker(BYTETracker):
             activated.append(det)
             active_stack = np.concatenate([active_stack, det.xyxy[None, :]], axis=0)
 
-    def _remove_stale_lost(self, lost: list[STrack], removed: list[STrack]) -> None:
+    def _remove_stale_lost(self, removed: list[STrack]) -> None:
         """Remove lost tracks, with a grace window for recently-occluded ones."""
         for track in self.lost_stracks:
             recently_occluded = track.was_recently_occluded and (
@@ -283,7 +287,7 @@ class FASTTracker(BYTETracker):
 
         # Build active-track box array once (vectorized cover check).
         active = [t for t in activated_stracks if t.is_activated and not t.is_occluded]
-        if active:
+        if len(active):
             active_boxes = np.asarray([t.xyxy for t in active], dtype=np.float32)
             active_ids = np.asarray([t.track_id for t in active])
         else:
@@ -310,8 +314,7 @@ class FASTTracker(BYTETracker):
         for i, track in enumerate(unmatched):
             track.not_matched += 1
 
-            covered = bool(max_cov[i] > self.occ_cover_thresh)
-            if covered and not track.is_occluded and track.state == TrackState.Tracked:
+            if max_cov[i] > self.occ_cover_thresh and not track.is_occluded and track.state == TrackState.Tracked:
                 track.is_occluded = True
                 track.occluded_len = 1
                 track.last_occluded_frame = self.frame_id

@@ -51,11 +51,10 @@ class ReID:
     def _crops_to_tensor(self, img: np.ndarray, dets: np.ndarray) -> torch.Tensor:
         """Crop detections from img and stack into a normalized BCHW float tensor at self.imgsz."""
         crops = [save_one_box(det, img, save=False) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))]
-        size = self.imgsz
-        batch = torch.empty(len(crops), 3, size, size, dtype=torch.float32)
+        batch = torch.empty(len(crops), 3, self.imgsz, self.imgsz, dtype=torch.float32)
         for i, c in enumerate(crops):
             t = torch.from_numpy(np.ascontiguousarray(c[..., ::-1])).permute(2, 0, 1).unsqueeze(0).float() / 255.0
-            batch[i] = torch.nn.functional.interpolate(t, size=(size, size), mode="bilinear", align_corners=False)[0]
+            batch[i] = torch.nn.functional.interpolate(t, size=(self.imgsz, self.imgsz), mode="bilinear", align_corners=False)[0]
         batch = batch.to(self.device)
         return batch.half() if self.fp16 else batch
 

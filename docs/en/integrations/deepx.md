@@ -232,21 +232,25 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
 
     === "Raspberry Pi 5 + DX-M1 M.2 Module"
 
-        | Model        	| Format  	| Status 	| metrics/mAP50-95(B) 	| Inference time (ms/im) 	|
-        |--------------	|---------	|--------	|---------------------	|------------------------	|
-        | YOLO26n      	| PyTorch 	| ✅      	| 0.4760              	| 315.2                  	|
-        | YOLO26n      	| DEEPX   	| ✅      	| 0.4660              	| 34.6                   	|
-        | YOLO26n-seg  	| PyTorch 	| ✅      	| 0.4080              	| 485.4                  	|
-        | YOLO26n-seg  	| DEEPX   	| ✅      	| 0.3920              	| 53.8                   	|
-        | YOLO26n-pose 	| PyTorch 	| ✅      	| 0.4230              	| 506.3                  	|
-        | YOLO26n-pose 	| DEEPX   	| ✅      	| 0.4590              	| 37.6                   	|
-        | YOLO26n-obb  	| PyTorch 	| ✅      	| 0.817               	| 1094.4                 	|
-        | YOLO26n-obb  	| DEEPX   	| ✅      	| 0.783               	| 56.4                   	|
+        <div align="center">
+        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/deepx-m1-npu-vs-pytorch.avif" alt="Raspberry Pi 5 DEEPX M1 NPU vs PyTorch benchmarks">
+        </div>
 
-        | Model       	| Format  	| Status 	| acc (top1) 	| acc (top5) 	| Inference time (ms/im) 	|
-        |-------------	|---------	|--------	|------------	|------------	|------------------------	|
-        | YOLO26n-cls 	| PyTorch 	| ✅      	| 0.431      	| 0.716      	| 23.8                   	|
-        | YOLO26n-cls 	| DEEPX   	| ✅      	| 0.333      	| 0.686      	| 2.7                    	|
+        | Model        	| Format  	| Status 	| Size (MB) 	| metrics/mAP50-95(B) 	| Inference time (ms/im) 	|
+        |--------------	|---------	|--------	|-----------	|---------------------	|------------------------	|
+        | YOLO26n      	| PyTorch 	| ✅      	| 5.3       	| 0.4760              	| 315.2                  	|
+        | YOLO26n      	| DeepX   	| ✅      	| 6.6       	| 0.4660              	| 34.6                   	|
+        | YOLO26n-seg  	| PyTorch 	| ✅      	| 6.5       	| 0.4080              	| 485.4                  	|
+        | YOLO26n-seg  	| DeepX   	| ✅      	| 7.9       	| 0.3920              	| 53.8                   	|
+        | YOLO26n-pose 	| PyTorch 	| ✅      	| 7.6       	| 0.4230              	| 506.3                  	|
+        | YOLO26n-pose 	| DeepX   	| ✅      	| 8.8       	| 0.4590              	| 37.6                   	|
+        | YOLO26n-obb  	| PyTorch 	| ✅      	| 5.7       	| 0.817               	| 1094.4                 	|
+        | YOLO26n-obb  	| DeepX   	| ✅      	| 7.3       	| 0.783               	| 56.4                   	|
+
+        | Model       	| Format  	| Status 	| Size (MB) 	| acc (top1) 	| acc (top5) 	| Inference time (ms/im) 	|
+        |-------------	|---------	|--------	|-----------	|------------	|------------	|------------------------	|
+        | YOLO26n-cls 	| PyTorch 	| ✅      	| 5.6       	| 0.431      	| 0.716      	| 23.8                   	|
+        | YOLO26n-cls 	| DeepX   	| ✅      	| 5.9       	| 0.333      	| 0.686      	| 2.7                    	|
 
     === "More devices coming soon!"
 

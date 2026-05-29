@@ -33,3 +33,10 @@ def test_build_yolo_dataset_routes_depth_multisource(tmp_path):
         ds = build_yolo_dataset(cfg, [str(p1), str(p2)], batch=1, data=data, mode="train")
 
     assert isinstance(ds, DepthDataset)
+
+
+def test_streamlit_tord_has_depth_suffix():
+    import ultralytics.solutions.streamlit_inference as si
+
+    src = open(si.__file__).read()
+    assert "-depth" in src  # depth model suffix registered in the task-ordering map

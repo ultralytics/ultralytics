@@ -157,6 +157,7 @@ class Inference:
                 "",
                 "-seg",
                 "-sem",
+                "-depth",
                 "-pose",
                 "-obb",
                 "-cls",

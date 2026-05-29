@@ -142,7 +142,8 @@ def onnx2engine(
     except ImportError:
         check_tensorrt()
         import tensorrt as trt
-    check_version(trt.__version__, ">=7.0.0", hard=True)
+    # TRT 11.0 removed IInt8Calibrator, per-precision BuilderFlags, and platform_has_fast_* (strongly-typed networks now default)
+    check_version(trt.__version__, ">=7.0.0,<11.0.0", hard=True)
     check_version(trt.__version__, "!=10.2.0", msg="https://github.com/ultralytics/ultralytics/pull/24367")
 
     LOGGER.info(f"\n{prefix} starting export with TensorRT {trt.__version__}...")

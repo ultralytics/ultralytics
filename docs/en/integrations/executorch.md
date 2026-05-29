@@ -151,8 +151,8 @@ The ExecuTorch export creates a directory containing the model and metadata:
 
 ```
 yolo26n_executorch_model/
-├── yolo26n.pte              # ExecuTorch model file
-└── metadata.yaml            # Model metadata (classes, image size, etc.)
+├── model.pte               # ExecuTorch model file
+└── metadata.yaml           # Model metadata (classes, image size, etc.)
 ```
 
 ## Using Exported ExecuTorch Models
@@ -178,7 +178,7 @@ Example iOS integration (Objective-C/C++):
 using namespace ::executorch::extension;
 
 // Load the model
-Module module("/path/to/yolo26n.pte");
+Module module("/path/to/model.pte");
 
 // Create input tensor
 float input[1 * 3 * 640 * 640];
@@ -196,7 +196,7 @@ import org.pytorch.executorch.Module
 import org.pytorch.executorch.Tensor
 
 // Load the model
-val module = Module.load("/path/to/yolo26n.pte")
+val module = Module.load("/path/to/model.pte")
 
 // Prepare input tensor
 val inputTensor = Tensor.fromBlob(floatData, longArrayOf(1, 3, 640, 640))
@@ -215,7 +215,7 @@ For embedded Linux systems, use the ExecuTorch C++ API:
 #include <executorch/extension/module/module.h>
 
 // Load model
-auto module = torch::executor::Module("yolo26n.pte");
+auto module = torch::executor::Module("model.pte");
 
 // Prepare input
 std::vector<float> input_data = preprocessImage(image);

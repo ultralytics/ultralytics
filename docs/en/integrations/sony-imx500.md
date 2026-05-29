@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn to export Ultralytics YOLO11 models to Sony's IMX500 format for efficient edge AI deployment on Raspberry Pi AI Camera with on-chip processing.
-keywords: Sony, IMX500, IMX 500, Atrios, MCT, model export, quantization, pruning, deep learning optimization, Raspberry Pi AI Camera, edge AI, PyTorch, IMX
+keywords: Sony, IMX500, IMX 500, AITRIOS, MCT, model export, quantization, pruning, deep learning optimization, Raspberry Pi AI Camera, edge AI, PyTorch, IMX
 ---
 
 # Sony IMX500 Export for Ultralytics YOLO11

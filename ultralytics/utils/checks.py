@@ -529,7 +529,7 @@ def check_executorch_requirements():
     check_requirements("numpy<=2.3.5")
 
 
-def check_tensorrt(min_version: str = "7.0.0", max_version: str = None):
+def check_tensorrt(min_version: str = "7.0.0", max_version: str | None = None):
     """Check and install TensorRT requirements including platform-specific dependencies.
 
     Args:

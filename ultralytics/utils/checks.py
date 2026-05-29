@@ -534,8 +534,8 @@ def check_tensorrt(min_version: str = "7.0.0", max_version: str | None = None):
 
     Args:
         min_version (str): Minimum supported TensorRT version (default: "7.0.0").
-        max_version (str, optional): Exclusive upper bound for AutoUpdate installs. Only the export path sets this
-            (TRT 11.0 removed builder APIs export relies on); inference leaves it unset so TRT 11 engines still load.
+        max_version (str, optional): Exclusive upper bound for AutoUpdate installs. Only the export path sets this (TRT
+            11.0 removed builder APIs export relies on); inference leaves it unset so TRT 11 engines still load.
     """
     if LINUX:
         cuda_version = torch.version.cuda.split(".")[0]

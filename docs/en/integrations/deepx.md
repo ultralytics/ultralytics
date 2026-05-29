@@ -232,6 +232,10 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
 
     === "Raspberry Pi 5 + DX-M1 M.2 Module"
 
+        <div align="center">
+        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/deepx-m1-npu-vs-pytorch.avif" alt="Raspberry Pi 5 DEEPX M1 NPU vs PyTorch benchmarks">
+        </div>
+
         | Model        	| Format  	| Status 	| Size (MB) 	| metrics/mAP50-95(B) 	| Inference time (ms/im) 	|
         |--------------	|---------	|--------	|-----------	|---------------------	|------------------------	|
         | YOLO26n      	| PyTorch 	| ✅      	| 5.3       	| 0.4760              	| 315.2                  	|

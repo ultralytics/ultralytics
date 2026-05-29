@@ -172,8 +172,6 @@ Exporting YOLO26 models to TensorFlow.js offers several advantages, including:
 3. **Offline Capabilities:** Enables applications to function without an internet connection, ensuring reliability and privacy.
 4. **GPU Acceleration:** Leverages WebGL for GPU acceleration, optimizing performance on devices with limited resources.
 
-For a comprehensive overview, see our [Integrations with TensorFlow GraphDef](tf-graphdef.md).
-
 ### How does TensorFlow.js benefit browser-based machine learning applications?
 
 TensorFlow.js is specifically designed for efficient execution of ML models in browsers and Node.js environments. Here's how it benefits browser-based applications:

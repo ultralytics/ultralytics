@@ -1,0 +1,25 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Deep OC-SORT tracker defaults for mode="track"
+# Docs: https://docs.ultralytics.com/modes/track/
+
+tracker_type: deepocsort # (str) Tracker backend: Deep OC-SORT with appearance features and GMC
+track_high_thresh: 0.3 # (float) First-stage match threshold; raise for cleaner tracks, lower to keep more
+track_low_thresh: 0.1 # (float) Second-stage threshold for low-score matches; used with use_byte=True
+new_track_thresh: 0.3 # (float) Start a new track if no match ≥ this; higher reduces false tracks
+track_buffer: 30 # (int) Frames to keep lost tracks alive; higher handles occlusion, increases ID switches risk
+match_thresh: 0.8 # (float) Association similarity threshold (IoU/cost); tune with detector quality
+fuse_score: True # (bool) Fuse detection score with motion/IoU for matching; stabilizes weak detections
+
+# OC-SORT specifics (inherited)
+delta_t: 3 # (int) Temporal window for velocity direction computation in OCM
+inertia: 0.2 # (float) Weight of velocity consistency cost in association
+use_byte: False # (bool) Enable ByteTrack-style low-confidence second association pass
+
+# Deep OC-SORT specifics
+gmc_method: none # (str) Global motion compensation: sparseOptFlow|orb|sift|ecc|none; enable for moving-camera scenes
+with_reid: False # (bool) Enable ReID model use; needs extra model and compute
+model: auto # (str) ReID model name/path; "auto" uses detector features when available. Otherwise an exported file (.torchscript / .onnx / .engine / …) or a `.pt` checkpoint.
+proximity_thresh: 0.5 # (float) Min IoU to consider tracks proximate for ReID; higher is stricter
+appearance_thresh: 0.9 # (float) Min appearance similarity for ReID; raise to avoid identity swaps
+alpha_fixed_emb: 0.95 # (float) Base EMA factor for track embedding updates; higher = slower update

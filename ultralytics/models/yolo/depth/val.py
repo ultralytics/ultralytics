@@ -3,12 +3,12 @@
 
 from __future__ import annotations
 
-import numpy as np
 import torch
 import torch.nn.functional as F
 
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, RANK
+from ultralytics.utils.metrics import DepthMetrics
 
 
 class DepthValidator(DetectionValidator):
@@ -22,11 +22,11 @@ class DepthValidator(DetectionValidator):
         """Initialize DepthValidator."""
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.args.task = "depth"
-        self.depth_metrics = []  # accumulated per-image metrics
 
     def init_metrics(self, model):
-        """Initialize depth metrics."""
-        self.depth_metrics = []
+        """Initialize the DepthMetrics accumulator."""
+        self.metrics = DepthMetrics()
+        self.metrics.clear_stats()
 
     def preprocess(self, batch):
         """Preprocess batch — move to device, normalize images, handle precision."""
@@ -43,92 +43,54 @@ class DepthValidator(DetectionValidator):
         """No NMS needed for depth — return predictions as-is."""
         return preds
 
+    def _extract_pred(self, preds):
+        """Return the (B,1,H,W) predicted depth tensor from any model output container."""
+        if isinstance(preds, dict):
+            return preds.get("depth", preds.get("proto"))
+        if isinstance(preds, (tuple, list)):
+            return preds[0] if isinstance(preds[0], torch.Tensor) else preds
+        return preds
+
     def update_metrics(self, preds, batch):
-        """Compute per-batch depth metrics."""
+        """Accumulate depth metrics for a batch."""
         if "depth" not in batch:
             return
 
-        # Get predicted depth
-        if isinstance(preds, dict):
-            pred_depth = preds.get("depth", preds.get("proto"))
-        elif isinstance(preds, torch.Tensor):
-            pred_depth = preds
-        elif isinstance(preds, (tuple, list)):
-            pred_depth = preds[0] if isinstance(preds[0], torch.Tensor) else preds
-        else:
-            return
-
-        gt_depth = batch["depth"]  # (B, 1, H, W) or (B, H, W)
+        pred_depth = self._extract_pred(preds)
+        gt_depth = batch["depth"]
         if gt_depth.ndim == 3:
             gt_depth = gt_depth.unsqueeze(1)
-
-        # Resize pred to match GT if needed
+        if pred_depth.ndim == 3:
+            pred_depth = pred_depth.unsqueeze(1)
         if pred_depth.shape[-2:] != gt_depth.shape[-2:]:
-            pred_depth = F.interpolate(pred_depth, size=gt_depth.shape[-2:], mode="bilinear", align_corners=True)
-
-        # Compute per-image metrics
-        for i in range(pred_depth.shape[0]):
-            p = pred_depth[i].squeeze().cpu().numpy()
-            g = gt_depth[i].squeeze().cpu().numpy()
-
-            # Valid mask
-            mask = g > 0.001
-            if mask.sum() < 100:
-                continue
-
-            p_valid = np.clip(p[mask], 0.001, 100.0)
-            g_valid = np.clip(g[mask], 0.001, 100.0)
-
-            # Threshold accuracy
-            thresh = np.maximum(p_valid / g_valid, g_valid / p_valid)
-            delta1 = float((thresh < 1.25).mean())
-            delta2 = float((thresh < 1.25 ** 2).mean())
-            delta3 = float((thresh < 1.25 ** 3).mean())
-
-            # Error metrics
-            abs_rel = float(np.mean(np.abs(p_valid - g_valid) / g_valid))
-            rmse = float(np.sqrt(np.mean((p_valid - g_valid) ** 2)))
-
-            # SILog
-            log_diff = np.log(p_valid) - np.log(g_valid)
-            silog = float(np.sqrt(np.mean(log_diff ** 2) - 0.5 * np.mean(log_diff) ** 2) * 100)
-
-            self.depth_metrics.append({
-                "delta1": delta1,
-                "delta2": delta2,
-                "delta3": delta3,
-                "abs_rel": abs_rel,
-                "rmse": rmse,
-                "silog": silog,
-            })
+            pred_depth = F.interpolate(pred_depth.float(), size=gt_depth.shape[-2:], mode="bilinear", align_corners=True)
+        self.metrics.update_stats(pred_depth, gt_depth)
 
     def get_stats(self):
-        """Aggregate depth metrics across all batches."""
-        if not self.depth_metrics:
-            return {}
+        """Reduce across ranks, finalize, and return the metrics dict."""
+        self.metrics.reduce_ddp()
+        self.metrics.process()
+        return self.metrics.results_dict
 
-        stats = {}
-        for key in self.depth_metrics[0]:
-            vals = [m[key] for m in self.depth_metrics]
-            stats[f"metrics/{key}"] = float(np.mean(vals))
+    def gather_stats(self) -> None:
+        """No-op DDP gather for depth validation.
 
-        # Use delta1 as fitness (higher is better)
-        stats["fitness"] = stats.get("metrics/delta1", 0.0)
-        return stats
+        Depth metrics are reduced across ranks in DepthMetrics.reduce_ddp(); no per-stat gather needed.
+        DetectionValidator.gather_stats() accesses self.metrics.stats and self.metrics.box which do not
+        exist on DepthMetrics, so we override here to prevent AttributeError on multi-GPU val runs.
+        """
+        pass
 
     def print_results(self):
-        """Print depth validation results."""
-        if not self.depth_metrics:
-            return
-        n = len(self.depth_metrics)
-        d1 = np.mean([m["delta1"] for m in self.depth_metrics])
-        ar = np.mean([m["abs_rel"] for m in self.depth_metrics])
-        rmse = np.mean([m["rmse"] for m in self.depth_metrics])
-        silog = np.mean([m["silog"] for m in self.depth_metrics])
-        LOGGER.info(f"Depth val ({n} images): delta1={d1:.4f}  abs_rel={ar:.4f}  rmse={rmse:.4f}  silog={silog:.2f}")
+        """Log the headline depth metrics."""
+        r = self.metrics.results_dict
+        LOGGER.info(
+            f"Depth val: delta1={r.get('metrics/delta1', 0.0):.4f}  abs_rel={r.get('metrics/abs_rel', 0.0):.4f}  "
+            f"rmse={r.get('metrics/rmse', 0.0):.4f}  silog={r.get('metrics/silog', 0.0):.2f}"
+        )
 
-    def finalize_metrics(self):
-        """No-op for depth (metrics already finalized in get_stats)."""
+    def finalize_metrics(self, *args, **kwargs):
+        """No-op; metrics finalized in get_stats()."""
         pass
 
     def get_desc(self):

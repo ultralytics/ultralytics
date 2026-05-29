@@ -61,12 +61,21 @@ def rank_with_junk(
     return Ranks(top_gids=top_gids, top_dists=top_dists, matches=matches, q_camids=q_camids, g_camids=g_camids)
 
 
+def _is_real_match(g_pids: np.ndarray, g_camids: np.ndarray, q_pid: int, q_camid: int) -> np.ndarray:
+    """Per-gallery boolean: True iff (same_pid AND different_camid). Same-pid-same-cam is junk -> False."""
+    return (g_pids == q_pid) & (g_camids != q_camid)
+
+
 def compute_cmc_map(ranks: Ranks, q_pids: np.ndarray, g_pids: np.ndarray) -> dict[str, float]:
     """Compute aggregate R1/R5/R10 and mAP from pre-computed Ranks."""
+    assert ranks.matches.shape[1] >= 10, (
+        f"compute_cmc_map needs top_k >= 10, got {ranks.matches.shape[1]}; "
+        "re-run rank_with_junk with top_k >= 10."
+    )
     nq = ranks.matches.shape[0]
     # A query is "valid" if it has at least one non-junk relevant item in the gallery.
     has_any_match = np.array([
-        int(((g_pids == q_pids[i]) & ~((g_pids == q_pids[i]) & (ranks.g_camids == ranks.q_camids[i]))).sum()) > 0
+        _is_real_match(g_pids, ranks.g_camids, int(q_pids[i]), int(ranks.q_camids[i])).any()
         for i in range(nq)
     ])
     valid = has_any_match.sum()
@@ -89,9 +98,7 @@ def per_query_ap(ranks: Ranks, q_pids: np.ndarray, g_pids: np.ndarray) -> np.nda
     aps = np.zeros(nq, dtype=np.float64)
     for i in range(nq):
         # Total relevant in gallery (for normalising AP), excluding junk (same pid+cam).
-        same_pid = g_pids == q_pids[i]
-        junk = same_pid & (ranks.g_camids == ranks.q_camids[i])
-        n_rel = int((same_pid & ~junk).sum())
+        n_rel = int(_is_real_match(g_pids, ranks.g_camids, int(q_pids[i]), int(ranks.q_camids[i])).sum())
         if n_rel == 0:
             aps[i] = 0.0
             continue

@@ -529,15 +529,20 @@ def check_executorch_requirements():
     check_requirements("numpy<=2.3.5")
 
 
-def check_tensorrt(min_version: str = "7.0.0"):
+def check_tensorrt(min_version: str = "7.0.0", max_version: str = None):
     """Check and install TensorRT requirements including platform-specific dependencies.
 
     Args:
         min_version (str): Minimum supported TensorRT version (default: "7.0.0").
+        max_version (str, optional): Exclusive upper bound for AutoUpdate installs. Only the export path sets this
+            (TRT 11.0 removed builder APIs export relies on); inference leaves it unset so TRT 11 engines still load.
     """
     if LINUX:
         cuda_version = torch.version.cuda.split(".")[0]
-        check_requirements(f"tensorrt-cu{cuda_version}>={min_version},!=10.2.0,<11.0.0")
+        req = f"tensorrt-cu{cuda_version}>={min_version},!=10.2.0"
+        if max_version:
+            req += f",<{max_version}"
+        check_requirements(req)
 
 
 def check_torchvision():

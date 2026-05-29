@@ -24,6 +24,29 @@ def iter_dataset_labels(dataset) -> list[dict]:
     return dataset.labels
 
 
+def get_dataset_fractions(data: dict, paths: list[str], mode: str) -> list[float] | None:
+    """Read per-path sampling fractions from the data YAML for train or val.
+
+    Args:
+        data (dict): Parsed dataset YAML (``check_det_dataset`` output).
+        paths (list[str]): Resolved image directory paths for the given mode.
+        mode (str): ``train`` reads ``train_dataset_fractions``; ``val`` reads ``val_dataset_fractions``.
+
+    Returns:
+        (list[float] | None): Normalized-ready fractions, or ``None`` if the key is absent.
+    """
+    if mode not in {"train", "val"}:
+        raise ValueError(f"mode must be 'train' or 'val', not {mode}")
+    key = "train_dataset_fractions" if mode == "train" else "val_dataset_fractions"
+    fr = data.get(key)
+    if fr is None:
+        return None
+    fr = [float(x) for x in fr]
+    if len(fr) != len(paths):
+        raise ValueError(f"{key} length ({len(fr)}) must match number of {mode} paths ({len(paths)}): {paths}")
+    return fr
+
+
 def get_concat_index_pools(dataset) -> list[list[int]]:
     """Return global index lists for each sub-dataset in a YOLOConcatDataset."""
     from ultralytics.data.dataset import YOLOConcatDataset
@@ -42,7 +65,7 @@ def normalize_fractions(fractions: list[float]) -> list[float]:
     """Normalize dataset fractions to sum to 1.0."""
     total = float(sum(fractions))
     if total <= 0:
-        raise ValueError(f"dataset_fractions must sum to > 0, got {fractions}")
+        raise ValueError(f"fractions must sum to > 0, got {fractions}")
     return [float(f) / total for f in fractions]
 
 
@@ -87,7 +110,7 @@ class ProportionalBatchSampler(Sampler[list[int]]):
     ) -> None:
         if len(index_pools) != len(fractions):
             raise ValueError(
-                f"dataset_fractions length {len(fractions)} must match number of train datasets {len(index_pools)}"
+                f"fractions length {len(fractions)} must match number of datasets {len(index_pools)}"
             )
         empty = [i for i, p in enumerate(index_pools) if not p]
         if empty:

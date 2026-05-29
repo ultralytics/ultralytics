@@ -12,7 +12,12 @@ import torch
 import torch.nn as nn
 
 from ultralytics.data import YOLOConcatDataset, build_dataloader, build_yolo_dataset
-from ultralytics.data.sampler import ProportionalBatchSampler, get_concat_index_pools, iter_dataset_labels
+from ultralytics.data.sampler import (
+    ProportionalBatchSampler,
+    get_concat_index_pools,
+    get_dataset_fractions,
+    iter_dataset_labels,
+)
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import DetectionModel
@@ -63,23 +68,20 @@ class DetectionTrainer(BaseTrainer):
         """
         super().__init__(cfg, overrides, _callbacks)
 
-    def _get_dataset_fractions(self, paths: list[str]) -> list[float] | None:
-        """Read per-dataset sampling fractions from the data YAML (one value per ``train`` path)."""
-        fr = self.data.get("dataset_fractions")
-        if fr is None:
-            return None
-        fr = [float(x) for x in fr]
-        if len(fr) != len(paths):
-            raise ValueError(
-                f"dataset_fractions length ({len(fr)}) must match number of train paths ({len(paths)}): {paths}"
-            )
-        return fr
+    def _use_concat_dataset(self, paths: list[str], mode: str) -> bool:
+        """Whether to build ``YOLOConcatDataset`` from multiple source paths."""
+        if len(paths) <= 1:
+            return False
+        if mode == "train":
+            return get_dataset_fractions(self.data, paths, mode) is not None
+        return True
 
     def build_dataset(self, img_path: str | list[str], mode: str = "train", batch: int | None = None):
         """Build YOLO Dataset for training or validation.
 
-        When ``dataset_fractions`` is set with multiple train paths, builds ``YOLOConcatDataset`` for proportional
-        per-source batch sampling.
+        When multiple paths are configured, builds ``YOLOConcatDataset``. Use ``train_dataset_fractions`` /
+        ``val_dataset_fractions`` with ``ProportionalBatchSampler``; without val fractions, validation
+        iterates all val images once.
 
         Args:
             img_path (str | list[str]): Path to the folder containing images, or list of paths.
@@ -91,12 +93,15 @@ class DetectionTrainer(BaseTrainer):
         """
         gs = max(int(unwrap_model(self.model).stride.max() if self.model else 32), 32)
         paths = img_path if isinstance(img_path, list) else [img_path]
-        use_proportional = mode == "train" and len(paths) > 1 and self._get_dataset_fractions(paths) is not None
-        if use_proportional:
+        if self._use_concat_dataset(paths, mode):
             datasets = [
                 build_yolo_dataset(self.args, p, batch, self.data, mode=mode, rect=False, stride=gs) for p in paths
             ]
-            return YOLOConcatDataset(datasets) if len(datasets) > 1 else datasets[0]
+            dataset = YOLOConcatDataset(datasets) if len(datasets) > 1 else datasets[0]
+            if mode == "val" and len(paths) > 1 and get_dataset_fractions(self.data, paths, mode) is None:
+                sizes = [len(d) for d in datasets]
+                LOGGER.info(f"{colorstr('balanced:')} Val mixed dataset (full) | sources={sizes} total={sum(sizes)}")
+            return dataset
         return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs)
 
     def get_dataloader(self, dataset_path: str | list[str], batch_size: int = 16, rank: int = 0, mode: str = "train"):
@@ -117,12 +122,11 @@ class DetectionTrainer(BaseTrainer):
             dataset = self.build_dataset(dataset_path, mode, batch_size)
         shuffle = mode == "train"
         batch_sampler = None
-        fractions = self._get_dataset_fractions(paths) if mode == "train" else None
-        if mode == "train" and fractions:
+        fractions = get_dataset_fractions(self.data, paths, mode)
+        if fractions:
+            key = "train_dataset_fractions" if mode == "train" else "val_dataset_fractions"
             if not isinstance(dataset, YOLOConcatDataset):
-                raise RuntimeError(
-                    "dataset_fractions requires multiple train paths in the data YAML and YOLOConcatDataset."
-                )
+                raise RuntimeError(f"{key} requires multiple {mode} paths in the data YAML and YOLOConcatDataset.")
             pools = get_concat_index_pools(dataset)
             sizes = [len(p) for p in pools]
             ws = max(self.world_size, 1)
@@ -138,11 +142,11 @@ class DetectionTrainer(BaseTrainer):
             shuffle = False
             fr = [round(f, 4) for f in batch_sampler.fractions]
             LOGGER.info(
-                f"{colorstr('balanced:')} ProportionalBatchSampler | datasets={sizes} fractions={fr} "
+                f"{colorstr('balanced:')} ProportionalBatchSampler ({mode}) | datasets={sizes} fractions={fr} "
                 f"batch={batch_size}"
             )
             n_total = sum(sizes)
-            if n_total > 50000 and self.args.workers > 4:
+            if mode == "train" and n_total > 50000 and self.args.workers > 4:
                 LOGGER.warning(
                     f"{colorstr('balanced:')} Large combined dataset ({n_total} images) with workers={self.args.workers} "
                     f"may cause host RAM OOM during image decode. Try workers=2 or workers=4."

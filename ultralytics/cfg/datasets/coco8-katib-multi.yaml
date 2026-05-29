@@ -20,8 +20,8 @@ names:
 
 # 每个 train 路径的采样比例（与 train 列表顺序一致，可写小数，会自动归一化）
 # 例：batch=16 且比例 [0.25, 0.75] → 每批约 4 张来自 A，12 张来自 B
-# 三个数据集示例：train: [A, B, C]  dataset_fractions: [0.2, 0.3, 0.5]
-dataset_fractions: [0.95, 0.05]
+# 三个数据集示例：train: [A, B, C]  train_dataset_fractions: [0.2, 0.3, 0.5]
+train_dataset_fractions: [0.95, 0.05]
 
 # Download script/URL (optional)
 # download: https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8.zip

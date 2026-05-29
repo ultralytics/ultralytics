@@ -329,6 +329,10 @@ jobs:
               monitor_pid=$!
               trap 'kill "$monitor_pid" 2>/dev/null || true' EXIT
             fi
+            pytest_workers=2
+            if [ "${{ matrix.os }}" = "ubuntu-24.04-arm" ]; then
+              pytest_workers=1  # ARM runners lose communication under two concurrent slow export workers
+            fi
             pytest_args=(
               -vv
               -s
@@ -345,7 +349,7 @@ jobs:
               --deselect tests/test_exports.py::test_export_axelera
               --deselect tests/test_exports.py::test_export_deepx
             )
-            PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -n 2 --dist=loadfile "${pytest_args[@]}"
+            PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -n "$pytest_workers" --dist=loadfile "${pytest_args[@]}"
 
             # Run memory-heavy hardware exporter installs in fresh processes after TensorFlow/TFLite exits.
             for export_test in tests/test_exports.py::test_export_axelera tests/test_exports.py::test_export_deepx; do

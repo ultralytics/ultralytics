@@ -326,6 +326,7 @@ class Stereo3DDetValidator(BaseValidator):
         labels_list = batch.get("labels", [])
         calibs = batch.get("calib", [])
         ori_shapes = batch.get("ori_shape", [])
+        im_files = batch.get("im_file", [])
 
         for si, (pred_boxes, labels) in enumerate(zip(preds, labels_list)):
             self.seen += 1
@@ -476,6 +477,7 @@ class Stereo3DDetValidator(BaseValidator):
                     "pred_cls": pred_cls_np,
                     "target_cls": target_cls_np,
                     "target_img": np.unique(target_cls_np),
+                    "im_name": Path(im_files[si]).name if si < len(im_files) else str(si),
                 }
             )
 

@@ -405,19 +405,19 @@ There is no appearance model and no camera-motion compensation.
 
 **TrackTrack-specific arguments:**
 
-| Parameter         | Valid Values or Ranges | Description                                                              |
-| ----------------- | ---------------------- | ------------------------------------------------------------------------ |
-| `iou_weight`      | `0.0-1.0`              | Weight of HMIoU distance in the multi-cue cost matrix.                   |
-| `reid_weight`     | `0.0-1.0`              | Weight of cosine ReID distance. Falls back to HMIoU if ReID is disabled. |
-| `conf_weight`     | `0.0-1.0`              | Weight of confidence-projection distance.                                |
-| `angle_weight`    | `0.0-1.0`              | Weight of corner-angle distance.                                         |
-| `det_thr`         | `0.0-1.0`              | Detection threshold separating high- from low-confidence detections.     |
-| `penalty_p`       | `0.0-1.0`              | Cost penalty for low-confidence detections.                              |
-| `penalty_q`       | `0.0-1.0`              | Cost penalty for detections recovered by secondary NMS.                  |
-| `reduce_step`     | `0.0-1.0`              | Match-threshold relaxation per iteration.                                |
-| `tai_thr`         | `0.0-1.0`              | IoU threshold for Track-Aware Initialization NMS.                        |
-| `min_track_len`   | `>=0`                  | Minimum successful updates before a new track is confirmed.              |
-| `lost_match_thr`  | `0.0-1.0`              | Looser cost gate for relaxed lost-rebind pass; `0` disables it.          |
+| Parameter        | Valid Values or Ranges | Description                                                              |
+| ---------------- | ---------------------- | ------------------------------------------------------------------------ |
+| `iou_weight`     | `0.0-1.0`              | Weight of HMIoU distance in the multi-cue cost matrix.                   |
+| `reid_weight`    | `0.0-1.0`              | Weight of cosine ReID distance. Falls back to HMIoU if ReID is disabled. |
+| `conf_weight`    | `0.0-1.0`              | Weight of confidence-projection distance.                                |
+| `angle_weight`   | `0.0-1.0`              | Weight of corner-angle distance.                                         |
+| `det_thr`        | `0.0-1.0`              | Detection threshold separating high- from low-confidence detections.     |
+| `penalty_p`      | `0.0-1.0`              | Cost penalty for low-confidence detections.                              |
+| `penalty_q`      | `0.0-1.0`              | Cost penalty for detections recovered by secondary NMS.                  |
+| `reduce_step`    | `0.0-1.0`              | Match-threshold relaxation per iteration.                                |
+| `tai_thr`        | `0.0-1.0`              | IoU threshold for Track-Aware Initialization NMS.                        |
+| `min_track_len`  | `>=0`                  | Minimum successful updates before a new track is confirmed.              |
+| `lost_match_thr` | `0.0-1.0`              | Looser cost gate for relaxed lost-rebind pass; `0` disables it.          |
 
 **Tuning tips:**
 

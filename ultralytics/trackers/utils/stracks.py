@@ -62,8 +62,8 @@ def parse_bboxes(results) -> np.ndarray:
         results (Any): Object exposing ``xywh`` (or ``xywhr``), ``conf``, and ``cls``.
 
     Returns:
-        (np.ndarray): Array of shape ``(N, 5)`` for ``xywh`` or ``(N, 6)`` for ``xywhr``,
-            with the last column containing the original detection index.
+        (np.ndarray): Array of shape ``(N, 5)`` for ``xywh`` or ``(N, 6)`` for ``xywhr``, with the last column
+            containing the original detection index.
     """
     bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
     return np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)

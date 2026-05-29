@@ -60,11 +60,10 @@ class SemanticSegmentationPredictor(BasePredictor):
             img_path = self.batch[0][i] if isinstance(self.batch[0], list) else self.batch[0]
             pred = pred.unsqueeze(0)
             # Upsample pred to the model input resolution first so LetterBox padding is an integer in this space
-            if pred.shape[2:] != img.shape[2:]:
+            if pred.is_floating_point() and pred.shape[2:] != img.shape[2:]:
                 pred = F.interpolate(
                     pred.float(), img.shape[2:], mode="bilinear" if pred.is_floating_point() else "nearest"
                 )
-            if pred.is_floating_point():
                 # pred: [1, nc, H, W] logits on letterboxed input. Remove padding, then resize to original image.
                 pred = ops.scale_masks(pred, orig_img.shape[:2])[0]
                 dtype = self._class_map_dtype(max(pred.shape[0], 2))

@@ -88,22 +88,71 @@ dev = [
     "mkdocs-ultralytics-plugin>=0.2.4", # for meta descriptions and images, dates and authors
     "minijinja>=2.0.0", # render docs macros without mkdocs-macros-plugin
 ]
-export = [
-    "numpy<2.0.0", # TF 2.20 compatibility
-    "onnx>=1.12.0; platform_system != 'Darwin'", # ONNX export
-    "onnx>=1.12.0,<1.18.0; platform_system == 'Darwin'",  # TF inference hanging on MacOS (tested up to onnx==1.20.0)
+export-onnx = [
+    "onnx>=1.12.0,!=1.19.0; platform_system != 'Darwin'", # ONNX 1.19.0 has an issue with the ml dtypes
+    "onnx>=1.12.0,<1.18.0,!=1.19.0; platform_system == 'Darwin'",  # TF inference hanging on MacOS
     "onnxslim>=0.1.82",
-    "coremltools>=9.0; platform_system != 'Windows' and python_version <= '3.13'", # CoreML supported on macOS and Linux
-    "scikit-learn>=1.3.2; platform_system != 'Windows' and python_version <= '3.13'", # CoreML k-means quantization
+]
+export-openvino = [
+    "packaging>=23.2",
+    "nncf>=2.14.0; python_version >= '3.9'", # only supported on python >=3.9
     "openvino>=2024.0.0",  # OpenVINO export
+]
+export-tensorflow = [# tensorflow export on Windows and darwin is pretty broken, only use this on linux
+    # onnx dependencies
+    "onnx>=1.12.0,!=1.19.0; platform_system != 'Darwin'", # ONNX 1.19.0 has an issue with the ml dtypes
+    "onnx>=1.12.0,<1.18.0,!=1.19.0; platform_system == 'Darwin'",  # TF inference hanging on MacOS
+    "onnxslim>=0.1.82",
+    # tensorflow specific dependencies
+    "numpy<2.0.0", # TF 2.20 compatibility
     "tensorflow>=2.0.0,<=2.19.0", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
+    # ^ this implicitly limits the max python version to 3.12
     "tensorflowjs>=2.0.0", # TF.js export, automatically installs tensorflow
     "ydf<0.13.0; platform_machine != 'aarch64'", # ydf>=0.13 has protobuf gencode 6.x but tensorflow<=2.19 requires protobuf<6
     "googleapis-common-protos<1.74.0", # >=1.74.0 uses protobuf gencode 7.34.1, incompatible with tensorflow<=2.19 (protobuf<6) and breaks ray[tune] import
     "tensorstore>=0.1.63; platform_machine == 'aarch64' and python_version >= '3.9'", # for TF Raspberry Pi exports
     "h5py!=3.11.0; platform_machine == 'aarch64'", # fix h5py build issues due to missing aarch64 wheels in 3.11 release
+    "tf_keras",  # required by 'onnx2tf' package
+    "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
+    "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
+    "ai-edge-litert>=1.2.0; python_version >='3.9' and platform_system != 'Windows'",  # required by 'onnx2tf' package, only available for python >= 3.9
+    "onnx2tf>=1.26.3; python_version >='3.10'", # below 3.10 onnx2tf may not be resolvable on windows,
+    # it will try to resolve this on runtime
+    "onnxruntime", # in case a gpu is available the gpu version will be installed at runtime
+    "protobuf>=5",
     "setuptools<=81.0.0",  # pin due to >=82.0.0 breaking tensorflow.js package
     "packaging>=26.0; platform_machine == 'aarch64' and platform_system == 'Linux' and python_version >= '3.9'", # IMX export bug
+]
+export-coreml = [
+    "coremltools>=9.0; platform_system != 'Windows' and python_version <= '3.13'", # CoreML supported on macOS and Linux
+    "scikit-learn>=1.3.2; platform_system != 'Windows' and python_version <= '3.13'", # CoreML k-means quantization
+]
+export = [
+    # ONNX
+    "onnx>=1.12.0,!=1.19.0; platform_system != 'Darwin'", # ONNX 1.19.0 has an issue with the ml dtypes
+    "onnx>=1.12.0,<1.18.0,!=1.19.0; platform_system == 'Darwin'",  # TF inference hanging on MacOS
+    "onnxslim>=0.1.82",
+    # Tensorflow
+    "numpy<2.0.0", # TF 2.20 compatibility
+    "tensorflow>=2.0.0,<=2.19.0", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
+    # ^ this implicitly limits the max python version to 3.12
+    "tensorflowjs>=2.0.0", # TF.js export, automatically installs tensorflow
+    "ydf<0.13.0; platform_machine != 'aarch64'", # ydf>=0.13 has protobuf gencode 6.x but tensorflow<=2.19 requires protobuf<6
+    "tensorstore>=0.1.63; platform_machine == 'aarch64' and python_version >= '3.9'", # for TF Raspberry Pi exports
+    "h5py!=3.11.0; platform_machine == 'aarch64'", # fix h5py build issues due to missing aarch64 wheels in 3.11 release
+    "tf_keras",  # required by 'onnx2tf' package
+    "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
+    "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
+    "ai-edge-litert>=1.2.0; python_version >='3.9' and platform_system != 'Windows'",  # required by 'onnx2tf' package, only available for python >= 3.9
+    "onnx2tf>=1.26.3; python_version >='3.10'", # below 3.10 onnx2tf may not be resolvable on windows,
+    # it will try to resolve this on runtime
+    "onnxruntime", # in case a gpu is available the gpu version will be installed at runtime
+    "protobuf>=5",
+    "setuptools<=81.0.0",  # pin due to >=82.0.0 breaking tensorflow.js package
+    "packaging>=26.0; platform_machine == 'aarch64' and platform_system == 'Linux' and python_version >= '3.9'", # IMX export bug
+    # CoreML
+    "coremltools>=9.0; platform_system != 'Windows' and python_version <= '3.13'", # CoreML supported on macOS and Linux
+    "scikit-learn>=1.3.2; platform_system != 'Windows' and python_version <= '3.13'", # CoreML k-means quantization
 ]
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching

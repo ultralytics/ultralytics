@@ -1,6 +1,6 @@
 # YOLOv8 - ONNX Runtime
 
-This repository provides an example implementation for running [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) models using the [ONNX Runtime](https://onnxruntime.ai/). This allows for efficient inference across various hardware platforms supporting the [ONNX format](https://onnx.ai/).
+This repository provides an example implementation for running [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) models using the [ONNX Runtime](https://onnxruntime.ai/). This allows for efficient inference across various hardware platforms supporting the [ONNX format](https://onnx.ai/).
 
 ## ⚙️ Installation
 
@@ -42,7 +42,7 @@ Once the dependencies and the appropriate ONNX Runtime backend are installed, yo
 
 ### Exporting Your Model
 
-Before running inference, you need a YOLOv8 model in the ONNX format (`.onnx`). You can export your trained Ultralytics YOLOv8 models using the Ultralytics CLI or Python SDK. See the [Ultralytics export documentation](https://docs.ultralytics.com/modes/export/) for detailed instructions.
+Before running inference, you need a YOLOv8 model in the ONNX format (`.onnx`). You can export your trained Ultralytics YOLOv8 models using the Ultralytics CLI or Python SDK. See the [Ultralytics export documentation](https://docs.ultralytics.com/modes/export) for detailed instructions.
 
 Example export command:
 
@@ -52,7 +52,7 @@ yolo export model=yolov8n.pt format=onnx # Export yolov8n model to ONNX
 
 ### Running Inference
 
-Execute the `main.py` script with the path to your ONNX model and input image. You can also adjust the confidence and [Intersection over Union (IoU)](https://www.ultralytics.com/glossary/intersection-over-union-iou) thresholds for [object detection](https://docs.ultralytics.com/tasks/detect/).
+Execute the `main.py` script with the path to your ONNX model and input image. You can also adjust the confidence and [Intersection over Union (IoU)](https://www.ultralytics.com/glossary/intersection-over-union-iou) thresholds for [object detection](https://docs.ultralytics.com/tasks/detect).
 
 ```bash
 python main.py --model yolov8n.onnx --img image.jpg --conf-thres 0.5 --iou-thres 0.5
@@ -60,7 +60,7 @@ python main.py --model yolov8n.onnx --img image.jpg --conf-thres 0.5 --iou-thres
 
 - `--model`: Path to the YOLOv8 ONNX model file (e.g., `yolov8n.onnx`).
 - `--img`: Path to the input image (e.g., `image.jpg`).
-- `--conf-thres`: Confidence threshold for filtering detections. Only detections with a score higher than this value will be kept. Learn more about thresholds in the [performance metrics guide](https://docs.ultralytics.com/guides/yolo-performance-metrics/).
+- `--conf-thres`: Confidence threshold for filtering detections. Only detections with a score higher than this value will be kept. Learn more about thresholds in the [performance metrics guide](https://docs.ultralytics.com/guides/yolo-performance-metrics).
 - `--iou-thres`: IoU threshold for Non-Maximum Suppression (NMS). Boxes with IoU greater than this threshold will be suppressed. See the [NMS glossary entry](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) for details.
 
 The script will process the image, perform object detection, draw bounding boxes on the detected objects, and save the output image as `output.jpg`.

@@ -25,8 +25,8 @@ Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 | **Storage**                                                | 100 GB     | 500 GB          | Unlimited  |
 | **Dataset Upload (ZIP/TAR incl. `.tar.gz`/`.tgz`/NDJSON)** | 10 GB      | 20 GB           | 50 GB      |
 | **Deployments**                                            | 3          | 10              | Unlimited  |
-| **Cloud GPU Types**                                        | 20         | 23              | 23         |
-| **Best GPUs (H200, B200)**                                 | -          | Yes             | Yes        |
+| **Cloud GPU Types**                                        | 22         | 24              | 24         |
+| **Best GPUs (B200, B300)**                                 | -          | Yes             | Yes        |
 | **Teams**                                                  | -          | Up to 5 members | Up to 50   |
 | **SSO / SAML**                                             | -          | -               | Yes        |
 | **Enterprise License**                                     | -          | -               | Yes        |
@@ -46,7 +46,7 @@ Get started at no cost:
 - 100 GB storage · 10 GB dataset upload limit
 - Model export to all 17+ formats
 - Manual, SAM 3 & YOLO Smart annotation
-- 20 cloud GPU types including 5090 & H100 ($0.24–$3.07/hr)
+- 22 cloud GPU types including 5090, H100 & H200 ($0.24–$3.99/hr)
 - Community support
 
 !!! tip "Company Email Bonus"
@@ -62,8 +62,8 @@ For professionals and small teams ($29/month or $290/year):
 - 10 concurrent cloud trainings
 - 500 GB storage · 20 GB dataset upload limit
 - 10 cloud deployments
-- [Team collaboration](teams.md) (up to 5 members)
-- Access to the best GPUs (H200, B200)
+- [Team collaboration](teams.md) with 4-role RBAC (up to 5 members)
+- Access to the best GPUs (B200, B300)
 - Priority support
 
 !!! tip "Save with Yearly Billing"
@@ -78,13 +78,12 @@ For organizations with advanced needs:
 - Unlimited models, storage, trainings, and deployments · 50 GB dataset upload limit
 - Enterprise License (commercial use, non-AGPL)
 - SSO / SAML authentication
-- RBAC with 4 roles (Owner, Admin, Editor, Viewer)
 - On-premise deployment (coming soon)
 - ISO/SOC compliance (coming soon)
 - SLA guarantees (coming soon)
 - Enterprise support
 
-See [Ultralytics Licensing](https://www.ultralytics.com/licensing) for Enterprise plan details.
+See [Ultralytics Licensing](https://www.ultralytics.com/license) for Enterprise plan details.
 
 ## Credits
 
@@ -193,7 +192,7 @@ Cloud training costs depend on GPU selection:
 
 {% include "macros/platform-gpu-table.md" %}
 
-H200 and B200 GPUs require a [Pro or Enterprise plan](#plans). All other GPUs are available on all plans.
+B200 and B300 GPUs require a [Pro or Enterprise plan](#plans). All other GPUs are available on all plans.
 
 See [Cloud Training](../train/cloud-training.md) for complete GPU options and pricing.
 
@@ -230,22 +229,23 @@ After upgrading:
 - 10 concurrent cloud trainings
 - 10 cloud deployments
 - [Team collaboration](teams.md) (up to 5 members)
-- Access to best GPUs (H200, B200)
+- Access to best GPUs (B200, B300)
 - Full monitoring dashboard
 - Priority support
 
 ### Cancel Pro
 
-Cancel anytime from the billing portal:
+Cancel anytime from the Plans tab:
 
-1. Go to **Settings > Billing**
-2. Click **Manage Subscription**
-3. Select **Cancel**
-4. Confirm cancellation
+1. Go to **Settings > Plans**
+2. Click **Cancel Subscription** on the Pro plan card
+3. Confirm in the dialog
+
+If you cancel before the end of your billing period, a **Resume Subscription** button appears — click it to undo the cancellation before the period ends.
 
 !!! note "Cancellation Timing"
 
-    Pro features remain active until the end of your billing period. Monthly credits stop at cancellation.
+    Pro features remain active until the end of your current billing period. Monthly credits stop being granted at cancellation.
 
 ### Downgrading to Free
 
@@ -260,7 +260,7 @@ When your Pro subscription ends (cancelled or expired), your account reverts to 
 | **Credit Balance**                                         | Existing credits preserved and usable                                            |
 | **Monthly Credits**                                        | $30/seat/month grants stop immediately                                           |
 | **Team Members**                                           | Members notified and lose access to team resources                               |
-| **GPU Access**                                             | Standard GPUs remain available. Best GPUs (H200, B200) require Pro or Enterprise |
+| **GPU Access**                                             | Standard GPUs remain available. Best GPUs (B200, B300) require Pro or Enterprise |
 | **Concurrent Trainings**                                   | Limit reduced from 10 to 3                                                       |
 
 !!! tip "No Data Loss"
@@ -273,13 +273,13 @@ View all transactions in `Settings > Billing`:
 
 ![Ultralytics Platform Settings Billing Tab Transaction History Table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-transaction-history-table.avif)
 
-| Column      | Description                                                                                                 |
-| ----------- | ----------------------------------------------------------------------------------------------------------- |
-| **Date**    | Transaction date                                                                                            |
-| **Type**    | Signup Bonus, Credit Purchase, Monthly Grant, Training, Refund, Adjustment, Auto Top-Up, Auto Top-Up Failed |
-| **Amount**  | Transaction value (green for credits, red for charges)                                                      |
-| **Balance** | Resulting balance after transaction                                                                         |
-| **Details** | Additional context (model link, receipt, period)                                                            |
+| Column      | Description                                                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **Date**    | Transaction date                                                                                                                       |
+| **Type**    | Signup, Purchase, Subscription, Monthly Grant, Training, Refund, Adjustment, Promo, Auto Top-Up, Auto Top-Up Failed, Pro Credit Expiry |
+| **Amount**  | Transaction value (green for credits, red for charges)                                                                                 |
+| **Balance** | Resulting balance after transaction                                                                                                    |
+| **Details** | Additional context (model link, receipt, period)                                                                                       |
 
 ## FAQ
 

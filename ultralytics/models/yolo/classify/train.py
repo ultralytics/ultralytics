@@ -79,14 +79,12 @@ class ClassificationTrainer(BaseTrainer):
         Returns:
             (ClassificationModel): Configured PyTorch model for classification.
         """
-        model = ClassificationModel(
-            cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK in {-1, 0}
-        )
+        model = ClassificationModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
 
         for m in model.modules():
-            if not self.args.pretrained and hasattr(m, "reset_parameters"):
+            if self.args.pretrained is False and hasattr(m, "reset_parameters"):
                 m.reset_parameters()
             if isinstance(m, torch.nn.Dropout) and self.args.dropout:
                 m.p = self.args.dropout  # set dropout
@@ -140,6 +138,12 @@ class ClassificationTrainer(BaseTrainer):
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, mode)
 
+        if not dataset.samples:
+            raise FileNotFoundError(
+                f"No images found in '{mode}' split of {dataset_path}. "
+                f"See https://docs.ultralytics.com/datasets/classify for cls dataset format."
+            )
+
         # Filter out samples with class indices >= nc (prevents CUDA assertion errors)
         nc = self.data.get("nc", 0)
         dataset_nc = len(dataset.base.classes)
@@ -152,7 +156,11 @@ class ClassificationTrainer(BaseTrainer):
                 f"{mode} split has {dataset_nc} classes but model expects {nc}. "
                 f"Skipping {skipped} samples from extra classes: {extra_classes}"
             )
-
+            if not dataset.samples:
+                raise RuntimeError(
+                    f"All {original_count} samples in '{mode}' split filtered out: every sample had class index >= "
+                    f"model nc={nc}. Reset the model's class count or align dataset class indices."
+                )
         loader = build_dataloader(dataset, batch_size, self.args.workers, rank=rank, drop_last=self.args.compile)
         # Attach inference transforms
         if mode != "train":

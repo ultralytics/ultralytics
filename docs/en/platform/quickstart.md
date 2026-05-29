@@ -19,21 +19,20 @@ keywords: Ultralytics Platform, Quickstart, YOLO models, dataset upload, model t
   <strong>Watch:</strong> Get Started with Ultralytics Platform - QuickStart
 </p>
 
+The following interactive diagram outlines the four primary stages of the Ultralytics Platform workflow. Click any stage or sub-step to access detailed instructions for that section.
+
 ```mermaid
-journey
-    title Your First Model in 5 Minutes
-    section Sign Up
-      Create account: 5: User
-      Select region: 5: User
-    section Prepare Data
-      Upload dataset: 5: User
-      Review images: 4: User
-    section Train
-      Configure training: 5: User
-      Monitor progress: 3: Platform
-    section Deploy
-      Test model: 5: User
-      Deploy endpoint: 5: User
+graph LR
+    A(Sign Up) --> B(Prepare Data) --> C(Train) --> D(Deploy)
+    A -.- A1["<a href='#get-started'>Create account</a><br/><a href='#region-selection'>Select region</a>"]
+    B -.- B1["<a href='#upload-your-first-dataset'>Upload dataset</a><br/><a href='#create-your-first-project'>Create Project</a>"]
+    C -.- C1["<a href='#training-configuration'>Configure training</a><br/><a href='#monitor-training'>Monitor progress</a>"]
+    D -.- D1["<a href='#test-your-model'>Test model</a><br/><a href='#deploy-to-production'>Deploy endpoint</a>"]
+
+    click A "#get-started"
+    click B "#upload-your-first-dataset"
+    click C "#train-your-first-model"
+    click D "#deploy-to-production"
 ```
 
 ## Get Started
@@ -48,11 +47,11 @@ During onboarding, you'll be asked to select your data region. The Platform auto
 
 ![Ultralytics Platform Onboarding Region Map With Latency](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-onboarding-region-map-with-latency.avif)
 
-| Region | Label                        | Location                | Best For                                |
-| ------ | ---------------------------- | ----------------------- | --------------------------------------- |
-| **US** | Americas                     | Iowa, USA               | Americas users, fastest for Americas    |
-| **EU** | Europe, Middle East & Africa | Belgium, Europe         | European users, GDPR compliance         |
-| **AP** | Asia Pacific                 | Hong Kong, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
+| Region | Label                        | Location             | Best For                                |
+| ------ | ---------------------------- | -------------------- | --------------------------------------- |
+| **US** | Americas                     | Iowa, USA            | Americas users, fastest for Americas    |
+| **EU** | Europe, Middle East & Africa | Belgium, Europe      | European users, GDPR compliance         |
+| **AP** | Asia Pacific                 | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
 
 !!! warning "Region is Permanent"
 
@@ -75,9 +74,9 @@ Every new account receives free credits for cloud GPU training:
 
 The onboarding flow guides you through three steps:
 
-1. **Username** — Choose a unique username (permanent, cannot be changed later)
-2. **Data Region** — Select US, EU, or AP with a visual world map showing latency
-3. **Profile** — Set your display name, company, and primary use case
+1. **Profile** - Enter your display name, unique username (permanent, cannot be changed later), organization (optional), and primary use case
+2. **Data Region** - Select US, EU, or AP with a visual world map showing latency
+3. **Complete** - Review your selections, optionally apply a promo code, and finish signup to claim your welcome credits
 
 ![Ultralytics Platform Onboarding Profile With Use Case](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-onboarding-profile-with-use-case.avif)
 
@@ -238,21 +237,9 @@ From your project, click `Train Model` to start cloud training.
 ### Training Configuration
 
 1. **Select Dataset**: Choose from your uploaded datasets (only datasets with a [`train` split](data/datasets.md#filter-by-split) are shown)
-2. **Choose Model**: Select a base model — official Ultralytics models or your own trained models
+2. **Choose Model**: Select a base model - official Ultralytics models or your own trained models
 3. **Set Epochs**: Number of training iterations (default: 100)
-4. **Select GPU**: Choose compute resources based on your budget and model size
-
-| Model   | Size        | Speed    | Accuracy | Recommended GPU      |
-| ------- | ----------- | -------- | -------- | -------------------- |
-| YOLO26n | Nano        | Fastest  | Good     | RTX PRO 6000 (96 GB) |
-| YOLO26s | Small       | Fast     | Better   | RTX PRO 6000 (96 GB) |
-| YOLO26m | Medium      | Moderate | High     | RTX PRO 6000 (96 GB) |
-| YOLO26l | Large       | Slower   | Higher   | A100 (80 GB)         |
-| YOLO26x | Extra Large | Slowest  | Best     | H100 (80 GB)         |
-
-!!! info "GPU Selection"
-
-    GPUs range from $0.24/hr (RTX 2000 Ada, 16 GB) to $4.99/hr (B200, 180 GB). The default GPU is **RTX PRO 6000** (96 GB Blackwell, $1.69/hr) — a great balance of memory and performance. 20 GPUs are available on all plans; H200 and B200 require [Pro or Enterprise](account/billing.md#plans). See the full [GPU pricing table](index.md#what-gpu-options-are-available-for-cloud-training).
+4. **Select GPU**: Choose compute resources based on your budget and model size. The default is **RTX PRO 6000** (96 GB Blackwell, $1.89/hr), which handles every YOLO26 variant. See the full [GPU pricing table](index.md#what-gpu-options-are-available-for-cloud-training) or the [Cloud Training GPU step](train/cloud-training.md#step-5-select-gpu-cloud-tab) for the complete list and tier gating.
 
 !!! warning "Credit Balance Required"
 
@@ -367,7 +354,7 @@ Read more about [endpoints](deploy/endpoints.md).
 
 If you prefer to train on your own hardware, you can stream metrics to the platform using your API key. This works like Weights & Biases — train anywhere, monitor on the platform.
 
-1. Generate an API key in [`Settings > Profile`](account/api-keys.md) (API Keys section)
+1. Generate an API key in [`Settings > API Keys`](account/api-keys.md)
 2. Set the environment variable and train with a `project/name` format:
 
 ```bash

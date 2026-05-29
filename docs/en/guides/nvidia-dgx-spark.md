@@ -28,7 +28,7 @@ NVIDIA DGX Spark is a compact desktop AI supercomputer powered by the NVIDIA GB1
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Get up to 1000 FPS with Ultralytics YOLO26 on NVIDIA DGX Spark | <a href="https://docs.ultralytics.com/integrations/tensorrt/">TensorRT</a> & Batch Inference
+  <strong>Watch:</strong> How to Get up to 1000 FPS with Ultralytics YOLO26 on NVIDIA DGX Spark | <a href="https://docs.ultralytics.com/integrations/tensorrt">TensorRT</a> & Batch Inference
 </p>
 
 ### Key Specifications
@@ -143,7 +143,7 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
 
     When running PyTorch 2.9.1 on NVIDIA DGX Spark, you may encounter the following `UserWarning` when initializing CUDA (e.g. running `yolo checks`, `yolo predict`, etc.):
 
-    ```text
+    ```
     UserWarning: Found GPU0 NVIDIA GB10 which is of cuda capability 12.1.
     Minimum and Maximum cuda capability supported by this version of PyTorch is (8.0) - (12.0)
     ```

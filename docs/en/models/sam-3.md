@@ -127,7 +127,7 @@ pip install -U ultralytics
 
 !!! warning "SAM 3 Model Weights Required"
 
-    Unlike other Ultralytics models, SAM 3 weights (`sam3.pt`) are **not automatically downloaded**. You must first request access for the model weights on the [SAM 3 model page on Hugging Face](https://huggingface.co/facebook/sam3) and then, once approved, download the [`sam3.pt` file](https://huggingface.co/facebook/sam3/resolve/main/sam3.pt?download=true). Place the downloaded `sam3.pt` file in your working directory or specify the full path when loading the model.
+    Unlike other Ultralytics models, SAM 3 weights (`sam3.pt`) are **not automatically downloaded**. You must first request access for the model weights on the [SAM 3 model page on Hugging Face](https://huggingface.co/facebook/sam3) and then, once approved, download `sam3.pt` from that page. Place the downloaded `sam3.pt` file in your working directory or specify the full path when loading the model.
 
 !!! warning "`TypeError: 'SimpleTokenizer' object is not callable`"
 
@@ -532,7 +532,7 @@ SAM 3's concept segmentation capability enables new use cases:
 - **Medical Imaging**: Identify all occurrences of specific tissue types or abnormalities
 - **Autonomous Systems**: Track all instances of traffic signs, pedestrians, or vehicles by category
 - **Video Analytics**: Count and track all people wearing specific clothing or performing actions
-- **Dataset Annotation**: Rapidly annotate all instances of rare object categories
+- **[Dataset Annotation](https://www.ultralytics.com/annotate)**: Rapidly annotate all instances of rare object categories
 - **Scientific Research**: Quantify and analyze all specimens matching specific criteria
 
 ## SAM 3 Agent: Extended Language Reasoning

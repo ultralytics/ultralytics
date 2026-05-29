@@ -24,10 +24,11 @@ The Activity Feed serves as your central hub for:
 
 ## Accessing Activity
 
-Navigate to the Activity Feed:
+Navigate to the Activity Feed in any of the following ways:
 
-1. Click **Activity** in the sidebar
-2. Or navigate directly to `/activity`
+1. Click the activity indicator in the top navigation bar
+2. Open the profile menu at the bottom of the sidebar and select **Activity**
+3. Navigate directly to `/activity`
 
 ![Ultralytics Platform Activity Page Inbox With Search And Date Filter](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/activity-page-inbox-with-search-and-date-filter.avif)
 
@@ -124,7 +125,7 @@ Each event displays:
 Some actions support undo directly from the Activity feed:
 
 - **Settings changes**: Click **Undo** next to a recent settings update event to revert the change
-- Undo is available for a short time window after the action
+- Undo is available for **one hour** after the action; after that, the undo button disappears
 
 ## Pagination
 

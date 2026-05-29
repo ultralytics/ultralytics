@@ -68,6 +68,7 @@ from ultralytics.nn.modules import (
     SCDown,
     Segment,
     Segment26,
+    SemanticSegment,
     TorchVision,
     WorldDetect,
     YOLOEDetect,
@@ -75,11 +76,12 @@ from ultralytics.nn.modules import (
     YOLOESegment26,
     v10Detect,
 )
-from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, WINDOWS, YAML, colorstr, emojis
-from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
+from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, SETTINGS, WINDOWS, YAML, colorstr, emojis
+from ultralytics.utils.checks import REMOTE_FILE_PREFIXES, check_file, check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
     E2ELoss,
     PoseLoss26,
+    SemanticSegmentationLoss,
     v8ClassificationLoss,
     v8DepthLoss,
     v8DetectionLoss,
@@ -342,6 +344,25 @@ class BaseModel(torch.nn.Module):
         raise NotImplementedError("compute_loss() needs to be implemented by task heads")
 
 
+def _initialize_yolo_model(model, cfg, ch, nc, verbose):
+    """Initialize common YOLO model attributes from a YAML config."""
+    model.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
+    if model.yaml["backbone"][0][2] == "Silence":
+        LOGGER.warning(
+            "YOLOv9 `Silence` module is deprecated in favor of torch.nn.Identity. "
+            "Please delete local *.pt file and re-download the latest model checkpoint."
+        )
+        model.yaml["backbone"][0][2] = "nn.Identity"
+
+    model.yaml["channels"] = ch  # save channels
+    if nc and nc != model.yaml["nc"]:
+        LOGGER.info(f"Overriding model.yaml nc={model.yaml['nc']} with nc={nc}")
+        model.yaml["nc"] = nc  # override YAML value
+    model.model, model.save = parse_model(deepcopy(model.yaml), ch=ch, verbose=verbose)  # model, savelist
+    model.names = {i: f"{i}" for i in range(model.yaml["nc"])}  # default names dict
+    model.inplace = model.yaml.get("inplace", True)
+
+
 class DetectionModel(BaseModel):
     """YOLO detection model.
 
@@ -380,22 +401,7 @@ class DetectionModel(BaseModel):
             verbose (bool): Whether to display model information.
         """
         super().__init__()
-        self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
-        if self.yaml["backbone"][0][2] == "Silence":
-            LOGGER.warning(
-                "YOLOv9 `Silence` module is deprecated in favor of torch.nn.Identity. "
-                "Please delete local *.pt file and re-download the latest model checkpoint."
-            )
-            self.yaml["backbone"][0][2] = "nn.Identity"
-
-        # Define model
-        self.yaml["channels"] = ch  # save channels
-        if nc and nc != self.yaml["nc"]:
-            LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
-            self.yaml["nc"] = nc  # override YAML value
-        self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
-        self.names = {i: f"{i}" for i in range(self.yaml["nc"])}  # default names dict
-        self.inplace = self.yaml.get("inplace", True)
+        _initialize_yolo_model(self, cfg, ch, nc, verbose)
 
         # Build strides
         m = self.model[-1]  # Detect()
@@ -579,6 +585,78 @@ class SegmentationModel(DetectionModel):
     def init_criterion(self):
         """Initialize the loss criterion for the SegmentationModel."""
         return E2ELoss(self, v8SegmentationLoss) if getattr(self, "end2end", False) else v8SegmentationLoss(self)
+
+
+class SemanticSegmentationModel(BaseModel):
+    """YOLO semantic segmentation model.
+
+    This class implements a semantic segmentation model that produces per-pixel class predictions. Unlike
+    SegmentationModel (instance segmentation), this does not produce bounding boxes.
+
+    Methods:
+        __init__: Initialize the semantic segmentation model.
+        init_criterion: Initialize the loss criterion for semantic segmentation.
+
+    Examples:
+        Initialize a semantic segmentation model
+        >>> model = SemanticSegmentationModel("yolo26n-sem.yaml", ch=3, nc=19)
+    """
+
+    def __init__(self, cfg="yolo26n-sem.yaml", ch=3, nc=None, verbose=True):
+        """Initialize the YOLO semantic segmentation model.
+
+        Args:
+            cfg (str | dict): Model configuration file path or dictionary.
+            ch (int): Number of input channels.
+            nc (int, optional): Number of classes.
+            verbose (bool): Whether to display model information.
+        """
+        super().__init__()
+        _initialize_yolo_model(self, cfg, ch, nc, verbose)
+
+        # Build strides: track smallest spatial size across all layers to find the deepest
+        # backbone stride (e.g. P5/32). Head input alone is insufficient: the FPN upsamples
+        # P5 away before the head, but the encoder still requires inputs aligned to that
+        # deepest stride or FPN concats fail on rounding mismatches.
+        m = self.model[-1]
+        if isinstance(m, SemanticSegment):
+            s = 256
+            self.model.eval()
+            m.training = True  # get training output (stride-4)
+            min_h = [s]
+
+            def _record(_m, _inp, out, _h=min_h):
+                if isinstance(out, torch.Tensor) and out.ndim == 4:
+                    _h[0] = min(_h[0], out.shape[-2])
+
+            hooks = [layer.register_forward_hook(_record) for layer in self.model]
+            try:
+                self.forward(torch.zeros(1, ch, s, s))
+            finally:
+                for h in hooks:
+                    h.remove()
+            m.stride = torch.tensor([s / min_h[0]], dtype=torch.float32)  # e.g., 256/8 = 32
+            self.stride = m.stride
+            self.model.train()
+        else:
+            self.stride = torch.Tensor([32])
+
+        initialize_weights(self)
+        if verbose:
+            self.info()
+            LOGGER.info("")
+
+    def init_criterion(self):
+        """Initialize the loss criterion for semantic segmentation."""
+        return SemanticSegmentationLoss(self)
+
+    def _apply(self, fn):
+        """Apply a function to all tensors in the model."""
+        self = super()._apply(fn)
+        m = self.model[-1]
+        if isinstance(m, SemanticSegment):
+            m.stride = fn(m.stride)
+        return self
 
 
 class PoseModel(DetectionModel):
@@ -1456,7 +1534,8 @@ def torch_safe_load(weight, safe_only=False):
 
     check_suffix(file=weight, suffix=".pt")
     file = attempt_download_asset(weight)  # search online if missing locally
-    try:
+
+    def _load():
         with temporary_modules(
             modules={
                 "ultralytics.yolo.utils": "ultralytics.utils",
@@ -1481,9 +1560,20 @@ def torch_safe_load(weight, safe_only=False):
                 safe_pickle.Unpickler = SafeUnpickler
                 safe_pickle.load = lambda file_obj: SafeUnpickler(file_obj).load()
                 with open(file, "rb") as f:
-                    ckpt = torch_load(f, pickle_module=safe_pickle)
-            else:
-                ckpt = torch_load(file, map_location="cpu")
+                    return torch_load(f, pickle_module=safe_pickle)
+            return torch_load(file, map_location="cpu")
+
+    try:
+        ckpt = _load()
+
+    except RuntimeError as e:
+        # Corrupt downloaded weight (e.g. truncated); skip user-supplied local paths to avoid destructive unlink.
+        if "PytorchStreamReader" not in str(e) or Path(str(weight)).exists():
+            raise
+        LOGGER.warning(f"Corrupt cache {file}, re-downloading {weight}...")
+        Path(file).unlink(missing_ok=True)
+        file = attempt_download_asset(weight)
+        ckpt = _load()
 
     except ModuleNotFoundError as e:  # e.name is missing module name
         if e.name == "models":
@@ -1500,6 +1590,14 @@ def torch_safe_load(weight, safe_only=False):
             raise ModuleNotFoundError(
                 emojis(
                     f"ERROR ❌️ {weight} requires numpy>=1.26.1, however numpy=={__import__('numpy').__version__} is installed."
+                )
+            ) from e
+        elif e.name and e.name.startswith("ultralytics."):
+            raise ModuleNotFoundError(
+                emojis(
+                    f"ERROR ❌️ {weight} requires missing Ultralytics module '{e.name}'. "
+                    "Train a new model using the latest 'ultralytics' package or run a command with an official "
+                    "Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
                 )
             ) from e
         LOGGER.warning(
@@ -1535,6 +1633,8 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
         (torch.nn.Module): Loaded model.
         (dict): Model checkpoint dictionary.
     """
+    if str(weight).lower().startswith(REMOTE_FILE_PREFIXES):
+        weight = check_file(weight, download_dir=SETTINGS["weights_dir"])
     ckpt, weight = torch_safe_load(weight)  # load ckpt
     args = {**DEFAULT_CFG_DICT, **(ckpt.get("train_args", {}))}  # combine model and default args, preferring model args
     model = (ckpt.get("ema") or ckpt["model"]).float()  # FP32 model
@@ -1725,6 +1825,8 @@ def parse_model(d, ch, verbose=True):
             args.append([ch[x] for x in f])  # ch tuple
         elif m is DINOv2DPTHead:
             c2 = 1  # single-channel depth output
+        elif m is SemanticSegment:
+            args.append([ch[x] for x in f])  # nc, ch tuple
         elif m is v10Detect:
             args.append([ch[x] for x in f])
         elif m is ImagePoolingAttn:
@@ -1803,7 +1905,7 @@ def guess_model_task(model):
         model (torch.nn.Module | dict | str | Path): PyTorch model, model configuration dict, or model file path.
 
     Returns:
-        (str): Task of the model ('detect', 'segment', 'classify', 'pose', 'obb').
+        (str): Task of the model ('detect', 'segment', 'classify', 'pose', 'obb', 'semantic').
     """
 
     def cfg2task(cfg):
@@ -1813,6 +1915,8 @@ def guess_model_task(model):
             return "classify"
         if "detect" in m:
             return "detect"
+        if "semanticsegment" in m:
+            return "semantic"
         if "segment" in m:
             return "segment"
         if "pose" in m:
@@ -1835,7 +1939,9 @@ def guess_model_task(model):
             with contextlib.suppress(Exception):
                 return cfg2task(eval(x))  # nosec B307: safe eval of known attribute paths
         for m in model.modules():
-            if isinstance(m, (Segment, YOLOESegment)):
+            if isinstance(m, SemanticSegment):
+                return "semantic"
+            elif isinstance(m, (Segment, YOLOESegment)):
                 return "segment"
             elif isinstance(m, Classify):
                 return "classify"
@@ -1851,7 +1957,9 @@ def guess_model_task(model):
     # Guess from model filename
     if isinstance(model, (str, Path)):
         model = Path(model)
-        if "-seg" in model.stem or "segment" in model.parts:
+        if "-sem" in model.stem or "semantic" in model.parts:
+            return "semantic"
+        elif "-seg" in model.stem or "segment" in model.parts:
             return "segment"
         elif "-cls" in model.stem or "classify" in model.parts:
             return "classify"

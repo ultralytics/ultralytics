@@ -540,8 +540,9 @@ class ViT(nn.Module):
 
         return outputs
 
-    def set_imgsz(self, imgsz: list[int] = [1008, 1008]):
+    def set_imgsz(self, imgsz: list[int] | None = None):
         """Setup rel pos embeddings and rope freqs for a new input image size."""
+        imgsz = imgsz if imgsz is not None else [1008, 1008]
         for block in self.blocks:
             if block.window_size != 0:
                 continue

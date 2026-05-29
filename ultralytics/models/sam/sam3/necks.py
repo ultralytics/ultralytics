@@ -126,6 +126,7 @@ class Sam3DualViTDetNeck(nn.Module):
             poss.append(self.position_encoding(feat).to(feat.dtype))
         return outs, poss
 
-    def set_imgsz(self, imgsz: list[int] = [1008, 1008]):
+    def set_imgsz(self, imgsz: list[int] | None = None):
         """Set the image size for the trunk backbone."""
+        imgsz = imgsz if imgsz is not None else [1008, 1008]
         self.trunk.set_imgsz(imgsz)

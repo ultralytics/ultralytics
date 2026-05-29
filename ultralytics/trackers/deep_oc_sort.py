@@ -232,7 +232,7 @@ class DeepOCSORT(OCSORT):
             for (xywh, s, c) in zip(bboxes, results.conf, results.cls)
         ]
 
-    def _input_for(self, img: np.ndarray | None, feats: np.ndarray | None, mask: np.ndarray) -> Any:
+    def _input_for(self, img: np.ndarray | None, feats: np.ndarray | None, mask: np.ndarray) -> np.ndarray | None:
         """Return what `init_track` should receive.
 
         For `model="auto"` (native-features mode) the encoder iterates a per-detection feature

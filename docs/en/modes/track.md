@@ -418,14 +418,11 @@ There is no appearance model and no camera-motion compensation.
 | `tai_thr`         | `0.0-1.0`              | IoU threshold for Track-Aware Initialization NMS.                        |
 | `min_track_len`   | `>=0`                  | Minimum successful updates before a new track is confirmed.              |
 | `lost_match_thr`  | `0.0-1.0`              | Looser cost gate for relaxed lost-rebind pass; `0` disables it.          |
-| `gmc_downscale`   | `>=1`                  | Downscale factor for GMC input image. Higher is faster, less accurate.   |
-| `gmc_max_corners` | `>=1`                  | Max keypoints for `sparseOptFlow`.                                       |
-| `gmc_skip_frames` | `>=0`                  | Skip N frames between GMC updates. `0` = recompute every frame.          |
 
 **Tuning tips:**
 
 - **Crowded pedestrians:** lower `tai_thr` (e.g. `0.45`) to suppress more duplicate spawns; raise `track_buffer` for longer occlusions.
-- **Fast camera motion:** keep `gmc_method: sparseOptFlow`, lower `gmc_downscale` (e.g. `2`), or raise `gmc_max_corners`. If GMC is a bottleneck, set `gmc_skip_frames: 1` or `2`.
+- **Fast camera motion:** keep `gmc_method: sparseOptFlow` enabled.
 - **Small/fast objects:** raise `angle_weight` slightly and lower `min_track_len`.
 - **Enable ReID only when needed:** it adds inference cost; for short occlusions, the default multi-cue cost is usually sufficient.
 

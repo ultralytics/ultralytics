@@ -436,6 +436,7 @@ class TRACKTRACK:
         """
         self.tracked_stracks: list[TTSTrack] = []
         self.lost_stracks: list[TTSTrack] = []
+        self.removed_stracks: list[TTSTrack] = []
         self.frame_id = 0
         self.args = args
         self.max_time_lost = args.track_buffer
@@ -610,6 +611,7 @@ class TRACKTRACK:
         """Clear all tracker state including GMC warp history and the global ID counter."""
         self.tracked_stracks = []
         self.lost_stracks = []
+        self.removed_stracks = []
         self.frame_id = 0
         self.kalman_filter = KalmanFilterXYWH()
         TTSTrack.reset_id()

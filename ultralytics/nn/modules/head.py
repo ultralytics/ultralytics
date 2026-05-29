@@ -1604,9 +1604,10 @@ class RTDETRDecoder(nn.Module):
                 cy, w, h, max_class_prob, class_index].
         """
         scores, index = scores.flatten(1).topk(self.num_queries)
-        query_idx = index // self.nc
-        boxes = boxes.gather(dim=1, index=query_idx.unsqueeze(-1).expand(-1, -1, 4))
-        return torch.cat([boxes, scores[..., None], (index % self.nc)[..., None].float()], dim=-1)
+        # CoreML MIL lacks integer floor-div and mod lowering: use torch.div(rounding_mode="floor") and (index - q*nc).
+        query_idx = torch.div(index, self.nc, rounding_mode="floor")
+        boxes = boxes.gather(dim=1, index=query_idx.unsqueeze(-1).expand(-1, -1, 4).long())
+        return torch.cat([boxes, scores[..., None], (index - query_idx * self.nc)[..., None].float()], dim=-1)
 
     @staticmethod
     def _generate_anchors(

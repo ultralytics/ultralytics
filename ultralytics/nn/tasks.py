@@ -28,6 +28,7 @@ from ultralytics.nn.modules import (
     A2C2f,
     AConv,
     ADown,
+    BboxMaskRenderer,
     Bottleneck,
     BottleneckCSP,
     C2f,
@@ -52,6 +53,8 @@ from ultralytics.nn.modules import (
     GhostConv,
     HGBlock,
     HGStem,
+    HeatmapEncoder,
+    HeatmapGuidedFusion,
     ImagePoolingAttn,
     Index,
     LRPCHead,
@@ -512,6 +515,200 @@ class DetectionModel(BaseModel):
     def init_criterion(self):
         """Initialize the loss criterion for the DetectionModel."""
         return E2ELoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
+
+
+class YOLOAnomalyV2Model(DetectionModel):
+    """YOLO Anomaly v2 — detection + heatmap-guided feature fusion.
+
+    Extends DetectionModel with three additions, all OUTSIDE the parsed Sequential:
+      - ``mask_renderer``: rasterizes bboxes (from labels) into a 1-channel mask.
+      - ``heatmap_encoders``: 3 independent 1->C encoders (one per PAN scale).
+      - ``heatmap_fusions``: per-scale ``P_out = P * 2 * sigmoid(AF)`` fusion.
+
+    The fusion is injected between the PAN outputs and the Detect head: PAN
+    outputs (gathered from indices ``model[-1].f``) are multiplicatively
+    modulated by the encoded mask before being fed to Detect.
+
+    Mask dropout (Phase 0 anti-shortcut, see docs_yoloa_v2/design.md §3.4):
+      During training, with probability ``p_drop`` per sample, the AnomalyFeat
+      for that sample is zeroed out. ``2*sigmoid(0) = 1.0`` -> the fusion is an
+      exact passthrough for dropped samples, so the model is forced to also
+      perform without a mask.
+
+    Mask source:
+      - Training: rendered from ``batch["bboxes"]`` (set by ``loss()``).
+      - Validation B-on: caller sets bboxes via ``set_mask_input()``.
+      - Validation B-off / pure inference: no bboxes -> AF=0 everywhere ->
+        exact passthrough (equivalent to vanilla YOLO).
+    """
+
+    def __init__(
+        self,
+        cfg="yolo26-anomaly-v2.yaml",
+        ch=3,
+        nc=None,
+        verbose=True,
+        mask_size: int | None = None,
+        mask_mode: str | None = None,
+        sigma_factor: float | None = None,
+        p_drop: float | None = None,
+    ):
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+        # Read v2-specific config from YAML. Constructor kwargs override.
+        v2_cfg = self.yaml.get("anomaly_v2", {}) if isinstance(self.yaml, dict) else {}
+        mask_size = int(v2_cfg.get("mask_size", 80) if mask_size is None else mask_size)
+        mask_mode = str(v2_cfg.get("mask_mode", "rect") if mask_mode is None else mask_mode)
+        sigma_factor = float(v2_cfg.get("sigma_factor", 0.25) if sigma_factor is None else sigma_factor)
+        p_drop = float(v2_cfg.get("p_drop", 0.5) if p_drop is None else p_drop)
+
+        detect = self.model[-1]
+        if not isinstance(detect, Detect):
+            raise TypeError(f"YOLOAnomalyV2Model expects last layer to be Detect, got {type(detect).__name__}")
+
+        # Resolve PAN output channel count per scale from Detect.cv2 (first Conv's in_channels).
+        # cv2[i] is a Sequential whose first sub-module is a Conv on the PAN scale's tensor.
+        pan_channels = []
+        for cv2_seq in detect.cv2:
+            first = cv2_seq[0]
+            if hasattr(first, "conv") and isinstance(first.conv, torch.nn.Conv2d):
+                pan_channels.append(first.conv.in_channels)
+            else:
+                raise RuntimeError(
+                    f"Unable to infer PAN channel from Detect.cv2[0]={type(first).__name__}"
+                )
+        if len(pan_channels) != detect.nl:
+            raise RuntimeError(f"Inferred {len(pan_channels)} PAN channels, expected {detect.nl}")
+
+        self.pan_from_indices = list(detect.f)  # layer indices producing P3/P4/P5
+        self.pan_channels = pan_channels
+
+        # Anomaly-side modules (live outside self.model so they are not in the Sequential)
+        self.mask_renderer = BboxMaskRenderer(mask_size=mask_size, mode=mask_mode, sigma_factor=sigma_factor)
+        self.heatmap_encoders = torch.nn.ModuleList([HeatmapEncoder(c_out=c) for c in pan_channels])
+        self.heatmap_fusions = torch.nn.ModuleList([HeatmapGuidedFusion() for _ in pan_channels])
+
+        self.p_drop = float(p_drop)
+
+        # Transient bbox input for the next forward pass. Reset after each forward.
+        self._mask_bboxes_buf = None  # (N, 4) normalized [cx, cy, w, h]
+        self._mask_batch_idx_buf = None  # (N,) long
+        # Allows external callers (validator) to force mask-off mode for a single forward.
+        self._mask_disabled_once = False
+
+    # ------------------------------------------------------------------
+    # Mask input API
+    # ------------------------------------------------------------------
+    def set_mask_input(self, bboxes, batch_idx):
+        """Provide bboxes used to render the mask for the NEXT forward pass.
+
+        Cleared automatically after the forward. Typically called by:
+          - ``loss()`` (auto, from batch dict)
+          - the v2 validator (manual, for B-on val pass)
+        """
+        self._mask_bboxes_buf = bboxes
+        self._mask_batch_idx_buf = batch_idx
+        self._mask_disabled_once = False
+
+    def disable_mask_once(self):
+        """Force the next forward to use no mask (AF=0 -> passthrough). Used by B-off val."""
+        self._mask_bboxes_buf = None
+        self._mask_batch_idx_buf = None
+        self._mask_disabled_once = True
+
+    def _consume_mask_input(self):
+        # Robust to being called during super().__init__()'s stride probe,
+        # before our own __init__ has set these attributes.
+        bb = getattr(self, "_mask_bboxes_buf", None)
+        bi = getattr(self, "_mask_batch_idx_buf", None)
+        if hasattr(self, "_mask_bboxes_buf"):
+            self._mask_bboxes_buf = None
+            self._mask_batch_idx_buf = None
+            self._mask_disabled_once = False
+        return bb, bi
+
+    # ------------------------------------------------------------------
+    # Forward
+    # ------------------------------------------------------------------
+    def loss(self, batch, preds=None):
+        """Compute loss. Sets mask input from ``batch["bboxes"]`` before forward."""
+        if getattr(self, "criterion", None) is None:
+            self.criterion = self.init_criterion()
+        if preds is None:
+            # Standard ultralytics batch fields: bboxes (N, 4), batch_idx (N,)
+            self.set_mask_input(batch["bboxes"], batch["batch_idx"])
+            try:
+                preds = self.forward(batch["img"])
+            finally:
+                # Forward always consumes them, but be defensive in case of exception.
+                self._mask_bboxes_buf = None
+                self._mask_batch_idx_buf = None
+        return self.criterion(preds, batch)
+
+    def _predict_once(self, x, profile=False, visualize=False, embed=None):
+        """Forward with heatmap-guided fusion inserted before the Detect head."""
+        batch_size = x.shape[0]
+        device = x.device
+
+        # Consume the mask input set by loss() / set_mask_input() / disable_mask_once()
+        bboxes, batch_idx = self._consume_mask_input()
+
+        # Build per-sample keep mask:
+        #  - keep[b]=1 -> use rendered AF
+        #  - keep[b]=0 -> zero AF (exact passthrough via 2*sigmoid(0)=1)
+        if bboxes is None:
+            keep = torch.zeros(batch_size, device=device)  # all-off -> passthrough
+            mask = None
+        else:
+            keep = torch.ones(batch_size, device=device)
+            if self.training and self.p_drop > 0.0:
+                keep = (torch.rand(batch_size, device=device) > self.p_drop).to(keep.dtype)
+            mask = self.mask_renderer(bboxes, batch_idx, batch_size) if bboxes is not None else None
+
+        y, dt, embeddings = [], [], []
+        embed = frozenset(embed) if embed is not None else {-1}
+        max_idx = max(embed)
+        last = self.model[-1]
+        for m in self.model:
+            if m is last:
+                # Apply fusion to the PAN inputs before Detect.
+                # ``m.f`` is a list of indices into y (the PAN P3/P4/P5 outputs).
+                pan_inputs = [y[j] for j in m.f]
+                fused = []
+                for i, p in enumerate(pan_inputs):
+                    if mask is None:
+                        # Pure passthrough: skip encoder entirely.
+                        fused.append(p)
+                        continue
+                    # Resize mask to this scale.
+                    target_h, target_w = p.shape[2], p.shape[3]
+                    if mask.shape[2] != target_h or mask.shape[3] != target_w:
+                        mask_at_scale = torch.nn.functional.interpolate(
+                            mask, size=(target_h, target_w), mode="bilinear", align_corners=False
+                        )
+                    else:
+                        mask_at_scale = mask
+                    af = self.heatmap_encoders[i](mask_at_scale)
+                    # Per-sample keep mask: AF *= keep -> dropped samples get AF=0 -> passthrough.
+                    af = af * keep.to(af.dtype).view(-1, 1, 1, 1)
+                    fused.append(self.heatmap_fusions[i](p, af))
+                x = m(fused)
+            else:
+                if m.f != -1:
+                    x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
+                if profile:
+                    self._profile_one_layer(m, x, dt)
+                x = m(x)
+            y.append(x if m.i in self.save else None)
+            if visualize:
+                feature_visualization(x, m.type, m.i, save_dir=visualize)
+            if m.i in embed:
+                embeddings.append(
+                    torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1)
+                )
+                if m.i == max_idx:
+                    return torch.unbind(torch.cat(embeddings, 1), dim=0)
+        return x
 
 
 class OBBModel(DetectionModel):
@@ -1781,6 +1978,9 @@ def guess_model_task(model):
 
     def cfg2task(cfg):
         """Guess from YAML dictionary."""
+        # YOLO Anomaly v2 marks itself with a dedicated config block (see yolo26-anomaly-v2.yaml).
+        if isinstance(cfg, dict) and "anomaly_v2" in cfg:
+            return "anomaly_v2"
         m = cfg["head"][-1][-2].lower()  # output module name
         if m in {"classify", "classifier", "cls", "fc"}:
             return "classify"
@@ -1799,6 +1999,10 @@ def guess_model_task(model):
             return cfg2task(model)
     # Guess from PyTorch model
     if isinstance(model, torch.nn.Module):  # PyTorch model
+        # YOLOAnomalyV2Model carries v2-specific submodules; check class first so we don't
+        # fall through to "detect" via the Detect-head module check below.
+        if isinstance(model, YOLOAnomalyV2Model):
+            return "anomaly_v2"
         for x in "model.args", "model.model.args", "model.model.model.args":
             with contextlib.suppress(Exception):
                 return eval(x)["task"]  # nosec B307: safe eval of known attribute paths
@@ -1820,7 +2024,9 @@ def guess_model_task(model):
     # Guess from model filename
     if isinstance(model, (str, Path)):
         model = Path(model)
-        if "-seg" in model.stem or "segment" in model.parts:
+        if "-anomaly-v2" in model.stem or "anomaly_v2" in model.parts:
+            return "anomaly_v2"
+        elif "-seg" in model.stem or "segment" in model.parts:
             return "segment"
         elif "-cls" in model.stem or "classify" in model.parts:
             return "classify"

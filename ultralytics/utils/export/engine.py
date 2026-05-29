@@ -135,14 +135,15 @@ def onnx2engine(
     # Force re-install TensorRT on CUDA 13 ARM devices to 10.15.x versions for RT-DETR exports
     # https://github.com/ultralytics/ultralytics/issues/22873
     if is_jetson(jetpack=7) or is_dgx():
-        check_tensorrt("10.15")
+        check_tensorrt("10.15", max_version="11.0.0")
 
     try:
         import tensorrt as trt
     except ImportError:
-        check_tensorrt()
+        check_tensorrt(max_version="11.0.0")
         import tensorrt as trt
-    check_version(trt.__version__, ">=7.0.0", hard=True)
+    # TRT 11.0 removed IInt8Calibrator, per-precision BuilderFlags, and platform_has_fast_* (strongly-typed networks now default)
+    check_version(trt.__version__, ">=7.0.0,<11.0.0", hard=True)
     check_version(trt.__version__, "!=10.2.0", msg="https://github.com/ultralytics/ultralytics/pull/24367")
 
     LOGGER.info(f"\n{prefix} starting export with TensorRT {trt.__version__}...")

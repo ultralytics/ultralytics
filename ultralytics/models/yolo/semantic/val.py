@@ -102,6 +102,11 @@ class SemanticSegmentationValidator(DetectionValidator):
         """
         if isinstance(preds, (tuple, list)):
             preds = preds[0]
+        if not preds.is_floating_point():
+            # [B, H, W] class map with argmax already baked into the graph (ONNX export). Nearest-resize only.
+            if tuple(preds.shape[-2:]) != self._semantic_target_shape:
+                preds = F.interpolate(preds[:, None].float(), size=self._semantic_target_shape, mode="nearest")[:, 0]
+            return preds.to(torch.int32)
         pred_hw = preds.shape[2:]
         if pred_hw[0] != self._semantic_target_shape[0] or pred_hw[1] != self._semantic_target_shape[1]:
             preds = F.interpolate(preds, size=self._semantic_target_shape, mode="bilinear", align_corners=False)

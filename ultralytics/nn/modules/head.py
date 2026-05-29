@@ -1854,8 +1854,9 @@ class SemanticSegment(nn.Module):
             x (list[torch.Tensor]): List of feature maps [P3, P4].
 
         Returns:
-            (torch.Tensor): Logits of shape [B, nc, H/8, W/8] during training, inference, and CoreML export. Other
-                export formats return upsampled logits of shape [B, nc, H, W].
+            (torch.Tensor): Logits of shape [B, nc, H/8, W/8] during training, inference, and CoreML export. ONNX and
+                TFLite export bake in the argmax and return a compact class map of shape [B, H, W] (uint8 when nc <=
+                256, else int32). Other export formats return upsampled logits [B, nc, H, W].
         """
         # Classify
         logits = self.classifier(x[0])  # [B, nc, H/8, W/8]
@@ -1864,5 +1865,9 @@ class SemanticSegment(nn.Module):
                 return logits, self.aux_head(x[1])  # main + aux (P4)
             return logits
         if self.export and self.format != "coreml":  # coreml does not support interpolate
-            return F.interpolate(logits, scale_factor=8, mode="bilinear", align_corners=False)
+            y = F.interpolate(logits, scale_factor=8, mode="bilinear", align_corners=False)  # [B, nc, H, W]
+            if self.format in {"onnx", "tflite"}:  # bake argmax: emit [B, H, W] class map, shrinking the D2H copy ~80x
+                cls = y.argmax(1) if self.nc > 1 else y.squeeze(1) > 0
+                return cls.to(torch.uint8 if self.nc <= 256 else torch.int32)
+            return y
         return logits

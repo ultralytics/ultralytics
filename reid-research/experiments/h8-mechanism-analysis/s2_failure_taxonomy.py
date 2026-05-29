@@ -124,6 +124,15 @@ def _residual_clusters(retr: pd.DataFrame, meta: pd.DataFrame, champion_dir: Pat
         residual = emb["query"][q_to_idx[qid]].numpy() - emb["gallery"][g_to_idx[true_gid]].numpy()
         residuals.append(residual)
         fail_qids.append(qid)
+    if not residuals:
+        # All failures were "no_good_match" type — true pid never in top50.
+        # No residual taxonomy possible; return empty with a sentinel choice.
+        return (
+            np.zeros((0, 2), dtype=np.float32),
+            np.zeros((0,), dtype=np.int64),
+            {"min_cluster_size": None, "noise_frac": 1.0, "n_clusters": 0,
+             "selected": False, "fail_qids": []},
+        )
     R_mat = np.stack(residuals)
     reducer = umap.UMAP(n_components=2, random_state=0, n_neighbors=15)
     umap_2d = reducer.fit_transform(R_mat)
@@ -178,6 +187,9 @@ def main():
         if not choice["selected"]:
             f.write("**WARNING:** no `min_cluster_size` setting achieved <30% noise. Residuals do not cluster cleanly; no taxonomy claim made.\n")
 
+    # Generate contact sheets from the cluster labels we just persisted.
+    write_cluster_contact_sheets(retr, meta, ART / "s2_failure_clusters.parquet", FIG)
+
 
 def write_cluster_contact_sheets(retr: pd.DataFrame, meta: pd.DataFrame, clusters_path: Path, out_dir: Path, top_per_cluster: int = 10, top_k: int = 5):
     """For each non-noise cluster, build a contact sheet: top-N worst queries × top-K retrieved gallery thumbs."""
@@ -207,9 +219,3 @@ def write_cluster_contact_sheets(retr: pd.DataFrame, meta: pd.DataFrame, cluster
 
 if __name__ == "__main__":
     main()
-    write_cluster_contact_sheets(
-        pd.read_parquet(ART / "champion" / "retrieval.parquet"),
-        pd.read_parquet(ART / "market_meta.parquet"),
-        ART / "s2_failure_clusters.parquet",
-        FIG,
-    )

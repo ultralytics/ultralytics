@@ -67,6 +67,7 @@ from ultralytics.nn.modules import (
     ResNetLayer,
     RTDETRDecoder,
     SCDown,
+    SegBranch,
     Segment,
     Segment26,
     TorchVision,
@@ -74,6 +75,7 @@ from ultralytics.nn.modules import (
     YOLOEDetect,
     YOLOESegment,
     YOLOESegment26,
+    binary_seg_loss,
     v10Detect,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, WINDOWS, YAML, colorstr, emojis
@@ -561,6 +563,10 @@ class YOLOAnomalyV2Model(DetectionModel):
         mask_mode = str(v2_cfg.get("mask_mode", "rect") if mask_mode is None else mask_mode)
         sigma_factor = float(v2_cfg.get("sigma_factor", 0.25) if sigma_factor is None else sigma_factor)
         p_drop = float(v2_cfg.get("p_drop", 0.5) if p_drop is None else p_drop)
+        # v2.2 SegBranch: when enabled, a seg head predicts the heatmap so inference
+        # needs no external prior. ``seg_alpha`` blends GT vs predicted mask (curriculum).
+        use_seg = bool(v2_cfg.get("seg_branch", False))
+        seg_gain = float(v2_cfg.get("seg_gain", 1.0))
 
         detect = self.model[-1]
         if not isinstance(detect, Detect):
@@ -587,6 +593,15 @@ class YOLOAnomalyV2Model(DetectionModel):
         self.mask_renderer = BboxMaskRenderer(mask_size=mask_size, mode=mask_mode, sigma_factor=sigma_factor)
         self.heatmap_encoders = torch.nn.ModuleList([HeatmapEncoder(c_out=c) for c in pan_channels])
         self.heatmap_fusions = torch.nn.ModuleList([HeatmapGuidedFusion() for _ in pan_channels])
+
+        # SegBranch consumes the P3/P4 PAN outputs (first two of pan_from_indices).
+        self.mask_size = mask_size
+        self.seg_gain = seg_gain
+        self.seg_alpha = 1.0  # 1.0 = pure GT mask; trainer anneals -> 0.0 (pure prediction)
+        self.seg_branch = SegBranch(ch=tuple(pan_channels[:2]), nc=1) if use_seg else None
+        # Binary GT target for the seg loss is always a hard rectangle (independent of mask_mode).
+        self.seg_target_renderer = BboxMaskRenderer(mask_size=mask_size, mode="rect") if use_seg else None
+        self._seg_logits_buf = None  # stashed by _predict_once, consumed by loss()
 
         self.p_drop = float(p_drop)
 
@@ -638,12 +653,43 @@ class YOLOAnomalyV2Model(DetectionModel):
         bb = getattr(self, "_mask_bboxes_buf", None)
         bi = getattr(self, "_mask_batch_idx_buf", None)
         ext = getattr(self, "_external_mask_buf", None)
+        disabled = getattr(self, "_mask_disabled_once", False)
         if hasattr(self, "_mask_bboxes_buf"):
             self._mask_bboxes_buf = None
             self._mask_batch_idx_buf = None
             self._external_mask_buf = None
             self._mask_disabled_once = False
-        return bb, bi, ext
+        return bb, bi, ext, disabled
+
+    def _resolve_fusion_mask(self, bboxes, batch_idx, external_mask, disabled, seg_logits, batch_size, device):
+        """Resolve the (B, 1, mask_size, mask_size) heatmap fed to the fusion, or None for passthrough.
+
+        Precedence: external mask > explicit disable > GT/predicted blend > pure prediction.
+        The predicted heatmap is detached so the detection loss never backprops into the
+        SegBranch (the branch is trained only by its own ``binary_seg_loss``).
+        """
+        if external_mask is not None:
+            return external_mask.to(device=device, dtype=torch.float32)
+        if disabled:
+            return None  # explicit passthrough (mask-off val pass / classifier-free guidance)
+
+        seg_pred = None
+        if seg_logits is not None:
+            main = seg_logits[0] if isinstance(seg_logits, tuple) else seg_logits
+            seg_pred = main.detach().sigmoid()
+            if seg_pred.shape[2] != self.mask_size or seg_pred.shape[3] != self.mask_size:
+                seg_pred = torch.nn.functional.interpolate(
+                    seg_pred, size=(self.mask_size, self.mask_size), mode="bilinear", align_corners=False
+                )
+
+        if bboxes is not None:
+            gt = self.mask_renderer(bboxes, batch_idx, batch_size)
+            if seg_pred is None:
+                return gt  # Phase 0 behavior (no SegBranch)
+            a = float(self.seg_alpha)
+            return a * gt + (1.0 - a) * seg_pred
+        # No GT and not disabled -> prior-free inference via the predicted heatmap.
+        return seg_pred
 
     # ------------------------------------------------------------------
     # Forward
@@ -661,7 +707,27 @@ class YOLOAnomalyV2Model(DetectionModel):
                 # Forward always consumes them, but be defensive in case of exception.
                 self._mask_bboxes_buf = None
                 self._mask_batch_idx_buf = None
-        return self.criterion(preds, batch)
+        det_loss, det_items = self.criterion(preds, batch)
+        if self.seg_branch is None:
+            return det_loss, det_items
+        # SegBranch loss: supervise the predicted heatmap against the rect-rendered GT mask.
+        # det_loss is a per-component vector (box, cls, dfl) scaled by batch size; the trainer
+        # backprops loss.sum(). Append seg as a 4th component (same batch-size scaling) so it
+        # joins the sum, and append the unscaled value to the display items.
+        seg_logits, self._seg_logits_buf = self._seg_logits_buf, None
+        seg_loss = self._compute_seg_loss(seg_logits, batch)
+        batch_size = batch["img"].shape[0]
+        seg_term = (self.seg_gain * seg_loss * batch_size).reshape(1)
+        seg_item = (self.seg_gain * seg_loss).detach().reshape(1).to(det_items.dtype)
+        return torch.cat([det_loss, seg_term]), torch.cat([det_items, seg_item])
+
+    def _compute_seg_loss(self, seg_logits, batch):
+        """BCE + Dice between the predicted heatmap and the rect-rendered GT mask."""
+        if seg_logits is None:
+            return torch.zeros((), device=next(self.parameters()).device)
+        main, aux = seg_logits if isinstance(seg_logits, tuple) else (seg_logits, None)
+        target = self.seg_target_renderer(batch["bboxes"], batch["batch_idx"], main.shape[0])
+        return binary_seg_loss(main, target.to(main.device), aux_logits=aux)
 
     def _predict_once(self, x, profile=False, visualize=False, embed=None):
         """Forward with heatmap-guided fusion inserted before the Detect head."""
@@ -670,23 +736,19 @@ class YOLOAnomalyV2Model(DetectionModel):
 
         # Consume the mask input set by loss() / set_mask_input() / disable_mask_once() /
         # set_external_mask_once().
-        bboxes, batch_idx, external_mask = self._consume_mask_input()
+        bboxes, batch_idx, external_mask, mask_disabled = self._consume_mask_input()
 
-        # Build per-sample keep mask:
-        #  - keep[b]=1 -> use rendered/external AF
-        #  - keep[b]=0 -> zero AF (exact passthrough via 2*sigmoid(0)=1)
-        if external_mask is not None:
-            # External mask provided directly; skip the bbox renderer.
-            keep = torch.ones(batch_size, device=device)
-            mask = external_mask.to(device=device, dtype=torch.float32)
-        elif bboxes is None:
-            keep = torch.zeros(batch_size, device=device)  # all-off -> passthrough
-            mask = None
-        else:
-            keep = torch.ones(batch_size, device=device)
-            if self.training and self.p_drop > 0.0:
-                keep = (torch.rand(batch_size, device=device) > self.p_drop).to(keep.dtype)
-            mask = self.mask_renderer(bboxes, batch_idx, batch_size)
+        # Per-sample keep mask for mask dropout (anti-shortcut). Only meaningful when a
+        # rendered/blended mask is active; keep[b]=0 zeros AF -> passthrough (2*sigmoid(0)=1).
+        # getattr guards the stride probe in super().__init__(), which runs before our attrs exist.
+        p_drop = getattr(self, "p_drop", 0.0)
+        keep = torch.ones(batch_size, device=device)
+        if bboxes is not None and external_mask is None and self.training and p_drop > 0.0:
+            keep = (torch.rand(batch_size, device=device) > p_drop).to(keep.dtype)
+
+        # The fusion mask is resolved inside the loop once the PAN features (needed by the
+        # SegBranch) are available.
+        mask = None
 
         y, dt, embeddings = [], [], []
         embed = frozenset(embed) if embed is not None else {-1}
@@ -697,6 +759,17 @@ class YOLOAnomalyV2Model(DetectionModel):
                 # Apply fusion to the PAN inputs before Detect.
                 # ``m.f`` is a list of indices into y (the PAN P3/P4/P5 outputs).
                 pan_inputs = [y[j] for j in m.f]
+                # SegBranch predicts the heatmap from P3/P4. Always run when present so the
+                # seg loss can be computed (stashed for loss()) and to drive prior-free inference.
+                # getattr guards the stride probe in super().__init__(), which runs before our attrs exist.
+                seg_branch = getattr(self, "seg_branch", None)
+                seg_logits_buf = getattr(self, "_seg_logits_buf", None)
+                if seg_branch is not None:
+                    seg_logits_buf = seg_branch([pan_inputs[0], pan_inputs[1]])
+                    self._seg_logits_buf = seg_logits_buf
+                mask = self._resolve_fusion_mask(
+                    bboxes, batch_idx, external_mask, mask_disabled, seg_logits_buf, batch_size, device
+                )
                 fused = []
                 for i, p in enumerate(pan_inputs):
                     if mask is None:

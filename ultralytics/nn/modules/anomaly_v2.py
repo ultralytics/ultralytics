@@ -8,8 +8,11 @@ from __future__ import annotations
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
-__all__ = ("BboxMaskRenderer", "HeatmapEncoder", "HeatmapGuidedFusion")
+from .conv import Conv
+
+__all__ = ("BboxMaskRenderer", "HeatmapEncoder", "HeatmapGuidedFusion", "SegBranch", "binary_seg_loss")
 
 
 class BboxMaskRenderer(nn.Module):
@@ -135,6 +138,74 @@ class HeatmapGuidedFusion(nn.Module):
 
     def forward(self, p: torch.Tensor, af: torch.Tensor) -> torch.Tensor:
         return p * (2.0 * torch.sigmoid(af))
+
+
+class SegBranch(nn.Module):
+    """Lightweight semantic-segmentation head that predicts a 1-channel anomaly heatmap.
+
+    Adapted from upstream ``SemanticSegment`` (head.py). Consumes the P3 and P4 PAN
+    features and emits per-pixel logits at P3 resolution (e.g. 80x80 for 640 input).
+    A P4 auxiliary head provides deep supervision during training. The predicted
+    heatmap (``sigmoid(logits)``) feeds ``HeatmapGuidedFusion`` at inference, so the
+    model no longer needs an external/GT prior to localize anomalies.
+    """
+
+    def __init__(self, ch: tuple, nc: int = 1, c_mid: int | None = None):
+        """Initialize the seg head.
+
+        Args:
+            ch (tuple): Channel sizes of the consumed feature maps (P3, P4).
+            nc (int): Number of output channels (1 = binary anomaly heatmap).
+            c_mid (int, optional): Intermediate width. Defaults to the P3 channel count.
+        """
+        super().__init__()
+        self.nc = nc
+        c_mid = ch[0] if c_mid is None else c_mid
+        self.classifier = nn.Sequential(Conv(ch[0], c_mid, 3), nn.Conv2d(c_mid, nc, 1))
+        self.aux_head = nn.Sequential(Conv(ch[1], c_mid, 3), nn.Conv2d(c_mid, nc, 1)) if len(ch) > 1 else None
+
+    def forward(self, x: list[torch.Tensor]):
+        """Predict per-pixel logits from [P3, P4].
+
+        Returns:
+            (torch.Tensor | tuple): main logits ``[B, nc, H/8, W/8]``; during training
+                a ``(main, aux)`` tuple when the auxiliary head is present.
+        """
+        logits = self.classifier(x[0])
+        if self.training and self.aux_head is not None:
+            return logits, self.aux_head(x[1])
+        return logits
+
+
+def binary_seg_loss(
+    logits: torch.Tensor, target: torch.Tensor, aux_logits: torch.Tensor | None = None, aux_weight: float = 0.4
+) -> torch.Tensor:
+    """BCE + soft-Dice loss for a single-channel anomaly heatmap.
+
+    Args:
+        logits: (B, 1, h, w) raw seg logits.
+        target: (B, 1, H, W) binary mask in {0, 1}; resized to ``logits`` if needed.
+        aux_logits: optional (B, 1, h', w') auxiliary logits for deep supervision.
+        aux_weight: weight on the auxiliary BCE term.
+
+    Returns:
+        Scalar loss (per-sample mean; caller scales by batch size / gain).
+    """
+    if target.shape[2:] != logits.shape[2:]:
+        target = F.interpolate(target, size=logits.shape[2:], mode="nearest")
+    target = target.to(logits.dtype)
+    bce = F.binary_cross_entropy_with_logits(logits, target)
+    prob = logits.sigmoid()
+    inter = (prob * target).sum(dim=(1, 2, 3))
+    card = prob.sum(dim=(1, 2, 3)) + target.sum(dim=(1, 2, 3))
+    dice = (1.0 - (2.0 * inter + 1.0) / (card + 1.0)).mean()
+    loss = bce + dice
+    if aux_logits is not None:
+        aux_t = target
+        if aux_t.shape[2:] != aux_logits.shape[2:]:
+            aux_t = F.interpolate(target, size=aux_logits.shape[2:], mode="nearest")
+        loss = loss + aux_weight * F.binary_cross_entropy_with_logits(aux_logits, aux_t)
+    return loss
 
 
 if __name__ == "__main__":

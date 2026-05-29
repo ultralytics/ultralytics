@@ -5,6 +5,13 @@ import torch
 import torch.nn.functional as F
 from PIL import Image
 
+# DINOv2 hub module is needed when loading DINOv2-based checkpoints
+import os as _os
+import sys as _sys
+_hub = _os.path.expanduser('~/.cache/torch/hub/facebookresearch_dinov2_main')
+if _os.path.isdir(_hub) and _hub not in _sys.path:
+    _sys.path.insert(0, _hub)
+
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--model", required=True)
@@ -45,8 +52,8 @@ def compute_metrics(pred, gt, max_depth=80.0):
 
 def main():
     args = parse_args()
-    dev = f"cuda:{args.device}"
     os.environ["CUDA_VISIBLE_DEVICES"] = args.device
+    dev = "cuda:0"   # after CUDA_VISIBLE_DEVICES, the chosen GPU is mapped to cuda:0
 
     sys.path.insert(0, "/home/rick/ultralytics_depth_anything")
     from ultralytics import YOLO

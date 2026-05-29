@@ -20,6 +20,11 @@ def load_nyu_eigen(mat_path='/data/depth_anything/nyu_depth_v2_labeled.mat'):
     return images[indices], depths[indices]
 
 def load_model(ckpt_path, device):
+    # Ensure dinov2 hub module is importable for DINOv2-based checkpoints
+    import os, sys
+    hub_dir = os.path.expanduser('~/.cache/torch/hub/facebookresearch_dinov2_main')
+    if os.path.isdir(hub_dir) and hub_dir not in sys.path:
+        sys.path.insert(0, hub_dir)
     ckpt = torch.load(ckpt_path, map_location='cpu', weights_only=False)
     model = (ckpt.get('ema') or ckpt.get('model')).float()
     return model.to(device).eval()

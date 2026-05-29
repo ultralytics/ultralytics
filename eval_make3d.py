@@ -8,8 +8,20 @@ from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 sys.path.insert(0, "/home/rick/ultralytics_depth_anything")
+import os, sys
+_hub = os.path.expanduser('~/.cache/torch/hub/facebookresearch_dinov2_main')
+if os.path.isdir(_hub) and _hub not in sys.path:
+    sys.path.insert(0, _hub)
+
 from ultralytics import YOLO
 
+
+# DINOv2 hub module is needed when loading DINOv2-based checkpoints
+import os as _os
+import sys as _sys
+_hub = _os.path.expanduser('~/.cache/torch/hub/facebookresearch_dinov2_main')
+if _os.path.isdir(_hub) and _hub not in _sys.path:
+    _sys.path.insert(0, _hub)
 
 def parse_args():
     p = argparse.ArgumentParser()

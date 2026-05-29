@@ -5,9 +5,21 @@ import torch
 from PIL import Image
 
 sys.path.insert(0, "/home/rick/ultralytics_depth_anything")
+import os, sys
+_hub = os.path.expanduser('~/.cache/torch/hub/facebookresearch_dinov2_main')
+if os.path.isdir(_hub) and _hub not in sys.path:
+    sys.path.insert(0, _hub)
+
 from ultralytics import YOLO
 from eval_make3d import log_ls_align, compute_metrics, infer_ms_tta
 
+
+# DINOv2 hub module is needed when loading DINOv2-based checkpoints
+import os as _os
+import sys as _sys
+_hub = _os.path.expanduser('~/.cache/torch/hub/facebookresearch_dinov2_main')
+if _os.path.isdir(_hub) and _hub not in _sys.path:
+    _sys.path.insert(0, _hub)
 
 def parse_args():
     p = argparse.ArgumentParser()

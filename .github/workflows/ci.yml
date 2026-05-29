@@ -52,7 +52,7 @@ jobs:
       matrix:
         # Temporarily disable windows-latest due to https://github.com/ultralytics/ultralytics/actions/runs/13020330819/job/36319338854?pr=18921
         os: [cpu-latest, macos-26, ubuntu-24.04-arm]
-        python: ["3.12"]
+        python: ["3.13"]
         model: [yolo26n]
     steps:
       - uses: actions/checkout@v6
@@ -120,7 +120,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-26, windows-latest, ubuntu-24.04-arm]
-        python: ["3.12"]
+        python: ["3.13"]
         torch: [latest]
         include:
           - os: ubuntu-latest
@@ -167,7 +167,7 @@ jobs:
         shell: bash # for Windows compatibility
         run: pytest -n auto --dist=loadfile --cov=ultralytics/ --cov-report=xml tests/ --deselect tests/test_exports.py::test_export_imx
       - name: Upload Coverage Reports to CodeCov
-        if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
+        if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python == '3.13'
         uses: codecov/codecov-action@v6
         with:
           flags: Tests
@@ -184,7 +184,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-26, windows-latest, ubuntu-24.04-arm]
-        python: ["3.12"]
+        python: ["3.13"]
         torch: [latest]
         include:
           - os: ubuntu-latest
@@ -256,7 +256,7 @@ jobs:
             torch: "2.10.0"
             torchvision: "0.25.0"
           - os: ubuntu-latest
-            python: "3.12"
+            python: "3.13"
             torch: "2.11.0"
             torchvision: "0.26.0"
     steps:

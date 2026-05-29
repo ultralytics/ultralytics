@@ -203,3 +203,7 @@ calibration_*.npy
 # Training logs
 args.yaml
 results.csv
+
+# Personal workspace (Louis fork — not for upstream)
+.claude/
+scripts/

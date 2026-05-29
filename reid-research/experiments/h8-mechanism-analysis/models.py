@@ -27,7 +27,7 @@ MODEL_REGISTRY: dict[str, dict[str, Any]] = {
     "champion": {
         "ckpt_env_var": "H8_CHAMPION_CKPT",
         "kind": "yolo_reid",
-        "model_yaml": "ultralytics/cfg/models/26/yolo26-reid-2psa.yaml",
+        "model_yaml": "ultralytics/cfg/models/26/yolo26l-reid-2psa.yaml",
         "tap_p4": "model.6",
         "tap_p5": "model.10",
         "imgsz": 384,
@@ -35,7 +35,7 @@ MODEL_REGISTRY: dict[str, dict[str, Any]] = {
     "mgn-t3": {
         "ckpt_env_var": "H8_MGN_T3_CKPT",
         "kind": "yolo_reid_mgn",
-        "model_yaml": "ultralytics/cfg/models/26/yolo26-reid-2psa.yaml",
+        "model_yaml": "ultralytics/cfg/models/26/yolo26l-reid-2psa-mgn.yaml",
         "tap_p4": "model.6",
         "tap_p5": "model.10",
         "imgsz": 384,
@@ -43,7 +43,7 @@ MODEL_REGISTRY: dict[str, dict[str, Any]] = {
     "mgn-t4": {
         "ckpt_env_var": "H8_MGN_T4_CKPT",
         "kind": "yolo_reid_mgn",
-        "model_yaml": "ultralytics/cfg/models/26/yolo26-reid-2psa.yaml",
+        "model_yaml": "ultralytics/cfg/models/26/yolo26l-reid-2psa-mgn.yaml",
         "tap_p4": "model.6",
         "tap_p5": "model.10",
         "imgsz": 384,
@@ -51,7 +51,7 @@ MODEL_REGISTRY: dict[str, dict[str, Any]] = {
     "t5fix": {
         "ckpt_env_var": "H8_T5FIX_CKPT",
         "kind": "yolo_reid",
-        "model_yaml": "ultralytics/cfg/models/26/yolo26-reid-2psa.yaml",
+        "model_yaml": "ultralytics/cfg/models/26/yolo26l-reid-2psa.yaml",
         "tap_p4": "model.6",
         "tap_p5": "model.10",
         "imgsz": 384,
@@ -113,7 +113,11 @@ def _load_yolo_reid(tag: str, entry: dict, ckpt_path: str, device: str) -> Model
 
     yolo = YOLO(entry["model_yaml"], task="reid")
     ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=False)
-    src = ckpt["model"] if isinstance(ckpt, dict) and "model" in ckpt else ckpt
+    # Ultralytics strip_optimizers() nulls ckpt["model"]; the real weights live in ckpt["ema"].
+    if isinstance(ckpt, dict):
+        src = ckpt.get("ema") or ckpt.get("model") or ckpt
+    else:
+        src = ckpt
     src_sd = src.state_dict() if hasattr(src, "state_dict") else src
     dst_sd = yolo.model.state_dict()
     transfer = {k: v for k, v in src_sd.items() if k in dst_sd and v.shape == dst_sd[k].shape}

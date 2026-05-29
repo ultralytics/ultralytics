@@ -53,16 +53,27 @@ SANITY = {
 
 
 def _imagenet_normalize(img_rgb: np.ndarray, size) -> torch.Tensor:
-    """uint8 RGB HxWx3 -> normalized BCHW tensor on DEVICE."""
+    """uint8 RGB HxWx3 -> Ultralytics-classify-style BCHW tensor on DEVICE.
+
+    Matches `classify_transforms`: mean=0, std=1 (no ImageNet stats), aspect-
+    preserving shortest-side resize + center crop, then /255. Function name is
+    historical; despite it, there's no ImageNet normalization applied — that
+    was the original bug.
+    """
+    import torchvision.transforms as T
+    from PIL import Image
+
     if isinstance(size, int):
         size = (size, size)
-    img = cv2.resize(img_rgb, (size[1], size[0]), interpolation=cv2.INTER_LINEAR)
-    img = img.astype(np.float32) / 255.0
-    mean = np.array([0.485, 0.456, 0.406], dtype=np.float32)
-    std = np.array([0.229, 0.224, 0.225], dtype=np.float32)
-    img = (img - mean) / std
-    t = torch.from_numpy(img.transpose(2, 0, 1)).unsqueeze(0).to(DEVICE)
-    return t
+    if size[0] == size[1]:
+        resize = T.Resize(size[0], interpolation=T.InterpolationMode.BILINEAR)
+    else:
+        resize = T.Resize(size, interpolation=T.InterpolationMode.BILINEAR)
+    pil = Image.fromarray(img_rgb)
+    pil = resize(pil)
+    pil = T.CenterCrop(size)(pil)
+    t = T.ToTensor()(pil)  # (3, H, W) float in [0,1]; no mean/std subtraction
+    return t.unsqueeze(0).to(DEVICE)
 
 
 def _solider_normalize(img_rgb: np.ndarray, size) -> torch.Tensor:
@@ -342,6 +353,10 @@ def main():
     }
 
     for tag in ["champion", "solider", "mgn-t3", "mgn-t4", "t5fix"]:
+        entry = M.MODEL_REGISTRY[tag]
+        if not os.environ.get(entry["ckpt_env_var"]):
+            print(f"\n>>> skipping {tag} ({entry['ckpt_env_var']} unset)")
+            continue
         out = ARTIFACTS_DIR / tag
         out.mkdir(exist_ok=True, parents=True)
         print(f"\n>>> extracting {tag}")

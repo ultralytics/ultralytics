@@ -30,13 +30,20 @@ class MarketRecord:
             raise ValueError(f"split must be in {SPLITS}, got {self.split!r}")
 
 
-def iter_market_split(market_root: str, split: str) -> Iterator[MarketRecord]:
+def iter_market_split(market_root: str, split: str, include_distractors: bool = False) -> Iterator[MarketRecord]:
     """Iterate Market-1501 query/ or bounding_box_test/ (=gallery).
 
     image_id is the filename stem (e.g. '0001_c1s1_001051_00').
     pid/camid follow Market's filename convention: <pid>_c<camid>s<seq>_<frame>_<bbox>.jpg
-    pid=-1 (distractors) and pid=0 (Market noise IDs) are kept; downstream code
-    filters them as needed.
+
+    By default, pid=-1 (distractors) is FILTERED OUT to match the standard
+    Market-1501 protocol used by Ultralytics' ReidDataset (3,819 distractor
+    files exist in bounding_box_test/; without filtering, the gallery has
+    19,732 images vs the canonical 15,913). Set include_distractors=True to
+    re-include them.
+
+    pid=0 (Market noise IDs, ~2,798 files) is kept; downstream junk-filter
+    in retrieval.py handles same-pid-same-cam removal.
     """
     if split == "query":
         subdir = Path(market_root) / "query"
@@ -51,4 +58,6 @@ def iter_market_split(market_root: str, split: str) -> Iterator[MarketRecord]:
         cam_str = rest.split("s", 1)[0]  # 'c1'
         pid = int(pid_str)
         camid = int(cam_str[1:])
+        if pid < 0 and not include_distractors:
+            continue
         yield MarketRecord(image_id=stem, split=split, pid=pid, camid=camid, img_path=str(p))

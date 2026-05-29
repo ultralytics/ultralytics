@@ -21,7 +21,6 @@ conf_weight: 0.1 # (float) Weight for confidence distance
 angle_weight: 0.05 # (float) Weight for corner angle distance
 
 # Iterative assignment
-det_thr: 0.6 # (float) Detection threshold separating high/low confidence
 penalty_p: 0.2 # (float) Cost penalty for low-confidence detections
 penalty_q: 0.4 # (float) Cost penalty for deleted/recovered detections
 reduce_step: 0.05 # (float) Threshold reduction per iteration

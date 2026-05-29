@@ -452,7 +452,6 @@ class TRACKTRACK:
         self.max_time_lost = args.track_buffer
         self.kalman_filter = KalmanFilterXYWH()
 
-        self.det_thr = getattr(args, "det_thr", 0.6)
         self.match_thr = getattr(args, "match_thresh", 0.7)
         self.lost_match_thr = getattr(args, "lost_match_thr", 0.0)
         self.penalty_p = getattr(args, "penalty_p", 0.2)
@@ -490,9 +489,10 @@ class TRACKTRACK:
     def _cost_matrix(self, tracks: list[TTSTrack], dets: list[TTSTrack]) -> np.ndarray:
         """Return the multi-cue cost matrix (HMIoU + ReID + confidence + angle), gated by IoU support."""
         iou_sim, hmiou_dist = _hmiou_distance(tracks, dets)
-        cost = self.iou_weight * hmiou_dist
         if self.encoder is not None:
-            cost += self.reid_weight * _cosine_distance(tracks, dets)
+            cost = self.iou_weight * hmiou_dist + self.reid_weight * _cosine_distance(tracks, dets)
+        else:
+            cost = hmiou_dist
         cost += self.conf_weight * _confidence_distance(tracks, dets)
         cost += self.angle_weight * _angle_distance(tracks, dets, self.frame_id)
         if iou_sim.size > 0:
@@ -540,7 +540,7 @@ class TRACKTRACK:
         dets_recovered: list[TTSTrack] = []
         if dets_del is not None:
             del_xywh, del_conf, del_cls = dets_del
-            mask = del_conf > self.det_thr
+            mask = del_conf > self.args.track_high_thresh
             if mask.any():
                 del_boxes = np.concatenate([del_xywh[mask], -np.ones((mask.sum(), 1))], axis=-1)
                 dets_recovered = [_new_track(b, s, c) for b, s, c in zip(del_boxes, del_conf[mask], del_cls[mask])]

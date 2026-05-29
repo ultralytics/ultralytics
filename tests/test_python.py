@@ -217,22 +217,22 @@ def test_track_stream(model, tmp_path):
     """
     if model in {"yolo26n-cls.pt", "yolo26n-sem.pt"}:  # classification and semantic segmentation not supported
         return
+    from ultralytics.trackers.track import TRACKER_MAP
+
     video_url = f"{ASSETS_URL}/decelera_portrait_min.mov"
     model = YOLO(model)
-    model.track(video_url, imgsz=160, tracker="bytetrack.yaml")
-    model.track(video_url, imgsz=160, tracker="botsort.yaml", save_frames=True)  # test frame saving also
 
-    # Test Global Motion Compensation (GMC) methods and ReID
+    # Default end-to-end run for all built-in trackers
+    for tracker_type in TRACKER_MAP:
+        kwargs = {"save_frames": True} if tracker_type == "botsort" else {}
+        model.track(video_url, imgsz=160, tracker=f"{tracker_type}.yaml", **kwargs)
+
+    # Test Global Motion Compensation (GMC) methods and ReID on botsort
     for gmc, reidm in zip(["orb", "sift", "ecc"], ["auto", "auto", "yolo26n-cls.pt"]):
         default_args = YAML.load(ROOT / "cfg/trackers/botsort.yaml")
         custom_yaml = tmp_path / f"botsort-{gmc}.yaml"
         YAML.save(custom_yaml, {**default_args, "gmc_method": gmc, "with_reid": True, "model": reidm})
         model.track(video_url, imgsz=160, tracker=custom_yaml)
-
-    # Test trackers with no GMC/ReID variants; their per-tracker behavior
-    # is exercised by end-to-end run with default config.
-    for yaml_name in ("ocsort.yaml", "deepocsort.yaml", "fasttrack.yaml", "tracktrack.yaml"):
-        model.track(video_url, imgsz=160, tracker=yaml_name)
 
 
 @pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)

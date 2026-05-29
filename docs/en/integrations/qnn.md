@@ -74,7 +74,7 @@ Pass the target architecture via `name` (e.g. `name="73"`). Valid values:
 
 !!! note "Platform support"
 
-    QNN export uses the `onnxruntime-qnn` package. Stable wheels are published for **Windows (x64 and ARM64)** and **Linux ARM64 (aarch64)**. There is no Linux x86-64 or macOS wheel — on those hosts build ONNX Runtime from source with `--use_qnn`, or run the export on a supported platform. QNN context-binary generation works on a Windows x64 host (no Snapdragon device required for the export step).
+    QNN export uses the `onnxruntime-qnn` package. Prebuilt wheels are published for **Windows (x64 and ARM64)** and **Linux ARM64 (aarch64)**; on **Linux x86-64** build ONNX Runtime from source with `--use_qnn` (no prebuilt wheel is published, and macOS is not a supported QNN host). QNN context-binary generation runs on an x64 host — Windows x64 or Linux x86-64 — and does not require a Snapdragon device for the export step.
 
 ### Installation
 
@@ -269,7 +269,7 @@ No. QNN export runs entirely on your local machine using the `onnxruntime-qnn` p
 
 ### Which platforms can I export on?
 
-`onnxruntime-qnn` provides stable wheels for **Windows (x64 and ARM64)** and **Linux ARM64 (aarch64)**. Linux x86-64 and macOS have no wheel — build ONNX Runtime from source with `--use_qnn` or export on a supported platform. Context-binary generation runs on a Windows x64 host and does not require a physical Snapdragon device.
+`onnxruntime-qnn` provides prebuilt wheels for **Windows (x64 and ARM64)** and **Linux ARM64 (aarch64)**; on **Linux x86-64** build ONNX Runtime from source with `--use_qnn` (no prebuilt wheel is published, and macOS is not a supported QNN host). Context-binary generation runs on an x64 host — Windows x64 or Linux x86-64 — and does not require a physical Snapdragon device.
 
 ### How do I run YOLO on a Qualcomm Snapdragon NPU?
 

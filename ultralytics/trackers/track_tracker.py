@@ -148,16 +148,17 @@ def _track_aware_nms(
 
 
 def attach_raw_preds_hook(predictor) -> None:
-    """Wrap `predictor.postprocess` to capture raw pre-NMS predictions on `_raw_preds` (idempotent)."""
+    """Wrap `predictor.postprocess` to capture raw pre-NMS predictions and inputs (idempotent)."""
     if hasattr(predictor, "_orig_postprocess"):
         return
     orig = predictor.postprocess
 
     @wraps(orig)
-    def _wrapped(preds, img, *args, **kwargs):
+    def _wrapped(preds, img, orig_imgs, *args, **kwargs):
         predictor._raw_preds = preds.detach().cpu() if isinstance(preds, torch.Tensor) else preds
-        predictor._preproc_img_shape = img.shape[2:]
-        return orig(preds, img, *args, **kwargs)
+        predictor._postprocess_im = img
+        predictor._postprocess_im0s = orig_imgs
+        return orig(preds, img, orig_imgs, *args, **kwargs)
 
     predictor._orig_postprocess = orig
     predictor.postprocess = _wrapped
@@ -169,47 +170,35 @@ def compute_dets_del(predictor) -> list | None:
     if raw is None or not isinstance(raw, torch.Tensor):
         return None
     from torchvision.ops import box_iou
-    from ultralytics.utils import nms, ops
+    from ultralytics.utils import ops
+
+    orig_iou = predictor.args.iou
+    predictor.args.iou = 0.95
+    try:
+        loose_results = predictor._orig_postprocess(raw, predictor._postprocess_im, predictor._postprocess_im0s)
+    finally:
+        predictor.args.iou = orig_iou
 
     is_obb = predictor.args.task == "obb"
-    preds_loose = nms.non_max_suppression(
-        raw,
-        predictor.args.conf,
-        0.95,
-        predictor.args.classes,
-        predictor.args.agnostic_nms,
-        max_det=predictor.args.max_det,
-        nc=0 if predictor.args.task == "detect" else len(predictor.model.names),
-        end2end=getattr(predictor.model, "end2end", False),
-        rotated=is_obb,
-    )
-
-    im_shape = getattr(predictor, "_preproc_img_shape", None)
     out = []
-    for loose, result in zip(preds_loose, predictor.results):
-        tight = (result.obb if is_obb else result.boxes).cpu()
-        if len(loose) == 0 or len(tight) == 0:
+    for loose, tight in zip(loose_results, predictor.results):
+        tight_boxes = tight.obb if is_obb else tight.boxes
+        loose_boxes = loose.obb if is_obb else loose.boxes
+        if len(loose_boxes) == 0 or len(tight_boxes) == 0:
             out.append(None)
             continue
-        loose = loose.clone()
-        if im_shape is not None:
-            loose[:, :4] = ops.scale_boxes(im_shape, loose[:, :4], result.orig_shape, xywh=is_obb)
-        tight_xyxy = tight.xyxy.cpu()
-        loose_xyxy = ops.xywh2xyxy(loose[:, :4]).cpu() if is_obb else loose[:, :4].cpu()
-        if tight_xyxy.numel() == 0 or loose_xyxy.numel() == 0:
-            out.append(None)
-            continue
-        max_iou = box_iou(loose_xyxy, tight_xyxy).max(dim=1).values
+        max_iou = box_iou(loose_boxes.xyxy, tight_boxes.xyxy).max(dim=1).values
         mask = max_iou < _LOOSE_NMS_DEDUP_IOU
         if not mask.any():
             out.append(None)
             continue
-        dels = loose[mask].cpu()
+        dels = loose_boxes.data[mask].cpu()
         if is_obb:
-            xywh = np.concatenate([dels[:, :4].numpy(), dels[:, 6:7].numpy()], axis=1)
+            xywh = dels[:, :5].numpy()  # xywhr
+            out.append((xywh, dels[:, 5].numpy(), dels[:, 6].numpy()))
         else:
             xywh = ops.xyxy2xywh(dels[:, :4]).numpy()
-        out.append((xywh, dels[:, 4].numpy(), dels[:, 5].numpy()))
+            out.append((xywh, dels[:, 4].numpy(), dels[:, 5].numpy()))
 
     predictor._raw_preds = None
     return out

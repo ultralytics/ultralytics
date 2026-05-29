@@ -124,23 +124,26 @@ def _track_aware_nms(tracks: list, dets: list, tai_thr: float, new_track_thresh:
     if not dets:
         return []
     scores = np.array([det.score for det in dets])
-    allow = list(scores > new_track_thresh)
-    if len(tracks) + len(dets) < 2:
-        return allow
+    allow = scores > new_track_thresh
+    n_tracks, n_dets = len(tracks), len(dets)
+    if n_tracks + n_dets < 2:
+        return allow.tolist()
     boxes = np.ascontiguousarray([obj.xyxy for obj in tracks + dets], dtype=np.float32)
     iou = bbox_ioa(boxes, boxes, iou=True)
-    n_tracks = len(tracks)
-    n_dets = len(dets)
-    for i in range(n_dets):
+
+    if n_tracks:
+        allow &= iou[n_tracks:, :n_tracks].max(axis=1) <= tai_thr
+
+    det_iou = iou[n_tracks:, n_tracks:]
+    order = scores.argsort()[::-1]
+    for i in order:
         if not allow[i]:
             continue
-        if n_tracks and np.max(iou[n_tracks + i, :n_tracks]) > tai_thr:
-            allow[i] = False
-            continue
-        for j in range(n_dets):
-            if i != j and allow[j] and scores[i] > scores[j] and iou[n_tracks + i, n_tracks + j] > tai_thr:
-                allow[j] = False
-    return allow
+        suppress = det_iou[i] > tai_thr
+        suppress[i] = False
+        allow[suppress] = False
+
+    return allow.tolist()
 
 
 def attach_raw_preds_hook(predictor) -> None:

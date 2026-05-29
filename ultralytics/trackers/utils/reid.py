@@ -48,9 +48,22 @@ class ReID:
             self.model = AutoBackend(str(model), device=self.device, fp16=fp16, verbose=False)
             self.fp16 = self.model.fp16
 
+    @staticmethod
+    def _crop_detections(img: np.ndarray, dets: np.ndarray) -> list[np.ndarray]:
+        """Crop detection regions from image, converting xywh to xyxy first.
+
+        Args:
+            img (np.ndarray): BGR image.
+            dets (np.ndarray): Detections in xywh format (first 4 columns used).
+
+        Returns:
+            (list[np.ndarray]): Cropped image patches.
+        """
+        return [save_one_box(det, img, save=False) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))]
+
     def _crops_to_tensor(self, img: np.ndarray, dets: np.ndarray) -> torch.Tensor:
         """Crop detections from img and stack into a normalized BCHW float tensor at self.imgsz."""
-        crops = [save_one_box(det, img, save=False) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))]
+        crops = self._crop_detections(img, dets)
         batch = torch.empty(len(crops), 3, self.imgsz, self.imgsz, dtype=torch.float32)
         for i, c in enumerate(crops):
             t = torch.from_numpy(np.ascontiguousarray(c[..., ::-1])).permute(2, 0, 1).unsqueeze(0).float() / 255.0
@@ -62,7 +75,7 @@ class ReID:
     def __call__(self, img: np.ndarray, dets: np.ndarray) -> list[np.ndarray]:
         """Extract embeddings for detected objects."""
         if self.is_pt:
-            crops = [save_one_box(det, img, save=False) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))]
+            crops = self._crop_detections(img, dets)
             feats = self.model.predictor(crops)
             if len(feats) != dets.shape[0] and feats[0].shape[0] == dets.shape[0]:
                 feats = feats[0]  # batched prediction with non-PyTorch backend

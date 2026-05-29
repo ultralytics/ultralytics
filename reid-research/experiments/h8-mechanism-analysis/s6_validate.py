@@ -78,6 +78,7 @@ def main():
     parser.add_argument("--champion-baseline-only", action="store_true",
                         help="just run the env-drift baseline and exit (Step 2 below)")
     args = parser.parse_args()
+    OUT.mkdir(parents=True, exist_ok=True)
 
     decision = OUT / "s5_decision.md"
     if not decision.exists():

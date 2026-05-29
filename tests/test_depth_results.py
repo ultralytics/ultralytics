@@ -33,3 +33,23 @@ def test_results_update_depth():
     r.update(depth=np.ones((8, 8), dtype=np.float32))
     from ultralytics.engine.results import DepthMap
     assert isinstance(r.depth, DepthMap)
+
+
+def test_depth_predictor_postprocess_sets_depthmap():
+    import torch
+    from ultralytics.engine.results import DepthMap
+    from ultralytics.models.yolo.depth.predict import DepthPredictor
+
+    p = DepthPredictor.__new__(DepthPredictor)   # bypass __init__
+    p.batch = None
+
+    class _M:  # minimal stand-in for self.model
+        names = {0: "depth"}
+
+    p.model = _M()
+    img = torch.zeros(1, 3, 32, 32)
+    orig = np.zeros((40, 48, 3), dtype=np.uint8)
+    preds = torch.rand(1, 1, 32, 32)
+    res = p.postprocess(preds, img, [orig])
+    assert isinstance(res[0].depth, DepthMap)
+    assert res[0].depth.data.shape == (40, 48)   # resized to original image size

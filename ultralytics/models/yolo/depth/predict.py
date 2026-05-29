@@ -53,12 +53,13 @@ class DepthPredictor(BasePredictor):
                 align_corners=True,
             ).squeeze().cpu().numpy()
 
-            result = Results(
-                orig_img=orig_img,
-                path=self.batch[0][i] if self.batch else "",
-                names=self.model.names,
+            results.append(
+                Results(
+                    orig_img=orig_img,
+                    path=self.batch[0][i] if self.batch else "",
+                    names=self.model.names,
+                    depth=depth,
+                )
             )
-            result.depth = depth
-            results.append(result)
 
         return results

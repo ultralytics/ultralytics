@@ -614,18 +614,36 @@ class YOLOAnomalyV2Model(DetectionModel):
         """Force the next forward to use no mask (AF=0 -> passthrough). Used by B-off val."""
         self._mask_bboxes_buf = None
         self._mask_batch_idx_buf = None
+        self._external_mask_buf = None
         self._mask_disabled_once = True
+
+    def set_external_mask_once(self, mask: torch.Tensor):
+        """Provide a pre-computed mask (B, 1, H, W) for the next forward, bypassing the
+        bbox renderer. The mask is fed directly to the per-scale HeatmapEncoder.
+
+        ``mask.shape[2:]`` may be any HxW; it is resized to each PAN scale internally.
+        Typical use cases: hand-drawn masks for interactive prediction, MemoryBank
+        outputs at v2.1 inference, sanity-check heatmaps.
+        """
+        if mask.dim() != 4 or mask.shape[1] != 1:
+            raise ValueError(f"external mask must be (B, 1, H, W), got {tuple(mask.shape)}")
+        self._external_mask_buf = mask
+        self._mask_bboxes_buf = None
+        self._mask_batch_idx_buf = None
+        self._mask_disabled_once = False
 
     def _consume_mask_input(self):
         # Robust to being called during super().__init__()'s stride probe,
         # before our own __init__ has set these attributes.
         bb = getattr(self, "_mask_bboxes_buf", None)
         bi = getattr(self, "_mask_batch_idx_buf", None)
+        ext = getattr(self, "_external_mask_buf", None)
         if hasattr(self, "_mask_bboxes_buf"):
             self._mask_bboxes_buf = None
             self._mask_batch_idx_buf = None
+            self._external_mask_buf = None
             self._mask_disabled_once = False
-        return bb, bi
+        return bb, bi, ext
 
     # ------------------------------------------------------------------
     # Forward
@@ -650,20 +668,25 @@ class YOLOAnomalyV2Model(DetectionModel):
         batch_size = x.shape[0]
         device = x.device
 
-        # Consume the mask input set by loss() / set_mask_input() / disable_mask_once()
-        bboxes, batch_idx = self._consume_mask_input()
+        # Consume the mask input set by loss() / set_mask_input() / disable_mask_once() /
+        # set_external_mask_once().
+        bboxes, batch_idx, external_mask = self._consume_mask_input()
 
         # Build per-sample keep mask:
-        #  - keep[b]=1 -> use rendered AF
+        #  - keep[b]=1 -> use rendered/external AF
         #  - keep[b]=0 -> zero AF (exact passthrough via 2*sigmoid(0)=1)
-        if bboxes is None:
+        if external_mask is not None:
+            # External mask provided directly; skip the bbox renderer.
+            keep = torch.ones(batch_size, device=device)
+            mask = external_mask.to(device=device, dtype=torch.float32)
+        elif bboxes is None:
             keep = torch.zeros(batch_size, device=device)  # all-off -> passthrough
             mask = None
         else:
             keep = torch.ones(batch_size, device=device)
             if self.training and self.p_drop > 0.0:
                 keep = (torch.rand(batch_size, device=device) > self.p_drop).to(keep.dtype)
-            mask = self.mask_renderer(bboxes, batch_idx, batch_size) if bboxes is not None else None
+            mask = self.mask_renderer(bboxes, batch_idx, batch_size)
 
         y, dt, embeddings = [], [], []
         embed = frozenset(embed) if embed is not None else {-1}

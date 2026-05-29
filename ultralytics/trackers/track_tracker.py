@@ -510,8 +510,17 @@ class TRACKTRACK:
             return track
 
         high_boxes, high_scores, high_cls = boxes[high_mask], scores[high_mask], results.cls[high_mask]
-        if self.encoder is not None and img is not None and len(high_boxes) > 0:
-            features = self.encoder(img, high_boxes)
+        feats = kwargs.get("feats")
+        use_native = getattr(self.args, "model", "auto") == "auto"
+        encoder_input = None
+        if self.encoder is not None and len(high_boxes) > 0:
+            if use_native:
+                encoder_input = feats[high_mask] if (feats is not None and len(feats)) else None
+            elif img is not None:
+                encoder_input = img
+
+        if encoder_input is not None:
+            features = self.encoder(encoder_input, high_boxes)
             dets_high = [_new_track(b, s, c, f) for b, s, c, f in zip(high_boxes, high_scores, high_cls, features)]
         else:
             dets_high = [_new_track(b, s, c) for b, s, c in zip(high_boxes, high_scores, high_cls)]

@@ -12,7 +12,6 @@ new_track_thresh: 0.7 # (float) Minimum score to start a new track via track-awa
 track_buffer: 30 # (int) Frames to keep lost tracks alive
 match_thresh: 0.7 # (float) Initial matching threshold for iterative assignment
 lost_match_thr: 0.0 # (float) Looser rebind cost gate for still-Lost tracks; 0 disables the relaxed second pass. Raise above match_thresh (e.g. 0.9) for long-occlusion scenes
-fuse_score: False # (bool) Not used by TrackTrack (multi-cue cost handles this)
 
 # Association weights
 iou_weight: 0.5 # (float) Weight for HMIoU distance in cost matrix
@@ -31,9 +30,6 @@ min_track_len: 3 # (int) Minimum history length before track is confirmed
 
 # Camera motion compensation
 gmc_method: sparseOptFlow # (str) GMC method: sparseOptFlow, orb, ecc, none
-gmc_downscale: 3 # (int) Downscale factor for GMC (higher = faster, less accurate)
-gmc_max_corners: 200 # (int) Max keypoints for sparseOptFlow (lower = faster; 200 sufficient for affine)
-gmc_skip_frames: 0 # (int) Skip N frames between GMC updates (0 = every frame; >0 = faster)
 
 # ReID
 with_reid: False # (bool) Enable ReID feature matching

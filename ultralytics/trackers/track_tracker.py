@@ -45,7 +45,7 @@ def _nsa_kalman_update(
     return new_mean, new_cov
 
 
-def _hmiou_distance(tracks_a: list, tracks_b: list) -> tuple[np.ndarray, np.ndarray]:
+def _hmiou_distance(tracks_a: list[TTSTrack], tracks_b: list[TTSTrack]) -> tuple[np.ndarray, np.ndarray]:
     """Return (iou_sim, 1 - HMIoU) where HMIoU = HIoU * IoU and HIoU is vertical-overlap / vertical-union."""
     n, m = len(tracks_a), len(tracks_b)
     if n == 0 or m == 0:
@@ -59,11 +59,10 @@ def _hmiou_distance(tracks_a: list, tracks_b: list) -> tuple[np.ndarray, np.ndar
     return iou_sim, 1.0 - h_iou * iou_sim
 
 
-def _angle_distance(tracks: list, dets: list, frame_id: int, delta_t: int = 3) -> np.ndarray:
+def _angle_distance(tracks: list[TTSTrack], dets: list[TTSTrack], frame_id: int, delta_t: int = 3) -> np.ndarray:
     """Return angle distance between each track's corner velocities and the track-to-detection direction."""
-    n, m = len(tracks), len(dets)
-    if n == 0 or m == 0:
-        return np.ones((n, m), dtype=np.float32)
+    if len(tracks) == 0 or len(dets) == 0:
+        return np.ones((len(tracks), len(dets)), dtype=np.float32)
     track_boxes = np.stack([track.get_history_box(frame_id, delta_t) for track in tracks])  # (N, 4)
     det_boxes = np.stack([det.xyxy for det in dets])  # (M, 4)
     deltas = det_boxes[None] - track_boxes[:, None]  # (N, M, 4)
@@ -78,7 +77,7 @@ def _angle_distance(tracks: list, dets: list, frame_id: int, delta_t: int = 3) -
     return dist * np.array([det.score for det in dets])[None]
 
 
-def _confidence_distance(tracks: list, dets: list) -> np.ndarray:
+def _confidence_distance(tracks: list[TTSTrack], dets: list[TTSTrack]) -> np.ndarray:
     """Absolute difference between each track's projected score and each detection's confidence."""
     if len(tracks) == 0 or len(dets) == 0:
         return np.ones((len(tracks), len(dets)), dtype=np.float32)
@@ -89,7 +88,7 @@ def _confidence_distance(tracks: list, dets: list) -> np.ndarray:
     return np.abs(track_proj_scores[:, None] - det_scores[None])
 
 
-def _iterative_associate(cost: np.ndarray, match_thr: float, reduce_step: float = 0.05):
+def _iterative_associate(cost: np.ndarray, match_thr: float, reduce_step: float = 0.05) -> tuple[list]:
     """Greedy mutually-nearest matching with a threshold that shrinks each iteration.
 
     Returns (matches, unmatched_tracks, unmatched_dets).
@@ -119,7 +118,9 @@ def _iterative_associate(cost: np.ndarray, match_thr: float, reduce_step: float 
     return matches, unmatched_tracks, unmatched_dets
 
 
-def _track_aware_nms(tracks: list, dets: list, tai_thr: float, new_track_thresh: float) -> list[bool]:
+def _track_aware_nms(
+    tracks: list[TTSTrack], dets: list[TTSTrack], tai_thr: float, new_track_thresh: float
+) -> list[bool]:
     """TAI NMS: suppress detections that heavily overlap an existing track or a stronger detection."""
     if not dets:
         return []
@@ -168,7 +169,6 @@ def compute_dets_del(predictor) -> list | None:
     if raw is None or not isinstance(raw, torch.Tensor):
         return None
     from torchvision.ops import box_iou
-
     from ultralytics.utils import nms, ops
 
     is_obb = predictor.args.task == "obb"
@@ -217,9 +217,8 @@ def compute_dets_del(predictor) -> list | None:
 
 def _cosine_distance(tracks: list[TTSTrack], dets: list[TTSTrack]) -> np.ndarray:
     """Return cosine distance in `[0, 1]` between track smoothed embeddings and detection current embeddings."""
-    n, m = len(tracks), len(dets)
-    if n == 0 or m == 0:
-        return np.ones((n, m), dtype=np.float32)
+    if len(tracks) == 0 or len(dets) == 0:
+        return np.ones((len(tracks), len(dets)), dtype=np.float32)
     dim = 128
     for obj in (*tracks, *dets):
         feat = obj.smooth_feat if obj.smooth_feat is not None else obj.curr_feat
@@ -420,7 +419,6 @@ class TRACKTRACK:
     Attributes:
         tracked_stracks (list[TTSTrack]): Currently tracked tracks.
         lost_stracks (list[TTSTrack]): Tracks that lost their detection but remain within the buffer window.
-        removed_stracks (list[TTSTrack]): Tracks pending removal.
         frame_id (int): Current frame index.
         args (Any): Parsed tracker configuration.
         max_time_lost (int): Frame budget before a lost track is removed (scaled to source frame rate).
@@ -449,7 +447,6 @@ class TRACKTRACK:
         """
         self.tracked_stracks: list[TTSTrack] = []
         self.lost_stracks: list[TTSTrack] = []
-        self.removed_stracks: list[TTSTrack] = []
         self.frame_id = 0
         self.args = args
         self.max_time_lost = args.track_buffer
@@ -468,12 +465,7 @@ class TRACKTRACK:
         self.new_track_thresh = getattr(args, "new_track_thresh", 0.7)
         self.min_track_len = getattr(args, "min_track_len", 3)
 
-        self.gmc = GMC(method=getattr(args, "gmc_method", "sparseOptFlow"), downscale=getattr(args, "gmc_downscale", 3))
-        if self.gmc.method == "sparseOptFlow":
-            self.gmc.feature_params["maxCorners"] = getattr(args, "gmc_max_corners", 200)
-        self._gmc_skip = getattr(args, "gmc_skip_frames", 0)
-        self._gmc_warp = np.eye(2, 3, dtype=np.float32)
-        self._gmc_counter = 0
+        self.gmc = GMC(method=getattr(args, "gmc_method", "sparseOptFlow"))
 
         from .utils.reid import build_encoder
 
@@ -503,17 +495,12 @@ class TRACKTRACK:
         return np.clip(cost, 0, 1)
 
     def _apply_gmc(self, img: np.ndarray, detections: list, pools: list[list[TTSTrack]]) -> None:
-        """Warp `pools` in place by the current GMC affine, recomputing the warp every `gmc_skip_frames + 1` frames."""
-        if self._gmc_skip > 0 and self._gmc_counter % (self._gmc_skip + 1) != 0:
-            warp = self._gmc_warp
-        else:
-            try:
-                warp = self.gmc.apply(img, [det.xyxy for det in detections])
-            except Exception as e:
-                LOGGER.warning(f"GMC failed, falling back to identity: {e}")
-                warp = np.eye(2, 3)
-            self._gmc_warp = warp
-        self._gmc_counter += 1
+        """Warp `pools` in place by the current GMC affine."""
+        try:
+            warp = self.gmc.apply(img, [det.xyxy for det in detections])
+        except Exception as e:
+            LOGGER.warning(f"GMC failed, falling back to identity: {e}")
+            warp = np.eye(2, 3)
         for pool in pools:
             multi_gmc(pool, warp)
 
@@ -634,10 +621,7 @@ class TRACKTRACK:
         """Clear all tracker state including GMC warp history and the global ID counter."""
         self.tracked_stracks = []
         self.lost_stracks = []
-        self.removed_stracks = []
         self.frame_id = 0
         self.kalman_filter = KalmanFilterXYWH()
-        self._gmc_counter = 0
-        self._gmc_warp = np.eye(2, 3, dtype=np.float32)
         TTSTrack.reset_id()
         self.gmc.reset_params()

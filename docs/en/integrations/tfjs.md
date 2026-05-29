@@ -18,7 +18,7 @@ Exporting your machine learning models to TensorFlow.js, developed by the Tensor
   <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tfjs-architecture.avif" alt="TensorFlow.js browser ML inference architecture">
 </p>
 
-Running models locally also reduces latency and provides a more responsive user experience. [TensorFlow.js](https://www.ultralytics.com/glossary/tensorflow) also comes with offline capabilities, allowing users to use your application even without an internet connection. TF.js is designed for efficient execution of complex models on devices with limited resources as it is engineered for scalability, with GPU acceleration support.
+Running models locally also reduces latency and provides a more responsive user experience. [TensorFlow.js](https://www.tensorflow.org/js) also comes with offline capabilities, allowing users to use your application even without an internet connection. TF.js is designed for efficient execution of complex models on devices with limited resources as it is engineered for scalability, with GPU acceleration support.
 
 ## Key Features of TF.js
 
@@ -172,7 +172,7 @@ Exporting YOLO26 models to TensorFlow.js offers several advantages, including:
 3. **Offline Capabilities:** Enables applications to function without an internet connection, ensuring reliability and privacy.
 4. **GPU Acceleration:** Leverages WebGL for GPU acceleration, optimizing performance on devices with limited resources.
 
-For a comprehensive overview, see our [Integrations with TensorFlow.js](../integrations/tf-graphdef.md).
+For a comprehensive overview, see our [Integrations with TensorFlow GraphDef](tf-graphdef.md).
 
 ### How does TensorFlow.js benefit browser-based machine learning applications?
 

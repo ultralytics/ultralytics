@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import numpy as np
@@ -16,8 +17,8 @@ from .base import BaseBackend
 class ONNXBackend(BaseBackend):
     """Microsoft ONNX Runtime inference backend with optional OpenCV DNN support.
 
-    Loads and runs inference with ONNX models (.onnx files) using either Microsoft ONNX Runtime with CUDA/CoreML
-    execution providers, or OpenCV DNN for lightweight CPU inference. Supports IO binding for optimized GPU inference
+    Loads and runs inference with ONNX models (.onnx files) using Microsoft ONNX Runtime with MIGraphX/CUDA/CoreML
+    execution providers, or OpenCV DNN for lightweight CPU inference. Supports IO binding for optimized CUDA inference
     with static input shapes.
     """
 
@@ -40,7 +41,9 @@ class ONNXBackend(BaseBackend):
         Args:
             weight (str | Path): Path to the .onnx model file.
         """
-        cuda = isinstance(self.device, torch.device) and torch.cuda.is_available() and self.device.type != "cpu"
+        gpu = isinstance(self.device, torch.device) and torch.cuda.is_available() and self.device.type != "cpu"
+        rocm = bool(getattr(torch.version, "hip", None))
+        requested_fp16 = self.fp16
 
         if self.format == "dnn":
             # OpenCV DNN
@@ -52,21 +55,37 @@ class ONNXBackend(BaseBackend):
         else:
             # ONNX Runtime
             LOGGER.info(f"Loading {weight} for ONNX Runtime inference...")
-            check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
+            runtime_candidates = (
+                ("onnxruntime-migraphx", "onnxruntime", "onnxruntime-gpu")
+                if gpu and rocm
+                else ("onnxruntime-gpu", "onnxruntime-migraphx", "onnxruntime")
+                if gpu
+                else ("onnxruntime", "onnxruntime-migraphx", "onnxruntime-gpu")
+            )
+            check_requirements(["onnx", runtime_candidates])
             import onnxruntime
 
             # Select execution provider
             available = onnxruntime.get_available_providers()
-            if cuda and "CUDAExecutionProvider" in available:
-                providers = [("CUDAExecutionProvider", {"device_id": self.device.index}), "CPUExecutionProvider"]
+            device_id = self.device.index if isinstance(self.device, torch.device) and self.device.index else 0
+            use_cuda_io_binding = False
+            if gpu and "MIGraphXExecutionProvider" in available:
+                migraphx_options = {"device_id": str(device_id)}
+                if requested_fp16:
+                    migraphx_options["migraphx_fp16_enable"] = "1"
+                if cache_dir := os.environ.get("ULTRALYTICS_MIGRAPHX_CACHE_DIR"):
+                    migraphx_options["migraphx_model_cache_dir"] = cache_dir
+                providers = [("MIGraphXExecutionProvider", migraphx_options), "CPUExecutionProvider"]
+            elif gpu and "CUDAExecutionProvider" in available:
+                providers = [("CUDAExecutionProvider", {"device_id": device_id}), "CPUExecutionProvider"]
+                use_cuda_io_binding = True
             elif self.device.type == "mps" and "CoreMLExecutionProvider" in available:
                 providers = ["CoreMLExecutionProvider", "CPUExecutionProvider"]
             else:
                 providers = ["CPUExecutionProvider"]
-                if cuda:
-                    LOGGER.warning("CUDA requested but CUDAExecutionProvider not available. Using CPU...")
+                if gpu:
+                    LOGGER.warning("GPU requested but no compatible ONNX Runtime GPU provider is available. Using CPU...")
                     self.device = torch.device("cpu")
-                    cuda = False
 
             LOGGER.info(
                 f"Using ONNX Runtime {onnxruntime.__version__} with "
@@ -74,6 +93,9 @@ class ONNXBackend(BaseBackend):
             )
 
             self.session = onnxruntime.InferenceSession(weight, providers=providers)
+            self.providers = self.session.get_providers()
+            self.provider = self.providers[0] if self.providers else None
+            self.provider_options = self.session.get_provider_options()
             self.output_names = [x.name for x in self.session.get_outputs()]
 
             # Get metadata
@@ -84,9 +106,12 @@ class ONNXBackend(BaseBackend):
             # Check if dynamic shapes
             self.dynamic = isinstance(self.session.get_outputs()[0].shape[0], str)
             self.fp16 = "float16" in self.session.get_inputs()[0].type
+            self.migraphx_fp16 = self.provider == "MIGraphXExecutionProvider" and requested_fp16
+            if self.migraphx_fp16 and not self.fp16:
+                LOGGER.info("MIGraphX FP16 provider option is enabled; model input remains FP32.")
 
             # Setup IO binding for CUDA
-            self.use_io_binding = not self.dynamic and cuda
+            self.use_io_binding = not self.dynamic and use_cuda_io_binding
             if self.use_io_binding:
                 self.io = self.session.io_binding()
                 self.bindings = []
@@ -98,7 +123,7 @@ class ONNXBackend(BaseBackend):
                     self.io.bind_output(
                         name=output.name,
                         device_type=self.device.type,
-                        device_id=self.device.index if cuda else 0,
+                        device_id=device_id,
                         element_type=np.float16 if out_fp16 else np.float32,
                         shape=tuple(y_tensor.shape),
                         buffer_ptr=y_tensor.data_ptr(),

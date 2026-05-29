@@ -15,6 +15,10 @@ keywords: Ultralytics, stracks, track pools, multi-object tracking, GMC, STrack 
 
 <br><br><hr><br>
 
+## ::: ultralytics.trackers.utils.stracks.parse_bboxes
+
+<br><br><hr><br>
+
 ## ::: ultralytics.trackers.utils.stracks.joint_stracks
 
 <br><br><hr><br>

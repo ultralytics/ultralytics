@@ -329,7 +329,28 @@ jobs:
               monitor_pid=$!
               trap 'kill "$monitor_pid" 2>/dev/null || true' EXIT
             fi
-            PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -vv -s -n 2 --dist=loadfile --durations=50 --durations-min=1 --slow --cov=ultralytics/ --cov-report=xml tests/ --deselect tests/test_exports.py::test_export_imx --deselect tests/test_exports.py::test_export_mnn --deselect tests/test_exports.py::test_export_ncnn --deselect tests/test_exports.py::test_export_executorch
+            pytest_args=(
+              -vv
+              -s
+              --slow
+              --cov=ultralytics/
+              --cov-report=xml
+              --durations=50
+              --durations-min=1
+              tests/
+              --deselect tests/test_exports.py::test_export_imx
+              --deselect tests/test_exports.py::test_export_mnn
+              --deselect tests/test_exports.py::test_export_ncnn
+              --deselect tests/test_exports.py::test_export_executorch
+              --deselect tests/test_exports.py::test_export_axelera
+              --deselect tests/test_exports.py::test_export_deepx
+            )
+            PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -n 2 --dist=loadfile "${pytest_args[@]}"
+
+            # Run memory-heavy hardware exporter installs in fresh processes after TensorFlow/TFLite exits.
+            for export_test in tests/test_exports.py::test_export_axelera tests/test_exports.py::test_export_deepx; do
+              PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -vv -s --slow --cov=ultralytics/ --cov-append --cov-report=xml --durations=10 --durations-min=1 "$export_test"
+            done
           retries: 1 # Retry once after initial attempt (2 total runs)
           timeout_minutes: 180
           retry_delay_seconds: 60

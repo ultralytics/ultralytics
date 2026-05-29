@@ -366,11 +366,17 @@ You should see the device type, firmware version, and serial number printed.
 
 ### Step 3: Run Inference
 
-The script below runs object detection on a single image using the compiled HEF file and the `hailo_platform` Python API. It handles preprocessing, inference, and drawing bounding boxes from the HailoRT NMS output.
+The scripts below run object detection with the compiled HEF file. Both tabs accept the same `--source` inputs (an image, a video, a USB webcam index, or `csi` for the Raspberry Pi Camera Module) and differ only in the inference API: the **Hailo SDK** tab uses the low-level `hailo_platform` API (portable, minimal dependencies), while the **picamera2** tab uses the Raspberry Pi `picamera2` `Hailo` helper. Images and videos are written to an annotated file; webcam and CSI streams display in a live window.
 
-!!! example "Inference Script"
+=== "Hailo SDK (`hailo_platform`)"
+
+    The vendor-native [HailoRT](https://hailo.ai/developer-zone/) path runs on any platform with a Hailo device and needs no extra dependencies. Pass `--source` an image path, a video path, a webcam index (e.g. `0`) for live USB/V4L2 capture, or `csi` for the Raspberry Pi Camera Module. The CSI option requires `picamera2` to be installed, since modern Raspberry Pi OS routes the camera through libcamera rather than a plain V4L2 device.
 
     ```python
+    import argparse
+    from pathlib import Path
+
+    import cv2
     import numpy as np
     from hailo_platform import (
         HEF,
@@ -382,150 +388,290 @@ The script below runs object detection on a single image using the compiled HEF 
         OutputVStreamParams,
         VDevice,
     )
-    from PIL import Image, ImageDraw
-
-    # Configuration
-    MODEL = "yolo11n"
-    HEF_PATH = f"{MODEL}.hef"  # path to your compiled HEF file
-    SOURCE = "bus.jpg"  # image path
-    IMGSZ = 640
-    CONF = 0.25
+    from tqdm import tqdm
 
     COCO_NAMES = [
-        "person",
-        "bicycle",
-        "car",
-        "motorcycle",
-        "airplane",
-        "bus",
-        "train",
-        "truck",
-        "boat",
-        "traffic light",
-        "fire hydrant",
-        "stop sign",
-        "parking meter",
-        "bench",
-        "bird",
-        "cat",
-        "dog",
-        "horse",
-        "sheep",
-        "cow",
-        "elephant",
-        "bear",
-        "zebra",
-        "giraffe",
-        "backpack",
-        "umbrella",
-        "handbag",
-        "tie",
-        "suitcase",
-        "frisbee",
-        "skis",
-        "snowboard",
-        "sports ball",
-        "kite",
-        "baseball bat",
-        "baseball glove",
-        "skateboard",
-        "surfboard",
-        "tennis racket",
-        "bottle",
-        "wine glass",
-        "cup",
-        "fork",
-        "knife",
-        "spoon",
-        "bowl",
-        "banana",
-        "apple",
-        "sandwich",
-        "orange",
-        "broccoli",
-        "carrot",
-        "hot dog",
-        "pizza",
-        "donut",
-        "cake",
-        "chair",
-        "couch",
-        "potted plant",
-        "bed",
-        "dining table",
-        "toilet",
-        "tv",
-        "laptop",
-        "mouse",
-        "remote",
-        "keyboard",
-        "cell phone",
-        "microwave",
-        "oven",
-        "toaster",
-        "sink",
-        "refrigerator",
-        "book",
-        "clock",
-        "vase",
-        "scissors",
-        "teddy bear",
-        "hair drier",
-        "toothbrush",
+        "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat",
+        "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat",
+        "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack",
+        "umbrella", "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball",
+        "kite", "baseball bat", "baseball glove", "skateboard", "surfboard", "tennis racket",
+        "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
+        "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair",
+        "couch", "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse",
+        "remote", "keyboard", "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator",
+        "book", "clock", "vase", "scissors", "teddy bear", "hair drier", "toothbrush",
     ]
 
-    # Load HEF and connect to device
-    hef = HEF(HEF_PATH)
-    params = VDevice.create_params()
-    target = VDevice(params)
+    IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tif", ".tiff"}
 
-    configure_params = ConfigureParams.create_from_hef(hef, interface=HailoStreamInterface.PCIe)
-    network_groups = target.configure(hef, configure_params)
-    network_group = network_groups[0]
-    network_group_params = network_group.create_params()
 
-    # Setup I/O virtual streams
-    input_vstreams_params = InputVStreamParams.make(network_group, quantized=False, format_type=FormatType.FLOAT32)
-    output_vstreams_params = OutputVStreamParams.make(network_group, quantized=False, format_type=FormatType.FLOAT32)
+    def parse_and_draw(per_class, frame, conf):
+        """Draw HailoRT NMS detections (grouped by class, normalized [0, 1] coords) onto a BGR frame."""
+        h, w = frame.shape[:2]
+        for cls_idx, cls_dets in enumerate(per_class):
+            for det in cls_dets:
+                score = float(det[4])
+                if score < conf:
+                    continue
+                # HailoRT NMS returns normalized [0, 1] coords as (y1, x1, y2, x2)
+                y1, x1, y2, x2 = det[:4]
+                x1, y1, x2, y2 = int(x1 * w), int(y1 * h), int(x2 * w), int(y2 * h)
+                label = f"{COCO_NAMES[cls_idx]} {score:.2f}"
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                cv2.putText(frame, label, (x1 + 2, y1 + 15),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
 
-    # Preprocess
-    orig = Image.open(SOURCE).convert("RGB")
-    ow, oh = orig.size
-    resized = orig.resize((IMGSZ, IMGSZ))
-    input_data = np.expand_dims(np.array(resized, dtype=np.float32), axis=0)  # (1,640,640,3)
-    input_name = hef.get_input_vstream_infos()[0].name
 
-    # Inference
-    with InferVStreams(network_group, input_vstreams_params, output_vstreams_params) as pipeline:
-        with network_group.activate(network_group_params):
-            pipeline.send({input_name: input_data})
-            raw = pipeline.recv()
+    def preprocess(frame, imgsz):
+        """BGR frame -> (1, imgsz, imgsz, 3) float32 in 0-255 (HEF normalizes internally)."""
+        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        resized = cv2.resize(rgb, (imgsz, imgsz))
+        return np.expand_dims(resized.astype(np.float32), axis=0)
 
-    # Parse HailoRT NMS output and draw results
-    # When compiled with nms_postprocess the HEF outputs detections grouped by
-    # class: shape (batch, num_classes, max_dets, 5) where 5 = [y1,x1,y2,x2,score]
-    draw = ImageDraw.Draw(orig)
-    output_key = next(iter(raw.keys()))
-    batch_dets = raw[output_key][0]  # shape: (num_classes, max_dets, 5)
 
-    for cls_idx, cls_dets in enumerate(batch_dets):
-        for det in cls_dets:
-            score = float(det[4])
-            if score < CONF:
-                continue
-            y1, x1, y2, x2 = det[:4]
-            # Scale from model coords (0-640) back to original image size
-            x1 = int(x1 * ow / IMGSZ)
-            y1 = int(y1 * oh / IMGSZ)
-            x2 = int(x2 * ow / IMGSZ)
-            y2 = int(y2 * oh / IMGSZ)
-            label = f"{COCO_NAMES[cls_idx]} {score:.2f}"
-            draw.rectangle([x1, y1, x2, y2], outline="red", width=2)
-            draw.text((x1 + 2, y1 + 2), label, fill="red")
+    def csi_frames(width=1280, height=720):
+        """Yield BGR frames from the Pi CSI Camera Module via picamera2."""
+        from picamera2 import Picamera2
 
-    orig.save("output.jpg")
-    print("Saved output.jpg")
+        picam2 = Picamera2()
+        # picamera2 "RGB888" is BGR-ordered in memory, so it drops straight into OpenCV
+        picam2.configure(picam2.create_preview_configuration(main={"size": (width, height), "format": "RGB888"}))
+        picam2.start()
+        try:
+            while True:
+                yield picam2.capture_array("main")  # BGR
+        finally:
+            picam2.stop()
+            picam2.close()
+
+
+    def cv2_frames(src):
+        """Yield BGR frames from a video file or USB/V4L2 webcam via OpenCV."""
+        cap = cv2.VideoCapture(src)
+        if not cap.isOpened():
+            raise RuntimeError(f"Could not open source {src}")
+        total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))  # 0 for live webcams
+        pbar = tqdm(total=total, desc="Processing video", unit="frame") if total > 0 else None
+        try:
+            while True:
+                ok, frame = cap.read()  # BGR
+                if not ok:
+                    break
+                yield frame
+                if pbar is not None:
+                    pbar.update(1)
+        finally:
+            if pbar is not None:
+                pbar.close()
+            cap.release()
+
+
+    def open_source(source):
+        """Yield (frame, kind) pairs where kind is 'image', 'video', or 'stream'."""
+        if source == "csi":
+            yield from ((f, "stream") for f in csi_frames())
+        elif source.isdigit():
+            yield from ((f, "stream") for f in cv2_frames(int(source)))
+        elif Path(source).suffix.lower() in IMAGE_EXTS:
+            frame = cv2.imread(source)
+            if frame is None:
+                raise FileNotFoundError(f"Could not read image {source}")
+            yield frame, "image"
+        else:
+            yield from ((f, "video") for f in cv2_frames(source))
+
+
+    if __name__ == "__main__":
+        parser = argparse.ArgumentParser(description="Hailo YOLO inference (image, video, webcam, or CSI camera)")
+        parser.add_argument("-m", "--model", default="yolo11n.hef", help="Path to the HEF model.")
+        parser.add_argument("--source", default="0", help="Image/video path, webcam index (e.g. 0), or 'csi'.")
+        parser.add_argument("--imgsz", type=int, default=640)
+        parser.add_argument("--conf", type=float, default=0.25)
+        args = parser.parse_args()
+
+        # Configure the device and network group ONCE
+        hef = HEF(args.model)
+        target = VDevice(VDevice.create_params())
+        configure_params = ConfigureParams.create_from_hef(hef, interface=HailoStreamInterface.PCIe)
+        network_group = target.configure(hef, configure_params)[0]
+        network_group_params = network_group.create_params()
+        input_vstreams_params = InputVStreamParams.make(network_group, quantized=False, format_type=FormatType.FLOAT32)
+        output_vstreams_params = OutputVStreamParams.make(network_group, quantized=False, format_type=FormatType.FLOAT32)
+        input_name = hef.get_input_vstream_infos()[0].name
+
+        writer = None  # lazily created for video output
+
+        # Keep the pipeline and activation OPEN across frames (re-opening per frame is slow)
+        with InferVStreams(network_group, input_vstreams_params, output_vstreams_params) as pipeline:
+            with network_group.activate(network_group_params):
+                try:
+                    for frame, kind in open_source(args.source):
+                        raw = pipeline.infer({input_name: preprocess(frame, args.imgsz)})
+                        parse_and_draw(raw[next(iter(raw.keys()))][0], frame, args.conf)
+
+                        if kind == "image":
+                            cv2.imwrite("output.jpg", frame)
+                            print("Saved output.jpg")
+                        elif kind == "video":
+                            if writer is None:
+                                h, w = frame.shape[:2]
+                                writer = cv2.VideoWriter("output.mp4", cv2.VideoWriter_fourcc(*"mp4v"), 30, (w, h))
+                            writer.write(frame)
+                        else:  # live stream
+                            cv2.imshow("Hailo YOLO", frame)
+                            if cv2.waitKey(1) & 0xFF == ord("q"):
+                                break
+                finally:
+                    if writer is not None:
+                        writer.release()
+                        print("Saved output.mp4")
+                    cv2.destroyAllWindows()
     ```
+
+=== "picamera2"
+
+    The [picamera2](https://github.com/raspberrypi/picamera2) path is the Raspberry Pi option that uses its lightweight `Hailo` device class (a HailoRT wrapper) for inference. It accepts the same `--source` inputs as the Hailo SDK tab: an image path, a video path, a webcam index, or `csi` for the **Camera Module**. CSI capture works here because modern Raspberry Pi OS routes the camera through libcamera rather than a plain V4L2 device.
+
+    ```python
+    import argparse
+    from pathlib import Path
+
+    import cv2
+    from picamera2.devices import Hailo
+    from tqdm import tqdm
+
+    COCO_NAMES = [
+        "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat",
+        "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat",
+        "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack",
+        "umbrella", "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball",
+        "kite", "baseball bat", "baseball glove", "skateboard", "surfboard", "tennis racket",
+        "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
+        "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair",
+        "couch", "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse",
+        "remote", "keyboard", "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator",
+        "book", "clock", "vase", "scissors", "teddy bear", "hair drier", "toothbrush",
+    ]
+
+
+    IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tif", ".tiff"}
+
+
+    def parse_and_draw(per_class, frame, conf):
+        """Draw HailoRT NMS detections (grouped by class, normalized [0, 1] coords) onto a BGR frame."""
+        h, w = frame.shape[:2]
+        for cls_idx, cls_dets in enumerate(per_class):
+            for det in cls_dets:
+                score = float(det[4])
+                if score < conf:
+                    continue
+                # HailoRT NMS returns normalized [0, 1] coords as (y1, x1, y2, x2)
+                y1, x1, y2, x2 = det[:4]
+                x1, y1, x2, y2 = int(x1 * w), int(y1 * h), int(x2 * w), int(y2 * h)
+                label = f"{COCO_NAMES[cls_idx]} {score:.2f}"
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                cv2.putText(frame, label, (x1 + 2, y1 + 15),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
+
+
+    def csi_frames(width=1280, height=720):
+        """Yield BGR frames from the Pi CSI Camera Module via picamera2."""
+        from picamera2 import Picamera2
+
+        picam2 = Picamera2()
+        # picamera2 "RGB888" is BGR-ordered in memory, so it drops straight into OpenCV
+        picam2.configure(picam2.create_preview_configuration(main={"size": (width, height), "format": "RGB888"}))
+        picam2.start()
+        try:
+            while True:
+                yield picam2.capture_array("main")  # BGR
+        finally:
+            picam2.stop()
+            picam2.close()
+
+
+    def cv2_frames(src):
+        """Yield BGR frames from a video file or USB/V4L2 webcam via OpenCV."""
+        cap = cv2.VideoCapture(src)
+        if not cap.isOpened():
+            raise RuntimeError(f"Could not open source {src}")
+        total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))  # 0 for live webcams
+        pbar = tqdm(total=total, desc="Processing video", unit="frame") if total > 0 else None
+        try:
+            while True:
+                ok, frame = cap.read()  # BGR
+                if not ok:
+                    break
+                yield frame
+                if pbar is not None:
+                    pbar.update(1)
+        finally:
+            if pbar is not None:
+                pbar.close()
+            cap.release()
+
+
+    def open_source(source):
+        """Yield (frame, kind) pairs where kind is 'image', 'video', or 'stream'."""
+        if source == "csi":
+            yield from ((f, "stream") for f in csi_frames())
+        elif source.isdigit():
+            yield from ((f, "stream") for f in cv2_frames(int(source)))
+        elif Path(source).suffix.lower() in IMAGE_EXTS:
+            frame = cv2.imread(source)
+            if frame is None:
+                raise FileNotFoundError(f"Could not read image {source}")
+            yield frame, "image"
+        else:
+            yield from ((f, "video") for f in cv2_frames(source))
+
+
+    if __name__ == "__main__":
+        parser = argparse.ArgumentParser(description="Hailo YOLO inference (image, video, webcam, or CSI camera)")
+        parser.add_argument("-m", "--model", default="yolo11n.hef", help="Path to the HEF model.")
+        parser.add_argument("--source", default="0", help="Image/video path, webcam index (e.g. 0), or 'csi'.")
+        parser.add_argument("--conf", type=float, default=0.25)
+        args = parser.parse_args()
+
+        writer = None  # lazily created for video output
+
+        with Hailo(args.model) as hailo:
+            model_h, model_w, _ = hailo.get_input_shape()
+            try:
+                for frame, kind in open_source(args.source):
+                    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    model_in = cv2.resize(rgb, (model_w, model_h))  # model expects RGB at this size
+                    per_class = hailo.run(model_in)
+                    parse_and_draw(per_class, frame, args.conf)
+
+                    if kind == "image":
+                        cv2.imwrite("output.jpg", frame)
+                        print("Saved output.jpg")
+                    elif kind == "video":
+                        if writer is None:
+                            h, w = frame.shape[:2]
+                            writer = cv2.VideoWriter("output.mp4", cv2.VideoWriter_fourcc(*"mp4v"), 30, (w, h))
+                        writer.write(frame)
+                    else:  # live stream
+                        cv2.imshow("Hailo YOLO", frame)
+                        if cv2.waitKey(1) & 0xFF == ord("q"):
+                            break
+            finally:
+                if writer is not None:
+                    writer.release()
+                    print("Saved output.mp4")
+                cv2.destroyAllWindows()
+    ```
+
+Run it against any source (images save `output.jpg`, videos save `output.mp4`, live streams display in a window, press **q** to quit):
+
+```bash
+python hailo_infer.py --source bus.jpg     # single image
+python hailo_infer.py --source clip.mp4    # video file
+python hailo_infer.py --source 0           # USB webcam, live
+python hailo_infer.py --source csi         # Raspberry Pi Camera Module
+```
 
 !!! tip
 

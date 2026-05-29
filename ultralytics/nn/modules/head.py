@@ -798,6 +798,10 @@ class Depth(nn.Module):
         >>> out = depth(x)  # (1, 1, 160, 160) if training
     """
 
+    export = False  # export mode
+    format = None  # export format
+    input_hw = None  # (H, W) of model input, set by exporter for full-res upsample
+
     def __init__(self, c_mid: int = 256, ch: tuple = ()):
         """Initialize Depth head.
 
@@ -852,6 +856,9 @@ class Depth(nn.Module):
 
         if self.training:
             return {"depth": depth}
+        # align_corners=False matches SemanticSegment export convention
+        if self.export and self.format != "coreml" and self.input_hw is not None:
+            depth = F.interpolate(depth, size=self.input_hw, mode="bilinear", align_corners=False)
         return depth
 
 
@@ -867,6 +874,10 @@ class DINOv2DPTHead(nn.Module):
         encoder_name (str): DINOv2 size ("vits", "vitb", or "vitl").
         max_depth (float): Output scale for final depth prediction in meters.
     """
+
+    export = False  # export mode
+    format = None  # export format
+    input_hw = None  # (H, W) of model input, set by exporter for full-res upsample
 
     def __init__(self, encoder_name: str = "vits", max_depth: float = 10.0,
                  freeze_encoder: bool = False, pretrained: bool = True):
@@ -915,6 +926,9 @@ class DINOv2DPTHead(nn.Module):
         depth = torch.sigmoid(depth) * self.max_depth
         if self.training:
             return {"depth": depth}
+        # align_corners=False matches SemanticSegment export convention
+        if self.export and self.format != "coreml" and self.input_hw is not None:
+            depth = F.interpolate(depth, size=self.input_hw, mode="bilinear", align_corners=False)
         return depth
 
 

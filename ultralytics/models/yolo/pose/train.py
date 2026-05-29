@@ -8,7 +8,7 @@ from typing import Any
 
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import PoseModel
-from ultralytics.utils import DEFAULT_CFG
+from ultralytics.utils import DEFAULT_CFG, RANK
 from ultralytics.utils.torch_utils import unwrap_model
 
 
@@ -72,7 +72,11 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
             (PoseModel): Initialized pose estimation model.
         """
         model = PoseModel(
-            cfg, nc=self.data["nc"], ch=self.data["channels"], data_kpt_shape=self.data["kpt_shape"], verbose=verbose
+            cfg,
+            nc=self.data["nc"],
+            ch=self.data["channels"],
+            data_kpt_shape=self.data["kpt_shape"],
+            verbose=verbose and RANK == -1,
         )
         if weights:
             model.load(weights)

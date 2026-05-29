@@ -24,7 +24,7 @@ Ensure you have the following dependencies installed before proceeding:
 | OpenCV library          | 3.4.15  | For image processing and visualization        |
 | CMake                   | 3.5+    | For building the project                      |
 
-For more information on Triton, see the [NVIDIA Triton Inference Server documentation](https://github.com/triton-inference-server/server) and explore [model deployment options with Ultralytics](https://docs.ultralytics.com/guides/model-deployment-options/).
+For more information on Triton, see the [NVIDIA Triton Inference Server documentation](https://github.com/triton-inference-server/server) and explore [model deployment options with Ultralytics](https://docs.ultralytics.com/guides/model-deployment-options).
 
 ## 🏗️ Building the Project
 
@@ -53,12 +53,12 @@ For more information on Triton, see the [NVIDIA Triton Inference Server document
    make
    ```
 
-For additional guidance on integrating Ultralytics YOLO models with various platforms, check out the [Ultralytics integrations documentation](https://docs.ultralytics.com/integrations/).
+For additional guidance on integrating Ultralytics YOLO models with various platforms, check out the [Ultralytics integrations documentation](https://docs.ultralytics.com/integrations).
 
 ## 🚀 Usage
 
 1. **Deploy your FP16 (half-precision) YOLO11 model on a Triton Inference Server.**
-   Learn more about deploying models with [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo11/).
+   Learn more about deploying models with [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo11).
 
 2. **Run the YOLO11-Triton-CPP application:**
 
@@ -73,7 +73,7 @@ By default, the application will:
 - Process the image file `test.jpg`
 - Save detection results to `output.jpg`
 
-For more on object detection workflows, see [Ultralytics object detection tasks](https://docs.ultralytics.com/tasks/detect/).
+For more on object detection workflows, see [Ultralytics object detection tasks](https://docs.ultralytics.com/tasks/detect).
 
 ## ⚙️ Configuration
 
@@ -88,7 +88,7 @@ std::string output_path = "output.jpg";
 std::vector<std::string> object_class_list = {"class1", "class2"};
 ```
 
-To learn more about configuring and customizing YOLO models, visit the [Ultralytics configuration guide](https://docs.ultralytics.com/usage/cfg/).
+To learn more about configuring and customizing YOLO models, visit the [Ultralytics configuration guide](https://docs.ultralytics.com/usage/cfg).
 
 ## 🌟 Contributors
 

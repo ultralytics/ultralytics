@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import os
 import shutil
 import subprocess
 import sys
@@ -48,18 +49,30 @@ SOLUTION_MAP = {
     "analytics": "Analytics",
     "inference": "Inference",
     "trackzone": "TrackZone",
+    "region": "RegionCounter",
+    "security": "SecurityAlarm",
+    "parking": "ParkingManagement",
     "help": None,
 }
 
 # Define valid tasks and modes
 MODES = frozenset({"train", "val", "predict", "export", "track", "benchmark"})
-TASKS = frozenset({"detect", "segment", "classify", "pose", "obb"})
+TASKS = frozenset({"detect", "segment", "classify", "pose", "obb", "semantic"})
 TASK2DATA = {
     "detect": "coco8.yaml",
     "segment": "coco8-seg.yaml",
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
     "obb": "dota8.yaml",
+    "semantic": "cityscapes8.yaml",
+}
+TASK2CALIBRATIONDATA = {
+    "detect": "coco128.yaml",
+    "segment": "coco128-seg.yaml",
+    "classify": "imagenet100",
+    "pose": "coco8-pose.yaml",
+    "obb": "dota128.yaml",
+    "semantic": "cityscapes8.yaml",
 }
 TASK2MODEL = {
     "detect": "yolo26n.pt",
@@ -67,6 +80,7 @@ TASK2MODEL = {
     "classify": "yolo26n-cls.pt",
     "pose": "yolo26n-pose.pt",
     "obb": "yolo26n-obb.pt",
+    "semantic": "yolo26n-sem.pt",
 }
 TASK2METRIC = {
     "detect": "metrics/mAP50-95(B)",
@@ -74,6 +88,7 @@ TASK2METRIC = {
     "classify": "metrics/accuracy_top1",
     "pose": "metrics/mAP50-95(P)",
     "obb": "metrics/mAP50-95(B)",
+    "semantic": "metrics/mIoU",
 }
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
@@ -104,7 +119,16 @@ SOLUTIONS_HELP_MSG = f"""
     6. Track objects within specific zones
         yolo solutions trackzone source="path/to/video.mp4" region="[(150, 150), (1130, 150), (1130, 570), (150, 570)]"
 
-    7. Streamlit real-time webcam inference GUI
+    7. Count objects inside specific regions
+        yolo solutions region source="path/to/video.mp4" region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
+
+    8. Run security alarm monitoring (email alerts require Python API)
+        yolo solutions security source="path/to/video.mp4"
+
+    9. Monitor parking occupancy (create JSON annotations first via Python ParkingPtsSelection)
+        yolo solutions parking source="path/to/video.mp4" json_file="bounding_boxes.json"
+
+    10. Streamlit real-time webcam inference GUI
         yolo streamlit-predict
     """
 CLI_HELP_MSG = f"""
@@ -153,6 +177,7 @@ CFG_FLOAT_KEYS = frozenset(
         "warmup_epochs",
         "box",
         "cls",
+        "cls_pw",
         "dfl",
         "degrees",
         "shear",
@@ -174,7 +199,6 @@ CFG_FRACTION_KEYS = frozenset(
         "hsv_s",
         "hsv_v",
         "translate",
-        "scale",
         "perspective",
         "flipud",
         "fliplr",
@@ -360,6 +384,25 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
                     )
                 cfg[k] = float(v)
+            elif k == "scale":
+                if isinstance(v, (list, tuple)):
+                    if len(v) != 2 or not all(isinstance(x, (int, float)) for x in v):
+                        if hard:
+                            raise TypeError(
+                                f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                                f"Valid '{k}' types are int, float, or a tuple/list of two floats (i.e. '{k}=(0.5, 2.0)')"
+                            )
+                        continue
+                    continue
+                elif not isinstance(v, FLOAT_OR_INT):
+                    if hard:
+                        raise TypeError(
+                            f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                            f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
+                        )
+                    cfg[k] = v = float(v)
+                if not (0.0 <= v <= 1.0):
+                    raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")
             elif k in CFG_FRACTION_KEYS:
                 if not isinstance(v, FLOAT_OR_INT):
                     if hard:
@@ -411,7 +454,11 @@ def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
 
         project = args.project or ""
         if not Path(project).is_absolute():
-            project = (ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR) / args.task / project
+            base = ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR
+            worker = os.environ.get("PYTEST_XDIST_WORKER")
+            if worker and TESTS_RUNNING:  # isolate parallel pytest-xdist workers
+                base = base / worker
+            project = base / args.task / project
         name = name or args.name or f"{args.mode}"
         save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in {-1, 0} else True)
 
@@ -819,6 +866,11 @@ def smart_value(v: str) -> Any:
         try:
             return ast.literal_eval(v)
         except Exception:
+            name, _, attr = v.rpartition(".")
+            if (module := sys.modules.get(name)) and attr.isupper():
+                value = getattr(module, attr, None)
+                if isinstance(value, (int, float)):
+                    return value
             return v
 
 

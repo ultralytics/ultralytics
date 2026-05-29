@@ -41,7 +41,7 @@ Or create a `.comet.config` file in your working directory and set your credenti
 
 **Comet Configuration File**
 
-```
+```ini
 [comet]
 api_key=YOUR_API_KEY
 project_name=YOUR_COMET_PROJECT_NAME # This will default to 'yolov5'

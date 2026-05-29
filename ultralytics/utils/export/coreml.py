@@ -9,6 +9,7 @@ import torch
 import torch.nn as nn
 
 from ultralytics.utils import LOGGER
+from ultralytics.utils.checks import check_requirements
 
 
 class IOSDetectModel(nn.Module):
@@ -46,7 +47,7 @@ class IOSDetectModel(nn.Module):
 
 def pipeline_coreml(
     model: Any,
-    output_shape: tuple,
+    output_shape: tuple[int, ...],
     metadata: dict,
     mlmodel: bool = False,
     iou: float = 0.45,
@@ -59,7 +60,7 @@ def pipeline_coreml(
 
     Args:
         model: CoreML model.
-        output_shape (tuple): Output shape tuple from the exporter.
+        output_shape (tuple[int, ...]): Output shape tuple from the exporter.
         metadata (dict): Model metadata.
         mlmodel (bool): Whether the model is an MLModel (vs MLProgram).
         iou (float): IoU threshold for NMS.
@@ -88,7 +89,7 @@ def pipeline_coreml(
     if len(names) != nc:  # Hack fix for MLProgram NMS bug https://github.com/ultralytics/ultralytics/issues/22309
         names = {**names, **{i: str(i) for i in range(len(names), nc)}}
 
-    model = ct.models.MLModel(spec, weights_dir=weights_dir)
+    model = ct.models.MLModel(spec, weights_dir=weights_dir, skip_model_load=True)
 
     # Create NMS protobuf
     nms_spec = ct.proto.Model_pb2.Model()
@@ -125,7 +126,7 @@ def pipeline_coreml(
     nms.confidenceThreshold = conf
     nms.pickTop.perClass = not agnostic_nms
     nms.stringClassLabels.vector.extend(names.values())
-    nms_model = ct.models.MLModel(nms_spec)
+    nms_model = ct.models.MLModel(nms_spec, skip_model_load=True)
 
     # Pipeline models together
     pipeline = ct.models.pipeline.Pipeline(
@@ -151,7 +152,7 @@ def pipeline_coreml(
     )
 
     # Save the model
-    model = ct.models.MLModel(pipeline.spec, weights_dir=weights_dir)
+    model = ct.models.MLModel(pipeline.spec, weights_dir=weights_dir, skip_model_load=True)
     model.input_description["image"] = "Input image"
     model.input_description["iouThreshold"] = f"(optional) IoU threshold override (default: {nms.iouThreshold})"
     model.input_description["confidenceThreshold"] = (
@@ -168,13 +169,13 @@ def torch2coreml(
     inputs: list,
     im: torch.Tensor,
     classifier_names: list[str] | None,
-    coreml_file: Path | str | None = None,
+    output_file: Path | str | None = None,
     mlmodel: bool = False,
     half: bool = False,
     int8: bool = False,
     metadata: dict | None = None,
     prefix: str = "",
-):
+) -> Any:
     """Export a PyTorch model to CoreML ``.mlpackage`` or ``.mlmodel`` format.
 
     Args:
@@ -182,7 +183,7 @@ def torch2coreml(
         inputs (list): CoreML input descriptions for the model.
         im (torch.Tensor): Example input tensor for tracing.
         classifier_names (list[str] | None): Class names for classifier config, or None if not a classifier.
-        coreml_file (Path | str | None): Output file path, or None to skip saving.
+        output_file (Path | str | None): Output file path, or None to skip saving.
         mlmodel (bool): Whether to export as ``.mlmodel`` (neural network) instead of ``.mlpackage`` (ML program).
         half (bool): Whether to quantize to FP16.
         int8 (bool): Whether to quantize to INT8.
@@ -201,17 +202,26 @@ def torch2coreml(
     # Internally based on the model conversion and output type.
     # Setting minimum_deployment_target >= iOS16 will require setting compute_precision=ct.precision.FLOAT32.
     # iOS16 adds in better support for FP16, but none of the CoreML NMS specifications handle FP16 as input.
-    ct_model = ct.convert(
-        ts,
+    convert_kwargs = dict(
         inputs=inputs,
         classifier_config=ct.ClassifierConfig(classifier_names) if classifier_names else None,
         convert_to="neuralnetwork" if mlmodel else "mlprogram",
+        skip_model_load=True,
     )
+    if not mlmodel:
+        # RT-DETR decoder class logits and deformable-sampling indices drift in fp16; pin those op types to fp32
+        # only when an RTDETRDecoder is present. YOLO detect/segment/pose/OBB keep mlprogram's fp16 default.
+        from ultralytics.nn.modules.head import RTDETRDecoder
+
+        if any(isinstance(m, RTDETRDecoder) for m in model.modules()):
+            fp32_ops = {"linear", "gather", "gather_nd", "gather_along_axis"}
+            convert_kwargs["compute_precision"] = ct.transform.FP16ComputePrecision(
+                op_selector=lambda op: op.op_type not in fp32_ops
+            )
+    ct_model = ct.convert(ts, **convert_kwargs)
     bits, mode = (8, "kmeans") if int8 else (16, "linear") if half else (32, None)
     if bits < 32:
         if "kmeans" in mode:
-            from ultralytics.utils.checks import check_requirements
-
             check_requirements("scikit-learn")  # scikit-learn package required for k-means quantization
         if mlmodel:
             ct_model = ct.models.neural_network.quantization_utils.quantize_weights(ct_model, bits, mode)
@@ -229,14 +239,14 @@ def torch2coreml(
     ct_model.version = m.pop("version", "")
     ct_model.user_defined_metadata.update({k: str(v) for k, v in m.items()})
 
-    if coreml_file is not None:
+    if output_file is not None:
         try:
-            ct_model.save(str(coreml_file))  # save *.mlpackage
+            ct_model.save(str(output_file))  # save *.mlpackage
         except Exception as e:
             LOGGER.warning(
                 f"{prefix} CoreML export to *.mlpackage failed ({e}), reverting to *.mlmodel export. "
                 f"Known coremltools Python 3.11 and Windows bugs https://github.com/apple/coremltools/issues/1928."
             )
-            coreml_file = Path(coreml_file).with_suffix(".mlmodel")
-            ct_model.save(str(coreml_file))
+            output_file = Path(output_file).with_suffix(".mlmodel")
+            ct_model.save(str(output_file))
     return ct_model

@@ -7,7 +7,7 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 
@@ -31,7 +31,15 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 
 <br><br><hr><br>
 
+## ::: ultralytics.data.utils.check_image
+
+<br><br><hr><br>
+
 ## ::: ultralytics.data.utils.verify_image
+
+<br><br><hr><br>
+
+## ::: ultralytics.data.utils.verify_image_mask
 
 <br><br><hr><br>
 
@@ -59,6 +67,10 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 
 <br><br><hr><br>
 
+## ::: ultralytics.data.utils.convert_ndjson_to_yolo_if_needed
+
+<br><br><hr><br>
+
 ## ::: ultralytics.data.utils.check_det_dataset
 
 <br><br><hr><br>
@@ -76,5 +88,9 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 <br><br><hr><br>
 
 ## ::: ultralytics.data.utils.save_dataset_cache_file
+
+<br><br><hr><br>
+
+## ::: ultralytics.data.utils.add_polygon_background
 
 <br><br>

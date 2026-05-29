@@ -51,8 +51,10 @@ def _tag_failures(retr: pd.DataFrame, meta: pd.DataFrame) -> pd.DataFrame:
 
     def signed_margin(row):
         top1_d = row["top50_distances"][0]
-        if row["true_pid"] in row["top50_pids"]:
-            idx = row["top50_pids"].index(row["true_pid"])
+        # parquet round-trips lists as np.ndarray; use np.where for index lookup
+        matches = np.where(np.asarray(row["top50_pids"]) == row["true_pid"])[0]
+        if len(matches) > 0:
+            idx = int(matches[0])
             true_d = row["top50_distances"][idx]
         else:
             true_d = float("nan")
@@ -63,9 +65,23 @@ def _tag_failures(retr: pd.DataFrame, meta: pd.DataFrame) -> pd.DataFrame:
     full_query["query_occlusion"] = q_meta.loc[full_query["query_id"], "occlusion_score"].values
     full_query["query_brightness"] = q_meta.loc[full_query["query_id"], "mean_brightness"].values
     full_query["query_aspect"] = q_meta.loc[full_query["query_id"], "aspect_ratio"].values
-    fail["occlusion_bin"] = pd.qcut(full_query["query_occlusion"].fillna(0), 4, labels=["occ_q1", "occ_q2", "occ_q3", "occ_q4"], duplicates="drop").loc[fail.index]
-    fail["brightness_bin"] = pd.qcut(full_query["query_brightness"], 4, labels=["bri_q1", "bri_q2", "bri_q3", "bri_q4"], duplicates="drop").loc[fail.index]
-    fail["pose_bin"] = pd.qcut(full_query["query_aspect"], 4, labels=["pose_q1", "pose_q2", "pose_q3", "pose_q4"], duplicates="drop").loc[fail.index]
+    def _safe_qcut(series, prefix):
+        """qcut into 4 bins on the FULL query series; align result to fail.index.
+
+        Falls back to NA labels when the source is too constant to form 4 bins.
+        Returns a Series indexed to match the full_query/fail indices.
+        """
+        try:
+            cut = pd.qcut(series.fillna(0), 4,
+                          labels=[f"{prefix}_q1", f"{prefix}_q2", f"{prefix}_q3", f"{prefix}_q4"],
+                          duplicates="drop")
+            return cut.loc[fail.index]
+        except ValueError:
+            return pd.Series([f"{prefix}_NA"] * len(fail), index=fail.index)
+
+    fail["occlusion_bin"] = _safe_qcut(full_query["query_occlusion"], "occ")
+    fail["brightness_bin"] = _safe_qcut(full_query["query_brightness"], "bri")
+    fail["pose_bin"] = _safe_qcut(full_query["query_aspect"], "pose")
     fail["pid_rarity"] = (fail["pid_gallery_count"] <= 3).map({True: "low", False: "high"})
     return fail
 
@@ -117,9 +133,11 @@ def _residual_clusters(retr: pd.DataFrame, meta: pd.DataFrame, champion_dir: Pat
     fail_qids = []
     for _, row in fail.iterrows():
         qid = row["query_id"]
-        if row["true_pid"] not in row["top50_pids"]:
+        pids_arr = np.asarray(row["top50_pids"])
+        matches = np.where(pids_arr == row["true_pid"])[0]
+        if len(matches) == 0:
             continue
-        true_idx_in_top = row["top50_pids"].index(row["true_pid"])
+        true_idx_in_top = int(matches[0])
         true_gid = row["top50_gallery_ids"][true_idx_in_top]
         residual = emb["query"][q_to_idx[qid]].numpy() - emb["gallery"][g_to_idx[true_gid]].numpy()
         residuals.append(residual)

@@ -60,8 +60,9 @@ MODEL_REGISTRY: dict[str, dict[str, Any]] = {
         "ckpt_env_var": "H8_SOLIDER_CKPT",
         "kind": "swin",
         "model_yaml": None,
-        "tap_p4": "base.layers.2",
-        "tap_p5": "base.layers.3",
+        # SOLIDER-REID's SwinTransformer uses .stages (ModuleList), not .layers.
+        "tap_p4": "base.stages.2",  # stage-3 output (stride-16 equiv)
+        "tap_p5": "base.stages.3",  # stage-4 output (stride-32 equiv)
         "imgsz": (384, 128),
     },
 }

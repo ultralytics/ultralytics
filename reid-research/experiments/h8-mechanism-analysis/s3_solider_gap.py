@@ -43,8 +43,10 @@ def _margin_geometry(model_emb_path: Path, retr: pd.DataFrame, qids: np.ndarray)
         q_emb = emb["query"][qid_to_idx[qid]].numpy()
         top1_gid = row["top50_gallery_ids"][0]
         top1_emb = emb["gallery"][gid_to_idx[top1_gid]].numpy()
-        if row["true_pid"] in row["top50_pids"]:
-            ti = row["top50_pids"].index(row["true_pid"])
+        pids_arr = np.asarray(row["top50_pids"])
+        matches = np.where(pids_arr == row["true_pid"])[0]
+        if len(matches) > 0:
+            ti = int(matches[0])
             true_emb = emb["gallery"][gid_to_idx[row["top50_gallery_ids"][ti]]].numpy()
             cos_true = float(q_emb @ true_emb)
         else:
@@ -160,13 +162,19 @@ def main():
         ax.set_title(f"Margin geometry on W (n={len(sets['W'])})")
         fig.tight_layout(); fig.savefig(FIG / "margin_scatter_W.png", dpi=150); plt.close(fig)
 
-        div = _saliency_divergence(ART / "champion" / "saliency", ART / "solider" / "saliency", sets["W"])
-        fig, ax = plt.subplots(figsize=(6, 4))
-        ax.hist(div[~np.isnan(div)], bins=30)
-        ax.set_xlabel("saliency divergence (1 − cosine)")
-        ax.set_ylabel("queries")
-        ax.set_title(f"Champion vs SOLIDER saliency divergence on W (n={(~np.isnan(div)).sum()})")
-        fig.tight_layout(); fig.savefig(FIG / "saliency_divergence_hist.png", dpi=150); plt.close(fig)
+        sal_c_dir = ART / "champion" / "saliency"
+        sal_s_dir = ART / "solider" / "saliency"
+        if sal_c_dir.exists() and sal_s_dir.exists() and any(sal_c_dir.iterdir()) and any(sal_s_dir.iterdir()):
+            div = _saliency_divergence(sal_c_dir, sal_s_dir, sets["W"])
+            fig, ax = plt.subplots(figsize=(6, 4))
+            ax.hist(div[~np.isnan(div)], bins=30)
+            ax.set_xlabel("saliency divergence (1 − cosine)")
+            ax.set_ylabel("queries")
+            ax.set_title(f"Champion vs SOLIDER saliency divergence on W (n={(~np.isnan(div)).sum()})")
+            fig.tight_layout(); fig.savefig(FIG / "saliency_divergence_hist.png", dpi=150); plt.close(fig)
+        else:
+            div = None
+            print("    saliency dirs missing/empty — skipping saliency-divergence + high-divergence contact sheet")
 
         cka = _cka_heatmaps(sets["S"], sets["W"])
         fig, axes = plt.subplots(1, 2, figsize=(10, 4))
@@ -183,7 +191,10 @@ def main():
         findings.append(f"\n## Margin geometry on W\n\nSee `figures/s3/margin_scatter_W.png`.\n")
         findings.append(f"- champion margin: median={np.nanmedian(m_c):+.4f}, frac<0 = {(m_c<0).mean():.2f}\n")
         findings.append(f"- SOLIDER  margin: median={np.nanmedian(m_s):+.4f}, frac<0 = {(m_s<0).mean():.2f}\n")
-        findings.append(f"\n## Saliency divergence on W\n\nMedian = {np.nanmedian(div):.3f}; top-quartile (≥{np.nanquantile(div, 0.75):.3f}) flagged for qualitative inspection.\n")
+        if div is not None and (~np.isnan(div)).any():
+            findings.append(f"\n## Saliency divergence on W\n\nMedian = {np.nanmedian(div):.3f}; top-quartile (≥{np.nanquantile(div, 0.75):.3f}) flagged for qualitative inspection.\n")
+        else:
+            findings.append("\n## Saliency divergence on W\n\nSkipped (no IG saliency maps produced — H8_SKIP_SALIENCY was set during extraction).\n")
         findings.append(f"\n## CKA on S vs W\n\n```\nS:\n{cka['S']}\n\nW:\n{cka['W']}\n```\n")
 
     # Cross-reference with Stage 2 cluster labels (if Stage 2 has run).

@@ -655,7 +655,7 @@ class Exporter:
             # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
             ort = "onnxruntime-gpu" if "cuda" in self.device.type else "onnxruntime"
-            requirements += ["onnxslim>=0.1.71", (ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")]
+            requirements += ["onnxslim>=0.1.82", (ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")]
         check_requirements(requirements)
         import onnx
 
@@ -841,7 +841,7 @@ class Exporter:
         mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
         from ultralytics.utils.export.coreml import IOSDetectModel, pipeline_coreml, torch2coreml
 
-        # latest numpy 2.4.0rc1 breaks coremltools exports
+        # numpy 2.4.x breaks coremltools CoreML export https://github.com/apple/coremltools/issues/2633
         check_requirements(["coremltools>=9.0", "numpy>=1.14.5,<=2.3.5"])
         import coremltools as ct
 

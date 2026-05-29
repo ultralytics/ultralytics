@@ -144,7 +144,9 @@ def benchmark(
                 assert MACOS or (LINUX and not ARM64), "CoreML export only supported on macOS and non-aarch64 Linux"
                 # coremltools deadlocks after OpenVINO on macOS Python 3.13 (conflicting OpenMP runtimes); CoreML
                 # is still benchmarked on non-aarch64 Linux Python 3.13.
-                assert not (MACOS and IS_PYTHON_MINIMUM_3_13), "CoreML not benchmarked on macOS Python>=3.13 (coremltools/OpenVINO OpenMP deadlock)"
+                assert not (MACOS and IS_PYTHON_MINIMUM_3_13), (
+                    "CoreML not benchmarked on macOS Python>=3.13 (coremltools/OpenVINO OpenMP deadlock)"
+                )
             if format in {"saved_model", "pb", "tflite", "edgetpu", "tfjs"}:
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
                 # assert not IS_PYTHON_MINIMUM_3_12, "TFLite exports not supported on Python>=3.12 yet"
@@ -154,12 +156,16 @@ def benchmark(
                 assert (LINUX and not IS_JETSON) or MACOS, "Windows and Jetson Paddle exports not supported yet"
                 # PaddlePaddle export works standalone on Python 3.13 but its native protobuf clashes with the
                 # protobuf>=6.31.1 that TensorFlow loads earlier in this shared benchmark process, causing a segfault.
-                assert not IS_PYTHON_MINIMUM_3_13, "PaddlePaddle not benchmarked on Python>=3.13 (protobuf ABI conflict with TensorFlow)"
+                assert not IS_PYTHON_MINIMUM_3_13, (
+                    "PaddlePaddle not benchmarked on Python>=3.13 (protobuf ABI conflict with TensorFlow)"
+                )
             if format == "mnn":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 MNN exports not supported yet"
                 # MNN export works standalone on Python 3.13 but its ONNX-parsing protobuf clashes with the
                 # protobuf>=6.31.1 that TensorFlow loads earlier in this shared benchmark process, aborting the run.
-                assert not IS_PYTHON_MINIMUM_3_13, "MNN not benchmarked on Python>=3.13 (protobuf ABI conflict with TensorFlow)"
+                assert not IS_PYTHON_MINIMUM_3_13, (
+                    "MNN not benchmarked on Python>=3.13 (protobuf ABI conflict with TensorFlow)"
+                )
             if format == "ncnn":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
             if format == "imx":

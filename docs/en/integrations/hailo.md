@@ -85,7 +85,7 @@ pip install ultralytics
 The Hailo DFC is required for parsing, optimization, and compilation. Download the Python wheel from the [Hailo Developer Zone](https://hailo.ai/developer-zone/) (free registration required) and install it:
 
 ```bash
-pip install /path/to/hailo_sdk_client-*.whl
+pip install /path/to/hailo_dataflow_compiler-*.whl
 ```
 
 !!! note
@@ -96,7 +96,7 @@ pip install /path/to/hailo_sdk_client-*.whl
 
 The script below compiles a YOLO11n detection model from `.pt` to `.hef` at a fixed 640-pixel input size. It exports to ONNX using Ultralytics, then compiles with Hailo DFC using COCO128 as a small calibration dataset.
 
-Before running the script, download the matching YOLO11n NMS config file from the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo) or create your own Hailo NMS JSON for the model. Reuse this script as a known YOLO11n starting point; custom models need matching end nodes, `.alls` directives, and NMS settings.
+Before running the script, download the matching YOLO11n NMS config file from the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo/blob/master/hailo_model_zoo/cfg/postprocess_config/yolov11n_nms_config.json) or create your own Hailo NMS JSON for the model. Reuse this script as a known YOLO11n starting point; custom models need matching end nodes, `.alls` directives, and NMS settings.
 
 !!! example "Full Pipeline"
 
@@ -230,9 +230,9 @@ runner.load_model_script(alls)
 
 !!! note
 
-    The `change_output_activation` layer names (`conv54`, `conv65`, `conv80`) are assigned by the DFC during parsing and are **model-specific**. If you are compiling a different model size or architecture, check the DFC output for the correct names, or use a predefined `.alls` file from the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo).
+    The `change_output_activation` layer names (`conv54`, `conv65`, `conv80`) are assigned by the DFC during parsing and are **model-specific**. If you are compiling a different model size or architecture, check the DFC output for the correct names, or use a predefined `.alls` file from the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo/tree/master/hailo_model_zoo/cfg/alls).
 
-    The `NMS_CONFIG` file is also model-specific. Use the config that matches your exported model, or start from the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo) configuration for the closest YOLO variant.
+    The `NMS_CONFIG` file is also model-specific. Use the config that matches your exported model, or start from the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo/tree/master/hailo_model_zoo/cfg/postprocess_config) configuration for the closest YOLO variant.
 
     `engine=cpu` runs NMS through HailoRT on the host CPU. Use `engine=nn_core` only for model/script combinations that Hailo documents as supported by the target hardware and SDK version.
 
@@ -348,6 +348,7 @@ On the target device, install HailoRT and the Python bindings. For Raspberry Pi 
 ```bash
 sudo apt install dkms
 sudo apt install hailo-all
+sudo reboot
 ```
 
 For non-Raspberry Pi Hailo devices, install the HailoRT package that matches your device, driver, and SDK version from the [Hailo Developer Zone](https://hailo.ai/developer-zone/).

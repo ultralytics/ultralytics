@@ -194,7 +194,6 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms, end2en
 @pytest.mark.slow
 @pytest.mark.skipif(not MACOS, reason="CoreML inference only supported on macOS")
 @pytest.mark.skipif(not TORCH_1_11, reason="CoreML export requires torch>=1.11")
-@pytest.mark.skipif(checks.IS_PYTHON_3_13, reason="CoreML not supported in Python 3.13")
 @pytest.mark.skipif(
     MACOS and MACOS_VERSION and MACOS_VERSION >= "15", reason="CoreML YOLO26 matrix test crashes on macOS 15+"
 )
@@ -266,7 +265,10 @@ def test_export_tflite_matrix(task, dynamic, int8, half, batch, nms, end2end):
 @pytest.mark.skipif(not TORCH_1_11, reason="CoreML export requires torch>=1.11")
 @pytest.mark.skipif(WINDOWS, reason="CoreML not supported on Windows")  # RuntimeError: BlobWriter not loaded
 @pytest.mark.skipif(LINUX and ARM64, reason="CoreML not supported on aarch64 Linux")
-@pytest.mark.skipif(checks.IS_PYTHON_3_13, reason="CoreML not supported in Python 3.13")
+@pytest.mark.skipif(
+    MACOS and checks.IS_PYTHON_MINIMUM_3_13,
+    reason="coremltools deadlocks after OpenVINO on macOS Python 3.13 (conflicting OpenMP runtimes)",
+)
 def test_export_coreml(isolated_model):
     """Test YOLO export to CoreML format and check for errors."""
     # Capture stdout and stderr
@@ -286,7 +288,10 @@ def test_export_coreml(isolated_model):
 @pytest.mark.skipif(not TORCH_1_11, reason="RTDETR CoreML export requires torch>=1.11")
 @pytest.mark.skipif(WINDOWS, reason="CoreML not supported on Windows")
 @pytest.mark.skipif(LINUX and ARM64, reason="CoreML not supported on aarch64 Linux")
-@pytest.mark.skipif(checks.IS_PYTHON_3_13, reason="CoreML not supported in Python 3.13")
+@pytest.mark.skipif(
+    MACOS and checks.IS_PYTHON_MINIMUM_3_13,
+    reason="coremltools deadlocks after OpenVINO on macOS Python 3.13 (conflicting OpenMP runtimes)",
+)
 def test_export_coreml_rtdetr():
     """Test RT-DETR export to CoreML format and check for errors."""
     stdout, stderr = io.StringIO(), io.StringIO()
@@ -326,7 +331,10 @@ def test_export_paddle(isolated_model):
 
 
 @pytest.mark.skipif(not TORCH_1_10, reason="MNN export requires torch>=1.10")
-@pytest.mark.skipif(checks.IS_PYTHON_MINIMUM_3_13, reason="MNN export requires Python<3.13")
+@pytest.mark.skipif(
+    LINUX and checks.IS_PYTHON_MINIMUM_3_13,
+    reason="MNN ONNX-parser protobuf conflicts with TensorFlow protobuf>=6.31.1 loaded earlier in the shared Python 3.13 test process",
+)
 def test_export_mnn(isolated_model):
     """Test YOLO export to MNN format (WARNING: MNN test must precede NCNN test or CI error on Windows)."""
     file = YOLO(isolated_model).export(format="mnn", imgsz=32)
@@ -335,7 +343,6 @@ def test_export_mnn(isolated_model):
 
 @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_1_10, reason="MNN export requires torch>=1.10")
-@pytest.mark.skipif(checks.IS_PYTHON_MINIMUM_3_13, reason="MNN export requires Python<3.13")
 @pytest.mark.parametrize(
     "task, int8, half, batch, end2end",
     [  # generate all combinations except for exclusion cases
@@ -373,9 +380,7 @@ def test_export_ncnn_matrix(task, half, batch):
 
 
 @pytest.mark.skipif(not TORCH_2_9, reason="IMX export requires torch>=2.9.0")
-@pytest.mark.skipif(
-    not checks.IS_PYTHON_MINIMUM_3_9 and checks.IS_PYTHON_MINIMUM_3_13, reason="Requires Python>=3.9,<3.13"
-)
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_9, reason="IMX export requires Python>=3.9")
 @pytest.mark.skipif(not LINUX, reason="IMX export only supported on Linux")
 @pytest.mark.skipif(
     IS_RASPBERRYPI, reason="Test disabled as IMX export suffers from OOM (Out of Memory) on Raspberry Pi 5 16GB"

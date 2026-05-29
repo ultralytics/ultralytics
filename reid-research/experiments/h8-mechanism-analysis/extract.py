@@ -284,7 +284,10 @@ def compute_saliency(handle: M.ModelHandle, meta: pd.DataFrame, out_dir: Path):
             def f(p5_interp: torch.Tensor) -> torch.Tensor:
                 inject["feat"] = p5_interp
                 try:
-                    emb_q = handle.embed_fn(x).squeeze(0)
+                    # embed_fn wraps the forward in torch.no_grad() (correct for the
+                    # batch-embedding phase). IG needs the graph, so override here.
+                    with torch.enable_grad():
+                        emb_q = handle.embed_fn(x).squeeze(0)
                 finally:
                     inject["feat"] = None
                 return torch.dot(emb_q, true_g_emb)
@@ -293,7 +296,7 @@ def compute_saliency(handle: M.ModelHandle, meta: pd.DataFrame, out_dir: Path):
                 attribution = integrated_gradients(
                     f, native_p5, baseline=torch.zeros_like(native_p5), steps=50
                 )
-            except ValueError as e:
+            except (ValueError, RuntimeError) as e:
                 skipped += 1
                 if skipped > 0.01 * len(q_ids):
                     raise RuntimeError(f"too many IG failures (>1% queries): {e}")

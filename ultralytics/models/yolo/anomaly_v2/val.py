@@ -23,7 +23,8 @@ from __future__ import annotations
 
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER
-from ultralytics.utils.torch_utils import unwrap_model
+
+from ._util import resolve_v2_model
 
 
 class AnomalyV2Validator(DetectionValidator):
@@ -51,7 +52,7 @@ class AnomalyV2Validator(DetectionValidator):
         mask injection only affects that single forward.
         """
         batch = super().preprocess(batch)
-        model = unwrap_model(self._model_ref) if self._model_ref is not None else None
+        model = resolve_v2_model(self._model_ref)
         if model is None or not hasattr(model, "set_mask_input"):
             # Not a v2 model (shouldn't happen in our pipeline, but stay safe).
             return batch

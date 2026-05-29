@@ -23,7 +23,8 @@ from __future__ import annotations
 import torch
 
 from ultralytics.models.yolo.detect import DetectionPredictor
-from ultralytics.utils.torch_utils import unwrap_model
+
+from ._util import resolve_v2_model
 
 
 class AnomalyV2Predictor(DetectionPredictor):
@@ -35,7 +36,7 @@ class AnomalyV2Predictor(DetectionPredictor):
 
     def preprocess(self, im):
         """Set mask state on the model based on configured prompt."""
-        m = unwrap_model(self.model) if self.model is not None else None
+        m = resolve_v2_model(self.model)
         if m is not None and hasattr(m, "disable_mask_once"):
             device = next(m.parameters()).device
             if self.external_mask is not None:

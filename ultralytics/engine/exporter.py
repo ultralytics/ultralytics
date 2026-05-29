@@ -333,6 +333,8 @@ class Exporter:
             if not self.args.data:
                 self.args.data = TASK2CALIBRATIONDATA.get(model.task)
         if fmt == "imx":
+            if model.task == "depth":
+                raise ValueError("IMX export is not supported for depth models.")
             if not self.args.nms and model.task in {"detect", "pose", "segment"}:
                 LOGGER.warning("IMX export requires nms=True, setting nms=True.")
                 self.args.nms = True
@@ -402,6 +404,9 @@ class Exporter:
             )
         if self.args.nms and model.task == "semantic":
             LOGGER.warning("'nms=True' is not valid for semantic segmentation models. Forcing 'nms=False'.")
+            self.args.nms = False
+        if self.args.nms and model.task == "depth":
+            LOGGER.warning("'nms=True' is not valid for depth models. Forcing 'nms=False'.")
             self.args.nms = False
         if self.args.nms:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
@@ -480,6 +485,10 @@ class Exporter:
             if isinstance(m, (Classify, SemanticSegment)):
                 m.export = True
                 m.format = self.args.format
+            if hasattr(m, "input_hw"):
+                m.export = True
+                m.format = self.args.format
+                m.input_hw = (self.imgsz[0], self.imgsz[1])
             if isinstance(m, (Detect, RTDETRDecoder)):  # includes all Detect subclasses like Segment, Pose, OBB
                 m.dynamic = self.args.dynamic
                 m.export = True
@@ -661,15 +670,19 @@ class Exporter:
 
         f = str(self.file.with_suffix(".onnx"))
         output_names = ["output0", "output1"] if self.model.task == "segment" else ["output0"]
+        if self.model.task == "depth":
+            output_names = ["depth"]
         dynamic = self.args.dynamic
         if dynamic:
             dynamic = {"images": {0: "batch", 2: "height", 3: "width"}}  # shape(1,3,640,640)
-            if isinstance(self.model, SegmentationModel):
+            if self.model.task == "depth":
+                dynamic["depth"] = {0: "batch", 2: "height", 3: "width"}  # shape(1,1,H,W)
+            elif isinstance(self.model, SegmentationModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 116, 8400)
                 dynamic["output1"] = {0: "batch", 2: "mask_height", 3: "mask_width"}  # shape(1,32,160,160)
             elif isinstance(self.model, DetectionModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 84, 8400)
-            if self.args.nms:  # only batch size is dynamic with NMS
+            if self.args.nms and self.model.task != "depth":  # only batch size is dynamic with NMS
                 dynamic["output0"].pop(2)
         if self.args.nms and self.model.task == "obb":
             self.args.opset = opset  # for NMSModel

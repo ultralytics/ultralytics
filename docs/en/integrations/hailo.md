@@ -678,17 +678,6 @@ python hailo_infer.py --source csi         # Raspberry Pi Camera Module
 
     The detection output format assumes the HEF was compiled with `nms_postprocess` in the `.alls` script. If you compiled **without** NMS, the raw outputs are the 6 detection head tensors and you must run NMS in your application separately.
 
-### Raspberry Pi AI Kit and AI HAT+
-
-The Raspberry Pi AI Kit and 13 TOPS AI HAT+ use Hailo-8L. To use either device:
-
-1. Set `HW_ARCH = "hailo8l"` before compiling your HEF on the x86 machine.
-2. Copy the `.hef` to your Raspberry Pi.
-3. Install HailoRT by following the [official Raspberry Pi AI software guide](https://www.raspberrypi.com/documentation/computers/ai.html).
-4. Run the inference script above.
-
-For camera-based inference on Raspberry Pi, the [picamera2 Hailo examples](https://github.com/raspberrypi/picamera2/tree/main/examples/hailo) provide ready-to-use scripts for live detection with the Camera Module. You can also compare Raspberry Pi deployment paths in the [Coral Edge TPU on Raspberry Pi guide](../guides/coral-edge-tpu-on-raspberry-pi.md) and [Sony IMX500 integration guide](sony-imx500.md).
-
 ### Video Inference with TAPPAS
 
 For high-throughput video pipelines, [TAPPAS](https://github.com/hailo-ai/tappas) provides GStreamer elements that stream video through the Hailo chip in real time:

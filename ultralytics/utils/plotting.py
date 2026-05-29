@@ -467,6 +467,27 @@ class Annotator:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
 
+    def semantic_mask(self, mask, alpha: float = 0.5, ignore_index: int = 255):
+        """Plot a semantic segmentation mask on the image.
+
+        Args:
+            mask (np.ndarray): Semantic mask with shape [h, w] containing integer class indices.
+            alpha (float, optional): Mask transparency: 0.0 fully transparent, 1.0 opaque.
+            ignore_index (int, optional): Class index to ignore (e.g., 255 for void/ignore).
+        """
+        if self.pil:
+            # Convert to numpy first
+            self.im = np.asarray(self.im).copy()
+        overlay = np.zeros_like(self.im)
+        for cls_id in np.unique(mask):
+            if cls_id == ignore_index:
+                continue
+            overlay[mask == cls_id] = colors(int(cls_id), True)
+        self.im = cv2.addWeighted(self.im, 1 - alpha, overlay, alpha, 0)
+        if self.pil:
+            # Convert im back to PIL and update draw
+            self.fromarray(self.im)
+
     def kpts(
         self,
         kpts,
@@ -742,6 +763,8 @@ def plot_images(
     max_subplots: int = 16,
     save: bool = True,
     conf_thres: float = 0.25,
+    show_labels: bool = True,
+    show_conf: bool = True,
 ) -> np.ndarray | None:
     """Plot image grid with labels, bounding boxes, masks, and keypoints.
 
@@ -757,6 +780,8 @@ def plot_images(
         max_subplots (int): Maximum number of subplots in the image grid.
         save (bool): Whether to save the plotted image grid to a file.
         conf_thres (float): Confidence threshold for displaying detections.
+        show_labels (bool): Whether to display class labels.
+        show_conf (bool): Whether to display confidence values.
 
     Returns:
         (np.ndarray | None): Plotted image grid as a numpy array if save is False, None otherwise.
@@ -771,7 +796,7 @@ def plot_images(
         - 3 channels: Used as-is (standard RGB)
         - 4+ channels: Cropped to first 3 channels
     """
-    for k in {"cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images"}:
+    for k in {"cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images", "semantic_mask"}:
         if k not in labels:
             continue
         if k == "cls" and labels[k].ndim == 2:
@@ -785,6 +810,7 @@ def plot_images(
     confs = labels.get("conf", None)
     masks = labels.get("masks", np.zeros(0, dtype=np.uint8))
     kpts = labels.get("keypoints", np.zeros(0, dtype=np.float32))
+    semantic_masks = labels.get("semantic_mask", np.zeros(0, dtype=np.int64))
     images = labels.get("img", images)  # default to input images
 
     if len(images) and isinstance(images, torch.Tensor):
@@ -849,7 +875,9 @@ def plot_images(
                     color = colors(c)
                     c = names.get(c, c) if names else c
                     if labels or conf[j] > conf_thres:
-                        label = f"{c}" if labels else f"{c} {conf[j]:.1f}"
+                        conf_text = f"{conf[j]:.1f}" if conf is not None else ""
+                        label = f"{c}" if show_labels else ""
+                        label += f" {conf_text}".strip() if show_conf else ""
                         annotator.box_label(box, label, color=color)
 
             elif len(classes):
@@ -902,6 +930,18 @@ def plot_images(
                         except Exception:
                             pass
                 annotator.fromarray(im)
+
+        # Plot semantic masks
+        if len(semantic_masks) and i < len(semantic_masks):
+            mask = semantic_masks[i]
+            mh, mw = mask.shape
+            if mh != h or mw != w:
+                mask = cv2.resize(mask.astype(np.uint8), (w, h), interpolation=cv2.INTER_NEAREST)
+            im = np.asarray(annotator.im).copy()
+            sub_annotator = Annotator(np.ascontiguousarray(im[y : y + h, x : x + w]), line_width=1, pil=False)
+            sub_annotator.semantic_mask(mask, alpha=0.4)
+            im[y : y + h, x : x + w] = sub_annotator.im
+            annotator.fromarray(im)
     if not save:
         return np.asarray(annotator.im)
     annotator.im.save(fname)  # save
@@ -911,9 +951,9 @@ def plot_images(
 
 @plt_settings()
 def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Callable | None = None):
-    """Plot training results from a results CSV file. The function supports various types of data including
-    segmentation, pose estimation, and classification. Plots are saved as 'results.png' in the directory where the
-    CSV is located.
+    """Plot training results from a results CSV file. The function supports various types of data including instance
+    segmentation, semantic segmentation, pose estimation, and classification. Plots are saved as 'results.png' in
+    the directory where the CSV is located.
 
     Args:
         file (str, optional): Path to the CSV file containing the training results.
@@ -963,14 +1003,13 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
                 ax[i].set_title(j, fontsize=12)
         except Exception as e:
             LOGGER.error(f"Plotting error for {f}: {e}")
-    if ax is None:
-        return
-    ax[1].legend()
-    fname = save_dir / "results.png"
-    fig.savefig(fname, dpi=200)
-    plt.close()
-    if on_plot:
-        on_plot(fname)
+    if ax is not None:
+        ax[1].legend()
+        fname = save_dir / "results.png"
+        fig.savefig(fname, dpi=200)
+        plt.close()
+        if on_plot:
+            on_plot(fname)
 
 
 def plt_color_scatter(v, f, bins: int = 20, cmap: str = "viridis", alpha: float = 0.8, edgecolors: str = "none"):
@@ -1006,20 +1045,19 @@ def plt_color_scatter(v, f, bins: int = 20, cmap: str = "viridis", alpha: float 
 
 
 @plt_settings()
-def plot_tune_results(csv_file: str = "tune_results.csv", exclude_zero_fitness_points: bool = True):
-    """Plot the evolution results stored in a 'tune_results.csv' file. The function generates a scatter plot for each
-    key in the CSV, color-coded based on fitness scores. The best-performing configurations are highlighted on
-    the plots.
+def plot_tune_results(results_file: str = "tune_results.ndjson", exclude_zero_fitness_points: bool = True):
+    """Plot the evolution results stored in a tuning NDJSON file.
 
     Args:
-        csv_file (str, optional): Path to the CSV file containing the tuning results.
+        results_file (str, optional): Path to the NDJSON file containing the tuning results.
         exclude_zero_fitness_points (bool, optional): Don't include points with zero fitness in tuning plots.
 
     Examples:
-        >>> plot_tune_results("path/to/tune_results.csv")
+        >>> plot_tune_results("path/to/tune_results.ndjson")
     """
+    import json
+
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
-    import polars as pl
     from scipy.ndimage import gaussian_filter1d
 
     def _save_one_file(file):
@@ -1028,19 +1066,27 @@ def plot_tune_results(csv_file: str = "tune_results.csv", exclude_zero_fitness_p
         plt.close()
         LOGGER.info(f"Saved {file}")
 
-    # Scatter plots for each hyperparameter
-    csv_file = Path(csv_file)
-    data = pl.read_csv(csv_file, infer_schema_length=None)
-    num_metrics_columns = 1
-    keys = [x.strip() for x in data.columns][num_metrics_columns:]
-    x = data.to_numpy()
-    fitness = x[:, 0]  # fitness
+    results_file = Path(results_file)
+    with open(results_file, encoding="utf-8") as f:
+        records = [json.loads(line) for line in f if line.strip()]
+    if not records:
+        return
+
+    keys = list(records[0].get("hyperparameters", {}))
+    x = np.array(
+        [[r.get("fitness", 0.0)] + [r.get("hyperparameters", {}).get(k, np.nan) for k in keys] for r in records],
+        dtype=float,
+    )
+    len(x)
+    all_fitness = x[:, 0]  # fitness
+    zero_mask = slice(None)
     if exclude_zero_fitness_points:
-        mask = fitness > 0  # exclude zero-fitness points
-        x, fitness = x[mask], fitness[mask]
-    if len(fitness) == 0:
+        zero_mask = all_fitness > 0  # exclude zero-fitness points
+        x, all_fitness = x[zero_mask], all_fitness[zero_mask]
+    if len(all_fitness) == 0:
         LOGGER.warning("No valid fitness values to plot (all iterations may have failed)")
         return
+    fitness = all_fitness.copy()
     # Iterative sigma rejection on lower bound only
     for _ in range(3):  # max 3 iterations
         mean, std = fitness.mean(), fitness.std()
@@ -1053,7 +1099,7 @@ def plot_tune_results(csv_file: str = "tune_results.csv", exclude_zero_fitness_p
     n = math.ceil(len(keys) ** 0.5)  # columns and rows in plot
     plt.figure(figsize=(10, 10), tight_layout=True)
     for i, k in enumerate(keys):
-        v = x[:, i + num_metrics_columns]
+        v = x[:, i + 1]
         mu = v[j]  # best single result
         plt.subplot(n, n, i + 1)
         plt_color_scatter(v, fitness, cmap="viridis", alpha=0.8, edgecolors="none")
@@ -1062,19 +1108,23 @@ def plot_tune_results(csv_file: str = "tune_results.csv", exclude_zero_fitness_p
         plt.tick_params(axis="both", labelsize=8)  # Set axis label size to 8
         if i % n != 0:
             plt.yticks([])
-    _save_one_file(csv_file.with_name("tune_scatter_plots.png"))
+    _save_one_file(results_file.with_name("tune_scatter_plots.png"))
 
     # Fitness vs iteration
-    x = range(1, len(fitness) + 1)
+    x = range(1, len(all_fitness) + 1)
     plt.figure(figsize=(10, 6), tight_layout=True)
-    plt.plot(x, fitness, marker="o", linestyle="none", label="fitness")
-    plt.plot(x, gaussian_filter1d(fitness, sigma=3), ":", label="smoothed", linewidth=2)  # smoothing line
+    for dataset in sorted({k for r in records for k in r.get("datasets", {})}):
+        y = np.array([r.get("datasets", {}).get(dataset, {}).get("fitness", np.nan) for r in records], dtype=float)
+        if exclude_zero_fitness_points and not isinstance(zero_mask, slice):
+            y = y[zero_mask]
+        plt.plot(x, y, "o", markersize=5, alpha=0.8, label=dataset)
+    plt.plot(x, gaussian_filter1d(all_fitness, sigma=3), ":", color="0.35", label="smoothed mean", linewidth=2)
     plt.title("Fitness vs Iteration")
     plt.xlabel("Iteration")
     plt.ylabel("Fitness")
     plt.grid(True)
     plt.legend()
-    _save_one_file(csv_file.with_name("tune_fitness.png"))
+    _save_one_file(results_file.with_name("tune_fitness.png"))
 
 
 @plt_settings()

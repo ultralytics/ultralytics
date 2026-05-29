@@ -164,14 +164,14 @@ class BaseDataset(Dataset):
             for p in img_path if isinstance(img_path, list) else [img_path]:
                 p = Path(p)  # os-agnostic
                 if p.is_dir():  # dir
-                    f += glob.glob(str(p / "**" / "*.*"), recursive=True)
+                    f += glob.glob(str(Path(glob.escape(p)) / "**" / "*.*"), recursive=True)
                     # F = list(p.rglob('*.*'))  # pathlib
                 elif p.is_file():  # file
                     with open(p, encoding="utf-8") as t:
                         t = t.read().strip().splitlines()
                         parent = str(p.parent) + os.sep
-                        f += [x.replace("./", parent) if x.startswith("./") else x for x in t]  # local to global path
-                        # F += [p.parent / x.lstrip(os.sep) for x in t]  # local to global path (pathlib)
+                        f += [x.replace("./", parent, 1) if x.startswith("./") else x for x in t]  # local to global
+                        # F += [p.parent / x.lstrip(os.sep) for x in t]  # local to global (pathlib)
                 else:
                     raise FileNotFoundError(f"{self.prefix}{p} does not exist")
             im_files = sorted(x.replace("/", os.sep) for x in f if x.rpartition(".")[-1].lower() in IMG_FORMATS)
@@ -196,7 +196,7 @@ class BaseDataset(Dataset):
                 cls = self.labels[i]["cls"]
                 bboxes = self.labels[i]["bboxes"]
                 segments = self.labels[i]["segments"]
-                keypoints = self.labels[i]["keypoints"]
+                keypoints = self.labels[i].get("keypoints")
                 j = (cls == include_class_array).any(1)
                 self.labels[i]["cls"] = cls[j]
                 self.labels[i]["bboxes"] = bboxes[j]
@@ -208,7 +208,7 @@ class BaseDataset(Dataset):
                 self.labels[i]["cls"][:, 0] = 0
 
     def _read_image(self, im_file: str) -> tuple[np.ndarray, tuple[int, int]]:
-        """Read image from disk for index 'i'.
+        """Read image from disk.
 
         This method can be overridden by subclasses to support custom image reading logic,
         such as loading multi-channel images or stereo pairs.
@@ -229,34 +229,46 @@ class BaseDataset(Dataset):
         h0, w0 = im.shape[:2]
         return im, (h0, w0)
 
-    def _resize_image(self, im: np.ndarray, rect_mode: bool = True) -> np.ndarray:
+    def _resize_image(self, im: np.ndarray, rect_mode: bool = True, resize_short: bool = False) -> np.ndarray:
         """Resize image to target size.
 
         Args:
             im (np.ndarray): Image to resize.
-            rect_mode (bool): Whether to use rectangular resizing.
+            rect_mode (bool): Whether to use rectangular resizing (long side to imgsz).
+            resize_short (bool): Whether to resize the shorter side to imgsz while maintaining aspect ratio. Overrides
+                rect_mode behavior when True.
 
         Returns:
             np.ndarray: Resized image.
         """
         h0, w0 = im.shape[:2]
         if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
-            r = self.imgsz / max(h0, w0)  # ratio
-            if r != 1:  # if sizes are not equal
-                w, h = (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz))
-                im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
+            if resize_short:  # resize short side to imgsz while maintaining aspect ratio
+                r = self.imgsz / min(h0, w0)  # ratio
+                if r != 1:  # if sizes are not equal
+                    w, h = (math.ceil(w0 * r), self.imgsz) if h0 < w0 else (self.imgsz, math.ceil(h0 * r))
+                    im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
+            else:
+                r = self.imgsz / max(h0, w0)  # ratio
+                if r != 1:  # if sizes are not equal
+                    w, h = (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz))
+                    im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
         elif not (h0 == w0 == self.imgsz):  # resize by stretching image to square imgsz
             im = cv2.resize(im, (self.imgsz, self.imgsz), interpolation=cv2.INTER_LINEAR)
         if im.ndim == 2:
             im = im[..., None]
         return im
 
-    def load_image(self, i: int, rect_mode: bool = True) -> tuple[np.ndarray, tuple[int, int], tuple[int, int]]:
+    def load_image(
+        self, i: int, rect_mode: bool = True, resize_short: bool = False
+    ) -> tuple[np.ndarray, tuple[int, int], tuple[int, int]]:
         """Load an image from dataset index 'i'.
 
         Args:
             i (int): Index of the image to load.
-            rect_mode (bool): Whether to use rectangular resizing.
+            rect_mode (bool): Whether to use rectangular resizing (long side to imgsz).
+            resize_short (bool): Whether to resize the shorter side to imgsz while maintaining aspect ratio. Overrides
+                rect_mode when True.
 
         Returns:
             im (np.ndarray): Loaded image as a NumPy array.
@@ -271,6 +283,13 @@ class BaseDataset(Dataset):
             if fn.exists():  # load npy
                 try:
                     im = np.load(fn)
+                    npy_channels = im.shape[-1] if im.ndim >= 3 else 1
+                    if npy_channels != self.channels:
+                        LOGGER.warning(
+                            f"{self.prefix}Removing stale *.npy image file {fn} with {npy_channels} channels, expected {self.channels}"
+                        )
+                        Path(fn).unlink(missing_ok=True)
+                        im = imread(f, flags=self.cv2_flag)
                 except Exception as e:
                     LOGGER.warning(f"{self.prefix}Removing corrupt *.npy image file {fn} due to: {e}")
                     Path(fn).unlink(missing_ok=True)
@@ -283,7 +302,7 @@ class BaseDataset(Dataset):
                 h0, w0 = self.im_hw0[i] if self.im_hw0[i] is not None else im.shape[:2]
 
             # Always apply resize (images from disk cache are raw and need resizing)
-            im = self._resize_image(im, rect_mode=rect_mode)
+            im = self._resize_image(im, rect_mode=rect_mode, resize_short=resize_short)
 
             # Add to buffer if training with augmentations
             if self.augment:
@@ -318,8 +337,12 @@ class BaseDataset(Dataset):
         """Save an image as an *.npy file for faster loading."""
         f = self.npy_files[i]
         if not f.exists():
-            im, _ = self._read_image(i)
-            np.save(f.as_posix(), im, allow_pickle=False)
+            try:
+                im, _ = self._read_image(self.im_files[i])
+                np.save(f.as_posix(), im, allow_pickle=False)
+            except Exception as e:
+                f.unlink(missing_ok=True)
+                LOGGER.warning(f"{self.prefix}WARNING ⚠️ Failed to cache image {f}: {e}")
 
     def check_cache_disk(self, safety_margin: float = 0.5) -> bool:
         """Check if there's enough disk space for caching images.

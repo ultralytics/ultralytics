@@ -32,7 +32,10 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
         >>> img = imread("path/to/image.jpg")
         >>> img = imread("path/to/image.jpg", cv2.IMREAD_GRAYSCALE)
     """
-    file_bytes = np.fromfile(filename, np.uint8)
+    try:
+        file_bytes = np.fromfile(filename, np.uint8)
+    except (FileNotFoundError, OSError):
+        return None
     if filename.endswith((".tiff", ".tif")):
         success, frames = cv2.imdecodemulti(file_bytes, cv2.IMREAD_UNCHANGED)
         if success:
@@ -202,12 +205,12 @@ def torch_save(*args, **kwargs):
 
 
 @contextmanager
-def arange_patch(args):
+def arange_patch(dynamic: bool = False, half: bool = False, fmt: str = ""):
     """Workaround for ONNX torch.arange incompatibility with FP16.
 
     https://github.com/pytorch/pytorch/issues/148041.
     """
-    if args.dynamic and args.half and args.format == "onnx":
+    if dynamic and half and fmt == "onnx":
         func = torch.arange
 
         def arange(*args, dtype=None, **kwargs):

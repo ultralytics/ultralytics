@@ -139,10 +139,10 @@ GPU and system metrics during training:
 
 Run interactive inference directly in the browser:
 
-- Upload an image, paste a URL, or use webcam
-- Results display with bounding boxes, masks, or keypoints
+- Upload an image, use example images, or use webcam
+- Results display with bounding boxes, masks, semantic class maps, or keypoints
 - Auto-inference when an image is provided
-- Supports all task types ([detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [classify](../../tasks/classify.md))
+- Supports all task types ([detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [semantic](../../tasks/semantic.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [classify](../../tasks/classify.md))
 
 !!! tip "Quick Testing"
 
@@ -258,7 +258,7 @@ Export jobs progress through the following statuses:
 
 !!! tip "Export Time"
 
-    Export time varies by format. TensorRT exports may take several minutes due to engine optimization. GPU-required formats (TensorRT) run on Ultralytics Cloud GPUs — the default export GPU is RTX 5090.
+    Export time varies by format. TensorRT exports may take several minutes due to engine optimization. GPU-required formats (TensorRT) run on Ultralytics Cloud GPUs — the default export GPU is RTX 4090.
 
 ### Bulk Export Actions
 
@@ -269,11 +269,17 @@ Export jobs progress through the following statuses:
 
 Some export formats have architecture or task restrictions:
 
-| Format           | Restriction                                                     |
-| ---------------- | --------------------------------------------------------------- |
-| **IMX500**       | Only available for YOLOv8 and YOLO11 models                     |
-| **Axelera**      | Only available for detection models                             |
-| **PaddlePaddle** | Not available for YOLO26 detection/segmentation/pose/OBB models |
+| Format           | Restriction                                             |
+| ---------------- | ------------------------------------------------------- |
+| **IMX500**       | Available only for `YOLOv8n` and `YOLO11n`              |
+| **Axelera**      | Detect models only                                      |
+| **PaddlePaddle** | Not available for YOLO26 detect/segment/pose/OBB models |
+
+!!! note "Additional Export Rules"
+
+    - Classification exports do not include NMS.
+    - CoreML exports with batch sizes greater than `1` use `dynamic=true`.
+    - Unsupported format/model combinations are disabled in the export dialog before you launch.
 
 ## Clone Model
 
@@ -338,6 +344,13 @@ Remove a model you no longer need:
 
     Deleted models go to Trash for 30 days. Restore from [Settings > Trash](../account/trash.md).
 
+## See Also
+
+- [**Inference**](../deploy/inference.md): Test models in the browser with the Predict tab
+- [**Endpoints**](../deploy/endpoints.md): Deploy models to production with dedicated endpoints
+- [**Cloud Training**](cloud-training.md): Configure and run training jobs on cloud GPUs
+- [**Export Formats**](../../modes/export.md): Full guide to all 17+ export formats
+
 ## FAQ
 
 ### What model architectures are supported?
@@ -349,7 +362,7 @@ Ultralytics Platform fully supports all YOLO architectures with dedicated projec
 - [**YOLOv8**](../../models/yolov8.md): n, s, m, l, x variants — [platform.ultralytics.com/ultralytics/yolov8](https://platform.ultralytics.com/ultralytics/yolov8)
 - [**YOLOv5**](../../models/yolov5.md): n, s, m, l, x variants — [platform.ultralytics.com/ultralytics/yolov5](https://platform.ultralytics.com/ultralytics/yolov5)
 
-All architectures support 5 task types: [detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), and [classify](../../tasks/classify.md).
+YOLO26 supports 6 task types: [detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [semantic](../../tasks/semantic.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), and [classify](../../tasks/classify.md). YOLO11 and YOLOv8 support the same set except semantic segmentation, while YOLOv5 supports detect, segment, and classify.
 
 ### Can I download my trained model?
 

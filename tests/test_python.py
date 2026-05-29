@@ -215,7 +215,7 @@ def test_track_stream(model, tmp_path):
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
     """
-    if model in {"yolo26n-cls.pt", "yolo26n-sem.pt"}:  # classification and semantic segmentation not supported
+    if model in {"yolo26n-cls.pt", "yolo26n-sem.pt", "yolo26n-depth.pt"}:  # classification, semantic, and depth not supported
         return
     video_url = f"{ASSETS_URL}/decelera_portrait_min.mov"
     model = YOLO(model)
@@ -387,7 +387,7 @@ def test_data_utils(tmp_path):
     # with WorkingDirectory(ROOT.parent / 'tests'):
 
     for task in TASKS:
-        if task == "semantic":  # HUB stats do not support semantic segmentation datasets yet.
+        if task in {"semantic", "depth"}:  # HUB stats do not support semantic/depth datasets yet.
             continue
         file = Path(TASK2DATA[task]).with_suffix(".zip")  # i.e. coco8.zip
         download(f"https://github.com/ultralytics/hub/raw/main/example_datasets/{file}", unzip=False, dir=tmp_path)
@@ -901,7 +901,7 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
     """Test YOLO model grayscale training, validation, and prediction functionality."""
     if IS_RASPBERRYPI and task == "semantic":
         skip_rpi_semantic()
-    if task == "classify":  # not support grayscale classification yet
+    if task in {"classify", "depth"}:  # grayscale not supported for classification or depth tasks
         return
     grayscale_data = tmp_path / f"{Path(data).stem}-grayscale.yaml"
     data = check_det_dataset(data)
@@ -929,3 +929,14 @@ def test_semantic_polygon_data():
     model = YOLO("yolo26n-sem.pt")
     model.train(data="coco8-seg.yaml", epochs=1, imgsz=32, close_mosaic=1)
     model.val(data="coco8-seg.yaml")
+
+
+def test_depth_results_interface():
+    """Test Results / DepthMap interface for the depth task: construction, device moves, shape invariants."""
+    import numpy as np
+    from ultralytics.engine.results import Results, DepthMap
+
+    r = Results(np.zeros((16, 16, 3), np.uint8), "x.jpg", {0: "depth"}, depth=np.random.rand(16, 16).astype(np.float32))
+    assert isinstance(r.depth, DepthMap), "Results.depth should be a DepthMap instance"
+    r_moved = r.cpu().numpy()
+    assert r_moved.depth.data.shape == (16, 16), "DepthMap shape should survive .cpu().numpy() chain"

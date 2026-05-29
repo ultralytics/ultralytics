@@ -113,7 +113,7 @@ adapter = UltralyticsDetectionAdapter(
 Detection datasets for BNNR must provide:
 
 - **Images**: `torch.Tensor` `(C, H, W)` in **[0, 1]** float (do not pass 0-255 float tensors to YOLO through the adapter).
-- **Targets**: Ultralytics-style dicts with `boxes` and `labels`.
+- **Targets**: Adapter-specific dicts with `boxes` and `labels` (these are not the same keys Ultralytics uses internally).
 - **Index**: third element per sample for XAI cache keys.
 
 Details: [BNNR detection guide](https://github.com/bnnr-team/bnnr/blob/v0.4.10/docs/detection.md).

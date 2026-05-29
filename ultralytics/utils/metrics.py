@@ -1888,3 +1888,125 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
             }
             for i in range(len(per_class))
         ]
+
+
+class DepthMetrics(SimpleClass, DataExportMixin):
+    """Monocular depth estimation metrics: delta1-3, abs_rel, rmse, silog.
+
+    Accumulates summed per-pixel statistics on-device so DDP reduction is a single
+    all-reduce over the running totals. Metrics follow the Depth Anything protocol;
+    pixels with gt <= min_depth are ignored.
+
+    Attributes:
+        names (dict): Class names mapping (unused for depth; kept for API parity).
+        min_depth (float): Minimum valid depth in meters.
+        max_depth (float): Maximum valid depth in meters (predictions/gt clamped).
+    """
+
+    def __init__(self, names: dict | None = None, min_depth: float = 0.001, max_depth: float = 100.0) -> None:
+        """Initialize depth metric accumulators."""
+        self.names = names or {}
+        self.min_depth = min_depth
+        self.max_depth = max_depth
+        self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
+        self._totals = None  # running sums (7,): [d1,d2,d3,abs_rel,rmse_sq,silog_a,silog_b]
+        self._count = 0.0  # total valid pixels
+        self._results = {}
+
+    def update_stats(self, preds: torch.Tensor, targets: torch.Tensor) -> None:
+        """Accumulate summed metrics over valid pixels.
+
+        Args:
+            preds (torch.Tensor): Predicted depth (B,1,H,W) or (B,H,W), meters.
+            targets (torch.Tensor): Ground-truth depth, same shape.
+        """
+        p = preds.squeeze(1) if preds.ndim == 4 else preds
+        g = targets.squeeze(1) if targets.ndim == 4 else targets
+        mask = g > self.min_depth
+        if mask.sum() == 0:
+            return
+        p = p[mask].clamp(self.min_depth, self.max_depth).float()
+        g = g[mask].clamp(self.min_depth, self.max_depth).float()
+        thresh = torch.maximum(p / g, g / p)
+        log_diff = torch.log(p) - torch.log(g)
+        totals = torch.stack([
+            (thresh < 1.25).sum(),
+            (thresh < 1.25 ** 2).sum(),
+            (thresh < 1.25 ** 3).sum(),
+            (torch.abs(p - g) / g).sum(),
+            ((p - g) ** 2).sum(),
+            (log_diff ** 2).sum(),
+            log_diff.sum(),
+        ]).double()
+        if self._totals is None:
+            self._totals = torch.zeros(7, dtype=torch.float64, device=totals.device)
+        self._totals += totals
+        self._count += float(mask.sum())
+
+    def reduce_ddp(self) -> None:
+        """All-reduce accumulators across DDP ranks (no-op if not distributed)."""
+        import torch.distributed as dist
+
+        if self._totals is not None and dist.is_available() and dist.is_initialized():
+            packed = torch.cat(
+                [self._totals, torch.tensor([self._count], dtype=torch.float64, device=self._totals.device)]
+            )
+            dist.all_reduce(packed, op=dist.ReduceOp.SUM)
+            self._totals, self._count = packed[:7], float(packed[7].item())
+
+    def process(self, *args, **kwargs) -> None:
+        """Finalize metrics from accumulated sums."""
+        if self._totals is None or self._count == 0:
+            self._results = dict.fromkeys(self.keys, 0.0)
+            return
+        t = self._totals.cpu()
+        n = self._count
+        d1, d2, d3, abs_rel, rmse_sq, silog_a, silog_b = (float(x) for x in t)
+        silog = ((silog_a / n) - 0.5 * (silog_b / n) ** 2) ** 0.5 * 100
+        self._results = {
+            "metrics/delta1": d1 / n,
+            "metrics/delta2": d2 / n,
+            "metrics/delta3": d3 / n,
+            "metrics/abs_rel": abs_rel / n,
+            "metrics/rmse": (rmse_sq / n) ** 0.5,
+            "metrics/silog": silog,
+        }
+
+    def clear_stats(self):
+        """Reset accumulators."""
+        self._totals = None
+        self._count = 0.0
+        self._results = {}
+
+    @property
+    def keys(self):
+        """Metric keys for logging."""
+        return ["metrics/delta1", "metrics/delta2", "metrics/delta3", "metrics/abs_rel", "metrics/rmse", "metrics/silog"]
+
+    def mean_results(self):
+        """Return metric values in `keys` order."""
+        return [self._results.get(k, 0.0) for k in self.keys]
+
+    @property
+    def fitness(self):
+        """Fitness = delta1 (higher is better)."""
+        return self._results.get("metrics/delta1", 0.0)
+
+    @property
+    def results_dict(self):
+        """Results dict including fitness."""
+        return dict(zip([*self.keys, "fitness"], [*self.mean_results(), self.fitness]))
+
+    @property
+    def curves(self):
+        """No PR curves for depth."""
+        return []
+
+    @property
+    def curves_results(self):
+        """No PR curve results for depth."""
+        return []
+
+    def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict]:
+        """Single-row summary of global depth metrics."""
+        return [{k.split("/")[-1]: round(v, decimals) for k, v in self._results.items()}]

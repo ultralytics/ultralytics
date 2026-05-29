@@ -261,6 +261,7 @@ def compute_saliency(handle: M.ModelHandle, meta: pd.DataFrame, out_dir: Path):
     h_inj = next_module.register_forward_pre_hook(hook_inject)
 
     skipped = 0
+    flat = 0
     try:
         for i, qid in enumerate(tqdm(q_ids, desc=f"IG:{handle.tag}")):
             q_row = q_meta.iloc[i]
@@ -308,9 +309,18 @@ def compute_saliency(handle: M.ModelHandle, meta: pd.DataFrame, out_dir: Path):
             else:
                 attr_map = torch.relu(attr).cpu().numpy().astype(np.float32)
             np.save(sal_dir / f"{qid}.npy", attr_map)
+            if attr_map.std() < 1e-8:
+                flat += 1
     finally:
         h_cap.remove()
         h_inj.remove()
+
+    if flat > 0.5 * len(q_ids):
+        raise RuntimeError(
+            f"IG saliency for {handle.tag}: {flat}/{len(q_ids)} maps have std<1e-8 "
+            "(>50%). Likely the forward_pre_hook injection isn't substituting the P5 "
+            "tensor. Check _resolve_next_after_tap() output."
+        )
 
 
 def main():

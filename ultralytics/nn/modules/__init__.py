@@ -105,6 +105,11 @@ from .transformer import (
     TransformerEncoderLayer,
     TransformerLayer,
 )
+from .anomaly_v2 import (
+    BboxMaskRenderer,
+    HeatmapEncoder,
+    HeatmapGuidedFusion,
+)
 
 __all__ = (
     "AIFI",
@@ -129,6 +134,7 @@ __all__ = (
     "ADown",
     "Attention",
     "BNContrastiveHead",
+    "BboxMaskRenderer",
     "Bottleneck",
     "BottleneckCSP",
     "C2f",
@@ -157,6 +163,8 @@ __all__ = (
     "GhostConv",
     "HGBlock",
     "HGStem",
+    "HeatmapEncoder",
+    "HeatmapGuidedFusion",
     "ImagePoolingAttn",
     "Index",
     "LRPCHead",

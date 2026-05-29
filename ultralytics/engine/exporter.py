@@ -105,7 +105,14 @@ from ultralytics.utils import (
     get_default_args,
     is_jetson,
 )
-from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_9, check_imgsz, check_requirements, check_version, is_intel
+from ultralytics.utils.checks import (
+    IS_PYTHON_MINIMUM_3_9,
+    IS_PYTHON_MINIMUM_3_13,
+    check_imgsz,
+    check_requirements,
+    check_version,
+    is_intel,
+)
 from ultralytics.utils.files import file_size
 from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
@@ -942,6 +949,10 @@ class Exporter:
     @try_export
     def export_saved_model(self, prefix=colorstr("TensorFlow SavedModel:")):
         """Export YOLO model to TensorFlow SavedModel format."""
+        assert not (MACOS and IS_PYTHON_MINIMUM_3_13), (
+            "TensorFlow exports not supported on macOS with Python>=3.13: the ai-edge-litert macOS wheel fails to load "
+            "(missing libpywrap_litert_common.dylib). TensorFlow export works on Linux Python 3.13."
+        )
         from ultralytics.utils.export.tensorflow import onnx2saved_model
 
         f = Path(str(self.file).replace(self.file.suffix, "_saved_model"))
@@ -1050,6 +1061,10 @@ class Exporter:
     @try_export
     def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
         """Export YOLO model to TensorFlow.js format."""
+        assert not IS_PYTHON_MINIMUM_3_13, (
+            "TensorFlow.js export not supported on Python>=3.13: tensorflowjs requires the np.object alias removed "
+            "in NumPy 1.24, but Python 3.13 has no NumPy<2.1 wheels."
+        )
         from ultralytics.utils.export.tensorflow import pb2tfjs
 
         output_dir = pb2tfjs(

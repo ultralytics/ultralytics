@@ -276,7 +276,7 @@ jobs:
           if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          uv pip install ${{ matrix.os != 'cpu-latest' && '--system' || '' }} -e ".[export,solutions]" $torch faster-coco-eval mlflow pytest-cov pytest-xdist --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install ${{ matrix.os != 'cpu-latest' && '--system' || '' }} -e ".[export,solutions]" $torch faster-coco-eval mlflow pytest-cov pytest-forked pytest-xdist --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks
@@ -330,8 +330,10 @@ jobs:
               trap 'kill "$monitor_pid" 2>/dev/null || true' EXIT
             fi
             pytest_workers=2
+            pytest_extra=()
             if [ "${{ matrix.os }}" = "ubuntu-24.04-arm" ]; then
               pytest_workers=1  # ARM runners lose communication under two concurrent slow export workers
+              pytest_extra+=(--forked)  # release TensorFlow/exporter memory between tests on ARM runners
             fi
             pytest_args=(
               -vv
@@ -349,7 +351,7 @@ jobs:
               --deselect tests/test_exports.py::test_export_axelera
               --deselect tests/test_exports.py::test_export_deepx
             )
-            PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -n "$pytest_workers" --dist=loadfile "${pytest_args[@]}"
+            PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -n "$pytest_workers" --dist=loadfile "${pytest_extra[@]}" "${pytest_args[@]}"
 
             # Run memory-heavy hardware exporter installs in fresh processes after TensorFlow/TFLite exits.
             for export_test in tests/test_exports.py::test_export_axelera tests/test_exports.py::test_export_deepx; do

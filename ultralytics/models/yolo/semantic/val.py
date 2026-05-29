@@ -92,10 +92,10 @@ class SemanticSegmentationValidator(DetectionValidator):
         return batch
 
     def postprocess(self, preds):
-        """Convert logits to class predictions.
+        """Convert logits or baked class maps to class predictions.
 
         Args:
-            preds (torch.Tensor): Raw model output logits [B, nc, H, W].
+            preds (torch.Tensor): Raw model output logits [B, nc, H, W] or baked class map [B, H, W].
 
         Returns:
             (torch.Tensor): Predicted class IDs [B, H, W].

@@ -299,7 +299,37 @@ jobs:
         with:
           shell: bash # for Windows compatibility
           # -n 2 limits parallelism for resource-heavy export tests on shared runners
-          run: pytest -vv -s -n 2 --dist=loadfile --slow --cov=ultralytics/ --cov-report=xml tests/ --deselect tests/test_exports.py::test_export_imx --deselect tests/test_exports.py::test_export_mnn --deselect tests/test_exports.py::test_export_ncnn --deselect tests/test_exports.py::test_export_executorch
+          run: |
+            python - <<'PY'
+            import os
+            import platform
+            import shutil
+            import sys
+
+            total, used, free = shutil.disk_usage(".")
+            print(f"Python: {sys.version}")
+            print(f"Platform: {platform.platform()}")
+            print(f"CPU count: {os.cpu_count()}")
+            print(f"Disk: total={total // 2**30}GiB used={used // 2**30}GiB free={free // 2**30}GiB")
+            PY
+            dump_resources() {
+              echo "Resource snapshot: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+              df -h .
+              if command -v free >/dev/null 2>&1; then free -h; fi
+              if [ "$(uname -s)" = "Linux" ] && command -v ps >/dev/null 2>&1; then
+                ps -eo pid,ppid,pcpu,pmem,rss,vsz,comm --sort=-rss | head -20 || true
+              fi
+            }
+            dump_resources
+            if [ "$(uname -s)" = "Linux" ]; then
+              while true; do
+                sleep 60
+                dump_resources
+              done &
+              monitor_pid=$!
+              trap 'kill "$monitor_pid" 2>/dev/null || true' EXIT
+            fi
+            PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -vv -s -n 2 --dist=loadfile --durations=50 --durations-min=1 --slow --cov=ultralytics/ --cov-report=xml tests/ --deselect tests/test_exports.py::test_export_imx --deselect tests/test_exports.py::test_export_mnn --deselect tests/test_exports.py::test_export_ncnn --deselect tests/test_exports.py::test_export_executorch
           retries: 1 # Retry once after initial attempt (2 total runs)
           timeout_minutes: 180
           retry_delay_seconds: 60

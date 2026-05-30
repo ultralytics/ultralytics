@@ -86,3 +86,49 @@ def test_3d_iou():
     box2 = Box3D(center_3d=(10.0, 2.0, 30.0), dimensions=(4.0, 2.0, 2.0), orientation=0.0,
                  class_label="Car", class_id=0, confidence=0.95)
     assert 0.0 < compute_3d_iou(box2, near_box) < 1.0
+
+
+def test_3d_iou_rotated_45deg():
+    """Two identical square-footprint boxes offset by 45 deg of yaw.
+
+    True 3D IoU of a unit square and the same square rotated 45 deg (shared
+    center/dims) is exactly 1/sqrt(2) ~= 0.7071. The old axis-aligned-bbox
+    approximation returns ~1.0 here because the 45 deg box's AABB fully contains
+    the other box, so this case discriminates true rotated IoU from the AABB hack.
+    """
+    a = Box3D(center_3d=(0.0, 0.0, 10.0), dimensions=(2.0, 2.0, 2.0), orientation=0.0,
+              class_label="Car", class_id=0, confidence=0.95)
+    b = Box3D(center_3d=(0.0, 0.0, 10.0), dimensions=(2.0, 2.0, 2.0), orientation=np.pi / 4,
+              class_label="Car", class_id=0, confidence=0.95)
+    assert abs(compute_3d_iou(a, b) - (1.0 / np.sqrt(2))) < 1e-3
+
+
+def test_3d_iou_rotated_no_overlap():
+    """Two 45 deg boxes whose AABBs overlap but whose true rotated footprints do not.
+
+    Both boxes are unit-ish square footprints rotated 45 deg (diamonds), offset
+    diagonally by (2, 2) in the x-z plane. The diamonds are disjoint (L1 center
+    distance 4 > 2*sqrt(2)), so true 3D IoU is 0. But their axis-aligned bounding
+    boxes (side 2*sqrt(2)) still overlap, so the old AABB approximation reports a
+    spurious positive IoU.
+    """
+    a = Box3D(center_3d=(0.0, 0.0, 10.0), dimensions=(2.0, 2.0, 2.0), orientation=np.pi / 4,
+              class_label="Car", class_id=0, confidence=0.95)
+    b = Box3D(center_3d=(2.0, 0.0, 12.0), dimensions=(2.0, 2.0, 2.0), orientation=np.pi / 4,
+              class_label="Car", class_id=0, confidence=0.95)
+    assert compute_3d_iou(a, b) == 0.0
+
+
+def test_3d_iou_rotated_90deg():
+    """Two identical (L=4, W=2) boxes offset by 90 deg of yaw, shared center/dims.
+
+    The rot-0 footprint is 2x4 and the rot-90 footprint is 4x2; their BEV
+    intersection is the 2x2 square, giving true 3D IoU = 4 / (16 - 4) = 1/3.
+    The old AABB approximation returns 1.0 here (the 90 deg box's AABB grows),
+    so this is a clean analytic regression guard.
+    """
+    a = Box3D(center_3d=(0.0, 0.0, 20.0), dimensions=(4.0, 2.0, 2.0), orientation=0.0,
+              class_label="Car", class_id=0, confidence=0.95)
+    b = Box3D(center_3d=(0.0, 0.0, 20.0), dimensions=(4.0, 2.0, 2.0), orientation=np.pi / 2,
+              class_label="Car", class_id=0, confidence=0.95)
+    assert abs(compute_3d_iou(a, b) - 1.0 / 3.0) < 1e-3

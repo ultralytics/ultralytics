@@ -277,16 +277,104 @@ def probiou(obb1: torch.Tensor, obb2: torch.Tensor, CIoU: bool = False, eps: flo
     return iou
 
 
+def _bev_corners(cx: float, cz: float, length: float, width: float, rot: float) -> np.ndarray:
+    """Return the 4 ground-plane (x, z) corners of a yaw-rotated 3D box footprint.
+
+    Uses the same rotation convention as the rest of the s3d code (rotation about
+    the camera y-axis): width extends along the local x-axis, length along the
+    local z-axis. Corners are returned counter-clockwise.
+
+    Args:
+        cx: Box center x (lateral) in meters.
+        cz: Box center z (depth/forward) in meters.
+        length: Box length (along forward/z) in meters.
+        width: Box width (along lateral/x) in meters.
+        rot: Yaw rotation about the y-axis in radians.
+
+    Returns:
+        (np.ndarray): (4, 2) array of (x, z) corners.
+    """
+    cos, sin = np.cos(rot), np.sin(rot)
+    hw, hl = width / 2.0, length / 2.0
+    # Local (x=width, z=length) corners, counter-clockwise in the x-z plane.
+    local = np.array([[-hw, -hl], [hw, -hl], [hw, hl], [-hw, hl]])
+    # Rotation about y maps local (x, z) -> world via [[cos, sin], [-sin, cos]],
+    # matching R = [[cos, 0, sin], [0, 1, 0], [-sin, 0, cos]] used elsewhere.
+    rotm = np.array([[cos, sin], [-sin, cos]])
+    return local @ rotm.T + np.array([cx, cz])
+
+
+def _polygon_area(poly: np.ndarray) -> float:
+    """Compute the area of a simple polygon via the shoelace formula."""
+    if len(poly) < 3:
+        return 0.0
+    x, y = poly[:, 0], poly[:, 1]
+    return 0.5 * abs(float(np.dot(x, np.roll(y, -1)) - np.dot(y, np.roll(x, -1))))
+
+
+def _convex_intersection_area(subject: np.ndarray, clip: np.ndarray) -> float:
+    """Area of the intersection of two convex polygons (Sutherland-Hodgman clipping).
+
+    Args:
+        subject: (N, 2) vertices of the subject polygon.
+        clip: (M, 2) vertices of the convex clip polygon, counter-clockwise.
+
+    Returns:
+        (float): Area of the intersection polygon (0.0 if disjoint).
+    """
+    # Ensure the clip polygon is counter-clockwise so "inside" is the left half-plane.
+    if (np.dot(clip[:, 0], np.roll(clip[:, 1], -1)) - np.dot(clip[:, 1], np.roll(clip[:, 0], -1))) < 0:
+        clip = clip[::-1]
+
+    output = [tuple(p) for p in subject]
+    cp_prev = clip[-1]
+    for cp in clip:
+        if not output:
+            break
+        edge = (cp_prev, cp)
+        ex, ey = edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]
+
+        def inside(p):
+            return ex * (p[1] - edge[0][1]) - ey * (p[0] - edge[0][0]) >= 0  # noqa: B023
+
+        def intersect(a, b):
+            # Intersection of segment a-b with the infinite line through `edge`.
+            x1, y1, x2, y2 = a[0], a[1], b[0], b[1]  # noqa: B023
+            x3, y3, x4, y4 = edge[0][0], edge[0][1], edge[1][0], edge[1][1]  # noqa: B023
+            denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+            if abs(denom) < 1e-12:
+                return b
+            t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom
+            return (x1 + t * (x2 - x1), y1 + t * (y2 - y1))
+
+        input_list = output
+        output = []
+        s = input_list[-1]
+        for e in input_list:
+            if inside(e):
+                if not inside(s):
+                    output.append(intersect(s, e))
+                output.append(e)
+            elif inside(s):
+                output.append(intersect(s, e))
+            s = e
+        cp_prev = cp
+
+    return _polygon_area(np.array(output)) if len(output) >= 3 else 0.0
+
+
 def compute_3d_iou(
     box1: Any | np.ndarray,
     box2: Any | np.ndarray,
     eps: float = 1e-7,
 ) -> float:
-    """Compute 3D Intersection over Union (IoU) between two 3D bounding boxes.
+    """Compute the true rotated 3D Intersection over Union (IoU) between two 3D boxes.
 
-    Uses 3D box corner computation method following KITTI evaluation standard.
-    Computes intersection volume by generating 8 corners for each box and calculating
-    the axis-aligned bounding box of intersection.
+    Follows the KITTI evaluation convention: the bird's-eye-view (BEV) intersection
+    of the two yaw-rotated footprints is computed exactly via convex polygon
+    clipping, then multiplied by the overlap of the vertical (height) extents to
+    obtain the intersection volume. Unlike an axis-aligned-bbox approximation, this
+    does not overestimate overlap for rotated boxes.
 
     Args:
         box1: First 3D box (Box3D object or array [x, y, z, l, w, h, orientation]).
@@ -301,7 +389,6 @@ def compute_3d_iou(
     """
     from ultralytics.data.stereo.box3d import Box3D
 
-    # Convert Box3D to arrays if needed (type: ignore for forward reference)
     if isinstance(box1, Box3D):
         x1, y1, z1 = box1.center_3d
         l1, w1, h1 = box1.dimensions
@@ -316,98 +403,27 @@ def compute_3d_iou(
     else:
         x2, y2, z2, l2, w2, h2, rot2 = box2[:7]
 
-    # Generate 8 corners for each box in object coordinate system
-    # Order: [front-left-top, front-right-top, back-right-top, back-left-top,
-    #         front-left-bottom, front-right-bottom, back-right-bottom, back-left-bottom]
-    #
-    # IMPORTANT: Box3D uses camera coordinate system where:
-    #   - center_3d: x (right), y (down), z (forward)
-    #   - dimensions: (length, width, height) where:
-    #       - length: extends along forward/z direction
-    #       - width: extends along right/x direction
-    #       - height: extends along up/(-y) direction
-    #
-    # To align with Box3D's coordinate system, the object coordinate corners should use:
-    #   - x axis: width (lateral direction)
-    #   - y axis: height (vertical direction, but inverted: +y is down in camera coords)
-    #   - z axis: length (forward direction)
-    #
-    # This mapping ensures that:
-    #   - Orientation=0 means box faces forward (+z direction)
-    #   - Length extends along z-axis when not rotated
-    #   - Width extends along x-axis when not rotated
-    #   - Height extends along y-axis (inverted in camera coords)
-    corners1_obj = np.array(
-        [
-            [-w1 / 2, w1 / 2, w1 / 2, -w1 / 2, -w1 / 2, w1 / 2, w1 / 2, -w1 / 2],  # x (width/lateral)
-            [-h1 / 2, -h1 / 2, -h1 / 2, -h1 / 2, h1 / 2, h1 / 2, h1 / 2, h1 / 2],  # y (height/vertical)
-            [l1 / 2, l1 / 2, -l1 / 2, -l1 / 2, l1 / 2, l1 / 2, -l1 / 2, -l1 / 2],  # z (length/forward)
-        ]
-    )
-
-    corners2_obj = np.array(
-        [
-            [-w2 / 2, w2 / 2, w2 / 2, -w2 / 2, -w2 / 2, w2 / 2, w2 / 2, -w2 / 2],  # x (width/lateral)
-            [-h2 / 2, -h2 / 2, -h2 / 2, -h2 / 2, h2 / 2, h2 / 2, h2 / 2, h2 / 2],  # y (height/vertical)
-            [l2 / 2, l2 / 2, -l2 / 2, -l2 / 2, l2 / 2, l2 / 2, -l2 / 2, -l2 / 2],  # z (length/forward)
-        ]
-    )
-
-    # Rotation matrices around y-axis
-    cos1, sin1 = np.cos(rot1), np.sin(rot1)
-    R1 = np.array([[cos1, 0, sin1], [0, 1, 0], [-sin1, 0, cos1]])
-
-    cos2, sin2 = np.cos(rot2), np.sin(rot2)
-    R2 = np.array([[cos2, 0, sin2], [0, 1, 0], [-sin2, 0, cos2]])
-
-    # Rotate and translate corners to world coordinates
-    corners1_world = R1 @ corners1_obj
-    corners1_world[0, :] += x1
-    corners1_world[1, :] += y1
-    corners1_world[2, :] += z1
-
-    corners2_world = R2 @ corners2_obj
-    corners2_world[0, :] += x2
-    corners2_world[1, :] += y2
-    corners2_world[2, :] += z2
-
-    # Compute axis-aligned bounding box of intersection
-    # Find min/max for each axis
-    min1_x, max1_x = corners1_world[0, :].min(), corners1_world[0, :].max()
-    min1_y, max1_y = corners1_world[1, :].min(), corners1_world[1, :].max()
-    min1_z, max1_z = corners1_world[2, :].min(), corners1_world[2, :].max()
-
-    min2_x, max2_x = corners2_world[0, :].min(), corners2_world[0, :].max()
-    min2_y, max2_y = corners2_world[1, :].min(), corners2_world[1, :].max()
-    min2_z, max2_z = corners2_world[2, :].min(), corners2_world[2, :].max()
-
-    # Check if boxes overlap
-    if max1_x < min2_x or max2_x < min1_x:
-        return 0.0
-    if max1_y < min2_y or max2_y < min1_y:
-        return 0.0
-    if max1_z < min2_z or max2_z < min1_z:
+    # Vertical (height) overlap. Box3D y is the geometric center, height extends +/- h/2.
+    top1, bot1 = y1 - h1 / 2.0, y1 + h1 / 2.0
+    top2, bot2 = y2 - h2 / 2.0, y2 + h2 / 2.0
+    inter_h = max(0.0, min(bot1, bot2) - max(top1, top2))
+    if inter_h <= 0.0:
         return 0.0
 
-    # Compute intersection volume (axis-aligned approximation)
-    inter_x = max(0, min(max1_x, max2_x) - max(min1_x, min2_x))
-    inter_y = max(0, min(max1_y, max2_y) - max(min1_y, min2_y))
-    inter_z = max(0, min(max1_z, max2_z) - max(min1_z, min2_z))
-    intersection = inter_x * inter_y * inter_z
+    # Exact BEV (ground-plane) intersection area of the two rotated footprints.
+    corners1 = _bev_corners(x1, z1, l1, w1, rot1)
+    corners2 = _bev_corners(x2, z2, l2, w2, rot2)
+    inter_area = _convex_intersection_area(corners1, corners2)
+    if inter_area <= 0.0:
+        return 0.0
 
-    # Compute volumes
+    intersection = inter_area * inter_h
     volume1 = l1 * w1 * h1
     volume2 = l2 * w2 * h2
     union = volume1 + volume2 - intersection
 
-    # Compute IoU
-    # Note: AABB approximation for intersection can overestimate when boxes are rotated,
-    # causing intersection > volume1 + volume2, leading to small/negative union.
-    # Clamp IoU to [0, 1] to handle this approximation error.
     iou = intersection / (union + eps)
-    iou = min(max(iou, 0.0), 1.0)  # Clamp to valid IoU range
-    
-    return float(iou)
+    return float(min(max(iou, 0.0), 1.0))
 
 
 def batch_probiou(obb1: torch.Tensor | np.ndarray, obb2: torch.Tensor | np.ndarray, eps: float = 1e-7) -> torch.Tensor:

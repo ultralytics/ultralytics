@@ -101,6 +101,22 @@ nohupyolo train task=anomaly_v2 \
 If the final mask-on (alpha=0) sits well above the mask-off floor, the SegBranch
 delivers a usable prior at inference time without any external mask — the v2.2 goal.
 
+## 4. Extra — gauss render + alpha curriculum (GPU 4,7)
+
+Same as run 1 but `mask_mode: gauss`. Tests whether the Phase 0 advantage of
+gauss-rendered GT mask over rect carries into SegBranch. Curriculum default.
+
+```
+nohupyolo train task=anomaly_v2 \
+  model=yolo26m-anomaly-v2-seg-gauss.yaml \
+  pretrained=yolo26m.pt \
+  data=/home/louis/ultra_louis_work/datasets/AnomalyDataset/merge_data_v5_binary/data.yaml \
+  epochs=50 batch=96 close_mosaic=20 device=4,7 \
+  optimizer=MuSGD lr0=0.00125 lrf=0.5 momentum=0.9 weight_decay=0.0005 \
+  scale=0.1 copy_paste=0.1 mixup=0.0 save_json=True \
+  project=yoloa_v2 name=26m_yoloav2seg_v5_binary_cm20_gauss_pd50_acur_v1
+```
+
 ## Monitor
 
 ```

@@ -408,3 +408,48 @@ def test_smoke_train_one_epoch_cost_disp():
                 except ValueError:
                     continue
                 assert _m.isfinite(fv), f"{k}={v}"
+
+
+def test_dimension_target_decode_roundtrip():
+    """Dimension encode->decode round-trip must recover GT dims (regression for the
+    string-vs-int keyed mean/std bug that inflated 3D box dimensions / length).
+
+    The dataset encodes the SmoothL1 dimension target with compute_dimension_offset(),
+    looking up per-class mean/std priors by INTEGER class_id. The dataset YAML keys those
+    priors by class NAME ("Car"). If the dataset does not rekey name->int, every lookup
+    misses and falls back to a generic mean/std, so the trained target is huge and the
+    decoder (which uses correct int-keyed (H,W,L) priors) mis-expands dimensions.
+    """
+    from ultralytics.models.yolo.s3d.dataset import Stereo3DDetDataset, compute_dimension_offset
+
+    # YAML-style string-keyed priors, [L, W, H] order (matches kitti-stereo*.yaml).
+    names = {0: "Car", 1: "Cyclist"}
+    mean_dims = {"Car": [3.9, 1.6, 1.5], "Cyclist": [1.8, 0.6, 1.7]}
+    std_dims = {"Car": [0.42, 0.10, 0.15], "Cyclist": [0.25, 0.10, 0.15]}
+
+    # Rekey to int ids the way the dataset constructor does, without touching disk.
+    rekey = Stereo3DDetDataset._rekey_dims_to_int.__get__(
+        type("S", (), {"names": names})()  # minimal object exposing .names
+    )
+    md_int = rekey(mean_dims)
+    sd_int = rekey(std_dims)
+    assert set(md_int) == {0, 1}, f"priors not rekeyed to int ids: {list(md_int)}"
+
+    # Decode-side priors are int-keyed (H, W, L) — same reorder used by train/val.
+    def to_HWL(d):
+        return {cid: (v[2], v[1], v[0]) for cid, v in d.items()}
+
+    md_dec, sd_dec = to_HWL(md_int), to_HWL(sd_int)
+
+    # Known objects: (class_id, L, W, H). Car NOT at the mean (length 4.2 != 3.9).
+    cases = [(0, 4.2, 1.6, 1.5), (1, 2.02, 0.60, 1.86)]
+    for cid, L, W, H in cases:
+        off = compute_dimension_offset((L, W, H), cid, md_int, sd_int)  # [dH, dW, dL]
+        mh, mw, ml = md_dec[cid]
+        sh, sw, sl = sd_dec[cid]
+        dH = mh + float(off[0]) * sh
+        dW = mw + float(off[1]) * sw
+        dL = ml + float(off[2]) * sl
+        assert abs(dL - L) < 1e-4, f"length round-trip failed cls{cid}: {dL} != {L}"
+        assert abs(dW - W) < 1e-4, f"width round-trip failed cls{cid}: {dW} != {W}"
+        assert abs(dH - H) < 1e-4, f"height round-trip failed cls{cid}: {dH} != {H}"

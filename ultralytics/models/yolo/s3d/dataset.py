@@ -159,8 +159,34 @@ class Stereo3DDetDataset(BaseDataset):
         # Get number of classes
         assert mean_dims is not None, "mean_dims must be provided"
         assert std_dims is not None, "std_dims must be provided"
-        self.mean_dims = mean_dims
-        self.std_dims = std_dims
+        # Dimension priors arrive from the dataset YAML keyed by class NAME (e.g. {"Car": [L,W,H]}),
+        # but compute_dimension_offset() looks them up by integer class_id during target encoding.
+        # Without rekeying, every lookup misses and falls back to the generic default mean/std,
+        # producing badly-scaled dimension targets (the model then learns garbage that the decode
+        # side — which DOES rekey to int ids — mis-expands). Normalize to int-keyed here so the
+        # training target uses the same priors the decoder uses. Order stays [L, W, H].
+        self.mean_dims = self._rekey_dims_to_int(mean_dims)
+        self.std_dims = self._rekey_dims_to_int(std_dims)
+
+    def _rekey_dims_to_int(self, dims: dict) -> dict:
+        """Return dimension priors keyed by integer class id, matching string keys via names.
+
+        Accepts dicts keyed by class name (e.g. "Car") or already by int id, and returns a dict
+        keyed by integer class id while preserving the per-class [L, W, H] value order.
+        """
+        if not dims:
+            return dims
+        # Already int-keyed: leave as-is.
+        if all(isinstance(k, int) for k in dims):
+            return dims
+        names = self.names if isinstance(self.names, dict) else {i: n for i, n in enumerate(self.names or [])}
+        result: dict[int, list[float]] = {}
+        for cid, cname in names.items():
+            if cname in dims:
+                result[cid] = dims[cname]
+            elif cid in dims:
+                result[cid] = dims[cid]
+        return result if result else dims
 
     def get_img_files(self, img_path: str | list[str]) -> list[str]:
         """Override to return left image files that have matching right images, labels, and calibration.

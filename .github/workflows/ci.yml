@@ -584,7 +584,7 @@ jobs:
       - name: test_engine.py
         run: pytest ultralytics/tests/test_engine.py -v -s
       - name: test_exports.py
-        run: pytest ultralytics/tests/test_exports.py -v -s --export-env base
+        run: pytest ultralytics/tests/test_exports.py -v -s
       - name: test_integrations.py
         run: pytest ultralytics/tests/test_integrations.py -v -s
       - name: test_solutions.py

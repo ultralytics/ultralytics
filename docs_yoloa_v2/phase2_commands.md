@@ -142,6 +142,27 @@ nohupyolo train task=anomaly_v2 \
 (0.6140). If clearly higher and approaches the a1 ceiling (0.6851), the detach was
 the root cause and SegBranch can be trained end-to-end.
 
+## 6. Diagnostic — graddet + lower seg_gain (GPU 4,5,6,7)
+
+Companion ablation to run 5: same `seg_detach: false`, but `seg_gain: 0.3` instead
+of 1.0. Tests whether seg_loss (match rect) was too dominant and blocking det_loss
+from pulling pred toward detection-useful shapes.
+
+```
+nohupyolo train task=anomaly_v2 \
+  model=yolo26m-anomaly-v2-seg-graddet-sg03.yaml \
+  pretrained=yolo26m.pt \
+  data=/home/louis/ultra_louis_work/datasets/AnomalyDataset/merge_data_v5_binary/data.yaml \
+  epochs=50 batch=96 close_mosaic=20 device=4,5,6,7 \
+  optimizer=MuSGD lr0=0.00125 lrf=0.5 momentum=0.9 weight_decay=0.0005 \
+  scale=0.1 copy_paste=0.1 mixup=0.0 save_json=True \
+  project=yoloa_v2 name=26m_yoloav2seg_v5_binary_cm20_rect_pd50_acur_gd_sg03_v1
+```
+
+**Read result:** direct comparison against `..._acur_gd_v1` (sg=1.0). If sg=0.3
+mask-on > sg=1.0 mask-on → seg_loss was too dominant; if ≈ → seg_gain not the
+bottleneck; if < → seg_loss anchoring matters, don't lower further.
+
 ## Monitor
 
 ```

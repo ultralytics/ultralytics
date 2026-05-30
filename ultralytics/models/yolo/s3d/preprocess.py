@@ -27,11 +27,6 @@ from ultralytics.data.stereo.box3d import Box3D
 from ultralytics.utils import LOGGER
 from ultralytics.utils.nms import non_max_suppression
 
-# Inference depth-fusion policy: stereo disparity (cost_disp -> lr_distance) is primary; the
-# monocular depth-bin head is demoted to a weak fallback. MONO_BLEND>0 mixes a small monocular
-# contribution: z = z_stereo**(1-MONO_BLEND) * z_mono**MONO_BLEND. 0.0 = pure stereo (clean lever).
-MONO_BLEND = 0.0
-
 
 # =============================================================================
 # Configuration Defaults
@@ -221,38 +216,30 @@ def decode_stereo3d_outputs(
 
             # Sample aux predictions (3D: [B, C, HW_total])
             has_lr = "lr_distance" in outputs
-            has_cost = "cost_disp" in outputs
             has_depth = "depth" in outputs
             lr_log = float(outputs["lr_distance"][b, 0, flat_idx].item()) if has_lr else None
-            cost_disp_log = float(outputs["cost_disp"][b, 0, flat_idx].item()) if has_cost else None
             depth_log = float(outputs["depth"][b, 0, flat_idx].item()) if has_depth else None
             dim_off = outputs["dimensions"][b, :, flat_idx].float() if "dimensions" in outputs else torch.zeros(3)
             ori_pred = outputs["orientation"][b, :, flat_idx].float() if "orientation" in outputs else None
 
-            # Stereo depth from disparity. Disparity is in log-normalized space; exp() recovers
-            # the normalized disparity, *input_w → letterbox pixels, /scale → original pixels.
-            # PRIMARY source: cost_disp (cost-volume soft-argmax). FALLBACK: lr_distance regression.
-            def _z_from_disp_log(disp_log: float) -> float:
-                disparity_letterbox = math.exp(max(disp_log, -10.0)) * input_w
-                disparity_orig = disparity_letterbox / letterbox_scale
-                return (fx_depth * baseline) / max(disparity_orig, eps)
-
+            # Depth from disparity (lr_distance is in log-space, exp() to get normalized disparity)
             z_from_disp = None
-            if cost_disp_log is not None:
-                z_from_disp = _z_from_disp_log(cost_disp_log)
-            elif lr_log is not None:
-                z_from_disp = _z_from_disp_log(lr_log)
+            disparity_letterbox = None
+            disparity_orig = None
+            if lr_log is not None:
+                disparity_letterbox = math.exp(max(lr_log, -10.0)) * input_w
+                disparity_orig = disparity_letterbox / letterbox_scale
+                z_from_disp = (fx_depth * baseline) / max(disparity_orig, eps)
 
             z_from_direct = None
             if depth_log is not None:
                 z_from_direct = math.exp(max(depth_log, -10.0))
 
-            # Stereo-primary fusion: monocular depth demoted to weak fallback/regularizer.
-            if z_from_disp is not None:
-                if z_from_direct is not None and MONO_BLEND > 0.0:
-                    z_3d = z_from_disp ** (1.0 - MONO_BLEND) * z_from_direct**MONO_BLEND
-                else:
-                    z_3d = z_from_disp
+            # Combine depth sources
+            if z_from_disp is not None and z_from_direct is not None:
+                z_3d = math.sqrt(z_from_disp * z_from_direct)  # geometric mean
+            elif z_from_disp is not None:
+                z_3d = z_from_disp
             elif z_from_direct is not None:
                 z_3d = z_from_direct
             else:

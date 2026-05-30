@@ -23,7 +23,7 @@ from ultralytics.models.yolo.s3d.metrics import (
     classify_difficulty,
 )
 from ultralytics.utils import LOGGER, RANK
-from ultralytics.utils.metrics import DetMetrics, box_iou, compute_3d_iou
+from ultralytics.utils.metrics import DetMetrics, box_iou, compute_3d_iou, compute_bev_iou
 from ultralytics.utils.plotting import plot_stereo3d_boxes
 from ultralytics.engine.validator import BaseValidator
 
@@ -101,6 +101,37 @@ def compute_3d_iou_batch(pred_boxes: list[Box3D], gt_boxes: list[Box3D], eps: fl
             if not class_match[i, j]:
                 continue
             iou_matrix[i, j] = compute_3d_iou(pred_boxes[i], gt_boxes[j], eps=eps)
+
+    return iou_matrix
+
+
+def compute_bev_iou_batch(pred_boxes: list[Box3D], gt_boxes: list[Box3D], eps: float = 1e-7) -> np.ndarray:
+    """Compute the bird's-eye-view (BEV) IoU matrix between prediction and GT boxes.
+
+    Mirrors :func:`compute_3d_iou_batch` but uses ground-plane footprint overlap
+    (ignoring height) for KITTI AP_BEV. Only matching-class pairs are filled.
+
+    Args:
+        pred_boxes: List of predicted Box3D objects.
+        gt_boxes: List of ground truth Box3D objects.
+        eps: Small value to avoid division by zero.
+
+    Returns:
+        BEV IoU matrix of shape (len(pred_boxes), len(gt_boxes)).
+    """
+    if len(pred_boxes) == 0 or len(gt_boxes) == 0:
+        return np.zeros((len(pred_boxes), len(gt_boxes)))
+
+    iou_matrix = np.zeros((len(pred_boxes), len(gt_boxes)))
+    pred_class_ids = np.array([box.class_id for box in pred_boxes])
+    gt_class_ids = np.array([box.class_id for box in gt_boxes])
+    class_match = pred_class_ids[:, None] == gt_class_ids[None, :]
+
+    for i in range(len(pred_boxes)):
+        for j in range(len(gt_boxes)):
+            if not class_match[i, j]:
+                continue
+            iou_matrix[i, j] = compute_bev_iou(pred_boxes[i], gt_boxes[j], eps=eps)
 
     return iou_matrix
 
@@ -501,11 +532,13 @@ class Stereo3DDetValidator(BaseValidator):
                 bbox_2d = pb.project_to_2d(calib) if calib else None
                 pred_heights_2d[pi] = float(bbox_2d[3] - bbox_2d[1]) if bbox_2d is not None else 0.0
 
-            # Compute 3D IoU matrix
+            # Compute 3D and BEV IoU matrices
             if len(pred_boxes) > 0 and len(gt_boxes) > 0:
                 iou_matrix = compute_3d_iou_batch(pred_boxes, gt_boxes)
+                bev_iou_matrix = compute_bev_iou_batch(pred_boxes, gt_boxes)
             else:
                 iou_matrix = np.zeros((len(pred_boxes), len(gt_boxes)))
+                bev_iou_matrix = np.zeros((len(pred_boxes), len(gt_boxes)))
 
             # Store raw data for per-difficulty matching in metrics.process()
             self.metrics.update_stats(
@@ -513,6 +546,7 @@ class Stereo3DDetValidator(BaseValidator):
                     "pred_boxes": pred_boxes,
                     "gt_boxes": gt_boxes,
                     "iou_matrix": iou_matrix,
+                    "bev_iou_matrix": bev_iou_matrix,
                     "gt_difficulties": gt_difficulties,
                     "pred_heights_2d": pred_heights_2d,
                 }

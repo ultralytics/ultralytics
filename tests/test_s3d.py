@@ -7,7 +7,7 @@ import pytest
 
 from ultralytics import YOLO
 from ultralytics.data.stereo.box3d import Box3D
-from ultralytics.utils.metrics import compute_3d_iou
+from ultralytics.utils.metrics import compute_3d_iou, compute_bev_iou
 
 MODEL = "yolo26n-s3d.yaml"
 DATA = "kitti-stereo8.yaml"
@@ -132,3 +132,67 @@ def test_3d_iou_rotated_90deg():
     b = Box3D(center_3d=(0.0, 0.0, 20.0), dimensions=(4.0, 2.0, 2.0), orientation=np.pi / 2,
               class_label="Car", class_id=0, confidence=0.95)
     assert abs(compute_3d_iou(a, b) - 1.0 / 3.0) < 1e-3
+
+
+def test_bev_iou_ignores_height():
+    """BEV IoU uses only the ground-plane footprint; height offset must not reduce it.
+
+    Two boxes with an identical footprint but stacked vertically (full height
+    offset) share no 3D volume (3D IoU ~= 0) yet have identical bird's-eye-view
+    footprints (BEV IoU == 1.0). This pins BEV down as a distinct metric.
+    """
+    low = Box3D(center_3d=(0.0, 0.0, 15.0), dimensions=(4.0, 1.8, 1.6), orientation=0.3,
+                class_label="Car", class_id=0, confidence=0.9)
+    high = Box3D(center_3d=(0.0, -1.6, 15.0), dimensions=(4.0, 1.8, 1.6), orientation=0.3,
+                 class_label="Car", class_id=0, confidence=0.9)
+    assert abs(compute_bev_iou(low, high) - 1.0) < 1e-6
+    assert compute_3d_iou(low, high) < 0.05  # stacked: ~no vertical overlap
+
+    # BEV of the 45deg square case equals its 3D IoU (heights coincide): 1/sqrt(2).
+    a = Box3D(center_3d=(0.0, 0.0, 10.0), dimensions=(2.0, 2.0, 2.0), orientation=0.0,
+              class_label="Car", class_id=0, confidence=0.9)
+    b = Box3D(center_3d=(0.0, 0.0, 10.0), dimensions=(2.0, 2.0, 2.0), orientation=np.pi / 4,
+              class_label="Car", class_id=0, confidence=0.9)
+    assert abs(compute_bev_iou(a, b) - 1.0 / np.sqrt(2)) < 1e-3
+
+
+def _single_image_stat(gt_ori, pred_ori):
+    """Build a one-image, one-Car stat: a perfectly localised pred at given headings."""
+    gt = Box3D(center_3d=(0.0, 0.0, 10.0), dimensions=(4.0, 1.6, 1.5), orientation=gt_ori,
+               class_label="Car", class_id=0, confidence=1.0, truncated=0.0, occluded=0)
+    pred = Box3D(center_3d=(0.0, 0.0, 10.0), dimensions=(4.0, 1.6, 1.5), orientation=pred_ori,
+                 class_label="Car", class_id=0, confidence=0.9)
+    return {
+        "gt_boxes": [gt],
+        "pred_boxes": [pred],
+        "iou_matrix": np.array([[1.0]]),       # perfect 3D localisation (given)
+        "bev_iou_matrix": np.array([[1.0]]),   # perfect BEV localisation (given)
+        "gt_difficulties": np.array([0]),      # Easy
+        "pred_heights_2d": np.array([50.0]),   # above 25px min
+    }
+
+
+def test_metrics_aos_independent_of_ap():
+    """AOS must reward heading: perfect box, flipped heading -> AP3D=1.0 but AOS=0.0."""
+    from ultralytics.models.yolo.s3d.metrics import Stereo3DDetMetrics
+
+    # Aligned heading: AP3D, AP_BEV and AOS all perfect.
+    m = Stereo3DDetMetrics(names={0: "Car"})
+    m.update_stats(_single_image_stat(gt_ori=0.0, pred_ori=0.0))
+    m.process()
+    assert abs(m.ap3d[0.7][0][0] - 1.0) < 1e-6
+    assert abs(m.apbev[0.7][0][0] - 1.0) < 1e-6
+    assert abs(m.aos[0.7][0][0] - 1.0) < 1e-6
+
+    # Flipped heading (pi): still a localisation TP (AP3D=1.0) but AOS collapses to 0.
+    m2 = Stereo3DDetMetrics(names={0: "Car"})
+    m2.update_stats(_single_image_stat(gt_ori=0.0, pred_ori=np.pi))
+    m2.process()
+    assert abs(m2.ap3d[0.7][0][0] - 1.0) < 1e-6
+    assert m2.aos[0.7][0][0] < 1e-6
+
+    # 90deg heading error -> AOS = (1 + cos(pi/2)) / 2 = 0.5.
+    m3 = Stereo3DDetMetrics(names={0: "Car"})
+    m3.update_stats(_single_image_stat(gt_ori=0.0, pred_ori=np.pi / 2))
+    m3.process()
+    assert abs(m3.aos[0.7][0][0] - 0.5) < 1e-6

@@ -363,6 +363,46 @@ def _convex_intersection_area(subject: np.ndarray, clip: np.ndarray) -> float:
     return _polygon_area(np.array(output)) if len(output) >= 3 else 0.0
 
 
+def _box_to_params(box: Any | np.ndarray) -> tuple[float, float, float, float, float, float, float]:
+    """Unpack a Box3D or [x, y, z, l, w, h, rot] array into scalar parameters."""
+    from ultralytics.data.stereo.box3d import Box3D
+
+    if isinstance(box, Box3D):
+        x, y, z = box.center_3d
+        length, width, height = box.dimensions
+        return x, y, z, length, width, height, box.orientation
+    return box[0], box[1], box[2], box[3], box[4], box[5], box[6]
+
+
+def compute_bev_iou(
+    box1: Any | np.ndarray,
+    box2: Any | np.ndarray,
+    eps: float = 1e-7,
+) -> float:
+    """Compute the bird's-eye-view (BEV) IoU between two 3D boxes.
+
+    Projects both boxes onto the ground plane and computes the exact rotated
+    2D IoU of their footprints, ignoring the vertical (height) extent. This is
+    the standard KITTI AP_BEV overlap measure.
+
+    Args:
+        box1: First 3D box (Box3D object or array [x, y, z, l, w, h, orientation]).
+        box2: Second 3D box (Box3D object or array [x, y, z, l, w, h, orientation]).
+        eps: Small value to avoid division by zero.
+
+    Returns:
+        (float): BEV IoU value in range [0.0, 1.0].
+    """
+    x1, _, z1, l1, w1, _, rot1 = _box_to_params(box1)
+    x2, _, z2, l2, w2, _, rot2 = _box_to_params(box2)
+
+    inter_area = _convex_intersection_area(_bev_corners(x1, z1, l1, w1, rot1), _bev_corners(x2, z2, l2, w2, rot2))
+    if inter_area <= 0.0:
+        return 0.0
+    union = l1 * w1 + l2 * w2 - inter_area
+    return float(min(max(inter_area / (union + eps), 0.0), 1.0))
+
+
 def compute_3d_iou(
     box1: Any | np.ndarray,
     box2: Any | np.ndarray,

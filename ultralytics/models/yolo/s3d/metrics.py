@@ -90,8 +90,10 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         self.nc = len(names) if names else 0
         self.stats: list[dict[str, Any]] = []
         self.speed = {"preprocess": 0.0, "inference": 0.0, "postprocess": 0.0}
-        # ap3d[iou_thresh][difficulty][class_id] = float
+        # metric[iou_thresh][difficulty][class_id] = float
         self.ap3d: dict[float, dict[int, dict[int, float]]] = {}
+        self.apbev: dict[float, dict[int, dict[int, float]]] = {}
+        self.aos: dict[float, dict[int, dict[int, float]]] = {}
 
     def update_stats(self, stat: dict[str, Any]) -> None:
         """Store per-image raw data for later processing."""
@@ -111,6 +113,8 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         difficulties = [DIFFICULTY_EASY, DIFFICULTY_MODERATE, DIFFICULTY_HARD]
 
         self.ap3d = {iou_t: {diff: {} for diff in difficulties} for iou_t in iou_thresholds}
+        self.apbev = {iou_t: {diff: {} for diff in difficulties} for iou_t in iou_thresholds}
+        self.aos = {iou_t: {diff: {} for diff in difficulties} for iou_t in iou_thresholds}
 
         # Collect unique class IDs
         all_classes = set()
@@ -127,17 +131,35 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         for diff in difficulties:
             for iou_t in iou_thresholds:
                 for cls_id in all_classes:
-                    self.ap3d[iou_t][diff][cls_id] = self._compute_ap_for_class_difficulty(cls_id, diff, iou_t)
+                    # AP3D + AOS share the 3D matching (AOS = orientation similarity of TPs).
+                    ap3d, aos = self._eval_class_difficulty(cls_id, diff, iou_t, "iou_matrix", compute_aos=True)
+                    self.ap3d[iou_t][diff][cls_id] = ap3d
+                    self.aos[iou_t][diff][cls_id] = aos
+                    # AP_BEV uses the ground-plane footprint IoU matrix.
+                    apbev, _ = self._eval_class_difficulty(cls_id, diff, iou_t, "bev_iou_matrix", compute_aos=False)
+                    self.apbev[iou_t][diff][cls_id] = apbev
 
         return self.ap3d
 
-    def _compute_ap_for_class_difficulty(self, cls_id: int, max_difficulty: int, iou_thresh: float) -> float:
-        """Compute AP for a single class at a specific difficulty level and IoU threshold.
+    def _eval_class_difficulty(
+        self, cls_id: int, max_difficulty: int, iou_thresh: float, iou_key: str, compute_aos: bool = False
+    ) -> tuple[float, float]:
+        """Compute AP (and optionally AOS) for one class/difficulty/IoU threshold.
 
         Uses KITTI convention: difficulty X includes all GTs at difficulty <= X.
         Predictions matching same-class GTs outside the difficulty range are ignored
         (neither TP nor FP), following the KITTI "don't care" matching protocol.
         Matching is per-image, but predictions are sorted globally by confidence.
+
+        Args:
+            cls_id: Class id to evaluate.
+            max_difficulty: Highest difficulty level to include (Easy/Mod/Hard).
+            iou_thresh: IoU threshold for a true positive.
+            iou_key: Stat key selecting the IoU matrix ("iou_matrix" for 3D, "bev_iou_matrix" for BEV).
+            compute_aos: If True, also return Average Orientation Similarity over true positives.
+
+        Returns:
+            (ap, aos): R40 AP, and R40 AOS (0.0 when ``compute_aos`` is False).
         """
         all_preds = []  # (confidence, image_idx, local_pred_idx)
         n_gt_total = 0
@@ -146,7 +168,7 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         for img_idx, stat in enumerate(self.stats):
             gt_boxes = stat.get("gt_boxes", [])
             pred_boxes = stat.get("pred_boxes", [])
-            iou_matrix = stat.get("iou_matrix", np.zeros((0, 0)))
+            iou_matrix = stat.get(iou_key, np.zeros((0, 0)))
             gt_difficulties = stat.get("gt_difficulties", np.array([], dtype=int))
             pred_heights_2d = stat.get("pred_heights_2d", np.array([]))
 
@@ -188,10 +210,16 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
             else:
                 sub_iou_ignored = np.zeros((len(pred_indices), len(gt_ignored_indices)))
 
+            # Orientations for AOS (aligned with pred_indices / gt_eval_indices order)
+            pred_oris = np.array([pred_boxes[p].orientation for p in pred_indices]) if compute_aos else None
+            gt_eval_oris = np.array([gt_boxes[g].orientation for g in gt_eval_indices]) if compute_aos else None
+
             per_image_data.append(
                 {
                     "sub_iou_eval": sub_iou_eval,
                     "sub_iou_ignored": sub_iou_ignored,
+                    "pred_oris": pred_oris,
+                    "gt_eval_oris": gt_eval_oris,
                     "matched_gt": set(),
                 }
             )
@@ -201,7 +229,7 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
                 all_preds.append((pred_boxes[pred_idx].confidence, img_idx, local_idx))
 
         if n_gt_total == 0 or not all_preds:
-            return 0.0
+            return 0.0, 0.0
 
         # Sort globally by confidence (descending)
         all_preds.sort(key=lambda x: x[0], reverse=True)
@@ -209,6 +237,7 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         # Match predictions to GT in confidence order (per-image greedy matching)
         # Result per prediction: +1 = TP, 0 = FP, -1 = ignored
         match_result = np.zeros(len(all_preds), dtype=int)
+        orient_sim = np.zeros(len(all_preds))  # (1 + cos d_theta) / 2 for TPs, else 0
         for i, (_, img_idx, local_idx) in enumerate(all_preds):
             img_data = per_image_data[img_idx]
             sub_iou_eval = img_data["sub_iou_eval"]
@@ -228,6 +257,9 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
             if best_gt >= 0:
                 match_result[i] = 1  # TP
                 img_data["matched_gt"].add(best_gt)
+                if compute_aos:
+                    dtheta = float(img_data["pred_oris"][local_idx] - img_data["gt_eval_oris"][best_gt])
+                    orient_sim[i] = (1.0 + np.cos(dtheta)) / 2.0
             else:
                 # Check if prediction overlaps an ignored GT — if so, ignore it
                 sub_iou_ignored = img_data["sub_iou_ignored"]
@@ -241,20 +273,31 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         valid_tp = (match_result == 1)[valid_mask]
 
         if len(valid_tp) == 0:
-            return 0.0
+            return 0.0, 0.0
 
         tp_cum = np.cumsum(valid_tp)
         fp_cum = np.cumsum(~valid_tp)
-        precision = tp_cum / (tp_cum + fp_cum)
+        n_valid = tp_cum + fp_cum
+        precision = tp_cum / n_valid
         recall = tp_cum / n_gt_total
+        ap = compute_ap_r40(recall, precision)
 
-        return compute_ap_r40(recall, precision)
+        aos = 0.0
+        if compute_aos:
+            # KITTI AOS: orientation-similarity-weighted precision, R40 interpolated.
+            sim_cum = np.cumsum(orient_sim[valid_mask])
+            aos_precision = sim_cum / n_valid
+            aos = compute_ap_r40(recall, aos_precision)
 
-    def _mean_ap(self, iou_thresh: float, difficulty: int) -> float:
-        """Compute mean AP across real classes (excluding Aux_) for given IoU and difficulty."""
-        if not self.ap3d or iou_thresh not in self.ap3d:
+        return ap, aos
+
+    def _mean_metric(
+        self, metric: dict[float, dict[int, dict[int, float]]], iou_thresh: float, difficulty: int
+    ) -> float:
+        """Mean of a metric across real classes (excluding Aux_) for an IoU/difficulty."""
+        if not metric or iou_thresh not in metric:
             return 0.0
-        diff_dict = self.ap3d[iou_thresh].get(difficulty, {})
+        diff_dict = metric[iou_thresh].get(difficulty, {})
         if not diff_dict:
             return 0.0
         # Average over model's real classes only (not Aux_ pseudo-classes)
@@ -264,25 +307,34 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
             return float(np.mean(list(diff_dict.values())))
         return float(np.mean([diff_dict.get(cid, 0.0) for cid in real_ids]))
 
+    def _mean_ap(self, iou_thresh: float, difficulty: int) -> float:
+        """Compute mean AP3D across real classes (excluding Aux_) for given IoU and difficulty."""
+        return self._mean_metric(self.ap3d, iou_thresh, difficulty)
+
     @property
     def results_dict(self) -> dict[str, Any]:
         """Return results as flat dictionary for CSV logging."""
         result = {}
 
-        # Per-class per-difficulty per-IoU (skip Aux_ pseudo-classes)
-        for iou_t, diff_dict in self.ap3d.items():
-            iou_str = str(int(iou_t * 100))
-            for diff, cls_dict in diff_dict.items():
-                diff_str = DIFFICULTY_NAMES[diff]
-                for cls_id, ap in cls_dict.items():
-                    cls_name = self.names.get(cls_id, f"class_{cls_id}")
-                    if cls_name.startswith("Aux_"):
-                        continue
-                    result[f"AP3D_{cls_name}_{diff_str}_{iou_str}"] = ap
+        # Per-class per-difficulty per-IoU for AP3D, AP_BEV, and AOS (skip Aux_ pseudo-classes)
+        for prefix, metric in (("AP3D", self.ap3d), ("APBEV", self.apbev), ("AOS", self.aos)):
+            for iou_t, diff_dict in metric.items():
+                iou_str = str(int(iou_t * 100))
+                for diff, cls_dict in diff_dict.items():
+                    diff_str = DIFFICULTY_NAMES[diff]
+                    for cls_id, val in cls_dict.items():
+                        cls_name = self.names.get(cls_id, f"class_{cls_id}")
+                        if cls_name.startswith("Aux_"):
+                            continue
+                        result[f"{prefix}_{cls_name}_{diff_str}_{iou_str}"] = val
 
-        # Summary (Moderate, mean across classes) for backward compat
+        # Summary means (Moderate) across classes
         result["ap3d_50"] = self.maps3d_50
         result["ap3d_70"] = self.maps3d_70
+        result["apbev_50"] = self._mean_metric(self.apbev, 0.5, DIFFICULTY_MODERATE)
+        result["apbev_70"] = self._mean_metric(self.apbev, 0.7, DIFFICULTY_MODERATE)
+        result["aos_50"] = self._mean_metric(self.aos, 0.5, DIFFICULTY_MODERATE)
+        result["aos_70"] = self._mean_metric(self.aos, 0.7, DIFFICULTY_MODERATE)
         result["fitness"] = self.fitness
 
         return result
@@ -291,13 +343,14 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
     def keys(self) -> list[str]:
         """Return list of metric keys."""
         keys = []
-        for iou_str in ["50", "70"]:
-            for diff_str in DIFFICULTY_NAMES:
-                for _, cls_name in sorted(self.names.items()):
-                    if cls_name.startswith("Aux_"):
-                        continue
-                    keys.append(f"AP3D_{cls_name}_{diff_str}_{iou_str}")
-        keys.extend(["ap3d_50", "ap3d_70"])
+        for prefix in ["AP3D", "APBEV", "AOS"]:
+            for iou_str in ["50", "70"]:
+                for diff_str in DIFFICULTY_NAMES:
+                    for _, cls_name in sorted(self.names.items()):
+                        if cls_name.startswith("Aux_"):
+                            continue
+                        keys.append(f"{prefix}_{cls_name}_{diff_str}_{iou_str}")
+        keys.extend(["ap3d_50", "ap3d_70", "apbev_50", "apbev_70", "aos_50", "aos_70"])
         return keys
 
     @property
@@ -319,3 +372,5 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         """Clear stored statistics."""
         self.stats = []
         self.ap3d = {}
+        self.apbev = {}
+        self.aos = {}

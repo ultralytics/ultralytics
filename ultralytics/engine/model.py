@@ -710,6 +710,30 @@ class Model(torch.nn.Module):
             "verbose": False,
         }  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "export"}  # highest priority args on the right
+        if not hasattr(self.model, "names") or getattr(self.model, "names") is None:
+            # Try resolving via predictor in the names property
+            names = self.names
+            if (
+                isinstance(names, dict) and not names[0] == "class0"
+            ):  # 'names' is a dict and does not contain non-generic class names (class0, class1, ...)
+                self.model.names = names
+            else:
+                # Could not resolve even by using predictor, hence gave generic class names
+                LOGGER.warning(
+                    "Could not resolve class names from checkpoint. "
+                    "Exported file will use generic class labels. "
+                    "To fix: provide a data YAML file via 'data=' or set model.names explicitly before exporting."
+                )
+
+        elif (
+            getattr(self.model, "names") is not dict
+            or not all(isinstance(key, int) for key in getattr(self.model, "names").keys())
+            or not all(isinstance(val, str) for val in getattr(self.model, "names").values())
+        ):
+            # 'names' is not a dict or (key, values) in 'names' dict is not as per YOLO standard
+            self.model.names = self.names
+        else:
+            self.model.names = self.names
         return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
 
     def train(

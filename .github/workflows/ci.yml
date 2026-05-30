@@ -316,93 +316,14 @@ jobs:
         with:
           shell: bash # for Windows compatibility
           # -n 2 limits parallelism for resource-heavy export tests on shared runners
-          run: |
-            python - <<'PY'
-            import os
-            import platform
-            import shutil
-            import sys
-
-            total, used, free = shutil.disk_usage(".")
-            print(f"Python: {sys.version}")
-            print(f"Platform: {platform.platform()}")
-            print(f"CPU count: {os.cpu_count()}")
-            print(f"Disk: total={total // 2**30}GiB used={used // 2**30}GiB free={free // 2**30}GiB")
-            PY
-            dump_resources() {
-              echo "Resource snapshot: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-              df -h .
-              if command -v free >/dev/null 2>&1; then free -h; fi
-              if [ "$(uname -s)" = "Linux" ] && command -v ps >/dev/null 2>&1; then
-                ps -eo pid,ppid,pcpu,pmem,rss,vsz,comm --sort=-rss | head -20 || true
-              fi
-            }
-            dump_resources
-            if [ "$(uname -s)" = "Linux" ]; then
-              while true; do
-                sleep 60
-                dump_resources
-              done &
-              monitor_pid=$!
-              trap 'kill "$monitor_pid" 2>/dev/null || true' EXIT
-            fi
-            uv_system_args=()
-            if [ "${{ matrix.os }}" != "cpu-latest" ]; then
-              uv_system_args=(--system)
-            fi
-            restore_torch() {
-              if [ "${{ matrix.torch }}" != "latest" ]; then
-                echo "Restoring torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
-                uv pip install "${uv_system_args[@]}" "torch==${{ matrix.torch }}" "torchvision==${{ matrix.torchvision }}" \
-                  --index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
-                python - <<'PY'
-            import torch
-            import torchvision
-
-            print(f"Restored torch={torch.__version__} torchvision={torchvision.__version__}")
-            PY
-              fi
-            }
-            clean_disk() {
-              echo "Cleaning runner caches before isolated export test"
-              uv cache clean || true
-              rm -rf "${TMPDIR:-/tmp}"/pytest-of-* ~/.cache/pip ~/.cache/uv || true
-              dump_resources
-            }
-            restore_torch
-            pytest_workers=2
-            pytest_extra=()
-            if [ "${{ matrix.os }}" = "ubuntu-24.04-arm" ]; then
-              pytest_workers=1  # ARM runners lose communication under two concurrent slow export workers
-              pytest_extra+=(--forked)  # release TensorFlow/exporter memory between tests on ARM runners
-            fi
-            pytest_args=(
-              -vv
-              -s
-              --slow
-              --cov=ultralytics/
-              --cov-report=xml
-              --durations=50
-              --durations-min=1
-              tests/
-              --deselect tests/test_exports.py::test_export_imx
-              --deselect tests/test_exports.py::test_export_mnn
-              --deselect tests/test_exports.py::test_export_ncnn
-              --deselect tests/test_exports.py::test_export_executorch
-              --deselect tests/test_exports.py::test_export_axelera
-              --deselect tests/test_exports.py::test_export_deepx
-            )
-            PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -n "$pytest_workers" --dist=loadfile "${pytest_extra[@]}" "${pytest_args[@]}"
-
-            # Run memory-heavy hardware exporter installs in fresh processes after TensorFlow/TFLite exits.
-            for export_test in tests/test_exports.py::test_export_axelera tests/test_exports.py::test_export_deepx; do
-              clean_disk
-              restore_torch
-              PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -vv -s --slow --cov=ultralytics/ --cov-append --cov-report=xml --durations=10 --durations-min=1 "$export_test"
-            done
+          run: .github/scripts/run-slow-tests.sh
           retries: 1 # Retry once after initial attempt (2 total runs)
           timeout_minutes: 180
           retry_delay_seconds: 60
+        env:
+          MATRIX_OS: ${{ matrix.os }}
+          MATRIX_TORCH: ${{ matrix.torch }}
+          MATRIX_TORCHVISION: ${{ matrix.torchvision }}
       - name: Prune uv Cache
         run: uv cache prune --ci
 

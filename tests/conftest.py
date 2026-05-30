@@ -46,7 +46,7 @@ def _export_format_from_item(item):
     if not name.startswith("test_export_"):
         return None
 
-    suffix = name.removeprefix("test_export_")
+    suffix = name[len("test_export_") :]
     formats = {
         "torchscript",
         "onnx",

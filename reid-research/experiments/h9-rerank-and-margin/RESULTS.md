@@ -92,3 +92,34 @@ geometry. Moving past it likely requires:
  "new_tta_rerank":{"r1":0.9023,"mAP":0.8474},
  "delta_r1_no_tta":-0.034,"wall_clock_min":9.6}
 ```
+
+---
+
+## Experiment C — multi-scale fine-tune (added 2026-05-30)
+
+After h8 follow-up surfaced a +2.47pp R1 from champion+TX2 ensemble (different
+imgsz models concat'd), this experiment trained a single model on random imgsz
+∈ {384, 416, 448} per batch for 40 epochs from champion's best.pt, lr0=5e-4.
+
+**Result: also null — worse at every eval scale.**
+
+| | R1 no-TTA | R1 TTA+rerank |
+|---|---|---|
+| champion @384 (baseline) | 0.8996 | (0.9267 published) |
+| TX2 @448 (reference, separately trained) | 0.9044 | (0.9311 published) |
+| new multi-scale @384 | 0.8741 (−0.0255) | 0.9136 |
+| new multi-scale @448 | 0.8700 (−0.0140) | 0.9050 |
+
+12.5 min training, GPU 3 on seetacloud.
+
+**Diagnosis (lr-disrupts-converged-state pattern):** Combined with Experiment A's
+margin=0.05 fine-tune (delta −0.034) and B's rerank head (delta +0.0003), three
+fine-tunes from champion's converged best.pt all degraded R1. The common cause:
+lr0=5e-4 is 143× higher than champion's final LR of 3.5e-6. Restarting Adam
+optimizer state and bumping LR to "training" levels disturbs an already-
+calibrated embedding manifold. The model has to climb back through the loss
+landscape to find a different (worse) local minimum.
+
+**Implication:** any future fine-tune from champion needs either (a) much lower
+lr (try 5e-5), (b) very short schedule (5 epochs), or (c) a fundamentally
+different state to start from (e.g., from-scratch training with the new objective).

@@ -324,7 +324,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
                 "token_types": reg["token_types"],
             }
         loss_cfg = {}
-        for k in ("cos_weight", "l1_weight", "cls_l1"):
+        for k in ("cos_weight", "l1_weight", "cls_l1", "loss_type"):
             v = getattr(self.args, k, None)
             if v is not None:
                 loss_cfg[k] = v

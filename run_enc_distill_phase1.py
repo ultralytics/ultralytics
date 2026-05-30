@@ -146,6 +146,7 @@ def main(argv: list[str]) -> None:
         --cos_weight <float>: cosine loss weight (default 0.9)
         --l1_weight <float>: smooth L1 loss weight (default 0.1)
         --cls_l1: add smooth L1 to CLS token loss (default False)
+        --loss_type <str>: patch loss "cos_l1" (default, 0.9cos+0.1L1) or "l2" (pure MSE on un-normalized features)
         --lr <float>: override recipe lr0 (applied before batch scaling)
         --batch <int>: per-GPU (per-rank) batch. Global batch = per-GPU * world_size. When the
             global batch exceeds NBS_CANONICAL (512), lr0 and warmup_epochs scale linearly and
@@ -173,6 +174,7 @@ def main(argv: list[str]) -> None:
     args, sample_t_str = _pop_flag(args, "--sample_t")
     args, optimizer = _pop_flag(args, "--optimizer")
     args, norm_in_str = _pop_flag(args, "--normalize_teacher_input", is_bool=True)
+    args, loss_type = _pop_flag(args, "--loss_type")
 
     cos_weight = float(cos_w) if cos_w else 0.9
     l1_weight = float(l1_w) if l1_w else 0.1
@@ -182,6 +184,7 @@ def main(argv: list[str]) -> None:
     sample_t = float(sample_t_str) if sample_t_str else 0.0
     optimizer = optimizer or "AdamW"
     normalize_teacher_input = bool(norm_in_str)
+    loss_type = loss_type or "cos_l1"
 
     if resume:
         resume = paths.patch_resume(resume)
@@ -214,6 +217,7 @@ def main(argv: list[str]) -> None:
             ("sample_t", sample_t, 0.0),
             ("optimizer", optimizer, "AdamW"),
             ("normalize_teacher_input", normalize_teacher_input, False),
+            ("loss_type", loss_type, "cos_l1"),
         ):
             prev = resume_args.get(key, default)
             if now != prev:
@@ -258,6 +262,7 @@ def main(argv: list[str]) -> None:
             sample_t=sample_t,
             optimizer=optimizer,
             normalize_teacher_input=normalize_teacher_input,
+            loss_type=loss_type,
             grad_clip=r["grad_clip"],
             beta2=r["beta2"],
             wandb_group="distill",
@@ -275,6 +280,7 @@ def main(argv: list[str]) -> None:
         distill_path=distill_path,
         adaptor_arch=adaptor_arch,
         sample_t=sample_t,
+        loss_type=loss_type,
         device=gpu,
         **paths.run_paths(name),
         epochs=epochs or r["epochs"],

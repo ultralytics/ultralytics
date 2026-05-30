@@ -65,7 +65,7 @@ class ImageEncoderLoss:
         l1_weight (float): Beta in EUPE Eq.5.
     """
 
-    def __init__(self, cos_weight=0.9, l1_weight=0.1, cls_l1=False, distill_path="adaptor"):
+    def __init__(self, cos_weight=0.9, l1_weight=0.1, cls_l1=False, distill_path="adaptor", loss_type="cos_l1"):
         """Initialize ImageEncoderLoss.
 
         Args:
@@ -74,13 +74,18 @@ class ImageEncoderLoss:
             cls_l1 (bool): Add smooth L1 to CLS loss. Default False matches EUPE Eq.5.
             UNIC/DUNE use True with 0.5/0.5 weights (`unic/modeling/losses.py: 54`).
             distill_path (str): "adaptor" (cos+L1 on final-stage CLS+patch through adaptor MLP) or "feat_map"
-                (unweighted MSE across per-scale student feature maps vs bilinearly-resized teacher final-block tokens;
+                (unweighted MSE across per-scale student feature maps vs bilinearly-resized teacher final-block tokens,
                 EdgeCrafter 2603.18739 Eq. L_distill = sum_l ||phi(X_L^S) - X_l^T||^2).
+            loss_type (str): "cos_l1" (default, EUPE Eq.5 patch loss 0.9*cos + 0.1*smooth_L1) or "l2" (pure MSE on
+                un-normalized patch features, no cosine). CLS loss stays cosine in both. Tests Mengyu's L2-wins evidence
+                (same-arch YOLO det features) in our cross-arch ViT to YOLO conv regime. The third logged loss item
+                (wandb "patch_l1") holds smooth_L1 under cos_l1 and MSE under l2.
         """
         self.cos_weight = cos_weight
         self.l1_weight = l1_weight
         self.cls_l1 = cls_l1
         self.distill_path = distill_path
+        self.loss_type = loss_type
 
     def _teacher_loss(self, s_cls, s_patch, t_cls, t_patch):
         """Compute loss for a single teacher (EUPE Eq.5).
@@ -92,7 +97,7 @@ class ImageEncoderLoss:
             t_patch (torch.Tensor): Teacher patch features (B, N, D).
 
         Returns:
-            (tuple): (teacher_loss, [cls_cos, patch_cos, patch_l1]).
+            (tuple): (teacher_loss, [cls_cos, patch_cos, patch_term]).
         """
         # Spatial alignment: if student and teacher have different patch counts, interpolate teacher
         # to match student grid. EUPE Section 3.1 upsamples to max(N_S, N_T); for teachers with
@@ -119,17 +124,20 @@ class ImageEncoderLoss:
             else:
                 cls_cos = torch.tensor(0.0, device=s_cls.device)
                 cls_l1 = torch.tensor(0.0, device=s_cls.device)
-            # Patch loss: alpha*cosine + beta*smooth_L1
+            # patch_cos stays outside the branch so it is logged (train/val metric) even in l2 mode where the
+            # optimized patch term is MSE instead. See loss_type docstring for the cos_l1 vs l2 formulas.
             patch_cos = 1.0 - F.cosine_similarity(s_patch, t_patch, dim=-1).mean()
-            patch_l1 = F.smooth_l1_loss(s_patch, t_patch)
-            # Default (cls_l1=False): cls_cos + 0.9*patch_cos + 0.1*patch_l1 (EUPE Eq.5)
-            # UNIC mode (cls_l1=True): cos_w*cls_cos + l1_w*cls_l1 + cos_w*patch_cos + l1_w*patch_l1
+            if self.loss_type == "l2":
+                patch_term = F.mse_loss(s_patch, t_patch)
+                patch_loss = patch_term
+            else:
+                patch_term = F.smooth_l1_loss(s_patch, t_patch)
+                patch_loss = self.cos_weight * patch_cos + self.l1_weight * patch_term
+            # cls_l1=False: cls_cos + patch_loss. cls_l1=True (UNIC): cos_w*cls_cos + l1_w*cls_l1 + patch_loss
             cls_cos_w = self.cos_weight if self.cls_l1 else 1.0
-            loss = (
-                cls_cos_w * cls_cos + self.l1_weight * cls_l1 + self.cos_weight * patch_cos + self.l1_weight * patch_l1
-            )
+            loss = cls_cos_w * cls_cos + self.l1_weight * cls_l1 + patch_loss
 
-        return loss, [cls_cos.detach(), patch_cos.detach(), patch_l1.detach()]
+        return loss, [cls_cos.detach(), patch_cos.detach(), patch_term.detach()]
 
     def _teacher_loss_feat_map(self, s_scales, t_patch):
         """Per-scale MSE between student feat maps and bilinearly-resized teacher tokens.
@@ -239,8 +247,8 @@ class ImageEncoderModel(ClassificationModel):
                 backward compat.
             proj_hidden_dim (int, optional): Adaptor MLP hidden dimension. None = use backbone dim (c_). EUPE uses 3072
                 for 86M+ students.
-            loss_cfg (dict, optional): Loss config with keys cos_weight, l1_weight, cls_l1, distill_path. None = EUPE
-                defaults.
+            loss_cfg (dict, optional): Loss config with keys cos_weight, l1_weight, cls_l1, loss_type, distill_path.
+                None = EUPE defaults.
             distill_path (str): "adaptor" (default, cos+L1 on final-stage CLS+patch through adaptor MLP) or "feat_map"
                 (EdgeCrafter-style MSE at student L3/L5/L8 vs teacher final-block tokens bilinearly resized per scale;
                 uses 1x1 Conv2d adaptors).

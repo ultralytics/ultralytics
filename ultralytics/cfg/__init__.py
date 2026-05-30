@@ -510,6 +510,7 @@ def check_dict_alignment(
             "cos_weight",
             "l1_weight",
             "cls_l1",
+            "loss_type",
             "distill_path",
             "adaptor_arch",
             "sample_t",

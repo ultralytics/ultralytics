@@ -21,7 +21,8 @@ scales:
 training:
   loss_weights:
     lr_distance: 2.0
-    depth: 3.0
+    cost_disp: 2.0
+    depth: 1.0
     dimensions: 1.0
     orientation: 1.0
 
@@ -56,7 +57,9 @@ head:
   - [-1, 2, C3k2, [256, True]]              # 16 (P3/8, clean — no cost vol)
 
   # Stereo cost volume (separate, NOT merged into P3)
-  - [1, 1, StereoCostVolume, [64, 48, 24]]  # 17: [B, 64, H/8, W/8]
+  # args: [c2, max_disp, num_bins, refine_layers, return_bins]; return_bins=True exposes raw
+  # 24-bin correlation maps for the head's soft-argmax disparity (cost_disp).
+  - [1, 1, StereoCostVolume, [64, 48, 24, 2, True]]  # 17: ([B,64,H/8,W/8], [B,24,H/4,W/4])
 
   # Bottom-up PAN from clean P3
   - [16, 1, Conv, [256, 3, 2]]

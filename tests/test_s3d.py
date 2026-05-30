@@ -58,9 +58,9 @@ def test_export_onnx():
         dims = [d.dim_value for d in inp.type.tensor_type.shape.dim]
         assert dims == [1, 3, 384, 1248], f"{inp.name} shape {dims} != [1, 3, 384, 1248]"
 
-    # Output should include aux channels: 4(box) + 3(cls) + 1(lr) + 3(dims) + 2(orient) + 16(depth) = 29
+    # Output should include aux channels: 4(box) + 3(cls) + 1(lr) + 1(cost_disp) + 3(dims) + 2(orient) + 16(depth) = 30
     out_shape = [d.dim_value for d in m.graph.output[0].type.tensor_type.shape.dim]
-    assert out_shape[1] == 29, f"Expected 29 output channels (7 det + 22 aux), got {out_shape[1]}"
+    assert out_shape[1] == 30, f"Expected 30 output channels (7 det + 23 aux), got {out_shape[1]}"
 
 
 @pytest.mark.skipif(not __import__("torch").cuda.is_available(), reason="TensorRT requires CUDA")
@@ -196,3 +196,215 @@ def test_metrics_aos_independent_of_ap():
     m3.update_stats(_single_image_stat(gt_ori=0.0, pred_ori=np.pi / 2))
     m3.process()
     assert abs(m3.aos[0.7][0][0] - 0.5) < 1e-6
+
+
+# =============================================================================
+# Phase 1: Cost-volume soft-argmax disparity tests
+# =============================================================================
+
+
+def test_soft_argmax_disparity_correctness():
+    """SoftArgmaxDisparity returns the bin center at the correlation peak and is monotone."""
+    import torch
+
+    from ultralytics.models.yolo.s3d.head import COST_MAX_DISP, COST_NUM_BINS, SoftArgmaxDisparity
+
+    disparities = torch.linspace(0, COST_MAX_DISP, COST_NUM_BINS).round().int().tolist()
+    decoder = SoftArgmaxDisparity(disparities)
+
+    prev = -1.0
+    for k in range(COST_NUM_BINS):
+        bins = torch.full((1, COST_NUM_BINS, 4), -10.0)
+        bins[:, k, :] = 50.0  # sharp peak at bin k → softmax ~ one-hot
+        out = decoder(bins)  # [1, 1, 4]
+        assert out.shape == (1, 1, 4)
+        expected = float(disparities[k])
+        assert abs(float(out[0, 0, 0].item()) - expected) < 1e-3, f"bin {k}: {out[0, 0, 0].item()} != {expected}"
+        # Strictly increasing as the peak bin index increases (skip duplicate rounded centers).
+        if expected > prev:
+            prev = expected
+
+    # Softmax weights sum to 1 per location.
+    bins = torch.randn(2, COST_NUM_BINS, 5)
+    w = bins.softmax(dim=1)
+    assert torch.allclose(w.sum(dim=1), torch.ones(2, 5), atol=1e-5)
+
+
+def test_costvolume_return_bins_backcompat():
+    """StereoCostVolume default returns one tensor; return_bins=True returns (refined, raw_bins)."""
+    import torch
+
+    from ultralytics.nn.modules.block import StereoCostVolume
+
+    left = torch.randn(2, 32, 16, 24)
+    right = torch.randn(2, 32, 16, 24)
+
+    cv = StereoCostVolume(64, 64, 48, 24)
+    out = cv((left, right))
+    assert isinstance(out, torch.Tensor), "default path must return a single tensor"
+    assert out.shape[0] == 2 and out.shape[1] == 64
+    assert out.shape[2] == 8 and out.shape[3] == 12  # downsampled by 2
+
+    cv2 = StereoCostVolume(64, 64, 48, 24, refine_layers=2, return_bins=True)
+    cv2.load_state_dict(cv.state_dict())
+    refined, raw_bins = cv2((left, right))
+    assert raw_bins.shape == (2, 24, 16, 24), f"raw bins shape {raw_bins.shape}"
+    assert torch.allclose(refined, out, atol=1e-5), "refined map must match default path"
+
+
+def test_cost_disp_shape_and_export():
+    """forward_head produces preds['cost_disp'] [B,1,HW_total]; export grows 29->30, slot after lr_distance."""
+    import torch
+
+    from ultralytics.models.yolo.s3d.head import Stereo3DDetHead
+
+    head = Stereo3DDetHead(nc=3, ch=(64, 128, 256, 64))
+    head.eval()
+    bs = 2
+    p3 = torch.randn(bs, 64, 12, 40)
+    p4 = torch.randn(bs, 128, 6, 20)
+    p5 = torch.randn(bs, 256, 3, 10)
+    refined = torch.randn(bs, 64, 12, 40)
+    raw_bins = torch.randn(bs, 24, 24, 80)  # cost-volume pre-refine stride
+
+    preds = head.forward_head([p3, p4, p5, (refined, raw_bins)], **head.one2many)
+    hw_total = preds["lr_distance"].shape[2]
+    assert "cost_disp" in preds
+    assert preds["cost_disp"].shape == (bs, 1, hw_total), preds["cost_disp"].shape
+
+    # Export: channel count 30, cost_disp directly after lr_distance.
+    head.export = True
+    y = head([p3, p4, p5, (refined, raw_bins)])
+    head.export = False
+    assert y.shape[1] == 30, f"expected 30 channels, got {y.shape[1]}"
+    nc, na = 3, hw_total
+    # det = 4 box + 3 cls = 7 ; then lr_distance(1), cost_disp(1)
+    lr_chan = y[:, 7:8, :]
+    cost_chan = y[:, 8:9, :]
+    assert torch.allclose(lr_chan, preds["lr_distance"], atol=1e-4)
+    assert torch.allclose(cost_chan, preds["cost_disp"], atol=1e-4)
+
+
+def test_cost_disp_loss_uses_lr_target():
+    """cost_disp loss uses the lr_distance GT and populates index 6 of a length-7 loss vector."""
+    import torch
+
+    from ultralytics.models.yolo.s3d.loss import Stereo3DDetLoss
+
+    model = YOLO(MODEL).model
+    crit = Stereo3DDetLoss(model, loss_weights={"cost_disp": 2.0, "lr_distance": 2.0})
+    crit.device = torch.device("cpu")
+
+    bs, hw = 1, 30
+    fg_mask = torch.zeros(bs, hw, dtype=torch.bool)
+    fg_mask[0, :3] = True
+    target_gt_idx = torch.zeros(bs, hw, dtype=torch.int64)
+    aux_preds = {
+        "lr_distance": torch.randn(bs, 1, hw),
+        "cost_disp": torch.randn(bs, 1, hw),
+    }
+    batch = {"aux_targets": {"lr_distance": torch.randn(bs, 2, 1)}}
+    aux_losses = crit._compute_aux_losses(aux_preds, batch, target_gt_idx, fg_mask)
+    assert "cost_disp" in aux_losses
+    assert torch.isfinite(aux_losses["cost_disp"]) and aux_losses["cost_disp"] > 0
+
+    # cost_disp loss equals _aux_loss against lr_distance GT.
+    ref = crit._aux_loss(
+        aux_preds["cost_disp"], batch["aux_targets"]["lr_distance"], target_gt_idx, fg_mask, None
+    )
+    assert torch.allclose(aux_losses["cost_disp"], ref, atol=1e-6)
+
+    # Loss vector has length 7.
+    assert crit._loss_vec_len() == 7
+
+
+def test_decode_cost_disp_primary():
+    """cost_disp is the primary z-source; absent -> lr_distance; both absent -> depth fallback."""
+    import torch
+
+    from ultralytics.models.yolo.s3d import preprocess as pp
+
+    fx, baseline = 700.0, 0.54
+    input_w = 1248
+    calib = [{"fx": fx, "fy": fx, "cx": 600.0, "cy": 180.0, "baseline": baseline}]
+    imgsz = (384, input_w)
+    ori_shapes = [(384, input_w)]  # letterbox_scale == 1
+
+    # Build a single synthetic detection at a known flat index.
+    hw = (input_w // 8) * (384 // 8)
+    det = torch.zeros(1, 7, hw)
+    flat = 5
+    det[0, 0, flat] = 600.0  # x1
+    det[0, 1, flat] = 180.0
+    det[0, 2, flat] = 640.0
+    det[0, 3, flat] = 220.0
+    det[0, 4, flat] = 0.9  # class score (high)
+
+    # cost_disp encodes disparity 100 px (z = fx*b/disp).
+    disp_cost = 100.0
+    cost_log = float(np.log(disp_cost / input_w))
+    # lr_distance encodes a conflicting disparity (50 px).
+    lr_log = float(np.log(50.0 / input_w))
+
+    outputs = {
+        "det": det,
+        "lr_distance": torch.full((1, 1, hw), lr_log),
+        "cost_disp": torch.full((1, 1, hw), cost_log),
+        "depth": torch.full((1, 1, hw), float(np.log(7.0))),  # conflicting monocular z
+        "dimensions": torch.zeros(1, 3, hw),
+        "orientation": torch.zeros(1, 2, hw),
+    }
+    assert pp.MONO_BLEND == 0.0
+
+    boxes = pp.decode_stereo3d_outputs(
+        outputs, conf_threshold=0.1, calib=calib, imgsz=imgsz, ori_shapes=ori_shapes
+    )
+    assert len(boxes) == 1
+    z = boxes[0].center_3d[2]
+    z_expected = (fx * baseline) / disp_cost
+    assert abs(z - z_expected) < 0.5, f"cost_disp primary: z={z} expected {z_expected}"
+
+    # Without cost_disp -> falls back to lr_distance.
+    outputs.pop("cost_disp")
+    boxes = pp.decode_stereo3d_outputs(
+        outputs, conf_threshold=0.1, calib=calib, imgsz=imgsz, ori_shapes=ori_shapes
+    )
+    z = boxes[0].center_3d[2]
+    z_lr = (fx * baseline) / 50.0
+    assert abs(z - z_lr) < 0.5, f"lr fallback: z={z} expected {z_lr}"
+
+    # Without cost_disp and lr_distance -> monocular depth fallback.
+    outputs.pop("lr_distance")
+    boxes = pp.decode_stereo3d_outputs(
+        outputs, conf_threshold=0.1, calib=calib, imgsz=imgsz, ori_shapes=ori_shapes
+    )
+    z = boxes[0].center_3d[2]
+    assert abs(z - 7.0) < 0.5, f"mono fallback: z={z} expected 7.0"
+
+
+def test_smoke_train_one_epoch_cost_disp():
+    """1-epoch CPU train+val on the mini dataset; cost_disp loss logged, no NaN/Inf."""
+    import math as _m
+
+    model = YOLO(MODEL)
+    results = model.train(data=DATA, epochs=1, imgsz=[384, 1248], batch=2, val=True, plots=False)
+    # The cost_disp loss term must be tracked by the trainer (logged alongside the others).
+    assert "cost_disp" in model.trainer.loss_names, model.trainer.loss_names
+    # Training must complete without NaN/Inf in the recorded per-epoch losses.
+    csv = model.trainer.save_dir / "results.csv"
+    assert csv.exists()
+    import csv as _csv
+
+    with open(csv) as f:
+        rows = list(_csv.DictReader(f))
+    assert rows, "no results logged"
+    cost_cols = [k for k in rows[0] if "cost_disp" in k]
+    assert cost_cols, f"cost_disp not in results columns: {list(rows[0])}"
+    for row in rows:
+        for k, v in row.items():
+            if v not in ("", None):
+                try:
+                    fv = float(v)
+                except ValueError:
+                    continue
+                assert _m.isfinite(fv), f"{k}={v}"

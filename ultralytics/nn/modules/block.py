@@ -2199,11 +2199,15 @@ class StereoCostVolume(nn.Module):
         max_disp: Maximum disparity in feature pixels at the input stride.
         num_bins: Number of discrete disparity samples.
         refine_layers: Number of conv layers in the refinement network (default 2).
+        return_bins: If True, forward also returns the raw [B, num_bins, H, W]
+            correlation maps (for soft-argmax disparity decode). Default False keeps
+            the single-tensor return so existing call sites / pretrained weights are unchanged.
     """
 
-    def __init__(self, c1, c2=64, max_disp=48, num_bins=24, refine_layers=2):
+    def __init__(self, c1, c2=64, max_disp=48, num_bins=24, refine_layers=2, return_bins=False):
         super().__init__()
         self.c_half = c1 // 2
+        self.return_bins = return_bins
         # Integer disparity offsets evenly spaced from 0 to max_disp
         self.disparities = [int(d) for d in torch.linspace(0, max_disp, num_bins).round().tolist()]
 
@@ -2248,4 +2252,7 @@ class StereoCostVolume(nn.Module):
                 corrs.append(corr)
 
         cost_vol = torch.cat(corrs, dim=1)  # [B, num_bins, H, W]
-        return self.refine(cost_vol)
+        refined = self.refine(cost_vol)
+        if self.return_bins:
+            return refined, cost_vol
+        return refined

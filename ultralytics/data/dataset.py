@@ -490,24 +490,30 @@ class DepthDataset(YOLODataset):
             else:
                 depth = np.zeros((h, w), dtype=np.float32)
         if depth.shape[:2] != (h, w):
-            depth = cv2.resize(depth, (w, h), interpolation=cv2.INTER_LINEAR)
+            # Nearest, not bilinear: sparse (e.g. LiDAR) GT must not blend valid depth with the
+            # zero/invalid background — bilinear creates near-zero "valid" pixels that corrupt
+            # eval metrics (abs_rel = |p-g|/g) and depress delta1. Mirrors SemanticDataset masks.
+            depth = cv2.resize(depth, (w, h), interpolation=cv2.INTER_NEAREST)
         label["depth"] = depth
         return label
 
     def build_transforms(self, hyp=None):
-        """Build transforms for depth estimation with augmentation.
+        """Build transforms for depth estimation.
 
-        Applies random scale/crop, LetterBox, horizontal flip, and color jitter.
+        Training applies random scale/crop, horizontal flip, and color jitter; validation
+        (augment=False) is deterministic — only LetterBox + DepthFormat, no random transforms.
         No mosaic, mixup, or perspective transforms since they create discontinuities.
         """
-        transforms = Compose([
-            DepthRandomScale(scale_range=(0.5, 1.5), target_size=self.imgsz, p=0.5),
-            LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scale_fill=True),
-            DepthRandomFlip(p=0.5),
-            DepthColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.05),
-            DepthFormat(),
-        ])
-        return transforms
+        letterbox = LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scale_fill=True)
+        if self.augment:
+            return Compose([
+                DepthRandomScale(scale_range=(0.5, 1.5), target_size=self.imgsz, p=0.5),
+                letterbox,
+                DepthRandomFlip(p=0.5),
+                DepthColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.05),
+                DepthFormat(),
+            ])
+        return Compose([letterbox, DepthFormat()])
 
     @staticmethod
     def collate_fn(batch):

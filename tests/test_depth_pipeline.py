@@ -40,3 +40,49 @@ def test_streamlit_tord_has_depth_suffix():
 
     src = open(si.__file__).read()
     assert "-depth" in src  # depth model suffix registered in the task-ordering map
+
+
+def test_depth_dataset_load_resize_does_not_blend_sparse_gt(tmp_path):
+    """get_image_and_label resizes sparse depth to the image shape without blending (no bilinear)."""
+    import numpy as np
+
+    depth = np.zeros((8, 8), dtype=np.float32)
+    depth[2:4, 2:4] = 10.0                      # sparse valid block on a zero (invalid) background
+    npy = tmp_path / "d.npy"
+    np.save(npy, depth)
+
+    ds = DepthDataset.__new__(DepthDataset)     # bypass __init__
+    ds._depth_stack = None
+    ds.labels = [{"im_file": "x.png"}]
+    ds._depth_path_for = lambda f: str(npy)
+
+    base = {"resized_shape": (32, 32), "im_file": "x.png", "img": np.zeros((32, 32, 3), np.uint8)}
+    with patch("ultralytics.data.dataset.YOLODataset.get_image_and_label", return_value=base):
+        out = ds.get_image_and_label(0)
+
+    d = out["depth"]
+    blended = ((d > 1e-6) & (d < 9.0)).sum()    # values between background(0) and valid(10)
+    assert blended == 0, f"{blended} spurious blended depth pixels from interpolation at load"
+
+
+def _transform_names(augment):
+    ds = DepthDataset.__new__(DepthDataset)
+    ds.augment = augment
+    ds.imgsz = 384
+    return [type(t).__name__ for t in ds.build_transforms().transforms]
+
+
+def test_depth_val_transforms_have_no_augmentation():
+    """Validation (augment=False) must be deterministic: no random scale/crop, flip, or jitter."""
+    names = _transform_names(augment=False)
+    assert "DepthRandomScale" not in names
+    assert "DepthRandomFlip" not in names
+    assert "DepthColorJitter" not in names
+    assert "DepthFormat" in names               # still formats img/depth to tensors
+
+
+def test_depth_train_transforms_include_augmentation():
+    """Training (augment=True) keeps the augmentation pipeline."""
+    names = _transform_names(augment=True)
+    assert "DepthRandomScale" in names
+    assert "DepthFormat" in names

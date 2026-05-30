@@ -12,6 +12,10 @@ keywords: Ultralytics Platform, datasets, dataset management, dataset versioning
 
 Ultralytics Platform accepts multiple upload formats for flexibility.
 
+!!! tip "Already have data elsewhere?"
+
+    If you already have datasets in [Ultralytics HUB](../integrations/ultralytics-hub.md) or [Roboflow](../integrations/roboflow.md), use [Integrations](../integrations/index.md) to import them directly — no manual export or re-upload needed.
+
 ### Supported Formats
 
 === "Images"

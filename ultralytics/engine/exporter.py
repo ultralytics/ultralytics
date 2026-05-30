@@ -105,7 +105,14 @@ from ultralytics.utils import (
     get_default_args,
     is_jetson,
 )
-from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_9, check_imgsz, check_requirements, check_version, is_intel
+from ultralytics.utils.checks import (
+    IS_PYTHON_MINIMUM_3_9,
+    IS_PYTHON_MINIMUM_3_13,
+    check_imgsz,
+    check_requirements,
+    check_version,
+    is_intel,
+)
 from ultralytics.utils.files import file_size
 from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
@@ -648,7 +655,7 @@ class Exporter:
             # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
             ort = "onnxruntime-gpu" if "cuda" in self.device.type else "onnxruntime"
-            requirements += ["onnxslim>=0.1.71", (ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")]
+            requirements += ["onnxslim>=0.1.82", (ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")]
         check_requirements(requirements)
         import onnx
 
@@ -834,7 +841,7 @@ class Exporter:
         mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
         from ultralytics.utils.export.coreml import IOSDetectModel, pipeline_coreml, torch2coreml
 
-        # latest numpy 2.4.0rc1 breaks coremltools exports
+        # numpy 2.4.x breaks coremltools CoreML export https://github.com/apple/coremltools/issues/2633
         check_requirements(["coremltools>=9.0", "numpy>=1.14.5,<=2.3.5"])
         import coremltools as ct
 
@@ -942,6 +949,10 @@ class Exporter:
     @try_export
     def export_saved_model(self, prefix=colorstr("TensorFlow SavedModel:")):
         """Export YOLO model to TensorFlow SavedModel format."""
+        assert not (MACOS and IS_PYTHON_MINIMUM_3_13), (
+            "TensorFlow exports not supported on macOS with Python>=3.13: the ai-edge-litert macOS wheel fails to load "
+            "(missing libpywrap_litert_common.dylib). TensorFlow export works on Linux Python 3.13."
+        )
         from ultralytics.utils.export.tensorflow import onnx2saved_model
 
         f = Path(str(self.file).replace(self.file.suffix, "_saved_model"))
@@ -1050,6 +1061,10 @@ class Exporter:
     @try_export
     def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
         """Export YOLO model to TensorFlow.js format."""
+        assert not IS_PYTHON_MINIMUM_3_13, (
+            "TensorFlow.js export not supported on Python>=3.13: tensorflowjs requires the np.object alias removed "
+            "in NumPy 1.24, but Python 3.13 has no NumPy<2.1 wheels."
+        )
         from ultralytics.utils.export.tensorflow import pb2tfjs
 
         output_dir = pb2tfjs(

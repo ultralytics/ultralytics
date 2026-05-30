@@ -46,8 +46,15 @@ main_args=(
 PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 "${pytest_cmd[@]}" "${main_args[@]}"
 
 for export_test in tests/test_exports.py::test_export_axelera tests/test_exports.py::test_export_deepx; do
-  uv cache clean || true
-  rm -rf "${TMPDIR:-/tmp}"/pytest-of-* ~/.cache/pip ~/.cache/uv || true
+  rm -rf "${TMPDIR:-/tmp}"/pytest-of-* ~/.cache/pip || true
+  uv cache prune --ci || true
+  python - <<'PY'
+import os
+from pathlib import Path
+
+if cache_dir := os.environ.get("UV_CACHE_DIR"):
+    Path(cache_dir).mkdir(parents=True, exist_ok=True)
+PY
   snapshot
   restore_torch
   PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -vv -s --slow --cov=ultralytics/ --cov-append \

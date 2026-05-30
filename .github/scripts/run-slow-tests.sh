@@ -48,7 +48,7 @@ PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 "${pytest_cmd[@]}" "${main_args[@]}"
 for export_test in tests/test_exports.py::test_export_axelera tests/test_exports.py::test_export_deepx; do
   rm -rf "${TMPDIR:-/tmp}"/pytest-of-* ~/.cache/pip || true
   uv cache prune --ci || true
-  python - <<'PY'
+  python - << 'PY'
 import os
 from pathlib import Path
 

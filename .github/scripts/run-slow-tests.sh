@@ -28,10 +28,10 @@ fi
 
 restore_torch
 pytest_workers=2
-pytest_extra=()
+pytest_cmd=(pytest -n "$pytest_workers" --dist=loadfile)
 if [[ "${MATRIX_OS:-}" == "ubuntu-24.04-arm" ]]; then
   pytest_workers=1
-  pytest_extra+=(--forked)
+  pytest_cmd=(pytest -n "$pytest_workers" --dist=loadfile --forked)
 fi
 
 main_args=(
@@ -43,7 +43,7 @@ main_args=(
   --deselect tests/test_exports.py::test_export_axelera
   --deselect tests/test_exports.py::test_export_deepx
 )
-PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -n "$pytest_workers" --dist=loadfile "${pytest_extra[@]}" "${main_args[@]}"
+PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 "${pytest_cmd[@]}" "${main_args[@]}"
 
 for export_test in tests/test_exports.py::test_export_axelera tests/test_exports.py::test_export_deepx; do
   uv cache clean || true

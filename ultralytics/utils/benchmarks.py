@@ -126,7 +126,7 @@ def benchmark(
     if format_arg:
         formats = frozenset(export_formats()["Argument"])
         assert format in formats, f"Expected format to be one of {formats}, but got '{format_arg}'."
-    for name, format, suffix, cpu, gpu, valid_args in zip(*export_formats().values()):
+    for name, format, suffix, cpu, gpu, valid_args, _ in zip(*export_formats().values()):
         emoji, filename = "❌", None  # export defaults
         try:
             if format_arg and format_arg != format:

@@ -29,6 +29,43 @@ def solution_assets():
 def pytest_addoption(parser):
     """Add custom command-line options to pytest."""
     parser.addoption("--slow", action="store_true", default=False, help="Run slow tests")
+    parser.addoption(
+        "--export-env",
+        default=None,
+        help="Run only export tests assigned to this export environment id.",
+    )
+
+
+def _export_format_from_item(item):
+    """Infer the export format covered by a tests/test_exports.py item."""
+    if Path(str(item.fspath)).name != "test_exports.py":
+        return None
+    name = getattr(item, "originalname", None) or item.name.split("[", 1)[0]
+    if name == "test_torch2onnx_serializes_concurrent_exports":
+        return "onnx"
+    if not name.startswith("test_export_"):
+        return None
+
+    suffix = name.removeprefix("test_export_")
+    formats = {
+        "torchscript",
+        "onnx",
+        "openvino",
+        "coreml",
+        "tflite",
+        "pb",
+        "paddle",
+        "mnn",
+        "ncnn",
+        "imx",
+        "executorch",
+        "axelera",
+        "deepx",
+        "qnn",
+    }
+    return next(
+        (fmt for fmt in sorted(formats, key=len, reverse=True) if suffix == fmt or suffix.startswith(f"{fmt}_")), None
+    )
 
 
 def pytest_collection_modifyitems(config, items):
@@ -41,6 +78,18 @@ def pytest_collection_modifyitems(config, items):
     if not config.getoption("--slow"):
         # Remove the item entirely from the list of test items if it's marked as 'slow'
         items[:] = [item for item in items if "slow" not in item.keywords]
+
+    export_env = config.getoption("--export-env")
+    if not export_env:
+        return
+
+    from ultralytics.engine.exporter import export_formats
+
+    env_by_format = dict(zip(export_formats()["Argument"], export_formats()["Env"]))
+    for item in items:
+        fmt = _export_format_from_item(item)
+        if fmt and env_by_format.get(fmt) != export_env:
+            item.add_marker(pytest.mark.skip(reason=f"export format '{fmt}' belongs to env '{env_by_format[fmt]}'"))
 
 
 def pytest_sessionstart(session):

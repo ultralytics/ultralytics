@@ -1005,3 +1005,9 @@ sudo apt-get install -y tensorrt
 ```
 
 After upgrading, re-run your export. For more details, see [GitHub issue #23841](https://github.com/ultralytics/ultralytics/issues/23841).
+
+### Why should I set end2end=False when exporting ONNX for older Jetson TensorRT versions?
+
+When converting a .pth model to ONNX on a host machine, and the ONNX model will later be converted to a TensorRT engine on an older Jetson device (for example, Jetson Nano or Jetson TX2), please check the TensorRT version on the target device first.
+
+If the TensorRT version is older than 8.5.0, set end2end=False when exporting ONNX. Older TensorRT versions do not support the Mod operator required by end-to-end models, which can cause the TensorRT engine export to fail.

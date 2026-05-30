@@ -861,6 +861,7 @@ nav:
               - engine: reference/utils/export/engine.md
               - executorch: reference/utils/export/executorch.md
               - imx: reference/utils/export/imx.md
+              - isolated_export: reference/utils/export/isolated_export.md
               - mnn: reference/utils/export/mnn.md
               - ncnn: reference/utils/export/ncnn.md
               - openvino: reference/utils/export/openvino.md

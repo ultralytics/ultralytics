@@ -45,7 +45,7 @@ import torch.cuda
 
 from ultralytics import YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
-from ultralytics.engine.exporter import export_formats
+from ultralytics.engine.exporter import EXPORT_ENVS, export_formats, isolated_python, run_isolated_export
 from ultralytics.nn.modules import Segment26
 from ultralytics.utils import (
     ARM64,
@@ -126,7 +126,7 @@ def benchmark(
     if format_arg:
         formats = frozenset(export_formats()["Argument"])
         assert format in formats, f"Expected format to be one of {formats}, but got '{format_arg}'."
-    for name, format, suffix, cpu, gpu, valid_args in zip(*export_formats().values()):
+    for name, format, suffix, cpu, gpu, valid_args, env in zip(*export_formats().values()):
         emoji, filename = "❌", None  # export defaults
         try:
             if format_arg and format_arg != format:
@@ -194,11 +194,33 @@ def benchmark(
                 assert gpu, "inference not supported on GPU"
 
             # Export
+            export_data = data if "data" in valid_args else None
             if format == "-":
                 filename = model.pt_path or model.ckpt_path or model.model_name
                 exported_model = deepcopy(model)  # PyTorch format
+            elif env in EXPORT_ENVS:  # isolated venv subprocess: no base-env mutation; unavailable row if absent
+                py = isolated_python(env)
+                assert py is not None, (
+                    f"isolated env '{env}' unavailable, build with .github/scripts/create-export-env.py"
+                )
+                # device is omitted: isolated venvs are CPU-only torch, so the subprocess export defaults to CPU
+                filename = run_isolated_export(
+                    py,
+                    model.pt_path or model.ckpt_path or model.model_name,
+                    ".",
+                    {
+                        "format": format,
+                        "imgsz": imgsz,
+                        "half": half,
+                        "int8": int8,
+                        "data": export_data,
+                        "verbose": False,
+                        **kwargs,
+                    },
+                )
+                exported_model = YOLO(filename, task=model.task)
+                assert suffix in str(filename), "export failed"
             else:
-                export_data = data if "data" in valid_args else None
                 filename = deepcopy(model).export(
                     imgsz=imgsz,
                     format=format,

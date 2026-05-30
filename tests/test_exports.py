@@ -16,6 +16,7 @@ import torch
 from tests import SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
+from ultralytics.engine.exporter import EXPORT_ENVS, export_formats
 from ultralytics.utils import (
     ARM64,
     IS_DOCKER,
@@ -496,3 +497,17 @@ def test_export_qnn(isolated_model):
     assert next(Path(file).rglob("*_qnn.onnx"), None), f"QNN export failed, no context binary found in: {file}"
     # Note: on-device inference is not exercised here as it requires Qualcomm Snapdragon hardware
     shutil.rmtree(file, ignore_errors=True)  # cleanup
+
+
+@pytest.mark.parametrize("env", list(EXPORT_ENVS))
+def test_isolated_env_has_smoke(env):
+    """Every isolated export environment must declare a build-time smoke export (the expansion-playbook guard)."""
+    assert EXPORT_ENVS[env]["smoke"], f"isolated export env '{env}' has no smoke command"
+    assert EXPORT_ENVS[env]["python"], f"isolated export env '{env}' has no python version"
+
+
+def test_every_format_env_is_registered():
+    """Every export format's Env id is either in-process or resolves to an EXPORT_ENVS recipe (no dangling ids)."""
+    in_process = {"base", "tensorflow", "coreml"}
+    for fmt, env in zip(export_formats()["Argument"], export_formats()["Env"]):
+        assert env in in_process or env in EXPORT_ENVS, f"format '{fmt}' references unknown env '{env}'"

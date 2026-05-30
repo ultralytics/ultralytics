@@ -284,14 +284,14 @@ jobs:
             uv pip install "${uv_system_args[@]}" "${torch_packages[@]}" \
               --index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
             uv pip install "${uv_system_args[@]}" -e ".[export,solutions]" \
-              faster-coco-eval mlflow pytest-cov pytest-forked pytest-xdist
+              faster-coco-eval mlflow pytest-cov pytest-xdist
           else
             torch=""
             if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
             fi
             uv pip install "${uv_system_args[@]}" -e ".[export,solutions]" $torch \
-              faster-coco-eval mlflow pytest-cov pytest-forked pytest-xdist \
+              faster-coco-eval mlflow pytest-cov pytest-xdist \
               --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
           fi
       - name: Check environment
@@ -315,15 +315,52 @@ jobs:
         uses: ultralytics/actions/retry@main
         with:
           shell: bash # for Windows compatibility
-          # -n 2 limits parallelism for resource-heavy export tests on shared runners
-          run: .github/scripts/run-slow-tests.sh
+          # Isolated exporters (imx/rknn/axelera/deepx) run in the IsolatedExports job, not here, so the base env is
+          # never mutated and torch never needs restoring. -n 1 on ARM avoids slow-worker resource exhaustion.
+          run: |
+            workers=2
+            [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]] && workers=1
+            PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -vv -s --slow -n "$workers" --dist=loadfile \
+              --cov=ultralytics/ --cov-report=xml --durations=50 --durations-min=1 tests/ \
+              --deselect tests/test_exports.py::test_export_imx \
+              --deselect tests/test_exports.py::test_export_mnn \
+              --deselect tests/test_exports.py::test_export_ncnn \
+              --deselect tests/test_exports.py::test_export_executorch \
+              --deselect tests/test_exports.py::test_export_axelera \
+              --deselect tests/test_exports.py::test_export_deepx
           retries: 1 # Retry once after initial attempt (2 total runs)
           timeout_minutes: 180
           retry_delay_seconds: 60
+      - name: Prune uv Cache
+        run: uv cache prune --ci
+
+  IsolatedExports:
+    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.tests == 'true') || github.event_name == 'schedule'
+    timeout-minutes: 360
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+      - name: Install base package
+        run: uv pip install --system -e ".[export-base]"
+      - name: Cache uv wheels
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/uv
+          key: isolated-exports-uv-${{ hashFiles('ultralytics/engine/exporter.py', 'pyproject.toml') }}
+          restore-keys: |
+            isolated-exports-uv-
+      - name: Build and smoke-validate isolated export venvs
+        # Data-driven from EXPORT_ENVS: builds one uv venv per isolated format and runs its smoke export (which
+        # autoinstalls the vendor SDK and validates the venv). A new isolated format needs only a registry entry.
         env:
-          MATRIX_OS: ${{ matrix.os }}
-          MATRIX_TORCH: ${{ matrix.torch }}
-          MATRIX_TORCHVISION: ${{ matrix.torchvision }}
+          ULTRALYTICS_ISOLATED_VENVS: ${{ runner.temp }}/venvs
+        run: python .github/scripts/create-export-env.py
       - name: Prune uv Cache
         run: uv cache prune --ci
 
@@ -541,11 +578,11 @@ jobs:
 
   Summary:
     runs-on: ubuntu-latest
-    needs: [Benchmarks, Tests, SlowTests, GPU, RaspberryPi, NVIDIA_Jetson, Conda]
+    needs: [Benchmarks, Tests, SlowTests, IsolatedExports, GPU, RaspberryPi, NVIDIA_Jetson, Conda]
     if: always()
     steps:
       - name: Check for failure and notify
-        if: (needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.SlowTests.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
+        if: (needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.SlowTests.result == 'failure' || needs.IsolatedExports.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
         uses: slackapi/slack-github-action@v3.0.3
         with:
           webhook-type: incoming-webhook

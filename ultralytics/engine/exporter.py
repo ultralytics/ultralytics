@@ -128,53 +128,90 @@ from ultralytics.utils.torch_utils import (
     select_device,
 )
 
+# Isolated export environments: the recipe for each export format whose dependencies conflict with the base
+# environment and must run in a dedicated uv venv subprocess (see isolated_python/run_isolated_export and
+# .github/scripts/create-export-env.py). Vendor SDKs install themselves via each backend's check_requirements at
+# export time, so only the venv interpreter, torch pin, and any venv-only prerequisite live here (no SDK strings).
+#   smoke: the build-time export that both forces SDK resolution and validates the venv.
+EXPORT_ENVS = {
+    "isolated-imx": {"python": "3.11", "torch": ">=2.9,<2.12", "requirements": ["numpy<2"],
+                     "smoke": "yolo export format=imx model=yolo11n.pt imgsz=32"},
+    "isolated-rknn": {"python": "3.11", "torch": "==2.4", "requirements": ["setuptools<82"],
+                      "smoke": "yolo export format=rknn model=yolo11n.pt imgsz=32"},
+    "isolated-axelera": {"python": "3.12", "torch": ">=2.8,<2.12", "requirements": [],
+                         "smoke": "yolo export format=axelera model=yolo11n.pt imgsz=64 data=coco8.yaml"},
+    "isolated-deepx": {"python": "3.12", "torch": "<2.12", "requirements": ["numpy<2"],
+                       "smoke": "yolo export format=deepx model=yolo11n.pt imgsz=32"},
+}  # fmt: skip
+
 
 def export_formats():
-    """Return a dictionary of Ultralytics YOLO export formats."""
+    """Return a dictionary of Ultralytics YOLO export formats, including the isolation environment for each."""
+    #          Format, Argument, Suffix, CPU, GPU, Arguments, Env
     x = [
-        ["PyTorch", "-", ".pt", True, True, []],
-        ["TorchScript", "torchscript", ".torchscript", True, True, ["batch", "optimize", "half", "nms", "dynamic"]],
-        ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify", "nms"]],
-        [
-            "OpenVINO",
-            "openvino",
-            "_openvino_model",
-            True,
-            False,
-            ["batch", "data", "dynamic", "half", "int8", "nms", "fraction"],
-        ],
-        [
-            "TensorRT",
-            "engine",
-            ".engine",
-            False,
-            True,
-            ["batch", "data", "dynamic", "half", "int8", "simplify", "nms", "fraction"],
-        ],
-        ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "dynamic", "half", "int8", "nms"]],
-        [
-            "TensorFlow SavedModel",
-            "saved_model",
-            "_saved_model",
-            True,
-            True,
-            ["batch", "data", "fraction", "int8", "keras", "nms"],
-        ],
-        ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"]],
-        ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "data", "half", "int8", "nms", "fraction"]],
-        ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, ["data", "fraction", "int8"]],
-        ["TensorFlow.js", "tfjs", "_web_model", True, False, ["batch", "data", "fraction", "half", "int8", "nms"]],
-        ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"]],
-        ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"]],
-        ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
-        ["IMX", "imx", "_imx_model", True, True, ["data", "int8", "fraction", "nms"]],
-        ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
-        ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
-        ["Axelera AI", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction", "data"]],
-        ["DEEPX", "deepx", "_deepx_model", False, False, ["data", "int8", "optimize"]],
-        ["Qualcomm QNN", "qnn", "_qnn_model", False, False, ["batch", "name", "int8", "fraction", "data"]],
-    ]
-    return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
+        ["PyTorch", "-", ".pt", True, True, [], "base"],
+        ["TorchScript", "torchscript", ".torchscript", True, True, ["batch", "optimize", "half", "nms", "dynamic"], "base"],
+        ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify", "nms"], "base"],
+        ["OpenVINO", "openvino", "_openvino_model", True, False, ["batch", "data", "dynamic", "half", "int8", "nms", "fraction"], "base"],
+        ["TensorRT", "engine", ".engine", False, True, ["batch", "data", "dynamic", "half", "int8", "simplify", "nms", "fraction"], "base"],
+        ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "dynamic", "half", "int8", "nms"], "coreml"],
+        ["TensorFlow SavedModel", "saved_model", "_saved_model", True, True, ["batch", "data", "fraction", "int8", "keras", "nms"], "tensorflow"],
+        ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"], "tensorflow"],
+        ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "data", "half", "int8", "nms", "fraction"], "tensorflow"],
+        ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, ["data", "fraction", "int8"], "tensorflow"],
+        ["TensorFlow.js", "tfjs", "_web_model", True, False, ["batch", "data", "fraction", "half", "int8", "nms"], "tensorflow"],
+        ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"], "base"],
+        ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"], "base"],
+        ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"], "base"],
+        ["IMX", "imx", "_imx_model", True, True, ["data", "int8", "fraction", "nms"], "isolated-imx"],
+        ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"], "isolated-rknn"],
+        ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"], "base"],
+        ["Axelera AI", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction", "data"], "isolated-axelera"],
+        ["DEEPX", "deepx", "_deepx_model", False, False, ["data", "int8", "optimize"], "isolated-deepx"],
+        ["Qualcomm QNN", "qnn", "_qnn_model", False, False, ["batch", "name", "int8", "fraction", "data"], "base"],
+    ]  # fmt: skip
+    return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
+
+
+def isolated_python(env):
+    """Return the python interpreter path for a provisioned isolated export venv, or None if absent (probe only).
+
+    The venv root defaults to /opt/venvs and is overridable with ULTRALYTICS_ISOLATED_VENVS (e.g. a writable path on CI
+    runners). This never installs anything; a missing venv simply yields None.
+    """
+    py = Path(os.environ.get("ULTRALYTICS_ISOLATED_VENVS", "/opt/venvs")) / env / "bin" / "python"
+    return py if py.exists() else None
+
+
+def run_isolated_export(python_path, model_path, output_dir, export_args, timeout=5400):
+    """Dispatch an export to an isolated venv interpreter and return the exported path.
+
+    Runs ultralytics/utils/export/isolated_export.py inside the venv via a JSON argv -> JSON stdout protocol. Raises
+    RuntimeError on timeout or failure. Used by benchmark() to keep one combined table across environments.
+    """
+    import subprocess
+
+    output_dir = Path(output_dir).resolve()
+    output_dir.mkdir(parents=True, exist_ok=True)
+    payload = {"model": str(Path(model_path).resolve()), "output_dir": str(output_dir), **export_args}
+    script = Path(__file__).parent.parent / "utils" / "export" / "isolated_export.py"
+    try:
+        r = subprocess.run(
+            [str(python_path), str(script), json.dumps(payload)],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            cwd=output_dir,
+        )
+    except subprocess.TimeoutExpired:
+        raise RuntimeError(f"Isolated export timed out after {timeout}s")
+    if r.returncode != 0:
+        raise RuntimeError(f"Isolated export failed: {(r.stderr or r.stdout)[:2000]}")
+    out = json.loads(r.stdout.strip().splitlines()[-1])
+    if not out.get("success"):
+        raise RuntimeError(f"Isolated export failed: {out.get('error')}")
+    path = Path(out["path"])  # the child reports it relative to its cwd (output_dir); resolve for the caller
+    return path if path.is_absolute() else output_dir / path
 
 
 def validate_args(format, passed_args, valid_args):

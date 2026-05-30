@@ -117,6 +117,31 @@ nohupyolo train task=anomaly_v2 \
   project=yoloa_v2 name=26m_yoloav2seg_v5_binary_cm20_gauss_pd50_acur_v1
 ```
 
+## 5. Diagnostic — remove detach, let det loss train SegBranch (GPU 0,1)
+
+Phase 2 finished with prior-free inference failing (a0/acur ≈ off floor). The probe
+(`scripts/probe_segbranch_pred.py`) showed sigmoid(pred) has full dynamic range
+(max≈1, bg≈0) but localizes poorly — SegBranch learned to "match a rect", not to
+"produce a heatmap that helps detection". Root cause: pred is detached before
+fusion, so det loss never trains SegBranch.
+
+This run flips `seg_detach: false` so det loss flows through fusion -> SegBranch.
+
+```
+nohupyolo train task=anomaly_v2 \
+  model=yolo26m-anomaly-v2-seg-graddet.yaml \
+  pretrained=yolo26m.pt \
+  data=/home/louis/ultra_louis_work/datasets/AnomalyDataset/merge_data_v5_binary/data.yaml \
+  epochs=50 batch=96 close_mosaic=20 device=0,1 \
+  optimizer=MuSGD lr0=0.00125 lrf=0.5 momentum=0.9 weight_decay=0.0005 \
+  scale=0.1 copy_paste=0.1 mixup=0.0 save_json=True \
+  project=yoloa_v2 name=26m_yoloav2seg_v5_binary_cm20_rect_pd50_acur_gd_v1
+```
+
+**Read result:** compare final mask-on (alpha=0) mAP50-95 against `..._rect_pd50_acur_v1`
+(0.6140). If clearly higher and approaches the a1 ceiling (0.6851), the detach was
+the root cause and SegBranch can be trained end-to-end.
+
 ## Monitor
 
 ```

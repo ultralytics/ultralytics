@@ -567,6 +567,11 @@ class YOLOAnomalyV2Model(DetectionModel):
         # needs no external prior. ``seg_alpha`` blends GT vs predicted mask (curriculum).
         use_seg = bool(v2_cfg.get("seg_branch", False))
         seg_gain = float(v2_cfg.get("seg_gain", 1.0))
+        # When True (default, original v2.2 behavior), the predicted heatmap is detached
+        # before feeding the fusion -> SegBranch is trained ONLY by its own seg loss.
+        # When False, det loss flows through fusion -> SegBranch -> PAN, so the seg head
+        # learns to produce heatmaps that help detection (not just match the rect target).
+        seg_detach = bool(v2_cfg.get("seg_detach", True))
         # ``seg_alpha_mode``: 'curriculum' (default, anneal 1->0), 'pinned_one' (GT only),
         # 'pinned_zero' (pred only). Used by AnomalyV2Trainer._update_seg_alpha.
         seg_alpha_mode = str(v2_cfg.get("seg_alpha_mode", "curriculum")).lower()
@@ -604,6 +609,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         self.seg_gain = seg_gain
         self.seg_alpha_mode = seg_alpha_mode
         self.seg_alpha = 0.0 if seg_alpha_mode == "pinned_zero" else 1.0
+        self.seg_detach = bool(seg_detach)
         self.seg_branch = SegBranch(ch=tuple(pan_channels[:2]), nc=1) if use_seg else None
         # Binary GT target for the seg loss is always a hard rectangle (independent of mask_mode).
         self.seg_target_renderer = BboxMaskRenderer(mask_size=mask_size, mode="rect") if use_seg else None
@@ -671,8 +677,10 @@ class YOLOAnomalyV2Model(DetectionModel):
         """Resolve the (B, 1, mask_size, mask_size) heatmap fed to the fusion, or None for passthrough.
 
         Precedence: external mask > explicit disable > GT/predicted blend > pure prediction.
-        The predicted heatmap is detached so the detection loss never backprops into the
-        SegBranch (the branch is trained only by its own ``binary_seg_loss``).
+        When ``self.seg_detach=True`` (default), the predicted heatmap is detached so the
+        detection loss never backprops into the SegBranch (the branch is trained only by its
+        own ``binary_seg_loss``). When ``seg_detach=False``, det loss flows through fusion ->
+        SegBranch -> PAN, letting the seg head learn detection-useful heatmaps.
         """
         if external_mask is not None:
             return external_mask.to(device=device, dtype=torch.float32)
@@ -682,7 +690,10 @@ class YOLOAnomalyV2Model(DetectionModel):
         seg_pred = None
         if seg_logits is not None:
             main = seg_logits[0] if isinstance(seg_logits, tuple) else seg_logits
-            seg_pred = main.detach().sigmoid()
+            # ``seg_detach=True`` (default) preserves v2.2 behavior: SegBranch is trained only
+            # by its own seg loss. ``seg_detach=False`` lets det loss flow through fusion ->
+            # SegBranch so the head learns detection-useful heatmaps.
+            seg_pred = (main.detach() if self.seg_detach else main).sigmoid()
             if seg_pred.shape[2] != self.mask_size or seg_pred.shape[3] != self.mask_size:
                 seg_pred = torch.nn.functional.interpolate(
                     seg_pred, size=(self.mask_size, self.mask_size), mode="bilinear", align_corners=False

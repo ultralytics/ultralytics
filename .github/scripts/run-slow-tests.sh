@@ -9,7 +9,7 @@ uv_system_args=()
 snapshot() {
   echo "Resource snapshot: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
   df -h .
-  command -v free >/dev/null 2>&1 && free -h
+  command -v free > /dev/null 2>&1 && free -h
   [[ "$(uname -s)" == "Linux" ]] && ps -eo pid,ppid,pcpu,pmem,rss,vsz,comm --sort=-rss | head -15 || true
 }
 

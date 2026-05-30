@@ -10,11 +10,13 @@ import shutil
 import sys
 from pathlib import Path
 
+import torch
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tests import MODEL, SOLUTION_ASSETS
 from ultralytics.cfg import TASK2CALIBRATIONDATA, TASK2DATA, TASK2MODEL
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
-from ultralytics.utils import ASSETS_URL, LOGGER, WEIGHTS_DIR
+from ultralytics.utils import ARM64, ASSETS_URL, IS_RASPBERRYPI, LINUX, LOGGER, WEIGHTS_DIR, checks
 from ultralytics.utils.downloads import attempt_download_asset, safe_download
 
 WEIGHTS = [
@@ -73,11 +75,25 @@ def cache_solution_assets() -> None:
     LOGGER.info("[cache] Solution assets done.")
 
 
+def cache_clip_model() -> None:
+    """Download the CLIP text encoder before xdist workers can race on the shared cache file."""
+    if IS_RASPBERRYPI or checks.IS_PYTHON_3_12 or (checks.IS_PYTHON_3_8 and LINUX and ARM64):
+        return
+
+    LOGGER.info("[cache] Downloading CLIP text encoder ...")
+    from ultralytics.nn.text_model import build_text_model
+
+    model = build_text_model("clip:ViT-B/32", device=torch.device("cpu"))
+    del model
+    LOGGER.info("[cache] CLIP text encoder done.")
+
+
 def main() -> None:
     """Main function to orchestrate caching of all test assets."""
     cache_weights()
     cache_datasets()
     cache_solution_assets()
+    cache_clip_model()
     LOGGER.info("[cache] All test assets are ready.")
 
 

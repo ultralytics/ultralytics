@@ -246,8 +246,8 @@ EXPORT_ENVS = {
     "coreml": {
         "python": "3.12",
         "extras": ["export-base", "export-coreml"],
-        "torch": None,
-        "requirements": [],
+        "torch": ">=2.9,<2.12",
+        "requirements": ["numpy<=2.3.5"],
         "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
         "env": {},
         "smoke": ["yolo export format=coreml model=yolo11n.pt imgsz=32"],

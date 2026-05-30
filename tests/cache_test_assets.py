@@ -6,10 +6,10 @@ datasets, and solution assets are already cached locally. Each xdist worker
 can then reuse existing files instead of competing to download the same remote resources.
 """
 
-from argparse import ArgumentParser
-from pathlib import Path
 import shutil
 import sys
+from argparse import ArgumentParser
+from pathlib import Path
 
 import torch
 

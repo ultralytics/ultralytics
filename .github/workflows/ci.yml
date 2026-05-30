@@ -272,11 +272,28 @@ jobs:
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
-          torch=""
-          if [ "${{ matrix.torch }}" != "latest" ]; then
-              torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
+          uv_system_args=()
+          if [ "${{ matrix.os }}" != "cpu-latest" ]; then
+            uv_system_args=(--system)
           fi
-          uv pip install ${{ matrix.os != 'cpu-latest' && '--system' || '' }} -e ".[export,solutions]" $torch faster-coco-eval mlflow pytest-cov pytest-forked pytest-xdist --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            torch_packages=(torch torchvision)
+            if [ "${{ matrix.torch }}" != "latest" ]; then
+              torch_packages=("torch==${{ matrix.torch }}" "torchvision==${{ matrix.torchvision }}")
+            fi
+            uv pip install "${uv_system_args[@]}" "${torch_packages[@]}" \
+              --index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+            uv pip install "${uv_system_args[@]}" -e ".[export,solutions]" \
+              faster-coco-eval mlflow pytest-cov pytest-forked pytest-xdist
+          else
+            torch=""
+            if [ "${{ matrix.torch }}" != "latest" ]; then
+              torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
+            fi
+            uv pip install "${uv_system_args[@]}" -e ".[export,solutions]" $torch \
+              faster-coco-eval mlflow pytest-cov pytest-forked pytest-xdist \
+              --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          fi
       - name: Check environment
         run: |
           yolo checks
@@ -337,7 +354,7 @@ jobs:
               if [ "${{ matrix.torch }}" != "latest" ]; then
                 echo "Restoring torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
                 uv pip install "${uv_system_args[@]}" "torch==${{ matrix.torch }}" "torchvision==${{ matrix.torchvision }}" \
-                  --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+                  --index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
                 python - <<'PY'
             import torch
             import torchvision

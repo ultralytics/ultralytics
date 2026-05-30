@@ -4,7 +4,7 @@
 set -euo pipefail
 
 diagnose_environment() {
-  python - <<'PY'
+  python - << 'PY'
 import os
 import platform
 import shutil
@@ -21,8 +21,8 @@ PY
 dump_resources() {
   echo "Resource snapshot: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
   df -h .
-  if command -v free >/dev/null 2>&1; then free -h; fi
-  if [[ "$(uname -s)" == "Linux" ]] && command -v ps >/dev/null 2>&1; then
+  if command -v free > /dev/null 2>&1; then free -h; fi
+  if [[ "$(uname -s)" == "Linux" ]] && command -v ps > /dev/null 2>&1; then
     ps -eo pid,ppid,pcpu,pmem,rss,vsz,comm --sort=-rss | head -20 || true
   fi
 }
@@ -49,7 +49,7 @@ restore_torch() {
     echo "Restoring torch==${MATRIX_TORCH} torchvision==${MATRIX_TORCHVISION}"
     uv pip install "${uv_system_args[@]}" "torch==${MATRIX_TORCH}" "torchvision==${MATRIX_TORCHVISION}" \
       --index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
-    python - <<'PY'
+    python - << 'PY'
 import torch
 import torchvision
 

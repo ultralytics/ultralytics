@@ -1903,45 +1903,66 @@ class DepthMetrics(SimpleClass, DataExportMixin):
         max_depth (float): Maximum valid depth in meters (predictions/gt clamped).
     """
 
-    def __init__(self, names: dict | None = None, min_depth: float = 0.001, max_depth: float = 100.0) -> None:
-        """Initialize depth metric accumulators."""
+    def __init__(
+        self,
+        names: dict | None = None,
+        min_depth: float = 0.001,
+        max_depth: float = 100.0,
+        align: str = "median",
+    ) -> None:
+        """Initialize depth metric accumulators.
+
+        Args:
+            align (str): Per-image scale alignment before scoring, following the Depth Anything
+                eval protocol. "median" rescales each prediction by median(gt)/median(pred) so
+                affine-invariant (scale-ambiguous) outputs are comparable to metric GT; "none"
+                disables alignment and scores predictions in their raw output scale.
+        """
         self.names = names or {}
         self.min_depth = min_depth
         self.max_depth = max_depth
+        self.align = align
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
         self._totals = None  # running sums (7,): [d1,d2,d3,abs_rel,rmse_sq,silog_a,silog_b]
         self._count = 0.0  # total valid pixels
         self._results = {}
 
     def update_stats(self, preds: torch.Tensor, targets: torch.Tensor) -> None:
-        """Accumulate summed metrics over valid pixels.
+        """Accumulate summed metrics over valid pixels, with per-image scale alignment.
 
         Args:
-            preds (torch.Tensor): Predicted depth (B,1,H,W) or (B,H,W), meters.
-            targets (torch.Tensor): Ground-truth depth, same shape.
+            preds (torch.Tensor): Predicted depth (B,1,H,W) or (B,H,W).
+            targets (torch.Tensor): Ground-truth depth in meters, same shape.
         """
         p = preds.squeeze(1) if preds.ndim == 4 else preds
         g = targets.squeeze(1) if targets.ndim == 4 else targets
-        mask = g > self.min_depth
-        if mask.sum() == 0:
-            return
-        p = p[mask].clamp(self.min_depth, self.max_depth).float()
-        g = g[mask].clamp(self.min_depth, self.max_depth).float()
-        thresh = torch.maximum(p / g, g / p)
-        log_diff = torch.log(p) - torch.log(g)
-        totals = torch.stack([
-            (thresh < 1.25).sum(),
-            (thresh < 1.25 ** 2).sum(),
-            (thresh < 1.25 ** 3).sum(),
-            (torch.abs(p - g) / g).sum(),
-            ((p - g) ** 2).sum(),
-            (log_diff ** 2).sum(),
-            log_diff.sum(),
-        ]).double()
-        if self._totals is None:
-            self._totals = torch.zeros(7, dtype=torch.float64, device=totals.device)
-        self._totals += totals
-        self._count += float(mask.sum())
+        if p.ndim == 2:  # single image (H,W) -> (1,H,W) so alignment is always per-image
+            p, g = p[None], g[None]
+        for pi, gi in zip(p, g):
+            mask = gi > self.min_depth
+            if mask.sum() == 0:
+                continue
+            pv = pi[mask].float()
+            gv = gi[mask].clamp(self.min_depth, self.max_depth).float()
+            if self.align == "median":
+                scale = torch.median(gv) / torch.median(pv.clamp_min(self.min_depth))
+                pv = pv * scale
+            pv = pv.clamp(self.min_depth, self.max_depth)
+            thresh = torch.maximum(pv / gv, gv / pv)
+            log_diff = torch.log(pv) - torch.log(gv)
+            totals = torch.stack([
+                (thresh < 1.25).sum(),
+                (thresh < 1.25 ** 2).sum(),
+                (thresh < 1.25 ** 3).sum(),
+                (torch.abs(pv - gv) / gv).sum(),
+                ((pv - gv) ** 2).sum(),
+                (log_diff ** 2).sum(),
+                log_diff.sum(),
+            ]).double()
+            if self._totals is None:
+                self._totals = torch.zeros(7, dtype=torch.float64, device=totals.device)
+            self._totals += totals
+            self._count += float(mask.sum())
 
     def reduce_ddp(self) -> None:
         """All-reduce accumulators across DDP ranks (no-op if not distributed)."""

@@ -2959,7 +2959,9 @@ class DepthRandomScale:
 
         img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
         if depth is not None:
-            depth = cv2.resize(depth, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+            # Nearest, not bilinear: sparse (e.g. LiDAR) GT must not blend valid depth with the
+            # zero/invalid background, which would manufacture spurious near-zero "valid" pixels.
+            depth = cv2.resize(depth, (new_w, new_h), interpolation=cv2.INTER_NEAREST)
             # Scale depth values are preserved (metric depth doesn't change with image scale)
 
         # Random crop to target_size
@@ -3055,7 +3057,9 @@ class DepthFormat:
             if depth is not None:
                 img_h, img_w = img.shape[:2]
                 if depth.shape[:2] != (img_h, img_w):
-                    depth = cv2.resize(depth, (img_w, img_h), interpolation=cv2.INTER_LINEAR)
+                    # Nearest, not bilinear: avoid blending sparse GT with the invalid background
+                    # (bilinear creates near-zero pixels that corrupt abs_rel = |p-g|/g at eval).
+                    depth = cv2.resize(depth, (img_w, img_h), interpolation=cv2.INTER_NEAREST)
                 labels["depth"] = torch.from_numpy(np.ascontiguousarray(depth[None])).float()  # (1, H, W)
 
             # Convert image: HWC BGR uint8 → CHW RGB uint8 (trainer handles /255 + float conversion)

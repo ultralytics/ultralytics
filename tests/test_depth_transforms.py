@@ -35,3 +35,28 @@ def test_depth_color_jitter_preserves_shape_and_dtype():
     out = DepthColorJitter()({"img": img, "depth": depth})
     assert out["img"].shape == (16, 16, 3) and out["img"].dtype == np.uint8
     assert np.array_equal(out["depth"], depth)   # depth unchanged by color jitter
+
+
+def _sparse_depth(h, w, val=10.0):
+    """Sparse depth map: mostly zero (invalid) with a block of valid metric depth."""
+    d = np.zeros((h, w), dtype=np.float32)
+    d[h // 4 : h // 2, w // 4 : w // 2] = val
+    return d
+
+
+def test_depth_format_resize_does_not_blend_sparse_depth():
+    """Resizing sparse depth must not create intermediate near-zero values (no bilinear blend)."""
+    img = np.zeros((32, 32, 3), dtype=np.uint8)        # forces depth resize 16->32
+    depth = _sparse_depth(16, 16, val=10.0)
+    out = DepthFormat()({"img": img, "depth": depth})["depth"].numpy()
+    blended = ((out > 1e-6) & (out < 9.0)).sum()       # values between background(0) and valid(10)
+    assert blended == 0, f"{blended} spurious blended depth pixels from interpolation"
+
+
+def test_depth_random_scale_does_not_blend_sparse_depth():
+    """DepthRandomScale resize must preserve sparse-depth values (no bilinear blend)."""
+    img = np.zeros((40, 40, 3), dtype=np.uint8)
+    depth = _sparse_depth(40, 40, val=10.0)
+    out = DepthRandomScale(scale_range=(1.5, 1.5), target_size=32, p=1.0)({"img": img, "depth": depth})["depth"]
+    blended = ((out > 1e-6) & (out < 9.0)).sum()
+    assert blended == 0, f"{blended} spurious blended depth pixels from interpolation"

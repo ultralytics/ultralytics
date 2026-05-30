@@ -236,37 +236,55 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
         Auto-installs the Edge TPU compiler if not found. The function compiles the TFLite model
         for optimal performance on Google's Edge TPU hardware accelerator.
     """
-    import subprocess
-
+    _sp = __import__("subprocess")
     # Install Edge TPU compiler if not found
-    check_cmd = "edgetpu_compiler --version"
+    check_cmd = ["edgetpu_compiler", "--version"]
     help_url = "https://coral.ai/docs/edgetpu/compiler/"
-    assert LINUX, f"export only supported on Linux. See {help_url}"
-    if subprocess.run(check_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True).returncode != 0:
+    if not LINUX:
+        raise SystemError(f"export only supported on Linux. See {help_url}")
+    if __import__("shutil").which("edgetpu_compiler") is None or _sp.run(check_cmd, stdout=_sp.DEVNULL, stderr=_sp.DEVNULL).returncode != 0:
         LOGGER.info(f"\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}")
-        sudo = "sudo " if is_sudo_available() else ""
-        for c in (
-            f"{sudo}mkdir -p /etc/apt/keyrings",
-            f"curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | {sudo}gpg --no-tty --dearmor -o /etc/apt/keyrings/google.gpg",
-            f'echo "deb [signed-by=/etc/apt/keyrings/google.gpg] https://packages.cloud.google.com/apt coral-edgetpu-stable main" | {sudo}tee /etc/apt/sources.list.d/coral-edgetpu.list',
-        ):
-            subprocess.run(c, shell=True, check=True)
+        sudo_prefix = ["sudo"] if is_sudo_available() else []
+        _sp.run(sudo_prefix + ["mkdir", "-p", "/etc/apt/keyrings"], check=True)
+        curl_proc = _sp.Popen(
+            ["curl", "-fsSL", "https://packages.cloud.google.com/apt/doc/apt-key.gpg"],
+            stdout=_sp.PIPE,
+        )
+        _sp.run(
+            sudo_prefix + ["gpg", "--no-tty", "--dearmor", "-o", "/etc/apt/keyrings/google.gpg"],
+            stdin=curl_proc.stdout,
+            check=True,
+        )
+        curl_proc.wait()
+        deb_line = (
+            "deb [signed-by=/etc/apt/keyrings/google.gpg] "
+            "https://packages.cloud.google.com/apt coral-edgetpu-stable main"
+        )
+        echo_proc = _sp.Popen(["echo", deb_line], stdout=_sp.PIPE)
+        _sp.run(
+            sudo_prefix + ["tee", "/etc/apt/sources.list.d/coral-edgetpu.list"],
+            stdin=echo_proc.stdout,
+            check=True,
+        )
+        echo_proc.wait()
         check_apt_requirements(["edgetpu-compiler"])
 
-    ver = subprocess.run(check_cmd, shell=True, capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
+    ver = _sp.run(check_cmd, capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
     LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
 
-    cmd = (
-        "edgetpu_compiler "
-        f'--out_dir "{output_dir}" '
-        "--show_operations "
-        "--search_delegate "
-        "--delegate_search_step 30 "
-        "--timeout_sec 180 "
-        f'"{tflite_file}"'
+    LOGGER.info(f"{prefix} running edgetpu_compiler --out_dir {output_dir!r} {tflite_file!r}")
+    _sp.run(
+        [
+            "edgetpu_compiler",
+            "--out_dir", str(output_dir),
+            "--show_operations",
+            "--search_delegate",
+            "--delegate_search_step", "30",
+            "--timeout_sec", "180",
+            str(tflite_file),
+        ],
+        check=False,
     )
-    LOGGER.info(f"{prefix} running '{cmd}'")
-    subprocess.run(cmd, shell=True)
     return str(Path(output_dir) / f"{Path(tflite_file).stem}_edgetpu.tflite")
 
 
@@ -287,8 +305,7 @@ def pb2tfjs(pb_file: str, output_dir: str, half: bool = False, int8: bool = Fals
         Auto-installs tensorflowjs if not present. Uses tensorflowjs_converter command-line tool for conversion.
         Handles spaces in file paths and warns if output directory contains spaces.
     """
-    import subprocess
-
+    _sp = __import__("subprocess")
     check_requirements("tensorflowjs")
     import tensorflow as tf
     import tensorflowjs as tfjs
@@ -303,12 +320,18 @@ def pb2tfjs(pb_file: str, output_dir: str, half: bool = False, int8: bool = Fals
 
     quantization = "--quantize_float16" if half else "--quantize_uint8" if int8 else ""
     with spaces_in_path(pb_file) as fpb_, spaces_in_path(output_dir) as f_:  # exporter cannot handle spaces in paths
-        cmd = (
-            "tensorflowjs_converter "
-            f'--input_format=tf_frozen_model {quantization} --output_node_names={outputs} "{fpb_}" "{f_}"'
+        LOGGER.info(f"{prefix} running tensorflowjs_converter --input_format=tf_frozen_model {fpb_!r} -> {f_!r}")
+        _sp.run(
+            [
+                "tensorflowjs_converter",
+                "--input_format=tf_frozen_model",
+                *([quantization] if quantization else []),
+                f"--output_node_names={outputs}",
+                str(fpb_),
+                str(f_),
+            ],
+            check=False,
         )
-        LOGGER.info(f"{prefix} running '{cmd}'")
-        subprocess.run(cmd, shell=True)
 
     if " " in output_dir:
         LOGGER.warning(f"{prefix} your model may not work correctly with spaces in path '{output_dir}'.")

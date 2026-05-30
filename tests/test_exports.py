@@ -496,3 +496,76 @@ def test_export_qnn(isolated_model):
     assert next(Path(file).rglob("*_qnn.onnx"), None), f"QNN export failed, no context binary found in: {file}"
     # Note: on-device inference is not exercised here as it requires Qualcomm Snapdragon hardware
     shutil.rmtree(file, ignore_errors=True)  # cleanup
+
+
+def test_tflite2edgetpu_missing_binary(tmp_path):
+    """Regression: missing edgetpu_compiler binary triggers install path, not FileNotFoundError."""
+    from unittest.mock import MagicMock, patch
+
+    from ultralytics.utils.export.tensorflow import tflite2edgetpu
+
+    tflite_file = tmp_path / "model.tflite"
+    tflite_file.write_bytes(b"\x00")
+
+    def run_side_effect(*args, **kwargs):
+        result = MagicMock()
+        result.returncode = 0
+        result.stdout = b"Edge TPU Compiler version 16.0"
+        return result
+
+    mock_popen = MagicMock()
+    mock_popen.stdout = MagicMock()
+    mock_popen.wait.return_value = 0
+
+    mock_check_apt = MagicMock()
+
+    with (
+        patch("ultralytics.utils.export.tensorflow.LINUX", True),
+        patch("shutil.which", return_value=None),
+        patch("subprocess.run", side_effect=run_side_effect),
+        patch("subprocess.Popen", return_value=mock_popen),
+        patch("ultralytics.utils.export.tensorflow.check_apt_requirements", mock_check_apt),
+        patch("ultralytics.utils.export.tensorflow.is_sudo_available", return_value=False),
+    ):
+        result = tflite2edgetpu(str(tflite_file), str(tmp_path))
+
+    mock_check_apt.assert_called_once_with(["edgetpu-compiler"])
+    assert result == str(tmp_path / "model_edgetpu.tflite")
+
+
+def test_pb2tfjs_path_with_spaces(tmp_path):
+    """Regression: paths with spaces are handled by spaces_in_path, not shell-split."""
+    import sys
+    from unittest.mock import MagicMock, patch
+
+    from ultralytics.utils.export.tensorflow import pb2tfjs
+
+    pb_file = tmp_path / "frozen graph.pb"
+    pb_file.write_bytes(b"\x00" * 10)
+
+    output_dir = tmp_path / "output dir"
+    output_dir.mkdir()
+
+    mock_tf = MagicMock()
+    mock_tfjs = MagicMock()
+    mock_tfjs.__version__ = "4.0.0"
+
+    mock_run = MagicMock(return_value=MagicMock(returncode=0))
+
+    with (
+        patch("ultralytics.utils.export.tensorflow.check_requirements"),
+        patch.dict(sys.modules, {"tensorflow": mock_tf, "tensorflowjs": mock_tfjs}),
+        patch("ultralytics.utils.export.tensorflow.gd_outputs", return_value=["output:0"]),
+        patch("subprocess.run", mock_run),
+    ):
+        result = pb2tfjs(str(pb_file), str(output_dir))
+
+    mock_run.assert_called_once()
+    cmd = mock_run.call_args[0][0]
+    assert isinstance(cmd, list), "subprocess.run must receive a list (no shell=True)"
+    assert cmd[0] == "tensorflowjs_converter"
+    input_path_arg = cmd[-2]
+    output_path_arg = cmd[-1]
+    assert " " not in input_path_arg, f"Input path has spaces: {input_path_arg!r}"
+    assert " " not in output_path_arg, f"Output path has spaces: {output_path_arg!r}"
+    assert result == str(output_dir)

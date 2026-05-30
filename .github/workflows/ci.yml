@@ -343,8 +343,8 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.12"
-      - name: Install JRE for IMX export
-        run: sudo apt-get update && sudo apt-get install -y openjdk-21-jre
+      - name: Install export system dependencies
+        run: sudo apt-get update && sudo apt-get install -y openjdk-21-jre flatbuffers-compiler
       - name: Install base package
         run: uv pip install --system -e ".[export-base]" pytest
       - name: Cache uv wheels

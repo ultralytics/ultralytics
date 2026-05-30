@@ -142,10 +142,16 @@ jobs:
         run: |
           slow=""
           torch=""
+          numpy="numpy<=2.3.5"
           if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          uv pip install ${{ matrix.os != 'cpu-latest' && '--system' || '' }} -e ".[export-base,solutions]" $torch "numpy<=2.3.5" aiohttp pytest-cov pytest-xdist --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          if [ "${{ matrix.torch }}" != "latest" ] && [ "${{ matrix.python }}" != "3.13" ]; then
+              numpy="numpy<2.0.0"
+          fi
+          uv pip install ${{ matrix.os != 'cpu-latest' && '--system' || '' }} -e ".[export-base,solutions]" \
+            $torch "$numpy" aiohttp pytest-cov pytest-xdist --extra-index-url https://download.pytorch.org/whl/cpu \
+            --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks
@@ -279,21 +285,29 @@ jobs:
             uv_system_args=(--system)
           fi
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            numpy="numpy<=2.3.5"
             torch_packages=(torch torchvision)
             if [ "${{ matrix.torch }}" != "latest" ]; then
               torch_packages=("torch==${{ matrix.torch }}" "torchvision==${{ matrix.torchvision }}")
             fi
+            if [ "${{ matrix.torch }}" != "latest" ] && [ "${{ matrix.python }}" != "3.13" ]; then
+              numpy="numpy<2.0.0"
+            fi
             uv pip install "${uv_system_args[@]}" "${torch_packages[@]}" \
               --index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
             uv pip install "${uv_system_args[@]}" -e ".[export-base,solutions]" \
-              "numpy<=2.3.5" aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist
+              "$numpy" aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist
           else
             torch=""
+            numpy="numpy<=2.3.5"
             if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
             fi
+            if [ "${{ matrix.torch }}" != "latest" ] && [ "${{ matrix.python }}" != "3.13" ]; then
+              numpy="numpy<2.0.0"
+            fi
             uv pip install "${uv_system_args[@]}" -e ".[export-base,solutions]" $torch \
-              "numpy<=2.3.5" aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist \
+              "$numpy" aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist \
               --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
           fi
       - name: Check environment

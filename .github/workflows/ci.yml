@@ -310,7 +310,7 @@ jobs:
             ultralytics-test-assets-${{ runner.os }}-
       - name: Pre-cache test assets
         shell: bash # for Windows compatibility
-        run: python tests/cache_test_assets.py
+        run: python tests/cache_test_assets.py --slow
       - name: Pytest tests
         uses: ultralytics/actions/retry@main
         with:
@@ -472,7 +472,7 @@ jobs:
           restore-keys: |
             ultralytics-test-assets-${{ runner.os }}-
       - name: Pre-cache test assets
-        run: python tests/cache_test_assets.py
+        run: python tests/cache_test_assets.py --slow
       - name: Pytest tests
         run: pytest -n auto --dist=loadfile --slow tests/ --deselect tests/test_exports.py::test_export_imx
       - name: Activate Virtual Environment for Benchmarks

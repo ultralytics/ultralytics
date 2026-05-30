@@ -45,6 +45,21 @@ def run_paths(name: str, exist_ok: bool = False) -> dict:
     return dict(project=WANDB_PROJECT, name=name, save_dir=str(LOCAL_ROOT / name), exist_ok=exist_ok)
 
 
+def multi_results_csv(parent_name: str, root: Path = NFS_MIRROR_ROOT) -> Path:
+    """Return the ``<root>/<parent_name>/multi_results.csv`` path for a multi_det parent run.
+
+    Single source of truth for this layout so the multi_det writer and reader cannot drift on path or filename.
+
+    Args:
+        parent_name (str): multi_det parent run name.
+        root (Path, optional): Base root, the shared NFS_MIRROR_ROOT or the host-local LOCAL_ROOT.
+
+    Returns:
+        (Path): Absolute path to the parent run's aggregate CSV.
+    """
+    return root / parent_name / "multi_results.csv"
+
+
 def patch_resume(ckpt_path, name: str | None = None, device=None, data: str | None = None) -> str:
     """Rewrite a checkpoint's ``train_args`` to clean W&B project + absolute local save_dir, in place.
 

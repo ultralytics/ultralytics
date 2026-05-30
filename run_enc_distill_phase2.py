@@ -246,6 +246,53 @@ def _scale_epochs_patience_for_dataset(
     return epochs, patience, n_imgs, iters_per_ep
 
 
+def load_multi_results(parent_name: str, expected: list[str] | None = None) -> tuple[dict, dict]:
+    """Read a multi_det aggregate CSV as the layout-agnostic source of truth for one parent run.
+
+    Prefers the shared NFS mirror, falls back to the host-local copy. Raises on a missing file, a missing MACRO row, a
+    duplicate dataset row, or any dataset in ``expected`` without a row, so a partial chain or a wrong-layout lookup
+    fails loudly instead of silently treating absent values as zero (the failure mode that produced the inet-l 0.0000
+    artifact when results were re-derived from wandb groups across the flat-vs-nested layout split).
+
+    Args:
+        parent_name (str): multi_det parent run name; the CSV lives at ``<root>/<parent_name>/multi_results.csv``.
+        expected (list, optional): Dataset basenames that must each be present.
+
+    Returns:
+        (dict): Per-dataset metrics keyed by basename, each with map50, map50_95, fitness.
+        (dict): The MACRO-row metrics with map50, map50_95, fitness.
+    """
+    for root in (paths.NFS_MIRROR_ROOT, paths.LOCAL_ROOT):
+        csv_path = paths.multi_results_csv(parent_name, root)
+        try:
+            text = csv_path.read_text()
+            break
+        except FileNotFoundError:
+            continue
+    else:
+        raise FileNotFoundError(f"multi_results.csv not found for {parent_name!r} under NFS or local root")
+
+    per_dataset = {}
+    macro = None
+    for line in text.splitlines()[1:]:
+        if not line.strip():
+            continue
+        name, map50, map50_95, fitness = line.split(",")
+        row = {"map50": float(map50), "map50_95": float(map50_95), "fitness": float(fitness)}
+        if name == "MACRO":
+            macro = row
+        elif name in per_dataset:
+            raise ValueError(f"{csv_path}: duplicate row for dataset {name!r}")
+        else:
+            per_dataset[name] = row
+    if macro is None:
+        raise ValueError(f"{csv_path}: no MACRO row, the run is incomplete")
+    missing = sorted(set(expected or ()) - per_dataset.keys())
+    if missing:
+        raise ValueError(f"{csv_path}: missing rows for {missing}")
+    return per_dataset, macro
+
+
 def _run_multi_det(
     gpu: str,
     phase1_weights: str,
@@ -289,8 +336,8 @@ def _run_multi_det(
 
     parent_save_dir = paths.LOCAL_ROOT / parent_name
     parent_save_dir.mkdir(parents=True, exist_ok=True)
-    csv_path = parent_save_dir / "multi_results.csv"
-    nfs_csv = paths.NFS_MIRROR_ROOT / parent_name / "multi_results.csv"
+    csv_path = paths.multi_results_csv(parent_name, paths.LOCAL_ROOT)
+    nfs_csv = paths.multi_results_csv(parent_name)
     if not csv_path.exists():
         csv_path.write_text("dataset,map50,map50_95,fitness\n")
 

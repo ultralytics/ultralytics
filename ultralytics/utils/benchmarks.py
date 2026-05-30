@@ -198,12 +198,14 @@ def benchmark(
             if format == "-":
                 filename = model.pt_path or model.ckpt_path or model.model_name
                 exported_model = deepcopy(model)  # PyTorch format
-            elif env in EXPORT_ENVS:  # isolated venv subprocess: no base-env mutation; unavailable row if absent
+            elif (
+                env in EXPORT_ENVS
+            ):  # isolated venv subprocess; export-only since the vendor runtime is absent from base env
                 py = isolated_python(env)
                 assert py is not None, (
                     f"isolated env '{env}' unavailable, build with .github/scripts/create-export-env.py"
                 )
-                # device is omitted: isolated venvs are CPU-only torch, so the subprocess export defaults to CPU
+                # device omitted: isolated venvs are CPU-only torch, so the subprocess export defaults to CPU
                 filename = run_isolated_export(
                     py,
                     model.pt_path or model.ckpt_path or model.model_name,
@@ -218,8 +220,10 @@ def benchmark(
                         **kwargs,
                     },
                 )
-                exported_model = YOLO(filename, task=model.task)
                 assert suffix in str(filename), "export failed"
+                # Inference can't run in the base env (the vendor runtime lives only in the venv): report export-only.
+                y.append([name, "❎", round(file_size(filename), 1), None, None, None])
+                continue
             else:
                 filename = deepcopy(model).export(
                     imgsz=imgsz,
@@ -239,7 +243,6 @@ def benchmark(
             assert model.task != "pose" or format != "pb", "GraphDef Pose inference is not supported"
             assert format not in {"edgetpu", "tfjs"}, "inference not supported"
             assert format != "coreml" or platform.system() == "Darwin", "inference only supported on macOS>=10.13"
-            assert format != "axelera", "inference only supported on Axelera hardware"
             exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half, verbose=False)
 
             # Validate

@@ -68,8 +68,7 @@ Hailo export compatibility depends on the model head, input image size, class co
 | :-------------------------------------- | :--------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
 | YOLOv8 / YOLO11 detection, stock models | ✅ Good          | Shared decoupled detection head; `.alls`, end nodes, and NMS config still need to match the exported graph and fixed `imgsz`.              |
 | Custom YOLOv8 / YOLO11 detection        | ✅ Possible      | Requires per-model NMS configuration generated from class count, strides, and detection-head layout; static Model Zoo JSON will not match. |
-| YOLOv9 detection                        | ⚠️ Validate      | Similar detection-head pattern, but compile and output parsing should be tested before treating it as supported.                           |
-| YOLOv10 / YOLO26 end-to-end detection   | ❌ Not supported | End-to-end/NMS-free exports do not match the Hailo NMS post-processing path; use a traditional detection head if testing manually.         |
+| YOLO26 end-to-end detection             | ❌ Not supported | End-to-end/NMS-free exports do not match the Hailo NMS post-processing path; use a traditional detection head if testing manually.         |
 | Dynamic or arbitrary image sizes        | ❌ Not supported | Hailo compilation uses a fixed input shape; `.alls` and NMS settings must match the exported `imgsz`.                                      |
 
 ## Installation
@@ -364,6 +363,16 @@ hailortcli fw-control identify
 ```
 
 You should see the device type, firmware version, and serial number printed.
+
+```bash
+Executing on device: 0001:01:00.0
+Identifying board
+Control Protocol Version: 2
+Firmware Version: 4.23.0 (release,app,extended context switch buffer)
+Logger Version: 0
+Board Name: Hailo-8
+Device Architecture: HAILO8
+```
 
 ### Step 3: Run Inference
 

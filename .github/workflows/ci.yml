@@ -389,8 +389,12 @@ jobs:
           ULTRALYTICS_ISOLATED_VENVS: ${{ runner.temp }}/venvs
           YOLO_AUTOINSTALL: "false"
         run: |
+          slow_arg=""
+          if [[ "${{ github.event_name }}" == "schedule" || "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            slow_arg="--slow"
+          fi
           for env in $(python .github/scripts/create-export-env.py --list); do
-            "${ULTRALYTICS_ISOLATED_VENVS}/${env}/bin/python" -m pytest -vv -s --slow tests/test_exports.py --export-env "$env"
+            "${ULTRALYTICS_ISOLATED_VENVS}/${env}/bin/python" -m pytest -vv -s $slow_arg tests/test_exports.py --export-env "$env"
           done
       - name: Prune uv Cache
         run: uv cache prune --ci

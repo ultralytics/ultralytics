@@ -461,7 +461,7 @@ def test_export_axelera(isolated_model):
 @pytest.mark.slow
 @pytest.mark.skipif(not LINUX or ARM64, reason="DEEPX export only supported on non-aarch64 Linux")
 @pytest.mark.skipif(
-    not checks.IS_PYTHON_MINIMUM_3_12, reason="Requires Python>=3.12 for CI validation due to torch upgrades"
+    not checks.IS_PYTHON_3_12, reason="Requires Python 3.12; dx-com 2.3.0 does not provide Python 3.13 wheels"
 )
 def test_export_deepx(isolated_model):
     """Test YOLO export to DEEPX format."""

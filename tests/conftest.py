@@ -36,7 +36,7 @@ def pytest_addoption(parser):
     )
 
 
-def _export_format_from_item(item):
+def _export_format_from_item(item, formats):
     """Infer the export format covered by a tests/test_exports.py item."""
     if Path(str(item.fspath)).name != "test_exports.py":
         return None
@@ -47,22 +47,6 @@ def _export_format_from_item(item):
         return None
 
     suffix = name[len("test_export_") :]
-    formats = {
-        "torchscript",
-        "onnx",
-        "openvino",
-        "coreml",
-        "tflite",
-        "pb",
-        "paddle",
-        "mnn",
-        "ncnn",
-        "imx",
-        "executorch",
-        "axelera",
-        "deepx",
-        "qnn",
-    }
     return next(
         (fmt for fmt in sorted(formats, key=len, reverse=True) if suffix == fmt or suffix.startswith(f"{fmt}_")), None
     )
@@ -87,7 +71,7 @@ def pytest_collection_modifyitems(config, items):
 
     env_by_format = dict(zip(export_formats()["Argument"], export_formats()["Env"]))
     for item in items:
-        fmt = _export_format_from_item(item)
+        fmt = _export_format_from_item(item, env_by_format)
         if fmt and env_by_format.get(fmt) != export_env:
             item.add_marker(pytest.mark.skip(reason=f"export format '{fmt}' belongs to env '{env_by_format[fmt]}'"))
 

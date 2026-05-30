@@ -332,7 +332,7 @@ jobs:
         run: uv cache prune --ci
 
   IsolatedExports:
-    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.tests == 'true') || github.event_name == 'schedule'
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.tests == 'true') || github.event_name == 'schedule'
     timeout-minutes: 360
     runs-on: ubuntu-latest
     steps:
@@ -368,10 +368,12 @@ jobs:
       - name: Build and smoke-validate export environments
         env:
           ULTRALYTICS_ISOLATED_VENVS: ${{ runner.temp }}/venvs
+          YOLO_AUTOINSTALL: "false"
         run: python .github/scripts/create-export-env.py
       - name: Run export tests in their isolated environments
         env:
           ULTRALYTICS_ISOLATED_VENVS: ${{ runner.temp }}/venvs
+          YOLO_AUTOINSTALL: "false"
         run: |
           for env in $(python .github/scripts/create-export-env.py --list); do
             "${ULTRALYTICS_ISOLATED_VENVS}/${env}/bin/python" -m pytest -vv -s --slow tests/test_exports.py --export-env "$env"

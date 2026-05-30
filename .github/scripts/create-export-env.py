@@ -54,7 +54,7 @@ def build_env(env_id, root):
             "\n".join(f'import os; os.environ.setdefault("{k}", "{v}")' for k, v in recipe["env"].items()) + "\n"
         )
 
-    env = {**os.environ, **recipe["env"]}
+    env = {**os.environ, "YOLO_AUTOINSTALL": "false", **recipe["env"]}
     yolo = venv / ("Scripts/yolo.exe" if os.name == "nt" else "bin/yolo")
     for command in recipe["smoke"]:
         cmd = command.split()

@@ -145,7 +145,7 @@ jobs:
           if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          uv pip install ${{ matrix.os != 'cpu-latest' && '--system' || '' }} -e ".[export-base,solutions]" $torch pytest-cov pytest-xdist --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install ${{ matrix.os != 'cpu-latest' && '--system' || '' }} -e ".[export-base,solutions]" $torch aiohttp pytest-cov pytest-xdist --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks
@@ -286,14 +286,14 @@ jobs:
             uv pip install "${uv_system_args[@]}" "${torch_packages[@]}" \
               --index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
             uv pip install "${uv_system_args[@]}" -e ".[export-base,solutions]" \
-              faster-coco-eval mlflow pytest-cov pytest-xdist
+              aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist
           else
             torch=""
             if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
             fi
             uv pip install "${uv_system_args[@]}" -e ".[export-base,solutions]" $torch \
-              faster-coco-eval mlflow pytest-cov pytest-xdist \
+              aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist \
               --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
           fi
       - name: Check environment

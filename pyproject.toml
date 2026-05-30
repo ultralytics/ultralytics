@@ -94,6 +94,8 @@ export-base = [
     "onnx>=1.12.0,<1.18.0; platform_system == 'Darwin' and python_version < '3.13'",  # TF inference hanging on MacOS (tested up to onnx==1.20.0)
     "onnx>=1.20.0; platform_system == 'Darwin' and python_version >= '3.13'",
     "onnxslim>=0.1.82",
+    "onnxruntime<1.20.0; python_version < '3.9'", # ONNX export validation and inference
+    "onnxruntime>=1.20.0; python_version >= '3.9'", # ONNX export validation and inference
     "openvino>=2024.0.0",  # OpenVINO export
     "packaging>=26.0; platform_machine == 'aarch64' and platform_system == 'Linux' and python_version >= '3.9'", # IMX export bug
 ]
@@ -120,6 +122,7 @@ export = [
 ]
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching
+    "lap>=0.5.12",  # for solution tracking linear assignment
     "streamlit>=1.51.0; python_version >= '3.10'",    # for live inference on web browser, i.e `yolo streamlit-predict`
     "streamlit>=1.29.0,<1.51.0; python_version < '3.10' and (python_version < '3.9' or platform_machine != 'aarch64' or platform_system != 'Linux')",
     "flask>=3.0.1",  # for similarity search solution

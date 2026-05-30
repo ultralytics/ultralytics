@@ -56,6 +56,15 @@ MODEL_REGISTRY: dict[str, dict[str, Any]] = {
         "tap_p5": "model.10",
         "imgsz": 384,
     },
+    "tx2": {
+        # imgsz=448 retrain of champion architecture; +0.44pp R1 over champion at 384.
+        "ckpt_env_var": "H8_TX2_CKPT",
+        "kind": "yolo_reid",
+        "model_yaml": "ultralytics/cfg/models/26/yolo26l-reid-2psa.yaml",
+        "tap_p4": "model.6",
+        "tap_p5": "model.10",
+        "imgsz": 448,
+    },
     "solider": {
         "ckpt_env_var": "H8_SOLIDER_CKPT",
         "kind": "swin",

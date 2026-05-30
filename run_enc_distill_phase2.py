@@ -33,6 +33,7 @@ Flags:
 
 import os
 import re
+import shutil
 import sys
 from pathlib import Path
 
@@ -261,7 +262,8 @@ def _run_multi_det(
 
     Per dataset: fresh YOLO(model_yaml) with backbone from phase1_weights, train using the canonical yolo26s.pt det
     recipe (see _build_det_train_args), then val. Each dataset is its own W&B run named ``{parent_name}-{basename}``.
-    Aggregate metrics are written to ``{parent save_dir}/multi_results.csv`` and printed as a macro average at the end.
+    Aggregate metrics are written to ``{parent save_dir}/multi_results.csv`` (mirrored to the NFS run dir) and printed
+    as a macro average at the end.
 
     Single-GPU only (same DDP-callback-loss caveat as other det modes).
 
@@ -288,8 +290,18 @@ def _run_multi_det(
     parent_save_dir = paths.LOCAL_ROOT / parent_name
     parent_save_dir.mkdir(parents=True, exist_ok=True)
     csv_path = parent_save_dir / "multi_results.csv"
+    nfs_csv = paths.NFS_MIRROR_ROOT / parent_name / "multi_results.csv"
     if not csv_path.exists():
         csv_path.write_text("dataset,map50,map50_95,fitness\n")
+
+    def _mirror_csv() -> None:
+        # nfs_sync mirrors only per-dataset save_dirs, never this parent-level CSV, so it stays host-local otherwise.
+        # Warn-only on filesystem/NFS errors so a transient mirror failure never kills the run (nfs_sync is non-blocking for the same reason).
+        try:
+            nfs_csv.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(csv_path, nfs_csv)
+        except OSError as e:
+            print(f"[multi_det_finetune] NFS mirror of multi_results.csv failed (continuing): {e}")
 
     base_epochs = epochs or 70
     base_patience = patience or 100
@@ -364,11 +376,13 @@ def _run_multi_det(
         results.append(row)
         with csv_path.open("a") as f:
             f.write(f"{row['dataset']},{row['map50']:.4f},{row['map50_95']:.4f},{row['fitness']:.4f}\n")
+        _mirror_csv()
         print(f"[done] {basename} mAP50={row['map50']:.4f} mAP50-95={row['map50_95']:.4f} fitness={row['fitness']:.4f}")
 
     macro = {k: sum(r[k] for r in results) / len(results) for k in ("map50", "map50_95", "fitness")}
     with csv_path.open("a") as f:
         f.write(f"MACRO,{macro['map50']:.4f},{macro['map50_95']:.4f},{macro['fitness']:.4f}\n")
+    _mirror_csv()
     print(
         f"\n[multi_det_finetune] MACRO over {len(results)} datasets: "
         f"mAP50={macro['map50']:.4f} mAP50-95={macro['map50_95']:.4f} fitness={macro['fitness']:.4f}"

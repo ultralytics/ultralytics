@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Generator
 from pathlib import Path
-from typing import Any, Literal, overload
+from typing import Any
 
 import torch
 
@@ -358,7 +358,6 @@ class YOLOE(Model):
         self.metrics = validator.metrics
         return validator.metrics
 
-    @overload
     def predict(
         self,
         source=None,
@@ -366,85 +365,6 @@ class YOLOE(Model):
         visual_prompts: dict[str, list] = {},
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
-        *,
-        is_cli: Literal[None] = None,
-        **kwargs,
-    ) -> Generator[Results, None, None] | list[Results] | None: ...
-
-    @overload
-    def predict(
-        self,
-        source=None,
-        stream: Literal[False] = False,
-        visual_prompts: dict[str, list] = {},
-        refer_image=None,
-        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
-        *,
-        is_cli: Literal[False] = False,
-        **kwargs,
-    ) -> list[Results]: ...
-
-    @overload
-    def predict(
-        self,
-        source=None,
-        stream: Literal[True] = True,
-        visual_prompts: dict[str, list] = {},
-        refer_image=None,
-        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
-        *,
-        is_cli: Literal[False] = False,
-        **kwargs,
-    ) -> Generator[Results, None, None]: ...
-
-    @overload
-    def predict(
-        self,
-        source=None,
-        stream: bool = False,
-        visual_prompts: dict[str, list] = {},
-        refer_image=None,
-        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
-        *,
-        is_cli: Literal[False] = False,
-        **kwargs,
-    ) -> Generator[Results, None, None] | list[Results]: ...
-
-    @overload
-    def predict(
-        self,
-        source=None,
-        stream: bool = False,
-        visual_prompts: dict[str, list] = {},
-        refer_image=None,
-        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
-        *,
-        is_cli: Literal[True] = True,
-        **kwargs,
-    ) -> None: ...
-
-    @overload
-    def predict(
-        self,
-        source=None,
-        stream: bool = False,
-        visual_prompts: dict[str, list] = {},
-        refer_image=None,
-        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
-        *,
-        is_cli: bool = ...,
-        **kwargs,
-    ) -> Generator[Results, None, None] | list[Results] | None: ...
-
-    def predict(
-        self,
-        source=None,
-        stream: bool = False,
-        visual_prompts: dict[str, list] = {},
-        refer_image=None,
-        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
-        *,
-        is_cli: bool | None = None,
         **kwargs,
     ) -> Generator[Results, None, None] | list[Results] | None:
         """Run prediction on images, videos, directories, streams, etc.
@@ -459,8 +379,6 @@ class YOLOE(Model):
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
             predictor (callable): Custom predictor class for visual prompt predictions. Defaults to
                 YOLOEVPDetectPredictor.
-            is_cli (bool, optional): Whether run by command line. If True, return None. If False, return the prediction
-                results. Defaults to None, which will determine the value by `sys.argv`.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:
@@ -520,4 +438,4 @@ class YOLOE(Model):
             self.predictor = None  # reset predictor if no visual prompts
         self.overrides["agnostic_nms"] = True  # use agnostic nms for YOLOE default
 
-        return super().predict(source, stream, is_cli=is_cli, **kwargs)
+        return super().predict(source, stream, **kwargs)

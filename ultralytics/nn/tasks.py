@@ -693,7 +693,9 @@ class YOLOAnomalyV2Model(DetectionModel):
             # ``seg_detach=True`` (default) preserves v2.2 behavior: SegBranch is trained only
             # by its own seg loss. ``seg_detach=False`` lets det loss flow through fusion ->
             # SegBranch so the head learns detection-useful heatmaps.
-            seg_pred = (main.detach() if self.seg_detach else main).sigmoid()
+            # getattr default preserves backwards compat with checkpoints saved before
+            # the seg_detach knob existed (those pickled models lack the attribute).
+            seg_pred = (main.detach() if getattr(self, "seg_detach", True) else main).sigmoid()
             if seg_pred.shape[2] != self.mask_size or seg_pred.shape[3] != self.mask_size:
                 seg_pred = torch.nn.functional.interpolate(
                     seg_pred, size=(self.mask_size, self.mask_size), mode="bilinear", align_corners=False

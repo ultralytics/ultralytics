@@ -404,7 +404,7 @@ def check_apt_requirements(requirements):
 
 
 @TryExcept()
-def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=(), install=True, cmds=""):
+def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=(), install=True, cmds="", constrain=()):
     """Check if installed dependencies meet Ultralytics YOLO models requirements and attempt to auto-update if needed.
 
     Args:
@@ -414,6 +414,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         exclude (tuple): Tuple of package names to exclude from checking.
         install (bool): If True, attempt to auto-update packages that don't meet requirements.
         cmds (str): Additional commands to pass to the pip install command when auto-updating.
+        constrain (tuple | list): Extra version constraints always appended to the install command even if already
+            satisfied, preventing the resolver from upgrading those packages during install.
 
     Examples:
         >>> from ultralytics.utils.checks import check_requirements
@@ -487,6 +489,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         )
 
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
+    if s and constrain:  # append version constraints to prevent upgrades during install
+        s += " " + " ".join(f'"{c}"' for c in constrain)
     if s:
         if install and AUTOINSTALL:  # check environment variable
             # Note uv fails on arm64 macOS and Raspberry Pi runners
@@ -676,7 +680,7 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
         if file.startswith("gs://"):
             file = "https://storage.googleapis.com/" + file[5:]  # convert gs:// to public HTTPS URL
         url = file  # warning: Pathlib turns :// -> :/
-        file = Path(download_dir) / url2file(file)  # '%2F' to '/', split https://url.com/file.txt?auth
+        file = Path(download_dir) / url2file(file)  # '%2F' to '/', split authentication query strings
         if file.exists():
             LOGGER.info(f"Found {clean_url(url)} locally at {file}")  # file already exists
         else:
@@ -1063,3 +1067,4 @@ IS_PYTHON_3_13 = PYTHON_VERSION.startswith("3.13")
 IS_PYTHON_MINIMUM_3_9 = check_python("3.9", hard=False)
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
 IS_PYTHON_MINIMUM_3_12 = check_python("3.12", hard=False)
+IS_PYTHON_MINIMUM_3_13 = check_python("3.13", hard=False)

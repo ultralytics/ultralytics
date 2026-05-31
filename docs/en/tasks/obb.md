@@ -54,7 +54,7 @@ Train YOLO26n-obb on the DOTA8 dataset for 100 [epochs](https://www.ultralytics.
 
 !!! note
 
-    OBB angles are constrained to the range **0–90 degrees** (exclusive of 90). Angles of 90 degrees or greater are not supported.
+    An OBB and its 180° rotation are identical, so rotation is defined modulo 180° and the box has no direction. Internally the angle is stored in radians and normalized to **`[-π/4, 3π/4)`** (`[-45°, 135°)`), the box width `w` is taken as the longer side, and the angle is defined as the clockwise angle from the positive x-axis to the direction of `w`. The `[0°, 90°)` form is the regularized DOTA-style convention and is not applied at training or inference.
 
 !!! example
 
@@ -182,6 +182,21 @@ Use a trained YOLO26n-obb model to run predictions on images.
 </p>
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
+
+### Results Output
+
+Oriented bounding box detection returns one `Results` object per image. The primary prediction field is `result.obb`,
+which contains rotated boxes, class IDs, and confidence scores for each detected object.
+
+| Attribute             | Type            | Shape     | Description                              |
+| --------------------- | --------------- | --------- | ---------------------------------------- |
+| `result.obb`          | `OBB`           | `(N)`     | Oriented boxes.                          |
+| `result.obb.data`     | `torch.float32` | `(N,7/8)` | Raw rotated boxes with confidence/class. |
+| `result.obb.xywhr`    | `torch.float32` | `(N,5)`   | `xywhr` rotated boxes.                   |
+| `result.obb.xyxyxyxy` | `torch.float32` | `(N,4,2)` | Four corner points.                      |
+| `result.obb.conf`     | `torch.float32` | `(N,)`    | Confidence scores.                       |
+
+For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
 
 ## Export
 

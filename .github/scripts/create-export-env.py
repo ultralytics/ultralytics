@@ -14,7 +14,9 @@ from ultralytics.engine.exporter import EXPORT_ENVS
 
 def isolated_env_ids():
     """Return export environments that should run outside the shared base CI environment."""
-    return sorted((env for env, recipe in EXPORT_ENVS.items() if recipe["python"]), key=lambda env: env != "isolated-deepx")
+    return sorted(
+        (env for env, recipe in EXPORT_ENVS.items() if recipe["python"]), key=lambda env: env != "isolated-deepx"
+    )
 
 
 def build_env(env_id, root):

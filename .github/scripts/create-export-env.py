@@ -14,7 +14,7 @@ from ultralytics.engine.exporter import EXPORT_ENVS
 
 def isolated_env_ids():
     """Return export environments that should run outside the shared base CI environment."""
-    return [env for env, recipe in EXPORT_ENVS.items() if recipe["python"]]
+    return sorted((env for env, recipe in EXPORT_ENVS.items() if recipe["python"]), key=lambda env: env != "isolated-deepx")
 
 
 def build_env(env_id, root):
@@ -26,43 +26,40 @@ def build_env(env_id, root):
     shutil.rmtree(venv, ignore_errors=True)
     subprocess.run(["uv", "venv", str(venv), "--python", recipe["python"]], check=True)
     python = venv / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
-    try:
-        package = f"{repo}[{','.join(recipe['extras'])}]"
-        indexes = [token for flag, url in recipe["indexes"] for token in (flag, url)]
-        torch = [f"torch{recipe['torch']}"] if recipe["torch"] else []
-        subprocess.run(
-            [
-                "uv",
-                "pip",
-                "install",
-                "--python",
-                str(python),
-                "-e",
-                package,
-                "pytest",
-                *torch,
-                *recipe["requirements"],
-                *indexes,
-                "--index-strategy",
-                "unsafe-best-match",
-            ],
-            check=True,
+    package = f"{repo}[{','.join(recipe['extras'])}]"
+    indexes = [token for flag, url in recipe["indexes"] for token in (flag, url)]
+    torch = [f"torch{recipe['torch']}"] if recipe["torch"] else []
+    subprocess.run(
+        [
+            "uv",
+            "pip",
+            "install",
+            "--python",
+            str(python),
+            "-e",
+            package,
+            "pytest",
+            *torch,
+            *recipe["requirements"],
+            *indexes,
+            "--index-strategy",
+            "unsafe-best-match",
+        ],
+        check=True,
+    )
+
+    if recipe["env"]:
+        site_packages = next(venv.glob("lib/python*/site-packages"))
+        site_packages.joinpath("sitecustomize.py").write_text(
+            "\n".join(f'import os; os.environ.setdefault("{k}", "{v}")' for k, v in recipe["env"].items()) + "\n"
         )
 
-        if recipe["env"]:
-            site_packages = next(venv.glob("lib/python*/site-packages"))
-            site_packages.joinpath("sitecustomize.py").write_text(
-                "\n".join(f'import os; os.environ.setdefault("{k}", "{v}")' for k, v in recipe["env"].items()) + "\n"
-            )
-
-        env = {**os.environ, "YOLO_AUTOINSTALL": "false", **recipe["env"]}
-        yolo = venv / ("Scripts/yolo.exe" if os.name == "nt" else "bin/yolo")
-        for command in recipe["smoke"]:
-            cmd = command.split()
-            executable = yolo if cmd[0] == "yolo" else venv / "bin" / cmd[0]
-            subprocess.run([str(executable), *cmd[1:]], check=True, cwd=venv, env=env)
-    finally:
-        shutil.rmtree(venv, ignore_errors=True)
+    env = {**os.environ, "YOLO_AUTOINSTALL": "false", **recipe["env"]}
+    yolo = venv / ("Scripts/yolo.exe" if os.name == "nt" else "bin/yolo")
+    for command in recipe["smoke"]:
+        cmd = command.split()
+        executable = yolo if cmd[0] == "yolo" else venv / "bin" / cmd[0]
+        subprocess.run([str(executable), *cmd[1:]], check=True, cwd=venv, env=env)
 
 
 def main():

@@ -199,34 +199,42 @@ jobs:
             python: "3.9"
             torch: "1.9.0"
             torchvision: "0.10.0"
+            numpy_extra: export-legacy-torch
           - os: ubuntu-latest
             python: "3.9"
             torch: "1.10.0"
             torchvision: "0.11.0"
+            numpy_extra: export-legacy-torch
           - os: ubuntu-latest
             python: "3.10"
             torch: "1.11.0"
             torchvision: "0.12.0"
+            numpy_extra: export-legacy-torch
           - os: ubuntu-latest
             python: "3.10"
             torch: "1.12.0"
             torchvision: "0.13.0"
+            numpy_extra: export-legacy-torch
           - os: ubuntu-latest
             python: "3.10"
             torch: "1.13.0"
             torchvision: "0.14.0"
+            numpy_extra: export-legacy-torch
           - os: ubuntu-latest
             python: "3.11"
             torch: "2.0.0"
             torchvision: "0.15.0"
+            numpy_extra: export-legacy-torch
           - os: ubuntu-latest
             python: "3.11"
             torch: "2.1.0"
             torchvision: "0.16.0"
+            numpy_extra: export-legacy-torch
           - os: ubuntu-latest
             python: "3.12"
             torch: "2.2.0"
             torchvision: "0.17.0"
+            numpy_extra: export-legacy-torch
           - os: ubuntu-latest
             python: "3.12"
             torch: "2.3.0"
@@ -280,6 +288,10 @@ jobs:
           if [ "${{ matrix.os }}" != "cpu-latest" ]; then
             uv_system_args=(--system)
           fi
+          legacy_extra=""
+          if [ -n "${{ matrix.numpy_extra }}" ]; then
+            legacy_extra=",${{ matrix.numpy_extra }}"
+          fi
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             torch_packages=(torch torchvision)
             if [ "${{ matrix.torch }}" != "latest" ]; then
@@ -287,14 +299,14 @@ jobs:
             fi
             uv pip install "${uv_system_args[@]}" "${torch_packages[@]}" \
               --index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
-            uv pip install "${uv_system_args[@]}" -e ".[export-base,solutions]" \
+            uv pip install "${uv_system_args[@]}" -e ".[export-base,solutions${legacy_extra}]" \
               aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist
           else
             torch=""
             if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
             fi
-            uv pip install "${uv_system_args[@]}" -e ".[export-base,solutions]" $torch \
+            uv pip install "${uv_system_args[@]}" -e ".[export-base,solutions${legacy_extra}]" $torch \
               aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist \
               --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
           fi

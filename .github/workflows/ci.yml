@@ -331,12 +331,15 @@ jobs:
         uses: ultralytics/actions/retry@main
         with:
           shell: bash # for Windows compatibility
-          # -n 2 limits parallelism for resource-heavy base export tests on shared runners
+          # -n 2 limits parallelism for resource-heavy base export tests on shared runners. The ARM runner is
+          # single-process to avoid xdist worker overhead and runner disconnects during long slow-test runs.
           run: |
-            workers=2
-            [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]] && workers=1
-            PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -vv -s --slow -n "$workers" --dist=loadfile \
-              --cov=ultralytics/ --cov-report=xml --durations=50 --durations-min=1 tests/ --export-env base
+            pytest_args=(-vv -s --slow --durations=50 --durations-min=1 tests/ --export-env base)
+            if [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]]; then
+              PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest "${pytest_args[@]}"
+            else
+              PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -n 2 --dist=loadfile "${pytest_args[@]}"
+            fi
           retries: 1 # Retry once after initial attempt (2 total runs)
           timeout_minutes: 180
           retry_delay_seconds: 60

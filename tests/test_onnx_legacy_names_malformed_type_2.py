@@ -1,3 +1,5 @@
+"""Test YOLO model export to ONNX format where class names are not str."""
+
 import pytest
 import ast
 import onnxruntime as ort
@@ -6,11 +8,11 @@ from tests import SOURCE
 
 
 def save_wrong_names_model(model, tmp_path):
-    """
-    Save a model where class names are not str.
+    """Save a model where class names are not str.
+
     Args:
-        model:
-        tmp_path:
+        model (YOLO): The YOLO model instance to modify and save.
+        tmp_path (Path): Temporary directory path provided by pytest fixture.
 
     Returns:
         file: Saved model path
@@ -25,8 +27,13 @@ def save_wrong_names_model(model, tmp_path):
 
 @pytest.mark.parametrize("end2end", [False, True])
 def test_export_onnx(end2end, isolated_model, tmp_path):
-    """Test YOLO model export to ONNX format with dynamic axes."""
+    """Test YOLO model export to ONNX format with dynamic axes.
 
+    Args:
+        end2end (bool): Whether to test end2end export mode.
+        isolated_model (Path): Path to isolated model fixture provided by pytest.
+        tmp_path (Path): Temporary directory path provided by pytest fixture.
+    """
     model = YOLO(isolated_model)
 
     # Save a malformed 'names' model

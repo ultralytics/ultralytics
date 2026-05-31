@@ -27,8 +27,8 @@ from ultralytics.utils import (
 
 
 def _is_generic_names(names) -> bool:
-    """
-    Check if ALL values in the `names` property are generic - 'class0', 'class1', 'class2', ....
+    """Check if ALL values in the `names` property are generic - 'class0', 'class1', 'class2', ....
+
     Args:
         names: the names property of the model
 

@@ -350,8 +350,6 @@ jobs:
           python-version: "3.13"
       - name: Install export system dependencies
         run: sudo apt-get update && sudo apt-get install -y openjdk-21-jre flatbuffers-compiler
-      - name: Install base package
-        run: uv pip install --system -e ".[export-base]" pytest
       - name: Cache uv wheels
         uses: actions/cache@v5
         with:
@@ -359,6 +357,8 @@ jobs:
           key: isolated-exports-uv-${{ hashFiles('ultralytics/engine/exporter.py', 'pyproject.toml') }}
           restore-keys: |
             isolated-exports-uv-
+      - name: Install base package
+        run: uv pip install --system -e ".[export-base]" pytest
       - name: Configure Ultralytics cache paths
         run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
       - name: Cache test assets

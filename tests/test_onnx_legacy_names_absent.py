@@ -6,7 +6,7 @@ from tests import SOURCE
 
 def save_wrong_names_model(model, tmp_path):
     """
-    Save a model with ABSENT 'names' property
+    Save a model with ABSENT 'names' property.
     Args:
         model:
         tmp_path:
@@ -22,6 +22,8 @@ def save_wrong_names_model(model, tmp_path):
 
 @pytest.mark.parametrize("end2end", [False, True])
 def test_export_onnx(end2end, isolated_model, tmp_path):
+    """Test YOLO model export to ONNX format with dynamic axes."""
+
     model = YOLO(isolated_model)
 
     # Save an absent 'names' model

@@ -26,14 +26,14 @@ from ultralytics.utils import (
 )
 
 
-def _is_generic_names(names) -> bool:
-    """Check if ALL values in the `names` property are generic - 'class0', 'class1', 'class2', ....
+def _is_generic_names(names: dict) -> bool:
+    """Check if all values in the names property are generic class labels.
 
     Args:
-        names: the names property of the model
+        names (dict): The names property of the model, mapping class index to class label.
 
     Returns:
-        bool: True if all values in the `names` property are generic, False otherwise.
+        (bool): True if all values follow the generic pattern 'class0', 'class1', etc.
     """
     return all(v == f"class{k}" for k, v in names.items())
 

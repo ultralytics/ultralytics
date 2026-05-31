@@ -26,6 +26,18 @@ from ultralytics.utils import (
 )
 
 
+def _is_generic_names(names) -> bool:
+    """
+    Check if ALL values in the `names` property are generic - 'class0', 'class1', 'class2', ....
+    Args:
+        names: the names property of the model
+
+    Returns:
+        bool: True if all values in the `names` property are generic, False otherwise.
+    """
+    return all(v == f"class{k}" for k, v in names.items())
+
+
 class Model(torch.nn.Module):
     """A base class for implementing YOLO models, unifying APIs across different model types.
 
@@ -714,7 +726,7 @@ class Model(torch.nn.Module):
             # Try resolving via predictor in the names property
             names = self.names
             if (
-                isinstance(names, dict) and not names[0] == "class0"
+                isinstance(names, dict) and not _is_generic_names(names)
             ):  # 'names' is a dict and does not contain non-generic class names (class0, class1, ...)
                 self.model.names = names
             else:
@@ -724,16 +736,19 @@ class Model(torch.nn.Module):
                     "Exported file will use generic class labels. "
                     "To fix: provide a data YAML file via 'data=' or set model.names explicitly before exporting."
                 )
+                from ultralytics.nn.autobackend import default_class_names
+
+                self.model.names = default_class_names()
 
         elif (
-            getattr(self.model, "names") is not dict
+            not isinstance(getattr(self.model, "names"), dict)
             or not all(isinstance(key, int) for key in getattr(self.model, "names").keys())
             or not all(isinstance(val, str) for val in getattr(self.model, "names").values())
         ):
             # 'names' is not a dict or (key, values) in 'names' dict is not as per YOLO standard
+            LOGGER.info("Malformed class names detected (expected {int: str}). Resolving automatically.")
             self.model.names = self.names
-        else:
-            self.model.names = self.names
+
         return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
 
     def train(

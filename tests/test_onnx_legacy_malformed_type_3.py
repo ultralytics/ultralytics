@@ -33,7 +33,7 @@ def test_export_onnx(end2end, isolated_model, tmp_path):
     # conv = ast.literal_eval(meta["names"])
     # print(meta["names"], type(meta["names"]),conv)
 
-    check_names_type = ast.literal_eval(meta['names'])
+    check_names_type = ast.literal_eval(meta["names"])
 
     assert not any(v is None for v in meta.values())
     assert isinstance(check_names_type, dict)

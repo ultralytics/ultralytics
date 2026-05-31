@@ -33,7 +33,7 @@ def test_export_onnx(end2end, isolated_model, tmp_path):
     # conv = ast.literal_eval(meta["names"])
     # print(meta["names"], type(meta["names"]),conv)
 
-    check_names_type = ast.literal_eval(meta['names'])
+    check_names_type = ast.literal_eval(meta["names"])
     assert all(isinstance(key, int) for key in check_names_type.keys())
 
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference

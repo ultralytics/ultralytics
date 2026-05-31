@@ -7,7 +7,7 @@ from tests import SOURCE
 
 def save_wrong_names_model(model, tmp_path):
     file = tmp_path / "model_list_names_prop.pt"
-    model.model.names = ['human', 'cat', 'dog']
+    model.model.names = ["human", "cat", "dog"]
     model.save(file)
     return file
 
@@ -31,7 +31,7 @@ def test_export_onnx(end2end, isolated_model, tmp_path):
     # conv = ast.literal_eval(meta["names"])
     # print(meta["names"], type(meta["names"]),conv)
 
-    check_names_type = ast.literal_eval(meta['names'])
+    check_names_type = ast.literal_eval(meta["names"])
     assert isinstance(check_names_type, dict)
 
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference

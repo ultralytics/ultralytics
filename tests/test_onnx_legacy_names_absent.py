@@ -29,5 +29,3 @@ def test_export_onnx(end2end, isolated_model, tmp_path):
     assert "names" in meta, "ONNX missing 'names' property"
 
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
-
-

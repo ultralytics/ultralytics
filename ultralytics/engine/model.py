@@ -725,8 +725,8 @@ class Model(torch.nn.Module):
         if not hasattr(self.model, "names") or getattr(self.model, "names") is None:
             # Try resolving via predictor in the names property
             names = self.names
-            if (
-                isinstance(names, dict) and not _is_generic_names(names)
+            if isinstance(names, dict) and not _is_generic_names(
+                names
             ):  # 'names' is a dict and does not contain non-generic class names (class0, class1, ...)
                 self.model.names = names
             else:

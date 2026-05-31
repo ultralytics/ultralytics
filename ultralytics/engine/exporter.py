@@ -105,7 +105,14 @@ from ultralytics.utils import (
     get_default_args,
     is_jetson,
 )
-from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_9, check_imgsz, check_requirements, check_version, is_intel
+from ultralytics.utils.checks import (
+    IS_PYTHON_MINIMUM_3_9,
+    IS_PYTHON_MINIMUM_3_13,
+    check_imgsz,
+    check_requirements,
+    check_version,
+    is_intel,
+)
 from ultralytics.utils.files import file_size
 from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
@@ -124,10 +131,19 @@ from ultralytics.utils.torch_utils import (
 
 def export_formats():
     """Return a dictionary of Ultralytics YOLO export formats."""
+    #          Format, Argument, Suffix, CPU, GPU, Arguments, Env
     x = [
-        ["PyTorch", "-", ".pt", True, True, []],
-        ["TorchScript", "torchscript", ".torchscript", True, True, ["batch", "optimize", "half", "nms", "dynamic"]],
-        ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify", "nms"]],
+        ["PyTorch", "-", ".pt", True, True, [], "base"],
+        [
+            "TorchScript",
+            "torchscript",
+            ".torchscript",
+            True,
+            True,
+            ["batch", "optimize", "half", "nms", "dynamic"],
+            "base",
+        ],
+        ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify", "nms"], "base"],
         [
             "OpenVINO",
             "openvino",
@@ -135,6 +151,7 @@ def export_formats():
             True,
             False,
             ["batch", "data", "dynamic", "half", "int8", "nms", "fraction"],
+            "base",
         ],
         [
             "TensorRT",
@@ -143,8 +160,9 @@ def export_formats():
             False,
             True,
             ["batch", "data", "dynamic", "half", "int8", "simplify", "nms", "fraction"],
+            "base",
         ],
-        ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "dynamic", "half", "int8", "nms"]],
+        ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "dynamic", "half", "int8", "nms"], "coreml"],
         [
             "TensorFlow SavedModel",
             "saved_model",
@@ -152,22 +170,164 @@ def export_formats():
             True,
             True,
             ["batch", "data", "fraction", "int8", "keras", "nms"],
+            "tensorflow",
         ],
-        ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"]],
-        ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "data", "half", "int8", "nms", "fraction"]],
-        ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, ["data", "fraction", "int8"]],
-        ["TensorFlow.js", "tfjs", "_web_model", True, False, ["batch", "data", "fraction", "half", "int8", "nms"]],
-        ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"]],
-        ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"]],
-        ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
-        ["IMX", "imx", "_imx_model", True, True, ["data", "int8", "fraction", "nms"]],
-        ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
-        ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
-        ["Axelera AI", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction", "data"]],
-        ["DEEPX", "deepx", "_deepx_model", False, False, ["data", "int8", "optimize"]],
-        ["Qualcomm QNN", "qnn", "_qnn_model", False, False, ["batch", "name", "int8", "fraction", "data"]],
+        ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"], "tensorflow"],
+        [
+            "TensorFlow Lite",
+            "tflite",
+            ".tflite",
+            True,
+            False,
+            ["batch", "data", "half", "int8", "nms", "fraction"],
+            "tensorflow",
+        ],
+        ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, ["data", "fraction", "int8"], "tensorflow"],
+        [
+            "TensorFlow.js",
+            "tfjs",
+            "_web_model",
+            True,
+            False,
+            ["batch", "data", "fraction", "half", "int8", "nms"],
+            "tensorflow",
+        ],
+        ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"], "base"],
+        ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"], "mnn"],
+        ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"], "ncnn"],
+        ["IMX", "imx", "_imx_model", True, True, ["data", "int8", "fraction", "nms"], "isolated-imx"],
+        ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"], "isolated-rknn"],
+        ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"], "executorch"],
+        [
+            "Axelera AI",
+            "axelera",
+            "_axelera_model",
+            False,
+            False,
+            ["batch", "int8", "fraction", "data"],
+            "isolated-axelera",
+        ],
+        ["DEEPX", "deepx", "_deepx_model", False, False, ["data", "int8", "optimize"], "isolated-deepx"],
+        ["Qualcomm QNN", "qnn", "_qnn_model", False, False, ["batch", "name", "int8", "fraction", "data"], "base"],
     ]
-    return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
+    return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
+
+
+EXPORT_ENVS = {
+    "base": {
+        "python": None,
+        "extras": ["export-base"],
+        "torch": None,
+        "requirements": [],
+        "indexes": [],
+        "env": {},
+        "smoke": [],
+    },
+    "tensorflow": {
+        "python": "3.12",
+        "extras": ["export-base", "export-tensorflow"],
+        "torch": None,
+        "requirements": [
+            "onnx2tf>=1.26.3,<1.29.0",
+            "tf_keras<=2.19.0",
+            "sng4onnx>=1.0.1",
+            "onnx_graphsurgeon>=0.3.26",
+            "ai-edge-litert>=1.2.0",
+            "onnxruntime",
+            "protobuf>=5",
+        ],
+        "indexes": [
+            ("--extra-index-url", "https://download.pytorch.org/whl/cpu"),
+            ("--extra-index-url", "https://pypi.ngc.nvidia.com"),
+        ],
+        "env": {},
+        "smoke": ["yolo export format=tflite model=yolo11n.pt imgsz=32"],
+    },
+    "coreml": {
+        "python": "3.13",
+        "extras": ["export-base", "export-coreml"],
+        "torch": ">=2.12",
+        "requirements": [],
+        "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
+        "env": {},
+        "smoke": ["yolo export format=coreml model=yolo11n.pt imgsz=32"],
+    },
+    "mnn": {
+        "python": "3.13",
+        "extras": ["export-base"],
+        "torch": None,
+        "requirements": ["MNN>=2.9.6"],
+        "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
+        "env": {},
+        "smoke": ["yolo export format=mnn model=yolo11n.pt imgsz=32"],
+    },
+    "ncnn": {
+        "python": "3.13",
+        "extras": ["export-base"],
+        "torch": None,
+        "requirements": ["ncnn", "pnnx"],
+        "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
+        "env": {},
+        "smoke": ["yolo export format=ncnn model=yolo11n.pt imgsz=32"],
+    },
+    "executorch": {
+        "python": "3.13",
+        "extras": ["export-base", "export-executorch"],
+        "torch": ">=2.12",
+        "requirements": [],
+        "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
+        "env": {},
+        "smoke": ["yolo export format=executorch model=yolo11n.pt imgsz=32"],
+    },
+    "isolated-imx": {
+        "python": "3.11",
+        "extras": ["export-base"],
+        "torch": ">=2.9,<2.12",
+        "requirements": [
+            "model-compression-toolkit>=2.4.1",
+            "edge-mdt-cl<1.1.0",
+            "edge-mdt-tpc>=1.2.0",
+            "pydantic<2.12",
+            "imx500-converter[pt]>=3.17.3",
+        ],
+        "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
+        "env": {},
+        "smoke": ["yolo export format=imx model=yolo11n.pt imgsz=32"],
+    },
+    "isolated-rknn": {
+        "python": "3.11",
+        "extras": ["export-base"],
+        "torch": "==2.4",
+        "requirements": ["rknn-toolkit2>=2.3.2", "onnx>=1.16.1,<1.19.0", "setuptools<82"],
+        "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
+        "env": {},
+        "smoke": ["yolo export format=rknn model=yolo11n.pt imgsz=32"],
+    },
+    "isolated-axelera": {
+        "python": "3.12",
+        "extras": ["export-base"],
+        "torch": ">=2.8,<2.12",
+        "requirements": ["axelera-devkit==1.6.0", "onnx>=1.12.0,<2.0.0", "onnxslim>=0.1.71"],
+        "indexes": [
+            ("--extra-index-url", "https://download.pytorch.org/whl/cpu"),
+            ("--extra-index-url", "https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple"),
+        ],
+        "env": {"PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION": "python"},
+        "smoke": ["yolo export format=axelera model=yolo11n.pt imgsz=64 data=coco8.yaml"],
+    },
+    "isolated-deepx": {
+        "python": "3.12",
+        "extras": ["export-base", "export-deepx"],
+        "torch": ">=2.8,<2.12",
+        "requirements": [],
+        "indexes": [
+            ("--extra-index-url", "https://download.pytorch.org/whl/cpu"),
+            ("--find-links", "https://sdk.deepx.ai/release/dxcom/v2.3.0/index.html"),
+        ],
+        "env": {},
+        "smoke": ["yolo export format=deepx model=yolo11n.pt imgsz=32"],
+    },
+}
 
 
 def validate_args(format, passed_args, valid_args):
@@ -648,7 +808,7 @@ class Exporter:
             # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
             ort = "onnxruntime-gpu" if "cuda" in self.device.type else "onnxruntime"
-            requirements += ["onnxslim>=0.1.71", (ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")]
+            requirements += ["onnxslim>=0.1.82", (ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")]
         check_requirements(requirements)
         import onnx
 
@@ -834,7 +994,7 @@ class Exporter:
         mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
         from ultralytics.utils.export.coreml import IOSDetectModel, pipeline_coreml, torch2coreml
 
-        # latest numpy 2.4.0rc1 breaks coremltools exports
+        # numpy 2.4.x breaks coremltools CoreML export https://github.com/apple/coremltools/issues/2633
         check_requirements(["coremltools>=9.0", "numpy>=1.14.5,<=2.3.5"])
         import coremltools as ct
 
@@ -942,6 +1102,10 @@ class Exporter:
     @try_export
     def export_saved_model(self, prefix=colorstr("TensorFlow SavedModel:")):
         """Export YOLO model to TensorFlow SavedModel format."""
+        assert not (MACOS and IS_PYTHON_MINIMUM_3_13), (
+            "TensorFlow exports not supported on macOS with Python>=3.13: the ai-edge-litert macOS wheel fails to load "
+            "(missing libpywrap_litert_common.dylib). TensorFlow export works on Linux Python 3.13."
+        )
         from ultralytics.utils.export.tensorflow import onnx2saved_model
 
         f = Path(str(self.file).replace(self.file.suffix, "_saved_model"))
@@ -1050,6 +1214,10 @@ class Exporter:
     @try_export
     def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
         """Export YOLO model to TensorFlow.js format."""
+        assert not IS_PYTHON_MINIMUM_3_13, (
+            "TensorFlow.js export not supported on Python>=3.13: tensorflowjs requires the np.object alias removed "
+            "in NumPy 1.24, but Python 3.13 has no NumPy<2.1 wheels."
+        )
         from ultralytics.utils.export.tensorflow import pb2tfjs
 
         output_dir = pb2tfjs(

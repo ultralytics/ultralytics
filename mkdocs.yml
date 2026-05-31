@@ -648,6 +648,10 @@ nav:
           - Inference: platform/deploy/inference.md
           - Endpoints: platform/deploy/endpoints.md
           - Monitoring: platform/deploy/monitoring.md
+      - Integrations:
+          - platform/integrations/index.md
+          - Ultralytics HUB: platform/integrations/ultralytics-hub.md
+          - Roboflow: platform/integrations/roboflow.md
       - Account:
           - platform/account/index.md
           - API Keys: platform/account/api-keys.md

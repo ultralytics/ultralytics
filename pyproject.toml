@@ -127,7 +127,7 @@ solutions = [
     "lap>=0.5.12",  # for solution tracking linear assignment
     "faiss-cpu",  # for similarity search
     "openai-clip>=1.0.1",  # for similarity search text/image embeddings
-    "setuptools<=81.0.0",  # openai-clip imports pkg_resources, removed in setuptools>=82
+    "setuptools<81.0.0",  # openai-clip imports pkg_resources.packaging, removed in setuptools>=81
     "streamlit>=1.51.0; python_version >= '3.10'",    # for live inference on web browser, i.e `yolo streamlit-predict`
     "streamlit>=1.29.0,<1.51.0; python_version < '3.10' and (python_version < '3.9' or platform_machine != 'aarch64' or platform_system != 'Linux')",
     "flask>=3.0.1",  # for similarity search solution

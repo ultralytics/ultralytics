@@ -56,10 +56,6 @@ jobs:
         model: [yolo26n]
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
-        if: matrix.os != 'cpu-latest'
-        with:
-          python-version: ${{ matrix.python }}
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python }}
@@ -129,10 +125,6 @@ jobs:
             torchvision: "0.9.0"
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
-        if: matrix.os != 'cpu-latest'
-        with:
-          python-version: ${{ matrix.python }}
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python }}
@@ -142,15 +134,11 @@ jobs:
         run: |
           slow=""
           torch=""
-          numpy="numpy<=2.3.5"
           if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          if [ "${{ matrix.torch }}" != "latest" ] && [ "${{ matrix.python }}" != "3.13" ]; then
-              numpy="numpy<2.0.0"
-          fi
           uv pip install ${{ matrix.os != 'cpu-latest' && '--system' || '' }} -e ".[export-base,solutions]" \
-            $torch "$numpy" aiohttp pytest-cov pytest-xdist --extra-index-url https://download.pytorch.org/whl/cpu \
+            $torch aiohttp pytest-cov pytest-xdist --extra-index-url https://download.pytorch.org/whl/cpu \
             --index-strategy unsafe-best-match
       - name: Check environment
         run: |
@@ -269,10 +257,6 @@ jobs:
             torchvision: "0.26.0"
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
-        if: matrix.os != 'cpu-latest'
-        with:
-          python-version: ${{ matrix.python }}
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python }}
@@ -285,29 +269,21 @@ jobs:
             uv_system_args=(--system)
           fi
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            numpy="numpy<=2.3.5"
             torch_packages=(torch torchvision)
             if [ "${{ matrix.torch }}" != "latest" ]; then
               torch_packages=("torch==${{ matrix.torch }}" "torchvision==${{ matrix.torchvision }}")
             fi
-            if [ "${{ matrix.torch }}" != "latest" ] && [ "${{ matrix.python }}" != "3.13" ]; then
-              numpy="numpy<2.0.0"
-            fi
             uv pip install "${uv_system_args[@]}" "${torch_packages[@]}" \
               --index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
             uv pip install "${uv_system_args[@]}" -e ".[export-base,solutions]" \
-              "$numpy" aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist
+              aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist
           else
             torch=""
-            numpy="numpy<=2.3.5"
             if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
             fi
-            if [ "${{ matrix.torch }}" != "latest" ] && [ "${{ matrix.python }}" != "3.13" ]; then
-              numpy="numpy<2.0.0"
-            fi
             uv pip install "${uv_system_args[@]}" -e ".[export-base,solutions]" $torch \
-              "$numpy" aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist \
+              aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist \
               --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
           fi
       - name: Check environment
@@ -354,12 +330,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
       - uses: astral-sh/setup-uv@v7
         with:
-          python-version: "3.12"
+          python-version: "3.13"
       - name: Install export system dependencies
         run: sudo apt-get update && sudo apt-get install -y openjdk-21-jre flatbuffers-compiler
       - name: Install base package

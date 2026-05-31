@@ -918,6 +918,10 @@ class Metric(SimpleClass):
         self.ap_class_index = []  # (nc, )
         self.nc = 0
         self.image_metrics = {}
+        # Per-image stats buffered during update_stats and consumed in flush_image_metrics() after update() has
+        # computed conf_best (the F1-optimal confidence threshold derived from the smoothed PR curve).
+        self._image_buffer: list[tuple] = []
+        self.conf_best = 0.25  # F1-optimal conf threshold; set by update(), used by flush_image_metrics()
 
     @property
     def ap50(self) -> np.ndarray | list:
@@ -1031,10 +1035,52 @@ class Metric(SimpleClass):
             self.px,
             self.prec_values,
         ) = results
+        # Derive the F1-optimal confidence threshold from the class-mean (smoothed) F1 curve. This is the same
+        # operating point ap_per_class uses to report mp/mr, so per-image P/R now stays consistent with the
+        # validator's headline numbers instead of relying on a hardcoded conf threshold.
+        if isinstance(self.f1_curve, np.ndarray) and self.f1_curve.size and isinstance(self.px, np.ndarray):
+            i = int(smooth(self.f1_curve.mean(0), 0.1).argmax())
+            self.conf_best = float(self.px[i])
 
     def clear_image_metrics(self) -> None:
-        """Clear stored per-image metrics from the current validation run."""
+        """Clear stored per-image metrics and the buffered raw stats from the current validation run."""
         self.image_metrics.clear()
+        self._image_buffer.clear()
+
+    def buffer_image_stats(
+        self,
+        tp: np.ndarray,
+        target_cls: np.ndarray,
+        pred_cls: np.ndarray,
+        conf: np.ndarray,
+        im_name: str,
+    ) -> None:
+        """Buffer raw per-image inputs for deferred per-image P/R/F1 computation.
+
+        Per-image metrics depend on a confidence threshold that is only known after ap_per_class runs (the
+        F1-optimal threshold). We therefore store the raw arrays here and let flush_image_metrics() consume them
+        once update() has populated self.conf_best.
+
+        Args:
+            tp (np.ndarray): True positive matrix of shape (num_preds, num_iou_thresholds) for this image.
+            target_cls (np.ndarray): Ground truth class labels for the image.
+            pred_cls (np.ndarray): Predicted class labels for the image.
+            conf (np.ndarray): Confidence scores aligned with tp/pred_cls.
+            im_name (str): Image filename used as the per-image key.
+        """
+        self._image_buffer.append((tp, target_cls, pred_cls, conf, im_name))
+
+    def flush_image_metrics(self, conf_thres: float | None = None) -> None:
+        """Compute per-image P/R/F1 for all buffered images using self.conf_best (or the override) and clear the buffer.
+
+        Args:
+            conf_thres (float, optional): Override the confidence threshold used for filtering predictions. Defaults
+                to self.conf_best (set by update() from the smoothed F1 curve).
+        """
+        thr = self.conf_best if conf_thres is None else float(conf_thres)
+        for tp, target_cls, pred_cls, conf, im_name in self._image_buffer:
+            self.update_image_metrics(tp, target_cls, pred_cls, conf, im_name, conf_thres=thr)
+        self._image_buffer.clear()
 
     @property
     def curves(self) -> list:
@@ -1069,7 +1115,8 @@ class Metric(SimpleClass):
             pred_cls (np.ndarray): Predicted class labels for the image.
             conf (np.ndarray): Confidence scores for the predictions.
             im_name (str): The image filename used as the per-image key.
-            conf_thres (float, optional): Confidence threshold to filter predictions before computing metrics. If None,
+            conf_thres (float, optional): Confidence threshold to filter predictions before computing metrics. If
+                None, no filtering is applied and every NMS-surviving prediction contributes to TP/FP/FN counts.
         """
         # Use the default IoU=0.5 column to match the validator's image-level matching policy.
         if conf_thres is not None:
@@ -1149,13 +1196,14 @@ class DetMetrics(SimpleClass, DataExportMixin):
         """
         for k in self.stats.keys():
             self.stats[k].append(stat[k])
-        self.box.update_image_metrics(
+        # Defer per-image P/R/F1 computation until process() has run ap_per_class — only then do we know the
+        # F1-optimal confidence threshold used to filter predictions.
+        self.box.buffer_image_stats(
             stat["tp"],
             stat["target_cls"],
             stat["pred_cls"],
             stat["conf"],
             stat["im_name"],
-            conf_thres=0.25,  # hardcoded to 0.25 for now
         )
 
     def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
@@ -1185,6 +1233,8 @@ class DetMetrics(SimpleClass, DataExportMixin):
         )[2:]
         self.box.nc = len(self.names)
         self.box.update(results)
+        # Now that conf_best (F1-optimal threshold) is known, finalize buffered per-image metrics.
+        self.box.flush_image_metrics()
         self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=len(self.names))
         self.nt_per_image = np.bincount(stats["target_img"].astype(int), minlength=len(self.names))
         return stats
@@ -1321,7 +1371,10 @@ class SegmentMetrics(DetMetrics):
                 keys in self.stats.
         """
         super().update_stats(stat)  # update box stats
-        self.seg.update_image_metrics(stat["tp_m"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
+        # Buffer mask per-image stats; flushed in process() once the mask F1-optimal threshold is known.
+        self.seg.buffer_image_stats(
+            stat["tp_m"], stat["target_cls"], stat["pred_cls"], stat["conf"], stat["im_name"]
+        )
 
     def clear_image_metrics(self) -> None:
         """Clear stored per-image metrics."""
@@ -1353,6 +1406,7 @@ class SegmentMetrics(DetMetrics):
         )[2:]
         self.seg.nc = len(self.names)
         self.seg.update(results_mask)
+        self.seg.flush_image_metrics()
         return stats
 
     @property
@@ -1472,7 +1526,10 @@ class PoseMetrics(DetMetrics):
                 keys in self.stats.
         """
         super().update_stats(stat)  # update box stats
-        self.pose.update_image_metrics(stat["tp_p"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
+        # Buffer pose per-image stats; flushed in process() once the pose F1-optimal threshold is known.
+        self.pose.buffer_image_stats(
+            stat["tp_p"], stat["target_cls"], stat["pred_cls"], stat["conf"], stat["im_name"]
+        )
 
     def clear_image_metrics(self) -> None:
         """Clear stored per-image metrics."""
@@ -1504,6 +1561,7 @@ class PoseMetrics(DetMetrics):
         )[2:]
         self.pose.nc = len(self.names)
         self.pose.update(results_pose)
+        self.pose.flush_image_metrics()
         return stats
 
     @property

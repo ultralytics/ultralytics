@@ -5,6 +5,15 @@ from tests import SOURCE
 
 
 def save_wrong_names_model(model, tmp_path):
+    """
+    Save a model with ABSENT 'names' property
+    Args:
+        model:
+        tmp_path:
+
+    Returns:
+        file: Saved model path
+    """
     file = tmp_path / "model_empty_names_prop.pt"
     delattr(model.model, "names")
     model.save(file)

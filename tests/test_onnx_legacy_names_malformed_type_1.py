@@ -6,6 +6,15 @@ from tests import SOURCE
 
 
 def save_wrong_names_model(model, tmp_path):
+    """
+    Save a model where class ID are not int
+    Args:
+        model:
+        tmp_path:
+
+    Returns:
+        file: Saved model path
+    """
     file = tmp_path / "model_list_names_prop.pt"
 
     #  class ID is not int

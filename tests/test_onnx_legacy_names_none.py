@@ -5,6 +5,15 @@ from tests import SOURCE
 
 
 def save_wrong_names_model(model, tmp_path):
+    """
+    Save a model with 'names' property as None type
+    Args:
+        model:
+        tmp_path:
+
+    Returns:
+        file: Saved model path
+    """
     file = tmp_path / "model_none_names_prop.pt"
     model.model.names = None
     model.save(file)

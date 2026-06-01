@@ -1163,6 +1163,12 @@ class v8DepthLoss:
         self.device = device
         self.silog_weight = float(os.environ.get("DEPTH_SILOG_WEIGHT", 1.0))
         self.grad_weight  = float(os.environ.get("DEPTH_GRAD_WEIGHT", 0.5))
+        # SILog variance-focus: 1.0 = fully scale-invariant, 0.0 = plain log-RMSE (scale-dependent).
+        # Lower values anchor absolute scale, removing the degenerate scale direction that lets
+        # from-scratch training drift away from accurate depth.
+        self.silog_lambda = float(os.environ.get("DEPTH_SILOG_LAMBDA", 0.5))
+        # Optional scale-anchored L1 term on the log-depth residual (penalizes absolute offset).
+        self.l1_weight = float(os.environ.get("DEPTH_L1_WEIGHT", 0.0))
 
     def __call__(self, preds, batch):
         """Calculate depth estimation loss.
@@ -1204,8 +1210,10 @@ class v8DepthLoss:
 
         # SILog loss (scale-invariant log error)
         log_diff = torch.log(pred_valid) - torch.log(gt_valid)
-        silog = torch.sqrt(torch.mean(log_diff**2) - 0.5 * torch.mean(log_diff) ** 2 + 1e-6)
+        silog = torch.sqrt(torch.mean(log_diff**2) - self.silog_lambda * torch.mean(log_diff) ** 2 + 1e-6)
         loss[0] = silog * self.silog_weight
+        if self.l1_weight > 0:
+            loss[0] = loss[0] + self.l1_weight * log_diff.abs().mean()  # scale-anchored term
 
         # Gradient-matching loss (edge-aware): penalize differences in spatial gradients
         pred_log = torch.log(pred_depth.clamp(min=0.001))

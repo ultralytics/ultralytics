@@ -47,6 +47,9 @@ jobs:
   Benchmarks:
     if: github.event_name != 'workflow_dispatch' || github.event.inputs.benchmarks == 'true'
     runs-on: ${{ matrix.os }}
+    env:
+      # Keep benchmark jobs hermetic so missing export deps fail during setup instead of mutating mid-run.
+      YOLO_AUTOINSTALL: "false"
     strategy:
       fail-fast: false
       matrix:
@@ -67,7 +70,14 @@ jobs:
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
-          uv pip install ${{ matrix.os != 'cpu-latest' && '--system' || '' }} -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv_system_args=()
+          if [[ "${{ matrix.os }}" != "cpu-latest" ]]; then
+            uv_system_args=(--system)
+          fi
+          uv pip install "${uv_system_args[@]}" -e ".[export,export-executorch]" \
+            ncnn pnnx "coverage[toml]" \
+            --extra-index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.ngc.nvidia.com \
+            --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks
@@ -167,7 +177,13 @@ jobs:
         run: python tests/cache_test_assets.py
       - name: Pytest tests
         shell: bash # for Windows compatibility
-        run: pytest -n auto --dist=loadfile --cov=ultralytics/ --cov-report=xml tests/ --export-env base
+        run: |
+          if [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]]; then
+            # GitHub-hosted ARM runners have disconnected under xdist auto-parallelism.
+            pytest --cov=ultralytics/ --cov-report=xml tests/ --export-env base
+          else
+            pytest -n auto --dist=loadfile --cov=ultralytics/ --cov-report=xml tests/ --export-env base
+          fi
         env:
           YOLO_AUTOINSTALL: "false"
       - name: Upload Coverage Reports to CodeCov
@@ -373,7 +389,7 @@ jobs:
           restore-keys: |
             isolated-exports-uv-
       - name: Install base package
-        run: uv pip install --system -e ".[export-base]" pytest
+        run: uv pip install --system -e ".[export-base]" pytest "git+https://github.com/ultralytics/CLIP.git"
       - name: Configure Ultralytics cache paths
         run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
       - name: Cache test assets
@@ -384,6 +400,8 @@ jobs:
           restore-keys: |
             ultralytics-test-assets-${{ runner.os }}-
       - name: Pre-cache test assets
+        env:
+          YOLO_AUTOINSTALL: "false"
         run: python tests/cache_test_assets.py --slow
       - name: Build and smoke-validate export environments
         env:

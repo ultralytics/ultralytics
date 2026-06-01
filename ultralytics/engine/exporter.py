@@ -264,7 +264,7 @@ EXPORT_ENVS = {
         "python": "3.13",
         "extras": ["export-base"],
         "torch": None,
-        "requirements": ["MNN>=2.9.6"],
+        "requirements": ["MNN>=2.9.6", "aliyun-log-python-sdk", "protobuf<6.0.0,>=3.20.3"],
         "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
         "env": {},
         "smoke": ["yolo export format=mnn model=yolo11n.pt imgsz=32"],

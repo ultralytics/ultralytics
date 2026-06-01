@@ -224,7 +224,7 @@ Using TorchScript for deploying YOLO26 models offers several advantages:
 - **Cross-Language Integration**: TorchScript models can be integrated into other programming languages, enhancing flexibility and expandability.
 - **Serialization**: Models can be serialized, allowing for platform-independent loading and inference.
 
-For more insights into deployment, visit the [PyTorch Mobile Documentation](https://docs.pytorch.org/executorch/), [TorchServe Documentation](https://docs.pytorch.org/serve/getting_started.html), and [C++ Deployment Guide](https://docs.pytorch.org/tutorials/advanced/cpp_export.html).
+For more insights into deployment, visit the [TorchServe Documentation](https://docs.pytorch.org/serve/getting_started.html) and the [C++ Deployment Guide](https://docs.pytorch.org/tutorials/advanced/cpp_export.html). For on-device mobile deployment, PyTorch now recommends [ExecuTorch](https://docs.pytorch.org/executorch/), which uses its own separate `torch.export()` → `.pte` pipeline rather than TorchScript.
 
 ### What are the installation steps for exporting YOLO26 models to TorchScript?
 
@@ -246,7 +246,7 @@ For detailed instructions, visit the [Ultralytics Installation guide](../quickst
 After exporting YOLO26 models to the TorchScript format, you can deploy them across a variety of platforms:
 
 - **C++ API**: Ideal for low-overhead, highly efficient production environments.
-- **Mobile Deployment**: Use [PyTorch Mobile](https://docs.pytorch.org/executorch/) for iOS and Android applications.
+- **Mobile Deployment**: Run TorchScript models on-device with [LibTorch](https://docs.pytorch.org/cppdocs/) (the PyTorch C++ runtime). For new mobile projects, PyTorch recommends [ExecuTorch](https://docs.pytorch.org/executorch/), a separate `.pte` export pipeline.
 - **Cloud Deployment**: Utilize services like [TorchServe](https://docs.pytorch.org/serve/getting_started.html) for scalable server-side deployment.
 
 Explore comprehensive guidelines for deploying models in these settings to take full advantage of TorchScript's capabilities.

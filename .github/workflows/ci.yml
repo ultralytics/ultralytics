@@ -66,7 +66,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python }}
-          activate-environment: ${{ matrix.os == 'cpu-latest' }}
+          activate-environment: true
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
@@ -155,7 +155,7 @@ jobs:
           if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          uv pip install ${{ matrix.os != 'cpu-latest' && '--system' || '' }} -e ".[export-base,solutions]" \
+          uv pip install -e ".[export-base,solutions]" \
             $torch aiohttp pytest-cov pytest-xdist --extra-index-url https://download.pytorch.org/whl/cpu \
             --index-strategy unsafe-best-match
       - name: Check environment
@@ -298,14 +298,10 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python }}
-          activate-environment: ${{ matrix.os == 'cpu-latest' }}
+          activate-environment: true
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
-          uv_system_args=()
-          if [ "${{ matrix.os }}" != "cpu-latest" ]; then
-            uv_system_args=(--system)
-          fi
           legacy_extra=""
           if [ -n "${{ matrix.numpy_extra }}" ]; then
             legacy_extra=",${{ matrix.numpy_extra }}"
@@ -315,16 +311,16 @@ jobs:
             if [ "${{ matrix.torch }}" != "latest" ]; then
               torch_packages=("torch==${{ matrix.torch }}" "torchvision==${{ matrix.torchvision }}")
             fi
-            uv pip install "${uv_system_args[@]}" "${torch_packages[@]}" \
+            uv pip install "${torch_packages[@]}" \
               --index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
-            uv pip install "${uv_system_args[@]}" -e ".[export-base,solutions${legacy_extra}]" \
+            uv pip install -e ".[export-base,solutions${legacy_extra}]" \
               aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist
           else
             torch=""
             if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
             fi
-            uv pip install "${uv_system_args[@]}" -e ".[export-base,solutions${legacy_extra}]" $torch \
+            uv pip install -e ".[export-base,solutions${legacy_extra}]" $torch \
               aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist \
               --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
           fi

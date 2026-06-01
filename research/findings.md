@@ -2,7 +2,9 @@
 
 _Project: investigate the YOLO26 stereo-3D ("s3d") task on branch `001-stereo-centernet-gaps`, establish true capability, and improve it. Metric: KITTI R40 AP3D / AP_BEV / AOS, Car @ Moderate, with **true rotated** 3D IoU._
 
-Last updated: 2026-06-01. Status: H0 confirmed, H1 refuted, **H2 pending** (B done, A finishing).
+Last updated: 2026-06-01. Status: H0 confirmed, H1 refuted, **H2 supported (small, consistent)** — A/B complete.
+
+> **A/B verdict (H2):** MultiBin beats sin/cos on **all 6 metrics** (Car AP3D@0.5 +0.6, mean +1.5, AOS@0.5 +0.6) — a small but consistent (6/6) gain → **kept**. But orientation was *not* the bottleneck: sin/cos already achieves AOS@0.5 (51.3) ≈ AP3D@0.5 (51.4), i.e. heading is near-perfect on TPs either way. The real ceiling is **tight-IoU vertical localization** (at @0.7, AP_BEV 25.9 ≫ AP3D 10.4 → height/Y, not BEV, is what fails).
 
 ---
 
@@ -21,7 +23,7 @@ Two levers were then tested by controlled A/B (same recipe, one change):
 | **H0** | The reported AP3D≈0 is an eval/target bug, not model incapacity | Fixing it yields nonzero AP3D with no retraining of the idea | **CONFIRMED** |
 | **R0** | Pretrained backbone + 1000ep ≫ from-scratch 200ep | Large AP3D lift | **CONFIRMED** (34.3→52.0 Car@0.5) |
 | **H1** | Decoding disparity from the cost volume (soft-argmax) as primary depth beats the lr_distance regression | AP3D up | **REFUTED** (34.3→12.9, ~2.7× worse) |
-| **H2** | MultiBin orientation beats sin/cos at resolving heading → higher AOS/AP3D | AOS up vs sin/cos baseline | **PENDING** (B=52.0/51.9; A pending) |
+| **H2** | MultiBin orientation beats sin/cos at resolving heading → higher AOS/AP3D | AOS up vs sin/cos baseline | **SUPPORTED, small** (B>A on 6/6 metrics; +0.6 AP3D@0.5, +1.5 mean) |
 
 ## Key Results
 
@@ -38,15 +40,16 @@ Also added the missing KITTI metrics **AP_BEV** and **AOS** (`a6cc8303`) and a r
 | pre-fix (any) | ~0 | ~0 | ~0 | ~0 |
 | corrected baseline, **scratch 200ep** | 34.3 | 4.2 | 46.1 | 34.0 |
 | Phase 1 (cost-disp), scratch 200ep | 12.9 | 1.3 | 16.8 | 12.8 |
-| **B: MultiBin, pretrained 1000ep** | **52.0** | **10.7** | **63.0** | **51.9** |
-| A: sin/cos, pretrained 1000ep | _pending_ | _pending_ | _pending_ | _pending_ |
+| A: sin/cos, pretrained 1000ep | 51.4 | 10.4 | 62.5 | 51.3 |
+| **B: MultiBin, pretrained 1000ep (kept)** | **52.0** | **10.7** | **63.0** | **51.9** |
 
 ## Patterns & Insights
 
 - **The model was never the problem.** 2D detection and metric depth were accurate the whole time; two downstream bugs (eval IoU + dimension target encoding) hid all capability. Lesson: when a metric reads exactly 0, suspect the metric/target pipeline before the model.
 - **Encode/decode symmetry is the recurring failure mode.** The dimension bug was an encode/decode mismatch. Phase 2 (MultiBin) was therefore built with encode+decode in one module guarded by a round-trip test.
 - **The "biggest lever" hypothesis (stereo cost-volume depth) backfired.** The minimal cost-volume soft-argmax disparity, as primary depth with the monocular head demoted, is *worse* than the simple lr_distance regression at this budget — likely the soft-argmax is noisier and cost volumes are iteration-hungry. Gating each lever behind a real training run prevented stacking a harmful change.
-- **MultiBin orientation looks excellent in isolation:** AOS@0.5 (51.9) ≈ AP3D@0.5 (52.0), i.e. orientation is near-perfect on true positives. Whether it *beats sin/cos* awaits A.
+- **MultiBin helps a little, but orientation wasn't the bottleneck.** B > A on all 6 metrics (Car AP3D@0.5 +0.6, mean +1.5, AOS +0.6) — a real but small, possibly partly within-seed-noise gain; kept because it's consistently non-negative. Crucially, *sin/cos already* achieves AOS@0.5 (51.3) ≈ AP3D@0.5 (51.4) → heading is near-perfect on TPs regardless of encoding, so there was little headroom for MultiBin to capture.
+- **The real ceiling is tight-IoU vertical localization.** At IoU 0.7, AP_BEV (25.9) ≫ AP3D (10.4): the bird's-eye footprint is fine but adding the height/Y dimension collapses the score. So the @0.7 gap is a **height/Y precision** problem (box bottom + height), not orientation or BEV — the highest-value next lever.
 
 ## Lessons & Constraints (do-not-repeat)
 
@@ -56,9 +59,9 @@ Also added the missing KITTI metrics **AP_BEV** and **AOS** (`a6cc8303`) and a r
 - Resume + nc auto-expand are incompatible (rebuilds at nc=8 vs 66-class checkpoint) — train fresh, don't rely on `train(resume=True)`.
 - Infra: see [[westd-test-env]], [[ultra1-test-env]]. ultra1 is shared — a concurrent `pkill python` from another job will SIGKILL training (run in tmux; even so, pkill-by-name isn't survivable).
 
-## Open Questions
+## Open Questions / Next
 
-- **H2 verdict**: does MultiBin beat sin/cos AOS/AP3D at the same recipe? (A finishing.)
-- Per-class Pedestrian/Cyclist are far below Car (mean@0.5 17.8 vs Car 52.0) — small/rare classes need attention.
-- AP3D@0.7 (10.7) is much lower than @0.5 (52.0) — tight-IoU localization (dimensions/depth precision) is the next ceiling.
+- **Height/Y precision** is the top lever for AP3D@0.7 (BEV@0.7 25.9 vs 3D@0.7 10.4 → vertical extent is the failure). Try better Y/height supervision (e.g. supervise box-bottom directly, or an uncertainty-weighted height loss).
+- Per-class Pedestrian/Cyclist far below Car (mean@0.5 16–18 vs Car 51–52) — small/rare classes.
+- Confirm the small MultiBin gain with multiple seeds (single-seed +0.6 Car is near noise; +1.5 mean and 6/6 consistency are the support).
 - Phase 3 (portability: strip hardcoded KITTI constants) untested.

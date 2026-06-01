@@ -26,4 +26,7 @@ Chronological decision timeline. Newest at bottom.
 - A (sin/cos baseline) launched on westd; B (MultiBin) launched on ultra1.
 - ultra1 setup: 8× Blackwell, internet, venv ~/s3d/venv. B died once at epoch 44 (SIGKILL, no traceback — likely a concurrent `pkill python` from a co-located depth-DDP job); relaunched fresh in tmux (dropped the buggy resume path: resume incompatible with nc auto-expand).
 - **B completed**: Car AP3D@0.5 **52.0**, @0.7 10.7, AP_BEV@0.5 63.0, **AOS@0.5 51.9** (≈AP → near-perfect heading on TPs). Pretrained+1000ep is a big win over scratch200 (34.3→52.0).
-- **A pending** (~epoch 892/1000 on westd). H2 verdict (MultiBin vs sin/cos) finalizes when A lands.
+- **A completed**: Car AP3D@0.5 51.4, @0.7 10.4, AP_BEV@0.5 62.5, AOS@0.5 51.3, mean@0.5 16.3.
+- **H2 verdict — SUPPORTED (small), MultiBin KEPT.** B > A on all 6 metrics (Car AP3D@0.5 +0.6, mean +1.5, AOS +0.6). Consistency (6/6) makes it a real if small gain; no downside → keep (HEAD already has it). Caveat: single-seed Car +0.6 ≈ noise; the +1.5 mean and 6/6 consistency are the real support — multi-seed would confirm.
+- **Insight:** orientation was NOT the bottleneck — sin/cos already gets AOS@0.5 (51.3) ≈ AP3D@0.5 (51.4). The tight-IoU ceiling is vertical/height: at @0.7, AP_BEV (25.9) ≫ AP3D (10.4). Next lever = box-bottom/height precision, not orientation.
+- Headline capability (replaces docs' stale 48%): **~52% AP3D@0.5 (Car, Moderate, true rotated IoU)**, pretrained backbone + 1000ep.

@@ -27,8 +27,11 @@ hypotheses:
     evidence: Car AP3D@0.5 34.3 -> 12.9 (~2.7x worse); reverted (commit 1bc1d631)
   H2:
     text: MultiBin orientation beats sin/cos (higher AOS/AP3D)
-    status: pending
-    evidence: B(multibin,pretrained 1000ep)=52.0/AOS51.9; A(sin/cos baseline) finishing
+    status: supported_small
+    evidence: >
+      B(multibin) > A(sin/cos) on all 6 metrics (Car AP3D@0.5 52.0 vs 51.4 +0.6; mean 17.8 vs 16.3 +1.5;
+      AOS@0.5 51.9 vs 51.3). Small/consistent -> kept. But orientation not the bottleneck (sin/cos AOS~=AP).
+    decision: keep MultiBin (HEAD 7bc2dc19)
 
 experiments:
   - id: baseline_scratch200
@@ -57,8 +60,12 @@ experiments:
   - id: A_sincos_pretrained1000
     config: sin/cos orientation baseline, pretrained backbone, 1000ep
     server: westd (gpu0)
-    status: running   # ~epoch 892/1000 as of last check
-    watcher: bjjo2xrp1
+    car_ap3d_50: 51.4
+    car_ap3d_70: 10.4
+    car_apbev_50: 62.5
+    car_aos_50: 51.3
+    mean_ap3d_50: 16.3
+    status: done
 
 commits:
   - da9eece4  fix true rotated 3D IoU
@@ -70,6 +77,6 @@ commits:
   - 7bc2dc19  Phase 2 MultiBin orientation
 
 next:
-  - finalize H2 verdict when A completes (compare AOS/AP3D B vs A)
-  - if MultiBin neutral -> revert to sin/cos; if better -> keep
-  - then: per-class (Ped/Cyclist) gap, AP3D@0.7 localization ceiling, Phase 3 portability
+  - H2 done -> MultiBin kept (HEAD). Headline ~52% AP3D@0.5 (Car, Mod, true rotated IoU).
+  - top lever: tight-IoU vertical (height/Y) precision -- BEV@0.7 25.9 vs 3D@0.7 10.4
+  - per-class Ped/Cyclist gap; multi-seed confirm small MultiBin gain; Phase 3 portability

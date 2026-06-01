@@ -25,7 +25,7 @@
 <li>The task looked like it had <b>zero capability (AP3D≈0)</b> — but that was <b>two eval/target bugs</b>, not the model. The model's 2D detection &amp; metric depth were accurate all along.</li>
 <li>Fixed → real, trustworthy capability: <b>52.0% AP3D@0.5 (Car)</b> with the documented recipe (replaces the docs' stale/un-reproducible 48%).</li>
 <li><b>Cost-volume stereo depth (Phase 1): REFUTED</b> — regressed ~2.7×, reverted.</li>
-<li><b>MultiBin orientation (Phase 2): PENDING</b> — B done (AOS@0.5 51.9 ≈ AP 52.0, near-perfect heading); baseline A finishing to confirm it beats sin/cos.</li>
+<li><b>MultiBin orientation (Phase 2): small but consistent win, KEPT</b> — beats sin/cos on all 6 metrics (Car AP3D@0.5 +0.6, mean +1.5). But orientation wasn't the bottleneck (sin/cos already AOS≈AP). The real ceiling: <b>tight-IoU vertical (height/Y) precision</b> (BEV@0.7 25.9 ≫ 3D@0.7 10.4).</li>
 </ul>
 
 <h2>Capability trajectory — Car AP3D@0.5</h2>
@@ -33,16 +33,16 @@
 <div class="barwrap"><span class="barlbl">corrected baseline · scratch 200ep</span><span class="bar" style="width:137px"></span><span class="barval">34.3</span></div>
 <div class="barwrap"><span class="barlbl">Phase 1 cost-disp · scratch 200ep</span><span class="bar" style="width:52px;background:#d9534f"></span><span class="barval">12.9</span></div>
 <div class="barwrap"><span class="barlbl">B · MultiBin · pretrained 1000ep</span><span class="bar" style="width:208px;background:#0a7d3c"></span><span class="barval">52.0</span></div>
-<div class="barwrap"><span class="barlbl">A · sin/cos · pretrained 1000ep</span><span class="bar" style="width:60px;background:#e0a73c;opacity:.5"></span><span class="barval">…</span></div>
-<p class="note">Bars scaled to %; A pending (~epoch 892/1000).</p>
+<div class="barwrap"><span class="barlbl">A · sin/cos · pretrained 1000ep</span><span class="bar" style="width:206px;background:#e0a73c"></span><span class="barval">51.4</span></div>
+<p class="note">Bars scaled to %. A (sin/cos) 51.4 vs B (MultiBin) 52.0 — MultiBin +0.6 on Car, +1.5 on mean, wins 6/6 metrics.</p>
 
 <h2>Results (Car, Moderate)</h2>
 <table>
 <tr><th class="l">Config</th><th>Orient</th><th>Recipe</th><th>AP3D@.5</th><th>AP3D@.7</th><th>AP_BEV@.5</th><th>AOS@.5</th></tr>
 <tr><td class="l">corrected baseline</td><td>sin/cos</td><td>scratch 200ep</td><td>34.3</td><td>4.2</td><td>46.1</td><td>34.0</td></tr>
 <tr class="bad"><td class="l">Phase 1 (cost-volume disparity)</td><td>sin/cos</td><td>scratch 200ep</td><td>12.9</td><td>1.3</td><td>16.8</td><td>12.8</td></tr>
-<tr class="win"><td class="l">B — MultiBin orientation</td><td>multibin</td><td>pretrained 1000ep</td><td>52.0</td><td>10.7</td><td>63.0</td><td>51.9</td></tr>
-<tr class="pend"><td class="l">A — sin/cos baseline</td><td>sin/cos</td><td>pretrained 1000ep</td><td colspan="4">pending (running on westd)</td></tr>
+<tr><td class="l">A — sin/cos baseline</td><td>sin/cos</td><td>pretrained 1000ep</td><td>51.4</td><td>10.4</td><td>62.5</td><td>51.3</td></tr>
+<tr class="win"><td class="l">B — MultiBin orientation (kept)</td><td>multibin</td><td>pretrained 1000ep</td><td>52.0</td><td>10.7</td><td>63.0</td><td>51.9</td></tr>
 </table>
 
 <h2>The two bugs (why AP3D was 0)</h2>
@@ -57,14 +57,14 @@
 <tr><td class="l">H0 — AP3D≈0 is an eval/target bug, not the model</td><td><span class="tag ok">CONFIRMED</span></td></tr>
 <tr><td class="l">R0 — pretrained + 1000ep ≫ scratch 200ep</td><td><span class="tag ok">CONFIRMED (34→52)</span></td></tr>
 <tr><td class="l">H1 — cost-volume disparity improves depth/AP3D</td><td><span class="tag no">REFUTED (2.7× worse)</span></td></tr>
-<tr><td class="l">H2 — MultiBin orientation beats sin/cos</td><td><span class="tag wait">PENDING (A finishing)</span></td></tr>
+<tr><td class="l">H2 — MultiBin orientation beats sin/cos</td><td><span class="tag ok">SUPPORTED, small (6/6 metrics, +0.6/+1.5)</span></td></tr>
 </table>
 
 <h2>Open questions / next</h2>
 <ul>
-<li><b>H2 verdict</b> when A lands: keep MultiBin if AOS beats sin/cos, else revert.</li>
-<li>Pedestrian/Cyclist far below Car (mean@0.5 17.8 vs 52.0) — small/rare classes.</li>
-<li>AP3D@0.7 (10.7) ≪ @0.5 (52.0): tight-IoU localization (dim/depth precision) is the next ceiling.</li>
+<li><b>Top lever — height/Y precision:</b> AP_BEV@0.7 (25.9) ≫ AP3D@0.7 (10.4) → vertical extent is what fails at tight IoU. Improve box-bottom/height supervision.</li>
+<li>Pedestrian/Cyclist far below Car (mean@0.5 ~17 vs 52) — small/rare classes.</li>
+<li>Confirm the small MultiBin gain with multiple seeds (single-seed +0.6 Car ≈ noise; +1.5 mean &amp; 6/6 consistency are the support).</li>
 <li>Phase 3 (strip hardcoded KITTI constants → portability) untested.</li>
 </ul>
 </body></html>

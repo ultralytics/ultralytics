@@ -1,6 +1,6 @@
 ---
-description: RKNN export utilities for converting ONNX models to RKNN format for Rockchip NPUs. Supports deployment on RK3588 and other Rockchip platforms for optimized inference on edge devices.
-keywords: Ultralytics, RKNN, model export, ONNX to RKNN, Rockchip, NPU, RK3588, edge AI, embedded systems, neural network, hardware acceleration
+description: RKNN export utilities for converting ONNX models to RKNN format for Rockchip NPUs with floating-point and INT8 quantized export support.
+keywords: Ultralytics, RKNN, model export, ONNX to RKNN, Rockchip, NPU, RK3588, INT8 quantization, FP16, edge AI, embedded systems, neural network, hardware acceleration
 ---
 
 # Reference for `ultralytics/utils/export/rknn.py`

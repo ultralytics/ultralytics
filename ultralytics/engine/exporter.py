@@ -1238,7 +1238,7 @@ class Exporter:
 
     @try_export
     def export_rknn(self, prefix=colorstr("RKNN:")):
-        """Export YOLO model to RKNN format."""
+        """Export YOLO model to RKNN format with optional INT8 quantization."""
         from ultralytics.utils.export.rknn import onnx2rknn
 
         self.args.opset = min(self.args.opset or 19, 19)  # rknn-toolkit expects opset<=19

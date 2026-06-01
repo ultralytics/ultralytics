@@ -22,14 +22,15 @@ def onnx2rknn(
     metadata: dict | None = None,
     prefix: str = "",
 ) -> str:
-    """Export an ONNX model to RKNN format for Rockchip NPUs.
+    """Export an ONNX model to RKNN format for Rockchip NPUs with optional INT8 quantization.
 
     Args:
         onnx_file (str): Path to the source ONNX file (already exported, opset <=19).
         output_dir (Path | str): Directory to save the exported RKNN model.
         name (str): Target platform name (e.g. ``"rk3588"``).
-        int8 (bool): Whether to enable INT8 quantization.
-        dataset (Path | str | None): Path to the RKNN calibration dataset text file.
+        int8 (bool): Whether to enable INT8 quantization. When False, RKNN Toolkit builds a floating-point model for
+            FP16-capable targets.
+        dataset (Path | str | None): Path to the RKNN calibration dataset text file, required when ``int8=True``.
         metadata (dict | None): Metadata saved as ``metadata.yaml``.
         prefix (str): Prefix for log messages.
 

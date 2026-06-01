@@ -32,9 +32,11 @@ Python:
     from ultralytics import YOLO
     model = YOLO('yolo26n.pt')
     results = model.export(format='onnx')
+    results = model.export(format='onnx', int8=True, data='coco8.yaml')  # INT8 ONNX
 
 CLI:
     $ yolo mode=export model=yolo26n.pt format=onnx
+    $ yolo mode=export model=yolo26n.pt format=onnx int8=True data=coco8.yaml
 
 Inference:
     $ yolo predict model=yolo26n.pt                 # PyTorch
@@ -439,7 +441,7 @@ class Exporter:
         >>> exporter(model="yolo26n.pt")  # exports to yolo26n.onnx
 
         Export with specific arguments
-        >>> args = {"format": "onnx", "dynamic": True, "half": True}
+        >>> args = {"format": "onnx", "dynamic": True, "int8": True, "data": "coco8.yaml"}
         >>> exporter = Exporter(overrides=args)
         >>> exporter(model="yolo26n.pt")
     """

@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Reference for the Ultralytics ONNX export utilities. Learn how ONNX INT8 quantization uses ONNX Runtime calibration data readers.
+keywords: ONNX export, ONNX INT8, onnxruntime quantization, CalibrationDataReader, Ultralytics, model export, quantization
 ---
 
 # Reference for `ultralytics/utils/export/onnx.py`

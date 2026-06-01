@@ -75,6 +75,7 @@ def test_export_onnx(end2end, isolated_model):
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
+@pytest.mark.slow
 def test_export_onnx_int8(isolated_model):
     """Test YOLO model export to INT8 ONNX format with calibration data."""
     file = YOLO(isolated_model).export(format="onnx", int8=True, data="coco8.yaml", fraction=0.25, imgsz=32)

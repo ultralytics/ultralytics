@@ -42,8 +42,12 @@ def onnx2rknn(
             f"Rockchip target '{name}' requires int8=True. Use a target that supports floating-point builds "
             f"(e.g. rk2118, rk3562, rk3566, rk3568, rk3576, rk3588, rv1126b) or export with int8=True."
         )
-    if int8 and not dataset:
-        raise ValueError("RKNN INT8 export requires a calibration dataset file.")
+    if int8:
+        if not dataset:
+            raise ValueError("RKNN INT8 export requires a calibration dataset file.")
+        dataset = Path(dataset)
+        if not dataset.is_file():
+            raise ValueError(f"RKNN INT8 calibration dataset file not found: {dataset}")
 
     from ultralytics.utils.checks import check_requirements
 

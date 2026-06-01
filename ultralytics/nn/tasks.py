@@ -47,6 +47,10 @@ from ultralytics.nn.modules import (
     Detect,
     DWConv,
     DWConvTranspose2d,
+    Add,
+    DEIMDINOv3STAs,
+    DFineDecoder,
+    DeimDecoder,
     Focus,
     GhostBottleneck,
     GhostConv,
@@ -60,6 +64,7 @@ from ultralytics.nn.modules import (
     RepC3,
     RepConv,
     RepNCSPELAN4,
+    RepNCSPELAN5,
     RepVGGDW,
     ResNetLayer,
     RTDETRDecoder,
@@ -1692,6 +1697,7 @@ def parse_model(d, ch, verbose=True):
             C2f,
             C3k2,
             RepNCSPELAN4,
+            RepNCSPELAN5,
             ELAN1,
             ADown,
             AConv,
@@ -1778,6 +1784,8 @@ def parse_model(d, ch, verbose=True):
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
+        elif m is Add:
+            c2 = ch[f[0]]
         elif m in frozenset(
             {
                 Detect,
@@ -1804,7 +1812,7 @@ def parse_model(d, ch, verbose=True):
             args.append([ch[x] for x in f])
         elif m is ImagePoolingAttn:
             args.insert(1, [ch[x] for x in f])  # channels as second arg
-        elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
+        elif m in {RTDETRDecoder, DFineDecoder, DeimDecoder}:  # channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
         elif m is CBLinear:
             c2 = args[0]
@@ -1812,7 +1820,7 @@ def parse_model(d, ch, verbose=True):
             args = [c1, c2, *args[1:]]
         elif m is CBFuse:
             c2 = ch[f[-1]]
-        elif m in frozenset({TorchVision, Index}):
+        elif m in frozenset({TorchVision, Index, DEIMDINOv3STAs}):
             c2 = args[0]
             c1 = ch[f]
             args = [*args[1:]]

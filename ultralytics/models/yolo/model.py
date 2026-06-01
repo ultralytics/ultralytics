@@ -76,12 +76,20 @@ class YOLO(Model):
         else:
             # Continue with default YOLO initialization
             super().__init__(model=model, task=task, verbose=verbose)
-            if hasattr(self.model, "model") and "RTDETR" in self.model.model[-1]._get_name():  # if RTDETR head
-                from ultralytics import RTDETR
+            if hasattr(self.model, "model"):
+                head_name = self.model.model[-1]._get_name()
+                if "RTDETR" in head_name:  # RT-DETR head
+                    from ultralytics import RTDETR
 
-                new_instance = RTDETR(self)
-                self.__class__ = type(new_instance)
-                self.__dict__ = new_instance.__dict__
+                    new_instance = RTDETR(self)
+                    self.__class__ = type(new_instance)
+                    self.__dict__ = new_instance.__dict__
+                elif head_name == "DeimDecoder":  # YOLO-DETR head
+                    from ultralytics import YOLODETR
+
+                    new_instance = YOLODETR(self)
+                    self.__class__ = type(new_instance)
+                    self.__dict__ = new_instance.__dict__
 
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:

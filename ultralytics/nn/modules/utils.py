@@ -103,20 +103,24 @@ def multi_scale_deformable_attn_pytorch(
     value_spatial_shapes: list,
     sampling_locations: torch.Tensor,
     attention_weights: torch.Tensor,
+    num_points_list: list[int] | None = None,
 ) -> torch.Tensor:
     """Implement multi-scale deformable attention in PyTorch.
 
     Folds the (num_levels, num_points) axes into a single num_total_points axis so every traced tensor stays at rank <=
     5, the maximum rank supported by CoreML's MIL converter. Numerically equivalent to the rank-6 reference
-    implementation on CUDA and CPU.
+    implementation on CUDA and CPU. When num_points_list is provided, supports variable points-per-level used by
+    DEIM/D-FINE-style decoders (e.g. ndp=[3, 6, 3]).
 
     Args:
         value (torch.Tensor): Value tensor with shape (bs, num_keys, num_heads, embed_dims).
         value_spatial_shapes (list): Per-level spatial shapes as [(H_0, W_0), ..., (H_{L-1}, W_{L-1})].
-        sampling_locations (torch.Tensor): Sampling locations with shape (bs, num_queries, num_heads, num_levels *
-            num_points, 2).
-        attention_weights (torch.Tensor): Attention weights with shape (bs, num_queries, num_heads, num_levels *
-            num_points).
+        sampling_locations (torch.Tensor): Sampling locations with shape (bs, num_queries, num_heads, num_total_points,
+            2). For uniform points-per-level, num_total_points = num_levels * num_points; for variable, it
+            equals sum(num_points_list).
+        attention_weights (torch.Tensor): Attention weights with shape (bs, num_queries, num_heads, num_total_points).
+        num_points_list (list[int], optional): Number of sampling points per level. When None, points-per-level is
+            inferred as num_total_points // num_levels (uniform split). When given, enables variable splits.
 
     Returns:
         (torch.Tensor): Output tensor with shape (bs, num_queries, num_heads * embed_dims).
@@ -126,12 +130,12 @@ def multi_scale_deformable_attn_pytorch(
     """
     bs, _, num_heads, embed_dims = value.shape
     _, num_queries, _, num_total_points, _ = sampling_locations.shape
-    num_points = num_total_points // len(value_spatial_shapes)
+    split_sizes = num_points_list if num_points_list is not None else num_total_points // len(value_spatial_shapes)
 
     # (bs, num_keys, num_heads, embed_dims) -> tuple of (bs*num_heads, embed_dims, H*W) per level
     value_list = value.permute(0, 2, 3, 1).flatten(0, 1).split([h * w for h, w in value_spatial_shapes], dim=-1)
-    # Map to grid_sample coords in [-1, 1] and split per level: tuple of (bs*num_heads, num_queries, num_points, 2)
-    sampling_grids = (2 * sampling_locations - 1).permute(0, 2, 1, 3, 4).flatten(0, 1).split(num_points, dim=-2)
+    # Map to grid_sample coords in [-1, 1] and split per level: tuple of (bs*num_heads, num_queries, points_l, 2)
+    sampling_grids = (2 * sampling_locations - 1).permute(0, 2, 1, 3, 4).flatten(0, 1).split(split_sizes, dim=-2)
 
     sampling_value_list = []
     for level, (h, w) in enumerate(value_spatial_shapes):

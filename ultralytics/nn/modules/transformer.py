@@ -387,7 +387,7 @@ class MLP(nn.Module):
         h = [hidden_dim] * (num_layers - 1)
         self.layers = nn.ModuleList(nn.Linear(n, k) for n, k in zip([input_dim, *h], [*h, output_dim]))
         self.sigmoid = sigmoid
-        self.act = act()
+        self.act = act if isinstance(act, nn.Module) else act()
         if residual and input_dim != output_dim:
             raise ValueError("residual is only supported if input_dim == output_dim")
         self.residual = residual
@@ -795,3 +795,4 @@ class DeformableTransformerDecoder(nn.Module):
             refer_bbox = refined_bbox.detach() if self.training else refined_bbox
 
         return torch.stack(dec_bboxes), torch.stack(dec_cls)
+

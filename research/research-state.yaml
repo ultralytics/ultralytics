@@ -1,0 +1,75 @@
+project: stereo-3d-detection-capability
+question: >
+  Does the YOLO26 stereo-3D (s3d) task have real 3D-detection capability, and which
+  architectural levers (cost-volume depth, MultiBin orientation) improve it?
+branch: 001-stereo-centernet-gaps
+updated: 2026-06-01
+
+metric:
+  primary: AP3D@0.5 (Car, KITTI R40 Moderate, true rotated 3D IoU)
+  secondary: [AP3D@0.7, AP_BEV@0.5, AOS@0.5]
+  benchmark_tool: ultralytics/data/scripts/benchmark_s3d.py
+
+recipe_documented: pretrained YOLO26 backbone (.load) + 1000 epochs SGD lr0=0.01 cos_lr imgsz=384,1248 batch=32
+
+hypotheses:
+  H0:
+    text: reported AP3D~=0 is an eval/target bug, not model incapacity
+    status: confirmed
+    evidence: two bugs fixed (rotated IoU + dim-key); model produces accurate depth/2D
+  R0:
+    text: pretrained backbone + 1000ep >> from-scratch 200ep
+    status: confirmed
+    evidence: Car AP3D@0.5 34.3 -> 52.0
+  H1:
+    text: cost-volume soft-argmax disparity as primary depth beats lr_distance regression
+    status: refuted
+    evidence: Car AP3D@0.5 34.3 -> 12.9 (~2.7x worse); reverted (commit 1bc1d631)
+  H2:
+    text: MultiBin orientation beats sin/cos (higher AOS/AP3D)
+    status: pending
+    evidence: B(multibin,pretrained 1000ep)=52.0/AOS51.9; A(sin/cos baseline) finishing
+
+experiments:
+  - id: baseline_scratch200
+    config: corrected baseline, from-scratch, 200ep
+    car_ap3d_50: 34.3
+    car_ap3d_70: 4.2
+    car_apbev_50: 46.1
+    car_aos_50: 34.0
+    status: done
+  - id: phase1_costdisp_scratch200
+    config: + cost-volume soft-argmax disparity (primary depth)
+    car_ap3d_50: 12.9
+    car_ap3d_70: 1.3
+    car_apbev_50: 16.8
+    car_aos_50: 12.8
+    status: done_refuted
+  - id: B_multibin_pretrained1000
+    config: MultiBin orientation, pretrained backbone, 1000ep
+    server: ultra1 (gpu0, tmux)
+    car_ap3d_50: 52.0
+    car_ap3d_70: 10.7
+    car_apbev_50: 63.0
+    car_aos_50: 51.9
+    mean_ap3d_50: 17.8
+    status: done
+  - id: A_sincos_pretrained1000
+    config: sin/cos orientation baseline, pretrained backbone, 1000ep
+    server: westd (gpu0)
+    status: running   # ~epoch 892/1000 as of last check
+    watcher: bjjo2xrp1
+
+commits:
+  - da9eece4  fix true rotated 3D IoU
+  - a6cc8303  add AP_BEV + AOS metrics
+  - f60fd565  benchmark_s3d.py
+  - c63f929f  Phase 1 cost-volume disparity (reverted)
+  - e8d5501d  fix dimension-prior name->int key bug
+  - 1bc1d631  revert Phase 1
+  - 7bc2dc19  Phase 2 MultiBin orientation
+
+next:
+  - finalize H2 verdict when A completes (compare AOS/AP3D B vs A)
+  - if MultiBin neutral -> revert to sin/cos; if better -> keep
+  - then: per-class (Ped/Cyclist) gap, AP3D@0.7 localization ceiling, Phase 3 portability

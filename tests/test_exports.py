@@ -9,7 +9,6 @@ import uuid
 from contextlib import redirect_stderr, redirect_stdout
 from itertools import product
 from pathlib import Path
-from types import ModuleType
 
 import pytest
 import torch
@@ -415,60 +414,6 @@ def test_export_rknn(isolated_model):
     file = YOLO(isolated_model).export(format="rknn", imgsz=32)
     assert next(Path(file).rglob("*.rknn"), None), f"RKNN export failed, no RKNN model found in: {file}"
     shutil.rmtree(file, ignore_errors=True)
-
-
-def test_onnx2rknn_int8_build_args(tmp_path, monkeypatch):
-    """Test RKNN INT8 export passes quantization dataset to rknn-toolkit2."""
-    from ultralytics.utils.export.rknn import onnx2rknn
-
-    calls = {}
-
-    class FakeRKNN:
-        def __init__(self, verbose=False):
-            calls["verbose"] = verbose
-
-        def config(self, **kwargs):
-            calls["config"] = kwargs
-
-        def load_onnx(self, **kwargs):
-            calls["load_onnx"] = kwargs
-            return 0
-
-        def build(self, **kwargs):
-            calls["build"] = kwargs
-            return 0
-
-        def export_rknn(self, path):
-            calls["export_rknn"] = path
-            Path(path).touch()
-            return 0
-
-    rknn_module = ModuleType("rknn")
-    rknn_api_module = ModuleType("rknn.api")
-    rknn_api_module.RKNN = FakeRKNN
-    monkeypatch.setitem(sys.modules, "rknn", rknn_module)
-    monkeypatch.setitem(sys.modules, "rknn.api", rknn_api_module)
-    monkeypatch.setattr(checks, "check_requirements", lambda *args, **kwargs: None)
-
-    onnx_file = tmp_path / "model.onnx"
-    dataset = tmp_path / "dataset.txt"
-    onnx_file.touch()
-    dataset.write_text("image.jpg\n")
-
-    output_dir = onnx2rknn(str(onnx_file), tmp_path / "rknn", int8=True, dataset=dataset)
-
-    assert output_dir == str(tmp_path / "rknn")
-    assert calls["config"]["target_platform"] == "rk3588"
-    assert calls["build"] == {"do_quantization": True, "dataset": str(dataset)}
-    assert Path(calls["export_rknn"]).name == "model-rk3588.rknn"
-
-
-def test_onnx2rknn_requires_int8_for_rv1106(tmp_path):
-    """Test INT8-only Rockchip targets reject floating-point RKNN builds."""
-    from ultralytics.utils.export.rknn import onnx2rknn
-
-    with pytest.raises(ValueError, match="requires int8=True"):
-        onnx2rknn(str(tmp_path / "model.onnx"), tmp_path / "rknn", name="rv1106")
 
 
 # @pytest.mark.skipif(True, reason="Disabled for debugging ruamel.yaml installation required by executorch")

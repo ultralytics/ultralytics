@@ -1080,23 +1080,29 @@ class ClassificationDataset:
         """Preload all images into a single shared-memory uint8 buffer with per-image offsets.
 
         Original sizes are preserved so torch_transforms (RandomResizedCrop, validation Resize+CenterCrop)
-        receive the same input as the uncached path. A two-pass design records sizes via PIL header reads
-        first, then streams each decoded image directly into the destination buffer to avoid holding the
-        full set of decoded arrays in memory simultaneously.
+        receive the same input as the uncached path. A two-pass design records sizes first, then streams each
+        decoded image directly into the destination buffer to avoid holding the full set of decoded arrays in
+        memory simultaneously. Both passes decode with ``cv2.imread`` so probe and load can never disagree on
+        shape: ``cv2.imread`` applies EXIF orientation while ``PIL.Image.size`` does not, which would otherwise
+        silently transpose rotated images (orientations 5-8) into a corrupted buffer view.
         """
         n = len(self.samples)
         gb = 1 << 30
 
         def probe(i: int):
-            with Image.open(self.samples[i][0]) as img:
-                w, h = img.size
-            return i, (h, w, 3)  # cv2.imread returns BGR (3 channels) regardless of source format
+            im = cv2.imread(self.samples[i][0])  # decode with the same decoder as load() so shapes agree
+            if im is None:
+                raise FileNotFoundError(f"Image Not Found {self.samples[i][0]}")
+            return i, im.shape  # (h, w, c) from the actual decoder (cv2.imread returns 3-channel BGR)
 
         def load(i: int):
-            return i, cv2.imread(self.samples[i][0])
+            im = cv2.imread(self.samples[i][0])
+            if im is None:
+                raise FileNotFoundError(f"Image Not Found {self.samples[i][0]}")
+            return i, im
 
         try:
-            # Pass 1: read image headers only (no decode) to record (h, w, c) and total bytes.
+            # Pass 1: decode to record true (h, w, c) and total bytes (EXIF-aware, matches load()).
             shapes = [None] * n
             with ThreadPool(NUM_THREADS) as pool:
                 pbar = TQDM(pool.imap(probe, range(n)), total=n, disable=LOCAL_RANK > 0)
@@ -1123,6 +1129,8 @@ class ClassificationDataset:
                 pbar.close()
 
             cache.share_memory_()
+        except FileNotFoundError:
+            raise  # surface a corrupt/missing image clearly instead of swallowing it as a cache fallback
         except (MemoryError, OSError, RuntimeError) as e:
             LOGGER.warning(
                 f"{self.prefix}cache_ram failed ({type(e).__name__}: {e}); falling back to disk reads. "

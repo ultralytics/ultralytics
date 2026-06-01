@@ -624,7 +624,7 @@ jobs:
           "
       - name: PyTest Setup
         run: |
-          VERSION=$(conda list ultralytics | grep ultralytics | awk '{print $2}')
+          VERSION=$(python -c "from importlib.metadata import version; print(version('ultralytics'))")
           git clone --branch v$VERSION https://github.com/ultralytics/ultralytics.git
       - name: test_cli.py
         run: pytest ultralytics/tests/test_cli.py -v -s

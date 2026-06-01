@@ -24,6 +24,7 @@ import torch
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.data.stereo.box3d import Box3D
+from ultralytics.models.yolo.s3d.orientation import decode_orientation
 from ultralytics.utils import LOGGER
 from ultralytics.utils.nms import non_max_suppression
 
@@ -262,10 +263,10 @@ def decode_stereo3d_outputs(
             width = max(mean_w + float(dim_off[1].item()) * std_w, 0.01)
             length = max(mean_l + float(dim_off[2].item()) * std_l, 0.01)
 
-            # Orientation: decode from predicted sin/cos or fallback to alpha=0
+            # Orientation: decode MultiBin prediction (argmax bin + residual) → alpha, else alpha=0
             ray_angle = math.atan2(x_3d, z_3d)
             if ori_pred is not None:
-                alpha = math.atan2(float(ori_pred[0].item()), float(ori_pred[1].item()))
+                alpha = decode_orientation([float(v) for v in ori_pred.tolist()])
                 theta = alpha + ray_angle
             else:
                 theta = ray_angle  # fallback: alpha=0

@@ -17,6 +17,7 @@ from ultralytics.models.yolo.s3d.augment import (
     StereoCrop,
     StereoLetterBox,
 )
+from ultralytics.models.yolo.s3d.orientation import ORIENT_CHANNELS, encode_orientation
 from ultralytics.utils import DEFAULT_CFG, LOGGER
 from ultralytics.utils.checks import check_imgsz
 import math
@@ -838,12 +839,12 @@ class Stereo3DDetDataset(BaseDataset):
                 dims = dimensions_3d[j]  # [length, width, height] in meters
                 dim_list.append(compute_dimension_offset(tuple(dims), cls_i, self.mean_dims, self.std_dims))
 
-                # Orientation: encode alpha as [sin(alpha), cos(alpha)]
-                # alpha = rotation_y - ray_angle, where ray_angle = atan2(x_3d, z_3d)
+                # Orientation: MultiBin encoding of alpha (rotation_y - ray_angle).
+                # ray_angle = atan2(x_3d, z_3d). See orientation.encode_orientation.
                 loc = location_3d[j]  # [x, y, z] in camera frame
                 ray_angle = math.atan2(float(loc[0]), float(loc[2]))
                 alpha = float(rotation_y[j]) - ray_angle
-                ori_list.append(torch.tensor([math.sin(alpha), math.cos(alpha)], dtype=torch.float32))
+                ori_list.append(torch.tensor(encode_orientation(alpha), dtype=torch.float32))
 
                 # Pseudo-label flag: 0=real, 1=stereo-pseudo (occ>=10), 2=mono-pseudo (occ>=20)
                 occ_j = int(occluded[j])
@@ -869,7 +870,7 @@ class Stereo3DDetDataset(BaseDataset):
         max_n = max(per_image_counts) if per_image_counts else 0
         aux_targets: dict[str, torch.Tensor] = {}
         for k in per_image_aux.keys():
-            c = {"lr_distance": 1, "depth": 1, "dimensions": 3, "orientation": 2, "is_pseudo": 1}[k]
+            c = {"lr_distance": 1, "depth": 1, "dimensions": 3, "orientation": ORIENT_CHANNELS, "is_pseudo": 1}[k]
             padded = torch.zeros((len(batch), max_n, c), dtype=torch.float32)
             for bi in range(len(batch)):
                 if per_image_counts[bi] == 0:

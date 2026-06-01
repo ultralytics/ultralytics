@@ -8,11 +8,14 @@ import torch.nn as nn
 from ultralytics.nn.modules.conv import Conv
 from ultralytics.nn.modules.head import Detect
 
+from .orientation import ORIENT_CHANNELS
+
 DEPTH_BINS = 16
 DEPTH_MIN = 2.0
 DEPTH_MAX = 80.0
 
-AUX_SPECS = {"lr_distance": 1, "dimensions": 3, "orientation": 2, "depth": DEPTH_BINS}
+# Orientation is a MultiBin head (ORIENT_CHANNELS = N_bins*(1 conf + 2 residual)); see orientation.py.
+AUX_SPECS = {"lr_distance": 1, "dimensions": 3, "orientation": ORIENT_CHANNELS, "depth": DEPTH_BINS}
 
 
 class DepthDFL(nn.Module):

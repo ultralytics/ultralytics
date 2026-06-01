@@ -154,10 +154,68 @@ class Stereo3DDetLoss(v8DetectionLoss):
                     fg_mask,
                     aux_weights,
                 )
+            elif k == "orientation" and k in aux_preds:
+                aux_losses[k] = self._orientation_multibin_loss(
+                    aux_preds[k], aux_gt, target_gt_idx, fg_mask, aux_weights
+                )
             elif k in aux_preds:
                 aux_losses[k] = self._aux_loss(aux_preds[k], aux_gt, target_gt_idx, fg_mask, aux_weights)
 
         return aux_losses
+
+    def _orientation_multibin_loss(
+        self,
+        pred_map: torch.Tensor,
+        aux_gt: torch.Tensor,
+        gt_idx: torch.Tensor,
+        fg_mask: torch.Tensor,
+        aux_weights: torch.Tensor | None = None,
+    ) -> torch.Tensor:
+        """MultiBin orientation loss: bin classification (CE) + GT-bin residual (SmoothL1).
+
+        Channel layout (see orientation.py): [conf_0..conf_{N-1}, sin_0, cos_0, ...].
+        Target conf is one-hot of the nearest bin; only that bin's (sin,cos) residual
+        is supervised. Per-anchor losses are pseudo-label-weighted like the other aux terms.
+
+        Args:
+            pred_map: [B, ORIENT_CHANNELS, HW_total] raw head outputs (conf are logits).
+            aux_gt: [B, max_n, ORIENT_CHANNELS] padded MultiBin targets.
+            gt_idx: [B, HW_total] TAL assignment indices.
+            fg_mask: [B, HW_total] foreground mask.
+            aux_weights: [npos, 1] per-anchor pseudo weight.
+        """
+        from .orientation import NUM_ORIENT_BINS
+
+        c = pred_map.shape[1]
+        if aux_gt.shape[1] == 0 or not fg_mask.any():
+            return pred_map.sum() * 0.0
+        if gt_idx.dtype != torch.int64:
+            gt_idx = gt_idx.to(torch.int64)
+
+        gathered = aux_gt.gather(1, gt_idx.unsqueeze(-1).expand(-1, -1, c))  # [B, HW, C]
+        pred_pos = pred_map.permute(0, 2, 1)[fg_mask]  # [npos, C]
+        tgt_pos = gathered[fg_mask]  # [npos, C]
+        if pred_pos.numel() == 0:
+            return pred_map.sum() * 0.0
+
+        nb = NUM_ORIENT_BINS
+        npos = pred_pos.shape[0]
+        ar = torch.arange(npos, device=pred_pos.device)
+        bin_tgt = tgt_pos[:, :nb].argmax(dim=1)  # [npos] GT bin from one-hot conf
+
+        # Bin classification (cross-entropy over confidence logits).
+        ce = F.cross_entropy(pred_pos[:, :nb], bin_tgt, reduction="none")  # [npos]
+
+        # Residual (sin,cos) regression for the GT bin only.
+        pred_res = pred_pos[:, nb:].view(npos, nb, 2)[ar, bin_tgt]  # [npos, 2]
+        tgt_res = tgt_pos[:, nb:].view(npos, nb, 2)[ar, bin_tgt]  # [npos, 2]
+        res = F.smooth_l1_loss(pred_res, tgt_res, reduction="none").mean(-1)  # [npos]
+
+        per_anchor = ce + res  # [npos]
+        if aux_weights is not None:
+            w = aux_weights.squeeze(-1)
+            return (per_anchor * w).sum() / w.sum().clamp(min=1.0)
+        return per_anchor.mean()
 
     def _depth_bin_loss(
         self,

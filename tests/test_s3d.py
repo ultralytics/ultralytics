@@ -58,9 +58,9 @@ def test_export_onnx():
         dims = [d.dim_value for d in inp.type.tensor_type.shape.dim]
         assert dims == [1, 3, 384, 1248], f"{inp.name} shape {dims} != [1, 3, 384, 1248]"
 
-    # Output should include aux channels: 4(box) + 3(cls) + 1(lr) + 3(dims) + 2(orient) + 16(depth) = 29
+    # Output aux channels: 4(box) + 3(cls) + 1(lr) + 3(dims) + 6(orient MultiBin) + 16(depth) = 33
     out_shape = [d.dim_value for d in m.graph.output[0].type.tensor_type.shape.dim]
-    assert out_shape[1] == 29, f"Expected 29 output channels (7 det + 22 aux), got {out_shape[1]}"
+    assert out_shape[1] == 33, f"Expected 33 output channels (7 det + 26 aux), got {out_shape[1]}"
 
 
 @pytest.mark.skipif(not __import__("torch").cuda.is_available(), reason="TensorRT requires CUDA")
@@ -241,3 +241,38 @@ def test_dimension_target_decode_roundtrip():
         assert abs(dL - L) < 1e-4, f"length round-trip failed cls{cid}: {dL} != {L}"
         assert abs(dW - W) < 1e-4, f"width round-trip failed cls{cid}: {dW} != {W}"
         assert abs(dH - H) < 1e-4, f"height round-trip failed cls{cid}: {dH} != {H}"
+
+
+def test_orientation_multibin_roundtrip():
+    """MultiBin encode->decode must recover the observation angle across the full circle.
+
+    This is the guard against the encode/decode mismatch class of bug (cf. the
+    dimension-prior bug). The decoder argmaxes the (one-hot) confidence and adds the
+    residual to the chosen bin center; it must invert the encoder exactly.
+    """
+    import numpy as np
+
+    from ultralytics.models.yolo.s3d.orientation import ORIENT_CHANNELS, decode_orientation, encode_orientation
+
+    for alpha in np.linspace(-np.pi + 1e-3, np.pi - 1e-3, 73):
+        enc = encode_orientation(float(alpha))
+        assert len(enc) == ORIENT_CHANNELS == 6
+        dec = decode_orientation(enc)
+        # angular difference wrapped to [-pi, pi]
+        d = (dec - float(alpha) + np.pi) % (2 * np.pi) - np.pi
+        assert abs(d) < 1e-5, f"alpha={alpha:.3f} -> decoded {dec:.3f} (err {d:.2e})"
+
+
+def test_orientation_multibin_resolves_180():
+    """Headings ~180 deg apart land in different bins, so a confident bin disambiguates them.
+
+    A single sin/cos regressor that smears toward 0 cannot distinguish front/back;
+    MultiBin assigns alpha and alpha+pi to different argmax bins.
+    """
+    from ultralytics.models.yolo.s3d.orientation import NUM_ORIENT_BINS, encode_orientation
+
+    enc_a = encode_orientation(0.2)
+    enc_b = encode_orientation(0.2 + 3.14159)  # ~180 deg apart
+    bin_a = max(range(NUM_ORIENT_BINS), key=lambda i: enc_a[i])
+    bin_b = max(range(NUM_ORIENT_BINS), key=lambda i: enc_b[i])
+    assert bin_a != bin_b, f"180-deg-apart headings must differ in bin: {bin_a} vs {bin_b}"

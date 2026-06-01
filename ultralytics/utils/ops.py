@@ -85,14 +85,11 @@ def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.
         (np.ndarray): Bounding box coordinates in xyxy format [x1, y1, x2, y2].
     """
     x, y = segment.T  # segment xy
-    # Track points that need clipping (outside the image) so they are excluded after being snapped to the border,
-    # while points that natively lie on the border are kept.
-    snapped = (x < 0) | (x > width) | (y < 0) | (y > height)
     # Clip coordinates if 3 out of 4 sides are outside the image
     if np.array([x.min() < 0, y.min() < 0, x.max() > width, y.max() > height]).sum() >= 3:
         x = x.clip(0, width)
         y = y.clip(0, height)
-    inside = (x >= 0) & (y >= 0) & (x <= width) & (y <= height) & ~snapped
+    inside = (x >= 0) & (y >= 0) & (x <= width) & (y <= height)
     x = x[inside]
     y = y[inside]
     return (

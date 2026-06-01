@@ -143,7 +143,15 @@ def export_formats():
             ["batch", "optimize", "half", "nms", "dynamic"],
             "base",
         ],
-        ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify", "nms"], "base"],
+        [
+            "ONNX",
+            "onnx",
+            ".onnx",
+            True,
+            True,
+            ["batch", "data", "dynamic", "half", "int8", "opset", "simplify", "nms", "fraction"],
+            "base",
+        ],
         [
             "OpenVINO",
             "openvino",
@@ -821,11 +829,13 @@ class Exporter:
     def export_onnx(self, prefix=colorstr("ONNX:")):
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.12.0,<2.0.0"]
-        if self.args.simplify:
+        if self.args.simplify or (self.args.format == "onnx" and self.args.int8):
             # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
             ort = "onnxruntime-gpu" if "cuda" in self.device.type else "onnxruntime"
-            requirements += ["onnxslim>=0.1.82", (ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")]
+            requirements += [(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")]
+        if self.args.simplify:
+            requirements += ["onnxslim>=0.1.82"]
         check_requirements(requirements)
         import onnx
 
@@ -898,6 +908,19 @@ class Exporter:
                 LOGGER.warning(f"{prefix} FP16 conversion failure: {e}")
 
         onnx.save(model_onnx, f)
+        if self.args.int8 and self.args.format == "onnx":
+            from ultralytics.utils.export.onnx import onnx_int8_quantize
+
+            source = Path(f)
+            f_int8 = str(source.with_name(f"{source.stem}_int8{source.suffix}"))
+            f = onnx_int8_quantize(
+                source,
+                f_int8,
+                self.get_int8_calibration_dataloader(prefix),
+                self._transform_fn,
+                prefix=prefix,
+            )
+            source.unlink(missing_ok=True)
         return f
 
     @try_export

@@ -754,7 +754,8 @@ def test_classify_cache_ram_exif(tmp_path):
 
     ram, off = build("ram"), build(False)
     assert ram.cache_ram and ram.img_cache is not None, "RAM cache was not built"
-    name2idx = lambda ds: {Path(ds.samples[i][0]).name: i for i in range(len(ds.samples))}
+    def name2idx(ds):
+        return {Path(ds.samples[i][0]).name: i for i in range(len(ds.samples))}
     nr, nf = name2idx(ram), name2idx(off)
     for name in ("exif6.jpg", "sq.png"):
         assert torch.equal(ram[nr[name]]["img"], off[nf[name]]["img"]), f"cache='ram' differs from cache=False for {name}"

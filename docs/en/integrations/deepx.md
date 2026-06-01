@@ -68,7 +68,7 @@ The `dx_com` compiler package will be automatically installed from the DEEPX SDK
 
 ### Usage
 
-The DeepX format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on DeepX NPU hardware. Export your model, then load the exported model to run inference or validate its accuracy.
+The DEEPX format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on DEEPX NPU hardware. Export your model, then load the exported model to run inference or validate its accuracy.
 
 !!! example "Export"
 
@@ -98,7 +98,7 @@ The DeepX format supports the [Export](../modes/export.md), [Predict](../modes/p
         ```python
         from ultralytics import YOLO
 
-        # Load the exported DeepX model
+        # Load the exported DEEPX model
         model = YOLO("yolo26n_deepx_model")
 
         # Run inference
@@ -108,7 +108,7 @@ The DeepX format supports the [Export](../modes/export.md), [Predict](../modes/p
     === "CLI"
 
         ```bash
-        # Run inference with the exported DeepX model
+        # Run inference with the exported DEEPX model
         yolo predict model=yolo26n_deepx_model source='https://ultralytics.com/images/bus.jpg'
         ```
 
@@ -119,7 +119,7 @@ The DeepX format supports the [Export](../modes/export.md), [Predict](../modes/p
         ```python
         from ultralytics import YOLO
 
-        # Load the exported DeepX model
+        # Load the exported DEEPX model
         model = YOLO("yolo26n_deepx_model")
 
         # Validate accuracy on the COCO8 dataset
@@ -129,7 +129,7 @@ The DeepX format supports the [Export](../modes/export.md), [Predict](../modes/p
     === "CLI"
 
         ```bash
-        # Validate the exported DeepX model
+        # Validate the exported DEEPX model
         yolo val model=yolo26n_deepx_model data=coco8.yaml
         ```
 
@@ -176,8 +176,8 @@ Inference requires the DEEPX NPU driver, the `libdxrt` runtime, and the `dx_engi
 ```bash
 # Install the NPU driver and libdxrt runtime
 sudo apt update
-wget https://github.com/DEEPX-AI/dx_rt_npu_linux_driver/raw/main/release/2.4.0/dxrt-driver-dkms_2.4.0-2_all.deb
-sudo apt install ./dxrt-driver-dkms_2.4.0-2_all.deb
+wget https://github.com/DEEPX-AI/dx_rt_npu_linux_driver/raw/main/release/2.4.1/dxrt-driver-dkms_2.4.1-2_all.deb
+sudo apt install ./dxrt-driver-dkms_2.4.1-2_all.deb
 wget https://github.com/DEEPX-AI/dx_rt/raw/main/release/3.3.2/libdxrt_3.3.2_all.deb
 sudo apt install ./libdxrt_3.3.2_all.deb
 
@@ -201,7 +201,7 @@ Compiler: v1.18.1
 .dxnn File Format: v6
 ```
 
-Once the runtime is installed, run inference and validation on your DeepX device exactly as shown in the [Usage](#usage) section above — the exported `_deepx_model` loads directly with `YOLO(...)`.
+Once the runtime is installed, run inference and validation on your DEEPX device exactly as shown in the [Usage](#usage) section above — the exported `_deepx_model` loads directly with `YOLO(...)`.
 
 ### Visualizing with dxtron
 
@@ -232,21 +232,25 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
 
     === "Raspberry Pi 5 + DX-M1 M.2 Module"
 
-        | Model        	| Format  	| Status 	| metrics/mAP50-95(B) 	| Inference time (ms/im) 	|
-        |--------------	|---------	|--------	|---------------------	|------------------------	|
-        | YOLO26n      	| PyTorch 	| ✅      	| 0.4760              	| 315.2                  	|
-        | YOLO26n      	| DEEPX   	| ✅      	| 0.4660              	| 34.6                   	|
-        | YOLO26n-seg  	| PyTorch 	| ✅      	| 0.4080              	| 485.4                  	|
-        | YOLO26n-seg  	| DEEPX   	| ✅      	| 0.3920              	| 53.8                   	|
-        | YOLO26n-pose 	| PyTorch 	| ✅      	| 0.4230              	| 506.3                  	|
-        | YOLO26n-pose 	| DEEPX   	| ✅      	| 0.4590              	| 37.6                   	|
-        | YOLO26n-obb  	| PyTorch 	| ✅      	| 0.817               	| 1094.4                 	|
-        | YOLO26n-obb  	| DEEPX   	| ✅      	| 0.783               	| 56.4                   	|
+        <div align="center">
+        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/deepx-m1-npu-vs-pytorch.avif" alt="Raspberry Pi 5 DEEPX M1 NPU vs PyTorch benchmarks">
+        </div>
 
-        | Model       	| Format  	| Status 	| acc (top1) 	| acc (top5) 	| Inference time (ms/im) 	|
-        |-------------	|---------	|--------	|------------	|------------	|------------------------	|
-        | YOLO26n-cls 	| PyTorch 	| ✅      	| 0.431      	| 0.716      	| 23.8                   	|
-        | YOLO26n-cls 	| DEEPX   	| ✅      	| 0.333      	| 0.686      	| 2.7                    	|
+        | Model        	| Format  	| Status 	| Size (MB) 	| metrics/mAP50-95(B) 	| Inference time (ms/im) 	|
+        |--------------	|---------	|--------	|-----------	|---------------------	|------------------------	|
+        | YOLO26n      	| PyTorch 	| ✅      	| 5.3       	| 0.4760              	| 315.2                  	|
+        | YOLO26n      	| DEEPX   	| ✅      	| 6.6       	| 0.4660              	| 34.6                   	|
+        | YOLO26n-seg  	| PyTorch 	| ✅      	| 6.5       	| 0.4080              	| 485.4                  	|
+        | YOLO26n-seg  	| DEEPX   	| ✅      	| 7.9       	| 0.3920              	| 53.8                   	|
+        | YOLO26n-pose 	| PyTorch 	| ✅      	| 7.6       	| 0.4230              	| 506.3                  	|
+        | YOLO26n-pose 	| DEEPX   	| ✅      	| 8.8       	| 0.4590              	| 37.6                   	|
+        | YOLO26n-obb  	| PyTorch 	| ✅      	| 5.7       	| 0.817               	| 1094.4                 	|
+        | YOLO26n-obb  	| DEEPX   	| ✅      	| 7.3       	| 0.783               	| 56.4                   	|
+
+        | Model       	| Format  	| Status 	| Size (MB) 	| acc (top1) 	| acc (top5) 	| Inference time (ms/im) 	|
+        |-------------	|---------	|--------	|-----------	|------------	|------------	|------------------------	|
+        | YOLO26n-cls 	| PyTorch 	| ✅      	| 5.6       	| 0.431      	| 0.716      	| 23.8                   	|
+        | YOLO26n-cls 	| DEEPX   	| ✅      	| 5.9       	| 0.333      	| 0.686      	| 2.7                    	|
 
     === "More devices coming soon!"
 

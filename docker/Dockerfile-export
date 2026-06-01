@@ -14,7 +14,8 @@ RUN uv pip install --system -e ".[export]" "onnxruntime-gpu" paddlepaddle x2padd
     yolo export model=tmp/yolo26n.pt format=edgetpu imgsz=32 && \
     yolo export model=tmp/yolo26n.pt format=ncnn imgsz=32 && \
     # Remove temporary files \
-    rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
+    uv cache clean && \
+    rm -rf tmp ~/.cache /root/.config/Ultralytics/persistent_cache.json
 
 # Usage --------------------------------------------------------------------------------------------------------------
 

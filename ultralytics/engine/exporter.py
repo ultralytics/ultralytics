@@ -303,7 +303,7 @@ EXPORT_ENVS = {
         "env": {},
         "smoke": [
             "yolo export format=rknn model=yolo11n.pt imgsz=32",
-            "yolo export format=rknn model=yolo11n.pt imgsz=32 int8=True data=coco8.yaml fraction=0.1",
+            "yolo export format=rknn model=yolo11n.pt imgsz=32 int8=True data=coco8.yaml fraction=1.0",
         ],
     },
     "isolated-axelera": {

@@ -729,6 +729,37 @@ def test_classify_transforms_train(image, auto_augment, erasing, force_color_jit
     assert transformed_image.dtype == torch.float32
 
 
+def test_classify_cache_ram_exif(tmp_path):
+    """Verify classification cache='ram' yields images identical to cache=False, including EXIF-rotated ones."""
+    from ultralytics.cfg import get_cfg
+    from ultralytics.data.dataset import ClassificationDataset
+    from ultralytics.utils import DEFAULT_CFG
+
+    root = tmp_path / "cls"
+    (root / "c0").mkdir(parents=True)
+    # EXIF orientation 6 (90 deg) on a non-square image: cv2.imread applies it, PIL .size does not
+    arr = np.zeros((80, 120, 3), dtype=np.uint8)
+    arr[:, :60] = (200, 50, 10)
+    arr[20:, :] = (10, 50, 200)
+    img = Image.fromarray(arr)
+    exif = img.getexif()
+    exif[274] = 6  # Orientation tag
+    img.save(root / "c0" / "exif6.jpg", exif=exif, quality=95)
+    Image.fromarray(np.random.RandomState(0).randint(0, 255, (100, 100, 3), dtype=np.uint8)).save(root / "c0" / "sq.png")
+
+    def build(cache):
+        args = get_cfg(DEFAULT_CFG)
+        args.cache, args.imgsz, args.fraction = cache, 64, 1.0
+        return ClassificationDataset(str(root), args, augment=False)  # val transforms are deterministic
+
+    ram, off = build("ram"), build(False)
+    assert ram.cache_ram and ram.img_cache is not None, "RAM cache was not built"
+    name2idx = lambda ds: {Path(ds.samples[i][0]).name: i for i in range(len(ds.samples))}
+    nr, nf = name2idx(ram), name2idx(off)
+    for name in ("exif6.jpg", "sq.png"):
+        assert torch.equal(ram[nr[name]]["img"], off[nf[name]]["img"]), f"cache='ram' differs from cache=False for {name}"
+
+
 @pytest.mark.slow
 @pytest.mark.skipif(IS_RASPBERRYPI or IS_JETSON, reason="Edge devices not intended for tuning")
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

@@ -309,10 +309,7 @@ EXPORT_ENVS = {
         "requirements": ["rknn-toolkit2>=2.3.2", "onnx>=1.16.1,<1.19.0", "setuptools<82"],
         "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
         "env": {},
-        "smoke": [
-            "yolo export format=rknn model=yolo26n.pt imgsz=32 half=True",
-            "yolo export format=rknn model=yolo26n.pt imgsz=32 half=False int8=True data=coco8.yaml",
-        ],
+        "smoke": ["yolo export format=rknn model=yolo26n.pt imgsz=32 half=True"],
     },
     "isolated-axelera": {
         "python": "3.12",

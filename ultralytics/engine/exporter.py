@@ -445,6 +445,12 @@ class Exporter:
             _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
+        if (
+            self.args.format.lower() == "rknn"
+            and not self.args.int8
+            and not any(k in (overrides or {}) for k in {"half", "int8", "data", "fraction"})
+        ):
+            self.args.half = True
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
@@ -546,8 +552,6 @@ class Exporter:
             assert fmt != "ncnn", "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
         if fmt == "rknn":
-            if not self.args.int8:
-                self.args.half = True
             if not self.args.name:
                 LOGGER.warning(
                     "Rockchip RKNN export requires a missing 'name' arg for processor type. "

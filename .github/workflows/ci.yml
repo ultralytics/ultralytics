@@ -605,7 +605,7 @@ jobs:
         run: conda install -c pytorch -c conda-forge pytorch-cpu torchvision ultralytics "openvino<2026"
       - name: Install pip packages
         run: |
-          VERSION=$(python -c "import ultralytics; print(ultralytics.__version__)")
+          VERSION=$(python -c "from importlib.metadata import version; print(version('ultralytics'))")
           uv pip install pytest "ultralytics[export-base,solutions]==${VERSION}" "git+https://github.com/ultralytics/CLIP.git"
       - name: Check environment
         run: conda list

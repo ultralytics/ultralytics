@@ -307,24 +307,13 @@ jobs:
           if [ -n "${{ matrix.numpy_extra }}" ]; then
             legacy_extra=",${{ matrix.numpy_extra }}"
           fi
-          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            torch_packages=(torch torchvision)
-            if [ "${{ matrix.torch }}" != "latest" ]; then
-              torch_packages=("torch==${{ matrix.torch }}" "torchvision==${{ matrix.torchvision }}")
-            fi
-            uv pip install "${torch_packages[@]}" \
-              --index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
-            uv pip install -e ".[export-base,solutions${legacy_extra}]" \
-              aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git"
-          else
-            torch=""
-            if [ "${{ matrix.torch }}" != "latest" ]; then
-              torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
-            fi
-            uv pip install -e ".[export-base,solutions${legacy_extra}]" $torch \
-              aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
-              --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          torch=""
+          if [ "${{ matrix.torch }}" != "latest" ]; then
+            torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
+          uv pip install -e ".[export-base,solutions${legacy_extra}]" $torch \
+            aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
+            --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks

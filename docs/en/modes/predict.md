@@ -45,7 +45,7 @@ Here's why you should consider YOLO26's predict mode for your various inference 
 YOLO26's predict mode is designed to be robust and versatile, featuring:
 
 - **Multiple Data Source Compatibility:** Whether your data is in the form of individual images, a collection of images, video files, or real-time video streams, predict mode has you covered.
-- **Streaming Mode:** Use the streaming feature to generate a memory-efficient generator of `Results` objects. Enable this by setting `stream=True` in the predictor's call method.
+- **Streaming Mode:** Use the streaming feature to generate a memory-efficient generator of `Results` objects. Enable this by setting `stream=True` in the predictor's call method. Unlike the default behavior (`stream=False`), which returns a list containing all results, `stream=True` yields results one at a time, making it especially useful for long videos and live streams.
 - **Batch Processing:** Process multiple images or video frames in a single batch, further reducing total inference time.
 - **Integration Friendly:** Easily integrate with existing data pipelines and other software components, thanks to its flexible API.
 

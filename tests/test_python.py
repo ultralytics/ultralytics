@@ -304,8 +304,18 @@ def test_basedataset_cache_ram_resize_short(tmp_path):
 
     def build(cls, cache):
         return cls(
-            img_path=str(images), imgsz=64, batch_size=4, augment=True, hyp=cfg, rect=False,
-            cache=cache, stride=32, pad=0.0, task="detect", data=data, fraction=1.0
+            img_path=str(images),
+            imgsz=64,
+            batch_size=4,
+            augment=True,
+            hyp=cfg,
+            rect=False,
+            cache=cache,
+            stride=32,
+            pad=0.0,
+            task="detect",
+            data=data,
+            fraction=1.0,
         )
 
     for cls in (YOLODataset, ShortSideDS):

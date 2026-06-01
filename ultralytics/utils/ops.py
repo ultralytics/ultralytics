@@ -94,7 +94,7 @@ def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.
     y = y[inside]
     return (
         np.array([x.min(), y.min(), x.max(), y.max()], dtype=segment.dtype)
-        if any(x)
+        if len(x)
         else np.zeros(4, dtype=segment.dtype)
     )  # xyxy
 

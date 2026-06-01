@@ -139,8 +139,8 @@ def bbox_iou(
     else:  # x1, y1, x2, y2 = box1
         b1_x1, b1_y1, b1_x2, b1_y2 = box1.chunk(4, -1)
         b2_x1, b2_y1, b2_x2, b2_y2 = box2.chunk(4, -1)
-        w1, h1 = b1_x2 - b1_x1, b1_y2 - b1_y1 + eps
-        w2, h2 = b2_x2 - b2_x1, b2_y2 - b2_y1 + eps
+        w1, h1 = (b1_x2 - b1_x1 + eps), (b1_y2 - b1_y1 + eps)
+        w2, h2 = (b2_x2 - b2_x1 + eps), (b2_y2 - b2_y1 + eps)
 
     # Intersection area
     inter = (b1_x2.minimum(b2_x2) - b1_x1.maximum(b2_x1)).clamp_(0) * (

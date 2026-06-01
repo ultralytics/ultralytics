@@ -22,8 +22,9 @@ def test_func(*args, **kwargs):
     print("callback test passed")
 
 
-def test_export():
+def test_export(monkeypatch, tmp_path):
     """Test model exporting functionality by adding a callback and verifying its execution."""
+    monkeypatch.chdir(tmp_path)
     exporter = Exporter()
     exporter.add_callback("on_export_start", test_func)
     assert test_func in exporter.callbacks["on_export_start"], "on_export_start callback not registered"

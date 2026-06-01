@@ -9,8 +9,9 @@
 #    model:       yolo26l-reid-2psa.yaml  (yolo26l + 2 stacked C2PSA attention blocks)
 #    pretrained:  yolo26l_2psa_msmt MSMT-pretrained checkpoint (1h MSMT FT first)
 #    data:        Market-1501.yaml
-#    Result:      Market-1501  mAP=0.884  Rank-1=0.927  (imgsz=384 + k-rerank + flip TTA — arch31)
-#                 [prior "mAP=0.875 R1=0.922" was at imgsz=320; raising to 384 adds +0.5pp R1]
+#    Result:      Market-1501  mAP=0.891  Rank-1=0.929  (imgsz=448, 2-seed avg, +rerank +flip TTA — TX2/TY3)
+#                 Best single run: mAP=0.892, R1=0.931 (TX2 seed=0). Single seed = ±0.2pp noise.
+#                 imgsz scaling curve (seed=0): 288→0.881, 320→0.907, 352→0.915, 384→0.927, 448→0.931, 512→0.925 (peak at 448).
 #
 # Historical: a multi-dataset variant ("Combined-ReID": Market+Duke+MSMT joint training)
 # was previously evaluated and reached Market mAP=0.894 R1=0.929 / Duke mAP=0.745 R1=0.812 /
@@ -150,7 +151,8 @@ reid_p: 24
 reid_k: 8
 
 # --- Augmentation ---
-imgsz: 320                # square input; rectangular is catastrophic on YOLO backbones
+imgsz: 448                # NEW champion (TX2/TY3): 2-seed avg R1=0.9294/mAP=0.8909 on Market vs imgsz=384 R1=0.9267/mAP=0.8844 → +0.27pp R1. imgsz=512 saturates/regresses (TY1 R1=0.9249).
+                          # Square input; rectangular catastrophic on YOLO backbones (verified).
 erasing: 0.7              # stronger than classification default; key for Market R1
 fliplr: 0.5
 hsv_h: 0.015

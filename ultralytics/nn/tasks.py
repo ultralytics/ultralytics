@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import contextlib
+import json
 import pickle
 import re
 import types
@@ -1894,6 +1895,8 @@ def guess_model_task(model):
         m = cfg["head"][-1][-2].lower()  # output module name
         if m in {"classify", "classifier", "cls", "fc"}:
             return "classify"
+        if m in {"rtdetrdecoder", "dfinedecoder", "deimdecoder"}:
+            return "detect"
         if "detect" in m:
             return "detect"
         if "semanticsegment" in m:
@@ -1953,3 +1956,54 @@ def guess_model_task(model):
         "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify','pose' or 'obb'."
     )
     return "detect"  # assume detect
+
+
+def guess_model_family(model):
+    """Guess specialized model family for wrapper selection."""
+
+    def head2family(head_name: str):
+        head = head_name.lower()
+        if head == "deimdecoder":
+            return "yolodetr"
+        if head in {"rtdetrdecoder", "dfinedecoder"}:
+            return "rtdetr"
+        return None
+
+    def metadata2family(metadata: dict):
+        model_type = str(metadata.get("model_type", "")).lower().replace("-", "")
+        if model_type in {"yolodetr", "rtdetr"}:
+            return model_type
+        return head2family(str(metadata.get("head", "")))
+
+    if isinstance(model, torch.nn.Module):
+        with contextlib.suppress(Exception):
+            return head2family(model.model[-1].__class__.__name__)
+
+    if isinstance(model, (str, Path)):
+        path = Path(model)
+        family = metadata2family(_load_export_metadata(path))
+        if family:
+            return family
+
+        stem = re.sub(r"[^a-z0-9]+", "", path.stem.lower())
+        if "yolodetr" in stem or "yolo27detr" in stem:
+            return "yolodetr"
+        if "rtdetr" in stem:
+            return "rtdetr"
+
+    return None
+
+
+def _load_export_metadata(path: Path) -> dict:
+    """Load lightweight metadata from exported model files without backend dependencies."""
+    if path.suffix != ".engine" or not path.is_file():
+        return {}
+    try:
+        size = path.stat().st_size
+        with open(path, "rb") as f:
+            meta_len = int.from_bytes(f.read(4), byteorder="little", signed=True)
+            if meta_len <= 0 or meta_len > size - 4:
+                return {}
+            return json.loads(f.read(meta_len).decode("utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return {}

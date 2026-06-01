@@ -20,6 +20,7 @@ from ultralytics.nn.tasks import (
     WorldModel,
     YOLOEModel,
     YOLOESegModel,
+    guess_model_family,
 )
 from ultralytics.utils import ROOT, YAML
 
@@ -65,7 +66,20 @@ class YOLO(Model):
             verbose (bool): Display model info on load.
         """
         path = Path(model if isinstance(model, (str, Path)) else "")
-        if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
+        family = guess_model_family(path)
+        if family == "yolodetr":
+            from ultralytics import YOLODETR
+
+            new_instance = YOLODETR(path)
+            self.__class__ = type(new_instance)
+            self.__dict__ = new_instance.__dict__
+        elif family == "rtdetr":
+            from ultralytics import RTDETR
+
+            new_instance = RTDETR(path)
+            self.__class__ = type(new_instance)
+            self.__dict__ = new_instance.__dict__
+        elif "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
             new_instance = YOLOWorld(path, verbose=verbose)
             self.__class__ = type(new_instance)
             self.__dict__ = new_instance.__dict__

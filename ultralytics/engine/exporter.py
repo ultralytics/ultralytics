@@ -196,7 +196,15 @@ def export_formats():
         ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"], "mnn"],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"], "ncnn"],
         ["IMX", "imx", "_imx_model", True, True, ["data", "int8", "fraction", "nms"], "isolated-imx"],
-        ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name", "int8", "data", "fraction"], "isolated-rknn"],
+        [
+            "RKNN",
+            "rknn",
+            "_rknn_model",
+            False,
+            False,
+            ["batch", "name", "half", "int8", "data", "fraction"],
+            "isolated-rknn",
+        ],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"], "executorch"],
         [
             "Axelera AI",
@@ -437,6 +445,12 @@ class Exporter:
             _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
+        if (
+            self.args.format.lower() == "rknn"
+            and not self.args.int8
+            and not any(k in (overrides or {}) for k in {"half", "int8", "data", "fraction"})
+        ):
+            self.args.half = True
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 

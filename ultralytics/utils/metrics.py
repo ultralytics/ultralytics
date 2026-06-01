@@ -1965,15 +1965,14 @@ class DepthMetrics(SimpleClass, DataExportMixin):
             self._count += float(mask.sum())
 
     def reduce_ddp(self) -> None:
-        """All-reduce accumulators across DDP ranks (no-op if not distributed)."""
-        import torch.distributed as dist
+        """No-op: validation runs on rank 0 only over the full val set, so accumulators are
+        already complete and no cross-rank reduction is needed.
 
-        if self._totals is not None and dist.is_available() and dist.is_initialized():
-            packed = torch.cat(
-                [self._totals, torch.tensor([self._count], dtype=torch.float64, device=self._totals.device)]
-            )
-            dist.all_reduce(packed, op=dist.ReduceOp.SUM)
-            self._totals, self._count = packed[:7], float(packed[7].item())
+        Must NOT issue a collective (e.g. all_reduce): during DDP training Ultralytics validates
+        on rank 0 alone — the other ranks never enter validation, so a collective here would
+        block rank 0 forever waiting for participants that never arrive (deadlock at epoch end).
+        """
+        return
 
     def process(self, *args, **kwargs) -> None:
         """Finalize metrics from accumulated sums."""

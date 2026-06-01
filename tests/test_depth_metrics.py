@@ -41,6 +41,24 @@ def test_median_alignment_is_per_image():
     assert m.results_dict["metrics/delta1"] > 0.99
 
 
+def test_reduce_ddp_does_not_invoke_collective(monkeypatch):
+    """Ultralytics validates on rank 0 only — a collective in reduce_ddp would deadlock the
+    other ranks (they never validate). reduce_ddp must therefore not call all_reduce."""
+    import torch.distributed as dist
+
+    m = DepthMetrics()
+    gt = torch.rand(1, 1, 8, 8) * 5 + 0.5
+    m.update_stats(gt.clone(), gt.clone())   # populate accumulators so the old code would reduce
+    calls = {"n": 0}
+    monkeypatch.setattr(dist, "is_available", lambda: True)
+    monkeypatch.setattr(dist, "is_initialized", lambda: True)
+    monkeypatch.setattr(dist, "all_reduce", lambda *a, **k: calls.__setitem__("n", calls["n"] + 1))
+    m.reduce_ddp()
+    assert calls["n"] == 0
+    m.process()                              # metrics still finalize from rank-0 accumulators
+    assert m.results_dict["metrics/delta1"] > 0.99
+
+
 def test_median_alignment_can_be_disabled():
     """With alignment off, a mis-scaled prediction scores poorly (legacy raw behavior)."""
     m = DepthMetrics(align="none")

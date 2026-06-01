@@ -1291,8 +1291,8 @@ class RandomPerspective(BaseTransform):
         xy = xy[:, :2] / xy[:, 2:3]
         segments = xy.reshape(n, -1, 2)
         bboxes = np.stack([segment2box(xy, size[0], size[1]) for xy in segments], 0)
-        segments[..., 0] = segments[..., 0].clip(bboxes[:, 0:1], bboxes[:, 2:3])
-        segments[..., 1] = segments[..., 1].clip(bboxes[:, 1:2], bboxes[:, 3:4])
+        # segments[..., 0] = segments[..., 0].clip(bboxes[:, 0:1], bboxes[:, 2:3])
+        # segments[..., 1] = segments[..., 1].clip(bboxes[:, 1:2], bboxes[:, 3:4])
         return bboxes, segments
 
     def apply_keypoints(self, keypoints: np.ndarray, M: np.ndarray, size: tuple[int, int]) -> np.ndarray:

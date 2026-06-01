@@ -1707,18 +1707,20 @@ class ReidMetrics(SimpleClass, DataExportMixin):
             order = np.argsort(dist[i])
             g_pids_ranked = self.gallery_pids[order]
 
-            # Build the constant-length binary match vector first…
-            matches = (g_pids_ranked == q_pid).astype(np.float32)
-
-            # …then apply the standard Market-1501 junk mask in-place. Same-pid-same-camid
-            # positions are "junk": neither positive nor negative — zero them from matches
-            # rather than deleting from the array (deletion produced variable-length cmc rows
-            # and crashed `np.array(all_cmc)` for small/filtered galleries).
+            # Standard Market-1501 protocol: same-pid-same-camid items are "junk" and
+            # are REMOVED from the ranking (not just zeroed). The post-CMC padding to
+            # constant length K below handles the resulting variable-length per-query
+            # rankings — that's what made the earlier "zero-and-keep" fix necessary, but
+            # zero-and-keep silently breaks R1 because junk items occupy top positions of
+            # the sorted ranking and push the true cross-cam match to rank-5+.
             if has_camid:
                 q_camid = query_camids[i]
                 g_camids_ranked = self.gallery_camids[order]
                 junk = (g_pids_ranked == q_pid) & (g_camids_ranked == q_camid)
-                matches[junk] = 0.0
+                keep = ~junk
+                g_pids_ranked = g_pids_ranked[keep]
+
+            matches = (g_pids_ranked == q_pid).astype(np.float32)
 
             if matches.sum() == 0:
                 continue  # skip queries with no remaining gallery match

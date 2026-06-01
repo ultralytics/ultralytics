@@ -1241,7 +1241,7 @@ class Exporter:
         self.args.opset = min(self.args.opset or 19, 19)  # rknn-toolkit expects opset<=19
         f_onnx = self.export_onnx()
         output_dir = Path(str(self.file).replace(self.file.suffix, f"_rknn_model{os.sep}"))
-        dataset = None
+        rknn_dataset = None
         if self.args.int8:
             dataloader = self.get_int8_calibration_dataloader(prefix)
             image_paths = getattr(dataloader.dataset, "im_files", None)
@@ -1250,14 +1250,14 @@ class Exporter:
             if not image_paths:
                 raise ValueError("RKNN INT8 export requires a calibration dataset with image file paths.")
             output_dir.mkdir(parents=True, exist_ok=True)
-            dataset = output_dir / "dataset.txt"
-            dataset.write_text("\n".join(str(Path(x).resolve()) for x in image_paths) + "\n")
+            rknn_dataset = output_dir / "dataset.txt"
+            rknn_dataset.write_text("\n".join(str(Path(x).resolve()) for x in image_paths) + "\n")
         return onnx2rknn(
             onnx_file=f_onnx,
             output_dir=output_dir,
             name=self.args.name,
             int8=self.args.int8,
-            dataset=dataset,
+            dataset=rknn_dataset,
             metadata=self.metadata,
             prefix=prefix,
         )

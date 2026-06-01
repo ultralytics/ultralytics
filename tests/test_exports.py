@@ -420,7 +420,7 @@ def test_onnx2rknn_int8_requires_existing_dataset_file(tmp_path):
     """Test RKNN INT8 export validates the calibration dataset file before loading RKNN Toolkit."""
     from ultralytics.utils.export.rknn import onnx2rknn
 
-    with pytest.raises(ValueError, match="calibration dataset file not found"):
+    with pytest.raises(ValueError, match="calibration image-list file not found"):
         onnx2rknn(str(tmp_path / "model.onnx"), tmp_path / "rknn", int8=True, dataset=tmp_path / "missing.txt")
 
 

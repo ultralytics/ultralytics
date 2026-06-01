@@ -30,7 +30,9 @@ def onnx2rknn(
         name (str): Target platform name (e.g. ``"rk3588"``).
         int8 (bool): Whether to enable INT8 quantization. When False, RKNN Toolkit builds a floating-point model for
             FP16-capable targets.
-        dataset (Path | str | None): Path to the RKNN calibration dataset text file, required when ``int8=True``.
+        dataset (Path | str | None): Path to the generated RKNN Toolkit calibration image-list file, required when
+            ``int8=True``. Users should pass YOLO dataset YAMLs to ``export(data=...)``; ``export_rknn()`` converts them
+            to this internal image-path list.
         metadata (dict | None): Metadata saved as ``metadata.yaml``.
         prefix (str): Prefix for log messages.
 
@@ -44,10 +46,10 @@ def onnx2rknn(
         )
     if int8:
         if not dataset:
-            raise ValueError("RKNN INT8 export requires a calibration dataset file.")
+            raise ValueError("RKNN INT8 export requires a generated calibration image-list file.")
         dataset = Path(dataset)
         if not dataset.is_file():
-            raise ValueError(f"RKNN INT8 calibration dataset file not found: {dataset}")
+            raise ValueError(f"Generated RKNN INT8 calibration image-list file not found: {dataset}")
 
     from ultralytics.utils.checks import check_requirements
 

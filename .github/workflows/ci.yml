@@ -403,12 +403,7 @@ jobs:
         env:
           YOLO_AUTOINSTALL: "false"
         run: python tests/cache_test_assets.py --slow
-      - name: Build and smoke-validate export environments
-        env:
-          ULTRALYTICS_ISOLATED_VENVS: ${{ runner.temp }}/venvs
-          YOLO_AUTOINSTALL: "false"
-        run: python .github/scripts/create-export-env.py
-      - name: Run export tests in their isolated environments
+      - name: Build and run export tests in isolated environments
         env:
           ULTRALYTICS_ISOLATED_VENVS: ${{ runner.temp }}/venvs
           YOLO_AUTOINSTALL: "false"
@@ -418,7 +413,10 @@ jobs:
             slow_arg="--slow"
           fi
           for env in $(python .github/scripts/create-export-env.py --list); do
+            python .github/scripts/create-export-env.py --env "$env"
             "${ULTRALYTICS_ISOLATED_VENVS}/${env}/bin/python" -m pytest -vv -s $slow_arg tests/test_exports.py --export-env "$env"
+            rm -rf "${ULTRALYTICS_ISOLATED_VENVS:?}/${env}"
+            uv cache prune --ci
           done
       - name: Prune uv Cache
         run: uv cache prune --ci

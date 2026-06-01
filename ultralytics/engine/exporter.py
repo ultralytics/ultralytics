@@ -196,7 +196,15 @@ def export_formats():
         ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"], "mnn"],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"], "ncnn"],
         ["IMX", "imx", "_imx_model", True, True, ["data", "int8", "fraction", "nms"], "isolated-imx"],
-        ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name", "half", "int8", "data", "fraction"], "isolated-rknn"],
+        [
+            "RKNN",
+            "rknn",
+            "_rknn_model",
+            False,
+            False,
+            ["batch", "name", "half", "int8", "data", "fraction"],
+            "isolated-rknn",
+        ],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"], "executorch"],
         [
             "Axelera AI",

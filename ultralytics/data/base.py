@@ -138,14 +138,14 @@ class BaseDataset(Dataset):
         self.cache = cache.lower() if isinstance(cache, str) else "ram" if cache is True else None
         # Shared RAM cache: single torch.uint8 byte buffer pinned via share_memory_() before workers fork.
         # The buffer holds raw bytes; per-image dtype is tracked so the fast path can view bytes back with the
-        # correct dtype (supports uint8 JPG/PNG and uint16 TIFF alike). Cache is built using the subclass's
-        # load_image rect_mode default (e.g. RTDETRDataset overrides to False for square resize) and the same
-        # imread() decoder used at runtime, so probe and load can never disagree on shape/dtype/channels.
+        # correct dtype (supports uint8 JPG/PNG and uint16 TIFF alike). Cache is built with the same resize
+        # params (rect_mode, resize_short) and imread() decoder load_image uses at runtime (see
+        # cache_load_params), so probe and load can never disagree on shape/dtype/channels.
         self.img_cache = None
         self.img_offsets = None
         self.img_shapes = None
         self.img_dtypes = None
-        self._cache_rect_mode = inspect.signature(self.load_image).parameters["rect_mode"].default
+        self._cache_rect_mode, self._cache_resize_short = self.cache_load_params()
         # safety_margin=1.0 budgets ~2x cache size to absorb streaming/heap-fragmentation overhead
         if self.cache == "ram" and self.check_cache_ram(safety_margin=1.0):
             if hyp.deterministic:
@@ -220,6 +220,56 @@ class BaseDataset(Dataset):
             if self.single_cls:
                 self.labels[i]["cls"][:, 0] = 0
 
+    def cache_load_params(self) -> tuple[bool, bool]:
+        """Return the ``(rect_mode, resize_short)`` that ``load_image`` uses at runtime.
+
+        The shared RAM cache is built with exactly these values so the cache fast path returns identically
+        resized images as the uncached path. Subclasses that change the resize must override this (e.g.
+        ``SemanticDataset`` resizes the short side during augmentation via ``resize_short=self.augment``).
+
+        Returns:
+            (tuple[bool, bool]): The ``rect_mode`` and ``resize_short`` flags used by ``load_image``.
+        """
+        param = inspect.signature(self.load_image).parameters.get("rect_mode")
+        return (param.default if param is not None else True), False
+
+    def _resized_hw(self, h0: int, w0: int, rect_mode: bool, resize_short: bool) -> tuple[int, int]:
+        """Compute the post-resize ``(h, w)`` without decoding or resizing the image.
+
+        Single source of truth shared by ``load_image`` (runtime), the cache probe pass (offset sizing) and
+        the cache load pass (resize target), so they can never disagree on the cached image shape.
+
+        Args:
+            h0 (int): Original image height.
+            w0 (int): Original image width.
+            rect_mode (bool): Resize the long side to ``imgsz`` keeping aspect ratio.
+            resize_short (bool): Resize the short side to ``imgsz`` keeping aspect ratio (overrides ``rect_mode``).
+
+        Returns:
+            (tuple[int, int]): The target ``(height, width)`` after resizing.
+        """
+        if rect_mode:
+            if resize_short:  # resize short side to imgsz
+                r = self.imgsz / min(h0, w0)
+                if r == 1:
+                    return h0, w0
+                return (self.imgsz, math.ceil(w0 * r)) if h0 < w0 else (math.ceil(h0 * r), self.imgsz)
+            r = self.imgsz / max(h0, w0)  # resize long side to imgsz
+            if r == 1:
+                return h0, w0
+            return min(math.ceil(h0 * r), self.imgsz), min(math.ceil(w0 * r), self.imgsz)
+        if h0 == w0 == self.imgsz:
+            return h0, w0
+        return self.imgsz, self.imgsz  # stretch to square imgsz
+
+    def _resize_image(self, im: np.ndarray, rect_mode: bool, resize_short: bool) -> np.ndarray:
+        """Resize a decoded image exactly as ``load_image`` does (single source of truth, see ``_resized_hw``)."""
+        h0, w0 = im.shape[:2]
+        h, w = self._resized_hw(h0, w0, rect_mode, resize_short)
+        if (h, w) != (h0, w0):
+            im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
+        return im if im.ndim == 3 else im[..., None]
+
     def load_image(
         self, i: int, rect_mode: bool = True, resize_short: bool = False
     ) -> tuple[np.ndarray, tuple[int, int], tuple[int, int]]:
@@ -239,11 +289,16 @@ class BaseDataset(Dataset):
         Raises:
             FileNotFoundError: If the image file is not found.
         """
-        # Shared RAM cache fast path: workers map the same SHM region. The cache is built using the subclass's
-        # load_image rect_mode default; only callers requesting that same mode hit the fast path, others fall
-        # through to decode. .copy() prevents in-place augmentations (e.g. RandomHSV cv2.cvtColor with dst=img)
-        # from mutating the shared backing tensor and corrupting the cache for other workers.
-        if rect_mode == self._cache_rect_mode and self.cache == "ram" and self.img_cache is not None:
+        # Shared RAM cache fast path: workers map the same SHM region. The cache is built with the resize params
+        # from cache_load_params(); only callers requesting those same params hit the fast path, others fall
+        # through to decode (so a different rect_mode/resize_short never returns a wrongly-resized cached image).
+        # .copy() prevents in-place augmentations (e.g. RandomHSV cv2.cvtColor with dst=img) from mutating the
+        # shared backing tensor and corrupting the cache for other workers.
+        if (
+            (rect_mode, resize_short) == (self._cache_rect_mode, self._cache_resize_short)
+            and self.cache == "ram"
+            and self.img_cache is not None
+        ):
             offset = self.img_offsets[i]
             h, w, c = self.img_shapes[i]
             dtype = self.img_dtypes[i]
@@ -273,21 +328,7 @@ class BaseDataset(Dataset):
                 raise FileNotFoundError(f"Image Not Found {f}")
 
             h0, w0 = im.shape[:2]  # orig hw
-            if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
-                if resize_short:  # resize short side to imgsz while maintaining aspect ratio
-                    r = self.imgsz / min(h0, w0)  # ratio
-                    if r != 1:  # if sizes are not equal
-                        w, h = (math.ceil(w0 * r), self.imgsz) if h0 < w0 else (self.imgsz, math.ceil(h0 * r))
-                        im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
-                else:
-                    r = self.imgsz / max(h0, w0)  # ratio
-                    if r != 1:  # if sizes are not equal
-                        w, h = (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz))
-                        im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
-            elif not (h0 == w0 == self.imgsz):  # resize by stretching image to square imgsz
-                im = cv2.resize(im, (self.imgsz, self.imgsz), interpolation=cv2.INTER_LINEAR)
-            if im.ndim == 2:
-                im = im[..., None]
+            im = self._resize_image(im, rect_mode, resize_short)
 
             # Add to buffer if training with augmentations (skipped on the shared-cache path above)
             if self.augment:
@@ -306,9 +347,10 @@ class BaseDataset(Dataset):
 
         ``cache='ram'`` builds a single ``torch.uint8`` buffer in two passes (probe shapes, then decode + stream)
         and pins it with ``share_memory_()`` so all DataLoader workers map the same POSIX shared-memory region
-        instead of duplicating the cache per worker (the source of the ``num_workers > 0`` leak). imread is used
-        in both passes so probe and load can't disagree on shape/dtype/channels (matters for multi-frame TIFFs,
-        uint16 TIFFs, EXIF-rotated JPGs, etc.).
+        instead of duplicating the cache per worker (the source of the ``num_workers > 0`` leak). imread plus the
+        shared ``_resized_hw``/``_resize_image`` helpers are used in both passes and at runtime so probe, load and
+        load_image can't disagree on shape/dtype/channels (matters for multi-frame TIFFs, uint16 TIFFs,
+        EXIF-rotated JPGs, and subclasses using ``resize_short`` such as ``SemanticDataset``).
         """
         b, gb = 0, 1 << 30
         if self.cache == "disk":
@@ -324,15 +366,14 @@ class BaseDataset(Dataset):
                 pbar.close()
             return
 
+        rect_mode, resize_short = self._cache_rect_mode, self._cache_resize_short
+
         def probe(i: int):
             im = imread(self.im_files[i], flags=self.cv2_flag)
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {self.im_files[i]}")
             h0, w0 = im.shape[:2]
-            if self._cache_rect_mode and (r := self.imgsz / max(h0, w0)) != 1:
-                w, h = min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz)
-            else:
-                h, w = (h0, w0) if self._cache_rect_mode else (self.imgsz, self.imgsz)
+            h, w = self._resized_hw(h0, w0, rect_mode, resize_short)
             c = im.shape[2] if im.ndim == 3 else 1
             return i, (h0, w0), (h, w, c), im.dtype
 
@@ -340,18 +381,7 @@ class BaseDataset(Dataset):
             im = imread(self.im_files[i], flags=self.cv2_flag)
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {self.im_files[i]}")
-            h0, w0 = im.shape[:2]
-            if self._cache_rect_mode:
-                r = self.imgsz / max(h0, w0)
-                if r != 1:
-                    im = cv2.resize(
-                        im,
-                        (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz)),
-                        interpolation=cv2.INTER_LINEAR,
-                    )
-            elif not (h0 == w0 == self.imgsz):
-                im = cv2.resize(im, (self.imgsz, self.imgsz), interpolation=cv2.INTER_LINEAR)
-            return i, im if im.ndim == 3 else im[..., None]
+            return i, self._resize_image(im, rect_mode, resize_short)
 
         n = self.ni
         try:

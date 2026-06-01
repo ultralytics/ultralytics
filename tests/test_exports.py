@@ -75,6 +75,14 @@ def test_export_onnx(end2end, isolated_model):
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
+def test_export_onnx_int8(isolated_model):
+    """Test YOLO model export to INT8 ONNX format with calibration data."""
+    file = YOLO(isolated_model).export(format="onnx", int8=True, data="coco8.yaml", fraction=0.25, imgsz=32)
+    assert Path(file).name.endswith("_int8.onnx")
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+    Path(file).unlink()  # cleanup
+
+
 def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
     """Ensure ONNX exports do not overlap across worker threads."""
     active = 0

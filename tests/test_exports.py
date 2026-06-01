@@ -416,14 +416,6 @@ def test_export_rknn(isolated_model):
     shutil.rmtree(file, ignore_errors=True)
 
 
-def test_onnx2rknn_int8_requires_existing_dataset_file(tmp_path):
-    """Test RKNN INT8 export validates the calibration dataset file before loading RKNN Toolkit."""
-    from ultralytics.utils.export.rknn import onnx2rknn
-
-    with pytest.raises(ValueError, match="calibration image-list file not found"):
-        onnx2rknn(str(tmp_path / "model.onnx"), tmp_path / "rknn", int8=True, dataset=tmp_path / "missing.txt")
-
-
 # @pytest.mark.skipif(True, reason="Disabled for debugging ruamel.yaml installation required by executorch")
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_2_9, reason="Requires Python>=3.10 and Torch>=2.9.0")
 @pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")

@@ -745,7 +745,9 @@ def test_classify_cache_ram_exif(tmp_path):
     exif = img.getexif()
     exif[274] = 6  # Orientation tag
     img.save(root / "c0" / "exif6.jpg", exif=exif, quality=95)
-    Image.fromarray(np.random.RandomState(0).randint(0, 255, (100, 100, 3), dtype=np.uint8)).save(root / "c0" / "sq.png")
+    Image.fromarray(np.random.RandomState(0).randint(0, 255, (100, 100, 3), dtype=np.uint8)).save(
+        root / "c0" / "sq.png"
+    )
 
     def build(cache):
         args = get_cfg(DEFAULT_CFG)
@@ -754,11 +756,15 @@ def test_classify_cache_ram_exif(tmp_path):
 
     ram, off = build("ram"), build(False)
     assert ram.cache_ram and ram.img_cache is not None, "RAM cache was not built"
+
     def name2idx(ds):
         return {Path(ds.samples[i][0]).name: i for i in range(len(ds.samples))}
+
     nr, nf = name2idx(ram), name2idx(off)
     for name in ("exif6.jpg", "sq.png"):
-        assert torch.equal(ram[nr[name]]["img"], off[nf[name]]["img"]), f"cache='ram' differs from cache=False for {name}"
+        assert torch.equal(ram[nr[name]]["img"], off[nf[name]]["img"]), (
+            f"cache='ram' differs from cache=False for {name}"
+        )
 
 
 @pytest.mark.slow

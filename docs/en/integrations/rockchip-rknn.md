@@ -142,16 +142,16 @@ The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/pr
 
 ### Export Arguments
 
-| Argument   | Type             | Default    | Description                                                                                                                                                                           |
-| ---------- | ---------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'rknn'`   | Target format for the exported model, defining compatibility with Rockchip deployment environments.                                                                                    |
-| `imgsz`    | `int` or `tuple` | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                     |
-| `batch`    | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                               |
-| `name`     | `str`            | `'rk3588'` | Specifies the Rockchip target, such as rk3588, rk3576, rk3566, rk3568, rk3562, rk2118, rv1126b, rv1103, rv1106, rv1103b or rv1106b.                                                  |
-| `int8`     | `bool`           | `False`    | Enables INT8 quantization. Required for INT8-only targets such as RV1103 and RV1106. When `False`, RKNN Toolkit builds a floating-point model for FP16-capable targets, not FP32.     |
-| `data`     | `str`            | `None`     | Dataset YAML used for INT8 calibration. If omitted with `int8=True`, Ultralytics selects the default calibration dataset for the model task.                                           |
-| `fraction` | `float`          | `1.0`      | Fraction of calibration images to use for INT8 quantization.                                                                                                                          |
-| `device`   | `str`            | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                                                                             |
+| Argument   | Type             | Default    | Description                                                                                                                                                                       |
+| ---------- | ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'rknn'`   | Target format for the exported model, defining compatibility with Rockchip deployment environments.                                                                               |
+| `imgsz`    | `int` or `tuple` | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                 |
+| `batch`    | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                           |
+| `name`     | `str`            | `'rk3588'` | Specifies the Rockchip target, such as rk3588, rk3576, rk3566, rk3568, rk3562, rk2118, rv1126b, rv1103, rv1106, rv1103b or rv1106b.                                               |
+| `int8`     | `bool`           | `False`    | Enables INT8 quantization. Required for INT8-only targets such as RV1103 and RV1106. When `False`, RKNN Toolkit builds a floating-point model for FP16-capable targets, not FP32. |
+| `data`     | `str`            | `None`     | Dataset YAML used for INT8 calibration. If omitted with `int8=True`, Ultralytics selects the default calibration dataset for the model task.                                      |
+| `fraction` | `float`          | `1.0`      | Fraction of calibration images to use for INT8 quantization.                                                                                                                      |
+| `device`   | `str`            | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                                                                         |
 
 !!! tip
 

@@ -196,7 +196,7 @@ def export_formats():
         ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"], "mnn"],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"], "ncnn"],
         ["IMX", "imx", "_imx_model", True, True, ["data", "int8", "fraction", "nms"], "isolated-imx"],
-        ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"], "isolated-rknn"],
+        ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name", "int8", "data", "fraction"], "isolated-rknn"],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"], "executorch"],
         [
             "Axelera AI",
@@ -548,6 +548,9 @@ class Exporter:
             assert self.args.name in RKNN_CHIPS, (
                 f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
             )
+            if self.args.name in {"rv1103", "rv1106", "rv1103b", "rv1106b"} and not self.args.int8:
+                LOGGER.warning(f"Rockchip target '{self.args.name}' requires int8=True, setting int8=True.")
+                self.args.int8 = True
         if fmt == "qnn":
             if not self.args.name:
                 LOGGER.warning(
@@ -1232,15 +1235,29 @@ class Exporter:
 
     @try_export
     def export_rknn(self, prefix=colorstr("RKNN:")):
-        """Export YOLO model to RKNN format."""
+        """Export YOLO model to RKNN format with optional INT8 quantization."""
         from ultralytics.utils.export.rknn import onnx2rknn
 
         self.args.opset = min(self.args.opset or 19, 19)  # rknn-toolkit expects opset<=19
         f_onnx = self.export_onnx()
+        output_dir = Path(str(self.file).replace(self.file.suffix, f"_rknn_model{os.sep}"))
+        dataset = None
+        if self.args.int8:
+            dataloader = self.get_int8_calibration_dataloader(prefix)
+            image_paths = getattr(dataloader.dataset, "im_files", None)
+            if image_paths is None and hasattr(dataloader.dataset, "samples"):
+                image_paths = [x[0] for x in dataloader.dataset.samples]
+            if not image_paths:
+                raise ValueError("RKNN INT8 export requires a calibration dataset with image file paths.")
+            output_dir.mkdir(parents=True, exist_ok=True)
+            dataset = output_dir / "dataset.txt"
+            dataset.write_text("\n".join(str(Path(x).resolve()) for x in image_paths) + "\n")
         return onnx2rknn(
             onnx_file=f_onnx,
-            output_dir=str(self.file).replace(self.file.suffix, f"_rknn_model{os.sep}"),
+            output_dir=output_dir,
             name=self.args.name,
+            int8=self.args.int8,
+            dataset=dataset,
             metadata=self.metadata,
             prefix=prefix,
         )

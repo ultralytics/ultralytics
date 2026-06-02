@@ -505,7 +505,7 @@ Run YOLO inference on dataset images to auto-generate annotations. Uses a select
 | `imageHash`  | string | Yes      | Hash of the image to annotate        |
 | `modelId`    | string | No       | Model ID to use for inference        |
 | `confidence` | float  | No       | Confidence threshold (default: 0.25) |
-| `iou`        | float  | No       | IoU threshold (default: 0.45)        |
+| `iou`        | float  | No       | IoU threshold (default: 0.7)         |
 
 ### Dataset Ingest
 

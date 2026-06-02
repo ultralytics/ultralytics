@@ -347,11 +347,13 @@ class BaseTrainer:
 
         if self.world_size > 1:
             # static_graph=True permits params used >1 time per forward (e.g. flow_model in
-            # o2m+o2o pose loss branches) under torch.compile.
+            # o2m+o2o pose loss branches) under torch.compile; find_unused_parameters=True handles
+            # params that receive no gradient on some batches (e.g. object-less batches) without compile.
             self.model = nn.parallel.DistributedDataParallel(
                 self.model,
                 device_ids=[RANK],
                 static_graph=bool(self.args.compile),
+                find_unused_parameters=not self.args.compile,
             )
 
         # Batch size

@@ -157,3 +157,33 @@ def push_summary_to_parent(
         wandb.Api().run(f"{entity}/{project}/{parent_run_id}").summary.update(summary)
     except Exception as e:
         print(f"[wandb] failed to push summary to parent {parent_run_id}: {e}")
+
+
+def assert_parent_resolvable(
+    parent_run_id: str,
+    entity: str = paths.WANDB_ENTITY,
+    project: str = paths.WANDB_PROJECT,
+) -> None:
+    """Fail fast if a non-empty parent run id does not resolve to a real W&B run.
+
+    push_summary_to_parent swallows a bad id at the final step of a multi-day run, silently dropping the downstream
+    link. This asserts at launch so a wrong id (e.g. a dir basename instead of the full timestamped run id) raises in
+    seconds instead. Empty id is allowed and means no parent.
+
+    Args:
+        parent_run_id (str): W&B run id of the parent. Empty or None is allowed (no parent, no-op).
+        entity (str, optional): WandB entity.
+        project (str, optional): WandB project.
+    """
+    if not parent_run_id:
+        return
+    import wandb
+
+    try:
+        wandb.Api().run(f"{entity}/{project}/{parent_run_id}")
+    except Exception as e:
+        raise SystemExit(
+            f"ERROR: phase1_wandb_id {parent_run_id!r} does not resolve to a W&B run in {entity}/{project} "
+            f"({type(e).__name__}). Pass the full timestamped run id like phase1-foo_20260101_010101, or empty "
+            f"for no parent. Otherwise push_summary_to_parent silently drops the downstream link at the final step."
+        )

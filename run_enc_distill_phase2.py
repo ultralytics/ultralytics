@@ -219,6 +219,11 @@ def _resolve_dataset_list(datasets_arg: str) -> list[Path]:
 
 _MULTI_DET_TARGET_ITERS = 1500
 _MULTI_DET_EPOCH_CAP = 200
+# Canonical base recipe for multi_det 13det. The 2026-05-27+ chain runs and the decisive CE-vs-distill
+# comparison (attn-CE 0.1999, lr2x 0.1959) all use 70/100. A different base (e.g. 30/10) is a separate,
+# non-comparable recipe, so _run_multi_det warns loudly on any override to keep the 13det table on one recipe.
+_MULTI_DET_BASE_EPOCHS = 70
+_MULTI_DET_BASE_PATIENCE = 100
 
 
 def _scale_epochs_patience_for_dataset(
@@ -333,6 +338,9 @@ def _run_multi_det(
         )
     dataset_yamls = _resolve_dataset_list(datasets_arg)
     model_yaml = _infer_model_yaml(phase1_weights)
+    # Fail fast on a wrong parent id (e.g. a dir basename) before training 13 datasets, since
+    # push_summary_to_parent would otherwise drop the downstream link silently at the final step.
+    wandb_config.assert_parent_resolvable(phase1_wandb_id)
 
     parent_save_dir = paths.LOCAL_ROOT / parent_name
     parent_save_dir.mkdir(parents=True, exist_ok=True)
@@ -350,8 +358,14 @@ def _run_multi_det(
         except OSError as e:
             print(f"[multi_det_finetune] NFS mirror of multi_results.csv failed (continuing): {e}")
 
-    base_epochs = epochs or 70
-    base_patience = patience or 100
+    base_epochs = epochs or _MULTI_DET_BASE_EPOCHS
+    base_patience = patience or _MULTI_DET_BASE_PATIENCE
+    if base_epochs != _MULTI_DET_BASE_EPOCHS or base_patience != _MULTI_DET_BASE_PATIENCE:
+        print(
+            f"[multi_det_finetune] WARNING non-canonical recipe base_epochs={base_epochs} base_patience={base_patience}, "
+            f"canonical is {_MULTI_DET_BASE_EPOCHS}/{_MULTI_DET_BASE_PATIENCE}. Results will NOT be comparable to the "
+            f"canonical 13det references (2026-05 30/10-vs-70/100 split). Omit the positional epochs/patience to use canonical."
+        )
     batch_actual = int(batch_override) if batch_override else 128
     print(f"[multi_det_finetune] parent={parent_name} datasets={len(dataset_yamls)} model={model_yaml}")
     print(f"[multi_det_finetune] aggregate csv -> {csv_path}")

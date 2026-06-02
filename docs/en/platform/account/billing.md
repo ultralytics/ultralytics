@@ -44,7 +44,7 @@ Get started at no cost:
 - 3 concurrent cloud trainings
 - 3 deployments
 - 100 GB storage · 10 GB dataset upload limit
-- Model export to all 19 formats
+- Model export to all 19+ formats
 - Manual, SAM 3 & YOLO Smart annotation
 - 22 cloud GPU types including 5090, H100 & H200 ($0.24–$3.99/hr)
 - Community support

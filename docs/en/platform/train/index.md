@@ -27,7 +27,7 @@ The Training section helps you:
 - **Train** on cloud GPUs with a single click
 - **Monitor** real-time metrics during training
 - **Compare** model performance across experiments
-- **Export** to 19 deployment formats (see [supported formats](models.md#supported-formats))
+- **Export** to 19+ deployment formats (see [supported formats](models.md#supported-formats))
 
 ![Ultralytics Platform Train Overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-train-overview.avif)
 
@@ -53,7 +53,7 @@ graph LR
 | **Configure** | Select [dataset](../data/datasets.md), base model, and training parameters |
 | **Train**     | Run on cloud GPUs or your local hardware                                   |
 | **Monitor**   | View real-time loss curves and metrics                                     |
-| **Export**    | Convert to 19 deployment formats ([details](models.md#supported-formats)) |
+| **Export**    | Convert to 19+ deployment formats ([details](models.md#supported-formats)) |
 
 ## Training Options
 

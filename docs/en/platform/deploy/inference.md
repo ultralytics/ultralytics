@@ -287,7 +287,7 @@ Response format varies by task:
       "name": "person",
       "confidence": 0.92,
       "box": {"x1": 100, "y1": 50, "x2": 300, "y2": 400},
-      "segments": [[100, 50], [150, 60], ...]
+      "segments": {"x": [100, 150, ...], "y": [50, 60, ...]}
     }
     ```
 
@@ -299,10 +299,11 @@ Response format varies by task:
       "name": "person",
       "confidence": 0.92,
       "box": {"x1": 100, "y1": 50, "x2": 300, "y2": 400},
-      "keypoints": [
-        {"x": 200, "y": 75, "conf": 0.95},
-        ...
-      ]
+      "keypoints": {
+        "x": [200, ...],
+        "y": [75, ...],
+        "visible": [2, ...]
+      }
     }
     ```
 
@@ -324,8 +325,7 @@ Response format varies by task:
       "class": 0,
       "name": "ship",
       "confidence": 0.89,
-      "box": {"x1": 100, "y1": 50, "x2": 300, "y2": 400},
-      "obb": {"x1": 105, "y1": 48, "x2": 295, "y2": 55, "x3": 290, "y3": 395, "x4": 110, "y4": 402}
+      "box": {"x1": 105, "y1": 48, "x2": 295, "y2": 55, "x3": 290, "y3": 395, "x4": 110, "y4": 402}
     }
     ```
 

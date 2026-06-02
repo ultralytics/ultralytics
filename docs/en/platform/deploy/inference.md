@@ -302,7 +302,7 @@ Response format varies by task:
       "keypoints": {
         "x": [200, ...],
         "y": [75, ...],
-        "visible": [2, ...]
+        "visible": [0.95, ...]
       }
     }
     ```

@@ -549,6 +549,6 @@ Yes, the **Train** button on dataset pages opens the training dialog with the da
 
     Some parameters only apply to specific tasks:
 
-    - **Detection tasks only** (detect, segment, semantic, pose, OBB — not classify): `box`, `dfl`, `degrees`, `translate`, `shear`, `perspective`, `mosaic`, `mixup`, `close_mosaic`
+    - **Detection tasks only** (detect, segment, pose, OBB — not classify): `box`, `dfl`, `degrees`, `translate`, `shear`, `perspective`, `mosaic`, `mixup`, `close_mosaic`
     - **Segment only**: `copy_paste`
     - **Pose only**: `pose` (loss weight), `kobj` (keypoint objectness)

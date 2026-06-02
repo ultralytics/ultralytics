@@ -155,9 +155,9 @@ def check_cache_ram(
         prefix (str): Logging prefix.
         safety_margin (float): Extra fraction of RAM to require beyond the estimate.
         scale (bool): If True, estimate post-resize bytes via ``sizer``; else use raw decoded bytes.
-        sizer (callable | None): Maps original ``(h0, w0)`` to the cached ``(h, w)``. Required when ``scale=True``;
-            pass the dataset's ``_resized_hw`` so the estimate matches what the cache actually stores (long-side,
-            short-side, or square stretch) instead of assuming long-side resize for every mode.
+        sizer (callable | None): Maps original ``(h0, w0)`` to the cached ``(h, w)``. Required when ``scale=True``; pass
+            the dataset's ``_resized_hw`` so the estimate matches what the cache actually stores (long-side, short-side,
+            or square stretch) instead of assuming long-side resize for every mode.
 
     Returns:
         (bool): True if the estimated requirement fits in available memory, False otherwise.

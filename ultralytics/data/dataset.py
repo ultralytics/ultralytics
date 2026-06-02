@@ -995,8 +995,9 @@ class ClassificationDataset:
         self.img_cache = None
         self.img_offsets = None
         self.img_shapes = None
-        # safety_margin=1.0 budgets ~2x cache size to accommodate streaming overhead (heap fragmentation
-        # from per-image cv2 decode allocations is not promptly returned to the OS by some allocators).
+        # safety_margin=1.0 budgets ~2x the cache estimate: headroom for the 30-image sampling variance plus the
+        # transient decode + shared-memory copy during the two-pass build (cache holds originals, so peak ~1.1x;
+        # the extra margin is conservative since cls images are full-resolution and /dev/shm-bound on Linux).
         if self.cache_ram and not self.check_cache_ram(safety_margin=1.0):
             self.cache_ram = False
         if self.cache_ram:

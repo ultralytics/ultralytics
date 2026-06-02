@@ -107,8 +107,7 @@ from .transformer import (
 )
 from .anomaly_v2 import (
     BboxMaskRenderer,
-    HeatmapEncoder,
-    HeatmapGuidedFusion,
+    HeatmapBiasFusion,
     SegBranch,
     binary_seg_loss,
 )
@@ -165,8 +164,7 @@ __all__ = (
     "GhostConv",
     "HGBlock",
     "HGStem",
-    "HeatmapEncoder",
-    "HeatmapGuidedFusion",
+    "HeatmapBiasFusion",
     "SegBranch",
     "binary_seg_loss",
     "ImagePoolingAttn",

@@ -62,6 +62,16 @@ def parse_args():
         help="Enable experimental debug TensorRT overrides and add a debug tag to output names.",
     )
     p.add_argument(
+        "--opt-level",
+        type=int,
+        default=3,
+        choices=range(0, 6),
+        help="TensorRT builder optimization level (0-5). Default 3 = TensorRT's own default. "
+        "Lower levels use less aggressive layer fusion, which can avoid FP16 overflow "
+        "(NaN) in some graphs (e.g. truncated-decoder exports) at a possible latency cost. "
+        "When != 3 an 'opt<N>' tag is added to output names.",
+    )
+    p.add_argument(
         "--ropefix",
         action="store_true",
         default=False,
@@ -130,6 +140,7 @@ def build_engine_fp16(
     shape=(1, 3, 640, 640),
     fp32_attn=True,
     debug=False,
+    opt_level=3,
 ):
     """Build a TensorRT fp16 engine with DINOv3-safe precision overrides.
 
@@ -151,6 +162,10 @@ def build_engine_fp16(
     config = builder.create_builder_config()
     ws = int((workspace or 4) * (1 << 30))
     config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, ws)
+    # Builder optimization level controls fusion aggressiveness. TRT default is 3;
+    # lowering it (e.g. 0-2) yields less aggressive Myelin fusion, which avoids an
+    # FP16 attention overflow seen on truncated-decoder (eidx) exports.
+    config.builder_optimization_level = opt_level
 
     network = builder.create_network(1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH))
     parser = trt.OnnxParser(network, logger)
@@ -289,6 +304,8 @@ def build_output_paths(args):
         extra_tags.append("nofp32attn" if args.no_fp32_attn else "fp32attn")
     if args.debug:
         extra_tags.append("debug")
+    if args.format == "engine" and args.opt_level != 3:
+        extra_tags.append(f"opt{args.opt_level}")
     suffix = f"_{'_'.join(extra_tags)}" if extra_tags else ""
     base_stem = Path(args.name).stem if args.name else f"{weights_path.stem}_op{args.opset}_{sim_tag}_{rope_tag}"
     base_stem = f"rtdetr_{base_stem}"
@@ -400,6 +417,7 @@ def main():
             shape=(args.batch, 3, args.imgsz, args.imgsz),
             fp32_attn=not args.no_fp32_attn,
             debug=args.debug,
+            opt_level=args.opt_level,
         )
         artifact = engine_path
 

@@ -21,6 +21,7 @@ from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import (
     ASSETS_URL,
     DATASETS_DIR,
+    LOCAL_RANK,
     LOGGER,
     NUM_THREADS,
     ROOT,
@@ -188,6 +189,64 @@ def check_cache_ram(
         )
         return False
     return True
+
+
+def cache_images_to_ram(n: int, probe, decode, prefix: str = ""):
+    """Build one shared-memory ``torch.uint8`` buffer holding ``n`` decoded images, in two passes.
+
+    Pinning the buffer with ``share_memory_()`` before DataLoader workers fork lets every worker map the same
+    POSIX shared-memory region instead of duplicating the cache per worker — the root cause of the ``cache='ram'``
+    + ``num_workers>0`` leak. Two passes keep peak memory at ~1x the cache: pass 1 records each image's byte size,
+    a single buffer is allocated, then pass 2 streams each decoded image into its slice. Shared by ``BaseDataset``
+    and ``ClassificationDataset`` (different ``probe``/``decode`` callables).
+
+    Args:
+        n (int): Number of images.
+        probe (callable): ``probe(i) -> (i, nbytes, meta)`` returning image ``i``'s byte size in the cache and any
+            per-image metadata the caller needs back (shape, dtype, original hw, ...).
+        decode (callable): ``decode(i) -> (i, np.ndarray)`` returning a contiguous array of exactly ``nbytes``.
+        prefix (str): Logging prefix.
+
+    Returns:
+        cache (torch.Tensor | None): Shared ``uint8`` buffer, or None if the build failed (caller falls back to disk).
+        offsets (list[int] | None): Per-image byte offset into ``cache``.
+        metas (list | None): Per-image metadata returned by ``probe``.
+
+    Raises:
+        FileNotFoundError: Propagated from ``probe``/``decode`` to surface a corrupt or missing image.
+    """
+    import torch
+
+    b, gb = 0, 1 << 30  # bytes streamed, bytes per gigabyte
+    offsets, metas, pos = [0] * n, [None] * n, 0
+    try:
+        with ThreadPool(NUM_THREADS) as pool:
+            pbar = TQDM(pool.imap(probe, range(n)), total=n, disable=LOCAL_RANK > 0)
+            for i, nbytes, meta in pbar:
+                offsets[i], metas[i] = pos, meta
+                pos += nbytes
+                pbar.desc = f"{prefix}Probing image sizes"
+            pbar.close()
+
+        cache = torch.empty(pos, dtype=torch.uint8)
+        with ThreadPool(NUM_THREADS) as pool:
+            pbar = TQDM(pool.imap(decode, range(n)), total=n, disable=LOCAL_RANK > 0)
+            for i, im in pbar:
+                raw = np.ascontiguousarray(im).view(np.uint8).reshape(-1)
+                cache[offsets[i] : offsets[i] + raw.nbytes] = torch.from_numpy(raw)
+                b += raw.nbytes
+                pbar.desc = f"{prefix}Caching images ({b / gb:.1f}GB RAM)"
+            pbar.close()
+        cache.share_memory_()
+    except FileNotFoundError:
+        raise  # surface corrupt/missing image clearly instead of swallowing as a cache fallback
+    except (MemoryError, OSError, RuntimeError) as e:
+        LOGGER.warning(
+            f"{prefix}cache='ram' disabled: {type(e).__name__}: {e}. "
+            "Common cause: /dev/shm quota in Docker (raise with --shm-size). Falling back to disk reads."
+        )
+        return None, None, None
+    return cache, offsets, metas
 
 
 def get_hash(paths: list[str]) -> str:

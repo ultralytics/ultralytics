@@ -14,10 +14,9 @@ from typing import Any
 
 import cv2
 import numpy as np
-import torch
 from torch.utils.data import Dataset
 
-from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS, check_file_speeds
+from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS, cache_images_to_ram, check_file_speeds
 from ultralytics.data.utils import check_cache_ram as _check_cache_ram
 from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
 from ultralytics.utils.patches import imread
@@ -369,59 +368,30 @@ class BaseDataset(Dataset):
 
         rect_mode, resize_short = self._cache_rect_mode, self._cache_resize_short
 
-        def probe(i: int):
+        def probe(i: int):  # (i, cache bytes, ((h0, w0), (h, w, c), dtype)) — decode matches load() for EXIF/dtype
             im = imread(self.im_files[i], flags=self.cv2_flag)
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {self.im_files[i]}")
             h0, w0 = im.shape[:2]
             h, w = self._resized_hw(h0, w0, rect_mode, resize_short)
             c = im.shape[2] if im.ndim == 3 else 1
-            return i, (h0, w0), (h, w, c), im.dtype
+            return i, h * w * c * im.dtype.itemsize, ((h0, w0), (h, w, c), im.dtype)
 
-        def load(i: int):
+        def decode(i: int):
             im = imread(self.im_files[i], flags=self.cv2_flag)
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {self.im_files[i]}")
             return i, self._resize_image(im, rect_mode, resize_short)
 
-        n = self.ni
-        try:
-            shapes, hw0, dtypes, offsets, pos = [None] * n, [(0, 0)] * n, [None] * n, [0] * n, 0
-            with ThreadPool(NUM_THREADS) as pool:
-                pbar = TQDM(pool.imap(probe, range(n)), total=n, disable=LOCAL_RANK > 0)
-                for i, h0w0, shp, dt in pbar:
-                    hw0[i], shapes[i], dtypes[i], offsets[i] = h0w0, shp, dt, pos
-                    pos += shp[0] * shp[1] * shp[2] * dt.itemsize
-                    pbar.desc = f"{self.prefix}Probing image sizes"
-                pbar.close()
-
-            cache = torch.empty(pos, dtype=torch.uint8)
-            with ThreadPool(NUM_THREADS) as pool:
-                pbar = TQDM(pool.imap(load, range(n)), total=n, disable=LOCAL_RANK > 0)
-                for i, im in pbar:
-                    raw = np.ascontiguousarray(im).view(np.uint8).reshape(-1)
-                    cache[offsets[i] : offsets[i] + raw.nbytes] = torch.from_numpy(raw)
-                    b += raw.nbytes
-                    pbar.desc = f"{self.prefix}Caching images ({b / gb:.1f}GB RAM)"
-                pbar.close()
-
-            cache.share_memory_()
-        except FileNotFoundError:
-            raise  # surface corrupt/missing image clearly instead of swallowing as cache fallback
-        except (MemoryError, OSError, RuntimeError) as e:
-            LOGGER.warning(
-                f"{self.prefix}cache='ram' disabled: {type(e).__name__}: {e}. "
-                "Common cause: /dev/shm quota in Docker (raise with --shm-size). Falling back to disk reads."
-            )
+        cache, offsets, metas = cache_images_to_ram(self.ni, probe, decode, self.prefix)
+        if cache is None:  # build failed (e.g. /dev/shm quota) — fall back to disk reads
             self.cache = None
             return
-
-        self.img_cache = cache
-        self.img_offsets = offsets
-        self.img_shapes = shapes
-        self.img_dtypes = dtypes
-        self.im_hw0 = hw0
-        self.im_hw = [s[:2] for s in shapes]
+        self.img_cache, self.img_offsets = cache, offsets
+        self.im_hw0 = [m[0] for m in metas]
+        self.img_shapes = [m[1] for m in metas]
+        self.img_dtypes = [m[2] for m in metas]
+        self.im_hw = [m[1][:2] for m in metas]
 
     def cache_images_to_disk(self, i: int) -> None:
         """Save an image as an *.npy file for faster loading."""

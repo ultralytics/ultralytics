@@ -1121,9 +1121,13 @@ class ClassificationDataset:
 
             # Pass 2: allocate the buffer directly in shared memory, then stream each image into its slice.
             # Populating a private buffer and calling share_memory_() afterwards would memcpy the whole cache
-            # into a second shared allocation, transiently doubling peak RAM during the build.
-            cache = torch.empty(0, dtype=torch.uint8)
-            cache.set_(torch.UntypedStorage._new_shared(total, device="cpu"))
+            # into a second shared allocation, transiently doubling peak RAM during the build. UntypedStorage is
+            # torch>=1.13; on the older supported floor (1.8) fall back to share_memory_() (correct, ~2x peak).
+            if hasattr(torch, "UntypedStorage"):
+                cache = torch.empty(0, dtype=torch.uint8)
+                cache.set_(torch.UntypedStorage._new_shared(total, device="cpu"))
+            else:
+                cache = torch.empty(total, dtype=torch.uint8).share_memory_()
             with ThreadPool(NUM_THREADS) as pool:
                 pbar = TQDM(pool.imap(load, range(n)), total=n, disable=LOCAL_RANK > 0)
                 for i, im in pbar:

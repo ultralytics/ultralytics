@@ -275,6 +275,57 @@ def test_train_pretrained(scls):
     model(SOURCE)
 
 
+def test_basedataset_cache_ram_resize_short(tmp_path):
+    """Shared RAM cache must return images identical to cache=False, including the resize_short path.
+
+    Regression: cache_images previously rebuilt the resize using only rect_mode and ignored resize_short, so a
+    SemanticDataset-style subclass (resize_short=self.augment) got wrong-axis cached images via the fast path.
+    """
+    from ultralytics.cfg import get_cfg
+    from ultralytics.data.dataset import YOLODataset
+    from ultralytics.utils import DEFAULT_CFG
+
+    images, labels = tmp_path / "images", tmp_path / "labels"
+    images.mkdir()
+    labels.mkdir()
+    for k, (h, w) in enumerate([(60, 100), (100, 60), (64, 64), (90, 50)]):  # mix of non-square aspect ratios
+        cv2.imwrite(str(images / f"im{k}.jpg"), np.random.RandomState(k).randint(0, 255, (h, w, 3), dtype=np.uint8))
+        (labels / f"im{k}.txt").write_text("0 0.5 0.5 0.4 0.4\n")
+    data = {"names": {0: "x"}, "channels": 3}
+
+    class ShortSideDS(YOLODataset):  # mirror SemanticDataset: short-side resize during augmentation
+        def load_image(self, i, rect_mode=True):
+            return super().load_image(i, rect_mode=rect_mode, resize_short=self.augment)
+
+        def cache_load_params(self):
+            return True, self.augment
+
+    cfg = get_cfg(DEFAULT_CFG)
+
+    def build(cls, cache):
+        return cls(
+            img_path=str(images),
+            imgsz=64,
+            batch_size=4,
+            augment=True,
+            hyp=cfg,
+            rect=False,
+            cache=cache,
+            stride=32,
+            pad=0.0,
+            task="detect",
+            data=data,
+            fraction=1.0,
+        )
+
+    for cls in (YOLODataset, ShortSideDS):
+        ram, off = build(cls, "ram"), build(cls, None)
+        assert ram.img_cache is not None, f"{cls.__name__}: RAM cache was not built"
+        for i in range(len(ram)):
+            a, b = ram.load_image(i)[0], off.load_image(i)[0]
+            assert a.shape == b.shape and np.array_equal(a, b), f"{cls.__name__} idx {i}: cache='ram' != cache=False"
+
+
 def test_all_model_yamls():
     """Test YOLO model creation for all available YAML configurations in the `cfg/models` directory."""
     for m in (ROOT / "cfg" / "models").rglob("*.yaml"):

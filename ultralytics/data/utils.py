@@ -143,7 +143,12 @@ def check_file_speeds(
 
 
 def check_cache_ram(
-    files: list[str], prefix: str = "", safety_margin: float = 0.5, scale: bool = False, sizer=None
+    files: list[str],
+    prefix: str = "",
+    safety_margin: float = 0.5,
+    scale: bool = False,
+    sizer=None,
+    flags: int = cv2.IMREAD_COLOR,
 ) -> bool:
     """Check whether there is enough available RAM to cache the given images.
 
@@ -155,9 +160,11 @@ def check_cache_ram(
         prefix (str): Logging prefix.
         safety_margin (float): Extra fraction of RAM to require beyond the estimate.
         scale (bool): If True, estimate post-resize bytes via ``sizer``; else use raw decoded bytes.
-        sizer (callable | None): Maps original ``(h0, w0)`` to the cached ``(h, w)``. Required when ``scale=True``; pass
-            the dataset's ``_resized_hw`` so the estimate matches what the cache actually stores (long-side, short-side,
-            or square stretch) instead of assuming long-side resize for every mode.
+        sizer (callable | None): Maps original ``(h0, w0)`` to the cached ``(h, w)``. Required when ``scale=True``;
+            pass the dataset's ``_resized_hw`` so the estimate matches what the cache actually stores (long-side,
+            short-side, or square stretch) instead of assuming long-side resize for every mode.
+        flags (int): OpenCV decode flag for the sampled images; pass the dataset's ``cv2_flag`` so the estimate
+            counts the same channels the cache stores (e.g. grayscale, else a color sample over-counts by ~3x).
 
     Returns:
         (bool): True if the estimated requirement fits in available memory, False otherwise.
@@ -172,7 +179,7 @@ def check_cache_ram(
     b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabyte
     sample = min(n, 30)  # extrapolate from up to 30 random images
     for _ in range(sample):
-        im = imread(random.choice(files))
+        im = imread(random.choice(files), flags=flags)
         if im is None:
             continue
         if scale:

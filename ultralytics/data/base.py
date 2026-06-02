@@ -339,8 +339,9 @@ class BaseDataset(Dataset):
                 self.buffer.append(i)
                 if 1 < len(self.buffer) >= self.max_buffer_length:  # prevent empty buffer
                     j = self.buffer.pop(0)
-                    if self.img_cache is None:  # shared cache owns im_hw0/im_hw; don't null its metadata
-                        self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
+                    self.ims[j] = None  # release private fallback array; else it leaks atop the shared buffer
+                    if self.img_cache is None:  # only the per-image list owns im_hw0/im_hw; the shared cache keeps them
+                        self.im_hw0[j], self.im_hw[j] = None, None
 
             return im, (h0, w0), im.shape[:2]
 
@@ -463,6 +464,7 @@ class BaseDataset(Dataset):
             safety_margin,
             scale=True,
             sizer=lambda h0, w0: self._resized_hw(h0, w0, self._cache_rect_mode, self._cache_resize_short),
+            flags=self.cv2_flag,  # sample with the dataset's decode flags so channel count matches the cache
         )
         if not ok:
             self.cache = None

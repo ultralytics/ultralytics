@@ -334,7 +334,7 @@ See [Trash](trash.md) for full documentation including cascade behavior and API 
 The **Help** page is accessible from the sidebar footer. Use it to:
 
 - **Rate your experience** with a 1-5 star rating
-- **Choose a feedback type**: Bug Report, Feature Request, or General
+- **Choose a feedback type**: Bug, Feature, or General
 - **Describe the issue** with a text message
 - **Attach screenshots** for visual context
 

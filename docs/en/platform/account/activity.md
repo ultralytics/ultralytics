@@ -68,6 +68,7 @@ Each event includes one of the following action types:
 | **unshared**  | Resource visibility changed to private       |
 | **exported**  | Model was exported to a deployment format    |
 | **cloned**    | Resource was cloned to another location      |
+| **analyzed**  | Dataset analysis (embeddings/clustering) was started |
 
 ## Inbox and Archive
 
@@ -190,7 +191,7 @@ Activity history is retained indefinitely for your account. Archived events are 
 
 ### Can I export my activity history?
 
-Yes, use the GDPR data export feature in [`Settings > Profile`](settings.md#gdpr-compliance) to download all account data including activity history.
+Yes, use the GDPR data export feature in [`Settings > Profile`](settings.md#gdpr-compliance) to download your account data. The export includes your **1000 most recent** activity events.
 
 ### What happens to activity when I delete a resource?
 

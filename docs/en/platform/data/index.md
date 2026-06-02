@@ -126,11 +126,10 @@ The `Charts` tab provides automatic analysis including:
 
 - **Split Distribution**: Donut chart of train/val/test image counts
 - **Top Classes**: Donut chart of most frequent annotation classes
-- **Image Widths**: Histogram of image width distribution
-- **Image Heights**: Histogram of image height distribution
+- **Image Dimensions**: Histogram of image width and height distribution (in pixels)
 - **Points per Instance**: Polygon vertex or keypoint count distribution (segment/pose datasets)
 - **Annotation Locations**: 2D heatmap of bounding box center positions
-- **Image Dimensions**: 2D heatmap of width vs height with aspect ratio guide lines
+- **Image Dimensions 2D**: 2D heatmap of width vs height with aspect ratio guide lines
 
 ## Quick Links
 

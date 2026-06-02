@@ -428,7 +428,7 @@ See [Models Export](train/models.md#export-model), the [Export mode guide](../mo
 
 ??? question "Can I change my data region?"
 
-    No, data region is selected during signup and cannot be changed. To switch regions, create a new account and re-upload your data.
+    Your data region is selected during onboarding and can't be changed yourself. To switch regions, contact support to request a region change.
 
 ??? question "How do I get more credits?"
 

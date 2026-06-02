@@ -148,7 +148,8 @@ class BaseDataset(Dataset):
         self._cache_rect_mode, self._cache_resize_short = self.cache_load_params()
         # safety_margin=1.0 budgets ~2x the (resized) cache estimate: the two-pass build decodes full-resolution
         # originals concurrently (NUM_THREADS) while the cache holds small resized images, so peak working set is
-        # dominated by transient decodes, not the cache itself (measured ~2.2x the resized estimate).
+        # dominated by transient decodes, not the cache itself (measured ~1.85x the resized estimate even with the
+        # buffer allocated directly in shared memory, since the full-res decodes dwarf the small resized cache).
         if self.cache == "ram" and self.check_cache_ram(safety_margin=1.0):
             if hyp.deterministic:
                 LOGGER.warning(

@@ -194,11 +194,13 @@ def check_cache_ram(
 def cache_images_to_ram(n: int, probe, decode, prefix: str = ""):
     """Build one shared-memory ``torch.uint8`` buffer holding ``n`` decoded images, in two passes.
 
-    Pinning the buffer with ``share_memory_()`` before DataLoader workers fork lets every worker map the same
-    POSIX shared-memory region instead of duplicating the cache per worker — the root cause of the ``cache='ram'``
-    + ``num_workers>0`` leak. Two passes keep peak memory at ~1x the cache: pass 1 records each image's byte size,
-    a single buffer is allocated, then pass 2 streams each decoded image into its slice. Shared by ``BaseDataset``
-    and ``ClassificationDataset`` (different ``probe``/``decode`` callables).
+    The buffer is allocated directly in POSIX shared memory before DataLoader workers fork, so every worker maps
+    the same region instead of duplicating the cache per worker — the root cause of the ``cache='ram'`` +
+    ``num_workers>0`` leak. Allocating shared up front (rather than populating a private buffer and calling
+    ``share_memory_()`` afterwards) also avoids a transient ~2x peak: ``share_memory_()`` copies the whole
+    populated cache into a second shared allocation. Two passes keep peak memory at ~1x the cache: pass 1 records
+    each image's byte size, the shared buffer is allocated, then pass 2 streams each decoded image into its slice.
+    Shared by ``BaseDataset`` and ``ClassificationDataset`` (different ``probe``/``decode`` callables).
 
     Args:
         n (int): Number of images.
@@ -228,7 +230,8 @@ def cache_images_to_ram(n: int, probe, decode, prefix: str = ""):
                 pbar.desc = f"{prefix}Probing image sizes"
             pbar.close()
 
-        cache = torch.empty(pos, dtype=torch.uint8)
+        cache = torch.empty(0, dtype=torch.uint8)
+        cache.set_(torch.UntypedStorage._new_shared(pos, device="cpu"))  # allocate in shared memory, no copy
         with ThreadPool(NUM_THREADS) as pool:
             pbar = TQDM(pool.imap(decode, range(n)), total=n, disable=LOCAL_RANK > 0)
             for i, im in pbar:
@@ -237,7 +240,6 @@ def cache_images_to_ram(n: int, probe, decode, prefix: str = ""):
                 b += raw.nbytes
                 pbar.desc = f"{prefix}Caching images ({b / gb:.1f}GB RAM)"
             pbar.close()
-        cache.share_memory_()
     except FileNotFoundError:
         raise  # surface corrupt/missing image clearly instead of swallowing as a cache fallback
     except (MemoryError, OSError, RuntimeError) as e:

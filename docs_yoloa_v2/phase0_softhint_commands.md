@@ -23,7 +23,7 @@ Baseline reference (already trained on `yoloa_v2`):
 ```
 nohuprun python -m ultralytics.cfg \
   train task=anomaly_v2 \
-  model=yolo26m-anomaly-v2-softhint.yaml \
+  model=yolo26-anomaly-v2-softhint.yaml \
   pretrained=yolo26m.pt \
   data=/home/louis/ultra_louis_work/datasets/AnomalyDataset/merge_data_v5_binary/data.yaml \
   epochs=20 batch=96 close_mosaic=20 device=0,1,2 \
@@ -41,7 +41,7 @@ Use a different device set if 0–2 are taken.
 ```
 nohuprun python -m ultralytics.cfg \
   train task=anomaly_v2 \
-  model=yolo26m-anomaly-v2-softhint-seg-a1.yaml \
+  model=yolo26-anomaly-v2-softhint-seg-a1.yaml \
   pretrained=yolo26m.pt \
   data=/home/louis/ultra_louis_work/datasets/AnomalyDataset/merge_data_v5_binary/data.yaml \
   epochs=20 batch=96 close_mosaic=20 device=3,4,5 \

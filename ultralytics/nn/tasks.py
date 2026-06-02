@@ -648,7 +648,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         self._mask_disabled_once = False
 
     def disable_mask_once(self):
-        """Force the next forward to use no mask (AF=0 -> passthrough). Used by B-off val."""
+        """Force the next forward to use no mask (bias=0 -> passthrough). Used by B-off val."""
         self._mask_bboxes_buf = None
         self._mask_batch_idx_buf = None
         self._external_mask_buf = None

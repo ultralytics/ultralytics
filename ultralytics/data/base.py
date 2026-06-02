@@ -336,7 +336,8 @@ class BaseDataset(Dataset):
                 self.buffer.append(i)
                 if 1 < len(self.buffer) >= self.max_buffer_length:  # prevent empty buffer
                     j = self.buffer.pop(0)
-                    self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
+                    if self.img_cache is None:  # shared cache owns im_hw0/im_hw; don't null its metadata
+                        self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
 
             return im, (h0, w0), im.shape[:2]
 

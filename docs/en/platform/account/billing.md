@@ -205,7 +205,7 @@ Total Cost = GPU Rate x Training Time (hours)
 Example: Training for 2.5 hours on RTX PRO 6000
 
 ```
-$1.69 x 2.5 = $4.23
+$1.89 x 2.5 = $4.73
 ```
 
 ## Upgrade to Pro

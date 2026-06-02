@@ -656,7 +656,8 @@ class YOLOAnomalyV2Model(DetectionModel):
 
     def set_external_mask_once(self, mask: torch.Tensor):
         """Provide a pre-computed mask (B, 1, H, W) for the next forward, bypassing the
-        bbox renderer. The mask is fed directly to the per-scale HeatmapEncoder.
+        bbox renderer. The mask is consumed by ``heatmap_bias_fusion`` and added
+        (broadcast over channels) to each PAN scale's feature.
 
         ``mask.shape[2:]`` may be any HxW; it is resized to each PAN scale internally.
         Typical use cases: hand-drawn masks for interactive prediction, MemoryBank

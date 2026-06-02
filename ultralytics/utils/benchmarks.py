@@ -60,7 +60,7 @@ from ultralytics.utils import (
     WEIGHTS_DIR,
     YAML,
 )
-from ultralytics.utils.checks import IS_PYTHON_3_13, check_imgsz, check_requirements, check_yolo, is_rockchip
+from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_13, check_imgsz, check_requirements, check_yolo, is_rockchip
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.files import file_size
 from ultralytics.utils.torch_utils import get_cpu_info, select_device
@@ -126,10 +126,16 @@ def benchmark(
     if format_arg:
         formats = frozenset(export_formats()["Argument"])
         assert format in formats, f"Expected format to be one of {formats}, but got '{format_arg}'."
-    for name, format, suffix, cpu, gpu, valid_args in zip(*export_formats().values()):
+    for name, format, suffix, cpu, gpu, valid_args, _ in zip(*export_formats().values()):
         emoji, filename = "❌", None  # export defaults
         try:
             if format_arg and format_arg != format:
+                continue
+            if (
+                IS_PYTHON_MINIMUM_3_13
+                and not format_arg
+                and format in {"saved_model", "pb", "tflite", "edgetpu", "tfjs"}
+            ):
                 continue
 
             # Checks
@@ -142,8 +148,11 @@ def benchmark(
                 assert not (LINUX and ARM64), "TF.js export not supported on ARM64 Linux"
             elif format == "coreml":
                 assert MACOS or (LINUX and not ARM64), "CoreML export only supported on macOS and non-aarch64 Linux"
-            if format == "coreml":
-                assert not IS_PYTHON_3_13, "CoreML not supported on Python 3.13"
+                # coremltools deadlocks after OpenVINO on macOS Python 3.13 (conflicting OpenMP runtimes); CoreML
+                # is still benchmarked on non-aarch64 Linux Python 3.13.
+                assert not (MACOS and IS_PYTHON_MINIMUM_3_13), (
+                    "CoreML not benchmarked on macOS Python>=3.13 (coremltools/OpenVINO OpenMP deadlock)"
+                )
             if format in {"saved_model", "pb", "tflite", "edgetpu", "tfjs"}:
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
                 # assert not IS_PYTHON_MINIMUM_3_12, "TFLite exports not supported on Python>=3.12 yet"
@@ -151,8 +160,18 @@ def benchmark(
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
                 assert model.task != "obb", "Paddle OBB bug https://github.com/PaddlePaddle/Paddle/issues/72024"
                 assert (LINUX and not IS_JETSON) or MACOS, "Windows and Jetson Paddle exports not supported yet"
+                # PaddlePaddle export works standalone on Python 3.13 but its native protobuf clashes with the
+                # protobuf>=6.31.1 that TensorFlow loads earlier in this shared benchmark process, causing a segfault.
+                assert not IS_PYTHON_MINIMUM_3_13, (
+                    "PaddlePaddle not benchmarked on Python>=3.13 (protobuf ABI conflict with TensorFlow)"
+                )
             if format == "mnn":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 MNN exports not supported yet"
+                # MNN export works standalone on Python 3.13 but its ONNX-parsing protobuf clashes with the
+                # protobuf>=6.31.1 that TensorFlow loads earlier in this shared benchmark process, aborting the run.
+                assert not IS_PYTHON_MINIMUM_3_13, (
+                    "MNN not benchmarked on Python>=3.13 (protobuf ABI conflict with TensorFlow)"
+                )
             if format == "ncnn":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
             if format == "imx":

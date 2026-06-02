@@ -146,7 +146,9 @@ class BaseDataset(Dataset):
         self.img_shapes = None
         self.img_dtypes = None
         self._cache_rect_mode, self._cache_resize_short = self.cache_load_params()
-        # safety_margin=1.0 budgets ~2x cache size to absorb streaming/heap-fragmentation overhead
+        # safety_margin=1.0 budgets ~2x the (resized) cache estimate: the two-pass build decodes full-resolution
+        # originals concurrently (NUM_THREADS) while the cache holds small resized images, so peak working set is
+        # dominated by transient decodes, not the cache itself (measured ~2.2x the resized estimate).
         if self.cache == "ram" and self.check_cache_ram(safety_margin=1.0):
             if hyp.deterministic:
                 LOGGER.warning(

@@ -23,19 +23,20 @@ Redesign fusion so the heatmap behaves as a **soft hint**:
 
 - Heatmap influences ranking / confidence, not feature identity.
 - Heatmap on a clean image with no real anomaly should produce **low-confidence (sub-threshold) detections at most**.
-- Heatmap cannot move or resize boxes.
 - Prior-free path (SegBranch, future memory-bank) remains compatible — the fusion must support a graceful passthrough when no mask is provided.
 - Architecture stays CNN.
+
+**Not required:** isolating the heatmap's effect to the classification branch only. An earlier draft of this spec made that an explicit goal ("cannot move or resize boxes"), but it was the *implementation* of the soft-hint property, not the property itself. The core hypothesis is *bounded + low-bandwidth* fusion; whether the bias reaches the regression branch is a second-order question we treat empirically — start by allowing it (simpler), and only isolate cls if the regression branch turns out to be polluted.
 
 ## 3. Design
 
 ### 3.1 Mechanism — `HeatmapBiasFusion`
 
-Replace per-channel multiplicative gate with a low-bandwidth, bounded, additive bias applied only to the Detect head's classification logits.
+Replace the per-channel multiplicative gate with a low-bandwidth, bounded, additive bias applied to the PAN features at each scale, just before they enter the Detect head.
 
 ```python
 class HeatmapBiasFusion(nn.Module):
-    """1-ch mask -> bounded per-pixel bias added to Detect cls logits."""
+    """1-ch mask -> bounded per-pixel bias added to PAN features before Detect."""
     def __init__(self, num_scales: int = 3):
         super().__init__()
         # Shared 1->8->1 conv across scales (mask is resized per scale before forward).
@@ -50,27 +51,28 @@ class HeatmapBiasFusion(nn.Module):
         # mask: (B, 1, H, W) — caller resizes to the PAN scale before calling.
         raw = self.conv(mask)              # (B, 1, H, W) unbounded
         bounded = torch.tanh(raw)          # per-pixel in [-1, +1]
-        return self.beta[scale_idx] * bounded  # in [-beta_i, +beta_i]
+        return self.beta[scale_idx] * bounded  # (B, 1, H, W) in [-beta_i, +beta_i]
 ```
 
 Properties:
 
-- **Bandwidth = 1.** Output is a single channel; broadcast to all `nc` classes when added.
+- **Bandwidth = 1.** Output is a single channel, broadcast to all C channels of the PAN feature when added. Adds at most one degree of per-pixel additive freedom per scale — far below the current per-channel C-dim modulation.
 - **Bounded.** `tanh` clamps per-pixel magnitude to ±1; `beta` scales it. `beta` is a learnable scalar per PAN scale (3 scalars total) with no hard cap — if `beta` blows up during training the lift on real anomalies blows up too, which is easy to monitor.
 - **Init = passthrough.** `beta = 0` at init → training starts as vanilla YOLO. The model learns to use the heatmap only if it helps the detection loss.
-- **Cls-only.** Bias is added to `Detect.cv3(x)` cls logits before the sigmoid. Regression (`cv2`) and any objectness are untouched.
+- **Additive, not multiplicative.** Unlike `P * 2·sigmoid(AF)` (an unbounded amplifier on the feature itself), `P + bias` shifts the activation by a bounded amount. The detection head still has to decide that the *content* of `P` looks like an anomaly — bias alone cannot generate strong features out of nothing.
 
 ### 3.2 Network injection
 
-Injection point stays at the Detect head input (PAN-late). The change is *where in the head* the signal is applied:
+Injection point: PAN-late, immediately before the Detect head. PAN features at each scale are replaced by `P_fused = P + bias`, where `bias` is broadcast over C channels. The Detect head itself is **unchanged** — vanilla `Detect`, with its existing `cv2` (reg) and `cv3` (cls) branches, runs on `P_fused`.
 
 | Stage | Current | New |
 | --- | --- | --- |
-| PAN P3/P4/P5 outputs | rewritten by `P * 2·sigmoid(AF)` | unchanged, passed verbatim to Detect |
-| Detect `cv2` (reg) | sees fused feature | sees raw PAN feature |
-| Detect `cv3` (cls) | sees fused feature | sees raw PAN feature; logits then get `+ mask_bias` |
+| PAN P3/P4/P5 outputs | rewritten by `P * 2·sigmoid(AF)` | replaced by `P + bias` (1-ch bias, broadcast to C) |
+| Detect `cv2` (reg) | sees fused feature | sees `P_fused` (same path) |
+| Detect `cv3` (cls) | sees fused feature | sees `P_fused` (same path) |
+| `head.py` changes | n/a | **none** |
 
-Detect head's `forward` accepts an optional `mask_bias: list[Tensor] | None`. When `None`, behavior is identical to vanilla `Detect`.
+The bias reaches both regression and classification, which is the intentional simplification over an earlier draft. We treat "is reg polluted?" as an empirical question gated on the first run — see §2.
 
 ### 3.3 Mask resolution
 
@@ -151,13 +153,15 @@ New eval script `scripts/false_prompt_eval.py`:
 | File | Change |
 | --- | --- |
 | `ultralytics/nn/modules/anomaly_v2.py` | Delete `HeatmapEncoder`, `HeatmapGuidedFusion`; add `HeatmapBiasFusion`. |
-| `ultralytics/nn/modules/head.py` `Detect` | Add optional `mask_bias` param to `forward`; add to cv3 cls logits before sigmoid. |
-| `ultralytics/nn/tasks.py` `YOLOAnomalyV2Model` | Remove old `ModuleList`s; add `self.heatmap_bias_fusion`; new `_predict_once` path that resizes mask per scale and passes bias list into Detect. |
+| `ultralytics/nn/modules/__init__.py` | Update imports/exports (remove old names, add `HeatmapBiasFusion`). |
+| `ultralytics/nn/tasks.py` `YOLOAnomalyV2Model` | Remove old `ModuleList`s; add `self.heatmap_bias_fusion`; in `_predict_once`, replace per-scale `P * 2·sigmoid(AF)` with `P + bias`. |
 | `ultralytics/cfg/models/v2/yolo26-anomaly-v2-softhint.yaml` | New YAML; same architecture, `anomaly_v2` config block unchanged. |
-| `ultralytics/cfg/models/v2/yolo26-anomaly-v2-softhint-seg-a1.yaml` | New YAML; same as above + `seg_branch: true`, `seg_alpha_mode: a1`. |
+| `ultralytics/cfg/models/v2/yolo26-anomaly-v2-softhint-seg-a1.yaml` | New YAML; same as above + `seg_branch: true`, `seg_alpha_mode: pinned_one`. |
 | `scripts/false_prompt_eval.py` | New — described in §6. |
-| `tests/test_softhint_fusion.py` (or smoke block in `anomaly_v2.py` `__main__`) | Sanity equivalence test (§4 sanity gate). |
+| `scripts/softhint_sanity.py` | Sanity equivalence test (§4 sanity gate). |
 | `docs_yoloa_v2/phase0_softhint_commands.md` | New — train launch + eval commands for both runs. |
+
+**Note:** `ultralytics/nn/modules/head.py` is **not** touched. The Detect head is reused as-is.
 
 ## 9. Decision summary
 
@@ -167,3 +171,4 @@ New eval script `scripts/false_prompt_eval.py`:
 - β: per-scale learnable scalars (3), no hard cap.
 - False-prompt benchmark: adopted as a primary eval signal alongside mAP.
 - Comparison: cross-branch (`yoloa_v2` vs `yoloa_v2_softhint`), no in-branch toggle.
+- **Bias injection:** PAN feature-level (`P + bias`) rather than Detect cls-only. Trades the "reg untouched" guarantee for a much smaller diff (Detect unchanged) and tests the *core* hypothesis (bounded + low-bandwidth) without the cls-isolation confound. If the first run shows reg pollution, upgrade to cls-only as a follow-up — at that point we will have a concrete reason.

@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Replace YOLOA v2's per-channel multiplicative gate with a bounded, 1-channel additive bias on the Detect cls logits, on a new branch `yoloa_v2_softhint` for cross-branch comparison.
+**Goal:** Replace YOLOA v2's per-channel multiplicative gate (`P * 2·sigmoid(AF)`) with a bounded, 1-channel additive bias on the PAN features (`P + bias`, broadcast to all C channels) on a new branch `yoloa_v2_softhint` for cross-branch comparison.
 
-**Architecture:** New `HeatmapBiasFusion` module (1→8→1 conv + 3 learnable per-scale β scalars, init 0) produces a bounded bias added to `Detect.forward_head` cls logits via a transient buffer attribute. PAN features, regression, and objectness are untouched. `BboxMaskRenderer`, `SegBranch`, mask dropout, and shuffle/noise augments remain intact for compatibility.
+**Architecture:** New `HeatmapBiasFusion` module (1→8→1 conv + 3 learnable per-scale β scalars, init 0) produces a bounded per-pixel bias added directly to PAN P3/P4/P5 features before the (unchanged) Detect head. `BboxMaskRenderer`, `SegBranch`, mask dropout, and shuffle/noise augments remain intact.
 
 **Tech Stack:** PyTorch, Ultralytics 8.x, Python 3.10, ultra6 (3-GPU DDP) for training, MVTec-style anomaly dataset (`merge_data_v5_binary`).
 
@@ -18,12 +18,14 @@
 | --- | --- |
 | `ultralytics/nn/modules/anomaly_v2.py` | Delete `HeatmapEncoder`, `HeatmapGuidedFusion`; add `HeatmapBiasFusion`. Update `__all__` and `__main__` smoke. |
 | `ultralytics/nn/modules/__init__.py` | Replace `HeatmapEncoder` / `HeatmapGuidedFusion` import+export with `HeatmapBiasFusion`. |
-| `ultralytics/nn/modules/head.py` | Add transient `_mask_bias_buf` read inside `Detect.forward_head` to add per-scale bias to cls logits before flatten. |
-| `ultralytics/nn/tasks.py` `YOLOAnomalyV2Model` | Remove `heatmap_encoders` / `heatmap_fusions` ModuleLists; add `heatmap_bias_fusion`; rewrite the Detect-call section of `_predict_once`. |
-| `ultralytics/cfg/models/v2/yolo26-anomaly-v2-softhint.yaml` | New YAML (no fusion-side knobs needed — bias fusion has no YAML config). |
+| `ultralytics/nn/tasks.py` `YOLOAnomalyV2Model` | Remove `heatmap_encoders` / `heatmap_fusions` ModuleLists; add single `heatmap_bias_fusion`; in `_predict_once`, replace per-scale multiplicative gate with `P + bias`. |
+| `ultralytics/cfg/models/v2/yolo26-anomaly-v2-softhint.yaml` | New YAML. |
 | `ultralytics/cfg/models/v2/yolo26-anomaly-v2-softhint-seg-a1.yaml` | New YAML, same as above + `seg_branch: true`, `seg_alpha_mode: pinned_one`. |
-| `scripts/false_prompt_eval.py` | New eval script — max-conf AUROC over (real anomaly + GT mask) vs (good image + random mask). |
-| `docs_yoloa_v2/phase0_softhint_commands.md` | New runbook: train + eval commands for both runs. |
+| `scripts/softhint_sanity.py` | β=0 forward equivalence test. |
+| `scripts/false_prompt_eval.py` | Max-conf AUROC over (real anomaly + GT mask) vs (good image + random mask). |
+| `docs_yoloa_v2/phase0_softhint_commands.md` | Runbook: train + eval commands for both runs. |
+
+**Not touched:** `ultralytics/nn/modules/head.py`. The Detect head is reused as-is.
 
 ---
 
@@ -31,7 +33,7 @@
 
 **Files:** none (git only)
 
-- [ ] **Step 1: Verify clean tree (or stash pending edits)**
+- [ ] **Step 1: Verify clean tree (or accept pre-existing diffs)**
 
 ```bash
 cd /Users/louis/workspace/ultra_louis_work/ultralytics
@@ -73,8 +75,10 @@ Overwrite `ultralytics/nn/modules/anomaly_v2.py` with:
 """YOLOA v2 modules: bbox-mask renderer, heatmap bias fusion, optional SegBranch.
 
 Soft-hint fusion: a 1-channel mask is turned into a bounded per-pixel bias added
-to the Detect head's classification logits. Regression and objectness are not
-touched, so the heatmap cannot move or resize boxes — only shift confidence.
+(broadcast over channels) to PAN features before the Detect head. PAN feature
+addition keeps the Detect head unmodified, lets reg and cls both see the bias
+(empirical question — see spec §2), and is bounded vs the previous multiplicative
+amplifier that forced detections.
 
 See docs_yoloa_v2/specs/2026-06-02-softhint-fusion-design.md.
 """
@@ -163,13 +167,16 @@ class BboxMaskRenderer(nn.Module):
 
 
 class HeatmapBiasFusion(nn.Module):
-    """Soft-hint fusion: 1-ch mask -> bounded per-pixel bias on Detect cls logits.
+    """Soft-hint fusion: 1-ch mask -> bounded per-pixel bias broadcast onto PAN features.
 
-    The conv stack is SHARED across PAN scales (mask is resized to each scale
-    before forward). Per-scale magnitude is controlled by a learnable scalar
-    ``beta[i]``, initialized to zero so training starts as pure passthrough
-    (vanilla YOLO). Without a hard cap, beta can in principle grow large; that
-    is intentional — the detection loss decides how much to lean on the heatmap.
+    Output shape ``(B, 1, H, W)`` — the caller broadcasts (adds) it to a PAN feature
+    of shape ``(B, C, H, W)``. The conv stack is SHARED across PAN scales; the caller
+    is responsible for resizing the mask to each scale before calling forward.
+
+    Per-scale magnitude is controlled by ``beta[i]``, initialized to zero so training
+    starts as pure passthrough (vanilla YOLO). Without a hard cap, beta can in
+    principle grow large; that is intentional — the detection loss decides how much
+    to lean on the heatmap.
 
     Output per pixel is in ``[-beta_i, +beta_i]`` via tanh.
     """
@@ -240,7 +247,8 @@ def binary_seg_loss(
 
 
 if __name__ == "__main__":
-    # Smoke test: render, fusion init=0 passthrough, fusion with learned beta bounded.
+    # Smoke test: render, fusion init=0 passthrough, fusion with learned beta bounded,
+    # broadcast onto a C-channel PAN feature.
     B, H = 4, 80
     renderer = BboxMaskRenderer(mask_size=H, mode="rect")
     bboxes = torch.tensor(
@@ -270,6 +278,12 @@ if __name__ == "__main__":
     assert bias.abs().max().item() <= 1.5 + 1e-6, "bias exceeded beta after tanh"
     print(f"HeatmapBiasFusion beta=1.5 bounded OK (max abs = {bias.abs().max().item():.4f}).")
 
+    # Broadcast onto a C-channel PAN feature: (B, 1, H, W) + (B, C, H, W) -> (B, C, H, W).
+    p = torch.randn(B, 256, H, H)
+    p_fused = p + fusion(mask, 0)
+    assert p_fused.shape == p.shape
+    print(f"Broadcast OK: P (B,256,H,W) + bias (B,1,H,W) -> {tuple(p_fused.shape)}.")
+
     # Resize-per-scale smoke
     mask_p4 = F.interpolate(mask, size=(40, 40), mode="bilinear", align_corners=False)
     mask_p5 = F.interpolate(mask, size=(20, 20), mode="bilinear", align_corners=False)
@@ -287,10 +301,11 @@ cd /Users/louis/workspace/ultra_louis_work/ultralytics
 python -m ultralytics.nn.modules.anomaly_v2
 ```
 
-Expected (all three lines must appear, no asserts fire):
+Expected (all four lines must appear, no asserts fire):
 ```
 HeatmapBiasFusion init=0 passthrough OK.
 HeatmapBiasFusion beta=1.5 bounded OK (max abs = ...).
+Broadcast OK: P (B,256,H,W) + bias (B,1,H,W) -> (4, 256, 80, 80).
 HeatmapBiasFusion multi-scale OK.
 
 All smoke tests passed.
@@ -303,12 +318,13 @@ git add ultralytics/nn/modules/anomaly_v2.py
 git commit -m "yoloa_v2_softhint: replace HeatmapEncoder+HeatmapGuidedFusion with HeatmapBiasFusion
 
 Per-channel multiplicative gate (P * 2*sigmoid(AF)) was rewriting PAN features
-and giving the cls head a shortcut: any heatmap forced detections in that
-region (observed in demo with wrong-location prompts).
+and forcing detections wherever a heatmap was provided (observed in demo with
+wrong-location prompts).
 
 HeatmapBiasFusion is a single 1->8->1 conv shared across scales plus three
 learnable scalars (beta init 0) that scale a tanh-bounded per-pixel bias. The
-bias will be added to Detect cls logits only; reg/obj are untouched."
+bias is added (broadcast over channels) to PAN features before the Detect head;
+Detect itself is unchanged."
 ```
 
 ---
@@ -356,7 +372,7 @@ Replace those two lines with:
     "HeatmapBiasFusion",
 ```
 
-- [ ] **Step 2: Verify import works**
+- [ ] **Step 2: Verify imports**
 
 ```bash
 python -c "from ultralytics.nn.modules import HeatmapBiasFusion, BboxMaskRenderer, SegBranch; print('imports OK')"
@@ -364,15 +380,13 @@ python -c "from ultralytics.nn.modules import HeatmapBiasFusion, BboxMaskRendere
 
 Expected: `imports OK`
 
-- [ ] **Step 3: Confirm old names are gone**
-
 ```bash
 python -c "from ultralytics.nn.modules import HeatmapEncoder" 2>&1 | tail -1
 ```
 
 Expected: an `ImportError` mentioning `HeatmapEncoder`.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
 git add ultralytics/nn/modules/__init__.py
@@ -381,70 +395,7 @@ git commit -m "yoloa_v2_softhint: update nn/modules exports for HeatmapBiasFusio
 
 ---
 
-## Task 4: Add `mask_bias` buffer support to `Detect.forward_head`
-
-**Files:**
-- Modify: `ultralytics/nn/modules/head.py:135-144` (the `forward_head` of `class Detect`)
-
-**Design note for the implementer:** Don't change the `forward_head` signature — `Detect` is subclassed by `Segment`, `Pose`, `OBB`, etc. Instead, read an optional transient attribute that the caller (`YOLOAnomalyV2Model._predict_once`) sets before calling `Detect.__call__` and clears immediately after. Pattern matches the existing `_mask_bboxes_buf` mechanism on the model.
-
-- [ ] **Step 1: Edit `Detect.forward_head`**
-
-In `ultralytics/nn/modules/head.py`, replace the body of `forward_head` (currently lines 135–144) with:
-
-```python
-    def forward_head(
-        self, x: list[torch.Tensor], box_head: torch.nn.Module = None, cls_head: torch.nn.Module = None
-    ) -> dict[str, torch.Tensor]:
-        """Concatenates and returns predicted bounding boxes and class probabilities."""
-        if box_head is None or cls_head is None:  # for fused inference
-            return dict()
-        bs = x[0].shape[0]  # batch size
-        boxes = torch.cat([box_head[i](x[i]).view(bs, 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
-        # Per-scale cls logits. A soft-hint bias may be added before flatten (see
-        # YOLOAnomalyV2Model._predict_once). The buffer is set by the caller and
-        # consumed exactly once per forward.
-        cls_per_scale = [cls_head[i](x[i]) for i in range(self.nl)]
-        mask_bias = getattr(self, "_mask_bias_buf", None)
-        if mask_bias is not None:
-            cls_per_scale = [c + b for c, b in zip(cls_per_scale, mask_bias)]
-        scores = torch.cat([c.view(bs, self.nc, -1) for c in cls_per_scale], dim=-1)
-        return dict(boxes=boxes, scores=scores, feats=x)
-```
-
-- [ ] **Step 2: Sanity-check vanilla forward still equals previous behavior**
-
-Without the buffer set, output must be identical bit-for-bit. Quick check:
-
-```bash
-python -c "
-import torch
-from ultralytics.nn.modules.head import Detect
-det = Detect(nc=80, ch=(256, 512, 512))
-det.eval()
-x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 512, 20, 20)]
-y = det(x)
-print('Detect forward OK, type:', type(y[0]).__name__ if isinstance(y, tuple) else type(y).__name__)
-print('No _mask_bias_buf attr by default:', not hasattr(det, '_mask_bias_buf'))
-"
-```
-
-Expected: `Detect forward OK` and `No _mask_bias_buf attr by default: True`.
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add ultralytics/nn/modules/head.py
-git commit -m "yoloa_v2_softhint: Detect.forward_head reads optional mask_bias buffer
-
-When YOLOAnomalyV2Model sets _mask_bias_buf on the Detect module, per-scale
-cls logits are shifted before flatten. Buffer attribute pattern preserves the
-Detect signature so Segment/Pose/OBB subclasses are not affected."
-```
-
----
-
-## Task 5: Rewire `YOLOAnomalyV2Model` to use `HeatmapBiasFusion`
+## Task 4: Rewire `YOLOAnomalyV2Model` to use `HeatmapBiasFusion`
 
 **Files:**
 - Modify: `ultralytics/nn/tasks.py` (the `YOLOAnomalyV2Model` class, currently lines ~522–880)
@@ -482,7 +433,7 @@ With:
 ```python
         # Anomaly-side modules (live outside self.model so they are not in the Sequential)
         self.mask_renderer = BboxMaskRenderer(mask_size=mask_size, mode=mask_mode, sigma_factor=sigma_factor)
-        # Soft-hint fusion: bounded per-pixel bias on Detect cls logits.
+        # Soft-hint fusion: bounded per-pixel bias added (broadcast) to PAN features.
         # beta init 0 -> training starts as vanilla YOLO; the model learns to lean on
         # the heatmap only if it helps the detection loss.
         self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=detect.nl)
@@ -496,8 +447,10 @@ Also update the class docstring (around lines 522–545) to match the new mechan
     Extends DetectionModel with two anomaly-side modules attached OUTSIDE the parsed
     Sequential:
       - ``mask_renderer``: rasterizes GT bboxes into a 1-channel mask.
-      - ``heatmap_bias_fusion``: HeatmapBiasFusion. Per-pixel bias added to the Detect
-        head's cls logits only. PAN features, regression, and objectness are untouched.
+      - ``heatmap_bias_fusion``: HeatmapBiasFusion. Produces a bounded per-pixel bias
+        added (broadcast over channels) to each PAN P3/P4/P5 feature before the Detect
+        head. Both reg and cls branches see the bias; this is acceptable because the
+        bias is bounded and additive, unlike the previous multiplicative amplifier.
 
     Mask dropout (anti-shortcut, see design.md §3.4):
       During training, with probability ``p_drop`` per sample, the bias for that
@@ -507,20 +460,20 @@ Also update the class docstring (around lines 522–545) to match the new mechan
     Mask source:
       - Training: rendered from ``batch["bboxes"]`` (set by ``loss()``).
       - Validation B-on: caller sets bboxes via ``set_mask_input()``.
-      - Validation B-off / pure inference: no bboxes -> bias=None -> Detect runs
-        with no buffer set -> exact passthrough (equivalent to vanilla YOLO).
+      - Validation B-off / pure inference: no bboxes -> bias is None -> PAN features
+        flow through unchanged (vanilla YOLO).
       - External (e.g. SegBranch, user prompt): ``set_external_mask_once``.
 
     Spec: docs_yoloa_v2/specs/2026-06-02-softhint-fusion-design.md.
     """
 ```
 
-- [ ] **Step 3: Replace the fusion section of `_predict_once`**
+- [ ] **Step 3: Rewrite the fusion section of `_predict_once`**
 
-Inside `_predict_once`, find the block that starts with `# Apply fusion to the PAN inputs before Detect.` (currently around lines 804–845). Replace the per-scale `for i, p in enumerate(pan_inputs):` loop and the subsequent `x = m(fused)` line with:
+Inside `_predict_once`, find the block that starts with `# Apply fusion to the PAN inputs before Detect.` (currently around lines 804–845). Replace the per-scale `for i, p in enumerate(pan_inputs):` loop with the simpler additive form:
 
 ```python
-                # Apply soft-hint fusion: build per-scale bias and stash on Detect; PAN inputs are unchanged.
+                # Apply soft-hint fusion to the PAN inputs before Detect.
                 # m.f is a list of indices into y (the PAN P3/P4/P5 outputs).
                 pan_inputs = [y[j] for j in m.f]
                 # SegBranch (optional) predicts the heatmap from P3/P4. Run unconditionally when present
@@ -541,35 +494,30 @@ Inside `_predict_once`, find the block that starts with `# Apply fusion to the P
                     and (self.mask_shuffle_p > 0.0 or self.mask_noise_std > 0.0)
                 ):
                     mask = self._augment_mask(mask)
-
-                # Build per-scale bias list and stash on Detect for forward_head to consume.
-                mask_bias = None
-                if mask is not None:
-                    mask_bias = []
-                    for i, p in enumerate(pan_inputs):
-                        target_h, target_w = p.shape[2], p.shape[3]
-                        if mask.shape[2] != target_h or mask.shape[3] != target_w:
-                            m_scale = torch.nn.functional.interpolate(
-                                mask, size=(target_h, target_w), mode="bilinear", align_corners=False
-                            )
-                        else:
-                            m_scale = mask
-                        bias = self.heatmap_bias_fusion(m_scale, i)
-                        # Per-sample keep mask (mask dropout): dropped samples get zero bias.
-                        bias = bias * keep.to(bias.dtype).view(-1, 1, 1, 1)
-                        mask_bias.append(bias)
-
-                # Set buffer on the Detect module (last layer), call it, clear buffer immediately.
-                m._mask_bias_buf = mask_bias
-                try:
-                    x = m(pan_inputs)
-                finally:
-                    m._mask_bias_buf = None
+                fused = []
+                for i, p in enumerate(pan_inputs):
+                    if mask is None:
+                        # Pure passthrough: skip fusion entirely.
+                        fused.append(p)
+                        continue
+                    target_h, target_w = p.shape[2], p.shape[3]
+                    if mask.shape[2] != target_h or mask.shape[3] != target_w:
+                        m_scale = torch.nn.functional.interpolate(
+                            mask, size=(target_h, target_w), mode="bilinear", align_corners=False
+                        )
+                    else:
+                        m_scale = mask
+                    bias = self.heatmap_bias_fusion(m_scale, i)  # (B, 1, H, W) in [-beta_i, +beta_i]
+                    # Per-sample keep mask (mask dropout): dropped samples get zero bias.
+                    bias = bias * keep.to(bias.dtype).view(-1, 1, 1, 1)
+                    # Broadcast 1-channel bias over the C channels of the PAN feature.
+                    fused.append(p + bias)
+                x = m(fused)
 ```
 
 (All non-replaced code in `_predict_once` — the bookkeeping for `y`, `dt`, `embeddings`, profile, visualize, embed — stays unchanged.)
 
-- [ ] **Step 4: Smoke test the model end-to-end**
+- [ ] **Step 4: Smoke-test the model end-to-end**
 
 ```bash
 python -c "
@@ -580,34 +528,28 @@ m = YOLOAnomalyV2Model('ultralytics/cfg/models/v2/yolo26-anomaly-v2.yaml', ch=3,
 m.eval()
 x = torch.randn(2, 3, 640, 640)
 
-# 1) mask-off: no mask input -> Detect runs without the buffer -> vanilla path.
+# 1) mask-off: no mask input -> bias=None -> vanilla path.
 out_off = m(x)
-print('mask-off forward OK, type:', type(out_off).__name__ if not isinstance(out_off, (tuple, list)) else type(out_off[0]).__name__)
+def to_t(o):
+    return o[0] if isinstance(o, tuple) else o
 
 # 2) mask-on with beta=0: must be numerically identical to mask-off.
 bboxes = torch.tensor([[0.5, 0.5, 0.2, 0.2]])
 batch_idx = torch.tensor([0], dtype=torch.long)
 m.set_mask_input(bboxes, batch_idx)
 out_on_beta0 = m(x)
-
-def to_tensor(o):
-    return o[0] if isinstance(o, tuple) else o
-
-a = to_tensor(out_off)
-b = to_tensor(out_on_beta0)
-diff = (a - b).abs().max().item()
-print(f'mask-off vs mask-on (beta=0) max abs diff = {diff:.2e}')
-assert diff < 1e-5, 'beta=0 forward must equal mask-off forward'
+diff0 = (to_t(out_off) - to_t(out_on_beta0)).abs().max().item()
+print(f'mask-off vs mask-on (beta=0) max abs diff = {diff0:.2e}')
+assert diff0 < 1e-5, 'beta=0 forward must equal mask-off forward'
 
 # 3) Set beta != 0, mask-on should now differ.
 with torch.no_grad():
     m.heatmap_bias_fusion.beta.fill_(1.0)
 m.set_mask_input(bboxes, batch_idx)
 out_on_beta1 = m(x)
-c = to_tensor(out_on_beta1)
-diff_beta1 = (a - c).abs().max().item()
-print(f'mask-on (beta=1.0) vs mask-off diff = {diff_beta1:.4f}')
-assert diff_beta1 > 1e-3, 'beta=1.0 should change output'
+diff1 = (to_t(out_off) - to_t(out_on_beta1)).abs().max().item()
+print(f'mask-on (beta=1.0) vs mask-off diff = {diff1:.4f}')
+assert diff1 > 1e-3, 'beta=1.0 should change output'
 
 print('Softhint model smoke OK.')
 "
@@ -615,13 +557,12 @@ print('Softhint model smoke OK.')
 
 Expected output:
 ```
-mask-off forward OK, type: ...
 mask-off vs mask-on (beta=0) max abs diff = 0.00e+00  (or extremely small)
 mask-on (beta=1.0) vs mask-off diff = <some positive number>
 Softhint model smoke OK.
 ```
 
-If the diff for beta=0 is not zero (or very close to it), STOP — the buffer is leaking or being applied in a non-passthrough way. Investigate before continuing.
+If the diff for beta=0 is not essentially zero, STOP and investigate before continuing.
 
 - [ ] **Step 5: Commit**
 
@@ -629,12 +570,13 @@ If the diff for beta=0 is not zero (or very close to it), STOP — the buffer is
 git add ultralytics/nn/tasks.py
 git commit -m "yoloa_v2_softhint: rewire YOLOAnomalyV2Model around HeatmapBiasFusion
 
-_predict_once now builds a per-scale bias list and stashes it on the Detect
-module right before calling it; Detect.forward_head consumes the buffer to
-shift cls logits. PAN features pass through unchanged.
+_predict_once now adds a per-scale, 1-channel, bounded bias (broadcast over PAN
+channels) to each P3/P4/P5 feature before Detect. Detect itself is unchanged.
 
 beta init 0 => training starts as vanilla YOLO. Mask dropout (p_drop) still
-works by zeroing the bias for dropped samples (multiplicative keep mask).
+works by zeroing the bias for dropped samples. Both reg and cls see the bias;
+the bias is bounded and additive (vs the previous multiplicative amplifier),
+which is the soft-hint property we are validating.
 
 SegBranch / shuffle-noise mask augment / external mask / explicit disable
 paths are all preserved."
@@ -642,7 +584,7 @@ paths are all preserved."
 
 ---
 
-## Task 6: Add the softhint YAML configs
+## Task 5: Add the softhint YAML configs
 
 **Files:**
 - Create: `ultralytics/cfg/models/v2/yolo26-anomaly-v2-softhint.yaml`
@@ -655,9 +597,9 @@ Write `ultralytics/cfg/models/v2/yolo26-anomaly-v2-softhint.yaml`:
 ```yaml
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO Anomaly v2 SOFT-HINT — yolo26 detection backbone + bounded cls-logit bias from heatmap.
+# YOLO Anomaly v2 SOFT-HINT — yolo26 detection backbone + bounded additive bias on PAN.
 # Replaces the multiplicative per-channel gate (Phase 0/2) with HeatmapBiasFusion:
-# a 1-channel bounded bias added only to Detect cls logits; PAN features untouched.
+# a 1-channel bounded bias added (broadcast) to PAN P3/P4/P5 before Detect.
 # Branch: yoloa_v2_softhint. Spec: docs_yoloa_v2/specs/2026-06-02-softhint-fusion-design.md.
 
 # Parameters
@@ -811,12 +753,12 @@ git commit -m "yoloa_v2_softhint: add softhint and softhint-seg-a1 model YAMLs"
 
 ---
 
-## Task 7: Equivalence sanity script (runtime gate before training)
+## Task 6: Equivalence sanity script (runtime gate before training)
 
 **Files:**
 - Create: `scripts/softhint_sanity.py`
 
-This is a stand-alone verification script — bigger and more thorough than the inline check in Task 5. It loads the actual YAML, asserts β=0 equivalence on a tiny batch, and prints the bias parameter count.
+Stand-alone verification: load the actual YAML, assert β=0 equivalence on a tiny batch, assert β!=0 changes output, print bias parameter count and β values.
 
 - [ ] **Step 1: Create the script**
 
@@ -878,25 +820,6 @@ def main() -> int:
         print("FAIL: beta=1 forward should differ measurably from vanilla.")
         return 1
 
-    # 4) The DIFFERENCE between beta=1 and beta=0 outputs should only live in
-    #    the cls-score channels (final dim slice after box decode in inference).
-    #    Inference path output is (B, 4+nc, A). The first 4 are decoded boxes;
-    #    the last nc are cls scores. Boxes must be byte-identical between the
-    #    two beta values; only the score slice changes.
-    if out_off.dim() >= 2:
-        # Output shape is (B, 4+nc, A) at inference (end2end output is decoded).
-        # Compare the box portion (first 4) — softhint should leave reg untouched.
-        box_diff = (out_on_beta0[:, :4] - out_on_beta1[:, :4]).abs().max().item()
-        cls_diff = (out_on_beta0[:, 4:] - out_on_beta1[:, 4:]).abs().max().item()
-        print(f"beta=0 vs beta=1 box-channel diff: {box_diff:.3e}")
-        print(f"beta=0 vs beta=1 cls-channel diff: {cls_diff:.3e}")
-        if box_diff > 1e-5:
-            print("FAIL: regression output should NOT change between beta values.")
-            return 1
-        if cls_diff < 1e-3:
-            print("FAIL: cls output should change between beta values.")
-            return 1
-
     print("PASS softhint sanity.")
     return 0
 
@@ -919,17 +842,17 @@ If any FAIL appears, stop and fix the root cause before continuing — do NOT pr
 
 ```bash
 git add scripts/softhint_sanity.py
-git commit -m "yoloa_v2_softhint: add softhint sanity script (beta=0 equivalence, cls-only impact)"
+git commit -m "yoloa_v2_softhint: add softhint_sanity.py (beta=0 equivalence gate)"
 ```
 
 ---
 
-## Task 8: False-prompt eval script
+## Task 7: False-prompt eval script
 
 **Files:**
 - Create: `scripts/false_prompt_eval.py`
 
-This is the new primary eval signal (§6 of spec). Inputs: a trained checkpoint + a YOLO-format dataset YAML that has *good* and *anomalous* splits. Outputs: AUROC of (anomaly + GT mask) max-conf vs (good + random mask) max-conf, plus percentile dump and a histogram.
+Primary eval signal (§6 of spec). Inputs: a trained checkpoint + a YOLO-format dataset YAML with a val split. Outputs: AUROC of (anomaly + GT mask) max-conf vs (good + random mask) max-conf, plus percentile dump and a histogram.
 
 - [ ] **Step 1: Create the script**
 
@@ -951,7 +874,7 @@ Usage:
 
 Notes:
 - The data.yaml is expected to have a 'val' (or 'test') split with YOLO labels.
-- Images whose label file is empty are treated as 'good'; otherwise 'anomalous'.
+- Images whose label file is empty or missing are treated as 'good'; otherwise 'anomalous'.
 - Random mask: uniform center in [0.15, 0.85]^2, square side in [0.10, 0.40] of image.
 """
 
@@ -1044,13 +967,9 @@ def auroc(pos: list[float], neg: list[float]) -> float:
     # Mann-Whitney U based AUROC; robust to ties.
     scores = np.asarray(pos + neg, dtype=np.float64)
     labels = np.asarray([1] * len(pos) + [0] * len(neg), dtype=np.int8)
-    order = np.argsort(scores, kind="mergesort")
-    ranks = np.empty_like(order, dtype=np.float64)
-    ranks[order] = np.arange(1, len(scores) + 1)
-    # Average ranks across ties
     _, inv, counts = np.unique(scores, return_inverse=True, return_counts=True)
     cum = np.cumsum(counts)
-    avg = (cum - counts / 2 + 0.5)  # mean rank within tie group
+    avg = cum - counts / 2 + 0.5  # mean rank within tie group
     tie_ranks = avg[inv]
     pos_rank_sum = tie_ranks[labels == 1].sum()
     n_pos = labels.sum()
@@ -1084,10 +1003,8 @@ def main() -> int:
         boxes = read_yolo_label(yolo_label_path(img))
         is_good = len(boxes) == 0
         mask = random_rect_mask(rng=rng) if is_good else gt_rect_mask(boxes)
-        # YOLO predict supports a kwarg passed through the predictor; the v2 predictor
-        # accepts external_mask via model.predictor.model.set_external_mask_once before each call.
-        # We use a lightweight per-call pattern: warm the predictor once, then bypass.
-        model.predict(str(img), verbose=False, save=False)  # warm-up so predictor exists
+        # Warm-up so predictor exists, then inject the mask and predict.
+        model.predict(str(img), verbose=False, save=False)
         model.predictor.model.set_external_mask_once(mask.to(next(model.predictor.model.parameters()).device))
         res = model.predict(str(img), verbose=False, save=False)[0]
         c = max_conf(res)
@@ -1136,32 +1053,18 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
-- [ ] **Step 2: Dry-run on the existing baseline checkpoint (cross-branch eval)**
-
-The script should run against the *existing* `26m_yoloav2_v5_binary_cm20_rect_pd50_v1` checkpoint too so we get a baseline number to beat. Don't commit the output JSON.
-
-If the baseline weights have been pulled to laptop:
-
-```bash
-python scripts/false_prompt_eval.py \
-    --weights runs/yoloa_v2/26m_yoloav2_v5_binary_cm20_rect_pd50_v1/weights/best.pt \
-    --data    <path to merge_data_v5_binary/data.yaml> \
-    --split   val \
-    --out     runs/temp/false_prompt_baseline.json
-```
-
-If the weights are still on ultra6 only, skip this dry-run on laptop and run the eval on ultra6 after both trainings finish — the runbook (Task 9) lists the command.
-
-- [ ] **Step 3: Commit**
+- [ ] **Step 2: Commit**
 
 ```bash
 git add scripts/false_prompt_eval.py
 git commit -m "yoloa_v2_softhint: add scripts/false_prompt_eval.py (max-conf AUROC)"
 ```
 
+(The script is run on real checkpoints later — Task 8 runbook covers that.)
+
 ---
 
-## Task 9: Runbook for the two training runs
+## Task 8: Runbook for the two training runs
 
 **Files:**
 - Create: `docs_yoloa_v2/phase0_softhint_commands.md`
@@ -1178,7 +1081,7 @@ Preconditions:
 1. `conda activate ultra`
 2. `set_wandb_true`
 3. Branch `yoloa_v2_softhint` is checked out and clean
-4. The Phase 0 mask-augment runs from `yoloa_v2` are still running on other GPUs — coordinate device IDs to avoid conflict.
+4. The Phase 0 mask-augment runs from `yoloa_v2` may still be running on other GPUs — coordinate device IDs to avoid conflict (`gpuu6` to check).
 
 Each run:
 - **20 epochs** (fast iteration), batch 96, 3 GPUs DDP
@@ -1192,8 +1095,6 @@ Baseline reference (already trained on `yoloa_v2`):
 ---
 
 ## 1. Softhint main — `softhint_rect_pd50_v1`
-
-Choose 3 free GPUs (check `gpuu6` first). Example assumes 0,1,2 are free.
 
 ```
 nohuprun python -m ultralytics.cfg \
@@ -1233,13 +1134,13 @@ lsta
 lsddp
 ```
 
-Watch the `beta` value if logged. If not logged by default, sanity-check it offline at epoch 20:
+Inspect `beta` after epoch 20:
 
 ```
 python -c "
 import torch
 ckpt = torch.load('runs/yoloa_v2/26m_yoloav2_softhint_rect_pd50_v1/weights/best.pt', map_location='cpu', weights_only=False)
-m = ckpt['model'] if 'model' in ckpt else ckpt
+m = ckpt['model'] if isinstance(ckpt, dict) and 'model' in ckpt else ckpt
 print('beta:', m.heatmap_bias_fusion.beta.detach().tolist())
 "
 ```
@@ -1249,7 +1150,7 @@ print('beta:', m.heatmap_bias_fusion.beta.detach().tolist())
 After both runs finish:
 
 ```
-# False-prompt benchmark on each
+# False-prompt benchmark on each softhint run
 python scripts/false_prompt_eval.py \
     --weights runs/yoloa_v2/26m_yoloav2_softhint_rect_pd50_v1/weights/best.pt \
     --data    /home/louis/ultra_louis_work/datasets/AnomalyDataset/merge_data_v5_binary/data.yaml \
@@ -1260,19 +1161,21 @@ python scripts/false_prompt_eval.py \
     --data    /home/louis/ultra_louis_work/datasets/AnomalyDataset/merge_data_v5_binary/data.yaml \
     --out     runs/temp/false_prompt_softhint_seg_a1.json
 
-# Baseline for comparison (yoloa_v2 branch checkpoint — same script works because
-# the predictor still accepts set_external_mask_once)
-git -C ~/ultra_louis_work/ultralytics worktree add /tmp/yoloa_v2_wt yoloa_v2  # if you want side-by-side
-python scripts/false_prompt_eval.py \
+# Baseline for comparison: checkout yoloa_v2 in a worktree so the script picks up
+# that branch's HeatmapEncoder/HeatmapGuidedFusion code, then re-run.
+git -C ~/ultra_louis_work/ultralytics worktree add /tmp/yoloa_v2_wt yoloa_v2
+cd /tmp/yoloa_v2_wt && python scripts/false_prompt_eval.py \
     --weights runs/yoloa_v2/26m_yoloav2_v5_binary_cm20_rect_pd50_v1/weights/best.pt \
     --data    /home/louis/ultra_louis_work/datasets/AnomalyDataset/merge_data_v5_binary/data.yaml \
     --out     runs/temp/false_prompt_baseline.json
 ```
 
+(The baseline branch doesn't have `scripts/false_prompt_eval.py`. Copy it across with `cp ~/ultra_louis_work/ultralytics/scripts/false_prompt_eval.py /tmp/yoloa_v2_wt/scripts/` before running, or run the eval from a worktree of `yoloa_v2_softhint` against the baseline's `best.pt` — the eval script only depends on the `anomaly_v2` predictor's `set_external_mask_once`, which exists on both branches.)
+
 ## 5. Pass criteria
 
 - Softhint AUROC > baseline AUROC by ≥ 0.05
-- Softhint mAP50-95 (mask-on, e20) within 0.02 of baseline (mAP50-95 at baseline e20)
+- Softhint mAP50-95 (mask-on, e20) within 0.02 of baseline (mAP50-95 at baseline e20 — read from `runs/yoloa_v2/26m_yoloav2_v5_binary_cm20_rect_pd50_v1/results.csv` row 20)
 - `beta` final values are finite (printed at step 3)
 ````
 
@@ -1285,7 +1188,7 @@ git commit -m "yoloa_v2_softhint: add softhint phase0 runbook (20-epoch training
 
 ---
 
-## Task 10: Push branch, update project memory
+## Task 9: Push branch, update project memory
 
 **Files:** none (git + memory)
 
@@ -1299,7 +1202,7 @@ git push
 
 Append (or update if relevant section exists) a paragraph noting:
 - Branch `yoloa_v2_softhint` exists off `yoloa_v2`
-- Mechanism: `HeatmapBiasFusion` (1ch bounded additive bias on Detect cls logits only)
+- Mechanism: `HeatmapBiasFusion` (1ch bounded additive bias broadcast onto PAN P3/P4/P5 features; Detect head unchanged)
 - β = 3 per-scale learnable scalars, init 0 → vanilla on launch
 - Pending: launch `softhint_rect_pd50_v1` (20 epochs) on ultra6, eval via `scripts/false_prompt_eval.py`
 - Convert "Active 2026-06-02" line in `MEMORY.md` description if needed
@@ -1314,19 +1217,19 @@ Branch is ready. Next manual step (out of this plan's scope): launch the two tra
 
 ## Self-review checklist (run before handing off)
 
-The plan was self-reviewed against the spec:
+Plan was self-reviewed against the spec:
 
-- **Spec §1 (problem)** — addressed by Task 5 (rewire) + Task 6 (YAML).
-- **Spec §2 (goal: soft hint, bounded, cls-only, CNN, SegBranch-compatible)** — Task 2 module enforces; Task 4 routes bias to cls only; Task 5 keeps SegBranch path; Task 7 sanity asserts cls-only impact.
+- **Spec §1 (problem)** — addressed by Task 4 (rewire) + Task 5 (YAML).
+- **Spec §2 (goal: bounded + low-bandwidth; reg-can-be-affected explicit)** — Task 2 module enforces bounded; Task 4 broadcasts 1-ch bias to C channels (low bandwidth); reg path explicitly acknowledged as affected in the docstring + commit message.
 - **Spec §3.1 (HeatmapBiasFusion: 1→8→1 conv, 3 beta, init 0)** — Task 2.
-- **Spec §3.2 (injection point)** — Task 4 (forward_head buffer).
-- **Spec §3.3 (mask resolution unchanged)** — Task 5 keeps `_resolve_fusion_mask` and `_augment_mask` intact.
+- **Spec §3.2 (injection: P + bias on PAN, Detect unchanged)** — Task 4 step 3.
+- **Spec §3.3 (mask resolution unchanged)** — Task 4 keeps `_resolve_fusion_mask` and `_augment_mask` intact.
 - **Spec §3.4 (delete HeatmapEncoder / HeatmapGuidedFusion only on softhint branch)** — Task 2 + Task 3.
-- **Spec §4 (training: 20 epochs, hparams match rect_pd50_v1)** — Task 9 runbook.
-- **Spec §4 sanity gate** — Task 7.
-- **Spec §5 (two comparison runs)** — Task 6 YAMLs + Task 9 runbook.
-- **Spec §6 (false-prompt benchmark)** — Task 8.
-- **Spec §7 (out of scope)** — respected; no Plan B / Plan C / SegBranch changes / augment stacking touched.
-- **Spec §8 file touch list** — all eight items covered by Tasks 2–9.
+- **Spec §4 (training: 20 epochs, hparams match rect_pd50_v1)** — Task 8 runbook.
+- **Spec §4 sanity gate** — Task 6.
+- **Spec §5 (two comparison runs)** — Task 5 YAMLs + Task 8 runbook.
+- **Spec §6 (false-prompt benchmark)** — Task 7.
+- **Spec §7 (out of scope)** — respected; no Plan B (backbone-mid) / Plan C (cross-attn) / SegBranch changes / augment stacking touched.
+- **Spec §8 file touch list** — all eight items covered by Tasks 2–8. `head.py` is explicitly NOT in the list.
 
-No placeholders. Types consistent: `mask_bias` is `list[Tensor]` throughout; `_mask_bias_buf` is the buffer name everywhere (Task 4 + Task 5).
+No placeholders. Types consistent: `bias` is a `Tensor` of shape `(B, 1, H, W)` everywhere; `HeatmapBiasFusion.forward(mask, scale_idx)` signature consistent across all references.

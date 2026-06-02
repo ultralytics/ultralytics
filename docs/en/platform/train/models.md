@@ -273,7 +273,6 @@ Some export formats have architecture or task restrictions:
 | ---------------- | ------------------------------------------------------- |
 | **IMX500**       | Available only for `YOLOv8n` and `YOLO11n`              |
 | **Axelera**      | Detect models only                                      |
-| **PaddlePaddle** | Not available for YOLO26 detect/segment/pose/OBB models |
 
 !!! note "Additional Export Rules"
 
@@ -381,7 +380,7 @@ Currently, model comparison is within projects. To compare across projects:
 
 ### What's the maximum model size?
 
-There's no strict limit, but very large models (>2GB) may have longer upload and processing times.
+Uploaded `.pt` model files are limited to 1 GB. Larger models upload and process more slowly.
 
 ### Can I fine-tune pretrained models?
 

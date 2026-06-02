@@ -32,9 +32,11 @@ Python:
     from ultralytics import YOLO
     model = YOLO('yolo26n.pt')
     results = model.export(format='onnx')
+    results = model.export(format='onnx', int8=True, data='coco8.yaml')  # INT8 ONNX
 
 CLI:
     $ yolo mode=export model=yolo26n.pt format=onnx
+    $ yolo mode=export model=yolo26n.pt format=onnx int8=True data=coco8.yaml
 
 Inference:
     $ yolo predict model=yolo26n.pt                 # PyTorch
@@ -143,7 +145,15 @@ def export_formats():
             ["batch", "optimize", "half", "nms", "dynamic"],
             "base",
         ],
-        ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify", "nms"], "base"],
+        [
+            "ONNX",
+            "onnx",
+            ".onnx",
+            True,
+            True,
+            ["batch", "data", "dynamic", "half", "int8", "opset", "simplify", "nms", "fraction"],
+            "base",
+        ],
         [
             "OpenVINO",
             "openvino",
@@ -264,7 +274,7 @@ EXPORT_ENVS = {
         "python": "3.13",
         "extras": ["export-base"],
         "torch": None,
-        "requirements": ["MNN>=2.9.6"],
+        "requirements": ["MNN>=2.9.6", "aliyun-log-python-sdk", "protobuf<6.0.0,>=3.20.3"],
         "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
         "env": {},
         "smoke": ["yolo export format=mnn model=yolo11n.pt imgsz=32"],
@@ -309,7 +319,7 @@ EXPORT_ENVS = {
         "requirements": ["rknn-toolkit2>=2.3.2", "onnx>=1.16.1,<1.19.0", "setuptools<82"],
         "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
         "env": {},
-        "smoke": ["yolo export format=rknn model=yolo11n.pt imgsz=32"],
+        "smoke": ["yolo export format=rknn model=yolo26n.pt imgsz=32 half=True"],
     },
     "isolated-axelera": {
         "python": "3.12",
@@ -431,7 +441,7 @@ class Exporter:
         >>> exporter(model="yolo26n.pt")  # exports to yolo26n.onnx
 
         Export with specific arguments
-        >>> args = {"format": "onnx", "dynamic": True, "half": True}
+        >>> args = {"format": "onnx", "dynamic": True, "int8": True, "data": "coco8.yaml"}
         >>> exporter = Exporter(overrides=args)
         >>> exporter(model="yolo26n.pt")
     """
@@ -821,11 +831,13 @@ class Exporter:
     def export_onnx(self, prefix=colorstr("ONNX:")):
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.12.0,<2.0.0"]
-        if self.args.simplify:
+        if self.args.simplify or (self.args.format == "onnx" and self.args.int8):
             # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
             ort = "onnxruntime-gpu" if "cuda" in self.device.type else "onnxruntime"
-            requirements += ["onnxslim>=0.1.82", (ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")]
+            requirements += [(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")]
+        if self.args.simplify:
+            requirements += ["onnxslim>=0.1.82"]
         check_requirements(requirements)
         import onnx
 
@@ -898,6 +910,19 @@ class Exporter:
                 LOGGER.warning(f"{prefix} FP16 conversion failure: {e}")
 
         onnx.save(model_onnx, f)
+        if self.args.int8 and self.args.format == "onnx":
+            from ultralytics.utils.export.onnx import onnx_int8_quantize
+
+            source = Path(f)
+            f_int8 = str(source.with_name(f"{source.stem}_int8{source.suffix}"))
+            f = onnx_int8_quantize(
+                source,
+                f_int8,
+                self.get_int8_calibration_dataloader(prefix),
+                self._transform_fn,
+                prefix=prefix,
+            )
+            source.unlink(missing_ok=True)
         return f
 
     @try_export

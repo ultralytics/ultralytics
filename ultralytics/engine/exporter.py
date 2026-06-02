@@ -672,6 +672,8 @@ class Exporter:
             elif isinstance(m, C2f) and not is_tf_format:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
+            if hasattr(m, "convert_to_deploy"):
+                m.convert_to_deploy()
         self.deim_fp32_pinning = fmt == "engine" and self.args.half and any(
             isinstance(m, DeimDecoder) for m in model.modules()
         )

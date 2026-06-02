@@ -53,8 +53,7 @@ from ultralytics.nn.modules import (
     GhostConv,
     HGBlock,
     HGStem,
-    HeatmapEncoder,
-    HeatmapGuidedFusion,
+    HeatmapBiasFusion,
     ImagePoolingAttn,
     Index,
     LRPCHead,
@@ -520,28 +519,29 @@ class DetectionModel(BaseModel):
 
 
 class YOLOAnomalyV2Model(DetectionModel):
-    """YOLO Anomaly v2 — detection + heatmap-guided feature fusion.
+    """YOLO Anomaly v2 — detection + soft-hint heatmap fusion (yoloa_v2_softhint branch).
 
-    Extends DetectionModel with three additions, all OUTSIDE the parsed Sequential:
-      - ``mask_renderer``: rasterizes bboxes (from labels) into a 1-channel mask.
-      - ``heatmap_encoders``: 3 independent 1->C encoders (one per PAN scale).
-      - ``heatmap_fusions``: per-scale ``P_out = P * 2 * sigmoid(AF)`` fusion.
+    Extends DetectionModel with two anomaly-side modules attached OUTSIDE the parsed
+    Sequential:
+      - ``mask_renderer``: rasterizes GT bboxes into a 1-channel mask.
+      - ``heatmap_bias_fusion``: HeatmapBiasFusion. Produces a bounded per-pixel bias
+        added (broadcast over channels) to each PAN P3/P4/P5 feature before the Detect
+        head. Both reg and cls branches see the bias; this is acceptable because the
+        bias is bounded and additive, unlike the previous multiplicative amplifier.
 
-    The fusion is injected between the PAN outputs and the Detect head: PAN
-    outputs (gathered from indices ``model[-1].f``) are multiplicatively
-    modulated by the encoded mask before being fed to Detect.
-
-    Mask dropout (Phase 0 anti-shortcut, see docs_yoloa_v2/design.md §3.4):
-      During training, with probability ``p_drop`` per sample, the AnomalyFeat
-      for that sample is zeroed out. ``2*sigmoid(0) = 1.0`` -> the fusion is an
-      exact passthrough for dropped samples, so the model is forced to also
-      perform without a mask.
+    Mask dropout (anti-shortcut, see design.md §3.4):
+      During training, with probability ``p_drop`` per sample, the bias for that
+      sample is zeroed -> exact passthrough -> model is forced to also perform
+      without a mask.
 
     Mask source:
       - Training: rendered from ``batch["bboxes"]`` (set by ``loss()``).
       - Validation B-on: caller sets bboxes via ``set_mask_input()``.
-      - Validation B-off / pure inference: no bboxes -> AF=0 everywhere ->
-        exact passthrough (equivalent to vanilla YOLO).
+      - Validation B-off / pure inference: no bboxes -> bias is None -> PAN features
+        flow through unchanged (vanilla YOLO).
+      - External (e.g. SegBranch, user prompt): ``set_external_mask_once``.
+
+    Spec: docs_yoloa_v2/specs/2026-06-02-softhint-fusion-design.md.
     """
 
     def __init__(
@@ -607,8 +607,10 @@ class YOLOAnomalyV2Model(DetectionModel):
 
         # Anomaly-side modules (live outside self.model so they are not in the Sequential)
         self.mask_renderer = BboxMaskRenderer(mask_size=mask_size, mode=mask_mode, sigma_factor=sigma_factor)
-        self.heatmap_encoders = torch.nn.ModuleList([HeatmapEncoder(c_out=c) for c in pan_channels])
-        self.heatmap_fusions = torch.nn.ModuleList([HeatmapGuidedFusion() for _ in pan_channels])
+        # Soft-hint fusion: bounded per-pixel bias added (broadcast) to PAN features.
+        # beta init 0 -> training starts as vanilla YOLO; the model learns to lean on
+        # the heatmap only if it helps the detection loss.
+        self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=detect.nl)
 
         # SegBranch consumes the P3/P4 PAN outputs (first two of pan_from_indices).
         self.mask_size = mask_size
@@ -801,12 +803,11 @@ class YOLOAnomalyV2Model(DetectionModel):
         last = self.model[-1]
         for m in self.model:
             if m is last:
-                # Apply fusion to the PAN inputs before Detect.
-                # ``m.f`` is a list of indices into y (the PAN P3/P4/P5 outputs).
+                # Apply soft-hint fusion to the PAN inputs before Detect.
+                # m.f is a list of indices into y (the PAN P3/P4/P5 outputs).
                 pan_inputs = [y[j] for j in m.f]
-                # SegBranch predicts the heatmap from P3/P4. Always run when present so the
-                # seg loss can be computed (stashed for loss()) and to drive prior-free inference.
-                # getattr guards the stride probe in super().__init__(), which runs before our attrs exist.
+                # SegBranch (optional) predicts the heatmap from P3/P4. Run unconditionally when present
+                # so the seg loss can be computed by loss().
                 seg_branch = getattr(self, "seg_branch", None)
                 seg_logits_buf = getattr(self, "_seg_logits_buf", None)
                 if seg_branch is not None:
@@ -815,7 +816,6 @@ class YOLOAnomalyV2Model(DetectionModel):
                 mask = self._resolve_fusion_mask(
                     bboxes, batch_idx, external_mask, mask_disabled, seg_logits_buf, batch_size, device
                 )
-                # Training-only robustness augmentation on the rendered GT prior.
                 if (
                     self.training
                     and mask is not None
@@ -827,21 +827,21 @@ class YOLOAnomalyV2Model(DetectionModel):
                 fused = []
                 for i, p in enumerate(pan_inputs):
                     if mask is None:
-                        # Pure passthrough: skip encoder entirely.
+                        # Pure passthrough: skip fusion entirely.
                         fused.append(p)
                         continue
-                    # Resize mask to this scale.
                     target_h, target_w = p.shape[2], p.shape[3]
                     if mask.shape[2] != target_h or mask.shape[3] != target_w:
-                        mask_at_scale = torch.nn.functional.interpolate(
+                        m_scale = torch.nn.functional.interpolate(
                             mask, size=(target_h, target_w), mode="bilinear", align_corners=False
                         )
                     else:
-                        mask_at_scale = mask
-                    af = self.heatmap_encoders[i](mask_at_scale)
-                    # Per-sample keep mask: AF *= keep -> dropped samples get AF=0 -> passthrough.
-                    af = af * keep.to(af.dtype).view(-1, 1, 1, 1)
-                    fused.append(self.heatmap_fusions[i](p, af))
+                        m_scale = mask
+                    bias = self.heatmap_bias_fusion(m_scale, i)  # (B, 1, H, W) in [-beta_i, +beta_i]
+                    # Per-sample keep mask (mask dropout): dropped samples get zero bias.
+                    bias = bias * keep.to(bias.dtype).view(-1, 1, 1, 1)
+                    # Broadcast 1-channel bias over the C channels of the PAN feature.
+                    fused.append(p + bias)
                 x = m(fused)
             else:
                 if m.f != -1:

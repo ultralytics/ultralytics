@@ -787,7 +787,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         bboxes, batch_idx, external_mask, mask_disabled = self._consume_mask_input()
 
         # Per-sample keep mask for mask dropout (anti-shortcut). Only meaningful when a
-        # rendered/blended mask is active; keep[b]=0 zeros AF -> passthrough (2*sigmoid(0)=1).
+        # rendered/blended mask is active; keep[b]=0 zeros the per-sample bias -> passthrough.
         # getattr guards the stride probe in super().__init__(), which runs before our attrs exist.
         p_drop = getattr(self, "p_drop", 0.0)
         keep = torch.ones(batch_size, device=device)

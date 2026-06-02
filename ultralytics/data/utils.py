@@ -238,8 +238,13 @@ def cache_images_to_ram(n: int, probe, decode, prefix: str = ""):
                 pbar.desc = f"{prefix}Probing image sizes"
             pbar.close()
 
-        cache = torch.empty(0, dtype=torch.uint8)
-        cache.set_(torch.UntypedStorage._new_shared(pos, device="cpu"))  # allocate in shared memory, no copy
+        # Allocate the buffer directly in shared memory (no populate-then-copy spike). UntypedStorage is torch>=1.13;
+        # on older torch (supported floor 1.8) fall back to share_memory_(), which is correct but copies once (~2x peak).
+        if hasattr(torch, "UntypedStorage"):
+            cache = torch.empty(0, dtype=torch.uint8)
+            cache.set_(torch.UntypedStorage._new_shared(pos, device="cpu"))
+        else:
+            cache = torch.empty(pos, dtype=torch.uint8).share_memory_()
         with ThreadPool(NUM_THREADS) as pool:
             pbar = TQDM(pool.imap(decode, range(n)), total=n, disable=LOCAL_RANK > 0)
             for i, im in pbar:

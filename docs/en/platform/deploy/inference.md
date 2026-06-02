@@ -307,6 +307,8 @@ Response format varies by task:
     }
     ```
 
+    The `visible` array contains per-keypoint confidence scores (0-1 floats), not COCO-style 0-2 visibility flags.
+
 === "Classification"
 
     ```json

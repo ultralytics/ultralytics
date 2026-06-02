@@ -380,7 +380,7 @@ Currently, model comparison is within projects. To compare across projects:
 
 ### What's the maximum model size?
 
-Uploaded `.pt` model files are limited to 1 GB. Larger models upload and process more slowly.
+Uploaded `.pt` model files are limited to 1 GB, and models near that limit may take longer to upload and process.
 
 ### Can I fine-tune pretrained models?
 

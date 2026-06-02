@@ -995,10 +995,10 @@ class ClassificationDataset:
         self.img_cache = None
         self.img_offsets = None
         self.img_shapes = None
-        # safety_margin=1.0 budgets ~2x the cache estimate: headroom for the 30-image sampling variance plus the
-        # transient decode + shared-memory copy during the two-pass build (cache holds originals, so peak ~1.1x;
-        # the extra margin is conservative since cls images are full-resolution and /dev/shm-bound on Linux).
-        if self.cache_ram and not self.check_cache_ram(safety_margin=1.0):
+        # safety_margin=0.5 budgets 1.5x the cache estimate: the shared buffer is allocated directly in shared
+        # memory (no populate-then-copy spike), so the build's only transient is the bounded decode-ahead of the
+        # two-pass stream (cache holds originals; measured ~1.0-1.4x, approaching 1.0x as the dataset grows).
+        if self.cache_ram and not self.check_cache_ram(safety_margin=0.5):
             self.cache_ram = False
         if self.cache_ram:
             self.cache_images()
@@ -1119,8 +1119,11 @@ class ClassificationDataset:
                 pos += h * w * c
             total = pos
 
-            # Pass 2: decode and stream each image into the destination buffer.
-            cache = torch.empty(total, dtype=torch.uint8)
+            # Pass 2: allocate the buffer directly in shared memory, then stream each image into its slice.
+            # Populating a private buffer and calling share_memory_() afterwards would memcpy the whole cache
+            # into a second shared allocation, transiently doubling peak RAM during the build.
+            cache = torch.empty(0, dtype=torch.uint8)
+            cache.set_(torch.UntypedStorage._new_shared(total, device="cpu"))
             with ThreadPool(NUM_THREADS) as pool:
                 pbar = TQDM(pool.imap(load, range(n)), total=n, disable=LOCAL_RANK > 0)
                 for i, im in pbar:
@@ -1128,8 +1131,6 @@ class ClassificationDataset:
                     cache[offsets[i] : offsets[i] + sz] = torch.from_numpy(im.reshape(-1))
                     pbar.desc = f"{self.prefix}Caching images ({(offsets[i] + sz) / gb:.1f}GB RAM)"
                 pbar.close()
-
-            cache.share_memory_()
         except FileNotFoundError:
             raise  # surface a corrupt/missing image clearly instead of swallowing it as a cache fallback
         except (MemoryError, OSError, RuntimeError) as e:

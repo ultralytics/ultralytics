@@ -284,7 +284,7 @@ Before training starts, the platform estimates total cost by:
 
 | Factor               | Impact                                                                                                |
 | -------------------- | ----------------------------------------------------------------------------------------------------- |
-| **Dataset Size**     | More images = longer training time (baseline: ~2.8s compute per 1000 images on RTX 4090)              |
+| **Dataset Size**     | More images = longer training time (compute scales roughly linearly with dataset size)                |
 | **Model Size**       | Larger models (m, l, x) train slower than (n, s)                                                      |
 | **Number of Epochs** | Direct multiplier on training time                                                                    |
 | **Image Size**       | Larger imgsz increases computation: 320px=0.25x, 640px=1.0x (baseline), 1280px=4.0x                   |
@@ -300,9 +300,9 @@ Before training starts, the platform estimates total cost by:
 
 | Scenario                         | GPU          | Estimated Cost |
 | -------------------------------- | ------------ | -------------- |
-| 500 images, YOLO26n, 50 epochs   | RTX 4090     | ~$0.50         |
-| 1000 images, YOLO26n, 100 epochs | RTX PRO 6000 | ~$5            |
-| 5000 images, YOLO26s, 100 epochs | H100 SXM     | ~$23           |
+| 500 images, YOLO26n, 50 epochs   | RTX 4090     | ~$0.03         |
+| 1000 images, YOLO26n, 100 epochs | RTX PRO 6000 | ~$0.27         |
+| 5000 images, YOLO26s, 100 epochs | H100 SXM     | ~$1.75         |
 
 ### Billing Flow
 
@@ -409,9 +409,9 @@ Typical times (1000 images, 100 epochs):
 
 | Model   | RTX PRO 6000 | A100 SXM |
 | ------- | ------------ | -------- |
-| YOLO26n | ~20 min      | ~15 min  |
-| YOLO26m | ~40 min      | ~30 min  |
-| YOLO26x | ~80 min      | ~60 min  |
+| YOLO26n | ~8 min       | ~7 min   |
+| YOLO26m | ~16 min      | ~13 min  |
+| YOLO26x | ~27 min      | ~22 min  |
 
 !!! note "Approximate Times"
 
@@ -516,7 +516,7 @@ Yes, the **Train** button on dataset pages opens the training dialog with the da
     | `freeze`      | int   | null    | 0-100   | Number of layers to freeze           |
     | `single_cls`  | bool  | False   | -       | Treat all classes as one class       |
     | `rect`        | bool  | False   | -       | Rectangular training                 |
-    | `multi_scale` | float | 0.0     | 0.0-1.0 | Multi-scale training range           |
+    | `multi_scale` | float | 0.0     | 0.0-0.9 | Multi-scale training range           |
     | `val`         | bool  | True    | -       | Run validation during training       |
     | `resume`      | bool  | False   | -       | Resume training from checkpoint      |
 

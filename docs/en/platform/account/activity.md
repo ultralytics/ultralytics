@@ -52,22 +52,22 @@ The Platform tracks the following resource types and actions:
 
 Each event includes one of the following action types:
 
-| Action        | Description                                  |
-| ------------- | -------------------------------------------- |
-| **created**   | Resource was created                         |
-| **updated**   | Resource was modified                        |
-| **deleted**   | Resource was permanently deleted             |
-| **trashed**   | Resource was moved to trash                  |
-| **restored**  | Resource was restored from trash             |
-| **started**   | Training or export job was started           |
-| **completed** | Training or export job finished successfully |
-| **failed**    | Training or export job failed                |
-| **cancelled** | Training or export job was cancelled         |
-| **uploaded**  | Data was uploaded (images, model weights)    |
-| **shared**    | Resource visibility changed to public        |
-| **unshared**  | Resource visibility changed to private       |
-| **exported**  | Model was exported to a deployment format    |
-| **cloned**    | Resource was cloned to another location      |
+| Action        | Description                                          |
+| ------------- | ---------------------------------------------------- |
+| **created**   | Resource was created                                 |
+| **updated**   | Resource was modified                                |
+| **deleted**   | Resource was permanently deleted                     |
+| **trashed**   | Resource was moved to trash                          |
+| **restored**  | Resource was restored from trash                     |
+| **started**   | Training or export job was started                   |
+| **completed** | Training or export job finished successfully         |
+| **failed**    | Training or export job failed                        |
+| **cancelled** | Training or export job was cancelled                 |
+| **uploaded**  | Data was uploaded (images, model weights)            |
+| **shared**    | Resource visibility changed to public                |
+| **unshared**  | Resource visibility changed to private               |
+| **exported**  | Model was exported to a deployment format            |
+| **cloned**    | Resource was cloned to another location              |
 | **analyzed**  | Dataset analysis (embeddings/clustering) was started |
 
 ## Inbox and Archive

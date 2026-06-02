@@ -269,10 +269,10 @@ Export jobs progress through the following statuses:
 
 Some export formats have architecture or task restrictions:
 
-| Format           | Restriction                                             |
-| ---------------- | ------------------------------------------------------- |
-| **IMX500**       | Available only for `YOLOv8n` and `YOLO11n`              |
-| **Axelera**      | Detect models only                                      |
+| Format      | Restriction                                |
+| ----------- | ------------------------------------------ |
+| **IMX500**  | Available only for `YOLOv8n` and `YOLO11n` |
+| **Axelera** | Detect models only                         |
 
 !!! note "Additional Export Rules"
 

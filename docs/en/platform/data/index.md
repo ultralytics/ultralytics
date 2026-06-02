@@ -44,12 +44,12 @@ graph LR
     style D fill:#9C27B0,color:#fff
 ```
 
-| Stage        | Description                                                                                           |
-| ------------ | ----------------------------------------------------------------------------------------------------- |
-| **Upload**   | Import images, videos, or archives with automatic processing                                          |
+| Stage        | Description                                                                                                     |
+| ------------ | --------------------------------------------------------------------------------------------------------------- |
+| **Upload**   | Import images, videos, or archives with automatic processing                                                    |
 | **Annotate** | Label data with manual tools for all 6 task types, or use SAM annotation for detect, segment, semantic, and OBB |
-| **Analyze**  | View class distributions, spatial heatmaps, and dimension statistics                                  |
-| **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use |
+| **Analyze**  | View class distributions, spatial heatmaps, and dimension statistics                                            |
+| **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use           |
 
 ## Supported Tasks
 

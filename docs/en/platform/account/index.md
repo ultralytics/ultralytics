@@ -49,15 +49,15 @@ The Account section helps you:
 
 Account management is organized into seven tabs within `Settings` (in order):
 
-| Tab            | Description                                                             |
-| -------------- | ----------------------------------------------------------------------- |
-| `Profile`      | Display name, bio, company, use case, emails, social links, data region |
-| `API Keys`     | Create and manage API keys for remote training and programmatic access  |
-| `Plans`        | Compare Free, Pro, and Enterprise plans                                 |
-| `Billing`      | Credit balance, top-up, payment methods, transactions                   |
-| `Teams`        | Member list, roles, invites, seat allocation                            |
+| Tab            | Description                                                                            |
+| -------------- | -------------------------------------------------------------------------------------- |
+| `Profile`      | Display name, bio, company, use case, emails, social links, data region                |
+| `API Keys`     | Create and manage API keys for remote training and programmatic access                 |
+| `Plans`        | Compare Free, Pro, and Enterprise plans                                                |
+| `Billing`      | Credit balance, top-up, payment methods, transactions                                  |
+| `Teams`        | Member list, roles, invites, seat allocation                                           |
 | `Integrations` | Import datasets from Ultralytics HUB and Roboflow; Weights & Biases sync (coming soon) |
-| `Trash`        | Soft-deleted projects, datasets, and models (30-day recovery)           |
+| `Trash`        | Soft-deleted projects, datasets, and models (30-day recovery)                          |
 
 ## Security
 

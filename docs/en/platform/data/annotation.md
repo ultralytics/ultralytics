@@ -122,8 +122,8 @@ graph LR
 
 The editor provides two annotation modes, selectable from the toolbar:
 
-| Mode       | Description                                                       | Shortcut |
-| ---------- | ----------------------------------------------------------------- | -------- |
+| Mode       | Description                                                                 | Shortcut |
+| ---------- | --------------------------------------------------------------------------- | -------- |
 | **Manual** | Draw annotations with task-specific tools (all 6 task types)                | `V`      |
 | **Smart**  | SAM or YOLO model-assisted annotation (detect, segment, semantic, OBB only) | `S`      |
 

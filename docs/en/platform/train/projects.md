@@ -158,11 +158,11 @@ Compare model performance using the charts dashboard:
 
 Available chart groups:
 
-| Group             | Charts                                         |
-| ----------------- | ---------------------------------------------- |
-| **Metrics**       | mAP50, mAP50-95, precision, recall             |
+| Group             | Charts                                                                                   |
+| ----------------- | ---------------------------------------------------------------------------------------- |
+| **Metrics**       | mAP50, mAP50-95, precision, recall                                                       |
 | **Loss**          | train/box_loss, train/cls_loss, train/dfl_loss, val/box_loss, val/cls_loss, val/dfl_loss |
-| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                         |
+| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                                                                   |
 
 !!! tip "Interactive Charts"
 

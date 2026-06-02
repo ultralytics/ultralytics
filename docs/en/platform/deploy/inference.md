@@ -291,6 +291,19 @@ Response format varies by task:
     }
     ```
 
+=== "Semantic"
+
+    ```json
+    {
+      "results": [
+        {"class": 0, "name": "road", "pixel_ratio": 0.42},
+        {"class": 1, "name": "building", "pixel_ratio": 0.23}
+      ]
+    }
+    ```
+
+    Semantic segmentation returns per-class pixel coverage (`pixel_ratio`, the fraction of image pixels assigned to each class) instead of per-object boxes.
+
 === "Pose"
 
     ```json

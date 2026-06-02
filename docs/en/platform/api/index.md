@@ -2055,7 +2055,7 @@ yolo check
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.35**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.60**. Lower versions will NOT work with Platform.
 
 ### Authentication
 

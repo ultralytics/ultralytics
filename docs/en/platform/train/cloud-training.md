@@ -198,7 +198,7 @@ Train on your own hardware while streaming metrics to the platform.
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.35**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.60**. Lower versions will NOT work with Platform.
 
     ```bash
     pip install -U ultralytics

@@ -127,7 +127,7 @@ You can train models either through the web UI (cloud training) or from your own
 
     ```bash
     # Install ultralytics
-    pip install "ultralytics>=8.4.35"
+    pip install "ultralytics>=8.4.60"
 
     # Set your API key
     export ULTRALYTICS_API_KEY="YOUR_API_KEY"
@@ -296,10 +296,10 @@ You can train models on your own hardware and stream real-time metrics to the pl
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.35**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.60**. Lower versions will NOT work with Platform.
 
     ```bash
-    pip install "ultralytics>=8.4.35"
+    pip install "ultralytics>=8.4.60"
     ```
 
 === "CLI"

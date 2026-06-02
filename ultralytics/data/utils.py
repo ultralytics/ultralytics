@@ -147,9 +147,9 @@ def check_cache_ram(
 ) -> bool:
     """Check whether there is enough available RAM to cache the given images.
 
-    Shared by ``BaseDataset`` (detection/segment/pose/obb) and ``ClassificationDataset`` — the only difference is
-    that detection caches resized images (``scale=True`` estimates post-resize bytes) while classification caches
-    originals (``scale=False`` uses raw decoded bytes).
+    Shared by ``BaseDataset`` (detection/segment/pose/obb) and ``ClassificationDataset`` — the only difference is that
+    detection caches resized images (``scale=True`` estimates post-resize bytes) while classification caches originals
+    (``scale=False`` uses raw decoded bytes).
 
     Args:
         files (list[str]): Image file paths to sample from.
@@ -194,13 +194,13 @@ def check_cache_ram(
 def cache_images_to_ram(n: int, probe, decode, prefix: str = ""):
     """Build one shared-memory ``torch.uint8`` buffer holding ``n`` decoded images, in two passes.
 
-    The buffer is allocated directly in POSIX shared memory before DataLoader workers fork, so every worker maps
-    the same region instead of duplicating the cache per worker — the root cause of the ``cache='ram'`` +
-    ``num_workers>0`` leak. Allocating shared up front (rather than populating a private buffer and calling
-    ``share_memory_()`` afterwards) also avoids a transient ~2x peak: ``share_memory_()`` copies the whole
-    populated cache into a second shared allocation. Two passes keep peak memory at ~1x the cache: pass 1 records
-    each image's byte size, the shared buffer is allocated, then pass 2 streams each decoded image into its slice.
-    Shared by ``BaseDataset`` and ``ClassificationDataset`` (different ``probe``/``decode`` callables).
+    The buffer is allocated directly in POSIX shared memory before DataLoader workers fork, so every worker maps the
+    same region instead of duplicating the cache per worker — the root cause of the ``cache='ram'`` + ``num_workers>0``
+    leak. Allocating shared up front (rather than populating a private buffer and calling ``share_memory_()``
+    afterwards) also avoids a transient ~2x peak: ``share_memory_()`` copies the whole populated cache into a second
+    shared allocation. Two passes keep peak memory at ~1x the cache: pass 1 records each image's byte size, the shared
+    buffer is allocated, then pass 2 streams each decoded image into its slice. Shared by ``BaseDataset`` and
+    ``ClassificationDataset`` (different ``probe``/``decode`` callables).
 
     Args:
         n (int): Number of images.

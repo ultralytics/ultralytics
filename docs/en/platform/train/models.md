@@ -30,7 +30,7 @@ Supported model formats:
 
 After upload, the platform parses model metadata:
 
-- Task type ([detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [classify](../../tasks/classify.md))
+- Task type ([detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [semantic](../../tasks/semantic.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [classify](../../tasks/classify.md))
 - Architecture (YOLO26n, YOLO26s, etc.)
 - Class names and count
 - Input size and parameters

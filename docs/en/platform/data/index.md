@@ -47,18 +47,19 @@ graph LR
 | Stage        | Description                                                                                           |
 | ------------ | ----------------------------------------------------------------------------------------------------- |
 | **Upload**   | Import images, videos, or archives with automatic processing                                          |
-| **Annotate** | Label data with manual tools for all 5 task types, or use SAM annotation for detect, segment, and OBB |
+| **Annotate** | Label data with manual tools for all 6 task types, or use SAM annotation for detect, segment, semantic, and OBB |
 | **Analyze**  | View class distributions, spatial heatmaps, and dimension statistics                                  |
 | **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use |
 
 ## Supported Tasks
 
-Ultralytics Platform supports all 5 YOLO task types:
+Ultralytics Platform supports all 6 YOLO task types:
 
 | Task                                             | Description                                                     | Annotation Tool   |
 | ------------------------------------------------ | --------------------------------------------------------------- | ----------------- |
 | **[Detect](../../datasets/detect/index.md)**     | Object detection with bounding boxes                            | Rectangle tool    |
 | **[Segment](../../datasets/segment/index.md)**   | Instance segmentation with pixel masks                          | Polygon tool      |
+| **[Semantic](../../datasets/semantic/index.md)** | Semantic segmentation with per-class pixel regions              | Polygon tool      |
 | **[Pose](../../datasets/pose/index.md)**         | Keypoint estimation with built-in and custom skeleton templates | Keypoint tool     |
 | **[OBB](../../datasets/obb/index.md)**           | Oriented bounding boxes for rotated objects                     | Oriented box tool |
 | **[Classify](../../datasets/classify/index.md)** | Image-level classification                                      | Class selector    |

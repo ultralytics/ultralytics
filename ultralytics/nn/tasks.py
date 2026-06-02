@@ -563,6 +563,12 @@ class YOLOAnomalyV2Model(DetectionModel):
         mask_mode = str(v2_cfg.get("mask_mode", "rect") if mask_mode is None else mask_mode)
         sigma_factor = float(v2_cfg.get("sigma_factor", 0.25) if sigma_factor is None else sigma_factor)
         p_drop = float(v2_cfg.get("p_drop", 0.5) if p_drop is None else p_drop)
+        # Training-only mask augmentation for prior robustness (Phase 0):
+        #   mask_shuffle_p -- per-sample prob of swapping in another sample's mask (wrong-location
+        #                     prior; GT boxes unchanged) so the model treats the prior as a soft hint.
+        #   mask_noise_std -- std of additive Gaussian noise on the [0, 1] mask (imperfect heatmap).
+        mask_shuffle_p = float(v2_cfg.get("mask_shuffle_p", 0.0))
+        mask_noise_std = float(v2_cfg.get("mask_noise_std", 0.0))
         # v2.2 SegBranch: when enabled, a seg head predicts the heatmap so inference
         # needs no external prior. ``seg_alpha`` blends GT vs predicted mask (curriculum).
         use_seg = bool(v2_cfg.get("seg_branch", False))
@@ -616,6 +622,8 @@ class YOLOAnomalyV2Model(DetectionModel):
         self._seg_logits_buf = None  # stashed by _predict_once, consumed by loss()
 
         self.p_drop = float(p_drop)
+        self.mask_shuffle_p = float(mask_shuffle_p)
+        self.mask_noise_std = float(mask_noise_std)
 
         # Transient bbox input for the next forward pass. Reset after each forward.
         self._mask_bboxes_buf = None  # (N, 4) normalized [cx, cy, w, h]
@@ -710,6 +718,24 @@ class YOLOAnomalyV2Model(DetectionModel):
         # No GT and not disabled -> prior-free inference via the predicted heatmap.
         return seg_pred
 
+    def _augment_mask(self, mask):
+        """Training-only mask augmentation for prior robustness.
+
+        Shuffle replaces selected samples' mask with another sample's (wrong-location prior;
+        GT boxes are unchanged), then additive Gaussian noise simulates an imperfect heatmap.
+        """
+        b = mask.shape[0]
+        if self.mask_shuffle_p > 0.0 and b > 1:
+            swap = torch.rand(b, device=mask.device) < self.mask_shuffle_p
+            if swap.any():
+                # offset in [1, b-1] -> perm[i] != i, so every swapped sample gets a different mask
+                offset = torch.randint(1, b, (b,), device=mask.device)
+                perm = (torch.arange(b, device=mask.device) + offset) % b
+                mask = torch.where(swap.view(-1, 1, 1, 1), mask[perm], mask)
+        if self.mask_noise_std > 0.0:
+            mask = (mask + torch.randn_like(mask) * self.mask_noise_std).clamp_(0.0, 1.0)
+        return mask
+
     # ------------------------------------------------------------------
     # Forward
     # ------------------------------------------------------------------
@@ -789,6 +815,15 @@ class YOLOAnomalyV2Model(DetectionModel):
                 mask = self._resolve_fusion_mask(
                     bboxes, batch_idx, external_mask, mask_disabled, seg_logits_buf, batch_size, device
                 )
+                # Training-only robustness augmentation on the rendered GT prior.
+                if (
+                    self.training
+                    and mask is not None
+                    and bboxes is not None
+                    and external_mask is None
+                    and (self.mask_shuffle_p > 0.0 or self.mask_noise_std > 0.0)
+                ):
+                    mask = self._augment_mask(mask)
                 fused = []
                 for i, p in enumerate(pan_inputs):
                     if mask is None:

@@ -141,6 +141,55 @@ def check_file_speeds(
         )
 
 
+def check_cache_ram(
+    files: list[str], imgsz: int = 640, prefix: str = "", safety_margin: float = 0.5, scale: bool = False
+) -> bool:
+    """Check whether there is enough available RAM to cache the given images.
+
+    Shared by ``BaseDataset`` (detection/segment/pose/obb) and ``ClassificationDataset`` — the only difference is
+    that detection caches resized images (``scale=True`` estimates post-resize bytes) while classification caches
+    originals (``scale=False`` uses raw decoded bytes).
+
+    Args:
+        files (list[str]): Image file paths to sample from.
+        imgsz (int): Target image size; used to estimate post-resize bytes when ``scale=True``.
+        prefix (str): Logging prefix.
+        safety_margin (float): Extra fraction of RAM to require beyond the estimate.
+        scale (bool): If True, estimate bytes after resizing the long side to ``imgsz``; else use raw bytes.
+
+    Returns:
+        (bool): True if the estimated requirement fits in available memory, False otherwise.
+    """
+    import psutil
+
+    from ultralytics.utils.patches import imread
+
+    n = len(files)
+    if not n:
+        return False
+    b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabyte
+    sample = min(n, 30)  # extrapolate from up to 30 random images
+    for _ in range(sample):
+        im = imread(random.choice(files))
+        if im is None:
+            continue
+        if scale:
+            ratio = imgsz / max(im.shape[0], im.shape[1])  # resize ratio
+            b += im.nbytes * ratio**2
+        else:
+            b += im.nbytes
+    mem_required = b * n / sample * (1 + safety_margin)  # bytes required to cache dataset into RAM
+    mem = psutil.virtual_memory()
+    if mem_required > mem.available:
+        LOGGER.warning(
+            f"{prefix}{mem_required / gb:.1f}GB RAM required to cache images "
+            f"with {int(safety_margin * 100)}% safety margin but only "
+            f"{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, not caching images"
+        )
+        return False
+    return True
+
+
 def get_hash(paths: list[str]) -> str:
     """Return a single hash value of a list of paths (files or dirs)."""
     size = 0

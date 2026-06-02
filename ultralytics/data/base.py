@@ -18,6 +18,7 @@ import torch
 from torch.utils.data import Dataset
 
 from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS, check_file_speeds
+from ultralytics.data.utils import check_cache_ram as _check_cache_ram
 from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
 from ultralytics.utils.patches import imread
 
@@ -468,7 +469,10 @@ class BaseDataset(Dataset):
         return True
 
     def check_cache_ram(self, safety_margin: float = 0.5) -> bool:
-        """Check if there's enough RAM for caching images.
+        """Check if there's enough RAM to cache the dataset images, disabling the cache if not.
+
+        Thin wrapper over the shared ``data.utils.check_cache_ram`` (``scale=True`` because detection caches
+        resized images). Kept as a method so the ``self.cache = None`` side effect and subclass overrides remain.
 
         Args:
             safety_margin (float): Safety margin factor for RAM calculation.
@@ -476,25 +480,10 @@ class BaseDataset(Dataset):
         Returns:
             (bool): True if there's enough RAM, False otherwise.
         """
-        b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
-        n = min(self.ni, 30)  # extrapolate from 30 random images
-        for _ in range(n):
-            im = imread(random.choice(self.im_files))  # sample image
-            if im is None:
-                continue
-            ratio = self.imgsz / max(im.shape[0], im.shape[1])  # max(h, w)  # ratio
-            b += im.nbytes * ratio**2
-        mem_required = b * self.ni / n * (1 + safety_margin)  # GB required to cache dataset into RAM
-        mem = __import__("psutil").virtual_memory()
-        if mem_required > mem.available:
+        ok = _check_cache_ram(self.im_files, self.imgsz, self.prefix, safety_margin, scale=True)
+        if not ok:
             self.cache = None
-            LOGGER.warning(
-                f"{self.prefix}{mem_required / gb:.1f}GB RAM required to cache images "
-                f"with {int(safety_margin * 100)}% safety margin but only "
-                f"{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, not caching images"
-            )
-            return False
-        return True
+        return ok
 
     def set_rectangle(self) -> None:
         """Sort images by aspect ratio and set batch shapes for rectangular training."""

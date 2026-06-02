@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, settings, profile, preferences, GDPR, data expor
 
 [Ultralytics Platform](https://platform.ultralytics.com) settings allow you to configure your profile, social links, workspace preferences, and manage your data with GDPR-compliant export and deletion options.
 
-Settings is organized into six tabs (in order): `Profile`, `API Keys`, `Plans`, `Billing`, `Teams`, and `Trash`.
+Settings is organized into seven tabs (in order): `Profile`, `API Keys`, `Plans`, `Billing`, `Teams`, `Integrations`, and `Trash`.
 
 ## Profile Tab
 
@@ -300,6 +300,16 @@ All resources created in a team workspace belong to the team, not individual mem
     On Pro plans, each team member is a paid seat. The team credit balance is shared across all members.
 
 See [Teams](teams.md) for full documentation on team creation, switching workspaces, and enterprise features.
+
+## Integrations Tab
+
+The `Integrations` tab lets you import datasets and projects from external services and connect third-party tools:
+
+- **Ultralytics HUB** — import your existing datasets and projects from [Ultralytics HUB](../integrations/ultralytics-hub.md).
+- **Roboflow** — import annotated datasets from a [Roboflow](../integrations/roboflow.md) workspace using a Roboflow API key.
+- **Weights & Biases** — experiment-tracking sync (coming soon).
+
+See [Integrations](../integrations/index.md) for the full list of supported services.
 
 ## Trash Tab
 

@@ -143,20 +143,21 @@ def check_file_speeds(
 
 
 def check_cache_ram(
-    files: list[str], imgsz: int = 640, prefix: str = "", safety_margin: float = 0.5, scale: bool = False
+    files: list[str], prefix: str = "", safety_margin: float = 0.5, scale: bool = False, sizer=None
 ) -> bool:
     """Check whether there is enough available RAM to cache the given images.
 
-    Shared by ``BaseDataset`` (detection/segment/pose/obb) and ``ClassificationDataset`` — the only difference is that
-    detection caches resized images (``scale=True`` estimates post-resize bytes) while classification caches originals
-    (``scale=False`` uses raw decoded bytes).
+    Used by ``BaseDataset`` (detection/segment/pose/obb), which caches resized images (``scale=True``) while
+    ``ClassificationDataset`` caches originals with its own check (``scale=False`` semantics, raw bytes).
 
     Args:
         files (list[str]): Image file paths to sample from.
-        imgsz (int): Target image size; used to estimate post-resize bytes when ``scale=True``.
         prefix (str): Logging prefix.
         safety_margin (float): Extra fraction of RAM to require beyond the estimate.
-        scale (bool): If True, estimate bytes after resizing the long side to ``imgsz``; else use raw bytes.
+        scale (bool): If True, estimate post-resize bytes via ``sizer``; else use raw decoded bytes.
+        sizer (callable | None): Maps original ``(h0, w0)`` to the cached ``(h, w)``. Required when ``scale=True``;
+            pass the dataset's ``_resized_hw`` so the estimate matches what the cache actually stores (long-side,
+            short-side, or square stretch) instead of assuming long-side resize for every mode.
 
     Returns:
         (bool): True if the estimated requirement fits in available memory, False otherwise.
@@ -175,8 +176,8 @@ def check_cache_ram(
         if im is None:
             continue
         if scale:
-            ratio = imgsz / max(im.shape[0], im.shape[1])  # resize ratio
-            b += im.nbytes * ratio**2
+            h, w = sizer(im.shape[0], im.shape[1])  # cached dims via the dataset's own resize geometry
+            b += h * w * (im.shape[2] if im.ndim == 3 else 1) * im.itemsize  # matches _resize_image output bytes
         else:
             b += im.nbytes
     mem_required = b * n / sample * (1 + safety_margin)  # bytes required to cache dataset into RAM

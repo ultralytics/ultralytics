@@ -446,7 +446,10 @@ class BaseDataset(Dataset):
         """Check if there's enough RAM to cache the dataset images, disabling the cache if not.
 
         Thin wrapper over the shared ``data.utils.check_cache_ram`` (``scale=True`` because detection caches
-        resized images). Kept as a method so the ``self.cache = None`` side effect and subclass overrides remain.
+        resized images). Passes ``_resized_hw`` so the estimate uses the same resize geometry the cache build
+        uses (``_cache_rect_mode``/``_cache_resize_short``), not a fixed long-side assumption — otherwise
+        short-side (``SemanticDataset``) or square-stretch (``rect_mode=False``) caches are under-budgeted.
+        Kept as a method so the ``self.cache = None`` side effect and subclass overrides remain.
 
         Args:
             safety_margin (float): Safety margin factor for RAM calculation.
@@ -454,7 +457,13 @@ class BaseDataset(Dataset):
         Returns:
             (bool): True if there's enough RAM, False otherwise.
         """
-        ok = _check_cache_ram(self.im_files, self.imgsz, self.prefix, safety_margin, scale=True)
+        ok = _check_cache_ram(
+            self.im_files,
+            self.prefix,
+            safety_margin,
+            scale=True,
+            sizer=lambda h0, w0: self._resized_hw(h0, w0, self._cache_rect_mode, self._cache_resize_short),
+        )
         if not ok:
             self.cache = None
         return ok

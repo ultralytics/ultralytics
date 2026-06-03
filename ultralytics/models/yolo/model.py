@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Generator
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal, overload
 
 import torch
 
@@ -358,6 +358,50 @@ class YOLOE(Model):
         self.metrics = validator.metrics
         return validator.metrics
 
+    @overload
+    def predict(
+        self,
+        source: Any,
+        stream: Literal[True],
+        visual_prompts: dict[str, list] = {},
+        refer_image=None,
+        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
+        **kwargs: Any,
+    ) -> Generator[Results, None, None]: ...
+
+    @overload
+    def predict(
+        self,
+        *,
+        stream: Literal[True],
+        visual_prompts: dict[str, list] = {},
+        refer_image=None,
+        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
+        **kwargs: Any,
+    ) -> Generator[Results, None, None]: ...
+
+    @overload
+    def predict(
+        self,
+        source: Any = None,
+        stream: Literal[False] = False,
+        visual_prompts: dict[str, list] = {},
+        refer_image=None,
+        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
+        **kwargs: Any,
+    ) -> list[Results]: ...
+
+    @overload
+    def predict(
+        self,
+        source: Any = None,
+        stream: bool = False,
+        visual_prompts: dict[str, list] = {},
+        refer_image=None,
+        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
+        **kwargs: Any,
+    ) -> Generator[Results, None, None] | list[Results]: ...
+
     def predict(
         self,
         source=None,
@@ -366,7 +410,7 @@ class YOLOE(Model):
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         **kwargs,
-    ) -> Generator[Results, None, None] | list[Results] | None:
+    ) -> Generator[Results, None, None] | list[Results]:
         """Run prediction on images, videos, directories, streams, etc.
 
         Args:

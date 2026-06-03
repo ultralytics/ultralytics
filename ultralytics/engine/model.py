@@ -6,7 +6,7 @@ import inspect
 import sys
 from collections.abc import Generator
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal, overload
 
 import numpy as np
 import torch
@@ -153,12 +153,44 @@ class Model(torch.nn.Module):
         # Delete super().training for accessing self.model.training
         del self.training
 
+    @overload
     def __call__(
         self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor = None,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None,
+        stream: Literal[True],
+        **kwargs: Any,
+    ) -> Generator[Results, None, None]: ...
+
+    @overload
+    def __call__(
+        self,
+        *,
+        stream: Literal[True],
+        **kwargs: Any,
+    ) -> Generator[Results, None, None]: ...
+
+    @overload
+    def __call__(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: Literal[False] = False,
+        **kwargs: Any,
+    ) -> list[Results]: ...
+
+    @overload
+    def __call__(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: bool = False,
         **kwargs: Any,
-    ) -> list:
+    ) -> Generator[Results, None, None] | list[Results]: ...
+
+    def __call__(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: bool = False,
+        **kwargs: Any,
+    ) -> Generator[Results, None, None] | list[Results]:
         """Alias for the predict method, enabling the model instance to be callable for predictions.
 
         This method simplifies the process of making predictions by allowing the model instance to be called directly
@@ -172,8 +204,8 @@ class Model(torch.nn.Module):
             **kwargs (Any): Additional keyword arguments to configure the prediction process.
 
         Returns:
-            (list[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a Results
-                object.
+            (list[ultralytics.engine.results.Results] | generator): A list of prediction results, or a generator of
+                Results objects when stream=True.
 
         Examples:
             >>> model = YOLO("yolo26n.pt")
@@ -483,13 +515,49 @@ class Model(torch.nn.Module):
             kwargs["embed"] = [len(self.model.model) - 2]  # embed second-to-last layer if no indices passed
         return self.predict(source, stream, **kwargs)
 
+    @overload
+    def predict(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None,
+        stream: Literal[True],
+        predictor=None,
+        **kwargs: Any,
+    ) -> Generator[Results, None, None]: ...
+
+    @overload
+    def predict(
+        self,
+        *,
+        stream: Literal[True],
+        predictor=None,
+        **kwargs: Any,
+    ) -> Generator[Results, None, None]: ...
+
+    @overload
+    def predict(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: Literal[False] = False,
+        predictor=None,
+        **kwargs: Any,
+    ) -> list[Results]: ...
+
+    @overload
     def predict(
         self,
         source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: bool = False,
         predictor=None,
         **kwargs: Any,
-    ) -> Generator[Results, None, None] | list[Results] | None:
+    ) -> Generator[Results, None, None] | list[Results]: ...
+
+    def predict(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: bool = False,
+        predictor=None,
+        **kwargs: Any,
+    ) -> Generator[Results, None, None] | list[Results]:
         """Perform predictions on the given image source using the YOLO model.
 
         This method facilitates the prediction process, allowing various configurations through keyword arguments. It
@@ -506,8 +574,8 @@ class Model(torch.nn.Module):
             **kwargs (Any): Additional keyword arguments for configuring the prediction process.
 
         Returns:
-            (list[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a Results
-                object.
+            (list[ultralytics.engine.results.Results] | generator): A list of prediction results, or a generator of
+                Results objects when stream=True.
 
         Examples:
             >>> model = YOLO("yolo26n.pt")
@@ -543,13 +611,49 @@ class Model(torch.nn.Module):
             self.predictor.set_prompts(prompts)
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
+    @overload
     def track(
         self,
-        source: str | Path | int | list | tuple | np.ndarray | torch.Tensor = None,
+        source: str | Path | int | list | tuple | np.ndarray | torch.Tensor | None,
+        stream: Literal[True],
+        persist: bool = False,
+        **kwargs: Any,
+    ) -> Generator[Results, None, None]: ...
+
+    @overload
+    def track(
+        self,
+        *,
+        stream: Literal[True],
+        persist: bool = False,
+        **kwargs: Any,
+    ) -> Generator[Results, None, None]: ...
+
+    @overload
+    def track(
+        self,
+        source: str | Path | int | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: Literal[False] = False,
+        persist: bool = False,
+        **kwargs: Any,
+    ) -> list[Results]: ...
+
+    @overload
+    def track(
+        self,
+        source: str | Path | int | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: bool = False,
         persist: bool = False,
         **kwargs: Any,
-    ) -> list[Results]:
+    ) -> Generator[Results, None, None] | list[Results]: ...
+
+    def track(
+        self,
+        source: str | Path | int | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: bool = False,
+        persist: bool = False,
+        **kwargs: Any,
+    ) -> Generator[Results, None, None] | list[Results]:
         """Conduct object tracking on the specified input source using the registered trackers.
 
         This method performs object tracking using the model's predictors and optionally registered trackers. It handles
@@ -564,7 +668,8 @@ class Model(torch.nn.Module):
             **kwargs (Any): Additional keyword arguments for configuring the tracking process.
 
         Returns:
-            (list[ultralytics.engine.results.Results]): A list of tracking results, each a Results object.
+            (list[ultralytics.engine.results.Results] | generator): A list of tracking results, or a generator of
+                Results objects when stream=True.
 
         Examples:
             >>> model = YOLO("yolo26n.pt")

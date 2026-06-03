@@ -358,8 +358,8 @@ class Predictor(BasePredictor):
             stability_score_thresh (float): Stability threshold [0,1] for mask filtering based on stability.
             stability_score_offset (float): Offset value for calculating stability score.
             crop_nms_thresh (float): IoU cutoff for NMS to remove duplicate masks between crops.
-            min_mask_region_area (int): If > 0, remove disconnected mask regions and holes smaller than this area (in
-                pixels) before returning, then re-run NMS. Mirrors upstream SAM's `min_mask_region_area`.
+            min_mask_region_area (int): If > 0, remove disconnected mask regions and holes smaller than this area, in
+                original-image pixels, before returning, then re-run NMS. Mirrors upstream SAM's `min_mask_region_area`.
 
         Returns:
             pred_masks (torch.Tensor): Segmented masks with shape (N, H, W).
@@ -442,7 +442,12 @@ class Predictor(BasePredictor):
         if min_mask_region_area > 0 and len(pred_masks):
             # Match upstream: post-processing NMS uses the more permissive of the within-crop and cross-crop thresholds
             nms_thresh = max(self.args.iou, crop_nms_thresh)
-            pred_masks, keep = self.remove_small_regions(pred_masks, min_mask_region_area, nms_thresh)
+            # Masks here are in the model input space; convert the area from original-image pixels so the threshold is
+            # independent of imgsz and input aspect ratio (gain is the letterbox scale applied in pre_transform)
+            h0, w0 = self.batch[1][0].shape[:2]
+            gain = min(ih / h0, iw / w0)
+            min_area = min_mask_region_area * gain * gain
+            pred_masks, keep = self.remove_small_regions(pred_masks, min_area, nms_thresh)
             pred_scores = pred_scores[keep]
             pred_bboxes = batched_mask_to_box(pred_masks).float()
 

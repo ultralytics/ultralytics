@@ -1612,6 +1612,8 @@ class ReidMetrics(SimpleClass, DataExportMixin):
         task (str): The task type, set to 'reid'.
     """
 
+    PLOT_TOPK = 10  # number of ranked gallery matches retained per query for visualization
+
     def __init__(self) -> None:
         """Initialize ReidMetrics instance."""
         self.mAP = 0.0
@@ -1627,6 +1629,10 @@ class ReidMetrics(SimpleClass, DataExportMixin):
         # fallback below). Lets process() emit the no-gallery warning every epoch instead of
         # silently scoring later epochs against the fallback set populated on epoch 1.
         self._gallery_provided = False
+        # Per-query diagnostics retained for plotting: top-K junk-filtered ranked gallery
+        # indices and their distances, aligned to the query order passed to process().
+        self.match_g_indices = []
+        self.match_dists = []
 
     def update_gallery(self, feats: np.ndarray, pids: np.ndarray, camids: np.ndarray):
         """Update gallery features, person IDs, and camera IDs for re-identification evaluation.
@@ -1659,6 +1665,8 @@ class ReidMetrics(SimpleClass, DataExportMixin):
         self.rank1 = 0.0
         self.rank5 = 0.0
         self.rank10 = 0.0
+        self.match_g_indices = []
+        self.match_dists = []
         if not self._gallery_provided:
             # Warn EVERY epoch — not just the first — so the fallback is visible in the log.
             # Note: do NOT call self.update_gallery() here (which would flip _gallery_provided
@@ -1705,20 +1713,24 @@ class ReidMetrics(SimpleClass, DataExportMixin):
 
             # Sort gallery by distance
             order = np.argsort(dist[i])
-            g_pids_ranked = self.gallery_pids[order]
 
-            # Standard Market-1501 protocol: same-pid-same-camid items are "junk" and
-            # are REMOVED from the ranking (not just zeroed). The post-CMC padding to
-            # constant length K below handles the resulting variable-length per-query
-            # rankings — that's what made the earlier "zero-and-keep" fix necessary, but
-            # zero-and-keep silently breaks R1 because junk items occupy top positions of
-            # the sorted ranking and push the true cross-cam match to rank-5+.
+            # Standard Market-1501 protocol: same-pid-same-camid items are "junk" and are
+            # REMOVED from the ranking. Keep the surviving gallery INDICES (kept_order) so the
+            # visualization can show exactly the images that produced the score.
             if has_camid:
                 q_camid = query_camids[i]
-                g_camids_ranked = self.gallery_camids[order]
-                junk = (g_pids_ranked == q_pid) & (g_camids_ranked == q_camid)
-                keep = ~junk
-                g_pids_ranked = g_pids_ranked[keep]
+                junk = (self.gallery_pids[order] == q_pid) & (self.gallery_camids[order] == q_camid)
+                kept_order = order[~junk]
+            else:
+                kept_order = order
+
+            g_pids_ranked = self.gallery_pids[kept_order]
+
+            # Retain top-K ranked gallery indices + distances for plotting (aligned to query i,
+            # populated for EVERY query including no-match ones so indices stay aligned).
+            topk = kept_order[: self.PLOT_TOPK]
+            self.match_g_indices.append(topk.copy())
+            self.match_dists.append(dist[i][topk].copy())
 
             matches = (g_pids_ranked == q_pid).astype(np.float32)
 

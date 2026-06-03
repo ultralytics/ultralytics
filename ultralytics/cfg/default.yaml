@@ -98,6 +98,8 @@ momentum: 0.937 # (float) SGD momentum or Adam beta1
 weight_decay: 0.0005 # (float) weight decay (L2 regularization)
 afss: False # (bool) enable Anti-Forgetting Sampling Strategy (AFSS)
 afss_conf: # (float, optional) conf threshold for per-image P/R/F1; if unset, uses the F1-optimal threshold
+afss_easy_thr: 0.85 # (float) threshold for the easy subset; min(P,R) above this is easy, [0.55, this] moderate
+afss_easy_ratio: 0.02 # (float) fraction of easy images reviewed each epoch
 warmup_epochs: 3.0 # (float) warmup epochs (fractions allowed)
 warmup_momentum: 0.8 # (float) initial momentum during warmup
 warmup_bias_lr: 0.1 # (float) bias learning rate during warmup

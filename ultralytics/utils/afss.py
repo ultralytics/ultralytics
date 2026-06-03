@@ -25,15 +25,19 @@ class AFSSScheduler:
         state (dict[int, dict]): Per-image state containing precision, recall, and last_seen_epoch.
     """
 
-    def __init__(self, num_images: int, seed: int = 0):
+    def __init__(self, num_images: int, seed: int = 0, easy_thr: float = 0.85, easy_ratio: float = 0.02):
         """Initialize AFSSScheduler with the given dataset size and warmup configuration.
 
         Args:
             num_images (int): Total number of images in the dataset.
             seed (int): Random seed for deterministic sampling.
+            easy_thr (float): Threshold above which an image is classified as easy (min(P, R) > easy_thr).
+            easy_ratio (float): Fraction of easy images reviewed each epoch (continuous-review budget).
         """
         self.num_images = num_images
         self.seed = seed
+        self.easy_thr = easy_thr
+        self.easy_ratio = easy_ratio
         self.state = {i: {"precision": 0.0, "recall": 0.0, "last_seen_epoch": -1} for i in range(num_images)}
 
     def sample_indices(self, epoch: int) -> list[int]:
@@ -54,12 +58,16 @@ class AFSSScheduler:
 
         for i, st in self.state.items():
             s_i = min(st["precision"], st["recall"])
-            if s_i > 0.85:
+            if s_i > self.easy_thr:
                 easy_set.add(i)
             elif s_i >= 0.55:
                 moderate_set.add(i)
             else:
                 hard_set.append(i)
+
+        # Per-bucket sampled counts, tracked for diagnostics (compare against paper Fig. 3).
+        n_easy_sampled = 0
+        n_moderate_sampled = 0
 
         # Hard set: include all hard images
         selected.extend(hard_set)
@@ -67,7 +75,7 @@ class AFSSScheduler:
         # Easy set
         if easy_set:
             forced_easy = [i for i in easy_set if (epoch - 1 - self.state[i]["last_seen_epoch"]) >= 10]
-            easy_budget = round(0.02 * len(easy_set))
+            easy_budget = round(self.easy_ratio * len(easy_set))
             forced_easy_quota = min(len(forced_easy), math.floor(0.5 * easy_budget))
             random_easy_quota = easy_budget - forced_easy_quota
 
@@ -76,17 +84,20 @@ class AFSSScheduler:
                 if forced_easy_quota > 0 and forced_easy:
                     forced_easy_sample = rng.choice(forced_easy, size=forced_easy_quota, replace=False).tolist()
                 selected.extend(forced_easy_sample)
+                n_easy_sampled += len(forced_easy_sample)
 
                 remaining_easy = [i for i in easy_set if i not in set(forced_easy_sample)]
                 if random_easy_quota > 0 and remaining_easy:
                     random_easy_sample = rng.choice(remaining_easy, size=random_easy_quota, replace=False).tolist()
                     selected.extend(random_easy_sample)
+                    n_easy_sampled += len(random_easy_sample)
 
         # Moderate set
         if moderate_set:
             forced_moderate = [i for i in moderate_set if (epoch - 1 - self.state[i]["last_seen_epoch"]) >= 3]
             moderate_budget = round(0.4 * len(moderate_set))
             selected.extend(forced_moderate)
+            n_moderate_sampled += len(forced_moderate)
 
             random_moderate_quota = moderate_budget - len(forced_moderate)
             remaining_moderate = [i for i in moderate_set if i not in set(forced_moderate)]
@@ -95,6 +106,21 @@ class AFSSScheduler:
                     remaining_moderate, size=random_moderate_quota, replace=False
                 ).tolist()
                 selected.extend(random_moderate_sample)
+                n_moderate_sampled += len(random_moderate_sample)
+
+        # Diagnostic: difficulty distribution and per-bucket usage for this epoch.
+        # "max unused" is the largest gap (in epochs) since any easy image was last trained — a growing value
+        # signals the continuous-review budget cannot keep up and easy images are being forgotten.
+        max_unused_easy = max((epoch - 1 - self.state[i]["last_seen_epoch"] for i in easy_set), default=0)
+        n_total = len(easy_set) + len(moderate_set) + len(hard_set)
+        LOGGER.info(
+            f"AFSS epoch {epoch} difficulty: "
+            f"easy={len(easy_set)} (sampled {n_easy_sampled}), "
+            f"moderate={len(moderate_set)} (sampled {n_moderate_sampled}), "
+            f"hard={len(hard_set)} (sampled {len(hard_set)}) | "
+            f"total selected={n_easy_sampled + n_moderate_sampled + len(hard_set)}/{n_total} | "
+            f"easy max-unused={max_unused_easy} epochs"
+        )
 
         selected_indices = sorted(selected)
         if not selected_indices:
@@ -140,7 +166,12 @@ def afss_on_epoch_start(trainer):
         # Lazy init on first epoch
         dataset = _unwrap_dataset(trainer.train_loader.dataset)
 
-        trainer.afss_scheduler = AFSSScheduler(len(dataset), seed=trainer.args.seed)
+        trainer.afss_scheduler = AFSSScheduler(
+            len(dataset),
+            seed=trainer.args.seed,
+            easy_thr=trainer.args.afss_easy_thr,
+            easy_ratio=trainer.args.afss_easy_ratio,
+        )
         trainer.afss_current_indices = list(range(len(dataset)))
 
         # Resume: restore scheduler state if available

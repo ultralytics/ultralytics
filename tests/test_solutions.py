@@ -41,6 +41,16 @@ def process_video(solution, video_path: str, needs_frame_count: bool = False):
     cap.release()
 
 
+def has_action_recognition_support() -> bool:
+    """Return True when ActionRecognition's default TorchVision backend is available."""
+    try:
+        from ultralytics.solutions.action_recognition import TorchVisionVideoClassifier
+
+        return "s3d" in TorchVisionVideoClassifier.available_models()
+    except Exception:
+        return False
+
+
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled for testing due to --slow test errors after YOLOE PR.")
 @pytest.mark.parametrize(
     "name, solution_class, needs_frame_count, video_key, kwargs_update",
@@ -173,6 +183,20 @@ def process_video(solution, video_path: str, needs_frame_count: bool = False):
             False,
             None,  # streamlit application doesn't require video file
             {},  # streamlit application doesn't accept arguments
+        ),
+        pytest.param(
+            "ActionRecognition",
+            solutions.ActionRecognition,
+            False,
+            "demo_video",
+            {"model": MODEL, "video_classifier_model": "s3d", "show": SHOW},
+            marks=pytest.mark.skipif(
+                not has_action_recognition_support(),
+                reason=(
+                    "ActionRecognition requires a torchvision build with pretrained video model weights "
+                    "(for example the default 's3d' backend)."
+                ),
+            ),
         ),
     ],
 )
@@ -360,3 +384,71 @@ def test_display_output_method():
         mock_imshow.assert_called_once()
         mock_wait.assert_called_once()
         mock_destroy.assert_called_once()
+
+
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
+@pytest.mark.skipif(
+    not has_action_recognition_support(),
+    reason=(
+        "ActionRecognition requires a torchvision build with pretrained video model weights "
+        "(for example the default 's3d' backend)."
+    ),
+)
+def test_action_recognition_process_method():
+    """Test ActionRecognition.process() with mocked detections to cover the full classification path."""
+    from unittest.mock import MagicMock
+
+    from ultralytics.solutions.solutions import SolutionResults
+
+    action = solutions.ActionRecognition(
+        model=MODEL,
+        video_classifier_model="s3d",
+        show=False,
+        num_video_sequence_samples=2,
+        skip_frame=1,
+    )
+
+    # Mock the video classifier to avoid loading the real model during inference
+    action.video_classifier = MagicMock()
+    action.video_classifier.frame_size = (224, 224)
+    action.video_classifier.preprocess = MagicMock(return_value=__import__("torch").zeros(1, 3, 2, 224, 224))
+    action.video_classifier.return_value = (["jumping"], [0.85])
+
+    frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+
+    # Simulate tracked person detections via patched extract_tracks
+    def fake_extract_tracks(im0):
+        action.boxes = [[100, 50, 250, 400]]
+        action.track_ids = [1]
+        action.clss = [0]
+        action.confs = [0.9]
+
+    with patch.object(action, "extract_tracks", side_effect=fake_extract_tracks), patch.object(
+        action, "display_output"
+    ):
+        # Process enough frames to fill the sequence buffer and trigger classification
+        for _ in range(4):
+            result = action.process(frame)
+
+    assert isinstance(result, SolutionResults)
+    assert result.plot_im is not None
+    assert result.plot_im.shape == frame.shape
+    assert result.total_tracks == 1
+    assert result.action_labels.get(1) == "jumping"
+    assert result.action_confs.get(1) == 0.85
+
+
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
+@pytest.mark.skipif(
+    not has_action_recognition_support(),
+    reason=(
+        "ActionRecognition requires a torchvision build with pretrained video model weights "
+        "(for example the default 's3d' backend)."
+    ),
+)
+def test_torchvision_video_classifier_invalid_model():
+    """Test that TorchVisionVideoClassifier raises ValueError for unsupported model name."""
+    from ultralytics.solutions.action_recognition import TorchVisionVideoClassifier
+
+    with pytest.raises(ValueError, match="Invalid model"):
+        TorchVisionVideoClassifier(model_name="invalid_model")

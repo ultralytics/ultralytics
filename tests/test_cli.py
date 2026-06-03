@@ -17,6 +17,16 @@ def run(cmd: str) -> None:
     subprocess.run(cmd.split(), check=True)
 
 
+def has_action_recognition_support() -> bool:
+    """Return True when ActionRecognition's default TorchVision backend is available."""
+    try:
+        from ultralytics.solutions.action_recognition import TorchVisionVideoClassifier
+
+        return "s3d" in TorchVisionVideoClassifier.available_models()
+    except Exception:
+        return False
+
+
 def test_special_modes() -> None:
     """Test various special command-line modes for YOLO functionality."""
     run("yolo help")
@@ -135,7 +145,28 @@ def test_train_gpu(task: str, model: str, data: str) -> None:
 
 @pytest.mark.parametrize(
     "solution",
-    ["count", "blur", "workout", "heatmap", "isegment", "visioneye", "speed", "queue", "analytics", "trackzone"],
+    [
+        "count",
+        "blur",
+        "workout",
+        "heatmap",
+        "isegment",
+        "visioneye",
+        "speed",
+        "queue",
+        "analytics",
+        "trackzone",
+        pytest.param(
+            "action",
+            marks=pytest.mark.skipif(
+                not has_action_recognition_support(),
+                reason=(
+                    "ActionRecognition requires a torchvision build with pretrained video model weights "
+                    "(for example the default 's3d' backend)."
+                ),
+            ),
+        ),
+    ],
 )
 def test_solutions(solution: str) -> None:
     """Test yolo solutions command-line modes."""

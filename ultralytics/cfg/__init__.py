@@ -37,6 +37,7 @@ from ultralytics.utils import (
 
 # Define valid solutions
 SOLUTION_MAP = {
+    "action": "ActionRecognition",
     "count": "ObjectCounter",
     "crop": "ObjectCropper",
     "blur": "ObjectBlurrer",

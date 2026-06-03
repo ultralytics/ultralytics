@@ -100,6 +100,7 @@ class ReidValidator(ClassificationValidator):
         self._feats = []
         self._pids = []
         self._camids = []
+        self._paths = []
 
     def get_desc(self) -> str:
         """Return formatted description string."""
@@ -120,6 +121,8 @@ class ReidValidator(ClassificationValidator):
         self._feats = []
         self._pids = []
         self._camids = []
+        self._paths = []
+        self._gallery_paths = []
         # Build gallery dataset and extract features
         gallery_path = self.data.get("gallery", self.data.get("test", ""))
         if gallery_path:
@@ -134,10 +137,11 @@ class ReidValidator(ClassificationValidator):
             )
             cached = getattr(self, "_gallery_cache", None)
             if cached is not None and cached[0] == cache_key:
-                feats, pids, camids = cached[1]
+                feats, pids, camids, paths = cached[1]
             else:
-                feats, pids, camids = self._extract_gallery_features(gallery_path)
-                self._gallery_cache = (cache_key, (feats, pids, camids))
+                feats, pids, camids, paths = self._extract_gallery_features(gallery_path)
+                self._gallery_cache = (cache_key, (feats, pids, camids, paths))
+            self._gallery_paths = paths
             self.metrics.update_gallery(feats, pids, camids)
 
     def _embed(self, img: torch.Tensor) -> torch.Tensor:
@@ -215,6 +219,7 @@ class ReidValidator(ClassificationValidator):
             if isinstance(batch["camid"], list)
             else batch["camid"].cpu()
         )
+        self._paths.extend(batch["im_file"])
 
     def postprocess(self, preds):
         """Extract primary prediction from model output."""
@@ -238,6 +243,8 @@ class ReidValidator(ClassificationValidator):
         query_feats = torch.cat(self._feats, dim=0).numpy()
         query_pids = torch.cat(self._pids, dim=0).numpy()
         query_camids = torch.cat(self._camids, dim=0).numpy()
+        self._query_pids = query_pids
+        self._query_camids = query_camids
 
         reranking = getattr(self.args, "reid_reranking", False)
         self.metrics.process(query_feats, query_pids, query_camids, reranking=reranking)
@@ -256,7 +263,7 @@ class ReidValidator(ClassificationValidator):
         dataset = build_yolo_dataset(self.args, gallery_path, self.args.batch, self.data, mode="gallery")
         loader = build_dataloader(dataset, self.args.batch, self.args.workers, rank=-1)
 
-        feats, pids, camids = [], [], []
+        feats, pids, camids, paths = [], [], [], []
         bar = TQDM(loader, desc=f"{'Extracting gallery':>22s}", total=len(loader))
         for batch in bar:
             batch = self.preprocess(batch)
@@ -270,8 +277,14 @@ class ReidValidator(ClassificationValidator):
                 if isinstance(batch["camid"], list)
                 else batch["camid"].cpu()
             )
+            paths.extend(batch["im_file"])
 
-        return torch.cat(feats, dim=0).numpy(), torch.cat(pids, dim=0).numpy(), torch.cat(camids, dim=0).numpy()
+        return (
+            torch.cat(feats, dim=0).numpy(),
+            torch.cat(pids, dim=0).numpy(),
+            torch.cat(camids, dim=0).numpy(),
+            paths,
+        )
 
     def gather_stats(self) -> None:
         """Gather stats from all GPUs for DDP."""
@@ -279,16 +292,20 @@ class ReidValidator(ClassificationValidator):
             gathered_feats = [None] * dist.get_world_size()
             gathered_pids = [None] * dist.get_world_size()
             gathered_camids = [None] * dist.get_world_size()
+            gathered_paths = [None] * dist.get_world_size()
             dist.gather_object(self._feats, gathered_feats, dst=0)
             dist.gather_object(self._pids, gathered_pids, dst=0)
             dist.gather_object(self._camids, gathered_camids, dst=0)
+            dist.gather_object(self._paths, gathered_paths, dst=0)
             self._feats = [f for rank in gathered_feats for f in rank]
             self._pids = [p for rank in gathered_pids for p in rank]
             self._camids = [c for rank in gathered_camids for c in rank]
+            self._paths = [p for rank in gathered_paths for p in rank]
         elif RANK > 0:
             dist.gather_object(self._feats, None, dst=0)
             dist.gather_object(self._pids, None, dst=0)
             dist.gather_object(self._camids, None, dst=0)
+            dist.gather_object(self._paths, None, dst=0)
 
     def build_dataset(self, img_path: str):
         """Create a ReidDataset instance for the query split via centralised build_yolo_dataset()."""

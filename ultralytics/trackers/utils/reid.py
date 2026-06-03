@@ -27,11 +27,13 @@ class ReID:
         Args:
             model (str): Path to a ReID model. `.pt` runs through the YOLO predictor (embed-layer extraction); other
                 extensions go through `AutoBackend`.
-            imgsz (int): Square input size used for crop preprocessing on the AutoBackend path.
+            imgsz (int): Square input size used for crop preprocessing on the AutoBackend path. Overridden by the
+                model's own static input size when one is detected.
             device (str | torch.device | None): Inference device; defaults to CUDA if available.
             fp16 (bool): Use half precision when the backend supports it.
         """
         self.imgsz = imgsz
+        self.batch_size = None
         self.device = (
             torch.device(device) if device is not None else torch.device("cuda" if torch.cuda.is_available() else "cpu")
         )
@@ -47,6 +49,15 @@ class ReID:
         else:
             self.model = AutoBackend(str(model), device=self.device, fp16=fp16, verbose=False)
             self.fp16 = self.model.fp16
+
+            # Get model's input size for a fixed batch and crop size or detect dynamic batch and crop sizes.
+            session = getattr(self.model, "session", None)
+            shape = session.get_inputs()[0].shape if session is not None else ()
+            if len(shape) == 4:
+                if isinstance(shape[0], int) and shape[0] > 0:
+                    self.batch_size = shape[0]
+                if isinstance(shape[2], int) and shape[2] > 0:
+                    self.imgsz = shape[2]
 
     @staticmethod
     def _crop_detections(img: np.ndarray, dets: np.ndarray) -> list[np.ndarray]:
@@ -82,7 +93,18 @@ class ReID:
             if len(feats) != dets.shape[0] and feats[0].shape[0] == dets.shape[0]:
                 feats = feats[0]  # batched prediction with non-PyTorch backend
             return [f.cpu().numpy() for f in feats]
-        feats = self.model(self._crops_to_tensor(img, dets))
+        batch = self._crops_to_tensor(img, dets)
+        bs, n = self.batch_size, batch.shape[0]
+        if bs is None or n == bs:
+            feats = self.model(batch)
+        else:  # fixed-batch model (e.g. static ONNX): run in chunks of bs, padding the last partial chunk
+            outs = []
+            for s in range(0, n, bs):
+                chunk = batch[s : s + bs]
+                if chunk.shape[0] < bs:
+                    chunk = torch.cat([chunk, chunk[-1:].expand(bs - chunk.shape[0], *chunk.shape[1:])], 0)
+                outs.append(self.model(chunk))
+            feats = torch.cat(outs, 0)[:n]
         return [f.cpu().numpy() for f in feats]
 
 

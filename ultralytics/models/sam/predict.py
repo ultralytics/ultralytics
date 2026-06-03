@@ -358,8 +358,8 @@ class Predictor(BasePredictor):
             stability_score_thresh (float): Stability threshold [0,1] for mask filtering based on stability.
             stability_score_offset (float): Offset value for calculating stability score.
             crop_nms_thresh (float): IoU cutoff for NMS to remove duplicate masks between crops.
-            min_mask_region_area (int): If > 0, remove disconnected mask regions and holes smaller than this area
-                (in pixels) before returning, then re-run NMS. Mirrors upstream SAM's `min_mask_region_area`.
+            min_mask_region_area (int): If > 0, remove disconnected mask regions and holes smaller than this area (in
+                pixels) before returning, then re-run NMS. Mirrors upstream SAM's `min_mask_region_area`.
 
         Returns:
             pred_masks (torch.Tensor): Segmented masks with shape (N, H, W).

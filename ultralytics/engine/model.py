@@ -26,18 +26,6 @@ from ultralytics.utils import (
 )
 
 
-def _is_generic_names(names: dict) -> bool:
-    """Check if all values in the names property are generic class labels.
-
-    Args:
-        names (dict): The names property of the model, mapping class index to class label.
-
-    Returns:
-        (bool): True if all values follow the generic pattern 'class0', 'class1', etc.
-    """
-    return all(v == f"class{k}" for k, v in names.items())
-
-
 class Model(torch.nn.Module):
     """A base class for implementing YOLO models, unifying APIs across different model types.
 
@@ -725,8 +713,8 @@ class Model(torch.nn.Module):
         if not hasattr(self.model, "names") or getattr(self.model, "names") is None:
             # Try resolving via predictor in the names property
             names = self.names
-            if isinstance(names, dict) and not _is_generic_names(
-                names
+            if (
+                isinstance(names, dict) and len(names) != 1000
             ):  # 'names' is a dict and does not contain non-generic class names (class0, class1, ...)
                 self.model.names = names
             else:

@@ -25,7 +25,7 @@ def save_wrong_names_model(model, tmp_path):
     return file
 
 
-@pytest.mark.parametrize("end2end", [False, True])
+@pytest.mark.parametrize("end2end", [True, False])
 def test_export_onnx(end2end, isolated_model, tmp_path):
     """Test YOLO model export to ONNX format with dynamic axes.
 
@@ -42,7 +42,7 @@ def test_export_onnx(end2end, isolated_model, tmp_path):
     list_names_model = YOLO(list_names_model_path)
 
     # Export it
-    file = list_names_model.export(format="onnx", dynamic=True, imgsz=32)
+    file = list_names_model.export(format="onnx", dynamic=True, imgsz=32, end2end=end2end)
 
     # Test correct YOLO type 'names'
     session = ort.InferenceSession(str(file))

@@ -22,7 +22,7 @@ def save_wrong_names_model(model, tmp_path):
     return file
 
 
-@pytest.mark.parametrize("end2end", [False, True])
+@pytest.mark.parametrize("end2end", [True, False])
 def test_export_onnx(end2end, isolated_model, tmp_path):
     """Test YOLO model export to ONNX format with dynamic axes.
 
@@ -38,7 +38,7 @@ def test_export_onnx(end2end, isolated_model, tmp_path):
     # Init it
     none_names_model = YOLO(none_names_model_path)
     # Check if 'names' is None
-    assert getattr(none_names_model, "names") is None
+    assert none_names_model.model.names is None
     # Export it
     file = none_names_model.export(format="onnx", dynamic=True, imgsz=32, end2end=end2end)
 

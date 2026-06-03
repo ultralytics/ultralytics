@@ -22,7 +22,7 @@ def save_wrong_names_model(model, tmp_path):
     return file
 
 
-@pytest.mark.parametrize("end2end", [False, True])
+@pytest.mark.parametrize("end2end", [True, False])
 def test_export_onnx(end2end, isolated_model, tmp_path):
     """Test YOLO model export to ONNX format with dynamic axes.
 

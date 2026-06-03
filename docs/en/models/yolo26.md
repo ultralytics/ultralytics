@@ -263,7 +263,7 @@ YOLOE-26 supports both text-based and visual prompting. Using prompts is straigh
 
     === "Visual Prompt"
 
-        Visual prompts allow you to guide the model by showing it visual examples of the target classes, rather than describing them in text.
+        Visual prompts allow you to guide the model by showing it visual examples of the target classes, rather than describing them in text. Bounding boxes must use absolute pixel coordinates in `[x_min, y_min, x_max, y_max]` format for the image used as the visual prompt.
 
         ```python
         import numpy as np
@@ -279,8 +279,8 @@ YOLOE-26 supports both text-based and visual prompting. Using prompts is straigh
         visual_prompts = dict(
             bboxes=np.array(
                 [
-                    [221.52, 405.8, 344.98, 857.54],  # Box enclosing person
-                    [120, 425, 160, 445],  # Box enclosing glasses
+                    [221.5, 405.8, 345.0, 857.5],  # Person box: [x_min, y_min, x_max, y_max] pixels
+                    [120, 425, 160, 445],  # Glasses box: [x_min, y_min, x_max, y_max] pixels
                 ],
             ),
             cls=np.array(

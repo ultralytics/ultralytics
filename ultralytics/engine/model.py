@@ -710,11 +710,22 @@ class Model(torch.nn.Module):
             "verbose": False,
         }  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "export"}  # highest priority args on the right
-        if not hasattr(self.model, "names") or getattr(self.model, "names") is None:
+
+        from ultralytics.nn.autobackend import default_class_names
+
+        _default = default_class_names()
+
+        if not hasattr(self.model, "names") or self.model.names is None:
+            # Remove the attribute entirely if it is None so that Model.names
+            # activates the predictor fallback path instead of short-circuiting
+            # on `hasattr` and returning None via check_class_names(None).
+            if hasattr(self.model, "names"):
+                delattr(self.model, "names")
+
             # Try resolving via predictor in the names property
             names = self.names
             if (
-                isinstance(names, dict) and len(names) != 1000
+                isinstance(names, dict) and names != _default
             ):  # 'names' is a dict and does not contain non-generic class names (class0, class1, ...)
                 self.model.names = names
             else:
@@ -724,9 +735,7 @@ class Model(torch.nn.Module):
                     "Exported file will use generic class labels. "
                     "To fix: provide a data YAML file via 'data=' or set model.names explicitly before exporting."
                 )
-                from ultralytics.nn.autobackend import default_class_names
-
-                self.model.names = default_class_names()
+                self.model.names = _default
 
         elif (
             not isinstance(getattr(self.model, "names"), dict)
@@ -735,7 +744,16 @@ class Model(torch.nn.Module):
         ):
             # 'names' is not a dict or (key, values) in 'names' dict is not as per YOLO standard
             LOGGER.info("Malformed class names detected (expected {int: str}). Resolving automatically.")
-            self.model.names = self.names
+            try:
+                self.model.names = self.names
+            except Exception:
+                LOGGER.warning(
+                    "Could not normalise malformed class names from checkpoint. "
+                    "Exported file will use generic class labels. "
+                    "To fix: provide a data YAML file via 'data=' or set "
+                    "model.names explicitly before exporting."
+                )
+                self.model.names = _default
 
         return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
 

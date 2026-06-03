@@ -40,7 +40,7 @@ def test_export_onnx(end2end, isolated_model, tmp_path):
     # Check if 'names' is None
     assert none_names_model.model.names is None
     # Export it
-    file = none_names_model.export(format="onnx", dynamic=True, imgsz=32, end2end=end2end)
+    file = none_names_model.export(format="onnx", dynamic=True, imgsz=32)
 
     # Test correct YOLO type 'names'
     session = ort.InferenceSession(str(file))

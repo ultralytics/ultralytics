@@ -1610,6 +1610,8 @@ class ReidMetrics(SimpleClass, DataExportMixin):
         rank10 (float): CMC Rank-10 accuracy.
         speed (dict): Timing information for each pipeline step.
         task (str): The task type, set to 'reid'.
+        match_g_indices (list): Per-query top-K junk-filtered ranked gallery indices (for plotting).
+        match_dists (list): Per-query distances parallel to ``match_g_indices``.
     """
 
     PLOT_TOPK = 10  # number of ranked gallery matches retained per query for visualization

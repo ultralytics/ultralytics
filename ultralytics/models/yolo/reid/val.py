@@ -112,7 +112,7 @@ class ReidValidator(ClassificationValidator):
         Caches gallery feature extraction by ``(gallery_path, id(model), imgsz, scales, tta)``:
         Validator.__call__ fires every epoch's val during training, but the gallery split is
         static and embeddings only change when the model weights do — which the trainer
-        reflects in a new model object passed here. Reuses the cached (feats, pids, camids)
+        reflects in a new model object passed here. Reuses the cached (feats, pids, camids, paths)
         when the key matches; rebuilds otherwise.
         """
         self._model = model  # store reference for gallery feature extraction

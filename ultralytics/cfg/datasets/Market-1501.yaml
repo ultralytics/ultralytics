@@ -23,6 +23,5 @@ download: |
 
   from ultralytics.utils.downloads import download
 
-  # The original Google Drive link is no longer reachable; mirror hosted on Hugging Face Hub.
-  url = "https://huggingface.co/datasets/aveocr/Market-1501-v15.09.15/resolve/main/Market-1501-v15.09.15.zip"
+  url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/Market-1501-v15.09.15.zip"
   download([url], dir=Path(yaml["path"]).parent, unzip=True)

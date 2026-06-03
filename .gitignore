@@ -204,3 +204,4 @@ calibration_*.npy
 args.yaml
 results.csv
 reid-research/
+docs/superpowers/

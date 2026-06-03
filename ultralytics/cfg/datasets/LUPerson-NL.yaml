@@ -10,7 +10,7 @@
 # Intended as a Step-1 supervised pretrain (replaces/augments the smaller MSMT17 pretrain),
 # fine-tuned afterwards on Market-1501 / DukeMTMC / MSMT17.
 
-# Dataset root directory (relative to datasets_dir; symlink it to the actual store, e.g. ultra1 /data/luperson-nl)
+# Dataset root directory (relative to datasets_dir; symlink it to wherever the data actually lives)
 path: LUPerson-NL
 train: train # train/<person_id>/<original_key>.jpg — pid = folder name (folder-per-identity mode)
 val: val_tiny # unused at pretrain time (val=False); tiny 8-identity dir so the trainer doesn't scan all 10.68M images building an unused val loader

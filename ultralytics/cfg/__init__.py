@@ -208,6 +208,7 @@ CFG_FRACTION_KEYS = frozenset(
         "cutmix",
         "copy_paste",
         "conf",
+        "afss_conf",
         "iou",
         "fraction",
         "multi_scale",

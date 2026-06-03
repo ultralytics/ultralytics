@@ -1206,13 +1206,17 @@ class DetMetrics(SimpleClass, DataExportMixin):
             stat["im_name"],
         )
 
-    def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
+    def process(
+        self, save_dir: Path = Path("."), plot: bool = False, on_plot=None, afss_conf: float | None = None
+    ) -> dict[str, np.ndarray]:
         """Process predicted results for object detection and update metrics.
 
         Args:
             save_dir (Path): Directory to save plots. Defaults to Path(".").
             plot (bool): Whether to plot precision-recall curves. Defaults to False.
             on_plot (callable, optional): Function to call after plots are generated. Defaults to None.
+            afss_conf (float, optional): Confidence threshold for per-image P/R/F1. If None, the F1-optimal
+                threshold derived from the smoothed PR curve is used.
 
         Returns:
             (dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
@@ -1233,8 +1237,8 @@ class DetMetrics(SimpleClass, DataExportMixin):
         )[2:]
         self.box.nc = len(self.names)
         self.box.update(results)
-        # Now that conf_best (F1-optimal threshold) is known, finalize buffered per-image metrics.
-        self.box.flush_image_metrics()
+        # Finalize buffered per-image metrics. Use afss_conf if provided, else conf_best (F1-optimal threshold).
+        self.box.flush_image_metrics(conf_thres=afss_conf)
         self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=len(self.names))
         self.nt_per_image = np.bincount(stats["target_img"].astype(int), minlength=len(self.names))
         return stats
@@ -1381,18 +1385,22 @@ class SegmentMetrics(DetMetrics):
         super().clear_image_metrics()
         self.seg.clear_image_metrics()
 
-    def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
+    def process(
+        self, save_dir: Path = Path("."), plot: bool = False, on_plot=None, afss_conf: float | None = None
+    ) -> dict[str, np.ndarray]:
         """Process the detection and segmentation metrics over the given set of predictions.
 
         Args:
             save_dir (Path): Directory to save plots. Defaults to Path(".").
             plot (bool): Whether to plot precision-recall curves. Defaults to False.
             on_plot (callable, optional): Function to call after plots are generated. Defaults to None.
+            afss_conf (float, optional): Confidence threshold for per-image P/R/F1. If None, the F1-optimal
+                threshold derived from the smoothed PR curve is used.
 
         Returns:
             (dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
         """
-        stats = DetMetrics.process(self, save_dir, plot, on_plot=on_plot)  # process box stats
+        stats = DetMetrics.process(self, save_dir, plot, on_plot=on_plot, afss_conf=afss_conf)  # process box stats
         results_mask = ap_per_class(
             stats["tp_m"],
             stats["conf"],
@@ -1406,7 +1414,7 @@ class SegmentMetrics(DetMetrics):
         )[2:]
         self.seg.nc = len(self.names)
         self.seg.update(results_mask)
-        self.seg.flush_image_metrics()
+        self.seg.flush_image_metrics(conf_thres=afss_conf)
         return stats
 
     @property
@@ -1536,18 +1544,22 @@ class PoseMetrics(DetMetrics):
         super().clear_image_metrics()
         self.pose.clear_image_metrics()
 
-    def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
+    def process(
+        self, save_dir: Path = Path("."), plot: bool = False, on_plot=None, afss_conf: float | None = None
+    ) -> dict[str, np.ndarray]:
         """Process the detection and pose metrics over the given set of predictions.
 
         Args:
             save_dir (Path): Directory to save plots. Defaults to Path(".").
             plot (bool): Whether to plot precision-recall curves. Defaults to False.
             on_plot (callable, optional): Function to call after plots are generated.
+            afss_conf (float, optional): Confidence threshold for per-image P/R/F1. If None, the F1-optimal
+                threshold derived from the smoothed PR curve is used.
 
         Returns:
             (dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
         """
-        stats = DetMetrics.process(self, save_dir, plot, on_plot=on_plot)  # process box stats
+        stats = DetMetrics.process(self, save_dir, plot, on_plot=on_plot, afss_conf=afss_conf)  # process box stats
         results_pose = ap_per_class(
             stats["tp_p"],
             stats["conf"],
@@ -1561,7 +1573,7 @@ class PoseMetrics(DetMetrics):
         )[2:]
         self.pose.nc = len(self.names)
         self.pose.update(results_pose)
-        self.pose.flush_image_metrics()
+        self.pose.flush_image_metrics(conf_thres=afss_conf)
         return stats
 
     @property

@@ -271,7 +271,9 @@ class DetectionValidator(BaseValidator):
         Returns:
             (dict[str, Any]): Dictionary containing metrics results.
         """
-        self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
+        self.metrics.process(
+            save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot, afss_conf=self.args.afss_conf
+        )
         self.metrics.clear_stats()
         return self.metrics.results_dict
 

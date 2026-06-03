@@ -228,7 +228,6 @@ class ReidTrainer(ClassificationTrainer):
 
         if mode == "train":
             # PK sampling: P identities x K images
-            # TODO
             p = getattr(self.args, "reid_p", 16)
             k = getattr(self.args, "reid_k", 4)
             loader = build_reid_dataloader(dataset, batch_size, self.args.workers, p=p, k=k, shuffle=True, rank=rank)

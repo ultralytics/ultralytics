@@ -32,9 +32,11 @@ Python:
     from ultralytics import YOLO
     model = YOLO('yolo26n.pt')
     results = model.export(format='onnx')
+    results = model.export(format='onnx', int8=True, data='coco8.yaml')  # INT8 ONNX
 
 CLI:
     $ yolo mode=export model=yolo26n.pt format=onnx
+    $ yolo mode=export model=yolo26n.pt format=onnx int8=True data=coco8.yaml
 
 Inference:
     $ yolo predict model=yolo26n.pt                 # PyTorch
@@ -143,7 +145,15 @@ def export_formats():
             ["batch", "optimize", "half", "nms", "dynamic"],
             "base",
         ],
-        ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify", "nms"], "base"],
+        [
+            "ONNX",
+            "onnx",
+            ".onnx",
+            True,
+            True,
+            ["batch", "data", "dynamic", "half", "int8", "opset", "simplify", "nms", "fraction"],
+            "base",
+        ],
         [
             "OpenVINO",
             "openvino",
@@ -196,7 +206,15 @@ def export_formats():
         ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"], "mnn"],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"], "ncnn"],
         ["IMX", "imx", "_imx_model", True, True, ["data", "int8", "fraction", "nms"], "isolated-imx"],
-        ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"], "isolated-rknn"],
+        [
+            "RKNN",
+            "rknn",
+            "_rknn_model",
+            False,
+            False,
+            ["batch", "name", "half", "int8", "data", "fraction"],
+            "isolated-rknn",
+        ],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"], "executorch"],
         [
             "Axelera AI",
@@ -256,7 +274,7 @@ EXPORT_ENVS = {
         "python": "3.13",
         "extras": ["export-base"],
         "torch": None,
-        "requirements": ["MNN>=2.9.6"],
+        "requirements": ["MNN>=2.9.6", "aliyun-log-python-sdk", "protobuf<6.0.0,>=3.20.3"],
         "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
         "env": {},
         "smoke": ["yolo export format=mnn model=yolo11n.pt imgsz=32"],
@@ -301,7 +319,7 @@ EXPORT_ENVS = {
         "requirements": ["rknn-toolkit2>=2.3.2", "onnx>=1.16.1,<1.19.0", "setuptools<82"],
         "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
         "env": {},
-        "smoke": ["yolo export format=rknn model=yolo11n.pt imgsz=32"],
+        "smoke": ["yolo export format=rknn model=yolo26n.pt imgsz=32 half=True"],
     },
     "isolated-axelera": {
         "python": "3.12",
@@ -423,7 +441,7 @@ class Exporter:
         >>> exporter(model="yolo26n.pt")  # exports to yolo26n.onnx
 
         Export with specific arguments
-        >>> args = {"format": "onnx", "dynamic": True, "half": True}
+        >>> args = {"format": "onnx", "dynamic": True, "int8": True, "data": "coco8.yaml"}
         >>> exporter = Exporter(overrides=args)
         >>> exporter(model="yolo26n.pt")
     """
@@ -437,6 +455,12 @@ class Exporter:
             _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
+        if (
+            self.args.format.lower() == "rknn"
+            and not self.args.int8
+            and not any(k in (overrides or {}) for k in {"half", "int8", "data", "fraction"})
+        ):
+            self.args.half = True
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
@@ -548,6 +572,9 @@ class Exporter:
             assert self.args.name in RKNN_CHIPS, (
                 f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
             )
+            if self.args.name in {"rv1103", "rv1106", "rv1103b", "rv1106b"} and not self.args.int8:
+                LOGGER.warning(f"Rockchip target '{self.args.name}' requires int8=True, setting int8=True.")
+                self.args.int8 = True
         if fmt == "qnn":
             if not self.args.name:
                 LOGGER.warning(
@@ -804,11 +831,13 @@ class Exporter:
     def export_onnx(self, prefix=colorstr("ONNX:")):
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.12.0,<2.0.0"]
-        if self.args.simplify:
+        if self.args.simplify or (self.args.format == "onnx" and self.args.int8):
             # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
             ort = "onnxruntime-gpu" if "cuda" in self.device.type else "onnxruntime"
-            requirements += ["onnxslim>=0.1.82", (ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")]
+            requirements += [(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")]
+        if self.args.simplify:
+            requirements += ["onnxslim>=0.1.82"]
         check_requirements(requirements)
         import onnx
 
@@ -881,6 +910,19 @@ class Exporter:
                 LOGGER.warning(f"{prefix} FP16 conversion failure: {e}")
 
         onnx.save(model_onnx, f)
+        if self.args.int8 and self.args.format == "onnx":
+            from ultralytics.utils.export.onnx import onnx_int8_quantize
+
+            source = Path(f)
+            f_int8 = str(source.with_name(f"{source.stem}_int8{source.suffix}"))
+            f = onnx_int8_quantize(
+                source,
+                f_int8,
+                self.get_int8_calibration_dataloader(prefix),
+                self._transform_fn,
+                prefix=prefix,
+            )
+            source.unlink(missing_ok=True)
         return f
 
     @try_export
@@ -1232,15 +1274,29 @@ class Exporter:
 
     @try_export
     def export_rknn(self, prefix=colorstr("RKNN:")):
-        """Export YOLO model to RKNN format."""
+        """Export YOLO model to RKNN format with optional INT8 quantization."""
         from ultralytics.utils.export.rknn import onnx2rknn
 
         self.args.opset = min(self.args.opset or 19, 19)  # rknn-toolkit expects opset<=19
         f_onnx = self.export_onnx()
+        output_dir = Path(str(self.file).replace(self.file.suffix, f"_rknn_model{os.sep}"))
+        rknn_dataset = None
+        if self.args.int8:
+            dataloader = self.get_int8_calibration_dataloader(prefix)
+            image_paths = getattr(dataloader.dataset, "im_files", None)
+            if image_paths is None and hasattr(dataloader.dataset, "samples"):
+                image_paths = [x[0] for x in dataloader.dataset.samples]
+            if not image_paths:
+                raise ValueError("RKNN INT8 export requires a calibration dataset with image file paths.")
+            output_dir.mkdir(parents=True, exist_ok=True)
+            rknn_dataset = output_dir / "dataset.txt"
+            rknn_dataset.write_text("\n".join(str(Path(x).resolve()) for x in image_paths) + "\n")
         return onnx2rknn(
             onnx_file=f_onnx,
-            output_dir=str(self.file).replace(self.file.suffix, f"_rknn_model{os.sep}"),
+            output_dir=output_dir,
             name=self.args.name,
+            int8=self.args.int8,
+            dataset=rknn_dataset,
             metadata=self.metadata,
             prefix=prefix,
         )

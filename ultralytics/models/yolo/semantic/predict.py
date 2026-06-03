@@ -39,10 +39,10 @@ class SemanticSegmentationPredictor(BasePredictor):
         return torch.uint8 if num_classes <= 256 else torch.int16 if num_classes <= 32768 else torch.int32
 
     def postprocess(self, preds, img, orig_imgs):
-        """Convert model logits to semantic segmentation results.
+        """Convert model output to semantic segmentation results.
 
         Args:
-            preds (torch.Tensor | tuple): Model output logits.
+            preds (torch.Tensor | tuple): Model output logits [B, nc, H, W] or baked class map [B, H, W].
             img (torch.Tensor): Preprocessed input image tensor.
             orig_imgs (list | torch.Tensor): Original images.
 
@@ -58,13 +58,17 @@ class SemanticSegmentationPredictor(BasePredictor):
         results = []
         for i, (pred, orig_img) in enumerate(zip(preds, orig_imgs)):
             img_path = self.batch[0][i] if isinstance(self.batch[0], list) else self.batch[0]
-            pred = pred.unsqueeze(0).float()
-            # Upsample pred to the model input resolution first so LetterBox padding is an integer in this space
-            if pred.shape[2:] != img.shape[2:]:
-                pred = F.interpolate(pred, img.shape[2:], mode="bilinear")
-            # scale_masks then crops it cleanly without the sub-pixel asymmetry
-            pred = ops.scale_masks(pred, orig_img.shape[:2])[0]
-            dtype = self._class_map_dtype(max(pred.shape[0], 2))
-            class_map = pred.argmax(0).to(dtype) if pred.shape[0] > 1 else pred.gt(0).squeeze(0).to(dtype)
+            pred = pred.unsqueeze(0)
+            if pred.is_floating_point():
+                # pred: [1, nc, H, W] logits. Upsample to the input resolution first so LetterBox padding is integer.
+                if pred.shape[2:] != img.shape[2:]:
+                    pred = F.interpolate(pred, img.shape[2:], mode="bilinear")
+                # Remove letterbox padding, then resize to original image.
+                pred = ops.scale_masks(pred, orig_img.shape[:2])[0]
+                dtype = self._class_map_dtype(max(pred.shape[0], 2))
+                class_map = pred.argmax(0).to(dtype) if pred.shape[0] > 1 else pred.gt(0).squeeze(0).to(dtype)
+            else:
+                # pred: [1, H, W] class map with argmax already baked into the graph (ONNX export). Nearest-resize only.
+                class_map = ops.scale_masks(pred[None], orig_img.shape[:2], mode="nearest")[0, 0].to(pred.dtype)
             results.append(Results(orig_img, path=img_path, names=self.model.names, semantic_mask=class_map))
         return results

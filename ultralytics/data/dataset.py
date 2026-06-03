@@ -1051,10 +1051,11 @@ class ReidDataset(ClassificationDataset):
         return samples
 
     def format_item(self, sample: list, image: Image.Image) -> dict:
-        """Return image, identity label, and camera id for a given index."""
-        _, pid, camid = sample[:3]
+        """Return image, identity label, camera id, and source path for a given index."""
+        path, pid, camid = sample[:3]
         return {
             "img": self.torch_transforms(image),
             "cls": self.pid_to_label.get(pid, pid),
             "camid": camid,
+            "im_file": path,
         }

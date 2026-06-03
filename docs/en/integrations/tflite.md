@@ -44,7 +44,7 @@ TFLite offers various on-device deployment options for machine learning models, 
   <img width="75%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/architecture-diagram-tflite-deployment.avif" alt="TensorFlow Lite deployment architecture for mobile">
 </p>
 
-- **Implementing with Embedded Linux**: If running inferences on a [Raspberry Pi](https://www.raspberrypi.org/) using the [Ultralytics Guide](../guides/raspberry-pi.md) does not meet the speed requirements for your use case, you can use an exported TFLite model to accelerate inference times. Additionally, it's possible to further improve performance by utilizing a [Coral Edge TPU device](https://developers.google.com/coral).
+- **Implementing with Embedded Linux**: If running inferences on a [Raspberry Pi](https://www.raspberrypi.com/) using the [Ultralytics Guide](../guides/raspberry-pi.md) does not meet the speed requirements for your use case, you can use an exported TFLite model to accelerate inference times. Additionally, it's possible to further improve performance by utilizing a [Coral Edge TPU device](https://developers.google.com/coral).
 
 - **Deploying with Microcontrollers**: TFLite models can also be deployed on microcontrollers and other devices with only a few kilobytes of memory. The core runtime just fits in 16 KB on an Arm Cortex M3 and can run many basic models. It doesn't require operating system support, any standard C or C++ libraries, or dynamic memory allocation.
 
@@ -71,35 +71,70 @@ For detailed instructions and best practices related to the installation process
 
 All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
-!!! example "Usage"
+The TFLite format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or validate its accuracy.
+
+!!! example "Export"
 
     === "Python"
 
-          ```python
-          from ultralytics import YOLO
+        ```python
+        from ultralytics import YOLO
 
-          # Load the YOLO26 model
-          model = YOLO("yolo26n.pt")
+        # Load a YOLO26 model
+        model = YOLO("yolo26n.pt")
 
-          # Export the model to TFLite format
-          model.export(format="tflite")  # creates 'yolo26n_float32.tflite'
-
-          # Load the exported TFLite model
-          tflite_model = YOLO("yolo26n_float32.tflite")
-
-          # Run inference
-          results = tflite_model("https://ultralytics.com/images/bus.jpg")
-          ```
+        # Export the model to TFLite format
+        model.export(format="tflite")  # creates 'yolo26n_float32.tflite'
+        ```
 
     === "CLI"
 
-          ```bash
-          # Export a YOLO26n PyTorch model to TFLite format
-          yolo export model=yolo26n.pt format=tflite # creates 'yolo26n_float32.tflite'
+        ```bash
+        # Export a YOLO26n PyTorch model to TFLite format
+        yolo export model=yolo26n.pt format=tflite # creates 'yolo26n_float32.tflite'
+        ```
 
-          # Run inference with the exported model
-          yolo predict model='yolo26n_float32.tflite' source='https://ultralytics.com/images/bus.jpg'
-          ```
+!!! example "Predict"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported TFLite model
+        model = YOLO("yolo26n_float32.tflite")
+
+        # Run inference
+        results = model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Run inference with the exported TFLite model
+        yolo predict model=yolo26n_float32.tflite source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+!!! example "Validate"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported TFLite model
+        model = YOLO("yolo26n_float32.tflite")
+
+        # Validate accuracy on the COCO8 dataset
+        metrics = model.val(data="coco8.yaml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Validate the exported TFLite model
+        yolo val model=yolo26n_float32.tflite data=coco8.yaml
+        ```
 
 ### Export Arguments
 
@@ -150,7 +185,7 @@ Then, use the following code snippet to export your model:
 ```python
 from ultralytics import YOLO
 
-# Load the YOLO26 model
+# Load a YOLO26 model
 model = YOLO("yolo26n.pt")
 
 # Export the model to TFLite format

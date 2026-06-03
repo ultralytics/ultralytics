@@ -56,8 +56,8 @@ Each tab provides a search bar and sort options:
 
 | Sort Option       | Description                                   |
 | ----------------- | --------------------------------------------- |
-| **Most Starred**  | Content with most community stars (default)   |
-| **Newest**        | Most recently created                         |
+| **Most Starred**  | Content with most community stars             |
+| **Newest**        | Most recently created (default)               |
 | **Oldest**        | Oldest first                                  |
 | **Name A-Z**      | Alphabetical ascending                        |
 | **Name Z-A**      | Alphabetical descending                       |

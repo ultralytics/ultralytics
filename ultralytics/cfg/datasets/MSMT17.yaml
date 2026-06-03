@@ -25,5 +25,7 @@ download: |
   from ultralytics.utils.downloads import download
 
   # Hugging Face mirror of MSMT17_V2 (the original distribution requires manual registration).
+  # NOTE: this mirror is GATED — accept its terms on the HF dataset page and authenticate first
+  # (`huggingface-cli login` or export HF_TOKEN); an anonymous download returns HTTP 401.
   url = "https://huggingface.co/datasets/aveocr/MSMT17_V2/resolve/main/MSMT17_V2.zip"
   download([url], dir=Path(yaml["path"]).parent, unzip=True)

@@ -20,14 +20,8 @@ nc: 8 # overridden by data=*.yaml -> nc when training on another dataset
 # Filename: 0002_c1s1_001051_00.jpg -> pid=2, camid=1 (1-indexed). Same regex as Market-1501.
 filename_re: market1501
 
-# Download script
-# TODO(asset-upload): publish reid8.zip to https://github.com/ultralytics/assets/releases.
-# Until then, the zip is curated locally — see reid-research/reid8.zip or pull from the
-# seetacloud development box.
-download: |
-  from pathlib import Path
-
-  from ultralytics.utils.downloads import download
-
-  url = "https://github.com/ultralytics/assets/releases/download/v8.3.0/reid8.zip"
-  download([url], dir=Path(yaml["path"]).parent, unzip=True)
+# Download
+# No auto-download yet: reid8.zip is not published to the ultralytics/assets releases.
+# Until it is, curate the mini locally — extract an 8-identity reid8/ directory (train/query/gallery,
+# using the Market-1501 pids listed above) into your datasets root. Once the asset is uploaded,
+# restore a download: block pointing at the published release URL.

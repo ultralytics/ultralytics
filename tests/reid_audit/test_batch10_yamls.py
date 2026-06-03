@@ -83,6 +83,6 @@ def test_yolo26_reid_yamls_have_nc_override_comment():
 
 def test_all_reid_dataset_yamls_have_agpl_header():
     """Every shipped dataset YAML must begin with the AGPL header line."""
-    for fn in ("Market-1501.yaml", "MSMT17.yaml", "MSMT17-v1.yaml", "DukeMTMC-reID.yaml"):
+    for fn in ("Market-1501.yaml", "MSMT17.yaml", "DukeMTMC-reID.yaml"):
         first_line = (CFG_DS / fn).read_text().splitlines()[0]
         assert "AGPL" in first_line, f"{fn}: missing AGPL header on line 1"

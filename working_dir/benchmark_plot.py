@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 
 
 # =============================================================================
-# SELECT DEFAULT BENCHMARK HERE: "m5", "m5_new", "m5_coreml", "xeon", "xeon_new", "t4",
-# "t4_deimv2_xl_obj365_analysis", "t4_deim_backbone_map", "rf_compare", "t4_new", "jetson-agx-thor-gpu",
+# SELECT DEFAULT BENCHMARK HERE: "m5", "m5_new", "m5_coreml", "m5_onnx_coreml", "xeon", "xeon_new", "t4",
+# "t4_deimv2_xl_obj365_analysis", "t4_deim_backbone_map", "t4_yolo26", "rf_compare", "t4_new", "jetson-agx-thor-gpu",
 # "jetson-agx-thor-cpu", "jetson-agx-orin-gpu", "jetson-agx-orin-cpu",
 # "jetson-orin-nano-super-gpu", or "jetson-orin-nano-super-cpu"
 # =============================================================================
@@ -46,7 +46,7 @@ DEIM_DINOV3SPLUS_OBJ365_IMGSZ_SWEEP = [
     # T4 TensorRT v10.11, rtdetr_best_op17_nosim_norope_*_fp32attn_debug_fp16.engine.
     # The 640 point was exported before imgsz was added to artifact names.
     # Labels use decoder layer count; export_eval_idx=eidx means l{eidx + 1}.
-    ("480/l2/q100", 7.7, {"ap": 55.8, "ap50": 73.5, "ap75": 60.7, "ap_small": 35.5, "ap_medium": 61.5, "ap_large": 75.2}, 0.1),
+    # ("480/l2/q100", 7.7, {"ap": 55.8, "ap50": 73.5, "ap75": 60.7, "ap_small": 35.5, "ap_medium": 61.5, "ap_large": 75.2}, 0.1),
     ("512/l3", 9.1, {"ap": 57.5, "ap50": 75.0, "ap75": 62.4, "ap_small": 37.8, "ap_medium": 63.1, "ap_large": 76.4}, 0.2),
     ("576/l4", 11.6, {"ap": 58.8, "ap50": 76.5, "ap75": 64.0, "ap_small": 40.6, "ap_medium": 64.1, "ap_large": 76.9}, 0.2),
     ("640/l6", 14.1, {"ap": 59.8, "ap50": 77.7, "ap75": 65.3, "ap_small": 43.3, "ap_medium": 64.8, "ap_large": 77.4}, 0.4),
@@ -80,6 +80,16 @@ DFINE_DINOV3S_OBJ365_IMGSZ_SWEEP = [
     ("640/l4", 10.7, {"ap": 57.8, "ap50": 75.3, "ap75": 63.1, "ap_small": 40.3, "ap_medium": 62.7, "ap_large": 76.3}, 0.2),
     ("576/l4", 9.4, {"ap": 56.7, "ap50": 74.4, "ap75": 61.7, "ap_small": 38.1, "ap_medium": 62.1, "ap_large": 75.3}, 0.2),
     ("512/l3", 7.3, {"ap": 55.0, "ap50": 72.6, "ap75": 59.5, "ap_small": 35.2, "ap_medium": 60.5, "ap_large": 74.9}, 0.1),
+]
+
+YOLO26L_RTDETR_OBJ365_IMGSZ_SWEEP = [
+    # T4 TensorRT v10.11, rtdetr_yolo26L_rtdetr_obj365_op17_nosim_norope_*_nofp32attn_fp16.engine.
+    # Labels use decoder layer count; export_eval_idx=eidx means l{eidx + 1}.
+    # ("384/l2", 3.8, {"ap": 47.2, "ap50": 68.3, "ap75": 52.1, "ap_small": 28.5, "ap_medium": 51.6, "ap_large": 65.5}, 0.1),
+    # ("480/l3", 5.0, {"ap": 54.1, "ap50": 72.0, "ap75": 58.8, "ap_small": 37.6, "ap_medium": 58.9, "ap_large": 71.0}, 0.1),
+    ("512/l3", 5.3, {"ap": 54.7, "ap50": 72.3, "ap75": 59.5, "ap_small": 37.6, "ap_medium": 59.5, "ap_large": 71.3}, 0.1),
+    ("576/l4", 6.8, {"ap": 55.9, "ap50": 73.3, "ap75": 60.8, "ap_small": 38.7, "ap_medium": 60.4, "ap_large": 71.8}, 0.1),
+    ("640/l4", 7.7, {"ap": 56.5, "ap50": 74.1, "ap75": 61.6, "ap_small": 41.2, "ap_medium": 61.0, "ap_large": 70.9}, 0.1),
 ]
 
 BENCHMARKS = {
@@ -159,8 +169,8 @@ BENCHMARKS = {
             ],
         },
     },
-    "m5_coreml": {
-        "title": "Object Detection Models: Latency vs mAP (Apple M5 CPU, CoreML)",
+    "m5_onnx_coreml": {
+        "title": "Object Detection Models: Latency vs mAP (Apple M5, ONNX via CoreML EP)",
         "models": {
             "YOLO26 (E2E)": [
                 ("n", 6.0, 40.1),
@@ -183,6 +193,26 @@ BENCHMARKS = {
                 ("l", 287.4, 56.5),
                 ("x", 491.7, 58.6),
                 ("xxl", 606.1, 60.1),
+            ],
+        },
+    },
+    "m5_coreml": {
+        "title": "Object Detection Models: Latency vs mAP (Apple M5, native CoreML .mlpackage)",
+        "models": {
+            "YOLO26 (E2E)": [
+                ("l", 13.11, {"ap": 54.4}, 0.15),
+                ("x", 24.05, {"ap": 56.9}, 0.19),
+            ],
+            "YOLO26 (NMS)": [
+                ("l", 13.19, {"ap": 55.0}, 0.15),
+                ("x", 23.96, {"ap": 57.5}, 0.15),
+            ],
+            "YOLO26_RTDETR (obj365)": [
+                ("l", 19.96, {"ap": 56.7}, 0.36),
+                ("x", 30.86, {"ap": 58.4}, 0.22),
+            ],
+            "DEIM-DINOv3SPlus (obj365)": [
+                ("xl/l6", 119.29, {"ap": 59.9}, 2.34),
             ],
         },
     },
@@ -373,6 +403,7 @@ BENCHMARKS = {
                 ("l", 8.1, {"ap": 56.7, "ap50": 74.3, "ap75": 61.8, "ap_small": 41.7, "ap_medium": 61.1, "ap_large": 71.0}),
                 ("x", 13.2, {"ap": 58.4, "ap50": 75.8, "ap75": 64.0, "ap_small": 43.7, "ap_medium": 62.8, "ap_large": 73.9}, 0.3),
             ],
+            "YOLO26L-RTDETR (obj365)": YOLO26L_RTDETR_OBJ365_IMGSZ_SWEEP,
             "YOLO26_Dfine (obj365)": [
                 ("xl", 13.1, {"ap": 58.5, "ap50": 75.6, "ap75": 63.9, "ap_small": 43.8, "ap_medium": 62.7, "ap_large": 74.0}, 0.3),
             ],
@@ -474,6 +505,12 @@ BENCHMARKS = {
                 ("x", 13.6, {"ap": 54.4, "ap50": 72.6, "ap75": 59.1, "ap_small": 35.3, "ap_medium": 59.3, "ap_large": 72.2}, 0.4),
             ],
             "DEIM-DINOv3SPlus (obj365)": DEIM_DINOV3SPLUS_OBJ365_IMGSZ_SWEEP,
+            "DEIM-DINOv3SPlus Light (obj365)": [
+                # rtdetr_deim_dinov3sp_light_obj365_op17_nosim_norope_imgsz640*_fp32attn_debug_fp16.
+                # DINOv3SPlus backbone with a light neck; AP metrics converted from fractions to percentage points.
+                ("light/l4", 11.8, {"ap": 58.2, "ap50": 75.9, "ap75": 63.4, "ap_small": 41.2, "ap_medium": 63.3, "ap_large": 76.1}, 0.2),
+                ("light/l6", 12.3, {"ap": 58.6, "ap50": 76.6, "ap75": 63.7, "ap_small": 41.5, "ap_medium": 63.8, "ap_large": 76.6}, 0.2),
+            ],
             "DEIMv2 (Ultralytics)": [
                 ("sp-n/l6", 9.6, {"ap": 54.7, "ap50": 72.7, "ap75": 59.7, "ap_small": 34.6, "ap_medium": 60.6, "ap_large": 73.9}, 0.2),
                 ("l", 10.7, {"ap": 56.2, "ap50": 73.5, "ap75": 61.2, "ap_small": 37.1, "ap_medium": 61.3, "ap_large": 74.9}),
@@ -485,6 +522,7 @@ BENCHMARKS = {
                 ("l", 8.0, {"ap": 56.7, "ap50": 74.3, "ap75": 61.8, "ap_small": 41.7, "ap_medium": 61.1, "ap_large": 71.0}),
                 ("x", 13.2, {"ap": 58.4, "ap50": 75.8, "ap75": 64.0, "ap_small": 43.7, "ap_medium": 62.8, "ap_large": 73.9}, 0.3),
             ],
+            "YOLO26L-RTDETR (obj365)": YOLO26L_RTDETR_OBJ365_IMGSZ_SWEEP,
             "YOLO26_Dfine (obj365)": [
                 ("xl", 13.1, {"ap": 58.5, "ap50": 75.6, "ap75": 63.9, "ap_small": 43.8, "ap_medium": 62.7, "ap_large": 74.0}, 0.3),
             ],
@@ -497,6 +535,13 @@ BENCHMARKS = {
 
             "YOLO26_RTDETR": [
                 ("l", 8.2, {"ap": 55.3, "ap50": 73.0, "ap75": 60.2, "ap_small": 39.6, "ap_medium": 59.3, "ap_large": 70.7}),
+            ],
+            "YOLO26 (NMS)": [
+                ("n", 1.9, {"ap": 40.9, "ap50": 56.8, "ap75": 44.3, "ap_small": 21.1, "ap_medium": 44.8, "ap_large": 59.1}),
+                ("s", 2.7, {"ap": 48.6, "ap50": 65.8, "ap75": 52.8, "ap_small": 29.5, "ap_medium": 53.2, "ap_large": 65.8}),
+                ("m", 5.0, {"ap": 53.1, "ap50": 70.7, "ap75": 57.7, "ap_small": 36.7, "ap_medium": 57.8, "ap_large": 68.9}),
+                ("l", 6.6, {"ap": 55.0, "ap50": 72.5, "ap75": 60.0, "ap_small": 38.4, "ap_medium": 59.5, "ap_large": 71.1}),
+                ("x", 12.3, {"ap": 57.5, "ap50": 75.0, "ap75": 62.7, "ap_small": 41.8, "ap_medium": 62.1, "ap_large": 73.3}),
             ],
         },
     },
@@ -530,6 +575,26 @@ BENCHMARKS = {
             ],
         },
     },
+    "t4_yolo26": {
+        "title": "Object Detection Models: Latency vs mAP (Tesla T4 GPU, TensorRT — subset matching m5_coreml)",
+        "models": {
+            "YOLO26 (E2E)": [
+                ("l", 6.5, {"ap": 54.4}),
+                ("x", 12.2, {"ap": 56.9}),
+            ],
+            "YOLO26 (NMS)": [
+                ("l", 6.6, {"ap": 55.0}),
+                ("x", 12.3, {"ap": 57.5}),
+            ],
+            "YOLO26_RTDETR (obj365)": [
+                ("l", 8.1, {"ap": 56.7}),
+                ("x", 13.2, {"ap": 58.4}, 0.3),
+            ],
+            "DEIM-DINOv3SPlus (obj365)": [
+                ("xl/l6", 14.1, {"ap": 59.8}, 0.4),
+            ],
+        },
+    },
 }
 
 # Marker and label offset config for each model
@@ -540,6 +605,7 @@ MODEL_STYLES = {
     "YOLO26-reported": ("o", -12),
     "YOLO26_RTDETR": ("^", -12),
     "YOLO26_RTDETR (obj365)": ("^", 8),
+    "YOLO26L-RTDETR (obj365)": ("<", 8),
     "YOLO26_Dfine (obj365)": ("D", -12),
     "D-FINE-DINOv3SPlus (obj365)": ("X", -16),
     "D-FINE-DINOv3S (obj365)": ("P", 10),
@@ -567,6 +633,7 @@ MODEL_STYLES = {
     "ConvNeXt D-FINE": ("h", 8),
     "DEIMv2 (Ultralytics)": ("p", 8),
     "DEIM-DINOv3SPlus (obj365)": ("*", 14),
+    "DEIM-DINOv3SPlus Light (obj365)": ("*", -12),
     "Decoder Layers": ("o", 8),
     "Queries @ 4L": ("s", -12),
     "Image Size / Export Variants": ("*", 14),

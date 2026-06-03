@@ -104,12 +104,12 @@ def run_size(size: str) -> tuple:
     print(f"=== H12_FT_TRAIN_DONE size={size} save_dir={mB.trainer.save_dir} ===", flush=True)
 
     std = mB.val(data="ultralytics/cfg/datasets/Market-1501.yaml", imgsz=448, split="val")
-    r1, m_ap = getattr(std, "rank1", None), getattr(std, "map", None)
+    r1, m_ap = getattr(std, "rank1", None), getattr(std, "mAP", None)
     print(f"=== H12_EVAL_STD size={size} R1={r1} mAP={m_ap} ===", flush=True)
 
     try:
         tta = mB.val(data="ultralytics/cfg/datasets/Market-1501.yaml", imgsz=448, split="val", reid_tta=True)
-        r1_tta, map_tta = getattr(tta, "rank1", None), getattr(tta, "map", None)
+        r1_tta, map_tta = getattr(tta, "rank1", None), getattr(tta, "mAP", None)
         print(f"=== H12_EVAL_TTA size={size} R1={r1_tta} mAP={map_tta} ===", flush=True)
     except Exception as e:
         r1_tta = map_tta = None

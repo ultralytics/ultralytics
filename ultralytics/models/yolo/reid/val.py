@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import torch
 import torch.distributed as dist
 import torch.nn.functional as F
@@ -14,6 +15,7 @@ from ultralytics.data.build import build_yolo_dataset
 from ultralytics.models.yolo.classify.val import ClassificationValidator
 from ultralytics.utils import LOGGER, RANK, TQDM
 from ultralytics.utils.metrics import ReidMetrics
+from ultralytics.utils.plotting import plot_reid_retrieval
 from ultralytics.utils.torch_utils import smart_inference_mode
 
 
@@ -32,8 +34,6 @@ def select_diagnostic_queries(hits, n: int = 8) -> list[int]:
     Returns:
         (list[int]): Up to ``n`` query indices, sorted ascending.
     """
-    import numpy as np
-
     hits = np.asarray(hits, dtype=bool)
     q = len(hits)
     if q <= n:
@@ -226,9 +226,60 @@ class ReidValidator(ClassificationValidator):
         return preds
 
     def finalize_metrics(self) -> None:
-        """Finalize metrics with speed info."""
+        """Finalize metrics with speed info, then render the query->retrieval diagnostic grid.
+
+        Note: does NOT call super().finalize_metrics() — the ClassificationValidator base
+        dereferences confusion_matrix/pred/targets which ReidValidator never populates (it
+        accumulates embeddings, not class predictions). The two lines below are the only base
+        behavior ReID needs.
+        """
         self.metrics.speed = self.speed
         self.metrics.save_dir = self.save_dir
+        self._plot_retrieval()
+
+    def _plot_retrieval(self) -> None:
+        """Save runs/.../val_retrieval0.jpg: sampled queries (rows) x top-k gallery matches (cols).
+
+        Reuses the embeddings/paths/ranking already computed during validation. Skips silently
+        when plotting is off, on non-zero DDP ranks, in the no-gallery fallback, or when the data
+        needed to plot is unavailable.
+        """
+        if not self.args.plots or RANK not in {-1, 0}:
+            return
+        match_indices = getattr(self.metrics, "match_g_indices", [])
+        if not match_indices or not getattr(self.metrics, "_gallery_provided", False):
+            return
+        q_paths = getattr(self, "_paths", [])
+        g_paths = getattr(self, "_gallery_paths", [])
+        q_pids = getattr(self, "_query_pids", None)
+        q_camids = getattr(self, "_query_camids", None)
+        g_pids = self.metrics.gallery_pids
+        if q_pids is None or not q_paths or not g_paths or g_pids is None:
+            return
+
+        # Rank-1 correctness per query (empty rankings count as misses).
+        hits = np.array(
+            [len(match_indices[i]) > 0 and g_pids[match_indices[i][0]] == q_pids[i] for i in range(len(match_indices))]
+        )
+        selected = select_diagnostic_queries(hits, n=8)
+        if not selected:
+            return
+
+        blue, green, red = (80, 170, 255), (70, 200, 120), (215, 95, 95)
+        rows = []
+        for qi in selected:
+            q_label = f"QUERY  pid={int(q_pids[qi])} c={int(q_camids[qi])}"
+            row = [(q_paths[qi], q_label, blue)]
+            dists = self.metrics.match_dists[qi]
+            for rank, gi in enumerate(match_indices[qi], start=1):
+                is_match = g_pids[gi] == q_pids[qi]
+                color = green if is_match else red
+                row.append((g_paths[gi], f"#{rank}  pid={int(g_pids[gi])}  d={float(dists[rank - 1]):.3f}", color))
+            rows.append(row)
+
+        out_path = self.save_dir / "val_retrieval0.jpg"
+        plot_reid_retrieval(rows, out_path)
+        self.on_plot(out_path)
 
     def get_stats(self) -> dict[str, float]:
         """Compute mAP and CMC from accumulated features.
@@ -258,7 +309,7 @@ class ReidValidator(ClassificationValidator):
             gallery_path (str): Path to gallery images.
 
         Returns:
-            Tuple of (features, pids, camids) as numpy arrays.
+            Tuple of (features, pids, camids) as numpy arrays plus the list of gallery image paths.
         """
         dataset = build_yolo_dataset(self.args, gallery_path, self.args.batch, self.data, mode="gallery")
         loader = build_dataloader(dataset, self.args.batch, self.args.workers, rank=-1)

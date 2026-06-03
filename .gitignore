@@ -205,3 +205,4 @@ args.yaml
 results.csv
 reid-research/
 docs/superpowers/
+tests/reid_audit/

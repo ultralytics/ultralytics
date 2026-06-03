@@ -1,124 +1,36 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 #
-# Best ReID training recipe found by two ablation campaigns.
-# Single model, no ensemble. Use with: yolo reid train cfg=reid_best.yaml model=... data=... pretrained=...
+# Best single-model ReID training recipe (no ensemble).
+# Use with: yolo reid train cfg=reid_best.yaml model=... data=... pretrained=...
 #
-# ─── HEADLINE RECIPE ───────────────────────────────────────────────────────────
+# ─── RECIPE ──────────────────────────────────────────────────────────────────
+#   model:       yolo26l-reid-2psa.yaml  (yolo26l + 2 stacked C2PSA attention blocks)
+#   pretrained:  an MSMT17-pretrained checkpoint (a short MSMT fine-tune first)
+#   data:        Market-1501.yaml
+#   result:      Market-1501  Rank-1 ≈ 0.929  mAP ≈ 0.891  (imgsz=448, + reranking + flip TTA)
+#   imgsz:       R1 climbs monotonically 288 → 448 (peak at 448), then saturates/regresses by 512.
 #
-# Market-FT recipe (small-data target, 1h on 4× RTX 5090; matches public protocol):
-#    model:       yolo26l-reid-2psa.yaml  (yolo26l + 2 stacked C2PSA attention blocks)
-#    pretrained:  yolo26l_2psa_msmt MSMT-pretrained checkpoint (1h MSMT FT first)
-#    data:        Market-1501.yaml
-#    Result:      Market-1501  mAP=0.891  Rank-1=0.929  (imgsz=448, 2-seed avg, +rerank +flip TTA — TX2/TY3)
-#                 Best single run: mAP=0.892, R1=0.931 (TX2 seed=0). Single seed = ±0.2pp noise.
-#                 imgsz scaling curve (seed=0): 288→0.881, 320→0.907, 352→0.915, 384→0.927, 448→0.931, 512→0.925 (peak at 448).
+# ─── LEVERS THAT MATTER (ordered by impact) ───────────────────────────────────
+#   1. supcon_temp=0.02 (replaces batch-hard triplet)  -> +2-5pp R1
+#   2. erasing=0.7 (vs 0.5 default)                     -> +0.5-0.7pp Market R1
+#   3. label_smoothing=0.1 + focal_gamma=0.0            -> +0.4pp R1
+#   4. triplet_margin=0.5 (vs 0.3)                      -> +2.3pp R1 (triplet and supcon modes both benefit)
+#   5. cos_lr=True                                      -> +0.2pp Market R1
+#   6. dropout=0.1-0.2                                  -> helps MSMT R1 (small Market regression)
+#   7. larger imgsz up to 448 (square input; rectangular is catastrophic on YOLO backbones)
 #
-# Historical: a multi-dataset variant ("Combined-ReID": Market+Duke+MSMT joint training)
-# was previously evaluated and reached Market mAP=0.894 R1=0.929 / Duke mAP=0.745 R1=0.812 /
-# MSMT R1=0.662. The Combined-ReID.yaml shipped in early branches was a research artifact
-# with hardcoded local paths and has been removed; recreate it locally (per-dataset paths)
-# if you want to reproduce that experiment.
+# ─── LEVERS THAT HURT ─────────────────────────────────────────────────────────
+#   ArcFace; erasing >= 0.9; lr0 >= 5e-3; GeM / Non-Local pooling; IBN-Net; a 3rd C2PSA block;
+#   ViT/CLIP backbone (large gap vs CNN here); over-long pretrain or fine-tune (both overfit).
+#   Takeaway: 2 stacked C2PSA is the optimum — architectural ADDITIONS to a well-pretrained
+#   model don't help; the real lever is pretrain quality / data.
 #
-# ─── ARCHITECTURE FINDINGS (8 paper-driven arch experiments on 5090x4) ────────
-# Architecture levers tested ON TOP of train-33 baseline (yolo26l-2psa + MSMT-pretrain, Market 1h):
-#   - GeM pooling (BoT/AGW)        → R1 0.903 (-1.9pp)   HURTS
-#   - Non-Local block (AGW)        → R1 0.890 (-3.2pp)   HURTS
-#   - HH loss recipe (vs older)    → R1 0.901 (-2.1pp)   HURTS (overfits MSMT-pretrained init)
-#   - 3h time on Market FT         → R1 0.900 (-2.2pp)   HURTS (overfits)
-#   - imgsz=384                    → R1 0.921 (-0.1pp)   NULL
-#   - Combined-2 (Market+MSMT) 2h  → R1 0.921 (-0.1pp)   NULL (MSMT-pretrain already covered)
-# Conclusion: the proven peak on 1h Market FT is yolo26l-2psa + MSMT-pretrain + the recipe below.
-# Architectural ADDITIONS to a well-pretrained model don't help; the lever is pretrain quality / data.
+# ─── CROSS-DATASET TRADE-OFF ──────────────────────────────────────────────────
+#   - Best overall:   cos_lr=True,  dropout=0.1   (wins Duke, strong on Market)
+#   - MSMT-leaning:   cos_lr=False, dropout=0.2
+#   - Pure Market R1: cos_lr=True,  dropout=0.0
 #
-# ─── BACKBONE-SWAP FINDINGS (TransReID v1: CLIP ViT-B/16, 8 more runs arch11-18) ──
-# Implemented ultralytics/nn/modules/vit.py + CLIP visual-tower weight loading. Best ViT result:
-#   arch16: ViT-B/16 + CLIP init + Market FT 3h + lr=1e-4   → Market R1=0.714, mAP=0.601
-#   arch18: ViT-B/16 + MSMT-pretrain 3h + Market FT 1h     → Market R1=0.703, mAP=0.580
-# vs yolo26l-2psa+MSMT-pretrain CNN champion: R1=0.922  (gap: -21pp R1).
-# Key learnings:
-#   - CLIP visual encoder needs its own normalization (mean=[0.4815,0.4578,0.4082] std=[0.2686,
-#     0.2613,0.2758]) — baked into ViTBackbone now.
-#   - lr=1e-3 used by yolo26 recipe is too high for ViT-B FT-from-CLIP — must be 1e-4 or lower.
-#   - MSMT pretraining of ViT does not transfer to Market gains (vs CNN where it does).
-#   - 1h budget is insufficient for ViT; 3h gets +0.08pp R1 vs 1h. SOTA TransReID uses 120 epochs.
-#   - To reach paper R1=0.95: needs JPM module (+1.5pp), SIE module, per-param-group LR (head
-#     10x faster than backbone), CE-only first phase. None are cheap; deferred to v2.
-#
-# ─── SEED-VARIANCE / REPRODUCIBILITY (arch27b + arch29) ───────────────────────
-# Two-seed replication of the headline recipe (yolo26l-reid-2psa + 1h MSMT pretrain +
-# 1h Market FT at imgsz=320, batch=128):
-#   arch27b (default seed): R1=0.907, mAP=0.858
-#   arch29  (seed=1):       R1=0.907, mAP=0.860
-# Run variance: ±0.2pp R1. The headline-claimed R1=0.922 (above) appears to be either
-# a peak-checkpoint number or relied on non-recorded factors; replicating the recipe
-# verbatim reliably reaches **R1≈0.907, mAP≈0.859** in our setup. Use that as the
-# realistic single-model ceiling for this stack.
-#
-# ─── IMGSZ SCALING SWEEP (arch27b, arch28, arch30, arch31) ────────────────────
-# Headline-recipe runs at constant 1h budget on 4× RTX 5090, varying imgsz × batch:
-#   imgsz=288, batch=192  (arch28)  →  R1=0.881, mAP=0.820
-#   imgsz=320, batch=128  (arch27b) →  R1=0.907, mAP=0.858
-#   imgsz=352, batch=96   (arch30)  →  R1=0.915, mAP=0.870
-#   imgsz=384, batch=64   (arch31)  →  R1=0.927, mAP=0.884   ← **NEW CHAMPION**
-# **imgsz scaling is monotonically helpful** across 288→384 on the 2psa+MSMT-pretrain
-# stack: +0.046 R1 from 288→384. Crucially, imgsz=384 BEATS the previously-reported
-# train-33 number (R1=0.922) — the older "imgsz=384 NULL" note (arch08) was at
-# batch=128 with the older hparam set; with batch=64 + headline recipe, 384 wins.
-# **New working defaults: imgsz=384, batch=64** for single-model Market FT.
-#
-# ─── HEADLINE-RECIPE REPLICATION (arch27b) ────────────────────────────────────
-# Re-running the headline Market-FT recipe verbatim (lr0=3.5e-3, lrf=0.001, cos_lr=True,
-# supcon_temp=0.02, triplet_margin=0.5, erasing=0.7, label_smoothing=0.1, focal_gamma=0.0,
-# dropout=0.1, ce_weight=2.0) on yolo26l-reid-2psa + 1h MSMT pretrain:
-#   arch27b: R1=0.907, mAP=0.858  (batch=128, imgsz=320 due to 32GB OOM at batch=192)
-# vs reported train-33: R1=0.922, mAP=0.875  → small gap likely from batch=128 vs 192 +
-# run variance (~±0.5pp). The headline-recipe hparams DO matter: +0.8pp R1 vs the older
-# hparam set (lrf=0.05, supcon=0.04, erasing=0.5, ls=0.0, focal=2.0, trip_margin=0.2)
-# which gave R1=0.899 on the same 2psa+1h-MSMT stack (arch26).
-#
-# ─── ATTENTION-STACK SCALING (arch25-26) ──────────────────────────────────────
-# yolo26l-reid-3psa (3 stacked C2PSA blocks vs train-33's 2): MSMT pretrain 1h + Market FT 1h:
-#   arch26: R1=0.899, mAP=0.836  → -2.3pp R1 vs train-33 (0.922).
-# Conclusion: 2 stacked C2PSA is the optimum; adding a 3rd block adds 1.5M params,
-# slows convergence at fixed-time budget, and the extra capacity doesn't recover.
-# Series: 0psa (yolo26l)=0.850 → 2psa (train-33)=0.922 → 3psa=0.899 → diminishing then hurt.
-#
-# ─── PRETRAIN DURATION FINDING (arch23-24) ────────────────────────────────────
-# yolo26l-reid-2psa, 3h MSMT pretrain (vs train-33's 1h) → Market FT 1h:
-#   arch24: R1=0.897, mAP=0.840  → -2.5pp R1 vs train-33's 0.922.
-# Conclusion: MSMT pretrain has an OPTIMUM at ~1h; longer pretrain overfits MSMT distribution
-# and degrades downstream Market FT. Combined with the earlier "3h Market FT" overfit finding,
-# both pretrain and FT durations are tightly bounded around 1h on yolo26l-2psa.
-#
-# ─── IBN-Net FINDINGS (arch19-22, Pan ECCV'18) ────────────────────────────────
-# yolo26l-reid-ibn (ConvIBN in stem + early downsamples) MSMT-pretrained 3h + Market FT 1h:
-#   arch20: IBN alone           Market R1=0.906, mAP=0.851  → -1.6pp R1 vs train-33 (0.922).
-#   arch22: IBN + 2psa combined Market R1=0.889, mAP=0.824  → -3.3pp R1 (combo HURTS further).
-# Likely reasons IBN didn't transfer:
-#   - 2psa attention block in train-33 already provides similar normalization benefits;
-#     stacking IBN on top of 2psa actively *removes* signal (arch22 < arch20 < train-33).
-#   - BN→IN+BN split loses some pretrained information from yolo26l-cls.pt initialization
-#   - IBN gains in literature were measured on plain ResNet-50, not attention-augmented YOLO backbones
-#
-# Reference comparisons:
-#   BoT (ResNet-50, no rerank):  mAP=0.859  Rank-1=0.945
-#   BoT (ResNet-50, +k-rerank):  mAP=0.942  Rank-1=0.954
-#
-# Levers that matter (each tested vs base, ordered by impact):
-#   1. supcon_temp=0.02 (replaces batch-hard triplet)  -> +2-5pp R1 across datasets
-#   2. erasing=0.7 (vs 0.5 default)                    -> +0.5-0.7pp Market R1
-#   3. label_smoothing=0.1 + focal_gamma=0.0           -> +0.4pp R1
-#   4. triplet_margin=0.5 (vs 0.3)                     -> +2.3pp R1 (when triplet active; supcon mode also benefits)
-#   5. cos_lr=True                                     -> +0.2pp Market R1
-#   6. dropout=0.1-0.2                                 -> +0.5-1.6pp MSMT R1 (small Market regression)
-#   7. time=3h DDP (vs 1.5h)                           -> +0.4pp Market R1, +0.6pp Duke R1
-#
-# Levers that hurt: ArcFace, erasing>=0.9, lr0>=5e-3, imgsz=384 (at batch=128), yolo26x at smaller batch.
-#
-# Cross-dataset trade-off:
-# - Best overall (HH, this recipe):  cos_lr=True,  dropout=0.1   — wins Duke, ties EE on Market
-# - MSMT R1 favors:                  cos_lr=False, dropout=0.2   — set those for MSMT-leaning workloads (R1=0.667)
-# - Pure Market R1 (EE):             cos_lr=True,  dropout=0.0   — R1=0.930 (within ±0.001 of HH's 0.929)
+# Reference (ResNet-50 BoT): mAP=0.859 R1=0.945; with k-reciprocal rerank mAP=0.942 R1=0.954.
 
 # --- Task ---
 task: reid                # required so `cfg=reid_best.yaml` validates ReID-only keys (reid_p, supcon_temp, ...)
@@ -151,8 +63,8 @@ reid_p: 24
 reid_k: 8
 
 # --- Augmentation ---
-imgsz: 448                # NEW champion (TX2/TY3): 2-seed avg R1=0.9294/mAP=0.8909 on Market vs imgsz=384 R1=0.9267/mAP=0.8844 → +0.27pp R1. imgsz=512 saturates/regresses (TY1 R1=0.9249).
-                          # Square input; rectangular catastrophic on YOLO backbones (verified).
+imgsz: 448                # champion; R1 peaks at 448 then saturates/regresses by 512.
+                          # Square input; rectangular is catastrophic on YOLO backbones (verified).
 erasing: 0.7              # stronger than classification default; key for Market R1
 fliplr: 0.5
 hsv_h: 0.015
@@ -162,7 +74,7 @@ auto_augment: randaugment
 scale: 0.5
 
 # --- Training ---
-batch: 192                # 4-GPU DDP; total batch (per-GPU = batch / world_size)
-time: 3.0                 # 3h gets ~1300 epochs at imgsz=320 yolo26l on 4-GPU DDP
+batch: 192                # multi-GPU DDP total batch (per-GPU = batch / world_size)
+time: 3.0                 # ~1300 epochs at imgsz=320 yolo26l on a 4-GPU DDP run
 val: False                # ReID val is run as a separate `yolo reid val ... reid_reranking=True reid_tta=True` step
 dropout: 0.1              # 0.0 for pure Market R1; 0.2 for MSMT-leaning

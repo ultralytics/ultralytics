@@ -440,7 +440,9 @@ class Predictor(BasePredictor):
 
         # Remove small disconnected regions and holes, then recompute boxes for the post-processed masks
         if min_mask_region_area > 0 and len(pred_masks):
-            pred_masks, keep = self.remove_small_regions(pred_masks, min_mask_region_area, crop_nms_thresh)
+            # Match upstream: post-processing NMS uses the more permissive of the within-crop and cross-crop thresholds
+            nms_thresh = max(self.args.iou, crop_nms_thresh)
+            pred_masks, keep = self.remove_small_regions(pred_masks, min_mask_region_area, nms_thresh)
             pred_scores = pred_scores[keep]
             pred_bboxes = batched_mask_to_box(pred_masks).float()
 

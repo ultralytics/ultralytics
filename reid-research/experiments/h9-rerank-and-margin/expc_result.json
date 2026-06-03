@@ -1,9 +1,0 @@
-{
-  "baseline_champion_384": {"r1": 0.8996, "mAP": 0.7546},
-  "baseline_champion_448": {"r1": 0.8839, "mAP": 0.7337},
-  "new_no_tta_384": {"r1": 0.8741, "mAP": 0.7053},
-  "new_no_tta_448": {"r1": 0.8700, "mAP": 0.6981},
-  "new_tta_rerank_384": {"r1": 0.9136, "mAP": 0.8642},
-  "new_tta_rerank_448": {"r1": 0.9050, "mAP": 0.8573},
-  "wall_clock_min": 12.6
-}

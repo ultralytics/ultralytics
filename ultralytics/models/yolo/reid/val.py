@@ -17,6 +17,52 @@ from ultralytics.utils.metrics import ReidMetrics
 from ultralytics.utils.torch_utils import smart_inference_mode
 
 
+def select_diagnostic_queries(hits, n: int = 8) -> list[int]:
+    """Pick a diagnostic mix of correct and incorrect rank-1 queries to visualize.
+
+    Splits query indices by whether their rank-1 retrieval was a true match (``hits[i]``),
+    then takes an evenly-strided sample of each half so the plot surfaces both successes and
+    failures. Falls back to the other class when one is short. Fully deterministic (no RNG)
+    so the same eval reproduces the same panel across epochs.
+
+    Args:
+        hits (np.ndarray): Boolean array (len Q); True iff the query's rank-1 match is correct.
+        n (int): Target number of queries to show.
+
+    Returns:
+        (list[int]): Up to ``n`` query indices, sorted ascending.
+    """
+    import numpy as np
+
+    hits = np.asarray(hits, dtype=bool)
+    q = len(hits)
+    if q <= n:
+        return list(range(q))
+
+    miss_idx = np.flatnonzero(~hits)
+    hit_idx = np.flatnonzero(hits)
+
+    def _stride(arr, count):
+        if count <= 0 or len(arr) == 0:
+            return []
+        if len(arr) <= count:
+            return arr.tolist()
+        pos = np.linspace(0, len(arr) - 1, count).round().astype(int)
+        return arr[np.unique(pos)].tolist()
+
+    want_miss = n // 2
+    want_hit = n - want_miss
+    chosen = set(_stride(miss_idx, want_miss)) | set(_stride(hit_idx, want_hit))
+
+    # Backfill from whichever pool still has unused indices until we reach n (or run out).
+    pool = [i for i in (*hit_idx.tolist(), *miss_idx.tolist()) if i not in chosen]
+    for i in pool:
+        if len(chosen) >= n:
+            break
+        chosen.add(i)
+    return sorted(chosen)
+
+
 class ReidValidator(ClassificationValidator):
     """Validator for person re-identification models.
 

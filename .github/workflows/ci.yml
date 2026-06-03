@@ -155,8 +155,12 @@ jobs:
           if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
+          legacy_setuptools=()
+          if [ "${{ matrix.python }}" = "3.8" ]; then
+              legacy_setuptools=("setuptools<76.0.0")
+          fi
           uv pip install -e ".[export-base,solutions]" \
-            $torch aiohttp pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
+            $torch aiohttp pytest-cov pytest-xdist "${legacy_setuptools[@]}" "git+https://github.com/ultralytics/CLIP.git" \
             --extra-index-url https://download.pytorch.org/whl/cpu \
             --index-strategy unsafe-best-match
       - name: Check environment
@@ -311,16 +315,12 @@ jobs:
           if [ "${{ matrix.torch }}" != "latest" ]; then
             torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          legacy_setuptools=()
-          if [ "${{ matrix.python }}" = "3.8" ]; then
-            legacy_setuptools=("setuptools<76.0.0")
-          fi
           clip_package=()
           if [ "${{ matrix.python }}" != "3.12" ]; then
             clip_package=("git+https://github.com/ultralytics/CLIP.git")
           fi
           uv pip install -e ".[export-base,solutions${legacy_extra}]" $torch \
-            aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist "${legacy_setuptools[@]}" "${clip_package[@]}" \
+            aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist "${clip_package[@]}" \
             --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
       - name: Check environment
         run: |

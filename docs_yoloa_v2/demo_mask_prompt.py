@@ -36,14 +36,16 @@ from ultra_ext.im import concat_samh
 # ============================================================================
 experiment = "26m_yoloav2_v5_binary_cm20_gauss_pd50_v1"
 experiment= '26m_yoloav2seg_v5_binary_cm20_rect_pd50_a1_v1'
+experiment= '26m_yoloav2_softhint_rect_pd50_v1'
+experiment= '26m_yoloav2_softhint_rect_pd50_seg_a1_v1'
 
 
 MODEL_PATH = f"/Users/louis/workspace/ultra_louis_work/ultra6/runs/yoloa_v2/{experiment}/weights/best.pt"
 SAVE_PATH  = "../runs/temp/demo_mask_prompt/compare.png"
-CATEGORY   = "bottle"  # from MVTec AD (or "all" for random across all categories)
+CATEGORY   = "grid"  # from MVTec AD (or "all" for random across all categories)
 
-CONF, IOU, END2END, MAX_DET = 0.3, 0.05, False, 9
-
+CONF, IOU, END2END, MAX_DET = 0.1, 0.05, False, 9
+GOOD=False  # if True, sample from "good" (non-anomalous) images; else from "bad" (anomalous) ones
 
 def overlay_mask(img_bgr, mask_path, color=(0, 0, 255), alpha=0.45):
     """Red-tint a BGR image wherever the binary mask is non-zero."""
@@ -117,7 +119,7 @@ def blank_like(img):
 
 
 def main():
-    image_path, mask_path = get_random_sample(CATEGORY)
+    image_path, mask_path = get_random_sample(CATEGORY, good=GOOD)
     has_anno = mask_path is not None and Path(mask_path).exists()
 
     y = YOLO(MODEL_PATH)

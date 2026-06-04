@@ -12,16 +12,12 @@ canonical: https://docs.ultralytics.com/models/yolo11/environments/aws-quickstar
   "headline": "YOLO11 on AWS Deep Learning Instance",
   "description": "Deploy Ultralytics YOLO11 on an AWS Deep Learning EC2 instance. Step-by-step guide to launch a GPU-accelerated environment for object detection, segmentation, pose estimation, and classification in the cloud.",
   "url": "https://docs.ultralytics.com/models/yolo11/environments/aws-quickstart/",
+  "image": "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/aws-console-sign-in.avif",
+  "datePublished": "2026-06-04",
+  "dateModified": "2026-06-04",
   "author": {"@type": "Organization", "name": "Ultralytics", "url": "https://www.ultralytics.com"},
   "publisher": {"@type": "Organization", "name": "Ultralytics", "url": "https://www.ultralytics.com"},
-  "mainEntityOfPage": "https://docs.ultralytics.com/models/yolo11/environments/aws-quickstart/",
-  "step": [
-    {"@type": "HowToStep", "name": "Sign In and Open EC2", "position": 1},
-    {"@type": "HowToStep", "name": "Launch an Instance", "position": 2},
-    {"@type": "HowToStep", "name": "Connect via SSH", "position": 3},
-    {"@type": "HowToStep", "name": "Install YOLO11", "position": 4},
-    {"@type": "HowToStep", "name": "Run YOLO11", "position": 5}
-  ]
+  "mainEntityOfPage": "https://docs.ultralytics.com/models/yolo11/environments/aws-quickstart/"
 }
 </script>
 

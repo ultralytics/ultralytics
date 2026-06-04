@@ -12,14 +12,12 @@ canonical: https://docs.ultralytics.com/models/yolo26/environments/google-cloud-
   "headline": "YOLO26 on Google Cloud Platform (GCP) Deep Learning VM",
   "description": "Deploy Ultralytics YOLO26 on Google Cloud Platform Deep Learning VM. Step-by-step guide to set up a GPU-accelerated environment for real-time object detection with end-to-end NMS-free inference.",
   "url": "https://docs.ultralytics.com/models/yolo26/environments/google-cloud-quickstart/",
+  "image": "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/gcp-deep-learning-vm-setup.avif",
+  "datePublished": "2026-06-04",
+  "dateModified": "2026-06-04",
   "author": {"@type": "Organization", "name": "Ultralytics", "url": "https://www.ultralytics.com"},
   "publisher": {"@type": "Organization", "name": "Ultralytics", "url": "https://www.ultralytics.com"},
-  "mainEntityOfPage": "https://docs.ultralytics.com/models/yolo26/environments/google-cloud-quickstart/",
-  "step": [
-    {"@type": "HowToStep", "name": "Create a Deep Learning VM", "position": 1},
-    {"@type": "HowToStep", "name": "Install YOLO26", "position": 2},
-    {"@type": "HowToStep", "name": "Run YOLO26", "position": 3}
-  ]
+  "mainEntityOfPage": "https://docs.ultralytics.com/models/yolo26/environments/google-cloud-quickstart/"
 }
 </script>
 

@@ -12,14 +12,12 @@ canonical: https://docs.ultralytics.com/models/yolo11/environments/docker-quicks
   "headline": "YOLO11 Docker Quickstart",
   "description": "Run Ultralytics YOLO11 inside a Docker container. Step-by-step guide for CPU and GPU setups, volume mounting, and running detection, segmentation, pose estimation, and classification tasks in an isolated environment.",
   "url": "https://docs.ultralytics.com/models/yolo11/environments/docker-quickstart/",
+  "image": "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/gcp-running-docker.avif",
+  "datePublished": "2026-06-04",
+  "dateModified": "2026-06-04",
   "author": {"@type": "Organization", "name": "Ultralytics", "url": "https://www.ultralytics.com"},
   "publisher": {"@type": "Organization", "name": "Ultralytics", "url": "https://www.ultralytics.com"},
-  "mainEntityOfPage": "https://docs.ultralytics.com/models/yolo11/environments/docker-quickstart/",
-  "step": [
-    {"@type": "HowToStep", "name": "Pull the Ultralytics Docker Image", "position": 1},
-    {"@type": "HowToStep", "name": "Run the Container", "position": 2},
-    {"@type": "HowToStep", "name": "Use YOLO11 Inside the Container", "position": 3}
-  ]
+  "mainEntityOfPage": "https://docs.ultralytics.com/models/yolo11/environments/docker-quickstart/"
 }
 </script>
 

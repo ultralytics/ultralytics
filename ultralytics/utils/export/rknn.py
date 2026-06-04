@@ -70,10 +70,10 @@ def onnx2rknn(
 
     rknn = RKNN(verbose=False)
     config = {"mean_values": [[0, 0, 0]], "std_values": [[255, 255, 255]], "target_platform": name}
-    if int8:
-        # Per-channel weight quantization with MMSE activation calibration for best INT8 accuracy (ignored for FP16)
-        config["quantized_method"] = "channel"
-        config["quantized_algorithm"] = "mmse"
+    # if int8:
+    #     # Per-channel weight quantization with MMSE activation calibration for best INT8 accuracy (ignored for FP16)
+    #     config["quantized_method"] = "channel"
+    #     config["quantized_algorithm"] = "mmse"
     _check_rknn_return(rknn.config(**config), "config")
     _check_rknn_return(rknn.load_onnx(model=onnx_file), "load_onnx")
     build_kwargs = {"do_quantization": int8}

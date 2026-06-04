@@ -145,10 +145,10 @@ What you do with each isolated object is up to you. A common next step is writin
 
 ```python
 # Save the isolated object to file
-cv2.imwrite(f"{img_name}_{label}-{ci}.png", iso_crop)
+cv2.imwrite(f"{img_name}_{label}-{ci}.png", isolated)
 ```
 
-Here `img_name` is the source image stem, `label` is the class name, and `ci` is the detection index, so multiple instances of the same class get unique filenames.
+Here `img_name` is the source image stem, `label` is the class name, and `ci` is the detection index, so multiple instances of the same class get unique filenames. Swap `isolated` for `iso_crop` if you applied the optional crop above.
 
 ## Full Example
 
@@ -181,12 +181,12 @@ for r in results:
         mask3ch = cv2.cvtColor(b_mask, cv2.COLOR_GRAY2BGR)
         isolated = cv2.bitwise_and(mask3ch, img)  # transparent PNG: isolated = np.dstack([img, b_mask])
 
-        # Crop to the bounding box
-        x1, y1, x2, y2 = c.boxes.xyxy.cpu().numpy().squeeze().astype(np.int32)
-        iso_crop = isolated[y1:y2, x1:x2]
-
         # Save or add your custom post-processing here
-        cv2.imwrite(f"{img_name}_{label}-{ci}.png", iso_crop)
+        cv2.imwrite(f"{img_name}_{label}-{ci}.png", isolated)
+
+        # Optional: crop to the bounding box before saving
+        # x1, y1, x2, y2 = c.boxes.xyxy.cpu().numpy().squeeze().astype(np.int32)
+        # cv2.imwrite(f"{img_name}_{label}-{ci}.png", isolated[y1:y2, x1:x2])
 ```
 
 For repeated use, wrap the loop body in a function so you can call it across many images.

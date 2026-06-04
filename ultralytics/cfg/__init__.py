@@ -368,7 +368,7 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
         ... }
         >>> check_cfg(config, hard=False)
         >>> print(config)
-        {'epochs': 50, 'lr0': 0.01, 'momentum': 0.937, 'save': False}  # corrected 'save' key
+        {'epochs': 50, 'lr0': 0.01, 'momentum': 0.937, 'save': True}  # corrected 'save' key
 
     Notes:
         - The function modifies the input dictionary in-place.

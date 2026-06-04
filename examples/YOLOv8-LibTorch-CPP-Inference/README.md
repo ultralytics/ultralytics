@@ -52,7 +52,7 @@ Follow these steps to run the C++ inference example:
     ```
 
 5.  **Run the Inference:**
-    Execute the compiled binary. The application will load the exported YOLOv8 model and perform inference on a sample image (`zidane.jpg` included in the root `ultralytics` directory) or video.
+    Execute the compiled binary. The application will load the exported YOLOv8 model and perform inference on a sample image. Edit the image path in `main.cc` (it defaults to a placeholder `/path/to/bus.jpg`) before running.
     ```bash
     ./yolov8_libtorch_inference
     ```

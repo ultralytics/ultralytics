@@ -159,16 +159,12 @@ class Detect(nn.Module):
     ) -> dict[str, torch.Tensor] | torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Concatenates and returns predicted bounding boxes and class probabilities."""
         if self.export and self.format == "rknn" and getattr(self, "rknn_int8", False):
-            # Emit raw per-scale regression and classification maps, deferring DFL, box decode and sigmoid
-            # to the RKNN backend on CPU. This keeps the quantization-sensitive decode out of the INT8 graph
-            # so RKNN INT8 export retains accuracy (per-tensor INT8 cannot represent the decoded box range).
-            # FP16 RKNN keeps the in-graph decode (it tolerates the dynamic range), so this only affects INT8.
-            # end2end is forced False for rknn exports (see Exporter), so always use the one2many head + CPU NMS
-            box_head, cls_head = self.one2many["box_head"], self.one2many["cls_head"]
+            # INT8 RKNN: emit raw per-scale reg/cls maps; DFL, decode and sigmoid run in float on the
+            # backend (see RKNNBackend._decode) to keep quantization-sensitive ops out of the INT8 graph.
             y = []
             for i in range(self.nl):
-                y.append(box_head[i](x[i]))  # reg: (B, 4 * reg_max, H, W)
-                y.append(cls_head[i](x[i]))  # cls: (B, nc, H, W) raw logits
+                y.append(self.cv2[i](x[i]))  # reg: [1, 4*reg_max, H, W] - raw regression output
+                y.append(self.cv3[i](x[i]))  # cls: [1, nc, H, W] - raw classification output (no sigmoid)
             return y
         preds = self.forward_head(x, **self.one2many)
         if self.end2end:

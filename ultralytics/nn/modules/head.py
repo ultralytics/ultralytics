@@ -163,8 +163,8 @@ class Detect(nn.Module):
             # to the RKNN backend on CPU. This keeps the quantization-sensitive decode out of the INT8 graph
             # so RKNN INT8 export retains accuracy (per-tensor INT8 cannot represent the decoded box range).
             # FP16 RKNN keeps the in-graph decode (it tolerates the dynamic range), so this only affects INT8.
-            heads = self.one2one if self.end2end else self.one2many
-            box_head, cls_head = heads["box_head"], heads["cls_head"]
+            # end2end is forced False for rknn exports (see Exporter), so always use the one2many head + CPU NMS
+            box_head, cls_head = self.one2many["box_head"], self.one2many["cls_head"]
             y = []
             for i in range(self.nl):
                 y.append(box_head[i](x[i]))  # reg: (B, 4 * reg_max, H, W)

@@ -74,15 +74,14 @@ class RKNNBackend(BaseBackend):
         return y
 
     def _decode(self, outputs: list) -> torch.Tensor:
-        """Decode raw RKNN head maps into the standard detection tensor on CPU.
+        """Decode raw RKNN reg/cls head maps into (1, 4 + nc, anchors), applying DFL, box decode and sigmoid in float.
 
-        The RKNN graph emits per-scale regression (``4 * reg_max`` channels) and classification (``nc`` channels)
-        maps without DFL, box decoding or sigmoid (see ``Detect.forward``). Those quantization-sensitive ops are
-        applied here in float so INT8 RKNN models retain accuracy. The predictor then runs NMS on the result.
+        Detect.forward emits per-scale regression (4 * reg_max channels) and classification (nc channels) maps in
+        export order (reg, cls per scale, large to small). Doing DFL, decode and sigmoid here on CPU keeps these
+        quantization-sensitive ops off the NPU so INT8 models stay accurate. The predictor then runs NMS.
 
         Args:
-            outputs (list): Raw NCHW output arrays from ``RKNNLite.inference``, one regression and one
-                classification map per detection scale, in any order.
+            outputs (list): Raw NCHW arrays from RKNNLite.inference, reg and cls per scale, large to small.
 
         Returns:
             (torch.Tensor): Predictions of shape (1, 4 + nc, anchors) with boxes in xywh pixel units.
@@ -92,30 +91,18 @@ class RKNNBackend(BaseBackend):
         from ultralytics.utils.tal import dist2bbox, make_anchors
 
         nc = len(self.names)
-        tensors = [torch.as_tensor(np.ascontiguousarray(o), dtype=torch.float32) for o in outputs]
+        feats = [torch.as_tensor(np.ascontiguousarray(o), dtype=torch.float32) for o in outputs]
+        regs, clss = feats[0::2], feats[1::2]  # reg/cls per scale, large -> small feature maps
+        reg_max = regs[0].shape[1] // 4  # reg has 4 * reg_max channels; reg_max == 1 means no DFL
 
-        # RKNN keeps the ONNX framework layout (NCHW), so channel is dim 1: cls maps have nc channels,
-        # reg maps have 4 * reg_max. Group the two maps of each scale by their (H, W), pick cls as the
-        # nc-channel map, and derive reg_max from the reg map's channel count (reg_max == 1 means no DFL).
-        groups: dict[tuple[int, int], list[torch.Tensor]] = {}
-        for t in tensors:
-            groups.setdefault((t.shape[2], t.shape[3]), []).append(t)
-        regs, clss = {}, {}
-        for hw, (m0, m1) in groups.items():
-            reg, cls = (m1, m0) if m0.shape[1] == nc else (m0, m1)
-            regs[hw], clss[hw] = reg, cls
-        reg_max = next(iter(regs.values())).shape[1] // 4
+        strides = [self.imgsz[0] // r.shape[2] for r in regs]
+        anchors, strides_t = (a.transpose(0, 1) for a in make_anchors(regs, strides, 0.5))
 
-        keys = sorted(regs, key=lambda k: k[0] * k[1], reverse=True)  # large -> small feature maps
-        feats = [regs[k] for k in keys]
-        strides = [self.imgsz[0] // k[0] for k in keys]
-        anchors, strides_t = (a.transpose(0, 1) for a in make_anchors(feats, strides, 0.5))
-
-        boxes = torch.cat([regs[k].reshape(1, 4 * reg_max, -1) for k in keys], dim=2)
-        scores = torch.cat([clss[k].reshape(1, nc, -1) for k in keys], dim=2)
+        boxes = torch.cat([r.reshape(1, 4 * reg_max, -1) for r in regs], 2)
+        scores = torch.cat([c.reshape(1, nc, -1) for c in clss], 2)
 
         b, _, a = boxes.shape
-        if reg_max > 1:  # DFL integral; reg_max == 1 means DFL is Identity and boxes are raw ltrb distances
+        if reg_max > 1:  # DFL integral; reg_max == 1 means boxes are raw ltrb distances (DFL is Identity)
             proj = torch.arange(reg_max, dtype=boxes.dtype)
             boxes = (boxes.view(b, 4, reg_max, a).softmax(2) * proj.view(1, 1, reg_max, 1)).sum(2)
         dbox = dist2bbox(boxes, anchors.unsqueeze(0), xywh=True, dim=1) * strides_t

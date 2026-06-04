@@ -1293,11 +1293,8 @@ class Exporter:
             rknn_dataset = output_dir / "dataset.txt"
             rknn_dataset.write_text("\n".join(str(Path(x).resolve()) for x in image_paths) + "\n")
         if self.model.task == "detect" and self.args.int8:
-            # INT8 detect exports emit raw head maps (see Detect.forward); the backend decodes them on CPU and
-            # the predictor runs NMS, so the exported model is not end-to-end regardless of the source model.
-            # FP16 exports keep the in-graph decode and are left untouched. Segment/Pose/OBB also keep in-graph
-            # decode (they override forward).
-            self.metadata["end2end"] = False
+            # INT8 detect exports emit raw head maps (see Detect.forward) that the backend decodes on CPU using
+            # reg_max, so record it in the metadata. end2end is already forced False for rknn exports above.
             self.metadata["reg_max"] = int(next((m.reg_max for m in self.model.modules() if isinstance(m, Detect)), 16))
         return onnx2rknn(
             onnx_file=f_onnx,

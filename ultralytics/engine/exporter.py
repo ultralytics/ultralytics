@@ -1294,10 +1294,6 @@ class Exporter:
             output_dir.mkdir(parents=True, exist_ok=True)
             rknn_dataset = output_dir / "dataset.txt"
             rknn_dataset.write_text("\n".join(str(Path(x).resolve()) for x in image_paths) + "\n")
-        if self.args.int8:
-            # INT8 exports emit raw head maps (see Detect.forward) that the backend decodes on CPU using reg_max,
-            # so record it in the metadata. end2end is already forced False for rknn exports above.
-            self.metadata["reg_max"] = int(next((m.reg_max for m in self.model.modules() if isinstance(m, Detect)), 16))
         return onnx2rknn(
             onnx_file=f_onnx,
             output_dir=output_dir,

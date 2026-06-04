@@ -92,20 +92,19 @@ class RKNNBackend(BaseBackend):
         from ultralytics.utils.tal import dist2bbox, make_anchors
 
         nc = len(self.names)
-        reg_max = int(getattr(self, "reg_max", 16))
         tensors = [torch.as_tensor(np.ascontiguousarray(o), dtype=torch.float32) for o in outputs]
 
         # RKNN keeps the ONNX framework layout (NCHW), so channel is dim 1: cls maps have nc channels,
-        # reg maps have 4 * reg_max. Group the two maps of each scale by their (H, W) and split them by
-        # channel count. When nc == 4 * reg_max the counts collide, so fall back to export order within the
-        # scale (Detect.forward emits reg before cls), which RKNN preserves.
+        # reg maps have 4 * reg_max. Group the two maps of each scale by their (H, W), pick cls as the
+        # nc-channel map, and derive reg_max from the reg map's channel count (reg_max == 1 means no DFL).
         groups: dict[tuple[int, int], list[torch.Tensor]] = {}
         for t in tensors:
             groups.setdefault((t.shape[2], t.shape[3]), []).append(t)
         regs, clss = {}, {}
         for hw, (m0, m1) in groups.items():
-            reg, cls = (m1, m0) if nc != 4 * reg_max and m0.shape[1] == nc else (m0, m1)
+            reg, cls = (m1, m0) if m0.shape[1] == nc else (m0, m1)
             regs[hw], clss[hw] = reg, cls
+        reg_max = next(iter(regs.values())).shape[1] // 4
 
         keys = sorted(regs, key=lambda k: k[0] * k[1], reverse=True)  # large -> small feature maps
         feats = [regs[k] for k in keys]

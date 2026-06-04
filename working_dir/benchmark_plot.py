@@ -83,13 +83,17 @@ DFINE_DINOV3S_OBJ365_IMGSZ_SWEEP = [
 ]
 
 YOLO26L_RTDETR_OBJ365_IMGSZ_SWEEP = [
-    # T4 TensorRT v10.11, rtdetr_yolo26L_rtdetr_obj365_op17_nosim_norope_*_nofp32attn_fp16.engine.
+    # T4 TensorRT v10.11, rtdetr_yolo26*_rtdetr_obj365_op17_nosim_norope_*_nofp32attn_fp16.engine.
     # Labels use decoder layer count; export_eval_idx=eidx means l{eidx + 1}.
-    # ("384/l2", 3.8, {"ap": 47.2, "ap50": 68.3, "ap75": 52.1, "ap_small": 28.5, "ap_medium": 51.6, "ap_large": 65.5}, 0.1),
-    # ("480/l3", 5.0, {"ap": 54.1, "ap50": 72.0, "ap75": 58.8, "ap_small": 37.6, "ap_medium": 58.9, "ap_large": 71.0}, 0.1),
-    ("512/l3", 5.3, {"ap": 54.7, "ap50": 72.3, "ap75": 59.5, "ap_small": 37.6, "ap_medium": 59.5, "ap_large": 71.3}, 0.1),
-    ("576/l4", 6.8, {"ap": 55.9, "ap50": 73.3, "ap75": 60.8, "ap_small": 38.7, "ap_medium": 60.4, "ap_large": 71.8}, 0.1),
-    ("640/l4", 7.7, {"ap": 56.5, "ap50": 74.1, "ap75": 61.6, "ap_small": 41.2, "ap_medium": 61.0, "ap_large": 70.9}, 0.1),
+    # ("n/480/l2", 1.8, {"ap": 38.6, "ap50": 54.0, "ap75": 41.6, "ap_small": 19.0, "ap_medium": 42.2, "ap_large": 55.8}, 0.0),
+    # ("s/512/l3", 2.7, {"ap": 48.4, "ap50": 65.3, "ap75": 52.5, "ap_small": 29.5, "ap_medium": 53.0, "ap_large": 66.2}, 0.0),
+    # ("n/640/l6", 3.4, {"ap": 46.4, "ap50": 63.3, "ap75": 50.2, "ap_small": 28.9, "ap_medium": 49.8, "ap_large": 63.2}, 0.0),
+    # ("s/640/l6", 4.4, {"ap": 51.6, "ap50": 68.9, "ap75": 56.2, "ap_small": 35.0, "ap_medium": 55.8, "ap_large": 67.6}, 0.1),
+    # ("l/384/l2", 3.8, {"ap": 47.2, "ap50": 68.3, "ap75": 52.1, "ap_small": 28.5, "ap_medium": 51.6, "ap_large": 65.5}, 0.1),
+    # ("l/480/l3", 5.0, {"ap": 54.1, "ap50": 72.0, "ap75": 58.8, "ap_small": 37.6, "ap_medium": 58.9, "ap_large": 71.0}, 0.1),
+    ("l/512/l3", 5.3, {"ap": 54.7, "ap50": 72.3, "ap75": 59.5, "ap_small": 37.6, "ap_medium": 59.5, "ap_large": 71.3}, 0.1),
+    ("l/576/l4", 6.8, {"ap": 55.9, "ap50": 73.3, "ap75": 60.8, "ap_small": 38.7, "ap_medium": 60.4, "ap_large": 71.8}, 0.1),
+    ("l/640/l4", 7.7, {"ap": 56.5, "ap50": 74.1, "ap75": 61.6, "ap_small": 41.2, "ap_medium": 61.0, "ap_large": 70.9}, 0.1),
 ]
 
 BENCHMARKS = {
@@ -196,23 +200,26 @@ BENCHMARKS = {
             ],
         },
     },
+    # Ultralytics ProfileModels TRT-path methodology applied to CoreML mlpackages:
+    # warmup=30 (3 rounds x 10), min_time=60s -> num_runs ~ 5000 per model,
+    # sigma=2 max_iters=3 clip, ComputeUnit.ALL (default). Entries: (size, mean_ms, {ap}, std_ms).
     "m5_coreml": {
-        "title": "Object Detection Models: Latency vs mAP (Apple M5, native CoreML .mlpackage)",
+        "title": "Object Detection Models: Latency vs mAP (Apple M5, native CoreML .mlpackage, ProfileModels TRT-path: warmup=30, num_runs~5000, sigma=2 iters=3)",
         "models": {
             "YOLO26 (E2E)": [
-                ("l", 13.11, {"ap": 54.4}, 0.15),
-                ("x", 24.05, {"ap": 56.9}, 0.19),
+                ("l", 10.35, {"ap": 54.4}, 0.06),
+                ("x", 21.20, {"ap": 56.9}, 0.16),
             ],
             "YOLO26 (NMS)": [
-                ("l", 13.19, {"ap": 55.0}, 0.15),
-                ("x", 23.96, {"ap": 57.5}, 0.15),
+                ("l", 10.32, {"ap": 55.0}, 0.06),
+                ("x", 21.12, {"ap": 57.5}, 0.08),
             ],
             "YOLO26_RTDETR (obj365)": [
-                ("l", 19.96, {"ap": 56.7}, 0.36),
-                ("x", 30.86, {"ap": 58.4}, 0.22),
+                ("l", 16.88, {"ap": 56.7}, 0.23),
+                ("x", 28.01, {"ap": 58.4}, 0.29),
             ],
             "DEIM-DINOv3SPlus (obj365)": [
-                ("xl/l6", 119.29, {"ap": 59.9}, 2.34),
+                ("xl/l6", 115.97, {"ap": 59.9}, 2.64),
             ],
         },
     },

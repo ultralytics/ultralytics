@@ -201,15 +201,20 @@ YOLO26 benchmarks below were run by the Ultralytics team on Radxa Rock 5B based 
 
 !!! tip "Performance"
 
-    | Model   | Format | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
-    | ------- | ------ | ------ | --------- | ----------- | ---------------------- |
-    | YOLO26n | `rknn` | ✅     | 7.1       | 0.479       | 65.7                   |
-    | YOLO26s | `rknn` | ✅     | 20.9      | 0.571       | 99.2                   |
-    | YOLO26m | `rknn` | ✅     | 42.5      | 0.610       | 235.3                  |
-    | YOLO26l | `rknn` | ✅     | 52.1      | 0.630       | 280.5                  |
-    | YOLO26x | `rknn` | ✅     | 112.2     | 0.666       | 669.1                  |
+    | Model   	| Format 	| Precision 	| Status 	| Size (MB) 	| mAP50-95(B) 	| Inference time (ms/im) 	|
+    |---------	|--------	|-----------	|--------	|-----------	|-------------	|------------------------	|
+    | YOLO26n 	| `rknn` 	| FP16      	| ✅      	| 7.2       	| 0.477       	| 58.5                   	|
+    | YOLO26n 	| `rknn` 	| INT8      	| ✅      	| 4.1       	| 0.463       	| 41.2                   	|
+    | YOLO26s 	| `rknn` 	| FP16      	| ✅      	| 21.0      	| 0.569       	| 93.8                   	|
+    | YOLO26s 	| `rknn` 	| INT8      	| ✅      	| 12.0      	| 0.554       	| 61.9                   	|
+    | YOLO26m 	| `rknn` 	| FP16      	| ✅      	| 43.0      	| 0.608       	| 226.3                  	|
+    | YOLO26m 	| `rknn` 	| INT8      	| ✅      	| 22.0      	| 0.603       	| 122.0                  	|
+    | YOLO26l 	| `rknn` 	| FP16      	| ✅      	| 53.0      	| 0.628       	| 264.7                  	|
+    | YOLO26l 	| `rknn` 	| INT8      	| ✅      	| 28.0      	| 0.617       	| 145.3                  	|
+    | YOLO26x 	| `rknn` 	| FP16      	| ✅      	| 113.0     	| 0.664       	| 655.4                  	|
+    | YOLO26x 	| `rknn` 	| INT8      	| ✅      	| 58.0      	| 0.649       	| 287.4                  	|
 
-    Benchmarked with `ultralytics 8.4.23`
+    Benchmarked with `ultralytics 8.4.60`
 
     !!! note
 

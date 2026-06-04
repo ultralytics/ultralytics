@@ -113,8 +113,8 @@ def main():
     parser.add_argument("--imgsz", type=int, default=320)
     parser.add_argument("--n", type=int, default=4, help="Number of random test images")
     parser.add_argument("--batch", type=int, default=8)
-    parser.add_argument("--max_bank", type=int, default=5000)
-    parser.add_argument("--max_images", type=int, default=100,
+    parser.add_argument("--max_bank", type=int, default=10000)
+    parser.add_argument("--max_images", type=int, default=1000,
                         help="Cap on normal images for bank (0=all)")
     parser.add_argument("--out", type=str, default=None,
                         help="Output dir (default: runs/temp/predict_visual/)")

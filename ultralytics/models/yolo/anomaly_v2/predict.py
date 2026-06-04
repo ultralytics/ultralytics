@@ -4,10 +4,11 @@
 
 Four prior modes selectable via ``predictor.prior_mode``:
 
-  - ``"none"``    — passthrough (vanilla YOLO, no fusion bias).
-  - ``"segment"`` — SegBranch sigmoid output as prior.
-  - ``"heatmap"`` — BackboneMemoryBank output as prior.
-  - ``"mask"``    — external_mask provided by caller.
+  - ``"none"``        — passthrough (vanilla YOLO, no fusion bias).
+  - ``"segment"``     — SegBranch sigmoid output as prior.
+  - ``"heatmap"``     — BackboneMemoryBank output as prior.
+  - ``"seg_heatmap"`` — average of segment + memory-bank heatmaps.
+  - ``"mask"``        — external_mask provided by caller.
 
 Legacy ``external_mask`` / ``bbox_prompt`` attributes still work when
 ``prior_mode`` is ``None`` (backward compat).

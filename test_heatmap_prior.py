@@ -23,6 +23,44 @@ from ultralytics.utils import LOGGER
 from ultra_ext.im import concat_samh
 
 
+def _report_load(matched: dict, ckpt_state: dict, model_state: dict) -> None:
+    """Log which keys matched, which are missing in ckpt (random init), and
+    which are missing in model (YAML mismatch / removed modules)."""
+    ckpt_keys = set(ckpt_state.keys())
+    model_keys = set(model_state.keys())
+    matched_keys = set(matched.keys())
+    missing_in_ckpt = model_keys - matched_keys
+    missing_in_model = ckpt_keys - matched_keys
+
+    LOGGER.info(
+        f"Weight load: {len(matched)}/{len(ckpt_keys)} ckpt keys matched "
+        f"(model has {len(model_keys)} total)"
+    )
+    if missing_in_model:
+        grouped = _group_keys(missing_in_model)
+        LOGGER.warning(
+            f"  {len(missing_in_model)} keys in ckpt but NOT in model:\n"
+            + "\n".join(f"    [{p}] {', '.join(sorted(ks)[:6])}{'...' if len(ks) > 6 else ''}"
+                        for p, ks in grouped)
+        )
+    if missing_in_ckpt:
+        grouped = _group_keys(missing_in_ckpt)
+        LOGGER.warning(
+            f"  {len(missing_in_ckpt)} keys in model but NOT in ckpt (RANDOM INIT):\n"
+            + "\n".join(f"    [{p}] {', '.join(sorted(ks)[:6])}{'...' if len(ks) > 6 else ''}"
+                        for p, ks in grouped)
+        )
+
+
+def _group_keys(keys: set[str]) -> list[tuple[str, list[str]]]:
+    """Group state-dict keys by top-level prefix (e.g. 'model.2', 'seg_branch')."""
+    groups: dict[str, list[str]] = {}
+    for k in sorted(keys):
+        prefix = k.split(".")[0]
+        groups.setdefault(prefix, []).append(k)
+    return sorted(groups.items())
+
+
 def main():
     parser = argparse.ArgumentParser(description="Test heatmap prior mode end-to-end")
     parser.add_argument("--ckpt", type=str,
@@ -34,7 +72,7 @@ def main():
     parser.add_argument("--imgsz", type=int, default=320)
     parser.add_argument("--batch", type=int, default=8)
     parser.add_argument("--max_bank", type=int, default=5000)
-    parser.add_argument("--max_images", type=int, default=100,
+    parser.add_argument("--max_images", type=int, default=1000,
                         help="Cap on normal images (0=all). Set to 100 for smoke tests.")
     parser.add_argument("--device", type=str, default=None)
     args = parser.parse_args()
@@ -84,7 +122,9 @@ def main():
     matched = {k: v for k, v in ckpt_state.items()
                if k in model_state and model_state[k].shape == v.shape}
     model.load_state_dict(matched, strict=False)
-    LOGGER.info(f"Loaded {len(matched)} matching parameters")
+
+    # ---- Report loading status ----
+    _report_load(matched, ckpt_state, model_state)
 
     model.to(device)
     model.eval()
@@ -138,35 +178,45 @@ def main():
     hmap_seg = model._last_heatmap
     LOGGER.info(f"  Boxes: {n_boxes_seg}, Heatmap max: {hmap_seg.max().item():.4f}" if hmap_seg is not None else f"  Boxes: {n_boxes_seg}, Heatmap: None")
 
+    LOGGER.info(f"Testing predict with prior_mode='seg_heatmap' on {anomaly_img}...")
+    res_sh = y.predict(anomaly_img, imgsz=args.imgsz, prior_mode="seg_heatmap", verbose=False)
+    n_boxes_sh = res_sh[0].boxes.shape[0] if res_sh[0].boxes is not None else 0
+    hmap_sh = model._last_heatmap
+    LOGGER.info(f"  Boxes: {n_boxes_sh}, Heatmap max: {hmap_sh.max().item():.4f}" if hmap_sh is not None else f"  Boxes: {n_boxes_sh}, Heatmap: None")
+
     res_none = y.predict(anomaly_img, imgsz=args.imgsz, prior_mode="none", verbose=False)
     n_boxes_none = res_none[0].boxes.shape[0] if res_none[0].boxes is not None else 0
     LOGGER.info(f"  (none mode) Boxes: {n_boxes_none}")
 
     # ------------------------------------------------------------------
-    # 4. Validate: none vs heatmap vs segment vs mask comparison
+    # 4. Validate: none vs heatmap vs segment vs seg_heatmap vs mask comparison
     # ------------------------------------------------------------------
     LOGGER.info("Running validation with prior_mode='none'...")
-    stats_none = y.val(data=str(data_yaml), imgsz=args.imgsz, batch=4, single_cls=True,
+    stats_none = y.val(data=str(data_yaml), imgsz=args.imgsz, batch=4, single_cls=True, conf=0.1,
                        prior_mode="none", save=False, plots=False, verbose=False)
 
     LOGGER.info("Running validation with prior_mode='heatmap'...")
-    stats_heat = y.val(data=str(data_yaml), imgsz=args.imgsz, batch=4, single_cls=True,
+    stats_heat = y.val(data=str(data_yaml), imgsz=args.imgsz, batch=4, single_cls=True, conf=0.1,
                        prior_mode="heatmap", save=False, plots=False, verbose=False)
 
     LOGGER.info("Running validation with prior_mode='segment'...")
-    stats_seg = y.val(data=str(data_yaml), imgsz=args.imgsz, batch=4, single_cls=True,
+    stats_seg = y.val(data=str(data_yaml), imgsz=args.imgsz, batch=4, single_cls=True, conf=0.1,
                       prior_mode="segment", save=False, plots=False, verbose=False)
 
+    LOGGER.info("Running validation with prior_mode='seg_heatmap'...")
+    stats_sh = y.val(data=str(data_yaml), imgsz=args.imgsz, batch=4, single_cls=True, conf=0.1,
+                     prior_mode="seg_heatmap", save=False, plots=False, verbose=False)
+
     LOGGER.info("Running validation with prior_mode='mask' (GT upper-bound)...")
-    stats_mask = y.val(data=str(data_yaml), imgsz=args.imgsz, batch=4, single_cls=True,
+    stats_mask = y.val(data=str(data_yaml), imgsz=args.imgsz, batch=4, single_cls=True, conf=0.1,
                        prior_mode="mask", save=False, plots=False, verbose=False)
 
-    LOGGER.info("=== Comparison: none vs heatmap vs segment vs mask (GT) ===")
-    LOGGER.info(f"  {'Metric':<20} {'none':>10} {'heatmap':>10} {'segment':>10} {'mask':>10}")
-    LOGGER.info(f"  {'mAP50':<20} {stats_none.box.map50:>10.4f} {stats_heat.box.map50:>10.4f} {stats_seg.box.map50:>10.4f} {stats_mask.box.map50:>10.4f}")
-    LOGGER.info(f"  {'mAP50-95':<20} {stats_none.box.map:>10.4f} {stats_heat.box.map:>10.4f} {stats_seg.box.map:>10.4f} {stats_mask.box.map:>10.4f}")
-    LOGGER.info(f"  {'image_auroc':<20} {stats_none.image_auroc:>10.4f} {stats_heat.image_auroc:>10.4f} {stats_seg.image_auroc:>10.4f} {stats_mask.image_auroc:>10.4f}")
-    LOGGER.info(f"  {'pixel_auroc':<20} {stats_none.pixel_auroc:>10.4f} {stats_heat.pixel_auroc:>10.4f} {stats_seg.pixel_auroc:>10.4f} {stats_mask.pixel_auroc:>10.4f}")
+    LOGGER.info("=== Comparison: none vs heatmap vs segment vs seg_heatmap vs mask (GT) ===")
+    LOGGER.info(f"  {'Metric':<20} {'none':>10} {'heatmap':>10} {'segment':>10} {'seg_hmap':>10} {'mask':>10}")
+    LOGGER.info(f"  {'mAP50':<20} {stats_none.box.map50:>10.4f} {stats_heat.box.map50:>10.4f} {stats_seg.box.map50:>10.4f} {stats_sh.box.map50:>10.4f} {stats_mask.box.map50:>10.4f}")
+    LOGGER.info(f"  {'mAP50-95':<20} {stats_none.box.map:>10.4f} {stats_heat.box.map:>10.4f} {stats_seg.box.map:>10.4f} {stats_sh.box.map:>10.4f} {stats_mask.box.map:>10.4f}")
+    LOGGER.info(f"  {'image_auroc':<20} {stats_none.image_auroc:>10.4f} {stats_heat.image_auroc:>10.4f} {stats_seg.image_auroc:>10.4f} {stats_sh.image_auroc:>10.4f} {stats_mask.image_auroc:>10.4f}")
+    LOGGER.info(f"  {'pixel_auroc':<20} {stats_none.pixel_auroc:>10.4f} {stats_heat.pixel_auroc:>10.4f} {stats_seg.pixel_auroc:>10.4f} {stats_sh.pixel_auroc:>10.4f} {stats_mask.pixel_auroc:>10.4f}")
     LOGGER.info("=== Test complete ===")
 
 

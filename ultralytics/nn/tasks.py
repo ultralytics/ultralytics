@@ -642,10 +642,12 @@ class YOLOAnomalyV2Model(DetectionModel):
         bb_max_bank_size = v2_cfg.get("bb_max_bank_size", None)
         bb_auto_temperature = bool(v2_cfg.get("bb_auto_temperature", True))
         bb_calibration_target = float(v2_cfg.get("bb_calibration_target_score", 0.2))
+        bb_calibrate = str(v2_cfg.get("bb_calibrate", "auto"))
         self.memory_bank = BackboneMemoryBank(
             temperature=bb_temperature, K=bb_K, max_bank_size=bb_max_bank_size,
             auto_temperature=bb_auto_temperature,
             calibration_target_score=bb_calibration_target,
+            calibrate=bb_calibrate,
         ) if bb_layers else None
         self._bb_layers = bb_layers
         self._bb_hook_handles: list = []
@@ -720,7 +722,7 @@ class YOLOAnomalyV2Model(DetectionModel):
                 (BackboneMemoryBank), ``"mask"`` (external_mask), or ``None`` (legacy
                 GT bboxes -> renderer).
         """
-        if mode is not None and mode not in ("none", "segment", "heatmap", "mask"):
+        if mode is not None and mode not in ("none", "segment", "heatmap", "seg_heatmap", "mask"):
             raise ValueError(f"Invalid prior_mode: {mode!r}")
         self._prior_mode = mode
 
@@ -795,6 +797,7 @@ class YOLOAnomalyV2Model(DetectionModel):
 
         pbar = TQDM(paths, desc="Building memory bank") if verbose else paths
         chunk = []
+        n_ingested = 0  # track total images ingested for delayed temp display
         for p in pbar:
             img = cv2.imread(str(p))
             if img is None:
@@ -804,14 +807,27 @@ class YOLOAnomalyV2Model(DetectionModel):
             chunk.append(img)
             if len(chunk) >= batch:
                 self._ingest_support_batch(chunk, device, mb)
+                n_ingested += len(chunk)
                 chunk.clear()
+                # Live temperature estimate (auto mode only; compactness calibrates after coreset)
+                if mb.calibrate != "compactness" and mb.auto_temperature and n_ingested >= 4:
+                    live_temp = mb.estimate_temperature()
+                    pbar.set_postfix(temp=f"{live_temp:.3f}")
         if chunk:
             self._ingest_support_batch(chunk, device, mb)
+            n_ingested += len(chunk)
 
         mb.freeze_memory_bank()
         final_size = mb.memory_bank.shape[0]
         if verbose:
-            LOGGER.info(f"Memory bank frozen: {final_size} features, dim={mb.feature_dim}")
+            temp = f"{mb.temperature:.4f}" if mb.auto_temperature else f"{mb.temperature}"
+            auto_tag = " (auto-calibrated)" if mb.auto_temperature else ""
+            LOGGER.info(
+                f"Memory bank frozen: {final_size} features, dim={mb.feature_dim}\n"
+                f"  config: calibrate={mb.calibrate}, temp={temp}{auto_tag}, K={mb.K}, "
+                f"thresh={mb.accumulate_thresh}, max_bank={mb.max_bank_size or 'unlimited'}, "
+                f"bb_layers={self._bb_layers}"
+            )
         return final_size
 
     def _ingest_support_batch(self, images, device, memory_bank):
@@ -941,6 +957,30 @@ class YOLOAnomalyV2Model(DetectionModel):
                     )
                 return hmap
             return None
+        if prior_mode == "seg_heatmap":
+            # Average of segment heatmap and memory-bank heatmap.
+            seg_part = None
+            heat_part = None
+            if seg_logits is not None:
+                main = seg_logits[0] if isinstance(seg_logits, tuple) else seg_logits
+                seg_part = main.detach().sigmoid()
+                if seg_part.shape[2] != mask_size or seg_part.shape[3] != mask_size:
+                    seg_part = torch.nn.functional.interpolate(
+                        seg_part, size=(mask_size, mask_size), mode="bilinear", align_corners=False
+                    )
+            mb = getattr(self, "memory_bank", None)
+            bb_feats = getattr(self, "_bb_feats", None)
+            if mb is not None and bb_feats:
+                heat_part = mb(bb_feats)
+                if heat_part is not None and (
+                    heat_part.shape[2] != mask_size or heat_part.shape[3] != mask_size
+                ):
+                    heat_part = torch.nn.functional.interpolate(
+                        heat_part, size=(mask_size, mask_size), mode="bilinear", align_corners=False
+                    )
+            if seg_part is not None and heat_part is not None:
+                return (seg_part + heat_part) / 2.0
+            return seg_part if seg_part is not None else heat_part
         return None
 
     def _augment_mask(self, mask):
@@ -1064,6 +1104,8 @@ class YOLOAnomalyV2Model(DetectionModel):
                 if mask is not None:
                     if prior_mode == "heatmap":
                         mask = torch.where(mask > 0.5, torch.ones_like(mask), mask)
+                    elif prior_mode == "seg_heatmap":
+                        mask = torch.where(mask > 0.5, torch.ones_like(mask), torch.zeros_like(mask))
                     elif prior_mode == "segment":
                         mask = torch.where(mask > 0.5, torch.ones_like(mask), torch.full_like(mask, 0.5))
                 if (

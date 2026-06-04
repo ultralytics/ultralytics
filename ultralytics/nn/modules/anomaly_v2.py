@@ -184,10 +184,15 @@ class BackboneMemoryBank(nn.Module):
       - ``True`` (build): ``forward()`` returns zeros — bank not yet frozen.
       - ``False`` (inference): ``forward()`` returns anomaly scores in [0, 1].
 
-    When ``auto_temperature=True`` (default), temperature β is calibrated from the
-    accumulated bank so that a "typical normal" feature scores ``calibration_target_score``.
-    Coreset subsampling is skipped in this mode because it would distort the score
-    distribution that the calibration established.
+    Calibration modes (``calibrate`` parameter):
+
+      - ``"auto"`` (default): sample from the full accumulated bank and calibrate β
+        so that the 90th-percentile normal feature scores ``calibration_target_score``.
+        Coreset is skipped in this mode.
+      - ``"compactness"``: first subsample via greedy k-centre coreset, then measure
+        local neighbour density (compactness) on the coreset to calibrate β.
+        Scores naturally map to [0, 1] because compactness reflects the true normal
+        manifold tightness.
     """
 
     def __init__(
@@ -199,6 +204,7 @@ class BackboneMemoryBank(nn.Module):
         max_bank_size: int | None = None,
         auto_temperature: bool = True,
         calibration_target_score: float = 0.2,
+        calibrate: str = "auto",
     ):
         super().__init__()
         self.temperature = float(temperature)
@@ -208,6 +214,7 @@ class BackboneMemoryBank(nn.Module):
         self.max_bank_size = max_bank_size
         self.auto_temperature = bool(auto_temperature)
         self.calibration_target_score = float(calibration_target_score)
+        self.calibrate = calibrate
         self._calibrated = False
         self.register_buffer("memory_bank", torch.empty(0, 0), persistent=True)
         self.feature_dim: int | None = None
@@ -229,18 +236,27 @@ class BackboneMemoryBank(nn.Module):
         self.memory_bank = F.normalize(features.to(self.memory_bank.device), p=2, dim=1)
 
     def freeze_memory_bank(self) -> None:
-        """Compress and freeze the bank for inference.
+        """Compress, optionally calibrate, and freeze the bank for inference.
 
-        When ``auto_temperature=True``, calibrates β from the current bank so that
-        typical normal features score ~``calibration_target_score``.  Coreset
-        subsampling is skipped in auto-temperature mode because it would shift the
-        bank distribution and invalidate the calibrated β.
+        Two calibration strategies (set via ``self.calibrate``):
+
+        * ``"auto"`` — sample from the full bank and calibrate β (skips coreset).
+        * ``"compactness"`` — greedy k-centre coreset first, then measure local
+          neighbour density on the coreset to calibrate β.  Because the coreset
+          represents the normal manifold compactness, scores naturally map to [0, 1].
         """
         mem = self._effective_bank()
-        if self.auto_temperature and mem.shape[0] > 0:
+        if self.calibrate == "compactness":
+            # Coreset first, then calibrate from its spatial compactness.
+            if self.max_bank_size is not None and mem.shape[0] > self.max_bank_size:
+                self.memory_bank = self._coreset_subsample(mem, self.max_bank_size)
+            mem = self._effective_bank()
+            if mem.shape[0] > 0:
+                self._calibrate_compactness(mem)
+        elif self.auto_temperature and mem.shape[0] > 0:
             self._calibrate_temperature(mem)
         if self.max_bank_size is not None and mem.shape[0] > self.max_bank_size:
-            if not self.auto_temperature:
+            if not self.auto_temperature and self.calibrate != "compactness":
                 self.memory_bank = self._coreset_subsample(mem, self.max_bank_size)
         self.update = False
 
@@ -324,37 +340,83 @@ class BackboneMemoryBank(nn.Module):
         ]
         return torch.cat(aligned, dim=1) if len(aligned) > 1 else aligned[0]
 
-    def _calibrate_temperature(self, mem: torch.Tensor) -> None:
-        """Auto-calibrate β from the current memory bank (v1 formula).
-
-        Solves for β such that the 90th-percentile "typical normal" feature
-        (by mean top-K cosine similarity against the bank) scores
-        ``calibration_target_score``.
-
-        Formula: β = −ln(1 − target) / (1 − s_90)
-        """
+    def estimate_temperature(self) -> float:
+        """Estimate current auto-calibrated β from the bank WITHOUT modifying state."""
         import math
 
+        mem = self._effective_bank()
+        if mem.shape[0] < 2:
+            return self.temperature
         with torch.no_grad():
             k = min(self.K, mem.shape[0])
-            # Score a random sample of bank entries against the bank itself
             n_sample = min(512, mem.shape[0])
             idx = torch.randperm(mem.shape[0], device=mem.device)[:n_sample]
             sample = mem[idx]
-            sim = sample @ mem.t()  # [n, M]
-            topk_sim = sim.topk(k=k, dim=1).values  # [n, k]
-            mean_topk = topk_sim.mean(dim=1)  # [n] avg top-K cosine sim per position
-            s_90 = torch.quantile(mean_topk, 0.90).clamp(0.0, 1.0 - 1e-4).item()
-            beta = -math.log(1.0 - self.calibration_target_score) / max(1.0 - s_90, 1e-6)
+            sim = sample @ mem.t()
+            topk_sim = sim.topk(k=k, dim=1).values
+            mean_topk = topk_sim.mean(dim=1)
+            s_max = mean_topk.max().clamp(0.0, 1.0 - 1e-4).item()
+            beta = -math.log(1.0 - self.calibration_target_score) / max(1.0 - s_max, 1e-6)
             beta = max(0.1, min(20.0, beta))
+        return beta
+
+    def _calibrate_temperature(self, mem: torch.Tensor) -> None:
+        """Auto-calibrate β from the current memory bank.
+
+        Solves for β such that the maximum mean top-K cosine similarity against
+        the bank scores ``calibration_target_score``.
+
+        Formula: β = −ln(1 − target) / (1 − s_max)
+        """
         old_temp = self.temperature
+        beta = self.estimate_temperature()
         self.temperature = beta
         self._calibrated = True
         import logging
         logger = logging.getLogger(__name__)
         logger.debug(
-            "BackboneMemoryBank: auto-calibrated temperature %.3f → %.3f  (s_90=%.4f, target=%.2f)",
-            old_temp, beta, s_90, self.calibration_target_score,
+            "BackboneMemoryBank: auto-calibrated temperature %.3f → %.3f  (target=%.2f)",
+            old_temp, beta, self.calibration_target_score,
+        )
+
+    def _calibrate_compactness(self, mem: torch.Tensor) -> None:
+        """Calibrate β from coreset spatial compactness.
+
+        Measures local neighbour density on the coreset: for each centre, compute
+        mean cosine similarity to its top-K neighbours within the coreset.
+        Global compactness = mean of these local densities.
+        β = −ln(1 − target) / (1 − compactness).
+
+        Because compactness reflects the true normal-manifold tightness (coreset
+        removes redundant features), the resulting β maps anomaly scores naturally
+        to [0, 1].
+        """
+        import math
+
+        with torch.no_grad():
+            k = min(self.K, mem.shape[0])
+            n_sample = min(512, mem.shape[0])
+            idx = torch.randperm(mem.shape[0], device=mem.device)[:n_sample]
+            sample = mem[idx]
+            # cosine similarity of each sampled centre vs all coreset centres
+            sim = sample @ mem.t()  # [n_sample, M]
+            # exclude self-match by masking diagonal
+            diag_mask = torch.eye(n_sample, mem.shape[0], device=mem.device, dtype=torch.bool)
+            sim.masked_fill_(diag_mask, -1.0)
+            topk_sim = sim.topk(k=k, dim=1).values  # [n_sample, k]
+            local_density = topk_sim.mean(dim=1)     # [n_sample] per-centre compactness
+            compactness = local_density.mean().clamp(0.0, 1.0 - 1e-4).item()
+        old_temp = self.temperature
+        beta = -math.log(1.0 - self.calibration_target_score) / max(1.0 - compactness, 1e-6)
+        beta = max(0.1, min(20.0, beta))
+        self.temperature = beta
+        self._calibrated = True
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.debug(
+            "BackboneMemoryBank: compactness-calibrated temp %.3f → %.3f  "
+            "(compactness=%.4f, target=%.2f)",
+            old_temp, beta, compactness, self.calibration_target_score,
         )
 
     def _anomaly_scores(self, features: torch.Tensor, mem: torch.Tensor | None = None) -> torch.Tensor:

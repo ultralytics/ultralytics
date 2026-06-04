@@ -74,11 +74,11 @@ class RKNNBackend(BaseBackend):
         return y
 
     def _decode(self, outputs: list) -> torch.Tensor:
-        """Decode raw RKNN reg/cls head maps into (1, 4 + nc, anchors), applying DFL, box decode and sigmoid in float.
+        """Decode raw RKNN reg/cls head maps into (1, 4 + nc, anchors), applying DFL and box decode in float.
 
-        Detect.forward emits per-scale regression (4 * reg_max channels) and classification (nc channels) maps in
-        export order (reg, cls per scale, large to small). Doing DFL, decode and sigmoid here on CPU keeps these
-        quantization-sensitive ops off the NPU so INT8 models stay accurate. The predictor then runs NMS.
+        Detect.forward emits per-scale regression (4 * reg_max channels) and already-sigmoided classification (nc
+        channels) maps in export order (reg, cls per scale, large to small). Doing DFL and box decode here on CPU
+        keeps the wide-range decode off the NPU so INT8 models stay accurate. The predictor then runs NMS.
 
         Args:
             outputs (list): Raw NCHW arrays from RKNNLite.inference, reg and cls per scale, large to small.
@@ -106,4 +106,4 @@ class RKNNBackend(BaseBackend):
             proj = torch.arange(reg_max, dtype=boxes.dtype)
             boxes = (boxes.view(b, 4, reg_max, a).softmax(2) * proj.view(1, 1, reg_max, 1)).sum(2)
         dbox = dist2bbox(boxes, anchors.unsqueeze(0), xywh=True, dim=1) * strides_t
-        return torch.cat((dbox, scores.sigmoid()), 1)
+        return torch.cat((dbox, scores), 1)  # cls already sigmoided in-graph (see Detect.forward)

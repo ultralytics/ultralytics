@@ -76,6 +76,7 @@ from copy import deepcopy
 from datetime import datetime
 from functools import partial
 from pathlib import Path
+from types import MethodType
 
 import numpy as np
 import torch
@@ -679,6 +680,13 @@ class Exporter:
                 m.agnostic_nms = self.args.agnostic_nms
                 m.xyxy = self.args.nms and fmt != "coreml"
                 m.shape = None  # reset cached shape for new export input size
+                if fmt == "rknn" and self.args.int8 and isinstance(m, Detect):
+                    # INT8 only: bind a forward that emits raw reg/cls head maps so the backend decodes them on
+                    # CPU (see RKNNBackend._decode), keeping the quantization-sensitive decode off the NPU. FP16
+                    # keeps the in-graph decode since it tolerates the dynamic range.
+                    from ultralytics.utils.export.rknn import rknn_detect_forward
+
+                    m.forward = MethodType(rknn_detect_forward, m)
                 if hasattr(model, "pe") and hasattr(m, "fuse") and not hasattr(m, "lrpc"):  # for YOLOE models
                     m.fuse(model.pe.to(self.device))
             elif isinstance(m, C2f) and not is_tf_format:

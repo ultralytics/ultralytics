@@ -134,7 +134,7 @@ Modules are organized by functionality and defined in the [Ultralytics modules d
 | ------------- | --------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
 | `TorchVision` | Load any torchvision model        | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, model_name, weights, unwrap, truncate, split]` |
 | `Index`       | Extract specific tensor from list | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, index]`                                        |
-| `Detect`      | YOLO detection head               | [head.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/head.py)   | `[nc]`                                      |
+| `Detect`      | YOLO detection head               | [head.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/head.py)   | `[nc]`                                                   |
 
 !!! info "Complete Module List"
 
@@ -202,7 +202,13 @@ Ultralytics uses a three-tier system in [`parse_model`](https://github.com/ultra
 
 ```python
 # Core resolution logic
-m = getattr(torch.nn, m[3:]) if "nn." in m else getattr(torchvision.ops, m[16:]) if "torchvision.ops." in m else globals()[m]
+m = (
+    getattr(torch.nn, m[3:])
+    if "nn." in m
+    else getattr(torchvision.ops, m[16:])
+    if "torchvision.ops." in m
+    else globals()[m]
+)
 ```
 
 1. **PyTorch modules**: Names starting with `'nn.'` → `torch.nn` namespace

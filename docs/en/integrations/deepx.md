@@ -135,14 +135,14 @@ The DEEPX format supports the [Export](../modes/export.md), [Predict](../modes/p
 
 ### Export Arguments
 
-| Argument   | Type             | Default          | Description                                                                                                                                        |
-| :--------- | :--------------- | :--------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'deepx'`        | Target format for the exported model, defining compatibility with DEEPX NPU hardware.                                                              |
-| `imgsz`    | `int` or `tuple` | `640`            | Desired image size for the model input. DEEPX export requires a square input — pass an integer (e.g., `640`) or a tuple where height equals width. |
-| `int8`     | `bool`           | `True`           | Enables INT8 quantization. Required for DEEPX export — automatically set to `True` if not specified.                                               |
-| `data`     | `str`            | `'coco8.yaml'`   | Dataset configuration file used for INT8 calibration. Specifies the calibration image source.                                                      |
-| `device`   | `str`            | `None`           | Specifies the device for exporting: GPU (`device=0`) or CPU (`device=cpu`).                                                                        |
-| `optimize` | `bool`           | `False`          | Enables higher compiler optimization which reduces inference latency and increases compilation time.                                               |
+| Argument   | Type             | Default        | Description                                                                                                                                        |
+| :--------- | :--------------- | :------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'deepx'`      | Target format for the exported model, defining compatibility with DEEPX NPU hardware.                                                              |
+| `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. DEEPX export requires a square input — pass an integer (e.g., `640`) or a tuple where height equals width. |
+| `int8`     | `bool`           | `True`         | Enables INT8 quantization. Required for DEEPX export — automatically set to `True` if not specified.                                               |
+| `data`     | `str`            | `'coco8.yaml'` | Dataset configuration file used for INT8 calibration. Specifies the calibration image source.                                                      |
+| `device`   | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`) or CPU (`device=cpu`).                                                                        |
+| `optimize` | `bool`           | `False`        | Enables higher compiler optimization which reduces inference latency and increases compilation time.                                               |
 
 !!! tip
 

@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Run Ultralytics YOLO11 inside a Docker container. Step-by-step guide for CPU and GPU setups, volume mounting, and running detection, segmentation, pose estimation, and classification tasks in an isolated environment.
+description: Run Ultralytics YOLO11 in Docker. Setup guide for CPU and GPU containers, volume mounting, and running detection, segmentation, and pose estimation tasks.
 keywords: YOLO11, Docker, Ultralytics, container, GPU, NVIDIA, object detection, segmentation, pose estimation, machine learning, containerization, deep learning
 canonical: https://docs.ultralytics.com/models/yolo11/environments/docker-quickstart/
 ---
@@ -10,7 +10,7 @@ canonical: https://docs.ultralytics.com/models/yolo11/environments/docker-quicks
   "@context": "https://schema.org",
   "@type": "TechArticle",
   "headline": "YOLO11 Docker Quickstart",
-  "description": "Run Ultralytics YOLO11 inside a Docker container. Step-by-step guide for CPU and GPU setups, volume mounting, and running detection, segmentation, pose estimation, and classification tasks in an isolated environment.",
+  "description": "Run Ultralytics YOLO11 in Docker. Setup guide for CPU and GPU containers, volume mounting, and running detection, segmentation, and pose estimation tasks.",
   "url": "https://docs.ultralytics.com/models/yolo11/environments/docker-quickstart/",
   "image": "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/gcp-running-docker.avif",
   "datePublished": "2026-06-04",

@@ -10,7 +10,7 @@ keywords: YOLO11, AWS, Amazon Web Services, EC2, Deep Learning AMI, object detec
 
 This guide walks you through launching [Ultralytics YOLO11](../../../models/yolo11.md) on an [Amazon Web Services (AWS)](https://aws.amazon.com/) EC2 Deep Learning instance. AWS offers scalable GPU compute suited to YOLO11 training, validation, and production inference across detection, segmentation, pose, classification, and oriented object detection tasks.
 
-For alternative environments, see the [YOLO11 GCP Quickstart](./google_cloud_quickstart.md) or [Docker Quickstart](./docker_quickstart.md).
+For alternative environments, see the [YOLO11 GCP Quickstart](./google-cloud-quickstart.md) or [Docker Quickstart](./docker-quickstart.md).
 
 ## Step 1: Sign In and Open EC2
 

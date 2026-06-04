@@ -12,7 +12,7 @@ This guide walks you through deploying [Ultralytics YOLO11](../../../models/yolo
 
 🆓 New GCP users receive a [$300 free credit](https://cloud.google.com/free/docs/free-cloud-features) to get started.
 
-For other environments, see the [YOLO11 Docker Quickstart](./docker_quickstart.md) or [YOLO11 AWS Quickstart](./aws_quickstart.md). For the latest Ultralytics model with NMS-free inference, see [YOLO26](../../yolo26/environments/google_cloud_quickstart.md).
+For other environments, see the [YOLO11 Docker Quickstart](./docker-quickstart.md) or [YOLO11 AWS Quickstart](./aws-quickstart.md). For the latest Ultralytics model with NMS-free inference, see [YOLO26](../../yolo26/environments/google-cloud-quickstart.md).
 
 ## Step 1: Create a Deep Learning VM
 
@@ -124,5 +124,5 @@ gsutil cp -r ./runs/train/exp/weights gs://your-bucket/yolo11_weights/
 
 - Read the [YOLO11 model docs](../../../models/yolo11.md) for architecture details and benchmarks.
 - Explore [Ultralytics Platform](../../../platform/index.md) for a no-code training and deployment workflow.
-- Try the [YOLO11 Docker Quickstart](./docker_quickstart.md) or [AWS Quickstart](./aws_quickstart.md) for alternative environments.
+- Try the [YOLO11 Docker Quickstart](./docker-quickstart.md) or [AWS Quickstart](./aws-quickstart.md) for alternative environments.
 - For the latest model with NMS-free inference, upgrade to [YOLO26](../../../models/yolo26.md).

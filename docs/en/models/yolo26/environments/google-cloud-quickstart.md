@@ -12,7 +12,7 @@ This guide walks you through deploying [Ultralytics YOLO26](../../../models/yolo
 
 🆓 New GCP users receive a [$300 free credit](https://cloud.google.com/free/docs/free-cloud-features) to get started.
 
-For other deployment options, see the [YOLO26 Docker Quickstart](./docker_quickstart.md), [AWS Quickstart](./aws_quickstart.md), or the [Ultralytics Docker Quickstart Guide](../../../guides/docker-quickstart.md).
+For other deployment options, see the [YOLO26 Docker Quickstart](./docker-quickstart.md), [AWS Quickstart](./aws-quickstart.md), or the [Ultralytics Docker Quickstart Guide](../../../guides/docker-quickstart.md).
 
 ## Step 1: Create a Deep Learning VM
 
@@ -119,4 +119,4 @@ gsutil cp -r ./runs/train/exp/weights gs://your-bucket/yolo26_weights/
 - Read the [YOLO26 model docs](../../../models/yolo26.md) for architecture details and benchmarks.
 - Explore [Ultralytics Platform](../../../platform/index.md) for a no-code training and deployment workflow.
 - Continue to [Train Mode](../../../modes/train.md), [Val Mode](../../../modes/val.md), and [Export Mode](../../../modes/export.md) documentation.
-- Try the [YOLO26 Docker Quickstart](./docker_quickstart.md) or [AWS Quickstart](./aws_quickstart.md) for alternative environments.
+- Try the [YOLO26 Docker Quickstart](./docker-quickstart.md) or [AWS Quickstart](./aws-quickstart.md) for alternative environments.

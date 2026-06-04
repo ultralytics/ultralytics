@@ -10,7 +10,7 @@ keywords: YOLO26, AWS, Amazon Web Services, EC2, Deep Learning AMI, object detec
 
 This guide walks you through launching [Ultralytics YOLO26](../../../models/yolo26.md) on an [Amazon Web Services (AWS)](https://aws.amazon.com/) EC2 Deep Learning instance. AWS provides scalable GPU compute that is ideal for YOLO26 training, validation, and production inference.
 
-For alternative environments, see the [YOLO26 GCP Quickstart](./google_cloud_quickstart.md) or [Docker Quickstart](./docker_quickstart.md).
+For alternative environments, see the [YOLO26 GCP Quickstart](./google-cloud-quickstart.md) or [Docker Quickstart](./docker-quickstart.md).
 
 ## Step 1: Sign In to AWS and Open EC2
 
@@ -130,4 +130,4 @@ aws s3 cp ./runs/train/exp/weights s3://your-bucket/yolo26_weights/ --recursive
 - Read [YOLO26 model documentation](../../../models/yolo26.md) for architecture details and full benchmark tables.
 - Explore [Export Mode](../../../modes/export.md) to convert YOLO26 to TensorRT, ONNX, or CoreML.
 - Try [Ultralytics Platform](../../../platform/index.md) for a managed, no-code training and deployment workflow.
-- See [GCP](./google_cloud_quickstart.md) or [Docker](./docker_quickstart.md) for alternative environment options.
+- See [GCP](./google-cloud-quickstart.md) or [Docker](./docker-quickstart.md) for alternative environment options.

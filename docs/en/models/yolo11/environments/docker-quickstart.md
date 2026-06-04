@@ -10,7 +10,7 @@ keywords: YOLO11, Docker, Ultralytics, container, GPU, NVIDIA, object detection,
 
 This guide shows you how to run [Ultralytics YOLO11](../../../models/yolo11.md) inside a [Docker](https://www.ultralytics.com/glossary/docker) container. Containerisation provides a clean, reproducible environment with no dependency conflicts — ideal for both development and production deployments.
 
-For alternative cloud setups, see the [YOLO11 GCP Quickstart](./google_cloud_quickstart.md) or [AWS Quickstart](./aws_quickstart.md). For a general Docker guide, see the [Ultralytics Docker Quickstart Guide](../../../guides/docker-quickstart.md).
+For alternative cloud setups, see the [YOLO11 GCP Quickstart](./google-cloud-quickstart.md) or [AWS Quickstart](./aws-quickstart.md). For a general Docker guide, see the [Ultralytics Docker Quickstart Guide](../../../guides/docker-quickstart.md).
 
 ## Prerequisites
 

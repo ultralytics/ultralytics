@@ -140,11 +140,11 @@ class PoseValidator(DetectionValidator):
             batch (dict[str, Any]): Dictionary containing batch data with keys like 'keypoints', 'batch_idx', etc.
 
         Returns:
-            (dict[str, Any]): Prepared batch with keypoints scaled to original image dimensions.
+            (dict[str, Any]): Prepared batch with keypoints scaled to model input (letterboxed) image dimensions.
 
         Notes:
             This method extends the parent class's _prepare_batch method by adding keypoint processing.
-            Keypoints are scaled from normalized coordinates to original image dimensions.
+            Keypoints are scaled from normalized coordinates to the model input (letterboxed) image dimensions.
         """
         pbatch = super()._prepare_batch(si, batch)
         kpts = batch["keypoints"][batch["batch_idx"] == si]

@@ -12,7 +12,7 @@ K-Fold Cross-Validation splits your dataset into `k` folds and trains `k` models
   <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/k-fold-cross-validation-overview.avif" alt="K-fold cross validation data splitting">
 </p>
 
-The workflow uses the YOLO detection format with scikit-learn, pandas, and PyYAML. The examples apply `k=5` folds to the African Wildlife dataset, but the same steps work for any YOLO-format dataset and any number of folds.
+The workflow uses the YOLO detection format with scikit-learn, pandas, and PyYAML. The examples apply `k=5` folds to the African Wildlife dataset, and the same steps work for any number of folds on datasets that use the standard `images/` and `labels/` directory layout.
 
 ## Why Use K-Fold Cross-Validation?
 
@@ -57,7 +57,7 @@ To run the workflow on your own data instead, point the paths below at any datas
 
 ## Generate Feature Vectors
 
-K-Fold splitting needs one label per sample, but a detection image holds many objects across several classes. To bridge this, build a feature vector for each image that counts the instances of every class it contains. These vectors let `scikit-learn` distribute classes evenly across folds.
+K-Fold splitting works on one row per image, but a detection image holds many objects across several classes. To summarize each image as a single row, build a feature vector that counts the instances of every class it contains. These per-image counts let you check how evenly classes fall across the folds created below.
 
 1. Start by creating a new `example.py` Python file for the steps below.
 
@@ -119,7 +119,7 @@ K-Fold splitting needs one label per sample, but a detection image holds many ob
     4 (97)   0.0  0.0  0.0  2.0
     ```
 
-Each row is a pseudo feature-vector that summarizes an image by its class composition, which is what makes K-Fold Cross-Validation applicable to a multi-object detection dataset.
+Each row is a pseudo feature-vector that summarizes an image by its class composition, which later lets you verify that classes are spread reasonably across the folds.
 
 !!! tip "Works for segmentation, pose, and OBB too"
 
@@ -234,6 +234,7 @@ Each row is a pseudo feature-vector that summarizes an image by its class compos
 
 !!! note "How copying behaves"
 
+    - Images and labels are matched by filename stem, so this workflow assumes filenames are unique across the dataset (the YOLO convention). If two images in different subdirectories share a basename, key the lookup by a path relative to the `images`/`labels` roots instead.
     - Runtime scales with dataset size and disk speed.
     - Each image is copied into every split, duplicating the dataset about `k` times on disk. For large datasets, use symlinks (`os.symlink`) instead of `shutil.copy` to save space (on Windows, symlinks may require elevated permissions).
     - Background images with no label file are not part of the label-based folds and are skipped; add them to your training splits separately if you use them.

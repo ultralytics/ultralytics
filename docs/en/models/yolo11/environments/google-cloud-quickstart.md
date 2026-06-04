@@ -2,7 +2,26 @@
 comments: true
 description: Deploy Ultralytics YOLO11 on Google Cloud Platform Deep Learning VM. Step-by-step guide to set up a GPU-accelerated cloud environment for real-time object detection, segmentation, pose estimation, and more.
 keywords: YOLO11, Google Cloud Platform, GCP, Deep Learning VM, object detection, Ultralytics, computer vision, GPU, cloud computing, machine learning, pose estimation, segmentation
+canonical: https://docs.ultralytics.com/models/yolo11/environments/google-cloud-quickstart/
 ---
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "YOLO11 on Google Cloud Platform (GCP) Deep Learning VM",
+  "description": "Deploy Ultralytics YOLO11 on Google Cloud Platform Deep Learning VM. Step-by-step guide to set up a GPU-accelerated cloud environment for real-time object detection, segmentation, pose estimation, and more.",
+  "url": "https://docs.ultralytics.com/models/yolo11/environments/google-cloud-quickstart/",
+  "author": {"@type": "Organization", "name": "Ultralytics", "url": "https://www.ultralytics.com"},
+  "publisher": {"@type": "Organization", "name": "Ultralytics", "url": "https://www.ultralytics.com"},
+  "mainEntityOfPage": "https://docs.ultralytics.com/models/yolo11/environments/google-cloud-quickstart/",
+  "step": [
+    {"@type": "HowToStep", "name": "Create a Deep Learning VM", "position": 1},
+    {"@type": "HowToStep", "name": "Install YOLO11", "position": 2},
+    {"@type": "HowToStep", "name": "Run YOLO11", "position": 3}
+  ]
+}
+</script>
 
 # YOLO11 on Google Cloud Platform (GCP) Deep Learning VM
 

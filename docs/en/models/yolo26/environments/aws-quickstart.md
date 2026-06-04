@@ -2,7 +2,28 @@
 comments: true
 description: Deploy Ultralytics YOLO26 on an AWS Deep Learning EC2 instance. Step-by-step guide to launch a GPU-accelerated environment for real-time, NMS-free object detection in the cloud.
 keywords: YOLO26, AWS, Amazon Web Services, EC2, Deep Learning AMI, object detection, Ultralytics, machine learning, GPU, cloud computing, NMS-free, computer vision
+canonical: https://docs.ultralytics.com/models/yolo26/environments/aws-quickstart/
 ---
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "YOLO26 on AWS Deep Learning Instance",
+  "description": "Deploy Ultralytics YOLO26 on an AWS Deep Learning EC2 instance. Step-by-step guide to launch a GPU-accelerated environment for real-time, NMS-free object detection in the cloud.",
+  "url": "https://docs.ultralytics.com/models/yolo26/environments/aws-quickstart/",
+  "author": {"@type": "Organization", "name": "Ultralytics", "url": "https://www.ultralytics.com"},
+  "publisher": {"@type": "Organization", "name": "Ultralytics", "url": "https://www.ultralytics.com"},
+  "mainEntityOfPage": "https://docs.ultralytics.com/models/yolo26/environments/aws-quickstart/",
+  "step": [
+    {"@type": "HowToStep", "name": "Sign In and Open EC2", "position": 1},
+    {"@type": "HowToStep", "name": "Launch an Instance", "position": 2},
+    {"@type": "HowToStep", "name": "Connect via SSH", "position": 3},
+    {"@type": "HowToStep", "name": "Install YOLO26", "position": 4},
+    {"@type": "HowToStep", "name": "Run YOLO26", "position": 5}
+  ]
+}
+</script>
 
 # YOLO26 on AWS Deep Learning Instance
 

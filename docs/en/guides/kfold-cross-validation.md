@@ -211,6 +211,7 @@ The rows index the label files, each corresponding to an image in your dataset, 
 5. Lastly, copy images and labels into the respective directory ('train' or 'val') for each split.
     - **NOTE:** The time required for this portion of the code will vary based on the size of your dataset and your system hardware.
     - **NOTE:** Each image is copied into every split, so this duplicates the dataset roughly `k` times on disk. For large datasets, consider symlinks (`os.symlink`) instead of `shutil.copy` to save space (on Windows, symlinks may require elevated permissions).
+    - **NOTE:** Background images with no label file are not part of the label-based folds and are skipped here; add them to your training splits separately if you use them.
 
     ```python
     import shutil
@@ -218,7 +219,9 @@ The rows index the label files, each corresponding to an image in your dataset, 
     from tqdm import tqdm
 
     for image in tqdm(images, total=len(images), desc="Copying files"):
-        label = labels_by_stem[image.stem]  # pair by filename stem, not by list position
+        label = labels_by_stem.get(image.stem)  # pair by filename stem, not by list position
+        if label is None:
+            continue  # skip background/unlabeled images (no matching .txt)
         for split, k_split in folds_df.loc[image.stem].items():
             # Destination directory
             img_to_path = save_path / split / k_split / "images"

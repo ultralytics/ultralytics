@@ -220,6 +220,12 @@ class RTDETRTrainer(DetectionTrainer):
                 if parts[0] == "module":
                     parts = parts[1:]  # Remove "module" prefix for DDP
 
+                # Handle DistillationModel wrapping: skip teacher params, strip student_model prefix
+                if parts[0] == "teacher_model":
+                    continue  # frozen teacher params are not optimized
+                if parts[0] == "student_model":
+                    parts = parts[1:]  # student_model.model.<i>... -> model.<i>...
+
                 is_sta_param = any(p.lower() in sta_tokens for p in parts)
                 if len(parts) > 1 and parts[0] == "model" and parts[1].isdigit():
                     layer_idx = int(parts[1])

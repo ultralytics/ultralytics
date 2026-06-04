@@ -27,6 +27,7 @@ from torch import nn, optim
 from ultralytics import __version__
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert_ndjson_to_yolo_if_needed
+from ultralytics.nn.distill_model import DistillationModel
 from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.optim import MuSGD
 from ultralytics.utils import (
@@ -312,6 +313,8 @@ class BaseTrainer:
         )
         always_freeze_names = [".dfl", ".up", ".reg_scale"]  # always freeze these layers
         freeze_layer_names = [f"model.{x}." for x in freeze_list] + always_freeze_names
+        if isinstance(unwrap_model(self.model), DistillationModel):
+            freeze_layer_names.append("teacher_model.")
         self.freeze_layer_names = freeze_layer_names
         for k, v in self.model.named_parameters():
             # v.register_hook(lambda x: torch.nan_to_num(x))  # NaN to 0 (commented for erratic training results)
@@ -342,6 +345,10 @@ class BaseTrainer:
         self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
         self.stride = gs  # for multiscale training
 
+        # Wrap as DistillationModel if a teacher checkpoint is configured (resume already wraps in setup_model)
+        if self.args.distill_model is not None and not isinstance(unwrap_model(self.model), DistillationModel):
+            self.model = DistillationModel(student_model=self.model, teacher_model=self.args.distill_model)
+
         if self.world_size > 1:
             if self.args.sync_bn:
                 self.model = nn.SyncBatchNorm.convert_sync_batchnorm(self.model)
@@ -353,6 +360,8 @@ class BaseTrainer:
 
         self._build_train_pipeline()
         self.validator = self.get_validator()
+        if self.args.distill_model is not None and "dis_loss" not in self.loss_names:
+            self.loss_names += ("dis_loss",)
         self.ema = ModelEMA(self.model, tau=float(self.args.ema_tau))
         self.set_class_weights()  # compute class weights after dataloader is ready
         if RANK in {-1, 0}:
@@ -730,7 +739,16 @@ class BaseTrainer:
             cfg = weights.yaml
         elif isinstance(self.args.pretrained, (str, Path)):
             weights, _ = load_checkpoint(self.args.pretrained)
-        self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK in {-1, 0})  # calls Model(cfg, weights)
+        if isinstance(weights, DistillationModel):  # rebuild on resume
+            if RANK == -1:
+                LOGGER.info("Resuming DistillationModel from checkpoint weights")
+            student_model = self.get_model(cfg=cfg, weights=weights.student_model, verbose=RANK in {-1, 0})
+            student_model.args = self.args
+            model = DistillationModel(student_model=student_model, teacher_model=weights.teacher_model)
+            model.criterion = None
+            self.model = model
+        else:
+            self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK in {-1, 0})  # calls Model(cfg, weights)
         return ckpt
 
     def optimizer_step(self):

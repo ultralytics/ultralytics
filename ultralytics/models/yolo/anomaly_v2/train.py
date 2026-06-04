@@ -78,8 +78,8 @@ class AnomalyV2Trainer(DetectionTrainer):
         elif mode == "pinned_zero":
             alpha = 0.0
         else:
-            end_epoch = max(1, trainer.epochs - trainer.args.close_mosaic)
-            alpha = max(0.0, 1.0 - trainer.epoch / end_epoch)
+            curriculum_end = max(trainer.epochs // 2, trainer.epochs - trainer.args.close_mosaic)
+            alpha = max(0.0, 1.0 - trainer.epoch / max(1, curriculum_end))
         model.seg_alpha = alpha
         if trainer.ema is not None:
             unwrap_model(trainer.ema.ema).seg_alpha = alpha

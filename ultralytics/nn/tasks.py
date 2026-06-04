@@ -570,6 +570,12 @@ class YOLOAnomalyV2Model(DetectionModel):
         #   mask_noise_std -- std of additive Gaussian noise on the [0, 1] mask (imperfect heatmap).
         mask_shuffle_p = float(v2_cfg.get("mask_shuffle_p", 0.0))
         mask_noise_std = float(v2_cfg.get("mask_noise_std", 0.0))
+        # Value remapping: bridges the distribution gap between binary GT masks and
+        # soft SegBranch predictions. Applied before HeatmapBiasFusion at both train
+        # and inference time. Modes: none (identity), tanh_contrast (smooth stretch),
+        # power (x^gamma), threshold (hard step).
+        mask_remap_mode = str(v2_cfg.get("mask_remap_mode", "none")).lower()
+        mask_remap_kwargs = dict(v2_cfg.get("mask_remap_kwargs", {}))
         # v2.2 SegBranch: when enabled, a seg head predicts the heatmap so inference
         # needs no external prior. ``seg_alpha`` blends GT vs predicted mask (curriculum).
         use_seg = bool(v2_cfg.get("seg_branch", False))
@@ -627,6 +633,8 @@ class YOLOAnomalyV2Model(DetectionModel):
         self.p_drop = float(p_drop)
         self.mask_shuffle_p = float(mask_shuffle_p)
         self.mask_noise_std = float(mask_noise_std)
+        self.mask_remap_mode = mask_remap_mode
+        self.mask_remap_kwargs = mask_remap_kwargs
 
         # Transient bbox input for the next forward pass. Reset after each forward.
         self._mask_bboxes_buf = None  # (N, 4) normalized [cx, cy, w, h]
@@ -880,7 +888,8 @@ class YOLOAnomalyV2Model(DetectionModel):
         if getattr(self, "_bb_layers", None) is not None:
             self._install_backbone_taps(self._bb_layers)
         # Backward compat: old checkpoints may lack v2.3 attributes
-        for attr, default in [("memory_bank", None), ("_prior_mode", None), ("_last_heatmap", None)]:
+        for attr, default in [("memory_bank", None), ("_prior_mode", None), ("_last_heatmap", None),
+                              ("mask_remap_mode", "none"), ("mask_remap_kwargs", {})]:
             if not hasattr(self, attr):
                 setattr(self, attr, default)
 
@@ -1001,6 +1010,37 @@ class YOLOAnomalyV2Model(DetectionModel):
             mask = (mask + torch.randn_like(mask) * self.mask_noise_std).clamp_(0.0, 1.0)
         return mask
 
+    def _remap_mask_values(self, mask):
+        """Apply configurable value remapping to bridge binary-GT vs soft-SegBranch gap.
+
+        Called AFTER ``_augment_mask`` so remapping cleans up imprecision from both
+        the SegBranch prediction and noise injection, giving ``HeatmapBiasFusion``
+        a consistent value distribution at both train and inference time.
+
+        Modes:
+            none           identity (passthrough)
+            tanh_contrast  0.5*tanh(steepness*(x-center))+0.5  (smooth stretch)
+            power          x**gamma  (push toward 0 or 1)
+            threshold      hard step at ``threshold`` -> low/high
+        """
+        mode = getattr(self, "mask_remap_mode", "none")
+        if mode == "none":
+            return mask
+        kwargs = getattr(self, "mask_remap_kwargs", {})
+        if mode == "threshold":
+            t = float(kwargs.get("threshold", 0.5))
+            low = float(kwargs.get("low", 0.0))
+            high = float(kwargs.get("high", 1.0))
+            return torch.where(mask > t, torch.full_like(mask, high), torch.full_like(mask, low))
+        if mode == "power":
+            gamma = float(kwargs.get("gamma", 2.0))
+            return mask ** gamma
+        if mode == "tanh_contrast":
+            s = float(kwargs.get("steepness", 5.0))
+            c = float(kwargs.get("center", 0.5))
+            return 0.5 * torch.tanh(s * (mask - c)) + 0.5
+        raise ValueError(f"Unknown mask_remap_mode: {mode!r}")
+
     # ------------------------------------------------------------------
     # Forward
     # ------------------------------------------------------------------
@@ -1098,16 +1138,11 @@ class YOLOAnomalyV2Model(DetectionModel):
                     mask = self._resolve_prior(prior_mode, external_mask, bboxes, batch_idx,
                                                seg_logits_buf, batch_size, device)
                 # --- end prior_mode routing ---
-                # Stash RAW heatmap for validator AUROC (before any thresholding)
+                # Stash RAW heatmap for validator AUROC (before remapping/augmentation).
                 self._last_heatmap = mask.detach() if mask is not None else None
-                # TODO: temporary — threshold priors for ablation
+                # Value remapping (bridges binary-GT training vs soft-SegBranch inference).
                 if mask is not None:
-                    if prior_mode == "heatmap":
-                        mask = torch.where(mask > 0.5, torch.ones_like(mask), mask)
-                    elif prior_mode == "seg_heatmap":
-                        mask = torch.where(mask > 0.5, torch.ones_like(mask), torch.zeros_like(mask))
-                    elif prior_mode == "segment":
-                        mask = torch.where(mask > 0.5, torch.ones_like(mask), torch.full_like(mask, 0.5))
+                    mask = self._remap_mask_values(mask)
                 if (
                     self.training
                     and mask is not None

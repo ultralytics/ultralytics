@@ -217,6 +217,12 @@ def add_integration_callbacks(instance):
 
     # Load training callbacks
     if "Trainer" in instance.__class__.__name__:
+        from .platform import enable_platform_wandb
+
+        # Turn on W&B from the user's Platform account before importing the W&B callback,
+        # whose enable-gate (SETTINGS["wandb"]) is evaluated at import time.
+        enable_platform_wandb()
+
         from .clearml import callbacks as clear_cb
         from .comet import callbacks as comet_cb
         from .dvc import callbacks as dvc_cb

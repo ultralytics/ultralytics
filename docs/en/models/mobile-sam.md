@@ -159,17 +159,11 @@ Download the MobileSAM pretrained weights from [Ultralytics assets](https://gith
         # Load the model
         model = SAM("mobile_sam.pt")
 
-        # Predict a segment based on a single point prompt
-        model.predict("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
+        # Predict a segment based on a single box prompt
+        model.predict("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
 
-        # Predict multiple segments based on multiple points prompt
-        model.predict("ultralytics/assets/zidane.jpg", points=[[400, 370], [900, 370]], labels=[1, 1])
-
-        # Predict a segment based on multiple points prompt per object
-        model.predict("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 1]])
-
-        # Predict a segment using both positive and negative prompts.
-        model.predict("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 0]])
+        # Predict multiple segments based on multiple box prompts
+        model.predict("ultralytics/assets/zidane.jpg", bboxes=[[439, 437, 524, 709], [114, 196, 313, 708]])
         ```
 
 Both `MobileSAM` and `SAM` share the same API. For more usage details, see the [SAM documentation](sam.md).

@@ -92,7 +92,7 @@ class Colors:
     """
 
     def __init__(self):
-        """Initialize colors as hex = matplotlib.colors.TABLEAU_COLORS.values()."""
+        """Initialize the Ultralytics color palette from a fixed list of hex color codes."""
         hexs = (
             "042AFF",
             "0BDBEB",

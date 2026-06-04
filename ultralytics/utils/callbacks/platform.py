@@ -43,6 +43,41 @@ except (AssertionError, ImportError):
     _api_key = None
 
 
+def enable_platform_wandb():
+    """Enable W&B logging from the user's Ultralytics Platform account.
+
+    If the user connected a W&B API key on the Platform, fetch it (authenticated by the Ultralytics API key) and turn on
+    the built-in W&B integration for this run: set WANDB_API_KEY and flip the in-memory `wandb` setting. The Platform
+    validates the key before returning it, so a revoked key comes back null and never reaches the (unguarded) wb.init().
+    Must run before the W&B callback is imported, since that callback evaluates its enable-gate at import time.
+    Never raises — any failure simply leaves W&B logging off.
+    """
+    if not _api_key or SETTINGS.get("wandb") or os.environ.get("WANDB_API_KEY"):
+        return  # not logged in, already enabled, or the user already configured W&B themselves
+    try:
+        import requests
+
+        r = requests.get(
+            f"{PLATFORM_API_URL}/integrations/wandb", headers={"Authorization": f"Bearer {_api_key}"}, timeout=5
+        )
+        key = r.json().get("apiKey") if r.ok else None
+        if not key:
+            return
+
+        from ultralytics.utils.checks import check_requirements
+
+        # wandb is pre-installed in Platform cloud images (no-op here); best-effort install elsewhere.
+        if not check_requirements("wandb"):
+            return
+        os.environ["WANDB_API_KEY"] = key
+        # In-memory only: dict.__setitem__ bypasses SettingsManager's persisting __setitem__ so concurrent trainings
+        # sharing this host's settings file can't inherit wandb=True without a key.
+        dict.__setitem__(SETTINGS, "wandb", True)
+        LOGGER.info(f"{PREFIX}W&B logging enabled from your Ultralytics account ✅")
+    except Exception:
+        pass
+
+
 def resolve_platform_uri(uri, hard=True):
     """Resolve ul:// URIs to signed URLs by authenticating with Ultralytics Platform.
 

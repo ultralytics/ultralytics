@@ -69,7 +69,7 @@ class RKNNBackend(BaseBackend):
         im = (im.cpu().numpy() * 255).astype("uint8")
         im = im if isinstance(im, (list, tuple)) else [im]
         y = self.model.inference(inputs=im)
-        if self.task == "detect" and isinstance(y, (list, tuple)) and len(y) > 1:
+        if isinstance(y, (list, tuple)) and len(y) > 1:
             return self._decode(y)  # raw per-scale reg/cls maps -> (1, 4 + nc, anchors)
         return y
 

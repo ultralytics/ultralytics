@@ -562,6 +562,8 @@ class Exporter:
             assert fmt != "ncnn", "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
         if fmt == "rknn":
+            if model.task != "detect":
+                raise ValueError("Rockchip RKNN export is only supported for detection models.")
             if not self.args.name:
                 LOGGER.warning(
                     "Rockchip RKNN export requires a missing 'name' arg for processor type. "
@@ -1292,9 +1294,9 @@ class Exporter:
             output_dir.mkdir(parents=True, exist_ok=True)
             rknn_dataset = output_dir / "dataset.txt"
             rknn_dataset.write_text("\n".join(str(Path(x).resolve()) for x in image_paths) + "\n")
-        if self.model.task == "detect" and self.args.int8:
-            # INT8 detect exports emit raw head maps (see Detect.forward) that the backend decodes on CPU using
-            # reg_max, so record it in the metadata. end2end is already forced False for rknn exports above.
+        if self.args.int8:
+            # INT8 exports emit raw head maps (see Detect.forward) that the backend decodes on CPU using reg_max,
+            # so record it in the metadata. end2end is already forced False for rknn exports above.
             self.metadata["reg_max"] = int(next((m.reg_max for m in self.model.modules() if isinstance(m, Detect)), 16))
         return onnx2rknn(
             onnx_file=f_onnx,

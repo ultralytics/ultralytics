@@ -134,9 +134,9 @@ Train YOLO26n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
     class CustomizedValidator(ClassificationValidator):
         """A customized validator class for YOLO classification models with enhanced dataset handling."""
 
-        def build_dataset(self, img_path: str, mode: str = "train"):
-            """Build a customized dataset for classification standalone validation."""
-            return CustomizedDataset(root=img_path, args=self.args, augment=mode == "train", prefix=self.args.split)
+        def build_dataset(self, img_path: str):
+            """Build a customized dataset for classification standalone validation (no augmentation)."""
+            return CustomizedDataset(root=img_path, args=self.args, augment=False, prefix=self.args.split)
 
 
     model = YOLO("yolo26n-cls.pt")

@@ -177,7 +177,7 @@ When processing implicitly quantized networks TensorRT uses INT8 opportunistical
 
 #### Configuring INT8 Export
 
-The arguments provided when using [export](../modes/export.md) for an Ultralytics YOLO model will **greatly** influence the performance of the exported model. They will also need to be selected based on the device resources available, however the default arguments _should_ work for most [Ampere (or newer) NVIDIA discrete GPUs](https://developer.nvidia.com/blog/nvidia-ampere-architecture-in-depth/). The calibration algorithm used is `"MINMAX_CALIBRATION"` and you can read more details about the options available [in the TensorRT Developer Guide](https://docs.nvidia.com/deeplearning/tensorrt/latest/_static/python-api/infer/Int8/MinMaxCalibrator.html). Ultralytics tests found that `"MINMAX_CALIBRATION"` was the best choice and exports are fixed to using this algorithm.
+The arguments provided when using [export](../modes/export.md) for an Ultralytics YOLO model will **greatly** influence the performance of the exported model. They will also need to be selected based on the device resources available, however the default arguments _should_ work for most [Ampere (or newer) NVIDIA discrete GPUs](https://developer.nvidia.com/blog/nvidia-ampere-architecture-in-depth/). The calibration algorithm used is `"MINMAX_CALIBRATION"` for GPU exports, while DLA exports on NVIDIA Jetson use `"ENTROPY_CALIBRATION_2"`. You can read more details about the options available [in the TensorRT Developer Guide](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/work-quantized-types.html). Ultralytics tests found `"MINMAX_CALIBRATION"` to be the best choice for GPU exports, and the algorithm is selected automatically based on the export device.
 
 - `workspace` : Controls the size (in GiB) of the device memory allocation while converting the model weights.
     - Adjust the `workspace` value according to your calibration needs and resource availability. While a larger `workspace` may increase calibration time, it allows TensorRT to explore a wider range of optimization tactics, potentially enhancing model performance and [accuracy](https://www.ultralytics.com/glossary/accuracy). Conversely, a smaller `workspace` can reduce calibration time but may limit the optimization strategies, affecting the quality of the quantized model.
@@ -244,7 +244,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
 #### Advantages of using YOLO with TensorRT INT8
 
-- **Reduced model size:** Quantization from FP32 to INT8 can reduce the model size by 4x (on disk or in memory), leading to faster download times. lower storage requirements, and reduced memory footprint when deploying a model.
+- **Reduced model size:** Quantization from FP32 to INT8 can reduce the model size by 4x (on disk or in memory), leading to faster download times, lower storage requirements, and reduced memory footprint when deploying a model.
 
 - **Lower power consumption:** Reduced precision operations for INT8 exported YOLO models can consume less power compared to FP32 models, especially for battery-powered devices.
 
@@ -589,7 +589,7 @@ For more details, refer to the [exporting TensorRT with INT8 quantization sectio
 Deploying YOLO26 TensorRT models on an NVIDIA Triton Inference Server can be done using the following resources:
 
 - **[Deploy Ultralytics YOLO26 with Triton Server](../guides/triton-inference-server.md)**: Step-by-step guidance on setting up and using Triton Inference Server.
-- **[NVIDIA Triton Inference Server Documentation](https://developer.nvidia.com/blog/deploying-deep-learning-nvidia-tensorrt/)**: Official NVIDIA documentation for detailed deployment options and configurations.
+- **[Deploying Deep Neural Networks with NVIDIA TensorRT](https://developer.nvidia.com/blog/deploying-deep-learning-nvidia-tensorrt/)**: NVIDIA's guide on deploying deep learning models with TensorRT for detailed deployment options and configurations.
 
 These guides will help you integrate YOLO26 models efficiently in various deployment environments.
 

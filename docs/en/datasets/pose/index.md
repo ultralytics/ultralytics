@@ -28,7 +28,7 @@ Format with 2D keypoints
 <class-index> <x> <y> <width> <height> <px1> <py1> <px2> <py2> ... <pxn> <pyn>
 ```
 
-Format with 3D keypoints (includes visibility per point)
+Format with keypoint visibility (includes visibility per point)
 
 ```
 <class-index> <x> <y> <width> <height> <px1> <py1> <p1-visibility> <px2> <py2> <p2-visibility> <pxn> <pyn> <pn-visibility>
@@ -157,7 +157,7 @@ The Ultralytics YOLO format for pose estimation datasets involves labeling each 
 - Object width and height (normalized)
 - Object keypoint coordinates (normalized pxn and pyn)
 
-For 2D poses, keypoints include pixel coordinates. For 3D, each keypoint also has a visibility flag. For more details, see [Ultralytics YOLO format](#ultralytics-yolo-format).
+For 2D poses, keypoints include normalized x and y coordinates. With a visibility dimension, each keypoint also has a visibility flag. For more details, see [Ultralytics YOLO format](#ultralytics-yolo-format).
 
 ### How do I use the COCO-Pose dataset with Ultralytics YOLO?
 

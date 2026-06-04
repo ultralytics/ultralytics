@@ -28,6 +28,7 @@ from ultralytics.nn.modules import (
     A2C2f,
     AConv,
     ADown,
+    BackboneMemoryBank,
     BboxMaskRenderer,
     Bottleneck,
     BottleneckCSP,
@@ -633,6 +634,30 @@ class YOLOAnomalyV2Model(DetectionModel):
         # Allows external callers (validator) to force mask-off mode for a single forward.
         self._mask_disabled_once = False
 
+        # --- BackboneMemoryBank (v2.3) ---
+        bb_layers_cfg = v2_cfg.get("bb_layers", None)
+        bb_layers = list(bb_layers_cfg) if bb_layers_cfg else None
+        bb_temperature = float(v2_cfg.get("bb_temperature", 3.0))
+        bb_K = int(v2_cfg.get("bb_K", 5))
+        bb_max_bank_size = v2_cfg.get("bb_max_bank_size", None)
+        bb_auto_temperature = bool(v2_cfg.get("bb_auto_temperature", True))
+        bb_calibration_target = float(v2_cfg.get("bb_calibration_target_score", 0.2))
+        self.memory_bank = BackboneMemoryBank(
+            temperature=bb_temperature, K=bb_K, max_bank_size=bb_max_bank_size,
+            auto_temperature=bb_auto_temperature,
+            calibration_target_score=bb_calibration_target,
+        ) if bb_layers else None
+        self._bb_layers = bb_layers
+        self._bb_hook_handles: list = []
+        self._bb_feats: dict[int, "torch.Tensor"] = {}
+        if self.memory_bank is not None and self._bb_layers:
+            self.memory_bank._bb_layer_indices = self._bb_layers
+            self._install_backbone_taps(self._bb_layers)
+
+        # Prior mode state (predictor/validator controlled)
+        self._prior_mode: str | None = None  # None = legacy (GT bboxes -> renderer)
+        self._last_heatmap: torch.Tensor | None = None
+
     # ------------------------------------------------------------------
     # Mask input API
     # ------------------------------------------------------------------
@@ -684,6 +709,165 @@ class YOLOAnomalyV2Model(DetectionModel):
             self._mask_disabled_once = False
         return bb, bi, ext, disabled
 
+    # ------------------------------------------------------------------
+    # Prior mode API (v2.3 — unified 4-mode routing)
+    # ------------------------------------------------------------------
+    def set_prior_mode(self, mode: str | None) -> None:
+        """Set the prior source for the next forward.
+
+        Args:
+            mode: ``"none"`` (passthrough), ``"segment"`` (SegBranch), ``"heatmap"``
+                (BackboneMemoryBank), ``"mask"`` (external_mask), or ``None`` (legacy
+                GT bboxes -> renderer).
+        """
+        if mode is not None and mode not in ("none", "segment", "heatmap", "mask"):
+            raise ValueError(f"Invalid prior_mode: {mode!r}")
+        self._prior_mode = mode
+
+    def load_support_set(
+        self,
+        source: str | Path | list[str],
+        imgsz: int = 320,
+        device=None,
+        batch: int = 8,
+        max_bank_size: int = 10000,
+        max_images: int = 0,
+        verbose: bool = True,
+    ) -> int:
+        """Build the BackboneMemoryBank from normal images for ``prior_mode=\"heatmap\"``.
+
+        Iterates over images, runs the backbone to extract features, accumulates them
+        into the memory bank, then compresses and freezes the bank.
+
+        Args:
+            source: Directory of normal images or list of image paths.
+            imgsz: Resize images to this square size.
+            device: Device for the bank (defaults to model device).
+            batch: Mini-batch size for backbone feature extraction.
+            max_bank_size: Maximum bank entries (coreset subsampling at freeze).
+            verbose: Log progress.
+
+        Returns:
+            Final bank size (number of feature vectors).
+        """
+        import cv2
+        from pathlib import Path
+
+        from ultralytics.utils import LOGGER, TQDM
+
+        mb = getattr(self, "memory_bank", None)
+        if mb is None or self._bb_layers is None:
+            raise RuntimeError(
+                "BackboneMemoryBank not configured. Add bb_layers to the anomaly_v2 YAML block."
+            )
+        mb.max_bank_size = max_bank_size
+        mb.reset_memory_bank()
+        self.set_prior_mode(None)  # Don't trigger prior routing during build
+
+        # Resolve device
+        if device is None:
+            device = next(self.parameters()).device
+        self.to(device)
+
+        # Collect image paths
+        if isinstance(source, (str, Path)):
+            source = Path(source)
+            if source.is_dir():
+                exts = {".bmp", ".dng", ".jpeg", ".jpg", ".mpo", ".png",
+                        ".tif", ".tiff", ".webp", ".pfm"}
+                paths = sorted(
+                    p for p in source.iterdir()
+                    if p.is_file() and p.suffix.lower() in exts
+                )
+            else:
+                paths = [str(source)]
+        else:
+            paths = list(source)
+
+        if not paths:
+            raise ValueError("No images found in source.")
+
+        if max_images > 0 and len(paths) > max_images:
+            paths = paths[:max_images]
+
+        if verbose:
+            LOGGER.info(f"Building memory bank from {len(paths)} images (imgsz={imgsz})...")
+
+        pbar = TQDM(paths, desc="Building memory bank") if verbose else paths
+        chunk = []
+        for p in pbar:
+            img = cv2.imread(str(p))
+            if img is None:
+                continue
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            img = cv2.resize(img, (imgsz, imgsz), interpolation=cv2.INTER_LINEAR)
+            chunk.append(img)
+            if len(chunk) >= batch:
+                self._ingest_support_batch(chunk, device, mb)
+                chunk.clear()
+        if chunk:
+            self._ingest_support_batch(chunk, device, mb)
+
+        mb.freeze_memory_bank()
+        final_size = mb.memory_bank.shape[0]
+        if verbose:
+            LOGGER.info(f"Memory bank frozen: {final_size} features, dim={mb.feature_dim}")
+        return final_size
+
+    def _ingest_support_batch(self, images, device, memory_bank):
+        """Run a batch of images through the model and accumulate backbone features via hooks."""
+        import numpy as np
+        batch = np.stack(images, axis=0)  # (B, H, W, 3)
+        batch = torch.from_numpy(batch).permute(0, 3, 1, 2).float() / 255.0  # (B, 3, H, W)
+        batch = batch.to(device)
+        self._bb_feats = {}
+        with torch.no_grad():
+            self(batch)
+        memory_bank.accumulate_features(self._bb_feats)
+
+    # ------------------------------------------------------------------
+    # Backbone taps (for BackboneMemoryBank)
+    # ------------------------------------------------------------------
+    def _install_backbone_taps(self, layer_indices: list[int]) -> None:
+        """Register forward hooks that capture backbone-layer outputs into ``self._bb_feats``.
+
+        Idempotent — removes old hooks before installing.
+        """
+        for h in getattr(self, "_bb_hook_handles", []):
+            h.remove()
+        self._bb_hook_handles: list = []
+        self._bb_feats: dict[int, "torch.Tensor"] = {}
+
+        def _make_hook(idx: int):
+            def _hook(_module, _inp, out):
+                self._bb_feats[idx] = out
+            return _hook
+
+        for idx in sorted(set(layer_indices)):
+            if idx < len(self.model):
+                handle = self.model[idx].register_forward_hook(_make_hook(idx))
+                self._bb_hook_handles.append(handle)
+
+    def __getstate__(self):
+        """Remove backbone hooks before pickle/deepcopy (hook closures are not pickable)."""
+        state = super().__getstate__()
+        for h in getattr(self, "_bb_hook_handles", []):
+            h.remove()
+        state["_bb_hook_handles"] = []
+        return state
+
+    def __setstate__(self, state):
+        """Re-install backbone hooks and set defaults for old-checkpoint compat."""
+        super().__setstate__(state)
+        self._bb_hook_handles = []
+        self._bb_feats = {}
+        if getattr(self, "_bb_layers", None) is not None:
+            self._install_backbone_taps(self._bb_layers)
+        # Backward compat: old checkpoints may lack v2.3 attributes
+        for attr, default in [("memory_bank", None), ("_prior_mode", None), ("_last_heatmap", None)]:
+            if not hasattr(self, attr):
+                setattr(self, attr, default)
+
     def _resolve_fusion_mask(self, bboxes, batch_idx, external_mask, disabled, seg_logits, batch_size, device):
         """Resolve the (B, 1, mask_size, mask_size) heatmap fed to the fusion, or None for passthrough.
 
@@ -720,6 +904,44 @@ class YOLOAnomalyV2Model(DetectionModel):
             return a * gt + (1.0 - a) * seg_pred
         # No GT and not disabled -> prior-free inference via the predicted heatmap.
         return seg_pred
+
+    def _resolve_prior(self, prior_mode, external_mask, bboxes, batch_idx, seg_logits, batch_size, device):
+        """Resolve the fusion mask from the selected prior mode (v2.3).
+
+        Only called when ``_prior_mode`` is not None (explicit inference mode).
+        Training with ``_prior_mode=None`` uses ``_resolve_fusion_mask`` directly.
+        """
+        mask_size = getattr(self, "mask_size", 80)
+        if prior_mode == "none":
+            return None
+        if prior_mode == "mask":
+            if external_mask is not None:
+                return external_mask.to(device=device, dtype=torch.float32)
+            if bboxes is not None:
+                return self.mask_renderer(bboxes, batch_idx, batch_size)
+            return None
+        if prior_mode == "segment":
+            if seg_logits is not None:
+                main = seg_logits[0] if isinstance(seg_logits, tuple) else seg_logits
+                seg_pred = main.detach().sigmoid()
+                if seg_pred.shape[2] != mask_size or seg_pred.shape[3] != mask_size:
+                    seg_pred = torch.nn.functional.interpolate(
+                        seg_pred, size=(mask_size, mask_size), mode="bilinear", align_corners=False
+                    )
+                return seg_pred
+            return None
+        if prior_mode == "heatmap":
+            mb = getattr(self, "memory_bank", None)
+            bb_feats = getattr(self, "_bb_feats", None)
+            if mb is not None and bb_feats:
+                hmap = mb(bb_feats)
+                if hmap.shape[2] != mask_size or hmap.shape[3] != mask_size:
+                    hmap = torch.nn.functional.interpolate(
+                        hmap, size=(mask_size, mask_size), mode="bilinear", align_corners=False
+                    )
+                return hmap
+            return None
+        return None
 
     def _augment_mask(self, mask):
         """Training-only mask augmentation for prior robustness.
@@ -782,6 +1004,19 @@ class YOLOAnomalyV2Model(DetectionModel):
         batch_size = x.shape[0]
         device = x.device
 
+        # Clear backbone feature cache so stale _ingest_support_batch / warmup
+        # features don't interfere with prior_mode="heatmap".
+        self._bb_feats = {}
+
+        # AutoBackend's fuse() → .to() sequence can drop backbone hooks.
+        # Re-install them defensively when any target layer has lost its hook.
+        _layers = getattr(self, "_bb_layers", None)
+        if _layers and hasattr(self, "_bb_hook_handles"):
+            for _idx in _layers:
+                if _idx < len(self.model) and len(self.model[_idx]._forward_hooks) == 0:
+                    self._install_backbone_taps(_layers)
+                    break
+
         # Consume the mask input set by loss() / set_mask_input() / disable_mask_once() /
         # set_external_mask_once().
         bboxes, batch_idx, external_mask, mask_disabled = self._consume_mask_input()
@@ -817,11 +1052,26 @@ class YOLOAnomalyV2Model(DetectionModel):
                 mask = self._resolve_fusion_mask(
                     bboxes, batch_idx, external_mask, mask_disabled, seg_logits_buf, batch_size, device
                 )
+                # --- v2.3 prior_mode routing (overrides legacy resolution) ---
+                prior_mode = getattr(self, "_prior_mode", None)
+                if prior_mode is not None:
+                    mask = self._resolve_prior(prior_mode, external_mask, bboxes, batch_idx,
+                                               seg_logits_buf, batch_size, device)
+                # --- end prior_mode routing ---
+                # Stash RAW heatmap for validator AUROC (before any thresholding)
+                self._last_heatmap = mask.detach() if mask is not None else None
+                # TODO: temporary — threshold priors for ablation
+                if mask is not None:
+                    if prior_mode == "heatmap":
+                        mask = torch.where(mask > 0.5, torch.ones_like(mask), mask)
+                    elif prior_mode == "segment":
+                        mask = torch.where(mask > 0.5, torch.ones_like(mask), torch.full_like(mask, 0.5))
                 if (
                     self.training
                     and mask is not None
                     and bboxes is not None
                     and external_mask is None
+                    and prior_mode is None
                     and (self.mask_shuffle_p > 0.0 or self.mask_noise_std > 0.0)
                 ):
                     mask = self._augment_mask(mask)

@@ -52,12 +52,13 @@ class AnomalyV2Trainer(DetectionTrainer):
         return model
 
     def get_validator(self):
-        """Return an AnomalyV2Validator which runs val twice (mask-on / mask-off)."""
+        """Return an AnomalyV2Validator (single-pass, legacy GT mask rendering for training)."""
         self.loss_names = "box_loss", "cls_loss", "dfl_loss"
         if getattr(unwrap_model(self.model), "seg_branch", None) is not None:
             self.loss_names = "box_loss", "cls_loss", "dfl_loss", "seg_loss"
         return yolo.anomaly_v2.AnomalyV2Validator(
-            self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
+            self.test_loader, save_dir=self.save_dir, args=copy(self.args),
+            _callbacks=self.callbacks, prior_mode=None,  # legacy GT bboxes -> renderer
         )
 
     @staticmethod

@@ -26,6 +26,13 @@ anomaly_v2:
   mask_mode: rect # 'rect' (binary box) or 'gauss' (2D Gaussian)
   sigma_factor: 0.25 # gauss only: sigma_x = w * sigma_factor, sigma_y = h * sigma_factor
   p_drop: 0.5 # per-sample mask dropout probability during training (anti-shortcut)
+  # BackboneMemoryBank (v2.3) — backbone tap indices for P3/P4/P5 scales (yolo26m)
+  bb_layers: [4]
+  bb_temperature: 3.0   # initial β (auto-calibrated when bb_auto_temperature=True)
+  bb_K: 5               # top-K for Noisy-OR scoring
+  seg_branch: true
+  bb_auto_temperature: true
+  bb_calibration_target_score: 0.2
 
 # Backbone (identical to yolo26.yaml)
 backbone:

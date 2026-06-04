@@ -1,25 +1,22 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-"""YOLO Anomaly v2 validator — runs val twice per epoch.
+"""YOLO Anomaly v2 validator — single-pass with configurable prior mode + AUROC.
 
-Phase 0 wants to measure two numbers each val epoch:
+Supports the same four prior modes as the predictor:
 
-  * **B-on**:  forward with ``mask`` rendered from ``batch["bboxes"]``
-              -> upper bound when prior is perfect.
-  * **B-off**: forward with mask disabled (``2*sigmoid(0)=1`` passthrough)
-              -> what the model does without any anomaly prior (≈ vanilla YOLO).
+  - ``"none"``    — passthrough (vanilla YOLO).
+  - ``"segment"`` — SegBranch sigmoid output as prior.
+  - ``"heatmap"`` — BackboneMemoryBank output as prior.
+  - ``"mask"``    — GT bboxes rendered as mask (upper-bound).
 
-Both are computed in a single ``__call__`` by running the standard
-``DetectionValidator`` pipeline twice with different mask state, then merging
-the metric dicts. The mask-off pass's metrics are prefixed ``mask_off/``.
-
-Mask injection point: the overridden ``preprocess`` method talks to the model
-through ``set_mask_input`` / ``disable_mask_once``. This sits on the v2 model
-and only affects the next forward, so it composes cleanly with the standard
-DetectionValidator loop in ``ultralytics/engine/validator.py``.
+In addition to standard detection metrics, accumulates image-AUROC and
+pixel-AUROC from the model's stashed heatmap (``model._last_heatmap``).
 """
 
 from __future__ import annotations
+
+import torch
+import torch.nn.functional as F
 
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER
@@ -28,77 +25,137 @@ from ._util import resolve_v2_model
 
 
 class AnomalyV2Validator(DetectionValidator):
-    """Detection validator that evaluates the v2 model in both mask-on and mask-off modes."""
+    """Detection validator that evaluates the v2 model with a configurable prior mode.
 
-    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
+    Single-pass (replaces the old 2-pass mask-on/mask-off design).
+    """
+
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None,
+                 prior_mode: str | None = None) -> None:
+        # Pop prior_mode from args before super().__init__ validates all keys
+        if isinstance(args, dict):
+            prior_mode = args.pop("prior_mode", prior_mode)
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.args.task = "anomaly_v2"
-        # State carried across calls
-        self._mask_mode = "on"  # "on" or "off"; controls mask injection in preprocess
-        self._model_ref = None  # captured in init_metrics so preprocess can reach the model
+        self.prior_mode = prior_mode
+        self._model_ref = None
+
+        # AUROC accumulators (computed from model._last_heatmap)
+        self._auroc_image_scores: list[float] = []
+        self._auroc_image_labels: list[int] = []
+        self._auroc_pixel_scores: list[float] = []
+        self._auroc_pixel_labels: list[int] = []
+
+        # Pixel-level GT mask renderer at a fixed eval resolution
+        from ultralytics.nn.modules.anomaly_v2 import BboxMaskRenderer
+        self._eval_mask_renderer = BboxMaskRenderer(mask_size=256, mode="rect")
 
     # ------------------------------------------------------------------
     # Hooks
     # ------------------------------------------------------------------
     def init_metrics(self, model) -> None:
-        """Capture model reference for use in preprocess (mask injection)."""
+        """Capture model reference and set prior mode for the validation pass."""
         super().init_metrics(model)
         self._model_ref = model
+        m = resolve_v2_model(model)
+        if m is not None and hasattr(m, "set_prior_mode"):
+            m.set_prior_mode(self.prior_mode)
 
     def preprocess(self, batch):
-        """Set v2 mask state on the model based on current ``_mask_mode``.
-
-        Runs BEFORE the per-batch ``model(batch["img"])`` forward, so the
-        mask injection only affects that single forward.
-        """
+        """Inject GT bboxes for 'mask' mode; other modes need no per-batch injection."""
         batch = super().preprocess(batch)
-        model = resolve_v2_model(self._model_ref)
-        if model is None or not hasattr(model, "set_mask_input"):
-            # Not a v2 model (shouldn't happen in our pipeline, but stay safe).
-            return batch
-        if self._mask_mode == "on":
-            bb = batch.get("bboxes")
-            bi = batch.get("batch_idx")
-            if bb is not None and bi is not None:
-                model.set_mask_input(bb, bi)
-            else:
-                # Defensive: no labels -> nothing to render. Disable for this forward.
-                model.disable_mask_once()
-        else:  # "off"
-            model.disable_mask_once()
+        if self.prior_mode == "mask":
+            model = resolve_v2_model(self._model_ref)
+            if model is not None and hasattr(model, "set_mask_input"):
+                bb = batch.get("bboxes")
+                bi = batch.get("batch_idx")
+                if bb is not None and bi is not None:
+                    model.set_mask_input(bb, bi)
         return batch
 
     # ------------------------------------------------------------------
-    # Two-pass __call__
+    # Single-pass __call__
     # ------------------------------------------------------------------
     def __call__(self, trainer=None, model=None):
-        """Run validation twice (mask-on and mask-off), merge metric dicts.
+        self._auroc_image_scores = []
+        self._auroc_image_labels = []
+        self._auroc_pixel_scores = []
+        self._auroc_pixel_labels = []
+        # rect padding features look anomalous to the memory bank, drowning
+        # out real content differences. Force rect=False for heatmap mode.
+        if self.prior_mode == "heatmap":
+            self.args.rect = False
+        return super().__call__(trainer=trainer, model=model)
 
-        Pass 1 (mask-on) carries the canonical loss; the loss reported back to
-        the trainer comes from this pass. Pass 2 (mask-off) re-runs everything
-        but its loss is intentionally not propagated back -- the dataloader is
-        consumed twice, which adds val time but no training noise.
-        """
-        # -------- Pass 1: mask-on --------
-        self._mask_mode = "on"
-        stats_on = super().__call__(trainer=trainer, model=model)
+    # ------------------------------------------------------------------
+    # AUROC accumulation
+    # ------------------------------------------------------------------
+    def update_metrics(self, preds, batch):
+        super().update_metrics(preds, batch)
+        m = resolve_v2_model(self._model_ref)
+        if m is None:
+            return
+        heatmap = getattr(m, "_last_heatmap", None)
+        if heatmap is None or heatmap.numel() == 0:
+            return
 
-        # -------- Pass 2: mask-off --------
-        self._mask_mode = "off"
+        bboxes = batch.get("bboxes")
+        batch_idx = batch.get("batch_idx")
+        bs = heatmap.shape[0]
+
+        for b in range(bs):
+            has_anom = 0
+            if bboxes is not None and batch_idx is not None and batch_idx.numel() > 0:
+                has_anom = int((batch_idx == b).any().item())
+            img_score = heatmap[b].max().item()
+            self._auroc_image_scores.append(img_score)
+            self._auroc_image_labels.append(has_anom)
+
+            if has_anom and bboxes is not None and batch_idx is not None:
+                bb_per_img = bboxes[batch_idx == b]
+                if bb_per_img.numel() > 0:
+                    gt_mask = self._eval_mask_renderer(
+                        bb_per_img,
+                        torch.zeros(bb_per_img.shape[0], dtype=torch.long, device=bb_per_img.device),
+                        1,
+                    )
+                    hmap_b = heatmap[b:b + 1]
+                    if hmap_b.shape[2] != 256 or hmap_b.shape[3] != 256:
+                        hmap_b = F.interpolate(hmap_b, size=(256, 256),
+                                               mode="bilinear", align_corners=False)
+                    self._auroc_pixel_scores.extend(hmap_b.flatten().cpu().tolist())
+                    self._auroc_pixel_labels.extend(gt_mask.flatten().cpu().tolist())
+
+    # ------------------------------------------------------------------
+    # AUROC helpers
+    # ------------------------------------------------------------------
+    @staticmethod
+    def _compute_auroc(scores: list[float], labels: list[int]) -> float:
+        """Compute ROC-AUC; returns NaN when inputs are degenerate."""
         try:
-            stats_off = super().__call__(trainer=trainer, model=model)
-        except Exception as e:
-            # If pass 2 fails we still want pass 1's results to flow to the trainer.
-            LOGGER.warning(f"AnomalyV2Validator: mask-off pass failed: {e}; falling back to mask-on only.")
-            stats_off = {}
+            from sklearn.metrics import roc_auc_score
+        except ImportError:
+            return float("nan")
+        if len(scores) == 0 or len(set(labels)) < 2:
+            return float("nan")
+        return float(roc_auc_score(labels, scores))
 
-        # Trainer expects a dict-of-floats. Reset mode so a subsequent call starts clean.
-        self._mask_mode = "on"
+    def finalize_metrics(self):
+        """Attach AUROC to metrics object (called AFTER get_stats by BaseValidator)."""
+        image_auroc = self._compute_auroc(self._auroc_image_scores, self._auroc_image_labels)
+        # pixel-AUROC needs at least one positive pixel label
+        pixel_auroc = self._compute_auroc(self._auroc_pixel_scores, self._auroc_pixel_labels)
+        self.metrics.image_auroc = image_auroc
+        self.metrics.pixel_auroc = pixel_auroc
+        super().finalize_metrics()
 
-        if not isinstance(stats_on, dict):
-            return stats_on  # e.g. RANK > 0 returns may be different; pass through.
-        merged = dict(stats_on)
-        if isinstance(stats_off, dict):
-            for k, v in stats_off.items():
-                merged[f"mask_off/{k}"] = v
-        return merged
+    def get_stats(self):
+        """Compute stats including AUROC (called BEFORE finalize_metrics, so compute eagerly)."""
+        stats = super().get_stats()
+        stats["image_auroc"] = self._compute_auroc(self._auroc_image_scores, self._auroc_image_labels)
+        # pixel-AUROC: must have at least one positive pixel
+        if any(self._auroc_pixel_labels):
+            stats["pixel_auroc"] = self._compute_auroc(self._auroc_pixel_scores, self._auroc_pixel_labels)
+        else:
+            stats["pixel_auroc"] = float("nan")
+        return stats

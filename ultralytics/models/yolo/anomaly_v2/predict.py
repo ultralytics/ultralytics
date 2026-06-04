@@ -1,21 +1,16 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-"""YOLO Anomaly v2 predictor.
+"""YOLO Anomaly v2 predictor with unified prior-mode routing.
 
-By default mask is disabled (no prior available outside training/val), so the
-v2 model is exactly equivalent to a vanilla YOLO detector on inference inputs
-that don't have labels (passthrough via 2*sigmoid(0)=1).
+Four prior modes selectable via ``predictor.prior_mode``:
 
-Optional prompt injection (Phase 0+ exploration):
-  - ``predictor.bbox_prompt = (bboxes, batch_idx)`` -> renderer turns them into
-    a mask using the model's configured mask_mode (rect/gauss).
-  - ``predictor.external_mask = mask_tensor`` -> a pre-computed mask is fed
-    directly to the heatmap encoder, bypassing the renderer. Useful for
-    hand-drawn masks or downstream MemoryBank priors.
+  - ``"none"``    — passthrough (vanilla YOLO, no fusion bias).
+  - ``"segment"`` — SegBranch sigmoid output as prior.
+  - ``"heatmap"`` — BackboneMemoryBank output as prior.
+  - ``"mask"``    — external_mask provided by caller.
 
-Both prompts are persistent on the predictor instance until cleared; they
-affect every subsequent forward until set to ``None``. ``external_mask`` takes
-precedence over ``bbox_prompt`` if both are set.
+Legacy ``external_mask`` / ``bbox_prompt`` attributes still work when
+``prior_mode`` is ``None`` (backward compat).
 """
 
 from __future__ import annotations
@@ -28,26 +23,40 @@ from ._util import resolve_v2_model
 
 
 class AnomalyV2Predictor(DetectionPredictor):
-    """YOLO Anomaly v2 predictor with optional prompt-style mask injection."""
+    """YOLO Anomaly v2 predictor with configurable prior mode."""
 
-    # Persistent prompt slots; set externally to override the mask-off default.
-    bbox_prompt: tuple[torch.Tensor, torch.Tensor] | None = None
-    external_mask: torch.Tensor | None = None
+    def __init__(self, cfg=None, overrides=None, _callbacks=None):
+        # Pop custom keys from overrides before super validates all keys
+        if isinstance(overrides, dict):
+            prior_mode = overrides.pop("prior_mode", None)
+        else:
+            prior_mode = None
+        # Don't pass cfg=None explicitly — let DetectionPredictor's DEFAULT_CFG default kick in
+        init_kw = {"overrides": overrides, "_callbacks": _callbacks}
+        if cfg is not None:
+            init_kw["cfg"] = cfg
+        super().__init__(**init_kw)
+        self.prior_mode = prior_mode
+        self.bbox_prompt: tuple[torch.Tensor, torch.Tensor] | None = None
+        self.external_mask: torch.Tensor | None = None
 
     def preprocess(self, im):
-        """Set mask state on the model based on configured prompt."""
+        """Set prior mode and optional mask on the model before forward."""
         m = resolve_v2_model(self.model)
-        if m is not None and hasattr(m, "disable_mask_once"):
+        if m is not None and hasattr(m, "set_prior_mode"):
+            m.set_prior_mode(self.prior_mode)
             device = next(m.parameters()).device
-            if self.external_mask is not None:
-                if not hasattr(m, "set_external_mask_once"):
-                    raise RuntimeError(
-                        "Model does not support external_mask; rebuild from this branch."
-                    )
-                m.set_external_mask_once(self.external_mask.to(device))
-            elif self.bbox_prompt is not None:
-                bb, bi = self.bbox_prompt
-                m.set_mask_input(bb.to(device), bi.to(device))
-            else:
-                m.disable_mask_once()
+            # Legacy prompt handling (backward compat)
+            if self.prior_mode is None or self.prior_mode == "mask":
+                if self.external_mask is not None:
+                    if hasattr(m, "set_external_mask_once"):
+                        m.set_external_mask_once(self.external_mask.to(device))
+                    elif hasattr(m, "_external_mask_buf"):
+                        m._external_mask_buf = self.external_mask.to(device)
+                elif self.bbox_prompt is not None:
+                    bb, bi = self.bbox_prompt
+                    m.set_mask_input(bb.to(device), bi.to(device))
+                elif self.prior_mode is None:
+                    # Legacy: no prompt → passthrough
+                    m.disable_mask_once()
         return super().preprocess(im)

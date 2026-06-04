@@ -106,6 +106,7 @@ from .transformer import (
     TransformerLayer,
 )
 from .anomaly_v2 import (
+    BackboneMemoryBank,
     BboxMaskRenderer,
     HeatmapBiasFusion,
     SegBranch,
@@ -135,6 +136,7 @@ __all__ = (
     "ADown",
     "Attention",
     "BNContrastiveHead",
+    "BackboneMemoryBank",
     "BboxMaskRenderer",
     "Bottleneck",
     "BottleneckCSP",

@@ -18,7 +18,7 @@ import torch.nn.functional as F
 
 from .conv import Conv
 
-__all__ = ("BboxMaskRenderer", "HeatmapBiasFusion", "SegBranch", "binary_seg_loss")
+__all__ = ("BboxMaskRenderer", "HeatmapBiasFusion", "SegBranch", "binary_seg_loss", "BackboneMemoryBank")
 
 
 class BboxMaskRenderer(nn.Module):
@@ -173,6 +173,239 @@ def binary_seg_loss(
     return loss
 
 
+class BackboneMemoryBank(nn.Module):
+    """Memory-bank anomaly heatmap from backbone features (v1 ADMBHead inference logic).
+
+    Stores L2-normalised normal-image backbone features. During inference, scores
+    each spatial position via Noisy-OR cosine similarity against the bank, producing a
+    (B, 1, H, W) heatmap that feeds into HeatmapBiasFusion as a prior.
+
+    Two modes controlled by ``update``:
+      - ``True`` (build): ``forward()`` returns zeros — bank not yet frozen.
+      - ``False`` (inference): ``forward()`` returns anomaly scores in [0, 1].
+
+    When ``auto_temperature=True`` (default), temperature β is calibrated from the
+    accumulated bank so that a "typical normal" feature scores ``calibration_target_score``.
+    Coreset subsampling is skipped in this mode because it would distort the score
+    distribution that the calibration established.
+    """
+
+    def __init__(
+        self,
+        temperature: float = 3.0,
+        K: int = 5,
+        accumulate_thresh: float = 0.4,
+        score_filter_kernel: int = 1,
+        max_bank_size: int | None = None,
+        auto_temperature: bool = True,
+        calibration_target_score: float = 0.2,
+    ):
+        super().__init__()
+        self.temperature = float(temperature)
+        self.K = int(K)
+        self.accumulate_thresh = float(accumulate_thresh)
+        self.score_filter_kernel = int(score_filter_kernel)
+        self.max_bank_size = max_bank_size
+        self.auto_temperature = bool(auto_temperature)
+        self.calibration_target_score = float(calibration_target_score)
+        self._calibrated = False
+        self.register_buffer("memory_bank", torch.empty(0, 0), persistent=True)
+        self.feature_dim: int | None = None
+        self.update = True
+        self._bb_layer_indices: list[int] = []
+
+    @property
+    def built(self) -> bool:
+        return not self.update
+
+    # ------------------------------------------------------------------
+    # Public API
+    # ------------------------------------------------------------------
+    def load_bank(self, features: torch.Tensor) -> None:
+        """Direct-set the memory bank from pre-extracted L2-normalised features [M, C]."""
+        if features.numel() == 0:
+            return
+        self.feature_dim = features.shape[1]
+        self.memory_bank = F.normalize(features.to(self.memory_bank.device), p=2, dim=1)
+
+    def freeze_memory_bank(self) -> None:
+        """Compress and freeze the bank for inference.
+
+        When ``auto_temperature=True``, calibrates β from the current bank so that
+        typical normal features score ~``calibration_target_score``.  Coreset
+        subsampling is skipped in auto-temperature mode because it would shift the
+        bank distribution and invalidate the calibrated β.
+        """
+        mem = self._effective_bank()
+        if self.auto_temperature and mem.shape[0] > 0:
+            self._calibrate_temperature(mem)
+        if self.max_bank_size is not None and mem.shape[0] > self.max_bank_size:
+            if not self.auto_temperature:
+                self.memory_bank = self._coreset_subsample(mem, self.max_bank_size)
+        self.update = False
+
+    def reset_memory_bank(self) -> None:
+        """Clear the bank and return to build mode."""
+        self.memory_bank = torch.empty(0, 0, device=self.memory_bank.device)
+        self.feature_dim = None
+        self._calibrated = False
+        self.update = True
+
+    def accumulate_features(self, feat_dict: dict[int, torch.Tensor]) -> None:
+        """Extract and accumulate backbone features into the memory bank (build phase).
+
+        Fused backbone features are L2-normalised per spatial position and concatenated
+        onto the existing bank. Call ``freeze_memory_bank()`` to compress and freeze.
+        """
+        if not feat_dict:
+            return
+        fused = self._build_fused_feature(feat_dict)  # (B, C, H, W)
+        C, H, W = fused.shape[1], fused.shape[2], fused.shape[3]
+        if self.feature_dim is None:
+            self.feature_dim = C
+        flat = fused.permute(0, 2, 3, 1).reshape(-1, C)  # [B*H*W, C]
+        normed = F.normalize(flat, p=2, dim=1)
+        cur = self._effective_bank()
+        if cur.shape[0] > 0:
+            self.memory_bank = torch.cat([cur, normed.to(cur.device)], dim=0)
+        else:
+            self.memory_bank = normed
+
+    def forward(self, feat_dict: dict[int, torch.Tensor]) -> torch.Tensor:
+        """Produce (B, 1, H, W) anomaly heatmap from backbone features.
+
+        During build mode or when the bank is empty, returns zeros.
+        """
+        b, device = self._resolve_batch_size(feat_dict)
+        h = feat_dict[list(feat_dict.keys())[0]].shape[2] if feat_dict else 80
+        w = feat_dict[list(feat_dict.keys())[0]].shape[3] if feat_dict else 80
+        if self.update:
+            return torch.zeros(b, 1, h, w, device=device)
+        mem = self._effective_bank()
+        if mem.shape[0] == 0:
+            return torch.zeros(b, 1, h, w, device=device)
+        fused = self._build_fused_feature(feat_dict)  # (B, C, H, W)
+        if fused.shape[1] != self.feature_dim:
+            return torch.zeros(b, 1, fused.shape[2], fused.shape[3], device=device)
+        bh, bw = fused.shape[2], fused.shape[3]
+        flat = fused.permute(0, 2, 3, 1).reshape(-1, self.feature_dim)
+        scores = self._anomaly_scores(flat, mem)  # [B*H*W]
+        return scores.view(b, 1, bh, bw)
+
+    # ------------------------------------------------------------------
+    # Internals
+    # ------------------------------------------------------------------
+    @staticmethod
+    def _resolve_batch_size(feat_dict: dict[int, torch.Tensor]) -> tuple[int, torch.device]:
+        for v in feat_dict.values():
+            return v.shape[0], v.device
+        return 1, torch.device("cpu")
+
+    def _effective_bank(self) -> torch.Tensor:
+        """Return real memory-bank entries excluding zero-padding placeholders."""
+        mem = self.memory_bank
+        if self.feature_dim is None or mem.numel() == 0 or mem.shape[0] == 0:
+            return mem[:0]
+        valid = mem.norm(dim=1) > 0
+        return mem[valid]
+
+    def _build_fused_feature(self, feat_dict: dict[int, torch.Tensor]) -> torch.Tensor:
+        """Gather backbone features at configured layer indices, upsample to P3 scale, concat."""
+        indices = self._bb_layer_indices
+        if not indices:
+            return feat_dict[list(feat_dict.keys())[0]]
+        feats = [feat_dict[i] for i in indices if i in feat_dict]
+        if not feats:
+            return feat_dict[list(feat_dict.keys())[0]]
+        target_size = feats[0].shape[-2:]
+        aligned = [
+            F.interpolate(f, size=target_size, mode="nearest") if f.shape[-2:] != target_size else f
+            for f in feats
+        ]
+        return torch.cat(aligned, dim=1) if len(aligned) > 1 else aligned[0]
+
+    def _calibrate_temperature(self, mem: torch.Tensor) -> None:
+        """Auto-calibrate β from the current memory bank (v1 formula).
+
+        Solves for β such that the 90th-percentile "typical normal" feature
+        (by mean top-K cosine similarity against the bank) scores
+        ``calibration_target_score``.
+
+        Formula: β = −ln(1 − target) / (1 − s_90)
+        """
+        import math
+
+        with torch.no_grad():
+            k = min(self.K, mem.shape[0])
+            # Score a random sample of bank entries against the bank itself
+            n_sample = min(512, mem.shape[0])
+            idx = torch.randperm(mem.shape[0], device=mem.device)[:n_sample]
+            sample = mem[idx]
+            sim = sample @ mem.t()  # [n, M]
+            topk_sim = sim.topk(k=k, dim=1).values  # [n, k]
+            mean_topk = topk_sim.mean(dim=1)  # [n] avg top-K cosine sim per position
+            s_90 = torch.quantile(mean_topk, 0.90).clamp(0.0, 1.0 - 1e-4).item()
+            beta = -math.log(1.0 - self.calibration_target_score) / max(1.0 - s_90, 1e-6)
+            beta = max(0.1, min(20.0, beta))
+        old_temp = self.temperature
+        self.temperature = beta
+        self._calibrated = True
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.debug(
+            "BackboneMemoryBank: auto-calibrated temperature %.3f → %.3f  (s_90=%.4f, target=%.2f)",
+            old_temp, beta, s_90, self.calibration_target_score,
+        )
+
+    def _anomaly_scores(self, features: torch.Tensor, mem: torch.Tensor | None = None) -> torch.Tensor:
+        """Noisy-OR cosine anomaly scores ∈ [0, 1] for every spatial position.
+
+        Args:
+            features: [N, C] query features.
+            mem: [M, C] memory bank. If None, uses ``self._effective_bank()``.
+
+        Returns:
+            [N] tensor of anomaly scores.
+        """
+        if mem is None:
+            mem = self._effective_bank()
+        if mem.numel() == 0 or mem.shape[0] == 0:
+            return torch.full((features.shape[0],), 0.5, device=features.device)
+        q = F.normalize(features.view(-1, self.feature_dim), p=2, dim=1)
+        k = min(self.K, mem.shape[0])
+        sim = q @ mem.t()  # [N, M]
+        sim = torch.exp(-self.temperature * (1 - sim))  # psi(x) = exp(-beta*(1-cos))
+        topk_sim = sim.topk(k=k, dim=1).values  # [N, k]
+        log_prob = torch.log((1 - topk_sim).clamp(min=1e-8)).mean(dim=1)
+        return (torch.exp(log_prob)*1.0) .clamp(0, 1)
+
+    @staticmethod
+    def _coreset_subsample(mem: torch.Tensor, max_size: int) -> torch.Tensor:
+        """Greedy k-center coreset on L2-normalised features using cosine distance.
+
+        Complexity: O(max_size × M). Features must be L2-normalised.
+        """
+        from ultralytics.utils import TQDM
+
+        M = mem.shape[0]
+        if M <= max_size:
+            return mem
+        device = mem.device
+        dist = torch.full((M,), float("inf"), device=device, dtype=torch.float32)
+        selected: list[int] = []
+        mean = mem.mean(dim=0)
+        mean = mean / mean.norm().clamp(min=1e-8)
+        seed = int((mem @ mean).argmax().item())
+        selected.append(seed)
+        for _ in TQDM(range(max_size - 1), desc="Coreset subsample", leave=False):
+            centre = mem[selected[-1]].unsqueeze(0)
+            cos_sim = (mem @ centre.t()).squeeze(1)
+            new_dist = (1.0 - cos_sim).clamp(min=0.0)
+            dist = torch.minimum(dist, new_dist)
+            selected.append(int(dist.argmax().item()))
+        return mem[torch.tensor(selected, device=device)]
+
+
 if __name__ == "__main__":
     # Smoke test: render, fusion init=0 passthrough, fusion with learned beta bounded,
     # broadcast onto a C-channel PAN feature.
@@ -217,5 +450,37 @@ if __name__ == "__main__":
     assert fusion(mask_p4, 1).shape == (B, 1, 40, 40)
     assert fusion(mask_p5, 2).shape == (B, 1, 20, 20)
     print("HeatmapBiasFusion multi-scale OK.")
+
+    print("\n--- BackboneMemoryBank ---")
+    mb = BackboneMemoryBank(temperature=3.0, K=5)
+    assert not mb.built, "fresh bank should not be built (update=True)"
+    feat_dict = {4: torch.randn(2, 512, 80, 80), 6: torch.randn(2, 512, 40, 40), 10: torch.randn(2, 1024, 20, 20)}
+    mb._bb_layer_indices = [4, 6, 10]
+    # Build mode: returns zeros
+    out = mb(feat_dict)
+    assert out.shape == (2, 1, 80, 80), f"expected (2,1,80,80) got {tuple(out.shape)}"
+    assert out.abs().max().item() == 0.0, "build mode should return zeros"
+    # Load bank and freeze
+    bank_features = torch.randn(100, 512)
+    mb.load_bank(bank_features)
+    mb.freeze_memory_bank()
+    assert mb.built, "should be built after freeze"
+    # Inference mode: non-zero heatmap
+    out = mb(feat_dict)
+    assert out.shape == (2, 1, 80, 80)
+    assert 0.0 <= out.min().item() <= out.max().item() <= 1.0, "scores should be in [0,1]"
+    # Reset
+    mb.reset_memory_bank()
+    assert not mb.built
+    # Coreset smoke
+    big_bank = torch.randn(200, 512)
+    mb.load_bank(big_bank)
+    mb.freeze_memory_bank()  # max_bank_size=None → no compression
+    mb2 = BackboneMemoryBank(max_bank_size=50)
+    mb2._bb_layer_indices = [4]
+    mb2.load_bank(big_bank)
+    mb2.freeze_memory_bank()
+    assert mb2.memory_bank.shape[0] == 50, f"coreset should keep 50, got {mb2.memory_bank.shape[0]}"
+    print("BackboneMemoryBank smoke OK.")
 
     print("\nAll smoke tests passed.")

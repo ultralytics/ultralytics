@@ -158,9 +158,9 @@ class Detect(nn.Module):
         self, x: list[torch.Tensor]
     ) -> dict[str, torch.Tensor] | torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Concatenates and returns predicted bounding boxes and class probabilities."""
-        if self.export and self.format == "rknn" and getattr(self, "rknn_int8", False):
-            # INT8 RKNN: emit raw per-scale reg/cls maps; DFL, decode and sigmoid run in float on the
-            # backend (see RKNNBackend._decode) to keep quantization-sensitive ops out of the INT8 graph.
+        if self.export and self.format == "rknn":
+            # RKNN: emit raw per-scale reg/cls maps; DFL, decode and sigmoid run in float on the
+            # backend (see RKNNBackend._decode) to keep quantization-sensitive ops out of the NPU graph.
             y = []
             for i in range(self.nl):
                 y.append(self.cv2[i](x[i]))  # reg: [1, 4*reg_max, H, W] - raw regression output

@@ -678,7 +678,6 @@ class Exporter:
                 m.max_det = min(self.args.max_det, anchors)
                 m.agnostic_nms = self.args.agnostic_nms
                 m.xyxy = self.args.nms and fmt != "coreml"
-                m.rknn_int8 = fmt == "rknn" and self.args.int8  # emit raw head maps for INT8-friendly RKNN export
                 m.shape = None  # reset cached shape for new export input size
                 if hasattr(model, "pe") and hasattr(m, "fuse") and not hasattr(m, "lrpc"):  # for YOLOE models
                     m.fuse(model.pe.to(self.device))

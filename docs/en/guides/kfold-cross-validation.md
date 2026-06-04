@@ -132,11 +132,8 @@ The rows index the label files, each corresponding to an image in your dataset, 
         - By setting `random_state=M` where `M` is a chosen integer, you can obtain repeatable results.
 
     ```python
-    import random
-
     from sklearn.model_selection import KFold
 
-    random.seed(0)  # for reproducibility
     ksplit = 5
     kf = KFold(n_splits=ksplit, shuffle=True, random_state=20)  # setting random_state for repeatable results
 
@@ -150,8 +147,8 @@ The rows index the label files, each corresponding to an image in your dataset, 
     folds_df = pd.DataFrame(index=index, columns=folds)
 
     for i, (train, val) in enumerate(kfolds, start=1):
-        folds_df[f"split_{i}"].loc[labels_df.iloc[train].index] = "train"
-        folds_df[f"split_{i}"].loc[labels_df.iloc[val].index] = "val"
+        folds_df.loc[labels_df.iloc[train].index, f"split_{i}"] = "train"
+        folds_df.loc[labels_df.iloc[val].index, f"split_{i}"] = "val"
     ```
 
 3. Now we will calculate the distribution of class labels for each fold as a ratio of the classes present in `val` to those present in `train`.
@@ -175,14 +172,11 @@ The rows index the label files, each corresponding to an image in your dataset, 
     ```python
     import datetime
 
-    supported_extensions = [".jpg", ".jpeg", ".png"]
+    from ultralytics.data.utils import IMG_FORMATS
 
-    # Initialize an empty list to store image file paths
-    images = []
-
-    # Loop through supported extensions and gather image files
-    for ext in supported_extensions:
-        images.extend(sorted((dataset_path / "images").rglob(f"*{ext}")))
+    # Gather images in any Ultralytics-supported format and map each label to its image by filename stem
+    images = sorted(p for p in (dataset_path / "images").rglob("*") if p.suffix[1:].lower() in IMG_FORMATS)
+    labels_by_stem = {label.stem: label for label in labels}
 
     # Create the necessary directories and dataset YAML files
     save_path = Path(dataset_path / f"{datetime.date.today().isoformat()}_{ksplit}-Fold_Cross-val")
@@ -216,13 +210,15 @@ The rows index the label files, each corresponding to an image in your dataset, 
 
 5. Lastly, copy images and labels into the respective directory ('train' or 'val') for each split.
     - **NOTE:** The time required for this portion of the code will vary based on the size of your dataset and your system hardware.
+    - **NOTE:** Each image is copied into every split, so this duplicates the dataset roughly `k` times on disk. For large datasets, consider symlinks (`os.symlink`) instead of `shutil.copy` to save space (on Windows, symlinks may require elevated permissions).
 
     ```python
     import shutil
 
     from tqdm import tqdm
 
-    for image, label in tqdm(zip(images, labels), total=len(images), desc="Copying files"):
+    for image in tqdm(images, total=len(images), desc="Copying files"):
+        label = labels_by_stem[image.stem]  # pair by filename stem, not by list position
         for split, k_split in folds_df.loc[image.stem].items():
             # Destination directory
             img_to_path = save_path / split / k_split / "images"
@@ -270,14 +266,50 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
         )  # include any additional train arguments
     ```
 
-3. You can also use [Ultralytics data.split.autosplit](https://docs.ultralytics.com/reference/data/split) function for automatic dataset splitting:
+!!! tip "Need a simple split instead of K-Fold?"
+
+    If you only need a one-off random train/val/test split rather than cross-validation, use [`autosplit`](https://docs.ultralytics.com/reference/data/split):
 
     ```python
     from ultralytics.data.split import autosplit
 
-    # Automatically split dataset into train/val/test
+    # Random one-off split (not K-Fold cross-validation)
     autosplit(path="path/to/images", weights=(0.8, 0.2, 0.0), annotated_only=True)
     ```
+
+## Aggregating Results Across Folds
+
+The goal of K-Fold cross-validation is a single, more reliable performance estimate together with its variance. Aggregate the per-fold results stored in the `results` dictionary above in two complementary ways:
+
+- **Scalar metrics (mAP, precision, recall) are not additive** across folds, so report their mean and standard deviation. The spread across folds tells you how stable the model is between splits.
+- **Confusion matrices hold raw counts**, and because the fold validation sets are disjoint and together cover the dataset exactly once, summing the per-fold matrices yields a single cross-validated confusion matrix over every image.
+
+```python
+import os
+
+import numpy as np
+import pandas as pd
+
+from ultralytics.utils.metrics import ConfusionMatrix
+
+# 1. Scalar metrics: mean and standard deviation across folds
+metrics_df = pd.DataFrame({f"fold_{k + 1}": r.results_dict for k, r in results.items()}).T
+summary = pd.concat([metrics_df, metrics_df.agg(["mean", "std"])]).round(4)
+print(summary)
+summary.to_csv("kfold_metrics_summary.csv")
+
+# 2. Composite confusion matrix: sum per-fold matrices (disjoint val sets cover the dataset once)
+cms = [r.confusion_matrix for r in results.values()]
+composite = ConfusionMatrix(names=cms[0].names, task=cms[0].task)
+composite.matrix = np.sum([cm.matrix for cm in cms], axis=0)
+
+os.makedirs("kfold_composite", exist_ok=True)  # plot() does not create the directory
+composite.plot(normalize=True, save_dir="kfold_composite")
+```
+
+!!! note
+
+    The confusion matrix is only populated when validation runs with `plots=True`, which is the default during training. If you validate separately with `model.val(plots=False)`, `confusion_matrix.matrix` stays all zeros. This aggregation also assumes single-device training; multi-GPU DDP runs do not return a metrics object from `model.train()`.
 
 ## Conclusion
 
@@ -290,6 +322,8 @@ Optionally, we saved our records for future reference, which could be particular
 Finally, we implemented the actual model training using each split in a loop, saving our training results for further analysis and comparison.
 
 This technique of K-Fold cross-validation is a robust way of making the most out of your available data, and it helps to ensure that your model performance is reliable and consistent across different data subsets. This results in a more generalizable and reliable model that is less likely to [overfit](https://www.ultralytics.com/glossary/overfitting) to specific data patterns.
+
+The same workflow also applies to segmentation, pose, and OBB datasets, since the class index is the first value on each label line, so the class-count feature vectors are built the same way.
 
 Remember that although we used YOLO in this guide, these steps are mostly transferable to other machine learning models. Understanding these steps allows you to apply cross-validation effectively in your own machine learning projects.
 

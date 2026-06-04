@@ -51,7 +51,7 @@ def load_mask_tensor(mask_path: str | None, imgsz: int) -> torch.Tensor | None:
 def run_prior(y: YOLO, model: YOLOAnomalyV2Model, img_path: str, prior_mode: str,
               imgsz: int, external_mask: torch.Tensor | None = None):
     """Run predict with a prior mode, return (pred_rgb, n_det, heatmap_np)."""
-    res = y.predict(img_path, imgsz=imgsz, prior_mode=prior_mode,
+    res = y.predict(img_path, imgsz=imgsz, prior_mode=prior_mode,conf=0.05,
                     external_mask=external_mask, verbose=False)
     r = res[0]
     n_det = r.boxes.shape[0] if r.boxes is not None else 0
@@ -61,11 +61,53 @@ def run_prior(y: YOLO, model: YOLOAnomalyV2Model, img_path: str, prior_mode: str
     return pred_rgb, n_det, hmap_np
 
 
+MODEL_W="/Users/louis/workspace/ultra_louis_work/ultra6/runs/yoloa_v2/26m_yoloav2_softhint_rect_pd50_seg_a1_v1/weights/best.pt"
+
+
+# MODEL_W="/Users/louis/workspace/ultra_louis_work/ultralytics/runs/yoloa_v2/26m_yoloav2_softhint_rect_pd50_cm2_v1/weights/best.pt"
+
+def _report_load(matched: dict, ckpt_state: dict, model_state: dict) -> None:
+    """Log which keys matched, which are missing in ckpt (random init), and
+    which are missing in model (YAML mismatch / removed modules)."""
+    ckpt_keys = set(ckpt_state.keys())
+    model_keys = set(model_state.keys())
+    matched_keys = set(matched.keys())
+    missing_in_ckpt = model_keys - matched_keys
+    missing_in_model = ckpt_keys - matched_keys
+
+    LOGGER.info(
+        f"Weight load: {len(matched)}/{len(ckpt_keys)} ckpt keys matched "
+        f"(model has {len(model_keys)} total)"
+    )
+    if missing_in_model:
+        grouped = _group_keys(missing_in_model)
+        LOGGER.warning(
+            f"  {len(missing_in_model)} keys in ckpt but NOT in model:\n"
+            + "\n".join(f"    [{p}] {', '.join(sorted(ks)[:6])}{'...' if len(ks) > 6 else ''}"
+                        for p, ks in grouped)
+        )
+    if missing_in_ckpt:
+        grouped = _group_keys(missing_in_ckpt)
+        LOGGER.warning(
+            f"  {len(missing_in_ckpt)} keys in model but NOT in ckpt (RANDOM INIT):\n"
+            + "\n".join(f"    [{p}] {', '.join(sorted(ks)[:6])}{'...' if len(ks) > 6 else ''}"
+                        for p, ks in grouped)
+        )
+
+
+def _group_keys(keys: set[str]) -> list[tuple[str, list[str]]]:
+    """Group state-dict keys by top-level prefix (e.g. 'model.2', 'seg_branch')."""
+    groups: dict[str, list[str]] = {}
+    for k in sorted(keys):
+        prefix = k.split(".")[0]
+        groups.setdefault(prefix, []).append(k)
+    return sorted(groups.items())
+
+
 def main():
     parser = argparse.ArgumentParser(description="Random-sample predict — 4×2 comparison grids")
     parser.add_argument("--ckpt", type=str,
-                        default="/Users/louis/workspace/ultra_louis_work/ultra6/runs/yoloa_v2/"
-                                "26m_yoloav2_softhint_rect_pd50_seg_a1_v1/weights/best.pt")
+                        default=MODEL_W)
     parser.add_argument("--yaml", type=str, default="yolo26m-anomaly-v2.yaml")
     parser.add_argument("--category", type=str, default="leather")
     parser.add_argument("--imgsz", type=int, default=320)
@@ -99,6 +141,9 @@ def main():
     ms = model.state_dict()
     matched = {k: v for k, v in ckpt_state.items() if k in ms and ms[k].shape == v.shape}
     model.load_state_dict(matched, strict=False)
+
+    # ---- Report loading status ----
+    _report_load(matched, ckpt_state, ms)
     model.to(device)
     model.eval()
 

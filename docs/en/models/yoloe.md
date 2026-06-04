@@ -81,7 +81,7 @@ This section details the models available with their specific pretrained weights
 
 !!! tip "YOLOE-26 Performance"
 
-    For detailed performance benchmarks of YOLOE-26 models, see the [YOLO26 Documentation](yolo26.md#yoloe-26-open-vocabulary-instance-segmentation).
+    For detailed performance benchmarks of YOLOE-26 models, see the [YOLO26 Documentation](yolo26.md#yoloe-26-open-vocabulary-detection-and-segmentation).
 
 ## Usage Examples
 

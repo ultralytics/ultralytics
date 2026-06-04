@@ -275,7 +275,7 @@ EXPORT_ENVS = {
         "python": "3.13",
         "extras": ["export-base"],
         "torch": None,
-        "requirements": ["MNN>=2.9.6"],
+        "requirements": ["MNN>=2.9.6", "aliyun-log-python-sdk", "protobuf<6.0.0,>=3.20.3"],
         "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
         "env": {},
         "smoke": ["yolo export format=mnn model=yolo11n.pt imgsz=32"],
@@ -436,10 +436,10 @@ class Exporter:
         export_deepx: Export model to DEEPX format.
 
     Examples:
-        Export a YOLO26 model to ONNX format
+        Export a YOLO26 model to TorchScript format
         >>> from ultralytics.engine.exporter import Exporter
         >>> exporter = Exporter()
-        >>> exporter(model="yolo26n.pt")  # exports to yolo26n.onnx
+        >>> exporter(model="yolo26n.pt")  # exports to yolo26n.torchscript
 
         Export with specific arguments
         >>> args = {"format": "onnx", "dynamic": True, "int8": True, "data": "coco8.yaml"}

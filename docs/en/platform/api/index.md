@@ -286,7 +286,7 @@ POST /api/datasets
 
 !!! note "Supported Tasks"
 
-    Valid `task` values: `detect`, `segment`, `classify`, `pose`, `obb`.
+    Valid `task` values: `detect`, `segment`, `semantic`, `classify`, `pose`, `obb`.
 
 ### Update Dataset
 
@@ -505,7 +505,7 @@ Run YOLO inference on dataset images to auto-generate annotations. Uses a select
 | `imageHash`  | string | Yes      | Hash of the image to annotate        |
 | `modelId`    | string | No       | Model ID to use for inference        |
 | `confidence` | float  | No       | Confidence threshold (default: 0.25) |
-| `iou`        | float  | No       | IoU threshold (default: 0.45)        |
+| `iou`        | float  | No       | IoU threshold (default: 0.7)         |
 
 ### Dataset Ingest
 
@@ -1217,9 +1217,11 @@ POST /api/exports
 | TF.js         | `tfjs`        | Browser inference        |
 | MNN           | `mnn`         | Alibaba mobile inference |
 | RKNN          | `rknn`        | Rockchip NPU             |
+| Qualcomm      | `qnn`         | Qualcomm Snapdragon NPU  |
 | IMX           | `imx`         | Sony IMX500 sensor       |
 | Axelera       | `axelera`     | Axelera AI accelerators  |
 | ExecuTorch    | `executorch`  | Meta ExecuTorch runtime  |
+| DeepX         | `deepx`       | DeepX NPU accelerators   |
 
 ### Get Export Status
 
@@ -2055,7 +2057,7 @@ yolo check
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.35**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.60**. Lower versions will NOT work with Platform.
 
 ### Authentication
 

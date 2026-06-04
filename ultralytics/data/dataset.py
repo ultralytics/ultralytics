@@ -203,7 +203,10 @@ class YOLODataset(BaseDataset):
             for lb in labels:
                 lb["segments"] = []
         if len_cls == 0:
-            LOGGER.warning(f"Labels are missing or empty in {cache_path}, training may not work correctly. {HELP_URL}")
+            raise RuntimeError(
+               f"Labels are missing or empty in {cache_path}. "
+               f"Training cannot continue without annotations. {HELP_URL}"
+           )
         return labels
 
     def build_transforms(self, hyp: dict | None = None) -> Compose:

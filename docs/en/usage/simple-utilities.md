@@ -210,7 +210,7 @@ See the [Reference page](../reference/data/split.md#ultralytics.data.split.autos
 
 ### Segment-polygon to Binary Mask
 
-Convert a single polygon (as a list) to a binary mask of the specified image size. The polygon should be in the form of `[N, 2]`, where `N` is the number of `(x, y)` points defining the polygon contour.
+Convert a single polygon (as a list) to a binary mask of the specified image size. The polygon should be a flat 1D array of `N` coordinates listing alternating `x, y` values defining the polygon contour.
 
 !!! warning
 
@@ -698,7 +698,7 @@ print(VID_FORMATS)
 
 ### Make Divisible
 
-Calculate the nearest whole number to `x` that is evenly divisible by `y`.
+Calculate the smallest whole number greater than or equal to `x` that is evenly divisible by `y`.
 
 ```python
 from ultralytics.utils.ops import make_divisible

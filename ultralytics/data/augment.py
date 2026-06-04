@@ -1455,7 +1455,7 @@ class RandomHSV(BaseTransform):
             >>> augmented_img = labels["img"]
         """
         img = labels["img"]
-        if img.shape[-1] != 3:  # only apply to RGB images
+        if img.shape[-1] != 3:  # only apply to 3-channel (BGR) images
             return labels
         if self.hgain or self.sgain or self.vgain:
             dtype = img.dtype  # uint8

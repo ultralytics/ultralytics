@@ -51,7 +51,7 @@ class QueueManager(BaseSolution):
             im0 (np.ndarray): Input image for processing, typically a frame from a video stream.
 
         Returns:
-            (SolutionResults): Contains processed image `im0`, 'queue_count' (int, number of objects in the queue) and
+            (SolutionResults): Contains processed image `plot_im`, 'queue_count' (int, number of objects in the queue) and
                 'total_tracks' (int, total number of tracked objects).
 
         Examples:

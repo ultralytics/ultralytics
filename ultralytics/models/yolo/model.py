@@ -98,7 +98,7 @@ class YOLO(Model):
                     new_instance = RTDETR(self)
                     self.__class__ = type(new_instance)
                     self.__dict__ = new_instance.__dict__
-                elif head_name == "DeimDecoder":  # YOLO-DETR head
+                elif head_name in {"DeimDecoder", "DFineDecoder"}:  # YOLO-DETR head
                     from ultralytics import YOLODETR
 
                     new_instance = YOLODETR(self)

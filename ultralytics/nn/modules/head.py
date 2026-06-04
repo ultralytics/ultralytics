@@ -2081,10 +2081,33 @@ class DFineDecoder(RTDETRDecoder):
         raise ValueError(f"Unsupported query_select_method: {self.query_select_method}")
 
     def _reset_parameters(self):
-        """Initialize or reset parameters of DFine decoder components."""
-        super()._reset_parameters()
+        """Initialize or reset parameters of DFine decoder components.
+
+        Skips RTDETRDecoder._reset_parameters because it assumes every input_proj entry is nn.Sequential, while our
+        DEIM-style input_proj uses nn.Identity when channels already match the hidden dim.
+        """
+        bias_cls = bias_init_with_prob(0.01)
+        if self.num_denoising > 0:
+            nn.init.normal_(self.denoising_class_embed.weight)
+        constant_(self.enc_score_head.bias, bias_cls)
+        constant_(self.enc_bbox_head.layers[-1].weight, 0.0)
+        constant_(self.enc_bbox_head.layers[-1].bias, 0.0)
         constant_(self.pre_bbox_head.layers[-1].weight, 0.0)
         constant_(self.pre_bbox_head.layers[-1].bias, 0.0)
+        for cls_, reg_ in zip(self.dec_score_head, self.dec_bbox_head):
+            constant_(cls_.bias, bias_cls)
+            if hasattr(reg_, "layers"):
+                constant_(reg_.layers[-1].weight, 0.0)
+                constant_(reg_.layers[-1].bias, 0.0)
+        if self.learnt_init_query:
+            xavier_uniform_(self.tgt_embed.weight)
+        xavier_uniform_(self.query_pos_head.layers[0].weight)
+        xavier_uniform_(self.query_pos_head.layers[-1].weight)
+        linear_init(self.enc_output[0])
+        xavier_uniform_(self.enc_output[0].weight)
+        for layer in self.input_proj:
+            if isinstance(layer, nn.Sequential) and len(layer) and hasattr(layer[0], "weight"):
+                xavier_uniform_(layer[0].weight)
 
     def _project_encoder_features(self, feats: torch.Tensor) -> torch.Tensor:
         """Project masked encoder memory through the D-Fine enc_output head."""

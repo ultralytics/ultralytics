@@ -86,7 +86,7 @@ The following tasks are supported across YOLOv8, YOLO11, and YOLO26 models.
 
     - **Operating System**: Linux only (Ubuntu 22.04/24.04 recommended)
     - **Hardware**: Axelera AI accelerator ([Metis devices](https://store.axelera.ai/))
-    - **Python**: Versions 3.10, 3.11, and 3.12
+    - **Python**: Versions 3.10, 3.11, 3.12, and 3.13
     - **System dependency**: `sudo apt install libgl1` (required by OpenCV, not included via `pip`)
 
 ### Ultralytics Installation
@@ -225,8 +225,9 @@ For all export options, see the [Export Mode documentation](https://docs.ultraly
 
 ```
 yolo26n_axelera_model/
-├── yolo26n.axm              # Axelera model file
-└── metadata.yaml            # Model metadata (classes, image size, etc.)
+├── yolo26n.axm                  # Axelera model file
+├── compiler_config_final.toml  # Compiler configuration used for the build
+└── metadata.yaml               # Model metadata (classes, image size, etc.)
 ```
 
 ## Axelera AI Benchmarks

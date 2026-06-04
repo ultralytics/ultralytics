@@ -158,6 +158,18 @@ class Detect(nn.Module):
         self, x: list[torch.Tensor]
     ) -> dict[str, torch.Tensor] | torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Concatenates and returns predicted bounding boxes and class probabilities."""
+        if self.export and self.format == "rknn" and getattr(self, "rknn_int8", False):
+            # Emit raw per-scale regression and classification maps, deferring DFL, box decode and sigmoid
+            # to the RKNN backend on CPU. This keeps the quantization-sensitive decode out of the INT8 graph
+            # so RKNN INT8 export retains accuracy (per-tensor INT8 cannot represent the decoded box range).
+            # FP16 RKNN keeps the in-graph decode (it tolerates the dynamic range), so this only affects INT8.
+            heads = self.one2one if self.end2end else self.one2many
+            box_head, cls_head = heads["box_head"], heads["cls_head"]
+            y = []
+            for i in range(self.nl):
+                y.append(box_head[i](x[i]))  # reg: (B, 4 * reg_max, H, W)
+                y.append(cls_head[i](x[i]))  # cls: (B, nc, H, W) raw logits
+            return y
         preds = self.forward_head(x, **self.one2many)
         if self.end2end:
             x_detach = [xi.detach() for xi in x]

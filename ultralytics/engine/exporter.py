@@ -676,6 +676,7 @@ class Exporter:
                 m.max_det = min(self.args.max_det, anchors)
                 m.agnostic_nms = self.args.agnostic_nms
                 m.xyxy = self.args.nms and fmt != "coreml"
+                m.rknn_int8 = fmt == "rknn" and self.args.int8  # emit raw head maps for INT8-friendly RKNN export
                 m.shape = None  # reset cached shape for new export input size
                 if hasattr(model, "pe") and hasattr(m, "fuse") and not hasattr(m, "lrpc"):  # for YOLOE models
                     m.fuse(model.pe.to(self.device))
@@ -1291,6 +1292,13 @@ class Exporter:
             output_dir.mkdir(parents=True, exist_ok=True)
             rknn_dataset = output_dir / "dataset.txt"
             rknn_dataset.write_text("\n".join(str(Path(x).resolve()) for x in image_paths) + "\n")
+        if self.model.task == "detect" and self.args.int8:
+            # INT8 detect exports emit raw head maps (see Detect.forward); the backend decodes them on CPU and
+            # the predictor runs NMS, so the exported model is not end-to-end regardless of the source model.
+            # FP16 exports keep the in-graph decode and are left untouched. Segment/Pose/OBB also keep in-graph
+            # decode (they override forward).
+            self.metadata["end2end"] = False
+            self.metadata["reg_max"] = int(next((m.reg_max for m in self.model.modules() if isinstance(m, Detect)), 16))
         return onnx2rknn(
             onnx_file=f_onnx,
             output_dir=output_dir,

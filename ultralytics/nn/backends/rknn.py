@@ -56,15 +56,68 @@ class RKNNBackend(BaseBackend):
 
             self.apply_metadata(YAML.load(metadata_file))
 
-    def forward(self, im: torch.Tensor) -> list:
+    def forward(self, im: torch.Tensor) -> list | torch.Tensor:
         """Run inference on the Rockchip NPU.
 
         Args:
             im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
 
         Returns:
-            (list): Model predictions as a list of output arrays.
+            (list | torch.Tensor): Decoded detections of shape (1, 4 + nc, anchors) for detection models exported
+                with raw head maps, otherwise the raw list of output arrays.
         """
         im = (im.cpu().numpy() * 255).astype("uint8")
         im = im if isinstance(im, (list, tuple)) else [im]
-        return self.model.inference(inputs=im)
+        y = self.model.inference(inputs=im)
+        if self.task == "detect" and isinstance(y, (list, tuple)) and len(y) > 1:
+            return self._decode(y)  # raw per-scale reg/cls maps -> (1, 4 + nc, anchors)
+        return y
+
+    def _decode(self, outputs: list) -> torch.Tensor:
+        """Decode raw RKNN head maps into the standard detection tensor on CPU.
+
+        The RKNN graph emits per-scale regression (``4 * reg_max`` channels) and classification (``nc`` channels)
+        maps without DFL, box decoding or sigmoid (see ``Detect.forward``). Those quantization-sensitive ops are
+        applied here in float so INT8 RKNN models retain accuracy. The predictor then runs NMS on the result.
+
+        Args:
+            outputs (list): Raw NCHW output arrays from ``RKNNLite.inference``, one regression and one
+                classification map per detection scale, in any order.
+
+        Returns:
+            (torch.Tensor): Predictions of shape (1, 4 + nc, anchors) with boxes in xywh pixel units.
+        """
+        import numpy as np
+
+        from ultralytics.utils.tal import dist2bbox, make_anchors
+
+        nc = len(self.names)
+        reg_max = int(getattr(self, "reg_max", 16))
+        tensors = [torch.as_tensor(np.ascontiguousarray(o), dtype=torch.float32) for o in outputs]
+
+        # RKNN keeps the ONNX framework layout (NCHW), so channel is dim 1: cls maps have nc channels,
+        # reg maps have 4 * reg_max. Group the two maps of each scale by their (H, W) and split them by
+        # channel count. When nc == 4 * reg_max the counts collide, so fall back to export order within the
+        # scale (Detect.forward emits reg before cls), which RKNN preserves.
+        groups: dict[tuple[int, int], list[torch.Tensor]] = {}
+        for t in tensors:
+            groups.setdefault((t.shape[2], t.shape[3]), []).append(t)
+        regs, clss = {}, {}
+        for hw, (m0, m1) in groups.items():
+            reg, cls = (m1, m0) if nc != 4 * reg_max and m0.shape[1] == nc else (m0, m1)
+            regs[hw], clss[hw] = reg, cls
+
+        keys = sorted(regs, key=lambda k: k[0] * k[1], reverse=True)  # large -> small feature maps
+        feats = [regs[k] for k in keys]
+        strides = [self.imgsz[0] // k[0] for k in keys]
+        anchors, strides_t = (a.transpose(0, 1) for a in make_anchors(feats, strides, 0.5))
+
+        boxes = torch.cat([regs[k].reshape(1, 4 * reg_max, -1) for k in keys], dim=2)
+        scores = torch.cat([clss[k].reshape(1, nc, -1) for k in keys], dim=2)
+
+        b, _, a = boxes.shape
+        if reg_max > 1:  # DFL integral; reg_max == 1 means DFL is Identity and boxes are raw ltrb distances
+            proj = torch.arange(reg_max, dtype=boxes.dtype)
+            boxes = (boxes.view(b, 4, reg_max, a).softmax(2) * proj.view(1, 1, reg_max, 1)).sum(2)
+        dbox = dist2bbox(boxes, anchors.unsqueeze(0), xywh=True, dim=1) * strides_t
+        return torch.cat((dbox, scores.sigmoid()), 1)

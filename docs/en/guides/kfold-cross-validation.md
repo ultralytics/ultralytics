@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Learn how to run K-Fold Cross-Validation on object detection datasets with Ultralytics YOLO. Split data into balanced folds, train on each, and aggregate metrics and confusion matrices for a reliable performance estimate.
+description: Learn how to run K-Fold Cross-Validation on object detection datasets with Ultralytics YOLO. Split data into folds, train on each, and aggregate metrics and confusion matrices for a reliable performance estimate.
 keywords: Ultralytics YOLO, K-Fold Cross-Validation, object detection, cross validation, dataset split, sklearn KFold, model evaluation, mAP, confusion matrix, pandas, machine learning, model robustness
 ---
 
@@ -67,7 +67,7 @@ K-Fold splitting works on one row per image, but a detection image holds many ob
     from pathlib import Path
 
     dataset_path = Path(data["path"])  # root returned by check_det_dataset; or your own dataset directory
-    labels = sorted(p for p in dataset_path.rglob("*.txt") if "labels" in p.parts)
+    labels = sorted((dataset_path / "labels").rglob("*.txt"))  # pools train/val/test; ignores any prior fold output
     ```
 
 3. Read the class names from the dataset config and extract the class indices.

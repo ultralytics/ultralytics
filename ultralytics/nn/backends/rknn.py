@@ -63,8 +63,8 @@ class RKNNBackend(BaseBackend):
             im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
 
         Returns:
-            (list | torch.Tensor): Decoded detections of shape (1, 4 + nc, anchors) for detection models exported
-                with raw head maps, otherwise the raw list of output arrays.
+            (list | torch.Tensor): Decoded detections of shape (1, 4 + nc, anchors) for detection models exported with
+                raw head maps, otherwise the raw list of output arrays.
         """
         im = (im.cpu().numpy() * 255).astype("uint8")
         im = im if isinstance(im, (list, tuple)) else [im]

@@ -10,9 +10,8 @@ from ultralytics.utils import IS_COLAB, LOGGER, YAML
 def rknn_detect_forward(self, x):
     """RKNN INT8 export forward for a ``Detect`` head: emit raw per-scale reg and sigmoid(cls) maps.
 
-    DFL and box decode are deferred to ``RKNNBackend._decode`` on CPU to keep the
-    wide-range box decode out of the INT8 graph, while sigmoid stays in-graph since bounded [0, 1] scores quantize
-    finely under INT8.
+    DFL and box decode are deferred to ``RKNNBackend._decode`` on CPU to keep the wide-range box decode out of the INT8
+    graph, while sigmoid stays in-graph since bounded [0, 1] scores quantize finely under INT8.
 
     Args:
         self (Detect): The detection head the method is bound to.

@@ -2095,7 +2095,7 @@ class Albumentations(BaseTransform):
                 "Transpose",
                 "VerticalFlip",
                 "XYMasking",
-            }  # from https://albumentations.ai/docs/getting_started/transforms_and_targets/#spatial-level-transforms
+            }  # from https://albumentations.ai/docs/2-core-concepts/targets/
 
             # Transforms, use custom transforms if provided, otherwise use defaults
             T = (

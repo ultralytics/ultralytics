@@ -69,6 +69,7 @@ def on_pretrain_routine_end(trainer):
     experiment_name = os.environ.get("MLFLOW_EXPERIMENT_NAME") or trainer.args.project or "/Shared/Ultralytics"
     run_name = os.environ.get("MLFLOW_RUN") or trainer.args.name
 
+    trainer._mlflow_active = False  # reset per-run so a reused trainer cannot inherit a previous run's state
     started_run = False
     try:
         mlflow.set_tracking_uri(uri)

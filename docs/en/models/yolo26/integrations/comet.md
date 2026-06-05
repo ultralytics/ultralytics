@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Log YOLO26 training to Comet ML. Automatically track metrics, images, confusion matrices, and model checkpoints with Ultralytics' built-in Comet integration.
+description: Log YOLO26 training to Comet ML. Track metrics, images, confusion matrices, and model checkpoints automatically with Ultralytics' built-in Comet integration.
 keywords: YOLO26, Comet ML, experiment tracking, MLOps, Ultralytics, confusion matrix, metrics logging, model checkpoints
 canonical: https://docs.ultralytics.com/models/yolo26/integrations/comet/
 ---

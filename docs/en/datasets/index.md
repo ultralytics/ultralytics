@@ -30,7 +30,7 @@ Ultralytics provides support for various datasets to facilitate computer vision 
 - [COCO8](detect/coco8.md): A smaller subset of the first 4 images from COCO train and COCO val, suitable for quick tests.
 - [COCO8-Grayscale](detect/coco8-grayscale.md): A grayscale version of COCO8 created by converting RGB to grayscale, useful for single-channel model evaluation.
 - [COCO8-Multispectral](detect/coco8-multispectral.md): A 10-channel multispectral version of COCO8 created by interpolating RGB wavelengths, useful for spectral-aware model evaluation.
-- [COCO128](detect/coco128.md): A smaller subset of the first 128 images from COCO train and COCO val, suitable for tests.
+- [COCO128](detect/coco128.md): A smaller subset of the first 128 images from COCO train2017, suitable for tests.
 - [Construction-PPE](detect/construction-ppe.md): A dataset of construction site imagery annotated with key safety gear such as helmets, vests, gloves, boots, and goggles, along with labels for missing equipment, supporting the development of AI models for compliance and worker protection.
 - [Global Wheat 2020](detect/globalwheat2020.md): A dataset containing images of wheat heads for the Global Wheat Challenge 2020.
 - [HomeObjects-3K](detect/homeobjects-3k.md): A dataset of annotated indoor scenes featuring 12 common household items, ideal for developing and testing computer vision models in smart home systems, robotics, and augmented reality.
@@ -71,7 +71,7 @@ Pose estimation is a technique used to determine the pose of the object relative
 
 - [COCO](pose/coco.md): A large-scale dataset with human pose annotations designed for pose estimation tasks.
 - [COCO8-pose](pose/coco8-pose.md): A smaller dataset for pose estimation tasks, containing a subset of 8 COCO images with human pose annotations.
-- [Dog-pose](pose/dog-pose.md): A comprehensive dataset featuring approximately 6,000 images focused on dogs, annotated with 24 keypoints per dog, tailored for pose estimation tasks.
+- [Dog-pose](pose/dog-pose.md): A comprehensive dataset featuring approximately 8,500 images focused on dogs, annotated with 24 keypoints per dog, tailored for pose estimation tasks.
 - [Hand-Keypoints](pose/hand-keypoints.md): A concise dataset featuring over 26,000 images centered on human hands, annotated with 21 keypoints per hand, designed for pose estimation tasks.
 - [Tiger-pose](pose/tiger-pose.md): A compact dataset consisting of 263 images focused on tigers, annotated with 12 keypoints per tiger for pose estimation tasks.
 

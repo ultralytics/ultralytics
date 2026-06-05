@@ -354,7 +354,7 @@ class MemoryEncoder(nn.Module):
         >>> masks = torch.randn(1, 1, 64, 64)
         >>> encoded_feat, pos = encoder(pix_feat, masks)
         >>> print(encoded_feat.shape, pos.shape)
-        torch.Size([1, 256, 64, 64]) torch.Size([1, 128, 64, 64])
+        torch.Size([1, 256, 64, 64]) torch.Size([1, 64, 64, 64])
     """
 
     def __init__(
@@ -475,8 +475,8 @@ class ImageEncoder(nn.Module):
 class FpnNeck(nn.Module):
     """A Feature Pyramid Network (FPN) neck variant for multiscale feature fusion in object detection models.
 
-    This FPN variant removes the output convolution and uses bicubic interpolation for feature resizing, similar to ViT
-    positional embedding interpolation.
+    This FPN variant removes the output convolution and uses configurable interpolation (default bilinear) for feature
+    resizing, similar to ViT positional embedding interpolation.
 
     Attributes:
         position_encoding (PositionEmbeddingSine): Sinusoidal positional encoding module.
@@ -511,8 +511,8 @@ class FpnNeck(nn.Module):
     ):
         """Initialize a modified Feature Pyramid Network (FPN) neck.
 
-        This FPN variant removes the output convolution and uses bicubic interpolation for feature resizing, similar to
-        ViT positional embedding interpolation.
+        This FPN variant removes the output convolution and uses configurable interpolation (default bilinear) for
+        feature resizing, similar to ViT positional embedding interpolation.
 
         Args:
             d_model (int): Dimension of the model.

@@ -139,7 +139,7 @@ class MBConv(nn.Module):
         drop_path (nn.Module): Drop path layer (Identity for inference).
 
     Examples:
-        >>> in_chans, out_chans = 32, 64
+        >>> in_chans, out_chans = 64, 64
         >>> mbconv = MBConv(in_chans, out_chans, expand_ratio=4, activation=nn.ReLU, drop_path=0.1)
         >>> x = torch.randn(1, in_chans, 56, 56)
         >>> output = mbconv(x)
@@ -210,7 +210,7 @@ class PatchMerging(nn.Module):
         >>> x = torch.randn(4, 64, 56, 56)
         >>> output = patch_merging(x)
         >>> print(output.shape)
-        torch.Size([4, 3136, 128])
+        torch.Size([4, 784, 128])
     """
 
     def __init__(self, input_resolution: tuple[int, int], dim: int, out_dim: int, activation):
@@ -269,7 +269,7 @@ class ConvLayer(nn.Module):
         >>> conv_layer = ConvLayer(64, (56, 56), depth=3, activation=nn.ReLU)
         >>> output = conv_layer(input_tensor)
         >>> print(output.shape)
-        torch.Size([1, 3136, 128])
+        torch.Size([1, 64, 56, 56])
     """
 
     def __init__(
@@ -330,7 +330,7 @@ class ConvLayer(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Process input through convolutional layers, applying MBConv blocks and optional downsampling."""
         for blk in self.blocks:
-            x = torch.utils.checkpoint(blk, x) if self.use_checkpoint else blk(x)  # warn: checkpoint is slow import
+            x = torch.utils.checkpoint.checkpoint(blk, x) if self.use_checkpoint else blk(x)  # checkpoint is slow
         return x if self.downsample is None else self.downsample(x)
 
 
@@ -667,7 +667,7 @@ class BasicLayer(nn.Module):
         >>> layer = BasicLayer(dim=192, input_resolution=(56, 56), depth=2, num_heads=3, window_size=7)
         >>> output = layer(input_tensor)
         >>> print(output.shape)
-        torch.Size([1, 784, 384])
+        torch.Size([1, 3136, 192])
     """
 
     def __init__(
@@ -742,7 +742,7 @@ class BasicLayer(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Process input through TinyViT blocks and optional downsampling."""
         for blk in self.blocks:
-            x = torch.utils.checkpoint(blk, x) if self.use_checkpoint else blk(x)  # warn: checkpoint is slow import
+            x = torch.utils.checkpoint.checkpoint(blk, x) if self.use_checkpoint else blk(x)  # checkpoint is slow
         return x if self.downsample is None else self.downsample(x)
 
     def extra_repr(self) -> str:

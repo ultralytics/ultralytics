@@ -195,12 +195,12 @@ GET /api/datasets
 
 **Query Parameters:**
 
-| Parameter  | Type   | Description                            |
-| ---------- | ------ | -------------------------------------- |
-| `username` | string | Filter by username                     |
-| `slug`     | string | Fetch single dataset by slug           |
-| `limit`    | int    | Items per page (default: 20, max: 500) |
-| `owner`    | string | Workspace owner username               |
+| Parameter  | Type   | Description                               |
+| ---------- | ------ | ----------------------------------------- |
+| `username` | string | Filter by username                        |
+| `slug`     | string | Fetch single dataset by slug              |
+| `limit`    | int    | Items per page (default: 1000, max: 1000) |
+| `owner`    | string | Workspace owner username                  |
 
 === "cURL"
 

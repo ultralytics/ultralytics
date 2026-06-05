@@ -1028,10 +1028,12 @@ class ReIDLoss:
         Returns:
             (tuple[torch.Tensor, torch.Tensor]): Total loss and detached component losses [ce, triplet].
         """
-        # In eval mode the head returns (emb, feat_bn) — skip loss computation
+        # In eval mode the head returns (emb, feat_bn) — skip loss computation. Return a
+        # component vector matching loss_names length (3 when DANN on, else 2) so the
+        # validator's `self.loss += model.loss(...)[1]` does not size-mismatch (eval has no dom_loss).
         if not isinstance(preds, (list, tuple)) or len(preds) not in (3, 4):
             zero = torch.tensor(0.0, device=batch["cls"].device)
-            return zero, torch.stack([zero, zero])
+            return zero, torch.stack([zero] * (3 if self.dann_weight > 0 else 2))
 
         domain_logits = preds[3] if len(preds) == 4 else None
         cls_logits, bn_feat, raw_feat = preds[0], preds[1], preds[2]
@@ -1066,10 +1068,16 @@ class ReIDLoss:
             ctr_loss = self._center_loss(bn_feat, labels)
             total = total + self.center_weight * ctr_loss
 
-        if self.dann_weight > 0 and domain_logits is not None and "domain" in batch:
-            dom_loss = F.cross_entropy(domain_logits, batch["domain"].to(domain_logits.device))
-            total = total + self.dann_weight * dom_loss
-            return total, torch.stack([ce_loss.detach(), tri_loss.detach(), dom_loss.detach()])
+        # When DANN is enabled, ALWAYS emit a 3-component vector (dom=0 if domain logits/labels
+        # absent, e.g. during validation) so train and val loss vectors match loss_names length.
+        if self.dann_weight > 0:
+            if domain_logits is not None and "domain" in batch:
+                dom_loss = F.cross_entropy(domain_logits, batch["domain"].to(domain_logits.device))
+                total = total + self.dann_weight * dom_loss
+                dom_det = dom_loss.detach()
+            else:
+                dom_det = torch.zeros((), device=ce_loss.device)
+            return total, torch.stack([ce_loss.detach(), tri_loss.detach(), dom_det])
         return total, torch.stack([ce_loss.detach(), tri_loss.detach()])
 
     def _center_loss(self, features, labels):

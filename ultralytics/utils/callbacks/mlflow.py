@@ -64,15 +64,15 @@ def on_pretrain_routine_end(trainer):
 
     uri = os.environ.get("MLFLOW_TRACKING_URI") or str(RUNS_DIR / "mlflow")
     LOGGER.debug(f"{PREFIX} tracking uri: {uri}")
-    mlflow.set_tracking_uri(uri)
 
     # Set experiment and run names
     experiment_name = os.environ.get("MLFLOW_EXPERIMENT_NAME") or trainer.args.project or "/Shared/Ultralytics"
     run_name = os.environ.get("MLFLOW_RUN") or trainer.args.name
-    mlflow.set_experiment(experiment_name)
 
-    mlflow.autolog()
     try:
+        mlflow.set_tracking_uri(uri)
+        mlflow.set_experiment(experiment_name)
+        mlflow.autolog()
         active_run = mlflow.active_run() or mlflow.start_run(run_name=run_name)
         LOGGER.info(f"{PREFIX}logging run_id({active_run.info.run_id}) to {uri}")
         if Path(uri).is_dir():
@@ -82,6 +82,7 @@ def on_pretrain_routine_end(trainer):
     except Exception as e:
         LOGGER.warning(f"{PREFIX}Failed to initialize: {e}")
         LOGGER.warning(f"{PREFIX}Not tracking this run")
+        mlflow = None  # disable later mlflow callbacks so a failed backend cannot crash training mid-run
 
 
 def on_train_epoch_end(trainer):

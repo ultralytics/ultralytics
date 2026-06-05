@@ -814,22 +814,14 @@ class ReidModel(BaseModel):
         self._dann_step = 0
         self._dann_ramp_steps = 2000  # GRL lambda warmup horizon
         self._cur_domain = None
-        self._mixstyle_handles = []
+        # Layers (by index) after which MixStyle is applied during training. Applied inline in
+        # _predict_once (NOT via forward hooks) so the model stays picklable for checkpointing.
+        self._mixstyle_layers = set(dg_mixstyle_layers) if self.dg_mixstyle > 0 else set()
+        self._mixstyle = None
         if self.dg_mixstyle > 0:
             from .modules.dg import MixStyle
 
             self._mixstyle = MixStyle(p=self.dg_mixstyle)
-
-            def _make_hook(model):
-                def _hook(module, inp, out):
-                    if model.training:
-                        return model._mixstyle(out, domain=model._cur_domain)
-                    return out
-
-                return _hook
-
-            for idx in dg_mixstyle_layers:
-                self._mixstyle_handles.append(self.model[idx].register_forward_hook(_make_hook(self)))
         if self.dg_dann > 0:
             from .modules.dg import DomainHead
 
@@ -913,6 +905,30 @@ class ReidModel(BaseModel):
                     if isinstance(m, ReID) and getattr(m, "domain_head", None) is not None:
                         m._dann_lambda = lam
         return super().loss(batch, preds)
+
+    def _predict_once(self, x, profile=False, visualize=False, embed=None):
+        """Forward pass with inline MixStyle after the chosen backbone layers (training only).
+
+        Implemented inline (not via forward hooks) so the model has no unpicklable closures and
+        checkpoints save cleanly. Falls back to the base path when MixStyle is off or in eval.
+        """
+        if not (self.training and self._mixstyle is not None and self._mixstyle_layers):
+            return super()._predict_once(x, profile, visualize, embed)
+        y, embeddings = [], []
+        embed = frozenset(embed) if embed is not None else {-1}
+        max_idx = max(embed)
+        for m in self.model:
+            if m.f != -1:
+                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
+            x = m(x)
+            if m.i in self._mixstyle_layers:
+                x = self._mixstyle(x, domain=self._cur_domain)
+            y.append(x if m.i in self.save else None)
+            if m.i in embed:
+                embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))
+                if m.i == max_idx:
+                    return torch.unbind(torch.cat(embeddings, 1), dim=0)
+        return x
 
 
 class RTDETRDetectionModel(DetectionModel):

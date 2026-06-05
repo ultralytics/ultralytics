@@ -65,3 +65,75 @@ def test_scan_gallery_empty_raises(tmp_path):
 
     with pytest.raises((FileNotFoundError, RuntimeError)):
         scan_gallery(tmp_path)  # no images
+
+
+# ---------- engine: cache + build_gallery -----------------------------------
+
+
+def _const_embedder(dim=4):
+    """Return an embed_fn that maps each path to a deterministic vector by filename order."""
+
+    def embed(paths):
+        return np.stack([np.full(dim, float(i), dtype=np.float32) for i, _ in enumerate(paths)], axis=0)
+
+    return embed
+
+
+def test_build_gallery_no_cache(tmp_path):
+    from ultralytics.models.yolo.reid.retrieval import build_gallery
+
+    for name in ["a.jpg", "b.jpg", "c.jpg"]:
+        (tmp_path / name).write_bytes(b"x")
+    paths, embs = build_gallery(_const_embedder(), tmp_path, cache=None, model_id="m", imgsz=64)
+    assert len(paths) == 3
+    assert embs.shape == (3, 4)
+    # rows are L2-normalized
+    assert np.allclose(np.linalg.norm(embs[1:], axis=1), 1.0, atol=1e-5)
+
+
+def test_build_gallery_writes_and_reuses_cache(tmp_path):
+    from ultralytics.models.yolo.reid import retrieval
+
+    gdir = tmp_path / "g"
+    gdir.mkdir()
+    for name in ["a.jpg", "b.jpg"]:
+        (gdir / name).write_bytes(b"x")
+    cache = tmp_path / "cache.pt"
+
+    calls = {"n": 0}
+
+    def counting_embed(paths):
+        calls["n"] += 1
+        return _const_embedder()(paths)
+
+    # First call builds + writes cache
+    p1, e1 = retrieval.build_gallery(counting_embed, gdir, cache=cache, model_id="m", imgsz=64)
+    assert cache.exists()
+    assert calls["n"] == 1
+    # Second call loads from cache, does NOT re-embed
+    p2, e2 = retrieval.build_gallery(counting_embed, gdir, cache=cache, model_id="m", imgsz=64)
+    assert calls["n"] == 1
+    assert [str(p) for p in p1] == [str(p) for p in p2]
+    assert np.allclose(e1, e2)
+
+
+def test_build_gallery_rebuilds_on_stale_cache(tmp_path):
+    from ultralytics.models.yolo.reid import retrieval
+
+    gdir = tmp_path / "g"
+    gdir.mkdir()
+    for name in ["a.jpg", "b.jpg"]:
+        (gdir / name).write_bytes(b"x")
+    cache = tmp_path / "cache.pt"
+
+    calls = {"n": 0}
+
+    def counting_embed(paths):
+        calls["n"] += 1
+        return _const_embedder()(paths)
+
+    retrieval.build_gallery(counting_embed, gdir, cache=cache, model_id="m", imgsz=64)
+    assert calls["n"] == 1
+    # Different imgsz -> stale -> rebuild
+    retrieval.build_gallery(counting_embed, gdir, cache=cache, model_id="m", imgsz=128)
+    assert calls["n"] == 2

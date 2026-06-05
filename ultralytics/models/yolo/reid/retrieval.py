@@ -45,3 +45,38 @@ def cosine_topk(query_embs: np.ndarray, gallery_embs: np.ndarray, topk: int) -> 
     idx = np.argsort(-sims, axis=1)[:, :k]
     scores = np.take_along_axis(sims, idx, axis=1)
     return idx, scores
+
+
+def _signature(paths: list[Path], model_id: str, imgsz) -> dict:
+    """Cache key: gallery file list (as strings) + model id + imgsz."""
+    return {"paths": [str(p) for p in paths], "model_id": str(model_id), "imgsz": list(np.atleast_1d(imgsz))}
+
+
+def build_gallery(
+    embed_fn: Callable[[list[Path]], np.ndarray],
+    gallery: str | Path,
+    cache: str | Path | None,
+    model_id: str,
+    imgsz,
+) -> tuple[list[Path], np.ndarray]:
+    """Scan the gallery, embed (or load from cache), and return (paths, L2-normalized embeddings).
+
+    The cache (a ``.pt`` file) is reused only when its recorded gallery file list, model id, and
+    imgsz match the current request; otherwise it is rebuilt and rewritten.
+    """
+    import torch
+
+    paths = scan_gallery(gallery)
+    sig = _signature(paths, model_id, imgsz)
+
+    if cache is not None and Path(cache).exists():
+        blob = torch.load(str(cache), weights_only=False)
+        if blob.get("signature") == sig:
+            return paths, np.asarray(blob["embs"], dtype=np.float32)
+        LOGGER.warning(f"reid_cache '{cache}' is stale (model/imgsz/gallery changed); rebuilding.")
+
+    embs = l2_normalize(np.asarray(embed_fn(paths), dtype=np.float32))
+    if cache is not None:
+        Path(cache).parent.mkdir(parents=True, exist_ok=True)
+        torch.save({"signature": sig, "embs": embs}, str(cache))
+    return paths, embs

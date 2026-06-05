@@ -519,6 +519,11 @@ BENCHMARKS = {
                 ("light/l6", 12.3, {"ap": 58.6, "ap50": 76.6, "ap75": 63.7, "ap_small": 41.5, "ap_medium": 63.8, "ap_large": 76.6}, 0.2),
             ],
             "DEIMv2 (Ultralytics)": [
+                # DINOv3S neckless COCO study. In labels, n = neckless and ln = LayerNorm.
+                ("s-n/l4", 7.2, {"ap": 52.8, "ap50": 70.4, "ap75": 57.6, "ap_small": 32.4, "ap_medium": 58.7, "ap_large": 73.1}, 0.1),
+                # ("s-ln-n/l4", 7.2, {"ap": 53.0, "ap50": 70.7, "ap75": 57.7, "ap_small": 31.9, "ap_medium": 58.8, "ap_large": 72.9}, 0.1),
+                ("s-n/l6", 7.5, {"ap": 53.1, "ap50": 70.8, "ap75": 57.8, "ap_small": 32.3, "ap_medium": 59.0, "ap_large": 73.1}, 0.1),
+                # ("s-ln-n/l6", 7.6, {"ap": 53.4, "ap50": 71.1, "ap75": 58.0, "ap_small": 32.1, "ap_medium": 59.1, "ap_large": 73.8}, 0.2),
                 ("sp-n/l6", 9.6, {"ap": 54.7, "ap50": 72.7, "ap75": 59.7, "ap_small": 34.6, "ap_medium": 60.6, "ap_large": 73.9}, 0.2),
                 ("l", 10.7, {"ap": 56.2, "ap50": 73.5, "ap75": 61.2, "ap_small": 37.1, "ap_medium": 61.3, "ap_large": 74.9}),
                 ("xl", 14.6, {"ap": 58.0, "ap50": 75.3, "ap75": 63.2, "ap_small": 39.6, "ap_medium": 63.3, "ap_large": 76.3}),

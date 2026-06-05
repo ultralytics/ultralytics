@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Explore the Ultralytics COCO12-Formats dataset, a test dataset featuring all 12 supported image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP) for validating image loading pipelines.
+description: Explore the Ultralytics COCO12-Formats dataset, a test dataset covering 12 image format extensions (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP) for validating image loading pipelines.
 keywords: COCO12-Formats, Ultralytics, dataset, image formats, object detection, YOLO, AVIF, BMP, DNG, HEIC, JP2, JPEG, PNG, TIFF, WebP, MPO
 ---
 
@@ -8,7 +8,9 @@ keywords: COCO12-Formats, Ultralytics, dataset, image formats, object detection,
 
 ## Introduction
 
-The [Ultralytics](https://www.ultralytics.com/) COCO12-Formats dataset is a specialized test dataset designed to validate image loading across all 12 supported image format extensions. It contains 12 images (6 for training, 6 for validation), each saved in a different format to ensure comprehensive testing of the image loading pipeline.
+The [Ultralytics](https://www.ultralytics.com/) COCO12-Formats dataset is a specialized test dataset designed to validate image loading across 12 image format extensions. It contains 12 images (6 for training, 6 for validation), each saved in a different format to exercise the image loading pipeline.
+
+The HEIF extension `.heif` is also supported in `IMG_FORMATS` and uses the same Pillow / `pi-heif` decoder path as `.heic`, but is not currently represented by a sample image in this fixed-size fixture.
 
 This dataset is invaluable for:
 
@@ -19,7 +21,7 @@ This dataset is invaluable for:
 
 ## Supported Formats
 
-The dataset includes one image for each of the 12 supported format extensions defined in `ultralytics/data/utils.py`:
+The dataset includes one image for each of these 12 image format extensions:
 
 | Format | Extension | Description                          | Train/Val |
 | ------ | --------- | ------------------------------------ | --------- |
@@ -144,9 +146,11 @@ JPEG 2000 is a wavelet-based image compression standard offering better compress
 
 MPO files are used for stereoscopic (3D) images. The dataset stores standard JPEG data with the `.mpo` extension for format testing.
 
-### HEIC (High Efficiency Image Coding)
+### HEIC / HEIF (High Efficiency Image File Format)
 
-HEIC requires the `pillow-heif` package for proper encoding:
+Both `.heic` and `.heif` extensions reference the same ISO/IEC 23008-12 container. By convention, `.heic` denotes HEVC-encoded HEIF files (the variant produced by Apple devices), while `.heif` is the broader umbrella extension.
+
+Ultralytics decodes both via the OpenCV → Pillow fallback in `ultralytics/utils/patches.py`, which auto-installs `pi-heif` (lightweight, decode-only) on first use — no manual setup required for reading. To produce HEIC/HEIF files yourself (e.g., re-encoding sample images), install the full `pillow-heif` package, which includes encoders:
 
 ```bash
 pip install pillow-heif
@@ -174,10 +178,13 @@ from pathlib import Path
 
 from ultralytics.data.utils import IMG_FORMATS
 
-# Verify all formats are represented
+# Verify all dataset extensions are recognized by Ultralytics
 dataset_dir = Path("datasets/coco12-formats/images")
 found_formats = {f.suffix[1:].lower() for f in dataset_dir.rglob("*.*")}
-assert found_formats == IMG_FORMATS, f"Missing formats: {IMG_FORMATS - found_formats}"
+not_covered = IMG_FORMATS - found_formats
+assert found_formats.issubset(IMG_FORMATS), f"Unknown formats in dataset: {found_formats - IMG_FORMATS}"
+print(f"Covered:    {sorted(found_formats)}")
+print(f"Supported but not in this dataset: {sorted(not_covered)}")
 ```
 
 ## Citations and Acknowledgments
@@ -203,7 +210,7 @@ If you use the COCO dataset in your research, please cite:
 
 ### What Is the COCO12-Formats Dataset Used For?
 
-The COCO12-Formats dataset is designed for testing image format compatibility in Ultralytics YOLO training pipelines. It ensures all 12 supported image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP) load and process correctly.
+The COCO12-Formats dataset is designed for testing image format compatibility in Ultralytics YOLO training pipelines. It exercises 12 image format extensions (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP) to verify the loading pipeline.
 
 ### Why Test Multiple Image Formats?
 

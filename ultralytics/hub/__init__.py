@@ -29,8 +29,7 @@ def login(api_key: str | None = None, save: bool = True) -> bool:
     authenticated.
 
     Args:
-        api_key (str, optional): API key to use for authentication. If not provided, it will be retrieved from
-            SETTINGS.
+        api_key (str, optional): API key to use for authentication. If not provided, it will be retrieved from SETTINGS.
         save (bool, optional): Whether to save the API key to SETTINGS if authentication is successful.
 
     Returns:

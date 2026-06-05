@@ -204,3 +204,61 @@ def test_cfg_accepts_gallery_args():
     assert cfg.gallery == "g/"
     assert cfg.topk == 5
     assert cfg.reid_cache == "c.pt"
+
+
+# ---------- ReidPredictor ranking -------------------------------------------
+
+
+def _make_predictor_with_gallery(monkeypatch, gallery_embs, gallery_paths, topk=2):
+    """Build a ReidPredictor without loading a model, with a stubbed gallery index."""
+    from types import SimpleNamespace
+
+    from ultralytics.models.yolo.reid.predict import ReidPredictor
+
+    p = ReidPredictor.__new__(ReidPredictor)
+    p.args = SimpleNamespace(gallery="g/", topk=topk, reid_cache=None, save=False, model="m.pt")
+    p.batch = [["/q/q0.jpg"]]
+    p.model = SimpleNamespace(names={0: "id"})
+    p.gallery_paths = gallery_paths
+    p.gallery_embs = gallery_embs
+    p.save_dir = None
+    return p
+
+
+def test_predictor_attaches_matches(monkeypatch):
+    import numpy as np
+
+    from ultralytics.models.yolo.reid.retrieval import l2_normalize
+
+    gallery_embs = l2_normalize(np.array([[1.0, 0.0], [0.0, 1.0]], dtype=np.float32))
+    gallery_paths = [Path("/g/match.jpg"), Path("/g/other.jpg")]
+    p = _make_predictor_with_gallery(monkeypatch, gallery_embs, gallery_paths, topk=2)
+
+    # query identical to gallery row 0
+    preds = torch.tensor([[1.0, 0.0]])
+    orig_imgs = [np.zeros((10, 10, 3), dtype=np.uint8)]
+    results = p.postprocess(preds, img=torch.zeros(1, 3, 8, 8), orig_imgs=orig_imgs)
+
+    assert len(results) == 1
+    matches = results[0].matches
+    assert matches is not None and len(matches) == 2
+    assert Path(matches[0][0]).name == "match.jpg"  # top-1 is the identical vector
+    assert matches[0][1] >= matches[1][1]  # descending score
+    assert results[0].embeddings is not None  # embeddings still present
+
+
+def test_predictor_no_gallery_is_embeddings_only(monkeypatch):
+    from types import SimpleNamespace
+
+    from ultralytics.models.yolo.reid.predict import ReidPredictor
+
+    p = ReidPredictor.__new__(ReidPredictor)
+    p.args = SimpleNamespace(gallery=None)
+    p.batch = [["/q/q0.jpg"]]
+    p.model = SimpleNamespace(names={0: "id"})
+    p.gallery_paths = None
+    p.gallery_embs = None
+    preds = torch.randn(1, 8)
+    results = p.postprocess(preds, img=torch.zeros(1, 3, 8, 8), orig_imgs=[np.zeros((10, 10, 3), dtype=np.uint8)])
+    assert results[0].matches is None
+    assert results[0].embeddings is not None

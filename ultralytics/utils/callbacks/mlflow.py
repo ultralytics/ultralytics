@@ -69,28 +69,34 @@ def on_pretrain_routine_end(trainer):
     experiment_name = os.environ.get("MLFLOW_EXPERIMENT_NAME") or trainer.args.project or "/Shared/Ultralytics"
     run_name = os.environ.get("MLFLOW_RUN") or trainer.args.name
 
+    started_run = False
     try:
         mlflow.set_tracking_uri(uri)
         mlflow.set_experiment(experiment_name)
         mlflow.autolog()
-        active_run = mlflow.active_run() or mlflow.start_run(run_name=run_name)
+        active_run = mlflow.active_run()
+        if active_run is None:
+            active_run = mlflow.start_run(run_name=run_name)
+            started_run = True  # remember we created this run so we only clean up our own
         LOGGER.info(f"{PREFIX}logging run_id({active_run.info.run_id}) to {uri}")
         if Path(uri).is_dir():
             LOGGER.info(f"{PREFIX}view at http://127.0.0.1:5000 with 'mlflow server --backend-store-uri {uri}'")
         LOGGER.info(f"{PREFIX}disable with 'yolo settings mlflow=False'")
         mlflow.log_params(dict(trainer.args))
+        trainer._mlflow_active = True  # tracking is fully set up for this run; later callbacks may log
     except Exception as e:
         LOGGER.warning(f"{PREFIX}Failed to initialize: {e}")
         LOGGER.warning(f"{PREFIX}Not tracking this run")
-        try:
-            mlflow.end_run()  # close any run started before the failure so the active_run() guards stay accurate
-        except Exception:
-            pass
+        if started_run:  # only end a run this callback created, never a caller-managed session
+            try:
+                mlflow.end_run()
+            except Exception:
+                pass
 
 
 def on_train_epoch_end(trainer):
     """Log training metrics at the end of each train epoch to MLflow."""
-    if mlflow and mlflow.active_run():
+    if mlflow and getattr(trainer, "_mlflow_active", False):
         mlflow.log_metrics(
             metrics={
                 **sanitize_dict(trainer.lr),
@@ -102,13 +108,13 @@ def on_train_epoch_end(trainer):
 
 def on_fit_epoch_end(trainer):
     """Log training metrics at the end of each fit epoch to MLflow."""
-    if mlflow and mlflow.active_run():
+    if mlflow and getattr(trainer, "_mlflow_active", False):
         mlflow.log_metrics(metrics=sanitize_dict(trainer.metrics), step=trainer.epoch)
 
 
 def on_train_end(trainer):
     """Log model artifacts at the end of training."""
-    if not mlflow or not mlflow.active_run():
+    if not mlflow or not getattr(trainer, "_mlflow_active", False):
         return
     mlflow.log_artifact(str(trainer.best.parent))  # log save_dir/weights directory with best.pt and last.pt
     for f in trainer.save_dir.glob("*"):  # log all other files in save_dir

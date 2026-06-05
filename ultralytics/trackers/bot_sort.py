@@ -164,7 +164,7 @@ class BOTSORT(BYTETracker):
     Examples:
         Initialize BOTSORT and process detections
         >>> bot_sort = BOTSORT(args)
-        >>> bot_sort.init_track(results, idxs,img)
+        >>> bot_sort.init_track(results, idxs, img)
         >>> bot_sort.multi_predict(tracks)
 
     Notes:

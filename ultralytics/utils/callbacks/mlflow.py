@@ -82,12 +82,11 @@ def on_pretrain_routine_end(trainer):
     except Exception as e:
         LOGGER.warning(f"{PREFIX}Failed to initialize: {e}")
         LOGGER.warning(f"{PREFIX}Not tracking this run")
-        mlflow = None  # disable later mlflow callbacks so a failed backend cannot crash training mid-run
 
 
 def on_train_epoch_end(trainer):
     """Log training metrics at the end of each train epoch to MLflow."""
-    if mlflow:
+    if mlflow and mlflow.active_run():
         mlflow.log_metrics(
             metrics={
                 **sanitize_dict(trainer.lr),
@@ -99,13 +98,13 @@ def on_train_epoch_end(trainer):
 
 def on_fit_epoch_end(trainer):
     """Log training metrics at the end of each fit epoch to MLflow."""
-    if mlflow:
+    if mlflow and mlflow.active_run():
         mlflow.log_metrics(metrics=sanitize_dict(trainer.metrics), step=trainer.epoch)
 
 
 def on_train_end(trainer):
     """Log model artifacts at the end of training."""
-    if not mlflow:
+    if not mlflow or not mlflow.active_run():
         return
     mlflow.log_artifact(str(trainer.best.parent))  # log save_dir/weights directory with best.pt and last.pt
     for f in trainer.save_dir.glob("*"):  # log all other files in save_dir

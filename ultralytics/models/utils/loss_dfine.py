@@ -12,7 +12,7 @@ import torch.nn.functional as F
 from ultralytics.nn.modules.dfine_utils import bbox2distance
 from ultralytics.utils.loss import FocalLoss, MALoss, VarifocalLoss
 
-from .box_ops import aligned_box_iou, aligned_giou, aligned_giou_old, box_cxcywh_to_xyxy
+from .box_ops import aligned_box_iou, aligned_giou, aligned_giou_new, box_cxcywh_to_xyxy
 from .ops import HungarianMatcher
 
 
@@ -46,7 +46,7 @@ class DfineLoss(nn.Module):
         gamma: float = 1.5,
         alpha: float = 0.25,
         matcher: dict[str, Any] | None = None,
-        debug_old_aligned_giou: bool = False,
+        debug_new_giou_loss: bool = False,
     ):
         super().__init__()
         if loss_gain is None:
@@ -65,7 +65,7 @@ class DfineLoss(nn.Module):
         self.use_union_set = use_union_set
         self.use_uni_match = use_uni_match
         self.uni_match_ind = uni_match_ind
-        self.debug_old_aligned_giou = debug_old_aligned_giou
+        self.debug_new_giou_loss = debug_new_giou_loss
 
         self.matcher = HungarianMatcher(**matcher)
         self.fl = FocalLoss(gamma, alpha) if use_fl else None
@@ -93,7 +93,7 @@ class DfineLoss(nn.Module):
 
     def _aligned_giou_loss(self, pred_bboxes: torch.Tensor, gt_bboxes: torch.Tensor) -> torch.Tensor:
         """Compute the configured aligned GIoU loss vector for matched xywh boxes."""
-        giou_fn = aligned_giou_old if self.debug_old_aligned_giou else aligned_giou
+        giou_fn = aligned_giou_new if self.debug_new_giou_loss else aligned_giou
         return 1.0 - giou_fn(pred_bboxes, gt_bboxes, xywh=True)
 
     def _match(

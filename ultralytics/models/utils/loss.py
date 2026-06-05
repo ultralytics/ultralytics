@@ -14,7 +14,7 @@ import torch.nn.functional as F
 from ultralytics.utils.loss import FocalLoss, MALoss, VarifocalLoss
 from ultralytics.utils.metrics import bbox_iou
 
-from .box_ops import aligned_box_iou, aligned_giou_old
+from .box_ops import aligned_box_iou, aligned_giou_new
 from .ops import HungarianMatcher
 
 
@@ -54,7 +54,7 @@ class DETRLoss(nn.Module):
         fl (FocalLoss | None): Focal Loss object if use_fl is True, otherwise None.
         vfl (VarifocalLoss | None): Varifocal Loss object if use_vfl is True, otherwise None.
         mal (MALoss | None): MALoss object if use_mal is True, otherwise None.
-        debug_old_aligned_giou (bool): If True, replace the GIoU loss term with the legacy aligned GIoU implementation.
+        debug_new_giou_loss (bool): If True, replace the default bbox_iou GIoU loss with aligned GIoU.
         device (torch.device): Device on which tensors are stored.
     """
 
@@ -106,7 +106,7 @@ class DETRLoss(nn.Module):
 
         self.use_uni_match = use_uni_match
         self.uni_match_ind = uni_match_ind
-        self.debug_old_aligned_giou = False
+        self.debug_new_giou_loss = False
         self.device = None
 
     def _get_loss_class(
@@ -190,8 +190,8 @@ class DETRLoss(nn.Module):
             return loss
 
         loss[name_bbox] = self.loss_gain["bbox"] * F.l1_loss(pred_bboxes, gt_bboxes, reduction="sum") / global_num_gts
-        if self.debug_old_aligned_giou:
-            loss[name_giou] = 1.0 - aligned_giou_old(pred_bboxes, gt_bboxes, xywh=True)
+        if self.debug_new_giou_loss:
+            loss[name_giou] = 1.0 - aligned_giou_new(pred_bboxes, gt_bboxes, xywh=True)
         else:
             loss[name_giou] = 1.0 - bbox_iou(pred_bboxes, gt_bboxes, xywh=True, GIoU=True)
         loss[name_giou] = loss[name_giou].sum() / global_num_gts

@@ -77,10 +77,10 @@ def aligned_box_iou(
     return inter / union.clamp(min=eps)
 
 
-def aligned_giou(
+def aligned_giou_new(
     boxes1: torch.Tensor, boxes2: torch.Tensor, eps: float = 1e-7, xywh: bool = False
 ) -> torch.Tensor:
-    """Compute element-wise Generalized IoU for N matched box pairs, returning vector of shape (N,)."""
+    """Compute newer element-wise Generalized IoU for N matched box pairs with upcasting and eps clamps."""
     inter, union, boxes1, boxes2 = _aligned_inter_union(boxes1, boxes2, xywh=xywh)
     iou = inter / union.clamp(min=eps)
 
@@ -105,7 +105,7 @@ def aligned_box_iou_old(boxes1: torch.Tensor, boxes2: torch.Tensor, xywh: bool =
     return inter / union
 
 
-def aligned_giou_old(boxes1: torch.Tensor, boxes2: torch.Tensor, xywh: bool = False) -> torch.Tensor:
+def aligned_giou(boxes1: torch.Tensor, boxes2: torch.Tensor, xywh: bool = False) -> torch.Tensor:
     """Compute legacy element-wise GIoU for matched box pairs without upcasting or eps clamps."""
     if xywh:
         boxes1 = box_cxcywh_to_xyxy(boxes1)

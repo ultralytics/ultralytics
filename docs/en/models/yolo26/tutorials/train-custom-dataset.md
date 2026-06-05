@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Learn how to train Ultralytics YOLO26 on your own custom dataset. Step-by-step guide covering dataset preparation, YAML config, training commands, and results analysis.
+description: Train Ultralytics YOLO26 on your own custom dataset. Covers dataset format, YAML config, training commands, results analysis, and tips for better accuracy.
 keywords: YOLO26, custom dataset, train YOLO26, object detection, Ultralytics, machine learning, dataset preparation, YOLO format, transfer learning
 canonical: https://docs.ultralytics.com/models/yolo26/tutorials/train-custom-dataset/
 ---
@@ -10,7 +10,7 @@ canonical: https://docs.ultralytics.com/models/yolo26/tutorials/train-custom-dat
   "@context": "https://schema.org",
   "@type": "TechArticle",
   "headline": "Train YOLO26 on a Custom Dataset",
-  "description": "Learn how to train Ultralytics YOLO26 on your own custom dataset. Step-by-step guide covering dataset preparation, YAML config, training commands, and results analysis.",
+  "description": "Train Ultralytics YOLO26 on your own custom dataset. Covers dataset format, YAML config, training commands, results analysis, and tips for better accuracy.",
   "url": "https://docs.ultralytics.com/models/yolo26/tutorials/train-custom-dataset/",
   "image": "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-active-learning-loop.avif",
   "datePublished": "2026-06-04",

@@ -251,6 +251,10 @@ nav:
       - YOLOv10: models/yolov10.md
       - YOLO11:
           - models/yolo11.md
+          - Environments:
+              - Amazon Web Services (AWS): models/yolo11/environments/aws-quickstart.md
+              - Google Cloud (GCP): models/yolo11/environments/google-cloud-quickstart.md
+              - Docker Image: models/yolo11/environments/docker-quickstart.md
           - Tutorials:
               - Train Custom Dataset: models/yolo11/tutorials/train-custom-dataset.md
               - Model Export: models/yolo11/tutorials/model-export.md
@@ -260,6 +264,10 @@ nav:
       - YOLO12: models/yolo12.md
       - YOLO26 🚀:
           - models/yolo26.md
+          - Environments:
+              - Amazon Web Services (AWS): models/yolo26/environments/aws-quickstart.md
+              - Google Cloud (GCP): models/yolo26/environments/google-cloud-quickstart.md
+              - Docker Image: models/yolo26/environments/docker-quickstart.md
           - Tutorials:
               - Train Custom Dataset: models/yolo26/tutorials/train-custom-dataset.md
               - Model Export: models/yolo26/tutorials/model-export.md

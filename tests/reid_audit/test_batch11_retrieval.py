@@ -344,3 +344,43 @@ def test_visualizer_has_no_market_pid_helpers():
 
     assert not hasattr(ReIDVisualizer, "_pid_from_name")
     assert not hasattr(ReIDVisualizer, "_cam_from_name")
+
+
+# ---------- end-to-end CLI (downloads a tiny published weight) ---------------
+
+
+@pytest.mark.slow
+def test_e2e_predict_gallery_retrieval(tmp_path):
+    """Full path: YOLO('yolo26n-reid.pt').predict(source, gallery, topk) -> matches + montage.
+
+    Skips if the published reid weight cannot be fetched (offline CI).
+    """
+    from ultralytics import YOLO
+    from ultralytics.utils import ASSETS
+
+    try:
+        model = YOLO("yolo26n-reid.pt", task="reid")
+    except Exception as e:  # offline / asset missing
+        pytest.skip(f"reid weight unavailable: {e}")
+
+    # Build a tiny gallery from bundled assets
+    gdir = tmp_path / "gallery"
+    gdir.mkdir()
+    import shutil
+
+    imgs = sorted(Path(ASSETS).glob("*.jpg"))[:3]
+    if not imgs:
+        pytest.skip("no bundled assets to build a gallery")
+    for k, src in enumerate(imgs):
+        shutil.copy(src, gdir / f"g{k}.jpg")
+
+    results = model.predict(
+        source=str(imgs[0]), gallery=str(gdir), topk=2, imgsz=64,
+        project=str(tmp_path), name="run", save=True, verbose=False,
+    )
+    r = results[0]
+    assert r.matches is not None and len(r.matches) == 2
+    assert all(isinstance(p, str) and isinstance(s, float) for p, s in r.matches)
+    # montage written under the run dir
+    montages = list(Path(tmp_path / "run").glob("*_top2.jpg"))
+    assert montages, "expected a query->top-2 montage to be saved"

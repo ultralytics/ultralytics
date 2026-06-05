@@ -10,7 +10,7 @@ canonical: https://docs.ultralytics.com/models/yolo26/integrations/comet/
   "@context": "https://schema.org",
   "@type": "TechArticle",
   "headline": "YOLO26 Comet ML Integration",
-  "description": "Log YOLO26 training to Comet ML. Automatically track metrics, images, confusion matrices, and model checkpoints with Ultralytics' built-in Comet integration.",
+  "description": "Log YOLO26 training to Comet ML. Track metrics, images, confusion matrices, and model checkpoints automatically with Ultralytics' built-in Comet integration.",
   "url": "https://docs.ultralytics.com/models/yolo26/integrations/comet/",
   "image": "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-active-learning-loop.avif",
   "datePublished": "2026-06-05",

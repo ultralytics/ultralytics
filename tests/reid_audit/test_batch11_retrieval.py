@@ -184,3 +184,23 @@ def test_results_new_preserves_matches(fake_image):
 
     r = Results(fake_image, path="/q.jpg", names={0: "id"}, matches=[("/g/a.jpg", 0.5)])
     assert r.new().matches == [("/g/a.jpg", 0.5)]
+
+
+# ---------- CLI custom keys --------------------------------------------------
+
+
+def test_reid_custom_keys_registered():
+    from ultralytics.cfg import TASK_CUSTOM_KEYS
+
+    keys = TASK_CUSTOM_KEYS["reid"]
+    assert {"gallery", "topk", "reid_cache"} <= keys
+
+
+def test_cfg_accepts_gallery_args():
+    """get_cfg must not reject gallery/topk/reid_cache for the reid task."""
+    from ultralytics.cfg import get_cfg
+
+    cfg = get_cfg(overrides={"task": "reid", "gallery": "g/", "topk": 5, "reid_cache": "c.pt"})
+    assert cfg.gallery == "g/"
+    assert cfg.topk == 5
+    assert cfg.reid_cache == "c.pt"

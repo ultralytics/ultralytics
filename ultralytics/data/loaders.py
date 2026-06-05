@@ -141,9 +141,10 @@ class LoadStreams:
             self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
 
             success, im = self.caps[i].read()  # guarantee first frame
-            im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)[..., None] if self.cv2_flag == cv2.IMREAD_GRAYSCALE else im
             if not success or im is None:
                 raise ConnectionError(f"{st}Failed to read images from {s}")
+            if self.cv2_flag == cv2.IMREAD_GRAYSCALE:
+                im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)[..., None]
             self.imgs[i].append(im)
             self.shape[i] = im.shape
             self.threads[i] = Thread(target=self.update, args=([i, self.caps[i], s]), daemon=True)
@@ -160,13 +161,12 @@ class LoadStreams:
                 cap.grab()  # .read() = .grab() followed by .retrieve()
                 if n % self.vid_stride == 0:
                     success, im = cap.retrieve()
-                    im = (
-                        cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)[..., None] if self.cv2_flag == cv2.IMREAD_GRAYSCALE else im
-                    )
-                    if not success:
+                    if not success or im is None:
                         im = np.zeros(self.shape[i], dtype=np.uint8)
                         LOGGER.warning("Video stream unresponsive, please check your IP camera connection.")
                         cap.open(stream)  # re-open stream if signal was lost
+                    elif self.cv2_flag == cv2.IMREAD_GRAYSCALE:
+                        im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)[..., None]
                     if self.buffer:
                         self.imgs[i].append(im)
                     else:
@@ -421,12 +421,9 @@ class LoadImagesAndVideos:
 
                 if success:
                     success, im0 = self.cap.retrieve()
-                    im0 = (
-                        cv2.cvtColor(im0, cv2.COLOR_BGR2GRAY)[..., None]
-                        if self.cv2_flag == cv2.IMREAD_GRAYSCALE
-                        else im0
-                    )
                     if success:
+                        if self.cv2_flag == cv2.IMREAD_GRAYSCALE:
+                            im0 = cv2.cvtColor(im0, cv2.COLOR_BGR2GRAY)[..., None]
                         self.frame += 1
                         paths.append(path)
                         imgs.append(im0)

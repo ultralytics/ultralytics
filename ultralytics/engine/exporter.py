@@ -539,7 +539,6 @@ class Exporter:
                     import tensorrt as trt
 
                     if check_version(trt.__version__, "<8.5.0"):
-                        # TensorRT versions earlier than 8.5.0 do not support the Mod operator in end-to-end models
                         # https://github.com/ultralytics/ultralytics/issues/24607
                         model.end2end = False
                         LOGGER.warning(
@@ -548,7 +547,6 @@ class Exporter:
                         )
 
                     if self.args.int8 and check_version(trt.__version__, "==10.3.0") and is_jetson(jetpack=6):
-                        # TensorRT 10.3.0 on JetPack 6 with int8 has known end2end build issues
                         # https://github.com/ultralytics/ultralytics/issues/23841
                         model.end2end = False
                         LOGGER.warning(

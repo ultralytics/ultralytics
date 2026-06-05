@@ -611,7 +611,3 @@ Performance improvements with TensorRT can vary based on the hardware used. Here
 Detailed performance benchmarks for different hardware configurations can be found in the [performance section](#ultralytics-yolo-tensorrt-export-performance).
 
 For more comprehensive insights into TensorRT performance, refer to the [Ultralytics documentation](../modes/export.md) and our performance analysis reports.
-
-### Why does exporting disable end2end when TensorRT is less than 8.5.0?
-
-Exporting disables the end-to-end mode for TensorRT versions earlier than 8.5.0 due to the lack of support for the Mod operator. To enable end-to-end export, upgrade TensorRT to 8.5.0 or later.

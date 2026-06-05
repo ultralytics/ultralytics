@@ -82,6 +82,10 @@ def on_pretrain_routine_end(trainer):
     except Exception as e:
         LOGGER.warning(f"{PREFIX}Failed to initialize: {e}")
         LOGGER.warning(f"{PREFIX}Not tracking this run")
+        try:
+            mlflow.end_run()  # close any run started before the failure so the active_run() guards stay accurate
+        except Exception:
+            pass
 
 
 def on_train_epoch_end(trainer):

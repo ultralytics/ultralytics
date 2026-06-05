@@ -663,6 +663,8 @@ nav:
       - Explore: platform/explore.md
       - REST API: platform/api/index.md
 
+  - Rust Inference: inference/index.md
+
   - Reference:
       - reference/index.md
       - __init__: reference/__init__.md

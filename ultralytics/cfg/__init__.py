@@ -96,6 +96,7 @@ TASK_CUSTOM_KEYS = {
         "arcface", "arcface_margin", "arcface_scale",
         "gem_p", "nonlocal_block",
         "reid_reranking", "reid_tta", "reid_scales",
+        "dg_mixstyle", "dg_dann", "dann_gamma", "dg_mixstyle_layers",
     },
 }
 

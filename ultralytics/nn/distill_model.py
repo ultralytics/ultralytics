@@ -189,7 +189,7 @@ class DistillationModel(nn.Module):
             )
 
         distill_loss_detach = loss_distill.detach()
-        loss_distill *= batch["img"].shape[0]
+        loss_distill = loss_distill * batch["img"].shape[0]
         return torch.cat([regular_loss, loss_distill]), torch.cat([regular_loss_detach, distill_loss_detach])
 
     def loss_sl2(

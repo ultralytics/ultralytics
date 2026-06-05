@@ -909,6 +909,9 @@ class ReID(nn.Module):
         # Non-Local block (AGW). Disabled by default — instance may set self.nonlocal_block to
         # a _NonLocal2d module after construction (ReidModel.__init__ does this when nonlocal=1).
         self.nonlocal_block = None
+        self.domain_head = None      # set by ReidModel when dg_dann>0
+        self._dann_lambda = 0.0      # updated each training step by ReidModel
+        self._cur_domain = None      # set each step by ReidModel (for MixStyle hooks elsewhere)
 
     def _pool(self, x):
         """Pool feature map to (B, C). avg+max default; learnable GeM when gem_p>0.
@@ -927,7 +930,9 @@ class ReID(nn.Module):
         if isinstance(x, list):
             x = torch.cat(x, 1)
         x = self.conv(x)
-        if self.nonlocal_block is not None:
+        # getattr fallback: checkpoints saved before nonlocal_block existed restore a __dict__
+        # without this attribute (unpickling skips __init__), so guard like _gem_param above.
+        if getattr(self, "nonlocal_block", None) is not None:
             x = self.nonlocal_block(x)
         feat = self.embed(self.drop(self._pool(x)))
         feat_bn = self.bottleneck(feat)  # BNNeck feature
@@ -939,6 +944,11 @@ class ReID(nn.Module):
                 cls_out = f @ w.T
             else:
                 cls_out = self.classifier(feat_bn)
+            dh = getattr(self, "domain_head", None)
+            if dh is not None:
+                from .dg import grad_reverse
+                dlogits = dh(grad_reverse(feat, self._dann_lambda))
+                return cls_out, feat_bn, feat, dlogits
             return cls_out, feat_bn, feat  # (logits_or_cos, bn_feat, raw_feat)
         emb = torch.nn.functional.normalize(feat_bn, dim=1)
         return emb if self.export else (emb, feat_bn)

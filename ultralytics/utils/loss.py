@@ -988,6 +988,7 @@ class ReIDLoss:
         arcface: bool = False,
         arcface_margin: float = 0.3,
         arcface_scale: float = 30.0,
+        dann_weight: float = 0.0,
     ):
         """Initialize ReID loss with label-smoothed CE, batch-hard triplet, and center loss.
 
@@ -1014,6 +1015,7 @@ class ReIDLoss:
         self.arcface = arcface
         self.arcface_margin = arcface_margin
         self.arcface_scale = arcface_scale
+        self.dann_weight = dann_weight
         self.centers = None  # lazily initialized (nc, feat_dim)
 
     def __call__(self, preds, batch):
@@ -1027,11 +1029,12 @@ class ReIDLoss:
             (tuple[torch.Tensor, torch.Tensor]): Total loss and detached component losses [ce, triplet].
         """
         # In eval mode the head returns (emb, feat_bn) — skip loss computation
-        if not isinstance(preds, (list, tuple)) or len(preds) != 3:
+        if not isinstance(preds, (list, tuple)) or len(preds) not in (3, 4):
             zero = torch.tensor(0.0, device=batch["cls"].device)
             return zero, torch.stack([zero, zero])
 
-        cls_logits, bn_feat, raw_feat = preds
+        domain_logits = preds[3] if len(preds) == 4 else None
+        cls_logits, bn_feat, raw_feat = preds[0], preds[1], preds[2]
         labels = batch["cls"]
 
         # In ArcFace mode the head returns cosine similarity in [-1, 1]; add margin
@@ -1063,6 +1066,10 @@ class ReIDLoss:
             ctr_loss = self._center_loss(bn_feat, labels)
             total = total + self.center_weight * ctr_loss
 
+        if self.dann_weight > 0 and domain_logits is not None and "domain" in batch:
+            dom_loss = F.cross_entropy(domain_logits, batch["domain"].to(domain_logits.device))
+            total = total + self.dann_weight * dom_loss
+            return total, torch.stack([ce_loss.detach(), tri_loss.detach(), dom_loss.detach()])
         return total, torch.stack([ce_loss.detach(), tri_loss.detach()])
 
     def _center_loss(self, features, labels):

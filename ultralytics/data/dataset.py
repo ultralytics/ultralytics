@@ -48,6 +48,18 @@ from .utils import (
 DATASET_CACHE_VERSION = "1.0.3"
 
 
+def domain_from_folder(name: str, default: str = "") -> str:
+    """Domain id from a ``<domain>_<pid>`` identity-folder name; ``default`` if it is a bare pid.
+
+    A name is treated as namespaced only when the part before the first '_' is non-numeric
+    (e.g. 'market_0002' -> 'market'); a numeric leading token (Market/MSMT raw pids) -> default.
+    """
+    head = name.split("_", 1)[0]
+    if "_" in name and not head.isdigit():
+        return head
+    return default
+
+
 class YOLODataset(BaseDataset):
     """Dataset class for loading object detection and/or segmentation labels in YOLO format.
 
@@ -909,6 +921,16 @@ class ReidDataset(ClassificationDataset):
             label = self.pid_to_label.get(pid, pid)
             self.pid_to_indices[label].append(idx)
 
+        # Domain ids for DG training: parse the <domain>_<pid> folder prefix, but ONLY in
+        # folder-per-identity mode (the pools). Flat datasets (Market/Duke/eval splits) -> domain ""
+        # -> all domain 0 (so num_domains=1 and DG is inert / harmless there). Stable sorted mapping.
+        _is_folder = self._is_folder_per_identity(Path(self.root))
+        raw_domains = [domain_from_folder(Path(s[0]).parent.name) if _is_folder else "" for s in self.samples]
+        uniq = sorted(set(raw_domains))
+        self.domain_to_id = {d: i for i, d in enumerate(uniq)}
+        self.domains = [self.domain_to_id[d] for d in raw_domains]
+        self.num_domains = max(1, len(uniq))
+
         LOGGER.info(f"{self.prefix}{len(self.samples)} images, {len({pid for _, pid, *_ in self.samples})} identities")
 
     def build_base_dataset(self, root: str):
@@ -1059,3 +1081,9 @@ class ReidDataset(ClassificationDataset):
             "camid": camid,
             "im_file": path,
         }
+
+    def __getitem__(self, i: int) -> dict:
+        """Return the sample dict for index ``i`` with the per-sample DG domain id added."""
+        sample = super().__getitem__(i)
+        sample["domain"] = self.domains[i]
+        return sample

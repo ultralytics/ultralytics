@@ -748,6 +748,11 @@ class ReidModel(BaseModel):
         arcface_scale: float = 30.0,
         gem_p: float = 0.0,
         nonlocal_block: bool = False,
+        dg_mixstyle: float = 0.0,
+        dg_dann: float = 0.0,
+        dg_mixstyle_layers: tuple = (2, 4, 6),
+        dann_gamma: float = 10.0,
+        num_domains: int = 2,
     ):
         """Initialize ReidModel with YAML, channels, number of identities, verbose flag.
 
@@ -801,6 +806,36 @@ class ReidModel(BaseModel):
             for m in self.modules():
                 if isinstance(m, ReID):
                     m.nonlocal_block = _NonLocal2d(m.conv.conv.out_channels)
+
+        # ---- Domain-generalization (Phase 3): all default-off ----
+        self.dg_mixstyle = float(dg_mixstyle)
+        self.dg_dann = float(dg_dann)
+        self.dann_gamma = float(dann_gamma)
+        self._dann_step = 0
+        self._dann_ramp_steps = 2000  # GRL lambda warmup horizon
+        self._cur_domain = None
+        self._mixstyle_handles = []
+        if self.dg_mixstyle > 0:
+            from .modules.dg import MixStyle
+
+            self._mixstyle = MixStyle(p=self.dg_mixstyle)
+
+            def _make_hook(model):
+                def _hook(module, inp, out):
+                    if model.training:
+                        return model._mixstyle(out, domain=model._cur_domain)
+                    return out
+
+                return _hook
+
+            for idx in dg_mixstyle_layers:
+                self._mixstyle_handles.append(self.model[idx].register_forward_hook(_make_hook(self)))
+        if self.dg_dann > 0:
+            from .modules.dg import DomainHead
+
+            for m in self.modules():
+                if isinstance(m, ReID):
+                    m.domain_head = DomainHead(in_dim=m.embed_dim, num_domains=num_domains)
 
     def _from_yaml(self, cfg, ch, nc, verbose):
         """Set model configurations and define the model architecture.
@@ -862,7 +897,22 @@ class ReidModel(BaseModel):
             arcface=getattr(src, "arcface", self.arcface),
             arcface_margin=getattr(src, "arcface_margin", self.arcface_margin),
             arcface_scale=getattr(src, "arcface_scale", self.arcface_scale),
+            dann_weight=getattr(src, "dg_dann", self.dg_dann),
         )
+
+    def loss(self, batch, preds=None):
+        """ReID loss with DG side-channel: stash batch domains for MixStyle hooks and update the
+        DANN GRL lambda (warmup ramp) before delegating to the standard BaseModel.loss path."""
+        if self.dg_mixstyle > 0 or self.dg_dann > 0:
+            self._cur_domain = batch.get("domain")
+            if self.dg_dann > 0:
+                self._dann_step += 1
+                p = min(1.0, self._dann_step / max(1, self._dann_ramp_steps))
+                lam = 2.0 / (1.0 + torch.exp(torch.tensor(-self.dann_gamma * p))).item() - 1.0
+                for m in self.modules():
+                    if isinstance(m, ReID) and getattr(m, "domain_head", None) is not None:
+                        m._dann_lambda = lam
+        return super().loss(batch, preds)
 
 
 class RTDETRDetectionModel(DetectionModel):

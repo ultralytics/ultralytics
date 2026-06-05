@@ -142,6 +142,9 @@ class ReidTrainer(ClassificationTrainer):
                 "arcface_scale",
                 "gem_p",
                 "nonlocal_block",
+                "dg_mixstyle",
+                "dg_dann",
+                "dann_gamma",
             )
             if hasattr(self.args, k)
         }
@@ -150,6 +153,7 @@ class ReidTrainer(ClassificationTrainer):
             nc=self.data["nc"],
             ch=self.data.get("channels", 3),
             verbose=verbose and RANK == -1,
+            num_domains=2,  # Phase-3 DG: each leave-one-out pool fold has 2 source domains
             **reid_kwargs,
         )
         if visual_sd is not None:
@@ -247,6 +251,8 @@ class ReidTrainer(ClassificationTrainer):
     def get_validator(self):
         """Return a ReidValidator instance."""
         self.loss_names = ["ce_loss", "tri_loss"]
+        if float(getattr(self.args, "dg_dann", 0.0)) > 0:
+            self.loss_names = ["ce_loss", "tri_loss", "dom_loss"]
         return yolo.reid.ReidValidator(self.test_loader, self.save_dir, args=copy(self.args), _callbacks=self.callbacks)
 
     def plot_training_samples(self, batch, ni):

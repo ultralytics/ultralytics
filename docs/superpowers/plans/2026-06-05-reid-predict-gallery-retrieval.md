@@ -28,7 +28,8 @@ Design: `docs/superpowers/specs/2026-06-05-reid-predict-gallery-retrieval-design
 
 - ReID custom CLI knobs are **not** in `default.yaml`; they live only in `TASK_CUSTOM_KEYS["reid"]` and are read via `getattr(self.args, "<key>", <default>)` (mirror `reid_tta`/`reid_reranking` in `ultralytics/models/yolo/reid/val.py`).
 - `Results` typed tensor fields go in `self._keys`; `matches` is a plain list of `(path:str, score:float)` and is **deliberately not** in `_keys` (it is not a tensor and must not be walked by `_apply`/`.cpu()`/`.numpy()`).
-- Run the full reid-audit suite with: `pytest tests/reid_audit/ -q`
+- Run the full reid-audit suite with: `pytest tests/reid_audit/ -q` (use the venv interpreter `/home/rick/ultralytics/.venv/bin/python -m pytest ...` — system `python` lacks torch).
+- `tests/reid_audit/` is matched by `.gitignore`; commit test files with `git add -f tests/reid_audit/<file>` (the plain `git add` in the steps below will otherwise silently skip them).
 
 ---
 

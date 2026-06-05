@@ -84,19 +84,19 @@ ultralytics-inference predict --source images/ --device cuda:0 --half
 
 Common flags:
 
-| Flag             | Default          | Description                                                            |
-| ---------------- | ---------------- | --------------------------------------------------------------------- |
-| `--model`, `-m`  | `yolo26n.onnx`   | Path to an ONNX model; a known YOLO name is downloaded automatically. |
-| `--task`         | `detect`         | One of `detect`, `segment`, `pose`, `obb`, `classify`, `semantic`.    |
-| `--source`, `-s` | sample           | Image, directory, glob, video, webcam index, or URL.                  |
-| `--conf`         | `0.25`           | Confidence threshold.                                                  |
-| `--iou`          | `0.7`            | IoU threshold for non-maximum suppression.                            |
-| `--imgsz`        | model metadata   | Inference image size.                                                  |
-| `--device`       | `cpu`            | Execution device, for example `cuda:0`, `coreml`, `tensorrt:0`.       |
-| `--half`         | `false`          | FP16 half-precision inference.                                         |
-| `--save`         | `true`           | Save annotated results to `runs/<task>/predict`.                      |
-| `--show`         | `false`          | Display results in a window.                                          |
-| `--classes`      | all              | Filter detections by class IDs, for example `"0,1,2"`.                |
+| Flag             | Default        | Description                                                           |
+| ---------------- | -------------- | --------------------------------------------------------------------- |
+| `--model`, `-m`  | `yolo26n.onnx` | Path to an ONNX model; a known YOLO name is downloaded automatically. |
+| `--task`         | `detect`       | One of `detect`, `segment`, `pose`, `obb`, `classify`, `semantic`.    |
+| `--source`, `-s` | sample         | Image, directory, glob, video, webcam index, or URL.                  |
+| `--conf`         | `0.25`         | Confidence threshold.                                                 |
+| `--iou`          | `0.7`          | IoU threshold for non-maximum suppression.                            |
+| `--imgsz`        | model metadata | Inference image size.                                                 |
+| `--device`       | `cpu`          | Execution device, for example `cuda:0`, `coreml`, `tensorrt:0`.       |
+| `--half`         | `false`        | FP16 half-precision inference.                                        |
+| `--save`         | `true`         | Save annotated results to `runs/<task>/predict`.                      |
+| `--show`         | `false`        | Display results in a window.                                          |
+| `--classes`      | all            | Filter detections by class IDs, for example `"0,1,2"`.                |
 
 ## Library quickstart
 
@@ -301,43 +301,43 @@ Each task populates a different field on `Results`. Each tab below is a complete
 
 All Ultralytics [tasks](../tasks/index.md) are supported. When `--model` is omitted, the matching nano model for the selected task is downloaded automatically.
 
-| Task                  | `--task`   | Output                                | Default model        |
-| --------------------- | ---------- | ------------------------------------- | -------------------- |
-| Detection             | `detect`   | Bounding boxes and classes            | `yolo26n.onnx`       |
-| Instance segmentation | `segment`  | Boxes plus per-instance masks         | `yolo26n-seg.onnx`   |
-| Pose                  | `pose`     | Boxes plus keypoints                  | `yolo26n-pose.onnx`  |
-| Oriented boxes        | `obb`      | Rotated bounding boxes                | `yolo26n-obb.onnx`   |
-| Classification        | `classify` | Class probabilities                   | `yolo26n-cls.onnx`   |
-| Semantic segmentation | `semantic` | Per-pixel class map                   | `yolo26n-sem.onnx`   |
+| Task                  | `--task`   | Output                        | Default model       |
+| --------------------- | ---------- | ----------------------------- | ------------------- |
+| Detection             | `detect`   | Bounding boxes and classes    | `yolo26n.onnx`      |
+| Instance segmentation | `segment`  | Boxes plus per-instance masks | `yolo26n-seg.onnx`  |
+| Pose                  | `pose`     | Boxes plus keypoints          | `yolo26n-pose.onnx` |
+| Oriented boxes        | `obb`      | Rotated bounding boxes        | `yolo26n-obb.onnx`  |
+| Classification        | `classify` | Class probabilities           | `yolo26n-cls.onnx`  |
+| Semantic segmentation | `semantic` | Per-pixel class map           | `yolo26n-sem.onnx`  |
 
 ## Input sources
 
 The `--source` argument (and the `Source` type in the library) accepts many input kinds, auto-detected from the string:
 
-| Source    | Example                          | Notes                              |
-| --------- | -------------------------------- | ---------------------------------- |
-| Image     | `image.jpg`                      | Single file.                       |
-| Directory | `images/`                        | All images in the folder.          |
-| Glob      | `images/*.jpg`                   | Shell-style pattern.               |
-| Video     | `video.mp4`                      | Requires the `video` feature.      |
-| Webcam    | `0`                              | Device index.                      |
-| Stream    | `rtsp://...`                     | RTSP, RTMP, or HTTP stream.        |
-| URL       | `https://example.com/image.jpg`  | Remote image download.             |
+| Source    | Example                         | Notes                         |
+| --------- | ------------------------------- | ----------------------------- |
+| Image     | `image.jpg`                     | Single file.                  |
+| Directory | `images/`                       | All images in the folder.     |
+| Glob      | `images/*.jpg`                  | Shell-style pattern.          |
+| Video     | `video.mp4`                     | Requires the `video` feature. |
+| Webcam    | `0`                             | Device index.                 |
+| Stream    | `rtsp://...`                    | RTSP, RTMP, or HTTP stream.   |
+| URL       | `https://example.com/image.jpg` | Remote image download.        |
 
 ## Devices and execution providers
 
 Inference runs on CPU by default. GPU and accelerator backends are compiled in as [Cargo features](#cargo-features) and selected at runtime with `--device` (CLI) or `Device` (library).
 
-| Device string  | `Device` variant   | Build feature | Hardware              |
-| -------------- | ------------------ | ------------- | --------------------- |
-| `cpu`          | `Device::Cpu`      | built in      | Any CPU               |
-| `cuda:0`       | `Device::Cuda(0)`  | `cuda`        | NVIDIA GPU            |
-| `tensorrt:0`   | `Device::TensorRt(0)` | `tensorrt` | NVIDIA GPU, optimized |
-| `coreml`       | `Device::CoreMl`   | `coreml`      | Apple Silicon / macOS |
-| `openvino`     | `Device::OpenVino` | `openvino`    | Intel CPU / iGPU      |
-| `directml:0`   | `Device::DirectMl(0)` | `directml` | Windows GPU           |
-| `rocm:0`       | `Device::Rocm(0)`  | `rocm`        | AMD GPU               |
-| `xnnpack`      | `Device::Xnnpack`  | `xnnpack`     | Optimized CPU         |
+| Device string | `Device` variant      | Build feature | Hardware              |
+| ------------- | --------------------- | ------------- | --------------------- |
+| `cpu`         | `Device::Cpu`         | built in      | Any CPU               |
+| `cuda:0`      | `Device::Cuda(0)`     | `cuda`        | NVIDIA GPU            |
+| `tensorrt:0`  | `Device::TensorRt(0)` | `tensorrt`    | NVIDIA GPU, optimized |
+| `coreml`      | `Device::CoreMl`      | `coreml`      | Apple Silicon / macOS |
+| `openvino`    | `Device::OpenVino`    | `openvino`    | Intel CPU / iGPU      |
+| `directml:0`  | `Device::DirectMl(0)` | `directml`    | Windows GPU           |
+| `rocm:0`      | `Device::Rocm(0)`     | `rocm`        | AMD GPU               |
+| `xnnpack`     | `Device::Xnnpack`     | `xnnpack`     | Optimized CPU         |
 
 ```bash
 # Build the CLI with the providers you need
@@ -373,18 +373,18 @@ let config = InferenceConfig::new()
 
 Features are enabled at build time. The defaults cover annotation and live display.
 
-| Feature           | Default | Purpose                                                             |
-| ----------------- | ------- | ------------------------------------------------------------------- |
-| `annotate`        | yes     | Draw boxes, masks, keypoints, and labels; required for `--save`.    |
-| `visualize`       | yes     | Real-time window display for `--show`.                              |
-| `video`           | no      | Read and write video files (requires FFmpeg 7+).                    |
-| `cuda`            | no      | NVIDIA CUDA execution provider.                                     |
-| `tensorrt`        | no      | NVIDIA TensorRT execution provider.                                 |
+| Feature           | Default | Purpose                                                                |
+| ----------------- | ------- | ---------------------------------------------------------------------- |
+| `annotate`        | yes     | Draw boxes, masks, keypoints, and labels; required for `--save`.       |
+| `visualize`       | yes     | Real-time window display for `--show`.                                 |
+| `video`           | no      | Read and write video files (requires FFmpeg 7+).                       |
+| `cuda`            | no      | NVIDIA CUDA execution provider.                                        |
+| `tensorrt`        | no      | NVIDIA TensorRT execution provider.                                    |
 | `cuda-preprocess` | no      | Fused GPU preprocessing with zero-copy input (implies cuda, tensorrt). |
-| `coreml`          | no      | Apple CoreML execution provider.                                    |
-| `openvino`        | no      | Intel OpenVINO execution provider.                                  |
-| `rocm`            | no      | AMD ROCm execution provider.                                        |
-| `directml`        | no      | Windows DirectML execution provider.                                |
+| `coreml`          | no      | Apple CoreML execution provider.                                       |
+| `openvino`        | no      | Intel OpenVINO execution provider.                                     |
+| `rocm`            | no      | AMD ROCm execution provider.                                           |
+| `directml`        | no      | Windows DirectML execution provider.                                   |
 
 Convenience groups bundle related providers: `nvidia` (cuda, tensorrt), `amd` (rocm, migraphx), `intel` (openvino, onednn), `mobile` (nnapi, coreml, qnn), and `all` (annotate, visualize, video). Additional providers such as `nnapi`, `qnn`, `xnnpack`, `webgpu`, and others are also available.
 

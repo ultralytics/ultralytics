@@ -302,3 +302,45 @@ def test_write_results_saves_montage(monkeypatch, tmp_path):
     assert "a.jpg" in out and "0.93" in out  # ranked log line
     # query tile + 2 match tiles in the single row
     assert len(saved["rows"]) == 1 and len(saved["rows"][0]) == 3
+
+
+# ---------- ReIDVisualizer reuses the engine --------------------------------
+
+
+def test_visualizer_rank_uses_engine(monkeypatch, tmp_path):
+    """ReIDVisualizer.rank ranks generically (no Market PID logic) via the shared engine."""
+    from ultralytics.solutions import reid_visualizer as rv
+
+    gdir = tmp_path / "g"
+    gdir.mkdir()
+    for name in ["m1.jpg", "m2.jpg", "m3.jpg"]:
+        (gdir / name).write_bytes(b"x")
+    query = tmp_path / "q.jpg"
+    query.write_bytes(b"x")
+
+    # Avoid constructing a real YOLO model
+    viz = rv.ReIDVisualizer.__new__(rv.ReIDVisualizer)
+    viz.imgsz = 64
+    viz.device = None
+    viz.model = None
+
+    vecs = {
+        str(query): np.array([1.0, 0.0], dtype=np.float32),
+        str(gdir / "m1.jpg"): np.array([1.0, 0.0], dtype=np.float32),  # identical → top-1
+        str(gdir / "m2.jpg"): np.array([0.2, 0.9], dtype=np.float32),
+        str(gdir / "m3.jpg"): np.array([0.0, 1.0], dtype=np.float32),
+    }
+    monkeypatch.setattr(viz, "_embed_paths", lambda paths: np.stack([vecs[str(p)] for p in paths], axis=0))
+
+    items = viz.rank(query, gdir, k=2)
+    assert len(items) == 2
+    assert Path(items[0].path).name == "m1.jpg"
+    assert items[0].score >= items[1].score
+
+
+def test_visualizer_has_no_market_pid_helpers():
+    """The Market-1501 filename parsing helpers are removed from the CLI-facing visualizer."""
+    from ultralytics.solutions.reid_visualizer import ReIDVisualizer
+
+    assert not hasattr(ReIDVisualizer, "_pid_from_name")
+    assert not hasattr(ReIDVisualizer, "_cam_from_name")

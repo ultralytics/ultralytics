@@ -30,3 +30,9 @@ Chronological decision timeline. Newest at bottom.
 - **H2 verdict — SUPPORTED (small), MultiBin KEPT.** B > A on all 6 metrics (Car AP3D@0.5 +0.6, mean +1.5, AOS +0.6). Consistency (6/6) makes it a real if small gain; no downside → keep (HEAD already has it). Caveat: single-seed Car +0.6 ≈ noise; the +1.5 mean and 6/6 consistency are the real support — multi-seed would confirm.
 - **Insight:** orientation was NOT the bottleneck — sin/cos already gets AOS@0.5 (51.3) ≈ AP3D@0.5 (51.4). The tight-IoU ceiling is vertical/height: at @0.7, AP_BEV (25.9) ≫ AP3D (10.4). Next lever = box-bottom/height precision, not orientation.
 - Headline capability (replaces docs' stale 48%): **~52% AP3D@0.5 (Car, Moderate, true rotated IoU)**, pretrained backbone + 1000ep.
+
+## Model-size scaling sweep (parallel, ultra7 GPUs 2-7)
+- Using 6 idle Blackwell GPUs on ultra7 to run the corrected pipeline (MultiBin + dimfix + pretrained backbone + 1000ep SGD/cos, true rotated IoU) across all 5 model sizes, plus a 2nd seed of n for a noise-floor estimate.
+- GPU2=n, GPU3=s, GPU4=m, GPU5=l, GPU6=x, GPU7=n(seed1). batch=32 all (x fits at 88.8/97GB). Dataset symlinked + label cache pre-built to avoid 6-way races; pretrained weights pre-fetched.
+- Goal: regenerate the docs Models table with TRUSTWORTHY numbers (current docs table predates the IoU + dimension fixes), get the capability-vs-size curve, and quantify run-to-run noise (contextualizes the small MultiBin gain).
+- Status: all 6 training, no OOM. Results pending (n first ~6h, x last ~15-20h).

@@ -84,8 +84,8 @@ jobs:
             --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com|neptune\.ai|gnu\.org/software/make|survey\.stackoverflow\.co)' \
             --exclude 'https?://[^[:space:]]*(%7B|%7D|\{|\}|sentry\.io|google-analytics\.com/mp/collect|storage\.googleapis\.com|packages\.cloud\.google\.com/apt)(/.*)?' \
             --exclude 'https://github\.com/ultralytics/assets/releases/download/v0\.0\.0' \
-            --exclude 'https://raw\.githubusercontent\.com/ultralytics/assets/main/(im/banner-tasks|yolov8/banner-yolov8)\.png/' \
-            --exclude 'https://static\.pepy\.tech/badge/ultralytics/' \
+            --exclude 'https://raw\.githubusercontent\.com/ultralytics/assets/main/(im/banner-tasks|yolov8/banner-yolov8)\.png/?' \
+            --exclude 'https://static\.pepy\.tech/badge/ultralytics/?' \
             --exclude 'https://docs\.ultralytics\.com/(modes/(predict|val|train|export)|integrations/openvino)//?n' \
             --exclude 'https://ultralytics\.com/assets(/example\.zip)?' \
             --exclude-path './**/ci.yml' \

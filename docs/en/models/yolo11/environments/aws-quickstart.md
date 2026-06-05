@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Deploy Ultralytics YOLO11 on an AWS Deep Learning EC2 instance. Step-by-step guide to launch a GPU-accelerated environment for object detection, segmentation, pose estimation, and classification in the cloud.
+description: Deploy Ultralytics YOLO11 on AWS EC2. Launch a GPU-accelerated Deep Learning AMI for object detection, segmentation, pose estimation, and classification.
 keywords: YOLO11, AWS, Amazon Web Services, EC2, Deep Learning AMI, object detection, segmentation, pose estimation, Ultralytics, machine learning, GPU, cloud computing
 canonical: https://docs.ultralytics.com/models/yolo11/environments/aws-quickstart/
 ---
@@ -10,7 +10,7 @@ canonical: https://docs.ultralytics.com/models/yolo11/environments/aws-quickstar
   "@context": "https://schema.org",
   "@type": "TechArticle",
   "headline": "YOLO11 on AWS Deep Learning Instance",
-  "description": "Deploy Ultralytics YOLO11 on an AWS Deep Learning EC2 instance. Step-by-step guide to launch a GPU-accelerated environment for object detection, segmentation, pose estimation, and classification in the cloud.",
+  "description": "Deploy Ultralytics YOLO11 on AWS EC2. Launch a GPU-accelerated Deep Learning AMI for object detection, segmentation, pose estimation, and classification.",
   "url": "https://docs.ultralytics.com/models/yolo11/environments/aws-quickstart/",
   "image": "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/aws-console-sign-in.avif",
   "datePublished": "2026-06-04",

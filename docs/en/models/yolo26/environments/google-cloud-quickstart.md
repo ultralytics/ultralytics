@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Deploy Ultralytics YOLO26 on Google Cloud Platform Deep Learning VM. Step-by-step guide to set up a GPU-accelerated environment for real-time object detection with end-to-end NMS-free inference.
+description: Deploy Ultralytics YOLO26 on GCP Deep Learning VM. GPU-accelerated setup guide for real-time object detection with YOLO26's end-to-end NMS-free inference.
 keywords: YOLO26, Google Cloud Platform, GCP, Deep Learning VM, object detection, Ultralytics, computer vision, GPU, cloud computing, machine learning, NMS-free, edge AI
 canonical: https://docs.ultralytics.com/models/yolo26/environments/google-cloud-quickstart/
 ---
@@ -10,7 +10,7 @@ canonical: https://docs.ultralytics.com/models/yolo26/environments/google-cloud-
   "@context": "https://schema.org",
   "@type": "TechArticle",
   "headline": "YOLO26 on Google Cloud Platform (GCP) Deep Learning VM",
-  "description": "Deploy Ultralytics YOLO26 on Google Cloud Platform Deep Learning VM. Step-by-step guide to set up a GPU-accelerated environment for real-time object detection with end-to-end NMS-free inference.",
+  "description": "Deploy Ultralytics YOLO26 on GCP Deep Learning VM. GPU-accelerated setup guide for real-time object detection with YOLO26's end-to-end NMS-free inference.",
   "url": "https://docs.ultralytics.com/models/yolo26/environments/google-cloud-quickstart/",
   "image": "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/gcp-deep-learning-vm-setup.avif",
   "datePublished": "2026-06-04",

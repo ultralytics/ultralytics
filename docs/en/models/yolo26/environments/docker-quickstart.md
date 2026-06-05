@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Run Ultralytics YOLO26 inside a Docker container. Step-by-step guide for CPU and GPU setups, volume mounting, and running end-to-end NMS-free object detection in an isolated environment.
+description: Run Ultralytics YOLO26 in Docker. Setup guide for CPU and GPU containers, volume mounting, and NMS-free object detection in an isolated environment.
 keywords: YOLO26, Docker, Ultralytics, container, GPU, NVIDIA, object detection, machine learning, deep learning, NMS-free, deployment, containerization
 canonical: https://docs.ultralytics.com/models/yolo26/environments/docker-quickstart/
 ---
@@ -10,7 +10,7 @@ canonical: https://docs.ultralytics.com/models/yolo26/environments/docker-quicks
   "@context": "https://schema.org",
   "@type": "TechArticle",
   "headline": "YOLO26 Docker Quickstart",
-  "description": "Run Ultralytics YOLO26 inside a Docker container. Step-by-step guide for CPU and GPU setups, volume mounting, and running end-to-end NMS-free object detection in an isolated environment.",
+  "description": "Run Ultralytics YOLO26 in Docker. Setup guide for CPU and GPU containers, volume mounting, and NMS-free object detection in an isolated environment.",
   "url": "https://docs.ultralytics.com/models/yolo26/environments/docker-quickstart/",
   "image": "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/gcp-running-docker.avif",
   "datePublished": "2026-06-04",

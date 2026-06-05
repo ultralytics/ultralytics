@@ -102,6 +102,11 @@ class AnomalyV2Validator(DetectionValidator):
         self._reset_auroc()
         stats_on = super().__call__(trainer=trainer, model=model)
 
+        # Snapshot mask-on metrics before pass 2 overwrites them
+        metrics_on = self.metrics
+        image_auroc = self._compute_auroc(self._auroc_image_scores, self._auroc_image_labels)
+        pixel_auroc = self._compute_auroc(self._auroc_pixel_scores, self._auroc_pixel_labels)
+
         # Pass 2: mask-off
         self._mask_mode = "off"
         try:
@@ -112,12 +117,19 @@ class AnomalyV2Validator(DetectionValidator):
 
         self._mask_mode = "on"
 
+        # Restore mask-on metrics so results_dict shows mask-on by default
+        self.metrics = metrics_on
+
         if not isinstance(stats_on, dict):
             return stats_on
         merged = dict(stats_on)
+        merged["image_auroc"] = image_auroc
+        merged["pixel_auroc"] = pixel_auroc
         if isinstance(stats_off, dict):
             for k, v in stats_off.items():
                 merged[f"mask_off/{k}"] = v
+            # Stash mask-off stats for external access
+            self._mask_off_stats = dict(stats_off)
         return merged
 
     # ------------------------------------------------------------------

@@ -254,7 +254,7 @@ class ReidValidator(ClassificationValidator):
         q_pids = getattr(self, "_query_pids", None)
         q_camids = getattr(self, "_query_camids", None)
         g_pids = self.metrics.gallery_pids
-        if q_pids is None or not q_paths or not g_paths or g_pids is None:
+        if q_pids is None or q_camids is None or not q_paths or not g_paths or g_pids is None:
             return
 
         # Rank-1 correctness per query (empty rankings count as misses).

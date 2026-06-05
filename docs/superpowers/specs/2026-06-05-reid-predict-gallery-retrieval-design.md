@@ -63,8 +63,11 @@ yolo reid predict model=yolo26l-reid.pt source=queries/ gallery=gallery/ topk=10
 `topk` / `gallery` have no collision with existing args. `reid_cache` is namespaced to avoid
 clashing with the existing `cache` train arg.
 
-All three are added to `ultralytics/cfg/default.yaml` and to `TASK_CUSTOM_KEYS["reid"]` in
-`ultralytics/cfg/__init__.py` so the CLI dict-alignment check accepts them.
+All three are added **only** to `TASK_CUSTOM_KEYS["reid"]` in `ultralytics/cfg/__init__.py` so
+the CLI dict-alignment check accepts them — matching the established pattern for the existing
+reid eval knobs (`reid_reranking`/`reid_tta`/`reid_scales`), which are *not* in `default.yaml`.
+They are read in code via `getattr(self.args, "gallery", None)` / `getattr(self.args, "topk", 5)`
+/ `getattr(self.args, "reid_cache", None)`, so absent args fall back to defaults.
 
 ### Cache validity
 
@@ -170,8 +173,9 @@ source (query img / dir / video)            gallery (folder)        reid_cache (
 - `ultralytics/solutions/reid_visualizer.py` — refactor ranking core into shared engine, add
   batched embedding + cache, drop/opt-out Market PID parsing.
 - `ultralytics/engine/results.py` — add typed `Results.matches` field.
-- `ultralytics/cfg/default.yaml` — add `gallery`, `topk`, `reid_cache`.
-- `ultralytics/cfg/__init__.py` — add the three keys to `TASK_CUSTOM_KEYS["reid"]`.
+- `ultralytics/cfg/__init__.py` — add the three keys to `TASK_CUSTOM_KEYS["reid"]` (no
+  `default.yaml` change, matching existing reid eval knobs).
+- `ultralytics/models/yolo/reid/retrieval.py` — new model-agnostic engine (scan/cache/rank).
 - `ultralytics/utils/plotting.py` — reuse `plot_reid_retrieval` (likely no change; verify
   neutral-color path).
 - Tests under `tests/` — unit + integration as above.

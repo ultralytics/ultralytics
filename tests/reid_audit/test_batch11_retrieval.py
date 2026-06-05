@@ -262,3 +262,43 @@ def test_predictor_no_gallery_is_embeddings_only(monkeypatch):
     results = p.postprocess(preds, img=torch.zeros(1, 3, 8, 8), orig_imgs=[np.zeros((10, 10, 3), dtype=np.uint8)])
     assert results[0].matches is None
     assert results[0].embeddings is not None
+
+
+# ---------- montage save -----------------------------------------------------
+
+
+def test_write_results_saves_montage(monkeypatch, tmp_path):
+    """With a gallery + save=True, write_results writes one montage per query and returns a log line."""
+    from types import SimpleNamespace
+
+    from ultralytics.models.yolo.reid import predict as predict_mod
+    from ultralytics.engine.results import Results
+
+    saved = {}
+
+    def fake_plot(rows, save_path, **kw):
+        Path(save_path).write_bytes(b"montage")
+        saved["rows"] = rows
+        saved["path"] = Path(save_path)
+        return Path(save_path)
+
+    monkeypatch.setattr(predict_mod, "plot_reid_retrieval", fake_plot)
+
+    p = predict_mod.ReidPredictor.__new__(predict_mod.ReidPredictor)
+    p.args = SimpleNamespace(gallery="g/", save=True)
+    p.save_dir = tmp_path
+    p.source_type = SimpleNamespace(stream=False, from_img=False, tensor=False)
+    p.dataset = SimpleNamespace(count=0, mode="image")
+    img = np.zeros((40, 30, 3), dtype=np.uint8)
+    res = Results(img, path="/q/q0.jpg", names={0: "id"}, embeddings=torch.randn(8),
+                  matches=[("/g/a.jpg", 0.93), ("/g/b.jpg", 0.81)])
+    res.speed = {"preprocess": 1.0, "inference": 2.0, "postprocess": 1.0}
+    p.results = [res]
+
+    s = [""]
+    out = p.write_results(0, Path("/q/q0.jpg"), torch.zeros(1, 3, 8, 8), s)
+    assert saved["path"].exists()  # montage written
+    assert "q0" in saved["path"].name
+    assert "a.jpg" in out and "0.93" in out  # ranked log line
+    # query tile + 2 match tiles in the single row
+    assert len(saved["rows"]) == 1 and len(saved["rows"][0]) == 3

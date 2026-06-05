@@ -10,6 +10,7 @@ from ultralytics.engine.results import Results
 from ultralytics.models.yolo.classify.predict import ClassificationPredictor
 from ultralytics.models.yolo.reid import retrieval
 from ultralytics.utils import DEFAULT_CFG, ops
+from ultralytics.utils.plotting import plot_reid_retrieval
 
 
 class ReidPredictor(ClassificationPredictor):
@@ -94,3 +95,28 @@ class ReidPredictor(ClassificationPredictor):
             Results(orig_img, path=img_path, names=self.model.names, embeddings=pred, matches=matches)
             for pred, orig_img, img_path, matches in zip(preds, orig_imgs, self.batch[0], matches_per_query)
         ]
+
+    def write_results(self, i: int, p, im, s: list) -> str:
+        """Log the ranked list and save a query→top-k montage for gallery retrieval.
+
+        For the non-gallery (embeddings-only) path, delegates to ``BasePredictor.write_results``
+        so the default save/log behavior is unchanged.
+        """
+        if not getattr(self.args, "gallery", None):
+            return super().write_results(i, p, im, s)
+
+        from pathlib import Path
+
+        result = self.results[i]
+        result.save_dir = self.save_dir.__str__()
+        prefix = f"{i}: " if (self.source_type.stream or self.source_type.from_img or self.source_type.tensor) else ""
+        string = f"{prefix}{result.verbose()}{result.speed['inference']:.1f}ms"
+
+        if self.args.save and result.matches:
+            p = Path(p)
+            row = [(p, "QUERY", (80, 170, 255))]
+            for rank, (gp, score) in enumerate(result.matches, start=1):
+                row.append((gp, f"#{rank}  sim={score:.4f}", (200, 200, 200)))
+            out = self.save_dir / f"{p.stem}_top{len(result.matches)}.jpg"
+            plot_reid_retrieval([row], out)
+        return string

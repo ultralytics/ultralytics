@@ -187,7 +187,7 @@ model.train(data="coco8.yaml", epochs=10, trainer=WeightedTrainer)
 
 ## Saving the Best Model by Custom Metric
 
-The trainer saves `best.pt` based on fitness, which defaults to `0.9 × mAP@0.5:0.95 + 0.1 × mAP@0.5`. To use a different metric (like `mAP@0.5` or recall), override `validate()` and return your chosen metric as the fitness value. The built-in `save_model()` will then use it automatically:
+The trainer saves `best.pt` based on fitness, which for detection defaults to `mAP@0.5:0.95` (weights `[0.0, 0.0, 0.0, 1.0]` for [P, R, mAP@0.5, mAP@0.5:0.95]). To use a different metric (like `mAP@0.5` or recall), override `validate()` and return your chosen metric as the fitness value. The built-in `save_model()` will then use it automatically:
 
 ```python
 from ultralytics import YOLO

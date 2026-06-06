@@ -166,8 +166,11 @@ def onnx2saved_model(
         "k_tensor = int(k_tensor.squeeze()) if hasattr(k_tensor, 'squeeze') else int(k_tensor)",
     )
     if _patched != _text:  # write only when unpatched; site-packages may be read-only (pre-patched containers)
-        _path.write_text(_patched)
-        importlib.reload(_t)
+        try:
+            _path.write_text(_patched)
+            importlib.reload(_t)
+        except OSError as e:  # read-only install: continue unpatched, only TopK-containing models are affected
+            LOGGER.warning(f"{prefix} unable to apply onnx2tf TopK patch: {e}")
     import onnx2tf  # scoped for after ONNX export for reduced conflict during import
 
     LOGGER.info(f"{prefix} starting TFLite export with onnx2tf {onnx2tf.__version__}...")

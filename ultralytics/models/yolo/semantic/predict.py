@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import torch
+import torch.nn.functional as F
 
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
@@ -57,8 +58,12 @@ class SemanticSegmentationPredictor(BasePredictor):
         results = []
         for i, (pred, orig_img) in enumerate(zip(preds, orig_imgs)):
             img_path = self.batch[0][i] if isinstance(self.batch[0], list) else self.batch[0]
-            # pred: [nc, H, W] logits on letterboxed input. Remove padding, then resize to original image.
-            pred = ops.scale_masks(pred.unsqueeze(0), orig_img.shape[:2])[0]
+            pred = pred.unsqueeze(0).float()
+            # Upsample pred to the model input resolution first so LetterBox padding is an integer in this space
+            if pred.shape[2:] != img.shape[2:]:
+                pred = F.interpolate(pred, img.shape[2:], mode="bilinear")
+            # scale_masks then crops it cleanly without the sub-pixel asymmetry
+            pred = ops.scale_masks(pred, orig_img.shape[:2])[0]
             dtype = self._class_map_dtype(max(pred.shape[0], 2))
             class_map = pred.argmax(0).to(dtype) if pred.shape[0] > 1 else pred.gt(0).squeeze(0).to(dtype)
             results.append(Results(orig_img, path=img_path, names=self.model.names, semantic_mask=class_map))

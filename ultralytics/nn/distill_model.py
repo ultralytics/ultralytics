@@ -72,6 +72,21 @@ class DistillationModel(nn.Module):
             self.teacher_model.model[idx].register_forward_hook(FeatureHook(self._teacher_feats, idx))
             self.student_model.model[idx].register_forward_hook(FeatureHook(self._student_feats, idx))
 
+        self.distill_saliency = getattr(student_model.args, "distill_saliency", "feat_norm")
+        if self.distill_saliency not in {"feat_norm", "enc_score"}:
+            raise ValueError(
+                f"distill_saliency={self.distill_saliency!r} not supported. Choose 'feat_norm' or 'enc_score'."
+            )
+        self._enc_logits = {}
+        if self.distill_saliency == "enc_score":
+            decoder = self.teacher_model.model[-1]
+            if not hasattr(decoder, "enc_score_head"):
+                raise ValueError(
+                    "distill_saliency='enc_score' requires the teacher decoder to expose enc_score_head; "
+                    "the loaded teacher does not (was it built with learnt_init_query=True?)."
+                )
+            decoder.enc_score_head.register_forward_hook(FeatureHook(self._enc_logits, "enc"))
+
         # Dummy forward to capture feature shapes through the hooks.
         imgsz = student_model.args.imgsz
         with torch.no_grad():
@@ -102,6 +117,7 @@ class DistillationModel(nn.Module):
         state = self.__dict__.copy()
         state["_teacher_feats"] = {}
         state["_student_feats"] = {}
+        state["_enc_logits"] = {}
         return state
 
     def __setstate__(self, state):
@@ -109,11 +125,16 @@ class DistillationModel(nn.Module):
         self.__dict__.update(state)
         self._teacher_feats = {}
         self._student_feats = {}
+        self._enc_logits = {}
         for idx in self.feats_idx:
             self.teacher_model.model[idx]._forward_hooks.clear()
             self.student_model.model[idx]._forward_hooks.clear()
             self.teacher_model.model[idx].register_forward_hook(FeatureHook(self._teacher_feats, idx))
             self.student_model.model[idx].register_forward_hook(FeatureHook(self._student_feats, idx))
+        if self.distill_saliency == "enc_score":
+            decoder = self.teacher_model.model[-1]
+            decoder.enc_score_head._forward_hooks.clear()
+            decoder.enc_score_head.register_forward_hook(FeatureHook(self._enc_logits, "enc"))
 
     @staticmethod
     def get_distill_layers(model):
@@ -146,10 +167,11 @@ class DistillationModel(nn.Module):
         return self.student_model.predict(x, *args, **kwargs)
 
     @staticmethod
-    def _spatial_saliency(feat: torch.Tensor) -> torch.Tensor:
-        """Per-pixel teacher feature magnitude as a class-agnostic spatial attention mask.
+    def _feat_norm_saliency(feat: torch.Tensor) -> torch.Tensor:
+        """Channel-wise L2 norm of `feat`, normalized per image to [0, 1].
 
-        Computes the channel-wise L2 norm of `feat` and normalizes to [0, 1] per image.
+        Class-agnostic saliency derived purely from teacher feature magnitudes. Each spatial
+        location is weighted by how strongly the teacher activates there.
 
         Args:
             feat (torch.Tensor): Teacher feature of shape (N, C, H, W).
@@ -161,6 +183,38 @@ class DistillationModel(nn.Module):
         mag = feat.pow(2).mean(dim=1, keepdim=True).sqrt()
         mag = mag / (mag.amax(dim=(2, 3), keepdim=True) + 1e-9)
         return mag.view(n, 1, h * w)
+
+    def _enc_score_saliency(self, teacher_outputs: list) -> tuple:
+        """Teacher pre-topk encoder objectness as class-conditioned saliency, per FPN level.
+
+        Reads the teacher's RTDETRDecoder.enc_score_head output (captured via hook), applies
+        sigmoid + max over the class dimension to collapse to per-spatial-position objectness,
+        and splits the flattened (B, total_HW, 1) tensor back into per-level (B, 1, H*W) chunks
+        using the spatial sizes of the captured FPN features.
+
+        Args:
+            teacher_outputs (list[torch.Tensor]): Per-level teacher features used to derive runtime spatial split sizes
+                (length matches feats_idx).
+
+        Returns:
+            (tuple[torch.Tensor, ...]): Per-level score tensors of shape (N, 1, H*W).
+        """
+        logits = self._enc_logits["enc"]  # (B, total_HW, nc)
+        objectness = logits.sigmoid().max(dim=-1, keepdim=True).values  # (B, total_HW, 1)
+        objectness = objectness.transpose(1, 2)  # (B, 1, total_HW)
+        split_sizes = [t.shape[-2] * t.shape[-1] for t in teacher_outputs]
+        parts = torch.split(objectness, split_sizes, dim=-1)
+        return tuple(parts)
+
+    def _teacher_scores(self, teacher_outputs: list) -> tuple:
+        """Dispatch to the configured saliency source.
+
+        Returns a per-level tuple of score tensors, each of shape (N, 1, H*W), matching the
+        order of `feats_idx`. The selected mode comes from `args.distill_saliency`.
+        """
+        if self.distill_saliency == "enc_score":
+            return self._enc_score_saliency(teacher_outputs)
+        return tuple(self._feat_norm_saliency(t) for t in teacher_outputs)
 
     def loss(self, batch, preds=None):
         """Compute combined detection loss and feature distillation loss.
@@ -182,6 +236,7 @@ class DistillationModel(nn.Module):
 
         self._teacher_feats.clear()
         self._student_feats.clear()
+        self._enc_logits.clear()
 
         with torch.no_grad():
             self.teacher_model(batch["img"])
@@ -189,11 +244,12 @@ class DistillationModel(nn.Module):
 
         regular_loss, regular_loss_detach = self.student_model.loss(batch, preds)
 
+        teacher_outputs = [self._teacher_feats[idx] for idx in self.feats_idx]
+        teacher_scores = self._teacher_scores(teacher_outputs)
         for i, feat_idx in enumerate(self.feats_idx):
-            teacher_feat = self._teacher_feats[feat_idx]
+            teacher_feat = teacher_outputs[i]
             student_feat = self.projector[i](self._student_feats[feat_idx])
-            teacher_score = self._spatial_saliency(teacher_feat)
-            loss_distill += self.loss_sl2(student_feat, teacher_feat, teacher_score) * self.dis
+            loss_distill += self.loss_sl2(student_feat, teacher_feat, teacher_scores[i]) * self.dis
 
         distill_loss_detach = loss_distill.detach()
         return self._concat_losses(regular_loss, loss_distill, regular_loss_detach, distill_loss_detach)

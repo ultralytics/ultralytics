@@ -13,16 +13,16 @@ from .base import BaseBackend
 
 
 class DeepXBackend(BaseBackend):
-    """DeepX NPU inference backend for DeepX hardware accelerators.
+    """DEEPX NPU inference backend for DEEPX hardware accelerators.
 
-    Loads compiled DeepX models (.dxnn files) and runs inference using the DeepX DX-Runtime.
+    Loads compiled DEEPX models (.dxnn files) and runs inference using the DEEPX DX-Runtime.
     """
 
     def load_model(self, weight: str | Path) -> None:
-        """Load a DeepX model from a directory containing a .dxnn file.
+        """Load a DEEPX model from a directory containing a .dxnn file.
 
         Args:
-            weight (str | Path): Path to the DeepX model directory containing the .dxnn binary.
+            weight (str | Path): Path to the DEEPX model directory containing the .dxnn binary.
 
         Raises:
             ImportError: If the ``dx_engine`` Python package is not installed.
@@ -32,11 +32,11 @@ class DeepXBackend(BaseBackend):
             from dx_engine import InferenceEngine
         except ImportError as e:
             raise ImportError(
-                "DeepX inference requires the DeepX DX-Runtime and `dx_engine` Python package. "
+                "DEEPX inference requires the DEEPX DX-Runtime and `dx_engine` Python package. "
                 "See https://docs.ultralytics.com/integrations/deepx/#runtime-installation for installation instructions."
             ) from e
 
-        LOGGER.info(f"Loading {weight} for DeepX inference...")
+        LOGGER.info(f"Loading {weight} for DEEPX inference...")
 
         w = Path(weight)
         found = next(w.rglob("*.dxnn"), None)
@@ -53,9 +53,9 @@ class DeepXBackend(BaseBackend):
             self.apply_metadata(YAML.load(metadata_file))
 
     def forward(self, im: torch.Tensor) -> np.ndarray | list[np.ndarray]:
-        """Run inference on the DeepX NPU.
+        """Run inference on the DEEPX NPU.
 
-        Converts each image from BCHW float [0, 1] to HWC uint8 [0, 255] per the DeepX runtime contract,
+        Converts each image from BCHW float [0, 1] to HWC uint8 [0, 255] per the DEEPX runtime contract,
         runs the engine per image, then stacks outputs along the batch dimension.
 
         Args:

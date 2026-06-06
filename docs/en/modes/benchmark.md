@@ -44,7 +44,7 @@ Once your model is trained and validated, the next logical step is to evaluate i
 ### Key Metrics in Benchmark Mode
 
 - **mAP50-95:** For [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and pose estimation.
-- **accuracy_top5:** For [image classification](https://www.ultralytics.com/glossary/image-classification).
+- **accuracy_top1:** For [image classification](https://www.ultralytics.com/glossary/image-classification).
 - **Inference Time:** Time taken for each image in milliseconds.
 
 ### Supported Export Formats
@@ -161,7 +161,7 @@ Benchmarking your YOLO26 models is essential for several reasons:
 - **Optimization:** Determine which export format offers the best performance for specific use cases.
 - **Cost Efficiency:** Optimize hardware usage based on benchmark results.
 
-Key metrics such as mAP50-95, Top-5 accuracy, and inference time help in making these evaluations. Refer to the [Key Metrics](#key-metrics-in-benchmark-mode) section for more information.
+Key metrics such as mAP50-95, Top-1 accuracy, and inference time help in making these evaluations. Refer to the [Key Metrics](#key-metrics-in-benchmark-mode) section for more information.
 
 ### Which export formats are supported by YOLO26, and what are their advantages?
 

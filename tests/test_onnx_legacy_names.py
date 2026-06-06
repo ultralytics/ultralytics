@@ -6,8 +6,11 @@ import ast
 
 import pytest
 
+
 from tests import SOURCE
 from ultralytics import YOLO
+
+ort = pytest.importorskip("onnxruntime", reason="onnxruntime not installed; skipping ONNX metadata tests")
 
 
 def _save_model_with_names(model: YOLO, names, tmp_path, filename: str) -> str:
@@ -54,6 +57,36 @@ def _assert_names_valid(meta: dict) -> dict:
         f"All 'names' values must be str after export, got: {set(type(v).__name__ for v in names.values())}"
     )
     return names
+
+
+@pytest.mark.parametrize("end2end", [False, True])
+def test_export_onnx_legacy_names_sparse_keys(end2end, isolated_model, tmp_path):
+    """Export must not crash when `names` has sparse/non-contiguous integer keys.
+
+    Args:
+        end2end (bool): Whether to test end-to-end export mode.
+        isolated_model (str): Path to isolated model fixture provided by pytest.
+        tmp_path (Path): Temporary directory path provided by pytest fixture.
+    """
+    model = YOLO(isolated_model)
+    expected_nc = model.model.yaml["nc"]
+
+    sparse_names = {1: "cat", 3: "dog", 5: "elephant", 6: "lion"}
+    corrupt_path = _save_model_with_names(model, sparse_names, tmp_path, "sparse_key_names.pt")
+    corrupt_model = YOLO(corrupt_path)
+
+    file = corrupt_model.export(format="onnx", dynamic=True, imgsz=32, end2end=end2end)
+    meta = ort.InferenceSession(str(file)).get_modelmeta().custom_metadata_map
+    names = _assert_names_valid(meta)
+
+    assert len(names) == expected_nc, (
+        f"Expected {expected_nc} classes (from model.yaml['nc'] fallback after KeyError), got {len(names)}"
+    )
+    assert len(names) != 999, (
+        "Got 999 classes — KeyError fallback resolved to default_class_names() instead of yaml['nc']"
+    )
+
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
 @pytest.mark.parametrize("end2end", [False, True])

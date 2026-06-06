@@ -40,7 +40,7 @@ Object cropping with [Ultralytics YOLO26](https://github.com/ultralytics/ultraly
 
         ```bash
         # Crop the objects
-        yolo solutions crop show=True
+        yolo solutions crop
 
         # Pass a source video
         yolo solutions crop source="path/to/video.mp4"
@@ -61,7 +61,6 @@ Object cropping with [Ultralytics YOLO26](https://github.com/ultralytics/ultraly
 
         # Initialize object cropper
         cropper = solutions.ObjectCropper(
-            show=True,  # display the output
             model="yolo26n.pt",  # model for object cropping, e.g., yolo26x.pt.
             classes=[0, 2],  # crop specific classes such as person and car with the COCO pretrained model.
             # conf=0.5,  # adjust confidence threshold for the objects.

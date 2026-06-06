@@ -1557,7 +1557,7 @@ def torch_safe_load(weight, safe_only=False):
             raise TypeError(
                 emojis(
                     f"ERROR ❌️ {weight} appears to be an Ultralytics YOLOv5 model originally trained "
-                    f"with https://github.com/ultralytics/yolov5.\nThis model is NOT forwards compatible with "
+                    f"with https://github.com/ultralytics/yolov5. This model is NOT forwards compatible with "
                     f"YOLOv8 at https://github.com/ultralytics/ultralytics."
                     f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
                     f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"

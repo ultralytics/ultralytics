@@ -1049,7 +1049,7 @@ class BaseTrainer:
         else:
             raise NotImplementedError(
                 f"Optimizer '{name}' not found in list of available optimizers {optimizers}. "
-                "Request support for addition optimizers at https://github.com/ultralytics/ultralytics."
+                "Request support for additional optimizers at https://github.com/ultralytics/ultralytics."
             )
 
         num_params = [len(g[0]), len(g[1]), len(g[2])]  # number of param groups
@@ -1062,7 +1062,7 @@ class BaseTrainer:
             g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True, "param_group": "muon"}
             import re
 
-            # higher lr for certain parameters in MuSGD when funetuning
+            # higher lr for certain parameters in MuSGD when finetuning
             # proto.semseg is the checkpoint parameter name for YOLO26 semantic auxiliary heads.
             pattern = re.compile(r"(?=.*23)(?=.*cv3)|proto\.semseg|SemanticSegment")
             g_ = []  # new param groups

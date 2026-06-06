@@ -242,7 +242,7 @@ class Detect(nn.Module):
         Returns:
             (torch.Tensor, torch.Tensor, torch.Tensor): Top scores, class indices, and filtered indices.
         """
-        batch_size, anchors, nc = scores.shape  # i.e. shape(16,8400,84)
+        batch_size, anchors, nc = scores.shape  # i.e. shape(16,8400,80)
         # Use max_det directly during export for TensorRT compatibility (requires k to be constant),
         # otherwise use min(max_det, anchors) for safety with small inputs during Python inference
         k = max_det if self.export else min(max_det, anchors)

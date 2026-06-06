@@ -439,10 +439,10 @@ class Exporter:
         export_deepx: Export model to DEEPX format.
 
     Examples:
-        Export a YOLO26 model to ONNX format
+        Export a YOLO26 model to TorchScript format
         >>> from ultralytics.engine.exporter import Exporter
         >>> exporter = Exporter()
-        >>> exporter(model="yolo26n.pt")  # exports to yolo26n.onnx
+        >>> exporter(model="yolo26n.pt")  # exports to yolo26n.torchscript
 
         Export with specific arguments
         >>> args = {"format": "onnx", "dynamic": True, "int8": True, "data": "coco8.yaml"}
@@ -538,13 +538,20 @@ class Exporter:
                 # Disable end2end branch for certain export formats as they does not support topk
                 model.end2end = False
                 LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
-            if fmt == "engine" and self.args.int8:
-                # TensorRT 10.3.0 on JetPack 6 with int8 has known end2end build issues
-                # https://github.com/ultralytics/ultralytics/issues/23841
+            if fmt == "engine":
                 try:
                     import tensorrt as trt
 
-                    if check_version(trt.__version__, "==10.3.0") and is_jetson(jetpack=6):
+                    if check_version(trt.__version__, "<8.5.0"):
+                        # https://github.com/ultralytics/ultralytics/issues/24607
+                        model.end2end = False
+                        LOGGER.warning(
+                            "TensorRT versions earlier than 8.5.0 do not support the Mod operator in end-to-end models, disabling the end2end branch. "
+                            "Please upgrade TensorRT to 8.5.0 or later to enable end2end export."
+                        )
+
+                    if self.args.int8 and check_version(trt.__version__, "==10.3.0") and is_jetson(jetpack=6):
+                        # https://github.com/ultralytics/ultralytics/issues/23841
                         model.end2end = False
                         LOGGER.warning(
                             "TensorRT 10.3.0 on JetPack 6 with int8 has known end2end build issues, disabling end2end branch. "

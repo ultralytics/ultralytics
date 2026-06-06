@@ -18,8 +18,8 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Avoid OpenMP conflict on some sys
 
 
 class VisualAISearch:
-    """A semantic image search system that leverages OpenCLIP for generating high-quality image and text embeddings and
-    FAISS for fast similarity-based retrieval.
+    """A semantic image search system that leverages OpenAI's CLIP for generating high-quality image and text embeddings
+    and FAISS for fast similarity-based retrieval.
 
     This class aligns image and text embeddings in a shared semantic space, enabling users to search large collections
     of images using natural language queries with high accuracy and speed.

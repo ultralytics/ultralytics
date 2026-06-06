@@ -109,7 +109,7 @@ def autobatch(
             and (i == 0 or not results[i - 1] or y[2] > results[i - 1][2])  # first item or increasing memory
         ]
         fit_x, fit_y = zip(*xy) if xy else ([], [])
-        p = np.polyfit(fit_x, fit_y, deg=1)  # first-degree polynomial fit in log space
+        p = np.polyfit(fit_x, fit_y, deg=1)  # first-degree (linear) polynomial fit
         b = int((round(f * fraction) - p[1]) / p[0])  # y intercept (optimal batch size)
         if None in results:  # some sizes failed
             i = results.index(None)  # first fail index

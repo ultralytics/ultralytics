@@ -53,10 +53,10 @@ yolo export model=yolov8s.pt imgsz=640,480 format=onnx opset=12 # Example: 640x4
 
 **Exporting YOLOv5 Models:**
 
-Use the `export.py` script from the YOLOv5 repository structure (included within the cloned `ultralytics` repo).
+Use the `export.py` script from the separate [YOLOv5 repository](https://github.com/ultralytics/yolov5).
 
 ```bash
-# Assuming you are in the 'ultralytics' base directory after cloning
+# Run from the root of the cloned yolov5 repository
 python export.py --weights yolov5s.pt --imgsz 640 480 --include onnx --opset 12 # Example: 640x480 resolution
 ```
 

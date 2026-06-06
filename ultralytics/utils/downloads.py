@@ -539,7 +539,7 @@ def download(
         exist_ok (bool, optional): Whether to overwrite existing contents during unzipping.
 
     Examples:
-        >>> download("https://ultralytics.com/assets/example.zip", dir="path/to/dir", unzip=True)
+        >>> download("https://github.com/ultralytics/assets/releases/download/v0.0.0/bus.jpg", dir="path/to/dir")
     """
     dir = Path(dir)
     dir.mkdir(parents=True, exist_ok=True)  # make directory

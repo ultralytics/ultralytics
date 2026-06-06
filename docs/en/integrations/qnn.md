@@ -74,7 +74,7 @@ Pass the target architecture via `name` (e.g. `name="73"`). Valid values:
 
 !!! note "Platform support"
 
-    QNN export uses the `onnxruntime-qnn` package. Stable wheels are published for **Windows (x64 and ARM64)** and **Linux ARM64 (aarch64)**; a **Linux x86-64** wheel is available on the [ONNX Runtime nightly feed](https://onnxruntime.ai/docs/install/#inference-install-table-for-all-languages). There is no macOS wheel — on macOS build ONNX Runtime from source with `--use_qnn`, or run the export on a supported platform. QNN context-binary generation works on an x64 host (no Snapdragon device required for the export step).
+    QNN export uses the `onnxruntime-qnn` package. Prebuilt wheels are published for **Windows (x64 and ARM64)** and **Linux ARM64 (aarch64)**; on **Linux x86-64** build ONNX Runtime from source with `--use_qnn` (no prebuilt wheel is published, and macOS is not a supported QNN host). QNN context-binary generation runs on an x64 host — Windows x64 or Linux x86-64 — and does not require a Snapdragon device for the export step.
 
 ### Installation
 
@@ -214,7 +214,7 @@ Because the QNN context binary is precompiled, the session loads quickly without
 ## Recommended Workflow
 
 1. **Train** your model using Ultralytics [Train Mode](../modes/train.md)
-2. **Export** to QNN format using `model.export(format="qnn")` on a supported platform (Windows or Linux ARM64)
+2. **Export** to QNN format using `model.export(format="qnn")` on a supported platform (Windows x64 or ARM64, or Linux ARM64)
 3. **Deploy** the exported `_qnn_model/` directory to your Snapdragon device
 4. **Run** inference with ONNX Runtime and the QNN Execution Provider, selecting the HTP, GPU, or CPU backend
 
@@ -269,7 +269,7 @@ No. QNN export runs entirely on your local machine using the `onnxruntime-qnn` p
 
 ### Which platforms can I export on?
 
-`onnxruntime-qnn` provides stable wheels for **Windows (x64 and ARM64)** and **Linux ARM64 (aarch64)**, plus a **Linux x86-64** wheel on the ONNX Runtime nightly feed. macOS has no wheel — build ONNX Runtime from source with `--use_qnn` or export on a supported platform. Context-binary generation runs on an x64 host and does not require a physical Snapdragon device.
+`onnxruntime-qnn` provides prebuilt wheels for **Windows (x64 and ARM64)** and **Linux ARM64 (aarch64)**; on **Linux x86-64** build ONNX Runtime from source with `--use_qnn` (no prebuilt wheel is published, and macOS is not a supported QNN host). Context-binary generation runs on an x64 host — Windows x64 or Linux x86-64 — and does not require a physical Snapdragon device.
 
 ### How do I run YOLO on a Qualcomm Snapdragon NPU?
 

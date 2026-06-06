@@ -276,7 +276,7 @@ def window_unpartition(windows: torch.Tensor, window_size: int, pad_hw: tuple[in
         >>> hw = (15, 14)  # Original height and width
         >>> x = window_unpartition(windows, window_size=8, pad_hw=pad_hw, hw=hw)
         >>> print(x.shape)
-        torch.Size([1, 15, 14, 64])
+        torch.Size([8, 15, 14, 64])
     """
     Hp, Wp = pad_hw
     H, W = hw

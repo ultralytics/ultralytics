@@ -128,15 +128,15 @@ Contributing a new dataset involves several steps to ensure that it aligns well 
 3. **Export Annotations**: Convert these annotations into the YOLO `*.txt` file format which Ultralytics supports.
 4. **Organize Dataset**: Arrange your dataset into the correct folder structure. You should have `images/` and `labels/` top-level directories, and within each, a `train/` and `val/` subdirectory.
 
-    ```
-    dataset/
-    ├── images/
-    │   ├── train/
-    │   └── val/
-    └── labels/
-        ├── train/
-        └── val/
-    ```
+   ```
+   dataset/
+   ├── images/
+   │   ├── train/
+   │   └── val/
+   └── labels/
+       ├── train/
+       └── val/
+   ```
 
 5. **Create a `data.yaml` File**: In your dataset's root directory, create a `data.yaml` file that describes the dataset, classes, and other necessary information.
 6. **Optimize Images (Optional)**: If you want to reduce the size of the dataset for more efficient processing, you can optimize the images using the code below. This is not required, but recommended for smaller dataset sizes and faster download speeds.

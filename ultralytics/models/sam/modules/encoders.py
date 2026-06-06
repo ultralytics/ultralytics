@@ -351,9 +351,9 @@ class MemoryEncoder(nn.Module):
         >>> import torch
         >>> encoder = MemoryEncoder(out_dim=256, in_dim=256)
         >>> pix_feat = torch.randn(1, 256, 64, 64)
-        >>> masks = torch.randn(1, 1, 64, 64)
-        >>> encoded_feat, pos = encoder(pix_feat, masks)
-        >>> print(encoded_feat.shape, pos.shape)
+        >>> masks = torch.randn(1, 1, 1024, 1024)
+        >>> out = encoder(pix_feat, masks)
+        >>> print(out["vision_features"].shape, out["vision_pos_enc"][0].shape)
         torch.Size([1, 256, 64, 64]) torch.Size([1, 64, 64, 64])
     """
 

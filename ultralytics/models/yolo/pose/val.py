@@ -34,6 +34,7 @@ class PoseValidator(DetectionValidator):
             dimensions.
         _process_batch: Return correct prediction matrix by computing Intersection over Union (IoU) between detections
             and ground truth.
+        gather_stats: Gather stats from all GPUs.
         scale_preds: Scale predictions to the original image size.
         save_one_txt: Save YOLO pose detections to a text file in normalized coordinates.
         pred_to_json: Convert YOLO predictions to COCO JSON format.

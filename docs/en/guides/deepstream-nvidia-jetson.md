@@ -36,10 +36,10 @@ Before you start to follow this guide:
 
 - Visit our documentation, [Quick Start Guide: NVIDIA Jetson with Ultralytics YOLO26](nvidia-jetson.md) to set up your NVIDIA Jetson device with Ultralytics YOLO26
 - Install [DeepStream SDK](https://developer.nvidia.com/deepstream-getting-started) according to the JetPack version
-    - For JetPack 4.6.4, install [DeepStream 6.0.1](https://archive.docs.nvidia.com/metropolis/deepstream/6.0.1/dev-guide/text/DS_Quickstart.html)
-    - For JetPack 5.1.3, install [DeepStream 6.3](https://archive.docs.nvidia.com/metropolis/deepstream/6.3/dev-guide/text/DS_Quickstart.html)
-    - For JetPack 6.1, install [DeepStream 7.1](https://docs.nvidia.com/metropolis/deepstream/7.1/text/DS_Overview.html)
-    - For JetPack 7.1, install [DeepStream 9.0](https://docs.nvidia.com/metropolis/deepstream/9.0/text/DS_Overview.html)
+  - For JetPack 4.6.4, install [DeepStream 6.0.1](https://archive.docs.nvidia.com/metropolis/deepstream/6.0.1/dev-guide/text/DS_Quickstart.html)
+  - For JetPack 5.1.3, install [DeepStream 6.3](https://archive.docs.nvidia.com/metropolis/deepstream/6.3/dev-guide/text/DS_Quickstart.html)
+  - For JetPack 6.1, install [DeepStream 7.1](https://docs.nvidia.com/metropolis/deepstream/7.1/text/DS_Overview.html)
+  - For JetPack 7.1, install [DeepStream 9.0](https://docs.nvidia.com/metropolis/deepstream/9.0/text/DS_Overview.html)
 
 !!! tip
 
@@ -314,24 +314,24 @@ To set up multiple streams under a single DeepStream application, make the follo
 
 1. Change the rows and columns to build a grid display according to the number of streams you want to have. For example, for 4 streams, we can add 2 rows and 2 columns.
 
-    ```bash
-    [tiled-display]
-    rows=2
-    columns=2
-    ```
+   ```bash
+   [tiled-display]
+   rows=2
+   columns=2
+   ```
 
 2. Set `num-sources=4` and add the `uri` entries for all four streams.
 
-    ```bash
-    [source0]
-    enable=1
-    type=3
-    uri=path/to/video1.jpg
-    uri=path/to/video2.jpg
-    uri=path/to/video3.jpg
-    uri=path/to/video4.jpg
-    num-sources=4
-    ```
+   ```bash
+   [source0]
+   enable=1
+   type=3
+   uri=path/to/video1.jpg
+   uri=path/to/video2.jpg
+   uri=path/to/video3.jpg
+   uri=path/to/video4.jpg
+   num-sources=4
+   ```
 
 ### Run Inference
 

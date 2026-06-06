@@ -19,6 +19,9 @@ import torch.nn.functional as F
 
 from ultralytics.nn.modules import LayerNorm2d
 from ultralytics.utils.instance import to_2tuple
+from ultralytics.utils.torch_utils import TORCH_1_11
+
+CKPT_KWARGS = {"use_reentrant": False} if TORCH_1_11 else {}  # use_reentrant added in torch 1.11, required in 2.9
 
 
 class Conv2d_BN(torch.nn.Sequential):
@@ -330,7 +333,7 @@ class ConvLayer(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Process input through convolutional layers, applying MBConv blocks and optional downsampling."""
         for blk in self.blocks:
-            x = torch.utils.checkpoint.checkpoint(blk, x) if self.use_checkpoint else blk(x)  # checkpoint is slow
+            x = torch.utils.checkpoint.checkpoint(blk, x, **CKPT_KWARGS) if self.use_checkpoint else blk(x)
         return x if self.downsample is None else self.downsample(x)
 
 
@@ -496,7 +499,8 @@ class Attention(torch.nn.Module):
         q = q.permute(0, 2, 1, 3)
         k = k.permute(0, 2, 1, 3)
         v = v.permute(0, 2, 1, 3)
-        self.ab = self.ab.to(self.attention_biases.device)
+        if not self.training:
+            self.ab = self.ab.to(self.attention_biases.device)
 
         attn = (q @ k.transpose(-2, -1)) * self.scale + (
             self.attention_biases[:, self.attention_bias_idxs] if self.training else self.ab
@@ -742,7 +746,7 @@ class BasicLayer(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Process input through TinyViT blocks and optional downsampling."""
         for blk in self.blocks:
-            x = torch.utils.checkpoint.checkpoint(blk, x) if self.use_checkpoint else blk(x)  # checkpoint is slow
+            x = torch.utils.checkpoint.checkpoint(blk, x, **CKPT_KWARGS) if self.use_checkpoint else blk(x)
         return x if self.downsample is None else self.downsample(x)
 
     def extra_repr(self) -> str:
@@ -771,11 +775,11 @@ class TinyViT(nn.Module):
         neck (nn.Sequential): Neck module for feature refinement.
 
     Examples:
-        >>> model = TinyViT(img_size=224, num_classes=1000)
+        >>> model = TinyViT(img_size=224, embed_dims=(64, 128, 160, 320), num_heads=(2, 4, 5, 10))
         >>> x = torch.randn(1, 3, 224, 224)
         >>> features = model.forward_features(x)
         >>> print(features.shape)
-        torch.Size([1, 256, 56, 56])
+        torch.Size([1, 256, 14, 14])
     """
 
     def __init__(

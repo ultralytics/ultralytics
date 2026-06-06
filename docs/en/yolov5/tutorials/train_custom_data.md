@@ -72,13 +72,13 @@ test: # Optional path to test images
 
 # Classes (example using 80 COCO classes)
 names:
-    0: person
-    1: bicycle
-    2: car
-    # ... (remaining COCO classes)
-    77: teddy bear
-    78: hair drier
-    79: toothbrush
+  0: person
+  1: bicycle
+  2: car
+  # ... (remaining COCO classes)
+  77: teddy bear
+  78: hair drier
+  79: toothbrush
 ```
 
 ### 1.2 Leverage Models for Automated Labeling
@@ -239,15 +239,15 @@ Upon successful completion of training, the best performing model checkpoint (`b
 Ultralytics provides ready-to-use environments equipped with essential dependencies like [CUDA](https://developer.nvidia.com/cuda), [cuDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), facilitating a smooth start.
 
 - **Free GPU Notebooks**:
-    - <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a>
-    - <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
-    - <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
+  - <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a>
+  - <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
+  - <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Cloud Platforms**:
-    - **Google Cloud**: [GCP Quickstart Guide](../environments/google_cloud_quickstart_tutorial.md)
-    - **Amazon AWS**: [AWS Quickstart Guide](../environments/aws_quickstart_tutorial.md)
-    - **Microsoft Azure**: [AzureML Quickstart Guide](https://docs.ultralytics.com/guides/azureml-quickstart)
+  - **Google Cloud**: [GCP Quickstart Guide](../environments/google_cloud_quickstart_tutorial.md)
+  - **Amazon AWS**: [AWS Quickstart Guide](../environments/aws_quickstart_tutorial.md)
+  - **Microsoft Azure**: [AzureML Quickstart Guide](https://docs.ultralytics.com/guides/azureml-quickstart)
 - **Local Setup**:
-    - **Docker**: [Docker Quickstart Guide](https://docs.ultralytics.com/guides/docker-quickstart) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
+  - **Docker**: [Docker Quickstart Guide](https://docs.ultralytics.com/guides/docker-quickstart) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
 
 ## Project Status
 

@@ -39,28 +39,28 @@ Installation errors can arise due to various reasons, such as incompatible versi
 Additionally, here are some common installation issues users have encountered, along with their respective solutions:
 
 - Import Errors or Dependency Issues - If you're getting errors during the import of YOLO26, or you're having issues related to dependencies, consider the following troubleshooting steps:
-    - **Fresh Installation**: Sometimes, starting with a fresh installation can resolve unexpected issues. Especially with libraries like Ultralytics, where updates might introduce changes to the file tree structure or functionalities.
+  - **Fresh Installation**: Sometimes, starting with a fresh installation can resolve unexpected issues. Especially with libraries like Ultralytics, where updates might introduce changes to the file tree structure or functionalities.
 
-    - **Update Regularly**: Ensure you're using the latest version of the library. Older versions might not be compatible with recent updates, leading to potential conflicts or issues.
+  - **Update Regularly**: Ensure you're using the latest version of the library. Older versions might not be compatible with recent updates, leading to potential conflicts or issues.
 
-    - **Check Dependencies**: Verify that all required dependencies are correctly installed and are of the compatible versions.
+  - **Check Dependencies**: Verify that all required dependencies are correctly installed and are of the compatible versions.
 
-    - **Review Changes**: If you initially cloned or installed an older version, be aware that significant updates might affect the library's structure or functionalities. Always refer to the official documentation or changelogs to understand any major changes.
+  - **Review Changes**: If you initially cloned or installed an older version, be aware that significant updates might affect the library's structure or functionalities. Always refer to the official documentation or changelogs to understand any major changes.
 
-    - Remember, keeping your libraries and dependencies up-to-date is crucial for a smooth and error-free experience.
+  - Remember, keeping your libraries and dependencies up-to-date is crucial for a smooth and error-free experience.
 
 - Running YOLO26 on GPU - If you're having trouble running YOLO26 on GPU, consider the following troubleshooting steps:
-    - **Verify CUDA Compatibility and Installation**: Ensure your GPU is CUDA compatible and that CUDA is correctly installed. Use the `nvidia-smi` command to check the status of your NVIDIA GPU and CUDA version.
+  - **Verify CUDA Compatibility and Installation**: Ensure your GPU is CUDA compatible and that CUDA is correctly installed. Use the `nvidia-smi` command to check the status of your NVIDIA GPU and CUDA version.
 
-    - **Check PyTorch and CUDA Integration**: Ensure PyTorch can utilize CUDA by running `import torch; print(torch.cuda.is_available())` in a Python terminal. If it returns 'True', PyTorch is set up to use CUDA.
+  - **Check PyTorch and CUDA Integration**: Ensure PyTorch can utilize CUDA by running `import torch; print(torch.cuda.is_available())` in a Python terminal. If it returns 'True', PyTorch is set up to use CUDA.
 
-    - **Check GPU compatibility**: Support for GPU architectures earlier than Turing and compute capability (SM) < 7.5 was abandoned since cuDNN 9.11.0. So if you have an older GPU - like 1080Ti - you may have to use a version of PyTorch built against an older version of CUDA/cuDNN. You can check this by running `import torch; cap = torch.cuda.get_device_capability(0) if torch.cuda.is_available() else (0, 0); cudnn = torch.backends.cudnn.version() or 0; ok = "not compatible" if cudnn >= 91100 and (cap[0] < 7 or (cap[0] == 7 and cap[1] < 5)) else "should be ok"; print(f"Compute capability: SM {cap[0]}.{cap[1]}, cuDNN: {cudnn} => {ok}")`
+  - **Check GPU compatibility**: Support for GPU architectures earlier than Turing and compute capability (SM) < 7.5 was abandoned since cuDNN 9.11.0. So if you have an older GPU - like 1080Ti - you may have to use a version of PyTorch built against an older version of CUDA/cuDNN. You can check this by running `import torch; cap = torch.cuda.get_device_capability(0) if torch.cuda.is_available() else (0, 0); cudnn = torch.backends.cudnn.version() or 0; ok = "not compatible" if cudnn >= 91100 and (cap[0] < 7 or (cap[0] == 7 and cap[1] < 5)) else "should be ok"; print(f"Compute capability: SM {cap[0]}.{cap[1]}, cuDNN: {cudnn} => {ok}")`
 
-    - **Environment Activation**: Ensure you're in the correct environment where all necessary packages are installed.
+  - **Environment Activation**: Ensure you're in the correct environment where all necessary packages are installed.
 
-    - **Update Your Packages**: Outdated packages might not be compatible with your GPU. Keep them updated.
+  - **Update Your Packages**: Outdated packages might not be compatible with your GPU. Keep them updated.
 
-    - **Program Configuration**: Check if the program or code specifies GPU usage. In YOLO26, this might be in the settings or configuration.
+  - **Program Configuration**: Check if the program or code specifies GPU usage. In YOLO26, this might be in the settings or configuration.
 
 ### Model Training Issues
 
@@ -75,9 +75,9 @@ This section will address common issues faced while training and their respectiv
 - Confirm that the path to your `.yaml` configuration file is correct.
 - Make sure you pass the path to your `.yaml` file as the `data` argument when calling `model.train()`, as shown below:
 
-    ```python
-    model.train(data="/path/to/your/data.yaml", batch=4)
-    ```
+  ```python
+  model.train(data="/path/to/your/data.yaml", batch=4)
+  ```
 
 #### Accelerating Training with Multiple GPUs
 
@@ -90,10 +90,10 @@ This section will address common issues faced while training and their respectiv
 - Increase the batch size accordingly to fully utilize the multiple GPUs without exceeding memory limits.
 - Modify your training command to utilize multiple GPUs:
 
-    ```python
-    # Adjust the batch size and other settings as needed to optimize training speed
-    model.train(data="/path/to/your/data.yaml", batch=32, device=[0, 1, 2, 3])
-    ```
+  ```python
+  # Adjust the batch size and other settings as needed to optimize training speed
+  model.train(data="/path/to/your/data.yaml", batch=32, device=[0, 1, 2, 3])
+  ```
 
 #### Continuous Monitoring Parameters
 
@@ -174,13 +174,13 @@ This section will address common issues faced during model prediction.
 
 - Coordinate Format: YOLO26 provides bounding box coordinates in absolute pixel values. To convert these to relative coordinates (ranging from 0 to 1), you need to divide by the image dimensions. For example, let's say your image size is 640x640. Then you would do the following:
 
-    ```python
-    # Convert absolute coordinates to relative coordinates
-    x1 = x1 / 640  # Divide x-coordinates by image width
-    x2 = x2 / 640
-    y1 = y1 / 640  # Divide y-coordinates by image height
-    y2 = y2 / 640
-    ```
+  ```python
+  # Convert absolute coordinates to relative coordinates
+  x1 = x1 / 640  # Divide x-coordinates by image width
+  x2 = x2 / 640
+  y1 = y1 / 640  # Divide y-coordinates by image height
+  y2 = y2 / 640
+  ```
 
 - File Name: To obtain the file name of the image you're predicting on, access the image file path directly from the result object within your prediction loop.
 

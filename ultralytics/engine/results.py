@@ -331,7 +331,7 @@ class Results(SimpleClass, DataExportMixin):
             masks (torch.Tensor | None): A tensor of shape (N, H, W) containing segmentation masks.
             probs (torch.Tensor | None): A tensor of shape (num_classes,) containing class probabilities.
             obb (torch.Tensor | None): A tensor of shape (N, 7) or (N, 8) containing oriented bounding box coordinates.
-            keypoints (torch.Tensor | None): A tensor of shape (N, K, 3) containing keypoints, were K=17 for persons.
+            keypoints (torch.Tensor | None): A tensor of shape (N, K, 3) containing keypoints, where K=17 for persons.
             semantic_mask (torch.Tensor | None): A tensor of shape (H, W) containing class IDs for semantic
                 segmentation.
 
@@ -507,7 +507,7 @@ class Results(SimpleClass, DataExportMixin):
         Examples:
             >>> results = model("image.jpg")
             >>> for result in results:
-            ...     im = result.plot()
+            ...     im = result.plot(pil=True)
             ...     im.show()
         """
         assert color_mode in {"instance", "class"}, f"Expected color_mode='instance' or 'class', not {color_mode}."
@@ -1505,7 +1505,7 @@ class OBB(BaseTensor):
                 bounding box. Returns None if tracking IDs are not available.
 
         Examples:
-            >>> results = model("image.jpg", tracker=True)  # Run inference with tracking
+            >>> results = model.track("path/to/video.mp4")  # Run inference with tracking
             >>> for result in results:
             ...     if result.obb is not None:
             ...         track_ids = result.obb.id

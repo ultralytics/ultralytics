@@ -896,7 +896,7 @@ Non-essential background services (Bluetooth, connectivity managers, unused hard
 systemctl list-units --type=service --state=running
 
 # Disable a service
-sudo systemctl disable <service-name>
+sudo systemctl disable SERVICE_NAME
 ```
 
 ### 3. Profile Memory Usage

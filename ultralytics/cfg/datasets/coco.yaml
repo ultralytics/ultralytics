@@ -12,7 +12,7 @@
 path: coco # dataset root dir
 train: train2017.txt # train images (relative to 'path') 118287 images
 val: val2017.txt # val images (relative to 'path') 5000 images
-test: test-dev2017.txt # 20288 of 40670 images, submit to https://competitions.codalab.org/competitions/20794
+test: test-dev2017.txt # 20288 of 40670 images, submit via https://cocodataset.org/#detection-eval
 
 # Classes
 names:

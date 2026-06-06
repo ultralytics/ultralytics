@@ -8,7 +8,7 @@ import pytest
 from PIL import Image
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA
-from ultralytics.utils import ARM64, ASSETS, IS_RASPBERRYPI, LINUX, WEIGHTS_DIR, checks
+from ultralytics.utils import ARM64, ASSETS, DATASETS_DIR, IS_RASPBERRYPI, LINUX, WEIGHTS_DIR, checks
 from ultralytics.utils.torch_utils import TORCH_1_11
 
 
@@ -23,6 +23,7 @@ def test_special_modes() -> None:
     run("yolo checks")
     run("yolo version")
     run("yolo settings reset")
+    run(f"yolo settings weights_dir={WEIGHTS_DIR} datasets_dir={DATASETS_DIR}")
     run("yolo cfg")
 
 

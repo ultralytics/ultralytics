@@ -7,7 +7,7 @@ publication dates, arXiv links, GitHub repositories, documentation URLs, and per
 When executed as a script, it serializes this metadata to a JSON file named "model_data.json".
 
 Examples:
-    >>> python model_metadata.py
+    >>> python model_data.py
 """
 
 # Dictionary containing metadata for various models

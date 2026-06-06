@@ -333,7 +333,7 @@ class ConfusionMatrix(DataExportMixin):
     """A class for calculating and updating a confusion matrix for object detection and classification tasks.
 
     Attributes:
-        task (str): The type of task, either 'detect' or 'classify'.
+        task (str): The type of task, one of 'detect', 'classify', 'semantic', or 'obb'.
         matrix (np.ndarray): The confusion matrix, with dimensions depending on the task.
         nc (int): The number of classes.
         names (dict[int, str]): The names of the classes, used as labels on the plot.
@@ -345,7 +345,7 @@ class ConfusionMatrix(DataExportMixin):
 
         Args:
             names (dict[int, str], optional): Names of classes, used as labels on the plot.
-            task (str, optional): Type of task, either 'detect' or 'classify'.
+            task (str, optional): Type of task, one of 'detect', 'classify', 'semantic', or 'obb'.
             save_matches (bool, optional): Save the indices of GTs, TPs, FPs, FNs for visualization.
         """
         self.task = task

@@ -149,9 +149,9 @@ We express our gratitude to the creators of the Package Segmentation dataset for
 ### What are the components of the Package Segmentation Dataset, and how is it structured?
 
 - The dataset is structured into three main components:
-  - **Training set**: Contains 1920 images with annotations.
-  - **Testing set**: Comprises 188 images with corresponding annotations.
-  - **Validation set**: Includes 89 images with annotations.
+    - **Training set**: Contains 1920 images with annotations.
+    - **Testing set**: Comprises 188 images with corresponding annotations.
+    - **Validation set**: Includes 89 images with annotations.
 - This structure ensures a balanced dataset for thorough model training, validation, and testing, following best practices outlined in [model evaluation guides](https://docs.ultralytics.com/guides/model-evaluation-insights).
 
 ### Why should I use Ultralytics YOLO26 with the Package Segmentation Dataset?

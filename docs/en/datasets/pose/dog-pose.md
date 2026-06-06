@@ -33,11 +33,11 @@ This dataset is intended for use with [Ultralytics Platform](https://platform.ul
 - **Keypoints**: 24 per dog with `(x, y, visibility)` triplets.
 - **Layout**:
 
-  ```
-  datasets/dog-pose/
-  ├── images/{train,val}
-  └── labels/{train,val}
-  ```
+    ```
+    datasets/dog-pose/
+    ├── images/{train,val}
+    └── labels/{train,val}
+    ```
 
 ## Dataset YAML
 

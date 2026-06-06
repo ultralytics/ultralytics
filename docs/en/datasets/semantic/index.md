@@ -21,7 +21,7 @@ Semantic segmentation datasets use one image file and one mask file per sample. 
 - Pixel values `0`, `1`, `2`, ... represent class IDs from the dataset `names` mapping.
 - Pixel value `255` is treated as the ignore label and is excluded from loss and metric computation.
 - Mask files should use the same stem as their matching image file, for example `frankfurt_000000_000294.png`.
-- Supported mask extensions are `.png`, `.PNG`, `.bmp`, and `.tif`.
+- Masks are resolved as `.png` by default; if missing, other supported image extensions are also accepted. Use lossless formats such as `.png` or `.tiff`, since lossy compression (e.g. `.jpg`) corrupts the class ID pixel values.
 
 The default layout keeps images and masks in parallel folders. The `masks_dir` value from the dataset YAML replaces the `images` path component to find masks.
 

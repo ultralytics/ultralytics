@@ -10,7 +10,7 @@ keywords: ClearML, YOLOv5, machine learning, experiment tracking, data versionin
 
 ## About ClearML
 
-[ClearML](https://clear.ml/) is an [open-source](https://github.com/clearml/clearml) MLOps platform built to streamline machine learning workflows and save engineering time.
+[ClearML](https://www.clear.ml/) is an [open-source](https://github.com/clearml/clearml) MLOps platform built to streamline machine learning workflows and save engineering time.
 
 - 🔨 Track every YOLOv5 training run in the **experiment manager**.
 - 🔧 Version and access your custom [training data](https://www.ultralytics.com/glossary/training-data) with the integrated ClearML **data versioning tool**.
@@ -26,8 +26,8 @@ Use as many or as few of these tools as you need — start with the experiment m
 
 ClearML needs to communicate with a server to track your experiments and data. You have two options:
 
-- Sign up for the free [ClearML Hosted Service](https://clear.ml/), or
-- Deploy your own [ClearML server](https://clear.ml/docs/latest/docs/deploying_clearml/clearml_server) — it is open-source, so it remains a viable option even for sensitive data.
+- Sign up for the free [ClearML Hosted Service](https://www.clear.ml/), or
+- Deploy your own [ClearML server](https://docs.clear.ml/docs/latest/docs/deploying_clearml/clearml_server) — it is open-source, so it remains a viable option even for sensitive data.
 
 Then install the `clearml` Python package and connect the SDK to your server:
 
@@ -167,10 +167,10 @@ Switch `task.execute_locally()` to `task.execute()` to push the job to a ClearML
 
 ## 🤯 Remote Execution (Advanced)
 
-Running HPO locally is convenient, but you'll often want experiments on more powerful hardware — an on-prem GPU machine or a cloud instance. That's the role of the [ClearML Agent](https://clear.ml/docs/latest/docs/clearml_agent):
+Running HPO locally is convenient, but you'll often want experiments on more powerful hardware — an on-prem GPU machine or a cloud instance. That's the role of the [ClearML Agent](https://docs.clear.ml/docs/latest/docs/clearml_agent):
 
 - [YouTube overview](https://youtu.be/MX3BrXnaULs)
-- [Documentation](https://clear.ml/docs/latest/docs/clearml_agent)
+- [Documentation](https://docs.clear.ml/docs/latest/docs/clearml_agent)
 
 Each tracked experiment contains everything needed to reproduce it on another machine (installed packages, uncommitted changes, and configuration). A ClearML agent listens to a queue, picks up incoming tasks, recreates the environment, runs the job, and streams scalars and plots back to the experiment manager.
 
@@ -211,7 +211,7 @@ After this change, running the training script executes up to that line, package
 
 ### Autoscaling Workers
 
-ClearML ships with [autoscalers](https://clear.ml/docs/latest/docs/guides/services/aws_autoscaler) that spin up remote machines in AWS, GCP, or Azure when a queue has pending experiments, convert them into ClearML agents, and shut them down when work is finished — so you only pay for compute that is actually running.
+ClearML ships with [autoscalers](https://docs.clear.ml/docs/latest/docs/guides/services/aws_autoscaler) that spin up remote machines in AWS, GCP, or Azure when a queue has pending experiments, convert them into ClearML agents, and shut them down when work is finished — so you only pay for compute that is actually running.
 
 Watch the getting-started video below:
 

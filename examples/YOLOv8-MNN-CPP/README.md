@@ -16,7 +16,7 @@ To ensure smooth execution, please make sure you have the following dependencies
 | Dependency                                        | Version  | Description                                                                      |
 | :------------------------------------------------ | :------- | :------------------------------------------------------------------------------- |
 | [MNN](https://mnn-docs.readthedocs.io/en/latest/) | >=2.0.0  | The core inference engine from Alibaba.                                          |
-| [C++](https://en.cppreference.com/w/)             | >=14     | A modern C++ compiler supporting C++14 features.                                 |
+| [C++](https://en.cppreference.com/w/)             | >=11     | A modern C++ compiler supporting C++11 features.                                 |
 | [CMake](https://cmake.org/documentation/)         | >=3.12.0 | Cross-platform build system generator required for building MNN and the example. |
 | [OpenCV](https://opencv.org/)                     | Optional | Used for image loading and preprocessing within the example (built with MNN).    |
 

@@ -1455,7 +1455,7 @@ class RandomHSV(BaseTransform):
             >>> augmented_img = labels["img"]
         """
         img = labels["img"]
-        if img.shape[-1] != 3:  # only apply to RGB images
+        if img.shape[-1] != 3:  # only apply to 3-channel (BGR) images
             return labels
         if self.hgain or self.sgain or self.vgain:
             dtype = img.dtype  # uint8
@@ -2095,7 +2095,7 @@ class Albumentations(BaseTransform):
                 "Transpose",
                 "VerticalFlip",
                 "XYMasking",
-            }  # from https://albumentations.ai/docs/getting_started/transforms_and_targets/#spatial-level-transforms
+            }  # from https://albumentations.ai/docs/2-core-concepts/targets/
 
             # Transforms, use custom transforms if provided, otherwise use defaults
             T = (

@@ -357,7 +357,7 @@ Step 5: Run YOLO11 object detection, pose estimation, classification and segment
                 return pp_od_yolo_ultralytics(output_tensors)
 
 
-        device = AiCamera(frame_rate=16)  # Optimal frame rate for maximum DPS of the YOLO model running on the AI Camera
+        device = AiCamera(frame_rate=16)  # Optimal frame rate for maximum FPS of the YOLO model running on the AI Camera
         model = YOLO()
         device.deploy(model)
 
@@ -398,7 +398,7 @@ Step 5: Run YOLO11 object detection, pose estimation, classification and segment
                 return pp_yolo_pose_ultralytics(output_tensors)
 
 
-        device = AiCamera(frame_rate=17)  # Optimal frame rate for maximum DPS of the YOLO-pose model running on the AI Camera
+        device = AiCamera(frame_rate=17)  # Optimal frame rate for maximum FPS of the YOLO-pose model running on the AI Camera
         model = YOLOPose()
         device.deploy(model)
 
@@ -491,7 +491,7 @@ Step 5: Run YOLO11 object detection, pose estimation, classification and segment
                 return pp_yolo_segment_ultralytics(output_tensors)
 
 
-        device = AiCamera(frame_rate=17)  # Optimal frame rate for maximum DPS of the YOLO-seg model running on the AI Camera
+        device = AiCamera(frame_rate=17)  # Optimal frame rate for maximum FPS of the YOLO-seg model running on the AI Camera
         model = YOLOSegment()
         device.deploy(model)
 

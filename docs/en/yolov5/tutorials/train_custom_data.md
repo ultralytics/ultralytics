@@ -243,8 +243,8 @@ Ultralytics provides ready-to-use environments equipped with essential dependenc
     - <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
     - <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Cloud Platforms**:
-    - **Google Cloud**: [GCP Quickstart Guide](https://docs.ultralytics.com/integrations/google-colab)
-    - **Amazon AWS**: [AWS Quickstart Guide](https://docs.ultralytics.com/integrations/amazon-sagemaker)
+    - **Google Cloud**: [GCP Quickstart Guide](../environments/google_cloud_quickstart_tutorial.md)
+    - **Amazon AWS**: [AWS Quickstart Guide](../environments/aws_quickstart_tutorial.md)
     - **Microsoft Azure**: [AzureML Quickstart Guide](https://docs.ultralytics.com/guides/azureml-quickstart)
 - **Local Setup**:
     - **Docker**: [Docker Quickstart Guide](https://docs.ultralytics.com/guides/docker-quickstart) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>

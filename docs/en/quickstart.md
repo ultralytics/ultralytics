@@ -95,7 +95,7 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
 
     === "Docker"
 
-        Use Docker to execute the `ultralytics` package in an isolated container, ensuring consistent performance across various environments. By selecting one of the official `ultralytics` images from [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics), you avoid the complexity of local installation and gain access to a verified working environment. Ultralytics offers five main supported Docker images, each designed for high compatibility and efficiency:
+        Use Docker to execute the `ultralytics` package in an isolated container, ensuring consistent performance across various environments. By selecting one of the official `ultralytics` images from [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics), you avoid the complexity of local installation and gain access to a verified working environment. Ultralytics offers six main supported Docker images, each designed for high compatibility and efficiency:
 
         [![Docker Image Version](https://img.shields.io/docker/v/ultralytics/ultralytics?sort=semver&logo=docker)](https://hub.docker.com/r/ultralytics/ultralytics) [![Docker Pulls](https://img.shields.io/docker/pulls/ultralytics/ultralytics)](https://hub.docker.com/r/ultralytics/ultralytics)
 

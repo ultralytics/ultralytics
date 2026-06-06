@@ -92,7 +92,11 @@ def update_markdown_files(md_filepath: Path):
 
         # Add frontmatter if missing
         if not content.strip().startswith("---\n"):
-            header = "---\ncomments: true\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
+            header = (
+                "---\ncomments: true\n"
+                "description: Ultralytics documentation for YOLO model training, validation, prediction, export, and deployment.\n"
+                "keywords: Ultralytics, YOLO, computer vision, model training, model export, deployment\n---\n\n"
+            )
             content = header + content
 
         # Ensure MkDocs admonitions "=== " lines are preceded and followed by empty newlines

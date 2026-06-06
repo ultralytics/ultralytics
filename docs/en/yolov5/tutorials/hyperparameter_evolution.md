@@ -113,7 +113,7 @@ done
 
 The default evolution settings will run the base scenario 300 times, i.e. for 300 generations. You can modify generations via the `--evolve` argument, i.e. `python train.py --evolve 1000`.
 
-The main genetic operators are **crossover** and **mutation**. In this work mutation is used, with an 80% probability and a 0.04 variance to create new offspring based on a combination of the best parents from all previous generations. Results are logged to `runs/evolve/exp/evolve.csv`, and the highest fitness offspring is saved every generation as `runs/evolve/hyp_evolved.yaml`:
+The main genetic operators are **crossover** and **mutation**. In this work mutation is used, with an 80% probability and a 0.04 variance to create new offspring based on a combination of the best parents from all previous generations. Results are logged to `runs/evolve/exp/evolve.csv`, and the highest fitness offspring is saved every generation as `runs/evolve/exp/hyp_evolve.yaml`:
 
 ```yaml
 # YOLOv5 Hyperparameter Evolution Results
@@ -155,7 +155,7 @@ copy_paste: 0.0 # segment copy-paste (probability)
 
 We recommend a minimum of 300 generations of evolution for best results. Note that **evolution is generally expensive and time-consuming**, as the base scenario is trained hundreds of times, possibly requiring hundreds or thousands of GPU hours.
 
-When evolution finishes, reuse the discovered settings by pointing training at the saved file, for example `python train.py --hyp runs/evolve/hyp_evolved.yaml --data your.yaml --weights yolov5s.pt`.
+When evolution finishes, reuse the discovered settings by pointing training at the saved file, for example `python train.py --hyp runs/evolve/exp/hyp_evolve.yaml --data your.yaml --weights yolov5s.pt`.
 
 ## 4. Visualize
 

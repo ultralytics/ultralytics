@@ -102,7 +102,7 @@ The following table lists the default search space parameters for hyperparameter
 | `mixup`           | `tune.uniform(0.0, 1.0)`   | Mixup augmentation probability that blends two images and their labels together.                                                  |
 | `cutmix`          | `tune.uniform(0.0, 1.0)`   | Cutmix augmentation probability that combines image regions while maintaining local features.                                     |
 | `copy_paste`      | `tune.uniform(0.0, 1.0)`   | Copy-paste augmentation probability that transfers objects between images to increase instance diversity.                         |
-| `close_mosaic`    | `tune.randint(0.0, 11)`    | Disables mosaic in the last N epochs to stabilize training before completion.                                                     |
+| `close_mosaic`    | `tune.randint(0, 11)`      | Disables mosaic in the last N epochs to stabilize training before completion.                                                     |
 
 ## Custom Search Space Example
 

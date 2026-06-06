@@ -135,7 +135,7 @@ Rate limits are applied automatically based on the endpoint being called. Expens
 | **Upload**    | 10 requests/min  | File uploads, signed URLs, and dataset ingest                                            |
 | **Predict**   | 20 requests/min  | Shared model inference (`POST /api/models/{id}/predict`)                                 |
 | **Export**    | 20 requests/min  | Model format exports (`POST /api/exports`), dataset NDJSON exports, and version creation |
-| **Download**  | 30 requests/min  | Model weight file downloads (`GET /api/models/{id}/files`)                              |
+| **Download**  | 30 requests/min  | Model weight file downloads (`GET /api/models/{id}/files`)                               |
 | **Dedicated** | **Unlimited**    | [Dedicated endpoints](../deploy/endpoints.md) — your own service, no API limits          |
 
 Each category has an independent counter per API key. For example, making 20 predict requests does not affect your 100 request/min default allowance.

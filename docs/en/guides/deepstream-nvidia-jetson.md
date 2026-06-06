@@ -343,7 +343,7 @@ deepstream-app -c deepstream_app_config.txt
 
 ## Benchmark Results
 
-The following benchmarks summarizes how YOLO26 models perform at different TensorRT precision levels with an input size of 640x640 on NVIDIA Jetson Orin NX 16GB.
+The following benchmarks summarize how YOLO26 models perform at different TensorRT precision levels with an input size of 640x640 on NVIDIA Jetson Orin NX 16GB.
 
 ### Comparison Chart
 

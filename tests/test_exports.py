@@ -16,6 +16,7 @@ import torch
 from tests import SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
+from ultralytics.engine.exporter import EXPORT_ENVS, export_formats
 from ultralytics.utils import (
     ARM64,
     IS_DOCKER,
@@ -72,6 +73,15 @@ def test_export_onnx(end2end, isolated_model):
     """Test YOLO model export to ONNX format with dynamic axes."""
     file = YOLO(isolated_model).export(format="onnx", dynamic=True, imgsz=32, end2end=end2end)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+
+
+@pytest.mark.slow
+def test_export_onnx_int8(isolated_model):
+    """Test YOLO model export to INT8 ONNX format with calibration data."""
+    file = YOLO(isolated_model).export(format="onnx", int8=True, data="coco8.yaml", fraction=0.25, imgsz=32)
+    assert Path(file).name.endswith("_int8.onnx")
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+    Path(file).unlink()  # cleanup
 
 
 def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
@@ -406,6 +416,15 @@ def test_export_imx(isolated_model):
     YOLO(file)(SOURCE, imgsz=32)
 
 
+@pytest.mark.slow
+@pytest.mark.skipif(not LINUX or ARM64, reason="RKNN export only supported on non-aarch64 Linux")
+def test_export_rknn(isolated_model):
+    """Test YOLO export to RKNN format."""
+    file = YOLO(isolated_model).export(format="rknn", imgsz=32)
+    assert next(Path(file).rglob("*.rknn"), None), f"RKNN export failed, no RKNN model found in: {file}"
+    shutil.rmtree(file, ignore_errors=True)
+
+
 # @pytest.mark.skipif(True, reason="Disabled for debugging ruamel.yaml installation required by executorch")
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_2_9, reason="Requires Python>=3.10 and Torch>=2.9.0")
 @pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")
@@ -496,3 +515,15 @@ def test_export_qnn(isolated_model):
     assert next(Path(file).rglob("*_qnn.onnx"), None), f"QNN export failed, no context binary found in: {file}"
     # Note: on-device inference is not exercised here as it requires Qualcomm Snapdragon hardware
     shutil.rmtree(file, ignore_errors=True)  # cleanup
+
+
+@pytest.mark.parametrize("env", [k for k, v in EXPORT_ENVS.items() if k != "base" or v["smoke"]])
+def test_export_env_has_smoke(env):
+    """Ensure every non-base export environment declares a build-time smoke export."""
+    assert EXPORT_ENVS[env]["smoke"], f"export env '{env}' has no smoke command"
+
+
+def test_every_format_env_is_registered():
+    """Ensure every export format points at a registered export environment."""
+    for fmt, env in zip(export_formats()["Argument"], export_formats()["Env"]):
+        assert env in EXPORT_ENVS, f"format '{fmt}' references unknown env '{env}'"

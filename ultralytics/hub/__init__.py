@@ -25,12 +25,11 @@ __all__ = (
 def login(api_key: str | None = None, save: bool = True) -> bool:
     """Log in to the Ultralytics HUB API using the provided API key.
 
-    The session is not stored; a new session is created when needed using the saved SETTINGS or the HUB_API_KEY
-    environment variable if successfully authenticated.
+    The session is not stored; a new session is created when needed using the saved SETTINGS if successfully
+    authenticated.
 
     Args:
-        api_key (str, optional): API key to use for authentication. If not provided, it will be retrieved from SETTINGS
-            or HUB_API_KEY environment variable.
+        api_key (str, optional): API key to use for authentication. If not provided, it will be retrieved from SETTINGS.
         save (bool, optional): Whether to save the API key to SETTINGS if authentication is successful.
 
     Returns:

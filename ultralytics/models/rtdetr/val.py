@@ -29,7 +29,7 @@ def _compute_scheduled_prob(base_prob: float, epoch: int, stop_epoch: int) -> fl
 
 
 class RTDETRDataset(YOLODataset):
-    """Real-Time DEtection and TRacking (RT-DETR) dataset class extending the base YOLODataset class.
+    """Real-Time DEtection TRansformer (RT-DETR) dataset class extending the base YOLODataset class.
 
     This specialized dataset class is designed for use with the RT-DETR object detection model and is optimized for
     real-time detection and tracking tasks.
@@ -54,7 +54,7 @@ class RTDETRDataset(YOLODataset):
     def __init__(self, *args, data=None, **kwargs):
         """Initialize the RTDETRDataset class by inheriting from the YOLODataset class.
 
-        This constructor sets up a dataset specifically optimized for the RT-DETR (Real-Time DEtection and TRacking)
+        This constructor sets up a dataset specifically optimized for the RT-DETR (Real-Time DEtection TRansformer)
         model, building upon the base YOLODataset functionality.
 
         Args:

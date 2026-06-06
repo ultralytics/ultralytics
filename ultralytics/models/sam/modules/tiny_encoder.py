@@ -484,6 +484,7 @@ class Attention(torch.nn.Module):
             del self.ab
         else:
             self.ab = self.attention_biases[:, self.attention_bias_idxs]
+        return self
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Apply multi-head attention with spatial awareness and trainable attention biases."""

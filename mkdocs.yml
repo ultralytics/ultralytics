@@ -864,6 +864,7 @@ nav:
               - imx: reference/utils/export/imx.md
               - mnn: reference/utils/export/mnn.md
               - ncnn: reference/utils/export/ncnn.md
+              - onnx: reference/utils/export/onnx.md
               - openvino: reference/utils/export/openvino.md
               - paddle: reference/utils/export/paddle.md
               - qnn: reference/utils/export/qnn.md

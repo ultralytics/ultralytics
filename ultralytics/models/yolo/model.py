@@ -228,7 +228,7 @@ class YOLOE(Model):
         predict_memory: Run prediction with memory bank for multi-model prompts.
 
     Examples:
-        Load a YOLOE detection model
+        Load a YOLOE segmentation model
         >>> model = YOLOE("yoloe-11s-seg.pt")
 
         Set vocabulary and class names

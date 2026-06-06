@@ -34,7 +34,7 @@ Each image is labeled using bounding boxes aligned with the [Ultralytics YOLO](.
 
 The dataset supports 12 everyday object categories, covering furniture, electronics, and decorative items. These classes are chosen to reflect common items encountered in indoor domestic environments and support vision tasks like [object detection](../../tasks/detect.md) and [object tracking](../../modes/track.md).
 
-!!! Tip "HomeObjects-3K classes"
+!!! tip "HomeObjects-3K classes"
 
     0. bed
     1. sofa

@@ -190,6 +190,7 @@ def test_utils_benchmarks(isolated_model):
     ).run()
 
 
+@pytest.mark.slow
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 def test_predict_sam():
     """Test SAM model predictions using different prompts."""

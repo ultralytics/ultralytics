@@ -17,19 +17,19 @@ def onnx2deepx(
     optimize: bool = False,
     prefix: str = "",
 ) -> Path:
-    """Convert an ONNX model to DeepX format using the DeepX DX-Compiler.
+    """Convert an ONNX model to DEEPX format using the DEEPX DX-Compiler.
 
     Args:
         onnx_file (str | Path): Input ONNX model path.
         imgsz (tuple[int, int]): Export image size as ``(height, width)``.
-        dataset (DataLoader): Calibration dataloader used to build the DeepX config.
+        dataset (DataLoader): Calibration dataloader used to build the DEEPX config.
         metadata (dict | None, optional): Optional metadata to save as YAML. Defaults to None.
         optimize (bool, optional): If True, enables higher compiler optimization which reduces inference latency and
             increases compilation time. Defaults to False.
         prefix (str, optional): Logging prefix. Defaults to "".
 
     Returns:
-        (Path): Path to the exported DeepX model directory.
+        (Path): Path to the exported DEEPX model directory.
     """
     try:
         import dx_com
@@ -37,7 +37,7 @@ def onnx2deepx(
         check_requirements("dx_com", cmds="-f https://sdk.deepx.ai/release/dxcom/v2.3.0/index.html")
         import dx_com
 
-    LOGGER.info(f"\n{prefix} starting export with DeepX...")
+    LOGGER.info(f"\n{prefix} starting export with DEEPX...")
 
     onnx_file = Path(onnx_file)
     export_path = onnx_file.parent / f"{onnx_file.stem}_deepx_model"

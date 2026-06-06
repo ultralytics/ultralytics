@@ -95,7 +95,7 @@ The resizable sidebar lists all models in the project:
 
 - **Checkboxes** to select which models appear in charts/table
 - **Search** to filter models by name
-- **View options** for status filter (All, Completed, Running, Starting, Pending, Failed, Cancelled), grouping by task, and sort order
+- **View options** for status filter (All, Completed, Untrained, Running, Starting, Failed), grouping by task, and sort order
 - **Drag and drop** `.pt` files directly onto the sidebar to upload models ([model upload details](models.md#upload-model))
 - **Training progress** shown for running models (epoch count and progress bar)
 
@@ -158,12 +158,11 @@ Compare model performance using the charts dashboard:
 
 Available chart groups:
 
-| Group             | Charts                                         |
-| ----------------- | ---------------------------------------------- |
-| **Metrics**       | mAP50, mAP50-95, precision, recall             |
-| **Train Loss**    | train/box_loss, train/cls_loss, train/dfl_loss |
-| **Val Loss**      | val/box_loss, val/cls_loss, val/dfl_loss       |
-| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                         |
+| Group             | Charts                                                                                   |
+| ----------------- | ---------------------------------------------------------------------------------------- |
+| **Metrics**       | mAP50, mAP50-95, precision, recall                                                       |
+| **Loss**          | train/box_loss, train/cls_loss, train/dfl_loss, val/box_loss, val/cls_loss, val/dfl_loss |
+| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                                                                   |
 
 !!! tip "Interactive Charts"
 

@@ -478,8 +478,7 @@ def _handle_deprecation(custom: dict) -> dict:
     Examples:
         >>> custom_config = {"boxes": True, "hide_labels": "False", "line_thickness": 2}
         >>> _handle_deprecation(custom_config)
-        >>> print(custom_config)
-        {'show_boxes': True, 'show_labels': True, 'line_width': 2}
+        {'show_boxes': True, 'show_labels': False, 'line_width': 2}
 
     Notes:
         This function modifies the input dictionary in-place, replacing deprecated keys with their current
@@ -653,7 +652,7 @@ def handle_yolo_settings(args: list[str]) -> None:
 
     Examples:
         >>> handle_yolo_settings(["reset"])  # Reset YOLO settings
-        >>> handle_yolo_settings(["default_cfg_path=yolo26n.yaml"])  # Update a specific setting
+        >>> handle_yolo_settings(["runs_dir=path/to/dir"])  # Update a specific setting
 
     Notes:
         - If no arguments are provided, the function will display the current settings.

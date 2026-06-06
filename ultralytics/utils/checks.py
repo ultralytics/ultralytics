@@ -612,7 +612,7 @@ def check_yolov5u_filename(file: str, verbose: bool = True) -> str:
                 LOGGER.info(
                     f"PRO TIP 💡 Replace 'model={original_file}' with new 'model={file}'.\nYOLOv5 'u' models are "
                     f"trained with https://github.com/ultralytics/ultralytics and feature improved performance vs "
-                    f"standard YOLOv5 models trained with https://github.com/ultralytics/yolov5.\n"
+                    f"standard YOLOv5 models trained with https://github.com/ultralytics/yolov5."
                 )
     return file
 

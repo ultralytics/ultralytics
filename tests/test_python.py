@@ -390,7 +390,7 @@ def test_data_utils(tmp_path):
         if task == "semantic":  # HUB stats do not support semantic segmentation datasets yet.
             continue
         file = Path(TASK2DATA[task]).with_suffix(".zip")  # i.e. coco8.zip
-        download(f"https://github.com/ultralytics/hub/raw/main/example_datasets/{file}", unzip=False, dir=tmp_path)
+        download(f"https://github.com/ultralytics/hub/raw/main/example_datasets/{file.name}", unzip=False, dir=tmp_path)
         stats = HUBDatasetStats(tmp_path / file, task=task)
         stats.get_json(save=True)
         stats.process_images()

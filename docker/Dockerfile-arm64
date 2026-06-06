@@ -40,7 +40,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 
 # Install pip packages, create python symlink, and remove build files
 RUN python3 -m pip install uv && \
-    uv pip install --system -e ".[export]" && \
+    uv pip install --system -e ".[export]" --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match && \
     # Creates a symbolic link to make 'python' point to 'python3'
     ln -sf /usr/bin/python3 /usr/bin/python && \
     # Remove extra build files

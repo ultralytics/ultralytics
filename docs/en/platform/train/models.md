@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Learn how to manage, analyze, and export trained models in Ultralytics Platform with support for 17+ deployment formats.
+description: Learn how to manage, analyze, and export trained models in Ultralytics Platform with support for 19+ deployment formats.
 keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT, CoreML, YOLO
 ---
 
@@ -30,7 +30,7 @@ Supported model formats:
 
 After upload, the platform parses model metadata:
 
-- Task type ([detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [classify](../../tasks/classify.md))
+- Task type ([detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [semantic](../../tasks/semantic.md), [pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [classify](../../tasks/classify.md))
 - Architecture (YOLO26n, YOLO26s, etc.)
 - Class names and count
 - Input size and parameters
@@ -58,7 +58,7 @@ graph LR
     B --> D[Predict]
     B --> E[Export]
     B --> F[Deploy]
-    E --> G[17+ Formats]
+    E --> G[19+ Formats]
     F --> H[Endpoint]
 
     style A fill:#4CAF50,color:#fff
@@ -150,7 +150,7 @@ Run interactive inference directly in the browser:
 
 ### Export Tab
 
-Export your model to 17+ deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
+Export your model to 19+ deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
 
 ### Deploy Tab
 
@@ -196,7 +196,7 @@ graph LR
     style G fill:#4CAF50,color:#fff
 ```
 
-Export your model to 17+ deployment formats:
+Export your model to 19+ deployment formats:
 
 1. Navigate to the **Export** tab
 2. Select target format
@@ -209,7 +209,7 @@ Export your model to 17+ deployment formats:
 
 ### Supported Formats
 
-The Platform supports export to [17+ deployment formats](../../modes/export.md#export-formats): ONNX, TorchScript, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TF Lite, TF Edge TPU, TF.js, PaddlePaddle, NCNN, MNN, RKNN, IMX500, Axelera, and ExecuTorch.
+The Platform supports export to [19+ deployment formats](../../modes/export.md#export-formats): ONNX, TorchScript, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TF Lite, TF Edge TPU, TF.js, PaddlePaddle, NCNN, MNN, RKNN, Qualcomm (QNN), IMX500, Axelera, ExecuTorch, and DeepX.
 
 ### Format Selection Guide
 
@@ -269,11 +269,10 @@ Export jobs progress through the following statuses:
 
 Some export formats have architecture or task restrictions:
 
-| Format           | Restriction                                             |
-| ---------------- | ------------------------------------------------------- |
-| **IMX500**       | Available only for `YOLOv8n` and `YOLO11n`              |
-| **Axelera**      | Detect models only                                      |
-| **PaddlePaddle** | Not available for YOLO26 detect/segment/pose/OBB models |
+| Format      | Restriction                                |
+| ----------- | ------------------------------------------ |
+| **IMX500**  | Available only for `YOLOv8n` and `YOLO11n` |
+| **Axelera** | Detect models only                         |
 
 !!! note "Additional Export Rules"
 
@@ -349,7 +348,7 @@ Remove a model you no longer need:
 - [**Inference**](../deploy/inference.md): Test models in the browser with the Predict tab
 - [**Endpoints**](../deploy/endpoints.md): Deploy models to production with dedicated endpoints
 - [**Cloud Training**](cloud-training.md): Configure and run training jobs on cloud GPUs
-- [**Export Formats**](../../modes/export.md): Full guide to all 17+ export formats
+- [**Export Formats**](../../modes/export.md): Full guide to all 19+ export formats
 
 ## FAQ
 
@@ -381,7 +380,7 @@ Currently, model comparison is within projects. To compare across projects:
 
 ### What's the maximum model size?
 
-There's no strict limit, but very large models (>2GB) may have longer upload and processing times.
+Uploaded `.pt` model files are limited to 1 GB, and models near that limit may take longer to upload and process.
 
 ### Can I fine-tune pretrained models?
 

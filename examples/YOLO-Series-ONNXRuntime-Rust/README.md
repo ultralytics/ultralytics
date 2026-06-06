@@ -36,9 +36,9 @@ This repository provides a [Rust](https://rust-lang.org/) demo showcasing key [U
        ```
 
 - **Option 2: Automatic Download**
-  - Use the `--features auto` flag with Cargo to let the build script handle downloading the library automatically:
+  - The `auto` feature of the `usls` dependency (already enabled in `Cargo.toml`) lets the build script handle downloading the library automatically:
     ```bash
-    cargo run -r --example yolo --features auto
+    cargo run -r -- --task detect --ver v8
     ```
 
 </details>

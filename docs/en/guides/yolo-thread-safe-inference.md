@@ -31,7 +31,7 @@ While this sounds like a limitation, threads can still provide concurrency, espe
 
 ## The Danger of Shared Model Instances
 
-Instantiating a YOLO model outside your threads and sharing this instance across multiple threads can lead to [race conditions](https://www.ultralytics.com/glossary/algorithmic-bias), where the internal state of the model is inconsistently modified due to concurrent accesses. This is particularly problematic when the model or its components hold state that is not designed to be thread-safe.
+Instantiating a YOLO model outside your threads and sharing this instance across multiple threads can lead to race conditions, where the internal state of the model is inconsistently modified due to concurrent accesses. This is particularly problematic when the model or its components hold state that is not designed to be thread-safe.
 
 ### Non-Thread-Safe Example: Single Model Instance
 

@@ -69,7 +69,7 @@ def main():
     parser.add_argument("--yaml", type=str,
                         default="yolo26m-anomaly-v2.yaml")
     parser.add_argument("--category", type=str, default="carpet")
-    parser.add_argument("--imgsz", type=int, default=320)
+    parser.add_argument("--imgsz", type=int, default=448)
     parser.add_argument("--batch", type=int, default=8)
     parser.add_argument("--max_bank", type=int, default=5000)
     parser.add_argument("--max_images", type=int, default=1000,
@@ -109,12 +109,9 @@ def main():
     # Load trained weights on top
     LOGGER.info(f"Loading weights from {args.ckpt}...")
     ckpt = torch.load(args.ckpt, map_location="cpu", weights_only=False)
-    if isinstance(ckpt, dict) and "model" in ckpt:
-        ckpt_model = ckpt["model"]
-        if hasattr(ckpt_model, "state_dict"):
-            ckpt_state = ckpt_model.state_dict()
-        else:
-            ckpt_state = ckpt_model
+    if isinstance(ckpt, dict):
+        inner = ckpt.get("ema") or ckpt.get("model")
+        ckpt_state = inner.state_dict() if hasattr(inner, "state_dict") else inner
     else:
         ckpt_state = ckpt
     # intersect

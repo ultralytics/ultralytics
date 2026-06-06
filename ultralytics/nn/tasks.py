@@ -635,6 +635,8 @@ class YOLOAnomalyV2Model(DetectionModel):
         self.mask_noise_std = float(mask_noise_std)
         self.mask_remap_mode = mask_remap_mode
         self.mask_remap_kwargs = mask_remap_kwargs
+        self.spatial_softmax = bool(v2_cfg.get("spatial_softmax", False))
+        self.softmax_temperature = float(v2_cfg.get("softmax_temperature", 1.0))
 
         # Transient bbox input for the next forward pass. Reset after each forward.
         self._mask_bboxes_buf = None  # (N, 4) normalized [cx, cy, w, h]
@@ -889,7 +891,8 @@ class YOLOAnomalyV2Model(DetectionModel):
             self._install_backbone_taps(self._bb_layers)
         # Backward compat: old checkpoints may lack v2.3 attributes
         for attr, default in [("memory_bank", None), ("_prior_mode", None), ("_last_heatmap", None),
-                              ("mask_remap_mode", "none"), ("mask_remap_kwargs", {})]:
+                              ("mask_remap_mode", "none"), ("mask_remap_kwargs", {}),
+                              ("spatial_softmax", False), ("softmax_temperature", 1.0)]:
             if not hasattr(self, attr):
                 setattr(self, attr, default)
 
@@ -1009,6 +1012,23 @@ class YOLOAnomalyV2Model(DetectionModel):
         if self.mask_noise_std > 0.0:
             mask = (mask + torch.randn_like(mask) * self.mask_noise_std).clamp_(0.0, 1.0)
         return mask
+
+    def _apply_spatial_softmax(self, mask):
+        """Normalize heatmap into a spatial probability distribution.
+
+        Softmax over the H*W spatial grid, scaled by temperature. Turns any
+        heatmap (binary GT, soft SegBranch, noisy MB) into a distribution with
+        consistent statistics — sum=1 per sample, with T controlling peakiness.
+
+        Benefits: high values compete across space, suppressing background noise;
+        binary GT rects become softer (closer to predicted heatmaps), while weak
+        predictions become sharper (peaks amplified by softmax's exponential).
+        """
+        T = max(float(getattr(self, "softmax_temperature", 1.0)), 1e-6)
+        b, c, h, w = mask.shape
+        flat = mask.view(b, c, -1)
+        prob = torch.nn.functional.softmax(flat / T, dim=-1)
+        return prob.view(b, c, h, w)
 
     def _remap_mask_values(self, mask):
         """Apply configurable value remapping to bridge binary-GT vs soft-SegBranch gap.
@@ -1138,8 +1158,12 @@ class YOLOAnomalyV2Model(DetectionModel):
                     mask = self._resolve_prior(prior_mode, external_mask, bboxes, batch_idx,
                                                seg_logits_buf, batch_size, device)
                 # --- end prior_mode routing ---
-                # Stash RAW heatmap for validator AUROC (before remapping/augmentation).
+                # Stash RAW heatmap for validator AUROC (before softmax/remapping/augmentation).
                 self._last_heatmap = mask.detach() if mask is not None else None
+                # Spatial softmax: normalize to probability distribution (reduces
+                # distribution gap between GT binary masks and soft predictions).
+                if mask is not None and getattr(self, "spatial_softmax", False):
+                    mask = self._apply_spatial_softmax(mask)
                 # Value remapping (bridges binary-GT training vs soft-SegBranch inference).
                 if mask is not None:
                     mask = self._remap_mask_values(mask)

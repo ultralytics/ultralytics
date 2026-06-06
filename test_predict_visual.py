@@ -51,7 +51,7 @@ def load_mask_tensor(mask_path: str | None, imgsz: int) -> torch.Tensor | None:
 def run_prior(y: YOLO, model: YOLOAnomalyV2Model, img_path: str, prior_mode: str,
               imgsz: int, external_mask: torch.Tensor | None = None):
     """Run predict with a prior mode, return (pred_rgb, n_det, heatmap_np)."""
-    res = y.predict(img_path, imgsz=imgsz, prior_mode=prior_mode,conf=0.05,
+    res = y.predict(img_path, imgsz=imgsz, prior_mode=prior_mode,conf=0.1,
                     external_mask=external_mask, verbose=False)
     r = res[0]
     n_det = r.boxes.shape[0] if r.boxes is not None else 0
@@ -61,10 +61,7 @@ def run_prior(y: YOLO, model: YOLOAnomalyV2Model, img_path: str, prior_mode: str
     return pred_rgb, n_det, hmap_np
 
 
-MODEL_W="/Users/louis/workspace/ultra_louis_work/ultra6/runs/yoloa_v2/26m_yoloav2_softhint_rect_pd50_seg_a1_v1/weights/best.pt"
 
-
-# MODEL_W="/Users/louis/workspace/ultra_louis_work/ultralytics/runs/yoloa_v2/26m_yoloav2_softhint_rect_pd50_cm2_v1/weights/best.pt"
 
 def _report_load(matched: dict, ckpt_state: dict, model_state: dict) -> None:
     """Log which keys matched, which are missing in ckpt (random init), and
@@ -104,14 +101,37 @@ def _group_keys(keys: set[str]) -> list[tuple[str, list[str]]]:
     return sorted(groups.items())
 
 
+
+MODEL_W="/Users/louis/workspace/ultra_louis_work/ultra6/runs/yoloa_v2/26m_yoloav2_softhint_rect_pd50_seg_a1_v1/weights/best.pt"
+
+MODEL_W="/Users/louis/workspace/ultra_louis_work/ultralytics/runs/yoloa_v2/26m_yoloav2_softhint_rect_pd50_seg_a1_cm2_aug_v1/weights/last.pt"
+
+MODEL_W="/Users/louis/workspace/ultra_louis_work/ultralytics/runs/yoloa_v2/26m_yoloav2_softhint_rect_pd50_seg_a1_cm2_noise_v1/weights/last.pt"
+
+MODEL_W="/Users/louis/workspace/ultra_louis_work/ultralytics/runs/yoloa_v2/26m_yoloav2_softhint_rect_pd50_seg_a1_cm2_noise_v1/weights/best.pt"
+
+# MODEL_W="/Users/louis/workspace/ultra_louis_work/ultralytics/runs/yoloa_v2/26m_yoloav2_softhint_rect_pd50_seg_a1_cm2_aug_v1/weights/best.pt"
+
+# MODEL_W="/Users/louis/workspace/ultra_louis_work/ultralytics/runs/yoloa_v2/26m_yoloav2_softhint_rect_detonly_v2/weights/best.pt"
+
+# MODEL_W="/Users/louis/workspace/ultra_louis_work/ultralytics/runs/yoloa_v2/26m_yoloav2_softhint_rect_pd50_cm2_v1/weights/best.pt"
+
+
+
+MODEL_W="/Users/louis/workspace/ultra_louis_work/ultralytics/runs/yoloa_v2/26m_yoloav2_softhint_rect_pd50_seg_a1_softmax_t1_v1/weights/best.pt"
+YAML="yolo26m-anomaly-v2-softhint-seg-a1-softmax.yaml"
+
+MODEL_W="runs/yoloa_v2/26m_yoloav2_softhint_rect_pd50_seg_a1_softmax_t3_v1/weights/best.pt"
+YAML="yolo26m-anomaly-v2-softhint-seg-a1-softmax-t3.yaml"
+
 def main():
     parser = argparse.ArgumentParser(description="Random-sample predict — 4×2 comparison grids")
     parser.add_argument("--ckpt", type=str,
                         default=MODEL_W)
-    parser.add_argument("--yaml", type=str, default="yolo26m-anomaly-v2.yaml")
+    parser.add_argument("--yaml", type=str, default=YAML)
     parser.add_argument("--category", type=str, default="leather")
     parser.add_argument("--imgsz", type=int, default=320)
-    parser.add_argument("--n", type=int, default=4, help="Number of random test images")
+    parser.add_argument("--n", type=int, default=20, help="Number of random test images")
     parser.add_argument("--batch", type=int, default=8)
     parser.add_argument("--max_bank", type=int, default=10000)
     parser.add_argument("--max_images", type=int, default=1000,
@@ -134,8 +154,9 @@ def main():
     LOGGER.info("Building model...")
     model = YOLOAnomalyV2Model(args.yaml, nc=1, verbose=False)
     ckpt = torch.load(args.ckpt, map_location="cpu", weights_only=False)
-    if isinstance(ckpt, dict) and "model" in ckpt:
-        ckpt_state = ckpt["model"].state_dict() if hasattr(ckpt["model"], "state_dict") else ckpt["model"]
+    if isinstance(ckpt, dict):
+        inner = ckpt.get("ema") or ckpt.get("model")
+        ckpt_state = inner.state_dict() if hasattr(inner, "state_dict") else inner
     else:
         ckpt_state = ckpt
     ms = model.state_dict()

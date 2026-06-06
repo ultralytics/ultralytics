@@ -146,14 +146,18 @@ class CompareGrid:
                 if mp.is_file():
                     return str(mp)
 
-        # 2) Original MVTec layout: mvtec_anomaly_detection/{cat}/ground_truth/{defect}/
+        # 2) Original MVTec layout: {root}/mvtec_anomaly_detection/{cat}/ground_truth/{defect}/
+        # YOLO filenames are "{idx}_{orig_stem}.png"; masks are "{orig_stem}_mask.png".
         category = cat_root.name
-        mvtec_root = cat_root.parent  # MVTec-YOLO -> MVTEC
+        parts = ip.stem.split("_", 1)
+        orig_stem = parts[1] if len(parts) > 1 else ip.stem
+        mvtec_root = cat_root.parent.parent  # MVTec-YOLO -> MVTEC -> MVTEC root
         for orig_dir in ["mvtec_anomaly_detection", "MVTec-FS"]:
             orig_masks = mvtec_root / orig_dir / category / "ground_truth" / defect_type
-            mp = orig_masks / f"{ip.stem}_mask.png"
-            if mp.is_file():
-                return str(mp)
+            for stem in (orig_stem, ip.stem):  # try both original and YOLO stem
+                mp = orig_masks / f"{stem}_mask.png"
+                if mp.is_file():
+                    return str(mp)
         return None
 
     # ------------------------------------------------------------------

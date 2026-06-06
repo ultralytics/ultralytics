@@ -22,7 +22,6 @@ class SegmentationValidator(DetectionValidator):
     compute metrics such as mAP for both detection and segmentation tasks.
 
     Attributes:
-        plot_masks (list): List to store masks for plotting.
         process (callable): Function to process masks based on save_json and save_txt flags.
         args (SimpleNamespace): Arguments for the validator.
         metrics (SegmentMetrics): Metrics calculator for segmentation tasks.

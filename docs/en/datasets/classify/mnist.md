@@ -99,7 +99,7 @@ We would like to acknowledge Yann LeCun, Corinna Cortes, and Christopher J.C. Bu
 
 ## MNIST160 Quick Tests
 
-Need a lightning-fast regression test? Ultralytics also exposes `data="mnist160"`, a 160-image slice containing the first eight samples from each digit class. It mirrors the MNIST directory structure, so you can swap datasets without changing any other arguments:
+Need a lightning-fast regression test? Ultralytics also exposes `data="mnist160"`, a 160-image slice containing the first eight images of each digit (0-9) from both the train and test splits. It mirrors the MNIST directory structure, so you can swap datasets without changing any other arguments:
 
 !!! example "Train Example with MNIST160"
 

@@ -26,7 +26,7 @@ The COCO-Pose dataset is split into three subsets:
 
 1. **Train2017**: This subset contains 56599 images from the COCO dataset, annotated for training pose estimation models.
 2. **Val2017**: This subset has 2346 images used for validation purposes during model training.
-3. **Test2017**: This subset consists of images used for testing and benchmarking the trained models. Ground truth annotations for this subset are not publicly available, and the results are submitted to the [COCO evaluation server](https://codalab.lisn.upsaclay.fr/competitions/7384) for performance evaluation.
+3. **Test2017**: This subset consists of images used for testing and benchmarking the trained models. Ground truth annotations for this subset are not publicly available, and the results are submitted to the [COCO evaluation server](https://codalab.lisn.upsaclay.fr/competitions/7403) for performance evaluation.
 
 ## Applications
 

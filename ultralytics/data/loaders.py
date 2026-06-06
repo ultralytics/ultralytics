@@ -220,7 +220,7 @@ class LoadStreams:
 
     def __len__(self) -> int:
         """Return the number of video streams in the LoadStreams object."""
-        return self.bs  # 1E12 frames = 32 streams at 30 FPS for 30 years
+        return self.bs
 
 
 class LoadScreenshots:

@@ -109,6 +109,7 @@ from .anomaly_v2 import (
     BackboneMemoryBank,
     BboxMaskRenderer,
     HeatmapBiasFusion,
+    HeatmapFiLMFusion,
     SegBranch,
     binary_seg_loss,
 )
@@ -167,6 +168,7 @@ __all__ = (
     "HGBlock",
     "HGStem",
     "HeatmapBiasFusion",
+    "HeatmapFiLMFusion",
     "SegBranch",
     "binary_seg_loss",
     "ImagePoolingAttn",

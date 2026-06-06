@@ -55,6 +55,7 @@ from ultralytics.nn.modules import (
     HGBlock,
     HGStem,
     HeatmapBiasFusion,
+    HeatmapFiLMFusion,
     ImagePoolingAttn,
     Index,
     LRPCHead,
@@ -590,6 +591,16 @@ class YOLOAnomalyV2Model(DetectionModel):
         seg_alpha_mode = str(v2_cfg.get("seg_alpha_mode", "curriculum")).lower()
         if seg_alpha_mode not in {"curriculum", "pinned_one", "pinned_zero"}:
             raise ValueError(f"seg_alpha_mode must be curriculum|pinned_one|pinned_zero, got {seg_alpha_mode!r}")
+        # Fusion mechanism: 'bias' (HeatmapBiasFusion, 1-channel additive) or 'film'
+        # (HeatmapFiLMFusion, residual grouped-FiLM). Exactly one is instantiated to
+        # avoid DDP unused-parameter errors.
+        fusion_mode = str(v2_cfg.get("fusion_mode", "bias")).lower()
+        if fusion_mode not in {"bias", "film"}:
+            raise ValueError(f"fusion_mode must be bias|film, got {fusion_mode!r}")
+        film_groups = int(v2_cfg.get("film_groups", 16))
+        film_group_dim = int(v2_cfg.get("film_group_dim", 16))
+        film_alpha_init = float(v2_cfg.get("film_alpha_init", 1e-4))
+        film_gamma_bound = bool(v2_cfg.get("film_gamma_bound", False))
 
         detect = self.model[-1]
         if not isinstance(detect, Detect):
@@ -614,10 +625,20 @@ class YOLOAnomalyV2Model(DetectionModel):
 
         # Anomaly-side modules (live outside self.model so they are not in the Sequential)
         self.mask_renderer = BboxMaskRenderer(mask_size=mask_size, mode=mask_mode, sigma_factor=sigma_factor)
-        # Soft-hint fusion: bounded per-pixel bias added (broadcast) to PAN features.
-        # beta init 0 -> training starts as vanilla YOLO; the model learns to lean on
-        # the heatmap only if it helps the detection loss.
-        self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=detect.nl)
+        # Soft-hint fusion: 'bias' adds a bounded per-pixel bias (broadcast) to PAN
+        # features; 'film' modulates a projected copy via residual grouped-FiLM. Both
+        # start near-identity (beta / alpha init ~0) so training begins as vanilla YOLO.
+        # Exactly one module is created so DDP sees no unused parameters.
+        self.fusion_mode = fusion_mode
+        if fusion_mode == "film":
+            self.heatmap_bias_fusion = None
+            self.heatmap_film_fusion = HeatmapFiLMFusion(
+                pan_channels=pan_channels, num_groups=film_groups, group_dim=film_group_dim,
+                alpha_init=film_alpha_init, gamma_bound=film_gamma_bound,
+            )
+        else:
+            self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=detect.nl)
+            self.heatmap_film_fusion = None
 
         # SegBranch consumes the P3/P4 PAN outputs (first two of pan_from_indices).
         self.mask_size = mask_size
@@ -892,7 +913,8 @@ class YOLOAnomalyV2Model(DetectionModel):
         # Backward compat: old checkpoints may lack v2.3 attributes
         for attr, default in [("memory_bank", None), ("_prior_mode", None), ("_last_heatmap", None),
                               ("mask_remap_mode", "none"), ("mask_remap_kwargs", {}),
-                              ("spatial_softmax", False), ("softmax_temperature", 1.0)]:
+                              ("spatial_softmax", False), ("softmax_temperature", 1.0),
+                              ("fusion_mode", "bias"), ("heatmap_film_fusion", None)]:
             if not hasattr(self, attr):
                 setattr(self, attr, default)
 
@@ -1189,11 +1211,15 @@ class YOLOAnomalyV2Model(DetectionModel):
                         )
                     else:
                         m_scale = mask
-                    bias = self.heatmap_bias_fusion(m_scale, i)  # (B, 1, H, W) in [-beta_i, +beta_i]
-                    # Per-sample keep mask (mask dropout): dropped samples get zero bias.
-                    bias = bias * keep.to(bias.dtype).view(-1, 1, 1, 1)
-                    # Broadcast 1-channel bias over the C channels of the PAN feature.
-                    fused.append(p + bias)
+                    if self.fusion_mode == "film":
+                        # Residual grouped-FiLM: (B, C, H, W) increment, prior modulates feature.
+                        delta = self.heatmap_film_fusion(p, m_scale, i)
+                    else:
+                        # 1-channel additive bias in [-beta_i, +beta_i], broadcast over C.
+                        delta = self.heatmap_bias_fusion(m_scale, i)
+                    # Per-sample keep mask (mask dropout): dropped samples get zero increment.
+                    delta = delta * keep.to(delta.dtype).view(-1, 1, 1, 1)
+                    fused.append(p + delta)
                 x = m(fused)
             else:
                 if m.f != -1:

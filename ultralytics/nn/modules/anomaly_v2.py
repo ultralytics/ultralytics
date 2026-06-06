@@ -18,7 +18,14 @@ import torch.nn.functional as F
 
 from .conv import Conv
 
-__all__ = ("BboxMaskRenderer", "HeatmapBiasFusion", "SegBranch", "binary_seg_loss", "BackboneMemoryBank")
+__all__ = (
+    "BboxMaskRenderer",
+    "HeatmapBiasFusion",
+    "HeatmapFiLMFusion",
+    "SegBranch",
+    "binary_seg_loss",
+    "BackboneMemoryBank",
+)
 
 
 class BboxMaskRenderer(nn.Module):
@@ -128,6 +135,74 @@ class HeatmapBiasFusion(nn.Module):
             Bias tensor (B, 1, H, W) in ``[-beta_i, +beta_i]``.
         """
         return self.beta[scale_idx] * torch.tanh(self.conv(mask))
+
+
+class HeatmapFiLMFusion(nn.Module):
+    """Residual grouped-FiLM fusion: the prior modulates a projected copy of each PAN feature.
+
+    Richer than ``HeatmapBiasFusion`` (1-channel additive bias broadcast over all channels). Each
+    PAN feature is projected into a modulation space, split into ``num_groups`` channel groups, and
+    each group is scaled by a prior-derived spatial map (grouped FiLM: ``V * (1 + gamma)``, or the
+    bounded gate ``V * (1 + tanh(gamma))`` in ``(0, 2)`` when ``gamma_bound``). The modulated feature
+    is projected back and added as a LayerScale-gated residual, so the main detection path is
+    preserved and the branch starts as a near-identity (``alpha`` init ~0).
+
+    The prior conv (mask -> per-group ``gamma``) is shared across PAN scales since its input is
+    always the 1-channel mask; ``proj_in`` / ``proj_out`` are per-scale because PAN channel counts
+    differ. ``forward`` returns the residual increment ``alpha * dP`` of shape ``(B, C, H, W)``;
+    the caller adds it to the PAN feature and applies mask-dropout, mirroring the bias path.
+    """
+
+    def __init__(
+        self,
+        pan_channels: list[int],
+        num_groups: int = 16,
+        group_dim: int = 16,
+        prior_mid: int = 32,
+        alpha_init: float = 1e-4,
+        gamma_bound: bool = False,
+    ):
+        super().__init__()
+        self.num_groups = int(num_groups)
+        self.group_dim = int(group_dim)
+        self.c_mod = self.num_groups * self.group_dim
+        self.gamma_bound = bool(gamma_bound)
+        # Prior -> per-group spatial scale gamma. Shared across scales (input is the 1-ch mask).
+        self.prior_conv = nn.Sequential(
+            nn.Conv2d(1, prior_mid, 3, padding=1),
+            nn.GELU(),
+            nn.Conv2d(prior_mid, self.num_groups, 3, padding=1),
+        )
+        # Per-scale projections into / out of the modulation space (PAN channels differ per scale).
+        self.proj_in = nn.ModuleList(Conv(c, self.c_mod, k=1) for c in pan_channels)
+        self.proj_out = nn.ModuleList(nn.Conv2d(self.c_mod, c, 1) for c in pan_channels)
+        # LayerScale: per-scale, per-channel residual gate, init ~0 so the branch starts inert.
+        self.alpha = nn.ParameterList(
+            nn.Parameter(torch.full((c,), float(alpha_init))) for c in pan_channels
+        )
+
+    def forward(self, feat: torch.Tensor, mask: torch.Tensor, scale_idx: int) -> torch.Tensor:
+        """Return the residual increment ``(B, C, H, W)`` to add to ``feat``.
+
+        Args:
+            feat: PAN feature ``(B, C, H, W)`` at scale ``scale_idx``.
+            mask: prior ``(B, 1, H, W)`` already resized to ``feat``'s spatial size.
+            scale_idx: index into the per-scale projections / LayerScale.
+
+        Returns:
+            Residual increment ``(B, C, H, W)``; ~0 at init via the LayerScale gate.
+        """
+        b, _, h, w = feat.shape
+        gamma = self.prior_conv(mask)  # (B, num_groups, H, W)
+        # Bounded gate 1+tanh(gamma) in (0, 2) (multiplicative suppress/amplify, training-stable)
+        # vs raw 1+gamma (unbounded). gamma_bound selects between them.
+        scale = (1.0 + torch.tanh(gamma)) if self.gamma_bound else (1.0 + gamma)
+        v = self.proj_in[scale_idx](feat)  # (B, c_mod, H, W)
+        v = v.view(b, self.num_groups, self.group_dim, h, w)
+        v = v * scale.unsqueeze(2)  # grouped FiLM scale
+        v = v.reshape(b, self.c_mod, h, w)
+        d = self.proj_out[scale_idx](v)  # (B, C, H, W)
+        return self.alpha[scale_idx].view(1, -1, 1, 1) * d
 
 
 class SegBranch(nn.Module):
@@ -512,6 +587,36 @@ if __name__ == "__main__":
     assert fusion(mask_p4, 1).shape == (B, 1, 40, 40)
     assert fusion(mask_p5, 2).shape == (B, 1, 20, 20)
     print("HeatmapBiasFusion multi-scale OK.")
+
+    print("\n--- HeatmapFiLMFusion ---")
+    pan_ch = [256, 512, 512]  # yolo26m PAN channel counts (differ per scale)
+    film = HeatmapFiLMFusion(pan_channels=pan_ch, num_groups=16, group_dim=16)
+    feats = [torch.randn(B, c, s, s) for c, s in zip(pan_ch, (80, 40, 20))]
+    masks = [
+        mask,
+        F.interpolate(mask, size=(40, 40), mode="bilinear", align_corners=False),
+        F.interpolate(mask, size=(20, 20), mode="bilinear", align_corners=False),
+    ]
+    # alpha init ~0 -> increment is negligible (near-vanilla start).
+    for i, (f, msk) in enumerate(zip(feats, masks)):
+        delta = film(f, msk, i)
+        assert delta.shape == f.shape, f"scale {i}: {tuple(delta.shape)} != {tuple(f.shape)}"
+        assert delta.abs().max().item() < 1e-2, f"scale {i} increment not ~0 at init"
+    print("HeatmapFiLMFusion init near-identity + per-scale shapes OK.")
+
+    # With alpha grown, the increment is non-trivial and still shaped like the PAN feature.
+    with torch.no_grad():
+        for a in film.alpha:
+            a.fill_(1.0)
+    delta = film(feats[0], masks[0], 0)
+    assert delta.shape == feats[0].shape and delta.abs().max().item() > 0.0
+    print(f"HeatmapFiLMFusion alpha=1 active OK (max abs = {delta.abs().max().item():.4f}).")
+
+    # gamma_bound: bounded 1+tanh(gamma) gate; still near-identity at init via alpha.
+    film_b = HeatmapFiLMFusion(pan_channels=pan_ch, gamma_bound=True)
+    db = film_b(feats[0], masks[0], 0)
+    assert db.shape == feats[0].shape and db.abs().max().item() < 1e-2, "gamma_bound init not ~0"
+    print("HeatmapFiLMFusion gamma_bound init near-identity OK.")
 
     print("\n--- BackboneMemoryBank ---")
     mb = BackboneMemoryBank(temperature=3.0, K=5)

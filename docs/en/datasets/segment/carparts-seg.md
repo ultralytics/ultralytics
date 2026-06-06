@@ -27,9 +27,9 @@ Whether you're working on [automotive research](https://www.ultralytics.com/solu
 
 The data distribution within the Carparts Segmentation Dataset is organized as follows:
 
-- **Training set**: Includes 3156 images, each accompanied by its corresponding annotations. This set is used for [training](https://www.ultralytics.com/glossary/training-data) the [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) [model](https://www.ultralytics.com/glossary/foundation-model).
-- **Testing set**: Comprises 276 images, with each one paired with its respective annotations. This set is used to evaluate the model's performance after training using [test data](https://www.ultralytics.com/glossary/test-data).
-- **Validation set**: Consists of 401 images, each having corresponding annotations. This set is used during training to tune [hyperparameters](https://docs.ultralytics.com/guides/hyperparameter-tuning) and prevent [overfitting](https://www.ultralytics.com/glossary/overfitting) using [validation data](https://www.ultralytics.com/glossary/validation-data).
+- **Training set**: Includes 3516 images, each accompanied by its corresponding annotations. This set is used for [training](https://www.ultralytics.com/glossary/training-data) the [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) [model](https://www.ultralytics.com/glossary/foundation-model).
+- **Testing set**: Comprises 401 images, with each one paired with its respective annotations. This set is used to evaluate the model's performance after training using [test data](https://www.ultralytics.com/glossary/test-data).
+- **Validation set**: Consists of 276 images, each having corresponding annotations. This set is used during training to tune [hyperparameters](https://docs.ultralytics.com/guides/hyperparameter-tuning) and prevent [overfitting](https://www.ultralytics.com/glossary/overfitting) using [validation data](https://www.ultralytics.com/glossary/validation-data).
 
 ## Applications
 

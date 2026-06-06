@@ -44,7 +44,7 @@ Get started at no cost:
 - 3 concurrent cloud trainings
 - 3 deployments
 - 100 GB storage · 10 GB dataset upload limit
-- Model export to all 17+ formats
+- Model export to all 19+ formats
 - Manual, SAM 3 & YOLO Smart annotation
 - 22 cloud GPU types including 5090, H100 & H200 ($0.24–$3.99/hr)
 - Community support
@@ -205,7 +205,7 @@ Total Cost = GPU Rate x Training Time (hours)
 Example: Training for 2.5 hours on RTX PRO 6000
 
 ```
-$1.69 x 2.5 = $4.23
+$1.89 x 2.5 = $4.73
 ```
 
 ## Upgrade to Pro

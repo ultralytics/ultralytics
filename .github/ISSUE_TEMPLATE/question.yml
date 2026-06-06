@@ -20,6 +20,21 @@ body:
             I have searched the Ultralytics YOLO [issues](https://github.com/ultralytics/ultralytics/issues) and [discussions](https://github.com/orgs/ultralytics/discussions) and found no similar questions.
           required: true
 
+  - type: checkboxes
+    attributes:
+      label: Ensure clarity and relevance
+      description: >
+        To help us assist you effectively, please ensure the following before submitting your question:
+      options:
+        - label: My question is clear, concise, and directly related to Ultralytics YOLO.
+        - label: I have included all relevant details (e.g., dataset used, code snippets, error logs, or screenshots).
+        - label: If my question involves data, I have attached representative images and/or dataset samples.
+        - label: My question includes steps to reproduce the issue, if applicable.
+        - label: I have formatted my code or logs using Markdown for better readability.
+        - label: I understand that providing insufficient information may delay the resolution of my question.
+        - label: My question is anonymized and contains no personal details.
+          required: true
+
   - type: textarea
     attributes:
       label: Question

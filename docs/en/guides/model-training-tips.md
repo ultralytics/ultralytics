@@ -57,7 +57,7 @@ Using the maximum batch size supported by your GPU, you can fully take advantage
   <strong>Watch:</strong> How to Use Batch Inference with Ultralytics YOLO26 | Speed Up Object Detection in Python 🎉
 </p>
 
-With respect to YOLO26, you can set the `batch_size` parameter in the [training configuration](../modes/train.md) to match your GPU capacity. Also, setting `batch=-1` in your training script will automatically determine the [batch size](https://www.ultralytics.com/glossary/batch-size) that can be efficiently processed based on your device's capabilities. By fine-tuning the batch size, you can make the most of your GPU resources and improve the overall training process.
+With respect to YOLO26, you can set the `batch` parameter in the [training configuration](../modes/train.md) to match your GPU capacity. Also, setting `batch=-1` in your training script will automatically determine the [batch size](https://www.ultralytics.com/glossary/batch-size) that can be efficiently processed based on your device's capabilities. By fine-tuning the batch size, you can make the most of your GPU resources and improve the overall training process.
 
 ### Subset Training
 
@@ -194,7 +194,7 @@ Training computer vision models involves following good practices, optimizing yo
 
 ### How can I improve GPU utilization when training a large dataset with Ultralytics YOLO?
 
-To improve GPU utilization, set the `batch_size` parameter in your training configuration to the maximum size supported by your GPU. This ensures that you make full use of the GPU's capabilities, reducing training time. If you encounter memory errors, incrementally reduce the batch size until training runs smoothly. For YOLO26, setting `batch=-1` in your training script will automatically determine the optimal batch size for efficient processing. For further information, refer to the [training configuration](../modes/train.md).
+To improve GPU utilization, set the `batch` parameter in your training configuration to the maximum size supported by your GPU. This ensures that you make full use of the GPU's capabilities, reducing training time. If you encounter memory errors, incrementally reduce the batch size until training runs smoothly. For YOLO26, setting `batch=-1` in your training script will automatically determine the optimal batch size for efficient processing. For further information, refer to the [training configuration](../modes/train.md).
 
 ### What is mixed precision training, and how do I enable it in YOLO26?
 

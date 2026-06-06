@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Learn to annotate images in Ultralytics Platform with manual tools, skeleton templates for pose estimation, and Smart annotation with SAM and YOLO models for detect, segment, and OBB tasks.
+description: Learn to annotate images in Ultralytics Platform with manual tools, skeleton templates for pose estimation, and Smart annotation with SAM and YOLO models for detect, segment, semantic, and OBB tasks.
 keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, bounding box, polygon, keypoints, skeleton templates, pose estimation, segmentation, YOLO
 ---
 
@@ -24,19 +24,20 @@ graph TB
 
 ## Supported Task Types
 
-The annotation editor supports all 5 YOLO task types:
+The annotation editor supports all 6 YOLO task types:
 
 | Task                                             | Tool           | Annotation Format                                         |
 | ------------------------------------------------ | -------------- | --------------------------------------------------------- |
 | **[Detect](../../datasets/detect/index.md)**     | Rectangle      | Bounding boxes (x, y, width, height)                      |
 | **[Segment](../../datasets/segment/index.md)**   | Polygon        | Pixel-precise masks (polygon vertices)                    |
+| **[Semantic](../../datasets/semantic/index.md)** | Polygon        | Per-class region masks (polygon vertices)                 |
 | **[Pose](../../datasets/pose/index.md)**         | Keypoint       | Skeleton templates (Person, Hand, Face, Dog, Box, custom) |
 | **[OBB](../../datasets/obb/index.md)**           | Oriented Box   | Rotated bounding boxes (4 corners)                        |
 | **[Classify](../../datasets/classify/index.md)** | Class Selector | Image-level labels                                        |
 
 !!! tip "Multi-Task Annotations"
 
-    All 5 annotation types are stored together on each image. You can switch the dataset's active task type without losing existing annotations — they are preserved and reappear when you switch back.
+    All 6 annotation types are stored together on each image. You can switch the dataset's active task type without losing existing annotations — they are preserved and reappear when you switch back.
 
 ### Task Details
 
@@ -121,10 +122,10 @@ graph LR
 
 The editor provides two annotation modes, selectable from the toolbar:
 
-| Mode       | Description                                                       | Shortcut |
-| ---------- | ----------------------------------------------------------------- | -------- |
-| **Manual** | Draw annotations with task-specific tools (all 5 task types)      | `V`      |
-| **Smart**  | SAM or YOLO model-assisted annotation (detect, segment, OBB only) | `S`      |
+| Mode       | Description                                                                 | Shortcut |
+| ---------- | --------------------------------------------------------------------------- | -------- |
+| **Manual** | Draw annotations with task-specific tools (all 6 task types)                | `V`      |
+| **Smart**  | SAM or YOLO model-assisted annotation (detect, segment, semantic, OBB only) | `S`      |
 
 ## Manual Annotation Tools
 
@@ -236,7 +237,7 @@ Assign image-level class labels:
 
 ## Smart Annotation
 
-Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](https://docs.ultralytics.com/models/sam) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. Smart annotation is available for **detect**, **segment**, and **OBB** tasks.
+Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](https://docs.ultralytics.com/models/sam) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. Smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks.
 
 ### SAM Smart Annotation
 
@@ -284,7 +285,7 @@ SAM smart annotation can generate:
 
 !!! warning "SAM Task Support"
 
-    SAM smart annotation is only available for **detect**, **segment**, and **OBB** tasks. Classification and pose tasks require manual annotation.
+    SAM smart annotation is only available for **detect**, **segment**, **semantic**, and **OBB** tasks. Classification and pose tasks require manual annotation.
 
 #### Auto-Apply Mode
 
@@ -380,7 +381,7 @@ In edit mode, a crosshair overlay tracks the cursor position and displays pixel 
 
 ## SAM Hover Preview
 
-In Smart mode, SAM provides a real-time hover preview before you click any points. This preview is available for **detect**, **segment**, and **OBB** tasks. Once you add refinement clicks, the preview updates to reflect the current mask and the annotation type for the active task.
+In Smart mode, SAM provides a real-time hover preview before you click any points. This preview is available for **detect**, **segment**, **semantic**, and **OBB** tasks. Once you add refinement clicks, the preview updates to reflect the current mask and the annotation type for the active task.
 
 ## Polygon Vertex Editing
 
@@ -559,7 +560,7 @@ Yes, but for best results:
 
 ### Which tasks support SAM smart annotation?
 
-SAM smart annotation is available for **detect**, **segment**, and **OBB** tasks. Classification and pose tasks use manual annotation only.
+SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks. Classification and pose tasks use manual annotation only.
 
 ### Can I create custom skeleton templates for pose annotation?
 

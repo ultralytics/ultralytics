@@ -51,7 +51,7 @@ def load_mask_tensor(mask_path: str | None, imgsz: int) -> torch.Tensor | None:
 def run_prior(y: YOLO, model: YOLOAnomalyV2Model, img_path: str, prior_mode: str,
               imgsz: int, external_mask: torch.Tensor | None = None):
     """Run predict with a prior mode, return (pred_rgb, n_det, heatmap_np)."""
-    res = y.predict(img_path, imgsz=imgsz, prior_mode=prior_mode,conf=0.1,
+    res = y.predict(img_path, imgsz=imgsz, prior_mode=prior_mode,conf=0.05,
                     external_mask=external_mask, verbose=False)
     r = res[0]
     n_det = r.boxes.shape[0] if r.boxes is not None else 0
@@ -124,6 +124,8 @@ YAML="yolo26m-anomaly-v2-softhint-seg-a1-softmax.yaml"
 MODEL_W="runs/yoloa_v2/26m_yoloav2_softhint_rect_pd50_seg_a1_softmax_t3_v1/weights/best.pt"
 YAML="yolo26m-anomaly-v2-softhint-seg-a1-softmax-t3.yaml"
 
+
+
 def main():
     parser = argparse.ArgumentParser(description="Random-sample predict — 4×2 comparison grids")
     parser.add_argument("--ckpt", type=str,
@@ -139,6 +141,8 @@ def main():
     parser.add_argument("--out", type=str, default=None,
                         help="Output dir (default: runs/temp/predict_visual/)")
     parser.add_argument("--device", type=str, default=None)
+    parser.add_argument("--heat-norm", type=str, default="none", choices=["none", "minmax"],
+                        help="Per-image prior normalization before fusion (minmax stretches to [0,1])")
     args = parser.parse_args()
 
     device = args.device or "cpu"
@@ -167,6 +171,8 @@ def main():
     _report_load(matched, ckpt_state, ms)
     model.to(device)
     model.eval()
+    model.heatmap_norm = args.heat_norm
+    LOGGER.info(f"heatmap_norm = {model.heatmap_norm}")
 
     LOGGER.info("Building memory bank...")
     model.load_support_set(str(train_dir), imgsz=args.imgsz, device=device,

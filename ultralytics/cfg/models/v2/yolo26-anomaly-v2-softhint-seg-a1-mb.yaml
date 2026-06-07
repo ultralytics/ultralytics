@@ -1,9 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO Anomaly v2 SOFT-HINT + SegBranch, FiLM fusion (pinned alpha=1, GT mask only).
-# Mirrors yolo26-anomaly-v2-softhint-seg-a1.yaml exactly except fusion_mode: film, so it
-# is a clean A/B against the bias-fusion baseline (a1). Instead of a 1-channel additive
-# bias, the prior modulates a projected copy of each PAN feature via residual grouped-FiLM.
+# YOLO Anomaly v2 SOFT-HINT + SegBranch (seg-a1) + BackboneMemoryBank for INFERENCE.
+# Identical to yolo26-anomaly-v2-softhint-seg-a1.yaml plus the bb_* block, so a seg-a1
+# (bias-fusion) checkpoint can also serve prior_mode="heatmap" in visualization scripts.
+# The memory bank is inference-only (no trained params), so it loads onto any seg-a1
+# checkpoint. Use this YAML (not seg-a1) when you want the memory-bank prior column.
 # Branch: yoloa_v2_softhint_clean.
 
 nc: 80
@@ -36,9 +37,6 @@ anomaly_v2:
   seg_detach: true
   mask_shuffle_p: 0.0
   mask_noise_std: 0.0
-  fusion_mode: film
-  film_groups: 16
-  film_group_dim: 16
 
 backbone:
   - [-1, 1, Conv, [64, 3, 2]]

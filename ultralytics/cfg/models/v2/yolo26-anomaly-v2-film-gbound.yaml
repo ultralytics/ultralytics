@@ -20,6 +20,15 @@ anomaly_v2:
   mask_mode: rect
   sigma_factor: 0.25
   p_drop: 0.5
+  # BackboneMemoryBank (v2.3) — inference-only prior plugin (no trained params): taps
+  # backbone layer 6, builds the bank from support images via load_support_set, enabling
+  # prior_mode="heatmap". Works on any trained checkpoint. Mirrors seg-a1-softmax-t3.
+  bb_layers: [6]
+  bb_temperature: 3.0
+  bb_K: 9
+  bb_auto_temperature: true
+  bb_calibration_target_score: 0.5
+  bb_calibrate: compactness
   seg_branch: true
   seg_alpha_mode: pinned_one
   seg_gain: 1.0

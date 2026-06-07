@@ -658,6 +658,10 @@ class YOLOAnomalyV2Model(DetectionModel):
         self.mask_remap_kwargs = mask_remap_kwargs
         self.spatial_softmax = bool(v2_cfg.get("spatial_softmax", False))
         self.softmax_temperature = float(v2_cfg.get("softmax_temperature", 1.0))
+        # Per-image prior normalization before fusion: 'none' or 'minmax' (stretch the
+        # heatmap to [0, 1] per sample). Counters the soft-prior (e.g. memory bank, peak
+        # ~0.8) vs binary-GT-training magnitude gap. Inference toggle (default off).
+        self.heatmap_norm = str(v2_cfg.get("heatmap_norm", "none")).lower()
 
         # Transient bbox input for the next forward pass. Reset after each forward.
         self._mask_bboxes_buf = None  # (N, 4) normalized [cx, cy, w, h]
@@ -914,7 +918,8 @@ class YOLOAnomalyV2Model(DetectionModel):
         for attr, default in [("memory_bank", None), ("_prior_mode", None), ("_last_heatmap", None),
                               ("mask_remap_mode", "none"), ("mask_remap_kwargs", {}),
                               ("spatial_softmax", False), ("softmax_temperature", 1.0),
-                              ("fusion_mode", "bias"), ("heatmap_film_fusion", None)]:
+                              ("fusion_mode", "bias"), ("heatmap_film_fusion", None),
+                              ("heatmap_norm", "none")]:
             if not hasattr(self, attr):
                 setattr(self, attr, default)
 
@@ -1182,6 +1187,16 @@ class YOLOAnomalyV2Model(DetectionModel):
                 # --- end prior_mode routing ---
                 # Stash RAW heatmap for validator AUROC (before softmax/remapping/augmentation).
                 self._last_heatmap = mask.detach() if mask is not None else None
+                # Per-image min-max normalization: stretch each sample's prior to [0, 1].
+                # Boosts a soft, low-peak prior (memory bank ~0.8) so the fusion conv responds
+                # like it did to binary GT masks. NOTE: on clean images with a flat prior this
+                # amplifies noise to full range -> may induce false positives.
+                if mask is not None and getattr(self, "heatmap_norm", "none") == "minmax":
+                    b = mask.shape[0]
+                    flat = mask.reshape(b, -1)
+                    lo = flat.min(dim=1, keepdim=True).values
+                    hi = flat.max(dim=1, keepdim=True).values
+                    mask = ((flat - lo) / (hi - lo).clamp_min(1e-6)).reshape_as(mask)
                 # Spatial softmax: normalize to probability distribution (reduces
                 # distribution gap between GT binary masks and soft predictions).
                 if mask is not None and getattr(self, "spatial_softmax", False):

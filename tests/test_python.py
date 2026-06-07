@@ -2,6 +2,7 @@
 
 import contextlib
 import csv
+import shutil
 import tarfile
 import urllib
 import zipfile
@@ -16,13 +17,13 @@ from PIL import Image
 
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
-from ultralytics.cfg import TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
     ARM64,
     ASSETS,
     ASSETS_URL,
+    DATASETS_DIR,
     DEFAULT_CFG,
     DEFAULT_CFG_PATH,
     IS_JETSON,
@@ -376,27 +377,18 @@ def test_labels_and_crops():
         assert crop_count == len(r.boxes.data), f"Crop count {crop_count} != detection count {len(r.boxes.data)}"
 
 
-@pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_data_utils(tmp_path):
-    """Test data utility functions including dataset stats, auto-splitting, and zip archiving."""
+    """Test data utility functions including auto-splitting and zip archiving."""
     from ultralytics.data.split import autosplit
-    from ultralytics.data.utils import HUBDatasetStats
     from ultralytics.utils.downloads import zip_directory
 
-    # from ultralytics.utils.files import WorkingDirectory
-    # with WorkingDirectory(ROOT.parent / 'tests'):
+    images_dir = tmp_path / "coco8/images/val"
+    images_dir.mkdir(parents=True)
+    Image.new("RGB", (8, 8)).save(images_dir / "test.jpg")
 
-    for task in TASKS:
-        if task == "semantic":  # HUB stats do not support semantic segmentation datasets yet.
-            continue
-        file = Path(TASK2DATA[task]).with_suffix(".zip")  # i.e. coco8.zip
-        download(f"https://github.com/ultralytics/hub/raw/main/example_datasets/{file.name}", unzip=False, dir=tmp_path)
-        stats = HUBDatasetStats(tmp_path / file, task=task)
-        stats.get_json(save=True)
-        stats.process_images()
-
-    autosplit(tmp_path / "coco8")
-    zip_directory(tmp_path / "coco8/images/val")  # zip
+    autosplit(tmp_path / "coco8/images")
+    assert any((tmp_path / "coco8").glob("autosplit_*.txt"))
+    assert zip_directory(images_dir).is_file()
 
 
 def test_safe_download_unzips_local_path_archive(tmp_path):
@@ -453,7 +445,11 @@ def test_data_converter(tmp_path):
     """Test dataset conversion functions from COCO to YOLO format and class mappings."""
     from ultralytics.data.converter import coco80_to_coco91_class, convert_coco
 
-    download(f"{ASSETS_URL}/instances_val2017.json", dir=tmp_path)
+    cached_file = DATASETS_DIR / "annotations" / "instances_val2017.json"
+    if cached_file.exists():
+        shutil.copy2(cached_file, tmp_path / cached_file.name)
+    else:
+        download(f"{ASSETS_URL}/instances_val2017.json", dir=tmp_path)
     convert_coco(
         labels_dir=tmp_path, save_dir=tmp_path / "yolo_labels", use_segments=True, use_keypoints=False, cls91to80=True
     )

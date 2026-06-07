@@ -569,8 +569,14 @@ class YOLOAnomalyV2Model(DetectionModel):
         #   mask_shuffle_p -- per-sample prob of swapping in another sample's mask (wrong-location
         #                     prior; GT boxes unchanged) so the model treats the prior as a soft hint.
         #   mask_noise_std -- std of additive Gaussian noise on the [0, 1] mask (imperfect heatmap).
+        #   mask_mag_range -- [lo, hi]; per-sample peak scaling of the [0, 1] prior so the GT mask
+        #                     looks like a weak-peak heatmap (memory bank peaks ~0.8). [1, 1] = off.
+        #   mask_blur_sigma_max -- max sigma of a random Gaussian blur softening the binary rect into
+        #                     smooth edges (mimics soft heatmaps). 0 = off.
         mask_shuffle_p = float(v2_cfg.get("mask_shuffle_p", 0.0))
         mask_noise_std = float(v2_cfg.get("mask_noise_std", 0.0))
+        mask_mag_range = list(v2_cfg.get("mask_mag_range", [1.0, 1.0]))
+        mask_blur_sigma_max = float(v2_cfg.get("mask_blur_sigma_max", 0.0))
         # Value remapping: bridges the distribution gap between binary GT masks and
         # soft SegBranch predictions. Applied before HeatmapBiasFusion at both train
         # and inference time. Modes: none (identity), tanh_contrast (smooth stretch),
@@ -654,6 +660,8 @@ class YOLOAnomalyV2Model(DetectionModel):
         self.p_drop = float(p_drop)
         self.mask_shuffle_p = float(mask_shuffle_p)
         self.mask_noise_std = float(mask_noise_std)
+        self.mask_mag_range = (float(mask_mag_range[0]), float(mask_mag_range[1]))
+        self.mask_blur_sigma_max = float(mask_blur_sigma_max)
         self.mask_remap_mode = mask_remap_mode
         self.mask_remap_kwargs = mask_remap_kwargs
         self.spatial_softmax = bool(v2_cfg.get("spatial_softmax", False))
@@ -919,7 +927,8 @@ class YOLOAnomalyV2Model(DetectionModel):
                               ("mask_remap_mode", "none"), ("mask_remap_kwargs", {}),
                               ("spatial_softmax", False), ("softmax_temperature", 1.0),
                               ("fusion_mode", "bias"), ("heatmap_film_fusion", None),
-                              ("heatmap_norm", "none")]:
+                              ("heatmap_norm", "none"), ("mask_mag_range", (1.0, 1.0)),
+                              ("mask_blur_sigma_max", 0.0)]:
             if not hasattr(self, attr):
                 setattr(self, attr, default)
 
@@ -1023,10 +1032,13 @@ class YOLOAnomalyV2Model(DetectionModel):
         return None
 
     def _augment_mask(self, mask):
-        """Training-only mask augmentation for prior robustness.
+        """Training-only mask augmentation: make the binary GT prior look like an inference heatmap.
 
-        Shuffle replaces selected samples' mask with another sample's (wrong-location prior;
-        GT boxes are unchanged), then additive Gaussian noise simulates an imperfect heatmap.
+        Closes the train(binary GT) vs inference(soft, weak-peak memory-bank / SegBranch heatmap)
+        distribution gap. Order: shuffle (wrong-location prior) -> Gaussian blur (soft edges) ->
+        per-sample magnitude scaling (peak < 1, mimics weak heatmaps) -> additive noise. GT boxes are
+        unchanged, so the model learns "weak/soft signal here still means defect here" while keeping
+        "no signal = background" (unlike inference min-max, which amplifies a flat prior into noise).
         """
         b = mask.shape[0]
         if self.mask_shuffle_p > 0.0 and b > 1:
@@ -1036,8 +1048,25 @@ class YOLOAnomalyV2Model(DetectionModel):
                 offset = torch.randint(1, b, (b,), device=mask.device)
                 perm = (torch.arange(b, device=mask.device) + offset) % b
                 mask = torch.where(swap.view(-1, 1, 1, 1), mask[perm], mask)
+        if self.mask_blur_sigma_max > 0.0:
+            sigma = torch.empty(1).uniform_(1e-2, self.mask_blur_sigma_max).item()
+            mask = self._gaussian_blur(mask, sigma)
+        lo, hi = self.mask_mag_range
+        if lo < 1.0 or hi < 1.0:
+            mask = mask * torch.empty(b, 1, 1, 1, device=mask.device).uniform_(lo, hi)
         if self.mask_noise_std > 0.0:
-            mask = (mask + torch.randn_like(mask) * self.mask_noise_std).clamp_(0.0, 1.0)
+            mask = mask + torch.randn_like(mask) * self.mask_noise_std
+        return mask.clamp(0.0, 1.0)
+
+    @staticmethod
+    def _gaussian_blur(mask, sigma):
+        """Separable Gaussian blur of a ``(B, 1, H, W)`` mask with ``sigma`` in pixels."""
+        k = max(3, int(2 * round(3.0 * sigma) + 1))  # odd kernel spanning ~3 sigma
+        coords = torch.arange(k, device=mask.device, dtype=mask.dtype) - k // 2
+        g = torch.exp(-(coords**2) / (2.0 * sigma**2))
+        g = g / g.sum()
+        mask = torch.nn.functional.conv2d(mask, g.view(1, 1, 1, k), padding=(0, k // 2))
+        mask = torch.nn.functional.conv2d(mask, g.view(1, 1, k, 1), padding=(k // 2, 0))
         return mask
 
     def _apply_spatial_softmax(self, mask):
@@ -1210,7 +1239,13 @@ class YOLOAnomalyV2Model(DetectionModel):
                     and bboxes is not None
                     and external_mask is None
                     and prior_mode is None
-                    and (self.mask_shuffle_p > 0.0 or self.mask_noise_std > 0.0)
+                    and (
+                        self.mask_shuffle_p > 0.0
+                        or self.mask_noise_std > 0.0
+                        or self.mask_mag_range[0] < 1.0
+                        or self.mask_mag_range[1] < 1.0
+                        or self.mask_blur_sigma_max > 0.0
+                    )
                 ):
                     mask = self._augment_mask(mask)
                 fused = []

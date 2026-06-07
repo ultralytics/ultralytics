@@ -131,7 +131,7 @@ Clone a public project to your own account:
 
 1. Visit the public project page
 2. Click **Clone Project**
-3. The project and its completed models are copied to your workspace; the clone inherits the source visibility by default (selectable in the clone dialog)
+3. The project and its completed models are copied to your workspace; you choose the clone's visibility in the clone dialog
 
 !!! info "Clone Behavior"
 

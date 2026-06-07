@@ -281,7 +281,7 @@ The API key prefix is displayed on the deployment card footer for identification
 
 ### No Rate Limits
 
-Dedicated endpoints are **not subject to the Platform API rate limits**. Requests go directly to your dedicated service, so throughput is limited only by your endpoint's CPU, memory, and scaling configuration. This is a key advantage over [shared inference](inference.md), which is rate-limited to 20 requests/min per API key.
+Requests sent **directly to your dedicated endpoint's URL** are **not subject to the Platform API rate limits** — throughput is limited only by your endpoint's CPU, memory, and scaling configuration. (Requests proxied through the Platform API, such as the in-browser tester, still use the standard 20 requests/min predict limit.) This is a key advantage over [shared inference](inference.md), which is rate-limited to 20 requests/min per API key.
 
 ### Request Example
 

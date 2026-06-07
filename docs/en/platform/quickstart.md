@@ -53,9 +53,9 @@ During onboarding, you'll be asked to select your data region. The Platform auto
 | **EU** | Europe, Middle East & Africa | Belgium, Europe      | European users, GDPR compliance         |
 | **AP** | Asia Pacific                 | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
 
-!!! warning "Region is Permanent"
+!!! warning "Choose Your Region Carefully"
 
-    Your region selection cannot be changed after account creation. Choose the region closest to you or your users for best performance.
+    Your data region is set during onboarding and cannot be changed yourself afterward, so choose the region closest to you or your users for best performance. If you need to move regions later, contact support to request a change.
 
 ### Free Credits
 

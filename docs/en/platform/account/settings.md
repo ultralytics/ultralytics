@@ -104,9 +104,9 @@ View your data region on the `Profile` tab:
 | **EU** | Europe        | European users, GDPR compliance |
 | **AP** | Asia Pacific  | Asia-Pacific users              |
 
-!!! note "Region is Permanent"
+!!! note "Data Region"
 
-    Data region is selected during onboarding and cannot be changed self-service. All your data stays in this region — contact support to request a region change.
+    Your data region is selected during onboarding and cannot be changed yourself. All your data stays in this region — contact support to request a region change.
 
 ### Storage Usage
 

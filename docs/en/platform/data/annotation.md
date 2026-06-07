@@ -345,7 +345,7 @@ The annotation editor includes a collapsible class sidebar on the right side of 
 - **Color picker**: Click the color swatch next to any class to change its color.
 - **Per-class annotation count**: Each class row shows a superscript count of annotations.
 - **Expand/collapse**: Click the chevron to expand a class and see individual annotations listed below it.
-- **Bidirectional hover highlighting**: Hovering an annotation on the canvas highlights it in the sidebar, and vice versa. The sidebar auto-scrolls and auto-expands to the relevant class.
+- **Bidirectional hover highlighting**: Hovering an annotation on the canvas highlights it in the sidebar, and vice versa. The sidebar auto-scrolls to the relevant class.
 - **Hide/show individual annotations**: Click the eye icon on any annotation row to toggle its visibility on the canvas.
 - **Delete annotations**: Click the trash icon on any annotation row to delete it.
 - **Keyboard shortcuts**: Press `1-9` to quickly select the first 9 classes.
@@ -366,14 +366,15 @@ Right-click on selected annotations to open a context menu with:
 
 The visibility dropdown (eye icon) lets you toggle display of individual elements:
 
-| Toggle             | Description                                                                                |
-| ------------------ | ------------------------------------------------------------------------------------------ |
-| **Annotations**    | Show or hide all annotation overlays                                                       |
-| **Class labels**   | Show or hide class name labels on annotations                                              |
-| **Show pixels**    | Toggle pixelated rendering for zoom inspection (fullscreen)                                |
-| **Crosshairs**     | Show crosshair cursor with pixel coordinates (edit mode)                                   |
-| **Nav thumbnails** | Show navigation thumbnail strip (fullscreen)                                               |
-| **Show all**       | Toggle annotations, labels, crosshairs, and thumbnails at once (does not affect pixelated) |
+| Toggle              | Description                                                                                                     |
+| ------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **Annotations**     | Show or hide all annotation overlays                                                                            |
+| **Class labels**    | Show or hide class name labels on annotations                                                                   |
+| **Show pixels**     | Toggle pixelated rendering for zoom inspection (fullscreen)                                                     |
+| **Crosshairs**      | Show crosshair cursor with pixel coordinates (edit mode)                                                        |
+| **Nav thumbnails**  | Show navigation thumbnail strip (fullscreen)                                                                    |
+| **Bottom info bar** | Show or hide the image info bar at the bottom (fullscreen)                                                      |
+| **Show all**        | Toggle annotations, labels, crosshairs, thumbnails, and the bottom info bar at once (does not affect pixelated) |
 
 ## Crosshair Cursor
 
@@ -408,7 +409,7 @@ Define annotation classes for your dataset in the `Classes` tab:
 You can create new classes directly while annotating without leaving the editor:
 
 1. Draw an annotation on the image
-2. In the class dropdown, click `Add New Class`
+2. In the class sidebar, click `Add class` (or type a new name in the sidebar search box)
 3. Enter the class name
 4. Press Enter to create and assign
 
@@ -423,7 +424,7 @@ This allows for a seamless workflow where you can define classes as you encounte
 - **Rename**: Click a class name in the table to edit it inline
 - **Change color**: Click the color swatch to open the color picker
 - **Search**: Use the search field to filter classes by name
-- **Sort**: Click column headers to sort by name, label count, or image count
+- **Sort**: Click column headers to sort by index, name, annotation count, or image count
 
 ### Class Colors
 
@@ -450,6 +451,9 @@ Efficient annotation with keyboard shortcuts:
     | `Space+Drag`                  | Pan canvas when zoomed       |
     | `Shift+Click`                 | Multi-select annotations     |
     | `Cmd/Ctrl+A`                  | Select all annotations       |
+    | `Cmd/Ctrl+C`                  | Copy selected annotations    |
+    | `Cmd/Ctrl+X`                  | Cut selected annotations     |
+    | `Cmd/Ctrl+V`                  | Paste annotations            |
 
 === "Modes"
 
@@ -469,6 +473,7 @@ Efficient annotation with keyboard shortcuts:
     | `Click outside mask`    | Add to SAM mask (positive point)                                                       |
     | `Shift (hold) + Click`  | Place multiple SAM points before auto-apply commits (Smart mode, auto-apply on)        |
     | `A`                     | Toggle auto-apply (Smart mode)                                                         |
+    | `P`                     | Run YOLO prediction (Smart mode)                                                       |
     | `Enter`                 | Complete polygon / Confirm pose / Save SAM annotation                                  |
     | `Escape`                | Cancel pose / Save SAM annotation / Deselect / Exit                                    |
 
@@ -518,7 +523,7 @@ Annotations are saved when you click `Save` or press `Cmd/Ctrl+S`:
 
 !!! warning "Save Your Work"
 
-    Always save before navigating to another image. Unsaved changes will be lost.
+    Changes auto-save shortly after each edit, and the editor also saves automatically when you navigate to another image or close the editor. You can still save manually at any time with `Save` or `Cmd/Ctrl+S`.
 
 ## FAQ
 
@@ -551,7 +556,7 @@ The keyboard shortcut `1-9` quickly selects classes.
 Yes, but for best results:
 
 - Label all objects of your target classes in each image
-- Use the label filter set to `Unlabeled` to identify images that still need annotation
+- Use the `Annotations` filter set to `Unannotated` to identify images that still need annotation
 - Unlabeled images are excluded from training; only labeled images contribute to the loss
 
 ### Which SAM model should I use?

@@ -54,7 +54,7 @@ ul_a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4
 ### Key Security
 
 - Keys are stored with **AES-256-GCM encryption**
-- Authentication uses SHA-256 hash for fast prefix lookup and hash comparison
+- Authentication uses a SHA-256 hash for a fast indexed lookup
 - Full key values are never stored in plaintext
 
 ## Using API Keys

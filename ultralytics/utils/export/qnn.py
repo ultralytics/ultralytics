@@ -41,6 +41,7 @@ def onnx2qnn(
     transform_fn,
     name: str = "73",
     metadata: dict | None = None,
+    batch: int = 0,
     prefix: str = "",
 ) -> str:
     """Convert an ONNX model to an INT8 Qualcomm QNN context binary using the ONNX Runtime QNN Execution Provider.
@@ -61,6 +62,8 @@ def onnx2qnn(
             (8 Gen 3), `"79"` (8 Elite). Finalizes the graph for the target chip when exporting on a host without a
             Snapdragon NPU.
         metadata (dict | None): Metadata saved as `metadata.yaml`.
+        batch (int): Static batch dimension of the ONNX graph used to tile undersized calibration batches, or 0 for
+            dynamic-batch models.
         prefix (str): Prefix for log messages.
 
     Returns:
@@ -88,7 +91,7 @@ def onnx2qnn(
 
     LOGGER.info(f"\n{prefix} starting INT8 quantization and export with ONNX Runtime QNN (HTP arch {name})...")
     quant_pre_process(str(onnx_file), str(pre_file))
-    qdq_config = get_qnn_qdq_config(str(pre_file), onnx_calibration_reader(dataset, transform_fn))
+    qdq_config = get_qnn_qdq_config(str(pre_file), onnx_calibration_reader(dataset, transform_fn, batch=batch))
     quantize(str(pre_file), str(qdq_file), qdq_config)
 
     # Register the QNN EP, then compile the quantized graph to a context binary during session init (no inference run).

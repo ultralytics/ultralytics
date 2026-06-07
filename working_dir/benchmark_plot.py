@@ -8,8 +8,9 @@ import matplotlib.pyplot as plt
 
 # =============================================================================
 # SELECT DEFAULT BENCHMARK HERE: "m5", "m5_new", "m5_coreml", "m5_onnx_coreml", "xeon", "xeon_new", "t4",
-# "t4_deimv2_xl_obj365_analysis", "t4_deim_backbone_map", "t4_yolo26", "rf_compare", "t4_new", "jetson-agx-thor-gpu",
-# "jetson-agx-thor-cpu", "jetson-agx-orin-gpu", "jetson-agx-orin-cpu",
+# "t4_deimv2_xl_obj365_analysis", "t4_deim_backbone_map", "t4_yolo26", "rf_compare", "t4_all_rf",
+# "yolo27detr_compare", "t4_new",
+# "jetson-agx-thor-gpu", "jetson-agx-thor-cpu", "jetson-agx-orin-gpu", "jetson-agx-orin-cpu",
 # "jetson-orin-nano-super-gpu", or "jetson-orin-nano-super-cpu"
 # =============================================================================
 BENCHMARK = "t4"
@@ -55,7 +56,7 @@ DEIM_DINOV3SPLUS_OBJ365_IMGSZ_SWEEP = [
 ]
 
 RF_DETR_OBJ365_TOPK_IMGSZ = [
-    # Labels include model scale and profiled ONNX image size.
+    # Our benchmark measurements, not paper-reported values. Labels include model scale and profiled ONNX image size.
     ("n/384", 2.7, {"ap": 48.4, "ap50": 67.5, "ap75": 51.7, "ap_small": 25.3, "ap_medium": 53.6, "ap_large": 71.0}),
     ("s/512", 4.0, {"ap": 53.0, "ap50": 72.0, "ap75": 57.1, "ap_small": 31.8, "ap_medium": 58.4, "ap_large": 73.1}),
     ("m/576", 5.0, {"ap": 54.7, "ap50": 73.6, "ap75": 59.1, "ap_small": 35.9, "ap_medium": 59.8, "ap_large": 73.7}),
@@ -94,6 +95,11 @@ YOLO26L_RTDETR_OBJ365_IMGSZ_SWEEP = [
     ("l/512/l3", 5.3, {"ap": 54.7, "ap50": 72.3, "ap75": 59.5, "ap_small": 37.6, "ap_medium": 59.5, "ap_large": 71.3}, 0.1),
     ("l/576/l4", 6.8, {"ap": 55.9, "ap50": 73.3, "ap75": 60.8, "ap_small": 38.7, "ap_medium": 60.4, "ap_large": 71.8}, 0.1),
     ("l/640/l4", 7.7, {"ap": 56.5, "ap50": 74.1, "ap75": 61.6, "ap_small": 41.2, "ap_medium": 61.0, "ap_large": 70.9}, 0.1),
+]
+
+YOLO27DETR_OBJ365_IMGSZ_SWEEP = [
+    *[(f"L/{point[0].removeprefix('l/')}", *point[1:]) for point in YOLO26L_RTDETR_OBJ365_IMGSZ_SWEEP],
+    *[(f"X/{point[0]}", *point[1:]) for point in DEIM_DINOV3SPLUS_OBJ365_IMGSZ_SWEEP],
 ]
 
 BENCHMARKS = {
@@ -557,6 +563,37 @@ BENCHMARKS = {
             ],
         },
     },
+    "t4_all_rf": {
+        "title": "RF-DETR Obj365: All Sources vs DEIM-DINOv3SPlus (Tesla T4 GPU, TensorRT)",
+        "models": {
+            "RF-DETR (obj365, reported)": [
+                # Original RF-DETR repo reported values (TRT v10.something); matches t4_reported entry.
+                ("n", 2.3, {"ap": 48.4, "ap50": 67.5, "ap75": 51.7, "ap_small": 25.3, "ap_medium": 53.6, "ap_large": 71.0}),
+                ("s", 3.5, {"ap": 53.0, "ap50": 72.0, "ap75": 57.1, "ap_small": 31.8, "ap_medium": 58.4, "ap_large": 73.1}),
+                ("m", 4.4, {"ap": 54.7, "ap50": 73.6, "ap75": 59.1, "ap_small": 35.9, "ap_medium": 59.8, "ap_large": 73.7}),
+                ("l", 6.8, {"ap": 56.5, "ap50": 75.1, "ap75": 61.2, "ap_small": 39.0, "ap_medium": 61.0, "ap_large": 74.0}),
+                ("x", 11.5, {"ap": 58.6, "ap50": 77.5, "ap75": 64.0, "ap_small": 40.8, "ap_medium": 64.3, "ap_large": 76.3}),
+                ("xxl", 17.2, {"ap": 60.1, "ap50": 78.5, "ap75": 65.8, "ap_small": 43.7, "ap_medium": 65.1, "ap_large": 76.3}),
+            ],
+            "RF-DETR (obj365, ECDet reported)": [
+                # RF-DETR obj365 results as reported in ECDet paper (arXiv 2603.18739), TRT v10.6.
+                ("s", 3.65, {"ap": 52.9, "ap50": 71.9, "ap75": 57.0, "ap_small": 32.0, "ap_medium": 58.3, "ap_large": 73.0}),
+                ("m", 4.62, {"ap": 54.7, "ap50": 73.5, "ap75": 59.2, "ap_small": 36.1, "ap_medium": 59.7, "ap_large": 73.8}),
+                ("l", 7.38, {"ap": 56.5, "ap50": 75.1, "ap75": 61.3, "ap_small": 39.0, "ap_medium": 61.0, "ap_large": 73.9}),
+                ("x", 14.79, {"ap": 58.6, "ap50": 77.4, "ap75": 63.8, "ap_small": 40.3, "ap_medium": 63.9, "ap_large": 76.2}),
+            ],
+            "RF-DETR (obj365, our measurements)": RF_DETR_OBJ365_TOPK_IMGSZ,
+            "DEIM-DINOv3SPlus (obj365)": DEIM_DINOV3SPLUS_OBJ365_IMGSZ_SWEEP,
+            # "YOLO26L-RTDETR (obj365)": YOLO26L_RTDETR_OBJ365_IMGSZ_SWEEP,
+        },
+    },
+    "yolo27detr_compare": {
+        "title": "YOLO27-DETR vs RF-DETR Obj365: Latency vs mAP (Tesla T4 GPU, TensorRT v10.11)",
+        "models": {
+            "YOLO27-DETR (obj365)": YOLO27DETR_OBJ365_IMGSZ_SWEEP,
+            "RF-DETR (obj365, our benchmark)": RF_DETR_OBJ365_TOPK_IMGSZ,
+        },
+    },
     "t4_deimv2_xl_obj365_analysis": {
         "title": "DEIMv2-XL obj365: Export Variant Analysis (Tesla T4 GPU, TensorRT v10.11)",
         "models": {
@@ -618,6 +655,7 @@ MODEL_STYLES = {
     "YOLO26_RTDETR": ("^", -12),
     "YOLO26_RTDETR (obj365)": ("^", 8),
     "YOLO26L-RTDETR (obj365)": ("<", 8),
+    "YOLO27-DETR (obj365)": ("*", 14),
     "YOLO26_Dfine (obj365)": ("D", -12),
     "D-FINE-DINOv3SPlus (obj365)": ("X", -16),
     "D-FINE-DINOv3S (obj365)": ("P", 10),
@@ -626,7 +664,10 @@ MODEL_STYLES = {
     "DINOv3-STA-RTDETR": ("X", -12),
     "DINOv3-STA-RTDETR (obj365)": ("X", 8),
     "RF-DETR (obj365)": ("s", -12),
+    "RF-DETR (obj365, reported)": ("s", -12),
     "RF-DETR (obj365, TopK)": ("s", -12),
+    "RF-DETR (obj365, our measurements)": ("s", -12),
+    "RF-DETR (obj365, our benchmark)": ("s", -12),
     "RF-DETR (obj365, ECDet reported)": ("s", 8),
     "LW-DETR (obj365)": ("^", 8),
     "RT-DETRv4": ("^", -12),

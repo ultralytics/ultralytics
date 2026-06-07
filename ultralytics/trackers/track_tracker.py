@@ -155,7 +155,8 @@ def attach_raw_preds_hook(predictor) -> None:
 
     @wraps(orig)
     def _wrapped(preds, img, orig_imgs, *args, **kwargs):
-        predictor._raw_preds = preds.detach().cpu() if isinstance(preds, torch.Tensor) else preds
+        # copy=True so the in-place NMS xywh->xyxy conversion can't mutate this captured tensor (CPU aliasing)
+        predictor._raw_preds = preds.detach().to("cpu", copy=True) if isinstance(preds, torch.Tensor) else preds
         predictor._postprocess_im = img
         predictor._postprocess_im0s = orig_imgs
         return orig(preds, img, orig_imgs, *args, **kwargs)
@@ -330,6 +331,7 @@ class TTSTrack(STrack):
             self.kalman_filter, self.mean, self.covariance, self.convert_coords(new_track.tlwh), new_track.score
         )
         self._history.append((frame_id, self.xyxy.copy()))
+        self.score = new_track.score  # set before update_features so the EMA weight uses the current confidence
         if new_track.curr_feat is not None:
             self.update_features(new_track.curr_feat)
         self.tracklet_len = 0
@@ -338,7 +340,7 @@ class TTSTrack(STrack):
         self.frame_id = frame_id
         if new_id:
             self.track_id = self.next_id()
-        self.score, self.cls, self.angle, self.idx = new_track.score, new_track.cls, new_track.angle, new_track.idx
+        self.cls, self.angle, self.idx = new_track.cls, new_track.angle, new_track.idx
 
     def update(self, new_track, frame_id: int) -> None:
         """Update a matched track with a new detection; promote to Tracked after min_track_len."""
@@ -359,13 +361,14 @@ class TTSTrack(STrack):
             velocity += np.stack([dx / norm, dy / norm], axis=-1) / dt
         self.velocity = velocity / self._delta_t
 
+        self.score = new_track.score  # set before update_features so the EMA weight uses the current confidence
         if new_track.curr_feat is not None:
             self.update_features(new_track.curr_feat)
 
         if self.state == TrackState.Tracked or self.tracklet_len >= self.min_track_len:
             self.state = TrackState.Tracked
             self.is_activated = True
-        self.score, self.cls, self.angle, self.idx = new_track.score, new_track.cls, new_track.angle, new_track.idx
+        self.cls, self.angle, self.idx = new_track.cls, new_track.angle, new_track.idx
 
     @staticmethod
     def convert_coords(tlwh: np.ndarray) -> np.ndarray:
@@ -463,8 +466,14 @@ class TRACKTRACK:
 
     @classmethod
     def setup_predictor(cls, predictor):
-        """Attach raw predictions hook needed for Track-Aware Initialization."""
-        attach_raw_preds_hook(predictor)
+        """Attach the raw-predictions hook for Track-Aware Initialization (detect/obb only).
+
+        Recovered (loose-NMS) detections are box-only and have no row in the post-NMS Results, so on segment/pose
+        tasks they cannot carry mask/keypoint data and would mis-index downstream; skip recovery (and its
+        per-frame overhead) for those tasks.
+        """
+        if predictor.args.task in {"detect", "obb"}:
+            attach_raw_preds_hook(predictor)
 
     @classmethod
     def compute_frame_extras(cls, predictor):

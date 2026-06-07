@@ -140,10 +140,10 @@ class FASTTracker(BYTETracker):
         >>> model.track("video.mp4", tracker="fasttrack.yaml")
 
         Drive FastTracker directly with your own detections:
-        >>> from ultralytics.trackers import FastTracker
+        >>> from ultralytics.trackers import FASTTracker
         >>> from ultralytics.utils import YAML, IterableSimpleNamespace
         >>> cfg = IterableSimpleNamespace(**YAML.load("ultralytics/cfg/trackers/fasttrack.yaml"))
-        >>> tracker = FastTracker(cfg)
+        >>> tracker = FASTTracker(cfg)
         >>> tracks = tracker.update(detections)
     """
 
@@ -302,12 +302,12 @@ class FASTTracker(BYTETracker):
         )
 
         if active_boxes.size and unmatched_boxes.size:
-            cov = bbox_ioa(unmatched_boxes, active_boxes)  # (U, A)
-            # Avoid self-match: zero out columns that correspond to the same track id.
+            cov = bbox_ioa(active_boxes, unmatched_boxes)  # (A, U) = intersection / unmatched-track area
+            # Avoid self-match: zero out entries that correspond to the same track id.
             unm_ids = np.asarray([t.track_id for t in unmatched])
-            same = unm_ids[:, None] == active_ids[None, :]
+            same = active_ids[:, None] == unm_ids[None, :]
             cov[same] = 0.0
-            max_cov = cov.max(axis=1)
+            max_cov = cov.max(axis=0)  # per unmatched track, max fraction of its area covered by an active track
         else:
             max_cov = np.zeros(len(unmatched), dtype=np.float32)
 

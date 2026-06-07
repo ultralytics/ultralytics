@@ -24,8 +24,8 @@ class DeepOCSortTrack(OCSortTrack):
     Attributes:
         smooth_feat (np.ndarray | None): Smoothed feature vector via EMA.
         curr_feat (np.ndarray | None): Current frame's feature vector.
-        features (deque): Feature history buffer.
         alpha_fixed_emb (float): Base EMA factor for embedding updates.
+        det_thresh (float): Confidence threshold below which a new embedding is ignored rather than blended.
     """
 
     shared_kalman = KalmanFilterXYAH()

@@ -25,7 +25,6 @@ class BOTrack(STrack):
         shared_kalman (KalmanFilterXYWH): A shared Kalman filter for all instances of BOTrack.
         smooth_feat (np.ndarray): Smoothed feature vector.
         curr_feat (np.ndarray): Current feature vector.
-        features (deque): A deque to store feature vectors with a maximum length defined by `feat_history`.
         alpha (float): Smoothing factor for the exponential moving average of features.
         mean (np.ndarray): The mean state of the Kalman filter.
         covariance (np.ndarray): The covariance matrix of the Kalman filter.
@@ -50,10 +49,8 @@ class BOTrack(STrack):
 
     shared_kalman = KalmanFilterXYWH()
 
-    def __init__(
-        self, xywh: np.ndarray, score: float, cls: int, feat: np.ndarray | None = None, feat_history: int = 50
-    ):
-        """Initialize a BOTrack object with temporal parameters, such as feature history, alpha, and current features.
+    def __init__(self, xywh: np.ndarray, score: float, cls: int, feat: np.ndarray | None = None):
+        """Initialize a BOTrack object with feature-smoothing state and a Kalman filter.
 
         Args:
             xywh (np.ndarray): Bounding box in `(x, y, w, h, idx)` or `(x, y, w, h, angle, idx)` format, where (x, y) is
@@ -61,7 +58,6 @@ class BOTrack(STrack):
             score (float): Confidence score of the detection.
             cls (int): Class ID of the detected object.
             feat (np.ndarray, optional): Feature vector associated with the detection.
-            feat_history (int): Maximum length of the feature history deque.
         """
         super().__init__(xywh, score, cls)
 

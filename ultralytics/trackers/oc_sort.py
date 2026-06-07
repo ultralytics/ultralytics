@@ -227,6 +227,36 @@ class OCSORT(BYTETracker):
         dists = dists + self.inertia * self._velocity_direction_cost(tracks, detections)
         return self._fuse_appearance(dists, tracks, detections, iou_dists=iou_dists)
 
+    def _ocr_associate(
+        self,
+        tracks: list[OCSortTrack],
+        dets: list[OCSortTrack],
+        activated: list[OCSortTrack],
+        refind: list[OCSortTrack],
+    ) -> tuple[list[int], list[int]]:
+        """Run one OCR (last-observation IoU) pass, applying matches in place.
+
+        Returns:
+            (tuple[list[int], list[int]]): Local indices of unmatched ``tracks`` and unmatched ``dets``.
+        """
+        if not tracks or not dets:
+            return list(range(len(tracks))), list(range(len(dets)))
+        ocr_dists = self._ocr_distance(tracks, dets)
+        if self.args.fuse_score:
+            ocr_dists = matching.fuse_score(ocr_dists, dets)
+        ocr_dists = self._fuse_appearance(ocr_dists, tracks, dets)
+        matches, u_track, u_det = matching.linear_assignment(ocr_dists, thresh=self.args.match_thresh)
+        for itracked, idet in matches:
+            track, det = tracks[itracked], dets[idet]
+            if track.state == TrackState.Tracked:
+                track.update(det, self.frame_id)
+                activated.append(track)
+            else:
+                track.apply_oru(det.xyxy, self.frame_id)
+                track.re_activate(det, self.frame_id, new_id=False)
+                refind.append(track)
+        return list(u_track), list(u_det)
+
     def _post_first_association(
         self,
         strack_pool: list[OCSortTrack],
@@ -236,37 +266,24 @@ class OCSORT(BYTETracker):
         activated: list[OCSortTrack],
         refind: list[OCSortTrack],
     ) -> tuple[list[int], list[int]]:
-        """Observation-Centric Recovery (OCR) pass after first-stage association."""
-        ocr_tracked = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
-        ocr_dets = [detections[i] for i in u_detection]
+        """Observation-Centric Recovery (OCR) pass after first-stage association.
 
-        if not ocr_tracked or not ocr_dets:
+        Runs OCR for still-Tracked unmatched tracks first to preserve active-track matching priority, then for
+        Lost tracks on the detections still unmatched, so a recently-lost track cannot outbid an active one.
+        """
+        ocr_dets = [detections[i] for i in u_detection]
+        if not ocr_dets:
             return u_track, u_detection
 
-        ocr_dists = self._ocr_distance(ocr_tracked, ocr_dets)
-        if self.args.fuse_score:
-            ocr_dists = matching.fuse_score(ocr_dists, ocr_dets)
-        ocr_dists = self._fuse_appearance(ocr_dists, ocr_tracked, ocr_dets)
-        ocr_matches, ocr_u_track, ocr_u_det = matching.linear_assignment(ocr_dists, thresh=self.args.match_thresh)
+        tracked = [i for i in u_track if strack_pool[i].state == TrackState.Tracked]
+        other = [i for i in u_track if strack_pool[i].state != TrackState.Tracked]
 
-        for itracked, idet in ocr_matches:
-            track = ocr_tracked[itracked]
-            det = ocr_dets[idet]
-            if track.state == TrackState.Tracked:
-                track.update(det, self.frame_id)
-                activated.append(track)
-            else:
-                track.apply_oru(det.xyxy, self.frame_id)
-                track.re_activate(det, self.frame_id, new_id=False)
-                refind.append(track)
+        u_t1, u_d1 = self._ocr_associate([strack_pool[i] for i in tracked], ocr_dets, activated, refind)
+        remaining = [ocr_dets[j] for j in u_d1]
+        u_t2, u_d2 = self._ocr_associate([strack_pool[i] for i in other], remaining, activated, refind)
 
-        ocr_u_track_set = {ocr_tracked[i].track_id for i in ocr_u_track}
-        u_track = [
-            i
-            for i in u_track
-            if strack_pool[i].track_id in ocr_u_track_set or strack_pool[i].state != TrackState.Tracked
-        ]
-        u_detection = [u_detection[i] for i in ocr_u_det]
+        u_track = [tracked[i] for i in u_t1] + [other[i] for i in u_t2]
+        u_detection = [u_detection[u_d1[j]] for j in u_d2]
         return u_track, u_detection
 
     def _second_association(

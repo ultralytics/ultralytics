@@ -360,7 +360,7 @@ There is no appearance model and no camera-motion compensation.
 **Tuning tips:**
 
 - **Identity swaps in crowds:** raise `appearance_thresh` (e.g. `0.92-0.95`) and lower `alpha_fixed_emb` so embeddings adapt more slowly.
-- **Moving camera:** keep `gmc_method: sparseOptFlow`.
+- **Moving camera:** set `gmc_method: sparseOptFlow` (Deep OC-SORT defaults to `none`).
 - **Lower latency:** keep `with_reid: False` (default) for motion + CMC only; enable ReID only when ID swaps dominate errors.
 
 #### FastTracker
@@ -411,7 +411,6 @@ There is no appearance model and no camera-motion compensation.
 | `reid_weight`    | `0.0-1.0`              | Weight of cosine ReID distance. Falls back to HMIoU if ReID is disabled. |
 | `conf_weight`    | `0.0-1.0`              | Weight of confidence-projection distance.                                |
 | `angle_weight`   | `0.0-1.0`              | Weight of corner-angle distance.                                         |
-| `det_thr`        | `0.0-1.0`              | Detection threshold separating high- from low-confidence detections.     |
 | `penalty_p`      | `0.0-1.0`              | Cost penalty for low-confidence detections.                              |
 | `penalty_q`      | `0.0-1.0`              | Cost penalty for detections recovered by secondary NMS.                  |
 | `reduce_step`    | `0.0-1.0`              | Match-threshold relaxation per iteration.                                |

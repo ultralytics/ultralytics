@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 from PIL import Image
 
-from ultralytics.utils import checks
+from ultralytics.utils import WEIGHTS_DIR, checks
 from ultralytics.utils.torch_utils import smart_inference_mode
 
 try:
@@ -80,7 +80,7 @@ class CLIP(TextModel):
             device (torch.device): Device to load the model on.
         """
         super().__init__()
-        self.model, self.image_preprocess = clip.load(size, device=device)
+        self.model, self.image_preprocess = clip.load(size, device=device, download_root=str(WEIGHTS_DIR / "clip"))
         self.to(device)
         self.device = device
         self.eval()

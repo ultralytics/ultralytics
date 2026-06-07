@@ -501,13 +501,14 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
     c, mh, mw = protos.shape  # CHW
     masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)  # NHW
 
-    width_ratio = mw / shape[1]
-    height_ratio = mh / shape[0]
-    ratios = torch.tensor([[width_ratio, height_ratio, width_ratio, height_ratio]], device=bboxes.device)
-
-    masks = crop_mask(masks, boxes=bboxes * ratios)  # NHW
     if upsample:
         masks = F.interpolate(masks[None], shape, mode="bilinear")[0]  # NHW
+        masks = crop_mask(masks, boxes=bboxes)  # NHW
+    else:
+        width_ratio = mw / shape[1]
+        height_ratio = mh / shape[0]
+        ratios = torch.tensor([[width_ratio, height_ratio, width_ratio, height_ratio]], device=bboxes.device)
+        masks = crop_mask(masks, boxes=bboxes * ratios)  # NHW
     return masks.gt_(0.0).byte()
 
 

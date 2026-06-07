@@ -155,12 +155,16 @@ class BaseValidator:
         if self.training:
             self.device = trainer.device
             self.data = trainer.data
-            # Force FP16 val during training
-            self.args.half = self.device.type != "cpu" and trainer.amp
+            # Force FP16 val during training (except MPS due to issue #24399 - mAP discrepancy)
+            self.args.half = self.device.type not in {"cpu", "mps"} and trainer.amp
             model = trainer.ema.ema or trainer.model
             if trainer.args.compile and hasattr(model, "_orig_mod"):
                 model = model._orig_mod  # validate non-compiled original model to avoid issues
-            model = model.half() if self.args.half else model.float()
+            # Convert to FP32 for validation - use .to() for proper conversion on all devices including MPS
+            if self.args.half:
+                model = model.half()
+            else:
+                model = model.to(torch.float32)
             self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
             model.eval()

@@ -275,7 +275,8 @@ Returns health check status with response latency.
 {
     "healthy": true,
     "status": 200,
-    "latencyMs": 142
+    "latencyMs": 142,
+    "serverTiming": { "db": 8, "ping": 142, "total": 150 }
 }
 ```
 

@@ -100,12 +100,12 @@ The Train tab has three subtabs:
 
 Interactive training metric charts showing loss curves and performance metrics over epochs:
 
-| Chart Group       | Metrics                                        |
-| ----------------- | ---------------------------------------------- |
-| **Metrics**       | mAP50, mAP50-95, precision, recall             |
-| **Train Loss**    | train/box_loss, train/cls_loss, train/dfl_loss |
-| **Val Loss**      | val/box_loss, val/cls_loss, val/dfl_loss       |
-| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                         |
+| Chart Group         | Metrics                                        |
+| ------------------- | ---------------------------------------------- |
+| **Metrics**         | mAP50, mAP50-95, precision, recall             |
+| **Training Loss**   | train/box_loss, train/cls_loss, train/dfl_loss |
+| **Validation Loss** | val/box_loss, val/cls_loss, val/dfl_loss       |
+| **Learning Rate**   | lr/pg0, lr/pg1, lr/pg2                         |
 
 ![Ultralytics Platform Model Train Charts Subtab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-model-train-charts-subtab.avif)
 
@@ -329,7 +329,7 @@ Control who can see your model:
 | **Private** | Only you can access             |
 | **Public**  | Anyone can view on Explore page |
 
-To change visibility, click the visibility badge (e.g., `private` or `public`) on the model page. Switching to private takes effect immediately. Switching to public shows a confirmation dialog before applying.
+To change visibility, click the visibility badge (e.g., `private` or `public`) in the page header. Visibility is set at the project level, so this controls all models in the project. Switching to private takes effect immediately. Switching to public shows a confirmation dialog before applying.
 
 ## Delete Model
 

@@ -49,15 +49,15 @@ The Account section helps you:
 
 Account management is organized into seven tabs within `Settings` (in order):
 
-| Tab            | Description                                                                            |
-| -------------- | -------------------------------------------------------------------------------------- |
-| `Profile`      | Display name, bio, company, use case, emails, social links, data region                |
-| `API Keys`     | Create and manage API keys for remote training and programmatic access                 |
-| `Plans`        | Compare Free, Pro, and Enterprise plans                                                |
-| `Billing`      | Credit balance, top-up, payment methods, transactions                                  |
-| `Teams`        | Member list, roles, invites, seat allocation                                           |
-| `Integrations` | Import datasets from Ultralytics HUB and Roboflow; Weights & Biases sync (coming soon) |
-| `Trash`        | Soft-deleted projects, datasets, and models (30-day recovery)                          |
+| Tab            | Description                                                                                                                               |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `Profile`      | Display name, bio, company, use case, emails, social links, data region                                                                   |
+| `API Keys`     | Create and manage API keys for remote training and programmatic access                                                                    |
+| `Plans`        | Compare Free, Pro, and Enterprise plans                                                                                                   |
+| `Billing`      | Credit balance, top-up, payment methods, transactions                                                                                     |
+| `Teams`        | Member list, roles, invites, seat allocation                                                                                              |
+| `Integrations` | Transfer datasets, projects, models, and balance from Ultralytics HUB; import datasets from Roboflow; Weights & Biases sync (coming soon) |
+| `Trash`        | Soft-deleted projects, datasets, and models (30-day recovery)                                                                             |
 
 ## Security
 
@@ -110,8 +110,8 @@ Account deletion is available in Settings:
 
 1. Go to `Settings > Profile`
 2. Scroll to the bottom
-3. Click **Delete Account**
-4. Confirm deletion
+3. Click **Delete My Account**
+4. Type `DELETE` to confirm, then click **Delete My Account**
 
 !!! warning "Permanent Action"
 

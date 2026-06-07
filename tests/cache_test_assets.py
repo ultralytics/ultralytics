@@ -87,9 +87,9 @@ def cache_clip_model() -> None:
         return
 
     LOGGER.info("[cache] Downloading CLIP text encoder ...")
-    from ultralytics.nn.text_model import build_text_model
+    from ultralytics.nn.text_model import CLIP
 
-    model = build_text_model("clip:ViT-B/32", device=torch.device("cpu"))
+    model = CLIP("ViT-B/32", device=torch.device("cpu"))
     del model
     LOGGER.info("[cache] CLIP text encoder done.")
 

@@ -25,7 +25,7 @@ The COCO-Seg dataset is partitioned into three subsets:
 
 1. **Train2017**: 118K images for training instance segmentation models.
 2. **Val2017**: 5K images used for validation during model development.
-3. **Test2017**: 20K images used for benchmarking. Ground-truth annotations for this subset are not publicly available, so predictions must be submitted to the [COCO evaluation server](https://codalab.lisn.upsaclay.fr/competitions/7383) for scoring.
+3. **Test2017**: 20K images used for benchmarking. Ground-truth annotations for this subset are not publicly available, so predictions must be submitted to the [COCO evaluation server](https://cocodataset.org/#upload) for scoring.
 
 ## Applications
 
@@ -151,6 +151,6 @@ The COCO-Seg dataset is partitioned into three subsets for specific training and
 
 1. **Train2017**: Contains 118K images used primarily for training instance segmentation models.
 2. **Val2017**: Comprises 5K images utilized for validation during the training process.
-3. **Test2017**: Encompasses 20K images reserved for testing and benchmarking trained models. Note that ground truth annotations for this subset are not publicly available, and performance results are submitted to the [COCO evaluation server](https://codalab.lisn.upsaclay.fr/competitions/7383) for assessment.
+3. **Test2017**: Encompasses 20K images reserved for testing and benchmarking trained models. Note that ground truth annotations for this subset are not publicly available, and performance results are submitted to the [COCO evaluation server](https://cocodataset.org/#upload) for assessment.
 
 For smaller experimentation needs, you might also consider using the [COCO8-seg dataset](https://docs.ultralytics.com/datasets/segment/coco8-seg), which is a compact version containing just 8 images from the COCO train 2017 set.

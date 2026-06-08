@@ -49,8 +49,8 @@ def enable_platform_wandb():
     If the user connected a W&B API key on the Platform, fetch it (authenticated by the Ultralytics API key) and turn on
     the built-in W&B integration for this run: set WANDB_API_KEY and flip the in-memory `wandb` setting. The Platform
     validates the key before returning it, so a revoked key comes back null and never reaches the (unguarded) wb.init().
-    Must run before the W&B callback is imported, since that callback evaluates its enable-gate at import time.
-    Never raises — any failure simply leaves W&B logging off.
+    Must run before the W&B callback is imported, since that callback evaluates its enable-gate at import time. Never
+    raises — any failure simply leaves W&B logging off.
     """
     if not _api_key or SETTINGS.get("wandb") or os.environ.get("WANDB_API_KEY"):
         return  # not logged in, already enabled, or the user already configured W&B themselves

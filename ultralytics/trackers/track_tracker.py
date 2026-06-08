@@ -24,6 +24,7 @@ from .utils.stracks import joint_stracks, merge_track_pools, multi_gmc, parse_bb
 _CORNER_DX_IDX = np.array([0, 0, 2, 2])
 _CORNER_DY_IDX = np.array([1, 3, 1, 3])
 
+_LOOSE_NMS_IOU = 0.95  # looser NMS IoU used to recover detections the tight NMS dropped
 _LOOSE_NMS_DEDUP_IOU = 0.97  # IoU threshold to consider duplicate detections as "new"
 
 
@@ -174,12 +175,9 @@ def compute_dets_del(predictor) -> list | None:
     from ultralytics.utils import ops
     from ultralytics.utils.metrics import box_iou
 
-    orig_iou = predictor.args.iou
-    predictor.args.iou = 0.95
-    try:
-        loose_results = predictor._orig_postprocess(raw, predictor._postprocess_im, predictor._postprocess_im0s)
-    finally:
-        predictor.args.iou = orig_iou
+    loose_results = predictor._orig_postprocess(
+        raw, predictor._postprocess_im, predictor._postprocess_im0s, iou=_LOOSE_NMS_IOU
+    )
 
     is_obb = predictor.args.task == "obb"
     out = []

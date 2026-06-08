@@ -449,9 +449,13 @@ def get_github_assets(
     if version != "latest":
         version = f"tags/{version}"  # i.e. tags/v6.2
     url = f"https://api.github.com/repos/{repo}/releases/{version}"
-    r = requests.get(url, timeout=30)  # github api
-    if r.status_code != 200 and r.reason != "rate limit exceeded" and retry:  # failed and not 403 rate limit exceeded
-        r = requests.get(url, timeout=30)  # try again
+    try:
+        r = requests.get(url, timeout=30)  # github api
+        if r.status_code != 200 and r.reason != "rate limit exceeded" and retry:  # failed and not 403 rate limit
+            r = requests.get(url, timeout=30)  # try again
+    except requests.exceptions.RequestException as e:
+        LOGGER.warning(f"GitHub assets check failure for {url}: {e}")
+        return "", []
     if r.status_code != 200:
         LOGGER.warning(f"GitHub assets check failure for {url}: {r.status_code} {r.reason}")
         return "", []

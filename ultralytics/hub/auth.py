@@ -115,7 +115,7 @@ class Auth:
                     raise ConnectionError("Unable to authenticate.")
                 return True
             raise ConnectionError("User has not authenticated locally.")
-        except ConnectionError:
+        except (ConnectionError, requests.exceptions.RequestException):
             self.id_token = self.api_key = False  # reset invalid
             LOGGER.warning(f"{PREFIX}Invalid API key")
             return False

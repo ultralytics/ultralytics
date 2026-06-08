@@ -18,21 +18,21 @@ def is_right_padded(mask: torch.Tensor):
 
 
 def concat_padded_sequences(seq1, mask1, seq2, mask2, return_index: bool = False):
-    """
-    Concatenates two right-padded sequences, such that the resulting sequence
-    is contiguous and also right-padded.
+    """Concatenate two right-padded sequences into a contiguous, right-padded sequence.
 
-    Following pytorch's convention, tensors are sequence first, and the mask are
-    batch first, with 1s for padded values.
+    Following PyTorch convention, tensors are sequence-first and masks are batch-first, with 1s for padded values.
 
-    :param seq1: A tensor of shape (seq1_length, batch_size, hidden_size).
-    :param mask1: A tensor of shape (batch_size, seq1_length).
-    :param seq2: A tensor of shape (seq2_length, batch_size,  hidden_size).
-    :param mask2: A tensor of shape (batch_size, seq2_length).
-    :param return_index: If True, also returns the index of the ids of the element of seq2
-        in the concatenated sequence. This can be used to retrieve the elements of seq2
-    :return: A tuple (concatenated_sequence, concatenated_mask) if return_index is False,
-        otherwise (concatenated_sequence, concatenated_mask, index).
+    Args:
+        seq1 (torch.Tensor): A tensor of shape (seq1_length, batch_size, hidden_size).
+        mask1 (torch.Tensor): A tensor of shape (batch_size, seq1_length).
+        seq2 (torch.Tensor): A tensor of shape (seq2_length, batch_size, hidden_size).
+        mask2 (torch.Tensor): A tensor of shape (batch_size, seq2_length).
+        return_index (bool): If True, also return the index of the ids of the elements of seq2 in the concatenated
+            sequence, which can be used to retrieve the elements of seq2.
+
+    Returns:
+        (tuple): (concatenated_sequence, concatenated_mask) if return_index is False, otherwise
+            (concatenated_sequence, concatenated_mask, index).
     """
     seq1_length, batch_size, hidden_size = seq1.shape
     seq2_length, batch_size, hidden_size = seq2.shape

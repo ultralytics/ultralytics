@@ -160,7 +160,18 @@ class BaseValidator:
             model = trainer.ema.ema or trainer.model
             if trainer.args.compile and hasattr(model, "_orig_mod"):
                 model = model._orig_mod  # validate non-compiled original model to avoid issues
-            model = model.half() if self.args.half else model.float()
+            if self.args.half:
+                # Clamp to the fp16 range before the in-place half cast: a finite weight above the fp16 max would
+                # otherwise overflow to Inf, which the post-val float cast cannot undo, permanently poisoning the live
+                # EMA so every later checkpoint is skipped (https://github.com/ultralytics/ultralytics/issues/24615).
+                # NaN is left intact so genuine divergence is still caught at checkpoint time.
+                fp16_max = torch.finfo(torch.float16).max
+                for v in model.state_dict().values():
+                    if isinstance(v, torch.Tensor) and v.is_floating_point():
+                        v.clamp_(-fp16_max, fp16_max)
+                model = model.half()
+            else:
+                model = model.float()
             self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
             model.eval()

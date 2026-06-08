@@ -120,12 +120,20 @@ def modelopt_quantize_onnx(
     check_requirements("nvidia-modelopt[onnx]")
     import onnx
 
-    input_name = onnx.load(onnx_file, load_external_data=False).graph.input[0].name
     if int8:
         from modelopt.onnx.quantization import quantize
 
+        input_name = onnx.load(onnx_file, load_external_data=False).graph.input[0].name
         out_file = str(Path(onnx_file).with_suffix(".int8.onnx"))
-        calib = torch.cat([batch["img"].to(torch.float32) / 255.0 for batch in dataset]).cpu().numpy()
+        # Collect up to ~500 calibration images (TensorRT recommendation); ModelOpt holds them in memory at once,
+        # so cap the count to bound memory instead of materializing the entire (possibly thousands-image) dataset.
+        images, n = [], 0
+        for batch in dataset:
+            images.append(batch["img"].to(torch.float32) / 255.0)
+            n += images[-1].shape[0]
+            if n >= 512:
+                break
+        calib = torch.cat(images).cpu().numpy()
         LOGGER.info(f"{prefix} quantizing ONNX to INT8 with ModelOpt using {calib.shape[0]} calibration images...")
         kwargs = {"calibration_shapes": f"{input_name}:{'x'.join(str(d) for d in shape)}"} if dynamic else {}
         quantize(

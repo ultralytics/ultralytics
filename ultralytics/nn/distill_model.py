@@ -62,7 +62,9 @@ class DistillationModel(nn.Module):
     Attributes:
         teacher_model (nn.Module): Frozen teacher model providing features.
         student_model (nn.Module): Trainable student model being distilled.
-        feats_idx (list[int]): FPN/PAN layer indices feeding the transformer decoder.
+        student_feats_idx (list[int]): Student FPN/PAN layer indices feeding the transformer decoder.
+        teacher_feats_idx (list[int]): Teacher FPN/PAN layer indices feeding the transformer decoder (may differ from
+            `student_feats_idx` for cross-architecture distillation; paired with student levels by position).
         projector (nn.ModuleList): 1x1-conv-ReLU-1x1-conv projector per feature level.
         dis (float): Distillation loss weight factor.
     """
@@ -81,7 +83,14 @@ class DistillationModel(nn.Module):
         self.teacher_model = teacher_model.to(device)
         self._freeze_teacher()
         self.student_model = student_model
-        self.feats_idx = self.get_distill_layers(student_model)
+        self.student_feats_idx = self.get_distill_layers(student_model)
+        self.teacher_feats_idx = self.get_distill_layers(self.teacher_model)
+        if len(self.student_feats_idx) != len(self.teacher_feats_idx):
+            raise ValueError(
+                f"Student decoder consumes {len(self.student_feats_idx)} FPN levels "
+                f"({self.student_feats_idx}) but teacher consumes {len(self.teacher_feats_idx)} "
+                f"({self.teacher_feats_idx}); per-level KD needs matching level counts."
+            )
         self._parse_distill_config(student_model.args)
         self._init_feature_dicts()
         self._register_neck_hooks()
@@ -164,10 +173,15 @@ class DistillationModel(nn.Module):
             setattr(self, k, {})
 
     def _register_neck_hooks(self):
-        """Register forward hooks on the FPN/PAN layers feeding the transformer decoder (teacher + student)."""
-        for idx in self.feats_idx:
-            self.teacher_model.model[idx].register_forward_hook(FeatureHook(self._teacher_feats, idx))
-            self.student_model.model[idx].register_forward_hook(FeatureHook(self._student_feats, idx))
+        """Register forward hooks on the FPN/PAN layers feeding the transformer decoder (teacher + student).
+
+        Teacher and student may consume their FPN levels at different yaml indices (e.g. teacher `[15, 18, 21]`
+        vs student `[16, 19, 22]`), so each side is hooked at its own indices and the per-level pairing is by
+        position in the lists (which must have equal length).
+        """
+        for s_idx, t_idx in zip(self.student_feats_idx, self.teacher_feats_idx):
+            self.teacher_model.model[t_idx].register_forward_hook(FeatureHook(self._teacher_feats, t_idx))
+            self.student_model.model[s_idx].register_forward_hook(FeatureHook(self._student_feats, s_idx))
 
     def _uses_objectness(self):
         """True when the configured decoder mode needs the teacher/student `enc_score_head` objectness."""
@@ -217,6 +231,11 @@ class DistillationModel(nn.Module):
                     "distill_decoder='query_feat'/'all' requires both teacher and student decoders to expose "
                     "dec_score_head."
                 )
+            if not hasattr(teacher_decoder, "eval_idx") or not hasattr(student_decoder, "eval_idx"):
+                raise ValueError(
+                    "distill_decoder='query_feat'/'all' requires both decoders to expose `eval_idx` (available on "
+                    "DFineDecoder / DeimDecoder but not base RTDETRDecoder)."
+                )
             teacher_decoder.register_forward_hook(FeatureHook(self._teacher_dec_out, "out"))
             student_decoder.register_forward_hook(FeatureHook(self._student_dec_out, "out"))
             teacher_decoder.dec_score_head[teacher_decoder.eval_idx].register_forward_pre_hook(
@@ -232,9 +251,9 @@ class DistillationModel(nn.Module):
         Called by `__setstate__` so re-registration after unpickling never stacks duplicates. Safe to call when the
         relevant submodules do not exist (the `hasattr` guards skip cleanly).
         """
-        for idx in self.feats_idx:
-            self.teacher_model.model[idx]._forward_hooks.clear()
-            self.student_model.model[idx]._forward_hooks.clear()
+        for s_idx, t_idx in zip(self.student_feats_idx, self.teacher_feats_idx):
+            self.teacher_model.model[t_idx]._forward_hooks.clear()
+            self.student_model.model[s_idx]._forward_hooks.clear()
         t_dec = self.teacher_model.model[-1]
         s_dec = self.student_model.model[-1]
         t_dec._forward_hooks.clear()
@@ -243,9 +262,9 @@ class DistillationModel(nn.Module):
             t_dec.enc_score_head._forward_hooks.clear()
         if hasattr(s_dec, "enc_score_head"):
             s_dec.enc_score_head._forward_hooks.clear()
-        if hasattr(t_dec, "dec_score_head"):
+        if hasattr(t_dec, "dec_score_head") and hasattr(t_dec, "eval_idx"):
             t_dec.dec_score_head[t_dec.eval_idx]._forward_pre_hooks.clear()
-        if hasattr(s_dec, "dec_score_head"):
+        if hasattr(s_dec, "dec_score_head") and hasattr(s_dec, "eval_idx"):
             s_dec.dec_score_head[s_dec.eval_idx]._forward_pre_hooks.clear()
 
     def _dummy_forward(self, imgsz, device):
@@ -260,8 +279,8 @@ class DistillationModel(nn.Module):
         with torch.no_grad():
             self.teacher_model(torch.zeros(2, 3, imgsz, imgsz, device=device))
             self.student_model(torch.zeros(2, 3, imgsz, imgsz, device=device))
-        teacher_output = [self._teacher_feats[idx] for idx in self.feats_idx]
-        student_output = [self._student_feats[idx] for idx in self.feats_idx]
+        teacher_output = [self._teacher_feats[idx] for idx in self.teacher_feats_idx]
+        student_output = [self._student_feats[idx] for idx in self.student_feats_idx]
         assert all(t.ndim == 4 and s.ndim == 4 for t, s in zip(teacher_output, student_output)), (
             "Expected 4D FPN feature maps at every hook index for transformer-decoder distillation."
         )
@@ -352,7 +371,7 @@ class DistillationModel(nn.Module):
 
         Args:
             teacher_outputs (list[torch.Tensor]): Per-level teacher features used to derive runtime spatial split sizes
-                (length matches feats_idx).
+                (length matches teacher_feats_idx).
 
         Returns:
             (tuple[torch.Tensor, ...]): Per-level score tensors of shape (N, 1, H*W).
@@ -368,7 +387,7 @@ class DistillationModel(nn.Module):
         """Dispatch to the configured saliency source.
 
         Returns a per-level tuple of score tensors, each of shape (N, 1, H*W), matching the
-        order of `feats_idx`. The selected mode comes from `args.distill_saliency`.
+        order of `teacher_feats_idx`. The selected mode comes from `args.distill_saliency`.
         """
         if self.distill_saliency == "enc_score":
             return self._enc_score_saliency(teacher_outputs)
@@ -380,13 +399,16 @@ class DistillationModel(nn.Module):
             getattr(self, k).clear()
 
     def _neck_loss(self):
-        """Score-weighted L2 loss summed over the FPN levels feeding the decoder, scaled by `self.dis`."""
-        teacher_outputs = [self._teacher_feats[idx] for idx in self.feats_idx]
+        """Score-weighted L2 loss summed over the FPN levels feeding the decoder, scaled by `self.dis`.
+
+        Pairs student/teacher levels by position so the two sides can use different yaml indices.
+        """
+        teacher_outputs = [self._teacher_feats[idx] for idx in self.teacher_feats_idx]
         teacher_scores = self._teacher_scores(teacher_outputs)
         total = 0.0
-        for i, feat_idx in enumerate(self.feats_idx):
+        for i, s_idx in enumerate(self.student_feats_idx):
             teacher_feat = teacher_outputs[i]
-            student_feat = self.projector[i](self._student_feats[feat_idx])
+            student_feat = self.projector[i](self._student_feats[s_idx])
             total = total + self.loss_sl2(student_feat, teacher_feat, teacher_scores[i])
         return total * self.dis
 

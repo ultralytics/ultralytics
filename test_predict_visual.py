@@ -64,9 +64,10 @@ def load_mask_tensor(mask_path: str | None, imgsz: int) -> torch.Tensor | None:
 
 
 def run_prior(y: YOLO, model: YOLOAnomalyV2Model, img_path: str, prior_mode: str,
-              imgsz: int, conf: float = 0.1, external_mask: torch.Tensor | None = None, device=None):
+              imgsz: int, conf: float = 0.1, iou: float = 0.1,
+              external_mask: torch.Tensor | None = None, device=None):
     """Run predict with a prior mode, return (pred_rgb, n_det, heatmap_np)."""
-    res = y.predict(img_path, imgsz=imgsz, prior_mode=prior_mode, conf=conf,
+    res = y.predict(img_path, imgsz=imgsz, prior_mode=prior_mode, conf=conf, iou=iou,
                     external_mask=external_mask, device=device, verbose=False)
     r = res[0]
     n_det = r.boxes.shape[0] if r.boxes is not None else 0
@@ -150,6 +151,7 @@ def main():
     parser.add_argument("--n-per-category", type=int, default=20,
                         help="Max test images per category (0 = all)")
     parser.add_argument("--conf", type=float, default=0.1)
+    parser.add_argument("--iou", type=float, default=0.1, help="NMS IoU threshold (applied to all prior modes)")
     parser.add_argument("--imgsz", type=int, default=320)
     parser.add_argument("--batch", type=int, default=8)
     parser.add_argument("--max_bank", type=int, default=10000)
@@ -239,13 +241,13 @@ def main():
             mask_path = CompareGrid.find_mask(img_path)
             mask_tensor = load_mask_tensor(mask_path, args.imgsz)
 
-            none_pred, n_none, _ = run_prior(y, model, img_path, "none", args.imgsz, args.conf, device=device)
-            seg_pred, n_seg, seg_hmap = run_prior(y, model, img_path, "segment", args.imgsz, args.conf, device=device)
+            none_pred, n_none, _ = run_prior(y, model, img_path, "none", args.imgsz, args.conf, iou=args.iou, device=device)
+            seg_pred, n_seg, seg_hmap = run_prior(y, model, img_path, "segment", args.imgsz, args.conf, iou=args.iou, device=device)
             seg_heat = CompareGrid.heatmap_panel(original, seg_hmap)
-            heat_pred, n_heat, heat_hmap = run_prior(y, model, img_path, "heatmap", args.imgsz, args.conf, device=device)
+            heat_pred, n_heat, heat_hmap = run_prior(y, model, img_path, "heatmap", args.imgsz, args.conf, iou=args.iou, device=device)
             heat_heat = CompareGrid.heatmap_panel(original, heat_hmap)
             mask_pred, n_mask, _ = run_prior(y, model, img_path, "mask", args.imgsz, args.conf,
-                                             external_mask=mask_tensor, device=device)
+                                             iou=args.iou, external_mask=mask_tensor, device=device)
             mask_img = CompareGrid.mask_panel(original, mask_path)
 
             cg.save(

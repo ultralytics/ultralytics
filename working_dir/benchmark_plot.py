@@ -9,11 +9,11 @@ import matplotlib.pyplot as plt
 # =============================================================================
 # SELECT DEFAULT BENCHMARK HERE: "m5", "m5_new", "m5_coreml", "m5_onnx_coreml", "xeon", "xeon_new", "t4",
 # "t4_deimv2_xl_obj365_analysis", "t4_deim_backbone_map", "t4_yolo26", "rf_compare", "t4_all_rf",
-# "yolo27detr_compare", "t4_new",
+# "yolo27detr_compare", "yolo27detr_compare2", "t4_new",
 # "jetson-agx-thor-gpu", "jetson-agx-thor-cpu", "jetson-agx-orin-gpu", "jetson-agx-orin-cpu",
 # "jetson-orin-nano-super-gpu", or "jetson-orin-nano-super-cpu"
 # =============================================================================
-BENCHMARK = "yolo27detr_compare"
+BENCHMARK = "t4"
 
 # Default metric for Y axis.
 DEFAULT_METRIC = "ap"
@@ -592,6 +592,20 @@ BENCHMARKS = {
         "models": {
             "YOLO27-DETR (obj365)": YOLO27DETR_OBJ365_IMGSZ_SWEEP,
             "RF-DETR (obj365, our benchmark)": RF_DETR_OBJ365_TOPK_IMGSZ,
+        },
+    },
+    "yolo27detr_compare2": {
+        "title": "YOLO27-DETR vs RF-DETR vs D-FINE Obj365: Latency vs mAP (Tesla T4 GPU, TensorRT v10.11)",
+        "models": {
+            "YOLO27-DETR (obj365)": YOLO27DETR_OBJ365_IMGSZ_SWEEP,
+            "RF-DETR (obj365, our benchmark)": RF_DETR_OBJ365_TOPK_IMGSZ,
+            "D-FINE (obj365)": [
+                # D-FINE official training logs (Objects365+COCO); latency from DEIMv1 D-FINE t4 measurements.
+                ("s", 3.7, {"ap": 50.7, "ap50": 67.6, "ap75": 55.1, "ap_small": 32.7, "ap_medium": 54.6, "ap_large": 66.5}),
+                ("m", 5.6, {"ap": 55.1, "ap50": 72.6, "ap75": 59.7, "ap_small": 37.9, "ap_medium": 59.4, "ap_large": 71.7}),
+                ("l", 8.0, {"ap": 57.3, "ap50": 74.9, "ap75": 62.3, "ap_small": 40.6, "ap_medium": 61.5, "ap_large": 73.7}),
+                ("x", 13.6, {"ap": 59.3, "ap50": 76.8, "ap75": 64.6, "ap_small": 42.3, "ap_medium": 64.2, "ap_large": 76.4}),
+            ],
         },
     },
     "t4_deimv2_xl_obj365_analysis": {

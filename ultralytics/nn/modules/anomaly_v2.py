@@ -37,15 +37,23 @@ class BboxMaskRenderer(nn.Module):
                  sigma_x = w * sigma_factor, sigma_y = h * sigma_factor;
                  multiple bboxes in the same image are combined with max.
 
+    ``sigma_factor`` may be a scalar (fixed width) or a ``[lo, hi]`` range. With a range, each
+    bbox draws its own factor ~ U(lo, hi) while training (prior-width augmentation toward the
+    diffuse inference heatmap) and uses the midpoint deterministically at eval.
+
     Output spatial size is fixed at construction (default 80 to match P3).
     """
 
-    def __init__(self, mask_size: int = 80, mode: str = "rect", sigma_factor: float = 0.25):
+    def __init__(self, mask_size: int = 80, mode: str = "rect", sigma_factor: float | list = 0.25):
         super().__init__()
         assert mode in ("rect", "gauss"), f"mode must be 'rect' or 'gauss', got {mode!r}"
         self.mask_size = int(mask_size)
         self.mode = mode
-        self.sigma_factor = float(sigma_factor)
+        if isinstance(sigma_factor, (list, tuple)):
+            self.sigma_lo, self.sigma_hi = float(sigma_factor[0]), float(sigma_factor[1])
+        else:
+            self.sigma_lo = self.sigma_hi = float(sigma_factor)
+        self.sigma_factor = self.sigma_lo  # back-compat scalar handle (== lo)
         ys, xs = torch.meshgrid(
             torch.arange(self.mask_size, dtype=torch.float32),
             torch.arange(self.mask_size, dtype=torch.float32),
@@ -82,8 +90,13 @@ class BboxMaskRenderer(nn.Module):
                 & (self.grid_y[None] < y2)
             ).to(dtype)
         else:  # gauss
-            sigma_x = (w * self.sigma_factor).clamp(min=0.5)
-            sigma_y = (h * self.sigma_factor).clamp(min=0.5)
+            # Per-bbox sigma factor: random in [lo, hi] while training, midpoint at eval.
+            if self.training and self.sigma_hi > self.sigma_lo:
+                sf = torch.empty_like(w).uniform_(self.sigma_lo, self.sigma_hi)
+            else:
+                sf = 0.5 * (self.sigma_lo + self.sigma_hi)
+            sigma_x = (w * sf).clamp(min=0.5)
+            sigma_y = (h * sf).clamp(min=0.5)
             dx = self.grid_x[None] - cx[:, None, None]
             dy = self.grid_y[None] - cy[:, None, None]
             inside = torch.exp(
@@ -97,7 +110,7 @@ class BboxMaskRenderer(nn.Module):
         return mask
 
     def extra_repr(self) -> str:
-        return f"mask_size={self.mask_size}, mode={self.mode!r}, sigma_factor={self.sigma_factor}"
+        return f"mask_size={self.mask_size}, mode={self.mode!r}, sigma_factor=[{self.sigma_lo}, {self.sigma_hi}]"
 
 
 class HeatmapBiasFusion(nn.Module):
@@ -559,6 +572,22 @@ if __name__ == "__main__":
     mask = renderer(bboxes, batch_idx, B)
     assert mask.shape == (B, 1, H, H)
     assert mask[1].sum().item() == 0.0  # image with no bboxes
+
+    # Gauss with a [lo, hi] range: peak ~1, random per-bbox while training, deterministic at eval.
+    grender = BboxMaskRenderer(mask_size=H, mode="gauss", sigma_factor=[0.25, 0.75])
+    assert (grender.sigma_lo, grender.sigma_hi) == (0.25, 0.75)
+    grender.train()
+    torch.manual_seed(0)
+    g1 = grender(bboxes, batch_idx, B)
+    torch.manual_seed(1)
+    g2 = grender(bboxes, batch_idx, B)
+    assert 0.9 < g1[0].max().item() <= 1.0 + 1e-6, "gauss peak should approach 1.0 at a box center"
+    assert not torch.allclose(g1, g2), "training renders should vary with random sigma factor"
+    grender.eval()
+    e1 = grender(bboxes, batch_idx, B)
+    e2 = grender(bboxes, batch_idx, B)
+    assert torch.allclose(e1, e2), "eval renders should be deterministic (midpoint sigma)"
+    print("BboxMaskRenderer gauss range [0.25,0.75] OK (train random, eval deterministic).")
 
     fusion = HeatmapBiasFusion(num_scales=3)
     # beta init=0 -> bias is exactly zero for every scale

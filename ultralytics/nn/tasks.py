@@ -554,7 +554,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         verbose=True,
         mask_size: int | None = None,
         mask_mode: str | None = None,
-        sigma_factor: float | None = None,
+        sigma_factor: float | list | None = None,
         p_drop: float | None = None,
     ):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
@@ -563,7 +563,8 @@ class YOLOAnomalyV2Model(DetectionModel):
         v2_cfg = self.yaml.get("anomaly_v2", {}) if isinstance(self.yaml, dict) else {}
         mask_size = int(v2_cfg.get("mask_size", 80) if mask_size is None else mask_size)
         mask_mode = str(v2_cfg.get("mask_mode", "rect") if mask_mode is None else mask_mode)
-        sigma_factor = float(v2_cfg.get("sigma_factor", 0.25) if sigma_factor is None else sigma_factor)
+        _sf = v2_cfg.get("sigma_factor", 0.25) if sigma_factor is None else sigma_factor
+        sigma_factor = [float(_sf[0]), float(_sf[1])] if isinstance(_sf, (list, tuple)) else float(_sf)
         p_drop = float(v2_cfg.get("p_drop", 0.5) if p_drop is None else p_drop)
         # Training-only mask augmentation for prior robustness (Phase 0):
         #   mask_shuffle_p -- per-sample prob of swapping in another sample's mask (wrong-location

@@ -110,8 +110,10 @@ from .anomaly_v2 import (
     BboxMaskRenderer,
     HeatmapBiasFusion,
     HeatmapFiLMFusion,
+    QueryFiLMFusion,
     SegBranch,
     binary_seg_loss,
+    query_film_loss,
 )
 
 __all__ = (
@@ -169,8 +171,10 @@ __all__ = (
     "HGStem",
     "HeatmapBiasFusion",
     "HeatmapFiLMFusion",
+    "QueryFiLMFusion",
     "SegBranch",
     "binary_seg_loss",
+    "query_film_loss",
     "ImagePoolingAttn",
     "Index",
     "LRPCHead",

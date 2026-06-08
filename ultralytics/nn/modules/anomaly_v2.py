@@ -22,8 +22,10 @@ __all__ = (
     "BboxMaskRenderer",
     "HeatmapBiasFusion",
     "HeatmapFiLMFusion",
+    "QueryFiLMFusion",
     "SegBranch",
     "binary_seg_loss",
+    "query_film_loss",
     "BackboneMemoryBank",
 )
 
@@ -108,6 +110,47 @@ class BboxMaskRenderer(nn.Module):
             if sel.any():
                 mask[b, 0] = inside[sel].max(dim=0).values
         return mask
+
+    def render_per_instance(
+        self, bboxes: torch.Tensor, batch_idx: torch.Tensor, batch_size: int, sigma_factor: float | None = None
+    ) -> list[torch.Tensor]:
+        """Render each bbox as its own gauss mask, grouped per image (NO per-image max merge).
+
+        Training-only target for query-to-instance matching. Unlike ``forward``, the per-bbox
+        masks are kept separate so each can be Hungarian-matched to a query attention map.
+
+        Args:
+            bboxes: (N, 4) normalized YOLO ``[cx, cy, w, h]``.
+            batch_idx: (N,) image index per bbox.
+            batch_size: number of images B.
+            sigma_factor: fixed gauss width factor; defaults to ``self.sigma_lo`` (independent of
+                the fusion-prior sigma so the query GT stays sharp).
+
+        Returns:
+            list of length B, each ``(N_b, H, H)`` in [0, 1] (empty ``(0, H, H)`` for images with
+            no bboxes).
+        """
+        H = self.mask_size
+        device = self.grid_x.device
+        dtype = self.grid_x.dtype
+        empty = torch.zeros(0, H, H, device=device, dtype=dtype)
+        if bboxes.numel() == 0:
+            return [empty for _ in range(batch_size)]
+        bboxes = bboxes.to(device=device, dtype=dtype)
+        batch_idx = batch_idx.to(device=device, dtype=torch.long)
+        cx = bboxes[:, 0] * H
+        cy = bboxes[:, 1] * H
+        w = bboxes[:, 2] * H
+        h = bboxes[:, 3] * H
+        sf = float(self.sigma_lo if sigma_factor is None else sigma_factor)
+        sigma_x = (w * sf).clamp(min=0.5)
+        sigma_y = (h * sf).clamp(min=0.5)
+        dx = self.grid_x[None] - cx[:, None, None]
+        dy = self.grid_y[None] - cy[:, None, None]
+        inst = torch.exp(
+            -(dx**2 / (2 * sigma_x[:, None, None] ** 2) + dy**2 / (2 * sigma_y[:, None, None] ** 2))
+        )  # (N, H, H)
+        return [inst[batch_idx == b] for b in range(batch_size)]
 
     def extra_repr(self) -> str:
         return f"mask_size={self.mask_size}, mode={self.mode!r}, sigma_factor=[{self.sigma_lo}, {self.sigma_hi}]"
@@ -218,6 +261,98 @@ class HeatmapFiLMFusion(nn.Module):
         return self.alpha[scale_idx].view(1, -1, 1, 1) * d
 
 
+class QueryFiLMFusion(nn.Module):
+    """Query-based grouped-FiLM modulation of the P3 feature (deployable, ONNX-clean).
+
+    From P3 ``(B, C, H, W)`` and a 1-channel prior heatmap, a conv encoder produces ``K`` query
+    attention maps ``A`` and a ``query_dim`` feature map ``F``. Each query masked-average-pools its
+    own feature ``Q_k``, predicts an objectness, and emits group-wise FiLM params ``(gamma_k,
+    beta_k)``. The params are written back to space weighted by ``A_k * sigmoid(obj_k)`` and applied
+    as grouped FiLM: ``P_out = P_group * (1 + alpha*gamma) + alpha*beta``.
+
+    Identity at init: ``alpha`` is a scalar parameter init 0 and the FiLM MLP's last layer is
+    zero-init, so the returned increment is bit-exact zero at start (vanilla YOLO).
+
+    The forward returns the *increment* (like ``HeatmapFiLMFusion``) so the caller does ``p + delta``
+    and applies mask-dropout. The deployable path uses only Conv/Gelu/Sigmoid/Reshape/Transpose/
+    ReduceSum/Div/Clip/MatMul/Gemm/Mul/Add — no Hungarian, top-k, or GT rendering (those are
+    training-only, in ``query_film_loss``).
+    """
+
+    def __init__(
+        self,
+        p3_channels: int,
+        num_queries_k: int = 16,
+        query_dim: int = 128,
+        num_groups: int = 16,
+        enc_mid: int = 64,
+        film_mid: int = 64,
+        alpha_init: float = 0.0,
+    ):
+        super().__init__()
+        assert p3_channels % num_groups == 0, (
+            f"p3_channels ({p3_channels}) must be divisible by num_groups ({num_groups})"
+        )
+        self.c = int(p3_channels)
+        self.k = int(num_queries_k)
+        self.d = int(query_dim)
+        self.g = int(num_groups)
+        self.enc = nn.Sequential(
+            nn.Conv2d(self.c + 1, enc_mid, 3, padding=1),
+            nn.GELU(),
+            nn.Conv2d(enc_mid, self.d, 3, padding=1),
+        )
+        self.attn = nn.Conv2d(self.d, self.k, 1)  # query attention logits
+        self.obj = nn.Linear(self.d, 1)  # per-query objectness logit
+        self.film_mlp = nn.Sequential(
+            nn.Linear(self.d, film_mid),
+            nn.GELU(),
+            nn.Linear(film_mid, 2 * self.g),
+        )
+        # Zero-init the FiLM head so gamma/beta start at 0 (second identity guarantee).
+        nn.init.zeros_(self.film_mlp[-1].weight)
+        nn.init.zeros_(self.film_mlp[-1].bias)
+        # Scalar LayerScale, init 0 -> increment is exactly 0 at start.
+        self.alpha = nn.Parameter(torch.full((1,), float(alpha_init)))
+
+    def forward(self, p3: torch.Tensor, heatmap: torch.Tensor, return_aux: bool = False):
+        """Return the residual increment ``(B, C, H, W)`` for the P3 feature.
+
+        Args:
+            p3: P3 PAN feature ``(B, C, H, W)``.
+            heatmap: 1-channel prior ``(B, 1, H, W)`` at P3 resolution.
+            return_aux: also return ``{"A", "attn_logits", "obj_logits"}`` for the training loss.
+
+        Returns:
+            ``delta`` (``(B, C, H, W)``), or ``(delta, aux)`` when ``return_aux``.
+        """
+        b, _, h, w = p3.shape
+        hw = h * w
+        feat = self.enc(torch.cat([p3, heatmap], dim=1))  # (B, D, H, W)
+        attn_logits = self.attn(feat)  # (B, K, H, W)
+        a = attn_logits.sigmoid()  # (B, K, H, W)
+        af = a.reshape(b, self.k, hw)  # (B, K, HW)
+        ff = feat.reshape(b, self.d, hw).transpose(1, 2)  # (B, HW, D)
+        q = torch.bmm(af, ff) / af.sum(2, keepdim=True).clamp_min(1.0)  # (B, K, D) masked-avg-pool
+        obj_logits = self.obj(q).squeeze(-1)  # (B, K)
+        objs = obj_logits.sigmoid()  # (B, K)
+        gb = self.film_mlp(q)  # (B, K, 2G), == 0 at init
+        gamma_k, beta_k = gb[..., : self.g], gb[..., self.g :]  # (B, K, G)
+        weight = (a * objs[..., None, None]).reshape(b, self.k, hw)  # (B, K, HW)
+        gamma = torch.bmm(gamma_k.transpose(1, 2), weight).reshape(b, self.g, h, w)  # (B, G, H, W)
+        beta = torch.bmm(beta_k.transpose(1, 2), weight).reshape(b, self.g, h, w)  # (B, G, H, W)
+        pg = p3.reshape(b, self.g, self.c // self.g, h, w)  # (B, G, C/G, H, W)
+        scale = (self.alpha * gamma).unsqueeze(2)  # (B, G, 1, H, W)
+        shift = (self.alpha * beta).unsqueeze(2)  # (B, G, 1, H, W)
+        delta = (scale * pg + shift).reshape(b, self.c, h, w)  # increment, == 0 at init
+        if return_aux:
+            return delta, {"A": a, "attn_logits": attn_logits, "obj_logits": obj_logits}
+        return delta
+
+    def extra_repr(self) -> str:
+        return f"c={self.c}, k={self.k}, d={self.d}, g={self.g}"
+
+
 class SegBranch(nn.Module):
     """Lightweight semantic-segmentation head that predicts a 1-channel anomaly heatmap.
 
@@ -259,6 +394,78 @@ def binary_seg_loss(
             aux_t = F.interpolate(target, size=aux_logits.shape[2:], mode="nearest")
         loss = loss + aux_weight * F.binary_cross_entropy_with_logits(aux_logits, aux_t)
     return loss
+
+
+def query_film_loss(
+    a: torch.Tensor,
+    attn_logits: torch.Tensor,
+    obj_logits: torch.Tensor,
+    gt_masks: list[torch.Tensor],
+) -> dict[str, torch.Tensor]:
+    """Training-only supervision for QueryFiLM queries (Hungarian-matched to GT instances).
+
+    Computes three scalar losses:
+      - ``mask``: Dice + BCE between each matched query map and its GT instance mask.
+      - ``obj``: BCEWithLogits on objectness (matched query -> 1, unmatched -> 0).
+      - ``overlap``: mean off-diagonal pairwise overlap of the query maps (collapse guard).
+
+    Args:
+        a: query attention maps ``(B, K, H, W)`` in [0, 1].
+        attn_logits: raw query logits ``(B, K, H, W)`` (BCE uses logits for stability).
+        obj_logits: per-query objectness logits ``(B, K)``.
+        gt_masks: length-B list, each ``(N_b, H, W)`` per-instance GT gauss masks in [0, 1].
+
+    Returns:
+        dict with scalar tensors ``{"mask", "obj", "overlap"}``.
+    """
+    from scipy.optimize import linear_sum_assignment
+
+    b, k, h, w = a.shape
+    hw = h * w
+    device = a.device
+    af = a.reshape(b, k, hw)  # (B, K, HW)
+
+    # Overlap: pairwise inner product of query maps, normalized by HW, off-diagonal mean.
+    gram = torch.bmm(af, af.transpose(1, 2)) / hw  # (B, K, K)
+    eye = torch.eye(k, device=device, dtype=gram.dtype)[None]
+    denom = max(k * (k - 1), 1)
+    overlap = ((gram * (1.0 - eye)).sum(dim=(1, 2)) / denom).mean()
+
+    obj_target = torch.zeros(b, k, device=device, dtype=obj_logits.dtype)
+    mask_terms: list[torch.Tensor] = []
+    for i in range(b):
+        gt = gt_masks[i]  # (N_b, H, W)
+        n = gt.shape[0]
+        if n == 0:
+            continue
+        gt = gt.to(device=device, dtype=af.dtype)
+        # Align GT mask resolution to the query maps (P3 grid). They match at the
+        # production imgsz (640 -> P3 80x80 == mask_size); resize guards other sizes.
+        if gt.shape[-2:] != (h, w):
+            gt = F.interpolate(gt.unsqueeze(0), size=(h, w), mode="bilinear", align_corners=False).squeeze(0)
+        gtf = gt.reshape(n, hw)  # (N, HW)
+        # Soft-Dice cost between every (query, gt) pair: (K, N).
+        inter = af[i] @ gtf.t()  # (K, N)
+        card = af[i].sum(1, keepdim=True) + gtf.sum(1)[None]  # (K, N)
+        dice = 1.0 - (2.0 * inter + 1.0) / (card + 1.0)  # (K, N), lower = better match
+        # .float() guards against bf16/fp16 under autocast (numpy has no bfloat16).
+        rows, cols = linear_sum_assignment(dice.detach().float().cpu().numpy())
+        rows = torch.as_tensor(rows, device=device, dtype=torch.long)
+        cols = torch.as_tensor(cols, device=device, dtype=torch.long)
+        obj_target[i, rows] = 1.0
+        # Matched-pair mask loss: Dice (on probs) + BCE (on logits).
+        dice_m = dice[rows, cols]  # (M,)
+        bce_m = F.binary_cross_entropy_with_logits(
+            attn_logits[i, rows].reshape(len(rows), hw), gtf[cols], reduction="none"
+        ).mean(dim=1)  # (M,)
+        mask_terms.append(dice_m + bce_m)
+
+    obj_loss = F.binary_cross_entropy_with_logits(obj_logits, obj_target)
+    if mask_terms:
+        mask_loss = torch.cat(mask_terms).mean()
+    else:
+        mask_loss = torch.zeros((), device=device, dtype=af.dtype)
+    return {"mask": mask_loss, "obj": obj_loss, "overlap": overlap}
 
 
 class BackboneMemoryBank(nn.Module):
@@ -678,5 +885,38 @@ if __name__ == "__main__":
     mb2.freeze_memory_bank()
     assert mb2.memory_bank.shape[0] == 50, f"coreset should keep 50, got {mb2.memory_bank.shape[0]}"
     print("BackboneMemoryBank smoke OK.")
+
+    print("\n--- QueryFiLMFusion ---")
+    qf = QueryFiLMFusion(p3_channels=256, num_queries_k=16, query_dim=128, num_groups=16, alpha_init=0.0)
+    p3 = torch.randn(B, 256, H, H)
+    heat = torch.rand(B, 1, H, H)
+    # Identity at init: alpha=0 + zero-init FiLM head -> increment is bit-exact zero.
+    delta, aux = qf(p3, heat, return_aux=True)
+    assert delta.shape == p3.shape, f"{tuple(delta.shape)} != {tuple(p3.shape)}"
+    assert delta.abs().max().item() == 0.0, "QueryFiLM increment not exactly zero at init"
+    assert qf.film_mlp[-1].weight.abs().sum().item() == 0.0, "FiLM head weight not zero-init"
+    assert qf.film_mlp[-1].bias.abs().sum().item() == 0.0, "FiLM head bias not zero-init"
+    assert aux["A"].shape == (B, 16, H, H) and aux["obj_logits"].shape == (B, 16)
+    print("QueryFiLMFusion identity-at-init OK (delta == 0, FiLM head zero-init).")
+
+    # With alpha grown, increment is non-trivial and correctly shaped.
+    with torch.no_grad():
+        qf.alpha.fill_(1.0)
+        nn.init.normal_(qf.film_mlp[-1].weight, std=0.1)
+    delta = qf(p3, heat)
+    assert delta.shape == p3.shape and delta.abs().max().item() > 0.0
+    print(f"QueryFiLMFusion alpha=1 active OK (max abs = {delta.abs().max().item():.4f}).")
+
+    # Per-instance render + query loss (training-only Hungarian matching).
+    grenderer = BboxMaskRenderer(mask_size=H, mode="gauss", sigma_factor=0.15)
+    gt_per_inst = grenderer.render_per_instance(bboxes, batch_idx, B)
+    assert len(gt_per_inst) == B
+    assert gt_per_inst[0].shape[0] == 2 and gt_per_inst[1].shape[0] == 0  # img0: 2 boxes, img1: none
+    _, aux = qf(p3, heat, return_aux=True)
+    ql = query_film_loss(aux["A"], aux["attn_logits"], aux["obj_logits"], gt_per_inst)
+    assert set(ql) == {"mask", "obj", "overlap"}
+    for kk, vv in ql.items():
+        assert vv.ndim == 0 and torch.isfinite(vv), f"query loss {kk} not a finite scalar"
+    print(f"query_film_loss OK (mask={ql['mask']:.4f}, obj={ql['obj']:.4f}, overlap={ql['overlap']:.4f}).")
 
     print("\nAll smoke tests passed.")

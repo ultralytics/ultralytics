@@ -117,7 +117,8 @@ def modelopt_quantize_onnx(
     Returns:
         (str): Path to the precision-converted ONNX file.
     """
-    check_requirements("nvidia-modelopt[onnx]")
+    # Require modelopt >= 0.44: older releases import onnx.mapping which was removed in onnx >= 1.18 and crash
+    check_requirements("nvidia-modelopt[onnx]>=0.44")
     import onnx
 
     if int8:

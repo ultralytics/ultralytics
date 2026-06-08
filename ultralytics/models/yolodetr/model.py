@@ -17,11 +17,11 @@ class YOLODETR(Model):
     Examples:
         Run inference from a YAML
         >>> from ultralytics import YOLODETR
-        >>> model = YOLODETR("yolo27-detr.yaml")
+        >>> model = YOLODETR("yolo27x-detr.yaml")
         >>> results = model("image.jpg")
     """
 
-    def __init__(self, model: str = "yolo27-detr.yaml") -> None:
+    def __init__(self, model: str = "yolo27x-detr.yaml") -> None:
         """Initialize YOLO-DETR from a YAML config or .pt weights.
 
         Args:

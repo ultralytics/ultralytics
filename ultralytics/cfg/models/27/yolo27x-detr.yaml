@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO27-DETR inference config: DEIMv2-XL DINOv3+STA backbone with DeimDecoder head.
+# YOLO27x-DETR inference config: DEIMv2-XL DINOv3+STA backbone with DeimDecoder head.
 # Source weights: deimv2XL_obj365_frm24.pt (COCO 80-class head, DINOv3-vits16plus backbone).
 # Task: detect.
 

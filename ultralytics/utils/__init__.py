@@ -30,6 +30,32 @@ from ultralytics.utils.git import GitRepo
 from ultralytics.utils.patches import imread, imshow, imwrite, torch_save  # for patches
 from ultralytics.utils.tqdm import TQDM  # noqa
 
+# Strings parsed as True by env_bool() (case-insensitive, whitespace-trimmed)
+TRUTHY = frozenset({"1", "true", "yes", "on", "y", "t"})
+
+
+def env_bool(name: str, default: bool = False) -> bool:
+    """
+    Parse a boolean environment variable, accepting common truthy strings.
+
+    Accepts "1", "true", "yes", "on", "y", "t" (case-insensitive, whitespace-trimmed) as True; any other set value
+    is False. The default is returned only when the variable is unset, not when it is set to an empty string.
+
+    Args:
+        name (str): Environment variable name.
+        default (bool): Value returned when the variable is unset.
+
+    Returns:
+        (bool): Parsed boolean value.
+
+    Examples:
+        >>> env_bool("YOLO_UNSET_EXAMPLE_VAR", True)  # returns the default when the variable is unset
+        True
+    """
+    v = os.environ.get(name)
+    return default if v is None else v.strip().lower() in TRUTHY
+
+
 # PyTorch Multi-GPU DDP Constants
 RANK = int(os.getenv("RANK", -1))
 LOCAL_RANK = int(os.getenv("LOCAL_RANK", -1))  # https://pytorch.org/docs/stable/elastic/run.html
@@ -42,8 +68,8 @@ ASSETS = ROOT / "assets"  # default images
 ASSETS_URL = "https://github.com/ultralytics/assets/releases/download/v0.0.0"  # assets GitHub URL
 DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLO multiprocessing threads
-AUTOINSTALL = str(os.getenv("YOLO_AUTOINSTALL", True)).lower() == "true"  # global auto-install mode
-VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
+AUTOINSTALL = env_bool("YOLO_AUTOINSTALL", True)  # global auto-install mode
+VERBOSE = env_bool("YOLO_VERBOSE", True)  # global verbose mode
 LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
 MACOS_VERSION = platform.mac_ver()[0] if MACOS else None
@@ -820,7 +846,7 @@ def is_online() -> bool:
     Returns:
         (bool): True if connection is successful, False otherwise.
     """
-    if str(os.getenv("YOLO_OFFLINE", "")).lower() == "true":
+    if env_bool("YOLO_OFFLINE"):
         return False
 
     for host in ("one.one.one.one", "dns.google"):

@@ -76,9 +76,7 @@ def test_mlflow_keep_run_active(tmp_path, monkeypatch):
         # MLFLOW_KEEP_RUN_ACTIVE unset ends the run by default
         monkeypatch.delenv("MLFLOW_KEEP_RUN_ACTIVE", raising=False)
         YOLO("yolo26n-cls.yaml").train(data="imagenet10", imgsz=32, epochs=1, plots=False, device="cpu")
-        assert mlflow.active_run() is None, (
-            "MLflow run should be ended by default when MLFLOW_KEEP_RUN_ACTIVE is unset"
-        )
+        assert mlflow.active_run() is None, "MLflow run should be ended by default when MLFLOW_KEEP_RUN_ACTIVE is unset"
     finally:
         mlflow.autolog(disable=True)
         mlflow.end_run()

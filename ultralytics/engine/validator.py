@@ -228,15 +228,14 @@ class BaseValidator:
             with dt[0]:
                 batch = self.preprocess(batch)
 
-            # Inference
-            with dt[1]:
-                with autocast(self.training and self.args.half, device=self.device.type):
+            with autocast(self.training and self.args.half, device=self.device.type):
+                # Inference
+                with dt[1]:
                     preds = model(batch["img"], augment=augment)
 
-            # Loss
-            with dt[2]:
-                if self.training:
-                    with autocast(self.args.half, device=self.device.type):
+                # Loss
+                with dt[2]:
+                    if self.training:
                         self.loss += model.loss(batch, preds)[1]
 
             # Postprocess

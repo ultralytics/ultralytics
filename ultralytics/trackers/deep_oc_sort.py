@@ -10,7 +10,6 @@ from .byte_tracker import STrack
 from .oc_sort import OCSORT, OCSortTrack
 from .utils import matching
 from .utils.gmc import GMC
-from .utils.kalman_filter import KalmanFilterXYAH
 from .utils.reid import build_encoder
 from .utils.stracks import parse_bboxes
 
@@ -27,8 +26,6 @@ class DeepOCSortTrack(OCSortTrack):
         alpha_fixed_emb (float): Base EMA factor for embedding updates.
         det_thresh (float): Confidence threshold below which a new embedding is ignored rather than blended.
     """
-
-    shared_kalman = KalmanFilterXYAH()
 
     def __init__(
         self,
@@ -112,7 +109,7 @@ class DeepOCSortTrack(OCSortTrack):
         super().re_activate(new_track, frame_id, new_id)
 
     @staticmethod
-    def multi_gmc(stracks: list[DeepOCSortTrack], H: np.ndarray = np.eye(2, 3)) -> None:
+    def multi_gmc(stracks: list[DeepOCSortTrack], H: np.ndarray) -> None:
         """Apply global motion compensation correctly for the XYAH Kalman state.
 
         The standard `multi_gmc` helper from `utils.stracks` would rotate `(a, h)` along with

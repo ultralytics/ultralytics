@@ -141,7 +141,7 @@ def remove_duplicate_stracks(atracks: list, btracks: list, dup_thresh: float = 0
     return resa, resb
 
 
-def multi_gmc(stracks: list, H: np.ndarray | None = None) -> None:
+def multi_gmc(stracks: list, H: np.ndarray) -> None:
     """Update multiple track positions and covariances using a 2x3 affine homography.
 
     The Kalman state is assumed to be laid out as `(*box, *box_velocity)` with the box center `(x, y)` in the first two
@@ -163,8 +163,6 @@ def multi_gmc(stracks: list, H: np.ndarray | None = None) -> None:
     """
     if not stracks:
         return
-    if H is None:
-        H = np.eye(2, 3)
     multi_mean = np.asarray([st.mean.copy() for st in stracks])
     multi_covariance = np.asarray([st.covariance for st in stracks])
 

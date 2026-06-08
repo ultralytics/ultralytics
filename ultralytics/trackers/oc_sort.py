@@ -206,10 +206,6 @@ class OCSORT(BYTETracker):
         bboxes = parse_bboxes(results)
         return [OCSortTrack(xywh, s, c, self.delta_t) for (xywh, s, c) in zip(bboxes, results.conf, results.cls)]
 
-    def _input_for(self, img: np.ndarray | None, feats: np.ndarray | None, mask: np.ndarray) -> Any:
-        """Return the per-detection input for `init_track`. Default: pass `img` through."""
-        return img
-
     def _fuse_appearance(
         self,
         dists: np.ndarray,

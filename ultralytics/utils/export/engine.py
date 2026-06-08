@@ -101,9 +101,9 @@ def modelopt_quantize_onnx(
 ) -> str:
     """Bake reduced precision into an ONNX model for TensorRT 11 strongly-typed builds using NVIDIA ModelOpt.
 
-    TensorRT 11 is strongly-typed only: it removed the FP16/INT8 builder flags and the ``IInt8Calibrator`` interface,
-    so reduced precision must be expressed in the ONNX graph itself before building. FP16 is applied via ModelOpt
-    AutoCast mixed-precision conversion and INT8 via explicit Q/DQ quantization with calibration.
+    TensorRT 11 is strongly-typed only: it removed the FP16/INT8 builder flags and the ``IInt8Calibrator`` interface, so
+    reduced precision must be expressed in the ONNX graph itself before building. FP16 is applied via ModelOpt AutoCast
+    mixed-precision conversion and INT8 via explicit Q/DQ quantization with calibration.
 
     Args:
         onnx_file (str): Path to the FP32 ONNX file to convert.
@@ -215,8 +215,12 @@ def onnx2engine(
     config = builder.create_builder_config()
     workspace_bytes = int((workspace or 0) * (1 << 30))
     trt_major = int(trt.__version__.split(".", 1)[0])
-    is_trt10 = trt_major >= 10  # TensorRT >= 10 builds via build_serialized_network and uses the tensor (non-binding) API
-    is_trt11 = trt_major >= 11  # TensorRT >= 11 is strongly-typed only: precision builder flags and IInt8Calibrator removed
+    is_trt10 = (
+        trt_major >= 10
+    )  # TensorRT >= 10 builds via build_serialized_network and uses the tensor (non-binding) API
+    is_trt11 = (
+        trt_major >= 11
+    )  # TensorRT >= 11 is strongly-typed only: precision builder flags and IInt8Calibrator removed
     if is_trt10 and workspace_bytes > 0:
         config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace_bytes)
     elif workspace_bytes > 0:  # TensorRT versions 7, 8

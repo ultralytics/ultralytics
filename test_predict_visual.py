@@ -1,13 +1,23 @@
 #!/usr/bin/env python
-"""Random-sample predict — save 4×2 comparison grids via CompareGrid.
+"""All-category MVTec predict — per-model archive of 8-panel comparison grids.
 
-Layout (2 rows × 4 cols):
+Iterates every MVTec category (defect + normal test images, capped per category), runs 4 prior
+modes (none / segment / memory-bank heatmap / GT mask) and saves a CompareGrid per image. The
+trained weights load ONCE; each category's memory bank is built once and cached to disk
+(banks/<category>.pt), so re-runs of the same model skip the slow feature extraction.
+
+Grid layout (2 rows x 4 cols):
   Row 1: original | None Prior | seg heatmap | seg prior pred
   Row 2: mb heatmap | heatmap prior pred | GT mask | mask prior pred
 
+Output (one dir per model, named by the ckpt's run id):
+  runs/temp/predict_visual/<run_id>/
+    banks/<category>.pt          # cached memory bank
+    <category>/<type>__<stem>.jpg
+
 Usage:
-    python test_predict_visual.py                         # leather, 4 images
-    python test_predict_visual.py --category carpet --n 8
+  python test_predict_visual.py --ckpt <best.pt> --yaml <model.yaml>                  # all 15 categories
+  python test_predict_visual.py --ckpt ... --yaml ... --category zipper --n-per-category 3
 """
 
 import argparse
@@ -21,19 +31,24 @@ import torch
 from ultralytics import YOLO
 from ultralytics.nn.tasks import YOLOAnomalyV2Model
 from ultralytics.utils import LOGGER
+from ultralytics.utils.torch_utils import select_device
 from compare_grid import CompareGrid
+
+MVTEC_ROOT = Path("/Users/louis/workspace/ultra_louis_work/buffer/AnomalyData/MVTEC/MVTec-YOLO")
 
 
 def collect_test_images(test_root: Path, n: int) -> list[tuple[str, str]]:
-    """Return [(path, label_name), ...] randomly sampled from test subdirs."""
+    """Return up to n [(path, defect_type), ...] randomly sampled across a category's test subdirs.
+
+    Includes the ``good`` subdir (normal samples). ``n <= 0`` returns all images.
+    """
     pairs = []
     for subdir in sorted(test_root.iterdir()):
         if subdir.is_dir():
-            label = subdir.name
             for p in sorted(subdir.glob("*.png")):
-                pairs.append((str(p), label))
+                pairs.append((str(p), subdir.name))
     random.shuffle(pairs)
-    return pairs[:n]
+    return pairs[:n] if n and n > 0 else pairs
 
 
 def load_mask_tensor(mask_path: str | None, imgsz: int) -> torch.Tensor | None:
@@ -49,10 +64,10 @@ def load_mask_tensor(mask_path: str | None, imgsz: int) -> torch.Tensor | None:
 
 
 def run_prior(y: YOLO, model: YOLOAnomalyV2Model, img_path: str, prior_mode: str,
-              imgsz: int, external_mask: torch.Tensor | None = None):
+              imgsz: int, conf: float = 0.1, external_mask: torch.Tensor | None = None, device=None):
     """Run predict with a prior mode, return (pred_rgb, n_det, heatmap_np)."""
-    res = y.predict(img_path, imgsz=imgsz, prior_mode=prior_mode,conf=0.05,
-                    external_mask=external_mask, verbose=False)
+    res = y.predict(img_path, imgsz=imgsz, prior_mode=prior_mode, conf=conf,
+                    external_mask=external_mask, device=device, verbose=False)
     r = res[0]
     n_det = r.boxes.shape[0] if r.boxes is not None else 0
     pred_rgb = cv2.cvtColor(r.plot(), cv2.COLOR_BGR2RGB)
@@ -61,6 +76,27 @@ def run_prior(y: YOLO, model: YOLOAnomalyV2Model, img_path: str, prior_mode: str
     return pred_rgb, n_det, hmap_np
 
 
+def save_bank(mb, path: Path) -> None:
+    """Persist a frozen memory bank (tensor + feature_dim + temperature) for fast reload."""
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    torch.save(
+        {"memory_bank": mb.memory_bank.detach().cpu(),
+         "feature_dim": mb.feature_dim,
+         "temperature": float(mb.temperature)},
+        path,
+    )
+
+
+def restore_bank(mb, path: Path) -> None:
+    """Restore a bank saved by save_bank, skipping load_support_set feature extraction.
+
+    Reuses BackboneMemoryBank.load_bank (sets the bank buffer + feature_dim), then restores the
+    calibrated temperature and marks the bank frozen (update=False) so forward runs in scoring mode.
+    """
+    d = torch.load(path, map_location="cpu")
+    mb.load_bank(d["memory_bank"])  # re-normalizes + sets feature_dim, onto the bank's device
+    mb.temperature = d["temperature"]
+    mb.update = False
 
 
 def _report_load(matched: dict, ckpt_state: dict, model_state: dict) -> None:
@@ -101,60 +137,45 @@ def _group_keys(keys: set[str]) -> list[tuple[str, list[str]]]:
     return sorted(groups.items())
 
 
-
-MODEL_W="/Users/louis/workspace/ultra_louis_work/ultra6/runs/yoloa_v2/26m_yoloav2_softhint_rect_pd50_seg_a1_v1/weights/best.pt"
-
-MODEL_W="/Users/louis/workspace/ultra_louis_work/ultralytics/runs/yoloa_v2/26m_yoloav2_softhint_rect_pd50_seg_a1_cm2_aug_v1/weights/last.pt"
-
-MODEL_W="/Users/louis/workspace/ultra_louis_work/ultralytics/runs/yoloa_v2/26m_yoloav2_softhint_rect_pd50_seg_a1_cm2_noise_v1/weights/last.pt"
-
-MODEL_W="/Users/louis/workspace/ultra_louis_work/ultralytics/runs/yoloa_v2/26m_yoloav2_softhint_rect_pd50_seg_a1_cm2_noise_v1/weights/best.pt"
-
-# MODEL_W="/Users/louis/workspace/ultra_louis_work/ultralytics/runs/yoloa_v2/26m_yoloav2_softhint_rect_pd50_seg_a1_cm2_aug_v1/weights/best.pt"
-
-# MODEL_W="/Users/louis/workspace/ultra_louis_work/ultralytics/runs/yoloa_v2/26m_yoloav2_softhint_rect_detonly_v2/weights/best.pt"
-
-# MODEL_W="/Users/louis/workspace/ultra_louis_work/ultralytics/runs/yoloa_v2/26m_yoloav2_softhint_rect_pd50_cm2_v1/weights/best.pt"
-
-
-
-MODEL_W="/Users/louis/workspace/ultra_louis_work/ultralytics/runs/yoloa_v2/26m_yoloav2_softhint_rect_pd50_seg_a1_softmax_t1_v1/weights/best.pt"
-YAML="yolo26m-anomaly-v2-softhint-seg-a1-softmax.yaml"
-
-MODEL_W="runs/yoloa_v2/26m_yoloav2_softhint_rect_pd50_seg_a1_softmax_t3_v1/weights/best.pt"
-YAML="yolo26m-anomaly-v2-softhint-seg-a1-softmax-t3.yaml"
-
+MODEL_W = "runs/yoloa_v2/26m_yoloav2_film_gauss_v1/weights/best.pt"
+YAML = "yolo26m-anomaly-v2-film-gauss.yaml"
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Random-sample predict — 4×2 comparison grids")
-    parser.add_argument("--ckpt", type=str,
-                        default=MODEL_W)
+    parser = argparse.ArgumentParser(description="All-category MVTec predict — per-model grid archive")
+    parser.add_argument("--ckpt", type=str, default=MODEL_W)
     parser.add_argument("--yaml", type=str, default=YAML)
-    parser.add_argument("--category", type=str, default="leather")
+    parser.add_argument("--category", type=str, default=None,
+                        help="Single category (default: all 15). 'all' = all.")
+    parser.add_argument("--n-per-category", type=int, default=20,
+                        help="Max test images per category (0 = all)")
+    parser.add_argument("--conf", type=float, default=0.1)
     parser.add_argument("--imgsz", type=int, default=320)
-    parser.add_argument("--n", type=int, default=20, help="Number of random test images")
     parser.add_argument("--batch", type=int, default=8)
     parser.add_argument("--max_bank", type=int, default=10000)
     parser.add_argument("--max_images", type=int, default=1000,
                         help="Cap on normal images for bank (0=all)")
-    parser.add_argument("--out", type=str, default=None,
-                        help="Output dir (default: runs/temp/predict_visual/)")
     parser.add_argument("--device", type=str, default=None)
-    parser.add_argument("--heat-norm", type=str, default="none", choices=["none", "minmax"],
+    parser.add_argument("--heat-norm", type=str, default="minmax", choices=["none", "minmax"],
                         help="Per-image prior normalization before fusion (minmax stretches to [0,1])")
+    parser.add_argument("--out", type=str, default=None,
+                        help="Output dir (default: runs/temp/predict_visual/<run_id>)")
+    parser.add_argument("--seed", type=int, default=0,
+                        help="RNG seed for per-category sampling (same images across models; idempotent re-runs)")
     args = parser.parse_args()
 
-    device = args.device or "cpu"
-    mvtec_root = Path("/Users/louis/workspace/ultra_louis_work/buffer/AnomalyData/MVTEC/MVTec-YOLO")
-    train_dir = mvtec_root / args.category / "train" / "good"
-    if not train_dir.is_dir():
-        train_dir = mvtec_root / args.category / "train"
-    test_root = mvtec_root / args.category / "test"
+    random.seed(args.seed)
+    device = select_device(args.device or "cpu")  # handles cpu / mps / "0" / cuda:0
 
-    out_root = Path(args.out or f"runs/temp/predict_visual/{args.category}")
+    # run_id from ckpt path: <run>/weights/best.pt -> <run>
+    ckpt_path = Path(args.ckpt).resolve()
+    run_id = ckpt_path.parents[1].name if ckpt_path.parent.name == "weights" else ckpt_path.stem
+    out_root = Path(args.out) if args.out else Path(f"runs/temp/predict_visual/{run_id}")
+    banks_dir = out_root / "banks"
+    banks_dir.mkdir(parents=True, exist_ok=True)
+    LOGGER.info(f"Archive dir: {out_root}")
 
-    # ---- Build model + memory bank ----
+    # ---- Build model ONCE (weights shared across categories) ----
     LOGGER.info("Building model...")
     model = YOLOAnomalyV2Model(args.yaml, nc=1, verbose=False)
     ckpt = torch.load(args.ckpt, map_location="cpu", weights_only=False)
@@ -166,71 +187,77 @@ def main():
     ms = model.state_dict()
     matched = {k: v for k, v in ckpt_state.items() if k in ms and ms[k].shape == v.shape}
     model.load_state_dict(matched, strict=False)
-
-    # ---- Report loading status ----
     _report_load(matched, ckpt_state, ms)
     model.to(device)
     model.eval()
     model.heatmap_norm = args.heat_norm
     LOGGER.info(f"heatmap_norm = {model.heatmap_norm}")
-
-    LOGGER.info("Building memory bank...")
-    model.load_support_set(str(train_dir), imgsz=args.imgsz, device=device,
-                           batch=args.batch, max_bank_size=args.max_bank,
-                           max_images=args.max_images, verbose=True)
-
-    # ---- Sample test images ----
-    samples = collect_test_images(test_root, args.n)
-    LOGGER.info(f"Sampled {len(samples)} test images")
+    if model.memory_bank is None:
+        raise SystemExit("Model has no memory bank — add bb_layers to the YAML (prior_mode='heatmap' needs it).")
 
     y = YOLO(args.yaml)
     y.model = model
-
     cg = CompareGrid()
 
-    for img_path, label in samples:
-        LOGGER.info(f"{img_path}  [{label}]")
+    # ---- Categories ----
+    if args.category and args.category.lower() != "all":
+        cats = [args.category]
+    else:
+        cats = sorted(d.name for d in MVTEC_ROOT.iterdir() if d.is_dir())
+    LOGGER.info(f"Categories ({len(cats)}): {cats}")
 
-        # Read original
-        original_bgr = cv2.imread(img_path)
-        original = cv2.cvtColor(original_bgr, cv2.COLOR_BGR2RGB)
+    total = 0
+    for ci, cat in enumerate(cats, 1):
+        test_root = MVTEC_ROOT / cat / "test"
+        if not test_root.is_dir():
+            LOGGER.warning(f"[{ci}/{len(cats)}] {cat}: no test/ dir, skipping")
+            continue
 
-        # Find GT mask
-        mask_path = CompareGrid.find_mask(img_path)
-        mask_tensor = load_mask_tensor(mask_path, args.imgsz)
+        # ---- Per-category memory bank: restore from cache, or build once + save ----
+        mb = model.memory_bank
+        bank_path = banks_dir / f"{cat}.pt"
+        if bank_path.exists():
+            restore_bank(mb, bank_path)
+            LOGGER.info(f"[{ci}/{len(cats)}] {cat}: loaded cached bank ({mb.memory_bank.shape[0]} vecs)")
+        else:
+            train_dir = MVTEC_ROOT / cat / "train" / "good"
+            if not train_dir.is_dir():
+                train_dir = MVTEC_ROOT / cat / "train"
+            LOGGER.info(f"[{ci}/{len(cats)}] {cat}: building bank from {train_dir} ...")
+            mb.reset_memory_bank()
+            model.load_support_set(str(train_dir), imgsz=args.imgsz, device=device,
+                                   batch=args.batch, max_bank_size=args.max_bank,
+                                   max_images=args.max_images, verbose=False)
+            save_bank(mb, bank_path)
+            LOGGER.info(f"[{ci}/{len(cats)}] {cat}: bank built+saved ({mb.memory_bank.shape[0]} vecs) -> {bank_path}")
 
-        # ---- None Prior ----
-        none_pred, n_none, _ = run_prior(y, model, img_path, "none", args.imgsz)
+        # ---- Sample test images + save grids ----
+        samples = collect_test_images(test_root, args.n_per_category)
+        cat_out = out_root / cat
+        for img_path, label in samples:
+            original = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2RGB)
+            mask_path = CompareGrid.find_mask(img_path)
+            mask_tensor = load_mask_tensor(mask_path, args.imgsz)
 
-        # ---- Segment Prior ----
-        seg_pred, n_seg, seg_hmap = run_prior(y, model, img_path, "segment", args.imgsz)
-        seg_heat = CompareGrid.heatmap_panel(original, seg_hmap)
+            none_pred, n_none, _ = run_prior(y, model, img_path, "none", args.imgsz, args.conf, device=device)
+            seg_pred, n_seg, seg_hmap = run_prior(y, model, img_path, "segment", args.imgsz, args.conf, device=device)
+            seg_heat = CompareGrid.heatmap_panel(original, seg_hmap)
+            heat_pred, n_heat, heat_hmap = run_prior(y, model, img_path, "heatmap", args.imgsz, args.conf, device=device)
+            heat_heat = CompareGrid.heatmap_panel(original, heat_hmap)
+            mask_pred, n_mask, _ = run_prior(y, model, img_path, "mask", args.imgsz, args.conf,
+                                             external_mask=mask_tensor, device=device)
+            mask_img = CompareGrid.mask_panel(original, mask_path)
 
-        # ---- Heatmap Prior (Memory Bank) ----
-        heat_pred, n_heat, heat_hmap = run_prior(y, model, img_path, "heatmap", args.imgsz)
-        heat_heat = CompareGrid.heatmap_panel(original, heat_hmap)
+            cg.save(
+                original=original, none_pred=none_pred, seg_heat=seg_heat, seg_pred=seg_pred,
+                heat_heat=heat_heat, heat_pred=heat_pred, mask_img=mask_img, mask_pred=mask_pred,
+                out_path=cat_out / f"{label}__{Path(img_path).stem}.jpg",
+                n_none=n_none, n_seg=n_seg, n_heat=n_heat, n_mask=n_mask,
+            )
+            total += 1
+        LOGGER.info(f"[{ci}/{len(cats)}] {cat}: {len(samples)} grids -> {cat_out}")
 
-        # ---- Mask Prior (GT) ----
-        mask_pred, n_mask, _ = run_prior(y, model, img_path, "mask", args.imgsz,
-                                         external_mask=mask_tensor)
-        mask_img = CompareGrid.mask_panel(original, mask_path)
-
-        # ---- Save grid ----
-        out_path = cg.save(
-            original=original,
-            none_pred=none_pred,
-            seg_heat=seg_heat,
-            seg_pred=seg_pred,
-            heat_heat=heat_heat,
-            heat_pred=heat_pred,
-            mask_img=mask_img,
-            mask_pred=mask_pred,
-            out_path=out_root / f"{Path(img_path).stem}.jpg",
-            n_none=n_none, n_seg=n_seg, n_heat=n_heat, n_mask=n_mask,
-        )
-        LOGGER.info(f"  -> {out_path}")
-
-    LOGGER.info(f"Done. {len(samples)} images saved to {out_root}")
+    LOGGER.info(f"Done. {total} grids across {len(cats)} categories -> {out_root}")
 
 
 if __name__ == "__main__":

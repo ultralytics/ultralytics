@@ -877,7 +877,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         """Run a batch of images through the model and accumulate backbone features via hooks."""
         import numpy as np
         batch = np.stack(images, axis=0)  # (B, H, W, 3)
-        batch = torch.from_numpy(batch).permute(0, 3, 1, 2).float() / 255.0  # (B, 3, H, W)
+        batch = (torch.from_numpy(batch).permute(0, 3, 1, 2).float() / 255.0).contiguous()  # (B, 3, H, W)
         batch = batch.to(device)
         self._bb_feats = {}
         with torch.no_grad():

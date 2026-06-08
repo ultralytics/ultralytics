@@ -908,6 +908,45 @@ def check_amp(model):
         del m
         return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance
 
+    def amp_actual_forward(m, im):
+        """Run an AMP forward smoke test on the actual model using bus.jpg."""
+        def collect_tensors(obj):
+            """Collect tensors recursively from model outputs."""
+            tensors_list = []
+            if torch.is_tensor(obj):
+                tensors_list.append(obj)
+            elif isinstance(obj, (list, tuple)):
+                for v in obj:
+                    tensors_list.extend(collect_tensors(v))
+            elif isinstance(obj, dict):
+                for v in obj.values():
+                    tensors_list.extend(collect_tensors(v))
+            return tensors_list
+
+        stride = int(getattr(m, "stride", torch.tensor([32], device=device)).max())
+        imgsz = int(((max(256, stride * 4) + stride - 1) // stride) * stride)  # use a small but valid image size
+        img = cv2.cvtColor(cv2.imread(str(im)), cv2.COLOR_BGR2RGB)
+        img = cv2.resize(img, (imgsz, imgsz), interpolation=cv2.INTER_LINEAR)  # resize directly since it's a smoke test input
+
+        x = torch.from_numpy(img).to(device=device)
+        x = x.permute(2, 0, 1).contiguous().float().div_(255.0)  # HWC uint8 to CHW float32 in [0, 1]
+        x = x.unsqueeze(0).repeat(8, 1, 1, 1)  # match the reference AMP check batch size in `amp_allclose()`
+
+        with torch.inference_mode():
+            with autocast(enabled=True):
+                y = m(x)  # actual model AMP forward
+
+        tensors = collect_tensors(y)
+        assert tensors, "AMP forward produced no tensor outputs."  # no tensor output means forward was unsuccessful
+
+        for t in tensors:
+            if t.is_floating_point():
+                assert torch.isfinite(t).all(), (
+                    f"AMP forward produced non-finite values: "
+                    f"shape={tuple(t.shape)}, dtype={t.dtype}, device={t.device}"
+                )  # NaN or Inf values may indicate AMP instability
+        return True  # no failed assertions or errors occur
+
     im = ASSETS / "bus.jpg"  # image to check
     LOGGER.info(f"{prefix}running Automatic Mixed Precision (AMP) checks...")
     warning_msg = "Setting 'amp=True'. If you experience zero-mAP or NaN losses you can disable AMP with amp=False."
@@ -929,7 +968,57 @@ def check_amp(model):
             f"NaN losses or zero-mAP results, so AMP will be disabled during training."
         )
         return False
-    return True
+
+    is_training = model.training  # preserve model mode
+    check_failed_msg = f"{prefix}actual model forward checks failed ❌. "
+    try:
+        model.eval()  # switch to eval mode for AMP forward test
+        assert amp_actual_forward(model, im)
+        LOGGER.info(f"{prefix}actual model forward checks passed ✅")
+    except AssertionError as e:
+        LOGGER.error(
+            f"{check_failed_msg}The current model may contain custom layers that are not AMP-safe, "
+            f"so AMP will be disabled during training. "
+        )  # such as custom layers producing non-finite values under AMP
+        return False
+    except RuntimeError as e:
+        error_msg_lower = str(e).lower()
+        if "not implemented for" in error_msg_lower and ("half" in error_msg_lower or "bfloat16" in error_msg_lower):
+            LOGGER.error(
+                f"{check_failed_msg}This is because a low-precision (such as FP16/BF16) tensor reached an unsupported CPU operator, "
+                f"so AMP will be disabled during training. "
+            )  # unsupported CPU FP16/BF16 kernel
+        elif "expected all tensors to be on the same device" in error_msg_lower or "found at least two devices" in error_msg_lower:
+            LOGGER.error(
+                f"{check_failed_msg}A custom module may have moved only part of the data flow between CUDA and CPU, "
+                f"so AMP will be disabled during training. "
+            )  # CPU/CUDA tensor mismatch
+        elif "expected scalar type" in error_msg_lower and ("half" in error_msg_lower or "float" in error_msg_lower):
+            LOGGER.error(
+                f"{check_failed_msg}A custom layer may need an explicit float32 region or dtype cast, "
+                f"so AMP will be disabled during training. "
+            )  # autocast dtype mismatch
+        elif "input type" in error_msg_lower and "weight type" in error_msg_lower:
+            LOGGER.error(
+                f"{check_failed_msg}An input/weight dtype mismatch was detected. "
+                f"This may be caused by mixing FP16 activations with FP32 or CPU weights, "
+                f"so AMP will be disabled during training. "
+            )  # input-weight dtype mismatch
+        else:
+            LOGGER.error(
+                f"{check_failed_msg}The actual model AMP forward raised a RuntimeError exception, "
+                f"so AMP will be disabled. "
+            )  # generic PyTorch runtime error
+        return False
+    except Exception as e:
+        LOGGER.error(
+            f"{check_failed_msg}The actual model AMP forward raised an unexpected exception, "
+            f"so AMP will be disabled. "
+        )  # fallback for unexpected errors
+        return False
+    finally:
+        model.train(is_training)  # restore the original model mode
+    return True  # no failed assertions or (runtime) errors occur
 
 
 def check_multiple_install():

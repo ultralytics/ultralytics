@@ -25,7 +25,15 @@ class AFSSScheduler:
         state (dict[int, dict]): Per-image state containing precision, recall, and last_seen_epoch.
     """
 
-    def __init__(self, num_images: int, seed: int = 0, easy_thr: float = 0.85, easy_ratio: float = 0.02):
+    def __init__(
+        self,
+        num_images: int,
+        seed: int = 0,
+        easy_thr: float = 0.85,
+        easy_ratio: float = 0.02,
+        moderate_thr: float = 0.55,
+        moderate_ratio: float = 0.4,
+    ):
         """Initialize AFSSScheduler with the given dataset size and warmup configuration.
 
         Args:
@@ -33,11 +41,15 @@ class AFSSScheduler:
             seed (int): Random seed for deterministic sampling.
             easy_thr (float): Threshold above which an image is classified as easy (min(P, R) > easy_thr).
             easy_ratio (float): Fraction of easy images reviewed each epoch (continuous-review budget).
+            moderate_thr (float): Threshold above which an image is classified as moderate (min(P, R) >= moderate_thr).
+            moderate_ratio (float): Fraction of moderate images sampled each epoch.
         """
         self.num_images = num_images
         self.seed = seed
         self.easy_thr = easy_thr
         self.easy_ratio = easy_ratio
+        self.moderate_thr = moderate_thr
+        self.moderate_ratio = moderate_ratio
         self.state = {i: {"precision": 0.0, "recall": 0.0, "last_seen_epoch": -1} for i in range(num_images)}
 
     def sample_indices(self, epoch: int) -> list[int]:
@@ -60,7 +72,7 @@ class AFSSScheduler:
             s_i = min(st["precision"], st["recall"])
             if s_i > self.easy_thr:
                 easy_set.add(i)
-            elif s_i >= 0.55:
+            elif s_i >= self.moderate_thr:
                 moderate_set.add(i)
             else:
                 hard_set.append(i)
@@ -95,7 +107,7 @@ class AFSSScheduler:
         # Moderate set
         if moderate_set:
             forced_moderate = [i for i in moderate_set if (epoch - 1 - self.state[i]["last_seen_epoch"]) >= 3]
-            moderate_budget = round(0.4 * len(moderate_set))
+            moderate_budget = round(self.moderate_ratio * len(moderate_set))
             selected.extend(forced_moderate)
             n_moderate_sampled += len(forced_moderate)
 
@@ -171,6 +183,8 @@ def afss_on_epoch_start(trainer):
             seed=trainer.args.seed,
             easy_thr=trainer.args.afss_easy_thr,
             easy_ratio=trainer.args.afss_easy_ratio,
+            moderate_thr=trainer.args.afss_moderate_thr,
+            moderate_ratio=trainer.args.afss_moderate_ratio,
         )
         trainer.afss_current_indices = list(range(len(dataset)))
 

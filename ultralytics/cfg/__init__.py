@@ -211,6 +211,8 @@ CFG_FRACTION_KEYS = frozenset(
         "afss_conf",
         "afss_easy_thr",
         "afss_easy_ratio",
+        "afss_moderate_thr",
+        "afss_moderate_ratio",
         "iou",
         "fraction",
         "multi_scale",

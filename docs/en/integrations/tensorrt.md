@@ -169,6 +169,10 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 Exporting Ultralytics YOLO models using TensorRT with INT8 [precision](https://www.ultralytics.com/glossary/precision) executes post-training quantization (PTQ). TensorRT uses calibration for PTQ, which measures the distribution of activations within each activation tensor as the YOLO model processes inference on representative input data, and then uses that distribution to estimate scale values for each tensor. Each activation tensor that is a candidate for quantization has an associated scale that is deduced by a calibration process.
 
+!!! note "TensorRT 11 quantization"
+
+    TensorRT 11 removed implicit quantization and the `IInt8Calibrator` interface. On TensorRT 11 and newer, Ultralytics performs INT8 quantization with [NVIDIA ModelOpt](https://github.com/NVIDIA/Model-Optimizer) explicit quantization, which inserts Q/DQ nodes into the ONNX graph before building a strongly-typed engine, and FP16 is applied with ModelOpt AutoCast mixed-precision conversion. The `int8=True`, `half=True`, and `data` arguments work the same way; ModelOpt is installed automatically on first use. On TensorRT 7-10 the legacy calibrator described below is used instead.
+
 When processing implicitly quantized networks TensorRT uses INT8 opportunistically to optimize layer execution time. If a layer runs faster in INT8 and has assigned quantization scales on its data inputs and outputs, then a kernel with INT8 precision is assigned to that layer, otherwise TensorRT selects a precision of either FP32 or FP16 for the kernel based on whichever results in faster execution time for that layer.
 
 !!! tip

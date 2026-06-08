@@ -17,4 +17,8 @@ keywords: Ultralytics, ReID, Re-identification, build_encoder, object tracking, 
 
 ## ::: ultralytics.trackers.utils.reid.build_encoder
 
+<br><br><hr><br>
+
+## ::: ultralytics.trackers.utils.reid.smooth_feature
+
 <br><br>

@@ -225,8 +225,8 @@ def _cosine_distance(tracks: list[TTSTrack], dets: list[TTSTrack]) -> np.ndarray
 class TTSTrack(BOTrack):
     """Single-object track for TrackTrack with corner velocity, score history, and ReID features.
 
-    Extends `BOTrack` (XYWH Kalman state and EMA ReID smoothing), adding corner-velocity motion, score history,
-    and score-adaptive feature smoothing.
+    Extends `BOTrack` (XYWH Kalman state and EMA ReID smoothing), adding corner-velocity motion, score history, and
+    score-adaptive feature smoothing.
 
     Attributes:
         min_track_len (int): Class-level default; overridden by TRACKTRACK from config.

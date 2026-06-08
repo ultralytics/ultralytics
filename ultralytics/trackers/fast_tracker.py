@@ -20,8 +20,8 @@ class FastSTrack(STrack):
 
     Extends `STrack` with a bounded ring-buffer of recent Kalman means and per-track occlusion
     bookkeeping. The history buffer enables rolling the Kalman state back to a pre-occlusion frame
-    when a neighbor suddenly covers the target. The buffer is a fixed-size `collections.deque`, so memory stays
-    bounded regardless of track lifetime.
+    when a neighbor suddenly covers the target. The buffer is a fixed-size `collections.deque`, so memory stays bounded
+    regardless of track lifetime.
 
     Attributes:
         mean_history (collections.deque): Bounded ring-buffer of recent ``(mean, covariance)`` snapshots, newest last,
@@ -31,8 +31,8 @@ class FastSTrack(STrack):
         is_occluded (bool): True while the track is hidden behind another target.
         occluded_len (int): Consecutive frames the track has been continuously occluded.
         last_occluded_frame (int): Frame id when occlusion was last detected, or -1 if never occluded.
-        was_recently_occluded (bool): Sticky flag kept for ``occ_reappear_window`` frames, used by `FASTTracker`
-            to extend the re-find window for tracks that went lost while occluded.
+        was_recently_occluded (bool): Sticky flag kept for ``occ_reappear_window`` frames, used by `FASTTracker` to
+            extend the re-find window for tracks that went lost while occluded.
 
     Examples:
         >>> from ultralytics.trackers.utils.kalman_filter import KalmanFilterXYAH
@@ -105,12 +105,12 @@ class FASTTracker(BYTETracker):
     """Occlusion-aware ByteTrack-style multi-object tracker.
 
     Adapted from the reference implementation in the FastTracker paper (arXiv:2508.14370). FastTracker extends
-    `BYTETracker` with lightweight mechanisms that reduce ID switches through crowd occlusions without
-    sacrificing throughput. Unmatched tracks whose area is strongly covered by an active neighbor are flagged as
-    occluded and their Kalman state is rolled back to a pre-occlusion frame, with a one-shot bbox enlargement and
-    dampened motion so they survive the occlusion. An occluded track is kept alive for an extra grace window before
-    being marked lost, and once lost it stays re-findable for an extended window beyond the regular ``track_buffer``.
-    New detections that strongly overlap an already-active track are suppressed at spawn time to prevent ghost IDs.
+    `BYTETracker` with lightweight mechanisms that reduce ID switches through crowd occlusions without sacrificing
+    throughput. Unmatched tracks whose area is strongly covered by an active neighbor are flagged as occluded and their
+    Kalman state is rolled back to a pre-occlusion frame, with a one-shot bbox enlargement and dampened motion so they
+    survive the occlusion. An occluded track is kept alive for an extra grace window before being marked lost, and once
+    lost it stays re-findable for an extended window beyond the regular ``track_buffer``. New detections that strongly
+    overlap an already-active track are suppressed at spawn time to prevent ghost IDs.
 
     All added work uses vectorized IoU / coverage matrices and only runs on unmatched tracks, so the per-frame overhead
     over `BYTETracker` stays on the order of a few hundred microseconds.

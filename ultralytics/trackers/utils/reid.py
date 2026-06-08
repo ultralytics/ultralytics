@@ -130,3 +130,28 @@ def build_encoder(with_reid: bool, model: str | None):
 
         return _auto_encoder
     return ReID(model)
+
+
+def smooth_feature(
+    feat: np.ndarray, smooth: np.ndarray | None, alpha: float
+) -> tuple[np.ndarray | None, np.ndarray | None]:
+    """L2-normalize `feat` and blend it into `smooth` via exponential moving average.
+
+    Args:
+        feat (np.ndarray): New (un-normalized) appearance feature.
+        smooth (np.ndarray | None): Current smoothed feature, or None on the first update.
+        alpha (float): EMA weight on the existing `smooth` (``1.0`` keeps it unchanged).
+
+    Returns:
+        curr (np.ndarray | None): The normalized current feature, or None when `feat` is zero-norm (carries no
+            appearance information, so the caller should leave its features unchanged).
+        smooth (np.ndarray | None): The updated, renormalized smoothed feature.
+    """
+    norm = np.linalg.norm(feat)
+    if norm < 1e-12:  # zero-norm feature has no appearance info; signal the caller to keep its current features
+        return None, smooth
+    feat = feat / norm
+    if smooth is None:
+        return feat, feat.copy()
+    smooth = alpha * smooth + (1 - alpha) * feat
+    return feat, smooth / np.linalg.norm(smooth)

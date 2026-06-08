@@ -10,7 +10,7 @@ from .byte_tracker import STrack
 from .oc_sort import OCSORT, OCSortTrack
 from .utils import matching
 from .utils.gmc import GMC
-from .utils.reid import build_encoder
+from .utils.reid import build_encoder, smooth_feature
 from .utils.stracks import parse_bboxes
 
 
@@ -69,21 +69,14 @@ class DeepOCSortTrack(OCSortTrack):
             feat (np.ndarray): New (un-normalized) appearance feature vector.
             score (float | None): Detection confidence used to modulate the EMA factor.
         """
-        norm = np.linalg.norm(feat)
-        if norm < 1e-12:  # skip zero-norm features so smooth_feat isn't poisoned by NaNs
-            return
-        feat = feat / norm
-        self.curr_feat = feat
-        if self.smooth_feat is None:
-            self.smooth_feat = feat
+        if score is not None and score > self.det_thresh:
+            trust = (score - self.det_thresh) / max(1 - self.det_thresh, 1e-9)
+            alpha = self.alpha_fixed_emb + (1 - self.alpha_fixed_emb) * (1 - trust)
         else:
-            if score is not None and score > self.det_thresh:
-                trust = (score - self.det_thresh) / max(1 - self.det_thresh, 1e-9)
-                alpha = self.alpha_fixed_emb + (1 - self.alpha_fixed_emb) * (1 - trust)
-            else:
-                alpha = 1.0
-            self.smooth_feat = alpha * self.smooth_feat + (1 - alpha) * feat
-        self.smooth_feat = self.smooth_feat / np.linalg.norm(self.smooth_feat)
+            alpha = 1.0  # keep the existing smooth_feat for low-trust detections
+        curr, smooth = smooth_feature(feat, self.smooth_feat, alpha)
+        if curr is not None:
+            self.curr_feat, self.smooth_feat = curr, smooth
 
     def update(self, new_track: STrack, frame_id: int) -> None:
         """Update track state with a matched detection and refresh appearance features.

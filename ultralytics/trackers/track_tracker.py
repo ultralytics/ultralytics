@@ -14,9 +14,10 @@ from ultralytics.utils.metrics import bbox_ioa
 
 from ..utils import LOGGER
 from .basetrack import TrackState
-from .byte_tracker import STrack
+from .bot_sort import BOTrack
 from .utils.gmc import GMC
 from .utils.kalman_filter import KalmanFilterXYWH
+from .utils.reid import smooth_feature
 from .utils.stracks import joint_stracks, merge_track_pools, multi_gmc, parse_bboxes
 
 # Corner index arrays (LT, LB, RT, RB of an (x1,y1,x2,y2) box) for angle-distance vectorization.
@@ -223,14 +224,13 @@ def _cosine_distance(tracks: list[TTSTrack], dets: list[TTSTrack]) -> np.ndarray
     return np.clip(1 - track_feats @ det_feats.T, 0, 1)
 
 
-class TTSTrack(STrack):
+class TTSTrack(BOTrack):
     """Single-object track for TrackTrack with corner velocity, score history, and ReID features.
 
-    Inherits bbox properties from :class:`STrack` but uses a XYWH Kalman state, so ``tlwh`` and ``xywh`` are overridden
-    accordingly.
+    Extends `BOTrack` (XYWH Kalman state and EMA ReID smoothing), adding corner-velocity motion, score history,
+    and score-adaptive feature smoothing.
 
     Attributes:
-        shared_kalman (KalmanFilterXYWH): Shared Kalman filter used for batch prediction.
         min_track_len (int): Class-level default; overridden by TRACKTRACK from config.
         kalman_filter (KalmanFilterXYWH): Per-track Kalman filter used after activation.
         mean (np.ndarray): Mean state vector.
@@ -248,7 +248,6 @@ class TTSTrack(STrack):
         >>> track.activate(KalmanFilterXYWH(), frame_id=1)
     """
 
-    shared_kalman = KalmanFilterXYWH()
     min_track_len = 3
     _alpha = 0.95
     _delta_t = 3
@@ -262,24 +261,19 @@ class TTSTrack(STrack):
             cls (Any): Class label.
             feat (np.ndarray | None): Optional ReID feature vector.
         """
-        super().__init__(xywh, score, cls)
+        super().__init__(xywh, score, cls)  # BOTrack sets smooth_feat/curr_feat and the XYWH Kalman state
         self.prev_score = score
         self.velocity = np.zeros((4, 2), dtype=np.float32)
         self._history: deque[tuple[int, np.ndarray]] = deque(maxlen=self._delta_t + 1)
-        self.smooth_feat = self.curr_feat = None
         if feat is not None:
             self.update_features(feat)
 
     def update_features(self, feat: np.ndarray) -> None:
         """Normalize `feat` and blend it into `smooth_feat` via score-adaptive EMA."""
-        feat = feat / (np.linalg.norm(feat) + 1e-9)
-        self.curr_feat = feat
-        if self.smooth_feat is None:
-            self.smooth_feat = feat.copy()
-        else:
-            beta = self._alpha + (1 - self._alpha) * (1 - self.score)
-            self.smooth_feat = beta * self.smooth_feat + (1 - beta) * feat
-            self.smooth_feat /= np.linalg.norm(self.smooth_feat) + 1e-9
+        beta = self._alpha + (1 - self._alpha) * (1 - self.score)
+        curr, smooth = smooth_feature(feat, self.smooth_feat, beta)
+        if curr is not None:
+            self.curr_feat, self.smooth_feat = curr, smooth
 
     def get_history_box(self, frame_id: int, dt: int) -> np.ndarray:
         """Return the box from `dt` frames back, or the most recent box, or the current box."""
@@ -290,27 +284,6 @@ class TTSTrack(STrack):
         if self._history:
             return self._history[-1][1].copy()
         return self.xyxy.copy()
-
-    def predict(self) -> None:
-        """Kalman predict for a single track."""
-        mean = self.mean.copy()
-        if self.state != TrackState.Tracked:
-            mean[6] = mean[7] = 0
-        self.mean, self.covariance = self.kalman_filter.predict(mean, self.covariance)
-
-    @staticmethod
-    def multi_predict(stracks: list) -> None:
-        """Batched Kalman predict over a list of tracks."""
-        if not stracks:
-            return
-        means = np.asarray([track.mean.copy() for track in stracks])
-        covariances = np.asarray([track.covariance for track in stracks])
-        for i, track in enumerate(stracks):
-            if track.state != TrackState.Tracked:
-                means[i][6] = means[i][7] = 0
-        means, covariances = TTSTrack.shared_kalman.multi_predict(means, covariances)
-        for i, (mean, cov) in enumerate(zip(means, covariances)):
-            stracks[i].mean, stracks[i].covariance = mean, cov
 
     def activate(self, kalman_filter: KalmanFilterXYWH, frame_id: int) -> None:
         """Initialize Kalman state and promote to New state."""
@@ -369,31 +342,6 @@ class TTSTrack(STrack):
             self.state = TrackState.Tracked
             self.is_activated = True
         self.cls, self.angle, self.idx = new_track.cls, new_track.angle, new_track.idx
-
-    @staticmethod
-    def convert_coords(tlwh: np.ndarray) -> np.ndarray:
-        """Convert tlwh to center-xywh for the Kalman filter."""
-        ret = np.asarray(tlwh).copy()
-        ret[:2] += ret[2:] / 2
-        return ret
-
-    @property
-    def tlwh(self) -> np.ndarray:
-        """Get (top-left x, top-left y, width, height)."""
-        if self.mean is None:
-            return self._tlwh.copy()
-        ret = self.mean[:4].copy()
-        ret[:2] -= ret[2:] / 2
-        return ret
-
-    @property
-    def xywh(self) -> np.ndarray:
-        """Get (center x, center y, width, height)."""
-        if self.mean is None:
-            ret = self._tlwh.copy()
-            ret[:2] += ret[2:] / 2
-            return ret
-        return self.mean[:4].copy()
 
     def __repr__(self) -> str:
         """Short string representation of the track."""

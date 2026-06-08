@@ -11,7 +11,7 @@ from .byte_tracker import BYTETracker, STrack
 from .utils import matching
 from .utils.gmc import GMC
 from .utils.kalman_filter import KalmanFilterXYWH
-from .utils.reid import build_encoder
+from .utils.reid import build_encoder, smooth_feature
 from .utils.stracks import parse_bboxes
 
 
@@ -68,17 +68,10 @@ class BOTrack(STrack):
             self.update_features(feat)
 
     def update_features(self, feat: np.ndarray) -> None:
-        """Update the feature vector and apply exponential moving average smoothing."""
-        norm = np.linalg.norm(feat)
-        if norm < 1e-12:  # skip zero-norm features so smooth_feat isn't poisoned by NaNs
-            return
-        feat = feat / norm  # do NOT mutate caller's array (was `feat /= norm`)
-        self.curr_feat = feat
-        if self.smooth_feat is None:
-            self.smooth_feat = feat
-        else:
-            self.smooth_feat = self.alpha * self.smooth_feat + (1 - self.alpha) * feat
-            self.smooth_feat /= np.linalg.norm(self.smooth_feat)
+        """Update the current feature and its exponential-moving-average smoothed feature."""
+        curr, smooth = smooth_feature(feat, self.smooth_feat, self.alpha)
+        if curr is not None:
+            self.curr_feat, self.smooth_feat = curr, smooth
 
     def predict(self) -> None:
         """Predict the object's future state using the Kalman filter to update its mean and covariance."""

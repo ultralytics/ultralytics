@@ -612,7 +612,7 @@ jobs:
       - name: PyTest Setup
         run: |
           VERSION=$(python -c "from importlib.metadata import version; print(version('ultralytics'))")
-          git clone --branch v$VERSION https://github.com/ultralytics/ultralytics.git
+          git clone --depth 1 --branch v$VERSION https://github.com/ultralytics/ultralytics.git
       - name: test_cli.py
         run: pytest ultralytics/tests/test_cli.py -v -s
       - name: test_cuda.py

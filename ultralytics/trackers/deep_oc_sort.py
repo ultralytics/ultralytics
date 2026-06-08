@@ -37,7 +37,7 @@ class DeepOCSortTrack(OCSortTrack):
         alpha_fixed_emb: float = 0.95,
         det_thresh: float = 0.25,
     ):
-        """Initialize a :class:`DeepOCSortTrack` with optional appearance features.
+        """Initialize a `DeepOCSortTrack` with optional appearance features.
 
         Args:
             xywh (np.ndarray): Bounding box in `(x, y, w, h, idx)` or `(x, y, w, h, angle, idx)` format.
@@ -183,7 +183,7 @@ class DeepOCSORT(OCSORT):
         self.encoder = build_encoder(getattr(args, "with_reid", False), getattr(args, "model", "auto"))
 
     def init_track(self, results, img: np.ndarray | None = None) -> list[DeepOCSortTrack]:
-        """Build :class:`DeepOCSortTrack` instances, attaching ReID features when enabled.
+        """Build `DeepOCSortTrack` instances, attaching ReID features when enabled.
 
         When `with_reid=True` and `model="auto"`, `img` should already be a list of native
         backbone features (one per detection); for any other `model`, `img` is the source frame
@@ -227,7 +227,7 @@ class DeepOCSORT(OCSORT):
 
         For `model="auto"` (native-features mode) the encoder iterates a per-detection feature
         tensor, so we must hand it `feats[mask]`. If the upstream pipeline didn't populate
-        `feats` (e.g. user-supplied detections), return None so :meth:`init_track` falls back
+        `feats` (e.g. user-supplied detections), return None so `init_track` falls back
         to the no-encoding path instead of feeding a BGR frame into the auto encoder. For
         external ReID models, `init_track` always wants the BGR frame.
         """

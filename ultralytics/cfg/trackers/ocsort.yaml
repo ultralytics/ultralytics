@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # OC-SORT tracker defaults for mode="track"
+# Paper: https://arxiv.org/abs/2203.14360
 # Docs: https://docs.ultralytics.com/modes/track/
 
 tracker_type: ocsort # (str) Tracker backend: ocsort; observation-centric SORT for robust multi-object tracking

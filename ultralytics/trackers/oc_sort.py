@@ -200,7 +200,7 @@ class OCSORT(BYTETracker):
         self.use_byte = getattr(args, "use_byte", False)
 
     def init_track(self, results, img: np.ndarray | None = None) -> list[OCSortTrack]:
-        """Build :class:`OCSortTrack` instances from a `Results`-like object."""
+        """Build `OCSortTrack` instances from a `Results`-like object."""
         if len(results) == 0:
             return []
         bboxes = parse_bboxes(results)

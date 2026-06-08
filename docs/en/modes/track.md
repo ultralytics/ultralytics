@@ -209,7 +209,7 @@ The following parameters are common to most tracker YAML files; not every parame
 | ------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `tracker_type`      | `botsort`, `bytetrack`, `ocsort`, `deepocsort`, `fasttrack`, `tracktrack` | Specifies the tracker type.                                                                                                                                                                          |
 | `track_high_thresh` | `0.0-1.0`                                                                 | Threshold for the first association. Affects how confidently a detection is matched to an existing track.                                                                                            |
-| `track_low_thresh`  | `0.0-1.0`                                                                 | Threshold for the second association. Used when the first association fails, with more lenient criteria.                                                                                             |
+| `track_low_thresh`  | `0.0-1.0`                                                                 | Threshold for the second association over low-confidence detections. For OC-SORT and Deep OC-SORT this applies only when `use_byte: True`.                                                           |
 | `new_track_thresh`  | `0.0-1.0`                                                                 | Threshold to initialize a new track if the detection does not match any existing tracks.                                                                                                             |
 | `track_buffer`      | `>=0`                                                                     | Frames lost tracks are kept alive before removal. Higher value means more tolerance for occlusion.                                                                                                   |
 | `match_thresh`      | `0.0-1.0`                                                                 | Threshold for matching tracks. Higher values make matching more lenient.                                                                                                                             |
@@ -356,6 +356,9 @@ There is no appearance model and no camera-motion compensation.
 | `appearance_thresh` | `0.0-1.0`                                     | Minimum cosine similarity required for a ReID match.                                                                     |
 | `alpha_fixed_emb`   | `0.0-1.0`                                     | Base EMA factor for track-embedding updates. Higher values preserve the older embedding longer.                          |
 | `gmc_method`        | `sparseOptFlow`, `orb`, `sift`, `ecc`, `none` | Global motion compensation method.                                                                                       |
+| `delta_t`           | `>=1`                                         | Temporal window (frames) for velocity-direction computation in OCM (inherited from OC-SORT).                             |
+| `inertia`           | `0.0-1.0`                                     | Weight of the velocity-consistency cost (inherited from OC-SORT).                                                        |
+| `use_byte`          | `True`, `False`                               | Enable a ByteTrack-style second association over low-confidence detections (inherited from OC-SORT).                     |
 
 **Tuning tips:**
 
@@ -417,6 +420,9 @@ There is no appearance model and no camera-motion compensation.
 | `tai_thr`        | `0.0-1.0`              | IoU threshold for Track-Aware Initialization NMS.                        |
 | `min_track_len`  | `>=0`                  | Minimum successful updates before a new track is confirmed.              |
 | `lost_match_thr` | `0.0-1.0`              | Looser cost gate for relaxed lost-rebind pass; `0` disables it.          |
+| `with_reid`      | `True`, `False`        | Enable cosine-ReID appearance matching (uses native YOLO features). Off by default. |
+| `model`          | `auto`, ReID file      | ReID model; `auto` uses native YOLO features, otherwise an exported ReID file.       |
+| `gmc_method`     | `sparseOptFlow`, `orb`, `sift`, `ecc`, `none` | Global motion compensation method.                                   |
 
 **Tuning tips:**
 
@@ -631,7 +637,7 @@ Together, let's enhance the tracking capabilities of the Ultralytics YOLO ecosys
 
 ### What is Multi-Object Tracking and how does Ultralytics YOLO support it?
 
-Multi-object tracking in video analytics involves both identifying objects and maintaining a unique ID for each detected object across video frames. Ultralytics YOLO supports this by providing real-time tracking along with object IDs, facilitating tasks such as security surveillance and sports analytics. The system uses trackers like [BoT-SORT](https://github.com/NirAharon/BoT-SORT) and [ByteTrack](https://github.com/FoundationVision/ByteTrack), which can be configured via YAML files.
+Multi-object tracking in video analytics involves both identifying objects and maintaining a unique ID for each detected object across video frames. Ultralytics YOLO supports this by providing real-time tracking along with object IDs, facilitating tasks such as security surveillance and sports analytics. The system uses trackers such as [BoT-SORT](https://github.com/NirAharon/BoT-SORT), [ByteTrack](https://github.com/FoundationVision/ByteTrack), OC-SORT, Deep OC-SORT, FastTracker, and TrackTrack, which can be configured via YAML files.
 
 ### How do I configure a custom tracker for Ultralytics YOLO?
 

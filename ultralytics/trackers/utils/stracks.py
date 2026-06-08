@@ -145,11 +145,8 @@ def multi_gmc(stracks: list, H: np.ndarray) -> None:
     """Update multiple track positions and covariances using a 2x3 affine homography.
 
     The Kalman state is assumed to be laid out as `(*box, *box_velocity)` with the box center `(x, y)` in the first two
-    dims. `R8x8` rotates all four 2-d pairs block- diagonally; the translation `t` is applied only to the position.
-
-    .. warning::
-        This helper assumes the state layout is four spatial/velocity pairs (e.g., XYWH).
-        XYAH trackers must override this behavior.
+    dims. `R8x8` rotates all four 2-d pairs block-diagonally; the translation `t` is applied only to the position.
+    This assumes the state layout is four spatial/velocity pairs (e.g. XYWH); XYAH trackers must override this.
 
     Args:
         stracks (list[STrack]): Tracks to warp in place; each must expose `mean` (shape (8,)) and `covariance` (shape

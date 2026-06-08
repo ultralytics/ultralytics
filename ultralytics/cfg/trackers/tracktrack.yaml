@@ -29,7 +29,7 @@ tai_thr: 0.55 # (float) IoU threshold for TAI NMS suppression
 min_track_len: 3 # (int) Minimum history length before track is confirmed
 
 # Camera motion compensation
-gmc_method: sparseOptFlow # (str) GMC method: sparseOptFlow, orb, ecc, none
+gmc_method: sparseOptFlow # (str) GMC method: sparseOptFlow, orb, sift, ecc, none
 
 # ReID
 with_reid: False # (bool) Enable ReID feature matching

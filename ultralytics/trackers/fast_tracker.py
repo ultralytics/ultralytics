@@ -18,9 +18,9 @@ from .utils.stracks import parse_bboxes
 class FastSTrack(STrack):
     """Single-object track for FastTracker with occlusion-aware state.
 
-    Extends :class:`STrack` with a bounded ring-buffer of recent Kalman means and per-track occlusion
+    Extends `STrack` with a bounded ring-buffer of recent Kalman means and per-track occlusion
     bookkeeping. The history buffer enables rolling the Kalman state back to a pre-occlusion frame
-    when a neighbor suddenly covers the target. The buffer is a fixed-size :class:`collections.deque`, so memory stays
+    when a neighbor suddenly covers the target. The buffer is a fixed-size `collections.deque`, so memory stays
     bounded regardless of track lifetime.
 
     Attributes:
@@ -31,7 +31,7 @@ class FastSTrack(STrack):
         is_occluded (bool): True while the track is hidden behind another target.
         occluded_len (int): Consecutive frames the track has been continuously occluded.
         last_occluded_frame (int): Frame id when occlusion was last detected, or -1 if never occluded.
-        was_recently_occluded (bool): Sticky flag kept for ``occ_reappear_window`` frames, used by :class:`FastTracker`
+        was_recently_occluded (bool): Sticky flag kept for ``occ_reappear_window`` frames, used by `FASTTracker`
             to extend the re-find window for tracks that went lost while occluded.
 
     Examples:
@@ -105,7 +105,7 @@ class FASTTracker(BYTETracker):
     """Occlusion-aware ByteTrack-style multi-object tracker.
 
     Adapted from the reference implementation in the FastTracker paper (arXiv:2508.14370). FastTracker extends
-    :class:`BYTETracker` with lightweight mechanisms that reduce ID switches through crowd occlusions without
+    `BYTETracker` with lightweight mechanisms that reduce ID switches through crowd occlusions without
     sacrificing throughput. Unmatched tracks whose area is strongly covered by an active neighbor are flagged as
     occluded and their Kalman state is rolled back to a pre-occlusion frame, with a one-shot bbox enlargement and
     dampened motion so they survive the occlusion. An occluded track is kept alive for an extra grace window before
@@ -113,7 +113,7 @@ class FASTTracker(BYTETracker):
     New detections that strongly overlap an already-active track are suppressed at spawn time to prevent ghost IDs.
 
     All added work uses vectorized IoU / coverage matrices and only runs on unmatched tracks, so the per-frame overhead
-    over :class:`BYTETracker` stays on the order of a few hundred microseconds.
+    over `BYTETracker` stays on the order of a few hundred microseconds.
 
     Attributes:
         reset_velocity_offset_occ (int): Number of frames to look back when restoring Kalman velocity at occlusion
@@ -131,7 +131,7 @@ class FASTTracker(BYTETracker):
 
     Methods:
         update: Consume a frame's detections and return the currently-tracked objects.
-        init_track: Build :class:`FastSTrack` instances from a ``Results``-like object.
+        init_track: Build `FastSTrack` instances from a ``Results``-like object.
 
     Examples:
         Plug FastTracker into a YOLO model via the bundled config:
@@ -174,7 +174,7 @@ class FASTTracker(BYTETracker):
         self._history_len = max(self.reset_velocity_offset_occ, self.reset_pos_offset_occ) + 4
 
     def init_track(self, results, img: np.ndarray | None = None) -> list[FastSTrack]:
-        """Build :class:`FastSTrack` instances from a ``Results``-like object.
+        """Build `FastSTrack` instances from a ``Results``-like object.
 
         Args:
             results (Any): Object exposing ``xywh`` (or ``xywhr``), ``conf``, and ``cls``.
@@ -182,7 +182,7 @@ class FASTTracker(BYTETracker):
                 trackers.
 
         Returns:
-            (list[FastSTrack]): One :class:`FastSTrack` per detection, empty if no detections.
+            (list[FastSTrack]): One `FastSTrack` per detection, empty if no detections.
         """
         if len(results) == 0:
             return []

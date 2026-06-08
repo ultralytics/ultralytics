@@ -111,6 +111,8 @@ class Auth:
         try:
             if header := self.get_auth_header():
                 r = requests.post(f"{HUB_API_ROOT}/v1/auth", headers=header, timeout=30)
+                if r.status_code == 429 or r.status_code >= 500:
+                    r.raise_for_status()  # transient server error: keep credentials, take the connectivity path
                 if not r.json().get("success", False):
                     raise ConnectionError("Unable to authenticate.")
                 return True

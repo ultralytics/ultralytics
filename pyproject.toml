@@ -97,7 +97,7 @@ export-base = [
     # ONNX export validation and inference. Jetson jobs provide custom aarch64 onnxruntime-gpu wheels.
     "onnxruntime<1.20.0; python_version < '3.11' and (platform_machine != 'aarch64' or platform_system != 'Linux')",
     "onnxruntime>=1.20.0; python_version >= '3.11'",
-    "nncf>=2.14.0,<3.0.0; python_version >= '3.9'",  # OpenVINO INT8 export
+    "nncf>=2.14.0,<3.0.0; python_version >= '3.9' and python_version < '3.14'",  # OpenVINO INT8 export
     "openvino>=2024.0.0",  # OpenVINO export
     "packaging>=26.0; platform_machine == 'aarch64' and platform_system == 'Linux' and python_version >= '3.9'", # IMX export bug
 ]
@@ -107,8 +107,8 @@ export-legacy-torch = [
 export-tensorflow = [
     "numpy<2.0.0; python_version < '3.13'", # TF 2.20 compatibility
     "tensorflow>=2.0.0,<=2.19.0; python_version < '3.13'", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
-    "tensorflow>2.19.0; python_version >= '3.13'",
-    "tensorflowjs>=2.0.0", # TF.js export, automatically installs tensorflow
+    "tensorflow>2.19.0; python_version >= '3.13' and python_version < '3.14'",
+    "tensorflowjs>=2.0.0; python_version < '3.14'", # TF.js export, automatically installs tensorflow
     "ydf<0.13.0; platform_machine != 'aarch64' and python_version <= '3.12'", # ydf>=0.13 has protobuf gencode 6.x but tensorflow<=2.19 requires protobuf<6
     "googleapis-common-protos<1.74.0; python_version <= '3.12'", # >=1.74.0 uses protobuf gencode 7.34.1, incompatible with tensorflow<=2.19 (protobuf<6) and breaks ray[tune] import
     "tensorstore>=0.1.63; platform_machine == 'aarch64' and python_version >= '3.9'", # for TF Raspberry Pi exports

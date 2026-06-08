@@ -184,9 +184,11 @@ def onnx2engine(
         RuntimeError: If the ONNX file cannot be parsed.
 
     Notes:
-        TensorRT version compatibility is handled for workspace size and engine building.
-        INT8 calibration requires a dataset and generates a calibration cache.
-        Metadata is serialized and written to the engine file if provided.
+        TensorRT version compatibility is handled for workspace size and engine building. On TensorRT 7-10, INT8
+        calibration uses an ``IInt8Calibrator`` over ``dataset`` and writes a calibration cache, while FP16/INT8 are
+        enabled with builder flags. On TensorRT 11 these were removed in favor of strongly-typed networks, so reduced
+        precision is baked into the ONNX with NVIDIA ModelOpt before building (FP16 AutoCast, INT8 explicit Q/DQ) by
+        `modelopt_quantize_onnx`. Metadata is serialized and written to the engine file if provided.
     """
     # Force re-install TensorRT on CUDA 13 ARM devices to 10.15.x versions for RT-DETR exports
     # https://github.com/ultralytics/ultralytics/issues/22873

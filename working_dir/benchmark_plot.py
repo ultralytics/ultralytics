@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 # "jetson-agx-thor-gpu", "jetson-agx-thor-cpu", "jetson-agx-orin-gpu", "jetson-agx-orin-cpu",
 # "jetson-orin-nano-super-gpu", or "jetson-orin-nano-super-cpu"
 # =============================================================================
-BENCHMARK = "t4"
+BENCHMARK = "yolo27detr_compare"
 
 # Default metric for Y axis.
 DEFAULT_METRIC = "ap"
@@ -48,21 +48,21 @@ DEIM_DINOV3SPLUS_OBJ365_IMGSZ_SWEEP = [
     # The 640 point was exported before imgsz was added to artifact names.
     # Labels use decoder layer count; export_eval_idx=eidx means l{eidx + 1}.
     # ("480/l2/q100", 7.7, {"ap": 55.8, "ap50": 73.5, "ap75": 60.7, "ap_small": 35.5, "ap_medium": 61.5, "ap_large": 75.2}, 0.1),
-    ("512/l3", 9.1, {"ap": 57.5, "ap50": 75.0, "ap75": 62.4, "ap_small": 37.8, "ap_medium": 63.1, "ap_large": 76.4}, 0.2),
-    ("576/l4", 11.6, {"ap": 58.8, "ap50": 76.5, "ap75": 64.0, "ap_small": 40.6, "ap_medium": 64.1, "ap_large": 76.9}, 0.2),
-    ("640/l6", 14.1, {"ap": 59.8, "ap50": 77.7, "ap75": 65.3, "ap_small": 43.3, "ap_medium": 64.8, "ap_large": 77.4}, 0.4),
-    ("704/l6", 19.1, {"ap": 60.3, "ap50": 77.9, "ap75": 66.0, "ap_small": 43.9, "ap_medium": 65.2, "ap_large": 77.7}, 0.9),
-    ("800/l6", 24.8, {"ap": 60.9, "ap50": 78.3, "ap75": 66.5, "ap_small": 45.3, "ap_medium": 65.3, "ap_large": 77.2}, 0.9),
+    ("512/l3", 8.8, {"ap": 57.5, "ap50": 75.0, "ap75": 62.4, "ap_small": 37.8, "ap_medium": 63.1, "ap_large": 76.4}, 0.2),
+    ("576/l4", 11.1, {"ap": 58.8, "ap50": 76.5, "ap75": 64.0, "ap_small": 40.6, "ap_medium": 64.1, "ap_large": 76.9}, 0.2),
+    ("640/l6", 13.7, {"ap": 59.8, "ap50": 77.7, "ap75": 65.3, "ap_small": 43.3, "ap_medium": 64.8, "ap_large": 77.4}, 0.3),
+    ("704/l6", 18.1, {"ap": 60.3, "ap50": 77.9, "ap75": 66.0, "ap_small": 43.9, "ap_medium": 65.2, "ap_large": 77.7}, 0.4),
+    ("800/l6", 24.1, {"ap": 60.9, "ap50": 78.3, "ap75": 66.5, "ap_small": 45.3, "ap_medium": 65.3, "ap_large": 77.2}, 1.0),
 ]
 
 RF_DETR_OBJ365_TOPK_IMGSZ = [
     # Our benchmark measurements, not paper-reported values. Labels include model scale and profiled ONNX image size.
-    ("n/384", 2.7, {"ap": 48.4, "ap50": 67.5, "ap75": 51.7, "ap_small": 25.3, "ap_medium": 53.6, "ap_large": 71.0}),
-    ("s/512", 4.0, {"ap": 53.0, "ap50": 72.0, "ap75": 57.1, "ap_small": 31.8, "ap_medium": 58.4, "ap_large": 73.1}),
-    ("m/576", 5.0, {"ap": 54.7, "ap50": 73.6, "ap75": 59.1, "ap_small": 35.9, "ap_medium": 59.8, "ap_large": 73.7}),
-    ("l/704", 7.8, {"ap": 56.5, "ap50": 75.1, "ap75": 61.2, "ap_small": 39.0, "ap_medium": 61.0, "ap_large": 74.0}),
-    ("x/700", 16.9, {"ap": 58.6, "ap50": 77.5, "ap75": 64.0, "ap_small": 40.8, "ap_medium": 64.3, "ap_large": 76.3}),
-    ("xxl/880", 26.6, {"ap": 60.1, "ap50": 78.5, "ap75": 65.8, "ap_small": 43.7, "ap_medium": 65.1, "ap_large": 76.3}),
+    ("n/384", 2.7, {"ap": 48.4, "ap50": 67.5, "ap75": 51.7, "ap_small": 25.3, "ap_medium": 53.6, "ap_large": 71.0}, 0.0),
+    ("s/512", 3.9, {"ap": 53.0, "ap50": 72.0, "ap75": 57.1, "ap_small": 31.8, "ap_medium": 58.4, "ap_large": 73.1}, 0.1),
+    ("m/576", 5.0, {"ap": 54.7, "ap50": 73.6, "ap75": 59.1, "ap_small": 35.9, "ap_medium": 59.8, "ap_large": 73.7}, 0.0),
+    ("l/704", 7.9, {"ap": 56.5, "ap50": 75.1, "ap75": 61.2, "ap_small": 39.0, "ap_medium": 61.0, "ap_large": 74.0}, 0.1),
+    ("x/700", 16.2, {"ap": 58.6, "ap50": 77.5, "ap75": 64.0, "ap_small": 40.8, "ap_medium": 64.3, "ap_large": 76.3}, 0.8),
+    ("xxl/880", 25.6, {"ap": 60.1, "ap50": 78.5, "ap75": 65.8, "ap_small": 43.7, "ap_medium": 65.1, "ap_large": 76.3}, 1.3),
 ]
 
 DFINE_DINOV3SPLUS_OBJ365_IMGSZ640 = [
@@ -92,9 +92,9 @@ YOLO26L_RTDETR_OBJ365_IMGSZ_SWEEP = [
     # ("s/640/l6", 4.4, {"ap": 51.6, "ap50": 68.9, "ap75": 56.2, "ap_small": 35.0, "ap_medium": 55.8, "ap_large": 67.6}, 0.1),
     # ("l/384/l2", 3.8, {"ap": 47.2, "ap50": 68.3, "ap75": 52.1, "ap_small": 28.5, "ap_medium": 51.6, "ap_large": 65.5}, 0.1),
     # ("l/480/l3", 5.0, {"ap": 54.1, "ap50": 72.0, "ap75": 58.8, "ap_small": 37.6, "ap_medium": 58.9, "ap_large": 71.0}, 0.1),
-    ("l/512/l3", 5.3, {"ap": 54.7, "ap50": 72.3, "ap75": 59.5, "ap_small": 37.6, "ap_medium": 59.5, "ap_large": 71.3}, 0.1),
-    ("l/576/l4", 6.8, {"ap": 55.9, "ap50": 73.3, "ap75": 60.8, "ap_small": 38.7, "ap_medium": 60.4, "ap_large": 71.8}, 0.1),
-    ("l/640/l4", 7.7, {"ap": 56.5, "ap50": 74.1, "ap75": 61.6, "ap_small": 41.2, "ap_medium": 61.0, "ap_large": 70.9}, 0.1),
+    ("l/512/l3", 5.2, {"ap": 54.7, "ap50": 72.3, "ap75": 59.5, "ap_small": 37.6, "ap_medium": 59.5, "ap_large": 71.3}, 0.0),
+    ("l/576/l4", 6.7, {"ap": 55.9, "ap50": 73.3, "ap75": 60.8, "ap_small": 38.7, "ap_medium": 60.4, "ap_large": 71.8}, 0.1),
+    ("l/640/l4", 7.1, {"ap": 56.5, "ap50": 74.1, "ap75": 61.6, "ap_small": 41.2, "ap_medium": 61.0, "ap_large": 70.9}, 0.1),
 ]
 
 YOLO27DETR_OBJ365_IMGSZ_SWEEP = [
@@ -389,11 +389,11 @@ BENCHMARKS = {
         "title": "Object Detection Models: Latency vs mAP (Tesla T4 GPU, TensorRT v10.11)",
         "models": {
             "YOLO26 (E2E)": [
-                ("n", 1.8, {"ap": 40.1, "ap50": 55.6, "ap75": 43.5, "ap_small": 19.7, "ap_medium": 44.0, "ap_large": 58.4}),
-                ("s", 2.6, {"ap": 47.8, "ap50": 64.6, "ap75": 52.2, "ap_small": 29.1, "ap_medium": 52.5, "ap_large": 64.3}),
-                ("m", 5.0, {"ap": 52.5, "ap50": 69.8, "ap75": 57.2, "ap_small": 36.2, "ap_medium": 56.9, "ap_large": 68.5}),
-                ("l", 6.5, {"ap": 54.4, "ap50": 71.5, "ap75": 59.4, "ap_small": 37.8, "ap_medium": 58.6, "ap_large": 70.3}),
-                ("x", 12.2, {"ap": 56.9, "ap50": 74.1, "ap75": 62.1, "ap_small": 41.3, "ap_medium": 61.2, "ap_large": 72.7}),
+                ("n", 1.8, {"ap": 40.1, "ap50": 55.6, "ap75": 43.5, "ap_small": 19.7, "ap_medium": 44.0, "ap_large": 58.4}, 0.0),
+                ("s", 2.6, {"ap": 47.8, "ap50": 64.6, "ap75": 52.2, "ap_small": 29.1, "ap_medium": 52.5, "ap_large": 64.3}, 0.0),
+                ("m", 4.8, {"ap": 52.5, "ap50": 69.8, "ap75": 57.2, "ap_small": 36.2, "ap_medium": 56.9, "ap_large": 68.5}, 0.1),
+                ("l", 6.4, {"ap": 54.4, "ap50": 71.5, "ap75": 59.4, "ap_small": 37.8, "ap_medium": 58.6, "ap_large": 70.3}, 0.1),
+                ("x", 11.7, {"ap": 56.9, "ap50": 74.1, "ap75": 62.1, "ap_small": 41.3, "ap_medium": 61.2, "ap_large": 72.7}, 0.3),
             ],
             "YOLO26 (NMS)": [
                 ("n", 1.9, {"ap": 40.9, "ap50": 56.8, "ap75": 44.3, "ap_small": 21.1, "ap_medium": 44.8, "ap_large": 59.1}),
@@ -412,8 +412,8 @@ BENCHMARKS = {
             ],
             "RF-DETR (obj365, TopK)": RF_DETR_OBJ365_TOPK_IMGSZ,
             "YOLO26_RTDETR (obj365)": [
-                ("l4", 7.6, {"ap": 56.5, "ap50": 74.1, "ap75": 61.6, "ap_small": 41.3, "ap_medium": 61.0, "ap_large": 70.9}),
-                ("l", 8.1, {"ap": 56.7, "ap50": 74.3, "ap75": 61.8, "ap_small": 41.7, "ap_medium": 61.1, "ap_large": 71.0}),
+                ("l4", 7.1, {"ap": 56.5, "ap50": 74.1, "ap75": 61.6, "ap_small": 41.3, "ap_medium": 61.0, "ap_large": 70.9}, 0.1),
+                ("l", 8.1, {"ap": 56.7, "ap50": 74.3, "ap75": 61.8, "ap_small": 41.7, "ap_medium": 61.1, "ap_large": 71.0}, 0.1),
                 ("x", 13.2, {"ap": 58.4, "ap50": 75.8, "ap75": 64.0, "ap_small": 43.7, "ap_medium": 62.8, "ap_large": 73.9}, 0.3),
             ],
             "YOLO26L-RTDETR (obj365)": YOLO26L_RTDETR_OBJ365_IMGSZ_SWEEP,
@@ -536,8 +536,8 @@ BENCHMARKS = {
                 ("xxl", 32.6, {"ap": 59.8, "ap50": 77.1, "ap75": 65.3, "ap_small": 42.8, "ap_medium": 65.5, "ap_large": 77.1}),
             ],
             "YOLO26_RTDETR (obj365)": [
-                ("l4", 7.5, {"ap": 56.5, "ap50": 74.1, "ap75": 61.6, "ap_small": 41.3, "ap_medium": 61.0, "ap_large": 70.9}),
-                ("l", 8.0, {"ap": 56.7, "ap50": 74.3, "ap75": 61.8, "ap_small": 41.7, "ap_medium": 61.1, "ap_large": 71.0}),
+                ("l4", 7.1, {"ap": 56.5, "ap50": 74.1, "ap75": 61.6, "ap_small": 41.3, "ap_medium": 61.0, "ap_large": 70.9}, 0.1),
+                ("l", 8.1, {"ap": 56.7, "ap50": 74.3, "ap75": 61.8, "ap_small": 41.7, "ap_medium": 61.1, "ap_large": 71.0}, 0.1),
                 ("x", 13.2, {"ap": 58.4, "ap50": 75.8, "ap75": 64.0, "ap_small": 43.7, "ap_medium": 62.8, "ap_large": 73.9}, 0.3),
             ],
             "YOLO26L-RTDETR (obj365)": YOLO26L_RTDETR_OBJ365_IMGSZ_SWEEP,
@@ -628,19 +628,19 @@ BENCHMARKS = {
         "title": "Object Detection Models: Latency vs mAP (Tesla T4 GPU, TensorRT — subset matching m5_coreml)",
         "models": {
             "YOLO26 (E2E)": [
-                ("l", 6.5, {"ap": 54.4}),
-                ("x", 12.2, {"ap": 56.9}),
+                ("l", 6.4, {"ap": 54.4}, 0.1),
+                ("x", 11.7, {"ap": 56.9}, 0.3),
             ],
             "YOLO26 (NMS)": [
                 ("l", 6.6, {"ap": 55.0}),
                 ("x", 12.3, {"ap": 57.5}),
             ],
             "YOLO26_RTDETR (obj365)": [
-                ("l", 8.1, {"ap": 56.7}),
+                ("l", 8.1, {"ap": 56.7}, 0.1),
                 ("x", 13.2, {"ap": 58.4}, 0.3),
             ],
             "DEIM-DINOv3SPlus (obj365)": [
-                ("xl/l6", 14.1, {"ap": 59.8}, 0.4),
+                ("xl/l6", 13.7, {"ap": 59.8}, 0.3),
             ],
         },
     },

@@ -67,13 +67,11 @@ class SAM3VLBackbone(nn.Module):
                 backbone forward pass.
 
         Returns:
-            (dict): Output dictionary with the following keys:
-                - vision_features: The output of the vision backbone.
-                - language_features: The output of the language backbone.
-                - language_mask: The attention mask of the language backbone.
-                - vision_pos_enc: The positional encoding of the vision backbone.
-                - additional_text_features (optional): The language backbone output for the additional text.
-                - additional_text_mask (optional): The language attention mask for the additional text.
+            (dict): Output dictionary with the following keys: `vision_features` (the output of the vision
+                backbone), `language_features` (the output of the language backbone), `language_mask` (the
+                attention mask of the language backbone), `vision_pos_enc` (the positional encoding of the vision
+                backbone) and, when `additional_text` is provided, `additional_text_features` and
+                `additional_text_mask` (the language backbone output and attention mask for the additional text).
         """
         output = self.forward_image(samples)
         output.update(self.forward_text(captions, input_boxes, additional_text))

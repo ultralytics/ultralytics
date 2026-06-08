@@ -115,9 +115,12 @@ class Auth:
                     raise ConnectionError("Unable to authenticate.")
                 return True
             raise ConnectionError("User has not authenticated locally.")
-        except (ConnectionError, requests.exceptions.RequestException):
-            self.id_token = self.api_key = False  # reset invalid
+        except ConnectionError:
+            self.id_token = self.api_key = False  # reset invalid credentials
             LOGGER.warning(f"{PREFIX}Invalid API key")
+            return False
+        except requests.exceptions.RequestException as e:
+            LOGGER.warning(f"{PREFIX}Authentication request failed, check your connection: {e}")  # keep credentials
             return False
 
     def auth_with_cookies(self) -> bool:

@@ -31,8 +31,8 @@ def concat_padded_sequences(seq1, mask1, seq2, mask2, return_index: bool = False
             sequence, which can be used to retrieve the elements of seq2.
 
     Returns:
-        (tuple): (concatenated_sequence, concatenated_mask) if return_index is False, otherwise
-            (concatenated_sequence, concatenated_mask, index).
+        (tuple): (concatenated_sequence, concatenated_mask) if return_index is False, otherwise (concatenated_sequence,
+            concatenated_mask, index).
     """
     seq1_length, batch_size, hidden_size = seq1.shape
     seq2_length, batch_size, hidden_size = seq2.shape

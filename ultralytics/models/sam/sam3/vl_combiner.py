@@ -61,8 +61,8 @@ class SAM3VLBackbone(nn.Module):
         Args:
             samples (torch.Tensor): The input images.
             captions (list[str]): The input captions.
-            input_boxes (torch.Tensor, optional): When the text contains box place-holders, the tensor containing
-                their spatial features.
+            input_boxes (torch.Tensor, optional): When the text contains box place-holders, the tensor containing their
+                spatial features.
             additional_text (list[str], optional): Extra text (different from the captions) to encode in the same
                 backbone forward pass.
 

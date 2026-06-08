@@ -45,6 +45,7 @@ from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.torch_utils import (
     attempt_compile,
+    autocast,
     select_device,
     smart_inference_mode,
     torch_distributed_zero_first,
@@ -155,23 +156,14 @@ class BaseValidator:
         if self.training:
             self.device = trainer.device
             self.data = trainer.data
-            # Force FP16 val during training
+            # Validate the EMA in fp16 via autocast (below) instead of casting it in place. Casting the live EMA to
+            # fp16 permanently corrupted it when a finite weight overflowed the fp16 range, skipping every later
+            # checkpoint (https://github.com/ultralytics/ultralytics/issues/24615); keeping it fp32 makes val read-only.
             self.args.half = self.device.type != "cpu" and trainer.amp
             model = trainer.ema.ema or trainer.model
             if trainer.args.compile and hasattr(model, "_orig_mod"):
                 model = model._orig_mod  # validate non-compiled original model to avoid issues
-            if self.args.half:
-                # Clamp to the fp16 range before the in-place half cast: a finite weight above the fp16 max would
-                # otherwise overflow to Inf, which the post-val float cast cannot undo, permanently poisoning the live
-                # EMA so every later checkpoint is skipped (https://github.com/ultralytics/ultralytics/issues/24615).
-                # NaN is left intact so genuine divergence is still caught at checkpoint time.
-                fp16_max = torch.finfo(torch.float16).max
-                for v in model.state_dict().values():
-                    if isinstance(v, torch.Tensor) and v.is_floating_point():
-                        v.clamp_(-fp16_max, fp16_max)
-                model = model.half()
-            else:
-                model = model.float()
+            model = model.float()
             self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
             model.eval()
@@ -240,12 +232,14 @@ class BaseValidator:
 
             # Inference
             with dt[1]:
-                preds = model(batch["img"], augment=augment)
+                with autocast(self.training and self.args.half, device=self.device.type):
+                    preds = model(batch["img"], augment=augment)
 
             # Loss
             with dt[2]:
                 if self.training:
-                    self.loss += model.loss(batch, preds)[1]
+                    with autocast(self.args.half, device=self.device.type):
+                        self.loss += model.loss(batch, preds)[1]
 
             # Postprocess
             with dt[3]:
@@ -268,7 +262,6 @@ class BaseValidator:
             self.run_callbacks("on_val_end")
 
         if self.training:
-            model.float()
             # Reduce loss across all GPUs
             loss = self.loss.clone().detach()
             if trainer.world_size > 1:

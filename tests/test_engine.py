@@ -190,9 +190,11 @@ def test_checkpoint_fp16_overflow():
     assert all(torch.isfinite(v).all() for v in model.state_dict().values() if isinstance(v, torch.Tensor)), (
         "saved checkpoint contains NaN/Inf"
     )
-    # The live EMA must stay fp32 and finite: validation must never cast it to fp16 in place (the #24615 root cause).
+    # After validation the live EMA must remain fp32 and unchanged; only the saved fp16 checkpoint copy may be clamped.
     ema_param = next(iter(trainer.ema.ema.parameters()))
-    assert ema_param.dtype == torch.float32 and torch.isfinite(ema_param).all(), "validation corrupted the live EMA"
+    assert ema_param.dtype == torch.float32 and torch.isfinite(ema_param).all() and ema_param.flatten()[0] == 1.0e5, (
+        "validation corrupted the live EMA"
+    )
 
 
 @pytest.mark.parametrize(

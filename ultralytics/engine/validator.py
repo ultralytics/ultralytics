@@ -156,9 +156,7 @@ class BaseValidator:
         if self.training:
             self.device = trainer.device
             self.data = trainer.data
-            # Validate the EMA in fp16 via autocast (below) instead of casting it in place. Casting the live EMA to
-            # fp16 permanently corrupted it when a finite weight overflowed the fp16 range, skipping every later
-            # checkpoint (https://github.com/ultralytics/ultralytics/issues/24615); keeping it fp32 makes val read-only.
+            # Keep training validation read-only: inputs may be fp16, but EMA/model weights stay fp32 under autocast.
             self.args.half = self.device.type != "cpu" and trainer.amp
             model = trainer.ema.ema or trainer.model
             if trainer.args.compile and hasattr(model, "_orig_mod"):

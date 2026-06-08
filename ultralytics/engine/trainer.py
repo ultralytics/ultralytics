@@ -648,14 +648,13 @@ class BaseTrainer:
         """Save model training checkpoints with additional metadata."""
         import io
 
-        # Check the fp32 EMA for genuine divergence; skipping here keeps a clean last.pt for NaN recovery. A finite
-        # model whose largest weights merely overflow fp16 is still saved (clamped below) rather than lost.
+        # Skip only genuinely non-finite fp32 EMA weights; fp16 overflow is handled on the saved copy below.
         ema = unwrap_model(self.ema.ema)
         if not all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor)):
             LOGGER.warning(f"Skipping checkpoint save at epoch {self.epoch}: EMA contains NaN/Inf")
             return False
         ema = deepcopy(ema).half()
-        # Large finite fp32 weights overflow to +/-inf when cast to fp16; clamp so the saved checkpoint stays finite.
+        # Clamp fp16 serialization overflow without mutating the live EMA.
         for v in ema.state_dict().values():
             if isinstance(v, torch.Tensor) and v.is_floating_point():
                 torch.nan_to_num_(v)

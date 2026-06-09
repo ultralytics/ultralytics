@@ -1369,7 +1369,7 @@ class Exporter:
 
     @staticmethod
     def _transform_fn(data_item) -> np.ndarray:
-        """The transformation function for Axelera/OpenVINO quantization preprocessing."""
+        """Quantization preprocessing transform for INT8 calibration (Axelera, OpenVINO, ONNX, QNN)."""
         data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
         assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
         im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0

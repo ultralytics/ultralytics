@@ -412,6 +412,15 @@ def test_export_rknn(isolated_model):
     shutil.rmtree(file, ignore_errors=True)
 
 
+@pytest.mark.slow
+@pytest.mark.skipif(not LINUX or ARM64, reason="RKNN export only supported on non-aarch64 Linux")
+def test_export_rknn_int8(isolated_model):
+    """Test YOLO export to RKNN INT8 format with calibration data."""
+    file = YOLO(isolated_model).export(format="rknn", imgsz=32, int8=True, data="coco8.yaml", fraction=0.25)
+    assert next(Path(file).rglob("*.rknn"), None), f"RKNN INT8 export failed, no RKNN model found in: {file}"
+    shutil.rmtree(file, ignore_errors=True)
+
+
 # @pytest.mark.skipif(True, reason="Disabled for debugging ruamel.yaml installation required by executorch")
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_2_9, reason="Requires Python>=3.10 and Torch>=2.9.0")
 @pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")

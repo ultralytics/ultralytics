@@ -212,7 +212,7 @@ def export_formats():
             "_rknn_model",
             False,
             False,
-            ["batch", "name", "half", "int8", "data", "fraction"],
+            ["batch", "name", "int8", "data", "fraction"],
             "isolated-rknn",
         ],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"], "executorch"],
@@ -455,12 +455,6 @@ class Exporter:
             _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
-        if (
-            self.args.format.lower() == "rknn"
-            and not self.args.int8
-            and not any(k in (overrides or {}) for k in {"half", "int8", "data", "fraction"})
-        ):
-            self.args.half = True
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 

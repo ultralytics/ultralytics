@@ -131,7 +131,7 @@ def smart_request(
         for i in range(retry + 1):
             if (time.time() - t0) > timeout:
                 break
-            r = requests_with_progress(func_method, func_url, **func_kwargs)  # i.e. get(url, data, json, files)
+            r = requests_with_progress(func_method, func_url, timeout=timeout, **func_kwargs)  # socket timeout per request
             if r.status_code < 300:  # return codes in the 2xx range are generally considered "good" or "successful"
                 break
             try:

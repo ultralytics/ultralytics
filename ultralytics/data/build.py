@@ -17,7 +17,14 @@ from PIL import Image
 from torch.utils.data import Dataset, dataloader, distributed
 
 from ultralytics.cfg import IterableSimpleNamespace
-from ultralytics.data.dataset import GroundingDataset, ReidDataset, YOLODataset, YOLOMultiModalDataset
+from ultralytics.data.dataset import (
+    GroundingDataset,
+    PolygonSemanticDataset,
+    ReidDataset,
+    SemanticDataset,
+    YOLODataset,
+    YOLOMultiModalDataset,
+)
 from ultralytics.data.loaders import (
     LOADERS,
     LoadImagesAndVideos,
@@ -406,6 +413,7 @@ def build_yolo_dataset(
     rect: bool = False,
     stride: int = 32,
     multi_modal: bool = False,
+    fraction: float | None = None,
 ) -> Dataset:
     """Build and return a YOLO dataset based on configuration parameters.
 
@@ -415,23 +423,39 @@ def build_yolo_dataset(
     """
     if cfg.task == "reid":
         return ReidDataset(root=img_path, args=cfg, augment=mode == "train", prefix=mode, data=data)
-    dataset = YOLOMultiModalDataset if multi_modal else YOLODataset
+    pad = 0.0 if mode == "train" else 0.5
+    if cfg.task == "semantic":
+        data_path = Path(data.get("path", ""))
+        if "masks_dir" in data:
+            dataset = SemanticDataset
+        elif (data_path / "masks").exists():
+            dataset = SemanticDataset
+        else:
+            dataset = PolygonSemanticDataset
+        pad = 0.0  # no pad for semantic
+    elif multi_modal:
+        dataset = YOLOMultiModalDataset
+    else:
+        dataset = YOLODataset
+
+    if fraction is None:
+        fraction = cfg.fraction if mode == "train" else 1.0
     return dataset(
         img_path=img_path,
         imgsz=cfg.imgsz,
         batch_size=batch,
-        augment=mode == "train",  # augmentation
-        hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function
-        rect=cfg.rect or rect,  # rectangular batches
+        augment=mode == "train",
+        hyp=cfg,
+        rect=cfg.rect or rect,
         cache=cfg.cache or None,
         single_cls=cfg.single_cls or False,
         stride=stride,
-        pad=0.0 if mode == "train" else 0.5,
+        pad=pad,
         prefix=colorstr(f"{mode}: "),
         task=cfg.task,
         classes=cfg.classes,
         data=data,
-        fraction=cfg.fraction if mode == "train" else 1.0,
+        fraction=fraction,
     )
 
 

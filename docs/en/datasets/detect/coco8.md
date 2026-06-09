@@ -8,7 +8,7 @@ keywords: COCO8, Ultralytics, dataset, object detection, YOLO26, training, valid
 
 ## Introduction
 
-The [Ultralytics](https://www.ultralytics.com/) COCO8 dataset is a compact yet powerful [object detection](https://www.ultralytics.com/glossary/object-detection) dataset, consisting of the first 8 images from the COCO train 2017 set—4 for training and 4 for validation. This dataset is specifically designed for rapid testing, debugging, and experimentation with [YOLO](https://docs.ultralytics.com/models/yolo26/) models and training pipelines. Its small size makes it highly manageable, while its diversity ensures it serves as an effective sanity check before scaling up to larger datasets.
+The [Ultralytics](https://www.ultralytics.com/) COCO8 dataset is a compact yet powerful [object detection](https://www.ultralytics.com/glossary/object-detection) dataset, consisting of the first 8 images from the COCO train 2017 set—4 for training and 4 for validation. This dataset is specifically designed for rapid testing, debugging, and experimentation with [YOLO](https://docs.ultralytics.com/models/yolo26) models and training pipelines. Its small size makes it highly manageable, while its diversity ensures it serves as an effective sanity check before scaling up to larger datasets.
 
 <p align="center">
   <br>
@@ -93,7 +93,7 @@ Special thanks to the [COCO Consortium](https://cocodataset.org/#home) for their
 
 ### What Is the Ultralytics COCO8 Dataset Used For?
 
-The Ultralytics COCO8 dataset is designed for rapid testing and debugging of [object detection](https://www.ultralytics.com/glossary/object-detection) models. With only 8 images (4 for training, 4 for validation), it is ideal for verifying your [YOLO](https://docs.ultralytics.com/models/yolo26/) training pipelines and ensuring everything works as expected before scaling to larger datasets. Explore the [COCO8 YAML configuration](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8.yaml) for more details.
+The Ultralytics COCO8 dataset is designed for rapid testing and debugging of [object detection](https://www.ultralytics.com/glossary/object-detection) models. With only 8 images (4 for training, 4 for validation), it is ideal for verifying your [YOLO](https://docs.ultralytics.com/models/yolo26) training pipelines and ensuring everything works as expected before scaling to larger datasets. Explore the [COCO8 YAML configuration](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8.yaml) for more details.
 
 ### How Do I Train a YOLO26 Model Using the COCO8 Dataset?
 
@@ -123,11 +123,11 @@ For additional training options, refer to the [YOLO Training documentation](../.
 
 ### Why Should I Use Ultralytics Platform for Managing My COCO8 Training?
 
-[Ultralytics Platform](https://platform.ultralytics.com/) streamlines dataset management, training, and deployment for [YOLO](https://docs.ultralytics.com/models/yolo26/) models—including COCO8. With features like cloud training, real-time monitoring, and intuitive dataset handling, HUB enables you to launch experiments with a single click and eliminates manual setup hassles. Learn more about [Ultralytics Platform](https://platform.ultralytics.com/) and how it can accelerate your computer vision projects.
+[Ultralytics Platform](https://platform.ultralytics.com/) streamlines dataset management, training, and deployment for [YOLO](https://docs.ultralytics.com/models/yolo26) models—including COCO8. With features like cloud training, real-time monitoring, and intuitive dataset handling, HUB enables you to launch experiments with a single click and eliminates manual setup hassles. Learn more about [Ultralytics Platform](https://platform.ultralytics.com/) and how it can accelerate your computer vision projects.
 
 ### What Are the Benefits of Using Mosaic Augmentation in Training With the COCO8 Dataset?
 
-Mosaic augmentation, as used in COCO8 training, combines multiple images into one during each batch. This increases the diversity of objects and backgrounds, helping your [YOLO](https://docs.ultralytics.com/models/yolo26/) model generalize better to new scenarios. Mosaic augmentation is especially valuable for small datasets, as it maximizes the information available in each training step. For more on this, see the [training guide](#usage).
+Mosaic augmentation, as used in COCO8 training, combines multiple images into one during each batch. This increases the diversity of objects and backgrounds, helping your [YOLO](https://docs.ultralytics.com/models/yolo26) model generalize better to new scenarios. Mosaic augmentation is especially valuable for small datasets, as it maximizes the information available in each training step. For more on this, see the [training guide](#usage).
 
 ### How Can I Validate My YOLO26 Model Trained on the COCO8 Dataset?
 

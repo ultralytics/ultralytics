@@ -1,0 +1,111 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Cityscapes semantic segmentation dataset (19 classes)
+# Documentation: https://docs.ultralytics.com/datasets/semantic/cityscapes/
+# Example usage: yolo semantic train data=cityscapes.yaml model=yolo26n-sem.pt
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── cityscapes ← downloads here (11 GB)
+#         └── images
+#         └── masks
+
+# Dataset root directory
+path: cityscapes # dataset root dir
+train: images/train # train images (relative to 'path') 2975 images
+val: images/val # val images (relative to 'path') 500 images
+test: images/test # test images (relative to 'path') 1525 images
+
+masks_dir: masks # semantic mask directory
+
+# Cityscapes 19-class labels
+names:
+  0: road
+  1: sidewalk
+  2: building
+  3: wall
+  4: fence
+  5: pole
+  6: traffic light
+  7: traffic sign
+  8: vegetation
+  9: terrain
+  10: sky
+  11: person
+  12: rider
+  13: car
+  14: truck
+  15: bus
+  16: train
+  17: motorcycle
+  18: bicycle
+
+# Map source label IDs to train IDs; ignore_label is converted to 255.
+label_mapping:
+  -1: ignore_label
+  0: ignore_label
+  1: ignore_label
+  2: ignore_label
+  3: ignore_label
+  4: ignore_label
+  5: ignore_label
+  6: ignore_label
+  7: 0
+  8: 1
+  9: ignore_label
+  10: ignore_label
+  11: 2
+  12: 3
+  13: 4
+  14: ignore_label
+  15: ignore_label
+  16: ignore_label
+  17: 5
+  18: ignore_label
+  19: 6
+  20: 7
+  21: 8
+  22: 9
+  23: 10
+  24: 11
+  25: 12
+  26: 13
+  27: 14
+  28: 15
+  29: ignore_label
+  30: ignore_label
+  31: 16
+  32: 17
+  33: 18
+
+# Preparation script (requires manual Cityscapes download)
+download: |
+  from pathlib import Path
+  from shutil import copy2
+
+  cityscapes_dir = Path(yaml["path"])  # dataset root dir
+  # Download and extract the official Cityscapes leftImg8bit and gtFine archives into cityscapes_dir first.
+  leftimg8bit_dir = cityscapes_dir / "leftImg8bit"
+  gtfine_dir = cityscapes_dir / "gtFine"
+
+  for split in ("train", "val", "test"):
+      print(f"Processing {split} set")
+      src_image_dir = leftimg8bit_dir / split
+      dst_image_dir = cityscapes_dir / "images" / split
+      dst_mask_dir = cityscapes_dir / "masks" / split
+      dst_image_dir.mkdir(parents=True, exist_ok=True)
+      dst_mask_dir.mkdir(parents=True, exist_ok=True)
+
+      image_paths = sorted(src_image_dir.rglob("*_leftImg8bit.png"))
+      for image_path in image_paths:
+          relative_path = image_path.relative_to(src_image_dir)
+          mask_path = gtfine_dir / split / relative_path.parent / image_path.name.replace(
+              "_leftImg8bit.png", "_gtFine_labelIds.png"
+          )
+          if not mask_path.exists():
+              raise FileNotFoundError(f"Mask not found for {image_path}: {mask_path}")
+
+          image_name = image_path.name.replace("_leftImg8bit", "")
+          mask_name = mask_path.name.replace("_gtFine_labelIds", "")
+          copy2(image_path, dst_image_dir / image_name)
+          copy2(mask_path, dst_mask_dir / mask_name)

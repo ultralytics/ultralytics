@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Learn to annotate images in Ultralytics Platform with manual tools, skeleton templates for pose estimation, and Smart annotation with SAM and YOLO models for detect, segment, and OBB tasks.
+description: Learn to annotate images in Ultralytics Platform with manual tools, skeleton templates for pose estimation, and Smart annotation with SAM and YOLO models for detect, segment, semantic, and OBB tasks.
 keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, bounding box, polygon, keypoints, skeleton templates, pose estimation, segmentation, YOLO
 ---
 
 # Annotation Editor
 
-[Ultralytics Platform](https://platform.ultralytics.com) includes a powerful annotation editor for labeling images with bounding boxes, polygons, keypoints, oriented boxes, and classifications. The editor supports manual drawing and SAM-powered smart annotation.
+[Ultralytics Platform](https://platform.ultralytics.com) includes a powerful annotation editor for labeling images with bounding boxes, polygons, keypoints, oriented boxes, and classifications. The editor supports manual drawing and [SAM-powered smart annotation](https://www.ultralytics.com/annotate).
 
 ![Ultralytics Platform Annotate Editor Toolbar With Canvas](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-annotate-editor-toolbar-with-canvas.avif)
 
@@ -24,19 +24,20 @@ graph TB
 
 ## Supported Task Types
 
-The annotation editor supports all 5 YOLO task types:
+The annotation editor supports all 6 YOLO task types:
 
 | Task                                             | Tool           | Annotation Format                                         |
 | ------------------------------------------------ | -------------- | --------------------------------------------------------- |
 | **[Detect](../../datasets/detect/index.md)**     | Rectangle      | Bounding boxes (x, y, width, height)                      |
 | **[Segment](../../datasets/segment/index.md)**   | Polygon        | Pixel-precise masks (polygon vertices)                    |
+| **[Semantic](../../datasets/semantic/index.md)** | Polygon        | Per-class region masks (polygon vertices)                 |
 | **[Pose](../../datasets/pose/index.md)**         | Keypoint       | Skeleton templates (Person, Hand, Face, Dog, Box, custom) |
 | **[OBB](../../datasets/obb/index.md)**           | Oriented Box   | Rotated bounding boxes (4 corners)                        |
 | **[Classify](../../datasets/classify/index.md)** | Class Selector | Image-level labels                                        |
 
 !!! tip "Multi-Task Annotations"
 
-    All 5 annotation types are stored together on each image. You can switch the dataset's active task type without losing existing annotations — they are preserved and reappear when you switch back.
+    All 6 annotation types are stored together on each image. You can switch the dataset's active task type without losing existing annotations — they are preserved and reappear when you switch back.
 
 ### Task Details
 
@@ -121,10 +122,10 @@ graph LR
 
 The editor provides two annotation modes, selectable from the toolbar:
 
-| Mode       | Description                                                       | Shortcut |
-| ---------- | ----------------------------------------------------------------- | -------- |
-| **Manual** | Draw annotations with task-specific tools (all 5 task types)      | `V`      |
-| **Smart**  | SAM or YOLO model-assisted annotation (detect, segment, OBB only) | `S`      |
+| Mode       | Description                                                                 | Shortcut |
+| ---------- | --------------------------------------------------------------------------- | -------- |
+| **Manual** | Draw annotations with task-specific tools (all 6 task types)                | `V`      |
+| **Smart**  | SAM or YOLO model-assisted annotation (detect, segment, semantic, OBB only) | `S`      |
 
 ## Manual Annotation Tools
 
@@ -183,7 +184,7 @@ The editor includes 5 built-in templates:
 | ---------- | --------- | ---------------------------------------------------------------------------------------------------------------------- |
 | **Person** | 17        | [COCO human body pose](../../datasets/pose/coco.md) — nose, eyes, ears, shoulders, elbows, wrists, hips, knees, ankles |
 | **Hand**   | 21        | [Ultralytics Hand Keypoints](../../datasets/pose/hand-keypoints.md) — wrist, thumb, index, middle, ring, pinky joints  |
-| **Face**   | 68        | [iBUG 300W](https://ibug.doc.ic.ac.uk/resources/300-W/) facial landmarks — jaw, eyebrows, nose, eyes, mouth            |
+| **Face**   | 68        | iBUG 300W facial landmarks — jaw, eyebrows, nose, eyes, mouth                                                          |
 | **Dog**    | 18        | AP-10K animal pose — nose, head, neck, shoulders, tailbase, tail, and 4 legs (elbows, knees, paws)                     |
 | **Box**    | 4         | Corner keypoints — top-left, top-right, bottom-right, bottom-left                                                      |
 
@@ -236,7 +237,7 @@ Assign image-level class labels:
 
 ## Smart Annotation
 
-Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](https://docs.ultralytics.com/models/sam/) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. Smart annotation is available for **detect**, **segment**, and **OBB** tasks.
+Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](https://docs.ultralytics.com/models/sam) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. Smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks.
 
 ### SAM Smart Annotation
 
@@ -284,7 +285,7 @@ SAM smart annotation can generate:
 
 !!! warning "SAM Task Support"
 
-    SAM smart annotation is only available for **detect**, **segment**, and **OBB** tasks. Classification and pose tasks require manual annotation.
+    SAM smart annotation is only available for **detect**, **segment**, **semantic**, and **OBB** tasks. Classification and pose tasks require manual annotation.
 
 #### Auto-Apply Mode
 
@@ -344,7 +345,7 @@ The annotation editor includes a collapsible class sidebar on the right side of 
 - **Color picker**: Click the color swatch next to any class to change its color.
 - **Per-class annotation count**: Each class row shows a superscript count of annotations.
 - **Expand/collapse**: Click the chevron to expand a class and see individual annotations listed below it.
-- **Bidirectional hover highlighting**: Hovering an annotation on the canvas highlights it in the sidebar, and vice versa. The sidebar auto-scrolls and auto-expands to the relevant class.
+- **Bidirectional hover highlighting**: Hovering an annotation on the canvas highlights it in the sidebar, and vice versa. The sidebar auto-scrolls to the relevant class.
 - **Hide/show individual annotations**: Click the eye icon on any annotation row to toggle its visibility on the canvas.
 - **Delete annotations**: Click the trash icon on any annotation row to delete it.
 - **Keyboard shortcuts**: Press `1-9` to quickly select the first 9 classes.
@@ -365,14 +366,15 @@ Right-click on selected annotations to open a context menu with:
 
 The visibility dropdown (eye icon) lets you toggle display of individual elements:
 
-| Toggle             | Description                                                                                |
-| ------------------ | ------------------------------------------------------------------------------------------ |
-| **Annotations**    | Show or hide all annotation overlays                                                       |
-| **Class labels**   | Show or hide class name labels on annotations                                              |
-| **Show pixels**    | Toggle pixelated rendering for zoom inspection (fullscreen)                                |
-| **Crosshairs**     | Show crosshair cursor with pixel coordinates (edit mode)                                   |
-| **Nav thumbnails** | Show navigation thumbnail strip (fullscreen)                                               |
-| **Show all**       | Toggle annotations, labels, crosshairs, and thumbnails at once (does not affect pixelated) |
+| Toggle              | Description                                                                                                     |
+| ------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **Annotations**     | Show or hide all annotation overlays                                                                            |
+| **Class labels**    | Show or hide class name labels on annotations                                                                   |
+| **Show pixels**     | Toggle pixelated rendering for zoom inspection (fullscreen)                                                     |
+| **Crosshairs**      | Show crosshair cursor with pixel coordinates (edit mode)                                                        |
+| **Nav thumbnails**  | Show navigation thumbnail strip (fullscreen)                                                                    |
+| **Bottom info bar** | Show or hide the image info bar at the bottom (fullscreen)                                                      |
+| **Show all**        | Toggle annotations, labels, crosshairs, thumbnails, and the bottom info bar at once (does not affect pixelated) |
 
 ## Crosshair Cursor
 
@@ -380,7 +382,7 @@ In edit mode, a crosshair overlay tracks the cursor position and displays pixel 
 
 ## SAM Hover Preview
 
-In Smart mode, SAM provides a real-time hover preview before you click any points. This preview is available for **detect**, **segment**, and **OBB** tasks. Once you add refinement clicks, the preview updates to reflect the current mask and the annotation type for the active task.
+In Smart mode, SAM provides a real-time hover preview before you click any points. This preview is available for **detect**, **segment**, **semantic**, and **OBB** tasks. Once you add refinement clicks, the preview updates to reflect the current mask and the annotation type for the active task.
 
 ## Polygon Vertex Editing
 
@@ -407,7 +409,7 @@ Define annotation classes for your dataset in the `Classes` tab:
 You can create new classes directly while annotating without leaving the editor:
 
 1. Draw an annotation on the image
-2. In the class dropdown, click `Add New Class`
+2. In the class sidebar, click `Add class` (or type a new name in the sidebar search box)
 3. Enter the class name
 4. Press Enter to create and assign
 
@@ -422,7 +424,7 @@ This allows for a seamless workflow where you can define classes as you encounte
 - **Rename**: Click a class name in the table to edit it inline
 - **Change color**: Click the color swatch to open the color picker
 - **Search**: Use the search field to filter classes by name
-- **Sort**: Click column headers to sort by name, label count, or image count
+- **Sort**: Click column headers to sort by index, name, annotation count, or image count
 
 ### Class Colors
 
@@ -449,6 +451,9 @@ Efficient annotation with keyboard shortcuts:
     | `Space+Drag`                  | Pan canvas when zoomed       |
     | `Shift+Click`                 | Multi-select annotations     |
     | `Cmd/Ctrl+A`                  | Select all annotations       |
+    | `Cmd/Ctrl+C`                  | Copy selected annotations    |
+    | `Cmd/Ctrl+X`                  | Cut selected annotations     |
+    | `Cmd/Ctrl+V`                  | Paste annotations            |
 
 === "Modes"
 
@@ -468,6 +473,7 @@ Efficient annotation with keyboard shortcuts:
     | `Click outside mask`    | Add to SAM mask (positive point)                                                       |
     | `Shift (hold) + Click`  | Place multiple SAM points before auto-apply commits (Smart mode, auto-apply on)        |
     | `A`                     | Toggle auto-apply (Smart mode)                                                         |
+    | `P`                     | Run YOLO prediction (Smart mode)                                                       |
     | `Enter`                 | Complete polygon / Confirm pose / Save SAM annotation                                  |
     | `Escape`                | Cancel pose / Save SAM annotation / Deselect / Exit                                    |
 
@@ -517,7 +523,7 @@ Annotations are saved when you click `Save` or press `Cmd/Ctrl+S`:
 
 !!! warning "Save Your Work"
 
-    Always save before navigating to another image. Unsaved changes will be lost.
+    Changes auto-save shortly after each edit, and the editor also saves automatically when you navigate to another image or close the editor. You can still save manually at any time with `Save` or `Cmd/Ctrl+S`.
 
 ## FAQ
 
@@ -550,7 +556,7 @@ The keyboard shortcut `1-9` quickly selects classes.
 Yes, but for best results:
 
 - Label all objects of your target classes in each image
-- Use the label filter set to `Unlabeled` to identify images that still need annotation
+- Use the `Annotations` filter set to `Unannotated` to identify images that still need annotation
 - Unlabeled images are excluded from training; only labeled images contribute to the loss
 
 ### Which SAM model should I use?
@@ -559,7 +565,7 @@ Yes, but for best results:
 
 ### Which tasks support SAM smart annotation?
 
-SAM smart annotation is available for **detect**, **segment**, and **OBB** tasks. Classification and pose tasks use manual annotation only.
+SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks. Classification and pose tasks use manual annotation only.
 
 ### Can I create custom skeleton templates for pose annotation?
 

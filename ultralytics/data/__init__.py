@@ -5,6 +5,7 @@ from .build import build_dataloader, build_grounding, build_reid_dataloader, bui
 from .dataset import (
     ClassificationDataset,
     GroundingDataset,
+    PolygonSemanticDataset,
     ReidDataset,
     SemanticDataset,
     YOLOConcatDataset,
@@ -16,6 +17,7 @@ __all__ = (
     "BaseDataset",
     "ClassificationDataset",
     "GroundingDataset",
+    "PolygonSemanticDataset",
     "ReidDataset",
     "SemanticDataset",
     "YOLOConcatDataset",

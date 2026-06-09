@@ -92,7 +92,7 @@ class Colors:
     """
 
     def __init__(self):
-        """Initialize colors as hex = matplotlib.colors.TABLEAU_COLORS.values()."""
+        """Initialize the Ultralytics color palette from a fixed list of hex color codes."""
         hexs = (
             "042AFF",
             "0BDBEB",
@@ -410,6 +410,27 @@ class Annotator:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
 
+    def semantic_mask(self, mask, alpha: float = 0.5, ignore_index: int = 255):
+        """Plot a semantic segmentation mask on the image.
+
+        Args:
+            mask (np.ndarray): Semantic mask with shape [h, w] containing integer class indices.
+            alpha (float, optional): Mask transparency: 0.0 fully transparent, 1.0 opaque.
+            ignore_index (int, optional): Class index to ignore (e.g., 255 for void/ignore).
+        """
+        if self.pil:
+            # Convert to numpy first
+            self.im = np.asarray(self.im).copy()
+        overlay = np.zeros_like(self.im)
+        for cls_id in np.unique(mask):
+            if cls_id == ignore_index:
+                continue
+            overlay[mask == cls_id] = colors(int(cls_id), True)
+        self.im = cv2.addWeighted(self.im, 1 - alpha, overlay, alpha, 0)
+        if self.pil:
+            # Convert im back to PIL and update draw
+            self.fromarray(self.im)
+
     def kpts(
         self,
         kpts,
@@ -685,6 +706,8 @@ def plot_images(
     max_subplots: int = 16,
     save: bool = True,
     conf_thres: float = 0.25,
+    show_labels: bool = True,
+    show_conf: bool = True,
 ) -> np.ndarray | None:
     """Plot image grid with labels, bounding boxes, masks, and keypoints.
 
@@ -700,6 +723,8 @@ def plot_images(
         max_subplots (int): Maximum number of subplots in the image grid.
         save (bool): Whether to save the plotted image grid to a file.
         conf_thres (float): Confidence threshold for displaying detections.
+        show_labels (bool): Whether to display class labels.
+        show_conf (bool): Whether to display confidence values.
 
     Returns:
         (np.ndarray | None): Plotted image grid as a numpy array if save is False, None otherwise.
@@ -714,7 +739,7 @@ def plot_images(
         - 3 channels: Used as-is (standard RGB)
         - 4+ channels: Cropped to first 3 channels
     """
-    for k in {"cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images"}:
+    for k in {"cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images", "semantic_mask"}:
         if k not in labels:
             continue
         if k == "cls" and labels[k].ndim == 2:
@@ -728,6 +753,7 @@ def plot_images(
     confs = labels.get("conf", None)
     masks = labels.get("masks", np.zeros(0, dtype=np.uint8))
     kpts = labels.get("keypoints", np.zeros(0, dtype=np.float32))
+    semantic_masks = labels.get("semantic_mask", np.zeros(0, dtype=np.int64))
     images = labels.get("img", images)  # default to input images
 
     if len(images) and isinstance(images, torch.Tensor):
@@ -792,7 +818,9 @@ def plot_images(
                     color = colors(c)
                     c = names.get(c, c) if names else c
                     if labels or conf[j] > conf_thres:
-                        label = f"{c}" if labels else f"{c} {conf[j]:.1f}"
+                        conf_text = f"{conf[j]:.1f}" if conf is not None else ""
+                        label = f"{c}" if show_labels else ""
+                        label += f" {conf_text}".strip() if show_conf else ""
                         annotator.box_label(box, label, color=color)
 
             elif len(classes):
@@ -845,6 +873,18 @@ def plot_images(
                         except Exception:
                             pass
                 annotator.fromarray(im)
+
+        # Plot semantic masks
+        if len(semantic_masks) and i < len(semantic_masks):
+            mask = semantic_masks[i]
+            mh, mw = mask.shape
+            if mh != h or mw != w:
+                mask = cv2.resize(mask.astype(np.uint8), (w, h), interpolation=cv2.INTER_NEAREST)
+            im = np.asarray(annotator.im).copy()
+            sub_annotator = Annotator(np.ascontiguousarray(im[y : y + h, x : x + w]), line_width=1, pil=False)
+            sub_annotator.semantic_mask(mask, alpha=0.4)
+            im[y : y + h, x : x + w] = sub_annotator.im
+            annotator.fromarray(im)
     if not save:
         return np.asarray(annotator.im)
     annotator.im.save(fname)  # save
@@ -854,9 +894,9 @@ def plot_images(
 
 @plt_settings()
 def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Callable | None = None):
-    """Plot training results from a results CSV file. The function supports various types of data including
-    segmentation, pose estimation, and classification. Plots are saved as 'results.png' in the directory where the
-    CSV is located.
+    """Plot training results from a results CSV file. The function supports various types of data including instance
+    segmentation, semantic segmentation, pose estimation, and classification. Plots are saved as 'results.png' in
+    the directory where the CSV is located.
 
     Args:
         file (str, optional): Path to the CSV file containing the training results.
@@ -876,6 +916,7 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
     assert len(files), f"No results.csv files found in {save_dir.resolve()}, nothing to plot."
 
     loss_keys, metric_keys = [], []
+    fig, ax = None, None
     for i, f in enumerate(files):
         try:
             data = pl.read_csv(f, infer_schema_length=None)
@@ -899,12 +940,13 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
                 ax[i].set_title(j, fontsize=12)
         except Exception as e:
             LOGGER.error(f"Plotting error for {f}: {e}")
-    ax[1].legend()
-    fname = save_dir / "results.png"
-    fig.savefig(fname, dpi=200)
-    plt.close()
-    if on_plot:
-        on_plot(fname)
+    if ax is not None:
+        ax[1].legend()
+        fname = save_dir / "results.png"
+        fig.savefig(fname, dpi=200)
+        plt.close()
+        if on_plot:
+            on_plot(fname)
 
 
 def plt_color_scatter(v, f, bins: int = 20, cmap: str = "viridis", alpha: float = 0.8, edgecolors: str = "none"):
@@ -1045,7 +1087,7 @@ def feature_visualization(x, module_type: str, stage: int, n: int = 32, save_dir
 
             blocks = torch.chunk(x[0].cpu(), channels, dim=0)  # select batch index 0, block by channels
             n = min(n, channels)  # number of plots
-            _, ax = plt.subplots(math.ceil(n / 8), 8, tight_layout=True)  # 8 rows x n/8 cols
+            _, ax = plt.subplots(math.ceil(n / 8), 8, tight_layout=True)  # n/8 rows x 8 cols
             ax = ax.ravel()
             plt.subplots_adjust(wspace=0.05, hspace=0.05)
             for i in range(n):

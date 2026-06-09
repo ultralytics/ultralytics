@@ -228,7 +228,7 @@ class Predictor(BasePredictor):
             >>> predictor = Predictor()
             >>> im = torch.rand(1, 3, 1024, 1024)
             >>> bboxes = [[100, 100, 200, 200]]
-            >>> masks, scores, logits = predictor.prompt_inference(im, bboxes=bboxes)
+            >>> masks, scores = predictor.prompt_inference(im, bboxes=bboxes)
         """
         features = self.get_im_features(im) if self.features is None else self.features
 
@@ -629,7 +629,8 @@ class Predictor(BasePredictor):
 
         # Recalculate boxes and remove any new duplicates
         new_masks = torch.cat(new_masks, dim=0)
-        boxes = batched_mask_to_box(new_masks)
+        # batched_mask_to_box requires bool masks; on uint8 it returns all-zero boxes and the NMS dedup below is a no-op
+        boxes = batched_mask_to_box(new_masks.bool())
         keep = torchvision.ops.nms(boxes.float(), torch.as_tensor(scores), nms_thresh)
 
         return new_masks[keep].to(device=masks.device, dtype=masks.dtype), keep
@@ -2051,7 +2052,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 consolidated_out["pred_masks"][obj_idx : obj_idx + 1] = obj_mask
                 consolidated_out["obj_ptr"][obj_idx : obj_idx + 1] = out["obj_ptr"]
 
-                if "object_score_logits" in out.keys():
+                if "object_score_logits" in out:
                     consolidated_out["object_score_logits"][obj_idx : obj_idx + 1] = out["object_score_logits"]
 
         high_res_masks = F.interpolate(

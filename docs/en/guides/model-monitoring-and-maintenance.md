@@ -126,7 +126,7 @@ These are some of the key elements that should be included in project documentat
 
 ### Tools for Documentation
 
-There are many options when it comes to documenting AI projects, with open-source tools being particularly popular. Two of these are [Jupyter Notebooks](https://docs.ultralytics.com/integrations/jupyterlab/) and MkDocs. Jupyter Notebooks allow you to create interactive documents with embedded code, visualizations, and text, making them ideal for sharing experiments and analyses. MkDocs is a static site generator that is easy to set up and deploy and is perfect for creating and hosting project documentation online.
+There are many options when it comes to documenting AI projects, with open-source tools being particularly popular. Two of these are [Jupyter Notebooks](https://docs.ultralytics.com/integrations/jupyterlab) and MkDocs. Jupyter Notebooks allow you to create interactive documents with embedded code, visualizations, and text, making them ideal for sharing experiments and analyses. MkDocs is a static site generator that is easy to set up and deploy and is perfect for creating and hosting project documentation online.
 
 ## Connect with the Community
 

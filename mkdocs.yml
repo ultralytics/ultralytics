@@ -6,7 +6,7 @@
 
 # Site metadata
 site_name: Ultralytics YOLO Docs
-site_description: Explore Ultralytics YOLO, a cutting-edge real-time model for object detection, segmentation, classification, pose estimation, and tracking across various applications and hardware platforms.
+site_description: Explore Ultralytics YOLO, a cutting-edge real-time model for object detection, segmentation, semantic segmentation, classification, pose estimation, and tracking across various applications and hardware platforms.
 site_url: https://docs.ultralytics.com
 site_author: Ultralytics
 repo_url: https://github.com/ultralytics/ultralytics
@@ -190,6 +190,8 @@ validation:
     absolute_links: relative_to_docs
     anchors: warn
     unrecognized_links: warn
+    # Zensical treats bracketed examples like [0, 1] and [x1, y1, x2, y2] as shortcut references.
+    unresolved_references: false
 
 # Primary navigation ---------------------------------------------------------------------------------------------------
 not_in_nav: |
@@ -233,6 +235,7 @@ nav:
       - tasks/index.md
       - Detect: tasks/detect.md
       - Segment: tasks/segment.md
+      - Semantic: tasks/semantic.md
       - Classify: tasks/classify.md
       - Pose: tasks/pose.md
       - OBB: tasks/obb.md
@@ -466,6 +469,11 @@ nav:
           - COCO128-seg: datasets/segment/coco128-seg.md
           - Crack-seg: datasets/segment/crack-seg.md
           - Package-seg: datasets/segment/package-seg.md
+      - Semantic Segmentation:
+          - datasets/semantic/index.md
+          - Cityscapes: datasets/semantic/cityscapes.md
+          - Cityscapes8: datasets/semantic/cityscapes8.md
+          - ADE20K: datasets/semantic/ade20k.md
       - Pose:
           - datasets/pose/index.md
           - COCO: datasets/pose/coco.md
@@ -532,6 +540,7 @@ nav:
       - Docker Quickstart: guides/docker-quickstart.md
       - Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md
       - End-to-End Detection: guides/end2end-detection.md
+      - Export Non-YOLO Models: guides/export-non-yolo-models.md
       - Fine-Tuning YOLO on Custom Data: guides/finetuning-guide.md
       - Hyperparameter Tuning: guides/hyperparameter-tuning.md
       - Insights on Model Evaluation and Fine-Tuning: guides/model-evaluation-insights.md
@@ -595,10 +604,12 @@ nav:
       - ClearML: integrations/clearml.md
       - Comet ML: integrations/comet.md
       - CoreML: integrations/coreml.md
+      - DEEPX: integrations/deepx.md
       - DVC: integrations/dvc.md
       - ExecuTorch: integrations/executorch.md
       - Google Colab: integrations/google-colab.md
       - Gradio: integrations/gradio.md
+      - Hailo: integrations/hailo.md
       - IBM Watsonx: integrations/ibm-watsonx.md
       - JupyterLab: integrations/jupyterlab.md
       - Kaggle: integrations/kaggle.md
@@ -611,6 +622,7 @@ nav:
       - OpenVINO: integrations/openvino.md
       - PaddlePaddle: integrations/paddlepaddle.md
       - Paperspace Gradient: integrations/paperspace.md
+      - Qualcomm QNN: integrations/qnn.md
       - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md
       - Rockchip RKNN: integrations/rockchip-rknn.md
@@ -643,6 +655,10 @@ nav:
           - Inference: platform/deploy/inference.md
           - Endpoints: platform/deploy/endpoints.md
           - Monitoring: platform/deploy/monitoring.md
+      - Integrations:
+          - platform/integrations/index.md
+          - Ultralytics HUB: platform/integrations/ultralytics-hub.md
+          - Roboflow: platform/integrations/roboflow.md
       - Account:
           - platform/account/index.md
           - API Keys: platform/account/api-keys.md
@@ -655,6 +671,7 @@ nav:
       - REST API: platform/api/index.md
 
   - Reference:
+      - reference/index.md
       - __init__: reference/__init__.md
       - cfg:
           - __init__: reference/cfg/__init__.md
@@ -754,6 +771,10 @@ nav:
                   - predict: reference/models/yolo/segment/predict.md
                   - train: reference/models/yolo/segment/train.md
                   - val: reference/models/yolo/segment/val.md
+              - semantic:
+                  - predict: reference/models/yolo/semantic/predict.md
+                  - train: reference/models/yolo/semantic/train.md
+                  - val: reference/models/yolo/semantic/val.md
               - world:
                   - train: reference/models/yolo/world/train.md
                   - train_world: reference/models/yolo/world/train_world.md
@@ -768,6 +789,7 @@ nav:
               - axelera: reference/nn/backends/axelera.md
               - base: reference/nn/backends/base.md
               - coreml: reference/nn/backends/coreml.md
+              - deepx: reference/nn/backends/deepx.md
               - executorch: reference/nn/backends/executorch.md
               - mnn: reference/nn/backends/mnn.md
               - ncnn: reference/nn/backends/ncnn.md
@@ -775,6 +797,7 @@ nav:
               - openvino: reference/nn/backends/openvino.md
               - paddle: reference/nn/backends/paddle.md
               - pytorch: reference/nn/backends/pytorch.md
+              - qnn: reference/nn/backends/qnn.md
               - rknn: reference/nn/backends/rknn.md
               - tensorflow: reference/nn/backends/tensorflow.md
               - tensorrt: reference/nn/backends/tensorrt.md
@@ -814,11 +837,17 @@ nav:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md
           - byte_tracker: reference/trackers/byte_tracker.md
+          - deep_oc_sort: reference/trackers/deep_oc_sort.md
+          - fast_tracker: reference/trackers/fast_tracker.md
+          - oc_sort: reference/trackers/oc_sort.md
           - track: reference/trackers/track.md
+          - track_tracker: reference/trackers/track_tracker.md
           - utils:
               - gmc: reference/trackers/utils/gmc.md
               - kalman_filter: reference/trackers/utils/kalman_filter.md
               - matching: reference/trackers/utils/matching.md
+              - reid: reference/trackers/utils/reid.md
+              - stracks: reference/trackers/utils/stracks.md
       - utils:
           - __init__: reference/utils/__init__.md
           - autobatch: reference/utils/autobatch.md
@@ -845,13 +874,16 @@ nav:
           - export:
               - axelera: reference/utils/export/axelera.md
               - coreml: reference/utils/export/coreml.md
+              - deepx: reference/utils/export/deepx.md
               - engine: reference/utils/export/engine.md
               - executorch: reference/utils/export/executorch.md
               - imx: reference/utils/export/imx.md
               - mnn: reference/utils/export/mnn.md
               - ncnn: reference/utils/export/ncnn.md
+              - onnx: reference/utils/export/onnx.md
               - openvino: reference/utils/export/openvino.md
               - paddle: reference/utils/export/paddle.md
+              - qnn: reference/utils/export/qnn.md
               - rknn: reference/utils/export/rknn.md
               - tensorflow: reference/utils/export/tensorflow.md
               - torchscript: reference/utils/export/torchscript.md

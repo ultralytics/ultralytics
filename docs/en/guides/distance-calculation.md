@@ -8,7 +8,7 @@ keywords: Ultralytics, YOLO26, distance calculation, computer vision, object tra
 
 ## What is Distance Calculation?
 
-Measuring the gap between two objects is known as distance calculation within a specified space. In the case of [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics), the [bounding box](https://www.ultralytics.com/glossary/bounding-box) centroid is employed to calculate the distance for bounding boxes highlighted by the user.
+Distance calculation is the process of measuring the space between two detected objects within an image or video frame. In the case of [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics), the [bounding box](https://www.ultralytics.com/glossary/bounding-box) centroid is employed to calculate the distance for bounding boxes highlighted by the user.
 
 <p align="center">
   <br>

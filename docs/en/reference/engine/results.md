@@ -7,11 +7,15 @@ keywords: Ultralytics, engine results, BaseTensor, Results class, Boxes, Masks, 
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/results.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/results.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/results.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/results.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 
 ## ::: ultralytics.engine.results.BaseTensor
+
+<br><br><hr><br>
+
+## ::: ultralytics.engine.results.SemanticMask
 
 <br><br><hr><br>
 

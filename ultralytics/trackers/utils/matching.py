@@ -1,13 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-import os
-
 import numpy as np
-import scipy
-from scipy.spatial.distance import cdist
-
-_FUSE_EXP = float(os.environ.get("AUTOTRACK_FUSE_EXP", "1.0"))
-_HEIGHT_RATIO_GATE = float(os.environ.get("AUTOTRACK_HEIGHT_GATE", "0.4"))  # min h_ratio to allow match (0=off)
 
 from ultralytics.utils.metrics import batch_probiou, bbox_ioa
 
@@ -54,7 +47,9 @@ def linear_assignment(cost_matrix: np.ndarray, thresh: float, use_lap: bool = Tr
     else:
         # Use scipy.optimize.linear_sum_assignment
         # https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html
-        x, y = scipy.optimize.linear_sum_assignment(cost_matrix)  # row x, col y
+        from scipy.optimize import linear_sum_assignment
+
+        x, y = linear_sum_assignment(cost_matrix)  # row x, col y
         matches = np.asarray([[x[i], y[i]] for i in range(len(x)) if cost_matrix[x[i], y[i]] <= thresh])
         if len(matches) == 0:
             unmatched_a = list(np.arange(cost_matrix.shape[0]))
@@ -102,19 +97,7 @@ def iou_distance(atracks: list, btracks: list) -> np.ndarray:
                 np.ascontiguousarray(btlbrs, dtype=np.float32),
                 iou=True,
             )
-    cost = 1 - ious  # cost matrix
-
-    # Height-ratio gating: mask out matches with very different heights
-    if _HEIGHT_RATIO_GATE > 0 and len(atlbrs) and len(btlbrs):
-        a_arr = np.asarray(atlbrs, dtype=np.float32)
-        b_arr = np.asarray(btlbrs, dtype=np.float32)
-        # heights: xyxy format -> h = y2 - y1
-        a_h = a_arr[:, 3] - a_arr[:, 1]  # (N,)
-        b_h = b_arr[:, 3] - b_arr[:, 1]  # (M,)
-        h_ratio = np.minimum(a_h[:, None], b_h[None, :]) / (np.maximum(a_h[:, None], b_h[None, :]) + 1e-6)
-        cost[h_ratio < _HEIGHT_RATIO_GATE] = 1.0
-
-    return cost
+    return 1 - ious  # cost matrix
 
 
 def embedding_distance(tracks: list, detections: list, metric: str = "cosine") -> np.ndarray:
@@ -138,18 +121,30 @@ def embedding_distance(tracks: list, detections: list, metric: str = "cosine") -
     cost_matrix = np.zeros((len(tracks), len(detections)), dtype=np.float32)
     if cost_matrix.size == 0:
         return cost_matrix
-    det_features = np.asarray([track.curr_feat for track in detections], dtype=np.float32)
-    _gallery_topk = int(os.environ.get("AUTOTRACK_GALLERY_TOPK", "0"))  # 0 = use all gallery features
-    for i, track in enumerate(tracks):
-        if hasattr(track, "features") and len(track.features) > 0:
-            feats = list(track.features)
-            if _gallery_topk > 0 and len(feats) > _gallery_topk:
-                feats = feats[-_gallery_topk:]  # use most recent K features
-            gallery = np.asarray(feats, dtype=np.float32)
-            dists = cdist(gallery, det_features, metric)
-            cost_matrix[i, :] = np.maximum(0.0, dists.min(axis=0))
-        else:
-            cost_matrix[i, :] = np.maximum(0.0, cdist(track.smooth_feat.reshape(1, -1), det_features, metric))[0]
+    # A zero-norm embedding is skipped upstream, leaving curr_feat/smooth_feat None. Stack a zero placeholder so the
+    # array isn't ragged, then (below) force any missing-feature pair to the maximum distance so callers ignore
+    # appearance and fall back to motion/IoU rather than crashing or treating it as a partial match.
+    track_feats = [t.smooth_feat for t in tracks]
+    det_feats = [d.curr_feat for d in detections]
+    feat_dim = next((len(f) for f in (*track_feats, *det_feats) if f is not None), 0)
+    zeros = np.zeros(feat_dim, dtype=np.float32)
+    track_features = np.asarray([f if f is not None else zeros for f in track_feats], dtype=np.float32)
+    det_features = np.asarray([f if f is not None else zeros for f in det_feats], dtype=np.float32)
+    if metric == "cosine":
+        track_norm = np.linalg.norm(track_features, axis=1, keepdims=True)
+        det_norm = np.linalg.norm(det_features, axis=1, keepdims=True).T
+        cost_matrix = 1 - track_features @ det_features.T / np.maximum(track_norm * det_norm, np.finfo(float).eps)
+    else:
+        from scipy.spatial.distance import cdist
+
+        cost_matrix = cdist(track_features, det_features, metric)
+    cost_matrix = np.maximum(0.0, cost_matrix)  # Normalized features
+    missing_t = [i for i, f in enumerate(track_feats) if f is None]
+    missing_d = [j for j, f in enumerate(det_feats) if f is None]
+    if missing_t:
+        cost_matrix[missing_t] = 2.0  # max cosine distance -> caller's /2 then appearance gate ignores the pair
+    if missing_d:
+        cost_matrix[:, missing_d] = 2.0
     return cost_matrix
 
 
@@ -174,5 +169,5 @@ def fuse_score(cost_matrix: np.ndarray, detections: list) -> np.ndarray:
     iou_sim = 1 - cost_matrix
     det_scores = np.array([det.score for det in detections])
     det_scores = det_scores[None].repeat(cost_matrix.shape[0], axis=0)
-    fuse_sim = iou_sim * np.power(det_scores, _FUSE_EXP)
+    fuse_sim = iou_sim * det_scores
     return 1 - fuse_sim  # fuse_cost

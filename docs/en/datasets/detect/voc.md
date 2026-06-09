@@ -36,7 +36,7 @@ The VOC dataset is split into three subsets:
 
 ## Applications
 
-The VOC dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in object detection (such as [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo26/), [Faster R-CNN](https://arxiv.org/abs/1506.01497), and [SSD](https://arxiv.org/abs/1512.02325)), [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) (such as [Mask R-CNN](https://arxiv.org/abs/1703.06870)), and [image classification](https://www.ultralytics.com/glossary/image-classification). The dataset's diverse set of object categories, large number of annotated images, and standardized evaluation metrics make it an essential resource for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) researchers and practitioners.
+The VOC dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in object detection (such as [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo26), [Faster R-CNN](https://arxiv.org/abs/1506.01497), and [SSD](https://arxiv.org/abs/1512.02325)), [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) (such as [Mask R-CNN](https://arxiv.org/abs/1703.06870)), and [image classification](https://www.ultralytics.com/glossary/image-classification). The dataset's diverse set of object categories, large number of annotated images, and standardized evaluation metrics make it an essential resource for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) researchers and practitioners.
 
 ## Dataset YAML
 

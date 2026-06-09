@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Discover Ultralytics integrations for streamlined ML workflows, dataset management, optimized model training, and robust deployment solutions.
-keywords: Ultralytics, machine learning, ML workflows, dataset management, model training, model deployment, Roboflow, ClearML, Comet ML, DVC, MLFlow, Ultralytics Platform, Neptune, Ray Tune, TensorBoard, Weights & Biases, Amazon SageMaker, Paperspace Gradient, Google Colab, Neural Magic, Gradio, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TFLite, TFLite Edge TPU, TF.js, PaddlePaddle, NCNN
+keywords: Ultralytics, machine learning, ML workflows, dataset management, model training, model deployment, Roboflow, ClearML, Comet ML, DVC, MLFlow, Ultralytics Platform, Neptune, Ray Tune, TensorBoard, Weights & Biases, Amazon SageMaker, Paperspace Gradient, Google Colab, Neural Magic, Gradio, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TFLite, TFLite Edge TPU, TF.js, PaddlePaddle, NCNN, Hailo, Hailo HEF, Qualcomm QNN, RKNN, edge AI
 ---
 
 # Ultralytics Integrations
@@ -65,9 +65,13 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [CoreML](coreml.md): CoreML, developed by [Apple](https://www.apple.com/), is a framework designed for efficiently integrating machine learning models into applications across iOS, macOS, watchOS, and tvOS, using Apple's hardware for effective and secure [model deployment](https://www.ultralytics.com/glossary/model-deployment).
 
+- [DEEPX](deepx.md): Export Ultralytics YOLO models to the DEEPX `.dxnn` format for power-efficient INT8 inference on DEEPX NPU hardware, targeting embedded and edge AI applications.
+
 - [ExecuTorch](executorch.md): Developed by [Meta](https://about.meta.com/), ExecuTorch is PyTorch's unified solution for deploying Ultralytics YOLO models on edge devices.
 
 - [Gradio](gradio.md): Deploy Ultralytics models with Gradio for real-time, interactive object detection demos.
+
+- [Hailo](hailo.md): Convert Ultralytics YOLO detection models from ONNX to Hailo HEF with Hailo's external Dataflow Compiler for Hailo-8, Hailo-8L, Raspberry Pi AI Kit, and Hailo-15 devices.
 
 - [MNN](mnn.md): Developed by [Alibaba](https://www.alibabagroup.com/), MNN is a highly efficient and lightweight deep learning framework. It supports inference and training of deep learning models and has industry-leading performance for inference and training on-device.
 
@@ -81,13 +85,15 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [PaddlePaddle](paddlepaddle.md): An open-source deep learning platform by [Baidu](https://www.baidu.com/), PaddlePaddle enables the efficient deployment of AI models and focuses on the scalability of industrial applications.
 
+- [Qualcomm QNN](qnn.md): Compile Ultralytics YOLO models locally into the QNN (AI Engine Direct) context-binary format with the [ONNX Runtime](https://onnxruntime.ai/) QNN Execution Provider for accelerated inference on Snapdragon CPU, Adreno GPU, and Hexagon NPU hardware in mobile and edge devices.
+
 - [Rockchip RKNN](rockchip-rknn.md): Developed by [Rockchip](https://www.rock-chips.com/), RKNN is a specialized neural network inference framework optimized for Rockchip's hardware platforms, particularly their NPUs. It facilitates efficient deployment of AI models on edge devices, enabling high-performance inference in real-time applications.
 
 - [Seeed Studio reCamera](seeedstudio-recamera.md): Developed by [Seeed Studio](https://www.seeedstudio.com/), the reCamera is an advanced edge AI device designed for real-time computer vision applications. Powered by the RISC-V-based SG200X processor, it delivers high-performance AI inference with energy efficiency. Its modular design, advanced video processing capabilities, and support for flexible deployment make it an ideal choice for various use cases, including safety monitoring, environmental applications, and manufacturing.
 
-- [SONY IMX500](sony-imx500.md): Optimize and deploy [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26/) models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.
+- [SONY IMX500](sony-imx500.md): Optimize and deploy [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26) models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.
 
-- [TensorRT](tensorrt.md): Developed by [NVIDIA](https://www.nvidia.com/), this high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference framework and model format optimizes AI models for accelerated speed and efficiency on NVIDIA GPUs, ensuring streamlined deployment.
+- [TensorRT](tensorrt.md): Developed by [NVIDIA](https://www.nvidia.com/ja-jp/), this high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference framework and model format optimizes AI models for accelerated speed and efficiency on NVIDIA GPUs, ensuring streamlined deployment.
 
 - [TF GraphDef](tf-graphdef.md): Developed by [Google](https://www.google.com/), GraphDef is TensorFlow's format for representing computation graphs, enabling optimized execution of machine learning models across diverse hardware.
 
@@ -127,7 +133,7 @@ Let's collaborate to make the Ultralytics YOLO ecosystem more expansive and feat
 
 ### What is Ultralytics Platform, and how does it streamline the ML workflow?
 
-[Ultralytics Platform](https://platform.ultralytics.com) is a cloud-based platform designed to make machine learning workflows for Ultralytics models seamless and efficient. By using this tool, you can easily upload datasets, train models, perform real-time tracking, and deploy YOLO models without needing extensive coding skills. The platform serves as a centralized workspace where you can manage your entire ML pipeline from data preparation to deployment. You can explore the key features on the [Ultralytics Platform](https://platform.ultralytics.com/) page and get started quickly with our [Quickstart](https://docs.ultralytics.com/platform/quickstart/) guide.
+[Ultralytics Platform](https://platform.ultralytics.com) is a cloud-based platform designed to make machine learning workflows for Ultralytics models seamless and efficient. By using this tool, you can easily upload datasets, train models, perform real-time tracking, and deploy YOLO models without needing extensive coding skills. The platform serves as a centralized workspace where you can manage your entire ML pipeline from data preparation to deployment. You can explore the key features on the [Ultralytics Platform](https://platform.ultralytics.com/) page and get started quickly with our [Quickstart](https://docs.ultralytics.com/platform/quickstart) guide.
 
 ### Can I track the performance of my Ultralytics models using MLFlow?
 

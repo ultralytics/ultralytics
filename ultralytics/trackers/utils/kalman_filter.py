@@ -3,7 +3,6 @@
 import os
 
 import numpy as np
-import scipy.linalg
 
 _NSA_KALMAN = os.environ.get("AUTOTRACK_NSA_KALMAN", "0") == "1"
 
@@ -212,10 +211,7 @@ class KalmanFilterXYAH:
         """
         projected_mean, projected_cov = self.project(mean, covariance, confidence)
 
-        chol_factor, lower = scipy.linalg.cho_factor(projected_cov, lower=True, check_finite=False)
-        kalman_gain = scipy.linalg.cho_solve(
-            (chol_factor, lower), np.dot(covariance, self._update_mat.T).T, check_finite=False
-        ).T
+        kalman_gain = np.linalg.solve(projected_cov, np.dot(covariance, self._update_mat.T).T).T
         innovation = measurement - projected_mean
 
         new_mean = mean + np.dot(innovation, kalman_gain.T)
@@ -267,7 +263,7 @@ class KalmanFilterXYAH:
             return np.sum(d * d, axis=1)
         elif metric == "maha":
             cholesky_factor = np.linalg.cholesky(covariance)
-            z = scipy.linalg.solve_triangular(cholesky_factor, d.T, lower=True, check_finite=False, overwrite_b=True)
+            z = np.linalg.solve(cholesky_factor, d.T)
             return np.sum(z * z, axis=0)  # square maha
         else:
             raise ValueError("Invalid distance metric")

@@ -23,6 +23,8 @@ Usage - formats:
                           yolo26n_rknn_model         # Rockchip RKNN
                           yolo26n_executorch_model   # ExecuTorch
                           yolo26n_axelera_model      # Axelera AI
+                          yolo26n_deepx_model        # DEEPX
+                          yolo26n_qnn_model          # Qualcomm QNN
 """
 
 from __future__ import annotations
@@ -36,12 +38,19 @@ import torch
 import torch.distributed as dist
 
 from ultralytics.cfg import get_cfg, get_save_dir
-from ultralytics.data.utils import check_cls_dataset, check_det_dataset
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import LOGGER, RANK, TQDM, callbacks, colorstr, emojis
+from ultralytics.utils import LOCAL_RANK, LOGGER, RANK, TQDM, callbacks, colorstr, emojis
 from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.ops import Profile
-from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode, unwrap_model
+from ultralytics.utils.torch_utils import (
+    attempt_compile,
+    autocast,
+    select_device,
+    smart_inference_mode,
+    torch_distributed_zero_first,
+    unwrap_model,
+)
 
 
 class BaseValidator:
@@ -147,12 +156,12 @@ class BaseValidator:
         if self.training:
             self.device = trainer.device
             self.data = trainer.data
-            # Force FP16 val during training
+            # Keep training validation read-only: inputs may be fp16, but EMA/model weights stay fp32 under autocast.
             self.args.half = self.device.type != "cpu" and trainer.amp
             model = trainer.ema.ema or trainer.model
             if trainer.args.compile and hasattr(model, "_orig_mod"):
                 model = model._orig_mod  # validate non-compiled original model to avoid issues
-            model = model.half() if self.args.half else model.float()
+            model = model.float()
             self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
             model.eval()
@@ -165,6 +174,8 @@ class BaseValidator:
                     model.end2end = self.args.end2end
                 if model.end2end:
                     model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms)
+            with torch_distributed_zero_first(LOCAL_RANK):
+                self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data)
             model = AutoBackend(
                 model=model or self.args.model,
                 device=select_device(self.args.device) if RANK == -1 else torch.device("cuda", RANK),
@@ -217,14 +228,15 @@ class BaseValidator:
             with dt[0]:
                 batch = self.preprocess(batch)
 
-            # Inference
-            with dt[1]:
-                preds = model(batch["img"], augment=augment)
+            with autocast(self.training and self.args.half, device=self.device.type):
+                # Inference
+                with dt[1]:
+                    preds = model(batch["img"], augment=augment)
 
-            # Loss
-            with dt[2]:
-                if self.training:
-                    self.loss += model.loss(batch, preds)[1]
+                # Loss
+                with dt[2]:
+                    if self.training:
+                        self.loss += model.loss(batch, preds)[1]
 
             # Postprocess
             with dt[3]:
@@ -247,7 +259,6 @@ class BaseValidator:
             self.run_callbacks("on_val_end")
 
         if self.training:
-            model.float()
             # Reduce loss across all GPUs
             loss = self.loss.clone().detach()
             if trainer.world_size > 1:

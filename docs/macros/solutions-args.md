@@ -23,6 +23,7 @@
     "meter_per_pixel": ["float", "0.05", "Scaling factor used for converting pixel distance to real-world units."],
     "max_speed": ["int", "120", "Maximum speed limit in visual overlays (used in alerts)."],
     "data": ["str", "'images'", "Path to image directory used for similarity search."],
+    "imgsz": ["int", "640", "Input image size for model inference."],
 } %}
 {% if not params %}
 {% for param, details in default_params.items() %}

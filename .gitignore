@@ -206,3 +206,6 @@ results.csv
 reid-research/
 docs/superpowers/
 tests/reid_audit/
+
+# CI test asset cache
+.ultralytics_cache/

@@ -49,6 +49,13 @@ With DALI, all these operations run on the GPU, eliminating the CPU bottleneck. 
 
 Install the required packages:
 
+=== "CUDA 13.x"
+
+    ```bash
+    pip install ultralytics
+    pip install --extra-index-url https://pypi.nvidia.com nvidia-dali-cuda130
+    ```
+
 === "CUDA 12.x"
 
     ```bash
@@ -66,7 +73,7 @@ Install the required packages:
 **Requirements:**
 
 - NVIDIA GPU (compute capability 5.0+ / Maxwell or newer)
-- CUDA 11.0+ or 12.0+
+- CUDA 11.0+, 12.0+ or 13.0+
 - Python 3.10-3.14
 - Linux operating system
 
@@ -530,13 +537,14 @@ ensemble_scheduling {
 
 DALI preprocessing works with all YOLO tasks that use the standard `LetterBox` pipeline:
 
-| Task                                        | Supported | Notes                                                    |
-| ------------------------------------------- | --------- | -------------------------------------------------------- |
-| [Detection](../tasks/detect.md)             | ✅        | Standard letterbox preprocessing                         |
-| [Segmentation](../tasks/segment.md)         | ✅        | Same preprocessing as detection                          |
-| [Pose Estimation](../tasks/pose.md)         | ✅        | Same preprocessing as detection                          |
-| [Oriented Detection (OBB)](../tasks/obb.md) | ✅        | Same preprocessing as detection                          |
-| [Classification](../tasks/classify.md)      | ❌        | Uses torchvision transforms (center crop), not letterbox |
+| Task                                          | Supported | Notes                                                    |
+| --------------------------------------------- | --------- | -------------------------------------------------------- |
+| [Detection](../tasks/detect.md)               | ✅        | Standard letterbox preprocessing                         |
+| [Instance Segmentation](../tasks/segment.md)  | ✅        | Same preprocessing as detection                          |
+| [Semantic Segmentation](../tasks/semantic.md) | ✅        | Same image preprocessing as detection                    |
+| [Pose Estimation](../tasks/pose.md)           | ✅        | Same preprocessing as detection                          |
+| [Oriented Detection (OBB)](../tasks/obb.md)   | ✅        | Same preprocessing as detection                          |
+| [Classification](../tasks/classify.md)        | ❌        | Uses torchvision transforms (center crop), not letterbox |
 
 ## Limitations
 

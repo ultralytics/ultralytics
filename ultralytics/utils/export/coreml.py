@@ -9,6 +9,7 @@ import torch
 import torch.nn as nn
 
 from ultralytics.utils import LOGGER
+from ultralytics.utils.checks import check_requirements
 
 
 class IOSDetectModel(nn.Module):
@@ -88,7 +89,7 @@ def pipeline_coreml(
     if len(names) != nc:  # Hack fix for MLProgram NMS bug https://github.com/ultralytics/ultralytics/issues/22309
         names = {**names, **{i: str(i) for i in range(len(names), nc)}}
 
-    model = ct.models.MLModel(spec, weights_dir=weights_dir)
+    model = ct.models.MLModel(spec, weights_dir=weights_dir, skip_model_load=True)
 
     # Create NMS protobuf
     nms_spec = ct.proto.Model_pb2.Model()
@@ -125,7 +126,7 @@ def pipeline_coreml(
     nms.confidenceThreshold = conf
     nms.pickTop.perClass = not agnostic_nms
     nms.stringClassLabels.vector.extend(names.values())
-    nms_model = ct.models.MLModel(nms_spec)
+    nms_model = ct.models.MLModel(nms_spec, skip_model_load=True)
 
     # Pipeline models together
     pipeline = ct.models.pipeline.Pipeline(
@@ -151,7 +152,7 @@ def pipeline_coreml(
     )
 
     # Save the model
-    model = ct.models.MLModel(pipeline.spec, weights_dir=weights_dir)
+    model = ct.models.MLModel(pipeline.spec, weights_dir=weights_dir, skip_model_load=True)
     model.input_description["image"] = "Input image"
     model.input_description["iouThreshold"] = f"(optional) IoU threshold override (default: {nms.iouThreshold})"
     model.input_description["confidenceThreshold"] = (
@@ -201,17 +202,26 @@ def torch2coreml(
     # Internally based on the model conversion and output type.
     # Setting minimum_deployment_target >= iOS16 will require setting compute_precision=ct.precision.FLOAT32.
     # iOS16 adds in better support for FP16, but none of the CoreML NMS specifications handle FP16 as input.
-    ct_model = ct.convert(
-        ts,
+    convert_kwargs = dict(
         inputs=inputs,
         classifier_config=ct.ClassifierConfig(classifier_names) if classifier_names else None,
         convert_to="neuralnetwork" if mlmodel else "mlprogram",
+        skip_model_load=True,
     )
+    if not mlmodel:
+        # RT-DETR decoder class logits and deformable-sampling indices drift in fp16; pin those op types to fp32
+        # only when an RTDETRDecoder is present. YOLO detect/segment/pose/OBB keep mlprogram's fp16 default.
+        from ultralytics.nn.modules.head import RTDETRDecoder
+
+        if any(isinstance(m, RTDETRDecoder) for m in model.modules()):
+            fp32_ops = {"linear", "gather", "gather_nd", "gather_along_axis"}
+            convert_kwargs["compute_precision"] = ct.transform.FP16ComputePrecision(
+                op_selector=lambda op: op.op_type not in fp32_ops
+            )
+    ct_model = ct.convert(ts, **convert_kwargs)
     bits, mode = (8, "kmeans") if int8 else (16, "linear") if half else (32, None)
     if bits < 32:
         if "kmeans" in mode:
-            from ultralytics.utils.checks import check_requirements
-
             check_requirements("scikit-learn")  # scikit-learn package required for k-means quantization
         if mlmodel:
             ct_model = ct.models.neural_network.quantization_utils.quantize_weights(ct_model, bits, mode)

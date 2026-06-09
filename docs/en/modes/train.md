@@ -305,7 +305,7 @@ Remember to sign in to your Comet account on their website and get your API key.
 
 ### ClearML
 
-[ClearML](https://clear.ml/) is an open-source platform that automates tracking of experiments and helps with efficient sharing of resources. It is designed to help teams manage, execute, and reproduce their ML work more efficiently.
+[ClearML](https://www.clear.ml/) is an open-source platform that automates tracking of experiments and helps with efficient sharing of resources. It is designed to help teams manage, execute, and reproduce their ML work more efficiently.
 
 To use ClearML:
 
@@ -337,7 +337,7 @@ To use TensorBoard in [Google Colab](https://colab.research.google.com/github/ul
         tensorboard --logdir ultralytics/runs # replace with 'runs' directory
         ```
 
-To use TensorBoard locally run the below command and view results at `http://localhost:6006/`.
+To use TensorBoard locally run the below command and view results at `localhost:6006`.
 
 !!! example
 

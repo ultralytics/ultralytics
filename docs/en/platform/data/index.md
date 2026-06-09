@@ -44,21 +44,22 @@ graph LR
     style D fill:#9C27B0,color:#fff
 ```
 
-| Stage        | Description                                                                                           |
-| ------------ | ----------------------------------------------------------------------------------------------------- |
-| **Upload**   | Import images, videos, or archives with automatic processing                                          |
-| **Annotate** | Label data with manual tools for all 5 task types, or use SAM annotation for detect, segment, and OBB |
-| **Analyze**  | View class distributions, spatial heatmaps, and dimension statistics                                  |
-| **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use |
+| Stage        | Description                                                                                                     |
+| ------------ | --------------------------------------------------------------------------------------------------------------- |
+| **Upload**   | Import images, videos, or archives with automatic processing                                                    |
+| **Annotate** | Label data with manual tools for all 6 task types, or use SAM annotation for detect, segment, semantic, and OBB |
+| **Analyze**  | View class distributions, spatial heatmaps, and dimension statistics                                            |
+| **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use           |
 
 ## Supported Tasks
 
-Ultralytics Platform supports all 5 YOLO task types:
+Ultralytics Platform supports all 6 YOLO task types:
 
 | Task                                             | Description                                                     | Annotation Tool   |
 | ------------------------------------------------ | --------------------------------------------------------------- | ----------------- |
 | **[Detect](../../datasets/detect/index.md)**     | Object detection with bounding boxes                            | Rectangle tool    |
 | **[Segment](../../datasets/segment/index.md)**   | Instance segmentation with pixel masks                          | Polygon tool      |
+| **[Semantic](../../datasets/semantic/index.md)** | Semantic segmentation with per-class pixel regions              | Polygon tool      |
 | **[Pose](../../datasets/pose/index.md)**         | Keypoint estimation with built-in and custom skeleton templates | Keypoint tool     |
 | **[OBB](../../datasets/obb/index.md)**           | Oriented bounding boxes for rotated objects                     | Oriented box tool |
 | **[Classify](../../datasets/classify/index.md)** | Image-level classification                                      | Class selector    |
@@ -115,17 +116,20 @@ Dataset pages can show up to six tabs, depending on the dataset state and your p
 
 `Classes` and `Charts` appear when the dataset has images. `Errors` appears only when processing failures exist. `Versions` appears for owners, or for non-owners when versions already exist.
 
+### Clustering
+
+Explore your dataset as an interactive 2D scatter plot where visually similar images sit close together — useful for surfacing clusters, duplicates, and outliers, and for inspecting how splits or classes are distributed across your data. Lasso a region of the plot to filter the gallery to those images. See [Clustering](datasets.md#clustering) for details.
+
 ### Statistics and Visualization
 
 The `Charts` tab provides automatic analysis including:
 
 - **Split Distribution**: Donut chart of train/val/test image counts
 - **Top Classes**: Donut chart of most frequent annotation classes
-- **Image Widths**: Histogram of image width distribution
-- **Image Heights**: Histogram of image height distribution
+- **Image Dimensions**: Histogram of image width and height distribution (in pixels)
 - **Points per Instance**: Polygon vertex or keypoint count distribution (segment/pose datasets)
 - **Annotation Locations**: 2D heatmap of bounding box center positions
-- **Image Dimensions**: 2D heatmap of width vs height with aspect ratio guide lines
+- **Image Dimensions 2D**: 2D heatmap of width vs height with aspect ratio guide lines
 
 ## Quick Links
 

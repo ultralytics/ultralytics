@@ -86,13 +86,13 @@ This section will address common issues faced while training and their respectiv
 **Solution**: Increasing the [batch size](https://www.ultralytics.com/glossary/batch-size) can accelerate training, but it's essential to consider GPU memory capacity. To speed up training with multiple GPUs, follow these steps:
 
 - Ensure that you have multiple GPUs available.
-- Modify your `.yaml` configuration file to specify the number of GPUs to use, e.g., `gpus: 4`.
+- Set the `device` argument to a list of GPU indices, e.g., `device=[0,1,2,3]`.
 - Increase the batch size accordingly to fully utilize the multiple GPUs without exceeding memory limits.
 - Modify your training command to utilize multiple GPUs:
 
     ```python
     # Adjust the batch size and other settings as needed to optimize training speed
-    model.train(data="/path/to/your/data.yaml", batch=32)
+    model.train(data="/path/to/your/data.yaml", batch=32, device=[0, 1, 2, 3])
     ```
 
 #### Continuous Monitoring Parameters
@@ -191,7 +191,7 @@ This section will address common issues faced during model prediction.
 **Solution**: To detect specific classes use the classes argument to specify the classes you want to include in the output. For instance, to detect only cars (assuming 'cars' have class index 2):
 
 ```bash
-yolo task=detect mode=segment model=yolo26n-seg.pt source='path/to/car.mp4' show=True classes=2
+yolo task=segment mode=predict model=yolo26n-seg.pt source='path/to/car.mp4' show=True classes=2
 ```
 
 #### Understanding Precision Metrics in YOLO26
@@ -276,10 +276,10 @@ Installation errors can often be due to compatibility issues or missing dependen
 
 ### Why is my YOLO26 model training slow on a single GPU?
 
-Training on a single GPU might be slow due to large batch sizes or insufficient memory. To speed up training, use multiple GPUs. Ensure your system has multiple GPUs available and adjust your `.yaml` configuration file to specify the number of GPUs, e.g., `gpus: 4`. Increase the batch size accordingly to fully utilize the GPUs without exceeding memory limits. Example command:
+Training on a single GPU might be slow due to large batch sizes or insufficient memory. To speed up training, use multiple GPUs. Ensure your system has multiple GPUs available and set the `device` argument, e.g., `device=[0,1,2,3]`. Increase the batch size accordingly to fully utilize the GPUs without exceeding memory limits. Example command:
 
 ```python
-model.train(data="/path/to/your/data.yaml", batch=32)
+model.train(data="/path/to/your/data.yaml", batch=32, device=[0, 1, 2, 3])
 ```
 
 ### How can I ensure my YOLO26 model is training on the GPU?
@@ -298,4 +298,4 @@ Tracking and visualizing training progress can be efficiently managed through to
 
 ### What should I do if YOLO26 is not recognizing my dataset format?
 
-Ensure your dataset and labels conform to the expected format. Verify that annotations are accurate and of high quality. If you face any issues, refer to the [Data Collection and Annotation](https://docs.ultralytics.com/guides/data-collection-and-annotation/) guide for best practices. For more dataset-specific guidance, check the [Datasets](https://docs.ultralytics.com/datasets/) section in the documentation.
+Ensure your dataset and labels conform to the expected format. Verify that annotations are accurate and of high quality. If you face any issues, refer to the [Data Collection and Annotation](https://docs.ultralytics.com/guides/data-collection-and-annotation) guide for best practices. For more dataset-specific guidance, check the [Datasets](https://docs.ultralytics.com/datasets) section in the documentation.

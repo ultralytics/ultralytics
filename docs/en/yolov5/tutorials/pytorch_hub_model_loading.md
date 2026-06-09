@@ -16,7 +16,9 @@ Install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/req
 pip install -r https://raw.githubusercontent.com/ultralytics/yolov5/master/requirements.txt
 ```
 
-💡 ProTip: Cloning [https://github.com/ultralytics/yolov5](https://github.com/ultralytics/yolov5) is **not** required 😃
+!!! tip
+
+    Cloning [`ultralytics/yolov5`](https://github.com/ultralytics/yolov5) is **not** required — PyTorch Hub fetches the code automatically.
 
 ## Load YOLOv5 with PyTorch Hub
 
@@ -115,7 +117,9 @@ Models can also be created directly on any `device`:
 model = torch.hub.load("ultralytics/yolov5", "yolov5s", device="cpu")  # load on CPU
 ```
 
-💡 ProTip: Input images are automatically transferred to the correct model device before inference.
+!!! tip
+
+    Input images are automatically transferred to the correct model device before inference.
 
 ### Silence Outputs
 
@@ -339,8 +343,10 @@ model = torch.hub.load("path/to/yolov5", "custom", path="path/to/best.pt", sourc
 
 PyTorch Hub supports inference on most YOLOv5 export formats, including custom-trained models. See [TFLite, ONNX, CoreML, TensorRT Export tutorial](./model_export.md) for details on exporting models.
 
-💡 ProTip: **TensorRT** may be up to 2-5X faster than PyTorch on [**GPU benchmarks**](https://github.com/ultralytics/yolov5/pull/6963)
-💡 ProTip: **ONNX** and **OpenVINO** may be up to 2-3X faster than PyTorch on [**CPU benchmarks**](https://github.com/ultralytics/yolov5/pull/6613)
+!!! tip
+
+    - **TensorRT** can be 2-5× faster than PyTorch on [GPU benchmarks](https://github.com/ultralytics/yolov5/pull/6963).
+    - **ONNX** and **OpenVINO** can be 2-3× faster than PyTorch on [CPU benchmarks](https://github.com/ultralytics/yolov5/pull/6613).
 
 ```python
 import torch

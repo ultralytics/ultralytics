@@ -29,7 +29,7 @@ The output of an object detector is a set of bounding boxes that enclose the obj
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
 
-YOLO26 pretrained Detect models are shown here. Detect, Segment, and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, while Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
+YOLO26 pretrained Detect models are shown here. Detect, Segment, and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, [Semantic](semantic.md) models are pretrained on [Cityscapes](../datasets/semantic/cityscapes.md), and Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) are downloaded automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
@@ -146,6 +146,21 @@ Use a trained YOLO26n model to run predictions on images.
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
+### Results Output
+
+Object detection returns one `Results` object per image. The primary prediction field is `result.boxes`, which contains
+box coordinates, class IDs, and confidence scores for each detected object.
+
+| Attribute           | Type            | Shape     | Description                                           |
+| ------------------- | --------------- | --------- | ----------------------------------------------------- |
+| `result.boxes`      | `Boxes`         | `(N)`     | Detection boxes.                                      |
+| `result.boxes.data` | `torch.float32` | `(N,6/7)` | Raw `[x1,y1,x2,y2,conf,cls]`, plus optional track ID. |
+| `result.boxes.xyxy` | `torch.float32` | `(N,4)`   | `xyxy` pixel boxes.                                   |
+| `result.boxes.conf` | `torch.float32` | `(N,)`    | Confidence scores.                                    |
+| `result.boxes.cls`  | `torch.float32` | `(N,)`    | Class IDs; cast to `int` for names.                   |
+
+For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
+
 ## Export
 
 Export a YOLO26n model to a different format like ONNX, CoreML, etc.
@@ -216,7 +231,7 @@ For detailed configuration options, visit the [Configuration](../usage/cfg.md) p
 
 ### What pretrained models are available in YOLO26?
 
-Ultralytics YOLO26 offers various pretrained models for object detection, segmentation, and pose estimation. These models are pretrained on the COCO dataset or ImageNet for classification tasks. Here are some of the available models:
+Ultralytics YOLO26 offers various pretrained models for [object detection](detect.md), [instance segmentation](segment.md), [semantic segmentation](semantic.md), and [pose estimation](pose.md). These models are pretrained on the COCO dataset, Cityscapes for semantic segmentation, or ImageNet for classification tasks. Here are some of the available models:
 
 - [YOLO26n](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt)
 - [YOLO26s](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s.pt)
@@ -255,7 +270,7 @@ For more validation details, visit the [Val](../modes/val.md) page.
 
 ### What formats can I export a YOLO26 model to?
 
-Ultralytics YOLO26 allows exporting models to various formats such as [ONNX](https://www.ultralytics.com/glossary/onnx-open-neural-network-exchange), [TensorRT](https://www.ultralytics.com/glossary/tensorrt), [CoreML](https://docs.ultralytics.com/integrations/coreml/), and more to ensure compatibility across different platforms and devices.
+Ultralytics YOLO26 allows exporting models to various formats such as [ONNX](https://www.ultralytics.com/glossary/onnx-open-neural-network-exchange), [TensorRT](https://www.ultralytics.com/glossary/tensorrt), [CoreML](https://docs.ultralytics.com/integrations/coreml), and more to ensure compatibility across different platforms and devices.
 
 !!! example
 
@@ -281,9 +296,9 @@ Check the full list of supported formats and instructions on the [Export](../mod
 
 ### Why should I use Ultralytics YOLO26 for object detection?
 
-Ultralytics YOLO26 is designed to offer state-of-the-art performance for object detection, segmentation, and pose estimation. Here are some key advantages:
+Ultralytics YOLO26 is designed to offer state-of-the-art performance for [object detection](detect.md), [instance segmentation](segment.md), [semantic segmentation](semantic.md), and [pose estimation](pose.md). Here are some key advantages:
 
-1. **Pretrained Models**: Utilize models pretrained on popular datasets like [COCO](https://docs.ultralytics.com/datasets/detect/coco/) and [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/) for faster development.
+1. **Pretrained Models**: Utilize models pretrained on popular datasets like [COCO](https://docs.ultralytics.com/datasets/detect/coco) and [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet) for faster development.
 2. **High Accuracy**: Achieves impressive mAP scores, ensuring reliable object detection.
 3. **Speed**: Optimized for [real-time inference](https://www.ultralytics.com/glossary/real-time-inference), making it ideal for applications requiring swift processing.
 4. **Flexibility**: Export models to various formats like ONNX and TensorRT for deployment across multiple platforms.

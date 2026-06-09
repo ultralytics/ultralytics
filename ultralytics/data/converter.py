@@ -943,7 +943,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 image_path = dataset_dir / "images" / split / original_name
                 label_path = dataset_dir / "labels" / split / f"{Path(original_name).stem}.txt"
                 lines_to_write = []
-                for key in annotations.keys():
+                for key in annotations:
                     lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
                     break
                 label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")

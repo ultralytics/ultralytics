@@ -27,8 +27,8 @@ Before we start, you will need to create a Google Cloud Platform (GCP) project. 
 ## Prerequisites
 
 1. Install [Docker](https://docs.docker.com/engine/install/) on your machine.
-2. Install the [Google Cloud SDK](https://docs.cloud.google.com/sdk/docs/install-sdk) and [authenticate for using the gcloud CLI](https://docs.cloud.google.com/docs/authentication/gcloud).
-3. It is highly recommended that you go through the [Docker Quickstart Guide for Ultralytics](https://docs.ultralytics.com/guides/docker-quickstart/), because you will need to extend one of the official Ultralytics Docker images while following this guide.
+2. Install the [Google Cloud SDK](https://docs.cloud.google.com/sdk/docs/install-sdk) and [authenticate for using the gcloud CLI](https://docs.cloud.google.com/sdk/docs/authenticate).
+3. It is highly recommended that you go through the [Docker Quickstart Guide for Ultralytics](https://docs.ultralytics.com/guides/docker-quickstart), because you will need to extend one of the official Ultralytics Docker images while following this guide.
 
 ## 1. Create an inference backend with FastAPI
 

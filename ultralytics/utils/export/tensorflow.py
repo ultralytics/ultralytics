@@ -9,7 +9,14 @@ import numpy as np
 import torch
 
 from ultralytics.nn.modules import Detect, Pose, Pose26
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LINUX, LOGGER, MACOS
+from ultralytics.utils.checks import (
+    IS_PYTHON_MINIMUM_3_13,
+    check_apt_requirements,
+    check_requirements,
+    check_version,
+    is_sudo_available,
+)
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.files import spaces_in_path
 from ultralytics.utils.tal import make_anchors
@@ -79,9 +86,46 @@ def onnx2saved_model(
         (keras.Model): Converted Keras model.
 
     Notes:
-        - Requires onnx2tf package. Downloads calibration data if INT8 quantization is enabled.
+        - Auto-installs tensorflow, onnx2tf, and all required dependencies if not present.
+        - Downloads calibration data if INT8 quantization is enabled.
         - Removes temporary files and renames quantized models after conversion.
     """
+    cuda = torch.cuda.is_available()
+    try:
+        import tensorflow as tf
+    except ImportError:
+        check_requirements("tensorflow>2.19.0" if IS_PYTHON_MINIMUM_3_13 else "tensorflow>=2.0.0,<=2.19.0")
+        import tensorflow as tf
+    check_requirements(
+        f"onnx2tf{'>=2.3.0,<2.3.16' if IS_PYTHON_MINIMUM_3_13 else '>=1.26.3,<1.29.0'}",  # pin to avoid h5py build issues on aarch64
+        cmds="--no-deps",
+    )
+    check_requirements(
+        (
+            f"tf_keras{'>2.19.0' if IS_PYTHON_MINIMUM_3_13 else '<=2.19.0'}",  # required by 'onnx2tf' package
+            "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
+            "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
+            "ai-edge-litert>=1.2.0" + (",<1.4.0" if MACOS else ""),  # required by 'onnx2tf' package
+            "onnx>=1.12.0,<2.0.0",
+            f"onnx2tf{'>=2.3.0,<2.3.16' if IS_PYTHON_MINIMUM_3_13 else '>=1.26.3,<1.29.0'}",
+            "onnxslim>=0.1.82",
+            "onnxruntime-gpu" if cuda else "onnxruntime",
+            "protobuf>=6.31.1,<7.0.0"
+            if IS_PYTHON_MINIMUM_3_13
+            else "protobuf>=5",  # TF>2.19 (Python 3.13) needs protobuf>=6.31.1; cap <7 to match TF gencode and avoid PaddlePaddle segfault
+        ),
+        cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
+    )
+
+    LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
+    check_version(
+        tf.__version__,
+        ">=2.0.0",
+        name="tensorflow",
+        verbose=True,
+        msg="https://github.com/ultralytics/ultralytics/issues/5161",
+    )
+
     output_dir = Path(output_dir)
     # Pre-download calibration file to fix https://github.com/PINTO0309/onnx2tf/issues/545
     onnx2tf_file = Path("calibration_image_sample_data_20x128x128x3_float32.npy")
@@ -109,6 +153,24 @@ def onnx2saved_model(
 
         onnx.helper.float32_to_bfloat16 = float32_to_bfloat16
 
+    import importlib
+    import inspect
+    import pathlib
+
+    import onnx2tf.ops.TopK as _t
+
+    _path = pathlib.Path(inspect.getfile(_t))
+    _text = _path.read_text()
+    _patched = _text.replace(
+        "k_tensor = int(k_tensor)",
+        "k_tensor = int(k_tensor.squeeze()) if hasattr(k_tensor, 'squeeze') else int(k_tensor)",
+    )
+    if _patched != _text:  # write only when unpatched; site-packages may be read-only (pre-patched containers)
+        try:
+            _path.write_text(_patched)
+            importlib.reload(_t)
+        except OSError as e:  # read-only install: continue unpatched, only TopK-containing models are affected
+            LOGGER.warning(f"{prefix} unable to apply onnx2tf TopK patch: {e}")
     import onnx2tf  # scoped for after ONNX export for reduced conflict during import
 
     LOGGER.info(f"{prefix} starting TFLite export with onnx2tf {onnx2tf.__version__}...")
@@ -175,10 +237,28 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
         (str): Path to the exported Edge TPU model file.
 
     Notes:
-        Requires the Edge TPU compiler to be installed. The function compiles the TFLite model
+        Auto-installs the Edge TPU compiler if not found. The function compiles the TFLite model
         for optimal performance on Google's Edge TPU hardware accelerator.
     """
     import subprocess
+
+    # Install Edge TPU compiler if not found
+    check_cmd = "edgetpu_compiler --version"
+    help_url = "https://coral.ai/docs/edgetpu/compiler/"
+    assert LINUX, f"export only supported on Linux. See {help_url}"
+    if subprocess.run(check_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True).returncode != 0:
+        LOGGER.info(f"\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}")
+        sudo = "sudo " if is_sudo_available() else ""
+        for c in (
+            f"{sudo}mkdir -p /etc/apt/keyrings",
+            f"curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | {sudo}gpg --no-tty --dearmor -o /etc/apt/keyrings/google.gpg",
+            f'echo "deb [signed-by=/etc/apt/keyrings/google.gpg] https://packages.cloud.google.com/apt coral-edgetpu-stable main" | {sudo}tee /etc/apt/sources.list.d/coral-edgetpu.list',
+        ):
+            subprocess.run(c, shell=True, check=True)
+        check_apt_requirements(["edgetpu-compiler"])
+
+    ver = subprocess.run(check_cmd, shell=True, capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
+    LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
 
     cmd = (
         "edgetpu_compiler "
@@ -208,11 +288,12 @@ def pb2tfjs(pb_file: str, output_dir: str, half: bool = False, int8: bool = Fals
         (str): Path to the exported TensorFlow.js model directory.
 
     Notes:
-        Requires tensorflowjs package. Uses tensorflowjs_converter command-line tool for conversion.
+        Auto-installs tensorflowjs if not present. Uses tensorflowjs_converter command-line tool for conversion.
         Handles spaces in file paths and warns if output directory contains spaces.
     """
     import subprocess
 
+    check_requirements("tensorflowjs")
     import tensorflow as tf
     import tensorflowjs as tfjs
 

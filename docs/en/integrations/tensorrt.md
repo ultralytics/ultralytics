@@ -77,24 +77,20 @@ For detailed instructions and best practices related to the installation process
 
 Before diving into the usage instructions, be sure to check out the range of [YOLO26 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
-!!! example "Usage"
+The TensorRT format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation require an NVIDIA GPU. Export your model, then load the exported model to run inference or validate its accuracy.
+
+!!! example "Export"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO26 model
+        # Load a YOLO26 model
         model = YOLO("yolo26n.pt")
 
         # Export the model to TensorRT format
         model.export(format="engine")  # creates 'yolo26n.engine'
-
-        # Load the exported TensorRT model
-        tensorrt_model = YOLO("yolo26n.engine")
-
-        # Run inference
-        results = tensorrt_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
@@ -102,9 +98,48 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         ```bash
         # Export a YOLO26n PyTorch model to TensorRT format
         yolo export model=yolo26n.pt format=engine # creates 'yolo26n.engine'
+        ```
 
-        # Run inference with the exported model
+!!! example "Predict"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported TensorRT model
+        model = YOLO("yolo26n.engine")
+
+        # Run inference
+        results = model("https://ultralytics.com/images/bus.jpg")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Run inference with the exported TensorRT model
         yolo predict model=yolo26n.engine source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+!!! example "Validate"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the exported TensorRT model
+        model = YOLO("yolo26n.engine")
+
+        # Validate accuracy on the COCO8 dataset
+        metrics = model.val(data="coco8.yaml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Validate the exported TensorRT model
+        yolo val model=yolo26n.engine data=coco8.yaml
         ```
 
 ### Export Arguments
@@ -120,7 +155,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 | `workspace` | `float` or `None` | `None`         | Sets the maximum workspace size in GiB for TensorRT optimizations, balancing memory usage and performance; use `None` for auto-allocation by TensorRT up to device maximum.                                                                                      |
 | `nms`       | `bool`            | `False`        | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                                                                                              |
 | `batch`     | `int`             | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
-| `data`      | `str`             | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets/) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                            |
+| `data`      | `str`             | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                             |
 | `fraction`  | `float`           | `1.0`          | Specifies the fraction of the dataset to use for INT8 quantization calibration. Allows for calibrating on a subset of the full dataset, useful for experiments or when resources are limited. If not specified with INT8 enabled, the full dataset will be used. |
 | `device`    | `str`             | `None`         | Specifies the device for exporting: GPU (`device=0`), DLA for NVIDIA Jetson (`device=dla:0` or `device=dla:1`).                                                                                                                                                  |
 
@@ -142,7 +177,7 @@ When processing implicitly quantized networks TensorRT uses INT8 opportunistical
 
 #### Configuring INT8 Export
 
-The arguments provided when using [export](../modes/export.md) for an Ultralytics YOLO model will **greatly** influence the performance of the exported model. They will also need to be selected based on the device resources available, however the default arguments _should_ work for most [Ampere (or newer) NVIDIA discrete GPUs](https://developer.nvidia.com/blog/nvidia-ampere-architecture-in-depth/). The calibration algorithm used is `"MINMAX_CALIBRATION"` and you can read more details about the options available [in the TensorRT Developer Guide](https://docs.nvidia.com/deeplearning/tensorrt/latest/_static/python-api/infer/Int8/MinMaxCalibrator.html). Ultralytics tests found that `"MINMAX_CALIBRATION"` was the best choice and exports are fixed to using this algorithm.
+The arguments provided when using [export](../modes/export.md) for an Ultralytics YOLO model will **greatly** influence the performance of the exported model. They will also need to be selected based on the device resources available, however the default arguments _should_ work for most [Ampere (or newer) NVIDIA discrete GPUs](https://developer.nvidia.com/blog/nvidia-ampere-architecture-in-depth/). The calibration algorithm used is `"MINMAX_CALIBRATION"` for GPU exports, while DLA exports on NVIDIA Jetson use `"ENTROPY_CALIBRATION_2"`. You can read more details about the options available [in the TensorRT Developer Guide](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/work-quantized-types.html). Ultralytics tests found `"MINMAX_CALIBRATION"` to be the best choice for GPU exports, and the algorithm is selected automatically based on the export device.
 
 - `workspace` : Controls the size (in GiB) of the device memory allocation while converting the model weights.
     - Adjust the `workspace` value according to your calibration needs and resource availability. While a larger `workspace` may increase calibration time, it allows TensorRT to explore a wider range of optimization tactics, potentially enhancing model performance and [accuracy](https://www.ultralytics.com/glossary/accuracy). Conversely, a smaller `workspace` can reduce calibration time but may limit the optimization strategies, affecting the quality of the quantized model.
@@ -209,7 +244,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
 #### Advantages of using YOLO with TensorRT INT8
 
-- **Reduced model size:** Quantization from FP32 to INT8 can reduce the model size by 4x (on disk or in memory), leading to faster download times. lower storage requirements, and reduced memory footprint when deploying a model.
+- **Reduced model size:** Quantization from FP32 to INT8 can reduce the model size by 4x (on disk or in memory), leading to faster download times, lower storage requirements, and reduced memory footprint when deploying a model.
 
 - **Lower power consumption:** Reduced precision operations for INT8 exported YOLO models can consume less power compared to FP32 models, especially for battery-powered devices.
 
@@ -554,7 +589,7 @@ For more details, refer to the [exporting TensorRT with INT8 quantization sectio
 Deploying YOLO26 TensorRT models on an NVIDIA Triton Inference Server can be done using the following resources:
 
 - **[Deploy Ultralytics YOLO26 with Triton Server](../guides/triton-inference-server.md)**: Step-by-step guidance on setting up and using Triton Inference Server.
-- **[NVIDIA Triton Inference Server Documentation](https://developer.nvidia.com/blog/deploying-deep-learning-nvidia-tensorrt/)**: Official NVIDIA documentation for detailed deployment options and configurations.
+- **[Deploying Deep Neural Networks with NVIDIA TensorRT](https://developer.nvidia.com/blog/deploying-deep-learning-nvidia-tensorrt/)**: NVIDIA's guide on deploying deep learning models with TensorRT for detailed deployment options and configurations.
 
 These guides will help you integrate YOLO26 models efficiently in various deployment environments.
 

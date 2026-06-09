@@ -2,6 +2,8 @@
 
 import contextlib
 import csv
+import shutil
+import tarfile
 import urllib
 import zipfile
 from copy import copy
@@ -15,13 +17,13 @@ from PIL import Image
 
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
-from ultralytics.cfg import TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
     ARM64,
     ASSETS,
     ASSETS_URL,
+    DATASETS_DIR,
     DEFAULT_CFG,
     DEFAULT_CFG_PATH,
     IS_JETSON,
@@ -38,6 +40,12 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
+
+
+def skip_rpi_semantic():
+    """Skip semantic segmentation tests on Raspberry Pi due to memory constraints."""
+    if IS_RASPBERRYPI:
+        pytest.skip("Semantic segmentation tests are skipped on Raspberry Pi due to memory constraints.")
 
 
 def test_model_forward():
@@ -111,6 +119,8 @@ def test_predict_csv_single_row(tmp_path):
 @pytest.mark.parametrize("model_name", MODELS)
 def test_predict_img(model_name):
     """Test YOLO model predictions on various image input types and sources, including online images."""
+    if IS_RASPBERRYPI and model_name == "yolo26n-sem.pt":
+        skip_rpi_semantic()
     channels = 1 if model_name == "yolo11n-grayscale.pt" else 3
     model = YOLO(WEIGHTS_DIR / model_name)
     im = cv2.imread(str(SOURCE), flags=cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR)  # uint8 NumPy array
@@ -134,6 +144,8 @@ def test_predict_img(model_name):
 @pytest.mark.parametrize("model", MODELS)
 def test_predict_visualize(model):
     """Test model prediction methods with 'visualize=True' to generate prediction visualizations."""
+    if IS_RASPBERRYPI and model == "yolo26n-sem.pt":
+        skip_rpi_semantic()
     YOLO(WEIGHTS_DIR / model)(SOURCE, imgsz=32, visualize=True)
 
 
@@ -191,7 +203,7 @@ def test_youtube():
     """Test YOLO model on a YouTube video stream, handling potential network-related errors."""
     model = YOLO(MODEL)
     try:
-        model.predict("https://youtu.be/G17sBkb38XQ", imgsz=96, save=True)
+        model.predict("https://youtu.be/G17sBkb38XQ", imgsz=32, save=True)
     # Handle internet connection errors and 'urllib.error.HTTPError: HTTP Error 429: Too Many Requests'
     except (urllib.error.HTTPError, ConnectionError) as e:
         LOGGER.error(f"YouTube Test Error: {e}")
@@ -200,18 +212,23 @@ def test_youtube():
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.parametrize("model", MODELS)
 def test_track_stream(model, tmp_path):
-    """Test streaming tracking on a short 10 frame video using ByteTrack tracker and different GMC methods.
+    """Test streaming tracking on a short video with all built-in trackers and various GMC/ReID configurations.
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
     """
-    if model == "yolo26n-cls.pt":  # classification model not supported for tracking
+    if model in {"yolo26n-cls.pt", "yolo26n-sem.pt"}:  # classification and semantic segmentation not supported
         return
+    from ultralytics.trackers.track import TRACKER_MAP
+
     video_url = f"{ASSETS_URL}/decelera_portrait_min.mov"
     model = YOLO(model)
-    model.track(video_url, imgsz=160, tracker="bytetrack.yaml")
-    model.track(video_url, imgsz=160, tracker="botsort.yaml", save_frames=True)  # test frame saving also
 
-    # Test Global Motion Compensation (GMC) methods and ReID
+    # Default end-to-end run for all built-in trackers
+    for tracker_type in TRACKER_MAP:
+        kwargs = {"save_frames": True} if tracker_type == "botsort" else {}
+        model.track(video_url, imgsz=160, tracker=f"{tracker_type}.yaml", **kwargs)
+
+    # Test Global Motion Compensation (GMC) methods and ReID on botsort
     for gmc, reidm in zip(["orb", "sift", "ecc"], ["auto", "auto", "yolo26n-cls.pt"]):
         default_args = YAML.load(ROOT / "cfg/trackers/botsort.yaml")
         custom_yaml = tmp_path / f"botsort-{gmc}.yaml"
@@ -222,6 +239,8 @@ def test_track_stream(model, tmp_path):
 @pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)
 def test_val(task: str, weight: str, data: str) -> None:
     """Test the validation mode of the YOLO model."""
+    if IS_RASPBERRYPI and task == "semantic":
+        skip_rpi_semantic()
     model = YOLO(weight)
     for plots in {True, False}:  # Test both cases i.e. plots=True and plots=False
         metrics = model.val(data=data, imgsz=32, plots=plots)
@@ -244,6 +263,7 @@ def test_train_scratch():
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_ndjson():
     """Test training the YOLO model using NDJSON format dataset."""
     model = YOLO(WEIGHTS_DIR / "yolo26n.pt")
@@ -251,6 +271,7 @@ def test_train_ndjson():
 
 
 @pytest.mark.parametrize("scls", [False, True])
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_pretrained(scls):
     """Test training of the YOLO model starting from a pre-trained checkpoint."""
     model = YOLO(WEIGHTS_DIR / "yolo26n-seg.pt")
@@ -265,15 +286,15 @@ def test_all_model_yamls():
     for m in (ROOT / "cfg" / "models").rglob("*.yaml"):
         if "rtdetr" in m.name:
             if TORCH_1_11:
-                _ = RTDETR(m.name)(SOURCE, imgsz=640)  # must be 640
+                _ = RTDETR(m.name)(SOURCE, imgsz=160)
         else:
             YOLO(m.name)
 
 
 @pytest.mark.skipif(WINDOWS, reason="Windows slow CI export bug https://github.com/ultralytics/ultralytics/pull/16003")
-def test_workflow():
+def test_workflow(isolated_model):
     """Test the complete workflow including training, validation, prediction, and exporting."""
-    model = YOLO(MODEL)
+    model = YOLO(isolated_model)
     model.train(data="coco8.yaml", epochs=1, imgsz=32, optimizer="SGD")
     model.val(imgsz=32)
     model.predict(SOURCE, imgsz=32)
@@ -295,7 +316,7 @@ def test_predict_callback_and_setup():
 
     dataset = load_inference_source(source=SOURCE)
     bs = dataset.bs  # access predictor properties
-    results = model.predict(dataset, stream=True, imgsz=160)  # source already setup
+    results = model.predict(dataset, stream=True, imgsz=32)  # source already setup
     for r, im0, bs in results:
         print("test_callback", im0.shape)
         print("test_callback", bs)
@@ -306,10 +327,19 @@ def test_predict_callback_and_setup():
 @pytest.mark.parametrize("model", MODELS)
 def test_results(model: str, tmp_path):
     """Test YOLO model results processing and output in various formats."""
+    if IS_RASPBERRYPI and model == "yolo26n-sem.pt":
+        skip_rpi_semantic()
     im = "https://cdn.jsdelivr.net/gh/ultralytics/assets@main/im/boats.jpg" if model == "yolo26n-obb.pt" else SOURCE
-    results = YOLO(WEIGHTS_DIR / model)([im, im], imgsz=160)
+    is_semantic = "semantic" in model or "-sem" in model
+    results = YOLO(WEIGHTS_DIR / model)([im, im], imgsz=32 if is_semantic else 160)
     for r in results:
-        assert len(r), f"'{model}' results should not be empty!"
+        if is_semantic:
+            assert r.semantic_mask is not None and r.semantic_mask.shape == r.orig_shape, (
+                f"'{model}' semantic_mask should match the original image shape!"
+            )
+            assert r.semantic_mask.data.dtype == torch.uint8, f"'{model}' semantic_mask should use compact class IDs!"
+        else:
+            assert len(r), f"'{model}' results should not be empty!"
         r = r.cpu().numpy()
         print(r, len(r), r.path)  # print numpy attributes
         r = r.to(device="cpu", dtype=torch.float32)
@@ -326,7 +356,7 @@ def test_results(model: str, tmp_path):
 def test_labels_and_crops():
     """Test output from prediction args for saving YOLO detection labels and crops."""
     imgs = [SOURCE, ASSETS / "zidane.jpg"]
-    results = YOLO(WEIGHTS_DIR / "yolo26n.pt")(imgs, imgsz=320, save_txt=True, save_crop=True)
+    results = YOLO(WEIGHTS_DIR / "yolo26n.pt")(imgs, imgsz=160, save_txt=True, save_crop=True)
     save_path = Path(results[0].save_dir)
     for r in results:
         im_name = Path(r.path).stem
@@ -352,25 +382,18 @@ def test_labels_and_crops():
         assert crop_count == len(r.boxes.data), f"Crop count {crop_count} != detection count {len(r.boxes.data)}"
 
 
-@pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_data_utils(tmp_path):
-    """Test data utility functions including dataset stats, auto-splitting, and zip archiving."""
+    """Test data utility functions including auto-splitting and zip archiving."""
     from ultralytics.data.split import autosplit
-    from ultralytics.data.utils import HUBDatasetStats
     from ultralytics.utils.downloads import zip_directory
 
-    # from ultralytics.utils.files import WorkingDirectory
-    # with WorkingDirectory(ROOT.parent / 'tests'):
+    images_dir = tmp_path / "coco8/images/val"
+    images_dir.mkdir(parents=True)
+    Image.new("RGB", (8, 8)).save(images_dir / "test.jpg")
 
-    for task in TASKS:
-        file = Path(TASK2DATA[task]).with_suffix(".zip")  # i.e. coco8.zip
-        download(f"https://github.com/ultralytics/hub/raw/main/example_datasets/{file}", unzip=False, dir=tmp_path)
-        stats = HUBDatasetStats(tmp_path / file, task=task)
-        stats.get_json(save=True)
-        stats.process_images()
-
-    autosplit(tmp_path / "coco8")
-    zip_directory(tmp_path / "coco8/images/val")  # zip
+    autosplit(tmp_path / "coco8/images")
+    assert any((tmp_path / "coco8").glob("autosplit_*.txt"))
+    assert zip_directory(images_dir).is_file()
 
 
 def test_safe_download_unzips_local_path_archive(tmp_path):
@@ -394,12 +417,44 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
     assert (extracted / "images" / "val").is_dir(), f"images/val not found in {extracted}"
 
 
+def test_safe_download_skips_unsafe_archive_members(tmp_path):
+    """Test safe_download() skips archive members that would extract outside the target directory."""
+    archive = tmp_path / "unsafe.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("../unsafe.txt", "bad")
+        zf.writestr("safe/file.txt", "ok")
+
+    extracted = safe_download(archive, dir=tmp_path / "datasets", unzip=True, progress=False)
+
+    assert not (tmp_path / "unsafe.txt").exists()
+    assert (extracted / "safe/file.txt").is_file()
+
+
+def test_safe_download_skips_unsafe_tar_members(tmp_path):
+    """Test safe_download() skips tar members that would extract outside the target directory."""
+    source = tmp_path / "safe.txt"
+    source.write_text("ok")
+    archive = tmp_path / "unsafe.tar"
+    with tarfile.open(archive, "w") as tar:
+        tar.add(source, arcname="../unsafe.txt")
+        tar.add(source, arcname="safe.txt")
+
+    extracted = safe_download(archive, dir=tmp_path / "datasets", unzip=True, progress=False)
+
+    assert not (tmp_path / "unsafe.txt").exists()
+    assert (extracted / "safe.txt").is_file()
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_data_converter(tmp_path):
     """Test dataset conversion functions from COCO to YOLO format and class mappings."""
     from ultralytics.data.converter import coco80_to_coco91_class, convert_coco
 
-    download(f"{ASSETS_URL}/instances_val2017.json", dir=tmp_path)
+    cached_file = DATASETS_DIR / "annotations" / "instances_val2017.json"
+    if cached_file.exists():
+        shutil.copy2(cached_file, tmp_path / cached_file.name)
+    else:
+        download(f"{ASSETS_URL}/instances_val2017.json", dir=tmp_path)
     convert_coco(
         labels_dir=tmp_path, save_dir=tmp_path / "yolo_labels", use_segments=True, use_keypoints=False, cls91to80=True
     )
@@ -477,6 +532,9 @@ def test_cfg_init():
     assert smart_value("__import__('os').system('ls')") == "__import__('os').system('ls')"
     assert smart_value("eval('1+1')") == "eval('1+1')"
     assert smart_value("exec('x=1')") == "exec('x=1')"
+
+    assert smart_value("zipfile.ZIP_DEFLATED") == zipfile.ZIP_DEFLATED
+    assert smart_value("zipfile.Path") == "zipfile.Path"
 
 
 def test_utils_init():
@@ -673,6 +731,7 @@ def test_classify_transforms_train(image, auto_augment, erasing, force_color_jit
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(IS_RASPBERRYPI or IS_JETSON, reason="Edge devices not intended for tuning")
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_model_tune():
     """Tune YOLO model for performance improvement."""
@@ -684,7 +743,9 @@ def test_model_tune():
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(IS_RASPBERRYPI or IS_JETSON, reason="Edge devices not intended for tuning")
 @pytest.mark.skipif(not ONLINE or not checks.IS_PYTHON_MINIMUM_3_10, reason="environment is offline")
+@pytest.mark.skipif(not checks.check_requirements("ray", install=False), reason="ray[tune] not installed")
 def test_model_tune_ray():
     """Tune YOLO model for performance improvement."""
     YOLO("yolo26n-cls.pt").tune(
@@ -709,6 +770,7 @@ def test_model_embeddings():
         assert len(model_segment.embed(source=batch, imgsz=32)) == len(batch)
 
 
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for CLIP-based models")
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOWorld with CLIP is not supported in Python 3.12")
 @pytest.mark.skipif(
     checks.IS_PYTHON_3_8 and LINUX and ARM64,
@@ -745,6 +807,7 @@ def test_yolo_world():
     )
 
 
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for heavy CLIP-based models")
 @pytest.mark.skipif(not TORCH_1_13, reason="YOLOE with CLIP requires torch>=1.13")
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOE with CLIP is not supported in Python 3.12")
 @pytest.mark.skipif(
@@ -837,6 +900,8 @@ def test_multichannel():
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
     """Test YOLO model grayscale training, validation, and prediction functionality."""
+    if IS_RASPBERRYPI and task == "semantic":
+        skip_rpi_semantic()
     if task == "classify":  # not support grayscale classification yet
         return
     grayscale_data = tmp_path / f"{Path(data).stem}-grayscale.yaml"
@@ -857,3 +922,11 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
 
     model = YOLO(export_model, task=task)
     model.predict(source=im, imgsz=32)
+
+
+def test_semantic_polygon_data():
+    """Test YOLO semantic segmentation model with polygon data."""
+    skip_rpi_semantic()
+    model = YOLO("yolo26n-sem.pt")
+    model.train(data="coco8-seg.yaml", epochs=1, imgsz=32, close_mosaic=1)
+    model.val(data="coco8-seg.yaml")

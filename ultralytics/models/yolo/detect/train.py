@@ -121,8 +121,8 @@ class DetectionTrainer(BaseTrainer):
             imgs = batch["img"]
             sz = (
                 random.randrange(
-                    int(self.args.imgsz * (1.0 - self.args.multi_scale)),
-                    int(self.args.imgsz * (1.0 + self.args.multi_scale) + self.stride),
+                    max(self.stride, int(self.args.imgsz * (1.0 - self.args.multi_scale))),  # min imgsz
+                    int(self.args.imgsz * (1.0 + self.args.multi_scale) + self.stride),  # max imgsz
                 )
                 // self.stride
                 * self.stride
@@ -145,14 +145,14 @@ class DetectionTrainer(BaseTrainer):
         self.model.nc = self.data["nc"]  # attach number of classes to model
         self.model.names = self.data["names"]  # attach class names to model
         self.model.args = self.args  # attach hyperparameters to model
-        if getattr(self.model, "end2end"):
+        if getattr(self.model, "end2end", False):
             self.model.set_head_attr(max_det=self.args.max_det)
 
     def set_class_weights(self):
         """Compute and set class weights for handling class imbalance.
 
         Class weights are computed based on inverse class frequency in the training dataset,
-        raised to the power of cls_pw (0 < cls_pw <= 1 dampens, cls_pw > 1 amplifies).
+        raised to the power of cls_pw (0 < cls_pw <= 1 dampens; values are restricted to the range [0, 1]).
         Final weights are normalized so their mean equals 1.0.
         """
         assert 0 <= self.args.cls_pw <= 1.0, "cls_pw must be in the range [0, 1]"

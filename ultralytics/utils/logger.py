@@ -300,10 +300,9 @@ class _DriveInfo:
     disambiguation.
 
     Examples:
-        >>> import psutil
-        >>> mounts = _DriveInfo.mounts(psutil, all_drives=True)
-        >>> mounts[0]
-        '/'
+        >>> logger = SystemLogger(all_drives=True)
+        >>> logger.mounts
+        ['/']
     """
 
     @staticmethod

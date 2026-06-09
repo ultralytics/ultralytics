@@ -231,6 +231,55 @@ def test_track_stream(model, tmp_path):
         model.track(video_url, imgsz=160, tracker=custom_yaml)
 
 
+def test_loadstreams_grayscale_retrieve_failure(monkeypatch):
+    """Ensure a failed retrieve on a grayscale stream does not crash the daemon thread (reconnect must run)."""
+    import time
+
+    from ultralytics.data import loaders
+
+    class _FakeCap:
+        """Minimal cv2.VideoCapture stand-in: opens and first-reads fine, then retrieve always fails."""
+
+        def __init__(self, *args, **kwargs):
+            self.reopened = 0
+
+        def isOpened(self):
+            return True
+
+        def get(self, prop):
+            return {
+                cv2.CAP_PROP_FRAME_WIDTH: 64,
+                cv2.CAP_PROP_FRAME_HEIGHT: 48,
+                cv2.CAP_PROP_FPS: 30,
+                cv2.CAP_PROP_FRAME_COUNT: 0,  # -> infinite-stream fallback, loop runs until close()
+            }.get(prop, 0)
+
+        def read(self):
+            return True, np.zeros((48, 64, 3), dtype=np.uint8)  # valid first BGR frame
+
+        def grab(self):
+            return True
+
+        def retrieve(self):
+            return False, None  # unresponsive stream: failure + None frame
+
+        def open(self, stream):
+            self.reopened += 1
+            return True
+
+        def release(self):
+            pass
+
+    monkeypatch.setattr(loaders.cv2, "VideoCapture", _FakeCap)
+    stream = loaders.LoadStreams(sources="rtsp://fake", vid_stride=1, buffer=False, channels=1)  # grayscale
+    try:
+        time.sleep(0.3)  # let the daemon thread process a few failed retrieves
+        assert stream.threads[0].is_alive(), "daemon thread died on retrieve failure instead of reconnecting"
+        assert stream.caps[0].reopened > 0, "reconnect path (cap.open) never ran after retrieve failure"
+    finally:
+        stream.close()
+
+
 @pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)
 def test_val(task: str, weight: str, data: str) -> None:
     """Test the validation mode of the YOLO model."""

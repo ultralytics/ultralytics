@@ -360,7 +360,7 @@ class _DriveInfo:
         """Get Linux mounts backed by physical block devices."""
         block_info = json.loads(
             subprocess.check_output(
-                ["lsblk", "--json", "--output", "TYPE,MOUNTPOINT,MOUNTPOINTS"], text=True, timeout=5
+                ["lsblk", "--json", "--output", "NAME,TYPE,MOUNTPOINT,MOUNTPOINTS"], text=True, timeout=5
             )
         )
         mounts = []

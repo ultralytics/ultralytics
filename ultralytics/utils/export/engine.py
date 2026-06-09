@@ -107,9 +107,10 @@ def modelopt_quantize_onnx(
 
     Args:
         onnx_file (str): Path to the FP32 ONNX file to convert.
-        half (bool): Convert the ONNX model to FP16 mixed precision.
+        half (bool): Convert the ONNX model to FP16 mixed precision. Ignored when ``int8=True``.
         int8 (bool): Quantize the ONNX model to INT8 with Q/DQ nodes.
-        dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataloader providing INT8 calibration images.
+        dataset (ultralytics.data.build.InfiniteDataLoader | None): Dataloader providing INT8 calibration images.
+            Required when ``int8=True``.
         shape (tuple[int, int, int, int]): Input shape (batch, channels, height, width) used for dynamic calibration.
         dynamic (bool): Whether the ONNX model uses dynamic input shapes.
         prefix (str): Prefix for log messages.
@@ -117,6 +118,9 @@ def modelopt_quantize_onnx(
     Returns:
         (str): Path to the precision-converted ONNX file.
     """
+    if int8 and dataset is None:
+        raise ValueError("INT8 ModelOpt quantization requires a calibration dataset.")
+
     # Require modelopt >= 0.44: older releases import onnx.mapping which was removed in onnx >= 1.18 and crash
     check_requirements("nvidia-modelopt[onnx]>=0.44")
     import onnx
@@ -240,15 +244,17 @@ def onnx2engine(
     # platform_has_fast_fp16/int8 were removed from the Builder in TensorRT 10; default to True when absent
     half = getattr(builder, "platform_has_fast_fp16", True) and half
     int8 = getattr(builder, "platform_has_fast_int8", True) and int8
+    if int8 and dataset is None:
+        raise ValueError("INT8 TensorRT export requires a calibration dataset.")
 
     # Optionally switch to DLA if enabled
     if dla is not None:
         if not IS_JETSON:
             raise ValueError("DLA is only available on NVIDIA Jetson devices")
-        if is_trt11:
-            # DLA is unsupported in TensorRT 11.x and is planned to return in a later release
+        if check_version(trt.__version__, ">=11.0.0,<11.1.0"):
+            # DLA is unsupported in TensorRT 11.0 and is planned to return in a later release
             # https://docs.nvidia.com/deeplearning/tensorrt/latest/api/migration/tensorrt-10x-to-11x-jetson.html
-            raise ValueError("DLA is not supported in TensorRT 11.x; export with TensorRT 10.x to use DLA.")
+            raise ValueError("DLA is not supported in TensorRT 11.0; export with TensorRT 10.x to use DLA.")
         LOGGER.info(f"{prefix} enabling DLA on core {dla}...")
         if not half and not int8:
             raise ValueError(

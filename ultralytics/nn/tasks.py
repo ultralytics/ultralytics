@@ -618,6 +618,7 @@ class YOLOAnomalyV2Model(DetectionModel):
         queryfilm_dim = int(v2_cfg.get("queryfilm_dim", 128))
         queryfilm_groups = int(v2_cfg.get("queryfilm_groups", 16))
         queryfilm_alpha_init = float(v2_cfg.get("queryfilm_alpha_init", 0.0))
+        queryfilm_softmax = bool(v2_cfg.get("queryfilm_softmax", False))
         self.queryfilm_w_mask = float(v2_cfg.get("queryfilm_w_mask", 0.05))
         self.queryfilm_w_obj = float(v2_cfg.get("queryfilm_w_obj", 0.10))
         self.queryfilm_w_overlap = float(v2_cfg.get("queryfilm_w_overlap", 0.01))
@@ -665,6 +666,7 @@ class YOLOAnomalyV2Model(DetectionModel):
             self.queryfilm_fusion = QueryFiLMFusion(
                 p3_channels=pan_channels[0], num_queries_k=queryfilm_k, query_dim=queryfilm_dim,
                 num_groups=queryfilm_groups, alpha_init=queryfilm_alpha_init,
+                softmax_attn=queryfilm_softmax,
             )
         else:
             self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=detect.nl)

@@ -288,6 +288,7 @@ class QueryFiLMFusion(nn.Module):
         enc_mid: int = 64,
         film_mid: int = 64,
         alpha_init: float = 0.0,
+        softmax_attn: bool = False,
     ):
         super().__init__()
         assert p3_channels % num_groups == 0, (
@@ -297,12 +298,18 @@ class QueryFiLMFusion(nn.Module):
         self.k = int(num_queries_k)
         self.d = int(query_dim)
         self.g = int(num_groups)
+        # Slot-attention-style normalization: when on, attention competes across queries per
+        # pixel (softmax over the K+1 axis, with a null/background sink slot that absorbs
+        # unclaimed pixels), so two queries can't both own the same region. When off, each
+        # query is an independent sigmoid (queries may overlap; v0 behavior).
+        self.softmax_attn = bool(softmax_attn)
+        attn_out = self.k + 1 if self.softmax_attn else self.k  # +1 = null/background slot
         self.enc = nn.Sequential(
             nn.Conv2d(self.c + 1, enc_mid, 3, padding=1),
             nn.GELU(),
             nn.Conv2d(enc_mid, self.d, 3, padding=1),
         )
-        self.attn = nn.Conv2d(self.d, self.k, 1)  # query attention logits
+        self.attn = nn.Conv2d(self.d, attn_out, 1)  # query (+null) attention logits
         self.obj = nn.Linear(self.d, 1)  # per-query objectness logit
         self.film_mlp = nn.Sequential(
             nn.Linear(self.d, film_mid),
@@ -314,6 +321,8 @@ class QueryFiLMFusion(nn.Module):
         nn.init.zeros_(self.film_mlp[-1].bias)
         # Scalar LayerScale, init 0 -> increment is exactly 0 at start.
         self.alpha = nn.Parameter(torch.full((1,), float(alpha_init)))
+        # Learnable softmax temperature (tau = exp(log_tau), init 1.0); only used when softmax_attn.
+        self.log_tau = nn.Parameter(torch.zeros(1)) if self.softmax_attn else None
 
     def forward(self, p3: torch.Tensor, heatmap: torch.Tensor, return_aux: bool = False):
         """Return the residual increment ``(B, C, H, W)`` for the P3 feature.
@@ -329,8 +338,16 @@ class QueryFiLMFusion(nn.Module):
         b, _, h, w = p3.shape
         hw = h * w
         feat = self.enc(torch.cat([p3, heatmap], dim=1))  # (B, D, H, W)
-        attn_logits = self.attn(feat)  # (B, K, H, W)
-        a = attn_logits.sigmoid()  # (B, K, H, W)
+        logits = self.attn(feat)  # (B, K or K+1, H, W)
+        if self.softmax_attn:
+            # Compete across the K real queries + 1 null slot, then drop the null slot. The
+            # leftover (null) mass lets background pixels avoid being forced onto a query.
+            tau = self.log_tau.exp().clamp_min(1e-2)
+            a = (logits / tau).softmax(dim=1)[:, : self.k]  # (B, K, H, W)
+            attn_logits = logits[:, : self.k]  # real-query logits for the aux loss
+        else:
+            a = logits.sigmoid()  # (B, K, H, W), independent per-query (v0)
+            attn_logits = logits
         af = a.reshape(b, self.k, hw)  # (B, K, HW)
         ff = feat.reshape(b, self.d, hw).transpose(1, 2)  # (B, HW, D)
         q = torch.bmm(af, ff) / af.sum(2, keepdim=True).clamp_min(1.0)  # (B, K, D) masked-avg-pool
@@ -350,7 +367,7 @@ class QueryFiLMFusion(nn.Module):
         return delta
 
     def extra_repr(self) -> str:
-        return f"c={self.c}, k={self.k}, d={self.d}, g={self.g}"
+        return f"c={self.c}, k={self.k}, d={self.d}, g={self.g}, softmax_attn={self.softmax_attn}"
 
 
 class SegBranch(nn.Module):

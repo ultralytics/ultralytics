@@ -426,7 +426,7 @@ def on_fit_epoch_end(trainer):
     system = {}
     try:
         if not ctx["system_logger"]:
-            ctx["system_logger"] = SystemLogger()
+            ctx["system_logger"] = SystemLogger(all_drives=True)
         system = ctx["system_logger"].get_metrics(rates=True)
     except Exception:
         pass

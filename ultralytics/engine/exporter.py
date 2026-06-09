@@ -255,7 +255,6 @@ EXPORT_ENVS = {
             "protobuf>=5",
         ],
         "indexes": [
-            ("--extra-index-url", "https://download.pytorch.org/whl/cpu"),
             ("--extra-index-url", "https://pypi.ngc.nvidia.com"),
         ],
         "env": {},
@@ -266,7 +265,7 @@ EXPORT_ENVS = {
         "extras": ["export-base", "export-coreml"],
         "torch": ">=2.12",
         "requirements": [],
-        "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
+        "indexes": [],
         "env": {},
         "smoke": ["yolo export format=coreml model=yolo11n.pt imgsz=32"],
     },
@@ -275,7 +274,7 @@ EXPORT_ENVS = {
         "extras": ["export-base"],
         "torch": None,
         "requirements": ["MNN>=2.9.6", "aliyun-log-python-sdk", "protobuf<6.0.0,>=3.20.3"],
-        "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
+        "indexes": [],
         "env": {},
         "smoke": ["yolo export format=mnn model=yolo11n.pt imgsz=32"],
     },
@@ -284,7 +283,7 @@ EXPORT_ENVS = {
         "extras": ["export-base"],
         "torch": None,
         "requirements": ["ncnn", "pnnx"],
-        "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
+        "indexes": [],
         "env": {},
         "smoke": ["yolo export format=ncnn model=yolo11n.pt imgsz=32"],
     },
@@ -293,7 +292,7 @@ EXPORT_ENVS = {
         "extras": ["export-base", "export-executorch"],
         "torch": ">=2.12",
         "requirements": [],
-        "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
+        "indexes": [],
         "env": {},
         "smoke": ["yolo export format=executorch model=yolo11n.pt imgsz=32"],
     },
@@ -308,7 +307,7 @@ EXPORT_ENVS = {
             "pydantic<2.12",
             "imx500-converter[pt]>=3.17.3",
         ],
-        "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
+        "indexes": [],
         "env": {},
         "smoke": ["yolo export format=imx model=yolo11n.pt imgsz=32"],
     },
@@ -317,7 +316,7 @@ EXPORT_ENVS = {
         "extras": ["export-base"],
         "torch": "==2.4",
         "requirements": ["rknn-toolkit2>=2.3.2", "onnx>=1.16.1,<1.19.0", "setuptools<82"],
-        "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
+        "indexes": [],
         "env": {},
         "smoke": ["yolo export format=rknn model=yolo26n.pt imgsz=32 half=True"],
     },
@@ -327,7 +326,6 @@ EXPORT_ENVS = {
         "torch": ">=2.8,<2.12",
         "requirements": ["axelera-devkit==1.6.0", "onnx>=1.12.0,<2.0.0", "onnxslim>=0.1.71"],
         "indexes": [
-            ("--extra-index-url", "https://download.pytorch.org/whl/cpu"),
             ("--extra-index-url", "https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple"),
         ],
         "env": {"PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION": "python"},
@@ -339,7 +337,6 @@ EXPORT_ENVS = {
         "torch": ">=2.8,<2.12",
         "requirements": [],
         "indexes": [
-            ("--extra-index-url", "https://download.pytorch.org/whl/cpu"),
             ("--find-links", "https://sdk.deepx.ai/release/dxcom/v2.3.0/index.html"),
         ],
         "env": {},
@@ -927,6 +924,7 @@ class Exporter:
                 f_int8,
                 self.get_int8_calibration_dataloader(prefix),
                 self._transform_fn,
+                batch=0 if self.args.dynamic else self.args.batch,
                 prefix=prefix,
             )
             source.unlink(missing_ok=True)
@@ -1361,6 +1359,7 @@ class Exporter:
             transform_fn=self._transform_fn,
             name=self.args.name,
             metadata=self.metadata,
+            batch=0 if self.args.dynamic else self.args.batch,
             prefix=prefix,
         )
 

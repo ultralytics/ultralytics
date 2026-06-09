@@ -163,6 +163,10 @@ The TensorRT format supports the [Export](../modes/export.md), [Predict](../mode
 
     Please make sure to use a GPU with CUDA support when exporting to TensorRT.
 
+!!! warning "TensorRT 11.0 and DLA"
+
+    TensorRT 11.0 does not support DLA; use TensorRT 10.x for `device=dla:0` or `device=dla:1`, or export a TensorRT 11.0 GPU engine.
+
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
 ### Exporting TensorRT with INT8 Quantization

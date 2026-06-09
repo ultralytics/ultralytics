@@ -102,7 +102,6 @@ TASK_CUSTOM_KEYS = {
         "gem_p", "nonlocal_block",
         "reid_reranking", "reid_tta", "reid_scales",
         "dg_mixstyle", "dg_dann", "dann_gamma", "dg_mixstyle_layers",
-        "gallery", "topk", "reid_cache",  # predict-time gallery retrieval knobs
     },
 }
 

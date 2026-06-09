@@ -167,8 +167,8 @@ Yes. Concurrent cloud training limits depend on your plan: Free allows 3, Pro al
 
 If training fails:
 
-1. Checkpoints are saved at each epoch
-2. You can resume from the last checkpoint
+1. The model is marked failed and the compute instance is terminated
+2. You can start a new training run from the base model
 3. Credits are only charged for completed compute time
 
 ### How do I choose the right GPU?

@@ -139,53 +139,6 @@ def test_build_gallery_rebuilds_on_stale_cache(tmp_path):
     assert calls["n"] == 2
 
 
-# ---------- Results.matches --------------------------------------------------
-
-
-@pytest.fixture
-def fake_image() -> np.ndarray:
-    return np.zeros((40, 30, 3), dtype=np.uint8)
-
-
-def test_results_accepts_matches_kwarg(fake_image):
-    from ultralytics.engine.results import Results
-
-    matches = [("/g/a.jpg", 0.93), ("/g/b.jpg", 0.81)]
-    r = Results(fake_image, path="/q.jpg", names={0: "id"}, embeddings=torch.randn(8), matches=matches)
-    assert r.matches == matches
-
-
-def test_results_matches_defaults_none(fake_image):
-    from ultralytics.engine.results import Results
-
-    r = Results(fake_image, path="/q.jpg", names={0: "id"}, embeddings=torch.randn(8))
-    assert r.matches is None
-
-
-def test_results_matches_not_in_keys(fake_image):
-    """matches is a plain list (paths+scores), must NOT be walked by _apply/.cpu()/.numpy()."""
-    from ultralytics.engine.results import Results
-
-    r = Results(fake_image, path="/q.jpg", names={0: "id"}, matches=[("/g/a.jpg", 0.5)])
-    assert "matches" not in r._keys
-
-
-def test_results_verbose_emits_matches_line(fake_image):
-    from ultralytics.engine.results import Results
-
-    matches = [("/g/a.jpg", 0.93), ("/g/b.jpg", 0.81)]
-    r = Results(fake_image, path="/q.jpg", names={0: "id"}, embeddings=torch.randn(8), matches=matches)
-    msg = r.verbose()
-    assert "a.jpg" in msg and "0.93" in msg  # ranked match line, not the embedding line
-
-
-def test_results_new_preserves_matches(fake_image):
-    from ultralytics.engine.results import Results
-
-    r = Results(fake_image, path="/q.jpg", names={0: "id"}, matches=[("/g/a.jpg", 0.5)])
-    assert r.new().matches == [("/g/a.jpg", 0.5)]
-
-
 # ---------- CLI custom keys --------------------------------------------------
 
 

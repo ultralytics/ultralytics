@@ -241,7 +241,6 @@ class Results(SimpleClass, DataExportMixin):
         keypoints: torch.Tensor | None = None,
         obb: torch.Tensor | None = None,
         embeddings: torch.Tensor | None = None,
-        matches: list | None = None,
         speed: dict[str, float] | None = None,
         semantic_mask: torch.Tensor | None = None,
     ) -> None:
@@ -257,7 +256,6 @@ class Results(SimpleClass, DataExportMixin):
             keypoints (torch.Tensor | None): A 2D tensor of keypoint coordinates for each detection.
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
             embeddings (torch.Tensor | None): A (D,) or (B, D) tensor of L2-normalized ReID embedding vectors.
-            matches (list | None): ReID gallery retrieval matches as list[(gallery_path, score)] or None.
             semantic_mask (torch.Tensor | None): A 2D tensor of class IDs for semantic segmentation results.
             speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
 
@@ -276,7 +274,6 @@ class Results(SimpleClass, DataExportMixin):
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
         self.obb = OBB(obb, self.orig_shape) if obb is not None else None
         self.embeddings = Embeddings(embeddings) if embeddings is not None else None
-        self.matches = matches  # ReID retrieval: list[(gallery_path, score)] or None; not a tensor, not in _keys
         self.semantic_mask = SemanticMask(semantic_mask, self.orig_shape) if semantic_mask is not None else None
         self.speed = speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}
         self.names = names
@@ -466,7 +463,7 @@ class Results(SimpleClass, DataExportMixin):
             >>> results = model("path/to/image.jpg")
             >>> new_result = results[0].new()
         """
-        return Results(orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed, matches=self.matches)
+        return Results(orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed)
 
     def plot(
         self,
@@ -685,10 +682,6 @@ class Results(SimpleClass, DataExportMixin):
             - For classification tasks, it returns the top 5 class probabilities and their corresponding class names.
             - The returned string is comma-separated and ends with a comma and a space.
         """
-        if self.matches is not None:
-            from pathlib import Path
-
-            return "".join(f"#{r + 1} {Path(p).name} {s:.4f}, " for r, (p, s) in enumerate(self.matches))
         boxes = self.obb if self.obb is not None else self.boxes
         # Only short-circuit to the embedding log line when no other typed field is set.
         # A tracker can attach embeddings to a detection Results; in that case we still

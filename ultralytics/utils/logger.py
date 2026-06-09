@@ -298,6 +298,12 @@ class _DriveInfo:
     This helper keeps platform-specific drive discovery isolated from SystemLogger metric collection. It uses fast
     psutil mount discovery first and falls back to native OS commands only when multiple visible mounts need
     disambiguation.
+
+    Examples:
+        >>> import psutil
+        >>> mounts = _DriveInfo.mounts(psutil, all_drives=True)
+        >>> mounts[0]
+        '/'
     """
 
     @staticmethod

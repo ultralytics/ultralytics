@@ -328,7 +328,7 @@ class SystemLogger:
         """Initialize the system logger.
 
         Args:
-            all_drives (bool): If True, monitor all mounted drives. If False, only monitor root drive "/".
+            all_drives (bool): If True, monitor all mounted drives. If False, monitor the current drive.
         """
         import psutil  # scoped as slow import
 

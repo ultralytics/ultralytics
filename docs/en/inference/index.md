@@ -314,11 +314,11 @@ All Ultralytics [tasks](../tasks/index.md) are supported. When `--model` is omit
 
 Any Ultralytics model exported to ONNX can be loaded from a local file. Auto-download is available for standard YOLO26, YOLO11, and YOLOv8 model names in sizes `n`, `s`, `m`, `l`, and `x`:
 
-| Model family | Auto-downloadable variants                                                                |
-| ------------ | ----------------------------------------------------------------------------------------- |
-| YOLO26       | `yolo26{n,s,m,l,x}.onnx`, `-seg`, `-pose`, `-obb`, `-cls`, and `-sem`                     |
-| YOLO11       | `yolo11{n,s,m,l,x}.onnx`, `-seg`, `-pose`, `-obb`, and `-cls`                             |
-| YOLOv8       | `yolov8{n,s,m,l,x}.onnx`, `-seg`, `-pose`, `-obb`, and `-cls`                             |
+| Model family | Auto-downloadable variants                                            |
+| ------------ | --------------------------------------------------------------------- |
+| YOLO26       | `yolo26{n,s,m,l,x}.onnx`, `-seg`, `-pose`, `-obb`, `-cls`, and `-sem` |
+| YOLO11       | `yolo11{n,s,m,l,x}.onnx`, `-seg`, `-pose`, `-obb`, and `-cls`         |
+| YOLOv8       | `yolov8{n,s,m,l,x}.onnx`, `-seg`, `-pose`, `-obb`, and `-cls`         |
 
 Semantic segmentation (`-sem`) is YOLO26-only.
 

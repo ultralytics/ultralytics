@@ -1,8 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # YOLO Anomaly v2 QueryFiLM (v0) — K learned queries each emitting per-region grouped-FiLM
-# on the P3 PAN feature ONLY (P4/P5 and the Detect head are untouched). Identity-at-init
-# (alpha=0 + zero-init FiLM head) so training starts as vanilla YOLO. The deployable forward
+# on the P3 PAN feature ONLY (P4/P5 and the Detect head are untouched). Identity-at-init via
+# zero-init FiLM head (delta==0 at start) with a small nonzero alpha so the branch can escape
+# (alpha=0 too would zero both gradients and freeze the modulation). The deployable forward
 # is a pure tensor pipeline (Conv/Sigmoid/Reshape/Transpose/BMM/Linear/Mul/Add/GELU); the
 # Hungarian matching + per-instance GT rendering live only in the training loss, so the model
 # ONNX-exports cleanly. A/B against yolo26-anomaly-v2-film.yaml (global FiLM baseline).
@@ -28,7 +29,9 @@ anomaly_v2:
   queryfilm_k: 16          # number of learned queries
   queryfilm_dim: 128       # query embedding dim D
   queryfilm_groups: 16     # FiLM groups G (must divide P3 channels)
-  queryfilm_alpha_init: 0.0  # LayerScale; 0 -> exact identity at init
+  queryfilm_alpha_init: 1.0e-4  # LayerScale; nonzero so film_mlp gets gradient. Zero-init film head
+                               # already gives exact identity at init; alpha=0 too deadlocks both
+                               # (dL/dfilm ~ alpha=0, dL/dalpha ~ film=0 -> branch never escapes).
   queryfilm_w_mask: 0.05   # Dice+BCE query-mask supervision gain
   queryfilm_w_obj: 0.10    # objectness BCE gain
   queryfilm_w_overlap: 0.01  # query-collapse guard gain

@@ -200,6 +200,45 @@ class EUPESTAs(nn.Module):
                     bias.copy_(torch.nan_to_num(bias))
 
 
+_FP16_LN_PATCH_FLAG = "_fp16_safe_layernorm_patched"
+
+
+def _fp16_safe_layernorm(self, x: torch.Tensor) -> torch.Tensor:
+    """FP16-safe replacement for EUPE's ConvNeXt ``channels_first`` LayerNorm.
+
+    EUPE's ConvNeXt copies the original Meta implementation, whose ``channels_first``
+    LayerNorm computes mean/variance manually in the input dtype. ConvNeXt activations
+    routinely exceed FP16's ~65504 ceiling once squared, so ``model.half()`` silently
+    corrupts the stem and downsample norms (inf/NaN, not a crash) and tanks accuracy.
+
+    ``F.layer_norm`` accumulates the reduction in FP32 internally even for FP16 input,
+    so routing through it is overflow-safe with no explicit upcast (an explicit
+    ``.float()`` is pure overhead — ~30% slower in benchmarks for FP16-identical output).
+    """
+    if self.data_format == "channels_last":
+        return F.layer_norm(x, self.normalized_shape, self.weight, self.bias, self.eps)
+    out = F.layer_norm(x.permute(0, 2, 3, 1), self.normalized_shape, self.weight, self.bias, self.eps)
+    return out.permute(0, 3, 1, 2)
+
+
+def _patch_eupe_layernorms(module: nn.Module) -> int:
+    """Idempotently patch EUPE ConvNeXt LayerNorm classes in ``module`` for FP16-safe reduction.
+
+    Patches at the class level (not per instance) so the fix also applies to models loaded
+    from a pickled ``.pt`` checkpoint, where ``EUPEConvNeXt.__init__`` is never re-run.
+    """
+    patched = 0
+    for m in module.modules():
+        # EUPE's custom ConvNeXt LayerNorm exposes ``data_format`` + ``normalized_shape``.
+        if hasattr(m, "data_format") and hasattr(m, "normalized_shape"):
+            cls = type(m)
+            if not getattr(cls, _FP16_LN_PATCH_FLAG, False):
+                cls.forward = _fp16_safe_layernorm
+                setattr(cls, _FP16_LN_PATCH_FLAG, True)
+                patched += 1
+    return patched
+
+
 class EUPEConvNeXt(nn.Module):
     """EUPE ConvNeXt backbone returning native pyramid features."""
 
@@ -214,6 +253,7 @@ class EUPEConvNeXt(nn.Module):
     ):
         super().__init__()
         self.eupe = _make_eupe_model(name, pretrained, weights, repo_dir)
+        _patch_eupe_layernorms(self.eupe)
         self.out_indices = list(out_indices)
 
         if not finetune:
@@ -225,4 +265,9 @@ class EUPEConvNeXt(nn.Module):
 
     def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
         """Forward pass producing selected ConvNeXt feature maps."""
+        # Lazily ensure the FP16-safe LayerNorm patch is applied. Needed because models loaded
+        # from a pickled .pt checkpoint never re-run __init__, so this is the reliable hook.
+        if not getattr(type(self), _FP16_LN_PATCH_FLAG, False):
+            if _patch_eupe_layernorms(self.eupe):
+                setattr(type(self), _FP16_LN_PATCH_FLAG, True)
         return list(self.eupe.get_intermediate_layers(x, n=self.out_indices, reshape=True))

@@ -333,8 +333,9 @@ class _DriveInfo:
 
     @staticmethod
     def _sort(mounts):
-        """Sort mounted paths with root first."""
-        return sorted(set(mounts), key=lambda mount: (mount != "/", mount))
+        """Sort mounted paths with root first, excluding boot/firmware partitions like /boot and /boot/efi."""
+        mounts = {m for m in mounts if not (m + "/").startswith(("/boot/", "/efi/"))}
+        return sorted(mounts, key=lambda mount: (mount != "/", mount))
 
     @staticmethod
     def _current_mount(partitions):

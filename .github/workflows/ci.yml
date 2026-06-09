@@ -6,6 +6,7 @@ name: CI
 
 permissions:
   contents: read
+  id-token: write
 
 env:
   PYTHONFAULTHANDLER: 1
@@ -111,8 +112,8 @@ jobs:
         uses: codecov/codecov-action@v7
         with:
           flags: Benchmarks
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          use_oidc: true
       - name: Prune uv Cache
         run: uv cache prune --ci
       - name: Benchmark Summary
@@ -192,8 +193,8 @@ jobs:
         uses: codecov/codecov-action@v7
         with:
           flags: Tests
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          use_oidc: true
       - name: Prune uv Cache
         run: uv cache prune --ci
 
@@ -444,8 +445,8 @@ jobs:
         uses: codecov/codecov-action@v7
         with:
           flags: GPU
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          use_oidc: true
 
   # Raspberry Pi stays separate because it is a long-tail self-hosted runner with its own setup and cleanup flow.
   RaspberryPi:

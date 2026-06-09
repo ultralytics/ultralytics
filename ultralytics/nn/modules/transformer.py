@@ -725,7 +725,14 @@ class DeformableTransformerDecoder(nn.Module):
         https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
     """
 
-    def __init__(self, hidden_dim: int, decoder_layer: nn.Module, num_layers: int, eval_idx: int = -1):
+    def __init__(
+        self,
+        hidden_dim: int,
+        decoder_layer: nn.Module,
+        num_layers: int,
+        eval_idx: int = -1,
+        efficient_ms: bool = False,
+    ):
         """Initialize the DeformableTransformerDecoder with the given parameters.
 
         Args:
@@ -733,12 +740,22 @@ class DeformableTransformerDecoder(nn.Module):
             decoder_layer (nn.Module): Decoder layer module.
             num_layers (int): Number of decoder layers.
             eval_idx (int): Index of the layer to use during evaluation.
+            efficient_ms (bool): If True, each decoder layer attends to a single feature level chosen by round-robin
+                (small to large, last layer pinned to the largest level). The decoder layer's cross-attention must be
+                configured with `n_levels=1` to match this scheduling.
         """
         super().__init__()
         self.layers = _get_clones(decoder_layer, num_layers)
         self.num_layers = num_layers
         self.hidden_dim = hidden_dim
         self.eval_idx = eval_idx if eval_idx >= 0 else num_layers + eval_idx
+        self.efficient_ms = efficient_ms
+
+    def __setstate__(self, state):
+        """Backfill `efficient_ms` for pickles saved before this flag was added (e.g. rtdetr-l.pt)."""
+        self.__dict__.update(state)
+        if "efficient_ms" not in self.__dict__:
+            self.efficient_ms = False
 
     def forward(
         self,
@@ -774,8 +791,30 @@ class DeformableTransformerDecoder(nn.Module):
         dec_cls = []
         last_refined_bbox = None
         refer_bbox = refer_bbox.sigmoid()
+
+        # Pre-compute the round-robin level schedule when efficient multi-scale is enabled. Iterate
+        # small-to-large; `shift` ensures the last decoder layer always lands on the largest level.
+        if self.efficient_ms:
+            n_levels = len(shapes)
+            level_sizes = [h * w for h, w in shapes]
+            level_starts = [0]
+            for s in level_sizes[:-1]:
+                level_starts.append(level_starts[-1] + s)
+            order = sorted(range(n_levels), key=lambda j: level_sizes[j])
+            shift = (n_levels - 1 - (self.num_layers - 1) % n_levels) % n_levels
+
         for i, layer in enumerate(self.layers):
-            output = layer(output, refer_bbox, feats, shapes, padding_mask, attn_mask, pos_mlp(refer_bbox))
+            if self.efficient_ms:
+                lv = order[(i + shift) % n_levels]
+                start = level_starts[lv]
+                end = start + level_sizes[lv]
+                feats_i = feats[:, start:end]
+                shapes_i = [shapes[lv]]
+                pmask_i = padding_mask[:, start:end] if padding_mask is not None else None
+            else:
+                feats_i, shapes_i, pmask_i = feats, shapes, padding_mask
+
+            output = layer(output, refer_bbox, feats_i, shapes_i, pmask_i, attn_mask, pos_mlp(refer_bbox))
 
             bbox = bbox_head[i](output)
             refined_bbox = torch.sigmoid(bbox + inverse_sigmoid(refer_bbox))

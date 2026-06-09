@@ -69,6 +69,7 @@ from ultralytics.nn.modules import (
     RepVGGDW,
     ResNetLayer,
     RTDETRDecoder,
+    RTDETRDecoderV2,
     SCDown,
     Segment,
     Segment26,
@@ -1813,7 +1814,7 @@ def parse_model(d, ch, verbose=True):
             args.append([ch[x] for x in f])
         elif m is ImagePoolingAttn:
             args.insert(1, [ch[x] for x in f])  # channels as second arg
-        elif m in {RTDETRDecoder, DFineDecoder, DeimDecoder}:  # channels arg must be passed in index 1
+        elif m in {RTDETRDecoder, RTDETRDecoderV2, DFineDecoder, DeimDecoder}:  # channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
         elif m is CBLinear:
             c2 = args[0]
@@ -1895,7 +1896,7 @@ def guess_model_task(model):
         m = cfg["head"][-1][-2].lower()  # output module name
         if m in {"classify", "classifier", "cls", "fc"}:
             return "classify"
-        if m in {"rtdetrdecoder", "dfinedecoder", "deimdecoder"}:
+        if m in {"rtdetrdecoder", "rtdetrdecoderv2", "dfinedecoder", "deimdecoder"}:
             return "detect"
         if "detect" in m:
             return "detect"
@@ -1963,9 +1964,9 @@ def guess_model_family(model):
 
     def head2family(head_name: str):
         head = head_name.lower()
-        if head == "deimdecoder":
+        if head in {"deimdecoder", "dfinedecoder", "rtdetrdecoderv2"}:
             return "yolodetr"
-        if head in {"rtdetrdecoder", "dfinedecoder"}:
+        if head == "rtdetrdecoder":
             return "rtdetr"
         return None
 

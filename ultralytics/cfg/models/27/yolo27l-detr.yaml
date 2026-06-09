@@ -1,9 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # YOLO27l-DETR object detection model with P3/8 - P5/32 outputs.
-# YOLO26-style CSP trunk + RTDETRDecoder head. Pinned to L scale.
-# Source weights: yolo26L_rtdetr_obj365.pt (COCO 80-class head).
-# Task: detect.
+# YOLO26-style CSP trunk + RTDETRDecoderV2 head (parent-equivalent at efficient_ms=False).
+# Source weights: yolo26L_rtdetr_obj365.pt (COCO 80-class head, originally trained with RTDETRDecoder).
+# Task: detect. RTDETRDecoderV2 is named so the dispatch routes this model to YOLODETR.
 
 # Parameters
 nc: 80 # number of classes
@@ -44,7 +44,8 @@ head:
   - [[-1, 10], 1, Concat, [1]] # cat head P5
   - [-1, 1, C3k2, [1024, True, 0.5, True]] # 22 (P5/32-large)
 
-  # RTDETRDecoder. Args (ch is auto-filled from `from` refs). Trailing args
-  # (act=nn.ReLU(), eval_idx=-1, nd=100, label_noise_ratio=0.5, box_noise_scale=1.0,
-  # learnt_init_query=False) match the constructor defaults so they're omitted here.
-  - [[16, 19, 22], 1, RTDETRDecoder, [nc, 256, 300, 4, 8, 6, 1024, 0.0]]
+  # RTDETRDecoderV2. Args (ch is auto-filled from `from` refs). Positional order:
+  # [nc, hd, nq, ndp, nh, ndl, d_ffn, dropout]. Trailing constructor defaults are omitted.
+  # ndl=4: this variant runs 4 decoder layers (truncated from the 6-layer source training).
+  # eval_idx=-1 (default) means inference reads from layer 3 (the new last layer).
+  - [[16, 19, 22], 1, RTDETRDecoderV2, [nc, 256, 300, 4, 8, 4, 1024, 0.0]]

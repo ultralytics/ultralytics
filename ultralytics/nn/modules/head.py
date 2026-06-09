@@ -35,6 +35,7 @@ __all__ = (
     "Detect",
     "Pose",
     "RTDETRDecoder",
+    "RTDETRDecoderV2",
     "Segment",
     "SemanticSegment",
     "YOLOEDetect",
@@ -1765,6 +1766,76 @@ class RTDETRDecoder(nn.Module):
         xavier_uniform_(self.query_pos_head.layers[1].weight)
         for layer in self.input_proj:
             xavier_uniform_(layer[0].weight)
+
+
+class RTDETRDecoderV2(RTDETRDecoder):
+    """RT-DETR decoder variant with optional efficient multi-scale (single-level-per-layer) cross-attention.
+
+    Subclass of `RTDETRDecoder` that exists for two reasons: (1) host the `efficient_ms` option without modifying the
+    parent class's constructor signature (so upstream `RTDETRDecoder` checkpoints like rtdetr-l.pt continue loading
+    bit-identically), and (2) act as the canonical head-name discriminator that routes YOLO27-DETR checkpoints to
+    `YOLODETR` via the family resolver in `tasks.guess_model_family`.
+
+    When `efficient_ms=False`, behavior is parameter-equivalent and bit-identical to `RTDETRDecoder` for the same
+    constructor arguments — only the class identity differs. When `efficient_ms=True`, the decoder is rebuilt with
+    `n_levels=1` cross-attention and the loop schedules each layer to a single feature level via round-robin (small to
+    large, last layer pinned to the largest level).
+
+    Examples:
+        Parent-equivalent inference wiring (used by yolo27l-detr.yaml)
+        >>> decoder = RTDETRDecoderV2(nc=80, ch=(512, 1024, 2048), hd=256, nq=300)
+    """
+
+    def __init__(
+        self,
+        nc: int = 80,
+        ch: tuple = (512, 1024, 2048),
+        hd: int = 256,
+        nq: int = 300,
+        ndp: int = 4,
+        nh: int = 8,
+        ndl: int = 6,
+        d_ffn: int = 1024,
+        dropout: float = 0.0,
+        act: nn.Module = nn.ReLU(),
+        eval_idx: int = -1,
+        nd: int = 100,
+        label_noise_ratio: float = 0.5,
+        box_noise_scale: float = 1.0,
+        learnt_init_query: bool = False,
+        efficient_ms: bool = False,
+    ):
+        """Initialize the RTDETRDecoderV2 module.
+
+        Args:
+            nc (int): Number of classes.
+            ch (tuple): Channels in the backbone feature maps.
+            hd (int): Dimension of hidden layers.
+            nq (int): Number of query points.
+            ndp (int): Number of decoder points per attention head per level.
+            nh (int): Number of heads in multi-head attention.
+            ndl (int): Number of decoder layers.
+            d_ffn (int): Dimension of the feed-forward networks.
+            dropout (float): Dropout rate.
+            act (nn.Module): Activation function.
+            eval_idx (int): Evaluation index.
+            nd (int): Number of denoising.
+            label_noise_ratio (float): Label noise ratio.
+            box_noise_scale (float): Box noise scale.
+            learnt_init_query (bool): Whether to learn initial query embeddings.
+            efficient_ms (bool): Enable round-robin single-level cross-attention per decoder layer.
+        """
+        super().__init__(
+            nc, ch, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx,
+            nd, label_noise_ratio, box_noise_scale, learnt_init_query,
+        )
+        self.efficient_ms = efficient_ms
+        if efficient_ms:
+            # Rebuild the decoder with n_levels=1 cross-attention; each layer attends to one feature
+            # level via the round-robin scheduling in DeformableTransformerDecoder.forward.
+            self.nl = 1
+            decoder_layer = DeformableTransformerDecoderLayer(hd, nh, d_ffn, dropout, act, 1, ndp)
+            self.decoder = DeformableTransformerDecoder(hd, decoder_layer, ndl, eval_idx, efficient_ms=True)
 
 
 class v10Detect(Detect):

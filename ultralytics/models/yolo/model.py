@@ -92,16 +92,18 @@ class YOLO(Model):
             super().__init__(model=model, task=task, verbose=verbose)
             if hasattr(self.model, "model"):
                 head_name = self.model.model[-1]._get_name()
-                if "RTDETR" in head_name:  # RT-DETR head
-                    from ultralytics import RTDETR
-
-                    new_instance = RTDETR(self)
-                    self.__class__ = type(new_instance)
-                    self.__dict__ = new_instance.__dict__
-                elif head_name in {"DeimDecoder", "DFineDecoder"}:  # YOLO-DETR head
+                # YOLO-DETR family check must precede the broad "RTDETR in head_name" substring match
+                # since "RTDETRDecoderV2" would otherwise be incorrectly routed to RTDETR.
+                if head_name in {"DeimDecoder", "DFineDecoder", "RTDETRDecoderV2"}:  # YOLO-DETR head
                     from ultralytics import YOLODETR
 
                     new_instance = YOLODETR(self)
+                    self.__class__ = type(new_instance)
+                    self.__dict__ = new_instance.__dict__
+                elif "RTDETR" in head_name:  # RT-DETR head
+                    from ultralytics import RTDETR
+
+                    new_instance = RTDETR(self)
                     self.__class__ = type(new_instance)
                     self.__dict__ = new_instance.__dict__
 

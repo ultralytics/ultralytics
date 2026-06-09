@@ -13,7 +13,8 @@ from pathlib import Path
 import pytest
 import torch
 
-from tests import SOURCE, isolated_model_path
+from tests import SOURCE
+from tests.conftest import isolated_model_path
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.engine.exporter import EXPORT_ENVS, export_formats

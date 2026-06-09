@@ -76,6 +76,20 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.skip(reason=f"export format '{fmt}' belongs to env '{env_by_format[fmt]}'"))
 
 
+def isolated_model_path(tmp_path, model):
+    """Copy a model to a per-test path to prevent export file races under pytest-xdist."""
+    model = Path(model)
+    if not model.exists():
+        from ultralytics.utils.downloads import attempt_download_asset
+
+        model.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(attempt_download_asset(model.name), model)
+
+    dst = tmp_path / model.name
+    shutil.copy(model, dst)
+    return str(dst)
+
+
 def pytest_sessionstart(session):
     """Initialize session configurations for pytest.
 
@@ -99,7 +113,7 @@ def isolated_model(tmp_path):
     intermediate/export files. This fixture copies the shared model to a per-test temporary directory so each test
     exports to a unique path.
     """
-    from tests import MODEL, isolated_model_path
+    from tests import MODEL
 
     return isolated_model_path(tmp_path, MODEL)
 

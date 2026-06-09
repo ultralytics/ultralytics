@@ -272,6 +272,7 @@ def _get_environment_info():
     import shutil
 
     import psutil
+
     from ultralytics import __version__
     from ultralytics.utils.autodevice import GPUInfo
     from ultralytics.utils.torch_utils import get_cpu_info

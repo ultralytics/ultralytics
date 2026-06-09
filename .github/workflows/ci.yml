@@ -46,6 +46,9 @@ on:
 jobs:
   Benchmarks:
     if: github.event_name != 'workflow_dispatch' || github.event.inputs.benchmarks == 'true'
+    permissions:
+      contents: read
+      id-token: write
     runs-on: ${{ matrix.os }}
     env:
       # Keep benchmark jobs hermetic so missing export deps fail during setup instead of mutating mid-run.
@@ -76,8 +79,7 @@ jobs:
           fi
           uv pip install "${uv_system_args[@]}" -e ".[export,export-executorch]" \
             ncnn pnnx "coverage[toml]" \
-            --extra-index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.ngc.nvidia.com \
-            --index-strategy unsafe-best-match
+            --torch-backend cpu
       - name: Check environment
         run: |
           yolo checks
@@ -111,8 +113,8 @@ jobs:
         uses: codecov/codecov-action@v7
         with:
           flags: Benchmarks
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          use_oidc: true
       - name: Prune uv Cache
         run: uv cache prune --ci
       - name: Benchmark Summary
@@ -124,6 +126,9 @@ jobs:
 
   Tests:
     if: github.event_name == 'pull_request' || github.event_name == 'push'
+    permissions:
+      contents: read
+      id-token: write
     timeout-minutes: 60
     runs-on: ${{ matrix.os }}
     strategy:
@@ -157,8 +162,7 @@ jobs:
           fi
           uv pip install -e ".[export-base,solutions]" \
             $torch aiohttp pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
-            --extra-index-url https://download.pytorch.org/whl/cpu \
-            --index-strategy unsafe-best-match
+            --torch-backend cpu
       - name: Check environment
         run: |
           yolo checks
@@ -192,8 +196,8 @@ jobs:
         uses: codecov/codecov-action@v7
         with:
           flags: Tests
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          use_oidc: true
       - name: Prune uv Cache
         run: uv cache prune --ci
 
@@ -317,7 +321,7 @@ jobs:
           fi
           uv pip install -e ".[export-base,solutions${legacy_extra}]" $torch \
             aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist "${clip_package[@]}" \
-            --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+            --torch-backend cpu
       - name: Check environment
         run: |
           yolo checks
@@ -379,7 +383,7 @@ jobs:
           restore-keys: |
             isolated-exports-uv-
       - name: Install base package
-        run: uv pip install --system -e ".[export-base]" pytest "git+https://github.com/ultralytics/CLIP.git" --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+        run: uv pip install --system -e ".[export-base]" pytest "git+https://github.com/ultralytics/CLIP.git" --torch-backend cpu
       - name: Configure Ultralytics cache paths
         run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
       - name: Cache test assets
@@ -412,6 +416,9 @@ jobs:
 
   GPU:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
+    permissions:
+      contents: read
+      id-token: write
     timeout-minutes: 60
     runs-on: gpu-latest
     env:
@@ -424,7 +431,7 @@ jobs:
       - name: Install requirements
         run: |
           # Install TensorRT into the job venv so uv can reuse the runner image cache.
-          uv pip install -e ".[export-base]" pytest-cov nvidia-ml-py onnxruntime-gpu "torch<2.11" "tensorrt-cu12>=7.0.0,!=10.2.0"  # TODO: remove torch pin after GPU runner driver update to CUDA 13.0
+          uv pip install -e ".[export-base]" pytest-cov nvidia-ml-py onnxruntime-gpu "torch<2.11" "tensorrt-cu12>=7.0.0,!=10.2.0" "nvidia-modelopt[onnx]>=0.44"  # TODO: remove torch pin after GPU runner driver update to CUDA 13.0
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Check environment
@@ -444,8 +451,8 @@ jobs:
         uses: codecov/codecov-action@v7
         with:
           flags: GPU
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          use_oidc: true
 
   # Raspberry Pi stays separate because it is a long-tail self-hosted runner with its own setup and cleanup flow.
   RaspberryPi:
@@ -464,7 +471,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7
       - name: Install requirements
         run: |
-          uv pip install -e ".[export]" pytest pytest-xdist mlflow faster-coco-eval --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install -e ".[export]" pytest pytest-xdist mlflow faster-coco-eval --torch-backend cpu
       - name: Check environment
         run: |
           yolo checks
@@ -489,7 +496,7 @@ jobs:
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
         run: |
-          uv pip install -e ".[export]" pytest mlflow faster-coco-eval --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install -e ".[export]" pytest mlflow faster-coco-eval --torch-backend cpu
       - name: Check environment
         run: |
           yolo checks

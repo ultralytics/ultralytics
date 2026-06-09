@@ -298,13 +298,13 @@ class _DriveInfo:
     @staticmethod
     def mounts(psutil, all_drives=False):
         """Get mounted paths to monitor."""
-        if not all_drives:
-            return [Path.cwd().anchor or "/"]
-
         partitions = [p for p in psutil.disk_partitions(all=False) if p.mountpoint]
+        if not all_drives:
+            return [_DriveInfo._current_mount(partitions)]
+
         mounts = [p.mountpoint for p in partitions if "dontbrowse" not in p.opts.split(",")]
         if len(mounts) <= 1:
-            return _DriveInfo._sort(mounts) or [Path.cwd().anchor or "/"]
+            return _DriveInfo._sort(mounts) or [_DriveInfo._current_mount(partitions)]
 
         for getter in (
             _DriveInfo._macos_mounts if MACOS else None,
@@ -323,6 +323,20 @@ class _DriveInfo:
     def _sort(mounts):
         """Sort mounted paths with root first."""
         return sorted(set(mounts), key=lambda mount: (mount != "/", mount))
+
+    @staticmethod
+    def _current_mount(partitions):
+        """Get the mounted filesystem backing the current working directory."""
+        cwd = Path.cwd().resolve()
+        matches = []
+        for partition in partitions:
+            try:
+                mount = Path(partition.mountpoint).resolve()
+            except OSError:
+                continue
+            if cwd == mount or cwd.is_relative_to(mount):
+                matches.append(partition.mountpoint)
+        return max(matches, key=len, default=Path.cwd().anchor or "/")
 
     @staticmethod
     def _macos_mounts(partitions):

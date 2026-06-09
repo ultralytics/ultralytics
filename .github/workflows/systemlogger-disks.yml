@@ -79,6 +79,7 @@ jobs:
           assert platform_mounts, (system, partitions)
 
           mounts = logger_module._DriveInfo.mounts(psutil, all_drives=True)
+          current_mount = logger_module._DriveInfo._current_mount(partitions)
           assert mounts and all(isinstance(mount, str) for mount in mounts), mounts
           if system == "Windows":
               assert all(mount.endswith("\\") for mount in mounts), mounts
@@ -89,6 +90,8 @@ jobs:
               logger = logger_module.SystemLogger(all_drives=all_drives)
               metrics = logger.get_metrics(rates=True)
               assert isinstance(logger.mounts, list) and logger.mounts, logger.mounts
+              if not all_drives:
+                  assert logger.mounts == [current_mount], (logger.mounts, current_mount)
               assert isinstance(metrics["disk"], list) and metrics["disk"], metrics["disk"]
               assert set(metrics["disk_io"]) == {"read_mbs", "write_mbs"}, metrics["disk_io"]
               for disk in metrics["disk"]:

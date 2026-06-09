@@ -15,10 +15,6 @@ keywords: ConsoleLogger, console capture, log streaming, API logging, file loggi
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.logger._DriveInfo
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.logger.SystemLogger
 
 <br><br>

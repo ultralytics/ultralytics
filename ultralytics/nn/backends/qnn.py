@@ -7,7 +7,7 @@ from pathlib import Path
 import torch
 
 from ultralytics.utils import LOGGER, YAML
-from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.checks import check_qnn_requirements
 
 from .base import BaseBackend
 
@@ -30,7 +30,7 @@ class QNNBackend(BaseBackend):
         Raises:
             OSError: If the QNN Execution Provider cannot be registered (e.g. not on Snapdragon hardware).
         """
-        check_requirements("onnxruntime-qnn")
+        check_qnn_requirements()
         import onnxruntime
 
         from ultralytics.utils.export.qnn import qnn_library_paths

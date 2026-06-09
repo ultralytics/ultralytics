@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from ultralytics.utils import LOGGER, WINDOWS, YAML
-from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.checks import check_qnn_requirements
 
 
 def qnn_library_paths() -> tuple[str | None, str]:
@@ -72,7 +72,7 @@ def onnx2qnn(
     Notes:
         `onnxruntime-qnn` wheels may expose QNN either as a plugin library or as a built-in ONNX Runtime provider.
     """
-    check_requirements("onnxruntime-qnn")
+    check_qnn_requirements()
     import onnxruntime as ort
     from onnxruntime.quantization import quantize
     from onnxruntime.quantization.execution_providers.qnn import get_qnn_qdq_config

@@ -8,7 +8,7 @@ import numpy as np
 import torch
 
 from ultralytics.utils import ARM64, LOGGER
-from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.checks import check_paddle_requirements
 
 from .base import BaseBackend
 
@@ -28,12 +28,7 @@ class PaddleBackend(BaseBackend):
         """
         cuda = isinstance(self.device, torch.device) and torch.cuda.is_available() and self.device.type != "cpu"
         LOGGER.info(f"Loading {weight} for PaddlePaddle inference...")
-        if cuda:
-            check_requirements("paddlepaddle-gpu>=3.0.0,<3.3.0")
-        elif ARM64:
-            check_requirements("paddlepaddle==3.0.0")
-        else:
-            check_requirements("paddlepaddle>=3.0.0,<3.3.0")
+        check_paddle_requirements()
 
         import paddle.inference as pdi
 

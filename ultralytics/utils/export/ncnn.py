@@ -32,10 +32,9 @@ def torch2ncnn(
     Returns:
         (str): Path to the exported ``_ncnn_model`` directory.
     """
-    from ultralytics.utils.checks import check_requirements
+    from ultralytics.utils.checks import check_ncnn_requirements
 
-    check_requirements("ncnn", cmds="--no-deps")  # no deps to avoid installing opencv-python
-    check_requirements("pnnx")
+    check_ncnn_requirements()
     import ncnn
     import pnnx
 

@@ -518,6 +518,149 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     return True
 
 
+# ---- Centralized export and inference requirements ----
+
+COREML_REQUIREMENTS = ["coremltools>=9.0", "numpy>=1.14.5,<=2.3.5"]
+
+MNN_EXPORT_REQUIREMENTS = "MNN>=2.9.6"
+MNN_INFERENCE_REQUIREMENTS = "MNN"
+
+NCNN_REQUIREMENTS = "ncnn"
+PNNX_REQUIREMENTS = "pnnx"
+
+RKNN_EXPORT_REQUIREMENTS = ["rknn-toolkit2>=2.3.2", "onnx<1.19.0"]
+RKNN_INFERENCE_REQUIREMENTS = "rknn-toolkit-lite2"
+
+QNN_REQUIREMENTS = "onnxruntime-qnn"
+
+TRITON_REQUIREMENTS = "tritonclient[all]"
+
+ONNX_REQUIREMENTS = "onnx>=1.12.0,<2.0.0"
+ONNXSLIM_REQUIREMENTS = "onnxslim>=0.1.82"
+ONNXRUNTIME_CPU_REQUIREMENTS = "onnxruntime"
+ONNXRUNTIME_GPU_REQUIREMENTS = "onnxruntime-gpu"
+
+IMX_BASE_REQUIREMENTS = ("model-compression-toolkit>=2.4.1", "edge-mdt-cl<1.1.0")
+IMX_EXPORT_REQUIREMENTS = ("edge-mdt-tpc>=1.2.0", "pydantic<2.12")
+IMX_BACKEND_REQUIREMENTS = "onnxruntime-extensions"
+IMX_CONVERTER_REQUIREMENTS = "imx500-converter[pt]>=3.17.3"
+
+
+def check_coreml_requirements():
+    """Check CoreML export and inference requirements."""
+    check_requirements(COREML_REQUIREMENTS)
+
+
+def check_mnn_export_requirements():
+    """Check MNN export requirements."""
+    check_requirements(MNN_EXPORT_REQUIREMENTS)
+
+
+def check_mnn_inference_requirements():
+    """Check MNN inference requirements."""
+    check_requirements(MNN_INFERENCE_REQUIREMENTS)
+
+
+def check_ncnn_requirements(cmds="--no-deps"):
+    """Check NCNN export and inference requirements."""
+    check_requirements(NCNN_REQUIREMENTS, cmds=cmds)
+    check_requirements(PNNX_REQUIREMENTS)
+
+
+def check_rknn_export_requirements():
+    """Check RKNN export requirements."""
+    check_requirements(RKNN_EXPORT_REQUIREMENTS)
+
+
+def check_rknn_inference_requirements():
+    """Check RKNN inference requirements."""
+    check_requirements(RKNN_INFERENCE_REQUIREMENTS)
+
+
+def check_qnn_requirements():
+    """Check QNN export and inference requirements."""
+    check_requirements(QNN_REQUIREMENTS)
+
+
+def check_triton_requirements():
+    """Check Triton inference requirements."""
+    check_requirements(TRITON_REQUIREMENTS)
+
+
+def check_openvino_requirements():
+    """Check OpenVINO export and inference requirements."""
+    req = "openvino>=2025.2.0" if MACOS and MACOS_VERSION >= "15.4" else "openvino>=2024.0.0"
+    check_requirements(req)
+
+
+def check_onnx_requirements(cuda=False, simplify=False, int8=False, format="onnx"):
+    """Check ONNX export requirements."""
+    requirements = [ONNX_REQUIREMENTS]
+    if simplify or (format == "onnx" and int8):
+        ort = ONNXRUNTIME_GPU_REQUIREMENTS if cuda else ONNXRUNTIME_CPU_REQUIREMENTS
+        requirements += [(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")]
+    if simplify:
+        requirements += [ONNXSLIM_REQUIREMENTS]
+    check_requirements(requirements)
+
+
+def check_onnx_inference_requirements(cuda=False):
+    """Check ONNX inference requirements."""
+    ort = ONNXRUNTIME_GPU_REQUIREMENTS if cuda else ONNXRUNTIME_CPU_REQUIREMENTS
+    check_requirements((ONNX_REQUIREMENTS, ort))
+
+
+def check_imx_export_requirements():
+    """Check IMX export requirements."""
+    check_requirements(IMX_BASE_REQUIREMENTS + IMX_EXPORT_REQUIREMENTS)
+    check_requirements(IMX_CONVERTER_REQUIREMENTS)
+
+
+def check_imx_inference_requirements():
+    """Check IMX inference requirements."""
+    check_requirements(IMX_BASE_REQUIREMENTS + (IMX_BACKEND_REQUIREMENTS,))
+    check_requirements((ONNX_REQUIREMENTS, ONNXRUNTIME_CPU_REQUIREMENTS))
+
+
+def check_paddle_requirements():
+    """Check PaddlePaddle export and inference requirements."""
+    if torch.cuda.is_available():
+        check_requirements(["paddlepaddle-gpu>=3.0.0,<3.3.0", "x2paddle"])
+    elif ARM64:
+        check_requirements(["paddlepaddle==3.0.0", "x2paddle"])
+    else:
+        check_requirements(["paddlepaddle>=3.0.0,<3.3.0", "x2paddle"])
+
+
+def check_tensorflow_export_requirements(cuda=False):
+    """Check TensorFlow SavedModel/TFLite export requirements."""
+    from ultralytics.utils import MACOS
+
+    tf = "tensorflow>2.19.0" if IS_PYTHON_MINIMUM_3_13 else "tensorflow>=2.0.0,<=2.19.0"
+    onnx2tf = f"onnx2tf{'>=2.3.0,<2.3.16' if IS_PYTHON_MINIMUM_3_13 else '>=1.26.3,<1.29.0'}"
+    tf_keras = f"tf_keras{'>2.19.0' if IS_PYTHON_MINIMUM_3_13 else '<=2.19.0'}"
+    ai_edge_litert = "ai-edge-litert>=1.2.0" + (",<1.4.0" if MACOS else "")
+    protobuf = "protobuf>=6.31.1,<7.0.0" if IS_PYTHON_MINIMUM_3_13 else "protobuf>=5"
+    ort = ONNXRUNTIME_GPU_REQUIREMENTS if cuda else ONNXRUNTIME_CPU_REQUIREMENTS
+
+    check_requirements(tf)
+    check_requirements(onnx2tf, cmds="--no-deps")
+    check_requirements(
+        (
+            tf_keras,
+            "sng4onnx>=1.0.1",
+            "onnx_graphsurgeon>=0.3.26",
+            ai_edge_litert,
+            ONNX_REQUIREMENTS,
+            onnx2tf,
+            ONNXSLIM_REQUIREMENTS,
+            ort,
+            protobuf,
+        ),
+        cmds="--extra-index-url https://pypi.ngc.nvidia.com",
+    )
+
+
 def check_executorch_requirements():
     """Check and install ExecuTorch requirements including platform-specific dependencies."""
     # BUG executorch build on arm64 Docker requires packaging>=22.0 https://github.com/pypa/setuptools/issues/4483

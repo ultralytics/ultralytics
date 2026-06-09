@@ -8,7 +8,7 @@ import numpy as np
 import torch
 
 from ultralytics.utils import LOGGER
-from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.checks import check_imx_inference_requirements, check_onnx_inference_requirements, check_requirements
 
 from .base import BaseBackend
 
@@ -52,7 +52,7 @@ class ONNXBackend(BaseBackend):
         else:
             # ONNX Runtime
             LOGGER.info(f"Loading {weight} for ONNX Runtime inference...")
-            check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
+            check_onnx_inference_requirements(cuda=cuda)
             import onnxruntime
 
             # Select execution provider
@@ -150,8 +150,7 @@ class ONNXIMXBackend(ONNXBackend):
         Args:
             weight (str | Path): Path to the IMX model directory containing the .onnx file.
         """
-        check_requirements(("model-compression-toolkit>=2.4.1", "edge-mdt-cl<1.1.0", "onnxruntime-extensions"))
-        check_requirements(("onnx", "onnxruntime"))
+        check_imx_inference_requirements()
         import mct_quantizers as mctq
         import onnxruntime
         from edgemdt_cl.pytorch.nms import nms_ort  # noqa - register custom NMS ops

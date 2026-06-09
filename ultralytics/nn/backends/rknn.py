@@ -7,7 +7,7 @@ from pathlib import Path
 import torch
 
 from ultralytics.utils import LOGGER
-from ultralytics.utils.checks import check_requirements, is_rockchip
+from ultralytics.utils.checks import check_rknn_inference_requirements, is_rockchip
 
 from .base import BaseBackend
 
@@ -33,7 +33,7 @@ class RKNNBackend(BaseBackend):
             raise OSError("RKNN inference is only supported on Rockchip devices.")
 
         LOGGER.info(f"Loading {weight} for RKNN inference...")
-        check_requirements("rknn-toolkit-lite2")
+        check_rknn_inference_requirements()
         from rknnlite.api import RKNNLite
 
         w = Path(weight)

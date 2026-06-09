@@ -9,7 +9,7 @@ from pathlib import Path
 import torch
 
 from ultralytics.utils import LOGGER
-from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.checks import check_mnn_inference_requirements
 
 from .base import BaseBackend
 
@@ -28,7 +28,7 @@ class MNNBackend(BaseBackend):
             weight (str | Path): Path to the .mnn model file.
         """
         LOGGER.info(f"Loading {weight} for MNN inference...")
-        check_requirements("MNN")
+        check_mnn_inference_requirements()
         import MNN
 
         config = {"precision": "low", "backend": "CPU", "numThread": (os.cpu_count() + 1) // 2}

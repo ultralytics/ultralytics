@@ -8,7 +8,7 @@ import numpy as np
 import torch
 
 from ultralytics.utils import LOGGER
-from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.checks import check_ncnn_requirements
 
 from .base import BaseBackend
 
@@ -27,7 +27,7 @@ class NCNNBackend(BaseBackend):
             weight (str | Path): Path to the .param file or directory containing NCNN model files.
         """
         LOGGER.info(f"Loading {weight} for NCNN inference...")
-        check_requirements("ncnn", cmds="--no-deps")
+        check_ncnn_requirements()
         import ncnn as pyncnn
 
         self.pyncnn = pyncnn

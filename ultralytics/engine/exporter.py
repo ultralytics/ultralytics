@@ -110,7 +110,10 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_9,
     IS_PYTHON_MINIMUM_3_13,
+    check_coreml_requirements,
     check_imgsz,
+    check_onnx_requirements,
+    check_openvino_requirements,
     check_requirements,
     check_version,
     is_intel,
@@ -837,15 +840,12 @@ class Exporter:
     @try_export
     def export_onnx(self, prefix=colorstr("ONNX:")):
         """Export YOLO model to ONNX format."""
-        requirements = ["onnx>=1.12.0,<2.0.0"]
-        if self.args.simplify or (self.args.format == "onnx" and self.args.int8):
-            # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
-            # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
-            ort = "onnxruntime-gpu" if "cuda" in self.device.type else "onnxruntime"
-            requirements += [(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")]
-        if self.args.simplify:
-            requirements += ["onnxslim>=0.1.82"]
-        check_requirements(requirements)
+        check_onnx_requirements(
+            cuda="cuda" in self.device.type,
+            simplify=self.args.simplify,
+            int8=self.args.int8,
+            format=self.args.format,
+        )
         import onnx
 
         from ultralytics.utils.export.engine import best_onnx_opset, torch2onnx
@@ -938,8 +938,7 @@ class Exporter:
         """Export YOLO model to OpenVINO format."""
         from ultralytics.utils.export.openvino import torch2openvino
 
-        # OpenVINO <= 2025.1.0 error on macOS 15.4+: https://github.com/openvinotoolkit/openvino/issues/30023
-        check_requirements("openvino>=2025.2.0" if MACOS and MACOS_VERSION >= "15.4" else "openvino>=2024.0.0")
+        check_openvino_requirements()
         import openvino as ov
 
         assert TORCH_2_1, f"OpenVINO export requires torch>=2.1 but torch=={TORCH_VERSION} is installed"
@@ -1044,8 +1043,7 @@ class Exporter:
         mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
         from ultralytics.utils.export.coreml import IOSDetectModel, pipeline_coreml, torch2coreml
 
-        # numpy 2.4.x breaks coremltools CoreML export https://github.com/apple/coremltools/issues/2633
-        check_requirements(["coremltools>=9.0", "numpy>=1.14.5,<=2.3.5"])
+        check_coreml_requirements()
         import coremltools as ct
 
         assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."

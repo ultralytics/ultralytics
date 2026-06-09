@@ -8,7 +8,7 @@ import numpy as np
 import torch
 
 from ultralytics.utils import ARM64, LINUX, LOGGER
-from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.checks import check_openvino_requirements
 
 from .base import BaseBackend
 
@@ -27,7 +27,7 @@ class OpenVINOBackend(BaseBackend):
             weight (str | Path): Path to the .xml file or directory containing OpenVINO model files.
         """
         LOGGER.info(f"Loading {weight} for OpenVINO inference...")
-        check_requirements("openvino>=2024.0.0")
+        check_openvino_requirements()
         import openvino as ov
 
         core = ov.Core()

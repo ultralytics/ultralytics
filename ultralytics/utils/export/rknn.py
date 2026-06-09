@@ -51,11 +51,10 @@ def onnx2rknn(
         if not dataset.is_file():
             raise ValueError(f"Generated RKNN INT8 calibration image-list file not found: {dataset}")
 
-    from ultralytics.utils.checks import check_requirements
+    from ultralytics.utils.checks import check_rknn_export_requirements
 
     LOGGER.info(f"\n{prefix} starting export with rknn-toolkit2...")
-    check_requirements("rknn-toolkit2>=2.3.2")
-    check_requirements("onnx<1.19.0")  # fix AttributeError: module 'onnx' has no attribute 'mapping'
+    check_rknn_export_requirements()
 
     if IS_COLAB:
         # Prevent 'exit' from closing the notebook https://github.com/airockchip/rknn-toolkit2/issues/259

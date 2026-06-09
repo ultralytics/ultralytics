@@ -14,7 +14,7 @@ import torch
 
 from ultralytics.nn.modules import Detect, Pose, Segment
 from ultralytics.utils import IS_DEBIAN_BOOKWORM, IS_DEBIAN_TRIXIE, IS_RASPBERRYPI, IS_UBUNTU, LOGGER, WINDOWS
-from ultralytics.utils.checks import check_apt_requirements, check_requirements
+from ultralytics.utils.checks import check_apt_requirements, check_imx_export_requirements
 from ultralytics.utils.patches import onnx_export_patch
 from ultralytics.utils.tal import make_anchors
 from ultralytics.utils.torch_utils import copy_attr
@@ -262,15 +262,7 @@ def torch2imx(
             LOGGER.info(f"\n{prefix} installing Java 17 for Raspberry Pi or Debian ...")
             check_apt_requirements(["openjdk-17-jre"])
 
-    check_requirements(
-        (
-            "model-compression-toolkit>=2.4.1",
-            "edge-mdt-cl<1.1.0",
-            "edge-mdt-tpc>=1.2.0",
-            "pydantic<2.12",
-        )
-    )
-    check_requirements("imx500-converter[pt]>=3.17.3")
+    check_imx_export_requirements()
     dataset = dataset() if callable(dataset) else dataset  # resolve lazy dataloader
 
     import model_compression_toolkit as mct

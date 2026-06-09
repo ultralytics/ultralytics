@@ -9,7 +9,7 @@ import torch
 from PIL import Image
 
 from ultralytics.utils import LOGGER
-from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.checks import check_coreml_requirements
 
 from .base import BaseBackend
 
@@ -27,7 +27,7 @@ class CoreMLBackend(BaseBackend):
         Args:
             weight (str | Path): Path to the .mlpackage model file.
         """
-        check_requirements(["coremltools>=9.0", "numpy>=1.14.5,<=2.3.5"])
+        check_coreml_requirements()
         import coremltools as ct
 
         LOGGER.info(f"Loading {weight} for CoreML inference...")

@@ -29,13 +29,13 @@ def onnx2mnn(
     Returns:
         (str): Path to the exported ``.mnn`` file.
     """
-    from ultralytics.utils.checks import check_requirements
+    from ultralytics.utils.checks import check_mnn_export_requirements
     from ultralytics.utils.torch_utils import TORCH_1_10
 
     assert TORCH_1_10, "MNN export requires torch>=1.10.0 to avoid segmentation faults"
     assert Path(onnx_file).exists(), f"failed to export ONNX file: {onnx_file}"
 
-    check_requirements("MNN>=2.9.6")
+    check_mnn_export_requirements()
     import MNN
     from MNN.tools import mnnconvert
 

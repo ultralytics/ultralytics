@@ -12,12 +12,54 @@ from the second-to-last layer through the predictor's `embed=[...]` argument.
 
 from __future__ import annotations
 
+import os
+
 import numpy as np
 import torch
 
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils.ops import xywh2xyxy
 from ultralytics.utils.plotting import save_one_box
+
+# Occlusion-aware appearance gating. Crops that are tiny or heavily overlapped by other detections
+# yield embeddings that match strangers better than themselves (diagnosed on MOT17: same-vs-other
+# margin goes negative below ~0.6 visibility), so we suppress their embeddings to a zero vector. The
+# tracker's smooth_feature() then treats a zero-norm feature as "no appearance" and falls back to
+# motion for that detection, instead of feeding it a contaminated, mis-associating embedding.
+APP_MIN_H = 64.0  # min crop height (px); shorter crops give unreliable embeddings
+APP_MAX_OVERLAP = 0.45  # max IoU with any other detection; above this the crop is likely occluded
+
+
+def _pairwise_max_iou(xyxy: np.ndarray) -> np.ndarray:
+    """For each box, the maximum IoU with any other box (0 if alone). xyxy: (N,4)."""
+    n = len(xyxy)
+    if n < 2:
+        return np.zeros(n, dtype=np.float32)
+    x1, y1, x2, y2 = xyxy[:, 0], xyxy[:, 1], xyxy[:, 2], xyxy[:, 3]
+    area = np.clip(x2 - x1, 0, None) * np.clip(y2 - y1, 0, None)
+    ix1 = np.maximum(x1[:, None], x1[None]); iy1 = np.maximum(y1[:, None], y1[None])
+    ix2 = np.minimum(x2[:, None], x2[None]); iy2 = np.minimum(y2[:, None], y2[None])
+    inter = np.clip(ix2 - ix1, 0, None) * np.clip(iy2 - iy1, 0, None)
+    union = area[:, None] + area[None] - inter
+    iou = inter / np.maximum(union, 1e-9)
+    np.fill_diagonal(iou, 0.0)
+    return iou.max(1)
+
+
+def appearance_reliable(dets: np.ndarray, min_h: float = APP_MIN_H, max_overlap: float = APP_MAX_OVERLAP) -> np.ndarray:
+    """Boolean mask: True where a detection's crop is large enough and not heavily occluded.
+
+    Args:
+        dets (np.ndarray): Detections in center-xywh format (first 4 cols used).
+
+    Returns:
+        (np.ndarray): (N,) bool mask of detections whose appearance embedding should be trusted.
+    """
+    if dets is None or len(dets) == 0:
+        return np.ones(0, dtype=bool)
+    cx, cy, w, h = dets[:, 0], dets[:, 1], dets[:, 2], dets[:, 3]
+    xyxy = np.stack([cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2], axis=1)
+    return (h >= min_h) & (_pairwise_max_iou(xyxy) <= max_overlap)
 
 
 class ReID:
@@ -99,7 +141,15 @@ class ReID:
 
     @torch.no_grad()
     def __call__(self, img: np.ndarray, dets: np.ndarray) -> list[np.ndarray]:
-        """Extract embeddings for detected objects."""
+        """Extract embeddings for detected objects, suppressing unreliable (tiny/occluded) crops."""
+        feats = self._extract(img, dets)
+        if feats and os.environ.get("REID_APP_GATE", "1") != "0":  # gating on by default; REID_APP_GATE=0 disables
+            reliable = appearance_reliable(dets)
+            feats = [f if reliable[i] else np.zeros_like(f) for i, f in enumerate(feats)]
+        return feats
+
+    def _extract(self, img: np.ndarray, dets: np.ndarray) -> list[np.ndarray]:
+        """Raw per-detection embeddings (no gating)."""
         if self.is_pt:
             crops = self._crop_detections(img, dets)
             if self.is_reid:  # ReidPredictor returns Results; pull the head's normalized embedding

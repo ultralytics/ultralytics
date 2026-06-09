@@ -68,6 +68,7 @@ def onnx2saved_model(
     onnx_file: str,
     output_dir: Path | str,
     int8: bool = False,
+    quant_type: str = "per-channel",
     images: np.ndarray | None = None,
     disable_group_convolution: bool = False,
     prefix: str = "",
@@ -78,6 +79,7 @@ def onnx2saved_model(
         onnx_file (str): ONNX file path.
         output_dir (Path | str): Output directory path for the SavedModel.
         int8 (bool, optional): Enable INT8 quantization. Defaults to False.
+        quant_type (str, optional): Quantization type for INT8 export: "per-tensor" or "per-channel". Defaults to "per-channel".
         images (np.ndarray | None, optional): Calibration images for INT8 quantization in BHWC format.
         disable_group_convolution (bool, optional): Disable group convolution optimization. Defaults to False.
         prefix (str, optional): Logging prefix. Defaults to "".
@@ -184,6 +186,7 @@ def onnx2saved_model(
         enable_batchmatmul_unfold=not int8,  # fix lower no. of detected objects on GPU delegate
         output_signaturedefs=True,  # fix error with Attention block group convolution
         disable_group_convolution=disable_group_convolution,  # fix error with group convolution
+        quant_type = quant_type
     )
 
     # Remove/rename TFLite models

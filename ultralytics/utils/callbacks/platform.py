@@ -272,10 +272,9 @@ def _get_environment_info():
     import shutil
 
     import psutil
-    import torch
-
     from ultralytics import __version__
-    from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info
+    from ultralytics.utils.autodevice import GPUInfo
+    from ultralytics.utils.torch_utils import get_cpu_info
 
     # Get RAM and disk totals
     memory = psutil.virtual_memory()
@@ -311,9 +310,11 @@ def _get_environment_info():
 
     # GPU info
     try:
-        if torch.cuda.is_available():
-            env["gpuCount"] = torch.cuda.device_count()
-            env["gpuType"] = get_gpu_info(0) if torch.cuda.device_count() > 0 else None
+        gpu_info = GPUInfo()
+        if gpu_info.gpu_stats:
+            env["gpuCount"] = len(gpu_info.gpu_stats)
+            env["gpuType"] = gpu_info.gpu_stats[0]["name"]
+        gpu_info.shutdown()
     except Exception:
         pass
 
@@ -426,7 +427,7 @@ def on_fit_epoch_end(trainer):
     system = {}
     try:
         if not ctx["system_logger"]:
-            ctx["system_logger"] = SystemLogger()
+            ctx["system_logger"] = SystemLogger(all_drives=True)
         system = ctx["system_logger"].get_metrics(rates=True)
     except Exception:
         pass

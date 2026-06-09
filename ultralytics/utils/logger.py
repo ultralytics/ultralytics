@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import json
 import logging
 import plistlib
 import shutil
@@ -10,7 +11,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from ultralytics.utils import LOGGER, MACOS, RANK
+from ultralytics.utils import LINUX, LOGGER, MACOS, RANK
 from ultralytics.utils.checks import check_requirements
 
 
@@ -400,6 +401,31 @@ class SystemLogger:
                 if mounts:
                     return sorted(mounts, key=lambda mount: (mount != "/", mount))
             except (OSError, plistlib.InvalidFileException, subprocess.SubprocessError):
+                pass
+        if LINUX:
+            try:
+                block_info = json.loads(
+                    subprocess.check_output(
+                        ["lsblk", "--json", "--output", "TYPE,MOUNTPOINT,MOUNTPOINTS"], text=True, timeout=5
+                    )
+                )
+                mounts = []
+
+                def visit(block, physical=False):
+                    physical = physical or block.get("type") == "disk"
+                    if physical:
+                        values = block.get("mountpoints") or [block.get("mountpoint")]
+                        if isinstance(values, str):
+                            values = [values]
+                        mounts.extend(m for m in values if isinstance(m, str) and m.startswith("/"))
+                    for child in block.get("children", []):
+                        visit(child, physical)
+
+                for block in block_info.get("blockdevices", []):
+                    visit(block)
+                if mounts:
+                    return sorted(set(mounts), key=lambda mount: (mount != "/", mount))
+            except (json.JSONDecodeError, OSError, subprocess.SubprocessError):
                 pass
         return sorted({p.mountpoint for p in psutil.disk_partitions(all=False)})
 

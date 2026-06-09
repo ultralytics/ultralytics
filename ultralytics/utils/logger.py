@@ -1,7 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import logging
+import plistlib
 import shutil
+import subprocess
 import sys
 import threading
 import time
@@ -365,6 +367,40 @@ class SystemLogger:
         """Get disk mount points to monitor."""
         if not self.all_drives:
             return [Path.cwd().anchor or "/"]
+        if MACOS:
+            try:
+                disk_info = plistlib.loads(
+                    subprocess.check_output(["diskutil", "list", "-plist", "physical"], timeout=5)
+                )
+                physical_devices = set(disk_info.get("WholeDisks", []))
+                for disk in disk_info.get("AllDisksAndPartitions", []):
+                    physical_devices.add(disk.get("DeviceIdentifier", ""))
+                    physical_devices.update(p.get("DeviceIdentifier", "") for p in disk.get("Partitions", []))
+
+                mounts, volume_groups = [], set()
+                for partition in psutil.disk_partitions(all=False):
+                    if partition.mountpoint != "/" and "dontbrowse" in partition.opts.split(","):
+                        continue
+                    info = plistlib.loads(
+                        subprocess.check_output(
+                            ["diskutil", "info", "-plist", partition.mountpoint],
+                            stderr=subprocess.DEVNULL,
+                            timeout=5,
+                        )
+                    )
+                    devices = {info.get("DeviceIdentifier", "")}
+                    devices.update(s.get("APFSPhysicalStore", "") for s in info.get("APFSPhysicalStores", []))
+                    if not devices & physical_devices:
+                        continue
+                    group = info.get("APFSVolumeGroupID") or info.get("APFSContainerReference") or partition.mountpoint
+                    if group in volume_groups:
+                        continue
+                    volume_groups.add(group)
+                    mounts.append(partition.mountpoint)
+                if mounts:
+                    return sorted(mounts, key=lambda mount: (mount != "/", mount))
+            except (OSError, plistlib.InvalidFileException, subprocess.SubprocessError):
+                pass
         return sorted({p.mountpoint for p in psutil.disk_partitions(all=False)})
 
     def get_metrics(self, rates=False):

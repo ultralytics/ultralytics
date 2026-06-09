@@ -152,7 +152,7 @@ class DetectionTrainer(BaseTrainer):
         """Compute and set class weights for handling class imbalance.
 
         Class weights are computed based on inverse class frequency in the training dataset,
-        raised to the power of cls_pw (0 < cls_pw <= 1 dampens, cls_pw > 1 amplifies).
+        raised to the power of cls_pw (0 < cls_pw <= 1 dampens; values are restricted to the range [0, 1]).
         Final weights are normalized so their mean equals 1.0.
         """
         assert 0 <= self.args.cls_pw <= 1.0, "cls_pw must be in the range [0, 1]"

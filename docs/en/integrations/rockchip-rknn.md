@@ -52,7 +52,7 @@ Export an Ultralytics YOLO26 model to RKNN format and run inference with the exp
 
 To install the required packages, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 
@@ -168,7 +168,7 @@ Once you've successfully exported your Ultralytics YOLO26 models to RKNN format,
 
 To install the required packages, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 

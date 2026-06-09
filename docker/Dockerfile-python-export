@@ -14,12 +14,8 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Install export dependencies and run exports to AutoInstall packages
-RUN uv pip install --system -e ".[export]" && \
-    # Run exports to AutoInstall packages (IMX can only export to YOLO11)
-    yolo export model=tmp/yolo26n.pt format=edgetpu imgsz=32 && \
-    yolo export model=tmp/yolo26n.pt format=ncnn imgsz=32 && \
-    yolo export model=tmp/yolo11n.pt format=imx imgsz=32 && \
+# Install export dependencies
+RUN uv pip install --system -e ".[export]" --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match && \
     uv pip install --system paddlepaddle x2paddle && \
     # Remove extra build files
     uv cache clean && \

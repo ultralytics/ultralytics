@@ -7,9 +7,13 @@ import argparse
 import os
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
-from ultralytics.engine.exporter import EXPORT_ENVS
+REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO))
+
+from ultralytics.engine.exporter import EXPORT_ENVS  # noqa: E402
 
 
 def isolated_env_ids():
@@ -23,12 +27,11 @@ def build_env(env_id, root):
     """Build one export environment and run its smoke export commands."""
     recipe = EXPORT_ENVS[env_id]
     venv = root / env_id
-    repo = Path(__file__).resolve().parents[2]
 
     shutil.rmtree(venv, ignore_errors=True)
-    subprocess.run(["uv", "venv", str(venv), "--python", recipe["python"]], check=True)
+    subprocess.run(["uv", "venv", str(venv), "--python", recipe["python"], "--seed"], check=True)
     python = venv / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
-    package = f"{repo}[{','.join(recipe['extras'])}]"
+    package = f"{REPO}[{','.join(recipe['extras'])}]"
     indexes = [token for flag, url in recipe["indexes"] for token in (flag, url)]
     torch = [f"torch{recipe['torch']}"] if recipe["torch"] else []
     subprocess.run(
@@ -57,6 +60,8 @@ def build_env(env_id, root):
         )
 
     env = {**os.environ, "YOLO_AUTOINSTALL": "false", **recipe["env"]}
+    # Some vendor converters invoke bare `pip`; keep those subprocesses scoped to this isolated venv.
+    env["PATH"] = f"{python.parent}{os.pathsep}{env['PATH']}"
     yolo = venv / ("Scripts/yolo.exe" if os.name == "nt" else "bin/yolo")
     for command in recipe["smoke"]:
         cmd = command.split()

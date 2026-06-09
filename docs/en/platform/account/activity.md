@@ -52,22 +52,23 @@ The Platform tracks the following resource types and actions:
 
 Each event includes one of the following action types:
 
-| Action        | Description                                  |
-| ------------- | -------------------------------------------- |
-| **created**   | Resource was created                         |
-| **updated**   | Resource was modified                        |
-| **deleted**   | Resource was permanently deleted             |
-| **trashed**   | Resource was moved to trash                  |
-| **restored**  | Resource was restored from trash             |
-| **started**   | Training or export job was started           |
-| **completed** | Training or export job finished successfully |
-| **failed**    | Training or export job failed                |
-| **cancelled** | Training or export job was cancelled         |
-| **uploaded**  | Data was uploaded (images, model weights)    |
-| **shared**    | Resource visibility changed to public        |
-| **unshared**  | Resource visibility changed to private       |
-| **exported**  | Model was exported to a deployment format    |
-| **cloned**    | Resource was cloned to another location      |
+| Action        | Description                                          |
+| ------------- | ---------------------------------------------------- |
+| **created**   | Resource was created                                 |
+| **updated**   | Resource was modified                                |
+| **deleted**   | Resource was permanently deleted                     |
+| **trashed**   | Resource was moved to trash                          |
+| **restored**  | Resource was restored from trash                     |
+| **started**   | Training or export job was started                   |
+| **completed** | Training or export job finished successfully         |
+| **failed**    | Training or export job failed                        |
+| **cancelled** | Training or export job was cancelled                 |
+| **uploaded**  | Data was uploaded (images, model weights)            |
+| **shared**    | Resource visibility changed to public                |
+| **unshared**  | Resource visibility changed to private               |
+| **exported**  | Model was exported to a deployment format            |
+| **cloned**    | Resource was cloned to another location              |
+| **analyzed**  | Dataset analysis (embeddings/clustering) was started |
 
 ## Inbox and Archive
 
@@ -97,7 +98,7 @@ Find specific events quickly:
 
 ### Search
 
-Use the search bar to find events by resource name or event description.
+Use the search bar to find events by resource name or resource type.
 
 ### Date Range
 
@@ -113,12 +114,12 @@ Filter by time period using the date range picker:
 
 Each event displays:
 
-| Field           | Description                                        |
-| --------------- | -------------------------------------------------- |
-| **Icon**        | Resource type indicator                            |
-| **Description** | What happened (e.g., "Created project my-project") |
-| **Timestamp**   | Relative time (e.g., "2 hours ago")                |
-| **Metadata**    | Additional context when available                  |
+| Field           | Description                                            |
+| --------------- | ------------------------------------------------------ |
+| **Icon**        | Resource type indicator                                |
+| **Description** | What happened (e.g., "Created project my-project")     |
+| **Timestamp**   | Relative time (e.g., "Today at 3:45 PM", "3 days ago") |
+| **Metadata**    | Additional context when available                      |
 
 ## Undo Support
 

@@ -16,21 +16,21 @@ Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 
 ![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-plans-tab-free-pro-enterprise-comparison.avif)
 
-| Feature                                                    | Free       | Pro ($29/mo)    | Enterprise |
-| ---------------------------------------------------------- | ---------- | --------------- | ---------- |
-| **Signup Credit**                                          | $5 / $25\* | -               | Custom     |
-| **Monthly Credit**                                         | -          | $30/seat/month  | Custom     |
-| **Models**                                                 | 100        | 500             | Unlimited  |
-| **Concurrent Trainings**                                   | 3          | 10              | Unlimited  |
-| **Storage**                                                | 100 GB     | 500 GB          | Unlimited  |
-| **Dataset Upload (ZIP/TAR incl. `.tar.gz`/`.tgz`/NDJSON)** | 10 GB      | 20 GB           | 50 GB      |
-| **Deployments**                                            | 3          | 10              | Unlimited  |
-| **Cloud GPU Types**                                        | 22         | 24              | 24         |
-| **Best GPUs (B200, B300)**                                 | -          | Yes             | Yes        |
-| **Teams**                                                  | -          | Up to 5 members | Up to 50   |
-| **SSO / SAML**                                             | -          | -               | Yes        |
-| **Enterprise License**                                     | -          | -               | Yes        |
-| **License**                                                | AGPL-3.0   | AGPL-3.0        | Enterprise |
+| Feature                                                    | Free       | Pro ($29/mo)    | Enterprise  |
+| ---------------------------------------------------------- | ---------- | --------------- | ----------- |
+| **Signup Credit**                                          | $5 / $25\* | -               | Custom      |
+| **Monthly Credit**                                         | -          | $30/seat/month  | Custom      |
+| **Models**                                                 | 100        | 500             | Unlimited   |
+| **Concurrent Trainings**                                   | 3          | 10              | Unlimited   |
+| **Storage**                                                | 100 GB     | 500 GB          | Unlimited   |
+| **Dataset Upload (ZIP/TAR incl. `.tar.gz`/`.tgz`/NDJSON)** | 10 GB      | 20 GB           | 50 GB       |
+| **Deployments**                                            | 3          | 10              | Unlimited   |
+| **Cloud GPU Types**                                        | 22         | 24              | 24          |
+| **Best GPUs (B200, B300)**                                 | -          | Yes             | Yes         |
+| **Teams**                                                  | -          | Up to 5 members | 50+ members |
+| **SSO / SAML**                                             | -          | -               | Yes         |
+| **Enterprise License**                                     | -          | -               | Yes         |
+| **License**                                                | AGPL-3.0   | AGPL-3.0        | Enterprise  |
 
 \*Free plan: $5 at signup, or $25 if you verify a company/work email address.
 
@@ -44,7 +44,7 @@ Get started at no cost:
 - 3 concurrent cloud trainings
 - 3 deployments
 - 100 GB storage · 10 GB dataset upload limit
-- Model export to all 17+ formats
+- Model export to all 19+ formats
 - Manual, SAM 3 & YOLO Smart annotation
 - 22 cloud GPU types including 5090, H100 & H200 ($0.24–$3.99/hr)
 - Community support
@@ -95,10 +95,9 @@ View your balance in `Settings > Billing`:
 
 ![Ultralytics Platform Settings Billing Tab Credit Balance With Topup Button](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-billing-tab-credit-balance-with-topup-button.avif)
 
-| Balance Type            | Description                           |
-| ----------------------- | ------------------------------------- |
-| **Total Balance**       | Available credits for cloud training  |
-| **Promotional Credits** | Credits from signup or monthly grants |
+| Balance Type  | Description                          |
+| ------------- | ------------------------------------ |
+| **Available** | Credits available for cloud training |
 
 ### Credit Uses
 
@@ -152,7 +151,7 @@ Default settings: threshold $20, amount $100.
 Manage payment methods in `Settings > Billing`:
 
 - **Add Card**: Click **Add Card** to add a credit or debit card
-- **Set Default**: Set a default payment method for top-ups and subscriptions
+- **Set as Default**: Set a default payment method for top-ups and subscriptions
 - **Remove**: Remove payment methods you no longer need
 
 ### Billing Address
@@ -205,7 +204,7 @@ Total Cost = GPU Rate x Training Time (hours)
 Example: Training for 2.5 hours on RTX PRO 6000
 
 ```
-$1.69 x 2.5 = $4.23
+$1.89 x 2.5 = $4.73
 ```
 
 ## Upgrade to Pro

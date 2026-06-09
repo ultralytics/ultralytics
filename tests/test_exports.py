@@ -14,6 +14,7 @@ import pytest
 import torch
 
 from tests import SOURCE
+from tests.conftest import isolated_model_path
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.engine.exporter import EXPORT_ENVS, export_formats
@@ -47,20 +48,6 @@ def skip_rpi_semantic(task):
         pytest.skip("Semantic segmentation export tests are skipped on Raspberry Pi due to memory constraints.")
 
 
-def isolated_task_model(task, tmp_path):
-    """Copy a task model to a per-test path so exported artifacts cannot collide under xdist."""
-    source = WEIGHTS_DIR / TASK2MODEL[task]
-    if not source.exists():
-        from ultralytics.utils.downloads import attempt_download_asset
-
-        source.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy(attempt_download_asset(source.name), source)
-
-    dst = tmp_path / source.name
-    shutil.copy(source, dst)
-    return dst
-
-
 @pytest.mark.parametrize("end2end", [False, True])
 def test_export_torchscript(end2end, isolated_model):
     """Test YOLO model export to TorchScript format for compatibility and correctness."""
@@ -73,6 +60,15 @@ def test_export_onnx(end2end, isolated_model):
     """Test YOLO model export to ONNX format with dynamic axes."""
     file = YOLO(isolated_model).export(format="onnx", dynamic=True, imgsz=32, end2end=end2end)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+
+
+@pytest.mark.slow
+def test_export_onnx_int8(isolated_model):
+    """Test YOLO model export to INT8 ONNX format with calibration data."""
+    file = YOLO(isolated_model).export(format="onnx", int8=True, data="coco8.yaml", fraction=0.25, imgsz=32)
+    assert Path(file).name.endswith("_int8.onnx")
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+    Path(file).unlink()  # cleanup
 
 
 def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
@@ -199,7 +195,7 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms, end
 def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms, end2end, tmp_path):
     """Test YOLO model export to TorchScript format under varied configurations."""
     skip_rpi_semantic(task)
-    file = YOLO(isolated_task_model(task, tmp_path)).export(
+    file = YOLO(isolated_model_path(tmp_path, WEIGHTS_DIR / TASK2MODEL[task])).export(
         format="torchscript", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms, end2end=end2end
     )
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference

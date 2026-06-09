@@ -28,7 +28,7 @@ RUN FILENAME=actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz && \
     rm -rf /var/lib/apt/lists/*
 
 # JSON ENTRYPOINT command to configure and start runner with default TOKEN and NAME
-ENTRYPOINT ["sh", "-c", "./config.sh --url https://github.com/ultralytics/ultralytics --token ${GITHUB_RUNNER_TOKEN:-TOKEN} --name ${GITHUB_RUNNER_NAME:-NAME} --labels gpu-latest --replace && exec ./run.sh"]
+ENTRYPOINT ["sh", "-c", "./config.sh --url https://github.com/ultralytics --token ${GITHUB_RUNNER_TOKEN:-TOKEN} --name ${GITHUB_RUNNER_NAME:-NAME} --labels gpu-latest --replace && exec ./run.sh"]
 
 # Usage --------------------------------------------------------------------------------------------------------------
 

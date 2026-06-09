@@ -210,7 +210,7 @@ See the [Reference page](../reference/data/split.md#ultralytics.data.split.autos
 
 ### Segment-polygon to Binary Mask
 
-Convert a single polygon (as a list) to a binary mask of the specified image size. The polygon should be in the form of `[N, 2]`, where `N` is the number of `(x, y)` points defining the polygon contour.
+Convert a single polygon (as a list) to a binary mask of the specified image size. The polygon should be a flat 1D array of `N` coordinates listing alternating `x, y` values defining the polygon contour.
 
 !!! warning
 
@@ -441,7 +441,7 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
         obb_image = cv.imread("datasets/dota8/images/train/P1142__1024__0___824.jpg")
         obb_boxes = np.array(
             [
-                [0, 635, 560, 919, 719, 1087, 420, 803, 261],  # class-idx x1 y1 x2 y2 x3 y2 x4 y4
+                [0, 635, 560, 919, 719, 1087, 420, 803, 261],  # class-idx x1 y1 x2 y2 x3 y3 x4 y4
                 [0, 331, 19, 493, 260, 776, 70, 613, -171],
                 [9, 869, 161, 886, 147, 851, 101, 833, 115],
             ]
@@ -698,7 +698,7 @@ print(VID_FORMATS)
 
 ### Make Divisible
 
-Calculate the nearest whole number to `x` that is evenly divisible by `y`.
+Calculate the smallest whole number greater than or equal to `x` that is evenly divisible by `y`.
 
 ```python
 from ultralytics.utils.ops import make_divisible

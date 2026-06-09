@@ -229,7 +229,7 @@ YOLOv5 OpenCV DNN C++ inference on exported ONNX model examples:
 YOLOv5 OpenVINO C++ inference examples:
 
 - [https://github.com/dacquaviva/yolov5-openvino-cpp-python](https://github.com/dacquaviva/yolov5-openvino-cpp-python)
-- [https://github.com/UNeedCryDear/yolov5-seg-opencv-dnn-cpp](https://github.com/UNeedCryDear/yolov5-seg-opencv-onnxruntime-cpp)
+- [https://github.com/UNeedCryDear/yolov5-seg-opencv-onnxruntime-cpp](https://github.com/UNeedCryDear/yolov5-seg-opencv-onnxruntime-cpp)
 
 ## TensorFlow.js Web Browser Inference
 

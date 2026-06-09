@@ -28,8 +28,8 @@ Comprising 4029 static images captured from diverse road and wall scenarios, thi
 The Crack Segmentation Dataset is organized into three subsets:
 
 - **Training set**: 3717 images with corresponding annotations.
-- **Testing set**: 112 images with corresponding annotations.
-- **Validation set**: 200 images with corresponding annotations.
+- **Testing set**: 200 images with corresponding annotations.
+- **Validation set**: 112 images with corresponding annotations.
 
 ## Applications
 

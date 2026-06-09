@@ -79,7 +79,7 @@ class SolutionConfig:
     blur_ratio: float = 0.5
     vision_point: tuple[int, int] = (20, 20)
     crop_dir: str = "cropped-detections"
-    json_file: str = None
+    json_file: str | None = None
     line_width: int = 2
     records: int = 5
     fps: float = 30.0

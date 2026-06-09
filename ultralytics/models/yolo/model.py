@@ -244,7 +244,7 @@ class YOLOE(Model):
         predict: Run prediction on images, videos, directories, streams, etc.
 
     Examples:
-        Load a YOLOE detection model
+        Load a YOLOE segmentation model
         >>> model = YOLOE("yoloe-11s-seg.pt")
 
         Set vocabulary and class names

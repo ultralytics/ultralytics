@@ -79,7 +79,7 @@ Export an Ultralytics YOLO26 model to [ONNX model format](https://docs.ultralyti
 
 To install the required packages, run:
 
-!!! Tip "Installation"
+!!! tip "Installation"
 
     === "CLI"
 

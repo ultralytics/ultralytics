@@ -207,6 +207,18 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
 
 ![Ultralytics Platform Predict Tab Code Examples Python Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/predict-tab-code-examples-python-tab.avif)
 
+### Request Parameters
+
+| Parameter   | Type   | Default | Range      | Description                                        |
+| ----------- | ------ | ------- | ---------- | -------------------------------------------------- |
+| `file`      | file   | -       | -          | Image or video file (required unless `source` set) |
+| `conf`      | float  | 0.25    | 0.01 – 1.0 | Minimum confidence threshold                       |
+| `iou`       | float  | 0.7     | 0.0 – 0.95 | NMS IoU threshold                                  |
+| `imgsz`     | int    | 640     | 32 – 1280  | Input image size in pixels                         |
+| `normalize` | bool   | false   | -          | Return bounding box coordinates as 0 – 1           |
+| `decimals`  | int    | 5       | 0 – 10     | Decimal precision for coordinate values            |
+| `source`    | string | -       | -          | Image URL or base64 string (alternative to `file`) |
+
 ### Response
 
 ```json
@@ -258,6 +270,7 @@ POST https://platform.ultralytics.com/api/models/{modelId}/predict
 | `images`                        | array  | List of processed images          |
 | `images[].shape`                | array  | Image dimensions [height, width]  |
 | `images[].results`              | array  | List of detections                |
+| `images[].results[].class`      | int    | Class index (integer ID)          |
 | `images[].results[].name`       | string | Class name                        |
 | `images[].results[].confidence` | float  | Detection confidence (0-1)        |
 | `images[].results[].box`        | object | Bounding box coordinates          |
@@ -287,9 +300,22 @@ Response format varies by task:
       "name": "person",
       "confidence": 0.92,
       "box": {"x1": 100, "y1": 50, "x2": 300, "y2": 400},
-      "segments": [[100, 50], [150, 60], ...]
+      "segments": {"x": [100, 150, ...], "y": [50, 60, ...]}
     }
     ```
+
+=== "Semantic"
+
+    ```json
+    {
+      "results": [
+        {"class": 0, "name": "road", "pixel_ratio": 0.42},
+        {"class": 1, "name": "building", "pixel_ratio": 0.23}
+      ]
+    }
+    ```
+
+    Semantic segmentation returns per-class pixel coverage (`pixel_ratio`, the fraction of image pixels assigned to each class) instead of per-object boxes.
 
 === "Pose"
 
@@ -299,12 +325,15 @@ Response format varies by task:
       "name": "person",
       "confidence": 0.92,
       "box": {"x1": 100, "y1": 50, "x2": 300, "y2": 400},
-      "keypoints": [
-        {"x": 200, "y": 75, "conf": 0.95},
-        ...
-      ]
+      "keypoints": {
+        "x": [200, ...],
+        "y": [75, ...],
+        "visible": [0.95, ...]
+      }
     }
     ```
+
+    The `visible` array contains per-keypoint confidence scores (0-1 floats), not COCO-style 0-2 visibility flags.
 
 === "Classification"
 
@@ -324,8 +353,7 @@ Response format varies by task:
       "class": 0,
       "name": "ship",
       "confidence": 0.89,
-      "box": {"x1": 100, "y1": 50, "x2": 300, "y2": 400},
-      "obb": {"x1": 105, "y1": 48, "x2": 295, "y2": 55, "x3": 290, "y3": 395, "x4": 110, "y4": 402}
+      "box": {"x1": 105, "y1": 48, "x2": 295, "y2": 55, "x3": 290, "y3": 395, "x4": 110, "y4": 402}
     }
     ```
 
@@ -347,13 +375,14 @@ Shared inference is rate-limited to **20 requests/min per API key**. When thrott
 
 Common error responses:
 
-| Code | Message         | Solution                                                                             |
-| ---- | --------------- | ------------------------------------------------------------------------------------ |
-| 400  | Invalid image   | Check file format                                                                    |
-| 401  | Unauthorized    | Verify API key                                                                       |
-| 404  | Model not found | Check model ID                                                                       |
-| 429  | Rate limited    | Wait and retry, or use a [dedicated endpoint](endpoints.md) for unlimited throughput |
-| 500  | Server error    | Retry request                                                                        |
+| Code | Message             | Solution                                                                             |
+| ---- | ------------------- | ------------------------------------------------------------------------------------ |
+| 400  | Invalid image       | Check file format                                                                    |
+| 401  | Unauthorized        | Verify API key                                                                       |
+| 404  | Model not found     | Check model ID                                                                       |
+| 429  | Rate limited        | Wait and retry, or use a [dedicated endpoint](endpoints.md) for unlimited throughput |
+| 500  | Server error        | Retry request                                                                        |
+| 503  | Service unavailable | Predict service starting up or unreachable; wait briefly and retry                   |
 
 ## FAQ
 

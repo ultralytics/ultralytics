@@ -622,14 +622,22 @@ def check_imx_inference_requirements():
     check_requirements((ONNX_REQUIREMENTS, ONNXRUNTIME_CPU_REQUIREMENTS))
 
 
-def check_paddle_requirements():
-    """Check PaddlePaddle export and inference requirements."""
+def check_paddle_requirements(export=False):
+    """Check PaddlePaddle export and inference requirements.
+
+    Args:
+        export (bool): If True, also check for x2paddle (needed for export but not inference).
+    """
     if torch.cuda.is_available():
-        check_requirements(["paddlepaddle-gpu>=3.0.0,<3.3.0", "x2paddle"])
+        pkg = "paddlepaddle-gpu>=3.0.0,<3.3.0"
     elif ARM64:
-        check_requirements(["paddlepaddle==3.0.0", "x2paddle"])
+        pkg = "paddlepaddle==3.0.0"
     else:
-        check_requirements(["paddlepaddle>=3.0.0,<3.3.0", "x2paddle"])
+        pkg = "paddlepaddle>=3.0.0,<3.3.0"
+    requirements = [pkg]
+    if export:
+        requirements.append("x2paddle")
+    check_requirements(requirements)
 
 
 def check_tensorflow_export_requirements(cuda=False):

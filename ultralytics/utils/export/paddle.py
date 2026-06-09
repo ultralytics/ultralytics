@@ -6,7 +6,7 @@ from pathlib import Path
 
 import torch
 
-from ultralytics.utils import ARM64, IS_JETSON, LOGGER, YAML
+from ultralytics.utils import IS_JETSON, LOGGER, YAML
 
 
 def torch2paddle(
@@ -31,7 +31,7 @@ def torch2paddle(
     assert not IS_JETSON, "Jetson Paddle exports not supported yet"
     from ultralytics.utils.checks import check_paddle_requirements
 
-    check_paddle_requirements()
+    check_paddle_requirements(export=True)
 
     import x2paddle
     from x2paddle.convert import pytorch2paddle

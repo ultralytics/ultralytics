@@ -9,7 +9,7 @@ import numpy as np
 import torch
 
 from ultralytics.nn.modules import Detect, Pose, Pose26
-from ultralytics.utils import LINUX, LOGGER, MACOS
+from ultralytics.utils import LINUX, LOGGER
 from ultralytics.utils.checks import (
     check_apt_requirements,
     check_requirements,

@@ -553,8 +553,8 @@ def test_system_logger_disk_contract(monkeypatch):
     metrics = SystemLogger(all_drives=True).get_metrics(rates=True)
 
     assert {"read_mbs", "write_mbs", "used_gb"} <= metrics["disk"].keys()
-    assert isinstance(metrics["disks"], list) and metrics["disks"]
-    assert {"mount", "used_gb", "total_gb"} <= metrics["disks"][0].keys()
+    assert isinstance(metrics["disk"]["drives"], list) and metrics["disk"]["drives"]
+    assert {"mount", "used_gb", "total_gb"} <= metrics["disk"]["drives"][0].keys()
 
 
 def test_utils_checks():

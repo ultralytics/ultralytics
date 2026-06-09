@@ -296,7 +296,7 @@ class SystemLogger:
     performance monitoring and analysis.
 
     Attributes:
-        all_drives (bool): Whether to monitor all mounted drives or just the root drive.
+        all_drives (bool): Whether to monitor all mounted drives or just the current drive.
         pynvml: NVIDIA pynvml module instance if successfully imported, None otherwise.
         nvidia_initialized (bool): Whether NVIDIA GPU monitoring is available and initialized.
         net_start: Initial network I/O counters for calculating cumulative usage.
@@ -307,13 +307,13 @@ class SystemLogger:
         >>> logger = SystemLogger()
         >>> metrics = logger.get_metrics()
         >>> print(f"CPU: {metrics['cpu']}%, RAM: {metrics['ram']}%")
-        >>> for disk in metrics["disks"]:
+        >>> for disk in metrics["disk"]["drives"]:
         ...     print(f"{disk['mount']}: {disk['used_gb']}/{disk['total_gb']} GB")
 
         Monitor all drives:
         >>> logger = SystemLogger(all_drives=True)
         >>> metrics = logger.get_metrics()
-        >>> for disk in metrics["disks"]:
+        >>> for disk in metrics["disk"]["drives"]:
         ...     print(f"{disk['mount']}: {disk['used_gb']}/{disk['total_gb']} GB")
 
         Training loop integration:
@@ -378,8 +378,12 @@ class SystemLogger:
         {
             "cpu": 45.2,
             "ram": 78.9,
-            "disk": {"read_mb": 156.7, "write_mb": 89.3, "used_gb": 256.8},
-            "disks": [{"mount": "/", "used_gb": 256.8, "total_gb": 512.0}],
+            "disk": {
+                "read_mb": 156.7,
+                "write_mb": 89.3,
+                "used_gb": 256.8,
+                "drives": [{"mount": "/", "used_gb": 256.8, "total_gb": 512.0}],
+            },
             "network": {"recv_mb": 157.2, "sent_mb": 89.1},
             "gpus": {
                 "0": {"usage": 95.6, "memory": 85.4, "temp": 72, "power": 285},
@@ -393,8 +397,12 @@ class SystemLogger:
         {
             "cpu": 45.2,
             "ram": 78.9,
-            "disk": {"read_mbs": 12.5, "write_mbs": 8.3, "used_gb": 256.8},
-            "disks": [{"mount": "/", "used_gb": 256.8, "total_gb": 512.0}],
+            "disk": {
+                "read_mbs": 12.5,
+                "write_mbs": 8.3,
+                "used_gb": 256.8,
+                "drives": [{"mount": "/", "used_gb": 256.8, "total_gb": 512.0}],
+            },
             "network": {"recv_mbs": 5.2, "sent_mbs": 1.1},
             "gpus": {
                 "0": {"usage": 95.6, "memory": 85.4, "temp": 72, "power": 285},
@@ -433,13 +441,13 @@ class SystemLogger:
             write_val = round((disk_io.write_bytes - self.disk_start.write_bytes) / (1 << 20), 3)
             read_key, write_key = "read_mb", "write_mb"
 
-        disks = []
+        drives = []
         root_usage = None
         for mount in self.mounts:
             try:
                 usage = shutil.disk_usage(mount)
                 root_usage = root_usage or usage
-                disks.append(
+                drives.append(
                     {
                         "mount": mount,
                         "used_gb": round(usage.used / (1 << 30), 3),
@@ -448,10 +456,10 @@ class SystemLogger:
                 )
             except (PermissionError, OSError):
                 continue  # Skip inaccessible drives
-        if not disks:
+        if not drives:
             root_mount = Path.cwd().anchor or "/"
             root_usage = shutil.disk_usage(root_mount)
-            disks.append(
+            drives.append(
                 {
                     "mount": root_mount,
                     "used_gb": round(root_usage.used / (1 << 30), 3),
@@ -466,8 +474,8 @@ class SystemLogger:
                 read_key: read_val,
                 write_key: write_val,
                 "used_gb": round(root_usage.used / (1 << 30), 3),
+                "drives": drives,
             },
-            "disks": disks,
             "gpus": {},
         }
 
@@ -539,7 +547,7 @@ if __name__ == "__main__":
 
             # Display disk metrics
             print("\nDisk Metrics:")
-            for disk in metrics["disks"]:
+            for disk in metrics["disk"]["drives"]:
                 print(f"  {disk['mount']}: {disk['used_gb']:.1f}/{disk['total_gb']:.1f} GB")
 
             # Display GPU metrics if available

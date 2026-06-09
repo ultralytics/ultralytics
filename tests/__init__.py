@@ -3,7 +3,6 @@
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks
 
-
 # Constants used in tests
 MODEL = WEIGHTS_DIR / "path with spaces" / "yolo26n.pt"  # test spaces in path
 CFG = "yolo26n.yaml"

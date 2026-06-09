@@ -86,7 +86,7 @@ The following tasks are supported across YOLOv8, YOLO11, and YOLO26 models.
 
     - **Operating System**: Linux only (Ubuntu 22.04/24.04 recommended)
     - **Hardware**: Axelera AI accelerator ([Metis devices](https://store.axelera.ai/))
-    - **Python**: Versions 3.10, 3.11, and 3.12
+    - **Python**: Versions 3.10, 3.11, 3.12, and 3.13
     - **System dependency**: `sudo apt install libgl1` (required by OpenCV, not included via `pip`)
 
 ### Ultralytics Installation
@@ -225,8 +225,9 @@ For all export options, see the [Export Mode documentation](https://docs.ultraly
 
 ```
 yolo26n_axelera_model/
-├── yolo26n.axm              # Axelera model file
-└── metadata.yaml            # Model metadata (classes, image size, etc.)
+├── yolo26n.axm                  # Axelera model file
+├── compiler_config_final.toml  # Compiler configuration used for the build
+└── metadata.yaml               # Model metadata (classes, image size, etc.)
 ```
 
 ## Axelera AI Benchmarks
@@ -267,7 +268,7 @@ Verify your Axelera device is functioning properly:
 axdevice
 ```
 
-For detailed diagnostics, see the [AxDevice documentation](https://github.com/axelera-ai-hub/voyager-sdk/blob/latest/docs/reference/axdevice.md).
+For detailed diagnostics, see the [AxDevice documentation](https://github.com/axelera-ai-hub/voyager-sdk/blob/latest/docs/reference/tools/axdevice.md).
 
 ## Maximum Performance
 
@@ -277,7 +278,7 @@ This integration uses single-core configuration for compatibility. For productio
 - Streaming inference pipelines
 - Tiled inferencing for higher-resolution cameras
 
-See the [model-zoo](https://github.com/axelera-ai-hub/voyager-sdk/blob/latest/docs/reference/model_zoo.md) for FPS benchmarks or [contact Axelera](https://axelera.ai/contact-us) for production support.
+See the [model-zoo](https://github.com/axelera-ai-hub/voyager-sdk/blob/latest/docs/reference/models/model-zoo.md) for FPS benchmarks or [contact Axelera](https://axelera.ai/contact-us) for production support.
 
 ## Known Issues
 

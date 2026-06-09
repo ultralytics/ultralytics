@@ -194,7 +194,7 @@ os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "false"
 
 ### Online and Offline Mode
 
-By default, Comet runs in online mode and streams experiment data to the Comet servers. If you need to train without internet access, set `COMET_START_ONLINE=0` before training starts. Experiment data is saved locally and can be uploaded later with the [`comet upload`](https://www.comet.com/docs/v2/guides/comet-cli/comet-upload-cli/) CLI.
+By default, Comet runs in online mode and streams experiment data to the Comet servers. If you need to train without internet access, set `COMET_START_ONLINE=0` before training starts. Experiment data is saved locally and can be uploaded later with the [`comet upload`](https://www.comet.com/docs/v2/api-and-sdk/command-line/reference/) CLI.
 
 ```python
 import os
@@ -368,4 +368,4 @@ import os
 os.environ["COMET_START_ONLINE"] = "0"
 ```
 
-Experiment data is saved on disk and can be uploaded to Comet later with the [`comet upload`](https://www.comet.com/docs/v2/guides/comet-cli/comet-upload-cli/) CLI when connectivity is available. The earlier `COMET_MODE="offline"` variable still works but emits a deprecation warning. For more details, see the [Online and Offline Mode](#online-and-offline-mode) section.
+Experiment data is saved on disk and can be uploaded to Comet later with the [`comet upload`](https://www.comet.com/docs/v2/api-and-sdk/command-line/reference/) CLI when connectivity is available. The earlier `COMET_MODE="offline"` variable still works but emits a deprecation warning. For more details, see the [Online and Offline Mode](#online-and-offline-mode) section.

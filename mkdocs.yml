@@ -597,11 +597,12 @@ nav:
       - ClearML: integrations/clearml.md
       - Comet ML: integrations/comet.md
       - CoreML: integrations/coreml.md
-      - DeepX: integrations/deepx.md
+      - DEEPX: integrations/deepx.md
       - DVC: integrations/dvc.md
       - ExecuTorch: integrations/executorch.md
       - Google Colab: integrations/google-colab.md
       - Gradio: integrations/gradio.md
+      - Hailo: integrations/hailo.md
       - IBM Watsonx: integrations/ibm-watsonx.md
       - JupyterLab: integrations/jupyterlab.md
       - Kaggle: integrations/kaggle.md
@@ -647,6 +648,10 @@ nav:
           - Inference: platform/deploy/inference.md
           - Endpoints: platform/deploy/endpoints.md
           - Monitoring: platform/deploy/monitoring.md
+      - Integrations:
+          - platform/integrations/index.md
+          - Ultralytics HUB: platform/integrations/ultralytics-hub.md
+          - Roboflow: platform/integrations/roboflow.md
       - Account:
           - platform/account/index.md
           - API Keys: platform/account/api-keys.md
@@ -858,6 +863,7 @@ nav:
               - imx: reference/utils/export/imx.md
               - mnn: reference/utils/export/mnn.md
               - ncnn: reference/utils/export/ncnn.md
+              - onnx: reference/utils/export/onnx.md
               - openvino: reference/utils/export/openvino.md
               - paddle: reference/utils/export/paddle.md
               - qnn: reference/utils/export/qnn.md

@@ -22,8 +22,9 @@ def test_func(*args, **kwargs):
     print("callback test passed")
 
 
-def test_export():
+def test_export(monkeypatch, tmp_path):
     """Test model exporting functionality by adding a callback and verifying its execution."""
+    monkeypatch.chdir(tmp_path)
     exporter = Exporter()
     exporter.add_callback("on_export_start", test_func)
     assert test_func in exporter.callbacks["on_export_start"], "on_export_start callback not registered"
@@ -170,6 +171,30 @@ def test_nan_recovery():
     trainer.add_callback("on_train_batch_end", inject_nan)
     trainer.train()
     assert nan_injected[0], "NaN injection failed"
+
+
+def test_checkpoint_fp16_overflow():
+    """Test a finite model whose weights overflow fp16 is still checkpointed (clamped) instead of skipped."""
+
+    def inflate_ema(trainer):
+        """Push an EMA weight above the fp16 max (65504) so its fp16 snapshot would otherwise become Inf."""
+        if trainer.ema is not None:
+            next(iter(trainer.ema.ema.parameters())).data.flatten()[0] = 1.0e5
+
+    overrides = {"data": "coco8.yaml", "model": "yolo26n.yaml", "imgsz": 32, "epochs": 2}
+    trainer = detect.DetectionTrainer(overrides=overrides)
+    trainer.add_callback("on_train_epoch_end", inflate_ema)
+    trainer.train()
+    assert trainer.last.exists(), "checkpoint not saved for a finite model with fp16-overflowing weights"
+    model, _ = load_checkpoint(trainer.last)
+    assert all(torch.isfinite(v).all() for v in model.state_dict().values() if isinstance(v, torch.Tensor)), (
+        "saved checkpoint contains NaN/Inf"
+    )
+    # Validation must leave the live EMA fp32 and unchanged; checkpoint serialization may clamp its fp16 copy.
+    ema_param = next(iter(trainer.ema.ema.parameters()))
+    assert ema_param.dtype == torch.float32 and torch.isfinite(ema_param).all() and ema_param.flatten()[0] == 1.0e5, (
+        "validation corrupted the live EMA"
+    )
 
 
 @pytest.mark.parametrize(

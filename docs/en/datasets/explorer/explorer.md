@@ -65,7 +65,7 @@ yolo checks
 Utilize the power of vector similarity search to find the similar data points in your dataset along with their distance in the embedding space. Simply create an embeddings table for the given dataset-model pair. It is only needed once, and it is reused automatically.
 
 ```python
-exp = Explorer("VOC.yaml", model="yolo26n.pt")
+exp = Explorer("VOC.yaml", model="yolo11n.pt")
 exp.create_embeddings_table()
 ```
 

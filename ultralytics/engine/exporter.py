@@ -22,7 +22,7 @@ IMX                     | `imx`                     | yolo26n_imx_model/
 RKNN                    | `rknn`                    | yolo26n_rknn_model/
 ExecuTorch              | `executorch`              | yolo26n_executorch_model/
 Axelera AI              | `axelera`                 | yolo26n_axelera_model/
-DeepX                   | `deepx`                   | yolo26n_deepx_model/
+DEEPX                   | `deepx`                   | yolo26n_deepx_model/
 Qualcomm QNN            | `qnn`                     | yolo26n_qnn_model/
 
 Requirements:
@@ -32,9 +32,11 @@ Python:
     from ultralytics import YOLO
     model = YOLO('yolo26n.pt')
     results = model.export(format='onnx')
+    results = model.export(format='onnx', int8=True, data='coco8.yaml')  # INT8 ONNX
 
 CLI:
     $ yolo mode=export model=yolo26n.pt format=onnx
+    $ yolo mode=export model=yolo26n.pt format=onnx int8=True data=coco8.yaml
 
 Inference:
     $ yolo predict model=yolo26n.pt                 # PyTorch
@@ -54,7 +56,7 @@ Inference:
                          yolo26n_rknn_model         # RKNN
                          yolo26n_executorch_model   # ExecuTorch
                          yolo26n_axelera_model      # Axelera AI
-                         yolo26n_deepx_model        # DeepX
+                         yolo26n_deepx_model        # DEEPX
                          yolo26n_qnn_model          # Qualcomm QNN
 
 TensorFlow.js:
@@ -105,7 +107,14 @@ from ultralytics.utils import (
     get_default_args,
     is_jetson,
 )
-from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_9, check_imgsz, check_requirements, check_version, is_intel
+from ultralytics.utils.checks import (
+    IS_PYTHON_MINIMUM_3_9,
+    IS_PYTHON_MINIMUM_3_13,
+    check_imgsz,
+    check_requirements,
+    check_version,
+    is_intel,
+)
 from ultralytics.utils.files import file_size
 from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
@@ -124,10 +133,27 @@ from ultralytics.utils.torch_utils import (
 
 def export_formats():
     """Return a dictionary of Ultralytics YOLO export formats."""
+    #          Format, Argument, Suffix, CPU, GPU, Arguments, Env
     x = [
-        ["PyTorch", "-", ".pt", True, True, []],
-        ["TorchScript", "torchscript", ".torchscript", True, True, ["batch", "optimize", "half", "nms", "dynamic"]],
-        ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify", "nms"]],
+        ["PyTorch", "-", ".pt", True, True, [], "base"],
+        [
+            "TorchScript",
+            "torchscript",
+            ".torchscript",
+            True,
+            True,
+            ["batch", "optimize", "half", "nms", "dynamic"],
+            "base",
+        ],
+        [
+            "ONNX",
+            "onnx",
+            ".onnx",
+            True,
+            True,
+            ["batch", "data", "dynamic", "half", "int8", "opset", "simplify", "nms", "fraction"],
+            "base",
+        ],
         [
             "OpenVINO",
             "openvino",
@@ -135,6 +161,7 @@ def export_formats():
             True,
             False,
             ["batch", "data", "dynamic", "half", "int8", "nms", "fraction"],
+            "base",
         ],
         [
             "TensorRT",
@@ -143,8 +170,9 @@ def export_formats():
             False,
             True,
             ["batch", "data", "dynamic", "half", "int8", "simplify", "nms", "fraction"],
+            "base",
         ],
-        ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "dynamic", "half", "int8", "nms"]],
+        ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "dynamic", "half", "int8", "nms"], "coreml"],
         [
             "TensorFlow SavedModel",
             "saved_model",
@@ -152,22 +180,172 @@ def export_formats():
             True,
             True,
             ["batch", "data", "fraction", "int8", "keras", "nms"],
+            "tensorflow",
         ],
-        ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"]],
-        ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "data", "half", "int8", "nms", "fraction"]],
-        ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, ["data", "fraction", "int8"]],
-        ["TensorFlow.js", "tfjs", "_web_model", True, False, ["batch", "data", "fraction", "half", "int8", "nms"]],
-        ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"]],
-        ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"]],
-        ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
-        ["IMX", "imx", "_imx_model", True, True, ["data", "int8", "fraction", "nms"]],
-        ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
-        ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
-        ["Axelera AI", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction", "data"]],
-        ["DeepX", "deepx", "_deepx_model", False, False, ["data", "int8", "optimize"]],
-        ["Qualcomm QNN", "qnn", "_qnn_model", False, False, ["batch", "name", "int8", "fraction", "data"]],
+        ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"], "tensorflow"],
+        [
+            "TensorFlow Lite",
+            "tflite",
+            ".tflite",
+            True,
+            False,
+            ["batch", "data", "half", "int8", "nms", "fraction"],
+            "tensorflow",
+        ],
+        ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, ["data", "fraction", "int8"], "tensorflow"],
+        [
+            "TensorFlow.js",
+            "tfjs",
+            "_web_model",
+            True,
+            False,
+            ["batch", "data", "fraction", "half", "int8", "nms"],
+            "tensorflow",
+        ],
+        ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"], "base"],
+        ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"], "mnn"],
+        ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"], "ncnn"],
+        ["IMX", "imx", "_imx_model", True, True, ["data", "int8", "fraction", "nms"], "isolated-imx"],
+        [
+            "RKNN",
+            "rknn",
+            "_rknn_model",
+            False,
+            False,
+            ["batch", "name", "half", "int8", "data", "fraction"],
+            "isolated-rknn",
+        ],
+        ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"], "executorch"],
+        [
+            "Axelera AI",
+            "axelera",
+            "_axelera_model",
+            False,
+            False,
+            ["batch", "int8", "fraction", "data"],
+            "isolated-axelera",
+        ],
+        ["DEEPX", "deepx", "_deepx_model", False, False, ["data", "int8", "optimize"], "isolated-deepx"],
+        ["Qualcomm QNN", "qnn", "_qnn_model", False, False, ["batch", "name", "int8", "fraction", "data"], "base"],
     ]
-    return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
+    return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
+
+
+EXPORT_ENVS = {
+    "base": {
+        "python": None,
+        "extras": ["export-base"],
+        "torch": None,
+        "requirements": [],
+        "indexes": [],
+        "env": {},
+        "smoke": [],
+    },
+    "tensorflow": {
+        "python": "3.12",
+        "extras": ["export-base", "export-tensorflow"],
+        "torch": None,
+        "requirements": [
+            "onnx2tf>=1.26.3,<1.29.0",
+            "tf_keras<=2.19.0",
+            "sng4onnx>=1.0.1",
+            "onnx_graphsurgeon>=0.3.26",
+            "ai-edge-litert>=1.2.0",
+            "onnxruntime",
+            "protobuf>=5",
+        ],
+        "indexes": [
+            ("--extra-index-url", "https://download.pytorch.org/whl/cpu"),
+            ("--extra-index-url", "https://pypi.ngc.nvidia.com"),
+        ],
+        "env": {},
+        "smoke": ["yolo export format=tflite model=yolo11n.pt imgsz=32"],
+    },
+    "coreml": {
+        "python": "3.13",
+        "extras": ["export-base", "export-coreml"],
+        "torch": ">=2.12",
+        "requirements": [],
+        "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
+        "env": {},
+        "smoke": ["yolo export format=coreml model=yolo11n.pt imgsz=32"],
+    },
+    "mnn": {
+        "python": "3.13",
+        "extras": ["export-base"],
+        "torch": None,
+        "requirements": ["MNN>=2.9.6", "aliyun-log-python-sdk", "protobuf<6.0.0,>=3.20.3"],
+        "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
+        "env": {},
+        "smoke": ["yolo export format=mnn model=yolo11n.pt imgsz=32"],
+    },
+    "ncnn": {
+        "python": "3.13",
+        "extras": ["export-base"],
+        "torch": None,
+        "requirements": ["ncnn", "pnnx"],
+        "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
+        "env": {},
+        "smoke": ["yolo export format=ncnn model=yolo11n.pt imgsz=32"],
+    },
+    "executorch": {
+        "python": "3.13",
+        "extras": ["export-base", "export-executorch"],
+        "torch": ">=2.12",
+        "requirements": [],
+        "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
+        "env": {},
+        "smoke": ["yolo export format=executorch model=yolo11n.pt imgsz=32"],
+    },
+    "isolated-imx": {
+        "python": "3.11",
+        "extras": ["export-base"],
+        "torch": ">=2.9,<2.12",
+        "requirements": [
+            "model-compression-toolkit>=2.4.1",
+            "edge-mdt-cl<1.1.0",
+            "edge-mdt-tpc>=1.2.0",
+            "pydantic<2.12",
+            "imx500-converter[pt]>=3.17.3",
+        ],
+        "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
+        "env": {},
+        "smoke": ["yolo export format=imx model=yolo11n.pt imgsz=32"],
+    },
+    "isolated-rknn": {
+        "python": "3.11",
+        "extras": ["export-base"],
+        "torch": "==2.4",
+        "requirements": ["rknn-toolkit2>=2.3.2", "onnx>=1.16.1,<1.19.0", "setuptools<82"],
+        "indexes": [("--extra-index-url", "https://download.pytorch.org/whl/cpu")],
+        "env": {},
+        "smoke": ["yolo export format=rknn model=yolo26n.pt imgsz=32 half=True"],
+    },
+    "isolated-axelera": {
+        "python": "3.12",
+        "extras": ["export-base"],
+        "torch": ">=2.8,<2.12",
+        "requirements": ["axelera-devkit==1.6.0", "onnx>=1.12.0,<2.0.0", "onnxslim>=0.1.71"],
+        "indexes": [
+            ("--extra-index-url", "https://download.pytorch.org/whl/cpu"),
+            ("--extra-index-url", "https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple"),
+        ],
+        "env": {"PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION": "python"},
+        "smoke": ["yolo export format=axelera model=yolo11n.pt imgsz=64 data=coco8.yaml"],
+    },
+    "isolated-deepx": {
+        "python": "3.12",
+        "extras": ["export-base", "export-deepx"],
+        "torch": ">=2.8,<2.12",
+        "requirements": [],
+        "indexes": [
+            ("--extra-index-url", "https://download.pytorch.org/whl/cpu"),
+            ("--find-links", "https://sdk.deepx.ai/release/dxcom/v2.3.0/index.html"),
+        ],
+        "env": {},
+        "smoke": ["yolo export format=deepx model=yolo11n.pt imgsz=32"],
+    },
+}
 
 
 def validate_args(format, passed_args, valid_args):
@@ -254,16 +432,16 @@ class Exporter:
         export_imx: Export model to IMX format.
         export_executorch: Export model to ExecuTorch format.
         export_axelera: Export model to Axelera format.
-        export_deepx: Export model to DeepX format.
+        export_deepx: Export model to DEEPX format.
 
     Examples:
-        Export a YOLO26 model to ONNX format
+        Export a YOLO26 model to TorchScript format
         >>> from ultralytics.engine.exporter import Exporter
         >>> exporter = Exporter()
-        >>> exporter(model="yolo26n.pt")  # exports to yolo26n.onnx
+        >>> exporter(model="yolo26n.pt")  # exports to yolo26n.torchscript
 
         Export with specific arguments
-        >>> args = {"format": "onnx", "dynamic": True, "half": True}
+        >>> args = {"format": "onnx", "dynamic": True, "int8": True, "data": "coco8.yaml"}
         >>> exporter = Exporter(overrides=args)
         >>> exporter(model="yolo26n.pt")
     """
@@ -277,6 +455,12 @@ class Exporter:
             _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
+        if (
+            self.args.format.lower() == "rknn"
+            and not self.args.int8
+            and not any(k in (overrides or {}) for k in {"half", "int8", "data", "fraction"})
+        ):
+            self.args.half = True
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
@@ -350,13 +534,20 @@ class Exporter:
                 # Disable end2end branch for certain export formats as they does not support topk
                 model.end2end = False
                 LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
-            if fmt == "engine" and self.args.int8:
-                # TensorRT 10.3.0 on JetPack 6 with int8 has known end2end build issues
-                # https://github.com/ultralytics/ultralytics/issues/23841
+            if fmt == "engine":
                 try:
                     import tensorrt as trt
 
-                    if check_version(trt.__version__, "==10.3.0") and is_jetson(jetpack=6):
+                    if check_version(trt.__version__, "<8.5.0"):
+                        # https://github.com/ultralytics/ultralytics/issues/24607
+                        model.end2end = False
+                        LOGGER.warning(
+                            "TensorRT versions earlier than 8.5.0 do not support the Mod operator in end-to-end models, disabling the end2end branch. "
+                            "Please upgrade TensorRT to 8.5.0 or later to enable end2end export."
+                        )
+
+                    if self.args.int8 and check_version(trt.__version__, "==10.3.0") and is_jetson(jetpack=6):
+                        # https://github.com/ultralytics/ultralytics/issues/23841
                         model.end2end = False
                         LOGGER.warning(
                             "TensorRT 10.3.0 on JetPack 6 with int8 has known end2end build issues, disabling end2end branch. "
@@ -388,6 +579,9 @@ class Exporter:
             assert self.args.name in RKNN_CHIPS, (
                 f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
             )
+            if self.args.name in {"rv1103", "rv1106", "rv1103b", "rv1106b"} and not self.args.int8:
+                LOGGER.warning(f"Rockchip target '{self.args.name}' requires int8=True, setting int8=True.")
+                self.args.int8 = True
         if fmt == "qnn":
             if not self.args.name:
                 LOGGER.warning(
@@ -644,8 +838,13 @@ class Exporter:
     def export_onnx(self, prefix=colorstr("ONNX:")):
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.12.0,<2.0.0"]
+        if self.args.simplify or (self.args.format == "onnx" and self.args.int8):
+            # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
+            # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
+            ort = "onnxruntime-gpu" if "cuda" in self.device.type else "onnxruntime"
+            requirements += [(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")]
         if self.args.simplify:
-            requirements += ["onnxslim>=0.1.71", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
+            requirements += ["onnxslim>=0.1.82"]
         check_requirements(requirements)
         import onnx
 
@@ -718,6 +917,20 @@ class Exporter:
                 LOGGER.warning(f"{prefix} FP16 conversion failure: {e}")
 
         onnx.save(model_onnx, f)
+        if self.args.int8 and self.args.format == "onnx":
+            from ultralytics.utils.export.onnx import onnx_int8_quantize
+
+            source = Path(f)
+            f_int8 = str(source.with_name(f"{source.stem}_int8{source.suffix}"))
+            f = onnx_int8_quantize(
+                source,
+                f_int8,
+                self.get_int8_calibration_dataloader(prefix),
+                self._transform_fn,
+                batch=0 if self.args.dynamic else self.args.batch,
+                prefix=prefix,
+            )
+            source.unlink(missing_ok=True)
         return f
 
     @try_export
@@ -831,7 +1044,7 @@ class Exporter:
         mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
         from ultralytics.utils.export.coreml import IOSDetectModel, pipeline_coreml, torch2coreml
 
-        # latest numpy 2.4.0rc1 breaks coremltools exports
+        # numpy 2.4.x breaks coremltools CoreML export https://github.com/apple/coremltools/issues/2633
         check_requirements(["coremltools>=9.0", "numpy>=1.14.5,<=2.3.5"])
         import coremltools as ct
 
@@ -939,6 +1152,10 @@ class Exporter:
     @try_export
     def export_saved_model(self, prefix=colorstr("TensorFlow SavedModel:")):
         """Export YOLO model to TensorFlow SavedModel format."""
+        assert not (MACOS and IS_PYTHON_MINIMUM_3_13), (
+            "TensorFlow exports not supported on macOS with Python>=3.13: the ai-edge-litert macOS wheel fails to load "
+            "(missing libpywrap_litert_common.dylib). TensorFlow export works on Linux Python 3.13."
+        )
         from ultralytics.utils.export.tensorflow import onnx2saved_model
 
         f = Path(str(self.file).replace(self.file.suffix, "_saved_model"))
@@ -1047,6 +1264,10 @@ class Exporter:
     @try_export
     def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
         """Export YOLO model to TensorFlow.js format."""
+        assert not IS_PYTHON_MINIMUM_3_13, (
+            "TensorFlow.js export not supported on Python>=3.13: tensorflowjs requires the np.object alias removed "
+            "in NumPy 1.24, but Python 3.13 has no NumPy<2.1 wheels."
+        )
         from ultralytics.utils.export.tensorflow import pb2tfjs
 
         output_dir = pb2tfjs(
@@ -1061,15 +1282,29 @@ class Exporter:
 
     @try_export
     def export_rknn(self, prefix=colorstr("RKNN:")):
-        """Export YOLO model to RKNN format."""
+        """Export YOLO model to RKNN format with optional INT8 quantization."""
         from ultralytics.utils.export.rknn import onnx2rknn
 
         self.args.opset = min(self.args.opset or 19, 19)  # rknn-toolkit expects opset<=19
         f_onnx = self.export_onnx()
+        output_dir = Path(str(self.file).replace(self.file.suffix, f"_rknn_model{os.sep}"))
+        rknn_dataset = None
+        if self.args.int8:
+            dataloader = self.get_int8_calibration_dataloader(prefix)
+            image_paths = getattr(dataloader.dataset, "im_files", None)
+            if image_paths is None and hasattr(dataloader.dataset, "samples"):
+                image_paths = [x[0] for x in dataloader.dataset.samples]
+            if not image_paths:
+                raise ValueError("RKNN INT8 export requires a calibration dataset with image file paths.")
+            output_dir.mkdir(parents=True, exist_ok=True)
+            rknn_dataset = output_dir / "dataset.txt"
+            rknn_dataset.write_text("\n".join(str(Path(x).resolve()) for x in image_paths) + "\n")
         return onnx2rknn(
             onnx_file=f_onnx,
-            output_dir=str(self.file).replace(self.file.suffix, f"_rknn_model{os.sep}"),
+            output_dir=output_dir,
             name=self.args.name,
+            int8=self.args.int8,
+            dataset=rknn_dataset,
             metadata=self.metadata,
             prefix=prefix,
         )
@@ -1099,9 +1334,9 @@ class Exporter:
         )
 
     @try_export
-    def export_deepx(self, prefix=colorstr("DeepX:")):
-        """Export YOLO model to DeepX format."""
-        assert LINUX and not ARM64, "DeepX export only supported on non-aarch64 Linux"
+    def export_deepx(self, prefix=colorstr("DEEPX:")):
+        """Export YOLO model to DEEPX format."""
+        assert LINUX and not ARM64, "DEEPX export only supported on non-aarch64 Linux"
         from ultralytics.utils.export.deepx import onnx2deepx
 
         f = self.export_onnx()
@@ -1127,6 +1362,7 @@ class Exporter:
             transform_fn=self._transform_fn,
             name=self.args.name,
             metadata=self.metadata,
+            batch=0 if self.args.dynamic else self.args.batch,
             prefix=prefix,
         )
 

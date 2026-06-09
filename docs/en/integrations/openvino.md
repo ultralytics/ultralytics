@@ -8,7 +8,7 @@ keywords: YOLO26, OpenVINO, model export, Intel, AI inference, CPU speedup, GPU 
 
 <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ecosystem.avif" alt="OpenVINO Intel AI inference toolkit">
 
-In this guide, we cover exporting YOLO26 models to the [OpenVINO](https://docs.openvino.ai/) format, which can provide up to 3x [CPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/cpu-device.html) speedup, as well as accelerating YOLO inference on Intel [GPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/gpu-device.html) and [NPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/npu-device.html) hardware.
+In this guide, we cover exporting YOLO26 models to the [OpenVINO](https://docs.openvino.ai/) format, which can provide up to 3x [CPU](https://docs.openvino.ai/2025/openvino-workflow/running-inference/inference-devices-and-modes/cpu-device.html) speedup, as well as accelerating YOLO inference on Intel [GPU](https://docs.openvino.ai/2025/openvino-workflow/running-inference/inference-devices-and-modes/gpu-device.html) and [NPU](https://docs.openvino.ai/2025/openvino-workflow/running-inference/inference-devices-and-modes/npu-device.html) hardware.
 
 OpenVINO, short for Open Visual Inference & [Neural Network](https://www.ultralytics.com/glossary/neural-network-nn) Optimization toolkit, is a comprehensive toolkit for optimizing and deploying AI inference models. Even though the name contains Visual, OpenVINO also supports various additional tasks including language, audio, time series, etc.
 
@@ -132,7 +132,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 1. **Performance**: OpenVINO delivers high-performance inference by utilizing the power of Intel CPUs, integrated and discrete GPUs, and FPGAs.
 2. **Support for Heterogeneous Execution**: OpenVINO provides an API to write once and deploy on any supported Intel hardware (CPU, GPU, FPGA, VPU, etc.).
 3. **Model Optimizer**: OpenVINO provides a Model Optimizer that imports, converts, and optimizes models from popular [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) frameworks such as PyTorch, [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), TensorFlow Lite, Keras, ONNX, PaddlePaddle, and Caffe.
-4. **Ease of Use**: The toolkit comes with more than [80 tutorial notebooks](https://github.com/openvinotoolkit/openvino_notebooks) (including [YOLO26 optimization](https://github.com/openvinotoolkit/openvino_notebooks/tree/latest/notebooks/yolov26-optimization)) teaching different aspects of the toolkit.
+4. **Ease of Use**: The toolkit comes with a large collection of [tutorial notebooks](https://github.com/openvinotoolkit/openvino_notebooks) (including [YOLO26 optimization](https://github.com/openvinotoolkit/openvino_notebooks/tree/latest/notebooks/yolov26-optimization)) teaching different aspects of the toolkit.
 
 ## OpenVINO Export Structure
 
@@ -537,7 +537,7 @@ Using Intel's OpenVINO toolkit with YOLO26 models offers several benefits:
 
 1. **Performance**: Achieve up to 3x speedup on CPU inference and leverage Intel GPUs and NPUs for acceleration.
 2. **Model Optimizer**: Convert, optimize, and execute models from popular frameworks like PyTorch, TensorFlow, and ONNX.
-3. **Ease of Use**: Over 80 tutorial notebooks are available to help users get started, including ones for YOLO26.
+3. **Ease of Use**: A large collection of tutorial notebooks is available to help users get started, including ones for YOLO26.
 4. **Heterogeneous Execution**: Deploy models on various Intel hardware with a unified API.
 
 For detailed performance comparisons, visit our [benchmarks section](#openvino-yolo26-benchmarks).

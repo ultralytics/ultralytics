@@ -10,7 +10,13 @@ import torch
 
 from ultralytics.nn.modules import Detect, Pose, Pose26
 from ultralytics.utils import LINUX, LOGGER, MACOS
-from ultralytics.utils.checks import check_apt_requirements, check_requirements, check_version, is_sudo_available
+from ultralytics.utils.checks import (
+    IS_PYTHON_MINIMUM_3_13,
+    check_apt_requirements,
+    check_requirements,
+    check_version,
+    is_sudo_available,
+)
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.files import spaces_in_path
 from ultralytics.utils.tal import make_anchors
@@ -88,19 +94,25 @@ def onnx2saved_model(
     try:
         import tensorflow as tf
     except ImportError:
-        check_requirements("tensorflow>=2.0.0,<=2.19.0")
+        check_requirements("tensorflow>2.19.0" if IS_PYTHON_MINIMUM_3_13 else "tensorflow>=2.0.0,<=2.19.0")
         import tensorflow as tf
     check_requirements(
+        f"onnx2tf{'>=2.3.0,<2.3.16' if IS_PYTHON_MINIMUM_3_13 else '>=1.26.3,<1.29.0'}",  # pin to avoid h5py build issues on aarch64
+        cmds="--no-deps",
+    )
+    check_requirements(
         (
-            "tf_keras<=2.19.0",  # required by 'onnx2tf' package
+            f"tf_keras{'>2.19.0' if IS_PYTHON_MINIMUM_3_13 else '<=2.19.0'}",  # required by 'onnx2tf' package
             "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
             "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
             "ai-edge-litert>=1.2.0" + (",<1.4.0" if MACOS else ""),  # required by 'onnx2tf' package
             "onnx>=1.12.0,<2.0.0",
-            "onnx2tf>=1.26.3,<1.29.0",  # pin to avoid h5py build issues on aarch64
-            "onnxslim>=0.1.71",
+            f"onnx2tf{'>=2.3.0,<2.3.16' if IS_PYTHON_MINIMUM_3_13 else '>=1.26.3,<1.29.0'}",
+            "onnxslim>=0.1.82",
             "onnxruntime-gpu" if cuda else "onnxruntime",
-            "protobuf>=5",
+            "protobuf>=6.31.1,<7.0.0"
+            if IS_PYTHON_MINIMUM_3_13
+            else "protobuf>=5",  # TF>2.19 (Python 3.13) needs protobuf>=6.31.1; cap <7 to match TF gencode and avoid PaddlePaddle segfault
         ),
         cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
     )
@@ -141,6 +153,24 @@ def onnx2saved_model(
 
         onnx.helper.float32_to_bfloat16 = float32_to_bfloat16
 
+    import importlib
+    import inspect
+    import pathlib
+
+    import onnx2tf.ops.TopK as _t
+
+    _path = pathlib.Path(inspect.getfile(_t))
+    _text = _path.read_text()
+    _patched = _text.replace(
+        "k_tensor = int(k_tensor)",
+        "k_tensor = int(k_tensor.squeeze()) if hasattr(k_tensor, 'squeeze') else int(k_tensor)",
+    )
+    if _patched != _text:  # write only when unpatched; site-packages may be read-only (pre-patched containers)
+        try:
+            _path.write_text(_patched)
+            importlib.reload(_t)
+        except OSError as e:  # read-only install: continue unpatched, only TopK-containing models are affected
+            LOGGER.warning(f"{prefix} unable to apply onnx2tf TopK patch: {e}")
     import onnx2tf  # scoped for after ONNX export for reduced conflict during import
 
     LOGGER.info(f"{prefix} starting TFLite export with onnx2tf {onnx2tf.__version__}...")

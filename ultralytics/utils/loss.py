@@ -1050,7 +1050,7 @@ class v8OBBLoss(v8DetectionLoss):
             ) from e
 
         # Pboxes
-        pred_bboxes = self.bbox_decode(anchor_points, pred_distri, pred_angle)  # xyxy, (b, h*w, 4)
+        pred_bboxes = self.bbox_decode(anchor_points, pred_distri, pred_angle)  # xywhr, (b, h*w, 5)
 
         bboxes_for_assigner = pred_bboxes.clone().detach()
         # Only the first four elements need to be scaled

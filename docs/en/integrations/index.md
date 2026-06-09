@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Discover Ultralytics integrations for streamlined ML workflows, dataset management, optimized model training, and robust deployment solutions.
-keywords: Ultralytics, machine learning, ML workflows, dataset management, model training, model deployment, Roboflow, ClearML, Comet ML, DVC, MLFlow, Ultralytics Platform, Neptune, Ray Tune, TensorBoard, Weights & Biases, Amazon SageMaker, Paperspace Gradient, Google Colab, Neural Magic, Gradio, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TFLite, TFLite Edge TPU, TF.js, PaddlePaddle, NCNN
+keywords: Ultralytics, machine learning, ML workflows, dataset management, model training, model deployment, Roboflow, ClearML, Comet ML, DVC, MLFlow, Ultralytics Platform, Neptune, Ray Tune, TensorBoard, Weights & Biases, Amazon SageMaker, Paperspace Gradient, Google Colab, Neural Magic, Gradio, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TFLite, TFLite Edge TPU, TF.js, PaddlePaddle, NCNN, Hailo, Hailo HEF, Qualcomm QNN, RKNN, edge AI
 ---
 
 # Ultralytics Integrations
@@ -65,11 +65,13 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [CoreML](coreml.md): CoreML, developed by [Apple](https://www.apple.com/), is a framework designed for efficiently integrating machine learning models into applications across iOS, macOS, watchOS, and tvOS, using Apple's hardware for effective and secure [model deployment](https://www.ultralytics.com/glossary/model-deployment).
 
-- [DeepX](deepx.md): Export Ultralytics YOLO models to the DeepX `.dxnn` format for power-efficient INT8 inference on DeepX NPU hardware, targeting embedded and edge AI applications.
+- [DEEPX](deepx.md): Export Ultralytics YOLO models to the DEEPX `.dxnn` format for power-efficient INT8 inference on DEEPX NPU hardware, targeting embedded and edge AI applications.
 
 - [ExecuTorch](executorch.md): Developed by [Meta](https://about.meta.com/), ExecuTorch is PyTorch's unified solution for deploying Ultralytics YOLO models on edge devices.
 
 - [Gradio](gradio.md): Deploy Ultralytics models with Gradio for real-time, interactive object detection demos.
+
+- [Hailo](hailo.md): Convert Ultralytics YOLO detection models from ONNX to Hailo HEF with Hailo's external Dataflow Compiler for Hailo-8, Hailo-8L, Raspberry Pi AI Kit, and Hailo-15 devices.
 
 - [MNN](mnn.md): Developed by [Alibaba](https://www.alibabagroup.com/), MNN is a highly efficient and lightweight deep learning framework. It supports inference and training of deep learning models and has industry-leading performance for inference and training on-device.
 

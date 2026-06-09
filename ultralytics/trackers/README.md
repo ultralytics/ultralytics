@@ -234,9 +234,9 @@ Multithreaded tracking allows running object tracking on multiple video streams 
 
 This Python script utilizes Python's [`threading`](https://docs.python.org/3/library/threading.html) module for concurrent tracker execution. Each thread manages tracking for a single video file.
 
-The `run_tracker_in_thread` function accepts parameters like the video file path, model, and a unique window index. It contains the main tracking loop, reading frames, running the tracker, and displaying results in a dedicated window.
+The `run_tracker_in_thread` function accepts a model name and a video source. It loads the model and runs the tracker in streaming mode, consuming results as they are produced.
 
-This example uses two models, `yolo26n.pt` and `yolo26n-seg.pt`, tracking objects in `video_file1` and `video_file2`, respectively.
+This example uses two models, `yolo26n.pt` and `yolo26n-seg.pt`, each tracking objects from a different source in the `SOURCES` list.
 
 Setting `daemon=True` in `threading.Thread` ensures threads exit when the main program finishes. Threads are started with `start()` and the main thread waits for their completion using `join()`.
 

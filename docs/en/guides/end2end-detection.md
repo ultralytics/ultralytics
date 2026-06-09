@@ -20,7 +20,7 @@ For a deeper look at the motivation behind this architectural shift, see the [Ul
 
     - **Using the Ultralytics API or CLI?** No changes needed — just swap your model name to `yolo26n.pt`.
     - **Using custom inference code (ONNX Runtime, TensorRT, etc.)?** Update your post-processing — detection output is now `(N, 300, 6)` in `xyxy` format, no NMS required. Other tasks append extra data (mask coefficients, keypoints, or angle).
-    - **Exporting?** Most formats support end-to-end output natively. However, a few formats (NCNN, RKNN, PaddlePaddle, ExecuTorch, IMX, and Edge TPU) automatically fall back to traditional output due to unsupported operator constraints (e.g., `torch.topk`).
+    - **Exporting?** Most formats support end-to-end output natively. However, a few formats (NCNN, RKNN, PaddlePaddle, ExecuTorch, IMX, Edge TPU, and QNN) automatically fall back to traditional output due to unsupported operator constraints (e.g., `torch.topk`). Hailo HEF workflows compile from ONNX with Hailo-specific scripts, so verify the detection head and NMS configuration for your model.
 
 ## How End-to-End Detection Works
 
@@ -141,9 +141,11 @@ The following formats **do not** support end-to-end and automatically fall back 
 
     When you export to one of these formats, Ultralytics automatically switches to the one-to-many head and logs a warning — no manual intervention needed. This means **you'll need NMS in your inference pipeline** for these formats, just like with [YOLOv8](../models/yolov8.md) or [YOLO11](../models/yolo11.md).
 
+For [Hailo HEF](../integrations/hailo.md), the compile step happens outside `model.export(format=...)` after an ONNX export. Use the Hailo DFC logs, `.alls` model script, and NMS JSON that match your exact detection model; if an end-to-end YOLO26 graph is not supported by your Hailo toolchain, export the ONNX model with `end2end=False` and compile the traditional detection head.
+
 !!! note "TensorRT + INT8"
 
-    [TensorRT](../integrations/tensorrt.md) supports end-to-end, but it is **auto-disabled** when exporting with `int8=True` on TensorRT ≤10.3.0.
+    [TensorRT](../integrations/tensorrt.md) supports end-to-end, but it is **auto-disabled** when exporting with `int8=True` on TensorRT 10.3.0 on JetPack 6.
 
 ## Accuracy and Speed Tradeoffs
 
@@ -167,7 +169,7 @@ If you're upgrading an existing project to YOLO26, here's a quick checklist to e
 - **Ultralytics API / CLI users:** No changes needed — just update the model name to `yolo26n.pt` (or `yolo26n-seg.pt`, `yolo26n-pose.pt`, `yolo26n-obb.pt`)
 - **Custom post-processing code:** Update to handle the new output shapes — `(N, 300, 6)` for detection, plus task-specific data for [segmentation](../tasks/segment.md), [pose](../tasks/pose.md), and [OBB](../tasks/obb.md). Also note the box format change from `xywh` to `xyxy`
 - **Export pipelines:** Check the [format compatibility](#export-format-compatibility) section above for your target format
-- **TensorRT + INT8:** Verify your TensorRT version is >10.3.0 for end-to-end support
+- **TensorRT + INT8:** On JetPack 6, TensorRT 10.3.0 auto-disables end-to-end with `int8=True` — use a different TensorRT version to keep end-to-end
 - **FP16 exports:** If you need all outputs in FP16, export with `end2end=False` — see [why output0 stays FP32](../modes/export.md#why-is-output0-fp32-when-exporting-with-halftrue-and-end2endtrue)
 - **iOS / CoreML:** End-to-end is fully supported. If you need Xcode Preview support, use `end2end=False` with `nms=True`
 - **Edge devices (NCNN, RKNN):** These formats auto-fallback to one-to-many, so include NMS in your on-device pipeline

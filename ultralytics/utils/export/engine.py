@@ -161,10 +161,12 @@ def onnx2engine(
         config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace_bytes)
     elif workspace_bytes > 0:  # TensorRT versions 7, 8
         config.max_workspace_size = workspace_bytes
-    flag = 1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
+    # EXPLICIT_BATCH flag is removed in TensorRT 10 (explicit batch is the only/default mode); keep it for TRT 7/8
+    flag = 0 if is_trt10 else (1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH))
     network = builder.create_network(flag)
-    half = builder.platform_has_fast_fp16 and half
-    int8 = builder.platform_has_fast_int8 and int8
+    # platform_has_fast_fp16/int8 were removed from the Builder in TensorRT 10; default to True when absent
+    half = getattr(builder, "platform_has_fast_fp16", True) and half
+    int8 = getattr(builder, "platform_has_fast_int8", True) and int8
 
     # Optionally switch to DLA if enabled
     if dla is not None:

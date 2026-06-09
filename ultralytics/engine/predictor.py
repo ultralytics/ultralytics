@@ -32,7 +32,7 @@ Usage - formats:
                               yolo26n_rknn_model         # Rockchip RKNN
                               yolo26n_executorch_model   # PyTorch Executorch
                               yolo26n_axelera_model      # Axelera AI
-                              yolo26n_deepx_model        # DeepX
+                              yolo26n_deepx_model        # DEEPX
                               yolo26n_qnn_model          # Qualcomm QNN
 """
 
@@ -436,7 +436,7 @@ class BasePredictor:
             frame = self.dataset.count
         else:
             match = re.search(r"frame (\d+)/", s[i])
-            frame = int(match[1]) if match else None  # 0 if frame undetermined
+            frame = int(match[1]) if match else None  # None if frame undetermined
 
         self.txt_path = self.save_dir / "labels" / (p.stem + ("" if self.dataset.mode == "image" else f"_{frame}"))
         string += "{:g}x{:g} ".format(*im.shape[2:])

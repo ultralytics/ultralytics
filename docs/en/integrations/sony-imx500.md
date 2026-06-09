@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn to export Ultralytics YOLO11 models to Sony's IMX500 format for efficient edge AI deployment on Raspberry Pi AI Camera with on-chip processing.
-keywords: Sony, IMX500, IMX 500, Atrios, MCT, model export, quantization, pruning, deep learning optimization, Raspberry Pi AI Camera, edge AI, PyTorch, IMX
+keywords: Sony, IMX500, IMX 500, AITRIOS, MCT, model export, quantization, pruning, deep learning optimization, Raspberry Pi AI Camera, edge AI, PyTorch, IMX
 ---
 
 # Sony IMX500 Export for Ultralytics YOLO11
@@ -357,7 +357,7 @@ Step 5: Run YOLO11 object detection, pose estimation, classification and segment
                 return pp_od_yolo_ultralytics(output_tensors)
 
 
-        device = AiCamera(frame_rate=16)  # Optimal frame rate for maximum DPS of the YOLO model running on the AI Camera
+        device = AiCamera(frame_rate=16)  # Optimal frame rate for maximum FPS of the YOLO model running on the AI Camera
         model = YOLO()
         device.deploy(model)
 
@@ -398,7 +398,7 @@ Step 5: Run YOLO11 object detection, pose estimation, classification and segment
                 return pp_yolo_pose_ultralytics(output_tensors)
 
 
-        device = AiCamera(frame_rate=17)  # Optimal frame rate for maximum DPS of the YOLO-pose model running on the AI Camera
+        device = AiCamera(frame_rate=17)  # Optimal frame rate for maximum FPS of the YOLO-pose model running on the AI Camera
         model = YOLOPose()
         device.deploy(model)
 
@@ -491,7 +491,7 @@ Step 5: Run YOLO11 object detection, pose estimation, classification and segment
                 return pp_yolo_segment_ultralytics(output_tensors)
 
 
-        device = AiCamera(frame_rate=17)  # Optimal frame rate for maximum DPS of the YOLO-seg model running on the AI Camera
+        device = AiCamera(frame_rate=17)  # Optimal frame rate for maximum FPS of the YOLO-seg model running on the AI Camera
         model = YOLOSegment()
         device.deploy(model)
 
@@ -638,8 +638,8 @@ Software:
 
 Based on Ultralytics benchmarks on Raspberry Pi AI Camera:
 
-- YOLO11n achieves 62.50ms inference time per image
-- mAP50-95 of 0.492 on COCO128 dataset
-- Model size of only 3.2MB after quantization
+- YOLO11n achieves 58.82ms inference time per image
+- mAP50-95 of 0.517 on COCO128 dataset
+- Model size of only 2.2MB after quantization
 
 This demonstrates that IMX500 format provides efficient real-time inference while maintaining good accuracy for edge AI applications.

@@ -33,7 +33,7 @@ class SourceTypes:
     Attributes:
         stream (bool): Flag indicating if the input source is a video stream.
         screenshot (bool): Flag indicating if the input source is a screenshot.
-        from_img (bool): Flag indicating if the input source is an image file.
+        from_img (bool): Flag indicating if the input source is an in-memory image (PIL/numpy) or list of images.
         tensor (bool): Flag indicating if the input source is a tensor.
 
     Examples:
@@ -153,7 +153,7 @@ class LoadStreams:
 
     def update(self, i: int, cap: cv2.VideoCapture, stream: str):
         """Read stream frames in daemon thread and update image buffer."""
-        n, f = 0, self.frames[i]  # frame number, frame array
+        n, f = 0, self.frames[i]  # frame number, total frames
         while self.running and cap.isOpened() and n < (f - 1):
             if len(self.imgs[i]) < 30:  # keep a <=30-image buffer
                 n += 1
@@ -220,7 +220,7 @@ class LoadStreams:
 
     def __len__(self) -> int:
         """Return the number of video streams in the LoadStreams object."""
-        return self.bs  # 1E12 frames = 32 streams at 30 FPS for 30 years
+        return self.bs
 
 
 class LoadScreenshots:

@@ -607,7 +607,7 @@ def check_onnx_requirements(cuda=False, simplify=False, int8=False, format="onnx
 def check_onnx_inference_requirements(cuda=False):
     """Check ONNX inference requirements."""
     ort = ONNXRUNTIME_GPU_REQUIREMENTS if cuda else ONNXRUNTIME_CPU_REQUIREMENTS
-    check_requirements((ONNX_REQUIREMENTS, ort))
+    check_requirements(("onnx", ort))
 
 
 def check_imx_export_requirements():
@@ -619,7 +619,7 @@ def check_imx_export_requirements():
 def check_imx_inference_requirements():
     """Check IMX inference requirements."""
     check_requirements(IMX_BASE_REQUIREMENTS + (IMX_BACKEND_REQUIREMENTS,))
-    check_requirements((ONNX_REQUIREMENTS, ONNXRUNTIME_CPU_REQUIREMENTS))
+    check_requirements(("onnx", ONNXRUNTIME_CPU_REQUIREMENTS))
 
 
 def check_paddle_requirements(export=False):

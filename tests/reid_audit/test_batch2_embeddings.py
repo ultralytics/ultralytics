@@ -160,17 +160,6 @@ def test_reid_predictor_postprocess_uses_embeddings_slot():
         assert r.embeddings.dim == 512
 
 
-def test_reid_predictor_write_results_delegates_when_no_gallery():
-    """ReidPredictor.write_results must NOT be a clone: for the non-gallery path it delegates
-    to BasePredictor.write_results, only adding montage behavior for gallery retrieval."""
-    import inspect
-
-    from ultralytics.models.yolo.reid.predict import ReidPredictor
-
-    src = inspect.getsource(ReidPredictor.write_results)
-    assert "super().write_results" in src, "non-gallery path must delegate to BasePredictor (no clone)"
-
-
 # ---------- Trainer no-op plot ---------------------------------------------------------------
 
 

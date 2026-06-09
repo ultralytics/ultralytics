@@ -76,8 +76,7 @@ jobs:
           fi
           uv pip install "${uv_system_args[@]}" -e ".[export,export-executorch]" \
             ncnn pnnx "coverage[toml]" \
-            --extra-index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.ngc.nvidia.com \
-            --index-strategy unsafe-best-match
+            --torch-backend cpu
       - name: Check environment
         run: |
           yolo checks
@@ -157,8 +156,7 @@ jobs:
           fi
           uv pip install -e ".[export-base,solutions]" \
             $torch aiohttp pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
-            --extra-index-url https://download.pytorch.org/whl/cpu \
-            --index-strategy unsafe-best-match
+            --torch-backend cpu
       - name: Check environment
         run: |
           yolo checks
@@ -317,7 +315,7 @@ jobs:
           fi
           uv pip install -e ".[export-base,solutions${legacy_extra}]" $torch \
             aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist "${clip_package[@]}" \
-            --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+            --torch-backend cpu
       - name: Check environment
         run: |
           yolo checks
@@ -379,7 +377,7 @@ jobs:
           restore-keys: |
             isolated-exports-uv-
       - name: Install base package
-        run: uv pip install --system -e ".[export-base]" pytest "git+https://github.com/ultralytics/CLIP.git" --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+        run: uv pip install --system -e ".[export-base]" pytest "git+https://github.com/ultralytics/CLIP.git" --torch-backend cpu
       - name: Configure Ultralytics cache paths
         run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
       - name: Cache test assets
@@ -464,7 +462,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7
       - name: Install requirements
         run: |
-          uv pip install -e ".[export]" pytest pytest-xdist mlflow faster-coco-eval --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install -e ".[export]" pytest pytest-xdist mlflow faster-coco-eval --torch-backend cpu
       - name: Check environment
         run: |
           yolo checks
@@ -489,7 +487,7 @@ jobs:
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
         run: |
-          uv pip install -e ".[export]" pytest mlflow faster-coco-eval --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install -e ".[export]" pytest mlflow faster-coco-eval --torch-backend cpu
       - name: Check environment
         run: |
           yolo checks

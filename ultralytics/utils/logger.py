@@ -307,13 +307,13 @@ class SystemLogger:
         >>> logger = SystemLogger()
         >>> metrics = logger.get_metrics()
         >>> print(f"CPU: {metrics['cpu']}%, RAM: {metrics['ram']}%")
-        >>> for disk in metrics["disk"]:
+        >>> for disk in metrics["disks"]:
         ...     print(f"{disk['mount']}: {disk['used_gb']}/{disk['total_gb']} GB")
 
         Monitor all drives:
         >>> logger = SystemLogger(all_drives=True)
         >>> metrics = logger.get_metrics()
-        >>> for disk in metrics["disk"]:
+        >>> for disk in metrics["disks"]:
         ...     print(f"{disk['mount']}: {disk['used_gb']}/{disk['total_gb']} GB")
 
         Training loop integration:
@@ -337,6 +337,7 @@ class SystemLogger:
         self.nvidia_initialized = self._init_nvidia()
         self.net_start = psutil.net_io_counters()
         self.disk_start = psutil.disk_io_counters()
+        self.mounts = self._get_mounts(psutil)
 
         # For rate calculation
         self._prev_net = self.net_start
@@ -360,6 +361,12 @@ class SystemLogger:
                 LOGGER.warning(f"SystemLogger NVML init failed: {e}")
             return False
 
+    def _get_mounts(self, psutil):
+        """Get disk mount points to monitor."""
+        if not self.all_drives:
+            return [Path.cwd().anchor or "/"]
+        return sorted({p.mountpoint for p in psutil.disk_partitions(all=False)})
+
     def get_metrics(self, rates=False):
         """Get current system metrics including CPU, RAM, disk, network, and GPU usage.
 
@@ -371,7 +378,8 @@ class SystemLogger:
         {
             "cpu": 45.2,
             "ram": 78.9,
-            "disk": [{"mount": "/", "read_mb": 156.7, "write_mb": 89.3, "used_gb": 256.8, "total_gb": 512.0}],
+            "disk": {"read_mb": 156.7, "write_mb": 89.3, "used_gb": 256.8},
+            "disks": [{"mount": "/", "used_gb": 256.8, "total_gb": 512.0}],
             "network": {"recv_mb": 157.2, "sent_mb": 89.1},
             "gpus": {
                 "0": {"usage": 95.6, "memory": 85.4, "temp": 72, "power": 285},
@@ -385,7 +393,8 @@ class SystemLogger:
         {
             "cpu": 45.2,
             "ram": 78.9,
-            "disk": [{"mount": "/", "read_mbs": 12.5, "write_mbs": 8.3, "used_gb": 256.8, "total_gb": 512.0}],
+            "disk": {"read_mbs": 12.5, "write_mbs": 8.3, "used_gb": 256.8},
+            "disks": [{"mount": "/", "used_gb": 256.8, "total_gb": 512.0}],
             "network": {"recv_mbs": 5.2, "sent_mbs": 1.1},
             "gpus": {
                 "0": {"usage": 95.6, "memory": 85.4, "temp": 72, "power": 285},
@@ -424,39 +433,41 @@ class SystemLogger:
             write_val = round((disk_io.write_bytes - self.disk_start.write_bytes) / (1 << 20), 3)
             read_key, write_key = "read_mb", "write_mb"
 
-        # Collect drive usage data as a list (physical volumes only)
-        if self.all_drives:
-            mounts = []
-            for p in psutil.disk_partitions(all=False):
-                m = p.mountpoint
-                # Include root, /Volumes/* (macOS external), and standard Linux/Windows mounts
-                if m == "/" or m.startswith("/Volumes/") or (len(m) == 3 and m[1:] == ":\\"):
-                    mounts.append(m)
-                # Linux: include /home, /mnt/*, /media/* but not system paths
-                elif m in {"/home"} or m.startswith(("/mnt/", "/media/")):
-                    mounts.append(m)
-        else:
-            mounts = ["/"]
-        disk = []
-        for mount in mounts:
+        disks = []
+        root_usage = None
+        for mount in self.mounts:
             try:
                 usage = shutil.disk_usage(mount)
-                disk.append(
+                root_usage = root_usage or usage
+                disks.append(
                     {
                         "mount": mount,
-                        read_key: read_val,
-                        write_key: write_val,
                         "used_gb": round(usage.used / (1 << 30), 3),
                         "total_gb": round(usage.total / (1 << 30), 3),
                     }
                 )
             except (PermissionError, OSError):
                 continue  # Skip inaccessible drives
+        if not disks:
+            root_mount = Path.cwd().anchor or "/"
+            root_usage = shutil.disk_usage(root_mount)
+            disks.append(
+                {
+                    "mount": root_mount,
+                    "used_gb": round(root_usage.used / (1 << 30), 3),
+                    "total_gb": round(root_usage.total / (1 << 30), 3),
+                }
+            )
 
         metrics = {
             "cpu": round(psutil.cpu_percent(), 3),
             "ram": round(memory.percent, 3),
-            "disk": disk,
+            "disk": {
+                read_key: read_val,
+                write_key: write_val,
+                "used_gb": round(root_usage.used / (1 << 30), 3),
+            },
+            "disks": disks,
             "gpus": {},
         }
 
@@ -528,11 +539,8 @@ if __name__ == "__main__":
 
             # Display disk metrics
             print("\nDisk Metrics:")
-            for disk in metrics["disk"]:
-                print(
-                    f"  {disk['mount']}: {disk['used_gb']:.1f}/{disk['total_gb']:.1f} GB | "
-                    f"R: {disk['read_mb']:.1f} MB | W: {disk['write_mb']:.1f} MB"
-                )
+            for disk in metrics["disks"]:
+                print(f"  {disk['mount']}: {disk['used_gb']:.1f}/{disk['total_gb']:.1f} GB")
 
             # Display GPU metrics if available
             if metrics["gpus"]:

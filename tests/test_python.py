@@ -544,6 +544,19 @@ def test_utils_init():
     is_github_action_running()
 
 
+def test_system_logger_disk_contract(monkeypatch):
+    """Test SystemLogger keeps aggregate disk I/O and reports per-mount usage separately."""
+    from ultralytics.utils.logger import SystemLogger
+
+    monkeypatch.setattr(SystemLogger, "_init_nvidia", lambda self: False)
+
+    metrics = SystemLogger(all_drives=True).get_metrics(rates=True)
+
+    assert {"read_mbs", "write_mbs", "used_gb"} <= metrics["disk"].keys()
+    assert isinstance(metrics["disks"], list) and metrics["disks"]
+    assert {"mount", "used_gb", "total_gb"} <= metrics["disks"][0].keys()
+
+
 def test_utils_checks():
     """Test various utility checks for filenames, requirements, image sizes, display capabilities, and versions."""
     checks.check_yolov5u_filename("yolov5n.pt")

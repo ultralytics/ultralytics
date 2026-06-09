@@ -99,17 +99,9 @@ def isolated_model(tmp_path):
     intermediate/export files. This fixture copies the shared model to a per-test temporary directory so each test
     exports to a unique path.
     """
-    from tests import MODEL
+    from tests import MODEL, isolated_model_path
 
-    if not Path(MODEL).exists():
-        from ultralytics.utils.downloads import attempt_download_asset
-
-        MODEL.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy(attempt_download_asset("yolo26n.pt"), MODEL)
-
-    dst = tmp_path / "model.pt"
-    shutil.copy(MODEL, dst)
-    return str(dst)
+    return isolated_model_path(tmp_path, MODEL)
 
 
 def pytest_sessionfinish(session, exitstatus):

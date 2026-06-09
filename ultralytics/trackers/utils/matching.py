@@ -121,10 +121,15 @@ def embedding_distance(tracks: list, detections: list, metric: str = "cosine") -
     cost_matrix = np.zeros((len(tracks), len(detections)), dtype=np.float32)
     if cost_matrix.size == 0:
         return cost_matrix
-    det_features = np.asarray([track.curr_feat for track in detections], dtype=np.float32)
-    # for i, track in enumerate(tracks):
-    # cost_matrix[i, :] = np.maximum(0.0, cdist(track.smooth_feat.reshape(1,-1), det_features, metric))
-    track_features = np.asarray([track.smooth_feat for track in tracks], dtype=np.float32)
+    # A zero-norm embedding is skipped upstream, leaving curr_feat/smooth_feat None. Stack a zero placeholder so the
+    # array isn't ragged, then (below) force any missing-feature pair to the maximum distance so callers ignore
+    # appearance and fall back to motion/IoU rather than crashing or treating it as a partial match.
+    track_feats = [t.smooth_feat for t in tracks]
+    det_feats = [d.curr_feat for d in detections]
+    feat_dim = next((len(f) for f in (*track_feats, *det_feats) if f is not None), 0)
+    zeros = np.zeros(feat_dim, dtype=np.float32)
+    track_features = np.asarray([f if f is not None else zeros for f in track_feats], dtype=np.float32)
+    det_features = np.asarray([f if f is not None else zeros for f in det_feats], dtype=np.float32)
     if metric == "cosine":
         track_norm = np.linalg.norm(track_features, axis=1, keepdims=True)
         det_norm = np.linalg.norm(det_features, axis=1, keepdims=True).T
@@ -134,6 +139,12 @@ def embedding_distance(tracks: list, detections: list, metric: str = "cosine") -
 
         cost_matrix = cdist(track_features, det_features, metric)
     cost_matrix = np.maximum(0.0, cost_matrix)  # Normalized features
+    missing_t = [i for i, f in enumerate(track_feats) if f is None]
+    missing_d = [j for j, f in enumerate(det_feats) if f is None]
+    if missing_t:
+        cost_matrix[missing_t] = 2.0  # max cosine distance -> caller's /2 then appearance gate ignores the pair
+    if missing_d:
+        cost_matrix[:, missing_d] = 2.0
     return cost_matrix
 
 

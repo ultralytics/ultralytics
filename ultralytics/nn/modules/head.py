@@ -1825,6 +1825,10 @@ class RTDETRDecoderV2(RTDETRDecoder):
             learnt_init_query (bool): Whether to learn initial query embeddings.
             efficient_ms (bool): Enable round-robin single-level cross-attention per decoder layer.
         """
+        # Allow YAML to pass act as a string name (e.g. "relu", "silu") since YAML cannot represent
+        # nn.Module instances directly. Strings are resolved to module instances before super init.
+        if isinstance(act, str):
+            act = {"relu": nn.ReLU(), "gelu": nn.GELU(), "silu": nn.SiLU()}[act]
         super().__init__(
             nc, ch, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx,
             nd, label_noise_ratio, box_noise_scale, learnt_init_query,

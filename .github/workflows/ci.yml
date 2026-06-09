@@ -46,6 +46,9 @@ on:
 jobs:
   Benchmarks:
     if: github.event_name != 'workflow_dispatch' || github.event.inputs.benchmarks == 'true'
+    permissions:
+      contents: read
+      id-token: write
     runs-on: ${{ matrix.os }}
     env:
       # Keep benchmark jobs hermetic so missing export deps fail during setup instead of mutating mid-run.
@@ -110,8 +113,8 @@ jobs:
         uses: codecov/codecov-action@v7
         with:
           flags: Benchmarks
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          use_oidc: true
       - name: Prune uv Cache
         run: uv cache prune --ci
       - name: Benchmark Summary
@@ -123,6 +126,9 @@ jobs:
 
   Tests:
     if: github.event_name == 'pull_request' || github.event_name == 'push'
+    permissions:
+      contents: read
+      id-token: write
     timeout-minutes: 60
     runs-on: ${{ matrix.os }}
     strategy:
@@ -190,8 +196,8 @@ jobs:
         uses: codecov/codecov-action@v7
         with:
           flags: Tests
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          use_oidc: true
       - name: Prune uv Cache
         run: uv cache prune --ci
 
@@ -410,6 +416,9 @@ jobs:
 
   GPU:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
+    permissions:
+      contents: read
+      id-token: write
     timeout-minutes: 60
     runs-on: gpu-latest
     env:
@@ -442,8 +451,8 @@ jobs:
         uses: codecov/codecov-action@v7
         with:
           flags: GPU
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          use_oidc: true
 
   # Raspberry Pi stays separate because it is a long-tail self-hosted runner with its own setup and cleanup flow.
   RaspberryPi:

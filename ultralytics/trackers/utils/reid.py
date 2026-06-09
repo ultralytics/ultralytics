@@ -1,9 +1,11 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Shared ReID encoder used by BoT-SORT, Deep OC-SORT, and TrackTrack.
 
-* `.pt` YOLO checkpoints — loaded via `YOLO()`; embeddings are pulled from the second-to-last
-layer through the predictor's `embed=[...]` argument (works with classification and ReID
-backbones).
+* `.pt` reid-task checkpoints (`task == "reid"`) — loaded via `YOLO()` and run normally; the
+trained ReID head's L2-normalized embedding is read from `Results.embeddings`, and the crop
+size is taken from the model's training `imgsz`.
+* Other `.pt` checkpoints (e.g. classification) — loaded via `YOLO()`; embeddings are pulled
+from the second-to-last layer through the predictor's `embed=[...]` argument.
 * Any other extension (`.torchscript`, `.onnx`, `.engine`, `.openvino`, …) — loaded via
 `AutoBackend`; the model is expected to output the embedding tensor directly.
 """
@@ -43,10 +45,21 @@ class ReID:
             from ultralytics import YOLO
 
             self.model = YOLO(model)
-            # Initialize predictor with embed=[idx] so subsequent calls return embeddings.
-            self.model(embed=[len(self.model.model.model) - 2], verbose=False, save=False)
+            # ReID-task checkpoints have a trained head whose inference output IS the
+            # L2-normalized embedding; run them normally and read Results.embeddings.
+            # Everything else (e.g. yolo*-cls.pt) uses the generic second-to-last-layer tap.
+            self.is_reid = getattr(self.model, "task", None) == "reid"
+            if self.is_reid:
+                margs = getattr(self.model.model, "args", None)
+                self.imgsz = int(
+                    margs.get("imgsz", self.imgsz) if isinstance(margs, dict) else getattr(margs, "imgsz", self.imgsz)
+                )
+                self.model(embed=None, imgsz=self.imgsz, verbose=False, save=False)  # warm up ReidPredictor
+            else:
+                self.model(embed=[len(self.model.model.model) - 2], verbose=False, save=False)
             self.fp16 = False
         else:
+            self.is_reid = False
             self.model = AutoBackend(str(model), device=self.device, fp16=fp16, verbose=False)
             self.fp16 = self.model.fp16
 
@@ -89,6 +102,9 @@ class ReID:
         """Extract embeddings for detected objects."""
         if self.is_pt:
             crops = self._crop_detections(img, dets)
+            if self.is_reid:  # ReidPredictor returns Results; pull the head's normalized embedding
+                results = self.model.predictor(crops)
+                return [r.embeddings.data.cpu().numpy() for r in results]
             feats = self.model.predictor(crops)
             if len(feats) != dets.shape[0] and feats[0].shape[0] == dets.shape[0]:
                 feats = feats[0]  # batched prediction with non-PyTorch backend

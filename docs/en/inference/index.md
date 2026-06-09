@@ -18,7 +18,7 @@ The project ships as a single crate, `ultralytics-inference`, that you can use t
 
 ## Why Rust inference?
 
-- **Native speed and a small footprint.** Compiles to a single self-contained binary with no interpreter, ideal for servers, containers, and [edge devices](https://www.ultralytics.com/glossary/edge-ai).
+- **Native speed and a small footprint.** Compiles to a native binary with no interpreter, ideal for servers, containers, and [edge devices](https://www.ultralytics.com/glossary/edge-ai).
 - **Memory safety.** Rust's ownership model removes whole classes of runtime errors without a garbage collector.
 - **All YOLO tasks.** Detect, segment, pose, OBB, classify, and semantic segmentation from one API.
 - **Broad hardware support.** CPU plus CUDA, TensorRT, CoreML, OpenVINO, DirectML, ROCm, and XNNPACK execution providers selected at build time.
@@ -60,10 +60,10 @@ Rust 1.89 or newer is required. The [video](#cargo-features) feature additionall
 
 ## CLI quickstart
 
-The CLI exposes a `predict` subcommand. With no arguments it downloads a nano detection model and a sample image, runs inference, and saves the annotated result to `runs/detect/predict`.
+The CLI exposes a `predict` subcommand. With no arguments it downloads a nano detection model and sample images, runs inference, and saves the annotated results to `runs/detect/predict`.
 
 ```bash
-# Detect on the built-in sample (downloads model and image)
+# Detect on the built-in samples (downloads model and images)
 ultralytics-inference predict
 
 # Detect on your own image
@@ -142,7 +142,7 @@ let mut model = YOLOModel::load_with_config("yolo26n.onnx", config)?;
 let results = model.predict("image.jpg")?;
 ```
 
-Each task populates a different field on `Results`. Each tab below is a complete, runnable program; the model and a sample image download automatically on first run. Swap `predict_default()` for `predict("image.jpg")` to run on your own files.
+Each task populates a different field on `Results`. Each tab below is a complete, runnable program; the model and sample inputs download automatically on first run. Swap `predict_default()` for `predict("image.jpg")` to run on your own files.
 
 === "Detect"
 
@@ -310,6 +310,18 @@ All Ultralytics [tasks](../tasks/index.md) are supported. When `--model` is omit
 | Classification        | `classify` | Class probabilities           | `yolo26n-cls.onnx`  |
 | Semantic segmentation | `semantic` | Per-pixel class map           | `yolo26n-sem.onnx`  |
 
+## Model compatibility
+
+Any Ultralytics model exported to ONNX can be loaded from a local file. Auto-download is available for standard YOLO26, YOLO11, and YOLOv8 model names in sizes `n`, `s`, `m`, `l`, and `x`:
+
+| Model family | Auto-downloadable variants                                                                |
+| ------------ | ----------------------------------------------------------------------------------------- |
+| YOLO26       | `yolo26{n,s,m,l,x}.onnx`, `-seg`, `-pose`, `-obb`, `-cls`, and `-sem`                     |
+| YOLO11       | `yolo11{n,s,m,l,x}.onnx`, `-seg`, `-pose`, `-obb`, and `-cls`                             |
+| YOLOv8       | `yolov8{n,s,m,l,x}.onnx`, `-seg`, `-pose`, `-obb`, and `-cls`                             |
+
+Semantic segmentation (`-sem`) is YOLO26-only.
+
 ## Input sources
 
 The `--source` argument (and the `Source` type in the library) accepts many input kinds, auto-detected from the string:
@@ -320,8 +332,8 @@ The `--source` argument (and the `Source` type in the library) accepts many inpu
 | Directory | `images/`                       | All images in the folder.     |
 | Glob      | `images/*.jpg`                  | Shell-style pattern.          |
 | Video     | `video.mp4`                     | Requires the `video` feature. |
-| Webcam    | `0`                             | Device index.                 |
-| Stream    | `rtsp://...`                    | RTSP, RTMP, or HTTP stream.   |
+| Webcam    | `0`                             | Requires the `video` feature. |
+| Stream    | `rtsp://...`                    | Requires the `video` feature. |
 | URL       | `https://example.com/image.jpg` | Remote image download.        |
 
 ## Devices and execution providers
@@ -355,7 +367,7 @@ On NVIDIA hardware, the `cuda` feature enables the CUDA execution provider, and 
 cargo build --release --features cuda-preprocess
 ```
 
-The fast path is used automatically, with no API change, when all of the following hold: the feature is compiled in, the device is CUDA or TensorRT, the task is not classification, and the model takes a square FP32 input. It is enabled by default and can be turned off per model:
+The fast path is used automatically, with no API change, when all of the following hold: the feature is compiled in, the device is CUDA or TensorRT, the task is detect, segment, pose, OBB, or semantic segmentation, and the model uses FP32 input. It is enabled by default and can be turned off per model:
 
 ```rust
 use ultralytics_inference::{Device, InferenceConfig};
@@ -367,7 +379,7 @@ let config = InferenceConfig::new()
 
 !!! note "Match your CUDA toolkit"
 
-    GPU builds require a matching CUDA toolkit, and `cuda-preprocess` invokes `nvcc` to compile the kernel. See the [CUDA and TensorRT acceleration guide](https://docs.rs/ultralytics-inference/latest/ultralytics_inference/cuda_guide/index.html) for version requirements and troubleshooting.
+    `cuda-preprocess` requires a matching CUDA toolkit at build time and uses NVRTC at runtime for the fused preprocessing kernel. See the [CUDA and TensorRT acceleration guide](https://docs.rs/ultralytics-inference/latest/ultralytics_inference/cuda_guide/index.html) for version requirements and troubleshooting.
 
 ## Cargo features
 
@@ -388,6 +400,18 @@ Features are enabled at build time. The defaults cover annotation and live displ
 
 Convenience groups bundle related providers: `nvidia` (cuda, tensorrt), `amd` (rocm, migraphx), `intel` (openvino, onednn), `mobile` (nnapi, coreml, qnn), and `all` (annotate, visualize, video). Additional providers such as `nnapi`, `qnn`, `xnnpack`, `webgpu`, and others are also available.
 
+Enable features when installing the CLI or adding the library:
+
+```bash
+cargo install ultralytics-inference --features video
+cargo install ultralytics-inference --features cuda,tensorrt
+```
+
+```toml
+[dependencies]
+ultralytics-inference = { version = "0.0.18", features = ["video"] }
+```
+
 ## Output and saving
 
 By default, predictions are annotated and saved to an auto-incrementing run directory:
@@ -399,7 +423,7 @@ runs/
         └── image.jpg     # annotated result
 ```
 
-The subfolder matches the task (`runs/segment/`, `runs/pose/`, and so on). For video sources the annotated output is written as a video file; pass `--save-frames` to write individual frames instead. For the `semantic` task, `--save-json` writes per-pixel class-map PNGs under a `results/` subfolder. Saving requires the `annotate` feature, and video output requires the `video` feature.
+The subfolder matches the task (`runs/segment/`, `runs/pose/`, and so on). For video sources the annotated output is written as a video file; pass `--save-frames` to write individual frames instead. For the `semantic` task, `--save-json` writes per-pixel class-map PNGs under a `results/` subfolder. Annotated image and video saving require the `annotate` feature; semantic class-map PNG export does not. Video input and output require the `video` feature.
 
 ## FAQ
 

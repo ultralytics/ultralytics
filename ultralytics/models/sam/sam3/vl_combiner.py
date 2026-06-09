@@ -67,9 +67,9 @@ class SAM3VLBackbone(nn.Module):
                 backbone forward pass.
 
         Returns:
-            (dict): Output dictionary with the following keys: `vision_features` (the output of the vision
-                backbone), `language_features` (the output of the language backbone), `language_mask` (the
-                attention mask of the language backbone), `vision_pos_enc` (the positional encoding of the vision
+            (dict): Output dictionary with the following keys: `vision_features` (the output of the vision backbone),
+                `language_features` (the output of the language backbone), `language_mask` (the attention mask of the
+                language backbone), `vision_pos_enc` (the positional encoding of the vision
                 backbone) and, when `additional_text` is provided, `additional_text_features` and
                 `additional_text_mask` (the language backbone output and attention mask for the additional text).
         """

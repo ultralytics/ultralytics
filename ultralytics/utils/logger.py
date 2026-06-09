@@ -313,7 +313,9 @@ class _DriveInfo:
             return [_DriveInfo._current_mount(partitions)]
 
         mounts = [
-            p.mountpoint for p in partitions if Path(p.mountpoint).is_dir() and "dontbrowse" not in p.opts.split(",")
+            p.mountpoint
+            for p in partitions
+            if _DriveInfo._is_mount(p.mountpoint) and "dontbrowse" not in p.opts.split(",")
         ]
         if len(mounts) <= 1:
             return _DriveInfo._sort(mounts) or [_DriveInfo._current_mount(partitions)]
@@ -335,6 +337,13 @@ class _DriveInfo:
     def _sort(mounts):
         """Sort mounted paths with root first."""
         return sorted(set(mounts), key=lambda mount: (mount != "/", mount))
+
+    @staticmethod
+    def _is_mount(mount):
+        """Check whether a mount is useful for disk capacity reporting."""
+        return Path(mount).is_dir() and not (
+            LINUX and (mount in {"/boot", "/efi"} or mount.startswith(("/boot/", "/efi/")))
+        )
 
     @staticmethod
     def _current_mount(partitions):
@@ -400,7 +409,7 @@ class _DriveInfo:
                 values = block.get("mountpoints") or [block.get("mountpoint")]
                 if isinstance(values, str):
                     values = [values]
-                mounts.extend(m for m in values if isinstance(m, str) and m.startswith("/") and Path(m).is_dir())
+                mounts.extend(m for m in values if isinstance(m, str) and m.startswith("/") and _DriveInfo._is_mount(m))
             for child in block.get("children", []):
                 visit(child, physical)
 

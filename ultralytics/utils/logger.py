@@ -480,8 +480,8 @@ class SystemLogger:
                     disks.append(
                         {
                             "mount": mount,
-                            "used_gb": round(usage.used / (1 << 30), 3),
-                            "total_gb": round(usage.total / (1 << 30), 3),
+                            "used_gb": round(usage.used / 1e9, 3),
+                            "total_gb": round(usage.total / 1e9, 3),
                         }
                     )
                 except (PermissionError, OSError):

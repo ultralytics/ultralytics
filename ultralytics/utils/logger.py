@@ -302,7 +302,9 @@ class _DriveInfo:
         if not all_drives:
             return [_DriveInfo._current_mount(partitions)]
 
-        mounts = [p.mountpoint for p in partitions if "dontbrowse" not in p.opts.split(",")]
+        mounts = [
+            p.mountpoint for p in partitions if Path(p.mountpoint).is_dir() and "dontbrowse" not in p.opts.split(",")
+        ]
         if len(mounts) <= 1:
             return _DriveInfo._sort(mounts) or [_DriveInfo._current_mount(partitions)]
 
@@ -388,7 +390,7 @@ class _DriveInfo:
                 values = block.get("mountpoints") or [block.get("mountpoint")]
                 if isinstance(values, str):
                     values = [values]
-                mounts.extend(m for m in values if isinstance(m, str) and m.startswith("/"))
+                mounts.extend(m for m in values if isinstance(m, str) and m.startswith("/") and Path(m).is_dir())
             for child in block.get("children", []):
                 visit(child, physical)
 

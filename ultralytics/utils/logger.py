@@ -327,7 +327,10 @@ class _DriveInfo:
     @staticmethod
     def _current_mount(partitions):
         """Get the mounted filesystem backing the current working directory."""
-        cwd = Path.cwd().resolve()
+        try:
+            cwd = Path.cwd().resolve()
+        except OSError:
+            return "C:\\" if WINDOWS else "/"
         matches = []
         for partition in partitions:
             try:

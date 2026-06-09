@@ -6,11 +6,11 @@ from typing import Any
 
 import numpy as np
 
-from ..utils import LOGGER
-from ..utils.ops import xywh2ltwh
 from .basetrack import BaseTrack, TrackState
 from .utils import matching
 from .utils.kalman_filter import KalmanFilterXYAH
+from ..utils import LOGGER
+from ..utils.ops import xywh2ltwh
 
 
 class STrack(BaseTrack):
@@ -288,11 +288,10 @@ class BYTETracker:
         removed_stracks = []
 
         scores = results.conf
-        remain_inds = scores >= self.args.track_high_thresh
+        remain_inds = np.where(scores >= self.args.track_high_thresh)[0]
         inds_low = scores > self.args.track_low_thresh
         inds_high = scores < self.args.track_high_thresh
-
-        inds_second = inds_low & inds_high
+        inds_second = np.where(inds_low & inds_high)[0]
         results_second = results[inds_second]
         results = results[remain_inds]
         feats_keep = feats_second = img
@@ -300,7 +299,7 @@ class BYTETracker:
             feats_keep = feats[remain_inds]
             feats_second = feats[inds_second]
 
-        detections = self.init_track(results, feats_keep)
+        detections = self.init_track(results, remain_inds, feats_keep)
         # Add newly detected tracklets to tracked_stracks
         unconfirmed = []
         tracked_stracks: list[STrack] = []
@@ -335,7 +334,7 @@ class BYTETracker:
                 track.re_activate(det, self.frame_id, new_id=False)
                 refind_stracks.append(track)
         # Step 3: Second association, with low score detection boxes association the untrack to the low score detections
-        detections_second = self.init_track(results_second, feats_second)
+        detections_second = self.init_track(results_second, inds_second, feats_second)
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
         dists = matching.iou_distance(r_tracked_stracks, detections_second)
         if self.args.fuse_score:
@@ -397,12 +396,12 @@ class BYTETracker:
         """Return a Kalman filter object for tracking bounding boxes using KalmanFilterXYAH."""
         return KalmanFilterXYAH()
 
-    def init_track(self, results, img: np.ndarray | None = None) -> list[STrack]:
+    def init_track(self, results, idxs, img: np.ndarray | None = None) -> list[STrack]:
         """Initialize object tracking with given detections, scores, and class labels as STrack instances."""
         if len(results) == 0:
             return []
         bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
-        bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
+        bboxes = np.concatenate([bboxes, idxs.reshape(-1, 1)], axis=-1)
         return [STrack(xywh, s, c) for (xywh, s, c) in zip(bboxes, results.conf, results.cls)]
 
     def get_dists(self, tracks: list[STrack], detections: list[STrack]) -> np.ndarray:

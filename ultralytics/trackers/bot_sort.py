@@ -54,7 +54,7 @@ class BOTrack(STrack):
     shared_kalman = KalmanFilterXYWH()
 
     def __init__(
-        self, xywh: np.ndarray, score: float, cls: int, feat: np.ndarray | None = None, feat_history: int = 50
+            self, xywh: np.ndarray, score: float, cls: int, feat: np.ndarray | None = None, feat_history: int = 50
     ):
         """Initialize a BOTrack object with temporal parameters, such as feature history, alpha, and current features.
 
@@ -164,7 +164,7 @@ class BOTSORT(BYTETracker):
     Examples:
         Initialize BOTSORT and process detections
         >>> bot_sort = BOTSORT(args)
-        >>> bot_sort.init_track(results, img)
+        >>> bot_sort.init_track(results, idxs, img)
         >>> bot_sort.multi_predict(tracks)
 
     Notes:
@@ -195,12 +195,12 @@ class BOTSORT(BYTETracker):
         """Return an instance of KalmanFilterXYWH for predicting and updating object states in the tracking process."""
         return KalmanFilterXYWH()
 
-    def init_track(self, results, img: np.ndarray | None = None) -> list[BOTrack]:
+    def init_track(self, results, idxs, img: np.ndarray | None = None) -> list[BOTrack]:
         """Initialize object tracks using detection bounding boxes, scores, class labels, and optional ReID features."""
         if len(results) == 0:
             return []
         bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
-        bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
+        bboxes = np.concatenate([bboxes, idxs.reshape(-1, 1)], axis=-1)
         if self.args.with_reid and self.encoder is not None:
             features_keep = self.encoder(img, bboxes)
             return [BOTrack(xywh, s, c, f) for (xywh, s, c, f) in zip(bboxes, results.conf, results.cls, features_keep)]

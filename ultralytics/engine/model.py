@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import inspect
+import sys
+from collections.abc import Generator
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal, overload
 
 import numpy as np
 import torch
@@ -24,6 +26,11 @@ from ultralytics.utils import (
     callbacks,
     checks,
 )
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 
 class Model(torch.nn.Module):
@@ -146,12 +153,44 @@ class Model(torch.nn.Module):
         # Delete super().training for accessing self.model.training
         del self.training
 
+    @overload
     def __call__(
         self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor = None,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None,
+        stream: Literal[True],
+        **kwargs: Any,
+    ) -> Generator[Results, None, None]: ...
+
+    @overload
+    def __call__(
+        self,
+        *,
+        stream: Literal[True],
+        **kwargs: Any,
+    ) -> Generator[Results, None, None]: ...
+
+    @overload
+    def __call__(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: Literal[False] = False,
+        **kwargs: Any,
+    ) -> list[Results]: ...
+
+    @overload
+    def __call__(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: bool = False,
         **kwargs: Any,
-    ) -> list:
+    ) -> Generator[Results, None, None] | list[Results]: ...
+
+    def __call__(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: bool = False,
+        **kwargs: Any,
+    ) -> Generator[Results, None, None] | list[Results]:
         """Alias for the predict method, enabling the model instance to be callable for predictions.
 
         This method simplifies the process of making predictions by allowing the model instance to be called directly
@@ -165,8 +204,8 @@ class Model(torch.nn.Module):
             **kwargs (Any): Additional keyword arguments to configure the prediction process.
 
         Returns:
-            (list[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a Results
-                object.
+            (list[ultralytics.engine.results.Results] | generator): A list of prediction results, or a generator of
+                Results objects when stream=True.
 
         Examples:
             >>> model = YOLO("yolo26n.pt")
@@ -320,7 +359,7 @@ class Model(torch.nn.Module):
                 f"argument directly in your inference command, i.e. 'model.predict(source=..., device=0)'"
             )
 
-    def reset_weights(self) -> Model:
+    def reset_weights(self) -> Self:
         """Reset the model's weights to their initial state.
 
         This method iterates through all modules in the model and resets their parameters if they have a
@@ -345,7 +384,7 @@ class Model(torch.nn.Module):
             p.requires_grad = True
         return self
 
-    def load(self, weights: str | Path = "yolo26n.pt") -> Model:
+    def load(self, weights: str | Path = "yolo26n.pt") -> Self:
         """Load parameters from the specified weights file into the model.
 
         This method supports loading weights from a file or directly from a weights object. It matches parameters by
@@ -426,7 +465,7 @@ class Model(torch.nn.Module):
         self._check_is_pytorch_model()
         return self.model.info(detailed=detailed, verbose=verbose, imgsz=imgsz)
 
-    def fuse(self) -> Model:
+    def fuse(self) -> Self:
         """Fuse Conv2d and BatchNorm2d layers in the model for optimized inference.
 
         This method iterates through the model's modules and fuses consecutive Conv2d and BatchNorm2d layers into a
@@ -476,13 +515,49 @@ class Model(torch.nn.Module):
             kwargs["embed"] = [len(self.model.model) - 2]  # embed second-to-last layer if no indices passed
         return self.predict(source, stream, **kwargs)
 
+    @overload
     def predict(
         self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor = None,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None,
+        stream: Literal[True],
+        predictor=None,
+        **kwargs: Any,
+    ) -> Generator[Results, None, None]: ...
+
+    @overload
+    def predict(
+        self,
+        *,
+        stream: Literal[True],
+        predictor=None,
+        **kwargs: Any,
+    ) -> Generator[Results, None, None]: ...
+
+    @overload
+    def predict(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: Literal[False] = False,
+        predictor=None,
+        **kwargs: Any,
+    ) -> list[Results]: ...
+
+    @overload
+    def predict(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: bool = False,
         predictor=None,
         **kwargs: Any,
-    ) -> list[Results]:
+    ) -> Generator[Results, None, None] | list[Results]: ...
+
+    def predict(
+        self,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: bool = False,
+        predictor=None,
+        **kwargs: Any,
+    ) -> Generator[Results, None, None] | list[Results]:
         """Perform predictions on the given image source using the YOLO model.
 
         This method facilitates the prediction process, allowing various configurations through keyword arguments. It
@@ -499,8 +574,8 @@ class Model(torch.nn.Module):
             **kwargs (Any): Additional keyword arguments for configuring the prediction process.
 
         Returns:
-            (list[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a Results
-                object.
+            (list[ultralytics.engine.results.Results] | generator): A list of prediction results, or a generator of
+                Results objects when stream=True.
 
         Examples:
             >>> model = YOLO("yolo26n.pt")
@@ -536,13 +611,49 @@ class Model(torch.nn.Module):
             self.predictor.set_prompts(prompts)
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
+    @overload
     def track(
         self,
-        source: str | Path | int | list | tuple | np.ndarray | torch.Tensor = None,
+        source: str | Path | int | list | tuple | np.ndarray | torch.Tensor | None,
+        stream: Literal[True],
+        persist: bool = False,
+        **kwargs: Any,
+    ) -> Generator[Results, None, None]: ...
+
+    @overload
+    def track(
+        self,
+        *,
+        stream: Literal[True],
+        persist: bool = False,
+        **kwargs: Any,
+    ) -> Generator[Results, None, None]: ...
+
+    @overload
+    def track(
+        self,
+        source: str | Path | int | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: Literal[False] = False,
+        persist: bool = False,
+        **kwargs: Any,
+    ) -> list[Results]: ...
+
+    @overload
+    def track(
+        self,
+        source: str | Path | int | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: bool = False,
         persist: bool = False,
         **kwargs: Any,
-    ) -> list[Results]:
+    ) -> Generator[Results, None, None] | list[Results]: ...
+
+    def track(
+        self,
+        source: str | Path | int | list | tuple | np.ndarray | torch.Tensor | None = None,
+        stream: bool = False,
+        persist: bool = False,
+        **kwargs: Any,
+    ) -> Generator[Results, None, None] | list[Results]:
         """Conduct object tracking on the specified input source using the registered trackers.
 
         This method performs object tracking using the model's predictors and optionally registered trackers. It handles
@@ -557,7 +668,8 @@ class Model(torch.nn.Module):
             **kwargs (Any): Additional keyword arguments for configuring the tracking process.
 
         Returns:
-            (list[ultralytics.engine.results.Results]): A list of tracking results, each a Results object.
+            (list[ultralytics.engine.results.Results] | generator): A list of tracking results, or a generator of
+                Results objects when stream=True.
 
         Examples:
             >>> model = YOLO("yolo26n.pt")
@@ -842,7 +954,7 @@ class Model(torch.nn.Module):
         if use_ray:
             from ultralytics.utils.tuner import run_ray_tune
 
-            return run_ray_tune(self, iterations=iterations, *args, **kwargs)
+            return run_ray_tune(self, *args, iterations=iterations, **kwargs)
         else:
             from .tuner import Tuner
 
@@ -850,7 +962,7 @@ class Model(torch.nn.Module):
             args = {**self.overrides, **custom, **kwargs, "mode": "train"}  # highest priority args on the right
             return Tuner(args=args, _callbacks=self.callbacks)(iterations=iterations)
 
-    def _apply(self, fn) -> Model:
+    def _apply(self, fn) -> Self:
         """Apply a function to model parameters, buffers, and tensors.
 
         This method extends the functionality of the parent class's _apply method by additionally resetting the
@@ -1101,7 +1213,7 @@ class Model(torch.nn.Module):
         """
         raise NotImplementedError("Please provide task map for your model!")
 
-    def eval(self):
+    def eval(self) -> Self:
         """Sets the model to evaluation mode.
 
         This method changes the model's mode to evaluation, which affects layers like dropout and batch normalization

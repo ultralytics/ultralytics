@@ -195,6 +195,11 @@ source = ["ultralytics/"]
 data_file = "tests/.coverage"
 omit = ["ultralytics/utils/callbacks/*"]
 
+[tool.coverage.report]
+exclude_also = [
+    "if TYPE_CHECKING:",
+]
+
 [tool.isort]
 line_length = 120
 multi_line_output = 0

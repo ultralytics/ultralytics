@@ -227,7 +227,7 @@ class BasePredictor:
         else:
             return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Results into one
 
-    def predict_cli(self, source=None, model=None):
+    def predict_cli(self, source=None, model=None) -> None:
         """Method used for Command Line Interface (CLI) prediction.
 
         This function is designed to run predictions using the CLI. It sets up the source and model, then processes the

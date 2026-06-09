@@ -52,7 +52,7 @@ class STrack(BaseTrack):
 
     shared_kalman = KalmanFilterXYAH()
 
-    def __init__(self, xywh: list[float], score: float, cls: Any):
+    def __init__(self, xywh: list[float], score: float, cls: Any) -> None:
         """Initialize a new STrack instance.
 
         Args:
@@ -75,7 +75,7 @@ class STrack(BaseTrack):
         self.idx = xywh[-1]
         self.angle = xywh[4] if len(xywh) == 6 else None
 
-    def predict(self):
+    def predict(self) -> None:
         """Predict the next state (mean and covariance) of the object using the Kalman filter."""
         mean_state = self.mean.copy()
         if self.state != TrackState.Tracked:
@@ -83,7 +83,7 @@ class STrack(BaseTrack):
         self.mean, self.covariance = self.kalman_filter.predict(mean_state, self.covariance)
 
     @staticmethod
-    def multi_predict(stracks: list[STrack]):
+    def multi_predict(stracks: list[STrack]) -> None:
         """Perform multi-object predictive tracking using Kalman filter for the provided list of STrack instances."""
         if len(stracks) <= 0:
             return
@@ -98,7 +98,7 @@ class STrack(BaseTrack):
             stracks[i].covariance = cov
 
     @staticmethod
-    def multi_gmc(stracks: list[STrack], H: np.ndarray = np.eye(2, 3)):
+    def multi_gmc(stracks: list[STrack], H: np.ndarray = np.eye(2, 3)) -> None:
         """Update multiple track positions and covariances using a homography matrix."""
         if stracks:
             multi_mean = np.asarray([st.mean.copy() for st in stracks])
@@ -116,7 +116,7 @@ class STrack(BaseTrack):
                 stracks[i].mean = mean
                 stracks[i].covariance = cov
 
-    def activate(self, kalman_filter: KalmanFilterXYAH, frame_id: int):
+    def activate(self, kalman_filter: KalmanFilterXYAH, frame_id: int) -> None:
         """Activate a new tracklet using the provided Kalman filter and initialize its state and covariance."""
         self.kalman_filter = kalman_filter
         self.track_id = self.next_id()
@@ -129,7 +129,7 @@ class STrack(BaseTrack):
         self.frame_id = frame_id
         self.start_frame = frame_id
 
-    def re_activate(self, new_track: STrack, frame_id: int, new_id: bool = False):
+    def re_activate(self, new_track: STrack, frame_id: int, new_id: bool = False) -> None:
         """Reactivate a previously lost track using new detection data and update its state and attributes."""
         self.mean, self.covariance = self.kalman_filter.update(
             self.mean, self.covariance, self.convert_coords(new_track.tlwh)
@@ -145,7 +145,7 @@ class STrack(BaseTrack):
         self.angle = new_track.angle
         self.idx = new_track.idx
 
-    def update(self, new_track: STrack, frame_id: int):
+    def update(self, new_track: STrack, frame_id: int) -> None:
         """Update the state of a matched track.
 
         Args:
@@ -263,7 +263,7 @@ class BYTETracker:
         >>> tracked_objects = tracker.update(results)
     """
 
-    def __init__(self, args):
+    def __init__(self, args) -> None:
         """Initialize a BYTETracker instance for object tracking.
 
         Args:
@@ -412,16 +412,16 @@ class BYTETracker:
             dists = matching.fuse_score(dists, detections)
         return dists
 
-    def multi_predict(self, tracks: list[STrack]):
+    def multi_predict(self, tracks: list[STrack]) -> None:
         """Predict the next states for multiple tracks using Kalman filter."""
         STrack.multi_predict(tracks)
 
     @staticmethod
-    def reset_id():
+    def reset_id() -> None:
         """Reset the ID counter for STrack instances to ensure unique track IDs across tracking sessions."""
         STrack.reset_id()
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset the tracker by clearing all tracked, lost, and removed tracks and reinitializing the Kalman filter."""
         self.tracked_stracks: list[STrack] = []
         self.lost_stracks: list[STrack] = []

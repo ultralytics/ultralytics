@@ -552,7 +552,7 @@ class SystemLogger:
             }
 
         disks = []
-        for mounts in (self.mounts, [Path.cwd().anchor or "/"]):
+        for mounts in (self.mounts, ["C:\\" if WINDOWS else "/"]):
             for mount in mounts:
                 try:
                     usage = shutil.disk_usage(mount)

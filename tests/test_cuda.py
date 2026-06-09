@@ -94,9 +94,10 @@ def test_export_engine_matrix(task, dynamic, int8, half, batch):
     check_tensorrt()
     import tensorrt as trt
 
-    is_trt10 = int(trt.__version__.split(".", 1)[0]) >= 10
-    if is_trt10 and int8 and dynamic:
-        pytest.skip("YOLO26 INT8+dynamic export requires explicit quantization on TensorRT 10+")
+    is_trt11 = int(trt.__version__.split(".", 1)[0]) >= 11
+    if not is_trt11 and int8 and dynamic:
+        # TensorRT 7-10 calibrator path cannot quantize dynamic-shape models; TensorRT 11 uses ModelOpt explicit Q/DQ
+        pytest.skip("INT8 + dynamic export requires explicit quantization, available on TensorRT 11+")
 
     file = YOLO(TASK2MODEL[task]).export(
         format="engine",
@@ -112,7 +113,11 @@ def test_export_engine_matrix(task, dynamic, int8, half, batch):
     )
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, device=DEVICES[0])  # exported model inference
     Path(file).unlink()  # cleanup
-    Path(file).with_suffix(".cache").unlink(missing_ok=True) if int8 else None  # cleanup INT8 cache
+    if int8:
+        Path(file).with_suffix(".cache").unlink(missing_ok=True)  # cleanup TensorRT 7-10 INT8 calibration cache
+        Path(file).with_suffix(".int8.onnx").unlink(missing_ok=True)  # cleanup TensorRT 11 ModelOpt INT8 ONNX
+    if half:
+        Path(file).with_suffix(".fp16.onnx").unlink(missing_ok=True)  # cleanup TensorRT 11 ModelOpt FP16 ONNX
 
 
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")

@@ -29,7 +29,7 @@ from ultralytics.utils import (
     WINDOWS,
     checks,
 )
-from ultralytics.utils.export.engine import torch2onnx
+from ultralytics.utils.export.engine import modelopt_quantize_onnx, torch2onnx
 from ultralytics.utils.torch_utils import (
     TORCH_1_10,
     TORCH_1_11,
@@ -69,6 +69,12 @@ def test_export_onnx_int8(isolated_model):
     assert Path(file).name.endswith("_int8.onnx")
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
     Path(file).unlink()  # cleanup
+
+
+def test_modelopt_quantize_onnx_requires_int8_dataset():
+    """Check INT8 ModelOpt quantization fails early without calibration data."""
+    with pytest.raises(ValueError, match="requires a calibration dataset"):
+        modelopt_quantize_onnx("model.onnx", int8=True)
 
 
 def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):

@@ -142,9 +142,9 @@ class LoadStreams:
                 self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
 
                 success, im = self.caps[i].read()  # guarantee first frame
-                im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)[..., None] if self.cv2_flag == cv2.IMREAD_GRAYSCALE else im
                 if not success or im is None:
                     raise ConnectionError(f"{st}Failed to read images from {s}")
+                im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)[..., None] if self.cv2_flag == cv2.IMREAD_GRAYSCALE else im
                 self.imgs[i].append(im)
                 self.shape[i] = im.shape
                 self.threads[i] = Thread(target=self.update, args=([i, self.caps[i], s]), daemon=True)

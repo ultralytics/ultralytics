@@ -437,28 +437,21 @@ class SystemLogger:
             }
 
         disks = []
-        for mount in self.mounts:
-            try:
-                usage = shutil.disk_usage(mount)
-                disks.append(
-                    {
-                        "mount": mount,
-                        "used_gb": round(usage.used / (1 << 30), 3),
-                        "total_gb": round(usage.total / (1 << 30), 3),
-                    }
-                )
-            except (PermissionError, OSError):
-                continue  # Skip inaccessible drives
-        if not disks:
-            root_mount = Path.cwd().anchor or "/"
-            usage = shutil.disk_usage(root_mount)
-            disks.append(
-                {
-                    "mount": root_mount,
-                    "used_gb": round(usage.used / (1 << 30), 3),
-                    "total_gb": round(usage.total / (1 << 30), 3),
-                }
-            )
+        for mounts in (self.mounts, [Path.cwd().anchor or "/"]):
+            for mount in mounts:
+                try:
+                    usage = shutil.disk_usage(mount)
+                    disks.append(
+                        {
+                            "mount": mount,
+                            "used_gb": round(usage.used / (1 << 30), 3),
+                            "total_gb": round(usage.total / (1 << 30), 3),
+                        }
+                    )
+                except (PermissionError, OSError):
+                    continue  # Skip inaccessible drives
+            if disks:
+                break
 
         metrics = {
             "cpu": round(psutil.cpu_percent(), 3),

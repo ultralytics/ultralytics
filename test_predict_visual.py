@@ -194,8 +194,10 @@ def main():
     model.eval()
     model.heatmap_norm = args.heat_norm
     LOGGER.info(f"heatmap_norm = {model.heatmap_norm}")
-    if model.memory_bank is None:
-        raise SystemExit("Model has no memory bank — add bb_layers to the YAML (prior_mode='heatmap' needs it).")
+    has_bank = model.memory_bank is not None
+    if not has_bank:
+        LOGGER.warning("Model has no memory bank (no bb_layers) — 'heatmap' prior falls back to no-prior; "
+                       "'segment' also falls back if the model has no SegBranch. Only 'none'/'mask' are meaningful.")
 
     y = YOLO(args.yaml)
     y.model = model
@@ -216,22 +218,23 @@ def main():
             continue
 
         # ---- Per-category memory bank: restore from cache, or build once + save ----
-        mb = model.memory_bank
-        bank_path = banks_dir / f"{cat}.pt"
-        if bank_path.exists():
-            restore_bank(mb, bank_path)
-            LOGGER.info(f"[{ci}/{len(cats)}] {cat}: loaded cached bank ({mb.memory_bank.shape[0]} vecs)")
-        else:
-            train_dir = MVTEC_ROOT / cat / "train" / "good"
-            if not train_dir.is_dir():
-                train_dir = MVTEC_ROOT / cat / "train"
-            LOGGER.info(f"[{ci}/{len(cats)}] {cat}: building bank from {train_dir} ...")
-            mb.reset_memory_bank()
-            model.load_support_set(str(train_dir), imgsz=args.imgsz, device=device,
-                                   batch=args.batch, max_bank_size=args.max_bank,
-                                   max_images=args.max_images, verbose=False)
-            save_bank(mb, bank_path)
-            LOGGER.info(f"[{ci}/{len(cats)}] {cat}: bank built+saved ({mb.memory_bank.shape[0]} vecs) -> {bank_path}")
+        if has_bank:
+            mb = model.memory_bank
+            bank_path = banks_dir / f"{cat}.pt"
+            if bank_path.exists():
+                restore_bank(mb, bank_path)
+                LOGGER.info(f"[{ci}/{len(cats)}] {cat}: loaded cached bank ({mb.memory_bank.shape[0]} vecs)")
+            else:
+                train_dir = MVTEC_ROOT / cat / "train" / "good"
+                if not train_dir.is_dir():
+                    train_dir = MVTEC_ROOT / cat / "train"
+                LOGGER.info(f"[{ci}/{len(cats)}] {cat}: building bank from {train_dir} ...")
+                mb.reset_memory_bank()
+                model.load_support_set(str(train_dir), imgsz=args.imgsz, device=device,
+                                       batch=args.batch, max_bank_size=args.max_bank,
+                                       max_images=args.max_images, verbose=False)
+                save_bank(mb, bank_path)
+                LOGGER.info(f"[{ci}/{len(cats)}] {cat}: bank built+saved ({mb.memory_bank.shape[0]} vecs) -> {bank_path}")
 
         # ---- Sample test images + save grids ----
         samples = collect_test_images(test_root, args.n_per_category)

@@ -131,4 +131,4 @@ erasing: 0.4 # (float) random erasing probability for classification (0.0–1.0)
 cfg: # (str, optional) path to a config.yaml that overrides defaults
 
 # Tracker settings ------------------------------------------------------------------------------------------------------
-tracker: botsort.yaml # (str) tracker config file: botsort.yaml or bytetrack.yaml
+tracker: botsort.yaml # (str) tracker config: botsort.yaml, bytetrack.yaml, ocsort.yaml, deepocsort.yaml, fasttrack.yaml, tracktrack.yaml

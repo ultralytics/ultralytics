@@ -114,6 +114,9 @@ class BOTrack(STrack):
             return self._tlwh.copy()
         ret = self.mean[:4].copy()
         ret[:2] -= ret[2:] / 2
+        w = getattr(self, "kalman_weight", 1.0)
+        if w < 1.0 and self.state == TrackState.Tracked:
+            ret = w * ret + (1 - w) * self._tlwh
         return ret
 
     @staticmethod
@@ -208,18 +211,26 @@ class BOTSORT(BYTETracker):
             return [BOTrack(xywh, s, c) for (xywh, s, c) in zip(bboxes, results.conf, results.cls)]
 
     def get_dists(self, tracks: list[BOTrack], detections: list[BOTrack]) -> np.ndarray:
-        """Calculate distances between tracks and detections using IoU and optionally ReID embeddings."""
-        dists = matching.iou_distance(tracks, detections)
-        dists_mask = dists > (1 - self.proximity_thresh)
+        """Calculate distances between tracks and detections using IoU or L2 and optionally ReID embeddings."""
+        use_l2 = self.args.get("distance_metric", "iou") == "l2"
+        if use_l2:
+            dists = matching.l2_distance(tracks, detections, img_shape=self.img_shape)
+        else:
+            dists = matching.iou_distance(tracks, detections)
 
-        if self.args.fuse_score:
+        if not use_l2 and self.args.fuse_score:
             dists = matching.fuse_score(dists, detections)
 
         if self.args.with_reid and self.encoder is not None:
             emb_dists = matching.embedding_distance(tracks, detections) / 2.0
             emb_dists[emb_dists > (1 - self.appearance_thresh)] = 1.0
-            emb_dists[dists_mask] = 1.0
-            dists = np.minimum(dists, emb_dists)
+            if use_l2:
+                # Gate by normalized L2 distance; pairs too far apart cannot match via appearance
+                emb_dists[dists > self.args.match_thresh] = 1.0
+                dists = emb_dists
+            else:
+                emb_dists[dists > (1 - self.proximity_thresh)] = 1.0
+                dists = np.minimum(dists, emb_dists)
         return dists
 
     def multi_predict(self, tracks: list[BOTrack]) -> None:

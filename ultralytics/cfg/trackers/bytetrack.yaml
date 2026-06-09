@@ -8,5 +8,7 @@ track_high_thresh: 0.25 # (float) First-stage match threshold; raise for cleaner
 track_low_thresh: 0.1 # (float) Second-stage threshold for low-score matches; balances recovery vs drift
 new_track_thresh: 0.25 # (float) Start a new track if no match ≥ this; higher reduces false tracks
 track_buffer: 30 # (int) Frames to keep lost tracks alive; higher handles occlusion, increases ID switches risk
-match_thresh: 0.8 # (float) Association similarity threshold (IoU/cost); tune with detector quality
-fuse_score: True # (bool) Fuse detection score with motion/IoU for matching; stabilizes weak detections
+match_thresh: 0.8 # (float) Association threshold [0-1]; IoU cost or L2 distance normalized by image diagonal
+fuse_score: True # (bool) Fuse detection score with motion/IoU for matching; only used with iou distance_metric
+distance_metric: iou # (str) Distance metric for track association: iou or l2 (Euclidean center distance normalized by image diagonal)
+kalman_weight: 1.0 # (float) Kalman filter weight [0.0-1.0]; 1.0 = full Kalman prediction, 0.0 = raw detection only, useful for erratic objects like balls or drones

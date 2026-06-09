@@ -131,6 +131,7 @@ class STrack(BaseTrack):
 
     def re_activate(self, new_track: STrack, frame_id: int, new_id: bool = False):
         """Reactivate a previously lost track using new detection data and update its state and attributes."""
+        self._tlwh = new_track._tlwh.copy()
         self.mean, self.covariance = self.kalman_filter.update(
             self.mean, self.covariance, self.convert_coords(new_track.tlwh)
         )
@@ -161,6 +162,7 @@ class STrack(BaseTrack):
         self.frame_id = frame_id
         self.tracklet_len += 1
 
+        self._tlwh = new_track._tlwh.copy()
         new_tlwh = new_track.tlwh
         self.mean, self.covariance = self.kalman_filter.update(
             self.mean, self.covariance, self.convert_coords(new_tlwh)
@@ -185,6 +187,9 @@ class STrack(BaseTrack):
         ret = self.mean[:4].copy()
         ret[2] *= ret[3]
         ret[:2] -= ret[2:] / 2
+        w = getattr(self, "kalman_weight", 1.0)
+        if w < 1.0 and self.state == TrackState.Tracked:
+            ret = w * ret + (1 - w) * self._tlwh
         return ret
 
     @property
@@ -278,10 +283,13 @@ class BYTETracker:
         self.max_frames_lost = args.track_buffer
         self.kalman_filter = self.get_kalmanfilter()
         self.reset_id()
+        self.img_shape = None
 
     def update(self, results, img: np.ndarray | None = None, feats: np.ndarray | None = None) -> np.ndarray:
         """Update the tracker with new detections and return the current list of tracked objects."""
         self.frame_id += 1
+        if img is not None:
+            self.img_shape = img.shape
         activated_stracks = []
         refind_stracks = []
         lost_stracks = []
@@ -337,10 +345,9 @@ class BYTETracker:
         # Step 3: Second association, with low score detection boxes association the untrack to the low score detections
         detections_second = self.init_track(results_second, feats_second)
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
-        dists = matching.iou_distance(r_tracked_stracks, detections_second)
-        if self.args.fuse_score:
-            dists = matching.fuse_score(dists, detections_second)
-        matches, u_track, _u_detection_second = matching.linear_assignment(dists, thresh=0.5)
+        dists = self.get_dists(r_tracked_stracks, detections_second)
+        second_thresh = self.args.match_thresh if self.args.get("distance_metric", "iou") == "l2" else 0.5
+        matches, u_track, _u_detection_second = matching.linear_assignment(dists, thresh=second_thresh)
         for itracked, idet in matches:
             track = r_tracked_stracks[itracked]
             det = detections_second[idet]
@@ -359,7 +366,8 @@ class BYTETracker:
         # Deal with unconfirmed tracks, usually tracks with only one beginning frame
         detections = [detections[i] for i in u_detection]
         dists = self.get_dists(unconfirmed, detections)
-        matches, u_unconfirmed, u_detection = matching.linear_assignment(dists, thresh=0.7)
+        unconfirmed_thresh = self.args.match_thresh if self.args.get("distance_metric", "iou") == "l2" else 0.7
+        matches, u_unconfirmed, u_detection = matching.linear_assignment(dists, thresh=unconfirmed_thresh)
         for itracked, idet in matches:
             unconfirmed[itracked].update(detections[idet], self.frame_id)
             activated_stracks.append(unconfirmed[itracked])
@@ -368,10 +376,12 @@ class BYTETracker:
             track.mark_removed()
             removed_stracks.append(track)
         # Step 4: Init new stracks
+        kalman_weight = getattr(self.args, "kalman_weight", 1.0)
         for inew in u_detection:
             track = detections[inew]
             if track.score < self.args.new_track_thresh:
                 continue
+            track.kalman_weight = kalman_weight
             track.activate(self.kalman_filter, self.frame_id)
             activated_stracks.append(track)
         # Step 5: Update state
@@ -406,7 +416,9 @@ class BYTETracker:
         return [STrack(xywh, s, c) for (xywh, s, c) in zip(bboxes, results.conf, results.cls)]
 
     def get_dists(self, tracks: list[STrack], detections: list[STrack]) -> np.ndarray:
-        """Calculate the distance between tracks and detections using IoU and optionally fuse scores."""
+        """Calculate the distance between tracks and detections using IoU or L2 and optionally fuse scores."""
+        if self.args.get("distance_metric", "iou") == "l2":
+            return matching.l2_distance(tracks, detections, img_shape=self.img_shape)
         dists = matching.iou_distance(tracks, detections)
         if self.args.fuse_score:
             dists = matching.fuse_score(dists, detections)
@@ -428,6 +440,7 @@ class BYTETracker:
         self.removed_stracks: list[STrack] = []
         self.frame_id = 0
         self.kalman_filter = self.get_kalmanfilter()
+        self.img_shape = None
         self.reset_id()
 
     @staticmethod

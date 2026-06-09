@@ -15,7 +15,15 @@ keywords: Ultralytics, matching utils, linear assignment, IoU distance, embeddin
 
 <br><br><hr><br>
 
+## ::: ultralytics.trackers.utils.matching._get_track_bboxes
+
+<br><br><hr><br>
+
 ## ::: ultralytics.trackers.utils.matching.iou_distance
+
+<br><br><hr><br>
+
+## ::: ultralytics.trackers.utils.matching.l2_distance
 
 <br><br><hr><br>
 

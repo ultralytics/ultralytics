@@ -94,14 +94,14 @@ To train a YOLO ReID model on a dataset, you can use the following code snippets
         model = YOLO("yolo26n-reid.yaml")
 
         # Train the model
-        results = model.train(data="Market-1501.yaml", epochs=60, imgsz=256)
+        results = model.train(data="Market-1501.yaml", epochs=60, imgsz=448)
         ```
 
     === "CLI"
 
         ```bash
         # Start training from a YAML model config
-        yolo reid train data=Market-1501.yaml model=yolo26n-reid.yaml epochs=60 imgsz=256
+        yolo reid train data=Market-1501.yaml model=yolo26n-reid.yaml epochs=60 imgsz=448
         ```
 
 ## Supported Datasets
@@ -114,12 +114,17 @@ To train a YOLO ReID model on a dataset, you can use the following code snippets
 
 ### Benchmark Results
 
-YOLO26 ReID results across datasets (60 epochs, SGD, imgsz=256):
+YOLO26 ReID results (imgsz=448, standard query–gallery protocol). Market-1501 numbers are the published `yolo26{size}-reid-market.pt` champions; DukeMTMC-reID numbers are the `yolo26{size}-reid.pt` seed fine-tuned on Duke:
 
 | Model | Market-1501<br>mAP / R-1 | DukeMTMC-reID<br>mAP / R-1 |
 |-------|-------------------------|-----------------------------|
-| YOLO26n-reid | 23.7 / 42.5 | 16.4 / 30.5 |
-| YOLO26s-reid | 29.4 / 50.4 | 16.9 / 30.7 |
+| YOLO26n-reid | 67.3 / 86.6 | 48.0 / 69.8 |
+| YOLO26s-reid | 72.9 / 89.4 | — |
+| YOLO26m-reid | 73.6 / 88.5 | — |
+| YOLO26l-reid | 76.8 / 90.6 | 57.0 / 75.8 |
+| YOLO26x-reid | 75.5 / 90.5 | — |
+
+[K-reciprocal re-ranking](../../tasks/reid.md) (`reid_reranking=True`) adds a further +12–20 mAP. The bare `yolo26{size}-reid.pt` weights are general fine-tuning seeds — to adapt them to your own data see the [ReID Fine-Tuning guide](../../guides/reid-finetuning.md).
 
 ## FAQ
 

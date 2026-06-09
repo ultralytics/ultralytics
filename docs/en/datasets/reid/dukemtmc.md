@@ -41,12 +41,14 @@ For example, `0001_c1_f0046182.jpg` means person `0001` captured by camera `1` a
 
 ## Benchmark Results
 
-Results on DukeMTMC-reID with 60 epochs, SGD optimizer, imgsz=256:
+DukeMTMC-reID results from fine-tuning the `yolo26{size}-reid.pt` seed on DukeMTMC-reID (imgsz=448, standard query–gallery protocol):
 
 | Model | mAP | Rank-1 | Rank-5 | Rank-10 |
 |-------|-----|--------|--------|---------|
-| YOLO26n-reid | 16.4 | 30.5 | 45.4 | 52.2 |
-| YOLO26s-reid | 16.9 | 30.7 | 47.0 | 54.5 |
+| YOLO26n-reid (fine-tuned) | 48.0 | 69.8 | 82.5 | 86.4 |
+| YOLO26l-reid (fine-tuned) | 57.0 | 75.8 | 86.3 | 89.5 |
+
+With [k-reciprocal re-ranking](../../tasks/reid.md) (`reid_reranking=True`), mAP rises to 67.8 (n) and 74.3 (l). Larger seeds transfer better to this domain; see the [ReID Fine-Tuning guide](../../guides/reid-finetuning.md).
 
 ## Applications
 
@@ -59,7 +61,7 @@ DukeMTMC-reID is widely used for:
 
 ## Usage
 
-To train a YOLO ReID model on DukeMTMC-reID for 60 epochs with an image size of 256, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO ReID model on DukeMTMC-reID for 60 epochs with an image size of 448, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -72,14 +74,14 @@ To train a YOLO ReID model on DukeMTMC-reID for 60 epochs with an image size of 
         model = YOLO("yolo26n-reid.yaml")
 
         # Train the model
-        results = model.train(data="DukeMTMC-reID.yaml", epochs=60, imgsz=256)
+        results = model.train(data="DukeMTMC-reID.yaml", epochs=60, imgsz=448)
         ```
 
     === "CLI"
 
         ```bash
         # Start training from a YAML model config
-        yolo reid train data=DukeMTMC-reID.yaml model=yolo26n-reid.yaml epochs=60 imgsz=256
+        yolo reid train data=DukeMTMC-reID.yaml model=yolo26n-reid.yaml epochs=60 imgsz=448
         ```
 
 ## Citations and Acknowledgments

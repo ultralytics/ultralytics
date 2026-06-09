@@ -19,19 +19,27 @@ The output of a ReID model is a fixed-dimensional embedding vector. Two images o
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
 
-YOLO26 ReID models are available in multiple sizes. All models use a BNNeck architecture with PK batch sampling and multi-loss training (cross-entropy + triplet **or** supervised-contrastive metric loss, with optional center loss on top).
+YOLO26 ReID ships **two checkpoint families** per size. The bare `yolo26{n,s,m,l,x}-reid.pt` weights are general-purpose **fine-tuning seeds** (pretrained on [LUPerson-NL](https://github.com/DengpanFu/LUPerson-NL) and refined on MSMT17) — load these to [fine-tune on your own dataset](../guides/reid-finetuning.md). The `yolo26{n,s,m,l,x}-reid-market.pt` weights are the **Market-1501 evaluation champions** for out-of-the-box inference and reproducing the benchmark below. All models use a BNNeck architecture with PK batch sampling and multi-loss training (cross-entropy + triplet **or** supervised-contrastive metric loss, with optional center loss on top).
 
-| Model                                                                                    | size<br><sup>(pixels) | mAP<br><sup>Market-1501 | Rank-1<br><sup>Market-1501 | mAP<br><sup>DukeMTMC | Rank-1<br><sup>DukeMTMC | params<br><sup>(M) | FLOPs<br><sup>(B) |
-| ---------------------------------------------------------------------------------------- | --------------------- | ----------------------- | -------------------------- | --------------------- | ------------------------ | ------------------- | ------------------ |
-| [YOLO26n-reid](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo26n-reid.pt) | 256                   | 23.7                    | 42.5                       | 16.4                  | 30.5                     | 2.0                 | 3.3                |
-| [YOLO26s-reid](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo26s-reid.pt) | 256                   | 29.4                    | 50.4                       | 16.9                  | 30.7                     | 6.5                 | 12.7               |
+| Model                                                                                                        | size<br><sup>(pixels) | mAP<br><sup>Market-1501 | Rank-1<br><sup>Market-1501 | mAP<br><sup>+re-ranking | params<br><sup>(M) | FLOPs<br><sup>(B) |
+| ------------------------------------------------------------------------------------------------------------ | --------------------- | ----------------------- | -------------------------- | ----------------------- | ------------------- | ------------------ |
+| [YOLO26n-reid-market](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-reid-market.pt) | 448                   | 67.3                    | 86.6                       | 84.2                    | 2.8                 | 2.0                |
+| [YOLO26s-reid-market](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-reid-market.pt) | 448                   | 72.9                    | 89.4                       | 87.3                    | 7.5                 | 6.6                |
+| [YOLO26m-reid-market](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-reid-market.pt) | 448                   | 73.6                    | 88.5                       | 87.5                    | 12.4                | 20.1               |
+| [YOLO26l-reid-market](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-reid-market.pt) | 448                   | 76.8                    | 90.6                       | 88.8                    | 15.3                | 25.2               |
+| [YOLO26x-reid-market](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-reid-market.pt) | 448                   | 75.5                    | 90.5                       | 88.3                    | 32.7                | 55.9               |
 
-- **mAP** and **Rank-1** values are on the [Market-1501](../datasets/reid/market1501.md) and [DukeMTMC-reID](../datasets/reid/dukemtmc.md) datasets (60 epochs, SGD, imgsz=256). <br>Reproduce Market-1501 numbers with `yolo reid val data=Market-1501.yaml device=0` and DukeMTMC numbers with `yolo reid val data=DukeMTMC-reID.yaml device=0`.
-- **Params** and **FLOPs** values are for the fused model after `model.fuse()`.
+- **mAP** and **Rank-1** are on [Market-1501](../datasets/reid/market1501.md) using the standard query–gallery protocol at imgsz=448. The **+re-ranking** column applies k-reciprocal re-ranking (`reid_reranking=True`). <br>Reproduce with `yolo reid val model=yolo26l-reid-market.pt data=Market-1501.yaml imgsz=448 device=0`.
+- Accuracy rises with model size and **plateaus at L** (x does not beat l). For an unknown deployment domain prefer **l/x** (more robust out-of-domain) — see [model-size selection](../guides/reid-finetuning.md#choosing-a-model-size).
+- **Params** and **FLOPs** are measured at imgsz=448. The bare `-reid.pt` seeds share the same architecture (and therefore params/FLOPs) as their `-reid-market` counterparts.
 
 ## Train
 
-Train a YOLO26n-reid model on the Market-1501 dataset for 60 epochs at image size 256. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+Train a YOLO26n-reid model on the Market-1501 dataset for 60 epochs at image size 448. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+
+!!! tip "Fine-tuning on your own dataset"
+
+    To adapt a pretrained ReID seed to a custom person re-identification dataset, see the [ReID Fine-Tuning guide](../guides/reid-finetuning.md). It explains the general `yolo26{size}-reid.pt` finetune seeds (vs. the Market-1501 champion), the dataset YAML format, recommended image size, and model-size selection.
 
 !!! example
 
@@ -42,24 +50,24 @@ Train a YOLO26n-reid model on the Market-1501 dataset for 60 epochs at image siz
 
         # Load a model
         model = YOLO("yolo26n-reid.yaml")  # build a new model from YAML
-        model = YOLO("yolo26n-reid.pt")  # load a pretrained model (recommended for training)
-        model = YOLO("yolo26n-reid.yaml").load("yolo26n-cls.pt")  # build from YAML and transfer weights
+        model = YOLO("yolo26n-reid.pt")  # load the pretrained ReID seed (recommended for training)
+        model = YOLO("yolo26n-reid.yaml").load("yolo26n-reid.pt")  # build from YAML and transfer seed weights
 
         # Train the model
-        results = model.train(data="Market-1501.yaml", epochs=60, imgsz=256)
+        results = model.train(data="Market-1501.yaml", epochs=60, imgsz=448)
         ```
 
     === "CLI"
 
         ```bash
         # Build a new model from YAML and start training from scratch
-        yolo reid train data=Market-1501.yaml model=yolo26n-reid.yaml epochs=60 imgsz=256
+        yolo reid train data=Market-1501.yaml model=yolo26n-reid.yaml epochs=60 imgsz=448
 
-        # Start training from a pretrained *.pt model
-        yolo reid train data=Market-1501.yaml model=yolo26n-reid.pt epochs=60 imgsz=256
+        # Start training from the pretrained ReID seed
+        yolo reid train data=Market-1501.yaml model=yolo26n-reid.pt epochs=60 imgsz=448
 
-        # Build a new model from YAML, transfer pretrained weights to it and start training
-        yolo reid train data=Market-1501.yaml model=yolo26n-reid.yaml pretrained=yolo26n-cls.pt epochs=60 imgsz=256
+        # Build a new model from YAML, transfer seed weights to it and start training
+        yolo reid train data=Market-1501.yaml model=yolo26n-reid.yaml pretrained=yolo26n-reid.pt epochs=60 imgsz=448
         ```
 
 ### ReID-Specific Training Arguments
@@ -109,7 +117,7 @@ Validate a trained YOLO26n-reid model on the Market-1501 dataset. The evaluation
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo26n-reid.pt")  # load an official model
+        model = YOLO("yolo26n-reid-market.pt")  # load the Market-1501 champion (reproduces the benchmark)
         model = YOLO("path/to/best.pt")  # load a custom model
 
         # Validate the model
@@ -121,7 +129,7 @@ Validate a trained YOLO26n-reid model on the Market-1501 dataset. The evaluation
     === "CLI"
 
         ```bash
-        yolo reid val model=yolo26n-reid.pt  # val official model
+        yolo reid val model=yolo26n-reid-market.pt  # val the Market-1501 champion
         yolo reid val model=path/to/best.pt  # val custom model
         ```
 
@@ -256,13 +264,13 @@ To train a YOLO26 ReID model on Market-1501:
         from ultralytics import YOLO
 
         model = YOLO("yolo26n-reid.yaml")
-        results = model.train(data="Market-1501.yaml", epochs=60, imgsz=256)
+        results = model.train(data="Market-1501.yaml", epochs=60, imgsz=448)
         ```
 
     === "CLI"
 
         ```bash
-        yolo reid train data=Market-1501.yaml model=yolo26n-reid.yaml epochs=60 imgsz=256
+        yolo reid train data=Market-1501.yaml model=yolo26n-reid.yaml epochs=60 imgsz=448
         ```
 
 Key hyperparameters include `reid_p` (identities per batch), `reid_k` (images per identity), `triplet_margin`, and loss weights. For more details, see the [Configuration](../usage/cfg.md) page.

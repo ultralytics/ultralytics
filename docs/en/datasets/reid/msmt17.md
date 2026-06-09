@@ -51,7 +51,7 @@ MSMT17 is considered the most challenging standard ReID benchmark and is used fo
 
 ## Usage
 
-To train a YOLO ReID model on MSMT17 for 60 epochs with an image size of 256, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO ReID model on MSMT17 for 60 epochs with an image size of 448, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -64,14 +64,14 @@ To train a YOLO ReID model on MSMT17 for 60 epochs with an image size of 256, yo
         model = YOLO("yolo26n-reid.yaml")
 
         # Train the model
-        results = model.train(data="MSMT17.yaml", epochs=60, imgsz=256)
+        results = model.train(data="MSMT17.yaml", epochs=60, imgsz=448)
         ```
 
     === "CLI"
 
         ```bash
         # Start training from a YAML model config
-        yolo reid train data=MSMT17.yaml model=yolo26n-reid.yaml epochs=60 imgsz=256
+        yolo reid train data=MSMT17.yaml model=yolo26n-reid.yaml epochs=60 imgsz=448
         ```
 
 ## Citations and Acknowledgments

@@ -547,6 +547,7 @@ nav:
       - OpenVINO Latency vs Throughput modes: guides/optimizing-openvino-latency-vs-throughput-modes.md
       - Preprocessing Annotated Data: guides/preprocessing_annotated_data.md
       - Raspberry Pi: guides/raspberry-pi.md
+      - ReID Fine-Tuning on Custom Data: guides/reid-finetuning.md
       - ROS Quickstart: guides/ros-quickstart.md
       - SAHI Tiled Inference: guides/sahi-tiled-inference.md
       - Steps of a Computer Vision Project: guides/steps-of-a-cv-project.md

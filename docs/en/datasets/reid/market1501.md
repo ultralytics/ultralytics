@@ -40,12 +40,17 @@ PPPP_cCsS_XXXXXX_XX.jpg
 
 ## Benchmark Results
 
-Results on Market-1501 with 60 epochs, SGD optimizer, imgsz=256:
+Market-1501 results for the published `yolo26{n,s,m,l,x}-reid-market.pt` champions (standard query–gallery protocol, imgsz=448):
 
 | Model | mAP | Rank-1 | Rank-5 | Rank-10 |
 |-------|-----|--------|--------|---------|
-| YOLO26n-reid | 23.7 | 42.5 | 63.9 | 72.7 |
-| YOLO26s-reid | 29.4 | 50.4 | 71.6 | 79.8 |
+| YOLO26n-reid-market | 67.3 | 86.6 | 94.8 | 96.9 |
+| YOLO26s-reid-market | 72.9 | 89.4 | 96.3 | 97.9 |
+| YOLO26m-reid-market | 73.6 | 88.5 | 96.3 | 97.7 |
+| YOLO26l-reid-market | 76.8 | 90.6 | 96.6 | 98.0 |
+| YOLO26x-reid-market | 75.5 | 90.5 | 96.4 | 97.6 |
+
+[K-reciprocal re-ranking](../../tasks/reid.md) (`reid_reranking=True`) raises mAP to 84.2 / 87.3 / 87.5 / 88.8 / 88.3 respectively. The bare `yolo26{size}-reid.pt` weights are general fine-tuning seeds (not Market-tuned) — see the [ReID Fine-Tuning guide](../../guides/reid-finetuning.md).
 
 ## Applications
 
@@ -58,7 +63,7 @@ Market-1501 is the standard benchmark for evaluating person ReID methods, includ
 
 ## Usage
 
-To train a YOLO ReID model on Market-1501 for 60 epochs with an image size of 256, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO ReID model on Market-1501 for 60 epochs with an image size of 448, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -71,14 +76,14 @@ To train a YOLO ReID model on Market-1501 for 60 epochs with an image size of 25
         model = YOLO("yolo26n-reid.yaml")
 
         # Train the model
-        results = model.train(data="Market-1501.yaml", epochs=60, imgsz=256)
+        results = model.train(data="Market-1501.yaml", epochs=60, imgsz=448)
         ```
 
     === "CLI"
 
         ```bash
         # Start training from a YAML model config
-        yolo reid train data=Market-1501.yaml model=yolo26n-reid.yaml epochs=60 imgsz=256
+        yolo reid train data=Market-1501.yaml model=yolo26n-reid.yaml epochs=60 imgsz=448
         ```
 
 ## Citations and Acknowledgments
@@ -114,13 +119,13 @@ To train a YOLO ReID model on Market-1501 using Ultralytics:
         from ultralytics import YOLO
 
         model = YOLO("yolo26n-reid.yaml")
-        results = model.train(data="Market-1501.yaml", epochs=60, imgsz=256)
+        results = model.train(data="Market-1501.yaml", epochs=60, imgsz=448)
         ```
 
     === "CLI"
 
         ```bash
-        yolo reid train data=Market-1501.yaml model=yolo26n-reid.yaml epochs=60 imgsz=256
+        yolo reid train data=Market-1501.yaml model=yolo26n-reid.yaml epochs=60 imgsz=448
         ```
 
 For best results, use PK sampling with `reid_p=32` and `reid_k=8` for a batch size of 256, combined with `ce_weight=2.0` for stronger identity classification. See the [Training](../../modes/train.md) page for all available arguments.

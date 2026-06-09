@@ -693,7 +693,7 @@ class Exporter:
         y = None
         for _ in range(2):  # dry runs
             y = NMSModel(model, self.args)(im) if self.args.nms and fmt not in {"coreml", "imx"} else model(im)
-        if self.args.half and fmt in {"onnx", "torchscript"} and self.device.type != "cpu":
+        if self.args.half and fmt in {"onnx", "torchscript", "rknn"} and self.device.type != "cpu":
             im, model = im.half(), model.half()  # to FP16
 
         # Assign
@@ -907,7 +907,7 @@ class Exporter:
             model_onnx.ir_version = 10
 
         # FP16 conversion for CPU export (GPU exports are already FP16 from model.half() during tracing)
-        if self.args.half and self.args.format == "onnx" and self.device.type == "cpu":
+        if self.args.half and self.args.format in {"onnx", "rknn"} and self.device.type == "cpu":
             try:
                 from onnxruntime.transformers import float16
 

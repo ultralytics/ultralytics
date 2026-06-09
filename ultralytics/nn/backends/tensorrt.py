@@ -9,8 +9,8 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import IS_JETSON, LINUX, LOGGER, PYTHON_VERSION
-from ultralytics.utils.checks import check_requirements, check_version
+from ultralytics.utils import IS_JETSON, LOGGER, PYTHON_VERSION
+from ultralytics.utils.checks import check_requirements, check_tensorrt, check_version
 
 from .base import BaseBackend
 
@@ -36,12 +36,11 @@ class TensorRTBackend(BaseBackend):
         try:
             import tensorrt as trt
         except ImportError:
-            if LINUX:
-                check_requirements("tensorrt>7.0.0,!=10.1.0")
+            check_tensorrt()
             import tensorrt as trt
 
         check_version(trt.__version__, ">=7.0.0", hard=True)
-        check_version(trt.__version__, "!=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
+        check_version(trt.__version__, "!=10.2.0", msg="https://github.com/ultralytics/ultralytics/pull/24367")
 
         if self.device.type == "cpu":
             self.device = torch.device("cuda:0")

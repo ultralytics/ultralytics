@@ -10,7 +10,7 @@ keywords: Ultralytics YOLO, OpenVINO optimization, deep learning, model inferenc
 
 ## Introduction
 
-When deploying [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models, particularly those for [object detection](https://www.ultralytics.com/glossary/object-detection) such as Ultralytics YOLO models, achieving optimal performance is crucial. This guide delves into leveraging [Intel's OpenVINO toolkit](https://docs.ultralytics.com/integrations/openvino/) to optimize inference, focusing on latency and throughput. Whether you're working on consumer-grade applications or large-scale deployments, understanding and applying these optimization strategies will ensure your models run efficiently on various devices.
+When deploying [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models, particularly those for [object detection](https://www.ultralytics.com/glossary/object-detection) such as Ultralytics YOLO models, achieving optimal performance is crucial. This guide delves into leveraging [Intel's OpenVINO toolkit](https://docs.ultralytics.com/integrations/openvino) to optimize inference, focusing on latency and throughput. Whether you're working on consumer-grade applications or large-scale deployments, understanding and applying these optimization strategies will ensure your models run efficiently on various devices.
 
 ## Optimizing for Latency
 
@@ -59,13 +59,13 @@ OpenVINO's multi-device mode simplifies scaling throughput by automatically bala
 
 ## Real-World Performance Gains
 
-Implementing OpenVINO optimizations with Ultralytics YOLO models can yield significant performance improvements. As demonstrated in [benchmarks](https://docs.ultralytics.com/integrations/openvino/#openvino-yolov8-benchmarks), users can experience up to 3x faster inference speeds on Intel CPUs, with even greater accelerations possible across Intel's hardware spectrum including integrated GPUs, dedicated GPUs, and VPUs.
+Implementing OpenVINO optimizations with Ultralytics YOLO models can yield significant performance improvements. As demonstrated in [benchmarks](https://docs.ultralytics.com/integrations/openvino#openvino-yolov8-benchmarks), users can experience up to 3x faster inference speeds on Intel CPUs, with even greater accelerations possible across Intel's hardware spectrum including integrated GPUs, dedicated GPUs, and VPUs.
 
 For example, when running YOLOv8 models on Intel Xeon CPUs, the OpenVINO-optimized versions consistently outperform their PyTorch counterparts in terms of inference time per image, without compromising on [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
 ## Practical Implementation
 
-To export and optimize your Ultralytics YOLO model for OpenVINO, you can use the [export](https://docs.ultralytics.com/modes/export/) functionality:
+To export and optimize your Ultralytics YOLO model for OpenVINO, you can use the [export](https://docs.ultralytics.com/modes/export) functionality:
 
 ```python
 from ultralytics import YOLO
@@ -145,14 +145,14 @@ Balancing latency and throughput optimization requires understanding your applic
 - **Latency Optimization:** Ideal for real-time applications requiring immediate responses (e.g., consumer-grade apps).
 - **Throughput Optimization:** Best for scenarios with many concurrent inferences, maximizing resource use (e.g., large-scale deployments).
 
-Using OpenVINO's high-level performance hints and multi-device modes can help strike the right balance. Choose the appropriate [OpenVINO Performance hints](https://docs.ultralytics.com/integrations/openvino/#openvino-performance-hints) based on your specific requirements.
+Using OpenVINO's high-level performance hints and multi-device modes can help strike the right balance. Choose the appropriate [OpenVINO Performance hints](https://docs.ultralytics.com/integrations/openvino#openvino-performance-hints) based on your specific requirements.
 
 ### Can I use Ultralytics YOLO models with other AI frameworks besides OpenVINO?
 
 Yes, Ultralytics YOLO models are highly versatile and can be integrated with various AI frameworks. Options include:
 
-- **TensorRT:** For NVIDIA GPU optimization, follow the [TensorRT integration guide](https://docs.ultralytics.com/integrations/tensorrt/).
-- **CoreML:** For Apple devices, refer to our [CoreML export instructions](https://docs.ultralytics.com/integrations/coreml/).
-- **[TensorFlow](https://www.ultralytics.com/glossary/tensorflow).js:** For web and Node.js apps, see the [TF.js conversion guide](https://docs.ultralytics.com/integrations/tfjs/).
+- **TensorRT:** For NVIDIA GPU optimization, follow the [TensorRT integration guide](https://docs.ultralytics.com/integrations/tensorrt).
+- **CoreML:** For Apple devices, refer to our [CoreML export instructions](https://docs.ultralytics.com/integrations/coreml).
+- **[TensorFlow](https://www.ultralytics.com/glossary/tensorflow).js:** For web and Node.js apps, see the [TF.js conversion guide](https://docs.ultralytics.com/integrations/tfjs).
 
-Explore more integrations on the [Ultralytics Integrations page](https://docs.ultralytics.com/integrations/).
+Explore more integrations on the [Ultralytics Integrations page](https://docs.ultralytics.com/integrations).

@@ -119,7 +119,7 @@ For a thorough explanation of available arguments and configuration options, you
 
 ### Why is the COCO128-Seg dataset important for model development and debugging?
 
-The **COCO128-Seg dataset** offers a balanced combination of manageability and diversity with 128 images, making it perfect for quickly testing and debugging segmentation models or experimenting with new detection techniques. Its moderate size allows for fast training iterations while providing enough diversity to validate training pipelines before scaling to larger datasets. Learn more about supported dataset formats in the [Ultralytics segmentation dataset guide](https://docs.ultralytics.com/datasets/segment/).
+The **COCO128-Seg dataset** offers a balanced combination of manageability and diversity with 128 images, making it perfect for quickly testing and debugging segmentation models or experimenting with new detection techniques. Its moderate size allows for fast training iterations while providing enough diversity to validate training pipelines before scaling to larger datasets. Learn more about supported dataset formats in the [Ultralytics segmentation dataset guide](https://docs.ultralytics.com/datasets/segment).
 
 ### Where can I find the YAML configuration file for the COCO128-Seg dataset?
 

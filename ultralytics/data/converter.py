@@ -15,7 +15,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML
+from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML, clean_url
 from ultralytics.utils.checks import check_file
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
@@ -832,14 +832,18 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         lines = [json.loads(line.strip()) for line in f if line.strip()]
     dataset_record, image_records = lines[0], lines[1:]
 
-    # Hash semantic content only (excludes signed URLs which change on every export)
+    # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
     _h = hashlib.sha256()
     for r in lines:
-        _h.update(json.dumps({k: v for k, v in r.items() if k != "url"}, sort_keys=True).encode())
-    _hash = _h.hexdigest()[:16]
+        hash_record = {k: v for k, v in r.items() if k != "url"}
+        if r.get("file"):
+            hash_record["_source"] = clean_url(r["url"]) if r.get("url") else str(ndjson_path.parent.resolve())
+        _h.update(json.dumps(hash_record, sort_keys=True).encode())
+    _hash = _h.hexdigest()[:8]
 
-    # Early exit if dataset content unchanged (hash stored in data.yaml)
-    dataset_dir = output_path / ndjson_path.stem
+    # Hash-qualified dirs allow identical datasets to reuse downloads while preventing changed datasets from mutating
+    # files that another training job may still be reading.
+    dataset_dir = output_path / f"{ndjson_path.stem}-{_hash}"
     yaml_path = dataset_dir / "data.yaml"
     if yaml_path.is_file():
         try:
@@ -857,10 +861,25 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     # Check if this is a classification dataset
     is_classification = dataset_record.get("task") == "classify"
     class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
-    len(class_names)
+    inferred_nc = None
 
     # Validate required fields before downloading images
     task = dataset_record.get("task", "detect")
+    if not is_classification:
+        class_ids = {
+            int(label[0])
+            for record in image_records
+            for labels in record.get("annotations", {}).values()
+            for label in labels
+            if label
+        }
+        if class_ids or class_names:
+            max_class_id = max(class_ids | set(class_names))
+            if class_names:
+                for i in range(max_class_id + 1):
+                    class_names.setdefault(i, f"class{i}")
+            else:
+                inferred_nc = max_class_id + 1
     if not is_classification:
         if "train" not in splits:
             raise ValueError(f"Dataset missing required 'train' split. Found splits: {sorted(splits)}")
@@ -896,7 +915,10 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     if not is_classification:
         # Detection/segmentation/pose/obb: prepare YAML and create base structure
         data_yaml = dict(dataset_record)
-        data_yaml["names"] = class_names
+        if class_names:
+            data_yaml["names"] = class_names
+        elif inferred_nc is not None:
+            data_yaml["nc"] = inferred_nc
         data_yaml.pop("class_names", None)
         data_yaml.pop("type", None)  # Remove NDJSON-specific fields
         for split in sorted(splits):
@@ -921,7 +943,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                 image_path = dataset_dir / "images" / split / original_name
                 label_path = dataset_dir / "labels" / split / f"{Path(original_name).stem}.txt"
                 lines_to_write = []
-                for key in annotations.keys():
+                for key in annotations:
                     lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
                     break
                 label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")

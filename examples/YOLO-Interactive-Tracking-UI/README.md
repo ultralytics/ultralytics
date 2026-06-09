@@ -1,6 +1,6 @@
 # Ultralytics YOLO Interactive Object Tracking UI 🚀
 
-A real-time [object detection](https://docs.ultralytics.com/tasks/detect/) and [tracking](https://docs.ultralytics.com/modes/track/) UI built with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) and [OpenCV](https://opencv.org/), designed for interactive demos and seamless integration of tracking overlays. Whether you're just getting started with object tracking or looking to enhance it with additional features, this project provides a solid foundation.
+A real-time [object detection](https://docs.ultralytics.com/tasks/detect) and [tracking](https://docs.ultralytics.com/modes/track) UI built with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) and [OpenCV](https://opencv.org/), designed for interactive demos and seamless integration of tracking overlays. Whether you're just getting started with object tracking or looking to enhance it with additional features, this project provides a solid foundation.
 
 https://github.com/user-attachments/assets/723e919e-555b-4cca-8e60-18e711d4f3b2
 
@@ -8,13 +8,13 @@ https://github.com/user-attachments/assets/723e919e-555b-4cca-8e60-18e711d4f3b2
 
 - Real-time object detection and visual tracking
 - Click-to-track any detected object
-- Scope lines and bold [bounding boxes](https://docs.ultralytics.com/usage/simple-utilities/#bounding-boxes) for active tracking
+- Scope lines and bold [bounding boxes](https://docs.ultralytics.com/usage/simple-utilities#bounding-boxes) for active tracking
 - Dashed boxes for passive (non-tracked) objects
-- [Live terminal output](https://docs.ultralytics.com/guides/view-results-in-terminal/): object ID, label, [confidence](https://www.ultralytics.com/glossary/confidence), and center coordinates
-- Adjustable object tracking algorithms ([ByteTrack](https://docs.ultralytics.com/reference/trackers/byte_tracker/), [BoT-SORT](https://docs.ultralytics.com/reference/trackers/bot_sort/))
+- [Live terminal output](https://docs.ultralytics.com/guides/view-results-in-terminal): object ID, label, [confidence](https://www.ultralytics.com/glossary/confidence), and center coordinates
+- Adjustable object tracking algorithms ([ByteTrack](https://docs.ultralytics.com/reference/trackers/byte_tracker), [BoT-SORT](https://docs.ultralytics.com/reference/trackers/bot_sort))
 - Supports:
-  - [PyTorch](https://pytorch.org/) `.pt` models (for GPU devices like [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson/) or [CUDA](https://developer.nvidia.com/cuda)-enabled desktops)
-  - [NCNN](https://docs.ultralytics.com/integrations/ncnn/) `.param + .bin` models (for CPU-only devices like [Raspberry Pi](https://www.raspberrypi.org/) or ARM boards)
+  - [PyTorch](https://pytorch.org/) `.pt` models (for GPU devices like [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson) or [CUDA](https://developer.nvidia.com/cuda)-enabled desktops)
+  - [NCNN](https://docs.ultralytics.com/integrations/ncnn) `.param + .bin` models (for CPU-only devices like [Raspberry Pi](https://www.raspberrypi.org/) or ARM boards)
 
 ## 🏗️ Project Structure
 
@@ -45,7 +45,7 @@ Install the core `ultralytics` package:
 pip install ultralytics
 ```
 
-> **Tip:** Use a virtual environment like `venv` or [`conda`](https://docs.ultralytics.com/guides/conda-quickstart/) (recommended) to manage dependencies.
+> **Tip:** Use a virtual environment like `venv` or [`conda`](https://docs.ultralytics.com/guides/conda-quickstart) (recommended) to manage dependencies.
 
 > **GPU Support:** Install PyTorch based on your system and CUDA version by following the official guide: [https://pytorch.org/get-started/locally/](https://pytorch.org/get-started/locally/)
 
@@ -53,9 +53,9 @@ pip install ultralytics
 
 ### Step 1: Download, Convert, or Specify Model
 
-- For pre-trained Ultralytics YOLO [models](https://docs.ultralytics.com/models/) (e.g., `yolo11s.pt` or `yolov8s.pt`), simply specify the model name in the script parameters (`model_file`). These models will be automatically downloaded and cached. You can also manually download them from [Ultralytics Assets Releases](https://github.com/ultralytics/assets/releases) and place them in the project folder.
+- For pre-trained Ultralytics YOLO [models](https://docs.ultralytics.com/models) (e.g., `yolo11s.pt` or `yolov8s.pt`), simply specify the model name in the script parameters (`model_file`). These models will be automatically downloaded and cached. You can also manually download them from [Ultralytics Assets Releases](https://github.com/ultralytics/assets/releases) and place them in the project folder.
 - If you're using a custom-trained YOLO model, ensure the model file is in the project folder or provide its relative path.
-- For CPU-only devices, export your chosen model (e.g., `yolov8n.pt`) to the [NCNN format](https://docs.ultralytics.com/integrations/ncnn/) using the Ultralytics `export` mode.
+- For CPU-only devices, export your chosen model (e.g., `yolov8n.pt`) to the [NCNN format](https://docs.ultralytics.com/integrations/ncnn) using the Ultralytics `export` mode.
 
 - **Supported Formats:**
   - `yolo11s.pt` (for GPU with PyTorch)
@@ -93,7 +93,7 @@ window_name = "Ultralytics YOLO Interactive Tracking"  # Name for the OpenCV dis
 - **`model_file`**: Ensure this points to the correct model file or directory based on `enable_gpu`.
 - **`conf`**: Adjust the [confidence](https://www.ultralytics.com/glossary/confidence) threshold. Lower values detect more objects but may increase false positives.
 - **`iou`**: Set the [Intersection over Union (IoU)](https://www.ultralytics.com/glossary/intersection-over-union-iou) threshold for [Non-Maximum Suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms). Higher values allow more overlapping boxes.
-- **`tracker`**: Choose between available tracker configuration files ([ByteTrack](https://docs.ultralytics.com/reference/trackers/byte_tracker/), [BoT-SORT](https://docs.ultralytics.com/reference/trackers/bot_sort/)).
+- **`tracker`**: Choose between available tracker configuration files ([ByteTrack](https://docs.ultralytics.com/reference/trackers/byte_tracker), [BoT-SORT](https://docs.ultralytics.com/reference/trackers/bot_sort)).
 
 ### Step 3: Run the Object Tracking
 

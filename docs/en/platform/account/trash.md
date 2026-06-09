@@ -46,15 +46,16 @@ The Trash shows all soft-deleted resources with filter options:
 
 Each item in Trash displays:
 
-| Field              | Description                              |
-| ------------------ | ---------------------------------------- |
-| **Name**           | Original resource name                   |
-| **Type**           | Project, Dataset, or Model (color-coded) |
-| **Deleted**        | Date and time of deletion                |
-| **Days Remaining** | Time until permanent deletion            |
-| **Size**           | Storage used by the item                 |
-| **Cascaded Items** | Number of child items included           |
-| **Parent Project** | Parent project (for models)              |
+| Field        | Description                                                  |
+| ------------ | ------------------------------------------------------------ |
+| **Name**     | Original resource name                                       |
+| **Type**     | Project, Dataset, or Model (color-coded)                     |
+| **Deleted**  | Date and time of deletion                                    |
+| **Expires**  | Days until permanent deletion (e.g. "30d")                   |
+| **Size**     | Storage used by the item                                     |
+| **Cascaded** | Child items included, shown as a `+N` badge next to the name |
+
+(Parent project information is returned by the Trash API for models but is not shown in the Trash table.)
 
 ### Cascade Behavior
 
@@ -166,10 +167,9 @@ Access trash programmatically via the [REST API](../api/index.md#trash-api):
 
 === "Empty Trash"
 
-    ```bash
-    curl -X DELETE -H "Authorization: Bearer YOUR_API_KEY" \
-      https://platform.ultralytics.com/api/trash/empty
-    ```
+    !!! note "Browser session only"
+
+        `DELETE /api/trash/empty` requires an authenticated browser session and cannot be called with an API key. Use the **Empty Trash** button in [**Settings > Trash**](../account/settings.md#trash-tab) instead, or permanently delete individual items via `DELETE /api/trash` (API-key compatible).
 
 ## FAQ
 
@@ -191,4 +191,4 @@ No. If a project is permanently deleted, all models that were inside it are also
 
 ### How do I know when an item will be permanently deleted?
 
-Each item in Trash shows a "Days Remaining" counter indicating how many days until automatic permanent deletion occurs.
+Each item in Trash shows an "Expires" column with the number of days (e.g. "30d") until automatic permanent deletion occurs.

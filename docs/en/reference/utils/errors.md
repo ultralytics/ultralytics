@@ -7,7 +7,7 @@ keywords: Ultralytics, YOLO, error handling, HUBModelError, model fetching, cust
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/errors.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/errors.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/errors.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/errors.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

@@ -83,7 +83,7 @@ class Heatmap(ObjectCounter):
                 object count), and 'total_tracks' (int, total number of tracked objects).
         """
         if not self.initialized:
-            self.heatmap = np.zeros_like(im0, dtype=np.float32) * 0.99
+            self.heatmap = np.zeros_like(im0, dtype=np.float32)
             self.initialized = True  # Initialize heatmap only once
 
         self.extract_tracks(im0)  # Extract tracks

@@ -130,17 +130,9 @@ Common tools for visualizations include:
 - **Scatter Plots**: Helpful for exploring relationships between image features or annotations.
 - **Heatmaps**: Effective for visualizing the distribution of pixel intensities or the spatial distribution of annotated features within images.
 
-### Using Ultralytics Explorer for EDA
+### Using Ultralytics Platform for EDA
 
-!!! warning "Community Note"
-
-    As of **`ultralytics>=8.3.10`**, Ultralytics Explorer support is deprecated. Similar (and expanded) dataset exploration features are available in [Ultralytics Platform](https://platform.ultralytics.com/).
-
-For a more advanced approach to EDA, you can use the Ultralytics Explorer tool. It offers robust capabilities for exploring computer vision datasets. By supporting semantic search, SQL queries, and vector similarity search, the tool makes it easy to analyze and understand your data. With Ultralytics Explorer, you can create [embeddings](https://www.ultralytics.com/glossary/embeddings) for your dataset to find similar images, run SQL queries for detailed analysis, and perform semantic searches, all through a user-friendly graphical interface.
-
-<p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-explorer-openai-integration.avif" alt="Overview of Ultralytics Explorer">
-</p>
+For a no-code approach to EDA, upload your dataset to [Ultralytics Platform](https://platform.ultralytics.com/). The dataset's `Charts` tab automatically generates the visualizations described above: split distribution, top class counts, image width/height histograms, and 2D heatmaps of annotation positions and image dimensions. The `Images` tab lets you browse your data in grid, compact, or table views with annotation overlays, making it easy to spot mislabeled examples or unbalanced classes without writing a single line of code.
 
 ## Reach Out and Connect
 

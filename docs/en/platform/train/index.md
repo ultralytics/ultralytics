@@ -27,7 +27,7 @@ The Training section helps you:
 - **Train** on cloud GPUs with a single click
 - **Monitor** real-time metrics during training
 - **Compare** model performance across experiments
-- **Export** to 17+ deployment formats (see [supported formats](models.md#supported-formats))
+- **Export** to 19+ deployment formats (see [supported formats](models.md#supported-formats))
 
 ![Ultralytics Platform Train Overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-train-overview.avif)
 
@@ -53,7 +53,7 @@ graph LR
 | **Configure** | Select [dataset](../data/datasets.md), base model, and training parameters |
 | **Train**     | Run on cloud GPUs or your local hardware                                   |
 | **Monitor**   | View real-time loss curves and metrics                                     |
-| **Export**    | Convert to 17+ deployment formats ([details](models.md#supported-formats)) |
+| **Export**    | Convert to 19+ deployment formats ([details](models.md#supported-formats)) |
 
 ## Training Options
 
@@ -73,7 +73,7 @@ Available GPUs for cloud training on Ultralytics Cloud:
 
 !!! info "GPU Tier Access"
 
-    H200 and B200 GPUs require a [Pro or Enterprise plan](../account/billing.md#plans). All other GPUs are available on all plans including Free.
+    B200 and B300 GPUs require a [Pro or Enterprise plan](../account/billing.md#plans). All other GPUs are available on all plans including Free.
 
 !!! tip "Signup Credits"
 
@@ -157,7 +157,7 @@ Training time depends on:
 - Number of epochs
 - GPU type selected
 
-A typical training run with 1000 images, YOLO26n, 100 epochs on RTX PRO 6000 takes about 2-3 hours. Smaller runs (500 images, 50 epochs on RTX 4090) complete in under an hour. See [cost examples](cloud-training.md#cost-examples) for detailed estimates.
+A typical training run with 1000 images, YOLO26n, 100 epochs on RTX PRO 6000 takes about 5-10 minutes. Smaller runs (500 images, 50 epochs on RTX 4090) complete in under an hour. See [cost examples](cloud-training.md#cost-examples) for detailed estimates.
 
 ### Can I train multiple models simultaneously?
 
@@ -167,14 +167,14 @@ Yes. Concurrent cloud training limits depend on your plan: Free allows 3, Pro al
 
 If training fails:
 
-1. Checkpoints are saved at each epoch
-2. You can resume from the last checkpoint
+1. The model is marked failed and the compute instance is terminated
+2. You can start a new training run from the base model
 3. Credits are only charged for completed compute time
 
 ### How do I choose the right GPU?
 
-| Scenario                      | Recommended GPU         |
-| ----------------------------- | ----------------------- |
-| Most training jobs            | RTX PRO 6000            |
-| Large datasets or batch sizes | H100 SXM or H200 (Pro+) |
-| Budget-conscious              | RTX 4090                |
+| Scenario                      | Recommended GPU  |
+| ----------------------------- | ---------------- |
+| Most training jobs            | RTX PRO 6000     |
+| Large datasets or batch sizes | H100 SXM or H200 |
+| Budget-conscious              | RTX 4090         |

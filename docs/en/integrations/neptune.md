@@ -74,7 +74,6 @@ The securest way to handle credentials is via environment variables. Note that t
     import os
 
     os.environ["NEPTUNE_API_TOKEN"] = "your_long_api_token_here"
-    os.environ["NEPTUNE_PROJECT"] = "your_workspace/your_project"
     ```
 
 ## Usage

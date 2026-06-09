@@ -32,7 +32,9 @@ class CoreMLBackend(BaseBackend):
 
         LOGGER.info(f"Loading {weight} for CoreML inference...")
         self.model = ct.models.MLModel(weight)
-        self.dynamic = self.model.get_spec().description.input[0].type.HasField("multiArrayType")
+        spec = self.model.get_spec()
+        self.input_name = spec.description.input[0].name
+        self.dynamic = spec.description.input[0].type.HasField("multiArrayType")
 
         # Load metadata
         self.apply_metadata(dict(self.model.user_defined_metadata))
@@ -50,7 +52,7 @@ class CoreMLBackend(BaseBackend):
         h, w = im.shape[1:3]
 
         im = im.transpose(0, 3, 1, 2) if self.dynamic else Image.fromarray((im[0] * 255).astype("uint8"))
-        y = self.model.predict({"image": im})
+        y = self.model.predict({self.input_name: im})
         if "confidence" in y:  # NMS included
             from ultralytics.utils.ops import xywh2xyxy
 

@@ -1,6 +1,6 @@
 # Running Ultralytics YOLOv8 with TFLite Runtime
 
-This guide demonstrates how to perform inference using an Ultralytics [YOLOv8](https://docs.ultralytics.com/models/yolov8/) model exported to the [TensorFlow Lite (TFLite)](https://ai.google.dev/edge/litert) format. TFLite is a popular choice for deploying machine learning models on mobile, embedded, and IoT devices due to its optimization for on-device inference with low latency and a small binary size. This example supports FP32, FP16, and INT8 quantized TFLite models.
+This guide demonstrates how to perform inference using an Ultralytics [YOLOv8](https://docs.ultralytics.com/models/yolov8) model exported to the [TensorFlow Lite (TFLite)](https://ai.google.dev/edge/litert) format. TFLite is a popular choice for deploying machine learning models on mobile, embedded, and IoT devices due to its optimization for on-device inference with low latency and a small binary size. This example supports FP32, FP16, and INT8 quantized TFLite models.
 
 ## ⚙️ Installation
 
@@ -40,7 +40,7 @@ Visit the official [TensorFlow installation guide](https://www.tensorflow.org/in
 Follow these steps to run inference with your exported YOLOv8 TFLite model.
 
 1.  **Export YOLOv8 Model to TFLite:**
-    First, export your trained Ultralytics YOLOv8 model (e.g., `yolov8n.pt`) to the TFLite format using the `yolo export` command. This example exports an INT8 quantized model for optimal performance on edge devices. You can also export FP32 or FP16 models by adjusting the `format` and quantization arguments. Refer to the Ultralytics [Export mode documentation](https://docs.ultralytics.com/modes/export/) for more options.
+    First, export your trained Ultralytics YOLOv8 model (e.g., `yolov8n.pt`) to the TFLite format using the `yolo export` command. This example exports an INT8 quantized model for optimal performance on edge devices. You can also export FP32 or FP16 models by adjusting the `format` and quantization arguments. Refer to the Ultralytics [Export mode documentation](https://docs.ultralytics.com/modes/export) for more options.
 
     ```bash
     yolo export model=yolov8n.pt imgsz=640 format=tflite int8=True # Exports yolov8n_saved_model/yolov8n_full_integer_quant.tflite

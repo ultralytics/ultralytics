@@ -29,7 +29,7 @@ The Ultralytics command line interface (CLI) provides a straightforward way to u
         ```
 
         Where:
-        - `TASK` (optional) is one of [detect, segment, classify, pose, obb]
+        - `TASK` (optional) is one of [detect, segment, semantic, classify, pose, obb]
         - `MODE` (required) is one of [train, val, predict, export, track, benchmark]
         - `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults.
 
@@ -82,7 +82,7 @@ The Ultralytics command line interface (CLI) provides a straightforward way to u
 
 Where:
 
-- `TASK` (optional) is one of `[detect, segment, classify, pose, obb]`. If not explicitly passed, YOLO will attempt to infer the `TASK` from the model type.
+- `TASK` (optional) is one of `[detect, segment, semantic, classify, pose, obb]`. If not explicitly passed, YOLO will attempt to infer the `TASK` from the model type.
 - `MODE` (required) is one of `[train, val, predict, export, track, benchmark]`
 - `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults. For a full list of available `ARGS`, see the [Configuration](cfg.md) page and `default.yaml`.
 
@@ -365,6 +365,34 @@ Ultralytics provides ready-to-use solutions for common computer vision applicati
         yolo solutions trackzone region="[(150, 150), (1130, 150), (1130, 570), (150, 570)]" # configure zone coordinates
         ```
 
+    === "Region"
+
+        Count objects inside specific polygonal regions:
+
+        ```bash
+        yolo solutions region show=True
+        yolo solutions region source="path/to/video.mp4"                                # specify video file path
+        yolo solutions region region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]" # configure region coordinates
+        ```
+
+    === "Security"
+
+        Run security alarm monitoring with object detection:
+
+        ```bash
+        yolo solutions security show=True
+        yolo solutions security source="path/to/video.mp4" # specify video file path
+        ```
+
+    === "Parking"
+
+        Monitor parking lot occupancy using pre-defined zones:
+
+        ```bash
+        yolo solutions parking source="path/to/video.mp4" json_file="bounding_boxes.json" # requires pre-built JSON
+        yolo solutions parking source="path/to/video.mp4" json_file="bounding_boxes.json" model="yolo26n.pt"
+        ```
+
     === "Help"
 
         View available solutions and their options:
@@ -389,7 +417,7 @@ This command uses the `train` mode with specific arguments. For a full list of a
 
 ### What tasks can I perform with the Ultralytics YOLO CLI?
 
-The Ultralytics YOLO CLI supports various tasks, including [detection](../tasks/detect.md), [segmentation](../tasks/segment.md), [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [oriented bounding box detection](../tasks/obb.md). You can also perform operations like:
+The Ultralytics YOLO CLI supports various tasks, including [detection](../tasks/detect.md), [segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [oriented bounding box detection](../tasks/obb.md). You can also perform operations like:
 
 - **Train a Model**: Run `yolo train data=<data.yaml> model=<model.pt> epochs=<num>`.
 - **Run Predictions**: Use `yolo predict model=<model.pt> source=<data_source> imgsz=<image_size>`.

@@ -26,7 +26,7 @@ from torch import nn, optim
 
 from ultralytics import __version__
 from ultralytics.cfg import get_cfg, get_save_dir
-from ultralytics.data.utils import check_cls_dataset, check_det_dataset
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.nn.distill_model import DistillationModel
 from ultralytics.optim import MuSGD
@@ -275,7 +275,7 @@ class BaseTrainer:
         # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
         self.test_loader = self.get_dataloader(
             self.data.get("val") or self.data.get("test"),
-            batch_size=batch_size if self.args.task == "obb" else batch_size * 2,
+            batch_size=batch_size if self.args.task in {"obb", "semantic"} else batch_size * 2,
             rank=LOCAL_RANK,
             mode="val",
         )
@@ -325,6 +325,11 @@ class BaseTrainer:
                     "See ultralytics.engine.trainer for customization of frozen layers."
                 )
                 v.requires_grad = True
+        if not any(v.requires_grad for v in self.model.parameters()):
+            raise RuntimeError(
+                f"'freeze={self.args.freeze}' froze the entire model with no trainable parameters left. "
+                f"Reduce 'freeze' or pass a list of specific layer indices."
+            )
 
         # Check AMP
         self.amp = torch.tensor(self.args.amp).to(self.device)  # True or False
@@ -347,7 +352,13 @@ class BaseTrainer:
         if self.args.distill_model is not None and not isinstance(unwrap_model(self.model), DistillationModel):
             self.model = DistillationModel(student_model=self.model, teacher_model=self.args.distill_model)
         if self.world_size > 1:
-            self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
+            # static_graph=True permits params used >1 time per forward (e.g. flow_model in
+            # o2m+o2o pose loss branches) under torch.compile.
+            self.model = nn.parallel.DistributedDataParallel(
+                self.model,
+                device_ids=[RANK],
+                static_graph=bool(self.args.compile),
+            )
 
         # Batch size
         if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size
@@ -454,16 +465,23 @@ class BaseTrainer:
 
                     # Backward
                     self.scaler.scale(self.loss).backward()
-                except torch.cuda.OutOfMemoryError:
+                except RuntimeError as e:
+                    is_oom = isinstance(e, torch.cuda.OutOfMemoryError)
+                    if not is_oom and not any(
+                        s in str(e) for s in ("CUDNN_STATUS_INTERNAL_ERROR", "unable to find an engine")
+                    ):
+                        raise
                     if epoch > self.start_epoch or self._oom_retries >= 3 or RANK != -1:
                         raise  # only auto-reduce during first epoch on single GPU, max 3 retries
                     self._oom_retries += 1
                     old_batch = self.batch_size
                     self.args.batch = self.batch_size = max(self.batch_size // 2, 1)
                     LOGGER.warning(
-                        f"CUDA out of memory with batch={old_batch}. "
+                        f"{'CUDA out of memory' if is_oom else 'CUDA backend memory error'} with batch={old_batch}. "
                         f"Reducing to batch={self.batch_size} and retrying ({self._oom_retries}/3)."
                     )
+                    batch = loss = preds = None
+                    self.loss = self.loss_items = self.tloss = None
                     self._clear_memory()
                     self._build_train_pipeline()  # rebuild dataloaders, optimizer, scheduler
                     self.scheduler.last_epoch = self.start_epoch - 1
@@ -495,7 +513,7 @@ class BaseTrainer:
                             f"{epoch + 1}/{self.epochs}",
                             f"{self._get_memory():.3g}G",  # (GB) GPU memory util
                             *(self.tloss if loss_length > 1 else torch.unsqueeze(self.tloss, 0)),  # losses
-                            batch["cls"].shape[0],  # batch size, i.e. 8
+                            batch["img"].shape[0],  # batch size, i.e. 8
                             batch["img"].shape[-1],  # imgsz, i.e 640
                         )
                     )
@@ -638,10 +656,16 @@ class BaseTrainer:
         """Save model training checkpoints with additional metadata."""
         import io
 
-        ema = deepcopy(unwrap_model(self.ema.ema)).half()
+        # Skip only genuinely non-finite fp32 EMA weights; fp16 overflow is handled on the saved copy below.
+        ema = unwrap_model(self.ema.ema)
         if not all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor)):
             LOGGER.warning(f"Skipping checkpoint save at epoch {self.epoch}: EMA contains NaN/Inf")
             return False
+        ema = deepcopy(ema).half()
+        # Clamp fp16 serialization overflow without mutating the live EMA.
+        for v in ema.state_dict().values():
+            if isinstance(v, torch.Tensor) and v.is_floating_point():
+                torch.nan_to_num_(v)
 
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
         buffer = io.BytesIO()
@@ -663,6 +687,7 @@ class BaseTrainer:
                     "root": str(GIT.root),
                     "branch": GIT.branch,
                     "commit": GIT.commit,
+                    "message": GIT.message,
                     "origin": GIT.origin,
                 },
                 "license": "AGPL-3.0 (https://ultralytics.com/license)",
@@ -688,15 +713,7 @@ class BaseTrainer:
             (dict): A dictionary containing the training/validation/test dataset and category names.
         """
         try:
-            # Convert ul:// platform URIs and NDJSON files to local dataset format first
-            data_str = str(self.args.data)
-            if data_str.endswith(".ndjson") or (data_str.startswith("ul://") and "/datasets/" in data_str):
-                import asyncio
-
-                from ultralytics.data.converter import convert_ndjson_to_yolo
-                from ultralytics.utils.checks import check_file
-
-                self.args.data = str(asyncio.run(convert_ndjson_to_yolo(check_file(self.args.data))))
+            self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data)
 
             # Task-specific dataset checking
             if self.args.task == "classify":
@@ -706,6 +723,7 @@ class BaseTrainer:
                 "segment",
                 "pose",
                 "obb",
+                "semantic",
             }:
                 data = check_det_dataset(self.args.data)
                 if "yaml_file" in data:
@@ -732,8 +750,10 @@ class BaseTrainer:
         if str(self.model).endswith(".pt"):
             weights, ckpt = load_checkpoint(self.model)
             cfg = weights.yaml
-        elif isinstance(self.args.pretrained, (str, Path)):
+        if isinstance(self.args.pretrained, (str, Path)):
             weights, _ = load_checkpoint(self.args.pretrained)
+        elif self.args.pretrained is False and not self.resume:
+            weights = None
 
         # rebuild DistillationModel from resuming checkpoint
         if isinstance(weights, DistillationModel):
@@ -745,7 +765,7 @@ class BaseTrainer:
             model.criterion = None
             self.model = model
         else:
-            self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK in {-1, 0})
+            self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK in {-1, 0})  # calls Model(cfg, weights)
         return ckpt
 
     def optimizer_step(self):
@@ -865,7 +885,9 @@ class BaseTrainer:
             self.validator.args.compile = False  # disable final val compile as too slow
             self.metrics = self.validator(model=model)
             self.metrics.pop("fitness", None)
+            self.epoch += 1  # log best metrics at step epochs+1, not overwriting last epoch
             self.run_callbacks("on_fit_epoch_end")
+            self.epoch -= 1  # restore epoch
 
     def check_resume(self, overrides):
         """Check if resume checkpoint exists and update arguments accordingly."""
@@ -966,7 +988,7 @@ class BaseTrainer:
         if ckpt is None or not self.resume:
             return
         start_epoch = ckpt.get("epoch", -1) + 1
-        assert start_epoch > 0, (
+        assert 0 < start_epoch < self.epochs, (
             f"{self.args.model} training to {self.epochs} epochs is finished, nothing to resume.\n"
             f"Start a new training without resuming, i.e. 'yolo train model={self.args.model}'"
         )
@@ -1049,7 +1071,7 @@ class BaseTrainer:
         else:
             raise NotImplementedError(
                 f"Optimizer '{name}' not found in list of available optimizers {optimizers}. "
-                "Request support for addition optimizers at https://github.com/ultralytics/ultralytics."
+                "Request support for additional optimizers at https://github.com/ultralytics/ultralytics."
             )
 
         num_params = [len(g[0]), len(g[1]), len(g[2])]  # number of param groups
@@ -1062,8 +1084,9 @@ class BaseTrainer:
             g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True, "param_group": "muon"}
             import re
 
-            # higher lr for certain parameters in MuSGD when funetuning
-            pattern = re.compile(r"(?=.*23)(?=.*cv3)|proto\.semseg")
+            # higher lr for certain parameters in MuSGD when finetuning
+            # proto.semseg is the checkpoint parameter name for YOLO26 semantic auxiliary heads.
+            pattern = re.compile(r"(?=.*23)(?=.*cv3)|proto\.semseg|SemanticSegment")
             g_ = []  # new param groups
             for x in g:
                 p = x.pop("params")

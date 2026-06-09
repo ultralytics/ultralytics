@@ -103,7 +103,7 @@ def spaces_in_path(path: str | Path):
         yield path
 
 
-def increment_path(path: str | Path, exist_ok: bool = False, sep: str = "", mkdir: bool = False) -> Path:
+def increment_path(path: str | Path, exist_ok: bool = False, sep: str = "-", mkdir: bool = False) -> Path:
     """Increment a file or directory path, i.e., runs/exp --> runs/exp{sep}2, runs/exp{sep}3, ... etc.
 
     If the path exists and `exist_ok` is not True, the path will be incremented by appending a number and `sep` to the
@@ -125,13 +125,13 @@ def increment_path(path: str | Path, exist_ok: bool = False, sep: str = "", mkdi
         >>> path = Path("runs/exp")
         >>> new_path = increment_path(path)
         >>> print(new_path)
-        runs/exp2
+        runs/exp-2
 
         Increment a file path:
         >>> path = Path("runs/exp/results.txt")
         >>> new_path = increment_path(path)
         >>> print(new_path)
-        runs/exp/results2.txt
+        runs/exp/results-2.txt
     """
     path = Path(path)  # os-agnostic
     if path.exists() and not exist_ok:

@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 import shutil
 import subprocess
+import tarfile
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
@@ -18,7 +19,7 @@ GITHUB_ASSETS_NAMES = frozenset(
     [f"yolov8{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb", "-oiv7")]
     + [f"yolo11{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb")]
     + [f"yolo12{k}{suffix}.pt" for k in "nsmlx" for suffix in ("",)]  # detect models only currently
-    + [f"yolo26{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb")]
+    + [f"yolo26{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-sem", "-pose", "-obb")]
     + [f"yolov5{k}{resolution}u.pt" for k in "nsmlx" for resolution in ("", "6")]
     + [f"yolov3{k}u.pt" for k in ("", "-spp", "-tiny")]
     + [f"yolov8{k}-world.pt" for k in "smlx"]
@@ -192,9 +193,15 @@ def unzip_file(
             LOGGER.warning(f"Skipping {file} unzip as destination directory {path} is not empty.")
             return path
 
+        extract_path = Path(extract_path).resolve()
         for f in TQDM(files, desc=f"Unzipping {file} to {Path(path).resolve()}...", unit="files", disable=not progress):
-            # Ensure the file is within the extract_path to avoid path traversal security vulnerability
-            if ".." in Path(f).parts:
+            f_path = Path(f)
+            target = (extract_path / f_path).resolve()
+            if (
+                f_path.is_absolute()
+                or ".." in f_path.parts
+                or target.parts[: len(extract_path.parts)] != extract_path.parts
+            ):
                 LOGGER.warning(f"Potentially insecure file path: {f}, skipping extraction.")
                 continue
             zipObj.extract(f, extract_path)
@@ -390,7 +397,26 @@ def safe_download(
             unzip_dir = unzip_file(file=f, path=unzip_dir, exist_ok=exist_ok, progress=progress)  # unzip
         elif f.suffix in {".tar", ".gz"}:
             LOGGER.info(f"Unzipping {f} to {unzip_dir}...")
-            subprocess.run(["tar", "xf" if f.suffix == ".tar" else "xfz", f, "--directory", unzip_dir], check=True)
+            with tarfile.open(f, "r:*") as tar:
+                for m in tar:
+                    if not (m.isfile() or m.isdir()) or m.issym() or m.islnk():
+                        LOGGER.warning(f"Potentially insecure tar member: {m.name}, skipping extraction.")
+                        continue
+                    m_path = Path(m.name)
+                    target = (unzip_dir / m_path).resolve()
+                    if (
+                        m_path.is_absolute()
+                        or ".." in m_path.parts
+                        or target.parts[: len(unzip_dir.parts)] != unzip_dir.parts
+                    ):
+                        LOGGER.warning(f"Potentially insecure file path: {m.name}, skipping extraction.")
+                        continue
+                    if m.isdir():
+                        target.mkdir(parents=True, exist_ok=True)
+                    elif source := tar.extractfile(m):
+                        target.parent.mkdir(parents=True, exist_ok=True)
+                        with source, open(target, "wb") as f:
+                            shutil.copyfileobj(source, f)
         if delete:
             f.unlink()  # remove zip
         return unzip_dir
@@ -469,7 +495,7 @@ def attempt_download_asset(
         download_url = f"https://github.com/{repo}/releases/download"
         if str(file).startswith(("http:/", "https:/")):  # download
             url = str(file).replace(":/", "://")  # Pathlib turns :// -> :/
-            file = url2file(name)  # parse authentication https://url.com/file.txt?auth...
+            file = url2file(name)  # parse authentication query strings
             if Path(file).is_file():
                 LOGGER.info(f"Found {clean_url(url)} locally at {file}")  # file already exists
             else:
@@ -513,7 +539,7 @@ def download(
         exist_ok (bool, optional): Whether to overwrite existing contents during unzipping.
 
     Examples:
-        >>> download("https://ultralytics.com/assets/example.zip", dir="path/to/dir", unzip=True)
+        >>> download("https://github.com/ultralytics/assets/releases/download/v0.0.0/bus.jpg", dir="path/to/dir")
     """
     dir = Path(dir)
     dir.mkdir(parents=True, exist_ok=True)  # make directory

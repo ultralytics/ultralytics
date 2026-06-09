@@ -11,10 +11,11 @@ from tests import MODEL, SOURCE, TASK_MODEL_DATA
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
-from ultralytics.models.yolo import classify, detect, obb, pose, segment
+from ultralytics.engine.trainer import BaseTrainer
+from ultralytics.models.yolo import classify, detect, obb, pose, segment, semantic
 from ultralytics.nn.tasks import load_checkpoint, DetectionModel
 from ultralytics.nn.distill_model import DistillationModel
-from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
+from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_RASPBERRYPI, WEIGHTS_DIR
 
 
 def test_func(*args, **kwargs):
@@ -22,11 +23,12 @@ def test_func(*args, **kwargs):
     print("callback test passed")
 
 
-def test_export():
+def test_export(monkeypatch, tmp_path):
     """Test model exporting functionality by adding a callback and verifying its execution."""
+    monkeypatch.chdir(tmp_path)
     exporter = Exporter()
     exporter.add_callback("on_export_start", test_func)
-    assert test_func in exporter.callbacks["on_export_start"], "callback test failed"
+    assert test_func in exporter.callbacks["on_export_start"], "on_export_start callback not registered"
     f = exporter(model=YOLO("yolo26n.yaml").model)
     YOLO(f)(SOURCE)  # exported model inference
 
@@ -60,8 +62,17 @@ def test_export():
         ),
         (obb.OBBTrainer, obb.OBBValidator, obb.OBBPredictor, "dota8.yaml", "yolo26n-obb.yaml", None),
         (pose.PoseTrainer, pose.PoseValidator, pose.PosePredictor, "coco8-pose.yaml", "yolo26n-pose.yaml", None),
+        (
+            semantic.SemanticSegmentationTrainer,
+            semantic.SemanticSegmentationValidator,
+            semantic.SemanticSegmentationPredictor,
+            "cityscapes8.yaml",
+            "yolo26n-sem.yaml",
+            None,
+        ),
     ],
 )
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
     """Test YOLO training, validation, and prediction for various tasks."""
     overrides = {
@@ -77,7 +88,7 @@ def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
     # Trainer
     trainer = trainer_cls(overrides=overrides)
     trainer.add_callback("on_train_start", test_func)
-    assert test_func in trainer.callbacks["on_train_start"], "callback test failed"
+    assert test_func in trainer.callbacks["on_train_start"], "on_train_start callback not registered"
     trainer.train()
 
     # Validator
@@ -86,13 +97,13 @@ def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
     cfg.imgsz = 32
     val = validator_cls(args=cfg)
     val.add_callback("on_val_start", test_func)
-    assert test_func in val.callbacks["on_val_start"], "callback test failed"
+    assert test_func in val.callbacks["on_val_start"], "on_val_start callback not registered"
     val(model=trainer.best)
 
     # Predictor
     pred = predictor_cls(overrides={"imgsz": [64, 64]})
     pred.add_callback("on_predict_start", test_func)
-    assert test_func in pred.callbacks["on_predict_start"], "callback test failed"
+    assert test_func in pred.callbacks["on_predict_start"], "on_predict_start callback not registered"
 
     # Determine model path for prediction
     model_path = weights if weights else trainer.best
@@ -100,10 +111,10 @@ def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
         # Confirm there is no issue with sys.argv being empty
         with mock.patch.object(sys, "argv", []):
             result = pred(source=ASSETS, model=model_path)
-            assert len(result), "predictor test failed"
+            assert len(result) > 0, f"Predictor returned no results for {model}"
     else:
         result = pred(source=ASSETS, model=model_path)
-        assert len(result), "predictor test failed"
+        assert len(result) > 0, f"Predictor returned no results for {model}"
 
     # Test resume functionality
     with pytest.raises(AssertionError):
@@ -243,12 +254,42 @@ def test_nan_recovery():
     assert nan_injected[0], "NaN injection failed"
 
 
-def test_train_reuses_loaded_checkpoint_model(monkeypatch):
-    """Test training reuses an already-loaded checkpoint model instead of re-parsing the model source."""
+def test_checkpoint_fp16_overflow():
+    """Test a finite model whose weights overflow fp16 is still checkpointed (clamped) instead of skipped."""
+
+    def inflate_ema(trainer):
+        """Push an EMA weight above the fp16 max (65504) so its fp16 snapshot would otherwise become Inf."""
+        if trainer.ema is not None:
+            next(iter(trainer.ema.ema.parameters())).data.flatten()[0] = 1.0e5
+
+    overrides = {"data": "coco8.yaml", "model": "yolo26n.yaml", "imgsz": 32, "epochs": 2}
+    trainer = detect.DetectionTrainer(overrides=overrides)
+    trainer.add_callback("on_train_epoch_end", inflate_ema)
+    trainer.train()
+    assert trainer.last.exists(), "checkpoint not saved for a finite model with fp16-overflowing weights"
+    model, _ = load_checkpoint(trainer.last)
+    assert all(torch.isfinite(v).all() for v in model.state_dict().values() if isinstance(v, torch.Tensor)), (
+        "saved checkpoint contains NaN/Inf"
+    )
+    # Validation must leave the live EMA fp32 and unchanged; checkpoint serialization may clamp its fp16 copy.
+    ema_param = next(iter(trainer.ema.ema.parameters()))
+    assert ema_param.dtype == torch.float32 and torch.isfinite(ema_param).all() and ema_param.flatten()[0] == 1.0e5, (
+        "validation corrupted the live EMA"
+    )
+
+
+@pytest.mark.parametrize(
+    "kwargs,uses_weights",
+    [({}, True), ({"pretrained": True}, True), ({"pretrained": False}, False), ({"pretrained": MODEL}, True)],
+)
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
+def test_train_reuses_loaded_checkpoint_model(monkeypatch, kwargs, uses_weights):
+    """Test training reuses loaded checkpoint config while respecting the pretrained argument."""
     model = YOLO("yolo26n.yaml")
     model.ckpt = {"checkpoint": True}
     model.ckpt_path = "/tmp/fake.pt"
     model.overrides["model"] = "ul://glenn-jocher/m2/exp-14"
+    model.overrides["pretrained"] = False
     original_model = model.model
     captured = {}
 
@@ -277,8 +318,34 @@ def test_train_reuses_loaded_checkpoint_model(monkeypatch):
         lambda path: (original_model, {"checkpoint": True}),
     )
 
-    model.train(data="coco8.yaml", epochs=1)
+    model.train(data="coco8.yaml", epochs=1, **kwargs)
 
-    assert captured["trainer"].model is original_model
-    assert captured["cfg"] == original_model.yaml
-    assert captured["weights"] is original_model
+    assert captured["trainer"].model is original_model, "Trainer model does not match original"
+    assert captured["cfg"] == original_model.yaml, f"Config mismatch: {captured['cfg']} != {original_model.yaml}"
+    assert captured["weights"] is (original_model if uses_weights else None), "Unexpected weights loaded"
+
+
+@pytest.mark.parametrize("pretrained,uses_weights", [(True, True), (False, False), (MODEL, True)])
+def test_setup_model_respects_pretrained_arg_for_pt_models(monkeypatch, pretrained, uses_weights):
+    """Test .pt models use checkpoint config while respecting the pretrained argument."""
+    captured = {}
+    checkpoint_model = SimpleNamespace(yaml={"nc": 80})
+    trainer = object.__new__(BaseTrainer)
+    trainer.model = "yolo26n.pt"
+    trainer.args = SimpleNamespace(pretrained=pretrained)
+    trainer.resume = False
+
+    def fake_get_model(cfg=None, weights=None, verbose=True):
+        captured["cfg"] = cfg
+        captured["weights"] = weights
+        return SimpleNamespace()
+
+    trainer.get_model = fake_get_model
+    monkeypatch.setattr(
+        "ultralytics.engine.trainer.load_checkpoint", lambda path: (checkpoint_model, {"checkpoint": True})
+    )
+
+    trainer.setup_model()
+
+    assert captured["cfg"] == checkpoint_model.yaml, "Checkpoint config was not used"
+    assert captured["weights"] is (checkpoint_model if uses_weights else None), "Unexpected weights loaded"

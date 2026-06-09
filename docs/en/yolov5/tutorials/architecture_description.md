@@ -141,7 +141,7 @@ YOLOv5 applies several sophisticated training strategies to enhance the model's 
 - **Warmup and Cosine LR Scheduler**: A method to adjust the [learning rate](https://www.ultralytics.com/glossary/learning-rate) to enhance model performance.
 - **Exponential Moving Average (EMA)**: A strategy that uses the average of parameters over past steps to stabilize the training process and reduce generalization error.
 - **[Mixed Precision](https://www.ultralytics.com/glossary/mixed-precision) Training**: A method to perform operations in half-[precision](https://www.ultralytics.com/glossary/precision) format, reducing memory usage and enhancing computational speed.
-- **Hyperparameter Evolution**: A strategy to automatically tune hyperparameters to achieve optimal performance. Learn more about [hyperparameter tuning](https://docs.ultralytics.com/guides/hyperparameter-tuning/).
+- **Hyperparameter Evolution**: A strategy to automatically tune hyperparameters to achieve optimal performance. Learn more about [hyperparameter tuning](https://docs.ultralytics.com/guides/hyperparameter-tuning).
 
 ## 4. Additional Features
 
@@ -225,6 +225,6 @@ This way, the build targets process ensures that each ground truth object is pro
 
 ## Conclusion
 
-In conclusion, YOLOv5 represents a significant step forward in the development of real-time object detection models. By incorporating various new features, enhancements, and training strategies, it surpasses previous versions of the YOLO family in performance and efficiency.
+YOLOv5 represents a meaningful step in the evolution of real-time object detection. Its architectural choices, training strategies, and engineering refinements deliver strong performance and efficiency relative to earlier YOLO versions.
 
 The primary enhancements in YOLOv5 include the use of a dynamic architecture, an extensive range of data augmentation techniques, innovative training strategies, as well as important adjustments in computing losses and the process of building targets. All these innovations significantly improve the accuracy and efficiency of object detection while retaining a high degree of speed, which is the trademark of YOLO models.

@@ -151,7 +151,7 @@ def smart_request(
                     LOGGER.warning(f"{PREFIX}{m} {HELP_MSG} ({r.status_code} #{code})")
                 if r.status_code not in retry_codes:
                     return r
-            time.sleep(2**i)  # exponential standoff
+            time.sleep(2**i)  # exponential backoff
         return r
 
     args = method, url

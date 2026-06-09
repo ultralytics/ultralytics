@@ -84,7 +84,7 @@ The quality of your computer vision models depends on the quality of your datase
 
 Some libraries, like Ultralytics, provide [built-in support for various datasets](../datasets/index.md), making it easier to get started with high-quality data. These libraries often include utilities for using popular datasets seamlessly, which can save you a lot of time and effort in the initial stages of your project.
 
-However, if you choose to collect images or take your own pictures, you'll need to annotate your data. Data annotation is the process of labeling your data to impart knowledge to your model. The type of data annotation you'll work with depends on your specific computer vision technique. Here are some examples:
+However, if you choose to collect images or take your own pictures, you'll need to annotate your data. [Data annotation](https://www.ultralytics.com/annotate) is the process of labeling your data to impart knowledge to your model. The type of data annotation you'll work with depends on your specific computer vision technique. Here are some examples:
 
 - **Image Classification:** You'll label the entire image as a single class.
 - **[Object Detection](https://www.ultralytics.com/glossary/object-detection):** You'll draw bounding boxes around each object in the image and label each box.
@@ -94,7 +94,7 @@ However, if you choose to collect images or take your own pictures, you'll need 
   <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/different-types-of-image-annotation.avif" alt="Bounding box, polygon, and keypoint annotations">
 </p>
 
-[Data collection and annotation](./data-collection-and-annotation.md) can be a time-consuming manual effort. Annotation tools can help make this process easier. Here are some useful open annotation tools: [LabeI Studio](https://github.com/HumanSignal/label-studio), [CVAT](https://github.com/cvat-ai/cvat), and [Labelme](https://github.com/wkentaro/labelme).
+[Data collection and annotation](./data-collection-and-annotation.md) can be a time-consuming manual effort. Annotation tools can help make this process easier. Here are some useful open annotation tools: [Label Studio](https://github.com/HumanSignal/label-studio), [CVAT](https://github.com/cvat-ai/cvat), and [Labelme](https://github.com/wkentaro/labelme).
 
 ## Step 3: Data Augmentation and Splitting Your Dataset
 
@@ -114,11 +114,7 @@ After splitting your data, you can perform data augmentation by applying transfo
 
 Libraries like [OpenCV](https://www.ultralytics.com/glossary/opencv), [Albumentations](../integrations/albumentations.md), and [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) offer flexible augmentation functions that you can use. Additionally, some libraries, such as Ultralytics, have [built-in augmentation settings](../modes/train.md) directly within its model training function, simplifying the process.
 
-To understand your data better, you can use tools like [Matplotlib](https://matplotlib.org/) or [Seaborn](https://seaborn.pydata.org/) to visualize the images and analyze their distribution and characteristics. Visualizing your data helps identify patterns, anomalies, and the effectiveness of your augmentation techniques. You can also use [Ultralytics Explorer](../datasets/explorer/index.md), a tool for exploring computer vision datasets with semantic search, SQL queries, and vector similarity search.
-
-<p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/explorer-dashboard-screenshot-1.avif" alt="The Ultralytics Explorer Tool">
-</p>
+To understand your data better, you can use tools like [Matplotlib](https://matplotlib.org/) or [Seaborn](https://seaborn.pydata.org/) to visualize the images and analyze their distribution and characteristics. Visualizing your data helps identify patterns, anomalies, and the effectiveness of your augmentation techniques. The [Ultralytics Platform](https://platform.ultralytics.com/) `Charts` tab can surface many of these insights without any code by automatically generating split distribution, class counts, image-dimension histograms, and annotation-position heatmaps for every uploaded dataset.
 
 By properly [understanding, splitting, and augmenting your data](./preprocessing_annotated_data.md), you can develop a well-trained, validated, and tested model that performs well in real-world applications.
 
@@ -164,7 +160,7 @@ Once your model has been thoroughly tested, it's time to deploy it. [Model deplo
 - **Deploying the Model:** Deploy the model by setting up APIs or endpoints and integrating it with your application.
 - **Ensuring Scalability:** Implement load balancers, auto-scaling groups, and monitoring tools to manage resources and handle increasing data and user requests.
 
-For more detailed guidance on deployment strategies and best practices, check out our [model deployment practices guide](./model-deployment-practices.md).
+For more detailed guidance on deployment strategies and best practices, check out our [model deployment practices guide](./model-deployment-practices.md). [Ultralytics Platform](https://platform.ultralytics.com) also provides managed [deployment endpoints](../platform/deploy/endpoints.md) with auto-scaling across 43 global regions, handling infrastructure setup automatically.
 
 ## Step 8: Monitoring, Maintenance, and Documentation
 
@@ -201,7 +197,7 @@ Taking on a computer vision project can be exciting and rewarding. By following 
 
 ### How do I choose the right computer vision task for my project?
 
-Choosing the right computer vision task depends on your project's end goal. For instance, if you want to monitor traffic, **object detection** is suitable as it can locate and identify multiple vehicle types in real-time. For medical imaging, **image segmentation** is ideal for providing detailed boundaries of tumors, aiding in diagnosis and treatment planning. Learn more about specific tasks like [object detection](../tasks/detect.md), [image classification](../tasks/classify.md), and [instance segmentation](../tasks/segment.md).
+Choosing the right computer vision task depends on your project's end goal. For instance, if you want to monitor traffic, **object detection** is suitable as it can locate and identify multiple vehicle types in real-time. For medical imaging, **image segmentation** is ideal for providing detailed boundaries of tumors, aiding in diagnosis and treatment planning. Learn more about specific tasks like [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [image classification](../tasks/classify.md).
 
 ### Why is data annotation crucial in computer vision projects?
 

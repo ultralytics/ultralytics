@@ -80,7 +80,7 @@ Adjusting these parameters allows for customization of the export process to fit
 
 ## Export Formats
 
-Available YOLO26 export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n.onnx`. Usage examples are shown for your model after export completes.
+Available YOLO26 export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n.onnx`. Usage examples are shown for your model after export completes. Models can also be exported directly from the browser on [Ultralytics Platform](https://platform.ultralytics.com) without any local setup.
 
 {% include "macros/export-table.md" %}
 
@@ -136,16 +136,16 @@ INT8 quantization is an excellent way to compress the model and speed up inferen
         from ultralytics import YOLO
 
         model = YOLO("yolo26n.pt")  # Load a model
-        model.export(format="engine", int8=True)
+        model.export(format="onnx", int8=True, data="coco8.yaml")
         ```
 
     === "CLI"
 
         ```bash
-        yolo export model=yolo26n.pt format=engine int8=True # export TensorRT model with INT8 quantization
+        yolo export model=yolo26n.pt format=onnx int8=True data=coco8.yaml # export ONNX model with INT8 quantization
         ```
 
-INT8 quantization can be applied to various formats, such as [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), and [CoreML](../integrations/coreml.md). For optimal quantization results, provide a representative [dataset](https://docs.ultralytics.com/datasets/) using the `data` parameter.
+INT8 quantization can be applied to various formats, such as [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), and [Rockchip RKNN](../integrations/rockchip-rknn.md). For optimal quantization results, provide a representative [dataset](https://docs.ultralytics.com/datasets) using the `data` parameter.
 
 ### Why is dynamic input size important when exporting models?
 

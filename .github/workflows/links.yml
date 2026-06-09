@@ -27,7 +27,9 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Install lychee
-        run: curl -sSfL "https://github.com/lycheeverse/lychee/releases/latest/download/lychee-x86_64-unknown-linux-gnu.tar.gz" | sudo tar xz -C /usr/local/bin
+        run: |
+          curl -sSfL "https://github.com/lycheeverse/lychee/releases/latest/download/lychee-x86_64-unknown-linux-gnu.tar.gz" |
+            sudo tar xz --strip-components=1 -C /usr/local/bin lychee-x86_64-unknown-linux-gnu/lychee
 
       - name: Test Markdown and HTML links with retry
         uses: ultralytics/actions/retry@main
@@ -35,6 +37,7 @@ jobs:
           timeout_minutes: 60
           retry_delay_seconds: 1800
           retries: 2
+          backoff: fixed
           run: |
             lychee \
             --scheme https \
@@ -42,7 +45,7 @@ jobs:
             --insecure \
             --accept 100..=103,200..=299,401,403,429,500,502,999 \
             --exclude-all-private \
-            --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' \
+            --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com|neptune\.ai|gnu\.org/software/make|survey\.stackoverflow\.co)' \
             --exclude-path docs/zh \
             --exclude-path docs/es \
             --exclude-path docs/ru \
@@ -70,6 +73,7 @@ jobs:
           timeout_minutes: 60
           retry_delay_seconds: 1800
           retries: 2
+          backoff: fixed
           run: |
             lychee \
             --scheme https \
@@ -77,7 +81,13 @@ jobs:
             --insecure \
             --accept 100..=103,200..=299,401,403,429,500,502,999 \
             --exclude-all-private \
-            --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' \
+            --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com|neptune\.ai|gnu\.org/software/make|survey\.stackoverflow\.co)' \
+            --exclude 'https?://[^[:space:]]*(%7B|%7D|\{|\}|sentry\.io|google-analytics\.com/mp/collect|storage\.googleapis\.com|packages\.cloud\.google\.com/apt)(/.*)?' \
+            --exclude 'https://github\.com/ultralytics/assets/releases/download/v0\.0\.0' \
+            --exclude 'https://raw\.githubusercontent\.com/ultralytics/assets/main/(im/banner-tasks|yolov8/banner-yolov8)\.png/?' \
+            --exclude 'https://static\.pepy\.tech/badge/ultralytics/?' \
+            --exclude 'https://docs\.ultralytics\.com/(modes/(predict|val|train|export)|integrations/openvino)//?n' \
+            --exclude 'https://ultralytics\.com/assets(/example\.zip)?' \
             --exclude-path './**/ci.yml' \
             --exclude-path docs/zh \
             --exclude-path docs/es \

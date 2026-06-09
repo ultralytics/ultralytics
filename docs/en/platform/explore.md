@@ -54,15 +54,12 @@ Each tab provides a search bar and sort options:
 
 ![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-explore-datasets-tab-with-search.avif)
 
-| Sort Option       | Description                                   |
-| ----------------- | --------------------------------------------- |
-| **Most Starred**  | Content with most community stars (default)   |
-| **Newest**        | Most recently created                         |
-| **Oldest**        | Oldest first                                  |
-| **Name A-Z**      | Alphabetical ascending                        |
-| **Name Z-A**      | Alphabetical descending                       |
-| **Most images**   | Most images (datasets) or models (projects)   |
-| **Fewest images** | Fewest images (datasets) or models (projects) |
+| Sort Option             | Description                                                      |
+| ----------------------- | ---------------------------------------------------------------- |
+| **Stars**               | Community star count (descending)                                |
+| **Created**             | Creation date, newest (default) or oldest first                  |
+| **Name**                | Alphabetical, ascending or descending                            |
+| **Images** / **Models** | Image count (datasets) or model count (projects), most or fewest |
 
 ### View Modes
 
@@ -92,7 +89,6 @@ Each item displays:
     | **Description**      | Short project description                                     |
     | **Model Count**      | Number of models in the project                               |
     | **Model Tags**       | Names of models in the project                                |
-    | **Visibility Badge** | Public or private indicator (shows lock icon for private)     |
     | **Star Count**       | Number of community stars                                     |
 
 === "Dataset Cards"
@@ -104,7 +100,6 @@ Each item displays:
     | **Creator**          | Author avatar and username                                    |
     | **Task Badge**       | YOLO task type (detect, segment, etc.)                        |
     | **Image Count**      | Number of images in the dataset                               |
-    | **Visibility Badge** | Public or private indicator (shows lock icon for private)     |
     | **Star Count**       | Number of community stars                                     |
 
 ## Use Public Content
@@ -197,12 +192,12 @@ See [Projects](train/projects.md) for organizing models in your project.
 
 Official `@ultralytics` content is pinned to the top of the Explore page. This includes:
 
-| Project                           | Description                 | Models                       | Tasks                                |
-| --------------------------------- | --------------------------- | ---------------------------- | ------------------------------------ |
-| **[YOLO26](../models/yolo26.md)** | Latest January 2026 release | 25 models (all sizes, tasks) | detect, segment, pose, OBB, classify |
-| **[YOLO11](../models/yolo11.md)** | Current stable release      | 10+ models                   | detect, segment, pose, OBB, classify |
-| **YOLOv8**                        | Previous generation         | Various                      | detect, segment, pose, classify      |
-| **YOLOv5**                        | Legacy, widely adopted      | Various                      | detect, segment, classify            |
+| Project                           | Description                 | Models                        | Tasks                                          |
+| --------------------------------- | --------------------------- | ----------------------------- | ---------------------------------------------- |
+| **[YOLO26](../models/yolo26.md)** | Latest January 2026 release | 30 models (5 sizes × 6 tasks) | detect, segment, semantic, pose, OBB, classify |
+| **[YOLO11](../models/yolo11.md)** | Current stable release      | 25 models (5 sizes × 5 tasks) | detect, segment, pose, OBB, classify           |
+| **YOLOv8**                        | Previous generation         | 25 models (5 sizes × 5 tasks) | detect, segment, pose, OBB, classify           |
+| **YOLOv5**                        | Legacy, widely adopted      | 15+ models                    | detect, segment, classify                      |
 
 Official datasets include benchmark datasets like [coco8](../datasets/detect/coco8.md) (8-image COCO subset), [VOC](../datasets/detect/voc.md), [african-wildlife](../datasets/detect/african-wildlife.md), [dota8](../datasets/obb/dota8.md), and other commonly used computer vision datasets.
 

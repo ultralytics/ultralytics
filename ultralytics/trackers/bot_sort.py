@@ -163,7 +163,7 @@ class BOTSORT(BYTETracker):
 
     Examples:
         Initialize BOTSORT and process detections
-        >>> bot_sort = BOTSORT(args, frame_rate=30)
+        >>> bot_sort = BOTSORT(args)
         >>> bot_sort.init_track(results, img)
         >>> bot_sort.multi_predict(tracks)
 
@@ -171,14 +171,13 @@ class BOTSORT(BYTETracker):
         The class is designed to work with a YOLO object detection model and supports ReID only if enabled via args.
     """
 
-    def __init__(self, args: Any, frame_rate: int = 30):
+    def __init__(self, args: Any):
         """Initialize BOTSORT object with ReID module and GMC algorithm.
 
         Args:
             args (Any): Parsed command-line arguments containing tracking parameters.
-            frame_rate (int): Frame rate of the video being processed.
         """
-        super().__init__(args, frame_rate)
+        super().__init__(args)
         self.gmc = GMC(method=args.gmc_method)
 
         # ReID module

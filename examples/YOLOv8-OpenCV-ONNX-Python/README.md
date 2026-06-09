@@ -1,6 +1,6 @@
 # Ultralytics YOLOv8 Object Detection with OpenCV and ONNX
 
-This example demonstrates how to implement [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) object detection using [OpenCV](https://opencv.org/) in [Python](https://www.python.org/), leveraging the [ONNX (Open Neural Network Exchange)](https://onnx.ai/) model format for efficient inference.
+This example demonstrates how to implement [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) object detection using [OpenCV](https://opencv.org/) in [Python](https://www.python.org/), leveraging the [ONNX (Open Neural Network Exchange)](https://onnx.ai/) model format for efficient inference.
 
 ## 🚀 Getting Started
 
@@ -40,7 +40,7 @@ If you want to use a different Ultralytics YOLOv8 model or one you've trained yo
     ```
 
 2.  **Export the Model:**
-    Use the `yolo export` command to convert your desired model (e.g., `yolov8n.pt`) to ONNX. Ensure you specify `opset=12` or higher for compatibility with OpenCV's DNN module. You can find more details in the Ultralytics [Export documentation](https://docs.ultralytics.com/modes/export/).
+    Use the `yolo export` command to convert your desired model (e.g., `yolov8n.pt`) to ONNX. Ensure you specify `opset=12` or higher for compatibility with OpenCV's DNN module. You can find more details in the Ultralytics [Export documentation](https://docs.ultralytics.com/modes/export).
     ```bash
     yolo export model=yolov8n.pt imgsz=640 format=onnx opset=12
     ```

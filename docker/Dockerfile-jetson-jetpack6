@@ -26,7 +26,16 @@ RUN dpkg -i cudss-local-tegra-repo-ubuntu2204-0.7.1_0.7.1-1_arm64.deb && \
     apt-get install -y --no-install-recommends \
     git python3-pip libopenmpi-dev libopenblas-base libomp-dev cudss && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* 
+    rm -rf /var/lib/apt/lists/*
+
+# Upgrade TensorRT from 10.3.0 to 10.7.0 to fix INT8 + end2end build issues on JetPack 6
+# https://github.com/ultralytics/ultralytics/issues/23841
+ADD https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/arm64/cuda-keyring_1.1-1_all.deb .
+RUN dpkg -i cuda-keyring_1.1-1_all.deb && \
+    apt-get update && \
+    apt-get install -y tensorrt && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* cuda-keyring_1.1-1_all.deb
 
 # Create working directory
 WORKDIR /ultralytics

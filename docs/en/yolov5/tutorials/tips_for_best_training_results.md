@@ -60,9 +60,9 @@ Before modifying anything, **first train with default settings to establish a pe
 - **Image size.** COCO trains at native resolution of `--img 640`, though due to the high amount of small objects in the dataset it can benefit from training at higher resolutions such as `--img 1280`. If there are many small objects then custom datasets will benefit from training at native or higher resolution. Best inference results are obtained at the same `--img` as the training was run at, i.e. if you train at `--img 1280` you should also test and detect at `--img 1280`.
 - **[Batch size](https://www.ultralytics.com/glossary/batch-size).** Use the largest `--batch-size` that your hardware allows for. Small batch sizes produce poor [batch normalization](https://www.ultralytics.com/glossary/batch-normalization) statistics and should be avoided. You can use `--batch-size -1` to automatically select the optimal batch size for your GPU.
 - **[Learning rate](https://www.ultralytics.com/glossary/learning-rate).** The default learning rate schedule works well in most cases. For faster convergence, you can try using the `--cos-lr` flag to enable cosine learning rate scheduling, which gradually reduces the learning rate following a cosine curve over epochs.
-- **[Data augmentation](https://www.ultralytics.com/glossary/data-augmentation).** YOLOv5 includes various augmentation techniques like mosaic, which combines multiple training images. For the last few epochs, consider using `--close-mosaic 10` to disable mosaic augmentation, which can help stabilize training.
+- **[Data augmentation](https://www.ultralytics.com/glossary/data-augmentation).** YOLOv5 includes various augmentation techniques like mosaic, which combines multiple training images. Adjust augmentation strength via the `mosaic` hyperparameter in your `--hyp` file to help stabilize training.
 - **Hyperparameters.** Default hyperparameters are in [hyp.scratch-low.yaml](https://github.com/ultralytics/yolov5/blob/master/data/hyps/hyp.scratch-low.yaml). We recommend you train with default hyperparameters first before thinking of modifying any. In general, increasing augmentation hyperparameters will reduce and delay overfitting, allowing for longer trainings and higher final mAP. Reduction in loss component gain hyperparameters like `hyp['obj']` will help reduce overfitting in those specific loss components. For an automated method of optimizing these hyperparameters, see our [Hyperparameter Evolution Tutorial](./hyperparameter_evolution.md).
-- **[Mixed precision](https://www.ultralytics.com/glossary/mixed-precision) training.** Enable mixed precision training with `--amp` to speed up training and reduce memory usage without sacrificing model accuracy.
+- **[Mixed precision](https://www.ultralytics.com/glossary/mixed-precision) training.** YOLOv5 enables Automatic Mixed Precision (AMP) automatically when a supported GPU is detected, speeding up training and reducing memory usage without sacrificing model accuracy.
 - **Multi-GPU training.** If you have multiple GPUs, use `--device 0,1,2,3` to distribute training across them, which can significantly reduce training time.
 - **Early stopping.** Use `--patience 50` to stop training if validation metrics don't improve for 50 epochs, saving time and preventing overfitting.
 
@@ -71,13 +71,13 @@ Before modifying anything, **first train with default settings to establish a pe
 - **[Transfer learning](https://www.ultralytics.com/glossary/transfer-learning).** For specialized datasets, start with pretrained weights and gradually unfreeze layers during training to adapt the model to your specific task.
 - **[Model pruning](https://www.ultralytics.com/glossary/model-pruning).** After training, consider pruning your model to remove redundant weights and reduce model size without significant performance loss.
 - **[Model ensemble](https://www.ultralytics.com/glossary/model-ensemble).** For critical applications, train multiple models with different configurations and combine their predictions for improved accuracy.
-- **[Test-time augmentation](https://docs.ultralytics.com/yolov5/tutorials/test_time_augmentation/).** Enable TTA during inference with `--augment` to improve prediction accuracy by averaging results from augmented versions of the input image.
+- **[Test-time augmentation](https://docs.ultralytics.com/yolov5/tutorials/test_time_augmentation).** Enable TTA during inference with `--augment` to improve prediction accuracy by averaging results from augmented versions of the input image.
 
 ## Further Reading
 
 If you'd like to know more, a good place to start is Karpathy's 'Recipe for Training [Neural Networks](https://www.ultralytics.com/glossary/neural-network-nn)', which has great ideas for training that apply broadly across all ML domains: [https://karpathy.github.io/2019/04/25/recipe/](https://karpathy.github.io/2019/04/25/recipe/)
 
-For more detailed information on training settings and configurations, refer to the [Ultralytics train settings documentation](https://docs.ultralytics.com/modes/train/), which provides comprehensive explanations of all available parameters.
+For more detailed information on training settings and configurations, refer to the [Ultralytics train settings documentation](https://docs.ultralytics.com/modes/train), which provides comprehensive explanations of all available parameters.
 
 Good luck 🍀 and let us know if you have any other questions!
 
@@ -93,4 +93,4 @@ The optimal batch size depends on your GPU memory. Larger batch sizes generally 
 
 ### How can I speed up YOLOv5 training?
 
-To speed up training, try: enabling mixed precision training with `--amp`, using multiple GPUs with `--device 0,1,2,3`, caching your dataset with `--cache`, and optimizing your batch size. Also consider using a smaller model variant like YOLOv5s if absolute accuracy isn't critical.
+To speed up training, try: using multiple GPUs with `--device 0,1,2,3`, caching your dataset with `--cache`, and optimizing your batch size (mixed precision is enabled automatically on supported GPUs). Also consider using a smaller model variant like YOLOv5s if absolute accuracy isn't critical.

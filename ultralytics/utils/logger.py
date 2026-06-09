@@ -11,7 +11,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from ultralytics.utils import LINUX, LOGGER, MACOS, RANK
+from ultralytics.utils import LINUX, LOGGER, MACOS, RANK, WINDOWS
 from ultralytics.utils.checks import check_requirements
 
 
@@ -292,6 +292,109 @@ class ConsoleLogger:
             self.callback(self.format(record) + "\n")
 
 
+class _DriveInfo:
+    """Resolve mounted storage paths backed by local drives."""
+
+    @staticmethod
+    def mounts(psutil, all_drives=False):
+        """Get mounted paths to monitor."""
+        if not all_drives:
+            return [Path.cwd().anchor or "/"]
+
+        partitions = [p for p in psutil.disk_partitions(all=False) if p.mountpoint]
+        mounts = [p.mountpoint for p in partitions if "dontbrowse" not in p.opts.split(",")]
+        if len(mounts) <= 1:
+            return _DriveInfo._sort(mounts) or [Path.cwd().anchor or "/"]
+
+        for getter in (
+            _DriveInfo._macos_mounts if MACOS else None,
+            _DriveInfo._linux_mounts if LINUX else None,
+            _DriveInfo._windows_mounts if WINDOWS else None,
+        ):
+            if getter:
+                try:
+                    if platform_mounts := getter(partitions):
+                        return _DriveInfo._sort(platform_mounts)
+                except (json.JSONDecodeError, OSError, plistlib.InvalidFileException, subprocess.SubprocessError):
+                    pass
+        return _DriveInfo._sort(mounts)
+
+    @staticmethod
+    def _sort(mounts):
+        """Sort mounted paths with root first."""
+        return sorted(set(mounts), key=lambda mount: (mount != "/", mount))
+
+    @staticmethod
+    def _macos_mounts(partitions):
+        """Get user-visible macOS mounts backed by physical disks."""
+        disk_info = plistlib.loads(subprocess.check_output(["diskutil", "list", "-plist", "physical"], timeout=5))
+        physical_devices = set(disk_info.get("WholeDisks", []))
+        for disk in disk_info.get("AllDisksAndPartitions", []):
+            physical_devices.add(disk.get("DeviceIdentifier", ""))
+            physical_devices.update(p.get("DeviceIdentifier", "") for p in disk.get("Partitions", []))
+
+        mounts, volume_groups = [], set()
+        for partition in partitions:
+            if partition.mountpoint != "/" and "dontbrowse" in partition.opts.split(","):
+                continue
+            info = plistlib.loads(
+                subprocess.check_output(
+                    ["diskutil", "info", "-plist", partition.mountpoint],
+                    stderr=subprocess.DEVNULL,
+                    timeout=5,
+                )
+            )
+            devices = {info.get("DeviceIdentifier", "")}
+            devices.update(s.get("APFSPhysicalStore", "") for s in info.get("APFSPhysicalStores", []))
+            if not devices & physical_devices:
+                continue
+            group = info.get("APFSVolumeGroupID") or info.get("APFSContainerReference") or partition.mountpoint
+            if group in volume_groups:
+                continue
+            volume_groups.add(group)
+            mounts.append(partition.mountpoint)
+        return mounts
+
+    @staticmethod
+    def _linux_mounts(_partitions):
+        """Get Linux mounts backed by physical block devices."""
+        block_info = json.loads(
+            subprocess.check_output(
+                ["lsblk", "--json", "--output", "TYPE,MOUNTPOINT,MOUNTPOINTS"], text=True, timeout=5
+            )
+        )
+        mounts = []
+
+        def visit(block, physical=False):
+            physical = physical or block.get("type") == "disk"
+            if physical:
+                values = block.get("mountpoints") or [block.get("mountpoint")]
+                if isinstance(values, str):
+                    values = [values]
+                mounts.extend(m for m in values if isinstance(m, str) and m.startswith("/"))
+            for child in block.get("children", []):
+                visit(child, physical)
+
+        for block in block_info.get("blockdevices", []):
+            visit(block)
+        return mounts
+
+    @staticmethod
+    def _windows_mounts(_partitions):
+        """Get Windows fixed local drive mounts."""
+        output = subprocess.check_output(
+            [
+                "powershell",
+                "-NoProfile",
+                "-Command",
+                "Get-CimInstance Win32_LogicalDisk -Filter 'DriveType=3' | Select-Object -ExpandProperty DeviceID",
+            ],
+            text=True,
+            timeout=5,
+        )
+        return [f"{drive}\\" for drive in (line.strip() for line in output.splitlines()) if drive]
+
+
 class SystemLogger:
     """Log dynamic system metrics for training monitoring.
 
@@ -299,7 +402,6 @@ class SystemLogger:
     performance monitoring and analysis.
 
     Attributes:
-        all_drives (bool): Whether to monitor all mounted drives or just the current drive.
         pynvml: NVIDIA pynvml module instance if successfully imported, None otherwise.
         nvidia_initialized (bool): Whether NVIDIA GPU monitoring is available and initialized.
         net_start: Initial network I/O counters for calculating cumulative usage.
@@ -335,12 +437,11 @@ class SystemLogger:
         """
         import psutil  # scoped as slow import
 
-        self.all_drives = all_drives
         self.pynvml = None
         self.nvidia_initialized = self._init_nvidia()
         self.net_start = psutil.net_io_counters()
         self.disk_start = psutil.disk_io_counters()
-        self.mounts = self._get_mounts(psutil)
+        self.mounts = _DriveInfo.mounts(psutil, all_drives)
 
         # For rate calculation
         self._prev_net = self.net_start
@@ -363,71 +464,6 @@ class SystemLogger:
             if torch.cuda.is_available():
                 LOGGER.warning(f"SystemLogger NVML init failed: {e}")
             return False
-
-    def _get_mounts(self, psutil):
-        """Get disk mount points to monitor."""
-        if not self.all_drives:
-            return [Path.cwd().anchor or "/"]
-        if MACOS:
-            try:
-                disk_info = plistlib.loads(
-                    subprocess.check_output(["diskutil", "list", "-plist", "physical"], timeout=5)
-                )
-                physical_devices = set(disk_info.get("WholeDisks", []))
-                for disk in disk_info.get("AllDisksAndPartitions", []):
-                    physical_devices.add(disk.get("DeviceIdentifier", ""))
-                    physical_devices.update(p.get("DeviceIdentifier", "") for p in disk.get("Partitions", []))
-
-                mounts, volume_groups = [], set()
-                for partition in psutil.disk_partitions(all=False):
-                    if partition.mountpoint != "/" and "dontbrowse" in partition.opts.split(","):
-                        continue
-                    info = plistlib.loads(
-                        subprocess.check_output(
-                            ["diskutil", "info", "-plist", partition.mountpoint],
-                            stderr=subprocess.DEVNULL,
-                            timeout=5,
-                        )
-                    )
-                    devices = {info.get("DeviceIdentifier", "")}
-                    devices.update(s.get("APFSPhysicalStore", "") for s in info.get("APFSPhysicalStores", []))
-                    if not devices & physical_devices:
-                        continue
-                    group = info.get("APFSVolumeGroupID") or info.get("APFSContainerReference") or partition.mountpoint
-                    if group in volume_groups:
-                        continue
-                    volume_groups.add(group)
-                    mounts.append(partition.mountpoint)
-                if mounts:
-                    return sorted(mounts, key=lambda mount: (mount != "/", mount))
-            except (OSError, plistlib.InvalidFileException, subprocess.SubprocessError):
-                pass
-        if LINUX:
-            try:
-                block_info = json.loads(
-                    subprocess.check_output(
-                        ["lsblk", "--json", "--output", "TYPE,MOUNTPOINT,MOUNTPOINTS"], text=True, timeout=5
-                    )
-                )
-                mounts = []
-
-                def visit(block, physical=False):
-                    physical = physical or block.get("type") == "disk"
-                    if physical:
-                        values = block.get("mountpoints") or [block.get("mountpoint")]
-                        if isinstance(values, str):
-                            values = [values]
-                        mounts.extend(m for m in values if isinstance(m, str) and m.startswith("/"))
-                    for child in block.get("children", []):
-                        visit(child, physical)
-
-                for block in block_info.get("blockdevices", []):
-                    visit(block)
-                if mounts:
-                    return sorted(set(mounts), key=lambda mount: (mount != "/", mount))
-            except (json.JSONDecodeError, OSError, subprocess.SubprocessError):
-                pass
-        return sorted({p.mountpoint for p in psutil.disk_partitions(all=False)})
 
     def get_metrics(self, rates=False):
         """Get current system metrics including CPU, RAM, disk, network, and GPU usage.

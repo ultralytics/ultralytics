@@ -130,8 +130,16 @@ def get_cpu_info():
 @functools.lru_cache
 def get_gpu_info(index):
     """Return a string with system GPU information, i.e. 'Tesla T4, 15102MiB'."""
-    properties = torch.cuda.get_device_properties(index)
-    return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
+    if torch.cuda.is_available():
+        properties = torch.cuda.get_device_properties(index)
+        return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
+    import pynvml  # NVML fallback when CUDA init fails, e.g. busy/exclusive-mode GPUs or torch/driver mismatch
+
+    pynvml.nvmlInit()
+    handle = pynvml.nvmlDeviceGetHandleByIndex(index)
+    info = f"{pynvml.nvmlDeviceGetName(handle)}, {pynvml.nvmlDeviceGetMemoryInfo(handle).total / (1 << 20):.0f}MiB"
+    pynvml.nvmlShutdown()
+    return info
 
 
 def select_device(device="", newline=False, verbose=True):

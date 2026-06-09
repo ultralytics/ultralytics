@@ -461,15 +461,13 @@ class SystemLogger:
 
         if rates:
             disk_io_metrics = {
-                "read_mbs": round(max(0, (disk_io.read_bytes - self._prev_disk.read_bytes) / (1 << 20) / elapsed), 3),
-                "write_mbs": round(
-                    max(0, (disk_io.write_bytes - self._prev_disk.write_bytes) / (1 << 20) / elapsed), 3
-                ),
+                "read_mbs": round(max(0, (disk_io.read_bytes - self._prev_disk.read_bytes) / 1e6 / elapsed), 3),
+                "write_mbs": round(max(0, (disk_io.write_bytes - self._prev_disk.write_bytes) / 1e6 / elapsed), 3),
             }
         else:
             disk_io_metrics = {
-                "read_mb": round((disk_io.read_bytes - self.disk_start.read_bytes) / (1 << 20), 3),
-                "write_mb": round((disk_io.write_bytes - self.disk_start.write_bytes) / (1 << 20), 3),
+                "read_mb": round((disk_io.read_bytes - self.disk_start.read_bytes) / 1e6, 3),
+                "write_mb": round((disk_io.write_bytes - self.disk_start.write_bytes) / 1e6, 3),
             }
 
         disks = []
@@ -499,13 +497,13 @@ class SystemLogger:
 
         if rates:
             metrics["network"] = {
-                "recv_mbs": round(max(0, (net.bytes_recv - self._prev_net.bytes_recv) / (1 << 20) / elapsed), 3),
-                "sent_mbs": round(max(0, (net.bytes_sent - self._prev_net.bytes_sent) / (1 << 20) / elapsed), 3),
+                "recv_mbs": round(max(0, (net.bytes_recv - self._prev_net.bytes_recv) / 1e6 / elapsed), 3),
+                "sent_mbs": round(max(0, (net.bytes_sent - self._prev_net.bytes_sent) / 1e6 / elapsed), 3),
             }
         else:
             metrics["network"] = {
-                "recv_mb": round((net.bytes_recv - self.net_start.bytes_recv) / (1 << 20), 3),
-                "sent_mb": round((net.bytes_sent - self.net_start.bytes_sent) / (1 << 20), 3),
+                "recv_mb": round((net.bytes_recv - self.net_start.bytes_recv) / 1e6, 3),
+                "sent_mb": round((net.bytes_sent - self.net_start.bytes_sent) / 1e6, 3),
             }
 
         # Always update previous values for accurate rate calculation on next call

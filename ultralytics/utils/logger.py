@@ -293,7 +293,12 @@ class ConsoleLogger:
 
 
 class _DriveInfo:
-    """Resolve mounted storage paths backed by local drives."""
+    """Resolve mounted storage paths backed by local drives.
+
+    This helper keeps platform-specific drive discovery isolated from SystemLogger metric collection. It uses fast
+    psutil mount discovery first and falls back to native OS commands only when multiple visible mounts need
+    disambiguation.
+    """
 
     @staticmethod
     def mounts(psutil, all_drives=False):

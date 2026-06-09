@@ -188,7 +188,7 @@ These arguments are **only available for `reid` validation** and improve accurac
 
 ## Predict
 
-Use a trained YOLO26n-reid model to extract embedding vectors from person images.
+Predict on a ReID model extracts a single L2-normalized embedding vector per image — nothing else. Each [`Results`](../reference/engine/results.md) object exposes the vector on `results[i].embeddings`; there are no boxes, masks, or class probabilities. Compare two embeddings with cosine or L2 distance to decide whether they show the same person.
 
 !!! example
 
@@ -203,6 +203,9 @@ Use a trained YOLO26n-reid model to extract embedding vectors from person images
 
         # Predict with the model (extract embeddings)
         results = model("path/to/person.jpg")
+
+        # Access the embedding vector (1D tensor, e.g. shape (512,))
+        embedding = results[0].embeddings.data
         ```
 
     === "CLI"
@@ -211,6 +214,18 @@ Use a trained YOLO26n-reid model to extract embedding vectors from person images
         yolo reid predict model=yolo26n-reid.pt source='path/to/person.jpg'  # predict with official model
         yolo reid predict model=path/to/best.pt source='path/to/person.jpg'  # predict with custom model
         ```
+
+!!! tip "Gallery retrieval and visualization"
+
+    Predict deliberately stops at embeddings. To rank a gallery against a query and render a side-by-side montage of the top matches, use the `ReIDVisualizer` solution, which works with both PyTorch and exported ONNX models:
+
+    ```python
+    from ultralytics.solutions import ReIDVisualizer
+
+    viz = ReIDVisualizer("yolo26n-reid.pt", imgsz=448)
+    viz.visualize("query.jpg", "gallery/", k=5)  # saves a query → top-5 comparison strip
+    matches = viz.rank("query.jpg", "gallery/", k=5)  # ranked items, each with .path and .score, highest first
+    ```
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
 

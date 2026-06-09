@@ -346,7 +346,7 @@ The YOLO26n model in PyTorch format is converted to TensorRT to run inference wi
 
 !!! note "TensorRT 11 and DLA"
 
-    DLA is not supported in TensorRT 11.0 and is planned to return in a later release, so DLA export requires TensorRT 10.x. On JetPack 7 (Jetson Thor), export with a TensorRT 10.x build to use DLA, or use the GPU for TensorRT 11 engines.
+    DLA is not supported in TensorRT 11.0 and is planned to return in a later release, so DLA export requires TensorRT 10.x. On JetPack 6.x/ 7.x (Jetson Orin), export with a TensorRT 10.x build to use DLA, or use the GPU for TensorRT 11 engines.
 
 The following Jetson devices are equipped with DLA hardware:
 

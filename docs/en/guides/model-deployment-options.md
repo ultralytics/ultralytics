@@ -306,7 +306,7 @@ Yes, YOLO26 models can be deployed on mobile devices using [TensorFlow](https://
 
         ```bash
         # CLI command for TFLite export
-        yolo export --format tflite
+        yolo export model=yolo26n.pt format=tflite
         ```
 
 For more details on deploying models to mobile, refer to our [TF Lite integration guide](../integrations/tflite.md).

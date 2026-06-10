@@ -14,8 +14,10 @@ import pytest
 import torch
 
 from tests import SOURCE
+from tests.conftest import isolated_model_path
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
+from ultralytics.engine.exporter import EXPORT_ENVS, export_formats
 from ultralytics.utils import (
     ARM64,
     IS_DOCKER,
@@ -27,7 +29,7 @@ from ultralytics.utils import (
     WINDOWS,
     checks,
 )
-from ultralytics.utils.export.engine import torch2onnx
+from ultralytics.utils.export.engine import modelopt_quantize_onnx, torch2onnx
 from ultralytics.utils.torch_utils import (
     TORCH_1_10,
     TORCH_1_11,
@@ -58,6 +60,21 @@ def test_export_onnx(end2end, isolated_model):
     """Test YOLO model export to ONNX format with dynamic axes."""
     file = YOLO(isolated_model).export(format="onnx", dynamic=True, imgsz=32, end2end=end2end)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+
+
+@pytest.mark.slow
+def test_export_onnx_int8(isolated_model):
+    """Test YOLO model export to INT8 ONNX format with calibration data."""
+    file = YOLO(isolated_model).export(format="onnx", int8=True, data="coco8.yaml", fraction=0.25, imgsz=32)
+    assert Path(file).name.endswith("_int8.onnx")
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+    Path(file).unlink()  # cleanup
+
+
+def test_modelopt_quantize_onnx_requires_int8_dataset():
+    """Check INT8 ModelOpt quantization fails early without calibration data."""
+    with pytest.raises(ValueError, match="requires a calibration dataset"):
+        modelopt_quantize_onnx("model.onnx", int8=True)
 
 
 def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
@@ -181,10 +198,10 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms, end
         if not ((task == "classify" and nms) or (end2end and nms))
     ],
 )
-def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms, end2end):
+def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms, end2end, tmp_path):
     """Test YOLO model export to TorchScript format under varied configurations."""
     skip_rpi_semantic(task)
-    file = YOLO(TASK2MODEL[task]).export(
+    file = YOLO(isolated_model_path(tmp_path, WEIGHTS_DIR / TASK2MODEL[task])).export(
         format="torchscript", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms, end2end=end2end
     )
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
@@ -194,7 +211,6 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms, end2en
 @pytest.mark.slow
 @pytest.mark.skipif(not MACOS, reason="CoreML inference only supported on macOS")
 @pytest.mark.skipif(not TORCH_1_11, reason="CoreML export requires torch>=1.11")
-@pytest.mark.skipif(checks.IS_PYTHON_3_13, reason="CoreML not supported in Python 3.13")
 @pytest.mark.skipif(
     MACOS and MACOS_VERSION and MACOS_VERSION >= "15", reason="CoreML YOLO26 matrix test crashes on macOS 15+"
 )
@@ -266,7 +282,10 @@ def test_export_tflite_matrix(task, dynamic, int8, half, batch, nms, end2end):
 @pytest.mark.skipif(not TORCH_1_11, reason="CoreML export requires torch>=1.11")
 @pytest.mark.skipif(WINDOWS, reason="CoreML not supported on Windows")  # RuntimeError: BlobWriter not loaded
 @pytest.mark.skipif(LINUX and ARM64, reason="CoreML not supported on aarch64 Linux")
-@pytest.mark.skipif(checks.IS_PYTHON_3_13, reason="CoreML not supported in Python 3.13")
+@pytest.mark.skipif(
+    MACOS and checks.IS_PYTHON_MINIMUM_3_13,
+    reason="coremltools deadlocks after OpenVINO on macOS Python 3.13 (conflicting OpenMP runtimes)",
+)
 def test_export_coreml(isolated_model):
     """Test YOLO export to CoreML format and check for errors."""
     # Capture stdout and stderr
@@ -286,7 +305,10 @@ def test_export_coreml(isolated_model):
 @pytest.mark.skipif(not TORCH_1_11, reason="RTDETR CoreML export requires torch>=1.11")
 @pytest.mark.skipif(WINDOWS, reason="CoreML not supported on Windows")
 @pytest.mark.skipif(LINUX and ARM64, reason="CoreML not supported on aarch64 Linux")
-@pytest.mark.skipif(checks.IS_PYTHON_3_13, reason="CoreML not supported in Python 3.13")
+@pytest.mark.skipif(
+    MACOS and checks.IS_PYTHON_MINIMUM_3_13,
+    reason="coremltools deadlocks after OpenVINO on macOS Python 3.13 (conflicting OpenMP runtimes)",
+)
 def test_export_coreml_rtdetr():
     """Test RT-DETR export to CoreML format and check for errors."""
     stdout, stderr = io.StringIO(), io.StringIO()
@@ -326,6 +348,10 @@ def test_export_paddle(isolated_model):
 
 
 @pytest.mark.skipif(not TORCH_1_10, reason="MNN export requires torch>=1.10")
+@pytest.mark.skipif(
+    LINUX and checks.IS_PYTHON_MINIMUM_3_13,
+    reason="MNN ONNX-parser protobuf conflicts with TensorFlow protobuf>=6.31.1 loaded earlier in the shared Python 3.13 test process",
+)
 def test_export_mnn(isolated_model):
     """Test YOLO export to MNN format (WARNING: MNN test must precede NCNN test or CI error on Windows)."""
     file = YOLO(isolated_model).export(format="mnn", imgsz=32)
@@ -371,7 +397,7 @@ def test_export_ncnn_matrix(task, half, batch):
 
 
 @pytest.mark.skipif(not TORCH_2_9, reason="IMX export requires torch>=2.9.0")
-@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_9, reason="Requires Python>=3.9")
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_9, reason="IMX export requires Python>=3.9")
 @pytest.mark.skipif(not LINUX, reason="IMX export only supported on Linux")
 @pytest.mark.skipif(
     IS_RASPBERRYPI, reason="Test disabled as IMX export suffers from OOM (Out of Memory) on Raspberry Pi 5 16GB"
@@ -381,6 +407,15 @@ def test_export_imx(isolated_model):
     model = YOLO("yolo11n.pt")  # IMX export only supports YOLO11
     file = model.export(format="imx", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not LINUX or ARM64, reason="RKNN export only supported on non-aarch64 Linux")
+def test_export_rknn(isolated_model):
+    """Test YOLO export to RKNN format."""
+    file = YOLO(isolated_model).export(format="rknn", imgsz=32)
+    assert next(Path(file).rglob("*.rknn"), None), f"RKNN export failed, no RKNN model found in: {file}"
+    shutil.rmtree(file, ignore_errors=True)
 
 
 # @pytest.mark.skipif(True, reason="Disabled for debugging ruamel.yaml installation required by executorch")
@@ -421,6 +456,7 @@ def test_export_executorch_matrix(task):
 
 @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_2_8 or TORCH_2_12, reason="Axelera export requires 2.8.0<=torch<2.12.0")
+@pytest.mark.skipif(checks.IS_PYTHON_MINIMUM_3_13, reason="Axelera devkit 1.6.0 does not support Python 3.13")
 @pytest.mark.skipif(
     not LINUX or (ARM64 and IS_DOCKER),
     reason="Axelera export is only supported on Linux and is not supported on ARM64 Docker",
@@ -438,7 +474,7 @@ def test_export_axelera(isolated_model):
 @pytest.mark.slow
 @pytest.mark.skipif(not LINUX or ARM64, reason="DEEPX export only supported on non-aarch64 Linux")
 @pytest.mark.skipif(
-    not checks.IS_PYTHON_MINIMUM_3_12, reason="Requires Python>=3.12 for CI validation due to torch upgrades"
+    not checks.IS_PYTHON_3_12, reason="Requires Python 3.12; dx-com 2.3.0 does not provide Python 3.13 wheels"
 )
 def test_export_deepx(isolated_model):
     """Test YOLO export to DEEPX format."""
@@ -485,3 +521,15 @@ def test_export_qnn(isolated_model):
     assert next(Path(file).rglob("*_qnn.onnx"), None), f"QNN export failed, no context binary found in: {file}"
     # Note: on-device inference is not exercised here as it requires Qualcomm Snapdragon hardware
     shutil.rmtree(file, ignore_errors=True)  # cleanup
+
+
+@pytest.mark.parametrize("env", [k for k, v in EXPORT_ENVS.items() if k != "base" or v["smoke"]])
+def test_export_env_has_smoke(env):
+    """Ensure every non-base export environment declares a build-time smoke export."""
+    assert EXPORT_ENVS[env]["smoke"], f"export env '{env}' has no smoke command"
+
+
+def test_every_format_env_is_registered():
+    """Ensure every export format points at a registered export environment."""
+    for fmt, env in zip(export_formats()["Argument"], export_formats()["Env"]):
+        assert env in EXPORT_ENVS, f"format '{fmt}' references unknown env '{env}'"

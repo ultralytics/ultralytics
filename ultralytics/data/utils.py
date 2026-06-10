@@ -215,7 +215,7 @@ def verify_image(args: tuple) -> tuple:
 def verify_image_mask(args: tuple) -> tuple:
     """Verify that an image and its semantic mask exist, are readable, and have matching shapes."""
     im_file, mask_file, prefix = args
-    # Number (found, corrupt), message
+    # Number (found, missing, corrupt), message
     nf, nm, nc, msg = 0, 0, 0, ""
     try:
         msg, shape = check_image(im_file)

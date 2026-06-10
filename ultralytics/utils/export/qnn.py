@@ -41,6 +41,7 @@ def onnx2qnn(
     transform_fn,
     name: str = "73",
     metadata: dict | None = None,
+    batch: int = 0,
     prefix: str = "",
 ) -> str:
     """Convert an ONNX model to an INT8 Qualcomm QNN context binary using the ONNX Runtime QNN Execution Provider.
@@ -61,6 +62,8 @@ def onnx2qnn(
             (8 Gen 3), `"79"` (8 Elite). Finalizes the graph for the target chip when exporting on a host without a
             Snapdragon NPU.
         metadata (dict | None): Metadata saved as `metadata.yaml`.
+        batch (int): Static batch dimension of the ONNX graph used to tile undersized calibration batches, or 0 for
+            dynamic-batch models.
         prefix (str): Prefix for log messages.
 
     Returns:
@@ -71,9 +74,11 @@ def onnx2qnn(
     """
     check_requirements("onnxruntime-qnn")
     import onnxruntime as ort
-    from onnxruntime.quantization import CalibrationDataReader, quantize
+    from onnxruntime.quantization import quantize
     from onnxruntime.quantization.execution_providers.qnn import get_qnn_qdq_config
     from onnxruntime.quantization.shape_inference import quant_pre_process
+
+    from ultralytics.utils.export.onnx import onnx_calibration_reader
 
     ep_library, htp_backend = qnn_library_paths()
 
@@ -84,24 +89,9 @@ def onnx2qnn(
     pre_file = output_dir / "preprocessed.onnx"
     qdq_file = output_dir / "qdq.onnx"
 
-    # INT8 QDQ quantization (HTP is an int8 accelerator). Reuses the shared calibration dataloader + transform_fn.
-    class _CalibrationReader(CalibrationDataReader):
-        def __init__(self):
-            """Materialize calibration inputs as `{input_name: float32_NCHW}` dicts."""
-            self.samples = [{"images": transform_fn(batch)} for batch in dataset]
-            self.iterator = iter(self.samples)
-
-        def get_next(self):
-            """Return the next calibration sample, or None when exhausted."""
-            return next(self.iterator, None)
-
-        def rewind(self):
-            """Reset the iterator for an additional calibration pass."""
-            self.iterator = iter(self.samples)
-
     LOGGER.info(f"\n{prefix} starting INT8 quantization and export with ONNX Runtime QNN (HTP arch {name})...")
     quant_pre_process(str(onnx_file), str(pre_file))
-    qdq_config = get_qnn_qdq_config(str(pre_file), _CalibrationReader())
+    qdq_config = get_qnn_qdq_config(str(pre_file), onnx_calibration_reader(dataset, transform_fn, batch=batch))
     quantize(str(pre_file), str(qdq_file), qdq_config)
 
     # Register the QNN EP, then compile the quantized graph to a context binary during session init (no inference run).

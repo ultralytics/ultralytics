@@ -127,7 +127,7 @@ import coremltools as ct
 from ultralytics.utils.export import torch2coreml
 
 inputs = [ct.TensorType("input", shape=(1, 3, 224, 224))]
-ct_model = torch2coreml(model, inputs, im, output_file="resnet18.mlpackage")
+ct_model = torch2coreml(model, inputs, im, classifier_names=None, output_file="resnet18.mlpackage")
 ```
 
 For [classification](https://www.ultralytics.com/glossary/image-classification) models, pass a list of class names to `classifier_names` to add a classification head to the CoreML model.

@@ -148,7 +148,7 @@ To train a YOLO26 model using JupyterLab:
     from ultralytics.utils.plotting import plot_results
 
     matplotlib.use("inline")  # or 'notebook' for interactive
-    plot_results(results)
+    plot_results("runs/detect/train/results.csv")
     ```
 
 JupyterLab's interactive environment allows you to easily modify parameters, visualize results, and iterate on your model training process.
@@ -191,7 +191,7 @@ To optimize YOLO26 model performance in JupyterLab:
     ```python
     from ultralytics.utils.plotting import plot_results
 
-    plot_results(results.results_dict)
+    plot_results("runs/detect/train/results.csv")
     ```
 
 4. Experiment with different model architectures and [export formats](../modes/export.md) to find the best balance of speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) for your specific use case.

@@ -476,7 +476,7 @@ class TransformerEncoderFusion(TransformerEncoder):
                     else None
                 )
         else:
-            assert all(x.dim == 4 for x in src), "expected list of (bs, c, h, w) tensors"
+            assert all(x.dim() == 4 for x in src), "expected list of (bs, c, h, w) tensors"
 
         if self.add_pooled_text_to_img_feat:
             # Fusion: Add mean pooled text to image features

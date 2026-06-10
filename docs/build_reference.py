@@ -143,7 +143,10 @@ def create_placeholder_markdown(py_filepath: Path, module_path: str, classes: li
             if len(parts) > 2:
                 header_content = f"---{parts[1]}---\n\n"
     if not header_content:
-        header_content = "---\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
+        header_content = (
+            f"---\ndescription: Reference for `{module_path}` in the Ultralytics package.\n"
+            f"keywords: Ultralytics, {module_path}, API reference, YOLO, Python\n---\n\n"
+        )
 
     module_path_dots = module_path
     module_path_fs = module_path.replace(".", "/")
@@ -1011,7 +1014,10 @@ def create_markdown(module: DocumentedModule) -> Path:
             if "description:" in part or "comments:" in part:
                 header_content += f"---{part}---\n\n"
     if not header_content:
-        header_content = "---\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
+        header_content = (
+            f"---\ndescription: Reference for `{module.module_path}` in the Ultralytics package.\n"
+            f"keywords: Ultralytics, {module.module_path}, API reference, YOLO, Python\n---\n\n"
+        )
 
     module_path_fs = module.module_path.replace(".", "/")
     url = f"https://github.com/{GITHUB_REPO}/blob/main/{module_path_fs}.py"

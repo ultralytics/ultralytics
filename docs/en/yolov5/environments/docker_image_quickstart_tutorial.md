@@ -145,7 +145,7 @@ To run an interactive container instance using only the CPU, use the `-it` flag.
 
 ```bash
 # Run an interactive container instance using CPU
-sudo docker run -it --runtime=nvidia --ipc=host $t
+sudo docker run -it --ipc=host $t
 ```
 
 ### Using GPU

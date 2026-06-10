@@ -68,7 +68,7 @@ The `dx_com` compiler package will be automatically installed from the DEEPX SDK
 
 ### Usage
 
-The DeepX format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on DeepX NPU hardware. Export your model, then load the exported model to run inference or validate its accuracy.
+The DEEPX format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on DEEPX NPU hardware. Export your model, then load the exported model to run inference or validate its accuracy.
 
 !!! example "Export"
 
@@ -98,7 +98,7 @@ The DeepX format supports the [Export](../modes/export.md), [Predict](../modes/p
         ```python
         from ultralytics import YOLO
 
-        # Load the exported DeepX model
+        # Load the exported DEEPX model
         model = YOLO("yolo26n_deepx_model")
 
         # Run inference
@@ -108,7 +108,7 @@ The DeepX format supports the [Export](../modes/export.md), [Predict](../modes/p
     === "CLI"
 
         ```bash
-        # Run inference with the exported DeepX model
+        # Run inference with the exported DEEPX model
         yolo predict model=yolo26n_deepx_model source='https://ultralytics.com/images/bus.jpg'
         ```
 
@@ -119,7 +119,7 @@ The DeepX format supports the [Export](../modes/export.md), [Predict](../modes/p
         ```python
         from ultralytics import YOLO
 
-        # Load the exported DeepX model
+        # Load the exported DEEPX model
         model = YOLO("yolo26n_deepx_model")
 
         # Validate accuracy on the COCO8 dataset
@@ -129,20 +129,20 @@ The DeepX format supports the [Export](../modes/export.md), [Predict](../modes/p
     === "CLI"
 
         ```bash
-        # Validate the exported DeepX model
+        # Validate the exported DEEPX model
         yolo val model=yolo26n_deepx_model data=coco8.yaml
         ```
 
 ### Export Arguments
 
-| Argument   | Type             | Default          | Description                                                                                                                                        |
-| :--------- | :--------------- | :--------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'deepx'`        | Target format for the exported model, defining compatibility with DEEPX NPU hardware.                                                              |
-| `imgsz`    | `int` or `tuple` | `640`            | Desired image size for the model input. DEEPX export requires a square input — pass an integer (e.g., `640`) or a tuple where height equals width. |
-| `int8`     | `bool`           | `True`           | Enables INT8 quantization. Required for DEEPX export — automatically set to `True` if not specified.                                               |
-| `data`     | `str`            | `'coco128.yaml'` | Dataset configuration file used for INT8 calibration. Specifies the calibration image source.                                                      |
-| `device`   | `str`            | `None`           | Specifies the device for exporting: GPU (`device=0`) or CPU (`device=cpu`).                                                                        |
-| `optimize` | `bool`           | `False`          | Enables higher compiler optimization which reduces inference latency and increases compilation time.                                               |
+| Argument   | Type             | Default        | Description                                                                                                                                        |
+| :--------- | :--------------- | :------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'deepx'`      | Target format for the exported model, defining compatibility with DEEPX NPU hardware.                                                              |
+| `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. DEEPX export requires a square input — pass an integer (e.g., `640`) or a tuple where height equals width. |
+| `int8`     | `bool`           | `True`         | Enables INT8 quantization. Required for DEEPX export — automatically set to `True` if not specified.                                               |
+| `data`     | `str`            | `'coco8.yaml'` | Dataset configuration file used for INT8 calibration. Specifies the calibration image source.                                                      |
+| `device`   | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`) or CPU (`device=cpu`).                                                                        |
+| `optimize` | `bool`           | `False`        | Enables higher compiler optimization which reduces inference latency and increases compilation time.                                               |
 
 !!! tip
 
@@ -176,8 +176,8 @@ Inference requires the DEEPX NPU driver, the `libdxrt` runtime, and the `dx_engi
 ```bash
 # Install the NPU driver and libdxrt runtime
 sudo apt update
-wget https://github.com/DEEPX-AI/dx_rt_npu_linux_driver/raw/main/release/2.4.0/dxrt-driver-dkms_2.4.0-2_all.deb
-sudo apt install ./dxrt-driver-dkms_2.4.0-2_all.deb
+wget https://github.com/DEEPX-AI/dx_rt_npu_linux_driver/raw/main/release/2.4.1/dxrt-driver-dkms_2.4.1-2_all.deb
+sudo apt install ./dxrt-driver-dkms_2.4.1-2_all.deb
 wget https://github.com/DEEPX-AI/dx_rt/raw/main/release/3.3.2/libdxrt_3.3.2_all.deb
 sudo apt install ./libdxrt_3.3.2_all.deb
 
@@ -201,7 +201,7 @@ Compiler: v1.18.1
 .dxnn File Format: v6
 ```
 
-Once the runtime is installed, run inference and validation on your DeepX device exactly as shown in the [Usage](#usage) section above — the exported `_deepx_model` loads directly with `YOLO(...)`.
+Once the runtime is installed, run inference and validation on your DEEPX device exactly as shown in the [Usage](#usage) section above — the exported `_deepx_model` loads directly with `YOLO(...)`.
 
 ### Visualizing with dxtron
 
@@ -239,18 +239,18 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
         | Model        	| Format  	| Status 	| Size (MB) 	| metrics/mAP50-95(B) 	| Inference time (ms/im) 	|
         |--------------	|---------	|--------	|-----------	|---------------------	|------------------------	|
         | YOLO26n      	| PyTorch 	| ✅      	| 5.3       	| 0.4760              	| 315.2                  	|
-        | YOLO26n      	| DeepX   	| ✅      	| 6.6       	| 0.4660              	| 34.6                   	|
+        | YOLO26n      	| DEEPX   	| ✅      	| 6.6       	| 0.4660              	| 34.6                   	|
         | YOLO26n-seg  	| PyTorch 	| ✅      	| 6.5       	| 0.4080              	| 485.4                  	|
-        | YOLO26n-seg  	| DeepX   	| ✅      	| 7.9       	| 0.3920              	| 53.8                   	|
+        | YOLO26n-seg  	| DEEPX   	| ✅      	| 7.9       	| 0.3920              	| 53.8                   	|
         | YOLO26n-pose 	| PyTorch 	| ✅      	| 7.6       	| 0.4230              	| 506.3                  	|
-        | YOLO26n-pose 	| DeepX   	| ✅      	| 8.8       	| 0.4590              	| 37.6                   	|
+        | YOLO26n-pose 	| DEEPX   	| ✅      	| 8.8       	| 0.4590              	| 37.6                   	|
         | YOLO26n-obb  	| PyTorch 	| ✅      	| 5.7       	| 0.817               	| 1094.4                 	|
-        | YOLO26n-obb  	| DeepX   	| ✅      	| 7.3       	| 0.783               	| 56.4                   	|
+        | YOLO26n-obb  	| DEEPX   	| ✅      	| 7.3       	| 0.783               	| 56.4                   	|
 
         | Model       	| Format  	| Status 	| Size (MB) 	| acc (top1) 	| acc (top5) 	| Inference time (ms/im) 	|
         |-------------	|---------	|--------	|-----------	|------------	|------------	|------------------------	|
         | YOLO26n-cls 	| PyTorch 	| ✅      	| 5.6       	| 0.431      	| 0.716      	| 23.8                   	|
-        | YOLO26n-cls 	| DeepX   	| ✅      	| 5.9       	| 0.333      	| 0.686      	| 2.7                    	|
+        | YOLO26n-cls 	| DEEPX   	| ✅      	| 5.9       	| 0.333      	| 0.686      	| 2.7                    	|
 
     === "More devices coming soon!"
 
@@ -360,7 +360,7 @@ Yes. Any model trained using [Ultralytics Train Mode](../modes/train.md) and exp
 
 ### How many calibration images should I use for DEEPX export?
 
-The DEEPX export pipeline uses every image in the calibration dataset (after `fraction` filtering) with the EMA calibration method. A few hundred images is usually sufficient for good quantization accuracy. Point `data` at a smaller dataset (or set `fraction` below `1.0`) if compilation time becomes a concern on large datasets.
+The DEEPX export pipeline uses every image in the calibration dataset with the EMA calibration method. A few hundred images is usually sufficient for good quantization accuracy. Point `data` at a smaller dataset if compilation time becomes a concern on large datasets.
 
 ### How do I install the DEEPX runtime for inference?
 

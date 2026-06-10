@@ -8,7 +8,7 @@ import pytest
 from PIL import Image
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA
-from ultralytics.utils import ARM64, ASSETS, IS_RASPBERRYPI, LINUX, WEIGHTS_DIR, checks
+from ultralytics.utils import ARM64, ASSETS, DATASETS_DIR, IS_RASPBERRYPI, LINUX, WEIGHTS_DIR, checks
 from ultralytics.utils.torch_utils import TORCH_1_11
 
 
@@ -23,6 +23,7 @@ def test_special_modes() -> None:
     run("yolo checks")
     run("yolo version")
     run("yolo settings reset")
+    run(f"yolo settings weights_dir={WEIGHTS_DIR} datasets_dir={DATASETS_DIR}")
     run("yolo cfg")
 
 
@@ -61,9 +62,9 @@ def test_export(model: str, tmp_path: Path) -> None:
 @pytest.mark.skipif(not TORCH_1_11, reason="RTDETR requires torch>=1.11")
 def test_rtdetr(task: str = "detect", model: Path = WEIGHTS_DIR / "rtdetr-l.pt", data: str = "coco8.yaml") -> None:
     """Test the RTDETR functionality within Ultralytics for detection tasks using specified model and data."""
-    # Add comma, spaces, fraction=0.25 args to test single-image training
+    # Add comma and spaces to test CLI arg cleanup.
     run(f"yolo predict {task} model={model} source={ASSETS / 'bus.jpg'} imgsz=160 save")
-    run(f"yolo train {task} model={model} data={data} --imgsz= 160 epochs =1, cache = disk fraction=0.25")
+    run(f"yolo train {task} model={model} data={data} --imgsz= 160 epochs =1, cache = disk")
 
 
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for heavy FastSAM tests")

@@ -113,7 +113,7 @@ To illustrate the effects of freezing layers, we trained YOLOv5m on the [Pascal 
 
 ```bash
 # Example command for training with backbone frozen
-python train.py --batch 48 --weights yolov5m.pt --data voc.yaml --epochs 50 --cache --img 512 --hyp hyp.finetune.yaml --freeze 10
+python train.py --batch 48 --weights yolov5m.pt --data voc.yaml --epochs 50 --cache --img 512 --hyp data/hyps/hyp.VOC.yaml --freeze 10
 ```
 
 ### Accuracy Results

@@ -379,7 +379,7 @@ To predict with an exported YOLO26 MNN model, use the `predict` function from th
         # Load the YOLO26 MNN model
         model = YOLO("yolo26n.mnn")
 
-        # Export to MNN format
+        # Run inference
         results = model("https://ultralytics.com/images/bus.jpg")  # predict with `fp32`
         results = model("https://ultralytics.com/images/bus.jpg", half=True)  # predict with `fp16` if device support
 

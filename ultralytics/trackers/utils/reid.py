@@ -19,6 +19,7 @@ from ultralytics.utils.plotting import save_one_box
 
 REID_ASSETS = frozenset(f"yolo26{k}-reid.onnx" for k in "nsmlx")
 
+
 class ReID:
     """ReID encoder. Routes `.pt` to the YOLO predictor path; everything else to `AutoBackend`."""
 

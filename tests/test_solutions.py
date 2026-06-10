@@ -343,6 +343,38 @@ def test_distance_calculation_process_method():
     assert result.pixels_distance > 0, f"Expected positive distance, got {result.pixels_distance}"
 
 
+def test_aigym_stale_states_alignment():
+    """Verify workout lists align with currently tracked individuals even when states contains stale IDs."""
+    from collections import defaultdict
+
+    from ultralytics.solutions.solutions import SolutionResults
+
+    gym = solutions.AIGym(kpts=[6, 8, 10])
+    # Seed states with three IDs; id=3 is stale (person left the frame)
+    gym.states = defaultdict(lambda: {"angle": 0, "count": 0, "stage": "-"})
+    gym.states[1] = {"angle": 145.0, "count": 3, "stage": "up"}
+    gym.states[2] = {"angle": 70.0, "count": 1, "stage": "down"}
+    gym.states[3] = {"angle": 90.0, "count": 5, "stage": "up"}  # stale — no longer tracked
+
+    # Only IDs 1 and 2 are currently visible; boxes=[] skips the keypoint loop
+    gym.track_ids = [1, 2]
+    gym.boxes = []
+
+    frame = np.zeros((480, 640, 3), dtype=np.uint8)
+    with patch.object(gym, "extract_tracks"), patch.object(gym, "display_output"):
+        result = gym.process(frame)
+
+    assert isinstance(result, SolutionResults)
+    assert result.total_tracks == 2
+    assert len(result.workout_count) == result.total_tracks, (
+        f"workout_count length {len(result.workout_count)} != total_tracks {result.total_tracks}"
+    )
+    assert len(result.workout_stage) == result.total_tracks
+    assert len(result.workout_angle) == result.total_tracks
+    # Stale id=3 (count=5) must not appear
+    assert result.workout_count == [3, 1]
+
+
 def test_object_crop_with_show_True():
     """Test ObjectCropper init with show=True to cover display warning."""
     solutions.ObjectCropper(show=True)

@@ -8,6 +8,11 @@ keywords: CoreML export, YOLO26 models, CoreML conversion, Ultralytics, iOS obje
 
 Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on Apple devices like iPhones and Macs requires a format that ensures seamless performance.
 
+!!! tip "Run YOLO on the Apple Neural Engine today with the official mobile apps"
+
+    The official [Ultralytics YOLO iOS SDK](https://github.com/ultralytics/yolo-ios-app) and [Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) run CoreML exports on the Apple Neural Engine out of the box — real-time camera inference, single-image prediction, and automatic model download for all six YOLO26 tasks. For Android NPU deployment, see the [Qualcomm QNN integration](qnn.md).
+
+
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/hfSK3Mk5P0I"
@@ -48,6 +53,22 @@ Apple's CoreML framework offers robust features for on-device machine learning. 
 - **Ease of Integration**: Provides a unified format for various model types and a user-friendly API for seamless integration into apps. Supports domain-specific tasks through frameworks like Vision and Natural Language.
 
 - **Advanced Features**: Includes on-device training capabilities for personalized experiences, asynchronous predictions for interactive ML experiences, and model inspection and validation tools.
+
+## Measured Performance
+
+End-to-end single-image inference for the official YOLO26n INT8 CoreML models on an iPhone 17 Pro (Apple A19, iOS 26.5). Each cell shows the **total time** (preprocessing + inference + postprocessing, excluding annotation) with the per-stage split beneath it. On iOS, Vision performs input scaling inside the inference request, so preprocessing is reported as 0 and its cost is included in inference.
+
+| Model        | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>`.cpuOnly`<br>(ms)</sup> | Neural Engine<br><sup>`.cpuAndNeuralEngine`<br>(ms)</sup> |
+| ------------ | -------- | --------------------------- | ------------------------------------- | ----------------------------------------------------------- |
+| YOLO26n      | Detect   | 640                         | 9.2<br><sup>0.0 / 9.1 / 0.0</sup>     | **3.8**<br><sup>0.0 / 3.7 / 0.0</sup>                        |
+| YOLO26n-seg  | Segment  | 640                         | 21.7<br><sup>0.0 / 12.0 / 9.8</sup>   | **14.1**<br><sup>0.0 / 4.5 / 9.6</sup>                       |
+| YOLO26n-sem  | Semantic | 1024                        | 14.6<br><sup>0.0 / 7.4 / 7.3</sup>    | **10.3**<br><sup>0.0 / 3.3 / 7.0</sup>                       |
+| YOLO26n-cls  | Classify | 224                         | 2.4<br><sup>0.0 / 2.4 / 0.0</sup>     | **2.0**<br><sup>0.0 / 1.9 / 0.0</sup>                        |
+| YOLO26n-pose | Pose     | 640                         | 12.1<br><sup>0.0 / 12.0 / 0.1</sup>   | **3.9**<br><sup>0.0 / 3.9 / 0.1</sup>                        |
+| YOLO26n-obb  | OBB      | 1024                        | 22.3<br><sup>0.0 / 22.3 / 0.0</sup>   | **7.2**<br><sup>0.0 / 7.2 / 0.0</sup>                        |
+
+- **Speed** values are the mean of 15 runs after 3 warmup runs on [bus.jpg](https://ultralytics.com/images/bus.jpg), measured through the [iOS SDK's](https://github.com/ultralytics/yolo-ios-app) per-stage timing via the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) benchmark harness. Numbers vary with device generation and thermal state.
+- The matching Snapdragon CPU/GPU/NPU table is in the [Qualcomm QNN integration](qnn.md).
 
 ## CoreML Deployment Options
 

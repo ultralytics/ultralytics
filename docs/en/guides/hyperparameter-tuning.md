@@ -78,11 +78,11 @@ The process is repeated until either the set number of iterations is reached or 
 
 ### Iterations and Population Size
 
-When using the built-in tuner with `use_ray=False`, `iterations` is the total number of sequential tuning trials to run. Each iteration trains one model with one hyperparameter configuration, so `iterations=40` and `epochs=50` schedules up to 40 training runs of 50 epochs each, not one 50-epoch run with a separate population of 40 candidates.
+With the built-in tuner (`use_ray=False`), `iterations` controls the total number of sequential trials. Each trial trains one model with one hyperparameter configuration — for example, `iterations=40` with `epochs=50` schedules 40 independent 50-epoch training runs, not one 50-epoch run with a separate population of 40 candidates.
 
-The built-in genetic tuner does not expose a separate population size argument. After previous trials exist, it selects from up to nine of the highest-fitness configurations as a parent pool for BLX-α crossover and mutation, then produces one new candidate for the next iteration.
+The built-in genetic algorithm has no explicit population size parameter. Once prior trials exist, it samples up to nine of the highest-fitness configurations as parents, applies BLX-α crossover and mutation, and produces one candidate per iteration.
 
-To use parallel trials or advanced search algorithms, use Ray Tune by setting `use_ray=True`; in that mode `iterations` is passed to Ray Tune as `num_samples`. See more about using Ray Tune for hyperparameter optimization in the [Ray Tune integration guide](../integrations/ray-tune.md).
+For parallel trials or more advanced search strategies, set `use_ray=True` to use Ray Tune, which receives `iterations` as `num_samples`. See the [Ray Tune integration guide](../integrations/ray-tune.md) for details.
 
 ## Default Search Space Description
 

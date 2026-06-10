@@ -1,0 +1,23 @@
+# det16 benchmark = det13 (RF100-VL curated subset) + 3 medical/PCB additions (2026-06-10).
+# Canonical --datasets list for run_enc_distill_phase2.py mode=multi_det_finetune.
+# liver-disease (RF100-VL histopathology) is intentionally EXCLUDED (wrong modality, skipped by user).
+
+# --- det13 original (RF100-VL) ---
+/data/shared-datasets/rf100-vl/nih-xray/data.yaml
+/data/shared-datasets/rf100-vl/crystal-clean-brain-tumors-mri-dataset/data.yaml
+/data/shared-datasets/rf100-vl/wheel-defect-detection/data.yaml
+/data/shared-datasets/rf100-vl/l10ul502/data.yaml
+/data/shared-datasets/rf100-vl/weeds4/data.yaml
+/data/shared-datasets/rf100-vl/aerial-cows/data.yaml
+/data/shared-datasets/rf100-vl/pig-detection/data.yaml
+/data/shared-datasets/rf100-vl/peixos-fish/data.yaml
+/data/shared-datasets/rf100-vl/everdaynew/data.yaml
+/data/shared-datasets/rf100-vl/electric-pylon-detection-in-rsi/data.yaml
+/data/shared-datasets/rf100-vl/zebrasatasturias/data.yaml
+/data/shared-datasets/rf100-vl/infraredimageofpowerequipment/data.yaml
+/data/shared-datasets/rf100-vl/thermal-cheetah/data.yaml
+
+# --- det16 additions ---
+/data/shared-datasets/rf100-vl/fetal-brain-ultrasound/data.yaml
+/data/shared-datasets/deeplesion/data.yaml
+/data/shared-datasets/pcb-component-detection-consolidated-dataset/data.yaml

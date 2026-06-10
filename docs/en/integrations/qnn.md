@@ -32,7 +32,7 @@ Ultralytics compiles YOLO models to QNN **locally** using the [ONNX Runtime](htt
 
 Unlike the cloud-based [Qualcomm AI Hub](https://aihub.qualcomm.com/), which compiles and profiles models on Qualcomm-hosted Snapdragon devices and requires a Qualcomm account, the Ultralytics QNN export runs entirely on your own machine with a single `export(format="qnn")` call. You get the same QNN/QAIRT runtime target — Snapdragon CPU, Adreno GPU, and Hexagon NPU — without sign-up, upload limits, or queue times, and it drops straight into the standard YOLO export workflow.
 
-The exported `_qnn_model/` directory bundles the context-binary ONNX and a `metadata.yaml` describing class names, image size, and task.
+The exported `*_qnn.onnx` file is self-contained: it embeds the QNN context binary and ONNX metadata such as class names, image size, and task.
 
 ## Key Features of QNN Models
 
@@ -41,7 +41,7 @@ The exported `_qnn_model/` directory bundles the context-binary ONNX and a `meta
 - **Full Snapdragon Acceleration**: Run inference on the Hexagon NPU (HTP), Adreno GPU, or CPU through a single unified runtime.
 - **Broad Device Reach**: Target the wide range of Snapdragon platforms shipping in phones, PCs (Windows on Snapdragon), automotive, XR, and embedded products.
 - **Precompiled Context Binary**: Shipping a context binary minimizes on-device graph compilation, reducing model load latency on the target.
-- **Self-Contained Output**: The exported directory includes the context-binary ONNX and metadata for straightforward deployment.
+- **Self-Contained Output**: The exported ONNX file includes the precompiled QNN context binary and metadata for straightforward deployment.
 
 ## Supported Tasks
 
@@ -108,7 +108,7 @@ The QNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
 
         # Export to Qualcomm QNN format (INT8, enforced automatically), targeting an HTP architecture via 'name'
         # 'name' can be one of 68, 69, 73, 75, 79, 81 (Snapdragon 888, 8 Gen 1, 8 Gen 2, 8 Gen 3, 8 Elite, 8 Elite Gen 5)
-        model.export(format="qnn", name="73")  # creates 'yolo26n_qnn_model/'
+        model.export(format="qnn", name="73")  # creates 'yolo26n_qnn.onnx'
         ```
 
     === "CLI"
@@ -116,7 +116,7 @@ The QNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
         ```bash
         # Export a YOLO26n PyTorch model to Qualcomm QNN format for the target HTP architecture
         # 'name' can be one of 68, 69, 73, 75, 79, 81 (Snapdragon 888, 8 Gen 1, 8 Gen 2, 8 Gen 3, 8 Elite, 8 Elite Gen 5)
-        yolo export model=yolo26n.pt format=qnn name=73 # creates 'yolo26n_qnn_model/'
+        yolo export model=yolo26n.pt format=qnn name=73 # creates 'yolo26n_qnn.onnx'
         ```
 
 !!! example "Predict"
@@ -127,7 +127,7 @@ The QNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
         from ultralytics import YOLO
 
         # Load the exported QNN model (on a Snapdragon device with onnxruntime-qnn)
-        model = YOLO("yolo26n_qnn_model")
+        model = YOLO("yolo26n_qnn.onnx")
 
         # Run inference
         results = model("https://ultralytics.com/images/bus.jpg")
@@ -137,7 +137,7 @@ The QNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
 
         ```bash
         # Run inference with the exported QNN model
-        yolo predict model=yolo26n_qnn_model source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo26n_qnn.onnx source='https://ultralytics.com/images/bus.jpg'
         ```
 
 !!! example "Validate"
@@ -148,7 +148,7 @@ The QNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
         from ultralytics import YOLO
 
         # Load the exported QNN model (on a Snapdragon device with onnxruntime-qnn)
-        model = YOLO("yolo26n_qnn_model")
+        model = YOLO("yolo26n_qnn.onnx")
 
         # Validate accuracy on the COCO8 dataset
         metrics = model.val(data="coco8.yaml")
@@ -158,7 +158,7 @@ The QNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
 
         ```bash
         # Validate the exported QNN model
-        yolo val model=yolo26n_qnn_model data=coco8.yaml
+        yolo val model=yolo26n_qnn.onnx data=coco8.yaml
         ```
 
 ### Export Arguments
@@ -182,13 +182,11 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ### Output Structure
 
-After a successful export, a model directory is created with the following layout:
+After a successful export, a self-contained ONNX file is created:
 
-    yolo26n_qnn_model/
-    ├── yolo26n_qnn.onnx   # ONNX wrapping the precompiled QNN context binary
-    └── metadata.yaml      # Model metadata (classes, image size, task, etc.)
+    yolo26n_qnn.onnx   # ONNX wrapping the precompiled QNN context binary and metadata
 
-The `yolo26n_qnn.onnx` file embeds the QNN context binary and is loaded by ONNX Runtime with the QNN Execution Provider on the Snapdragon device. The `metadata.yaml` contains class names, image size, and other information used by the Ultralytics pipeline.
+The `yolo26n_qnn.onnx` file embeds the QNN context binary and is loaded by ONNX Runtime with the QNN Execution Provider on the Snapdragon device. It also carries model metadata such as class names, image size, and task in ONNX `metadata_props`.
 
 ## Deploying Exported YOLO QNN Models
 
@@ -206,7 +204,7 @@ devices = [d for d in ort.get_ep_devices() if d.ep_name == "QNNExecutionProvider
 
 options = ort.SessionOptions()
 options.add_provider_for_devices(devices, {"backend_path": qnn_ep.get_qnn_htp_path()})
-session = ort.InferenceSession("yolo26n_qnn_model/yolo26n_qnn.onnx", sess_options=options)
+session = ort.InferenceSession("yolo26n_qnn.onnx", sess_options=options)
 outputs = session.run(None, {"images": input_tensor})  # input_tensor: float32 NCHW
 ```
 
@@ -216,7 +214,7 @@ Because the QNN context binary is precompiled, the session loads quickly without
 
 1. **Train** your model using Ultralytics [Train Mode](../modes/train.md)
 2. **Export** to QNN format using `model.export(format="qnn")` on a supported platform (Windows x64 or ARM64, or Linux ARM64)
-3. **Deploy** the exported `_qnn_model/` directory to your Snapdragon device
+3. **Deploy** the exported `*_qnn.onnx` file to your Snapdragon device
 4. **Run** inference with ONNX Runtime and the QNN Execution Provider, selecting the HTP, GPU, or CPU backend
 
 ## Real-World Applications
@@ -231,7 +229,7 @@ YOLO models running on Qualcomm Snapdragon hardware are well suited for a wide r
 
 ## Summary
 
-In this guide, you've learned how to export Ultralytics YOLO models to the Qualcomm QNN format **locally** with the ONNX Runtime QNN Execution Provider. The export pipeline converts your model to ONNX, then compiles it into a QNN context binary on your host machine — no Qualcomm account or cloud required — producing a `_qnn.onnx` optimized for Snapdragon CPU, Adreno GPU, and Hexagon NPU hardware via the QNN/QAIRT runtime.
+In this guide, you've learned how to export Ultralytics YOLO models to the Qualcomm QNN format **locally** with the ONNX Runtime QNN Execution Provider. The export pipeline converts your model to ONNX, then compiles it into a QNN context binary on your host machine — no Qualcomm account or cloud required — producing a `*_qnn.onnx` file optimized for Snapdragon CPU, Adreno GPU, and Hexagon NPU hardware via the QNN/QAIRT runtime.
 
 The combination of [Ultralytics YOLO](https://www.ultralytics.com/yolo) and Qualcomm's on-device AI stack provides an effective solution for running advanced [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) workloads across the broad Snapdragon ecosystem.
 
@@ -274,7 +272,7 @@ No. QNN export runs entirely on your local machine using the `onnxruntime-qnn` p
 
 ### How do I run YOLO on a Qualcomm Snapdragon NPU?
 
-Export with `model.export(format="qnn")`, copy the resulting `yolo26n_qnn_model` directory to your Snapdragon device, and run `yolo predict model=yolo26n_qnn_model source=image.jpg` (or `yolo val`). Ultralytics loads the context binary through the ONNX Runtime QNN Execution Provider and runs it on the Hexagon NPU — see [Deploying Exported YOLO QNN Models](#deploying-exported-yolo-qnn-models).
+Export with `model.export(format="qnn")`, copy the resulting `yolo26n_qnn.onnx` file to your Snapdragon device, and run `yolo predict model=yolo26n_qnn.onnx source=image.jpg` (or `yolo val`). Ultralytics loads the context binary through the ONNX Runtime QNN Execution Provider and runs it on the Hexagon NPU — see [Deploying Exported YOLO QNN Models](#deploying-exported-yolo-qnn-models).
 
 ### What is the difference between QNN and SNPE?
 
@@ -282,8 +280,8 @@ QNN (Qualcomm AI Engine Direct, part of the QAIRT SDK) is Qualcomm's current inf
 
 ### Can I run a QNN model with `yolo predict` and `yolo val`?
 
-Yes, on a Qualcomm Snapdragon device with `onnxruntime-qnn` installed — `YOLO("yolo26n_qnn_model")` loads the context binary through the QNN Execution Provider and runs `predict`/`val` like any other format. On an x86 host without QNN hardware the model cannot execute, since the context binary targets the Snapdragon NPU.
+Yes, on a Qualcomm Snapdragon device with `onnxruntime-qnn` installed — `YOLO("yolo26n_qnn.onnx")` loads the context binary through the QNN Execution Provider and runs `predict`/`val` like any other format. On an x86 host without QNN hardware the model cannot execute, since the context binary targets the Snapdragon NPU.
 
 ### What is the output of a QNN export?
 
-The export creates a directory (e.g., `yolo26n_qnn_model/`) containing the context-binary ONNX (`yolo26n_qnn.onnx`) and a `metadata.yaml` with class names, image size, and task information.
+The export creates a self-contained context-binary ONNX file (e.g., `yolo26n_qnn.onnx`) with class names, image size, task, and other model metadata embedded in ONNX `metadata_props`.

@@ -48,11 +48,12 @@ End-to-end single-image inference for the official YOLO26n INT8 CoreML models on
 | ------------ | -------- | --------------------------- | ------------------------------------ | --------------------------------------------------------- |
 | YOLO26n      | Detect   | 640                         | 9.2<br><sup>0.0 / 9.1 / 0.0</sup>    | **3.8**<br><sup>0.0 / 3.7 / 0.0</sup>                     |
 | YOLO26n-seg  | Segment  | 640                         | 21.7<br><sup>0.0 / 12.0 / 9.8</sup>  | **14.1**<br><sup>0.0 / 4.5 / 9.6</sup>                    |
-| YOLO26n-sem  | Semantic | 1024                        | 14.6<br><sup>0.0 / 7.4 / 7.3</sup>   | **10.3**<br><sup>0.0 / 3.3 / 7.0</sup>                    |
+| YOLO26n-sem  | Semantic | 1024<sup>1</sup>            | 17.2<br><sup>0.0 / 15.3 / 1.9</sup>  | **7.5**<br><sup>0.0 / 5.5 / 1.9</sup>                     |
 | YOLO26n-cls  | Classify | 224                         | 2.4<br><sup>0.0 / 2.4 / 0.0</sup>    | **2.0**<br><sup>0.0 / 1.9 / 0.0</sup>                     |
 | YOLO26n-pose | Pose     | 640                         | 12.1<br><sup>0.0 / 12.0 / 0.1</sup>  | **3.9**<br><sup>0.0 / 3.9 / 0.1</sup>                     |
 | YOLO26n-obb  | OBB      | 1024                        | 22.3<br><sup>0.0 / 22.3 / 0.0</sup>  | **7.2**<br><sup>0.0 / 7.2 / 0.0</sup>                     |
 
+- <sup>1</sup> Semantic CoreML exports from this release embed the ArgMax in the graph and return a compact class map instead of float logits, cutting Neural Engine end-to-end time from 10.3 ms to 7.5 ms.
 - **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on [bus.jpg](https://ultralytics.com/images/bus.jpg), measured through the [iOS SDK's](https://github.com/ultralytics/yolo-ios-app) per-stage timing via the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) benchmark harness. Sustained real-time camera operation runs higher (full-sensor letterboxing every frame plus thermal settling): YOLO26n detect measures ~16 ms/frame in the live camera app on the same device — see the [iOS SDK performance doc](https://github.com/ultralytics/yolo-ios-app/blob/main/docs/performance.md) for steady-state profiling.
 - The matching Snapdragon CPU/GPU/NPU table is in the [Qualcomm QNN integration](qnn.md).
 

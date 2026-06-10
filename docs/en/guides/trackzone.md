@@ -142,7 +142,9 @@ assert cap.isOpened(), "Error reading video file"
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 video_writer = cv2.VideoWriter("trackzone_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-trackzone = solutions.TrackZone(show=True, region=[(150, 150), (1130, 150), (1130, 570), (150, 570)], model="yolo26n.pt")
+trackzone = solutions.TrackZone(
+    show=True, region=[(150, 150), (1130, 150), (1130, 570), (150, 570)], model="yolo26n.pt"
+)
 
 while cap.isOpened():
     success, im0 = cap.read()

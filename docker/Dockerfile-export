@@ -9,9 +9,8 @@ FROM ultralytics/ultralytics:latest
 # Install export dependencies
 # Numpy 1.26.4 required for TensorFlow export compatibility
 # Note tensorrt installed on-demand as depends on runtime environment CUDA version
-RUN uv pip install --system -e ".[export]" "onnxruntime-gpu" paddlepaddle x2paddle numpy==1.26.4 && \
-    # Remove temporary files \
-    uv cache clean && \
+RUN uv pip install --system --no-cache -e ".[export]" numpy==1.26.4 && \
+    uv pip install --system --no-cache "onnxruntime-gpu" paddlepaddle x2paddle numpy==1.26.4 && \
     rm -rf tmp ~/.cache /root/.config/Ultralytics/persistent_cache.json
 
 # Usage --------------------------------------------------------------------------------------------------------------

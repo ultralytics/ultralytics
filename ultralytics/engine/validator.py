@@ -24,7 +24,7 @@ Usage - formats:
                           yolo26n_executorch_model   # ExecuTorch
                           yolo26n_axelera_model      # Axelera AI
                           yolo26n_deepx_model        # DEEPX
-                          yolo26n_qnn_model          # Qualcomm QNN
+                          yolo26n_qnn.onnx           # Qualcomm QNN
 """
 
 from __future__ import annotations

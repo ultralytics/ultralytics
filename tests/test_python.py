@@ -235,6 +235,13 @@ def test_track_stream(model, tmp_path):
         YAML.save(custom_yaml, {**default_args, "gmc_method": gmc, "with_reid": True, "model": reidm})
         model.track(video_url, imgsz=160, tracker=custom_yaml)
 
+    # Test ONNX ReID encoder auto-download
+    if model == "yolo26n.pt":
+        default_args = YAML.load(ROOT / "cfg/trackers/botsort.yaml")
+        custom_yaml = tmp_path / "botsort-reid-onnx.yaml"
+        YAML.save(custom_yaml, {**default_args, "with_reid": True, "model": "yolo26n-reid.onnx"})
+        model.track(video_url, imgsz=160, tracker=custom_yaml)
+
 
 @pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)
 def test_val(task: str, weight: str, data: str) -> None:
@@ -552,6 +559,10 @@ def test_utils_checks():
     checks.check_imgsz([600, 600], max_dim=1)
     checks.check_imshow(warn=True)
     checks.check_version("ultralytics", "8.0.0")
+    # parse_version must pad to a 3-tuple so shorter version strings compare correctly
+    assert checks.parse_version("2") == (2, 0, 0)
+    assert checks.check_version("6.0", ">=6.0.0")  # 2-component current must satisfy 3-component requirement
+    assert checks.check_version("2.1", "==2.1.0")
     checks.print_args()
 
 

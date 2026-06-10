@@ -383,7 +383,7 @@ The Platform supports 19+ deployment formats:
 | TF.js         | `_web_model`        | Browser deployment        |
 | MNN           | `.mnn`              | Alibaba mobile            |
 | RKNN          | `_rknn_model`       | Rockchip NPU              |
-| Qualcomm      | `_qnn_model`        | Qualcomm Snapdragon NPU   |
+| Qualcomm      | `_qnn.onnx`         | Qualcomm Snapdragon NPU   |
 | IMX500        | `_imx_model`        | Sony IMX500 sensor        |
 | Axelera       | `_axelera_model`    | Axelera AI accelerators   |
 | ExecuTorch    | `_executorch_model` | PyTorch mobile            |

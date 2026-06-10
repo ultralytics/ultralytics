@@ -125,10 +125,10 @@ def modelopt_quantize_onnx(
     check_requirements("nvidia-modelopt[onnx]>=0.44")
     import onnx
 
+    input_name = onnx.load(onnx_file, load_external_data=False).graph.input[0].name
     if int8:
         from modelopt.onnx.quantization import quantize
 
-        input_name = onnx.load(onnx_file, load_external_data=False).graph.input[0].name
         out_file = str(Path(onnx_file).with_suffix(".int8.onnx"))
         # Collect up to ~500 calibration images (TensorRT recommendation); ModelOpt holds them in memory at once,
         # so cap the count to bound memory instead of materializing the entire (possibly thousands-image) dataset.
@@ -155,7 +155,15 @@ def modelopt_quantize_onnx(
 
     out_file = str(Path(onnx_file).with_suffix(".fp16.onnx"))
     LOGGER.info(f"{prefix} converting ONNX to FP16 mixed precision with ModelOpt AutoCast...")
-    onnx.save(autocast.convert_to_mixed_precision(onnx_file, low_precision_type="fp16", keep_io_types=True), out_file)
+    onnx.save(
+        autocast.convert_to_mixed_precision(
+            onnx_file,
+            low_precision_type="fp16",
+            keep_io_types=True,
+            calibration_data={input_name: torch.randn(*shape).cpu().numpy()},
+        ),
+        out_file,
+    )
     return out_file
 
 

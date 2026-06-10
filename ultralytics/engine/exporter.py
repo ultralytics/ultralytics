@@ -1397,21 +1397,21 @@ class Exporter:
 class QNNModel(torch.nn.Module):
     """Wraps a YOLO model with Hexagon-friendly inference I/O for Qualcomm QNN export.
 
-    Like `NMSModel`, this wrapper is traced by the standard ONNX export (`export_qnn` swaps it in with a
-    channel-last dummy input) so the adaptations live in the exported graph rather than in every consumer:
+    Like `NMSModel`, this wrapper is traced by the standard ONNX export (`export_qnn` swaps it in with a channel-last
+    dummy input) so the adaptations live in the exported graph rather than in every consumer:
 
     - **Channel-last input**: the graph takes `[N, H, W, C]` images, the Hexagon HTP's native layout and what
-      camera pipelines produce. ONNX Runtime's layout transformer folds the wrapper's Transpose into the NPU
-      partition during context generation, so neither the NPU (boundary transpose) nor the consuming app
-      (CPU-side permute) pays a per-inference layout cost.
+    camera pipelines produce. ONNX Runtime's layout transformer folds the wrapper's Transpose into the NPU partition
+    during context generation, so neither the NPU (boundary transpose) nor the consuming app (CPU-side permute) pays a
+    per-inference layout cost.
     - **Semantic class-map output**: semantic models return `argmax` class indices as uint8 - Qualcomm's published
-      segmentation recipe - computed on the NPU. Emitting raw float logits instead (~20M values at 1024px) forces
-      a CPU-side dequantize + argmax every frame, measured as both slow and highly variable on device.
+    segmentation recipe - computed on the NPU. Emitting raw float logits instead (~20M values at 1024px) forces a
+    CPU-side dequantize + argmax every frame, measured as both slow and highly variable on device.
 
     Attributes:
         model (torch.nn.Module): The wrapped YOLO model.
-        task (str): The wrapped model's task, forwarded for the ONNX export plumbing and used to gate the
-            semantic class-map output.
+        task (str): The wrapped model's task, forwarded for the ONNX export plumbing and used to gate the semantic
+            class-map output.
     """
 
     def __init__(self, model):

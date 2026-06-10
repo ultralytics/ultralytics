@@ -1351,7 +1351,13 @@ class Exporter:
         """Export YOLO model to a Qualcomm QNN context binary using ONNX Runtime QNN."""
         from ultralytics.utils.export.qnn import onnx2qnn
 
-        f_onnx = self.export_onnx()
+        # Wrap for Hexagon-friendly I/O: channel-last input, and a uint8 class-map output for semantic models
+        model, im = self.model, self.im
+        try:
+            self.model, self.im = QNNModel(model), im.permute(0, 2, 3, 1)
+            f_onnx = self.export_onnx()
+        finally:
+            self.model, self.im = model, im
         return onnx2qnn(
             onnx_file=f_onnx,
             output_file=str(self.file.with_name(f"{self.file.stem}_qnn.onnx")),
@@ -1386,6 +1392,30 @@ class Exporter:
         """Execute all callbacks for a given event."""
         for callback in self.callbacks.get(event, []):
             callback(self)
+
+
+class QNNModel(torch.nn.Module):
+    """Wraps a YOLO model with Hexagon-friendly export I/O for Qualcomm QNN.
+
+    Inference inputs are channel-last `[N, H, W, C]` images - the HTP's native layout - so the context binary
+    needs no boundary transpose on the NPU and consuming apps need no CPU-side permute of camera-native buffers.
+    Semantic models additionally return a uint8 class map computed on the NPU (ArgMax in-graph, Qualcomm's
+    published segmentation recipe) instead of full float logits, which would otherwise be dequantized and
+    argmax-decoded on the CPU every frame.
+    """
+
+    def __init__(self, model):
+        """Wrap `model` for channel-last QNN export; `task` is forwarded for the ONNX export plumbing."""
+        super().__init__()
+        self.model = model
+        self.task = model.task
+
+    def forward(self, x):
+        """Run the wrapped model on channel-last input, reducing semantic logits to a uint8 class map."""
+        y = self.model(x.permute(0, 3, 1, 2))
+        if self.task == "semantic":
+            y = (y[0] if isinstance(y, (list, tuple)) else y).argmax(1).to(torch.uint8)
+        return y
 
 
 class NMSModel(torch.nn.Module):

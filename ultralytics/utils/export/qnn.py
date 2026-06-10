@@ -91,6 +91,12 @@ def onnx2qnn(
     qdq_file = ctx_file.with_name(f"{onnx_file.stem}_qnn_qdq.onnx")
 
     LOGGER.info(f"\n{prefix} starting A16W8 quantization and export with ONNX Runtime QNN (HTP arch {name})...")
+    import onnx
+
+    dims = [d.dim_value for d in onnx.load(str(onnx_file)).graph.input[0].type.tensor_type.shape.dim]
+    if len(dims) == 4 and dims[3] in {1, 3} and dims[1] not in {1, 3}:  # channel-last graph (QNNModel export)
+        nchw_transform = transform_fn
+        transform_fn = lambda data_item: nchw_transform(data_item).transpose(0, 2, 3, 1)  # noqa: E731
     try:
         quant_pre_process(str(onnx_file), str(pre_file))
         # 16-bit activations + 8-bit weights is the ORT-recommended accuracy/perf balance for the HTP backend

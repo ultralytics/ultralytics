@@ -1,18 +1,21 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""YOLO-DETR: DEIMv2-style DINOv3+STA backbone with DeimDecoder head, packaged for inference."""
+"""YOLO-DETR: DEIMv2-style DINOv3+STA backbone with DEIM/DFine/RT-DETR decoder variants."""
 
 from ultralytics.engine.model import Model
 from ultralytics.models.rtdetr.predict import RTDETRPredictor
-from ultralytics.models.rtdetr.train import RTDETRTrainer
 from ultralytics.models.rtdetr.val import RTDETRValidator
-from ultralytics.nn.tasks import RTDETRDetectionModel
+from ultralytics.nn.tasks import YOLODETRDetectionModel
+
+from .train import YOLODETRTrainer
 
 
 class YOLODETR(Model):
-    """Interface for YOLO-DETR, a DEIMv2-style DINOv3+STA detector with a DeimDecoder head.
+    """Interface for YOLO-DETR, a DEIMv2-style DINOv3+STA detector with DEIM/DFine/RT-DETR decoder heads.
 
-    Reuses the RT-DETR predict/val/train pipeline because the decoder output contract is identical (bs, num_queries, [x,
-    y, w, h, conf, cls]) and the BaseModel wiring is shared.
+    Reuses the RT-DETR predict/val pipeline because the decoder output contract is identical (bs, num_queries, [x, y, w,
+    h, conf, cls]). Training is routed through YOLODETRTrainer for augment decay, flat-cosine LR, and the head/backbone
+    LR split. The underlying detection model is YOLODETRDetectionModel which dispatches DfineLoss for D-Fine/DEIM heads
+    while RTDETRDecoder/RTDETRDecoderV2 heads keep the standard RTDETRDetectionLoss.
 
     Examples:
         Run inference from a YAML
@@ -20,6 +23,8 @@ class YOLODETR(Model):
         >>> model = YOLODETR("yolo27x-detr.yaml")
         >>> results = model("image.jpg")
     """
+
+    _DEIM_KWARGS = ("no_aug_epoch", "backbone_lr_ratio")
 
     def __init__(self, model: str = "yolo27x-detr.yaml") -> None:
         """Initialize YOLO-DETR from a YAML config or .pt weights.
@@ -29,14 +34,21 @@ class YOLODETR(Model):
         """
         super().__init__(model=model, task="detect")
 
+    def train(self, trainer=None, **kwargs):
+        """Forward DEIM-specific kwargs through self.overrides so they survive get_cfg's alignment check."""
+        deim = {k: kwargs.pop(k) for k in list(kwargs) if k in self._DEIM_KWARGS}
+        if deim:
+            self.overrides = {**self.overrides, **deim}
+        return super().train(trainer=trainer, **kwargs)
+
     @property
     def task_map(self) -> dict:
-        """Map the detect task to RT-DETR's predictor, validator, trainer, and the shared model class."""
+        """Map the detect task to YOLODETRTrainer + YOLODETRDetectionModel + RT-DETR predict/val."""
         return {
             "detect": {
                 "predictor": RTDETRPredictor,
                 "validator": RTDETRValidator,
-                "trainer": RTDETRTrainer,
-                "model": RTDETRDetectionModel,
+                "trainer": YOLODETRTrainer,
+                "model": YOLODETRDetectionModel,
             }
         }

@@ -932,6 +932,129 @@ class RTDETRDetectionModel(DetectionModel):
         return x
 
 
+class YOLODETRDetectionModel(RTDETRDetectionModel):
+    """YOLO-DETR detection model with DfineLoss dispatch for D-Fine/DEIM heads.
+
+    Inherits from RTDETRDetectionModel and overrides ``init_criterion`` and ``loss`` to route D-Fine/DEIM heads through
+    ``DfineLoss`` (with FGL + DDF terms). ``RTDETRDecoder`` and ``RTDETRDecoderV2`` heads continue to use
+    ``RTDETRDetectionLoss``.
+    """
+
+    # Hardcoded DfineLoss constants.
+    _DFINE_LOSS_CONSTANTS = {
+        "reg_max": 32,
+        "gamma": 1.5,
+        "alpha": 0.75,
+        "use_fl": False,
+        "use_vfl": False,
+        "use_mal": True,
+        "use_union_set": True,
+        "loss_gain": {"class": 1, "bbox": 5, "giou": 2, "fgl": 0.15, "ddf": 1.5},
+        "matcher": {"cost_gain": {"class": 2, "bbox": 5, "giou": 2}, "use_fl": True, "alpha": 0.25, "gamma": 2.0},
+    }
+
+    def init_criterion(self):
+        """Initialize the loss criterion, dispatching to DfineLoss for D-Fine/DEIM heads."""
+        head_name = type(self.model[-1]).__name__
+        if head_name in {"DFineDecoder", "DeimDecoder"}:
+            from ultralytics.models.utils.loss_dfine import DfineLoss
+
+            return DfineLoss(nc=self.nc, **self._DFINE_LOSS_CONSTANTS)
+        return super().init_criterion()
+
+    @staticmethod
+    def _split_dfine_meta(dfine_meta, dn_meta):
+        """Split dfine_meta tensors along the query dim into dn and o2o portions for DfineLoss."""
+        if dn_meta is None:
+            return dfine_meta
+        dn_num = dn_meta["dn_num_split"][0]
+
+        def split_layered(t):
+            return (t[:, :, :dn_num], t[:, :, dn_num:]) if t is not None else (None, None)
+
+        def split_flat(t):
+            return (t[:, :dn_num], t[:, dn_num:]) if t is not None else (None, None)
+
+        dn_corners, o2o_corners = split_layered(dfine_meta.get("pred_corners"))
+        dn_refs, o2o_refs = split_layered(dfine_meta.get("ref_points"))
+        dn_pre_bboxes, o2o_pre_bboxes = split_flat(dfine_meta.get("pre_bboxes"))
+        dn_pre_logits, o2o_pre_logits = split_flat(dfine_meta.get("pre_logits"))
+
+        out = {
+            "up": dfine_meta.get("up"),
+            "reg_scale": dfine_meta.get("reg_scale"),
+            "pred_corners": o2o_corners,
+            "ref_points": o2o_refs,
+            "pre_bboxes": o2o_pre_bboxes,
+            "pre_logits": o2o_pre_logits,
+        }
+        if dn_corners is not None:
+            out["dn_pred_corners"] = dn_corners
+            out["dn_ref_points"] = dn_refs
+            out["dn_pre_bboxes"] = dn_pre_bboxes
+            out["dn_pre_logits"] = dn_pre_logits
+        return out
+
+    def loss(self, batch, preds=None):
+        """Compute loss with DfineLoss dispatch and dynamic loss-name return tuple for FGL/DDF logging.
+
+        Args:
+            batch (dict): Dictionary containing image and label data.
+            preds (tuple, optional): Precomputed model predictions.
+
+        Returns:
+            (torch.Tensor): Total loss value.
+            (torch.Tensor): Main loss components (3 entries, or 5 with FGL/DDF when DfineLoss is active).
+        """
+        if not hasattr(self, "criterion"):
+            self.criterion = self.init_criterion()
+
+        img = batch["img"]
+        bs = img.shape[0]
+        batch_idx = batch["batch_idx"]
+        gt_groups = [(batch_idx == i).sum().item() for i in range(bs)]
+        targets = {
+            "cls": batch["cls"].to(img.device, dtype=torch.long).view(-1),
+            "bboxes": batch["bboxes"].to(device=img.device),
+            "batch_idx": batch_idx.to(img.device, dtype=torch.long).view(-1),
+            "gt_groups": gt_groups,
+        }
+
+        if preds is None:
+            preds = self.predict(img, batch=targets)
+        pred_tuple = preds if self.training else preds[1]
+        dfine_meta = None
+        if len(pred_tuple) == 6:
+            dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta, dfine_meta = pred_tuple
+        else:
+            dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta = pred_tuple
+
+        if dn_meta is None:
+            dn_bboxes, dn_scores = None, None
+        else:
+            dn_bboxes, dec_bboxes = torch.split(dec_bboxes, dn_meta["dn_num_split"], dim=2)
+            dn_scores, dec_scores = torch.split(dec_scores, dn_meta["dn_num_split"], dim=2)
+
+        supports_dfine = getattr(self.criterion, "supports_dfine", False)
+        if supports_dfine and dfine_meta is not None:
+            dfine_meta = self._split_dfine_meta(dfine_meta, dn_meta)
+
+        dec_bboxes = torch.cat([enc_bboxes.unsqueeze(0), dec_bboxes])
+        dec_scores = torch.cat([enc_scores.unsqueeze(0), dec_scores])
+
+        loss_kwargs = {"dn_bboxes": dn_bboxes, "dn_scores": dn_scores, "dn_meta": dn_meta}
+        if supports_dfine:
+            loss_kwargs["dfine_meta"] = dfine_meta
+        loss = self.criterion((dec_bboxes, dec_scores), targets, **loss_kwargs)
+
+        log_keys = ["loss_giou", "loss_class", "loss_bbox"]
+        if supports_dfine:
+            log_keys += ["loss_fgl", "loss_ddf"]
+        return sum(loss.values()), torch.as_tensor(
+            [loss[k].detach() for k in log_keys], device=img.device
+        )
+
+
 class WorldModel(DetectionModel):
     """YOLOv8 World Model.
 

@@ -86,6 +86,50 @@ class FocalLoss(nn.Module):
         return loss.mean(1).sum()
 
 
+class MALoss(nn.Module):
+    """Matcher-Aware Loss for classification in DETR-based detection models.
+
+    Computes a quality-aware binary cross-entropy loss for Hungarian-matched queries. Positive queries use IoU-weighted
+    soft targets (IoU^gamma) instead of hard 1.0 labels, making the loss sensitive to prediction quality. Negative
+    queries are weighted by their predicted confidence raised to gamma, penalizing high-confidence wrong predictions.
+
+    Attributes:
+        gamma (float): Focusing exponent applied to both soft targets and negative weights.
+        alpha (float | None): Optional scaling factor for negative query weights.
+    """
+
+    def __init__(self, gamma: float = 2.0, alpha: float | None = None):
+        """Initialize MALoss with focusing and balancing parameters.
+
+        Args:
+            gamma (float): Focusing exponent for soft target sharpening and negative weighting.
+            alpha (float, optional): Scaling factor applied to negative query weights.
+        """
+        super().__init__()
+        self.gamma = gamma
+        self.alpha = alpha
+
+    def forward(self, pred_score: torch.Tensor, gt_score: torch.Tensor, label: torch.Tensor) -> torch.Tensor:
+        """Compute Matcher-Aware Loss between predicted logits and IoU-weighted soft targets.
+
+        Args:
+            pred_score (torch.Tensor): Raw class logits with shape (B, N, C).
+            gt_score (torch.Tensor): IoU-weighted soft targets with shape (B, N, C).
+            label (torch.Tensor): One-hot class encodings with shape (B, N, C) and dtype int64.
+
+        Returns:
+            (torch.Tensor): Scalar loss value averaged over queries and summed over the batch.
+        """
+        pred_prob = pred_score.sigmoid().detach()
+        target_score = gt_score.pow(self.gamma)
+        if self.alpha is not None:
+            weight = self.alpha * pred_prob.pow(self.gamma) * (1 - label) + label
+        else:
+            weight = pred_prob.pow(self.gamma) * (1 - label) + label
+        loss = F.binary_cross_entropy_with_logits(pred_score, target_score, weight=weight, reduction="none")
+        return loss.mean(1).sum()
+
+
 class DFLoss(nn.Module):
     """Criterion class for computing Distribution Focal Loss (DFL)."""
 

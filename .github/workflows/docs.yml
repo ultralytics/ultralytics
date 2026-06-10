@@ -129,13 +129,18 @@ jobs:
           CURRENT_SHA: ${{ github.sha }}
         run: |
           if [[ "$BEFORE_SHA" =~ ^0+$ ]]; then
-            BEFORE_SHA="$(git rev-list --max-parents=0 "$CURRENT_SHA")"
+            changed_files="$(git diff-tree --no-commit-id --name-only -r "$CURRENT_SHA")"
+          else
+            if ! git cat-file -e "$BEFORE_SHA^{commit}" 2>/dev/null; then
+              git fetch --no-tags --depth=1 origin "$BEFORE_SHA"
+            fi
+            changed_files="$(git diff --name-only "$BEFORE_SHA" "$CURRENT_SHA")"
           fi
 
-          if git diff --quiet "$BEFORE_SHA" "$CURRENT_SHA" -- docs mkdocs.yml mkdocs.yaml; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          else
+          if grep -Eq '^(docs/|mkdocs\.ya?ml$)' <<< "$changed_files"; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
       - name: Trigger Portal docs redeploy
         if: github.event_name == 'push' && steps.docs_changes.outputs.changed == 'true'

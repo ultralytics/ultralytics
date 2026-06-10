@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(yolov8_openvino_example)
+project(yolo_openvino)
 
 set(CMAKE_CXX_STANDARD 14)
 
@@ -10,12 +10,12 @@ include_directories(
 	/path/to/intel/openvino/runtime/include
 )
 
-add_executable(detect
+add_executable(yolo_openvino
 	main.cc
 	inference.cc
 )
 
-target_link_libraries(detect
+target_link_libraries(yolo_openvino
 	${OpenCV_LIBS}
 	/path/to/intel/openvino/runtime/lib/intel64/libopenvino.so
 )

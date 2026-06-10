@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(Yolov8CPPInference VERSION 0.1)
+project(yolo_opencv_dnn VERSION 0.1)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -24,5 +24,5 @@ set(PROJECT_SOURCES
     inference.cpp
 )
 
-add_executable(Yolov8CPPInference ${PROJECT_SOURCES})
-target_link_libraries(Yolov8CPPInference ${OpenCV_LIBS})
+add_executable(yolo_opencv_dnn ${PROJECT_SOURCES})
+target_link_libraries(yolo_opencv_dnn ${OpenCV_LIBS})

@@ -1,4 +1,4 @@
-# YOLO11 Triton Inference Server C++ Client
+# Ultralytics YOLO Triton Inference Server C++ Client
 
 [![Ultralytics](https://img.shields.io/badge/Ultralytics-YOLO11-orange)](https://github.com/ultralytics/ultralytics)
 [![Triton](https://img.shields.io/badge/NVIDIA-Triton-green)](https://github.com/triton-inference-server/server)
@@ -41,7 +41,7 @@ For more information on Triton, see the [NVIDIA Triton Inference Server document
 
    ```bash
    git clone https://github.com/ultralytics/ultralytics.git
-   cd ultralytics/examples/YOLO11-Triton-CPP
+   cd ultralytics/examples/cpp/Triton
    ```
 
 3. **Configure and build the project using CMake:**
@@ -60,10 +60,10 @@ For additional guidance on integrating Ultralytics YOLO models with various plat
 1. **Deploy your FP16 (half-precision) YOLO11 model on a Triton Inference Server.**
    Learn more about deploying models with [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo11).
 
-2. **Run the YOLO11-Triton-CPP application:**
+2. **Run the Triton C++ client application:**
 
    ```bash
-   ./YOLO11TritonCPP
+   ./yolo_triton
    ```
 
 By default, the application will:

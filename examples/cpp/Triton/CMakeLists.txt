@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(YOLO11TritonCPP VERSION 0.1)
+project(yolo_triton VERSION 0.1)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)

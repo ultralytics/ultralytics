@@ -1,6 +1,6 @@
-# YOLOv8 LibTorch Inference C++
+# Ultralytics YOLO LibTorch Inference C++
 
-This example demonstrates how to perform inference using [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) models in C++ with the [LibTorch (PyTorch C++ API)](https://docs.pytorch.org/cppdocs/). This allows for deploying YOLOv8 models in C++ environments for efficient execution.
+This example demonstrates how to perform inference using [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11) and [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) models in C++ with the [LibTorch (PyTorch C++ API)](https://docs.pytorch.org/cppdocs/). This allows for deploying Ultralytics YOLO models in C++ environments for efficient execution.
 
 ## ⚙️ Dependencies
 
@@ -38,7 +38,7 @@ Follow these steps to run the C++ inference example:
     Change the directory to the C++ LibTorch inference example.
 
     ```bash
-    cd examples/YOLOv8-LibTorch-CPP-Inference
+    cd examples/cpp/LibTorch
     ```
 
 4.  **Build the Project:**
@@ -52,22 +52,22 @@ Follow these steps to run the C++ inference example:
     ```
 
 5.  **Run the Inference:**
-    Execute the compiled binary. The application will load the exported YOLOv8 model and perform inference on a sample image. Edit the image path in `main.cc` (it defaults to a placeholder `/path/to/bus.jpg`) before running.
+    Execute the compiled binary. The application will load the exported model and perform inference on a sample image. Edit the model and image paths in `main.cc` (the model defaults to a placeholder `/path/to/yolo11s.torchscript` and the image to `/path/to/bus.jpg`) before running.
     ```bash
-    ./yolov8_libtorch_inference
+    ./yolo_libtorch
     ```
 
-## ✨ Exporting Ultralytics YOLOv8
+## ✨ Exporting Ultralytics YOLO
 
-To use an Ultralytics YOLOv8 model with LibTorch, you first need to export it to the [TorchScript](https://docs.pytorch.org/docs/stable/jit.html) format. TorchScript is a way to create serializable and optimizable models from PyTorch code.
+To use an Ultralytics YOLO model with LibTorch, you first need to export it to the [TorchScript](https://docs.pytorch.org/docs/stable/jit.html) format. TorchScript is a way to create serializable and optimizable models from PyTorch code.
 
-Use the `yolo` [Command Line Interface (CLI)](https://docs.ultralytics.com/usage/cli) provided by the `ultralytics` package to export the model. For example, to export the `yolov8s.pt` model with an input image size of 640x640:
+Use the `yolo` [Command Line Interface (CLI)](https://docs.ultralytics.com/usage/cli) provided by the `ultralytics` package to export the model. For example, to export the `yolo11s.pt` model with an input image size of 640x640:
 
 ```bash
-yolo export model=yolov8s.pt imgsz=640 format=torchscript
+yolo export model=yolo11s.pt imgsz=640 format=torchscript
 ```
 
-This command will generate a `yolov8s.torchscript` file in the model's directory. This file contains the serialized model that can be loaded and executed by the C++ application using LibTorch. For more details on exporting models to various formats, see the [Ultralytics Export documentation](https://docs.ultralytics.com/modes/export).
+This command will generate a `yolo11s.torchscript` file in the model's directory. This file contains the serialized model that can be loaded and executed by the C++ application using LibTorch. For more details on exporting models to various formats, see the [Ultralytics Export documentation](https://docs.ultralytics.com/modes/export).
 
 ## 🤝 Contributing
 

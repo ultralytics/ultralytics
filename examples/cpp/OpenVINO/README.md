@@ -1,6 +1,6 @@
-# YOLOv8 OpenVINO Inference in C++
+# Ultralytics YOLO OpenVINO Inference in C++
 
-Welcome to the [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) OpenVINO Inference example in C++! This guide will help you get started with leveraging the powerful YOLOv8 models using the [Intel OpenVINO™ toolkit](https://docs.openvino.ai/) and [OpenCV API](https://docs.opencv.org/) in your C++ projects. Whether you're looking to enhance performance on Intel hardware or add flexibility to your applications, this example provides a solid foundation. Learn more about optimizing models on the [Ultralytics blog](https://www.ultralytics.com/blog).
+Welcome to the [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11) and [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) OpenVINO Inference example in C++! This guide will help you get started with leveraging the powerful Ultralytics YOLO models using the [Intel OpenVINO™ toolkit](https://docs.openvino.ai/) and [OpenCV API](https://docs.opencv.org/) in your C++ projects. Whether you're looking to enhance performance on Intel hardware or add flexibility to your applications, this example provides a solid foundation. Learn more about optimizing models on the [Ultralytics blog](https://www.ultralytics.com/blog).
 
 ## 🌟 Features
 
@@ -27,7 +27,7 @@ Follow these steps to build the project:
 
     ```bash
     git clone https://github.com/ultralytics/ultralytics.git
-    cd ultralytics/examples/YOLOv8-OpenVINO-CPP-Inference
+    cd ultralytics/examples/cpp/OpenVINO
     ```
 
 2.  Create a build directory and compile the project using CMake:
@@ -44,25 +44,28 @@ Once built, you can run [inference](https://www.ultralytics.com/glossary/real-ti
 
 ```bash
 # Example using an OpenVINO IR model
-./detect path/to/your/model.xml path/to/your/image.jpg
+./yolo_openvino path/to/your/model.xml path/to/your/image.jpg
 
 # Example using an ONNX model
-./detect path/to/your/model.onnx path/to/your/image.jpg
+./yolo_openvino path/to/your/model.onnx path/to/your/image.jpg
 ```
 
-This command will process the image using the specified YOLOv8 model and display the [object detection](https://www.ultralytics.com/glossary/object-detection) results. Explore various [Ultralytics Solutions](https://docs.ultralytics.com/solutions) for real-world applications.
+This command will process the image using the specified Ultralytics YOLO model and display the [object detection](https://www.ultralytics.com/glossary/object-detection) results. Explore various [Ultralytics Solutions](https://docs.ultralytics.com/solutions) for real-world applications.
 
-## 🔄 Exporting YOLOv8 Models
+## 🔄 Exporting Ultralytics YOLO Models
 
-To use your Ultralytics YOLOv8 model with this C++ example, you first need to export it to the OpenVINO IR or ONNX format. Use the `yolo export` command available in the Ultralytics Python package. Find detailed instructions in the [Export mode documentation](https://docs.ultralytics.com/modes/export).
+To use your Ultralytics YOLO model with this C++ example, you first need to export it to the OpenVINO IR or ONNX format. Use the `yolo export` command available in the Ultralytics Python package. Find detailed instructions in the [Export mode documentation](https://docs.ultralytics.com/modes/export).
 
 ```bash
 # Export to OpenVINO format (generates .xml and .bin files)
-yolo export model=yolov8s.pt imgsz=640 format=openvino
+yolo export model=yolo11s.pt imgsz=640 format=openvino
 
 # Export to ONNX format
-yolo export model=yolov8s.pt imgsz=640 format=onnx
+yolo export model=yolo11s.pt imgsz=640 format=onnx
 ```
+
+> [!NOTE]
+> This example runs its own [NMS](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) on the raw model output. For YOLO26, export with NMS disabled (e.g. `yolo export model=yolo26s.pt imgsz=640 format=openvino nms=False`) so the output shape matches what this code parses.
 
 For more details on exporting and optimizing models for OpenVINO, refer to the [Ultralytics OpenVINO integration guide](https://docs.ultralytics.com/integrations/openvino).
 
@@ -78,4 +81,4 @@ For more details on exporting and optimizing models for OpenVINO, refer to the [
 
 ## ❤️ Contributions
 
-We hope this example helps you integrate YOLOv8 with OpenVINO and OpenCV into your C++ projects effortlessly. Contributions to improve this example or add new features are welcome! Please see the [Ultralytics contribution guidelines](https://docs.ultralytics.com/help/contributing) for more information. Visit the main [Ultralytics documentation](https://docs.ultralytics.com/) for further guides and resources. Happy coding! 🚀
+We hope this example helps you integrate Ultralytics YOLO with OpenVINO and OpenCV into your C++ projects effortlessly. Contributions to improve this example or add new features are welcome! Please see the [Ultralytics contribution guidelines](https://docs.ultralytics.com/help/contributing) for more information. Visit the main [Ultralytics documentation](https://docs.ultralytics.com/) for further guides and resources. Happy coding! 🚀

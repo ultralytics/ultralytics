@@ -1,6 +1,6 @@
 ﻿cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
-project(yolov8_libtorch_example)
+project(yolo_libtorch)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -33,15 +33,15 @@ message("${TORCH_INCLUDE_DIRS}")
 # the DLLs need to be copied to avoid memory errors.
 # if (MSVC)
 #   file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
-#   add_custom_command(TARGET yolov8_libtorch_example
+#   add_custom_command(TARGET yolo_libtorch
 #                      POST_BUILD
 #                      COMMAND ${CMAKE_COMMAND} -E copy_if_different
 #                      ${TORCH_DLLS}
-#                      $<TARGET_FILE_DIR:yolov8_libtorch_example>)
+#                      $<TARGET_FILE_DIR:yolo_libtorch>)
 # endif (MSVC)
 
 include_directories(${TORCH_INCLUDE_DIRS})
 
-add_executable(yolov8_libtorch_inference "${CMAKE_CURRENT_SOURCE_DIR}/main.cc")
-target_link_libraries(yolov8_libtorch_inference ${TORCH_LIBRARIES} ${OpenCV_LIBS})
-set_property(TARGET yolov8_libtorch_inference PROPERTY CXX_STANDARD 17)
+add_executable(yolo_libtorch "${CMAKE_CURRENT_SOURCE_DIR}/main.cc")
+target_link_libraries(yolo_libtorch ${TORCH_LIBRARIES} ${OpenCV_LIBS})
+set_property(TARGET yolo_libtorch PROPERTY CXX_STANDARD 17)

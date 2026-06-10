@@ -1,8 +1,8 @@
-# YOLOv8 ONNX Runtime C++ Example
+# Ultralytics YOLO ONNX Runtime C++ Example
 
 <img alt="C++" src="https://img.shields.io/badge/C++-17-blue.svg?style=flat&logo=c%2B%2B"> <img alt="Onnx-runtime" src="https://img.shields.io/badge/OnnxRuntime-717272.svg?logo=Onnx&logoColor=white">
 
-This example provides a practical guide on performing inference with [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) models using [C++](https://isocpp.org/), leveraging the capabilities of the [ONNX Runtime](https://onnxruntime.ai/) and the [OpenCV](https://opencv.org/) library. It's designed for developers looking to integrate YOLOv8 into C++ applications for efficient object detection.
+This example provides a practical guide on performing inference with [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11) and [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) models using [C++](https://isocpp.org/), leveraging the capabilities of the [ONNX Runtime](https://onnxruntime.ai/) and the [OpenCV](https://opencv.org/) library. It's designed for developers looking to integrate Ultralytics YOLO into C++ applications for efficient object detection.
 
 ## ✨ Benefits
 
@@ -12,9 +12,9 @@ This example provides a practical guide on performing inference with [Ultralytic
 
 ## ☕ Note
 
-Thanks to recent updates in Ultralytics, YOLOv8 models now include a `Transpose` operation, aligning their output shape with YOLOv5. This allows the C++ code in this project to run inference seamlessly for YOLOv5, YOLOv7, and YOLOv8 models exported to the [ONNX format](https://onnx.ai/).
+Thanks to recent updates in Ultralytics, YOLO models include a `Transpose` operation that aligns their output shape with YOLOv5. This allows the C++ code in this project to run inference seamlessly for YOLOv5, YOLOv7, YOLOv8, and YOLO11 models exported to the [ONNX format](https://onnx.ai/). For YOLO26, export with NMS disabled (`nms=False`) so the raw output shape matches what this code parses.
 
-## 📦 Exporting YOLOv8 Models
+## 📦 Exporting Ultralytics YOLO Models
 
 You can export your trained [Ultralytics YOLO](https://docs.ultralytics.com/) models to the ONNX format required by this project. Use the Ultralytics `export` mode for this.
 
@@ -23,8 +23,8 @@ You can export your trained [Ultralytics YOLO](https://docs.ultralytics.com/) mo
 ```python
 from ultralytics import YOLO
 
-# Load a YOLOv8 model (e.g., yolov8n.pt)
-model = YOLO("yolov8n.pt")
+# Load an Ultralytics YOLO model (e.g., yolo11n.pt)
+model = YOLO("yolo11n.pt")
 
 # Export the model to ONNX format
 # opset=12 is recommended for compatibility
@@ -32,19 +32,19 @@ model = YOLO("yolov8n.pt")
 # dynamic=False ensures fixed input size, often better for C++ deployment
 # imgsz=640 sets the input image size
 model.export(format="onnx", opset=12, simplify=True, dynamic=False, imgsz=640)
-print("Model exported successfully to yolov8n.onnx")
+print("Model exported successfully to yolo11n.onnx")
 ```
 
 ### CLI
 
 ```bash
 # Export the model using the command line
-yolo export model=yolov8n.pt format=onnx opset=12 simplify=True dynamic=False imgsz=640
+yolo export model=yolo11n.pt format=onnx opset=12 simplify=True dynamic=False imgsz=640
 ```
 
 For more details on exporting models, refer to the [Ultralytics Export documentation](https://docs.ultralytics.com/modes/export).
 
-## 📦 Exporting YOLOv8 FP16 Models
+## 📦 Exporting FP16 Models
 
 To potentially gain further performance on compatible hardware (like NVIDIA GPUs), you can convert the exported FP32 ONNX model to FP16.
 
@@ -55,14 +55,14 @@ from onnxconverter_common import (
 )  # Ensure you have onnxconverter-common installed: pip install onnxconverter-common
 
 # Load your FP32 ONNX model
-fp32_model_path = "yolov8n.onnx"
+fp32_model_path = "yolo11n.onnx"
 model = onnx.load(fp32_model_path)
 
 # Convert the model to FP16
 model_fp16 = float16.convert_float_to_float16(model)
 
 # Save the FP16 model
-fp16_model_path = "yolov8n_fp16.onnx"
+fp16_model_path = "yolo11n_fp16.onnx"
 onnx.save(model_fp16, fp16_model_path)
 print(f"Model converted and saved to {fp16_model_path}")
 ```
@@ -99,7 +99,7 @@ Ensure you have the following dependencies installed:
 
     ```bash
     git clone https://github.com/ultralytics/ultralytics.git
-    cd ultralytics/examples/YOLOv8-ONNXRuntime-CPP
+    cd ultralytics/examples/cpp/ONNXRuntime
     ```
 
 2.  **Create Build Directory:**
@@ -136,13 +136,13 @@ Ensure you have the following dependencies installed:
     ```
 
 5.  **Locate Executable:**
-    The compiled executable (e.g., `yolov8_onnxruntime_cpp`) will be located in the `build` directory.
+    The compiled executable (e.g., `yolo_onnxruntime`) will be located in the `build` directory.
 
 ## 🚀 Usage
 
 Before running, ensure:
 
-- The exported `.onnx` model file (e.g., `yolov8n.onnx`) is accessible.
+- The exported `.onnx` model file (e.g., `yolo11n.onnx`) is accessible.
 - The `coco.yaml` file is accessible.
 - Any required shared libraries for ONNX Runtime and OpenCV are in the system's PATH or accessible by the executable.
 
@@ -154,7 +154,7 @@ Modify the `main.cpp` file (or create a configuration mechanism) to set the para
 DL_INIT_PARAM params;
 params.rectConfidenceThreshold = 0.1;
 params.iouThreshold = 0.5;
-params.modelPath = "yolov8n.onnx";
+params.modelPath = "yolo11n.onnx";
 params.imgSize = { 640, 640 };
 params.cudaEnable = true;
 params.modelType = YOLO_DETECT_V8;
@@ -165,7 +165,7 @@ Detector(yoloDetector);
 Run the executable from the `build` directory:
 
 ```bash
-./yolov8_onnxruntime_cpp
+./yolo_onnxruntime
 ```
 
 ## 🤝 Contributing

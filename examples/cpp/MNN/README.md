@@ -1,6 +1,6 @@
-# YOLOv8 MNN Inference in C++
+# Ultralytics YOLO MNN Inference in C++
 
-Welcome to the Ultralytics YOLOv8 MNN Inference example in C++! This guide will help you get started with leveraging the powerful [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) models using the [Alibaba MNN](https://mnn-docs.readthedocs.io/en/latest/) inference engine in your C++ projects. Whether you're looking to enhance performance on CPU hardware or add flexibility to your applications, this example provides a solid foundation. Learn more about optimizing models and deployment strategies on the [Ultralytics blog](https://www.ultralytics.com/blog).
+Welcome to the Ultralytics YOLO MNN Inference example in C++! This guide will help you get started with leveraging the powerful [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11) and [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) models using the [Alibaba MNN](https://mnn-docs.readthedocs.io/en/latest/) inference engine in your C++ projects. Whether you're looking to enhance performance on CPU hardware or add flexibility to your applications, this example provides a solid foundation. Learn more about optimizing models and deployment strategies on the [Ultralytics blog](https://www.ultralytics.com/blog).
 
 ## 🌟 Features
 
@@ -28,7 +28,7 @@ Follow these steps to build the project:
 
     ```bash
     git clone https://github.com/ultralytics/ultralytics.git
-    cd ultralytics/examples/YOLOv8-MNN-CPP
+    cd ultralytics/examples/cpp/MNN
     ```
 
 2.  Clone the [Alibaba MNN repository](https://github.com/alibaba/MNN):
@@ -83,24 +83,24 @@ Follow these steps to build the project:
     make
     ```
 
-## 🔄 Exporting YOLOv8 Models
+## 🔄 Exporting Ultralytics YOLO Models
 
-To use your Ultralytics YOLOv8 model with this C++ example, you first need to export it to the MNN format. This can be done easily using the `yolo export` command provided by the Ultralytics Python package.
+To use your Ultralytics YOLO model with this C++ example, you first need to export it to the MNN format. This can be done easily using the `yolo export` command provided by the Ultralytics Python package.
 
 Refer to the [Ultralytics Export documentation](https://docs.ultralytics.com/modes/export) for detailed instructions and options.
 
 ```bash
-# Export a YOLOv8n model to MNN format with input size 640x640
-yolo export model=yolov8n.pt imgsz=640 format=mnn
+# Export a YOLO11n model to MNN format with input size 640x640
+yolo export model=yolo11n.pt imgsz=640 format=mnn
 ```
 
 Alternatively, you can use the `MNNConvert` tool provided by MNN:
 
 ```bash
 # Assuming MNNConvert is built and in your PATH or MNN build directory
-# Convert an ONNX model (first export YOLOv8 to ONNX)
-yolo export model=yolov8n.pt format=onnx
-./MNN/build/MNNConvert -f ONNX --modelFile yolov8n.onnx --MNNModel yolov8n.mnn --bizCode biz
+# Convert an ONNX model (first export YOLO to ONNX)
+yolo export model=yolo11n.pt format=onnx
+./MNN/build/MNNConvert -f ONNX --modelFile yolo11n.onnx --MNNModel yolo11n.mnn --bizCode biz
 ```
 
 For more details on model conversion using MNN tools, see the [MNN Convert documentation](https://mnn-docs.readthedocs.io/en/latest/tools/convert.html).
@@ -120,13 +120,13 @@ wget https://ultralytics.com/images/bus.jpg
 Run prediction using the MNN model:
 
 ```bash
-yolo predict model=yolov8n.mnn source=bus.jpg
+yolo predict model=yolo11n.mnn source=bus.jpg
 ```
 
 Expected Python Output:
 
 ```
-ultralytics/examples/YOLOv8-MNN-CPP/assets/bus.jpg: 640x640 4 persons, 1 bus, 84.6ms
+ultralytics/examples/cpp/MNN/assets/bus.jpg: 640x640 4 persons, 1 bus, 84.6ms
 Speed: 9.7ms preprocess, 128.7ms inference, 12.4ms postprocess per image at shape (1, 3, 640, 640)
 Results saved to runs/detect/predict
 ```
@@ -138,7 +138,7 @@ _(Note: Speed and specific detections might vary based on hardware and model ver
 This example uses the higher-level Express API for simpler inference code.
 
 ```bash
-./build/main yolov8n.mnn bus.jpg
+./build/yolo_mnn yolo11n.mnn bus.jpg
 ```
 
 Expected C++ Express API Output:
@@ -161,7 +161,7 @@ _(Note: Speed and specific detections might vary based on hardware and MNN confi
 This example uses the lower-level Interpreter API, offering more control over the inference process.
 
 ```bash
-./build/main_interpreter yolov8n.mnn bus.jpg
+./build/yolo_mnn_interpreter yolo11n.mnn bus.jpg
 ```
 
 Expected C++ Interpreter API Output:
@@ -180,6 +180,6 @@ _(Note: Speed and specific detections might vary based on hardware and MNN confi
 
 ## ❤️ Contributions
 
-We hope this example helps you integrate Ultralytics YOLOv8 with MNN into your C++ projects effortlessly! Contributions to improve this example or add new features are highly welcome. Please see the [Ultralytics contribution guidelines](https://docs.ultralytics.com/help/contributing) for more information on how to get involved.
+We hope this example helps you integrate Ultralytics YOLO with MNN into your C++ projects effortlessly! Contributions to improve this example or add new features are highly welcome. Please see the [Ultralytics contribution guidelines](https://docs.ultralytics.com/help/contributing) for more information on how to get involved.
 
 For further guides, tutorials, and documentation on Ultralytics YOLO models and tools, visit the main [Ultralytics documentation](https://docs.ultralytics.com/). Happy coding! 🚀

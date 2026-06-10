@@ -19,6 +19,10 @@ keywords: MLflow, Ultralytics YOLO, logging, metrics, parameters, model artifact
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.callbacks.mlflow._log_metrics
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.callbacks.mlflow.on_train_epoch_end
 
 <br><br><hr><br>

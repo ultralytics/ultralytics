@@ -104,19 +104,15 @@ jobs:
       - name: Publish Docs to https://docs.ultralytics.com
         if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_docs == 'true')
         run: |
-          git clone --depth 1 --branch gh-pages https://github.com/ultralytics/docs.git docs-repo
+          # Blobless no-checkout clone skips downloading the old site entirely; restore only the config files the site build does not produce
+          git clone --depth 1 --branch gh-pages --filter=blob:none --no-checkout https://github.com/ultralytics/docs.git docs-repo
           cd docs-repo
-          if [ -f "vercel.json" ]; then
-            cp vercel.json /tmp/vercel.json
-          fi
-          rm -rf *
+          git ls-tree --name-only HEAD vercel.json .nojekyll | xargs -r git checkout HEAD --
           cp -R ../site/* .
-          if [ -f "/tmp/vercel.json" ]; then
-            cp /tmp/vercel.json .
-          fi
           echo "${{ secrets.INDEXNOW_KEY_DOCS }}" > "${{ secrets.INDEXNOW_KEY_DOCS }}.txt"
           git add .
-          if git diff --staged --quiet; then
+          # diff.renames=false avoids rename detection lazy-fetching old-site blobs from the partial clone
+          if git -c diff.renames=false diff --staged --quiet; then
             echo "No changes to commit"
           else
             git pull origin gh-pages

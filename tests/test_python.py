@@ -734,6 +734,72 @@ def test_utils_checks():
     checks.print_args()
 
 
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="AMP actual forward check requires CUDA")
+@pytest.mark.parametrize("training_mode", [True, False])
+def test_check_amp_actual_forward_failed(monkeypatch, training_mode):
+    """Test that AMP is disabled when the actual model forward fails under autocast."""
+    import re
+    import torch.nn as nn
+    import ultralytics
+
+    from types import SimpleNamespace
+    from ultralytics.utils.checks import check_amp
+
+    # Skip GPUs already blocked by `check_amp()`, otherwise this test would not reach the actual-model check.
+    gpu = torch.cuda.get_device_name(0)
+    pattern = re.compile(
+        r"(nvidia|geforce|quadro|tesla).*?(1660|1650|1630|t400|t550|t600|t1000|t1200|t2000|k40m)",
+        re.IGNORECASE,
+    )
+    if bool(pattern.search(gpu)):
+        pytest.skip(f"AMP checks are disabled on {gpu}")
+
+    class FakeYOLO:
+        """Minimal YOLO wrapper mock for the reference AMP check, mainly used to avoid downloading the weight file."""
+
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def __call__(self, batch, imgsz, device, verbose=False):
+            boxes = SimpleNamespace(data=torch.zeros((1, 6), device=device))
+            return [SimpleNamespace(boxes=boxes)]
+
+    class AmpUnsafeModule(nn.Module):
+        """Custom module that uses CPU adaptive average pooling and fails on low-precision CPU tensors."""
+
+        def __init__(self):
+            super().__init__()
+            self.avg_pool_h = nn.AdaptiveAvgPool2d((None, 1))
+
+        def forward(self, x):
+            x = x.to(dtype=torch.float16) if x.is_cuda else x  # simulate a low-precision activation entering the CPU path
+            pooled = self.avg_pool_h(x.cpu())  # offload adaptive average pooling to CPU
+
+            # This simulates CUDA autocast producing a low-precision tensor before it is moved to CPU.
+            # Raising here makes the regression test deterministic across PyTorch versions.
+            if pooled.device.type == "cpu" and pooled.dtype in {torch.float16, torch.bfloat16}:
+                raise RuntimeError('"adaptive_avg_pool2d_cpu" not implemented for \'Half\'')
+            return pooled.to(device=x.device, dtype=x.dtype)
+
+    class MinimalModel(nn.Module):
+        """Minimal YOLO-like model with stride and parameters for `check_amp()`."""
+
+        def __init__(self):
+            super().__init__()
+            self.stride = torch.tensor([32])
+            self.stem = nn.Conv2d(3, 8, 1)
+            self.bad = AmpUnsafeModule()
+
+        def forward(self, x):
+            return self.bad(self.stem(x))
+
+    monkeypatch.setattr(ultralytics, "YOLO", FakeYOLO)
+    model = MinimalModel().cuda()
+    model.train(training_mode)
+    assert check_amp(model) is False
+    assert model.training is training_mode
+
+
 @pytest.mark.skipif(WINDOWS, reason="Windows profiling is extremely slow (cause unknown)")
 def test_utils_benchmarks():
     """Benchmark model performance using 'ProfileModels' from 'ultralytics.utils.benchmarks'."""

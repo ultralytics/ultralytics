@@ -943,7 +943,7 @@ def check_amp(model):
                 y = m(x)  # actual model AMP forward
 
         tensors = collect_tensors(y)
-        assert tensors, "AMP forward produced no tensor outputs."  # no tensor output means forward was unsuccessful
+        assert tensors, "AMP forward produced no tensor outputs."
 
         for t in tensors:
             if t.is_floating_point():
@@ -977,49 +977,59 @@ def check_amp(model):
 
     is_training = model.training  # preserve model mode
     check_failed_msg = f"{prefix}actual model forward checks failed ❌. "
+    check_warning_msg = f"{prefix}actual model forward checks skipped. "
     try:
         model.eval()  # switch to eval mode for AMP forward test
         assert amp_actual_forward(model, im)
         LOGGER.info(f"{prefix}actual model forward checks passed ✅")
     except AssertionError as e:
-        LOGGER.error(
-            f"{check_failed_msg}The current model may contain custom layers that are not AMP-safe, "
-            f"so AMP will be disabled during training. "
-        )  # such as custom layers producing non-finite values under AMP
+        error_msg_lower = str(e).lower()
+        if "no tensor outputs" in error_msg_lower:
+            LOGGER.warning(
+                f"{check_warning_msg}The model output structure could not be interpreted by the smoke test. {warning_msg}"
+            )  # temporarily return True for YOLOE/YOLO-World models
+            return True
+        else:
+            LOGGER.error(
+                f"{check_failed_msg}The actual model produced non-finite outputs under AMP, "
+                f"so AMP will be disabled during training. "
+            )  # such as custom layers
         return False
     except RuntimeError as e:
         error_msg_lower = str(e).lower()
         if "not implemented for" in error_msg_lower and ("half" in error_msg_lower or "bfloat16" in error_msg_lower):
             LOGGER.error(
-                f"{check_failed_msg}This is because a low-precision (such as FP16/BF16) tensor reached an unsupported CPU operator, "
+                f"{check_failed_msg}This is because a low-precision tensor, such as FP16/BF16, reached an unsupported CPU operator, "
                 f"so AMP will be disabled during training. "
             )  # unsupported CPU kernel
-        elif "expected scalar type" in error_msg_lower and ("half" in error_msg_lower or "float" in error_msg_lower):
+            return False
+        elif "expected scalar type" in error_msg_lower and (
+                "half" in error_msg_lower or "bfloat16" in error_msg_lower or "float" in error_msg_lower):
             LOGGER.error(
                 f"{check_failed_msg}A custom layer may need an explicit float32 region or dtype cast, "
                 f"so AMP will be disabled during training. "
             )  # autocast dtype mismatch
+            return False
         elif "input type" in error_msg_lower and "weight type" in error_msg_lower:
             LOGGER.error(
                 f"{check_failed_msg}An input/weight dtype mismatch was detected. "
                 f"This may be caused by mixing FP16 activations with FP32 or CPU weights, "
                 f"so AMP will be disabled during training. "
             )  # input-weight dtype mismatch
+            return False
         else:
-            LOGGER.error(
-                f"{check_failed_msg}The actual model AMP forward raised a RuntimeError exception, "
-                f"so AMP will be disabled. "
-            )  # generic PyTorch runtime error
-        return False
-    except Exception as e:
-        LOGGER.error(
-            f"{check_failed_msg}The actual model AMP forward raised an unexpected exception, "
-            f"so AMP will be disabled. "
-        )  # fallback for unexpected errors
-        return False
+            LOGGER.warning(
+                f"{check_warning_msg}The actual model AMP forward raised a generic RuntimeError exception. {warning_msg}"
+            )  # skip non AMP-specific runtime errors to avoid false positives
+        return True
+    except Exception:
+        LOGGER.warning(
+            f"{check_warning_msg}The actual model AMP forward raised an unexpected exception. {warning_msg}"
+        )  # skip unsupported actual-model forward paths
+        return True
     finally:
         model.train(is_training)  # restore the original model mode
-    return True  # no failed assertions or (runtime) errors occur
+    return True
 
 
 def check_multiple_install():

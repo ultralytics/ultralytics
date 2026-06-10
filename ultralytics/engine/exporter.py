@@ -1420,10 +1420,10 @@ class ExportWrapper(torch.nn.Module):
 class QNNModel(ExportWrapper):
     """Wraps a YOLO model with channel-last inference input for Qualcomm QNN export.
 
-    Traced by the standard ONNX export (`export_qnn` swaps it in with a channel-last dummy input). The graph takes
-    `[N, H, W, C]` images - the Hexagon HTP's native layout and what camera pipelines produce - so ONNX Runtime's
-    layout transformer folds the wrapper's Transpose into the NPU partition during context generation, and neither
-    the NPU (boundary transpose) nor the consuming app (CPU-side permute) pays a per-inference layout cost.
+    Traced by the standard ONNX export (`export_qnn` swaps it in with a channel-last dummy input). The graph takes `[N,
+    H, W, C]` images - the Hexagon HTP's native layout and what camera pipelines produce - so ONNX Runtime's layout
+    transformer folds the wrapper's Transpose into the NPU partition during context generation, and neither the NPU
+    (boundary transpose) nor the consuming app (CPU-side permute) pays a per-inference layout cost.
 
     Attributes:
         task (str): The wrapped model's task, forwarded for the ONNX export plumbing.
@@ -1438,10 +1438,10 @@ class ClassMapModel(ExportWrapper):
     """Reduces semantic-segmentation logits to an int32 class map for export.
 
     Applied to every semantic export format: deployment consumers want per-pixel class indices, and shipping float
-    logits instead forces a dequantize + argmax over large tensors (~20M values at 1024px) on the consumer's CPU
-    every frame - measured as both slow and highly variable on mobile NPUs. The argmax cannot live in the model's
-    own forward because it is non-differentiable (training needs logits), so it is attached here at export time,
-    mirroring how `NMSModel` adds suppression only for export.
+    logits instead forces a dequantize + argmax over large tensors (~20M values at 1024px) on the consumer's CPU every
+    frame - measured as both slow and highly variable on mobile NPUs. The argmax cannot live in the model's own forward
+    because it is non-differentiable (training needs logits), so it is attached here at export time, mirroring how
+    `NMSModel` adds suppression only for export.
 
     Attributes:
         task (str): The wrapped model's task ("semantic").

@@ -5,7 +5,7 @@ from ultralytics.engine.model import Model
 from ultralytics.models.rtdetr.predict import RTDETRPredictor
 from ultralytics.nn.tasks import YOLODETRDetectionModel
 
-from .train import YOLODETRTrainer, YOLODETRValidator
+from .train import _YOLODETR_DEFAULTS, YOLODETRTrainer, YOLODETRValidator
 
 
 class YOLODETR(Model):
@@ -23,7 +23,7 @@ class YOLODETR(Model):
         >>> results = model("image.jpg")
     """
 
-    _DEIM_KWARGS = ("no_aug_epoch", "backbone_lr_ratio")
+    _DEIM_KWARGS = tuple(_YOLODETR_DEFAULTS)
 
     def __init__(self, model: str = "yolo27x-detr.yaml") -> None:
         """Initialize YOLO-DETR from a YAML config or .pt weights.

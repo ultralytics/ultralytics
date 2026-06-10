@@ -245,16 +245,16 @@ Ready-to-use ONNX encoders are published for every model size. Set `model:` to o
 ```yaml
 # In your tracker config (e.g. tracktrack.yaml)
 with_reid: True
-model: yolo26n-reid.onnx  # downloaded on first use; swap n→s/m/l/x for a larger encoder
+model: yolo26n-reid.onnx # downloaded on first use; swap n→s/m/l/x for a larger encoder
 ```
 
-| Model                                                                                                        | size<br><sup>(pixels) | params<br><sup>(M)  | FLOPs<br><sup>(B)  |
-| ------------------------------------------------------------------------------------------------------------ | --------------------- | ------------------- | ------------------ |
-| [YOLO26n-reid.onnx](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-reid.onnx)        | 448                   | 2.8                 | 2.0                |
-| [YOLO26s-reid.onnx](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-reid.onnx)        | 448                   | 7.5                 | 6.6                |
-| [YOLO26m-reid.onnx](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-reid.onnx)        | 448                   | 12.4                | 20.1               |
-| [YOLO26l-reid.onnx](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-reid.onnx)        | 448                   | 15.3                | 25.2               |
-| [YOLO26x-reid.onnx](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-reid.onnx)        | 448                   | 32.7                | 55.9               |
+| Model                                                                                                 | size<br><sup>(pixels) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+| ----------------------------------------------------------------------------------------------------- | --------------------- | ------------------ | ----------------- |
+| [YOLO26n-reid.onnx](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-reid.onnx) | 448                   | 2.8                | 2.0               |
+| [YOLO26s-reid.onnx](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-reid.onnx) | 448                   | 7.5                | 6.6               |
+| [YOLO26m-reid.onnx](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-reid.onnx) | 448                   | 12.4               | 20.1              |
+| [YOLO26l-reid.onnx](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-reid.onnx) | 448                   | 15.3               | 25.2              |
+| [YOLO26x-reid.onnx](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-reid.onnx) | 448                   | 32.7               | 55.9              |
 
 !!! note "ReID is tracking-only"
 

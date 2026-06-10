@@ -64,8 +64,13 @@ def query_attention_grid(original_rgb, a_khw, obj_k, panel: int, cols: int = 4) 
     panels = []
     for qi in order:
         heat = a_khw[qi].detach().cpu().float().numpy()
-        ov = CompareGrid.heatmap_overlay(original_rgb, heat)  # resizes heat -> panel
         amax = float(a_khw[qi].max())
+        # Per-map min-max stretch so spatial structure is visible regardless of raw magnitude.
+        # Softmax-over-(K+1) attention is tiny per query (peak ~1/(K+1)); a fixed [0,1] colormap
+        # would render it near-black. The raw peak is still reported in the label below.
+        lo, hi = float(heat.min()), amax
+        norm = (heat - lo) / (hi - lo) if hi > lo else heat
+        ov = CompareGrid.heatmap_overlay(original_rgb, norm)  # resizes heat -> panel
         cv2.putText(ov, f"q{qi} obj={float(obj_k[qi]):.2f} a<={amax:.2f}", (6, 22),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 2, cv2.LINE_AA)
         panels.append(ov)

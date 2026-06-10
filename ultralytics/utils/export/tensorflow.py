@@ -263,11 +263,14 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
 
     cmd = [
         "edgetpu_compiler",
-        "--out_dir", str(output_dir),
+        "--out_dir",
+        str(output_dir),
         "--show_operations",
         "--search_delegate",
-        "--delegate_search_step", "30",
-        "--timeout_sec", "180",
+        "--delegate_search_step",
+        "30",
+        "--timeout_sec",
+        "180",
         str(tflite_file),
     ]  # argv list avoids shell metacharacter issues in output_dir/tflite_file paths
     LOGGER.info(f"{prefix} running '{shlex.join(cmd)}'")

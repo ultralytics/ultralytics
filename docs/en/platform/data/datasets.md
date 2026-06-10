@@ -88,17 +88,14 @@ A file extension only names the **container** — it does not guarantee your bro
 | MP4       | `.mp4`, `.m4v` | Yes              | Recommended. Pair with H.264 for the widest compatibility      |
 | WebM      | `.webm`        | Yes              | Carries VP8, VP9, or AV1                                        |
 | MOV       | `.mov`         | Depends on codec | QuickTime; plays with H.264 or AV1, fails with ProRes          |
-| AVI       | `.avi`         | No               | Chrome has no AVI demuxer — re-encode to MP4                    |
-| MKV       | `.mkv`         | No               | Chrome cannot open generic Matroska — re-encode to MP4 or WebM |
+| AVI       | `.avi`         | No               | No AVI demuxer in Chrome — fails even when it holds H.264; re-encode to MP4 |
+| MKV       | `.mkv`         | No               | Chrome plays only WebM, not general Matroska — fails even when it holds H.264; re-encode to MP4 or WebM |
 
-#### Image preview
+#### Images
 
-All image formats are processed on the server; this only affects the upload thumbnail.
+Unlike videos, images are **decoded on the server**. The platform reads every accepted format — including HEIC (HEVC-encoded), TIFF, DNG (camera raw), JPEG 2000, and MPO — and converts each to a web-friendly JPEG or WebP plus a thumbnail. Every accepted image format therefore uploads, processes, and displays in your dataset; the codec inside the file is handled server-side, not by your browser.
 
-| Formats                         | Browser preview                  |
-| ------------------------------- | -------------------------------- |
-| JPEG, PNG, WebP, BMP, GIF, AVIF | Yes                              |
-| TIFF, HEIC, JP2, DNG, MPO       | No (still uploads and processes) |
+The browser is only involved in the *instant preview* shown while files upload. JPEG, PNG, WebP, BMP, GIF, and AVIF preview immediately; TIFF, HEIC, JP2, DNG, and MPO skip that instant preview (the browser can't render them) but still upload and appear in the gallery once processed.
 
 !!! tip "Re-encode an unsupported video"
 

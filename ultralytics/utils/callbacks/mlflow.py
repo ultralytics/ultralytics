@@ -21,7 +21,7 @@ Commands:
         ps aux | grep 'mlflow' | grep -v 'grep' | awk '{print $2}' | xargs kill -9
 """
 
-from ultralytics.utils import LOGGER, RUNS_DIR, SETTINGS, TESTS_RUNNING, colorstr
+from ultralytics.utils import LOGGER, RUNS_DIR, SETTINGS, TESTS_RUNNING, colorstr, env_bool
 
 try:
     import os
@@ -58,7 +58,8 @@ def on_pretrain_routine_end(trainer):
         MLFLOW_TRACKING_URI: The URI for MLflow tracking. If not set, defaults to 'runs/mlflow'.
         MLFLOW_EXPERIMENT_NAME: The name of the MLflow experiment. If not set, defaults to trainer.args.project.
         MLFLOW_RUN: The name of the MLflow run. If not set, defaults to trainer.args.name.
-        MLFLOW_KEEP_RUN_ACTIVE: Boolean indicating whether to keep the MLflow run active after training ends.
+        MLFLOW_KEEP_RUN_ACTIVE: Whether to keep the MLflow run active after training ends. Truthy values are
+            "1", "true", "yes", "on", "y", "t" (case-insensitive); anything else is False.
     """
     global mlflow
 
@@ -110,7 +111,7 @@ def on_train_end(trainer):
     for f in trainer.save_dir.glob("*"):  # log all other files in save_dir
         if f.suffix in {".png", ".jpg", ".csv", ".pt", ".yaml"}:
             mlflow.log_artifact(str(f))
-    keep_run_active = os.environ.get("MLFLOW_KEEP_RUN_ACTIVE", "False").lower() == "true"
+    keep_run_active = env_bool("MLFLOW_KEEP_RUN_ACTIVE")
     if keep_run_active:
         LOGGER.info(f"{PREFIX}mlflow run still alive, remember to close it using mlflow.end_run()")
     else:

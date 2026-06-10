@@ -50,6 +50,7 @@ from ultralytics.utils import (
     clean_url,
     colorstr,
     downloads,
+    env_bool,
     is_github_action_running,
     url2file,
 )
@@ -435,8 +436,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     """
     prefix = colorstr("red", "bold", "requirements:")
 
-    if os.environ.get("ULTRALYTICS_SKIP_REQUIREMENTS_CHECKS", "0") == "1":
-        LOGGER.info(f"{prefix} ULTRALYTICS_SKIP_REQUIREMENTS_CHECKS=1 detected, skipping requirements check.")
+    if env_bool("ULTRALYTICS_SKIP_REQUIREMENTS_CHECKS"):
+        LOGGER.info(f"{prefix} ULTRALYTICS_SKIP_REQUIREMENTS_CHECKS detected, skipping requirements check.")
         return True
 
     if isinstance(requirements, Path):  # requirements.txt file

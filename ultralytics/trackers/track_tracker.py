@@ -207,8 +207,8 @@ def compute_dets_del(predictor) -> list | None:
 def _cosine_distance(tracks: list[TTSTrack], dets: list[TTSTrack]) -> np.ndarray:
     """Cosine distance in `[0, 1]` between track and detection embeddings; NaN where either side has no feature.
 
-    A NaN entry signals "no appearance evidence for this pair" so the caller falls back to motion rather than
-    treating a missing/occlusion-suppressed embedding as maximally dissimilar (which would penalize true matches).
+    A NaN entry signals "no appearance evidence for this pair" so the caller falls back to motion rather than treating a
+    missing/occlusion-suppressed embedding as maximally dissimilar (which would penalize true matches).
     """
     if len(tracks) == 0 or len(dets) == 0:
         return np.ones((len(tracks), len(dets)), dtype=np.float32)

@@ -39,19 +39,26 @@ class QNNBackend(BaseBackend):
         onnx_file = w if w.is_file() else next(w.rglob("*_qnn.onnx"))
         LOGGER.info(f"Loading {onnx_file} for Qualcomm QNN inference...")
 
-        # Register the QNN EP (libraries resolved from the plugin helper or the onnxruntime/capi bundle) and select it
+        # Register the QNN EP (libraries resolved from the plugin helper or the onnxruntime/capi bundle) and select
+        # it; ep_library is None when QNN is already built into ONNX Runtime and needs no plugin registration
         ep_name = "QNNExecutionProvider"
         ep_library, htp_backend = qnn_library_paths()
-        onnxruntime.register_execution_provider_library(ep_name, ep_library)
-        devices = [d for d in onnxruntime.get_ep_devices() if d.ep_name == ep_name]
-        if not devices:
-            raise OSError(
-                "QNN Execution Provider registered but no QNN devices were found. Run on a Qualcomm Snapdragon device "
-                "with 'onnxruntime-qnn' installed."
-            )
+        ep_options = {"backend_path": htp_backend}
         options = onnxruntime.SessionOptions()
-        options.add_provider_for_devices(devices, {"backend_path": htp_backend})
-        self.session = onnxruntime.InferenceSession(str(onnx_file), sess_options=options)
+        if ep_library:
+            onnxruntime.register_execution_provider_library(ep_name, ep_library)
+            devices = [d for d in onnxruntime.get_ep_devices() if d.ep_name == ep_name]
+            if not devices:
+                raise OSError(
+                    "QNN Execution Provider registered but no QNN devices were found. Run on a Qualcomm Snapdragon "
+                    "device with 'onnxruntime-qnn' installed."
+                )
+            options.add_provider_for_devices(devices, ep_options)
+            self.session = onnxruntime.InferenceSession(str(onnx_file), sess_options=options)
+        else:
+            self.session = onnxruntime.InferenceSession(
+                str(onnx_file), sess_options=options, providers=[ep_name], provider_options=[ep_options]
+            )
         self.output_names = [x.name for x in self.session.get_outputs()]
 
         # Load metadata saved alongside the model during export

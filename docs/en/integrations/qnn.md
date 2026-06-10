@@ -8,6 +8,10 @@ keywords: Qualcomm QNN, Qualcomm export, Snapdragon export, export YOLO to Qualc
 
 Deploying computer vision models on Qualcomm Snapdragon devices requires a model format tuned for the Qualcomm AI Engine Direct (QNN) runtime. Exporting [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) models to the QNN format lets you run accelerated, on-device inference across Snapdragon CPU, Adreno GPU, and Hexagon NPU hardware found in billions of mobile phones, laptops, automotive systems, and IoT devices. This guide walks through how to export YOLO to Qualcomm QNN and deploy it for fast, low-power inference on Snapdragon hardware.
 
+!!! tip "Run YOLO on Snapdragon NPUs today with the official mobile apps"
+
+    The official [Ultralytics Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) runs QNN exports on the Hexagon NPU out of the box — real-time camera inference, single-image prediction, and automatic model download for all six YOLO26 tasks. For iOS deployment, see the [Ultralytics YOLO iOS SDK](https://github.com/ultralytics/yolo-ios-app) and the [CoreML integration](coreml.md).
+
 ## What is Qualcomm QNN?
 
 <p align="center">
@@ -42,6 +46,22 @@ The exported `*_qnn.onnx` file is self-contained: it embeds the QNN context bina
 - **Broad Device Reach**: Target the wide range of Snapdragon platforms shipping in phones, PCs (Windows on Snapdragon), automotive, XR, and embedded products.
 - **Precompiled Context Binary**: Shipping a context binary minimizes on-device graph compilation, reducing model load latency on the target.
 - **Self-Contained Output**: The exported ONNX file includes the precompiled QNN context binary and metadata for straightforward deployment.
+
+## Measured Performance
+
+End-to-end single-image inference for the official YOLO26n models on a Xiaomi 17 phone powered by the Qualcomm Snapdragon 8 Elite Gen 5 (SM8850) — Qualcomm Oryon CPU, Adreno GPU, and Hexagon NPU (HTP v81). Each cell shows the **total time** (preprocessing + inference + postprocessing, excluding annotation) with the per-stage split beneath it. CPU and GPU run INT8 TFLite via LiteRT; the NPU runs QNN context binaries (INT8 weights, 16-bit activations).
+
+| Model        | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>INT8 TFLite<br>(ms)</sup> | GPU Adreno<br><sup>INT8 TFLite<br>(ms)</sup> | NPU Hexagon<br><sup>QNN A16W8<br>(ms)</sup>         |
+| ------------ | -------- | --------------------------- | ------------------------------------- | -------------------------------------------- | --------------------------------------------------- |
+| YOLO26n      | Detect   | 640                         | 63.0<br><sup>3.6 / 47.4 / 11.9</sup>  | 25.7<br><sup>3.6 / 8.6 / 13.5</sup>          | **23.3**<br><sup>3.5 / 7.4 / 12.4</sup>             |
+| YOLO26n-seg  | Segment  | 640                         | 75.3<br><sup>3.6 / 64.1 / 7.6</sup>   | 24.1<br><sup>3.6 / 12.4 / 8.1</sup>          | **23.5**<br><sup>3.5 / 10.2 / 9.8</sup>             |
+| YOLO26n-sem  | Semantic | 1024                        | 66.5<br><sup>3.6 / 45.9 / 17.0</sup>  | **41.4**<br><sup>3.6 / 20.9 / 17.0</sup>     | 189.1<sup>1</sup><br><sup>10.3 / 132.5 / 46.3</sup> |
+| YOLO26n-cls  | Classify | 224                         | 5.5<br><sup>0.8 / 4.2 / 0.4</sup>     | 4.5<br><sup>1.7 / 2.2 / 0.6</sup>            | **2.3**<br><sup>1.2 / 0.7 / 0.3</sup>               |
+| YOLO26n-pose | Pose     | 640                         | 58.3<br><sup>3.5 / 52.5 / 2.3</sup>   | 16.2<br><sup>3.6 / 9.7 / 2.9</sup>           | **12.3**<br><sup>3.5 / 7.5 / 1.3</sup>              |
+| YOLO26n-obb  | OBB      | 1024                        | 50.9<br><sup>3.6 / 45.3 / 2.0</sup>   | **14.7**<br><sup>3.6 / 8.3 / 2.8</sup>       | 26.2<br><sup>8.8 / 13.8 / 3.6</sup>                 |
+
+- **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on [bus.jpg](https://ultralytics.com/images/bus.jpg), measured with the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) on-device benchmark harness on a thermally rested device. Sustained real-time camera frame times run higher (per-frame capture letterboxing plus thermal settling); use the app's on-screen pre/inference/post breakdown for steady-state numbers on your device.
+- <sup>1</sup> Semantic QNN is slower than GPU and shows high run-to-run variance across sessions: the context binary returns full float logits (~20M values at 1024px) that are dequantized and argmax-decoded on the CPU, and the large graph is sensitive to HTP/DDR power state. Use the GPU for semantic on Android; embedding the argmax in the export is a tracked follow-up.
 
 ## Supported Tasks
 

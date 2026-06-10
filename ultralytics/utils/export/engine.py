@@ -155,9 +155,15 @@ def modelopt_quantize_onnx(
 
     out_file = str(Path(onnx_file).with_suffix(".fp16.onnx"))
     LOGGER.info(f"{prefix} converting ONNX to FP16 mixed precision with ModelOpt AutoCast...")
-    calib = {input_name: torch.randn(*shape).cpu().numpy()}
-    kwargs = dict(low_precision_type="fp16", keep_io_types=True, calibration_data=calib)
-    onnx.save(autocast.convert_to_mixed_precision(onnx_file, **kwargs), out_file)
+    onnx.save(
+        autocast.convert_to_mixed_precision(
+            onnx_file,
+            low_precision_type="fp16",
+            keep_io_types=True,
+            calibration_data={input_name: torch.randn(*shape).cpu().numpy()},
+        ),
+        out_file,
+    )
     return out_file
 
 

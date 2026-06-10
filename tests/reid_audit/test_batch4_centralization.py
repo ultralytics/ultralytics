@@ -333,3 +333,78 @@ def test_embed_call_sites_use_autocast_for_amp_training_val():
                 f"{fn.__name__} calls _embed outside the engine autocast block; it must wrap "
                 "the call in autocast(self.training and self.args.half, device=self.device.type)"
             )
+
+
+def test_gallery_cache_bypassed_during_training_val():
+    """In-train, the trainer passes the SAME EMA module every epoch and mutates its weights
+    in place — id(model) in the cache key can never detect the change, so serving cached
+    gallery features would score epoch-N queries against epoch-1 gallery embeddings
+    (corrupting in-train mAP/fitness/best.pt selection). With self.training=True the cache
+    must be bypassed and gallery features re-extracted every call. Standalone re-val
+    (training=False) on the same model object may still hit the cache."""
+    import numpy as np
+    import torch
+    from types import SimpleNamespace
+    from ultralytics.models.yolo.reid.val import ReidValidator
+
+    args = SimpleNamespace(task="reid", batch=4, workers=0, half=False, imgsz=64,
+                           reid_scales=None, reid_tta=False)
+    v = ReidValidator.__new__(ReidValidator)
+    v.args = args
+    v._feats, v._pids, v._camids = [], [], []
+    v.metrics = SimpleNamespace(update_gallery=lambda *a, **kw: None)
+    v.data = {"path": "/tmp", "gallery": "g"}
+
+    calls = [0]
+
+    def stub(self, path):
+        calls[0] += 1
+        return (np.zeros((4, 8), dtype=np.float32),
+                np.zeros(4, dtype=np.int64),
+                np.zeros(4, dtype=np.int64),
+                ["a", "b", "c", "d"])
+
+    v._extract_gallery_features = stub.__get__(v, ReidValidator)
+    model = torch.nn.Linear(8, 8)
+    model.names = {0: "id0"}
+
+    v.training = True  # set by BaseValidator.__call__ before init_metrics when trainer is not None
+    v.init_metrics(model)
+    v.init_metrics(model)  # same object, but weights may have mutated in place -> must re-extract
+    assert calls[0] == 2, f"expected re-extraction every in-train epoch, got {calls[0]} calls"
+
+    # Standalone re-val of the unchanged model object: cache (written during the training
+    # calls above, same key) may be reused again.
+    v.training = False
+    v.init_metrics(model)
+    assert calls[0] == 2, f"expected cache hit for standalone val on same model, got {calls[0]} calls"
+
+
+def test_update_metrics_tta_handles_half_batch_fp32_model():
+    """In-train AMP: preprocess emits fp16 batches while the EMA model is fp32. The TTA
+    branch of update_metrics re-runs the model outside the engine autocast block and must
+    carry its own guard — without it this exact call raises 'Input type (torch.HalfTensor)
+    and weight type (torch.FloatTensor) should be the same'."""
+    import torch
+    from types import SimpleNamespace
+
+    from ultralytics.models.yolo.reid.val import ReidValidator
+
+    v = ReidValidator.__new__(ReidValidator)
+    v._model = (
+        torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3), torch.nn.AdaptiveAvgPool2d(1), torch.nn.Flatten())
+        .float()
+        .eval()
+    )
+    v.training = True
+    v.device = torch.device("cpu")
+    v.args = SimpleNamespace(half=True, reid_scales=None, reid_tta=True)  # TTA active -> _embed path
+    v._feats, v._pids, v._camids, v._paths = [], [], [], []
+    batch = {
+        "img": torch.randn(2, 3, 16, 16).half(),
+        "cls": torch.zeros(2, dtype=torch.long),
+        "camid": [0, 1],
+        "im_file": ["a.jpg", "b.jpg"],
+    }
+    v.update_metrics(preds=None, batch=batch)  # must not raise
+    assert v._feats[0].dtype == torch.float32  # guarded path upcasts before accumulation

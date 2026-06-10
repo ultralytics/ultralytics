@@ -109,11 +109,11 @@ class ReidValidator(ClassificationValidator):
     def init_metrics(self, model: torch.nn.Module) -> None:
         """Initialize tracking containers.
 
-        Caches gallery feature extraction by ``(gallery_path, id(model), imgsz, scales, tta)``:
-        Validator.__call__ fires every epoch's val during training, but the gallery split is
-        static and embeddings only change when the model weights do — which the trainer
-        reflects in a new model object passed here. Reuses the cached (feats, pids, camids, paths)
-        when the key matches; rebuilds otherwise.
+        Caches gallery feature extraction by ``(gallery_path, id(model), imgsz, scales, tta)``
+        for standalone re-validation of an unchanged model object: reuses the cached
+        (feats, pids, camids, paths) when the key matches; rebuilds otherwise. During training
+        the cache is bypassed entirely — the trainer passes the SAME EMA module every epoch and
+        mutates its weights in place, so ``id(model)`` can never detect the change.
         """
         self._model = model  # store reference for gallery feature extraction
         self.names = model.names
@@ -135,7 +135,11 @@ class ReidValidator(ClassificationValidator):
                 str(scales),
                 bool(getattr(self.args, "reid_tta", False)),
             )
-            cached = getattr(self, "_gallery_cache", None)
+            # In-train the trainer hands us the SAME EMA module every epoch (weights mutate
+            # in place), so id(model) in the key can never detect the change — always
+            # re-extract. The cache only helps (and is only correct) for standalone re-val
+            # of an unchanged model object.
+            cached = None if getattr(self, "training", False) else getattr(self, "_gallery_cache", None)
             if cached is not None and cached[0] == cache_key:
                 feats, pids, camids, paths = cached[1]
             else:
@@ -295,7 +299,7 @@ class ReidValidator(ClassificationValidator):
             return self.metrics.results_dict
 
         # Current accumulated features are from the val split (query)
-        query_feats = torch.cat(self._feats, dim=0).numpy()
+        query_feats = torch.cat(self._feats, dim=0).float().numpy()  # fp32: match forced-fp32 gallery feats
         query_pids = torch.cat(self._pids, dim=0).numpy()
         query_camids = torch.cat(self._camids, dim=0).numpy()
         self._query_pids = query_pids

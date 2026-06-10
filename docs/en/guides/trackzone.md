@@ -26,7 +26,7 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
 ## Advantages of Object Tracking in Zones (TrackZone)
 
 - **Targeted Analysis:** Tracking objects within specific zones allows for more focused insights, enabling precise monitoring and analysis of areas of interest, such as entry points or restricted zones.
-- **Improved Efficiency:** By narrowing the tracking scope to defined zones, TrackZone reduces computational overhead, ensuring faster processing and optimal performance.
+- **Reduced Downstream Workload:** By ignoring objects outside the zone, TrackZone removes irrelevant detections so there are fewer objects to count, log, or alert on in the logic you build on top of it. Detection still runs on the full frame, so the benefit is cleaner, more focused output rather than faster model inference.
 - **Enhanced Security:** Zonal tracking improves surveillance by monitoring critical areas, aiding in the early detection of unusual activity or security breaches.
 - **Scalable Solutions:** The ability to focus on specific zones makes TrackZone adaptable to various scenarios, from retail spaces to industrial settings, ensuring seamless integration and scalability.
 
@@ -97,9 +97,12 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-!!! note "Zone shape and default region"
+!!! tip "Defining the tracking zone"
 
-    `TrackZone` converts the `region` points into their [convex hull](https://en.wikipedia.org/wiki/Convex_hull), so a concave shape is simplified to the smallest convex polygon that contains all of its points. Order the points around the perimeter of the area you want to monitor. If you omit `region` entirely, a default zone of `[(75, 75), (565, 75), (565, 285), (75, 285)]` is used.
+    - Each entry in `region` is an `(x, y)` pixel coordinate in the video frame. List the points in the order they should be connected around the perimeter of the area you want to monitor.
+    - Coordinates are tied to the frame resolution, so a region sized for a 1280×720 feed will not line up with a 640×480 one. Keep `show=True` while configuring so you can confirm the overlay matches your feed.
+    - `TrackZone` reduces the points to their [convex hull](https://en.wikipedia.org/wiki/Convex_hull), so a concave shape is simplified to the smallest convex polygon that contains all of its points. For non-convex shapes or several separate areas, use the [RegionCounter](region-counting.md) solution instead.
+    - If you omit `region` entirely, a default zone of `[(75, 75), (565, 75), (565, 285), (75, 285)]` is used.
 
 ### `TrackZone` Arguments
 
@@ -117,6 +120,31 @@ Moreover, the following visualization options are available:
 
 {% from "macros/visualization-args.md" import param_table %}
 {{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
+
+## Count Objects Inside the Zone
+
+Every call to the tracker returns a `SolutionResults` object whose `total_tracks` attribute holds the number of objects currently tracked inside the zone. Read it on each frame to monitor live occupancy, for example to log how busy an entry point or restricted area is:
+
+```python
+import cv2
+
+from ultralytics import solutions
+
+cap = cv2.VideoCapture("path/to/video.mp4")
+assert cap.isOpened(), "Error reading video file"
+
+region_points = [(150, 150), (1130, 150), (1130, 570), (150, 570)]
+trackzone = solutions.TrackZone(show=False, region=region_points, model="yolo26n.pt")
+
+while cap.isOpened():
+    success, im0 = cap.read()
+    if not success:
+        break
+    results = trackzone(im0)
+    print(f"Objects currently in zone: {results.total_tracks}")  # live zone occupancy
+
+cap.release()
+```
 
 ## FAQ
 
@@ -173,4 +201,16 @@ trackzone = solutions.TrackZone(
 )
 ```
 
-The points are reduced to their [convex hull](https://en.wikipedia.org/wiki/Convex_hull), so concave zones are simplified to the smallest convex polygon that contains them. To count objects across multiple separate areas or to keep a non-convex shape, use the [RegionCounter](region-counting.md) solution instead.
+Remember that `TrackZone` reduces the points to their convex hull, so list them in order around the perimeter of the area you want to monitor.
+
+### When should I use TrackZone instead of ObjectCounter or RegionCounter?
+
+All three solutions work with regions, but they answer different questions:
+
+| Solution | Use it to | Typical output |
+| --- | --- | --- |
+| **TrackZone** | Track objects and monitor live occupancy inside a single convex zone | Tracked IDs and `total_tracks` for the zone |
+| [ObjectCounter](object-counting.md) | Count objects that cross a line or enter and leave a region | Cumulative in and out counts |
+| [RegionCounter](region-counting.md) | Count objects inside one or more arbitrary (including non-convex) regions | Per-region object counts |
+
+Choose TrackZone when you want continuous tracking inside one area, and [RegionCounter](region-counting.md) when you need multiple zones or a non-convex shape.

@@ -681,10 +681,12 @@ class Exporter:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
 
-        if model.task == "semantic":
-            # Every semantic export ships a compact int32 class map instead of float logits: argmax is
-            # non-differentiable so it cannot live in the model itself, and emitting logits forces consumers to
-            # dequantize and argmax large tensors on the CPU every frame. Python predict/val accept both forms.
+        if model.task == "semantic" and fmt in {"qnn", "coreml"}:
+            # NPU-targeted semantic exports ship a compact uint8 class map instead of float logits: emitting logits
+            # forces consumers to dequantize and argmax ~20M floats on the CPU every frame (measured erratic
+            # 123-1065 ms on Hexagon). Not applied to TFLite, where the GPU delegate cannot compile ArgMax (int64
+            # indices) and a whole-graph CPU fallback is slower than GPU logits + consumer-side argmax. Python
+            # predict/val accept both forms.
             model = ClassMapModel(model)
 
         y = None
@@ -1435,7 +1437,7 @@ class QNNModel(ExportWrapper):
 
 
 class ClassMapModel(ExportWrapper):
-    """Reduces semantic-segmentation logits to an int32 class map for export.
+    """Reduces semantic-segmentation logits to a uint8 class map for export.
 
     Applied to every semantic export format: deployment consumers want per-pixel class indices, and shipping float
     logits instead forces a dequantize + argmax over large tensors (~20M values at 1024px) on the consumer's CPU every
@@ -1448,11 +1450,11 @@ class ClassMapModel(ExportWrapper):
     """
 
     def forward(self, x):
-        """Run the wrapped model and return a `[N, H, W]` int32 class map instead of float logits."""
+        """Run the wrapped model and return a `[N, H, W]` uint8 class map instead of float logits."""
         y = self._model(x)
-        # int32 is the one index dtype every deployment runtime reads natively (LiteRT, Core ML, ONNX Runtime);
-        # uint8 would be smaller but is unsupported by the LiteRT Kotlin API and promoted to int32 by Core ML anyway.
-        return (y[0] if isinstance(y, (list, tuple)) else y).argmax(1).to(torch.int32)
+        # uint8 keeps the whole graph on the Hexagon NPU (an int32 cast measured 1054 ms vs 44 ms - the Cast falls
+        # back to the CPU execution provider and drags the full logits with it); Core ML promotes uint8 to int32.
+        return (y[0] if isinstance(y, (list, tuple)) else y).argmax(1).to(torch.uint8)
 
 
 class NMSModel(torch.nn.Module):

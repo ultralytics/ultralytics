@@ -972,12 +972,7 @@ def check_amp(model):
             LOGGER.error(
                 f"{check_failed_msg}This is because a low-precision (such as FP16/BF16) tensor reached an unsupported CPU operator, "
                 f"so AMP will be disabled during training. "
-            )  # unsupported CPU FP16/BF16 kernel
-        elif "expected all tensors to be on the same device" in error_msg_lower or "found at least two devices" in error_msg_lower:
-            LOGGER.error(
-                f"{check_failed_msg}A custom module may have moved only part of the data flow between CUDA and CPU, "
-                f"so AMP will be disabled during training. "
-            )  # CPU/CUDA tensor mismatch
+            )  # unsupported CPU kernel
         elif "expected scalar type" in error_msg_lower and ("half" in error_msg_lower or "float" in error_msg_lower):
             LOGGER.error(
                 f"{check_failed_msg}A custom layer may need an explicit float32 region or dtype cast, "

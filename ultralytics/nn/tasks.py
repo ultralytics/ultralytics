@@ -62,6 +62,7 @@ from ultralytics.nn.modules import (
     HGStem,
     ImagePoolingAttn,
     Index,
+    LayerNorm2d,
     LRPCHead,
     Pose,
     Pose26,
@@ -750,7 +751,7 @@ class RTDETRDetectionModel(DetectionModel):
     """
 
     def __init__(self, cfg="rtdetr-l.yaml", ch=3, nc=None, verbose=True, **kwargs):
-        """Initialize the RTDETRDetectionModel.s
+        """Initialize the RTDETRDetectionModel.s.
 
         Args:
             cfg (str | dict): Configuration file name or path.

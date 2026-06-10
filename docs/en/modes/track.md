@@ -240,13 +240,25 @@ ReID is disabled by default to minimize overhead. Enable it by setting `with_rei
 - **`model: auto`** — Uses native YOLO detector features, adding minimal overhead. Ideal when you need some ReID without a large performance hit. Falls back to `yolo26n-cls.pt` if the detector does not expose compatible features.
 - **Exported ReID model** — Point `model:` at an exported file (`.torchscript`, `.onnx`, `.engine`, `.openvino`, etc.) for more discriminative embeddings at the cost of an extra forward pass per crop. The encoder is loaded via `AutoBackend`, so any export format Ultralytics supports works without code changes.
 
-Ready-to-use ONNX encoders are published for every model size — `yolo26n-reid.onnx`, `yolo26s-reid.onnx`, `yolo26m-reid.onnx`, `yolo26l-reid.onnx`, and `yolo26x-reid.onnx`. Set `model:` to one of these names and the file is downloaded automatically the first time the tracker runs (the same way YOLO weights are fetched) — no manual export or download step required:
+Ready-to-use ONNX encoders are published for every model size. Set `model:` to one of these names and the file is downloaded automatically the first time the tracker runs (the same way YOLO weights are fetched) — no manual export or download step required:
 
 ```yaml
 # In your tracker config (e.g. tracktrack.yaml)
 with_reid: True
-model: yolo26n-reid.onnx # downloaded on first use; swap n→s/m/l/x for a larger encoder
+model: yolo26n-reid.onnx  # downloaded on first use; swap n→s/m/l/x for a larger encoder
 ```
+
+| Model | File |
+| ----- | ---- |
+| [YOLO26n-reid](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-reid.onnx) | `yolo26n-reid.onnx` |
+| [YOLO26s-reid](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-reid.onnx) | `yolo26s-reid.onnx` |
+| [YOLO26m-reid](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-reid.onnx) | `yolo26m-reid.onnx` |
+| [YOLO26l-reid](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-reid.onnx) | `yolo26l-reid.onnx` |
+| [YOLO26x-reid](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-reid.onnx) | `yolo26x-reid.onnx` |
+
+!!! note "ReID is tracking-only"
+
+    Only ONNX ReID encoders for the tracker appearance branch are currently available. ReID `train`, `val`, and `predict` modes, as well as dedicated ReID export recipes, are still under development.
 
 For better performance with a separate classification model, export it to a faster backend like TensorRT:
 

@@ -235,6 +235,13 @@ def test_track_stream(model, tmp_path):
         YAML.save(custom_yaml, {**default_args, "gmc_method": gmc, "with_reid": True, "model": reidm})
         model.track(video_url, imgsz=160, tracker=custom_yaml)
 
+    # Test ONNX ReID encoder auto-download
+    if model == "yolo26n.pt":
+        default_args = YAML.load(ROOT / "cfg/trackers/botsort.yaml")
+        custom_yaml = tmp_path / "botsort-reid-onnx.yaml"
+        YAML.save(custom_yaml, {**default_args, "with_reid": True, "model": "yolo26n-reid.onnx"})
+        model.track(video_url, imgsz=160, tracker=custom_yaml)
+
 
 @pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)
 def test_val(task: str, weight: str, data: str) -> None:

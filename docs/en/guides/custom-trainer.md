@@ -199,7 +199,6 @@ model.train(data="coco8.yaml", epochs=10, trainer=WeightedTrainer)
     class WeightedDetectionModel(DetectionModel):
         """Detection model that uses class-weighted loss."""
         ...
-
     ```
 
     ```python
@@ -208,7 +207,7 @@ model.train(data="coco8.yaml", epochs=10, trainer=WeightedTrainer)
     from weighted_model import WeightedDetectionModel  # must be importable at load time
 
     model = YOLO("runs/detect/train/weights/best.pt")
-    results = model.val()
+    metrics = model.val()
     ```
 
 ## Saving the Best Model by Custom Metric

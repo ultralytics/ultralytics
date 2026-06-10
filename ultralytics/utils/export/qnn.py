@@ -34,62 +34,6 @@ def qnn_library_paths() -> tuple[str | None, str]:
         return str(ep_lib) if ep_lib else None, str(capi / htp_lib)
 
 
-def _prepare_qnn_graph(onnx_file: Path, task: str | None) -> tuple[Path, bool]:
-    """Rewrite the ONNX graph for Hexagon-friendly I/O before quantization.
-
-    Two rewrites, both following Qualcomm's published deployment recipes:
-
-    1. Channel-last image input: the HTP's native layout is NHWC, so an NCHW input costs a boundary transpose on
-    every inference (and a matching CPU-side permute in apps). The input is converted to NHWC with an in-graph Transpose
-    that ONNX Runtime's layout transformer folds away during context generation.
-    2. Semantic class-map output: semantic models otherwise emit full float logits (~20M values at 1024px) that
-    must be dequantized and argmax-decoded on the CPU every frame. An in-graph ArgMax + uint8 Cast reduces the output to
-    a compact `[N, H, W]` class map computed on the NPU.
-
-    Returns:
-        (tuple[Path, bool]): Path to the rewritten model and whether the input was converted to NHWC.
-    """
-    import onnx
-    from onnx import TensorProto, helper
-
-    model = onnx.load(str(onnx_file))
-    graph = model.graph
-
-    nhwc = False
-    inp = graph.input[0]
-    dims = [d.dim_value for d in inp.type.tensor_type.shape.dim]
-    if len(dims) == 4 and dims[1] in {1, 3}:
-        n, c, h, w = dims
-        nchw_name = f"{inp.name}_nchw"
-        for node in graph.node:
-            node.input[:] = [nchw_name if name == inp.name else name for name in node.input]
-        graph.node.insert(
-            0, helper.make_node("Transpose", [inp.name], [nchw_name], perm=[0, 3, 1, 2], name="qnn_nhwc_input")
-        )
-        del inp.type.tensor_type.shape.dim[:]
-        for d in (n, h, w, c):
-            inp.type.tensor_type.shape.dim.add().dim_value = d
-        nhwc = True
-
-    if task == "semantic":
-        out = graph.output[0]
-        odims = [d.dim_value for d in out.type.tensor_type.shape.dim]
-        graph.node.extend(
-            [
-                helper.make_node("ArgMax", [out.name], [f"{out.name}_argmax"], axis=1, keepdims=0, name="qnn_argmax"),
-                helper.make_node(
-                    "Cast", [f"{out.name}_argmax"], ["class_map"], to=TensorProto.UINT8, name="qnn_classmap"
-                ),
-            ]
-        )
-        del graph.output[:]
-        graph.output.extend([helper.make_tensor_value_info("class_map", TensorProto.UINT8, [odims[0], *odims[2:]])])
-
-    prepared = onnx_file.with_name(f"{onnx_file.stem}_qnn_prepared.onnx")
-    onnx.save(model, str(prepared))
-    return prepared, nhwc
-
-
 def onnx2qnn(
     onnx_file: str | Path,
     output_file: Path | str,
@@ -98,7 +42,6 @@ def onnx2qnn(
     name: str = "73",
     metadata: dict | None = None,
     batch: int = 0,
-    task: str | None = None,
     prefix: str = "",
 ) -> str:
     """Convert an ONNX model to a Qualcomm QNN context binary using the ONNX Runtime QNN Execution Provider.
@@ -123,8 +66,6 @@ def onnx2qnn(
             Runtime normally carries the source model's metadata through, but this is not a documented guarantee).
         batch (int): Static batch dimension of the ONNX graph used to tile undersized calibration batches, or 0 for
             dynamic-batch models.
-        task (str | None): Model task; semantic models additionally get an in-graph ArgMax producing a compact uint8
-            class-map output instead of float logits.
         prefix (str): Prefix for log messages.
 
     Returns:
@@ -150,12 +91,14 @@ def onnx2qnn(
     qdq_file = ctx_file.with_name(f"{onnx_file.stem}_qnn_qdq.onnx")
 
     LOGGER.info(f"\n{prefix} starting A16W8 quantization and export with ONNX Runtime QNN (HTP arch {name})...")
-    prepared_file, nhwc = _prepare_qnn_graph(onnx_file, task)
-    if nhwc:  # the graph now takes channel-last input, so calibration batches must be fed NHWC as well
+    import onnx
+
+    dims = [d.dim_value for d in onnx.load(str(onnx_file)).graph.input[0].type.tensor_type.shape.dim]
+    if len(dims) == 4 and dims[3] in {1, 3} and dims[1] not in {1, 3}:  # channel-last graph (QNNModel export)
         nchw_transform = transform_fn
         transform_fn = lambda data_item: nchw_transform(data_item).transpose(0, 2, 3, 1)  # noqa: E731
     try:
-        quant_pre_process(str(prepared_file), str(pre_file))
+        quant_pre_process(str(onnx_file), str(pre_file))
         # 16-bit activations + 8-bit weights is the ORT-recommended accuracy/perf balance for the HTP backend
         qdq_config = get_qnn_qdq_config(
             str(pre_file),
@@ -201,7 +144,7 @@ def onnx2qnn(
             if ep_library:
                 ort.unregister_execution_provider_library(ep_name)
     finally:
-        for f in (prepared_file, pre_file, qdq_file):  # remove intermediates; the context binary is self-contained
+        for f in (pre_file, qdq_file):  # remove quantization intermediates; the context binary is self-contained
             f.unlink(missing_ok=True)
 
     if not ctx_file.exists():

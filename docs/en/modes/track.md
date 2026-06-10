@@ -237,8 +237,9 @@ ReID is disabled by default to minimize overhead. Enable it by setting `with_rei
 
 **ReID model options:**
 
-- **`model: auto`** — Uses native YOLO detector features, adding minimal overhead. Ideal when you need some ReID without a large performance hit. Falls back to `yolo26n-cls.pt` if the detector does not expose compatible features.
-- **Exported ReID model** — Point `model:` at an exported file (`.torchscript`, `.onnx`, `.engine`, `.openvino`, etc.) for more discriminative embeddings at the cost of an extra forward pass per crop. The encoder is loaded via `AutoBackend`, so any export format Ultralytics supports works without code changes.
+- **Trained ReID model (recommended)** — Point `model:` at a [ReID](../tasks/reid.md) checkpoint such as `yolo26n-reid.pt`. This is the default for `tracktrack.yaml` and gives the most discriminative embeddings (the model's trained person-ReID head). On MOT17 with TrackTrack it improves IDF1 on every sequence and reduces ID switches versus both `auto` and motion-only, and the win holds across detector sizes. Pick `yolo26n-reid.pt` for the best speed/accuracy trade-off or `yolo26l-reid.pt` for the fewest ID switches.
+- **`model: auto`** — Uses native YOLO detector features, adding minimal overhead. A lighter but weaker option when you cannot afford a separate ReID model. Falls back to `yolo26n-cls.pt` if the detector does not expose compatible features.
+- **Exported ReID model** — Point `model:` at an exported file (`.torchscript`, `.onnx`, `.engine`, `.openvino`, etc.) for the same discriminative embeddings at lower latency. The encoder is loaded via `AutoBackend`, so any export format Ultralytics supports works without code changes.
 
 For better performance with a separate classification model, export it to a faster backend like TensorRT:
 

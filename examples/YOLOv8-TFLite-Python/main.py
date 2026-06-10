@@ -206,7 +206,7 @@ class YOLOv8TFLite:
 
             # Apply non-maximum suppression
             indices = cv2.dnn.NMSBoxes(boxes, scores, self.conf, self.iou)
-            indices = np.array(indices).flatten() if len(indices) else []
+            indices = np.array(indices).flatten() if indices is not None and len(indices) else []
 
             # Draw detections that survived NMS
             [self.draw_detections(img, boxes[i], scores[i], class_ids[i]) for i in indices]

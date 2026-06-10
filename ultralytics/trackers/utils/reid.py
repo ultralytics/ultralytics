@@ -51,7 +51,6 @@ class ReID:
         else:
             from pathlib import Path
 
-            # Auto-download only the published ReID encoders; custom/local paths pass straight to AutoBackend.
             if Path(str(model)).name in REID_ASSETS:
                 from ultralytics.utils.downloads import attempt_download_asset
 

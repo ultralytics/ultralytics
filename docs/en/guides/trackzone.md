@@ -26,7 +26,7 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
 ## Advantages of Object Tracking in Zones (TrackZone)
 
 - **Targeted Analysis:** Tracking objects within specific zones allows for more focused insights, enabling precise monitoring and analysis of areas of interest, such as entry points or restricted zones.
-- **Reduced Downstream Workload:** By ignoring objects outside the zone, TrackZone removes irrelevant detections so there are fewer objects to count, log, or alert on in the logic you build on top of it. Detection still runs on the full frame, so the benefit is cleaner, more focused output rather than faster model inference.
+- **Reduced Downstream Workload:** By ignoring objects outside the zone, TrackZone removes irrelevant detections so there are fewer objects to count, log, or alert on in the logic you build on top of it. Detection still runs on a full-size masked frame rather than a tight crop of the zone, so the benefit is cleaner, more focused output rather than faster model inference.
 - **Enhanced Security:** Zonal tracking improves surveillance by monitoring critical areas, aiding in the early detection of unusual activity or security breaches.
 - **Scalable Solutions:** The ability to focus on specific zones makes TrackZone adaptable to various scenarios, from retail spaces to industrial settings, ensuring seamless integration and scalability.
 

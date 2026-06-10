@@ -271,7 +271,7 @@ class HuggingFaceVideoClassifier:
             probs = logits_per_video.softmax(dim=-1)  # Use softmax to convert logits to probabilities
 
         for prob in probs:
-            top2_indices = prob.topk(2).indices.tolist()
+            top2_indices = prob.topk(min(2, len(self.labels))).indices.tolist()
             top2_labels = [self.labels[idx] for idx in top2_indices]
             top2_confs = prob[top2_indices].tolist()
             pred_labels.append(top2_labels)

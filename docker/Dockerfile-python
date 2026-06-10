@@ -3,7 +3,7 @@
 # Builds ultralytics/ultralytics:latest-python image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
 # Lightweight CPU image optimized for YOLO inference
 
-# Use official Python base image for reproducibility (3.11.10 for export and 3.12.10 for inference)
+# Use official Python 3.11.10 base image for reproducibility
 FROM python:3.11.10-slim-bookworm
 
 # Set environment variables (suppress PyTorch NNPACK warnings)

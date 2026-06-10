@@ -412,7 +412,7 @@ def model_info_for_loggers(trainer):
         ...    "model/speed_ONNX(ms)": 41.244,
         ...    "model/speed_TensorRT(ms)": 3.211,
         ...    "model/speed_PyTorch(ms)": 18.755,
-        ...}
+        ... }
     """
     if trainer.args.profile:  # profile ONNX and TensorRT times
         from ultralytics.utils.benchmarks import ProfileModels

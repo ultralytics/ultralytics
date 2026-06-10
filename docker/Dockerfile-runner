@@ -19,8 +19,7 @@ RUN FILENAME=actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz && \
     curl -fLso "$FILENAME" "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/${FILENAME}" && \
     tar xzf "$FILENAME" && \
     rm "$FILENAME" && \
-    # Install runner dependencies \
-    uv pip install --system pytest-cov "tensorrt-cu12>=7.0.0,!=10.2.0" && \
+    uv pip install --system --no-cache pytest-cov "tensorrt-cu12>=7.0.0,!=10.2.0" && \
     ./bin/installdependencies.sh && \
     apt-get update && \
     apt-get install -y --no-install-recommends libicu-dev sudo nodejs npm && \

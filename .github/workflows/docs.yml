@@ -121,35 +121,15 @@ jobs:
             git commit -m "Update Docs for 'ultralytics $VERSION - $LATEST_HASH'"
             git push https://${{ secrets._GITHUB_TOKEN }}@github.com/ultralytics/docs.git gh-pages
           fi
-      - name: Check docs source changes
-        id: docs_changes
+      - name: Trigger Portal docs redeploy
         if: github.event_name == 'push'
         env:
-          BEFORE_SHA: ${{ github.event.before }}
-          CURRENT_SHA: ${{ github.sha }}
-        run: |
-          if [[ "$BEFORE_SHA" =~ ^0+$ ]]; then
-            changed_files="$(git diff-tree --no-commit-id --name-only -r "$CURRENT_SHA")"
-          else
-            if ! git cat-file -e "$BEFORE_SHA^{commit}" 2>/dev/null; then
-              git fetch --no-tags --depth=1 origin "$BEFORE_SHA"
-            fi
-            changed_files="$(git diff --name-only "$BEFORE_SHA" "$CURRENT_SHA")"
-          fi
-
-          if grep -Eq '^(docs/|mkdocs\.ya?ml$)' <<< "$changed_files"; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          fi
-      - name: Trigger Portal docs redeploy
-        if: github.event_name == 'push' && steps.docs_changes.outputs.changed == 'true'
-        env:
           VERCEL_DOCS_DEPLOY_HOOK: ${{ secrets.VERCEL_DOCS_DEPLOY_HOOK }}
+          CHANGED_FILES: ${{ toJson(github.event.commits.*.added) }} ${{ toJson(github.event.commits.*.modified) }} ${{ toJson(github.event.commits.*.removed) }}
         run: |
-          if [[ -z "$VERCEL_DOCS_DEPLOY_HOOK" ]]; then
-            echo "::error::VERCEL_DOCS_DEPLOY_HOOK is not configured"
-            exit 1
+          if ! grep -Eq 'docs/|mkdocs\.ya?ml' <<< "$CHANGED_FILES"; then
+            echo "No docs source changes."
+            exit 0
           fi
 
           curl --fail --silent --show-error --retry 3 --request POST "$VERCEL_DOCS_DEPLOY_HOOK"

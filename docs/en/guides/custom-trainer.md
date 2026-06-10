@@ -185,6 +185,31 @@ model.train(data="coco8.yaml", epochs=10, trainer=WeightedTrainer)
     # Result: [1.0, 25.0, 1.67]
     ```
 
+!!! note "Loading a model with custom classes"
+
+    Custom classes such as `WeightedDetectionModel` are stored in the checkpoint by reference. When defined in a training script they belong to the `__main__` module, so loading `best.pt` from a different script raises `AttributeError: Can't get attribute 'WeightedDetectionModel' on <module '__main__'>`.
+
+    Define custom classes in a dedicated module so they remain importable, and ensure that module is on your `PYTHONPATH` at load time.
+
+    ```python
+    # weighted_model.py
+    from ultralytics.nn.tasks import DetectionModel
+
+
+    class WeightedDetectionModel(DetectionModel):
+        """Detection model that uses class-weighted loss."""
+        ...
+    ```
+
+    ```python
+    # inference script
+    from ultralytics import YOLO
+    from weighted_model import WeightedDetectionModel  # must be importable at load time
+
+    model = YOLO("runs/detect/train/weights/best.pt")
+    metrics = model.val()
+    ```
+
 ## Saving the Best Model by Custom Metric
 
 The trainer saves `best.pt` based on fitness, which for detection defaults to `mAP@0.5:0.95` (weights `[0.0, 0.0, 0.0, 1.0]` for [P, R, mAP@0.5, mAP@0.5:0.95]). To use a different metric (like `mAP@0.5` or recall), override `validate()` and return your chosen metric as the fitness value. The built-in `save_model()` will then use it automatically:

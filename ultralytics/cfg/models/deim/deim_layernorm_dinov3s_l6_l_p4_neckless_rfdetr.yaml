@@ -1,0 +1,56 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# RF-DETR-style P4-only neckless DEIMv2-L variant with native DINOv3-S backbone.
+# Sibling of `deim_layernorm_dinov3s_l6_l_p4_neckless.yaml` but mirrors RF-DETR's
+# MultiScaleProjector: taps 4 ViT depths at [2, 5, 8, 11], concatenates along
+# channels (4 x 384 = 1536), fuses via C3k2 to hd=224, then LayerNorm2d at the
+# conv-to-attention boundary. DeimLayerNormDecoder swaps RMSNorm for nn.LayerNorm.
+# Model docs: https://docs.ultralytics.com/models/rtdetr
+# Task docs: https://docs.ultralytics.com/tasks/detect
+
+# Parameters
+nc: 80 # number of classes
+
+backbone:
+  # [from, repeats, module, args]
+  # DINOv3 args: [out_ch, name, pretrained, out_indices, finetune, patch_size, split]
+  # ViT-S/16 has 12 transformer blocks (0..11). Uniformly tap 2/5/8/11 at ~25/50/75/100% depth,
+  # matching RF-DETR's [3, 6, 9, 12] HF-1-indexed scheme. ViT patch16 stride is 16 (P4).
+  - [-1, 1, DINOv3, [384, dinov3_vits16, True, [2, 5, 8, 11], True, 16, True]] # 0
+  - [0, 1, Index, [384, 1]] # 1 ViT block 2  early features
+  - [0, 1, Index, [384, 2]] # 2 ViT block 5  mid features
+  - [0, 1, Index, [384, 3]] # 3 ViT block 8  mid-late features
+  - [0, 1, Index, [384, 4]] # 4 ViT block 11 late semantic features
+
+head:
+  # RF-DETR MultiScaleProjector analog at single P4 scale: concat 4 ViT depths, fuse, normalize.
+  # C3k2 with n=3 matches RF-DETR's MultiScaleProjector num_blocks=3 default.
+  - [[1, 2, 3, 4], 1, Concat, [1]] # 5 concat 4 depths along channel, 1536 ch
+  - [-1, 3, C3k2, [224, True, 0.5, True]] # 6 fuse 1536 to 224 (n=3 bottlenecks inside)
+  - [-1, 1, LayerNorm2d, [224]] # 7 conv-to-attention boundary normalizer, matches RF-DETR
+
+  # DeimLayerNormDecoder with L settings; single-level input uses scalar ndp=4.
+  # The class forces use_rmsnorm=False internally to use nn.LayerNorm.
+  # Args: [nc, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
+  #        learnt_init_query, enable_cuda_acceleration, one_to_many_groups, dab_sine_embedding,
+  #        efficient_msdeformable_attn, query_select_method, reg_max, reg_scale, layer_scale, mlp_act,
+  #        o2m_topk_mode, use_gateway, share_bbox_head, share_score_head]
+  - [[7], 1, DeimLayerNormDecoder, [nc, 224, 300, 4, 8, 6, 1792, 0.0, "silu", -1, 100, 0.5, 1.0, False, False, 0, False, False, "default", 32, 4.0, 1.0, "silu", "unshared", True, False, False]]
+
+loss:
+  gamma: 1.5
+  alpha: 0.75
+  use_fl: False
+  use_vfl: False
+  use_mal: True
+  use_union_set: True
+  reg_max: 32
+  loss_gain: {class: 1, bbox: 5, giou: 2, fgl: 0.15, ddf: 1.5}
+  matcher:
+    cost_gain: {class: 2, bbox: 5, giou: 2}
+    use_fl: True
+    alpha: 0.25
+    gamma: 2.0
+    change_matcher: True
+    iou_order_alpha: 4.0
+    matcher_change_epoch: 50

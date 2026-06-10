@@ -151,7 +151,7 @@ def main():
                         help="Single category (default: all 15). 'all' = all.")
     parser.add_argument("--n-per-category", type=int, default=20,
                         help="Max test images per category (0 = all)")
-    parser.add_argument("--conf", type=float, default=0.1)
+    parser.add_argument("--conf", type=float, default=0.4)
     parser.add_argument("--iou", type=float, default=0.1, help="NMS IoU threshold")
     parser.add_argument("--imgsz", type=int, default=320)
     parser.add_argument("--batch", type=int, default=8)
@@ -164,7 +164,7 @@ def main():
                         help="sigmoid(obj) above which a query counts as active (ownership map)")
     parser.add_argument("--a-thresh", type=float, default=0.3,
                         help="winning attention below which a pixel stays unclaimed (ownership map)")
-    parser.add_argument("--heat-norm", type=str, default="minmax", choices=["none", "minmax"],
+    parser.add_argument("--heat-norm", type=str, default="none", choices=["none", "minmax"],
                         help="Per-image prior normalization before fusion (minmax stretches to [0,1])")
     parser.add_argument("--out", type=str, default=None,
                         help="Output dir (default: runs/temp/predict_visual_qf/<run_id>)")

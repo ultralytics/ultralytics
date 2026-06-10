@@ -50,7 +50,7 @@ jobs:
       - name: Install Dependencies
         run: |
           uv venv
-          echo "$PWD/.venv/bin" >> $GITHUB_PATH
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
           uv pip install -e ".[dev]" ruff --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Ruff fixes
         continue-on-error: true
@@ -121,3 +121,30 @@ jobs:
             git commit -m "Update Docs for 'ultralytics $VERSION - $LATEST_HASH'"
             git push https://${{ secrets._GITHUB_TOKEN }}@github.com/ultralytics/docs.git gh-pages
           fi
+      - name: Check docs source changes
+        id: docs_changes
+        if: github.event_name == 'push'
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          if [[ "$BEFORE_SHA" =~ ^0+$ ]]; then
+            BEFORE_SHA="$(git rev-list --max-parents=0 "$CURRENT_SHA")"
+          fi
+
+          if git diff --quiet "$BEFORE_SHA" "$CURRENT_SHA" -- docs mkdocs.yml mkdocs.yaml; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Trigger Portal docs redeploy
+        if: github.event_name == 'push' && steps.docs_changes.outputs.changed == 'true'
+        env:
+          VERCEL_DOCS_DEPLOY_HOOK: ${{ secrets.VERCEL_DOCS_DEPLOY_HOOK }}
+        run: |
+          if [[ -z "$VERCEL_DOCS_DEPLOY_HOOK" ]]; then
+            echo "::error::VERCEL_DOCS_DEPLOY_HOOK is not configured"
+            exit 1
+          fi
+
+          curl --fail --silent --show-error --retry 3 --request POST "$VERCEL_DOCS_DEPLOY_HOOK"

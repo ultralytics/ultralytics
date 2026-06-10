@@ -6,11 +6,11 @@ keywords: TrackZone, object tracking, YOLO26, Ultralytics, real-time object dete
 
 # TrackZone using Ultralytics YOLO26
 
-<a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-track-the-objects-in-zone-using-ultralytics-yolo.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open TrackZone In Colab"></a>
-
 ## What is TrackZone?
 
-TrackZone specializes in monitoring objects within designated areas of a frame instead of the whole frame. Built on [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/), it integrates object detection and tracking specifically within zones for videos and live camera feeds. YOLO26's advanced algorithms and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) technologies make it a perfect choice for real-time use cases, offering precise and efficient object tracking in applications like crowd monitoring and surveillance.
+<a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-track-the-objects-in-zone-using-ultralytics-yolo.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open TrackZone In Colab"></a>
+
+TrackZone specializes in monitoring objects within designated areas of a frame instead of the whole frame. Built on [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/), it integrates object detection and [tracking](../modes/track.md) specifically within zones for videos and live camera feeds. YOLO26's advanced algorithms and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) technologies make it a perfect choice for real-time use cases, offering precise and efficient object tracking in applications like crowd monitoring and surveillance.
 
 <p align="center">
   <br>
@@ -97,6 +97,10 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
+!!! note "Zone shape and default region"
+
+    `TrackZone` converts the `region` points into their [convex hull](https://en.wikipedia.org/wiki/Convex_hull), so a concave shape is simplified to the smallest convex polygon that contains all of its points. Order the points around the perimeter of the area you want to monitor. If you omit `region` entirely, a default zone of `[(75, 75), (565, 75), (565, 285), (75, 285)]` is used.
+
 ### `TrackZone` Arguments
 
 Here's a table with the `TrackZone` arguments:
@@ -136,25 +140,13 @@ from ultralytics import solutions
 cap = cv2.VideoCapture("path/to/video.mp4")
 assert cap.isOpened(), "Error reading video file"
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+video_writer = cv2.VideoWriter("trackzone_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-# Define region points
-region_points = [(150, 150), (1130, 150), (1130, 570), (150, 570)]
+trackzone = solutions.TrackZone(show=True, region=[(150, 150), (1130, 150), (1130, 570), (150, 570)], model="yolo26n.pt")
 
-# Video writer
-video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-
-# Init trackzone (object tracking in zones, not complete frame)
-trackzone = solutions.TrackZone(
-    show=True,  # display the output
-    region=region_points,  # pass region points
-    model="yolo26n.pt",
-)
-
-# Process video
 while cap.isOpened():
     success, im0 = cap.read()
     if not success:
-        print("Video frame is empty or video processing has been successfully completed.")
         break
     results = trackzone(im0)
     video_writer.write(results.plot_im)
@@ -178,3 +170,5 @@ trackzone = solutions.TrackZone(
     region=region_points,  # pass region points
 )
 ```
+
+The points are reduced to their [convex hull](https://en.wikipedia.org/wiki/Convex_hull), so concave zones are simplified to the smallest convex polygon that contains them. To count objects across multiple separate areas or to keep a non-convex shape, use the [RegionCounter](region-counting.md) solution instead.

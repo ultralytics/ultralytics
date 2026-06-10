@@ -435,9 +435,9 @@ class TRACKTRACK:
         if self.encoder is not None:
             cos = _cosine_distance(tracks, dets)
             # Where appearance is missing (NaN: new track, or occlusion-suppressed detection), fall back to
-            # motion for that pair so the embedding neither helps nor penalizes it.
-            reid_term = np.where(np.isnan(cos), hmiou_dist, cos)
-            cost = self.iou_weight * hmiou_dist + self.reid_weight * reid_term
+            # pure motion cost for that pair so the embedding neither helps nor penalizes it.
+            nan_mask = np.isnan(cos)
+            cost = np.where(nan_mask, hmiou_dist, self.iou_weight * hmiou_dist + self.reid_weight * cos)
         else:
             cost = hmiou_dist
         cost += self.conf_weight * _confidence_distance(tracks, dets)

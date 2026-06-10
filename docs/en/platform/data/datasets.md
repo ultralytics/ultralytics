@@ -67,6 +67,10 @@ A file extension only names the **container** — it does not guarantee your bro
 - **Videos are decoded in your browser.** Frames are extracted client-side (1 FPS) *before* upload, so a video needs both a container **and** a codec your browser — typically Chrome — can decode. An `.mp4` wrapping H.265/HEVC, or an `.mkv` from a screen recorder, is rejected even though the extension is accepted. If a video fails to decode, re-encode it to H.264/MP4 (see below).
 - **Images are decoded on the server.** Every accepted image format always uploads and processes, including HEIC, TIFF, DNG, JP2, and MPO. Browser support only affects whether a thumbnail **preview** renders during upload — it never blocks the upload.
 
+!!! note "Other browsers"
+
+    The tables below are the portable baseline — what Chrome and other Chromium browsers decode. Browsers that decode through the operating system, notably **Safari on macOS**, read extra codecs such as ProRes and HEVC, so a video that fails in Chrome may still upload in Safari. The reverse also holds — Chrome decodes AV1 and VP9 in software where Safari needs hardware — so **H.264/MP4 is the only format guaranteed to work in every browser**.
+
 #### Video codecs
 
 | Codec         | Also known as | Browser decode | Notes                                                                              |

@@ -34,18 +34,17 @@ def qnn_library_paths() -> tuple[str | None, str]:
         return str(ep_lib) if ep_lib else None, str(capi / htp_lib)
 
 
-
 def _prepare_qnn_graph(onnx_file: Path, task: str | None) -> tuple[Path, bool]:
     """Rewrite the ONNX graph for Hexagon-friendly I/O before quantization.
 
     Two rewrites, both following Qualcomm's published deployment recipes:
 
     1. Channel-last image input: the HTP's native layout is NHWC, so an NCHW input costs a boundary transpose on
-       every inference (and a matching CPU-side permute in apps). The input is converted to NHWC with an in-graph
-       Transpose that ONNX Runtime's layout transformer folds away during context generation.
+    every inference (and a matching CPU-side permute in apps). The input is converted to NHWC with an in-graph Transpose
+    that ONNX Runtime's layout transformer folds away during context generation.
     2. Semantic class-map output: semantic models otherwise emit full float logits (~20M values at 1024px) that
-       must be dequantized and argmax-decoded on the CPU every frame. An in-graph ArgMax + uint8 Cast reduces the
-       output to a compact `[N, H, W]` class map computed on the NPU.
+    must be dequantized and argmax-decoded on the CPU every frame. An in-graph ArgMax + uint8 Cast reduces the output to
+    a compact `[N, H, W]` class map computed on the NPU.
 
     Returns:
         (tuple[Path, bool]): Path to the rewritten model and whether the input was converted to NHWC.
@@ -78,7 +77,9 @@ def _prepare_qnn_graph(onnx_file: Path, task: str | None) -> tuple[Path, bool]:
         graph.node.extend(
             [
                 helper.make_node("ArgMax", [out.name], [f"{out.name}_argmax"], axis=1, keepdims=0, name="qnn_argmax"),
-                helper.make_node("Cast", [f"{out.name}_argmax"], ["class_map"], to=TensorProto.UINT8, name="qnn_classmap"),
+                helper.make_node(
+                    "Cast", [f"{out.name}_argmax"], ["class_map"], to=TensorProto.UINT8, name="qnn_classmap"
+                ),
             ]
         )
         del graph.output[:]

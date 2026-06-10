@@ -17,6 +17,8 @@ from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils.ops import xywh2xyxy
 from ultralytics.utils.plotting import save_one_box
 
+REID_ASSETS = frozenset(f"yolo26{k}-reid.onnx" for k in "nsmlx")
+
 
 class ReID:
     """ReID encoder. Routes `.pt` to the YOLO predictor path; everything else to `AutoBackend`."""
@@ -49,10 +51,10 @@ class ReID:
         else:
             from pathlib import Path
 
-            from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES, attempt_download_asset
+            # Auto-download only the published ReID encoders; custom/local paths pass straight to AutoBackend.
+            if Path(str(model)).name in REID_ASSETS:
+                from ultralytics.utils.downloads import attempt_download_asset
 
-            # Only auto-download known release assets (the yolo26*-reid.onnx encoders); custom paths pass through as-is.
-            if Path(str(model)).name in GITHUB_ASSETS_NAMES:
                 model = attempt_download_asset(str(model))
             self.model = AutoBackend(str(model), device=self.device, fp16=fp16, verbose=False)
             self.fp16 = self.model.fp16

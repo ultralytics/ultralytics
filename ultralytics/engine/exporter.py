@@ -589,7 +589,7 @@ class Exporter:
             self.args.name = str(self.args.name).lower().lstrip("v")  # accept '73' or 'v73'
             assert self.args.name in QNN_HTP_ARCHS, (
                 f"Invalid HTP architecture '{self.args.name}' for Qualcomm QNN export. Valid archs are {QNN_HTP_ARCHS} "
-                "(Snapdragon 865/888/8Gen2/8Gen3/8Elite respectively)."
+                "(Snapdragon 888/8Gen1/8Gen2/8Gen3/8Elite/8EliteGen5 respectively)."
             )
         if self.args.nms and model.task == "semantic":
             LOGGER.warning("'nms=True' is not valid for semantic segmentation models. Forcing 'nms=False'.")

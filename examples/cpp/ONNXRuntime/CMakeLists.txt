@@ -92,8 +92,8 @@ endif ()
 # and put it in the same folder of the executable file
 configure_file(coco.yaml ${CMAKE_CURRENT_BINARY_DIR}/coco.yaml COPYONLY)
 
-# Copy yolov8n.onnx file to the same folder of the executable file
-configure_file(yolov8n.onnx ${CMAKE_CURRENT_BINARY_DIR}/yolov8n.onnx COPYONLY)
+# Copy yolo11n.onnx file to the same folder of the executable file
+configure_file(yolo11n.onnx ${CMAKE_CURRENT_BINARY_DIR}/yolo11n.onnx COPYONLY)
 
 # Create folder name images in the same folder of the executable file
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD

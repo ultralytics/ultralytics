@@ -248,7 +248,7 @@ void DetectTest()
     DL_INIT_PARAM params;
     params.rectConfidenceThreshold = 0.1;
     params.iouThreshold = 0.5;
-    params.modelPath = "./models/yolov8n.onnx";
+    params.modelPath = "./models/yolo11n.onnx";
     params.imgSize = { 640, 640 };
 #ifdef USE_CUDA
     params.cudaEnable = true;
@@ -288,7 +288,7 @@ void PoseTest()
     params.rectConfidenceThreshold = 0.25;
     params.pointScoresThreshold = 0.5;
     params.iouThreshold = 0.7;
-    params.modelPath = "./models/yolov8n-pose.onnx";
+    params.modelPath = "./models/yolo11n-pose.onnx";
     params.imgSize = { 640, 640 };
 #ifdef USE_CUDA
     params.cudaEnable = true;

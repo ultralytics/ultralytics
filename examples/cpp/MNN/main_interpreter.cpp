@@ -175,8 +175,8 @@ public:
             // Note: MNN::CV does not offer a putText function.
             // For text annotations, consider converting the image to cv::Mat and using OpenCV.
         }
-        if (MNN::CV::imwrite("mnn_yolov8_cpp.jpg", originalImage)) {
-            MNN_PRINT("Result image written to `mnn_yolov8_cpp.jpg`.\n");
+        if (MNN::CV::imwrite("mnn_yolo_cpp.jpg", originalImage)) {
+            MNN_PRINT("Result image written to `mnn_yolo_cpp.jpg`.\n");
         }
     }
 
@@ -190,7 +190,7 @@ private:
 
 int main(int argc, const char* argv[]) {
     if (argc < 3) {
-        MNN_PRINT("Usage: ./main yolov8n.mnn input.jpg [backend] [precision] [thread]\n");
+        MNN_PRINT("Usage: ./yolo_mnn_interpreter yolo11n.mnn input.jpg [backend] [precision] [thread]\n");
         return 0;
     }
     int backend = MNN_FORWARD_CPU;

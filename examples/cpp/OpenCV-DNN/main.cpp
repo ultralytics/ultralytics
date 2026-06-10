@@ -20,13 +20,13 @@ int main(int argc, char **argv)
     //
     // Pass in either:
     //
-    // "yolov8s.onnx" or "yolov5s.onnx"
+    // "yolo11s.onnx" or "yolov5s.onnx"
     //
-    // To run Inference with yolov8/yolov5 (ONNX)
+    // To run Inference with Ultralytics YOLO11/YOLOv8 or YOLOv5 (ONNX)
     //
 
     // Note that in this example the classes are hard-coded and 'classes.txt' is a place holder.
-    Inference inf(projectBasePath + "/yolov8s.onnx", cv::Size(640, 640), "classes.txt", runOnGPU);
+    Inference inf(projectBasePath + "/yolo11s.onnx", cv::Size(640, 640), "classes.txt", runOnGPU);
 
     std::vector<std::string> imageNames;
     imageNames.push_back(projectBasePath + "/ultralytics/assets/bus.jpg");

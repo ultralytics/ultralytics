@@ -183,8 +183,8 @@ public:
                 x1, y1, x2, y2, classNames[class_idx].c_str(), score);
             rectangle(originalImage, { x1, y1 }, { x2, y2 }, { 0, 255, 0 }, 2);
         }
-        if (imwrite("mnn_yolov8_cpp.jpg", originalImage)) {
-            MNN_PRINT("Result image written to `mnn_yolov8_cpp.jpg`.\n");
+        if (imwrite("mnn_yolo_cpp.jpg", originalImage)) {
+            MNN_PRINT("Result image written to `mnn_yolo_cpp.jpg`.\n");
         }
     }
 
@@ -204,7 +204,7 @@ public:
 
 int main(int argc, const char* argv[]) {
     if (argc < 3) {
-        MNN_PRINT("Usage: ./main yolov8n.mnn bus.jpg [forwardType] [precision] [thread]\n");
+        MNN_PRINT("Usage: ./yolo_mnn yolo11n.mnn bus.jpg [forwardType] [precision] [thread]\n");
         return 0;
     }
     int thread = 4;

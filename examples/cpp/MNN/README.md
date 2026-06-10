@@ -150,7 +150,7 @@ Detection: box = {22.14, 228.36, 796.07, 749.74}, class = bus, score = 0.86
 Detection: box = {669.92, 375.82, 809.86, 874.41}, class = person, score = 0.86
 Detection: box = {216.01, 405.24, 346.36, 858.19}, class = person, score = 0.82
 Detection: box = {-0.11, 549.41, 62.05, 874.88}, class = person, score = 0.33
-Result image write to `mnn_yolov8_cpp.jpg`.
+Result image write to `mnn_yolo_cpp.jpg`.
 Speed: 35.6ms preprocess, 386.0ms inference, 68.3ms postprocess
 ```
 
@@ -172,7 +172,7 @@ Detection: box = {48.63, 399.30, 243.65, 902.90}, class = person, score = 0.86
 Detection: box = {22.14, 228.36, 796.07, 749.74}, class = bus, score = 0.86
 Detection: box = {669.92, 375.82, 809.86, 874.41}, class = person, score = 0.86
 Detection: box = {216.01, 405.24, 346.36, 858.19}, class = person, score = 0.82
-Result image written to `mnn_yolov8_cpp.jpg`.
+Result image written to `mnn_yolo_cpp.jpg`.
 Speed: 26.0ms preprocess, 190.9ms inference, 58.9ms postprocess
 ```
 

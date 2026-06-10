@@ -215,8 +215,8 @@ int main() {
                                       "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear", "hair drier", "toothbrush"};
 
     try {
-        // Load the model (e.g. yolov8s.torchscript)
-        std::string model_path = "/path/to/yolov8s.torchscript";
+        // Load the model (e.g. yolo11s.torchscript)
+        std::string model_path = "/path/to/yolo11s.torchscript";
         torch::jit::script::Module yolo_model;
         yolo_model = torch::jit::load(model_path, device);
         yolo_model.eval();

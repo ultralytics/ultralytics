@@ -240,7 +240,7 @@ char* YOLO_V8::TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std::
             rawData.convertTo(rawData, CV_32F);
         }
         // Note:
-        // ultralytics add transpose operator to the output of yolov8 model.which make yolov8/v5/v7 has same shape
+        // Ultralytics adds a transpose operator to the YOLO output, giving YOLO11/v8/v5/v7 the same output shape.
         // https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov8n.pt
         rawData = rawData.t();
 
@@ -347,7 +347,7 @@ char* YOLO_V8::TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std::
             rawData.convertTo(rawData, CV_32F);
         }
         // Note:
-        // ultralytics add transpose operator to the output of yolov8 model.which make yolov8/v5/v7 has same shape
+        // Ultralytics adds a transpose operator to the YOLO output, giving YOLO11/v8/v5/v7 the same output shape.
         // https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov8n-pose.pt
         rawData = rawData.t();
 

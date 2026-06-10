@@ -183,8 +183,8 @@ public:
                 x1, y1, x2, y2, classNames[class_idx].c_str(), score);
             rectangle(originalImage, { x1, y1 }, { x2, y2 }, { 0, 255, 0 }, 2);
         }
-        if (imwrite("mnn_yolo_cpp.jpg", originalImage)) {
-            MNN_PRINT("Result image written to `mnn_yolo_cpp.jpg`.\n");
+        if (imwrite("yolo_mnn.jpg", originalImage)) {
+            MNN_PRINT("Result image written to `yolo_mnn.jpg`.\n");
         }
     }
 

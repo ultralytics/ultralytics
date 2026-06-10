@@ -175,8 +175,8 @@ public:
             // Note: MNN::CV does not offer a putText function.
             // For text annotations, consider converting the image to cv::Mat and using OpenCV.
         }
-        if (MNN::CV::imwrite("mnn_yolo_cpp.jpg", originalImage)) {
-            MNN_PRINT("Result image written to `mnn_yolo_cpp.jpg`.\n");
+        if (MNN::CV::imwrite("yolo_mnn.jpg", originalImage)) {
+            MNN_PRINT("Result image written to `yolo_mnn.jpg`.\n");
         }
     }
 

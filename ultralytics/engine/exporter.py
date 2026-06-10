@@ -1358,6 +1358,7 @@ class Exporter:
             dataset=self.get_int8_calibration_dataloader(prefix),
             transform_fn=self._transform_fn,
             name=self.args.name,
+            metadata=self.metadata,
             batch=0 if self.args.dynamic else self.args.batch,
             prefix=prefix,
         )

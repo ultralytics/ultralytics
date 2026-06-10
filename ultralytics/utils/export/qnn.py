@@ -40,6 +40,7 @@ def onnx2qnn(
     dataset,
     transform_fn,
     name: str = "73",
+    metadata: dict | None = None,
     batch: int = 0,
     prefix: str = "",
 ) -> str:
@@ -61,6 +62,9 @@ def onnx2qnn(
         name (str): Target Hexagon Tensor Processor (HTP) architecture version, e.g. `"73"` (Snapdragon 8 Gen 2), `"75"`
             (8 Gen 3), `"79"` (8 Elite). Finalizes the graph for the target chip when exporting on a host without a
             Snapdragon NPU.
+        metadata (dict | None): Ultralytics model metadata ensured present in the context model's `metadata_props`
+            (ONNX Runtime normally carries the source model's metadata through, but this is not a documented
+            guarantee).
         batch (int): Static batch dimension of the ONNX graph used to tile undersized calibration batches, or 0 for
             dynamic-batch models.
         prefix (str): Prefix for log messages.
@@ -140,4 +144,15 @@ def onnx2qnn(
 
     if not ctx_file.exists():
         raise RuntimeError(f"QNN context binary was not generated at {ctx_file}. See {prefix} logs for details.")
+
+    if metadata:  # ensure Ultralytics metadata is present in the context model (usually preserved by ONNX Runtime)
+        import onnx
+
+        ctx_model = onnx.load(str(ctx_file))
+        existing = {p.key for p in ctx_model.metadata_props}
+        if missing := {k: v for k, v in metadata.items() if str(k) not in existing}:
+            for k, v in missing.items():
+                entry = ctx_model.metadata_props.add()
+                entry.key, entry.value = str(k), str(v)
+            onnx.save(ctx_model, str(ctx_file))
     return str(ctx_file)

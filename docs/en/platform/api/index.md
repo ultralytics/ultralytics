@@ -304,6 +304,22 @@ PATCH /api/datasets/{datasetId}
 }
 ```
 
+### Dataset Icon
+
+Upload a dataset icon (multipart form with image file):
+
+```http
+POST /api/datasets/{datasetId}/icon
+```
+
+Remove the dataset icon:
+
+```http
+DELETE /api/datasets/{datasetId}/icon
+```
+
+Both require an active platform browser session — not available via API key.
+
 ### Delete Dataset
 
 ```http
@@ -318,7 +334,7 @@ Soft-deletes the dataset (moved to [trash](../account/trash.md), recoverable for
 POST /api/datasets/{datasetId}/clone
 ```
 
-Creates a copy of the dataset with all images and labels. Only public datasets can be cloned. Requires an active platform browser session — not available via API key.
+Creates a copy of the dataset with all images and labels. Only public, owned, or editable workspace datasets can be cloned. Requires an active platform browser session — not available via API key.
 
 **Body (all fields optional):**
 
@@ -449,6 +465,46 @@ Returns class distribution, location heatmap, and dimension statistics. Results 
 }
 ```
 
+### Manage Classes
+
+Merge classes (reassign annotations from source classes to a target, then remove the sources):
+
+```http
+POST /api/datasets/{datasetId}/classes/merge
+```
+
+Delete classes:
+
+```http
+POST /api/datasets/{datasetId}/classes/delete
+```
+
+### Redistribute Splits
+
+```http
+POST /api/datasets/{datasetId}/splits/redistribute
+```
+
+Re-assign images across train/val/test splits. All three require an active platform browser session — not available via API key.
+
+### Dataset Embeddings
+
+```http
+GET /api/datasets/{datasetId}/embeddings
+POST /api/datasets/{datasetId}/embeddings
+DELETE /api/datasets/{datasetId}/embeddings
+```
+
+GET returns the current UMAP analysis summary and active job status; POST enqueues an embeddings analysis job; DELETE cancels the active job.
+
+### Image Clustering
+
+```http
+GET /api/datasets/{datasetId}/images/clustering
+```
+
+Returns the UMAP 2D layout and per-image metadata for the clustering scatter view (paged and rate-limited).
+
 ### Get Models Trained on Dataset
 
 ```http
@@ -500,12 +556,12 @@ Run YOLO inference on dataset images to auto-generate annotations. Uses a select
 
 **Body:**
 
-| Field        | Type   | Required | Description                          |
-| ------------ | ------ | -------- | ------------------------------------ |
-| `imageHash`  | string | Yes      | Hash of the image to annotate        |
-| `modelId`    | string | No       | Model ID to use for inference        |
-| `confidence` | float  | No       | Confidence threshold (default: 0.25) |
-| `iou`        | float  | No       | IoU threshold (default: 0.7)         |
+| Field        | Type   | Required | Description                                                                                                                                       |
+| ------------ | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `imageHash`  | string | Yes      | Hash of the image to annotate                                                                                                                     |
+| `modelId`    | string | No       | Model to use for inference, as a `ul://` URI (e.g. `ul://username/project/model`). If omitted, the dataset's task-specific default model is used. |
+| `confidence` | float  | No       | Confidence threshold (default: 0.25)                                                                                                              |
+| `iou`        | float  | No       | IoU threshold (default: 0.7)                                                                                                                      |
 
 ### Dataset Ingest
 
@@ -514,6 +570,8 @@ POST /api/datasets/ingest
 ```
 
 Create a dataset ingest job to process uploaded ZIP or TAR files, including `.tar.gz` and `.tgz`, containing images and labels.
+
+The request body takes exactly one of `sessionId` (an uploaded archive's upload session) or `sourceUrl` (a remote ZIP, TAR, TAR.GZ, TGZ, or NDJSON URL), plus an optional `targetSplit` (`train`, `val`, or `test`) to override the archive's split structure.
 
 ```mermaid
 graph LR
@@ -544,6 +602,7 @@ GET /api/datasets/{datasetId}/images
 | `hasLabel`          | string | Filter by label status (`true` or `false`)                                                                                                                                                                     |
 | `hasError`          | string | Filter by error status (`true` or `false`)                                                                                                                                                                     |
 | `search`            | string | Search by filename or image hash                                                                                                                                                                               |
+| `classIds`          | string | Comma-separated class IDs; returns images containing any of the specified classes                                                                                                                              |
 | `includeThumbnails` | string | Include signed thumbnail URLs (default: `true`)                                                                                                                                                                |
 | `includeImageUrls`  | string | Include signed full image URLs (default: `false`)                                                                                                                                                              |
 
@@ -813,12 +872,15 @@ POST /api/models/{modelId}/predict
 
 **Multipart Form:**
 
-| Field   | Type  | Description                          |
-| ------- | ----- | ------------------------------------ |
-| `file`  | file  | Image file (JPEG, PNG, WebP)         |
-| `conf`  | float | Confidence threshold (default: 0.25) |
-| `iou`   | float | IoU threshold (default: 0.7)         |
-| `imgsz` | int   | Image size in pixels (default: 640)  |
+| Field    | Type   | Description                                                         |
+| -------- | ------ | ------------------------------------------------------------------- |
+| `file`   | file   | Image or video file (e.g. JPG, PNG, WebP, BMP, TIFF; MP4, MOV, AVI) |
+| `conf`   | float  | Confidence threshold (default: 0.25)                                |
+| `iou`    | float  | IoU threshold (default: 0.7)                                        |
+| `imgsz`  | int    | Image size in pixels (default: 640)                                 |
+| `source` | string | Image URL or base64-encoded image (alternative to `file`)           |
+
+Maximum upload size is 100 MB.
 
 === "cURL"
 
@@ -953,6 +1015,14 @@ POST /api/training/start
 !!! note "GPU Types"
 
     Available GPU types include `rtx-4090`, `a100-80gb-pcie`, `a100-80gb-sxm`, `h100-sxm`, `rtx-pro-6000`, `b300`, and others. See [Cloud Training](../train/cloud-training.md) for the full list with pricing.
+
+### Get GPU Availability
+
+```http
+GET /api/training/gpu-availability
+```
+
+Returns current GPU stock status (`High`, `Medium`, `Low`, or `null`) keyed by GPU type ID. Public, no authentication required; cached for 5 minutes.
 
 ### Get Training Status
 
@@ -1406,11 +1476,7 @@ GET /api/billing/balance
 ```json
 {
     "creditsCents": 2500,
-    "plan": "free",
-    "cashBalance": 25,
-    "creditBalance": 0,
-    "reservedAmount": 0,
-    "totalBalance": 25
+    "plan": "free"
 }
 ```
 
@@ -1603,6 +1669,12 @@ Check your storage usage breakdown by category (datasets, models, exports) and s
 GET /api/storage
 ```
 
+**Query Parameters:**
+
+| Parameter | Type    | Description                                                              |
+| --------- | ------- | ------------------------------------------------------------------------ |
+| `details` | boolean | Set to `true` to include `topItems` (largest datasets, models, exports). |
+
 **Response:**
 
 ```json
@@ -1686,7 +1758,7 @@ Request a signed URL for uploading a file directly to cloud storage. The signed 
 {
     "sessionId": "session_abc123",
     "uploadUrl": "https://storage.example.com/...",
-    "objectPath": "images/abc123/my-image.jpg",
+    "gcsPath": "gs://bucket/users/user123/images/abc123/my-image.jpg",
     "downloadUrl": "https://cdn.example.com/...",
     "expiresAt": "2026-02-22T12:00:00Z"
 }
@@ -1704,13 +1776,32 @@ Notify the platform that a file upload is complete so it can begin processing.
 
 ```json
 {
-    "datasetId": "abc123",
-    "objectPath": "datasets/abc123/images/my-image.jpg",
-    "filename": "my-image.jpg",
-    "contentType": "image/jpeg",
-    "size": 5242880
+    "sessionId": "session_abc123",
+    "checksum": "<optional sha-256 hex>"
 }
 ```
+
+---
+
+## Integrations API
+
+Import datasets from third-party services. See [Integrations documentation](../integrations/index.md).
+
+### Preview Roboflow Import
+
+```http
+POST /api/integrations/roboflow/preview
+```
+
+Resolve a Roboflow API key to a bulk-import plan: workspace info, which projects would be newly imported, count of already-imported versions (skipped), and unsupported project types. The Roboflow API key is passed in the body and is not persisted.
+
+### Import from Roboflow
+
+```http
+POST /api/integrations/roboflow/import
+```
+
+Queue dataset ingest jobs to import the selected Roboflow projects into your workspace. Requires storage headroom, and each dataset must fit your plan's per-import size limit.
 
 ---
 
@@ -1882,12 +1973,13 @@ GET /api/explore/search
 
 **Query Parameters:**
 
-| Parameter | Type   | Description                                                                                           |
-| --------- | ------ | ----------------------------------------------------------------------------------------------------- |
-| `q`       | string | Search query                                                                                          |
-| `type`    | string | Resource type: `all` (default), `projects`, `datasets`                                                |
-| `sort`    | string | Sort order: `stars` (default), `newest`, `oldest`, `name-asc`, `name-desc`, `count-desc`, `count-asc` |
-| `offset`  | int    | Pagination offset (default: 0). Results return 20 items per page.                                     |
+| Parameter | Type   | Description                                                                                                               |
+| --------- | ------ | ------------------------------------------------------------------------------------------------------------------------- |
+| `q`       | string | Search query                                                                                                              |
+| `type`    | string | Resource type: `all` (default), `projects`, `datasets`                                                                    |
+| `sort`    | string | Sort order: `newest` (default), `stars`, `oldest`, `name-asc`, `name-desc`, `count-desc`, `count-asc`                     |
+| `offset`  | int    | Pagination offset (default: 0). Results return 20 items per page.                                                         |
+| `task`    | string | Optional: comma-separated YOLO task types to filter datasets (`detect`, `segment`, `semantic`, `classify`, `pose`, `obb`) |
 
 ### Sidebar Data
 

@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# Builds ultralytics/ultralytics:latest images on DockerHub https://hub.docker.com/r/ultralytics
+# Builds Ultralytics Docker images for Docker Hub and GitHub Container Registry.
 
 name: Publish Docker Images
 
@@ -65,7 +65,7 @@ jobs:
             tags: "latest"
             platforms: "linux/amd64"
             runs_on: "ubuntu-latest"
-            derivatives: "Dockerfile-runner,Dockerfile-export"
+            derivatives: "Dockerfile-export,Dockerfile-runner"
           - dockerfile: "Dockerfile-python"
             tags: "latest-python"
             platforms: "linux/amd64"
@@ -160,25 +160,25 @@ jobs:
         run: |
           VERSION=$(grep "^__version__ =" ultralytics/__init__.py | awk -F'"' '{print $2}')
           echo "Retrieved Ultralytics version: $VERSION"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           VERSION_TAG=$(echo "${{ matrix.tags }}" | sed "s/latest/${VERSION}/")
           echo "Intended version tag: $VERSION_TAG"
-          echo "version_tag=$VERSION_TAG" >> $GITHUB_OUTPUT
+          echo "version_tag=$VERSION_TAG" >> "$GITHUB_OUTPUT"
 
       - name: Check if version tag exists on DockerHub
         id: check_tag
         run: |
-          RESPONSE=$(curl -s https://hub.docker.com/v2/repositories/ultralytics/ultralytics/tags/$VERSION_TAG)
-          MESSAGE=$(echo $RESPONSE | jq -r '.message')
+          RESPONSE=$(curl -s "https://hub.docker.com/v2/repositories/ultralytics/ultralytics/tags/$VERSION_TAG")
+          MESSAGE=$(echo "$RESPONSE" | jq -r '.message')
           if [[ "$MESSAGE" == "null" ]]; then
               echo "Tag $VERSION_TAG already exists on DockerHub."
-              echo "new_release=false" >> $GITHUB_OUTPUT
+              echo "new_release=false" >> "$GITHUB_OUTPUT"
           elif [[ "$MESSAGE" == *"404"* ]]; then
               echo "Tag $VERSION_TAG does not exist on DockerHub."
-              echo "new_release=true" >> $GITHUB_OUTPUT
+              echo "new_release=true" >> "$GITHUB_OUTPUT"
           else
               echo "Unexpected response from DockerHub. Please check manually."
-              echo "new_release=false" >> $GITHUB_OUTPUT
+              echo "new_release=false" >> "$GITHUB_OUTPUT"
           fi
         env:
           VERSION_TAG: ${{ steps.get_version.outputs.version_tag }}
@@ -211,7 +211,8 @@ jobs:
           retry_delay_seconds: 60
           retries: 2
           run: |
-            # Build each derivative image using local base image
+            docker builder prune -af
+
             derivatives='${{ matrix.derivatives }}'
             if [[ -n "$derivatives" ]]; then
               IFS=',' read -ra derivative_array <<< "$derivatives"
@@ -232,6 +233,7 @@ jobs:
                   -t "ghcr.io/ultralytics/ultralytics:$derivative_tag" \
                   -t "ghcr.io/ultralytics/ultralytics:$derivative_version_tag" \
                   .
+                docker builder prune -af
               done
             fi
 

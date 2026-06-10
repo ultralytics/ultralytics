@@ -29,7 +29,7 @@ Ultralytics YOLO extends its powerful object detection features to deliver robus
 
 ## 🛠️ Available Trackers
 
-Ultralytics YOLO supports the following tracking algorithms. Enable them by passing the relevant YAML configuration file, such as `tracker=tracker_type.yaml`:
+Ultralytics YOLO supports the following tracking algorithms. Enable them by passing the relevant YAML configuration file, such as `tracker=bytetrack.yaml`:
 
 - **BoT-SORT:** Use [`botsort.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/botsort.yaml) to enable this tracker. Based on the [BoT-SORT paper](https://arxiv.org/abs/2206.14651) and its official [code implementation](https://github.com/NirAharon/BoT-SORT).
 - **ByteTrack:** Use [`bytetrack.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml) to enable this tracker. Based on the [ByteTrack paper](https://arxiv.org/abs/2110.06864) and its official [code implementation](https://github.com/FoundationVision/ByteTrack).
@@ -42,7 +42,7 @@ The default tracker is **BoT-SORT**.
 
 ## ⚙️ Usage
 
-To run the tracker on video streams, use a trained Detect, Segment, or Pose model like [Ultralytics YOLO26n](https://docs.ultralytics.com/models/yolo26), YOLO26n-seg, or YOLO26n-pose.
+To run the tracker on video streams, use a trained Detect, Segment, Pose, or OBB model like [Ultralytics YOLO26n](https://docs.ultralytics.com/models/yolo26), YOLO26n-seg, YOLO26n-pose, or YOLO26n-obb.
 
 ```python
 # Python

@@ -530,6 +530,8 @@ class LoadPilAndNumpy:
             im = np.ascontiguousarray(im)  # contiguous
         elif im.ndim == 2:  # grayscale in numpy form
             im = im[..., None] if flag == "L" else cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
+        elif im.ndim == 3 and im.shape[-1] == 1 and flag != "L":
+            im = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
         return im
 
     def __len__(self) -> int:

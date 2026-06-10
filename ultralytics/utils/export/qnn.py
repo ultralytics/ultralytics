@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ultralytics.utils import LOGGER, WINDOWS, YAML
+from ultralytics.utils import LOGGER, WINDOWS
 from ultralytics.utils.checks import check_requirements
 
 
@@ -36,15 +36,14 @@ def qnn_library_paths() -> tuple[str | None, str]:
 
 def onnx2qnn(
     onnx_file: str | Path,
-    output_dir: Path | str,
+    output_file: Path | str,
     dataset,
     transform_fn,
     name: str = "73",
-    metadata: dict | None = None,
     batch: int = 0,
     prefix: str = "",
 ) -> str:
-    """Convert an ONNX model to an INT8 Qualcomm QNN context binary using the ONNX Runtime QNN Execution Provider.
+    """Convert an ONNX model to a Qualcomm QNN context binary using the ONNX Runtime QNN Execution Provider.
 
     The conversion runs entirely on the host with no Qualcomm account or cloud upload. The model is quantized with ONNX
     Runtime's QNN QDQ flow to 16-bit activations and 8-bit weights (the recommended accuracy/performance balance for the
@@ -54,7 +53,7 @@ def onnx2qnn(
 
     Args:
         onnx_file (str | Path): Path to the source ONNX file (already exported).
-        output_dir (Path | str): Directory to save the exported QNN model.
+        output_file (Path | str): Path to save the exported QNN ONNX context-binary model.
         dataset (DataLoader): Calibration dataloader (from `Exporter.get_int8_calibration_dataloader`) used for INT8
             quantization.
         transform_fn (Callable): Preprocessing transform (`Exporter._transform_fn`) converting a calibration item to a
@@ -62,13 +61,12 @@ def onnx2qnn(
         name (str): Target Hexagon Tensor Processor (HTP) architecture version, e.g. `"73"` (Snapdragon 8 Gen 2), `"75"`
             (8 Gen 3), `"79"` (8 Elite). Finalizes the graph for the target chip when exporting on a host without a
             Snapdragon NPU.
-        metadata (dict | None): Metadata saved as `metadata.yaml`.
         batch (int): Static batch dimension of the ONNX graph used to tile undersized calibration batches, or 0 for
             dynamic-batch models.
         prefix (str): Prefix for log messages.
 
     Returns:
-        (str): Path to the exported `_qnn_model` directory.
+        (str): Path to the exported `*_qnn.onnx` file.
 
     Notes:
         `onnxruntime-qnn` wheels may expose QNN either as a plugin library or as a built-in ONNX Runtime provider.
@@ -84,11 +82,10 @@ def onnx2qnn(
     ep_library, htp_backend = qnn_library_paths()
 
     onnx_file = Path(onnx_file)
-    output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    ctx_file = output_dir / f"{onnx_file.stem}_qnn.onnx"
-    pre_file = output_dir / "preprocessed.onnx"
-    qdq_file = output_dir / "qdq.onnx"
+    ctx_file = Path(output_file)
+    ctx_file.parent.mkdir(parents=True, exist_ok=True)
+    pre_file = ctx_file.with_name(f"{onnx_file.stem}_qnn_preprocessed.onnx")
+    qdq_file = ctx_file.with_name(f"{onnx_file.stem}_qnn_qdq.onnx")
 
     LOGGER.info(f"\n{prefix} starting A16W8 quantization and export with ONNX Runtime QNN (HTP arch {name})...")
     quant_pre_process(str(onnx_file), str(pre_file))
@@ -137,6 +134,4 @@ def onnx2qnn(
 
     for f in (pre_file, qdq_file):  # remove quantization intermediates; the context binary is self-contained
         f.unlink(missing_ok=True)
-    if metadata:
-        YAML.save(output_dir / "metadata.yaml", metadata)
-    return str(output_dir)
+    return str(ctx_file)

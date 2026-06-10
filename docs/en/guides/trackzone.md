@@ -207,10 +207,10 @@ Remember that `TrackZone` reduces the points to their convex hull, so list them 
 
 All three solutions work with regions, but they answer different questions:
 
-| Solution | Use it to | Typical output |
-| --- | --- | --- |
-| **TrackZone** | Track objects and monitor live occupancy inside a single convex zone | Tracked IDs and `total_tracks` for the zone |
-| [ObjectCounter](object-counting.md) | Count objects that cross a line or enter and leave a region | Cumulative in and out counts |
-| [RegionCounter](region-counting.md) | Count objects inside one or more arbitrary (including non-convex) regions | Per-region object counts |
+| Solution                            | Use it to                                                                 | Typical output                              |
+| ----------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------- |
+| **TrackZone**                       | Track objects and monitor live occupancy inside a single convex zone      | Tracked IDs and `total_tracks` for the zone |
+| [ObjectCounter](object-counting.md) | Count objects that cross a line or enter and leave a region               | Cumulative in and out counts                |
+| [RegionCounter](region-counting.md) | Count objects inside one or more arbitrary (including non-convex) regions | Per-region object counts                    |
 
 Choose TrackZone when you want continuous tracking inside one area, and [RegionCounter](region-counting.md) when you need multiple zones or a non-convex shape.

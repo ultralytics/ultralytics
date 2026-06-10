@@ -198,13 +198,14 @@ model.train(data="coco8.yaml", epochs=10, trainer=WeightedTrainer)
 
     class WeightedDetectionModel(DetectionModel):
         """Detection model that uses class-weighted loss."""
+
         ...
     ```
 
     ```python
     # inference script
+
     from ultralytics import YOLO
-    from weighted_model import WeightedDetectionModel  # must be importable at load time
 
     model = YOLO("runs/detect/train/weights/best.pt")
     metrics = model.val()

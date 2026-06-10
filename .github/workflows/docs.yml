@@ -22,7 +22,7 @@ on:
   workflow_dispatch:
     inputs:
       publish_docs:
-        description: "Redeploy https://docs.ultralytics.com"
+        description: "Publish Docs to https://docs.ultralytics.com"
         default: true
         type: boolean
 
@@ -101,7 +101,7 @@ jobs:
           else
             echo "No changes to commit"
           fi
-      - name: Trigger Portal docs redeploy
+      - name: Publish Docs to https://docs.ultralytics.com
         if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_docs == 'true')
         env:
           EVENT_NAME: ${{ github.event_name }}

@@ -682,7 +682,7 @@ class Exporter:
                 m.forward = m.forward_split
 
         if model.task == "semantic":
-            # Every semantic export ships a compact uint8 class map instead of float logits: argmax is
+            # Every semantic export ships a compact int32 class map instead of float logits: argmax is
             # non-differentiable so it cannot live in the model itself, and emitting logits forces consumers to
             # dequantize and argmax large tensors on the CPU every frame. Python predict/val accept both forms.
             model = ClassMapModel(model)
@@ -1351,7 +1351,7 @@ class Exporter:
         """Export YOLO model to a Qualcomm QNN context binary using ONNX Runtime QNN."""
         from ultralytics.utils.export.qnn import onnx2qnn
 
-        # Wrap for Hexagon-friendly I/O: channel-last input, and a uint8 class-map output for semantic models
+        # Wrap for Hexagon-friendly I/O: channel-last input (the class-map wrap for semantic is format-agnostic)
         model, im = self.model, self.im
         try:
             self.model, self.im = QNNModel(model), im.permute(0, 2, 3, 1)
@@ -1435,7 +1435,7 @@ class QNNModel(ExportWrapper):
 
 
 class ClassMapModel(ExportWrapper):
-    """Reduces semantic-segmentation logits to a uint8 class map for export.
+    """Reduces semantic-segmentation logits to an int32 class map for export.
 
     Applied to every semantic export format: deployment consumers want per-pixel class indices, and shipping float
     logits instead forces a dequantize + argmax over large tensors (~20M values at 1024px) on the consumer's CPU
@@ -1448,9 +1448,11 @@ class ClassMapModel(ExportWrapper):
     """
 
     def forward(self, x):
-        """Run the wrapped model and return a `[N, H, W]` uint8 class map instead of float logits."""
+        """Run the wrapped model and return a `[N, H, W]` int32 class map instead of float logits."""
         y = self._model(x)
-        return (y[0] if isinstance(y, (list, tuple)) else y).argmax(1).to(torch.uint8)
+        # int32 is the one index dtype every deployment runtime reads natively (LiteRT, Core ML, ONNX Runtime);
+        # uint8 would be smaller but is unsupported by the LiteRT Kotlin API and promoted to int32 by Core ML anyway.
+        return (y[0] if isinstance(y, (list, tuple)) else y).argmax(1).to(torch.int32)
 
 
 class NMSModel(torch.nn.Module):

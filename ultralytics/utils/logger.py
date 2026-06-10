@@ -134,9 +134,10 @@ class ConsoleLogger:
 
         current_time = time.time()
 
-        # Handle carriage returns and process lines
+        # Handle carriage returns and strip ANSI clear-line codes (TQDM writes "\r\033[K<line>" interactively)
         if "\r" in text:
             text = text.split("\r")[-1]
+        text = text.replace("\x1b[K", "")
 
         lines = text.split("\n")
         if lines and lines[-1] == "":

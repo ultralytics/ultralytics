@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# Builds ultralytics/ultralytics:latest images on DockerHub https://hub.docker.com/r/ultralytics
+# Builds Ultralytics Docker images for Docker Hub and GitHub Container Registry.
 
 name: Publish Docker Images
 

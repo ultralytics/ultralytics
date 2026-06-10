@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Global configuration YAML with settings and hyperparameters for YOLO training, validation, prediction and export
-# For documentation see https://docs.ultralytics.com/usage/cfg/
+# For documentation see https://docs.ultralytics.com/usage/cfg
 
 task: detect # (str) YOLO task, i.e. detect, segment, semantic, classify, pose, obb
 mode: train # (str) YOLO mode, i.e. train, val, predict, export, track, benchmark

@@ -42,8 +42,6 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
     | MP4    | `.mp4`     | 1 FPS, max 100 frames | 1 GB     |
     | WebM   | `.webm`    | 1 FPS, max 100 frames | 1 GB     |
     | MOV    | `.mov`     | 1 FPS, max 100 frames | 1 GB     |
-    | AVI    | `.avi`     | 1 FPS, max 100 frames | 1 GB     |
-    | MKV    | `.mkv`     | 1 FPS, max 100 frames | 1 GB     |
     | M4V    | `.m4v`     | 1 FPS, max 100 frames | 1 GB     |
 
     !!! info "Video Frame Extraction"

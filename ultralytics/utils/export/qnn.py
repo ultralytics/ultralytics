@@ -46,10 +46,11 @@ def onnx2qnn(
 ) -> str:
     """Convert an ONNX model to an INT8 Qualcomm QNN context binary using the ONNX Runtime QNN Execution Provider.
 
-    The conversion runs entirely on the host with no Qualcomm account or cloud upload. The model is INT8-quantized with
-    ONNX Runtime's QNN QDQ flow (the Hexagon NPU is an int8 accelerator), then the `onnxruntime-qnn` Execution Provider
-    — which bundles the Qualcomm AI Runtime (QAIRT) libraries — compiles the quantized graph into a QNN context binary
-    embedded in `<stem>_qnn.onnx`. No inference is run.
+    The conversion runs entirely on the host with no Qualcomm account or cloud upload. The model is quantized with ONNX
+    Runtime's QNN QDQ flow to 16-bit activations and 8-bit weights (the recommended accuracy/performance balance for
+    the Hexagon NPU), then the `onnxruntime-qnn` Execution Provider — which bundles the Qualcomm AI Runtime (QAIRT)
+    libraries — compiles the quantized graph into a QNN context binary embedded in `<stem>_qnn.onnx`. No inference is
+    run.
 
     Args:
         onnx_file (str | Path): Path to the source ONNX file (already exported).
@@ -74,7 +75,7 @@ def onnx2qnn(
     """
     check_requirements("onnxruntime-qnn")
     import onnxruntime as ort
-    from onnxruntime.quantization import quantize
+    from onnxruntime.quantization import QuantType, quantize
     from onnxruntime.quantization.execution_providers.qnn import get_qnn_qdq_config
     from onnxruntime.quantization.shape_inference import quant_pre_process
 
@@ -89,9 +90,15 @@ def onnx2qnn(
     pre_file = output_dir / "preprocessed.onnx"
     qdq_file = output_dir / "qdq.onnx"
 
-    LOGGER.info(f"\n{prefix} starting INT8 quantization and export with ONNX Runtime QNN (HTP arch {name})...")
+    LOGGER.info(f"\n{prefix} starting A16W8 quantization and export with ONNX Runtime QNN (HTP arch {name})...")
     quant_pre_process(str(onnx_file), str(pre_file))
-    qdq_config = get_qnn_qdq_config(str(pre_file), onnx_calibration_reader(dataset, transform_fn, batch=batch))
+    # 16-bit activations + 8-bit weights is the ORT-recommended accuracy/perf balance for the HTP backend
+    qdq_config = get_qnn_qdq_config(
+        str(pre_file),
+        onnx_calibration_reader(dataset, transform_fn, batch=batch),
+        activation_type=QuantType.QUInt16,
+        weight_type=QuantType.QUInt8,
+    )
     quantize(str(pre_file), str(qdq_file), qdq_config)
 
     # Register the QNN EP, then compile the quantized graph to a context binary during session init (no inference run).

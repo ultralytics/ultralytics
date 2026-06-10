@@ -122,7 +122,7 @@ cls_pw: 0.0 # (float) class weights power for handling class imbalance (0.0=disa
 dfl: 1.5 # (float) distribution focal loss gain
 dis: 5.0 # (float) knowledge distillation loss weight (transformer-decoder default; batch-size-independent)
 distill_model: # (str, optional) path to teacher model checkpoint for knowledge distillation
-distill_saliency: feat_norm # (str) saliency source for KD loss weighting: 'feat_norm' (channel L2 of teacher features) or 'enc_score' (teacher RTDETRDecoder pre-topk objectness)
+distill_saliency: enc_score # (str) saliency source for KD loss weighting: 'enc_score' (teacher RTDETRDecoder pre-topk objectness) or 'feat_norm' (channel L2 of teacher features)
 distill_decoder: none # (str) decoder-level KD mode: 'none' (only neck-level), 'objectness' (dense pre-topk encoder objectness MSE), 'query_feat' (Hungarian-matched query feature L2), 'all' (both objectness and query_feat)
 dis_dec: 2.0 # (float) decoder-level KD loss weight, applied on top of `dis` for the chosen mode
 pose: 12.0 # (float) pose loss gain (pose tasks)

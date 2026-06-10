@@ -154,7 +154,7 @@ class DistillationModel(nn.Module):
         Sets `self.distill_saliency`, `self.distill_decoder`, `self.dis_dec`. Validates allowed
         values up-front so a typo is caught at wrapper construction rather than mid-training.
         """
-        self.distill_saliency = getattr(student_args, "distill_saliency", "feat_norm")
+        self.distill_saliency = getattr(student_args, "distill_saliency", "enc_score")
         if self.distill_saliency not in {"feat_norm", "enc_score"}:
             raise ValueError(
                 f"distill_saliency={self.distill_saliency!r} not supported. Choose 'feat_norm' or 'enc_score'."

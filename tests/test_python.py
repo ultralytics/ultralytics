@@ -561,6 +561,10 @@ def test_utils_checks():
     checks.check_imgsz([600, 600], max_dim=1)
     checks.check_imshow(warn=True)
     checks.check_version("ultralytics", "8.0.0")
+    # parse_version must pad to a 3-tuple so shorter version strings compare correctly
+    assert checks.parse_version("2") == (2, 0, 0)
+    assert checks.check_version("6.0", ">=6.0.0")  # 2-component current must satisfy 3-component requirement
+    assert checks.check_version("2.1", "==2.1.0")
     checks.print_args()
 
 

@@ -1360,6 +1360,7 @@ class Exporter:
             name=self.args.name,
             metadata=self.metadata,
             batch=0 if self.args.dynamic else self.args.batch,
+            task=self.model.task,
             prefix=prefix,
         )
 

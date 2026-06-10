@@ -510,7 +510,8 @@ def query_film_loss(
                 gt = F.interpolate(gt.unsqueeze(0), size=(h, w), mode="bilinear", align_corners=False).squeeze(0)
             fg_t[i] = gt.max(0).values  # union of per-instance masks
         fg_p = fg_pred.clamp(1e-6, 1.0 - 1e-6)
-        bce = F.binary_cross_entropy(fg_p, fg_t)
+        # Manual BCE on probabilities (F.binary_cross_entropy is banned under AMP autocast).
+        bce = -(fg_t * fg_p.log() + (1.0 - fg_t) * (1.0 - fg_p).log()).mean()
         inter = (fg_pred * fg_t).sum(dim=(1, 2))
         card = fg_pred.sum(dim=(1, 2)) + fg_t.sum(dim=(1, 2))
         dice = (1.0 - (2.0 * inter + 1.0) / (card + 1.0)).mean()

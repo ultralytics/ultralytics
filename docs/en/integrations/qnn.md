@@ -64,14 +64,14 @@ Export an Ultralytics YOLO model to QNN format for deployment on Snapdragon hard
 
 Pass the target architecture via `name` (e.g. `name="73"`). Valid values:
 
-| `name` | Hexagon HTP | Snapdragon platform                    |
-| :----- | :---------- | :------------------------------------- |
-| `68`   | v68         | Snapdragon 888                         |
-| `69`   | v69         | Snapdragon 8 Gen 1 / 8+ Gen 1          |
-| `73`   | v73         | Snapdragon 8 Gen 2, X Elite (default)  |
-| `75`   | v75         | Snapdragon 8 Gen 3                     |
-| `79`   | v79         | Snapdragon 8 Elite                     |
-| `81`   | v81         | Snapdragon 8 Elite Gen 5               |
+| `name` | Hexagon HTP | Snapdragon platform                   |
+| :----- | :---------- | :------------------------------------ |
+| `68`   | v68         | Snapdragon 888                        |
+| `69`   | v69         | Snapdragon 8 Gen 1 / 8+ Gen 1         |
+| `73`   | v73         | Snapdragon 8 Gen 2, X Elite (default) |
+| `75`   | v75         | Snapdragon 8 Gen 3                    |
+| `79`   | v79         | Snapdragon 8 Elite                    |
+| `81`   | v81         | Snapdragon 8 Elite Gen 5              |
 
 !!! note "Platform support"
 
@@ -163,16 +163,16 @@ The QNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
 
 ### Export Arguments
 
-| Argument   | Type             | Default        | Description                                                                                                                                                                               |
-| :--------- | :--------------- | :------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'qnn'`        | Target format for the exported model, defining compatibility with the Qualcomm QNN runtime.                                                                                               |
-| `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)`.                                                                                 |
-| `batch`    | `int`            | `1`            | Specifies the export model batch size, which is baked into the generated QNN context binary.                                                                                              |
+| Argument   | Type             | Default        | Description                                                                                                                                                                                                |
+| :--------- | :--------------- | :------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'qnn'`        | Target format for the exported model, defining compatibility with the Qualcomm QNN runtime.                                                                                                                |
+| `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)`.                                                                                                  |
+| `batch`    | `int`            | `1`            | Specifies the export model batch size, which is baked into the generated QNN context binary.                                                                                                               |
 | `name`     | `str`            | `'73'`         | Target Hexagon HTP architecture version: `68`, `69`, `73`, `75`, `79`, or `81` (Snapdragon 888, 8 Gen 1, 8 Gen 2, 8 Gen 3, 8 Elite, 8 Elite Gen 5). The context binary is finalized for this architecture. |
-| `int8`     | `bool`           | `True`         | Enables INT8 quantization. Required for QNN HTP export — automatically set to `True` if not specified.                                                                                    |
-| `data`     | `str`            | `'coco8.yaml'` | Dataset configuration file used for INT8 calibration. Specifies the calibration image source.                                                                                             |
-| `fraction` | `float`          | `1.0`          | Fraction of the calibration dataset to use for INT8 quantization.                                                                                                                         |
-| `device`   | `str`            | `None`         | Specifies the device for the ONNX export step: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                    |
+| `int8`     | `bool`           | `True`         | Enables INT8 quantization. Required for QNN HTP export — automatically set to `True` if not specified.                                                                                                     |
+| `data`     | `str`            | `'coco8.yaml'` | Dataset configuration file used for INT8 calibration. Specifies the calibration image source.                                                                                                              |
+| `fraction` | `float`          | `1.0`          | Fraction of the calibration dataset to use for INT8 quantization.                                                                                                                                          |
+| `device`   | `str`            | `None`         | Specifies the device for the ONNX export step: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                                     |
 
 !!! note "Precision"
 

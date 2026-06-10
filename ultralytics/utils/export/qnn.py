@@ -47,8 +47,8 @@ def onnx2qnn(
     """Convert an ONNX model to an INT8 Qualcomm QNN context binary using the ONNX Runtime QNN Execution Provider.
 
     The conversion runs entirely on the host with no Qualcomm account or cloud upload. The model is quantized with ONNX
-    Runtime's QNN QDQ flow to 16-bit activations and 8-bit weights (the recommended accuracy/performance balance for
-    the Hexagon NPU), then the `onnxruntime-qnn` Execution Provider — which bundles the Qualcomm AI Runtime (QAIRT)
+    Runtime's QNN QDQ flow to 16-bit activations and 8-bit weights (the recommended accuracy/performance balance for the
+    Hexagon NPU), then the `onnxruntime-qnn` Execution Provider — which bundles the Qualcomm AI Runtime (QAIRT)
     libraries — compiles the quantized graph into a QNN context binary embedded in `<stem>_qnn.onnx`. No inference is
     run.
 

@@ -506,9 +506,9 @@ def test_export_qnn(isolated_model):
     if not has_qnn:
         pytest.skip("onnxruntime-qnn / QNN Execution Provider not available")
     file = YOLO(isolated_model).export(format="qnn", imgsz=32)
-    assert next(Path(file).rglob("*_qnn.onnx"), None), f"QNN export failed, no context binary found in: {file}"
+    assert Path(file).is_file() and file.endswith("_qnn.onnx"), f"QNN export failed, no context binary found: {file}"
     # Note: on-device inference is not exercised here as it requires Qualcomm Snapdragon hardware
-    shutil.rmtree(file, ignore_errors=True)  # cleanup
+    Path(file).unlink(missing_ok=True)  # cleanup
 
 
 @pytest.mark.parametrize("env", [k for k, v in EXPORT_ENVS.items() if k != "base" or v["smoke"]])

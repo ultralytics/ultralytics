@@ -204,6 +204,7 @@ model.train(data="coco8.yaml", epochs=10, trainer=WeightedTrainer)
 
     ```python
     # inference script
+    from weighted_model import WeightedDetectionModel  # noqa: F401 - must be importable at checkpoint load time
 
     from ultralytics import YOLO
 

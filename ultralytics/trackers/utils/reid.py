@@ -49,7 +49,6 @@ class ReID:
         else:
             from ultralytics.utils.downloads import attempt_download_asset
 
-            # Resolve registered encoder names (e.g. yolo26n-reid.onnx) to a local file, downloading on first use.
             model = attempt_download_asset(str(model))
             self.model = AutoBackend(str(model), device=self.device, fp16=fp16, verbose=False)
             self.fp16 = self.model.fp16

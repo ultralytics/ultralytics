@@ -62,9 +62,8 @@ def onnx2qnn(
         name (str): Target Hexagon Tensor Processor (HTP) architecture version, e.g. `"73"` (Snapdragon 8 Gen 2), `"75"`
             (8 Gen 3), `"79"` (8 Elite). Finalizes the graph for the target chip when exporting on a host without a
             Snapdragon NPU.
-        metadata (dict | None): Ultralytics model metadata ensured present in the context model's `metadata_props`
-            (ONNX Runtime normally carries the source model's metadata through, but this is not a documented
-            guarantee).
+        metadata (dict | None): Ultralytics model metadata ensured present in the context model's `metadata_props` (ONNX
+            Runtime normally carries the source model's metadata through, but this is not a documented guarantee).
         batch (int): Static batch dimension of the ONNX graph used to tile undersized calibration batches, or 0 for
             dynamic-batch models.
         prefix (str): Prefix for log messages.

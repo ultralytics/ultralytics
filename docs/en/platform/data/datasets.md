@@ -99,7 +99,7 @@ A file extension only names the **container** — it does not guarantee your bro
 
 Unlike videos, images are **decoded on the server**. The platform reads every accepted format — including HEIC (HEVC-encoded), TIFF, DNG (camera raw), JPEG 2000, and MPO — and converts each to a web-friendly JPEG or WebP plus a thumbnail. Every accepted image format therefore uploads, processes, and displays in your dataset; the codec inside the file is handled server-side, not by your browser.
 
-The browser is only involved in the *instant preview* shown while files upload. JPEG, PNG, WebP, BMP, GIF, and AVIF preview immediately; TIFF, HEIC, JP2, DNG, and MPO skip that instant preview (the browser can't render them) but still upload and appear in the gallery once processed.
+The browser is only involved in the *instant preview* shown while files upload. JPEG, PNG, WebP, BMP, and AVIF preview immediately; TIFF, HEIC, JP2, DNG, and MPO skip that instant preview (the browser can't render them) but still upload and appear in the gallery once processed.
 
 !!! tip "Re-encode an unsupported video"
 

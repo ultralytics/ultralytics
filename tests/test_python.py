@@ -212,18 +212,23 @@ def test_youtube():
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.parametrize("model", MODELS)
 def test_track_stream(model, tmp_path):
-    """Test streaming tracking on a short 10 frame video using ByteTrack tracker and different GMC methods.
+    """Test streaming tracking on a short video with all built-in trackers and various GMC/ReID configurations.
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
     """
     if model in {"yolo26n-cls.pt", "yolo26n-sem.pt"}:  # classification and semantic segmentation not supported
         return
+    from ultralytics.trackers.track import TRACKER_MAP
+
     video_url = f"{ASSETS_URL}/decelera_portrait_min.mov"
     model = YOLO(model)
-    model.track(video_url, imgsz=160, tracker="bytetrack.yaml")
-    model.track(video_url, imgsz=160, tracker="botsort.yaml", save_frames=True)  # test frame saving also
 
-    # Test Global Motion Compensation (GMC) methods and ReID
+    # Default end-to-end run for all built-in trackers
+    for tracker_type in TRACKER_MAP:
+        kwargs = {"save_frames": True} if tracker_type == "botsort" else {}
+        model.track(video_url, imgsz=160, tracker=f"{tracker_type}.yaml", **kwargs)
+
+    # Test Global Motion Compensation (GMC) methods and ReID on botsort
     for gmc, reidm in zip(["orb", "sift", "ecc"], ["auto", "auto", "yolo26n-cls.pt"]):
         default_args = YAML.load(ROOT / "cfg/trackers/botsort.yaml")
         custom_yaml = tmp_path / f"botsort-{gmc}.yaml"

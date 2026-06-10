@@ -3,10 +3,9 @@
 
 from ultralytics.engine.model import Model
 from ultralytics.models.rtdetr.predict import RTDETRPredictor
-from ultralytics.models.rtdetr.val import RTDETRValidator
 from ultralytics.nn.tasks import YOLODETRDetectionModel
 
-from .train import YOLODETRTrainer
+from .train import YOLODETRTrainer, YOLODETRValidator
 
 
 class YOLODETR(Model):
@@ -47,7 +46,7 @@ class YOLODETR(Model):
         return {
             "detect": {
                 "predictor": RTDETRPredictor,
-                "validator": RTDETRValidator,
+                "validator": YOLODETRValidator,
                 "trainer": YOLODETRTrainer,
                 "model": YOLODETRDetectionModel,
             }

@@ -21,7 +21,12 @@ from ultralytics.models.rtdetr.val import RTDETRDataset, RTDETRValidator
 from ultralytics.nn.tasks import YOLODETRDetectionModel
 from ultralytics.utils import LOGGER, RANK, colorstr
 
-__all__ = ("YOLODETRTrainer", "YOLODETRDataset")
+__all__ = ("YOLODETRTrainer", "YOLODETRDataset", "YOLODETRValidator")
+
+_YOLODETR_DEFAULTS = {
+    "no_aug_epoch": 4,
+    "backbone_lr_ratio": 0.02,
+}
 
 
 def compute_deim_scheduled_prob(base_prob: float, epoch: int, stop_epoch: int) -> float:
@@ -97,7 +102,8 @@ class YOLODETRDataset(RTDETRDataset):
             hyp.mosaic = hyp.mosaic if not self.rect else 0.0
             hyp.mixup = hyp.mixup if not self.rect else 0.0
             hyp.cutmix = hyp.cutmix if not self.rect else 0.0
-            transforms = v8_transforms(self, self.imgsz, hyp, stretch=True)
+            # Keep v8 MixUp inputs same-sized; current v8 Mosaic no longer carries the old mosaic_border crop hint.
+            transforms = v8_transforms(self, self.imgsz, hyp, stretch=False)
         else:
             transforms = Compose([])
         transforms.append(
@@ -120,6 +126,27 @@ class YOLODETRDataset(RTDETRDataset):
             self.transforms = self.build_transforms(hyp=self._build_v8_epoch_hyp(epoch))
 
 
+class YOLODETRValidator(RTDETRValidator):
+    """RT-DETR validator that ignores YOLODETR trainer-only arguments."""
+
+    _YOLODETR_ARGS = tuple(_YOLODETR_DEFAULTS)
+
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None):
+        """Initialize validator after removing YOLODETR-only args from the standard CFG namespace."""
+        super().__init__(dataloader, save_dir=save_dir, args=self._sanitize_args(args), _callbacks=_callbacks)
+
+    @classmethod
+    def _sanitize_args(cls, args):
+        """Return a copy of args without YOLODETR-only trainer knobs."""
+        if args is None:
+            return None
+        args = copy(args)
+        for key in cls._YOLODETR_ARGS:
+            if hasattr(args, key):
+                delattr(args, key)
+        return args
+
+
 class YOLODETRTrainer(RTDETRTrainer):
     """RT-DETR trainer for YOLODETR models with augmentation decay + optional flat-cosine LR.
 
@@ -131,10 +158,7 @@ class YOLODETRTrainer(RTDETRTrainer):
         backbone_lr_ratio (float): Multiplier applied to backbone LR. Default 0.02.
     """
 
-    _DEIM_DEFAULTS = {
-        "no_aug_epoch": 4,
-        "backbone_lr_ratio": 0.02,
-    }
+    _DEIM_DEFAULTS = _YOLODETR_DEFAULTS
     _epoch_callback_registered = False
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
@@ -278,7 +302,7 @@ class YOLODETRTrainer(RTDETRTrainer):
         if head_name in {"DFineDecoder", "DeimDecoder"}:
             loss_names += ["fgl_loss", "ddf_loss"]
         self.loss_names = tuple(loss_names)
-        return RTDETRValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
+        return YOLODETRValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
     def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
         """Build optimizer with 6 parameter groups split between head and backbone (backbone_lr_ratio)."""

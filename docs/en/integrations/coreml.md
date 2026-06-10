@@ -35,7 +35,7 @@ CoreML integrates directly with Apple's [Vision framework](https://developer.app
 
 ## Why Export YOLO26 to CoreML?
 
-- **Neural Engine speed**: YOLO26n detection runs end-to-end in **3.8 ms** on an iPhone 17 Pro (see the table below) — comfortably past 60 FPS camera real-time with headroom for the rest of your app.
+- **Neural Engine speed**: YOLO26n detection runs end-to-end in **3.8 ms** on an iPhone 17 Pro for single images, and ~16 ms/frame in sustained real-time camera use (see the table and notes below) — comfortably real-time with headroom for the rest of your app.
 - **NMS-free by design**: YOLO26 is [end-to-end](https://www.ultralytics.com/glossary/nms-non-maximum-suppression), so the exported graph needs no NMS pipeline and decode is sub-millisecond. Older models like YOLO11 can embed a CoreML NMS pipeline with `nms=True`.
 - **Private and offline**: All computation stays on the device — no cloud round-trips, no API keys, full [data privacy](https://www.ultralytics.com/glossary/data-privacy).
 - **One export, the whole ecosystem**: The same `.mlpackage` runs on iOS, iPadOS, macOS, watchOS, tvOS, and visionOS, and powers the official Ultralytics [iOS SDK](https://github.com/ultralytics/yolo-ios-app) and [Flutter plugin](https://github.com/ultralytics/yolo-flutter-app).
@@ -53,7 +53,7 @@ End-to-end single-image inference for the official YOLO26n INT8 CoreML models on
 | YOLO26n-pose | Pose     | 640                         | 12.1<br><sup>0.0 / 12.0 / 0.1</sup>  | **3.9**<br><sup>0.0 / 3.9 / 0.1</sup>                     |
 | YOLO26n-obb  | OBB      | 1024                        | 22.3<br><sup>0.0 / 22.3 / 0.0</sup>  | **7.2**<br><sup>0.0 / 7.2 / 0.0</sup>                     |
 
-- **Speed** values are the mean of 15 runs after 3 warmup runs on [bus.jpg](https://ultralytics.com/images/bus.jpg), measured through the [iOS SDK's](https://github.com/ultralytics/yolo-ios-app) per-stage timing via the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) benchmark harness. Numbers vary with device generation and thermal state.
+- **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on [bus.jpg](https://ultralytics.com/images/bus.jpg), measured through the [iOS SDK's](https://github.com/ultralytics/yolo-ios-app) per-stage timing via the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) benchmark harness. Sustained real-time camera operation runs higher (full-sensor letterboxing every frame plus thermal settling): YOLO26n detect measures ~16 ms/frame in the live camera app on the same device — see the [iOS SDK performance doc](https://github.com/ultralytics/yolo-ios-app/blob/main/docs/performance.md) for steady-state profiling.
 - The matching Snapdragon CPU/GPU/NPU table is in the [Qualcomm QNN integration](qnn.md).
 
 ## Exporting YOLO26 Models to CoreML

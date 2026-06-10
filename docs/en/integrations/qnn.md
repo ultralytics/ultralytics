@@ -60,7 +60,7 @@ End-to-end single-image inference for the official YOLO26n models on a Xiaomi 17
 | YOLO26n-pose | Pose     | 640                         | 65.6<br><sup>3.9 / 59.3 / 2.4</sup>   | 15.7<br><sup>3.9 / 9.5 / 2.3</sup>           | **13.4**<br><sup>3.8 / 8.2 / 1.4</sup>             |
 | YOLO26n-obb  | OBB      | 1024                        | 55.5<br><sup>3.9 / 49.5 / 2.1</sup>   | **19.1**<br><sup>7.4 / 8.2 / 3.5</sup>       | 30.1<br><sup>10.8 / 15.0 / 4.2</sup>               |
 
-- **Speed** values are the mean of 15 runs after 3 warmup runs on [bus.jpg](https://ultralytics.com/images/bus.jpg), measured with the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) on-device benchmark harness. Numbers vary with device generation and thermal state.
+- **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on [bus.jpg](https://ultralytics.com/images/bus.jpg), measured with the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) on-device benchmark harness on a thermally rested device. Sustained real-time camera frame times run higher (per-frame capture letterboxing plus thermal settling); use the app's on-screen pre/inference/post breakdown for steady-state numbers on your device.
 - <sup>1</sup> Semantic QNN currently returns full float logits that are argmax-decoded on the CPU; embedding the argmax in the export is a tracked follow-up.
 
 ## Supported Tasks

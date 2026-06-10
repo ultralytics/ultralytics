@@ -69,7 +69,9 @@ ONNX models are often deployed on CPUs due to their compatibility with ONNX Runt
 
 While ONNX models are commonly used on CPUs, they can also be deployed on the following platforms:
 
-- **GPU Acceleration**: ONNX fully supports GPU acceleration, particularly NVIDIA CUDA. This enables efficient execution on NVIDIA GPUs for tasks that demand high computational power.
+- **GPU Acceleration (NVIDIA)**: ONNX fully supports GPU acceleration via NVIDIA CUDA. This enables efficient execution on NVIDIA GPUs for tasks that demand high computational power.
+
+- **GPU Acceleration (AMD)**: ONNX supports GPU acceleration via AMD ROCm and the MIGraphX Execution Provider. This enables efficient execution on AMD Instinct and Radeon GPUs for high-performance inference.
 
 - **Edge and Mobile Devices**: ONNX extends to edge and mobile devices, perfect for on-device and real-time inference scenarios. It's lightweight and compatible with edge hardware, and serves as the basis for vendor NPU formats such as [Qualcomm QNN](qnn.md) for Snapdragon devices and [RKNN](rockchip-rknn.md) for Rockchip NPUs.
 
@@ -202,6 +204,100 @@ Once you've successfully exported your Ultralytics YOLO26 models to ONNX format,
 
 - **[Triton Inference Server](../guides/triton-inference-server.md)**: Learn how to deploy your ONNX models with NVIDIA's Triton Inference Server for high-performance, scalable deployments.
 
+## AMD GPU Inference with MIGraphX
+
+Ultralytics supports ONNX Runtime inference on AMD GPUs via the [MIGraphX Execution Provider](https://onnxruntime.ai/docs/execution-providers/MIGraphX-ExecutionProvider.html). When PyTorch is built with ROCm (HIP) and `onnxruntime-migraphx` is available, the ONNX backend selects MIGraphX for GPU-accelerated inference.
+
+### Prerequisites
+
+- AMD GPU with ROCm support (for example Instinct MI300/MI350 or Radeon AI PRO R9700)
+- ROCm 7.2+ ([installation guide](https://rocm.docs.amd.com/en/latest/deploy/linux/index.html))
+- MIGraphX C++ library installed (required at runtime)
+- PyTorch ROCm build (`python -c "import torch; print(torch.version.hip)"`)
+- Linux x86_64
+- Python 3.10 or 3.12 (current ROCm 7.2 `onnxruntime-migraphx` wheels)
+
+If the `migraphx` library is not yet installed on your system, you can add the ROCm repository and install it via `apt` (Ubuntu/Debian example):
+
+```bash
+# Add ROCm 7.2.x repository
+sudo apt update && sudo apt install -y wget gnupg2 lsb-release
+sudo mkdir --parents --mode=0755 /etc/apt/keyrings
+wget -qO - https://repo.radeon.com/rocm/rocm.gpg.key | sudo tee /etc/apt/keyrings/rocm.asc > /dev/null
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.asc] https://repo.radeon.com/rocm/apt/7.2 $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/rocm.list
+
+# Install MIGraphX
+sudo apt update
+sudo apt install -y migraphx
+
+# Add ROCm libraries to the linker path (required for MIGraphX EP to load at runtime)
+echo "/opt/rocm/lib" | sudo tee /etc/ld.so.conf.d/rocm.conf
+sudo ldconfig
+```
+
+### Installation
+
+!!! tip "Installation"
+
+    ```bash
+    pip3 install torch torchvision --index-url https://download.pytorch.org/whl/rocm7.2
+    pip install ultralytics
+    pip install onnxruntime-migraphx --extra-index-url https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/
+    ```
+
+!!! note "Supported ROCm version"
+
+    The command targets `rocm-rel-7.2`, the ROCm/MIGraphX stack validated by Ultralytics `Dockerfile-amd`. Patch releases `rocm-rel-7.2.x` ship the same wheel version and are compatible. For other ROCm minors, AMD publishes matching wheel folders under [`repo.radeon.com/rocm/manylinux/`](https://repo.radeon.com/rocm/manylinux/).
+
+!!! warning "Package Conflict"
+
+    `onnxruntime-migraphx`, `onnxruntime-gpu`, and `onnxruntime` provide the same `onnxruntime` Python module. Keep only one installed:
+
+    ```bash
+    pip uninstall onnxruntime onnxruntime-gpu onnxruntime-migraphx -y
+    pip install onnxruntime-migraphx --extra-index-url https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/
+    ```
+
+    If MIGraphX disappears after export or other operations, check for a conflicting install (`pip list | grep onnxruntime`), uninstall all variants, then reinstall `onnxruntime-migraphx`.
+
+### Usage
+
+No code changes are needed. On ROCm systems, the ONNX backend detects HIP and selects `MIGraphXExecutionProvider`.
+
+!!! note
+
+    If `onnx` and/or `onnxruntime-migraphx` are missing, Ultralytics installs them automatically the first time you run ONNX export or ONNX inference.
+
+!!! example "AMD GPU Inference"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load an ONNX model
+        model = YOLO("yolo26n.onnx")
+
+        # Run inference on AMD GPU - MIGraphX EP is selected automatically
+        results = model.predict("https://ultralytics.com/images/bus.jpg", device=0)
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo predict model=yolo26n.onnx source='https://ultralytics.com/images/bus.jpg' device=0
+        ```
+
+Expected log output:
+
+```
+Using ONNX Runtime X.Y.Z with MIGraphXExecutionProvider
+```
+
+!!! warning "MIGraphX EP: Unsupported Tasks (ROCm 7.2)"
+
+    **Segmentation** and **pose** models are not supported by MIGraphX EP in ROCm 7.2. Use `device="cpu"` or PyTorch `.pt` inference for these tasks. Detection, classification, and OBB work fully.
+
 ## Summary
 
 In this guide, you've learned how to export Ultralytics YOLO26 models to ONNX format to increase their interoperability and performance across various platforms. You were also introduced to the ONNX Runtime and ONNX deployment options.
@@ -266,7 +362,8 @@ Learn more by checking the [ONNX Runtime documentation](https://onnxruntime.ai/d
 YOLO26 models exported to ONNX can be deployed on various platforms including:
 
 - **CPUs**: Utilizing ONNX Runtime for optimized CPU inference.
-- **GPUs**: Leveraging NVIDIA CUDA for high-performance GPU acceleration.
+- **NVIDIA GPUs**: Leveraging NVIDIA CUDA for high-performance GPU acceleration.
+- **AMD GPUs**: Using AMD ROCm and MIGraphX Execution Provider for high-performance GPU acceleration on Linux.
 - **Edge devices**: Running lightweight models on edge and mobile devices for real-time, on-device inference.
 - **Web browsers**: Executing models directly within web browsers for interactive web-based applications.
 - **Cloud services**: Deploying on cloud platforms that support ONNX format for scalable inference.

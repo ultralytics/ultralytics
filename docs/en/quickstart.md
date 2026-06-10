@@ -105,6 +105,7 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
         - **Dockerfile-jetson:** Tailored for [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson) devices, integrating GPU support optimized for these platforms.
         - **Dockerfile-python:** Minimal image with just Python and necessary dependencies, ideal for lightweight applications and development.
         - **Dockerfile-conda:** Based on Miniconda3 with a conda installation of the `ultralytics` package.
+        - **Dockerfile-amd:** For AMD GPU acceleration using [ROCm](https://rocm.docs.amd.com/) and [MIGraphX](https://onnxruntime.ai/docs/execution-providers/MIGraphX-ExecutionProvider.html) Execution Provider.
 
         Here are the commands to get the latest image and execute it:
 

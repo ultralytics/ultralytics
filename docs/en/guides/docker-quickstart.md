@@ -152,6 +152,7 @@ docker info | grep -i runtime
 Ultralytics offers several Docker images optimized for various platforms and use-cases:
 
 - **Dockerfile:** GPU image, ideal for training.
+- **Dockerfile-amd:** For AMD GPU acceleration using [ROCm](https://rocm.docs.amd.com/) and [MIGraphX](https://onnxruntime.ai/docs/execution-providers/MIGraphX-ExecutionProvider.html) Execution Provider.
 - **Dockerfile-arm64:** For ARM64 architecture, suitable for devices like [Raspberry Pi](raspberry-pi.md).
 - **Dockerfile-cpu:** CPU-only version for inference and non-GPU environments.
 - **Dockerfile-jetson-jetpack4:** Optimized for [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson) devices running [NVIDIA JetPack 4](https://developer.nvidia.com/embedded/jetpack-sdk-461).
@@ -189,15 +190,33 @@ sudo docker run -it --ipc=host $t
 
 ### Using GPUs
 
-```bash
-# Run with all GPUs
-sudo docker run -it --ipc=host --runtime=nvidia --gpus all $t
+=== "NVIDIA"
 
-# Run specifying which GPUs to use
-sudo docker run -it --ipc=host --runtime=nvidia --gpus '"device=2,3"' $t
-```
+    ```bash
+    # Run with all GPUs
+    sudo docker run -it --ipc=host --runtime=nvidia --gpus all $t
 
-The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to interact with the container. The `--ipc=host` flag enables sharing of host's IPC namespace, essential for sharing memory between processes. The `--gpus` flag allows the container to access the host's GPUs.
+    # Run specifying which GPUs to use
+    sudo docker run -it --ipc=host --runtime=nvidia --gpus '"device=2,3"' $t
+    ```
+
+=== "AMD (ROCm)"
+
+    For AMD GPUs with [ROCm](https://rocm.docs.amd.com/) support on Linux, use the `latest-amd` image and pass the GPU devices:
+
+    ```bash
+    # Pull the AMD ROCm image
+    t=ultralytics/ultralytics:latest-amd
+
+    sudo docker pull $t
+
+    # Run with AMD GPU access
+    sudo docker run -it --ipc=host --device=/dev/kfd --device=/dev/dri --group-add video $t
+    ```
+
+    The `latest-amd` image targets the ROCm 7.2 / MIGraphX wheel stack (`rocm-rel-7.2`), validated by Ultralytics `Dockerfile-amd`. For a different ROCm minor, rebuild `Dockerfile-amd` against AMD's [matching wheel index](https://repo.radeon.com/rocm/manylinux/).
+
+The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to interact with the container. The `--ipc=host` flag enables sharing of host's IPC namespace, essential for sharing memory between processes. The `--gpus` flag allows the container to access the host's NVIDIA GPUs. For AMD GPUs, the `--device` flags grant access to the GPU kernel driver (`/dev/kfd`) and display render nodes (`/dev/dri`).
 
 ### Note on File Accessibility
 

@@ -98,6 +98,7 @@ from ultralytics.utils import (
     MACOS_VERSION,
     QNN_HTP_ARCHS,
     RKNN_CHIPS,
+    ROCM_EXTRA_INDEX,
     SETTINGS,
     TORCH_VERSION,
     WINDOWS,
@@ -114,6 +115,9 @@ from ultralytics.utils.checks import (
     check_requirements,
     check_version,
     is_intel,
+    migraphx_is_available,
+    resolve_onnxruntime_package,
+    rocm_is_available,
 )
 from ultralytics.utils.files import file_size
 from ultralytics.utils.metrics import batch_probiou
@@ -835,14 +839,24 @@ class Exporter:
     def export_onnx(self, prefix=colorstr("ONNX:")):
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.12.0,<2.0.0"]
+        is_rocm = rocm_is_available()
+        is_migraphx = migraphx_is_available()
+        cuda = self.device.type != "cpu" and torch.cuda.is_available()
+        ort_pkg = resolve_onnxruntime_package(cuda=cuda, is_migraphx=is_migraphx, is_rocm=is_rocm)
+
         if self.args.simplify or (self.args.format == "onnx" and self.args.int8):
             # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
-            ort = "onnxruntime-gpu" if "cuda" in self.device.type else "onnxruntime"
-            requirements += [(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")]
+            # On ROCm GPU paths pin to onnxruntime-migraphx so AutoUpdate never substitutes the CUDA wheel.
+            if ort_pkg == "onnxruntime-migraphx":
+                requirements.append(ort_pkg)
+            elif isinstance(ort_pkg, tuple):
+                requirements.append((*ort_pkg, "onnxruntime-qnn"))
+            else:
+                requirements.append((ort_pkg, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn"))
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.82"]
-        check_requirements(requirements)
+        check_requirements(requirements, cmds=ROCM_EXTRA_INDEX if ort_pkg == "onnxruntime-migraphx" else "")
         import onnx
 
         from ultralytics.utils.export.engine import best_onnx_opset, torch2onnx

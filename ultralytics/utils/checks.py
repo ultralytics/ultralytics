@@ -38,6 +38,7 @@ from ultralytics.utils import (
     MACOS,
     ONLINE,
     PYTHON_VERSION,
+    ROCM_EXTRA_INDEX,
     RKNN_CHIPS,
     ROOT,
     TORCH_VERSION,
@@ -431,7 +432,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         >>> check_requirements(["numpy", "ultralytics"])
 
         Check with interchangeable packages
-        >>> check_requirements([("onnxruntime", "onnxruntime-gpu"), "numpy"])
+        >>> check_requirements([("onnxruntime", "onnxruntime-gpu", "onnxruntime-migraphx"), "numpy"])
     """
     prefix = colorstr("red", "bold", "requirements:")
 
@@ -999,6 +1000,83 @@ def cuda_is_available() -> bool:
         (bool): True if one or more NVIDIA GPUs are available, False otherwise.
     """
     return cuda_device_count() > 0
+
+
+def rocm_is_available() -> bool:
+    """Check if ROCm (AMD GPU) is available in the environment.
+
+    Returns:
+        (bool): True if running on Linux with ROCm/HIP-enabled PyTorch, False otherwise.
+    """
+    return sys.platform == "linux" and torch.cuda.is_available() and bool(getattr(torch.version, "hip", None))
+
+
+def migraphx_is_available() -> bool:
+    """Check if ONNX Runtime MIGraphX wheel is expected to be available in this interpreter environment.
+
+    Returns:
+        (bool): True if running on Linux x86_64 with a ROCm/HIP-enabled PyTorch and a supported Python version.
+    """
+    # MIGraphX wheel support is currently limited to Linux x86_64 and specific Python versions.
+    # Check torch HIP build (not active-device availability) to avoid CPU-path package conflicts on ROCm hosts.
+    # Python 3.10 and 3.12 are the versions for which onnxruntime-migraphx wheels are currently published.
+    return (
+        sys.platform == "linux"
+        and platform.machine().lower() in {"x86_64", "amd64"}
+        and bool(getattr(torch.version, "hip", None))
+        and sys.version_info[:2] in {(3, 10), (3, 12)}
+    )
+
+
+def resolve_onnxruntime_package(cuda: bool, is_migraphx: bool, is_rocm: bool) -> str | tuple[str, ...]:
+    """Return the preferred ONNX Runtime package name for the current hardware and inference path.
+
+    Args:
+        cuda (bool): True if a GPU device is requested and torch.cuda is available.
+        is_migraphx (bool): True if the onnxruntime-migraphx wheel is expected to be available.
+        is_rocm (bool): True if running on a ROCm/HIP-enabled system.
+
+    Returns:
+        (str | tuple[str, ...]): A single package name when one variant is required, or a tuple of
+            interchangeable package names when any installed variant is acceptable.
+    """
+    # Pin to the MIGraphX wheel only when a GPU path is requested; CPU inference should not require
+    # importing onnxruntime-migraphx (may be absent on ROCm hosts without MIGraphX runtime libs).
+    if cuda and is_migraphx:
+        return "onnxruntime-migraphx"
+    # Do not route ROCm hosts to the NVIDIA CUDA wheel when MIGraphX wheel is unavailable.
+    if cuda and not is_rocm:
+        return "onnxruntime-gpu"
+    # CPU paths or ROCm fallbacks can use any variant since they all contain CPUExecutionProvider.
+    return ("onnxruntime", "onnxruntime-gpu", "onnxruntime-migraphx")
+
+
+def rocm_device_count() -> int:
+    """Get the number of AMD ROCm GPUs available in the environment.
+
+    Returns:
+        (int): The number of AMD ROCm GPUs available.
+    """
+    if not rocm_is_available():
+        return 0
+
+    visible_count = torch.cuda.device_count()
+    try:
+        import amdsmi
+
+        amdsmi.amdsmi_init()
+        try:
+            amdsmi_count = len(amdsmi.amdsmi_get_processor_handles())
+        finally:
+            amdsmi.amdsmi_shut_down()
+        # Respect torch visibility/masking while still protecting against stale amdsmi counts.
+        if visible_count == 0:
+            return 0
+        if amdsmi_count > 0:
+            return min(visible_count, amdsmi_count)
+        return visible_count
+    except Exception:
+        return visible_count
 
 
 def is_rockchip():

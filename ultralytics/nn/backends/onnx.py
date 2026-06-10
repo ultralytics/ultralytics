@@ -7,8 +7,13 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER
-from ultralytics.utils.checks import check_requirements
+from ultralytics.utils import LOGGER, ROCM_EXTRA_INDEX
+from ultralytics.utils.checks import (
+    check_requirements,
+    migraphx_is_available,
+    resolve_onnxruntime_package,
+    rocm_is_available,
+)
 
 from .base import BaseBackend
 
@@ -41,6 +46,8 @@ class ONNXBackend(BaseBackend):
             weight (str | Path): Path to the .onnx model file.
         """
         cuda = isinstance(self.device, torch.device) and torch.cuda.is_available() and self.device.type != "cpu"
+        is_migraphx = migraphx_is_available()
+        is_rocm = rocm_is_available()
 
         if self.format == "dnn":
             # OpenCV DNN
@@ -52,19 +59,24 @@ class ONNXBackend(BaseBackend):
         else:
             # ONNX Runtime
             LOGGER.info(f"Loading {weight} for ONNX Runtime inference...")
-            check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
+            ort_pkg = resolve_onnxruntime_package(cuda=cuda, is_migraphx=is_migraphx, is_rocm=is_rocm)
+            check_requirements("onnx")
+            check_requirements([ort_pkg], cmds=ROCM_EXTRA_INDEX if ort_pkg == "onnxruntime-migraphx" else "")
             import onnxruntime
 
             # Select execution provider
             available = onnxruntime.get_available_providers()
-            if cuda and "CUDAExecutionProvider" in available:
+            if cuda and is_migraphx and "MIGraphXExecutionProvider" in available:
+                providers = [("MIGraphXExecutionProvider", {"device_id": self.device.index}), "CPUExecutionProvider"]
+            elif cuda and "CUDAExecutionProvider" in available:
                 providers = [("CUDAExecutionProvider", {"device_id": self.device.index}), "CPUExecutionProvider"]
             elif self.device.type == "mps" and "CoreMLExecutionProvider" in available:
                 providers = ["CoreMLExecutionProvider", "CPUExecutionProvider"]
             else:
                 providers = ["CPUExecutionProvider"]
                 if cuda:
-                    LOGGER.warning("CUDA requested but CUDAExecutionProvider not available. Using CPU...")
+                    ep_name = "MIGraphXExecutionProvider" if is_migraphx else "CUDAExecutionProvider"
+                    LOGGER.warning(f"GPU requested but {ep_name} not available. Using CPU...")
                     self.device = torch.device("cpu")
                     cuda = False
 
@@ -85,7 +97,7 @@ class ONNXBackend(BaseBackend):
             self.dynamic = isinstance(self.session.get_outputs()[0].shape[0], str)
             self.fp16 = "float16" in self.session.get_inputs()[0].type
 
-            # Setup IO binding for CUDA
+            # Setup IO binding for GPU (CUDA and ROCm/MIGraphX)
             self.use_io_binding = not self.dynamic and cuda
             if self.use_io_binding:
                 self.io = self.session.io_binding()
@@ -106,7 +118,7 @@ class ONNXBackend(BaseBackend):
                     self.bindings.append(y_tensor)
 
     def forward(self, im: torch.Tensor) -> torch.Tensor | list[torch.Tensor] | np.ndarray:
-        """Run ONNX inference using IO binding (CUDA) or standard session execution.
+        """Run ONNX inference using IO binding (GPU) or standard session execution.
 
         Args:
             im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].

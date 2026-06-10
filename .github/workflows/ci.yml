@@ -30,6 +30,10 @@ on:
         description: "Run GPU"
         default: true
         type: boolean
+      amd-gpu:
+        description: "Run AMD GPU"
+        default: false
+        type: boolean
       raspberrypi:
         description: "Run Raspberry Pi"
         default: true
@@ -454,6 +458,51 @@ jobs:
           fail_ci_if_error: true
           use_oidc: true
 
+  AMD_GPU:
+    if: >-
+      github.repository == 'ultralytics/ultralytics' &&
+      (
+        github.event_name == 'schedule' ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.amd-gpu == 'true')
+      )
+    timeout-minutes: 120
+    runs-on: amd-gpu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+          activate-environment: true
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y amd-smi-lib migraphx
+          echo "/opt/rocm/lib" | sudo tee /etc/ld.so.conf.d/rocm.conf
+          sudo ldconfig
+      - name: Install requirements
+        run: |
+          uv pip install torch torchvision --index-url https://download.pytorch.org/whl/rocm7.2 --index-strategy unsafe-best-match
+          uv pip install -e . pytest-cov amdsmi onnxruntime-migraphx --extra-index-url https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/ --index-strategy unsafe-best-match
+        env:
+          PIP_BREAK_SYSTEM_PACKAGES: 1
+      - name: Check environment
+        run: |
+          yolo checks
+          uv pip list
+      - name: Pytest ROCm tests
+        run: pytest --slow --cov=ultralytics/ --cov-report xml tests/test_rocm.py -sv
+        env:
+          PIP_BREAK_SYSTEM_PACKAGES: 1
+      - name: Upload Coverage Reports to CodeCov
+        uses: codecov/codecov-action@v6
+        with:
+          flags: AMD_GPU
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
   # Raspberry Pi stays separate because it is a long-tail self-hosted runner with its own setup and cleanup flow.
   RaspberryPi:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
@@ -638,11 +687,11 @@ jobs:
 
   Summary:
     runs-on: ubuntu-latest
-    needs: [Benchmarks, Tests, SlowTests, IsolatedExports, GPU, RaspberryPi, NVIDIA_Jetson, Conda]
+    needs: [Benchmarks, Tests, SlowTests, IsolatedExports, GPU, AMD_GPU, RaspberryPi, NVIDIA_Jetson, Conda]
     if: always()
     steps:
       - name: Check for failure and notify
-        if: (needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.SlowTests.result == 'failure' || needs.IsolatedExports.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
+        if: (needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.SlowTests.result == 'failure' || needs.IsolatedExports.result == 'failure' || needs.GPU.result == 'failure' || needs.AMD_GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
         uses: slackapi/slack-github-action@v3.0.3
         with:
           webhook-type: incoming-webhook

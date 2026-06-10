@@ -51,7 +51,9 @@ class YOLOv8Seg:
                 or a tuple for rectangular input.
         """
         available = ort.get_available_providers()
-        providers = [p for p in ("CUDAExecutionProvider", "CPUExecutionProvider") if p in available]
+        providers = [
+            p for p in ("MIGraphXExecutionProvider", "CUDAExecutionProvider", "CPUExecutionProvider") if p in available
+        ]
         self.session = ort.InferenceSession(onnx_model, providers=providers or available)
 
         self.imgsz = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz

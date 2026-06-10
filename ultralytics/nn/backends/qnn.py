@@ -6,7 +6,7 @@ from pathlib import Path
 
 import torch
 
-from ultralytics.utils import LOGGER, YAML
+from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
 
 from .base import BaseBackend
@@ -15,17 +15,16 @@ from .base import BaseBackend
 class QNNBackend(BaseBackend):
     """Qualcomm QNN inference backend for Snapdragon hardware.
 
-    Loads and runs the QNN context binary produced by the Ultralytics QNN export (an `*_qnn.onnx` file inside a
-    `_qnn_model` directory) using ONNX Runtime with the QNN Execution Provider plugin (`onnxruntime-qnn`). Inference
-    runs on Qualcomm Snapdragon devices (Android, Windows on Snapdragon, or Qualcomm Linux boards) via the HTP (NPU)
-    backend.
+    Loads and runs the QNN context binary produced by the Ultralytics QNN export (`*_qnn.onnx`) using ONNX Runtime with
+    the QNN Execution Provider plugin (`onnxruntime-qnn`). Inference runs on Qualcomm Snapdragon devices (Android,
+    Windows on Snapdragon, or Qualcomm Linux boards) via the HTP (NPU) backend.
     """
 
     def load_model(self, weight: str | Path) -> None:
         """Load a QNN context-binary model with ONNX Runtime's QNN Execution Provider plugin.
 
         Args:
-            weight (str | Path): Path to the `*_qnn.onnx` file or the `_qnn_model` directory containing it.
+            weight (str | Path): Path to the `*_qnn.onnx` file.
 
         Raises:
             OSError: If the QNN Execution Provider cannot be registered (e.g. not on Snapdragon hardware).
@@ -35,8 +34,7 @@ class QNNBackend(BaseBackend):
 
         from ultralytics.utils.export.qnn import qnn_library_paths
 
-        w = Path(weight)
-        onnx_file = w if w.is_file() else next(w.rglob("*_qnn.onnx"))
+        onnx_file = Path(weight)
         LOGGER.info(f"Loading {onnx_file} for Qualcomm QNN inference...")
 
         # Register the QNN EP (libraries resolved from the plugin helper or the onnxruntime/capi bundle) and select
@@ -61,10 +59,9 @@ class QNNBackend(BaseBackend):
             )
         self.output_names = [x.name for x in self.session.get_outputs()]
 
-        # Load metadata saved alongside the model during export
-        metadata_file = onnx_file.parent / "metadata.yaml"
-        if metadata_file.exists():
-            self.apply_metadata(YAML.load(metadata_file))
+        metadata_map = self.session.get_modelmeta().custom_metadata_map
+        if metadata_map:
+            self.apply_metadata(dict(metadata_map))
 
     def forward(self, im: torch.Tensor) -> list:
         """Run inference on the Qualcomm QNN runtime.

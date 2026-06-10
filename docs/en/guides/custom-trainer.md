@@ -206,7 +206,6 @@ model.train(data="coco8.yaml", epochs=10, trainer=WeightedTrainer)
     # inference script
 
 
-    from weighted_model import WeightedDetectionModel  # noqa: must be importable at load time
     from ultralytics import YOLO
 
     model = YOLO("runs/detect/train/weights/best.pt")

@@ -261,6 +261,23 @@ class HeatmapFiLMFusion(nn.Module):
         return self.alpha[scale_idx].view(1, -1, 1, 1) * d
 
 
+def _sincos_pos2d(h: int, w: int, dim: int, device, dtype) -> torch.Tensor:
+    """Fixed (non-learnable) 2D sinusoidal positional encoding, shape ``(1, dim, h, w)``.
+
+    DETR-style: half the channels encode the row (y) coordinate, half the column (x), each via
+    geometric-frequency sin/cos. Parameter-free and resolution-agnostic (computed from the formula).
+    """
+    d4 = dim // 4
+    omega = 1.0 / (10000.0 ** (torch.arange(d4, device=device, dtype=torch.float32) / d4))  # (d4,)
+    y = torch.arange(h, device=device, dtype=torch.float32)[:, None] * omega[None, :]  # (h, d4)
+    x = torch.arange(w, device=device, dtype=torch.float32)[:, None] * omega[None, :]  # (w, d4)
+    pe_y = torch.cat([y.sin(), y.cos()], dim=1)  # (h, dim//2)
+    pe_x = torch.cat([x.sin(), x.cos()], dim=1)  # (w, dim//2)
+    pe = torch.cat([pe_y[:, None, :].expand(h, w, dim // 2),
+                    pe_x[None, :, :].expand(h, w, dim // 2)], dim=2)  # (h, w, dim)
+    return pe.permute(2, 0, 1).unsqueeze(0).to(dtype)  # (1, dim, h, w)
+
+
 class QueryFiLMFusion(nn.Module):
     """Query-based grouped-FiLM modulation of the P3 feature (deployable, ONNX-clean).
 
@@ -289,6 +306,7 @@ class QueryFiLMFusion(nn.Module):
         film_mid: int = 64,
         alpha_init: float = 0.0,
         softmax_attn: bool = False,
+        pos_enc: bool = False,
     ):
         super().__init__()
         assert p3_channels % num_groups == 0, (
@@ -303,6 +321,11 @@ class QueryFiLMFusion(nn.Module):
         # unclaimed pixels), so two queries can't both own the same region. When off, each
         # query is an independent sigmoid (queries may overlap; v0 behavior).
         self.softmax_attn = bool(softmax_attn)
+        # DETR-style fixed 2D sinusoidal pos-enc added to the attention key (not the pooled value),
+        # so each query's learnable attn vector can specialize by position as well as by content.
+        self.pos_enc = bool(pos_enc)
+        if self.pos_enc:
+            assert self.d % 4 == 0, f"query_dim ({self.d}) must be divisible by 4 for 2D sincos pos-enc"
         attn_out = self.k + 1 if self.softmax_attn else self.k  # +1 = null/background slot
         self.enc = nn.Sequential(
             nn.Conv2d(self.c + 1, enc_mid, 3, padding=1),
@@ -342,7 +365,9 @@ class QueryFiLMFusion(nn.Module):
         b, _, h, w = p3.shape
         hw = h * w
         feat = self.enc(torch.cat([p3, heatmap], dim=1))  # (B, D, H, W)
-        logits = self.attn(feat)  # (B, K or K+1, H, W)
+        # DETR-style: pos-enc enters only the attention key, not the pooled value (ff stays feat).
+        key = feat + _sincos_pos2d(h, w, self.d, feat.device, feat.dtype) if self.pos_enc else feat
+        logits = self.attn(key)  # (B, K or K+1, H, W)
         if self.softmax_attn:
             # Compete across the K real queries + 1 null slot, then drop the null slot. The
             # leftover (null) mass lets background pixels avoid being forced onto a query.
@@ -377,7 +402,8 @@ class QueryFiLMFusion(nn.Module):
         return delta
 
     def extra_repr(self) -> str:
-        return f"c={self.c}, k={self.k}, d={self.d}, g={self.g}, softmax_attn={self.softmax_attn}"
+        return (f"c={self.c}, k={self.k}, d={self.d}, g={self.g}, "
+                f"softmax_attn={self.softmax_attn}, pos_enc={self.pos_enc}")
 
 
 class SegBranch(nn.Module):

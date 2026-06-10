@@ -185,34 +185,27 @@ model.train(data="coco8.yaml", epochs=10, trainer=WeightedTrainer)
     # Result: [1.0, 25.0, 1.67]
     ```
 
-!!! note "Loading a model that uses custom classes"
+!!! note "Loading a model with custom classes"
 
-    Custom classes like `WeightedDetectionModel` are saved into the checkpoint by reference. If you define them in your training script, they belong to the `__main__` module, and loading `best.pt` from a different script raises `AttributeError: Can't get attribute 'WeightedDetectionModel' on <module '__main__'>`.
+    Custom classes such as `WeightedDetectionModel` are stored in the checkpoint by reference. When defined in a training script they belong to the `__main__` module, so loading `best.pt` from a different script raises `AttributeError: Can't get attribute 'WeightedDetectionModel' on <module '__main__'>`.
 
-    Keep the custom classes in their own module so they stay importable, and make sure that module is on your `PYTHONPATH` when you load the model.
+    Define custom classes in a dedicated module so they remain importable, and ensure that module is on your `PYTHONPATH` at load time.
 
     ```python
-    # weighted_trainer.py
-    from ultralytics.models.yolo.detect import DetectionTrainer
+    # weighted_model.py
     from ultralytics.nn.tasks import DetectionModel
 
 
     class WeightedDetectionModel(DetectionModel):
+        """Detection model that uses class-weighted loss."""
         ...
 
-
-    class WeightedTrainer(DetectionTrainer):
-        def get_model(self, cfg=None, weights=None, verbose=True):
-            model = WeightedDetectionModel(cfg, nc=self.data["nc"], verbose=verbose)
-            if weights:
-                model.load(weights)
-            return model
     ```
 
     ```python
-    # load the trained model from another script
+    # inference script
     from ultralytics import YOLO
-    from weighted_trainer import WeightedDetectionModel  # keep the class importable
+    from weighted_model import WeightedDetectionModel  # must be importable at load time
 
     model = YOLO("runs/detect/train/weights/best.pt")
     results = model.val()

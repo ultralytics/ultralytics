@@ -22,6 +22,8 @@ The Ultralytics HUB integration transfers everything from your [Ultralytics HUB]
 
 A progress bar tracks the import while it runs. When it finishes, the card shows a summary of everything that was imported.
 
+If an import does not finish (for example a network issue or a model that failed to transfer), the card shows the error and a **Resume import** button. Re-enter your **Ultralytics HUB API Key** and click **Resume import** — already-imported items are skipped and only the remaining items are transferred.
+
 ## What Gets Imported
 
 | Item         | Imported                         |

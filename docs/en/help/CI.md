@@ -59,14 +59,14 @@ By integrating with Codecov, we aim to maintain and improve the quality of our c
 
 To quickly get a glimpse of the code coverage status of the `ultralytics` Python package, we have included a badge and sunburst visual of the `ultralytics` coverage results. These images show the percentage of code covered by our tests, offering an at-a-glance metric of our testing efforts. For full details, visit the [Ultralytics Codecov report](https://app.codecov.io/github/ultralytics/ultralytics).
 
-| Repository                                                | Code Coverage                                                                                                                                           |
-| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [ultralytics](https://github.com/ultralytics/ultralytics) | [![codecov](https://codecov.io/gh/ultralytics/ultralytics/branch/main/graph/badge.svg?token=HHW7IIVFVY)](https://codecov.io/gh/ultralytics/ultralytics) |
+| Repository                                                | Code Coverage                                                                                                                                      |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [ultralytics](https://github.com/ultralytics/ultralytics) | [![codecov](https://codecov.io/github/ultralytics/ultralytics/branch/main/graph/badge.svg)](https://app.codecov.io/github/ultralytics/ultralytics) |
 
 In the sunburst graphic below, the innermost circle is the entire project, moving away from the center are folders then, finally, a single file. The size and color of each slice represent the number of statements and the coverage, respectively.
 
 <a href="https://app.codecov.io/github/ultralytics/ultralytics">
-    <img src="https://codecov.io/gh/ultralytics/ultralytics/branch/main/graphs/sunburst.svg?token=HHW7IIVFVY" alt="Ultralytics Codecov Image">
+    <img src="https://codecov.io/gh/ultralytics/ultralytics/branch/main/graphs/sunburst.svg" alt="Ultralytics Codecov Image">
 </a>
 
 ## FAQ

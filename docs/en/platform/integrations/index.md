@@ -28,3 +28,5 @@ Each import starts with a preview so you can review exactly what will be transfe
 | [**Roboflow**](roboflow.md)               | Your datasets                                        |
 
 Connect once with an API key and the matching content lands in your workspace.
+
+A **Weights & Biases** integration is coming soon to sync training runs, metrics, and artifacts with your W&B workspace.

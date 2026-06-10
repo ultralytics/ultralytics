@@ -45,6 +45,7 @@ from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.torch_utils import (
     attempt_compile,
+    autocast,
     select_device,
     smart_inference_mode,
     torch_distributed_zero_first,
@@ -155,12 +156,12 @@ class BaseValidator:
         if self.training:
             self.device = trainer.device
             self.data = trainer.data
-            # Force FP16 val during training
+            # Keep training validation read-only: inputs may be fp16, but EMA/model weights stay fp32 under autocast.
             self.args.half = self.device.type != "cpu" and trainer.amp
             model = trainer.ema.ema or trainer.model
             if trainer.args.compile and hasattr(model, "_orig_mod"):
                 model = model._orig_mod  # validate non-compiled original model to avoid issues
-            model = model.half() if self.args.half else model.float()
+            model = model.float()
             self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
             model.eval()
@@ -233,14 +234,15 @@ class BaseValidator:
             with dt[0]:
                 batch = self.preprocess(batch)
 
-            # Inference
-            with dt[1]:
-                preds = model(batch["img"], augment=augment)
+            with autocast(self.training and self.args.half, device=self.device.type):
+                # Inference
+                with dt[1]:
+                    preds = model(batch["img"], augment=augment)
 
-            # Loss
-            with dt[2]:
-                if self.training:
-                    self.loss += model.loss(batch, preds)[1]
+                # Loss
+                with dt[2]:
+                    if self.training:
+                        self.loss += model.loss(batch, preds)[1]
 
             # Postprocess
             with dt[3]:
@@ -263,7 +265,6 @@ class BaseValidator:
             self.run_callbacks("on_val_end")
 
         if self.training:
-            model.float()
             # Reduce loss across all GPUs
             loss = self.loss.clone().detach()
             if trainer.world_size > 1:

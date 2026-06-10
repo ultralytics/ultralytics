@@ -3,7 +3,7 @@
 # BoT-SORT tracker defaults for mode="track"
 # Docs: https://docs.ultralytics.com/modes/track/
 
-tracker_type: botsort # (str) Tracker backend: botsort|bytetrack; choose botsort to enable BoT-SORT features
+tracker_type: botsort # (str) Tracker backend: botsort
 track_high_thresh: 0.25 # (float) First-stage match threshold; raise for cleaner tracks, lower to keep more
 track_low_thresh: 0.1 # (float) Second-stage threshold for low-score matches; balances recovery vs drift
 new_track_thresh: 0.25 # (float) Start a new track if no match ≥ this; higher reduces false tracks

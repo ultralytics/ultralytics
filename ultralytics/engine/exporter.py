@@ -687,6 +687,12 @@ class Exporter:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
 
+        if model.task == "semantic":
+            # Every semantic export ships a compact uint8 class map instead of float logits: argmax is
+            # non-differentiable so it cannot live in the model itself, and emitting logits forces consumers to
+            # dequantize and argmax large tensors on the CPU every frame. Python predict/val accept both forms.
+            model = ClassMapModel(model)
+
         y = None
         for _ in range(2):  # dry runs
             y = NMSModel(model, self.args)(im) if self.args.nms and fmt not in {"coreml", "imx"} else model(im)
@@ -1394,46 +1400,63 @@ class Exporter:
             callback(self)
 
 
-class QNNModel(torch.nn.Module):
-    """Wraps a YOLO model with Hexagon-friendly inference I/O for Qualcomm QNN export.
+class ExportWrapper(torch.nn.Module):
+    """Base for export-time model wrappers: stores the wrapped model and forwards attribute lookups.
 
-    Like `NMSModel`, this wrapper is traced by the standard ONNX export (`export_qnn` swaps it in with a channel-last
-    dummy input) so the adaptations live in the exported graph rather than in every consumer:
-
-    - **Channel-last input**: the graph takes `[N, H, W, C]` images, the Hexagon HTP's native layout and what
-    camera pipelines produce. ONNX Runtime's layout transformer folds the wrapper's Transpose into the NPU partition
-    during context generation, so neither the NPU (boundary transpose) nor the consuming app (CPU-side permute) pays a
-    per-inference layout cost.
-    - **Semantic class-map output**: semantic models return `argmax` class indices as uint8 - Qualcomm's published
-    segmentation recipe - computed on the NPU. Emitting raw float logits instead (~20M values at 1024px) forces a
-    CPU-side dequantize + argmax every frame, measured as both slow and highly variable on device.
-
-    Attributes:
-        model (torch.nn.Module): The wrapped YOLO model.
-        task (str): The wrapped model's task, forwarded for the ONNX export plumbing and used to gate the semantic
-            class-map output.
+    Subclasses adapt a fused YOLO model's inference I/O for a specific deployment contract (layout, output
+    reduction) while the exporter keeps interacting with the wrapper as if it were the model itself.
     """
 
     def __init__(self, model):
-        """Initialize the wrapper around a fused YOLO `model` prepared for export."""
+        """Wrap a fused YOLO `model` prepared for export."""
         super().__init__()
-        self.model = model
+        # Stored under a private name so attribute forwarding resolves `wrapper.model` to the wrapped model's own
+        # `model` (its nn.Sequential), keeping exporter code like `self.model.model[-1]` working unchanged.
+        self._model = model
         self.task = model.task
 
+    def __getattr__(self, name):
+        """Forward attribute lookups (model, names, stride, yaml, args, ...) to the wrapped model."""
+        try:
+            return super().__getattr__(name)
+        except AttributeError:
+            return getattr(self._model, name)
+
+
+class QNNModel(ExportWrapper):
+    """Wraps a YOLO model with channel-last inference input for Qualcomm QNN export.
+
+    Traced by the standard ONNX export (`export_qnn` swaps it in with a channel-last dummy input). The graph takes
+    `[N, H, W, C]` images - the Hexagon HTP's native layout and what camera pipelines produce - so ONNX Runtime's
+    layout transformer folds the wrapper's Transpose into the NPU partition during context generation, and neither
+    the NPU (boundary transpose) nor the consuming app (CPU-side permute) pays a per-inference layout cost.
+
+    Attributes:
+        task (str): The wrapped model's task, forwarded for the ONNX export plumbing.
+    """
+
     def forward(self, x):
-        """Run inference on channel-last input, reducing semantic logits to a uint8 class map.
+        """Run inference on channel-last `[N, H, W, C]` input normalized to [0, 1]."""
+        return self._model(x.permute(0, 3, 1, 2))  # the wrapped model is NCHW; the transpose folds into the NPU graph
 
-        Args:
-            x (torch.Tensor): Input image tensor in channel-last `[N, H, W, C]` layout, normalized to [0, 1].
 
-        Returns:
-            (torch.Tensor): Standard model predictions, or a `[N, H, W]` uint8 class map for semantic models.
-        """
-        y = self.model(x.permute(0, 3, 1, 2))  # the wrapped model is NCHW; this transpose folds into the NPU graph
-        if self.task == "semantic":
-            # In-graph ArgMax: ship a compact class map instead of logits that the app would argmax on CPU
-            y = (y[0] if isinstance(y, (list, tuple)) else y).argmax(1).to(torch.uint8)
-        return y
+class ClassMapModel(ExportWrapper):
+    """Reduces semantic-segmentation logits to a uint8 class map for export.
+
+    Applied to every semantic export format: deployment consumers want per-pixel class indices, and shipping float
+    logits instead forces a dequantize + argmax over large tensors (~20M values at 1024px) on the consumer's CPU
+    every frame - measured as both slow and highly variable on mobile NPUs. The argmax cannot live in the model's
+    own forward because it is non-differentiable (training needs logits), so it is attached here at export time,
+    mirroring how `NMSModel` adds suppression only for export.
+
+    Attributes:
+        task (str): The wrapped model's task ("semantic").
+    """
+
+    def forward(self, x):
+        """Run the wrapped model and return a `[N, H, W]` uint8 class map instead of float logits."""
+        y = self._model(x)
+        return (y[0] if isinstance(y, (list, tuple)) else y).argmax(1).to(torch.uint8)
 
 
 class NMSModel(torch.nn.Module):

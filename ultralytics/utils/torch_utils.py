@@ -407,11 +407,11 @@ def model_info_for_loggers(trainer):
     Examples:
         YOLOv8n info for loggers
         >>> results = {
-        ...    "model/parameters": 3151904,
-        ...    "model/GFLOPs": 8.746,
-        ...    "model/speed_ONNX(ms)": 41.244,
-        ...    "model/speed_TensorRT(ms)": 3.211,
-        ...    "model/speed_PyTorch(ms)": 18.755,
+        ...     "model/parameters": 3151904,
+        ...     "model/GFLOPs": 8.746,
+        ...     "model/speed_ONNX(ms)": 41.244,
+        ...     "model/speed_TensorRT(ms)": 3.211,
+        ...     "model/speed_PyTorch(ms)": 18.755,
         ... }
     """
     if trainer.args.profile:  # profile ONNX and TensorRT times

@@ -227,7 +227,7 @@ The `Plans` tab lets you compare available plans and upgrade or downgrade your s
 | -------------- | --------- | --------- | ----------- | -------------------- | ---------- |
 | **Free**       | 100 GB    | 100       | 3           | 3                    | —          |
 | **Pro**        | 500 GB    | 500       | 10          | 10                   | Up to 5    |
-| **Enterprise** | Unlimited | Unlimited | Unlimited   | Unlimited            | 50+        |
+| **Enterprise** | Unlimited | Unlimited | Unlimited   | Unlimited            | Custom     |
 
 From this tab you can:
 

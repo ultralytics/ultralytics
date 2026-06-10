@@ -23,7 +23,7 @@ RKNN                    | `rknn`                    | yolo26n_rknn_model/
 ExecuTorch              | `executorch`              | yolo26n_executorch_model/
 Axelera AI              | `axelera`                 | yolo26n_axelera_model/
 DEEPX                   | `deepx`                   | yolo26n_deepx_model/
-Qualcomm QNN            | `qnn`                     | yolo26n_qnn_model/
+Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -57,7 +57,7 @@ Inference:
                          yolo26n_executorch_model   # ExecuTorch
                          yolo26n_axelera_model      # Axelera AI
                          yolo26n_deepx_model        # DEEPX
-                         yolo26n_qnn_model          # Qualcomm QNN
+                         yolo26n_qnn.onnx           # Qualcomm QNN
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -226,7 +226,7 @@ def export_formats():
             "isolated-axelera",
         ],
         ["DEEPX", "deepx", "_deepx_model", False, False, ["data", "int8", "optimize"], "isolated-deepx"],
-        ["Qualcomm QNN", "qnn", "_qnn_model", False, False, ["batch", "name", "int8", "fraction", "data"], "base"],
+        ["Qualcomm QNN", "qnn", "_qnn.onnx", False, False, ["batch", "name", "int8", "fraction", "data"], "base"],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -589,7 +589,7 @@ class Exporter:
             self.args.name = str(self.args.name).lower().lstrip("v")  # accept '73' or 'v73'
             assert self.args.name in QNN_HTP_ARCHS, (
                 f"Invalid HTP architecture '{self.args.name}' for Qualcomm QNN export. Valid archs are {QNN_HTP_ARCHS} "
-                "(Snapdragon 865/888/8Gen2/8Gen3/8Elite respectively)."
+                "(Snapdragon 888/8Gen1/8Gen2/8Gen3/8Elite/8EliteGen5 respectively)."
             )
         if self.args.nms and model.task == "semantic":
             LOGGER.warning("'nms=True' is not valid for semantic segmentation models. Forcing 'nms=False'.")
@@ -1354,7 +1354,7 @@ class Exporter:
         f_onnx = self.export_onnx()
         return onnx2qnn(
             onnx_file=f_onnx,
-            output_dir=str(self.file).replace(self.file.suffix, f"_qnn_model{os.sep}"),
+            output_file=str(self.file.with_name(f"{self.file.stem}_qnn.onnx")),
             dataset=self.get_int8_calibration_dataloader(prefix),
             transform_fn=self._transform_fn,
             name=self.args.name,

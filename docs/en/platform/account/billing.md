@@ -27,7 +27,7 @@ Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 | **Deployments**                                            | 3          | 10              | Unlimited   |
 | **Cloud GPU Types**                                        | 22         | 24              | 24          |
 | **Best GPUs (B200, B300)**                                 | -          | Yes             | Yes         |
-| **Teams**                                                  | -          | Up to 5 members | 50+ members |
+| **Teams**                                                  | -          | Up to 5 members | Custom size |
 | **SSO / SAML**                                             | -          | -               | Yes         |
 | **Enterprise License**                                     | -          | -               | Yes         |
 | **License**                                                | AGPL-3.0   | AGPL-3.0        | Enterprise  |

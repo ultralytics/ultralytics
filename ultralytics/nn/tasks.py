@@ -622,6 +622,8 @@ class YOLOAnomalyV2Model(DetectionModel):
         self.queryfilm_w_mask = float(v2_cfg.get("queryfilm_w_mask", 0.05))
         self.queryfilm_w_obj = float(v2_cfg.get("queryfilm_w_obj", 0.10))
         self.queryfilm_w_overlap = float(v2_cfg.get("queryfilm_w_overlap", 0.01))
+        # Foreground/background (null-slot) supervision gain; 0.0 = off (default, unchanged v0/softmax).
+        self.queryfilm_w_fg = float(v2_cfg.get("queryfilm_w_fg", 0.0))
         queryfilm_gt_sigma = float(v2_cfg.get("queryfilm_gt_sigma", 0.15))
 
         detect = self.model[-1]
@@ -1185,7 +1187,7 @@ class YOLOAnomalyV2Model(DetectionModel):
             seg_item = (self.seg_gain * seg_loss).detach().reshape(1).to(det_items.dtype)
             loss_vec = torch.cat([loss_vec, seg_term])
             item_vec = torch.cat([item_vec, seg_item])
-        # QueryFiLM aux losses (mask, obj, overlap). Always appended (zeros when no aux was
+        # QueryFiLM aux losses (mask, obj, overlap, fg). Always appended (zeros when no aux was
         # produced — e.g. the validator's mask-off pass) so the loss-vector length is invariant.
         if self.fusion_mode == "queryfilm":
             qf_terms, qf_items = self._compute_query_film_loss(batch, batch_size, det_items.dtype)
@@ -1194,23 +1196,25 @@ class YOLOAnomalyV2Model(DetectionModel):
         return loss_vec, item_vec
 
     def _compute_query_film_loss(self, batch, batch_size, dtype):
-        """Three QueryFiLM aux losses, scaled like the detection components.
+        """Four QueryFiLM aux losses, scaled like the detection components.
 
         Returns ``(terms, items)``: ``terms`` is the batch-size-scaled vector that joins the
-        backprop sum; ``items`` is the unscaled detached vector for display. Both are length 3
-        ``[qmask, qobj, qovl]``. When no aux was stashed (mask-off / disabled forward) both are
+        backprop sum; ``items`` is the unscaled detached vector for display. Both are length 4
+        ``[qmask, qobj, qovl, qfg]``. When no aux was stashed (mask-off / disabled forward) both are
         zeros so the loss-vector length stays constant across the validator's double pass.
         """
         device = next(self.parameters()).device
         aux, self._qf_aux_buf = self._qf_aux_buf, None
         if aux is None:
             # ``dtype`` matches det_loss/det_items so torch.cat works under AMP autocast.
-            zeros = torch.zeros(3, device=device, dtype=dtype)
+            zeros = torch.zeros(4, device=device, dtype=dtype)
             return zeros, zeros
         gt_masks = self.query_gt_renderer.render_per_instance(batch["bboxes"], batch["batch_idx"], batch_size)
-        losses = query_film_loss(aux["A"], aux["attn_logits"], aux["obj_logits"], gt_masks)
-        gains = (self.queryfilm_w_mask, self.queryfilm_w_obj, self.queryfilm_w_overlap)
-        keys = ("mask", "obj", "overlap")
+        # Only compute the fg/bg term when enabled (skips it for w_fg=0 / sigmoid models).
+        fg_pred = aux.get("fg_pred") if self.queryfilm_w_fg > 0.0 else None
+        losses = query_film_loss(aux["A"], aux["attn_logits"], aux["obj_logits"], gt_masks, fg_pred=fg_pred)
+        gains = (self.queryfilm_w_mask, self.queryfilm_w_obj, self.queryfilm_w_overlap, self.queryfilm_w_fg)
+        keys = ("mask", "obj", "overlap", "fg")
         # Cast to det dtype (query ops may run fp16 under autocast) so the cat in loss() is safe.
         terms = torch.stack([(g * losses[k] * batch_size).to(dtype) for g, k in zip(gains, keys)])
         items = torch.stack([(g * losses[k]).detach().to(dtype) for g, k in zip(gains, keys)])

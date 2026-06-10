@@ -57,9 +57,9 @@ class AnomalyV2Trainer(DetectionTrainer):
         loss_names = ["box_loss", "cls_loss", "dfl_loss"]
         if getattr(model, "seg_branch", None) is not None:
             loss_names.append("seg_loss")
-        # QueryFiLM appends 3 aux components in this exact order (see YOLOAnomalyV2Model.loss).
+        # QueryFiLM appends 4 aux components in this exact order (see YOLOAnomalyV2Model.loss).
         if getattr(model, "fusion_mode", None) == "queryfilm":
-            loss_names += ["qmask_loss", "qobj_loss", "qovl_loss"]
+            loss_names += ["qmask_loss", "qobj_loss", "qovl_loss", "qfg_loss"]
         self.loss_names = tuple(loss_names)
         return yolo.anomaly_v2.AnomalyV2Validator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args),

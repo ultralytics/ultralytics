@@ -323,6 +323,10 @@ class QueryFiLMFusion(nn.Module):
         self.alpha = nn.Parameter(torch.full((1,), float(alpha_init)))
         # Learnable softmax temperature (tau = exp(log_tau), init 1.0); only used when softmax_attn.
         self.log_tau = nn.Parameter(torch.zeros(1)) if self.softmax_attn else None
+        # Eval-only debug hook (query knockout): if set to a list of query indices, only those
+        # queries' write-back contributes to the FiLM (gamma, beta); the rest are zeroed. None =
+        # all queries (no-op). Not used in training/export — purely for diagnostics.
+        self._keep_queries: list[int] | None = None
 
     def forward(self, p3: torch.Tensor, heatmap: torch.Tensor, return_aux: bool = False):
         """Return the residual increment ``(B, C, H, W)`` for the P3 feature.
@@ -345,9 +349,11 @@ class QueryFiLMFusion(nn.Module):
             tau = self.log_tau.exp().clamp_min(1e-2)
             a = (logits / tau).softmax(dim=1)[:, : self.k]  # (B, K, H, W)
             attn_logits = logits[:, : self.k]  # real-query logits for the aux loss
+            fg_pred = a.sum(dim=1)  # (B, H, W) foreground occupancy = 1 - null prob (fg/bg loss)
         else:
             a = logits.sigmoid()  # (B, K, H, W), independent per-query (v0)
             attn_logits = logits
+            fg_pred = None  # no null slot without softmax -> no fg/bg supervision
         af = a.reshape(b, self.k, hw)  # (B, K, HW)
         ff = feat.reshape(b, self.d, hw).transpose(1, 2)  # (B, HW, D)
         q = torch.bmm(af, ff) / af.sum(2, keepdim=True).clamp_min(1.0)  # (B, K, D) masked-avg-pool
@@ -356,6 +362,10 @@ class QueryFiLMFusion(nn.Module):
         gb = self.film_mlp(q)  # (B, K, 2G), == 0 at init
         gamma_k, beta_k = gb[..., : self.g], gb[..., self.g :]  # (B, K, G)
         weight = (a * objs[..., None, None]).reshape(b, self.k, hw)  # (B, K, HW)
+        if self._keep_queries is not None:  # eval-only query knockout (diagnostics)
+            keep = torch.zeros(self.k, device=weight.device, dtype=weight.dtype)
+            keep[self._keep_queries] = 1.0
+            weight = weight * keep.view(1, self.k, 1)
         gamma = torch.bmm(gamma_k.transpose(1, 2), weight).reshape(b, self.g, h, w)  # (B, G, H, W)
         beta = torch.bmm(beta_k.transpose(1, 2), weight).reshape(b, self.g, h, w)  # (B, G, H, W)
         pg = p3.reshape(b, self.g, self.c // self.g, h, w)  # (B, G, C/G, H, W)
@@ -363,7 +373,7 @@ class QueryFiLMFusion(nn.Module):
         shift = (self.alpha * beta).unsqueeze(2)  # (B, G, 1, H, W)
         delta = (scale * pg + shift).reshape(b, self.c, h, w)  # increment, == 0 at init
         if return_aux:
-            return delta, {"A": a, "attn_logits": attn_logits, "obj_logits": obj_logits}
+            return delta, {"A": a, "attn_logits": attn_logits, "obj_logits": obj_logits, "fg_pred": fg_pred}
         return delta
 
     def extra_repr(self) -> str:
@@ -418,22 +428,27 @@ def query_film_loss(
     attn_logits: torch.Tensor,
     obj_logits: torch.Tensor,
     gt_masks: list[torch.Tensor],
+    fg_pred: torch.Tensor | None = None,
 ) -> dict[str, torch.Tensor]:
     """Training-only supervision for QueryFiLM queries (Hungarian-matched to GT instances).
 
-    Computes three scalar losses:
+    Computes four scalar losses:
       - ``mask``: Dice + BCE between each matched query map and its GT instance mask.
       - ``obj``: BCEWithLogits on objectness (matched query -> 1, unmatched -> 0).
       - ``overlap``: mean off-diagonal pairwise overlap of the query maps (collapse guard).
+      - ``fg``: BCE + Dice between foreground occupancy ``Σ_k A_k`` and the GT-instance union,
+        i.e. background pixels are pushed onto the null slot (``Σ_k A_k -> 0``) and foreground onto
+        the real queries. Only meaningful under softmax-over-(K+1); ``0`` when ``fg_pred is None``.
 
     Args:
         a: query attention maps ``(B, K, H, W)`` in [0, 1].
         attn_logits: raw query logits ``(B, K, H, W)`` (BCE uses logits for stability).
         obj_logits: per-query objectness logits ``(B, K)``.
         gt_masks: length-B list, each ``(N_b, H, W)`` per-instance GT gauss masks in [0, 1].
+        fg_pred: foreground occupancy ``Σ_k A_k`` ``(B, H, W)`` in [0, 1] (softmax-attn only), or None.
 
     Returns:
-        dict with scalar tensors ``{"mask", "obj", "overlap"}``.
+        dict with scalar tensors ``{"mask", "obj", "overlap", "fg"}``.
     """
     from scipy.optimize import linear_sum_assignment
 
@@ -482,7 +497,27 @@ def query_film_loss(
         mask_loss = torch.cat(mask_terms).mean()
     else:
         mask_loss = torch.zeros((), device=device, dtype=af.dtype)
-    return {"mask": mask_loss, "obj": obj_loss, "overlap": overlap}
+
+    # Foreground/background term: push Σ_k A_k toward the GT-instance union (background -> null).
+    if fg_pred is not None:
+        fg_t = torch.zeros_like(fg_pred)  # (B, H, W); stays 0 for good (no-instance) images
+        for i in range(b):
+            gt = gt_masks[i]
+            if gt.shape[0] == 0:
+                continue
+            gt = gt.to(device=device, dtype=fg_pred.dtype)
+            if gt.shape[-2:] != (h, w):
+                gt = F.interpolate(gt.unsqueeze(0), size=(h, w), mode="bilinear", align_corners=False).squeeze(0)
+            fg_t[i] = gt.max(0).values  # union of per-instance masks
+        fg_p = fg_pred.clamp(1e-6, 1.0 - 1e-6)
+        bce = F.binary_cross_entropy(fg_p, fg_t)
+        inter = (fg_pred * fg_t).sum(dim=(1, 2))
+        card = fg_pred.sum(dim=(1, 2)) + fg_t.sum(dim=(1, 2))
+        dice = (1.0 - (2.0 * inter + 1.0) / (card + 1.0)).mean()
+        fg_loss = bce + dice
+    else:
+        fg_loss = torch.zeros((), device=device, dtype=af.dtype)
+    return {"mask": mask_loss, "obj": obj_loss, "overlap": overlap, "fg": fg_loss}
 
 
 class BackboneMemoryBank(nn.Module):

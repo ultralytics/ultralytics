@@ -690,7 +690,7 @@ class Exporter:
         y = None
         for _ in range(2):  # dry runs
             y = NMSModel(model, self.args)(im) if self.args.nms and fmt not in {"coreml", "imx"} else model(im)
-        if self.args.half and fmt in {"onnx", "torchscript", "rknn"} and self.device.type != "cpu":
+        if self.args.half and fmt in {"onnx", "torchscript"} and self.device.type != "cpu":
             im, model = im.half(), model.half()  # to FP16
 
         # Assign

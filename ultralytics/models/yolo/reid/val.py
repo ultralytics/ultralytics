@@ -16,7 +16,7 @@ from ultralytics.models.yolo.classify.val import ClassificationValidator
 from ultralytics.utils import LOGGER, RANK, TQDM
 from ultralytics.utils.metrics import ReidMetrics
 from ultralytics.utils.plotting import plot_reid_retrieval
-from ultralytics.utils.torch_utils import smart_inference_mode
+from ultralytics.utils.torch_utils import autocast, smart_inference_mode
 
 
 def select_diagnostic_queries(hits, n: int = 8) -> list[int]:
@@ -206,7 +206,11 @@ class ReidValidator(ClassificationValidator):
             batch (dict): Batch with 'img', 'cls' and 'camid' keys.
         """
         if self._tta_active():
-            emb = self._embed(batch["img"])
+            # Same dtype guard as gallery extraction: update_metrics runs outside the engine
+            # loop's autocast block.
+            with autocast(self.training and self.args.half, device=self.device.type):
+                emb = self._embed(batch["img"])
+            emb = emb.float()
         else:
             # Unwrap eval-mode 2-tuple; the head emits already-L2-normalised embeddings, so the
             # extra F.normalize step from _embed is unnecessary in this default path.
@@ -318,7 +322,11 @@ class ReidValidator(ClassificationValidator):
         bar = TQDM(loader, desc=f"{'Extracting gallery':>22s}", total=len(loader))
         for batch in bar:
             batch = self.preprocess(batch)
-            emb = self._embed(batch["img"])
+            # In-train val: fp16 inputs (args.half=trainer.amp) but fp32 EMA weights — mirror the
+            # engine loop's autocast guard (validator.py) or CUDA conv crashes on dtype mismatch.
+            with autocast(self.training and self.args.half, device=self.device.type):
+                emb = self._embed(batch["img"])
+            emb = emb.float()
             # self.preprocess (inherited from ClassificationValidator) moves cls onto the device
             # alongside img, so all three accumulators must .cpu() before the final torch.cat().numpy().
             feats.append(emb.cpu())

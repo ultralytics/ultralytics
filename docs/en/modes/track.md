@@ -248,13 +248,13 @@ with_reid: True
 model: yolo26n-reid.onnx  # downloaded on first use; swap n→s/m/l/x for a larger encoder
 ```
 
-| Model | File |
-| ----- | ---- |
-| [YOLO26n-reid](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-reid.onnx) | `yolo26n-reid.onnx` |
-| [YOLO26s-reid](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-reid.onnx) | `yolo26s-reid.onnx` |
-| [YOLO26m-reid](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-reid.onnx) | `yolo26m-reid.onnx` |
-| [YOLO26l-reid](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-reid.onnx) | `yolo26l-reid.onnx` |
-| [YOLO26x-reid](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-reid.onnx) | `yolo26x-reid.onnx` |
+| Model                                                                                                        | size<br><sup>(pixels) | params<br><sup>(M)  | FLOPs<br><sup>(B)  |
+| ------------------------------------------------------------------------------------------------------------ | --------------------- | ------------------- | ------------------ |
+| [YOLO26n-reid.onnx](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-reid.onnx)        | 448                   | 2.8                 | 2.0                |
+| [YOLO26s-reid.onnx](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-reid.onnx)        | 448                   | 7.5                 | 6.6                |
+| [YOLO26m-reid.onnx](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-reid.onnx)        | 448                   | 12.4                | 20.1               |
+| [YOLO26l-reid.onnx](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-reid.onnx)        | 448                   | 15.3                | 25.2               |
+| [YOLO26x-reid.onnx](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-reid.onnx)        | 448                   | 32.7                | 55.9               |
 
 !!! note "ReID is tracking-only"
 

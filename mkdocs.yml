@@ -557,6 +557,7 @@ nav:
       - Preprocessing Annotated Data: guides/preprocessing_annotated_data.md
       - Raspberry Pi: guides/raspberry-pi.md
       - ReID Fine-Tuning on Custom Data: guides/reid-finetuning.md
+      - ReID Beyond Persons (Custom Domains): guides/reid-custom-dataset.md
       - ROS Quickstart: guides/ros-quickstart.md
       - SAHI Tiled Inference: guides/sahi-tiled-inference.md
       - Steps of a Computer Vision Project: guides/steps-of-a-cv-project.md

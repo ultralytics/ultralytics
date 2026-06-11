@@ -74,7 +74,7 @@ dependencies = [
     "torchvision>=0.9.0",
     "psutil>=5.8.0", # system utilization
     "polars>=0.20.0",
-    "nvidia-ml-py>=13.0.0", # NVIDIA GPU monitoring https://pypi.org/project/nvidia-ml-py
+    "nvidia-ml-py>=12.0.0", # NVIDIA GPU monitoring https://pypi.org/project/nvidia-ml-py
     "ultralytics-thop>=2.0.18", # FLOPs computation https://github.com/ultralytics/thop
 ]
 

@@ -44,7 +44,7 @@ class GPUInfo:
 
     def __init__(self):
         """Initialize GPUInfo, attempting to import and initialize pynvml."""
-        self.pynvml = None
+        self.pynvml: Any | None = None
         self.nvml_available: bool = False
         self.gpu_stats: list[dict[str, Any]] = []
 

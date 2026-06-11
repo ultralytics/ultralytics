@@ -1,6 +1,8 @@
 // Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 #include "inference.hpp"
+#include "yolo_draw.hpp"
+#include "yolo_show.hpp"
 #include <iostream>
 #include <vector>
 #include <string>
@@ -57,20 +59,17 @@ int main(int argc, char *argv[])
 
     getDetectionsFromTritonRawData(triton_communication->output_raw_data, detections, object_class_list, NETWORK_THRESHOLD, image_width, image_height);
 
+    const bool show = yolo::ShowRequested(argc, argv);  // pass --show to display the result
     for (int i = 0; i < detections.size(); i++)
     {
-        std::ostringstream oss;
-        oss << detections[i].name << " "
-        << std::fixed << std::setprecision(2)
-        << detections[i].confidence_score;
-
-        cv::rectangle(frame, detections[i].bbox, cv::Scalar(255, 0, 0), 2);
-        cv::putText(frame, oss.str(), cv::Point((detections[i].bbox.x), (detections[i].bbox.y - 5)), cv::FONT_HERSHEY_DUPLEX, ((frame.cols / 640.0f) * 0.35), cv::Scalar(0, 0, 0), (int)(frame.cols / 640.0f) + 1);
-        cv::putText(frame, oss.str(), cv::Point((detections[i].bbox.x), (detections[i].bbox.y - 5)), cv::FONT_HERSHEY_DUPLEX, ((frame.cols / 640.0f) * 0.35), cv::Scalar(0xFF, 0xFF, 0xFF), (int)(frame.cols / 640.0f));
+        yolo::DrawBox(frame, detections[i].bbox,
+                      yolo::Label(detections[i].name, static_cast<float>(detections[i].confidence_score)),
+                      detections[i].class_id);
     }
 
     cv::imwrite(output_path, frame);
     std::cout << "Result image saved!"<< std::endl;
+    yolo::Show("Result", frame, show);
 
     return 0;
 }

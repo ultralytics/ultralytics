@@ -44,6 +44,7 @@ target_include_directories(${PROJECT_NAME}
     PRIVATE
     ${TRITON_CLIENT_DIR}/include
     ${OpenCV_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common  # shared palette, names, annotator, show flag
 )
 
 # Link directories

@@ -61,28 +61,26 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
 ### Browser Codec Support
 
-Video frames are extracted in your browser (1 FPS) *before* upload, so a video must use a container **and** a codec your browser — typically Chrome — can decode. A file extension only names the container; what actually decides success is the **codec inside**. Every accepted container (MP4, WebM, MOV, MKV, M4V) demuxes in Chrome — AVI is not accepted because Chrome can't demux it — so Chrome decodes only the codecs marked **Yes** below. Anything else (ProRes, MPEG-1/2, DV, VC-1, DNxHD, H.263, …) fails and must be re-encoded to H.264/MP4.
+Videos are turned into frames **in your browser** before upload, so a video only uploads if your browser — usually Chrome — can play it. The file extension alone isn't enough: an `.mp4` or `.mov` can still fail if it uses a codec the browser can't decode.
 
-!!! note "Other browsers"
+!!! tip "Use H.264 MP4"
 
-    The codec table below is the portable baseline — what Chrome and other Chromium browsers decode. Browsers that decode through the operating system, notably **Safari on macOS**, read extra codecs such as ProRes and HEVC, so a video that fails in Chrome may still upload in Safari. The reverse also holds — Chrome decodes AV1 and VP9 in software where Safari needs hardware — so **H.264/MP4 is the only format guaranteed to work in every browser**.
-
-| Codec         | Also known as                                             | Browser decode | Notes                                                                            |
-| ------------- | --------------------------------------------------------- | -------------- | -------------------------------------------------------------------------------- |
-| H.264         | AVC                                                       | Yes            | **Recommended.** 8-bit 4:2:0 (Baseline/Main/High); 10-bit (Hi10P) and 4:4:4 may fail |
-| VP9           | —                                                         | Yes            | Royalty-free; usually in WebM or MKV                                             |
-| VP8           | —                                                         | Yes            | Royalty-free; usually in WebM or MKV                                             |
-| AV1           | —                                                         | Yes            | Software decode on every platform (Chrome 70+)                                  |
-| H.265         | HEVC                                                      | Hardware only  | Decodes only with an HEVC-capable GPU and OS (Chrome 107+); no software fallback |
-| Anything else | ProRes, MPEG-2, MPEG-4 Part 2 (DivX/Xvid), Motion JPEG, … | No             | Re-encode to H.264                                                               |
-
-!!! tip "Re-encode an unsupported video"
-
-    Convert any video to a browser-safe H.264/MP4 with [FFmpeg](https://ffmpeg.org/):
+    H.264 video in an MP4 container plays in every browser and is the safest choice. If a video won't upload, re-encode it with [FFmpeg](https://ffmpeg.org/):
 
     ```bash
     ffmpeg -i input.mov -c:v libx264 -pix_fmt yuv420p -c:a aac -movflags +faststart output.mp4
     ```
+
+??? info "Which video codecs work"
+
+    | Codec                               | Decodes in Chrome | Notes                                |
+    | ----------------------------------- | ----------------- | ------------------------------------ |
+    | H.264 (AVC)                         | Yes               | Recommended — works everywhere       |
+    | VP8, VP9, AV1                       | Yes               | Royalty-free; common in WebM and MKV |
+    | HEVC (H.265)                        | Hardware only     | Only on devices with an HEVC decoder |
+    | ProRes, MPEG-2, DivX/Xvid, MJPEG, … | No                | Re-encode to H.264                   |
+
+    Containers MP4, WebM, MOV, MKV, and M4V all work — AVI is rejected because browsers can't open it. Safari on macOS decodes a few extra codecs (ProRes, HEVC) through the operating system, but H.264 MP4 is the only format guaranteed everywhere.
 
 ### Preparing Your Dataset
 

@@ -691,6 +691,14 @@ class Exporter:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
 
+        if model.task == "semantic" and fmt in {"qnn", "coreml"}:
+            # NPU-targeted semantic exports ship a compact uint8 class map instead of float logits: emitting logits
+            # forces consumers to dequantize and argmax ~20M floats on the CPU every frame (measured erratic
+            # 123-1065 ms on Hexagon). Not applied to TFLite, where the GPU delegate cannot compile ArgMax (int64
+            # indices) and a whole-graph CPU fallback is slower than GPU logits + consumer-side argmax. Python
+            # predict/val accept both forms.
+            model = ClassMapModel(model)
+
         y = None
         for _ in range(2):  # dry runs
             y = NMSModel(model, self.args)(im) if self.args.nms and fmt not in {"coreml", "imx"} else model(im)
@@ -1355,7 +1363,13 @@ class Exporter:
         """Export YOLO model to a Qualcomm QNN context binary using ONNX Runtime QNN."""
         from ultralytics.utils.export.qnn import onnx2qnn
 
-        f_onnx = self.export_onnx()
+        # Wrap for Hexagon-friendly I/O: channel-last input (the class-map wrap for semantic is format-agnostic)
+        model, im = self.model, self.im
+        try:
+            self.model, self.im = QNNModel(model), im.permute(0, 2, 3, 1)
+            f_onnx = self.export_onnx()
+        finally:
+            self.model, self.im = model, im
         return onnx2qnn(
             onnx_file=f_onnx,
             output_file=str(self.file.with_name(f"{self.file.stem}_qnn.onnx")),
@@ -1390,6 +1404,75 @@ class Exporter:
         """Execute all callbacks for a given event."""
         for callback in self.callbacks.get(event, []):
             callback(self)
+
+
+class ExportWrapper(torch.nn.Module):
+    """Base for export-time model wrappers: stores the wrapped model and forwards attribute lookups.
+
+    Subclasses adapt a fused YOLO model's inference I/O for a specific deployment contract (layout, output
+    reduction) while the exporter keeps interacting with the wrapper as if it were the model itself.
+    """
+
+    def __init__(self, model):
+        """Wrap a fused YOLO `model` prepared for export."""
+        super().__init__()
+        # Stored under a private name so attribute forwarding resolves `wrapper.model` to the wrapped model's own
+        # `model` (its nn.Sequential), keeping exporter code like `self.model.model[-1]` working unchanged.
+        self._model = model
+        self.task = model.task
+
+    def __getattr__(self, name):
+        """Forward attribute lookups (model, names, stride, yaml, args, ...) to the wrapped model."""
+        try:
+            return super().__getattr__(name)
+        except AttributeError:
+            return getattr(self._model, name)
+
+
+class QNNModel(ExportWrapper):
+    """Wraps a YOLO model with channel-last inference input for Qualcomm QNN export.
+
+    Traced by the standard ONNX export (`export_qnn` swaps it in with a channel-last dummy input). The graph takes `[N,
+    H, W, C]` images - the Hexagon HTP's native layout and what camera pipelines produce - so ONNX Runtime's layout
+    transformer folds the wrapper's Transpose into the NPU partition during context generation, and neither the NPU
+    (boundary transpose) nor the consuming app (CPU-side permute) pays a per-inference layout cost.
+
+    Attributes:
+        task (str): The wrapped model's task, forwarded for the ONNX export plumbing.
+    """
+
+    def forward(self, x):
+        """Run inference on channel-last `[N, H, W, C]` input normalized to [0, 1]."""
+        return self._model(x.permute(0, 3, 1, 2))  # the wrapped model is NCHW; the transpose folds into the NPU graph
+
+
+class ClassMapModel(ExportWrapper):
+    """Reduces semantic-segmentation logits to a compact integer class map for export.
+
+    Applied to QNN and Core ML semantic exports, where the argmax runs on the NPU: deployment consumers want per-pixel
+    class indices, and shipping float logits instead forces a dequantize + argmax over large tensors (~20M values at
+    1024px) on the consumer's CPU every frame - measured as both slow and highly variable on mobile
+    NPUs. The argmax cannot live in the model's own forward because it is non-differentiable (training needs
+    logits), so it is attached here at export time, mirroring how `NMSModel` adds suppression only for export.
+
+    Attributes:
+        task (str): The wrapped model's task ("semantic").
+        dtype (torch.dtype): Class-index dtype; uint8 unless the model has more than 256 classes.
+    """
+
+    def __init__(self, model):
+        """Wrap a fused semantic `model` so export emits class indices instead of logits."""
+        super().__init__(model)
+        # uint8 quarters the NPU->CPU output transfer vs int32 and Core ML promotes it to int32 in-spec;
+        # int32 only when more than 256 classes make uint8 indices ambiguous.
+        self.dtype = torch.uint8 if len(model.names) <= 256 else torch.int32
+
+    def forward(self, x):
+        """Run the wrapped model and return a `[N, H, W]` integer class map instead of float logits."""
+        y = self._model(x)
+        y = y[0] if isinstance(y, (list, tuple)) else y
+        # Single-channel (binary) models threshold the logit, matching predict/val semantics for nc == 1
+        return (y.argmax(1) if y.shape[1] > 1 else y[:, 0].gt(0)).to(self.dtype)
 
 
 class NMSModel(torch.nn.Module):

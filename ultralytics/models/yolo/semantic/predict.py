@@ -58,13 +58,17 @@ class SemanticSegmentationPredictor(BasePredictor):
         results = []
         for i, (pred, orig_img) in enumerate(zip(preds, orig_imgs)):
             img_path = self.batch[0][i] if isinstance(self.batch[0], list) else self.batch[0]
-            pred = pred.unsqueeze(0).float()
+            class_map_input = pred.ndim == 2  # exports with in-graph ArgMax emit a [H, W] class map directly
+            pred = (pred.unsqueeze(0).unsqueeze(0) if class_map_input else pred.unsqueeze(0)).float()
             # Upsample pred to the model input resolution first so LetterBox padding is an integer in this space
             if pred.shape[2:] != img.shape[2:]:
-                pred = F.interpolate(pred, img.shape[2:], mode="bilinear")
-            # scale_masks then crops it cleanly without the sub-pixel asymmetry
-            pred = ops.scale_masks(pred, orig_img.shape[:2])[0]
-            dtype = self._class_map_dtype(max(pred.shape[0], 2))
-            class_map = pred.argmax(0).to(dtype) if pred.shape[0] > 1 else pred.gt(0).squeeze(0).to(dtype)
+                pred = F.interpolate(pred, img.shape[2:], mode="nearest" if class_map_input else "bilinear")
+            # scale_masks then crops it cleanly without the sub-pixel asymmetry; class maps must never blend IDs
+            pred = ops.scale_masks(pred, orig_img.shape[:2], mode="nearest" if class_map_input else "bilinear")[0]
+            if class_map_input:
+                class_map = pred.squeeze(0).to(self._class_map_dtype(int(pred.max().item()) + 1))
+            else:
+                dtype = self._class_map_dtype(max(pred.shape[0], 2))
+                class_map = pred.argmax(0).to(dtype) if pred.shape[0] > 1 else pred.gt(0).squeeze(0).to(dtype)
             results.append(Results(orig_img, path=img_path, names=self.model.names, semantic_mask=class_map))
         return results

@@ -106,7 +106,7 @@ def modelopt_quantize_onnx(
 
     Args:
         onnx_file (str): Path to the FP32 ONNX file to convert.
-        int8 (bool): Quantize the ONNX model to INT8 with Q/DQ nodes.
+        int8 (bool): Quantize the ONNX model to INT8 with Q/DQ nodes. If False, outputs an FP16 precision ONNX file.
         dataset (ultralytics.data.build.InfiniteDataLoader | None): Dataloader providing INT8 calibration images.
             Required when ``int8=True``.
         shape (tuple[int, int, int, int]): Input shape (batch, channels, height, width) used for dynamic calibration.

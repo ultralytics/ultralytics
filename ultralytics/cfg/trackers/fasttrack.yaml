@@ -3,7 +3,7 @@
 # FastTracker tracker defaults for mode="track"
 # Occlusion-aware ByteTrack-style tracker with lightweight Kalman rollback and init IoU suppression.
 # Paper: https://arxiv.org/abs/2508.14370
-# Docs: https://docs.ultralytics.com/modes/track/
+# Docs: https://docs.ultralytics.com/modes/track
 
 tracker_type: fasttrack # (str) Tracker backend: fasttrack
 track_high_thresh: 0.25 # (float) First-stage match threshold

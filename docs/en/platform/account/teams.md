@@ -17,7 +17,7 @@ Teams allow multiple users to work together under a shared workspace:
 - **Shared Resources**: Datasets, projects, models, and deployments are accessible to all team members
 - **Role-Based Access**: Four roles (Owner, Admin, Editor, Viewer) control what each member can do
 - **Shared Billing**: Team members share the workspace credit balance and resource limits
-- **Seat Management**: Pro teams support up to 5 members, Enterprise teams support 50+ members
+- **Seat Management**: Pro teams support up to 5 members, Enterprise teams support custom team sizes
 
 !!! note "Plan Requirement"
 

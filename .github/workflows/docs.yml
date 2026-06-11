@@ -22,7 +22,7 @@ on:
   workflow_dispatch:
     inputs:
       publish_docs:
-        description: "Publish live to https://docs.ultralytics.com"
+        description: "Publish Docs to https://docs.ultralytics.com"
         default: true
         type: boolean
 
@@ -50,7 +50,7 @@ jobs:
       - name: Install Dependencies
         run: |
           uv venv
-          echo "$PWD/.venv/bin" >> $GITHUB_PATH
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
           uv pip install -e ".[dev]" ruff --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Ruff fixes
         continue-on-error: true
@@ -103,25 +103,22 @@ jobs:
           fi
       - name: Publish Docs to https://docs.ultralytics.com
         if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_docs == 'true')
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          VERCEL_DOCS_DEPLOY_HOOK: ${{ secrets.VERCEL_DOCS_DEPLOY_HOOK }}
+          BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
         run: |
-          git clone --depth 1 --branch gh-pages https://github.com/ultralytics/docs.git docs-repo
-          cd docs-repo
-          if [ -f "vercel.json" ]; then
-            cp vercel.json /tmp/vercel.json
+          if [[ "$EVENT_NAME" == "push" ]]; then
+            if [[ "$BEFORE_SHA" == "0000000000000000000000000000000000000000" ]]; then
+              BEFORE_SHA=$(git rev-list --max-parents=0 "$CURRENT_SHA")
+            fi
+            changed_files=$(git diff --name-only "$BEFORE_SHA" "$CURRENT_SHA" -- docs/ mkdocs.yml mkdocs.yaml)
+            if [[ -z "$changed_files" ]]; then
+              echo "No docs source changes."
+              exit 0
+            fi
+            echo "$changed_files"
           fi
-          rm -rf *
-          cp -R ../site/* .
-          if [ -f "/tmp/vercel.json" ]; then
-            cp /tmp/vercel.json .
-          fi
-          echo "${{ secrets.INDEXNOW_KEY_DOCS }}" > "${{ secrets.INDEXNOW_KEY_DOCS }}.txt"
-          git add .
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            git pull origin gh-pages
-            LATEST_HASH=$(git rev-parse --short=7 HEAD)
-            VERSION=$(python -c "from ultralytics import __version__; print(__version__)")
-            git commit -m "Update Docs for 'ultralytics $VERSION - $LATEST_HASH'"
-            git push https://${{ secrets._GITHUB_TOKEN }}@github.com/ultralytics/docs.git gh-pages
-          fi
+
+          curl --fail --silent --show-error --retry 3 --request POST "$VERCEL_DOCS_DEPLOY_HOOK"

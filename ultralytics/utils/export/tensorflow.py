@@ -240,6 +240,7 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
         Auto-installs the Edge TPU compiler if not found. The function compiles the TFLite model
         for optimal performance on Google's Edge TPU hardware accelerator.
     """
+    import shlex
     import subprocess
 
     # Install Edge TPU compiler if not found
@@ -260,17 +261,20 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
     ver = subprocess.run(check_cmd, shell=True, capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
     LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
 
-    cmd = (
-        "edgetpu_compiler "
-        f'--out_dir "{output_dir}" '
-        "--show_operations "
-        "--search_delegate "
-        "--delegate_search_step 30 "
-        "--timeout_sec 180 "
-        f'"{tflite_file}"'
-    )
-    LOGGER.info(f"{prefix} running '{cmd}'")
-    subprocess.run(cmd, shell=True)
+    cmd = [
+        "edgetpu_compiler",
+        "--out_dir",
+        str(output_dir),
+        "--show_operations",
+        "--search_delegate",
+        "--delegate_search_step",
+        "30",
+        "--timeout_sec",
+        "180",
+        str(tflite_file),
+    ]  # argv list avoids shell metacharacter issues in output_dir/tflite_file paths
+    LOGGER.info(f"{prefix} running '{shlex.join(cmd)}'")
+    subprocess.run(cmd)
     return str(Path(output_dir) / f"{Path(tflite_file).stem}_edgetpu.tflite")
 
 
@@ -291,6 +295,7 @@ def pb2tfjs(pb_file: str, output_dir: str, half: bool = False, int8: bool = Fals
         Auto-installs tensorflowjs if not present. Uses tensorflowjs_converter command-line tool for conversion.
         Handles spaces in file paths and warns if output directory contains spaces.
     """
+    import shlex
     import subprocess
 
     check_requirements("tensorflowjs")
@@ -305,14 +310,18 @@ def pb2tfjs(pb_file: str, output_dir: str, half: bool = False, int8: bool = Fals
     outputs = ",".join(gd_outputs(gd))
     LOGGER.info(f"\n{prefix} output node names: {outputs}")
 
-    quantization = "--quantize_float16" if half else "--quantize_uint8" if int8 else ""
+    quantization = ["--quantize_float16"] if half else ["--quantize_uint8"] if int8 else []
     with spaces_in_path(pb_file) as fpb_, spaces_in_path(output_dir) as f_:  # exporter cannot handle spaces in paths
-        cmd = (
-            "tensorflowjs_converter "
-            f'--input_format=tf_frozen_model {quantization} --output_node_names={outputs} "{fpb_}" "{f_}"'
-        )
-        LOGGER.info(f"{prefix} running '{cmd}'")
-        subprocess.run(cmd, shell=True)
+        cmd = [
+            "tensorflowjs_converter",
+            "--input_format=tf_frozen_model",
+            *quantization,
+            f"--output_node_names={outputs}",
+            str(fpb_),
+            str(f_),
+        ]  # argv list avoids shell metacharacter issues in interpolated paths
+        LOGGER.info(f"{prefix} running '{shlex.join(cmd)}'")
+        subprocess.run(cmd)
 
     if " " in output_dir:
         LOGGER.warning(f"{prefix} your model may not work correctly with spaces in path '{output_dir}'.")

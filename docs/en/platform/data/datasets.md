@@ -35,7 +35,7 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
 === "Videos"
 
-    Videos are automatically extracted to frames on the client side at 1 FPS (max 100 frames per video). Because extraction runs in your browser, the video's codec must also be browser-decodable — see [Browser Codec Support](#browser-codec-support).
+    Videos are extracted to frames in your browser at 1 FPS (max 100 frames per video). The video codec must be browser-decodable — see [Browser Codec Support](#browser-codec-support).
 
     | Format | Extensions | Extraction            | Max Size |
     | ------ | ---------- | --------------------- | -------- |
@@ -61,11 +61,11 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
 ### Browser Codec Support
 
-Videos are turned into frames **in your browser** before upload, so a video only uploads if your browser — usually Chrome — can play it. The file extension alone isn't enough: an `.mp4` or `.mov` can still fail if it uses a codec the browser can't decode.
+The file extension alone isn't enough: an `.mp4` or `.mov` can still fail if it uses a codec your browser can't decode.
 
 !!! tip "Use H.264 MP4"
 
-    H.264 video in an MP4 container plays in every browser and is the safest choice. If a video won't upload, re-encode it with [FFmpeg](https://ffmpeg.org/):
+    H.264 video in an MP4 container has the broadest support across major browsers and is the safest choice. If a video won't upload, re-encode it with [FFmpeg](https://ffmpeg.org/):
 
     ```bash
     ffmpeg -i input.mov -c:v libx264 -pix_fmt yuv420p -c:a aac -movflags +faststart output.mp4
@@ -80,7 +80,7 @@ Videos are turned into frames **in your browser** before upload, so a video only
     | HEVC (H.265)                        | Hardware only     | Only on devices with an HEVC decoder |
     | ProRes, MPEG-2, DivX/Xvid, MJPEG, … | No                | Re-encode to H.264                   |
 
-    Safari on macOS decodes a few extra codecs (ProRes, HEVC) through the operating system, but H.264 MP4 is the only format guaranteed everywhere.
+    Safari on macOS can decode extra codecs such as ProRes and HEVC through the operating system, but H.264 MP4 remains the safest cross-browser upload format.
 
 ### Preparing Your Dataset
 

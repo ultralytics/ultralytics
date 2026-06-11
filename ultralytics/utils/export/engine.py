@@ -132,17 +132,17 @@ def modelopt_quantize_onnx(
         # so cap the count to bound memory instead of materializing the entire (possibly thousands-image) dataset.
         images, n = [], 0
         for batch in dataset:
-            images.append(batch["img"].to(torch.float32) / 255.0)
+            images.append(batch["img"])
             n += images[-1].shape[0]
             if n >= 512:
                 break
-        calib = torch.cat(images).cpu().numpy()
+        calib = torch.cat(images).to(torch.float32) / 255.0
         LOGGER.info(f"{prefix} quantizing ONNX to INT8 with ModelOpt using {calib.shape[0]} calibration images...")
         kwargs = {"calibration_shapes": f"{input_name}:{'x'.join(str(d) for d in shape)}"} if dynamic else {}
         quantize(
             onnx_file,
             quantize_mode="int8",
-            calibration_data={input_name: calib},
+            calibration_data={input_name: calib.cpu().numpy()},
             calibration_method="max",
             output_path=out_file,
             **kwargs,

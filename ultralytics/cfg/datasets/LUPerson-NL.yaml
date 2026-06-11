@@ -4,7 +4,7 @@
 # Paper: "Large-Scale Pre-training for Person Re-identification with Noisy Labels" (CVPR 2022)
 # Source repo: https://github.com/DengpanFu/LUPerson-NL
 # Built from HF mirror wahdan2003/LUPerson-NL (arrow shards) → converted to folder-per-identity.
-# Example usage (Step-1 pretrain): yolo reid train data=LUPerson-NL.yaml model=yolo26l-reid-2psa.yaml val=False
+# Example usage (Step-1 pretrain): yolo reid train data=LUPerson-NL.yaml model=yolo26l-reid.yaml val=False
 #
 # Composition: 10,683,716 images / 433,997 identities (folder-per-identity layout).
 # Intended as a Step-1 supervised pretrain (replaces/augments the smaller MSMT17 pretrain),

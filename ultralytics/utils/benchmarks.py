@@ -45,7 +45,7 @@ import torch.cuda
 
 from ultralytics import YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
-from ultralytics.engine.exporter import export_formats
+from ultralytics.engine.exporter import REID_EXPORT_FORMATS, export_formats
 from ultralytics.nn.modules import Segment26
 from ultralytics.utils import (
     ARM64,
@@ -195,9 +195,9 @@ def benchmark(
                     "Axelera export does not currently support YOLO26 segmentation models"
                 )
             if model.task == "reid":
-                assert format in {"-", "torchscript", "onnx", "openvino", "engine", "coreml", "mnn", "ncnn"}, (
+                assert format == "-" or format in REID_EXPORT_FORMATS, (
                     f"ReID benchmark to {format!r} is not supported — ReID outputs an embedding vector. "
-                    "Supported formats: torchscript, onnx, openvino, engine, coreml, mnn, ncnn."
+                    f"Supported formats: {', '.join(sorted(REID_EXPORT_FORMATS))}."
                 )
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"

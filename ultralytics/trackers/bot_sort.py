@@ -158,6 +158,8 @@ class BOTSORT(BYTETracker):
         The class is designed to work with a YOLO object detection model and supports ReID only if enabled via args.
     """
 
+    supports_native_reid = True  # can consume detector features when tracker YAML sets model: auto
+
     def __init__(self, args: Any):
         """Initialize BOTSORT object with ReID module and GMC algorithm.
 

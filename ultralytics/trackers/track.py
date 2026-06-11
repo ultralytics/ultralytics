@@ -5,7 +5,7 @@ from pathlib import Path
 
 import torch
 
-from ultralytics.utils import YAML, IterableSimpleNamespace
+from ultralytics.utils import LOGGER, YAML, IterableSimpleNamespace
 from ultralytics.utils.checks import check_yaml
 
 from .bot_sort import BOTSORT
@@ -38,8 +38,8 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
         >>> predictor = SomePredictorClass()
         >>> on_predict_start(predictor, persist=True)
     """
-    if predictor.args.task == "classify":
-        raise ValueError("❌ Classification doesn't support 'mode=track'")
+    if predictor.args.task in {"classify", "reid"}:
+        raise ValueError(f"❌ {predictor.args.task} task doesn't support 'mode=track'")
 
     if hasattr(predictor, "trackers") and persist:
         return
@@ -56,7 +56,8 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     if hasattr(predictor, "_orig_postprocess"):  # restore any raw-preds wrapper left by a prior TRACKTRACK run
         predictor.postprocess = predictor._orig_postprocess
         del predictor._orig_postprocess
-    if cfg.tracker_type in {"botsort", "tracktrack", "deepocsort"} and cfg.with_reid and cfg.model == "auto":
+    tracker_cls = TRACKER_MAP[cfg.tracker_type]
+    if getattr(tracker_cls, "supports_native_reid", False) and cfg.with_reid and cfg.model == "auto":
         from ultralytics.nn.modules.head import Detect
 
         if not (
@@ -74,14 +75,13 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
 
     trackers = []
     for _ in range(predictor.dataset.bs):
-        tracker = TRACKER_MAP[cfg.tracker_type](args=cfg)
+        tracker = tracker_cls(args=cfg)
         trackers.append(tracker)
         if predictor.dataset.mode != "stream":  # non-stream modes reuse a single tracker
             break
     predictor.trackers = trackers
     predictor.vid_path = [None] * predictor.dataset.bs  # used to reset the tracker when switching videos
 
-    tracker_cls = TRACKER_MAP[cfg.tracker_type]
     if hasattr(tracker_cls, "setup_predictor"):
         tracker_cls.setup_predictor(predictor)
 
@@ -115,6 +115,14 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
 
         det = (result.obb if is_obb else result.boxes).cpu().numpy()
         kwargs = {"feats": getattr(result, "feats", None)}
+        if kwargs["feats"] is None and getattr(predictor, "_hook", None) is not None and len(det):
+            if not getattr(predictor, "_feats_warned", False):
+                predictor._feats_warned = True
+                LOGGER.warning(
+                    "Native ReID features were not extracted for this frame; tracker falls back to motion-only "
+                    "association. Set the tracker YAML 'model' to a ReID weight (e.g. yolo26n-reid.pt) to use a "
+                    "dedicated appearance encoder."
+                )
         if dets_del_list is not None:
             kwargs["dets_del"] = dets_del_list[i]
         tracks = tracker.update(det, result.orig_img, **kwargs)

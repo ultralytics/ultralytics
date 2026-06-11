@@ -132,6 +132,10 @@ from ultralytics.utils.torch_utils import (
 )
 
 
+# Formats that support ReID models (embedding output, no detection head); shared with benchmarks.py
+REID_EXPORT_FORMATS = frozenset({"torchscript", "onnx", "openvino", "engine", "coreml", "mnn", "ncnn"})
+
+
 def export_formats():
     """Return a dictionary of Ultralytics YOLO export formats."""
     #          Format, Argument, Suffix, CPU, GPU, Arguments, Env
@@ -525,11 +529,11 @@ class Exporter:
                 raise ValueError(
                     "IMX export only supported for detection, pose estimation, classification, and segmentation models."
                 )
-        if model.task == "reid" and fmt not in {"torchscript", "onnx", "openvino", "engine", "coreml", "mnn", "ncnn"}:
+        if model.task == "reid" and fmt not in REID_EXPORT_FORMATS:
             raise ValueError(
                 f"ReID export to {fmt!r} is not supported. ReID outputs an embedding vector and has no detection head, "
                 "so int8 (axelera/imx/edgetpu), TF graph builders, and detect-only pipelines do not apply. "
-                "Use one of: torchscript, onnx, openvino, engine, coreml, mnn, ncnn."
+                f"Use one of: {', '.join(sorted(REID_EXPORT_FORMATS))}."
             )
         if not hasattr(model, "names"):
             model.names = default_class_names()

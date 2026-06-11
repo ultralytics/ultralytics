@@ -16,63 +16,6 @@ from ultralytics.utils.torch_utils import is_parallel, torch_distributed_zero_fi
 from ..classify.train import ClassificationTrainer
 
 
-def _extract_clip_visual_sd(weights):
-    """Return CLIP visual-tower state_dict (without `visual.` prefix) if `weights` is a CLIP
-    checkpoint, else None.
-
-    Safe-load only: uses ``torch.jit.load`` (TorchScript) or ``torch.load(weights_only=True)``
-    — never executes arbitrary pickle reduce ops in the checkpoint. A non-CLIP yolo .pt
-    (which contains pickled Python objects) fails the weights_only=True load cleanly and
-    returns None so the caller can fall through to the standard YOLO loader.
-
-    Accepts:
-      - str path: TorchScript or weights-only .pt (OpenAI CLIP layout)
-      - torch.jit.ScriptModule / RecursiveScriptModule (already-loaded TorchScript)
-      - dict / state_dict with ``visual.*`` keys
-    """
-    sd = None
-    # Already-loaded TorchScript module (RecursiveScriptModule today; ScriptModule covers
-    # freeze/optimize-for-inference outputs and any future rename).
-    if hasattr(weights, "state_dict") and "Script" in type(weights).__name__:
-        sd = weights.state_dict()
-    elif isinstance(weights, str):
-        # Try TorchScript first (OpenAI CLIP TorchScript .pt). On failure, fall back to a
-        # safe weights_only=True load — that path rejects non-CLIP yolo .pt files cleanly.
-        try:
-            m = torch.jit.load(weights, map_location="cpu")
-            sd = m.state_dict()
-        except Exception:
-            try:
-                sd = torch.load(weights, map_location="cpu", weights_only=True)
-            except Exception:
-                return None
-            if isinstance(sd, dict) and "state_dict" in sd:
-                sd = sd["state_dict"]
-    elif isinstance(weights, dict):
-        sd = weights
-    if not isinstance(sd, dict):
-        return None
-    if "visual.conv1.weight" in sd and "visual.class_embedding" in sd:
-        return {k[len("visual."):]: v for k, v in sd.items() if k.startswith("visual.")}
-    return None
-
-
-def _inject_clip_visual_sd(model, visual_sd):
-    """Load an already-extracted CLIP visual state_dict into a model's ViTBackbone (in place)."""
-    from ultralytics.nn.modules.vit import ViTBackbone, load_clip_visual_into_sd
-    from ultralytics.utils import LOGGER
-
-    for m in model.modules():
-        if isinstance(m, ViTBackbone):
-            info = load_clip_visual_into_sd(m, visual_sd, strict=False)
-            LOGGER.info(
-                f"CLIP ViT visual weights loaded: {info['loaded']} keys; "
-                f"missing={len(info.get('missing', []))}, unexpected={len(info.get('unexpected', []))}"
-            )
-            return True
-    return False
-
-
 class ReidTrainer(ClassificationTrainer):
     """Trainer for person re-identification models.
 
@@ -111,16 +54,13 @@ class ReidTrainer(ClassificationTrainer):
         super().set_model_attributes()
         self.model.args = self.args
 
-    def get_model(self, cfg=None, weights=None, verbose: bool = True, visual_sd: dict | None = None):
+    def get_model(self, cfg=None, weights=None, verbose: bool = True):
         """Return a ReidModel configured for training.
 
         Args:
             cfg: Model configuration.
-            weights: Pre-trained weights (path, dict, or pre-loaded TorchScript module).
+            weights: Pre-trained weights (path or dict).
             verbose (bool): Whether to display model info.
-            visual_sd (dict, optional): Pre-extracted CLIP visual state_dict. When provided
-                (typically by ``setup_model``), the CLIP-detection step is skipped so the
-                checkpoint is not loaded twice.
 
         Returns:
             (ReidModel): Configured model.
@@ -137,14 +77,6 @@ class ReidTrainer(ClassificationTrainer):
                 "center_momentum",
                 "focal_gamma",
                 "supcon_temp",
-                "arcface",
-                "arcface_margin",
-                "arcface_scale",
-                "gem_p",
-                "nonlocal_block",
-                "dg_mixstyle",
-                "dg_dann",
-                "dann_gamma",
             )
             if hasattr(self.args, k)
         }
@@ -153,18 +85,10 @@ class ReidTrainer(ClassificationTrainer):
             nc=self.data["nc"],
             ch=self.data.get("channels", 3),
             verbose=verbose and RANK == -1,
-            num_domains=2,  # Phase-3 DG: each leave-one-out pool fold has 2 source domains
             **reid_kwargs,
         )
-        if visual_sd is not None:
-            _inject_clip_visual_sd(model, visual_sd)
-        elif weights:
-            # Caller passed weights without pre-extracting CLIP — detect and dispatch here.
-            sd = _extract_clip_visual_sd(weights)
-            if sd is not None:
-                _inject_clip_visual_sd(model, sd)
-            else:
-                model.load(weights)
+        if weights:
+            model.load(weights)
 
         for m in model.modules():
             if not self.args.pretrained and hasattr(m, "reset_parameters"):
@@ -176,28 +100,7 @@ class ReidTrainer(ClassificationTrainer):
         return model
 
     def setup_model(self):
-        """Load or create model for ReID tasks.
-
-        Detect CLIP-style pretrained weights eagerly by inspecting the state_dict (looking
-        for ``visual.*`` keys), not by sniffing the filename — a checkpoint named
-        ``my_run.pt`` may still be CLIP, and one named ``vit_other.pt`` may not. The check
-        uses a safe-load path (TorchScript or ``weights_only=True``), so it does not execute
-        arbitrary pickle reduce ops. When CLIP is detected, build the model from cfg and
-        inject the already-extracted visual state_dict via ``get_model(visual_sd=...)`` so
-        the checkpoint is not loaded a second time. Otherwise fall through to the parent
-        loader which handles standard YOLO ``.pt`` checkpoints.
-
-        Accepts ``self.args.pretrained`` as: a str path, a pre-loaded TorchScript module,
-        or a state_dict dict — the helper detects each.
-        """
-        pretrained = getattr(self.args, "pretrained", None)
-        visual_sd = _extract_clip_visual_sd(pretrained) if pretrained else None
-        if visual_sd is not None:
-            cfg_path = self.model if isinstance(self.model, str) else getattr(self.args, "model", None)
-            # Pass visual_sd directly to skip re-extraction inside get_model.
-            self.model = self.get_model(cfg=cfg_path, weights=None, verbose=RANK == -1, visual_sd=visual_sd)
-            ReidModel.reshape_outputs(self.model, self.data["nc"])
-            return None
+        """Load or create model for ReID tasks, then resize the classifier to the dataset identity count."""
         ckpt = super().setup_model()
         ReidModel.reshape_outputs(self.model, self.data["nc"])
         return ckpt
@@ -251,8 +154,6 @@ class ReidTrainer(ClassificationTrainer):
     def get_validator(self):
         """Return a ReidValidator instance."""
         self.loss_names = ["ce_loss", "tri_loss"]
-        if float(getattr(self.args, "dg_dann", 0.0)) > 0:
-            self.loss_names = ["ce_loss", "tri_loss", "dom_loss"]
         return yolo.reid.ReidValidator(self.test_loader, self.save_dir, args=copy(self.args), _callbacks=self.callbacks)
 
     def plot_training_samples(self, batch, ni):

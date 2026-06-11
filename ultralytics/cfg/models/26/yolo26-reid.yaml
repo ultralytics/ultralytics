@@ -27,6 +27,7 @@ backbone:
   - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32
   - [-1, 2, C3k2, [1024, True]]
   - [-1, 2, C2PSA, [1024]] # 9
+  - [-1, 2, C2PSA, [1024]] # 10 (stacked attention; matches the published yolo26*-reid.pt weights)
 
 # YOLO26n head
 head:

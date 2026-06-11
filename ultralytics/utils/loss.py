@@ -997,10 +997,6 @@ class ReIDLoss:
         center_momentum: float = 0.9,
         focal_gamma: float = 0.0,
         supcon_temp: float = 0.0,
-        arcface: bool = False,
-        arcface_margin: float = 0.3,
-        arcface_scale: float = 30.0,
-        dann_weight: float = 0.0,
     ):
         """Initialize ReID loss with label-smoothed CE, batch-hard triplet, and center loss.
 
@@ -1024,10 +1020,6 @@ class ReIDLoss:
         self.center_momentum = center_momentum
         self.focal_gamma = focal_gamma
         self.supcon_temp = supcon_temp
-        self.arcface = arcface
-        self.arcface_margin = arcface_margin
-        self.arcface_scale = arcface_scale
-        self.dann_weight = dann_weight
         self.centers = None  # lazily initialized (nc, feat_dim)
 
     def __call__(self, preds, batch):
@@ -1041,23 +1033,14 @@ class ReIDLoss:
             (tuple[torch.Tensor, torch.Tensor]): Total loss and detached component losses [ce, triplet].
         """
         # In eval mode the head returns (emb, feat_bn) — skip loss computation. Return a
-        # component vector matching loss_names length (3 when DANN on, else 2) so the
-        # validator's `self.loss += model.loss(...)[1]` does not size-mismatch (eval has no dom_loss).
-        if not isinstance(preds, (list, tuple)) or len(preds) not in (3, 4):
+        # component vector matching loss_names length so the validator's
+        # `self.loss += model.loss(...)[1]` does not size-mismatch.
+        if not isinstance(preds, (list, tuple)) or len(preds) != 3:
             zero = torch.tensor(0.0, device=batch["cls"].device)
-            return zero, torch.stack([zero] * (3 if self.dann_weight > 0 else 2))
+            return zero, torch.stack([zero] * 2)
 
-        domain_logits = preds[3] if len(preds) == 4 else None
-        cls_logits, bn_feat, raw_feat = preds[0], preds[1], preds[2]
+        cls_logits, bn_feat, raw_feat = preds
         labels = batch["cls"]
-
-        # In ArcFace mode the head returns cosine similarity in [-1, 1]; add margin
-        # on the target class (cos(theta + m)) then scale before the softmax/CE.
-        if self.arcface:
-            cos_sim = cls_logits.clamp(-1 + 1e-7, 1 - 1e-7)
-            target_cos = (cos_sim.acos() + self.arcface_margin).cos()
-            one_hot = F.one_hot(labels, num_classes=cos_sim.size(1)).bool()
-            cls_logits = self.arcface_scale * torch.where(one_hot, target_cos, cos_sim)
 
         # Cross-entropy with label smoothing (optionally focal)
         if self.focal_gamma > 0:
@@ -1080,16 +1063,6 @@ class ReIDLoss:
             ctr_loss = self._center_loss(bn_feat, labels)
             total = total + self.center_weight * ctr_loss
 
-        # When DANN is enabled, ALWAYS emit a 3-component vector (dom=0 if domain logits/labels
-        # absent, e.g. during validation) so train and val loss vectors match loss_names length.
-        if self.dann_weight > 0:
-            if domain_logits is not None and "domain" in batch:
-                dom_loss = F.cross_entropy(domain_logits, batch["domain"].to(domain_logits.device))
-                total = total + self.dann_weight * dom_loss
-                dom_det = dom_loss.detach()
-            else:
-                dom_det = torch.zeros((), device=ce_loss.device)
-            return total, torch.stack([ce_loss.detach(), tri_loss.detach(), dom_det])
         return total, torch.stack([ce_loss.detach(), tri_loss.detach()])
 
     def _center_loss(self, features, labels):

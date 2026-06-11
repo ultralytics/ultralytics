@@ -819,7 +819,7 @@ class Classify(nn.Module):
         c_ = 1280  # efficientnet_b0 size
         self.conv = Conv(c1, c_, k, s, p, g)
         self.pool = nn.AdaptiveAvgPool2d(1)  # to x(b,c_,1,1)
-        self.drop = nn.Dropout(p=0.0, inplace=False)  # inplace breaks GeM autograd via flatten view
+        self.drop = nn.Dropout(p=0.0, inplace=True)
         self.linear = nn.Linear(c_, c2)  # to x(b,c2)
 
     def forward(self, x: list[torch.Tensor] | torch.Tensor) -> torch.Tensor | tuple:
@@ -831,35 +831,6 @@ class Classify(nn.Module):
             return x
         y = x.softmax(1)  # get final output
         return y if self.export else (y, x)
-
-
-class _NonLocal2d(nn.Module):
-    """Non-Local block (Wang et al. CVPR'18; AGW Wang et al. TPAMI'21).
-
-    Embedded-Gaussian variant: theta/phi/g project to C/2 channels, softmax over keys, residual add.
-    Init zeros W so the block starts as identity (safe to insert into pretrained networks).
-    """
-
-    def __init__(self, c: int):
-        super().__init__()
-        c_ = max(c // 2, 1)
-        self.theta = nn.Conv2d(c, c_, 1)
-        self.phi = nn.Conv2d(c, c_, 1)
-        self.g = nn.Conv2d(c, c_, 1)
-        self.W = nn.Conv2d(c_, c, 1)
-        nn.init.zeros_(self.W.weight)
-        nn.init.zeros_(self.W.bias)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        b, c, h, w = x.shape
-        theta = self.theta(x).reshape(b, -1, h * w)        # B, C/2, HW
-        phi = self.phi(x).reshape(b, -1, h * w)            # B, C/2, HW
-        g = self.g(x).reshape(b, -1, h * w)                # B, C/2, HW
-        attn = torch.bmm(theta.transpose(1, 2), phi)        # B, HW, HW
-        attn = attn.softmax(dim=-1)
-        out = torch.bmm(attn, g.transpose(1, 2))            # B, HW, C/2
-        out = out.transpose(1, 2).reshape(b, -1, h, w)
-        return x + self.W(out)
 
 
 class ReID(nn.Module):
@@ -880,11 +851,6 @@ class ReID(nn.Module):
     """
 
     export = False  # export mode
-    arcface = False  # class default for backward-compat with checkpoints predating this attr
-    gem_p = 0.0  # class default; instances may override after construction
-    # NOTE: do NOT set _gem_param here as a class attribute. PyTorch's nn.Module __setattr__
-    # raises "attribute already exists" when later assigning an nn.Parameter to that name.
-    # Read via getattr(self, '_gem_param', None) instead.
 
     def __init__(self, c1: int, c2: int, embed_dim: int = 512, k: int = 1, s: int = 1, p: int | None = None, g: int = 1):
         """Initialize ReID head.
@@ -903,64 +869,25 @@ class ReID(nn.Module):
         self.conv = Conv(c1, c_, k, s, p, g)
         self.pool_avg = nn.AdaptiveAvgPool2d(1)
         self.pool_max = nn.AdaptiveMaxPool2d(1)
-        self.drop = nn.Dropout(p=0.0, inplace=False)  # inplace breaks GeM autograd via flatten view
+        self.drop = nn.Dropout(p=0.0, inplace=True)
         self.embed = nn.Linear(c_, embed_dim)
         self.bottleneck = nn.BatchNorm1d(embed_dim)
         self.bottleneck.bias.requires_grad_(False)  # no shift per BoT paper
         self.classifier = nn.Linear(embed_dim, c2, bias=False)
         self.embed_dim = embed_dim
-        # ArcFace-style angular-margin softmax (set at runtime by the trainer from self.args).
-        # When arcface is True, the head returns cosine similarity in place of linear logits;
-        # the loss then adds the margin on the target class and applies the scale.
-        self.arcface = False
-        # GeM pooling switch (set by trainer from self.args.gem_p). 0 -> avg+max (default).
-        # >0 -> learnable Generalized Mean Pooling with init exponent gem_p (BoT/AGW use p=3).
-        self.gem_p = 0.0
-        self._gem_param = None
-        # Non-Local block (AGW). Disabled by default — instance may set self.nonlocal_block to
-        # a _NonLocal2d module after construction (ReidModel.__init__ does this when nonlocal=1).
-        self.nonlocal_block = None
-        self.domain_head = None      # set by ReidModel when dg_dann>0
-        self._dann_lambda = 0.0      # updated each training step by ReidModel
-        self._cur_domain = None      # set each step by ReidModel (for MixStyle hooks elsewhere)
 
     def _pool(self, x):
-        """Pool feature map to (B, C). avg+max default; learnable GeM when gem_p>0.
-
-        The Parameter `_gem_param` is created eagerly by ReidModel.__init__ when gem_p>0 (so DDP
-        sees it). If somehow missing here, fall back to avg+max (safe degradation).
-        """
-        gem = getattr(self, "_gem_param", None)
-        if self.gem_p > 0 and isinstance(gem, nn.Parameter):
-            p = gem.clamp(min=1.0)  # keep >=1 for stability
-            return torch.nn.functional.adaptive_avg_pool2d(x.clamp(min=1e-6).pow(p), 1).pow(1.0 / p).flatten(1)
+        """Pool feature map to (B, C) via summed global average and max pooling."""
         return (self.pool_avg(x) + self.pool_max(x)).flatten(1)
 
     def forward(self, x: list[torch.Tensor] | torch.Tensor) -> torch.Tensor | tuple:
         """Perform forward pass of the ReID head."""
         if isinstance(x, list):
             x = torch.cat(x, 1)
-        x = self.conv(x)
-        # getattr fallback: checkpoints saved before nonlocal_block existed restore a __dict__
-        # without this attribute (unpickling skips __init__), so guard like _gem_param above.
-        if getattr(self, "nonlocal_block", None) is not None:
-            x = self.nonlocal_block(x)
-        feat = self.embed(self.drop(self._pool(x)))
+        feat = self.embed(self.drop(self._pool(self.conv(x))))
         feat_bn = self.bottleneck(feat)  # BNNeck feature
         if self.training:
-            if self.arcface:
-                # Normalized cosine similarity instead of linear logits.
-                w = torch.nn.functional.normalize(self.classifier.weight, dim=1)
-                f = torch.nn.functional.normalize(feat_bn, dim=1)
-                cls_out = f @ w.T
-            else:
-                cls_out = self.classifier(feat_bn)
-            dh = getattr(self, "domain_head", None)
-            if dh is not None:
-                from .dg import grad_reverse
-                dlogits = dh(grad_reverse(feat, self._dann_lambda))
-                return cls_out, feat_bn, feat, dlogits
-            return cls_out, feat_bn, feat  # (logits_or_cos, bn_feat, raw_feat)
+            return self.classifier(feat_bn), feat_bn, feat  # (logits, bn_feat, raw_feat)
         emb = torch.nn.functional.normalize(feat_bn, dim=1)
         return emb if self.export else (emb, feat_bn)
 

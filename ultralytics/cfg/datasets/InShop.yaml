@@ -1,7 +1,0 @@
-# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-# DeepFashion In-Shop clothes retrieval as instance re-id. Folder-per-identity (item_id).
-path: InShop
-train: train
-val: query
-gallery: gallery
-nc: 3997 # train item identities — VERIFY against prep output ('nc = N') and update if different

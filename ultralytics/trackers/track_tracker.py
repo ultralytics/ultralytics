@@ -379,6 +379,8 @@ class TRACKTRACK:
         >>> tracked_objects = tracker.update(yolo_results, img=image)
     """
 
+    supports_native_reid = True  # can consume detector features when tracker YAML sets model: auto
+
     def __init__(self, args):
         """Initialize TRACKTRACK from a tracker config (see `ultralytics/cfg/trackers/tracktrack.yaml`).
 

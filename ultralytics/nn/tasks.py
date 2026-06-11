@@ -44,7 +44,6 @@ from ultralytics.nn.modules import (
     Concat,
     Conv,
     Conv2,
-    ConvIBN,
     ConvTranspose,
     Detect,
     ReID,
@@ -58,8 +57,6 @@ from ultralytics.nn.modules import (
     ImagePoolingAttn,
     Index,
     LRPCHead,
-    OSNetBackbone,
-    ViTBackbone,
     Pose,
     Pose26,
     RepC3,
@@ -240,7 +237,7 @@ class BaseModel(torch.nn.Module):
         """
         if not self.is_fused():
             for m in self.model.modules():
-                if isinstance(m, (Conv, Conv2, DWConv)) and hasattr(m, "bn") and not isinstance(m, ConvIBN):
+                if isinstance(m, (Conv, Conv2, DWConv)) and hasattr(m, "bn"):
                     if isinstance(m, Conv2):
                         m.fuse_convs()
                     m.conv = fuse_conv_and_bn(m.conv, m.bn)  # update conv
@@ -821,16 +818,6 @@ class ReidModel(BaseModel):
         center_momentum: float = 0.9,
         focal_gamma: float = 0.0,
         supcon_temp: float = 0.0,
-        arcface: bool = False,
-        arcface_margin: float = 0.3,
-        arcface_scale: float = 30.0,
-        gem_p: float = 0.0,
-        nonlocal_block: bool = False,
-        dg_mixstyle: float = 0.0,
-        dg_dann: float = 0.0,
-        dg_mixstyle_layers: tuple = (2, 4, 6),
-        dann_gamma: float = 10.0,
-        num_domains: int = 2,
     ):
         """Initialize ReidModel with YAML, channels, number of identities, verbose flag.
 
@@ -859,53 +846,6 @@ class ReidModel(BaseModel):
         self.center_momentum = center_momentum
         self.focal_gamma = focal_gamma
         self.supcon_temp = supcon_temp
-        self.arcface = arcface
-        self.arcface_margin = arcface_margin
-        self.arcface_scale = arcface_scale
-        # Enable ArcFace on the head if requested (head forward switches to cosine sim).
-        if arcface:
-            for m in self.modules():
-                if isinstance(m, ReID):
-                    m.arcface = True
-        # Enable GeM pooling on the head if gem_p>0. Eagerly create the parameter so DDP sees it.
-        # Assigning an nn.Parameter to an attribute auto-registers it under that name; no
-        # explicit register_parameter call needed (and double-registering raises KeyError).
-        self.gem_p = gem_p
-        if gem_p > 0:
-            for m in self.modules():
-                if isinstance(m, ReID):
-                    m.gem_p = float(gem_p)
-                    m._gem_param = nn.Parameter(torch.full((1,), float(gem_p)))
-        # Insert Non-Local block before pooling on the ReID head if requested.
-        # The block is zero-initialized so it acts as identity at start (safe for FT).
-        self.nonlocal_block = nonlocal_block
-        if nonlocal_block:
-            from .modules.head import _NonLocal2d  # local to avoid circular import at module load
-            for m in self.modules():
-                if isinstance(m, ReID):
-                    m.nonlocal_block = _NonLocal2d(m.conv.conv.out_channels)
-
-        # ---- Domain-generalization (Phase 3): all default-off ----
-        self.dg_mixstyle = float(dg_mixstyle)
-        self.dg_dann = float(dg_dann)
-        self.dann_gamma = float(dann_gamma)
-        self._dann_step = 0
-        self._dann_ramp_steps = 2000  # GRL lambda warmup horizon
-        self._cur_domain = None
-        # Layers (by index) after which MixStyle is applied during training. Applied inline in
-        # _predict_once (NOT via forward hooks) so the model stays picklable for checkpointing.
-        self._mixstyle_layers = set(dg_mixstyle_layers) if self.dg_mixstyle > 0 else set()
-        self._mixstyle = None
-        if self.dg_mixstyle > 0:
-            from .modules.dg import MixStyle
-
-            self._mixstyle = MixStyle(p=self.dg_mixstyle)
-        if self.dg_dann > 0:
-            from .modules.dg import DomainHead
-
-            for m in self.modules():
-                if isinstance(m, ReID):
-                    m.domain_head = DomainHead(in_dim=m.embed_dim, num_domains=num_domains)
 
     def _from_yaml(self, cfg, ch, nc, verbose):
         """Set model configurations and define the model architecture.
@@ -964,49 +904,7 @@ class ReidModel(BaseModel):
             center_momentum=getattr(src, "center_momentum", self.center_momentum),
             focal_gamma=getattr(src, "focal_gamma", self.focal_gamma),
             supcon_temp=getattr(src, "supcon_temp", self.supcon_temp),
-            arcface=getattr(src, "arcface", self.arcface),
-            arcface_margin=getattr(src, "arcface_margin", self.arcface_margin),
-            arcface_scale=getattr(src, "arcface_scale", self.arcface_scale),
-            dann_weight=getattr(src, "dg_dann", self.dg_dann),
         )
-
-    def loss(self, batch, preds=None):
-        """ReID loss with DG side-channel: stash batch domains for MixStyle hooks and update the
-        DANN GRL lambda (warmup ramp) before delegating to the standard BaseModel.loss path."""
-        if self.dg_mixstyle > 0 or self.dg_dann > 0:
-            self._cur_domain = batch.get("domain")
-            if self.dg_dann > 0:
-                self._dann_step += 1
-                p = min(1.0, self._dann_step / max(1, self._dann_ramp_steps))
-                lam = 2.0 / (1.0 + torch.exp(torch.tensor(-self.dann_gamma * p))).item() - 1.0
-                for m in self.modules():
-                    if isinstance(m, ReID) and getattr(m, "domain_head", None) is not None:
-                        m._dann_lambda = lam
-        return super().loss(batch, preds)
-
-    def _predict_once(self, x, profile=False, visualize=False, embed=None):
-        """Forward pass with inline MixStyle after the chosen backbone layers (training only).
-
-        Implemented inline (not via forward hooks) so the model has no unpicklable closures and
-        checkpoints save cleanly. Falls back to the base path when MixStyle is off or in eval.
-        """
-        if not (self.training and self._mixstyle is not None and self._mixstyle_layers):
-            return super()._predict_once(x, profile, visualize, embed)
-        y, embeddings = [], []
-        embed = frozenset(embed) if embed is not None else {-1}
-        max_idx = max(embed)
-        for m in self.model:
-            if m.f != -1:
-                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
-            x = m(x)
-            if m.i in self._mixstyle_layers:
-                x = self._mixstyle(x, domain=self._cur_domain)
-            y.append(x if m.i in self.save else None)
-            if m.i in embed:
-                embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))
-                if m.i == max_idx:
-                    return torch.unbind(torch.cat(embeddings, 1), dim=0)
-        return x
 
 
 class RTDETRDetectionModel(DetectionModel):
@@ -1897,7 +1795,6 @@ def parse_model(d, ch, verbose=True):
             Classify,
             ReID,
             Conv,
-            ConvIBN,
             ConvTranspose,
             GhostConv,
             Bottleneck,
@@ -1996,12 +1893,6 @@ def parse_model(d, ch, verbose=True):
                 n = 1
         elif m is ResNetLayer:
             c2 = args[1] if args[3] else args[1] * 4
-        elif m is OSNetBackbone:
-            variant = args[0] if args else "x1_0"
-            c2 = OSNetBackbone._VARIANTS[variant][1][-1]  # last stage channel count
-        elif m is ViTBackbone:
-            # args: [img_size, patch_size, embed_dim, depth, heads]
-            c2 = args[2] if len(args) >= 3 else 768
         elif m is torch.nn.BatchNorm2d:
             args = [ch[f]]
         elif m is Concat:

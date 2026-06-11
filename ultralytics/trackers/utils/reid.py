@@ -91,14 +91,15 @@ class ReID:
             # L2-normalized embedding; run them normally and read Results.embeddings.
             # Everything else (e.g. yolo*-cls.pt) uses the generic second-to-last-layer tap.
             self.is_reid = getattr(self.model, "task", None) == "reid"
+            warmup = np.zeros((32, 32, 3), dtype=np.uint8)  # single blank image; avoids the default-assets run
             if self.is_reid:
                 margs = getattr(self.model.model, "args", None)
                 self.imgsz = int(
                     margs.get("imgsz", self.imgsz) if isinstance(margs, dict) else getattr(margs, "imgsz", self.imgsz)
                 )
-                self.model(embed=None, imgsz=self.imgsz, verbose=False, save=False)  # warm up ReidPredictor
+                self.model(warmup, embed=None, imgsz=self.imgsz, verbose=False, save=False)  # warm up ReidPredictor
             else:
-                self.model(embed=[len(self.model.model.model) - 2], verbose=False, save=False)
+                self.model(warmup, embed=[len(self.model.model.model) - 2], verbose=False, save=False)
             self.fp16 = False
         else:
             self.is_reid = False

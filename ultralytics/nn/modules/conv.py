@@ -89,55 +89,6 @@ class Conv(nn.Module):
         return self.act(self.conv(x))
 
 
-class ConvIBN(Conv):
-    """Conv with IBN-a normalization (Pan ECCV'18, arxiv.org/abs/1807.09441).
-
-    Splits output channels into two halves: InstanceNorm on the first (style-invariant),
-    BatchNorm on the second (semantic). Known to boost ReID generalization (BoT uses
-    R50-IBN for roughly +5 mAP over R50). Loads cleanly from a pretrained checkpoint
-    that had a single BN by splitting BN stats across the two new norms.
-    """
-
-    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True, in_ratio=0.5):
-        """Same signature as Conv, plus ``in_ratio`` — fraction of output channels routed to IN."""
-        super().__init__(c1, c2, k, s, p, g=g, d=d, act=act)
-        self.c_in = int(c2 * in_ratio)
-        self.c_bn = c2 - self.c_in
-        # Drop parent's single BN so BaseModel.fuse() skips this module (it guards on hasattr(m, "bn")).
-        del self.bn
-        self.inorm = nn.InstanceNorm2d(self.c_in, affine=True)
-        self.bnorm = nn.BatchNorm2d(self.c_bn)
-
-    def forward(self, x):
-        y = self.conv(x)
-        a, b = y.split([self.c_in, self.c_bn], dim=1)
-        return self.act(torch.cat([self.inorm(a), self.bnorm(b)], dim=1))
-
-    def forward_fuse(self, x):
-        # fusion path in BaseModel drops self.bn; replicate our own norm path instead
-        return self.forward(x)
-
-    def _load_from_state_dict(self, state_dict, prefix, local_metadata, strict,
-                              missing_keys, unexpected_keys, error_msgs):
-        """Split a pretrained ``bn.*`` (from plain Conv) into ``inorm.*`` + ``bnorm.*``."""
-        bn_w = state_dict.pop(prefix + "bn.weight", None)
-        bn_b = state_dict.pop(prefix + "bn.bias", None)
-        bn_m = state_dict.pop(prefix + "bn.running_mean", None)
-        bn_v = state_dict.pop(prefix + "bn.running_var", None)
-        bn_n = state_dict.pop(prefix + "bn.num_batches_tracked", None)
-        if bn_w is not None:
-            state_dict[prefix + "inorm.weight"] = bn_w[: self.c_in].clone()
-            state_dict[prefix + "inorm.bias"] = bn_b[: self.c_in].clone()
-            state_dict[prefix + "bnorm.weight"] = bn_w[self.c_in:].clone()
-            state_dict[prefix + "bnorm.bias"] = bn_b[self.c_in:].clone()
-            state_dict[prefix + "bnorm.running_mean"] = bn_m[self.c_in:].clone()
-            state_dict[prefix + "bnorm.running_var"] = bn_v[self.c_in:].clone()
-            if bn_n is not None:
-                state_dict[prefix + "bnorm.num_batches_tracked"] = bn_n.clone()
-        super()._load_from_state_dict(state_dict, prefix, local_metadata, strict,
-                                      missing_keys, unexpected_keys, error_msgs)
-
-
 class Conv2(Conv):
     """Simplified RepConv module with Conv fusing.
 

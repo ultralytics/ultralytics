@@ -5,6 +5,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <torch/torch.h>
 #include <torch/script.h>
+#include "yolo_draw.hpp"
 
 using torch::indexing::Slice;
 using torch::indexing::None;
@@ -250,8 +251,11 @@ int main() {
             int y2 = keep[i][3].item().toFloat();
             float conf = keep[i][4].item().toFloat();
             int cls = keep[i][5].item().toInt();
-            std::cout << "Rect: [" << x1 << "," << y1 << "," << x2 << "," << y2 << "]  Conf: " << conf << "  Class: " << classes[cls] << std::endl;
+            std::cout << classes[cls] << " " << conf << "  box=[" << x1 << ", " << y1 << ", " << x2 << ", " << y2 << "]" << std::endl;
+            yolo::DrawBox(image, cv::Rect(x1, y1, x2 - x1, y2 - y1), yolo::Label(classes[cls], conf), cls);
         }
+        cv::imwrite("yolo_libtorch.jpg", image);
+        std::cout << "Result image written to yolo_libtorch.jpg" << std::endl;
     } catch (const c10::Error& e) {
         std::cout << e.msg() << std::endl;
     }

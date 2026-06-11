@@ -153,26 +153,10 @@ void Inference::DrawDetectedObject(cv::Mat &frame, const Detection &detection) c
 	const float &confidence = detection.confidence;
 	const int &class_id = detection.class_id;
 
-	// Ultralytics color palette, indexed by class id (from common/yolo_colors.hpp)
-	const cv::Scalar color = Color(class_id);
-
 	std::cout << classes_[class_id] << " " << confidence
 	          << " box=[" << box.x << ", " << box.y << ", " << box.width << ", " << box.height << "]" << std::endl;
 
-	// Draw the bounding box around the detected object
-	cv::rectangle(frame, cv::Point(box.x, box.y), cv::Point(box.x + box.width, box.y + box.height), color, 3);
-
-	// Prepare the class label and confidence text
-	std::string classString = classes_[class_id] + std::to_string(confidence).substr(0, 4);
-
-	// Get the size of the text box
-	cv::Size textSize = cv::getTextSize(classString, cv::FONT_HERSHEY_DUPLEX, 0.75, 2, 0);
-	cv::Rect textBox(box.x, box.y - 40, textSize.width + 10, textSize.height + 20);
-
-	// Draw the text box
-	cv::rectangle(frame, textBox, color, cv::FILLED);
-
-	// Put the class label and confidence text above the bounding box
-	cv::putText(frame, classString, cv::Point(box.x + 5, box.y - 10), cv::FONT_HERSHEY_DUPLEX, 0.75, cv::Scalar(0, 0, 0), 2, 0);
+	// Draw the box and label with the shared Ultralytics-style annotator
+	DrawBox(frame, box, Label(classes_[class_id], confidence), class_id);
 }
 } // namespace yolo

@@ -43,5 +43,9 @@ message("${TORCH_INCLUDE_DIRS}")
 include_directories(${TORCH_INCLUDE_DIRS})
 
 add_executable(yolo_libtorch "${CMAKE_CURRENT_SOURCE_DIR}/main.cc")
+
+# Shared header-only helpers (color palette, COCO names, annotator) under examples/cpp/common
+target_include_directories(yolo_libtorch PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
+
 target_link_libraries(yolo_libtorch ${TORCH_LIBRARIES} ${OpenCV_LIBS})
 set_property(TARGET yolo_libtorch PROPERTY CXX_STANDARD 17)

@@ -8,7 +8,7 @@
 #include <opencv2/imgproc.hpp>
 #include <openvino/openvino.hpp>
 
-#include "yolo_colors.hpp"
+#include "yolo_draw.hpp"
 #include "coco_names.hpp"
 
 namespace yolo {

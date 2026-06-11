@@ -7,7 +7,7 @@
 #include <filesystem>
 #include <fstream>
 #include <random>
-#include "yolo_colors.hpp"
+#include "yolo_draw.hpp"
 
 void Detector(YOLO* p) {
     std::filesystem::path current_path = std::filesystem::current_path();
@@ -23,36 +23,9 @@ void Detector(YOLO* p) {
 
             for (auto& re : res)
             {
-                cv::Scalar color = yolo::Color(re.classId);
+                yolo::DrawBox(img, re.box, yolo::Label(p->classes[re.classId], re.confidence), re.classId);
 
-                cv::rectangle(img, re.box, color, 3);
-
-                float confidence = floor(100 * re.confidence) / 100;
-                std::cout << std::fixed << std::setprecision(2);
-                std::string label = p->classes[re.classId] + " " +
-                    std::to_string(confidence).substr(0, std::to_string(confidence).size() - 4);
-                int label_width = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.75, 2, nullptr).width;
-                label_width = std::max(0, std::min(label_width, img.cols - re.box.x));
-
-                cv::rectangle(
-                    img,
-                    cv::Point(re.box.x, re.box.y - 25),
-                    cv::Point(re.box.x + label_width, re.box.y),
-                    color,
-                    cv::FILLED
-                );
-
-                cv::putText(
-                    img,
-                    label,
-                    cv::Point(re.box.x, re.box.y - 5),
-                    cv::FONT_HERSHEY_SIMPLEX,
-                    0.75,
-                    cv::Scalar(0, 0, 0),
-                    2
-                );
-
-                std::cout << p->classes[re.classId] << " " << confidence
+                std::cout << p->classes[re.classId] << " " << re.confidence
                           << " box=[" << re.box.x << ", " << re.box.y << ", " << re.box.width << ", " << re.box.height << "]" << std::endl;
             }
 
@@ -122,48 +95,18 @@ void PoseEstimator(YOLO* p)
             }
             for (auto& re : res)
             {
-                cv::Scalar color_box = yolo::Color(re.classId);
-                cv::Scalar color_point = yolo::Color(re.classId + 10);
+                yolo::DrawBox(img, re.box, yolo::Label(p->classes[re.classId], re.confidence), re.classId);
 
-                cv::rectangle(img, re.box, color_box, 2);
-
-                float confidence = floor(100 * re.confidence) / 100;
-                std::cout << std::fixed << std::setprecision(2);
-                std::string label_box = p->classes[re.classId] + " " +
-                    std::to_string(confidence).substr(0, std::to_string(confidence).size() - 4);
-                int label_width = cv::getTextSize(label_box, cv::FONT_HERSHEY_SIMPLEX, 0.75, 2, nullptr).width;
-                label_width = std::max(0, std::min(label_width, img.cols - re.box.x));
-
+                const cv::Scalar color_point = yolo::Color(re.classId + 10);
                 for (int i = 0; i < re.keyPoints.size(); i++)
                 {
                     cv::circle(img, re.keyPoints[i], 5, color_point, -1);
-                    std::string label_point = p->classes[i + 1];
-                    cv::putText(img, label_point, re.keyPoints[i], cv::FONT_HERSHEY_SIMPLEX, 0.75, cv::Scalar(0, 0, 0), 2);
                 }
-                cv::rectangle(
-                    img,
-                    cv::Point(re.box.x, re.box.y - 25),
-                    cv::Point(re.box.x + label_width, re.box.y),
-                    color_box,
-                    cv::FILLED
-                );
-
-                cv::putText(
-                    img,
-                    label_box,
-                    cv::Point(re.box.x, re.box.y - 5),
-                    cv::FONT_HERSHEY_SIMPLEX,
-                    0.75,
-                    cv::Scalar(0, 0, 0),
-                    2
-                );
             }
-            //std::cout << "Press any key to exit" << std::endl;
-            cv::imshow("Result of Detection", img);
-            cv::waitKey(0);
-            cv::destroyAllWindows();
 
-
+            std::filesystem::path out_path = i.path().parent_path() / (i.path().stem().string() + "_result.jpg");
+            cv::imwrite(out_path.string(), img);
+            std::cout << "Result image written to " << out_path << std::endl;
         }
     }
 }

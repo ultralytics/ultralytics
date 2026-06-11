@@ -594,6 +594,7 @@ class BackboneMemoryBank(nn.Module):
         self.feature_dim: int | None = None
         self.update = True
         self._bb_layer_indices: list[int] = []
+        self.score_chunk_elems = 1 << 27  # max elements per similarity slice in _anomaly_scores
 
     @property
     def built(self) -> bool:
@@ -857,9 +858,8 @@ class BackboneMemoryBank(nn.Module):
             sample = mem[idx]
             # cosine similarity of each sampled centre vs all coreset centres
             sim = sample @ mem.t()  # [n_sample, M]
-            # exclude self-match by masking diagonal
-            diag_mask = torch.eye(n_sample, mem.shape[0], device=mem.device, dtype=torch.bool)
-            sim.masked_fill_(diag_mask, -1.0)
+            # exclude self-match: sample i is mem[idx[i]], so its self-column is idx[i]
+            sim[torch.arange(n_sample, device=mem.device), idx] = -1.0
             topk_sim = sim.topk(k=k, dim=1).values  # [n_sample, k]
             local_density = topk_sim.mean(dim=1)     # [n_sample] per-centre compactness
             compactness = local_density.mean().clamp(0.0, 1.0 - 1e-4).item()
@@ -892,15 +892,23 @@ class BackboneMemoryBank(nn.Module):
             return torch.full((features.shape[0],), 0.5, device=features.device)
         q = F.normalize(features.view(-1, self.feature_dim), p=2, dim=1)
         k = min(self.K, mem.shape[0])
-        sim = q @ mem.t()  # [N, M]
-        if self.training:
-            # FIFO-queue training: a query patch finding its own enqueued copy scores ~0
-            # anomaly, leaking a too-clean prior. -inf -> psi=0 -> drops out of top-K.
-            sim = sim.masked_fill(sim > 0.999, float("-inf"))
-        sim = torch.exp(-self.temperature * (1 - sim))  # psi(x) = exp(-beta*(1-cos))
-        topk_sim = sim.topk(k=k, dim=1).values  # [N, k]
-        log_prob = torch.log((1 - topk_sim).clamp(min=1e-8)).mean(dim=1)
-        return (torch.exp(log_prob)*1.0) .clamp(0, 1)
+        n, m = q.shape[0], mem.shape[0]
+        # Chunk over query rows so the [chunk, M] similarity slice stays bounded (~0.5 GB fp32).
+        # Row-wise ops only, so chunking is exact. A 1M-entry bank with a 51k-query batch would
+        # otherwise materialize a 100+ GB matrix.
+        chunk = max(1, int(getattr(self, "score_chunk_elems", 1 << 27)) // max(m, 1))
+        out = []
+        for i in range(0, n, chunk):
+            sim = q[i : i + chunk] @ mem.t()  # [chunk, M]
+            if self.training:
+                # FIFO-queue training: a query patch finding its own enqueued copy scores ~0
+                # anomaly, leaking a too-clean prior. -inf -> psi=0 -> drops out of top-K.
+                sim = sim.masked_fill(sim > 0.999, float("-inf"))
+            sim = torch.exp(-self.temperature * (1 - sim))  # psi(x) = exp(-beta*(1-cos))
+            topk_sim = sim.topk(k=k, dim=1).values  # [chunk, k]
+            log_prob = torch.log((1 - topk_sim).clamp(min=1e-8)).mean(dim=1)
+            out.append(torch.exp(log_prob))
+        return torch.cat(out).clamp(0, 1)
 
     @staticmethod
     def _coreset_subsample(mem: torch.Tensor, max_size: int) -> torch.Tensor:

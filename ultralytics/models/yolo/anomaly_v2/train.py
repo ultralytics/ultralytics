@@ -20,6 +20,9 @@ from __future__ import annotations
 import math
 import random
 from copy import copy
+from pathlib import Path
+
+import torch
 
 from ultralytics.models import yolo
 from ultralytics.models.yolo.detect import DetectionTrainer
@@ -110,8 +113,9 @@ class AnomalyV2Trainer(DetectionTrainer):
         steps = max(1, len(trainer.train_loader))
         q = max(16, min(4096, math.ceil(cap / steps)))
         trainer._mb_patches_per_step = q
-        LOGGER.info(f"MoCo bank: filling FIFO queue (capacity={cap}, {q} patches/step) via EMA encoder...")
+        LOGGER.info(f"MoCo bank: filling FIFO queue (capacity={cap}, {q} patches/step steady) via EMA encoder...")
         initialized = False
+        pushed = 0
         for batch in TQDM(trainer.train_loader, desc="MB initial fill", disable=RANK not in {-1, 0}):
             batch = trainer.preprocess_batch(batch)
             feats = ema_model.encode_bb_feats(batch["img"])
@@ -122,9 +126,11 @@ class AnomalyV2Trainer(DetectionTrainer):
                 mb.init_queue(cap, dim, device=trainer.device)
                 initialized = True
             excl = model.mask_renderer(batch["bboxes"], batch["batch_idx"], batch["img"].shape[0])
-            mb.enqueue(feats, exclude_mask=excl, max_patches=q)
-        trainer._mb_batch = None
+            # Dense intake until the queue first fills (early density), then the steady-state
+            # quota so the rest of the walk still rotates in epoch-wide coverage.
+            pushed += mb.enqueue(feats, exclude_mask=excl, max_patches=None if pushed < cap else q)
         if not initialized:
+            trainer._mb_batch = None
             LOGGER.warning("MoCo bank: no features captured during initial fill; queue disabled.")
             return
         if mb.auto_temperature:
@@ -136,7 +142,50 @@ class AnomalyV2Trainer(DetectionTrainer):
         ema_mb = getattr(ema_model, "memory_bank", None)
         if ema_mb is not None:
             ema_mb.adopt_queue(mb)
+        if RANK in {-1, 0}:
+            AnomalyV2Trainer._mb_save_init_snapshot(trainer, model, mb, ema_model)
+        trainer._mb_batch = None
         AnomalyV2Trainer._mb_draw_prior(trainer)
+
+    @staticmethod
+    def _mb_save_init_snapshot(trainer: "AnomalyV2Trainer", model, mb, ema_model) -> None:
+        """Save <save_dir>/mb_bank_init.jpg: last fill batch (top) + its bank heatmap overlay (bottom).
+
+        First-glance sanity check that the freshly built queue localizes anomalies on real
+        (augmented) train images before any training happens.
+        """
+        import cv2
+        import numpy as np
+
+        batch = trainer._mb_batch
+        if batch is None:
+            return
+        try:
+            img = batch["img"][:8]
+            feats = ema_model.encode_bb_feats(img)
+            was_training = mb.training
+            mb.eval()
+            with torch.no_grad():
+                hm = mb(feats)  # (B, 1, h, w)
+            mb.train(was_training)
+            size = 320
+            rows_top, rows_bot = [], []
+            for b in range(img.shape[0]):
+                im = (img[b].permute(1, 2, 0).float().cpu().numpy() * 255).astype(np.uint8)
+                im = cv2.resize(cv2.cvtColor(im, cv2.COLOR_RGB2BGR), (size, size))
+                h = hm[b, 0].float().cpu().numpy()
+                cmap = cv2.applyColorMap((h.clip(0, 1) * 255).astype(np.uint8), cv2.COLORMAP_JET)
+                cmap = cv2.resize(cmap, (size, size), interpolation=cv2.INTER_LINEAR)
+                rows_top.append(im)
+                rows_bot.append(cv2.addWeighted(im, 0.55, cmap, 0.45, 0))
+            grid = np.vstack([np.hstack(rows_top), np.hstack(rows_bot)])
+            cv2.putText(grid, f"beta={mb.temperature:.2f} cap={mb._queue_capacity}", (8, 24),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            out = Path(trainer.save_dir) / "mb_bank_init.jpg"
+            cv2.imwrite(str(out), grid)
+            LOGGER.info(f"MoCo bank: init heatmap snapshot -> {out}")
+        except Exception as e:  # never let a viz failure kill the run
+            LOGGER.warning(f"MoCo bank: init snapshot failed: {e}")
 
     @staticmethod
     def _mb_step(trainer: "AnomalyV2Trainer") -> None:

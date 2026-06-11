@@ -1461,7 +1461,9 @@ class ClassMapModel(ExportWrapper):
     def forward(self, x):
         """Run the wrapped model and return a `[N, H, W]` integer class map instead of float logits."""
         y = self._model(x)
-        return (y[0] if isinstance(y, (list, tuple)) else y).argmax(1).to(self.dtype)
+        y = y[0] if isinstance(y, (list, tuple)) else y
+        # Single-channel (binary) models threshold the logit, matching predict/val semantics for nc == 1
+        return (y.argmax(1) if y.shape[1] > 1 else y[:, 0].gt(0)).to(self.dtype)
 
 
 class NMSModel(torch.nn.Module):

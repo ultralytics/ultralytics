@@ -536,6 +536,7 @@ def scale_masks(
     shape: tuple[int, int],
     ratio_pad: tuple[tuple[int, int], tuple[int, int]] | None = None,
     padding: bool = True,
+    mode: str = "bilinear",
 ) -> torch.Tensor:
     """Rescale segment masks to target shape.
 
@@ -544,6 +545,7 @@ def scale_masks(
         shape (tuple[int, int]): Target height and width as (height, width).
         ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_w, pad_h)).
         padding (bool): Whether masks are based on YOLO-style augmented images with padding.
+        mode (str): Interpolation mode; use "nearest" for integer class maps so labels are never blended.
 
     Returns:
         (torch.Tensor): Rescaled masks.
@@ -564,7 +566,7 @@ def scale_masks(
     top, left = (round(pad_h - 0.1), round(pad_w - 0.1)) if padding else (0, 0)
     bottom = im1_h - round(pad_h + 0.1)
     right = im1_w - round(pad_w + 0.1)
-    return F.interpolate(masks[..., top:bottom, left:right].float(), shape, mode="bilinear")  # NCHW masks
+    return F.interpolate(masks[..., top:bottom, left:right].float(), shape, mode=mode)  # NCHW masks
 
 
 def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool = False, padding: bool = True):

@@ -17,12 +17,14 @@ no special handling needed at the trainer level.
 
 from __future__ import annotations
 
+import math
+import random
 from copy import copy
 
 from ultralytics.models import yolo
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import YOLOAnomalyV2Model
-from ultralytics.utils import DEFAULT_CFG, RANK
+from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, TQDM
 from ultralytics.utils.torch_utils import unwrap_model
 
 
@@ -32,6 +34,22 @@ class AnomalyV2Trainer(DetectionTrainer):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
         self.add_callback("on_train_epoch_start", AnomalyV2Trainer._update_seg_alpha)
+        self.add_callback("on_train_start", AnomalyV2Trainer._mb_initial_fill)
+        self.add_callback("on_train_batch_end", AnomalyV2Trainer._mb_step)
+        self._mb_batch = None  # stashed preprocessed batch for the batch-end enqueue
+        self._mb_patches_per_step = 0
+
+    def preprocess_batch(self, batch):
+        """Stash the preprocessed batch so the batch-end callback can enqueue its features."""
+        batch = super().preprocess_batch(batch)
+        if self._mb_active():
+            self._mb_batch = batch
+        return batch
+
+    def _mb_active(self) -> bool:
+        """True when the model trains with the MoCo-style FIFO-queue prior."""
+        model = unwrap_model(self.model)
+        return getattr(model, "memory_bank", None) is not None and getattr(model, "mb_queue_capacity", 0) > 0
 
     def get_model(self, cfg=None, weights=None, verbose: bool = True):
         """Return a YOLOAnomalyV2Model.
@@ -65,6 +83,82 @@ class AnomalyV2Trainer(DetectionTrainer):
             self.test_loader, save_dir=self.save_dir, args=copy(self.args),
             _callbacks=self.callbacks, prior_mode=None,  # legacy GT bboxes -> renderer
         )
+
+    # ------------------------------------------------------------------
+    # MoCo-style FIFO-queue prior (mb_queue_capacity > 0)
+    # ------------------------------------------------------------------
+    @staticmethod
+    def _mb_initial_fill(trainer: "AnomalyV2Trainer") -> None:
+        """Build the initial FIFO queue: one pass over the train loader through the EMA encoder.
+
+        At this point the EMA model equals the (pretrained-init) live model, so the queue
+        starts as a uniform sample of normal patches under the initial backbone. Per-batch
+        ``max_patches`` is sized so one epoch's worth of steps roughly fills the capacity,
+        making the steady-state queue span ~1 epoch of history.
+        """
+        if not trainer._mb_active() or trainer.ema is None:
+            return
+        model = unwrap_model(trainer.model)
+        mb = model.memory_bank
+        ema_model = unwrap_model(trainer.ema.ema)
+        cap = int(model.mb_queue_capacity)
+        steps = max(1, len(trainer.train_loader))
+        q = max(16, min(4096, math.ceil(cap / steps)))
+        trainer._mb_patches_per_step = q
+        LOGGER.info(f"MoCo bank: filling FIFO queue (capacity={cap}, {q} patches/step) via EMA encoder...")
+        initialized = False
+        for batch in TQDM(trainer.train_loader, desc="MB initial fill", disable=RANK not in {-1, 0}):
+            batch = trainer.preprocess_batch(batch)
+            feats = ema_model.encode_bb_feats(batch["img"])
+            if not feats:
+                break
+            if not initialized:
+                dim = mb._build_fused_feature(feats).shape[1]
+                mb.init_queue(cap, dim, device=trainer.device)
+                initialized = True
+            excl = model.mask_renderer(batch["bboxes"], batch["batch_idx"], batch["img"].shape[0])
+            mb.enqueue(feats, exclude_mask=excl, max_patches=q)
+        trainer._mb_batch = None
+        if not initialized:
+            LOGGER.warning("MoCo bank: no features captured during initial fill; queue disabled.")
+            return
+        if mb.auto_temperature:
+            mb.temperature = mb.estimate_temperature()
+        n_valid = int((mb.memory_bank.norm(dim=1) > 0).sum())
+        LOGGER.info(f"MoCo bank ready: {n_valid}/{cap} slots filled, temperature={mb.temperature:.4f}")
+        # Point the EMA model's bank at the live queue (shared tensor) so validation and
+        # checkpoint saves (deepcopy of the EMA) carry the current contents.
+        ema_mb = getattr(ema_model, "memory_bank", None)
+        if ema_mb is not None:
+            ema_mb.adopt_queue(mb)
+        AnomalyV2Trainer._mb_draw_prior(trainer)
+
+    @staticmethod
+    def _mb_step(trainer: "AnomalyV2Trainer") -> None:
+        """Per-batch: enqueue the just-trained batch via the EMA encoder, redraw the prior mode."""
+        if not trainer._mb_active() or trainer.ema is None:
+            return
+        batch, trainer._mb_batch = trainer._mb_batch, None
+        model = unwrap_model(trainer.model)
+        mb = model.memory_bank
+        if batch is not None and getattr(mb, "_queue_capacity", 0) > 0:
+            feats = unwrap_model(trainer.ema.ema).encode_bb_feats(batch["img"])
+            if feats:
+                excl = model.mask_renderer(batch["bboxes"], batch["batch_idx"], batch["img"].shape[0])
+                mb.enqueue(feats, exclude_mask=excl, max_patches=trainer._mb_patches_per_step or None)
+        AnomalyV2Trainer._mb_draw_prior(trainer)
+
+    @staticmethod
+    def _mb_draw_prior(trainer: "AnomalyV2Trainer") -> None:
+        """Draw the next batch's prior source: MB heatmap with p=mb_blend_p, else legacy GT mask.
+
+        Set on the LIVE model only — the validator drives the EMA model's prior itself
+        (2-pass GT mask-on/off with ``_prior_mode=None``); a mirrored "heatmap" leftover
+        would corrupt that val.
+        """
+        model = unwrap_model(trainer.model)
+        mode = "heatmap" if random.random() < float(getattr(model, "mb_blend_p", 0.5)) else None
+        model.set_prior_mode(mode)
 
     @staticmethod
     def _update_seg_alpha(trainer: "AnomalyV2Trainer") -> None:

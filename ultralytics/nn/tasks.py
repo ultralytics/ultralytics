@@ -763,6 +763,9 @@ class YOLOAnomalyV2Model(DetectionModel):
         if self.memory_bank is not None and self._bb_layers:
             self.memory_bank._bb_layer_indices = self._bb_layers
             self._install_backbone_taps(self._bb_layers)
+        # MoCo-style FIFO-queue training prior (0 = disabled, classic frozen-bank behavior).
+        self.mb_queue_capacity = int(v2_cfg.get("mb_queue_capacity", 0))
+        self.mb_blend_p = float(v2_cfg.get("mb_blend_p", 0.5))
 
         # Prior mode state (predictor/validator controlled)
         self._prior_mode: str | None = None  # None = legacy (GT bboxes -> renderer)
@@ -964,12 +967,10 @@ class YOLOAnomalyV2Model(DetectionModel):
 
         def _make_hook(idx: int):
             def _hook(_module, _inp, out):
-                # The memory bank is only built (load_support_set) and queried
-                # (prior_mode="heatmap") at eval. Skip capture during training so bb_layers can
-                # live in the SAME yaml as training without holding backbone activations every
-                # step; detach at eval so no graph is retained.
-                if self.training:
-                    return
+                # Detached capture on every forward: eval uses it for load_support_set /
+                # prior_mode="heatmap"; training uses it for the FIFO-queue prior
+                # (mb_queue_capacity > 0). Detach keeps the graph out; cost is one small
+                # held activation per tapped layer until the next forward clears the dict.
                 self._bb_feats[idx] = out.detach()
             return _hook
 
@@ -977,6 +978,27 @@ class YOLOAnomalyV2Model(DetectionModel):
             if idx < len(self.model):
                 handle = self.model[idx].register_forward_hook(_make_hook(idx))
                 self._bb_hook_handles.append(handle)
+
+    @torch.no_grad()
+    def encode_bb_feats(self, img: torch.Tensor) -> dict[int, torch.Tensor]:
+        """Run only the backbone prefix (layers 0..max(bb_layers)) to populate ``_bb_feats``.
+
+        Used by the trainer to extract FIFO-queue bank features with the EMA (key) encoder at
+        a fraction of a full forward's cost.
+
+        Returns:
+            Copy of the captured ``{layer_idx: (B, C, H, W)}`` dict (empty if no bb_layers).
+        """
+        if not getattr(self, "_bb_layers", None):
+            return {}
+        self._bb_feats = {}
+        y, x = [], img
+        for m in self.model[: max(self._bb_layers) + 1]:
+            if m.f != -1:
+                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
+            x = m(x)
+            y.append(x if m.i in self.save else None)
+        return dict(self._bb_feats)
 
     def __getstate__(self):
         """Remove backbone hooks before pickle/deepcopy (hook closures are not pickable)."""
@@ -999,7 +1021,8 @@ class YOLOAnomalyV2Model(DetectionModel):
                               ("spatial_softmax", False), ("softmax_temperature", 1.0),
                               ("fusion_mode", "bias"), ("heatmap_film_fusion", None),
                               ("heatmap_norm", "none"), ("mask_mag_range", (1.0, 1.0)),
-                              ("mask_blur_sigma_max", 0.0)]:
+                              ("mask_blur_sigma_max", 0.0),
+                              ("mb_queue_capacity", 0), ("mb_blend_p", 0.5)]:
             if not hasattr(self, attr):
                 setattr(self, attr, default)
 

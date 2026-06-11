@@ -641,6 +641,89 @@ class BackboneMemoryBank(nn.Module):
         self._calibrated = False
         self.update = True
 
+    # ------------------------------------------------------------------
+    # MoCo-style FIFO queue (training-time prior)
+    # ------------------------------------------------------------------
+    def init_queue(self, capacity: int, feature_dim: int, device=None) -> None:
+        """Switch the bank to FIFO-queue mode for training-time priors.
+
+        Replaces the registered ``memory_bank`` buffer with a plain-attribute tensor so it is
+        invisible to ``state_dict``/``ModelEMA``/DDP buffer broadcast (which would otherwise
+        EMA-blend unit vectors into garbage, crash on the shape change, or broadcast ~100 MB
+        per step). Zero rows mark unfilled slots and are excluded by ``_effective_bank``.
+        """
+        dev = device if device is not None else self.memory_bank.device
+        self._buffers.pop("memory_bank", None)
+        self.memory_bank = torch.zeros(int(capacity), int(feature_dim), device=dev)
+        self.feature_dim = int(feature_dim)
+        self._queue_capacity = int(capacity)
+        self._queue_ptr = 0
+        self.update = False
+
+    def adopt_queue(self, src: "BackboneMemoryBank") -> None:
+        """Alias another bank's FIFO queue (shared storage, no copy).
+
+        Points the EMA model's bank at the live model's queue so validation and checkpoint
+        saves see the current contents. Safe because the queue is a plain attribute:
+        ``ModelEMA.update`` (state_dict-based) never touches it.
+        """
+        self._buffers.pop("memory_bank", None)
+        self.memory_bank = src.memory_bank
+        self.feature_dim = src.feature_dim
+        self.temperature = src.temperature
+        self.K = src.K
+        self._calibrated = True
+        self.update = False
+
+    @torch.no_grad()
+    def enqueue(
+        self,
+        feat_dict: dict[int, torch.Tensor],
+        exclude_mask: torch.Tensor | None = None,
+        max_patches: int | None = None,
+    ) -> int:
+        """Push a batch of backbone patches into the FIFO queue, evicting the oldest.
+
+        Args:
+            feat_dict: Backbone features captured by the taps, as in ``accumulate_features``.
+            exclude_mask: (B, 1, H, W) prior in [0, 1]; patches where it exceeds 0.05 (inside
+                or near a GT box) are skipped so defect pixels never enter the bank.
+            max_patches: Random subsample cap so the queue's refresh period spans
+                ~capacity/max_patches steps instead of wrapping every batch.
+
+        Returns:
+            Number of patches enqueued.
+        """
+        if not feat_dict or getattr(self, "_queue_capacity", 0) <= 0:
+            return 0
+        fused = self._build_fused_feature(feat_dict)  # (B, C, H, W)
+        c, h, w = fused.shape[1], fused.shape[2], fused.shape[3]
+        if c != self.feature_dim:
+            return 0
+        flat = fused.permute(0, 2, 3, 1).reshape(-1, c).float()
+        if exclude_mask is not None:
+            m = F.interpolate(exclude_mask.to(device=fused.device, dtype=torch.float32), size=(h, w), mode="nearest")
+            flat = flat[m.reshape(-1) < 0.05]
+        if flat.shape[0] == 0:
+            return 0
+        if max_patches is not None and flat.shape[0] > max_patches:
+            flat = flat[torch.randperm(flat.shape[0], device=flat.device)[:max_patches]]
+        normed = F.normalize(flat, p=2, dim=1).to(self.memory_bank.device)
+        n, cap, ptr = normed.shape[0], self._queue_capacity, self._queue_ptr
+        if n >= cap:
+            self.memory_bank.copy_(normed[:cap])
+            self._queue_ptr = 0
+            return cap
+        end = ptr + n
+        if end <= cap:
+            self.memory_bank[ptr:end] = normed
+        else:
+            k = cap - ptr
+            self.memory_bank[ptr:] = normed[:k]
+            self.memory_bank[: n - k] = normed[k:]
+        self._queue_ptr = end % cap
+        return n
+
     def accumulate_features(self, feat_dict: dict[int, torch.Tensor]) -> None:
         """Extract and accumulate backbone features into the memory bank (build phase).
 
@@ -810,6 +893,10 @@ class BackboneMemoryBank(nn.Module):
         q = F.normalize(features.view(-1, self.feature_dim), p=2, dim=1)
         k = min(self.K, mem.shape[0])
         sim = q @ mem.t()  # [N, M]
+        if self.training:
+            # FIFO-queue training: a query patch finding its own enqueued copy scores ~0
+            # anomaly, leaking a too-clean prior. -inf -> psi=0 -> drops out of top-K.
+            sim = sim.masked_fill(sim > 0.999, float("-inf"))
         sim = torch.exp(-self.temperature * (1 - sim))  # psi(x) = exp(-beta*(1-cos))
         topk_sim = sim.topk(k=k, dim=1).values  # [N, k]
         log_prob = torch.log((1 - topk_sim).clamp(min=1e-8)).mean(dim=1)

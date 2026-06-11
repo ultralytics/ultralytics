@@ -234,12 +234,10 @@ def onnx2engine(
     config = builder.create_builder_config()
     workspace_bytes = int((workspace or 0) * (1 << 30))
     trt_major = int(trt.__version__.split(".", 1)[0])
-    is_trt10 = (
-        trt_major >= 10
-    )  # TensorRT >= 10 builds via build_serialized_network and uses the tensor (non-binding) API
-    is_trt11 = (
-        trt_major >= 11
-    )  # TensorRT >= 11 is strongly-typed only: precision builder flags and IInt8Calibrator removed
+    # TensorRT >= 10 builds via build_serialized_network and uses the tensor (non-binding) API
+    is_trt10 = trt_major >= 10
+    # TensorRT >= 11 is strongly-typed only: precision builder flags and IInt8Calibrator removed
+    is_trt11 = trt_major >= 11
     if is_trt10 and workspace_bytes > 0:
         config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace_bytes)
     elif workspace_bytes > 0:  # TensorRT versions 7, 8

@@ -707,7 +707,16 @@ class SemanticDataset(YOLODataset):
         self.data = data or {}
         self.label_mapping = self._parse_label_mapping(self.data.get("label_mapping"))
         self.mask_files = []
+        self.include_class = None
         super().__init__(*args, data=data, **kwargs)
+
+    def update_labels(self, include_class: list[int] | None) -> None:
+        """Update labels to include only specified classes.
+
+        Args:
+            include_class (list[int], optional): List of classes to include. If None, all classes are included.
+        """
+        self.include_class = None if include_class is None else np.asarray(include_class, dtype=np.int64).reshape(-1)
 
     def _parse_label_mapping(self, mapping):
         """Normalize label_mapping entries from dataset YAML into integer-to-integer ids."""
@@ -880,6 +889,8 @@ class SemanticDataset(YOLODataset):
         label = super().get_image_and_label(index)
         h, w = label["img"].shape[:2]
         mask = self.load_mask(index, image_shape=(h, w))
+        if self.include_class is not None:  # keep only selected classes; remap the rest to the ignore label
+            mask[~np.isin(mask, self.include_class)] = 255
         # Resize mask to match the resized image dimensions
         if mask.shape[:2] != (h, w):
             mask = cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)

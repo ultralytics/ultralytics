@@ -25,13 +25,13 @@
 enum MODEL_TYPE
 {
     //FLOAT32 MODEL
-    YOLO_DETECT_V8 = 1,
-    YOLO_POSE_V8 = 2,
+    YOLO_DETECT = 1,
+    YOLO_POSE = 2,
     YOLO_CLS = 3,
 
     //FLOAT16 MODEL
-    YOLO_DETECT_V8_HALF = 4,
-    YOLO_POSE_V8_HALF = 5,
+    YOLO_DETECT_HALF = 4,
+    YOLO_POSE_HALF = 5,
     YOLO_CLS_HALF = 6
 };
 
@@ -39,7 +39,7 @@ enum MODEL_TYPE
 typedef struct _DL_INIT_PARAM
 {
     std::string modelPath;
-    MODEL_TYPE modelType = YOLO_DETECT_V8;
+    MODEL_TYPE modelType = YOLO_DETECT;
     std::vector<int> imgSize = { 640, 640 };
     float rectConfidenceThreshold = 0.6;
     float pointScoresThreshold = 0.6;
@@ -61,12 +61,12 @@ typedef struct _DL_RESULT
 } DL_RESULT;
 
 
-class YOLO_V8
+class YOLO
 {
 public:
-    YOLO_V8();
+    YOLO();
 
-    ~YOLO_V8();
+    ~YOLO();
 
 public:
     const char* CreateSession(DL_INIT_PARAM& iParams);

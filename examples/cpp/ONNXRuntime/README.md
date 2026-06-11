@@ -67,13 +67,9 @@ onnx.save(model_fp16, fp16_model_path)
 print(f"Model converted and saved to {fp16_model_path}")
 ```
 
-## 📂 Download COCO YAML File
+## 🏷️ Class Names
 
-This example uses class names defined in a YAML file. You'll need the `coco.yaml` file, which corresponds to the standard [COCO dataset](https://docs.ultralytics.com/datasets/detect/coco) classes. Download it directly:
-
-- [Download coco.yaml](https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/datasets/coco.yaml)
-
-Save this file in the same directory where you plan to run the executable, or adjust the path in the C++ code accordingly.
+Class names are read directly from the model's metadata, which [Ultralytics](https://docs.ultralytics.com/) bakes into the exported `.onnx` file. No external `coco.yaml` is required for detection. If a model has no `names` metadata, the example falls back to the standard 80 [COCO](https://docs.ultralytics.com/datasets/detect/coco) names from `../common/coco_names.hpp`.
 
 ## ⚙️ Dependencies
 
@@ -140,32 +136,35 @@ Ensure you have the following dependencies installed:
 
 ## 🚀 Usage
 
-Before running, ensure:
+For a **CPU-only** build, disable CUDA at configure time:
 
-- The exported `.onnx` model file (e.g., `yolo11n.onnx`) is accessible.
-- The `coco.yaml` file is accessible.
-- Any required shared libraries for ONNX Runtime and OpenCV are in the system's PATH or accessible by the executable.
+```bash
+cmake .. -DONNXRUNTIME_ROOT=/path/to/onnxruntime -DUSE_CUDA=OFF
+cmake --build . --config Release
+```
 
-Modify the `main.cpp` file (or create a configuration mechanism) to set the parameters:
+The program looks for its assets relative to the working directory:
+
+- `models/yolo11n.onnx` — the exported model (CMake auto-stages it here if you place `yolo11n.onnx` in the example source directory before configuring).
+- `images/detect/` — input images (`.jpg`/`.png`); annotated `*_result.jpg` files are written back alongside them.
+
+Run it from the `build` directory:
+
+```bash
+# add the ONNX Runtime libs to the loader path if they are not installed system-wide
+LD_LIBRARY_PATH=/path/to/onnxruntime/lib ./yolo_onnxruntime
+```
+
+The detection parameters live in `DetectTest()` in `main.cpp`:
 
 ```cpp
-//change your param as you like
-//Pay attention to your device and the onnx model type(fp32 or fp16)
 DL_INIT_PARAM params;
 params.rectConfidenceThreshold = 0.1;
 params.iouThreshold = 0.5;
-params.modelPath = "yolo11n.onnx";
+params.modelPath = "./models/yolo11n.onnx";
 params.imgSize = { 640, 640 };
-params.cudaEnable = true;
-params.modelType = YOLO_DETECT_V8;
-yoloDetector->CreateSession(params);
-Detector(yoloDetector);
-```
-
-Run the executable from the `build` directory:
-
-```bash
-./yolo_onnxruntime
+params.cudaEnable = false;       // set true for the CUDA execution provider
+params.modelType = YOLO_DETECT;  // YOLO_DETECT / YOLO_POSE / YOLO_CLS (+ *_HALF for FP16)
 ```
 
 ## 🤝 Contributing

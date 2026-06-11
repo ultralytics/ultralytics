@@ -7,8 +7,9 @@
 #include <filesystem>
 #include <fstream>
 #include <random>
+#include "yolo_colors.hpp"
 
-void Detector(YOLO_V8* p) {
+void Detector(YOLO* p) {
     std::filesystem::path current_path = std::filesystem::current_path();
     std::filesystem::path imgs_path = current_path / "images/detect/";
     for (auto& i : std::filesystem::directory_iterator(imgs_path))
@@ -22,8 +23,7 @@ void Detector(YOLO_V8* p) {
 
             for (auto& re : res)
             {
-                cv::RNG rng(cv::getTickCount());
-                cv::Scalar color(rng.uniform(0, 256), rng.uniform(0, 256), rng.uniform(0, 256));
+                cv::Scalar color = yolo::Color(re.classId);
 
                 cv::rectangle(img, re.box, color, 3);
 
@@ -52,18 +52,19 @@ void Detector(YOLO_V8* p) {
                     2
                 );
 
-
+                std::cout << p->classes[re.classId] << " " << confidence
+                          << " box=[" << re.box.x << ", " << re.box.y << ", " << re.box.width << ", " << re.box.height << "]" << std::endl;
             }
-            std::cout << "Press any key to exit" << std::endl;
-            cv::imshow("Result of Detection", img);
-            cv::waitKey(0);
-            cv::destroyAllWindows();
+
+            std::filesystem::path out_path = i.path().parent_path() / (i.path().stem().string() + "_result.jpg");
+            cv::imwrite(out_path.string(), img);
+            std::cout << "Result image written to " << out_path << std::endl;
         }
     }
 }
 
 
-void Classifier(YOLO_V8* p)
+void Classifier(YOLO* p)
 {
     std::filesystem::path current_path = std::filesystem::current_path();
     std::filesystem::path imgs_path = current_path;// / "images"
@@ -100,7 +101,7 @@ void Classifier(YOLO_V8* p)
     }
 }
 
-void PoseEstimator(YOLO_V8* p)
+void PoseEstimator(YOLO* p)
 {
     std::filesystem::path current_path = std::filesystem::current_path();
     std::cout << "current_path: " << current_path << std::endl;
@@ -121,9 +122,8 @@ void PoseEstimator(YOLO_V8* p)
             }
             for (auto& re : res)
             {
-                cv::RNG rng(cv::getTickCount());
-                cv::Scalar color_box(rng.uniform(0, 256), rng.uniform(0, 256), rng.uniform(0, 256));
-                cv::Scalar color_point(rng.uniform(0, 256), rng.uniform(0, 256), rng.uniform(0, 256));
+                cv::Scalar color_box = yolo::Color(re.classId);
+                cv::Scalar color_point = yolo::Color(re.classId + 10);
 
                 cv::rectangle(img, re.box, color_box, 2);
 
@@ -168,7 +168,7 @@ void PoseEstimator(YOLO_V8* p)
     }
 }
 
-int ReadCocoYaml(YOLO_V8* p, const std::string& yamlPath = "coco.yaml") {
+int ReadCocoYaml(YOLO* p, const std::string& yamlPath = "coco.yaml") {
     // Open the YAML file
     std::ifstream file(yamlPath);
     if (!file.is_open())
@@ -243,8 +243,9 @@ int ReadCocoYaml(YOLO_V8* p, const std::string& yamlPath = "coco.yaml") {
 
 void DetectTest()
 {
-    YOLO_V8 yoloDetector;
-    ReadCocoYaml(&yoloDetector, "./yaml/coco.yaml");
+    YOLO yoloDetector;
+    // Class names are read from the model metadata in CreateSession (Ultralytics
+    // exports bake them in), so no external coco.yaml is needed here.
     DL_INIT_PARAM params;
     params.rectConfidenceThreshold = 0.1;
     params.iouThreshold = 0.5;
@@ -254,14 +255,14 @@ void DetectTest()
     params.cudaEnable = true;
 
     // GPU FP32 inference
-    params.modelType = YOLO_DETECT_V8;
+    params.modelType = YOLO_DETECT;
     // GPU FP16 inference
     //Note: change fp16 onnx model
-    //params.modelType = YOLO_DETECT_V8_HALF;
+    //params.modelType = YOLO_DETECT_HALF;
 
 #else
     // CPU inference
-    params.modelType = YOLO_DETECT_V8;
+    params.modelType = YOLO_DETECT;
     params.cudaEnable = false;
 
 #endif
@@ -272,7 +273,7 @@ void DetectTest()
 
 void ClsTest()
 {
-    YOLO_V8 yoloDetector;
+    YOLO yoloDetector;
     std::string model_path = "cls.onnx";
     ReadCocoYaml(&yoloDetector, "./yaml/cls.yaml");
     DL_INIT_PARAM params{ model_path, YOLO_CLS, {224, 224} };
@@ -282,7 +283,7 @@ void ClsTest()
 
 void PoseTest()
 {
-    YOLO_V8 yoloDetector;
+    YOLO yoloDetector;
     ReadCocoYaml(&yoloDetector, "./yaml/coco8-pose.yaml");
     DL_INIT_PARAM params;
     params.rectConfidenceThreshold = 0.25;
@@ -294,14 +295,14 @@ void PoseTest()
     params.cudaEnable = true;
 
     // GPU FP32 inference
-    params.modelType = YOLO_POSE_V8;
+    params.modelType = YOLO_POSE;
     // GPU FP16 inference
     //Note: change fp16 onnx model
-    //params.modelType = YOLO_DETECT_V8_HALF;
+    //params.modelType = YOLO_DETECT_HALF;
 
 #else
     // CPU inference
-    params.modelType = YOLO_POSE_V8;
+    params.modelType = YOLO_POSE;
     params.cudaEnable = false;
 
 #endif
@@ -311,7 +312,7 @@ void PoseTest()
 
 int main()
 {
-    //DetectTest();
+    DetectTest();
     //ClsTest();
-	PoseTest();
+    //PoseTest();
 }

@@ -66,6 +66,9 @@ set(PROJECT_SOURCES
 
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
 
+# Shared header-only helpers (color palette, COCO names) under examples/cpp/common
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
+
 if (WIN32)
     target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} ${ONNXRUNTIME_ROOT}/lib/onnxruntime.lib)
     if (USE_CUDA)
@@ -88,14 +91,16 @@ if (WIN32)
             $<TARGET_FILE_DIR:${PROJECT_NAME}>)
 endif ()
 
-# Download https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/datasets/coco.yaml
-# and put it in the same folder of the executable file
-configure_file(coco.yaml ${CMAKE_CURRENT_BINARY_DIR}/coco.yaml COPYONLY)
+# Stage the model next to the executable, in the layout the program expects:
+#   build/models/yolo11n.onnx, build/images/detect/<your images>
+# Place yolo11n.onnx in this source directory before configuring (see README).
+# Guarded with EXISTS so the project still configures before you have exported a model.
+# Class names are read from the model metadata at runtime, so no coco.yaml is needed.
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/yolo11n.onnx")
+    configure_file(yolo11n.onnx ${CMAKE_CURRENT_BINARY_DIR}/models/yolo11n.onnx COPYONLY)
+endif ()
 
-# Copy yolo11n.onnx file to the same folder of the executable file
-configure_file(yolo11n.onnx ${CMAKE_CURRENT_BINARY_DIR}/yolo11n.onnx COPYONLY)
-
-# Create folder name images in the same folder of the executable file
+# Create the images/detect folder for input images next to the executable.
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/images
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/images/detect
 )

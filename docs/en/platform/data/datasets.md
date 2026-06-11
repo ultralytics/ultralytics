@@ -77,7 +77,7 @@ The file extension alone isn't enough: a video can still fail if its container o
 
     | Codec                               | Decodes in Chrome | Notes                                |
     | ----------------------------------- | ----------------- | ------------------------------------ |
-    | H.264 (AVC)                         | Yes               | Recommended — works everywhere       |
+    | H.264 (AVC)                         | Yes               | Recommended — widest browser support |
     | VP8, VP9, AV1                       | Yes               | Royalty-free; common in WebM and MKV |
     | HEVC (H.265)                        | Hardware only     | Only on devices with an HEVC decoder |
     | ProRes, MPEG-2, DivX/Xvid, MJPEG, … | No                | Re-encode to H.264                   |

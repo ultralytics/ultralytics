@@ -169,6 +169,8 @@ def main():
                         help="sigmoid(obj) above which a query counts as active (ownership map)")
     parser.add_argument("--a-thresh", type=float, default=0.3,
                         help="winning attention below which a pixel stays unclaimed (ownership map)")
+    parser.add_argument("--nc", type=int, default=None,
+                        help="Number of classes (default: auto-detect from ckpt; multiclass-safe)")
     parser.add_argument("--heat-norm", type=str, default="none", choices=["none", "minmax"],
                         help="Per-image prior normalization before fusion (minmax stretches to [0,1])")
     parser.add_argument("--out", type=str, default=None,
@@ -188,18 +190,27 @@ def main():
     LOGGER.info(f"Archive dir: {out_root}")
 
     # ---- Build model ONCE (weights shared across categories) ----
+    # Load the ckpt FIRST so the head can be sized to its class count: a multiclass checkpoint
+    # (e.g. nc=35) built with nc=1 would have its cls-head weights shape-mismatched and silently
+    # dropped, leaving a random classifier. nc comes from --nc, else auto-detected from the ckpt.
     LOGGER.info("Building model...")
-    model = YOLOAnomalyV2Model(args.yaml, nc=1, verbose=False)
     ckpt = torch.load(args.ckpt, map_location="cpu", weights_only=False)
     if isinstance(ckpt, dict):
         inner = ckpt.get("ema") or ckpt.get("model")
         ckpt_state = inner.state_dict() if hasattr(inner, "state_dict") else inner
     else:
-        ckpt_state = ckpt
+        inner, ckpt_state = None, ckpt
+    ckpt_names = getattr(inner, "names", None)
+    nc = args.nc or getattr(inner, "nc", None) or (len(ckpt_names) if ckpt_names else None) or 1
+    LOGGER.info(f"nc = {nc}" + (" (--nc)" if args.nc else " (auto-detected from ckpt)"))
+
+    model = YOLOAnomalyV2Model(args.yaml, nc=nc, verbose=False)
     ms = model.state_dict()
     matched = {k: v for k, v in ckpt_state.items() if k in ms and ms[k].shape == v.shape}
     model.load_state_dict(matched, strict=False)
     _report_load(matched, ckpt_state, ms)
+    if ckpt_names:
+        model.names = ckpt_names  # plotted detections show the real class labels
     model.to(device)
     model.eval()
     model.heatmap_norm = args.heat_norm

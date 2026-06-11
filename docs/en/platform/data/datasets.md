@@ -73,7 +73,7 @@ The file extension alone isn't enough: a video can still fail if its container o
 
 ??? info "Which video codecs work"
 
-    These are the codecs **Chrome and other Chromium browsers** decode (most visitors):
+    These are the codecs **Chromium-based browsers** typically decode. Safari and Firefox may differ, so don't treat the Yes/No values below as universal browser support:
 
     | Codec                               | Decodes in Chrome | Notes                                |
     | ----------------------------------- | ----------------- | ------------------------------------ |

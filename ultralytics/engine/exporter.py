@@ -1439,9 +1439,9 @@ class QNNModel(ExportWrapper):
 class ClassMapModel(ExportWrapper):
     """Reduces semantic-segmentation logits to a compact integer class map for export.
 
-    Applied to QNN and Core ML semantic exports, where the argmax runs on the NPU: deployment consumers want
-    per-pixel class indices, and shipping float logits instead forces a dequantize + argmax over large tensors
-    (~20M values at 1024px) on the consumer's CPU every frame - measured as both slow and highly variable on mobile
+    Applied to QNN and Core ML semantic exports, where the argmax runs on the NPU: deployment consumers want per-pixel
+    class indices, and shipping float logits instead forces a dequantize + argmax over large tensors (~20M values at
+    1024px) on the consumer's CPU every frame - measured as both slow and highly variable on mobile
     NPUs. The argmax cannot live in the model's own forward because it is non-differentiable (training needs
     logits), so it is attached here at export time, mirroring how `NMSModel` adds suppression only for export.
 

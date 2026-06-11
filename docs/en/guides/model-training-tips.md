@@ -163,7 +163,7 @@ Different optimizers have various strengths and weaknesses. Let's take a glimpse
 - **MuSGD (Muon + SGD hybrid)**:
     - Combines SGD-style updates with Muon-inspired behavior for improved stability in large-scale training.
     - A good choice when you want SGD-like generalization but need smoother convergence than vanilla SGD.
-    - Especially relevant for YOLO26 training recipes; if unsure, start with `optimizer=auto` and compare against MuSGD on your dataset.
+    - Especially relevant for [YOLO26 training recipes](./yolo26-training-recipe.md); if unsure, start with `optimizer=auto` and compare against MuSGD on your dataset.
 
 For YOLO26, the `optimizer` parameter lets you choose from various optimizers, including SGD, MuSGD, Adam, AdamW, NAdam, RAdam, and RMSProp, or you can set it to `auto` for automatic selection based on model configuration.
 

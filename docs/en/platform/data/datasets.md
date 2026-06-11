@@ -42,6 +42,7 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
     | MP4    | `.mp4`     | 1 FPS, max 100 frames | 1 GB     |
     | WebM   | `.webm`    | 1 FPS, max 100 frames | 1 GB     |
     | MOV    | `.mov`     | 1 FPS, max 100 frames | 1 GB     |
+    | MKV    | `.mkv`     | 1 FPS, max 100 frames | 1 GB     |
     | M4V    | `.m4v`     | 1 FPS, max 100 frames | 1 GB     |
 
     !!! info "Video Frame Extraction"
@@ -62,7 +63,7 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
 A file extension only names the **container** — it does not guarantee your browser can read the **codec** inside. The two media types are decoded in different places, which changes what "supported" means:
 
-- **Videos are decoded in your browser.** Frames are extracted client-side (1 FPS) *before* upload, so a video needs both a container **and** a codec your browser — typically Chrome — can decode. An `.mp4` wrapping H.265/HEVC, or an `.mkv` from a screen recorder, is rejected even though the extension is accepted. If a video fails to decode, re-encode it to H.264/MP4 (see below).
+- **Videos are decoded in your browser.** Frames are extracted client-side (1 FPS) *before* upload, so a video needs both a container **and** a codec your browser — typically Chrome — can decode. A `.mov` holding ProRes, or an HEVC video on a device without HEVC hardware, fails to decode even though the container is fine. If a video fails to decode, re-encode it to H.264/MP4 (see below).
 - **Images are decoded on the server.** Every accepted image format always uploads and processes, including HEIC, TIFF, DNG, JP2, and MPO. Browser support only affects whether a thumbnail **preview** renders during upload — it never blocks the upload.
 
 !!! note "Other browsers"
@@ -90,8 +91,8 @@ A file extension only names the **container** — it does not guarantee your bro
 | MP4       | `.mp4`, `.m4v` | Yes              | Recommended. Pair with H.264 for the widest compatibility      |
 | WebM      | `.webm`        | Yes              | Carries VP8, VP9, or AV1                                        |
 | MOV       | `.mov`         | Depends on codec | QuickTime; plays with H.264 or AV1, fails with ProRes          |
-| AVI       | `.avi`         | No               | No AVI demuxer in Chrome — fails even when it holds H.264; re-encode to MP4 |
-| MKV       | `.mkv`         | No               | Chrome plays only WebM, not general Matroska — fails even when it holds H.264; re-encode to MP4 or WebM |
+| MKV       | `.mkv`         | Yes              | Current Chromium and Firefox demux Matroska; like MP4 it then depends on the codec inside (H.264/VP9/AV1/HEVC). Safari is the exception — see note above |
+| AVI       | `.avi`         | No               | No AVI demuxer in Chrome — fails even when it holds H.264, so AVI uploads aren't accepted; re-encode to MP4 |
 
 #### Images
 

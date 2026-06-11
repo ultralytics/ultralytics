@@ -580,6 +580,24 @@ class YOLOAnomalyV2Model(DetectionModel):
         mask_noise_std = float(v2_cfg.get("mask_noise_std", 0.0))
         mask_mag_range = list(v2_cfg.get("mask_mag_range", [1.0, 1.0]))
         mask_blur_sigma_max = float(v2_cfg.get("mask_blur_sigma_max", 0.0))
+        # Prior-robustness augs (train-only). Applied to the GT-rendered prior; the p_drop'd
+        # samples are still zeroed afterwards, so the "no prior" fraction is preserved (these
+        # only perturb the kept-prior samples). All default off.
+        #   mask_jitter       -- per-box center offset ~U(-j,j) (frac of image): mis-localized prior
+        #   mask_box_drop_p   -- per-box drop prob: prior misses some defects (false negative)
+        #   mask_distractor_p -- prob a sample gets up to mask_distractor_n other samples' blobs
+        #                        max-merged in (false-positive hints at wrong locations)
+        #   mask_erase_p      -- prob of zeroing a random sub-region of the blob (partial coverage)
+        #   mask_warp_p       -- prob of an elastic deformation (irregular, non-elliptical blob)
+        #   mask_mixup_p      -- prob of additive blend own + mask_mixup_alpha*donor (soft distractor)
+        mask_jitter = float(v2_cfg.get("mask_jitter", 0.0))
+        mask_box_drop_p = float(v2_cfg.get("mask_box_drop_p", 0.0))
+        mask_distractor_p = float(v2_cfg.get("mask_distractor_p", 0.0))
+        mask_distractor_n = int(v2_cfg.get("mask_distractor_n", 4))
+        mask_erase_p = float(v2_cfg.get("mask_erase_p", 0.0))
+        mask_warp_p = float(v2_cfg.get("mask_warp_p", 0.0))
+        mask_mixup_p = float(v2_cfg.get("mask_mixup_p", 0.0))
+        mask_mixup_alpha = float(v2_cfg.get("mask_mixup_alpha", 0.5))
         # Value remapping: bridges the distribution gap between binary GT masks and
         # soft SegBranch predictions. Applied before HeatmapBiasFusion at both train
         # and inference time. Modes: none (identity), tanh_contrast (smooth stretch),
@@ -701,6 +719,14 @@ class YOLOAnomalyV2Model(DetectionModel):
         self.mask_noise_std = float(mask_noise_std)
         self.mask_mag_range = (float(mask_mag_range[0]), float(mask_mag_range[1]))
         self.mask_blur_sigma_max = float(mask_blur_sigma_max)
+        self.mask_jitter = float(mask_jitter)
+        self.mask_box_drop_p = float(mask_box_drop_p)
+        self.mask_distractor_p = float(mask_distractor_p)
+        self.mask_distractor_n = int(mask_distractor_n)
+        self.mask_erase_p = float(mask_erase_p)
+        self.mask_warp_p = float(mask_warp_p)
+        self.mask_mixup_p = float(mask_mixup_p)
+        self.mask_mixup_alpha = float(mask_mixup_alpha)
         self.mask_remap_mode = mask_remap_mode
         self.mask_remap_kwargs = mask_remap_kwargs
         self.spatial_softmax = bool(v2_cfg.get("spatial_softmax", False))
@@ -1000,7 +1026,10 @@ class YOLOAnomalyV2Model(DetectionModel):
                 )
 
         if bboxes is not None:
-            gt = self.mask_renderer(bboxes, batch_idx, batch_size)
+            # bbox-level prior augs (train-only) on a LOCAL copy — never the boxes used for
+            # query/seg GT, which come from the batch in loss().
+            bb, bi = self._augment_prior_bboxes(bboxes, batch_idx)
+            gt = self.mask_renderer(bb, bi, batch_size)
             if seg_pred is None:
                 return gt  # Phase 0 behavior (no SegBranch)
             a = float(self.seg_alpha)
@@ -1095,7 +1124,83 @@ class YOLOAnomalyV2Model(DetectionModel):
             mask = mask * torch.empty(b, 1, 1, 1, device=mask.device).uniform_(lo, hi)
         if self.mask_noise_std > 0.0:
             mask = mask + torch.randn_like(mask) * self.mask_noise_std
+        mask = self._augment_prior_extra(mask)
         return mask.clamp(0.0, 1.0)
+
+    def _augment_prior_bboxes(self, bboxes, batch_idx):
+        """Train-only bbox-level prior augs: per-box drop + center jitter (on a local copy).
+
+        Returns possibly-reduced/perturbed ``(bboxes, batch_idx)`` used ONLY to render the
+        fusion prior. The originals (used for query/seg GT in loss()) are untouched.
+        """
+        if not self.training or bboxes is None or bboxes.shape[0] == 0:
+            return bboxes, batch_idx
+        bb, bi = bboxes, batch_idx
+        if self.mask_box_drop_p > 0.0:
+            keep = torch.rand(bb.shape[0], device=bb.device) > self.mask_box_drop_p
+            bb, bi = bb[keep], bi[keep]
+        if self.mask_jitter > 0.0 and bb.shape[0] > 0:
+            bb = bb.clone()
+            off = (torch.rand(bb.shape[0], 2, device=bb.device) * 2 - 1) * self.mask_jitter
+            bb[:, 0] = (bb[:, 0] + off[:, 0]).clamp(0.0, 1.0)
+            bb[:, 1] = (bb[:, 1] + off[:, 1]).clamp(0.0, 1.0)
+        return bb, bi
+
+    def _augment_prior_extra(self, mask):
+        """Train-only mask-level prior augs: additive mixup, distractor, partial erase, warp.
+
+        Each is applied per-sample with its own probability, so the kept-prior samples span a
+        spectrum from near-clean to noisy. Operates on a ``(B, 1, H, W)`` mask in [0, 1].
+        """
+        b, _, H, W = mask.shape
+        dev = mask.device
+        # additive mixup: own + alpha * donor (soft distractor)
+        if self.mask_mixup_p > 0.0 and b > 1:
+            sel = torch.rand(b, device=dev) < self.mask_mixup_p
+            donor = mask[torch.randperm(b, device=dev)]
+            mixed = (mask + self.mask_mixup_alpha * donor).clamp(0.0, 1.0)
+            mask = torch.where(sel.view(-1, 1, 1, 1), mixed, mask)
+        # hard distractor: max-merge up to n random other-sample blobs (count varies per sample)
+        if self.mask_distractor_p > 0.0 and b > 1:
+            sel = torch.rand(b, device=dev) < self.mask_distractor_p
+            out = mask
+            for _ in range(self.mask_distractor_n):
+                donor = mask[torch.randperm(b, device=dev)]
+                add = sel & (torch.rand(b, device=dev) < 0.6)
+                out = torch.where(add.view(-1, 1, 1, 1), torch.maximum(out, donor), out)
+            mask = out
+        # partial erase: zero a random sub-region of selected samples (prior covers part only)
+        if self.mask_erase_p > 0.0:
+            for i in range(b):
+                if torch.rand(1, device=dev).item() < self.mask_erase_p:
+                    eh = int(H * (0.2 + 0.3 * torch.rand(1).item()))
+                    ew = int(W * (0.2 + 0.3 * torch.rand(1).item()))
+                    y = int(torch.randint(0, max(1, H - eh), (1,)).item())
+                    x = int(torch.randint(0, max(1, W - ew), (1,)).item())
+                    mask[i, :, y:y + eh, x:x + ew] = 0.0
+        # elastic warp: irregular, non-elliptical blob shape
+        if self.mask_warp_p > 0.0:
+            sel = torch.rand(b, device=dev) < self.mask_warp_p
+            if sel.any():
+                warped = self._elastic_warp(mask, alpha=0.06 * H, sigma=max(2.0, 0.03 * H))
+                mask = torch.where(sel.view(-1, 1, 1, 1), warped, mask)
+        return mask
+
+    @staticmethod
+    def _elastic_warp(mask, alpha, sigma):
+        """Random low-frequency elastic deformation of a ``(B, 1, H, W)`` mask (per-sample field)."""
+        b, _, H, W = mask.shape
+        dev = mask.device
+        disp = torch.randn(b * 2, 1, H, W, device=dev)
+        disp = YOLOAnomalyV2Model._gaussian_blur(disp, sigma).reshape(b, 2, H, W) * alpha
+        ys, xs = torch.meshgrid(
+            torch.linspace(-1, 1, H, device=dev), torch.linspace(-1, 1, W, device=dev), indexing="ij"
+        )
+        base = torch.stack((xs, ys), dim=-1).unsqueeze(0).expand(b, -1, -1, -1)
+        grid = base + torch.stack((disp[:, 0] / (W / 2), disp[:, 1] / (H / 2)), dim=-1)
+        return torch.nn.functional.grid_sample(
+            mask, grid, mode="bilinear", padding_mode="border", align_corners=True
+        )
 
     @staticmethod
     def _gaussian_blur(mask, sigma):
@@ -1321,6 +1426,10 @@ class YOLOAnomalyV2Model(DetectionModel):
                         or self.mask_mag_range[0] < 1.0
                         or self.mask_mag_range[1] < 1.0
                         or self.mask_blur_sigma_max > 0.0
+                        or self.mask_distractor_p > 0.0
+                        or self.mask_erase_p > 0.0
+                        or self.mask_warp_p > 0.0
+                        or self.mask_mixup_p > 0.0
                     )
                 ):
                     mask = self._augment_mask(mask)

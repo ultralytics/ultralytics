@@ -118,7 +118,7 @@ class DocumentedModule:
 
 
 # --------------------------------------------------------------------------------------------- #
-# Placeholder (legacy) generation for mkdocstrings-style stubs
+# Placeholder (legacy) generation for reference stubs
 # --------------------------------------------------------------------------------------------- #
 
 
@@ -131,7 +131,7 @@ def extract_classes_and_functions(filepath: Path) -> tuple[list[str], list[str]]
 
 
 def create_placeholder_markdown(py_filepath: Path, module_path: str, classes: list[str], functions: list[str]) -> Path:
-    """Create a minimal Markdown stub used by mkdocstrings."""
+    """Create a minimal Markdown reference stub."""
     md_filepath = REFERENCE_DIR / py_filepath.relative_to(PACKAGE_DIR).with_suffix(".md")
     exists = md_filepath.exists()
 
@@ -1155,12 +1155,12 @@ def _finalize_reference(nav_items: list[str], update_nav: bool, created: int, cr
 
 
 def build_reference(update_nav: bool = True) -> list[str]:
-    """Create placeholder reference files (legacy mkdocstrings flow)."""
+    """Create placeholder reference files for the legacy stub flow."""
     return build_reference_placeholders(update_nav=update_nav)
 
 
 def build_reference_placeholders(update_nav: bool = True) -> list[str]:
-    """Create minimal placeholder reference files (mkdocstrings-style) and optionally update nav."""
+    """Create minimal placeholder reference files and optionally update nav."""
     nav_items: list[str] = []
     created = 0
     orphans = set(REFERENCE_DIR.rglob("*.md"))

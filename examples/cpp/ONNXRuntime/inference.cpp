@@ -2,6 +2,7 @@
 
 #include "inference.h"
 #include <regex>
+#include <cstring>
 
 #define benchmark
 #define min(a,b)            (((a) < (b)) ? (a) : (b))
@@ -137,7 +138,7 @@ const char* YOLO_V8::CreateSession(DL_INIT_PARAM& iParams) {
         {
             Ort::AllocatedStringPtr input_node_name = session->GetInputNameAllocated(i, allocator);
             char* temp_buf = new char[50];
-            strcpy_s(temp_buf, 50, input_node_name.get());
+            strcpy(temp_buf, input_node_name.get());
             inputNodeNames.push_back(temp_buf);
         }
         size_t OutputNodesNum = session->GetOutputCount();
@@ -145,7 +146,7 @@ const char* YOLO_V8::CreateSession(DL_INIT_PARAM& iParams) {
         {
             Ort::AllocatedStringPtr output_node_name = session->GetOutputNameAllocated(i, allocator);
             char* temp_buf = new char[50];
-            strcpy_s(temp_buf, 50, output_node_name.get());
+            strcpy(temp_buf, output_node_name.get());
             outputNodeNames.push_back(temp_buf);
         }
         options = Ort::RunOptions{ nullptr };
@@ -154,13 +155,7 @@ const char* YOLO_V8::CreateSession(DL_INIT_PARAM& iParams) {
     }
     catch (const std::exception& e)
     {
-        const char* str1 = "[YOLO_V8]:";
-        const char* str2 = e.what();
-        std::string result = std::string(str1) + std::string(str2);
-        char* merged = new char[result.length() + 1];
-        strcpy_s(merged, result.length() + 1, result.c_str());
-        std::cout << merged << std::endl;
-        delete[] merged;
+        std::cout << "[YOLO_V8]:" << e.what() << std::endl;
         Ret = "[YOLO_V8]:Create session failed.";
         return Ret;
     }

@@ -106,11 +106,19 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           VERCEL_DOCS_DEPLOY_HOOK: ${{ secrets.VERCEL_DOCS_DEPLOY_HOOK }}
-          CHANGED_FILES: ${{ toJson(github.event.commits.*.added) }} ${{ toJson(github.event.commits.*.modified) }} ${{ toJson(github.event.commits.*.removed) }}
+          BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
         run: |
-          if [[ "$EVENT_NAME" == "push" ]] && ! grep -Eq 'docs/|mkdocs\.ya?ml' <<< "$CHANGED_FILES"; then
-            echo "No docs source changes."
-            exit 0
+          if [[ "$EVENT_NAME" == "push" ]]; then
+            if [[ "$BEFORE_SHA" == "0000000000000000000000000000000000000000" ]]; then
+              BEFORE_SHA=$(git rev-list --max-parents=0 "$CURRENT_SHA")
+            fi
+            changed_files=$(git diff --name-only "$BEFORE_SHA" "$CURRENT_SHA" -- docs/ mkdocs.yml mkdocs.yaml)
+            if [[ -z "$changed_files" ]]; then
+              echo "No docs source changes."
+              exit 0
+            fi
+            echo "$changed_files"
           fi
 
           curl --fail --silent --show-error --retry 3 --request POST "$VERCEL_DOCS_DEPLOY_HOOK"

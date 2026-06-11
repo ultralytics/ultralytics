@@ -6,6 +6,7 @@
 #include <torch/torch.h>
 #include <torch/script.h>
 #include "yolo_draw.hpp"
+#include "yolo_show.hpp"
 
 using torch::indexing::Slice;
 using torch::indexing::None;
@@ -202,7 +203,9 @@ torch::Tensor scale_boxes(const std::vector<int>& img1_shape, torch::Tensor& box
 }
 
 
-int main() {
+int main(int argc, char** argv) {
+    const bool show = yolo::ShowRequested(argc, argv);  // pass --show to display the result
+
     // Device
     torch::Device device(torch::cuda::is_available() ? torch::kCUDA :torch::kCPU);
 
@@ -256,6 +259,7 @@ int main() {
         }
         cv::imwrite("yolo_libtorch.jpg", image);
         std::cout << "Result image written to yolo_libtorch.jpg" << std::endl;
+        yolo::Show("Result", image, show);
     } catch (const c10::Error& e) {
         std::cout << e.msg() << std::endl;
     }

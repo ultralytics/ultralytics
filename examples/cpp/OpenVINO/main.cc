@@ -1,14 +1,16 @@
 #include "inference.h"
+#include "yolo_show.hpp"
 
 #include <iostream>
 #include <opencv2/highgui.hpp>
 
 int main(int argc, char **argv) {
 	// Check if the correct number of arguments is provided
-	if (argc != 3) {
-		std::cerr << "usage: " << argv[0] << " <model_path> <image_path>" << std::endl;
+	if (argc < 3) {
+		std::cerr << "usage: " << argv[0] << " <model_path> <image_path> [--show]" << std::endl;
 		return 1;
 	}
+	const bool show = yolo::ShowRequested(argc, argv);  // pass --show to display the result
 
 	// Get the model and image paths from the command-line arguments
 	const std::string model_path = argv[1];
@@ -37,6 +39,7 @@ int main(int argc, char **argv) {
 	const std::string output_path = "yolo_openvino.jpg";
 	cv::imwrite(output_path, image);
 	std::cout << "Result image written to " << output_path << std::endl;
+	yolo::Show("image", image, show);
 
 	return 0;
 }

@@ -8,8 +8,9 @@
 #include <fstream>
 #include <random>
 #include "yolo_draw.hpp"
+#include "yolo_show.hpp"
 
-void Detector(YOLO* p) {
+void Detector(YOLO* p, bool show = false) {
     std::filesystem::path current_path = std::filesystem::current_path();
     std::filesystem::path imgs_path = current_path / "images/detect/";
     for (auto& i : std::filesystem::directory_iterator(imgs_path))
@@ -32,6 +33,7 @@ void Detector(YOLO* p) {
             std::filesystem::path out_path = i.path().parent_path() / (i.path().stem().string() + "_result.jpg");
             cv::imwrite(out_path.string(), img);
             std::cout << "Result image written to " << out_path << std::endl;
+            yolo::Show("Result of Detection", img, show);
         }
     }
 }
@@ -184,7 +186,7 @@ int ReadCocoYaml(YOLO* p, const std::string& yamlPath = "coco.yaml") {
 }
 
 
-void DetectTest()
+void DetectTest(bool show = false)
 {
     YOLO yoloDetector;
     // Class names are read from the model metadata in CreateSession (Ultralytics
@@ -210,7 +212,7 @@ void DetectTest()
 
 #endif
     yoloDetector.CreateSession(params);
-    Detector(&yoloDetector);
+    Detector(&yoloDetector, show);
 }
 
 
@@ -253,9 +255,9 @@ void PoseTest()
     PoseEstimator(&yoloDetector);
 }
 
-int main()
+int main(int argc, char** argv)
 {
-    DetectTest();
+    DetectTest(yolo::ShowRequested(argc, argv));  // pass --show to display the result
     //ClsTest();
     //PoseTest();
 }

@@ -69,7 +69,7 @@ For detailed instructions and best practices related to the installation process
 
     Export is currently only supported for detection models. More model support will be coming in the future.
 
-The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on Rockchip NPU hardware. Export your model, then load the exported model to run inference or validate its accuracy. By default, RKNN export uses the existing floating-point build path with `half=True` for FP16-capable Rockchip targets. Use `int8=True` to build an INT8-quantized RKNN model with calibration data. RKNN export does not expose a separate FP32 mode; leaving `int8=False` does not request FP32.
+The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on Rockchip NPU hardware. Export your model, then load the exported model to run inference or validate its accuracy. By default, RKNN export uses the existing floating-point build path with `half=True` for FP16-capable Rockchip targets. Use `int8=True` to build an INT8-quantized RKNN model with calibration data. INT8 export uses RKNN Toolkit's hybrid quantization: the whole graph is quantized to INT8 except the detection output tensors, which are kept in FP16. The output concatenates box coordinates and class scores into a single tensor whose shared INT8 scale otherwise collapses the scores and causes zero detections on device. RKNN export does not expose a separate FP32 mode; leaving `int8=False` does not request FP32.
 
 !!! example "Export"
 

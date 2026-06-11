@@ -35,7 +35,7 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
 === "Videos"
 
-    Videos are extracted to frames in your browser at 1 FPS (max 100 frames per video). The video codec must be browser-decodable — see [Browser Codec Support](#browser-codec-support).
+    Videos are extracted to frames in your browser at 1 FPS (max 100 frames per video). The container/codec combination must be browser-decodable — see [Browser Codec Support](#browser-codec-support).
 
     | Format | Extensions | Extraction            | Max Size |
     | ------ | ---------- | --------------------- | -------- |

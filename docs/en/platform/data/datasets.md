@@ -80,7 +80,7 @@ Videos are turned into frames **in your browser** before upload, so a video only
     | HEVC (H.265)                        | Hardware only     | Only on devices with an HEVC decoder |
     | ProRes, MPEG-2, DivX/Xvid, MJPEG, … | No                | Re-encode to H.264                   |
 
-    Containers MP4, WebM, MOV, MKV, and M4V all work — AVI is rejected because browsers can't open it. Safari on macOS decodes a few extra codecs (ProRes, HEVC) through the operating system, but H.264 MP4 is the only format guaranteed everywhere.
+    Safari on macOS decodes a few extra codecs (ProRes, HEVC) through the operating system, but H.264 MP4 is the only format guaranteed everywhere.
 
 ### Preparing Your Dataset
 

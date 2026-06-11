@@ -56,9 +56,7 @@ class SemanticSegmentationPredictor(BasePredictor):
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)[..., ::-1]
 
         classes = (
-            torch.as_tensor(self.args.classes, device=preds.device).flatten()
-            if self.args.classes is not None
-            else None
+            torch.as_tensor(self.args.classes, device=preds.device).flatten() if self.args.classes is not None else None
         )
 
         results = []

@@ -61,7 +61,7 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
 ### Browser Codec Support
 
-The file extension alone isn't enough: an `.mp4` or `.mov` can still fail if it uses a codec your browser can't decode.
+The file extension alone isn't enough: a video can still fail if its container or codec isn't supported by your browser.
 
 !!! tip "Use H.264 MP4"
 

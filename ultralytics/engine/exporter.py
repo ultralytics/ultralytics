@@ -1453,8 +1453,7 @@ class ClassMapModel(ExportWrapper):
     def __init__(self, model):
         """Wrap a fused semantic `model` so export emits class indices instead of logits."""
         super().__init__(model)
-        # uint8 keeps the whole graph on the Hexagon NPU (an int32 cast measured 1054 ms vs 44 ms - the Cast falls
-        # back to the CPU execution provider and drags the full logits with it); Core ML promotes uint8 to int32.
+        # uint8 quarters the NPU->CPU output transfer vs int32 and Core ML promotes it to int32 in-spec;
         # int32 only when more than 256 classes make uint8 indices ambiguous.
         self.dtype = torch.uint8 if len(model.names) <= 256 else torch.int32
 

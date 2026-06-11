@@ -694,6 +694,7 @@ class SemanticDataset(YOLODataset):
     Attributes:
         data (dict): Dataset configuration from YAML.
         mask_files (list[str]): List of mask file paths corresponding to images.
+        include_class (np.ndarray | None): Class ids to keep per pixel (None keeps all).
     """
 
     def __init__(self, *args, data: dict | None = None, **kwargs):
@@ -716,7 +717,19 @@ class SemanticDataset(YOLODataset):
         Args:
             include_class (list[int], optional): List of classes to include. If None, all classes are included.
         """
+        if self.single_cls:
+            raise NotImplementedError(
+                "'single_cls=True' is not supported for semantic segmentation: it forces a single-channel "
+                "model but cannot collapse multi-class masks. Use a dataset with 'nc: 1' for binary "
+                "(foreground/background) segmentation instead."
+            )
         self.include_class = None if include_class is None else np.asarray(include_class, dtype=np.int64).reshape(-1)
+        if self.include_class is not None and int(self.data.get("nc", 0)) == 1:
+            LOGGER.warning(
+                "'classes' filtering is ignored for single-class (binary) semantic segmentation: keeping only "
+                "the sole class would discard all background supervision."
+            )
+            self.include_class = None
 
     def _parse_label_mapping(self, mapping):
         """Normalize label_mapping entries from dataset YAML into integer-to-integer ids."""

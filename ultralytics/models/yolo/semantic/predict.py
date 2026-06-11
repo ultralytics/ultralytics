@@ -58,6 +58,8 @@ class SemanticSegmentationPredictor(BasePredictor):
         classes = (
             torch.as_tensor(self.args.classes, device=preds.device).flatten() if self.args.classes is not None else None
         )
+        if classes is not None and len(self.model.names) == 1:
+            classes = classes + 1  # binary: the single foreground class (class id 0) is stored as value 1
 
         results = []
         for i, (pred, orig_img) in enumerate(zip(preds, orig_imgs)):

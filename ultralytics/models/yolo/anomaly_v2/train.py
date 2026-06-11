@@ -40,10 +40,15 @@ class AnomalyV2Trainer(DetectionTrainer):
         self._mb_patches_per_step = 0
 
     def preprocess_batch(self, batch):
-        """Stash the preprocessed batch so the batch-end callback can enqueue its features."""
+        """Stash tensor refs so the batch-end callback can enqueue this batch's features.
+
+        Snapshot the tensors, not the dict: rank-0 plotting (``plot_training_samples``)
+        later replaces the dict's bboxes/cls with numpy arrays in place, which would crash
+        the enqueue's mask render.
+        """
         batch = super().preprocess_batch(batch)
         if self._mb_active():
-            self._mb_batch = batch
+            self._mb_batch = {"img": batch["img"], "bboxes": batch["bboxes"], "batch_idx": batch["batch_idx"]}
         return batch
 
     def _mb_active(self) -> bool:

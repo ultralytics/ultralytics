@@ -36,7 +36,7 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 === "Videos"
 
     Videos are extracted to frames in your browser at 1 FPS (max 100 frames per video). The container/codec combination must be browser-decodable — see [Browser Codec Support](#browser-codec-support).
-    
+
     | Format | Extensions | Extraction            | Max Size |
     | ------ | ---------- | --------------------- | -------- |
     | MP4    | `.mp4`     | 1 FPS, max 100 frames | 1 GB     |
@@ -44,15 +44,15 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
     | MOV    | `.mov`     | 1 FPS, max 100 frames | 1 GB     |
     | MKV    | `.mkv`     | 1 FPS, max 100 frames | 1 GB     |
     | M4V    | `.m4v`     | 1 FPS, max 100 frames | 1 GB     |
-    
+
     !!! info "Video Frame Extraction"
-    
+
         Video frames are extracted at 1 frame per second in the browser before upload. A 60-second video produces 60 frames. The maximum is 100 frames per video — for videos longer than ~100 seconds, 100 frames are evenly sampled across the full duration.
 
 === "Archives"
 
     Archives are extracted and processed automatically.
-    
+
     | Format | Extensions              | Notes             | Free   | Pro    | Enterprise |
     | ------ | ----------------------- | ----------------- | ------ | ------ | ---------- |
     | ZIP    | `.zip`                  | Most common       | 10 GB  | 20 GB  | 50 GB      |
@@ -66,7 +66,7 @@ The file extension alone isn't enough: a video can still fail if its container o
 !!! tip "Use H.264 MP4"
 
     H.264 video in an MP4 container has the broadest support across major browsers and is the safest choice. If a video won't upload, re-encode it with [FFmpeg](https://ffmpeg.org/):
-    
+
     ```bash
     ffmpeg -i input.mov -c:v libx264 -pix_fmt yuv420p -c:a aac -movflags +faststart output.mp4
     ```
@@ -74,7 +74,7 @@ The file extension alone isn't enough: a video can still fail if its container o
 ??? info "Which video codecs work"
 
     These are the codecs **Chrome and other Chromium browsers** decode (most visitors):
-    
+
     | Codec                               | Decodes in Chrome | Notes                                |
     | ----------------------------------- | ----------------- | ------------------------------------ |
     | H.264 (AVC)                         | Yes               | Recommended — works everywhere       |
@@ -89,7 +89,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 === "YOLO Format"
 
     Use the standard YOLO directory structure with a `data.yaml` file:
-    
+
     ```
     my-dataset/
     ├── images/
@@ -108,15 +108,15 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
     │       └── img004.txt
     └── data.yaml
     ```
-    
+
     The YAML file defines your dataset configuration:
-    
+
     ```yaml
     # data.yaml
     path: .
     train: images/train
     val: images/val
-    
+
     names:
         0: person
         1: car
@@ -126,7 +126,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 === "COCO Format"
 
     Use JSON annotation files with the standard [COCO structure](https://cocodataset.org/#format-data):
-    
+
     ```
     my-coco-dataset/
     ├── train/
@@ -138,9 +138,9 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
         ├── img003.jpg
         └── img004.jpg
     ```
-    
+
     The JSON file contains `images`, `annotations`, and `categories` arrays:
-    
+
     ```json
     {
         "images": [{ "id": 1, "file_name": "img001.jpg", "width": 640, "height": 480 }],
@@ -148,21 +148,21 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
         "categories": [{ "id": 0, "name": "person" }]
     }
     ```
-    
+
     COCO annotations are automatically converted during upload. Detection (`bbox`), segmentation (`segmentation` polygons), and pose (`keypoints`) tasks are supported. Category IDs are remapped to a dense 0-indexed sequence across all annotation files. For converting between formats, see [format conversion tools](../../datasets/detect/index.md#port-or-convert-label-formats).
 
 === "Classification Layouts"
 
     Classification uploads are auto-detected from common folder layouts:
-    
+
     ```
     split/class/image.jpg
     class/split/image.jpg
     class/image.jpg
     ```
-    
+
     Example:
-    
+
     ```
     my-classify-dataset/
     ├── train/
@@ -231,10 +231,10 @@ graph LR
 ??? tip "Validate Before Upload"
 
     You can validate your dataset locally before uploading:
-    
+
     ```python
     from ultralytics.data.utils import check_det_dataset
-    
+
     check_det_dataset("path/to/data.yaml")
     ```
 
@@ -270,9 +270,9 @@ Images can be sorted and filtered for efficient browsing:
     | Width ↑/↓            | Image width in pixels        |
     | Size ↑/↓             | File size on disk            |
     | Annotations ↑/↓      | Annotation count per image   |
-    
+
     !!! note "Large Datasets"
-    
+
         For datasets over 100,000 images, name / size / width / height sorts are disabled to keep the gallery responsive. Newest, oldest, and annotation-count sorts remain available.
 
 === "Filters"
@@ -619,7 +619,7 @@ Use this URI to train models from anywhere:
 
     ```python
     from ultralytics import YOLO
-    
+
     model = YOLO("yolo26n.pt")
     model.train(data="ul://username/datasets/my-dataset", epochs=100)
     ```
@@ -627,7 +627,7 @@ Use this URI to train models from anywhere:
 !!! example "Train Anywhere with Platform Data"
 
     The `ul://` URI works from any environment:
-    
+
     - **Local machine**: Train on your hardware, data downloaded automatically
     - **Google Colab**: Access your Platform datasets in notebooks
     - **Remote servers**: Train on cloud VMs with full dataset access
@@ -765,7 +765,7 @@ Ultralytics Platform supports YOLO labels, COCO JSON, Ultralytics NDJSON, and ra
 === "YOLO Format"
 
     One `.txt` file per image with normalized coordinates (0-1 range):
-    
+
     | Task     | Format                           | Example                             |
     | -------- | -------------------------------- | ----------------------------------- |
     | Detect   | `class cx cy w h`                | `0 0.5 0.5 0.2 0.3`                 |
@@ -773,7 +773,7 @@ Ultralytics Platform supports YOLO labels, COCO JSON, Ultralytics NDJSON, and ra
     | Pose     | `class cx cy w h kx1 ky1 v1 ...` | `0 0.5 0.5 0.2 0.3 0.6 0.7 2`       |
     | OBB      | `class x1 y1 x2 y2 x3 y3 x4 y4`  | `0 0.1 0.1 0.9 0.1 0.9 0.9 0.1 0.9` |
     | Classify | Directory structure              | `train/cats/`, `train/dogs/`        |
-    
+
     Pose visibility flags: 0=not labeled, 1=labeled but occluded, 2=labeled and visible.
 
 === "COCO Format"

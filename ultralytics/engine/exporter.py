@@ -23,7 +23,7 @@ RKNN                    | `rknn`                    | yolo26n_rknn_model/
 ExecuTorch              | `executorch`              | yolo26n_executorch_model/
 Axelera AI              | `axelera`                 | yolo26n_axelera_model/
 DEEPX                   | `deepx`                   | yolo26n_deepx_model/
-Qualcomm QNN            | `qnn`                     | yolo26n_qnn_model/
+Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -57,7 +57,7 @@ Inference:
                          yolo26n_executorch_model   # ExecuTorch
                          yolo26n_axelera_model      # Axelera AI
                          yolo26n_deepx_model        # DEEPX
-                         yolo26n_qnn_model          # Qualcomm QNN
+                         yolo26n_qnn.onnx           # Qualcomm QNN
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -227,7 +227,7 @@ def export_formats():
             "isolated-axelera",
         ],
         ["DEEPX", "deepx", "_deepx_model", False, False, ["data", "int8", "optimize"], "isolated-deepx"],
-        ["Qualcomm QNN", "qnn", "_qnn_model", False, False, ["batch", "name", "int8", "fraction", "data"], "base"],
+        ["Qualcomm QNN", "qnn", "_qnn.onnx", False, False, ["batch", "name", "int8", "fraction", "data"], "base"],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -453,12 +453,6 @@ class Exporter:
             _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
-        if (
-            self.args.format.lower() == "rknn"
-            and not self.args.int8
-            and not any(k in (overrides or {}) for k in {"half", "int8", "data", "fraction"})
-        ):
-            self.args.half = True
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
@@ -590,7 +584,7 @@ class Exporter:
             self.args.name = str(self.args.name).lower().lstrip("v")  # accept '73' or 'v73'
             assert self.args.name in QNN_HTP_ARCHS, (
                 f"Invalid HTP architecture '{self.args.name}' for Qualcomm QNN export. Valid archs are {QNN_HTP_ARCHS} "
-                "(Snapdragon 865/888/8Gen2/8Gen3/8Elite respectively)."
+                "(Snapdragon 888/8Gen1/8Gen2/8Gen3/8Elite/8EliteGen5 respectively)."
             )
         if self.args.nms and model.task == "semantic":
             LOGGER.warning("'nms=True' is not valid for semantic segmentation models. Forcing 'nms=False'.")
@@ -1374,7 +1368,7 @@ class Exporter:
         f_onnx = self.export_onnx()
         return onnx2qnn(
             onnx_file=f_onnx,
-            output_dir=str(self.file).replace(self.file.suffix, f"_qnn_model{os.sep}"),
+            output_file=str(self.file.with_name(f"{self.file.stem}_qnn.onnx")),
             dataset=self.get_int8_calibration_dataloader(prefix),
             transform_fn=self._transform_fn,
             name=self.args.name,
@@ -1392,7 +1386,7 @@ class Exporter:
 
     @staticmethod
     def _transform_fn(data_item) -> np.ndarray:
-        """The transformation function for Axelera/OpenVINO quantization preprocessing."""
+        """Quantization preprocessing transform for INT8 calibration (Axelera, OpenVINO, ONNX, QNN)."""
         data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
         assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
         im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0

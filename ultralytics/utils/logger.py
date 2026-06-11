@@ -134,9 +134,10 @@ class ConsoleLogger:
 
         current_time = time.time()
 
-        # Handle carriage returns and process lines
+        # Handle carriage returns and strip ANSI clear-line codes (TQDM writes "\r\033[K<line>" interactively)
         if "\r" in text:
             text = text.split("\r")[-1]
+        text = text.replace("\x1b[K", "")
 
         lines = text.split("\n")
         if lines and lines[-1] == "":
@@ -333,8 +334,9 @@ class _DriveInfo:
 
     @staticmethod
     def _sort(mounts):
-        """Sort mounted paths with root first."""
-        return sorted(set(mounts), key=lambda mount: (mount != "/", mount))
+        """Sort mounted paths with root first, excluding boot/firmware partitions like /boot and /boot/efi."""
+        mounts = {m for m in mounts if not (m + "/").startswith(("/boot/", "/efi/"))}
+        return sorted(mounts, key=lambda mount: (mount != "/", mount))
 
     @staticmethod
     def _current_mount(partitions):

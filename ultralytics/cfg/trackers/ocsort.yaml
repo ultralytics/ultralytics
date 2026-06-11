@@ -2,7 +2,7 @@
 
 # OC-SORT tracker defaults for mode="track"
 # Paper: https://arxiv.org/abs/2203.14360
-# Docs: https://docs.ultralytics.com/modes/track/
+# Docs: https://docs.ultralytics.com/modes/track
 
 tracker_type: ocsort # (str) Tracker backend: ocsort; observation-centric SORT for robust multi-object tracking
 track_high_thresh: 0.25 # (float) First-stage match threshold; raise for cleaner tracks, lower to keep more

@@ -28,9 +28,10 @@ class Profile(contextlib.ContextDecorator):
 
     Examples:
         Use as a context manager to time code execution
-        >>> with Profile(device=device) as dt:
+        >>> with Profile() as dt:
         ...     pass  # slow operation here
-        >>> print(dt)  # prints "Elapsed time is 9.5367431640625e-07 s"
+        >>> str(dt).startswith("Elapsed time is ")
+        True
 
         Use as a decorator to time function execution
         >>> @Profile()

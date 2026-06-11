@@ -1,10 +1,10 @@
 # YOLOv8-Segmentation-ONNXRuntime-Python Demo
 
-This repository provides a [Python](https://www.python.org/) demo for performing instance segmentation with [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) using [ONNX Runtime](https://onnxruntime.ai/). It highlights the interoperability of YOLOv8 models, allowing inference without requiring the full [PyTorch](https://pytorch.org/) stack. This approach is ideal for deployment scenarios where minimal dependencies are preferred. Learn more about the [segmentation task](https://docs.ultralytics.com/tasks/segment) on our documentation.
+This repository provides a [Python](https://www.python.org/) demo for performing instance segmentation with [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) using [ONNX Runtime](https://onnxruntime.ai/). It highlights the interoperability of YOLOv8 models by executing the exported model with ONNX Runtime while reusing [PyTorch](https://pytorch.org/) and Ultralytics utilities for postprocessing. Learn more about the [segmentation task](https://docs.ultralytics.com/tasks/segment) on our documentation.
 
 ## ✨ Features
 
-- **Framework Agnostic**: Runs segmentation inference purely on ONNX Runtime without importing PyTorch.
+- **ONNX Runtime Execution**: Runs the exported segmentation model with ONNX Runtime while reusing PyTorch and Ultralytics utilities for postprocessing.
 - **Efficient Inference**: Supports both FP32 and [half-precision](https://www.ultralytics.com/glossary/half-precision) (FP16) for [ONNX](https://onnx.ai/) models, catering to different computational needs and optimizing [inference latency](https://www.ultralytics.com/glossary/inference-latency).
 - **Ease of Use**: Utilizes simple command-line arguments for straightforward model execution.
 - **Broad Compatibility**: Leverages [NumPy](https://numpy.org/) and [OpenCV](https://opencv.org/) for image processing, ensuring wide compatibility across various environments.

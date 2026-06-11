@@ -216,14 +216,14 @@ int main() {
 
     try {
         // Load the model (e.g. yolo11s.torchscript)
-        std::string model_path = "/path/to/yolo11s.torchscript";
+        std::string model_path = "yolo11s.torchscript";
         torch::jit::script::Module yolo_model;
         yolo_model = torch::jit::load(model_path, device);
         yolo_model.eval();
         yolo_model.to(device, torch::kFloat32);
 
         // Load image and preprocess
-        cv::Mat image = cv::imread("/path/to/bus.jpg");
+        cv::Mat image = cv::imread("bus.jpg");
         cv::Mat input_image;
         letterbox(image, input_image, {640, 640});
         cv::cvtColor(input_image, input_image, cv::COLOR_BGR2RGB);

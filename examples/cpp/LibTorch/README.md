@@ -52,9 +52,21 @@ Follow these steps to run the C++ inference example:
     ```
 
 5.  **Run the Inference:**
-    Execute the compiled binary. The application will load the exported model and perform inference on a sample image. Edit the model and image paths in `main.cc` (the model defaults to a placeholder `/path/to/yolo11s.torchscript` and the image to `/path/to/bus.jpg`) before running.
+    The binary loads `yolo11s.torchscript` and an image named `bus.jpg` from the **current working directory**. Copy both next to the binary (or `cd` into the folder that holds them) and run it. To use different filenames, edit the `model_path` and `cv::imread(...)` values near the top of `main()` in `main.cc`.
     ```bash
+    cp /path/to/yolo11s.torchscript .
+    cp /path/to/bus.jpg .
     ./yolo_libtorch
+    ```
+
+    Expected output (using `yolo11s` on the sample `bus.jpg`):
+
+    ```
+    Rect: [20,227,796,737]  Conf: 0.9457  Class: bus
+    Rect: [48,401,246,905]  Conf: 0.8988  Class: person
+    Rect: [222,405,344,857]  Conf: 0.8961  Class: person
+    Rect: [668,390,809,880]  Conf: 0.8852  Class: person
+    Rect: [0,545,78,874]  Conf: 0.7306  Class: person
     ```
 
 ## ✨ Exporting Ultralytics YOLO

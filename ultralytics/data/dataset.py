@@ -723,7 +723,7 @@ class SemanticDataset(YOLODataset):
                 "model but cannot collapse multi-class masks. Use a dataset with 'nc: 1' for binary "
                 "(foreground/background) segmentation instead."
             )
-        self.include_class = None if include_class is None else np.asarray(include_class, dtype=np.int64).reshape(-1)
+        self.include_class = None if include_class is None else np.asarray(include_class, dtype=np.int32).reshape(-1)
         if self.include_class is not None and int(self.data.get("nc", 0)) == 1:
             LOGGER.warning(
                 "'classes' filtering is ignored for single-class (binary) semantic segmentation: keeping only "

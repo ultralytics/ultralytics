@@ -136,7 +136,7 @@ Ensure you have the following dependencies installed:
     ```
 
 5.  **Locate Executable:**
-    The compiled executable (e.g., `yolov8_onnxruntime_cpp`) will be located in the `build` directory.
+    The compiled executable (e.g., `Yolov8OnnxRuntimeCPPInference`) will be located in the `build` directory.
 
 ## 🚀 Usage
 
@@ -165,7 +165,7 @@ Detector(yoloDetector);
 Run the executable from the `build` directory:
 
 ```bash
-./yolov8_onnxruntime_cpp
+./Yolov8OnnxRuntimeCPPInference
 ```
 
 ## 🤝 Contributing

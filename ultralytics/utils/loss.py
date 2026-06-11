@@ -798,7 +798,7 @@ class v8PoseLoss(v8DetectionLoss):
 
 
 class PoseLoss26(v8PoseLoss):
-    """Criterion class for computing training losses for YOLOv8 pose estimation with RLE loss support."""
+    """Criterion class for computing training losses for YOLO26 pose estimation with RLE loss support."""
 
     def __init__(
         self, model: torch.nn.Module, tal_topk: int = 10, tal_topk2: int | None = None

@@ -70,11 +70,12 @@ RKNN_CHIPS = frozenset(
 )  # Rockchip processors available for export
 QNN_HTP_ARCHS = frozenset(
     {
-        "68",  # Snapdragon 865
-        "69",  # Snapdragon 888 / 8 Gen 1
-        "73",  # Snapdragon 8 Gen 2
+        "68",  # Snapdragon 888
+        "69",  # Snapdragon 8 Gen 1
+        "73",  # Snapdragon 8 Gen 2 / X Elite
         "75",  # Snapdragon 8 Gen 3
         "79",  # Snapdragon 8 Elite
+        "81",  # Snapdragon 8 Elite Gen 5
     }
 )  # Qualcomm Hexagon HTP architecture versions available for QNN export
 HELP_MSG = """

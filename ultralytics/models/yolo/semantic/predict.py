@@ -63,8 +63,8 @@ class SemanticSegmentationPredictor(BasePredictor):
             # Upsample pred to the model input resolution first so LetterBox padding is an integer in this space
             if pred.shape[2:] != img.shape[2:]:
                 pred = F.interpolate(pred, img.shape[2:], mode="nearest" if class_map_input else "bilinear")
-            # scale_masks then crops it cleanly without the sub-pixel asymmetry
-            pred = ops.scale_masks(pred, orig_img.shape[:2])[0]
+            # scale_masks then crops it cleanly without the sub-pixel asymmetry; class maps must never blend IDs
+            pred = ops.scale_masks(pred, orig_img.shape[:2], mode="nearest" if class_map_input else "bilinear")[0]
             if class_map_input:
                 class_map = pred.squeeze(0).to(self._class_map_dtype(int(pred.max().item()) + 1))
             else:

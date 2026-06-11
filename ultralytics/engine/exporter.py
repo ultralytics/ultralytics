@@ -1437,24 +1437,31 @@ class QNNModel(ExportWrapper):
 
 
 class ClassMapModel(ExportWrapper):
-    """Reduces semantic-segmentation logits to a uint8 class map for export.
+    """Reduces semantic-segmentation logits to a compact integer class map for export.
 
-    Applied to every semantic export format: deployment consumers want per-pixel class indices, and shipping float
-    logits instead forces a dequantize + argmax over large tensors (~20M values at 1024px) on the consumer's CPU every
-    frame - measured as both slow and highly variable on mobile NPUs. The argmax cannot live in the model's own forward
-    because it is non-differentiable (training needs logits), so it is attached here at export time, mirroring how
-    `NMSModel` adds suppression only for export.
+    Applied to QNN and Core ML semantic exports, where the argmax runs on the NPU: deployment consumers want
+    per-pixel class indices, and shipping float logits instead forces a dequantize + argmax over large tensors
+    (~20M values at 1024px) on the consumer's CPU every frame - measured as both slow and highly variable on mobile
+    NPUs. The argmax cannot live in the model's own forward because it is non-differentiable (training needs
+    logits), so it is attached here at export time, mirroring how `NMSModel` adds suppression only for export.
 
     Attributes:
         task (str): The wrapped model's task ("semantic").
+        dtype (torch.dtype): Class-index dtype; uint8 unless the model has more than 256 classes.
     """
 
-    def forward(self, x):
-        """Run the wrapped model and return a `[N, H, W]` uint8 class map instead of float logits."""
-        y = self._model(x)
+    def __init__(self, model):
+        """Wrap a fused semantic `model` so export emits class indices instead of logits."""
+        super().__init__(model)
         # uint8 keeps the whole graph on the Hexagon NPU (an int32 cast measured 1054 ms vs 44 ms - the Cast falls
         # back to the CPU execution provider and drags the full logits with it); Core ML promotes uint8 to int32.
-        return (y[0] if isinstance(y, (list, tuple)) else y).argmax(1).to(torch.uint8)
+        # int32 only when more than 256 classes make uint8 indices ambiguous.
+        self.dtype = torch.uint8 if len(model.names) <= 256 else torch.int32
+
+    def forward(self, x):
+        """Run the wrapped model and return a `[N, H, W]` integer class map instead of float logits."""
+        y = self._model(x)
+        return (y[0] if isinstance(y, (list, tuple)) else y).argmax(1).to(self.dtype)
 
 
 class NMSModel(torch.nn.Module):

@@ -40,7 +40,8 @@ class AFSSScheduler:
             num_images (int): Total number of images in the dataset.
             seed (int): Random seed for deterministic sampling.
             easy_thr (float): Threshold above which an image is classified as easy (min(P, R) > easy_thr).
-            easy_ratio (float): Fraction of easy images reviewed each epoch (continuous-review budget).
+            easy_ratio (float): Target fraction of easy images sampled each epoch. Easy images unused for >=10
+                epochs are always force-reviewed, even when they exceed this target.
             moderate_thr (float): Threshold above which an image is classified as moderate (min(P, R) >= moderate_thr).
             moderate_ratio (float): Fraction of moderate images sampled each epoch.
         """
@@ -84,25 +85,24 @@ class AFSSScheduler:
         # Hard set: include all hard images
         selected.extend(hard_set)
 
-        # Easy set
+        # Easy set: force-review ALL long-unseen easy images (mirroring the moderate bucket), then fill any
+        # remaining budget randomly. Capping forced reviews at half the budget (paper Eq. 6 as written) lets the
+        # review backlog grow without bound once the easy set is large, leaving images untrained for hundreds of
+        # epochs — the paper's own interval ablation (Table 5b) shows that regime costs 1.3-2.4 AP.
         if easy_set:
             forced_easy = [i for i in easy_set if (epoch - 1 - self.state[i]["last_seen_epoch"]) >= 10]
             easy_budget = round(self.easy_ratio * len(easy_set))
-            forced_easy_quota = min(len(forced_easy), math.floor(0.5 * easy_budget))
-            random_easy_quota = easy_budget - forced_easy_quota
+            selected.extend(forced_easy)
+            n_easy_sampled += len(forced_easy)
 
-            if easy_budget > 0:
-                forced_easy_sample = []
-                if forced_easy_quota > 0 and forced_easy:
-                    forced_easy_sample = rng.choice(forced_easy, size=forced_easy_quota, replace=False).tolist()
-                selected.extend(forced_easy_sample)
-                n_easy_sampled += len(forced_easy_sample)
-
-                remaining_easy = [i for i in easy_set if i not in set(forced_easy_sample)]
-                if random_easy_quota > 0 and remaining_easy:
-                    random_easy_sample = rng.choice(remaining_easy, size=random_easy_quota, replace=False).tolist()
-                    selected.extend(random_easy_sample)
-                    n_easy_sampled += len(random_easy_sample)
+            random_easy_quota = easy_budget - len(forced_easy)
+            remaining_easy = [i for i in easy_set if i not in set(forced_easy)]
+            if random_easy_quota > 0 and remaining_easy:
+                random_easy_sample = rng.choice(
+                    remaining_easy, size=min(random_easy_quota, len(remaining_easy)), replace=False
+                ).tolist()
+                selected.extend(random_easy_sample)
+                n_easy_sampled += len(random_easy_sample)
 
         # Moderate set
         if moderate_set:
@@ -204,7 +204,13 @@ def afss_on_epoch_start(trainer):
     if epoch < trainer.args.warmup_epochs:  # do not use afss during warmup
         return
 
-    selected_indices = trainer.afss_scheduler.sample_indices(epoch)
+    full_final = trainer.epochs - epoch <= trainer.args.afss_full_final
+    if full_final:
+        # Full-coverage consolidation phase: train on every image for the final afss_full_final epochs to recover
+        # drift on long-skipped images before the final model is selected.
+        selected_indices = list(range(trainer.afss_scheduler.num_images))
+    else:
+        selected_indices = trainer.afss_scheduler.sample_indices(epoch)
 
     # DDP broadcast
     if trainer.world_size > 1:
@@ -216,7 +222,9 @@ def afss_on_epoch_start(trainer):
         selected_indices = broadcast_list[0]
 
     old_nb = trainer.nb
-    if trainer.world_size > 1:
+    if selected_indices == trainer.afss_current_indices:
+        pass  # active set unchanged (e.g. consecutive full-coverage epochs); keep the current loader and workers
+    elif trainer.world_size > 1:
         # Rebuild loader for DDP so DistributedSampler sees new length
         batch_size = trainer.batch_size // trainer.world_size
         old_loader = trainer.train_loader
@@ -243,7 +251,10 @@ def afss_on_epoch_start(trainer):
     # Adjust last_opt_step so optimizer stepping continues correctly when nb changes
     if old_nb != trainer.nb:
         trainer.last_opt_step -= epoch * (old_nb - trainer.nb)
-    LOGGER.info(f"AFSS epoch {epoch}: training on {len(selected_indices)}/{trainer.afss_scheduler.num_images} images")
+    LOGGER.info(
+        f"AFSS epoch {epoch}: training on {len(selected_indices)}/{trainer.afss_scheduler.num_images} images"
+        + (" (full-coverage final phase)" if full_final else "")
+    )
 
 
 def afss_on_epoch_end(trainer):
@@ -252,6 +263,8 @@ def afss_on_epoch_end(trainer):
         return
     epoch = trainer.epoch
     trainer.afss_scheduler.update_last_seen(trainer.afss_current_indices, epoch)
+    if trainer.epochs - epoch - 1 <= trainer.args.afss_full_final:
+        return  # every remaining epoch trains on the full dataset, so refreshing per-image metrics is wasted compute
     if epoch >= trainer.args.warmup_epochs and (epoch - math.ceil(trainer.args.warmup_epochs)) % 5 == 0:
         afss_refresh_metrics(trainer)
 

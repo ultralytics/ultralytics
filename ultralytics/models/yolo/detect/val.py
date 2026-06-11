@@ -228,16 +228,18 @@ class DetectionValidator(BaseValidator):
         self.metrics.save_dir = self.save_dir
 
     def _gather_image_metrics(self, metric) -> None:
-        """Gather per-image metrics from all GPUs for a single metric object."""
+        """Gather buffered raw per-image stats from all GPUs for a single metric object.
+
+        The raw buffers are gathered rather than finished metrics because per-image P/R is only computed by
+        flush_image_metrics() on rank 0, inside process(), once the global F1-optimal confidence threshold is known.
+        """
         if RANK == 0:
-            gathered_image_metrics = [None] * dist.get_world_size()
-            dist.gather_object(metric.image_metrics, gathered_image_metrics, dst=0)
-            metric.clear_image_metrics()
-            for image_metrics in gathered_image_metrics:
-                if image_metrics:
-                    metric.image_metrics.update(image_metrics)
+            gathered_buffers = [None] * dist.get_world_size()
+            dist.gather_object(metric._image_buffer, gathered_buffers, dst=0)
+            metric.clear_image_metrics()  # drop stale metrics and rank 0's buffer copy before merging
+            metric._image_buffer = [entry for buffer in gathered_buffers if buffer for entry in buffer]
         elif RANK > 0:
-            dist.gather_object(metric.image_metrics, None, dst=0)
+            dist.gather_object(metric._image_buffer, None, dst=0)
             metric.clear_image_metrics()
 
     def gather_stats(self) -> None:

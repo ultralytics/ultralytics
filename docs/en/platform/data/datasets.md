@@ -63,36 +63,25 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
 A file extension only names the **container** — it does not guarantee your browser can read the **codec** inside. The two media types are decoded in different places, which changes what "supported" means:
 
-- **Videos are decoded in your browser.** Frames are extracted client-side (1 FPS) *before* upload, so a video needs both a container **and** a codec your browser — typically Chrome — can decode. A `.mov` holding ProRes, or an HEVC video on a device without HEVC hardware, fails to decode even though the container is fine. If a video fails to decode, re-encode it to H.264/MP4 (see below).
+- **Videos are decoded in your browser.** Frames are extracted client-side (1 FPS) *before* upload, so a video needs both a container **and** a codec your browser — typically Chrome — can decode. All accepted containers (MP4, WebM, MOV, MKV, M4V) demux in Chrome, so what decides success is the **codec inside**. (AVI is not accepted — Chrome has no AVI demuxer; re-encode to MP4.) A `.mov` with ProRes, or HEVC on a device without HEVC hardware, fails even though the container is fine. If a video fails to decode, re-encode it to H.264/MP4 (see below).
 - **Images are decoded on the server.** Every accepted image format always uploads and processes, including HEIC, TIFF, DNG, JP2, and MPO. Browser support only affects whether a thumbnail **preview** renders during upload — it never blocks the upload.
 
 !!! note "Other browsers"
 
-    The tables below are the portable baseline — what Chrome and other Chromium browsers decode. Browsers that decode through the operating system, notably **Safari on macOS**, read extra codecs such as ProRes and HEVC, so a video that fails in Chrome may still upload in Safari. The reverse also holds — Chrome decodes AV1 and VP9 in software where Safari needs hardware — so **H.264/MP4 is the only format guaranteed to work in every browser**.
+    The codec table below is the portable baseline — what Chrome and other Chromium browsers decode. Browsers that decode through the operating system, notably **Safari on macOS**, read extra codecs such as ProRes and HEVC, so a video that fails in Chrome may still upload in Safari. The reverse also holds — Chrome decodes AV1 and VP9 in software where Safari needs hardware — so **H.264/MP4 is the only format guaranteed to work in every browser**.
 
 #### Video codecs
 
-| Codec         | Also known as | Browser decode | Notes                                                                              |
-| ------------- | ------------- | -------------- | ---------------------------------------------------------------------------------- |
-| H.264         | AVC           | Yes            | Recommended. 8-bit 4:2:0 (Baseline/Main/High); 10-bit (Hi10P) and 4:4:4 may fail   |
-| AV1           | —             | Yes            | Software decode on every platform (Chrome 70+)                                     |
-| VP9           | —             | Yes            | Royalty-free, usually in WebM                                                      |
-| VP8           | —             | Yes            | Royalty-free, usually in WebM                                                      |
-| H.265         | HEVC          | Hardware only  | Needs an HEVC-capable GPU and OS (Chrome 107+); no software fallback, so it often fails. Re-encode to H.264 |
-| MPEG-4 Part 2 | DivX, Xvid    | No             | Re-encode to H.264                                                                 |
-| MPEG-2        | H.262         | No             | Re-encode to H.264                                                                 |
-| ProRes        | —             | No             | Common in `.mov` from cameras and Macs. Re-encode to H.264                         |
-| Motion JPEG   | MJPEG         | No             | Common in `.avi` from older or industrial cameras. Re-encode to H.264              |
+A container can wrap dozens of codecs, but Chrome decodes only the few marked **Yes** below. Any codec not listed — MPEG-1/2, DV, VC-1, DNxHD, FFV1, H.263, and others — also fails, so re-encode anything that isn't one of these to H.264.
 
-#### Video containers
-
-| Container | Extensions     | Browser support  | Notes                                                          |
-| --------- | -------------- | ---------------- | -------------------------------------------------------------- |
-| MP4       | `.mp4`, `.m4v` | Yes              | Recommended. Pair with H.264 for the widest compatibility      |
-| WebM      | `.webm`        | Yes              | Carries VP8, VP9, or AV1                                        |
-| MOV       | `.mov`         | Depends on codec | QuickTime; plays with H.264 or AV1, fails with ProRes          |
-| MKV       | `.mkv`         | Yes              | Current Chromium and Firefox demux Matroska; like MP4 it then depends on the codec inside (H.264/VP9/AV1/HEVC). Safari is the exception — see note above |
-| AVI       | `.avi`         | No               | No AVI demuxer in Chrome — fails even when it holds H.264, so AVI uploads aren't accepted; re-encode to MP4 |
+| Codec         | Also known as                                             | Browser decode | Notes                                                                            |
+| ------------- | --------------------------------------------------------- | -------------- | -------------------------------------------------------------------------------- |
+| H.264         | AVC                                                       | Yes            | **Recommended.** 8-bit 4:2:0 (Baseline/Main/High); 10-bit (Hi10P) and 4:4:4 may fail |
+| VP9           | —                                                         | Yes            | Royalty-free; usually in WebM or MKV                                             |
+| VP8           | —                                                         | Yes            | Royalty-free; usually in WebM or MKV                                             |
+| AV1           | —                                                         | Yes            | Software decode on every platform (Chrome 70+)                                  |
+| H.265         | HEVC                                                      | Hardware only  | Decodes only with an HEVC-capable GPU and OS (Chrome 107+); no software fallback |
+| Anything else | ProRes, MPEG-2, MPEG-4 Part 2 (DivX/Xvid), Motion JPEG, … | No             | Re-encode to H.264                                                               |
 
 #### Images
 

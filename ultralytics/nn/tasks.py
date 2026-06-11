@@ -964,7 +964,13 @@ class YOLOAnomalyV2Model(DetectionModel):
 
         def _make_hook(idx: int):
             def _hook(_module, _inp, out):
-                self._bb_feats[idx] = out
+                # The memory bank is only built (load_support_set) and queried
+                # (prior_mode="heatmap") at eval. Skip capture during training so bb_layers can
+                # live in the SAME yaml as training without holding backbone activations every
+                # step; detach at eval so no graph is retained.
+                if self.training:
+                    return
+                self._bb_feats[idx] = out.detach()
             return _hook
 
         for idx in sorted(set(layer_indices)):

@@ -33,10 +33,10 @@ int main(int argc, char **argv) {
 	// Run inference on the input image
 	inference.RunInference(image);
 
-	// Display the image with the detections
-	cv::imshow("image", image);
-	cv::waitKey(0);
-	cv::destroyAllWindows();
+	// Write the annotated image next to the input
+	const std::string output_path = "yolo_openvino.jpg";
+	cv::imwrite(output_path, image);
+	std::cout << "Result image written to " << output_path << std::endl;
 
 	return 0;
 }

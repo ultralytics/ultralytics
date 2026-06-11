@@ -8,6 +8,9 @@
 #include <opencv2/imgproc.hpp>
 #include <openvino/openvino.hpp>
 
+#include "yolo_colors.hpp"
+#include "coco_names.hpp"
+
 namespace yolo {
 
 struct Detection {
@@ -43,17 +46,9 @@ class Inference {
 	float model_confidence_threshold_;  // Confidence threshold for detections
 	float model_NMS_threshold_;         // Non-Maximum Suppression threshold
 
-	std::vector<std::string> classes_ {
-		"person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
-		"fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
-		"elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
-		"skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
-		"tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
-		"sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch",
-		"potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard",
-		"cell phone", "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase",
-		"scissors", "teddy bear", "hair drier", "toothbrush"
-	};
+	// COCO class names from common/coco_names.hpp. Replace with your own list if
+	// you train on a custom dataset.
+	std::vector<std::string> classes_ = CocoNames();
 };
 
 } // namespace yolo

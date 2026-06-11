@@ -1,8 +1,8 @@
 #include "inference.h"
 
+#include <iostream>
 #include <memory>
 #include <opencv2/dnn.hpp>
-#include <random>
 
 namespace yolo {
 
@@ -153,11 +153,11 @@ void Inference::DrawDetectedObject(cv::Mat &frame, const Detection &detection) c
 	const float &confidence = detection.confidence;
 	const int &class_id = detection.class_id;
 
-	// Generate a random color for the bounding box
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<int> dis(120, 255);
-	const cv::Scalar &color = cv::Scalar(dis(gen), dis(gen), dis(gen));
+	// Ultralytics color palette, indexed by class id (from common/yolo_colors.hpp)
+	const cv::Scalar color = Color(class_id);
+
+	std::cout << classes_[class_id] << " " << confidence
+	          << " box=[" << box.x << ", " << box.y << ", " << box.width << ", " << box.height << "]" << std::endl;
 
 	// Draw the bounding box around the detected object
 	cv::rectangle(frame, cv::Point(box.x, box.y), cv::Point(box.x + box.width, box.y + box.height), color, 3);

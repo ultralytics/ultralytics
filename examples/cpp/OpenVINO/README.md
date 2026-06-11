@@ -50,7 +50,7 @@ Once built, you can run [inference](https://www.ultralytics.com/glossary/real-ti
 ./yolo_openvino path/to/your/model.onnx path/to/your/image.jpg
 ```
 
-This command will process the image using the specified Ultralytics YOLO model and display the [object detection](https://www.ultralytics.com/glossary/object-detection) results. Explore various [Ultralytics Solutions](https://docs.ultralytics.com/solutions) for real-world applications.
+This command runs [object detection](https://www.ultralytics.com/glossary/object-detection) with the specified Ultralytics YOLO model, prints the detections to the console, and writes the annotated result to `yolo_openvino.jpg`. Bounding-box colors come from the shared Ultralytics palette in [`../common`](../common), and class names default to the COCO list there. Explore various [Ultralytics Solutions](https://docs.ultralytics.com/solutions) for real-world applications.
 
 ## 🔄 Exporting Ultralytics YOLO Models
 

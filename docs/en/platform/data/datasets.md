@@ -61,18 +61,11 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
 ### Browser Codec Support
 
-A file extension only names the **container** — it does not guarantee your browser can read the **codec** inside. The two media types are decoded in different places, which changes what "supported" means:
-
-- **Videos are decoded in your browser.** Frames are extracted client-side (1 FPS) *before* upload, so a video needs both a container **and** a codec your browser — typically Chrome — can decode. All accepted containers (MP4, WebM, MOV, MKV, M4V) demux in Chrome, so what decides success is the **codec inside**. (AVI is not accepted — Chrome has no AVI demuxer; re-encode to MP4.) A `.mov` with ProRes, or HEVC on a device without HEVC hardware, fails even though the container is fine. If a video fails to decode, re-encode it to H.264/MP4 (see below).
-- **Images are decoded on the server.** Every accepted image format always uploads and processes, including HEIC, TIFF, DNG, JP2, and MPO. Browser support only affects whether a thumbnail **preview** renders during upload — it never blocks the upload.
+Video frames are extracted in your browser (1 FPS) *before* upload, so a video must use a container **and** a codec your browser — typically Chrome — can decode. A file extension only names the container; what actually decides success is the **codec inside**. Every accepted container (MP4, WebM, MOV, MKV, M4V) demuxes in Chrome — AVI is not accepted because Chrome can't demux it — so Chrome decodes only the codecs marked **Yes** below. Anything else (ProRes, MPEG-1/2, DV, VC-1, DNxHD, H.263, …) fails and must be re-encoded to H.264/MP4.
 
 !!! note "Other browsers"
 
     The codec table below is the portable baseline — what Chrome and other Chromium browsers decode. Browsers that decode through the operating system, notably **Safari on macOS**, read extra codecs such as ProRes and HEVC, so a video that fails in Chrome may still upload in Safari. The reverse also holds — Chrome decodes AV1 and VP9 in software where Safari needs hardware — so **H.264/MP4 is the only format guaranteed to work in every browser**.
-
-#### Video codecs
-
-A container can wrap dozens of codecs, but Chrome decodes only the few marked **Yes** below. Any codec not listed — MPEG-1/2, DV, VC-1, DNxHD, FFV1, H.263, and others — also fails, so re-encode anything that isn't one of these to H.264.
 
 | Codec         | Also known as                                             | Browser decode | Notes                                                                            |
 | ------------- | --------------------------------------------------------- | -------------- | -------------------------------------------------------------------------------- |
@@ -82,12 +75,6 @@ A container can wrap dozens of codecs, but Chrome decodes only the few marked **
 | AV1           | —                                                         | Yes            | Software decode on every platform (Chrome 70+)                                  |
 | H.265         | HEVC                                                      | Hardware only  | Decodes only with an HEVC-capable GPU and OS (Chrome 107+); no software fallback |
 | Anything else | ProRes, MPEG-2, MPEG-4 Part 2 (DivX/Xvid), Motion JPEG, … | No             | Re-encode to H.264                                                               |
-
-#### Images
-
-Unlike videos, images are **decoded on the server**. The platform reads every accepted format — including HEIC (HEVC-encoded), TIFF, DNG (camera raw), JPEG 2000, and MPO — and converts each to a web-friendly JPEG or WebP plus a thumbnail. Every accepted image format therefore uploads, processes, and displays in your dataset; the codec inside the file is handled server-side, not by your browser.
-
-The browser is only involved in the *instant preview* shown while files upload. JPEG, PNG, WebP, BMP, and AVIF preview immediately; TIFF, HEIC, JP2, DNG, and MPO skip that instant preview (the browser can't render them) but still upload and appear in the gallery once processed.
 
 !!! tip "Re-encode an unsupported video"
 

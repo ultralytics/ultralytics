@@ -23,6 +23,12 @@ anomaly_v2:
   sigma_factor: 0.25
   p_drop: 0.5
   seg_branch: false
+  bb_layers: [6]                 # memory bank for prior_mode="heatmap" (dormant during training)
+  bb_temperature: 3.0
+  bb_K: 9
+  bb_auto_temperature: true
+  bb_calibration_target_score: 0.5
+  bb_calibrate: compactness
   fusion_mode: film
   film_groups: 16
   film_group_dim: 16

@@ -207,7 +207,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         # Provide bounding box examples to segment similar objects
         results = predictor(bboxes=[[480.0, 290.0, 590.0, 650.0]])
 
-        # Multiple bounding boxes for different concepts
+        # Multiple bounding boxes as exemplars of the same visual concept
         results = predictor(bboxes=[[539, 599, 589, 639], [343, 267, 499, 662]])
         ```
 

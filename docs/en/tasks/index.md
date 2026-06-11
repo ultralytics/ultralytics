@@ -103,7 +103,7 @@ To use Ultralytics YOLO26 for object detection, follow these steps:
 
         ```bash
         # Run YOLO detection from the command line
-        yolo detect model=yolo26n.pt source="image.jpg" # Adjust model and source as needed
+        yolo detect predict model=yolo26n.pt source="image.jpg" # Adjust model and source as needed
         ```
 
 For more detailed instructions, check out our [detection examples](detect.md).

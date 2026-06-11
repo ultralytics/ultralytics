@@ -43,7 +43,7 @@ RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config && \
 ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 
 # Install pip packages (uv already installed in base image)
-RUN uv pip install --system --no-cache -e "." albumentations faster-coco-eval nvidia-ml-py && \
+RUN uv pip install --system --no-cache -e "." albumentations faster-coco-eval && \
     rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 
 # Usage --------------------------------------------------------------------------------------------------------------

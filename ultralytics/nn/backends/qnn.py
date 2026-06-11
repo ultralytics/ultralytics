@@ -58,6 +58,8 @@ class QNNBackend(BaseBackend):
                 str(onnx_file), sess_options=options, providers=[ep_name], provider_options=[ep_options]
             )
         self.output_names = [x.name for x in self.session.get_outputs()]
+        shape = self.session.get_inputs()[0].shape  # channel-last exports take [N, H, W, C] input
+        self.nhwc = len(shape) == 4 and shape[3] in {1, 3} and shape[1] not in {1, 3}
 
         metadata_map = self.session.get_modelmeta().custom_metadata_map
         if metadata_map:
@@ -72,4 +74,6 @@ class QNNBackend(BaseBackend):
         Returns:
             (list): Model predictions as a list of output arrays.
         """
+        if self.nhwc:
+            im = im.permute(0, 2, 3, 1)
         return self.session.run(self.output_names, {self.session.get_inputs()[0].name: im.cpu().numpy()})

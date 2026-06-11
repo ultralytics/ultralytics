@@ -71,15 +71,19 @@ jobs:
           python-version: ${{ matrix.python }}
           activate-environment: ${{ matrix.os == 'cpu-latest' }}
       - name: Install requirements
-        shell: bash # for Windows compatibility
-        run: |
-          uv_system_args=()
-          if [[ "${{ matrix.os }}" != "cpu-latest" ]]; then
-            uv_system_args=(--system)
-          fi
-          uv pip install "${uv_system_args[@]}" -e ".[export,export-executorch]" \
-            ncnn pnnx "coverage[toml]" \
-            --torch-backend cpu
+        uses: ultralytics/actions/retry@main
+        with:
+          retries: 3
+          retry_delay_seconds: 20
+          timeout_minutes: 20
+          run: |
+            uv_system_args=()
+            if [[ "${{ matrix.os }}" != "cpu-latest" ]]; then
+              uv_system_args=(--system)
+            fi
+            uv pip install "${uv_system_args[@]}" -e ".[export,export-executorch]" \
+              ncnn pnnx "coverage[toml]" \
+              --torch-backend cpu
       - name: Check environment
         run: |
           yolo checks
@@ -431,7 +435,7 @@ jobs:
       - name: Install requirements
         run: |
           # Install TensorRT into the job venv so uv can reuse the runner image cache.
-          uv pip install -e ".[export-base]" pytest-cov nvidia-ml-py onnxruntime-gpu "torch<2.11" "tensorrt-cu12>=7.0.0,!=10.2.0" "nvidia-modelopt[onnx]>=0.44"  # TODO: remove torch pin after GPU runner driver update to CUDA 13.0
+          uv pip install -e ".[export-base]" pytest-cov onnxruntime-gpu "torch<2.11" "tensorrt-cu12>=7.0.0,!=10.2.0" "nvidia-modelopt[onnx]>=0.44"  # TODO: remove torch pin after GPU runner driver update to CUDA 13.0
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Check environment
@@ -470,8 +474,13 @@ jobs:
           echo PATH=$PATH >> $GITHUB_ENV
       - uses: astral-sh/setup-uv@v7
       - name: Install requirements
-        run: |
-          uv pip install -e ".[export]" pytest pytest-xdist mlflow faster-coco-eval --torch-backend cpu
+        uses: ultralytics/actions/retry@main
+        with:
+          retries: 3
+          retry_delay_seconds: 20
+          timeout_minutes: 20
+          run: |
+            uv pip install -e ".[export]" pytest pytest-xdist mlflow faster-coco-eval --torch-backend cpu
       - name: Check environment
         run: |
           yolo checks
@@ -495,8 +504,13 @@ jobs:
           source env-benchmarks/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
-        run: |
-          uv pip install -e ".[export]" pytest mlflow faster-coco-eval --torch-backend cpu
+        uses: ultralytics/actions/retry@main
+        with:
+          retries: 3
+          retry_delay_seconds: 20
+          timeout_minutes: 20
+          run: |
+            uv pip install -e ".[export]" pytest mlflow faster-coco-eval --torch-backend cpu
       - name: Check environment
         run: |
           yolo checks

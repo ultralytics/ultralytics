@@ -92,7 +92,6 @@ def torch2onnx(
 
 def modelopt_quantize_onnx(
     onnx_file: str,
-    half: bool = False,
     int8: bool = False,
     dataset=None,
     shape: tuple[int, int, int, int] = (1, 3, 640, 640),
@@ -107,7 +106,6 @@ def modelopt_quantize_onnx(
 
     Args:
         onnx_file (str): Path to the FP32 ONNX file to convert.
-        half (bool): Convert the ONNX model to FP16 mixed precision. Ignored when ``int8=True``.
         int8 (bool): Quantize the ONNX model to INT8 with Q/DQ nodes.
         dataset (ultralytics.data.build.InfiniteDataLoader | None): Dataloader providing INT8 calibration images.
             Required when ``int8=True``.
@@ -275,7 +273,7 @@ def onnx2engine(
     # TensorRT 11 is strongly-typed and removed the FP16/INT8 builder flags and INT8 calibrator, so reduced
     # precision must be baked into the ONNX graph with NVIDIA ModelOpt before parsing (FP16 AutoCast, INT8 Q/DQ)
     if is_trt11 and (half or int8):
-        onnx_file = modelopt_quantize_onnx(onnx_file, half, int8, dataset, shape, dynamic, prefix)
+        onnx_file = modelopt_quantize_onnx(onnx_file, int8, dataset, shape, dynamic, prefix)
 
     # Read ONNX file
     parser = trt.OnnxParser(network, logger)

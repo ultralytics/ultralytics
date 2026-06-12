@@ -3,6 +3,7 @@
 import sys
 from types import SimpleNamespace
 from unittest import mock
+from unittest.mock import patch, MagicMock
 
 import pytest
 import torch
@@ -15,6 +16,7 @@ from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models.yolo import classify, detect, obb, pose, segment, semantic
 from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_RASPBERRYPI, WEIGHTS_DIR
+from ultralytics.utils.callbacks.base import _log_callbacks
 
 
 def test_func(*args, **kwargs):
@@ -268,3 +270,35 @@ def test_setup_model_respects_pretrained_arg_for_pt_models(monkeypatch, pretrain
 
     assert captured["cfg"] == checkpoint_model.yaml, "Checkpoint config was not used"
     assert captured["weights"] is (checkpoint_model if uses_weights else None), "Unexpected weights loaded"
+
+
+@pytest.mark.parametrize(
+    "cbs, log_method, expected_msg",
+    [
+        (
+            [
+                {"callback_name": "alpha", "on_train_start": lambda t: None},
+                {"callback_name": "beta", "on_train_end": lambda t: None},
+            ],
+            "info",
+            "attached callbacks",
+        ),
+        (
+            [{"callback_name": ""}],
+            "debug",
+            "No integration callbacks attached",
+        ),
+        (
+            [{"on_train_start": lambda t: None}],
+            "warning",
+            "Some callbacks are missing",
+        ),
+    ],
+)
+def test_log_callbacks(cbs, log_method, expected_msg):
+    """Test _log_callbacks calls the correct LOGGER method with the expected message."""
+    with patch("ultralytics.utils.callbacks.base.LOGGER") as mock_logger:
+        _log_callbacks(cbs, object())
+        method: MagicMock = getattr(mock_logger, log_method)
+        method.assert_called_once()
+        assert expected_msg in method.call_args.args[0]

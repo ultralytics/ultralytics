@@ -534,6 +534,7 @@ def on_train_end(trainer):
 
 callbacks = (
     {
+        "callback_name": "ultralytics_platform",
         "on_pretrain_routine_start": on_pretrain_routine_start,
         "on_pretrain_routine_end": on_pretrain_routine_end,
         "on_fit_epoch_end": on_fit_epoch_end,

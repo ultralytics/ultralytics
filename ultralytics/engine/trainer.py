@@ -342,7 +342,8 @@ class BaseTrainer:
         )
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
-        self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
+        floor = gs * 2 if self.args.task == "classify" else gs
+        self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=floor, max_dim=1)
         self.stride = gs  # for multiscale training
 
         if self.world_size > 1:

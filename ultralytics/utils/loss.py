@@ -128,6 +128,8 @@ class BboxLoss(nn.Module):
         stride: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute IoU and DFL losses for bounding boxes."""
+        if (_dev := pred_bboxes.device).type == "mps":
+            pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, fg_mask, imgsz, stride = (t.cpu() for t in (pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, fg_mask, imgsz, stride))  # MPS: variable-shape ops pollute graph cache
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
         iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=True)
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
@@ -151,7 +153,7 @@ class BboxLoss(nn.Module):
             )
             loss_dfl = loss_dfl.sum() / target_scores_sum
 
-        return loss_iou, loss_dfl
+        return (loss_iou.to(_dev), loss_dfl.to(_dev)) if _dev.type == "mps" else (loss_iou, loss_dfl)
 
 
 class RLELoss(nn.Module):
@@ -228,6 +230,8 @@ class RotatedBboxLoss(BboxLoss):
         stride: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute IoU and DFL losses for rotated bounding boxes."""
+        if (_dev := pred_bboxes.device).type == "mps":
+            pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, fg_mask, imgsz, stride = (t.cpu() for t in (pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, fg_mask, imgsz, stride))  # MPS: see BboxLoss.forward
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
         iou = probiou(pred_bboxes[fg_mask], target_bboxes[fg_mask])
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
@@ -252,7 +256,7 @@ class RotatedBboxLoss(BboxLoss):
             )
             loss_dfl = loss_dfl.sum() / target_scores_sum
 
-        return loss_iou, loss_dfl
+        return (loss_iou.to(_dev), loss_dfl.to(_dev)) if _dev.type == "mps" else (loss_iou, loss_dfl)
 
 
 class MultiChannelDiceLoss(nn.Module):
@@ -377,7 +381,7 @@ class v8DetectionLoss:
             batch_idx = targets[:, 0].long()  # image index
             _, counts = batch_idx.unique(return_counts=True)
             counts = counts.to(dtype=torch.int32)
-            out = torch.zeros(batch_size, counts.max(), ne - 1, device=self.device)
+            out = torch.zeros(batch_size, max(int(counts.max()), 512) if self.device.type == "mps" else int(counts.max()), ne - 1, device=self.device)  # MPS: fixed bucket stabilizes graph cache
             offsets = torch.zeros(batch_size + 1, dtype=torch.long, device=self.device)
             offsets.scatter_add_(0, batch_idx + 1, torch.ones_like(batch_idx))
             offsets = offsets.cumsum(0)
@@ -1007,7 +1011,7 @@ class v8OBBLoss(v8DetectionLoss):
             batch_idx = targets[:, 0].long()  # image index
             _, counts = batch_idx.unique(return_counts=True)
             counts = counts.to(dtype=torch.int32)
-            out = torch.zeros(batch_size, counts.max(), 6, device=self.device)
+            out = torch.zeros(batch_size, max(int(counts.max()), 512) if self.device.type == "mps" else int(counts.max()), 6, device=self.device)  # MPS: fixed bucket stabilizes graph cache
             packed_targets = targets[:, 1:].clone()
             packed_targets[:, 1:5].mul_(scale_tensor)
             offsets = torch.zeros(batch_size + 1, dtype=torch.long, device=self.device)

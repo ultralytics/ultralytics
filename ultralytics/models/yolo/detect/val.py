@@ -113,6 +113,9 @@ class DetectionValidator(BaseValidator):
             (list[dict[str, torch.Tensor]]): Processed predictions after NMS, where each dict contains 'bboxes', 'conf',
                 'cls', and 'extra' tensors.
         """
+        _tc = lambda p: (p.float() if p.dtype == torch.float16 else p).cpu() if isinstance(p, torch.Tensor) else p  # MPS: NMS variable shapes pollute graph cache
+        if (isinstance(preds, torch.Tensor) and preds.device.type == "mps") or (isinstance(preds, (list, tuple)) and preds and isinstance(preds[0], torch.Tensor) and preds[0].device.type == "mps"):
+            preds = _tc(preds) if isinstance(preds, torch.Tensor) else type(preds)(_tc(p) for p in preds)
         outputs = nms.non_max_suppression(
             preds,
             self.args.conf,
@@ -143,7 +146,7 @@ class DetectionValidator(BaseValidator):
         imgsz = batch["img"].shape[2:]
         ratio_pad = batch["ratio_pad"][si]
         if cls.shape[0]:
-            bbox = ops.xywh2xyxy(bbox) * torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]]  # target boxes
+            bbox = ops.xywh2xyxy(bbox) * torch.tensor(imgsz, device=bbox.device)[[1, 0, 1, 0]]  # target boxes
         return {
             "cls": cls,
             "bboxes": bbox,
@@ -173,6 +176,8 @@ class DetectionValidator(BaseValidator):
             preds (list[dict[str, torch.Tensor]]): List of predictions from the model.
             batch (dict[str, Any]): Batch data containing ground truth.
         """
+        if torch.is_tensor(batch.get("batch_idx")) and batch["batch_idx"].device.type == "mps":  # MPS: boolean indexing + box_iou variable shapes
+            batch.update({k: batch[k].cpu() for k in ("batch_idx", "cls", "bboxes") if torch.is_tensor(batch.get(k))})
         for si, pred in enumerate(preds):
             self.seen += 1
             pbatch = self._prepare_batch(si, batch)

@@ -103,6 +103,7 @@ class RegionCounter(BaseSolution):
         """
         self.extract_tracks(im0)
         annotator = SolutionAnnotator(im0, line_width=self.line_width)
+        self.region_counts = {region["name"]: 0 for region in self.counting_regions}
 
         for box, cls, track_id, conf in zip(self.boxes, self.clss, self.track_ids, self.confs):
             annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(track_id, True))

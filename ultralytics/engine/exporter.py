@@ -189,7 +189,7 @@ def export_formats():
             ".tflite",
             True,
             False,
-            ["batch", "data", "half", "int8", "nms", "fraction"],
+            ["batch", "data", "half", "int8", "nms", "fraction", "quant_type"],
             "tensorflow",
         ],
         ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, ["data", "fraction", "int8"], "tensorflow"],
@@ -356,7 +356,7 @@ def validate_args(format, passed_args, valid_args):
     Raises:
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
     """
-    export_args = ["half", "int8", "dynamic", "keras", "nms", "batch", "fraction", "data"]
+    export_args = ["half", "int8", "dynamic", "keras", "nms", "batch", "fraction", "data", "quant_type"]
 
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults
@@ -499,6 +499,9 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
+        # check possible typo in self.args.quant_type
+        if not self.args.quant_type in {"per-tensor", "per-channel"}:
+            raise ValueError(f"Invalid quantization type '{self.args.quant_type}'. Valid options are 'per-tensor' or 'per-channel'.")
         if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn"} and not self.args.int8:
             LOGGER.warning(f"{fmt} export requires int8=True, setting int8=True.")
             self.args.int8 = True
@@ -1182,6 +1185,7 @@ class Exporter:
             f_onnx,
             f,
             int8=self.args.int8,
+            quant_type=self.args.quant_type,
             images=images,
             disable_group_convolution=self.args.format in {"tfjs", "edgetpu"},
             prefix=prefix,

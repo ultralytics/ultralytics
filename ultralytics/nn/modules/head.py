@@ -801,16 +801,21 @@ class Depth(nn.Module):
     export = False  # export mode
     format = None  # export format
     input_hw = None  # (H, W) of model input, set by exporter for full-res upsample
+    mode = "sigmoid"  # class default so pre-`mode` pickled checkpoints keep working
 
-    def __init__(self, c_mid: int = 256, ch: tuple = ()):
+    def __init__(self, c_mid: int = 256, mode: str = "sigmoid", ch: tuple = ()):
         """Initialize Depth head.
 
         Args:
             c_mid: Number of intermediate channels for the fusion decoder.
+            mode: Output parameterization. "sigmoid" → sigmoid × max_depth (bounded metric
+                output). "log" → exp(logit) (unbounded): shape and scale stay decoupled for
+                scale-invariant pretraining; eval recovers scale via log-LS alignment.
             ch: Tuple of input channel sizes from backbone feature maps (P3, P4, P5).
         """
         super().__init__()
         self.nl = len(ch)  # number of detection layers (pyramid levels)
+        self.mode = mode
 
         # Project each pyramid level to c_mid channels
         self.proj = nn.ModuleList(Conv(c, c_mid, k=1) for c in ch)
@@ -820,16 +825,24 @@ class Depth(nn.Module):
             nn.Sequential(Conv(c_mid, c_mid, k=3), Conv(c_mid, c_mid, k=3)) for _ in ch
         )
 
-        # Output head: features → 1-channel depth
-        self.head = nn.Sequential(
+        # Output head: features → 1-channel depth (or log-depth)
+        layers = [
             Conv(c_mid, c_mid // 2, k=3),
             nn.ConvTranspose2d(c_mid // 2, c_mid // 2, kernel_size=2, stride=2, bias=True),
             Conv(c_mid // 2, c_mid // 4, k=3),
             nn.Conv2d(c_mid // 4, 1, kernel_size=1),
-            nn.Sigmoid(),
-        )
-
-        self.max_depth = 10.0  # default max depth in meters (NYU indoor)
+        ]
+        if mode == "sigmoid":
+            layers.append(nn.Sigmoid())
+            self.max_depth = 10.0  # default max depth in meters (NYU indoor)
+        else:
+            self.max_depth = None  # unbounded output; loss applies no range mask
+        self.head = nn.Sequential(*layers)
+        if mode == "log":
+            # Bias the final conv so the initial output is exp(0.182) ≈ 1.2 m — a plausible
+            # indoor depth that keeps early exp() outputs and gradients well-conditioned
+            # (the DINOv2 saturated-init lesson, commit 390c6c9).
+            self.head[-1].bias.data.fill_(0.182)
 
     def forward(self, x: list[torch.Tensor]) -> dict[str, torch.Tensor] | torch.Tensor:
         """Fuse multi-scale features and predict depth.
@@ -852,7 +865,11 @@ class Depth(nn.Module):
             out = self.refine[i](out)
 
         # Depth output (at P3 resolution → upsample 2x in head → P2 resolution = input/4)
-        depth = self.head(out) * self.max_depth  # (B, 1, H/4, W/4) in meters
+        out = self.head(out)  # (B, 1, H/4, W/4)
+        if getattr(self, "mode", "sigmoid") == "log":
+            depth = torch.exp(out.clamp(-4.0, 5.0))  # meters, ~0.018–148 m
+        else:
+            depth = out * self.max_depth  # meters
 
         if self.training:
             return {"depth": depth}

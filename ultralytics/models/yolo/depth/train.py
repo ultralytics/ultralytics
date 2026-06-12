@@ -43,7 +43,10 @@ class DepthTrainer(yolo.detect.DetectionTrainer):
         max_depth = self.data.get("max_depth")
         if max_depth is not None:
             head = model.model[-1]
-            if hasattr(head, "max_depth"):
+            if getattr(head, "mode", "sigmoid") == "log":
+                if RANK in {-1, 0}:
+                    LOGGER.info("log-depth head: dataset max_depth ignored (output is unbounded)")
+            elif hasattr(head, "max_depth"):
                 if RANK in {-1, 0}:
                     LOGGER.info(f"Depth head max_depth: {head.max_depth} → {float(max_depth)} m (from dataset YAML)")
                 head.max_depth = float(max_depth)

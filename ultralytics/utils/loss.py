@@ -1174,7 +1174,7 @@ class v8DepthLoss:
         # per-image mean coupling, corrupts gradients on in-range pixels too.
         self.max_depth = None
         for m in reversed(list(model.modules())):
-            if hasattr(m, "max_depth"):
+            if getattr(m, "max_depth", None) is not None:  # None on log-mode heads (unbounded)
                 self.max_depth = float(m.max_depth)
                 break
 

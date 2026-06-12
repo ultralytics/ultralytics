@@ -1822,6 +1822,8 @@ def parse_model(d, ch, verbose=True):
             if m in {Detect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
                 m.legacy = legacy
         elif m is Depth:
+            if len(args) == 1:
+                args.append("sigmoid")  # default output mode when YAML omits it
             args.append([ch[x] for x in f])  # ch tuple
         elif m is DINOv2DPTHead:
             c2 = 1  # single-channel depth output

@@ -163,7 +163,7 @@ def main():
     parser.add_argument("--device", type=str, default=None)
     parser.add_argument("--nc", type=int, default=None,
                         help="Number of classes (default: auto-detect from ckpt; multiclass-safe)")
-    parser.add_argument("--heat-norm", type=str, default="minmax", choices=["none", "minmax"],
+    parser.add_argument("--heat-norm", type=str, default="none", choices=["none", "minmax"],
                         help="Per-image prior normalization before fusion (minmax stretches to [0,1])")
     parser.add_argument("--out", type=str, default=None,
                         help="Output dir (default: runs/temp/predict_visual/<run_id>)")

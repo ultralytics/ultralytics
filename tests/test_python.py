@@ -170,7 +170,16 @@ def test_predict_gray_and_4ch(tmp_path):
             results = model(source, save=True, verbose=True, imgsz=32)
             assert len(results) == 1, f"Expected 1 result for {f.name}, got {len(results)}"
         f.unlink()  # cleanup
+    
+    def test_predict_2d_grayscale_numpy():
+        """Test prediction on 2D grayscale NumPy arrays."""
+        model = YOLO(MODEL)
 
+        im = np.zeros((64, 64), dtype=np.uint8)
+
+        results = model.predict(source=im, imgsz=32)
+
+        assert len(results) == 1
 
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

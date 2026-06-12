@@ -295,7 +295,7 @@ class AutoBackend(nn.Module):
         Returns:
             (torch.Tensor): Tensor on `self.device`.
         """
-        return torch.tensor(x).to(self.device) if isinstance(x, np.ndarray) else x
+        return torch.from_numpy(x).to(self.device) if isinstance(x, np.ndarray) else x
 
     def warmup(self, imgsz: tuple[int, int, int, int] = (1, 3, 640, 640)) -> None:
         """Warm up the model by running forward pass(es) with a dummy input.

@@ -403,7 +403,7 @@ class YOLOE(Model):
                         "task": self.model.task,
                         "mode": "predict",
                         "save": False,
-                        "verbose": refer_image is None,
+                        "verbose": self.verbose,
                         "batch": 1,
                         "device": kwargs.get("device", None),
                         "half": kwargs.get("half", False),

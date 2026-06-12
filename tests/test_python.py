@@ -4,6 +4,7 @@ import contextlib
 import csv
 import shutil
 import tarfile
+from unittest import mock
 import urllib
 import zipfile
 from copy import copy
@@ -329,6 +330,30 @@ def test_predict_callback_and_setup():
         print("test_callback", bs)
         boxes = r.boxes  # Boxes object for bbox outputs
         print(boxes)
+
+
+def test_predict_verbose_rect_rectangular_imgsz_notice():
+    """Verbose predict logs a one-shot notice for rectangular imgsz + rect=True (#24440 follow-up)."""
+    import ultralytics.engine.predictor as pred_module
+
+    recorded: list[str] = []
+    orig_info = pred_module.LOGGER.info
+
+    def spy_info(msg, *args, **kwargs):
+        if args:
+            recorded.append(msg % args)
+        else:
+            recorded.append(str(msg))
+        return orig_info(msg, *args, **kwargs)
+
+    with mock.patch.object(pred_module.LOGGER, "info", spy_info):
+        model = YOLO(MODEL)
+        model.predict(SOURCE, imgsz=(384, 672), rect=True, verbose=True, save=False)
+        model.predict(SOURCE, imgsz=(384, 672), rect=True, verbose=True, save=False)
+    blob = "\n".join(recorded)
+    assert "minimum-rectangle" in blob
+    assert "same height and width" in blob
+    assert sum(1 for m in recorded if "minimum-rectangle" in m) == 2
 
 
 @pytest.mark.parametrize("model", MODELS)

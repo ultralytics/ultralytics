@@ -508,8 +508,8 @@ nav:
       - Live Inference: guides/streamlit-live-inference.md
       - Object Blurring: guides/object-blurring.md
       - Object Counting: guides/object-counting.md
+      - Object Counting in Regions: guides/region-counting.md
       - Object Cropping: guides/object-cropping.md
-      - Objects Counting in Regions: guides/region-counting.md
       - Parking Management: guides/parking-management.md
       - Queue Management: guides/queue-management.md
       - Security Alarm System: guides/security-alarm-system.md

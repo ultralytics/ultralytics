@@ -531,12 +531,33 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
                 raise FileNotFoundError(m)
             t = time.time()
             r = None  # success
+            # Security (CWE-95): only execute embedded Python or bash scripts
+            # when the dataset YAML is shipped with Ultralytics (under
+            # ROOT/cfg/datasets). Third-party / user-supplied YAMLs are limited
+            # to plain URL downloads to prevent arbitrary code execution.
+            yaml_file = Path(data.get("yaml_file", "")).resolve()
+            trusted_root = (ROOT / "cfg/datasets").resolve()
+            try:
+                trusted = yaml_file.is_relative_to(trusted_root)
+            except AttributeError:  # Python < 3.9 fallback
+                yaml_str, root_str = str(yaml_file), str(trusted_root) + os.sep
+                if os.name == "nt":
+                    yaml_str, root_str = yaml_str.lower(), root_str.lower()
+                trusted = yaml_str.startswith(root_str)
             if s.startswith("http") and s.endswith(".zip"):  # URL
                 safe_download(url=s, dir=DATASETS_DIR, delete=True)
-            elif s.startswith("bash "):  # bash script
+            elif not trusted:
+                raise RuntimeError(
+                    f"Refusing to run 'download:' script from untrusted dataset "
+                    f"YAML '{clean_url(dataset)}'. Only http(s) .zip URLs are allowed "
+                    f"in user-supplied YAMLs. Embedded Python/bash 'download:' scripts "
+                    f"are only permitted in YAMLs shipped under '{trusted_root}'. "
+                    f"See https://docs.ultralytics.com/datasets/ for the supported format."
+                )
+            elif s.startswith("bash "):  # bash script (trusted YAML only)
                 LOGGER.info(f"Running {s} ...")
                 subprocess.run(s.split(), check=True)
-            else:  # python script
+            else:  # python script (trusted YAML only)
                 exec(s, {"yaml": data})
             dt = f"({round(time.time() - t, 1)}s)"
             s = f"success ✅ {dt}, saved to {colorstr('bold', DATASETS_DIR)}" if r in {0, None} else f"failure {dt} ❌"

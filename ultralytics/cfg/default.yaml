@@ -19,6 +19,8 @@ save_period: -1 # (int) save checkpoint every N epochs; disabled if < 1
 cache: False # (bool | str) cache images in RAM (True/'ram') or on 'disk' to speed dataloading; False disables
 device: # (int | str | list) device: 0 or [0,1,2,3] for CUDA, 'cpu'/'mps', or -1/[-1,-1] to auto-select idle GPUs
 workers: 8 # (int) dataloader workers (per RANK if DDP)
+dump_batches_dir: # (str, optional) copy train batches to this dir; omit or empty to disable
+dump_batches_per_epoch: 1 # (int, default 1) batches copied per epoch; override on CLI; 0 = every batch
 project: # (str, optional) project name for results root
 name: # (str, optional) experiment name; results in 'project/name'
 exist_ok: False # (bool) overwrite existing 'project/name' if True
@@ -101,6 +103,9 @@ warmup_momentum: 0.8 # (float) initial momentum during warmup
 warmup_bias_lr: 0.1 # (float) bias learning rate during warmup
 box: 7.5 # (float) box loss gain
 cls: 0.5 # (float) classification loss gain
+focal_loss: False # (bool) use Focal Loss for classification instead of BCE
+fl_gamma: 1.5 # (float) Focal Loss gamma
+fl_alpha: 0.25 # (float) Focal Loss alpha
 cls_pw: 0.0 # (float) class weights power for handling class imbalance (0.0=disable, 1.0=full inverse frequency)
 dfl: 1.5 # (float) distribution focal loss gain
 pose: 12.0 # (float) pose loss gain (pose tasks)

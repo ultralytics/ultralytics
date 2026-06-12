@@ -117,6 +117,11 @@ class _RepeatSampler:
         while True:
             yield from iter(self.sampler)
 
+    def set_epoch(self, epoch: int) -> None:
+        """Forward epoch to wrapped sampler when supported (e.g. ProportionalBatchSampler, DistributedSampler)."""
+        if hasattr(self.sampler, "set_epoch"):
+            self.sampler.set_epoch(epoch)
+
 
 class ContiguousDistributedSampler(torch.utils.data.Sampler):
     """Distributed sampler that assigns contiguous batch-aligned chunks of the dataset to each GPU.
@@ -314,6 +319,7 @@ def build_dataloader(
     rank: int = -1,
     drop_last: bool = False,
     pin_memory: bool = True,
+    batch_sampler=None,
 ) -> InfiniteDataLoader:
     """Create and return an InfiniteDataLoader for training or validation.
 
@@ -325,6 +331,7 @@ def build_dataloader(
         rank (int, optional): Process rank in distributed training. -1 for single-GPU training.
         drop_last (bool, optional): Whether to drop the last incomplete batch.
         pin_memory (bool, optional): Whether to use pinned memory for dataloader.
+        batch_sampler (torch.utils.data.Sampler, optional): Custom batch sampler; disables shuffle and built-in sampler.
 
     Returns:
         (InfiniteDataLoader): A dataloader that can be used for training or validation.
@@ -334,9 +341,28 @@ def build_dataloader(
         >>> dataset = YOLODataset(...)
         >>> dataloader = build_dataloader(dataset, batch=16, workers=4, shuffle=True)
     """
-    batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices
     nw = min(os.cpu_count() // max(nd, 1), workers)  # number of workers
+    generator = torch.Generator()
+    generator.manual_seed(6148914691236517205 + RANK)
+    collate_fn = getattr(dataset, "collate_fn", None)
+    prefetch_factor = 4 if nw > 0 else None
+    pin_memory = nd > 0 and pin_memory
+
+    if batch_sampler is not None:
+        # Lower prefetch to reduce RAM use when workers decode large images in parallel
+        prefetch_factor = 2 if nw > 0 else None
+        return InfiniteDataLoader(
+            dataset=dataset,
+            batch_sampler=batch_sampler,
+            num_workers=nw,
+            prefetch_factor=prefetch_factor,
+            pin_memory=pin_memory,
+            collate_fn=collate_fn,
+            worker_init_fn=seed_worker,
+        )
+
+    batch = min(batch, len(dataset))
     sampler = (
         None
         if rank == -1
@@ -344,17 +370,15 @@ def build_dataloader(
         if shuffle
         else ContiguousDistributedSampler(dataset)
     )
-    generator = torch.Generator()
-    generator.manual_seed(6148914691236517205 + RANK)
     return InfiniteDataLoader(
         dataset=dataset,
         batch_size=batch,
         shuffle=shuffle and sampler is None,
         num_workers=nw,
         sampler=sampler,
-        prefetch_factor=4 if nw > 0 else None,  # increase over default 2
-        pin_memory=nd > 0 and pin_memory,
-        collate_fn=getattr(dataset, "collate_fn", None),
+        prefetch_factor=prefetch_factor,
+        pin_memory=pin_memory,
+        collate_fn=collate_fn,
         worker_init_fn=seed_worker,
         generator=generator,
         drop_last=drop_last and len(dataset) % batch != 0,

@@ -10,9 +10,10 @@ import numpy as np
 import torch
 import torch.distributed as dist
 
-from ultralytics.data import build_dataloader, build_yolo_dataset, converter
+from ultralytics.data import YOLOConcatDataset, build_dataloader, build_yolo_dataset, converter
+from ultralytics.data.sampler import ProportionalBatchSampler, get_concat_index_pools, get_dataset_fractions
 from ultralytics.engine.validator import BaseValidator
-from ultralytics.utils import LOGGER, RANK, nms, ops
+from ultralytics.utils import LOGGER, RANK, colorstr, nms, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.utils.plotting import plot_images
@@ -310,30 +311,62 @@ class DetectionValidator(BaseValidator):
         iou = box_iou(batch["bboxes"], preds["bboxes"])
         return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
 
-    def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None) -> torch.utils.data.Dataset:
+    def build_dataset(self, img_path: str | list[str], mode: str = "val", batch: int | None = None) -> torch.utils.data.Dataset:
         """Build YOLO Dataset.
 
         Args:
-            img_path (str): Path to the folder containing images.
+            img_path (str | list[str]): Path to the folder containing images, or list of paths.
             mode (str): `train` mode or `val` mode, users are able to customize different augmentations for each mode.
             batch (int, optional): Size of batches, this is for `rect`.
 
         Returns:
             (Dataset): YOLO dataset.
         """
+        paths = img_path if isinstance(img_path, list) else [img_path]
+        if len(paths) > 1:
+            datasets = [
+                build_yolo_dataset(self.args, p, batch, self.data, mode=mode, rect=False, stride=self.stride)
+                for p in paths
+            ]
+            dataset = YOLOConcatDataset(datasets) if len(datasets) > 1 else datasets[0]
+            if get_dataset_fractions(self.data, paths, "val") is None:
+                sizes = [len(d) for d in datasets]
+                LOGGER.info(f"{colorstr('balanced:')} Val mixed dataset (full) | sources={sizes} total={sum(sizes)}")
+            return dataset
         return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, stride=self.stride)
 
-    def get_dataloader(self, dataset_path: str, batch_size: int) -> torch.utils.data.DataLoader:
+    def get_dataloader(self, dataset_path: str | list[str], batch_size: int) -> torch.utils.data.DataLoader:
         """Construct and return dataloader.
 
         Args:
-            dataset_path (str): Path to the dataset.
+            dataset_path (str | list[str]): Path to the dataset, or list of paths from data YAML.
             batch_size (int): Size of each batch.
 
         Returns:
             (torch.utils.data.DataLoader): DataLoader for validation.
         """
+        paths = dataset_path if isinstance(dataset_path, list) else [dataset_path]
         dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
+        batch_sampler = None
+        fractions = get_dataset_fractions(self.data, paths, "val")
+        if fractions:
+            if not isinstance(dataset, YOLOConcatDataset):
+                raise RuntimeError("val_dataset_fractions requires multiple val paths and YOLOConcatDataset.")
+            pools = get_concat_index_pools(dataset)
+            sizes = [len(p) for p in pools]
+            batch_sampler = ProportionalBatchSampler(
+                pools,
+                fractions,
+                batch_size=batch_size,
+                seed=getattr(self.args, "seed", 0),
+                rank=-1,
+                world_size=1,
+            )
+            fr = [round(f, 4) for f in batch_sampler.fractions]
+            LOGGER.info(
+                f"{colorstr('balanced:')} ProportionalBatchSampler (val) | datasets={sizes} fractions={fr} "
+                f"batch={batch_size}"
+            )
         return build_dataloader(
             dataset,
             batch_size,
@@ -342,6 +375,7 @@ class DetectionValidator(BaseValidator):
             rank=-1,
             drop_last=self.args.compile,
             pin_memory=self.training,
+            batch_sampler=batch_sampler,
         )
 
     def plot_val_samples(self, batch: dict[str, Any], ni: int) -> None:

@@ -1,0 +1,29 @@
+path: D:\Lenovo_Work\Solution_Technology_Team\Dataset\component # dataset root dir
+
+train:
+  - MultiTask_v2/images/train      # dataset A: ~1万，5类
+  - WIDER_FACE-coco8/images/train  # dataset B: ~10万，主要 face
+
+val:
+  - MultiTask_v2/images/val
+  - WIDER_FACE-coco8/images/val
+
+test: # test images (optional)
+
+# Classes
+names:
+  0: head
+  1: body
+  2: phonecall
+  3: cellphone
+  4: face
+
+# 每个 train/val 路径的采样比例（与列表顺序一致，可写小数，会自动归一化）
+# 例：batch=16 且比例 [0.25, 0.75] → 每批约 4 张来自 A，12 张来自 B
+# 不写 val_dataset_fractions 时，验证遍历各 val 集的全部图片
+# 三个数据集示例：train: [A, B, C]  train_dataset_fractions: [0.2, 0.3, 0.5]
+train_dataset_fractions: [0.75, 0.25]
+val_dataset_fractions: [0.75, 0.25]
+
+# Download script/URL (optional)
+# download: https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8.zip

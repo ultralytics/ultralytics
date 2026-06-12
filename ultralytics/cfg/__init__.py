@@ -178,6 +178,8 @@ CFG_FLOAT_KEYS = frozenset(
         "box",
         "cls",
         "cls_pw",
+        "fl_gamma",
+        "fl_alpha",
         "dfl",
         "degrees",
         "shear",
@@ -226,6 +228,7 @@ CFG_INT_KEYS = frozenset(
         "line_width",
         "nbs",
         "save_period",
+        "dump_batches_per_epoch",
     }
 )
 CFG_BOOL_KEYS = frozenset(
@@ -263,6 +266,7 @@ CFG_BOOL_KEYS = frozenset(
         "nms",
         "profile",
         "end2end",
+        "focal_loss",
     }
 )
 

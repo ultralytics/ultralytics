@@ -408,7 +408,13 @@ class BaseTrainer:
 
             self._model_train()
             if RANK != -1:
-                self.train_loader.sampler.set_epoch(epoch)
+                sampler = getattr(self.train_loader, "sampler", None)
+                if sampler is not None and hasattr(sampler, "set_epoch"):
+                    sampler.set_epoch(epoch)
+                else:
+                    batch_sampler = getattr(self.train_loader, "batch_sampler", None)
+                    if batch_sampler is not None and hasattr(batch_sampler, "set_epoch"):
+                        batch_sampler.set_epoch(epoch)
             pbar = enumerate(self.train_loader)
             # Update dataloader attributes (optional)
             if epoch == (self.epochs - self.args.close_mosaic):

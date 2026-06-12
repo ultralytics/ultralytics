@@ -10,6 +10,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.metrics import CITYSCAPES_WEIGHT, OKS_SIGMA, RLE_WEIGHT
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
@@ -68,22 +69,21 @@ class FocalLoss(nn.Module):
         self.gamma = gamma
         self.alpha = torch.tensor(alpha)
 
-    def forward(self, pred: torch.Tensor, label: torch.Tensor) -> torch.Tensor:
-        """Calculate focal loss with modulating factors for class imbalance."""
+    def forward_elementwise(self, pred: torch.Tensor, label: torch.Tensor) -> torch.Tensor:
+        """Per-element focal loss (same shape as BCE), supports soft task-aligned targets."""
         loss = F.binary_cross_entropy_with_logits(pred, label, reduction="none")
-        # p_t = torch.exp(-loss)
-        # loss *= self.alpha * (1.000001 - p_t) ** self.gamma  # non-zero power for gradient stability
-
         # TF implementation https://github.com/tensorflow/addons/blob/v0.7.1/tensorflow_addons/losses/focal_loss.py
-        pred_prob = pred.sigmoid()  # prob from logits
+        pred_prob = pred.sigmoid()
         p_t = label * pred_prob + (1 - label) * (1 - pred_prob)
-        modulating_factor = (1.0 - p_t) ** self.gamma
-        loss *= modulating_factor
+        loss *= (1.0 - p_t) ** self.gamma
         if (self.alpha > 0).any():
             self.alpha = self.alpha.to(device=pred.device, dtype=pred.dtype)
-            alpha_factor = label * self.alpha + (1 - label) * (1 - self.alpha)
-            loss *= alpha_factor
-        return loss.mean(1).sum()
+            loss *= label * self.alpha + (1 - label) * (1 - self.alpha)
+        return loss
+
+    def forward(self, pred: torch.Tensor, label: torch.Tensor) -> torch.Tensor:
+        """Calculate focal loss with modulating factors for class imbalance."""
+        return self.forward_elementwise(pred, label).mean(1).sum()
 
 
 class DFLoss(nn.Module):
@@ -343,6 +343,11 @@ class v8DetectionLoss:
 
         m = model.model[-1]  # Detect() module
         self.bce = nn.BCEWithLogitsLoss(reduction="none")
+        self.fl = (
+            FocalLoss(gamma=float(getattr(h, "fl_gamma", 1.5)), alpha=float(getattr(h, "fl_alpha", 0.25)))
+            if bool(getattr(h, "focal_loss", False))
+            else None
+        )
         self.hyp = h
         self.stride = m.stride  # model strides
         self.nc = m.nc  # number of classes
@@ -367,6 +372,19 @@ class v8DetectionLoss:
         )
         self.bbox_loss = BboxLoss(m.reg_max).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
+
+        if self.fl is not None and RANK in {-1, 0}:
+            LOGGER.info(
+                f"Classification loss: FocalLoss(gamma={self.fl.gamma}, alpha={float(self.fl.alpha.item()):.3f})"
+            )
+
+    def compute_cls_loss(self, pred_scores: torch.Tensor, target_scores: torch.Tensor, dtype: torch.dtype) -> torch.Tensor:
+        """Classification loss (BCE or Focal) with optional per-class weights."""
+        target_scores = target_scores.to(dtype)
+        loss = self.fl.forward_elementwise(pred_scores, target_scores) if self.fl is not None else self.bce(pred_scores, target_scores)
+        if self.class_weights is not None:
+            loss *= self.class_weights
+        return loss
 
     def preprocess(self, targets: torch.Tensor, batch_size: int, scale_tensor: torch.Tensor) -> torch.Tensor:
         """Preprocess targets by converting to tensor format and scaling coordinates."""
@@ -430,11 +448,8 @@ class v8DetectionLoss:
 
         target_scores_sum = max(target_scores.sum(), 1)
 
-        # Cls loss with optional class weighting
-        bce_loss = self.bce(pred_scores, target_scores.to(dtype))  # (bs, num_anchors, nc)
-        if self.class_weights is not None:
-            bce_loss *= self.class_weights
-        loss[1] = bce_loss.sum() / target_scores_sum  # BCE
+        # Cls loss (BCE or Focal) with optional class weighting
+        loss[1] = self.compute_cls_loss(pred_scores, target_scores, dtype).sum() / target_scores_sum
 
         # Bbox loss
         if fg_mask.sum():
@@ -1066,9 +1081,8 @@ class v8OBBLoss(v8DetectionLoss):
 
         target_scores_sum = max(target_scores.sum(), 1)
 
-        # Cls loss
-        # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
-        loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+        # Cls loss (BCE or Focal)
+        loss[1] = self.compute_cls_loss(pred_scores, target_scores, dtype).sum() / target_scores_sum
 
         # Bbox loss
         if fg_mask.sum():

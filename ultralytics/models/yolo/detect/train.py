@@ -11,11 +11,17 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from ultralytics.data import build_dataloader, build_yolo_dataset
+from ultralytics.data import YOLOConcatDataset, build_dataloader, build_yolo_dataset
+from ultralytics.data.sampler import (
+    ProportionalBatchSampler,
+    get_concat_index_pools,
+    get_dataset_fractions,
+    iter_dataset_labels,
+)
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import DetectionModel
-from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
+from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, colorstr
 from ultralytics.utils.patches import override_configs
 from ultralytics.utils.plotting import plot_images, plot_labels
 from ultralytics.utils.torch_utils import torch_distributed_zero_first, unwrap_model
@@ -62,26 +68,48 @@ class DetectionTrainer(BaseTrainer):
         """
         super().__init__(cfg, overrides, _callbacks)
 
-    def build_dataset(self, img_path: str, mode: str = "train", batch: int | None = None):
+    def _use_concat_dataset(self, paths: list[str], mode: str) -> bool:
+        """Whether to build ``YOLOConcatDataset`` from multiple source paths."""
+        if len(paths) <= 1:
+            return False
+        if mode == "train":
+            return get_dataset_fractions(self.data, paths, mode) is not None
+        return True
+
+    def build_dataset(self, img_path: str | list[str], mode: str = "train", batch: int | None = None):
         """Build YOLO Dataset for training or validation.
 
+        When multiple paths are configured, builds ``YOLOConcatDataset``. Use ``train_dataset_fractions`` /
+        ``val_dataset_fractions`` with ``ProportionalBatchSampler``; without val fractions, validation
+        iterates all val images once.
+
         Args:
-            img_path (str): Path to the folder containing images.
+            img_path (str | list[str]): Path to the folder containing images, or list of paths.
             mode (str): 'train' mode or 'val' mode, users are able to customize different augmentations for each mode.
             batch (int, optional): Size of batches, this is for 'rect' mode.
 
         Returns:
             (Dataset): YOLO dataset object configured for the specified mode.
         """
-        gs = max(int(unwrap_model(self.model).stride.max()), 32)
+        gs = max(int(unwrap_model(self.model).stride.max() if self.model else 32), 32)
+        paths = img_path if isinstance(img_path, list) else [img_path]
+        if self._use_concat_dataset(paths, mode):
+            datasets = [
+                build_yolo_dataset(self.args, p, batch, self.data, mode=mode, rect=False, stride=gs) for p in paths
+            ]
+            dataset = YOLOConcatDataset(datasets) if len(datasets) > 1 else datasets[0]
+            if mode == "val" and len(paths) > 1 and get_dataset_fractions(self.data, paths, mode) is None:
+                sizes = [len(d) for d in datasets]
+                LOGGER.info(f"{colorstr('balanced:')} Val mixed dataset (full) | sources={sizes} total={sum(sizes)}")
+            return dataset
         return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs)
 
-    def get_dataloader(self, dataset_path: str, batch_size: int = 16, rank: int = 0, mode: str = "train"):
+    def get_dataloader(self, dataset_path: str | list[str], batch_size: int = 16, rank: int = 0, mode: str = "train"):
         """Construct and return dataloader for the specified mode.
 
         Args:
-            dataset_path (str): Path to the dataset.
-            batch_size (int): Number of images per batch.
+            dataset_path (str | list[str]): Path to the dataset, or list of paths from data YAML.
+            batch_size (int): Batch size for this run (e.g. Katib trial hyperparameter ``batch``).
             rank (int): Process rank for distributed training.
             mode (str): 'train' for training dataloader, 'val' for validation dataloader.
 
@@ -89,9 +117,40 @@ class DetectionTrainer(BaseTrainer):
             (DataLoader): PyTorch dataloader object.
         """
         assert mode in {"train", "val"}, f"Mode must be 'train' or 'val', not {mode}."
+        paths = dataset_path if isinstance(dataset_path, list) else [dataset_path]
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, mode, batch_size)
         shuffle = mode == "train"
+        batch_sampler = None
+        fractions = get_dataset_fractions(self.data, paths, mode)
+        if fractions:
+            key = "train_dataset_fractions" if mode == "train" else "val_dataset_fractions"
+            if not isinstance(dataset, YOLOConcatDataset):
+                raise RuntimeError(f"{key} requires multiple {mode} paths in the data YAML and YOLOConcatDataset.")
+            pools = get_concat_index_pools(dataset)
+            sizes = [len(p) for p in pools]
+            ws = max(self.world_size, 1)
+            r = max(rank, 0)
+            batch_sampler = ProportionalBatchSampler(
+                pools,
+                fractions,
+                batch_size=batch_size,
+                seed=self.args.seed,
+                rank=r,
+                world_size=ws,
+            )
+            shuffle = False
+            fr = [round(f, 4) for f in batch_sampler.fractions]
+            LOGGER.info(
+                f"{colorstr('balanced:')} ProportionalBatchSampler ({mode}) | datasets={sizes} fractions={fr} "
+                f"batch={batch_size}"
+            )
+            n_total = sum(sizes)
+            if mode == "train" and n_total > 50000 and self.args.workers > 4:
+                LOGGER.warning(
+                    f"{colorstr('balanced:')} Large combined dataset ({n_total} images) with workers={self.args.workers} "
+                    f"may cause host RAM OOM during image decode. Try workers=2 or workers=4."
+                )
         if getattr(dataset, "rect", False) and shuffle and not np.all(dataset.batch_shapes == dataset.batch_shapes[0]):
             LOGGER.warning("'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
             shuffle = False
@@ -100,8 +159,9 @@ class DetectionTrainer(BaseTrainer):
             batch=batch_size,
             workers=self.args.workers if mode == "train" else self.args.workers * 2,
             shuffle=shuffle,
-            rank=rank,
+            rank=rank if batch_sampler is None else -1,
             drop_last=self.args.compile and mode == "train",
+            batch_sampler=batch_sampler,
         )
 
     def preprocess_batch(self, batch: dict) -> dict:
@@ -113,6 +173,7 @@ class DetectionTrainer(BaseTrainer):
         Returns:
             (dict): Preprocessed batch with normalized images.
         """
+        batch = self._maybe_dump_training_batch(batch)
         for k, v in batch.items():
             if isinstance(v, torch.Tensor):
                 batch[k] = v.to(self.device, non_blocking=self.device.type == "cuda")
@@ -136,12 +197,41 @@ class DetectionTrainer(BaseTrainer):
             batch["img"] = imgs
         return batch
 
+    def _maybe_dump_training_batch(self, batch: dict) -> dict:
+        """Copy batch via ``ultralytics.data.batch_dump`` when ``dump_batches_dir`` is set."""
+        from ultralytics.data import batch_dump
+
+        if not batch_dump.is_enabled(getattr(self.args, "dump_batches_dir", None)) or RANK not in {-1, 0}:
+            return batch
+        if not getattr(self, "_dump_batches_logged", False):
+            LOGGER.info(
+                f"{colorstr('dump_batches:')} {batch_dump.log_message(self.args.dump_batches_dir, self.args.dump_batches_per_epoch)}"
+            )
+            self._dump_batches_logged = True
+        epoch = getattr(self, "epoch", 0)
+        if getattr(self, "_dump_last_epoch", -1) != epoch:
+            self._dump_last_epoch = epoch
+            self._dump_batch_in_epoch = 0
+        n = getattr(self, "_dump_batch_in_epoch", 0)
+        if not batch_dump.should_dump(n, self.args.dump_batches_per_epoch):
+            return batch
+        data_root = self.data.get("path")
+        if not data_root:
+            return batch
+        batch_dump.dump_training_batch(
+            batch,
+            out_root=self.args.dump_batches_dir,
+            data_root=data_root,
+            batch_in_epoch=n,
+            epoch=epoch,
+        )
+        self._dump_batch_in_epoch = n + 1
+        return batch
+
     def set_model_attributes(self):
         """Set model attributes based on dataset information."""
-        # Nl = de_parallel(self.model).model[-1].nl  # number of detection layers (to scale hyps)
-        # self.args.box *= 3 / nl  # scale to layers
-        # self.args.cls *= self.data["nc"] / 80 * 3 / nl  # scale to classes and layers
-        # self.args.cls *= (self.args.imgsz / 640) ** 2 * 3 / nl  # scale to image size and layers
+        self._dump_last_epoch = -1
+        self._dump_batch_in_epoch = 0
         self.model.nc = self.data["nc"]  # attach number of classes to model
         self.model.names = self.data["names"]  # attach class names to model
         self.model.args = self.args  # attach hyperparameters to model
@@ -158,7 +248,8 @@ class DetectionTrainer(BaseTrainer):
         assert 0 <= self.args.cls_pw <= 1.0, "cls_pw must be in the range [0, 1]"
         if self.args.cls_pw == 0.0:
             return
-        classes = np.concatenate([lb["cls"].flatten() for lb in self.train_loader.dataset.labels], 0)
+        labels = iter_dataset_labels(self.train_loader.dataset)
+        classes = np.concatenate([lb["cls"].flatten() for lb in labels], 0)
         class_counts = np.bincount(classes.astype(int), minlength=self.data["nc"]).astype(np.float32)
         class_counts = np.where(class_counts == 0, 1.0, class_counts)
 
@@ -233,8 +324,9 @@ class DetectionTrainer(BaseTrainer):
 
     def plot_training_labels(self):
         """Create a labeled training plot of the YOLO model."""
-        boxes = np.concatenate([lb["bboxes"] for lb in self.train_loader.dataset.labels], 0)
-        cls = np.concatenate([lb["cls"] for lb in self.train_loader.dataset.labels], 0)
+        labels = iter_dataset_labels(self.train_loader.dataset)
+        boxes = np.concatenate([lb["bboxes"] for lb in labels], 0)
+        cls = np.concatenate([lb["cls"] for lb in labels], 0)
         plot_labels(boxes, cls.squeeze(), names=self.data["names"], save_dir=self.save_dir, on_plot=self.on_plot)
 
     def auto_batch(self):
@@ -245,7 +337,8 @@ class DetectionTrainer(BaseTrainer):
         """
         with override_configs(self.args, overrides={"cache": False}) as self.args:
             train_dataset = self.build_dataset(self.data["train"], mode="train", batch=16)
-        max_num_obj = max(len(label["cls"]) for label in train_dataset.labels) * 4  # 4 for mosaic augmentation
+        labels = iter_dataset_labels(train_dataset)
+        max_num_obj = max(len(label["cls"]) for label in labels) * 4  # 4 for mosaic augmentation
         n = len(train_dataset)
         del train_dataset  # free memory
         return super().auto_batch(max_num_obj, dataset_size=n)

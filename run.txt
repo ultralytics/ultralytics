@@ -1,0 +1,4 @@
+# pip install -e .
+
+# 指定 dump_batches_dir 才拷贝训练 batch；不写路径则关闭；dump_batches_per_epoch 默认 1
+yolo detect train data=./ultralytics/cfg/datasets/coco8-multitaskdet2.yaml model=yolo11s.yaml pretrained=yolo26n.pt epochs=100 imgsz=640 batch=16 workers=4 focal_loss=True cls_pw=0.5 dump_batches_dir=runs/sampler_preview

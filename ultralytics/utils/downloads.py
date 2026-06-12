@@ -485,10 +485,13 @@ def attempt_download_asset(
     file = str(file)
     file = checks.check_yolov5u_filename(file)
     file = Path(file.strip().replace("'", ""))
+    weights_dir = Path(SETTINGS["weights_dir"])
+    use_weights_dir = file.parent == Path(".") and file.suffix in {".pt", ".pth", ".ts"}
+    download_file = weights_dir / file if use_weights_dir else file
     if file.exists():
         return str(file)
-    elif (SETTINGS["weights_dir"] / file).exists():
-        return str(SETTINGS["weights_dir"] / file)
+    elif use_weights_dir and download_file.exists():
+        return str(download_file)
     else:
         # URL specified
         name = Path(parse.unquote(str(file))).name  # decode '%2F' to '/' etc.
@@ -502,14 +505,16 @@ def attempt_download_asset(
                 safe_download(url=url, file=file, min_bytes=1e5, **kwargs)
 
         elif repo == GITHUB_ASSETS_REPO and name in GITHUB_ASSETS_NAMES:
-            safe_download(url=f"{download_url}/{release}/{name}", file=file, min_bytes=1e5, **kwargs)
+            safe_download(url=f"{download_url}/{release}/{name}", file=download_file, min_bytes=1e5, **kwargs)
+            file = download_file
 
         else:
             tag, assets = get_github_assets(repo, release)
             if not assets:
                 tag, assets = get_github_assets(repo)  # latest release
             if name in assets:
-                safe_download(url=f"{download_url}/{tag}/{name}", file=file, min_bytes=1e5, **kwargs)
+                safe_download(url=f"{download_url}/{tag}/{name}", file=download_file, min_bytes=1e5, **kwargs)
+                file = download_file
 
         return str(file)
 

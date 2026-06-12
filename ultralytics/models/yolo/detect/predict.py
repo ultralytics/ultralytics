@@ -51,6 +51,7 @@ class DetectionPredictor(BasePredictor):
             >>> processed_results = predictor.postprocess(preds, img, orig_imgs)
         """
         save_feats = getattr(self, "_feats", None) is not None
+        return_probs = getattr(self.args, "return_probs", False) and not save_feats
         preds = nms.non_max_suppression(
             preds,
             self.args.conf,
@@ -62,6 +63,7 @@ class DetectionPredictor(BasePredictor):
             end2end=getattr(self.model, "end2end", False),
             rotated=self.args.task == "obb",
             return_idxs=save_feats,
+            return_probs=return_probs,
         )
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
@@ -71,7 +73,12 @@ class DetectionPredictor(BasePredictor):
             obj_feats = self.get_obj_feats(self._feats, preds[1])
             preds = preds[0]
 
-        results = self.construct_results(preds, img, orig_imgs, **kwargs)
+        probs_list = None
+        if return_probs and isinstance(preds, tuple):
+            preds, probs_list = preds
+
+        extra = {"probs_list": probs_list} if probs_list is not None else {}
+        results = self.construct_results(preds, img, orig_imgs, **extra, **kwargs)
 
         if save_feats:
             for r, f in zip(results, obj_feats):
@@ -90,23 +97,26 @@ class DetectionPredictor(BasePredictor):
         )  # mean reduce all vectors to same length
         return [feats[idx] if idx.shape[0] else [] for feats, idx in zip(obj_feats, idxs)]  # for each img in batch
 
-    def construct_results(self, preds, img, orig_imgs):
+    def construct_results(self, preds, img, orig_imgs, probs_list=None):
         """Construct a list of Results objects from model predictions.
 
         Args:
             preds (list[torch.Tensor]): List of predicted bounding boxes and scores for each image.
             img (torch.Tensor): Batch of preprocessed images used for inference.
             orig_imgs (list[np.ndarray]): List of original images before preprocessing.
+            probs_list (list[torch.Tensor] | None): Optional per-image class probability tensors from NMS.
 
         Returns:
             (list[Results]): List of Results objects containing detection information for each image.
         """
+        if probs_list is None:
+            probs_list = [None] * len(preds)
         return [
-            self.construct_result(pred, img, orig_img, img_path)
-            for pred, orig_img, img_path in zip(preds, orig_imgs, self.batch[0])
+            self.construct_result(pred, img, orig_img, img_path, **({}  if cp is None else {"class_probs": cp}))
+            for pred, orig_img, img_path, cp in zip(preds, orig_imgs, self.batch[0], probs_list)
         ]
 
-    def construct_result(self, pred, img, orig_img, img_path):
+    def construct_result(self, pred, img, orig_img, img_path, class_probs=None):
         """Construct a single Results object from one image prediction.
 
         Args:
@@ -114,9 +124,13 @@ class DetectionPredictor(BasePredictor):
             img (torch.Tensor): Preprocessed image tensor used for inference.
             orig_img (np.ndarray): Original image before preprocessing.
             img_path (str): Path to the original image file.
+            class_probs (torch.Tensor | None): Optional (N, nc) tensor of per-class probabilities from NMS.
 
         Returns:
             (Results): Results object containing the original image, image path, class names, and scaled bounding boxes.
         """
+        from ultralytics.engine.results import Boxes
+
         pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
-        return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6])
+        boxes = Boxes(pred[:, :6], orig_img.shape[:2], class_probs=class_probs)
+        return Results(orig_img, path=img_path, names=self.model.names, boxes=boxes)

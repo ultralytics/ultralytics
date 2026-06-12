@@ -149,6 +149,24 @@ def test_predict_visualize(model):
     YOLO(WEIGHTS_DIR / model)(SOURCE, imgsz=32, visualize=True)
 
 
+
+
+def test_predict_return_probs() -> None:
+    """Test that return_probs=True attaches a (N, nc) class_probs tensor to each detection."""
+    model = YOLO(WEIGHTS_DIR / "yolo11n.pt")
+    results = model.predict(SOURCE, imgsz=32, return_probs=True)
+    for r in results:
+        if r.boxes is not None and len(r.boxes):
+            assert r.boxes.class_probs is not None, "class_probs should not be None when return_probs=True"
+            assert r.boxes.class_probs.shape == (len(r.boxes), len(model.names)), (
+                f"expected ({len(r.boxes)}, {len(model.names)}), got {r.boxes.class_probs.shape}"
+            )
+    # Without return_probs (explicitly False), class_probs should be None
+    results_default = model.predict(SOURCE, imgsz=32, return_probs=False)
+    for r in results_default:
+        if r.boxes is not None:
+            assert r.boxes.class_probs is None, "class_probs should be None when return_probs=False"
+
 def test_predict_gray_and_4ch(tmp_path):
     """Test YOLO prediction on SOURCE converted to grayscale and 4-channel images with various filenames."""
     im = Image.open(SOURCE)

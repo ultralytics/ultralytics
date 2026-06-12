@@ -75,6 +75,7 @@ save_frames: False # (bool) save individual frames from video predictions
 save_txt: False # (bool) save results as .txt files (xywh format)
 save_conf: False # (bool) save confidence scores with results
 save_crop: False # (bool) save cropped prediction regions to files
+return_probs: False # (bool) attach per-detection class probability tensor (shape (N, nc)) to Boxes.class_probs
 show_labels: True # (bool) draw class labels on images, e.g. 'person'
 show_conf: True # (bool) draw confidence values on images, e.g. '0.99'
 show_boxes: True # (bool) draw bounding boxes on images

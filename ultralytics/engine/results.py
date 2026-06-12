@@ -265,7 +265,10 @@ class Results(SimpleClass, DataExportMixin):
         """
         self.orig_img = orig_img
         self.orig_shape = orig_img.shape[:2]
-        self.boxes = Boxes(boxes, self.orig_shape) if boxes is not None else None  # native size boxes
+        if isinstance(boxes, Boxes):
+            self.boxes = boxes  # already a Boxes object (e.g. built with class_probs)
+        else:
+            self.boxes = Boxes(boxes, self.orig_shape) if boxes is not None else None  # native size boxes
         self.masks = Masks(masks, self.orig_shape) if masks is not None else None  # native size or imgsz masks
         self.probs = Probs(probs) if probs is not None else None
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
@@ -916,7 +919,7 @@ class Boxes(BaseTensor):
         >>> print(boxes.xywhn)
     """
 
-    def __init__(self, boxes: torch.Tensor | np.ndarray, orig_shape: tuple[int, int]) -> None:
+    def __init__(self, boxes: torch.Tensor | np.ndarray, orig_shape: tuple[int, int], class_probs: torch.Tensor | None = None) -> None:
         """Initialize the Boxes class with detection box data and the original image shape.
 
         This class manages detection boxes, providing easy access and manipulation of box coordinates, confidence
@@ -927,6 +930,8 @@ class Boxes(BaseTensor):
             boxes (torch.Tensor | np.ndarray): A tensor or numpy array with detection boxes of shape (num_boxes, 6) or
                 (num_boxes, 7). Columns should contain [x1, y1, x2, y2, (optional) track_id, confidence, class].
             orig_shape (tuple[int, int]): The original image shape as (height, width). Used for normalization.
+            class_probs (torch.Tensor | None): Optional tensor of shape (num_boxes, nc) containing per-class
+                probability scores for each detection, as returned by non_max_suppression with return_probs=True.
         """
         if boxes.ndim == 1:
             boxes = boxes[None, :]
@@ -935,6 +940,7 @@ class Boxes(BaseTensor):
         super().__init__(boxes, orig_shape)
         self.is_track = n == 7
         self.orig_shape = orig_shape
+        self._class_probs = class_probs
 
     @property
     def xyxy(self) -> torch.Tensor | np.ndarray:
@@ -983,6 +989,61 @@ class Boxes(BaseTensor):
             >>> print(class_ids)  # tensor([0., 2., 1.])
         """
         return self.data[:, -1]
+
+    @property
+    def class_probs(self) -> "torch.Tensor | None":
+        """Return per-class probability scores for each detection, or None if not available.
+
+        Returns:
+            (torch.Tensor | None): A 2D tensor of shape (N, nc) containing the raw class probability scores for
+                each detection, as produced when running inference with return_probs=True. Returns None when
+                class probabilities were not requested at inference time.
+
+        Examples:
+            >>> results = model.predict("image.jpg", return_probs=True)
+            >>> boxes = results[0].boxes
+            >>> if boxes.class_probs is not None:
+            ...     top_class = boxes.class_probs.argmax(dim=1)
+        """
+        return self._class_probs
+
+    def cpu(self):
+        """Return a copy of this Boxes with data on CPU, preserving class_probs."""
+        if isinstance(self.data, np.ndarray):
+            return self
+        cp = self._class_probs
+        return self.__class__(self.data.cpu(), self.orig_shape, class_probs=cp.cpu() if cp is not None else None)
+
+    def numpy(self):
+        """Return a copy of this Boxes with data as numpy arrays, preserving class_probs."""
+        if isinstance(self.data, np.ndarray):
+            return self
+        cp = self._class_probs
+        new_cp = cp.numpy() if (cp is not None and isinstance(cp, torch.Tensor)) else cp
+        return self.__class__(self.data.numpy(), self.orig_shape, class_probs=new_cp)
+
+    def cuda(self):
+        """Return a copy of this Boxes on GPU, preserving class_probs."""
+        cp = self._class_probs
+        return self.__class__(
+            torch.as_tensor(self.data).cuda(),
+            self.orig_shape,
+            class_probs=cp.cuda() if cp is not None else None,
+        )
+
+    def to(self, *args, **kwargs):
+        """Return a copy of this Boxes with the specified device/dtype, preserving class_probs."""
+        cp = self._class_probs
+        return self.__class__(
+            torch.as_tensor(self.data).to(*args, **kwargs),
+            self.orig_shape,
+            class_probs=cp.to(*args, **kwargs) if cp is not None else None,
+        )
+
+    def __getitem__(self, idx):
+        """Return a new Boxes containing the indexed detections, preserving class_probs."""
+        cp = self._class_probs
+        return self.__class__(self.data[idx], self.orig_shape, class_probs=cp[idx] if cp is not None else None)
 
     @property
     def id(self) -> torch.Tensor | np.ndarray | None:

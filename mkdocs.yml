@@ -594,6 +594,7 @@ nav:
       - Albumentations: integrations/albumentations.md
       - Amazon SageMaker: integrations/amazon-sagemaker.md
       - Axelera: integrations/axelera.md
+      - BNNR: integrations/bnnr.md
       - ClearML: integrations/clearml.md
       - Comet ML: integrations/comet.md
       - CoreML: integrations/coreml.md

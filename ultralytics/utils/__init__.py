@@ -191,7 +191,24 @@ class DataExportMixin:
         """
         import polars as pl  # scope for faster 'import ultralytics'
 
-        return pl.DataFrame(self.summary(normalize=normalize, decimals=decimals))
+        data = self.summary(normalize=normalize, decimals=decimals)
+        if not data:
+            # Return empty DataFrame with consistent schema so column access like
+            # df["name"] or df["confidence"] works on zero-detection results.
+            # Use the same base schema for all detection-style tasks; task-specific
+            # columns (segments, keypoints) are omitted since they cannot be reliably
+            # inferred from result attributes alone when no detections are present.
+            if getattr(self, "probs", None) is not None:
+                # Classification task
+                schema = {"name": pl.String, "class": pl.Int64, "confidence": pl.Float64}
+            elif getattr(self, "semantic_mask", None) is not None:
+                # Semantic segmentation task
+                schema = {"name": pl.String, "class": pl.Int64, "pixel_ratio": pl.Float64}
+            else:
+                # Detection / instance-segmentation / pose / OBB
+                schema = {"name": pl.String, "class": pl.Int64, "confidence": pl.Float64, "box": pl.String}
+            return pl.DataFrame(schema=schema)
+        return pl.DataFrame(data)
 
     def to_csv(self, normalize=False, decimals=5):
         """Export results or metrics to CSV string format.

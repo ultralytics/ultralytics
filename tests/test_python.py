@@ -941,3 +941,37 @@ def test_semantic_polygon_data():
     model = YOLO("yolo26n-sem.pt")
     model.train(data="coco8-seg.yaml", epochs=1, imgsz=32, close_mosaic=1)
     model.val(data="coco8-seg.yaml")
+
+
+def test_results_zero_detections():
+    """Test that to_df(), to_csv(), and to_json() work correctly on zero-detection results.
+
+    Regression test for https://github.com/ultralytics/ultralytics/issues/24626
+    """
+    import numpy as np
+    import polars as pl
+
+    model = YOLO(WEIGHTS_DIR / "yolo26n.pt")
+    black = np.zeros((640, 640, 3), dtype=np.uint8)
+    results = model(black, conf=0.99, verbose=False)  # high conf ensures zero detections
+    r = results[0]
+
+    assert len(r) == 0, "Expected zero detections for black image with conf=0.99"
+
+    # to_df() should return a DataFrame with correct columns, not empty schema
+    df = r.to_df()
+    assert isinstance(df, pl.DataFrame), "to_df() should return a polars DataFrame"
+    assert df.shape[0] == 0, "to_df() should have 0 rows"
+    assert "name" in df.columns, "to_df() should have 'name' column on zero-detection result"
+    assert "class" in df.columns, "to_df() should have 'class' column on zero-detection result"
+    assert "confidence" in df.columns, "to_df() should have 'confidence' column on zero-detection result"
+
+    # to_csv() should return headers, not just '\n'
+    csv = r.to_csv()
+    assert isinstance(csv, str), "to_csv() should return a string"
+    assert "name" in csv, "to_csv() should include column headers on zero-detection result"
+
+    # to_json() should return '[]' without crashing
+    json_out = r.to_json()
+    assert isinstance(json_out, str), "to_json() should return a string"
+    assert json_out.strip() == "[]", f"to_json() should return '[]' for zero detections, got: {json_out}"

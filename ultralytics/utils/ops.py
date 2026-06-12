@@ -502,13 +502,17 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
     c, mh, mw = protos.shape  # CHW
     masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)  # NHW
 
-    width_ratio = mw / shape[1]
-    height_ratio = mh / shape[0]
-    ratios = torch.tensor([[width_ratio, height_ratio, width_ratio, height_ratio]], device=bboxes.device)
-
-    masks = crop_mask(masks, boxes=bboxes * ratios)  # NHW
     if upsample:
+        # Upsample first, then crop at image resolution. Cropping before bilinear
+        # upsampling smears the hard 0/positive boundary into pixels outside the
+        # bbox, producing mask leakage beyond the box (issue #24272).
         masks = F.interpolate(masks[None], shape, mode="bilinear")[0]  # NHW
+        masks = crop_mask(masks, boxes=bboxes)  # NHW (bboxes already in `shape` coords)
+    else:
+        width_ratio = mw / shape[1]
+        height_ratio = mh / shape[0]
+        ratios = torch.tensor([[width_ratio, height_ratio, width_ratio, height_ratio]], device=bboxes.device)
+        masks = crop_mask(masks, boxes=bboxes * ratios)  # NHW
     return masks.gt_(0.0).byte()
 
 

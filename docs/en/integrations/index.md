@@ -23,6 +23,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 ## Training Integrations
 
+- [AI Coding Agents](ai-coding-agents.md): Enhance your development workflow with AI coding agent skills that provide intelligent, context-aware assistance for Ultralytics YOLO projects, compatible with GitHub Copilot, Cursor, Claude, and more.
+
 - [Albumentations](albumentations.md): Enhance your Ultralytics models with powerful image augmentations to improve model robustness and generalization.
 
 - [Amazon SageMaker](amazon-sagemaker.md): Leverage Amazon SageMaker to efficiently build, train, and deploy Ultralytics models, providing an all-in-one platform for the ML lifecycle.

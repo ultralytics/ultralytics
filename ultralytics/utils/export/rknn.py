@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+import os
+import re
 from pathlib import Path
 
 from ultralytics.utils import IS_COLAB, LOGGER, YAML
 
 
-def _check_rknn_return(ret, name: str):
-    """Raise a RuntimeError if an RKNN API call failed."""
+def _check(ret, name: str):
+    """Raise a RuntimeError if an RKNN API call returned a non-zero (error) code."""
     if ret not in {0, None}:
         raise RuntimeError(f"RKNN {name} failed with return code {ret}.")
 
@@ -24,15 +26,16 @@ def onnx2rknn(
 ) -> str:
     """Export an ONNX model to RKNN format for Rockchip NPUs with optional INT8 quantization.
 
+    INT8 export uses RKNN Toolkit's two-step hybrid quantization, keeping the output tensors in float16 while the rest
+    of the network is INT8. The output concat packs box coordinates (~0-640) and class scores (0-1) into one tensor, so
+    a shared INT8 scale would crush the scores to ~0 and return zero detections on device; float16 outputs avoid that.
+
     Args:
         onnx_file (str): Path to the source ONNX file (already exported, opset <=19).
         output_dir (Path | str): Directory to save the exported RKNN model.
         name (str): Target platform name (e.g. ``"rk3588"``).
-        int8 (bool): Whether to enable INT8 quantization. When False, RKNN Toolkit builds a floating-point model for
-            FP16-capable targets.
-        dataset (Path | str | None): Path to the generated RKNN Toolkit calibration image-list file, required when
-            ``int8=True``. Users should pass YOLO dataset YAMLs to ``export(data=...)``; ``export_rknn()`` converts them
-            to this internal image-path list.
+        int8 (bool): Enable INT8 quantization. When False, builds a float model for FP16-capable targets.
+        dataset (Path | str | None): Path to the calibration image-list file, required when ``int8=True``.
         metadata (dict | None): Metadata saved as ``metadata.yaml``.
         prefix (str): Prefix for log messages.
 
@@ -45,11 +48,9 @@ def onnx2rknn(
             f"(e.g. rk2118, rk3562, rk3566, rk3568, rk3576, rk3588, rv1126b) or export with int8=True."
         )
     if int8:
-        if not dataset:
-            raise ValueError("RKNN INT8 export requires a generated calibration image-list file.")
-        dataset = Path(dataset)
-        if not dataset.is_file():
-            raise ValueError(f"Generated RKNN INT8 calibration image-list file not found: {dataset}")
+        dataset = Path(dataset).resolve() if dataset else None
+        if not (dataset and dataset.is_file()):
+            raise ValueError(f"RKNN INT8 export requires a calibration image-list file, got: {dataset}")
 
     from ultralytics.utils.checks import check_requirements
 
@@ -65,18 +66,59 @@ def onnx2rknn(
 
     from rknn.api import RKNN
 
-    output_dir = Path(output_dir)
+    output_dir = Path(output_dir).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
-
-    rknn = RKNN(verbose=False)
+    rknn_file = str(output_dir / f"{Path(onnx_file).stem}-{name}.rknn")
     config = {"mean_values": [[0, 0, 0]], "std_values": [[255, 255, 255]], "target_platform": name}
-    _check_rknn_return(rknn.config(**config), "config")
-    _check_rknn_return(rknn.load_onnx(model=onnx_file), "load_onnx")
-    build_kwargs = {"do_quantization": int8}
+
     if int8:
-        build_kwargs["dataset"] = str(dataset)
-    _check_rknn_return(rknn.build(**build_kwargs), "build")
-    _check_rknn_return(rknn.export_rknn(str(output_dir / f"{Path(onnx_file).stem}-{name}.rknn")), "export_rknn")
+        _hybrid_quantize(onnx_file, output_dir, config, str(dataset), rknn_file, prefix)
+    else:
+        rknn = RKNN(verbose=False)
+        _check(rknn.config(**config), "config")
+        _check(rknn.load_onnx(model=onnx_file), "load_onnx")
+        _check(rknn.build(do_quantization=False), "build")
+        _check(rknn.export_rknn(rknn_file), "export_rknn")
+        rknn.release()
+
     if metadata:
         YAML.save(output_dir / "metadata.yaml", metadata)
     return str(output_dir)
+
+
+def _hybrid_quantize(onnx_file, output_dir, config, dataset, rknn_file, prefix=""):
+    """Run RKNN two-step hybrid quantization, forcing the graph output tensors to float16 (see :func:`onnx2rknn`).
+
+    Step 1 emits ``<stem>.model``/``.data``/``.quantization.cfg``; the cfg's (empty) ``custom_quantize_layers`` is then
+    set to keep every ``output*`` tensor in float16, and step 2 rebuilds and exports the model from it.
+    """
+    from rknn.api import RKNN
+
+    onnx_file = str(Path(onnx_file).resolve())
+    stem = Path(onnx_file).stem
+    cwd = os.getcwd()
+    os.chdir(output_dir)  # step 1 writes its intermediate files to the current directory
+    try:
+        rknn = RKNN(verbose=False)
+        _check(rknn.config(**config), "config")
+        _check(rknn.load_onnx(model=onnx_file), "load_onnx")
+        _check(rknn.hybrid_quantization_step1(dataset=dataset, proposal=False), "step1")
+        rknn.release()
+
+        # Edit the generated cfg to keep the output tensors in float16, leaving 'quantize_parameters' untouched
+        cfg = Path(f"{stem}.quantization.cfg")
+        text = cfg.read_text()
+        outputs = re.findall(r"^ {4}(output[^:\s]*):", text, flags=re.M)
+        block = "custom_quantize_layers:\n" + "".join(f"    {n}: float16\n" for n in outputs)
+        cfg.write_text(re.sub(r"^custom_quantize_layers:.*?(?=^quantize_parameters:)", block, text, flags=re.M | re.S))
+        LOGGER.info(f"{prefix} hybrid quantization: keeping output layers {outputs} in float16, INT8 elsewhere")
+
+        rknn = RKNN(verbose=False)
+        _check(rknn.hybrid_quantization_step2(f"{stem}.model", f"{stem}.data", str(cfg)), "step2")
+        _check(rknn.export_rknn(rknn_file), "export_rknn")
+        rknn.release()
+
+        for f in cfg, Path(f"{stem}.model"), Path(f"{stem}.data"):
+            f.unlink(missing_ok=True)  # keep only the exported .rknn
+    finally:
+        os.chdir(cwd)

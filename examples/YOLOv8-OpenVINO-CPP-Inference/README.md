@@ -16,7 +16,7 @@ To ensure smooth execution, please make sure you have the following dependencies
 | ----------------------------------------------------- | -------- |
 | [OpenVINO](https://docs.openvino.ai/latest/home.html) | >=2023.3 |
 | [OpenCV](https://opencv.org/)                         | >=4.5.0  |
-| [C++](https://en.cppreference.com/)                 | >=14     |
+| [C++](https://en.cppreference.com/)                   | >=14     |
 | [CMake](https://cmake.org/documentation/)             | >=3.12.0 |
 
 ## ⚙️ Build Instructions

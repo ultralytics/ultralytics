@@ -34,8 +34,8 @@ DEEPX models offer several advantages for edge deployment:
 
 All standard Ultralytics tasks are supported for DEEPX export across YOLO26, YOLO11, and YOLOv8 model families.
 
-| Task                                                                  | Supported |
-| :-------------------------------------------------------------------- | :-------- |
+| Task                                                                 | Supported |
+| :------------------------------------------------------------------- | :-------- |
 | [Object Detection](https://docs.ultralytics.com/tasks/detect)        | ✅        |
 | [Instance Segmentation](https://docs.ultralytics.com/tasks/segment)  | ✅        |
 | [Semantic Segmentation](https://docs.ultralytics.com/tasks/semantic) | ✅        |

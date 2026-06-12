@@ -67,8 +67,8 @@ End-to-end single-image inference for the official YOLO26n models on a Xiaomi 17
 
 QNN export supports the standard task set available in each model family, including YOLO26 semantic segmentation.
 
-| Task                                                                  | Supported |
-| :-------------------------------------------------------------------- | :-------- |
+| Task                                                                 | Supported |
+| :------------------------------------------------------------------- | :-------- |
 | [Object Detection](https://docs.ultralytics.com/tasks/detect)        | ✅        |
 | [Instance Segmentation](https://docs.ultralytics.com/tasks/segment)  | ✅        |
 | [Semantic Segmentation](https://docs.ultralytics.com/tasks/semantic) | ✅        |

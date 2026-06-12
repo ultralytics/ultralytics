@@ -119,7 +119,8 @@ std::vector<Detection> Inference::runInference(const cv::Mat &input)
     }
 
     std::vector<int> nms_result;
-    cv::dnn::NMSBoxes(boxes, confidences, modelScoreThreshold, modelNMSThreshold, nms_result);
+//  cv::dnn::NMSBoxes(boxes, confidences, modelScoreThreshold, modelNMSThreshold, nms_result);
+    cv::dnn::NMSBoxesBatched(boxes, confidences, class_ids, modelScoreThreshold, modelNMSThreshold, nms_result);
 
     std::vector<Detection> detections{};
     for (unsigned long i = 0; i < nms_result.size(); ++i)

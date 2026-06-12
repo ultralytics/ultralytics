@@ -200,10 +200,19 @@ class YOLODataset(BaseDataset):
                 f"len(boxes) = {len_boxes}. To resolve this only boxes will be used and all segments will be removed. "
                 "To avoid this please supply either a detect or segment dataset, not a detect-segment mixed dataset."
             )
-            for lb in labels:
-                lb["segments"] = []
+        for lb in labels:
+            lb["segments"] = []
+
         if len_cls == 0:
-            LOGGER.warning(f"Labels are missing or empty in {cache_path}, training may not work correctly. {HELP_URL}")
+            if self.augment:
+                raise RuntimeError(
+                    f"Labels are missing or empty in {cache_path}. "
+                    f"Training cannot continue without annotations. {HELP_URL}"
+                )
+            LOGGER.warning(
+                f"Labels are missing or empty in {cache_path}, training may not work correctly. {HELP_URL}"
+            )
+
         return labels
 
     def build_transforms(self, hyp: dict | None = None) -> Compose:

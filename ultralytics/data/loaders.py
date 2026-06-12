@@ -363,7 +363,7 @@ class LoadImagesAndVideos:
         for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
             a = str(Path(p).absolute())  # do not use .resolve() https://github.com/ultralytics/ultralytics/issues/2912
             if "*" in a:
-                files.extend(sorted(glob.glob(a, recursive=True)))  # glob
+                files.extend(sorted(glob.glob(glob.escape(a), recursive=True)))  # glob
             elif os.path.isdir(a):
                 files.extend(sorted(glob.glob(os.path.join(glob.escape(a), "*.*"))))  # dir
             elif os.path.isfile(a):

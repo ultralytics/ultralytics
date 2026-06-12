@@ -183,6 +183,8 @@ When contributing code to Ultralytics projects, keep these best practices in min
 - **Use consistent formatting:** Tools like [Ruff Formatter](https://github.com/astral-sh/ruff) can help maintain stylistic consistency.
 - **Add appropriate tests:** Include [tests](https://docs.ultralytics.com/guides/model-testing) for new features to ensure they work as expected.
 
+If you are adding a **new hardware export format or runtime backend** (compilation toolkit, accelerator runtime, edge AI platform), follow the dedicated [Contribute a Hardware Integration](../integrations/hardware-integration.md) guide. It covers the `Exporter` and `AutoBackend` patterns, dependency standards, documentation expectations, and the QA checklist used to review new integration PRs.
+
 ## 👀 Reviewing Pull Requests
 
 Reviewing pull requests is another valuable way to contribute. When reviewing PRs:

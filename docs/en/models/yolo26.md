@@ -22,7 +22,7 @@ The YOLO26 model family is built around four design areas:
 
 - **Native end-to-end inference:** The default one-to-one detection head produces predictions without non-maximum suppression (NMS), simplifying deployment and reducing post-processing.
 - **Lighter box regression:** YOLO26 removes Distribution Focal Loss (DFL), reducing detection-head complexity while preserving an unconstrained regression range.
-- **Training recipe updates:** The training pipeline combines **MuSGD**, **Progressive Loss**, and **STAL** to improve optimization, shift supervision toward the inference-time head, and maintain positive label coverage for small objects.
+- **Training recipe updates:** The training pipeline combines **MuSGD**, **Progressive Loss**, and **STAL** to improve optimization, shift supervision toward the inference-time head, and maintain positive label coverage for small objects. The full hyperparameters behind the released checkpoints are documented in the [YOLO26 Training Recipe guide](../guides/yolo26-training-recipe.md).
 - **Task-specific heads and losses:** YOLO26 adds targeted designs for instance segmentation, semantic segmentation variants, pose estimation, and oriented detection while keeping a single model pipeline across tasks.
 
 Together, these updates improve the accuracy-latency tradeoff across model scales and deployment targets.

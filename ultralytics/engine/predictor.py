@@ -155,24 +155,37 @@ class BasePredictor:
         """Prepare input image before inference.
 
         Args:
-            im (torch.Tensor | list[np.ndarray]): Images of shape (N, 3, H, W) for tensor, [(H, W, 3) x N] for list.
+            im (torch.Tensor | list[np.ndarray]): Images of shape (N, 3, H, W) for tensor (expected rgb), [(H, W, 3) x
+                N] for list of ndarray (expected bgr). See ultralytics.data.loaders.LoadTensor._single_check() for
+                tensor expectations
 
         Returns:
             (torch.Tensor): Preprocessed image tensor of shape (N, 3, H, W).
         """
         not_tensor = not isinstance(im, torch.Tensor)
-        if not_tensor:
-            im = np.stack(self.pre_transform(im))
-            if im.shape[-1] == 3:
-                im = im[..., ::-1]  # BGR to RGB
-            im = im.transpose((0, 3, 1, 2))  # BHWC to BCHW, (n, 3, h, w)
-            im = np.ascontiguousarray(im)  # contiguous
-            im = torch.from_numpy(im)
 
-        im = im.to(self.device)
-        im = im.half() if self.model.fp16 else im.float()  # uint8 to fp16/32
         if not_tensor:
-            im /= 255  # 0 - 255 to 0.0 - 1.0
+            im = self.pre_transform(im)
+            if (
+                len(im) == 1
+            ):  # single frame case allows skipping np.stack and to use unsqueeze instead, np.stack super slow
+                im = torch.from_numpy(im[0]).unsqueeze(0)
+            else:
+                im = np.stack(im)
+                im = torch.from_numpy(im)
+            im = im.to(self.device, non_blocking=True)
+            im = im.permute(0, 3, 1, 2)  # bhwc -> bchw
+            if im.shape[1] == 3:
+                im = im.flip(1)  # bgr -> rgb
+            im = im.contiguous()
+            im = (im.half() if self.model.fp16 else im.float()).div_(255.0)  # uint8 to fp16/32, 0 - 255 to 0.0 - 1.0
+
+        else:
+            im = im.to(self.device, non_blocking=True)
+            im = (
+                im.half() if self.model.fp16 else im.float()
+            )  # fp32/16 => fp16/fp32. No division, expected tensor to be [0,1.0]
+
         return im
 
     def inference(self, im: torch.Tensor, *args, **kwargs):

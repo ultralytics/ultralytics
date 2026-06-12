@@ -36,6 +36,7 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 - [Object Cropping](../guides/object-cropping.md): Master object cropping with YOLO26 for precise extraction of objects from images and videos.
 - [Parking Management](../guides/parking-management.md): Organize and direct vehicle flow in parking areas with YOLO26, optimizing space utilization and user experience.
 - [Queue Management](../guides/queue-management.md): Implement efficient queue management systems to minimize wait times and improve productivity using YOLO26.
+- [Region Selector](../guides/region-selector.md): Interactively draw polygon regions on video frames using mouse clicks, ideal for defining custom detection zones for counting, heatmaps, and other solutions.
 - [Security Alarm System](../guides/security-alarm-system.md): Create a security alarm system with YOLO26 that triggers alerts upon detecting new objects. Customize the system to fit your specific needs.
 - [Similarity Search](../guides/similarity-search.md): Enable intelligent image retrieval by combining [OpenAI CLIP](https://cookbook.openai.com/examples/custom_image_embedding_search) embeddings with [Meta FAISS](https://ai.meta.com/tools/faiss/), allowing natural language queries like "person holding a bag" or "vehicles in motion."
 - [Speed Estimation](../guides/speed-estimation.md): Estimate object speed using YOLO26 and object tracking techniques, crucial for applications like autonomous vehicles and traffic monitoring.

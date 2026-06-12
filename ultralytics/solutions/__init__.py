@@ -32,10 +32,30 @@ __all__ = (
     "ParkingPtsSelection",
     "QueueManager",
     "RegionCounter",
+    "RegionSelector",
     "SearchApp",
     "SecurityAlarm",
     "SpeedEstimator",
     "TrackZone",
     "VisionEye",
     "VisualAISearch",
+    "select_region",
 )
+
+
+def __getattr__(name):
+    """Lazily import RegionSelector and select_region to avoid cv2 side-effects at import time."""
+    if name == "RegionSelector":
+        from .region_selector import RegionSelector
+
+        return RegionSelector
+    if name == "select_region":
+        from .region_selector import select_region
+
+        return select_region
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__():
+    """Ensure lazy attributes appear in dir() and IDE autocomplete."""
+    return sorted([*list(globals().keys()), "RegionSelector", "select_region"])

@@ -21,7 +21,14 @@ class ONNXBackend(BaseBackend):
     with static input shapes.
     """
 
-    def __init__(self, weight: str | Path, device: torch.device, fp16: bool = False, format: str = "onnx"):
+    def __init__(
+        self,
+        weight: str | Path,
+        device: torch.device,
+        fp16: bool = False,
+        format: str = "onnx",
+        session_options=None,
+    ):
         """Initialize the ONNX backend.
 
         Args:
@@ -29,9 +36,11 @@ class ONNXBackend(BaseBackend):
             device (torch.device): Device to run inference on.
             fp16 (bool): Whether to use FP16 half-precision inference.
             format (str): Inference engine, either "onnx" for ONNX Runtime or "dnn" for OpenCV DNN.
+            session_options: Optional ONNX Runtime session options.
         """
         assert format in {"onnx", "dnn"}, f"Unsupported ONNX format: {format}."
         self.format = format
+        self.session_options = session_options
         super().__init__(weight, device, fp16)
 
     def load_model(self, weight: str | Path) -> None:
@@ -73,7 +82,7 @@ class ONNXBackend(BaseBackend):
                 f"{providers[0] if isinstance(providers[0], str) else providers[0][0]}"
             )
 
-            self.session = onnxruntime.InferenceSession(weight, providers=providers)
+            self.session = onnxruntime.InferenceSession(weight, self.session_options, providers=providers)
             self.output_names = [x.name for x in self.session.get_outputs()]
 
             # Get metadata
@@ -105,21 +114,34 @@ class ONNXBackend(BaseBackend):
                     )
                     self.bindings.append(y_tensor)
 
-    def forward(self, im: torch.Tensor) -> torch.Tensor | list[torch.Tensor] | np.ndarray:
+    def forward(
+        self, im: torch.Tensor | dict[str, torch.Tensor | np.ndarray]
+    ) -> torch.Tensor | list[torch.Tensor] | np.ndarray:
         """Run ONNX inference using IO binding (CUDA) or standard session execution.
 
         Args:
-            im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
+            im (torch.Tensor | dict): Input image tensor in BCHW format, normalized to [0, 1], or a dictionary mapping
+                input names to tensors/arrays for multi-input models.
 
         Returns:
             (torch.Tensor | list[torch.Tensor] | np.ndarray): Model predictions as tensor(s) or numpy array(s).
         """
         if self.format == "dnn":
-            # OpenCV DNN
-            self.net.setInput(im.cpu().numpy())
+            # OpenCV DNN - only supports single input
+            if isinstance(im, dict):
+                if len(im) > 1:
+                    LOGGER.warning("OpenCV DNN only supports single input; using the first dictionary value.")
+                im = next(iter(im.values()))
+            self.net.setInput(im.cpu().numpy() if isinstance(im, torch.Tensor) else im)
             return self.net.forward()
 
         # ONNX Runtime
+        if isinstance(im, dict):
+            # Multi-input mode
+            input_dict = {k: v.cpu().numpy() if isinstance(v, torch.Tensor) else v for k, v in im.items()}
+            return self.session.run(self.output_names, input_dict)
+
+        # Single input mode
         if self.use_io_binding:
             if self.device.type == "cpu":
                 im = im.cpu()
@@ -134,7 +156,10 @@ class ONNXBackend(BaseBackend):
             self.session.run_with_iobinding(self.io)
             return self.bindings
         else:
-            return self.session.run(self.output_names, {self.session.get_inputs()[0].name: im.cpu().numpy()})
+            return self.session.run(
+                self.output_names,
+                {self.session.get_inputs()[0].name: im.cpu().numpy() if isinstance(im, torch.Tensor) else im},
+            )
 
 
 class ONNXIMXBackend(ONNXBackend):

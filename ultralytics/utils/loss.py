@@ -1169,6 +1169,14 @@ class v8DepthLoss:
         self.silog_lambda = float(os.environ.get("DEPTH_SILOG_LAMBDA", 0.5))
         # Optional scale-anchored L1 term on the log-depth residual (penalizes absolute offset).
         self.l1_weight = float(os.environ.get("DEPTH_L1_WEIGHT", 0.0))
+        # GT beyond the head's representable range (sigmoid × max_depth) is masked out of the
+        # loss: supervising unreachable targets saturates the sigmoid and, through SILog's
+        # per-image mean coupling, corrupts gradients on in-range pixels too.
+        self.max_depth = None
+        for m in reversed(list(model.modules())):
+            if hasattr(m, "max_depth"):
+                self.max_depth = float(m.max_depth)
+                break
 
     def __call__(self, preds, batch):
         """Calculate depth estimation loss.
@@ -1193,12 +1201,16 @@ class v8DepthLoss:
         if gt_depth.ndim == 3:
             gt_depth = gt_depth.unsqueeze(1)  # (B, 1, H, W)
 
-        # Resize GT to match prediction resolution if needed
+        # Upsample prediction to GT resolution (matches DepthValidator). Never resize GT:
+        # bilinear blends invalid zeros into valid sparse GT (e.g. LiDAR), and nearest
+        # decimation discards supervision; pred is dense/smooth so interpolating it is safe.
         if gt_depth.shape[-2:] != pred_depth.shape[-2:]:
-            gt_depth = F.interpolate(gt_depth, size=pred_depth.shape[-2:], mode="bilinear", align_corners=True)
+            pred_depth = F.interpolate(pred_depth, size=gt_depth.shape[-2:], mode="bilinear", align_corners=True)
 
-        # Valid mask: positive depth values
+        # Valid mask: positive depth values within the head's representable range
         valid = gt_depth > 0.001
+        if self.max_depth is not None:
+            valid &= gt_depth <= self.max_depth
         if valid.sum() < 10:
             return loss.sum(), loss.detach()
 

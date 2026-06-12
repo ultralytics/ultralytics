@@ -403,7 +403,7 @@ class YOLOE(Model):
                         "task": self.model.task,
                         "mode": "predict",
                         "save": False,
-                        "verbose": kwargs.get("verbose", refer_image is None),
+                        "verbose": kwargs.get("verbose", self.overrides.get("verbose", refer_image is None)),
                         "batch": 1,
                         "device": kwargs.get("device", None),
                         "half": kwargs.get("half", False),
@@ -411,7 +411,6 @@ class YOLOE(Model):
                     },
                     _callbacks=self.callbacks,
                 )
-
             num_cls = (
                 max(len(set(c)) for c in visual_prompts["cls"])
                 if isinstance(source, list) and refer_image is None  # means multiple images

@@ -27,7 +27,7 @@ import torch
 
 from ultralytics import __version__
 from ultralytics.utils.git import GitRepo
-from ultralytics.utils.patches import imread, imshow, imwrite, torch_save  # for patches
+from ultralytics.utils.patches import imread_unicode, imshow, imwrite, torch_save  # for patches
 from ultralytics.utils.tqdm import TQDM  # noqa
 
 # PyTorch Multi-GPU DDP Constants
@@ -1493,4 +1493,4 @@ set_sentry()
 torch.save = torch_save
 if WINDOWS:
     # Apply cv2 patches for non-ASCII and non-UTF characters in image paths
-    cv2.imread, cv2.imwrite, cv2.imshow = imread, imwrite, imshow
+    cv2.imread, cv2.imwrite, cv2.imshow = imread_unicode, imwrite, imshow

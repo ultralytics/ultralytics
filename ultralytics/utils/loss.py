@@ -41,7 +41,8 @@ class VarifocalLoss(nn.Module):
 
     def forward(self, pred_score: torch.Tensor, gt_score: torch.Tensor, label: torch.Tensor) -> torch.Tensor:
         """Compute varifocal loss between predictions and ground truth."""
-        weight = self.alpha * pred_score.sigmoid().pow(self.gamma) * (1 - label) + gt_score * label
+        pred_prob = pred_score.sigmoid().detach()
+        weight = self.alpha * pred_prob.pow(self.gamma) * (1 - label) + gt_score * label
         with autocast(enabled=False):
             loss = (
                 (F.binary_cross_entropy_with_logits(pred_score.float(), gt_score.float(), reduction="none") * weight)
@@ -83,6 +84,62 @@ class FocalLoss(nn.Module):
             self.alpha = self.alpha.to(device=pred.device, dtype=pred.dtype)
             alpha_factor = label * self.alpha + (1 - label) * (1 - self.alpha)
             loss *= alpha_factor
+        return loss.mean(1).sum()
+
+
+class MALoss(nn.Module):
+    """Matcher-Aware Loss (MALoss) for classification in DETR-based detection models.
+
+    Computes a quality-aware binary cross-entropy loss designed for Hungarian-matched queries. Positive queries use
+    IoU-weighted soft targets (IoU^gamma) instead of hard 1.0 labels, making the loss sensitive to prediction quality.
+    Negative queries are weighted by their predicted confidence raised to gamma, penalizing high-confidence wrong
+    predictions similarly to focal loss.
+
+    Attributes:
+        gamma (float): Focusing exponent applied to both soft targets (IoU^gamma) and negative weights
+            (pred_prob^gamma). Higher values increase focus on hard examples.
+        alpha (float | None): Optional scaling factor for negative query weights. When provided, negative weights become
+            alpha * pred_prob^gamma. When None, alpha scaling is omitted.
+    """
+
+    def __init__(self, gamma: float = 2.0, alpha: float | None = None):
+        """Initialize MALoss with focusing and balancing parameters.
+
+        Args:
+            gamma (float): Focusing exponent for soft target sharpening and negative weighting. Higher values put more
+                emphasis on hard-to-classify examples. Defaults to 2.0.
+            alpha (float | None): Optional scaling factor applied to negative query weights. When None, no alpha scaling
+                is applied to negatives. Defaults to None.
+        """
+        super().__init__()
+        self.gamma = gamma
+        self.alpha = alpha
+
+    def forward(self, pred_score: torch.Tensor, gt_score: torch.Tensor, label: torch.Tensor) -> torch.Tensor:
+        """Compute Matcher-Aware Loss between predicted logits and IoU-weighted soft targets.
+
+        For each query, positives (matched) receive a soft target of IoU^gamma with weight 1, while
+        negatives (unmatched) receive a target of 0 with weight alpha * pred_prob^gamma (or
+        pred_prob^gamma if alpha is None).
+
+        Args:
+            pred_score (torch.Tensor): Raw class logits with shape (B, N, C), where B is batch size, N is number of
+                queries, and C is number of classes.
+            gt_score (torch.Tensor): IoU-weighted soft targets with shape (B, N, C). Non-zero only for matched queries
+                at the ground truth class position.
+            label (torch.Tensor): One-hot class encodings with shape (B, N, C) and dtype int64. Used to separate
+                positive (label=1) and negative (label=0) query weighting.
+
+        Returns:
+            (torch.Tensor): Scalar loss value averaged over queries and summed over the batch.
+        """
+        pred_prob = pred_score.sigmoid().detach()
+        target_score = gt_score.pow(self.gamma)
+        if self.alpha is not None:
+            weight = self.alpha * pred_prob.pow(self.gamma) * (1 - label) + label
+        else:
+            weight = pred_prob.pow(self.gamma) * (1 - label) + label
+        loss = F.binary_cross_entropy_with_logits(pred_score, target_score, weight=weight, reduction="none")
         return loss.mean(1).sum()
 
 

@@ -17,4 +17,8 @@ keywords: ultralytics, YOLO, DETR, RT-DETR, loss functions, object detection, de
 
 ## ::: ultralytics.models.utils.loss.RTDETRDetectionLoss
 
+<br><br><hr><br>
+
+## ::: ultralytics.models.utils.loss._global_num_gts
+
 <br><br>

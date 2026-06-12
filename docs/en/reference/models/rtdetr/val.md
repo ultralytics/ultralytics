@@ -17,4 +17,8 @@ keywords: RTDETR, Ultralytics, object detection, tracking, YOLO, RTDETRDataset, 
 
 ## ::: ultralytics.models.rtdetr.val.RTDETRValidator
 
+<br><br><hr><br>
+
+## ::: ultralytics.models.rtdetr.val._compute_scheduled_prob
+
 <br><br>

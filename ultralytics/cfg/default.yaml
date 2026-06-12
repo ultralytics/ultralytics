@@ -94,6 +94,7 @@ nms: False # (bool) fuse NMS into exported model when backend supports; if True,
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.01 # (float) initial learning rate (SGD=1e-2, Adam/AdamW=1e-3)
 lrf: 0.01 # (float) final LR fraction; final LR = lr0 * lrf
+aug_decay: False # (bool) linearly decay YOLOv8 augmentations to zero during RT-DETR training, with final 4 clean epochs
 momentum: 0.937 # (float) SGD momentum or Adam beta1
 weight_decay: 0.0005 # (float) weight decay (L2 regularization)
 warmup_epochs: 3.0 # (float) warmup epochs (fractions allowed)

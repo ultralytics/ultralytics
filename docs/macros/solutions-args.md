@@ -3,7 +3,7 @@
 | -------- | ---- | ------- | ----------- |
 {% set default_params = {
     "model": ["str", "None", "Path to an Ultralytics YOLO model file."],
-    "region": ["list", "'[(20, 400), (1260, 400)]'", "List of points defining the counting region."],
+    "region": ["list` or `dict", "None", "Points defining the region of interest, either a list of `(x, y)` tuples or a dictionary mapping region names to point lists for multiple regions (`RegionCounter` only). When `None`, solutions that require a region fall back to a predefined default."],
     "show_in": ["bool", "True", "Flag to control whether to display the in counts on the video stream."],
     "show_out": ["bool", "True", "Flag to control whether to display the out counts on the video stream."],
     "analytics_type": ["str", "'line'", "Type of graph, i.e., `line`, `bar`, `area`, or `pie`."],

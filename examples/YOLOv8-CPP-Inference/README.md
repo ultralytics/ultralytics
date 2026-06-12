@@ -1,6 +1,6 @@
 # YOLOv8/YOLOv5 C++ Inference with OpenCV DNN
 
-This example demonstrates how to perform inference using Ultralytics YOLOv8 and YOLOv5 models in C++ leveraging the [OpenCV DNN module](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html).
+This example demonstrates how to perform inference using Ultralytics YOLOv8 and YOLOv5 models in C++ leveraging the [OpenCV DNN module](https://docs.opencv.org/4.13.0/d6/d0f/group__dnn.html).
 
 ## 🛠️ Usage
 
@@ -74,7 +74,7 @@ _yolov5s.onnx:_
 
 ## 📝 Notes
 
-- This repository utilizes the [OpenCV DNN API](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html) to run [ONNX](https://onnx.ai/) exported models of YOLOv5 and Ultralytics YOLOv8.
+- This repository utilizes the [OpenCV DNN API](https://docs.opencv.org/4.13.0/d6/d0f/group__dnn.html) to run [ONNX](https://onnx.ai/) exported models of YOLOv5 and Ultralytics YOLOv8.
 - While not explicitly tested, it might theoretically work for other YOLO architectures like YOLOv6 and YOLOv7 if their ONNX export formats are compatible.
 - The example models are exported with a rectangular resolution (640x480), but the code should handle models exported with different resolutions. Consider using techniques like [letterboxing](https://docs.ultralytics.com/modes/predict#letterbox) if your input images have different aspect ratios than the model's training resolution, especially for square `imgsz` exports.
 - The `main` branch version includes a simple GUI wrapper using [Qt](https://www.qt.io/). However, the core logic resides in the `Inference` class (`inference.h`, `inference.cpp`).

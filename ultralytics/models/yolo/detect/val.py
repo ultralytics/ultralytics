@@ -263,6 +263,11 @@ class DetectionValidator(BaseValidator):
             self._gather_image_metrics(self.metrics.box)
             self.jdict = []
             self.metrics.clear_stats()
+        if self.args.plots and RANK > -1:
+            gathered_cm = [None] * dist.get_world_size() if RANK == 0 else None
+            dist.gather_object(self.confusion_matrix.matrix, gathered_cm, dst=0)
+            if RANK == 0:
+                self.confusion_matrix.matrix = sum(gathered_cm)
 
     def get_stats(self) -> dict[str, Any]:
         """Calculate and return metrics statistics.

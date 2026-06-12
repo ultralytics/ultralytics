@@ -766,6 +766,10 @@ class YOLOAnomalyV2Model(DetectionModel):
         # MoCo-style FIFO-queue training prior (0 = disabled, classic frozen-bank behavior).
         self.mb_queue_capacity = int(v2_cfg.get("mb_queue_capacity", 0))
         self.mb_blend_p = float(v2_cfg.get("mb_blend_p", 0.5))
+        # Offline cached prior: train images carry a precomputed heatmap as a 4th channel
+        # (split off in _predict_once, consumed via prior_mode="cached").
+        self.mb_cached_prior = bool(v2_cfg.get("mb_cached_prior", False))
+        self._cached_prior_buf: torch.Tensor | None = None
 
         # Prior mode state (predictor/validator controlled)
         self._prior_mode: str | None = None  # None = legacy (GT bboxes -> renderer)
@@ -833,7 +837,7 @@ class YOLOAnomalyV2Model(DetectionModel):
                 (BackboneMemoryBank), ``"mask"`` (external_mask), or ``None`` (legacy
                 GT bboxes -> renderer).
         """
-        if mode is not None and mode not in ("none", "segment", "heatmap", "seg_heatmap", "mask"):
+        if mode is not None and mode not in ("none", "segment", "heatmap", "seg_heatmap", "mask", "cached"):
             raise ValueError(f"Invalid prior_mode: {mode!r}")
         self._prior_mode = mode
 
@@ -1022,7 +1026,8 @@ class YOLOAnomalyV2Model(DetectionModel):
                               ("fusion_mode", "bias"), ("heatmap_film_fusion", None),
                               ("heatmap_norm", "none"), ("mask_mag_range", (1.0, 1.0)),
                               ("mask_blur_sigma_max", 0.0),
-                              ("mb_queue_capacity", 0), ("mb_blend_p", 0.5)]:
+                              ("mb_queue_capacity", 0), ("mb_blend_p", 0.5),
+                              ("mb_cached_prior", False), ("_cached_prior_buf", None)]:
             if not hasattr(self, attr):
                 setattr(self, attr, default)
 
@@ -1102,6 +1107,16 @@ class YOLOAnomalyV2Model(DetectionModel):
                     )
                 return hmap
             return None
+        if prior_mode == "cached":
+            # Precomputed heatmap carried as the input's 4th channel (split off in _predict_once).
+            hmap = getattr(self, "_cached_prior_buf", None)
+            if hmap is None:
+                return None
+            if hmap.shape[2] != mask_size or hmap.shape[3] != mask_size:
+                hmap = torch.nn.functional.interpolate(
+                    hmap, size=(mask_size, mask_size), mode="bilinear", align_corners=False
+                )
+            return hmap
         if prior_mode == "seg_heatmap":
             # Average of segment heatmap and memory-bank heatmap.
             seg_part = None
@@ -1365,6 +1380,13 @@ class YOLOAnomalyV2Model(DetectionModel):
 
     def _predict_once(self, x, profile=False, visualize=False, embed=None):
         """Forward with heatmap-guided fusion inserted before the Detect head."""
+        # Cached-prior input: a 4th channel carries the precomputed heatmap (already
+        # geometrically augmented with the image). Split it off before the backbone.
+        if x.shape[1] == 4:
+            self._cached_prior_buf = x[:, 3:4]
+            x = x[:, :3]
+        else:
+            self._cached_prior_buf = None
         batch_size = x.shape[0]
         device = x.device
 

@@ -39,6 +39,8 @@ class AnomalyV2Trainer(DetectionTrainer):
         self.add_callback("on_train_epoch_start", AnomalyV2Trainer._update_seg_alpha)
         self.add_callback("on_train_start", AnomalyV2Trainer._mb_initial_fill)
         self.add_callback("on_train_batch_end", AnomalyV2Trainer._mb_step)
+        self.add_callback("on_train_start", AnomalyV2Trainer._cached_draw_prior)
+        self.add_callback("on_train_batch_end", AnomalyV2Trainer._cached_draw_prior)
         self._mb_batch = None  # stashed preprocessed batch for the batch-end enqueue
         self._mb_patches_per_step = 0
 
@@ -58,6 +60,64 @@ class AnomalyV2Trainer(DetectionTrainer):
         """True when the model trains with the MoCo-style FIFO-queue prior."""
         model = unwrap_model(self.model)
         return getattr(model, "memory_bank", None) is not None and getattr(model, "mb_queue_capacity", 0) > 0
+
+    # ------------------------------------------------------------------
+    # Offline cached prior (mb_cached_prior: true)
+    # ------------------------------------------------------------------
+    def _cached_active(self) -> bool:
+        """True when the model trains with the precomputed-heatmap (4th channel) prior."""
+        return bool(getattr(unwrap_model(self.model), "mb_cached_prior", False))
+
+    def build_dataset(self, img_path: str, mode: str = "train", batch: int | None = None):
+        """Use CachedPriorDataset (image + heatmap sidecar as 4th channel) when enabled."""
+        if not self._cached_active():
+            return super().build_dataset(img_path, mode=mode, batch=batch)
+        from ultralytics.utils.torch_utils import unwrap_model as _um
+
+        from .dataset import CachedPriorDataset
+
+        p = Path(img_path)
+        if p.is_file():  # list-style dataset (<root>/train.txt) -> <root>/heatmaps_v1/train
+            prior_dir = p.parent / "heatmaps_v1" / p.stem
+        else:  # dir-style dataset (<root>/images/train) -> <root>/heatmaps_v1/train
+            prior_dir = p.parents[1] / "heatmaps_v1" / p.name
+        gs = max(int(_um(self.model).stride.max()), 32)
+        return CachedPriorDataset(
+            prior_dir=prior_dir,
+            img_path=img_path,
+            imgsz=self.args.imgsz,
+            batch_size=batch,
+            augment=mode == "train",
+            hyp=self.args,
+            rect=self.args.rect or mode == "val",
+            cache=self.args.cache or None,
+            single_cls=self.args.single_cls or False,
+            stride=gs,
+            pad=0.0 if mode == "train" else 0.5,
+            prefix=f"{mode}: ",
+            task=self.args.task,
+            classes=self.args.classes,
+            data=self.data,
+            fraction=self.args.fraction if mode == "train" else 1.0,
+        )
+
+    def plot_training_samples(self, batch, ni):
+        """Slice the prior channel off before plotting (plot_images expects 3-channel)."""
+        if batch["img"].shape[1] == 4:
+            batch = {**batch, "img": batch["img"][:, :3]}
+        super().plot_training_samples(batch, ni)
+
+    @staticmethod
+    def _cached_draw_prior(trainer: "AnomalyV2Trainer") -> None:
+        """Per-batch draw for the cached-prior arm: prior_mode='cached' with p=mb_blend_p, else GT.
+
+        Live model only — the validator drives the EMA model itself (prior_mode=None 2-pass).
+        """
+        if not trainer._cached_active():
+            return
+        model = unwrap_model(trainer.model)
+        mode = "cached" if random.random() < float(getattr(model, "mb_blend_p", 0.5)) else None
+        model.set_prior_mode(mode)
 
     def get_model(self, cfg=None, weights=None, verbose: bool = True):
         """Return a YOLOAnomalyV2Model.
@@ -169,10 +229,18 @@ class AnomalyV2Trainer(DetectionTrainer):
                 hm = mb(feats)  # (B, 1, h, w)
             mb.train(was_training)
             size = 320
+            bboxes = batch.get("bboxes")
+            batch_idx = batch.get("batch_idx")
             rows_top, rows_bot = [], []
             for b in range(img.shape[0]):
                 im = (img[b].permute(1, 2, 0).float().cpu().numpy() * 255).astype(np.uint8)
                 im = cv2.resize(cv2.cvtColor(im, cv2.COLOR_RGB2BGR), (size, size))
+                # GT boxes (green) so hot regions can be judged against actual defects.
+                if bboxes is not None and batch_idx is not None and bboxes.numel():
+                    for cx, cy, w, h_ in bboxes[batch_idx == b].cpu().tolist():
+                        x1, y1 = int((cx - w / 2) * size), int((cy - h_ / 2) * size)
+                        x2, y2 = int((cx + w / 2) * size), int((cy + h_ / 2) * size)
+                        cv2.rectangle(im, (x1, y1), (x2, y2), (0, 255, 0), 2)
                 h = hm[b, 0].float().cpu().numpy()
                 cmap = cv2.applyColorMap((h.clip(0, 1) * 255).astype(np.uint8), cv2.COLORMAP_JET)
                 cmap = cv2.resize(cmap, (size, size), interpolation=cv2.INTER_LINEAR)

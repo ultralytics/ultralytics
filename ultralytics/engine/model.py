@@ -109,6 +109,7 @@ class Model(torch.nn.Module):
         self.predictor = None  # reuse predictor
         self.model = None  # model object
         self.trainer = None  # trainer object
+        self.validator = None  # last validator object (set by val())
         self.ckpt = {}  # if loaded from *.pt
         self.cfg = None  # if loaded from *.yaml
         self.ckpt_path = None
@@ -614,6 +615,7 @@ class Model(torch.nn.Module):
         validator = (validator or self._smart_load("validator"))(args=args, _callbacks=self.callbacks)
         validator(model=self.model)
         self.metrics = validator.metrics
+        self.validator = validator
         return validator.metrics
 
     def benchmark(self, data=None, format="", verbose=False, **kwargs: Any):

@@ -194,11 +194,11 @@ Dive deeper into the supported features in our [Comet Integration Guide](https:/
 [ClearML](https://docs.ultralytics.com/integrations/clearml) integration enables detailed experiment tracking, dataset version management, and even remote execution of training runs. Activate ClearML with these simple steps:
 
 - Install the package: `pip install clearml`
-- Initialize ClearML: Run `clearml-init` once to connect to your ClearML server (either self-hosted or the [free tier](https://www.clear.ml/)).
+- Initialize ClearML: Run `clearml-init` once to connect to your ClearML server (either self-hosted or the [free tier](https://clear.ml/)).
 
 ClearML automatically captures experiment details, model uploads, comparisons, uncommitted code changes, and installed packages, ensuring full reproducibility. You can easily schedule training tasks on remote agents and manage dataset versions using ClearML Data. Explore the [ClearML Integration Guide](https://docs.ultralytics.com/integrations/clearml) for comprehensive details.
 
-<a href="https://www.clear.ml/">
+<a href="https://clear.ml/">
 <img alt="ClearML experiment management UI for YOLOv5" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/clearml-experiment-management-ui.avif" width="1280"></a>
 
 ### Local Logging

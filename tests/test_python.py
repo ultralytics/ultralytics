@@ -741,6 +741,21 @@ def test_classify_transforms_train(image, auto_augment, erasing, force_color_jit
     assert transformed_image.dtype == torch.float32
 
 
+def test_classify_transforms_crop_fraction_warning():
+    """Test that classify_transforms with crop_fraction emits FutureWarning without raising."""
+    import warnings
+
+    from ultralytics.data.augment import classify_transforms
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        result = classify_transforms(size=224, crop_fraction=0.9)
+        assert len(w) == 1
+        assert issubclass(w[0].category, FutureWarning)
+        assert "crop_fraction" in str(w[0].message)
+    assert result is not None
+
+
 @pytest.mark.slow
 @pytest.mark.skipif(IS_RASPBERRYPI or IS_JETSON, reason="Edge devices not intended for tuning")
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

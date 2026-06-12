@@ -844,6 +844,12 @@ class Depth(nn.Module):
             # (the DINOv2 saturated-init lesson, commit 390c6c9).
             self.head[-1].bias.data.fill_(0.182)
 
+        # Scale-only adaptation: global log-space affine d' = exp(a·log d + b), fitted
+        # closed-form on a handful of user images (see DepthTrainer docs). Identity by
+        # default; buffers so calibration persists through state_dict/checkpoints.
+        self.register_buffer("cal_a", torch.ones(1))
+        self.register_buffer("cal_b", torch.zeros(1))
+
     def forward(self, x: list[torch.Tensor]) -> dict[str, torch.Tensor] | torch.Tensor:
         """Fuse multi-scale features and predict depth.
 
@@ -870,6 +876,11 @@ class Depth(nn.Module):
             depth = torch.exp(out.clamp(-4.0, 5.0))  # meters, ~0.018–148 m
         else:
             depth = out * self.max_depth  # meters
+
+        # Scale-only calibration (identity unless fitted; getattr: pre-cal_a checkpoints)
+        a, b = getattr(self, "cal_a", None), getattr(self, "cal_b", None)
+        if a is not None and (a.item() != 1.0 or b.item() != 0.0):
+            depth = torch.exp(a * torch.log(depth.clamp(min=1e-3)) + b)
 
         if self.training:
             return {"depth": depth}

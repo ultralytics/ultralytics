@@ -480,6 +480,43 @@ def test_data_annotator(tmp_path):
     )
 
 
+def test_yolo_dataset_raises_on_all_empty_labels(monkeypatch):
+    """Test YOLODataset.get_labels() fails fast when all labels are empty."""
+    import ultralytics.data.dataset as dataset_module
+    from ultralytics.data.dataset import DATASET_CACHE_VERSION, YOLODataset
+
+    dataset = YOLODataset.__new__(YOLODataset)
+    dataset.im_files = ["images/train/image0.jpg"]
+    dataset.prefix = ""
+    dataset.data = {"names": {0: "item"}}
+    dataset.use_keypoints = False
+    dataset.single_cls = False
+
+    empty_labels_cache = {
+        "version": DATASET_CACHE_VERSION,
+        "hash": "valid-hash",
+        "results": (1, 0, 0, 0, 1),
+        "msgs": [],
+        "labels": [
+            {
+                "im_file": "images/train/image0.jpg",
+                "shape": (640, 640),
+                "cls": np.zeros((0, 1), dtype=np.float32),
+                "bboxes": np.zeros((0, 4), dtype=np.float32),
+                "segments": [],
+                "normalized": True,
+                "bbox_format": "xywh",
+            }
+        ],
+    }
+    monkeypatch.setattr(dataset_module, "img2label_paths", lambda im_files: ["labels/train/image0.txt"])
+    monkeypatch.setattr(dataset_module, "load_dataset_cache_file", lambda cache_path: empty_labels_cache)
+    monkeypatch.setattr(dataset_module, "get_hash", lambda _: "valid-hash")
+
+    with pytest.raises(ValueError, match="All labels empty"):
+        dataset.get_labels()
+
+
 def test_events():
     """Test event sending functionality."""
     from ultralytics.utils.events import Events

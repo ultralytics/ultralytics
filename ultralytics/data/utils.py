@@ -794,15 +794,23 @@ class HUBDatasetStats:
 
     def process_images(self) -> Path:
         """Compress images for Ultralytics HUB."""
-        from ultralytics.data import YOLODataset  # ClassificationDataset
+        from ultralytics.data import YOLODataset
 
         self.im_dir.mkdir(parents=True, exist_ok=True)  # makes dataset-hub/images/
         for split in "train", "val", "test":
-            if self.data.get(split) is None:
+            split_path = self.data.get(split)
+            if split_path is None:
                 continue
-            dataset = YOLODataset(img_path=self.data[split], data=self.data)
+            if self.task == "classify":
+                from torchvision.datasets import ImageFolder  # scope for faster 'import ultralytics'
+
+                dataset = ImageFolder(split_path)
+                im_files = [f for f, _ in dataset.imgs]
+            else:
+                dataset = YOLODataset(img_path=split_path, data=self.data, task=self.task)
+                im_files = dataset.im_files
             with ThreadPool(NUM_THREADS) as pool:
-                for _ in TQDM(pool.imap(self._hub_ops, dataset.im_files), total=len(dataset), desc=f"{split} images"):
+                for _ in TQDM(pool.imap(self._hub_ops, im_files), total=len(im_files), desc=f"{split} images"):
                     pass
         LOGGER.info(f"Done. All images saved to {self.im_dir}")
         return self.im_dir

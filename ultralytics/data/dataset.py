@@ -189,6 +189,7 @@ class YOLODataset(BaseDataset):
             issues = "\n  ".join(sorted(set(cache["msgs"]))) or "no error details"
             raise RuntimeError(f"No valid images found in {cache_path}.\n  {issues}\n{HELP_URL}")
         [cache.pop(k) for k in ("hash", "version", "msgs")]  # remove items
+        labels = [lb for lb in labels if lb["im_file"] in set(self.im_files)]
         self.im_files = [lb["im_file"] for lb in labels]  # update im_files
 
         # Check if the dataset is all boxes or all segments

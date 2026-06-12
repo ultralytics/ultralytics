@@ -358,6 +358,42 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         model.export(format="onnx")
         ```
 
+        You can also use PyTorch tensors directly as both the source and `refer_image`. This is particularly useful when integrating YOLOE into pipelines where images are already in tensor format:
+
+        ```python
+        import numpy as np
+        import torch
+
+        from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
+
+        # Initialize a YOLOE model
+        model = YOLOE("yoloe-11l-seg.pt")
+
+        # Create a tensor image (e.g., from preprocessing pipeline)
+        random_image = np.random.randint(0, 256, size=(480, 480, 3), dtype=np.uint8)
+        img_tensor = torch.from_numpy(random_image).float() / 255.0
+        img_tensor = img_tensor.unsqueeze(0).permute(0, 3, 1, 2)  # Shape: (1, 3, H, W)
+
+        # Define visual prompts for the tensor image
+        visual_prompts = dict(
+            bboxes=np.array([[10, 10, 50, 50]]),  # Box in the tensor image
+            cls=np.array([0]),  # Class ID
+        )
+
+        # Run prediction using tensor as both source and refer_image
+        results = model.predict(
+            img_tensor,
+            refer_image=img_tensor,
+            visual_prompts=visual_prompts,
+            predictor=YOLOEVPSegPredictor,
+            imgsz=640,
+        )
+
+        # Show results
+        results[0].show()
+        ```
+
         You can also pass multiple target images to run prediction on:
 
         ```python

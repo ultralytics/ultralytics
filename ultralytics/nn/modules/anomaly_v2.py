@@ -600,6 +600,19 @@ class BackboneMemoryBank(nn.Module):
     def built(self) -> bool:
         return not self.update
 
+    def _apply(self, fn, recurse=True):
+        """Keep the de-buffered FIFO queue in sync with ``.to()``/``.float()``/``.half()``.
+
+        ``init_queue``/``adopt_queue`` replace the registered buffer with a plain attribute
+        (invisible to state_dict/ModelEMA/DDP); plain attributes are skipped by
+        ``nn.Module._apply``, so a carried queue would otherwise stay on the old
+        device/dtype after ``model.to(device)``.
+        """
+        module = super()._apply(fn, recurse)
+        if "memory_bank" not in module._buffers and isinstance(module.memory_bank, torch.Tensor):
+            module.memory_bank = fn(module.memory_bank)
+        return module
+
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------

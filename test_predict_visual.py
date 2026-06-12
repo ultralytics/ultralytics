@@ -18,6 +18,9 @@ Output (one dir per model, named by the ckpt's run id):
 Usage:
   python test_predict_visual.py --ckpt <best.pt> --yaml <model.yaml>                  # all 15 categories
   python test_predict_visual.py --ckpt ... --yaml ... --category zipper --n-per-category 3
+  python test_predict_visual.py --ckpt ... --yaml ... --carried-bank                  # mocobank ckpts:
+      # use the pickled model + its training-time FIFO queue as-is (no per-category rebuild),
+      # so the 'mb heatmap' panel shows the exact prior the model trained with.
 """
 
 import argparse
@@ -166,6 +169,10 @@ def main():
                         help="Output dir (default: runs/temp/predict_visual/<run_id>)")
     parser.add_argument("--seed", type=int, default=0,
                         help="RNG seed for per-category sampling (same images across models; idempotent re-runs)")
+    parser.add_argument("--carried-bank", action="store_true",
+                        help="Use the ckpt's pickled model + its carried FIFO queue (mocobank training "
+                             "prior) instead of rebuilding per-category banks. The queue is a plain "
+                             "attribute, so the default yaml+state_dict load path cannot see it.")
     args = parser.parse_args()
 
     random.seed(args.seed)
@@ -174,6 +181,8 @@ def main():
     # run_id from ckpt path: <run>/weights/best.pt -> <run>
     ckpt_path = Path(args.ckpt).resolve()
     run_id = ckpt_path.parents[1].name if ckpt_path.parent.name == "weights" else ckpt_path.stem
+    if args.carried_bank:
+        run_id += "_carried"  # keep carried-queue grids separate from per-cat-bank grids
     out_root = Path(args.out) if args.out else Path(f"runs/temp/predict_visual/{run_id}")
     banks_dir = out_root / "banks"
     banks_dir.mkdir(parents=True, exist_ok=True)
@@ -194,13 +203,21 @@ def main():
     nc = args.nc or getattr(inner, "nc", None) or (len(ckpt_names) if ckpt_names else None) or 1
     LOGGER.info(f"nc = {nc}" + (" (--nc)" if args.nc else " (auto-detected from ckpt)"))
 
-    model = YOLOAnomalyV2Model(args.yaml, nc=nc, verbose=False)
-    ms = model.state_dict()
-    matched = {k: v for k, v in ckpt_state.items() if k in ms and ms[k].shape == v.shape}
-    model.load_state_dict(matched, strict=False)
-    _report_load(matched, ckpt_state, ms)
-    if ckpt_names:
-        model.names = ckpt_names  # plotted detections show the real class labels
+    if args.carried_bank:
+        # The FIFO queue lives as a plain attribute on the pickled model — it is invisible to
+        # state_dict, so the yaml-rebuild path below can never carry it. Use the model object.
+        if inner is None or getattr(inner, "memory_bank", None) is None:
+            raise SystemExit("--carried-bank: ckpt has no pickled model with a memory bank")
+        model = inner.float()
+        LOGGER.info("carried-bank mode: pickled model object, training-time queue, no rebuild")
+    else:
+        model = YOLOAnomalyV2Model(args.yaml, nc=nc, verbose=False)
+        ms = model.state_dict()
+        matched = {k: v for k, v in ckpt_state.items() if k in ms and ms[k].shape == v.shape}
+        model.load_state_dict(matched, strict=False)
+        _report_load(matched, ckpt_state, ms)
+        if ckpt_names:
+            model.names = ckpt_names  # plotted detections show the real class labels
     model.to(device)
     model.eval()
     model.heatmap_norm = args.heat_norm
@@ -209,6 +226,14 @@ def main():
     if not has_bank:
         LOGGER.warning("Model has no memory bank (no bb_layers) — 'heatmap' prior falls back to no-prior; "
                        "'segment' also falls back if the model has no SegBranch. Only 'none'/'mask' are meaningful.")
+    if args.carried_bank and has_bank:
+        mbq = model.memory_bank
+        n_valid = int((mbq.memory_bank.float().norm(dim=1) > 0).sum()) if mbq.memory_bank.numel() else 0
+        if n_valid == 0:
+            LOGGER.warning("carried bank is EMPTY — 'heatmap' prior will fall back to no-prior")
+        else:
+            LOGGER.info(f"carried bank: {n_valid} vecs, beta={mbq.temperature:.2f}, "
+                        f"frozen={mbq.built} (one unified queue shared across all categories)")
 
     y = YOLO(args.yaml)
     y.model = model
@@ -229,7 +254,8 @@ def main():
             continue
 
         # ---- Per-category memory bank: restore from cache, or build once + save ----
-        if has_bank:
+        # (skipped in carried-bank mode: the one training-time queue serves every category)
+        if has_bank and not args.carried_bank:
             mb = model.memory_bank
             bank_path = banks_dir / f"{cat}.pt"
             if bank_path.exists():

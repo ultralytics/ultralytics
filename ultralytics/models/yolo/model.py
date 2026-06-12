@@ -403,7 +403,7 @@ class YOLOE(Model):
                         "task": self.model.task,
                         "mode": "predict",
                         "save": False,
-                        "verbose": refer_image is None,
+                        "verbose": kwargs.get("verbose", refer_image is None),
                         "batch": 1,
                         "device": kwargs.get("device", None),
                         "half": kwargs.get("half", False),
@@ -420,7 +420,7 @@ class YOLOE(Model):
             self.model.model[-1].nc = num_cls
             self.model.names = [f"object{i}" for i in range(num_cls)]
             self.predictor.set_prompts(visual_prompts.copy())
-            self.predictor.setup_model(model=self.model)
+            self.predictor.setup_model(model=self.model, verbose=self.predictor.args.verbose)
 
             if refer_image is None and source is not None:
                 dataset = load_inference_source(source)

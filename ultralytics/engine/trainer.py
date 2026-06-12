@@ -175,6 +175,28 @@ class BaseTrainer:
 
         self.ddp = world_size > 1 and "LOCAL_RANK" not in os.environ
         self.world_size = world_size
+
+        # Handle custom callbacks for DDP training
+        cb_path = self.save_dir / "callbacks.pkl"
+        if self.ddp:
+            if _callbacks:
+                try:
+                    import dill
+
+                    with cb_path.open("wb") as f:
+                        dill.dump(_callbacks, f)
+                except Exception as e:
+                    LOGGER.warning(f"WARNING ⚠️ Custom callbacks can't be serialized for DDP: {e}")
+            elif cb_path.exists():
+                cb_path.unlink()  # remove stale callbacks
+        elif RANK >= 0 and cb_path.exists():
+            try:
+                import dill
+
+                with cb_path.open("rb") as f:
+                    self.callbacks = dill.load(f)
+            except Exception as e:
+                LOGGER.warning(f"WARNING ⚠️ Failed to load custom callbacks in DDP: {e}")
         # Run on_pretrain_routine_start before get_dataset() to capture original args.data (e.g., ul:// URIs)
         if RANK in {-1, 0} and not self.ddp:
             callbacks.add_integration_callbacks(self)

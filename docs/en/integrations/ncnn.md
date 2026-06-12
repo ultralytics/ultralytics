@@ -90,14 +90,14 @@ You can expand model compatibility and deployment flexibility by converting YOLO
 
 NCNN export supports the standard Ultralytics YOLO26 task set.
 
-| Task                                                                  | Supported |
-| :-------------------------------------------------------------------- | :-------- |
-| [Object Detection](https://docs.ultralytics.com/tasks/detect/)        | ✅        |
-| [Instance Segmentation](https://docs.ultralytics.com/tasks/segment/)  | ✅        |
-| [Semantic Segmentation](https://docs.ultralytics.com/tasks/semantic/) | ✅        |
-| [Pose Estimation](https://docs.ultralytics.com/tasks/pose/)           | ✅        |
-| [OBB Detection](https://docs.ultralytics.com/tasks/obb/)              | ✅        |
-| [Classification](https://docs.ultralytics.com/tasks/classify/)        | ✅        |
+| Task                                                                 | Supported |
+| :------------------------------------------------------------------- | :-------- |
+| [Object Detection](https://docs.ultralytics.com/tasks/detect)        | ✅        |
+| [Instance Segmentation](https://docs.ultralytics.com/tasks/segment)  | ✅        |
+| [Semantic Segmentation](https://docs.ultralytics.com/tasks/semantic) | ✅        |
+| [Pose Estimation](https://docs.ultralytics.com/tasks/pose)           | ✅        |
+| [OBB Detection](https://docs.ultralytics.com/tasks/obb)              | ✅        |
+| [Classification](https://docs.ultralytics.com/tasks/classify)        | ✅        |
 
 ### Installation
 

@@ -587,7 +587,7 @@ def check_suffix(file="yolo26n.pt", suffix=".pt", msg=""):
         if isinstance(suffix, str):
             suffix = {suffix}
         for f in file if isinstance(file, (list, tuple)) else [file]:
-            if s := str(f).rpartition(".")[-1].lower().strip():  # file suffix
+            if s := clean_url(f).rpartition(".")[-1].lower().strip():  # file suffix
                 assert f".{s}" in suffix, f"{msg}{f} acceptable suffix is {suffix}, not .{s}"
 
 

@@ -558,6 +558,7 @@ def test_utils_checks():
     checks.check_requirements("numpy")  # check requirements.txt
     checks.check_imgsz([600, 600], max_dim=1)
     checks.check_imshow(warn=True)
+    checks.check_suffix("https://example.com/model.pt?token=abc", ".pt")
     checks.check_version("ultralytics", "8.0.0")
     # parse_version must pad to a 3-tuple so shorter version strings compare correctly
     assert checks.parse_version("2") == (2, 0, 0)

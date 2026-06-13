@@ -2,12 +2,12 @@ import pytest
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 import os
 
-TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "ultralytics", "solutions", "templates")
+TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "ultralytics", "solutions", "templates")
 TEMPLATE_FILE = "similarity-search.html"
 
 @pytest.mark.parametrize("payload", [
     '"><img src=x onerror=alert(1)>',  # exact exploit: breaks out of attribute
-    '" onmouseover="alert(1)',           # boundary: event handler injection
+    '" onmouseover="alert(1',           # boundary: event handler injection
     "normal search query",              # valid input: should pass through safely
 ])
 def test_similarity_search_template_escapes_user_input(payload):
@@ -20,10 +20,13 @@ def test_similarity_search_template_escapes_user_input(payload):
     template = env.get_template(TEMPLATE_FILE)
 
     # Simulate what the template receives from request.form['query']
-    rendered = template.render(request=type("R", (), {"form": {"query": payload}})())
+    rendered = template.render(
+        request=type("R", (), {"form": {"query": payload}})(),
+        csrf_token=lambda: "",
+    )
 
     # The raw payload must not appear unescaped in the output
-    assert payload not in rendered, (
+    assert payload not in rendered if any(ch in payload for ch in '<>"') else payload in rendered, (
         f"Unescaped payload found in rendered output: {payload!r}"
     )
     # Specifically, dangerous characters must be escaped

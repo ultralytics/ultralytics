@@ -221,6 +221,7 @@ CFG_FRACTION_KEYS = frozenset(
 CFG_INT_KEYS = frozenset(
     {  # integer-only arguments
         "afss_full_final",
+        "afss_min_objects",
         "epochs",
         "patience",
         "workers",

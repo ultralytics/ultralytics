@@ -33,6 +33,8 @@ class AFSSScheduler:
         easy_ratio: float = 0.02,
         moderate_thr: float = 0.55,
         moderate_ratio: float = 0.4,
+        obj_counts: list[int] | None = None,
+        min_objects: int = 1,
     ):
         """Initialize AFSSScheduler with the given dataset size and warmup configuration.
 
@@ -44,6 +46,11 @@ class AFSSScheduler:
                 epochs are always force-reviewed, even when they exceed this target.
             moderate_thr (float): Threshold above which an image is classified as moderate (min(P, R) >= moderate_thr).
             moderate_ratio (float): Fraction of moderate images sampled each epoch.
+            obj_counts (list[int], optional): Per-image GT object counts, indexed like the dataset. Used together
+                with min_objects to force always-train images.
+            min_objects (int): Images with <= this many GT objects are always trained (never skipped). Their
+                per-image P/R is too coarse to trust (with 0-1 objects, recall is effectively binary), so they are
+                easily misclassified as easy and dropped. Set to -1 to disable.
         """
         self.num_images = num_images
         self.seed = seed
@@ -51,6 +58,12 @@ class AFSSScheduler:
         self.easy_ratio = easy_ratio
         self.moderate_thr = moderate_thr
         self.moderate_ratio = moderate_ratio
+        self.min_objects = min_objects
+        # Indices that bypass difficulty-based sampling and are trained every epoch.
+        if obj_counts is not None and min_objects >= 0:
+            self.always_train = {i for i, c in enumerate(obj_counts) if c <= min_objects}
+        else:
+            self.always_train = set()
         self.state = {i: {"precision": 0.0, "recall": 0.0, "last_seen_epoch": -1} for i in range(num_images)}
 
     def sample_indices(self, epoch: int) -> list[int]:
@@ -70,6 +83,8 @@ class AFSSScheduler:
         hard_set = []
 
         for i, st in self.state.items():
+            if i in self.always_train:  # few-object images bypass difficulty sampling and train every epoch
+                continue
             s_i = min(st["precision"], st["recall"])
             if s_i > self.easy_thr:
                 easy_set.add(i)
@@ -77,6 +92,10 @@ class AFSSScheduler:
                 moderate_set.add(i)
             else:
                 hard_set.append(i)
+
+        # Always-train (few-object) images: included unconditionally.
+        selected.extend(self.always_train)
+        n_always = len(self.always_train)
 
         # Per-bucket sampled counts, tracked for diagnostics (compare against paper Fig. 3).
         n_easy_sampled = 0
@@ -124,13 +143,14 @@ class AFSSScheduler:
         # "max unused" is the largest gap (in epochs) since any easy image was last trained — a growing value
         # signals the continuous-review budget cannot keep up and easy images are being forgotten.
         max_unused_easy = max((epoch - 1 - self.state[i]["last_seen_epoch"] for i in easy_set), default=0)
-        n_total = len(easy_set) + len(moderate_set) + len(hard_set)
+        n_selected = n_easy_sampled + n_moderate_sampled + len(hard_set) + n_always
         LOGGER.info(
             f"AFSS epoch {epoch} difficulty: "
             f"easy={len(easy_set)} (sampled {n_easy_sampled}), "
             f"moderate={len(moderate_set)} (sampled {n_moderate_sampled}), "
-            f"hard={len(hard_set)} (sampled {len(hard_set)}) | "
-            f"total selected={n_easy_sampled + n_moderate_sampled + len(hard_set)}/{n_total} | "
+            f"hard={len(hard_set)} (sampled {len(hard_set)}), "
+            f"always-train={n_always} | "
+            f"total selected={n_selected}/{self.num_images} | "
             f"easy max-unused={max_unused_easy} epochs"
         )
 
@@ -178,6 +198,7 @@ def afss_on_epoch_start(trainer):
         # Lazy init on first epoch
         dataset = _unwrap_dataset(trainer.train_loader.dataset)
 
+        obj_counts = [len(lb["cls"]) for lb in dataset.labels]  # per-image GT object count, in dataset index order
         trainer.afss_scheduler = AFSSScheduler(
             len(dataset),
             seed=trainer.args.seed,
@@ -185,7 +206,15 @@ def afss_on_epoch_start(trainer):
             easy_ratio=trainer.args.afss_easy_ratio,
             moderate_thr=trainer.args.afss_moderate_thr,
             moderate_ratio=trainer.args.afss_moderate_ratio,
+            obj_counts=obj_counts,
+            min_objects=trainer.args.afss_min_objects,
         )
+        n_always = len(trainer.afss_scheduler.always_train)
+        if n_always:
+            LOGGER.info(
+                f"AFSS: {n_always}/{len(dataset)} images have <= {trainer.args.afss_min_objects} GT objects; "
+                f"these will be trained every epoch."
+            )
         trainer.afss_current_indices = list(range(len(dataset)))
 
         # Resume: restore scheduler state if available

@@ -103,6 +103,7 @@ afss_easy_ratio: 0.02 # (float) target fraction of easy images sampled each epoc
 afss_moderate_thr: 0.55 # (float) lower threshold for the moderate subset; min(P,R) in [this, easy_thr] is moderate, below is hard
 afss_moderate_ratio: 0.4 # (float) fraction of moderate images sampled each epoch
 afss_full_final: 10 # (int) train on the full dataset for the final N epochs (0 to disable)
+afss_min_objects: 1 # (int) always train images with <= this many GT objects (their per-image P/R is too coarse to trust); -1 disables
 warmup_epochs: 3.0 # (float) warmup epochs (fractions allowed)
 warmup_momentum: 0.8 # (float) initial momentum during warmup
 warmup_bias_lr: 0.1 # (float) bias learning rate during warmup

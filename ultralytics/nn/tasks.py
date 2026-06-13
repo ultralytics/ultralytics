@@ -1507,13 +1507,15 @@ class _SafeLoad:
             kwargs = {kw.arg: ast.literal_eval(kw.value) for kw in call.keywords}
             return klass(*args, **kwargs)
         except Exception as e:
-            raise TypeError(emojis(f"ERROR ❌️ unsupported activation '{act}' blocked during restricted model load.")) from e
+            raise TypeError(
+                emojis(f"ERROR ❌️ unsupported activation '{act}' blocked during restricted model load.")
+            ) from e
 
     @classmethod
     def _build(cls):
         """Auto-discover `nn.Module` subclasses across `torch.nn` and the ultralytics model families, registered under
-        every namespace path they are reachable from (covering re-exports such as `block.RealNVP` as `head.RealNVP`),
-        plus torchvision transforms and legacy aliases.
+        every namespace path they are reachable from (covering re-exports such as `block.RealNVP` as
+        `head.RealNVP`), plus torchvision transforms and legacy aliases.
 
         Returns:
             (list): Items for `torch.serialization.safe_globals` — classes and `(obj, "module.Name")` aliases.

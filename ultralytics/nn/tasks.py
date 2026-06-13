@@ -1450,12 +1450,13 @@ def temporary_modules(modules=None, attributes=None):
                 del sys.modules[old]
 
 
-# Ultralytics-family nn.Module subclasses that legitimately define a pickle state-hook (__setstate__ etc.), reviewed as
-# benign attribute restorers. _build_safe_globals() refuses to trust any OTHER ultralytics class carrying a state-hook,
-# so a newly added one fails loudly here and gets reviewed before it is trusted under restricted (weights_only) loading.
-_REVIEWED_STATEFUL = frozenset({"AAttn"})  # block.AAttn.__setstate__ backfills the all_head_dim attribute
-_SAFE_GLOBALS_REGISTERED = False
+# Fully-qualified names of ultralytics nn.Module subclasses that legitimately define a pickle state-hook, reviewed as
+# benign attribute restorers (qualified so a same-named class elsewhere is not implicitly trusted). _build_safe_globals()
+# refuses any OTHER ultralytics class carrying a state-hook, so a new one fails loudly and is reviewed before it is
+# trusted under restricted (weights_only) loading. block.AAttn.__setstate__ backfills the all_head_dim attribute.
+_REVIEWED_STATEFUL = frozenset({"ultralytics.nn.modules.block.AAttn"})
 _STATE_HOOKS = ("__reduce__", "__reduce_ex__", "__setstate__", "__getstate__", "__new__")
+_SAFE_GLOBALS = None  # cached allow-list, built once
 _LOAD_STATE = threading.local()  # per-thread flag set while a weights_only load is in progress
 
 
@@ -1474,7 +1475,7 @@ def _has_unreviewed_hook(cls):
 
     Walks the MRO so a hook inherited from a non-torch base (not just one defined directly on `cls`) is caught.
     """
-    if cls.__name__ in _REVIEWED_STATEFUL:
+    if f"{cls.__module__}.{cls.__qualname__}" in _REVIEWED_STATEFUL:
         return False
     for hook in _STATE_HOOKS:
         for base in cls.__mro__:
@@ -1556,12 +1557,16 @@ def _build_safe_globals():
     return allow
 
 
-def _register_safe_globals():
-    """Register the restricted-load allow-list with PyTorch once per process (idempotent)."""
-    global _SAFE_GLOBALS_REGISTERED
-    if not _SAFE_GLOBALS_REGISTERED:
-        torch.serialization.add_safe_globals(_build_safe_globals())
-        _SAFE_GLOBALS_REGISTERED = True
+def _safe_globals_context():
+    """Return a `torch.serialization.safe_globals` context manager scoped to the restricted-load allow-list.
+
+    Built once and cached. Scoping to a context manager (rather than `add_safe_globals`) keeps the allow-list active
+    only for the duration of this load, not permanently across the process.
+    """
+    global _SAFE_GLOBALS
+    if _SAFE_GLOBALS is None:
+        _SAFE_GLOBALS = _build_safe_globals()
+    return torch.serialization.safe_globals(_SAFE_GLOBALS)
 
 
 def _safe_activation(act):
@@ -1644,12 +1649,13 @@ def torch_safe_load(weight, safe_only=None):
             },
         ):
             if safe_only:
-                # weights_only load: reconstruct only the allow-listed known model classes. Flag the load so that if a
-                # checkpoint reaches model construction (parse_model), it uses the no-eval/known-modules path too.
-                _register_safe_globals()
+                # weights_only load: reconstruct only the allow-listed known model classes (scoped to this load). Flag
+                # the load so that if a checkpoint reaches model construction (parse_model), it uses the no-eval and
+                # known-modules path too.
                 _LOAD_STATE.restricted = True
                 try:
-                    return torch_load(file, map_location="cpu", weights_only=True)
+                    with _safe_globals_context():
+                        return torch_load(file, map_location="cpu", weights_only=True)
                 finally:
                     _LOAD_STATE.restricted = False
             return torch_load(file, map_location="cpu")
@@ -1865,9 +1871,9 @@ def parse_model(d, ch, verbose=True):
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
         m = (
             getattr(torch.nn, m[3:])
-            if "nn." in m
+            if m.startswith("nn.")
             else getattr(__import__("torchvision").ops, m[16:])
-            if "torchvision.ops." in m
+            if m.startswith("torchvision.ops.")
             else globals()[m]
         )  # get module
         if restricted and not (isinstance(m, type) and issubclass(m, torch.nn.Module)):

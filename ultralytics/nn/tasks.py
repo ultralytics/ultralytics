@@ -1450,157 +1450,154 @@ def temporary_modules(modules=None, attributes=None):
                 del sys.modules[old]
 
 
-# Fully-qualified names of ultralytics nn.Module subclasses that legitimately define a pickle state-hook, reviewed as
-# benign attribute restorers (qualified so a same-named class elsewhere is not implicitly trusted). _build_safe_globals()
-# refuses any OTHER ultralytics class carrying a state-hook, so a new one fails loudly and is reviewed before it is
-# trusted under restricted (weights_only) loading. block.AAttn.__setstate__ backfills the all_head_dim attribute.
-_REVIEWED_STATEFUL = frozenset({"ultralytics.nn.modules.block.AAttn"})
-_STATE_HOOKS = ("__reduce__", "__reduce_ex__", "__setstate__", "__getstate__", "__new__")
-_SAFE_GLOBALS = None  # cached allow-list, built once
-_LOAD_STATE = threading.local()  # per-thread flag set while a weights_only load is in progress
+class _SafeLoad:
+    """Opt-in restricted checkpoint loading: reconstruct only known model classes (`weights_only=True` plus an
+    allow-list) and build models without `eval()`.
 
-
-def _is_restricted():
-    """Whether model construction should use the restricted (no-eval, known-modules-only) path.
-
-    True when the `ULTRALYTICS_SAFE_LOAD` env flag is set, or while a `safe_only` `torch_safe_load` is running on this
-    thread. `parse_model` consults this so model construction uses the no-eval, known-layer path whether restricted
-    loading was requested via the env flag or the `safe_only` argument.
+    Enabled per-process by the `ULTRALYTICS_SAFE_LOAD` env flag, or per-call by `torch_safe_load(..., safe_only=True)`.
+    Default loading (flag off) is unchanged.
     """
-    return SAFE_LOAD or getattr(_LOAD_STATE, "restricted", False)
 
+    # Fully-qualified ultralytics nn.Module subclasses that legitimately define a pickle state-hook, reviewed as benign
+    # attribute restorers (qualified so a same-named class elsewhere is not implicitly trusted). Any OTHER ultralytics
+    # class with a state-hook fails loudly and must be reviewed here. block.AAttn.__setstate__ backfills all_head_dim.
+    REVIEWED_STATEFUL = frozenset({"ultralytics.nn.modules.block.AAttn"})
+    _HOOKS = ("__reduce__", "__reduce_ex__", "__setstate__", "__getstate__", "__new__")
+    _globals = None  # cached allow-list, built once
+    _local = threading.local()  # per-thread flag set while a weights_only load is in progress
 
-def _has_unreviewed_hook(cls):
-    """Whether `cls`'s effective pickle hook is implemented outside torch/builtins and `cls` is not in the reviewed set.
+    @classmethod
+    def restricted(cls):
+        """Whether model construction should use the no-eval, known-layer path (env flag or an in-progress load)."""
+        return SAFE_LOAD or getattr(cls._local, "active", False)
 
-    Walks the MRO so a hook inherited from a non-torch base (not just one defined directly on `cls`) is caught.
-    """
-    if f"{cls.__module__}.{cls.__qualname__}" in _REVIEWED_STATEFUL:
+    @classmethod
+    @contextlib.contextmanager
+    def loading(cls):
+        """Load with `weights_only=True`: scope the allow-list to this load and mark the thread restricted, so a
+        checkpoint that reaches model construction (parse_model) also uses the no-eval, known-layer path.
+        """
+        if cls._globals is None:
+            cls._globals = cls._build()
+        cls._local.active = True
+        try:
+            with torch.serialization.safe_globals(cls._globals):
+                yield
+        finally:
+            cls._local.active = False
+
+    @staticmethod
+    def activation(act):
+        """Resolve a model-yaml `activation` spec to a `torch.nn` module instance without `eval()`.
+
+        Accepts only the documented `[torch.]nn.<Class>(literal args)` shape (e.g. `nn.SiLU()`,
+        `torch.nn.LeakyReLU(0.1)`) with literal arguments, and rejects anything else.
+        """
+        import ast
+
+        try:
+            call = ast.parse(act.strip(), mode="eval").body
+            assert isinstance(call, ast.Call)
+            attrs = []
+            node = call.func
+            while isinstance(node, ast.Attribute):  # unwind e.g. torch.nn.SiLU -> ["SiLU","nn","torch"]
+                attrs.append(node.attr)
+                node = node.value
+            assert isinstance(node, ast.Name)
+            attrs.append(node.id)  # e.g. ["SiLU", "nn"] or ["SiLU", "nn", "torch"]
+            assert attrs[1:] in (["nn"], ["nn", "torch"]), "activation must be a torch.nn class"
+            klass = getattr(nn, attrs[0])
+            assert isinstance(klass, type) and issubclass(klass, nn.Module)
+            args = [ast.literal_eval(a) for a in call.args]
+            kwargs = {kw.arg: ast.literal_eval(kw.value) for kw in call.keywords}
+            return klass(*args, **kwargs)
+        except Exception as e:
+            raise TypeError(emojis(f"ERROR ❌️ unsupported activation '{act}' blocked during restricted model load.")) from e
+
+    @classmethod
+    def _unreviewed(cls, klass):
+        """Whether `klass`'s effective pickle hook is implemented outside torch/builtins and it is not reviewed.
+
+        Walks the MRO so a hook inherited from a non-torch base (not just one defined directly on `klass`) is caught.
+        """
+        if f"{klass.__module__}.{klass.__qualname__}" in cls.REVIEWED_STATEFUL:
+            return False
+        for hook in cls._HOOKS:
+            for base in klass.__mro__:
+                if hook in vars(base):
+                    if not (base.__module__ == "builtins" or base.__module__.startswith("torch")):
+                        return True  # hook provided by a non-torch class (e.g. ultralytics or third-party) — review it
+                    break  # most-derived definition is a benign torch/builtins one
         return False
-    for hook in _STATE_HOOKS:
-        for base in cls.__mro__:
-            if hook in vars(base):
-                if not (base.__module__ == "builtins" or base.__module__.startswith("torch")):
-                    return True  # hook provided by a non-torch class (e.g. ultralytics or third-party) — needs review
-                break  # most-derived definition is a benign torch/builtins one
-    return False
 
+    @classmethod
+    def _build(cls):
+        """Auto-discover `nn.Module` subclasses across `torch.nn` and the ultralytics model families, registered under
+        every namespace path they are reachable from (covering re-exports such as `block.RealNVP` as `head.RealNVP`),
+        plus torchvision transforms and legacy aliases. An ultralytics class with an unreviewed pickle state-hook raises
+        so it is audited before being trusted.
 
-def _build_safe_globals():
-    """Build the allow-list of globals trusted by the restricted (`weights_only=True`) checkpoint loader.
+        Returns:
+            (list): Items for `torch.serialization.safe_globals` — classes and `(obj, "module.Name")` aliases.
+        """
+        import importlib
+        import inspect
+        import pathlib
+        import pkgutil
 
-    Auto-discovers `nn.Module` subclasses across `torch.nn` and the Ultralytics model families so new architectures
-    need no manual maintenance, registering each under every namespace path it is reachable from (covering re-exports
-    such as `block.RealNVP` re-exported as `head.RealNVP`). Ultralytics-owned classes that define a pickle state-hook
-    must be reviewed via `_REVIEWED_STATEFUL`; an unreviewed one raises so it is audited before being trusted.
+        import torch.nn.modules as torch_nn
 
-    Returns:
-        (list): Items for `torch.serialization.add_safe_globals` — classes and `(obj, "module.Name")` aliases.
-    """
-    import importlib
-    import inspect
-    import pathlib
-    import pkgutil
+        import ultralytics.nn.modules as ul_nn
+        import ultralytics.nn.tasks as ul_tasks
 
-    import torch.nn.modules as torch_nn
+        allow = []
 
-    import ultralytics.nn.modules as ul_nn
-    import ultralytics.nn.tasks as ul_tasks
+        def _scan(pkg, owned):
+            mods = [pkg]
+            if hasattr(pkg, "__path__"):  # package: include all submodules
+                for info in pkgutil.iter_modules(pkg.__path__, f"{pkg.__name__}."):
+                    try:
+                        mods.append(importlib.import_module(info.name))
+                    except Exception:  # optional/oddball submodule — skip
+                        continue
+            for mod in mods:
+                for name, klass in inspect.getmembers(mod, inspect.isclass):
+                    if not issubclass(klass, nn.Module):
+                        continue
+                    if owned and klass.__module__.startswith("ultralytics.") and cls._unreviewed(klass):
+                        raise pickle.UnpicklingError(
+                            f"Refusing to trust {klass.__module__}.{klass.__qualname__}: it has a pickle state-hook "
+                            f"not in REVIEWED_STATEFUL. Review it for safety, then add its name there."
+                        )
+                    # Register under the path the class is reachable from here — matches how a checkpoint pickled it.
+                    allow.append((klass, f"{mod.__name__}.{name}"))
 
-    allow = []
+        _scan(torch_nn, owned=False)  # PyTorch classes (trusted; their state-hooks are benign backward-compat restorers)
+        _scan(ul_nn, owned=True)  # ultralytics block/conv/head/transformer
+        _scan(ul_tasks, owned=True)  # ultralytics task models
 
-    def _scan(pkg, owned):
-        mods = [pkg]
-        if hasattr(pkg, "__path__"):  # package: include all submodules
-            for info in pkgutil.iter_modules(pkg.__path__, f"{pkg.__name__}."):
-                try:
-                    mods.append(importlib.import_module(info.name))
-                except Exception:  # optional/oddball submodule — skip
-                    continue
-        for mod in mods:
-            for name, cls in inspect.getmembers(mod, inspect.isclass):
-                if not issubclass(cls, nn.Module):
-                    continue
-                if owned and cls.__module__.startswith("ultralytics.") and _has_unreviewed_hook(cls):
-                    raise pickle.UnpicklingError(
-                        f"Refusing to trust {cls.__module__}.{cls.__qualname__}: it has a pickle state-hook that is "
-                        f"not in _REVIEWED_STATEFUL. Review it for safety, then add its name there."
-                    )
-                # Register under the path the class is reachable from here — matches how a checkpoint pickled it.
-                allow.append((cls, f"{mod.__name__}.{name}"))
+        # Non-nn.Module data globals in official checkpoints (classification preprocessing transforms).
+        try:
+            import torchvision.transforms.transforms as tvt
+            from torchvision.transforms.functional import InterpolationMode
 
-    _scan(torch_nn, owned=False)  # PyTorch classes (trusted; their state-hooks are benign backward-compat restorers)
-    _scan(ul_nn, owned=True)  # ultralytics block/conv/head/transformer
-    _scan(ul_tasks, owned=True)  # ultralytics task models
+            allow += [tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, InterpolationMode]
+        except ImportError:
+            pass
 
-    # Non-nn.Module data globals that appear in official checkpoints (classification preprocessing transforms).
-    try:
-        import torchvision.transforms.transforms as tvt
-        from torchvision.transforms.functional import InterpolationMode
+        # Legacy/cross-platform aliases (pickled paths with no current class namespace), mirroring temporary_modules().
+        from ultralytics.utils.loss import E2EDetectLoss
 
-        allow += [tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, InterpolationMode]
-    except ImportError:
-        pass
-
-    # Legacy/cross-platform aliases (pickled paths with no current class namespace), mirroring temporary_modules().
-    from ultralytics.utils.loss import E2EDetectLoss
-
-    allow += [
-        (nn.Identity, "ultralytics.nn.modules.block.Silence"),  # YOLOv9e
-        (DetectionModel, "ultralytics.nn.tasks.YOLOv10DetectionModel"),  # YOLOv10
-        (E2EDetectLoss, "ultralytics.utils.loss.v10DetectLoss"),  # YOLOv10
-    ]
-    if WINDOWS:
-        allow += [pathlib.WindowsPath, (pathlib.WindowsPath, "pathlib.PosixPath")]
-    else:
-        allow += [pathlib.PosixPath, (pathlib.PosixPath, "pathlib.WindowsPath")]
-    return allow
-
-
-def _safe_globals_context():
-    """Return a `torch.serialization.safe_globals` context manager scoped to the restricted-load allow-list.
-
-    Built once and cached. Scoping to a context manager (rather than `add_safe_globals`) keeps the allow-list active
-    only for the duration of this load, not permanently across the process.
-    """
-    global _SAFE_GLOBALS
-    if _SAFE_GLOBALS is None:
-        _SAFE_GLOBALS = _build_safe_globals()
-    return torch.serialization.safe_globals(_SAFE_GLOBALS)
-
-
-def _safe_activation(act):
-    """Resolve a model-yaml `activation` spec to a `torch.nn` module instance without `eval()`.
-
-    Used under `weights_only` loading. Accepts only the documented `[torch.]nn.<Class>(literal args)` shape
-    (e.g. `nn.SiLU()`, `torch.nn.LeakyReLU(0.1)`) with literal arguments, and rejects anything else.
-
-    Args:
-        act (str): Activation spec from the model yaml.
-
-    Returns:
-        (torch.nn.Module): The instantiated activation.
-    """
-    import ast
-
-    try:
-        call = ast.parse(act.strip(), mode="eval").body
-        assert isinstance(call, ast.Call)
-        attrs = []
-        node = call.func
-        while isinstance(node, ast.Attribute):  # unwind e.g. torch.nn.SiLU -> ["SiLU","nn","torch"]
-            attrs.append(node.attr)
-            node = node.value
-        assert isinstance(node, ast.Name)
-        attrs.append(node.id)  # e.g. ["SiLU", "nn"] or ["SiLU", "nn", "torch"]
-        assert attrs[1:] in (["nn"], ["nn", "torch"]), "activation must be a torch.nn class"
-        cls = getattr(nn, attrs[0])
-        assert isinstance(cls, type) and issubclass(cls, nn.Module)
-        args = [ast.literal_eval(a) for a in call.args]
-        kwargs = {kw.arg: ast.literal_eval(kw.value) for kw in call.keywords}
-        return cls(*args, **kwargs)
-    except Exception as e:
-        raise TypeError(emojis(f"ERROR ❌️ unsupported activation '{act}' blocked during restricted model load.")) from e
+        allow += [
+            (nn.Identity, "ultralytics.nn.modules.block.Silence"),  # YOLOv9e
+            (DetectionModel, "ultralytics.nn.tasks.YOLOv10DetectionModel"),  # YOLOv10
+            (E2EDetectLoss, "ultralytics.utils.loss.v10DetectLoss"),  # YOLOv10
+        ]
+        if WINDOWS:
+            allow += [pathlib.WindowsPath, (pathlib.WindowsPath, "pathlib.PosixPath")]
+        else:
+            allow += [pathlib.PosixPath, (pathlib.PosixPath, "pathlib.WindowsPath")]
+        return allow
 
 
 def torch_safe_load(weight, safe_only=None):
@@ -1649,15 +1646,8 @@ def torch_safe_load(weight, safe_only=None):
             },
         ):
             if safe_only:
-                # weights_only load: reconstruct only the allow-listed known model classes (scoped to this load). Flag
-                # the load so that if a checkpoint reaches model construction (parse_model), it uses the no-eval and
-                # known-modules path too.
-                _LOAD_STATE.restricted = True
-                try:
-                    with _safe_globals_context():
-                        return torch_load(file, map_location="cpu", weights_only=True)
-                finally:
-                    _LOAD_STATE.restricted = False
+                with _SafeLoad.loading():  # weights_only load scoped to the known-class allow-list
+                    return torch_load(file, map_location="cpu", weights_only=True)
             return torch_load(file, map_location="cpu")
 
     try:
@@ -1799,11 +1789,11 @@ def parse_model(d, ch, verbose=True):
             LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")
         depth, width, max_channels = scales[scale]
 
-    restricted = _is_restricted()
+    restricted = _SafeLoad.restricted()
     if act:
         # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU(). Under restricted loading, resolve the
-        # spec without eval() (see _safe_activation).
-        Conv.default_act = _safe_activation(act) if restricted else eval(act)
+        # spec without eval() (see _SafeLoad.activation).
+        Conv.default_act = _SafeLoad.activation(act) if restricted else eval(act)
         if verbose:
             LOGGER.info(f"{colorstr('activation:')} {act}")  # print
 

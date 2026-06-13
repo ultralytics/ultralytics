@@ -561,8 +561,11 @@ class Exporter:
             assert fmt != "ncnn", "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
         if fmt == "rknn":
-            if model.task != "detect":
-                raise ValueError("Rockchip RKNN export is only supported for detection models.")
+            if self.args.int8 and model.task != "detect":
+                raise ValueError(
+                    "Rockchip RKNN INT8 export is only supported for detection models. "
+                    "Use FP16 (int8=False) for other tasks."
+                )
             if not self.args.name:
                 LOGGER.warning(
                     "Rockchip RKNN export requires a missing 'name' arg for processor type. "

@@ -69,7 +69,9 @@ class RKNNBackend(BaseBackend):
         im = (im.cpu().numpy() * 255).astype("uint8")
         im = im if isinstance(im, (list, tuple)) else [im]
         y = self.model.inference(inputs=im)
-        if isinstance(y, (list, tuple)) and len(y) > 1:
+        # only the INT8 raw-head path emits all-4D NCHW maps in (reg, cls) pairs
+        # FP16 seg outputs (3D preds + 4D protos) must pass through
+        if isinstance(y, (list, tuple)) and len(y) > 1 and len(y) % 2 == 0 and all(o.ndim == 4 for o in y):
             return self._decode(y)  # raw per-scale reg/cls maps -> (1, 4 + nc, anchors)
         return y
 

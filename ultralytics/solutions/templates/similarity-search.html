@@ -127,11 +127,12 @@
 
     <!-- Search box -->
     <form method="POST">
+      {% csrf_token %}
       <input
         type="text"
         name="query"
         placeholder="Describe the scene (e.g., man walking)"
-        value="{{ request.form['query'] }}"
+        value="{{ request.form.get('query', '') | e }}"
         required
       />
       <button type="submit">Search</button>

@@ -770,6 +770,12 @@ class YOLOAnomalyV2Model(DetectionModel):
         # (split off in _predict_once, consumed via prior_mode="cached").
         self.mb_cached_prior = bool(v2_cfg.get("mb_cached_prior", False))
         self._cached_prior_buf: torch.Tensor | None = None
+        # Gate the cached heatmap by the (augmented) GT mask during training: multiply the
+        # cached prior by the rendered+augmented mask so out-of-defect heatmap noise is
+        # suppressed while the in-box heatmap distribution is kept. The mask retains its
+        # augmentation noise (distractor/erase/warp/jitter) on purpose — the gated prior stays
+        # imperfect like the raw inference heatmap, not a clean GT answer key.
+        self.mb_cached_mask_gate = bool(v2_cfg.get("mb_cached_mask_gate", False))
 
         # Prior mode state (predictor/validator controlled)
         self._prior_mode: str | None = None  # None = legacy (GT bboxes -> renderer)
@@ -1027,7 +1033,8 @@ class YOLOAnomalyV2Model(DetectionModel):
                               ("heatmap_norm", "none"), ("mask_mag_range", (1.0, 1.0)),
                               ("mask_blur_sigma_max", 0.0),
                               ("mb_queue_capacity", 0), ("mb_blend_p", 0.5),
-                              ("mb_cached_prior", False), ("_cached_prior_buf", None)]:
+                              ("mb_cached_prior", False), ("_cached_prior_buf", None),
+                              ("mb_cached_mask_gate", False)]:
             if not hasattr(self, attr):
                 setattr(self, attr, default)
 
@@ -1116,6 +1123,14 @@ class YOLOAnomalyV2Model(DetectionModel):
                 hmap = torch.nn.functional.interpolate(
                     hmap, size=(mask_size, mask_size), mode="bilinear", align_corners=False
                 )
+            # Train-time mask gate: multiply by the augmented GT mask to suppress the cached
+            # heatmap's out-of-defect noise (keeps in-box heatmap distribution; mask keeps its
+            # augmentation noise so the prior stays imperfect). No-op at eval (no bboxes).
+            if self.training and getattr(self, "mb_cached_mask_gate", False) and bboxes is not None:
+                bb, bi = self._augment_prior_bboxes(bboxes, batch_idx)
+                m = self.mask_renderer(bb, bi, batch_size)
+                m = self._augment_mask(m)
+                hmap = hmap * m.to(device=hmap.device, dtype=hmap.dtype)
             return hmap
         if prior_mode == "seg_heatmap":
             # Average of segment heatmap and memory-bank heatmap.

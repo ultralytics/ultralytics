@@ -14,6 +14,20 @@ except (ImportError, AssertionError):
     clearml = None
 
 
+def _clearml_project_name(project) -> str:
+    """Convert the Ultralytics project argument into a ClearML project name.
+
+    Ultralytics commonly uses ``project`` as an output directory, while ClearML interprets ``project_name`` as a
+    namespace. Only leading POSIX-style slashes are normalized to avoid the ClearML project lookup/create inconsistency
+    reported in Issue #24820. Windows and UNC-style paths are intentionally left unchanged to keep this fix narrowly
+    scoped.
+    """
+    project_name = str(project or "Ultralytics")
+    if project_name.startswith("/") and (not project_name.startswith("//") or project_name.startswith("///")):
+        project_name = project_name.lstrip("/") or "Ultralytics"
+    return project_name
+
+
 def _log_debug_samples(files, title: str = "Debug Samples") -> None:
     """Log files (images) as debug samples in the ClearML task.
 
@@ -66,7 +80,7 @@ def on_pretrain_routine_start(trainer) -> None:
             PatchedMatplotlib.update_current_task(None)
         else:
             task = Task.init(
-                project_name=trainer.args.project or "Ultralytics",
+                project_name=_clearml_project_name(trainer.args.project),
                 task_name=trainer.args.name,
                 tags=["Ultralytics"],
                 output_uri=True,

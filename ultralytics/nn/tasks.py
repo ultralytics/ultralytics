@@ -3,7 +3,6 @@
 import contextlib
 import pickle
 import re
-import types
 from copy import deepcopy
 from pathlib import Path
 
@@ -74,7 +73,7 @@ from ultralytics.nn.modules import (
     YOLOESegment26,
     v10Detect,
 )
-from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, SETTINGS, WINDOWS, YAML, colorstr, emojis
+from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, SAFE_LOAD, SETTINGS, WINDOWS, YAML, colorstr, emojis
 from ultralytics.utils.checks import REMOTE_FILE_PREFIXES, check_file, check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
     E2ELoss,
@@ -1450,54 +1449,138 @@ def temporary_modules(modules=None, attributes=None):
                 del sys.modules[old]
 
 
-class SafeClass:
-    """A placeholder class to replace unknown classes during unpickling."""
+# Ultralytics-family nn.Module subclasses that legitimately define a pickle state-hook (__setstate__ etc.), reviewed as
+# benign attribute restorers. _build_safe_globals() refuses to trust any OTHER ultralytics class carrying a state-hook,
+# so a newly added one fails loudly here and gets reviewed before it is trusted under restricted (weights_only) loading.
+_REVIEWED_STATEFUL = frozenset({"AAttn"})  # block.AAttn.__setstate__ backfills the all_head_dim attribute
+_SAFE_GLOBALS_REGISTERED = False
 
-    def __init__(self, *args, **kwargs):
-        """Initialize SafeClass instance, ignoring all arguments."""
+
+def _build_safe_globals():
+    """Build the allow-list of globals trusted by the restricted (`weights_only=True`) checkpoint loader.
+
+    Auto-discovers `nn.Module` subclasses across `torch.nn` and the Ultralytics model families so new architectures
+    need no manual maintenance, registering each under every namespace path it is reachable from (covering re-exports
+    such as `block.RealNVP` re-exported as `head.RealNVP`). Ultralytics-owned classes that define a pickle state-hook
+    must be reviewed via `_REVIEWED_STATEFUL`; an unreviewed one raises so it is audited before being trusted.
+
+    Returns:
+        (list): Items for `torch.serialization.add_safe_globals` — classes and `(obj, "module.Name")` aliases.
+    """
+    import importlib
+    import inspect
+    import pathlib
+    import pkgutil
+
+    import torch.nn.modules as torch_nn
+
+    import ultralytics.nn.modules as ul_nn
+    import ultralytics.nn.tasks as ul_tasks
+
+    hooks = ("__reduce__", "__reduce_ex__", "__setstate__", "__getstate__", "__new__")
+    allow = []
+
+    def _scan(pkg, owned):
+        mods = [pkg]
+        if hasattr(pkg, "__path__"):  # package: include all submodules
+            for info in pkgutil.iter_modules(pkg.__path__, f"{pkg.__name__}."):
+                try:
+                    mods.append(importlib.import_module(info.name))
+                except Exception:  # optional/oddball submodule — skip
+                    continue
+        for mod in mods:
+            for name, cls in inspect.getmembers(mod, inspect.isclass):
+                if not issubclass(cls, nn.Module):
+                    continue
+                if owned and cls.__module__.startswith("ultralytics.") and set(hooks) & set(vars(cls)):
+                    if cls.__name__ not in _REVIEWED_STATEFUL:
+                        raise pickle.UnpicklingError(
+                            f"Refusing to trust {cls.__module__}.{cls.__qualname__}: it defines a pickle state-hook "
+                            f"that is not in _REVIEWED_STATEFUL. Review it for safety, then add its name there."
+                        )
+                # Register under the path the class is reachable from here — matches how a checkpoint pickled it.
+                allow.append((cls, f"{mod.__name__}.{name}"))
+
+    _scan(torch_nn, owned=False)  # PyTorch classes (trusted; their state-hooks are benign backward-compat restorers)
+    _scan(ul_nn, owned=True)  # ultralytics block/conv/head/transformer
+    _scan(ul_tasks, owned=True)  # ultralytics task models
+
+    # Non-nn.Module data globals that appear in official checkpoints (classification preprocessing transforms).
+    try:
+        import torchvision.transforms.transforms as tvt
+        from torchvision.transforms.functional import InterpolationMode
+
+        allow += [tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, InterpolationMode]
+    except ImportError:
         pass
 
-    def __call__(self, *args, **kwargs):
-        """Run SafeClass instance, ignoring all arguments."""
-        pass
+    # Legacy/cross-platform aliases (pickled paths with no current class namespace), mirroring temporary_modules().
+    from ultralytics.utils.loss import E2EDetectLoss
+
+    allow += [
+        (nn.Identity, "ultralytics.nn.modules.block.Silence"),  # YOLOv9e
+        (DetectionModel, "ultralytics.nn.tasks.YOLOv10DetectionModel"),  # YOLOv10
+        (E2EDetectLoss, "ultralytics.utils.loss.v10DetectLoss"),  # YOLOv10
+    ]
+    if WINDOWS:
+        allow += [pathlib.WindowsPath, (pathlib.WindowsPath, "pathlib.PosixPath")]
+    else:
+        allow += [pathlib.PosixPath, (pathlib.PosixPath, "pathlib.WindowsPath")]
+    return allow
 
 
-class SafeUnpickler(pickle.Unpickler):
-    """Custom Unpickler that replaces unknown classes with SafeClass."""
-
-    def find_class(self, module, name):
-        """Attempt to find a class, returning SafeClass if not among safe modules.
-
-        Args:
-            module (str): Module name.
-            name (str): Class name.
-
-        Returns:
-            (type): Found class or SafeClass.
-        """
-        safe_modules = (
-            "torch",
-            "collections",
-            "collections.abc",
-            "builtins",
-            "math",
-            "numpy",
-            # Add other modules considered safe
-        )
-        if module in safe_modules:
-            return super().find_class(module, name)
-        else:
-            return SafeClass
+def _register_safe_globals():
+    """Register the restricted-load allow-list with PyTorch once per process (idempotent)."""
+    global _SAFE_GLOBALS_REGISTERED
+    if not _SAFE_GLOBALS_REGISTERED:
+        torch.serialization.add_safe_globals(_build_safe_globals())
+        _SAFE_GLOBALS_REGISTERED = True
 
 
-def torch_safe_load(weight, safe_only=False):
+def _safe_activation(act):
+    """Resolve a model-yaml `activation` spec to a `torch.nn` module instance without `eval()`.
+
+    Used under `weights_only` loading. Accepts only the documented `[torch.]nn.<Class>(literal args)` shape
+    (e.g. `nn.SiLU()`, `torch.nn.LeakyReLU(0.1)`) with literal arguments, and rejects anything else.
+
+    Args:
+        act (str): Activation spec from the model yaml.
+
+    Returns:
+        (torch.nn.Module): The instantiated activation.
+    """
+    import ast
+
+    try:
+        call = ast.parse(act.strip(), mode="eval").body
+        assert isinstance(call, ast.Call)
+        attrs = []
+        node = call.func
+        while isinstance(node, ast.Attribute):  # unwind e.g. torch.nn.SiLU -> ["SiLU","nn","torch"]
+            attrs.append(node.attr)
+            node = node.value
+        assert isinstance(node, ast.Name)
+        attrs.append(node.id)
+        assert "nn" in attrs, "activation must be a torch.nn class"
+        cls = getattr(nn, attrs[0])
+        assert isinstance(cls, type) and issubclass(cls, nn.Module)
+        args = [ast.literal_eval(a) for a in call.args]
+        kwargs = {kw.arg: ast.literal_eval(kw.value) for kw in call.keywords}
+        return cls(*args, **kwargs)
+    except Exception as e:
+        raise TypeError(emojis(f"ERROR ❌️ unsupported activation '{act}' blocked during restricted model load.")) from e
+
+
+def torch_safe_load(weight, safe_only=None):
     """Attempt to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised, it catches
     the error, logs a warning message, and attempts to install the missing module via the check_requirements()
     function. After installation, the function again attempts to load the model using torch.load().
 
     Args:
         weight (str | Path): The file path of the PyTorch model.
-        safe_only (bool): If True, replace unknown classes with SafeClass during loading.
+        safe_only (bool, optional): Load with `torch.load(weights_only=True)`, reconstructing only the known
+            Ultralytics/torch model classes on the allow-list. Defaults to the `ULTRALYTICS_SAFE_LOAD` environment
+            variable (off), so standard usage is unchanged; set the env to opt in.
 
     Returns:
         (dict): The loaded model checkpoint.
@@ -1509,6 +1592,8 @@ def torch_safe_load(weight, safe_only=False):
     """
     from ultralytics.utils.downloads import attempt_download_asset
 
+    if safe_only is None:
+        safe_only = SAFE_LOAD
     check_suffix(file=weight, suffix=".pt")
     file = attempt_download_asset(weight)  # search online if missing locally
 
@@ -1532,12 +1617,9 @@ def torch_safe_load(weight, safe_only=False):
             },
         ):
             if safe_only:
-                # Load via custom pickle module
-                safe_pickle = types.ModuleType("safe_pickle")
-                safe_pickle.Unpickler = SafeUnpickler
-                safe_pickle.load = lambda file_obj: SafeUnpickler(file_obj).load()
-                with open(file, "rb") as f:
-                    return torch_load(f, pickle_module=safe_pickle)
+                # weights_only load: reconstruct only the allow-listed known model classes.
+                _register_safe_globals()
+                return torch_load(file, map_location="cpu", weights_only=True)
             return torch_load(file, map_location="cpu")
 
     try:
@@ -1577,6 +1659,10 @@ def torch_safe_load(weight, safe_only=False):
                     "Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
                 )
             ) from e
+        if safe_only:
+            # Under weights_only loading, do not auto-install a module named by the checkpoint or fall back to a
+            # weights_only=False reload.
+            raise
         LOGGER.warning(
             f"{weight} appears to require '{e.name}', which is not in Ultralytics requirements."
             f"\nAutoInstall will run now for '{e.name}' but this feature will be removed in the future."
@@ -1585,6 +1671,18 @@ def torch_safe_load(weight, safe_only=False):
         )
         check_requirements(e.name)  # install missing module
         ckpt = torch_load(file, map_location="cpu")
+
+    except pickle.UnpicklingError as e:
+        # weights_only=True encountered a global outside the allow-list. The default (weights_only=False) path can also
+        # raise this for a corrupt or legacy file, so re-raise verbatim there to preserve existing behavior.
+        if not safe_only:
+            raise
+        raise TypeError(
+            emojis(
+                f"ERROR ❌️ {weight} references types outside the supported Ultralytics checkpoint format. "
+                f"Use an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
+            )
+        ) from e
 
     if not isinstance(ckpt, dict):
         # File is likely a YOLO instance saved with i.e. torch.save(model, "saved_model.pt")
@@ -1664,7 +1762,9 @@ def parse_model(d, ch, verbose=True):
         depth, width, max_channels = scales[scale]
 
     if act:
-        Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU()
+        # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU(). Under weights_only loading, resolve
+        # the spec without eval() (see _safe_activation).
+        Conv.default_act = _safe_activation(act) if SAFE_LOAD else eval(act)
         if verbose:
             LOGGER.info(f"{colorstr('activation:')} {act}")  # print
 

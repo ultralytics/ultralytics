@@ -211,18 +211,18 @@ nav:
       - YOLO26 🚀: models/yolo26.md
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
-          - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/
-          - 🇰🇷&nbsp 한국어: https://docs.ultralytics.com/ko/
-          - 🇯🇵&nbsp 日本語: https://docs.ultralytics.com/ja/
-          - 🇷🇺&nbsp Русский: https://docs.ultralytics.com/ru/
-          - 🇩🇪&nbsp Deutsch: https://docs.ultralytics.com/de/
-          - 🇫🇷&nbsp Français: https://docs.ultralytics.com/fr/
-          - 🇪🇸&nbsp Español: https://docs.ultralytics.com/es/
-          - 🇵🇹&nbsp Português: https://docs.ultralytics.com/pt/
-          - 🇮🇹&nbsp Italiano: https://docs.ultralytics.com/it/
-          - 🇹🇷&nbsp Türkçe: https://docs.ultralytics.com/tr/
-          - 🇻🇳&nbsp Tiếng Việt: https://docs.ultralytics.com/vi/
-          - 🇸🇦&nbsp العربية: https://docs.ultralytics.com/ar/
+          - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh
+          - 🇰🇷&nbsp 한국어: https://docs.ultralytics.com/ko
+          - 🇯🇵&nbsp 日本語: https://docs.ultralytics.com/ja
+          - 🇷🇺&nbsp Русский: https://docs.ultralytics.com/ru
+          - 🇩🇪&nbsp Deutsch: https://docs.ultralytics.com/de
+          - 🇫🇷&nbsp Français: https://docs.ultralytics.com/fr
+          - 🇪🇸&nbsp Español: https://docs.ultralytics.com/es
+          - 🇵🇹&nbsp Português: https://docs.ultralytics.com/pt
+          - 🇮🇹&nbsp Italiano: https://docs.ultralytics.com/it
+          - 🇹🇷&nbsp Türkçe: https://docs.ultralytics.com/tr
+          - 🇻🇳&nbsp Tiếng Việt: https://docs.ultralytics.com/vi
+          - 🇸🇦&nbsp العربية: https://docs.ultralytics.com/ar
   - Modes:
       - modes/index.md
       - Train: modes/train.md
@@ -520,7 +520,6 @@ nav:
       - Workouts Monitoring: guides/workouts-monitoring.md
   - Guides:
       - Guides: guides/index.md
-      - A Guide on Model Testing: guides/model-testing.md
       - AzureML Quickstart: guides/azureml-quickstart.md
       - Best Practices for Model Deployment: guides/model-deployment-practices.md
       - COCO to YOLO Conversion: guides/coco-to-yolo.md
@@ -543,6 +542,7 @@ nav:
       - Maintaining Your Computer Vision Model: guides/model-monitoring-and-maintenance.md
       - Modal Quickstart: guides/modal-quickstart.md
       - Model Deployment Options: guides/model-deployment-options.md
+      - Model Testing: guides/model-testing.md
       - Model YAML Configuration Guide: guides/model-yaml-config.md
       - NVIDIA DALI GPU Preprocessing: guides/nvidia-dali.md
       - NVIDIA DGX Spark: guides/nvidia-dgx-spark.md
@@ -662,6 +662,8 @@ nav:
           - Settings: platform/account/settings.md
       - Explore: platform/explore.md
       - REST API: platform/api/index.md
+
+  - Rust Inference: inference/index.md
 
   - Reference:
       - reference/index.md
@@ -826,11 +828,17 @@ nav:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md
           - byte_tracker: reference/trackers/byte_tracker.md
+          - deep_oc_sort: reference/trackers/deep_oc_sort.md
+          - fast_tracker: reference/trackers/fast_tracker.md
+          - oc_sort: reference/trackers/oc_sort.md
           - track: reference/trackers/track.md
+          - track_tracker: reference/trackers/track_tracker.md
           - utils:
               - gmc: reference/trackers/utils/gmc.md
               - kalman_filter: reference/trackers/utils/kalman_filter.md
               - matching: reference/trackers/utils/matching.md
+              - reid: reference/trackers/utils/reid.md
+              - stracks: reference/trackers/utils/stracks.md
       - utils:
           - __init__: reference/utils/__init__.md
           - autobatch: reference/utils/autobatch.md

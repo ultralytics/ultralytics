@@ -544,7 +544,7 @@ For camera-based inference on Raspberry Pi, the [picamera2 Hailo examples](https
 
 ### Video Inference with TAPPAS
 
-For high-throughput video pipelines, [TAPPAS](https://github.com/hailo-ai/tappas) provides GStreamer elements that stream video through the Hailo chip in real time:
+For high-throughput video pipelines, [TAPPAS](https://github.com/hailo-ai/hailo-apps-core) provides GStreamer elements that stream video through the Hailo chip in real time:
 
 ```bash
 MODEL=yolo11n
@@ -554,7 +554,7 @@ gst-launch-1.0 filesrc location=video.mp4 ! decodebin ! \
   hailooverlay ! autovideosink
 ```
 
-See the [TAPPAS documentation](https://github.com/hailo-ai/tappas) for full pipeline configuration options.
+See the [TAPPAS documentation](https://github.com/hailo-ai/hailo-apps-core) for full pipeline configuration options.
 
 ## Summary
 

@@ -153,7 +153,7 @@ def main():
                         help="Single category (default: all 15). 'all' = all.")
     parser.add_argument("--n-per-category", type=int, default=20,
                         help="Max test images per category (0 = all)")
-    parser.add_argument("--conf", type=float, default=0.1)
+    parser.add_argument("--conf", type=float, default=0.01)
     parser.add_argument("--iou", type=float, default=0.1, help="NMS IoU threshold (applied to all prior modes)")
     parser.add_argument("--imgsz", type=int, default=320)
     parser.add_argument("--batch", type=int, default=8)

@@ -156,7 +156,7 @@ def main():
                         help="Single category (default: all 15). 'all' = all.")
     parser.add_argument("--n-per-category", type=int, default=20,
                         help="Max test images per category (0 = all)")
-    parser.add_argument("--conf", type=float, default=0.4)
+    parser.add_argument("--conf", type=float, default=0.1)
     parser.add_argument("--iou", type=float, default=0.1, help="NMS IoU threshold")
     parser.add_argument("--imgsz", type=int, default=320)
     parser.add_argument("--batch", type=int, default=8)
@@ -190,27 +190,18 @@ def main():
     LOGGER.info(f"Archive dir: {out_root}")
 
     # ---- Build model ONCE (weights shared across categories) ----
-    # Load the ckpt FIRST so the head can be sized to its class count: a multiclass checkpoint
-    # (e.g. nc=35) built with nc=1 would have its cls-head weights shape-mismatched and silently
-    # dropped, leaving a random classifier. nc comes from --nc, else auto-detected from the ckpt.
     LOGGER.info("Building model...")
+    model = YOLOAnomalyV2Model(args.yaml, nc=1, verbose=False)
     ckpt = torch.load(args.ckpt, map_location="cpu", weights_only=False)
     if isinstance(ckpt, dict):
         inner = ckpt.get("ema") or ckpt.get("model")
         ckpt_state = inner.state_dict() if hasattr(inner, "state_dict") else inner
     else:
-        inner, ckpt_state = None, ckpt
-    ckpt_names = getattr(inner, "names", None)
-    nc = args.nc or getattr(inner, "nc", None) or (len(ckpt_names) if ckpt_names else None) or 1
-    LOGGER.info(f"nc = {nc}" + (" (--nc)" if args.nc else " (auto-detected from ckpt)"))
-
-    model = YOLOAnomalyV2Model(args.yaml, nc=nc, verbose=False)
+        ckpt_state = ckpt
     ms = model.state_dict()
     matched = {k: v for k, v in ckpt_state.items() if k in ms and ms[k].shape == v.shape}
     model.load_state_dict(matched, strict=False)
     _report_load(matched, ckpt_state, ms)
-    if ckpt_names:
-        model.names = ckpt_names  # plotted detections show the real class labels
     model.to(device)
     model.eval()
     model.heatmap_norm = args.heat_norm

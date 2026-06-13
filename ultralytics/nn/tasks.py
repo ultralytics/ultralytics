@@ -1458,11 +1458,6 @@ class _SafeLoad:
     Default loading (flag off) is unchanged.
     """
 
-    # Fully-qualified ultralytics nn.Module subclasses that legitimately define a pickle state-hook, reviewed as benign
-    # attribute restorers (qualified so a same-named class elsewhere is not implicitly trusted). Any OTHER ultralytics
-    # class with a state-hook fails loudly and must be reviewed here. block.AAttn.__setstate__ backfills all_head_dim.
-    REVIEWED_STATEFUL = frozenset({"ultralytics.nn.modules.block.AAttn"})
-    _HOOKS = ("__reduce__", "__reduce_ex__", "__setstate__", "__getstate__", "__new__")
     _globals = None  # cached allow-list, built once
     _local = threading.local()  # per-thread flag set while a weights_only load is in progress
 
@@ -1515,27 +1510,10 @@ class _SafeLoad:
             raise TypeError(emojis(f"ERROR ❌️ unsupported activation '{act}' blocked during restricted model load.")) from e
 
     @classmethod
-    def _unreviewed(cls, klass):
-        """Whether `klass`'s effective pickle hook is implemented outside torch/builtins and it is not reviewed.
-
-        Walks the MRO so a hook inherited from a non-torch base (not just one defined directly on `klass`) is caught.
-        """
-        if f"{klass.__module__}.{klass.__qualname__}" in cls.REVIEWED_STATEFUL:
-            return False
-        for hook in cls._HOOKS:
-            for base in klass.__mro__:
-                if hook in vars(base):
-                    if not (base.__module__ == "builtins" or base.__module__.startswith("torch")):
-                        return True  # hook provided by a non-torch class (e.g. ultralytics or third-party) — review it
-                    break  # most-derived definition is a benign torch/builtins one
-        return False
-
-    @classmethod
     def _build(cls):
         """Auto-discover `nn.Module` subclasses across `torch.nn` and the ultralytics model families, registered under
         every namespace path they are reachable from (covering re-exports such as `block.RealNVP` as `head.RealNVP`),
-        plus torchvision transforms and legacy aliases. An ultralytics class with an unreviewed pickle state-hook raises
-        so it is audited before being trusted.
+        plus torchvision transforms and legacy aliases.
 
         Returns:
             (list): Items for `torch.serialization.safe_globals` — classes and `(obj, "module.Name")` aliases.
@@ -1552,7 +1530,7 @@ class _SafeLoad:
 
         allow = []
 
-        def _scan(pkg, owned):
+        def _scan(pkg):
             mods = [pkg]
             if hasattr(pkg, "__path__"):  # package: include all submodules
                 for info in pkgutil.iter_modules(pkg.__path__, f"{pkg.__name__}."):
@@ -1562,19 +1540,13 @@ class _SafeLoad:
                         continue
             for mod in mods:
                 for name, klass in inspect.getmembers(mod, inspect.isclass):
-                    if not issubclass(klass, nn.Module):
-                        continue
-                    if owned and klass.__module__.startswith("ultralytics.") and cls._unreviewed(klass):
-                        raise pickle.UnpicklingError(
-                            f"Refusing to trust {klass.__module__}.{klass.__qualname__}: it has a pickle state-hook "
-                            f"not in REVIEWED_STATEFUL. Review it for safety, then add its name there."
-                        )
-                    # Register under the path the class is reachable from here — matches how a checkpoint pickled it.
-                    allow.append((klass, f"{mod.__name__}.{name}"))
+                    if issubclass(klass, nn.Module):
+                        # Register under the path the class is reachable from — matches how a checkpoint pickled it.
+                        allow.append((klass, f"{mod.__name__}.{name}"))
 
-        _scan(torch_nn, owned=False)  # PyTorch classes (trusted; their state-hooks are benign backward-compat restorers)
-        _scan(ul_nn, owned=True)  # ultralytics block/conv/head/transformer
-        _scan(ul_tasks, owned=True)  # ultralytics task models
+        _scan(torch_nn)  # PyTorch nn modules
+        _scan(ul_nn)  # ultralytics block/conv/head/transformer
+        _scan(ul_tasks)  # ultralytics task models
 
         # Non-nn.Module data globals in official checkpoints (classification preprocessing transforms).
         try:

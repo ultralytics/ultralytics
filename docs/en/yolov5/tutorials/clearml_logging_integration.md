@@ -10,7 +10,7 @@ keywords: ClearML, YOLOv5, machine learning, experiment tracking, data versionin
 
 ## About ClearML
 
-[ClearML](https://www.clear.ml/) is an [open-source](https://github.com/clearml/clearml) MLOps platform built to streamline machine learning workflows and save engineering time.
+[ClearML](https://clear.ml/) is an [open-source](https://github.com/clearml/clearml) MLOps platform built to streamline machine learning workflows and save engineering time.
 
 - 🔨 Track every YOLOv5 training run in the **experiment manager**.
 - 🔧 Version and access your custom [training data](https://www.ultralytics.com/glossary/training-data) with the integrated ClearML **data versioning tool**.
@@ -26,7 +26,7 @@ Use as many or as few of these tools as you need — start with the experiment m
 
 ClearML needs to communicate with a server to track your experiments and data. You have two options:
 
-- Sign up for the free [ClearML Hosted Service](https://www.clear.ml/), or
+- Sign up for the free [ClearML Hosted Service](https://clear.ml/), or
 - Deploy your own [ClearML server](https://docs.clear.ml/docs/latest/docs/deploying_clearml/clearml_server) — it is open-source, so it remains a viable option even for sensitive data.
 
 Then install the `clearml` Python package and connect the SDK to your server:

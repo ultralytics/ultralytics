@@ -92,7 +92,6 @@ def torch2onnx(
 
 def modelopt_quantize_onnx(
     onnx_file: str,
-    half: bool = False,
     int8: bool = False,
     dataset=None,
     shape: tuple[int, int, int, int] = (1, 3, 640, 640),
@@ -107,8 +106,7 @@ def modelopt_quantize_onnx(
 
     Args:
         onnx_file (str): Path to the FP32 ONNX file to convert.
-        half (bool): Convert the ONNX model to FP16 mixed precision. Ignored when ``int8=True``.
-        int8 (bool): Quantize the ONNX model to INT8 with Q/DQ nodes.
+        int8 (bool): Quantize the ONNX model to INT8 with Q/DQ nodes. If False, outputs an FP16 precision ONNX file.
         dataset (ultralytics.data.build.InfiniteDataLoader | None): Dataloader providing INT8 calibration images.
             Required when ``int8=True``.
         shape (tuple[int, int, int, int]): Input shape (batch, channels, height, width) used for dynamic calibration.
@@ -125,26 +123,26 @@ def modelopt_quantize_onnx(
     check_requirements("nvidia-modelopt[onnx]>=0.44")
     import onnx
 
+    input_name = onnx.load(onnx_file, load_external_data=False).graph.input[0].name
     if int8:
         from modelopt.onnx.quantization import quantize
 
-        input_name = onnx.load(onnx_file, load_external_data=False).graph.input[0].name
         out_file = str(Path(onnx_file).with_suffix(".int8.onnx"))
         # Collect up to ~500 calibration images (TensorRT recommendation); ModelOpt holds them in memory at once,
         # so cap the count to bound memory instead of materializing the entire (possibly thousands-image) dataset.
         images, n = [], 0
         for batch in dataset:
-            images.append(batch["img"].to(torch.float32) / 255.0)
+            images.append(batch["img"])
             n += images[-1].shape[0]
             if n >= 512:
                 break
-        calib = torch.cat(images).cpu().numpy()
+        calib = torch.cat(images).to(torch.float32) / 255.0
         LOGGER.info(f"{prefix} quantizing ONNX to INT8 with ModelOpt using {calib.shape[0]} calibration images...")
         kwargs = {"calibration_shapes": f"{input_name}:{'x'.join(str(d) for d in shape)}"} if dynamic else {}
         quantize(
             onnx_file,
             quantize_mode="int8",
-            calibration_data={input_name: calib},
+            calibration_data={input_name: calib.cpu().numpy()},
             calibration_method="max",
             output_path=out_file,
             **kwargs,
@@ -155,7 +153,15 @@ def modelopt_quantize_onnx(
 
     out_file = str(Path(onnx_file).with_suffix(".fp16.onnx"))
     LOGGER.info(f"{prefix} converting ONNX to FP16 mixed precision with ModelOpt AutoCast...")
-    onnx.save(autocast.convert_to_mixed_precision(onnx_file, low_precision_type="fp16", keep_io_types=True), out_file)
+    onnx.save(
+        autocast.convert_to_mixed_precision(
+            onnx_file,
+            low_precision_type="fp16",
+            keep_io_types=True,
+            calibration_data={input_name: torch.randn(*shape).cpu().numpy()},
+        ),
+        out_file,
+    )
     return out_file
 
 
@@ -228,12 +234,10 @@ def onnx2engine(
     config = builder.create_builder_config()
     workspace_bytes = int((workspace or 0) * (1 << 30))
     trt_major = int(trt.__version__.split(".", 1)[0])
-    is_trt10 = (
-        trt_major >= 10
-    )  # TensorRT >= 10 builds via build_serialized_network and uses the tensor (non-binding) API
-    is_trt11 = (
-        trt_major >= 11
-    )  # TensorRT >= 11 is strongly-typed only: precision builder flags and IInt8Calibrator removed
+    # TensorRT >= 10 builds via build_serialized_network and uses the tensor (non-binding) API
+    is_trt10 = trt_major >= 10
+    # TensorRT >= 11 is strongly-typed only: precision builder flags and IInt8Calibrator removed
+    is_trt11 = trt_major >= 11
     if is_trt10 and workspace_bytes > 0:
         config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace_bytes)
     elif workspace_bytes > 0:  # TensorRT versions 7, 8
@@ -267,7 +271,7 @@ def onnx2engine(
     # TensorRT 11 is strongly-typed and removed the FP16/INT8 builder flags and INT8 calibrator, so reduced
     # precision must be baked into the ONNX graph with NVIDIA ModelOpt before parsing (FP16 AutoCast, INT8 Q/DQ)
     if is_trt11 and (half or int8):
-        onnx_file = modelopt_quantize_onnx(onnx_file, half, int8, dataset, shape, dynamic, prefix)
+        onnx_file = modelopt_quantize_onnx(onnx_file, int8, dataset, shape, dynamic, prefix)
 
     # Read ONNX file
     parser = trt.OnnxParser(network, logger)

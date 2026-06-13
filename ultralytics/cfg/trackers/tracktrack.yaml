@@ -3,7 +3,7 @@
 # TrackTrack defaults for mode="track"
 # Multi-cue tracker with HMIoU, iterative assignment, and track-aware initialization
 # Paper: "Focusing on Tracks for Online Multi-Object Tracking" (CVPR 2025)
-# Docs: https://docs.ultralytics.com/modes/track/
+# Docs: https://docs.ultralytics.com/modes/track
 
 tracker_type: tracktrack # (str) Tracker backend: tracktrack
 track_high_thresh: 0.6 # (float) High-confidence detection threshold

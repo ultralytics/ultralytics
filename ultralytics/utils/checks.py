@@ -108,7 +108,8 @@ def parse_version(version="0.0.0") -> tuple:
         (tuple): Tuple of integers representing the numeric part of the version, i.e. (2, 0, 1)
     """
     try:
-        return tuple(map(int, re.findall(r"\d+", version)[:3]))  # '2.0.1+cpu' -> (2, 0, 1)
+        nums = [int(x) for x in re.findall(r"\d+", version)[:3]]
+        return tuple(nums + [0] * (3 - len(nums)))  # pad to 3, i.e. '2.0.1+cpu' -> (2, 0, 1), '2' -> (2, 0, 0)
     except Exception as e:
         LOGGER.warning(f"failure for parse_version({version}), returning (0, 0, 0): {e}")
         return 0, 0, 0

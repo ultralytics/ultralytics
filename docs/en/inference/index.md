@@ -12,7 +12,7 @@ keywords: Ultralytics Inference, Rust, YOLO, ONNX Runtime, object detection, seg
 [![Downloads](https://img.shields.io/crates/d/ultralytics-inference?logo=rust&logoColor=white&label=downloads&color=CE422B)](https://crates.io/crates/ultralytics-inference)
 [![MSRV](https://img.shields.io/crates/msrv/ultralytics-inference?logo=rust&logoColor=white&color=CE422B)](https://crates.io/crates/ultralytics-inference)
 
-[Ultralytics Inference](https://github.com/ultralytics/inference) is a high-performance [YOLO](https://www.ultralytics.com/yolo) inference library and command-line tool written in [Rust](https://www.rust-lang.org/). It runs exported [ONNX](../integrations/onnx.md) models through [ONNX Runtime](https://onnxruntime.ai/) to deliver fast, memory-safe predictions on images, videos, webcams, and streams, with no Python runtime required at inference time.
+[Ultralytics Inference](https://github.com/ultralytics/inference) is a high-performance [YOLO](https://www.ultralytics.com/yolo) inference library and command-line tool written in [Rust](https://rust-lang.org/). It runs exported [ONNX](../integrations/onnx.md) models through [ONNX Runtime](https://onnxruntime.ai/) to deliver fast, memory-safe predictions on images, videos, webcams, and streams, with no Python runtime required at inference time.
 
 The project ships as a single crate, `ultralytics-inference`, that you can use two ways: as a **CLI** for quick predictions and batch jobs, or as a **library** embedded directly in your Rust application. It supports every Ultralytics [task](../tasks/index.md) and a broad set of hardware backends through a uniform device interface.
 
@@ -55,7 +55,7 @@ Rust 1.89 or newer is required. The [video](#cargo-features) feature additionall
     ```toml
     # Or add it manually to Cargo.toml
     [dependencies]
-    ultralytics-inference = "0.0.18"
+    ultralytics-inference = "0.0.21"
     ```
 
 ## CLI quickstart
@@ -409,7 +409,7 @@ cargo install ultralytics-inference --features cuda,tensorrt
 
 ```toml
 [dependencies]
-ultralytics-inference = { version = "0.0.18", features = ["video"] }
+ultralytics-inference = { version = "0.0.21", features = ["video"] }
 ```
 
 ## Output and saving

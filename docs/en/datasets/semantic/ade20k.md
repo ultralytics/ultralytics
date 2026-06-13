@@ -6,7 +6,7 @@ keywords: ADE20K dataset, semantic segmentation, scene parsing, Ultralytics YOLO
 
 # ADE20K Dataset
 
-The [ADE20K](http://sceneparsing.csail.mit.edu/) dataset is a large-scale [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) and scene parsing benchmark released by MIT CSAIL. It provides densely annotated images covering a wide variety of indoor, outdoor, object, and stuff categories, making it an essential resource for researchers and developers working on dense scene understanding tasks with [Ultralytics YOLO](https://docs.ultralytics.com/models/) models.
+The [ADE20K](http://sceneparsing.csail.mit.edu/) dataset is a large-scale [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) and scene parsing benchmark released by MIT CSAIL. It provides densely annotated images covering a wide variety of indoor, outdoor, object, and stuff categories, making it an essential resource for researchers and developers working on dense scene understanding tasks with [Ultralytics YOLO](https://docs.ultralytics.com/models) models.
 
 ## Key Features
 

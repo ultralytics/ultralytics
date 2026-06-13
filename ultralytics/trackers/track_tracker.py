@@ -205,21 +205,21 @@ def compute_dets_del(predictor) -> list | None:
 
 
 def _cosine_distance(tracks: list[TTSTrack], dets: list[TTSTrack]) -> np.ndarray:
-    """Return cosine distance in `[0, 1]` between track smoothed embeddings and detection current embeddings."""
-    if len(tracks) == 0 or len(dets) == 0:
+    """Cosine distance in `[0, 1]` between track and detection embeddings; NaN where either side has no feature.
+
+    A NaN entry signals "no appearance evidence for this pair" so the caller falls back to motion rather than treating a
+    missing/occlusion-suppressed embedding as maximally dissimilar (which would penalize true matches).
+    """
+    if not tracks or not dets:
         return np.ones((len(tracks), len(dets)), dtype=np.float32)
-    dim = 128
-    for obj in (*tracks, *dets):
-        feat = obj.smooth_feat if obj.smooth_feat is not None else obj.curr_feat
-        if feat is not None:
-            dim = feat.shape[0]
-            break
-    else:
-        LOGGER.warning("TRACKTRACK ReID enabled but all features are None; falling back to zero embeddings.")
+    tfeat = [t.smooth_feat if t.smooth_feat is not None else t.curr_feat for t in tracks]
+    dfeat = [d.curr_feat for d in dets]
+    dim = next((f.shape[0] for f in (*tfeat, *dfeat) if f is not None), 128)
     zeros = np.zeros(dim, dtype=np.float32)
-    track_feats = np.stack([t.smooth_feat if t.smooth_feat is not None else zeros for t in tracks])
-    det_feats = np.stack([d.curr_feat if d.curr_feat is not None else zeros for d in dets])
-    return np.clip(1 - track_feats @ det_feats.T, 0, 1)
+    T = np.stack([f if f is not None else zeros for f in tfeat])
+    D = np.stack([f if f is not None else zeros for f in dfeat])
+    valid = np.array([f is not None for f in tfeat])[:, None] & np.array([f is not None for f in dfeat])[None, :]
+    return np.where(valid, np.clip(1 - T @ D.T, 0, 1), np.nan).astype(np.float32)
 
 
 class TTSTrack(BOTrack):
@@ -430,7 +430,10 @@ class TRACKTRACK:
         """Return the multi-cue cost matrix (HMIoU + ReID + confidence + angle), gated by IoU support."""
         iou_sim, hmiou_dist = _hmiou_distance(tracks, dets)
         if self.encoder is not None:
-            cost = self.iou_weight * hmiou_dist + self.reid_weight * _cosine_distance(tracks, dets)
+            cos = _cosine_distance(tracks, dets)
+            # Where appearance is missing (NaN: new track, or occlusion-suppressed detection), fall back to
+            # pure motion cost for that pair so the embedding neither helps nor penalizes it.
+            cost = np.where(np.isnan(cos), hmiou_dist, self.iou_weight * hmiou_dist + self.reid_weight * cos)
         else:
             cost = hmiou_dist
         cost += self.conf_weight * _confidence_distance(tracks, dets)

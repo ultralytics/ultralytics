@@ -3,6 +3,7 @@
 import contextlib
 import pickle
 import re
+import threading
 from copy import deepcopy
 from pathlib import Path
 
@@ -1454,6 +1455,34 @@ def temporary_modules(modules=None, attributes=None):
 # so a newly added one fails loudly here and gets reviewed before it is trusted under restricted (weights_only) loading.
 _REVIEWED_STATEFUL = frozenset({"AAttn"})  # block.AAttn.__setstate__ backfills the all_head_dim attribute
 _SAFE_GLOBALS_REGISTERED = False
+_STATE_HOOKS = ("__reduce__", "__reduce_ex__", "__setstate__", "__getstate__", "__new__")
+_LOAD_STATE = threading.local()  # per-thread flag set while a weights_only load is in progress
+
+
+def _is_restricted():
+    """Whether model construction should use the restricted (no-eval, known-modules-only) path.
+
+    True when the `ULTRALYTICS_SAFE_LOAD` env flag is set, or while a `safe_only` `torch_safe_load` is running on this
+    thread. `parse_model` consults this so model construction uses the no-eval, known-layer path whether restricted
+    loading was requested via the env flag or the `safe_only` argument.
+    """
+    return SAFE_LOAD or getattr(_LOAD_STATE, "restricted", False)
+
+
+def _has_unreviewed_hook(cls):
+    """Whether `cls`'s effective pickle hook is implemented outside torch/builtins and `cls` is not in the reviewed set.
+
+    Walks the MRO so a hook inherited from a non-torch base (not just one defined directly on `cls`) is caught.
+    """
+    if cls.__name__ in _REVIEWED_STATEFUL:
+        return False
+    for hook in _STATE_HOOKS:
+        for base in cls.__mro__:
+            if hook in vars(base):
+                if not (base.__module__ == "builtins" or base.__module__.startswith("torch")):
+                    return True  # hook provided by a non-torch class (e.g. ultralytics or third-party) — needs review
+                break  # most-derived definition is a benign torch/builtins one
+    return False
 
 
 def _build_safe_globals():
@@ -1477,7 +1506,6 @@ def _build_safe_globals():
     import ultralytics.nn.modules as ul_nn
     import ultralytics.nn.tasks as ul_tasks
 
-    hooks = ("__reduce__", "__reduce_ex__", "__setstate__", "__getstate__", "__new__")
     allow = []
 
     def _scan(pkg, owned):
@@ -1492,12 +1520,11 @@ def _build_safe_globals():
             for name, cls in inspect.getmembers(mod, inspect.isclass):
                 if not issubclass(cls, nn.Module):
                     continue
-                if owned and cls.__module__.startswith("ultralytics.") and set(hooks) & set(vars(cls)):
-                    if cls.__name__ not in _REVIEWED_STATEFUL:
-                        raise pickle.UnpicklingError(
-                            f"Refusing to trust {cls.__module__}.{cls.__qualname__}: it defines a pickle state-hook "
-                            f"that is not in _REVIEWED_STATEFUL. Review it for safety, then add its name there."
-                        )
+                if owned and cls.__module__.startswith("ultralytics.") and _has_unreviewed_hook(cls):
+                    raise pickle.UnpicklingError(
+                        f"Refusing to trust {cls.__module__}.{cls.__qualname__}: it has a pickle state-hook that is "
+                        f"not in _REVIEWED_STATEFUL. Review it for safety, then add its name there."
+                    )
                 # Register under the path the class is reachable from here — matches how a checkpoint pickled it.
                 allow.append((cls, f"{mod.__name__}.{name}"))
 
@@ -1560,8 +1587,8 @@ def _safe_activation(act):
             attrs.append(node.attr)
             node = node.value
         assert isinstance(node, ast.Name)
-        attrs.append(node.id)
-        assert "nn" in attrs, "activation must be a torch.nn class"
+        attrs.append(node.id)  # e.g. ["SiLU", "nn"] or ["SiLU", "nn", "torch"]
+        assert attrs[1:] in (["nn"], ["nn", "torch"]), "activation must be a torch.nn class"
         cls = getattr(nn, attrs[0])
         assert isinstance(cls, type) and issubclass(cls, nn.Module)
         args = [ast.literal_eval(a) for a in call.args]
@@ -1617,9 +1644,14 @@ def torch_safe_load(weight, safe_only=None):
             },
         ):
             if safe_only:
-                # weights_only load: reconstruct only the allow-listed known model classes.
+                # weights_only load: reconstruct only the allow-listed known model classes. Flag the load so that if a
+                # checkpoint reaches model construction (parse_model), it uses the no-eval/known-modules path too.
                 _register_safe_globals()
-                return torch_load(file, map_location="cpu", weights_only=True)
+                _LOAD_STATE.restricted = True
+                try:
+                    return torch_load(file, map_location="cpu", weights_only=True)
+                finally:
+                    _LOAD_STATE.restricted = False
             return torch_load(file, map_location="cpu")
 
     try:
@@ -1761,10 +1793,11 @@ def parse_model(d, ch, verbose=True):
             LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")
         depth, width, max_channels = scales[scale]
 
+    restricted = _is_restricted()
     if act:
-        # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU(). Under weights_only loading, resolve
-        # the spec without eval() (see _safe_activation).
-        Conv.default_act = _safe_activation(act) if SAFE_LOAD else eval(act)
+        # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU(). Under restricted loading, resolve the
+        # spec without eval() (see _safe_activation).
+        Conv.default_act = _safe_activation(act) if restricted else eval(act)
         if verbose:
             LOGGER.info(f"{colorstr('activation:')} {act}")  # print
 
@@ -1837,6 +1870,9 @@ def parse_model(d, ch, verbose=True):
             if "torchvision.ops." in m
             else globals()[m]
         )  # get module
+        if restricted and not (isinstance(m, type) and issubclass(m, torch.nn.Module)):
+            # Under restricted loading, only known model layers may be named here.
+            raise TypeError(emojis(f"ERROR ❌️ module '{m}' is not a permitted model layer under restricted loading."))
         for j, a in enumerate(args):
             if isinstance(a, str):
                 with contextlib.suppress(ValueError):

@@ -67,6 +67,14 @@ keywords: Ultralytics, YOLO, nn tasks, DetectionModel, PoseModel, RTDETRDetectio
 
 <br><br><hr><br>
 
+## ::: ultralytics.nn.tasks._is_restricted
+
+<br><br><hr><br>
+
+## ::: ultralytics.nn.tasks._has_unreviewed_hook
+
+<br><br><hr><br>
+
 ## ::: ultralytics.nn.tasks._build_safe_globals
 
 <br><br><hr><br>

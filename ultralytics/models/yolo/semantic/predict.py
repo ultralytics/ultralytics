@@ -55,6 +55,12 @@ class SemanticSegmentationPredictor(BasePredictor):
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)[..., ::-1]
 
+        classes = (
+            torch.as_tensor(self.args.classes, device=preds.device).flatten()
+            if self.args.classes is not None and len(self.model.names) > 1
+            else None
+        )
+
         results = []
         for i, (pred, orig_img) in enumerate(zip(preds, orig_imgs)):
             img_path = self.batch[0][i] if isinstance(self.batch[0], list) else self.batch[0]
@@ -70,5 +76,7 @@ class SemanticSegmentationPredictor(BasePredictor):
             else:
                 dtype = self._class_map_dtype(max(pred.shape[0], 2))
                 class_map = pred.argmax(0).to(dtype) if pred.shape[0] > 1 else pred.gt(0).squeeze(0).to(dtype)
+            if classes is not None:  # keep only selected classes, mark the rest as ignore
+                class_map[~(class_map.unsqueeze(-1) == classes).any(-1)] = 255
             results.append(Results(orig_img, path=img_path, names=self.model.names, semantic_mask=class_map))
         return results

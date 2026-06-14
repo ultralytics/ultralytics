@@ -1011,11 +1011,23 @@ class YOLOAnomalyV2Model(DetectionModel):
         return dict(self._bb_feats)
 
     def __getstate__(self):
-        """Remove backbone hooks before pickle/deepcopy (hook closures are not pickable)."""
+        """Drop hooks + forward-time scratch buffers before pickle/deepcopy.
+
+        Hook closures aren't picklable; the scratch buffers (cached prior, captured backbone
+        feats, last heatmap, aux/seg/mask staging) are transient — repopulated on the next
+        forward — but if a forward ran just before ``torch.save`` they get pickled into the
+        checkpoint and bloat it (e.g. ``_cached_prior_buf`` is a full batch at imgsz², ~58 MB).
+        Null them in the returned state only (a shallow copy), so the live model is untouched.
+        """
         state = super().__getstate__()
         for h in getattr(self, "_bb_hook_handles", []):
             h.remove()
         state["_bb_hook_handles"] = []
+        state["_bb_feats"] = {}
+        for k in ("_cached_prior_buf", "_last_heatmap", "_qf_aux_buf", "_seg_logits_buf",
+                  "_mask_bboxes_buf", "_mask_batch_idx_buf", "_external_mask_buf"):
+            if k in state:
+                state[k] = None
         return state
 
     def __setstate__(self, state):

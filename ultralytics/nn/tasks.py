@@ -1458,13 +1458,16 @@ class _SafeLoad:
     Default loading (flag off) is unchanged.
     """
 
+    # Restricted loading reconstructs allow-listed classes via the torch.serialization.safe_globals context manager,
+    # added in torch 2.5. On older torch it is unavailable, so restricted loading degrades to a standard load there.
+    SUPPORTED = hasattr(torch.serialization, "safe_globals")
     _globals = None  # cached allow-list, built once
     _local = threading.local()  # per-thread flag set while a weights_only load is in progress
 
     @classmethod
     def restricted(cls):
         """Whether model construction should use the no-eval, known-layer path (env flag or an in-progress load)."""
-        return SAFE_LOAD or getattr(cls._local, "active", False)
+        return cls.SUPPORTED and (SAFE_LOAD or getattr(cls._local, "active", False))
 
     @classmethod
     @contextlib.contextmanager
@@ -1597,6 +1600,9 @@ def torch_safe_load(weight, safe_only=None):
 
     if safe_only is None:
         safe_only = SAFE_LOAD
+    if safe_only and not _SafeLoad.SUPPORTED:
+        LOGGER.warning("Restricted model loading requires torch>=2.5; loading without restriction.")
+        safe_only = False
     check_suffix(file=weight, suffix=".pt")
     file = attempt_download_asset(weight)  # search online if missing locally
 

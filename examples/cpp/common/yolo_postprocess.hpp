@@ -113,23 +113,26 @@ inline std::vector<Result> PostprocessDetect(const float* data, const std::vecto
         return results;
     }
 
-    const int nc = dim1 - 4;  // grid [1, 4+nc, 8400]
-    cv::Mat t = cv::Mat(dim1, dim2, CV_32F, const_cast<float*>(data)).t();
+    // Grid [1, 4+nc, 8400]: index the channel-major buffer directly (avoids a full
+    // transpose copy and a per-anchor cv::minMaxLoc) and argmax over the class scores.
+    const int nc = dim1 - 4;
+    const int a = dim2;
     std::vector<cv::Rect> boxes;
     std::vector<float> confidences;
     std::vector<int> class_ids;
-    for (int i = 0; i < dim2; ++i) {
-        const float* row = t.ptr<float>(i);
-        cv::Mat scores(1, nc, CV_32F, const_cast<float*>(row + 4));
-        cv::Point cls;
-        double max_score;
-        cv::minMaxLoc(scores, nullptr, &max_score, nullptr, &cls);
-        if (max_score < conf_thr) continue;
-        const float cx = row[0], cy = row[1], w = row[2], h = row[3];
+    for (int i = 0; i < a; ++i) {
+        int best = 0;
+        float best_score = data[4 * a + i];
+        for (int c = 1; c < nc; ++c) {
+            const float s = data[(4 + c) * a + i];
+            if (s > best_score) { best_score = s; best = c; }
+        }
+        if (best_score < conf_thr) continue;
+        const float cx = data[i], cy = data[a + i], w = data[2 * a + i], h = data[3 * a + i];
         boxes.emplace_back(static_cast<int>((cx - 0.5f * w) * inv), static_cast<int>((cy - 0.5f * h) * inv),
                            static_cast<int>(w * inv), static_cast<int>(h * inv));
-        confidences.push_back(static_cast<float>(max_score));
-        class_ids.push_back(cls.x);
+        confidences.push_back(best_score);
+        class_ids.push_back(best);
     }
     std::vector<int> keep;
     cv::dnn::NMSBoxes(boxes, confidences, conf_thr, iou_thr, keep);
@@ -171,26 +174,25 @@ inline std::vector<Result> PostprocessPose(const float* data, const std::vector<
         return results;
     }
 
-    const int nkpt = (dim1 - 5) / 3;  // grid [1, 4+1+nkpt*3, 8400]
-    cv::Mat t = cv::Mat(dim1, dim2, CV_32F, const_cast<float*>(data)).t();
+    // Grid [1, 4+1+nkpt*3, 8400]: direct channel-major indexing (no transpose copy).
+    const int nkpt = (dim1 - 5) / 3;
+    const int a = dim2;
     std::vector<cv::Rect> boxes;
     std::vector<float> confidences;
     std::vector<std::vector<cv::Point2f>> kpts;
     std::vector<std::vector<float>> kscores;
-    for (int i = 0; i < dim2; ++i) {
-        const float* row = t.ptr<float>(i);
-        const float conf = row[4];
+    for (int i = 0; i < a; ++i) {
+        const float conf = data[4 * a + i];
         if (conf < conf_thr) continue;
-        const float cx = row[0], cy = row[1], w = row[2], h = row[3];
+        const float cx = data[i], cy = data[a + i], w = data[2 * a + i], h = data[3 * a + i];
         boxes.emplace_back(static_cast<int>((cx - 0.5f * w) * inv), static_cast<int>((cy - 0.5f * h) * inv),
                            static_cast<int>(w * inv), static_cast<int>(h * inv));
         confidences.push_back(conf);
         std::vector<cv::Point2f> kp;
         std::vector<float> ks;
         for (int k = 0; k < nkpt; ++k) {
-            const float* p = row + 5 + k * 3;
-            kp.emplace_back(p[0] * inv, p[1] * inv);
-            ks.push_back(p[2]);
+            kp.emplace_back(data[(5 + k * 3) * a + i] * inv, data[(5 + k * 3 + 1) * a + i] * inv);
+            ks.push_back(data[(5 + k * 3 + 2) * a + i]);
         }
         kpts.push_back(std::move(kp));
         kscores.push_back(std::move(ks));
@@ -233,26 +235,28 @@ inline std::vector<Result> PostprocessObb(const float* data, const std::vector<i
         return results;
     }
 
-    const int nc = dim1 - 5;  // grid [1, 4+nc+1, 8400]
-    cv::Mat t = cv::Mat(dim1, dim2, CV_32F, const_cast<float*>(data)).t();
+    // Grid [1, 4+nc+1, 8400]: direct channel-major indexing (no transpose copy).
+    const int nc = dim1 - 5;
+    const int a = dim2;
     std::vector<cv::Rect> boxes;
     std::vector<float> confidences;
     std::vector<Result> candidates;
-    for (int i = 0; i < dim2; ++i) {
-        const float* row = t.ptr<float>(i);
-        cv::Mat scores(1, nc, CV_32F, const_cast<float*>(row + 4));
-        cv::Point cls;
-        double max_score;
-        cv::minMaxLoc(scores, nullptr, &max_score, nullptr, &cls);
-        if (max_score < conf_thr) continue;
-        const float cx = row[0] * inv, cy = row[1] * inv, w = row[2] * inv, h = row[3] * inv;
+    for (int i = 0; i < a; ++i) {
+        int best = 0;
+        float best_score = data[4 * a + i];
+        for (int c = 1; c < nc; ++c) {
+            const float s = data[(4 + c) * a + i];
+            if (s > best_score) { best_score = s; best = c; }
+        }
+        if (best_score < conf_thr) continue;
+        const float cx = data[i] * inv, cy = data[a + i] * inv, w = data[2 * a + i] * inv, h = data[3 * a + i] * inv;
         boxes.emplace_back(static_cast<int>(cx - 0.5f * w), static_cast<int>(cy - 0.5f * h),
                            static_cast<int>(w), static_cast<int>(h));
-        confidences.push_back(static_cast<float>(max_score));
+        confidences.push_back(best_score);
         Result r;
-        r.class_id = cls.x;
-        r.confidence = static_cast<float>(max_score);
-        r.angle = row[4 + nc];
+        r.class_id = best;
+        r.confidence = best_score;
+        r.angle = data[(4 + nc) * a + i];
         r.box = boxes.back();
         candidates.push_back(r);
     }
@@ -291,22 +295,25 @@ inline std::vector<Result> PostprocessSegment(const float* det, const std::vecto
             class_ids.push_back(static_cast<int>(row[5]));
             coeffs.push_back(cv::Mat(1, pc, CV_32F, const_cast<float*>(row + 6)).clone());
         }
-    } else {  // [1, 4 + nc + pc, 8400]
+    } else {  // [1, 4 + nc + pc, 8400]: direct channel-major indexing (no transpose copy).
         const int nc = dim1 - 4 - pc;
-        cv::Mat t = cv::Mat(dim1, dim2, CV_32F, const_cast<float*>(det)).t();
-        for (int i = 0; i < dim2; ++i) {
-            const float* row = t.ptr<float>(i);
-            cv::Mat scores(1, nc, CV_32F, const_cast<float*>(row + 4));
-            cv::Point cls;
-            double max_score;
-            cv::minMaxLoc(scores, nullptr, &max_score, nullptr, &cls);
-            if (max_score < conf_thr) continue;
-            const float cx = row[0], cy = row[1], w = row[2], h = row[3];
+        const int a = dim2;
+        for (int i = 0; i < a; ++i) {
+            int best = 0;
+            float best_score = det[4 * a + i];
+            for (int c = 1; c < nc; ++c) {
+                const float s = det[(4 + c) * a + i];
+                if (s > best_score) { best_score = s; best = c; }
+            }
+            if (best_score < conf_thr) continue;
+            const float cx = det[i], cy = det[a + i], w = det[2 * a + i], h = det[3 * a + i];
             boxes.emplace_back(static_cast<int>((cx - 0.5f * w) * inv), static_cast<int>((cy - 0.5f * h) * inv),
                                static_cast<int>(w * inv), static_cast<int>(h * inv));
-            confidences.push_back(static_cast<float>(max_score));
-            class_ids.push_back(cls.x);
-            coeffs.push_back(cv::Mat(1, pc, CV_32F, const_cast<float*>(row + 4 + nc)).clone());
+            confidences.push_back(best_score);
+            class_ids.push_back(best);
+            cv::Mat coeff(1, pc, CV_32F);
+            for (int j = 0; j < pc; ++j) coeff.at<float>(0, j) = det[(4 + nc + j) * a + i];
+            coeffs.push_back(coeff);
         }
     }
 

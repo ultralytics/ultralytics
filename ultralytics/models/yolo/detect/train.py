@@ -168,7 +168,10 @@ class DetectionTrainer(BaseTrainer):
         assert 0 <= self.args.cls_pw <= 1.0, "cls_pw must be in the range [0, 1]"
         if self.args.cls_pw == 0.0:
             return
-        weights = self.compute_class_weights(self.get_class_counts())
+        class_counts = self.get_class_counts()
+        if not class_counts.any():  # nothing counted (e.g. missing/unreadable masks); keep default weights
+            return
+        weights = self.compute_class_weights(class_counts)
         weights = weights / weights.mean()  # normalize so mean equals 1.0
         self.model.class_weights = torch.from_numpy(weights).to(self.device)
         LOGGER.info(f"Class weights: {self.model.class_weights.cpu().numpy().round(3)}")

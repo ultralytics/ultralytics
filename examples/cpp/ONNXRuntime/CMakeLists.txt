@@ -90,17 +90,3 @@ if (WIN32)
             "${ONNXRUNTIME_ROOT}/lib/onnxruntime.dll"
             $<TARGET_FILE_DIR:${PROJECT_NAME}>)
 endif ()
-
-# Stage the model next to the executable, in the layout the program expects:
-#   build/models/yolo11n.onnx, build/images/detect/<your images>
-# Place yolo11n.onnx in this source directory before configuring (see README).
-# Guarded with EXISTS so the project still configures before you have exported a model.
-# Class names are read from the model metadata at runtime, so no coco.yaml is needed.
-if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/yolo11n.onnx")
-    configure_file(yolo11n.onnx ${CMAKE_CURRENT_BINARY_DIR}/models/yolo11n.onnx COPYONLY)
-endif ()
-
-# Create the images/detect folder for input images next to the executable.
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/images/detect
-)

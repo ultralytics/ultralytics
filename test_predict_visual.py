@@ -194,14 +194,27 @@ def main():
     # dropped, leaving a random classifier. nc comes from --nc, else auto-detected from the ckpt.
     LOGGER.info("Building model...")
     ckpt = torch.load(args.ckpt, map_location="cpu", weights_only=False)
-    if isinstance(ckpt, dict):
-        inner = ckpt.get("ema") or ckpt.get("model")
-        ckpt_state = inner.state_dict() if hasattr(inner, "state_dict") else inner
+    is_slim = isinstance(ckpt, dict) and ckpt.get("slim_format")
+    if is_slim:
+        # scripts/yoloa_slim.py export: state_dict-only blob. yaml/nc/names come from the file
+        # (the exact training config); --yaml overrides only if explicitly passed.
+        inner = None
+        ckpt_state = {k: (v.float() if v.is_floating_point() else v)
+                      for k, v in ckpt["model_state_dict"].items()}
+        ckpt_names = ckpt.get("names")
+        nc = args.nc or ckpt.get("nc") or (len(ckpt_names) if ckpt_names else None) or 1
+        if not args.yaml or args.yaml == YAML:  # default/unset -> use the slim file's yaml
+            args.yaml = ckpt.get("yaml", args.yaml)
+        LOGGER.info(f"slim ckpt: yaml={args.yaml}, nc={nc}")
     else:
-        inner, ckpt_state = None, ckpt
-    ckpt_names = getattr(inner, "names", None)
-    nc = args.nc or getattr(inner, "nc", None) or (len(ckpt_names) if ckpt_names else None) or 1
-    LOGGER.info(f"nc = {nc}" + (" (--nc)" if args.nc else " (auto-detected from ckpt)"))
+        if isinstance(ckpt, dict):
+            inner = ckpt.get("ema") or ckpt.get("model")
+            ckpt_state = inner.state_dict() if hasattr(inner, "state_dict") else inner
+        else:
+            inner, ckpt_state = None, ckpt
+        ckpt_names = getattr(inner, "names", None)
+        nc = args.nc or getattr(inner, "nc", None) or (len(ckpt_names) if ckpt_names else None) or 1
+        LOGGER.info(f"nc = {nc}" + (" (--nc)" if args.nc else " (auto-detected from ckpt)"))
 
     if args.carried_bank:
         # The FIFO queue lives as a plain attribute on the pickled model — it is invisible to

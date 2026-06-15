@@ -1,5 +1,7 @@
 # Ultralytics YOLO LibTorch Inference C++
 
+<img alt="C++" src="https://img.shields.io/badge/C++-17-blue.svg?style=flat&logo=c%2B%2B"> <img alt="LibTorch" src="https://img.shields.io/badge/LibTorch-EE4C2C.svg?logo=pytorch&logoColor=white"> <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white">
+
 This example demonstrates how to perform inference using [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11) and [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) models in C++ with the [LibTorch (PyTorch C++ API)](https://docs.pytorch.org/cppdocs/). This allows for deploying Ultralytics YOLO models in C++ environments for efficient execution.
 
 ## ⚙️ Dependencies
@@ -83,4 +85,4 @@ This command will generate a `yolo11s.torchscript` file in the model's directory
 
 ## 🤝 Contributing
 
-Contributions to enhance this example or add new features are welcome! Please see the [Ultralytics Contributing Guide](https://docs.ultralytics.com/help/contributing) for guidelines on how to contribute to the project. Thank you for helping make Ultralytics YOLO the best Vision AI tool!
+Contributions are welcome! If you find any issues or have suggestions for improvements, please feel free to open an issue or submit a pull request on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics).

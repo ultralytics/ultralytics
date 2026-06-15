@@ -5,52 +5,49 @@
 
 #include <string>
 #include <vector>
-#include <opencv2/imgproc.hpp>
+
+#include <opencv2/opencv.hpp>
 #include <openvino/openvino.hpp>
 
-#include "yolo_draw.hpp"
-#include "coco_names.hpp"
+#include "yolo_types.hpp"
 
 namespace yolo {
 
-struct Detection {
-	short class_id;
-	float confidence;
-	cv::Rect box;
+// Runtime configuration for the OpenVINO backend.
+struct Config {
+    std::string model_path = "yolo26n.onnx";  // OpenVINO IR (.xml) or ONNX (.onnx)
+    float conf = 0.25f;                        // confidence threshold
+    float iou = 0.45f;                         // NMS IoU threshold (grid models only)
+    std::string device = "AUTO";               // OpenVINO device: AUTO / CPU / GPU
 };
 
-class Inference {
- public:
-	Inference() {}
-	// Constructor to initialize the model with default input shape
-	Inference(const std::string &model_path, const float &model_confidence_threshold, const float &model_NMS_threshold);
-	// Constructor to initialize the model with specified input shape
-	Inference(const std::string &model_path, const cv::Size model_input_shape, const float &model_confidence_threshold, const float &model_NMS_threshold);
+// Loads any YOLO model (IR or ONNX, any task / generation) and runs inference with
+// OpenVINO. Class names come from the IR rt_info "labels"; the task is inferred from
+// the output shapes (the IR carries no explicit task field). Post-processing is shared
+// with the other examples via common/yolo_postprocess.hpp.
+class Predictor {
+   public:
+    explicit Predictor(const Config& config);
 
-	void RunInference(cv::Mat &frame);
+    Task task() const { return task_; }
+    const std::vector<std::string>& names() const { return names_; }
 
- private:
-	void InitializeModel(const std::string &model_path);
-	void Preprocessing(const cv::Mat &frame);
-	void PostProcessing(cv::Mat &frame);
-	cv::Rect GetBoundingBox(const cv::Rect &src) const;
-	void DrawDetectedObject(cv::Mat &frame, const Detection &detections) const;
+    // For Semantic the class-id map is written to `semantic`; otherwise it returns detections.
+    std::vector<Result> predict(const cv::Mat& image, cv::Mat& semantic);
 
-	cv::Point2f scale_factor_;			// Scaling factor for the input frame
-	cv::Size2f model_input_shape_;	// Input shape of the model
-	cv::Size model_output_shape_;		// Output shape of the model
+   private:
+    void load_names(const std::shared_ptr<ov::Model>& model);
 
-	ov::InferRequest inference_request_;  // OpenVINO inference request
-	ov::CompiledModel compiled_model_;    // OpenVINO compiled model
+    Config config_;
+    int imgsz_ = 640;
+    Task task_ = Task::Detect;
+    std::vector<std::string> names_;
 
-	float model_confidence_threshold_;  // Confidence threshold for detections
-	float model_NMS_threshold_;         // Non-Maximum Suppression threshold
-
-	// COCO class names from common/coco_names.hpp. Replace with your own list if
-	// you train on a custom dataset.
-	std::vector<std::string> classes_ = CocoNames();
+    ov::Core core_;
+    ov::CompiledModel compiled_model_;
+    ov::InferRequest request_;
 };
 
-} // namespace yolo
+}  // namespace yolo
 
-#endif // YOLO_INFERENCE_H_
+#endif  // YOLO_INFERENCE_H_

@@ -1596,7 +1596,7 @@ def torch_safe_load(weight, safe_only=None):
         >>> from ultralytics.nn.tasks import torch_safe_load
         >>> ckpt, file = torch_safe_load("path/to/best.pt", safe_only=True)
     """
-    from ultralytics.utils.downloads import attempt_download_asset
+    from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES, attempt_download_asset
 
     if safe_only is None:
         safe_only = SAFE_LOAD
@@ -1634,8 +1634,9 @@ def torch_safe_load(weight, safe_only=None):
         ckpt = _load()
 
     except RuntimeError as e:
-        # Corrupt downloaded weight (e.g. truncated); skip user-supplied local paths to avoid destructive unlink.
-        if "PytorchStreamReader" not in str(e) or Path(str(weight)).exists():
+        # Recover only a corrupt cached official asset requested by bare name; never touch user-supplied paths.
+        name = Path(str(weight)).name
+        if "PytorchStreamReader" not in str(e) or str(weight) != name or name not in GITHUB_ASSETS_NAMES:
             raise
         LOGGER.warning(f"Corrupt cache {file}, re-downloading {weight}...")
         Path(file).unlink(missing_ok=True)

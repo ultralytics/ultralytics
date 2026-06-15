@@ -630,16 +630,23 @@ class YAML:
 
         # Try loading YAML with fallback for problematic characters
         try:
-            data = instance.yaml.load(s, Loader=instance.SafeLoader) or {}
+            data = instance.yaml.load(s, Loader=instance.SafeLoader)
         except Exception as e:
             # Remove problematic characters and retry
             s = re.sub(r"[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]+", "", s)
             try:
-                data = instance.yaml.load(s, Loader=instance.SafeLoader) or {}
+                data = instance.yaml.load(s, Loader=instance.SafeLoader)
             except Exception:
                 raise ValueError(
                     f"YAML syntax error in '{file}': {e}\nVerify YAML with https://ray.run/tools/yaml-formatter"
                 ) from None
+
+        if data is None:  # empty file, comments only, or explicit 'null'
+            data = {}
+        elif not isinstance(data, dict):  # reject non-mapping YAML (scalar/list) with a clear error, not a cryptic one
+            raise ValueError(
+                f"'{file}' is not a valid YAML mapping. Verify YAML with https://ray.run/tools/yaml-formatter"
+            )
 
         # Check for accidental user-error None strings (should be 'null' in YAML)
         if "None" in data.values():

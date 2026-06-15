@@ -2,7 +2,9 @@
 
 # Ultralytics YOLO C++ Examples
 
-This directory groups all of the C++ inference examples for [Ultralytics YOLO](https://docs.ultralytics.com/models/) models in one place. Each subfolder is a self-contained project showing how to run [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26), [YOLO11](https://docs.ultralytics.com/models/yolo11), and [YOLOv8](https://docs.ultralytics.com/models/yolov8) detection models against a different inference backend.
+This directory groups all of the C++ inference examples for [Ultralytics YOLO](https://docs.ultralytics.com/models/) models in one place. Each subfolder is a self-contained project showing how to run [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26), [YOLO11](https://docs.ultralytics.com/models/yolo11), and [YOLOv8](https://docs.ultralytics.com/models/yolov8) models against a different inference backend.
+
+The **ONNXRuntime** and **OpenVINO** examples support **every task** — [detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [pose](https://docs.ultralytics.com/tasks/pose), [OBB](https://docs.ultralytics.com/tasks/obb), [classify](https://docs.ultralytics.com/tasks/classify), and YOLO26 semantic segmentation — selecting the task automatically from the model metadata, and handle both grid (YOLOv8/11) and end-to-end (YOLO26) outputs. The other backends focus on object detection.
 
 ## 📂 Examples
 
@@ -20,7 +22,7 @@ This directory groups all of the C++ inference examples for [Ultralytics YOLO](h
 All examples follow the same flow: **export a model → build the C++ project → run the executable**. Install the [Ultralytics package](https://docs.ultralytics.com/quickstart/) first (`pip install ultralytics`) so the `yolo export` command is available, then pick an example below.
 
 > [!NOTE]
-> These examples run their own [Non-Maximum Suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) on the raw model output. For **YOLO26**, export with NMS disabled (add `nms=False` to the export command) so the output tensor shape matches what the C++ code expects. Native support for YOLO26 end-to-end (NMS-included) outputs is a planned follow-up.
+> The **ONNXRuntime** and **OpenVINO** examples detect the output layout automatically, so YOLOv8/11 (grid) and YOLO26 (end-to-end, NMS-free) models both work out of the box. The other backends run their own [NMS](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) on grid outputs, so for those export YOLO26 with NMS disabled (`nms=False`).
 
 ### OpenCV-DNN
 
@@ -35,18 +37,18 @@ cd examples/cpp/OpenCV-DNN && mkdir build && cd build && cmake .. && make
 ./yolo_opencv_dnn
 ```
 
-### ONNXRuntime
+### ONNXRuntime (all tasks)
 
 ```bash
-# 1. Export an ONNX model
-yolo export model=yolo11n.pt format=onnx opset=12 simplify=True dynamic=False imgsz=640
+# 1. Export any model and task — the task and class names are read from the metadata
+yolo export model=yolo26n.pt format=onnx opset=12         # or -seg / -pose / -obb / -cls / -sem
 
-# 2. Build (point ONNXRUNTIME_ROOT at your ONNX Runtime install)
+# 2. Build (point ONNXRUNTIME_ROOT at your ONNX Runtime install; -DUSE_CUDA=OFF for CPU)
 cd examples/cpp/ONNXRuntime && mkdir build && cd build
-cmake .. -DONNXRUNTIME_ROOT=/path/to/onnxruntime && make
+cmake .. -DONNXRUNTIME_ROOT=/path/to/onnxruntime -DUSE_CUDA=OFF && make
 
-# 3. Place the .onnx model and coco.yaml next to the binary, then run
-./yolo_onnxruntime
+# 3. Run — task auto-detected, result written to the --out path
+LD_LIBRARY_PATH=/path/to/onnxruntime/lib ./yolo_onnxruntime --model yolo26n.onnx --source bus.jpg
 ```
 
 ### LibTorch
@@ -77,17 +79,17 @@ cd examples/cpp/MNN && mkdir build && cd build && cmake .. && make
 ./yolo_mnn_interpreter yolo11n.mnn bus.jpg
 ```
 
-### OpenVINO
+### OpenVINO (all tasks)
 
 ```bash
-# 1. Export an OpenVINO IR (or ONNX) model
-yolo export model=yolo11s.pt imgsz=640 format=openvino
+# 1. Export an OpenVINO IR (or ONNX) model — any task
+yolo export model=yolo26n.pt imgsz=640 format=openvino
 
 # 2. Build
 cd examples/cpp/OpenVINO && mkdir build && cd build && cmake .. && make
 
-# 3. Run with the model and image paths as arguments
-./yolo_openvino path/to/model.xml path/to/image.jpg
+# 3. Run — task auto-detected from the output shapes
+./yolo_openvino --model yolo26n_openvino_model/yolo26n.xml --source bus.jpg
 ```
 
 ### Triton

@@ -27,6 +27,7 @@ __all__ = (
     "binary_seg_loss",
     "query_film_loss",
     "BackboneMemoryBank",
+    "LearnedScorer",
 )
 
 
@@ -948,6 +949,65 @@ class BackboneMemoryBank(nn.Module):
             dist = torch.minimum(dist, new_dist)
             selected.append(int(dist.argmax().item()))
         return mem[torch.tensor(selected, device=device)]
+
+
+class LearnedScorer(nn.Module):
+    """Learned drop-in replacement for ``BackboneMemoryBank._anomaly_scores``.
+
+    Maps each query patch's top-K cosine similarities against the normal-feature bank to an
+    anomaly score in [0, 1] via a small MLP, instead of the fixed Noisy-OR formula
+    ``exp(mean log(1 - exp(-beta(1-cos))))``. The bank enters only through top-K similarities,
+    so the score is invariant to bank size (any ``M >= 1`` works; ``M < K`` is padded). Trained
+    on GT defect masks with the backbone frozen/detached, so only this head learns to tell
+    "normal variation" from "real defect". Same call signature as ``_anomaly_scores``
+    (``features[N, C]``, ``mem[M, C]`` -> ``scores[N]``) so Phase B can swap it in directly.
+    """
+
+    def __init__(
+        self,
+        k: int = 9,
+        hidden: int = 32,
+        train_self_match_mask: bool = True,
+        self_match_thresh: float = 0.999,
+        score_chunk_elems: int = 1 << 27,
+    ):
+        super().__init__()
+        self.k = int(k)
+        self.train_self_match_mask = bool(train_self_match_mask)
+        self.self_match_thresh = float(self_match_thresh)
+        self.score_chunk_elems = int(score_chunk_elems)
+        self.mlp = nn.Sequential(nn.Linear(self.k, hidden), nn.GELU(), nn.Linear(hidden, 1))
+
+    def topk_sims(self, features: torch.Tensor, mem: torch.Tensor) -> torch.Tensor:
+        """Query patches -> sorted top-K cosine sims ``[N, k]`` (cache these for fast head training)."""
+        q = F.normalize(features, p=2, dim=1)
+        k = min(self.k, mem.shape[0])
+        n, m = q.shape[0], mem.shape[0]
+        chunk = max(1, int(self.score_chunk_elems) // max(m, 1))  # bound the [chunk, M] sim slice
+        out = []
+        for i in range(0, n, chunk):
+            sim = q[i : i + chunk] @ mem.t()  # [chunk, M]
+            if self.training and self.train_self_match_mask:
+                # A query finding its own copy in the bank (cos ~ 1) would leak a too-clean score.
+                sim = sim.masked_fill(sim > self.self_match_thresh, float("-inf"))
+            out.append(sim.topk(k=k, dim=1).values)  # [chunk, k] sorted descending
+        return torch.cat(out)
+
+    def score_from_topk(self, topk: torch.Tensor) -> torch.Tensor:
+        """Sorted top-K sims ``[N, k']`` -> anomaly scores ``[N]`` in [0, 1] (pads/trims to k)."""
+        k = topk.shape[1]
+        if k < self.k:  # tiny bank: pad to fixed input width with the lowest available sim
+            topk = torch.cat([topk, topk[:, -1:].expand(-1, self.k - k)], dim=1)
+        elif k > self.k:
+            topk = topk[:, : self.k]
+        topk = topk.nan_to_num(neginf=-1.0).clamp(-1.0, 1.0)
+        return torch.sigmoid(self.mlp(topk).squeeze(1))
+
+    def forward(self, features: torch.Tensor, mem: torch.Tensor) -> torch.Tensor:
+        """Score query patches against the bank: ``features[N, C]``, ``mem[M, C]`` -> ``scores[N]``."""
+        if mem.numel() == 0 or mem.shape[0] == 0:
+            return torch.full((features.shape[0],), 0.5, device=features.device, dtype=features.dtype)
+        return self.score_from_topk(self.topk_sims(features, mem))
 
 
 if __name__ == "__main__":

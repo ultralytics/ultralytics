@@ -3,52 +3,49 @@
 #ifndef INFERENCE_H
 #define INFERENCE_H
 
-// Cpp native
-#include <fstream>
-#include <vector>
 #include <string>
-#include <random>
+#include <vector>
 
-// OpenCV / DNN / Inference
-#include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
-#include <opencv2/dnn.hpp>
 
-struct Detection
-{
-    int class_id{0};
-    std::string className{};
-    float confidence{0.0};
-    cv::Scalar color{};
-    cv::Rect box{};
+#include "yolo_types.hpp"
+
+namespace yolo {
+
+// Runtime configuration for the OpenCV DNN backend.
+struct Config {
+    std::string model_path = "yolo11n.onnx";  // grid model; OpenCV DNN cannot run YOLO26 end2end ops
+    float conf = 0.25f;         // confidence threshold
+    float iou = 0.45f;          // NMS IoU threshold (grid models only)
+    int imgsz = 640;            // square input size of the exported model
+    bool cuda = false;          // use the OpenCV CUDA DNN backend (requires a CUDA-enabled OpenCV)
+    Task task = Task::Unknown;  // optional override; OpenCV cannot read the task from the model
 };
 
-class Inference
-{
-public:
-    Inference(const std::string &onnxModelPath, const cv::Size &modelInputShape = {640, 640}, const std::string &classesTxtFile = "", const bool &runWithCuda = true);
-    std::vector<Detection> runInference(const cv::Mat &input);
+// Loads any YOLO ONNX model with the OpenCV DNN module and runs inference. OpenCV
+// cannot read the task or class names from the model, so the task is inferred from
+// the output shapes (override with Config::task for grid pose/obb), and class names
+// fall back to the COCO list in common/coco_names.hpp. Post-processing is shared with
+// the other examples via common/yolo_postprocess.hpp.
+class Predictor {
+   public:
+    explicit Predictor(const Config& config);
 
-private:
-    void loadClassesFromFile();
-    void loadOnnxNetwork();
-    cv::Mat formatToSquare(const cv::Mat &source, int *pad_x, int *pad_y, float *scale);
+    Task task() const { return task_; }
+    const std::vector<std::string>& names() const { return names_; }
 
-    std::string modelPath{};
-    std::string classesPath{};
-    bool cudaEnabled{};
+    // For Semantic the class-id map is written to `semantic`; otherwise it returns detections.
+    std::vector<Result> predict(const cv::Mat& image, cv::Mat& semantic);
 
-    std::vector<std::string> classes{"person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard", "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple", "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch", "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear", "hair drier", "toothbrush"};
+   private:
+    std::vector<cv::Mat> forward(const std::vector<float>& blob);
 
-    cv::Size2f modelShape{};
-
-    float modelConfidenceThreshold {0.25};
-    float modelScoreThreshold      {0.45};
-    float modelNMSThreshold        {0.50};
-
-    bool letterBoxForSquare = true;
-
-    cv::dnn::Net net;
+    Config config_;
+    Task task_ = Task::Detect;
+    std::vector<std::string> names_;
+    cv::dnn::Net net_;
 };
 
-#endif // INFERENCE_H
+}  // namespace yolo
+
+#endif  // INFERENCE_H

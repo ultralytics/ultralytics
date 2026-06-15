@@ -2,88 +2,51 @@
 
 <img alt="C++" src="https://img.shields.io/badge/C++-17-blue.svg?style=flat&logo=c%2B%2B"> <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white"> <img alt="ONNX" src="https://img.shields.io/badge/ONNX-005CED.svg?logo=onnx&logoColor=white">
 
-This example demonstrates how to perform inference using Ultralytics YOLO26, YOLO11, YOLOv8, and YOLOv5 models in C++ leveraging the [OpenCV DNN module](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html).
+A C++ application that runs Ultralytics YOLO ONNX models with the [OpenCV DNN module](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html). It supports [detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [pose](https://docs.ultralytics.com/tasks/pose), [OBB](https://docs.ultralytics.com/tasks/obb), [classify](https://docs.ultralytics.com/tasks/classify), and semantic segmentation, sharing its post-processing with the other examples in [`../common`](../common).
 
-## 🛠️ Usage
+> [!IMPORTANT]
+> The OpenCV DNN module cannot run the NMS-in-graph operators used by **YOLO26 end-to-end** exports, and it cannot read class names or the task from the ONNX metadata. So this example targets **grid models** ([YOLOv8](https://docs.ultralytics.com/models/yolov8) / [YOLO11](https://docs.ultralytics.com/models/yolo11), or [YOLO26](https://docs.ultralytics.com/models/yolo26) exported with `nms=False`), class names fall back to the 80 COCO names, and the task is inferred from the output shapes (use `--task` for grid pose/obb).
 
-Follow these steps to set up and run the C++ inference example:
+## 📦 Exporting a Model
 
-```bash
-# 1. Clone the Ultralytics repository
-git clone https://github.com/ultralytics/ultralytics
-cd ultralytics
-
-# 2. Install Ultralytics Python package (needed for exporting models)
-pip install .
-
-# 3. Navigate to the C++ example directory
-cd examples/cpp/OpenCV-DNN
-
-# 4. Export Models: Add yolo11*.onnx and/or yolov5*.onnx models (see export instructions below)
-#    Place the exported ONNX models in the current directory (OpenCV-DNN).
-
-# 5. Update Source Code: Edit main.cpp and set the 'projectBasePath' variable
-#    to the absolute path of the 'OpenCV-DNN' directory on your system.
-#    Example: std::string projectBasePath = "/path/to/your/ultralytics/examples/cpp/OpenCV-DNN";
-
-# 6. Configure OpenCV DNN Backend (Optional - CUDA):
-#    - The default CMakeLists.txt attempts to use CUDA for GPU acceleration with OpenCV DNN.
-#    - If your OpenCV build doesn't support CUDA/cuDNN, or you want CPU inference,
-#      remove the CUDA-related lines from CMakeLists.txt.
-
-# 7. Build the project
-mkdir build
-cd build
-cmake ..
-make
-
-# 8. Run the inference executable
-./yolo_opencv_dnn
-```
-
-## ✨ Exporting Ultralytics YOLO and YOLOv5 Models
-
-You need to export your trained PyTorch models to the [ONNX](https://onnx.ai/) format to use them with OpenCV DNN.
-
-**Exporting Ultralytics YOLO Models (YOLO11, YOLOv8):**
-
-Use the Ultralytics CLI to export. Ensure you specify the desired `imgsz` and `opset`. For compatibility with this example, `opset=12` is recommended.
+Export to ONNX with a fixed input size. For YOLO26, disable the in-graph NMS so OpenCV can run it:
 
 ```bash
-yolo export model=yolo11s.pt imgsz=640,480 format=onnx opset=12 # Example: 640x480 resolution
+yolo export model=yolo11n.pt format=onnx opset=12 imgsz=640              # YOLOv8 / YOLO11 (detect, -seg, -pose, ...)
+yolo export model=yolo26n.pt format=onnx opset=12 imgsz=640 nms=False    # YOLO26 (grid output for OpenCV DNN)
 ```
 
-> [!NOTE]
-> This example performs its own [NMS](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) on a raw model output. For YOLO26, export with NMS disabled (`yolo export model=yolo26s.pt format=onnx opset=12 nms=False`) so the output shape matches what this code expects.
-
-**Exporting YOLOv5 Models:**
-
-Use the `export.py` script from the separate [YOLOv5 repository](https://github.com/ultralytics/yolov5).
+## 🛠️ Build
 
 ```bash
-# Run from the root of the cloned yolov5 repository
-python export.py --weights yolov5s.pt --imgsz 640 480 --include onnx --opset 12 # Example: 640x480 resolution
+git clone https://github.com/ultralytics/ultralytics.git
+cd ultralytics/examples/cpp/OpenCV-DNN
+mkdir build && cd build
+cmake .. && cmake --build . --config Release
 ```
 
-Place the generated `.onnx` files (e.g., `yolo11s.onnx`, `yolov5s.onnx`) into the `ultralytics/examples/cpp/OpenCV-DNN/` directory.
+OpenCV is found with `find_package(OpenCV)` and the shared helpers in [`../common`](../common) are added automatically. For GPU inference build OpenCV with the CUDA DNN backend and pass `--cuda`.
 
-**Example Output:**
+## 🚀 Usage
 
-_yolov8s.onnx:_
+```bash
+# Defaults: --model yolo11n.onnx --source bus.jpg --conf 0.25 --iou 0.45 --imgsz 640 --out result.jpg
+./yolo_opencv_dnn --model yolo11n.onnx      --source bus.jpg
+./yolo_opencv_dnn --model yolo11n-seg.onnx  --source bus.jpg --out seg.jpg
+./yolo_opencv_dnn --model yolo11n-pose.onnx --source bus.jpg --task pose --show
+```
 
-![YOLOv8 ONNX Output](https://user-images.githubusercontent.com/40023722/217356132-a4cecf2e-2729-4acb-b80a-6559022d7707.png)
-
-_yolov5s.onnx:_
-
-![YOLOv5 ONNX Output](https://user-images.githubusercontent.com/40023722/217357005-07464492-d1da-42e3-98a7-fc753f87d5e6.png)
-
-## 📝 Notes
-
-- This repository utilizes the [OpenCV DNN API](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html) to run [ONNX](https://onnx.ai/) exported models of YOLOv5 and Ultralytics YOLOv8.
-- While not explicitly tested, it might theoretically work for other YOLO architectures like YOLOv6 and YOLOv7 if their ONNX export formats are compatible.
-- The example models are exported with a rectangular resolution (640x480), but the code should handle models exported with different resolutions. Consider using techniques like [letterboxing](https://docs.ultralytics.com/modes/predict#letterbox) if your input images have different aspect ratios than the model's training resolution, especially for square `imgsz` exports.
-- The `main` branch version includes a simple GUI wrapper using [Qt](https://www.qt.io/). However, the core logic resides in the `Inference` class (`inference.h`, `inference.cpp`).
-- A key part of the `Inference` class demonstrates how to handle the output differences between YOLOv5 and YOLOv8 models, effectively transposing YOLOv8's output format to match the structure expected from YOLOv5 for consistent post-processing.
+| Argument   | Default        | Description                                                          |
+| :--------- | :------------- | :------------------------------------------------------------------ |
+| `--model`  | `yolo11n.onnx` | Path to the exported ONNX model (grid output).                      |
+| `--source` | `bus.jpg`      | Input image.                                                        |
+| `--conf`   | `0.25`         | Confidence threshold.                                               |
+| `--iou`    | `0.45`         | NMS IoU threshold.                                                  |
+| `--imgsz`  | `640`          | Square input size of the exported model.                           |
+| `--task`   | _auto_         | Override the task (`detect`/`segment`/`pose`/`obb`/`classify`/`semantic`); needed for grid pose/obb. |
+| `--cuda`   | _off_          | Use the OpenCV CUDA DNN backend (requires a CUDA-enabled OpenCV).   |
+| `--out`    | `result.jpg`   | Output image path.                                                 |
+| `--show`   | _off_          | Also open a display window.                                        |
 
 ## 🤝 Contributing
 

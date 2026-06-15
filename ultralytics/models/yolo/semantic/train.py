@@ -73,14 +73,33 @@ class SemanticSegmentationTrainer(DetectionTrainer):
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
 
-    def set_class_weights(self):
-        """Skip detection-style class weight computation for semantic segmentation.
+    def get_class_counts(self):
+        """Return per-class pixel counts sampled from up to 1000 training mask files."""
+        nc = self.data["nc"]
+        pixel_counts = np.zeros(nc, dtype=np.float32)
+        dataset = self.train_loader.dataset
+        mask_files = getattr(dataset, "mask_files", [])
+        if not mask_files:
+            return pixel_counts
+        indices = np.linspace(0, len(mask_files) - 1, min(1000, len(mask_files))).astype(int)
+        for idx in indices:
+            try:
+                mask = np.array(Image.open(mask_files[idx]))
+            except Exception:
+                continue
+            if getattr(dataset, "label_mapping", None):
+                for old, new in dataset.label_mapping.items():
+                    mask[mask == old] = new
+            valid = (mask >= 0) & (mask < nc) & (mask != 255)
+            if valid.any():
+                classes, counts = np.unique(mask[valid], return_counts=True)
+                pixel_counts[classes.astype(int)] += counts
+        return pixel_counts
 
-        Semantic segmentation requires pixel-level class frequency counting from masks,
-        which is not performed here. The loss function applies Cityscapes weights when
-        the dataset YAML stem is 'cityscapes' or 'cityscapes8'.
-        """
-        pass
+    def compute_class_weights(self, class_counts):
+        """Compute ENet inverse-log `(1/ln(1.02 + p))**cls_pw` weights (Paszke et al., 2016, arXiv:1606.02147)."""
+        p = class_counts / max(class_counts.sum(), 1.0)  # pixel frequency, bounded for rare classes unlike detection
+        return (1.0 / np.log(1.02 + p)) ** self.args.cls_pw
 
     @plt_settings()
     def plot_training_labels(self):
@@ -92,30 +111,10 @@ class SemanticSegmentationTrainer(DetectionTrainer):
         LOGGER.info(f"Plotting labels to {self.save_dir / 'labels.jpg'}...")
         nc = self.data["nc"]
         names = self.data["names"]
-        pixel_counts = np.zeros(nc, dtype=np.int32)
-
-        dataset = self.train_loader.dataset
-        mask_files = getattr(dataset, "mask_files", [])
-        if not mask_files:
+        pixel_counts = self.get_class_counts()
+        if not pixel_counts.any():
             LOGGER.warning("No semantic mask files found, skipping label plot.")
             return
-
-        sample_size = min(1000, len(mask_files))
-        indices = np.linspace(0, len(mask_files) - 1, sample_size).astype(int)
-
-        for idx in indices:
-            try:
-                mask = np.array(Image.open(mask_files[idx]))
-            except Exception:
-                continue
-            if hasattr(dataset, "label_mapping") and dataset.label_mapping:
-                for old, new in dataset.label_mapping.items():
-                    mask[mask == old] = new
-            valid = (mask >= 0) & (mask < nc) & (mask != 255)
-            if valid.any():
-                classes, counts = np.unique(mask[valid], return_counts=True)
-                for c, count in zip(classes, counts):
-                    pixel_counts[int(c)] += int(count)
 
         _, ax = plt.subplots(1, 1, figsize=(8, 6), tight_layout=True)
         bars = ax.bar(range(nc), pixel_counts, color=[list(c / 255.0 for c in colors(i, False)) for i in range(nc)])

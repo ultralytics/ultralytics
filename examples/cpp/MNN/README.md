@@ -1,5 +1,7 @@
 # Ultralytics YOLO MNN Inference in C++
 
+<img alt="C++" src="https://img.shields.io/badge/C++-11-blue.svg?style=flat&logo=c%2B%2B"> <img alt="MNN" src="https://img.shields.io/badge/MNN-FF6A00.svg?logo=alibabacloud&logoColor=white"> <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white">
+
 Welcome to the Ultralytics YOLO MNN Inference example in C++! This guide will help you get started with leveraging the powerful [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11) and [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) models using the [Alibaba MNN](https://mnn-docs.readthedocs.io/en/latest/) inference engine in your C++ projects. Whether you're looking to enhance performance on CPU hardware or add flexibility to your applications, this example provides a solid foundation. Learn more about optimizing models and deployment strategies on the [Ultralytics blog](https://www.ultralytics.com/blog).
 
 ## 🌟 Features
@@ -178,8 +180,6 @@ Speed: 26.0ms preprocess, 190.9ms inference, 58.9ms postprocess
 
 _(Note: Speed and specific detections might vary based on hardware and MNN configuration)_
 
-## ❤️ Contributions
+## 🤝 Contributing
 
-We hope this example helps you integrate Ultralytics YOLO with MNN into your C++ projects effortlessly! Contributions to improve this example or add new features are highly welcome. Please see the [Ultralytics contribution guidelines](https://docs.ultralytics.com/help/contributing) for more information on how to get involved.
-
-For further guides, tutorials, and documentation on Ultralytics YOLO models and tools, visit the main [Ultralytics documentation](https://docs.ultralytics.com/). Happy coding! 🚀
+Contributions are welcome! If you find any issues or have suggestions for improvements, please feel free to open an issue or submit a pull request on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics).

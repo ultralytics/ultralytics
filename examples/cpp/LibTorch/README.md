@@ -2,7 +2,13 @@
 
 <img alt="C++" src="https://img.shields.io/badge/C++-17-blue.svg?style=flat&logo=c%2B%2B"> <img alt="LibTorch" src="https://img.shields.io/badge/LibTorch-EE4C2C.svg?logo=pytorch&logoColor=white"> <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white">
 
-This example demonstrates how to perform inference using [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11) and [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) models in C++ with the [LibTorch (PyTorch C++ API)](https://docs.pytorch.org/cppdocs/). This allows for deploying Ultralytics YOLO models in C++ environments for efficient execution.
+A C++ application that runs every [Ultralytics YOLO](https://docs.ultralytics.com/) task and model generation as [TorchScript](https://docs.pytorch.org/docs/stable/jit.html) with the [LibTorch (PyTorch C++ API)](https://docs.pytorch.org/cppdocs/) and [OpenCV](https://opencv.org/). Point it at any exported `.torchscript` model; the task, class names, and input size are read from the model metadata, and the right post-processing is selected automatically.
+
+## ✨ Features
+
+- **All tasks:** [detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [pose](https://docs.ultralytics.com/tasks/pose), [OBB](https://docs.ultralytics.com/tasks/obb), [classify](https://docs.ultralytics.com/tasks/classify), and YOLO26 semantic segmentation.
+- **All generations:** [YOLOv8](https://docs.ultralytics.com/models/yolov8), [YOLO11](https://docs.ultralytics.com/models/yolo11), and [YOLO26](https://docs.ultralytics.com/models/yolo26). Grid (YOLOv8/11) and end-to-end (YOLO26) outputs are detected automatically.
+- **Zero configuration:** task, class names, and `imgsz` come from the TorchScript `config.txt` metadata that Ultralytics embeds on export.
 
 ## ⚙️ Dependencies
 
@@ -17,71 +23,53 @@ Ensure you have the following dependencies installed before proceeding:
 
 You can download the required version of LibTorch from the official [PyTorch](https://pytorch.org/) website. Make sure to select the correct version corresponding to your system and CUDA version (if using GPU).
 
-## 🚀 Usage
+## 📦 Exporting a Model
 
-Follow these steps to run the C++ inference example:
-
-1.  **Clone the Ultralytics Repository:**
-    Use [Git](https://git-scm.com/) to clone the repository containing the example code and necessary files.
-
-    ```bash
-    git clone https://github.com/ultralytics/ultralytics
-    ```
-
-2.  **Install Ultralytics:**
-    Navigate to the cloned directory and install the `ultralytics` package using [pip](https://pip.pypa.io/en/stable/). This step is necessary for exporting the model. Refer to the [Ultralytics Quickstart Guide](https://docs.ultralytics.com/quickstart) for detailed installation instructions.
-
-    ```bash
-    cd ultralytics
-    pip install .
-    ```
-
-3.  **Navigate to the Example Directory:**
-    Change the directory to the C++ LibTorch inference example.
-
-    ```bash
-    cd examples/cpp/LibTorch
-    ```
-
-4.  **Build the Project:**
-    Create a build directory, use [CMake](https://cmake.org/) to configure the project, and then compile it using [Make](https://www.gnu.org/software/make/). You might need to specify the path to your LibTorch and OpenCV installations if they are not found automatically by CMake.
-
-    ```bash
-    mkdir build
-    cd build
-    cmake .. # Add -DCMAKE_PREFIX_PATH=/path/to/libtorch;/path/to/opencv if needed
-    make
-    ```
-
-5.  **Run the Inference:**
-    The binary loads `yolo11s.torchscript` and an image named `bus.jpg` from the **current working directory**. Copy both next to the binary (or `cd` into the folder that holds them) and run it. To use different filenames, edit the `model_path` and `cv::imread(...)` values near the top of `main()` in `main.cc`.
-    ```bash
-    cp /path/to/yolo11s.torchscript .
-    cp /path/to/bus.jpg .
-    ./yolo_libtorch
-    ```
-
-    Expected output (using `yolo11s` on the sample `bus.jpg`):
-
-    ```
-    Rect: [20,227,796,737]  Conf: 0.9457  Class: bus
-    Rect: [48,401,246,905]  Conf: 0.8988  Class: person
-    Rect: [222,405,344,857]  Conf: 0.8961  Class: person
-    Rect: [668,390,809,880]  Conf: 0.8852  Class: person
-    Rect: [0,545,78,874]  Conf: 0.7306  Class: person
-    ```
-
-## ✨ Exporting Ultralytics YOLO
-
-To use an Ultralytics YOLO model with LibTorch, you first need to export it to the [TorchScript](https://docs.pytorch.org/docs/stable/jit.html) format. TorchScript is a way to create serializable and optimizable models from PyTorch code.
-
-Use the `yolo` [Command Line Interface (CLI)](https://docs.ultralytics.com/usage/cli) provided by the `ultralytics` package to export the model. For example, to export the `yolo11s.pt` model with an input image size of 640x640:
+Export any model and task to TorchScript with the Ultralytics `export` mode:
 
 ```bash
-yolo export model=yolo11s.pt imgsz=640 format=torchscript
+yolo export model=yolo26n.pt      imgsz=640 format=torchscript   # detect (also -seg / -pose / -obb / -cls / -sem)
+yolo export model=yolo11n.pt      imgsz=640 format=torchscript   # YOLOv8/YOLO11 work too
 ```
 
-This command will generate a `yolo11s.torchscript` file in the model's directory. This file contains the serialized model that can be loaded and executed by the C++ application using LibTorch. For more details on exporting models to various formats, see the [Ultralytics Export documentation](https://docs.ultralytics.com/modes/export).
+See the [Export documentation](https://docs.ultralytics.com/modes/export) for more options.
+
+## 🛠️ Build
+
+```bash
+git clone https://github.com/ultralytics/ultralytics.git
+cd ultralytics/examples/cpp/LibTorch
+mkdir build && cd build
+
+# Add -DCMAKE_PREFIX_PATH="/path/to/libtorch;/path/to/opencv" if they are not auto-detected.
+cmake .. && cmake --build . --config Release
+```
+
+The shared helpers in [`../common`](../common) are header-only and added to the include path automatically.
+
+## 🚀 Usage
+
+```bash
+# If LibTorch is not installed system-wide, add its libraries to the loader path:
+export LD_LIBRARY_PATH=/path/to/libtorch/lib:$LD_LIBRARY_PATH
+
+# Defaults: --model yolo26n.torchscript --source bus.jpg --conf 0.25 --iou 0.45 --out result.jpg
+./yolo_libtorch --model yolo26n.torchscript      --source bus.jpg
+./yolo_libtorch --model yolo26n-seg.torchscript  --source bus.jpg --out seg.jpg
+./yolo_libtorch --model yolo11n-pose.torchscript --source bus.jpg --show
+```
+
+| Argument   | Default               | Description                                              |
+| :--------- | :-------------------- | :------------------------------------------------------- |
+| `--model`  | `yolo26n.torchscript` | Path to the exported TorchScript model (any task).      |
+| `--source` | `bus.jpg`             | Input image.                                            |
+| `--conf`   | `0.25`                | Confidence threshold.                                   |
+| `--iou`    | `0.45`                | NMS IoU threshold (grid models only).                  |
+| `--out`    | `result.jpg`          | Output image path.                                     |
+| `--cuda`   | _off_                 | Use CUDA if the LibTorch build and a device support it. |
+| `--show`   | _off_                 | Also open a display window.                             |
+
+The annotated result is always written to `--out` and the detections are printed to the console. The detected task is shown at startup, e.g. `Model: yolo26n.torchscript | task: detect | classes: 80`.
 
 ## 🤝 Contributing
 

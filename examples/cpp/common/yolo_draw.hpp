@@ -68,4 +68,62 @@ inline std::string Label(const std::string& name, float confidence) {
     return name + " " + std::to_string(pct / 100) + "." + (pct % 100 < 10 ? "0" : "") + std::to_string(pct % 100);
 }
 
+// Blend an instance mask (8-bit, image size) over the image in the class color.
+inline void DrawMask(cv::Mat& image, const cv::Mat& mask, int class_id, float alpha = 0.5f) {
+    if (mask.empty()) return;
+    const cv::Scalar color = Color(class_id);
+    cv::Mat colored(image.size(), CV_8UC3, color);
+    cv::Mat blended;
+    cv::addWeighted(image, 1.0f - alpha, colored, alpha, 0.0, blended);
+    blended.copyTo(image, mask);
+}
+
+// Draw 17 COCO keypoints and the skeleton for one pose detection.
+inline void DrawPose(cv::Mat& image, const std::vector<cv::Point2f>& kpts,
+                     const std::vector<float>& scores, float kpt_threshold = 0.5f) {
+    static const int kSkeleton[][2] = {
+        {15, 13}, {13, 11}, {16, 14}, {14, 12}, {11, 12}, {5, 11}, {6, 12}, {5, 6}, {5, 7}, {6, 8},
+        {7, 9}, {8, 10}, {1, 2}, {0, 1}, {0, 2}, {1, 3}, {2, 4}, {3, 5}, {4, 6},
+    };
+    for (const auto& s : kSkeleton) {
+        const int a = s[0], b = s[1];
+        if (a < static_cast<int>(kpts.size()) && b < static_cast<int>(kpts.size()) &&
+            scores[a] > kpt_threshold && scores[b] > kpt_threshold) {
+            cv::line(image, kpts[a], kpts[b], cv::Scalar(0, 128, 255), 2, cv::LINE_AA);
+        }
+    }
+    for (size_t i = 0; i < kpts.size(); ++i) {
+        if (scores[i] > kpt_threshold) cv::circle(image, kpts[i], 3, Color(static_cast<int>(i)), -1, cv::LINE_AA);
+    }
+}
+
+// Draw a rotated (oriented) bounding box plus a filled label.
+inline void DrawObb(cv::Mat& image, const cv::RotatedRect& rect, const std::string& label, int class_id) {
+    const cv::Scalar color = Color(class_id);
+    const int lw = LineWidth(image);
+    cv::Point2f pts[4];
+    rect.points(pts);
+    for (int i = 0; i < 4; ++i) cv::line(image, pts[i], pts[(i + 1) % 4], color, lw, cv::LINE_AA);
+
+    if (label.empty()) return;
+    // Anchor the label at the top-most corner.
+    cv::Point2f top = pts[0];
+    for (int i = 1; i < 4; ++i) if (pts[i].y < top.y) top = pts[i];
+    DrawBox(image, cv::Rect(static_cast<int>(top.x), static_cast<int>(top.y), 0, 0), label, class_id);
+}
+
+// Color a per-pixel class map (CV_8U or CV_32S, image size) and blend it over the image.
+inline void DrawSemantic(cv::Mat& image, const cv::Mat& class_map, float alpha = 0.45f) {
+    if (class_map.empty()) return;
+    cv::Mat colored(image.size(), CV_8UC3);
+    for (int y = 0; y < class_map.rows; ++y) {
+        for (int x = 0; x < class_map.cols; ++x) {
+            const int c = class_map.type() == CV_32S ? class_map.at<int>(y, x) : class_map.at<uchar>(y, x);
+            const cv::Scalar s = Color(c);
+            colored.at<cv::Vec3b>(y, x) = cv::Vec3b(static_cast<uchar>(s[0]), static_cast<uchar>(s[1]), static_cast<uchar>(s[2]));
+        }
+    }
+    cv::addWeighted(image, 1.0f - alpha, colored, alpha, 0.0, image);
+}
+
 }  // namespace yolo

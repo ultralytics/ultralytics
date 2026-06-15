@@ -7,7 +7,6 @@ from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
-from PIL import Image
 
 from ultralytics.data.utils import add_polygon_background
 from ultralytics.models import yolo
@@ -78,23 +77,26 @@ class SemanticSegmentationTrainer(DetectionTrainer):
         if self.data["nc"] > 1:
             super().set_class_weights()
 
-    def get_class_counts(self):
-        """Return per-class pixel counts sampled from up to 1000 training mask files."""
+    def get_class_counts(self, max_masks=None):
+        """Return per-class pixel counts from training masks, optionally sampled to max_masks."""
         nc = self.data["nc"]
         pixel_counts = np.zeros(nc, dtype=np.float32)
         dataset = self.train_loader.dataset
-        mask_files = getattr(dataset, "mask_files", [])
-        if not mask_files:
+        labels = getattr(dataset, "labels", [])
+        if not labels:
             return pixel_counts
-        indices = np.linspace(0, len(mask_files) - 1, min(1000, len(mask_files))).astype(int)
+        indices = np.arange(len(labels))
+        if max_masks and len(indices) > max_masks:
+            indices = np.linspace(0, len(labels) - 1, max_masks).astype(int)
+        include_class = getattr(dataset, "include_class", None)
         for idx in indices:
+            shape = labels[idx].get("shape")
             try:
-                mask = np.array(Image.open(mask_files[idx]))
+                mask = dataset.load_mask(idx, image_shape=tuple(shape) if shape is not None else None)
             except Exception:
                 continue
-            if getattr(dataset, "label_mapping", None):
-                for old, new in dataset.label_mapping.items():
-                    mask[mask == old] = new
+            if include_class is not None:
+                mask[~np.isin(mask, include_class)] = 255
             valid = (mask >= 0) & (mask < nc) & (mask != 255)
             if valid.any():
                 classes, counts = np.unique(mask[valid], return_counts=True)
@@ -116,7 +118,7 @@ class SemanticSegmentationTrainer(DetectionTrainer):
         LOGGER.info(f"Plotting labels to {self.save_dir / 'labels.jpg'}...")
         nc = self.data["nc"]
         names = self.data["names"]
-        pixel_counts = self.get_class_counts()
+        pixel_counts = self.get_class_counts(max_masks=1000)
         if not pixel_counts.any():
             LOGGER.warning("No semantic mask files found, skipping label plot.")
             return

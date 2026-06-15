@@ -1068,7 +1068,10 @@ class v8OBBLoss(v8DetectionLoss):
 
         # Cls loss
         # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
-        loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+        bce_loss = self.bce(pred_scores, target_scores.to(dtype))  # BCE
+        if self.class_weights is not None:
+            bce_loss *= self.class_weights
+        loss[1] = bce_loss.sum() / target_scores_sum
 
         # Bbox loss
         if fg_mask.sum():
@@ -1289,13 +1292,16 @@ class SemanticSegmentationLoss(nn.Module):
         self.dtype = next(model.parameters()).dtype
         data_name = Path(str(getattr(model.args, "data", "") or "")).stem.lower()
         self.use_cityscapes_weight = data_name in {"cityscapes", "cityscapes8"} and self.nc == len(CITYSCAPES_WEIGHT)
+        weight = getattr(model, "class_weights", None)  # cls_pw frequency weights, else hardcoded Cityscapes
+        if weight is None and self.use_cityscapes_weight:
+            weight = torch.from_numpy(CITYSCAPES_WEIGHT)
+        weight = None if weight is None else weight.to(device=self.device, dtype=self.dtype)
         if self.nc == 1:
-            self.ce = nn.BCEWithLogitsLoss()
+            self.ce = nn.BCEWithLogitsLoss()  # binary: class weighting intentionally unsupported
         else:
             self.ce = nn.CrossEntropyLoss(ignore_index=255).to(device=self.device, dtype=self.dtype)
-            if self.use_cityscapes_weight:
+            if weight is not None:
                 # Non-persistent: weight is a deterministic constant, no need to serialize into ckpt state_dict.
-                weight = torch.from_numpy(CITYSCAPES_WEIGHT).to(device=self.device, dtype=self.dtype)
                 self.ce.register_buffer("weight", weight, persistent=False)
 
     def _resize_masks(self, masks, target_shape):

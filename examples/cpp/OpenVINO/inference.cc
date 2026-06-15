@@ -1,162 +1,104 @@
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 #include "inference.h"
 
+#include <algorithm>
 #include <iostream>
-#include <memory>
-#include <opencv2/dnn.hpp>
+#include <sstream>
+
+#include "coco_names.hpp"
+#include "yolo_postprocess.hpp"
 
 namespace yolo {
 
-// Constructor to initialize the model with default input shape
-Inference::Inference(const std::string &model_path, const float &model_confidence_threshold, const float &model_NMS_threshold) {
-	model_input_shape_ = cv::Size(640, 640); // Set the default size for models with dynamic shapes to prevent errors.
-	model_confidence_threshold_ = model_confidence_threshold;
-	model_NMS_threshold_ = model_NMS_threshold;
-	InitializeModel(model_path);
+Predictor::Predictor(const Config& config) : config_(config) {
+    std::shared_ptr<ov::Model> model = core_.read_model(config_.model_path);
+
+    // Input size from the model's input shape [1, 3, H, W].
+    const ov::Shape input_shape = model->input().get_shape();
+    if (input_shape.size() == 4) imgsz_ = static_cast<int>(input_shape[2]);
+
+    load_names(model);
+
+    // Infer the task from the output shapes + label count (the IR has no task field).
+    std::vector<std::vector<int64_t>> output_shapes;
+    for (const auto& output : model->outputs()) {
+        const ov::Shape s = output.get_shape();
+        output_shapes.emplace_back(s.begin(), s.end());
+    }
+    task_ = InferTask(output_shapes, static_cast<int>(names_.size()));
+
+    compiled_model_ = core_.compile_model(model, config_.device);
+    request_ = compiled_model_.create_infer_request();
 }
 
-// Constructor to initialize the model with specified input shape
-Inference::Inference(const std::string &model_path, const cv::Size model_input_shape, const float &model_confidence_threshold, const float &model_NMS_threshold) {
-	model_input_shape_ = model_input_shape;
-	model_confidence_threshold_ = model_confidence_threshold;
-	model_NMS_threshold_ = model_NMS_threshold;
-	InitializeModel(model_path);
+void Predictor::load_names(const std::shared_ptr<ov::Model>& model) {
+    names_.clear();
+    try {
+        if (model->has_rt_info("model_info", "labels")) {
+            // Space-separated labels with underscores inside multi-word names, e.g.
+            // "person ... traffic_light ... cell_phone".
+            const std::string labels = model->get_rt_info<std::string>("model_info", "labels");
+            std::istringstream iss(labels);
+            std::string word;
+            while (iss >> word) {
+                std::replace(word.begin(), word.end(), '_', ' ');
+                names_.push_back(word);
+            }
+        }
+    } catch (const std::exception&) {
+        names_.clear();
+    }
+    if (names_.empty()) names_ = CocoNames();
 }
 
-void Inference::InitializeModel(const std::string &model_path) {
-	ov::Core core; // OpenVINO core object
-	std::shared_ptr<ov::Model> model = core.read_model(model_path); // Read the model from file
+std::vector<Result> Predictor::predict(const cv::Mat& image, cv::Mat& semantic) {
+    float scale = 1.0f;
+    cv::Mat input = Preprocess(image, imgsz_, task_ == Task::Classify, scale);
+    std::vector<float> blob = ToBlob(input, imgsz_);
 
-	// If the model has dynamic shapes, reshape it to the specified input shape
-	if (model->is_dynamic()) {
-		model->reshape({1, 3, static_cast<long int>(model_input_shape_.height), static_cast<long int>(model_input_shape_.width)});
-	}
+    const ov::Shape shape{1, 3, static_cast<size_t>(imgsz_), static_cast<size_t>(imgsz_)};
+    ov::Tensor input_tensor(ov::element::f32, shape, blob.data());
+    request_.set_input_tensor(input_tensor);
+    request_.infer();
 
-	// Preprocessing setup for the model
-	ov::preprocess::PrePostProcessor ppp = ov::preprocess::PrePostProcessor(model);
-	ppp.input().tensor().set_element_type(ov::element::u8).set_layout("NHWC").set_color_format(ov::preprocess::ColorFormat::BGR);
-	ppp.input().preprocess().convert_element_type(ov::element::f32).convert_color(ov::preprocess::ColorFormat::RGB).scale({255, 255, 255});
-	ppp.input().model().set_layout("NCHW");
-	ppp.output().tensor().set_element_type(ov::element::f32);
-	model = ppp.build(); // Build the preprocessed model
+    // Primary output (2D/3D) plus the 4D proto/semantic tensor when present.
+    const size_t num_outputs = compiled_model_.outputs().size();
+    int main_idx = 0, aux_idx = -1;
+    std::vector<ov::Tensor> tensors(num_outputs);
+    std::vector<std::vector<int64_t>> shapes(num_outputs);
+    for (size_t i = 0; i < num_outputs; ++i) {
+        tensors[i] = request_.get_output_tensor(i);
+        const ov::Shape s = tensors[i].get_shape();
+        shapes[i].assign(s.begin(), s.end());
+        if (s.size() == 4) aux_idx = static_cast<int>(i);
+        else main_idx = static_cast<int>(i);
+    }
+    const float* data = tensors[main_idx].data<const float>();
+    const std::vector<int64_t>& shp = shapes[main_idx];
 
-	// Compile the model for inference
-	compiled_model_ = core.compile_model(model, "AUTO");
-	inference_request_ = compiled_model_.create_infer_request(); // Create inference request
-
-	short width, height;
-
-	// Get input shape from the model
-	const std::vector<ov::Output<ov::Node>> inputs = model->inputs();
-	const ov::Shape input_shape = inputs[0].get_shape();
-	height = input_shape[1];
-	width = input_shape[2];
-	model_input_shape_ = cv::Size2f(width, height);
-
-	// Get output shape from the model
-	const std::vector<ov::Output<ov::Node>> outputs = model->outputs();
-	const ov::Shape output_shape = outputs[0].get_shape();
-	height = output_shape[1];
-	width = output_shape[2];
-	model_output_shape_ = cv::Size(width, height);
+    switch (task_) {
+        case Task::Detect:
+            return PostprocessDetect(data, shp, scale, config_.conf, config_.iou);
+        case Task::Pose:
+            return PostprocessPose(data, shp, scale, config_.conf, config_.iou);
+        case Task::Obb:
+            return PostprocessObb(data, shp, scale, config_.conf, config_.iou);
+        case Task::Classify:
+            return PostprocessClassify(data, shp);
+        case Task::Segment: {
+            if (aux_idx < 0) return {};
+            const float* pdata = tensors[aux_idx].data<const float>();
+            return PostprocessSegment(data, shp, pdata, shapes[aux_idx], scale, config_.conf, config_.iou,
+                                      imgsz_, image.size());
+        }
+        case Task::Semantic:
+            PostprocessSemantic(data, shp, scale, imgsz_, image.size(), semantic);
+            return {};
+        default:
+            std::cerr << "[yolo] task '" << TaskName(task_) << "' is not supported." << std::endl;
+            return {};
+    }
 }
 
-// Method to run inference on an input frame
-void Inference::RunInference(cv::Mat &frame) {
-	Preprocessing(frame); // Preprocess the input frame
-	inference_request_.infer(); // Run inference
-	PostProcessing(frame); // Postprocess the inference results
-}
-
-// Method to preprocess the input frame
-void Inference::Preprocessing(const cv::Mat &frame) {
-	cv::Mat resized_frame;
-	cv::resize(frame, resized_frame, model_input_shape_, 0, 0, cv::INTER_AREA); // Resize the frame to match the model input shape
-
-	// Calculate scaling factor
-	scale_factor_.x = static_cast<float>(frame.cols / model_input_shape_.width);
-	scale_factor_.y = static_cast<float>(frame.rows / model_input_shape_.height);
-
-    ov::Tensor input_tensor = inference_request_.get_input_tensor();
-    uint8_t* input_data = input_tensor.data<uint8_t>();
-    size_t bytes_to_copy = resized_frame.total() * resized_frame.elemSize();
-    memcpy(input_data, resized_frame.data, bytes_to_copy);
-
-	inference_request_.set_input_tensor(input_tensor); // Set input tensor for inference
-}
-
-// Method to postprocess the inference results
-void Inference::PostProcessing(cv::Mat &frame) {
-	std::vector<int> class_list;
-	std::vector<float> confidence_list;
-	std::vector<cv::Rect> box_list;
-
-	// Get the output tensor from the inference request
-	const float *detections = inference_request_.get_output_tensor().data<const float>();
-	const cv::Mat detection_outputs(model_output_shape_, CV_32F, (float *)detections); // Create OpenCV matrix from output tensor
-
-	// Iterate over detections and collect class IDs, confidence scores, and bounding boxes
-	for (int i = 0; i < detection_outputs.cols; ++i) {
-		const cv::Mat classes_scores = detection_outputs.col(i).rowRange(4, detection_outputs.rows);
-
-		cv::Point class_id;
-		double score;
-		cv::minMaxLoc(classes_scores, nullptr, &score, nullptr, &class_id); // Find the class with the highest score
-
-		// Check if the detection meets the confidence threshold
-		if (score > model_confidence_threshold_) {
-			class_list.push_back(class_id.y);
-			confidence_list.push_back(score);
-
-			const float cx = detection_outputs.at<float>(0, i);
-			const float cy = detection_outputs.at<float>(1, i);
-			const float w = detection_outputs.at<float>(2, i);
-			const float h = detection_outputs.at<float>(3, i);
-
-			cv::Rect box;
-			box.x = static_cast<int>((cx - w / 2));
-			box.y = static_cast<int>((cy - h / 2));
-			box.width = static_cast<int>(w);
-			box.height = static_cast<int>(h);
-			box_list.push_back(box);
-		}
-	}
-
-	// Apply Non-Maximum Suppression (NMS) to filter overlapping bounding boxes
-	std::vector<int> NMS_result;
-	cv::dnn::NMSBoxes(box_list, confidence_list, model_confidence_threshold_, model_NMS_threshold_, NMS_result);
-
-	// Collect final detections after NMS
-	for (int i = 0; i < NMS_result.size(); ++i) {
-		Detection result;
-		const unsigned short id = NMS_result[i];
-
-		result.class_id = class_list[id];
-		result.confidence = confidence_list[id];
-		result.box = GetBoundingBox(box_list[id]);
-
-		DrawDetectedObject(frame, result);
-	}
-}
-
-// Method to get the bounding box in the correct scale
-cv::Rect Inference::GetBoundingBox(const cv::Rect &src) const {
-	cv::Rect box = src;
-	box.x = static_cast<int>(box.x * scale_factor_.x);
-	box.y = static_cast<int>(box.y * scale_factor_.y);
-	box.width = static_cast<int>(box.width * scale_factor_.x);
-	box.height = static_cast<int>(box.height * scale_factor_.y);
-	return box;
-}
-
-void Inference::DrawDetectedObject(cv::Mat &frame, const Detection &detection) const {
-	const cv::Rect &box = detection.box;
-	const float &confidence = detection.confidence;
-	const int &class_id = detection.class_id;
-
-	std::cout << classes_[class_id] << " " << confidence
-	          << " box=[" << box.x << ", " << box.y << ", " << box.width << ", " << box.height << "]" << std::endl;
-
-	// Draw the box and label with the shared Ultralytics-style annotator
-	DrawBox(frame, box, Label(classes_[class_id], confidence), class_id);
-}
-} // namespace yolo
+}  // namespace yolo

@@ -133,7 +133,7 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
 
         For advanced Docker usage, explore the [Ultralytics Docker Guide](guides/docker-quickstart.md).
 
-See the `ultralytics` [pyproject.toml](https://raw.githubusercontent.com/ultralytics/ultralytics/main/pyproject.toml) file for a list of dependencies. Note that all examples above install all required dependencies.
+See the `ultralytics` [pyproject.toml](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) file for a list of dependencies. Note that all examples above install all required dependencies.
 
 !!! tip
 

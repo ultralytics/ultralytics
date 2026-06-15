@@ -53,7 +53,7 @@ Install `ultralytics` and run `yolo explorer` in your terminal to run custom que
 
 ## Setup
 
-Install `ultralytics` and the required [dependencies](https://raw.githubusercontent.com/ultralytics/ultralytics/main/pyproject.toml), then check software and hardware.
+Install `ultralytics` and the required [dependencies](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml), then check software and hardware.
 
 ```bash
 !uv pip install ultralytics[explorer] openai

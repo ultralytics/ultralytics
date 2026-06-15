@@ -22,6 +22,7 @@ class SolutionConfig:
         classes (list[int], optional): List of class indices to filter detections.
         show_conf (bool): Whether to show confidence scores on the visual output.
         show_labels (bool): Whether to display class labels on visual output.
+        show_boxes (bool): Whether to display bounding boxes on the visual output.
         region (list[tuple[int, int]], optional): Polygonal region or line for object counting.
         colormap (int, optional): OpenCV colormap constant for visual overlays (e.g., cv2.COLORMAP_DEEPGREEN).
         show_in (bool): Whether to display count number for objects entering the region.
@@ -67,6 +68,7 @@ class SolutionConfig:
     classes: list[int] | None = None
     show_conf: bool = True
     show_labels: bool = True
+    show_boxes: bool = True
     region: list[tuple[int, int]] | None = None
     colormap: int | None = cv2.COLORMAP_DEEPGREEN
     show_in: bool = True

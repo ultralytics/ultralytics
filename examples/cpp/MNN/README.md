@@ -43,13 +43,16 @@ The shared helpers in [`../common`](../common) are header-only and added to the 
 
 ## 📦 Exporting a Model
 
-Export directly to MNN (this keeps the metadata in `bizCode`):
+Export directly to MNN with the Ultralytics `export` mode. This is the **recommended** path: it keeps the model metadata in `bizCode`, so the task and class names are read automatically.
 
 ```bash
 yolo export model=yolo26n.pt imgsz=640 format=mnn     # detect (also -seg / -pose / -obb / -cls / -sem)
 ```
 
-Or convert an exported ONNX model with `MNNConvert` (note: `--bizCode` overwrites the metadata, so the task is then inferred from the output shapes):
+> [!NOTE]
+> Prefer `format=mnn` over the standalone `MNNConvert` tool. `MNNConvert --bizCode <code>` overwrites the model metadata, so the task is then inferred from the output shapes and class names fall back to COCO (wrong for OBB, classify, and semantic models). `MNNConvert` can also fail to convert some YOLO26 segment graphs.
+
+If you still want to convert an existing ONNX model:
 
 ```bash
 yolo export model=yolo11n.pt format=onnx opset=12

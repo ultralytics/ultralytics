@@ -47,8 +47,9 @@
 {{ super() }}
 <script defer src="/_vercel/insights/script.js"></script>
 {% endblock %} {% block htmltitle %} {% if page and page.meta and page.meta.title %} {% set page_specific_title =
-page.meta.title | striptags %} {% elif page and page.title %} {% set page_specific_title = page.title | striptags %} {%
-else %} {% set page_specific_title = "" %} {% endif %}
+page.meta.title | striptags %} {% elif page and page.toc is defined and page.toc.items is defined and page.toc.items %}
+{% set page_specific_title = page.toc.items[0].title %} {% elif page and page.title %} {% set page_specific_title =
+page.title | striptags %} {% else %} {% set page_specific_title = "" %} {% endif %}
 <title>
   {%- if page_specific_title -%} {{ page_specific_title }} | Ultralytics Docs {%- else -%} Ultralytics Docs {%- endif
   -%}

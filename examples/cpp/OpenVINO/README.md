@@ -1,16 +1,18 @@
 # Ultralytics YOLO OpenVINO Inference in C++
 
-Welcome to the [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11) and [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) OpenVINO Inference example in C++! This guide will help you get started with leveraging the powerful Ultralytics YOLO models using the [Intel OpenVINO™ toolkit](https://docs.openvino.ai/) and [OpenCV API](https://docs.opencv.org/) in your C++ projects. Whether you're looking to enhance performance on Intel hardware or add flexibility to your applications, this example provides a solid foundation. Learn more about optimizing models on the [Ultralytics blog](https://www.ultralytics.com/blog).
+<img alt="C++" src="https://img.shields.io/badge/C++-17-blue.svg?style=flat&logo=c%2B%2B"> <img alt="OpenVINO" src="https://img.shields.io/badge/OpenVINO-00C7FD.svg?logo=intel&logoColor=white"> <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white">
+
+A single C++ application that runs **every [Ultralytics YOLO](https://docs.ultralytics.com/) task and model generation** with the [Intel OpenVINO™ toolkit](https://docs.openvino.ai/) and [OpenCV](https://opencv.org/). Point it at an OpenVINO IR (`.xml`) or an `.onnx` file — the program reads the class names from the model and picks the right post-processing automatically.
 
 ## 🌟 Features
 
-- 🚀 **Model Format Support**: Compatible with [ONNX](https://onnx.ai/) and [OpenVINO Intermediate Representation (IR)](https://docs.openvino.ai/2023.3/openvino_docs_MO_DG_IR_and_opsets.html) formats. Check the [Ultralytics ONNX integration](https://docs.ultralytics.com/integrations/onnx) for more details.
-- ⚡ **Precision Options**: Run models in **FP32**, **FP16** ([half-precision](https://www.ultralytics.com/glossary/half-precision)), and **INT8** ([quantization](https://www.ultralytics.com/glossary/model-quantization)) precisions for optimized performance.
-- 🔄 **Dynamic Shape Loading**: Easily handle models with dynamic input shapes, common in many [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
+- **All tasks:** [detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [pose](https://docs.ultralytics.com/tasks/pose), [OBB](https://docs.ultralytics.com/tasks/obb), [classify](https://docs.ultralytics.com/tasks/classify), and YOLO26 semantic segmentation.
+- **All generations:** [YOLOv8](https://docs.ultralytics.com/models/yolov8), [YOLO11](https://docs.ultralytics.com/models/yolo11), and [YOLO26](https://docs.ultralytics.com/models/yolo26). Grid (YOLOv8/11) and end-to-end (YOLO26) outputs are detected automatically from the tensor shape.
+- **Two formats:** OpenVINO IR (`.xml`/`.bin`) and [ONNX](https://onnx.ai/) — the OpenVINO runtime reads both.
+- **Automatic task detection:** the IR carries no `task` field, so the task is inferred from the output shapes and class-label count. Class names come from the IR `rt_info` (`labels`); models without that metadata fall back to the 80 COCO names in [`../common`](../common).
+- **Shared post-processing:** the parsing/NMS/mask/keypoint/semantic logic is the same `common/yolo_postprocess.hpp` used by the other examples.
 
 ## 📋 Dependencies
-
-To ensure smooth execution, please make sure you have the following dependencies installed:
 
 | Dependency                                            | Version  |
 | ----------------------------------------------------- | -------- |
@@ -19,66 +21,48 @@ To ensure smooth execution, please make sure you have the following dependencies
 | [C++](https://en.cppreference.com/w/)                 | >=17     |
 | [CMake](https://cmake.org/documentation/)             | >=3.12.0 |
 
-## ⚙️ Build Instructions
-
-Follow these steps to build the project:
-
-1.  Clone the Ultralytics repository:
-
-    ```bash
-    git clone https://github.com/ultralytics/ultralytics.git
-    cd ultralytics/examples/cpp/OpenVINO
-    ```
-
-2.  Create a build directory and compile the project using CMake:
-    ```bash
-    mkdir build
-    cd build
-    cmake ..
-    make
-    ```
-
-## 🛠️ Usage
-
-Once built, you can run [inference](https://www.ultralytics.com/glossary/real-time-inference) on an image using the compiled executable. Provide the path to your model file (either `.xml` for OpenVINO IR or `.onnx`) and the path to your image:
+## 📦 Exporting a Model
 
 ```bash
-# Example using an OpenVINO IR model
-./yolo_openvino path/to/your/model.xml path/to/your/image.jpg
-
-# Example using an ONNX model
-./yolo_openvino path/to/your/model.onnx path/to/your/image.jpg
+yolo export model=yolo26n.pt      imgsz=640 format=openvino   # detect IR  (also -seg / -pose / -obb / -cls / -sem)
+yolo export model=yolo26n.pt      imgsz=640 format=onnx       # or ONNX, read directly by OpenVINO
+yolo export model=yolo11n.pt      imgsz=640 format=openvino   # YOLOv8/YOLO11 work too
 ```
 
-This command runs [object detection](https://www.ultralytics.com/glossary/object-detection) with the specified Ultralytics YOLO model, prints the detections to the console, and writes the annotated result to `yolo_openvino.jpg`. Bounding-box colors come from the shared Ultralytics palette in [`../common`](../common), and class names default to the COCO list there. Explore various [Ultralytics Solutions](https://docs.ultralytics.com/solutions) for real-world applications.
+See the [Export documentation](https://docs.ultralytics.com/modes/export). The OpenVINO export produces a `*_openvino_model/` directory containing the `.xml`, `.bin`, and metadata.
 
-## 🔄 Exporting Ultralytics YOLO Models
-
-To use your Ultralytics YOLO model with this C++ example, you first need to export it to the OpenVINO IR or ONNX format. Use the `yolo export` command available in the Ultralytics Python package. Find detailed instructions in the [Export mode documentation](https://docs.ultralytics.com/modes/export).
+## ⚙️ Build
 
 ```bash
-# Export to OpenVINO format (generates .xml and .bin files)
-yolo export model=yolo11s.pt imgsz=640 format=openvino
-
-# Export to ONNX format
-yolo export model=yolo11s.pt imgsz=640 format=onnx
+git clone https://github.com/ultralytics/ultralytics.git
+cd ultralytics/examples/cpp/OpenVINO
+mkdir build && cd build
+cmake .. && cmake --build . --config Release
 ```
 
-> [!NOTE]
-> This example runs its own [NMS](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) on the raw model output. For YOLO26, export with NMS disabled (e.g. `yolo export model=yolo26s.pt imgsz=640 format=openvino nms=False`) so the output shape matches what this code parses.
+OpenVINO is found via `find_package(OpenVINO)` and the shared helpers in [`../common`](../common) are added to the include path automatically.
 
-For more details on exporting and optimizing models for OpenVINO, refer to the [Ultralytics OpenVINO integration guide](https://docs.ultralytics.com/integrations/openvino).
+## 🚀 Usage
 
-## 📸 Screenshots
+```bash
+# Defaults: --model yolo26n.onnx --source bus.jpg --conf 0.25 --iou 0.45 --device AUTO --out result.jpg
+./yolo_openvino --model yolo26n_openvino_model/yolo26n.xml --source bus.jpg
+./yolo_openvino --model yolo26n-seg.onnx                   --source bus.jpg --out seg.jpg
+./yolo_openvino --model yolo11n-pose.onnx                  --source bus.jpg --show
+```
 
-### Running Using OpenVINO Model
+| Argument   | Default        | Description                                              |
+| :--------- | :------------- | :------------------------------------------------------- |
+| `--model`  | `yolo26n.onnx` | OpenVINO IR (`.xml`) or ONNX (`.onnx`) model.            |
+| `--source` | `bus.jpg`      | Input image.                                             |
+| `--conf`   | `0.25`         | Confidence threshold.                                    |
+| `--iou`    | `0.45`         | NMS IoU threshold (grid models only).                   |
+| `--device` | `AUTO`         | OpenVINO device: `AUTO`, `CPU`, or `GPU`.               |
+| `--out`    | `result.jpg`   | Output image path.                                      |
+| `--show`   | _off_          | Also open a display window.                             |
 
-![Running OpenVINO Model](https://github.com/ultralytics/ultralytics/assets/76827698/2d7cf201-3def-4357-824c-12446ccf85a9)
+The annotated result is always written to `--out` and the detections are printed to the console. The detected task is shown at startup, e.g. `Model: yolo26n.xml | task: detect | classes: 80`.
 
-### Running Using ONNX Model
+## 🤝 Contributing
 
-![Running ONNX Model](https://github.com/ultralytics/ultralytics/assets/76827698/9b90031c-cc81-4cfb-8b34-c619e09035a7)
-
-## ❤️ Contributions
-
-We hope this example helps you integrate Ultralytics YOLO with OpenVINO and OpenCV into your C++ projects effortlessly. Contributions to improve this example or add new features are welcome! Please see the [Ultralytics contribution guidelines](https://docs.ultralytics.com/help/contributing) for more information. Visit the main [Ultralytics documentation](https://docs.ultralytics.com/) for further guides and resources. Happy coding! 🚀
+Contributions are welcome! If you find any issues or have suggestions for improvements, please feel free to open an issue or submit a pull request on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics).

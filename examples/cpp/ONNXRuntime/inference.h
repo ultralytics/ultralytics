@@ -2,100 +2,84 @@
 
 #pragma once
 
-#define    RET_OK nullptr
-//#define    USE_CUDA
-
-#ifdef _WIN32
-#include <Windows.h>
-#include <direct.h>
-#include <io.h>
-#endif
-
 #include <string>
 #include <vector>
-#include <cstdio>
+
 #include <opencv2/opencv.hpp>
 #include "onnxruntime_cxx_api.h"
 
-#ifdef USE_CUDA
-#include <cuda_fp16.h>
-#endif
+namespace yolo {
 
+// Task type, read from the model metadata that Ultralytics bakes into every export.
+enum class Task { Detect, Segment, Pose, Obb, Classify, Semantic, Unknown };
 
-enum MODEL_TYPE
-{
-    //FLOAT32 MODEL
-    YOLO_DETECT = 1,
-    YOLO_POSE = 2,
-    YOLO_CLS = 3,
+Task TaskFromString(const std::string& s);
+std::string TaskName(Task task);
 
-    //FLOAT16 MODEL
-    YOLO_DETECT_HALF = 4,
-    YOLO_POSE_HALF = 5,
-    YOLO_CLS_HALF = 6
+// Runtime configuration shared by every task.
+struct Config {
+    std::string model_path = "yolo26n.onnx";
+    float conf = 0.25f;  // confidence threshold
+    float iou = 0.45f;   // NMS IoU threshold (grid models only; end2end models are already NMS-free)
+    bool cuda = false;   // use the CUDA execution provider
 };
 
-
-typedef struct _DL_INIT_PARAM
-{
-    std::string modelPath;
-    MODEL_TYPE modelType = YOLO_DETECT;
-    std::vector<int> imgSize = { 640, 640 };
-    float rectConfidenceThreshold = 0.6;
-    float pointScoresThreshold = 0.6;
-    float iouThreshold = 0.5;
-    int	keyPointsNum = 2;//Note:kpt number for pose
-    bool cudaEnable = false;
-    int logSeverityLevel = 3;
-    int intraOpNumThreads = 1;
-} DL_INIT_PARAM;
-
-
-typedef struct _DL_RESULT
-{
-    int classId;
-    float confidence;
+// A single prediction. Fields are populated per task: box (all detection tasks),
+// keypoints (pose), mask (segment), angle (obb). Classify uses class_id/confidence.
+struct Result {
+    int class_id = 0;
+    float confidence = 0.0f;
     cv::Rect box;
-    std::vector<float> keyPointsScore;
-    std::vector<cv::Point2f> keyPoints;
-} DL_RESULT;
-
-
-class YOLO
-{
-public:
-    YOLO();
-
-    ~YOLO();
-
-public:
-    const char* CreateSession(DL_INIT_PARAM& iParams);
-
-    char* RunSession(cv::Mat& iImg, std::vector<DL_RESULT>& oResult);
-
-    char* WarmUpSession();
-
-    template<typename N>
-    char* TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std::vector<int64_t>& inputNodeDims,
-        std::vector<DL_RESULT>& oResult);
-
-    char* PreProcess(cv::Mat& iImg, std::vector<int> iImgSize, cv::Mat& oImg);
-
-    std::vector<std::string> classes{};
-    int kpts_num;
-
-private:
-    Ort::Env env;
-    Ort::Session* session;
-    bool cudaEnable;
-    Ort::RunOptions options;
-    std::vector<const char*> inputNodeNames;
-    std::vector<const char*> outputNodeNames;
-
-    MODEL_TYPE modelType;
-    std::vector<int> imgSize;
-    float rectConfidenceThreshold;
-    float pointScoresThreshold;
-    float iouThreshold;
-    float resizeScales;//letterbox scale
+    float angle = 0.0f;                        // OBB rotation in radians
+    std::vector<cv::Point2f> keypoints;        // Pose keypoints in original-image coordinates
+    std::vector<float> keypoint_scores;        // Per-keypoint confidence
+    cv::Mat mask;                              // Segment: 8-bit binary mask at original image size
 };
+
+// One predictor for every YOLO task and generation. The task and class names come
+// from the model metadata; the output layout (grid YOLOv8/11 vs end2end YOLO26) is
+// detected automatically from the output tensor shape.
+class Predictor {
+   public:
+    explicit Predictor(const Config& config);
+    ~Predictor();
+
+    Task task() const { return task_; }
+    const std::vector<std::string>& names() const { return names_; }
+
+    // Run inference on a BGR image. Returns detection-style results; for Semantic the
+    // class-id map is written to `semantic` (CV_32S, original image size) and the
+    // returned vector is empty.
+    std::vector<Result> predict(const cv::Mat& image, cv::Mat& semantic);
+
+   private:
+    cv::Mat preprocess(const cv::Mat& image, float& scale);
+    void load_metadata(Ort::AllocatorWithDefaultOptions& allocator);
+
+    // Per-task post-processing.
+    std::vector<Result> postprocess_detect(const float* data, const std::vector<int64_t>& shape, float scale);
+    std::vector<Result> postprocess_classify(const float* data, const std::vector<int64_t>& shape);
+    std::vector<Result> postprocess_pose(const float* data, const std::vector<int64_t>& shape, float scale);
+    std::vector<Result> postprocess_obb(const float* data, const std::vector<int64_t>& shape, float scale);
+    std::vector<Result> postprocess_segment(const float* det, const std::vector<int64_t>& det_shape,
+                                            const float* protos, const std::vector<int64_t>& proto_shape,
+                                            float scale, const cv::Size& orig_size);
+    void postprocess_semantic(const float* data, const std::vector<int64_t>& shape, float scale,
+                              const cv::Size& orig_size, cv::Mat& out);
+
+    Config config_;
+    int imgsz_ = 640;
+    Task task_ = Task::Detect;
+    std::vector<std::string> names_;
+
+    Ort::Env env_{ORT_LOGGING_LEVEL_WARNING, "yolo"};
+    Ort::SessionOptions session_options_;
+    Ort::Session* session_ = nullptr;
+    Ort::RunOptions run_options_{nullptr};
+    std::vector<std::string> input_name_storage_;
+    std::vector<std::string> output_name_storage_;
+    std::vector<const char*> input_names_;
+    std::vector<const char*> output_names_;
+};
+
+}  // namespace yolo

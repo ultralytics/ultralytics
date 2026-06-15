@@ -1294,7 +1294,7 @@ class SemanticSegmentationLoss(nn.Module):
             weight = torch.from_numpy(CITYSCAPES_WEIGHT)
         weight = None if weight is None else weight.to(device=self.device, dtype=self.dtype)
         if self.nc == 1:
-            self.ce = nn.BCEWithLogitsLoss()
+            self.ce = nn.BCEWithLogitsLoss()  # binary: class weighting intentionally unsupported
         else:
             self.ce = nn.CrossEntropyLoss(ignore_index=255).to(device=self.device, dtype=self.dtype)
             if weight is not None:

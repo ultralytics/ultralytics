@@ -73,6 +73,11 @@ class SemanticSegmentationTrainer(DetectionTrainer):
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
 
+    def set_class_weights(self):
+        """Compute pixel-frequency class weights; skipped for binary (nc==1, unweighted BCE in the loss)."""
+        if self.data["nc"] > 1:
+            super().set_class_weights()
+
     def get_class_counts(self):
         """Return per-class pixel counts sampled from up to 1000 training mask files."""
         nc = self.data["nc"]

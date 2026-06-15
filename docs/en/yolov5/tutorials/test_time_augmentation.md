@@ -20,7 +20,7 @@ pip install -r requirements.txt # install
 
 ## Test Normally
 
-Before trying TTA we want to establish a baseline performance to compare to. This command tests YOLOv5x on COCO val2017 at image size 640 pixels. `yolov5x.pt` is the largest and most accurate model available. Other options are `yolov5s.pt`, `yolov5m.pt` and `yolov5l.pt`, or your own checkpoint from training a custom dataset `./weights/best.pt`. For details on all available models please see our [YOLOv5 documentation](https://docs.ultralytics.com/models/yolov5/).
+Before trying TTA we want to establish a baseline performance to compare to. This command tests YOLOv5x on COCO val2017 at image size 640 pixels. `yolov5x.pt` is the largest and most accurate model available. Other options are `yolov5s.pt`, `yolov5m.pt` and `yolov5l.pt`, or your own checkpoint from training a custom dataset `./weights/best.pt`. For details on all available models please see our [YOLOv5 documentation](https://docs.ultralytics.com/models/yolov5).
 
 ```bash
 python val.py --weights yolov5x.pt --data coco.yaml --img 640 --half
@@ -81,7 +81,7 @@ val: New cache created: ../datasets/coco/val2017.cache
                  all       5000      36335      0.718      0.656      0.695      0.503
 Speed: 0.2ms pre-process, 80.6ms inference, 2.7ms NMS per image at shape (32, 3, 832, 832)  # <--- TTA speed
 
-Evaluating pycocotools mAP... saving runs/val/exp2/yolov5x_predictions.json...
+Evaluating pycocotools mAP... saving runs/val/exp-2/yolov5x_predictions.json...
 ...
  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.516  # <--- TTA mAP
  Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.701

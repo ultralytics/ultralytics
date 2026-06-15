@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
-Ultralytics Results, Boxes, Masks, Keypoints, Probs, and OBB classes for handling inference results.
+Ultralytics Results, Boxes, Masks, SemanticMask, Keypoints, Probs, and OBB classes for handling inference results.
 
 Usage: See https://docs.ultralytics.com/modes/predict/
 """
@@ -173,12 +173,20 @@ class BaseTensor(SimpleClass):
         return self.__class__(self.data[idx], self.orig_shape)
 
 
+class SemanticMask(BaseTensor):
+    """Semantic segmentation class map for one image."""
+
+    def __len__(self) -> int:
+        """Return one semantic segmentation result per image."""
+        return 1
+
+
 class Results(SimpleClass, DataExportMixin):
     """A class for storing and manipulating inference results.
 
     This class provides comprehensive functionality for handling inference results from various Ultralytics models,
-    including detection, segmentation, classification, and pose estimation. It supports visualization, data export, and
-    various coordinate transformations.
+    including detection, instance segmentation, semantic segmentation, classification, pose estimation, and oriented
+    bounding box detection. It supports visualization, data export, and various coordinate transformations.
 
     Attributes:
         orig_img (np.ndarray): The original image as a numpy array.
@@ -188,6 +196,7 @@ class Results(SimpleClass, DataExportMixin):
         probs (Probs | None): Classification probabilities.
         keypoints (Keypoints | None): Detected keypoints.
         obb (OBB | None): Oriented bounding boxes.
+        semantic_mask (SemanticMask | None): Semantic segmentation class map.
         speed (dict): Dictionary containing inference speed information.
         names (dict): Dictionary mapping class indices to class names.
         path (str): Path to the input image file.
@@ -231,6 +240,7 @@ class Results(SimpleClass, DataExportMixin):
         keypoints: torch.Tensor | None = None,
         obb: torch.Tensor | None = None,
         speed: dict[str, float] | None = None,
+        semantic_mask: torch.Tensor | None = None,
     ) -> None:
         """Initialize the Results class for storing and manipulating inference results.
 
@@ -243,6 +253,7 @@ class Results(SimpleClass, DataExportMixin):
             probs (torch.Tensor | None): A 1D tensor of probabilities of each class for classification task.
             keypoints (torch.Tensor | None): A 2D tensor of keypoint coordinates for each detection.
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
+            semantic_mask (torch.Tensor | None): A 2D tensor of class IDs for semantic segmentation results.
             speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
 
         Notes:
@@ -259,11 +270,12 @@ class Results(SimpleClass, DataExportMixin):
         self.probs = Probs(probs) if probs is not None else None
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
         self.obb = OBB(obb, self.orig_shape) if obb is not None else None
+        self.semantic_mask = SemanticMask(semantic_mask, self.orig_shape) if semantic_mask is not None else None
         self.speed = speed if speed is not None else {"preprocess": None, "inference": None, "postprocess": None}
         self.names = names
         self.path = path
         self.save_dir = None
-        self._keys = "boxes", "masks", "probs", "keypoints", "obb"
+        self._keys = "boxes", "masks", "probs", "keypoints", "obb", "semantic_mask"
 
     def __getitem__(self, idx):
         """Return a Results object for a specific index of inference results.
@@ -282,11 +294,11 @@ class Results(SimpleClass, DataExportMixin):
         return self._apply("__getitem__", idx)
 
     def __len__(self) -> int:
-        """Return the number of detections in the Results object.
+        """Return the number of results in the Results object.
 
         Returns:
-            (int): The number of detections, determined by the length of the first non-empty attribute in (boxes, masks,
-                probs, keypoints, or obb).
+            (int): The number of results, determined by the length of the first non-empty attribute in (boxes, masks,
+                probs, keypoints, obb, or semantic_mask). Empty Results objects return 0.
 
         Examples:
             >>> results = Results(orig_img, path, names, boxes=torch.rand(5, 6))
@@ -297,6 +309,7 @@ class Results(SimpleClass, DataExportMixin):
             v = getattr(self, k)
             if v is not None:
                 return len(v)
+        return 0
 
     def update(
         self,
@@ -305,6 +318,7 @@ class Results(SimpleClass, DataExportMixin):
         probs: torch.Tensor | None = None,
         obb: torch.Tensor | None = None,
         keypoints: torch.Tensor | None = None,
+        semantic_mask: torch.Tensor | None = None,
     ):
         """Update the Results object with new detection data.
 
@@ -317,7 +331,9 @@ class Results(SimpleClass, DataExportMixin):
             masks (torch.Tensor | None): A tensor of shape (N, H, W) containing segmentation masks.
             probs (torch.Tensor | None): A tensor of shape (num_classes,) containing class probabilities.
             obb (torch.Tensor | None): A tensor of shape (N, 7) or (N, 8) containing oriented bounding box coordinates.
-            keypoints (torch.Tensor | None): A tensor of shape (N, K, 3) containing keypoints, were K=17 for persons.
+            keypoints (torch.Tensor | None): A tensor of shape (N, K, 3) containing keypoints, where K=17 for persons.
+            semantic_mask (torch.Tensor | None): A tensor of shape (H, W) containing class IDs for semantic
+                segmentation.
 
         Examples:
             >>> results = model("image.jpg")
@@ -334,6 +350,8 @@ class Results(SimpleClass, DataExportMixin):
             self.obb = OBB(obb, self.orig_shape)
         if keypoints is not None:
             self.keypoints = Keypoints(keypoints, self.orig_shape)
+        if semantic_mask is not None:
+            self.semantic_mask = SemanticMask(semantic_mask, self.orig_shape)
 
     def _apply(self, fn: str, *args, **kwargs):
         """Apply a function to all non-empty attributes and return a new Results object with modified attributes.
@@ -357,8 +375,9 @@ class Results(SimpleClass, DataExportMixin):
         r = self.new()
         for k in self._keys:
             v = getattr(self, k)
-            if v is not None:
-                setattr(r, k, getattr(v, fn)(*args, **kwargs))
+            if v is None:
+                continue
+            setattr(r, k, getattr(v, fn)(*args, **kwargs))
         return r
 
     def cpu(self):
@@ -488,7 +507,7 @@ class Results(SimpleClass, DataExportMixin):
         Examples:
             >>> results = model("image.jpg")
             >>> for result in results:
-            ...     im = result.plot()
+            ...     im = result.plot(pil=True)
             ...     im.show()
         """
         assert color_mode in {"instance", "class"}, f"Expected color_mode='instance' or 'class', not {color_mode}."
@@ -556,6 +575,13 @@ class Results(SimpleClass, DataExportMixin):
             text = "\n".join(f"{names[j] if names else j} {pred_probs.data[j]:.2f}" for j in pred_probs.top5)
             x = round(self.orig_shape[0] * 0.03)
             annotator.text([x, x], text, txt_color=txt_color, box_color=(64, 64, 64, 128))  # RGBA box
+
+        # Plot Semantic Segmentation results
+        if self.semantic_mask is not None and show_masks:
+            sem_mask = self.semantic_mask.data
+            if isinstance(sem_mask, torch.Tensor):
+                sem_mask = sem_mask.cpu().numpy()
+            annotator.semantic_mask(sem_mask, alpha=0.5)
 
         # Plot Pose results
         if self.keypoints is not None:
@@ -657,6 +683,8 @@ class Results(SimpleClass, DataExportMixin):
         if boxes:
             counts = boxes.cls.int().bincount()
             return "".join(f"{n} {self.names[i]}{'s' * (n > 1)}, " for i, n in enumerate(counts) if n > 0)
+        if self.semantic_mask is not None:
+            return ""
 
     def save_txt(self, txt_file: str | Path, save_conf: bool = False) -> str:
         """Save detection results to a text file.
@@ -683,7 +711,11 @@ class Results(SimpleClass, DataExportMixin):
             - The function will create the output directory if it does not exist.
             - If save_conf is False, the confidence scores will be excluded from the output.
             - Existing contents of the file will not be overwritten; new results will be appended.
+            - This method does not support Semantic Segmentation tasks.
         """
+        if self.semantic_mask is not None:
+            LOGGER.warning("Semantic Segmentation task does not support `save_txt`.")
+            return str(txt_file)
         is_obb = self.obb is not None
         boxes = self.obb if is_obb else self.boxes
         masks = self.masks
@@ -730,7 +762,7 @@ class Results(SimpleClass, DataExportMixin):
             ...     result.save_crop(save_dir="path/to/crops", file_name="detection")
 
         Notes:
-            - This method does not support Classify or Oriented Bounding Box (OBB) tasks.
+            - This method does not support Classify, Oriented Bounding Box (OBB), or Semantic Segmentation tasks.
             - Crops are saved as 'save_dir/class_name/file_name.jpg'.
             - The method will create necessary subdirectories if they don't exist.
             - Original image is copied before cropping to avoid modifying the original.
@@ -740,6 +772,9 @@ class Results(SimpleClass, DataExportMixin):
             return
         if self.obb is not None:
             LOGGER.warning("OBB task does not support `save_crop`.")
+            return
+        if self.semantic_mask is not None:
+            LOGGER.warning("Semantic Segmentation task does not support `save_crop`.")
             return
         for d in self.boxes:
             save_one_box(
@@ -787,6 +822,29 @@ class Results(SimpleClass, DataExportMixin):
                 )
             return results
 
+        if self.semantic_mask is not None:
+            # Return per-class pixel coverage for semantic segmentation
+            mask = self.semantic_mask.data
+            if isinstance(mask, torch.Tensor):
+                mask = mask.cpu().numpy()
+            unique, counts = np.unique(mask, return_counts=True)
+            total = mask.size
+            for class_id, count in zip(unique.tolist(), counts.tolist()):
+                if len(self.names) == 1:
+                    if class_id != 1:  # skip binary background and ignore label
+                        continue
+                    class_id = 0
+                elif class_id not in self.names:  # skip ignore label (e.g., 255)
+                    continue
+                results.append(
+                    {
+                        "name": self.names[class_id],
+                        "class": class_id,
+                        "pixel_ratio": round(count / total, decimals),
+                    }
+                )
+            return results
+
         is_obb = self.obb is not None
         data = self.obb if is_obb else self.boxes
         h, w = self.orig_shape if normalize else (1, 1)
@@ -802,8 +860,8 @@ class Results(SimpleClass, DataExportMixin):
                 result["track_id"] = int(row.id.item())  # track ID
             if self.masks:
                 result["segments"] = {
-                    "x": (self.masks.xy[i][:, 0] / w).round(decimals).tolist(),
-                    "y": (self.masks.xy[i][:, 1] / h).round(decimals).tolist(),
+                    "x": (self.masks.xy[i][:, 0] / w).astype(float).round(decimals).tolist(),
+                    "y": (self.masks.xy[i][:, 1] / h).astype(float).round(decimals).tolist(),
                 }
             if self.keypoints is not None:
                 kpt = self.keypoints[i]
@@ -812,11 +870,11 @@ class Results(SimpleClass, DataExportMixin):
                 else:
                     x, y = kpt.data[0].cpu().unbind(dim=1)
                 result["keypoints"] = {
-                    "x": (x / w).numpy().round(decimals).tolist(),
-                    "y": (y / h).numpy().round(decimals).tolist(),
+                    "x": (x / w).numpy().astype(float).round(decimals).tolist(),
+                    "y": (y / h).numpy().astype(float).round(decimals).tolist(),
                 }
                 if kpt.has_visible:
-                    result["keypoints"]["visible"] = visible.numpy().round(decimals).tolist()
+                    result["keypoints"]["visible"] = visible.numpy().astype(float).round(decimals).tolist()
             results.append(result)
 
         return results
@@ -1447,7 +1505,7 @@ class OBB(BaseTensor):
                 bounding box. Returns None if tracking IDs are not available.
 
         Examples:
-            >>> results = model("image.jpg", tracker=True)  # Run inference with tracking
+            >>> results = model.track("path/to/video.mp4")  # Run inference with tracking
             >>> for result in results:
             ...     if result.obb is not None:
             ...         track_ids = result.obb.id

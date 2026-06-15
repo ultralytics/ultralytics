@@ -2,13 +2,13 @@
 
 <img alt="C++" src="https://img.shields.io/badge/C++-17-blue.svg?style=flat&logo=c%2B%2B"> <img alt="Onnx-runtime" src="https://img.shields.io/badge/OnnxRuntime-717272.svg?logo=Onnx&logoColor=white">
 
-This example provides a practical guide on performing inference with [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) models using [C++](https://isocpp.org/), leveraging the capabilities of the [ONNX Runtime](https://onnxruntime.ai/) and the [OpenCV](https://opencv.org/) library. It's designed for developers looking to integrate YOLOv8 into C++ applications for efficient object detection.
+This example provides a practical guide on performing inference with [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) models using [C++](https://isocpp.org/), leveraging the capabilities of the [ONNX Runtime](https://onnxruntime.ai/) and the [OpenCV](https://opencv.org/) library. It's designed for developers looking to integrate YOLOv8 into C++ applications for efficient object detection.
 
 ## ✨ Benefits
 
 - **Deployment-Friendly:** Well-suited for deployment in industrial and production environments.
 - **Performance:** Offers faster [inference latency](https://www.ultralytics.com/glossary/inference-latency) compared to OpenCV's DNN module on both CPU and [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit).
-- **Acceleration:** Supports FP32 and [FP16 (Half Precision)](https://www.ultralytics.com/glossary/half-precision) inference acceleration using [NVIDIA CUDA](https://developer.nvidia.com/cuda-toolkit).
+- **Acceleration:** Supports FP32 and [FP16 (Half Precision)](https://www.ultralytics.com/glossary/half-precision) inference acceleration using [NVIDIA CUDA](https://developer.nvidia.com/cuda/toolkit).
 
 ## ☕ Note
 
@@ -42,7 +42,7 @@ print("Model exported successfully to yolov8n.onnx")
 yolo export model=yolov8n.pt format=onnx opset=12 simplify=True dynamic=False imgsz=640
 ```
 
-For more details on exporting models, refer to the [Ultralytics Export documentation](https://docs.ultralytics.com/modes/export/).
+For more details on exporting models, refer to the [Ultralytics Export documentation](https://docs.ultralytics.com/modes/export).
 
 ## 📦 Exporting YOLOv8 FP16 Models
 
@@ -69,7 +69,7 @@ print(f"Model converted and saved to {fp16_model_path}")
 
 ## 📂 Download COCO YAML File
 
-This example uses class names defined in a YAML file. You'll need the `coco.yaml` file, which corresponds to the standard [COCO dataset](https://docs.ultralytics.com/datasets/detect/coco/) classes. Download it directly:
+This example uses class names defined in a YAML file. You'll need the `coco.yaml` file, which corresponds to the standard [COCO dataset](https://docs.ultralytics.com/datasets/detect/coco) classes. Download it directly:
 
 - [Download coco.yaml](https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/datasets/coco.yaml)
 
@@ -84,8 +84,8 @@ Ensure you have the following dependencies installed:
 | [ONNX Runtime](https://onnxruntime.ai/docs/install/)                 | >=1.14.1      | Download pre-built binaries or build from source. Ensure GPU version if using CUDA.                                                                                         |
 | [OpenCV](https://opencv.org/releases/)                               | >=4.0.0       | Required for image loading and preprocessing.                                                                                                                               |
 | C++ Compiler                                                         | C++17 Support | Needed for features like `<filesystem>`. ([GCC](https://gcc.gnu.org/), [Clang](https://clang.llvm.org/), [MSVC](https://visualstudio.microsoft.com/vs/features/cplusplus/)) |
-| [CMake](https://cmake.org/download/)                                 | >=3.18        | Cross-platform build system generator. Version 3.18+ recommended for better CUDA support discovery.                                                                         |
-| [CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit) (Optional) | >=11.4, <12.0 | Required for GPU acceleration via ONNX Runtime's CUDA Execution Provider. **Must be CUDA 11.x**.                                                                            |
+| [CMake](https://cmake.org/download/)                                 | >=3.5         | Cross-platform build system generator. Version 3.18+ recommended for better CUDA support discovery.                                                                         |
+| [CUDA Toolkit](https://developer.nvidia.com/cuda/toolkit) (Optional) | >=11.4, <12.0 | Required for GPU acceleration via ONNX Runtime's CUDA Execution Provider. **Must be CUDA 11.x**.                                                                            |
 | [cuDNN](https://developer.nvidia.com/cudnn) (CUDA required)          | =8.x          | Required by CUDA Execution Provider. **Must be cuDNN 8.x** compatible with your CUDA 11.x version.                                                                          |
 
 **Important Notes:**
@@ -136,7 +136,7 @@ Ensure you have the following dependencies installed:
     ```
 
 5.  **Locate Executable:**
-    The compiled executable (e.g., `yolov8_onnxruntime_cpp`) will be located in the `build` directory.
+    The compiled executable (e.g., `Yolov8OnnxRuntimeCPPInference`) will be located in the `build` directory.
 
 ## 🚀 Usage
 
@@ -165,7 +165,7 @@ Detector(yoloDetector);
 Run the executable from the `build` directory:
 
 ```bash
-./yolov8_onnxruntime_cpp
+./Yolov8OnnxRuntimeCPPInference
 ```
 
 ## 🤝 Contributing

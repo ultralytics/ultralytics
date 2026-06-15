@@ -433,7 +433,7 @@ class RTDETRDetectionLoss(DETRLoss):
             total_loss.update(dn_loss)
         else:
             # If no denoising metadata is provided, set denoising loss to zero
-            total_loss.update({f"{k}_dn": torch.tensor(0.0, device=self.device) for k in total_loss.keys()})
+            total_loss.update({f"{k}_dn": torch.tensor(0.0, device=self.device) for k in total_loss})
 
         return total_loss
 

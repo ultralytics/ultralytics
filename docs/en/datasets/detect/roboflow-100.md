@@ -13,7 +13,7 @@ Roboflow 100, sponsored by [Intel](https://www.intel.com/), is a groundbreaking 
     Ultralytics offers two licensing options to accommodate different use cases:
 
     - **AGPL-3.0 License**: This [OSI-approved](https://opensource.org/license) open-source license is ideal for students and enthusiasts, promoting open collaboration and knowledge sharing. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for more details and visit our [AGPL-3.0 License page](https://www.ultralytics.com/legal/agpl-3-0-software-license).
-    - **Enterprise License**: Designed for commercial use, this license allows for the seamless integration of Ultralytics software and AI models into commercial products and services. If your scenario involves commercial applications, please reach out via [Ultralytics Licensing](https://www.ultralytics.com/license).
+    - **Enterprise License**: For development and production use, this license enables seamless integration of Ultralytics software and AI models into business products and services, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0. To get started, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
 
 <p align="center">
   <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/roboflow-100-overview.avif" alt="Roboflow 100 diverse object detection benchmark">

@@ -130,7 +130,7 @@ pip install ultralytics-opencv-headless
 
 #### HTTP Server
 
-DeepSparse Server runs on top of the popular [FastAPI](https://fastapi.tiangolo.com/) web framework and [Uvicorn](https://www.uvicorn.org/) web server. With just a single CLI command, you can easily setup a model service endpoint with DeepSparse. The Server supports any Pipeline from DeepSparse, including [object detection](https://www.ultralytics.com/glossary/object-detection) with YOLOv5, enabling you to send raw images to the endpoint and receive the bounding boxes.
+DeepSparse Server runs on top of the popular [FastAPI](https://fastapi.tiangolo.com/) web framework and [Uvicorn](https://uvicorn.dev/) web server. With just a single CLI command, you can easily setup a model service endpoint with DeepSparse. The Server supports any Pipeline from DeepSparse, including [object detection](https://www.ultralytics.com/glossary/object-detection) with YOLOv5, enabling you to send raw images to the endpoint and receive the bounding boxes.
 
 Spin up the Server with the pruned-quantized YOLOv5s:
 

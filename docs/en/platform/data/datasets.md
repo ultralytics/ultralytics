@@ -6,11 +6,15 @@ keywords: Ultralytics Platform, datasets, dataset management, dataset versioning
 
 # Datasets
 
-[Ultralytics Platform](https://platform.ultralytics.com) datasets provide a streamlined solution for managing your training data. After upload, the platform processes images, labels, and statistics automatically. A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, and at least one labeled image.
+[Ultralytics Platform](https://platform.ultralytics.com) datasets provide a streamlined solution for managing your training data. After upload, the platform processes images, labels, and statistics automatically. A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, at least one labeled image, and a total of at least two images.
 
 ## Upload Dataset
 
 Ultralytics Platform accepts multiple upload formats for flexibility.
+
+!!! tip "Already have data elsewhere?"
+
+    If you already have datasets in [Ultralytics HUB](../integrations/ultralytics-hub.md) or [Roboflow](../integrations/roboflow.md), use [Integrations](../integrations/index.md) to import them directly — no manual export or re-upload needed.
 
 ### Supported Formats
 
@@ -172,7 +176,7 @@ For task-specific format details, see [supported tasks](index.md#supported-tasks
 3. Select the task type (see [supported tasks](index.md#supported-tasks))
 4. Add a name and optional description
 5. Set visibility (public or private) and optional license (see [available licenses](#available-licenses))
-6. Click `Create`
+6. Click `Create & Upload` (or `Create Dataset` if creating an empty dataset)
 
 ![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-upload-dialog-task-selector.avif)
 
@@ -218,7 +222,9 @@ graph LR
 
 ## Browse Images
 
-View your dataset images in multiple layouts:
+View your dataset images in multiple layouts.
+
+Open the [Clustering](#clustering) panel from the gallery toolbar to explore your dataset as an interactive 2D scatter plot.
 
 | View        | Description                                                                       |
 | ----------- | --------------------------------------------------------------------------------- |
@@ -234,28 +240,31 @@ Images can be sorted and filtered for efficient browsing:
 
 === "Sort Options"
 
-    | Sort            | Description          |
-    | --------------- | -------------------- |
-    | Newest          | Most recently added  |
-    | Oldest          | Earliest added       |
-    | Name A-Z        | Alphabetical         |
-    | Name Z-A        | Reverse alphabetical |
-    | Size (smallest) | Smallest files first |
-    | Size (largest)  | Largest files first  |
-    | Most labels     | Most annotations     |
-    | Fewest labels   | Fewest annotations   |
+    | Sort                 | Description                  |
+    | -------------------- | ---------------------------- |
+    | Newest / Oldest      | Upload / creation order      |
+    | Name A-Z / Z-A       | Filename alphabetical        |
+    | Height ↑/↓           | Image height in pixels       |
+    | Width ↑/↓            | Image width in pixels        |
+    | Size ↑/↓             | File size on disk            |
+    | Annotations ↑/↓      | Annotation count per image   |
+
+    !!! note "Large Datasets"
+
+        For datasets over 100,000 images, name / size / width / height sorts are disabled to keep the gallery responsive. Newest, oldest, and annotation-count sorts remain available.
 
 === "Filters"
 
-    | Filter           | Options                            |
-    | ---------------- | ---------------------------------- |
-    | **Split filter** | Train, Val, Test, or All           |
-    | **Label filter** | All images, Annotated, or Unannotated |
-    | **Search**       | Filter images by filename          |
+    | Filter           | Options                               |
+    | ---------------- | ------------------------------------- |
+    | **Split filter** | Train, Val, Test, or All              |
+    | **Annotations**  | All images, Annotated, or Unannotated |
+    | **Class filter** | Filter by class name                  |
+    | **Search**       | Filter images by filename             |
 
 !!! tip "Finding Unlabeled Images"
 
-    Use the label filter set to `Unannotated` to quickly find images that still need annotation. This is especially useful for large datasets where you want to track labeling progress.
+    Use the `Annotations` filter set to `Unannotated` to quickly find images that still need annotation. This is especially useful for large datasets where you want to track labeling progress.
 
 ### Fullscreen Viewer
 
@@ -284,6 +293,67 @@ Filter images by their dataset split:
 | **Train** | Used for model training             |
 | **Val**   | Used for validation during training |
 | **Test**  | Used for final evaluation           |
+
+## Clustering
+
+The `Clustering` panel projects your dataset into an interactive 2D scatter plot where visually similar images sit close together. Use it to surface clusters, spot duplicates and outliers, and inspect how splits or classes are distributed across your data — without leaving the gallery. Open it from the scatter-chart icon in the gallery toolbar on any dataset page.
+
+![Ultralytics Platform Datasets Clustering Empty State](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-clustering-empty-state.avif)
+
+### Running Analysis
+
+Start an analysis:
+
+1. Open a dataset and click the scatter-chart icon in the gallery toolbar
+2. Click `Analyze Dataset`
+3. Wait for the progress bar to finish — results appear in the same panel
+
+Analysis runs in the background and can take a few minutes depending on the size of your dataset. You can close the panel or leave the page and come back later.
+
+### Visualization
+
+Once analysis completes, the panel shows a 2D scatter of all analyzed images. Gallery filters (split, class, labeled/unlabeled) dim out-of-filter points so you can focus on the subset you care about.
+
+![Ultralytics Platform Datasets Clustering Scatter Plot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-clustering.avif)
+
+#### Color By
+
+Change how data points are shaded with the `Color by` dropdown in the panel toolbar. Switch view modes at any time — the plot re-colors instantly so you can see how splits, classes, or image properties are distributed across your clusters:
+
+| Option          | Shading                              |
+| --------------- | ------------------------------------ |
+| **Splits**      | Train / Val / Test                   |
+| **Classes**     | First annotation class on each image |
+| **Width**       | Image width                          |
+| **Height**      | Image height                         |
+| **Size**        | File size                            |
+| **Annotations** | Number of annotations per image      |
+
+![Ultralytics Platform Datasets Clustering Color Modes](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-clustering-color-modes.avif)
+
+#### Lasso Selection
+
+Draw a free-form selection around a region to highlight points on the plot. The gallery filters down to the matching images, so you can inspect, relabel, move, or delete them using the usual [image operations](#image-operations).
+
+!!! tip "Clear Selection"
+
+    A chip above the chart shows how many points are selected — click the `×` to clear the lasso and return to the full gallery view.
+
+#### Pan and Zoom
+
+Navigate large scatters directly from your mouse and keyboard:
+
+| Input               | Action                                 |
+| ------------------- | -------------------------------------- |
+| **Scroll**          | Pan the plot in 2D                     |
+| **Cmd/Ctrl+Scroll** | Zoom in or out, anchored at the cursor |
+| **Hold Space**      | Switch to drag-to-pan mode             |
+
+### Re-analyzing
+
+If your dataset changes after analysis, a `Re-analyze` button appears at the top of the panel for owners and editors.
+
+Click `Re-analyze` to recompute embeddings and the 2D projection from scratch.
 
 ## Dataset Tabs
 
@@ -317,15 +387,18 @@ This tab appears when the dataset has images.
 
 Automatic statistics computed from your dataset:
 
-| Chart                    | Description                                                    |
-| ------------------------ | -------------------------------------------------------------- |
-| **Split Distribution**   | Donut chart of train/val/test image counts and labeled percent |
-| **Top Classes**          | Donut chart of the 10 most frequent annotation classes         |
-| **Image Widths**         | Histogram of image width distribution with mean                |
-| **Image Heights**        | Histogram of image height distribution with mean               |
-| **Points per Instance**  | Polygon vertex or keypoint count per annotation (segment/pose) |
-| **Annotation Locations** | 2D heatmap of bounding box center positions                    |
-| **Image Dimensions**     | 2D width vs height heatmap with aspect ratio guide lines       |
+| Chart                       | Description                                                           |
+| --------------------------- | --------------------------------------------------------------------- |
+| **Split Distribution**      | Donut chart of train/val/test image counts and labeled percent        |
+| **Top Classes**             | Donut chart of the 10 most frequent annotation classes                |
+| **Image Dimensions**        | Histogram of image width and height distribution (overlaid) with mean |
+| **Points per Instance**     | Polygon vertex or keypoint count per annotation (segment/pose)        |
+| **Annotation Locations**    | 2D heatmap of bounding box center positions                           |
+| **Image File Size**         | Histogram of image file size distribution                             |
+| **Image Formats**           | Distribution of source image formats (JPG, PNG, etc.)                 |
+| **Bounding Box Dimensions** | Histogram of bounding box width and height (overlaid)                 |
+| **Objects per Image**       | Histogram of annotation count per image                               |
+| **Image Dimensions 2D**     | 2D width vs height heatmap with aspect ratio guide lines              |
 
 ![Ultralytics Platform Datasets Charts Tab Statistics Grid](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/platform-datasets-charts-tab-statistics-grid.avif)
 
@@ -417,7 +490,7 @@ Export your dataset for offline use with an NDJSON download from the dataset hea
 
 To export:
 
-1. Click the **Export** button in the dataset header
+1. Click the **Download** button (download icon) in the dataset header
 2. Download the current NDJSON snapshot directly
 3. Use the **Versions** tab when you want an immutable numbered snapshot you can re-download later
 
@@ -426,7 +499,7 @@ To export:
 The NDJSON format stores one JSON object per line. The first line contains dataset metadata, followed by one line per image:
 
 ```json
-{"type": "dataset", "task": "detect", "name": "my-dataset", "description": "...", "url": "https://platform.ultralytics.com/...", "class_names": {"0": "person", "1": "car"}, "version": 1, "created_at": "2026-01-15T10:00:00Z", "updated_at": "2026-02-20T14:30:00Z"}
+{"type": "dataset", "task": "detect", "name": "my-dataset", "description": "...", "bytes": 12345678, "url": "https://platform.ultralytics.com/...", "class_names": {"0": "person", "1": "car"}, "version": 1, "created_at": "2026-01-15T10:00:00Z", "updated_at": "2026-02-20T14:30:00Z"}
 {"type": "image", "file": "img001.jpg", "url": "https://...", "width": 640, "height": 480, "split": "train", "annotations": {"boxes": [[0, 0.5, 0.5, 0.2, 0.3]]}}
 {"type": "image", "file": "img002.jpg", "url": "https://...", "width": 1280, "height": 720, "split": "val"}
 ```
@@ -691,4 +764,4 @@ Ultralytics Platform supports YOLO labels, COCO JSON, Ultralytics NDJSON, and ra
 
 ### Can I annotate the same dataset for multiple task types?
 
-Yes. Each image stores annotations for all 5 task types (detect, segment, pose, OBB, classify) together. You can switch the dataset's active task type at any time without losing existing annotations. Only annotations matching the active task type are shown in the editor and included in exports and training — annotations for other tasks are preserved and reappear when you switch back.
+Yes. Each image stores annotations for all 6 task types (detect, segment, semantic, pose, OBB, classify) together. You can switch the dataset's active task type at any time without losing existing annotations. Only annotations matching the active task type are shown in the editor and included in exports and training — annotations for other tasks are preserved and reappear when you switch back.

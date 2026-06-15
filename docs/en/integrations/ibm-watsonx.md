@@ -87,7 +87,7 @@ Then, you can import the needed packages.
 
 For this tutorial, we will use a [marine litter dataset](https://www.kaggle.com/datasets/atiqishrak/trash-dataset-icra19) available on Kaggle. With this dataset, we will custom-train a YOLO26 model to detect and classify litter and biological objects in underwater images.
 
-We can load the dataset directly into the notebook using the Kaggle API. First, create a free Kaggle account. Once you have created an account, you'll need to generate an API key. Directions for generating your key can be found in the [Kaggle API documentation](https://github.com/Kaggle/kaggle-api/blob/main/docs/README.md) under the section "API credentials".
+We can load the dataset directly into the notebook using the Kaggle API. First, create a free Kaggle account. Once you have created an account, you'll need to generate an API key. Directions for generating your key can be found in the [Kaggle API documentation](https://github.com/Kaggle/kaggle-cli/blob/main/docs/README.md) under the section "API credentials".
 
 Copy and paste your Kaggle username and API key into the following code. Then run the code to install the API and load the dataset into Watsonx.
 

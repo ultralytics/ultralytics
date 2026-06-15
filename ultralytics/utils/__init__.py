@@ -44,6 +44,7 @@ DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLO multiprocessing threads
 AUTOINSTALL = str(os.getenv("YOLO_AUTOINSTALL", True)).lower() == "true"  # global auto-install mode
 VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
+SAFE_LOAD = str(os.getenv("ULTRALYTICS_SAFE_LOAD", False)).lower() == "true"  # opt-in weights_only model loading
 LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
 MACOS_VERSION = platform.mac_ver()[0] if MACOS else None
@@ -68,6 +69,16 @@ RKNN_CHIPS = frozenset(
         "rv1126b",
     }
 )  # Rockchip processors available for export
+QNN_HTP_ARCHS = frozenset(
+    {
+        "68",  # Snapdragon 888
+        "69",  # Snapdragon 8 Gen 1
+        "73",  # Snapdragon 8 Gen 2 / X Elite
+        "75",  # Snapdragon 8 Gen 3
+        "79",  # Snapdragon 8 Elite
+        "81",  # Snapdragon 8 Elite Gen 5
+    }
+)  # Qualcomm Hexagon HTP architecture versions available for QNN export
 HELP_MSG = """
     Examples for running Ultralytics:
 
@@ -95,7 +106,7 @@ HELP_MSG = """
 
             yolo TASK MODE ARGS
 
-            Where   TASK (optional) is one of [detect, segment, classify, pose, obb]
+            Where   TASK (optional) is one of [detect, segment, semantic, classify, pose, obb]
                     MODE (required) is one of [train, val, predict, export, track, benchmark]
                     ARGS (optional) are any number of custom "arg=value" pairs like "imgsz=320" that override defaults.
                         See all ARGS at https://docs.ultralytics.com/usage/cfg or with "yolo cfg"
@@ -1437,14 +1448,14 @@ def deprecation_warn(arg, new_arg=None):
 
 
 def clean_url(url):
-    """Strip auth from URL, i.e. https://url.com/file.txt?auth -> https://url.com/file.txt."""
+    """Strip auth from URL, i.e. `https://example.com/path/file.txt?auth` -> `https://example.com/path/file.txt`."""
     url = Path(url).as_posix().replace(":/", "://")  # Pathlib turns :// -> :/, as_posix() for Windows
-    return unquote(url).split("?", 1)[0]  # '%2F' to '/', split https://url.com/file.txt?auth
+    return unquote(url).split("?", 1)[0]  # '%2F' to '/', split authentication query strings
 
 
 def url2file(url):
-    """Convert URL to filename, i.e. https://url.com/file.txt?auth -> file.txt."""
-    return Path(clean_url(url)).name
+    """Convert URL to filename, i.e. `https://example.com/path/file.txt?auth` -> `file.txt`."""
+    return Path(clean_url(url)).name or "download"
 
 
 def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:

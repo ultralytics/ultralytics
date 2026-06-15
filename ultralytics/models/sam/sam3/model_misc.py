@@ -51,7 +51,7 @@ class DotProductScoring(torch.nn.Module):
         """Compute dot-product scores between hs and prompt."""
         # hs has shape (num_layer, bs, num_query, d_model)
         # prompt has shape (seq, bs, d_model)
-        # prompt_mask has shape (bs, seq), where 1 is valid and 0 is padding
+        # prompt_mask has shape (bs, seq), where 1 is padding and 0 is valid
         assert hs.dim() == 4 and prompt.dim() == 3 and prompt_mask.dim() == 2
 
         # apply MLP on prompt if specified

@@ -118,7 +118,7 @@ class DocumentedModule:
 
 
 # --------------------------------------------------------------------------------------------- #
-# Placeholder (legacy) generation for mkdocstrings-style stubs
+# Placeholder (legacy) generation for reference stubs
 # --------------------------------------------------------------------------------------------- #
 
 
@@ -131,7 +131,7 @@ def extract_classes_and_functions(filepath: Path) -> tuple[list[str], list[str]]
 
 
 def create_placeholder_markdown(py_filepath: Path, module_path: str, classes: list[str], functions: list[str]) -> Path:
-    """Create a minimal Markdown stub used by mkdocstrings."""
+    """Create a minimal Markdown reference stub."""
     md_filepath = REFERENCE_DIR / py_filepath.relative_to(PACKAGE_DIR).with_suffix(".md")
     exists = md_filepath.exists()
 
@@ -143,7 +143,10 @@ def create_placeholder_markdown(py_filepath: Path, module_path: str, classes: li
             if len(parts) > 2:
                 header_content = f"---{parts[1]}---\n\n"
     if not header_content:
-        header_content = "---\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
+        header_content = (
+            f"---\ndescription: Reference for `{module_path}` in the Ultralytics package.\n"
+            f"keywords: Ultralytics, {module_path}, API reference, YOLO, Python\n---\n\n"
+        )
 
     module_path_dots = module_path
     module_path_fs = module_path.replace(".", "/")
@@ -720,7 +723,7 @@ def contribution_admonition(pretty: str, url: str, *, kind: str = "note", title:
     label = f' "{title}"' if title else ""
     body = (
         f"This page is sourced from [{pretty}]({url}). Have an improvement or example to add? "
-        f"Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏"
+        f"Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏"
     )
     return f"!!! {kind}{label}\n\n    {body}\n\n"
 
@@ -1011,7 +1014,10 @@ def create_markdown(module: DocumentedModule) -> Path:
             if "description:" in part or "comments:" in part:
                 header_content += f"---{part}---\n\n"
     if not header_content:
-        header_content = "---\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
+        header_content = (
+            f"---\ndescription: Reference for `{module.module_path}` in the Ultralytics package.\n"
+            f"keywords: Ultralytics, {module.module_path}, API reference, YOLO, Python\n---\n\n"
+        )
 
     module_path_fs = module.module_path.replace(".", "/")
     url = f"https://github.com/{GITHUB_REPO}/blob/main/{module_path_fs}.py"
@@ -1071,13 +1077,14 @@ def create_nav_menu_yaml(nav_items: list[str]) -> str:
 def extract_document_paths(yaml_section: str) -> list[str]:
     """Extract document paths from a YAML section, ignoring formatting and structure."""
     paths = []
-    # Match all paths that appear after a colon in the YAML
+    # Match `key: path` entries
     path_matches = re.findall(r":\s*([^\s][^:\n]*?)(?:\n|$)", yaml_section)
     for path in path_matches:
-        # Clean up the path
         path = path.strip()
         if path and not path.startswith("-") and not path.endswith(":"):
             paths.append(path)
+    # Also match bare `- path.md` entries (e.g. `- reference/index.md`)
+    paths.extend(re.findall(r"^\s*-\s+([^\s:][^:\n]*\.md)\s*$", yaml_section, re.MULTILINE))
     return sorted(paths)
 
 
@@ -1089,13 +1096,14 @@ def update_mkdocs_file(reference_yaml: str) -> None:
     ref_pattern = r"(\n  - Reference:[\s\S]*?)(?=\n  - \w|$)"
     ref_match = re.search(ref_pattern, mkdocs_content)
 
-    # Build new section with proper indentation
-    new_section_lines = ["\n  - Reference:"]
-    new_section_lines.extend(
-        f"    {line}"
-        for line in reference_yaml.splitlines()
-        if line.strip() != "- reference:"  # Skip redundant header
-    )
+    # Build new section with proper indentation. The hand-written `reference/index.md`
+    # overview is pinned to the top so the Reference section has a landing page (matching
+    # the convention used by Modes, Tasks, Datasets, Help, etc.). It must share the same
+    # 4-space inner indent as the auto-generated sibling entries below so the resulting
+    # YAML is parseable (otherwise siblings nest under it as children of a string scalar).
+    inner_lines = [line for line in reference_yaml.splitlines() if line.strip() != "- reference:"]
+    inner_lines.insert(0, "    - reference/index.md")
+    new_section_lines = ["\n  - Reference:", *(f"    {line}" for line in inner_lines)]
     new_ref_section = "\n".join(new_section_lines) + "\n"
 
     if ref_match:
@@ -1147,15 +1155,16 @@ def _finalize_reference(nav_items: list[str], update_nav: bool, created: int, cr
 
 
 def build_reference(update_nav: bool = True) -> list[str]:
-    """Create placeholder reference files (legacy mkdocstrings flow)."""
+    """Create placeholder reference files for the legacy stub flow."""
     return build_reference_placeholders(update_nav=update_nav)
 
 
 def build_reference_placeholders(update_nav: bool = True) -> list[str]:
-    """Create minimal placeholder reference files (mkdocstrings-style) and optionally update nav."""
+    """Create minimal placeholder reference files and optionally update nav."""
     nav_items: list[str] = []
     created = 0
     orphans = set(REFERENCE_DIR.rglob("*.md"))
+    orphans.discard(REFERENCE_DIR / "index.md")  # Preserve hand-written overview page
 
     for py_filepath in TQDM(list(PACKAGE_DIR.rglob("*.py")), desc="Building reference stubs", unit="file"):
         classes, functions = extract_classes_and_functions(py_filepath)

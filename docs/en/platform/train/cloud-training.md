@@ -36,10 +36,10 @@ Choose from official YOLO26 models or your own trained models:
 
 | Category        | Description                              |
 | --------------- | ---------------------------------------- |
-| **Official**    | All 25 YOLO26 models (5 sizes x 5 tasks) |
+| **Official**    | All 30 YOLO26 models (5 sizes x 6 tasks) |
 | **Your Models** | Your completed models for fine-tuning    |
 
-Official models are organized by task type ([Detect](../../tasks/detect.md), [Segment](../../tasks/segment.md), [Pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [Classify](../../tasks/classify.md)) with sizes from nano to xlarge.
+Official models are organized by task type ([Detect](../../tasks/detect.md), [Segment](../../tasks/segment.md), [Semantic](../../tasks/semantic.md), [Pose](../../tasks/pose.md), [OBB](../../tasks/obb.md), [Classify](../../tasks/classify.md)) with sizes from nano to xlarge.
 
 ### Step 2: Select Dataset
 
@@ -62,12 +62,12 @@ Choose a dataset to train on (see [Datasets](../data/datasets.md)):
 
 Set core training parameters:
 
-| Parameter      | Description                                                                 | Default   |
-| -------------- | --------------------------------------------------------------------------- | --------- |
-| **Epochs**     | Number of training iterations                                               | 100       |
-| **Batch Size** | Samples per iteration                                                       | -1 (auto) |
-| **Image Size** | Input resolution (320/416/512/640/1280 dropdown, or 32-4096 in YAML editor) | 640       |
-| **Run Name**   | Optional name for the training run                                          | auto      |
+| Parameter      | Description                                                                                      | Default   |
+| -------------- | ------------------------------------------------------------------------------------------------ | --------- |
+| **Epochs**     | Number of training iterations                                                                    | 100       |
+| **Batch Size** | Samples per iteration                                                                            | -1 (auto) |
+| **Image Size** | Input resolution (320/416/512/640/1280 dropdown, any multiple of 32 from 32-4096 in YAML editor) | 640       |
+| **Run Name**   | Optional name for the training run                                                               | auto      |
 
 ### Step 4: Advanced Settings (Optional)
 
@@ -76,7 +76,7 @@ Expand **Advanced Settings** to access the full YAML-based parameter editor with
 | Group                   | Parameters                                                                       |
 | ----------------------- | -------------------------------------------------------------------------------- |
 | **Learning Rate**       | lr0, lrf, momentum, weight_decay, warmup_epochs, warmup_momentum, warmup_bias_lr |
-| **Optimizer**           | SGD, MuSGD, Adam, AdamW, NAdam, RAdam, RMSProp, Adamax                           |
+| **Optimizer**           | auto (default), SGD, MuSGD, Adam, AdamW, NAdam, RAdam, RMSProp, Adamax           |
 | **Loss Weights**        | box, cls, dfl, pose, kobj, label_smoothing                                       |
 | **Color Augmentation**  | hsv_h, hsv_s, hsv_v                                                              |
 | **Geometric Augment.**  | degrees, translate, scale, shear, perspective                                    |
@@ -109,10 +109,11 @@ Choose your GPU from Ultralytics Cloud:
 
 !!! tip "GPU Selection"
 
-    - **RTX PRO 6000**: 96 GB Blackwell generation, recommended default for most jobs
-    - **A100 SXM**: Required for large batch sizes or big models
-    - **H100/H200**: Maximum performance for time-sensitive training (H200 requires [Pro or Enterprise](../account/billing.md#plans))
-    - **B200**: NVIDIA Blackwell architecture for cutting-edge workloads (requires [Pro or Enterprise](../account/billing.md#plans))
+    - **RTX PRO 6000**: 96 GB Blackwell, recommended default for most jobs
+    - **A100 SXM**: 80 GB HBM2e — strong choice for large batch sizes or bigger models
+    - **H100 PCIe / H100 SXM / H100 NVL**: 80–94 GB Hopper for time-sensitive training (available on all plans)
+    - **H200 NVL / H200 SXM**: 141–143 GB Hopper for high-memory workloads (available on all plans)
+    - **B200 / B300**: 180–288 GB NVIDIA Blackwell for cutting-edge workloads — requires [Pro or Enterprise](../account/billing.md#plans)
 
 The dialog shows your current **balance** and a **Top Up** button. An estimated cost and duration are calculated based on your configuration (model size, dataset images, epochs, GPU speed).
 
@@ -197,7 +198,7 @@ Train on your own hardware while streaming metrics to the platform.
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.35**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.60**. Lower versions will NOT work with Platform.
 
     ```bash
     pip install -U ultralytics
@@ -283,10 +284,10 @@ Before training starts, the platform estimates total cost by:
 
 | Factor               | Impact                                                                                                |
 | -------------------- | ----------------------------------------------------------------------------------------------------- |
-| **Dataset Size**     | More images = longer training time (baseline: ~2.8s compute per 1000 images on RTX 4090)              |
+| **Dataset Size**     | More images = longer training time (compute scales roughly linearly with dataset size)                |
 | **Model Size**       | Larger models (m, l, x) train slower than (n, s)                                                      |
 | **Number of Epochs** | Direct multiplier on training time                                                                    |
-| **Image Size**       | Larger imgsz increases computation: 320px=0.25x, 640px=1.0x (baseline), 1280px=4.0x                   |
+| **Image Size**       | Larger imgsz increases computation: 320px=~0.3x, 640px=1.0x (baseline), 1280px=~3.5x                  |
 | **Batch Size**       | Larger batches are more efficient (batch 32 = ~0.85x time, batch 8 = ~1.2x time vs batch 16 baseline) |
 | **GPU Speed**        | Faster GPUs reduce training time (e.g., H100 SXM = ~3.4x faster than RTX 4090)                        |
 | **Startup Overhead** | Up to 5 minutes for instance initialization, data download, and warmup (scales with dataset size)     |
@@ -299,9 +300,9 @@ Before training starts, the platform estimates total cost by:
 
 | Scenario                         | GPU          | Estimated Cost |
 | -------------------------------- | ------------ | -------------- |
-| 500 images, YOLO26n, 50 epochs   | RTX 4090     | ~$0.50         |
-| 1000 images, YOLO26n, 100 epochs | RTX PRO 6000 | ~$5            |
-| 5000 images, YOLO26s, 100 epochs | H100 SXM     | ~$23           |
+| 500 images, YOLO26n, 50 epochs   | RTX 4090     | ~$0.03         |
+| 1000 images, YOLO26n, 100 epochs | RTX PRO 6000 | ~$0.30         |
+| 5000 images, YOLO26s, 100 epochs | H100 SXM     | ~$1.93         |
 
 ### Billing Flow
 
@@ -408,9 +409,9 @@ Typical times (1000 images, 100 epochs):
 
 | Model   | RTX PRO 6000 | A100 SXM |
 | ------- | ------------ | -------- |
-| YOLO26n | ~20 min      | ~15 min  |
-| YOLO26m | ~40 min      | ~30 min  |
-| YOLO26x | ~80 min      | ~60 min  |
+| YOLO26n | ~8 min       | ~7 min   |
+| YOLO26m | ~16 min      | ~13 min  |
+| YOLO26x | ~27 min      | ~22 min  |
 
 !!! note "Approximate Times"
 
@@ -462,11 +463,11 @@ Yes, the **Train** button on dataset pages opens the training dialog with the da
 
 === "Core"
 
-    | Parameter      | Type | Default | Range    | Description                          |
-    | -------------- | ---- | ------- | -------- | ------------------------------------ |
-    | `epochs`       | int  | 100     | 1-10000  | Number of training epochs            |
-    | `batch`        | int  | 16      | 1-512    | Batch size                     |
-    | `imgsz`        | int  | 640     | 32-4096  | Input image size                     |
+    | Parameter      | Type | Default   | Range     | Description                                      |
+    | -------------- | ---- | --------- | --------- | ------------------------------------------------ |
+    | `epochs`       | int  | 100       | 1-10000   | Number of training epochs                        |
+    | `batch`        | int  | -1 (auto) | -1 to 512 | Batch size (`-1` = auto-fit to available VRAM)   |
+    | `imgsz`        | int  | 640       | 32-4096   | Input image size                                 |
     | `patience`     | int  | 100     | 1-1000   | Early stopping patience              |
     | `seed`         | int  | 0       | 0-2147483647 | Random seed for reproducibility  |
     | `deterministic`| bool | True    | -        | Deterministic training mode          |
@@ -515,7 +516,7 @@ Yes, the **Train** button on dataset pages opens the training dialog with the da
     | `freeze`      | int   | null    | 0-100   | Number of layers to freeze           |
     | `single_cls`  | bool  | False   | -       | Treat all classes as one class       |
     | `rect`        | bool  | False   | -       | Rectangular training                 |
-    | `multi_scale` | float | 0.0     | 0.0-1.0 | Multi-scale training range           |
+    | `multi_scale` | float | 0.0     | 0.0-0.9 | Multi-scale training range           |
     | `val`         | bool  | True    | -       | Run validation during training       |
     | `resume`      | bool  | False   | -       | Resume training from checkpoint      |
 

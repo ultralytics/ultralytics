@@ -54,7 +54,7 @@ ul_a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4
 ### Key Security
 
 - Keys are stored with **AES-256-GCM encryption**
-- Authentication uses SHA-256 hash for fast prefix lookup and hash comparison
+- Authentication uses a SHA-256 hash for a fast indexed lookup
 - Full key values are never stored in plaintext
 
 ## Using API Keys
@@ -114,10 +114,10 @@ Enable metric streaming with your key.
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.35**. Lower versions will NOT work with Platform.
+    Platform integration requires **ultralytics>=8.4.60**. Lower versions will NOT work with Platform.
 
     ```bash
-    pip install "ultralytics>=8.4.35"
+    pip install "ultralytics>=8.4.60"
     ```
 
 ```bash
@@ -207,7 +207,7 @@ Solutions:
 1. Verify key is copied correctly (including the `ul_` prefix)
 2. Check key hasn't been revoked
 3. Confirm environment variable is set
-4. Ensure you're using `ultralytics>=8.4.35`
+4. Ensure you're using `ultralytics>=8.4.60`
 
 ### Permission Denied
 

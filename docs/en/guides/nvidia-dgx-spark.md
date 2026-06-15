@@ -28,7 +28,7 @@ NVIDIA DGX Spark is a compact desktop AI supercomputer powered by the NVIDIA GB1
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Get up to 1000 FPS with Ultralytics YOLO26 on NVIDIA DGX Spark | <a href="https://docs.ultralytics.com/integrations/tensorrt/">TensorRT</a> & Batch Inference
+  <strong>Watch:</strong> How to Get up to 1000 FPS with Ultralytics YOLO26 on NVIDIA DGX Spark | <a href="https://docs.ultralytics.com/integrations/tensorrt">TensorRT</a> & Batch Inference
 </p>
 
 ### Key Specifications
@@ -411,7 +411,7 @@ TensorRT is highly recommended for deploying YOLO26 models on DGX Spark due to i
 
 ### How does DGX Spark compare to Jetson devices for YOLO26?
 
-DGX Spark offers significantly more compute power than Jetson devices with up to 1 PFLOP of AI performance and 128GB unified memory, compared to Jetson AGX Thor's 2070 TFLOPS and 128GB memory. DGX Spark is designed as a desktop AI supercomputer, while Jetson devices are embedded systems optimized for edge deployment.
+DGX Spark offers up to 1 PFLOP of AI performance and 128GB unified memory, compared to Jetson AGX Thor's 2070 TFLOPS and 128GB memory. DGX Spark is designed as a desktop AI supercomputer, while Jetson devices are embedded systems optimized for edge deployment.
 
 ### Can I use the same Docker image for DGX Spark and Jetson AGX Thor?
 

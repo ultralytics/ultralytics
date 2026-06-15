@@ -25,10 +25,9 @@ Whether you're a beginner or an expert in [deep learning](https://www.ultralytic
 
 Here's a compilation of in-depth guides to help you master different aspects of Ultralytics YOLO.
 
-- [A Guide on Model Testing](model-testing.md): A thorough guide on testing your computer vision models in realistic settings. Learn how to verify accuracy, reliability, and performance in line with project goals.
 - [AzureML Quickstart](azureml-quickstart.md): Get up and running with Ultralytics YOLO models on Microsoft's Azure [Machine Learning](https://www.ultralytics.com/glossary/machine-learning-ml) platform. Learn how to train, deploy, and scale your object detection projects in the cloud.
 - [Best Practices for Model Deployment](model-deployment-practices.md): Walk through tips and best practices for efficiently deploying models in computer vision projects, with a focus on optimization, troubleshooting, and security.
-- [COCO to YOLO Conversion](coco-to-yolo.md): Complete guide to converting COCO JSON annotations to YOLO format for training. Covers detection, segmentation, and keypoints with tool-specific tips for CVAT, Label Studio, and Roboflow.
+- [COCO to YOLO Conversion](coco-to-yolo.md): Complete guide to converting COCO JSON annotations to YOLO format for training. Covers detection, segmentation, and keypoints, including class ID mapping and common conversion pitfalls.
 - [COCO JSON Training](coco-json-training.md): Train YOLO directly on COCO JSON annotations without converting to YOLO format, using a custom dataset class and trainer.
 - [Conda Quickstart](conda-quickstart.md): Step-by-step guide to setting up a [Conda](https://anaconda.org/conda-forge/ultralytics) environment for Ultralytics. Learn how to install and start using the Ultralytics package efficiently with Conda.
 - [Customizing Trainer](custom-trainer.md): Learn how to subclass the YOLO trainer to log custom metrics, add class-weighted loss, customize model saving, freeze/unfreeze the backbone, and set per-layer learning rates.
@@ -38,13 +37,17 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 - [Docker Quickstart](docker-quickstart.md): Complete guide to setting up and using Ultralytics YOLO models with [Docker](https://hub.docker.com/r/ultralytics/ultralytics). Learn how to install Docker, manage GPU support, and run YOLO models in isolated containers for consistent development and deployment.
 - [Edge TPU on Raspberry Pi](coral-edge-tpu-on-raspberry-pi.md): [Google Edge TPU](https://developers.google.com/coral) accelerates YOLO inference on [Raspberry Pi](https://www.raspberrypi.com/).
 - [End-to-End Detection](end2end-detection.md): Understand YOLO26's NMS-free end-to-end detection, export compatibility, output format changes, and how to migrate from older YOLO models.
+- [Export Non-YOLO Models](export-non-yolo-models.md): Use Ultralytics standalone export utilities to convert any `torch.nn.Module` (timm, torchvision, custom) to ONNX, TorchScript, OpenVINO, CoreML, NCNN, MNN, PaddlePaddle, ExecuTorch, and TensorFlow SavedModel.
+- [Fine-Tuning YOLO on Custom Data](finetuning-guide.md): Complete guide to fine-tuning YOLO26 on custom datasets with pretrained weights, covering transfer learning, layer freezing, optimizer selection, two-stage training, and troubleshooting.
 - [Hyperparameter Tuning](hyperparameter-tuning.md): Discover how to optimize your YOLO models by fine-tuning hyperparameters using the Tuner class and genetic evolution algorithms.
 - [Insights on Model Evaluation and Fine-Tuning](model-evaluation-insights.md): Gain insights into the strategies and best practices for evaluating and fine-tuning your computer vision models. Learn about the iterative process of refining models to achieve optimal results.
 - [Isolating Segmentation Objects](isolating-segmentation-objects.md): Step-by-step recipe and explanation on how to extract and/or isolate objects from images using Ultralytics Segmentation.
 - [K-Fold Cross Validation](kfold-cross-validation.md): Learn how to improve model generalization using K-Fold cross-validation technique.
 - [Maintaining Your Computer Vision Model](model-monitoring-and-maintenance.md): Understand the key practices for monitoring, maintaining, and documenting computer vision models to guarantee accuracy, spot anomalies, and mitigate data drift.
 - [Model Deployment Options](model-deployment-options.md): Overview of YOLO [model deployment](https://www.ultralytics.com/glossary/model-deployment) formats like ONNX, OpenVINO, and TensorRT, with pros and cons for each to inform your deployment strategy.
+- [Model Testing](model-testing.md): Learn how to test computer vision models on unseen data, validate YOLO26 models, and catch overfitting, underfitting, and data leakage before deployment.
 - [Model YAML Configuration Guide](model-yaml-config.md): A comprehensive deep dive into Ultralytics' model architecture definitions. Explore the YAML format, understand the module resolution system, and learn how to integrate custom modules seamlessly.
+- [NVIDIA DALI GPU Preprocessing](nvidia-dali.md): Eliminate CPU preprocessing bottlenecks by running YOLO letterbox resize, padding, and normalization on the GPU using NVIDIA DALI, with Triton Inference Server integration.
 - [NVIDIA DGX Spark](nvidia-dgx-spark.md): Quickstart guide for deploying YOLO models on NVIDIA DGX Spark devices.
 - [NVIDIA Jetson](nvidia-jetson.md): Quickstart guide for deploying YOLO models on NVIDIA Jetson devices.
 - [OpenVINO Latency vs Throughput Modes](optimizing-openvino-latency-vs-throughput-modes.md): Learn latency and throughput optimization techniques for peak YOLO inference performance.
@@ -100,7 +103,7 @@ Evaluating your YOLO model performance is crucial to understanding its efficacy.
 
 ### Why should I use Ultralytics Platform for my computer vision projects?
 
-Ultralytics Platform is a no-code platform that simplifies managing, training, and deploying YOLO models. It supports seamless integration, real-time tracking, and cloud training, making it ideal for both beginners and professionals. Discover more about its features and how it can streamline your workflow with our [Ultralytics Platform](https://docs.ultralytics.com/platform/) quickstart guide.
+Ultralytics Platform is a no-code platform that simplifies managing, training, and deploying YOLO models. It supports seamless integration, real-time tracking, and cloud training, making it ideal for both beginners and professionals. Discover more about its features and how it can streamline your workflow with our [Ultralytics Platform](https://docs.ultralytics.com/platform) quickstart guide.
 
 ### What are the common issues faced during YOLO model training, and how can I resolve them?
 

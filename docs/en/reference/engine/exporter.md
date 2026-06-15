@@ -7,11 +7,23 @@ keywords: YOLOv8, export formats, ONNX, TensorRT, CoreML, machine learning model
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/exporter.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/exporter.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/exporter.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/exporter.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 
 ## ::: ultralytics.engine.exporter.Exporter
+
+<br><br><hr><br>
+
+## ::: ultralytics.engine.exporter.ExportWrapper
+
+<br><br><hr><br>
+
+## ::: ultralytics.engine.exporter.QNNModel
+
+<br><br><hr><br>
+
+## ::: ultralytics.engine.exporter.ClassMapModel
 
 <br><br><hr><br>
 

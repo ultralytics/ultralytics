@@ -30,7 +30,7 @@ The output of an instance segmentation model is a set of masks or contours that 
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
 
-YOLO26 pretrained Segment models are shown here. Detect, Segment and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, while Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
+YOLO26 pretrained Segment models are shown here. Detect, Segment and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, [Semantic](semantic.md) models are pretrained on [Cityscapes](../datasets/semantic/cityscapes.md), and Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
@@ -73,9 +73,11 @@ Train YOLO26n-seg on the COCO8-seg dataset for 100 [epochs](https://www.ultralyt
         yolo segment train data=coco8-seg.yaml model=yolo26n-seg.yaml pretrained=yolo26n-seg.pt epochs=100 imgsz=640
         ```
 
+See full `train` mode details in the [Train](../modes/train.md) page. Segmentation models can also be trained on cloud GPUs through [Ultralytics Platform](https://platform.ultralytics.com).
+
 ### Dataset format
 
-YOLO segmentation dataset format can be found in detail in the [Dataset Guide](../datasets/segment/index.md). To convert your existing dataset from other formats (like COCO etc.) to YOLO format, please use [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics.
+YOLO segmentation dataset format can be found in detail in the [Dataset Guide](../datasets/segment/index.md). To convert your existing dataset from other formats (like COCO etc.) to YOLO format, please use [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics. You can also create segmentation masks on [Ultralytics Platform](https://platform.ultralytics.com) using polygon tools and SAM-powered smart annotation.
 
 ## Val
 
@@ -98,10 +100,12 @@ Validate trained YOLO26n-seg model [accuracy](https://www.ultralytics.com/glossa
         metrics.box.map50  # map50(B)
         metrics.box.map75  # map75(B)
         metrics.box.maps  # a list containing mAP50-95(B) for each category
+        metrics.box.image_metrics  # per-image metrics dictionary for det with precision, recall, F1, TP, FP, and FN
         metrics.seg.map  # map50-95(M)
         metrics.seg.map50  # map50(M)
         metrics.seg.map75  # map75(M)
         metrics.seg.maps  # a list containing mAP50-95(M) for each category
+        metrics.seg.image_metrics  # per-image metrics dictionary for seg with precision, recall, F1, TP, FP, and FN
         ```
 
     === "CLI"
@@ -131,9 +135,9 @@ Use a trained YOLO26n-seg model to run predictions on images.
 
         # Access the results
         for result in results:
-            xy = result.masks.xy  # mask in polygon format
-            xyn = result.masks.xyn  # normalized
-            masks = result.masks.data  # mask in matrix format (num_objects x H x W)
+            xy = result.masks.xy  # mask polygons in pixel coordinates
+            xyn = result.masks.xyn  # normalized mask polygons
+            masks = result.masks.data  # binary masks, shape (N,H,W), dtype torch.uint8
         ```
 
     === "CLI"
@@ -144,6 +148,28 @@ Use a trained YOLO26n-seg model to run predictions on images.
         ```
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
+
+### Results Output
+
+YOLO instance segmentation returns one `Results` object per image. Each result stores object-level predictions, where
+each detected instance has its own binary mask, class, confidence, and box.
+
+| Attribute           | Type            | Shape         | Description                         |
+| ------------------- | --------------- | ------------- | ----------------------------------- |
+| `result.masks`      | `Masks`         | `(N)`         | Instance masks.                     |
+| `result.masks.data` | `torch.uint8`   | `(N,H,W)`     | Binary masks, values `0` or `1`.    |
+| `result.masks.xy`   | `np.float32`    | `list[(P,2)]` | Pixel polygons.                     |
+| `result.masks.xyn`  | `np.float32`    | `list[(P,2)]` | Normalized polygons.                |
+| `result.boxes`      | `Boxes`         | `(N)`         | Instance boxes/classes/confidences. |
+| `result.boxes.cls`  | `torch.float32` | `(N,)`        | Class IDs; cast to `int` for names. |
+
+For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
+
+### How This Differs from Semantic Segmentation
+
+Instance segmentation is object-level segmentation: two cars produce two masks, two boxes, and two confidence scores.
+[Semantic segmentation](semantic.md) is pixel-level classification: those same cars become pixels with the same class ID
+in one image-sized class map, with no per-object boxes, confidences, or default polygon list.
 
 ## Export
 

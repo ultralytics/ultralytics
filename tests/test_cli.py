@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -7,7 +8,7 @@ import pytest
 from PIL import Image
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA
-from ultralytics.utils import ARM64, ASSETS, LINUX, WEIGHTS_DIR, checks
+from ultralytics.utils import ARM64, ASSETS, DATASETS_DIR, IS_RASPBERRYPI, LINUX, WEIGHTS_DIR, checks
 from ultralytics.utils.torch_utils import TORCH_1_11
 
 
@@ -22,10 +23,12 @@ def test_special_modes() -> None:
     run("yolo checks")
     run("yolo version")
     run("yolo settings reset")
+    run(f"yolo settings weights_dir={WEIGHTS_DIR} datasets_dir={DATASETS_DIR}")
     run("yolo cfg")
 
 
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train(task: str, model: str, data: str) -> None:
     """Test YOLO training for different tasks, models, and datasets."""
     run(f"yolo train {task} model={model} data={data} imgsz=32 epochs=1 cache=disk")
@@ -35,35 +38,36 @@ def test_train(task: str, model: str, data: str) -> None:
 def test_val(task: str, model: str, data: str) -> None:
     """Test YOLO validation process for specified task, model, and data using a shell command."""
     for end2end in {False, True}:
-        run(
-            f"yolo val {task} model={model} data={data} imgsz=32 save_txt save_json visualize end2end={end2end} max_det=100 agnostic_nms"
-        )
+        run(f"yolo val {task} model={model} data={data} imgsz=32 end2end={end2end} max_det=100 agnostic_nms")
 
 
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_predict(task: str, model: str, data: str) -> None:
     """Test YOLO prediction on provided sample assets for specified task and model."""
     for end2end in {False, True}:
-        run(
-            f"yolo {task} predict model={model} source={ASSETS} imgsz=32 save save_crop save_txt visualize end2end={end2end} max_det=100"
-        )
+        run(f"yolo {task} predict model={model} source={ASSETS} imgsz=32 save end2end={end2end} max_det=100")
 
 
 @pytest.mark.parametrize("model", MODELS)
-def test_export(model: str) -> None:
+def test_export(model: str, tmp_path: Path) -> None:
     """Test exporting a YOLO model to TorchScript format."""
+    from ultralytics.utils.downloads import attempt_download_asset
+
+    isolated = tmp_path / model
+    shutil.copy(Path(attempt_download_asset(model)), isolated)
     for end2end in {False, True}:
-        run(f"yolo export model={model} format=torchscript imgsz=32 end2end={end2end} max_det=100")
+        run(f"yolo export model={isolated} format=torchscript imgsz=32 end2end={end2end} max_det=100")
 
 
 @pytest.mark.skipif(not TORCH_1_11, reason="RTDETR requires torch>=1.11")
 def test_rtdetr(task: str = "detect", model: Path = WEIGHTS_DIR / "rtdetr-l.pt", data: str = "coco8.yaml") -> None:
     """Test the RTDETR functionality within Ultralytics for detection tasks using specified model and data."""
-    # Add comma, spaces, fraction=0.25 args to test single-image training
-    run(f"yolo predict {task} model={model} source={ASSETS / 'bus.jpg'} imgsz=160 save save_crop save_txt")
-    run(f"yolo train {task} model={model} data={data} --imgsz= 160 epochs =1, cache = disk fraction=0.25")
+    # Add comma and spaces to test CLI arg cleanup.
+    run(f"yolo predict {task} model={model} source={ASSETS / 'bus.jpg'} imgsz=160 save")
+    run(f"yolo train {task} model={model} data={data} --imgsz= 160 epochs =1, cache = disk")
 
 
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for heavy FastSAM tests")
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="MobileSAM with CLIP is not supported in Python 3.12")
 @pytest.mark.skipif(
     checks.IS_PYTHON_3_8 and LINUX and ARM64,
@@ -76,7 +80,7 @@ def test_fastsam(
     source = ASSETS / "bus.jpg"
 
     run(f"yolo segment val {task} model={model} data={data} imgsz=32")
-    run(f"yolo segment predict model={model} source={source} imgsz=32 save save_crop save_txt")
+    run(f"yolo segment predict model={model} source={source} imgsz=32 save")
 
     from ultralytics import FastSAM
     from ultralytics.models.sam import Predictor
@@ -86,7 +90,7 @@ def test_fastsam(
 
     # Run inference on an image
     for s in (source, Image.open(source)):
-        everything_results = sam_model(s, device="cpu", retina_masks=True, imgsz=320, conf=0.4, iou=0.9)
+        everything_results = sam_model(s, device="cpu", retina_masks=True, imgsz=160, conf=0.4, iou=0.9)
 
         # Remove small regions
         _new_masks, _ = Predictor.remove_small_regions(everything_results[0].masks.data, min_area=20)

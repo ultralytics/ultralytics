@@ -127,7 +127,7 @@ The [xView](http://xviewdataset.org/) dataset is one of the largest publicly ava
 
 ### How can I use Ultralytics YOLO to train a model on the xView dataset?
 
-To train a model on the xView dataset using [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo26/), follow these steps:
+To train a model on the xView dataset using [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo26), follow these steps:
 
 !!! example "Train Example"
 

@@ -17,7 +17,7 @@ Teams allow multiple users to work together under a shared workspace:
 - **Shared Resources**: Datasets, projects, models, and deployments are accessible to all team members
 - **Role-Based Access**: Four roles (Owner, Admin, Editor, Viewer) control what each member can do
 - **Shared Billing**: Team members share the workspace credit balance and resource limits
-- **Seat Management**: Pro teams support up to 5 members, Enterprise teams up to 50
+- **Seat Management**: Pro teams support up to 5 members, Enterprise teams support custom team sizes
 
 !!! note "Plan Requirement"
 
@@ -33,6 +33,10 @@ Create a new team workspace:
 4. Enter your team name and username, then complete checkout
 
 Alternatively, [upgrade your personal account to Pro](billing.md#upgrade-to-pro) first, then create a team from the Teams tab. Once your team is created, you can [invite members](#inviting-members).
+
+!!! note "Team Creation Limit"
+
+    You can create up to 5 teams. To create another, you must first delete or transfer ownership of an existing team.
 
 ![Ultralytics Platform Teams Create Team Landing](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-teams-create-team-landing.avif)
 
@@ -73,7 +77,7 @@ Team members share the workspace credit balance and resource limits. All members
 
 !!! note "Pro Plan Seat Billing"
 
-    On the Pro plan, each team member is a paid seat at $29/month (or $290/year). Monthly credits of $30/seat are added to the shared wallet.
+    On the Pro plan, each team member is a paid seat at $29/month (or $290/year, a ~17% saving). Monthly credits of $30/seat are added to the team's shared wallet at the start of every billing cycle.
 
 ## Inviting Members
 
@@ -87,7 +91,7 @@ Admins and Owners can invite new members to the team:
 
 ![Ultralytics Platform Teams Invite Member Dialog](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-teams-invite-member-dialog.avif)
 
-The invitee receives an email invitation with a link to accept and join the team. Invitations expire after 7 days. Once accepted, the team workspace appears in the invitee's workspace switcher. If an invite is missed, resend or cancel it from the Teams tab and send a fresh invite.
+The invitee receives an email invitation with a link to accept and join the team. Invitations remain valid until accepted or canceled. Once accepted, the team workspace appears in the invitee's workspace switcher. If an invite is lost, **Resend** it from the Teams tab to rotate the token and send a fresh email, or **Cancel** it to free up the seat.
 
 !!! note "Admin Invites"
 
@@ -101,11 +105,11 @@ Enterprise plans include additional capabilities for organizations with advanced
 
 !!! warning "License Expiration"
 
-    If your Enterprise license expires, workspace access is blocked until the license is renewed. See [Ultralytics Licensing](https://www.ultralytics.com/licensing) for details.
+    If your Enterprise license expires, workspace access is blocked until the license is renewed. See [Ultralytics Licensing](https://www.ultralytics.com/license) for details.
 
 ### Getting Started with Enterprise
 
-Enterprise plans are provisioned by the Ultralytics team. See [Ultralytics Licensing](https://www.ultralytics.com/licensing) for plan details. Once your enterprise configuration is set up, you'll receive a provisioning invite to accept as the team Owner, after which you can invite your team members.
+Enterprise plans are provisioned by the Ultralytics team. See [Ultralytics Licensing](https://www.ultralytics.com/license) for plan details. Once your enterprise configuration is set up, you'll receive a provisioning invite to accept as the team Owner, after which you can invite your team members.
 
 ## FAQ
 
@@ -123,4 +127,4 @@ All team members share a single credit balance. The Owner and Admins can top up 
 
 ### How do I upgrade from Pro to Enterprise?
 
-Enterprise pricing and provisioning are handled directly by the Ultralytics team. See [Ultralytics Licensing](https://www.ultralytics.com/licensing) for plan details.
+Enterprise pricing and provisioning are handled directly by the Ultralytics team. See [Ultralytics Licensing](https://www.ultralytics.com/license) for plan details.

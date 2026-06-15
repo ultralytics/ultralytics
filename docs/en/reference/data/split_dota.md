@@ -7,7 +7,7 @@ keywords: Ultralytics, DOTA dataset, data splitting, YOLO, Python, bbox_iof, loa
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/split_dota.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/split_dota.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/split_dota.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/split_dota.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing) — thank you! 🙏
 
 <br>
 

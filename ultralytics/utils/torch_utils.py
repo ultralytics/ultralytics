@@ -48,6 +48,7 @@ TORCH_2_4 = check_version(TORCH_VERSION, "2.4.0")
 TORCH_2_8 = check_version(TORCH_VERSION, "2.8.0")
 TORCH_2_9 = check_version(TORCH_VERSION, "2.9.0")
 TORCH_2_10 = check_version(TORCH_VERSION, "2.10.0")
+TORCH_2_12 = check_version(TORCH_VERSION, "2.12.0")
 TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
 TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
@@ -293,7 +294,11 @@ def fuse_conv_and_bn(conv, bn):
     conv.weight.data = torch.mm(w_bn, w_conv).view(conv.weight.shape)
 
     # Compute fused bias
-    b_conv = torch.zeros(conv.out_channels, device=conv.weight.device) if conv.bias is None else conv.bias
+    b_conv = (
+        torch.zeros(conv.out_channels, device=conv.weight.device, dtype=conv.weight.dtype)
+        if conv.bias is None
+        else conv.bias
+    )
     b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
     fused_bias = torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn
 
@@ -326,7 +331,11 @@ def fuse_deconv_and_bn(deconv, bn):
     deconv.weight.data = torch.mm(w_bn, w_deconv).view(deconv.weight.shape)
 
     # Compute fused bias
-    b_conv = torch.zeros(deconv.out_channels, device=deconv.weight.device) if deconv.bias is None else deconv.bias
+    b_conv = (
+        torch.zeros(deconv.out_channels, device=deconv.weight.device, dtype=deconv.weight.dtype)
+        if deconv.bias is None
+        else deconv.bias
+    )
     b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
     fused_bias = torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn
 
@@ -405,12 +414,12 @@ def model_info_for_loggers(trainer):
     Examples:
         YOLOv8n info for loggers
         >>> results = {
-        ...    "model/parameters": 3151904,
-        ...    "model/GFLOPs": 8.746,
-        ...    "model/speed_ONNX(ms)": 41.244,
-        ...    "model/speed_TensorRT(ms)": 3.211,
-        ...    "model/speed_PyTorch(ms)": 18.755,
-        ...}
+        ...     "model/parameters": 3151904,
+        ...     "model/GFLOPs": 8.746,
+        ...     "model/speed_ONNX(ms)": 41.244,
+        ...     "model/speed_TensorRT(ms)": 3.211,
+        ...     "model/speed_PyTorch(ms)": 18.755,
+        ... }
     """
     if trainer.args.profile:  # profile ONNX and TensorRT times
         from ultralytics.utils.benchmarks import ProfileModels
@@ -455,12 +464,12 @@ def get_flops(model, imgsz=640):
         try:
             # Method 1: Use stride-based input tensor
             stride = max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32  # max stride
-            im = torch.empty((1, p.shape[1], stride, stride), device=p.device)  # input image in BCHW format
+            im = torch.empty((1, p.shape[1], stride, stride), device=p.device, dtype=p.dtype)  # input image in BCHW
             flops = thop.profile(deepcopy(model), inputs=[im], verbose=False)[0] / 1e9 * 2  # stride GFLOPs
             return flops * imgsz[0] / stride * imgsz[1] / stride  # imgsz GFLOPs
         except Exception:
             # Method 2: Use actual image size (required for RTDETR models)
-            im = torch.empty((1, p.shape[1], *imgsz), device=p.device)  # input image in BCHW format
+            im = torch.empty((1, p.shape[1], *imgsz), device=p.device, dtype=p.dtype)  # input image in BCHW format
             return thop.profile(deepcopy(model), inputs=[im], verbose=False)[0] / 1e9 * 2  # imgsz GFLOPs
     except Exception:
         return 0.0
@@ -485,14 +494,14 @@ def get_flops_with_torch_profiler(model, imgsz=640):
     try:
         # Use stride size for input tensor
         stride = (max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32) * 2  # max stride
-        im = torch.empty((1, p.shape[1], stride, stride), device=p.device)  # input image in BCHW format
+        im = torch.empty((1, p.shape[1], stride, stride), device=p.device, dtype=p.dtype)  # input image in BCHW
         with torch.profiler.profile(with_flops=True) as prof:
             model(im)
         flops = sum(x.flops for x in prof.key_averages()) / 1e9
         flops = flops * imgsz[0] / stride * imgsz[1] / stride  # 640x640 GFLOPs
     except Exception:
         # Use actual image size for input tensor (i.e. required for RTDETR models)
-        im = torch.empty((1, p.shape[1], *imgsz), device=p.device)  # input image in BCHW format
+        im = torch.empty((1, p.shape[1], *imgsz), device=p.device, dtype=p.dtype)  # input image in BCHW format
         with torch.profiler.profile(with_flops=True) as prof:
             model(im)
         flops = sum(x.flops for x in prof.key_averages()) / 1e9

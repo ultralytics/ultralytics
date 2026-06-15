@@ -37,7 +37,7 @@ jobs:
           path-to-document: "https://docs.ultralytics.com/help/CLA" # CLA document
           # Branch must not be protected
           branch: cla-signatures
-          allowlist: dependabot[bot],github-actions,[pre-commit*,pre-commit*,bot*
+          allowlist: dependabot[bot],github-actions,pre-commit*,bot*
 
           remote-organization-name: ultralytics
           remote-repository-name: cla

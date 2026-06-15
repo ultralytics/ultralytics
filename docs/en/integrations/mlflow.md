@@ -86,7 +86,11 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
     mlflow server --backend-store-uri runs/mlflow
     ```
 
-    This will start a local server at `http://127.0.0.1:5000` by default and save all mlflow logs to the 'runs/mlflow' directory. To specify a different URI, set the `MLFLOW_TRACKING_URI` environment variable.
+    This will start a local server at `http://127.0.0.1:5000` by default and save all mlflow logs to the 'runs/mlflow' directory. To point your training runs at a different tracking server, export `MLFLOW_TRACKING_URI` before training:
+
+    ```bash
+    export MLFLOW_TRACKING_URI=http://127.0.0.1:5000
+    ```
 
 4. **Kill MLflow Server Instances**: To stop all running MLflow instances, run:
 

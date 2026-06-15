@@ -9,6 +9,7 @@ import torch
 
 from ultralytics.nn.modules import Pose, Pose26
 from ultralytics.utils import LOGGER, YAML
+from ultralytics.utils.checks import check_executorch_requirements
 
 
 def executorch_wrapper(model: torch.nn.Module) -> torch.nn.Module:
@@ -39,8 +40,8 @@ def _executorch_kpts_decode(self, kpts: torch.Tensor, is_pose26: bool = False) -
 
 def torch2executorch(
     model: torch.nn.Module,
-    file: Path | str,
-    sample_input: torch.Tensor,
+    im: torch.Tensor,
+    output_dir: Path | str,
     metadata: dict | None = None,
     prefix: str = "",
 ) -> str:
@@ -48,27 +49,27 @@ def torch2executorch(
 
     Args:
         model (torch.nn.Module): The PyTorch model to export.
-        file (Path | str): Source model file path used to derive output names.
-        sample_input (torch.Tensor): Example input tensor for tracing/export.
+        im (torch.Tensor): Example input tensor for tracing/export.
+        output_dir (Path | str): Directory to save the exported ExecuTorch model.
         metadata (dict | None, optional): Optional metadata to save as YAML.
         prefix (str, optional): Prefix for log messages.
 
     Returns:
         (str): Path to the exported ExecuTorch model directory.
     """
+    check_executorch_requirements()
     from executorch import version as executorch_version
     from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner
     from executorch.exir import to_edge_transform_and_lower
 
     LOGGER.info(f"\n{prefix} starting export with ExecuTorch {executorch_version.__version__}...")
 
-    file = Path(file)
-    output_dir = Path(str(file).replace(file.suffix, "_executorch_model"))
+    output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    pte_file = output_dir / file.with_suffix(".pte").name
+    pte_file = output_dir / "model.pte"
     et_program = to_edge_transform_and_lower(
-        torch.export.export(model, (sample_input,)),
+        torch.export.export(model, (im,)),
         partitioner=[XnnpackPartitioner()],
     ).to_executorch()
     pte_file.write_bytes(et_program.buffer)

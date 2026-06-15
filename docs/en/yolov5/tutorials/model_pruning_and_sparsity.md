@@ -50,7 +50,7 @@ val: Scanning '/content/datasets/coco/val2017.cache' images and labels... 4952 f
                  all       5000      36335      0.732      0.628      0.683      0.496
 Speed: 0.1ms pre-process, 5.2ms inference, 1.7ms NMS per image at shape (32, 3, 640, 640)  # <--- base speed
 
-Evaluating pycocotools mAP... saving runs/val/exp2/yolov5x_predictions.json...
+Evaluating pycocotools mAP... saving runs/val/exp-2/yolov5x_predictions.json...
 ...
  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.507  # <--- base mAP
  Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.689
@@ -87,7 +87,7 @@ val: Scanning '/content/datasets/coco/val2017.cache' images and labels... 4952 f
                  all       5000      36335      0.724      0.614      0.671      0.478
 Speed: 0.1ms pre-process, 5.2ms inference, 1.7ms NMS per image at shape (32, 3, 640, 640)  # <--- prune speed
 
-Evaluating pycocotools mAP... saving runs/val/exp3/yolov5x_predictions.json...
+Evaluating pycocotools mAP... saving runs/val/exp-3/yolov5x_predictions.json...
 ...
  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.489  # <--- prune mAP
  Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.677
@@ -101,7 +101,7 @@ Evaluating pycocotools mAP... saving runs/val/exp3/yolov5x_predictions.json...
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.496
  Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.722
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.803
-Results saved to runs/val/exp3
+Results saved to runs/val/exp-3
 ```
 
 ## Results Analysis

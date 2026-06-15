@@ -95,7 +95,7 @@ Here we will install Ultralytics package on the Raspberry Pi with optional depen
 
 ## Use NCNN on Raspberry Pi
 
-Out of all the model export formats supported by Ultralytics, [NCNN](https://docs.ultralytics.com/integrations/ncnn/) delivers the best inference performance when working with Raspberry Pi devices because NCNN is highly optimized for mobile/ embedded platforms (such as ARM architecture).
+Out of all the model export formats supported by Ultralytics, [NCNN](https://docs.ultralytics.com/integrations/ncnn) delivers the best inference performance when working with Raspberry Pi devices because NCNN is highly optimized for mobile/ embedded platforms (such as ARM architecture).
 
 ## Convert Model to NCNN and Run Inference
 
@@ -133,7 +133,7 @@ The YOLO26n model in PyTorch format is converted to NCNN to run inference with t
 
 !!! tip
 
-    For more details about supported export options, visit the [Ultralytics documentation page on deployment options](https://docs.ultralytics.com/guides/model-deployment-options/).
+    For more details about supported export options, visit the [Ultralytics documentation page on deployment options](https://docs.ultralytics.com/guides/model-deployment-options).
 
 ## YOLO26 Performance Improvements over YOLO11
 
@@ -359,7 +359,7 @@ There are 2 methods of using the Raspberry Pi Camera to run inference on YOLO26 
 
 !!! tip
 
-    Check our document on [Inference Sources](https://docs.ultralytics.com/modes/predict/#inference-sources) if you want to change the image/video input type
+    Check our document on [Inference Sources](https://docs.ultralytics.com/modes/predict#inference-sources) if you want to change the image/video input type
 
 ## Best Practices when using Raspberry Pi
 
@@ -436,7 +436,7 @@ For detailed instructions, refer to the [Start without Docker](#start-without-do
 
 ### Why should I use Ultralytics YOLO26's NCNN format on Raspberry Pi for AI tasks?
 
-Ultralytics YOLO26's NCNN format is highly optimized for mobile and embedded platforms, making it ideal for running AI tasks on Raspberry Pi devices. NCNN maximizes inference performance by leveraging ARM architecture, providing faster and more efficient processing compared to other formats. For more details on supported export options, visit the [Ultralytics documentation page on deployment options](https://docs.ultralytics.com/guides/model-deployment-options/).
+Ultralytics YOLO26's NCNN format is highly optimized for mobile and embedded platforms, making it ideal for running AI tasks on Raspberry Pi devices. NCNN maximizes inference performance by leveraging ARM architecture, providing faster and more efficient processing compared to other formats. For more details on supported export options, visit the [Ultralytics documentation page on deployment options](https://docs.ultralytics.com/guides/model-deployment-options).
 
 ### How can I convert a YOLO26 model to NCNN format for use on Raspberry Pi?
 

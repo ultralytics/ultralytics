@@ -275,9 +275,9 @@ class Model(torch.nn.Module):
             >>> model._load("yolo26n.pt")
             >>> model._load("path/to/weights.pth", task="detect")
         """
-        if weights.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://", "ul://")):
+        if weights.lower().startswith(checks.REMOTE_FILE_PREFIXES):
             weights = checks.check_file(weights, download_dir=SETTINGS["weights_dir"])  # download and return local file
-        weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolo26 -> yolo26n.pt
+        weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolo26n -> yolo26n.pt
 
         if str(weights).rpartition(".")[-1] == "pt":
             self.model, self.ckpt = load_checkpoint(weights)
@@ -426,7 +426,7 @@ class Model(torch.nn.Module):
         self._check_is_pytorch_model()
         return self.model.info(detailed=detailed, verbose=verbose, imgsz=imgsz)
 
-    def fuse(self) -> None:
+    def fuse(self) -> Model:
         """Fuse Conv2d and BatchNorm2d layers in the model for optimized inference.
 
         This method iterates through the model's modules and fuses consecutive Conv2d and BatchNorm2d layers into a
@@ -444,6 +444,7 @@ class Model(torch.nn.Module):
         """
         self._check_is_pytorch_model()
         self.model.fuse()
+        return self
 
     def embed(
         self,
@@ -653,7 +654,7 @@ class Model(torch.nn.Module):
         custom = {"verbose": False}  # method defaults
         args = {**DEFAULT_CFG_DICT, **self.model.args, **custom, **kwargs, "mode": "benchmark"}
         fmts = export_formats()
-        export_args = set(dict(zip(fmts["Argument"], fmts["Arguments"])).get(format, [])) - {"batch"}
+        export_args = set(dict(zip(fmts["Argument"], fmts["Arguments"])).get(format, [])) - {"batch", "data"}
         export_kwargs = {k: v for k, v in args.items() if k in export_args}
         return benchmark(
             model=self,
@@ -766,6 +767,7 @@ class Model(torch.nn.Module):
             "task": self.task,
         }  # method defaults
         args = {**overrides, **custom, **kwargs, "mode": "train", "session": self.session}  # prioritizes rightmost args
+        pretrained = kwargs.get("pretrained", overrides.get("pretrained", True) if kwargs.get("cfg") else True)
         if args.get("resume"):
             if args["resume"] is True:  # resume=True (boolean) uses current model as checkpoint
                 if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
@@ -781,13 +783,20 @@ class Model(torch.nn.Module):
         self.trainer = (trainer or self._smart_load("trainer"))(overrides=args, _callbacks=self.callbacks)
         if not args.get("resume") and self.ckpt:
             # Reuse the already-loaded checkpoint model to avoid re-resolving remote weight sources during trainer setup.
-            self.trainer.model = self.trainer.get_model(weights=self.model, cfg=self.model.yaml)
+            weights = None if pretrained is False else self.model
+            if isinstance(pretrained, (str, Path)):
+                weights, _ = load_checkpoint(pretrained)
+            self.trainer.model = self.trainer.get_model(weights=weights, cfg=self.model.yaml)
             self.model = self.trainer.model
 
         self.trainer.train()
         # Update model and cfg after training
         if RANK in {-1, 0}:
             ckpt = self.trainer.best if self.trainer.best.exists() else self.trainer.last
+            if not ckpt.exists():
+                raise FileNotFoundError(
+                    f"Training completed but no checkpoint was saved. Expected {self.trainer.best} or {self.trainer.last}."
+                )
             self.model, self.ckpt = load_checkpoint(ckpt)
             self.overrides = self._reset_ckpt_args(self.model.args)
             self.metrics = getattr(self.trainer.validator, "metrics", None)  # TODO: no metrics returned by DDP
@@ -1071,9 +1080,9 @@ class Model(torch.nn.Module):
     def task_map(self) -> dict:
         """Provide a mapping from model tasks to corresponding classes for different modes.
 
-        This property method returns a dictionary that maps each supported task (e.g., detect, segment, classify) to a
-        nested dictionary. The nested dictionary contains mappings for different operational modes (model, trainer,
-        validator, predictor) to their respective class implementations.
+        This property method returns a dictionary that maps each supported task (e.g., detect, segment, semantic,
+        classify) to a nested dictionary. The nested dictionary contains mappings for different operational modes
+        (model, trainer, validator, predictor) to their respective class implementations.
 
         The mapping allows for dynamic loading of appropriate classes based on the model's task and the desired
         operational mode. This facilitates a flexible and extensible architecture for handling various tasks and modes

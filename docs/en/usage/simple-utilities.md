@@ -27,7 +27,7 @@ The `ultralytics` package provides a variety of utilities to support, enhance, a
 
 ### Auto Labeling / Annotations
 
-Dataset annotation is a resource-intensive and time-consuming process. If you have an Ultralytics YOLO [object detection](https://www.ultralytics.com/glossary/object-detection) model trained on a reasonable amount of data, you can use it with [SAM](../models/sam.md) to auto-annotate additional data in segmentation format.
+[Dataset annotation](https://www.ultralytics.com/annotate) is a resource-intensive and time-consuming process. If you have an Ultralytics YOLO [object detection](https://www.ultralytics.com/glossary/object-detection) model trained on a reasonable amount of data, you can use it with [SAM](../models/sam.md) to auto-annotate additional data in segmentation format.
 
 ```python
 from ultralytics.data.annotator import auto_annotate
@@ -84,7 +84,7 @@ convert_segment_masks_to_yolo_seg(masks_dir="path/to/masks_dir", output_dir="pat
 
 ### Convert COCO into YOLO Format
 
-Use this to convert [COCO](https://docs.ultralytics.com/datasets/detect/coco/) JSON annotations into the YOLO format. For object detection (bounding box) datasets, set both `use_segments` and `use_keypoints` to `False`.
+Use this to convert [COCO](https://docs.ultralytics.com/datasets/detect/coco) JSON annotations into the YOLO format. For object detection (bounding box) datasets, set both `use_segments` and `use_keypoints` to `False`.
 
 ```python
 from ultralytics.data.converter import convert_coco
@@ -162,16 +162,17 @@ from ultralytics.utils.ops import segments2boxes
 
 segments = np.array(
     [
-        [805, 392, 797, 400, ..., 808, 714, 808, 392],
-        [115, 398, 113, 400, ..., 150, 400, 149, 298],
-        [267, 412, 265, 413, ..., 300, 413, 299, 412],
-    ]
+        [805, 392, 797, 400, 812, 402, 808, 714, 808, 392],
+        [115, 398, 113, 400, 150, 410, 150, 400, 149, 298],
+        [267, 412, 265, 413, 300, 420, 300, 413, 299, 412],
+    ],
+    dtype=np.float32,
 )
 
 segments2boxes([s.reshape(-1, 2) for s in segments])
-# >>> array([[ 741.66, 631.12, 133.31, 479.25],
-#           [ 146.81, 649.69, 185.62, 502.88],
-#           [ 281.81, 636.19, 118.12, 448.88]],
+# >>> array([[804.5, 553. ,  15. , 322. ],
+#           [131.5, 354. ,  37. , 112. ],
+#           [282.5, 416. ,  35. ,   8. ]],
 #           dtype=float32) # xywh bounding boxes
 ```
 
@@ -210,7 +211,7 @@ See the [Reference page](../reference/data/split.md#ultralytics.data.split.autos
 
 ### Segment-polygon to Binary Mask
 
-Convert a single polygon (as a list) to a binary mask of the specified image size. The polygon should be in the form of `[N, 2]`, where `N` is the number of `(x, y)` points defining the polygon contour.
+Convert a single polygon (as a list) to a binary mask of the specified image size. The polygon should be a flat 1D array of `N` coordinates listing alternating `x, y` values defining the polygon contour.
 
 !!! warning
 
@@ -441,7 +442,7 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
         obb_image = cv.imread("datasets/dota8/images/train/P1142__1024__0___824.jpg")
         obb_boxes = np.array(
             [
-                [0, 635, 560, 919, 719, 1087, 420, 803, 261],  # class-idx x1 y1 x2 y2 x3 y2 x4 y4
+                [0, 635, 560, 919, 719, 1087, 420, 803, 261],  # class-idx x1 y1 x2 y2 x3 y3 x4 y4
                 [0, 331, 19, 493, 260, 776, 70, 613, -171],
                 [9, 869, 161, 886, 147, 851, 101, 833, 115],
             ]
@@ -585,7 +586,7 @@ Find additional details about the `sweep_annotator` method in our reference sect
 
 !!! example "Adaptive label Annotation using Ultralytics Utilities"
 
-    === "[Circle Annotation](https://docs.ultralytics.com/reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator.adaptive_label)"
+    === "[Circle Annotation](https://docs.ultralytics.com/reference/solutions/solutions#ultralytics.solutions.solutions.SolutionAnnotator.adaptive_label)"
 
         ```python
         import cv2
@@ -624,7 +625,7 @@ Find additional details about the `sweep_annotator` method in our reference sect
         cv2.destroyAllWindows()
         ```
 
-    === "[Text Annotation](https://docs.ultralytics.com/reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator.adaptive_label)"
+    === "[Text Annotation](https://docs.ultralytics.com/reference/solutions/solutions#ultralytics.solutions.solutions.SolutionAnnotator.adaptive_label)"
 
         ```python
         import cv2
@@ -698,7 +699,7 @@ print(VID_FORMATS)
 
 ### Make Divisible
 
-Calculate the nearest whole number to `x` that is evenly divisible by `y`.
+Calculate the smallest whole number greater than or equal to `x` that is evenly divisible by `y`.
 
 ```python
 from ultralytics.utils.ops import make_divisible
@@ -713,7 +714,7 @@ make_divisible(7, 2)
 
 ### What utilities are included in the Ultralytics package to enhance machine learning workflows?
 
-The Ultralytics package includes utilities designed to streamline and optimize machine learning workflows. Key utilities include [auto-annotation](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) for labeling datasets, converting [COCO](https://docs.ultralytics.com/datasets/detect/coco/) to YOLO format with [convert_coco](../reference/data/converter.md#ultralytics.data.converter.convert_coco), compressing images, and dataset auto-splitting. These tools reduce manual effort, ensure consistency, and enhance data processing efficiency.
+The Ultralytics package includes utilities designed to streamline and optimize machine learning workflows. Key utilities include [auto-annotation](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) for labeling datasets, converting [COCO](https://docs.ultralytics.com/datasets/detect/coco) to YOLO format with [convert_coco](../reference/data/converter.md#ultralytics.data.converter.convert_coco), compressing images, and dataset auto-splitting. These tools reduce manual effort, ensure consistency, and enhance data processing efficiency.
 
 ### How can I use Ultralytics to auto-label my dataset?
 
@@ -731,7 +732,7 @@ auto_annotate(
 )
 ```
 
-For more details, check the [auto_annotate reference section](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate).
+For more details, check the [auto_annotate reference section](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate), or use [Ultralytics Platform](https://platform.ultralytics.com/) as a hosted, no-code alternative with click-based masking via [SAM 2.1](../models/sam-2.md) or [SAM 3](../models/sam-3.md), or predictions from pretrained and fine-tuned YOLO models for detect, segment, and OBB tasks.
 
 ### How do I convert COCO dataset annotations to YOLO format in Ultralytics?
 
@@ -750,9 +751,9 @@ convert_coco(
 
 For additional information, visit the [convert_coco reference page](../reference/data/converter.md#ultralytics.data.converter.convert_coco).
 
-### What is the purpose of the YOLO Data Explorer in the Ultralytics package?
+### How can I analyze my dataset composition and distribution?
 
-The [YOLO Explorer](../datasets/explorer/index.md) is a powerful tool introduced in the `8.1.0` update to enhance dataset understanding. It allows you to use text queries to find object instances in your dataset, making it easier to analyze and manage your data. This tool provides valuable insights into dataset composition and distribution, helping to improve model training and performance.
+[Ultralytics Platform](https://platform.ultralytics.com/) provides automatic dataset analytics: the `Charts` tab shows split distribution, top class counts, image-dimension histograms, and 2D heatmaps of annotation positions, helping you spot imbalances and outliers before training.
 
 ### How can I convert bounding boxes to segments in Ultralytics?
 

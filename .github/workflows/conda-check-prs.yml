@@ -5,6 +5,9 @@
 
 name: Conda Builds
 
+permissions:
+  contents: read
+
 on:
   schedule:
     - cron: "0 8 * * *" # runs at 08:00 UTC every day

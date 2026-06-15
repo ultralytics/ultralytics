@@ -29,13 +29,13 @@ class PoseValidator(DetectionValidator):
         preprocess: Preprocess batch by converting keypoints data to float and moving it to the device.
         get_desc: Return description of evaluation metrics in string format.
         init_metrics: Initialize pose estimation metrics for YOLO model.
+        postprocess: Postprocess YOLO predictions to extract and reshape keypoints for pose estimation.
         _prepare_batch: Prepare a batch for processing by converting keypoints to float and scaling to original
             dimensions.
-        _prepare_pred: Prepare and scale keypoints in predictions for pose processing.
         _process_batch: Return correct prediction matrix by computing Intersection over Union (IoU) between detections
             and ground truth.
-        plot_val_samples: Plot and save validation set samples with ground truth bounding boxes and keypoints.
-        plot_predictions: Plot and save model predictions with bounding boxes and keypoints.
+        gather_stats: Gather stats from all GPUs.
+        scale_preds: Scale predictions to the original image size.
         save_one_txt: Save YOLO pose detections to a text file in normalized coordinates.
         pred_to_json: Convert YOLO predictions to COCO JSON format.
         eval_json: Evaluate object detection model using COCO JSON format.
@@ -123,9 +123,8 @@ class PoseValidator(DetectionValidator):
                 - 'keypoints': Reshaped keypoint coordinates with shape (-1, *self.kpt_shape)
 
         Notes:
-            If no keypoints are present in a prediction (empty keypoints), that prediction is skipped and continues
-            to the next one. The keypoints are extracted from the 'extra' field which contains additional
-            task-specific data beyond basic detection.
+            The keypoints are extracted from the 'extra' field which contains additional task-specific data beyond
+            basic detection.
         """
         preds = super().postprocess(preds)
         for pred in preds:
@@ -140,11 +139,11 @@ class PoseValidator(DetectionValidator):
             batch (dict[str, Any]): Dictionary containing batch data with keys like 'keypoints', 'batch_idx', etc.
 
         Returns:
-            (dict[str, Any]): Prepared batch with keypoints scaled to original image dimensions.
+            (dict[str, Any]): Prepared batch with keypoints scaled to model input (letterboxed) image dimensions.
 
         Notes:
             This method extends the parent class's _prepare_batch method by adding keypoint processing.
-            Keypoints are scaled from normalized coordinates to original image dimensions.
+            Keypoints are scaled from normalized coordinates to the model input (letterboxed) image dimensions.
         """
         pbatch = super()._prepare_batch(si, batch)
         kpts = batch["keypoints"][batch["batch_idx"] == si]
@@ -184,6 +183,11 @@ class PoseValidator(DetectionValidator):
             tp_p = self.match_predictions(preds["cls"], gt_cls, iou).cpu().numpy()
         tp.update({"tp_p": tp_p})  # update tp with kpts IoU
         return tp
+
+    def gather_stats(self) -> None:
+        """Gather stats from all GPUs."""
+        super().gather_stats()  # gather stats from DetectionValidator
+        self._gather_image_metrics(self.metrics.pose)
 
     def save_one_txt(self, predn: dict[str, torch.Tensor], save_conf: bool, shape: tuple[int, int], file: Path) -> None:
         """Save YOLO pose detections to a text file in normalized coordinates.

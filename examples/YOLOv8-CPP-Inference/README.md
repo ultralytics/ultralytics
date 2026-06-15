@@ -1,6 +1,6 @@
 # YOLOv8/YOLOv5 C++ Inference with OpenCV DNN
 
-This example demonstrates how to perform inference using Ultralytics YOLOv8 and YOLOv5 models in C++ leveraging the [OpenCV DNN module](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html).
+This example demonstrates how to perform inference using Ultralytics YOLOv8 and YOLOv5 models in C++ leveraging the [OpenCV DNN module](https://docs.opencv.org/4.13.0/d6/d0f/group__dnn.html).
 
 ## 🛠️ Usage
 
@@ -53,10 +53,10 @@ yolo export model=yolov8s.pt imgsz=640,480 format=onnx opset=12 # Example: 640x4
 
 **Exporting YOLOv5 Models:**
 
-Use the `export.py` script from the YOLOv5 repository structure (included within the cloned `ultralytics` repo).
+Use the `export.py` script from the separate [YOLOv5 repository](https://github.com/ultralytics/yolov5).
 
 ```bash
-# Assuming you are in the 'ultralytics' base directory after cloning
+# Run from the root of the cloned yolov5 repository
 python export.py --weights yolov5s.pt --imgsz 640 480 --include onnx --opset 12 # Example: 640x480 resolution
 ```
 
@@ -74,12 +74,12 @@ _yolov5s.onnx:_
 
 ## 📝 Notes
 
-- This repository utilizes the [OpenCV DNN API](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html) to run [ONNX](https://onnx.ai/) exported models of YOLOv5 and Ultralytics YOLOv8.
+- This repository utilizes the [OpenCV DNN API](https://docs.opencv.org/4.13.0/d6/d0f/group__dnn.html) to run [ONNX](https://onnx.ai/) exported models of YOLOv5 and Ultralytics YOLOv8.
 - While not explicitly tested, it might theoretically work for other YOLO architectures like YOLOv6 and YOLOv7 if their ONNX export formats are compatible.
-- The example models are exported with a rectangular resolution (640x480), but the code should handle models exported with different resolutions. Consider using techniques like [letterboxing](https://docs.ultralytics.com/modes/predict/#letterbox) if your input images have different aspect ratios than the model's training resolution, especially for square `imgsz` exports.
+- The example models are exported with a rectangular resolution (640x480), but the code should handle models exported with different resolutions. Consider using techniques like [letterboxing](https://docs.ultralytics.com/modes/predict#letterbox) if your input images have different aspect ratios than the model's training resolution, especially for square `imgsz` exports.
 - The `main` branch version includes a simple GUI wrapper using [Qt](https://www.qt.io/). However, the core logic resides in the `Inference` class (`inference.h`, `inference.cpp`).
 - A key part of the `Inference` class demonstrates how to handle the output differences between YOLOv5 and YOLOv8 models, effectively transposing YOLOv8's output format to match the structure expected from YOLOv5 for consistent post-processing.
 
 ## 🤝 Contributing
 
-Contributions are welcome! If you find any issues or have suggestions for improvement, please feel free to open an issue or submit a pull request. See our [Contributing Guide](https://docs.ultralytics.com/help/contributing/) for more details.
+Contributions are welcome! If you find any issues or have suggestions for improvement, please feel free to open an issue or submit a pull request. See our [Contributing Guide](https://docs.ultralytics.com/help/contributing) for more details.

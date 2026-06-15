@@ -22,7 +22,6 @@ class SegmentationValidator(DetectionValidator):
     compute metrics such as mAP for both detection and segmentation tasks.
 
     Attributes:
-        plot_masks (list): List to store masks for plotting.
         process (callable): Function to process masks based on save_json and save_txt flags.
         args (SimpleNamespace): Arguments for the validator.
         metrics (SegmentMetrics): Metrics calculator for segmentation tasks.
@@ -140,6 +139,11 @@ class SegmentationValidator(DetectionValidator):
                 masks = masks.gt_(0.5)
         prepared_batch["masks"] = masks
         return prepared_batch
+
+    def gather_stats(self) -> None:
+        """Gather stats from all GPUs."""
+        super().gather_stats()  # gather stats from DetectionValidator
+        self._gather_image_metrics(self.metrics.seg)
 
     def _process_batch(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> dict[str, np.ndarray]:
         """Compute correct prediction matrix for a batch based on bounding boxes and optional masks.

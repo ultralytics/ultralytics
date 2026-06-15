@@ -73,7 +73,7 @@ Connect your professional profiles:
 | **YouTube**        | channel-handle       |
 | **Google Scholar** | user-id              |
 | **Discord**        | username             |
-| **Website**        | https://yoursite.com |
+| **Website**        | `example.com`        |
 
 Social links appear on your public profile page.
 

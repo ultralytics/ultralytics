@@ -20,7 +20,7 @@ pip install -r requirements.txt # install
 
 !!! tip "Use Docker"
 
-    The **Ultralytics Docker image** is recommended for all multi-GPU training runs. See the [Docker Quickstart Guide](../environments/docker_image_quickstart_tutorial.md). <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
+    The **Ultralytics Docker image** is recommended for all multi-GPU training runs. See the [Docker Quickstart Guide](../environments/docker-image-quickstart-tutorial.md). <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
 
 !!! tip "PyTorch >= 1.9"
 
@@ -127,7 +127,7 @@ Training does not start until **all** `N` machines are connected. Output is only
 
 ## Results
 
-DDP profiling results on an [AWS EC2 P4d instance](../environments/aws_quickstart_tutorial.md) with 8x A100 SXM4-40GB for YOLOv5l for 1 COCO [epoch](https://www.ultralytics.com/glossary/epoch).
+DDP profiling results on an [AWS EC2 P4d instance](../environments/aws-quickstart-tutorial.md) with 8x A100 SXM4-40GB for YOLOv5l for 1 COCO [epoch](https://www.ultralytics.com/glossary/epoch).
 
 <details>
   <summary>Profiling code</summary>
@@ -180,10 +180,10 @@ If all of the above check out, open an Issue with as much detail as possible, fo
 Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
-- **Google Cloud**: [GCP Quickstart Guide](../environments/google_cloud_quickstart_tutorial.md)
-- **Amazon**: [AWS Quickstart Guide](../environments/aws_quickstart_tutorial.md)
-- **Azure**: [AzureML Quickstart Guide](../environments/azureml_quickstart_tutorial.md)
-- **Docker**: [Docker Quickstart Guide](../environments/docker_image_quickstart_tutorial.md) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
+- **Google Cloud**: [GCP Quickstart Guide](../environments/google-cloud-quickstart-tutorial.md)
+- **Amazon**: [AWS Quickstart Guide](../environments/aws-quickstart-tutorial.md)
+- **Azure**: [AzureML Quickstart Guide](../environments/azureml-quickstart-tutorial.md)
+- **Docker**: [Docker Quickstart Guide](../environments/docker-image-quickstart-tutorial.md) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
 
 ## Project Status
 

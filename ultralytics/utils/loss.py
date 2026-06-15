@@ -95,7 +95,7 @@ class DFLoss(nn.Module):
         self.reg_max = reg_max
 
     def __call__(self, pred_dist: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        """Return sum of left and right DFL losses from https://ieeexplore.ieee.org/document/9792391."""
+        """Return sum of left and right DFL losses from https://arxiv.org/abs/2006.04388."""
         target = target.clamp_(0, self.reg_max - 1 - 0.01)
         tl = target.long()  # target left
         tr = tl + 1  # target right

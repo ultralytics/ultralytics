@@ -167,7 +167,7 @@ env COMET_LOG_PER_CLASS_METRICS=true python train.py \
 
 If you would like to store your data using [Comet Artifacts](https://www.comet.com/docs/v2/guides/data-management/using-artifacts/#learn-more?utm_source=yolov5&utm_medium=partner&utm_campaign=partner_yolov5_2022&utm_content=github), you can do so using the `upload_dataset` flag.
 
-The dataset should be organized as described in the [YOLOv5 documentation](./train_custom_data.md). The dataset config `yaml` file must follow the same format as that of the `coco128.yaml` file.
+The dataset should be organized as described in the [YOLOv5 documentation](./train-custom-data.md). The dataset config `yaml` file must follow the same format as that of the `coco128.yaml` file.
 
 ```bash
 python train.py \

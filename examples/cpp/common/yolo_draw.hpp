@@ -78,22 +78,32 @@ inline void DrawMask(cv::Mat& image, const cv::Mat& mask, int class_id, float al
     blended.copyTo(image, mask);
 }
 
-// Draw 17 COCO keypoints and the skeleton for one pose detection.
+// Draw 17 COCO keypoints and the skeleton for one pose detection, using the same
+// pose palette as the Python Annotator (limb and keypoint colors in BGR).
 inline void DrawPose(cv::Mat& image, const std::vector<cv::Point2f>& kpts,
                      const std::vector<float>& scores, float kpt_threshold = 0.5f) {
-    static const int kSkeleton[][2] = {
+    static const int kSkeleton[19][2] = {
         {15, 13}, {13, 11}, {16, 14}, {14, 12}, {11, 12}, {5, 11}, {6, 12}, {5, 6}, {5, 7}, {6, 8},
         {7, 9}, {8, 10}, {1, 2}, {0, 1}, {0, 2}, {1, 3}, {2, 4}, {3, 5}, {4, 6},
     };
-    for (const auto& s : kSkeleton) {
-        const int a = s[0], b = s[1];
+    // pose_palette colors used by Ultralytics, in BGR.
+    const cv::Scalar kBlue(255, 153, 51), kMagenta(255, 51, 255), kOrange(0, 128, 255), kGreen(0, 255, 0);
+    static const cv::Scalar kLimbColor[19] = {kBlue, kBlue, kBlue, kBlue, kMagenta, kMagenta, kMagenta,
+                                              kOrange, kOrange, kOrange, kOrange, kOrange, kGreen, kGreen,
+                                              kGreen, kGreen, kGreen, kGreen, kGreen};
+    static const cv::Scalar kKptColor[17] = {kGreen, kGreen, kGreen, kGreen, kGreen, kOrange, kOrange, kOrange,
+                                             kOrange, kOrange, kOrange, kBlue, kBlue, kBlue, kBlue, kBlue, kBlue};
+
+    for (int i = 0; i < 19; ++i) {
+        const int a = kSkeleton[i][0], b = kSkeleton[i][1];
         if (a < static_cast<int>(kpts.size()) && b < static_cast<int>(kpts.size()) &&
             scores[a] > kpt_threshold && scores[b] > kpt_threshold) {
-            cv::line(image, kpts[a], kpts[b], cv::Scalar(0, 128, 255), 2, cv::LINE_AA);
+            cv::line(image, kpts[a], kpts[b], kLimbColor[i], 2, cv::LINE_AA);
         }
     }
     for (size_t i = 0; i < kpts.size(); ++i) {
-        if (scores[i] > kpt_threshold) cv::circle(image, kpts[i], 3, Color(static_cast<int>(i)), -1, cv::LINE_AA);
+        if (scores[i] > kpt_threshold)
+            cv::circle(image, kpts[i], 4, i < 17 ? kKptColor[i] : kGreen, -1, cv::LINE_AA);
     }
 }
 

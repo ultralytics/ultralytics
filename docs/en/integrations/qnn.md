@@ -62,7 +62,7 @@ End-to-end single-image inference for the official YOLO26n models on a Xiaomi 17
 | YOLO26n-pose | Pose     | 640                         | 57.7<br><sup>3.5 / 52.4 / 1.8</sup>   | 15.2<br><sup>3.6 / 9.7 / 1.9</sup>           | **10.8**<br><sup>3.5 / 5.6 / 1.8</sup>           |
 | YOLO26n-obb  | OBB      | 1024                        | 50.3<br><sup>3.6 / 45.4 / 1.3</sup>   | **13.9**<br><sup>3.8 / 8.2 / 1.8</sup>       | 21.0<br><sup>8.8 / 10.9 / 1.3</sup>              |
 
-- **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on [bus.jpg](https://ultralytics.com/images/bus.jpg), measured with the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) on-device benchmark harness on a thermally rested device. Sustained real-time camera frame times run higher (per-frame capture letterboxing plus thermal settling); use the app's on-screen pre/inference/post breakdown for steady-state numbers on your device.
+- **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on `bus.jpg`, measured with the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) on-device benchmark harness on a thermally rested device. Sustained real-time camera frame times run higher (per-frame capture letterboxing plus thermal settling); use the app's on-screen pre/inference/post breakdown for steady-state numbers on your device.
 - <sup>1</sup> Semantic QNN uses the in-graph ArgMax class-map output from this release, which replaced erratic 123-1065 ms logits decoding with a stable ~49 ms; the GPU remains slightly faster for semantic at 1024px.
 
 ### Windows on Snapdragon Laptop
@@ -78,7 +78,7 @@ End-to-end single-image inference for the official YOLO26n models on a Lenovo la
 | YOLO26n-pose | Pose     | 640                         | 109.6<br><sup>4.6 / 102.9 / 0.2</sup>  | **28.9**<br><sup>5.3 / 23.3 / 0.6</sup>     |
 | YOLO26n-obb  | OBB      | 1024                        | 267.8<br><sup>8.1 / 254.6 / 0.1</sup>  | **64.8**<br><sup>8.9 / 54.7 / 0.6</sup>     |
 
-- **Speed** values are **single-image burst latencies** — the mean of 100 runs after 10 warmup runs on [bus.jpg](https://ultralytics.com/images/bus.jpg), measured with `time.perf_counter()` around the full `model.predict()` call on a thermally rested device (`ultralytics==8.4.67`, Python 3.12.10).
+- **Speed** values are **single-image burst latencies** — the mean of 100 runs after 10 warmup runs on `bus.jpg`, measured with `time.perf_counter()` around the full `model.predict()` call on a thermally rested device (`ultralytics==8.4.67`, Python 3.12.10).
 - The Hexagon NPU runs roughly **2-4x faster** than the PyTorch CPU baseline across the 640-1024 px tasks (detection ~3.4x), narrowing to ~1.3x on the 224 px classifier where fixed preprocessing overhead dominates the tiny workload.
 
 ## Supported Tasks

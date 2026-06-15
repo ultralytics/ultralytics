@@ -228,7 +228,7 @@ plot_results("runs/train/exp/results.csv")  # This will generate 'results.png' i
 
 Upon successful completion of training, the best performing model checkpoint (`best.pt`) is saved and ready for deployment or further refinement. Potential next steps include:
 
-- Run [inference](https://docs.ultralytics.com/modes/predict) on new images or videos using the trained model via the [CLI](https://github.com/ultralytics/yolov5#quick-start-examples) or [Python](./pytorch_hub_model_loading.md).
+- Run [inference](https://docs.ultralytics.com/modes/predict) on new images or videos using the trained model via the [CLI](https://github.com/ultralytics/yolov5#quick-start-examples) or [Python](./pytorch-hub-model-loading.md).
 - Perform [validation](https://docs.ultralytics.com/modes/val) to evaluate the model's [accuracy](https://www.ultralytics.com/glossary/accuracy) and generalization capabilities on different data splits (e.g., a held-out test set).
 - [Export](https://docs.ultralytics.com/modes/export) the model to various deployment formats like [ONNX](https://docs.ultralytics.com/integrations/onnx), [TensorFlow SavedModel](https://docs.ultralytics.com/integrations/tf-savedmodel), or [TensorRT](https://docs.ultralytics.com/integrations/tensorrt) for optimized inference on diverse platforms.
 - Employ [hyperparameter tuning](https://docs.ultralytics.com/guides/hyperparameter-tuning) techniques to potentially squeeze out additional performance gains.
@@ -243,8 +243,8 @@ Ultralytics provides ready-to-use environments equipped with essential dependenc
     - <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
     - <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Cloud Platforms**:
-    - **Google Cloud**: [GCP Quickstart Guide](../environments/google_cloud_quickstart_tutorial.md)
-    - **Amazon AWS**: [AWS Quickstart Guide](../environments/aws_quickstart_tutorial.md)
+    - **Google Cloud**: [GCP Quickstart Guide](../environments/google-cloud-quickstart-tutorial.md)
+    - **Amazon AWS**: [AWS Quickstart Guide](../environments/aws-quickstart-tutorial.md)
     - **Microsoft Azure**: [AzureML Quickstart Guide](https://docs.ultralytics.com/guides/azureml-quickstart)
 - **Local Setup**:
     - **Docker**: [Docker Quickstart Guide](https://docs.ultralytics.com/guides/docker-quickstart) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>

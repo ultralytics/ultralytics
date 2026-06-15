@@ -31,7 +31,7 @@ After evaluation, you test the model using images from a pet store to see how we
 
 ## Preparing for Model Testing
 
-Computer vision [datasets](./preprocessing_annotated_data.md) are usually divided into training and testing sets to simulate real-world conditions: [training data](https://www.ultralytics.com/glossary/training-data) teaches the model, while testing data verifies its behavior on examples it has never seen. The [Ultralytics Platform](https://platform.ultralytics.com) keeps dataset organization and annotation in one place, which helps when building a labeled test set.
+Computer vision [datasets](./preprocessing-annotated-data.md) are usually divided into training and testing sets to simulate real-world conditions: [training data](https://www.ultralytics.com/glossary/training-data) teaches the model, while testing data verifies its behavior on examples it has never seen. The [Ultralytics Platform](https://platform.ultralytics.com) keeps dataset organization and annotation in one place, which helps when building a labeled test set.
 
 !!! tip "Before you test"
 

@@ -49,6 +49,8 @@ The exported `*_qnn.onnx` file is self-contained: it embeds the QNN context bina
 
 ## Measured Performance
 
+### Android Phone
+
 End-to-end single-image inference for the official YOLO26n models on a Xiaomi 17 phone powered by the Qualcomm Snapdragon 8 Elite Gen 5 (SM8850) — Qualcomm Oryon CPU, Adreno GPU, and Hexagon NPU (HTP v81). Each cell shows the **total time** (preprocessing + inference + postprocessing, excluding annotation) with the per-stage split beneath it. CPU and GPU run INT8 TFLite via LiteRT; the NPU runs QNN context binaries (INT8 weights, 16-bit activations).
 
 | Model        | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>INT8 TFLite<br>(ms)</sup> | GPU Adreno<br><sup>INT8 TFLite<br>(ms)</sup> | NPU Hexagon<br><sup>QNN A16W8<br>(ms)</sup>      |
@@ -63,9 +65,9 @@ End-to-end single-image inference for the official YOLO26n models on a Xiaomi 17
 - **Speed** values are **single-image burst latencies** — the mean of 15 runs after 3 warmup runs on [bus.jpg](https://ultralytics.com/images/bus.jpg), measured with the [Flutter plugin's](https://github.com/ultralytics/yolo-flutter-app) on-device benchmark harness on a thermally rested device. Sustained real-time camera frame times run higher (per-frame capture letterboxing plus thermal settling); use the app's on-screen pre/inference/post breakdown for steady-state numbers on your device.
 - <sup>1</sup> Semantic QNN uses the in-graph ArgMax class-map output from this release, which replaced erratic 123-1065 ms logits decoding with a stable ~49 ms; the GPU remains slightly faster for semantic at 1024px.
 
-## Measured Performance on Windows on Snapdragon (win_arm64)
+### Windows on Snapdragon Laptop
 
-End-to-end single-image inference for the official YOLO26n models on a Lenovo laptop powered by the Qualcomm Snapdragon X Elite (X1E78100) — Qualcomm Oryon CPU and Hexagon NPU (HTP v73), 32 GB RAM, Windows 11. This Windows-on-Snapdragon comparison runs the native PyTorch FP32 CPU baseline that most desktop developers start from against the QNN Hexagon NPU path. Each cell shows the **total time** (preprocessing + inference + postprocessing, excluding annotation) with the per-stage split beneath it; CPU numbers are PyTorch FP32 (`torch==2.10.0+cpu`) and NPU numbers are ONNX Runtime QNN (`onnxruntime-qnn==2.2.0`, INT8 weights / 16-bit activations).
+End-to-end single-image inference for the official YOLO26n models on a Lenovo laptop powered by the Qualcomm Snapdragon X Elite (X1E78100) — Qualcomm Oryon CPU and Hexagon NPU (HTP v73), 32 GB RAM, Windows 11. This Windows-on-Snapdragon comparison runs the native PyTorch FP32 CPU baseline that most desktop developers start from against the QNN Hexagon NPU path. Each cell shows the **full `model.predict()` wall time** with the reported preprocessing / inference / postprocessing timings beneath it; the total can include framework overhead outside those three stages. CPU numbers are PyTorch FP32 (`torch==2.10.0+cpu`) and NPU numbers are ONNX Runtime QNN (`onnxruntime-qnn==2.2.0`, INT8 weights / 16-bit activations).
 
 | Model        | Task     | size<br><sup>(pixels)</sup> | CPU<br><sup>PT FP32<br>(ms)</sup>      | NPU Hexagon<br><sup>QNN A16W8<br>(ms)</sup> |
 | ------------ | -------- | --------------------------- | -------------------------------------- | ------------------------------------------- |

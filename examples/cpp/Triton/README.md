@@ -93,3 +93,14 @@ To learn more about configuring and customizing YOLO models, visit the [Ultralyt
 
 Contributions are welcome! If you find any issues or have suggestions for improvements, please feel free to open an issue or submit a pull request on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics).
 
+This example was originally contributed by:
+
+- [Ahmet Selim Demirel](https://github.com/asdemirel)
+- [Doğan Mehmet Başoğlu](https://github.com/doganmb)
+- [Enes Uzun](https://github.com/uzunenes)
+- Elif Cansu Ada
+- [Mevlüt Ardıç](https://github.com/mevlutardic)
+- Serhat Karaca
+
+[![Ultralytics open-source contributors](https://raw.githubusercontent.com/ultralytics/assets/main/im/image-contributors.png)](https://github.com/ultralytics/ultralytics/graphs/contributors)
+

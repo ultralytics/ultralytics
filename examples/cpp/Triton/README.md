@@ -1,7 +1,6 @@
 # Ultralytics YOLO Triton Inference Server C++ Client
 
-[![Ultralytics](https://img.shields.io/badge/Ultralytics-YOLO11-orange)](https://github.com/ultralytics/ultralytics)
-[![Triton](https://img.shields.io/badge/NVIDIA-Triton-green)](https://github.com/triton-inference-server/server)
+<img alt="C++" src="https://img.shields.io/badge/C++-17-blue.svg?style=flat&logo=c%2B%2B"> <img alt="NVIDIA Triton" src="https://img.shields.io/badge/NVIDIA%20Triton-76B900.svg?logo=nvidia&logoColor=white"> <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white"> <img alt="gRPC" src="https://img.shields.io/badge/gRPC-244c5a.svg?logo=google&logoColor=white">
 
 This example demonstrates how to perform object detection using Ultralytics YOLO11 models deployed on the NVIDIA Triton Inference Server. The implementation highlights efficient image preprocessing, FP16 (half-precision) data conversion, seamless communication with the Triton server via gRPC, and visualization of detection results with bounding boxes and confidence scores.
 
@@ -90,21 +89,7 @@ std::vector<std::string> object_class_list = {"class1", "class2"};
 
 To learn more about configuring and customizing YOLO models, visit the [Ultralytics configuration guide](https://docs.ultralytics.com/usage/cfg).
 
-## 🌟 Contributors
+## 🤝 Contributing
 
-Contributions are welcome! If you find any issues or have suggestions for improvements, please open an issue or submit a pull request on the [main Ultralytics repository](https://github.com/ultralytics/ultralytics).
+Contributions are welcome! If you find any issues or have suggestions for improvements, please feel free to open an issue or submit a pull request on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics).
 
-- Ahmet Selim Demirel
-- Doğan Mehmet Başoğlu
-- Enes Uzun
-- Elif Cansu Ada
-- Mevlüt Ardıç
-- Serhat Karaca
-
-[![Ultralytics open-source contributors](https://raw.githubusercontent.com/ultralytics/assets/main/im/image-contributors.png)](https://github.com/ultralytics/ultralytics/graphs/contributors)
-
----
-
-For more resources, explore the [Ultralytics documentation](https://docs.ultralytics.com/) and [Ultralytics blog](https://www.ultralytics.com/blog).
-
-**We encourage your contributions to help improve this project.**

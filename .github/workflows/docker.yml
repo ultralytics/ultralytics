@@ -188,7 +188,9 @@ jobs:
               echo "new_release=false" >> "$GITHUB_OUTPUT"
           fi
         env:
-          VERSION_TAG: ${{ steps.get_version.outputs.version_tag }}
+          # Gate the release on the base version (e.g. 8.4.68) so all variant/alias rows publish their
+          # version-pinned tags together on a version bump, not whenever a variant tag happens to be new
+          VERSION_TAG: ${{ steps.get_version.outputs.version }}
 
       - name: Build Base Image
         if: github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true'

@@ -1566,9 +1566,7 @@ class _SafeLoad:
         # Legacy/cross-platform aliases (pickled paths with no current class namespace), mirroring temporary_modules().
         from ultralytics.utils.loss import E2EDetectLoss
 
-        def _getattr(
-            obj, name
-        ):  # ckpts pickle `Detect.forward` (seg/pose) and `InterpolationMode.BILINEAR` (cls) via getattr
+        def _getattr(obj, name):  # ckpts pickle `Detect.forward` and `InterpolationMode.BILINEAR` via getattr
             if isinstance(obj, type) and not name.startswith("__") and issubclass(obj, (nn.Module, enum.Enum)):
                 return getattr(obj, name)
             raise pickle.UnpicklingError(f"unsafe getattr({obj!r}, {name!r}) blocked during restricted model load")

@@ -784,6 +784,31 @@ class Results(SimpleClass, DataExportMixin):
                 BGR=True,
             )
 
+    def _summary_placeholder(self, normalize: bool = False, decimals: int = 5) -> dict[str, Any]:
+        """Return a placeholder summary row for inferring export schema when there are no results."""
+        if self.probs is not None:
+            return {"name": "", "class": 0, "confidence": round(0.0, decimals)}
+        if self.semantic_mask is not None:
+            return {"name": "", "class": 0, "pixel_ratio": round(0.0, decimals)}
+
+        is_obb = self.obb is not None
+        data = self.obb if is_obb else self.boxes
+        h, w = self.orig_shape if normalize else (1, 1)
+        xy = {}
+        for j in range(4 if is_obb else 2):
+            xy[f"x{j + 1}"] = round(0.0 / w, decimals)
+            xy[f"y{j + 1}"] = round(0.0 / h, decimals)
+        result = {"name": "", "class": 0, "confidence": round(0.0, decimals), "box": xy}
+        if data is not None and data.is_track:
+            result["track_id"] = 0
+        if self.masks:
+            result["segments"] = {"x": [], "y": []}
+        if self.keypoints is not None:
+            result["keypoints"] = {"x": [], "y": []}
+            if self.keypoints.has_visible:
+                result["keypoints"]["visible"] = []
+        return result
+
     def summary(self, normalize: bool = False, decimals: int = 5) -> list[dict[str, Any]]:
         """Convert inference results to a summarized dictionary with optional normalization for box coordinates.
 

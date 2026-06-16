@@ -389,6 +389,32 @@ def test_labels_and_crops():
         assert crop_count == len(r.boxes.data), f"Crop count {crop_count} != detection count {len(r.boxes.data)}"
 
 
+@pytest.mark.parametrize("model", ("yolo26n.pt", "yolo26n-seg.pt"))
+def test_results_zero_detections(model):
+    """Test Results export methods (to_df, to_csv, to_json) with zero detections."""
+    black = Image.fromarray(np.zeros((640, 640, 3), dtype=np.uint8))
+    result = YOLO(WEIGHTS_DIR / model)(black, verbose=False)[0]
+
+    assert len(result) == 0, f"Expected zero detections, got {len(result)}"
+    assert result.summary() == [], "Expected empty summary for zero detections"
+
+    df = result.to_df()
+    assert df.height == 0, f"Expected 0 rows, got {df.height}"
+    expected_cols = {"name", "class", "confidence", "box"}
+    assert set(df.columns) == expected_cols, f"Expected columns {expected_cols}, got {set(df.columns)}"
+
+    csv_str = result.to_csv()
+    headers = csv_str.strip().split("\n")[0].split(",")
+    assert set(headers) == expected_cols, f"CSV headers {set(headers)} don't match expected {expected_cols}"
+
+    json_str = result.to_json()
+    assert json_str == "[]", f"Expected empty JSON array, got {json_str}"
+
+    df_normalized = result.to_df(normalize=True, decimals=3)
+    assert df_normalized.height == 0
+    assert set(df_normalized.columns) == expected_cols
+
+
 def test_data_utils(tmp_path):
     """Test data utility functions including auto-splitting and zip archiving."""
     from ultralytics.data.split import autosplit

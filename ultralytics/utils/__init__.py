@@ -192,7 +192,12 @@ class DataExportMixin:
         """
         import polars as pl  # scope for faster 'import ultralytics'
 
-        return pl.DataFrame(self.summary(normalize=normalize, decimals=decimals))
+        summary = self.summary(normalize=normalize, decimals=decimals)
+        if not summary:
+            placeholder = getattr(self, "_summary_placeholder", None)
+            if placeholder is not None:
+                return pl.DataFrame([placeholder(normalize=normalize, decimals=decimals)]).clear()
+        return pl.DataFrame(summary)
 
     def to_csv(self, normalize=False, decimals=5):
         """Export results or metrics to CSV string format.

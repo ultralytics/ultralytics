@@ -979,8 +979,13 @@ class LearnedScorer(nn.Module):
         self.self_match_thresh = float(self_match_thresh)
         self.score_chunk_elems = int(score_chunk_elems)
         # v2: learned projection g reshapes the metric (similarities are computed in g-space).
-        # proj_dim=0 -> v1 (raw-feature cosine readout). proj_dim>0 needs feature_dim.
+        # proj_dim=0 -> v1 (raw-feature cosine readout). proj_dim>0 needs feature_dim; when it equals
+        # feature_dim the projection is IDENTITY-INITIALISED so v2 starts == v1 (raw cosine) and learns
+        # a refinement (random init would scramble the geometry -> near-chance cosine).
         self.proj = nn.Linear(int(feature_dim), int(proj_dim)) if proj_dim > 0 else None
+        if self.proj is not None and int(proj_dim) == int(feature_dim):
+            nn.init.eye_(self.proj.weight)
+            nn.init.zeros_(self.proj.bias)
         self.mlp = nn.Sequential(nn.Linear(self.k, hidden), nn.GELU(), nn.Linear(hidden, 1))
 
     def _embed(self, x: torch.Tensor) -> torch.Tensor:

@@ -39,12 +39,12 @@ from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import LOCAL_RANK, LOGGER, RANK, TQDM, callbacks, colorstr, emojis
+from ultralytics.utils.amba import resolve_validation_model
 from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.torch_utils import (
     attempt_compile,
     select_device,
-    smart_inference_mode,
     torch_distributed_zero_first,
     unwrap_model,
 )
@@ -137,7 +137,6 @@ class BaseValidator:
         self.plots = {}
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
-    @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
         """Execute validation process, running inference on dataloader and computing performance metrics.
 
@@ -155,10 +154,24 @@ class BaseValidator:
             self.data = trainer.data
             # Force FP16 val during training
             self.args.half = self.device.type != "cpu" and trainer.amp
-            model = trainer.ema.ema or trainer.model
+            live_model = trainer.model
+            if trainer.args.compile and hasattr(live_model, "_orig_mod"):
+                live_model = live_model._orig_mod
+            if trainer.ema is not None:
+                model = trainer.ema.ema or trainer.model
+            else:
+                model = trainer.model
             if trainer.args.compile and hasattr(model, "_orig_mod"):
                 model = model._orig_mod  # validate non-compiled original model to avoid issues
-            model = model.half() if self.args.half else model.float()
+            # Only convert dtype on a separate copy (e.g. EMA). The live trainer
+            # model should keep its training dtype, so use autocast for validation.
+            self._val_autocast_dtype = torch.float16 if self.args.half else None
+            self._val_mutated_dtype = False
+            if model is not trainer.model and model is not live_model:
+                model = model.half() if self.args.half else model.float()
+                self._val_mutated_dtype = True
+            # Autocast the live (unconverted) model during val; a dtype-converted copy needs no autocast.
+            self._val_use_autocast = self._val_autocast_dtype is not None and not self._val_mutated_dtype
             self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
             model.eval()
@@ -173,12 +186,18 @@ class BaseValidator:
                     model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms)
             with torch_distributed_zero_first(LOCAL_RANK):
                 self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data)
+            val_device = select_device(self.args.device) if RANK == -1 else torch.device("cuda", RANK)
+            
+            # Load/prepare amba .pt checkpoints and decide whether AutoBackend may fuse Conv+BN.
+            model_ref, fuse = resolve_validation_model(model or self.args.model, self.args, device=val_device)
+
             model = AutoBackend(
-                model=model or self.args.model,
-                device=select_device(self.args.device) if RANK == -1 else torch.device("cuda", RANK),
+                model=model_ref,
+                device=val_device,
                 dnn=self.args.dnn,
                 data=self.args.data,
                 fp16=self.args.half,
+                fuse=fuse,
             )
             self.device = model.device  # update device
             self.args.half = model.fp16  # update half
@@ -221,27 +240,35 @@ class BaseValidator:
         for batch_i, batch in enumerate(bar):
             self.run_callbacks("on_val_batch_start")
             self.batch_i = batch_i
-            # Preprocess
-            with dt[0]:
-                batch = self.preprocess(batch)
+            with torch.inference_mode():
+                # Preprocess
+                with dt[0]:
+                    batch = self.preprocess(batch)
 
-            # Inference
-            with dt[1]:
-                preds = model(batch["img"], augment=augment)
+                # Inference
+                with dt[1]:
+                    if self.training and getattr(self, "_val_use_autocast", False):
+                        # Autocast FP16 on the live trainer model without calling half()/float().
+                        with torch.autocast(device_type=self.device.type, dtype=self._val_autocast_dtype):
+                            preds = model(batch["img"], augment=augment)
+                    else:
+                        preds = model(batch["img"], augment=augment)
 
-            # Loss
-            with dt[2]:
-                if self.training:
-                    self.loss += model.loss(batch, preds)[1]
+                # Loss
+                with dt[2]:
+                    if self.training:
+                        # DDP / compile wrappers don't forward custom methods like
+                        # ``loss``; reach the underlying YOLO module for it.
+                        self.loss += unwrap_model(model).loss(batch, preds)[1]
 
-            # Postprocess
-            with dt[3]:
-                preds = self.postprocess(preds)
+                # Postprocess
+                with dt[3]:
+                    preds = self.postprocess(preds)
 
-            self.update_metrics(preds, batch)
-            if self.args.plots and batch_i < 3 and RANK in {-1, 0}:
-                self.plot_val_samples(batch, batch_i)
-                self.plot_predictions(batch, preds, batch_i)
+                self.update_metrics(preds, batch)
+                if self.args.plots and batch_i < 3 and RANK in {-1, 0}:
+                    self.plot_val_samples(batch, batch_i)
+                    self.plot_predictions(batch, preds, batch_i)
 
             self.run_callbacks("on_val_batch_end")
 
@@ -255,7 +282,8 @@ class BaseValidator:
             self.run_callbacks("on_val_end")
 
         if self.training:
-            model.float()
+            if getattr(self, "_val_mutated_dtype", False):
+                model.float()
             # Reduce loss across all GPUs
             loss = self.loss.clone().detach()
             if trainer.world_size > 1:

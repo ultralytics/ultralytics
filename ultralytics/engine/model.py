@@ -701,6 +701,7 @@ class Model(torch.nn.Module):
         """
         self._check_is_pytorch_model()
         from .exporter import Exporter
+        from ultralytics.utils.amba import get_export_model
 
         custom = {
             "imgsz": self.model.args["imgsz"],
@@ -710,7 +711,8 @@ class Model(torch.nn.Module):
             "verbose": False,
         }  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "export"}  # highest priority args on the right
-        return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
+        model = get_export_model(self.model, args, task=self.task, ckpt_path=getattr(self, "ckpt_path", None))
+        return Exporter(overrides=args, _callbacks=self.callbacks)(model=model)
 
     def train(
         self,

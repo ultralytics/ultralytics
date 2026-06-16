@@ -435,14 +435,22 @@ class Exporter:
         )
         if file.suffix in {".yaml", ".yml"}:
             file = Path(file.name)
+        source_file = file
+        if self.args.export_file:
+            file = Path(self.args.export_file).expanduser()
+            if not file.suffix and source_file.suffix:
+                file = file.with_suffix(source_file.suffix)
+            if file.parent and not file.parent.exists():
+                file.parent.mkdir(parents=True, exist_ok=True)
 
         # Update model
-        model = deepcopy(model).to(self.device)
+        model = (model if self.args.amba_config is not None else deepcopy(model)).to(self.device)
         for p in model.parameters():
             p.requires_grad = False
         model.eval()
         model.float()
-        model = model.fuse()
+        if self.args.amba_config is None:
+            model = model.fuse()
 
         if fmt == "imx":
             from ultralytics.utils.export.imx import FXModel
@@ -490,7 +498,7 @@ class Exporter:
             if isinstance(y, torch.Tensor)
             else tuple(tuple(x.shape if isinstance(x, torch.Tensor) else []) for x in y)
         )
-        self.pretty_name = Path(self.model.yaml.get("yaml_file", self.file)).stem.replace("yolo", "YOLO")
+        self.pretty_name = Path(self.model.yaml.get("yaml_file", source_file)).stem.replace("yolo", "YOLO")
         data = model.args["data"] if hasattr(model, "args") and isinstance(model.args, dict) else ""
         description = f"Ultralytics {self.pretty_name} model {f'trained on {data}' if data else ''}"
         self.metadata = {
@@ -517,8 +525,8 @@ class Exporter:
                 self.metadata["kpt_names"] = model.kpt_names
 
         LOGGER.info(
-            f"\n{colorstr('PyTorch:')} starting from '{file}' with input shape {tuple(im.shape)} BCHW and "
-            f"output shape(s) {self.output_shape} ({file_size(file):.1f} MB)"
+            f"\n{colorstr('PyTorch:')} starting from '{source_file}' with input shape {tuple(im.shape)} BCHW and "
+            f"output shape(s) {self.output_shape} ({file_size(source_file):.1f} MB)"
         )
         self.run_callbacks("on_export_start")
 

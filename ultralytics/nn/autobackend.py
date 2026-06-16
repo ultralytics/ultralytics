@@ -13,6 +13,7 @@ from ultralytics.utils.checks import check_suffix
 from ultralytics.utils.downloads import is_url
 
 from .backends import (
+    AmbaPBBackend,
     AxeleraBackend,
     CoreMLBackend,
     ExecuTorchBackend,
@@ -110,6 +111,7 @@ class AutoBackend(nn.Module):
             | Triton Inference      | triton://model    |
             | ExecuTorch            | *.pte             |
             | Axelera AI            | *_axelera_model/  |
+            | AmbaPB                | *.ambapb.ckpt.onnx|
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.
@@ -133,6 +135,8 @@ class AutoBackend(nn.Module):
         >>> results = model(img)
     """
 
+    _AMBAPB_SUFFIXES = ("ambapb.ckpt.onnx", "ambapb.fastckpt.onnx")
+
     _BACKEND_MAP = {
         "pt": PyTorchBackend,
         "torchscript": TorchScriptBackend,
@@ -153,6 +157,7 @@ class AutoBackend(nn.Module):
         "triton": TritonBackend,
         "executorch": ExecuTorchBackend,
         "axelera": AxeleraBackend,
+        "ambapb": AmbaPBBackend,
     }
 
     @torch.no_grad()
@@ -189,7 +194,7 @@ class AutoBackend(nn.Module):
             isinstance(device, torch.device)
             and torch.cuda.is_available()
             and device.type != "cpu"
-            and format not in {"pt", "torchscript", "engine", "onnx", "paddle"}
+            and format not in {"pt", "torchscript", "engine", "onnx", "paddle", "ambapb"}
         ):
             device = torch.device("cpu")
 
@@ -334,6 +339,8 @@ class AutoBackend(nn.Module):
         types[5] |= name.endswith(".mlmodel")
         types[8] &= not types[9]
         format = next((f for i, f in enumerate(export_formats()["Argument"]) if types[i]), None)
+        if name.endswith(AutoBackend._AMBAPB_SUFFIXES):
+            format = "ambapb"
         if format == "-":
             format = "pt"
         elif format == "onnx" and dnn:

@@ -42,6 +42,7 @@ from ultralytics.utils import (
     colorstr,
     emojis,
 )
+from ultralytics.utils.amba import SpongeTorchTraining, make_training_ema
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args
 from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
@@ -50,7 +51,6 @@ from ultralytics.utils.plotting import plot_results
 from ultralytics.utils.torch_utils import (
     TORCH_2_4,
     EarlyStopping,
-    ModelEMA,
     attempt_compile,
     autocast,
     convert_optimizer_state_dict_to_fp16,
@@ -186,6 +186,7 @@ class BaseTrainer:
             self.data = self.get_dataset()
 
         self.ema = None
+        self.amba = SpongeTorchTraining.from_args(self.args)
 
         # Optimization utils init
         self.lf = None
@@ -348,8 +349,12 @@ class BaseTrainer:
             self.args.batch = self.batch_size = self.auto_batch()
 
         self._build_train_pipeline()
+        self._amba_prepare(ckpt=ckpt, resume=self.resume)
+
+        # Build EMA after any reparameterization so its state_dict keys match the training model.
+        self.ema = make_training_ema(self.model) if getattr(self.args, "ema", True) else None
+
         self.validator = self.get_validator()
-        self.ema = ModelEMA(self.model)
         self.set_class_weights()  # compute class weights after dataloader is ready
         if RANK in {-1, 0}:
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
@@ -460,6 +465,7 @@ class BaseTrainer:
                     self.loss = self.loss_items = self.tloss = None
                     self._clear_memory()
                     self._build_train_pipeline()  # rebuild dataloaders, optimizer, scheduler
+                    self._amba_prepare(epoch=epoch)
                     self.scheduler.last_epoch = self.start_epoch - 1
                     nb = len(self.train_loader)
                     nw = max(round(self.args.warmup_epochs * nb), 100) if self.args.warmup_epochs > 0 else -1
@@ -513,7 +519,7 @@ class BaseTrainer:
             self.lr = {f"lr/pg{ir}": x["lr"] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
 
             self.run_callbacks("on_train_epoch_end")
-            if RANK in {-1, 0}:
+            if self.ema and RANK in {-1, 0}:
                 self.ema.update_attr(self.model, include=["yaml", "nc", "args", "names", "stride", "class_weights"])
 
             # Validation
@@ -534,7 +540,7 @@ class BaseTrainer:
                     self.stop |= (time.time() - self.train_time_start) > (self.args.time * 3600)
 
                 # Save model
-                if (self.args.save or final_epoch) and self.save_model():
+                if (self.args.save or final_epoch) and self.save_model(final_epoch=final_epoch):
                     self.run_callbacks("on_model_save")
 
             # Scheduler
@@ -628,14 +634,38 @@ class BaseTrainer:
             if any(filter(lambda f: f in n, self.freeze_layer_names)) and isinstance(m, nn.BatchNorm2d):
                 m.eval()
 
-    def save_model(self):
+    def _amba_prepare(self, *, ckpt=None, resume=False, epoch=None):
+        """Run SpongeTorch prepare() on the live model/optimizer when amba is configured."""
+        self.model, self.optimizer = self.amba.prepare(
+            self.model,
+            self.optimizer,
+            save_dir=self.save_dir,
+            nb=len(self.train_loader),
+            epochs=self.epochs,
+            ckpt=ckpt,
+            resume=resume,
+            epoch=epoch,
+        )
+
+    def save_model(self, final_epoch=False):
         """Save model training checkpoints with additional metadata."""
         import io
 
-        ema = deepcopy(unwrap_model(self.ema.ema)).half()
-        if not all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor)):
-            LOGGER.warning(f"Skipping checkpoint save at epoch {self.epoch}: EMA contains NaN/Inf")
+        if not self.amba.can_save_checkpoint(self.optimizer, final_epoch=final_epoch):
             return False
+
+        if self.ema is not None:
+            ema = deepcopy(unwrap_model(self.ema.ema)).half()
+            if not all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor)):
+                LOGGER.warning(f"Skipping checkpoint save at epoch {self.epoch}: EMA contains NaN/Inf")
+                return False
+            updates = self.ema.updates
+            model_ckpt = None  # final/resume checkpoints derive from EMA when available
+        else:
+            ema, updates = None, None
+            # No EMA: persist the live training model so downstream tooling
+            # (strip_optimizer, load_checkpoint, exporters) has weights to load.
+            model_ckpt = deepcopy(unwrap_model(self.model)).half()
 
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
         buffer = io.BytesIO()
@@ -643,9 +673,9 @@ class BaseTrainer:
             {
                 "epoch": self.epoch,
                 "best_fitness": self.best_fitness,
-                "model": None,  # resume and final checkpoints derive from EMA
+                "model": model_ckpt,
                 "ema": ema,
-                "updates": self.ema.updates,
+                "updates": updates,
                 "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
                 "scaler": self.scaler.state_dict(),
                 "train_args": vars(self.args),  # save as dict
@@ -669,8 +699,25 @@ class BaseTrainer:
         # Save checkpoints
         self.wdir.mkdir(parents=True, exist_ok=True)  # ensure weights directory exists
         self.last.write_bytes(serialized_ckpt)  # save last.pt
+        gate_open = self.amba.gate_open(self.optimizer) or final_epoch
         if self.best_fitness == self.fitness:
-            self.best.write_bytes(serialized_ckpt)  # save best.pt
+            if gate_open:
+                self.best.write_bytes(serialized_ckpt)  # save best.pt
+                LOGGER.info(
+                    f"New best checkpoint saved: epoch={self.epoch + 1}, "
+                    f"fitness={float(self.fitness):.6f}, path='{self.best}'"
+                )
+            else:
+                self.amba.log_delayed_best_save(self.optimizer)
+        elif gate_open and not self.best.exists():
+            # The "best" epoch(s) may have been gated (e.g. by spongetorch) so best.pt
+            # was never written. Seed best.pt from the current checkpoint so
+            # final_eval / downstream tooling always finds one.
+            LOGGER.warning(
+                f"best.pt missing while best_fitness={self.best_fitness} "
+                f"(current fitness={self.fitness}); writing current checkpoint as best.pt fallback."
+            )
+            self.best.write_bytes(serialized_ckpt)
         if (self.save_period > 0) and (self.epoch % self.save_period == 0):
             (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)  # save epoch, i.e. 'epoch3.pt'
         return True
@@ -732,6 +779,7 @@ class BaseTrainer:
         self.scaler.step(self.optimizer)
         self.scaler.update()
         self.optimizer.zero_grad()
+        self.amba.on_optimizer_step()
         if self.ema:
             self.ema.update(self.model)
 
@@ -755,8 +803,12 @@ class BaseTrainer:
         if metrics is None:
             return None, None
         fitness = metrics.pop("fitness", -self.loss.detach().cpu().numpy())  # use loss as fitness measure if not found
-        if not self.best_fitness or self.best_fitness < fitness:
-            self.best_fitness = fitness
+        # Only start tracking the best model once the spongetorch gate is open;
+        # pre-gate fitness is measured against a still-compressing model and
+        # is not comparable to the final converged model.
+        if self.amba.gate_open(self.optimizer):
+            if not self.best_fitness or self.best_fitness < fitness:
+                self.best_fitness = fitness
         return metrics, fitness
 
     def get_model(self, cfg=None, weights=None, verbose=True):
@@ -900,10 +952,11 @@ class BaseTrainer:
         if ckpt.get("scaler") is not None:
             self.scaler.load_state_dict(ckpt["scaler"])
         if self.ema and ckpt.get("ema"):
-            self.ema = ModelEMA(self.model)  # validation with EMA creates inference tensors that can't be updated
+            self.ema = make_training_ema(self.model)
             self.ema.ema.load_state_dict(ckpt["ema"].float().state_dict())
             self.ema.updates = ckpt["updates"]
         self.best_fitness = ckpt.get("best_fitness", 0.0)
+        self.amba.sync(self.optimizer)
 
     def _handle_nan_recovery(self, epoch):
         """Detect and recover from NaN/Inf loss and fitness collapse by loading last checkpoint."""

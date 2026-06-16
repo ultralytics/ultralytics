@@ -20,8 +20,10 @@ from .rknn import RKNNBackend
 from .tensorflow import TensorFlowBackend
 from .tensorrt import TensorRTBackend
 from .triton import TritonBackend
+from .ambapb import AmbaPBBackend
 
 __all__ = [
+    "AmbaPBBackend",
     "AxeleraBackend",
     "BaseBackend",
     "CoreMLBackend",

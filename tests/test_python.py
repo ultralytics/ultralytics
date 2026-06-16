@@ -17,6 +17,7 @@ from PIL import Image
 
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
+from ultralytics.engine.results import Results
 from ultralytics.data.build import load_inference_source
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
@@ -389,18 +390,35 @@ def test_labels_and_crops():
         assert crop_count == len(r.boxes.data), f"Crop count {crop_count} != detection count {len(r.boxes.data)}"
 
 
-@pytest.mark.parametrize("model", ("yolo26n.pt", "yolo26n-seg.pt"))
-def test_results_zero_detections(model):
+@pytest.mark.parametrize(
+    "case_id,expected_cols",
+    [
+        ("detect_inference", {"name", "class", "confidence", "box"}),
+        ("segmentation", {"name", "class", "confidence", "box", "segments"}),
+    ],
+)
+def test_results_zero_detections(case_id, expected_cols):
     """Test Results export methods (to_df, to_csv, to_json) with zero detections."""
-    black = Image.fromarray(np.zeros((640, 640, 3), dtype=np.uint8))
-    result = YOLO(WEIGHTS_DIR / model)(black, verbose=False)[0]
+    img = np.zeros((64, 64, 3), dtype=np.uint8)
+    names = {0: "person", 1: "car"}
 
-    assert len(result) == 0, f"Expected zero detections, got {len(result)}"
-    assert result.summary() == [], "Expected empty summary for zero detections"
+    if case_id == "detect_inference":
+        black = Image.fromarray(np.zeros((640, 640, 3), dtype=np.uint8))
+        result = YOLO(WEIGHTS_DIR / "yolo26n.pt")(black, verbose=False)[0]
+        assert len(result) == 0, f"Expected zero detections, got {len(result)}"
+        assert result.summary() == [], "Expected empty summary for zero detections"
+    else:
+        result = Results(
+            img,
+            "img.jpg",
+            names,
+            boxes=torch.zeros((0, 6)),
+            masks=torch.zeros((0, 64, 64)),
+        )
+        assert result.summary() == []
 
     df = result.to_df()
     assert df.height == 0, f"Expected 0 rows, got {df.height}"
-    expected_cols = {"name", "class", "confidence", "box"}
     assert set(df.columns) == expected_cols, f"Expected columns {expected_cols}, got {set(df.columns)}"
 
     csv_str = result.to_csv()

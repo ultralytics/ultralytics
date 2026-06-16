@@ -801,7 +801,7 @@ class Results(SimpleClass, DataExportMixin):
         result = {"name": "", "class": 0, "confidence": round(0.0, decimals), "box": xy}
         if data is not None and data.is_track:
             result["track_id"] = 0
-        if self.masks:
+        if self.masks is not None:
             result["segments"] = {"x": [], "y": []}
         if self.keypoints is not None:
             result["keypoints"] = {"x": [], "y": []}

@@ -967,6 +967,8 @@ class LearnedScorer(nn.Module):
         self,
         k: int = 9,
         hidden: int = 32,
+        feature_dim: int | None = None,
+        proj_dim: int = 0,
         train_self_match_mask: bool = True,
         self_match_thresh: float = 0.999,
         score_chunk_elems: int = 1 << 27,
@@ -976,17 +978,31 @@ class LearnedScorer(nn.Module):
         self.train_self_match_mask = bool(train_self_match_mask)
         self.self_match_thresh = float(self_match_thresh)
         self.score_chunk_elems = int(score_chunk_elems)
+        # v2: learned projection g reshapes the metric (similarities are computed in g-space).
+        # proj_dim=0 -> v1 (raw-feature cosine readout). proj_dim>0 needs feature_dim.
+        self.proj = nn.Linear(int(feature_dim), int(proj_dim)) if proj_dim > 0 else None
         self.mlp = nn.Sequential(nn.Linear(self.k, hidden), nn.GELU(), nn.Linear(hidden, 1))
 
+    def _embed(self, x: torch.Tensor) -> torch.Tensor:
+        """Optional learned projection (v2), then L2-normalise -> unit vectors for cosine."""
+        if self.proj is not None:
+            x = self.proj(x)
+        return F.normalize(x, p=2, dim=1)
+
     def topk_sims(self, features: torch.Tensor, mem: torch.Tensor) -> torch.Tensor:
-        """Query patches -> sorted top-K cosine sims ``[N, k]`` (cache these for fast head training)."""
-        q = F.normalize(features, p=2, dim=1)
-        k = min(self.k, mem.shape[0])
-        n, m = q.shape[0], mem.shape[0]
-        chunk = max(1, int(self.score_chunk_elems) // max(m, 1))  # bound the [chunk, M] sim slice
+        """Query patches -> sorted top-K cosine sims ``[N, k]`` in the (optionally projected) space.
+
+        Both query and bank are embedded (v2: projected) and L2-normalised here, so the bank may be
+        passed raw. For v1 (no projection) this is plain cosine; v1 may also cache the result.
+        """
+        q = self._embed(features)
+        m = self._embed(mem)
+        k = min(self.k, m.shape[0])
+        n, mm = q.shape[0], m.shape[0]
+        chunk = max(1, int(self.score_chunk_elems) // max(mm, 1))  # bound the [chunk, M] sim slice
         out = []
         for i in range(0, n, chunk):
-            sim = q[i : i + chunk] @ mem.t()  # [chunk, M]
+            sim = q[i : i + chunk] @ m.t()  # [chunk, M]
             if self.training and self.train_self_match_mask:
                 # A query finding its own copy in the bank (cos ~ 1) would leak a too-clean score.
                 sim = sim.masked_fill(sim > self.self_match_thresh, float("-inf"))

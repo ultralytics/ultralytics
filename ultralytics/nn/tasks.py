@@ -1565,10 +1565,16 @@ class _SafeLoad:
         # Legacy/cross-platform aliases (pickled paths with no current class namespace), mirroring temporary_modules().
         from ultralytics.utils.loss import E2EDetectLoss
 
+        def _getattr(obj, name):  # YOLOv8/YOLO11 ckpts pickle `self.detect = Detect.forward` as getattr(Detect, "forward")
+            if isinstance(obj, type) and issubclass(obj, nn.Module) and not name.startswith("__"):
+                return getattr(obj, name)
+            raise pickle.UnpicklingError(f"unsafe getattr({obj!r}, {name!r}) blocked during restricted model load")
+
         allow += [
             (nn.Identity, "ultralytics.nn.modules.block.Silence"),  # YOLOv9e
             (DetectionModel, "ultralytics.nn.tasks.YOLOv10DetectionModel"),  # YOLOv10
             (E2EDetectLoss, "ultralytics.utils.loss.v10DetectLoss"),  # YOLOv10
+            (_getattr, "builtins.getattr"),  # non-det YOLOv8, YOLO11 ckpts (restrict to nn.Module attrs)
         ]
         if WINDOWS:
             allow += [pathlib.WindowsPath, (pathlib.WindowsPath, "pathlib.PosixPath")]

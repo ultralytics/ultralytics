@@ -1523,6 +1523,7 @@ class _SafeLoad:
         Returns:
             (list): Items for `torch.serialization.safe_globals` — classes and `(obj, "module.Name")` aliases.
         """
+        import enum
         import importlib
         import inspect
         import pathlib
@@ -1565,8 +1566,8 @@ class _SafeLoad:
         # Legacy/cross-platform aliases (pickled paths with no current class namespace), mirroring temporary_modules().
         from ultralytics.utils.loss import E2EDetectLoss
 
-        def _getattr(obj, name):  # YOLOv8/YOLO11 ckpts pickle `self.detect = Detect.forward` as getattr(Detect, "forward")
-            if isinstance(obj, type) and issubclass(obj, nn.Module) and not name.startswith("__"):
+        def _getattr(obj, name):  # ckpts pickle `Detect.forward` (seg/pose) and `InterpolationMode.BILINEAR` (cls) via getattr
+            if isinstance(obj, type) and not name.startswith("__") and issubclass(obj, (nn.Module, enum.Enum)):
                 return getattr(obj, name)
             raise pickle.UnpicklingError(f"unsafe getattr({obj!r}, {name!r}) blocked during restricted model load")
 

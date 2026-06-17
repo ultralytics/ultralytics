@@ -956,11 +956,16 @@ class ClassificationDataset:
         torch_transforms (callable): PyTorch transforms to be applied to the images.
         root (str): Root directory of the dataset.
         prefix (str): Prefix for logging and cache filenames.
+        img_cache (torch.Tensor): Shared-memory uint8 buffer holding all cached images when caching in RAM.
+        img_offsets (list): Byte offset of each image within img_cache.
+        img_shapes (list): (h, w, c) shape of each cached image.
 
     Methods:
         __getitem__: Return transformed image and class index for the given sample index.
         __len__: Return the total number of samples in the dataset.
         verify_images: Verify all images in dataset.
+        check_cache_ram: Check if available RAM is sufficient to cache the dataset.
+        cache_images: Cache all images into a shared-memory buffer.
     """
 
     def __init__(self, root: str, args, augment: bool = False, prefix: str = ""):
@@ -991,7 +996,6 @@ class ClassificationDataset:
         self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [[*list(x), Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
-        self.imgsz = args.imgsz
         self.img_cache = None
         self.img_offsets = None
         self.img_shapes = None

@@ -1651,7 +1651,7 @@ def torch_safe_load(weight, safe_only=None):
         ckpt = _load()
 
     except ModuleNotFoundError as e:  # e.name is missing module name
-        if e.name and e.name.split(".")[0] == "models":
+        if e.name in {"models", "models.yolo", "models.common", "models.experimental"}:
             raise TypeError(
                 emojis(
                     f"ERROR ❌️ {weight} appears to be an Ultralytics YOLOv5 model originally trained "

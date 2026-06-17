@@ -1523,6 +1523,7 @@ class _SafeLoad:
         Returns:
             (list): Items for `torch.serialization.safe_globals` — classes and `(obj, "module.Name")` aliases.
         """
+        import enum
         import importlib
         import inspect
         import pathlib
@@ -1565,10 +1566,16 @@ class _SafeLoad:
         # Legacy/cross-platform aliases (pickled paths with no current class namespace), mirroring temporary_modules().
         from ultralytics.utils.loss import E2EDetectLoss
 
+        def _getattr(obj, name):  # ckpts pickle `Detect.forward` and `InterpolationMode.BILINEAR` via getattr
+            if isinstance(obj, type) and not name.startswith("__") and issubclass(obj, (nn.Module, enum.Enum)):
+                return getattr(obj, name)
+            raise pickle.UnpicklingError(f"unsafe getattr({obj!r}, {name!r}) blocked during restricted model load")
+
         allow += [
             (nn.Identity, "ultralytics.nn.modules.block.Silence"),  # YOLOv9e
             (DetectionModel, "ultralytics.nn.tasks.YOLOv10DetectionModel"),  # YOLOv10
             (E2EDetectLoss, "ultralytics.utils.loss.v10DetectLoss"),  # YOLOv10
+            (_getattr, "builtins.getattr"),  # non-det YOLOv8, YOLO11 ckpts (restrict to nn.Module attrs)
         ]
         if WINDOWS:
             allow += [pathlib.WindowsPath, (pathlib.WindowsPath, "pathlib.PosixPath")]
@@ -1644,7 +1651,7 @@ def torch_safe_load(weight, safe_only=None):
         ckpt = _load()
 
     except ModuleNotFoundError as e:  # e.name is missing module name
-        if e.name == "models":
+        if e.name in {"models", "models.yolo", "models.common", "models.experimental"}:
             raise TypeError(
                 emojis(
                     f"ERROR ❌️ {weight} appears to be an Ultralytics YOLOv5 model originally trained "
@@ -1721,7 +1728,15 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
         weight = check_file(weight, download_dir=SETTINGS["weights_dir"])
     ckpt, weight = torch_safe_load(weight)  # load ckpt
     args = {**DEFAULT_CFG_DICT, **(ckpt.get("train_args", {}))}  # combine model and default args, preferring model args
-    model = (ckpt.get("ema") or ckpt["model"]).float()  # FP32 model
+    candidate = ckpt.get("ema") or ckpt.get("model")
+    if not isinstance(candidate, torch.nn.Module):
+        raise TypeError(
+            emojis(
+                f"ERROR ❌️ {weight} references types outside the supported Ultralytics checkpoint format. "
+                f"Use an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
+            )
+        )
+    model = candidate.float()  # FP32 model
 
     # Model compatibility updates
     model.args = args  # attach args to model

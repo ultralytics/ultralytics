@@ -151,7 +151,7 @@ class DistillationModel(nn.Module):
     def _parse_distill_config(self, student_args):
         """Read and validate the distillation knobs from `student_model.args`.
 
-        Sets `self.distill_saliency`, `self.distill_decoder`, `self.dis_dec`. Validates allowed
+        Sets `self.distill_saliency`, `self.distill_decoder`, `self.dis_dec`, `self.dis_pred`. Validates allowed
         values up-front so a typo is caught at wrapper construction rather than mid-training.
         """
         self.distill_saliency = getattr(student_args, "distill_saliency", "enc_score")
@@ -160,12 +160,13 @@ class DistillationModel(nn.Module):
                 f"distill_saliency={self.distill_saliency!r} not supported. Choose 'feat_norm' or 'enc_score'."
             )
         self.distill_decoder = getattr(student_args, "distill_decoder", "none")
-        if self.distill_decoder not in {"none", "objectness", "query_feat", "all"}:
+        if self.distill_decoder not in {"none", "objectness", "query_feat", "all", "all_plus"}:
             raise ValueError(
                 f"distill_decoder={self.distill_decoder!r} not supported. "
-                f"Choose 'none', 'objectness', 'query_feat', or 'all'."
+                f"Choose 'none', 'objectness', 'query_feat', 'all', or 'all_plus'."
             )
         self.dis_dec = getattr(student_args, "dis_dec", 0.0)
+        self.dis_pred = getattr(student_args, "dis_pred", 0.1)
 
     def _init_feature_dicts(self):
         """Create empty dicts that hooks write into. Called both at construction and after unpickling."""
@@ -185,11 +186,15 @@ class DistillationModel(nn.Module):
 
     def _uses_objectness(self):
         """True when the configured decoder mode needs the teacher/student `enc_score_head` objectness."""
-        return self.distill_decoder in {"objectness", "all"}
+        return self.distill_decoder in {"objectness", "all", "all_plus"}
 
     def _uses_query_feat(self):
         """True when the configured decoder mode needs the matched per-query hidden states."""
-        return self.distill_decoder in {"query_feat", "all"}
+        return self.distill_decoder in {"query_feat", "all", "all_plus"}
+
+    def _uses_query_pred(self):
+        """True when the configured decoder mode needs Hungarian-matched soft-label prediction KD."""
+        return self.distill_decoder == "all_plus"
 
     def _register_saliency_hooks(self):
         """Register the teacher `enc_score_head` hook, shared by `enc_score` saliency and any objectness decoder KD.
@@ -479,11 +484,41 @@ class DistillationModel(nn.Module):
         s_matched = torch.stack([s_qf[b][matches[b][1]] for b in range(s_qf.shape[0])])
         return F.mse_loss(self.query_projector(s_matched), t_matched)
 
+    def _query_pred_decoder_loss(self):
+        """Hinton-style full-distribution soft-label classification + box L1/GIoU on Hungarian-matched queries.
+
+        Classification treats every per-class teacher sigmoid as an independent Bernoulli target — `BCE-with-logits`
+        on the *entire* class distribution preserves dark knowledge (relative inter-class confidences) and naturally
+        attenuates background queries since their soft targets are uniformly small. Scaled by the student criterion's
+        `loss_gain['class']` for magnitude consistency with the supervised cls term.
+
+        Box loss reuses `student_model.criterion._get_loss_bbox`, so L1+GIoU gains and normalization mirror the
+        supervised regime exactly. The full return is scaled by `self.dis_pred` to equalize its magnitude vs the
+        MSE-based objectness/query_feat decoder terms before the `dis_dec` multiplier in `_decoder_loss`.
+        """
+        t_boxes, t_logits = self._unpack_dec_predictions(self._teacher_dec_out["out"])
+        s_boxes, s_logits = self._unpack_dec_predictions(self._student_dec_out["out"])
+        with torch.no_grad():
+            matches = self._hungarian_match(t_boxes, s_boxes, t_logits, s_logits)
+        B = t_boxes.shape[0]
+        t_l = torch.cat([t_logits[b][matches[b][0]] for b in range(B)])
+        s_l = torch.cat([s_logits[b][matches[b][1]] for b in range(B)])
+        t_b = torch.cat([t_boxes[b][matches[b][0]] for b in range(B)]).detach()
+        s_b = torch.cat([s_boxes[b][matches[b][1]] for b in range(B)])
+        if s_b.shape[0] == 0:
+            return s_logits.new_zeros(())
+
+        soft_target = t_l.sigmoid().detach()
+        crit = self.student_model.criterion
+        loss_cls = F.binary_cross_entropy_with_logits(s_l, soft_target, reduction="mean") * crit.loss_gain["class"]
+        box_dict = crit._get_loss_bbox(s_b, t_b, float(s_b.shape[0]), postfix="_pred")
+        return (loss_cls + box_dict["loss_bbox_pred"] + box_dict["loss_giou_pred"]) * self.dis_pred
+
     def _decoder_loss(self):
         """Compose the decoder-level KD losses enabled by `distill_decoder`, scaled by `self.dis_dec`.
 
-        Returns None for `'none'`. For `'objectness'` / `'query_feat'` only that component runs; for `'all'` both
-        components are summed before the single `dis_dec` scaling.
+        Returns None for `'none'`. For `'objectness'` / `'query_feat'` only that component runs; `'all'` sums both;
+        `'all_plus'` additionally adds full-distribution soft-label prediction KD on Hungarian-matched queries.
         """
         if self.distill_decoder == "none":
             return None
@@ -492,6 +527,8 @@ class DistillationModel(nn.Module):
             total = total + self._objectness_decoder_loss()
         if self._uses_query_feat():
             total = total + self._query_feat_decoder_loss()
+        if self._uses_query_pred():
+            total = total + self._query_pred_decoder_loss()
         return total * self.dis_dec
 
     def loss(self, batch, preds=None):

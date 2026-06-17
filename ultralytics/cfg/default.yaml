@@ -123,8 +123,9 @@ dfl: 1.5 # (float) distribution focal loss gain
 dis: 5.0 # (float) knowledge distillation loss weight (transformer-decoder default; batch-size-independent)
 distill_model: # (str, optional) path to teacher model checkpoint for knowledge distillation
 distill_saliency: enc_score # (str) saliency source for KD loss weighting: 'enc_score' (teacher RTDETRDecoder pre-topk objectness) or 'feat_norm' (channel L2 of teacher features)
-distill_decoder: none # (str) decoder-level KD mode: 'none' (only neck-level), 'objectness' (dense pre-topk encoder objectness MSE), 'query_feat' (Hungarian-matched query feature L2), 'all' (both objectness and query_feat)
+distill_decoder: none # (str) decoder-level KD mode: 'none' (only neck-level), 'objectness', 'query_feat', 'all' (objectness + query_feat), or 'all_plus' (all + soft-label cls/box on matched queries via criterion reuse)
 dis_dec: 2.0 # (float) decoder-level KD loss weight, applied on top of `dis` for the chosen mode
+dis_pred: 0.05 # (float) scalar on the query-prediction soft-BCE+box KD sub-loss inside `distill_decoder='all_plus'`; gradient-parity balanced so `qpred` stays the dominant decoder-KD signal (~5-8x MSE terms) without overwhelming the neck signal
 pose: 12.0 # (float) pose loss gain (pose tasks)
 kobj: 1.0 # (float) keypoint objectness loss gain (pose tasks)
 rle: 1.0 # (float) rle loss gain (pose tasks)

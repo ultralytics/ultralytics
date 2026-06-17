@@ -236,17 +236,14 @@ class DistillationModel(nn.Module):
                     "distill_decoder='query_feat'/'all' requires both teacher and student decoders to expose "
                     "dec_score_head."
                 )
-            if not hasattr(teacher_decoder, "eval_idx") or not hasattr(student_decoder, "eval_idx"):
-                raise ValueError(
-                    "distill_decoder='query_feat'/'all' requires both decoders to expose `eval_idx` (available on "
-                    "DFineDecoder / DeimDecoder but not base RTDETRDecoder)."
-                )
+            t_eval_idx = getattr(teacher_decoder, "eval_idx", len(teacher_decoder.dec_score_head) - 1)
+            s_eval_idx = getattr(student_decoder, "eval_idx", len(student_decoder.dec_score_head) - 1)
             teacher_decoder.register_forward_hook(FeatureHook(self._teacher_dec_out, "out"))
             student_decoder.register_forward_hook(FeatureHook(self._student_dec_out, "out"))
-            teacher_decoder.dec_score_head[teacher_decoder.eval_idx].register_forward_pre_hook(
+            teacher_decoder.dec_score_head[t_eval_idx].register_forward_pre_hook(
                 InputHook(self._teacher_qf, "qf")
             )
-            student_decoder.dec_score_head[student_decoder.eval_idx].register_forward_pre_hook(
+            student_decoder.dec_score_head[s_eval_idx].register_forward_pre_hook(
                 InputHook(self._student_qf, "qf")
             )
 
@@ -267,10 +264,10 @@ class DistillationModel(nn.Module):
             t_dec.enc_score_head._forward_hooks.clear()
         if hasattr(s_dec, "enc_score_head"):
             s_dec.enc_score_head._forward_hooks.clear()
-        if hasattr(t_dec, "dec_score_head") and hasattr(t_dec, "eval_idx"):
-            t_dec.dec_score_head[t_dec.eval_idx]._forward_pre_hooks.clear()
-        if hasattr(s_dec, "dec_score_head") and hasattr(s_dec, "eval_idx"):
-            s_dec.dec_score_head[s_dec.eval_idx]._forward_pre_hooks.clear()
+        if hasattr(t_dec, "dec_score_head"):
+            t_dec.dec_score_head[getattr(t_dec, "eval_idx", len(t_dec.dec_score_head) - 1)]._forward_pre_hooks.clear()
+        if hasattr(s_dec, "dec_score_head"):
+            s_dec.dec_score_head[getattr(s_dec, "eval_idx", len(s_dec.dec_score_head) - 1)]._forward_pre_hooks.clear()
 
     def _dummy_forward(self, imgsz, device):
         """Run a 2-sample dummy batch through both models to populate hook-captured shapes.

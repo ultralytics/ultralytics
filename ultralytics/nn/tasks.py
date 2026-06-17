@@ -1651,7 +1651,7 @@ def torch_safe_load(weight, safe_only=None):
         ckpt = _load()
 
     except ModuleNotFoundError as e:  # e.name is missing module name
-        if e.name == "models":
+        if e.name and e.name.split(".")[0] == "models":
             raise TypeError(
                 emojis(
                     f"ERROR ❌️ {weight} appears to be an Ultralytics YOLOv5 model originally trained "
@@ -1728,7 +1728,15 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
         weight = check_file(weight, download_dir=SETTINGS["weights_dir"])
     ckpt, weight = torch_safe_load(weight)  # load ckpt
     args = {**DEFAULT_CFG_DICT, **(ckpt.get("train_args", {}))}  # combine model and default args, preferring model args
-    model = (ckpt.get("ema") or ckpt["model"]).float()  # FP32 model
+    candidate = ckpt.get("ema") or ckpt.get("model")
+    if not isinstance(candidate, torch.nn.Module):
+        raise TypeError(
+            emojis(
+                f"ERROR ❌️ {weight} references types outside the supported Ultralytics checkpoint format. "
+                f"Use an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
+            )
+        )
+    model = candidate.float()  # FP32 model
 
     # Model compatibility updates
     model.args = args  # attach args to model

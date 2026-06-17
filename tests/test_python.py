@@ -605,7 +605,7 @@ def test_utils_ops():
     torch.allclose(boxes, xyxyxyxy2xywhr(xywhr2xyxyxyxy(boxes)), rtol=1e-3)
 
     # segment2box must not drop a polygon lying on the left image edge (all x == 0) to a zero box
-    assert segment2box(np.array([[0, 100], [0, 150], [0, 200]], dtype=np.float32), 640, 640).tolist() == [0, 100, 0, 200]
+    assert segment2box(np.array([[0, 100], [0, 150], [0, 200]]), 640, 640).tolist() == [0, 100, 0, 200]
 
 
 def test_utils_files(tmp_path):

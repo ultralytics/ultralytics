@@ -1,6 +1,6 @@
 # Ultralytics YOLO OpenVINO Inference in C++
 
-<img alt="C++" src="https://img.shields.io/badge/C++-17-blue.svg?style=flat&logo=c%2B%2B"> <img alt="OpenVINO" src="https://img.shields.io/badge/OpenVINO-00C7FD.svg?logo=intel&logoColor=white"> <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white">
+<img alt="C++" src="https://img.shields.io/badge/C%2B%2B-17-00599C.svg?logo=cplusplus&logoColor=white"> <img alt="OpenVINO" src="https://img.shields.io/badge/OpenVINO-00C7FD.svg?logo=intel&logoColor=white"> <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white">
 
 A single C++ application that runs **every [Ultralytics YOLO](https://docs.ultralytics.com/) task and model generation** with the [Intel OpenVINO™ toolkit](https://docs.openvino.ai/) and [OpenCV](https://opencv.org/). Point it at an OpenVINO IR (`.xml`) or an `.onnx` file — the program reads the class names from the model and picks the right post-processing automatically.
 

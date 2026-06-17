@@ -1,6 +1,6 @@
 # Ultralytics YOLO MNN Inference in C++
 
-<img alt="C++" src="https://img.shields.io/badge/C++-11-blue.svg?style=flat&logo=c%2B%2B"> <img alt="MNN" src="https://img.shields.io/badge/MNN-FF6A00.svg?logo=alibabacloud&logoColor=white"> <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white">
+<img alt="C++" src="https://img.shields.io/badge/C%2B%2B-11-00599C.svg?logo=cplusplus&logoColor=white"> <img alt="MNN" src="https://img.shields.io/badge/MNN-FF6A00.svg?logo=alibabacloud&logoColor=white"> <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white">
 
 A C++ application that runs every [Ultralytics YOLO](https://docs.ultralytics.com/) task and model generation with the [Alibaba MNN](https://mnn-docs.readthedocs.io/en/latest/) inference engine and [OpenCV](https://opencv.org/). Point it at any `.mnn` model; the task, class names, and input size are read from the model `bizCode` metadata, and the right post-processing is selected automatically.
 

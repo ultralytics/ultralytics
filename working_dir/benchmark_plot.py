@@ -55,6 +55,18 @@ DEIM_DINOV3SPLUS_OBJ365_IMGSZ_SWEEP = [
     ("800/l6", 24.1, {"ap": 60.9, "ap50": 78.3, "ap75": 66.5, "ap_small": 45.3, "ap_medium": 65.3, "ap_large": 77.2}, 1.0),
 ]
 
+DEIM_DINOV3B_OBJ365_IMGSZ_SWEEP = [
+    # T4 TensorRT v10.11, deim_dinov3b_yolodecayp07_32epc_obj2coco24_fp32.
+    # COCO-val metrics converted from fractions to percentage points.
+    # Labels use decoder layer count; export_eval_idx=eidx means l{eidx + 1}.
+    ("512/l3", 17.1, {"ap": 59.5, "ap50": 77.2, "ap75": 64.5, "ap_small": 41.1, "ap_medium": 65.3, "ap_large": 77.7}, 0.6),
+    ("576/l4", 20.8, {"ap": 60.6, "ap50": 78.4, "ap75": 66.0, "ap_small": 43.2, "ap_medium": 66.0, "ap_large": 78.3}, 0.9),
+    ("640/l4", 24.6, {"ap": 61.4, "ap50": 79.0, "ap75": 67.2, "ap_small": 45.0, "ap_medium": 66.5, "ap_large": 78.6}, 0.8),
+    ("640/l6", 25.5, {"ap": 61.4, "ap50": 79.1, "ap75": 67.2, "ap_small": 45.3, "ap_medium": 66.5, "ap_large": 78.7}, 0.8),
+    ("704/l6", 34.8, {"ap": 61.9, "ap50": 79.5, "ap75": 67.4, "ap_small": 46.0, "ap_medium": 66.9, "ap_large": 78.4}, 1.2),
+    ("800/l6", 45.0, {"ap": 62.3, "ap50": 79.9, "ap75": 67.9, "ap_small": 47.2, "ap_medium": 66.8, "ap_large": 78.2}, 1.7),
+]
+
 RF_DETR_OBJ365_TOPK_IMGSZ = [
     # Our benchmark measurements, not paper-reported values. Labels include model scale and profiled ONNX image size.
     ("n/384", 2.7, {"ap": 48.4, "ap50": 67.5, "ap75": 51.7, "ap_small": 25.3, "ap_medium": 53.6, "ap_large": 71.0}, 0.0),
@@ -83,11 +95,12 @@ DFINE_DINOV3S_OBJ365_IMGSZ_SWEEP = [
     ("512/l3", 7.3, {"ap": 55.0, "ap50": 72.6, "ap75": 59.5, "ap_small": 35.2, "ap_medium": 60.5, "ap_large": 74.9}, 0.1),
 ]
 
-DEIM_EUPE_CONVNEXTTINY_COCO_IMGSZ640 = [
-    # T4 TensorRT v10.11, rtdetr_deim_eupe_convnexttiny_l6_l_op17_nosim_norope_imgsz640*_fp32attn_debug_fp16.engine.
+DEIM_EUPE_CONVNEXT_COCO_IMGSZ640 = [
+    # T4 TensorRT v10.11, rtdetr_deim_eupe_convnext{tiny,small}_*_op17_nosim_norope_imgsz640*_fp32attn_debug_fp16.engine.
     # COCO-val metrics converted from fractions to percentage points.
-    ("l4", 10.2, {"ap": 56.3, "ap50": 73.4, "ap75": 61.3, "ap_small": 38.3, "ap_medium": 61.0, "ap_large": 73.8}, 0.3),
-    ("l6", 10.9, {"ap": 56.7, "ap50": 74.1, "ap75": 61.8, "ap_small": 38.7, "ap_medium": 61.4, "ap_large": 74.0}, 0.3),
+    ("T/l4", 10.2, {"ap": 56.3, "ap50": 73.4, "ap75": 61.3, "ap_small": 38.3, "ap_medium": 61.0, "ap_large": 73.8}, 0.3),
+    ("T/l6", 10.9, {"ap": 56.7, "ap50": 74.1, "ap75": 61.8, "ap_small": 38.7, "ap_medium": 61.4, "ap_large": 74.0}, 0.3),
+    ("S/l6", 17.0, {"ap": 59.3, "ap50": 76.5, "ap75": 64.8, "ap_small": 41.6, "ap_medium": 64.6, "ap_large": 77.0}, 0.6),
 ]
 
 YOLO26L_RTDETR_OBJ365_IMGSZ_SWEEP = [
@@ -96,18 +109,40 @@ YOLO26L_RTDETR_OBJ365_IMGSZ_SWEEP = [
     ("n/480/l3e", 1.8, {"ap": 41.1, "ap50": 57.4, "ap75": 44.5, "ap_small": 21.7, "ap_medium": 44.5, "ap_large": 58.8}),
     # ("n/480/l2", 1.8, {"ap": 38.6, "ap50": 54.0, "ap75": 41.6, "ap_small": 19.0, "ap_medium": 42.2, "ap_large": 55.8}, 0.0),
     ("s/512/l3", 2.7, {"ap": 48.4, "ap50": 65.3, "ap75": 52.5, "ap_small": 29.5, "ap_medium": 53.0, "ap_large": 66.2}, 0.0),
+    ("m/512/l3", 4.0, {"ap": 51.7, "ap50": 69.0, "ap75": 56.5, "ap_small": 34.3, "ap_medium": 56.7, "ap_large": 68.3}, 0.0),
     # ("n/640/l6", 3.4, {"ap": 46.4, "ap50": 63.3, "ap75": 50.2, "ap_small": 28.9, "ap_medium": 49.8, "ap_large": 63.2}, 0.0),
     # ("s/640/l6", 4.4, {"ap": 51.6, "ap50": 68.9, "ap75": 56.2, "ap_small": 35.0, "ap_medium": 55.8, "ap_large": 67.6}, 0.1),
     # ("l/384/l2", 3.8, {"ap": 47.2, "ap50": 68.3, "ap75": 52.1, "ap_small": 28.5, "ap_medium": 51.6, "ap_large": 65.5}, 0.1),
     # ("l/480/l3", 5.0, {"ap": 54.1, "ap50": 72.0, "ap75": 58.8, "ap_small": 37.6, "ap_medium": 58.9, "ap_large": 71.0}, 0.1),
-    ("l/512/l3", 5.2, {"ap": 54.7, "ap50": 72.3, "ap75": 59.5, "ap_small": 37.6, "ap_medium": 59.5, "ap_large": 71.3}, 0.0),
-    ("l/576/l4", 6.7, {"ap": 55.9, "ap50": 73.3, "ap75": 60.8, "ap_small": 38.7, "ap_medium": 60.4, "ap_large": 71.8}, 0.1),
-    ("l/640/l4", 7.1, {"ap": 56.5, "ap50": 74.1, "ap75": 61.6, "ap_small": 41.2, "ap_medium": 61.0, "ap_large": 70.9}, 0.1),
+    ("l/512/l3", 5.2, {"ap": 54.9, "ap50": 72.4, "ap75": 59.9, "ap_small": 37.6, "ap_medium": 59.9, "ap_large": 71.5}, 0.0),
+    # ("l/576/l4", 6.7, {"ap": 55.9, "ap50": 73.3, "ap75": 60.8, "ap_small": 38.7, "ap_medium": 60.4, "ap_large": 71.8}, 0.1),
+    ("l/640/l4", 7.1, {"ap": 56.7, "ap50": 74.0, "ap75": 62.1, "ap_small": 41.3, "ap_medium": 61.1, "ap_large": 71.4}, 0.1),
+]
+
+DEIM_DINOV3B_OBJ365_IMGSZ_SWEEP_YOLO27 = [
+    # T4 TensorRT v10.11, deim_dinov3b_yolodecayp07_32epc_obj2coco24_fp32.
+    # COCO-val metrics converted from fractions to percentage points.
+    # Labels use decoder layer count; export_eval_idx=eidx means l{eidx + 1}.
+    ("640/l4", 24.6, {"ap": 61.4, "ap50": 79.0, "ap75": 67.2, "ap_small": 45.0, "ap_medium": 66.5, "ap_large": 78.6}, 0.8),
+    # ("640/l6", 25.5, {"ap": 61.4, "ap50": 79.1, "ap75": 67.2, "ap_small": 45.3, "ap_medium": 66.5, "ap_large": 78.7}, 0.8),
+]
+
+DEIM_DINOV3SPLUS_OBJ365_IMGSZ_SWEEP_YOLO27 = [
+    # T4 TensorRT v10.11, rtdetr_best_op17_nosim_norope_*_fp32attn_debug_fp16.engine.
+    # The 640 point was exported before imgsz was added to artifact names.
+    # Labels use decoder layer count; export_eval_idx=eidx means l{eidx + 1}.
+    # ("480/l2/q100", 7.7, {"ap": 55.8, "ap50": 73.5, "ap75": 60.7, "ap_small": 35.5, "ap_medium": 61.5, "ap_large": 75.2}, 0.1),
+    # ("512/l3", 8.8, {"ap": 57.5, "ap50": 75.0, "ap75": 62.4, "ap_small": 37.8, "ap_medium": 63.1, "ap_large": 76.4}, 0.2),
+    ("576/l4", 11.1, {"ap": 58.8, "ap50": 76.5, "ap75": 64.0, "ap_small": 40.6, "ap_medium": 64.1, "ap_large": 76.9}, 0.2),
+    ("640/l6", 13.7, {"ap": 59.8, "ap50": 77.7, "ap75": 65.3, "ap_small": 43.3, "ap_medium": 64.8, "ap_large": 77.4}, 0.3),
+    # ("704/l6", 18.1, {"ap": 60.3, "ap50": 77.9, "ap75": 66.0, "ap_small": 43.9, "ap_medium": 65.2, "ap_large": 77.7}, 0.4),
+    # ("800/l6", 24.1, {"ap": 60.9, "ap50": 78.3, "ap75": 66.5, "ap_small": 45.3, "ap_medium": 65.3, "ap_large": 77.2}, 1.0),
 ]
 
 YOLO27DETR_OBJ365_IMGSZ_SWEEP = [
     *[(f"L/{point[0].removeprefix('l/')}", *point[1:]) for point in YOLO26L_RTDETR_OBJ365_IMGSZ_SWEEP],
-    *[(f"X/{point[0]}", *point[1:]) for point in DEIM_DINOV3SPLUS_OBJ365_IMGSZ_SWEEP],
+    *[(f"X/{point[0]}", *point[1:]) for point in DEIM_DINOV3SPLUS_OBJ365_IMGSZ_SWEEP_YOLO27],
+    *[(f"XXL/{point[0]}", *point[1:]) for point in DEIM_DINOV3B_OBJ365_IMGSZ_SWEEP_YOLO27],
 ]
 
 BENCHMARKS = {
@@ -434,7 +469,7 @@ BENCHMARKS = {
                 ("t", 11.8, {"ap": 55.1, "ap50": 72.6, "ap75": 60.0, "ap_small": 37.6, "ap_medium": 59.6, "ap_large": 72.8}, 0.2),
                 ("s", 15.1, {"ap": 56.9, "ap50": 74.5, "ap75": 62.1, "ap_small": 40.4, "ap_medium": 61.9, "ap_large": 74.0}, 0.5),
             ],
-            "DEIM-EUPE ConvNeXt-T": DEIM_EUPE_CONVNEXTTINY_COCO_IMGSZ640,
+            "DEIM-EUPE ConvNeXt": DEIM_EUPE_CONVNEXT_COCO_IMGSZ640,
             "LW-DETR (obj365)": [
                 # LW-DETR obj365 results as reported in ECDet paper (arXiv 2603.18739), TRT v10.6
                 ("n", 2.0, {"ap": 42.6}),
@@ -450,6 +485,7 @@ BENCHMARKS = {
                 ("xxl", 32.6, {"ap": 59.8, "ap50": 77.1, "ap75": 65.3, "ap_small": 42.8, "ap_medium": 65.5, "ap_large": 77.1}),
             ],
             "DEIM-DINOv3SPlus (obj365)": DEIM_DINOV3SPLUS_OBJ365_IMGSZ_SWEEP,
+            "DEIM-DINOv3B (obj365)": DEIM_DINOV3B_OBJ365_IMGSZ_SWEEP,
             # "DINOv3-RTDETR": [
             #     ("s", 4.3, {"ap": 50.3, "ap50": 69.0, "ap75": 54.4, "ap_small": 27.8, "ap_medium": 55.8, "ap_large": 72.5}),
             # ],
@@ -528,6 +564,7 @@ BENCHMARKS = {
                 ("x", 13.6, {"ap": 54.4, "ap50": 72.6, "ap75": 59.1, "ap_small": 35.3, "ap_medium": 59.3, "ap_large": 72.2}, 0.4),
             ],
             "DEIM-DINOv3SPlus (obj365)": DEIM_DINOV3SPLUS_OBJ365_IMGSZ_SWEEP,
+            "DEIM-DINOv3B (obj365)": DEIM_DINOV3B_OBJ365_IMGSZ_SWEEP,
             "DEIM-DINOv3SPlus Light (obj365)": [
                 # rtdetr_deim_dinov3sp_light_obj365_op17_nosim_norope_imgsz640*_fp32attn_debug_fp16.
                 # DINOv3SPlus backbone with a light neck; AP metrics converted from fractions to percentage points.
@@ -561,7 +598,7 @@ BENCHMARKS = {
                 ("t", 11.8, {"ap": 55.1, "ap50": 72.6, "ap75": 60.0, "ap_small": 37.6, "ap_medium": 59.6, "ap_large": 72.8}, 0.2),
                 ("s", 15.1, {"ap": 56.9, "ap50": 74.5, "ap75": 62.1, "ap_small": 40.4, "ap_medium": 61.9, "ap_large": 74.0}, 0.5),
             ],
-            "DEIM-EUPE ConvNeXt-T": DEIM_EUPE_CONVNEXTTINY_COCO_IMGSZ640,
+            "DEIM-EUPE ConvNeXt": DEIM_EUPE_CONVNEXT_COCO_IMGSZ640,
 
             "YOLO26_RTDETR": [
                 ("l", 8.2, {"ap": 55.3, "ap50": 73.0, "ap75": 60.2, "ap_small": 39.6, "ap_medium": 59.3, "ap_large": 70.7}),
@@ -710,9 +747,10 @@ MODEL_STYLES = {
     "RT-DETR (obj365)": ("v", 8),
     "RT-DETR (Ultralytics)": ("v", -12),
     "ConvNeXt D-FINE": ("h", 8),
-    "DEIM-EUPE ConvNeXt-T": ("h", -12),
+    "DEIM-EUPE ConvNeXt": ("h", -12),
     "DEIMv2 (Ultralytics)": ("p", 8),
     "DEIM-DINOv3SPlus (obj365)": ("*", 14),
+    "DEIM-DINOv3B (obj365)": ("*", -12),
     "DEIM-DINOv3SPlus Light (obj365)": ("*", -12),
     "Decoder Layers": ("o", 8),
     "Queries @ 4L": ("s", -12),

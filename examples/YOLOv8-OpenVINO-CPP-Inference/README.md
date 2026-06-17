@@ -1,6 +1,6 @@
 # YOLOv8 OpenVINO Inference in C++
 
-Welcome to the [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) OpenVINO Inference example in C++! This guide will help you get started with leveraging the powerful YOLOv8 models using the [Intel OpenVINO™ toolkit](https://docs.openvino.ai/) and [OpenCV API](https://docs.opencv.org/) in your C++ projects. Whether you're looking to enhance performance on Intel hardware or add flexibility to your applications, this example provides a solid foundation. Learn more about optimizing models on the [Ultralytics blog](https://www.ultralytics.com/blog).
+Welcome to the [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) OpenVINO Inference example in C++! This guide will help you get started with leveraging the powerful YOLOv8 models using the [Intel OpenVINO™ toolkit](https://docs.openvino.ai/) and [OpenCV API](https://docs.opencv.org/5.0/) in your C++ projects. Whether you're looking to enhance performance on Intel hardware or add flexibility to your applications, this example provides a solid foundation. Learn more about optimizing models on the [Ultralytics blog](https://www.ultralytics.com/blog).
 
 ## 🌟 Features
 
@@ -16,7 +16,7 @@ To ensure smooth execution, please make sure you have the following dependencies
 | ----------------------------------------------------- | -------- |
 | [OpenVINO](https://docs.openvino.ai/latest/home.html) | >=2023.3 |
 | [OpenCV](https://opencv.org/)                         | >=4.5.0  |
-| [C++](https://en.cppreference.com/w/)                 | >=14     |
+| [C++](https://en.cppreference.com/)                   | >=14     |
 | [CMake](https://cmake.org/documentation/)             | >=3.12.0 |
 
 ## ⚙️ Build Instructions

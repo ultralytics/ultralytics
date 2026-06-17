@@ -6,7 +6,7 @@ keywords: CLIP, FAISS, Flask, semantic search, semantic image search, image retr
 
 # How to Build Semantic Image Search with OpenAI CLIP and Meta FAISS
 
-This guide walks you through building a **semantic image search** engine using [OpenAI CLIP](https://openai.com/blog/clip), [Meta FAISS](https://github.com/facebookresearch/faiss), and [Flask](https://flask.palletsprojects.com/en/stable/). By combining CLIP's visual-language [embeddings](https://platform.openai.com/docs/guides/embeddings) with FAISS's efficient nearest-neighbor search, you can build a web interface that retrieves relevant images from natural language queries, no labels or categories required.
+This guide walks you through building a **semantic image search** engine using [OpenAI CLIP](https://openai.com/index/clip/), [Meta FAISS](https://github.com/facebookresearch/faiss), and [Flask](https://flask.palletsprojects.com/en/stable/). By combining CLIP's visual-language [embeddings](https://developers.openai.com/api/docs/guides/embeddings) with FAISS's efficient nearest-neighbor search, you can build a web interface that retrieves relevant images from natural language queries, no labels or categories required.
 
 <p align="center">
   <br>
@@ -73,7 +73,7 @@ The `SearchApp` class launches the full Flask interface. On first run it downloa
 The `VisualAISearch` class performs all the backend operations without the web layer:
 
 - Loads or builds a FAISS index from local images.
-- Extracts image and text [embeddings](https://platform.openai.com/docs/guides/embeddings) using CLIP.
+- Extracts image and text [embeddings](https://developers.openai.com/api/docs/guides/embeddings) using CLIP.
 - Performs similarity search using cosine similarity.
 
 Call the searcher with a natural language query to get back a list of matching image filenames ranked by similarity:

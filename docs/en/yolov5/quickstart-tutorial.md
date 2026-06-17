@@ -20,7 +20,7 @@ pip install -r requirements.txt # install dependencies
 
 ## Inference with PyTorch Hub
 
-Experience the simplicity of YOLOv5 [PyTorch Hub](./tutorials/pytorch_hub_model_loading.md) inference, where [models](https://github.com/ultralytics/yolov5/tree/master/models) are seamlessly downloaded from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases). This method leverages the power of [PyTorch](https://www.ultralytics.com/glossary/pytorch) for easy model loading and execution, making it straightforward to get predictions.
+Experience the simplicity of YOLOv5 [PyTorch Hub](./tutorials/pytorch-hub-model-loading.md) inference, where [models](https://github.com/ultralytics/yolov5/tree/master/models) are seamlessly downloaded from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases). This method leverages the power of [PyTorch](https://www.ultralytics.com/glossary/pytorch) for easy model loading and execution, making it straightforward to get predictions.
 
 ```python
 import torch
@@ -57,7 +57,7 @@ python detect.py --weights yolov5s.pt --source 'rtsp://example.com/media.mp4' # 
 
 ## Training
 
-Replicate the YOLOv5 [COCO dataset](https://cocodataset.org/#home) benchmarks by following the [training instructions](../modes/train.md) below. The necessary [models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](../datasets/detect/coco.md) (like `coco128.yaml` or the full `coco.yaml`) are pulled directly from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases). Training YOLOv5n/s/m/l/x on a V100 [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit) should typically take 1/2/4/6/8 days respectively (note that [Multi-GPU training](./tutorials/multi_gpu_training.md) setups work faster). Maximize performance by using the highest possible `--batch-size` or use `--batch-size -1` for the YOLOv5 [AutoBatch](https://github.com/ultralytics/yolov5/pull/5092) feature, which automatically finds the optimal [batch size](https://www.ultralytics.com/glossary/batch-size). The following batch sizes are ideal for V100-16GB GPUs. Refer to our [configuration guide](../usage/cfg.md) for details on model configuration files (`*.yaml`).
+Replicate the YOLOv5 [COCO dataset](https://cocodataset.org/#home) benchmarks by following the [training instructions](../modes/train.md) below. The necessary [models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](../datasets/detect/coco.md) (like `coco128.yaml` or the full `coco.yaml`) are pulled directly from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases). Training YOLOv5n/s/m/l/x on a V100 [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit) should typically take 1/2/4/6/8 days respectively (note that [Multi-GPU training](./tutorials/multi-gpu-training.md) setups work faster). Maximize performance by using the highest possible `--batch-size` or use `--batch-size -1` for the YOLOv5 [AutoBatch](https://github.com/ultralytics/yolov5/pull/5092) feature, which automatically finds the optimal [batch size](https://www.ultralytics.com/glossary/batch-size). The following batch sizes are ideal for V100-16GB GPUs. Refer to our [configuration guide](../usage/cfg.md) for details on model configuration files (`*.yaml`).
 
 ```bash
 # Train YOLOv5n on COCO128 for 3 epochs

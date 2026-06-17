@@ -40,6 +40,7 @@ class Predictor {
     Config config_;
     int imgsz_ = 640;
     Task task_ = Task::Detect;
+    bool input_fp16_ = false;  // model expects half-precision input (FP16 export)
     std::vector<std::string> names_;
 
     Ort::Env env_{ORT_LOGGING_LEVEL_WARNING, "yolo"};

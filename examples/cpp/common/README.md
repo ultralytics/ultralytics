@@ -6,9 +6,9 @@ Header-only utilities shared across the [Ultralytics YOLO](https://docs.ultralyt
 target_include_directories(your_target PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
 ```
 
-| Header                 | Provides                                                                                                                     |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `yolo_types.hpp`       | `yolo::Task` (the task enum) and `yolo::Result` (the unified per-detection result: box, mask, keypoints, angle).             |
+| Header                 | Provides                                                                                                                   |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `yolo_types.hpp`       | `yolo::Task` (the task enum) and `yolo::Result` (the unified per-detection result: box, mask, keypoints, angle).           |
 | `yolo_postprocess.hpp` | Backend-agnostic pre/post-processing `Preprocess`, `ToBlob`, `InferTask`, and the per-task `Postprocess*`.                 |
 | `yolo_draw.hpp`        | Annotation matching the Python `Annotator` `Color`, `Label`, `DrawBox`, `DrawMask`, `DrawPose`, `DrawObb`, `DrawSemantic`. |
 | `yolo_show.hpp`        | `yolo::ShowRequested`/`yolo::Show` optional display window controlled by `--show`.                                         |

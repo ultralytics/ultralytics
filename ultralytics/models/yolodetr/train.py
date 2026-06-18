@@ -22,6 +22,7 @@ from ultralytics.models.rtdetr.train import RTDETRTrainer
 from ultralytics.models.rtdetr.val import RTDETRDataset, RTDETRValidator
 from ultralytics.nn.tasks import YOLODETRDetectionModel
 from ultralytics.utils import LOGGER, RANK, colorstr
+from ultralytics.utils.torch_utils import unwrap_model
 
 __all__ = ("YOLODETRTrainer", "YOLODETRDataset", "YOLODETRValidator")
 
@@ -333,6 +334,7 @@ class YOLODETRTrainer(RTDETRTrainer):
         backbone_lr_ratio = float(self.args.backbone_lr_ratio)
         if backbone_lr_ratio <= 0:
             raise ValueError(f"Invalid backbone_lr_ratio={backbone_lr_ratio}. Expected > 0.")
+        model = unwrap_model(model)  # so .yaml access and parameter names work identically under DDP and single-GPU
         g = [{}, {}, {}, {}, {}, {}]  # head: [0 weight, 1 bn, 2 bias]; backbone: [3 weight, 4 bn, 5 bias]
         bn = tuple(v for k, v in nn.__dict__.items() if "Norm" in k)
         if name == "auto":
@@ -343,8 +345,6 @@ class YOLODETRTrainer(RTDETRTrainer):
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
                 parts = fullname.split(".")
-                if parts[0] == "module":  # strip DDP wrapping
-                    parts = parts[1:]
                 is_backbone = (
                     len(parts) > 1 and parts[0] == "model" and parts[1].isdigit() and int(parts[1]) < backbone_len
                 )

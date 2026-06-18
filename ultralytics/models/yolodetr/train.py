@@ -323,7 +323,7 @@ class YOLODETRTrainer(RTDETRTrainer):
     def get_validator(self):
         """Return an RTDETRValidator with loss_names extended for D-Fine/DEIM heads."""
         loss_names = ["giou_loss", "cls_loss", "l1_loss"]
-        head_name = type(self.model.model[-1]).__name__
+        head_name = type(unwrap_model(self.model).model[-1]).__name__
         if head_name in {"DFineDecoder", "DeimDecoder"}:
             loss_names += ["fgl_loss", "ddf_loss"]
         self.loss_names = tuple(loss_names)

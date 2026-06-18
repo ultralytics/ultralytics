@@ -1,75 +1,114 @@
 // Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <string>
+
+#include <opencv2/opencv.hpp>
+
 #include "inference.hpp"
 #include "yolo_draw.hpp"
 #include "yolo_show.hpp"
-#include <iostream>
-#include <vector>
-#include <string>
-#include <sstream>
-#include <iomanip>
-#include <cstdint>
-#include <chrono>
 
-#define MODEL_INPUT_IMAGE_WIDTH 640
-#define MODEL_INPUT_IMAGE_HEIGHT 640
-#define NETWORK_THRESHOLD 0.50
-#define IMAGE_CHANNEL 3
+namespace {
 
-double get_time_since_epoch_millis()
-{
-    using namespace std::chrono;
-    auto now = system_clock::now();
-    auto duration = now.time_since_epoch();
-    return duration_cast<microseconds>(duration).count() / 1000.0;
+std::string ArgValue(int argc, char** argv, const std::string& key, const std::string& fallback) {
+    for (int i = 1; i < argc - 1; ++i) {
+        if (key == argv[i]) return argv[i + 1];
+    }
+    return fallback;
 }
 
-int main(int argc, char *argv[])
-{
-    std::string triton_address= "localhost:8001";
-    std::string model_name= "yolo11";
-    std::string model_version= "1";
-	std::string image_path = "test.jpg";
-	std::string output_path = "output.jpg";
-	std::vector<std::string> object_class_list = {"class1", "class2"};
+std::string NameOf(const std::vector<std::string>& names, int id) {
+    return id >= 0 && id < static_cast<int>(names.size()) ? names[id] : std::to_string(id);
+}
 
-    std::vector<uint16_t> triton_request_data;
-    triton_request_data.resize(IMAGE_CHANNEL*MODEL_INPUT_IMAGE_WIDTH*MODEL_INPUT_IMAGE_HEIGHT);
-    std::vector<struct detection_struct> detections;
+}  // namespace
 
-    std::shared_ptr<TritonCommunication> triton_communication = std::make_shared<TritonCommunication>(triton_address, model_name, model_version, IMAGE_CHANNEL, MODEL_INPUT_IMAGE_WIDTH, MODEL_INPUT_IMAGE_HEIGHT,object_class_list.size());
+int main(int argc, char** argv) {
+    yolo::Config config;
+    config.url = ArgValue(argc, argv, "--url", "localhost:8001");
+    config.model = ArgValue(argc, argv, "--model", "yolo26n");
+    config.model_version = ArgValue(argc, argv, "--version", "");
+    config.conf = std::stof(ArgValue(argc, argv, "--conf", "0.25"));
+    config.iou = std::stof(ArgValue(argc, argv, "--iou", "0.45"));
+    config.imgsz = std::stoi(ArgValue(argc, argv, "--imgsz", "640"));
+    config.task = yolo::TaskFromString(ArgValue(argc, argv, "--task", "unknown"));
+    const std::string source = ArgValue(argc, argv, "--source", "bus.jpg");
+    const std::string output = ArgValue(argc, argv, "--out", "result.jpg");
+    const bool show = yolo::ShowRequested(argc, argv);
 
-    cv::Mat frame = cv::imread(image_path);
-    if (frame.empty())
-    {
-        std::cerr << "Image couldn't read: " << image_path << std::endl;
-        return -1;
+    cv::Mat image = cv::imread(source);
+    if (image.empty()) {
+        std::cerr << "ERROR: could not read image '" << source << "'" << std::endl;
+        return 1;
     }
 
-    int image_width = frame.cols;
-    int image_height = frame.rows;
+    try {
+        yolo::Predictor predictor(config);
+        const std::vector<std::string>& names = predictor.names();
 
-    double preprocess_time = get_time_since_epoch_millis();
-	Image::preprocess(&frame, triton_request_data, MODEL_INPUT_IMAGE_WIDTH, MODEL_INPUT_IMAGE_HEIGHT);
-    std::cout << "Preprocess time : " << (get_time_since_epoch_millis() - preprocess_time)<< " millisecond."<< std::endl;
+        cv::Mat semantic;
+        std::vector<yolo::Result> results = predictor.predict(image, semantic);
+        std::cout << "Model: " << config.model << " @ " << config.url
+                  << " | task: " << yolo::TaskName(predictor.task()) << " | classes: " << names.size() << std::endl;
 
-    double infer_time = get_time_since_epoch_millis();
-    triton_communication->infer(triton_request_data.data());
-    std::cout << "Triton Server execute time : " << (get_time_since_epoch_millis() - infer_time) << " millisecond." << std::endl;
+        cv::Mat canvas = image.clone();
+        switch (predictor.task()) {
+            case yolo::Task::Semantic:
+                yolo::DrawSemantic(canvas, semantic);
+                std::cout << "semantic map rendered (" << names.size() << " classes)" << std::endl;
+                break;
+            case yolo::Task::Segment:
+            case yolo::Task::Detect:
+            case yolo::Task::Pose: {
+                for (const yolo::Result& r : results) {
+                    const std::string name = NameOf(names, r.class_id);
+                    if (!r.mask.empty()) yolo::DrawMask(canvas, r.mask, r.class_id);
+                    if (!r.keypoints.empty()) yolo::DrawPose(canvas, r.keypoints, r.keypoint_scores);
+                    yolo::DrawBox(canvas, r.box, yolo::Label(name, r.confidence), r.class_id);
+                    std::cout << name << " " << std::fixed << std::setprecision(2) << r.confidence
+                              << " box=[" << r.box.x << ", " << r.box.y << ", " << r.box.width << ", "
+                              << r.box.height << "]" << std::endl;
+                }
+                break;
+            }
+            case yolo::Task::Obb: {
+                for (const yolo::Result& r : results) {
+                    const std::string name = NameOf(names, r.class_id);
+                    cv::RotatedRect rr(cv::Point2f(r.box.x + r.box.width * 0.5f, r.box.y + r.box.height * 0.5f),
+                                       cv::Size2f(static_cast<float>(r.box.width), static_cast<float>(r.box.height)),
+                                       r.angle * 180.0f / static_cast<float>(CV_PI));
+                    yolo::DrawObb(canvas, rr, yolo::Label(name, r.confidence), r.class_id);
+                    std::cout << name << " " << std::fixed << std::setprecision(2) << r.confidence
+                              << " angle=" << r.angle << std::endl;
+                }
+                break;
+            }
+            case yolo::Task::Classify: {
+                int y = 28;
+                for (const yolo::Result& r : results) {
+                    std::ostringstream label;
+                    label << NameOf(names, r.class_id) << " " << std::fixed << std::setprecision(2) << r.confidence;
+                    cv::putText(canvas, label.str(), {12, y}, cv::FONT_HERSHEY_SIMPLEX, 0.7, {0, 0, 0}, 3, cv::LINE_AA);
+                    cv::putText(canvas, label.str(), {12, y}, cv::FONT_HERSHEY_SIMPLEX, 0.7, {255, 255, 255}, 1,
+                                cv::LINE_AA);
+                    std::cout << label.str() << std::endl;
+                    y += 28;
+                }
+                break;
+            }
+            default:
+                std::cerr << "[yolo] task '" << yolo::TaskName(predictor.task()) << "' is not supported." << std::endl;
+        }
 
-    getDetectionsFromTritonRawData(triton_communication->output_raw_data, detections, object_class_list, NETWORK_THRESHOLD, image_width, image_height);
-
-    const bool show = yolo::ShowRequested(argc, argv);  // pass --show to display the result
-    for (int i = 0; i < detections.size(); i++)
-    {
-        yolo::DrawBox(frame, detections[i].bbox,
-                      yolo::Label(detections[i].name, static_cast<float>(detections[i].confidence_score)),
-                      detections[i].class_id);
+        cv::imwrite(output, canvas);
+        std::cout << "Result image written to " << output << std::endl;
+        yolo::Show("YOLO", canvas, show);
+    } catch (const std::exception& e) {
+        std::cerr << "ERROR: " << e.what() << std::endl;
+        return 1;
     }
-
-    cv::imwrite(output_path, frame);
-    std::cout << "Result image saved!"<< std::endl;
-    yolo::Show("Result", frame, show);
-
     return 0;
 }

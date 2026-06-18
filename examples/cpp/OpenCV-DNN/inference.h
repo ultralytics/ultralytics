@@ -14,7 +14,7 @@ namespace yolo {
 
 // Runtime configuration for the OpenCV DNN backend.
 struct Config {
-    std::string model_path = "yolo11n.onnx";  // grid model; OpenCV DNN cannot run YOLO26 end2end ops
+    std::string model_path = "yolo26n.onnx";  // grid export (nms=False); OpenCV DNN cannot run YOLO26 end2end ops
     float conf = 0.25f;         // confidence threshold
     float iou = 0.45f;          // NMS IoU threshold (grid models only)
     int imgsz = 640;            // square input size of the exported model

@@ -35,7 +35,7 @@ std::string NameOf(const std::vector<std::string>& names, int id) {
 
 int main(int argc, char** argv) {
     yolo::Config config;
-    config.model_path = ArgValue(argc, argv, "--model", "yolo11n.onnx");
+    config.model_path = ArgValue(argc, argv, "--model", "yolo26n.onnx");
     config.conf = std::stof(ArgValue(argc, argv, "--conf", "0.25"));
     config.iou = std::stof(ArgValue(argc, argv, "--iou", "0.45"));
     config.imgsz = std::stoi(ArgValue(argc, argv, "--imgsz", "640"));

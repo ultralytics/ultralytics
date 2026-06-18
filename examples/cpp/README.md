@@ -2,20 +2,22 @@
 
 # Ultralytics YOLO C++ Examples
 
+<img alt="C++" src="https://img.shields.io/badge/C%2B%2B-17-00599C.svg?logo=cplusplus&logoColor=white"> <a href="https://docs.ultralytics.com/" target="_blank"><img alt="Ultralytics Docs" src="https://img.shields.io/badge/Ultralytics-Docs-042AFF.svg?logo=ultralytics&logoColor=white"></a>
+
 This directory groups all of the C++ inference examples for [Ultralytics YOLO](https://docs.ultralytics.com/models/) models in one place. Each subfolder is a self-contained project showing how to run [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26), [YOLO11](https://docs.ultralytics.com/models/yolo11), and [YOLOv8](https://docs.ultralytics.com/models/yolov8) models against a different inference backend.
 
 Every backend supports **every task** — [detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [pose](https://docs.ultralytics.com/tasks/pose), [OBB](https://docs.ultralytics.com/tasks/obb), [classify](https://docs.ultralytics.com/tasks/classify), and YOLO26 semantic segmentation — selecting the task automatically from the model metadata or output shapes. Most also handle both grid (YOLOv8/11) and end-to-end (YOLO26) outputs; **OpenCV-DNN** supports the same tasks but only on **grid** models, because the OpenCV DNN module cannot run the YOLO26 end-to-end (NMS-in-graph) operators.
 
 ## 📂 Examples
 
-| Example                      | Backend                                                            | Build target       | Notes                                                                       |
-| ---------------------------- | ------------------------------------------------------------------ | ------------------ | --------------------------------------------------------------------------- |
-| [OpenCV-DNN](./OpenCV-DNN)   | [OpenCV DNN](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html)   | `yolo_opencv_dnn`  | All tasks on grid models (YOLOv8/11, or YOLO26 with `nms=False`); CPU/CUDA. |
-| [ONNXRuntime](./ONNXRuntime) | [ONNX Runtime](https://onnxruntime.ai/)                            | `yolo_onnxruntime` | All tasks; ONNX FP32/FP16; CPU or CUDA execution provider.                  |
-| [LibTorch](./LibTorch)       | [LibTorch](https://docs.pytorch.org/cppdocs/)                      | `yolo_libtorch`    | All tasks; TorchScript via the PyTorch C++ API.                             |
-| [MNN](./MNN)                 | [Alibaba MNN](https://mnn-docs.readthedocs.io/en/latest/)          | `yolo_mnn`         | All tasks; MNN models on CPU.                                               |
-| [OpenVINO](./OpenVINO)       | [Intel OpenVINO](https://docs.openvino.ai/)                        | `yolo_openvino`    | All tasks; OpenVINO IR or ONNX on Intel hardware.                           |
-| [Triton](./Triton)           | [NVIDIA Triton](https://github.com/triton-inference-server/server) | `yolo_triton`      | All tasks; gRPC client for a model served by Triton.                        |
+| Example                                                                                                                                                                                      | Backend                                                            | Build target       | Notes                                                                       |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ------------------ | --------------------------------------------------------------------------- |
+| [![OpenCV-DNN](https://img.shields.io/badge/OpenCV--DNN-5C3EE8.svg?logo=opencv&logoColor=white)](https://github.com/ultralytics/ultralytics/tree/main/examples/cpp/OpenCV-DNN)               | [OpenCV DNN](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html)   | `yolo_opencv_dnn`  | All tasks on grid models (YOLOv8/11, or YOLO26 with `nms=False`); CPU/CUDA. |
+| [![ONNXRuntime](https://img.shields.io/badge/ONNX%20Runtime-717272.svg?logo=onnx&logoColor=white)](https://github.com/ultralytics/ultralytics/tree/main/examples/cpp/ONNXRuntime)            | [ONNX Runtime](https://onnxruntime.ai/)                           | `yolo_onnxruntime` | All tasks; ONNX FP32/FP16; CPU or CUDA execution provider.                  |
+| [![LibTorch](https://img.shields.io/badge/LibTorch-EE4C2C.svg?logo=pytorch&logoColor=white)](https://github.com/ultralytics/ultralytics/tree/main/examples/cpp/LibTorch)                     | [LibTorch](https://docs.pytorch.org/cppdocs/)                     | `yolo_libtorch`    | All tasks; TorchScript via the PyTorch C++ API.                             |
+| [![MNN](https://img.shields.io/badge/MNN-FF6A00.svg?logo=alibabacloud&logoColor=white)](https://github.com/ultralytics/ultralytics/tree/main/examples/cpp/MNN)                               | [Alibaba MNN](https://mnn-docs.readthedocs.io/en/latest/)         | `yolo_mnn`         | All tasks; MNN models on CPU.                                               |
+| [![OpenVINO](https://img.shields.io/badge/OpenVINO-0071C5.svg?logo=intel&logoColor=white)](https://github.com/ultralytics/ultralytics/tree/main/examples/cpp/OpenVINO)                       | [Intel OpenVINO](https://docs.openvino.ai/)                       | `yolo_openvino`    | All tasks; OpenVINO IR or ONNX on Intel hardware.                           |
+| [![Triton](https://img.shields.io/badge/NVIDIA%20Triton-76B900.svg?logo=nvidia&logoColor=white)](https://github.com/ultralytics/ultralytics/tree/main/examples/cpp/Triton)                   | [NVIDIA Triton](https://github.com/triton-inference-server/server) | `yolo_triton`      | All tasks; gRPC client for a model served by Triton.                        |
 
 ## ✅ How to Test
 
@@ -39,7 +41,7 @@ cd examples/cpp/OpenCV-DNN && mkdir build && cd build && cmake .. && make
 ./yolo_opencv_dnn --model yolo26n.onnx --source bus.jpg
 ```
 
-### ONNXRuntime (all tasks)
+### ONNXRuntime
 
 ```bash
 # 1. Export any model and task — the task and class names are read from the metadata
@@ -53,7 +55,7 @@ cmake .. -DONNXRUNTIME_ROOT=/path/to/onnxruntime -DUSE_CUDA=OFF && make
 LD_LIBRARY_PATH=/path/to/onnxruntime/lib ./yolo_onnxruntime --model yolo26n.onnx --source bus.jpg
 ```
 
-### LibTorch (all tasks)
+### LibTorch
 
 ```bash
 # 1. Export a TorchScript model (any task)
@@ -67,7 +69,7 @@ cmake .. -DCMAKE_PREFIX_PATH="/path/to/libtorch;/path/to/opencv" && make
 LD_LIBRARY_PATH=/path/to/libtorch/lib ./yolo_libtorch --model yolo26n.torchscript --source bus.jpg
 ```
 
-### MNN (all tasks)
+### MNN
 
 ```bash
 # 1. Export an MNN model (any task). Prefer format=mnn over MNNConvert so metadata is kept.
@@ -82,7 +84,7 @@ cmake .. -DMNN_INCLUDE_DIR=/path/to/MNN/include -DMNN_LIB_DIR=/path/to/MNN/build
 LD_LIBRARY_PATH=/path/to/MNN/build ./yolo_mnn --model yolo26n.mnn --source bus.jpg
 ```
 
-### OpenVINO (all tasks)
+### OpenVINO
 
 ```bash
 # 1. Export an OpenVINO IR (or ONNX) model — any task

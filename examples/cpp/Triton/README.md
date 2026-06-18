@@ -31,13 +31,13 @@ For more information on Triton, see the [NVIDIA Triton Inference Server document
 Export any model and task, then add it to a Triton [model repository](https://github.com/triton-inference-server/server/blob/main/docs/user_guide/model_repository.md). ONNX is a convenient serving format and keeps the `output0` (and `output1` for segmentation) tensor names this client expects.
 
 ```bash
-yolo export model=yolo26n.pt      format=onnx opset=12                # detect   (end2end)
-yolo export model=yolo26n-seg.pt  format=onnx opset=12                # segment
-yolo export model=yolo26n-pose.pt format=onnx opset=12                # pose
-yolo export model=yolo26n-obb.pt  format=onnx opset=12                # obb
-yolo export model=yolo26n-cls.pt  format=onnx opset=12                # classify
-yolo export model=yolo26n-sem.pt  format=onnx opset=12                # semantic
-yolo export model=yolo11n.pt      format=onnx opset=12 dynamic=True   # YOLOv8/YOLO11 (grid) work too
+yolo export model=yolo26n.pt format=onnx opset=12              # detect   (end2end)
+yolo export model=yolo26n-seg.pt format=onnx opset=12          # segment
+yolo export model=yolo26n-pose.pt format=onnx opset=12         # pose
+yolo export model=yolo26n-obb.pt format=onnx opset=12          # obb
+yolo export model=yolo26n-cls.pt format=onnx opset=12          # classify
+yolo export model=yolo26n-sem.pt format=onnx opset=12          # semantic
+yolo export model=yolo11n.pt format=onnx opset=12 dynamic=True # YOLOv8/YOLO11 (grid) work too
 ```
 
 Add `half=True device=0` to export an FP16 model on a GPU; the client reads the input/output datatype from the metadata and handles FP16 or FP32 automatically.
@@ -94,31 +94,31 @@ Start your Triton server with a deployed YOLO model, then run the client. Use th
 
 ```bash
 # Defaults: --url localhost:8001 --model yolo26n --source bus.jpg --conf 0.25 --iou 0.45 --out result.jpg
-./yolo_triton --model yolo26n      --source bus.jpg                          # detect   (auto)
-./yolo_triton --model yolo26n-seg  --source bus.jpg   --out seg.jpg          # segment  (auto)
-./yolo_triton --model yolo26n-pose --source bus.jpg   --out pose.jpg         # pose     (auto, end2end)
-./yolo_triton --model yolo26n-obb  --source boats.jpg --out obb.jpg          # obb      (auto, end2end)
-./yolo_triton --model yolo26n-cls  --source bus.jpg   --out cls.jpg          # classify (auto)
-./yolo_triton --model yolo26n-sem  --source bus.jpg   --out sem.jpg          # semantic (auto)
-./yolo_triton --model yolo11n-pose --source bus.jpg   --task pose            # legacy grid pose: needs --task
+./yolo_triton --model yolo26n --source bus.jpg                     # detect   (auto)
+./yolo_triton --model yolo26n-seg --source bus.jpg --out seg.jpg   # segment  (auto)
+./yolo_triton --model yolo26n-pose --source bus.jpg --out pose.jpg # pose     (auto, end2end)
+./yolo_triton --model yolo26n-obb --source boats.jpg --out obb.jpg # obb      (auto, end2end)
+./yolo_triton --model yolo26n-cls --source bus.jpg --out cls.jpg   # classify (auto)
+./yolo_triton --model yolo26n-sem --source bus.jpg --out sem.jpg   # semantic (auto)
+./yolo_triton --model yolo11n-pose --source bus.jpg --task pose    # legacy grid pose: needs --task
 ./yolo_triton --url 192.168.1.10:8001 --model yolo26n --source street.jpg --show
 ```
 
 > [!NOTE]
 > Triton exposes no task or class-name metadata, so the task is inferred from the output shapes. With **YOLO26** (end-to-end) models every task — including pose and OBB — is detected automatically. Only the legacy **grid** YOLOv8/11 **pose** `[1, 56, 8400]` and **obb** `[1, 20, 8400]` outputs are ambiguous with detection (they differ only by the class count, which Triton does not expose), so for those pass `--task pose` or `--task obb`. Class names fall back to COCO, so a non-COCO model (1000-class classify, DOTA obb) prints class indices rather than names.
 
-| Argument    | Default          | Description                                                      |
-| :---------- | :--------------- | :--------------------------------------------------------------- |
-| `--url`     | `localhost:8001` | Triton server gRPC endpoint.                                     |
-| `--model`   | `yolo26n`        | Model name as deployed in the Triton repository.                |
-| `--version` | _latest_         | Model version (empty selects the latest).                       |
-| `--source`  | `bus.jpg`        | Input image.                                                    |
-| `--conf`    | `0.25`           | Confidence threshold.                                           |
-| `--iou`     | `0.45`           | NMS IoU threshold (grid models only; end2end models skip NMS).  |
-| `--imgsz`   | `640`            | Input size used when the model shape is dynamic.                |
-| `--task`    | _auto_           | Override the inferred task (`detect`, `segment`, `pose`, ...).   |
-| `--out`     | `result.jpg`     | Output image path.                                              |
-| `--show`    | _off_            | Also open a display window.                                     |
+| Argument    | Default          | Description                                                    |
+| :---------- | :--------------- | :------------------------------------------------------------- |
+| `--url`     | `localhost:8001` | Triton server gRPC endpoint.                                   |
+| `--model`   | `yolo26n`        | Model name as deployed in the Triton repository.               |
+| `--version` | _latest_         | Model version (empty selects the latest).                      |
+| `--source`  | `bus.jpg`        | Input image.                                                   |
+| `--conf`    | `0.25`           | Confidence threshold.                                          |
+| `--iou`     | `0.45`           | NMS IoU threshold (grid models only; end2end models skip NMS). |
+| `--imgsz`   | `640`            | Input size used when the model shape is dynamic.               |
+| `--task`    | _auto_           | Override the inferred task (`detect`, `segment`, `pose`, ...). |
+| `--out`     | `result.jpg`     | Output image path.                                             |
+| `--show`    | _off_            | Also open a display window.                                    |
 
 The annotated result is always written to `--out` and the detections are printed to the console.
 

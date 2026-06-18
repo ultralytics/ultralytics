@@ -1,4 +1,5 @@
 // Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 //
 // Shared drawing helper for the Ultralytics YOLO C++ examples. Mirrors the
 // Python Annotator.box_label() so every example annotates detections identically:

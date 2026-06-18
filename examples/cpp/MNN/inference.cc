@@ -82,7 +82,7 @@ std::vector<Result> Predictor::predict(const cv::Mat& image, cv::Mat& semantic) 
     // Copy every output to a host NCHW tensor and collect a float pointer + shape.
     std::vector<std::shared_ptr<MNN::Tensor>> hosts;
     std::vector<std::vector<int64_t>> shapes;
-    std::vector<const float*> datas;
+    std::vector<const float*> data;
     int main_idx = 0, aux_idx = -1, i = 0;
     for (const auto& kv : interpreter_->getSessionOutputAll(session_)) {
         std::shared_ptr<MNN::Tensor> h(new MNN::Tensor(kv.second, MNN::Tensor::CAFFE));
@@ -90,13 +90,13 @@ std::vector<Result> Predictor::predict(const cv::Mat& image, cv::Mat& semantic) 
         const std::vector<int64_t> shape = TensorShape(h.get());
         hosts.push_back(h);
         shapes.push_back(shape);
-        datas.push_back(h->host<float>());
+        data.push_back(h->host<float>());
         if (shape.size() == 4) aux_idx = i;
         else main_idx = i;
         ++i;
     }
-    if (datas.empty()) return {};
-    const float* data = datas[main_idx];
+    if (data.empty()) return {};
+    const float* data = data[main_idx];
     const std::vector<int64_t>& shp = shapes[main_idx];
 
     switch (task_) {
@@ -110,7 +110,7 @@ std::vector<Result> Predictor::predict(const cv::Mat& image, cv::Mat& semantic) 
             return PostprocessClassify(data, shp);
         case Task::Segment: {
             if (aux_idx < 0) return {};
-            return PostprocessSegment(data, shp, datas[aux_idx], shapes[aux_idx], scale, config_.conf, config_.iou,
+            return PostprocessSegment(data, shp, data[aux_idx], shapes[aux_idx], scale, config_.conf, config_.iou,
                                       imgsz_, image.size());
         }
         case Task::Semantic:

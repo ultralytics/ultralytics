@@ -12,19 +12,19 @@ A C++ application that runs every [Ultralytics YOLO](https://docs.ultralytics.co
 
 ## 📋 Dependencies
 
-| Dependency                                        | Version  | Description                              |
-| :------------------------------------------------ | :------- | :--------------------------------------- |
-| [MNN](https://mnn-docs.readthedocs.io/en/latest/) | >=2.0.0  | The core inference engine from Alibaba.  |
-| [OpenCV](https://opencv.org/)                     | >=4.0.0  | Image I/O, drawing, and NMS.             |
-| [C++](https://en.cppreference.com/w/)             | >=17     | Modern C++ compiler.                     |
-| [CMake](https://cmake.org/documentation/)         | >=3.12.0 | Build system.                            |
+| Dependency                                        | Version  | Description                             |
+| :------------------------------------------------ | :------- | :-------------------------------------- |
+| [MNN](https://mnn-docs.readthedocs.io/en/latest/) | >=2.0.0  | The core inference engine from Alibaba. |
+| [OpenCV](https://opencv.org/)                     | >=4.0.0  | Image I/O, drawing, and NMS.            |
+| [C++](https://en.cppreference.com/w/)             | >=17     | Modern C++ compiler.                    |
+| [CMake](https://cmake.org/documentation/)         | >=3.12.0 | Build system.                           |
 
 ## 📦 Exporting a Model
 
 Export directly to MNN with the Ultralytics `export` mode. This is the **recommended** path: it keeps the model metadata in `bizCode`, so the task and class names are read automatically.
 
 ```bash
-yolo export model=yolo26n.pt imgsz=640 format=mnn     # detect (also -seg / -pose / -obb / -cls / -sem)
+yolo export model=yolo26n.pt imgsz=640 format=mnn # detect (also -seg / -pose / -obb / -cls / -sem)
 ```
 
 > [!NOTE]
@@ -66,19 +66,19 @@ The shared helpers in [`../common`](../common) are header-only and added to the 
 export LD_LIBRARY_PATH=/path/to/MNN/build:$LD_LIBRARY_PATH
 
 # Defaults: --model yolo26n.mnn --source bus.jpg --conf 0.25 --iou 0.45 --out result.jpg
-./yolo_mnn --model yolo26n.mnn      --source bus.jpg
+./yolo_mnn --model yolo26n.mnn --source bus.jpg
 ./yolo_mnn --model yolo26n-pose.mnn --source bus.jpg --out pose.jpg --show
 ```
 
-| Argument    | Default       | Description                          |
-| :---------- | :------------ | :----------------------------------- |
-| `--model`   | `yolo26n.mnn` | Path to the exported MNN model.      |
-| `--source`  | `bus.jpg`     | Input image.                         |
-| `--conf`    | `0.25`        | Confidence threshold.                |
-| `--iou`     | `0.45`        | NMS IoU threshold (grid models only).|
-| `--threads` | `4`           | CPU threads.                         |
-| `--out`     | `result.jpg`  | Output image path.                   |
-| `--show`    | _off_         | Also open a display window.          |
+| Argument    | Default       | Description                           |
+| :---------- | :------------ | :------------------------------------ |
+| `--model`   | `yolo26n.mnn` | Path to the exported MNN model.       |
+| `--source`  | `bus.jpg`     | Input image.                          |
+| `--conf`    | `0.25`        | Confidence threshold.                 |
+| `--iou`     | `0.45`        | NMS IoU threshold (grid models only). |
+| `--threads` | `4`           | CPU threads.                          |
+| `--out`     | `result.jpg`  | Output image path.                    |
+| `--show`    | _off_         | Also open a display window.           |
 
 ## 🤝 Contributing
 

@@ -1,4 +1,5 @@
 // Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 //
 // Shared color helper for the Ultralytics YOLO C++ examples.
 // Header-only: add this folder (examples/cpp/common) to your include path and

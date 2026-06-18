@@ -14,25 +14,25 @@ A single C++ application that runs **every [Ultralytics YOLO](https://docs.ultra
 
 ## 📋 Dependencies
 
-| Dependency                                           | Version       | Notes                                                          |
-| :--------------------------------------------------- | :------------ | :------------------------------------------------------------- |
-| [ONNX Runtime](https://onnxruntime.ai/docs/install/) | >=1.14        | Download the pre-built binaries (CPU or GPU).                  |
-| [OpenCV](https://opencv.org/releases/)               | >=4.0         | Image I/O, drawing, and NMS.                                   |
-| C++ Compiler                                         | C++17         | For `<filesystem>`.                                            |
-| [CMake](https://cmake.org/download/)                 | >=3.5         | Build system.                                                  |
-| [CUDA](https://developer.nvidia.com/cuda/toolkit)    | optional      | Only for the ONNX Runtime CUDA execution provider (`--cuda`).  |
+| Dependency                                           | Version  | Notes                                                         |
+| :--------------------------------------------------- | :------- | :------------------------------------------------------------ |
+| [ONNX Runtime](https://onnxruntime.ai/docs/install/) | >=1.14   | Download the pre-built binaries (CPU or GPU).                 |
+| [OpenCV](https://opencv.org/releases/)               | >=4.0    | Image I/O, drawing, and NMS.                                  |
+| C++ Compiler                                         | C++17    | For `<filesystem>`.                                           |
+| [CMake](https://cmake.org/download/)                 | >=3.5    | Build system.                                                 |
+| [CUDA](https://developer.nvidia.com/cuda/toolkit)    | optional | Only for the ONNX Runtime CUDA execution provider (`--cuda`). |
 
 ## 📦 Exporting a Model
 
 Export any model and task to ONNX with the Ultralytics `export` mode. `opset=12` is recommended for broad compatibility.
 
 ```bash
-yolo export model=yolo26n.pt       format=onnx opset=12   # detect   (end2end)
-yolo export model=yolo26n-seg.pt   format=onnx opset=12   # segment
-yolo export model=yolo26n-pose.pt  format=onnx opset=12   # pose
-yolo export model=yolo26n-obb.pt   format=onnx opset=12   # obb
-yolo export model=yolo26n-cls.pt   format=onnx opset=12   # classify
-yolo export model=yolo26n-sem.pt   format=onnx opset=12   # semantic
+yolo export model=yolo26n.pt format=onnx opset=12      # detect   (end2end)
+yolo export model=yolo26n-seg.pt format=onnx opset=12  # segment
+yolo export model=yolo26n-pose.pt format=onnx opset=12 # pose
+yolo export model=yolo26n-obb.pt format=onnx opset=12  # obb
+yolo export model=yolo26n-cls.pt format=onnx opset=12  # classify
+yolo export model=yolo26n-sem.pt format=onnx opset=12  # semantic
 ```
 
 [YOLOv8](https://docs.ultralytics.com/models/yolov8) and [YOLO11](https://docs.ultralytics.com/models/yolo11) grid models work too — the output layout is detected automatically.
@@ -76,21 +76,21 @@ The shared helpers in [`../common`](../common) (color palette, COCO names, annot
 export LD_LIBRARY_PATH=/path/to/onnxruntime/lib:$LD_LIBRARY_PATH
 
 # Defaults: --model yolo26n.onnx --source bus.jpg --conf 0.25 --iou 0.45 --out result.jpg
-./yolo_onnxruntime --model yolo26n.onnx        --source bus.jpg
-./yolo_onnxruntime --model yolo26n-seg.onnx    --source bus.jpg --out seg.jpg
-./yolo_onnxruntime --model yolo26n-pose.onnx   --source bus.jpg --show
-./yolo_onnxruntime --model yolo26n-sem.onnx    --source street.jpg
+./yolo_onnxruntime --model yolo26n.onnx --source bus.jpg
+./yolo_onnxruntime --model yolo26n-seg.onnx --source bus.jpg --out seg.jpg
+./yolo_onnxruntime --model yolo26n-pose.onnx --source bus.jpg --show
+./yolo_onnxruntime --model yolo26n-sem.onnx --source street.jpg
 ```
 
-| Argument   | Default         | Description                                                       |
-| :--------- | :-------------- | :--------------------------------------------------------------- |
-| `--model`  | `yolo26n.onnx`  | Path to the exported `.onnx` model (any task/generation).        |
-| `--source` | `bus.jpg`       | Input image.                                                     |
-| `--conf`   | `0.25`          | Confidence threshold.                                            |
-| `--iou`    | `0.45`          | NMS IoU threshold (grid models only; end2end models skip NMS).   |
-| `--out`    | `result.jpg`    | Output image path.                                               |
-| `--cuda`   | _off_           | Use the CUDA execution provider (requires a GPU ONNX Runtime build compiled with `-DUSE_CUDA=ON`). |
-| `--show`   | _off_           | Also open a display window.                                      |
+| Argument   | Default        | Description                                                                                        |
+| :--------- | :------------- | :------------------------------------------------------------------------------------------------- |
+| `--model`  | `yolo26n.onnx` | Path to the exported `.onnx` model (any task/generation).                                          |
+| `--source` | `bus.jpg`      | Input image.                                                                                       |
+| `--conf`   | `0.25`         | Confidence threshold.                                                                              |
+| `--iou`    | `0.45`         | NMS IoU threshold (grid models only; end2end models skip NMS).                                     |
+| `--out`    | `result.jpg`   | Output image path.                                                                                 |
+| `--cuda`   | _off_          | Use the CUDA execution provider (requires a GPU ONNX Runtime build compiled with `-DUSE_CUDA=ON`). |
+| `--show`   | _off_          | Also open a display window.                                                                        |
 
 The annotated result is always written to `--out` and the detections are printed to the console. The task is shown at startup, e.g. `Model: yolo26n.onnx | task: detect | classes: 80`.
 

@@ -1,4 +1,5 @@
 // Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 //
 // Shared COCO class-name list for the Ultralytics YOLO C++ examples.
 // Header-only fallback for models that do not carry their class names in

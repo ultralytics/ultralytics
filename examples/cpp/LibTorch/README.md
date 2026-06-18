@@ -28,7 +28,7 @@ You can download the required version of LibTorch from the official [PyTorch](ht
 Export any model and task to TorchScript with the Ultralytics `export` mode:
 
 ```bash
-yolo export model=yolo26n.pt      imgsz=640 format=torchscript   # detect (also -seg / -pose / -obb / -cls / -sem)
+yolo export model=yolo26n.pt imgsz=640 format=torchscript # detect (also -seg / -pose / -obb / -cls / -sem)
 ```
 
 [YOLOv8](https://docs.ultralytics.com/models/yolov8) and [YOLO11](https://docs.ultralytics.com/models/yolo11) grid models work too — the output layout is detected automatically.
@@ -55,18 +55,18 @@ The shared helpers in [`../common`](../common) are header-only and added to the 
 export LD_LIBRARY_PATH=/path/to/libtorch/lib:$LD_LIBRARY_PATH
 
 # Defaults: --model yolo26n.torchscript --source bus.jpg --conf 0.25 --iou 0.45 --out result.jpg
-./yolo_libtorch --model yolo26n.torchscript      --source bus.jpg
-./yolo_libtorch --model yolo26n-seg.torchscript  --source bus.jpg --out seg.jpg
+./yolo_libtorch --model yolo26n.torchscript --source bus.jpg
+./yolo_libtorch --model yolo26n-seg.torchscript --source bus.jpg --out seg.jpg
 ./yolo_libtorch --model yolo26n-pose.torchscript --source bus.jpg --show
 ```
 
-| Argument   | Default               | Description                                              |
-| :--------- | :-------------------- | :------------------------------------------------------- |
+| Argument   | Default               | Description                                             |
+| :--------- | :-------------------- | :------------------------------------------------------ |
 | `--model`  | `yolo26n.torchscript` | Path to the exported TorchScript model (any task).      |
 | `--source` | `bus.jpg`             | Input image.                                            |
 | `--conf`   | `0.25`                | Confidence threshold.                                   |
-| `--iou`    | `0.45`                | NMS IoU threshold (grid models only).                  |
-| `--out`    | `result.jpg`          | Output image path.                                     |
+| `--iou`    | `0.45`                | NMS IoU threshold (grid models only).                   |
+| `--out`    | `result.jpg`          | Output image path.                                      |
 | `--cuda`   | _off_                 | Use CUDA if the LibTorch build and a device support it. |
 | `--show`   | _off_                 | Also open a display window.                             |
 

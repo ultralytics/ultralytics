@@ -1,4 +1,5 @@
 // Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 //
 // Shared types for the Ultralytics YOLO C++ examples: the task enum and the
 // unified per-detection result. Header-only.

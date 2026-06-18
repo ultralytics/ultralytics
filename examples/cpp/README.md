@@ -8,14 +8,14 @@ Every backend supports **every task** — [detect](https://docs.ultralytics.com/
 
 ## 📂 Examples
 
-| Example                      | Backend                                                              | Build target      | Notes                                                                |
-| ---------------------------- | ------------------------------------------------------------------- | ----------------- | -------------------------------------------------------------------- |
-| [OpenCV-DNN](./OpenCV-DNN)   | [OpenCV DNN](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html)     | `yolo_opencv_dnn` | All tasks on grid models (YOLOv8/11, or YOLO26 with `nms=False`); CPU/CUDA. |
-| [ONNXRuntime](./ONNXRuntime) | [ONNX Runtime](https://onnxruntime.ai/)                             | `yolo_onnxruntime`| All tasks; ONNX FP32/FP16; CPU or CUDA execution provider.           |
-| [LibTorch](./LibTorch)       | [LibTorch](https://docs.pytorch.org/cppdocs/)                       | `yolo_libtorch`   | All tasks; TorchScript via the PyTorch C++ API.                      |
-| [MNN](./MNN)                 | [Alibaba MNN](https://mnn-docs.readthedocs.io/en/latest/)           | `yolo_mnn`        | All tasks; MNN models on CPU.                                        |
-| [OpenVINO](./OpenVINO)       | [Intel OpenVINO](https://docs.openvino.ai/)                         | `yolo_openvino`   | All tasks; OpenVINO IR or ONNX on Intel hardware.                   |
-| [Triton](./Triton)           | [NVIDIA Triton](https://github.com/triton-inference-server/server)  | `yolo_triton`     | All tasks; gRPC client for a model served by Triton.                |
+| Example                      | Backend                                                            | Build target       | Notes                                                                       |
+| ---------------------------- | ------------------------------------------------------------------ | ------------------ | --------------------------------------------------------------------------- |
+| [OpenCV-DNN](./OpenCV-DNN)   | [OpenCV DNN](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html)   | `yolo_opencv_dnn`  | All tasks on grid models (YOLOv8/11, or YOLO26 with `nms=False`); CPU/CUDA. |
+| [ONNXRuntime](./ONNXRuntime) | [ONNX Runtime](https://onnxruntime.ai/)                            | `yolo_onnxruntime` | All tasks; ONNX FP32/FP16; CPU or CUDA execution provider.                  |
+| [LibTorch](./LibTorch)       | [LibTorch](https://docs.pytorch.org/cppdocs/)                      | `yolo_libtorch`    | All tasks; TorchScript via the PyTorch C++ API.                             |
+| [MNN](./MNN)                 | [Alibaba MNN](https://mnn-docs.readthedocs.io/en/latest/)          | `yolo_mnn`         | All tasks; MNN models on CPU.                                               |
+| [OpenVINO](./OpenVINO)       | [Intel OpenVINO](https://docs.openvino.ai/)                        | `yolo_openvino`    | All tasks; OpenVINO IR or ONNX on Intel hardware.                           |
+| [Triton](./Triton)           | [NVIDIA Triton](https://github.com/triton-inference-server/server) | `yolo_triton`      | All tasks; gRPC client for a model served by Triton.                        |
 
 ## ✅ How to Test
 
@@ -43,7 +43,7 @@ cd examples/cpp/OpenCV-DNN && mkdir build && cd build && cmake .. && make
 
 ```bash
 # 1. Export any model and task — the task and class names are read from the metadata
-yolo export model=yolo26n.pt format=onnx opset=12         # or -seg / -pose / -obb / -cls / -sem
+yolo export model=yolo26n.pt format=onnx opset=12 # or -seg / -pose / -obb / -cls / -sem
 
 # 2. Build (point ONNXRUNTIME_ROOT at your ONNX Runtime install; -DUSE_CUDA=OFF for CPU)
 cd examples/cpp/ONNXRuntime && mkdir build && cd build
@@ -106,7 +106,7 @@ cmake .. -DTRITON_CLIENT_DIR=/path/to/tritonclient && make
 
 # 3. Run the client - task auto-detected from the model outputs (default URL localhost:8001).
 #    YOLO26 auto-detects every task; only legacy grid YOLOv8/11 pose/obb need --task.
-./yolo_triton --model yolo26_det  --source bus.jpg
+./yolo_triton --model yolo26_det --source bus.jpg
 ./yolo_triton --model yolo26_pose --source bus.jpg
 ```
 

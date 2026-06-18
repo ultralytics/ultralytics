@@ -14,18 +14,18 @@ A single C++ application that runs **every [Ultralytics YOLO](https://docs.ultra
 
 ## 📋 Dependencies
 
-| Dependency                                            | Version  |
-| ----------------------------------------------------- | -------- |
-| [OpenVINO](https://docs.openvino.ai/) | >=2023.3 |
-| [OpenCV](https://opencv.org/)                         | >=4.5.0  |
-| [C++](https://en.cppreference.com/w/)                 | >=17     |
-| [CMake](https://cmake.org/documentation/)             | >=3.12.0 |
+| Dependency                                | Version  |
+| ----------------------------------------- | -------- |
+| [OpenVINO](https://docs.openvino.ai/)     | >=2023.3 |
+| [OpenCV](https://opencv.org/)             | >=4.5.0  |
+| [C++](https://en.cppreference.com/w/)     | >=17     |
+| [CMake](https://cmake.org/documentation/) | >=3.12.0 |
 
 ## 📦 Exporting a Model
 
 ```bash
-yolo export model=yolo26n.pt      imgsz=640 format=openvino   # detect IR  (also -seg / -pose / -obb / -cls / -sem)
-yolo export model=yolo26n.pt      imgsz=640 format=onnx       # or ONNX, read directly by OpenVINO
+yolo export model=yolo26n.pt imgsz=640 format=openvino # detect IR  (also -seg / -pose / -obb / -cls / -sem)
+yolo export model=yolo26n.pt imgsz=640 format=onnx     # or ONNX, read directly by OpenVINO
 ```
 
 [YOLOv8](https://docs.ultralytics.com/models/yolov8) and [YOLO11](https://docs.ultralytics.com/models/yolo11) grid models work too — the output layout is detected automatically.
@@ -48,19 +48,19 @@ OpenVINO is found via `find_package(OpenVINO)` and the shared helpers in [`../co
 ```bash
 # Defaults: --model yolo26n.onnx --source bus.jpg --conf 0.25 --iou 0.45 --device AUTO --out result.jpg
 ./yolo_openvino --model yolo26n_openvino_model/yolo26n.xml --source bus.jpg
-./yolo_openvino --model yolo26n-seg.onnx                   --source bus.jpg --out seg.jpg
-./yolo_openvino --model yolo26n-pose.onnx                  --source bus.jpg --show
+./yolo_openvino --model yolo26n-seg.onnx --source bus.jpg --out seg.jpg
+./yolo_openvino --model yolo26n-pose.onnx --source bus.jpg --show
 ```
 
-| Argument   | Default        | Description                                              |
-| :--------- | :------------- | :------------------------------------------------------- |
-| `--model`  | `yolo26n.onnx` | OpenVINO IR (`.xml`) or ONNX (`.onnx`) model.            |
-| `--source` | `bus.jpg`      | Input image.                                             |
-| `--conf`   | `0.25`         | Confidence threshold.                                    |
-| `--iou`    | `0.45`         | NMS IoU threshold (grid models only).                   |
-| `--device` | `AUTO`         | OpenVINO device: `AUTO`, `CPU`, or `GPU`.               |
-| `--out`    | `result.jpg`   | Output image path.                                      |
-| `--show`   | _off_          | Also open a display window.                             |
+| Argument   | Default        | Description                                   |
+| :--------- | :------------- | :-------------------------------------------- |
+| `--model`  | `yolo26n.onnx` | OpenVINO IR (`.xml`) or ONNX (`.onnx`) model. |
+| `--source` | `bus.jpg`      | Input image.                                  |
+| `--conf`   | `0.25`         | Confidence threshold.                         |
+| `--iou`    | `0.45`         | NMS IoU threshold (grid models only).         |
+| `--device` | `AUTO`         | OpenVINO device: `AUTO`, `CPU`, or `GPU`.     |
+| `--out`    | `result.jpg`   | Output image path.                            |
+| `--show`   | _off_          | Also open a display window.                   |
 
 The annotated result is always written to `--out` and the detections are printed to the console. The detected task is shown at startup, e.g. `Model: yolo26n.xml | task: detect | classes: 80`.
 

@@ -1,4 +1,5 @@
 // Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 //
 // Shared display helper for the Ultralytics YOLO C++ examples. Every example
 // always writes/prints its result; pass --show on the command line to also open

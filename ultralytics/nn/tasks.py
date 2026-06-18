@@ -644,14 +644,6 @@ class YOLOAnomalyV2Model(DetectionModel):
         # Foreground/background (null-slot) supervision gain; 0.0 = off (default, unchanged v0/softmax).
         self.queryfilm_w_fg = float(v2_cfg.get("queryfilm_w_fg", 0.0))
         queryfilm_gt_sigma = float(v2_cfg.get("queryfilm_gt_sigma", 0.15))
-        # Two-head (auxiliary prior head): when True, duplicate the Detect head. head_a
-        # (self.model[-1]) consumes the RAW PAN features (no prior) -- the deployable honest
-        # detector; head_b consumes the prior-fused features. Both are trained jointly so the
-        # prior head's gradients also shape the shared backbone (the point of this variant).
-        # p_drop is bypassed (each head has a fixed input distribution). head_b_gain weights
-        # head_b's detection loss (cf. YOLOv7 aux-head deep supervision). Deploy = head_a.
-        two_head = bool(v2_cfg.get("two_head", False))
-        head_b_gain = float(v2_cfg.get("head_b_gain", 1.0))
 
         detect = self.model[-1]
         if not isinstance(detect, Detect):
@@ -701,14 +693,6 @@ class YOLOAnomalyV2Model(DetectionModel):
             self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=detect.nl)
             self.heatmap_film_fusion = None
             self.queryfilm_fusion = None
-
-        # Two-head: head_b is a deep copy of the Detect head (identical weights + strides at init,
-        # so with the near-identity fusion both heads start ~ vanilla YOLO). Registered as a
-        # submodule -> trains, moves with .to(device), saves in state_dict, DDP-wrapped. head_a
-        # is self.model[-1]; the shared det criterion works on either (same stride/nc/reg_max).
-        self.two_head = two_head
-        self.head_b_gain = head_b_gain
-        self.head_b = deepcopy(detect) if two_head else None
 
         # SegBranch consumes the P3/P4 PAN outputs (first two of pan_from_indices).
         self.mask_size = mask_size
@@ -1364,21 +1348,7 @@ class YOLOAnomalyV2Model(DetectionModel):
                 # Forward always consumes them, but be defensive in case of exception.
                 self._mask_bboxes_buf = None
                 self._mask_batch_idx_buf = None
-        # Two-head training: forward returns (preds_a, preds_b). The honest head (head_a, raw PAN,
-        # the deploy target) and the prior head (head_b) each get the shared det criterion; their
-        # losses sum (head_b weighted by head_b_gain). det_loss stays a 3-vector (box, cls, dfl)
-        # so the loss-vector length is invariant across the validator's mask-on/off double pass.
-        # Displayed items are the honest head's. The self.training gate is essential: in eval the
-        # Detect head returns a 2-tuple (inference_out, raw_feats) which must NOT be split here --
-        # it flows to the single criterion (E2ELoss.parse_output handles eval format), exactly as
-        # the single-head model does, so the validator's val-loss path is unchanged.
-        if getattr(self, "two_head", False) and self.training and isinstance(preds, tuple) and len(preds) == 2:
-            preds_a, preds_b = preds
-            det_loss_a, det_items = self.criterion(preds_a, batch)
-            det_loss_b, _ = self.criterion(preds_b, batch)
-            det_loss = det_loss_a + self.head_b_gain * det_loss_b
-        else:
-            det_loss, det_items = self.criterion(preds, batch)
+        det_loss, det_items = self.criterion(preds, batch)
         if self.seg_branch is None and self.fusion_mode != "queryfilm":
             return det_loss, det_items
         # det_loss is a per-component vector (box, cls, dfl) scaled by batch size; the trainer
@@ -1575,20 +1545,7 @@ class YOLOAnomalyV2Model(DetectionModel):
                     # Per-sample keep mask (mask dropout): dropped samples get zero increment.
                     delta = delta * keep.to(delta.dtype).view(-1, 1, 1, 1)
                     fused.append(p + delta)
-                # Two-head: head_a (= m = self.model[-1]) always sees RAW PAN (honest, deploy
-                # target); head_b sees the prior-fused features. Training returns both for the
-                # dual det loss; eval routes by prior presence (mask-on pass / external prior ->
-                # head_b, mask-off pass / deploy -> head_a). getattr guards the stride probe in
-                # super().__init__() (runs before two_head is set).
-                if getattr(self, "two_head", False):
-                    if self.training:
-                        x = (m(pan_inputs), self.head_b(fused))
-                    elif mask is not None:
-                        x = self.head_b(fused)
-                    else:
-                        x = m(pan_inputs)
-                else:
-                    x = m(fused)
+                x = m(fused)
             else:
                 if m.f != -1:
                     x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]

@@ -10,6 +10,8 @@ keywords: YOLO26, training recipe, pretraining, fine-tuning, MuSGD, augmentation
 
 This guide documents the exact [training](../modes/train.md) recipe used to produce the official [YOLO26](../models/yolo26.md) pretrained checkpoints on [COCO](../datasets/detect/coco.md). Every [hyperparameter](https://www.ultralytics.com/glossary/hyperparameter-tuning) shown here is already embedded in the released `.pt` weights and can be inspected programmatically.
 
+![yolo26 training recipe](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo26-training-recipe.avif)
+
 Knowing what went into the official checkpoints — not just the architecture, but the [learning rate](https://www.ultralytics.com/glossary/learning-rate) schedules, augmentation pipelines, and loss weights that shaped their performance — helps you make better decisions when [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning): which [data augmentations](./yolo-data-augmentation.md) to keep, which [loss function](https://www.ultralytics.com/glossary/loss-function) weights to adjust, and what optimizer settings work best for your dataset size.
 
 ## Training Overview

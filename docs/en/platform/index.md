@@ -47,7 +47,7 @@ graph LR
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Upload**   | Images (50MB), videos (1GB), and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON) with automatic processing                                                                                                 |
 | **Annotate** | Manual tools for all 6 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM and YOLO models for detect, segment, semantic, and OBB (see [supported tasks](data/index.md#supported-tasks)) |
-| **Train**    | Cloud GPUs (22 on all plans + 2 Pro/Enterprise-only: B200, B300), real-time metrics, project organization                                                                                                              |
+| **Train**    | Cloud GPUs (24 on all plans + 2 Pro/Enterprise-only: B200, B300), real-time metrics, project organization                                                                                                              |
 | **Export**   | [19+ deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.; see [supported formats](train/models.md#supported-formats))                                                                        |
 | **Deploy**   | 43 global regions with dedicated endpoints, scale-to-zero by default (single active instance), and monitoring                                                                                                          |
 
@@ -55,7 +55,7 @@ graph LR
 
 - **Upload** images, videos, and dataset files to create training datasets
 - **Visualize** annotations with interactive overlays for all 6 YOLO task types (see [supported tasks](data/index.md#supported-tasks))
-- **Train** models on cloud GPUs (22 on all plans, 24 with Pro or Enterprise for B200 and B300) with real-time metrics
+- **Train** models on cloud GPUs (24 on all plans, 26 with Pro or Enterprise for B200 and B300) with real-time metrics
 - **Export** to [19+ deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, TFLite, etc.)
 - **Deploy** to 43 global regions with one-click dedicated endpoints
 - **Monitor** training progress, deployment health, and usage metrics
@@ -107,7 +107,7 @@ graph LR
 
 ### Model Training
 
-- **Cloud Training**: Train on cloud GPUs (22 on all plans, 24 with [Pro or Enterprise](account/billing.md#plans) for B200 and B300) with real-time metrics
+- **Cloud Training**: Train on cloud GPUs (24 on all plans, 26 with [Pro or Enterprise](account/billing.md#plans) for B200 and B300) with real-time metrics
 - **Remote Training**: Train anywhere and stream metrics to the platform (W&B-style)
 - **Project Organization**: Group related models, compare experiments, track activity
 - **19+ Export Formats**: ONNX, TensorRT, CoreML, TFLite, and more (see [supported formats](train/models.md#supported-formats))
@@ -232,7 +232,7 @@ Once deployed, call your endpoint from any language:
     | Concurrent Trainings | 3              | 10                      | Unlimited      |
     | Deployments          | 3              | 10                      | Unlimited      |
     | Storage              | 100 GB         | 500 GB                  | Unlimited      |
-    | Cloud GPU Types      | 22             | 24 (incl. B200 / B300)  | 24             |
+    | Cloud GPU Types      | 24             | 26 (incl. B200 / B300)  | 26             |
     | Teams                | -              | Up to 5 members         | Up to 50       |
     | Support              | Community      | Priority                | Dedicated      |
 

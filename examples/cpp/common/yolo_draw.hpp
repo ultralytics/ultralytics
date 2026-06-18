@@ -10,12 +10,28 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <string>
+#include <vector>
 #include <opencv2/imgproc.hpp>
 
-#include "yolo_colors.hpp"
-
 namespace yolo {
+
+// Ultralytics color palette (https://docs.ultralytics.com/), returned as BGR for OpenCV.
+// Indexed by class id so each class always gets the same, distinct color. Mirrors
+// ultralytics.utils.plotting.Colors (hex palette), converted to BGR.
+inline cv::Scalar Color(int class_id) {
+    static const std::vector<cv::Scalar> palette = {
+        cv::Scalar(0xFF, 0x2A, 0x04), cv::Scalar(0xEB, 0xDB, 0x0B), cv::Scalar(0xF3, 0xF3, 0xF3),
+        cv::Scalar(0xB7, 0xDF, 0x00), cv::Scalar(0x68, 0x1F, 0x11), cv::Scalar(0xDD, 0x6F, 0xFF),
+        cv::Scalar(0x4F, 0x44, 0xFF), cv::Scalar(0x00, 0xED, 0xCC), cv::Scalar(0x44, 0xF3, 0x00),
+        cv::Scalar(0xFF, 0x00, 0xBD), cv::Scalar(0xFF, 0xB4, 0x00), cv::Scalar(0xBA, 0x00, 0xDD),
+        cv::Scalar(0xFF, 0xFF, 0x00), cv::Scalar(0x00, 0xC0, 0x26), cv::Scalar(0xB3, 0xFF, 0x01),
+        cv::Scalar(0xFF, 0x24, 0x7D), cv::Scalar(0x68, 0x00, 0x7B), cv::Scalar(0x6C, 0x1B, 0xFF),
+        cv::Scalar(0x2F, 0x6D, 0xFC), cv::Scalar(0x0B, 0xFF, 0xA2),
+    };
+    return palette[std::abs(class_id) % static_cast<int>(palette.size())];
+}
 
 // Text color for a given box color, mirroring Annotator.get_txt_color():
 // a fixed set of light palette colors use dark text; everything else uses white.

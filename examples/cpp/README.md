@@ -6,7 +6,7 @@
 
 This directory groups all of the C++ inference examples for [Ultralytics YOLO](https://docs.ultralytics.com/models/) models in one place. Each subfolder is a self-contained project showing how to run [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26), [YOLO11](https://docs.ultralytics.com/models/yolo11), and [YOLOv8](https://docs.ultralytics.com/models/yolov8) models against a different inference backend.
 
-Every backend supports **every task** — [detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [pose](https://docs.ultralytics.com/tasks/pose), [OBB](https://docs.ultralytics.com/tasks/obb), [classify](https://docs.ultralytics.com/tasks/classify), and YOLO26 semantic segmentation — selecting the task automatically from the model metadata or output shapes. Most also handle both grid (YOLOv8/11) and end-to-end (YOLO26) outputs; **OpenCV-DNN** supports the same tasks but only on **grid** models, because the OpenCV DNN module cannot run the YOLO26 end-to-end (NMS-in-graph) operators.
+Every backend supports **every task** ([detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [pose](https://docs.ultralytics.com/tasks/pose), [OBB](https://docs.ultralytics.com/tasks/obb), [classify](https://docs.ultralytics.com/tasks/classify), and YOLO26 semantic segmentation), selecting the task automatically from the model metadata or output shapes. Most also handle both grid (YOLOv8/11) and end-to-end (YOLO26) outputs; **OpenCV-DNN** supports the same tasks but only on **grid** models, because the OpenCV DNN module cannot run the YOLO26 end-to-end (NMS-in-graph) operators.
 
 ## 📂 Examples
 
@@ -44,14 +44,14 @@ cd examples/cpp/OpenCV-DNN && mkdir build && cd build && cmake .. && make
 ### ONNXRuntime
 
 ```bash
-# 1. Export any model and task — the task and class names are read from the metadata
+# 1. Export any model and task: the task and class names are read from the metadata
 yolo export model=yolo26n.pt format=onnx opset=12 # or -seg / -pose / -obb / -cls / -sem
 
 # 2. Build (point ONNXRUNTIME_ROOT at your ONNX Runtime install; -DUSE_CUDA=OFF for CPU)
 cd examples/cpp/ONNXRuntime && mkdir build && cd build
 cmake .. -DONNXRUNTIME_ROOT=/path/to/onnxruntime -DUSE_CUDA=OFF && make
 
-# 3. Run — task auto-detected, result written to the --out path
+# 3. Run: task auto-detected, result written to the --out path
 LD_LIBRARY_PATH=/path/to/onnxruntime/lib ./yolo_onnxruntime --model yolo26n.onnx --source bus.jpg
 ```
 
@@ -65,7 +65,7 @@ yolo export model=yolo26n.pt imgsz=640 format=torchscript
 cd examples/cpp/LibTorch && mkdir build && cd build
 cmake .. -DCMAKE_PREFIX_PATH="/path/to/libtorch;/path/to/opencv" && make
 
-# 3. Run — task auto-detected from the model metadata
+# 3. Run: task auto-detected from the model metadata
 LD_LIBRARY_PATH=/path/to/libtorch/lib ./yolo_libtorch --model yolo26n.torchscript --source bus.jpg
 ```
 
@@ -80,20 +80,20 @@ yolo export model=yolo26n.pt imgsz=640 format=mnn
 cd examples/cpp/MNN && mkdir build && cd build
 cmake .. -DMNN_INCLUDE_DIR=/path/to/MNN/include -DMNN_LIB_DIR=/path/to/MNN/build && make
 
-# 3. Run — task auto-detected from the bizCode metadata
+# 3. Run: task auto-detected from the bizCode metadata
 LD_LIBRARY_PATH=/path/to/MNN/build ./yolo_mnn --model yolo26n.mnn --source bus.jpg
 ```
 
 ### OpenVINO
 
 ```bash
-# 1. Export an OpenVINO IR (or ONNX) model — any task
+# 1. Export an OpenVINO IR (or ONNX) model, any task
 yolo export model=yolo26n.pt imgsz=640 format=openvino
 
 # 2. Build
 cd examples/cpp/OpenVINO && mkdir build && cd build && cmake .. && make
 
-# 3. Run — task auto-detected from the output shapes
+# 3. Run: task auto-detected from the output shapes
 ./yolo_openvino --model yolo26n_openvino_model/yolo26n.xml --source bus.jpg
 ```
 

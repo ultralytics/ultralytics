@@ -361,6 +361,18 @@ def test_results(model: str, tmp_path):
         print(r, len(r), r.path)  # print after methods
 
 
+def test_results_plot_without_boxes():
+    """Test that plotting a masks-only Results (boxes=None) does not raise an AttributeError."""
+    from ultralytics.engine.results import Results
+
+    orig_img = np.zeros((640, 640, 3), dtype=np.uint8)
+    masks = torch.zeros((2, 640, 640), dtype=torch.float32)
+    r = Results(orig_img, path="image.jpg", names={0: "a", 1: "b"}, masks=masks)
+    assert r.boxes is None
+    for color_mode in ("class", "instance"):
+        assert r.plot(color_mode=color_mode).shape == orig_img.shape
+
+
 def test_labels_and_crops():
     """Test output from prediction args for saving YOLO detection labels and crops."""
     imgs = [SOURCE, ASSETS / "zidane.jpg"]

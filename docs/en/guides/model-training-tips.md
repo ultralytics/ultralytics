@@ -8,7 +8,7 @@ keywords: Model Training Machine Learning, AI Model Training, Number of Epochs, 
 
 ## Introduction
 
-One of the most important steps when working on a [computer vision project](./steps-of-a-cv-project.md) is model training. Before reaching this step, you need to [define your goals](./defining-project-goals.md) and [collect and annotate your data](./data-collection-and-annotation.md). After [preprocessing the data](./preprocessing_annotated_data.md) to make sure it is clean and consistent, you can move on to training your model.
+One of the most important steps when working on a [computer vision project](./steps-of-a-cv-project.md) is model training. Before reaching this step, you need to [define your goals](./defining-project-goals.md) and [collect and annotate your data](./data-collection-and-annotation.md). After [preprocessing the data](./preprocessing-annotated-data.md) to make sure it is clean and consistent, you can move on to training your model.
 
 <p align="center">
   <br>
@@ -163,7 +163,7 @@ Different optimizers have various strengths and weaknesses. Let's take a glimpse
 - **MuSGD (Muon + SGD hybrid)**:
     - Combines SGD-style updates with Muon-inspired behavior for improved stability in large-scale training.
     - A good choice when you want SGD-like generalization but need smoother convergence than vanilla SGD.
-    - Especially relevant for YOLO26 training recipes; if unsure, start with `optimizer=auto` and compare against MuSGD on your dataset.
+    - Especially relevant for [YOLO26 training recipes](./yolo26-training-recipe.md); if unsure, start with `optimizer=auto` and compare against MuSGD on your dataset.
 
 For YOLO26, the `optimizer` parameter lets you choose from various optimizers, including SGD, MuSGD, Adam, AdamW, NAdam, RAdam, and RMSProp, or you can set it to `auto` for automatic selection based on model configuration.
 

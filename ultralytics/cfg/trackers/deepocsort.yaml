@@ -2,7 +2,7 @@
 
 # Deep OC-SORT tracker defaults for mode="track"
 # Paper: https://arxiv.org/abs/2302.11813
-# Docs: https://docs.ultralytics.com/modes/track/
+# Docs: https://docs.ultralytics.com/modes/track
 
 tracker_type: deepocsort # (str) Tracker backend: Deep OC-SORT with appearance features and GMC
 track_high_thresh: 0.3 # (float) First-stage match threshold; raise for cleaner tracks, lower to keep more

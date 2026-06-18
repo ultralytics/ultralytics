@@ -17,6 +17,8 @@ from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils.ops import xywh2xyxy
 from ultralytics.utils.plotting import save_one_box
 
+REID_ASSETS = frozenset(f"yolo26{k}-reid.onnx" for k in "nsmlx")
+
 
 class ReID:
     """ReID encoder. Routes `.pt` to the YOLO predictor path; everything else to `AutoBackend`."""
@@ -47,6 +49,12 @@ class ReID:
             self.model(embed=[len(self.model.model.model) - 2], verbose=False, save=False)
             self.fp16 = False
         else:
+            from pathlib import Path
+
+            if Path(str(model)).name in REID_ASSETS:
+                from ultralytics.utils.downloads import attempt_download_asset
+
+                model = attempt_download_asset(str(model))
             self.model = AutoBackend(str(model), device=self.device, fp16=fp16, verbose=False)
             self.fp16 = self.model.fp16
 

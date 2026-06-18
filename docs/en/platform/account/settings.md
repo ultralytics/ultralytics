@@ -65,15 +65,15 @@ Connect your professional profiles:
 
 ![Ultralytics Platform Settings Profile Tab Social Links Grid](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/settings-profile-tab-social-links-grid.avif)
 
-| Platform           | Format               |
-| ------------------ | -------------------- |
-| **GitHub**         | username             |
-| **LinkedIn**       | profile-slug         |
-| **X (Twitter)**    | username             |
-| **YouTube**        | channel-handle       |
-| **Google Scholar** | user-id              |
-| **Discord**        | username             |
-| **Website**        | https://yoursite.com |
+| Platform           | Format         |
+| ------------------ | -------------- |
+| **GitHub**         | username       |
+| **LinkedIn**       | profile-slug   |
+| **X (Twitter)**    | username       |
+| **YouTube**        | channel-handle |
+| **Google Scholar** | user-id        |
+| **Discord**        | username       |
+| **Website**        | `example.com`  |
 
 Social links appear on your public profile page.
 
@@ -227,7 +227,7 @@ The `Plans` tab lets you compare available plans and upgrade or downgrade your s
 | -------------- | --------- | --------- | ----------- | -------------------- | ---------- |
 | **Free**       | 100 GB    | 100       | 3           | 3                    | —          |
 | **Pro**        | 500 GB    | 500       | 10          | 10                   | Up to 5    |
-| **Enterprise** | Unlimited | Unlimited | Unlimited   | Unlimited            | 50+        |
+| **Enterprise** | Unlimited | Unlimited | Unlimited   | Unlimited            | Custom     |
 
 From this tab you can:
 

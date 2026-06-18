@@ -5,12 +5,12 @@
 A C++ application that runs Ultralytics YOLO ONNX models with the [OpenCV DNN module](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html). It supports [detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [pose](https://docs.ultralytics.com/tasks/pose), [OBB](https://docs.ultralytics.com/tasks/obb), [classify](https://docs.ultralytics.com/tasks/classify), and semantic segmentation, sharing its post-processing with the other examples in [`../common`](../common).
 
 > [!IMPORTANT]
-> The OpenCV DNN module cannot run the NMS-in-graph operators used by **YOLO26 end-to-end** exports, and it cannot read class names or the task from the ONNX metadata. So this example targets **grid models** ([YOLOv8](https://docs.ultralytics.com/models/yolov8) / [YOLO11](https://docs.ultralytics.com/models/yolo11), or [YOLO26](https://docs.ultralytics.com/models/yolo26) exported with `nms=False`), class names fall back to the 80 COCO names, and the task is inferred from the output shapes (use `--task` for grid pose/obb).
+> The OpenCV DNN module cannot run the NMS-in-graph operators used by **YOLO26 end-to-end** exports, and it cannot read class names or the task from the ONNX metadata. So this example targets **grid models** ([YOLOv8](https://docs.ultralytics.com/models/yolov8) / [YOLO11](https://docs.ultralytics.com/models/yolo11), or [YOLO26](https://docs.ultralytics.com/models/yolo26) with its end-to-end head disabled), class names fall back to the 80 COCO names, and the task is inferred from the output shapes (use `--task` for grid pose/obb).
 
 ## ✨ Features
 
 - **All tasks:** [detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [pose](https://docs.ultralytics.com/tasks/pose), [OBB](https://docs.ultralytics.com/tasks/obb), [classify](https://docs.ultralytics.com/tasks/classify), and semantic segmentation — on grid models.
-- **All generations (grid):** [YOLOv8](https://docs.ultralytics.com/models/yolov8), [YOLO11](https://docs.ultralytics.com/models/yolo11), and [YOLO26](https://docs.ultralytics.com/models/yolo26) exported with `nms=False`. The OpenCV DNN module cannot run the YOLO26 end-to-end (NMS-in-graph) operators.
+- **All generations (grid):** [YOLOv8](https://docs.ultralytics.com/models/yolov8), [YOLO11](https://docs.ultralytics.com/models/yolo11), and [YOLO26](https://docs.ultralytics.com/models/yolo26) with its end-to-end head disabled. The OpenCV DNN module cannot run the YOLO26 end-to-end (NMS-in-graph) operators.
 - **Zero configuration:** OpenCV exposes no model metadata, so the task is inferred from the output shapes and class names fall back to COCO (pass `--task` for grid pose/obb).
 - **CPU or CUDA:** runs on the OpenCV DNN CPU backend, or the CUDA backend with `--cuda` (requires a CUDA-enabled OpenCV).
 
@@ -25,11 +25,20 @@ A C++ application that runs Ultralytics YOLO ONNX models with the [OpenCV DNN mo
 
 ## 📦 Exporting a Model
 
-Export to ONNX with a fixed input size. For YOLO26, disable the in-graph NMS so OpenCV can run it:
+The OpenCV DNN module runs grid models only. [YOLOv8](https://docs.ultralytics.com/models/yolov8) and [YOLO11](https://docs.ultralytics.com/models/yolo11) export to a grid by default:
 
 ```bash
-yolo export model=yolo26n.pt format=onnx opset=12 imgsz=640 nms=False # YOLO26 (grid output for OpenCV DNN)
-yolo export model=yolo11n.pt format=onnx opset=12 imgsz=640           # YOLOv8 / YOLO11 (detect, -seg, -pose, ...)
+yolo export model=yolo11n.pt format=onnx opset=12 imgsz=640 # detect (also -seg / -pose / -obb / -cls / -sem)
+```
+
+[YOLO26](https://docs.ultralytics.com/models/yolo26) is end-to-end (NMS-free) by architecture, so a normal export emits a `[1, 300, 6]` tensor that the OpenCV DNN module cannot run. Disable the end-to-end head first to get a grid `[1, 84, 8400]` output:
+
+```python
+from ultralytics import YOLO
+
+model = YOLO("yolo26n.pt")
+model.model.model[-1].end2end = False  # grid output the OpenCV DNN module can run
+model.export(format="onnx", opset=12, imgsz=640)
 ```
 
 ## 🛠️ Build

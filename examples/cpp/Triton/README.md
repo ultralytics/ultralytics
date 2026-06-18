@@ -1,4 +1,4 @@
-# Ultralytics YOLO Triton Inference Server C++ Client
+# Ultralytics YOLO Triton Inference in C++
 
 <img alt="C++" src="https://img.shields.io/badge/C%2B%2B-17-00599C.svg?logo=cplusplus&logoColor=white"> <img alt="NVIDIA Triton" src="https://img.shields.io/badge/NVIDIA%20Triton-76B900.svg?logo=nvidia&logoColor=white"> <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white"> <img alt="gRPC" src="https://img.shields.io/badge/gRPC-244c5a.svg?logo=google&logoColor=white">
 

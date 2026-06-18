@@ -1,4 +1,4 @@
-# Ultralytics YOLO ONNX Runtime C++ Example
+# Ultralytics YOLO ONNX Runtime Inference in C++
 
 <img alt="C++" src="https://img.shields.io/badge/C%2B%2B-17-00599C.svg?logo=cplusplus&logoColor=white"> <img alt="ONNX Runtime" src="https://img.shields.io/badge/ONNX%20Runtime-717272.svg?logo=onnx&logoColor=white"> <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white">
 

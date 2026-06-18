@@ -1,4 +1,4 @@
-# Ultralytics YOLO LibTorch Inference C++
+# Ultralytics YOLO LibTorch Inference in C++
 
 <img alt="C++" src="https://img.shields.io/badge/C%2B%2B-17-00599C.svg?logo=cplusplus&logoColor=white"> <img alt="LibTorch" src="https://img.shields.io/badge/LibTorch-EE4C2C.svg?logo=pytorch&logoColor=white"> <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white">
 

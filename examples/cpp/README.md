@@ -98,7 +98,7 @@ cd examples/cpp/OpenVINO && mkdir build && cd build && cmake .. && make
 ### Triton
 
 ```bash
-# 1. Deploy any YOLO model on an NVIDIA Triton Inference Server (e.g. model name "yolo26_det")
+# 1. Deploy any YOLO model on an NVIDIA Triton Inference Server (e.g. model name "yolo26n")
 
 # 2. Build the client (point TRITON_CLIENT_DIR at the Triton client libraries)
 cd examples/cpp/Triton && mkdir build && cd build
@@ -106,8 +106,8 @@ cmake .. -DTRITON_CLIENT_DIR=/path/to/tritonclient && make
 
 # 3. Run the client - task auto-detected from the model outputs (default URL localhost:8001).
 #    YOLO26 auto-detects every task; only legacy grid YOLOv8/11 pose/obb need --task.
-./yolo_triton --model yolo26_det --source bus.jpg
-./yolo_triton --model yolo26_pose --source bus.jpg
+./yolo_triton --model yolo26n --source bus.jpg
+./yolo_triton --model yolo26n-pose --source bus.jpg
 ```
 
 See each example's own `README.md` for full dependency lists, platform notes, and configuration options.

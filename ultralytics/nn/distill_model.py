@@ -482,16 +482,16 @@ class DistillationModel(nn.Module):
         return F.mse_loss(self.query_projector(s_matched), t_matched)
 
     def _query_pred_decoder_loss(self):
-        """Hinton-style full-distribution soft-label classification + box L1/GIoU on Hungarian-matched queries.
+        """VFL/MAL classification + box L1/GIoU on Hungarian-matched queries via the supervised criterion.
 
-        Classification treats every per-class teacher sigmoid as an independent Bernoulli target — `BCE-with-logits`
-        on the *entire* class distribution preserves dark knowledge (relative inter-class confidences) and naturally
-        attenuates background queries since their soft targets are uniformly small. Scaled by the student criterion's
-        `loss_gain['class']` for magnitude consistency with the supervised cls term.
+        Classification reuses `student_model.criterion._get_loss_class` with the teacher's argmax class as integer
+        target and the teacher's sigmoid at that class as the soft confidence (`gt_scores`). This inherits the
+        supervised focal modulation, which bounds the negative-class gradient and avoids the logit blowup that raw
+        full-distribution soft-BCE produced. Trades dark knowledge across non-top classes for numerical stability.
 
-        Box loss reuses `student_model.criterion._get_loss_bbox`, so L1+GIoU gains and normalization mirror the
-        supervised regime exactly. The full return is scaled by `self.dis_pred` to equalize its magnitude vs the
-        MSE-based objectness/query_feat decoder terms before the `dis_dec` multiplier in `_decoder_loss`.
+        Box loss reuses `_get_loss_bbox`, so L1+GIoU gains and normalization mirror the supervised regime exactly.
+        The full return is scaled by `self.dis_pred` to equalize its magnitude vs the MSE-based objectness/query_feat
+        decoder terms before the `dis_dec` multiplier in `_decoder_loss`.
         """
         t_boxes, t_logits = self._unpack_dec_predictions(self._teacher_dec_out["out"])
         s_boxes, s_logits = self._unpack_dec_predictions(self._student_dec_out["out"])
@@ -505,11 +505,15 @@ class DistillationModel(nn.Module):
         if s_b.shape[0] == 0:
             return s_logits.new_zeros(())
 
-        soft_target = t_l.sigmoid().detach()
         crit = self.student_model.criterion
-        loss_cls = F.binary_cross_entropy_with_logits(s_l, soft_target, reduction="mean") * crit.loss_gain["class"]
+        t_targets = t_l.argmax(dim=-1).clamp_(max=crit.nc - 1).detach()  # teacher argmax, clamped to student nc
+        t_scores = t_l.sigmoid().gather(-1, t_targets.unsqueeze(-1)).squeeze(-1).detach()  # confidence at argmax
+        n = s_l.shape[0]
+        cls_dict = crit._get_loss_class(
+            s_l.unsqueeze(0), t_targets.unsqueeze(0), t_scores.unsqueeze(0), n, float(n), postfix="_pred"
+        )
         box_dict = crit._get_loss_bbox(s_b, t_b, float(s_b.shape[0]), postfix="_pred")
-        return (loss_cls + box_dict["loss_bbox_pred"] + box_dict["loss_giou_pred"]) * self.dis_pred
+        return (cls_dict["loss_class_pred"] + box_dict["loss_bbox_pred"] + box_dict["loss_giou_pred"]) * self.dis_pred
 
     def _decoder_loss(self):
         """Compose the decoder-level KD losses enabled by `distill_decoder`, scaled by `self.dis_dec`.

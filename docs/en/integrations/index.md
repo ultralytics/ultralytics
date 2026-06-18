@@ -107,6 +107,10 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [TorchScript](torchscript.md): Developed as part of the [PyTorch](https://pytorch.org/) framework, TorchScript enables efficient execution and deployment of machine learning models in various production environments without the need for Python dependencies.
 
+## Visualization & Analysis Integrations
+
+- [YAML2ModelGraph](yaml2modelgraph.md): Generate publication-ready SVG architecture diagrams from YOLO YAML model configs. Visualize Backbone, Neck, and Head modules with 9 themes and dual head display modes.
+
 ## Datasets Integrations
 
 - [Roboflow](roboflow.md): Facilitate dataset labeling and management for Ultralytics models, offering annotation tools to label images.

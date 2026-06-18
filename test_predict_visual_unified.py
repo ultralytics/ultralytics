@@ -1,26 +1,23 @@
 #!/usr/bin/env python
-"""All-category MVTec predict — per-model archive of 8-panel comparison grids.
+"""All-category MVTec predict with a UNIFIED memory bank (all 15 cats mixed).
 
-Iterates every MVTec category (defect + normal test images, capped per category), runs 4 prior
-modes (none / segment / memory-bank heatmap / GT mask) and saves a CompareGrid per image. The
-trained weights load ONCE; each category's memory bank is built once and cached to disk
-(banks/<category>.pt), so re-runs of the same model skip the slow feature extraction.
+Same grid layout as test_predict_visual.py, but builds ONE memory bank from every
+category's normals combined (no per-category banks). Use this to probe whether mixing
+categories couples their normal manifolds and produces false alarms / false negatives
+versus the per-category bank baseline.
 
 Grid layout (2 rows x 4 cols):
   Row 1: original | None Prior | seg heatmap | seg prior pred
   Row 2: mb heatmap | heatmap prior pred | GT mask | mask prior pred
 
-Output (one dir per model, named by the ckpt's run id):
-  runs/temp/predict_visual/<run_id>/
-    banks/<category>.pt          # cached memory bank
+Output:
+  runs/temp/predict_visual_unified/<run_id>/
+    banks/unified.pt             # cached unified memory bank
     <category>/<type>__<stem>.jpg
 
 Usage:
-  python test_predict_visual.py --ckpt <best.pt> --yaml <model.yaml>                  # all 15 categories
-  python test_predict_visual.py --ckpt ... --yaml ... --category zipper --n-per-category 3
-  python test_predict_visual.py --ckpt ... --yaml ... --carried-bank                  # mocobank ckpts:
-      # use the pickled model + its training-time FIFO queue as-is (no per-category rebuild),
-      # so the 'mb heatmap' panel shows the exact prior the model trained with.
+  python test_predict_visual_unified.py --ckpt <best.pt> --yaml <model.yaml>
+  python test_predict_visual_unified.py --ckpt ... --yaml ... --max_bank 100000
 """
 
 import argparse
@@ -38,6 +35,7 @@ from ultralytics.utils.torch_utils import select_device
 from compare_grid import CompareGrid
 
 MVTEC_ROOT = Path("/Users/louis/workspace/ultra_louis_work/buffer/AnomalyData/MVTEC/MVTec-YOLO")
+IMG_EXTS = {".bmp", ".dng", ".jpeg", ".jpg", ".mpo", ".png", ".tif", ".tiff", ".webp", ".pfm"}
 
 
 def collect_test_images(test_root: Path, n: int) -> list[tuple[str, str]]:
@@ -52,6 +50,49 @@ def collect_test_images(test_root: Path, n: int) -> list[tuple[str, str]]:
                 pairs.append((str(p), subdir.name))
     random.shuffle(pairs)
     return pairs[:n] if n and n > 0 else pairs
+
+
+def collect_unified_normals(mvtec_root: Path, cats: list[str], per_cat: int = 0) -> list[str]:
+    """Collect normal-image paths across all categories for a unified memory bank.
+
+    Args:
+        mvtec_root: MVTec-YOLO root containing one subdir per category.
+        cats: Category names to include.
+        per_cat: Cap per category (0 = use all normals from that category).
+
+    Returns:
+        Flat list of image paths. Order is interleaved across categories so a coreset
+        subsample retains coverage even if the bank fills before iteration finishes.
+    """
+    per_cat_lists: list[list[str]] = []
+    for cat in cats:
+        train_dir = mvtec_root / cat / "train" / "good"
+        if not train_dir.is_dir():
+            train_dir = mvtec_root / cat / "train"
+        if not train_dir.is_dir():
+            LOGGER.warning(f"  {cat}: no train dir, skipping for bank")
+            per_cat_lists.append([])
+            continue
+        paths = sorted(str(p) for p in train_dir.iterdir()
+                       if p.is_file() and p.suffix.lower() in IMG_EXTS)
+        if per_cat > 0 and len(paths) > per_cat:
+            paths = paths[:per_cat]
+        per_cat_lists.append(paths)
+        LOGGER.info(f"  {cat}: {len(paths)} normals")
+
+    # Round-robin interleave so categories are evenly represented during accumulation.
+    interleaved: list[str] = []
+    idx = 0
+    while True:
+        added = False
+        for lst in per_cat_lists:
+            if idx < len(lst):
+                interleaved.append(lst[idx])
+                added = True
+        if not added:
+            break
+        idx += 1
+    return interleaved
 
 
 def load_mask_tensor(mask_path: str | None, imgsz: int) -> torch.Tensor | None:
@@ -98,7 +139,7 @@ def restore_bank(mb, path: Path) -> None:
     calibrated temperature and marks the bank frozen (update=False) so forward runs in scoring mode.
     """
     d = torch.load(path, map_location="cpu")
-    mb.load_bank(d["memory_bank"])  # re-normalizes + sets feature_dim, onto the bank's device
+    mb.load_bank(d["memory_bank"])
     mb.temperature = d["temperature"]
     mb.update = False
 
@@ -146,91 +187,63 @@ YAML = "yolo26m-anomaly-v2-film-gauss.yaml"
 
 
 def main():
-    parser = argparse.ArgumentParser(description="All-category MVTec predict — per-model grid archive")
+    parser = argparse.ArgumentParser(description="All-category MVTec predict — UNIFIED memory bank")
     parser.add_argument("--ckpt", type=str, default=MODEL_W)
     parser.add_argument("--yaml", type=str, default=YAML)
     parser.add_argument("--category", type=str, default=None,
-                        help="Single category (default: all 15). 'all' = all.")
+                        help="Single category for test inference (default: all 15). Bank is still unified.")
     parser.add_argument("--n-per-category", type=int, default=20,
                         help="Max test images per category (0 = all)")
+    parser.add_argument("--n-normals-per-cat", type=int, default=0,
+                        help="Cap normals per category contributing to unified bank (0 = all)")
     parser.add_argument("--conf", type=float, default=0.1)
     parser.add_argument("--iou", type=float, default=0.1, help="NMS IoU threshold (applied to all prior modes)")
     parser.add_argument("--imgsz", type=int, default=320)
     parser.add_argument("--batch", type=int, default=8)
-    parser.add_argument("--max_bank", type=int, default=10000)
-    parser.add_argument("--max_images", type=int, default=1000,
-                        help="Cap on normal images for bank (0=all)")
+    parser.add_argument("--max_bank", type=int, default=50000,
+                        help="Coreset budget for the unified bank (default 50000, ~5x per-cat)")
     parser.add_argument("--device", type=str, default=None)
     parser.add_argument("--nc", type=int, default=None,
                         help="Number of classes (default: auto-detect from ckpt; multiclass-safe)")
-    parser.add_argument("--heat-norm", type=str, default="none", choices=["none", "minmax"],
+    parser.add_argument("--heat-norm", type=str, default="minmax", choices=["none", "minmax"],
                         help="Per-image prior normalization before fusion (minmax stretches to [0,1])")
     parser.add_argument("--out", type=str, default=None,
-                        help="Output dir (default: runs/temp/predict_visual/<run_id>)")
+                        help="Output dir (default: runs/temp/predict_visual_unified/<run_id>)")
     parser.add_argument("--seed", type=int, default=0,
                         help="RNG seed for per-category sampling (same images across models; idempotent re-runs)")
-    parser.add_argument("--carried-bank", action="store_true",
-                        help="Use the ckpt's pickled model + its carried FIFO queue (mocobank training "
-                             "prior) instead of rebuilding per-category banks. The queue is a plain "
-                             "attribute, so the default yaml+state_dict load path cannot see it.")
+    parser.add_argument("--rebuild-bank", action="store_true",
+                        help="Force-rebuild unified bank even if cached")
     args = parser.parse_args()
 
     random.seed(args.seed)
-    device = select_device(args.device or "cpu")  # handles cpu / mps / "0" / cuda:0
+    device = select_device(args.device or "cpu")
 
-    # run_id from ckpt path: <run>/weights/best.pt -> <run>
     ckpt_path = Path(args.ckpt).resolve()
     run_id = ckpt_path.parents[1].name if ckpt_path.parent.name == "weights" else ckpt_path.stem
-    if args.carried_bank:
-        run_id += "_carried"  # keep carried-queue grids separate from per-cat-bank grids
-    out_root = Path(args.out) if args.out else Path(f"runs/temp/predict_visual/{run_id}")
+    out_root = Path(args.out) if args.out else Path(f"runs/temp/predict_visual_unified/{run_id}")
     banks_dir = out_root / "banks"
     banks_dir.mkdir(parents=True, exist_ok=True)
     LOGGER.info(f"Archive dir: {out_root}")
 
     # ---- Build model ONCE (weights shared across categories) ----
-    # Load the ckpt FIRST so the head can be sized to its class count: a multiclass checkpoint
-    # (e.g. nc=35) built with nc=1 would have its cls-head weights shape-mismatched and silently
-    # dropped, leaving a random classifier. nc comes from --nc, else auto-detected from the ckpt.
     LOGGER.info("Building model...")
     ckpt = torch.load(args.ckpt, map_location="cpu", weights_only=False)
-    is_slim = isinstance(ckpt, dict) and ckpt.get("slim_format")
-    if is_slim:
-        # scripts/yoloa_slim.py export: state_dict-only blob. yaml/nc/names come from the file
-        # (the exact training config); --yaml overrides only if explicitly passed.
-        inner = None
-        ckpt_state = {k: (v.float() if v.is_floating_point() else v)
-                      for k, v in ckpt["model_state_dict"].items()}
-        ckpt_names = ckpt.get("names")
-        nc = args.nc or ckpt.get("nc") or (len(ckpt_names) if ckpt_names else None) or 1
-        if not args.yaml or args.yaml == YAML:  # default/unset -> use the slim file's yaml
-            args.yaml = ckpt.get("yaml", args.yaml)
-        LOGGER.info(f"slim ckpt: yaml={args.yaml}, nc={nc}")
+    if isinstance(ckpt, dict):
+        inner = ckpt.get("ema") or ckpt.get("model")
+        ckpt_state = inner.state_dict() if hasattr(inner, "state_dict") else inner
     else:
-        if isinstance(ckpt, dict):
-            inner = ckpt.get("ema") or ckpt.get("model")
-            ckpt_state = inner.state_dict() if hasattr(inner, "state_dict") else inner
-        else:
-            inner, ckpt_state = None, ckpt
-        ckpt_names = getattr(inner, "names", None)
-        nc = args.nc or getattr(inner, "nc", None) or (len(ckpt_names) if ckpt_names else None) or 1
-        LOGGER.info(f"nc = {nc}" + (" (--nc)" if args.nc else " (auto-detected from ckpt)"))
+        inner, ckpt_state = None, ckpt
+    ckpt_names = getattr(inner, "names", None)
+    nc = args.nc or getattr(inner, "nc", None) or (len(ckpt_names) if ckpt_names else None) or 1
+    LOGGER.info(f"nc = {nc}" + (" (--nc)" if args.nc else " (auto-detected from ckpt)"))
 
-    if args.carried_bank:
-        # The FIFO queue lives as a plain attribute on the pickled model — it is invisible to
-        # state_dict, so the yaml-rebuild path below can never carry it. Use the model object.
-        if inner is None or getattr(inner, "memory_bank", None) is None:
-            raise SystemExit("--carried-bank: ckpt has no pickled model with a memory bank")
-        model = inner.float()
-        LOGGER.info("carried-bank mode: pickled model object, training-time queue, no rebuild")
-    else:
-        model = YOLOAnomalyV2Model(args.yaml, nc=nc, verbose=False)
-        ms = model.state_dict()
-        matched = {k: v for k, v in ckpt_state.items() if k in ms and ms[k].shape == v.shape}
-        model.load_state_dict(matched, strict=False)
-        _report_load(matched, ckpt_state, ms)
-        if ckpt_names:
-            model.names = ckpt_names  # plotted detections show the real class labels
+    model = YOLOAnomalyV2Model(args.yaml, nc=nc, verbose=False)
+    ms = model.state_dict()
+    matched = {k: v for k, v in ckpt_state.items() if k in ms and ms[k].shape == v.shape}
+    model.load_state_dict(matched, strict=False)
+    _report_load(matched, ckpt_state, ms)
+    if ckpt_names:
+        model.names = ckpt_names
     model.to(device)
     model.eval()
     model.heatmap_norm = args.heat_norm
@@ -239,54 +252,48 @@ def main():
     if not has_bank:
         LOGGER.warning("Model has no memory bank (no bb_layers) — 'heatmap' prior falls back to no-prior; "
                        "'segment' also falls back if the model has no SegBranch. Only 'none'/'mask' are meaningful.")
-    if args.carried_bank and has_bank:
-        mbq = model.memory_bank
-        n_valid = int((mbq.memory_bank.float().norm(dim=1) > 0).sum()) if mbq.memory_bank.numel() else 0
-        if n_valid == 0:
-            LOGGER.warning("carried bank is EMPTY — 'heatmap' prior will fall back to no-prior")
-        else:
-            LOGGER.info(f"carried bank: {n_valid} vecs, beta={mbq.temperature:.2f}, "
-                        f"frozen={mbq.built} (one unified queue shared across all categories)")
 
     y = YOLO(args.yaml)
     y.model = model
     cg = CompareGrid()
 
-    # ---- Categories ----
+    # ---- Categories: test inference always runs over the requested subset, ----
+    # ---- but the unified bank ALWAYS pools normals from all 15 categories.   ----
+    all_cats = sorted(d.name for d in MVTEC_ROOT.iterdir() if d.is_dir())
     if args.category and args.category.lower() != "all":
-        cats = [args.category]
+        test_cats = [args.category]
     else:
-        cats = sorted(d.name for d in MVTEC_ROOT.iterdir() if d.is_dir())
-    LOGGER.info(f"Categories ({len(cats)}): {cats}")
+        test_cats = all_cats
+    LOGGER.info(f"Bank pool ({len(all_cats)}): {all_cats}")
+    LOGGER.info(f"Test cats ({len(test_cats)}): {test_cats}")
 
+    # ---- Unified memory bank: restore from cache or build once across all categories ----
+    if has_bank:
+        mb = model.memory_bank
+        bank_path = banks_dir / "unified.pt"
+        if bank_path.exists() and not args.rebuild_bank:
+            restore_bank(mb, bank_path)
+            LOGGER.info(f"Loaded cached unified bank ({mb.memory_bank.shape[0]} vecs) <- {bank_path}")
+        else:
+            LOGGER.info(f"Collecting normals from {len(all_cats)} categories "
+                        f"(per-cat cap={args.n_normals_per_cat or 'all'}):")
+            normals = collect_unified_normals(MVTEC_ROOT, all_cats, per_cat=args.n_normals_per_cat)
+            LOGGER.info(f"Total normals for unified bank: {len(normals)}; coreset budget {args.max_bank}")
+            mb.reset_memory_bank()
+            model.load_support_set(normals, imgsz=args.imgsz, device=device,
+                                   batch=args.batch, max_bank_size=args.max_bank,
+                                   max_images=0, verbose=True)
+            save_bank(mb, bank_path)
+            LOGGER.info(f"Unified bank built+saved ({mb.memory_bank.shape[0]} vecs) -> {bank_path}")
+
+    # ---- Per-category test loop (same unified bank for all) ----
     total = 0
-    for ci, cat in enumerate(cats, 1):
+    for ci, cat in enumerate(test_cats, 1):
         test_root = MVTEC_ROOT / cat / "test"
         if not test_root.is_dir():
-            LOGGER.warning(f"[{ci}/{len(cats)}] {cat}: no test/ dir, skipping")
+            LOGGER.warning(f"[{ci}/{len(test_cats)}] {cat}: no test/ dir, skipping")
             continue
 
-        # ---- Per-category memory bank: restore from cache, or build once + save ----
-        # (skipped in carried-bank mode: the one training-time queue serves every category)
-        if has_bank and not args.carried_bank:
-            mb = model.memory_bank
-            bank_path = banks_dir / f"{cat}.pt"
-            if bank_path.exists():
-                restore_bank(mb, bank_path)
-                LOGGER.info(f"[{ci}/{len(cats)}] {cat}: loaded cached bank ({mb.memory_bank.shape[0]} vecs)")
-            else:
-                train_dir = MVTEC_ROOT / cat / "train" / "good"
-                if not train_dir.is_dir():
-                    train_dir = MVTEC_ROOT / cat / "train"
-                LOGGER.info(f"[{ci}/{len(cats)}] {cat}: building bank from {train_dir} ...")
-                mb.reset_memory_bank()
-                model.load_support_set(str(train_dir), imgsz=args.imgsz, device=device,
-                                       batch=args.batch, max_bank_size=args.max_bank,
-                                       max_images=args.max_images, verbose=False)
-                save_bank(mb, bank_path)
-                LOGGER.info(f"[{ci}/{len(cats)}] {cat}: bank built+saved ({mb.memory_bank.shape[0]} vecs) -> {bank_path}")
-
-        # ---- Sample test images + save grids ----
         samples = collect_test_images(test_root, args.n_per_category)
         cat_out = out_root / cat
         for img_path, label in samples:
@@ -310,9 +317,9 @@ def main():
                 n_none=n_none, n_seg=n_seg, n_heat=n_heat, n_mask=n_mask,
             )
             total += 1
-        LOGGER.info(f"[{ci}/{len(cats)}] {cat}: {len(samples)} grids -> {cat_out}")
+        LOGGER.info(f"[{ci}/{len(test_cats)}] {cat}: {len(samples)} grids -> {cat_out}")
 
-    LOGGER.info(f"Done. {total} grids across {len(cats)} categories -> {out_root}")
+    LOGGER.info(f"Done. {total} grids across {len(test_cats)} categories -> {out_root}")
 
 
 if __name__ == "__main__":

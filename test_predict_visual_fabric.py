@@ -1,26 +1,28 @@
 #!/usr/bin/env python
-"""All-category MVTec predict — per-model archive of 8-panel comparison grids.
+"""All-category Fabric predict — per-model archive of 8-panel comparison grids.
 
-Iterates every MVTec category (defect + normal test images, capped per category), runs 4 prior
-modes (none / segment / memory-bank heatmap / GT mask) and saves a CompareGrid per image. The
-trained weights load ONCE; each category's memory bank is built once and cached to disk
-(banks/<category>.pt), so re-runs of the same model skip the slow feature extraction.
+Same as ``test_predict_visual.py`` but points at the Fabric anomaly dataset
+(``buffer/AnomalyDataFabric/Fabric``), which holds several MVTec-format fabric
+categories (``<cat>/train/good``, ``<cat>/test/{defect,good}``) with ``.jpg``
+images and NO GT masks — so the two mask panels degrade to the plain original.
+
+Iterates every Fabric category, runs the prior modes (none / segment / memory-bank
+heatmap / GT mask) and saves a CompareGrid per image. Weights load ONCE; each
+category's memory bank is built once and cached to disk (banks/<category>.pt), so
+re-runs of the same model skip the slow feature extraction.
 
 Grid layout (2 rows x 4 cols):
   Row 1: original | None Prior | seg heatmap | seg prior pred
   Row 2: mb heatmap | heatmap prior pred | GT mask | mask prior pred
 
 Output (one dir per model, named by the ckpt's run id):
-  runs/temp/predict_visual/<run_id>/
+  runs/temp/predict_visual_fabric/<run_id>/
     banks/<category>.pt          # cached memory bank
     <category>/<type>__<stem>.jpg
 
 Usage:
-  python test_predict_visual.py --ckpt <best.pt> --yaml <model.yaml>                  # all 15 categories
-  python test_predict_visual.py --ckpt ... --yaml ... --category zipper --n-per-category 3
-  python test_predict_visual.py --ckpt ... --yaml ... --carried-bank                  # mocobank ckpts:
-      # use the pickled model + its training-time FIFO queue as-is (no per-category rebuild),
-      # so the 'mb heatmap' panel shows the exact prior the model trained with.
+  python test_predict_visual_fabric.py --ckpt <best.pt> --yaml <model.yaml>          # all categories
+  python test_predict_visual_fabric.py --ckpt ... --yaml ... --category Fowa1 --n-per-category 3
 """
 
 import argparse
@@ -37,7 +39,8 @@ from ultralytics.utils import LOGGER
 from ultralytics.utils.torch_utils import select_device
 from compare_grid import CompareGrid
 
-MVTEC_ROOT = Path("/Users/louis/workspace/ultra_louis_work/buffer/AnomalyData/MVTEC/MVTec-YOLO")
+FABRIC_ROOT = Path("/Users/louis/workspace/ultra_louis_work/buffer/AnomalyDataFabric/Fabric")
+IMG_EXTS = ("*.jpg", "*.jpeg", "*.png", "*.bmp")
 
 
 def collect_test_images(test_root: Path, n: int) -> list[tuple[str, str]]:
@@ -48,8 +51,9 @@ def collect_test_images(test_root: Path, n: int) -> list[tuple[str, str]]:
     pairs = []
     for subdir in sorted(test_root.iterdir()):
         if subdir.is_dir():
-            for p in sorted(subdir.glob("*.png")):
-                pairs.append((str(p), subdir.name))
+            for ext in IMG_EXTS:
+                for p in sorted(subdir.glob(ext)):
+                    pairs.append((str(p), subdir.name))
     random.shuffle(pairs)
     return pairs[:n] if n and n > 0 else pairs
 
@@ -146,11 +150,11 @@ YAML = "yolo26m-anomaly-v2-film-gauss.yaml"
 
 
 def main():
-    parser = argparse.ArgumentParser(description="All-category MVTec predict — per-model grid archive")
+    parser = argparse.ArgumentParser(description="All-category Fabric predict — per-model grid archive")
     parser.add_argument("--ckpt", type=str, default=MODEL_W)
     parser.add_argument("--yaml", type=str, default=YAML)
     parser.add_argument("--category", type=str, default=None,
-                        help="Single category (default: all 15). 'all' = all.")
+                        help="Single Fabric category (default: all). 'all' = all.")
     parser.add_argument("--n-per-category", type=int, default=20,
                         help="Max test images per category (0 = all)")
     parser.add_argument("--conf", type=float, default=0.1)
@@ -161,18 +165,12 @@ def main():
     parser.add_argument("--max_images", type=int, default=1000,
                         help="Cap on normal images for bank (0=all)")
     parser.add_argument("--device", type=str, default=None)
-    parser.add_argument("--nc", type=int, default=None,
-                        help="Number of classes (default: auto-detect from ckpt; multiclass-safe)")
-    parser.add_argument("--heat-norm", type=str, default="none", choices=["none", "minmax"],
+    parser.add_argument("--heat-norm", type=str, default="minmax", choices=["none", "minmax"],
                         help="Per-image prior normalization before fusion (minmax stretches to [0,1])")
     parser.add_argument("--out", type=str, default=None,
-                        help="Output dir (default: runs/temp/predict_visual/<run_id>)")
+                        help="Output dir (default: runs/temp/predict_visual_fabric/<run_id>)")
     parser.add_argument("--seed", type=int, default=0,
                         help="RNG seed for per-category sampling (same images across models; idempotent re-runs)")
-    parser.add_argument("--carried-bank", action="store_true",
-                        help="Use the ckpt's pickled model + its carried FIFO queue (mocobank training "
-                             "prior) instead of rebuilding per-category banks. The queue is a plain "
-                             "attribute, so the default yaml+state_dict load path cannot see it.")
     args = parser.parse_args()
 
     random.seed(args.seed)
@@ -181,56 +179,24 @@ def main():
     # run_id from ckpt path: <run>/weights/best.pt -> <run>
     ckpt_path = Path(args.ckpt).resolve()
     run_id = ckpt_path.parents[1].name if ckpt_path.parent.name == "weights" else ckpt_path.stem
-    if args.carried_bank:
-        run_id += "_carried"  # keep carried-queue grids separate from per-cat-bank grids
-    out_root = Path(args.out) if args.out else Path(f"runs/temp/predict_visual/{run_id}")
+    out_root = Path(args.out) if args.out else Path(f"runs/temp/predict_visual_fabric/{run_id}")
     banks_dir = out_root / "banks"
     banks_dir.mkdir(parents=True, exist_ok=True)
     LOGGER.info(f"Archive dir: {out_root}")
 
     # ---- Build model ONCE (weights shared across categories) ----
-    # Load the ckpt FIRST so the head can be sized to its class count: a multiclass checkpoint
-    # (e.g. nc=35) built with nc=1 would have its cls-head weights shape-mismatched and silently
-    # dropped, leaving a random classifier. nc comes from --nc, else auto-detected from the ckpt.
     LOGGER.info("Building model...")
+    model = YOLOAnomalyV2Model(args.yaml, nc=1, verbose=False)
     ckpt = torch.load(args.ckpt, map_location="cpu", weights_only=False)
-    is_slim = isinstance(ckpt, dict) and ckpt.get("slim_format")
-    if is_slim:
-        # scripts/yoloa_slim.py export: state_dict-only blob. yaml/nc/names come from the file
-        # (the exact training config); --yaml overrides only if explicitly passed.
-        inner = None
-        ckpt_state = {k: (v.float() if v.is_floating_point() else v)
-                      for k, v in ckpt["model_state_dict"].items()}
-        ckpt_names = ckpt.get("names")
-        nc = args.nc or ckpt.get("nc") or (len(ckpt_names) if ckpt_names else None) or 1
-        if not args.yaml or args.yaml == YAML:  # default/unset -> use the slim file's yaml
-            args.yaml = ckpt.get("yaml", args.yaml)
-        LOGGER.info(f"slim ckpt: yaml={args.yaml}, nc={nc}")
+    if isinstance(ckpt, dict):
+        inner = ckpt.get("ema") or ckpt.get("model")
+        ckpt_state = inner.state_dict() if hasattr(inner, "state_dict") else inner
     else:
-        if isinstance(ckpt, dict):
-            inner = ckpt.get("ema") or ckpt.get("model")
-            ckpt_state = inner.state_dict() if hasattr(inner, "state_dict") else inner
-        else:
-            inner, ckpt_state = None, ckpt
-        ckpt_names = getattr(inner, "names", None)
-        nc = args.nc or getattr(inner, "nc", None) or (len(ckpt_names) if ckpt_names else None) or 1
-        LOGGER.info(f"nc = {nc}" + (" (--nc)" if args.nc else " (auto-detected from ckpt)"))
-
-    if args.carried_bank:
-        # The FIFO queue lives as a plain attribute on the pickled model — it is invisible to
-        # state_dict, so the yaml-rebuild path below can never carry it. Use the model object.
-        if inner is None or getattr(inner, "memory_bank", None) is None:
-            raise SystemExit("--carried-bank: ckpt has no pickled model with a memory bank")
-        model = inner.float()
-        LOGGER.info("carried-bank mode: pickled model object, training-time queue, no rebuild")
-    else:
-        model = YOLOAnomalyV2Model(args.yaml, nc=nc, verbose=False)
-        ms = model.state_dict()
-        matched = {k: v for k, v in ckpt_state.items() if k in ms and ms[k].shape == v.shape}
-        model.load_state_dict(matched, strict=False)
-        _report_load(matched, ckpt_state, ms)
-        if ckpt_names:
-            model.names = ckpt_names  # plotted detections show the real class labels
+        ckpt_state = ckpt
+    ms = model.state_dict()
+    matched = {k: v for k, v in ckpt_state.items() if k in ms and ms[k].shape == v.shape}
+    model.load_state_dict(matched, strict=False)
+    _report_load(matched, ckpt_state, ms)
     model.to(device)
     model.eval()
     model.heatmap_norm = args.heat_norm
@@ -239,14 +205,6 @@ def main():
     if not has_bank:
         LOGGER.warning("Model has no memory bank (no bb_layers) — 'heatmap' prior falls back to no-prior; "
                        "'segment' also falls back if the model has no SegBranch. Only 'none'/'mask' are meaningful.")
-    if args.carried_bank and has_bank:
-        mbq = model.memory_bank
-        n_valid = int((mbq.memory_bank.float().norm(dim=1) > 0).sum()) if mbq.memory_bank.numel() else 0
-        if n_valid == 0:
-            LOGGER.warning("carried bank is EMPTY — 'heatmap' prior will fall back to no-prior")
-        else:
-            LOGGER.info(f"carried bank: {n_valid} vecs, beta={mbq.temperature:.2f}, "
-                        f"frozen={mbq.built} (one unified queue shared across all categories)")
 
     y = YOLO(args.yaml)
     y.model = model
@@ -256,28 +214,27 @@ def main():
     if args.category and args.category.lower() != "all":
         cats = [args.category]
     else:
-        cats = sorted(d.name for d in MVTEC_ROOT.iterdir() if d.is_dir())
+        cats = sorted(d.name for d in FABRIC_ROOT.iterdir() if d.is_dir())
     LOGGER.info(f"Categories ({len(cats)}): {cats}")
 
     total = 0
     for ci, cat in enumerate(cats, 1):
-        test_root = MVTEC_ROOT / cat / "test"
+        test_root = FABRIC_ROOT / cat / "test"
         if not test_root.is_dir():
             LOGGER.warning(f"[{ci}/{len(cats)}] {cat}: no test/ dir, skipping")
             continue
 
         # ---- Per-category memory bank: restore from cache, or build once + save ----
-        # (skipped in carried-bank mode: the one training-time queue serves every category)
-        if has_bank and not args.carried_bank:
+        if has_bank:
             mb = model.memory_bank
             bank_path = banks_dir / f"{cat}.pt"
             if bank_path.exists():
                 restore_bank(mb, bank_path)
                 LOGGER.info(f"[{ci}/{len(cats)}] {cat}: loaded cached bank ({mb.memory_bank.shape[0]} vecs)")
             else:
-                train_dir = MVTEC_ROOT / cat / "train" / "good"
+                train_dir = FABRIC_ROOT / cat / "train" / "good"
                 if not train_dir.is_dir():
-                    train_dir = MVTEC_ROOT / cat / "train"
+                    train_dir = FABRIC_ROOT / cat / "train"
                 LOGGER.info(f"[{ci}/{len(cats)}] {cat}: building bank from {train_dir} ...")
                 mb.reset_memory_bank()
                 model.load_support_set(str(train_dir), imgsz=args.imgsz, device=device,
@@ -291,7 +248,7 @@ def main():
         cat_out = out_root / cat
         for img_path, label in samples:
             original = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2RGB)
-            mask_path = CompareGrid.find_mask(img_path)
+            mask_path = CompareGrid.find_mask(img_path)  # None for Fabric (no GT masks)
             mask_tensor = load_mask_tensor(mask_path, args.imgsz)
 
             none_pred, n_none, _ = run_prior(y, model, img_path, "none", args.imgsz, args.conf, iou=args.iou, device=device)

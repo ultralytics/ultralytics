@@ -20,7 +20,7 @@ set(PROJECT_SOURCES
 
 add_executable(yolo_opencv_dnn ${PROJECT_SOURCES})
 
-# Shared header-only helpers (palette, COCO names, annotator, show flag) under examples/cpp/common
+# Shared header-only helpers (types, post-processing, annotator, COCO names) under examples/cpp/common
 target_include_directories(yolo_opencv_dnn PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
 
 target_link_libraries(yolo_opencv_dnn ${OpenCV_LIBS})

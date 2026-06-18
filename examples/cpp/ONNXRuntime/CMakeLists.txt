@@ -66,7 +66,7 @@ set(PROJECT_SOURCES
 
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
 
-# Shared header-only helpers (color palette, COCO names) under examples/cpp/common
+# Shared header-only helpers (types, post-processing, annotator, COCO names) under examples/cpp/common
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
 
 if (WIN32)

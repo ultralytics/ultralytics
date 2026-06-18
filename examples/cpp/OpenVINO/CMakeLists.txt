@@ -12,7 +12,7 @@ add_executable(yolo_openvino
 	inference.cc
 )
 
-# Shared header-only helpers (color palette, COCO names) under examples/cpp/common
+# Shared header-only helpers (types, post-processing, annotator, COCO names) under examples/cpp/common
 target_include_directories(yolo_openvino PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
 
 target_link_libraries(yolo_openvino

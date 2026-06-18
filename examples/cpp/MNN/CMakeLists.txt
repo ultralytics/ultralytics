@@ -13,7 +13,7 @@ set(MNN_LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libs" CACHE PATH "Directory contain
 
 add_executable(yolo_mnn "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/inference.cc")
 
-# Shared header-only helpers (palette, names, annotator, types, post-processing) under examples/cpp/common
+# Shared header-only helpers (types, post-processing, annotator, COCO names) under examples/cpp/common
 target_include_directories(yolo_mnn PRIVATE
     ${OpenCV_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/../common

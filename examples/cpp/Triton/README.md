@@ -86,7 +86,7 @@ See the [Ultralytics Triton guide](https://docs.ultralytics.com/guides/triton-in
    make
    ```
 
-The shared helpers in [`../common`](../common) (color palette, COCO names, annotator, post-processing) are header-only and added to the include path automatically.
+The shared helpers in [`../common`](../common) are header-only and added to the include path automatically.
 
 ## 🚀 Usage
 

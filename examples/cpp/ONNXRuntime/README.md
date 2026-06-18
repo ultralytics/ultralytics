@@ -67,7 +67,7 @@ cmake .. -DONNXRUNTIME_ROOT=/path/to/onnxruntime -DUSE_CUDA=OFF
 cmake --build . --config Release
 ```
 
-The shared helpers in [`../common`](../common) (color palette, COCO names, annotator) are header-only and added to the include path automatically.
+The shared helpers in [`../common`](../common) are header-only and added to the include path automatically.
 
 ## 🚀 Usage
 

@@ -44,7 +44,7 @@ target_include_directories(${PROJECT_NAME}
     PRIVATE
     ${TRITON_CLIENT_DIR}/include
     ${OpenCV_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../common  # shared types, post-processing, palette, names, annotator
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common  # shared header-only helpers (types, post-processing, annotator, COCO names)
 )
 
 # Link directories

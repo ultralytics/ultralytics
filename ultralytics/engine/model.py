@@ -523,6 +523,8 @@ class Model(torch.nn.Module):
         custom = {"conf": 0.25, "batch": 1, "save": is_cli, "mode": "predict", "rect": True}  # method defaults
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
         prompts = args.pop("prompts", None)  # for SAM-type models
+        prior_mode = args.pop("prior_mode", None)  # for anomaly v2
+        external_mask = args.pop("external_mask", None)  # for anomaly v2
 
         if not self.predictor or self.predictor.args.device != args.get("device", self.predictor.args.device):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
@@ -531,6 +533,9 @@ class Model(torch.nn.Module):
             self.predictor.args = get_cfg(self.predictor.args, args)
             if "project" in args or "name" in args:
                 self.predictor.save_dir = get_save_dir(self.predictor.args)
+        if hasattr(self.predictor, "prior_mode"):
+            self.predictor.prior_mode = prior_mode
+            self.predictor.external_mask = external_mask
         if prompts and hasattr(self.predictor, "set_prompts"):  # for SAM-type models
             self.predictor.set_prompts(prompts)
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
@@ -610,7 +615,10 @@ class Model(torch.nn.Module):
         custom = {"rect": True}  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "val"}  # highest priority args on the right
 
+        prior_mode = args.pop("prior_mode", None)  # for anomaly v2
         validator = (validator or self._smart_load("validator"))(args=args, _callbacks=self.callbacks)
+        if prior_mode is not None and hasattr(validator, "prior_mode"):
+            validator.prior_mode = prior_mode
         validator(model=self.model)
         self.metrics = validator.metrics
         return validator.metrics

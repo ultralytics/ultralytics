@@ -105,6 +105,16 @@ from .transformer import (
     TransformerEncoderLayer,
     TransformerLayer,
 )
+from .anomaly_v2 import (
+    BackboneMemoryBank,
+    BboxMaskRenderer,
+    HeatmapBiasFusion,
+    HeatmapFiLMFusion,
+    QueryFiLMFusion,
+    SegBranch,
+    binary_seg_loss,
+    query_film_loss,
+)
 
 __all__ = (
     "AIFI",
@@ -129,6 +139,8 @@ __all__ = (
     "ADown",
     "Attention",
     "BNContrastiveHead",
+    "BackboneMemoryBank",
+    "BboxMaskRenderer",
     "Bottleneck",
     "BottleneckCSP",
     "C2f",
@@ -157,6 +169,12 @@ __all__ = (
     "GhostConv",
     "HGBlock",
     "HGStem",
+    "HeatmapBiasFusion",
+    "HeatmapFiLMFusion",
+    "QueryFiLMFusion",
+    "SegBranch",
+    "binary_seg_loss",
+    "query_film_loss",
     "ImagePoolingAttn",
     "Index",
     "LRPCHead",

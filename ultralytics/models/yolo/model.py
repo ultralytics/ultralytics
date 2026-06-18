@@ -17,6 +17,7 @@ from ultralytics.nn.tasks import (
     PoseModel,
     SegmentationModel,
     WorldModel,
+    YOLOAnomalyV2Model,
     YOLOEModel,
     YOLOESegModel,
 )
@@ -114,6 +115,12 @@ class YOLO(Model):
                 "trainer": yolo.obb.OBBTrainer,
                 "validator": yolo.obb.OBBValidator,
                 "predictor": yolo.obb.OBBPredictor,
+            },
+            "anomaly_v2": {
+                "model": YOLOAnomalyV2Model,
+                "trainer": yolo.anomaly_v2.AnomalyV2Trainer,
+                "validator": yolo.anomaly_v2.AnomalyV2Validator,
+                "predictor": yolo.anomaly_v2.AnomalyV2Predictor,
             },
         }
 

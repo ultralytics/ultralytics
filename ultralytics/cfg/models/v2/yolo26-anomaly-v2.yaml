@@ -1,0 +1,71 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# YOLO Anomaly v2 — yolo26 detection backbone + heatmap-guided feature fusion.
+# Architecture is identical to yolo26.yaml; the anomaly modules
+# (BboxMaskRenderer / HeatmapEncoder / HeatmapGuidedFusion) are attached
+# OUTSIDE the parsed Sequential by YOLOAnomalyV2Model.__init__.
+# Design doc: docs_yoloa_v2/design.md  (Phase 0)
+# Invocation example: model=yolo26m-anomaly-v2.yaml  (scale 'm')
+
+# Parameters
+nc: 80 # number of classes
+end2end: True
+reg_max: 1
+scales: # model compound scaling constants, i.e. 'model=yolo26m-anomaly-v2.yaml' will call yolo26-anomaly-v2.yaml with scale 'm'
+  # [depth, width, max_channels]
+  n: [0.50, 0.25, 1024]
+  s: [0.50, 0.50, 1024]
+  m: [0.50, 1.00, 512] # default for Phase 0 (yolo26m)
+  l: [1.00, 1.00, 512]
+  x: [1.00, 1.50, 512]
+
+# Anomaly v2 specific config (read by YOLOAnomalyV2Model.__init__).
+# Constructor kwargs, if provided, override these values.
+anomaly_v2:
+  mask_size: 80 # bbox-derived mask rendered at P3 spatial resolution (640/8 = 80)
+  mask_mode: rect # 'rect' (binary box) or 'gauss' (2D Gaussian)
+  sigma_factor: 0.25 # gauss only: sigma_x = w * sigma_factor, sigma_y = h * sigma_factor
+  p_drop: 0.5 # per-sample mask dropout probability during training (anti-shortcut)
+  # BackboneMemoryBank (v2.3) — backbone tap indices for P3/P4/P5 scales (yolo26m)
+  bb_layers: [6]
+  bb_temperature: 3.0   # initial β (auto-calibrated when bb_auto_temperature=True)
+  bb_K: 9               # top-K for Noisy-OR scoring
+  seg_branch: true
+  bb_auto_temperature: true
+  bb_calibration_target_score: 0.5
+  bb_calibrate: compactness       # "auto" (sample full bank) | "compactness" (coreset + local density)
+
+# Backbone (identical to yolo26.yaml)
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
+  - [-1, 2, C3k2, [256, False, 0.25]]
+  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
+  - [-1, 2, C3k2, [512, False, 0.25]]
+  - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
+  - [-1, 2, C3k2, [512, True]]
+  - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32
+  - [-1, 2, C3k2, [1024, True]]
+  - [-1, 1, SPPF, [1024, 5, 3, True]] # 9
+  - [-1, 2, C2PSA, [1024]] # 10
+
+# Head (identical to yolo26.yaml)
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]] # cat backbone P4
+  - [-1, 2, C3k2, [512, True]] # 13
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]] # cat backbone P3
+  - [-1, 2, C3k2, [256, True]] # 16 (P3/8-small)
+
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 13], 1, Concat, [1]] # cat head P4
+  - [-1, 2, C3k2, [512, True]] # 19 (P4/16-medium)
+
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 10], 1, Concat, [1]] # cat head P5
+  - [-1, 1, C3k2, [1024, True, 0.5, True]] # 22 (P5/32-large)
+
+  - [[16, 19, 22], 1, Detect, [nc]] # Detect(P3, P4, P5)

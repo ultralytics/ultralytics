@@ -28,6 +28,8 @@ from ultralytics.nn.modules import (
     A2C2f,
     AConv,
     ADown,
+    BackboneMemoryBank,
+    BboxMaskRenderer,
     Bottleneck,
     BottleneckCSP,
     C2f,
@@ -52,11 +54,14 @@ from ultralytics.nn.modules import (
     GhostConv,
     HGBlock,
     HGStem,
+    HeatmapBiasFusion,
+    HeatmapFiLMFusion,
     ImagePoolingAttn,
     Index,
     LRPCHead,
     Pose,
     Pose26,
+    QueryFiLMFusion,
     RepC3,
     RepConv,
     RepNCSPELAN4,
@@ -64,6 +69,7 @@ from ultralytics.nn.modules import (
     ResNetLayer,
     RTDETRDecoder,
     SCDown,
+    SegBranch,
     Segment,
     Segment26,
     TorchVision,
@@ -71,6 +77,8 @@ from ultralytics.nn.modules import (
     YOLOEDetect,
     YOLOESegment,
     YOLOESegment26,
+    binary_seg_loss,
+    query_film_loss,
     v10Detect,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, WINDOWS, YAML, colorstr, emojis
@@ -512,6 +520,1091 @@ class DetectionModel(BaseModel):
     def init_criterion(self):
         """Initialize the loss criterion for the DetectionModel."""
         return E2ELoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
+
+
+class YOLOAnomalyV2Model(DetectionModel):
+    """YOLO Anomaly v2 — detection + soft-hint heatmap fusion (yoloa_v2_softhint branch).
+
+    Extends DetectionModel with two anomaly-side modules attached OUTSIDE the parsed
+    Sequential:
+      - ``mask_renderer``: rasterizes GT bboxes into a 1-channel mask.
+      - ``heatmap_bias_fusion``: HeatmapBiasFusion. Produces a bounded per-pixel bias
+        added (broadcast over channels) to each PAN P3/P4/P5 feature before the Detect
+        head. Both reg and cls branches see the bias; this is acceptable because the
+        bias is bounded and additive, unlike the previous multiplicative amplifier.
+
+    Mask dropout (anti-shortcut, see design.md §3.4):
+      During training, with probability ``p_drop`` per sample, the bias for that
+      sample is zeroed -> exact passthrough -> model is forced to also perform
+      without a mask.
+
+    Mask source:
+      - Training: rendered from ``batch["bboxes"]`` (set by ``loss()``).
+      - Validation B-on: caller sets bboxes via ``set_mask_input()``.
+      - Validation B-off / pure inference: no bboxes -> bias is None -> PAN features
+        flow through unchanged (vanilla YOLO).
+      - External (e.g. SegBranch, user prompt): ``set_external_mask_once``.
+
+    Spec: docs_yoloa_v2/specs/2026-06-02-softhint-fusion-design.md.
+    """
+
+    def __init__(
+        self,
+        cfg="yolo26-anomaly-v2.yaml",
+        ch=3,
+        nc=None,
+        verbose=True,
+        mask_size: int | None = None,
+        mask_mode: str | None = None,
+        sigma_factor: float | list | None = None,
+        p_drop: float | None = None,
+    ):
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+        # Read v2-specific config from YAML. Constructor kwargs override.
+        v2_cfg = self.yaml.get("anomaly_v2", {}) if isinstance(self.yaml, dict) else {}
+        mask_size = int(v2_cfg.get("mask_size", 80) if mask_size is None else mask_size)
+        mask_mode = str(v2_cfg.get("mask_mode", "rect") if mask_mode is None else mask_mode)
+        _sf = v2_cfg.get("sigma_factor", 0.25) if sigma_factor is None else sigma_factor
+        sigma_factor = [float(_sf[0]), float(_sf[1])] if isinstance(_sf, (list, tuple)) else float(_sf)
+        p_drop = float(v2_cfg.get("p_drop", 0.5) if p_drop is None else p_drop)
+        # Training-only mask augmentation for prior robustness (Phase 0):
+        #   mask_shuffle_p -- per-sample prob of swapping in another sample's mask (wrong-location
+        #                     prior; GT boxes unchanged) so the model treats the prior as a soft hint.
+        #   mask_noise_std -- std of additive Gaussian noise on the [0, 1] mask (imperfect heatmap).
+        #   mask_mag_range -- [lo, hi]; per-sample peak scaling of the [0, 1] prior so the GT mask
+        #                     looks like a weak-peak heatmap (memory bank peaks ~0.8). [1, 1] = off.
+        #   mask_blur_sigma_max -- max sigma of a random Gaussian blur softening the binary rect into
+        #                     smooth edges (mimics soft heatmaps). 0 = off.
+        mask_shuffle_p = float(v2_cfg.get("mask_shuffle_p", 0.0))
+        mask_noise_std = float(v2_cfg.get("mask_noise_std", 0.0))
+        mask_mag_range = list(v2_cfg.get("mask_mag_range", [1.0, 1.0]))
+        mask_blur_sigma_max = float(v2_cfg.get("mask_blur_sigma_max", 0.0))
+        # Prior-robustness augs (train-only). Applied to the GT-rendered prior; the p_drop'd
+        # samples are still zeroed afterwards, so the "no prior" fraction is preserved (these
+        # only perturb the kept-prior samples). All default off.
+        #   mask_jitter       -- per-box center offset ~U(-j,j) (frac of image): mis-localized prior
+        #   mask_box_drop_p   -- per-box drop prob: prior misses some defects (false negative)
+        #   mask_distractor_p -- prob a sample gets up to mask_distractor_n other samples' blobs
+        #                        max-merged in (false-positive hints at wrong locations)
+        #   mask_erase_p      -- prob of zeroing a random sub-region of the blob (partial coverage)
+        #   mask_warp_p       -- prob of an elastic deformation (irregular, non-elliptical blob)
+        #   mask_mixup_p      -- prob of additive blend own + mask_mixup_alpha*donor (soft distractor)
+        mask_jitter = float(v2_cfg.get("mask_jitter", 0.0))
+        mask_box_drop_p = float(v2_cfg.get("mask_box_drop_p", 0.0))
+        mask_distractor_p = float(v2_cfg.get("mask_distractor_p", 0.0))
+        mask_distractor_n = int(v2_cfg.get("mask_distractor_n", 4))
+        mask_erase_p = float(v2_cfg.get("mask_erase_p", 0.0))
+        mask_warp_p = float(v2_cfg.get("mask_warp_p", 0.0))
+        mask_mixup_p = float(v2_cfg.get("mask_mixup_p", 0.0))
+        mask_mixup_alpha = float(v2_cfg.get("mask_mixup_alpha", 0.5))
+        # Value remapping: bridges the distribution gap between binary GT masks and
+        # soft SegBranch predictions. Applied before HeatmapBiasFusion at both train
+        # and inference time. Modes: none (identity), tanh_contrast (smooth stretch),
+        # power (x^gamma), threshold (hard step).
+        mask_remap_mode = str(v2_cfg.get("mask_remap_mode", "none")).lower()
+        mask_remap_kwargs = dict(v2_cfg.get("mask_remap_kwargs", {}))
+        # v2.2 SegBranch: when enabled, a seg head predicts the heatmap so inference
+        # needs no external prior. ``seg_alpha`` blends GT vs predicted mask (curriculum).
+        use_seg = bool(v2_cfg.get("seg_branch", False))
+        seg_gain = float(v2_cfg.get("seg_gain", 1.0))
+        # When True (default, original v2.2 behavior), the predicted heatmap is detached
+        # before feeding the fusion -> SegBranch is trained ONLY by its own seg loss.
+        # When False, det loss flows through fusion -> SegBranch -> PAN, so the seg head
+        # learns to produce heatmaps that help detection (not just match the rect target).
+        seg_detach = bool(v2_cfg.get("seg_detach", True))
+        # ``seg_alpha_mode``: 'curriculum' (default, anneal 1->0), 'pinned_one' (GT only),
+        # 'pinned_zero' (pred only). Used by AnomalyV2Trainer._update_seg_alpha.
+        seg_alpha_mode = str(v2_cfg.get("seg_alpha_mode", "curriculum")).lower()
+        if seg_alpha_mode not in {"curriculum", "pinned_one", "pinned_zero"}:
+            raise ValueError(f"seg_alpha_mode must be curriculum|pinned_one|pinned_zero, got {seg_alpha_mode!r}")
+        # Fusion mechanism: 'bias' (HeatmapBiasFusion, 1-channel additive), 'film'
+        # (HeatmapFiLMFusion, global residual grouped-FiLM), or 'queryfilm'
+        # (QueryFiLMFusion, K learned queries each emitting per-region grouped-FiLM on
+        # P3 only). Exactly one is instantiated to avoid DDP unused-parameter errors.
+        fusion_mode = str(v2_cfg.get("fusion_mode", "bias")).lower()
+        if fusion_mode not in {"bias", "film", "queryfilm"}:
+            raise ValueError(f"fusion_mode must be bias|film|queryfilm, got {fusion_mode!r}")
+        film_groups = int(v2_cfg.get("film_groups", 16))
+        film_group_dim = int(v2_cfg.get("film_group_dim", 16))
+        film_alpha_init = float(v2_cfg.get("film_alpha_init", 1e-4))
+        film_gamma_bound = bool(v2_cfg.get("film_gamma_bound", False))
+        # QueryFiLM knobs (v0): K queries, query embed dim, group count, identity-at-init
+        # alpha, the three aux-loss gains, and the gauss sigma for per-instance GT masks
+        # (independent of the fusion-prior sigma_factor above).
+        queryfilm_k = int(v2_cfg.get("queryfilm_k", 16))
+        queryfilm_dim = int(v2_cfg.get("queryfilm_dim", 128))
+        queryfilm_groups = int(v2_cfg.get("queryfilm_groups", 16))
+        queryfilm_alpha_init = float(v2_cfg.get("queryfilm_alpha_init", 0.0))
+        queryfilm_softmax = bool(v2_cfg.get("queryfilm_softmax", False))
+        queryfilm_pos = bool(v2_cfg.get("queryfilm_pos", False))  # fixed 2D sincos pos-enc on attn keys
+        self.queryfilm_w_mask = float(v2_cfg.get("queryfilm_w_mask", 0.05))
+        self.queryfilm_w_obj = float(v2_cfg.get("queryfilm_w_obj", 0.10))
+        self.queryfilm_w_overlap = float(v2_cfg.get("queryfilm_w_overlap", 0.01))
+        # Foreground/background (null-slot) supervision gain; 0.0 = off (default, unchanged v0/softmax).
+        self.queryfilm_w_fg = float(v2_cfg.get("queryfilm_w_fg", 0.0))
+        queryfilm_gt_sigma = float(v2_cfg.get("queryfilm_gt_sigma", 0.15))
+        # Two-head (auxiliary prior head): when True, duplicate the Detect head. head_a
+        # (self.model[-1]) consumes the RAW PAN features (no prior) -- the deployable honest
+        # detector; head_b consumes the prior-fused features. Both are trained jointly so the
+        # prior head's gradients also shape the shared backbone (the point of this variant).
+        # p_drop is bypassed (each head has a fixed input distribution). head_b_gain weights
+        # head_b's detection loss (cf. YOLOv7 aux-head deep supervision). Deploy = head_a.
+        two_head = bool(v2_cfg.get("two_head", False))
+        head_b_gain = float(v2_cfg.get("head_b_gain", 1.0))
+
+        detect = self.model[-1]
+        if not isinstance(detect, Detect):
+            raise TypeError(f"YOLOAnomalyV2Model expects last layer to be Detect, got {type(detect).__name__}")
+
+        # Resolve PAN output channel count per scale from Detect.cv2 (first Conv's in_channels).
+        # cv2[i] is a Sequential whose first sub-module is a Conv on the PAN scale's tensor.
+        pan_channels = []
+        for cv2_seq in detect.cv2:
+            first = cv2_seq[0]
+            if hasattr(first, "conv") and isinstance(first.conv, torch.nn.Conv2d):
+                pan_channels.append(first.conv.in_channels)
+            else:
+                raise RuntimeError(
+                    f"Unable to infer PAN channel from Detect.cv2[0]={type(first).__name__}"
+                )
+        if len(pan_channels) != detect.nl:
+            raise RuntimeError(f"Inferred {len(pan_channels)} PAN channels, expected {detect.nl}")
+
+        self.pan_from_indices = list(detect.f)  # layer indices producing P3/P4/P5
+        self.pan_channels = pan_channels
+
+        # Anomaly-side modules (live outside self.model so they are not in the Sequential)
+        self.mask_renderer = BboxMaskRenderer(mask_size=mask_size, mode=mask_mode, sigma_factor=sigma_factor)
+        # Soft-hint fusion: 'bias' adds a bounded per-pixel bias (broadcast) to PAN
+        # features; 'film' modulates a projected copy via residual grouped-FiLM. Both
+        # start near-identity (beta / alpha init ~0) so training begins as vanilla YOLO.
+        # Exactly one module is created so DDP sees no unused parameters.
+        self.fusion_mode = fusion_mode
+        if fusion_mode == "film":
+            self.heatmap_bias_fusion = None
+            self.heatmap_film_fusion = HeatmapFiLMFusion(
+                pan_channels=pan_channels, num_groups=film_groups, group_dim=film_group_dim,
+                alpha_init=film_alpha_init, gamma_bound=film_gamma_bound,
+            )
+            self.queryfilm_fusion = None
+        elif fusion_mode == "queryfilm":
+            # Modulates P3 (pan_channels[0]) only; P4/P5 pass through unchanged in v0.
+            self.heatmap_bias_fusion = None
+            self.heatmap_film_fusion = None
+            self.queryfilm_fusion = QueryFiLMFusion(
+                p3_channels=pan_channels[0], num_queries_k=queryfilm_k, query_dim=queryfilm_dim,
+                num_groups=queryfilm_groups, alpha_init=queryfilm_alpha_init,
+                softmax_attn=queryfilm_softmax, pos_enc=queryfilm_pos,
+            )
+        else:
+            self.heatmap_bias_fusion = HeatmapBiasFusion(num_scales=detect.nl)
+            self.heatmap_film_fusion = None
+            self.queryfilm_fusion = None
+
+        # Two-head: head_b is a deep copy of the Detect head (identical weights + strides at init,
+        # so with the near-identity fusion both heads start ~ vanilla YOLO). Registered as a
+        # submodule -> trains, moves with .to(device), saves in state_dict, DDP-wrapped. head_a
+        # is self.model[-1]; the shared det criterion works on either (same stride/nc/reg_max).
+        self.two_head = two_head
+        self.head_b_gain = head_b_gain
+        self.head_b = deepcopy(detect) if two_head else None
+
+        # SegBranch consumes the P3/P4 PAN outputs (first two of pan_from_indices).
+        self.mask_size = mask_size
+        self.seg_gain = seg_gain
+        self.seg_alpha_mode = seg_alpha_mode
+        self.seg_alpha = 0.0 if seg_alpha_mode == "pinned_zero" else 1.0
+        self.seg_detach = bool(seg_detach)
+        self.seg_branch = SegBranch(ch=tuple(pan_channels[:2]), nc=1) if use_seg else None
+        # Binary GT target for the seg loss is always a hard rectangle (independent of mask_mode).
+        self.seg_target_renderer = BboxMaskRenderer(mask_size=mask_size, mode="rect") if use_seg else None
+        self._seg_logits_buf = None  # stashed by _predict_once, consumed by loss()
+
+        # QueryFiLM: per-instance gauss GT renderer (its own sigma) for Hungarian matching,
+        # and a buffer stashing the deployable forward's aux dict for the training loss.
+        self.query_gt_renderer = (
+            BboxMaskRenderer(mask_size=mask_size, mode="gauss", sigma_factor=queryfilm_gt_sigma)
+            if fusion_mode == "queryfilm" else None
+        )
+        self._qf_aux_buf = None  # stashed by _predict_once, consumed by loss()
+        self._qf_capture = False  # diagnostics: force aux capture in eval (scripts/queryfilm_diag.py)
+
+        self.p_drop = float(p_drop)
+        self.mask_shuffle_p = float(mask_shuffle_p)
+        self.mask_noise_std = float(mask_noise_std)
+        self.mask_mag_range = (float(mask_mag_range[0]), float(mask_mag_range[1]))
+        self.mask_blur_sigma_max = float(mask_blur_sigma_max)
+        self.mask_jitter = float(mask_jitter)
+        self.mask_box_drop_p = float(mask_box_drop_p)
+        self.mask_distractor_p = float(mask_distractor_p)
+        self.mask_distractor_n = int(mask_distractor_n)
+        self.mask_erase_p = float(mask_erase_p)
+        self.mask_warp_p = float(mask_warp_p)
+        self.mask_mixup_p = float(mask_mixup_p)
+        self.mask_mixup_alpha = float(mask_mixup_alpha)
+        self.mask_remap_mode = mask_remap_mode
+        self.mask_remap_kwargs = mask_remap_kwargs
+        self.spatial_softmax = bool(v2_cfg.get("spatial_softmax", False))
+        self.softmax_temperature = float(v2_cfg.get("softmax_temperature", 1.0))
+        # Per-image prior normalization before fusion: 'none' or 'minmax' (stretch the
+        # heatmap to [0, 1] per sample). Counters the soft-prior (e.g. memory bank, peak
+        # ~0.8) vs binary-GT-training magnitude gap. Inference toggle (default off).
+        self.heatmap_norm = str(v2_cfg.get("heatmap_norm", "none")).lower()
+
+        # Transient bbox input for the next forward pass. Reset after each forward.
+        self._mask_bboxes_buf = None  # (N, 4) normalized [cx, cy, w, h]
+        self._mask_batch_idx_buf = None  # (N,) long
+        # Allows external callers (validator) to force mask-off mode for a single forward.
+        self._mask_disabled_once = False
+
+        # --- BackboneMemoryBank (v2.3) ---
+        bb_layers_cfg = v2_cfg.get("bb_layers", None)
+        bb_layers = list(bb_layers_cfg) if bb_layers_cfg else None
+        bb_temperature = float(v2_cfg.get("bb_temperature", 3.0))
+        bb_K = int(v2_cfg.get("bb_K", 5))
+        bb_max_bank_size = v2_cfg.get("bb_max_bank_size", None)
+        bb_auto_temperature = bool(v2_cfg.get("bb_auto_temperature", True))
+        bb_calibration_target = float(v2_cfg.get("bb_calibration_target_score", 0.2))
+        bb_calibrate = str(v2_cfg.get("bb_calibrate", "auto"))
+        self.memory_bank = BackboneMemoryBank(
+            temperature=bb_temperature, K=bb_K, max_bank_size=bb_max_bank_size,
+            auto_temperature=bb_auto_temperature,
+            calibration_target_score=bb_calibration_target,
+            calibrate=bb_calibrate,
+        ) if bb_layers else None
+        self._bb_layers = bb_layers
+        self._bb_hook_handles: list = []
+        self._bb_feats: dict[int, "torch.Tensor"] = {}
+        if self.memory_bank is not None and self._bb_layers:
+            self.memory_bank._bb_layer_indices = self._bb_layers
+            self._install_backbone_taps(self._bb_layers)
+        # MoCo-style FIFO-queue training prior (0 = disabled, classic frozen-bank behavior).
+        self.mb_queue_capacity = int(v2_cfg.get("mb_queue_capacity", 0))
+        self.mb_blend_p = float(v2_cfg.get("mb_blend_p", 0.5))
+        # Offline cached prior: train images carry a precomputed heatmap as a 4th channel
+        # (split off in _predict_once, consumed via prior_mode="cached").
+        self.mb_cached_prior = bool(v2_cfg.get("mb_cached_prior", False))
+        self._cached_prior_buf: torch.Tensor | None = None
+        # Gate the cached heatmap by the (augmented) GT mask during training: multiply the
+        # cached prior by the rendered+augmented mask so out-of-defect heatmap noise is
+        # suppressed while the in-box heatmap distribution is kept. The mask retains its
+        # augmentation noise (distractor/erase/warp/jitter) on purpose — the gated prior stays
+        # imperfect like the raw inference heatmap, not a clean GT answer key.
+        self.mb_cached_mask_gate = bool(v2_cfg.get("mb_cached_mask_gate", False))
+
+        # Prior mode state (predictor/validator controlled)
+        self._prior_mode: str | None = None  # None = legacy (GT bboxes -> renderer)
+        self._last_heatmap: torch.Tensor | None = None
+
+    # ------------------------------------------------------------------
+    # Mask input API
+    # ------------------------------------------------------------------
+    def set_mask_input(self, bboxes, batch_idx):
+        """Provide bboxes used to render the mask for the NEXT forward pass.
+
+        Cleared automatically after the forward. Typically called by:
+          - ``loss()`` (auto, from batch dict)
+          - the v2 validator (manual, for B-on val pass)
+        """
+        self._mask_bboxes_buf = bboxes
+        self._mask_batch_idx_buf = batch_idx
+        self._mask_disabled_once = False
+
+    def disable_mask_once(self):
+        """Force the next forward to use no mask (bias=0 -> passthrough). Used by B-off val."""
+        self._mask_bboxes_buf = None
+        self._mask_batch_idx_buf = None
+        self._external_mask_buf = None
+        self._mask_disabled_once = True
+
+    def set_external_mask_once(self, mask: torch.Tensor):
+        """Provide a pre-computed mask (B, 1, H, W) for the next forward, bypassing the
+        bbox renderer. The mask is consumed by ``heatmap_bias_fusion`` and added
+        (broadcast over channels) to each PAN scale's feature.
+
+        ``mask.shape[2:]`` may be any HxW; it is resized to each PAN scale internally.
+        Typical use cases: hand-drawn masks for interactive prediction, MemoryBank
+        outputs at v2.1 inference, sanity-check heatmaps.
+        """
+        if mask.dim() != 4 or mask.shape[1] != 1:
+            raise ValueError(f"external mask must be (B, 1, H, W), got {tuple(mask.shape)}")
+        self._external_mask_buf = mask
+        self._mask_bboxes_buf = None
+        self._mask_batch_idx_buf = None
+        self._mask_disabled_once = False
+
+    def _consume_mask_input(self):
+        # Robust to being called during super().__init__()'s stride probe,
+        # before our own __init__ has set these attributes.
+        bb = getattr(self, "_mask_bboxes_buf", None)
+        bi = getattr(self, "_mask_batch_idx_buf", None)
+        ext = getattr(self, "_external_mask_buf", None)
+        disabled = getattr(self, "_mask_disabled_once", False)
+        if hasattr(self, "_mask_bboxes_buf"):
+            self._mask_bboxes_buf = None
+            self._mask_batch_idx_buf = None
+            self._external_mask_buf = None
+            self._mask_disabled_once = False
+        return bb, bi, ext, disabled
+
+    # ------------------------------------------------------------------
+    # Prior mode API (v2.3 — unified 4-mode routing)
+    # ------------------------------------------------------------------
+    def set_prior_mode(self, mode: str | None) -> None:
+        """Set the prior source for the next forward.
+
+        Args:
+            mode: ``"none"`` (passthrough), ``"segment"`` (SegBranch), ``"heatmap"``
+                (BackboneMemoryBank), ``"mask"`` (external_mask), or ``None`` (legacy
+                GT bboxes -> renderer).
+        """
+        if mode is not None and mode not in ("none", "segment", "heatmap", "seg_heatmap", "mask", "cached"):
+            raise ValueError(f"Invalid prior_mode: {mode!r}")
+        self._prior_mode = mode
+
+    def load_support_set(
+        self,
+        source: str | Path | list[str],
+        imgsz: int = 320,
+        device=None,
+        batch: int = 8,
+        max_bank_size: int = 10000,
+        max_images: int = 0,
+        verbose: bool = True,
+    ) -> int:
+        """Build the BackboneMemoryBank from normal images for ``prior_mode=\"heatmap\"``.
+
+        Iterates over images, runs the backbone to extract features, accumulates them
+        into the memory bank, then compresses and freezes the bank.
+
+        Args:
+            source: Directory of normal images or list of image paths.
+            imgsz: Resize images to this square size.
+            device: Device for the bank (defaults to model device).
+            batch: Mini-batch size for backbone feature extraction.
+            max_bank_size: Maximum bank entries (coreset subsampling at freeze).
+            verbose: Log progress.
+
+        Returns:
+            Final bank size (number of feature vectors).
+        """
+        import cv2
+        from pathlib import Path
+
+        from ultralytics.utils import LOGGER, TQDM
+
+        mb = getattr(self, "memory_bank", None)
+        if mb is None or self._bb_layers is None:
+            raise RuntimeError(
+                "BackboneMemoryBank not configured. Add bb_layers to the anomaly_v2 YAML block."
+            )
+        mb.max_bank_size = max_bank_size
+        mb.reset_memory_bank()
+        self.set_prior_mode(None)  # Don't trigger prior routing during build
+
+        # Resolve device
+        if device is None:
+            device = next(self.parameters()).device
+        self.to(device)
+
+        # Collect image paths
+        if isinstance(source, (str, Path)):
+            source = Path(source)
+            if source.is_dir():
+                exts = {".bmp", ".dng", ".jpeg", ".jpg", ".mpo", ".png",
+                        ".tif", ".tiff", ".webp", ".pfm"}
+                paths = sorted(
+                    p for p in source.iterdir()
+                    if p.is_file() and p.suffix.lower() in exts
+                )
+            else:
+                paths = [str(source)]
+        else:
+            paths = list(source)
+
+        if not paths:
+            raise ValueError("No images found in source.")
+
+        if max_images > 0 and len(paths) > max_images:
+            paths = paths[:max_images]
+
+        if verbose:
+            LOGGER.info(f"Building memory bank from {len(paths)} images (imgsz={imgsz})...")
+
+        pbar = TQDM(paths, desc="Building memory bank") if verbose else paths
+        chunk = []
+        n_ingested = 0  # track total images ingested for delayed temp display
+        for p in pbar:
+            img = cv2.imread(str(p))
+            if img is None:
+                continue
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            img = cv2.resize(img, (imgsz, imgsz), interpolation=cv2.INTER_LINEAR)
+            chunk.append(img)
+            if len(chunk) >= batch:
+                self._ingest_support_batch(chunk, device, mb)
+                n_ingested += len(chunk)
+                chunk.clear()
+                # Live temperature estimate (auto mode only; compactness calibrates after coreset)
+                if mb.calibrate != "compactness" and mb.auto_temperature and n_ingested >= 4:
+                    live_temp = mb.estimate_temperature()
+                    pbar.set_postfix(temp=f"{live_temp:.3f}")
+        if chunk:
+            self._ingest_support_batch(chunk, device, mb)
+            n_ingested += len(chunk)
+
+        mb.freeze_memory_bank()
+        final_size = mb.memory_bank.shape[0]
+        if verbose:
+            temp = f"{mb.temperature:.4f}" if mb.auto_temperature else f"{mb.temperature}"
+            auto_tag = " (auto-calibrated)" if mb.auto_temperature else ""
+            LOGGER.info(
+                f"Memory bank frozen: {final_size} features, dim={mb.feature_dim}\n"
+                f"  config: calibrate={mb.calibrate}, temp={temp}{auto_tag}, K={mb.K}, "
+                f"thresh={mb.accumulate_thresh}, max_bank={mb.max_bank_size or 'unlimited'}, "
+                f"bb_layers={self._bb_layers}"
+            )
+        return final_size
+
+    def _ingest_support_batch(self, images, device, memory_bank):
+        """Run a batch of images through the model and accumulate backbone features via hooks."""
+        import numpy as np
+        batch = np.stack(images, axis=0)  # (B, H, W, 3)
+        batch = (torch.from_numpy(batch).permute(0, 3, 1, 2).float() / 255.0).contiguous()  # (B, 3, H, W)
+        batch = batch.to(device)
+        self._bb_feats = {}
+        with torch.no_grad():
+            self(batch)
+        memory_bank.accumulate_features(self._bb_feats)
+
+    # ------------------------------------------------------------------
+    # Backbone taps (for BackboneMemoryBank)
+    # ------------------------------------------------------------------
+    def _install_backbone_taps(self, layer_indices: list[int]) -> None:
+        """Register forward hooks that capture backbone-layer outputs into ``self._bb_feats``.
+
+        Idempotent — removes old hooks before installing.
+        """
+        for h in getattr(self, "_bb_hook_handles", []):
+            h.remove()
+        self._bb_hook_handles: list = []
+        self._bb_feats: dict[int, "torch.Tensor"] = {}
+
+        def _make_hook(idx: int):
+            def _hook(_module, _inp, out):
+                # Detached capture on every forward: eval uses it for load_support_set /
+                # prior_mode="heatmap"; training uses it for the FIFO-queue prior
+                # (mb_queue_capacity > 0). Detach keeps the graph out; cost is one small
+                # held activation per tapped layer until the next forward clears the dict.
+                self._bb_feats[idx] = out.detach()
+            return _hook
+
+        for idx in sorted(set(layer_indices)):
+            if idx < len(self.model):
+                handle = self.model[idx].register_forward_hook(_make_hook(idx))
+                self._bb_hook_handles.append(handle)
+
+    @torch.no_grad()
+    def encode_bb_feats(self, img: torch.Tensor) -> dict[int, torch.Tensor]:
+        """Run only the backbone prefix (layers 0..max(bb_layers)) to populate ``_bb_feats``.
+
+        Used by the trainer to extract FIFO-queue bank features with the EMA (key) encoder at
+        a fraction of a full forward's cost.
+
+        Returns:
+            Copy of the captured ``{layer_idx: (B, C, H, W)}`` dict (empty if no bb_layers).
+        """
+        if not getattr(self, "_bb_layers", None):
+            return {}
+        self._bb_feats = {}
+        y, x = [], img
+        for m in self.model[: max(self._bb_layers) + 1]:
+            if m.f != -1:
+                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
+            x = m(x)
+            y.append(x if m.i in self.save else None)
+        return dict(self._bb_feats)
+
+    def __getstate__(self):
+        """Drop hooks + forward-time scratch buffers before pickle/deepcopy.
+
+        Hook closures aren't picklable; the scratch buffers (cached prior, captured backbone
+        feats, last heatmap, aux/seg/mask staging) are transient — repopulated on the next
+        forward — but if a forward ran just before ``torch.save`` they get pickled into the
+        checkpoint and bloat it (e.g. ``_cached_prior_buf`` is a full batch at imgsz², ~58 MB).
+        Null them in the returned state only (a shallow copy), so the live model is untouched.
+        """
+        state = super().__getstate__()
+        for h in getattr(self, "_bb_hook_handles", []):
+            h.remove()
+        state["_bb_hook_handles"] = []
+        state["_bb_feats"] = {}
+        for k in ("_cached_prior_buf", "_last_heatmap", "_qf_aux_buf", "_seg_logits_buf",
+                  "_mask_bboxes_buf", "_mask_batch_idx_buf", "_external_mask_buf"):
+            if k in state:
+                state[k] = None
+        return state
+
+    def __setstate__(self, state):
+        """Re-install backbone hooks and set defaults for old-checkpoint compat."""
+        super().__setstate__(state)
+        self._bb_hook_handles = []
+        self._bb_feats = {}
+        if getattr(self, "_bb_layers", None) is not None:
+            self._install_backbone_taps(self._bb_layers)
+        # Backward compat: old checkpoints may lack v2.3 attributes
+        for attr, default in [("memory_bank", None), ("_prior_mode", None), ("_last_heatmap", None),
+                              ("mask_remap_mode", "none"), ("mask_remap_kwargs", {}),
+                              ("spatial_softmax", False), ("softmax_temperature", 1.0),
+                              ("fusion_mode", "bias"), ("heatmap_film_fusion", None),
+                              ("heatmap_norm", "none"), ("mask_mag_range", (1.0, 1.0)),
+                              ("mask_blur_sigma_max", 0.0),
+                              ("mb_queue_capacity", 0), ("mb_blend_p", 0.5),
+                              ("mb_cached_prior", False), ("_cached_prior_buf", None),
+                              ("mb_cached_mask_gate", False)]:
+            if not hasattr(self, attr):
+                setattr(self, attr, default)
+
+    def _resolve_fusion_mask(self, bboxes, batch_idx, external_mask, disabled, seg_logits, batch_size, device):
+        """Resolve the (B, 1, mask_size, mask_size) heatmap fed to the fusion, or None for passthrough.
+
+        Precedence: external mask > explicit disable > GT/predicted blend > pure prediction.
+        When ``self.seg_detach=True`` (default), the predicted heatmap is detached so the
+        detection loss never backprops into the SegBranch (the branch is trained only by its
+        own ``binary_seg_loss``). When ``seg_detach=False``, det loss flows through fusion ->
+        SegBranch -> PAN, letting the seg head learn detection-useful heatmaps.
+        """
+        if external_mask is not None:
+            return external_mask.to(device=device, dtype=torch.float32)
+        if disabled:
+            return None  # explicit passthrough (mask-off val pass / classifier-free guidance)
+
+        seg_pred = None
+        if seg_logits is not None:
+            main = seg_logits[0] if isinstance(seg_logits, tuple) else seg_logits
+            # ``seg_detach=True`` (default) preserves v2.2 behavior: SegBranch is trained only
+            # by its own seg loss. ``seg_detach=False`` lets det loss flow through fusion ->
+            # SegBranch so the head learns detection-useful heatmaps.
+            # getattr default preserves backwards compat with checkpoints saved before
+            # the seg_detach knob existed (those pickled models lack the attribute).
+            seg_pred = (main.detach() if getattr(self, "seg_detach", True) else main).sigmoid()
+            if seg_pred.shape[2] != self.mask_size or seg_pred.shape[3] != self.mask_size:
+                seg_pred = torch.nn.functional.interpolate(
+                    seg_pred, size=(self.mask_size, self.mask_size), mode="bilinear", align_corners=False
+                )
+
+        if bboxes is not None:
+            # bbox-level prior augs (train-only) on a LOCAL copy — never the boxes used for
+            # query/seg GT, which come from the batch in loss().
+            bb, bi = self._augment_prior_bboxes(bboxes, batch_idx)
+            gt = self.mask_renderer(bb, bi, batch_size)
+            if seg_pred is None:
+                return gt  # Phase 0 behavior (no SegBranch)
+            a = float(self.seg_alpha)
+            return a * gt + (1.0 - a) * seg_pred
+        # No GT and not disabled -> prior-free inference via the predicted heatmap.
+        return seg_pred
+
+    def _resolve_prior(self, prior_mode, external_mask, bboxes, batch_idx, seg_logits, batch_size, device):
+        """Resolve the fusion mask from the selected prior mode (v2.3).
+
+        Only called when ``_prior_mode`` is not None (explicit inference mode).
+        Training with ``_prior_mode=None`` uses ``_resolve_fusion_mask`` directly.
+        """
+        mask_size = getattr(self, "mask_size", 80)
+        if prior_mode == "none":
+            return None
+        if prior_mode == "mask":
+            if external_mask is not None:
+                return external_mask.to(device=device, dtype=torch.float32)
+            if bboxes is not None:
+                return self.mask_renderer(bboxes, batch_idx, batch_size)
+            return None
+        if prior_mode == "segment":
+            if seg_logits is not None:
+                main = seg_logits[0] if isinstance(seg_logits, tuple) else seg_logits
+                seg_pred = main.detach().sigmoid()
+                if seg_pred.shape[2] != mask_size or seg_pred.shape[3] != mask_size:
+                    seg_pred = torch.nn.functional.interpolate(
+                        seg_pred, size=(mask_size, mask_size), mode="bilinear", align_corners=False
+                    )
+                return seg_pred
+            return None
+        if prior_mode == "heatmap":
+            mb = getattr(self, "memory_bank", None)
+            bb_feats = getattr(self, "_bb_feats", None)
+            if mb is not None and bb_feats:
+                hmap = mb(bb_feats)
+                if hmap.shape[2] != mask_size or hmap.shape[3] != mask_size:
+                    hmap = torch.nn.functional.interpolate(
+                        hmap, size=(mask_size, mask_size), mode="bilinear", align_corners=False
+                    )
+                return hmap
+            return None
+        if prior_mode == "cached":
+            # Precomputed heatmap carried as the input's 4th channel (split off in _predict_once).
+            hmap = getattr(self, "_cached_prior_buf", None)
+            if hmap is None:
+                return None
+            if hmap.shape[2] != mask_size or hmap.shape[3] != mask_size:
+                hmap = torch.nn.functional.interpolate(
+                    hmap, size=(mask_size, mask_size), mode="bilinear", align_corners=False
+                )
+            # Train-time mask gate: multiply by the augmented GT mask to suppress the cached
+            # heatmap's out-of-defect noise (keeps in-box heatmap distribution; mask keeps its
+            # augmentation noise so the prior stays imperfect). No-op at eval (no bboxes).
+            if self.training and getattr(self, "mb_cached_mask_gate", False) and bboxes is not None:
+                bb, bi = self._augment_prior_bboxes(bboxes, batch_idx)
+                m = self.mask_renderer(bb, bi, batch_size)
+                m = self._augment_mask(m)
+                hmap = hmap * m.to(device=hmap.device, dtype=hmap.dtype)
+            return hmap
+        if prior_mode == "seg_heatmap":
+            # Average of segment heatmap and memory-bank heatmap.
+            seg_part = None
+            heat_part = None
+            if seg_logits is not None:
+                main = seg_logits[0] if isinstance(seg_logits, tuple) else seg_logits
+                seg_part = main.detach().sigmoid()
+                if seg_part.shape[2] != mask_size or seg_part.shape[3] != mask_size:
+                    seg_part = torch.nn.functional.interpolate(
+                        seg_part, size=(mask_size, mask_size), mode="bilinear", align_corners=False
+                    )
+            mb = getattr(self, "memory_bank", None)
+            bb_feats = getattr(self, "_bb_feats", None)
+            if mb is not None and bb_feats:
+                heat_part = mb(bb_feats)
+                if heat_part is not None and (
+                    heat_part.shape[2] != mask_size or heat_part.shape[3] != mask_size
+                ):
+                    heat_part = torch.nn.functional.interpolate(
+                        heat_part, size=(mask_size, mask_size), mode="bilinear", align_corners=False
+                    )
+            if seg_part is not None and heat_part is not None:
+                return (seg_part + heat_part) / 2.0
+            return seg_part if seg_part is not None else heat_part
+        return None
+
+    def _augment_mask(self, mask):
+        """Training-only mask augmentation: make the binary GT prior look like an inference heatmap.
+
+        Closes the train(binary GT) vs inference(soft, weak-peak memory-bank / SegBranch heatmap)
+        distribution gap. Order: shuffle (wrong-location prior) -> Gaussian blur (soft edges) ->
+        per-sample magnitude scaling (peak < 1, mimics weak heatmaps) -> additive noise. GT boxes are
+        unchanged, so the model learns "weak/soft signal here still means defect here" while keeping
+        "no signal = background" (unlike inference min-max, which amplifies a flat prior into noise).
+        """
+        b = mask.shape[0]
+        if self.mask_shuffle_p > 0.0 and b > 1:
+            swap = torch.rand(b, device=mask.device) < self.mask_shuffle_p
+            if swap.any():
+                # offset in [1, b-1] -> perm[i] != i, so every swapped sample gets a different mask
+                offset = torch.randint(1, b, (b,), device=mask.device)
+                perm = (torch.arange(b, device=mask.device) + offset) % b
+                mask = torch.where(swap.view(-1, 1, 1, 1), mask[perm], mask)
+        if self.mask_blur_sigma_max > 0.0:
+            sigma = torch.empty(1).uniform_(1e-2, self.mask_blur_sigma_max).item()
+            mask = self._gaussian_blur(mask, sigma)
+        lo, hi = self.mask_mag_range
+        if lo < 1.0 or hi < 1.0:
+            mask = mask * torch.empty(b, 1, 1, 1, device=mask.device).uniform_(lo, hi)
+        if self.mask_noise_std > 0.0:
+            mask = mask + torch.randn_like(mask) * self.mask_noise_std
+        mask = self._augment_prior_extra(mask)
+        return mask.clamp(0.0, 1.0)
+
+    def _augment_prior_bboxes(self, bboxes, batch_idx):
+        """Train-only bbox-level prior augs: per-box drop + center jitter (on a local copy).
+
+        Returns possibly-reduced/perturbed ``(bboxes, batch_idx)`` used ONLY to render the
+        fusion prior. The originals (used for query/seg GT in loss()) are untouched.
+        """
+        if not self.training or bboxes is None or bboxes.shape[0] == 0:
+            return bboxes, batch_idx
+        bb, bi = bboxes, batch_idx
+        if self.mask_box_drop_p > 0.0:
+            keep = torch.rand(bb.shape[0], device=bb.device) > self.mask_box_drop_p
+            bb, bi = bb[keep], bi[keep]
+        if self.mask_jitter > 0.0 and bb.shape[0] > 0:
+            bb = bb.clone()
+            off = (torch.rand(bb.shape[0], 2, device=bb.device) * 2 - 1) * self.mask_jitter
+            bb[:, 0] = (bb[:, 0] + off[:, 0]).clamp(0.0, 1.0)
+            bb[:, 1] = (bb[:, 1] + off[:, 1]).clamp(0.0, 1.0)
+        return bb, bi
+
+    def _augment_prior_extra(self, mask):
+        """Train-only mask-level prior augs: additive mixup, distractor, partial erase, warp.
+
+        Each is applied per-sample with its own probability, so the kept-prior samples span a
+        spectrum from near-clean to noisy. Operates on a ``(B, 1, H, W)`` mask in [0, 1].
+        """
+        b, _, H, W = mask.shape
+        dev = mask.device
+        # additive mixup: own + alpha * donor (soft distractor)
+        if self.mask_mixup_p > 0.0 and b > 1:
+            sel = torch.rand(b, device=dev) < self.mask_mixup_p
+            donor = mask[torch.randperm(b, device=dev)]
+            mixed = (mask + self.mask_mixup_alpha * donor).clamp(0.0, 1.0)
+            mask = torch.where(sel.view(-1, 1, 1, 1), mixed, mask)
+        # hard distractor: max-merge up to n random other-sample blobs (count varies per sample)
+        if self.mask_distractor_p > 0.0 and b > 1:
+            sel = torch.rand(b, device=dev) < self.mask_distractor_p
+            out = mask
+            for _ in range(self.mask_distractor_n):
+                donor = mask[torch.randperm(b, device=dev)]
+                add = sel & (torch.rand(b, device=dev) < 0.6)
+                out = torch.where(add.view(-1, 1, 1, 1), torch.maximum(out, donor), out)
+            mask = out
+        # partial erase: zero a random sub-region of selected samples (prior covers part only)
+        if self.mask_erase_p > 0.0:
+            for i in range(b):
+                if torch.rand(1, device=dev).item() < self.mask_erase_p:
+                    eh = int(H * (0.2 + 0.3 * torch.rand(1).item()))
+                    ew = int(W * (0.2 + 0.3 * torch.rand(1).item()))
+                    y = int(torch.randint(0, max(1, H - eh), (1,)).item())
+                    x = int(torch.randint(0, max(1, W - ew), (1,)).item())
+                    mask[i, :, y:y + eh, x:x + ew] = 0.0
+        # elastic warp: irregular, non-elliptical blob shape
+        if self.mask_warp_p > 0.0:
+            sel = torch.rand(b, device=dev) < self.mask_warp_p
+            if sel.any():
+                warped = self._elastic_warp(mask, alpha=0.06 * H, sigma=max(2.0, 0.03 * H))
+                mask = torch.where(sel.view(-1, 1, 1, 1), warped, mask)
+        return mask
+
+    @staticmethod
+    def _elastic_warp(mask, alpha, sigma):
+        """Random low-frequency elastic deformation of a ``(B, 1, H, W)`` mask (per-sample field)."""
+        b, _, H, W = mask.shape
+        dev = mask.device
+        disp = torch.randn(b * 2, 1, H, W, device=dev)
+        disp = YOLOAnomalyV2Model._gaussian_blur(disp, sigma).reshape(b, 2, H, W) * alpha
+        ys, xs = torch.meshgrid(
+            torch.linspace(-1, 1, H, device=dev), torch.linspace(-1, 1, W, device=dev), indexing="ij"
+        )
+        base = torch.stack((xs, ys), dim=-1).unsqueeze(0).expand(b, -1, -1, -1)
+        grid = base + torch.stack((disp[:, 0] / (W / 2), disp[:, 1] / (H / 2)), dim=-1)
+        return torch.nn.functional.grid_sample(
+            mask, grid, mode="bilinear", padding_mode="border", align_corners=True
+        )
+
+    @staticmethod
+    def _gaussian_blur(mask, sigma):
+        """Separable Gaussian blur of a ``(B, 1, H, W)`` mask with ``sigma`` in pixels."""
+        k = max(3, int(2 * round(3.0 * sigma) + 1))  # odd kernel spanning ~3 sigma
+        coords = torch.arange(k, device=mask.device, dtype=mask.dtype) - k // 2
+        g = torch.exp(-(coords**2) / (2.0 * sigma**2))
+        g = g / g.sum()
+        mask = torch.nn.functional.conv2d(mask, g.view(1, 1, 1, k), padding=(0, k // 2))
+        mask = torch.nn.functional.conv2d(mask, g.view(1, 1, k, 1), padding=(k // 2, 0))
+        return mask
+
+    def _apply_spatial_softmax(self, mask):
+        """Normalize heatmap into a spatial probability distribution.
+
+        Softmax over the H*W spatial grid, scaled by temperature. Turns any
+        heatmap (binary GT, soft SegBranch, noisy MB) into a distribution with
+        consistent statistics — sum=1 per sample, with T controlling peakiness.
+
+        Benefits: high values compete across space, suppressing background noise;
+        binary GT rects become softer (closer to predicted heatmaps), while weak
+        predictions become sharper (peaks amplified by softmax's exponential).
+        """
+        T = max(float(getattr(self, "softmax_temperature", 1.0)), 1e-6)
+        b, c, h, w = mask.shape
+        flat = mask.view(b, c, -1)
+        prob = torch.nn.functional.softmax(flat / T, dim=-1)
+        return prob.view(b, c, h, w)
+
+    def _remap_mask_values(self, mask):
+        """Apply configurable value remapping to bridge binary-GT vs soft-SegBranch gap.
+
+        Called AFTER ``_augment_mask`` so remapping cleans up imprecision from both
+        the SegBranch prediction and noise injection, giving ``HeatmapBiasFusion``
+        a consistent value distribution at both train and inference time.
+
+        Modes:
+            none           identity (passthrough)
+            tanh_contrast  0.5*tanh(steepness*(x-center))+0.5  (smooth stretch)
+            power          x**gamma  (push toward 0 or 1)
+            threshold      hard step at ``threshold`` -> low/high
+        """
+        mode = getattr(self, "mask_remap_mode", "none")
+        if mode == "none":
+            return mask
+        kwargs = getattr(self, "mask_remap_kwargs", {})
+        if mode == "threshold":
+            t = float(kwargs.get("threshold", 0.5))
+            low = float(kwargs.get("low", 0.0))
+            high = float(kwargs.get("high", 1.0))
+            return torch.where(mask > t, torch.full_like(mask, high), torch.full_like(mask, low))
+        if mode == "power":
+            gamma = float(kwargs.get("gamma", 2.0))
+            return mask ** gamma
+        if mode == "tanh_contrast":
+            s = float(kwargs.get("steepness", 5.0))
+            c = float(kwargs.get("center", 0.5))
+            return 0.5 * torch.tanh(s * (mask - c)) + 0.5
+        raise ValueError(f"Unknown mask_remap_mode: {mode!r}")
+
+    # ------------------------------------------------------------------
+    # Forward
+    # ------------------------------------------------------------------
+    def loss(self, batch, preds=None):
+        """Compute loss. Sets mask input from ``batch["bboxes"]`` before forward."""
+        if getattr(self, "criterion", None) is None:
+            self.criterion = self.init_criterion()
+        if preds is None:
+            # Standard ultralytics batch fields: bboxes (N, 4), batch_idx (N,)
+            self.set_mask_input(batch["bboxes"], batch["batch_idx"])
+            try:
+                preds = self.forward(batch["img"])
+            finally:
+                # Forward always consumes them, but be defensive in case of exception.
+                self._mask_bboxes_buf = None
+                self._mask_batch_idx_buf = None
+        # Two-head training: forward returns (preds_a, preds_b). The honest head (head_a, raw PAN,
+        # the deploy target) and the prior head (head_b) each get the shared det criterion; their
+        # losses sum (head_b weighted by head_b_gain). det_loss stays a 3-vector (box, cls, dfl)
+        # so the loss-vector length is invariant across the validator's mask-on/off double pass.
+        # Displayed items are the honest head's. The self.training gate is essential: in eval the
+        # Detect head returns a 2-tuple (inference_out, raw_feats) which must NOT be split here --
+        # it flows to the single criterion (E2ELoss.parse_output handles eval format), exactly as
+        # the single-head model does, so the validator's val-loss path is unchanged.
+        if getattr(self, "two_head", False) and self.training and isinstance(preds, tuple) and len(preds) == 2:
+            preds_a, preds_b = preds
+            det_loss_a, det_items = self.criterion(preds_a, batch)
+            det_loss_b, _ = self.criterion(preds_b, batch)
+            det_loss = det_loss_a + self.head_b_gain * det_loss_b
+        else:
+            det_loss, det_items = self.criterion(preds, batch)
+        if self.seg_branch is None and self.fusion_mode != "queryfilm":
+            return det_loss, det_items
+        # det_loss is a per-component vector (box, cls, dfl) scaled by batch size; the trainer
+        # backprops loss.sum(). Auxiliary heads append extra components (same batch-size scaling)
+        # so they join the sum, with unscaled detached values appended to the display items.
+        batch_size = batch["img"].shape[0]
+        loss_vec, item_vec = det_loss, det_items
+        # SegBranch loss: supervise the predicted heatmap against the rect-rendered GT mask.
+        if self.seg_branch is not None:
+            seg_logits, self._seg_logits_buf = self._seg_logits_buf, None
+            seg_loss = self._compute_seg_loss(seg_logits, batch)
+            seg_term = (self.seg_gain * seg_loss * batch_size).reshape(1)
+            seg_item = (self.seg_gain * seg_loss).detach().reshape(1).to(det_items.dtype)
+            loss_vec = torch.cat([loss_vec, seg_term])
+            item_vec = torch.cat([item_vec, seg_item])
+        # QueryFiLM aux losses (mask, obj, overlap, fg). Always appended (zeros when no aux was
+        # produced — e.g. the validator's mask-off pass) so the loss-vector length is invariant.
+        if self.fusion_mode == "queryfilm":
+            qf_terms, qf_items = self._compute_query_film_loss(batch, batch_size, det_items.dtype)
+            loss_vec = torch.cat([loss_vec, qf_terms])
+            item_vec = torch.cat([item_vec, qf_items])
+        return loss_vec, item_vec
+
+    def _compute_query_film_loss(self, batch, batch_size, dtype):
+        """Four QueryFiLM aux losses, scaled like the detection components.
+
+        Returns ``(terms, items)``: ``terms`` is the batch-size-scaled vector that joins the
+        backprop sum; ``items`` is the unscaled detached vector for display. Both are length 4
+        ``[qmask, qobj, qovl, qfg]``. When no aux was stashed (mask-off / disabled forward) both are
+        zeros so the loss-vector length stays constant across the validator's double pass.
+        """
+        device = next(self.parameters()).device
+        aux, self._qf_aux_buf = self._qf_aux_buf, None
+        if aux is None:
+            # ``dtype`` matches det_loss/det_items so torch.cat works under AMP autocast.
+            zeros = torch.zeros(4, device=device, dtype=dtype)
+            return zeros, zeros
+        gt_masks = self.query_gt_renderer.render_per_instance(batch["bboxes"], batch["batch_idx"], batch_size)
+        # Only compute the fg/bg term when enabled (skips it for w_fg=0 / sigmoid models).
+        fg_pred = aux.get("fg_pred") if self.queryfilm_w_fg > 0.0 else None
+        losses = query_film_loss(aux["A"], aux["attn_logits"], aux["obj_logits"], gt_masks, fg_pred=fg_pred)
+        gains = (self.queryfilm_w_mask, self.queryfilm_w_obj, self.queryfilm_w_overlap, self.queryfilm_w_fg)
+        keys = ("mask", "obj", "overlap", "fg")
+        # Cast to det dtype (query ops may run fp16 under autocast) so the cat in loss() is safe.
+        terms = torch.stack([(g * losses[k] * batch_size).to(dtype) for g, k in zip(gains, keys)])
+        items = torch.stack([(g * losses[k]).detach().to(dtype) for g, k in zip(gains, keys)])
+        return terms, items
+
+    def _compute_seg_loss(self, seg_logits, batch):
+        """BCE + Dice between the predicted heatmap and the rect-rendered GT mask."""
+        if seg_logits is None:
+            return torch.zeros((), device=next(self.parameters()).device)
+        main, aux = seg_logits if isinstance(seg_logits, tuple) else (seg_logits, None)
+        target = self.seg_target_renderer(batch["bboxes"], batch["batch_idx"], main.shape[0])
+        return binary_seg_loss(main, target.to(main.device), aux_logits=aux)
+
+    def _predict_once(self, x, profile=False, visualize=False, embed=None):
+        """Forward with heatmap-guided fusion inserted before the Detect head."""
+        # Cached-prior input: a 4th channel carries the precomputed heatmap (already
+        # geometrically augmented with the image). Split it off before the backbone.
+        if x.shape[1] == 4:
+            self._cached_prior_buf = x[:, 3:4]
+            x = x[:, :3]
+        else:
+            self._cached_prior_buf = None
+        batch_size = x.shape[0]
+        device = x.device
+
+        # Clear backbone feature cache so stale _ingest_support_batch / warmup
+        # features don't interfere with prior_mode="heatmap".
+        self._bb_feats = {}
+        # Reset QueryFiLM aux; set only when the queryfilm fusion runs (mask active).
+        self._qf_aux_buf = None
+
+        # AutoBackend's fuse() → .to() sequence can drop backbone hooks.
+        # Re-install them defensively when any target layer has lost its hook.
+        _layers = getattr(self, "_bb_layers", None)
+        if _layers and hasattr(self, "_bb_hook_handles"):
+            for _idx in _layers:
+                if _idx < len(self.model) and len(self.model[_idx]._forward_hooks) == 0:
+                    self._install_backbone_taps(_layers)
+                    break
+
+        # Consume the mask input set by loss() / set_mask_input() / disable_mask_once() /
+        # set_external_mask_once().
+        bboxes, batch_idx, external_mask, mask_disabled = self._consume_mask_input()
+
+        # Per-sample keep mask for mask dropout (anti-shortcut). Only meaningful when a
+        # rendered/blended mask is active; keep[b]=0 zeros the per-sample bias -> passthrough.
+        # getattr guards the stride probe in super().__init__(), which runs before our attrs exist.
+        p_drop = getattr(self, "p_drop", 0.0)
+        keep = torch.ones(batch_size, device=device)
+        if bboxes is not None and external_mask is None and self.training and p_drop > 0.0:
+            keep = (torch.rand(batch_size, device=device) > p_drop).to(keep.dtype)
+
+        # The fusion mask is resolved inside the loop once the PAN features (needed by the
+        # SegBranch) are available.
+        mask = None
+
+        y, dt, embeddings = [], [], []
+        embed = frozenset(embed) if embed is not None else {-1}
+        max_idx = max(embed)
+        last = self.model[-1]
+        for m in self.model:
+            if m is last:
+                # Apply soft-hint fusion to the PAN inputs before Detect.
+                # m.f is a list of indices into y (the PAN P3/P4/P5 outputs).
+                pan_inputs = [y[j] for j in m.f]
+                # SegBranch (optional) predicts the heatmap from P3/P4. Run unconditionally when present
+                # so the seg loss can be computed by loss().
+                seg_branch = getattr(self, "seg_branch", None)
+                seg_logits_buf = getattr(self, "_seg_logits_buf", None)
+                if seg_branch is not None:
+                    seg_logits_buf = seg_branch([pan_inputs[0], pan_inputs[1]])
+                    self._seg_logits_buf = seg_logits_buf
+                mask = self._resolve_fusion_mask(
+                    bboxes, batch_idx, external_mask, mask_disabled, seg_logits_buf, batch_size, device
+                )
+                # --- v2.3 prior_mode routing (overrides legacy resolution) ---
+                prior_mode = getattr(self, "_prior_mode", None)
+                if prior_mode is not None:
+                    mask = self._resolve_prior(prior_mode, external_mask, bboxes, batch_idx,
+                                               seg_logits_buf, batch_size, device)
+                # --- end prior_mode routing ---
+                # Stash RAW heatmap for validator AUROC (before softmax/remapping/augmentation).
+                self._last_heatmap = mask.detach() if mask is not None else None
+                # Per-image min-max normalization: stretch each sample's prior to [0, 1].
+                # Boosts a soft, low-peak prior (memory bank ~0.8) so the fusion conv responds
+                # like it did to binary GT masks. NOTE: on clean images with a flat prior this
+                # amplifies noise to full range -> may induce false positives.
+                if mask is not None and getattr(self, "heatmap_norm", "none") == "minmax":
+                    b = mask.shape[0]
+                    flat = mask.reshape(b, -1)
+                    lo = flat.min(dim=1, keepdim=True).values
+                    hi = flat.max(dim=1, keepdim=True).values
+                    mask = ((flat - lo) / (hi - lo).clamp_min(1e-6)).reshape_as(mask)
+                # Spatial softmax: normalize to probability distribution (reduces
+                # distribution gap between GT binary masks and soft predictions).
+                if mask is not None and getattr(self, "spatial_softmax", False):
+                    mask = self._apply_spatial_softmax(mask)
+                # Value remapping (bridges binary-GT training vs soft-SegBranch inference).
+                if mask is not None:
+                    mask = self._remap_mask_values(mask)
+                if (
+                    self.training
+                    and mask is not None
+                    and bboxes is not None
+                    and external_mask is None
+                    and prior_mode is None
+                    and (
+                        self.mask_shuffle_p > 0.0
+                        or self.mask_noise_std > 0.0
+                        or self.mask_mag_range[0] < 1.0
+                        or self.mask_mag_range[1] < 1.0
+                        or self.mask_blur_sigma_max > 0.0
+                        or self.mask_distractor_p > 0.0
+                        or self.mask_erase_p > 0.0
+                        or self.mask_warp_p > 0.0
+                        or self.mask_mixup_p > 0.0
+                    )
+                ):
+                    mask = self._augment_mask(mask)
+                fused = []
+                for i, p in enumerate(pan_inputs):
+                    if mask is None:
+                        # Pure passthrough: skip fusion entirely.
+                        fused.append(p)
+                        continue
+                    # QueryFiLM (v0) modulates P3 (i == 0) only; P4/P5 pass through unchanged.
+                    if self.fusion_mode == "queryfilm" and i != 0:
+                        fused.append(p)
+                        continue
+                    target_h, target_w = p.shape[2], p.shape[3]
+                    if mask.shape[2] != target_h or mask.shape[3] != target_w:
+                        m_scale = torch.nn.functional.interpolate(
+                            mask, size=(target_h, target_w), mode="bilinear", align_corners=False
+                        )
+                    else:
+                        m_scale = mask
+                    if self.fusion_mode == "film":
+                        # Residual grouped-FiLM: (B, C, H, W) increment, prior modulates feature.
+                        delta = self.heatmap_film_fusion(p, m_scale, i)
+                    elif self.fusion_mode == "queryfilm":
+                        # K query-driven per-region grouped-FiLM on P3. Stash aux for the
+                        # training loss (Hungarian matching happens there, not in the graph).
+                        # _qf_capture lets diagnostics read aux in eval without affecting export.
+                        if self.training or getattr(self, "_qf_capture", False):
+                            delta, self._qf_aux_buf = self.queryfilm_fusion(p, m_scale, return_aux=True)
+                        else:
+                            delta = self.queryfilm_fusion(p, m_scale, return_aux=False)
+                    else:
+                        # 1-channel additive bias in [-beta_i, +beta_i], broadcast over C.
+                        delta = self.heatmap_bias_fusion(m_scale, i)
+                    # Per-sample keep mask (mask dropout): dropped samples get zero increment.
+                    delta = delta * keep.to(delta.dtype).view(-1, 1, 1, 1)
+                    fused.append(p + delta)
+                # Two-head: head_a (= m = self.model[-1]) always sees RAW PAN (honest, deploy
+                # target); head_b sees the prior-fused features. Training returns both for the
+                # dual det loss; eval routes by prior presence (mask-on pass / external prior ->
+                # head_b, mask-off pass / deploy -> head_a). getattr guards the stride probe in
+                # super().__init__() (runs before two_head is set).
+                if getattr(self, "two_head", False):
+                    if self.training:
+                        x = (m(pan_inputs), self.head_b(fused))
+                    elif mask is not None:
+                        x = self.head_b(fused)
+                    else:
+                        x = m(pan_inputs)
+                else:
+                    x = m(fused)
+            else:
+                if m.f != -1:
+                    x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
+                if profile:
+                    self._profile_one_layer(m, x, dt)
+                x = m(x)
+            y.append(x if m.i in self.save else None)
+            if visualize:
+                feature_visualization(x, m.type, m.i, save_dir=visualize)
+            if m.i in embed:
+                embeddings.append(
+                    torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1)
+                )
+                if m.i == max_idx:
+                    return torch.unbind(torch.cat(embeddings, 1), dim=0)
+        return x
 
 
 class OBBModel(DetectionModel):
@@ -1781,6 +2874,9 @@ def guess_model_task(model):
 
     def cfg2task(cfg):
         """Guess from YAML dictionary."""
+        # YOLO Anomaly v2 marks itself with a dedicated config block (see yolo26-anomaly-v2.yaml).
+        if isinstance(cfg, dict) and "anomaly_v2" in cfg:
+            return "anomaly_v2"
         m = cfg["head"][-1][-2].lower()  # output module name
         if m in {"classify", "classifier", "cls", "fc"}:
             return "classify"
@@ -1799,6 +2895,10 @@ def guess_model_task(model):
             return cfg2task(model)
     # Guess from PyTorch model
     if isinstance(model, torch.nn.Module):  # PyTorch model
+        # YOLOAnomalyV2Model carries v2-specific submodules; check class first so we don't
+        # fall through to "detect" via the Detect-head module check below.
+        if isinstance(model, YOLOAnomalyV2Model):
+            return "anomaly_v2"
         for x in "model.args", "model.model.args", "model.model.model.args":
             with contextlib.suppress(Exception):
                 return eval(x)["task"]  # nosec B307: safe eval of known attribute paths
@@ -1820,7 +2920,9 @@ def guess_model_task(model):
     # Guess from model filename
     if isinstance(model, (str, Path)):
         model = Path(model)
-        if "-seg" in model.stem or "segment" in model.parts:
+        if "-anomaly-v2" in model.stem or "anomaly_v2" in model.parts:
+            return "anomaly_v2"
+        elif "-seg" in model.stem or "segment" in model.parts:
             return "segment"
         elif "-cls" in model.stem or "classify" in model.parts:
             return "classify"

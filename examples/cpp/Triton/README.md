@@ -105,7 +105,7 @@ Start your Triton server with a deployed YOLO model, then run the client. Use th
 ```
 
 > [!NOTE]
-> Triton exposes no task or class-name metadata, so the task is inferred from the output shapes. With **YOLO26** (end-to-end) models every task — including pose and OBB — is detected automatically. Only the legacy **grid** YOLOv8/11 **pose** `[1, 56, 8400]` and **obb** `[1, 20, 8400]` outputs are ambiguous with detection (they differ only by the class count, which Triton does not expose), so for those pass `--task pose` or `--task obb`. Class names fall back to COCO, so a non-COCO model (1000-class classify, DOTA obb) prints class indices rather than names.
+> Triton exposes no task or class-name metadata, so the task is inferred from the output shapes. With **YOLO26** (end-to-end) models every task — including pose and OBB is detected automatically. Only the legacy **grid** YOLOv8/11 **pose** `[1, 56, 8400]` and **obb** `[1, 20, 8400]` outputs are ambiguous with detection (they differ only by the class count, which Triton does not expose), so for those pass `--task pose` or `--task obb`. Class names fall back to COCO, so a non-COCO model (1000-class classify, DOTA obb) prints class indices rather than names.
 
 | Argument    | Default          | Description                                                    |
 | :---------- | :--------------- | :------------------------------------------------------------- |

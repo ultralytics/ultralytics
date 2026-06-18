@@ -1,4 +1,5 @@
 // Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 //
 // Shared result rendering for the Ultralytics YOLO C++ examples. Draws the
 // detections (or the semantic map) onto an image exactly like the Python

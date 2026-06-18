@@ -1,4 +1,5 @@
 // Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 //
 // Tiny command-line helpers shared by the Ultralytics YOLO C++ example `main`s.
 // Header-only: add examples/cpp/common to your include path.

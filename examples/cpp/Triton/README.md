@@ -2,30 +2,64 @@
 
 <img alt="C++" src="https://img.shields.io/badge/C%2B%2B-17-00599C.svg?logo=cplusplus&logoColor=white"> <img alt="NVIDIA Triton" src="https://img.shields.io/badge/NVIDIA%20Triton-76B900.svg?logo=nvidia&logoColor=white"> <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white"> <img alt="gRPC" src="https://img.shields.io/badge/gRPC-244c5a.svg?logo=google&logoColor=white">
 
-This example demonstrates how to perform object detection using Ultralytics YOLO11 models deployed on the NVIDIA Triton Inference Server. The implementation highlights efficient image preprocessing, FP16 (half-precision) data conversion, seamless communication with the Triton server via gRPC, and visualization of detection results with bounding boxes and confidence scores.
+A C++ gRPC client that runs **every [Ultralytics YOLO](https://docs.ultralytics.com/) task and model generation** against a model served by the [NVIDIA Triton Inference Server](https://github.com/triton-inference-server/server). The client reads the input/output layout from the model metadata, infers the task from the output shapes, and shares its post-processing with the other C++ examples — so the same binary handles detection, segmentation, pose, OBB, classification, and YOLO26 semantic segmentation.
 
-## ⚡ Features
+## ✨ Features
 
-- **High-Performance Inference**: Utilizes FP16 (half-precision) data format for optimized memory usage and accelerated inference.
-- **Non-Maximum Suppression (NMS)**: Removes duplicate detections to ensure precise object detection results.
-- **Seamless Triton Integration**: Communicates with the NVIDIA Triton Inference Server via gRPC for efficient and scalable model serving.
-- **Detection Visualization**: Annotates images with bounding boxes, class labels, and confidence scores for intuitive result interpretation.
+- **All tasks:** [detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [pose](https://docs.ultralytics.com/tasks/pose), [OBB](https://docs.ultralytics.com/tasks/obb), [classify](https://docs.ultralytics.com/tasks/classify), and YOLO26 semantic segmentation.
+- **All generations:** [YOLOv8](https://docs.ultralytics.com/models/yolov8), [YOLO11](https://docs.ultralytics.com/models/yolo11), and [YOLO26](https://docs.ultralytics.com/models/yolo26). The grid output of YOLOv8/11 and the end-to-end (NMS-free) output of YOLO26 are detected automatically from the tensor shape.
+- **FP16 and FP32:** the input and output datatypes are read from the model metadata, so half-precision ([FP16](https://www.ultralytics.com/glossary/half-precision)) and full-precision models both work with no flags.
+- **Seamless Triton integration:** communicates with the server over gRPC for efficient, scalable model serving.
+- **Simple CLI:** choose the server URL, model name, source image, and thresholds at runtime — no recompiling.
 
-## 🛠️ Dependencies
+## 📋 Dependencies
 
 Ensure you have the following dependencies installed before proceeding:
 
 | Dependency              | Version | Description                                   |
 | ----------------------- | ------- | --------------------------------------------- |
-| Triton Inference Server | 22.06   | Running with a deployed FP16 YOLO11 model     |
-| Triton Client libraries | 2.23    | Required for communication with Triton Server |
+| Triton Inference Server | 22.06+  | Running with a deployed YOLO model            |
+| Triton Client libraries | 2.23+   | Required for communication with Triton Server |
 | C++ compiler            | C++ 17+ | For compiling the C++ client application      |
-| OpenCV library          | 3.4.15  | For image processing and visualization        |
+| OpenCV library          | >=3.4   | For image processing and visualization        |
 | CMake                   | 3.5+    | For building the project                      |
 
 For more information on Triton, see the [NVIDIA Triton Inference Server documentation](https://github.com/triton-inference-server/server) and explore [model deployment options with Ultralytics](https://docs.ultralytics.com/guides/model-deployment-options).
 
-## 🏗️ Building the Project
+## 📦 Deploying a Model
+
+Export any model and task, then add it to a Triton [model repository](https://github.com/triton-inference-server/server/blob/main/docs/user_guide/model_repository.md). ONNX is a convenient serving format and keeps the `output0` (and `output1` for segmentation) tensor names this client expects.
+
+```bash
+yolo export model=yolo26n.pt      format=onnx opset=12                # detect   (end2end)
+yolo export model=yolo26n-seg.pt  format=onnx opset=12                # segment
+yolo export model=yolo26n-pose.pt format=onnx opset=12                # pose
+yolo export model=yolo26n-obb.pt  format=onnx opset=12                # obb
+yolo export model=yolo26n-cls.pt  format=onnx opset=12                # classify
+yolo export model=yolo26n-sem.pt  format=onnx opset=12                # semantic
+yolo export model=yolo11n.pt      format=onnx opset=12 dynamic=True   # YOLOv8/YOLO11 (grid) work too
+```
+
+Add `half=True device=0` to export an FP16 model on a GPU; the client reads the input/output datatype from the metadata and handles FP16 or FP32 automatically.
+
+Place the exported model under `<repository>/<model_name>/1/model.onnx`. Triton's ONNX backend auto-completes the configuration, so a `config.pbtxt` is optional. A minimal repository looks like:
+
+```text
+models/
+└── yolo26n/
+    └── 1/
+        └── model.onnx
+```
+
+Then start Triton pointing at the repository:
+
+```bash
+tritonserver --model-repository=/models
+```
+
+See the [Ultralytics Triton guide](https://docs.ultralytics.com/guides/triton-inference-server) for a full walkthrough.
+
+## 🛠️ Building the Project
 
 1. **Install the Triton Client libraries:**
 
@@ -52,42 +86,45 @@ For more information on Triton, see the [NVIDIA Triton Inference Server document
    make
    ```
 
-For additional guidance on integrating Ultralytics YOLO models with various platforms, check out the [Ultralytics integrations documentation](https://docs.ultralytics.com/integrations).
+The shared helpers in [`../common`](../common) (color palette, COCO names, annotator, post-processing) are header-only and added to the include path automatically.
 
 ## 🚀 Usage
 
-1. **Deploy your FP16 (half-precision) YOLO11 model on a Triton Inference Server.**
-   Learn more about deploying models with [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo11).
+Start your Triton server with a deployed YOLO model, then run the client. Use the model name as deployed in the repository as `--model`.
 
-2. **Run the Triton C++ client application:**
-
-   ```bash
-   ./yolo_triton
-   ```
-
-By default, the application will:
-
-- Connect to the Triton server at `localhost:8001`
-- Use the model named `yolo11` with version `1`
-- Process the image file `test.jpg`
-- Save detection results to `output.jpg`
-
-For more on object detection workflows, see [Ultralytics object detection tasks](https://docs.ultralytics.com/tasks/detect).
-
-## ⚙️ Configuration
-
-You can modify the following parameters in [main.cpp](main.cpp):
-
-```cpp
-std::string triton_address = "localhost:8001";
-std::string model_name = "yolo11";
-std::string model_version = "1";
-std::string image_path = "test.jpg";
-std::string output_path = "output.jpg";
-std::vector<std::string> object_class_list = {"class1", "class2"};
+```bash
+# Defaults: --url localhost:8001 --model yolo26n --source bus.jpg --conf 0.25 --iou 0.45 --out result.jpg
+./yolo_triton --model yolo26n      --source bus.jpg                          # detect   (auto)
+./yolo_triton --model yolo26n-seg  --source bus.jpg   --out seg.jpg          # segment  (auto)
+./yolo_triton --model yolo26n-pose --source bus.jpg   --out pose.jpg         # pose     (auto, end2end)
+./yolo_triton --model yolo26n-obb  --source boats.jpg --out obb.jpg          # obb      (auto, end2end)
+./yolo_triton --model yolo26n-cls  --source bus.jpg   --out cls.jpg          # classify (auto)
+./yolo_triton --model yolo26n-sem  --source bus.jpg   --out sem.jpg          # semantic (auto)
+./yolo_triton --model yolo11n-pose --source bus.jpg   --task pose            # legacy grid pose: needs --task
+./yolo_triton --url 192.168.1.10:8001 --model yolo26n --source street.jpg --show
 ```
 
-To learn more about configuring and customizing YOLO models, visit the [Ultralytics configuration guide](https://docs.ultralytics.com/usage/cfg).
+> [!NOTE]
+> Triton exposes no task or class-name metadata, so the task is inferred from the output shapes. With **YOLO26** (end-to-end) models every task — including pose and OBB — is detected automatically. Only the legacy **grid** YOLOv8/11 **pose** `[1, 56, 8400]` and **obb** `[1, 20, 8400]` outputs are ambiguous with detection (they differ only by the class count, which Triton does not expose), so for those pass `--task pose` or `--task obb`. Class names fall back to COCO, so a non-COCO model (1000-class classify, DOTA obb) prints class indices rather than names.
+
+| Argument    | Default          | Description                                                      |
+| :---------- | :--------------- | :--------------------------------------------------------------- |
+| `--url`     | `localhost:8001` | Triton server gRPC endpoint.                                     |
+| `--model`   | `yolo26n`        | Model name as deployed in the Triton repository.                |
+| `--version` | _latest_         | Model version (empty selects the latest).                       |
+| `--source`  | `bus.jpg`        | Input image.                                                    |
+| `--conf`    | `0.25`           | Confidence threshold.                                           |
+| `--iou`     | `0.45`           | NMS IoU threshold (grid models only; end2end models skip NMS).  |
+| `--imgsz`   | `640`            | Input size used when the model shape is dynamic.                |
+| `--task`    | _auto_           | Override the inferred task (`detect`, `segment`, `pose`, ...).   |
+| `--out`     | `result.jpg`     | Output image path.                                              |
+| `--show`    | _off_            | Also open a display window.                                     |
+
+The annotated result is always written to `--out` and the detections are printed to the console.
+
+## 🏷️ Class Names & Task
+
+Triton exposes no class names, so the example falls back to the 80 [COCO](https://docs.ultralytics.com/datasets/detect/coco) names from [`../common/coco_names.hpp`](../common/coco_names.hpp). The task is inferred from the output shapes; pass `--task` to override it (required for grid pose/obb, as noted above).
 
 ## 🤝 Contributing
 
@@ -103,4 +140,3 @@ This example was originally contributed by:
 - Serhat Karaca
 
 [![Ultralytics open-source contributors](https://raw.githubusercontent.com/ultralytics/assets/main/im/image-contributors.png)](https://github.com/ultralytics/ultralytics/graphs/contributors)
-

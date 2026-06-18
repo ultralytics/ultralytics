@@ -4,39 +4,39 @@
 
 This directory groups all of the C++ inference examples for [Ultralytics YOLO](https://docs.ultralytics.com/models/) models in one place. Each subfolder is a self-contained project showing how to run [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26), [YOLO11](https://docs.ultralytics.com/models/yolo11), and [YOLOv8](https://docs.ultralytics.com/models/yolov8) models against a different inference backend.
 
-The **ONNXRuntime** and **OpenVINO** examples support **every task** — [detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [pose](https://docs.ultralytics.com/tasks/pose), [OBB](https://docs.ultralytics.com/tasks/obb), [classify](https://docs.ultralytics.com/tasks/classify), and YOLO26 semantic segmentation — selecting the task automatically from the model metadata, and handle both grid (YOLOv8/11) and end-to-end (YOLO26) outputs. The other backends focus on object detection.
+Every backend supports **every task** — [detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [pose](https://docs.ultralytics.com/tasks/pose), [OBB](https://docs.ultralytics.com/tasks/obb), [classify](https://docs.ultralytics.com/tasks/classify), and YOLO26 semantic segmentation — selecting the task automatically from the model metadata or output shapes. Most also handle both grid (YOLOv8/11) and end-to-end (YOLO26) outputs; **OpenCV-DNN** supports the same tasks but only on **grid** models, because the OpenCV DNN module cannot run the YOLO26 end-to-end (NMS-in-graph) operators.
 
 ## 📂 Examples
 
 | Example                      | Backend                                                              | Build target      | Notes                                                                |
 | ---------------------------- | ------------------------------------------------------------------- | ----------------- | -------------------------------------------------------------------- |
-| [OpenCV-DNN](./OpenCV-DNN)   | [OpenCV DNN](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html)     | `yolo_opencv_dnn` | ONNX grid models (YOLOv8/11, or YOLO26 with `nms=False`); CPU/CUDA.  |
+| [OpenCV-DNN](./OpenCV-DNN)   | [OpenCV DNN](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html)     | `yolo_opencv_dnn` | All tasks on grid models (YOLOv8/11, or YOLO26 with `nms=False`); CPU/CUDA. |
 | [ONNXRuntime](./ONNXRuntime) | [ONNX Runtime](https://onnxruntime.ai/)                             | `yolo_onnxruntime`| All tasks; ONNX FP32/FP16; CPU or CUDA execution provider.           |
 | [LibTorch](./LibTorch)       | [LibTorch](https://docs.pytorch.org/cppdocs/)                       | `yolo_libtorch`   | All tasks; TorchScript via the PyTorch C++ API.                      |
 | [MNN](./MNN)                 | [Alibaba MNN](https://mnn-docs.readthedocs.io/en/latest/)           | `yolo_mnn`        | All tasks; MNN models on CPU.                                        |
 | [OpenVINO](./OpenVINO)       | [Intel OpenVINO](https://docs.openvino.ai/)                         | `yolo_openvino`   | All tasks; OpenVINO IR or ONNX on Intel hardware.                   |
-| [Triton](./Triton)           | [NVIDIA Triton](https://github.com/triton-inference-server/server)  | `yolo_triton`     | Detection gRPC client for a model served by Triton.                 |
+| [Triton](./Triton)           | [NVIDIA Triton](https://github.com/triton-inference-server/server)  | `yolo_triton`     | All tasks; gRPC client for a model served by Triton.                |
 
 ## ✅ How to Test
 
 All examples follow the same flow: **export a model → build the C++ project → run the executable**. Install the [Ultralytics package](https://docs.ultralytics.com/quickstart/) first (`pip install ultralytics`) so the `yolo export` command is available, then pick an example below.
 
-The **ONNXRuntime**, **OpenVINO**, **LibTorch**, and **MNN** examples support every task (detect, segment, pose, OBB, classify, semantic) and read the task and class names from the model metadata, so the same binary handles any model. They take the model and image as `--model` / `--source` arguments.
+The **ONNXRuntime**, **OpenVINO**, **LibTorch**, **MNN**, and **Triton** examples support every task (detect, segment, pose, OBB, classify, semantic) and read the task and class names from the model metadata (or, for Triton, infer the task from the output shapes), so the same binary handles any model. They take the model and image as `--model` / `--source` arguments.
 
 > [!NOTE]
-> These four examples detect the output layout automatically, so YOLOv8/11 (grid) and YOLO26 (end-to-end, NMS-free) models both work out of the box. **OpenCV-DNN** is detection-style only and cannot run YOLO26 end-to-end operators, so for it use grid models (YOLOv8/11, or YOLO26 exported with `nms=False`).
+> These five examples detect the output layout automatically, so YOLOv8/11 (grid) and YOLO26 (end-to-end, NMS-free) models both work out of the box. **OpenCV-DNN** supports the same tasks but only on grid models, since the OpenCV DNN module cannot run YOLO26 end-to-end operators — for it, use grid models (YOLOv8/11, or YOLO26 exported with `nms=False`).
 
 ### OpenCV-DNN
 
 ```bash
 # 1. Export a grid ONNX model (YOLO26 needs nms=False; cv::dnn cannot run end2end ops)
-yolo export model=yolo11n.pt format=onnx opset=12 imgsz=640
+yolo export model=yolo26n.pt format=onnx opset=12 imgsz=640 nms=False
 
 # 2. Build
 cd examples/cpp/OpenCV-DNN && mkdir build && cd build && cmake .. && make
 
 # 3. Run (use --task for grid pose/obb; class names fall back to COCO)
-./yolo_opencv_dnn --model yolo11n.onnx --source bus.jpg
+./yolo_opencv_dnn --model yolo26n.onnx --source bus.jpg
 ```
 
 ### ONNXRuntime (all tasks)
@@ -98,14 +98,16 @@ cd examples/cpp/OpenVINO && mkdir build && cd build && cmake .. && make
 ### Triton
 
 ```bash
-# 1. Deploy an FP16 YOLO model on an NVIDIA Triton Inference Server (model name "yolo11")
+# 1. Deploy any YOLO model on an NVIDIA Triton Inference Server (e.g. model name "yolo26_det")
 
 # 2. Build the client (point TRITON_CLIENT_DIR at the Triton client libraries)
 cd examples/cpp/Triton && mkdir build && cd build
 cmake .. -DTRITON_CLIENT_DIR=/path/to/tritonclient && make
 
-# 3. Run the client (connects to localhost:8001 by default)
-./yolo_triton
+# 3. Run the client - task auto-detected from the model outputs (default URL localhost:8001).
+#    YOLO26 auto-detects every task; only legacy grid YOLOv8/11 pose/obb need --task.
+./yolo_triton --model yolo26_det  --source bus.jpg
+./yolo_triton --model yolo26_pose --source bus.jpg
 ```
 
 See each example's own `README.md` for full dependency lists, platform notes, and configuration options.

@@ -10,7 +10,7 @@ A C++ application that runs every [Ultralytics YOLO](https://docs.ultralytics.co
 - **All generations:** [YOLOv8](https://docs.ultralytics.com/models/yolov8), [YOLO11](https://docs.ultralytics.com/models/yolo11), and [YOLO26](https://docs.ultralytics.com/models/yolo26). Grid (YOLOv8/11) and end-to-end (YOLO26) outputs are detected automatically.
 - **Zero configuration:** task, class names, and `imgsz` come from the TorchScript `config.txt` metadata that Ultralytics embeds on export.
 
-## ⚙️ Dependencies
+## 📋 Dependencies
 
 Ensure you have the following dependencies installed before proceeding:
 
@@ -29,8 +29,9 @@ Export any model and task to TorchScript with the Ultralytics `export` mode:
 
 ```bash
 yolo export model=yolo26n.pt      imgsz=640 format=torchscript   # detect (also -seg / -pose / -obb / -cls / -sem)
-yolo export model=yolo11n.pt      imgsz=640 format=torchscript   # YOLOv8/YOLO11 work too
 ```
+
+[YOLOv8](https://docs.ultralytics.com/models/yolov8) and [YOLO11](https://docs.ultralytics.com/models/yolo11) grid models work too — the output layout is detected automatically.
 
 See the [Export documentation](https://docs.ultralytics.com/modes/export) for more options.
 
@@ -56,7 +57,7 @@ export LD_LIBRARY_PATH=/path/to/libtorch/lib:$LD_LIBRARY_PATH
 # Defaults: --model yolo26n.torchscript --source bus.jpg --conf 0.25 --iou 0.45 --out result.jpg
 ./yolo_libtorch --model yolo26n.torchscript      --source bus.jpg
 ./yolo_libtorch --model yolo26n-seg.torchscript  --source bus.jpg --out seg.jpg
-./yolo_libtorch --model yolo11n-pose.torchscript --source bus.jpg --show
+./yolo_libtorch --model yolo26n-pose.torchscript --source bus.jpg --show
 ```
 
 | Argument   | Default               | Description                                              |

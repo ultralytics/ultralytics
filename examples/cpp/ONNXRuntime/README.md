@@ -12,6 +12,16 @@ A single C++ application that runs **every [Ultralytics YOLO](https://docs.ultra
 - **FP32 and FP16:** half-precision ([FP16](https://www.ultralytics.com/glossary/half-precision)) models are detected automatically from the input type and run with no extra flags.
 - **Simple CLI:** choose the model, source image, and thresholds at runtime — no recompiling.
 
+## 📋 Dependencies
+
+| Dependency                                           | Version       | Notes                                                          |
+| :--------------------------------------------------- | :------------ | :------------------------------------------------------------- |
+| [ONNX Runtime](https://onnxruntime.ai/docs/install/) | >=1.14        | Download the pre-built binaries (CPU or GPU).                  |
+| [OpenCV](https://opencv.org/releases/)               | >=4.0         | Image I/O, drawing, and NMS.                                   |
+| C++ Compiler                                         | C++17         | For `<filesystem>`.                                            |
+| [CMake](https://cmake.org/download/)                 | >=3.5         | Build system.                                                  |
+| [CUDA](https://developer.nvidia.com/cuda/toolkit)    | optional      | Only for the ONNX Runtime CUDA execution provider (`--cuda`).  |
+
 ## 📦 Exporting a Model
 
 Export any model and task to ONNX with the Ultralytics `export` mode. `opset=12` is recommended for broad compatibility.
@@ -22,16 +32,17 @@ yolo export model=yolo26n-seg.pt   format=onnx opset=12   # segment
 yolo export model=yolo26n-pose.pt  format=onnx opset=12   # pose
 yolo export model=yolo26n-obb.pt   format=onnx opset=12   # obb
 yolo export model=yolo26n-cls.pt   format=onnx opset=12   # classify
-yolo export model=yolo26n-sem.pt   format=onnx opset=12   # semantic (YOLO26)
-yolo export model=yolo11n.pt       format=onnx opset=12   # YOLOv8/YOLO11 also work
+yolo export model=yolo26n-sem.pt   format=onnx opset=12   # semantic
 ```
+
+[YOLOv8](https://docs.ultralytics.com/models/yolov8) and [YOLO11](https://docs.ultralytics.com/models/yolo11) grid models work too — the output layout is detected automatically.
 
 See the [Export documentation](https://docs.ultralytics.com/modes/export) for more options.
 
 To run a half-precision model, export with `half=True` **on a GPU** (on CPU, `half=True` is ignored and the export stays FP32). The example detects the FP16 input type and runs it automatically:
 
 ```bash
-yolo export model=yolo11n.pt format=onnx half=True device=0
+yolo export model=yolo26n.pt format=onnx half=True device=0
 ```
 
 If you only have a CPU, convert an exported FP32 ONNX to FP16 with ONNX Runtime's converter (it handles the `Resize` op correctly):
@@ -40,19 +51,9 @@ If you only have a CPU, convert an exported FP32 ONNX to FP16 with ONNX Runtime'
 import onnx
 from onnxruntime.transformers.float16 import convert_float_to_float16
 
-model = onnx.load("yolo11n.onnx")
-onnx.save(convert_float_to_float16(model, keep_io_types=False), "yolo11n_fp16.onnx")
+model = onnx.load("yolo26n.onnx")
+onnx.save(convert_float_to_float16(model, keep_io_types=False), "yolo26n_fp16.onnx")
 ```
-
-## ⚙️ Dependencies
-
-| Dependency                                           | Version       | Notes                                                          |
-| :--------------------------------------------------- | :------------ | :------------------------------------------------------------- |
-| [ONNX Runtime](https://onnxruntime.ai/docs/install/) | >=1.14        | Download the pre-built binaries (CPU or GPU).                  |
-| [OpenCV](https://opencv.org/releases/)               | >=4.0         | Image I/O, drawing, and NMS.                                   |
-| C++ Compiler                                         | C++17         | For `<filesystem>`.                                            |
-| [CMake](https://cmake.org/download/)                 | >=3.5         | Build system.                                                  |
-| [CUDA](https://developer.nvidia.com/cuda/toolkit)    | optional      | Only for the ONNX Runtime CUDA execution provider (`--cuda`).  |
 
 ## 🛠️ Build
 
@@ -77,7 +78,7 @@ export LD_LIBRARY_PATH=/path/to/onnxruntime/lib:$LD_LIBRARY_PATH
 # Defaults: --model yolo26n.onnx --source bus.jpg --conf 0.25 --iou 0.45 --out result.jpg
 ./yolo_onnxruntime --model yolo26n.onnx        --source bus.jpg
 ./yolo_onnxruntime --model yolo26n-seg.onnx    --source bus.jpg --out seg.jpg
-./yolo_onnxruntime --model yolo11n-pose.onnx   --source bus.jpg --show
+./yolo_onnxruntime --model yolo26n-pose.onnx   --source bus.jpg --show
 ./yolo_onnxruntime --model yolo26n-sem.onnx    --source street.jpg
 ```
 

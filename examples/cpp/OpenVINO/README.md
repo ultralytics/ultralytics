@@ -4,7 +4,7 @@
 
 A single C++ application that runs **every [Ultralytics YOLO](https://docs.ultralytics.com/) task and model generation** with the [Intel OpenVINO™ toolkit](https://docs.openvino.ai/) and [OpenCV](https://opencv.org/). Point it at an OpenVINO IR (`.xml`) or an `.onnx` file — the program reads the class names from the model and picks the right post-processing automatically.
 
-## 🌟 Features
+## ✨ Features
 
 - **All tasks:** [detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [pose](https://docs.ultralytics.com/tasks/pose), [OBB](https://docs.ultralytics.com/tasks/obb), [classify](https://docs.ultralytics.com/tasks/classify), and YOLO26 semantic segmentation.
 - **All generations:** [YOLOv8](https://docs.ultralytics.com/models/yolov8), [YOLO11](https://docs.ultralytics.com/models/yolo11), and [YOLO26](https://docs.ultralytics.com/models/yolo26). Grid (YOLOv8/11) and end-to-end (YOLO26) outputs are detected automatically from the tensor shape.
@@ -16,7 +16,7 @@ A single C++ application that runs **every [Ultralytics YOLO](https://docs.ultra
 
 | Dependency                                            | Version  |
 | ----------------------------------------------------- | -------- |
-| [OpenVINO](https://docs.openvino.ai/latest/home.html) | >=2023.3 |
+| [OpenVINO](https://docs.openvino.ai/) | >=2023.3 |
 | [OpenCV](https://opencv.org/)                         | >=4.5.0  |
 | [C++](https://en.cppreference.com/w/)                 | >=17     |
 | [CMake](https://cmake.org/documentation/)             | >=3.12.0 |
@@ -26,12 +26,13 @@ A single C++ application that runs **every [Ultralytics YOLO](https://docs.ultra
 ```bash
 yolo export model=yolo26n.pt      imgsz=640 format=openvino   # detect IR  (also -seg / -pose / -obb / -cls / -sem)
 yolo export model=yolo26n.pt      imgsz=640 format=onnx       # or ONNX, read directly by OpenVINO
-yolo export model=yolo11n.pt      imgsz=640 format=openvino   # YOLOv8/YOLO11 work too
 ```
+
+[YOLOv8](https://docs.ultralytics.com/models/yolov8) and [YOLO11](https://docs.ultralytics.com/models/yolo11) grid models work too — the output layout is detected automatically.
 
 See the [Export documentation](https://docs.ultralytics.com/modes/export). The OpenVINO export produces a `*_openvino_model/` directory containing the `.xml`, `.bin`, and metadata.
 
-## ⚙️ Build
+## 🛠️ Build
 
 ```bash
 git clone https://github.com/ultralytics/ultralytics.git
@@ -48,7 +49,7 @@ OpenVINO is found via `find_package(OpenVINO)` and the shared helpers in [`../co
 # Defaults: --model yolo26n.onnx --source bus.jpg --conf 0.25 --iou 0.45 --device AUTO --out result.jpg
 ./yolo_openvino --model yolo26n_openvino_model/yolo26n.xml --source bus.jpg
 ./yolo_openvino --model yolo26n-seg.onnx                   --source bus.jpg --out seg.jpg
-./yolo_openvino --model yolo11n-pose.onnx                  --source bus.jpg --show
+./yolo_openvino --model yolo26n-pose.onnx                  --source bus.jpg --show
 ```
 
 | Argument   | Default        | Description                                              |

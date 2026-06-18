@@ -8,33 +8,35 @@ The **ONNXRuntime** and **OpenVINO** examples support **every task** — [detect
 
 ## 📂 Examples
 
-| Example                      | Backend                                                              | Build target(s)                   | Notes                                                       |
-| ---------------------------- | ------------------------------------------------------------------- | --------------------------------- | ----------------------------------------------------------- |
-| [OpenCV-DNN](./OpenCV-DNN)   | [OpenCV DNN](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html)     | `yolo_opencv_dnn`                 | ONNX models via the OpenCV DNN module (CPU/CUDA).           |
-| [ONNXRuntime](./ONNXRuntime) | [ONNX Runtime](https://onnxruntime.ai/)                             | `yolo_onnxruntime`                | ONNX models with FP32/FP16, CPU or CUDA execution provider. |
-| [LibTorch](./LibTorch)       | [LibTorch](https://docs.pytorch.org/cppdocs/)                       | `yolo_libtorch`                   | TorchScript models via the PyTorch C++ API.                 |
-| [MNN](./MNN)                 | [Alibaba MNN](https://mnn-docs.readthedocs.io/en/latest/)           | `yolo_mnn`, `yolo_mnn_interpreter`| MNN models (FP32/FP16/INT8), Express and Interpreter APIs.  |
-| [OpenVINO](./OpenVINO)       | [Intel OpenVINO](https://docs.openvino.ai/)                         | `yolo_openvino`                   | OpenVINO IR or ONNX models on Intel hardware.               |
-| [Triton](./Triton)           | [NVIDIA Triton](https://github.com/triton-inference-server/server)  | `yolo_triton`                     | gRPC client for a model served by Triton Inference Server.  |
+| Example                      | Backend                                                              | Build target      | Notes                                                                |
+| ---------------------------- | ------------------------------------------------------------------- | ----------------- | -------------------------------------------------------------------- |
+| [OpenCV-DNN](./OpenCV-DNN)   | [OpenCV DNN](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html)     | `yolo_opencv_dnn` | ONNX grid models (YOLOv8/11, or YOLO26 with `nms=False`); CPU/CUDA.  |
+| [ONNXRuntime](./ONNXRuntime) | [ONNX Runtime](https://onnxruntime.ai/)                             | `yolo_onnxruntime`| All tasks; ONNX FP32/FP16; CPU or CUDA execution provider.           |
+| [LibTorch](./LibTorch)       | [LibTorch](https://docs.pytorch.org/cppdocs/)                       | `yolo_libtorch`   | All tasks; TorchScript via the PyTorch C++ API.                      |
+| [MNN](./MNN)                 | [Alibaba MNN](https://mnn-docs.readthedocs.io/en/latest/)           | `yolo_mnn`        | All tasks; MNN models on CPU.                                        |
+| [OpenVINO](./OpenVINO)       | [Intel OpenVINO](https://docs.openvino.ai/)                         | `yolo_openvino`   | All tasks; OpenVINO IR or ONNX on Intel hardware.                   |
+| [Triton](./Triton)           | [NVIDIA Triton](https://github.com/triton-inference-server/server)  | `yolo_triton`     | Detection gRPC client for a model served by Triton.                 |
 
 ## ✅ How to Test
 
 All examples follow the same flow: **export a model → build the C++ project → run the executable**. Install the [Ultralytics package](https://docs.ultralytics.com/quickstart/) first (`pip install ultralytics`) so the `yolo export` command is available, then pick an example below.
 
+The **ONNXRuntime**, **OpenVINO**, **LibTorch**, and **MNN** examples support every task (detect, segment, pose, OBB, classify, semantic) and read the task and class names from the model metadata, so the same binary handles any model. They take the model and image as `--model` / `--source` arguments.
+
 > [!NOTE]
-> The **ONNXRuntime** and **OpenVINO** examples detect the output layout automatically, so YOLOv8/11 (grid) and YOLO26 (end-to-end, NMS-free) models both work out of the box. The other backends run their own [NMS](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) on grid outputs, so for those export YOLO26 with NMS disabled (`nms=False`).
+> These four examples detect the output layout automatically, so YOLOv8/11 (grid) and YOLO26 (end-to-end, NMS-free) models both work out of the box. **OpenCV-DNN** is detection-style only and cannot run YOLO26 end-to-end operators, so for it use grid models (YOLOv8/11, or YOLO26 exported with `nms=False`).
 
 ### OpenCV-DNN
 
 ```bash
-# 1. Export an ONNX model into the example directory
-yolo export model=yolo11s.pt imgsz=640,480 format=onnx opset=12
+# 1. Export a grid ONNX model (YOLO26 needs nms=False; cv::dnn cannot run end2end ops)
+yolo export model=yolo11n.pt format=onnx opset=12 imgsz=640
 
 # 2. Build
 cd examples/cpp/OpenCV-DNN && mkdir build && cd build && cmake .. && make
 
-# 3. Edit projectBasePath / model path in main.cpp, then run
-./yolo_opencv_dnn
+# 3. Run (use --task for grid pose/obb; class names fall back to COCO)
+./yolo_opencv_dnn --model yolo11n.onnx --source bus.jpg
 ```
 
 ### ONNXRuntime (all tasks)
@@ -51,32 +53,33 @@ cmake .. -DONNXRUNTIME_ROOT=/path/to/onnxruntime -DUSE_CUDA=OFF && make
 LD_LIBRARY_PATH=/path/to/onnxruntime/lib ./yolo_onnxruntime --model yolo26n.onnx --source bus.jpg
 ```
 
-### LibTorch
+### LibTorch (all tasks)
 
 ```bash
-# 1. Export a TorchScript model
-yolo export model=yolo11s.pt imgsz=640 format=torchscript
+# 1. Export a TorchScript model (any task)
+yolo export model=yolo26n.pt imgsz=640 format=torchscript
 
 # 2. Build (add CMAKE_PREFIX_PATH if LibTorch/OpenCV are not auto-detected)
 cd examples/cpp/LibTorch && mkdir build && cd build
 cmake .. -DCMAKE_PREFIX_PATH="/path/to/libtorch;/path/to/opencv" && make
 
-# 3. Set the model and image paths in main.cc, then run
-./yolo_libtorch
+# 3. Run — task auto-detected from the model metadata
+LD_LIBRARY_PATH=/path/to/libtorch/lib ./yolo_libtorch --model yolo26n.torchscript --source bus.jpg
 ```
 
-### MNN
+### MNN (all tasks)
 
 ```bash
-# 1. Export an MNN model
-yolo export model=yolo11n.pt imgsz=640 format=mnn
+# 1. Export an MNN model (any task). Prefer format=mnn over MNNConvert so metadata is kept.
+yolo export model=yolo26n.pt imgsz=640 format=mnn
 
-# 2. Build MNN, then the example (see MNN/README.md for the full MNN build)
-cd examples/cpp/MNN && mkdir build && cd build && cmake .. && make
+# 2. Build MNN from source, then the example pointing at the MNN headers and library
+#    (see MNN/README.md for the full MNN build)
+cd examples/cpp/MNN && mkdir build && cd build
+cmake .. -DMNN_INCLUDE_DIR=/path/to/MNN/include -DMNN_LIB_DIR=/path/to/MNN/build && make
 
-# 3. Run (Express API or Interpreter API)
-./yolo_mnn yolo11n.mnn bus.jpg
-./yolo_mnn_interpreter yolo11n.mnn bus.jpg
+# 3. Run — task auto-detected from the bizCode metadata
+LD_LIBRARY_PATH=/path/to/MNN/build ./yolo_mnn --model yolo26n.mnn --source bus.jpg
 ```
 
 ### OpenVINO (all tasks)

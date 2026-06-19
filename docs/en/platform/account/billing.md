@@ -25,7 +25,7 @@ Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 | **Storage**                                                | 100 GB     | 500 GB          | Unlimited   |
 | **Dataset Upload (ZIP/TAR incl. `.tar.gz`/`.tgz`/NDJSON)** | 10 GB      | 20 GB           | 50 GB       |
 | **Deployments**                                            | 3          | 10              | Unlimited   |
-| **Cloud GPU Types**                                        | 22         | 24              | 24          |
+| **Cloud GPU Types**                                        | 24         | 26              | 26          |
 | **Best GPUs (B200, B300)**                                 | -          | Yes             | Yes         |
 | **Teams**                                                  | -          | Up to 5 members | Custom size |
 | **SSO / SAML**                                             | -          | -               | Yes         |
@@ -46,7 +46,7 @@ Get started at no cost:
 - 100 GB storage · 10 GB dataset upload limit
 - Model export to all 19+ formats
 - Manual, SAM 3 & YOLO Smart annotation
-- 22 cloud GPU types including 5090, H100 & H200 ($0.24–$4.39/hr)
+- 24 cloud GPU types including 5090, H100 & H200 ($0.24–$4.39/hr)
 - Community support
 
 !!! tip "Company Email Bonus"

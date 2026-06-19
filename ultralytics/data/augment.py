@@ -1397,7 +1397,11 @@ class RandomObjectCrop:
         # Choose the crop window (x, y, cw, ch) in absolute pixels, preserving the image aspect ratio.
         if len(instances):
             bx1, by1, bx2, by2 = instances.bboxes[random.randrange(len(instances))]
-            bw, bh = max(float(bx2 - bx1), 1.0), max(float(by2 - by1), 1.0)
+            # Clip the anchor to image bounds — post-mosaic boxes can extend past the canvas, which
+            # makes the containment window unsatisfiable (lo > hi -> empty randrange crash).
+            bx1, bx2 = min(max(float(bx1), 0.0), w), min(max(float(bx2), 0.0), w)
+            by1, by2 = min(max(float(by1), 0.0), h), min(max(float(by2), 0.0), h)
+            bw, bh = max(bx2 - bx1, 1.0), max(by2 - by1, 1.0)
             r = random.uniform(max(bw / w, bh / h), 1.0)  # uniform side-length == uniform zoom factor
             cw, ch = min(max(round(r * w), int(math.ceil(bw))), w), min(max(round(r * h), int(math.ceil(bh))), h)
             x = random.randint(int(max(0, bx2 - cw)), int(min(bx1, w - cw)))  # window must contain the box, jittered

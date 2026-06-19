@@ -64,7 +64,7 @@ Cross-generation distillation (e.g., YOLO11 teacher with YOLO26 student) is **no
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `distill_model` | `str` | `None` | Path to the teacher model file (e.g., `yolo26x.pt`). Setting this enables knowledge distillation. |
-| `dis` | `float` | `6.0` | Distillation loss weight. Controls how much the distillation loss contributes to the total training loss. See [tuning guidance](#adjusting-the-distillation-loss-weight). |
+| `dis` | `float` | `6.0` | Distillation loss weight. Controls how much the distillation loss contributes to the total training loss.
 
 ## How It Works
 
@@ -109,12 +109,6 @@ Training with distillation is identical to standard training. Provide the `disti
 
 The `dis` parameter (default: `6.0`) controls distillation loss contribution:
 
-| Scenario | Suggested `dis` | Reason |
-|----------|-----------------|--------|
-| Student much smaller (n→s) | 8-10 | Smaller student needs more guidance |
-| Similar sizes (s→m, m→x) | 4-6 | Balanced guidance |
-| Distillation loss dominates | 1-3 | Reduce if detection performance suffers |
-
 !!! example "Custom Distillation Weight"
 
     === "Python"
@@ -128,7 +122,7 @@ The `dis` parameter (default: `6.0`) controls distillation loss contribution:
             data="coco8.yaml",
             epochs=100,
             distill_model="yolo26s.pt",
-            dis=10,  # increase weight for smaller student
+            dis=10,
         )
         ```
 
@@ -170,22 +164,7 @@ When distillation is enabled, an additional `dis_loss` column appears in trainin
 
 The exported model contains **only the student weights**—file size and inference speed match a normally trained student model.
 
-## Performance Expectations
-
-| Metric | Typical Impact |
-|--------|----------------|
-| **Accuracy** | 1-3 mAP improvement over standard training |
-| **Training Time** | 1.5-2x slower (teacher forward pass overhead) |
-| **GPU Memory** | ~1.3x higher (both models in memory) |
-| **Inference Speed** | Identical to standard student model |
-
-Use mixed precision (`amp=True`) to reduce memory and speed overhead.
-
 ## FAQ
-
-### What accuracy improvement can I expect?
-
-Results vary by dataset, but distillation typically improves mAP by 1-3 points over standard training. Train a baseline without `distill_model` on your data to compare.
 
 ### Why is my distillation loss not decreasing?
 
@@ -200,4 +179,4 @@ Add the `distill_model` parameter—everything else works identically. An extra 
 
 ### Does knowledge distillation slow down training?
 
-Yes. Expect 1.5-2x slower training and ~1.3x more GPU memory because the teacher model runs inference on each batch. The teacher runs in `eval` mode without gradients, keeping overhead manageable. Use `amp=True` to reduce impact.
+Yes. Expect 1.2-1.5x slower training and ~1.1x more GPU memory because the teacher model runs inference on each batch. The teacher runs in `eval` mode without gradients, keeping overhead manageable. Use `amp=True` to reduce impact.

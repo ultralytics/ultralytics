@@ -144,6 +144,11 @@ def modelopt_quantize_onnx(
             quantize_mode="int8",
             calibration_data={input_name: calib.cpu().numpy()},
             calibration_method="max",
+            # Calibrate on CUDA (CPU fallback), not ModelOpt's default that also includes the TensorRT EP: some RTX
+            # cards (e.g. RTX 2000 Ada) additionally register NvTensorRTRTXExecutionProvider, and enabling both TRT
+            # EPs in one session aborts calibration ("Cannot enable both 'TensorrtExecutionProvider' and
+            # 'NvTensorRTRTXExecutionProvider'"). Calibration scales are effectively EP-independent, so CUDA matches.
+            calibration_eps=["cuda:0", "cpu"],
             output_path=out_file,
             **kwargs,
         )

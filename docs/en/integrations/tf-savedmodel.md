@@ -1,5 +1,5 @@
 ---
-title: Export YOLO11 to TF SavedModel Format
+title: Export YOLO to TF SavedModel Format
 comments: true
 description: Learn how to export Ultralytics YOLO26 models to TensorFlow SavedModel format for easy deployment across various platforms and environments.
 keywords: YOLO26, TF SavedModel, Ultralytics, TensorFlow, model export, model deployment, machine learning, AI

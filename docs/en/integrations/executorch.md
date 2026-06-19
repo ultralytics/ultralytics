@@ -1,5 +1,5 @@
 ---
-title: YOLO11 ExecuTorch Export for Mobile & Edge
+title: YOLO ExecuTorch for Mobile & Edge
 comments: true
 description: Export YOLO26 models to ExecuTorch format for efficient on-device inference on mobile and edge devices. Optimize your AI models for iOS, Android, and embedded systems.
 keywords: Ultralytics, YOLO26, ExecuTorch, model export, PyTorch, edge AI, mobile deployment, on-device inference, XNNPACK, embedded systems

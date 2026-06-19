@@ -1,5 +1,5 @@
 ---
-title: YOLO11 Training with Google Colab
+title: YOLO Training with Google Colab
 comments: true
 description: Learn how to efficiently train Ultralytics YOLO26 models using Google Colab's powerful cloud-based environment. Start your project with ease.
 keywords: YOLO26, Google Colab, machine learning, deep learning, model training, GPU, TPU, cloud computing, Jupyter Notebook, Ultralytics

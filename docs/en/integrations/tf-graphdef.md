@@ -1,5 +1,5 @@
 ---
-title: Export YOLO11 to TF GraphDef
+title: Export YOLO to TF GraphDef
 comments: true
 description: Learn how to export YOLO26 models to the TF GraphDef format for seamless deployment on various platforms, including mobile and web.
 keywords: YOLO26, export, TensorFlow, GraphDef, model deployment, TensorFlow Serving, TensorFlow Lite, TensorFlow.js, machine learning, AI, computer vision

@@ -1,5 +1,5 @@
 ---
-title: YOLO11 TensorBoard Integration
+title: YOLO TensorBoard Integration
 comments: true
 description: Learn how to integrate YOLO26 with TensorBoard for real-time visual insights into your model's training metrics, performance graphs, and debugging workflows.
 keywords: YOLO26, TensorBoard, model training, visualization, machine learning, deep learning, Ultralytics, training metrics, performance analysis

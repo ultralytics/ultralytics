@@ -1,5 +1,5 @@
 ---
-title: YOLO11 ClearML Integration for MLOps
+title: YOLO ClearML Integration for MLOps
 comments: true
 description: Discover how to integrate YOLO26 with ClearML to streamline your MLOps workflow, automate experiments, and enhance model management effortlessly.
 keywords: YOLO26, ClearML, MLOps, Ultralytics, machine learning, object detection, model training, automation, experiment management

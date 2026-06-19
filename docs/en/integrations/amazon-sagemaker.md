@@ -1,5 +1,5 @@
 ---
-title: YOLO11 on Amazon SageMaker Endpoints
+title: YOLO on Amazon SageMaker Endpoints
 comments: true
 description: Learn step-by-step how to deploy Ultralytics' YOLO26 on Amazon SageMaker Endpoints, from setup to testing, for powerful real-time inference with AWS services.
 keywords: YOLO26, Amazon SageMaker, AWS, Ultralytics, machine learning, computer vision, model deployment, AWS CloudFormation, AWS CDK, real-time inference

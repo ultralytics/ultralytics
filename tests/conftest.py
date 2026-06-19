@@ -76,6 +76,20 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.skip(reason=f"export format '{fmt}' belongs to env '{env_by_format[fmt]}'"))
 
 
+def isolated_model_path(tmp_path, model):
+    """Copy a model to a per-test path to prevent export file races under pytest-xdist."""
+    model = Path(model)
+    if not model.exists():
+        from ultralytics.utils.downloads import attempt_download_asset
+
+        model.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(attempt_download_asset(model.name), model)
+
+    dst = tmp_path / model.name
+    shutil.copy(model, dst)
+    return str(dst)
+
+
 def pytest_sessionstart(session):
     """Initialize session configurations for pytest.
 
@@ -101,15 +115,7 @@ def isolated_model(tmp_path):
     """
     from tests import MODEL
 
-    if not Path(MODEL).exists():
-        from ultralytics.utils.downloads import attempt_download_asset
-
-        MODEL.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy(attempt_download_asset("yolo26n.pt"), MODEL)
-
-    dst = tmp_path / "model.pt"
-    shutil.copy(MODEL, dst)
-    return str(dst)
+    return isolated_model_path(tmp_path, MODEL)
 
 
 def pytest_sessionfinish(session, exitstatus):

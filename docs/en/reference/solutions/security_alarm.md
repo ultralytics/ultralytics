@@ -1,4 +1,5 @@
 ---
+title: Security Alarm API Reference
 description: Discover how Ultralytics' Security Alarm System enhances real-time surveillance with intelligent object detection and tracking. Learn about setup, monitoring, and threat detection.
 keywords: Ultralytics, Security Alarm System, Real-time Surveillance, Object Detection, Video Monitoring, Python, Threat Detection
 ---

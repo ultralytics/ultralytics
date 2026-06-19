@@ -1,4 +1,5 @@
 ---
+title: Region Counter API Reference
 description: Explore the Ultralytics Region Counter for real-time video streams. Learn to define regions, track objects, and count activity per zone.
 keywords: Ultralytics, Region Counter, Real-time Tracking, Video Stream, Python, Object Detection
 ---

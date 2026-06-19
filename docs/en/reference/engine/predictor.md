@@ -1,4 +1,5 @@
 ---
+title: Predictor API Reference
 description: Discover how to use the Base Predictor class in the Ultralytics YOLO engine for efficient image and video inference.
 keywords: Ultralytics, YOLO, Base Predictor, image inference, video inference, machine learning, Python
 ---

@@ -1,4 +1,5 @@
 ---
+title: Model API Reference
 description: Discover how to use the FastSAM model with Ultralytics. Learn about its interface and implementation details with practical examples.
 keywords: FastSAM, Ultralytics, model interface, YOLO, deep learning, machine learning, segmentation, predictor, validator, Python
 ---

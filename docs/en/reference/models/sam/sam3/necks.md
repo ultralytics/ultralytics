@@ -1,4 +1,5 @@
 ---
+title: Necks API Reference
 description: Explore the ultralytics.models.sam.sam3.necks module for SAM3 neck components that connect vision backbones to downstream heads.
 keywords: Ultralytics, SAM3, SAM, neck, backbone, ViTDet, segmentation, Python
 ---

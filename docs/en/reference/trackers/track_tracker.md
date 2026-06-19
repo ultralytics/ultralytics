@@ -1,4 +1,5 @@
 ---
+title: Track Tracker API Reference
 description: Explore the TrackTrack module in Ultralytics for multi-cue online multi-object tracking with HMIoU, iterative assignment, and track-aware initialization. Learn about its classes, methods, and attributes.
 keywords: Ultralytics, TrackTrack, TTSTrack, HMIoU, iterative assignment, Track-Aware Initialization, ReID, GMC, object tracking, YOLO, documentation
 ---

@@ -1,4 +1,5 @@
 ---
+title: Deep Oc Sort API Reference
 description: Explore the Deep OC-SORT module in Ultralytics for observation-centric multi-object tracking with ReID appearance features and camera motion compensation. Learn about its classes, methods, and attributes.
 keywords: Ultralytics, Deep OC-SORT, DeepOCSORT, observation-centric, object tracking, Kalman filter, ReID, GMC, YOLO, documentation
 ---

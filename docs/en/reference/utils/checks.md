@@ -1,4 +1,5 @@
 ---
+title: Checks API Reference
 description: Explore utility functions for Ultralytics YOLO such as checking versions, image sizes, and requirements.
 keywords: Ultralytics, YOLO, utility functions, version checks, requirements, image size
 ---

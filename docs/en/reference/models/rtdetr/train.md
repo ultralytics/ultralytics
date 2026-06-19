@@ -1,4 +1,5 @@
 ---
+title: Train API Reference
 description: Explore RTDETRTrainer for efficient real-time object detection leveraging Vision Transformers. Learn configuration, dataset handling, and advanced model training.
 keywords: RTDETRTrainer, real-time object detection, Vision Transformers, YOLO, RT-DETR model, model training, dataset handling
 ---

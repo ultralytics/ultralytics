@@ -1,4 +1,5 @@
 ---
+title: Predict API Reference
 description: Learn about NASPredictor in Ultralytics YOLO for efficient object detection. Explore its attributes, methods, and usage with examples.
 keywords: Ultralytics, YOLO, NASPredictor, object detection, machine learning, AI, non-maximum suppression, bounding boxes, image processing
 ---

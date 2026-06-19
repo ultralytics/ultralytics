@@ -1,4 +1,5 @@
 ---
+title: Workout Monitoring with YOLO Pose
 comments: true
 description: Optimize your fitness routine with real-time workouts monitoring using Ultralytics YOLO26. Track and improve your exercise form and performance.
 keywords: workouts monitoring, Ultralytics YOLO26, pose estimation, fitness tracking, exercise assessment, real-time feedback, exercise form, performance metrics

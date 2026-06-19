@@ -1,4 +1,5 @@
 ---
+title: Raytune API Reference
 description: Learn how to integrate Ray Tune with Ultralytics YOLO for efficient hyperparameter tuning and performance tracking.
 keywords: Ultralytics, Ray Tune, hyperparameter tuning, YOLO, machine learning, deep learning, callbacks, integration, training metrics
 ---

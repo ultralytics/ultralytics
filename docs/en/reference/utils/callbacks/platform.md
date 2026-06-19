@@ -1,4 +1,5 @@
 ---
+title: Platform API Reference
 description: Platform callback functions for console logging during YOLO11 training lifecycle events.
 keywords: platform callbacks, training callbacks, console logging, YOLO11 training, lifecycle events, Ultralytics
 ---

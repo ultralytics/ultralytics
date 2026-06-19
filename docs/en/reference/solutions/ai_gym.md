@@ -1,4 +1,5 @@
 ---
+title: Ai Gym API Reference
 description: Explore the AI Gym class for real-time pose detection and gym step counting using Ultralytics YOLO. Learn to implement pose estimation effectively.
 keywords: Ultralytics, AI Gym, YOLO, pose detection, gym step counting, real-time pose estimation, Python
 ---

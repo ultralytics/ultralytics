@@ -1,4 +1,5 @@
 ---
+title: NVIDIA DALI GPU Preprocessing for YOLO
 comments: true
 description: Learn how to use NVIDIA DALI for GPU-accelerated preprocessing with Ultralytics YOLO models. Eliminate CPU bottlenecks by running letterbox resize, padding, and normalization on the GPU for faster TensorRT and Triton deployments.
 keywords: NVIDIA DALI, GPU preprocessing, Ultralytics, YOLO, YOLO26, TensorRT, Triton Inference Server, letterbox, inference optimization, deep learning, computer vision, deployment, video processing, batch inference, DALI pipeline, CV-CUDA

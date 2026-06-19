@@ -1,4 +1,5 @@
 ---
+title: Dataset API Reference
 description: Explore the YOLODataset and its subclasses for object detection, segmentation, and multi-modal tasks. Find details on dataset loading, caching, and augmentation.
 keywords: Ultralytics, YOLODataset, object detection, segmentation, dataset loading, caching, data augmentation
 ---

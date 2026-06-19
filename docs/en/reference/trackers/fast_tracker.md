@@ -1,4 +1,5 @@
 ---
+title: Fast Tracker API Reference
 description: Explore the FastTracker module in Ultralytics for occlusion-aware multi-object tracking with Kalman rollback and init-IoU suppression. Learn about its classes, methods, and attributes.
 keywords: Ultralytics, FastTracker, FASTTracker, occlusion-aware, object tracking, Kalman filter, YOLO, documentation
 ---

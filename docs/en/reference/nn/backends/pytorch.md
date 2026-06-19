@@ -1,4 +1,5 @@
 ---
+title: Pytorch API Reference
 description: Explore PyTorchBackend and TorchScriptBackend for native PyTorch and TorchScript model inference in Ultralytics YOLO models.
 keywords: Ultralytics, PyTorchBackend, TorchScriptBackend, PyTorch inference, TorchScript inference, .pt models, deep learning, YOLO
 ---

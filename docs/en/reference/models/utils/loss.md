@@ -1,4 +1,5 @@
 ---
+title: Loss API Reference
 description: Explore detailed implementations of loss functions for DETR and RT-DETR models in Ultralytics.
 keywords: ultralytics, YOLO, DETR, RT-DETR, loss functions, object detection, deep learning, focal loss, varifocal loss, Hungarian matcher
 ---

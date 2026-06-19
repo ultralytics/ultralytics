@@ -1,4 +1,5 @@
 ---
+title: Solutions API Reference
 description: Explore the Ultralytics Solution Base class for real-time object counting,virtual gym, heatmaps, speed estimation using Ultralytics YOLO. Learn to implement Ultralytics solutions effectively.
 keywords: Ultralytics, Solutions, Object counting, Speed Estimation, Heatmaps, Queue Management, AI Gym, YOLO, pose detection, gym step counting, real-time pose estimation, Python
 ---

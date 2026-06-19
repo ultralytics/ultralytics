@@ -1,4 +1,5 @@
 ---
+title: YOLO26 Heatmaps for Data Visualization
 comments: true
 description: Transform complex data into insightful heatmaps using Ultralytics YOLO26. Discover patterns, trends, and anomalies with vibrant visualizations.
 keywords: Ultralytics, YOLO26, heatmaps, data visualization, data analysis, complex data, patterns, trends, anomalies

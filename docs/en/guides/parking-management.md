@@ -1,4 +1,5 @@
 ---
+title: Parking Management with YOLO26
 comments: true
 description: Optimize parking spaces and enhance safety with Ultralytics YOLO26. Explore real-time vehicle detection and smart parking solutions.
 keywords: parking management, YOLO26, Ultralytics, vehicle detection, real-time tracking, parking lot optimization, smart parking

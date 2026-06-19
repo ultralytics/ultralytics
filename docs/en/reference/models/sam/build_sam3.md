@@ -1,4 +1,5 @@
 ---
+title: Build Sam3 API Reference
 description: Explore the ultralytics.models.sam.build_sam3 module for building SAM3 image models, including backbone and transformer components.
 keywords: Ultralytics, SAM3, SAM, segmentation, transformer, ViTDet, model builder, Python
 ---

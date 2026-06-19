@@ -1,4 +1,5 @@
 ---
+title: Deepx API Reference
 description: Reference for the Ultralytics DeepXBackend. Learn how to run inference with DEEPX NPU compiled models using the DX-Runtime.
 keywords: DeepXBackend, DEEPX, NPU, inference backend, dx_engine, Ultralytics, YOLO, edge AI
 ---

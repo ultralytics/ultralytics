@@ -1,4 +1,5 @@
 ---
+title: YOLO on Vertex AI with Docker & FastAPI
 comments: true
 description: Learn how to deploy pretrained YOLO26 models on Google Cloud Vertex AI using Docker containers and FastAPI for scalable inference with complete control over preprocessing and postprocessing.
 keywords: YOLO26, Vertex AI, Docker, FastAPI, deployment, container, GCP, Artifact Registry, Ultralytics, cloud deployment

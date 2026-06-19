@@ -1,4 +1,5 @@
 ---
+title: Metrics API Reference
 description: Explore detailed metrics and utility functions for model validation and performance analysis with Ultralytics' metrics module.
 keywords: Ultralytics, metrics, model validation, performance analysis, IoU, confusion matrix
 ---

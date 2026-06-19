@@ -1,4 +1,5 @@
 ---
+title: Validator API Reference
 description: Explore Ultralytics BaseValidator for model validation in PyTorch, TensorFlow, ONNX, and more. Learn to check model accuracy and performance metrics.
 keywords: Ultralytics, BaseValidator, model validation, PyTorch, TensorFlow, ONNX, model accuracy, performance metrics
 ---

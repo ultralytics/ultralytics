@@ -1,4 +1,5 @@
 ---
+title: Region-Based Object Counting with YOLO
 comments: true
 description: Learn how to use Ultralytics YOLO26 for precise object counting in specified regions, enhancing efficiency across various applications.
 keywords: object counting, regions, YOLO26, computer vision, Ultralytics, efficiency, accuracy, automation, real-time, applications, surveillance, monitoring

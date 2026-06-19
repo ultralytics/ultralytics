@@ -1,4 +1,5 @@
 ---
+title: Maskformer Segmentation API Reference
 description: Explore the ultralytics.models.sam.sam3.maskformer_segmentation module for segmentation heads and predictors used with SAM3.
 keywords: Ultralytics, SAM3, MaskFormer, segmentation head, mask prediction, deep learning, Python, API reference
 ---

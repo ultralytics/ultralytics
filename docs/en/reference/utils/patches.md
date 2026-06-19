@@ -1,4 +1,5 @@
 ---
+title: Patches API Reference
 description: Explore and contribute to Ultralytics' utils/patches.py. Learn about the imread, imwrite, imshow, and torch_save functions.
 keywords: Ultralytics, utils, patches, imread, imwrite, imshow, torch_save, OpenCV, PyTorch, GitHub
 ---

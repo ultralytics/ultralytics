@@ -1,4 +1,5 @@
 ---
+title: Track API Reference
 description: Explore the track.py script for Ultralytics object tracking. Learn how on_predict_start, on_predict_postprocess_end, and register_tracker functions work.
 keywords: Ultralytics, YOLO, object tracking, track.py, on_predict_start, on_predict_postprocess_end, register_tracker
 ---

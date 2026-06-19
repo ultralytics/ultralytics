@@ -1,4 +1,5 @@
 ---
+title: Trackzone API Reference
 description: Discover Ultralytics' TrackZone solution for real-time object tracking within defined zones. Gain insights into initializing regions, tracking objects exclusively within specific areas, and optimizing video stream processing for region-based object detection.
 keywords: Ultralytics, TrackZone, Object Tracking, Zone Tracking, Region Tracking, Python, Real-time Object Tracking, Video Stream Processing, Region-based Detection
 ---

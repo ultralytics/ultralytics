@@ -1,4 +1,5 @@
 ---
+title: Export YOLO11 to TensorFlow.js (TF.js)
 comments: true
 description: Convert your Ultralytics YOLO26 models to TensorFlow.js for high-speed, local object detection. Learn how to optimize ML models for browser and Node.js apps.
 keywords: YOLO26, TensorFlow.js, TF.js, model export, machine learning, object detection, browser ML, Node.js, Ultralytics, YOLO, export models

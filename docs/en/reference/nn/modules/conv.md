@@ -1,4 +1,5 @@
 ---
+title: Conv API Reference
 description: Explore detailed documentation on convolution modules like Conv, LightConv, GhostConv, and more used in Ultralytics models.
 keywords: Ultralytics, convolution modules, Conv, LightConv, GhostConv, YOLO, deep learning, neural networks
 ---

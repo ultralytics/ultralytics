@@ -1,4 +1,5 @@
 ---
+title: YOLO Computer Vision Solutions Overview
 comments: true
 description: Explore Ultralytics Solutions using YOLO26 for object counting, blurring, security, and more. Enhance efficiency and solve real-world problems with cutting-edge AI.
 keywords: Ultralytics, YOLO26, object counting, object blurring, security systems, AI solutions, real-time analysis, computer vision applications

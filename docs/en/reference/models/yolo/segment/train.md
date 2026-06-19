@@ -1,4 +1,5 @@
 ---
+title: Train API Reference
 description: Learn how to train YOLO models for segmentation tasks with Ultralytics. Explore the SegmentationTrainer class and its functionalities.
 keywords: YOLO, segmentation, train, Ultralytics, SegmentationTrainer, Python, machine learning, deep learning, tutorials
 ---

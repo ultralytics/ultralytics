@@ -1,4 +1,5 @@
 ---
+title: YOLO26 Computer Vision Tasks Overview
 comments: true
 description: Explore Ultralytics YOLO26 for detection, segmentation, semantic segmentation, classification, OBB, and pose estimation with high accuracy and speed. Learn how to apply each task.
 keywords: Ultralytics YOLO26, detection, segmentation, semantic segmentation, classification, oriented object detection, pose estimation, computer vision, AI framework

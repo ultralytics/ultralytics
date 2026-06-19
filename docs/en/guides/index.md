@@ -1,4 +1,5 @@
 ---
+title: Ultralytics YOLO How-To Guides
 comments: true
 description: Master YOLO with Ultralytics tutorials covering training, deployment and optimization. Find solutions, improve metrics, and deploy with ease.
 keywords: Ultralytics, YOLO, tutorials, guides, object detection, deep learning, PyTorch, training, deployment, optimization, computer vision

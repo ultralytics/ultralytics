@@ -1,4 +1,5 @@
 ---
+title: Geometry Encoders API Reference
 description: Explore the ultralytics.models.sam.sam3.geometry_encoders module for prompt and geometry encoding utilities used by SAM3.
 keywords: Ultralytics, SAM3, SAM, prompt encoder, geometry encoder, padding, embeddings, Python
 ---

@@ -1,4 +1,5 @@
 ---
+title: Base API Reference
 description: Explore the BaseBackend class, the abstract foundation for all inference backends in Ultralytics, defining the interface for model loading and inference.
 keywords: Ultralytics, BaseBackend, inference backend, abstract class, model loading, deep learning, neural network inference
 ---

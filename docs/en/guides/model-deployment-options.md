@@ -1,4 +1,5 @@
 ---
+title: YOLO11 Deployment Options Compared
 comments: true
 description: Learn about YOLO26's diverse deployment options to maximize your model's performance. Explore PyTorch, TensorRT, OpenVINO, TF Lite, and more!
 keywords: YOLO26, deployment options, export formats, PyTorch, TensorRT, OpenVINO, TF Lite, machine learning, model deployment

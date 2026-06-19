@@ -1,4 +1,5 @@
 ---
+title: Tiny Encoder API Reference
 description: Explore the detailed implementation of TinyViT architecture including Conv2d_BN, PatchEmbed, MBConv, and more in Ultralytics.
 keywords: Ultralytics, TinyViT, Conv2d_BN, PatchEmbed, MBConv, Attention, PyTorch, YOLO, Deep Learning
 ---

@@ -1,4 +1,5 @@
 ---
+title: Utils API Reference
 description: Explore the detailed reference of utility functions in the Ultralytics PyTorch modules. Learn about initialization, inverse sigmoid, and multiscale deformable attention.
 keywords: Ultralytics, PyTorch, utils, initialization, inverse sigmoid, multiscale deformable attention, deep learning, neural networks
 ---

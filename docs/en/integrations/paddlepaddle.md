@@ -1,4 +1,5 @@
 ---
+title: Export YOLO11 Models to PaddlePaddle
 comments: true
 description: Learn how to export YOLO26 models to PaddlePaddle format for enhanced performance, flexibility, and deployment across various platforms and devices.
 keywords: YOLO26, PaddlePaddle, export models, computer vision, deep learning, model deployment, performance optimization

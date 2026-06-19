@@ -1,4 +1,5 @@
 ---
+title: Predict API Reference
 description: Explore the Ultralytics YOLO Detection Predictor. Learn how to implement and use the DetectionPredictor class for object detection in Python.
 keywords: YOLO, Ultralytics, DetectionPredictor, object detection, Python, machine learning, AI, non_max_suppression
 ---

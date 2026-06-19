@@ -1,5 +1,5 @@
 ---
-title: Files API Reference
+title: Utils Files API Reference
 description: Explore the utility functions and context managers in Ultralytics like WorkingDirectory, increment_path, file_size, and more. Enhance your file handling in Python.
 keywords: Ultralytics, file utilities, Python, WorkingDirectory, increment_path, file_size, file_age, contexts, file handling, file management
 ---

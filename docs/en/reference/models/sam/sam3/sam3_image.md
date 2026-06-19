@@ -1,5 +1,5 @@
 ---
-title: Sam3 Image API Reference
+title: SAM SAM3 Sam3 Image API
 description: Explore the ultralytics.models.sam.sam3.sam3_image module, including the SAM3SemanticModel and related output helpers.
 keywords: Ultralytics, SAM3, SAM, image segmentation, semantic segmentation, model, Python, API reference
 ---

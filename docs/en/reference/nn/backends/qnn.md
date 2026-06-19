@@ -1,5 +1,5 @@
 ---
-title: Qnn API Reference
+title: NN Backends Qnn API
 description: Reference for the Ultralytics QNNBackend. Learn how to run inference with Qualcomm QNN context-binary models using ONNX Runtime's QNN Execution Provider.
 keywords: QNNBackend, Qualcomm QNN, onnxruntime-qnn, QNN Execution Provider, Snapdragon, Hexagon NPU, inference backend, Ultralytics, YOLO, edge AI
 ---

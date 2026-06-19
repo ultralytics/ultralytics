@@ -1,5 +1,5 @@
 ---
-title: Transformer API Reference
+title: NN Modules Transformer API
 description: Learn about Ultralytics transformer encoder, layer, MLP block, LayerNorm2d and the deformable transformer decoder layer. Expand your understanding of these crucial AI modules.
 keywords: Ultralytics, Ultralytics documentation, TransformerEncoderLayer, TransformerLayer, MLPBlock, LayerNorm2d, DeformableTransformerDecoderLayer
 ---

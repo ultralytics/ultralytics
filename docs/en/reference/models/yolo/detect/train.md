@@ -1,5 +1,5 @@
 ---
-title: Train API Reference
+title: YOLO Detect Train API
 description: Learn about the DetectionTrainer class for training YOLO models on custom datasets. Discover methods, examples, and more.
 keywords: Ultralytics, YOLO, DetectionTrainer, training, object detection, machine learning, build dataset, dataloader, detection model
 ---

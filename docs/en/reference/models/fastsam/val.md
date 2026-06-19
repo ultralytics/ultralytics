@@ -1,5 +1,5 @@
 ---
-title: Val API Reference
+title: Models FastSAM Val API
 description: Discover FastSAM Validator for segmentation in Ultralytics YOLO. Learn how to validate with custom metrics and avoid common errors. Contribute on GitHub.
 keywords: FastSAM Validator, Ultralytics, YOLO, segmentation, validation, metrics, GitHub, contribute, documentation
 ---

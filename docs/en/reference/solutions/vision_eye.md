@@ -1,5 +1,5 @@
 ---
-title: Vision Eye API Reference
+title: Solutions Vision Eye API Reference
 description: Discover the Ultralytics VisionEye solution for object tracking and analysis. Learn how to initialize parameters, map vision points, and track objects in real-time.
 keywords: Ultralytics, VisionEye, Object Tracking, Computer Vision, Real-time Analysis, Python, AI
 ---

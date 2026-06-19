@@ -1,5 +1,5 @@
 ---
-title: Base API Reference
+title: Utils Callbacks Base API
 description: Discover the essential base callbacks in Ultralytics for training, validation, prediction, and exporting models efficiently.
 keywords: Ultralytics, base callbacks, training, validation, prediction, model export, ML, machine learning, deep learning
 ---

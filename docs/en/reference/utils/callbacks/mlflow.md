@@ -1,5 +1,5 @@
 ---
-title: Mlflow API Reference
+title: Utils Callbacks Mlflow API
 description: Learn how to set up and customize MLflow logging for Ultralytics YOLO. Log metrics, parameters, and model artifacts easily.
 keywords: MLflow, Ultralytics YOLO, logging, metrics, parameters, model artifacts, setup, tracking, customization
 ---

@@ -1,5 +1,5 @@
 ---
-title: Imx API Reference
+title: Utils Export Imx API
 description: Learn how to export PyTorch models to Sony IMX format using Ultralytics utilities. Comprehensive guide for configurations and precision optimizations.
 keywords: Ultralytics, YOLO, export, Sony IMX, PyTorch, model conversion, INT8, machine learning, NMS, Detect, Pose
 ---

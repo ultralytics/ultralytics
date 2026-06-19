@@ -1,5 +1,5 @@
 ---
-title: Train API Reference
+title: YOLO YOLOE Train API
 description: Learn about YOLOE training classes in Ultralytics, including standard, linear probing, and visual prompt training for detection and segmentation models.
 keywords: YOLOE, training, trainers, EVP, visual prompts, computer vision, object detection, segmentation, Ultralytics, deep learning
 ---

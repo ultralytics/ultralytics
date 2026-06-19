@@ -1,5 +1,5 @@
 ---
-title: Model API Reference
+title: Engine Model API Reference
 description: Explore the base class for implementing YOLO models with unified APIs for training, validation, prediction, and more. Learn how to utilize different task types and model configurations.
 keywords: YOLO model, Ultralytics, machine learning, deep learning, PyTorch model, training, validation, prediction, exporting, benchmarking, Ultralytics Platform, Triton Server
 ---

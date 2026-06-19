@@ -1,5 +1,5 @@
 ---
-title: Byte Tracker API Reference
+title: Trackers ByteTrack API Reference
 description: Explore the BYTETracker module in Ultralytics for state-of-the-art object tracking using Kalman filtering. Learn about its classes, methods, and attributes.
 keywords: Ultralytics, BYTETracker, object tracking, Kalman filter, YOLOv8, documentation
 ---

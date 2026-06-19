@@ -1,5 +1,5 @@
 ---
-title: Transformer API Reference
+title: SAM Modules Transformer API
 description: Explore the TwoWayTransformer module in Ultralytics, designed for simultaneous attention to image and query points. Ideal for object detection and segmentation tasks.
 keywords: Ultralytics, TwoWayTransformer, module, deep learning, transformer, object detection, image segmentation, attention mechanism, neural networks
 ---

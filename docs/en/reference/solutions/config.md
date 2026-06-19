@@ -1,5 +1,5 @@
 ---
-title: Config API Reference
+title: Solutions Config API Reference
 description: Configure and customize Ultralytics Vision AI solutions using the SolutionConfig class. Define model paths, regions of interest, visualization options, tracking parameters, and keypoint analytics with a clean, type-safe dataclass structure for scalable development.
 keywords: Ultralytics, SolutionConfig, vision AI configuration, YOLO models, Python dataclass, object detection, region of interest, tracking, keypoint analytics, computer vision, model inference, object counting, heatmaps, parking management, research
 ---

@@ -1,5 +1,5 @@
 ---
-title: Val API Reference
+title: YOLO Classify Val API
 description: Explore the source code and functionalities of the YOLO Classification Validator in Ultralytics for evaluating classification models effectively.
 keywords: Ultralytics, YOLO, classification, validation, ClassifyMetrics, ConfusionMatrix, PyTorch, deep learning, model evaluation, AI, machine learning
 ---

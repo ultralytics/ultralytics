@@ -1,5 +1,5 @@
 ---
-title: Train API Reference
+title: YOLO Semantic Train API
 description: Reference for YOLO semantic segmentation trainer. Learn about the SemanticSegmentationTrainer class and its training methods.
 keywords: Ultralytics, semantic segmentation, trainer, training, YOLO, semantic
 ---

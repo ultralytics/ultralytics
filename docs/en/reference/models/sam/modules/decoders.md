@@ -1,5 +1,5 @@
 ---
-title: Decoders API Reference
+title: SAM Modules Decoders API
 description: Explore the MaskDecoder and MLP modules in Ultralytics for efficient mask prediction using transformer architecture. Detailed attributes, functionalities, and implementation.
 keywords: Ultralytics, MaskDecoder, MLP, machine learning, transformer architecture, mask prediction, neural networks, PyTorch modules
 ---

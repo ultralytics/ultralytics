@@ -1,5 +1,5 @@
 ---
-title: Heatmap API Reference
+title: Solutions Heatmap API Reference
 description: Learn how to use the Ultralytics Heatmap module for real-time video analysis with object tracking and heatmap generation.
 keywords: Ultralytics, Heatmap, Python, Real-time Video, Object Tracking, cv2, Shapely, Computer Vision, AI
 ---

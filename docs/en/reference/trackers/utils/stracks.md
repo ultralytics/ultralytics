@@ -1,5 +1,5 @@
 ---
-title: Stracks API Reference
+title: Trackers Utils Stracks API
 description: Reference for shared track-pool utilities including merge, joint, subtract, duplicate removal, and global motion compensation helpers.
 keywords: Ultralytics, stracks, track pools, multi-object tracking, GMC, STrack utilities
 ---

@@ -1,5 +1,5 @@
 ---
-title: Parking Management API Reference
+title: Solutions Parking Management API Reference
 description: Explore Ultralytics' Parking Management solution leveraging YOLO for efficient parking zone monitoring and management.
 keywords: Ultralytics, YOLO, parking management, computer vision, parking monitoring, AI solutions, machine learning
 ---

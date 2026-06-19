@@ -1,5 +1,5 @@
 ---
-title: Val API Reference
+title: YOLO Detect Val API
 description: Explore the DetectionValidator class for YOLO models in Ultralytics. Learn validation techniques, metrics, and dataset handling for object detection.
 keywords: YOLO validation, detection validation, YOLO metrics, Ultralytics, object detection, machine learning, AI
 ---

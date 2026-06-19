@@ -1,5 +1,5 @@
 ---
-title: Oc Sort API Reference
+title: Trackers OC-SORT API Reference
 description: Explore the OC-SORT module in Ultralytics for observation-centric multi-object tracking with Kalman filtering. Learn about its classes, methods, and attributes.
 keywords: Ultralytics, OC-SORT, OCSORT, observation-centric, object tracking, Kalman filter, YOLO, documentation
 ---

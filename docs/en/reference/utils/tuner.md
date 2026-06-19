@@ -1,5 +1,5 @@
 ---
-title: Tuner API Reference
+title: Utils Tuner API Reference
 description: Explore how to use ultralytics.utils.tuner.py for efficient hyperparameter tuning with Ray Tune. Learn implementation details and example usage.
 keywords: Ultralytics, tuner, hyperparameter tuning, Ray Tune, YOLO, machine learning, AI, optimization
 ---

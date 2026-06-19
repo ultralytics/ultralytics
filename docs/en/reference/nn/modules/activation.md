@@ -1,5 +1,5 @@
 ---
-title: Activation API Reference
+title: NN Modules Activation API
 description: Explore activation functions in Ultralytics, including the Unified activation function and other custom implementations for neural networks.
 keywords: ultralytics, activation functions, neural networks, Unified activation, AGLU, SiLU, ReLU, PyTorch, deep learning, custom activations
 ---

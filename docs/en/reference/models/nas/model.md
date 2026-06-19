@@ -1,5 +1,5 @@
 ---
-title: Model API Reference
+title: Models NAS Model API
 description: Explore the YOLO-NAS model interface and learn how to utilize pretrained YOLO-NAS models for object detection with Ultralytics.
 keywords: Ultralytics, YOLO, YOLO-NAS, object detection, pretrained models, machine learning, deep learning, NAS model
 ---

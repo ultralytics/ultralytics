@@ -1,5 +1,5 @@
 ---
-title: Val API Reference
+title: Models NAS Val API
 description: Explore the Ultralytics NASValidator for efficient YOLO model validation. Learn about NMS and post-processing configurations.
 keywords: Ultralytics, YOLO, NASValidator, object detection, non-maximum suppression, NMS, YOLO models, machine learning
 ---

@@ -1,5 +1,5 @@
 ---
-title: Matching API Reference
+title: Trackers Utils Matching API
 description: Explore the utility functions for matching in trackers used by Ultralytics, including linear assignment, IoU distance, embedding distance, and more.
 keywords: Ultralytics, matching utils, linear assignment, IoU distance, embedding distance, fuse score, tracking, Python, documentation
 ---

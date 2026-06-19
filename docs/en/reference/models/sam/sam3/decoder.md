@@ -1,5 +1,5 @@
 ---
-title: Decoder API Reference
+title: SAM SAM3 Decoder API
 description: Explore the ultralytics.models.sam.sam3.decoder module, including transformer decoder layers used in SAM3 model heads.
 keywords: Ultralytics, SAM3, SAM, transformer decoder, attention, segmentation, deep learning, Python
 ---

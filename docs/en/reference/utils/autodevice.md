@@ -1,5 +1,5 @@
 ---
-title: Autodevice API Reference
+title: Utils Autodevice API Reference
 description: Discover how to automatically select the most idle GPU using PyTorch and NVIDIA (nvidia-ml-py) with this AutoDevice script. Ideal for optimizing GPU usage in deep learning and computer vision tasks.
 keywords: Ultralytics, AutoDevice, GPU selection, PyTorch, NVML, pynvml, GPU monitoring, CUDA, deep learning, idle GPU, memory utilization, temperature, power usage
 ---

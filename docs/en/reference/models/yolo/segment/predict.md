@@ -1,5 +1,5 @@
 ---
-title: Predict API Reference
+title: YOLO Segment Predict API
 description: Understand the SegmentationPredictor class for segmentation-based predictions using YOLO. Learn more about its implementation and example usage.
 keywords: YOLO, SegmentationPredictor, machine learning, computer vision, object detection, Ultralytics, prediction, model, non-max suppression
 ---

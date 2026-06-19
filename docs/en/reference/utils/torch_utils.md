@@ -1,5 +1,5 @@
 ---
-title: Torch Utils API Reference
+title: Utils Torch Utils API Reference
 description: Explore valuable torch utilities from Ultralytics for optimized model performance, including device selection, model fusion, and inference optimization.
 keywords: Ultralytics, torch utils, model optimization, device selection, inference optimization, model fusion, CPU info, PyTorch tools
 ---

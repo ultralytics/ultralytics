@@ -1,5 +1,5 @@
 ---
-title: Autobatch API Reference
+title: Utils Autobatch API Reference
 description: Discover how to automatically estimate the best YOLO batch size for optimal CUDA memory usage in PyTorch using Ultralytics' autobatch utility.
 keywords: YOLO batch size, CUDA memory, PyTorch autobatch, Ultralytics, machine learning, optimal batch size, training batch size, YOLO model
 ---

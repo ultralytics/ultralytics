@@ -1,5 +1,5 @@
 ---
-title: Predict API Reference
+title: YOLO YOLOE Predict API
 description: Documentation for YOLOE visual prompt predictors in Ultralytics, supporting inference with visual prompts for both object detection and segmentation models.
 keywords: YOLOE, visual prompts, predictors, YOLOEVPDetectPredictor, YOLOEVPSegPredictor, inference, object detection, segmentation, Ultralytics, deep learning
 ---

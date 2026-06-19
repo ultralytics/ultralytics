@@ -1,5 +1,5 @@
 ---
-title: Uploads API Reference
+title: Utils Uploads API Reference
 description: Explore the Ultralytics upload utilities with retry logic, progress bars, and signed URL support for cloud storage.
 keywords: Ultralytics, upload utilities, file upload, retry logic, progress bar, cloud storage, GCS, YOLO, machine learning
 ---

@@ -1,5 +1,5 @@
 ---
-title: Train World API Reference
+title: YOLO World Train World API
 description: Explore the WorldTrainerFromScratch in YOLO for open-set datasets. Learn how to build, train, and evaluate models efficiently.
 keywords: YOLO, WorldTrainer, open-set datasets, training, evaluation, build dataset, YOLO World, machine learning
 ---

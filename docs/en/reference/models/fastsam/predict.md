@@ -1,5 +1,5 @@
 ---
-title: Predict API Reference
+title: Models FastSAM Predict API
 description: Explore the Fast SAM Predictor in the Ultralytics YOLO framework. Learn about its segmentation prediction tasks, configuration, and post-processing steps.
 keywords: Ultralytics, Fast SAM Predictor, YOLO, segmentation, prediction, AI model, non-max suppression, mask prediction, tutorial
 ---

@@ -1,5 +1,5 @@
 ---
-title: Queue Management API Reference
+title: Solutions Queue Management API Reference
 description: Discover the Ultralytics Queue Management script for real-time object tracking and queue management.
 keywords: Ultralytics, queue management, object tracking, real-time video, Python script, YOLO, AGPL-3.0
 ---

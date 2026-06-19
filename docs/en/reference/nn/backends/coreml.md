@@ -1,5 +1,5 @@
 ---
-title: Coreml API Reference
+title: NN Backends Coreml API
 description: Explore CoreMLBackend for Apple CoreML inference, enabling efficient YOLO model deployment on iOS, macOS, and Apple Silicon devices.
 keywords: Ultralytics, CoreMLBackend, CoreML inference, Apple CoreML, iOS deployment, macOS inference, Apple Silicon, mobile AI
 ---

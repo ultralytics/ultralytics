@@ -1,5 +1,5 @@
 ---
-title: Triton API Reference
+title: Utils Triton API Reference
 description: Learn how to use the TritonRemoteModel class for interacting with remote Triton Inference Server models. Detailed guide with code examples and attributes.
 keywords: Ultralytics, TritonRemoteModel, Triton Inference Server, model client, inference, remote model, machine learning, AI, Python
 ---

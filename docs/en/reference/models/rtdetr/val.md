@@ -1,5 +1,5 @@
 ---
-title: Val API Reference
+title: Models RT-DETR Val API
 description: Explore the RTDETRValidator and RTDETRDataset classes for real-time detection and tracking. Understand initialization, transformations, and post-processing.
 keywords: RTDETR, Ultralytics, object detection, tracking, YOLO, RTDETRDataset, RTDETRValidator, real-time detection
 ---

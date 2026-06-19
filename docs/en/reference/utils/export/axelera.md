@@ -1,5 +1,5 @@
 ---
-title: Axelera API Reference
+title: Utils Export Axelera API
 description: Axelera export utilities for converting PyTorch models to Axelera format for deployment on Metis AI processors. Supports INT8 quantization and optimized inference for computer vision workloads on Axelera hardware.
 keywords: Ultralytics, Axelera, model export, PyTorch to Axelera, Metis AI processor, INT8 quantization, computer vision, AI inference, edge AI, hardware acceleration
 ---

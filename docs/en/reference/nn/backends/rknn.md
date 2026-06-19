@@ -1,5 +1,5 @@
 ---
-title: Rknn API Reference
+title: NN Backends Rknn API
 description: Explore RKNNBackend for Rockchip RKNN inference, enabling optimized YOLO deployment on Rockchip NPU-equipped edge devices.
 keywords: Ultralytics, RKNNBackend, RKNN inference, Rockchip RKNN, NPU inference, edge AI, embedded deployment, deep learning
 ---

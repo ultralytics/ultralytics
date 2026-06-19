@@ -1,5 +1,5 @@
 ---
-title: Predict API Reference
+title: YOLO OBB Predict API
 description: Learn how to use the Ultralytics YOLO OBBPredictor for oriented bounding box predictions. Enhance your object detection models with ease.
 keywords: Ultralytics, YOLO, OBBPredictor, oriented bounding box, object detection, AI, machine learning, PyTorch
 ---

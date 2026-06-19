@@ -1,5 +1,5 @@
 ---
-title: Comet API Reference
+title: Utils Callbacks Comet API
 description: Explore the integration of Comet callbacks in Ultralytics YOLO, enabling advanced logging and monitoring for your machine learning experiments.
 keywords: Ultralytics, YOLO, Comet, callbacks, logging, machine learning, monitoring, integration
 ---

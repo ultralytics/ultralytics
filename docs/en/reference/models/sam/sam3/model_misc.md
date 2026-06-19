@@ -1,5 +1,5 @@
 ---
-title: Model Misc API Reference
+title: SAM SAM3 Model Misc API
 description: Explore the ultralytics.models.sam.sam3.model_misc module with helper layers and utilities used in SAM3 model components.
 keywords: Ultralytics, SAM3, SAM, transformer, layers, utilities, deep learning, Python
 ---

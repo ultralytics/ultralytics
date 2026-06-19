@@ -1,5 +1,5 @@
 ---
-title: Train API Reference
+title: YOLO World Train API
 description: Learn how to train a World Model with Ultralytics YOLO using advanced techniques and customizable options for optimal performance.
 keywords: Ultralytics, YOLO, World Model, training, deep learning, computer vision, AI, machine learning, tutorial
 ---

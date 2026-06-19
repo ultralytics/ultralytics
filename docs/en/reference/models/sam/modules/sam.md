@@ -1,5 +1,5 @@
 ---
-title: Sam API Reference
+title: SAM Modules SAM API
 description: Discover the Ultralytics SAM and SAM 2 module for object segmentation. Learn about its components, such as image encoders and mask decoders, in this comprehensive guide.
 keywords: Ultralytics, SAM Module, SAM 2 Module, object segmentation, image encoder, mask decoder, prompt encoder, AI, machine learning
 ---

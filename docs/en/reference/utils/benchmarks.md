@@ -1,5 +1,5 @@
 ---
-title: Benchmarks API Reference
+title: Utils Benchmarks API Reference
 description: Explore YOLO model benchmarking for speed and accuracy with formats like PyTorch, ONNX, TensorRT, and more. Detailed profiling & usage guides.
 keywords: YOLO, model benchmarking, ONNX, TensorRT, PyTorch, TensorFlow, CoreML, profiling, Ultralytics, model performance
 ---

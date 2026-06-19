@@ -1,5 +1,5 @@
 ---
-title: Predict API Reference
+title: YOLO Pose Predict API
 description: Learn about the PosePredictor class for YOLO model predictions on pose data. Get setup instructions, example usage, and implementation details.
 keywords: YOLO, Pose Prediction, Ultralytics, PosePredictor, YOLOv8, Machine Learning, Deep Learning, Python, AI Models
 ---

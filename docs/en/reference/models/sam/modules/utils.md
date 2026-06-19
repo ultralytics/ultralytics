@@ -1,5 +1,5 @@
 ---
-title: Utils API Reference
+title: SAM Modules Utils API
 description: Explore the detailed API reference for Ultralytics SAM and SAM 2 models.
 keywords: Ultralytics, SAM, SAM 2, API Reference, models, window partition, data processing, YOLO
 ---

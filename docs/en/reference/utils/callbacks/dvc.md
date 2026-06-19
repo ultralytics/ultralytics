@@ -1,5 +1,5 @@
 ---
-title: Dvc API Reference
+title: Utils Callbacks DVC API
 description: Learn to integrate DVCLive with Ultralytics for enhanced logging during training. Step-by-step methods for setting up and optimizing DVC callbacks.
 keywords: Ultralytics, DVC, DVCLive, machine learning, logging, training, callbacks, integration
 ---

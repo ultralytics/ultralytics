@@ -1,5 +1,5 @@
 ---
-title: Vitdet API Reference
+title: SAM SAM3 Vitdet API
 description: Explore the ultralytics.models.sam.sam3.vitdet module for ViTDet building blocks used as vision backbones in SAM3.
 keywords: Ultralytics, SAM3, ViTDet, vision transformer, backbone, attention, deep learning, Python
 ---

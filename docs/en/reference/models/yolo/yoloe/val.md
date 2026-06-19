@@ -1,5 +1,5 @@
 ---
-title: Val API Reference
+title: YOLO YOLOE Val API
 description: Documentation for YOLOE validator classes in Ultralytics, supporting both text and visual prompt embeddings for object detection and segmentation models.
 keywords: YOLOE, validation, object detection, segmentation, visual prompts, text prompts, embeddings, Ultralytics, YOLOEDetectValidator, YOLOESegValidator, deep learning
 ---

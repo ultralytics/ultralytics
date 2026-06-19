@@ -1,5 +1,5 @@
 ---
-title: Predict API Reference
+title: YOLO Classify Predict API
 description: Learn about the ClassificationPredictor class for YOLO models at Ultralytics. Get details on initialization, preprocessing, and postprocessing for classification tasks.
 keywords: YOLO, ClassificationPredictor, Ultralytics, model prediction, preprocess, postprocess, deep learning, machine learning
 ---

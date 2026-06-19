@@ -1,5 +1,5 @@
 ---
-title: Object Counter API Reference
+title: Solutions Object Counter API Reference
 description: Explore the Ultralytics Object Counter for real-time video streams. Learn about initializing parameters, tracking objects, and more.
 keywords: Ultralytics, Object Counter, Real-time Tracking, Video Stream, Python, Object Detection
 ---

@@ -1,5 +1,5 @@
 ---
-title: Predict API Reference
+title: YOLO Semantic Predict API
 description: Reference for YOLO semantic segmentation predictor. Learn about the SemanticSegmentationPredictor class and its inference methods.
 keywords: Ultralytics, semantic segmentation, predictor, inference, YOLO, semantic, predict
 ---

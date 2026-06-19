@@ -1,5 +1,5 @@
 ---
-title: Triton API Reference
+title: NN Backends Triton API
 description: Explore TritonBackend for NVIDIA Triton Inference Server, enabling scalable cloud and edge deployment of YOLO models.
 keywords: Ultralytics, TritonBackend, Triton Inference Server, NVIDIA Triton, cloud inference, model serving, scalable deployment
 ---

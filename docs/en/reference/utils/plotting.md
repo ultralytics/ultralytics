@@ -1,5 +1,5 @@
 ---
-title: Plotting API Reference
+title: Utils Plotting API Reference
 description: Explore detailed functionalities of Ultralytics plotting utilities for data visualizations and custom annotations in ML projects.
 keywords: ultralytics, plotting, utilities, documentation, data visualization, annotations, python, ML tools
 ---

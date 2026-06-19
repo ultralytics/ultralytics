@@ -1,5 +1,5 @@
 ---
-title: Predict API Reference
+title: Models RT-DETR Predict API
 description: Access the complete reference for the RTDETRPredictor class in Ultralytics. Learn about its attributes, methods, and example usage for real-time object detection.
 keywords: RTDETRPredictor, Ultralytics, Real-Time Detection Transformer, object detection, Vision Transformers, documentation, RT-DETR, Python class
 ---

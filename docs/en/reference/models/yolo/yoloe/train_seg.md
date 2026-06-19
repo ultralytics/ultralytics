@@ -1,5 +1,5 @@
 ---
-title: Train Seg API Reference
+title: YOLO YOLOE Train Seg API
 description: Documentation for YOLOE segmentation trainer classes in Ultralytics, supporting different training approaches including standard training, linear probing, training from scratch, and visual prompt training.
 keywords: YOLOE, segmentation, trainers, YOLOESegTrainer, YOLOEPESegTrainer, YOLOESegTrainerFromScratch, YOLOESegVPTrainer, linear probing, visual prompts, Ultralytics, deep learning
 ---

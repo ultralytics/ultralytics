@@ -65,6 +65,13 @@ class BboxMaskRenderer(nn.Module):
         self.register_buffer("grid_x", xs + 0.5, persistent=False)
         self.register_buffer("grid_y", ys + 0.5, persistent=False)
 
+    def __setstate__(self, state):
+        """Backfill sigma_lo/sigma_hi for checkpoints pickled before the [lo, hi] range knob."""
+        super().__setstate__(state)
+        if not hasattr(self, "sigma_lo"):
+            sf = float(getattr(self, "sigma_factor", 0.25))
+            self.sigma_lo = self.sigma_hi = sf
+
     def forward(self, bboxes: torch.Tensor, batch_idx: torch.Tensor, batch_size: int) -> torch.Tensor:
         H = self.mask_size
         device = self.grid_x.device

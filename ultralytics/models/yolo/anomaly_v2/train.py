@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import math
 import random
-from copy import copy
+from copy import copy, deepcopy
 from pathlib import Path
 
 import torch
@@ -29,6 +29,8 @@ from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import YOLOAnomalyV2Model
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, TQDM
 from ultralytics.utils.torch_utils import unwrap_model
+
+from .val import resolve_mvtec_root, run_mvtec_ood_eval
 
 
 class AnomalyV2Trainer(DetectionTrainer):
@@ -41,6 +43,7 @@ class AnomalyV2Trainer(DetectionTrainer):
         self.add_callback("on_train_batch_end", AnomalyV2Trainer._mb_step)
         self.add_callback("on_train_start", AnomalyV2Trainer._cached_draw_prior)
         self.add_callback("on_train_batch_end", AnomalyV2Trainer._cached_draw_prior)
+        self.add_callback("on_fit_epoch_end", AnomalyV2Trainer._mvtec_ood_eval)
         self._mb_batch = None  # stashed preprocessed batch for the batch-end enqueue
         self._mb_patches_per_step = 0
 
@@ -151,6 +154,43 @@ class AnomalyV2Trainer(DetectionTrainer):
             self.test_loader, save_dir=self.save_dir, args=copy(self.args),
             _callbacks=self.callbacks, prior_mode=None,  # legacy GT bboxes -> renderer
         )
+
+    @staticmethod
+    def _mvtec_ood_eval(trainer: "AnomalyV2Trainer") -> None:
+        """on_fit_epoch_end: periodic MVTec cross-dataset OOD eval (3-mode), rank 0 only.
+
+        Configured via the model YAML ``anomaly_v2`` block: ``mvtec_ood_val_freq`` (every N epochs;
+        default 3, set 0 to disable), plus optional ``mvtec_ood_root`` / ``mvtec_ood_categories`` /
+        ``mvtec_ood_imgsz`` / ``mvtec_ood_batch`` / ``mvtec_ood_bank_size``. Runs on a deepcopy of the
+        EMA so val-time fuse()/bank-build never corrupt the live EMA (which would break the next
+        ``ema.update()`` and bloat the checkpoint). No-op if the MVTec dataset root is not found.
+        """
+        if RANK not in (-1, 0) or trainer.ema is None:
+            return
+        v2_cfg = getattr(unwrap_model(trainer.model), "yaml", {}).get("anomaly_v2", {})
+        freq = int(v2_cfg.get("mvtec_ood_val_freq", 3))
+        if freq <= 0 or (trainer.epoch + 1) % freq != 0:
+            return
+        root = resolve_mvtec_root(v2_cfg.get("mvtec_ood_root"))
+        if root is None:
+            LOGGER.warning("MVTec OOD: dataset root not found (set MVTEC_ROOT or anomaly_v2."
+                           "mvtec_ood_root); skipping OOD eval.")
+            return
+        ema_eval = deepcopy(trainer.ema.ema).eval()
+        try:
+            with torch.no_grad():
+                run_mvtec_ood_eval(
+                    ema_eval, root,
+                    categories=v2_cfg.get("mvtec_ood_categories"),
+                    imgsz=int(v2_cfg.get("mvtec_ood_imgsz", 320)),
+                    batch=int(v2_cfg.get("mvtec_ood_batch", 8)),
+                    bank_size=int(v2_cfg.get("mvtec_ood_bank_size", 10000)),
+                    device=trainer.device, save_dir=trainer.save_dir, epoch=trainer.epoch + 1,
+                )
+        except Exception as e:  # never let OOD eval take down a training run
+            LOGGER.warning(f"MVTec OOD eval failed at epoch {trainer.epoch + 1}: {type(e).__name__}: {e}")
+        finally:
+            del ema_eval
 
     # ------------------------------------------------------------------
     # MoCo-style FIFO-queue prior (mb_queue_capacity > 0)

@@ -500,7 +500,7 @@ ensemble_scheduling {
 
 ### Step 4: Send Inference Requests
 
-!!! info "Why `tritonclient` instead of `YOLO(\"http://...\")`?"
+!!! info "Why `tritonclient` instead of `YOLO('http://...')`?"
 
     Ultralytics has [built-in Triton support](triton-inference-server.md#running-inference) that handles pre/postprocessing automatically. However, it won't work with the DALI ensemble because `YOLO()` sends a preprocessed float32 tensor while the ensemble expects raw JPEG bytes. Use `tritonclient` directly for DALI ensembles, and the [built-in integration](triton-inference-server.md) for standard deployments without DALI.
 

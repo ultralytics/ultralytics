@@ -97,7 +97,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
 Here's a table with the `InstanceSegmentation` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "region"]) }}
+{{ param_table(["model"]) }}
 
 You can also take advantage of `track` arguments within the `InstanceSegmentation` solution:
 

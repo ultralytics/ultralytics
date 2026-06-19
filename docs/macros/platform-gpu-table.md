@@ -8,10 +8,12 @@
 | A40          | Ampere     | 48 GB  | $0.44     | Larger batch sizes         |
 | RTX 3090     | Ampere     | 24 GB  | $0.46     | General training           |
 | RTX A6000    | Ampere     | 48 GB  | $0.49     | Large models               |
+| RTX PRO 4000 | Blackwell  | 24 GB  | $0.57     | Budget Blackwell           |
 | RTX PRO 4500 | Blackwell  | 32 GB  | $0.64     | Great price/performance    |
 | RTX 4090     | Ada        | 24 GB  | $0.69     | Best price/performance     |
 | RTX 6000 Ada | Ada        | 48 GB  | $0.77     | Large batch training       |
 | L40S         | Ada        | 48 GB  | $0.86     | Large batch training       |
+| RTX PRO 5000 | Blackwell  | 48 GB  | $0.96     | Large batch training       |
 | RTX 5090     | Blackwell  | 32 GB  | $0.99     | Latest consumer generation |
 | L40          | Ada        | 48 GB  | $0.99     | Large models               |
 | A100 PCIe    | Ampere     | 80 GB  | $1.39     | Production training        |

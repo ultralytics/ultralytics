@@ -51,6 +51,8 @@ def main(onnx_model: str, input_image: str) -> list[dict[str, Any]]:
 
     # Read the input image
     original_image: np.ndarray = cv2.imread(input_image)
+    if original_image is None:
+        raise FileNotFoundError(f"Image Not Found {input_image}")
     [height, width, _] = original_image.shape
 
     # Prepare a square image for inference

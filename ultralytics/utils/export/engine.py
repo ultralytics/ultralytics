@@ -148,6 +148,7 @@ def modelopt_quantize_onnx(
             # cards (e.g. RTX 2000 Ada) additionally register NvTensorRTRTXExecutionProvider, and enabling both TRT
             # EPs in one session aborts calibration ("Cannot enable both 'TensorrtExecutionProvider' and
             # 'NvTensorRTRTXExecutionProvider'"). Calibration scales are effectively EP-independent, so CUDA matches.
+            # `cuda:0` is the user-selected GPU: select_device() masks it via CUDA_VISIBLE_DEVICES to logical index 0.
             calibration_eps=["cuda:0", "cpu"],
             output_path=out_file,
             **kwargs,

@@ -139,17 +139,22 @@ def modelopt_quantize_onnx(
         calib = torch.cat(images).to(torch.float32) / 255.0
         LOGGER.info(f"{prefix} quantizing ONNX to INT8 with ModelOpt using {calib.shape[0]} calibration images...")
         kwargs = {"calibration_shapes": f"{input_name}:{'x'.join(str(d) for d in shape)}"} if dynamic else {}
+        # Select calibration execution providers. ModelOpt's default also enables the TensorRT EP, but RTX cards (e.g.
+        # RTX 2000 Ada) additionally register NvTensorRTRTXExecutionProvider and abort when both TRT EPs are enabled in
+        # one session ("Cannot enable both 'TensorrtExecutionProvider' and 'NvTensorRTRTXExecutionProvider'"). On those
+        # cards the CUDA EP can also crash on a cuDNN ABI mismatch (ModelOpt pins onnxruntime-gpu to a build whose cuDNN
+        # differs from the installed torch's), so calibrate them on CPU. Calibration scales are EP-independent, so this
+        # does not change the result. Other GPUs use CUDA (CPU fallback); `cuda:0` is the user-selected device —
+        # select_device() masks it via CUDA_VISIBLE_DEVICES to logical index 0.
+        import onnxruntime
+
+        on_rtx = "NvTensorRTRTXExecutionProvider" in onnxruntime.get_available_providers()
         quantize(
             onnx_file,
             quantize_mode="int8",
             calibration_data={input_name: calib.cpu().numpy()},
             calibration_method="max",
-            # Calibrate on CUDA (CPU fallback), not ModelOpt's default that also includes the TensorRT EP: some RTX
-            # cards (e.g. RTX 2000 Ada) additionally register NvTensorRTRTXExecutionProvider, and enabling both TRT
-            # EPs in one session aborts calibration ("Cannot enable both 'TensorrtExecutionProvider' and
-            # 'NvTensorRTRTXExecutionProvider'"). Calibration scales are effectively EP-independent, so CUDA matches.
-            # `cuda:0` is the user-selected GPU: select_device() masks it via CUDA_VISIBLE_DEVICES to logical index 0.
-            calibration_eps=["cuda:0", "cpu"],
+            calibration_eps=["cpu"] if on_rtx else ["cuda:0", "cpu"],
             output_path=out_file,
             **kwargs,
         )

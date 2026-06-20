@@ -94,7 +94,7 @@ The YOLO-World models are easy to integrate into your Python applications. Ultra
 
 !!! tip
 
-    We strongly recommend to use `yolov8-worldv2` model for custom training, because it supports deterministic training and also easy to export other formats i.e onnx/tensorrt.
+    We strongly recommend using `yolov8-worldv2` for custom training because it supports deterministic training and exports more easily to formats such as ONNX and TensorRT.
 
 [Object detection](https://www.ultralytics.com/glossary/object-detection) is straightforward with the `train` method, as illustrated below:
 
@@ -311,7 +311,7 @@ This approach provides a powerful means of customizing state-of-the-art [object 
 
 !!! note
 
-    `WorldTrainerFromScratch` is highly customized to allow training yolo-world models on both detection datasets and grounding datasets simultaneously. More details please checkout [ultralytics.model.yolo.world.train_world.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/world/train_world.py).
+    `WorldTrainerFromScratch` is highly customized to allow training yolo-world models on both detection datasets and grounding datasets simultaneously. For more details, see [ultralytics.model.yolo.world.train_world.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/world/train_world.py).
 
 !!! example
 

@@ -396,7 +396,7 @@ if __name__ == "__main__":
     organize_files(directory)
 ```
 
-For more details, refer to our [data preprocessing guide](../guides/preprocessing_annotated_data.md).
+For more details, refer to our [data preprocessing guide](../guides/preprocessing-annotated-data.md).
 
 ### What are the prerequisites for training a YOLO26 model on IBM Watsonx?
 

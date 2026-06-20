@@ -11,6 +11,17 @@ model_name: yolo26n-sem
 
 [Semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) assigns a class label to every pixel in an image, producing a dense class map that covers the entire scene. Unlike [instance segmentation](segment.md), which separates individual objects, semantic segmentation groups all pixels of the same class together regardless of how many distinct objects are present.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/zF2T17ppKIE"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Train Ultralytics YOLO26 Semantic Segmentation Model on Custom Dataset | Ultralytics Platform
+</p>
+
 The output of a semantic segmentation model is a single height-by-width class map where each pixel value corresponds to a predicted class ID. This makes semantic segmentation ideal for scene parsing tasks such as autonomous driving, medical imaging, and land-cover mapping.
 
 !!! tip
